@@ -5,7 +5,7 @@
 // (محكوم بالدور — RBAC: المُشاهِد لا يُسجّل). حالات موحّدة (StateViews). لا تلفيق:
 // لا قراءات مُخترعة — عند الخطأ/الفراغ تُعرض حالة صادقة. 503 عند تعطيل قاعدة البيانات.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Cpu, Wifi, WifiOff, Plus, RefreshCw, Loader2, Activity,
   Droplets, CloudSun, Gauge, Camera, ToggleRight, HardDrive,
@@ -21,6 +21,7 @@ import { Card, Button, Pill, SectionLabel } from '../components/ds/atoms';
 import { Input, Select } from '../components/ds/forms';
 import { DataTable, type Column } from '../components/ds/table';
 import { T } from '../components/ds/tokens';
+import { useSelectedField } from '../hooks/useSelectedField';
 
 // تكوين الأنواع: تسمية عربيّة + أيقونة + لون لكل نوع جهاز مدعوم.
 const TYPE_CONFIG: Record<DeviceType, { label: string; icon: typeof Cpu; color: string }> = {
@@ -207,6 +208,10 @@ function RegisterDeviceForm() {
   const [name, setName] = useState('');
   const [type, setType] = useState<DeviceType>('soil_moisture');
   const [fieldId, setFieldId] = useState('');
+  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  useEffect(() => {
+    if (!fieldId && activeFieldId) setFieldId(activeFieldId);
+  }, [activeFieldId, fieldId]);
   const [firmware, setFirmware] = useState('');
 
   const submit = async (e: React.FormEvent) => {

@@ -27,7 +27,7 @@ import {
   useAlerts, useFleetHealth, useWeatherForecast,
   useValves, useSchedules, useDecisionRecords, useOperationsSummary,
 } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import type { AlertRecord, OperationsSummary } from '../services/api';
 
 // تحديث دوريّ معقول لعرض جداريّ مستمرّ — متباعد كي لا يُثقِل البوّابة.
@@ -119,7 +119,7 @@ function BigStat({ value, label, color = '#e2e8f0' }: { value: string; label: st
 
 // ════════════════════ بلاطة الخريطة ════════════════════
 function MapTile() {
-  const { options: fields, isLoading, isError, refetch } = useFieldOptions();
+  const { options: fields, isLoading, isError, refetch, fieldId: activeFieldId, setFieldId } = useSelectedField();
   const points = useMemo(() => collectFieldBoundsPoints(fields), [fields]);
   const center = useMemo<[number, number]>(() => {
     if (!points.length) return YEMEN_CENTER;
@@ -140,10 +140,14 @@ function MapTile() {
               {fields.map((f) => {
                 const poly = geomToPolygon(f.geometry);
                 const label = `${f.name}${f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}`;
+                const isActive = f.id === activeFieldId;
+                const stroke = isActive ? '#facc15' : FIELD_COLOR;
+                const fill = isActive ? '#facc15' : FIELD_COLOR;
                 if (poly && poly.length >= 3) {
                   return (
                     <Polygon key={f.id} positions={poly}
-                      pathOptions={{ color: FIELD_COLOR, weight: 1.5, fillOpacity: 0.18 }}>
+                      eventHandlers={{ click: () => setFieldId(f.id) }}
+                      pathOptions={{ color: stroke, weight: isActive ? 3 : 1.5, fillOpacity: isActive ? 0.28 : 0.18 }}>
                       <Tooltip>{label}</Tooltip>
                     </Polygon>
                   );
@@ -151,8 +155,9 @@ function MapTile() {
                 const pt = fieldRepresentativePoint(f);
                 if (!pt) return null;
                 return (
-                  <CircleMarker key={f.id} center={pt} radius={6}
-                    pathOptions={{ color: FIELD_COLOR, fillColor: FIELD_COLOR, fillOpacity: 0.85, weight: 1.5 }}>
+                  <CircleMarker key={f.id} center={pt} radius={isActive ? 8 : 6}
+                    eventHandlers={{ click: () => setFieldId(f.id) }}
+                    pathOptions={{ color: stroke, fillColor: fill, fillOpacity: 0.85, weight: isActive ? 2.5 : 1.5 }}>
                     <Tooltip>{label}</Tooltip>
                   </CircleMarker>
                 );

@@ -140,6 +140,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'decision-studio',     path: '/advanced/decision-studio',     label: 'استوديو القرار', icon: FlaskConical, maturity: 'beta' },
       { id: 'decision-confidence', path: '/advanced/decision-confidence', label: 'ثقة القرار الموحَّدة', icon: Gauge, maturity: 'beta' },
+      { id: 'decision-runtime',    path: '/advanced/decision-runtime',    label: 'تشغيل القرار (Dispatch)', icon: Gauge, maturity: 'beta' },
       { id: 'execution-feedback',  path: '/advanced/execution-feedback',  label: 'رصد حلقة التنفيذ', icon: Repeat, maturity: 'beta' },
       { id: 'agronomic-timeline',  path: '/advanced/agronomic-timeline',  label: 'الخطّ الزمنيّ الأغرونوميّ', icon: GitCommitHorizontal, maturity: 'beta' },
       { id: 'learning-dashboard',  path: '/advanced/learning',            label: 'لوحة رصد التعلّم', icon: BarChart3, maturity: 'beta' },
@@ -180,6 +181,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'master-data', path: '/admin/master-data', label: 'البيانات المرجعيّة', icon: Database, maturity: 'stable' },
       { id: 'documents',   path: '/admin/documents',   label: 'الوثائق', icon: FolderArchive, maturity: 'stable' },
       { id: 'governance',  path: '/admin/governance',  label: 'الحوكمة والتدقيق', icon: ShieldCheck, maturity: 'stable' },
+      { id: 'admin-runtime', path: '/admin/runtime',   label: 'تشغيل المنصّة (Runtime)', icon: Wrench, maturity: 'beta' },
       { id: 'settings',    path: '/settings',          label: 'الإعدادات', icon: Settings, maturity: 'stable' },
     ],
   },

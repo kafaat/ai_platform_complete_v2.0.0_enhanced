@@ -8,7 +8,7 @@ import { useState, type CSSProperties } from 'react';
 import { FixedSizeList, type ListChildComponentProps } from 'react-window';
 import { CheckCircle, AlertTriangle, AlertOctagon, Info, Check, X, Zap, Play } from 'lucide-react';
 import { useAlerts, useAcknowledgeAlert, useEvaluateAlerts, useRunAllAlerts } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import type { AlertRecord } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -70,21 +70,20 @@ export function AlertSystemPage() {
   const ackMut = useAcknowledgeAlert();
   const evalMut = useEvaluateAlerts();
   const runAllMut = useRunAllAlerts();
-  const { options: fieldOptions } = useFieldOptions();
+  const { options: fieldOptions, fieldId: activeFieldId, setFieldId: setActiveFieldId } = useSelectedField();
 
   const [filter, setFilter] = useState<string>('all');
   const [showAcknowledged, setShowAcknowledged] = useState(false);
   const [ackIds, setAckIds] = useState<Set<string>>(new Set());
   const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
-  const [evalFieldId, setEvalFieldId] = useState<string>('');
   const [evalNote, setEvalNote] = useState<string>('');
   const [runAllNote, setRunAllNote] = useState<string>('');
 
-  // قائمة الحقول لمنتقي التقييم — مُطبَّعة عبر useFieldOptions (مصدر واحد).
+  // قائمة الحقول لمنتقي التقييم — مُطبَّعة عبر useSelectedField (FieldView source).
   const runEvaluate = () => {
-    if (!mutateAllowed || !evalFieldId || evalMut.isPending) return;
+    if (!mutateAllowed || !activeFieldId || evalMut.isPending) return;
     setEvalNote('');
-    evalMut.mutate(evalFieldId, {
+    evalMut.mutate(activeFieldId, {
       onSuccess: (res) => {
         const c = res.created.length;
         const s = res.skipped_existing;
@@ -227,8 +226,8 @@ export function AlertSystemPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <select
-              value={evalFieldId}
-              onChange={e => { setEvalFieldId(e.target.value); setEvalNote(''); }}
+              value={activeFieldId}
+              onChange={e => { setActiveFieldId(e.target.value || null); setEvalNote(''); }}
               className="flex-1 min-w-[180px] rounded-lg px-3 py-2 text-sm text-slate-200 bg-slate-800 border border-slate-700"
             >
               <option value="">— اختر حقلاً —</option>
@@ -236,7 +235,7 @@ export function AlertSystemPage() {
             </select>
             <button
               onClick={runEvaluate}
-              disabled={!evalFieldId || evalMut.isPending}
+              disabled={!activeFieldId || evalMut.isPending}
               className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold text-slate-900 bg-amber-400 hover:bg-amber-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Zap className="w-4 h-4" />

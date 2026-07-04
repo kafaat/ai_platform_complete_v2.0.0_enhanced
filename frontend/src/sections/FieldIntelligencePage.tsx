@@ -4,10 +4,11 @@
 // الحقائق التشغيليّة + الثقة + قرار السياسة + التناقضات + الإشارات الناقصة +
 // التنبيهات الاستباقيّة + أثر المحاكاة. صدق: المصادر المتعذّرة تُعلَن (لا اختراع).
 // ════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Activity, Search, ChevronDown, ChevronUp, AlertTriangle, Map, FlaskConical, ListChecks, Bot } from 'lucide-react';
 import { useFieldIntelligence } from '../hooks/useApi';
 import { ErrorState } from '../components/StateViews';
+import { useSelectedField } from '../hooks/useSelectedField';
 
 function asText(v: unknown): string {
   if (v == null) return '';
@@ -56,6 +57,10 @@ function KV({ data }: { data: Record<string, unknown> }) {
 
 export default function FieldIntelligencePage() {
   const [fieldId, setFieldId] = useState('');
+  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  useEffect(() => {
+    if (!fieldId && activeFieldId) setFieldId(activeFieldId);
+  }, [activeFieldId, fieldId]);
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
   const [crop, setCrop] = useState('');

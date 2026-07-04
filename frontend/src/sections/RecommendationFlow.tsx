@@ -17,8 +17,7 @@ import {
   Sprout, Droplets, FlaskConical, Bug, TrendingUp, Calendar, CheckCircle2, AlertTriangle, RotateCcw,
 } from 'lucide-react';
 import { useFieldRecommendations, useCreateActivity } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
-import { useFieldContextStore } from '../hooks/useFieldContext';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import type { ActivityType, FieldRecommendation } from '../services/api';
@@ -60,17 +59,12 @@ const CTA = (props: { children: ReactNode; onClick?: () => void; disabled?: bool
 
 export default function RecommendationFlow() {
   const [step, setStep] = useState(1);
-  // المعالج يحتفظ بحالة fieldId محليّة (لتدفّقه وإعادة تعيينه)، لكنّه يُهيّأ من
-  // «الحقل النشط» المشترك ويكتب إليه عند الاختيار (pickField) فيتبع المستخدم عبر
-  // الشاشات؛ reset يمسح المحليّ فقط (لا يطمس الاختيار العالميّ).
-  const setSelectedField = useFieldContextStore((s) => s.setSelectedField);
-  const [fieldId, setFieldId] = useState(() => useFieldContextStore.getState().selectedFieldId ?? '');
+  // الحقل المختار من FieldView المشترك؛ المعالج لا يحتفظ بنسخة محلية متباعدة.
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, fieldId, setFieldId } = useSelectedField();
   const [recIdx, setRecIdx] = useState<number | null>(null);
   const [activityType, setActivityType] = useState<ActivityType>('scouting');
   const [scheduledFor, setScheduledFor] = useState('');
 
-  const fieldsQ = useFieldOptions();
-  const fields = fieldsQ.options;
 
   const recsQ = useFieldRecommendations(fieldId || undefined);
   const recs: FieldRecommendation[] = Array.isArray(recsQ.data?.recommendations) ? recsQ.data.recommendations : [];
@@ -85,7 +79,6 @@ export default function RecommendationFlow() {
 
   function pickField(id: string) {
     setFieldId(id);
-    setSelectedField(id); // انشر الاختيار للحقل النشط المشترك (يتبع باقي الشاشات)
     setRecIdx(null);
     createQ.reset();
     setStep(2);
@@ -107,7 +100,7 @@ export default function RecommendationFlow() {
   }
   function reset() {
     createQ.reset();
-    setStep(1); setFieldId(''); setRecIdx(null); setActivityType('scouting'); setScheduledFor('');
+    setStep(1); setRecIdx(null); setActivityType('scouting'); setScheduledFor('');
   }
 
   return (
@@ -132,9 +125,9 @@ export default function RecommendationFlow() {
       {step === 1 && (
         <Card pad={14}>
           <SectionLabel>اختر الحقل</SectionLabel>
-          {fieldsQ.isLoading ? (
+          {fieldsLoading ? (
             <div style={{ color: T.muted, fontSize: 13, padding: '8px 0' }}>جارٍ تحميل الحقول…</div>
-          ) : fieldsQ.isError ? (
+          ) : fieldsError ? (
             <div style={{ color: T.danger, fontSize: 13, padding: '8px 0' }}>تعذّر تحميل الحقول.</div>
           ) : fields.length === 0 ? (
             <div style={{ color: T.muted, fontSize: 13, padding: '8px 0' }}>لا حقول مُسجّلة.</div>

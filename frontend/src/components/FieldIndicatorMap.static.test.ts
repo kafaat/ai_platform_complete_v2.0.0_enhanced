@@ -7,7 +7,7 @@ const SRC = readFileSync(resolve(__dirname, 'FieldIndicatorMap.tsx'), 'utf8');
 describe('FieldIndicatorMap raster tile contract', () => {
   it('passes tenant id in TileJSON query and tile image URL', () => {
     expect(SRC).toContain('getTenantId()');
-    expect(SRC).toContain('fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId)');
+    expect(SRC).toContain('fieldIndicatorTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion)');
     expect(SRC).toContain('...(tenantId ? { tid: tenantId } : {})');
   });
 

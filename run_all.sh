@@ -142,7 +142,7 @@ print_summary() {
     hdr "SAHOOL v9 جاهز ✅"
     echo ""
     echo -e "  ${CYAN}الواجهة:${NC}   http://localhost:3000 | http://localhost:5173"
-    echo -e "  ${CYAN}الدخول:${NC}    admin@sahool.ye / Admin@2026!"
+    echo -e "  ${CYAN}الدخول:${NC}    admin@sahool.ye / <password from environment or seeded setup>"
     echo ""
     echo -e "  ${CYAN}APIs v8:${NC}   :8120 auth | :8091 indicators | :8090 vegetation"
     echo    "            :8092 weather | :8094 soil"

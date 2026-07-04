@@ -4,12 +4,13 @@
 // تشغيل → يُعلَّق عند الموافقة → موافقة الخبير → يُستأنف فينفّذ. الاستئناف بنفس
 // workflow_id. صدق: لا تنفيذ قبل موافقة معتمَدة (البوّابة من الخادم).
 // ═══════════════════════════════════════════════════════════════
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Bug, PlayCircle, ShieldCheck, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
 import { usePestEscalation, useGuardrailsValidate } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { ErrorState } from '../components/StateViews';
+import { useSelectedField } from '../hooks/useSelectedField';
 
 const RISK_COLOR: Record<string, string> = {
   LOW: '#16a34a', MEDIUM: '#f59e0b', HIGH: '#f97316', CRITICAL: '#dc2626',
@@ -34,6 +35,10 @@ export default function PestEscalationPage() {
   const [pestType, setPestType] = useState(PESTS[0]);
   const [severity, setSeverity] = useState(0.7);
   const [fieldId, setFieldId] = useState('');
+  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  useEffect(() => {
+    if (!fieldId && activeFieldId) setFieldId(activeFieldId);
+  }, [activeFieldId, fieldId]);
   const [workflowId, setWorkflowId] = useState('');
   const mut = usePestEscalation();
   const guard = useGuardrailsValidate();
@@ -117,8 +122,8 @@ export default function PestEscalationPage() {
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">معرّف الحقل (اختياريّ)</span>
-            <input value={fieldId} onChange={e => setFieldId(e.target.value)} placeholder="field_06"
+            <span className="text-xs text-slate-400">معرّف الحقل (FieldView)</span>
+            <input value={fieldId} onChange={e => setFieldId(e.target.value)} placeholder={activeField?.name ? `${activeField.name} (${activeFieldId})` : 'field_06'}
               className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
           </label>
         </div>

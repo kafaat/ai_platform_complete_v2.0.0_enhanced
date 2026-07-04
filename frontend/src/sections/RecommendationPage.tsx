@@ -8,12 +8,13 @@
 //      الجودة» تُبنى خادميّاً ثمّ يُشغَّل المحرّك. عند نقص البيانات حالة محجوبة.
 // صدق في كلا القسمين: عند الخطأ/نقص البيانات حالة صادقة — لا سيناريو مفبرَك.
 // ════════════════════════════════════════════════════════════
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ClipboardList, Sparkles, ChevronDown, ChevronUp,
   Droplets, FlaskConical, Bug, Wheat, LayoutList,
 } from 'lucide-react';
-import { useFieldRecommendation, useFields, useFieldRecommendations } from '../hooks/useApi';
+import { useFieldRecommendation, useFieldRecommendations } from '../hooks/useApi';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
 import SpeakButton from '../components/SpeakButton';
 import type { FieldRecommendation, FieldRecommendationsResult } from '../services/api';
@@ -180,20 +181,13 @@ function RecCard({ rec }: { rec: FieldRecommendation }) {
 
 export default function RecommendationPage() {
   const [crop, setCrop] = useState(CROPS[0]);
-  const [fieldId, setFieldId] = useState('');
   const [farmId, setFarmId] = useState('');
   const [growthStage, setGrowthStage] = useState('');
   const [showBackend, setShowBackend] = useState(false);
   const mut = useFieldRecommendation();
 
-  // قائمة الحقول لاختيار الحقل (للعمود الموحَّد + ملء معرّف الحقل للمحرّك).
-  const fieldsQ = useFields();
-  const fields = fieldsQ.data?.fields ?? [];
-
-  // اختيار أوّل حقل تلقائيّاً حين تتوفّر القائمة ولم يُختر شيء بعد.
-  useEffect(() => {
-    if (!fieldId && fields.length > 0) setFieldId(asText(fields[0].field_id));
-  }, [fields, fieldId]);
+  // قائمة الحقول والاختيار من FieldView المشترك؛ أي اختيار هنا يتبع باقي الشاشات.
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, fieldId, setFieldId } = useSelectedField();
 
   const submit = () => {
     if (!fieldId.trim()) return;
@@ -234,9 +228,9 @@ export default function RecommendationPage() {
         <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
           <label className="flex flex-col gap-1">
             <span className="text-xs text-slate-400">الحقل</span>
-            {fieldsQ.isLoading ? (
+            {fieldsLoading ? (
               <span className="text-sm text-slate-400">جارٍ تحميل الحقول…</span>
-            ) : fieldsQ.isError ? (
+            ) : fieldsError ? (
               <span className="text-sm text-red-400">تعذّر تحميل قائمة الحقول.</span>
             ) : fields.length === 0 ? (
               <span className="text-sm text-slate-400">لا حقول متاحة — أنشئ حقلاً أوّلاً.</span>
@@ -247,16 +241,11 @@ export default function RecommendationPage() {
                 className="px-3 py-2 rounded-lg text-sm"
                 style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
               >
-                {fields.map((f: Record<string, unknown>) => {
-                  const id = asText(f.field_id);
-                  const name = asText(f.name_ar) || id;
-                  const fc = asText(f.crop);
-                  return (
-                    <option key={id} value={id}>
-                      {name}{fc ? ` — ${fc}` : ''}
-                    </option>
-                  );
-                })}
+                {fields.map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.name}{f.crop && f.crop !== '—' ? ` — ${f.crop}` : ''}
+                  </option>
+                ))}
               </select>
             )}
           </label>

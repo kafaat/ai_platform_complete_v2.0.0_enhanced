@@ -15,14 +15,14 @@ vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children?: ReactNode }) => <div data-testid="map">{children}</div>,
   TileLayer: () => <div data-testid="tile" />,
   FeatureGroup: ({ children }: { children?: ReactNode }) => <div data-testid="fg">{children}</div>,
-  useMap: () => ({ invalidateSize: vi.fn() }),
+  useMap: () => ({ invalidateSize: vi.fn(), on: vi.fn(), off: vi.fn(), getContainer: vi.fn(() => document.createElement('div')) }),
   useMapEvents: () => null,
   CircleMarker: () => <div data-testid="pivot-center-marker" />,
   Polyline: () => <div data-testid="pivot-radius-line" />,
 }));
 vi.mock('./maphub/DrawControl', () => ({ default: () => <div data-testid="draw" /> }));
 vi.mock('../lib/leafletSetup', () => ({}));
-vi.mock('leaflet', () => ({ default: { latLng: (a: number, b: number) => ({ lat: a, lng: b }) } }));
+vi.mock('leaflet', () => ({ default: { latLng: (a: number, b: number) => ({ lat: a, lng: b }), divIcon: vi.fn((opts) => opts), marker: vi.fn(() => ({ addTo: vi.fn(), remove: vi.fn(), on: vi.fn(), setLatLng: vi.fn(), getLatLng: vi.fn(() => ({ lat: 0, lng: 0 })) })) } }));
 vi.mock('shpjs', () => ({ default: vi.fn() }));
 
 import AddFieldWithMap from './AddFieldWithMap';
@@ -55,8 +55,8 @@ describe('AddFieldWithMap — مساحة عمل GIS (de-modal)', () => {
     render(<AddFieldWithMap onSave={noop} onImport={noop} onCancel={() => {}} />);
     expect(screen.getByText(/التقاط للحدود/)).toBeInTheDocument();
     expect(screen.getByText(/إنشاء دائرة/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /حدّد المركز/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /نقطة على المحيط/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /دائرة \(مركز \+ نصف قطر\)/ })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/مثال: 250/)).toBeInTheDocument();
   });
 
   it('تبويبا رسم/استيراد يظهران حين تُوفَّر onImport (وإلّا فلا)', () => {

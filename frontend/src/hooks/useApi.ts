@@ -700,6 +700,575 @@ export function useSoilNRecommendation(fieldId: string, targetYield = 3.5) {
   });
 }
 
+// ── Phenology / Season (ربط حيّ بنقاط المنصّة؛ لا كتابة، اقتراحات فقط) ──
+export interface PhenologyStage {
+  stage: string; name_ar: string; day_start: number; day_end: number;
+  start_date?: string; end_date?: string; kc?: number | null; key_action_ar?: string | null;
+  status: 'past' | 'current' | 'upcoming';
+}
+export interface FieldPhenology {
+  available: boolean; reason_ar?: string;
+  crop?: string; crop_id?: string; sowing_date?: string; days_after_sowing?: number;
+  current_stage?: { stage?: string; name_ar?: string; key_action_ar?: string | null } | null;
+  current_stage_kc?: number | null;
+  timeline?: PhenologyStage[];
+}
+export interface StageActionSuggestion { stage?: string; stage_name_ar?: string; action_ar?: string }
+export interface FieldStageActions {
+  available: boolean; reason_ar?: string;
+  crop?: string; days_after_sowing?: number;
+  current_stage?: string; current_stage_name_ar?: string;
+  suggestions?: StageActionSuggestion[]; note_ar?: string;
+}
+
+/** مراحل نموّ الموسم النشط للحقل (field:view). available=false بسبب صريح عند غياب البذار/المحصول. */
+export function useFieldPhenology(fieldId: string | null | undefined): UseQueryResult<FieldPhenology> {
+  return useQuery<FieldPhenology>({
+    queryKey: ['phenology', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/phenology`).then(r => r.data),
+    staleTime:30 * 60_000,
+    enabled:  !!fieldId,
+    retry:    false,
+  });
+}
+
+/** اقتراحات إجراء الطور الحاليّ (إرشاديّة فقط — لا تُنشَأ مهامّ). */
+export function useFieldStageActions(fieldId: string | null | undefined): UseQueryResult<FieldStageActions> {
+  return useQuery<FieldStageActions>({
+    queryKey: ['stage-actions', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/stage-actions`).then(r => r.data),
+    staleTime:30 * 60_000,
+    enabled:  !!fieldId,
+    retry:    false,
+  });
+}
+
+// ── Water efficiency / ledger (Outcome KPI حيّ من دفتر المياه) ──
+export interface FieldWaterEfficiency {
+  field_id: string;
+  efficiency: {
+    status: string; // ok | needs_data | needs_irrigation_data
+    days_counted?: number;
+    etc_mm_total?: number;
+    irrigation_mm_total?: number;
+    effective_rain_mm_total?: number;
+    supplied_mm_total?: number;
+    water_use_efficiency?: number | null;
+    demand_met_pct?: number | null;
+    over_application_mm?: number | null;
+  };
+  note_ar?: string;
+}
+
+/** كفاءة مياه الحقل + إجماليّ الريّ المُطبَّق (mm) من دفتر المياه (field:view). */
+export function useFieldWaterEfficiency(fieldId: string | null | undefined): UseQueryResult<FieldWaterEfficiency> {
+  return useQuery<FieldWaterEfficiency>({
+    queryKey: ['water-efficiency', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/water-efficiency`).then(r => r.data),
+    staleTime:15 * 60_000,
+    enabled:  !!fieldId,
+    retry:    false,
+  });
+}
+
+// ── Farm Cost Ledger (v100–v102) — تعكس التكاليف/الربحيّة الفعليّة المُخزَّنة في الواجهة ──
+// الميزة خلف FEATURE_FARM_OPERATIONS_LEDGER (مُطفأة افتراضاً ⇒ 404). نلتقط 404 ونحوّله إلى
+// حالة صادقة `disabled` بدل خطأ مُفزِع؛ باقي الأخطاء (503 قاعدة/403 صلاحيّة) تُرفَع كما هي.
+import type {
+  LedgerSummaryResponse, ProfitabilityResponse, VarianceResponse,
+} from '../lib/fieldProfitability';
+
+function isDisabled404(e: unknown): boolean {
+  const status = (e as { response?: { status?: number } })?.response?.status;
+  return status === 404;
+}
+
+/** ملخّص التكلفة الرقابي للحقل/الموسم من السجلّ الفعليّ. */
+export function useFarmLedgerSummary(
+  fieldId: string | null | undefined,
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<LedgerSummaryResponse> {
+  return useQuery<LedgerSummaryResponse>({
+    queryKey: ['farm-ledger-summary', fieldId ?? 'none', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/farm-ledger/summary', { params: { field_id: fieldId || undefined, season_id: seasonId || undefined } })
+      .then(r => r.data as LedgerSummaryResponse)
+      .catch((e) => { if (isDisabled404(e)) return { summary: null, disabled: true }; throw e; }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && (!!fieldId || !!seasonId),
+    retry:    false,
+  });
+}
+
+/** ربحيّة الموسم الفعليّة (إيراد − تكلفة) من السجلّ. */
+export function useSeasonProfitability(
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<ProfitabilityResponse> {
+  return useQuery<ProfitabilityResponse>({
+    queryKey: ['season-profitability', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/farm-ledger/profitability/${seasonId}`)
+      .then(r => r.data as ProfitabilityResponse)
+      .catch((e) => { if (isDisabled404(e)) return { season_id: String(seasonId), profitability: null, disabled: true }; throw e; }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!seasonId,
+    retry:    false,
+  });
+}
+
+// ── Crop & Variety Cards — بطاقات المعرفة المرجعيّة (FAO-56/Maas-Hoffman/GDD) ──
+import type {
+  CropCardResponse, CropCardsIndex, VarietyDiseaseWatch, VarietyExpectedHarvest, VarietySalinity,
+} from '../lib/fieldCropCard';
+
+/** فهرس بطاقات المحاصيل (معرفة مرجعيّة ثابتة ⇒ staleTime طويل). */
+export function useCropCardsIndex(enabled = true): UseQueryResult<CropCardsIndex> {
+  return useQuery<CropCardsIndex>({
+    queryKey: ['crop-cards-index'],
+    queryFn:  () => kongApi.get('/api/v1/crop-cards').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** بطاقة محصول كاملة + معرّفات أصنافها. */
+export function useCropCard(cropId: string | null | undefined): UseQueryResult<CropCardResponse> {
+  return useQuery<CropCardResponse>({
+    queryKey: ['crop-card', cropId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/crop-cards/crop/${cropId}`).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!cropId,
+    retry:    false,
+  });
+}
+
+/** مقاومات الصنف المُوثَّقة + إرشاد المسح. */
+export function useVarietyDiseaseWatch(varietyId: string | null | undefined): UseQueryResult<VarietyDiseaseWatch> {
+  return useQuery<VarietyDiseaseWatch>({
+    queryKey: ['variety-disease-watch', varietyId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/crop-cards/variety/${varietyId}/disease-watch`).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!varietyId,
+    retry:    false,
+  });
+}
+
+/** تواريخ التزهير/الحصاد المتوقّعة من بذار حقيقيّ (لا يُستدعى بلا تاريخ). */
+export function useVarietyExpectedHarvest(
+  varietyId: string | null | undefined,
+  sowingDate: string | null | undefined,
+): UseQueryResult<VarietyExpectedHarvest> {
+  return useQuery<VarietyExpectedHarvest>({
+    queryKey: ['variety-expected-harvest', varietyId ?? 'none', sowingDate ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/crop-cards/variety/${varietyId}/expected-harvest`, { params: { sowing_date: sowingDate } })
+      .then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!varietyId && !!sowingDate,
+    retry:    false,
+  });
+}
+
+/** ملاءمة ملوحة مقيسة (ECe dS/m يُدخِلها المستخدم من قياس حقيقيّ) لصنف. */
+export function useVarietySalinity(
+  varietyId: string | null | undefined,
+  ece: number | null,
+): UseQueryResult<VarietySalinity> {
+  return useQuery<VarietySalinity>({
+    queryKey: ['variety-salinity', varietyId ?? 'none', ece ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/crop-cards/variety/${varietyId}/salinity-suitability`, { params: { ece } })
+      .then(r => r.data),
+    staleTime:30 * 60_000,
+    enabled:  !!varietyId && ece != null && Number.isFinite(ece),
+    retry:    false,
+  });
+}
+
+/** انحرافات المخطَّط/الفعليّ + توصيات الضبط للموسم من السجلّ. */
+export function useSeasonVariance(
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<VarianceResponse> {
+  return useQuery<VarianceResponse>({
+    queryKey: ['season-variance', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/farm-ledger/variance/${seasonId}`)
+      .then(r => r.data as VarianceResponse)
+      .catch((e) => { if (isDisabled404(e)) return { season_id: String(seasonId), variance: [], recommendations: [], disabled: true }; throw e; }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!seasonId,
+    retry:    false,
+  });
+}
+
+/** الحالة الاقتصاديّة العميقة للموسم (كثافات وحدة + حالة موازنة + توصيات كفاءة). */
+export function useSeasonEconomicState(
+  seasonId: string | null | undefined,
+  areaHa: number | null,
+  enabled = true,
+): UseQueryResult<import('../lib/fieldProfitability').EconomicStateResponse> {
+  return useQuery({
+    queryKey: ['season-economic-state', seasonId ?? 'none', areaHa ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/farm-ledger/economic-state/${seasonId}`, {
+        params: { area_ha: areaHa != null && areaHa > 0 ? areaHa : undefined },
+      })
+      .then(r => r.data as import('../lib/fieldProfitability').EconomicStateResponse)
+      .catch((e) => {
+        if (isDisabled404(e)) return { season_id: String(seasonId), economic_state: null, disabled: true };
+        throw e;
+      }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!seasonId,
+    retry:    false,
+  });
+}
+
+/** سعر التعادل (طن): تكلفة السجلّ الفعليّة + مساحة الحقل + غلّة متوقَّعة يُدخِلها المستخدم. */
+export function useBreakEven(
+  areaHa: number | null,
+  yieldTPerHa: number | null,
+  totalCost: number | null,
+): UseQueryResult<import('../lib/fieldProfitability').BreakEvenResponse> {
+  return useQuery({
+    queryKey: ['break-even', areaHa ?? 'none', yieldTPerHa ?? 'none', totalCost ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/economics/break-even', {
+        params: { area_ha: areaHa, yield_t_per_ha: yieldTPerHa, total_cost: totalCost },
+      })
+      .then(r => r.data as import('../lib/fieldProfitability').BreakEvenResponse),
+    staleTime:15 * 60_000,
+    enabled:  areaHa != null && areaHa > 0 && yieldTPerHa != null && yieldTPerHa > 0 && totalCost != null && totalCost > 0,
+    retry:    false,
+  });
+}
+
+// ── Harvest Traceability (v65) — من المزرعة إلى السوق ──
+import type {
+  HarvestLotSummary, InputLedger, LotTraceability,
+} from '../lib/fieldHarvestTraceability';
+
+/** دفعات حصاد الحقل (الأحدث أولاً، RLS). */
+export function useHarvestLots(fieldId: string | null | undefined, enabled = true): UseQueryResult<HarvestLotSummary[]> {
+  return useQuery<HarvestLotSummary[]>({
+    queryKey: ['harvest-lots', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/harvest-lots', { params: { field_id: fieldId } }).then(r => r.data),
+    staleTime:5 * 60_000,
+    enabled:  enabled && !!fieldId,
+    retry:    false,
+  });
+}
+
+/** الأثر الكامل لدفعة: سلسلة الحيازة + المنشأ + تقييم الاكتمال (معيار الخادم). */
+export function useLotTraceability(lotId: string | null | undefined): UseQueryResult<LotTraceability> {
+  return useQuery<LotTraceability>({
+    queryKey: ['lot-traceability', lotId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/harvest-lots/${lotId}/traceability`).then(r => r.data),
+    staleTime:5 * 60_000,
+    enabled:  !!lotId,
+    retry:    false,
+  });
+}
+
+/** دفتر مدخلات الحقل (بذرة→حصاد) — الكلفة الغائبة تُعلَن بتغطية لا تُؤلَّف. */
+export function useFieldInputTraceability(
+  fieldId: string | null | undefined,
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<InputLedger> {
+  return useQuery<InputLedger>({
+    queryKey: ['input-traceability', fieldId ?? 'none', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/fields/${fieldId}/input-traceability`, { params: { season_id: seasonId || undefined } })
+      .then(r => r.data),
+    staleTime:10 * 60_000,
+    enabled:  enabled && !!fieldId,
+    retry:    false,
+  });
+}
+
+// ── Boundary Review (#15) — تهديف ثقة الحدّ + شبكة الجوار ──
+import type { BoundaryGraphResponse, BoundaryScoreResult } from '../lib/fieldBoundaryReview';
+
+/** شبكة جوار الحقل (field_boundary_graph) — قائمة فارغة صالحة لا 404. */
+export function useBoundaryGraph(fieldId: string | null | undefined, enabled = true): UseQueryResult<BoundaryGraphResponse> {
+  return useQuery<BoundaryGraphResponse>({
+    queryKey: ['boundary-graph', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/boundary-graph`).then(r => r.data),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!fieldId,
+    retry:    false,
+  });
+}
+
+/** تهديف ثقة حدّ الحقل (يشتقّ الخادم الخصائص من geom عبر PostGIS ويخزّن النتيجة). */
+export function useScoreBoundary(): ReturnType<typeof useMutation<BoundaryScoreResult, Error, { fieldId: string }>> {
+  return useMutation<BoundaryScoreResult, Error, { fieldId: string }>({
+    mutationFn: ({ fieldId }) => kongApi
+      .post(`/api/v1/fields/${fieldId}/boundary/score`, {})
+      .then(r => r.data),
+  });
+}
+
+import type { BoundaryCleanResult, BoundaryReviewResult, BoundaryReviewStatus } from '../lib/fieldBoundaryReview';
+
+/** المراجعة البشريّة (HIL) لحدّ الحقل: approved|rejected|needs_edit (FIELD_EDIT خادميّاً). */
+export function useReviewBoundary(): ReturnType<typeof useMutation<BoundaryReviewResult, Error, { fieldId: string; status: BoundaryReviewStatus }>> {
+  return useMutation<BoundaryReviewResult, Error, { fieldId: string; status: BoundaryReviewStatus }>({
+    mutationFn: ({ fieldId, status }) => kongApi
+      .patch(`/api/v1/fields/${fieldId}/boundary/review`, { review_status: status })
+      .then(r => r.data),
+  });
+}
+
+/** التنظيف الطوبولوجيّ الحتميّ (MakeValid + إزالة تكرار + تبسيط حافظ) — شبه عديم الأثر عند الإعادة. */
+export function useCleanBoundary(): ReturnType<typeof useMutation<BoundaryCleanResult, Error, { fieldId: string; toleranceM?: number }>> {
+  return useMutation<BoundaryCleanResult, Error, { fieldId: string; toleranceM?: number }>({
+    mutationFn: ({ fieldId, toleranceM }) => kongApi
+      .post(`/api/v1/fields/${fieldId}/boundary/clean`, toleranceM != null ? { tolerance_m: toleranceM } : {})
+      .then(r => r.data),
+  });
+}
+
+// ── Admin Runtime Console — مسارات التشغيل الإداريّة (owner/manager) ──
+import type {
+  AutomationRunsResponse, DeadLetterResponse, QueueStatusResponse, ReadinessReport, SecurityDenialsResponse,
+} from '../lib/adminRuntime';
+
+/** جاهزيّة الإنتاج من لقطة بيئة المنصّة (ready + blockers + warnings + checks). */
+export function useAdminReadiness(enabled = true): UseQueryResult<ReadinessReport> {
+  return useQuery<ReadinessReport>({
+    queryKey: ['admin-readiness'],
+    queryFn:  () => kongApi.get('/api/v1/admin/readiness').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** الأحداث الميّتة (DLQ NATS) — الخادم يوصي: نبّه لو total>0. */
+export function useAdminEventsDeadLetter(enabled = true): UseQueryResult<DeadLetterResponse> {
+  return useQuery<DeadLetterResponse>({
+    queryKey: ['admin-events-dlq'],
+    queryFn:  () => kongApi.get('/api/v1/admin/events/dead-letter').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** صفوف outbox المستنفدة (dead) — قابلة لإعادة الجدولة بعد إصلاح السبب. */
+export function useAdminOutboxDeadLetter(enabled = true): UseQueryResult<DeadLetterResponse> {
+  return useQuery<DeadLetterResponse>({
+    queryKey: ['admin-outbox-dlq'],
+    queryFn:  () => kongApi.get('/api/v1/admin/outbox/dead-letter').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سجلّ رفض الأمان (denials) الأخير + ملخّصه. */
+export function useSecurityDenials(enabled = true): UseQueryResult<SecurityDenialsResponse> {
+  return useQuery<SecurityDenialsResponse>({
+    queryKey: ['admin-security-denials'],
+    queryFn:  () => kongApi.get('/api/v1/admin/security/denials').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** حالة قائمة offline للمستأجِر الحاليّ. */
+export function useQueueStatus(enabled = true): UseQueryResult<QueueStatusResponse> {
+  return useQuery<QueueStatusResponse>({
+    queryKey: ['queue-status'],
+    queryFn:  () => kongApi.get('/api/v1/queue/status').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سجلّ تشغيلات الأتمتة + الملخّص. */
+export function useAutomationRuns(enabled = true, limit = 10): UseQueryResult<AutomationRunsResponse> {
+  return useQuery<AutomationRunsResponse>({
+    queryKey: ['automation-runs', limit],
+    queryFn:  () => kongApi.get('/api/v1/automation/runs', { params: { limit } }).then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** حالة مجدوِل الأتمتة (بنية مرنة من الخادم). */
+export function useSchedulerStatus(enabled = true): UseQueryResult<Record<string, unknown>> {
+  return useQuery<Record<string, unknown>>({
+    queryKey: ['automation-scheduler-status'],
+    queryFn:  () => kongApi.get('/api/v1/automation/scheduler-status').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── Yemeni Agricultural Calendar — طبقة عرض تراثيّة-رصديّة (display_only) ──
+import type { CalendarTodayContext, ProverbsForDateResponse } from '../lib/yemeniCalendar';
+
+/** سياق التقويم الزراعيّ اليمنيّ لليوم (منزلة + شهر حميريّ + منطقة + نافذة محصول). */
+export function useCalendarToday(
+  crop: string | null | undefined,
+  governorate: string | null | undefined,
+  enabled = true,
+): UseQueryResult<CalendarTodayContext> {
+  return useQuery<CalendarTodayContext>({
+    queryKey: ['calendar-today', crop ?? 'none', governorate ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/calendars/today', { params: { crop: crop || undefined, governorate: governorate || undefined } })
+      .then(r => r.data),
+    staleTime:6 * 60 * 60_000, // معرفة يوميّة شبه ثابتة
+    enabled,
+    retry:    false,
+  });
+}
+
+/** أمثال التاريخ (المنزلة النشطة ⇒ أمثالها) — سياق ثقافيّ، عرض فقط. */
+export function useProverbsForDate(
+  dateIso: string | null | undefined,
+  governorate: string | null | undefined,
+  enabled = true,
+): UseQueryResult<ProverbsForDateResponse> {
+  return useQuery<ProverbsForDateResponse>({
+    queryKey: ['proverbs-for-date', dateIso ?? 'none', governorate ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/agricultural-proverbs/for-date', { params: { date_iso: dateIso, governorate: governorate || undefined } })
+      .then(r => r.data),
+    staleTime:6 * 60 * 60_000,
+    enabled:  enabled && !!dateIso,
+    retry:    false,
+  });
+}
+
+// ── Planting Advisor — «ماذا أزرع بعد محصولي؟» (دورة زراعيّة + نافذة الشهر) ──
+import type { RotationSuggestResponse } from '../lib/plantingAdvisor';
+import type { PlantingFit as PlantingFitT } from '../lib/yemeniCalendar';
+
+/** أفضل المحاصيل التالية بعد محصول (مرتّبة بأسباب يمنيّة من جدول الدورة). */
+export function useRotationSuggest(previousCrop: string | null | undefined, enabled = true): UseQueryResult<RotationSuggestResponse> {
+  return useQuery<RotationSuggestResponse>({
+    queryKey: ['rotation-suggest', previousCrop ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/rotation/suggest', { params: { previous: previousCrop } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!previousCrop,
+    retry:    false,
+  });
+}
+
+/** ملاءمة شهر لزراعة محصول (حكم الخادم optimal/acceptable/off_window). */
+export function usePlantingCheck(crop: string | null | undefined, month: number | null): UseQueryResult<PlantingFitT> {
+  return useQuery<PlantingFitT>({
+    queryKey: ['planting-check', crop ?? 'none', month ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/planting/check', { params: { crop, month } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!crop && month != null,
+    retry:    false,
+  });
+}
+
+// ── Decision Runtime — موزِّع القرار المحروس (خلف SAHOOL_DECISION_DISPATCH) ──
+import type {
+  DecisionLedgerResponse, DecisionPoliciesResponse, DispatchAudit,
+  DispatchDecisionsResponse, DispatchEvaluateInput, DispatchQueueResponse,
+} from '../lib/decisionRuntime';
+
+/** طابور أوامر المُشغِّل المنتظِرة (queued، الأقدم أوّلاً). 404 ⇒ الميزة مُطفأة. */
+export function useDispatchQueue(enabled = true): UseQueryResult<DispatchQueueResponse> {
+  return useQuery<DispatchQueueResponse>({
+    queryKey: ['dispatch-queue'],
+    queryFn:  () => kongApi.get('/api/v1/decision/dispatch/queue').then(r => r.data as DispatchQueueResponse)
+      .catch((e) => { if (isDisabled404(e)) return { queued: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** آخر قرارات التوزيع بحالاتها المحروسة (blocked/pending_approval/ready). */
+export function useDispatchDecisions(enabled = true): UseQueryResult<DispatchDecisionsResponse> {
+  return useQuery<DispatchDecisionsResponse>({
+    queryKey: ['dispatch-decisions'],
+    queryFn:  () => kongApi.get('/api/v1/decision/dispatch/decisions').then(r => r.data as DispatchDecisionsResponse)
+      .catch((e) => { if (isDisabled404(e)) return { decisions: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سجلّ تنفيذ القرارات (نتائج مُسجَّلة). */
+export function useDecisionLedger(enabled = true): UseQueryResult<DecisionLedgerResponse> {
+  return useQuery<DecisionLedgerResponse>({
+    queryKey: ['decision-ledger'],
+    queryFn:  () => kongApi.get('/api/v1/decision/ledger').then(r => r.data as DecisionLedgerResponse)
+      .catch((e) => { if (isDisabled404(e)) return { ledger: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سياسات القرار (الأعلى أولويّة أوّلاً). */
+export function useDecisionPolicies(enabled = true): UseQueryResult<DecisionPoliciesResponse> {
+  return useQuery<DecisionPoliciesResponse>({
+    queryKey: ['decision-policies'],
+    queryFn:  () => kongApi.get('/api/v1/decision/policies').then(r => r.data as DecisionPoliciesResponse)
+      .catch((e) => { if (isDisabled404(e)) return { policies: [], count: 0, disabled: true }; throw e; }),
+    staleTime:5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** معاينة dry-run لقرار توزيع — لا تنفيذ (dry_run=true من الخادم). */
+export function useEvaluateDispatch(): ReturnType<typeof useMutation<DispatchAudit, Error, DispatchEvaluateInput>> {
+  return useMutation<DispatchAudit, Error, DispatchEvaluateInput>({
+    mutationFn: (input) => kongApi.post('/api/v1/decision/dispatch/evaluate', input).then(r => r.data),
+  });
+}
+
+// ── Ledger Entry — إدخال السجلّ الماليّ من الواجهة (ACTIVITY_EXECUTE خادميّاً) ──
+import type { BudgetLinesPayload, OperationPayload, RevenuePayload } from '../lib/ledgerEntry';
+
+/** مفاتيح الكاش الماليّة التي يجب إبطالها بعد أيّ إدخال — تُحدَّث بطاقة الربحيّة حيّاً. */
+export const LEDGER_QUERY_PREFIXES = [
+  'farm-ledger-summary', 'season-profitability', 'season-variance', 'season-economic-state',
+] as const;
+
+/** تسجيل عمليّة بتكلفة في سجلّ العمليّات الفعليّ. */
+export function useRecordLedgerOperation(): ReturnType<typeof useMutation<unknown, Error, OperationPayload>> {
+  return useMutation<unknown, Error, OperationPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/farm-ledger/operations', payload).then(r => r.data),
+  });
+}
+
+/** إدراج/تحديث بنود موازنة الموسم المخطَّطة. */
+export function useUpsertBudgetLines(): ReturnType<typeof useMutation<unknown, Error, BudgetLinesPayload>> {
+  return useMutation<unknown, Error, BudgetLinesPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/farm-ledger/budgets', payload).then(r => r.data),
+  });
+}
+
+/** تسجيل إيراد للموسم. */
+export function useRecordRevenue(): ReturnType<typeof useMutation<unknown, Error, RevenuePayload>> {
+  return useMutation<unknown, Error, RevenuePayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/farm-ledger/revenues', payload).then(r => r.data),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

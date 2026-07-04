@@ -2,7 +2,7 @@
 // وينفّذ استعلامات المستخدم محليّاً. عميل-فقط، آمن (نسخة في الذاكرة لا تمسّ الخلفيّة).
 // الأخطاء تُعرَض بصدق؛ النطاق معلَن (سمات الحقول فقط — لا مؤشّرات/ST_* في v1).
 import { useMemo, useState } from 'react';
-import { useFieldOptions } from '../../hooks/useFieldOptions';
+import { useSelectedField } from '../../hooks/useSelectedField';
 import { useDuckDBFields } from '../../hooks/useDuckDB';
 import type { FieldRow, QueryResult } from '../../services/duckdb';
 import { exportQueryToParquet } from '../../services/duckdb';
@@ -99,7 +99,7 @@ function downloadParquet(bytes: Uint8Array): void {
 }
 
 export default function SQLEditor() {
-  const { options, isLoading, isError, refetch } = useFieldOptions();
+  const { options, fieldId: activeFieldId, setFieldId, isLoading, isError, refetch } = useSelectedField();
 
   const rows = useMemo<FieldRow[] | null>(
     () =>

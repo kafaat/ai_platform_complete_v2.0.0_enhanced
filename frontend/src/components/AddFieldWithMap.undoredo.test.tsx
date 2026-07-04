@@ -22,6 +22,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { forwardRef, useImperativeHandle, type ReactNode } from 'react';
+import { act } from 'react';
 
 // ── التقاط onCreated من DrawControl المُظلَّل كي نُطلق حدث رسم حقيقيّ ──
 const draw = vi.hoisted(() => ({ onCreated: null as null | ((e: unknown) => void) }));
@@ -49,7 +50,7 @@ vi.mock('react-leaflet', () => {
     MapContainer: ({ children }: { children?: ReactNode }) => <div data-testid="map">{children}</div>,
     TileLayer: () => <div data-testid="tile" />,
     FeatureGroup,
-    useMap: () => ({ invalidateSize: vi.fn() }),
+    useMap: () => ({ invalidateSize: vi.fn(), on: vi.fn(), off: vi.fn(), getContainer: vi.fn(() => document.createElement('div')) }),
   useMapEvents: () => null,
   CircleMarker: () => <div data-testid="pivot-center-marker" />,
   Polyline: () => <div data-testid="pivot-radius-line" />,
@@ -67,7 +68,7 @@ vi.mock('leaflet', () => {
       on: vi.fn(), // مستمع 'edit' البصريّ — لا يُطلَق في jsdom (مُؤجَّل صراحةً)
     };
   };
-  return { default: { latLng, polygon } };
+  return { default: { latLng, polygon, divIcon: vi.fn((opts) => opts), marker: vi.fn(() => ({ addTo: vi.fn(), remove: vi.fn(), on: vi.fn(), setLatLng: vi.fn() })) } };
 });
 vi.mock('../lib/leafletSetup', () => ({}));
 vi.mock('shpjs', () => ({ default: vi.fn() }));
@@ -88,10 +89,12 @@ const noop = async () => {};
 
 // يُطلق حدث رسم مضلّع حقيقيّ عبر onCreated الملتقَط من DrawControl المُظلَّل.
 // ring: أزواج [lat,lng] (≥3) — تُغلَّف في layer.getLatLngs()[0] كما يتوقّع المكوّن.
-function drawPolygon(ring: Array<[number, number]>) {
+async function drawPolygon(ring: Array<[number, number]>) {
   const latlngs = ring.map(([lat, lng]) => ({ lat, lng }));
   const layer = { getLatLngs: () => [latlngs] };
-  draw.onCreated?.({ layerType: 'polygon', layer });
+  await act(async () => {
+    draw.onCreated?.({ layerType: 'polygon', layer });
+  });
 }
 
 const SMALL: Array<[number, number]> = [[15.0, 44.0], [15.0, 44.1], [15.1, 44.1], [15.1, 44.0]];
@@ -106,7 +109,7 @@ async function renderAndDrawFirst() {
   // لكن نُبقيه صريحاً). الزرّ في درج مرحلة الرسم.
   fireEvent.click(screen.getByText(/التقاط للحدود/));
   // ارسم المضلّع الأوّل ⇒ ينتقل إلى مرحلة النموذج ويدفع اللقطة الأولى.
-  drawPolygon(SMALL);
+  await drawPolygon(SMALL);
   await screen.findByRole('button', { name: /حفظ الحقل/ });
 }
 
@@ -114,8 +117,8 @@ describe('AddFieldWithMap — تراجع/إعادة لحدّ الحقل — F3',
   // (أ) لقطة واحدة ⇒ «تراجع» و«إعادة» كلاهما مُعطَّل (حدود المؤشّر).
   it('(أ) بعد رسم أوّل (لقطة واحدة): «تراجع» و«إعادة» مُعطَّلان', async () => {
     await renderAndDrawFirst();
-    const undo = screen.getByRole('button', { name: /^تراجع$/ });
-    const redo = screen.getByRole('button', { name: /^إعادة$/ });
+    const undo = screen.getByRole('button', { name: /تراجع من لوحة النموذج/ });
+    const redo = screen.getByRole('button', { name: /إعادة من لوحة النموذج/ });
     expect(undo).toBeDisabled();   // pointer === 0 ⇒ لا ما قبله
     expect(redo).toBeDisabled();   // pointer === length-1 ⇒ لا ما بعده
   });
@@ -124,10 +127,10 @@ describe('AddFieldWithMap — تراجع/إعادة لحدّ الحقل — F3',
   it('(ب) رسم ثانٍ يدفع لقطة؛ «تراجع» يعيد المؤشّر والمساحة المعروضة', async () => {
     await renderAndDrawFirst();
     // المساحة المعروضة الآن للمضلّع الصغير. ارسم مضلّعاً أكبر (لقطة ثانية).
-    drawPolygon(LARGE);
+    await drawPolygon(LARGE);
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: /^تراجع$/ })).not.toBeDisabled());
-    const redo = screen.getByRole('button', { name: /^إعادة$/ });
+      expect(screen.getByRole('button', { name: /تراجع من لوحة النموذج/ })).not.toBeDisabled());
+    const redo = screen.getByRole('button', { name: /إعادة من لوحة النموذج/ });
     expect(redo).toBeDisabled(); // عند آخر لقطة لا إعادة بعد
 
     // المساحة المعروضة الآن للمضلّع الكبير (~3000 هكتار). نلتقطها كنصّ هكتار.
@@ -135,11 +138,11 @@ describe('AddFieldWithMap — تراجع/إعادة لحدّ الحقل — F3',
     const largeArea = haText();
 
     // تراجع ⇒ يعود للقطة الأولى (المضلّع الصغير) ⇒ تتغيّر المساحة المعروضة.
-    fireEvent.click(screen.getByRole('button', { name: /^تراجع$/ }));
+    fireEvent.click(screen.getByRole('button', { name: /تراجع من لوحة النموذج/ }));
     await waitFor(() => expect(haText()).not.toBe(largeArea));
     // الآن «إعادة» مُفعَّل و«تراجع» مُعطَّل (عدنا لأوّل لقطة).
-    expect(screen.getByRole('button', { name: /^إعادة$/ })).not.toBeDisabled();
-    expect(screen.getByRole('button', { name: /^تراجع$/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /إعادة من لوحة النموذج/ })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: /تراجع من لوحة النموذج/ })).toBeDisabled();
   });
 
   // (ج) handleReset (إعادة الرسم) يفرّغ التاريخ ويعيد لمرحلة الرسم.

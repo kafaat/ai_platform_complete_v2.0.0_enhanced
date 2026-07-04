@@ -9,13 +9,13 @@
 // POST فقط (إنشاء/تجميع من حمولة الطلب) ولا تُرجِعان قائمة مُخزَّنة تُقرأ بـGET،
 // فلا تُعرَضان هنا — صدق: لا نخترع endpoint قراءة غير موجود ولا نُلفّق مشاهدات.
 //
-// التدفّق: اختَر حقلاً ⇒ نقرأ محصوله (من useFieldOptions) ⇒ نجلب مشاكله الشائعة
+// التدفّق: اختَر حقلاً ⇒ نقرأ محصوله (من useSelectedField) ⇒ نجلب مشاكله الشائعة
 // من التصنيف الحيّ (rule-based منسَّق، لا تشخيص آلي). إن لا محصول/لا تصنيف
 // للمحصول ⇒ «لا ملاحظات استكشاف». كلّ الحالات (تحميل/خطأ/فراغ) صريحة. قراءة فقط.
 // ═══════════════════════════════════════════════════════════════
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Bug, Leaf, AlertTriangle, ListChecks, FlaskConical } from 'lucide-react';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import {
   useCropScoutingIssues,
   useScoutingTaxonomy,
@@ -54,11 +54,7 @@ function categoryIcon(category: string) {
 }
 
 export default function ScoutingView() {
-  const { options, isLoading: fieldsLoading, isError: fieldsError } = useFieldOptions();
-
-  // الحقل المُختار (افتراضيّاً الأوّل عند توفّره).
-  const [selectedId, setSelectedId] = useState<string>('');
-  const selected = options.find((f) => f.id === selectedId) ?? options[0];
+  const { options, isLoading: fieldsLoading, isError: fieldsError, fieldId, field: selected, setFieldId } = useSelectedField();
 
   // محصول الحقل المُختار (مصدر التصنيف). '—' يعني لا محصول مُسجَّل ⇒ لا استعلام.
   const crop = selected?.crop && selected.crop !== MISSING ? selected.crop : undefined;
@@ -117,8 +113,8 @@ export default function ScoutingView() {
         ) : (
           <>
             <select
-              value={selected?.id ?? ''}
-              onChange={(e) => setSelectedId(e.target.value)}
+              value={fieldId}
+              onChange={(e) => setFieldId(e.target.value)}
               dir="rtl"
               style={{
                 width: '100%', padding: '10px 12px', borderRadius: 10,

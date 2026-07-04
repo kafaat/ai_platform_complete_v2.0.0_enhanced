@@ -31,7 +31,7 @@ import {
   ChevronDown, Wheat, BarChart3, Cpu,
 } from 'lucide-react';
 import { useFields, useWeatherForecast } from '../hooks/useApi';
-import { useFieldContextStore } from '../hooks/useFieldContext';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { kongApi } from '../services/api';
 import { FieldBoundaryProposalPanel } from '../components/maphub/FieldBoundaryProposalPanel';
 import { ProductivityZonesPanel } from '../components/maphub/ProductivityZonesPanel';
@@ -431,7 +431,7 @@ export function ChatbotPage() {
   // سياق المزرعة الحيّ (حقول + طقس) — يُحقَن في كلّ طلب بدل القيم الثابتة.
   const fieldsQ  = useFields();
   const weatherQ = useWeatherForecast();
-  const activeFieldId = useFieldContextStore((s) => s.selectedFieldId);
+  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
   const ctx: LiveContext = useMemo(() => {
     const list: ChatbotField[] = (fieldsQ.data as { fields?: ChatbotField[] } | undefined)?.fields ?? [];
     const ndvis = list.map((f) => +(f.ndvi || 0)).filter((n) => n > 0);
@@ -529,6 +529,7 @@ export function ChatbotPage() {
         model: selectedModel || undefined,
         current_field_state: {
           farm_summary:    buildSystemPrompt(ctx),
+          active_field_name: activeField?.name ?? null,
           avg_ndvi:        ctx.avgNdvi,
           field_count:     ctx.count,
           weather_current: ctx.w,
@@ -571,7 +572,7 @@ export function ChatbotPage() {
 
     setLoading(false);
     setTimeout(() => inputRef.current?.focus(), 100);
-  }, [messages, loading, ctx, activeFieldId, selectedModel, aiContext]);
+  }, [messages, loading, ctx, activeFieldId, activeField?.name, selectedModel, aiContext]);
 
   const clear = () => {
     setMessages([WELCOME]);

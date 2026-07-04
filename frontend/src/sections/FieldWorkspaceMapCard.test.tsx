@@ -113,6 +113,9 @@ function wrapper({ children }: { children: ReactNode }) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // FieldWorkspaceMapCard now asks the platform for available imagery dates; keep it
+  // deterministic in jsdom unless a specific contract test overrides the next call.
+  mockGet.mockResolvedValue({ data: { dates: [] } });
 });
 
 describe('عقد fetchFieldWorkspace', () => {

@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -38,6 +38,27 @@ import { canMutate } from '../lib/permissions';
 import { availableBasemapLayers, layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import AddFieldWithMap from '../components/AddFieldWithMap';
+import FieldViewInsightStrip from '../components/fieldview/FieldViewInsightStrip';
+import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard';
+import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
+import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
+import FieldEconomicsCard from '../components/fieldview/FieldEconomicsCard';
+import OperationsCenterCard from '../components/fieldview/OperationsCenterCard';
+import FieldWaterBrainCard from '../components/fieldview/FieldWaterBrainCard';
+import FieldScoutingCard from '../components/fieldview/FieldScoutingCard';
+import SeasonCommandCard from '../components/fieldview/SeasonCommandCard';
+import TraceabilityCard from '../components/fieldview/TraceabilityCard';
+import FieldObjectivePanel from '../components/fieldview/FieldObjectivePanel';
+import SeasonProfitabilityCard from '../components/fieldview/SeasonProfitabilityCard';
+import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
+import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceabilityCard';
+import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
+import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
+import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
+import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
+import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
+import { useCropScoutingIssues } from '../hooks/useScouting';
+import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
@@ -163,8 +184,20 @@ type MapHubLocationState = {
 
 export default function MapHub() {
   const location = useLocation();
+  const initialSearch = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const routeState = (location.state ?? {}) as MapHubLocationState;
-  const { options: fields, isLoading, isError, refetch, fieldId, setFieldId } = useSelectedField();
+  const routeFieldId = routeState.fieldId ?? initialSearch.get('field_id') ?? initialSearch.get('fieldId') ?? undefined;
+  const {
+    options: fields,
+    isLoading,
+    isError,
+    refetch,
+    fieldId,
+    setFieldId,
+    routeFieldIsInvalid,
+    storedFieldIsInvalid,
+    selectionReason,
+  } = useSelectedField({ routeFieldId });
   const { user, tenantId } = useAuthStore();
   const mutateAllowed = canMutate(user?.role);
 
@@ -174,8 +207,6 @@ export default function MapHub() {
   const savedWorkspace = useMemo(() => loadWorkspace(), []);
   const [mode, setMode] = useState<'2d' | '3d'>(savedWorkspace?.mode === '3d' ? '3d' : '2d');
   const [basemapId, setBasemapId] = useState<string>(savedWorkspace?.basemapId ?? (BASEMAPS[0]?.id ?? 'satellite'));
-  const initialSearch = useMemo(() => new URLSearchParams(location.search), [location.search]);
-  const routeFieldId = routeState.fieldId ?? initialSearch.get('field_id') ?? initialSearch.get('fieldId') ?? undefined;
   const routeIndicator = routeState.indicator ?? initialSearch.get('index') ?? initialSearch.get('indicator') ?? undefined;
   const requestedCdseOpen = routeState.openCdse === true || initialSearch.get('source') === 'my-fields' || !!routeIndicator;
   // الطقس لا يُفتَح افتراضيّاً عند فتح حقل من «حقولي» — الافتراضيّ صورة القمر
@@ -196,6 +227,13 @@ export default function MapHub() {
   const [trueColorRuntime, setTrueColorRuntime] = useState<TrueColorRuntimeStatus>({ state: 'idle', message: 'لم يتم اختيار حقل بعد.' });
   const [historicalBackfillBusy, setHistoricalBackfillBusy] = useState(false);
   const [historicalBackfillStatus, setHistoricalBackfillStatus] = useState<string | null>(null);
+  const fieldViewStatus = routeFieldIsInvalid
+    ? 'الرابط يشير إلى حقل غير متاح لهذا المستخدم؛ تم استخدام الحقل النشط المتاح.'
+    : storedFieldIsInvalid
+      ? 'الحقل المحفوظ لم يعد متاحاً؛ تم اختيار حقل متاح تلقائياً.'
+      : selectionReason === 'route'
+        ? 'تم فتح الحقل من رابط FieldView مباشر.'
+        : null;
   const [showImageryTimeline, setShowImageryTimeline] = useState(false);
   const [opacity, setOpacity] = useState(savedWorkspace?.opacity ?? 0.75);
   const [compare, setCompare] = useState(savedWorkspace?.compare ?? false);
@@ -209,6 +247,15 @@ export default function MapHub() {
   const [showDevices, setShowDevices] = useState(savedWorkspace?.showDevices ?? false);
   const [showEquipment, setShowEquipment] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
+  // OneSoil-style وضع FieldView: «فلاح» (ملخّص أساسيّ) أو «خبير» (كلّ الأدوات).
+  // يُحفَظ محلّيّاً — لا يلمس نوع لقطة مساحة العمل. الافتراضيّ فلاح (بساطة أوّلاً).
+  const [fieldMode, setFieldMode] = useState<'farmer' | 'expert'>(() => {
+    try { return localStorage.getItem('sahool:fieldview:mode') === 'expert' ? 'expert' : 'farmer'; } catch { return 'farmer'; }
+  });
+  const setFieldModePersist = useCallback((m: 'farmer' | 'expert') => {
+    setFieldMode(m);
+    try { localStorage.setItem('sahool:fieldview:mode', m); } catch { /* تجاهُل حظر التخزين */ }
+  }, []);
   const [showPivots, setShowPivots] = useState(false);
   const [pivotDesigner, setPivotDesigner] = useState(false);
   const [pivotRadiusM, setPivotRadiusM] = useState(400);
@@ -252,15 +299,6 @@ export default function MapHub() {
   const projectInputRef = useRef<HTMLInputElement>(null);
   const imageryRefreshKeyRef = useRef<string>('');
   const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(availableImageryDates), [availableImageryDates]);
-
-  // فتح مباشر من صفحة «حقولي»: الرابط يحدد الحقل والمؤشّر، والمتجر المشترك يُثبَّت
-  // قبل أن يعرض MapHub الخريطة. هذا يجعل /fields → اختيار صف → /fields/map-center
-  // مساراً قابلاً للمشاركة ويعرض CDSE/NDVI للحقل المختار دون الاعتماد على حالة ذاكرة فقط.
-  useEffect(() => {
-    if (!routeFieldId) return;
-    if (fields.length && !fields.some((f) => f.id === routeFieldId)) return;
-    if (fieldId !== routeFieldId) setFieldId(routeFieldId);
-  }, [routeFieldId, fields, fieldId, setFieldId]);
 
   useEffect(() => {
     if (!requestedCdseOpen) return;
@@ -728,6 +766,94 @@ export default function MapHub() {
     [selected],
   );
   const weatherQ = useWeatherForecast(selectedPoint?.[0] ?? 15.05, selectedPoint?.[1] ?? 45.55);
+
+  // ── عرض الفلاح (P1): 4 مؤشّرات من إشارات حيّة حقيقيّة (NDVI · رطوبة تربة · نيتروجين · طقس).
+  // استخراج دفاعيّ — عند غياب أيّ إشارة تُمرَّر null فتُعرَض 'غير متاح' بلا اختلاق. ──
+  const ndviQ = useCurrentNDVI(fieldId ?? '');
+  const soilMoistureQ = useFieldSoilMoisture(fieldId ?? null);
+  const nRecQ = useSoilNRecommendation(fieldId ?? '');
+  const farmerMetricsInput = useMemo(() => {
+    const nd = ndviQ.data as { ndvi?: number; mean_ndvi?: number } | undefined;
+    const ndvi = typeof nd?.ndvi === 'number' ? nd.ndvi : typeof nd?.mean_ndvi === 'number' ? nd.mean_ndvi : null;
+    const soilMoisturePct = soilMoistureQ.data?.reading?.soil_moisture_pct ?? null;
+    const nd2 = nRecQ.data as { status?: string; nitrogen_status?: string; recommended_n_kg_ha?: number } | undefined;
+    const nStatusRaw = nd2?.status ?? nd2?.nitrogen_status;
+    let nitrogenStatus: 'adequate' | 'deficit' | 'excess' | null = null;
+    if (nStatusRaw === 'adequate' || nStatusRaw === 'deficit' || nStatusRaw === 'excess') nitrogenStatus = nStatusRaw;
+    else if (typeof nd2?.recommended_n_kg_ha === 'number') nitrogenStatus = nd2.recommended_n_kg_ha > 0 ? 'deficit' : 'adequate';
+    const wd = weatherQ.data as { daily?: Array<{ temp_max_c?: number; wind_speed_m_s?: number; rain_mm?: number; precipitation_mm?: number }> } | undefined;
+    const today = wd?.daily?.[0];
+    const weather = today
+      ? { tempMaxC: today.temp_max_c ?? null, windMs: today.wind_speed_m_s ?? null, rainMm: today.rain_mm ?? today.precipitation_mm ?? null }
+      : null;
+    return { ndvi, soilMoisturePct, nitrogenStatus, weather };
+  }, [ndviQ.data, soilMoistureQ.data, nRecQ.data, weatherQ.data]);
+
+  // ── Field Water Brain: قرار ريّ من الرطوبة + مجموع مطر الأيّام القادمة + الحرارة. ──
+  const waterBrainInput = useMemo(() => {
+    const wd = weatherQ.data as { daily?: Array<{ temp_max_c?: number; rain_mm?: number; precipitation_mm?: number }> } | undefined;
+    const upcoming = (wd?.daily ?? []).slice(0, 3);
+    const forecastRainMm = upcoming.length
+      ? upcoming.reduce((s, d) => s + (d.rain_mm ?? d.precipitation_mm ?? 0), 0)
+      : null;
+    return {
+      soilMoisturePct: farmerMetricsInput.soilMoisturePct,
+      forecastRainMm,
+      tempMaxC: farmerMetricsInput.weather?.tempMaxC ?? null,
+    };
+  }, [weatherQ.data, farmerMetricsInput]);
+
+  // ── Zone & VRA readiness (P2): مسار Field → Zone → Action من إشارات حقيقيّة
+  // (مشاهد جاهزة للعنقدة + عدد الوصفات المحفوظة). يوجّه لمصمّم المناطق القائم. ──
+  // وضع الخبير فقط: لا نجلب بيانات البطاقات المتقدّمة في وضع الفلاح (توفير طلبات).
+  const expertMode = fieldMode === 'expert';
+  const prescriptionsQ = useFieldPrescriptions(fieldId ?? '', expertMode && !!fieldId);
+  const imageryReadyCount = availableImageryDates.filter((d) => d.has_cog).length;
+  // استكشاف الحقل: تصنيف المشاكل الشائعة لمحصول الحقل النشط (Taranis).
+  const scoutingQ = useCropScoutingIssues(expertMode ? (selected?.crop || undefined) : undefined);
+  // مركز الموسم: مراحل نموّ الموسم النشط + إجراء الطور (Cropin) — نقاط منصّة حيّة.
+  const phenologyQ = useFieldPhenology(expertMode ? (fieldId ?? null) : null);
+  const stageActionsQ = useFieldStageActions(expertMode ? (fieldId ?? null) : null);
+  // كفاءة مياه الحقل: إجماليّ الريّ المُطبَّق (mm) من الدفتر — لتقدير تكلفة الريّ في طبقة الأعمال.
+  const waterEfficiencyQ = useFieldWaterEfficiency(expertMode ? (fieldId ?? null) : null);
+  // سجلّ التتبّع: مواسم الحقل + العمليّات المكتملة (Farmonaut) — تقرير قابل للمشاركة.
+  const seasonsQ = useSeasons(expertMode ? (fieldId ?? undefined) : undefined);
+  const activeSeason = useMemo(
+    () => (seasonsQ.data ?? []).find((s) => s.status === 'active') ?? seasonsQ.data?.[0] ?? null,
+    [seasonsQ.data],
+  );
+  // ربحيّة الموسم: تعكس التكاليف/الإيرادات الفعليّة المُخزَّنة (farm-ledger v100–v102) في FieldView.
+  // مبوَّبة بوضع الخبير + وجود موسم؛ الخطّافات تلتقط 404 (الميزة مُطفأة) كحالة صادقة لا خطأ.
+  const activeSeasonId = activeSeason?.season_id ?? null;
+  const ledgerSummaryQ = useFarmLedgerSummary(fieldId ?? null, activeSeasonId, expertMode && !!activeSeasonId);
+  const profitabilityQ = useSeasonProfitability(activeSeasonId, expertMode && !!activeSeasonId);
+  const varianceQ = useSeasonVariance(activeSeasonId, expertMode && !!activeSeasonId);
+  const economicStateQ = useSeasonEconomicState(
+    activeSeasonId,
+    typeof selected?.area === 'number' ? selected.area : null,
+    expertMode && !!activeSeasonId,
+  );
+  const completedOps = useMemo(
+    () => (tasksQ.data?.tasks ?? [])
+      .filter((t) => t.field_id === fieldId && t.status === 'completed')
+      .map((t) => ({ label: t.task_type, date: t.recommended_date })),
+    [tasksQ.data, fieldId],
+  );
+  // توفّر الأدلّة الحقيقيّ لطبقة الأهداف — يُحسَب من الاستعلامات الحيّة فقط (لا افتراض تفاؤليّ):
+  // كلّ مصدر = true حين تكون بياناته حاضرة فعلاً، وإلّا يُترَك false فتمنع اللوحةُ الإجراءَ بصدق.
+  const objectiveAvailability = useMemo<EvidenceAvailability>(() => ({
+    imagery: imageryReadyCount > 0,
+    weather: !!weatherQ.data?.current,
+    moisture: soilMoistureQ.data?.reading != null,
+    alerts: Array.isArray(alertsQ.data),
+    tasks: Array.isArray(tasksQ.data?.tasks),
+    // لا نعتبر crop/area وحدها «سجلّات»؛ الربحيّة تحتاج أثراً تشغيليّاً فعليّاً (عمليّات
+    // مكتملة أو قياس كفاءة ماء) — يمنع فتح هدف الربحيّة بدليل وهميّ.
+    records: completedOps.length > 0 || !!waterEfficiencyQ.data,
+    // جاهزيّة مسار المناطق: مناطق محفوظة فعلاً أو صور جاهزة لبناء مناطق جديدة.
+    zones: zonePersisted.length > 0 || imageryReadyCount > 0,
+    season: !!phenologyQ.data?.available || (seasonsQ.data?.length ?? 0) > 0,
+  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, completedOps.length, waterEfficiencyQ.data, zonePersisted.length, phenologyQ.data, seasonsQ.data]);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1016,6 +1142,240 @@ export default function MapHub() {
           />
         </div>
       </header>
+
+      {fieldViewStatus && (
+        <div
+          className="mb-3 rounded-xl px-3 py-2 text-xs"
+          data-testid="fieldview-status"
+          style={{ background: '#064e3b33', border: '1px solid #10b98155', color: '#d1fae5' }}
+        >
+          {fieldViewStatus}
+        </div>
+      )}
+
+      {/* FieldView Smart Deck — أفضل إجراء تالٍ للحقل النشط (صور/استكشاف/عمليّات/سجلّ/سياق).
+          يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
+          إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
+      {selected && (
+        <div className="mb-3 inline-flex items-center gap-1 rounded-xl p-0.5" style={{ background: T.card, border: `1px solid ${T.line}` }} data-testid="fieldview-mode-toggle">
+          {(['farmer', 'expert'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setFieldModePersist(m)}
+              className="px-3 py-1 rounded-lg text-xs font-bold"
+              style={{ background: fieldMode === m ? '#14532d' : 'transparent', color: fieldMode === m ? '#bbf7d0' : T.muted }}
+              aria-pressed={fieldMode === m}
+            >
+              {m === 'farmer' ? 'وضع الفلاح' : 'وضع الخبير'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {selected && <FarmerMetricsCard {...farmerMetricsInput} />}
+
+      {selected && <FieldWaterBrainCard {...waterBrainInput} />}
+
+      {selected && (
+        <FieldHealthReportCard
+          fieldId={fieldId}
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          imageryDates={availableImageryDates}
+          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
+          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
+          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
+          weatherReady={!!weatherQ.data?.current}
+          agentContextReady={!!fieldId}
+          routeFieldIsInvalid={routeFieldIsInvalid}
+          storedFieldIsInvalid={storedFieldIsInvalid}
+          selectionReason={selectionReason}
+        />
+      )}
+
+      {/* طبقة الأهداف (Field Objective Engine): تحوّل FieldView من «أداة تعرض بيانات» إلى
+          «متعاون يحقّق هدفاً» — نيّة ⇒ خطّة (فحص→تفسير→إجراء→مراجعة) مربوطة بأدلّة حقيقيّة،
+          تمنع التوصية حتّى اكتمال الدليل، وتحوّلها إلى مهمّة قابلة للمتابعة بدورة حياة صريحة. */}
+      {selected && fieldMode === 'expert' && (
+        <FieldObjectivePanel
+          contextKey={fieldId}
+          availability={objectiveAvailability}
+          onCreateTask={(objectiveId) => {
+            // مسار المهمّة الحيّ الوحيد في MapHub: فتح وضع تثبيت دليل ميدانيّ لكشف الإجهاد.
+            // نعيد false لأيّ هدف لا نملك له مسار تنفيذ حيّ هنا حتّى لا تتقدّم دورة الحياة كذباً.
+            if (objectiveId === 'diagnose_field_stress') {
+              setPinMode(true); setCompare(false); setDrawTools(false);
+              return true;
+            }
+            return false;
+          }}
+        />
+      )}
+
+      {/* التقويم الزراعيّ اليمنيّ (display_only — سياق تراثيّ لا يدخل القرار): المنزلة
+          القمريّة + الشهر الحميريّ + أمثال المنزلة + نافذة زراعة محصول الحقل. كان
+          backend كاملاً (calendars/proverbs) بلا أيّ قارئ — التميّز المحلّيّ لساهول. */}
+      {selected && <YemeniCalendarCard cropLabel={selected.crop} />}
+
+      {selected && fieldMode === 'expert' && (
+        <FieldViewInsightStrip
+          fieldId={fieldId}
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          imageryDates={availableImageryDates}
+          activeAlertsCount={Array.isArray(alertsQ.data) ? alertsQ.data.length : undefined}
+          openTasksCount={Array.isArray(tasksQ.data?.tasks) ? tasksQ.data.tasks.length : undefined}
+          equipmentCount={Array.isArray(equipmentQ.data) ? equipmentQ.data.length : undefined}
+          weatherReady={!!weatherQ.data?.current}
+          agentContextReady={!!fieldId}
+          routeFieldIsInvalid={routeFieldIsInvalid}
+          storedFieldIsInvalid={storedFieldIsInvalid}
+          selectionReason={selectionReason}
+          onBackfill={mutateAllowed ? handlePrepareTwoYearImagery : undefined}
+          onOpenTimeline={() => setShowImageryTimeline(true)}
+          onShowAlerts={() => setShowAlerts(true)}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <ZoneVraEntryCard
+          hasField={!!fieldId}
+          imageryReadyCount={imageryReadyCount}
+          prescriptionCount={prescriptionsQ.data?.total ?? 0}
+          onOpenZones={() => { setZoneDesigner(true); setShowPivots(true); }}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <OperationsCenterCard
+          fieldId={fieldId ?? null}
+          tasks={tasksQ.data?.tasks ?? []}
+          equipment={equipmentQ.data ?? []}
+          alerts={Array.isArray(alertsQ.data) ? alertsQ.data : []}
+          onOpenAlerts={() => setShowAlerts(true)}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <FieldEconomicsCard
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+        />
+      )}
+
+      {/* ربحيّة الموسم من السجلّ الفعليّ (farm-ledger) — أرقام مُخزَّنة لا تقدير، بعكس البطاقة أعلاه. */}
+      {selected && fieldMode === 'expert' && (
+        <SeasonProfitabilityCard
+          hasSeason={!!activeSeasonId}
+          profitability={profitabilityQ.data ?? null}
+          summary={ledgerSummaryQ.data ?? null}
+          variance={varianceQ.data ?? null}
+          economicState={economicStateQ.data ?? null}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          loading={profitabilityQ.isLoading || ledgerSummaryQ.isLoading}
+        />
+      )}
+
+      {/* إدخال السجلّ الماليّ (عمليّة/موازنة/إيراد): يكتمل به قوس الربحيّة إدخالاً —
+          كانت نقاط POST بلا واجهة (الإدخال API فقط). للخبير المخوَّل بالتعديل فقط. */}
+      {selected && fieldMode === 'expert' && mutateAllowed && (
+        <LedgerEntryCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          todayIso={new Date().toISOString().slice(0, 10)}
+          enabled={expertMode}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <FieldScoutingCard
+          crop={selected.crop}
+          issues={scoutingQ.data?.issues ?? []}
+          loading={scoutingQ.isLoading}
+          onLogEvidence={() => { setPinMode(true); setCompare(false); setDrawTools(false); }}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <SeasonCommandCard
+          phenology={phenologyQ.data ?? null}
+          stageAction={stageActionsQ.data?.available ? (stageActionsQ.data.suggestions?.[0]?.action_ar ?? null) : null}
+          loading={phenologyQ.isLoading}
+        />
+      )}
+
+      {/* بطاقة المحصول: تعكس المعرفة المرجعيّة المُخزَّنة (crop-cards YAML — Kc/ملوحة/GDD/
+          أصناف يمنيّة) على محصول الحقل النشط — كانت قدرة خلفيّة يتيمة عن الواجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <CropKnowledgeCard
+          cropLabel={selected.crop}
+          sowingDate={activeSeason?.sowing_date ?? null}
+          enabled={expertMode}
+        />
+      )}
+
+      {selected && fieldMode === 'expert' && (
+        <TraceabilityCard
+          fieldName={selected.name}
+          crop={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          season={activeSeason}
+          completedOps={completedOps}
+          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+          prescriptionCount={prescriptionsQ.data?.total ?? null}
+        />
+      )}
+
+      {/* «ماذا أزرع؟»: اقتراح الدورة الزراعيّة + ملاءمة الشهر — planting/rotation
+          كانت بلا مسار عمليّ في الواجهة. أحكام الخادم تُعرَض لا يُعاد الحكم. */}
+      {selected && fieldMode === 'expert' && (
+        <PlantingAdvisorCard
+          cropLabel={selected.crop}
+          todayIso={new Date().toISOString().slice(0, 10)}
+          enabled={expertMode}
+        />
+      )}
+
+      {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود
+          كان أقوى من الواجهة (score/graph بلا قارئ). */}
+      {selected && fieldMode === 'expert' && (
+        <BoundaryReviewCard fieldId={fieldId ?? null} enabled={expertMode} mutateAllowed={mutateAllowed} />
+      )}
+
+      {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
+          كان backend v65 كاملاً (harvest-lots/custody/input-traceability) بلا قارئ واجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <HarvestTraceabilityCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          enabled={expertMode}
+        />
+      )}
+
+      {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
+      {compare && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5" data-testid="compare-presets">
+          <span className="text-[11px] font-bold" style={{ color: T.muted }}>مقارنات جاهزة:</span>
+          {buildComparePresets(INDICATOR_LAYERS.map((l) => l.id)).map((p) => {
+            const active = leftLayer === p.left && rightLayer === p.right;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                title={p.why}
+                onClick={() => { setLeftLayer(p.left); setRightLayer(p.right); }}
+                className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
+                style={{ borderColor: active ? '#22c55e88' : T.line, color: T.ink, background: active ? '#14532d' : T.card }}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" data-testid="maphub-summary">
         <SummaryStat label="إجمالي الحقول" value={String(fields.length)} />

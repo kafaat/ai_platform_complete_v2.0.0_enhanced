@@ -42,7 +42,7 @@ import {
   fetchFleetHealth,
 } from '../services/api';
 import * as useApiModule from '../hooks/useApi';
-import * as useFieldOptionsModule from '../hooks/useFieldOptions';
+import * as useSelectedFieldModule from '../hooks/useSelectedField';
 import OperationCenterWallPage from './OperationCenterWallPage';
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -125,8 +125,8 @@ function stubAll(over: Partial<Record<
 >> = {}) {
   vi.spyOn(useApiModule, 'useOperationsSummary').mockReturnValue(
     (over.summary ?? qData(null)) as never);
-  vi.spyOn(useFieldOptionsModule, 'useFieldOptions').mockReturnValue(
-    { ...(over.fields ?? qData(undefined)), options: (over.fields?.data as unknown[]) ?? [] } as never);
+  vi.spyOn(useSelectedFieldModule, 'useSelectedField').mockReturnValue(
+    { ...(over.fields ?? qData(undefined)), options: (over.fields?.data as unknown[]) ?? [], fieldId: '', field: undefined, setFieldId: vi.fn() } as never);
   vi.spyOn(useApiModule, 'useAlerts').mockReturnValue((over.alerts ?? qData([])) as never);
   vi.spyOn(useApiModule, 'useFleetHealth').mockReturnValue((over.fleet ?? qData(undefined)) as never);
   vi.spyOn(useApiModule, 'useWeatherForecast').mockReturnValue((over.weather ?? qData(undefined)) as never);

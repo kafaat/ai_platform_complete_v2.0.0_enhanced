@@ -23,7 +23,7 @@ import {
 import {
   useCostAnalytics, useFields, useFarmSummary, useFieldReport,
 } from '../hooks/useApi';
-import { useFieldOptions } from '../hooks/useFieldOptions';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { useAuthStore } from '../hooks/useAuth';
 import { fetchSeasons, fetchActivities } from '../services/api';
 import type { SeasonSummary, Activity } from '../services/api';
@@ -196,10 +196,7 @@ function FarmDashboard() {
 
 // ── ملخّص الحقل: اختيار حقل ثمّ عرض مساحته/محصوله/موسمه/عمليّاته/تنبيهاته ──
 function FieldSummaryView() {
-  const fieldsQuery = useFields();
-  const fields: Array<{ field_id: string; name_ar?: string; name?: string }> =
-    fieldsQuery.data?.fields ?? [];
-  const [fieldId, setFieldId] = useState('');
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch: refetchFields, fieldId, setFieldId } = useSelectedField();
   const report = useFieldReport(fieldId || undefined);
 
   return (
@@ -211,17 +208,17 @@ function FieldSummaryView() {
           style={{ background: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}>
           <option value="">— اختر حقلاً —</option>
           {fields.map(f => (
-            <option key={f.field_id} value={f.field_id}>{f.name_ar ?? f.name ?? f.field_id}</option>
+            <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` — ${f.crop}` : ''}</option>
           ))}
         </select>
       </div>
 
-      {fieldsQuery.isLoading && <LoadingState message="جارٍ تحميل قائمة الحقول…" />}
-      {fieldsQuery.isError && (
+      {fieldsLoading && <LoadingState message="جارٍ تحميل قائمة الحقول…" />}
+      {fieldsError && (
         <ErrorState title="تعذّر تحميل قائمة الحقول"
-          detail="تعذّر الاتصال بخدمة الحقول." onRetry={() => fieldsQuery.refetch()} />
+          detail="تعذّر الاتصال بخدمة الحقول." onRetry={() => refetchFields()} />
       )}
-      {!fieldsQuery.isLoading && !fieldsQuery.isError && fields.length === 0 && (
+      {!fieldsLoading && !fieldsError && fields.length === 0 && (
         <EmptyState title="لا توجد حقول بعد" hint="أنشئ حقلاً أوّلاً لعرض ملخّصه." />
       )}
 
@@ -424,7 +421,7 @@ function SummaryHeader({ icon: Icon, title, color, action }: {
 // جديد) — يستعمل دوال الجلب المُصدَّرة من api.ts عبر useQueries.
 function useAllFieldsReportData() {
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
-  const fieldsQuery = useFieldOptions();
+  const fieldsQuery = useSelectedField();
   const fieldIds = useMemo(
     () => fieldsQuery.options.map((f) => f.id),
     [fieldsQuery.options],
