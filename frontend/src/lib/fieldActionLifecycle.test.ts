@@ -38,7 +38,7 @@ describe('advanceLifecycle — explicit transitions only', () => {
     step('schedule_follow_up', { objective: diagnose });
     expect(s.stage).toBe('follow_up');
     expect(s.followUp).toEqual({ kind: 'next_image' });
-    step('record_outcome', { outcome: 'improved' });
+    step('record_outcome', { objective: diagnose, outcome: 'improved' });
     expect(s.stage).toBe('reviewed');
     expect(s.outcome).toBe('improved');
   });
@@ -87,14 +87,14 @@ describe('advanceLifecycle — explicit transitions only', () => {
     expect(r.state.outcome).toBe('completed');
   });
 
-  it('records outcome directly from executing without a scheduled follow-up', () => {
+  it('blocks outcome directly from executing when the objective requires a scheduled follow-up', () => {
     let s = initLifecycle();
     for (const e of ['attach_evidence', 'approve', 'create_task', 'start_execution'] as const) {
       s = advanceLifecycle(s, e, e === 'create_task' ? { objective: diagnose } : { canAct: true }).state;
     }
-    s = advanceLifecycle(s, 'record_outcome', { objective: diagnose, outcome: 'stable' }).state;
-    expect(s.stage).toBe('reviewed');
-    expect(s.outcome).toBe('stable');
+    const r = advanceLifecycle(s, 'record_outcome', { objective: diagnose, outcome: 'stable' });
+    expect(r.changed).toBe(false);
+    expect(r.blockedReason).toContain('جدولة المتابعة');
   });
 
 

@@ -1189,6 +1189,7 @@ export default function MapHub() {
           تمنع التوصية حتّى اكتمال الدليل، وتحوّلها إلى مهمّة قابلة للمتابعة بدورة حياة صريحة. */}
       {selected && fieldMode === 'expert' && (
         <FieldObjectivePanel
+          contextKey={fieldId}
           availability={objectiveAvailability}
           onCreateTask={(objectiveId) => {
             // مسار المهمّة الحيّ الوحيد في MapHub: فتح وضع تثبيت دليل ميدانيّ لكشف الإجهاد.

@@ -30,8 +30,8 @@ describe('field objective hidden-gap guards', () => {
 
   it('FieldObjectivePanel requires explicit true from onCreateTask before advancing task lifecycle', () => {
     const src = readFileSync(resolve(process.cwd(), 'src/components/fieldview/FieldObjectivePanel.tsx'), 'utf8');
-    expect(src).toContain('if (!onCreateTask) return');
-    expect(src).toContain('if (accepted !== true) return');
+    expect(src).toContain('if (!onCreateTask)')
+    expect(src).toContain('if (accepted !== true)')
     expect(src).toContain('boolean | Promise<boolean>');
     expect(src).not.toContain('void | boolean');
   });

@@ -45,6 +45,8 @@ const STEP_TONE: Record<ObjectiveStepKind, string> = {
 };
 
 export interface FieldObjectivePanelProps {
+  /** مفتاح السياق الحيّ (fieldId/seasonId). تغييره يعيد دورة الحياة حتى لا تنتقل توصية حقل إلى آخر. */
+  contextKey?: string | null;
   /** توفّر الأدلّة الحقيقيّ محسوباً من استعلامات FieldView الحيّة. */
   availability: EvidenceAvailability;
   /** يُنشئ مهمّة قابلة للمتابعة من التوصية (backend حقيقيّ). يُستدعى فقط بعد اكتمال الدليل. */
@@ -53,16 +55,26 @@ export interface FieldObjectivePanelProps {
 
 /** لوحة الأهداف: نيّة المستخدم ⇒ خطّة (فحص→تفسير→إجراء→مراجعة) مربوطة بأدلّة حقيقيّة،
  *  تمنع الإجراء حتّى اكتمال الدليل، وتحوّل التوصية إلى مهمّة قابلة للمتابعة بدورة حياة صريحة. */
-export default function FieldObjectivePanel({ availability, onCreateTask }: FieldObjectivePanelProps) {
+export default function FieldObjectivePanel({ contextKey, availability, onCreateTask }: FieldObjectivePanelProps) {
   const [selectedId, setSelectedId] = useState<FieldObjectiveId>('diagnose_field_stress');
   const [lifecycle, setLifecycle] = useState<LifecycleState>(initLifecycle());
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
+  const [creatingTask, setCreatingTask] = useState(false);
 
   const plan = useMemo(() => buildObjectivePlan(selectedId, availability), [selectedId, availability]);
 
   const pick = (id: FieldObjectiveId) => {
     setSelectedId(id);
     setLifecycle(initLifecycle()); // هدف جديد ⇒ دورة حياة جديدة (لا خلط أدلّة)
+    setBlockedMessage(null);
   };
+
+  useEffect(() => {
+    // تغيير الحقل/الموسم يعني سياق دليل جديد؛ لا ننقل دورة حياة توصية من حقل إلى آخر.
+    setLifecycle(initLifecycle());
+    setBlockedMessage(null);
+    setCreatingTask(false);
+  }, [contextKey]);
 
   useEffect(() => {
     // إذا تغيّرت البيانات الحيّة وأصبح الدليل ناقصاً قبل الوصول إلى مراجعة نهائية،
@@ -74,45 +86,54 @@ export default function FieldObjectivePanel({ availability, onCreateTask }: Fiel
 
   const attachAndApprove = () => {
     if (!plan?.canAct) return;
+    setBlockedMessage(null);
     // مسوّدة ⇒ دليل ⇒ مُعتمَدة (انتقالات صريحة، بوّابة الدليل مطبَّقة)
     const evidence = advanceLifecycle(lifecycle, 'attach_evidence', { canAct: plan.canAct });
-    if (!evidence.changed) return;
+    if (!evidence.changed) { setBlockedMessage(evidence.blockedReason ?? 'تعذّر إرفاق الدليل.'); return; }
     const approved = advanceLifecycle(evidence.state, 'approve');
-    if (!approved.changed) return;
+    if (!approved.changed) { setBlockedMessage(approved.blockedReason ?? 'تعذّر اعتماد التوصية.'); return; }
     setLifecycle(approved.state);
   };
 
   const createTask = async () => {
-    if (!plan?.canAct) return;
+    if (!plan?.canAct || creatingTask) return;
+    setBlockedMessage(null);
     // لا نسمح بتقدّم دورة الحياة بمجرد عدم وجود callback؛
     // الهدف المنتج لمهمة يحتاج قبولاً صريحاً من طبقة تنفيذ حية.
-    if (!onCreateTask) return;
+    if (!onCreateTask) { setBlockedMessage('لا يوجد مسار تنفيذ حيّ لإنشاء المهمة.'); return; }
     const r = advanceLifecycle(lifecycle, 'create_task', { objective: plan.objective });
-    if (!r.changed) return;
+    if (!r.changed) { setBlockedMessage(r.blockedReason ?? 'تعذّر إنشاء المهمة.'); return; }
+    setCreatingTask(true);
     try {
       const accepted = await onCreateTask(plan.objective.id, plan.objective.label);
       // يجب أن ترجع الطبقة المضيفة true صراحة بعد إنشاء/فتح مسار تنفيذ حقيقي.
-      if (accepted !== true) return;
+      if (accepted !== true) { setBlockedMessage('لا يوجد مسار تنفيذ فعلي لهذا الهدف داخل هذه الشاشة.'); return; }
       setLifecycle(r.state);
     } catch {
       // رفض/فشل backend أو المسار المضيف لا يغيّر الحالة؛ لا نكذب بأن مهمة أُنشئت.
+      setBlockedMessage('فشل إنشاء المهمة؛ لم تتغير دورة الحياة.');
       return;
+    } finally {
+      setCreatingTask(false);
     }
   };
 
   const scheduleFollowUp = () => {
     if (!plan?.canAct) return;
+    setBlockedMessage(null);
     const started = advanceLifecycle(lifecycle, 'start_execution');
-    if (!started.changed) return;
+    if (!started.changed) { setBlockedMessage(started.blockedReason ?? 'تعذّر بدء التنفيذ.'); return; }
     const scheduled = advanceLifecycle(started.state, 'schedule_follow_up', { objective: plan.objective });
-    if (!scheduled.changed) return;
+    if (!scheduled.changed) { setBlockedMessage(scheduled.blockedReason ?? 'تعذّرت جدولة المتابعة.'); return; }
     setLifecycle(scheduled.state);
   };
 
   const recordOutcome = (outcome: Outcome) => {
     if (!plan) return;
+    setBlockedMessage(null);
     const r = advanceLifecycle(lifecycle, 'record_outcome', { objective: plan.objective, outcome });
     if (r.changed) setLifecycle(r.state);
+    else setBlockedMessage(r.blockedReason ?? 'تعذّر تسجيل الأثر.');
   };
 
   if (!plan) return null;
@@ -228,10 +249,11 @@ export default function FieldObjectivePanel({ availability, onCreateTask }: Fiel
           <button
             type="button"
             onClick={createTask}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold"
+            disabled={creatingTask}
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
             style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
           >
-            <ListChecks className="w-3.5 h-3.5" aria-hidden="true" /> حوِّل إلى مهمّة
+            <ListChecks className="w-3.5 h-3.5" aria-hidden="true" /> {creatingTask ? 'جارٍ إنشاء المهمة…' : 'حوِّل إلى مهمّة'}
           </button>
         )}
 
@@ -280,6 +302,19 @@ export default function FieldObjectivePanel({ availability, onCreateTask }: Fiel
               </button>
             ))}
           </div>
+        )}
+
+
+
+        {blockedMessage && (
+          <span
+            className="inline-flex items-center gap-1 text-[11px] font-semibold"
+            style={{ color: '#fdba74' }}
+            role="status"
+          >
+            <Lock className="w-3.5 h-3.5" aria-hidden="true" />
+            {blockedMessage}
+          </span>
         )}
 
         {lifecycle.stage === 'reviewed' && (

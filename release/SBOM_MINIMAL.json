@@ -875,7 +875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a16bb89f7f6774130cc4cd4c0ed95c8cca97a2c2363120dbea19c102e1f3a8b6"
+          "content": "3dd26b9c2de67a634bcae5352d64a6ede729322124e8e67438140438a0dd34d4"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldObjectivePanel.tsx",
@@ -2015,7 +2015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a1bec1387619d344861c1b8fbae3711e55f3c29941cadfae8f38d19f4a27b595"
+          "content": "69a066ca233b99410d403933dc3687c5a4ade02c5e45d9401f12a803a941382f"
         }
       ],
       "name": "frontend/src/lib/fieldActionLifecycle.test.ts",
@@ -2025,7 +2025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "279897b7ad35bfa0c6336e3aee03d6bd78e1559cf6bfba43f9c3b713eed8bcd9"
+          "content": "6f35439ae19e341c6fcabc40aa2b74ead4d70b850970157ee0ad9f5c0ef148f0"
         }
       ],
       "name": "frontend/src/lib/fieldActionLifecycle.ts",
@@ -2169,6 +2169,16 @@
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveEngine.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a4c52edefbeb9fc50f1958a3605f77082b7a5cd9d4dcf7a9f53aa3784d21813c"
+        }
+      ],
+      "name": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
       "type": "file"
     },
     {
@@ -3345,7 +3355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "181180ee8010ca61c0e9601ed56dd733ce2edf842afbf1d877bf3555ec72a667"
+          "content": "489335aaa426eefb9b80327ae4f1648e0b6334243571ace7d07ced6f59893db2"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

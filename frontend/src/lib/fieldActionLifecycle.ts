@@ -113,16 +113,34 @@ export function advanceLifecycle(
     }
   }
 
-  // الاكتمال المباشر من approved مخصص فقط للأهداف غير الميدانية وبنتيجة completed.
-  if (event === 'record_outcome' && state.stage === 'approved') {
+  // تسجيل الأثر لا يجوز أن يكون افتراضياً أو بلا هدف؛ وإلا قد تُغلَق توصية
+  // كأنها رُوجعت بينما لا نعرف ما الذي رُوجع أو لأي هدف.
+  if (event === 'record_outcome') {
     if (!input.objective) {
-      return { state, changed: false, blockedReason: 'لا يمكن تسجيل المخرج دون تعريف الهدف.' };
+      return { state, changed: false, blockedReason: 'لا يمكن تسجيل الأثر دون تعريف الهدف.' };
     }
+    if (!input.outcome || input.outcome === 'unknown') {
+      return { state, changed: false, blockedReason: 'لا يمكن تسجيل أثر غير معروف كأنه مراجعة مكتملة.' };
+    }
+
+    // الاكتمال المباشر من approved مخصص فقط للأهداف غير الميدانية وبنتيجة completed.
+    if (state.stage === 'approved') {
+      if (input.objective.producesTask) {
+        return { state, changed: false, blockedReason: 'هذا الهدف يحتاج مهمة ومتابعة قبل تسجيل الأثر.' };
+      }
+      if (input.outcome !== 'completed') {
+        return { state, changed: false, blockedReason: 'الأهداف غير الميدانية تُغلق من هذه المرحلة كمخرج مكتمل فقط.' };
+      }
+    }
+
+    // الأهداف الميدانية لا تُغلق بمخرج completed؛ تحتاج أثر زراعي فعلي.
     if (input.objective.producesTask) {
-      return { state, changed: false, blockedReason: 'هذا الهدف يحتاج مهمة ومتابعة قبل تسجيل الأثر.' };
-    }
-    if (input.outcome !== 'completed') {
-      return { state, changed: false, blockedReason: 'الأهداف غير الميدانية تُغلق من هذه المرحلة كمخرج مكتمل فقط.' };
+      if (input.outcome === 'completed') {
+        return { state, changed: false, blockedReason: 'المهمة الميدانية تحتاج أثر improved/stable/declined لا completed.' };
+      }
+      if (state.stage === 'executing' && input.objective.followUp !== 'none') {
+        return { state, changed: false, blockedReason: 'يجب جدولة المتابعة قبل تسجيل أثر الهدف الميداني.' };
+      }
     }
   }
 
