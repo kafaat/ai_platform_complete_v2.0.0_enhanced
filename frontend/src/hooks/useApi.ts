@@ -771,6 +771,70 @@ export function useFieldWaterEfficiency(fieldId: string | null | undefined): Use
   });
 }
 
+// ── Farm Cost Ledger (v100–v102) — تعكس التكاليف/الربحيّة الفعليّة المُخزَّنة في الواجهة ──
+// الميزة خلف FEATURE_FARM_OPERATIONS_LEDGER (مُطفأة افتراضاً ⇒ 404). نلتقط 404 ونحوّله إلى
+// حالة صادقة `disabled` بدل خطأ مُفزِع؛ باقي الأخطاء (503 قاعدة/403 صلاحيّة) تُرفَع كما هي.
+import type {
+  LedgerSummaryResponse, ProfitabilityResponse, VarianceResponse,
+} from '../lib/fieldProfitability';
+
+function isDisabled404(e: unknown): boolean {
+  const status = (e as { response?: { status?: number } })?.response?.status;
+  return status === 404;
+}
+
+/** ملخّص التكلفة الرقابي للحقل/الموسم من السجلّ الفعليّ. */
+export function useFarmLedgerSummary(
+  fieldId: string | null | undefined,
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<LedgerSummaryResponse> {
+  return useQuery<LedgerSummaryResponse>({
+    queryKey: ['farm-ledger-summary', fieldId ?? 'none', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/farm-ledger/summary', { params: { field_id: fieldId || undefined, season_id: seasonId || undefined } })
+      .then(r => r.data as LedgerSummaryResponse)
+      .catch((e) => { if (isDisabled404(e)) return { summary: null, disabled: true }; throw e; }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && (!!fieldId || !!seasonId),
+    retry:    false,
+  });
+}
+
+/** ربحيّة الموسم الفعليّة (إيراد − تكلفة) من السجلّ. */
+export function useSeasonProfitability(
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<ProfitabilityResponse> {
+  return useQuery<ProfitabilityResponse>({
+    queryKey: ['season-profitability', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/farm-ledger/profitability/${seasonId}`)
+      .then(r => r.data as ProfitabilityResponse)
+      .catch((e) => { if (isDisabled404(e)) return { season_id: String(seasonId), profitability: null, disabled: true }; throw e; }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!seasonId,
+    retry:    false,
+  });
+}
+
+/** انحرافات المخطَّط/الفعليّ + توصيات الضبط للموسم من السجلّ. */
+export function useSeasonVariance(
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<VarianceResponse> {
+  return useQuery<VarianceResponse>({
+    queryKey: ['season-variance', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/farm-ledger/variance/${seasonId}`)
+      .then(r => r.data as VarianceResponse)
+      .catch((e) => { if (isDisabled404(e)) return { season_id: String(seasonId), variance: [], recommendations: [], disabled: true }; throw e; }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!seasonId,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

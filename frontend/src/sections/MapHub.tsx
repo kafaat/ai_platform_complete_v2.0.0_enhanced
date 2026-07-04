@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -49,6 +49,7 @@ import FieldScoutingCard from '../components/fieldview/FieldScoutingCard';
 import SeasonCommandCard from '../components/fieldview/SeasonCommandCard';
 import TraceabilityCard from '../components/fieldview/TraceabilityCard';
 import FieldObjectivePanel from '../components/fieldview/FieldObjectivePanel';
+import SeasonProfitabilityCard from '../components/fieldview/SeasonProfitabilityCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -815,6 +816,12 @@ export default function MapHub() {
     () => (seasonsQ.data ?? []).find((s) => s.status === 'active') ?? seasonsQ.data?.[0] ?? null,
     [seasonsQ.data],
   );
+  // ربحيّة الموسم: تعكس التكاليف/الإيرادات الفعليّة المُخزَّنة (farm-ledger v100–v102) في FieldView.
+  // مبوَّبة بوضع الخبير + وجود موسم؛ الخطّافات تلتقط 404 (الميزة مُطفأة) كحالة صادقة لا خطأ.
+  const activeSeasonId = activeSeason?.season_id ?? null;
+  const ledgerSummaryQ = useFarmLedgerSummary(fieldId ?? null, activeSeasonId, expertMode && !!activeSeasonId);
+  const profitabilityQ = useSeasonProfitability(activeSeasonId, expertMode && !!activeSeasonId);
+  const varianceQ = useSeasonVariance(activeSeasonId, expertMode && !!activeSeasonId);
   const completedOps = useMemo(
     () => (tasksQ.data?.tasks ?? [])
       .filter((t) => t.field_id === fieldId && t.status === 'completed')
@@ -1231,6 +1238,17 @@ export default function MapHub() {
         <FieldEconomicsCard
           areaHa={typeof selected.area === 'number' ? selected.area : null}
           irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+        />
+      )}
+
+      {/* ربحيّة الموسم من السجلّ الفعليّ (farm-ledger) — أرقام مُخزَّنة لا تقدير، بعكس البطاقة أعلاه. */}
+      {selected && fieldMode === 'expert' && (
+        <SeasonProfitabilityCard
+          hasSeason={!!activeSeasonId}
+          profitability={profitabilityQ.data ?? null}
+          summary={ledgerSummaryQ.data ?? null}
+          variance={varianceQ.data ?? null}
+          loading={profitabilityQ.isLoading || ledgerSummaryQ.isLoading}
         />
       )}
 
