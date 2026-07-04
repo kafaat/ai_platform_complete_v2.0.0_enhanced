@@ -857,7 +857,10 @@ export default function MapHub() {
     // جاهزيّة مسار المناطق: مناطق محفوظة فعلاً أو صور جاهزة لبناء مناطق جديدة.
     zones: zonePersisted.length > 0 || imageryReadyCount > 0,
     season: !!phenologyQ.data?.available || (seasonsQ.data?.length ?? 0) > 0,
-  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, completedOps.length, waterEfficiencyQ.data, zonePersisted.length, phenologyQ.data, seasonsQ.data]);
+    planning: !!selected?.crop,
+    // GDD يحتاج محصولاً + طقساً/موسماً حتّى لا يظهر هدف المرحلة الحراريّة بلا سياق.
+    gdd: !!selected?.crop && !!weatherQ.data?.current && (!!phenologyQ.data?.available || (seasonsQ.data?.length ?? 0) > 0),
+  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, completedOps.length, waterEfficiencyQ.data, zonePersisted.length, phenologyQ.data, seasonsQ.data, selected?.crop]);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;

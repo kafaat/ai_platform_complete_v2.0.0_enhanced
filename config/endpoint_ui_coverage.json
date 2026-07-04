@@ -602,6 +602,16 @@
       "endpoint": "/api/v1/decision/impact",
       "audience": "agronomist",
       "evidence": "/api/v1/decision/impact"
+    },
+    {
+      "endpoint": "/api/v1/crops/{crop_id}/operations-calendar",
+      "audience": "agronomist",
+      "evidence": "/operations-calendar"
+    },
+    {
+      "endpoint": "/api/v1/gdd/track (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gdd/track"
     }
   ]
 }

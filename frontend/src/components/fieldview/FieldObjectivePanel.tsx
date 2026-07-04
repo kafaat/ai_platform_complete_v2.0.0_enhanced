@@ -30,6 +30,8 @@ const SOURCE_LABEL: Record<EvidenceSource, string> = {
   zones: 'مناطق',
   moisture: 'رطوبة',
   season: 'موسم',
+  planning: 'تخطيط زراعيّ',
+  gdd: 'GDD',
 };
 
 const STEP_ICON: Record<ObjectiveStepKind, typeof Search> = {

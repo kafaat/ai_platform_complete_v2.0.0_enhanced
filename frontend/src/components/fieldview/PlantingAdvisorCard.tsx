@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { RefreshCcw, CheckCircle2, MinusCircle, XCircle } from 'lucide-react';
-import { useRotationSuggest, usePlantingCheck } from '../../hooks/useApi';
+import { useRotationSuggest, usePlantingCheck, useCropOperationsCalendar } from '../../hooks/useApi';
 import { groupRanked, monthOfIso, ratingColor, type RotationCandidate } from '../../lib/plantingAdvisor';
 import { plantingFitTone } from '../../lib/yemeniCalendar';
 import { T } from '../ds';
@@ -24,6 +24,8 @@ export default function PlantingAdvisorCard({ cropLabel, todayIso, enabled = tru
   const [picked, setPicked] = useState<RotationCandidate | null>(null);
   const month = monthOfIso(todayIso);
   const checkQ = usePlantingCheck(picked?.candidate_crop ?? null, month);
+  const operationsQ = useCropOperationsCalendar(picked?.candidate_crop ?? cropLabel ?? null, enabled);
+  const operationStages = operationsQ.data?.stages ?? operationsQ.data?.calendar ?? [];
   const fitTone = plantingFitTone(checkQ.data);
 
   if (!enabled || !cropLabel) return null;
@@ -95,6 +97,15 @@ export default function PlantingAdvisorCard({ cropLabel, todayIso, enabled = tru
                 <div className="text-[10px]" style={{ color: T.faint }}>لا تاريخ سياق — تعذّر فحص ملاءمة الشهر.</div>
               )}
             </div>
+          )}
+
+          {operationStages.length > 0 && (
+            <div className="rounded-xl border p-2 text-[11px]" style={{ borderColor: T.line, background: 'rgba(15,23,42,.30)', color: T.muted }}>
+              تقويم العمليّات متاح لـ{picked?.candidate_crop ?? cropLabel}: {operationStages.length} مراحل. استخدم هدف «تتبّع مرحلة GDD» لربط المرحلة الحراريّة بالعمليّات.
+            </div>
+          )}
+          {operationsQ.data?.disabled && (
+            <div className="text-[10px]" style={{ color: T.faint }}>تقويم العمليّات غير مفعّل لهذا المحصول حاليّاً.</div>
           )}
 
           {suggestQ.data?.yemen_note_ar && <div className="text-[10px]" style={{ color: T.faint }}>{suggestQ.data.yemen_note_ar}</div>}

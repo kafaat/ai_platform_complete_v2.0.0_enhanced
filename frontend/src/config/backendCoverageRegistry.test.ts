@@ -41,10 +41,7 @@ describe('backend-to-frontend coverage registry', () => {
 
   it('does not allow P0/P1 layers to be silently partial or not-ready', () => {
     const gaps = criticalCoverageGaps();
-    expect(gaps.map((gap) => `${gap.priority}:${gap.id}:${gap.state}`)).toEqual([
-      'P1:crop-planning-rotation-planting:partial',
-    ]);
-    expect(gaps[0]?.nextAction).toMatch(/objective/i);
+    expect(gaps.map((gap) => `${gap.priority}:${gap.id}:${gap.state}`)).toEqual([]);
   });
 
   it('requires exposed layers to have hooks and real UI surfaces or an explicit waiver', () => {
@@ -86,7 +83,7 @@ describe('backend-to-frontend coverage registry', () => {
   });
 
   it('summarizes covered, partial, internal and not-ready layers deterministically', () => {
-    expect(coverageSummary()).toEqual({ covered: 11, partial: 5, waived_internal: 1, not_ready: 1 });
+    expect(coverageSummary()).toEqual({ covered: 12, partial: 4, waived_internal: 1, not_ready: 1 });
   });
 
   it('maps endpoint patterns back to their owning layer', () => {

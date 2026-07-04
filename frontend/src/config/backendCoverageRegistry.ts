@@ -161,7 +161,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     label: 'Crop planning / planting windows / rotation / GDD',
     priority: 'P1',
     role: 'fieldview_user',
-    state: 'partial',
+    state: 'covered',
     owner: 'agronomy',
     endpoints: [
       '/api/v1/planting/check',
@@ -171,10 +171,11 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
       '/api/v1/crops/{crop}/operations-calendar',
       '/api/v1/gdd/track',
     ],
-    hooks: ['usePlantingCheck', 'useRotationSuggest'],
-    surfaces: [{ kind: 'fieldview_card', name: 'PlantingAdvisorCard', component: 'PlantingAdvisorCard' }],
-    gap: 'GDD tracking and crop operations calendar are still not represented as a dedicated Field Objective target.',
-    nextAction: 'Add objective targets: check_planting_window, plan_rotation, track_gdd_stage.',
+    hooks: ['usePlantingCheck', 'useRotationSuggest', 'useCropOperationsCalendar', 'useGddTrack'],
+    surfaces: [
+      { kind: 'fieldview_card', name: 'PlantingAdvisorCard', component: 'PlantingAdvisorCard' },
+      { kind: 'fieldview_card', name: 'FieldObjectivePanel', component: 'FieldObjectivePanel' },
+    ],
   },
   {
     id: 'climate-risk-analogs',

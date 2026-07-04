@@ -935,7 +935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2bff30cf3837c56a31d7daec966d40830d54230175c1b2574ddd8d2fecd556b"
+          "content": "28658a78a876db1ca9de933992d14e7d135062451bf3bd36144877273680ddcb"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldObjectivePanel.tsx",
@@ -1005,7 +1005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e9e301f00c785b54e8b3f351249cf068fa8b41476b3d77a9da4040539875cf7"
+          "content": "3bfbe9e287e3536f66c32673cbf0646dc3ea762cc813b83d4cc2c32a3bede2f5"
         }
       ],
       "name": "frontend/src/components/fieldview/PlantingAdvisorCard.tsx",
@@ -1845,7 +1845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79b8faeea5d323e48f86869beb13d11410b16f7724a1926fd0534b80383a8462"
+          "content": "3596b0a57f49bf70600f0033fbec2c211f76c4c078452a83abe323fce70b9898"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.test.ts",
@@ -1855,7 +1855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b48b06ea439874533fc7178844e7362d66137fb913052daaa2d20d0da52db10"
+          "content": "b4a88c333fd80078a13e60b44fb30951c0661a222a03bda9eb4559c015b3afe8"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.ts",
@@ -1895,7 +1895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "178da354452487ff4b23362eaedb2241299bcaffcc9f7c66c256dc2cd762acfb"
+          "content": "a414f8973c27d7c9c7a3fc25a130b643931d2fde9edd5ef8c8693ba0ad765691"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2475,7 +2475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fa6aa02d9a4ab37eaf58cca83de7dc6b1c239a1a30565dbea061dc319656fed"
+          "content": "539bca12f978860fc200f7679f956ce9d829c30ff6f60b120854a5e9ad628a33"
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveEngine.test.ts",
@@ -2485,7 +2485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2652cb06ae83012f83db5b51c987e7dfe8c769ea5a4ad973e4cdbe446334872c"
+          "content": "b0d08ed40d0122426f802536d1a5100a6aaeedd31a65c445271ee9aeb707f696"
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveEngine.ts",
@@ -3805,7 +3805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f240953761896cb501472f6a02b325ed67ff3b6e8a2e72cd2e6c64d8ef7cde1"
+          "content": "1445cdeef4fcc2432bd05636f514777eab785f43706389d9271fb719541efa58"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

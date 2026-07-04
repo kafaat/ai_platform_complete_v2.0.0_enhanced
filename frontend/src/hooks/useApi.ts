@@ -1671,6 +1671,58 @@ export function useDecisionImpact(fieldId?: string | null, enabled = true): UseQ
   });
 }
 
+// ── تقويم عمليّات المحصول + تتبّع GDD (متابعة عقد التغطية — أرشيف المستخدم) ──
+export interface CropOperationCalendarStage {
+  stage: string;
+  stage_ar?: string;
+  operations?: Array<{ type?: string; label?: string; label_ar?: string; timing_ar?: string; notes_ar?: string }>;
+}
+
+export interface CropOperationsCalendarResponse {
+  crop?: string;
+  crop_id?: string;
+  stages?: CropOperationCalendarStage[];
+  calendar?: CropOperationCalendarStage[];
+  notes_ar?: string;
+  disabled?: boolean;
+}
+
+/** تقويم العمليّات الكامل لمحصول — يقرأ backend crop operations calendar بدل تركه يتيماً. */
+export function useCropOperationsCalendar(crop: string | null | undefined, enabled = true): UseQueryResult<CropOperationsCalendarResponse> {
+  return useQuery<CropOperationsCalendarResponse>({
+    queryKey: ['crop-operations-calendar', crop ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/crops/${encodeURIComponent(crop ?? '')}/operations-calendar`).then(r => r.data as CropOperationsCalendarResponse)
+      .catch((e) => { if (isDisabled404(e)) return { disabled: true, stages: [], calendar: [] }; throw e; }),
+    staleTime:6 * 60 * 60_000,
+    enabled:  enabled && !!crop,
+    retry:    false,
+  });
+}
+
+export interface GddTrackInput {
+  crop: string;
+  temps: Array<{ t_min_c: number; t_max_c: number }>;
+}
+
+export interface GddTrackResult {
+  crop: string;
+  t_base: number;
+  days_counted: number;
+  cumulative_gdd: number;
+  current_stage: string;
+  next_stage: string | null;
+  gdd_to_next_stage: number | null;
+  stage_progress: Array<{ stage: string; gdd_threshold: number; reached: boolean }>;
+  notes_ar: string;
+}
+
+/** تتبّع GDD يتطلّب سلسلة حرارة صريحة؛ لا نخمّنها في الواجهة. */
+export function useGddTrack(): UseMutationResult<GddTrackResult, unknown, GddTrackInput> {
+  return useMutation<GddTrackResult, unknown, GddTrackInput>({
+    mutationFn: (input) => kongApi.post('/api/v1/gdd/track', input).then(r => r.data as GddTrackResult),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

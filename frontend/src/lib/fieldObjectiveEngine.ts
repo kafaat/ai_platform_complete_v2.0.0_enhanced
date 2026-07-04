@@ -3,15 +3,17 @@
 // بمصادر أدلّة حقيقيّة. صدق: المحرّك يخطّط ويتحقّق من توفّر الأدلّة ويمنع الإجراء عند
 // نقصها — لا يختلق التشخيص (التشخيص يأتي من محرّكات الحوكمة/الصحّة/الماء والوكيل الزراعيّ).
 export type FieldObjectiveId =
-  | 'choose_next_crop'
   | 'diagnose_field_stress'
   | 'plan_irrigation_week'
   | 'prepare_spray_window'
   | 'create_vra_prescription'
   | 'review_season_profitability'
-  | 'generate_field_report';
+  | 'generate_field_report'
+  | 'check_planting_window'
+  | 'plan_rotation'
+  | 'track_gdd_stage';
 
-export type EvidenceSource = 'imagery' | 'weather' | 'alerts' | 'tasks' | 'records' | 'zones' | 'moisture' | 'season';
+export type EvidenceSource = 'imagery' | 'weather' | 'alerts' | 'tasks' | 'records' | 'zones' | 'moisture' | 'season' | 'planning' | 'gdd';
 export type ObjectiveStepKind = 'inspect' | 'reason' | 'act' | 'review';
 
 export interface ObjectiveStep {
@@ -111,20 +113,6 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
     ],
   },
   {
-    id: 'choose_next_crop',
-    label: 'ماذا أزرع بعد الموسم؟',
-    requiredSources: ['records', 'season'],
-    producesTask: false,
-    followUp: 'none',
-    steps: [
-      { kind: 'inspect', label: 'اقرأ محصول الموسم الحاليّ وتاريخه', source: 'season' },
-      { kind: 'inspect', label: 'راجع سجلّ العمليّات والدورة السابقة', source: 'records' },
-      { kind: 'reason', label: 'رتّب المرشّحين بجدول الدورة الزراعيّة (جيّد/مقبول/تجنّب)' },
-      { kind: 'reason', label: 'افحص ملاءمة الشهر الحاليّ لنافذة زراعة المرشّح' },
-      { kind: 'review', label: 'اعتمد اختيار المحصول التالي وخطّط بذاره' },
-    ],
-  },
-  {
     id: 'generate_field_report',
     label: 'تقرير الحقل',
     requiredSources: ['imagery', 'season'],
@@ -134,6 +122,45 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
       { kind: 'inspect', label: 'اجمع الصور والموسم والعمليّات', source: 'season' },
       { kind: 'reason', label: 'لخّص الحالة والأدلّة' },
       { kind: 'review', label: 'صدِّر سجلّ الحقل القابل للمشاركة' },
+    ],
+  },
+  {
+    id: 'check_planting_window',
+    label: 'تحقّق نافذة الزراعة',
+    requiredSources: ['planning', 'weather', 'season'],
+    producesTask: false,
+    followUp: 'none',
+    steps: [
+      { kind: 'inspect', label: 'افحص شهر الزراعة ومحصول الحقل', source: 'planning' },
+      { kind: 'inspect', label: 'راجع ملاءمة الطقس القريب', source: 'weather' },
+      { kind: 'reason', label: 'حدّد هل النافذة مناسبة أم خارج الموسم' },
+      { kind: 'review', label: 'اعرض حكم الزراعة كقرار قابل للمراجعة' },
+    ],
+  },
+  {
+    id: 'plan_rotation',
+    label: 'خطّة الدورة الزراعيّة',
+    requiredSources: ['planning', 'season'],
+    producesTask: false,
+    followUp: 'none',
+    steps: [
+      { kind: 'inspect', label: 'اقرأ محصول الموسم الحالي/السابق', source: 'season' },
+      { kind: 'inspect', label: 'استدعِ مرشّحات الدورة الزراعيّة', source: 'planning' },
+      { kind: 'reason', label: 'رتّب المحاصيل good/acceptable/avoid مع الأسباب' },
+      { kind: 'review', label: 'ثبّت المحصول التالي كمخرج مُراجع' },
+    ],
+  },
+  {
+    id: 'track_gdd_stage',
+    label: 'تتبّع مرحلة GDD',
+    requiredSources: ['gdd', 'weather', 'season'],
+    producesTask: false,
+    followUp: 'none',
+    steps: [
+      { kind: 'inspect', label: 'اجمع سلسلة درجات الحرارة اليومية', source: 'weather' },
+      { kind: 'inspect', label: 'احسب GDD التراكمي ومرحلة النمو', source: 'gdd' },
+      { kind: 'reason', label: 'قارن المرحلة الحرارية بمرحلة الموسم' },
+      { kind: 'review', label: 'اعرض المرحلة والعتبة التالية كمخرج مُراجع' },
     ],
   },
 ];
@@ -147,6 +174,8 @@ export interface EvidenceAvailability {
   zones?: boolean;
   moisture?: boolean;
   season?: boolean;
+  planning?: boolean;
+  gdd?: boolean;
 }
 
 export interface ObjectivePlan {
