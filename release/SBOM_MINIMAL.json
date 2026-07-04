@@ -1925,6 +1925,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0d5d6e439bdc4e4a68e1d7b4c463659929c0723e583306eb3327040df68879a6"
+        }
+      ],
+      "name": "frontend/src/lib/adminRuntime.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5cfa20f295b88d8e4d3a5cef62faecbccff70f4246fd2240b467a2a7b6d7e194"
+        }
+      ],
+      "name": "frontend/src/lib/adminRuntime.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aac11fc7366bc0e56e423201ae0b52b0b72c206c2e027b211f5abf72fc3227f5"
         }
       ],
@@ -2859,6 +2879,16 @@
         }
       ],
       "name": "frontend/src/sections/ActivitiesPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cbc6d32d10812949e4888a932888188b766580174f1924c15f1861e1339ab6e2"
+        }
+      ],
+      "name": "frontend/src/sections/AdminRuntimePage.tsx",
       "type": "file"
     },
     {

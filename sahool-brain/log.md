@@ -4,6 +4,27 @@
 
 ---
 
+## 2026-07-04 (ن-14) — فحص التغطية: مصفوفة backend⇄frontend + بوّابة CI + ٥ واجهات من مسارات يتيمة
+
+**رأس main = develop = `claude/code-review-34hO3` = `980b46c`** (سلسلة ٦ التزامات فوق `dae1c0f`).
+
+فحص المستخدم أثبت أنّ backend أوسع بكثير من الواجهة (جردي المباشر: **652 مساراً غير صحّيّ**، تغطية نصّيّة ~160). الاستجابة بترتيب أولويّاته:
+
+- **الأساس (`1bbd76d`):** [`scripts/ci/endpoint_ui_coverage_gate.py`](../scripts/ci/endpoint_ui_coverage_gate.py) يجرد مسارات services/ فعليّاً ويصنّفها بالجمهور (farmer/agronomist/manager/admin/internal) من [`config/endpoint_ui_coverage.json`](../config/endpoint_ui_coverage.json) ويولّد [`docs/api/BACKEND_FRONTEND_COVERAGE.md`](../docs/api/BACKEND_FRONTEND_COVERAGE.md) (652 مساراً) — وحارس unit ([`tests_v9/test_endpoint_ui_coverage_gate.py`](../tests_v9/test_endpoint_ui_coverage_gate.py)) يفشل إن فقد endpoint جوهريّ دليله في الواجهة (بدأ 24 ⇒ انتهى **43** endpoint ملزَماً). internal/admin لا تُطالَب بواجهة عاديّة.
+- **بطاقة المحصول (`0510ac6`):** crop-cards YAML (FAO-56 Kc · Maas-Hoffman · GDD · أصناف يمنيّة) كانت بلا قارئ — `fieldCropCard.ts` (مطابقة اسم بلا تخمين) + `CropKnowledgeCard` (حقائق + منتقي أصناف: مقاومات/حصاد متوقَّع من بذار الموسم/ملاءمة ملوحة بقياس المستخدم).
+- **تعميق السجلّ الماليّ (`405f145`):** economic-state (كثافات وحدة خادميّة: تكلفة/هـ · ماء م³/هـ · تكلفة الماء/م³ · طاقة/م³ + حالة موازنة + توصية كفاءة) + أداة سعر التعادل (تكلفة السجلّ الفعليّة لا تقدير) في SeasonProfitabilityCard.
+- **تتبّع الحصاد (`70914a5`):** harvest-lots v65 (دفعات + سلسلة حيازة append-only بمعيار اكتمال الخادم حصاد∧بيع + دفتر مدخلات بتغطية كلفة مُعلَنة) — `HarvestTraceabilityCard`.
+- **مراجعة الحدود (`556203a`):** boundary/score (تهديف حتميّ يُخزَّن، العوامل والقرار من الخادم) + boundary-graph (جيران بطول الحافّة) — `BoundaryReviewCard`.
+- **كونسول التشغيل (`980b46c`):** صفحة `/admin/runtime` (owner/manager فقط عبر MANAGEMENT_ONLY_PAGES، الخلفيّة تفرض AUDIT_VIEW): جاهزيّة الإنتاج · DLQ أحداث/outbox (أيّ total>0 ⇒ تنبيه) · قائمة offline · رفض الأمان · الأتمتة.
+
+**قبلها في اليوم نفسه:** طبقة الربحيّة الأولى (`2e73d67`) + ٣ جولات تصلّب جنائيّ من المستخدم (`55e297e`,`dae1c0f`: حرّاس المحرّك canAct===true/producesTask/متابعة إلزاميّة + contextKey + فشل مرئيّ + نظافة أسرار: إزالة settings.local.json المتتبَّع بكلمة مرور admin).
+
+**تحقّق:** vitest **637** أخضر (106⇒109 ملفّاً) · tsc نظيف · بوّابة التغطية PASS 43/43 · `pytest -m unit` حارس التغطية 3/3 · ruff نظيف على نطاق CI · الحزمة مُتحقَّقة (2996).
+
+**المتبقّي الموثَّق (لم يُنفَّذ):** التقويم الزراعيّ/الفلكيّ اليمنيّ (calendars/astronomical-timing/proverbs) · crop-suitability/planting/rotation/gdd كمسار «ماذا أزرع؟» في محرّك الأهداف · decision dispatch/policies كمركز تشغيل قرار · budgets/revenues POST (إدخال موازنة/إيراد من الواجهة).
+
+---
+
 ## 2026-07-04 (ن-13) — تحويل FieldView إلى «متعاون يحقّق هدفاً»: أساس → حوكمة → P0–P4 → إلهام → محرّك الأهداف
 
 **رأس main = develop = `claude/code-review-34hO3` = `777582b`** (CI أخضر ١١/١١ للالتزام `777582b`؛ حزمة الإصدار مُعاد بناؤها ومُتحقَّقة ٢٩٦٩ checksum). ٢٥ التزاماً منذ `c9162fd`، سلسلة FieldView متماسكة (رفع مباشر على الفروع الثلاثة بتفويض المستخدم).
