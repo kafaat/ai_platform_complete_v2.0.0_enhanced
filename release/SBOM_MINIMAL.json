@@ -915,7 +915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3dd26b9c2de67a634bcae5352d64a6ede729322124e8e67438140438a0dd34d4"
+          "content": "a2bff30cf3837c56a31d7daec966d40830d54230175c1b2574ddd8d2fecd556b"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldObjectivePanel.tsx",
@@ -1855,7 +1855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "64b17a504c59336a2077dbfcff70ed60276269ede831592c11da64dca1aafcfb"
+          "content": "6c1f3464d906d6d896ca4205183ef225cce2b7dfc6733002233d206fd1e771b5"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2395,7 +2395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "444adb42a0da3ff098df8477fbac4824b8cae03267c28fa821a9540e3e77ead5"
+          "content": "ed082ae9ddfb102ac1fc062ca0672ed0245901f9fed09791e49c141a3f3ce4e5"
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveEngine.test.ts",
@@ -2405,7 +2405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95e59ce5a20103f16b394ecc548ca3cbc3a542de36c3f4303e300ebe65538a03"
+          "content": "1feeb3e57ea8f5ef0d6d169d566a69c833cbb60f7935e9ab942b9c6ff4e8b93f"
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveEngine.ts",
@@ -3085,7 +3085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbc6d32d10812949e4888a932888188b766580174f1924c15f1861e1339ab6e2"
+          "content": "c7a43bf2cd3db0dcb1df370845ddfd370ce73629be784ec9bf347dfd7ea0f166"
         }
       ],
       "name": "frontend/src/sections/AdminRuntimePage.tsx",

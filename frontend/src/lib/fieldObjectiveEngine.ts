@@ -29,6 +29,9 @@ export interface FieldObjectiveDef {
   producesTask: boolean;
   followUp: 'next_image' | 'days' | 'none';
   followUpDays?: number;
+  /** ربط الهدف بموزِّع القرار المحروس (dry-run عند الاعتماد): نوع الفعل ومستوى
+   *  الخطر كما يفهمهما الخادم. الأهداف التي تُنتج مخرَجاً لا مهمّة ميدانيّة بلا ربط. */
+  dispatch?: { actionType: string; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' };
 }
 
 export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
@@ -38,6 +41,7 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
     requiredSources: ['imagery', 'weather', 'moisture'],
     producesTask: true,
     followUp: 'next_image',
+    dispatch: { actionType: 'other', riskLevel: 'LOW' },
     steps: [
       { kind: 'inspect', label: 'قارن NDVI بين آخر صورتين', source: 'imagery' },
       { kind: 'inspect', label: 'افحص NDMI/الرطوبة', source: 'moisture' },
@@ -55,6 +59,7 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
     producesTask: true,
     followUp: 'days',
     followUpDays: 7,
+    dispatch: { actionType: 'irrigation', riskLevel: 'MEDIUM' },
     steps: [
       { kind: 'inspect', label: 'اقرأ رطوبة التربة الحاليّة', source: 'moisture' },
       { kind: 'inspect', label: 'اقرأ تنبّؤ المطر/الحرارة', source: 'weather' },
@@ -70,6 +75,7 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
     producesTask: true,
     followUp: 'days',
     followUpDays: 2,
+    dispatch: { actionType: 'spray', riskLevel: 'HIGH' },
     steps: [
       { kind: 'inspect', label: 'افحص الرياح/المطر/الحرارة القادمة', source: 'weather' },
       { kind: 'reason', label: 'حدّد النافذة الآمنة للرشّ' },

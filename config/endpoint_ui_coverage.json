@@ -517,6 +517,11 @@
       "endpoint": "/api/v1/climate-analogs/list",
       "audience": "agronomist",
       "evidence": "/api/v1/climate-analogs/list"
+    },
+    {
+      "endpoint": "/api/v1/fields/boundary-graph/rebuild (POST)",
+      "audience": "admin",
+      "evidence": "/boundary-graph/rebuild"
     }
   ]
 }

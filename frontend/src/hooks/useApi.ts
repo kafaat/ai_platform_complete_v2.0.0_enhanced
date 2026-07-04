@@ -1451,6 +1451,13 @@ export function useClimateAnalogRegions(enabled = true): UseQueryResult<ClimateA
   });
 }
 
+/** إعادة بناء شبكة جوار حدود حقول المستأجِر كاملةً (PostGIS حتميّ) — إداريّ. */
+export function useRebuildBoundaryGraph(): ReturnType<typeof useMutation<{ rebuilt: boolean; relations_written: number }, Error, void>> {
+  return useMutation<{ rebuilt: boolean; relations_written: number }, Error, void>({
+    mutationFn: () => kongApi.post('/api/v1/fields/boundary-graph/rebuild', {}).then(r => r.data),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

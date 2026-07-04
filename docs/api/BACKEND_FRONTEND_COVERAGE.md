@@ -10,12 +10,12 @@
 |---|---|---|
 | admin | 19 | 9 |
 | agronomist | 36 | 20 |
-| farmer | 158 | 113 |
+| farmer | 158 | 114 |
 | internal | 10 | 1 |
 | manager | 35 | 27 |
 | unclassified | 394 | 102 |
 
-العقد الملزِم (core): 71 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 72 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -195,7 +195,7 @@
 | `/api/v1/field/operational-state` | unclassified | — |
 | `/api/v1/field/{field_id}/lineage` | unclassified | ✅ |
 | `/api/v1/fields` | farmer | ✅ |
-| `/api/v1/fields/boundary-graph/rebuild` | farmer | — |
+| `/api/v1/fields/boundary-graph/rebuild` | farmer | ✅ |
 | `/api/v1/fields/import` | farmer | ✅ |
 | `/api/v1/fields/merge` | farmer | ✅ |
 | `/api/v1/fields/split` | farmer | ✅ |

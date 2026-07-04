@@ -29,6 +29,19 @@ describe('FIELD_OBJECTIVES catalog', () => {
     }
   });
 
+  it('task-producing objectives carry a dispatch mapping; deliverables do not', () => {
+    for (const o of FIELD_OBJECTIVES) {
+      if (o.producesTask) {
+        expect(o.dispatch, o.id).toBeDefined();
+        expect(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).toContain(o.dispatch!.riskLevel);
+      } else {
+        expect(o.dispatch, o.id).toBeUndefined();
+      }
+    }
+    // الرشّ أعلى خطراً من الريّ (مبيدات) — يتطلّب حوكمة أشدّ في الموزِّع.
+    expect(getObjective('prepare_spray_window')!.dispatch!.riskLevel).toBe('HIGH');
+  });
+
   it('day-based follow-ups carry a concrete followUpDays (no invented cadence)', () => {
     for (const o of FIELD_OBJECTIVES) {
       if (o.followUp === 'days') expect(typeof o.followUpDays).toBe('number');

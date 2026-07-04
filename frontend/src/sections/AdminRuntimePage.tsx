@@ -1,7 +1,8 @@
-import { ServerCog, ShieldAlert, MailWarning, ListTree, Timer, CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
+import { useState } from 'react';
+import { ServerCog, ShieldAlert, MailWarning, ListTree, Timer, CheckCircle2, XCircle, AlertTriangle, Network } from 'lucide-react';
 import {
   useAdminReadiness, useAdminEventsDeadLetter, useAdminOutboxDeadLetter,
-  useSecurityDenials, useQueueStatus, useAutomationRuns, useSchedulerStatus,
+  useSecurityDenials, useQueueStatus, useAutomationRuns, useSchedulerStatus, useRebuildBoundaryGraph,
 } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
 import { canManage } from '../lib/permissions';
@@ -22,6 +23,8 @@ export default function AdminRuntimePage() {
   const queueQ = useQueueStatus(allowed);
   const runsQ = useAutomationRuns(allowed);
   const schedulerQ = useSchedulerStatus(allowed);
+  const rebuildM = useRebuildBoundaryGraph();
+  const [confirmRebuild, setConfirmRebuild] = useState(false);
 
   if (!allowed) {
     return (
@@ -129,6 +132,34 @@ export default function AdminRuntimePage() {
           ) : (
             <Muted>تعذّرت القراءة.</Muted>
           )}
+        </Panel>
+
+        {/* شبكة حدود الحقول — إعادة بناء على مستوى المستأجِر (حتميّ PostGIS) */}
+        <Panel title="شبكة حدود الحقول" icon={Network}>
+          <Muted>يعيد بناء علاقات الجوار (ST_Touches) لكلّ حقول المستأجِر — حتميّ، آمن الإعادة.</Muted>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => {
+                if (!confirmRebuild) { setConfirmRebuild(true); return; }
+                setConfirmRebuild(false);
+                rebuildM.mutate();
+              }}
+              disabled={rebuildM.isPending}
+              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
+              style={{ border: `1px solid ${confirmRebuild ? '#7c2d12' : '#14532d'}`, color: confirmRebuild ? '#fdba74' : '#86efac', background: 'rgba(15,23,42,.45)' }}
+            >
+              {rebuildM.isPending ? 'جارٍ البناء…' : confirmRebuild ? 'تأكيد إعادة البناء؟ (كلّ الحقول)' : 'أعد بناء الشبكة'}
+            </button>
+            {rebuildM.data && (
+              <span className="text-[11px]" role="status" style={{ color: '#86efac' }}>
+                كُتبت {rebuildM.data.relations_written} علاقة جوار.
+              </span>
+            )}
+            {rebuildM.isError && (
+              <span className="text-[11px]" role="status" style={{ color: '#fdba74' }}>تعذّر البناء — {rebuildM.error?.message}</span>
+            )}
+          </div>
         </Panel>
 
         {/* الأتمتة */}
