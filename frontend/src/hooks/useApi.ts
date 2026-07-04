@@ -1240,6 +1240,15 @@ export function useEvaluateDispatch(): ReturnType<typeof useMutation<DispatchAud
   });
 }
 
+import type { OutcomeMeasureInput, OutcomeMeasureResponse } from '../lib/decisionRuntime';
+
+/** قياس نتيجة قرار (مُخطَّط مقابل مرصود) — الخادم يقيّم المتوفّر طرفاه فقط (needs_data للناقص). */
+export function useMeasureOutcome(): ReturnType<typeof useMutation<OutcomeMeasureResponse, Error, OutcomeMeasureInput>> {
+  return useMutation<OutcomeMeasureResponse, Error, OutcomeMeasureInput>({
+    mutationFn: (input) => kongApi.post('/api/v1/outcome/measure', input).then(r => r.data),
+  });
+}
+
 // ── Ledger Entry — إدخال السجلّ الماليّ من الواجهة (ACTIVITY_EXECUTE خادميّاً) ──
 import type { BudgetLinesPayload, OperationPayload, RevenuePayload } from '../lib/ledgerEntry';
 
@@ -1266,6 +1275,549 @@ export function useUpsertBudgetLines(): ReturnType<typeof useMutation<unknown, E
 export function useRecordRevenue(): ReturnType<typeof useMutation<unknown, Error, RevenuePayload>> {
   return useMutation<unknown, Error, RevenuePayload>({
     mutationFn: (payload) => kongApi.post('/api/v1/farm-ledger/revenues', payload).then(r => r.data),
+  });
+}
+
+// ── Agro-Knowledge — طبقة معرفة زراعيّة يتيمة (إكثار/ما بعد الحصاد/البنّ اليمنيّ) ──
+// معرفة مرجعيّة نقيّة من مصادر موثّقة ⇒ staleTime طويل (وكيل C).
+import type {
+  CropPropagation, PostharvestBestPractices,
+  CoffeeGuide, CoffeeVarieties, CoffeePests,
+} from '../lib/fieldAgroKnowledge';
+
+/** طريقة الإكثار المناسبة لمحصول الحقل (لا يُستدعى بلا محصول). */
+export function useCropPropagation(cropLabel: string | null | undefined): UseQueryResult<CropPropagation> {
+  return useQuery<CropPropagation>({
+    queryKey: ['propagation-crop', cropLabel ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/propagation/crop', { params: { crop: cropLabel } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!cropLabel,
+    retry:    false,
+  });
+}
+
+/** أفضل ممارسات ما بعد الحصاد (crop اختياريّ يضيف عتبة الرطوبة). */
+export function usePostharvestBestPractices(
+  cropLabel: string | null | undefined,
+  enabled = true,
+): UseQueryResult<PostharvestBestPractices> {
+  return useQuery<PostharvestBestPractices>({
+    queryKey: ['postharvest-best-practices', cropLabel ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/postharvest/best-practices', { params: { crop: cropLabel || undefined } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** دليل زراعة البنّ اليمنيّ (يُفعَّل فقط حين يكون المحصول بُنّاً). */
+export function useCoffeeGuide(enabled = true): UseQueryResult<CoffeeGuide> {
+  return useQuery<CoffeeGuide>({
+    queryKey: ['coffee-guide'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/guide').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** أصناف البنّ اليمنيّة (يُفعَّل للبنّ فقط). */
+export function useCoffeeVarieties(enabled = true): UseQueryResult<CoffeeVarieties> {
+  return useQuery<CoffeeVarieties>({
+    queryKey: ['coffee-varieties'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/varieties').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** آفات البنّ الرئيسيّة المرتبطة بـIPM (يُفعَّل للبنّ فقط). */
+export function useCoffeePests(enabled = true): UseQueryResult<CoffeePests> {
+  return useQuery<CoffeePests>({
+    queryKey: ['coffee-pests'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/pests').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── حصاد المياه + طريقة الريّ — /api/v1/water-harvesting/* و/api/v1/irrigation-method (وكيل B) ──
+import type {
+  HarvestPotentialResponse, HarvestingMethodsResponse, IrrigationMethodsResponse, MethodGuideResponse,
+} from '../lib/waterHarvesting';
+
+/** إمكانات حصاد مياه الأمطار — من قياسَي مساحة/مطر يُدخِلهما المستخدم (لا تخمين). */
+export function useWaterHarvestPotential(areaM2: number | null, rainMm: number | null, surface: string, enabled = true): UseQueryResult<HarvestPotentialResponse> {
+  return useQuery<HarvestPotentialResponse>({
+    queryKey: ['water-harvest-potential', areaM2 ?? 'none', rainMm ?? 'none', surface],
+    queryFn:  () => kongApi.get('/api/v1/water-harvesting/potential', { params: { catchment_area_m2: areaM2, annual_rain_mm: rainMm, surface } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && areaM2 != null && rainMm != null,
+    retry:    false,
+  });
+}
+
+/** طرق حصاد المياه التراثيّة اليمنيّة (مدرّجات/عقوم/كرفان/مصاطب كنتوريّة). */
+export function useWaterHarvestingMethods(enabled = true): UseQueryResult<HarvestingMethodsResponse> {
+  return useQuery<HarvestingMethodsResponse>({
+    queryKey: ['water-harvesting-methods'],
+    queryFn:  () => kongApi.get('/api/v1/water-harvesting/methods').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** دليل طريقة حصاد محدّدة (فوائد + الأنسب + تحذير) — حكم الخادم يمرّ كما هو. */
+export function useWaterHarvestMethodGuide(method: string | null): UseQueryResult<MethodGuideResponse> {
+  return useQuery<MethodGuideResponse>({
+    queryKey: ['water-harvest-method-guide', method ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/water-harvesting/method-guide', { params: { method } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!method,
+    retry:    false,
+  });
+}
+
+/** ملامح طرق الريّ الخمس (كفاءات FAO موسومة calibrated=false — تحذيراتها تُعرَض). */
+export function useIrrigationMethodProfiles(enabled = true): UseQueryResult<IrrigationMethodsResponse> {
+  return useQuery<IrrigationMethodsResponse>({
+    queryKey: ['irrigation-method-profiles'],
+    queryFn:  () => kongApi.get('/api/v1/irrigation-method').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── مخاطر المناخ والماء — حساسيّة المراحل المائيّة + المخاطر الموسميّة + المناطق المشابهة (وكيل A) ──
+import type {
+  ChillHoursResponse, ClimateAnalogsListResponse, SeasonalRiskCalendarResponse, WaterCalendarResponse,
+} from '../lib/fieldClimateRisk';
+
+/** التقويم المائيّ لمحصول (FAO-56 + سياق يمنيّ — معرفة مرجعيّة ثابتة ⇒ staleTime طويل).
+ *  يقبل المفتاح الإنجليزيّ أو الاسم العربيّ (الخادم يحلّ المرادفات). */
+export function useWaterSensitivityCalendar(
+  crop: string | null | undefined,
+  enabled = true,
+): UseQueryResult<WaterCalendarResponse> {
+  return useQuery<WaterCalendarResponse>({
+    queryKey: ['water-sensitivity-calendar', crop ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/water-sensitivity/calendar', { params: { crop } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!crop,
+    retry:    false,
+  });
+}
+
+/** نوافذ المخاطر المناخيّة الموسميّة لإقليم (اختيار المستخدم — لا يُستدعى بلا إقليم). */
+export function useSeasonalRiskCalendar(
+  zone: string | null | undefined,
+  enabled = true,
+): UseQueryResult<SeasonalRiskCalendarResponse> {
+  return useQuery<SeasonalRiskCalendarResponse>({
+    queryKey: ['seasonal-risk-calendar', zone ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seasonal-risk/calendar', { params: { zone } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!zone,
+    retry:    false,
+  });
+}
+
+/** تقدير ساعات البرودة لإقليم + حكم الخادم على الأشجار المتساقطة (can_satisfy). */
+export function useChillHoursEstimate(
+  zone: string | null | undefined,
+  enabled = true,
+): UseQueryResult<ChillHoursResponse> {
+  return useQuery<ChillHoursResponse>({
+    queryKey: ['seasonal-risk-chill-hours', zone ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seasonal-risk/chill-hours', { params: { zone } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  enabled && !!zone,
+    retry:    false,
+  });
+}
+
+/** المناطق العالميّة المشابهة مناخيّاً (مرجعيّة ثابتة — تُجلَب عند فتح القسم فقط). */
+export function useClimateAnalogRegions(enabled = true): UseQueryResult<ClimateAnalogsListResponse> {
+  return useQuery<ClimateAnalogsListResponse>({
+    queryKey: ['climate-analogs-list'],
+    queryFn:  () => kongApi.get('/api/v1/climate-analogs/list').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** إعادة بناء شبكة جوار حدود حقول المستأجِر كاملةً (PostGIS حتميّ) — إداريّ. */
+export function useRebuildBoundaryGraph(): ReturnType<typeof useMutation<{ rebuilt: boolean; relations_written: number }, Error, void>> {
+  return useMutation<{ rebuilt: boolean; relations_written: number }, Error, void>({
+    mutationFn: () => kongApi.post('/api/v1/fields/boundary-graph/rebuild', {}).then(r => r.data),
+  });
+}
+
+// ── حاسبات القياس الحقليّة (وكيل E) — بذور/رطوبة حبوب/ارتفاع البنّ ──
+import type {
+  GerminationParams, GerminationRateResponse, StorageCheckParams, SeedStorageCheckResponse,
+  SowingDepthParams, SowingDepthResponse, SeedCriteriaResponse,
+  MoistureCheckParams, MoistureCheckResponse, CoffeeSiteParams, CoffeeSiteResponse,
+} from '../lib/agroCalculators';
+
+/** معدّل الإنبات من عدّ عيّنة حقيقيّ — لا يُستدعى إلّا بمُدخلات صحيحة (builder). */
+export function useSeedGerminationRate(params: GerminationParams | null): UseQueryResult<GerminationRateResponse> {
+  return useQuery<GerminationRateResponse>({
+    queryKey: ['seed-germination-rate', params?.sprouted ?? 'none', params?.total ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seed/germination-rate', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** قاعدة المئة لتخزين البذور (الخادم بالفهرنهايت — الـbuilder يحوّل من °م). */
+export function useSeedStorageCheck(params: StorageCheckParams | null): UseQueryResult<SeedStorageCheckResponse> {
+  return useQuery<SeedStorageCheckResponse>({
+    queryKey: ['seed-storage-check', params?.temp_f ?? 'none', params?.humidity_pct ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/seed/storage-check', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** عمق البذر ~5× حجم البذرة (2× للزراعة الدقيقة). */
+export function useSeedSowingDepth(params: SowingDepthParams | null): UseQueryResult<SowingDepthResponse> {
+  return useQuery<SowingDepthResponse>({
+    queryKey: ['seed-sowing-depth', params?.seed_size_mm ?? 'none', params?.precision ?? false],
+    queryFn:  () => kongApi.get('/api/v1/seed/sowing-depth', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** معايير اختيار البذور المحسّنة — مرجع ثابت يُجلَب عند فتح القسم فقط. */
+export function useSeedCriteria(enabled: boolean): UseQueryResult<SeedCriteriaResponse> {
+  return useQuery<SeedCriteriaResponse>({
+    queryKey: ['seed-criteria'],
+    queryFn:  () => kongApi.get('/api/v1/seed/criteria').then(r => r.data),
+    staleTime:24 * 60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** أمان رطوبة الحبوب للتخزين — supported=false يعني محصولاً بلا عتبة معروفة. */
+export function usePostharvestMoistureCheck(params: MoistureCheckParams | null): UseQueryResult<MoistureCheckResponse> {
+  return useQuery<MoistureCheckResponse>({
+    queryKey: ['postharvest-moisture-check', params?.crop ?? 'none', params?.moisture_pct ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/postharvest/moisture-check', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+/** ملاءمة موقع للبنّ من ارتفاع حقيقيّ (GPS/خريطة). */
+export function useCoffeeSiteSuitability(params: CoffeeSiteParams | null): UseQueryResult<CoffeeSiteResponse> {
+  return useQuery<CoffeeSiteResponse>({
+    queryKey: ['coffee-site-suitability', params?.altitude_m ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/coffee/site-suitability', { params }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!params,
+    retry:    false,
+  });
+}
+
+// ── كتالوج GIS السحابيّ (وكيل D) — STAC · OGC · خطّة الكاش (قراءة فقط) ──
+import type {
+  StacLandingPage, StacCollectionsResponse, StacSearchResponse,
+  OgcConformanceResponse, OgcCollectionsResponse, TileCachePlan,
+} from '../lib/gisCatalog';
+
+/** بوّابة STAC (عقد ثابت + conformsTo). */
+export function useGisStacLanding(enabled = true): UseQueryResult<StacLandingPage> {
+  return useQuery<StacLandingPage>({
+    queryKey: ['gis-stac-landing'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/stac').then(r => r.data),
+    staleTime: 30 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** مجموعات STAC من سجلّ الرستر (DB-backed — 503 صادقة عند غياب القاعدة). */
+export function useGisStacCollections(enabled = true): UseQueryResult<StacCollectionsResponse> {
+  return useQuery<StacCollectionsResponse>({
+    queryKey: ['gis-stac-collections'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/stac/collections').then(r => r.data),
+    staleTime: 5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** بحث عناصر STAC (أحدث المشاهد أوّلاً بترتيب الخادم). */
+export function useGisStacItems(enabled = true, limit = 50): UseQueryResult<StacSearchResponse> {
+  return useQuery<StacSearchResponse>({
+    queryKey: ['gis-stac-items', limit],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/stac/search', { params: { limit } }).then(r => r.data),
+    staleTime: 5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** مطابقة OGC API (عقد ثابت). */
+export function useGisOgcConformance(enabled = true): UseQueryResult<OgcConformanceResponse> {
+  return useQuery<OgcConformanceResponse>({
+    queryKey: ['gis-ogc-conformance'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/ogc/conformance').then(r => r.data),
+    staleTime: 30 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** مجموعات OGC (fields/rasters). */
+export function useGisOgcCollections(enabled = true): UseQueryResult<OgcCollectionsResponse> {
+  return useQuery<OgcCollectionsResponse>({
+    queryKey: ['gis-ogc-collections'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/ogc/collections').then(r => r.data),
+    staleTime: 30 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** خطّة كاش البلاطات (DB-backed من سجلّ الرستر). */
+export function useGisTileCachePlan(enabled = true): UseQueryResult<TileCachePlan> {
+  return useQuery<TileCachePlan>({
+    queryKey: ['gis-tile-cache-plan'],
+    queryFn:  () => kongApi.get('/api/v1/gis/cloud-native/tile-cache-plan').then(r => r.data),
+    staleTime: 5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── Decision Insight (وكيل F) — سجلّ القرارات المُدامة + الشرح + التعلُّم + الأثر ──
+import type {
+  DecisionExplainResponse, DecisionImpactResponse, DecisionLearningResponse, DecisionRecordsResponse,
+} from '../lib/decisionInsight';
+
+/** سجلّ قرارات المستأجِر المُدامة (الأحدث أوّلاً، decision_record v78). */
+export function useDecisionRecordsInsight(limit = 20, enabled = true): UseQueryResult<DecisionRecordsResponse> {
+  return useQuery<DecisionRecordsResponse>({
+    queryKey: ['decision-records', limit],
+    queryFn:  () => kongApi.get('/api/v1/decision/records', { params: { limit } })
+      .then(r => r.data as DecisionRecordsResponse)
+      .catch((e) => { if (isDisabled404(e)) return { decisions: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سلسلة شرح قرار مُدام (ثقة→إشارات→سياسة→قيود→إجراء) + نتائجه (replay).
+ *  404 ⇒ الميزة مُطفأة (FEATURE_DECISION_STUDIO) أو القرار غير مُدام — حالة صادقة. */
+export function useDecisionExplainInsight(decisionId: string | null | undefined, enabled = true): UseQueryResult<DecisionExplainResponse> {
+  return useQuery<DecisionExplainResponse>({
+    queryKey: ['decision-explain', decisionId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/decision/${decisionId}/explain`)
+      .then(r => r.data as DecisionExplainResponse)
+      .catch((e) => {
+        if (isDisabled404(e)) return { decision_id: String(decisionId), explanation: null, outcomes: [], outcome_count: 0, calibrated: false, disabled: true };
+        throw e;
+      }),
+    staleTime:60_000,
+    enabled:  enabled && !!decisionId,
+    retry:    false,
+  });
+}
+
+/** اقتراحات معايرة مُسنَدة بالأثر — استشاريّة (advisory_only، لا تُطبَّق آليّاً). */
+export function useDecisionLearning(minSample = 5, enabled = true): UseQueryResult<DecisionLearningResponse> {
+  return useQuery<DecisionLearningResponse>({
+    queryKey: ['decision-learning', minSample],
+    queryFn:  () => kongApi.get('/api/v1/decision/learning', { params: { min_sample: minSample } })
+      .then(r => r.data as DecisionLearningResponse)
+      .catch((e) => { if (isDisabled404(e)) return { suggestions: [], count: 0, advisory_only: true, based_on: null, disabled: true }; throw e; }),
+    staleTime:5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** الأثر المُحقَّق من سجلّ التنفيذ (نُفِّذ/فشل، نسبة نجاح، ماء موفَّر) — قياس لا تنبّؤ. */
+export function useDecisionImpact(fieldId?: string | null, enabled = true): UseQueryResult<DecisionImpactResponse> {
+  return useQuery<DecisionImpactResponse>({
+    queryKey: ['decision-impact', fieldId ?? 'all'],
+    queryFn:  () => kongApi.get('/api/v1/decision/impact', { params: { field_id: fieldId || undefined } })
+      .then(r => r.data as DecisionImpactResponse)
+      .catch((e) => {
+        if (isDisabled404(e)) return {
+          total_decisions: 0, executed: 0, failed: 0, success_rate: 0,
+          water_requested_mm: 0, water_applied_mm: 0, water_saved_mm: 0, water_records: 0,
+          by_action: {}, disabled: true,
+        };
+        throw e;
+      }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+// ── تقويم عمليّات المحصول + تتبّع GDD (متابعة عقد التغطية — أرشيف المستخدم) ──
+export interface CropOperationCalendarStage {
+  stage: string;
+  stage_ar?: string;
+  operations?: Array<{ type?: string; label?: string; label_ar?: string; timing_ar?: string; notes_ar?: string }>;
+}
+
+export interface CropOperationsCalendarResponse {
+  crop?: string;
+  crop_id?: string;
+  stages?: CropOperationCalendarStage[];
+  calendar?: CropOperationCalendarStage[];
+  notes_ar?: string;
+  disabled?: boolean;
+}
+
+/** تقويم العمليّات الكامل لمحصول — يقرأ backend crop operations calendar بدل تركه يتيماً. */
+export function useCropOperationsCalendar(crop: string | null | undefined, enabled = true): UseQueryResult<CropOperationsCalendarResponse> {
+  return useQuery<CropOperationsCalendarResponse>({
+    queryKey: ['crop-operations-calendar', crop ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/crops/${encodeURIComponent(crop ?? '')}/operations-calendar`).then(r => r.data as CropOperationsCalendarResponse)
+      .catch((e) => { if (isDisabled404(e)) return { disabled: true, stages: [], calendar: [] }; throw e; }),
+    staleTime:6 * 60 * 60_000,
+    enabled:  enabled && !!crop,
+    retry:    false,
+  });
+}
+
+export interface GddTrackInput {
+  crop: string;
+  temps: Array<{ t_min_c: number; t_max_c: number }>;
+}
+
+export interface GddTrackResult {
+  crop: string;
+  t_base: number;
+  days_counted: number;
+  cumulative_gdd: number;
+  current_stage: string;
+  next_stage: string | null;
+  gdd_to_next_stage: number | null;
+  stage_progress: Array<{ stage: string; gdd_threshold: number; reached: boolean }>;
+  notes_ar: string;
+}
+
+/** تتبّع GDD يتطلّب سلسلة حرارة صريحة؛ لا نخمّنها في الواجهة. */
+export function useGddTrack(): UseMutationResult<GddTrackResult, unknown, GddTrackInput> {
+  return useMutation<GddTrackResult, unknown, GddTrackInput>({
+    mutationFn: (input) => kongApi.post('/api/v1/gdd/track', input).then(r => r.data as GddTrackResult),
+  });
+}
+
+// ── Field Diagnostics Workbench (وكيل G) — التشخيص الأوّليّ + IPM + الملوحة ──
+import type {
+  CropPestsResponse, DiagnosePayload, DiagnoseResponse, IpmPestsResponse,
+  IpmPlanResponse, SalinityAssessResponse, SalinityPayload, SymptomCatalogResponse,
+} from '../lib/fieldDiagnostics';
+
+/** كتالوج الأعراض القابلة للاختيار (ثابت خادميّاً ⇒ staleTime طويل). */
+export function useDiagnosisSymptoms(enabled = true): UseQueryResult<SymptomCatalogResponse> {
+  return useQuery<SymptomCatalogResponse>({
+    queryKey: ['diagnosis-symptoms'],
+    queryFn:  () => kongApi.get('/api/v1/diagnose/symptoms').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** تشخيص أوّليّ بقواعد الأعراض — مرشّحون مرتّبون لا حكم قاطع (next_step_ar يُعرَض حرفيّاً). */
+export function useDiagnose(): ReturnType<typeof useMutation<DiagnoseResponse, Error, DiagnosePayload>> {
+  return useMutation<DiagnoseResponse, Error, DiagnosePayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/diagnose', payload).then(r => r.data),
+  });
+}
+
+/** الآفات المدعومة بخطط إدارة متكاملة. */
+export function useIpmPests(enabled = true): UseQueryResult<IpmPestsResponse> {
+  return useQuery<IpmPestsResponse>({
+    queryKey: ['ipm-pests'],
+    queryFn:  () => kongApi.get('/api/v1/ipm/pests').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** خطّة IPM المتدرّجة لآفة (وقاية → مراقبة → حيويّ → كيميائيّ ملاذاً أخيراً). */
+export function useIpmPlan(pest: string | null | undefined): UseQueryResult<IpmPlanResponse> {
+  return useQuery<IpmPlanResponse>({
+    queryKey: ['ipm-plan', pest ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/ipm/plan', { params: { pest } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!pest,
+    retry:    false,
+  });
+}
+
+/** الآفات المحتملة لمحصول الحقل (وقاية استباقيّة — الخادم يحلّ المرادف العربيّ). */
+export function useIpmCropPests(crop: string | null | undefined): UseQueryResult<CropPestsResponse> {
+  return useQuery<CropPestsResponse>({
+    queryKey: ['ipm-crop-pests', crop ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/ipm/crop-pests', { params: { crop } }).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!crop,
+    retry:    false,
+  });
+}
+
+/** تقييم شامل للملوحة من قياسات المستخدم (ECe/ECw/SAR) — أحكام FAO من الخادم. */
+export function useSalinityAssess(): ReturnType<typeof useMutation<SalinityAssessResponse, Error, SalinityPayload>> {
+  return useMutation<SalinityAssessResponse, Error, SalinityPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/salinity/assess', payload).then(r => r.data),
+  });
+}
+
+// ── سيناريوهات «ماذا لو؟» (وكيل H) — محاكاة افتراضات، ليست تنبّؤاً معايَراً ──
+import type {
+  PlantingScenarioPayload, PlantingScenarioResult, RainfallScenarioPayload, RainfallScenarioResult,
+  TemperatureScenarioPayload, TemperatureScenarioResult, WaterTwinScenarioPayload, WaterTwinScenarioResult,
+} from '../lib/whatIfScenarios';
+
+/** سيناريو الحرارة (+Δ°م): أثر على GDD/المراحل — افتراض المستخدم لا تنبّؤ. */
+export function useScenarioTemperature(): ReturnType<typeof useMutation<TemperatureScenarioResult, Error, TemperatureScenarioPayload>> {
+  return useMutation<TemperatureScenarioResult, Error, TemperatureScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/temperature', payload).then(r => r.data),
+  });
+}
+
+/** سيناريو المطر (±٪): أثر على ميزان الماء. */
+export function useScenarioRainfall(): ReturnType<typeof useMutation<RainfallScenarioResult, Error, RainfallScenarioPayload>> {
+  return useMutation<RainfallScenarioResult, Error, RainfallScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/rainfall', payload).then(r => r.data),
+  });
+}
+
+/** سيناريو تاريخ الزراعة (تبكير/تأخير أيّاماً). */
+export function useScenarioPlantingDate(): ReturnType<typeof useMutation<PlantingScenarioResult, Error, PlantingScenarioPayload>> {
+  return useMutation<PlantingScenarioResult, Error, PlantingScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/planting-date', payload).then(r => r.data),
+  });
+}
+
+/** توأم الماء: مساران (مرجعيّ/معدَّل) ليوميّات رطوبة افتراضيّة. */
+export function useScenarioWaterTwin(): ReturnType<typeof useMutation<WaterTwinScenarioResult, Error, WaterTwinScenarioPayload>> {
+  return useMutation<WaterTwinScenarioResult, Error, WaterTwinScenarioPayload>({
+    mutationFn: (payload) => kongApi.post('/api/v1/scenario/water-twin', payload).then(r => r.data),
   });
 }
 

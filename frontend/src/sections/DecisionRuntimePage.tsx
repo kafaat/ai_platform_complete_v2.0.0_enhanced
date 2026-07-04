@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
-import { GitBranch, ListOrdered, ScrollText, Shield, FlaskConical, Lock } from 'lucide-react';
+import { GitBranch, ListOrdered, ScrollText, Shield, FlaskConical, Lock, Ruler } from 'lucide-react';
 import {
-  useDispatchQueue, useDispatchDecisions, useDecisionLedger, useDecisionPolicies, useEvaluateDispatch,
+  useDispatchQueue, useDispatchDecisions, useDecisionLedger, useDecisionPolicies, useEvaluateDispatch, useMeasureOutcome,
 } from '../hooks/useApi';
 import {
-  dispatchStateColor, dispatchStateLabel, summarizeDecisions,
+  buildOutcomeInput, dispatchStateColor, dispatchStateLabel, outcomeStatusColor, summarizeDecisions,
 } from '../lib/decisionRuntime';
+import DecisionInsightPanel from '../components/decision/DecisionInsightPanel';
 import { T } from '../components/ds';
 
 const ACTIONS = ['irrigation', 'fertigation', 'spray', 'harvest', 'other'];
@@ -29,6 +30,14 @@ export default function DecisionRuntimePage() {
   const [risk, setRisk] = useState('MEDIUM');
   const [recId, setRecId] = useState('');
   const [hasGoverning, setHasGoverning] = useState(true);
+
+  // قياس النتيجة: مُخطَّط مقابل مرصود — يغلق حلقة قرار ⇒ أثر.
+  const outcomeM = useMeasureOutcome();
+  const [ocDecisionId, setOcDecisionId] = useState('');
+  const [ocRecIrr, setOcRecIrr] = useState('');
+  const [ocActIrr, setOcActIrr] = useState('');
+  const [ocExpYield, setOcExpYield] = useState('');
+  const [ocActYield, setOcActYield] = useState('');
 
   const runEvaluate = () => {
     if (!recId.trim()) return;
@@ -150,6 +159,9 @@ export default function DecisionRuntimePage() {
         </div>
       )}
 
+      {/* رؤى القرار: سجلّ مُدام + شرح (لماذا؟) + تعلُّم استشاريّ + أثر مُحقَّق */}
+      <DecisionInsightPanel />
+
       {/* معاينة dry-run — لا تنفيذ */}
       {!disabled && (
         <section className="rounded-2xl border p-3" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>
@@ -206,6 +218,50 @@ export default function DecisionRuntimePage() {
           )}
         </section>
       )}
+
+      {/* قياس نتيجة قرار — يغلق الحلقة: هل نجح القرار فعلاً؟ (المتوفّر طرفاه فقط يُقيَّم) */}
+      <section className="rounded-2xl border p-3" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>
+        <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
+          <Ruler className="w-4 h-4 text-sky-300" aria-hidden="true" /> قياس نتيجة قرار (مُخطَّط ⇄ مرصود)
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-[11px]" style={{ color: T.muted }}>
+          <input value={ocDecisionId} onChange={(e) => setOcDecisionId(e.target.value)} placeholder="معرّف القرار (اختياريّ)" className="w-40 px-2 py-1 rounded-lg" style={{ border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink }} />
+          <input type="number" value={ocRecIrr} onChange={(e) => setOcRecIrr(e.target.value)} placeholder="ريّ موصى (مم)" className="w-28 px-2 py-1 rounded-lg" style={{ border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink }} />
+          <input type="number" value={ocActIrr} onChange={(e) => setOcActIrr(e.target.value)} placeholder="ريّ فعليّ (مم)" className="w-28 px-2 py-1 rounded-lg" style={{ border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink }} />
+          <input type="number" value={ocExpYield} onChange={(e) => setOcExpYield(e.target.value)} placeholder="غلّة متوقَّعة (طن/هـ)" className="w-32 px-2 py-1 rounded-lg" style={{ border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink }} />
+          <input type="number" value={ocActYield} onChange={(e) => setOcActYield(e.target.value)} placeholder="غلّة فعليّة (طن/هـ)" className="w-32 px-2 py-1 rounded-lg" style={{ border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink }} />
+          <button
+            type="button"
+            onClick={() => outcomeM.mutate(buildOutcomeInput({ decisionId: ocDecisionId, recommendedIrrigationMm: ocRecIrr, actualIrrigationMm: ocActIrr, expectedYieldTHa: ocExpYield, actualYieldTHa: ocActYield }))}
+            disabled={outcomeM.isPending}
+            className="px-2.5 py-1 rounded-lg font-semibold disabled:opacity-50"
+            style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+          >
+            {outcomeM.isPending ? 'جارٍ القياس…' : 'قِس النتيجة'}
+          </button>
+        </div>
+        {outcomeM.isError && (
+          <div className="mt-2 text-[11px]" role="status" style={{ color: '#fdba74' }}>تعذّر القياس — {outcomeM.error?.message}</div>
+        )}
+        {outcomeM.data && (
+          <div className="mt-2 flex flex-col gap-1 text-[11px]" style={{ color: T.muted }}>
+            <div style={{ color: T.ink }}>
+              قُيِّم <b>{outcomeM.data.n_evaluated}</b> مقياساً · نجح <b>{outcomeM.data.n_success}</b>
+              <span style={{ color: T.faint }}> · اكتمال البيانات {Math.round((outcomeM.data.data_completeness ?? 0) * 100)}٪</span>
+            </div>
+            {outcomeM.data.metrics.map((m) => (
+              <div key={`${m.key}-${m.label_ar}`} style={{ color: outcomeStatusColor(m.status) }}>
+                {m.label_ar}
+                {m.delta != null ? ` (Δ ${m.delta})` : ''}
+                {m.ratio != null ? ` (نسبة ${m.ratio})` : ''}
+              </div>
+            ))}
+            {outcomeM.data.warnings_ar.map((w) => (
+              <div key={w} style={{ color: T.faint }}>⚠ {w}</div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }

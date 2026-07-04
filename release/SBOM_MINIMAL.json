@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a10246907c40b0015f348c48686a0903ea3ab305a629b2b70737e0b195ab229d"
+          "content": "d22866b9896c9a0693ce9984a5f341219efe887136f041cde4da17f6e667cee5"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -569,6 +569,16 @@
         }
       ],
       "name": "frontend/src/components/ToastContainer.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f860a2ace1b01aa21f0c4ee22b69a6cb95bb50868575ea9d4ac77f1cc680e7bc"
+        }
+      ],
+      "name": "frontend/src/components/decision/DecisionInsightPanel.tsx",
       "type": "file"
     },
     {
@@ -845,6 +855,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b8bd8700c193527ff3eb93249bf837f802403125a67c279f1a3e454a40c2ef86"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgroCalculatorsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d9195dd929508d9d5d668f0a0051c54afc3ab6b845ab202e5af79ebe51c6b8fd"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgroKnowledgeCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "732baf73bc49a6aac4ee062de086ff3e7adf2ec56082ab7c7929edec3d8b672b"
         }
       ],
@@ -855,10 +885,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dcb0daf0cd09a74295ac66a1aae6b579e3d7477410cbeda9b93f5adb9a41f05a"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/ClimateRiskCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8e3d261a05cd22d6c7a8595a2ea6e4b61ef66bb7323d78f6e3cefe08bf67f7cc"
         }
       ],
       "name": "frontend/src/components/fieldview/CropKnowledgeCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f22391e4d77673131c45fb6af19ef64dfef4e1105b4fadf0bf714dc921a775c7"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/DiagnosticsCard.tsx",
       "type": "file"
     },
     {
@@ -895,7 +945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3dd26b9c2de67a634bcae5352d64a6ede729322124e8e67438140438a0dd34d4"
+          "content": "28658a78a876db1ca9de933992d14e7d135062451bf3bd36144877273680ddcb"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldObjectivePanel.tsx",
@@ -965,7 +1015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e9e301f00c785b54e8b3f351249cf068fa8b41476b3d77a9da4040539875cf7"
+          "content": "3bfbe9e287e3536f66c32673cbf0646dc3ea762cc813b83d4cc2c32a3bede2f5"
         }
       ],
       "name": "frontend/src/components/fieldview/PlantingAdvisorCard.tsx",
@@ -999,6 +1049,26 @@
         }
       ],
       "name": "frontend/src/components/fieldview/TraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "043701d01c8c8fd1e8e0661684daf74e464ce1675dc81ed26fd2ae92aa4d8f26"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/WaterHarvestingCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7fbeeee1eb00adb4a1fe96713b831d82f47cbeb194b4efd48a52adb356185b4d"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/WhatIfScenariosCard.tsx",
       "type": "file"
     },
     {
@@ -1795,6 +1865,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7579759e48e4045c0d0c36fc24eb6242cee971e062c4b7ba5868ff21bc5df8a1"
+        }
+      ],
+      "name": "frontend/src/config/backendCoverageRegistry.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a89c25ffb1b1f8ee4511e654906f60fad1ff2a3479ca46a7ab42632d18ee20d5"
+        }
+      ],
+      "name": "frontend/src/config/backendCoverageRegistry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5e77069a8d5b831d5e9246c66e121f21af0c4221c5360700ef3c83056ec788e6"
         }
       ],
@@ -1825,7 +1915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1288ba3ece1d1762a77c86f2db9516861c9c0400dddfa97aaee6a2d71273f67c"
+          "content": "6edf0588783576229ea052819c5a9c1f282867c3cc2862b95c8ff83932646feb"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -1975,6 +2065,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "658fa47857a50c147eb0e45813449bf58ebadbf65cb6e5938d2fbbcf3c9fd6d9"
+        }
+      ],
+      "name": "frontend/src/lib/agroCalculators.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "88349146082493757bcab920673896c0264f61940470b163dd3f08001c85f7d8"
+        }
+      ],
+      "name": "frontend/src/lib/agroCalculators.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aac11fc7366bc0e56e423201ae0b52b0b72c206c2e027b211f5abf72fc3227f5"
         }
       ],
@@ -2035,7 +2145,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d4b87e66caab1c15af4e49c721587876bc7d79b23394a546c0fb0ca62ca95f9e"
+          "content": "f77c53434edd1ce13268268204ba5f9402fc05ebbad5c10b50bcff85177a3dbe"
+        }
+      ],
+      "name": "frontend/src/lib/decisionInsight.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9a6f438689187dd72d539065a27329ce8850fc950c189298164da08f428f4a2"
+        }
+      ],
+      "name": "frontend/src/lib/decisionInsight.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d1c1c88eb69a55e89303d4bf0fa7d8c0ed162964df65b9309b26fb5ac4e5dafe"
         }
       ],
       "name": "frontend/src/lib/decisionRuntime.test.ts",
@@ -2045,7 +2175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "488c0ca2997844a6456842352a442e48e0cad6dd04a5b9b8650c049928b92563"
+          "content": "cd4b70d3c602636b0360495b6b8126f7650439294a2b2d92fa2499ffaa58780b"
         }
       ],
       "name": "frontend/src/lib/decisionRuntime.ts",
@@ -2135,6 +2265,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7815d3f428bf8587307267942468f325cf1c82d4c94ba731fa54186fdac78047"
+        }
+      ],
+      "name": "frontend/src/lib/fieldAgroKnowledge.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5ae061d48bda3d5cb67851aa463c77bfd78cbb983201446fc3908bbdc12c9a34"
+        }
+      ],
+      "name": "frontend/src/lib/fieldAgroKnowledge.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9ba93b369c377f1ada1728c7e10593fd143226487245584d59030fd376e55d2f"
         }
       ],
@@ -2155,6 +2305,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "133752b9276cff2d7163b9cffff77901b3e659cd034054eb9c8a0ba176420a30"
+        }
+      ],
+      "name": "frontend/src/lib/fieldClimateRisk.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cf265065ed1c00eeca050b7598a3359849cf6f8735eaf2655a3b75a358cd802b"
+        }
+      ],
+      "name": "frontend/src/lib/fieldClimateRisk.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "24b08d6540f6cb106d88557f86351f3eaab5ecc41139f3ec5c4385f6474e7d7a"
         }
       ],
@@ -2169,6 +2339,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldCropCard.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "78d565b789c4f05746512bffcd40d5a87c2456efa35059dba50a8f67bb622d26"
+        }
+      ],
+      "name": "frontend/src/lib/fieldDiagnostics.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3336e7029672c6a7d981bc92f311d82616d2b650289b3827dd89d0a5166ebed"
+        }
+      ],
+      "name": "frontend/src/lib/fieldDiagnostics.ts",
       "type": "file"
     },
     {
@@ -2325,7 +2515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "444adb42a0da3ff098df8477fbac4824b8cae03267c28fa821a9540e3e77ead5"
+          "content": "539bca12f978860fc200f7679f956ce9d829c30ff6f60b120854a5e9ad628a33"
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveEngine.test.ts",
@@ -2335,7 +2525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95e59ce5a20103f16b394ecc548ca3cbc3a542de36c3f4303e300ebe65538a03"
+          "content": "b0d08ed40d0122426f802536d1a5100a6aaeedd31a65c445271ee9aeb707f696"
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveEngine.ts",
@@ -2605,6 +2795,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2352f07fe618497b521b219fa637a1652dd9e7b03247c861c51aa9ce0cfc6931"
+        }
+      ],
+      "name": "frontend/src/lib/gisCatalog.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8e85493fcd3f939c33dc456bd6f49738c8c70f05e1e4e124bd511a114435c6b5"
+        }
+      ],
+      "name": "frontend/src/lib/gisCatalog.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2d6782b20b6d840e0b020380ac7bc3d1778a47bc9be552c1a3a3333110c969e2"
         }
       ],
@@ -2765,7 +2975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d046f859856100dabbf082bad79014db403b301891faef5fb39cd059290cc63e"
+          "content": "4ced0884b6dc57ffc768abb5e4439342c0775e156a6c94d08c5e6ffc5a7f7880"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -2845,7 +3055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0de9b6534b9f998cf8d7a66aab5fbfa2ac2adcec4b5161d53782c62d5d278a09"
+          "content": "f980e967c105b6790f2ec01cf5512d766fb8d53b90e9fd03b1eacffea5130673"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -2909,6 +3119,46 @@
         }
       ],
       "name": "frontend/src/lib/sqlHistory.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "af841c577daf0f928eec1ad88036c2934c6866e4668f267809d5f39fb68ff357"
+        }
+      ],
+      "name": "frontend/src/lib/waterHarvesting.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe420367b47cbf8f5b951fd80d50f0529c4f0b729d1c64b5cf7476bc54fc293d"
+        }
+      ],
+      "name": "frontend/src/lib/waterHarvesting.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0982fec9ce8be2fe618198931e05371085752068c4187639d78b033133316c42"
+        }
+      ],
+      "name": "frontend/src/lib/whatIfScenarios.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea679a185d80b4bda5bf54a194a9217c24637536a39f726123883de5bfe3aca9"
+        }
+      ],
+      "name": "frontend/src/lib/whatIfScenarios.ts",
       "type": "file"
     },
     {
@@ -2995,7 +3245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbc6d32d10812949e4888a932888188b766580174f1924c15f1861e1339ab6e2"
+          "content": "c7a43bf2cd3db0dcb1df370845ddfd370ce73629be784ec9bf347dfd7ea0f166"
         }
       ],
       "name": "frontend/src/sections/AdminRuntimePage.tsx",
@@ -3205,7 +3455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ddd04b5dd363298528551e5f399b3355e9fdea8a91c0b33d33799d9693d45e6"
+          "content": "1d4b31121ed94c0f134d40dcf100e2afa7fe36a38ddfce133b2abca05f46ebbc"
         }
       ],
       "name": "frontend/src/sections/DecisionRuntimePage.tsx",
@@ -3475,6 +3725,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "44fe917b34a49df683c18ac3aabbeb9be7e1a9129e3874f97220c5adb3873121"
+        }
+      ],
+      "name": "frontend/src/sections/GisExpertPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8102be82c3c4ec200743b58944e2fef5e9e0951a3d1f4c07c93750b85e156198"
         }
       ],
@@ -3605,7 +3865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6678697ea7972056cb97539c5a67ee65789d061853f1830dbf6bfb4ffa828108"
+          "content": "1e0b5d82a753cee424833d5969ab0d30530d6a017d69c5d07aed4a9c453703c6"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

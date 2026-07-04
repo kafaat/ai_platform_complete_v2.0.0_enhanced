@@ -447,6 +447,221 @@
       "endpoint": "/api/v1/fields/{id}/boundary/clean (POST)",
       "audience": "agronomist",
       "evidence": "/boundary/clean"
+    },
+    {
+      "endpoint": "/api/v1/outcome/measure (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/outcome/measure"
+    },
+    {
+      "endpoint": "/api/v1/propagation/crop",
+      "audience": "agronomist",
+      "evidence": "/api/v1/propagation/crop"
+    },
+    {
+      "endpoint": "/api/v1/postharvest/best-practices",
+      "audience": "agronomist",
+      "evidence": "/api/v1/postharvest/best-practices"
+    },
+    {
+      "endpoint": "/api/v1/coffee/guide",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/guide"
+    },
+    {
+      "endpoint": "/api/v1/coffee/varieties",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/varieties"
+    },
+    {
+      "endpoint": "/api/v1/coffee/pests",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/pests"
+    },
+    {
+      "endpoint": "/api/v1/water-harvesting/potential",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-harvesting/potential"
+    },
+    {
+      "endpoint": "/api/v1/water-harvesting/methods",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-harvesting/methods"
+    },
+    {
+      "endpoint": "/api/v1/water-harvesting/method-guide",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-harvesting/method-guide"
+    },
+    {
+      "endpoint": "/api/v1/irrigation-method",
+      "audience": "agronomist",
+      "evidence": "/api/v1/irrigation-method"
+    },
+    {
+      "endpoint": "/api/v1/water-sensitivity/calendar",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-sensitivity/calendar"
+    },
+    {
+      "endpoint": "/api/v1/seasonal-risk/calendar",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seasonal-risk/calendar"
+    },
+    {
+      "endpoint": "/api/v1/seasonal-risk/chill-hours",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seasonal-risk/chill-hours"
+    },
+    {
+      "endpoint": "/api/v1/climate-analogs/list",
+      "audience": "agronomist",
+      "evidence": "/api/v1/climate-analogs/list"
+    },
+    {
+      "endpoint": "/api/v1/fields/boundary-graph/rebuild (POST)",
+      "audience": "admin",
+      "evidence": "/boundary-graph/rebuild"
+    },
+    {
+      "endpoint": "/api/v1/seed/germination-rate",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/germination-rate"
+    },
+    {
+      "endpoint": "/api/v1/seed/storage-check",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/storage-check"
+    },
+    {
+      "endpoint": "/api/v1/seed/sowing-depth",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/sowing-depth"
+    },
+    {
+      "endpoint": "/api/v1/seed/criteria",
+      "audience": "agronomist",
+      "evidence": "/api/v1/seed/criteria"
+    },
+    {
+      "endpoint": "/api/v1/postharvest/moisture-check",
+      "audience": "agronomist",
+      "evidence": "/api/v1/postharvest/moisture-check"
+    },
+    {
+      "endpoint": "/api/v1/coffee/site-suitability",
+      "audience": "agronomist",
+      "evidence": "/api/v1/coffee/site-suitability"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/stac",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/stac"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/stac/collections",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/stac/collections"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/stac/search",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/stac/search"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/ogc/conformance",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/ogc/conformance"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/ogc/collections",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/ogc/collections"
+    },
+    {
+      "endpoint": "/api/v1/gis/cloud-native/tile-cache-plan",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gis/cloud-native/tile-cache-plan"
+    },
+    {
+      "endpoint": "/api/v1/decision/records",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/records"
+    },
+    {
+      "endpoint": "/api/v1/decision/{id}/explain",
+      "audience": "agronomist",
+      "evidence": "/explain"
+    },
+    {
+      "endpoint": "/api/v1/decision/learning",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/learning"
+    },
+    {
+      "endpoint": "/api/v1/decision/impact",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/impact"
+    },
+    {
+      "endpoint": "/api/v1/crops/{crop_id}/operations-calendar",
+      "audience": "agronomist",
+      "evidence": "/operations-calendar"
+    },
+    {
+      "endpoint": "/api/v1/gdd/track (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/gdd/track"
+    },
+    {
+      "endpoint": "/api/v1/diagnose (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/diagnose"
+    },
+    {
+      "endpoint": "/api/v1/diagnose/symptoms",
+      "audience": "agronomist",
+      "evidence": "/api/v1/diagnose/symptoms"
+    },
+    {
+      "endpoint": "/api/v1/ipm/pests",
+      "audience": "agronomist",
+      "evidence": "/api/v1/ipm/pests"
+    },
+    {
+      "endpoint": "/api/v1/ipm/plan",
+      "audience": "agronomist",
+      "evidence": "/api/v1/ipm/plan"
+    },
+    {
+      "endpoint": "/api/v1/ipm/crop-pests",
+      "audience": "agronomist",
+      "evidence": "/api/v1/ipm/crop-pests"
+    },
+    {
+      "endpoint": "/api/v1/salinity/assess (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/salinity/assess"
+    },
+    {
+      "endpoint": "/api/v1/scenario/temperature (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/temperature"
+    },
+    {
+      "endpoint": "/api/v1/scenario/rainfall (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/rainfall"
+    },
+    {
+      "endpoint": "/api/v1/scenario/planting-date (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/planting-date"
+    },
+    {
+      "endpoint": "/api/v1/scenario/water-twin (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/scenario/water-twin"
     }
   ]
 }

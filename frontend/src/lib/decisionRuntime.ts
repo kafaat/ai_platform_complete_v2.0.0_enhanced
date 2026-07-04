@@ -124,3 +124,84 @@ export function summarizeDecisions(decisions: DispatchDecision[] | null | undefi
   }
   return o;
 }
+
+// ── قياس نتيجة القرار (/api/v1/outcome/measure) — يغلق حلقة القرار ⇒ الأثر ──
+
+export interface OutcomeMetric {
+  key: string;
+  status: string; // followed|under|over · better|as_predicted|worse · met|above|below · needs_data
+  label_ar: string;
+  planned?: number | null;
+  actual?: number | null;
+  expected?: number | null;
+  delta?: number | null;
+  ratio?: number | null;
+}
+
+export interface OutcomeMeasureInput {
+  field_id?: string | null;
+  decision_id?: string | null;
+  planned: {
+    recommended_irrigation_mm?: number | null;
+    predicted_stress_days?: number | null;
+    expected_yield_t_ha?: number | null;
+    season_budget_mm?: number | null;
+  };
+  actual: {
+    actual_irrigation_mm?: number | null;
+    observed_stress_days?: number | null;
+    actual_yield_t_ha?: number | null;
+    actual_water_used_mm?: number | null;
+  };
+}
+
+export interface OutcomeMeasureResponse {
+  metrics: OutcomeMetric[];
+  n_evaluated: number;
+  n_success: number;
+  data_completeness: number;
+  calibrated: boolean;
+  warnings_ar: string[];
+  field_id?: string | null;
+  decision_id?: string | null;
+}
+
+// ألوان حالات الخادم — الإيجابيّ أخضر، المقبول أصفر، السلبيّ أحمر، الناقص محايد.
+const OUTCOME_TONE: Record<string, string> = {
+  followed: '#86efac', better: '#86efac', met: '#86efac', above: '#86efac',
+  as_predicted: '#fde68a', under: '#fdba74', over: '#fdba74',
+  worse: '#fca5a5', below: '#fca5a5',
+  needs_data: '#64748b',
+};
+
+export function outcomeStatusColor(status: string | null | undefined): string {
+  return status ? (OUTCOME_TONE[status] ?? '#64748b') : '#64748b';
+}
+
+/** يبني مدخل القياس من نصوص النموذج — القيم الفارغة تبقى غائبة (الخادم يقول
+ *  needs_data للناقص بصدق؛ لا نحوّل الفراغ صفراً). */
+export function buildOutcomeInput(fields: {
+  fieldId?: string | null;
+  decisionId?: string;
+  recommendedIrrigationMm?: string;
+  actualIrrigationMm?: string;
+  expectedYieldTHa?: string;
+  actualYieldTHa?: string;
+}): OutcomeMeasureInput {
+  const num = (v: string | undefined): number | undefined => {
+    const n = Number(String(v ?? '').trim());
+    return String(v ?? '').trim() !== '' && Number.isFinite(n) ? n : undefined;
+  };
+  const input: OutcomeMeasureInput = { planned: {}, actual: {} };
+  if (fields.fieldId) input.field_id = fields.fieldId;
+  if (fields.decisionId?.trim()) input.decision_id = fields.decisionId.trim();
+  const ri = num(fields.recommendedIrrigationMm);
+  if (ri !== undefined) input.planned.recommended_irrigation_mm = ri;
+  const ey = num(fields.expectedYieldTHa);
+  if (ey !== undefined) input.planned.expected_yield_t_ha = ey;
+  const ai = num(fields.actualIrrigationMm);
+  if (ai !== undefined) input.actual.actual_irrigation_mm = ai;
+  const ay = num(fields.actualYieldTHa);
+  if (ay !== undefined) input.actual.actual_yield_t_ha = ay;
+  return input;
+}

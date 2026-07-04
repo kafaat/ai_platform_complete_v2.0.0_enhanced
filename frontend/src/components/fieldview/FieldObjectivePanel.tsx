@@ -17,6 +17,8 @@ import {
   type LifecycleState,
   type Outcome,
 } from '../../lib/fieldActionLifecycle';
+import { useEvaluateDispatch } from '../../hooks/useApi';
+import { dispatchStateColor, dispatchStateLabel } from '../../lib/decisionRuntime';
 import { T } from '../ds';
 
 const SOURCE_LABEL: Record<EvidenceSource, string> = {
@@ -28,6 +30,8 @@ const SOURCE_LABEL: Record<EvidenceSource, string> = {
   zones: 'مناطق',
   moisture: 'رطوبة',
   season: 'موسم',
+  planning: 'تخطيط زراعيّ',
+  gdd: 'GDD',
 };
 
 const STEP_ICON: Record<ObjectiveStepKind, typeof Search> = {
@@ -60,6 +64,9 @@ export default function FieldObjectivePanel({ contextKey, availability, onCreate
   const [lifecycle, setLifecycle] = useState<LifecycleState>(initLifecycle());
   const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
   const [creatingTask, setCreatingTask] = useState(false);
+  // حكم الحوكمة الخلفيّة (dry-run عند الاعتماد) — إثراء معلوماتيّ لا بوّابة محليّة:
+  // الميزة قد تكون مُطفأة (404) فتُعرَض ملاحظة صادقة ولا تُعطَّل دورة الحياة.
+  const dispatchEval = useEvaluateDispatch();
 
   const plan = useMemo(() => buildObjectivePlan(selectedId, availability), [selectedId, availability]);
 
@@ -67,6 +74,7 @@ export default function FieldObjectivePanel({ contextKey, availability, onCreate
     setSelectedId(id);
     setLifecycle(initLifecycle()); // هدف جديد ⇒ دورة حياة جديدة (لا خلط أدلّة)
     setBlockedMessage(null);
+    dispatchEval.reset();
   };
 
   useEffect(() => {
@@ -74,6 +82,8 @@ export default function FieldObjectivePanel({ contextKey, availability, onCreate
     setLifecycle(initLifecycle());
     setBlockedMessage(null);
     setCreatingTask(false);
+    dispatchEval.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextKey]);
 
   useEffect(() => {
@@ -93,6 +103,18 @@ export default function FieldObjectivePanel({ contextKey, availability, onCreate
     const approved = advanceLifecycle(evidence.state, 'approve');
     if (!approved.changed) { setBlockedMessage(approved.blockedReason ?? 'تعذّر اعتماد التوصية.'); return; }
     setLifecycle(approved.state);
+    // جسر الحوكمة: معاينة القرار في الموزِّع الخلفيّ (dry-run، لا تنفيذ) — الدليل
+    // مكتمل هنا بالتعريف (canAct)، فيُمرَّر has_governing_data=true بصدق.
+    const d = plan.objective.dispatch;
+    if (d) {
+      dispatchEval.mutate({
+        recommendation_id: `objective:${plan.objective.id}`,
+        action_type: d.actionType,
+        risk_level: d.riskLevel,
+        field_id: contextKey ?? null,
+        has_governing_data: true,
+      });
+    }
   };
 
   const createTask = async () => {
@@ -230,6 +252,27 @@ export default function FieldObjectivePanel({ contextKey, availability, onCreate
           );
         })}
       </ol>
+
+      {/* حكم الحوكمة الخلفيّة (dry-run) — معلوماتيّ: يعرض حالة الموزِّع كما حكم الخادم */}
+      {dispatchEval.data && (
+        <div className="flex flex-wrap items-center gap-1.5 mb-2 text-[11px]" role="status">
+          <span className="px-2 py-0.5 rounded-full font-semibold" style={{ border: `1px solid ${T.line}`, color: dispatchStateColor(String(dispatchEval.data.state ?? '')) }}>
+            حوكمة الموزِّع: {dispatchStateLabel(String(dispatchEval.data.state ?? ''))}
+          </span>
+          {typeof dispatchEval.data.required_approvals === 'number' && dispatchEval.data.required_approvals > 0 && (
+            <span style={{ color: T.faint }}>موافقات مطلوبة: {dispatchEval.data.required_approvals}</span>
+          )}
+          {typeof dispatchEval.data.reason_ar === 'string' && dispatchEval.data.reason_ar && (
+            <span style={{ color: T.muted }}>— {dispatchEval.data.reason_ar}</span>
+          )}
+          <span className="text-[10px]" style={{ color: T.faint }}>(معاينة — لا تنفيذ)</span>
+        </div>
+      )}
+      {dispatchEval.isError && (
+        <div className="mb-2 text-[10px]" style={{ color: T.faint }}>
+          موزِّع القرار الخلفيّ غير متاح في هذه البيئة — دورة الحياة محليّة فقط.
+        </div>
+      )}
 
       {/* الإجراءات المُدارة بدورة الحياة */}
       <div className="flex flex-wrap items-center gap-1.5">

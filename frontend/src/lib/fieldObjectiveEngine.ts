@@ -8,9 +8,12 @@ export type FieldObjectiveId =
   | 'prepare_spray_window'
   | 'create_vra_prescription'
   | 'review_season_profitability'
-  | 'generate_field_report';
+  | 'generate_field_report'
+  | 'check_planting_window'
+  | 'plan_rotation'
+  | 'track_gdd_stage';
 
-export type EvidenceSource = 'imagery' | 'weather' | 'alerts' | 'tasks' | 'records' | 'zones' | 'moisture' | 'season';
+export type EvidenceSource = 'imagery' | 'weather' | 'alerts' | 'tasks' | 'records' | 'zones' | 'moisture' | 'season' | 'planning' | 'gdd';
 export type ObjectiveStepKind = 'inspect' | 'reason' | 'act' | 'review';
 
 export interface ObjectiveStep {
@@ -29,6 +32,9 @@ export interface FieldObjectiveDef {
   producesTask: boolean;
   followUp: 'next_image' | 'days' | 'none';
   followUpDays?: number;
+  /** ربط الهدف بموزِّع القرار المحروس (dry-run عند الاعتماد): نوع الفعل ومستوى
+   *  الخطر كما يفهمهما الخادم. الأهداف التي تُنتج مخرَجاً لا مهمّة ميدانيّة بلا ربط. */
+  dispatch?: { actionType: string; riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' };
 }
 
 export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
@@ -38,6 +44,7 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
     requiredSources: ['imagery', 'weather', 'moisture'],
     producesTask: true,
     followUp: 'next_image',
+    dispatch: { actionType: 'other', riskLevel: 'LOW' },
     steps: [
       { kind: 'inspect', label: 'قارن NDVI بين آخر صورتين', source: 'imagery' },
       { kind: 'inspect', label: 'افحص NDMI/الرطوبة', source: 'moisture' },
@@ -55,6 +62,7 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
     producesTask: true,
     followUp: 'days',
     followUpDays: 7,
+    dispatch: { actionType: 'irrigation', riskLevel: 'MEDIUM' },
     steps: [
       { kind: 'inspect', label: 'اقرأ رطوبة التربة الحاليّة', source: 'moisture' },
       { kind: 'inspect', label: 'اقرأ تنبّؤ المطر/الحرارة', source: 'weather' },
@@ -70,6 +78,7 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
     producesTask: true,
     followUp: 'days',
     followUpDays: 2,
+    dispatch: { actionType: 'spray', riskLevel: 'HIGH' },
     steps: [
       { kind: 'inspect', label: 'افحص الرياح/المطر/الحرارة القادمة', source: 'weather' },
       { kind: 'reason', label: 'حدّد النافذة الآمنة للرشّ' },
@@ -115,6 +124,45 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
       { kind: 'review', label: 'صدِّر سجلّ الحقل القابل للمشاركة' },
     ],
   },
+  {
+    id: 'check_planting_window',
+    label: 'تحقّق نافذة الزراعة',
+    requiredSources: ['planning', 'weather', 'season'],
+    producesTask: false,
+    followUp: 'none',
+    steps: [
+      { kind: 'inspect', label: 'افحص شهر الزراعة ومحصول الحقل', source: 'planning' },
+      { kind: 'inspect', label: 'راجع ملاءمة الطقس القريب', source: 'weather' },
+      { kind: 'reason', label: 'حدّد هل النافذة مناسبة أم خارج الموسم' },
+      { kind: 'review', label: 'اعرض حكم الزراعة كقرار قابل للمراجعة' },
+    ],
+  },
+  {
+    id: 'plan_rotation',
+    label: 'خطّة الدورة الزراعيّة',
+    requiredSources: ['planning', 'season'],
+    producesTask: false,
+    followUp: 'none',
+    steps: [
+      { kind: 'inspect', label: 'اقرأ محصول الموسم الحالي/السابق', source: 'season' },
+      { kind: 'inspect', label: 'استدعِ مرشّحات الدورة الزراعيّة', source: 'planning' },
+      { kind: 'reason', label: 'رتّب المحاصيل good/acceptable/avoid مع الأسباب' },
+      { kind: 'review', label: 'ثبّت المحصول التالي كمخرج مُراجع' },
+    ],
+  },
+  {
+    id: 'track_gdd_stage',
+    label: 'تتبّع مرحلة GDD',
+    requiredSources: ['gdd', 'weather', 'season'],
+    producesTask: false,
+    followUp: 'none',
+    steps: [
+      { kind: 'inspect', label: 'اجمع سلسلة درجات الحرارة اليومية', source: 'weather' },
+      { kind: 'inspect', label: 'احسب GDD التراكمي ومرحلة النمو', source: 'gdd' },
+      { kind: 'reason', label: 'قارن المرحلة الحرارية بمرحلة الموسم' },
+      { kind: 'review', label: 'اعرض المرحلة والعتبة التالية كمخرج مُراجع' },
+    ],
+  },
 ];
 
 export interface EvidenceAvailability {
@@ -126,6 +174,8 @@ export interface EvidenceAvailability {
   zones?: boolean;
   moisture?: boolean;
   season?: boolean;
+  planning?: boolean;
+  gdd?: boolean;
 }
 
 export interface ObjectivePlan {

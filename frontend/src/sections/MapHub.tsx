@@ -56,6 +56,12 @@ import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
+import AgroKnowledgeCard from '../components/fieldview/AgroKnowledgeCard';
+import AgroCalculatorsCard from '../components/fieldview/AgroCalculatorsCard';
+import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
+import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
+import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
+import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -853,7 +859,10 @@ export default function MapHub() {
     // جاهزيّة مسار المناطق: مناطق محفوظة فعلاً أو صور جاهزة لبناء مناطق جديدة.
     zones: zonePersisted.length > 0 || imageryReadyCount > 0,
     season: !!phenologyQ.data?.available || (seasonsQ.data?.length ?? 0) > 0,
-  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, completedOps.length, waterEfficiencyQ.data, zonePersisted.length, phenologyQ.data, seasonsQ.data]);
+    planning: !!selected?.crop,
+    // GDD يحتاج محصولاً + طقساً/موسماً حتّى لا يظهر هدف المرحلة الحراريّة بلا سياق.
+    gdd: !!selected?.crop && !!weatherQ.data?.current && (!!phenologyQ.data?.available || (seasonsQ.data?.length ?? 0) > 0),
+  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, completedOps.length, waterEfficiencyQ.data, zonePersisted.length, phenologyQ.data, seasonsQ.data, selected?.crop]);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1329,6 +1338,35 @@ export default function MapHub() {
         />
       )}
 
+      {/* بطاقة المعرفة الزراعيّة: الإكثار المناسب للمحصول + ممارسات ما بعد الحصاد +
+          (للبنّ فقط) دليل/أصناف/آفات البنّ اليمنيّ — كانت طبقة خلفيّة يتيمة. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* حاسبات قياس حقليّة (إنبات · تخزين بذور · عمق بذر · رطوبة حبوب · ارتفاع البنّ)
+          — من قياسات المستخدم الفعليّة فقط، لا افتراضات. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroCalculatorsCard cropLabel={selected.crop} />
+      )}
+
+      {/* منضدة التشخيص الحقليّ: أعراض ⇒ مرشّحون مرتّبون (تشخيص أوّليّ لا قاطع) +
+          خطط IPM المتدرّجة (الكيميائيّ ملاذ أخير) + تقييم ملوحة FAO من قياسات المستخدم. */}
+      {selected && fieldMode === 'expert' && (
+        <DiagnosticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* سيناريوهات «ماذا لو؟»: حرارة/مطر/تاريخ زراعة/توأم ماء — محاكاة افتراضات
+          المستخدم، الخادم يعلن أنّها ليست تنبّؤاً معايَراً والإخلاء يُعرَض بارزاً. */}
+      {selected && fieldMode === 'expert' && (
+        <WhatIfScenariosCard
+          fieldId={fieldId ?? null}
+          cropLabel={selected.crop}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          enabled={expertMode}
+        />
+      )}
+
       {/* «ماذا أزرع؟»: اقتراح الدورة الزراعيّة + ملاءمة الشهر — planting/rotation
           كانت بلا مسار عمليّ في الواجهة. أحكام الخادم تُعرَض لا يُعاد الحكم. */}
       {selected && fieldMode === 'expert' && (
@@ -1337,6 +1375,18 @@ export default function MapHub() {
           todayIso={new Date().toISOString().slice(0, 10)}
           enabled={expertMode}
         />
+      )}
+
+      {/* مخاطر المناخ والماء: حساسيّة المراحل المائيّة (FAO-56) + نوافذ المخاطر الموسميّة
+          وساعات البرودة (إقليم يختاره المستخدم) + المناطق المشابهة — كانت بلا قارئ. */}
+      {selected && fieldMode === 'expert' && (
+        <ClimateRiskCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* حصاد المياه وطريقة الريّ: إمكانات حصاد المطر (من قياس المستخدم) + الطرق
+          التراثيّة اليمنيّة ودليلها + ملامح طرق الريّ FAO — كان backend بلا قارئ. */}
+      {selected && fieldMode === 'expert' && (
+        <WaterHarvestingCard cropLabel={selected.crop} enabled={expertMode} />
       )}
 
       {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود
