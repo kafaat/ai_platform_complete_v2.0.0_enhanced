@@ -7,7 +7,7 @@ import {
 } from './fieldObjectiveEngine';
 
 describe('FIELD_OBJECTIVES catalog', () => {
-  it('defines the six ready objectives', () => {
+  it('defines the seven ready objectives', () => {
     const ids = FIELD_OBJECTIVES.map((o) => o.id);
     expect(ids).toEqual([
       'diagnose_field_stress',
@@ -15,6 +15,7 @@ describe('FIELD_OBJECTIVES catalog', () => {
       'prepare_spray_window',
       'create_vra_prescription',
       'review_season_profitability',
+      'choose_next_crop',
       'generate_field_report',
     ]);
   });

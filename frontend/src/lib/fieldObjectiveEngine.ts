@@ -3,6 +3,7 @@
 // بمصادر أدلّة حقيقيّة. صدق: المحرّك يخطّط ويتحقّق من توفّر الأدلّة ويمنع الإجراء عند
 // نقصها — لا يختلق التشخيص (التشخيص يأتي من محرّكات الحوكمة/الصحّة/الماء والوكيل الزراعيّ).
 export type FieldObjectiveId =
+  | 'choose_next_crop'
   | 'diagnose_field_stress'
   | 'plan_irrigation_week'
   | 'prepare_spray_window'
@@ -107,6 +108,20 @@ export const FIELD_OBJECTIVES: FieldObjectiveDef[] = [
       { kind: 'inspect', label: 'اقرأ مرحلة/موسم الحقل', source: 'season' },
       { kind: 'reason', label: 'احسب التكلفة/هكتار والصافي' },
       { kind: 'review', label: 'صدِّر تقرير ربحيّة الموسم' },
+    ],
+  },
+  {
+    id: 'choose_next_crop',
+    label: 'ماذا أزرع بعد الموسم؟',
+    requiredSources: ['records', 'season'],
+    producesTask: false,
+    followUp: 'none',
+    steps: [
+      { kind: 'inspect', label: 'اقرأ محصول الموسم الحاليّ وتاريخه', source: 'season' },
+      { kind: 'inspect', label: 'راجع سجلّ العمليّات والدورة السابقة', source: 'records' },
+      { kind: 'reason', label: 'رتّب المرشّحين بجدول الدورة الزراعيّة (جيّد/مقبول/تجنّب)' },
+      { kind: 'reason', label: 'افحص ملاءمة الشهر الحاليّ لنافذة زراعة المرشّح' },
+      { kind: 'review', label: 'اعتمد اختيار المحصول التالي وخطّط بذاره' },
     ],
   },
   {
