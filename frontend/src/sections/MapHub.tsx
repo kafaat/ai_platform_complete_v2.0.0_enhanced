@@ -48,6 +48,8 @@ import FieldWaterBrainCard from '../components/fieldview/FieldWaterBrainCard';
 import FieldScoutingCard from '../components/fieldview/FieldScoutingCard';
 import SeasonCommandCard from '../components/fieldview/SeasonCommandCard';
 import TraceabilityCard from '../components/fieldview/TraceabilityCard';
+import FieldObjectivePanel from '../components/fieldview/FieldObjectivePanel';
+import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
@@ -819,6 +821,18 @@ export default function MapHub() {
       .map((t) => ({ label: t.task_type, date: t.recommended_date })),
     [tasksQ.data, fieldId],
   );
+  // توفّر الأدلّة الحقيقيّ لطبقة الأهداف — يُحسَب من الاستعلامات الحيّة فقط (لا افتراض تفاؤليّ):
+  // كلّ مصدر = true حين تكون بياناته حاضرة فعلاً، وإلّا يُترَك false فتمنع اللوحةُ الإجراءَ بصدق.
+  const objectiveAvailability = useMemo<EvidenceAvailability>(() => ({
+    imagery: imageryReadyCount > 0,
+    weather: !!weatherQ.data?.current,
+    moisture: soilMoistureQ.data?.reading != null,
+    alerts: Array.isArray(alertsQ.data),
+    tasks: Array.isArray(tasksQ.data?.tasks),
+    records: !!selected?.crop || (typeof selected?.area === 'number' && selected.area > 0),
+    zones: imageryReadyCount > 0,
+    season: !!phenologyQ.data?.available || (seasonsQ.data?.length ?? 0) > 0,
+  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, selected, phenologyQ.data, seasonsQ.data]);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1157,6 +1171,19 @@ export default function MapHub() {
           routeFieldIsInvalid={routeFieldIsInvalid}
           storedFieldIsInvalid={storedFieldIsInvalid}
           selectionReason={selectionReason}
+        />
+      )}
+
+      {/* طبقة الأهداف (Field Objective Engine): تحوّل FieldView من «أداة تعرض بيانات» إلى
+          «متعاون يحقّق هدفاً» — نيّة ⇒ خطّة (فحص→تفسير→إجراء→مراجعة) مربوطة بأدلّة حقيقيّة،
+          تمنع التوصية حتّى اكتمال الدليل، وتحوّلها إلى مهمّة قابلة للمتابعة بدورة حياة صريحة. */}
+      {selected && fieldMode === 'expert' && (
+        <FieldObjectivePanel
+          availability={objectiveAvailability}
+          onCreateTask={(objectiveId) => {
+            // «أنشئ مهمّة» توصِل لأفعال MapHub الحقيقيّة فقط — كشف الإجهاد ⇒ وضع تثبيت دليل ميدانيّ.
+            if (objectiveId === 'diagnose_field_stress') { setPinMode(true); setCompare(false); setDrawTools(false); }
+          }}
         />
       )}
 
