@@ -1119,14 +1119,20 @@ _SSRF_BLOCKED_HOSTS = {"169.254.169.254", "metadata.google.internal", "metadata"
 def _safe_raster_source(url: str | None) -> str:
     """يتحقّق من مصدر راستر آمن قبل rasterio.open — يمنع path traversal وSSRF.
 
-    file:// : يُسمَح **فقط** تحت UPLOAD_DIR (realpath، لا ../traversal) ⇒ يمنع قراءة
-    ملفّات عشوائيّة (file:///etc/passwd). http(s): يُسمَح (STAC/object-store) مع حجب
-    عنوان metadata السحابي. أيّ غير ذلك ⇒ 400. (مراجعة الجولة ٣ — أمن.)
+    file:// أو مسار محلّيّ مطلق: يُسمَح **فقط** تحت UPLOAD_DIR (realpath، لا
+    ../traversal) ⇒ يمنع قراءة ملفّات عشوائيّة (file:///etc/passwd). قبول المسار
+    المطلق ضروريّ لأنّ خطوط الأنابيب الداخليّة (backfill/process-from-stac/CDSE)
+    تمرّر مخرجاتها (VRT/GeoTIFF تحت UPLOAD_DIR) كمسار خام — رفضُه أسقط كلّ مهامّ
+    backfill بـHTTPException 400 «مخطّط URL غير مدعوم» (بلاغ 2026-07-04)؛ الاحتواء
+    تحت UPLOAD_DIR هو نفسه للمسارَين فلا اتّساع أمنيّاً. http(s): يُسمَح
+    (STAC/object-store) مع حجب عنوان metadata السحابي. أيّ غير ذلك ⇒ 400.
+    (مراجعة الجولة ٣ — أمن.)
     """
     if not url or not isinstance(url, str):
         raise HTTPException(400, "مصدر راستر غير صالح")
-    if url.startswith("file://"):
-        path = os.path.realpath(url[len("file://") :])
+    if url.startswith("file://") or url.startswith("/"):
+        raw = url[len("file://") :] if url.startswith("file://") else url
+        path = os.path.realpath(raw)
         base = os.path.realpath(UPLOAD_DIR)
         if path != base and not path.startswith(base + os.sep):
             raise HTTPException(400, "مسار ملفّ خارج المجلّد المسموح (traversal مرفوض)")
@@ -1474,10 +1480,13 @@ def _run_processing(job_id: str, req: ProcessRequest):
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
         # لا نُخزّن تفاصيل الاستثناء الخام في job status لأنّها تُقرأ عبر API وقد
-        # تحتوي مسارات ملفات/روابط/تفاصيل مكتبات. السجلّ الداخلي يحتفظ بنوع الخطأ.
+        # تحتوي مسارات ملفات/روابط/تفاصيل مكتبات. السجلّ الداخلي يحتفظ بنوع الخطأ،
+        # ولـHTTPException يضيف status/detail (نصّنا المتحكَّم به) — النوع وحده جعل
+        # فشل backfill غير قابل للتشخيص (بلاغ 2026-07-04: «HTTPException» بلا سبب).
         job["error_message"] = "raster_processing_failed"
         _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
-        logger.error("job %s failed: %s", job_id, type(e).__name__)
+        _http = f" [{e.status_code}] {e.detail}" if isinstance(e, HTTPException) else ""
+        logger.error("job %s failed: %s%s", job_id, type(e).__name__, _http)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):
@@ -1527,8 +1536,10 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
             else:
                 failed[ind.value] = sj.get("error_message", "unknown")
         except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر
-            # توحيد main↔cert (#542): رمز عامّ للعميل + تسجيل النوع فقط (لا تسريب نصّ).
-            logger.warning("مهمّة فرعيّة %s فشلت: %s", ind.value, type(e).__name__)
+            # توحيد main↔cert (#542): رمز عامّ للعميل + السجلّ الداخلي يحمل النوع
+            # (+ status/detail لـHTTPException — نصّنا المتحكَّم به، لا تسريب نصّ خام).
+            _http = f" [{e.status_code}] {e.detail}" if isinstance(e, HTTPException) else ""
+            logger.warning("مهمّة فرعيّة %s فشلت: %s%s", ind.value, type(e).__name__, _http)
             failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
 

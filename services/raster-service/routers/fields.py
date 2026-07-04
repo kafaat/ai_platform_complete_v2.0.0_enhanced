@@ -39,7 +39,9 @@ async def process_from_stac(
     # كلّ href يُتحقَّق منه (traversal/SSRF) قبل بناء الـVRT.
     safe_hrefs = {k: main._safe_raster_source(v) for k, v in (req.band_hrefs or {}).items()}
     try:
-        vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs)
+        # الـVRT يُكتَب تحت UPLOAD_DIR كي يقبله حارس المصدر (_safe_raster_source) —
+        # كتابته في /tmp مباشرة كانت تُفشِل المعالجة بـ400 (خارج المجلّد المسموح).
+        vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs, out_dir=main.UPLOAD_DIR)
     except Exception as e:  # noqa: BLE001 — مدخل غير صالح/نطاق غير مقروء
         raise HTTPException(400, f"تعذّر بناء VRT من نطاقات STAC: {e}") from e
 
@@ -190,7 +192,11 @@ async def field_historical_backfill(
                         for k, v in (sc.get("bands_urls") or {}).items()
                         if v
                     }
-                    vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs)
+                    # تحت UPLOAD_DIR كي يقبله _safe_raster_source — كتابة الـVRT في
+                    # /tmp أسقطت كلّ مهامّ backfill بـHTTPException 400 (بلاغ 2026-07-04).
+                    vrt_path, index_map = stac_vrt.build_band_vrt(
+                        safe_hrefs, out_dir=main.UPLOAD_DIR
+                    )
                     preq = main.ProcessRequest(
                         tenant_id=tenant_id,
                         field_id=field_id,
@@ -212,10 +218,15 @@ async def field_historical_backfill(
                     )
                     main._run_processing(jid, preq)
                 except Exception as e:  # noqa: BLE001
-                    # توحيد main↔cert (#542): لا نُسرّب نصّ الاستثناء للعميل — رمز عامّ
-                    # + تسجيل النوع فقط (لا تفاصيل مضيف/مسار/اعتماد).
+                    # توحيد main↔cert (#542): لا نُسرّب نصّ الاستثناء للعميل — رمز عامّ،
+                    # والسجلّ الداخلي يحمل النوع (+ status/detail لـHTTPException —
+                    # نصّنا المتحكَّم به؛ النوع وحده أخفى سبب فشل backfill 2026-07-04).
+                    _http = f" [{e.status_code}] {e.detail}" if isinstance(e, HTTPException) else ""
                     main.logger.warning(
-                        "scene job %s فشل أثناء معالجة المشهد: %s", jid, type(e).__name__
+                        "scene job %s فشل أثناء معالجة المشهد: %s%s",
+                        jid,
+                        type(e).__name__,
+                        _http,
                     )
                     j = main._jobs.get(jid) or {"job_id": jid}
                     j.update(

@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-04 (ن-22) — إصلاح جذريّ: كلّ مهامّ backfill كانت تفشل بـHTTPException مبتلَعة
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تشخيص من سجلّات المستخدم الحيّة: ~12 مهمّة `backfill_*` تفشل «failed: HTTPException» مباشرةً بعد «بُني VRT من 13 نطاق»، بينما بلاطات CDSE تعمل (بايتات حقيقيّة 933–1224؛ الـ70-byte قصّ مضلّع صحيح).
+
+- **الجذر:** `_safe_raster_source` (raster-service) كان يقبل `file://` وhttp(s) فقط، بينما **ثلاثة أنابيب داخليّة** تمرّر مخرجاتها كمسار محلّيّ خام: backfill وprocess-from-stac (VRT في `/tmp` — خارج `UPLOAD_DIR` أصلاً) وCDSE (GeoTIFF تحت `UPLOAD_DIR` بلا `file://`) ⇒ 400 «مخطّط URL غير مدعوم» تُبتلَع في معالج فشل المهمّة.
+- **الإصلاح (لا اتّساع أمنيّاً):** قبول المسار المطلق **فقط** تحت `UPLOAD_DIR` (نفس احتواء realpath لـ`file://`؛ traversal/ملفّات النظام تُرفَض كما كانت) + بوّابتا `build_band_vrt` تكتبان بـ`out_dir=main.UPLOAD_DIR`.
+- **قابليّة التشخيص:** سجلّات فشل المهامّ الثلاثة تُلحِق الآن `[status] detail` لـHTTPException (نصّنا المتحكَّم به — job status يبقى رمزاً عامّاً، حارس التعقيم `test_raster_error_sanitization_static` أخضر). النوع وحده جعل بلاغ اليوم غير قابل للتشخيص.
+- **حُرّاس جديدة:** `tests_v9/test_raster_source_guard_internal_pipelines.py` (unit+security: عقد الحارس + ساكنا out_dir/CDSE) + اختبار وظيفيّ non-dry-run في `test_historical_backfill.py` يلتقط `ProcessRequest` المجدول ويُثبت اجتيازه الحارس. أُصلح أيضاً سكربت e2e `test_stac_vrt.py` (كان يكتب النطاقات خارج المجلّد المسموح).
+
+**تحقّق:** pytest -m unit **2524** أخضر (كان 2520) · حارس التفكيك 7/7 · ruff نظيف · الحزمة مُتحقَّقة (3043).
+
+---
+
 ## 2026-07-04 (ن-21) — كونسول الموافقات: سجلّ التغطية يبلغ صفر partial
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام + `9f6d6eb` ترقية GIS).

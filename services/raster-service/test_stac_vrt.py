@@ -26,9 +26,13 @@ def run():
         crs="EPSG:32638",
         transform=from_origin(400000, 1772000, 10, 10),
     )
+    # تحت UPLOAD_DIR — حارس المصدر (_safe_raster_source) يقبل المسارات المحلّيّة
+    # (خام أو file://) داخل هذا المجلّد فقط؛ /tmp مباشرة يُرفَض 400.
+    upload_dir = os.environ.get("RASTER_UPLOAD_DIR", "/tmp/sahool_rasters")
+    os.makedirs(upload_dir, exist_ok=True)
     paths = {}
     for name, val in [("red", 0.2), ("nir", 0.7)]:
-        p = f"/tmp/_stac_{name}.tif"
+        p = os.path.join(upload_dir, f"_stac_{name}.tif")
         with rasterio.open(p, "w", **prof) as ds:
             ds.write(np.full((30, 30), val, "float32"), 1)
         paths[name] = p

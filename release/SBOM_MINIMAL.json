@@ -8195,7 +8195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6953d554738a1468f259a4cd92bc9dc2266236eb66dc43c49c3ff7bc59e3f0ad"
+          "content": "1b494440fd00a2743f36697e9733d23b7a7ba05c24c9a268b9f9cc316b092ff2"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -8305,7 +8305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfab222bd9baf6b0e15e572b2688978e8259291d6070d91ad2bff9c34b82c030"
+          "content": "15a6dcd7fe0417afecc8bbbbf55c4c2565918bf48fbb3ac75b5f4d7aed8c8e8b"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -8585,7 +8585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "faa886ab2239e0e03b319901d77e69efffb35c26d90c6b82007bb1d75c1ee06e"
+          "content": "5f56c8b3188017e795653546b8ae877c895cd31b792ed519e3d27fdc63b10955"
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
@@ -8645,7 +8645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "05638cf06d334f94677c46909acddc1105a9e4fe5bc2d207bac4afe350eaf240"
+          "content": "5c372a41140d3714a53d02bb1a783151df4769884bde089176d09d10665a017b"
         }
       ],
       "name": "services/raster-service/test_stac_vrt.py",
