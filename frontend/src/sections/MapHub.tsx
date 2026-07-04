@@ -43,6 +43,7 @@ import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard
 import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
 import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
 import FieldEconomicsCard from '../components/fieldview/FieldEconomicsCard';
+import OperationsCenterCard from '../components/fieldview/OperationsCenterCard';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
@@ -1118,6 +1119,16 @@ export default function MapHub() {
           imageryReadyCount={imageryReadyCount}
           prescriptionCount={prescriptionsQ.data?.total ?? 0}
           onOpenZones={() => { setZoneDesigner(true); setShowPivots(true); }}
+        />
+      )}
+
+      {selected && (
+        <OperationsCenterCard
+          fieldId={fieldId ?? null}
+          tasks={tasksQ.data?.tasks ?? []}
+          equipment={equipmentQ.data ?? []}
+          alerts={Array.isArray(alertsQ.data) ? alertsQ.data : []}
+          onOpenAlerts={() => setShowAlerts(true)}
         />
       )}
 
