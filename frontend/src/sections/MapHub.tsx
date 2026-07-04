@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -802,6 +802,8 @@ export default function MapHub() {
   // مركز الموسم: مراحل نموّ الموسم النشط + إجراء الطور (Cropin) — نقاط منصّة حيّة.
   const phenologyQ = useFieldPhenology(fieldId ?? null);
   const stageActionsQ = useFieldStageActions(fieldId ?? null);
+  // كفاءة مياه الحقل: إجماليّ الريّ المُطبَّق (mm) من الدفتر — لتقدير تكلفة الريّ في طبقة الأعمال.
+  const waterEfficiencyQ = useFieldWaterEfficiency(fieldId ?? null);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1183,7 +1185,12 @@ export default function MapHub() {
         />
       )}
 
-      {selected && fieldMode === 'expert' && <FieldEconomicsCard areaHa={typeof selected.area === 'number' ? selected.area : null} />}
+      {selected && fieldMode === 'expert' && (
+        <FieldEconomicsCard
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
+          irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
+        />
+      )}
 
       {selected && fieldMode === 'expert' && (
         <FieldScoutingCard

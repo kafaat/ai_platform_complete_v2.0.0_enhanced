@@ -38,6 +38,27 @@ function num(v: number | null | undefined): number | null {
   return typeof v === 'number' && Number.isFinite(v) ? v : null;
 }
 
+/** حجم الماء المُطبَّق م³ من عمق الريّ (مم) × المساحة (هـ). 1 مم على 1 هكتار = 10 م³.
+ *  المصدر الحقيقيّ: irrigation_mm_total من دفتر مياه الحقل (water-efficiency). null عند نقص المدخلات. */
+export function irrigationVolumeM3(irrigationMm: number | null | undefined, areaHa: number | null | undefined): number | null {
+  const mm = num(irrigationMm);
+  const area = num(areaHa);
+  if (mm == null || mm < 0 || area == null || area <= 0) return null;
+  return mm * area * 10;
+}
+
+/** تكلفة الريّ المقدَّرة = حجم الماء الحقيقيّ × سعر المتر المكعّب (يُدخِله المستخدم). null عند نقص أيٍّ منهما. */
+export function estimateIrrigationCost(
+  irrigationMm: number | null | undefined,
+  areaHa: number | null | undefined,
+  pricePerM3: number | null | undefined,
+): number | null {
+  const vol = irrigationVolumeM3(irrigationMm, areaHa);
+  const price = num(pricePerM3);
+  if (vol == null || price == null || price < 0) return null;
+  return vol * price;
+}
+
 export function computeFieldEconomics(input: FieldCostInputs): FieldEconomics {
   const currency = input.currency || 'ر.ي';
   const items: FieldEconomicsBreakdownItem[] = [];

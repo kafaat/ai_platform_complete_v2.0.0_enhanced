@@ -743,6 +743,34 @@ export function useFieldStageActions(fieldId: string | null | undefined): UseQue
   });
 }
 
+// ── Water efficiency / ledger (Outcome KPI حيّ من دفتر المياه) ──
+export interface FieldWaterEfficiency {
+  field_id: string;
+  efficiency: {
+    status: string; // ok | needs_data | needs_irrigation_data
+    days_counted?: number;
+    etc_mm_total?: number;
+    irrigation_mm_total?: number;
+    effective_rain_mm_total?: number;
+    supplied_mm_total?: number;
+    water_use_efficiency?: number | null;
+    demand_met_pct?: number | null;
+    over_application_mm?: number | null;
+  };
+  note_ar?: string;
+}
+
+/** كفاءة مياه الحقل + إجماليّ الريّ المُطبَّق (mm) من دفتر المياه (field:view). */
+export function useFieldWaterEfficiency(fieldId: string | null | undefined): UseQueryResult<FieldWaterEfficiency> {
+  return useQuery<FieldWaterEfficiency>({
+    queryKey: ['water-efficiency', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/water-efficiency`).then(r => r.data),
+    staleTime:15 * 60_000,
+    enabled:  !!fieldId,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

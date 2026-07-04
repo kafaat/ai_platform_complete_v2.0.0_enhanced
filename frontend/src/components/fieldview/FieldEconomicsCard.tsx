@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Wallet, ChevronDown } from 'lucide-react';
-import { computeFieldEconomics } from '../../lib/fieldEconomics';
+import { Wallet, ChevronDown, Droplet } from 'lucide-react';
+import { computeFieldEconomics, irrigationVolumeM3, estimateIrrigationCost } from '../../lib/fieldEconomics';
 import { T } from '../ds';
 
 interface Props {
   areaHa?: number | null;
   currency?: string;
+  /** إجماليّ الريّ المُطبَّق (mm) من دفتر مياه الحقل — لتقدير تكلفة الريّ الحقيقيّة. */
+  irrigationMm?: number | null;
 }
 
 const parse = (v: string): number | null => {
@@ -14,7 +16,7 @@ const parse = (v: string): number | null => {
 };
 
 /** طبقة أعمال الحقل: حاسبة تكلفة/ربحيّة صادقة — الأرقام يُدخِلها المستخدم، والرياضيّات نقيّة. */
-export default function FieldEconomicsCard({ areaHa, currency = 'ر.ي' }: Props) {
+export default function FieldEconomicsCard({ areaHa, currency = 'ر.ي', irrigationMm }: Props) {
   const [open, setOpen] = useState(false);
   const [irrigation, setIrrigation] = useState('');
   const [labor, setLabor] = useState('');
@@ -22,6 +24,11 @@ export default function FieldEconomicsCard({ areaHa, currency = 'ر.ي' }: Props
   const [other, setOther] = useState('');
   const [yieldT, setYieldT] = useState('');
   const [price, setPrice] = useState('');
+  const [waterPrice, setWaterPrice] = useState(''); // سعر المتر المكعّب (يُدخِله المستخدم)
+
+  // ماء مُطبَّق حقيقيّ من الدفتر ⇒ تقدير تكلفة ريّ (حجم × سعر المستخدم). لا اختلاق.
+  const waterM3 = irrigationVolumeM3(irrigationMm, areaHa ?? null);
+  const estIrrigationCost = estimateIrrigationCost(irrigationMm, areaHa ?? null, parse(waterPrice));
 
   const e = computeFieldEconomics({
     areaHa: areaHa ?? null,
@@ -83,6 +90,40 @@ export default function FieldEconomicsCard({ areaHa, currency = 'ر.ي' }: Props
             ))}
           </div>
 
+          {waterM3 != null && (
+            <div className="mb-3 rounded-xl border p-2 flex flex-wrap items-center gap-2" style={{ borderColor: '#1e3a8a', background: 'rgba(59,130,246,.07)' }} data-testid="economics-water-ledger">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold" style={{ color: T.ink }}>
+                <Droplet className="w-3.5 h-3.5 text-sky-300" aria-hidden="true" /> ماء مُطبَّق من الدفتر: {fmt(waterM3, 'م³')}
+              </span>
+              <label className="inline-flex items-center gap-1 text-[11px]" style={{ color: T.muted }}>
+                سعر م³
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={waterPrice}
+                  onChange={(ev) => setWaterPrice(ev.target.value)}
+                  placeholder="0"
+                  className="w-20 px-2 py-1 rounded-lg text-sm"
+                  style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                  aria-label={`سعر المتر المكعّب (${currency})`}
+                />
+              </label>
+              {estIrrigationCost != null && (
+                <>
+                  <span className="text-[11px]" style={{ color: T.ink }}>≈ {fmt(estIrrigationCost, currency)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setIrrigation(String(Math.round(estIrrigationCost)))}
+                    className="px-2 py-1 rounded-lg text-[11px] font-semibold"
+                    style={{ border: '1px solid #1e3a8a', color: '#93c5fd', background: 'rgba(15,23,42,.45)' }}
+                  >
+                    استخدم في تكلفة الريّ
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <Stat label="التكلفة الكلّيّة" value={e.hasAnyCost ? fmt(e.totalCost, currency) : '—'} />
             <Stat label="التكلفة/هكتار" value={fmt(e.costPerHa, currency)} />
@@ -96,7 +137,7 @@ export default function FieldEconomicsCard({ areaHa, currency = 'ر.ي' }: Props
           </div>
 
           <div className="mt-2 text-[10px]" style={{ color: T.faint }}>
-            الأرقام مُدخَلة يدويّاً — لا تكاليف مُقدَّرة تلقائيّاً. (ربط سجلّ الريّ لاحقاً يملأ تكلفة الريّ تلقائيّاً.)
+            الأرقام يُدخِلها المستخدم. تكلفة الريّ يمكن تقديرها من الماء المُطبَّق الحقيقيّ (دفتر المياه) × سعر المتر المكعّب.
           </div>
         </div>
       )}

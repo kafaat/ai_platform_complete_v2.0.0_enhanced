@@ -1,5 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { computeFieldEconomics } from './fieldEconomics';
+import { computeFieldEconomics, irrigationVolumeM3, estimateIrrigationCost } from './fieldEconomics';
+
+describe('irrigationVolumeM3 / estimateIrrigationCost', () => {
+  it('converts applied mm × area to m³ (1mm/ha = 10 m³)', () => {
+    expect(irrigationVolumeM3(120, 10)).toBe(12000);
+    expect(irrigationVolumeM3(0, 10)).toBe(0);
+  });
+  it('returns null without valid mm/area (no fabrication)', () => {
+    expect(irrigationVolumeM3(null, 10)).toBeNull();
+    expect(irrigationVolumeM3(120, 0)).toBeNull();
+    expect(irrigationVolumeM3(-5, 10)).toBeNull();
+  });
+  it('estimates irrigation cost = real volume × user price', () => {
+    expect(estimateIrrigationCost(120, 10, 0.5)).toBe(6000); // 12000 m³ × 0.5
+    expect(estimateIrrigationCost(120, 10, null)).toBeNull();
+    expect(estimateIrrigationCost(null, 10, 0.5)).toBeNull();
+  });
+});
 
 describe('computeFieldEconomics', () => {
   it('returns nulls (no fabricated numbers) when nothing is entered', () => {
