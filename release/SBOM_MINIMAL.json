@@ -575,6 +575,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8676c29ac39566dcd249b2124c907dd5bf16c312bb37dde26974bb52f3cd50f5"
+        }
+      ],
+      "name": "frontend/src/components/agrozones/AgroZonesPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "457f742f6069ea836f360fbcc56ba1a626a00cbe8bbd1755dfee73a358d3309c"
+        }
+      ],
+      "name": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a17d621f2fdf13ac819e287284d4800c9720b7c4a825fac2b745c4b21c2d6848"
+        }
+      ],
+      "name": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f860a2ace1b01aa21f0c4ee22b69a6cb95bb50868575ea9d4ac77f1cc680e7bc"
         }
       ],
@@ -739,6 +769,16 @@
         }
       ],
       "name": "frontend/src/components/ds/tooltip.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5b926e6308e2a4f91d6f97a67bfbaa2b9c6403dfd0fa6f37ac489e74c1f1296"
+        }
+      ],
+      "name": "frontend/src/components/fieldhealth/DateScrubber.grouping.test.ts",
       "type": "file"
     },
     {
@@ -1915,6 +1955,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2e2ffde2adb1f1e8d7cde873e0111957a32af2faa055a3edbb6fa04f7d12502c"
+        }
+      ],
+      "name": "frontend/src/hooks/useAgroZones.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "52e81293b53b2cb1817cb38a29882054eb3faeb39f440e0c8a92c8181b4653bb"
         }
       ],
@@ -1939,6 +1989,16 @@
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdf7e993cf9cc859ba7e8701bf1df7823bfff137f1c2d710cbe81c7e72b2d27b"
+        }
+      ],
+      "name": "frontend/src/hooks/useClimateAnalogs.ts",
       "type": "file"
     },
     {
@@ -2029,6 +2089,16 @@
         }
       ],
       "name": "frontend/src/hooks/useTheme.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "666b4b6dff683c3eacd5a305a1e8000ff1c2c2ab5f7703bb0d34a6998bf799d9"
+        }
+      ],
+      "name": "frontend/src/hooks/useYemeniCalendars.ts",
       "type": "file"
     },
     {
@@ -3485,7 +3555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d4b31121ed94c0f134d40dcf100e2afa7fe36a38ddfce133b2abca05f46ebbc"
+          "content": "eaf391570f2efc6cd21a9cb7ba5d642b949b0abf8b30afcadaa06b0a43ce8941"
         }
       ],
       "name": "frontend/src/sections/DecisionRuntimePage.tsx",
@@ -3895,7 +3965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e0b5d82a753cee424833d5969ab0d30530d6a017d69c5d07aed4a9c453703c6"
+          "content": "03a55bfcb7121548d00df11cfd74b4b9d62782165bdfd25e7ecaa6c097bc5e00"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

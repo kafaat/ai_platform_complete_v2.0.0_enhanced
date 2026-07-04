@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-04 (ن-30) — سداد شريحة P0-الحرِجة كاملة (21 مساراً) بثلاثة وكلاء متوازين
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). دفعة الوكلاء الرابعة اليوم (قطعها حدّ الجلسة 23:10 UTC واستُؤنفت من نُسَخها بلا إعادة عمل):
+
+- **وكيل I — «القرار العميق» (`DecisionDeepPanel` في كونسول تشغيل القرار):** unified · for-location · explain · economics · policies/resolve · record · **dispatch/execute المحروس** (تأكيد مكتوب «نفّذ» + حكم الخادم/halt_breaches/replayed حرفيّاً). **استبعاد صادق:** `dispatch/consume` مستهلِك طابور آليّ (`FOR UPDATE SKIP LOCKED`، decision_dispatch.py:403) — أُعيد تصنيف إعفائه operational/machine/priority:none. صحّح طرق HTTP عن خريطة الدَّين (economics/explain = GET).
+- **وكيل J — «دورة حياة التوصية» (`RecommendationsLifecyclePanel`):** engines · capacity-profiles · candidates · economic-adaptation · outcomes (كتابة-فقط: «النتيجة مجهولة حتى تُقاس»). لطيفة عقد FastAPI: candidates/economic-adaptation جسمهما مصفوفة خام والعدديّات query.
+- **وكيل K — «مساعدات قرار الريّ والعيّنات» (`IrrigationDecisionAidsCard`، FieldView خبير):** confidence/{ndvi·irrigation} (حكم الخادم «safe_for_action» كما هو) · moisture-decision (RWC + disclaimer) · soil-types · irrigation-method/gross (calibrated:false ⇒ تحذير) · water-sensitivity/crops · soil-sampling/{protocol·depth·subsamples}.
+- **العقد:** المسارات الـ21 رُقّيت من الإعفاءات إلى core ⇒ **320 core + 146 إعفاء** (backlog-ui 121 · operational 20 · admin-ops 5)؛ خريطة الدَّين حُدّث رأسها؛ P1 هي الشريحة التالية.
+
+**تحقّق:** tsc نظيف · vitest **824** (57 اختباراً جديداً) · pytest -m unit **2544** · البوّابتان PASS · ruff نظيف · الحزمة مُتحقَّقة (3060).
+
+---
+
 ## 2026-07-04 (ن-29) — أرشيف المستخدم ٤: سداد دَين UI (٣ لوحات) + fail-closed لقناع CDSE + تجميع شريط التواريخ
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). أرشيف على رأسنا `9a2deb5` (قبل التزام العقل الأخير) — دُمج انتقائيّاً:

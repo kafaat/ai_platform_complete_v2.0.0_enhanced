@@ -498,38 +498,6 @@
       "intended_consumer": "human"
     },
     {
-      "endpoint": "/api/v1/confidence/irrigation",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/confidence.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "medium",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionConfidencePage.tsx",
-      "criticality": "critical",
-      "importance": 88,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/confidence/ndvi",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/confidence.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "medium",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionConfidencePage.tsx",
-      "criticality": "critical",
-      "importance": 88,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
       "endpoint": "/api/v1/consistency/freshness",
       "audience": "agronomist",
       "methods": [
@@ -663,127 +631,15 @@
       "methods": [
         "post@services/sahool-platform/api/routers/decision_dispatch.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
+      "reason_category": "operational",
+      "reason": "مستهلِك طابور آليّ (worker): ينقل queued→dispatched بقفل FOR UPDATE SKIP LOCKED (decision_dispatch.py:403) — استدعاؤه من متصفّح يعلّم القرار «مُسلَّماً» بلا تسليم فعليّ؛ لا شاشة مستخدم بالتصميم.",
+      "priority": "none",
       "ui_effort": "page",
       "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
       "criticality": "critical",
       "importance": 80,
       "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/decision/dispatch/execute",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_dispatch.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
-      "criticality": "critical",
-      "importance": 88,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/decision/economics",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/decision_impact.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
-      "criticality": "critical",
-      "importance": 90,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/decision/explain",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/decision.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
-      "criticality": "critical",
-      "importance": 82,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/decision/for-location",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/decision.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/decision/policies/resolve",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_policies.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/decision/record",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_record.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/decision/unified",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_dispatch.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/DecisionRuntimePage.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/districts",
@@ -1250,22 +1106,6 @@
       "intended_consumer": "human"
     },
     {
-      "endpoint": "/api/v1/irrigation-method/gross",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/irrigation_method.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/components/fieldview/WaterHarvestingCard.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
       "endpoint": "/api/v1/irrigation-recommendation",
       "audience": "farmer",
       "methods": [
@@ -1279,38 +1119,6 @@
       "criticality": "informational",
       "importance": 40,
       "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/moisture-decision",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/irrigation.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/sections/IrrigationWaterPage.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/soil-types",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/irrigation.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/sections/IrrigationWaterPage.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
       "intended_consumer": "human"
     },
     {
@@ -1811,86 +1619,6 @@
       "intended_consumer": "human"
     },
     {
-      "endpoint": "/api/v1/recommendations/candidates",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/recommendations.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
-      "criticality": "critical",
-      "importance": 98,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/capacity-profiles",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/recommendations.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/economic-adaptation",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/recommendations.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
-      "criticality": "critical",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/engines",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/recommendations.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
-      "criticality": "critical",
-      "importance": 82,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/outcomes",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/recommendations.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/SetupCabin.tsx",
-      "criticality": "critical",
-      "importance": 90,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
       "endpoint": "/api/v1/regional-calendar",
       "audience": "farmer",
       "methods": [
@@ -2084,54 +1812,6 @@
       "intended_consumer": "human"
     },
     {
-      "endpoint": "/api/v1/soil-sampling/depth",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/soil_sampling.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "medium",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
-      "criticality": "critical",
-      "importance": 74,
-      "importance_tier": "P1-عالٍ",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/soil-sampling/protocol",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/soil_sampling.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "medium",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
-      "criticality": "critical",
-      "importance": 78,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/soil-sampling/subsamples",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/soil_sampling.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "medium",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
-      "criticality": "critical",
-      "importance": 72,
-      "importance_tier": "P1-عالٍ",
-      "intended_consumer": "human"
-    },
-    {
       "endpoint": "/api/v1/temporal/check",
       "audience": "agronomist",
       "methods": [
@@ -2209,22 +1889,6 @@
       "criticality": "critical",
       "importance": 58,
       "importance_tier": "P1-عالٍ",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/water-sensitivity/crops",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/water_sensitivity.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "medium",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/components/fieldview/ClimateRiskCard.tsx",
-      "criticality": "critical",
-      "importance": 88,
-      "importance_tier": "P0-حرِج",
       "intended_consumer": "human"
     },
     {

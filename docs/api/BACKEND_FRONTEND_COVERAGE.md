@@ -9,12 +9,12 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 163 | 89 |
-| farmer | 190 | 127 |
+| agronomist | 163 | 101 |
+| farmer | 190 | 135 |
 | internal | 229 | 59 |
 | manager | 52 | 32 |
 
-العقد الملزِم (core): 299 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 320 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -113,8 +113,8 @@
 | `/api/v1/coffee/varieties` | agronomist | ✅ |
 | `/api/v1/commands/{command_id}` | internal | ✅ |
 | `/api/v1/confidence-gate` | agronomist | — |
-| `/api/v1/confidence/irrigation` | agronomist | — |
-| `/api/v1/confidence/ndvi` | agronomist | — |
+| `/api/v1/confidence/irrigation` | agronomist | ✅ |
+| `/api/v1/confidence/ndvi` | agronomist | ✅ |
 | `/api/v1/consistency/freshness` | agronomist | — |
 | `/api/v1/consistency/irrigation` | agronomist | — |
 | `/api/v1/crop-cards` | agronomist | ✅ |
@@ -135,19 +135,19 @@
 | `/api/v1/decision/dispatch/consume` | agronomist | — |
 | `/api/v1/decision/dispatch/decisions` | agronomist | ✅ |
 | `/api/v1/decision/dispatch/evaluate` | agronomist | ✅ |
-| `/api/v1/decision/dispatch/execute` | agronomist | — |
+| `/api/v1/decision/dispatch/execute` | agronomist | ✅ |
 | `/api/v1/decision/dispatch/queue` | agronomist | ✅ |
-| `/api/v1/decision/economics` | agronomist | — |
-| `/api/v1/decision/explain` | agronomist | — |
-| `/api/v1/decision/for-location` | agronomist | — |
+| `/api/v1/decision/economics` | agronomist | ✅ |
+| `/api/v1/decision/explain` | agronomist | ✅ |
+| `/api/v1/decision/for-location` | agronomist | ✅ |
 | `/api/v1/decision/impact` | agronomist | ✅ |
 | `/api/v1/decision/learning` | agronomist | ✅ |
 | `/api/v1/decision/ledger` | agronomist | ✅ |
 | `/api/v1/decision/policies` | agronomist | ✅ |
-| `/api/v1/decision/policies/resolve` | agronomist | — |
+| `/api/v1/decision/policies/resolve` | agronomist | ✅ |
 | `/api/v1/decision/record` | agronomist | ✅ |
 | `/api/v1/decision/records` | agronomist | ✅ |
-| `/api/v1/decision/unified` | agronomist | — |
+| `/api/v1/decision/unified` | agronomist | ✅ |
 | `/api/v1/decision/{decision_id}/explain` | agronomist | ✅ |
 | `/api/v1/decision/{decision_id}/lineage` | agronomist | ✅ |
 | `/api/v1/devices` | manager | ✅ |
@@ -288,15 +288,15 @@
 | `/api/v1/ipm/pests` | agronomist | ✅ |
 | `/api/v1/ipm/plan` | agronomist | ✅ |
 | `/api/v1/irrigation-method` | farmer | ✅ |
-| `/api/v1/irrigation-method/gross` | farmer | — |
+| `/api/v1/irrigation-method/gross` | farmer | ✅ |
 | `/api/v1/irrigation-method/{method}` | farmer | ✅ |
 | `/api/v1/irrigation-plan` | farmer | ✅ |
 | `/api/v1/irrigation-recommendation` | farmer | — |
-| `/api/v1/irrigation/moisture-decision` | farmer | — |
+| `/api/v1/irrigation/moisture-decision` | farmer | ✅ |
 | `/api/v1/irrigation/network/feasibility` | farmer | ✅ |
 | `/api/v1/irrigation/schedules` | farmer | ✅ |
 | `/api/v1/irrigation/schedules/{schedule_id}` | farmer | ✅ |
-| `/api/v1/irrigation/soil-types` | farmer | — |
+| `/api/v1/irrigation/soil-types` | farmer | ✅ |
 | `/api/v1/irrigation/valves` | farmer | ✅ |
 | `/api/v1/irrigation/valves/{valve_id}/state` | farmer | ✅ |
 | `/api/v1/irrigation/water-analysis` | farmer | ✅ |
@@ -351,12 +351,12 @@
 | `/api/v1/rbac/preview-role-change` | manager | — |
 | `/api/v1/rbac/who-can` | manager | — |
 | `/api/v1/recommendations` | farmer | ✅ |
-| `/api/v1/recommendations/candidates` | farmer | — |
-| `/api/v1/recommendations/capacity-profiles` | farmer | — |
-| `/api/v1/recommendations/economic-adaptation` | farmer | — |
-| `/api/v1/recommendations/engines` | farmer | — |
+| `/api/v1/recommendations/candidates` | farmer | ✅ |
+| `/api/v1/recommendations/capacity-profiles` | farmer | ✅ |
+| `/api/v1/recommendations/economic-adaptation` | farmer | ✅ |
+| `/api/v1/recommendations/engines` | farmer | ✅ |
 | `/api/v1/recommendations/for-field` | farmer | ✅ |
-| `/api/v1/recommendations/outcomes` | farmer | — |
+| `/api/v1/recommendations/outcomes` | farmer | ✅ |
 | `/api/v1/recommendations/{rec_id}` | farmer | ✅ |
 | `/api/v1/regional-calendar` | farmer | — |
 | `/api/v1/registry/cost-profiles` | internal | — |
@@ -396,9 +396,9 @@
 | `/api/v1/sharing/generate-key` | manager | — |
 | `/api/v1/sharing/keys` | manager | ✅ |
 | `/api/v1/simulate/what-if` | agronomist | — |
-| `/api/v1/soil-sampling/depth` | agronomist | — |
-| `/api/v1/soil-sampling/protocol` | agronomist | — |
-| `/api/v1/soil-sampling/subsamples` | agronomist | — |
+| `/api/v1/soil-sampling/depth` | agronomist | ✅ |
+| `/api/v1/soil-sampling/protocol` | agronomist | ✅ |
+| `/api/v1/soil-sampling/subsamples` | agronomist | ✅ |
 | `/api/v1/sync` | internal | ✅ |
 | `/api/v1/sync/manifest` | internal | ✅ |
 | `/api/v1/sync/status` | internal | ✅ |
@@ -414,7 +414,7 @@
 | `/api/v1/water-harvesting/potential` | agronomist | ✅ |
 | `/api/v1/water-harvesting/upstream-flood` | agronomist | — |
 | `/api/v1/water-sensitivity/calendar` | agronomist | ✅ |
-| `/api/v1/water-sensitivity/crops` | agronomist | — |
+| `/api/v1/water-sensitivity/crops` | agronomist | ✅ |
 | `/api/v1/water-sensitivity/integrated-advice` | agronomist | — |
 | `/api/v1/water-sensitivity/stress-risk` | agronomist | — |
 | `/api/v1/water-sensitivity/wheat-calendar` | agronomist | — |

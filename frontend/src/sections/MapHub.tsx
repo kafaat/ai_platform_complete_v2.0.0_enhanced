@@ -61,6 +61,7 @@ import AgroCalculatorsCard from '../components/fieldview/AgroCalculatorsCard';
 import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
 import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
+import IrrigationDecisionAidsCard from '../components/fieldview/IrrigationDecisionAidsCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
@@ -1387,6 +1388,12 @@ export default function MapHub() {
           التراثيّة اليمنيّة ودليلها + ملامح طرق الريّ FAO — كان backend بلا قارئ. */}
       {selected && fieldMode === 'expert' && (
         <WaterHarvestingCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* مساعدات قرار الريّ والعيّنات: ثقة القراءة/التوصية + قرار رطوبة RWC +
+          الإجمالي المسحوب + مراجع العيّنة — نقاط P0/P1 كانت بلا قارئ واجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <IrrigationDecisionAidsCard cropLabel={selected.crop} enabled={expertMode} />
       )}
 
       {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود

@@ -728,6 +728,16 @@
       "evidence": "/api/v1/coffee/varieties"
     },
     {
+      "endpoint": "/api/v1/confidence/irrigation",
+      "audience": "agronomist",
+      "evidence": "/api/v1/confidence/irrigation"
+    },
+    {
+      "endpoint": "/api/v1/confidence/ndvi",
+      "audience": "agronomist",
+      "evidence": "/api/v1/confidence/ndvi"
+    },
+    {
       "endpoint": "/api/v1/crop-cards",
       "audience": "agronomist",
       "evidence": "/api/v1/crop-cards"
@@ -798,9 +808,29 @@
       "evidence": "/api/v1/decision/dispatch/evaluate"
     },
     {
+      "endpoint": "/api/v1/decision/dispatch/execute",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/dispatch/execute"
+    },
+    {
       "endpoint": "/api/v1/decision/dispatch/queue",
       "audience": "agronomist",
       "evidence": "/api/v1/decision/dispatch/queue"
+    },
+    {
+      "endpoint": "/api/v1/decision/economics",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/economics"
+    },
+    {
+      "endpoint": "/api/v1/decision/explain",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/explain"
+    },
+    {
+      "endpoint": "/api/v1/decision/for-location",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/for-location"
     },
     {
       "endpoint": "/api/v1/decision/impact",
@@ -823,9 +853,24 @@
       "evidence": "/api/v1/decision/policies"
     },
     {
+      "endpoint": "/api/v1/decision/policies/resolve",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/policies/resolve"
+    },
+    {
+      "endpoint": "/api/v1/decision/record",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/record"
+    },
+    {
       "endpoint": "/api/v1/decision/records",
       "audience": "agronomist",
       "evidence": "/api/v1/decision/records"
+    },
+    {
+      "endpoint": "/api/v1/decision/unified",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/unified"
     },
     {
       "endpoint": "/api/v1/decision/{decision_id}/explain",
@@ -1518,6 +1563,11 @@
       "evidence": "/api/v1/irrigation-method"
     },
     {
+      "endpoint": "/api/v1/irrigation-method/gross",
+      "audience": "farmer",
+      "evidence": "/api/v1/irrigation-method/gross"
+    },
+    {
       "endpoint": "/api/v1/irrigation-method/{method}",
       "audience": "farmer",
       "evidence": "/api/v1/irrigation-method"
@@ -1526,6 +1576,11 @@
       "endpoint": "/api/v1/irrigation-plan",
       "audience": "farmer",
       "evidence": "/api/v1/irrigation-plan"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/moisture-decision",
+      "audience": "farmer",
+      "evidence": "/api/v1/irrigation/moisture-decision"
     },
     {
       "endpoint": "/api/v1/irrigation/network/feasibility",
@@ -1541,6 +1596,11 @@
       "endpoint": "/api/v1/irrigation/schedules/{schedule_id}",
       "audience": "farmer",
       "evidence": "/api/v1/irrigation/schedules"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/soil-types",
+      "audience": "farmer",
+      "evidence": "/api/v1/irrigation/soil-types"
     },
     {
       "endpoint": "/api/v1/irrigation/valves",
@@ -1658,9 +1718,34 @@
       "evidence": "/api/v1/recommendations"
     },
     {
+      "endpoint": "/api/v1/recommendations/candidates",
+      "audience": "farmer",
+      "evidence": "/api/v1/recommendations/candidates"
+    },
+    {
+      "endpoint": "/api/v1/recommendations/capacity-profiles",
+      "audience": "farmer",
+      "evidence": "/api/v1/recommendations/capacity-profiles"
+    },
+    {
+      "endpoint": "/api/v1/recommendations/economic-adaptation",
+      "audience": "farmer",
+      "evidence": "/api/v1/recommendations/economic-adaptation"
+    },
+    {
+      "endpoint": "/api/v1/recommendations/engines",
+      "audience": "farmer",
+      "evidence": "/api/v1/recommendations/engines"
+    },
+    {
       "endpoint": "/api/v1/recommendations/for-field",
       "audience": "farmer",
       "evidence": "/api/v1/recommendations/for-field"
+    },
+    {
+      "endpoint": "/api/v1/recommendations/outcomes",
+      "audience": "farmer",
+      "evidence": "/api/v1/recommendations/outcomes"
     },
     {
       "endpoint": "/api/v1/recommendations/{rec_id}",
@@ -1798,6 +1883,21 @@
       "evidence": "/api/v1/sharing/keys"
     },
     {
+      "endpoint": "/api/v1/soil-sampling/depth",
+      "audience": "agronomist",
+      "evidence": "/api/v1/soil-sampling/depth"
+    },
+    {
+      "endpoint": "/api/v1/soil-sampling/protocol",
+      "audience": "agronomist",
+      "evidence": "/api/v1/soil-sampling/protocol"
+    },
+    {
+      "endpoint": "/api/v1/soil-sampling/subsamples",
+      "audience": "agronomist",
+      "evidence": "/api/v1/soil-sampling/subsamples"
+    },
+    {
       "endpoint": "/api/v1/tasks",
       "audience": "farmer",
       "evidence": "/api/v1/tasks"
@@ -1831,6 +1931,11 @@
       "endpoint": "/api/v1/water-sensitivity/calendar",
       "audience": "agronomist",
       "evidence": "/api/v1/water-sensitivity/calendar"
+    },
+    {
+      "endpoint": "/api/v1/water-sensitivity/crops",
+      "audience": "agronomist",
+      "evidence": "/api/v1/water-sensitivity/crops"
     },
     {
       "endpoint": "/api/v1/weather/action-recommendation",
