@@ -1775,7 +1775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fbe3e7b895e984966036d41ebba6fec1021d275c48aa62941b1270656617f8be"
+          "content": "20ba6fdaa46bdc00b5bdee9355cdbfa2877c57c0f505ed3694b0ac374e48ef11"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -3395,7 +3395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47298e0220c708067987ce71e60247266604129a5a5b58da203f581b4097ec8e"
+          "content": "ad6c0615303a0172dbe236ef1cfc02c4fbe42a4fd562e8faa2895200b892c6bf"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

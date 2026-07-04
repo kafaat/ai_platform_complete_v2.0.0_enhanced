@@ -947,6 +947,50 @@ export function useBreakEven(
   });
 }
 
+// ── Harvest Traceability (v65) — من المزرعة إلى السوق ──
+import type {
+  HarvestLotSummary, InputLedger, LotTraceability,
+} from '../lib/fieldHarvestTraceability';
+
+/** دفعات حصاد الحقل (الأحدث أولاً، RLS). */
+export function useHarvestLots(fieldId: string | null | undefined, enabled = true): UseQueryResult<HarvestLotSummary[]> {
+  return useQuery<HarvestLotSummary[]>({
+    queryKey: ['harvest-lots', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get('/api/v1/harvest-lots', { params: { field_id: fieldId } }).then(r => r.data),
+    staleTime:5 * 60_000,
+    enabled:  enabled && !!fieldId,
+    retry:    false,
+  });
+}
+
+/** الأثر الكامل لدفعة: سلسلة الحيازة + المنشأ + تقييم الاكتمال (معيار الخادم). */
+export function useLotTraceability(lotId: string | null | undefined): UseQueryResult<LotTraceability> {
+  return useQuery<LotTraceability>({
+    queryKey: ['lot-traceability', lotId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/harvest-lots/${lotId}/traceability`).then(r => r.data),
+    staleTime:5 * 60_000,
+    enabled:  !!lotId,
+    retry:    false,
+  });
+}
+
+/** دفتر مدخلات الحقل (بذرة→حصاد) — الكلفة الغائبة تُعلَن بتغطية لا تُؤلَّف. */
+export function useFieldInputTraceability(
+  fieldId: string | null | undefined,
+  seasonId: string | null | undefined,
+  enabled = true,
+): UseQueryResult<InputLedger> {
+  return useQuery<InputLedger>({
+    queryKey: ['input-traceability', fieldId ?? 'none', seasonId ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/fields/${fieldId}/input-traceability`, { params: { season_id: seasonId || undefined } })
+      .then(r => r.data),
+    staleTime:10 * 60_000,
+    enabled:  enabled && !!fieldId,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

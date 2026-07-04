@@ -12,10 +12,10 @@
 | agronomist | 36 | 12 |
 | farmer | 158 | 108 |
 | internal | 10 | 1 |
-| manager | 35 | 19 |
+| manager | 35 | 23 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 31 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 34 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -269,10 +269,10 @@
 | `/api/v1/gis/split` | unclassified | — |
 | `/api/v1/gis/union` | unclassified | — |
 | `/api/v1/gis/validate` | unclassified | — |
-| `/api/v1/harvest-lots` | manager | — |
-| `/api/v1/harvest-lots/{harvest_lot_id}` | manager | — |
-| `/api/v1/harvest-lots/{harvest_lot_id}/custody-events` | manager | — |
-| `/api/v1/harvest-lots/{harvest_lot_id}/traceability` | manager | — |
+| `/api/v1/harvest-lots` | manager | ✅ |
+| `/api/v1/harvest-lots/{harvest_lot_id}` | manager | ✅ |
+| `/api/v1/harvest-lots/{harvest_lot_id}/custody-events` | manager | ✅ |
+| `/api/v1/harvest-lots/{harvest_lot_id}/traceability` | manager | ✅ |
 | `/api/v1/high-value-crops/detail` | unclassified | — |
 | `/api/v1/high-value-crops/list` | unclassified | — |
 | `/api/v1/indicators/catalog` | unclassified | ✅ |

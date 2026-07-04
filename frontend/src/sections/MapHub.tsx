@@ -51,6 +51,7 @@ import TraceabilityCard from '../components/fieldview/TraceabilityCard';
 import FieldObjectivePanel from '../components/fieldview/FieldObjectivePanel';
 import SeasonProfitabilityCard from '../components/fieldview/SeasonProfitabilityCard';
 import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
+import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceabilityCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -1305,6 +1306,16 @@ export default function MapHub() {
           completedOps={completedOps}
           irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
           prescriptionCount={prescriptionsQ.data?.total ?? null}
+        />
+      )}
+
+      {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
+          كان backend v65 كاملاً (harvest-lots/custody/input-traceability) بلا قارئ واجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <HarvestTraceabilityCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          enabled={expertMode}
         />
       )}
 
