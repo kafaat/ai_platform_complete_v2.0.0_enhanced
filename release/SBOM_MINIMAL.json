@@ -2225,6 +2225,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "209465e34f8c199baaea38d5b60c3f86a9fc398b0122afa42f8aa8a1a68514db"
+        }
+      ],
+      "name": "frontend/src/lib/layerComparePresets.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6eccb38c793db2743a1d9050829b4c79c775e8b0666d4e81af027b3d97f236b5"
+        }
+      ],
+      "name": "frontend/src/lib/layerComparePresets.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0b31629bfbb05edd0b0de58b8457e558700c91013d4be1647b0a226d59b23255"
         }
       ],
@@ -3065,7 +3085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d51f0c69832cceac060137bc919432a43dbadde39398a41b98a6ce6f992debea"
+          "content": "70adc727b162194ba6ef49e4d49859e6e2db20c9f5fda59b8d322de4e60b8056"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

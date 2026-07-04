@@ -42,6 +42,7 @@ import FieldViewInsightStrip from '../components/fieldview/FieldViewInsightStrip
 import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard';
 import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
 import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
+import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
@@ -1117,6 +1118,28 @@ export default function MapHub() {
           prescriptionCount={prescriptionsQ.data?.total ?? 0}
           onOpenZones={() => { setZoneDesigner(true); setShowPivots(true); }}
         />
+      )}
+
+      {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
+      {compare && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5" data-testid="compare-presets">
+          <span className="text-[11px] font-bold" style={{ color: T.muted }}>مقارنات جاهزة:</span>
+          {buildComparePresets(INDICATOR_LAYERS.map((l) => l.id)).map((p) => {
+            const active = leftLayer === p.left && rightLayer === p.right;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                title={p.why}
+                onClick={() => { setLeftLayer(p.left); setRightLayer(p.right); }}
+                className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
+                style={{ borderColor: active ? '#22c55e88' : T.line, color: T.ink, background: active ? '#14532d' : T.card }}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3" data-testid="maphub-summary">
