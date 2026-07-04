@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d22866b9896c9a0693ce9984a5f341219efe887136f041cde4da17f6e667cee5"
+          "content": "2dcb59d5854af53df7f8b51ab6f57bc84a911e358639eb78f5325f176af6f65c"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -1865,7 +1865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f29e317d7af88fb8e33f84b9716a2de1553cca3af2f723ec612bcf5a2274f3c"
+          "content": "a02886b22c3dc98073d6f9b319ffa577f3f659783fb23b74ea6c1521782446c0"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.test.ts",
@@ -1875,7 +1875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d77ee030ecea3d8bdcd4c4cf67574a6f2fbf786e1889af1c0d19c09314bda0f3"
+          "content": "f3d53cb19dbc7a667f251b06473156ca86247342bf2c0bea61ae6cecaf74628f"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.ts",
@@ -1915,7 +1915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6edf0588783576229ea052819c5a9c1f282867c3cc2862b95c8ff83932646feb"
+          "content": "52e81293b53b2cb1817cb38a29882054eb3faeb39f440e0c8a92c8181b4653bb"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2975,7 +2975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ced0884b6dc57ffc768abb5e4439342c0775e156a6c94d08c5e6ffc5a7f7880"
+          "content": "71d85fa6350ae5c2aed40b97fc85b898c872f5184a7a3e71028b0d9112189e68"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -3055,7 +3055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f980e967c105b6790f2ec01cf5512d766fb8d53b90e9fd03b1eacffea5130673"
+          "content": "6a7247280c84c0d2245104efcb39d4978441605ec02a94c2a711ee2217d6586b"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -6815,7 +6815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2633c6ab41956173fd07694d5f4fe1611305e0a9958559699d1f4f819e0e13b5"
+          "content": "26a3b854a8c5132bb9114c25fd27818ca77aca0ca3194a70e583c7ab7f17181c"
         }
       ],
       "name": "services/ai_agronomist/main.py",

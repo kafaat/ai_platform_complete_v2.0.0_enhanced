@@ -13,9 +13,9 @@
 | farmer | 158 | 116 |
 | internal | 10 | 1 |
 | manager | 35 | 27 |
-| unclassified | 394 | 121 |
+| unclassified | 395 | 122 |
 
-العقد الملزِم (core): 100 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 102 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -454,6 +454,7 @@
 | `/api/vegetation/v1/analyze` | unclassified | — |
 | `/approvals/approve` | unclassified | — |
 | `/approvals/deny` | unclassified | — |
+| `/approvals/pending` | unclassified | ✅ |
 | `/approvals/resume` | unclassified | — |
 | `/approve/{workflow_id}` | unclassified | — |
 | `/auth/change-password` | farmer | ✅ |

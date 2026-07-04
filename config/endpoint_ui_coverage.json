@@ -662,6 +662,16 @@
       "endpoint": "/api/v1/scenario/water-twin (POST)",
       "audience": "agronomist",
       "evidence": "/api/v1/scenario/water-twin"
+    },
+    {
+      "endpoint": "/approvals/pending (ai-agronomist GET)",
+      "audience": "manager",
+      "evidence": "/api/ai-agronomist/approvals/pending"
+    },
+    {
+      "endpoint": "/approvals/approve|deny (ai-agronomist POST)",
+      "audience": "manager",
+      "evidence": "/api/ai-agronomist/approvals/"
     }
   ]
 }

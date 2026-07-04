@@ -314,7 +314,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     label: 'Collaboration / approvals / sharing / RBAC visibility',
     priority: 'P2',
     role: 'manager_console',
-    state: 'partial',
+    state: 'covered',
     owner: 'runtime',
     endpoints: [
       '/api/v1/sharing/*',
@@ -322,10 +322,9 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
       '/api/v1/invitations/*',
       '/api/v1/rbac/*',
     ],
-    hooks: ['useInvitations', 'useCreateShareLink'],
-    surfaces: [{ kind: 'panel', name: 'SharingPanel', component: 'SharingPanel' }],
-    gap: 'Sharing exists, but approvals and RBAC decision gates are not unified in the manager console.',
-    nextAction: 'Add Approvals Console and connect high-risk Objective Engine actions to approval state.',
+    hooks: ['useInvitations', 'useCreateShareLink', 'usePendingAgentApprovals', 'useDecideAgentApproval'],
+    surfaces: [
+      { kind: 'admin_page', name: 'ApprovalsConsolePage', routeId: 'approvals-console', component: 'ApprovalsConsolePage' },{ kind: 'panel', name: 'SharingPanel', component: 'SharingPanel' }],
   },
   {
     id: 'phase-runtime-registry-sync',
