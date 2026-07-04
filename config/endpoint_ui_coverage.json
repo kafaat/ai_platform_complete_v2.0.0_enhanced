@@ -397,6 +397,31 @@
       "endpoint": "/api/v1/planting/check",
       "audience": "agronomist",
       "evidence": "/api/v1/planting/check"
+    },
+    {
+      "endpoint": "/api/v1/decision/dispatch/queue",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/dispatch/queue"
+    },
+    {
+      "endpoint": "/api/v1/decision/dispatch/decisions",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/dispatch/decisions"
+    },
+    {
+      "endpoint": "/api/v1/decision/dispatch/evaluate",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/dispatch/evaluate"
+    },
+    {
+      "endpoint": "/api/v1/decision/ledger",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/ledger"
+    },
+    {
+      "endpoint": "/api/v1/decision/policies",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decision/policies"
     }
   ]
 }

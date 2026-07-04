@@ -9,13 +9,13 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 36 | 14 |
+| agronomist | 36 | 19 |
 | farmer | 158 | 111 |
 | internal | 10 | 1 |
 | manager | 35 | 23 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 47 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 52 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -134,17 +134,17 @@
 | `/api/v1/cultural-calendar` | unclassified | — |
 | `/api/v1/data-readiness` | unclassified | — |
 | `/api/v1/decision/dispatch/consume` | agronomist | — |
-| `/api/v1/decision/dispatch/decisions` | agronomist | — |
-| `/api/v1/decision/dispatch/evaluate` | agronomist | — |
+| `/api/v1/decision/dispatch/decisions` | agronomist | ✅ |
+| `/api/v1/decision/dispatch/evaluate` | agronomist | ✅ |
 | `/api/v1/decision/dispatch/execute` | agronomist | — |
-| `/api/v1/decision/dispatch/queue` | agronomist | — |
+| `/api/v1/decision/dispatch/queue` | agronomist | ✅ |
 | `/api/v1/decision/economics` | agronomist | — |
 | `/api/v1/decision/explain` | agronomist | — |
 | `/api/v1/decision/for-location` | agronomist | — |
 | `/api/v1/decision/impact` | agronomist | — |
 | `/api/v1/decision/learning` | agronomist | — |
-| `/api/v1/decision/ledger` | agronomist | — |
-| `/api/v1/decision/policies` | agronomist | — |
+| `/api/v1/decision/ledger` | agronomist | ✅ |
+| `/api/v1/decision/policies` | agronomist | ✅ |
 | `/api/v1/decision/policies/resolve` | agronomist | — |
 | `/api/v1/decision/record` | agronomist | ✅ |
 | `/api/v1/decision/records` | agronomist | ✅ |

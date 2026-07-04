@@ -1159,6 +1159,67 @@ export function usePlantingCheck(crop: string | null | undefined, month: number 
   });
 }
 
+// ── Decision Runtime — موزِّع القرار المحروس (خلف SAHOOL_DECISION_DISPATCH) ──
+import type {
+  DecisionLedgerResponse, DecisionPoliciesResponse, DispatchAudit,
+  DispatchDecisionsResponse, DispatchEvaluateInput, DispatchQueueResponse,
+} from '../lib/decisionRuntime';
+
+/** طابور أوامر المُشغِّل المنتظِرة (queued، الأقدم أوّلاً). 404 ⇒ الميزة مُطفأة. */
+export function useDispatchQueue(enabled = true): UseQueryResult<DispatchQueueResponse> {
+  return useQuery<DispatchQueueResponse>({
+    queryKey: ['dispatch-queue'],
+    queryFn:  () => kongApi.get('/api/v1/decision/dispatch/queue').then(r => r.data as DispatchQueueResponse)
+      .catch((e) => { if (isDisabled404(e)) return { queued: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** آخر قرارات التوزيع بحالاتها المحروسة (blocked/pending_approval/ready). */
+export function useDispatchDecisions(enabled = true): UseQueryResult<DispatchDecisionsResponse> {
+  return useQuery<DispatchDecisionsResponse>({
+    queryKey: ['dispatch-decisions'],
+    queryFn:  () => kongApi.get('/api/v1/decision/dispatch/decisions').then(r => r.data as DispatchDecisionsResponse)
+      .catch((e) => { if (isDisabled404(e)) return { decisions: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سجلّ تنفيذ القرارات (نتائج مُسجَّلة). */
+export function useDecisionLedger(enabled = true): UseQueryResult<DecisionLedgerResponse> {
+  return useQuery<DecisionLedgerResponse>({
+    queryKey: ['decision-ledger'],
+    queryFn:  () => kongApi.get('/api/v1/decision/ledger').then(r => r.data as DecisionLedgerResponse)
+      .catch((e) => { if (isDisabled404(e)) return { ledger: [], count: 0, disabled: true }; throw e; }),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سياسات القرار (الأعلى أولويّة أوّلاً). */
+export function useDecisionPolicies(enabled = true): UseQueryResult<DecisionPoliciesResponse> {
+  return useQuery<DecisionPoliciesResponse>({
+    queryKey: ['decision-policies'],
+    queryFn:  () => kongApi.get('/api/v1/decision/policies').then(r => r.data as DecisionPoliciesResponse)
+      .catch((e) => { if (isDisabled404(e)) return { policies: [], count: 0, disabled: true }; throw e; }),
+    staleTime:5 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** معاينة dry-run لقرار توزيع — لا تنفيذ (dry_run=true من الخادم). */
+export function useEvaluateDispatch(): ReturnType<typeof useMutation<DispatchAudit, Error, DispatchEvaluateInput>> {
+  return useMutation<DispatchAudit, Error, DispatchEvaluateInput>({
+    mutationFn: (input) => kongApi.post('/api/v1/decision/dispatch/evaluate', input).then(r => r.data),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

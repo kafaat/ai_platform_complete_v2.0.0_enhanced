@@ -140,6 +140,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { id: 'decision-studio',     path: '/advanced/decision-studio',     label: 'استوديو القرار', icon: FlaskConical, maturity: 'beta' },
       { id: 'decision-confidence', path: '/advanced/decision-confidence', label: 'ثقة القرار الموحَّدة', icon: Gauge, maturity: 'beta' },
+      { id: 'decision-runtime',    path: '/advanced/decision-runtime',    label: 'تشغيل القرار (Dispatch)', icon: Gauge, maturity: 'beta' },
       { id: 'execution-feedback',  path: '/advanced/execution-feedback',  label: 'رصد حلقة التنفيذ', icon: Repeat, maturity: 'beta' },
       { id: 'agronomic-timeline',  path: '/advanced/agronomic-timeline',  label: 'الخطّ الزمنيّ الأغرونوميّ', icon: GitCommitHorizontal, maturity: 'beta' },
       { id: 'learning-dashboard',  path: '/advanced/learning',            label: 'لوحة رصد التعلّم', icon: BarChart3, maturity: 'beta' },
