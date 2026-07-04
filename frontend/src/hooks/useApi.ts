@@ -1240,6 +1240,15 @@ export function useEvaluateDispatch(): ReturnType<typeof useMutation<DispatchAud
   });
 }
 
+import type { OutcomeMeasureInput, OutcomeMeasureResponse } from '../lib/decisionRuntime';
+
+/** قياس نتيجة قرار (مُخطَّط مقابل مرصود) — الخادم يقيّم المتوفّر طرفاه فقط (needs_data للناقص). */
+export function useMeasureOutcome(): ReturnType<typeof useMutation<OutcomeMeasureResponse, Error, OutcomeMeasureInput>> {
+  return useMutation<OutcomeMeasureResponse, Error, OutcomeMeasureInput>({
+    mutationFn: (input) => kongApi.post('/api/v1/outcome/measure', input).then(r => r.data),
+  });
+}
+
 // ── Ledger Entry — إدخال السجلّ الماليّ من الواجهة (ACTIVITY_EXECUTE خادميّاً) ──
 import type { BudgetLinesPayload, OperationPayload, RevenuePayload } from '../lib/ledgerEntry';
 

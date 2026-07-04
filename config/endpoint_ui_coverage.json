@@ -447,6 +447,11 @@
       "endpoint": "/api/v1/fields/{id}/boundary/clean (POST)",
       "audience": "agronomist",
       "evidence": "/boundary/clean"
+    },
+    {
+      "endpoint": "/api/v1/outcome/measure (POST)",
+      "audience": "agronomist",
+      "evidence": "/api/v1/outcome/measure"
     }
   ]
 }

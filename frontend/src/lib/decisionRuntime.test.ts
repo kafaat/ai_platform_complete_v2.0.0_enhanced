@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildOutcomeInput,
+  outcomeStatusColor,
   dispatchStateColor,
   dispatchStateLabel,
   summarizeDecisions,
@@ -34,5 +36,29 @@ describe('summarizeDecisions — counts server states, strange states only in to
   });
   it('is all-zero for missing input', () => {
     expect(summarizeDecisions(null).total).toBe(0);
+  });
+});
+
+describe('outcomeStatusColor — server outcome vocabulary', () => {
+  it('colors positive/acceptable/negative/missing statuses', () => {
+    expect(outcomeStatusColor('followed')).toBe('#86efac');
+    expect(outcomeStatusColor('worse')).toBe('#fca5a5');
+    expect(outcomeStatusColor('under')).toBe('#fdba74');
+    expect(outcomeStatusColor('needs_data')).toBe('#64748b');
+    expect(outcomeStatusColor('mystery')).toBe('#64748b');
+  });
+});
+
+describe('buildOutcomeInput — empty stays absent, never zero-filled', () => {
+  it('includes only provided numeric fields', () => {
+    const input = buildOutcomeInput({ fieldId: 'f1', recommendedIrrigationMm: '120', actualIrrigationMm: '150' });
+    expect(input.planned).toEqual({ recommended_irrigation_mm: 120 });
+    expect(input.actual).toEqual({ actual_irrigation_mm: 150 });
+    expect('decision_id' in input).toBe(false);
+  });
+  it('drops blanks and non-numeric junk (server will say needs_data honestly)', () => {
+    const input = buildOutcomeInput({ recommendedIrrigationMm: '', actualYieldTHa: 'abc' });
+    expect(input.planned).toEqual({});
+    expect(input.actual).toEqual({});
   });
 });
