@@ -59,6 +59,10 @@ export function initLifecycle(): LifecycleState {
 /** يُشتقّ إعداد المتابعة من تعريف الهدف (لا أرقام مُختلَقة — من الكتالوج). */
 export function followUpForObjective(objective: FieldObjectiveDef): FollowUp {
   if (objective.followUp === 'days') {
+    // لا نُخرج متابعة زمنية ناقصة حتى لو استُدعيت الدالة مباشرة خارج advanceLifecycle.
+    if (typeof objective.followUpDays !== 'number' || !Number.isFinite(objective.followUpDays) || objective.followUpDays <= 0) {
+      return { kind: 'none' };
+    }
     return { kind: 'days', days: objective.followUpDays };
   }
   if (objective.followUp === 'next_image') return { kind: 'next_image' };
@@ -66,9 +70,9 @@ export function followUpForObjective(objective: FieldObjectiveDef): FollowUp {
 }
 
 export interface AdvanceInput {
-  /** الهدف — يُستخدم لجدولة المتابعة عند schedule_follow_up. */
+  /** الهدف — يُستخدم لجدولة المتابعة ولمنع إنشاء مهمة لهدف لا ينتج مهمة. */
   objective?: FieldObjectiveDef | null;
-  /** يجب أن يكون الدليل مكتملاً (canAct) قبل السماح بـattach_evidence. */
+  /** يجب أن يكون الدليل مكتملاً (canAct=true) قبل السماح بـattach_evidence. */
   canAct?: boolean;
   /** الأثر المُراجَع عند record_outcome (حقيقيّ من المستخدم/الصورة). */
   outcome?: Outcome;
@@ -91,9 +95,47 @@ export function advanceLifecycle(
   if (!next) {
     return { state, changed: false, blockedReason: `الحدث «${event}» غير مسموح من «${state.stage}».` };
   }
-  // بوّابة الدليل: لا تُرفَق أدلّة/تُعتمَد توصية إذا الدليل ناقص.
-  if (event === 'attach_evidence' && input.canAct === false) {
-    return { state, changed: false, blockedReason: 'الدليل ناقص — أكمِله قبل اعتماد التوصية.' };
+  // بوّابة الدليل: لا تُرفَق أدلّة إلا بتصريح صريح canAct=true.
+  // كان canAct غير الممرَّر يُعامَل ضمنياً كقبول، وهذا يسمح باستدعاء برمجي خاطئ
+  // يتجاوز شرط اكتمال الدليل.
+  if (event === 'attach_evidence' && input.canAct !== true) {
+    return { state, changed: false, blockedReason: 'الدليل ناقص أو غير مؤكَّد — أكمِله قبل اعتماد التوصية.' };
+  }
+
+  // هدف لا ينتج مهمة لا يجوز أن يمر عبر create_task حتى لو أخفى المكوّن الزرّ؛
+  // الحارس هنا داخل آلة الحالات نفسها حتى لا تعتمد السلامة على الواجهة فقط.
+  if (event === 'create_task') {
+    if (!input.objective) {
+      return { state, changed: false, blockedReason: 'لا يمكن إنشاء مهمة دون تعريف الهدف.' };
+    }
+    if (!input.objective.producesTask) {
+      return { state, changed: false, blockedReason: 'هذا الهدف ينتج مخرجاً لا مهمة ميدانية.' };
+    }
+  }
+
+  // الاكتمال المباشر من approved مخصص فقط للأهداف غير الميدانية وبنتيجة completed.
+  if (event === 'record_outcome' && state.stage === 'approved') {
+    if (!input.objective) {
+      return { state, changed: false, blockedReason: 'لا يمكن تسجيل المخرج دون تعريف الهدف.' };
+    }
+    if (input.objective.producesTask) {
+      return { state, changed: false, blockedReason: 'هذا الهدف يحتاج مهمة ومتابعة قبل تسجيل الأثر.' };
+    }
+    if (input.outcome !== 'completed') {
+      return { state, changed: false, blockedReason: 'الأهداف غير الميدانية تُغلق من هذه المرحلة كمخرج مكتمل فقط.' };
+    }
+  }
+
+  if (event === 'schedule_follow_up') {
+    if (!input.objective) {
+      return { state, changed: false, blockedReason: 'لا يمكن جدولة متابعة دون تعريف الهدف.' };
+    }
+    if (input.objective.followUp === 'none') {
+      return { state, changed: false, blockedReason: 'هذا الهدف لا يملك متابعة مجدولة.' };
+    }
+    if (input.objective.followUp === 'days' && (typeof input.objective.followUpDays !== 'number' || !Number.isFinite(input.objective.followUpDays) || input.objective.followUpDays <= 0)) {
+      return { state, changed: false, blockedReason: 'تعريف الهدف يطلب متابعة زمنية بلا عدد أيام صالح.' };
+    }
   }
 
   const newState: LifecycleState = { ...state, stage: next };

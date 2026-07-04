@@ -212,7 +212,7 @@ function Show-Summary {
     Hdr 'SAHOOL v9 جاهز'
     Write-Host ''
     Write-Host '  الواجهة:   http://localhost:3003 | http://localhost:5173' -ForegroundColor Cyan
-    Write-Host '  الدخول:    admin@sahool.ye / Admin@2026!' -ForegroundColor Cyan
+    Write-Host '  الدخول:    admin@sahool.ye / <password from environment or seeded setup>' -ForegroundColor Cyan
     Write-Host ''
     Write-Host '  APIs:      :8120 auth | :8091 indicators | :8090 vegetation' -ForegroundColor Cyan
     Write-Host '             :8092 weather | :8094 soil'

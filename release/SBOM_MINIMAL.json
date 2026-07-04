@@ -875,7 +875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "292ce53bdee62191b29340458e794bd617c4923a35a31a49d3496c11731a7bf1"
+          "content": "a16bb89f7f6774130cc4cd4c0ed95c8cca97a2c2363120dbea19c102e1f3a8b6"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldObjectivePanel.tsx",
@@ -929,6 +929,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/SeasonCommandCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14eef7f176de077fd5a4f16abe238c2036a64918f0daa1a75b1d69fa03e59b0a"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SeasonProfitabilityCard.tsx",
       "type": "file"
     },
     {
@@ -2005,7 +2015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "130de32675beda01c875bdc8c31f7da58f9a250d582aa7632ab82122951f0340"
+          "content": "a1bec1387619d344861c1b8fbae3711e55f3c29941cadfae8f38d19f4a27b595"
         }
       ],
       "name": "frontend/src/lib/fieldActionLifecycle.test.ts",
@@ -2015,7 +2025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "676e609b6a119d7caf0931374255d8b68570b0dae98d56f83c90c63bff8c8758"
+          "content": "279897b7ad35bfa0c6336e3aee03d6bd78e1559cf6bfba43f9c3b713eed8bcd9"
         }
       ],
       "name": "frontend/src/lib/fieldActionLifecycle.ts",
@@ -2179,6 +2189,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldOperations.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ffbb7fc17244d95faf3ce1c0340e476326e4684f477d4fe618dd0f7194957d26"
+        }
+      ],
+      "name": "frontend/src/lib/fieldProfitability.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2b17c1b4cdaa4df51251c1e11d7f1111a38e5d65ae39390618b9be91e42e385c"
+        }
+      ],
+      "name": "frontend/src/lib/fieldProfitability.ts",
       "type": "file"
     },
     {
@@ -3315,7 +3345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "593c0eb8490683a5f92f9be8cf14e0fd486962b4fbdd93ae6b4a0d024f1247c8"
+          "content": "181180ee8010ca61c0e9601ed56dd733ce2edf842afbf1d877bf3555ec72a667"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

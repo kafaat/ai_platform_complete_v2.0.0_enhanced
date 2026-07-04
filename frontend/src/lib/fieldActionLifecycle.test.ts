@@ -33,7 +33,7 @@ describe('advanceLifecycle — explicit transitions only', () => {
     step('attach_evidence', { canAct: true });
     expect(s.stage).toBe('evidence');
     step('approve');
-    step('create_task');
+    step('create_task', { objective: diagnose });
     step('start_execution');
     step('schedule_follow_up', { objective: diagnose });
     expect(s.stage).toBe('follow_up');
@@ -45,7 +45,7 @@ describe('advanceLifecycle — explicit transitions only', () => {
 
   it('never jumps: an out-of-order event is blocked with a reason', () => {
     const s = initLifecycle();
-    const r = advanceLifecycle(s, 'create_task');
+    const r = advanceLifecycle(s, 'create_task', { objective: diagnose });
     expect(r.changed).toBe(false);
     expect(r.state).toBe(s);
     expect(r.blockedReason).toContain('غير مسموح');
@@ -62,7 +62,7 @@ describe('advanceLifecycle — explicit transitions only', () => {
     const irrigation = getObjective('plan_irrigation_week')!;
     let s = initLifecycle();
     for (const e of ['attach_evidence', 'approve', 'create_task', 'start_execution'] as const) {
-      s = advanceLifecycle(s, e, { canAct: true }).state;
+      s = advanceLifecycle(s, e, e === 'create_task' ? { objective: irrigation } : { canAct: true }).state;
     }
     s = advanceLifecycle(s, 'schedule_follow_up', { objective: irrigation }).state;
     expect(s.followUp).toEqual({ kind: 'days', days: 7 });
@@ -81,7 +81,7 @@ describe('advanceLifecycle — explicit transitions only', () => {
     let s = initLifecycle();
     s = advanceLifecycle(s, 'attach_evidence', { canAct: true }).state;
     s = advanceLifecycle(s, 'approve').state;
-    const r = advanceLifecycle(s, 'record_outcome', { outcome: 'completed' });
+    const r = advanceLifecycle(s, 'record_outcome', { objective: vra, outcome: 'completed' });
     expect(r.changed).toBe(true);
     expect(r.state.stage).toBe('reviewed');
     expect(r.state.outcome).toBe('completed');
@@ -90,11 +90,47 @@ describe('advanceLifecycle — explicit transitions only', () => {
   it('records outcome directly from executing without a scheduled follow-up', () => {
     let s = initLifecycle();
     for (const e of ['attach_evidence', 'approve', 'create_task', 'start_execution'] as const) {
-      s = advanceLifecycle(s, e, { canAct: true }).state;
+      s = advanceLifecycle(s, e, e === 'create_task' ? { objective: diagnose } : { canAct: true }).state;
     }
-    s = advanceLifecycle(s, 'record_outcome', { outcome: 'stable' }).state;
+    s = advanceLifecycle(s, 'record_outcome', { objective: diagnose, outcome: 'stable' }).state;
     expect(s.stage).toBe('reviewed');
     expect(s.outcome).toBe('stable');
+  });
+
+
+  it('requires explicit canAct=true before attaching evidence', () => {
+    const r = advanceLifecycle(initLifecycle(), 'attach_evidence');
+    expect(r.changed).toBe(false);
+    expect(r.blockedReason).toContain('غير مؤكَّد');
+  });
+
+  it('blocks task creation for objectives that do not produce field tasks', () => {
+    let s = initLifecycle();
+    s = advanceLifecycle(s, 'attach_evidence', { canAct: true }).state;
+    s = advanceLifecycle(s, 'approve').state;
+    const r = advanceLifecycle(s, 'create_task', { objective: vra });
+    expect(r.changed).toBe(false);
+    expect(r.blockedReason).toContain('لا مهمة');
+  });
+
+  it('blocks direct outcome from approved for task-producing objectives', () => {
+    let s = initLifecycle();
+    s = advanceLifecycle(s, 'attach_evidence', { canAct: true }).state;
+    s = advanceLifecycle(s, 'approve').state;
+    const r = advanceLifecycle(s, 'record_outcome', { objective: diagnose, outcome: 'completed' });
+    expect(r.changed).toBe(false);
+    expect(r.blockedReason).toContain('يحتاج مهمة');
+  });
+
+  it('requires an objective to schedule follow-up', () => {
+    let s = initLifecycle();
+    s = advanceLifecycle(s, 'attach_evidence', { canAct: true }).state;
+    s = advanceLifecycle(s, 'approve').state;
+    s = advanceLifecycle(s, 'create_task', { objective: diagnose }).state;
+    s = advanceLifecycle(s, 'start_execution').state;
+    const r = advanceLifecycle(s, 'schedule_follow_up');
+    expect(r.changed).toBe(false);
+    expect(r.blockedReason).toContain('دون تعريف الهدف');
   });
 });
 

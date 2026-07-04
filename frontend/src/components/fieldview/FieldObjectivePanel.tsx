@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Target, Search, Brain, Play, CheckCircle2, Lock, ListChecks } from 'lucide-react';
 import {
   FIELD_OBJECTIVES,
@@ -48,7 +48,7 @@ export interface FieldObjectivePanelProps {
   /** توفّر الأدلّة الحقيقيّ محسوباً من استعلامات FieldView الحيّة. */
   availability: EvidenceAvailability;
   /** يُنشئ مهمّة قابلة للمتابعة من التوصية (backend حقيقيّ). يُستدعى فقط بعد اكتمال الدليل. */
-  onCreateTask?: (objectiveId: FieldObjectiveId, label: string) => void;
+  onCreateTask?: (objectiveId: FieldObjectiveId, label: string) => boolean | Promise<boolean>;
 }
 
 /** لوحة الأهداف: نيّة المستخدم ⇒ خطّة (فحص→تفسير→إجراء→مراجعة) مربوطة بأدلّة حقيقيّة،
@@ -64,30 +64,55 @@ export default function FieldObjectivePanel({ availability, onCreateTask }: Fiel
     setLifecycle(initLifecycle()); // هدف جديد ⇒ دورة حياة جديدة (لا خلط أدلّة)
   };
 
+  useEffect(() => {
+    // إذا تغيّرت البيانات الحيّة وأصبح الدليل ناقصاً قبل الوصول إلى مراجعة نهائية،
+    // نرجع لمسودة بدل إبقاء توصية معتمدة على أدلة لم تعد متاحة.
+    if (!plan?.canAct && ['evidence', 'approved', 'task_created', 'executing', 'follow_up'].includes(lifecycle.stage)) {
+      setLifecycle(initLifecycle());
+    }
+  }, [plan?.canAct, lifecycle.stage]);
+
   const attachAndApprove = () => {
     if (!plan?.canAct) return;
     // مسوّدة ⇒ دليل ⇒ مُعتمَدة (انتقالات صريحة، بوّابة الدليل مطبَّقة)
-    let s = advanceLifecycle(lifecycle, 'attach_evidence', { canAct: plan.canAct }).state;
-    s = advanceLifecycle(s, 'approve').state;
-    setLifecycle(s);
+    const evidence = advanceLifecycle(lifecycle, 'attach_evidence', { canAct: plan.canAct });
+    if (!evidence.changed) return;
+    const approved = advanceLifecycle(evidence.state, 'approve');
+    if (!approved.changed) return;
+    setLifecycle(approved.state);
   };
 
-  const createTask = () => {
-    if (!plan) return;
-    const r = advanceLifecycle(lifecycle, 'create_task');
+  const createTask = async () => {
+    if (!plan?.canAct) return;
+    // لا نسمح بتقدّم دورة الحياة بمجرد عدم وجود callback؛
+    // الهدف المنتج لمهمة يحتاج قبولاً صريحاً من طبقة تنفيذ حية.
+    if (!onCreateTask) return;
+    const r = advanceLifecycle(lifecycle, 'create_task', { objective: plan.objective });
     if (!r.changed) return;
-    setLifecycle(r.state);
-    onCreateTask?.(plan.objective.id, plan.objective.label);
+    try {
+      const accepted = await onCreateTask(plan.objective.id, plan.objective.label);
+      // يجب أن ترجع الطبقة المضيفة true صراحة بعد إنشاء/فتح مسار تنفيذ حقيقي.
+      if (accepted !== true) return;
+      setLifecycle(r.state);
+    } catch {
+      // رفض/فشل backend أو المسار المضيف لا يغيّر الحالة؛ لا نكذب بأن مهمة أُنشئت.
+      return;
+    }
   };
 
   const scheduleFollowUp = () => {
-    let s = advanceLifecycle(lifecycle, 'start_execution').state;
-    s = advanceLifecycle(s, 'schedule_follow_up', { objective: plan?.objective }).state;
-    setLifecycle(s);
+    if (!plan?.canAct) return;
+    const started = advanceLifecycle(lifecycle, 'start_execution');
+    if (!started.changed) return;
+    const scheduled = advanceLifecycle(started.state, 'schedule_follow_up', { objective: plan.objective });
+    if (!scheduled.changed) return;
+    setLifecycle(scheduled.state);
   };
 
   const recordOutcome = (outcome: Outcome) => {
-    setLifecycle(advanceLifecycle(lifecycle, 'record_outcome', { outcome }).state);
+    if (!plan) return;
+    const r = advanceLifecycle(lifecycle, 'record_outcome', { objective: plan.objective, outcome });
+    if (r.changed) setLifecycle(r.state);
   };
 
   if (!plan) return null;

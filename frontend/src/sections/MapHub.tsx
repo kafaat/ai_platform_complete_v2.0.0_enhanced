@@ -836,10 +836,13 @@ export default function MapHub() {
     moisture: soilMoistureQ.data?.reading != null,
     alerts: Array.isArray(alertsQ.data),
     tasks: Array.isArray(tasksQ.data?.tasks),
-    records: !!selected?.crop || (typeof selected?.area === 'number' && selected.area > 0),
-    zones: imageryReadyCount > 0,
+    // لا نعتبر crop/area وحدها «سجلّات»؛ الربحيّة تحتاج أثراً تشغيليّاً فعليّاً (عمليّات
+    // مكتملة أو قياس كفاءة ماء) — يمنع فتح هدف الربحيّة بدليل وهميّ.
+    records: completedOps.length > 0 || !!waterEfficiencyQ.data,
+    // جاهزيّة مسار المناطق: مناطق محفوظة فعلاً أو صور جاهزة لبناء مناطق جديدة.
+    zones: zonePersisted.length > 0 || imageryReadyCount > 0,
     season: !!phenologyQ.data?.available || (seasonsQ.data?.length ?? 0) > 0,
-  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, selected, phenologyQ.data, seasonsQ.data]);
+  }), [imageryReadyCount, weatherQ.data, soilMoistureQ.data, alertsQ.data, tasksQ.data, completedOps.length, waterEfficiencyQ.data, zonePersisted.length, phenologyQ.data, seasonsQ.data]);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1188,8 +1191,13 @@ export default function MapHub() {
         <FieldObjectivePanel
           availability={objectiveAvailability}
           onCreateTask={(objectiveId) => {
-            // «أنشئ مهمّة» توصِل لأفعال MapHub الحقيقيّة فقط — كشف الإجهاد ⇒ وضع تثبيت دليل ميدانيّ.
-            if (objectiveId === 'diagnose_field_stress') { setPinMode(true); setCompare(false); setDrawTools(false); }
+            // مسار المهمّة الحيّ الوحيد في MapHub: فتح وضع تثبيت دليل ميدانيّ لكشف الإجهاد.
+            // نعيد false لأيّ هدف لا نملك له مسار تنفيذ حيّ هنا حتّى لا تتقدّم دورة الحياة كذباً.
+            if (objectiveId === 'diagnose_field_stress') {
+              setPinMode(true); setCompare(false); setDrawTools(false);
+              return true;
+            }
+            return false;
           }}
         />
       )}
