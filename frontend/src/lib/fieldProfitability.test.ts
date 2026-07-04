@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
+  budgetStatusLabel,
+  economicIntensities,
   formatMoney,
   formatPercent,
   rankCostBreakdown,
   summarizeProfitability,
   topVariances,
+  type EconomicStateBody,
   type ProfitabilityResponse,
   type VarianceLine,
 } from './fieldProfitability';
@@ -93,6 +96,32 @@ describe('topVariances', () => {
   });
   it('returns [] for non-array', () => {
     expect(topVariances(null)).toEqual([]);
+  });
+});
+
+describe('economicIntensities — real unit intensities only', () => {
+  const base: EconomicStateBody = {
+    season_id: 's1', status: 'computed', total_cost: 60000, direct_cost: 50000, indirect_cost: 10000,
+    revenue: null, gross_margin: null, cost_per_ha: 4800, water_m3_per_ha: 5200.4,
+    water_cost_per_m3: 12.5, energy_kwh_per_m3: 0.42, budget_variance_status: 'watch',
+    profitability_status: null, recommendations: [],
+  };
+  it('extracts present intensities with honest formatting', () => {
+    const rows = economicIntensities(base);
+    expect(rows.map((r) => r.label)).toEqual(['تكلفة/هـ', 'ماء م³/هـ', 'تكلفة الماء/م³', 'طاقة كو.س/م³']);
+    expect(rows[1].value).toBe('5200');
+    expect(rows[3].value).toBe('0.42');
+  });
+  it('drops null intensities instead of zeroing them', () => {
+    const rows = economicIntensities({ ...base, cost_per_ha: null, water_m3_per_ha: null, water_cost_per_m3: null, energy_kwh_per_m3: null });
+    expect(rows).toEqual([]);
+    expect(economicIntensities(null)).toEqual([]);
+  });
+  it('maps budget status to Arabic honestly (unknown passes through)', () => {
+    expect(budgetStatusLabel('critical')).toBe('انحراف حرج');
+    expect(budgetStatusLabel('not_available')).toBe('لا موازنة بعد');
+    expect(budgetStatusLabel('weird')).toBe('weird');
+    expect(budgetStatusLabel(null)).toBe('—');
   });
 });
 

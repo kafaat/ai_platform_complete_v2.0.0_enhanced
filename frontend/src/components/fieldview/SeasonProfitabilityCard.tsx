@@ -1,14 +1,19 @@
-import { Wallet, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Wallet, TrendingUp, TrendingDown, AlertTriangle, Scale, Gauge } from 'lucide-react';
 import {
   summarizeProfitability,
   rankCostBreakdown,
   topVariances,
   formatMoney,
   formatPercent,
+  economicIntensities,
+  budgetStatusLabel,
+  type EconomicStateResponse,
   type LedgerSummaryResponse,
   type ProfitabilityResponse,
   type VarianceResponse,
 } from '../../lib/fieldProfitability';
+import { useBreakEven } from '../../hooks/useApi';
 import { T } from '../ds';
 
 interface Props {
@@ -16,6 +21,10 @@ interface Props {
   profitability?: ProfitabilityResponse | null;
   summary?: LedgerSummaryResponse | null;
   variance?: VarianceResponse | null;
+  /** الحالة الاقتصاديّة العميقة (كثافات وحدة + حالة موازنة + توصيات كفاءة). */
+  economicState?: EconomicStateResponse | null;
+  /** مساحة الحقل (هـ) — لأداة سعر التعادل مع تكلفة السجلّ الفعليّة. */
+  areaHa?: number | null;
   loading?: boolean;
 }
 
@@ -36,7 +45,7 @@ const catLabel = (c: string) => CATEGORY_LABEL[c] ?? c;
 
 /** ربحيّة الموسم: تعكس التكاليف/الإيرادات الفعليّة المُخزَّنة في سجلّ العمليّات (v100–v102).
  *  صدق: أرقام حقيقيّة فقط · «—» للمجهول · حالة صريحة عند تعطّل الميزة أو غياب السجلّ. */
-export default function SeasonProfitabilityCard({ hasSeason, profitability, summary, variance, loading }: Props) {
+export default function SeasonProfitabilityCard({ hasSeason, profitability, summary, variance, economicState, areaHa, loading }: Props) {
   const view = summarizeProfitability(profitability);
   const slices = rankCostBreakdown(summary?.summary?.cost_breakdown);
   const vars = topVariances(variance?.variance);
@@ -44,6 +53,19 @@ export default function SeasonProfitabilityCard({ hasSeason, profitability, summ
   const ledgerCost = summary?.summary?.total_cost ?? null;
   const opCount = summary?.summary?.operation_count ?? 0;
   const disabled = !!profitability?.disabled || !!summary?.disabled;
+
+  // الحالة الاقتصاديّة العميقة: كثافات وحدة حقيقيّة + حالة موازنة + أوّل توصية كفاءة.
+  const eco = economicState?.economic_state ?? null;
+  const intensities = economicIntensities(eco, view.currency);
+  const effRec = eco?.recommendations?.[0] ?? null;
+
+  // سعر التعادل: تكلفة السجلّ الفعليّة + مساحة الحقل + غلّة متوقَّعة يُدخِلها المستخدم فقط.
+  const [yieldInput, setYieldInput] = useState('');
+  const yieldTPerHa = useMemo(() => {
+    const v = Number(yieldInput);
+    return yieldInput.trim() !== '' && Number.isFinite(v) && v > 0 ? v : null;
+  }, [yieldInput]);
+  const breakEvenQ = useBreakEven(areaHa ?? null, yieldTPerHa, ledgerCost);
 
   return (
     <section className="mb-3 rounded-2xl border p-3" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }} data-testid="season-profitability" aria-label="ربحيّة الموسم">
@@ -109,6 +131,62 @@ export default function SeasonProfitabilityCard({ hasSeason, profitability, summ
             <div className="flex items-start gap-1.5 text-[11px] rounded-xl px-2 py-1.5" style={{ border: `1px solid ${T.line}`, color: T.muted, background: 'rgba(15,23,42,.35)' }}>
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-300" aria-hidden="true" />
               <span><span className="font-bold" style={{ color: T.ink }}>{topRec.title_ar}:</span> {topRec.message_ar}</span>
+            </div>
+          )}
+
+          {/* الحالة الاقتصاديّة العميقة — كثافات وحدة حقيقيّة من economic-state */}
+          {(intensities.length > 0 || eco) && (
+            <div className="flex flex-wrap items-center gap-1.5" data-testid="economic-intensities">
+              <Gauge className="w-3.5 h-3.5 text-sky-300" aria-hidden="true" />
+              {intensities.map((i) => (
+                <span key={i.label} className="text-[11px] px-2 py-0.5 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.ink }}>
+                  <span style={{ color: T.faint }}>{i.label}:</span> {i.value}
+                </span>
+              ))}
+              {eco && (
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
+                  style={{
+                    border: `1px solid ${eco.budget_variance_status === 'critical' ? '#7c2d12' : T.line}`,
+                    color: eco.budget_variance_status === 'critical' ? '#fca5a5' : eco.budget_variance_status === 'watch' ? '#fdba74' : T.muted,
+                  }}
+                >
+                  الموازنة: {budgetStatusLabel(eco.budget_variance_status)}
+                </span>
+              )}
+            </div>
+          )}
+          {effRec && (
+            <div className="text-[11px]" style={{ color: T.muted }}>
+              <span className="font-bold" style={{ color: T.ink }}>{effRec.title_ar}:</span> {effRec.message_ar}
+            </div>
+          )}
+
+          {/* سعر التعادل — تكلفة السجلّ الفعليّة + غلّة متوقَّعة من المستخدم (إرشاديّ) */}
+          {ledgerCost != null && ledgerCost > 0 && areaHa != null && areaHa > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 text-[11px]" style={{ color: T.muted }} data-testid="break-even-tool">
+              <Scale className="w-3.5 h-3.5 shrink-0 text-emerald-300" aria-hidden="true" />
+              <label htmlFor="be-yield" className="font-bold" style={{ color: T.ink }}>غلّة متوقَّعة (طن/هـ):</label>
+              <input
+                id="be-yield"
+                type="number"
+                min="0"
+                step="0.1"
+                value={yieldInput}
+                onChange={(e) => setYieldInput(e.target.value)}
+                placeholder="تقديرك"
+                className="w-20 px-2 py-0.5 rounded-lg text-[11px]"
+                style={{ border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink }}
+              />
+              {breakEvenQ.data?.supported && breakEvenQ.data.break_even_price_per_t != null && (
+                <span style={{ color: T.ink }}>
+                  سعر التعادل ~<span className="font-bold">{formatMoney(breakEvenQ.data.break_even_price_per_t, view.currency)}</span>/طن
+                  {breakEvenQ.data.total_yield_t != null ? ` (إنتاج ${breakEvenQ.data.total_yield_t} طن)` : ''}
+                </span>
+              )}
+              {breakEvenQ.data && !breakEvenQ.data.supported && (
+                <span style={{ color: T.faint }}>{breakEvenQ.data.message_ar ?? '—'}</span>
+              )}
             </div>
           )}
         </div>

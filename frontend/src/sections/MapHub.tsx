@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -823,6 +823,11 @@ export default function MapHub() {
   const ledgerSummaryQ = useFarmLedgerSummary(fieldId ?? null, activeSeasonId, expertMode && !!activeSeasonId);
   const profitabilityQ = useSeasonProfitability(activeSeasonId, expertMode && !!activeSeasonId);
   const varianceQ = useSeasonVariance(activeSeasonId, expertMode && !!activeSeasonId);
+  const economicStateQ = useSeasonEconomicState(
+    activeSeasonId,
+    typeof selected?.area === 'number' ? selected.area : null,
+    expertMode && !!activeSeasonId,
+  );
   const completedOps = useMemo(
     () => (tasksQ.data?.tasks ?? [])
       .filter((t) => t.field_id === fieldId && t.status === 'completed')
@@ -1258,6 +1263,8 @@ export default function MapHub() {
           profitability={profitabilityQ.data ?? null}
           summary={ledgerSummaryQ.data ?? null}
           variance={varianceQ.data ?? null}
+          economicState={economicStateQ.data ?? null}
+          areaHa={typeof selected.area === 'number' ? selected.area : null}
           loading={profitabilityQ.isLoading || ledgerSummaryQ.isLoading}
         />
       )}

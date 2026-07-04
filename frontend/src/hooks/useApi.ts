@@ -905,6 +905,48 @@ export function useSeasonVariance(
   });
 }
 
+/** الحالة الاقتصاديّة العميقة للموسم (كثافات وحدة + حالة موازنة + توصيات كفاءة). */
+export function useSeasonEconomicState(
+  seasonId: string | null | undefined,
+  areaHa: number | null,
+  enabled = true,
+): UseQueryResult<import('../lib/fieldProfitability').EconomicStateResponse> {
+  return useQuery({
+    queryKey: ['season-economic-state', seasonId ?? 'none', areaHa ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/farm-ledger/economic-state/${seasonId}`, {
+        params: { area_ha: areaHa != null && areaHa > 0 ? areaHa : undefined },
+      })
+      .then(r => r.data as import('../lib/fieldProfitability').EconomicStateResponse)
+      .catch((e) => {
+        if (isDisabled404(e)) return { season_id: String(seasonId), economic_state: null, disabled: true };
+        throw e;
+      }),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!seasonId,
+    retry:    false,
+  });
+}
+
+/** سعر التعادل (طن): تكلفة السجلّ الفعليّة + مساحة الحقل + غلّة متوقَّعة يُدخِلها المستخدم. */
+export function useBreakEven(
+  areaHa: number | null,
+  yieldTPerHa: number | null,
+  totalCost: number | null,
+): UseQueryResult<import('../lib/fieldProfitability').BreakEvenResponse> {
+  return useQuery({
+    queryKey: ['break-even', areaHa ?? 'none', yieldTPerHa ?? 'none', totalCost ?? 'none'],
+    queryFn:  () => kongApi
+      .get('/api/v1/economics/break-even', {
+        params: { area_ha: areaHa, yield_t_per_ha: yieldTPerHa, total_cost: totalCost },
+      })
+      .then(r => r.data as import('../lib/fieldProfitability').BreakEvenResponse),
+    staleTime:15 * 60_000,
+    enabled:  areaHa != null && areaHa > 0 && yieldTPerHa != null && yieldTPerHa > 0 && totalCost != null && totalCost > 0,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

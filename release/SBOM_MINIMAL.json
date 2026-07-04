@@ -845,6 +845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8e3d261a05cd22d6c7a8595a2ea6e4b61ef66bb7323d78f6e3cefe08bf67f7cc"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/CropKnowledgeCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb7e36a2a785a6da770a856005350e6dc96f13459e0e411b10f4c84fda96c903"
         }
       ],
@@ -935,7 +945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14eef7f176de077fd5a4f16abe238c2036a64918f0daa1a75b1d69fa03e59b0a"
+          "content": "83d56b90b55e983ecb14cc06b9240d70b1c8126611b8c2a45926d87404be7d4c"
         }
       ],
       "name": "frontend/src/components/fieldview/SeasonProfitabilityCard.tsx",
@@ -1765,7 +1775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8488d8ae669b2638b68d34150c17de1e08690d7bdaf8318e3843626d33efb8fb"
+          "content": "fbe3e7b895e984966036d41ebba6fec1021d275c48aa62941b1270656617f8be"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2035,6 +2045,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "24b08d6540f6cb106d88557f86351f3eaab5ecc41139f3ec5c4385f6474e7d7a"
+        }
+      ],
+      "name": "frontend/src/lib/fieldCropCard.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3baecd3a8f252cd716e4f7dd9feb8fd160ddccb57c67988ab75f462b77e3dcd"
+        }
+      ],
+      "name": "frontend/src/lib/fieldCropCard.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b90d68827ee6cc379db064364193006dd8433a486981f39fb8e4087dae04ad2c"
         }
       ],
@@ -2215,7 +2245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ffbb7fc17244d95faf3ce1c0340e476326e4684f477d4fe618dd0f7194957d26"
+          "content": "f38b77e834876997d24ece2179e0b1172edf80943cca6b17ea3910d05fa0066c"
         }
       ],
       "name": "frontend/src/lib/fieldProfitability.test.ts",
@@ -2225,7 +2255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2b17c1b4cdaa4df51251c1e11d7f1111a38e5d65ae39390618b9be91e42e385c"
+          "content": "6c888132d000672cc11a2879b288a5e963f24f0d78290f5d4849a5c932f5fea7"
         }
       ],
       "name": "frontend/src/lib/fieldProfitability.ts",
@@ -3365,7 +3395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ffe3ea8a9cc6286c1eea134a71b8ef6aedf92f3f34c06892724716d97453511"
+          "content": "47298e0220c708067987ce71e60247266604129a5a5b58da203f581b4097ec8e"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

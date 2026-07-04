@@ -12,10 +12,10 @@
 | agronomist | 36 | 12 |
 | farmer | 158 | 108 |
 | internal | 10 | 1 |
-| manager | 35 | 17 |
+| manager | 35 | 19 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 29 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 31 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -164,7 +164,7 @@
 | `/api/v1/drawing-features` | unclassified | ✅ |
 | `/api/v1/drawing-features/validate` | unclassified | ✅ |
 | `/api/v1/drawing-features/{feature_id}` | unclassified | ✅ |
-| `/api/v1/economics/break-even` | manager | — |
+| `/api/v1/economics/break-even` | manager | ✅ |
 | `/api/v1/economics/cost-categories` | manager | — |
 | `/api/v1/economics/feasibility` | manager | — |
 | `/api/v1/edge/sync` | unclassified | — |
@@ -179,7 +179,7 @@
 | `/api/v1/farm-ledger/autowrite-preview` | manager | — |
 | `/api/v1/farm-ledger/budgets` | manager | — |
 | `/api/v1/farm-ledger/budgets/{season_id}` | manager | — |
-| `/api/v1/farm-ledger/economic-state/{season_id}` | manager | — |
+| `/api/v1/farm-ledger/economic-state/{season_id}` | manager | ✅ |
 | `/api/v1/farm-ledger/erp-projection/{season_id}` | manager | — |
 | `/api/v1/farm-ledger/inventory-projection/{season_id}` | manager | — |
 | `/api/v1/farm-ledger/operations` | manager | — |

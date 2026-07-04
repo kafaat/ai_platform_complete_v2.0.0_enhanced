@@ -71,6 +71,8 @@
     { "endpoint": "/api/v1/crop-cards/crop/{crop_id}", "audience": "agronomist", "evidence": "/api/v1/crop-cards/crop/" },
     { "endpoint": "/api/v1/crop-cards/variety/{id}/disease-watch", "audience": "agronomist", "evidence": "/disease-watch" },
     { "endpoint": "/api/v1/crop-cards/variety/{id}/expected-harvest", "audience": "agronomist", "evidence": "/expected-harvest" },
-    { "endpoint": "/api/v1/crop-cards/variety/{id}/salinity-suitability", "audience": "agronomist", "evidence": "/salinity-suitability" }
+    { "endpoint": "/api/v1/crop-cards/variety/{id}/salinity-suitability", "audience": "agronomist", "evidence": "/salinity-suitability" },
+    { "endpoint": "/api/v1/farm-ledger/economic-state/{season_id}", "audience": "manager", "evidence": "/farm-ledger/economic-state" },
+    { "endpoint": "/api/v1/economics/break-even", "audience": "manager", "evidence": "/api/v1/economics/break-even" }
   ]
 }

@@ -141,6 +141,77 @@ export function topVariances(variance: VarianceLine[] | null | undefined, limit 
     .slice(0, limit);
 }
 
+// ── الحالة الاقتصاديّة العميقة (/farm-ledger/economic-state) + سعر التعادل ──
+
+export interface EfficiencyRecommendation {
+  code: string;
+  title_ar: string;
+  message_ar: string;
+  severity: string;
+}
+
+export interface EconomicStateBody {
+  season_id: string;
+  status: string;
+  total_cost: number;
+  direct_cost: number;
+  indirect_cost: number;
+  revenue: number | null;
+  gross_margin: number | null;
+  cost_per_ha: number | null;
+  water_m3_per_ha: number | null;
+  water_cost_per_m3: number | null;
+  energy_kwh_per_m3: number | null;
+  budget_variance_status: string;
+  profitability_status: string | null;
+  recommendations: EfficiencyRecommendation[];
+}
+
+export interface EconomicStateResponse {
+  season_id: string;
+  economic_state: EconomicStateBody | null;
+  note_ar?: string;
+  disabled?: boolean;
+}
+
+export interface EconomicIntensity {
+  label: string;
+  value: string;
+}
+
+const BUDGET_STATUS_AR: Record<string, string> = {
+  normal: 'ضمن الموازنة',
+  watch: 'انحراف يُراقَب',
+  critical: 'انحراف حرج',
+  not_available: 'لا موازنة بعد',
+};
+
+export function budgetStatusLabel(status: string | null | undefined): string {
+  return status ? (BUDGET_STATUS_AR[status] ?? status) : '—';
+}
+
+/** كثافات الوحدة الحقيقيّة من الحالة الاقتصاديّة — الغائب يسقط (لا صفر مُلفَّق). */
+export function economicIntensities(state: EconomicStateBody | null | undefined, currency = 'YER'): EconomicIntensity[] {
+  if (!state) return [];
+  const out: EconomicIntensity[] = [];
+  if (state.cost_per_ha != null) out.push({ label: 'تكلفة/هـ', value: formatMoney(state.cost_per_ha, currency) });
+  if (state.water_m3_per_ha != null && state.water_m3_per_ha > 0) {
+    out.push({ label: 'ماء م³/هـ', value: String(Math.round(state.water_m3_per_ha)) });
+  }
+  if (state.water_cost_per_m3 != null) out.push({ label: 'تكلفة الماء/م³', value: formatMoney(state.water_cost_per_m3, currency) });
+  if (state.energy_kwh_per_m3 != null) out.push({ label: 'طاقة كو.س/م³', value: state.energy_kwh_per_m3.toFixed(2) });
+  return out;
+}
+
+export interface BreakEvenResponse {
+  supported: boolean;
+  total_yield_t?: number;
+  break_even_price_per_t?: number;
+  advice_ar?: string;
+  message_ar?: string;
+  disclaimer_ar?: string;
+}
+
 /** تنسيق مبلغ صادق: null ⇒ «—» (لا صفر مُلفَّق)؛ وإلّا رقم مقرَّب + عملة. */
 export function formatMoney(value: number | null | undefined, currency = 'YER'): string {
   if (value == null || !Number.isFinite(value)) return '—';
