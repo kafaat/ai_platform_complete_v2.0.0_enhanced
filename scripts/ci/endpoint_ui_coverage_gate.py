@@ -24,13 +24,19 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 CONFIG = REPO / "config" / "endpoint_ui_coverage.json"
 REPORT = REPO / "docs" / "api" / "BACKEND_FRONTEND_COVERAGE.md"
+WAIVERS = REPO / "config" / "endpoint_ui_coverage_waivers.json"
 
 ROUTE_RE = re.compile(
     r'@(?:router|app)\.(get|post|put|delete|patch|websocket)\(\s*["\']([^"\']+)["\']'
 )
 HEALTH_TOKENS = ("health", "readyz", "livez", "metrics")
 
-FRONTEND_ROOTS = ("frontend/src", "mobile/lib")
+# جذور الواجهة الفعليّة. ملاحظة: مسار Flutter هو mobile/sahool_app/lib (لا mobile/lib)
+# — الخطأ السابق كان يُخفي كلّ أدلّة تطبيق الجوّال عن البوّابة بصمت.
+FRONTEND_ROOTS = ("frontend/src", "mobile/sahool_app/lib")
+
+# الجماهير المواجِهة للمستخدم — يجب أن يكون كلّ مسار منها في العقد (بدليل) أو مُعفى صراحةً.
+USER_FACING_AUDIENCES = frozenset({"farmer", "agronomist", "manager", "admin"})
 
 
 def _read(path: Path) -> str:
@@ -86,7 +92,33 @@ def classify(path: str, classifications: list[dict]) -> str:
     return "unclassified"
 
 
+def has_frontend_evidence(path: str, corpus: str) -> bool:
+    """هل لجذع المسار دليل نصّيّ في الواجهة؟ (مع تطبيع إعادة كتابة البوّابة للـauth).
+
+    الواجهة تستدعي ``/auth/x`` بينما يعرّف backend المنصّة ``/api/v1/auth/x``؛ nginx
+    يُطبّع بينهما. فنقبل أيّاً من الشكلين كدليل، وإلّا تُنتِج البوّابة أيتاماً كاذبة.
+    """
+    stem = re.split(r"\{", path)[0].rstrip("/")
+    if len(stem) <= len("/api/v1/"):
+        # مسارات قصيرة جدّاً (مثل /auth/me) — تحقّق من الحرفيّ مباشرةً.
+        return bool(stem) and stem in corpus
+    if stem in corpus:
+        return True
+    # تطبيع auth: /api/v1/auth/* ⇄ /auth/*
+    alt = stem.replace("/api/v1/auth", "/auth")
+    return alt != stem and alt in corpus
+
+
+def load_waivers() -> dict[str, dict]:
+    """سجلّ الإعفاءات ⇒ {endpoint: waiver}. غيابه يعني لا إعفاءات (سلوك أكثر صرامةً)."""
+    if not WAIVERS.exists():
+        return {}
+    data = json.loads(WAIVERS.read_text(encoding="utf-8"))
+    return {w["endpoint"]: w for w in data.get("waivers", [])}
+
+
 def run_gate() -> int:
+    """الاتّجاه الأوّل (أصليّ): كلّ endpoint في العقد الملزِم يملك دليل واجهة."""
     cfg = load_config()
     corpus = collect_frontend_corpus()
     failures: list[str] = []
@@ -102,6 +134,74 @@ def run_gate() -> int:
         return 1
     print(
         f"endpoint-ui-coverage-gate: PASS — {len(cfg['core_endpoints'])} endpoint جوهريّ كلّها بدليل واجهة."
+    )
+    return 0
+
+
+def run_reverse_gate() -> int:
+    """الاتّجاه العكسيّ (الجوهر): لا مسار مواجِه للمستخدم يفلت من العقد.
+
+    كلّ مسار backend مُصنَّف جمهوراً مواجِهاً (farmer/agronomist/manager/admin) يجب أن
+    يكون إمّا (أ) في العقد الملزِم core_endpoints بدليل واجهة فعليّ، أو (ب) في سجلّ
+    الإعفاءات waivers بسبب صريح. أيّ مسار جديد بلا أحدهما ⇒ فشل. هذا يمنع إضافة
+    backend مواجِه بلا hook/شاشة/إعفاء — وعد العقد الحقيقيّ.
+    """
+    cfg = load_config()
+    corpus = collect_frontend_corpus()
+    routes = collect_backend_routes()
+    core = {e["endpoint"] for e in cfg["core_endpoints"]}
+    waived = load_waivers()
+
+    escapes: list[str] = []
+    stale_waivers: list[str] = []
+
+    for path in sorted(routes):
+        audience = classify(path, cfg["classifications"])
+        if audience not in USER_FACING_AUDIENCES:
+            continue  # داخليّ/عامل — تحرسه بوّابة عقود الخدمات المنفصلة.
+        if path in core and has_frontend_evidence(path, corpus):
+            continue  # مغطّى بالعقد + دليل واجهة فعليّ.
+        if path in waived:
+            continue  # مُعفى صراحةً بسبب مُوثَّق.
+        methods = "+".join(sorted(routes[path]))
+        escapes.append(f"  ✗ [{audience:10}] {methods:14} {path}")
+
+    # نظافة السجلّ: إعفاء لمسار لم يعد موجوداً/صار مغطّى ⇒ يجب إزالته (لا إعفاء ميّت).
+    live = set(routes)
+    for ep in sorted(waived):
+        if ep not in live:
+            stale_waivers.append(f"  ⚠ إعفاء لمسار غير موجود: {ep}")
+        elif ep in core and has_frontend_evidence(ep, corpus):
+            stale_waivers.append(f"  ⚠ إعفاء لمسار صار مغطّى (انقله من الإعفاءات): {ep}")
+
+    if escapes:
+        print(
+            "endpoint-ui-coverage-reverse-gate: FAIL — مسارات مواجِهة للمستخدم "
+            f"بلا عقد/دليل/إعفاء ({len(escapes)}):"
+        )
+        print("\n".join(escapes))
+        print(
+            "\nالحلّ: أضِف المسار إلى config/endpoint_ui_coverage.json (core) مع دليل واجهة، "
+            "أو إلى config/endpoint_ui_coverage_waivers.json بسبب صريح."
+        )
+        if stale_waivers:
+            print("\nإعفاءات بائتة (نظّفها):")
+            print("\n".join(stale_waivers))
+        return 1
+
+    if stale_waivers:
+        print("endpoint-ui-coverage-reverse-gate: FAIL — إعفاءات بائتة يجب تنظيفها:")
+        print("\n".join(stale_waivers))
+        return 1
+
+    covered_core = sum(
+        1
+        for p in routes
+        if classify(p, cfg["classifications"]) in USER_FACING_AUDIENCES and p in core
+    )
+    print(
+        "endpoint-ui-coverage-reverse-gate: PASS — كلّ مسار مواجِه للمستخدم داخل العقد "
+        f"({covered_core} core + {len(waived)} إعفاء صريح؛ لا مسار فالت)."
     )
     return 0
 
@@ -158,11 +258,26 @@ def write_report() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--report", action="store_true", help="توليد مصفوفة التغطية")
+    parser.add_argument(
+        "--forward-only",
+        action="store_true",
+        help="فحص الاتّجاه الأصليّ فقط (core⇒دليل) دون البوّابة العكسيّة",
+    )
+    parser.add_argument(
+        "--reverse-only",
+        action="store_true",
+        help="البوّابة العكسيّة فقط (لا مسار مواجِه يفلت من العقد)",
+    )
     args = parser.parse_args()
     if args.report:
         write_report()
         return 0
-    return run_gate()
+    if args.reverse_only:
+        return run_reverse_gate()
+    if args.forward_only:
+        return run_gate()
+    # الافتراض: كلا الاتّجاهين — العقد كامل فقط إن مرّ الاثنان.
+    return run_gate() or run_reverse_gate()
 
 
 if __name__ == "__main__":

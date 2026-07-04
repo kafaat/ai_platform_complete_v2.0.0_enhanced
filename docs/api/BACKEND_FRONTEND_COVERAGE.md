@@ -10,8 +10,8 @@
 |---|---|---|
 | admin | 19 | 9 |
 | agronomist | 163 | 81 |
-| farmer | 190 | 124 |
-| internal | 229 | 54 |
+| farmer | 190 | 125 |
+| internal | 229 | 59 |
 | manager | 52 | 32 |
 
 العقد الملزِم (core): 102 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
@@ -399,9 +399,9 @@
 | `/api/v1/soil-sampling/depth` | agronomist | — |
 | `/api/v1/soil-sampling/protocol` | agronomist | — |
 | `/api/v1/soil-sampling/subsamples` | agronomist | — |
-| `/api/v1/sync` | internal | — |
-| `/api/v1/sync/manifest` | internal | — |
-| `/api/v1/sync/status` | internal | — |
+| `/api/v1/sync` | internal | ✅ |
+| `/api/v1/sync/manifest` | internal | ✅ |
+| `/api/v1/sync/status` | internal | ✅ |
 | `/api/v1/tasks` | farmer | ✅ |
 | `/api/v1/tasks/{task_id}` | farmer | ✅ |
 | `/api/v1/temporal/check` | agronomist | — |
@@ -450,7 +450,7 @@
 | `/api/v1/wofost/crop-types` | agronomist | — |
 | `/api/v1/work-orders/from-recommendation` | manager | — |
 | `/api/vegetation/v1/all_fields` | internal | — |
-| `/api/vegetation/v1/analyze` | internal | — |
+| `/api/vegetation/v1/analyze` | internal | ✅ |
 | `/approvals/approve` | internal | — |
 | `/approvals/deny` | internal | — |
 | `/approvals/pending` | internal | ✅ |
@@ -468,7 +468,7 @@
 | `/auth/mfa/setup` | farmer | ✅ |
 | `/auth/password-reset/confirm` | farmer | ✅ |
 | `/auth/password-reset/request` | farmer | ✅ |
-| `/auth/refresh` | farmer | — |
+| `/auth/refresh` | farmer | ✅ |
 | `/auth/register` | farmer | ✅ |
 | `/auth/tenants` | farmer | — |
 | `/auth/users` | farmer | — |
@@ -523,7 +523,7 @@
 | `/imagery/timeseries/analyze` | internal | — |
 | `/imagery/timeseries/parallel` | internal | — |
 | `/indices` | internal | — |
-| `/inference/pest-detect` | internal | — |
+| `/inference/pest-detect` | internal | ✅ |
 | `/inference/yield-estimate` | internal | — |
 | `/info/{layer_id}` | internal | — |
 | `/ingest` | internal | — |
