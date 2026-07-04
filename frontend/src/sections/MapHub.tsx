@@ -795,15 +795,17 @@ export default function MapHub() {
 
   // ── Zone & VRA readiness (P2): مسار Field → Zone → Action من إشارات حقيقيّة
   // (مشاهد جاهزة للعنقدة + عدد الوصفات المحفوظة). يوجّه لمصمّم المناطق القائم. ──
-  const prescriptionsQ = useFieldPrescriptions(fieldId ?? '', !!fieldId);
+  // وضع الخبير فقط: لا نجلب بيانات البطاقات المتقدّمة في وضع الفلاح (توفير طلبات).
+  const expertMode = fieldMode === 'expert';
+  const prescriptionsQ = useFieldPrescriptions(fieldId ?? '', expertMode && !!fieldId);
   const imageryReadyCount = availableImageryDates.filter((d) => d.has_cog).length;
   // استكشاف الحقل: تصنيف المشاكل الشائعة لمحصول الحقل النشط (Taranis).
-  const scoutingQ = useCropScoutingIssues(selected?.crop || undefined);
+  const scoutingQ = useCropScoutingIssues(expertMode ? (selected?.crop || undefined) : undefined);
   // مركز الموسم: مراحل نموّ الموسم النشط + إجراء الطور (Cropin) — نقاط منصّة حيّة.
-  const phenologyQ = useFieldPhenology(fieldId ?? null);
-  const stageActionsQ = useFieldStageActions(fieldId ?? null);
+  const phenologyQ = useFieldPhenology(expertMode ? (fieldId ?? null) : null);
+  const stageActionsQ = useFieldStageActions(expertMode ? (fieldId ?? null) : null);
   // كفاءة مياه الحقل: إجماليّ الريّ المُطبَّق (mm) من الدفتر — لتقدير تكلفة الريّ في طبقة الأعمال.
-  const waterEfficiencyQ = useFieldWaterEfficiency(fieldId ?? null);
+  const waterEfficiencyQ = useFieldWaterEfficiency(expertMode ? (fieldId ?? null) : null);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
