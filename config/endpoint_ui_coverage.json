@@ -342,6 +342,41 @@
       "endpoint": "/api/v1/fields/{id}/boundary-graph",
       "audience": "agronomist",
       "evidence": "/boundary-graph"
+    },
+    {
+      "endpoint": "/api/v1/admin/readiness",
+      "audience": "admin",
+      "evidence": "/api/v1/admin/readiness"
+    },
+    {
+      "endpoint": "/api/v1/admin/events/dead-letter",
+      "audience": "admin",
+      "evidence": "/api/v1/admin/events/dead-letter"
+    },
+    {
+      "endpoint": "/api/v1/admin/outbox/dead-letter",
+      "audience": "admin",
+      "evidence": "/api/v1/admin/outbox/dead-letter"
+    },
+    {
+      "endpoint": "/api/v1/admin/security/denials",
+      "audience": "admin",
+      "evidence": "/api/v1/admin/security/denials"
+    },
+    {
+      "endpoint": "/api/v1/queue/status",
+      "audience": "admin",
+      "evidence": "/api/v1/queue/status"
+    },
+    {
+      "endpoint": "/api/v1/automation/runs",
+      "audience": "admin",
+      "evidence": "/api/v1/automation/runs"
+    },
+    {
+      "endpoint": "/api/v1/automation/scheduler-status",
+      "audience": "admin",
+      "evidence": "/api/v1/automation/scheduler-status"
     }
   ]
 }

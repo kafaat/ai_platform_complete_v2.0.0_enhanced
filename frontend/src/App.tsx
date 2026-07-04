@@ -125,6 +125,7 @@ const ScoutingView        = lazy(() => import('./sections/ScoutingView'));
 const PrescriptionBuilderPage = lazy(() => import('./sections/PrescriptionBuilderPage'));
 const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
 const OperationCenterWallPage = lazy(() => import('./sections/OperationCenterWallPage'));
+const AdminRuntimePage = lazy(() => import('./sections/AdminRuntimePage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
@@ -132,7 +133,7 @@ export type PageId =
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'lab-sampling' | 'irrigation' | 'irrigation-plan' | 'water-twin' | 'etc-dual' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'decision-confidence' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
-  | 'activities' | 'master-data' | 'documents' | 'governance'
+  | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
   | 'operations-wall' | 'sql-workspace' | 'gis-tools';
 
@@ -356,6 +357,7 @@ export default function App() {
       case 'master-data':  return <MasterDataPage />;
       case 'documents':    return <DocumentsPage />;
       case 'governance':   return <GovernancePage />;
+      case 'admin-runtime': return <AdminRuntimePage />;
       case 'tasks':        return <TasksPage />;
       case 'activities':   return <ActivitiesPage />;
       case 'analytics':    return <AnalyticsPage />;

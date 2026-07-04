@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b93cc516e63b9fb5cb0e93cee0809b58ff1972d9916908cd3016a75a5bcb0435"
+          "content": "c83e0e089f6b02b7ab4691c0fd146457b42a1126d519f75b555453ce493fa85e"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -839,6 +839,16 @@
         }
       ],
       "name": "frontend/src/components/fieldsetup/types.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e3c03c75140769b0a0e127f98b733a7b8148fffa2220822acd4f0f85570c097e"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/BoundaryReviewCard.tsx",
       "type": "file"
     },
     {
@@ -1785,7 +1795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cd078be7ad1782b2bebdf6f8af4f94e2b17d628bda207143c3e7d8610533974"
+          "content": "ce4058390bcc2f56dfb20838e2f3c60f9a12aeaea1341a1376476c36d038fe77"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2049,6 +2059,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldActionLifecycle.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c43dc61585b4af4e77890280173d0bdf4baac817ef5b5bf0717a8bce5511a4f"
+        }
+      ],
+      "name": "frontend/src/lib/fieldBoundaryReview.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdd1366ca093ad2e753e7b28695c12ffba14059a00223706bd1ad9ed04927125"
+        }
+      ],
+      "name": "frontend/src/lib/fieldBoundaryReview.ts",
       "type": "file"
     },
     {
@@ -2645,7 +2675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d42b433791ce20e01358ac753876eedce624ceb0e2cb5e9943b28ebdd068c391"
+          "content": "acec2247a00fd2658746c711a9268a98b1c9d1e2cf44905cea8fd6895ab8d015"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -2705,7 +2735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3de903619c40b0c409e53e56c25649257d0a8d4824d6cd06447b2b66ae5a9b0b"
+          "content": "82e0a55d8d6fc374fbf1da1c3a315216999f9a881b170ffc75181a4e22e80127"
         }
       ],
       "name": "frontend/src/lib/routes.ts",

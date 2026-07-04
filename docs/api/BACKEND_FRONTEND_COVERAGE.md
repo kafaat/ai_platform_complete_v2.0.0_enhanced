@@ -8,14 +8,14 @@
 
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
-| admin | 19 | 1 |
+| admin | 19 | 9 |
 | agronomist | 36 | 12 |
 | farmer | 158 | 108 |
 | internal | 10 | 1 |
 | manager | 35 | 23 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 36 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 43 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -35,13 +35,13 @@
 | `/api/v1/admin/break-glass` | admin | — |
 | `/api/v1/admin/break-glass/{grant_id}` | admin | — |
 | `/api/v1/admin/break-glass/{token}/fields` | admin | — |
-| `/api/v1/admin/events/dead-letter` | admin | — |
+| `/api/v1/admin/events/dead-letter` | admin | ✅ |
 | `/api/v1/admin/events/dead-letter/requeue-all` | admin | — |
-| `/api/v1/admin/events/dead-letter/{outbox_id}/requeue` | admin | — |
-| `/api/v1/admin/outbox/dead-letter` | admin | — |
+| `/api/v1/admin/events/dead-letter/{outbox_id}/requeue` | admin | ✅ |
+| `/api/v1/admin/outbox/dead-letter` | admin | ✅ |
 | `/api/v1/admin/outbox/dead-letter/requeue` | admin | — |
-| `/api/v1/admin/readiness` | admin | — |
-| `/api/v1/admin/security/denials` | admin | — |
+| `/api/v1/admin/readiness` | admin | ✅ |
+| `/api/v1/admin/security/denials` | admin | ✅ |
 | `/api/v1/agricultural-proverbs` | farmer | — |
 | `/api/v1/agricultural-proverbs/for-date` | farmer | — |
 | `/api/v1/agro-zones/by-elevation` | unclassified | — |
@@ -75,8 +75,8 @@
 | `/api/v1/automation/alerts/run` | admin | ✅ |
 | `/api/v1/automation/imagery/register-field` | admin | — |
 | `/api/v1/automation/imagery/status` | admin | — |
-| `/api/v1/automation/runs` | admin | — |
-| `/api/v1/automation/scheduler-status` | admin | — |
+| `/api/v1/automation/runs` | admin | ✅ |
+| `/api/v1/automation/scheduler-status` | admin | ✅ |
 | `/api/v1/automation/weather/cached` | admin | — |
 | `/api/v1/automation/weather/register` | admin | — |
 | `/api/v1/automation/weather/status` | admin | — |
@@ -347,7 +347,7 @@
 | `/api/v1/propagation/method-guide` | unclassified | — |
 | `/api/v1/propagation/methods` | unclassified | — |
 | `/api/v1/propagation/rootstock` | unclassified | — |
-| `/api/v1/queue/status` | admin | — |
+| `/api/v1/queue/status` | admin | ✅ |
 | `/api/v1/rbac/permission-matrix` | unclassified | — |
 | `/api/v1/rbac/preview-role-change` | unclassified | — |
 | `/api/v1/rbac/who-can` | unclassified | — |

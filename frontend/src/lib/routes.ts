@@ -180,6 +180,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'master-data', path: '/admin/master-data', label: 'البيانات المرجعيّة', icon: Database, maturity: 'stable' },
       { id: 'documents',   path: '/admin/documents',   label: 'الوثائق', icon: FolderArchive, maturity: 'stable' },
       { id: 'governance',  path: '/admin/governance',  label: 'الحوكمة والتدقيق', icon: ShieldCheck, maturity: 'stable' },
+      { id: 'admin-runtime', path: '/admin/runtime',   label: 'تشغيل المنصّة (Runtime)', icon: Wrench, maturity: 'beta' },
       { id: 'settings',    path: '/settings',          label: 'الإعدادات', icon: Settings, maturity: 'stable' },
     ],
   },

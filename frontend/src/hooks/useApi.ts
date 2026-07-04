@@ -1014,6 +1014,88 @@ export function useScoreBoundary(): ReturnType<typeof useMutation<BoundaryScoreR
   });
 }
 
+// ── Admin Runtime Console — مسارات التشغيل الإداريّة (owner/manager) ──
+import type {
+  AutomationRunsResponse, DeadLetterResponse, QueueStatusResponse, ReadinessReport, SecurityDenialsResponse,
+} from '../lib/adminRuntime';
+
+/** جاهزيّة الإنتاج من لقطة بيئة المنصّة (ready + blockers + warnings + checks). */
+export function useAdminReadiness(enabled = true): UseQueryResult<ReadinessReport> {
+  return useQuery<ReadinessReport>({
+    queryKey: ['admin-readiness'],
+    queryFn:  () => kongApi.get('/api/v1/admin/readiness').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** الأحداث الميّتة (DLQ NATS) — الخادم يوصي: نبّه لو total>0. */
+export function useAdminEventsDeadLetter(enabled = true): UseQueryResult<DeadLetterResponse> {
+  return useQuery<DeadLetterResponse>({
+    queryKey: ['admin-events-dlq'],
+    queryFn:  () => kongApi.get('/api/v1/admin/events/dead-letter').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** صفوف outbox المستنفدة (dead) — قابلة لإعادة الجدولة بعد إصلاح السبب. */
+export function useAdminOutboxDeadLetter(enabled = true): UseQueryResult<DeadLetterResponse> {
+  return useQuery<DeadLetterResponse>({
+    queryKey: ['admin-outbox-dlq'],
+    queryFn:  () => kongApi.get('/api/v1/admin/outbox/dead-letter').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سجلّ رفض الأمان (denials) الأخير + ملخّصه. */
+export function useSecurityDenials(enabled = true): UseQueryResult<SecurityDenialsResponse> {
+  return useQuery<SecurityDenialsResponse>({
+    queryKey: ['admin-security-denials'],
+    queryFn:  () => kongApi.get('/api/v1/admin/security/denials').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** حالة قائمة offline للمستأجِر الحاليّ. */
+export function useQueueStatus(enabled = true): UseQueryResult<QueueStatusResponse> {
+  return useQuery<QueueStatusResponse>({
+    queryKey: ['queue-status'],
+    queryFn:  () => kongApi.get('/api/v1/queue/status').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** سجلّ تشغيلات الأتمتة + الملخّص. */
+export function useAutomationRuns(enabled = true, limit = 10): UseQueryResult<AutomationRunsResponse> {
+  return useQuery<AutomationRunsResponse>({
+    queryKey: ['automation-runs', limit],
+    queryFn:  () => kongApi.get('/api/v1/automation/runs', { params: { limit } }).then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** حالة مجدوِل الأتمتة (بنية مرنة من الخادم). */
+export function useSchedulerStatus(enabled = true): UseQueryResult<Record<string, unknown>> {
+  return useQuery<Record<string, unknown>>({
+    queryKey: ['automation-scheduler-status'],
+    queryFn:  () => kongApi.get('/api/v1/automation/scheduler-status').then(r => r.data),
+    staleTime:60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();
