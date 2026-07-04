@@ -905,6 +905,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f22391e4d77673131c45fb6af19ef64dfef4e1105b4fadf0bf714dc921a775c7"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/DiagnosticsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb7e36a2a785a6da770a856005350e6dc96f13459e0e411b10f4c84fda96c903"
         }
       ],
@@ -1049,6 +1059,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/WaterHarvestingCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7fbeeee1eb00adb4a1fe96713b831d82f47cbeb194b4efd48a52adb356185b4d"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/WhatIfScenariosCard.tsx",
       "type": "file"
     },
     {
@@ -2325,6 +2345,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "78d565b789c4f05746512bffcd40d5a87c2456efa35059dba50a8f67bb622d26"
+        }
+      ],
+      "name": "frontend/src/lib/fieldDiagnostics.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3336e7029672c6a7d981bc92f311d82616d2b650289b3827dd89d0a5166ebed"
+        }
+      ],
+      "name": "frontend/src/lib/fieldDiagnostics.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b90d68827ee6cc379db064364193006dd8433a486981f39fb8e4087dae04ad2c"
         }
       ],
@@ -3099,6 +3139,26 @@
         }
       ],
       "name": "frontend/src/lib/waterHarvesting.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0982fec9ce8be2fe618198931e05371085752068c4187639d78b033133316c42"
+        }
+      ],
+      "name": "frontend/src/lib/whatIfScenarios.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea679a185d80b4bda5bf54a194a9217c24637536a39f726123883de5bfe3aca9"
+        }
+      ],
+      "name": "frontend/src/lib/whatIfScenarios.ts",
       "type": "file"
     },
     {
