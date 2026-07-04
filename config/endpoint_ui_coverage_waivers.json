@@ -2290,54 +2290,6 @@
       "importance": 48,
       "importance_tier": "P2-متوسّط",
       "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/auth/users",
-      "audience": "farmer",
-      "methods": [
-        "get@services/auth/routers/users.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
-      "criticality": "informational",
-      "importance": 40,
-      "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/auth/users/{user_id}/deactivate",
-      "audience": "farmer",
-      "methods": [
-        "patch@services/auth/routers/users.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
-      "criticality": "informational",
-      "importance": 40,
-      "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/auth/users/{user_id}/role",
-      "audience": "farmer",
-      "methods": [
-        "patch@services/auth/routers/users.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
-      "criticality": "informational",
-      "importance": 60,
-      "importance_tier": "P1-عالٍ",
-      "intended_consumer": "human"
     }
   ]
 }

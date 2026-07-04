@@ -605,10 +605,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "186ca5e87fa32d7905a3705db0639cb4589c644f1cdd34b9ec32462881d06249"
+        }
+      ],
+      "name": "frontend/src/components/decision/DecisionDeepPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f860a2ace1b01aa21f0c4ee22b69a6cb95bb50868575ea9d4ac77f1cc680e7bc"
         }
       ],
       "name": "frontend/src/components/decision/DecisionInsightPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0930326ede3391f509a3c21e78935d40cdfe13ce3d4cd0fceae0f48e39ed457f"
+        }
+      ],
+      "name": "frontend/src/components/decision/RecommendationsLifecyclePanel.tsx",
       "type": "file"
     },
     {
@@ -1029,6 +1049,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/HarvestTraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "66d572f29e32ec4758a19e147f276954162514ce3be407c363461a72d44d52b5"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/IrrigationDecisionAidsCard.tsx",
       "type": "file"
     },
     {
@@ -2005,6 +2035,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4f263bcee14abbb68bdc2ed319e0d80b792092d217ecab69c920ba37d5c18052"
+        }
+      ],
+      "name": "frontend/src/hooks/useDecisionDeep.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "03b3d54d1a097abacbfb7d78b0b92f713d1c8c6ce1802db6c894738daa7f3fd1"
         }
       ],
@@ -2039,6 +2079,26 @@
         }
       ],
       "name": "frontend/src/hooks/useIndicators.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f493118b10c23c0a7ab12f4f8e8a4661b0f99a765fa908807e4f0206ce3904fb"
+        }
+      ],
+      "name": "frontend/src/hooks/useIrrigationDecisionAids.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f72fbe6097531d9e22da927683895ba43871cf2d975038fdfa923e96b4d9f22"
+        }
+      ],
+      "name": "frontend/src/hooks/useRecommendationsLifecycle.ts",
       "type": "file"
     },
     {
@@ -2229,6 +2289,26 @@
         }
       ],
       "name": "frontend/src/lib/dates.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "65d9dcc774dc37c4d43a9688ddbe8646c933780728c32bd478895d83169777b8"
+        }
+      ],
+      "name": "frontend/src/lib/decisionDeep.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fcc695633f6cbfdae9dffa7d6f7d7306e88312ed4c92a6a063f9999a2b127888"
+        }
+      ],
+      "name": "frontend/src/lib/decisionDeep.ts",
       "type": "file"
     },
     {
@@ -2945,6 +3025,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "931b5bcf6975ee6025610487e3152dbab724dc3863f68166d97437876c601a61"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationDecisionAids.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab14351ce08f725891e493335a3656ef31baf31bdbe8c07753eb0a52ff68fa6d"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationDecisionAids.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c390f9edbd6ac864bf453f80bd18ef310c282608d0614bfd86250b8c094b743"
         }
       ],
@@ -3119,6 +3219,26 @@
         }
       ],
       "name": "frontend/src/lib/projectFile.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "939bc21ac093c707cc0ce496ed7bcc18334841ae658df2558da1c3597c69db39"
+        }
+      ],
+      "name": "frontend/src/lib/recommendationsLifecycle.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad3996c77141ad743fdab58265d41a4e9df3d5d6b51513c0880624e9faf4051e"
+        }
+      ],
+      "name": "frontend/src/lib/recommendationsLifecycle.ts",
       "type": "file"
     },
     {
@@ -4295,7 +4415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1eb2ffddbc317562fffa9bf0691bf776218a3c1c357f1a0977a8d65761043d3d"
+          "content": "3fd425b814147dbaa6489966e8a8848dcf90c726379a822b7e2365813cc5c7ef"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
@@ -4395,7 +4515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6fd852fbd009d6ce7acd95f7f000ee730c19cefaf159f914842c85a2d5d1c38"
+          "content": "83220c1efd9e20603034e9b57e526dd515861edd284e866833bf73bfd2f47001"
         }
       ],
       "name": "frontend/src/services/api.ts",

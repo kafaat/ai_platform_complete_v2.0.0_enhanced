@@ -357,6 +357,50 @@ export const createInvitation = (payload: {
 export const listInvitations = (): Promise<PendingInvitation[]> =>
   authApi.get<PendingInvitation[]>('/auth/invitations').then(r => Array.isArray(r.data) ? r.data : []);
 
+// ── أعضاء الفريق وتغيير الأدوار (admin فقط في الخلفيّة) ──────────
+// GET /auth/users و PATCH /auth/users/{id}/role محميّان بـrequire_role("admin")،
+// وتغيير الدور قد يتطلّب step-up MFA (رمز TOTP حديث عبر X-MFA-Code) حسب البيئة —
+// عند 403 «يتطلّب رمز MFA» تُظهر الواجهة حقل الرمز وتعيد المحاولة، لا تخمين.
+export interface TeamUser {
+  id: number;
+  email: string;
+  full_name: string | null;
+  role: string;
+  active: boolean;
+  created_at: string | null;
+  tenant_id: string | null;
+}
+
+export type AssignableRole = 'owner' | 'admin' | 'expert' | 'farmer' | 'viewer';
+
+export const listTeamUsers = (): Promise<TeamUser[]> =>
+  authApi.get<TeamUser[]>('/auth/users').then(r => (Array.isArray(r.data) ? r.data : []));
+
+/** يغيّر دور مستخدم (admin + step-up MFA إن فُعِّل). الخادم يُبطل جلسات
+ *  المستخدم فوراً كي يسري الدور الجديد — يُعرَض ذلك للمشغّل بصدق. */
+export const changeUserRole = (
+  userId: number,
+  role: AssignableRole,
+  mfaCode?: string,
+): Promise<{ id: number; email: string; role: string }> =>
+  authApi
+    .patch<{ id: number; email: string; role: string }>(
+      `/auth/users/${userId}/role`,
+      null,
+      { params: { role }, headers: mfaCode ? { 'X-MFA-Code': mfaCode } : undefined },
+    )
+    .then(r => r.data);
+
+/** يعطّل حساب عضو (admin + step-up MFA إن فُعِّل). التعطيل فوريّ — الخادم
+ *  يُبطل كلّ جلسات الحساب. لا يوجد مسار «إعادة تفعيل» في الخلفيّة (قرار
+ *  أمنيّ: الاستعادة عبر مشغّل القاعدة) — الواجهة لا تخترع زرّاً بلا مسار. */
+export const deactivateUser = (userId: number, mfaCode?: string): Promise<{ message: string }> =>
+  authApi
+    .patch<{ message: string }>(`/auth/users/${userId}/deactivate`, null, {
+      headers: mfaCode ? { 'X-MFA-Code': mfaCode } : undefined,
+    })
+    .then(r => r.data);
+
 /** قبول دعوة (عموميّ، محميّ بالـtoken): يُنشئ المستخدِم وينضمّ لمستأجِر الداعي
  *  بدوره المدعوّ، ويُصدِر توكناً (دخول تلقائيّ). 400 لرمز غير صالح/منتهٍ/مستهلَك،
  *  409 لبريد مسجّل مسبقاً. الردّ بشكل AuthResponse (مطبَّع كـlogin/register). */

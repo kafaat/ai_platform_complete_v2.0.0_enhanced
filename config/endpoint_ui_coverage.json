@@ -2068,6 +2068,21 @@
       "evidence": "/auth/register"
     },
     {
+      "endpoint": "/auth/users",
+      "audience": "admin",
+      "evidence": "/auth/users"
+    },
+    {
+      "endpoint": "/auth/users/{user_id}/deactivate",
+      "audience": "admin",
+      "evidence": "/auth/users"
+    },
+    {
+      "endpoint": "/auth/users/{user_id}/role",
+      "audience": "admin",
+      "evidence": "/auth/users"
+    },
+    {
       "endpoint": "/auth/verify",
       "audience": "farmer",
       "evidence": "/auth/verify"
