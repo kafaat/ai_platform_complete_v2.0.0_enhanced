@@ -855,6 +855,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2751b19a12d1ab69ba926a871bec395a4a0a9ee9a75217bd27e5d08f960d556a"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FieldEconomicsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "47384f2bd2d5b6a60b6bec509212d06e458b6682c92be01be172ac5eabfcca4d"
         }
       ],
@@ -1929,6 +1939,26 @@
         }
       ],
       "name": "frontend/src/lib/featureFlags.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3ee65495c5149b3e2fd9b519de17a186138549c72b9bed61934cff2a124d510e"
+        }
+      ],
+      "name": "frontend/src/lib/fieldEconomics.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "220df366c365ffcd5eeb240b629a9f0d4bd49987c49c47dd9814c85ca1485f4e"
+        }
+      ],
+      "name": "frontend/src/lib/fieldEconomics.ts",
       "type": "file"
     },
     {
@@ -3085,7 +3115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70adc727b162194ba6ef49e4d49859e6e2db20c9f5fda59b8d322de4e60b8056"
+          "content": "4cfdc9f0066ee0e36496d6ecd1b2063405a4a78d5da2fd62edff75d0b2b3e44d"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

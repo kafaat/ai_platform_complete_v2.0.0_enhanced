@@ -42,6 +42,7 @@ import FieldViewInsightStrip from '../components/fieldview/FieldViewInsightStrip
 import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard';
 import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
 import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
+import FieldEconomicsCard from '../components/fieldview/FieldEconomicsCard';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
@@ -1119,6 +1120,8 @@ export default function MapHub() {
           onOpenZones={() => { setZoneDesigner(true); setShowPivots(true); }}
         />
       )}
+
+      {selected && <FieldEconomicsCard areaHa={typeof selected.area === 'number' ? selected.area : null} />}
 
       {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
       {compare && (
