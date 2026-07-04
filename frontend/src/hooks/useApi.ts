@@ -818,6 +818,76 @@ export function useSeasonProfitability(
   });
 }
 
+// ── Crop & Variety Cards — بطاقات المعرفة المرجعيّة (FAO-56/Maas-Hoffman/GDD) ──
+import type {
+  CropCardResponse, CropCardsIndex, VarietyDiseaseWatch, VarietyExpectedHarvest, VarietySalinity,
+} from '../lib/fieldCropCard';
+
+/** فهرس بطاقات المحاصيل (معرفة مرجعيّة ثابتة ⇒ staleTime طويل). */
+export function useCropCardsIndex(enabled = true): UseQueryResult<CropCardsIndex> {
+  return useQuery<CropCardsIndex>({
+    queryKey: ['crop-cards-index'],
+    queryFn:  () => kongApi.get('/api/v1/crop-cards').then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled,
+    retry:    false,
+  });
+}
+
+/** بطاقة محصول كاملة + معرّفات أصنافها. */
+export function useCropCard(cropId: string | null | undefined): UseQueryResult<CropCardResponse> {
+  return useQuery<CropCardResponse>({
+    queryKey: ['crop-card', cropId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/crop-cards/crop/${cropId}`).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!cropId,
+    retry:    false,
+  });
+}
+
+/** مقاومات الصنف المُوثَّقة + إرشاد المسح. */
+export function useVarietyDiseaseWatch(varietyId: string | null | undefined): UseQueryResult<VarietyDiseaseWatch> {
+  return useQuery<VarietyDiseaseWatch>({
+    queryKey: ['variety-disease-watch', varietyId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/crop-cards/variety/${varietyId}/disease-watch`).then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!varietyId,
+    retry:    false,
+  });
+}
+
+/** تواريخ التزهير/الحصاد المتوقّعة من بذار حقيقيّ (لا يُستدعى بلا تاريخ). */
+export function useVarietyExpectedHarvest(
+  varietyId: string | null | undefined,
+  sowingDate: string | null | undefined,
+): UseQueryResult<VarietyExpectedHarvest> {
+  return useQuery<VarietyExpectedHarvest>({
+    queryKey: ['variety-expected-harvest', varietyId ?? 'none', sowingDate ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/crop-cards/variety/${varietyId}/expected-harvest`, { params: { sowing_date: sowingDate } })
+      .then(r => r.data),
+    staleTime:60 * 60_000,
+    enabled:  !!varietyId && !!sowingDate,
+    retry:    false,
+  });
+}
+
+/** ملاءمة ملوحة مقيسة (ECe dS/m يُدخِلها المستخدم من قياس حقيقيّ) لصنف. */
+export function useVarietySalinity(
+  varietyId: string | null | undefined,
+  ece: number | null,
+): UseQueryResult<VarietySalinity> {
+  return useQuery<VarietySalinity>({
+    queryKey: ['variety-salinity', varietyId ?? 'none', ece ?? 'none'],
+    queryFn:  () => kongApi
+      .get(`/api/v1/crop-cards/variety/${varietyId}/salinity-suitability`, { params: { ece } })
+      .then(r => r.data),
+    staleTime:30 * 60_000,
+    enabled:  !!varietyId && ece != null && Number.isFinite(ece),
+    retry:    false,
+  });
+}
+
 /** انحرافات المخطَّط/الفعليّ + توصيات الضبط للموسم من السجلّ. */
 export function useSeasonVariance(
   seasonId: string | null | undefined,

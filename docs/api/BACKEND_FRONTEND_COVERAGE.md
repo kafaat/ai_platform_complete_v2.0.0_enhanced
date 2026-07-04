@@ -9,13 +9,13 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 1 |
-| agronomist | 36 | 6 |
+| agronomist | 36 | 12 |
 | farmer | 158 | 108 |
 | internal | 10 | 1 |
 | manager | 35 | 17 |
 | unclassified | 394 | 90 |
 
-العقد الملزِم (core): 24 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 29 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -118,12 +118,12 @@
 | `/api/v1/confidence/ndvi` | unclassified | — |
 | `/api/v1/consistency/freshness` | unclassified | — |
 | `/api/v1/consistency/irrigation` | unclassified | — |
-| `/api/v1/crop-cards` | agronomist | — |
-| `/api/v1/crop-cards/crop/{crop_id}` | agronomist | — |
-| `/api/v1/crop-cards/variety/{variety_id}` | agronomist | — |
-| `/api/v1/crop-cards/variety/{variety_id}/disease-watch` | agronomist | — |
-| `/api/v1/crop-cards/variety/{variety_id}/expected-harvest` | agronomist | — |
-| `/api/v1/crop-cards/variety/{variety_id}/salinity-suitability` | agronomist | — |
+| `/api/v1/crop-cards` | agronomist | ✅ |
+| `/api/v1/crop-cards/crop/{crop_id}` | agronomist | ✅ |
+| `/api/v1/crop-cards/variety/{variety_id}` | agronomist | ✅ |
+| `/api/v1/crop-cards/variety/{variety_id}/disease-watch` | agronomist | ✅ |
+| `/api/v1/crop-cards/variety/{variety_id}/expected-harvest` | agronomist | ✅ |
+| `/api/v1/crop-cards/variety/{variety_id}/salinity-suitability` | agronomist | ✅ |
 | `/api/v1/crop-suitability` | agronomist | — |
 | `/api/v1/crop-twin/compose` | unclassified | — |
 | `/api/v1/crop-twin/decision` | unclassified | ✅ |

@@ -50,6 +50,7 @@ import SeasonCommandCard from '../components/fieldview/SeasonCommandCard';
 import TraceabilityCard from '../components/fieldview/TraceabilityCard';
 import FieldObjectivePanel from '../components/fieldview/FieldObjectivePanel';
 import SeasonProfitabilityCard from '../components/fieldview/SeasonProfitabilityCard';
+import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -1275,6 +1276,16 @@ export default function MapHub() {
           phenology={phenologyQ.data ?? null}
           stageAction={stageActionsQ.data?.available ? (stageActionsQ.data.suggestions?.[0]?.action_ar ?? null) : null}
           loading={phenologyQ.isLoading}
+        />
+      )}
+
+      {/* بطاقة المحصول: تعكس المعرفة المرجعيّة المُخزَّنة (crop-cards YAML — Kc/ملوحة/GDD/
+          أصناف يمنيّة) على محصول الحقل النشط — كانت قدرة خلفيّة يتيمة عن الواجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <CropKnowledgeCard
+          cropLabel={selected.crop}
+          sowingDate={activeSeason?.sowing_date ?? null}
+          enabled={expertMode}
         />
       )}
 
