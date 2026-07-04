@@ -875,6 +875,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2cbb6cce9c6513c897bacf16eee791fcba7ba9dfc8d4a1a20c554b978bbc7a33"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FieldScoutingCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "45f4a74bbcca561235f848e70fd49d2cbbb59f0144dbc12f26753048f979e027"
         }
       ],
@@ -2105,6 +2115,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a36c6f0d92dadceae46871818071b403df48af2449da83fc71b047cbcab83d40"
+        }
+      ],
+      "name": "frontend/src/lib/fieldScouting.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "766e5263b9cb133bd8d52aeaf7f908b23035272c5f5e3f168c67f14cc49f42bd"
+        }
+      ],
+      "name": "frontend/src/lib/fieldScouting.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b039ffc10157047c307edb9a9e9b770e650d0509fb621796fb961225a50620f6"
         }
       ],
@@ -3175,7 +3205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f19b250e7866b5e5b1696a1dffdf5641e6e7d8ddfffdbcaea8a10bbac4c304f2"
+          "content": "b044ed0ac4fb9561f0b05dea539d5da31fbf7f15555c33334798105b42249316"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

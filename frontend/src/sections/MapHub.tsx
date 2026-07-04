@@ -45,6 +45,8 @@ import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
 import FieldEconomicsCard from '../components/fieldview/FieldEconomicsCard';
 import OperationsCenterCard from '../components/fieldview/OperationsCenterCard';
 import FieldWaterBrainCard from '../components/fieldview/FieldWaterBrainCard';
+import FieldScoutingCard from '../components/fieldview/FieldScoutingCard';
+import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
@@ -794,6 +796,8 @@ export default function MapHub() {
   // (مشاهد جاهزة للعنقدة + عدد الوصفات المحفوظة). يوجّه لمصمّم المناطق القائم. ──
   const prescriptionsQ = useFieldPrescriptions(fieldId ?? '', !!fieldId);
   const imageryReadyCount = availableImageryDates.filter((d) => d.has_cog).length;
+  // استكشاف الحقل: تصنيف المشاكل الشائعة لمحصول الحقل النشط (Taranis).
+  const scoutingQ = useCropScoutingIssues(selected?.crop || undefined);
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1176,6 +1180,15 @@ export default function MapHub() {
       )}
 
       {selected && fieldMode === 'expert' && <FieldEconomicsCard areaHa={typeof selected.area === 'number' ? selected.area : null} />}
+
+      {selected && fieldMode === 'expert' && (
+        <FieldScoutingCard
+          crop={selected.crop}
+          issues={scoutingQ.data?.issues ?? []}
+          loading={scoutingQ.isLoading}
+          onLogEvidence={() => { setPinMode(true); setCompare(false); setDrawTools(false); }}
+        />
+      )}
 
       {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
       {compare && (
