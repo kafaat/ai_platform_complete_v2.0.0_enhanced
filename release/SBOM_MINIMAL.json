@@ -945,6 +945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3ff113674c3a784c96095198484e46f43a60c75fa2e34d3586dd8c0508414205"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/LedgerEntryCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "763ce1d2355e526bdbc663a61027956bf262c97133d99b1000ce86cd747ea0f3"
         }
       ],
@@ -2709,6 +2719,26 @@
         }
       ],
       "name": "frontend/src/lib/leafletSetup.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4d8adddf2d5078ec4fb354bec13cb0388b107f564a5565e9d70ee04a67b87682"
+        }
+      ],
+      "name": "frontend/src/lib/ledgerEntry.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8cf345348e8dcc341f70de51ec24885899b5a62313d752baea3c2f2cdda5bd5c"
+        }
+      ],
+      "name": "frontend/src/lib/ledgerEntry.ts",
       "type": "file"
     },
     {
