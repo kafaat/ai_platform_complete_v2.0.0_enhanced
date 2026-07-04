@@ -875,6 +875,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0affbce3d1768a81f03cfa8bb89f1c2e2c27762f151d6fff3bf2a30c8a818cbd"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/ZoneVraEntryCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "065b05ff97836b95c16d3387c25cbda4a259a547ec9c15c455b56336f138b41e"
         }
       ],
@@ -2085,6 +2095,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5534c277f087dc4ecc901a1625d03a1f91003c45cb9857d6542fd52476354728"
+        }
+      ],
+      "name": "frontend/src/lib/fieldZoneVra.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c8e731db843a7d1875531e19423eb2c09157ab75f7ba9ee424f3ad87097170df"
+        }
+      ],
+      "name": "frontend/src/lib/fieldZoneVra.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "75972c82f168c24e9618f62f41a8aa880dcc56795d636d26cb8327f9cc846b14"
         }
       ],
@@ -3035,7 +3065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "feb2a8ea34296537d79db096afa75d97a8ad6f52f9ab46f3ea3d443a714971bd"
+          "content": "d51f0c69832cceac060137bc919432a43dbadde39398a41b98a6ce6f992debea"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

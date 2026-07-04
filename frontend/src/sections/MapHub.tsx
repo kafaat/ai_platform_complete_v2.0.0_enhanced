@@ -29,7 +29,7 @@ import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } f
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation } from '../hooks/useApi';
+import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
@@ -41,6 +41,7 @@ import AddFieldWithMap from '../components/AddFieldWithMap';
 import FieldViewInsightStrip from '../components/fieldview/FieldViewInsightStrip';
 import FieldHealthReportCard from '../components/fieldview/FieldHealthReportCard';
 import FarmerMetricsCard from '../components/fieldview/FarmerMetricsCard';
+import ZoneVraEntryCard from '../components/fieldview/ZoneVraEntryCard';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
   T, RADIUS, Card, Pill, Badge, SectionLabel,
@@ -761,6 +762,11 @@ export default function MapHub() {
       : null;
     return { ndvi, soilMoisturePct, nitrogenStatus, weather };
   }, [ndviQ.data, soilMoistureQ.data, nRecQ.data, weatherQ.data]);
+
+  // ── Zone & VRA readiness (P2): مسار Field → Zone → Action من إشارات حقيقيّة
+  // (مشاهد جاهزة للعنقدة + عدد الوصفات المحفوظة). يوجّه لمصمّم المناطق القائم. ──
+  const prescriptionsQ = useFieldPrescriptions(fieldId ?? '', !!fieldId);
+  const imageryReadyCount = availableImageryDates.filter((d) => d.has_cog).length;
   const weatherMarker = useMemo<WeatherMarker | null>(() => {
     if (!selectedPoint) return null;
     const cur = weatherQ.data?.current;
@@ -1101,6 +1107,15 @@ export default function MapHub() {
           onBackfill={mutateAllowed ? handlePrepareTwoYearImagery : undefined}
           onOpenTimeline={() => setShowImageryTimeline(true)}
           onShowAlerts={() => setShowAlerts(true)}
+        />
+      )}
+
+      {selected && (
+        <ZoneVraEntryCard
+          hasField={!!fieldId}
+          imageryReadyCount={imageryReadyCount}
+          prescriptionCount={prescriptionsQ.data?.total ?? 0}
+          onOpenZones={() => { setZoneDesigner(true); setShowPivots(true); }}
         />
       )}
 
