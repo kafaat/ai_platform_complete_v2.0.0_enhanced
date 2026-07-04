@@ -332,6 +332,16 @@
       "endpoint": "/api/v1/fields/{id}/input-traceability",
       "audience": "manager",
       "evidence": "/input-traceability"
+    },
+    {
+      "endpoint": "/api/v1/fields/{id}/boundary/score",
+      "audience": "agronomist",
+      "evidence": "/boundary/score"
+    },
+    {
+      "endpoint": "/api/v1/fields/{id}/boundary-graph",
+      "audience": "agronomist",
+      "evidence": "/boundary-graph"
     }
   ]
 }

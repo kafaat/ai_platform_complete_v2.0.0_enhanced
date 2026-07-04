@@ -991,6 +991,29 @@ export function useFieldInputTraceability(
   });
 }
 
+// ── Boundary Review (#15) — تهديف ثقة الحدّ + شبكة الجوار ──
+import type { BoundaryGraphResponse, BoundaryScoreResult } from '../lib/fieldBoundaryReview';
+
+/** شبكة جوار الحقل (field_boundary_graph) — قائمة فارغة صالحة لا 404. */
+export function useBoundaryGraph(fieldId: string | null | undefined, enabled = true): UseQueryResult<BoundaryGraphResponse> {
+  return useQuery<BoundaryGraphResponse>({
+    queryKey: ['boundary-graph', fieldId ?? 'none'],
+    queryFn:  () => kongApi.get(`/api/v1/fields/${fieldId}/boundary-graph`).then(r => r.data),
+    staleTime:15 * 60_000,
+    enabled:  enabled && !!fieldId,
+    retry:    false,
+  });
+}
+
+/** تهديف ثقة حدّ الحقل (يشتقّ الخادم الخصائص من geom عبر PostGIS ويخزّن النتيجة). */
+export function useScoreBoundary(): ReturnType<typeof useMutation<BoundaryScoreResult, Error, { fieldId: string }>> {
+  return useMutation<BoundaryScoreResult, Error, { fieldId: string }>({
+    mutationFn: ({ fieldId }) => kongApi
+      .post(`/api/v1/fields/${fieldId}/boundary/score`, {})
+      .then(r => r.data),
+  });
+}
+
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();

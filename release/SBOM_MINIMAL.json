@@ -925,6 +925,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "74c11227d498647b968ee96e4a1ba9cc12bac677e339676d5f37644dcfd5075a"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/HarvestTraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "763ce1d2355e526bdbc663a61027956bf262c97133d99b1000ce86cd747ea0f3"
         }
       ],
@@ -1775,7 +1785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20ba6fdaa46bdc00b5bdee9355cdbfa2877c57c0f505ed3694b0ac374e48ef11"
+          "content": "2cd078be7ad1782b2bebdf6f8af4f94e2b17d628bda207143c3e7d8610533974"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2139,6 +2149,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldGeometryTimeline.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "353dfb83caec88d7dc4b9a92844873963e39d1966f1fc25ed530152b5417342f"
+        }
+      ],
+      "name": "frontend/src/lib/fieldHarvestTraceability.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43726faf8b2fa780f21dfb8402a4559f34a43aa7d302ef22a48bb832509dd1c2"
+        }
+      ],
+      "name": "frontend/src/lib/fieldHarvestTraceability.ts",
       "type": "file"
     },
     {
@@ -3395,7 +3425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad6c0615303a0172dbe236ef1cfc02c4fbe42a4fd562e8faa2895200b892c6bf"
+          "content": "499c4ba3dd0761cacebf0b8b9abcf2226f77c76cbd8a7e03a4bf312d09daa2b0"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

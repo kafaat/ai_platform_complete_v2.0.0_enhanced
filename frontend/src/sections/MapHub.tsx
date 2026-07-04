@@ -52,6 +52,7 @@ import FieldObjectivePanel from '../components/fieldview/FieldObjectivePanel';
 import SeasonProfitabilityCard from '../components/fieldview/SeasonProfitabilityCard';
 import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
 import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceabilityCard';
+import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
@@ -1307,6 +1308,12 @@ export default function MapHub() {
           irrigationMm={waterEfficiencyQ.data?.efficiency?.irrigation_mm_total ?? null}
           prescriptionCount={prescriptionsQ.data?.total ?? null}
         />
+      )}
+
+      {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود
+          كان أقوى من الواجهة (score/graph بلا قارئ). */}
+      {selected && fieldMode === 'expert' && (
+        <BoundaryReviewCard fieldId={fieldId ?? null} enabled={expertMode} />
       )}
 
       {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
