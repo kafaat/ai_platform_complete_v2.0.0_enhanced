@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   confidencePct,
+  reviewStatusLabel,
+  summarizeClean,
   confidenceTone,
   summarizeNeighbors,
   topPenalties,
@@ -52,5 +54,28 @@ describe('summarizeNeighbors + confidencePct', () => {
     expect(confidencePct(0.873)).toBe('87٪');
     expect(confidencePct(null)).toBe('—');
     expect(confidencePct(Number.NaN)).toBe('—');
+  });
+});
+
+describe('summarizeClean — server before/after numbers, no claimed improvement', () => {
+  it('reports vertex change and validity from the server', () => {
+    expect(summarizeClean({ field_id: 'f', vertex_count_before: 2400, vertex_count_after: 850, is_valid_before: false, is_valid_after: true, tolerance_m: 1 }))
+      .toBe('الرؤوس 2400 ⇒ 850 · هندسة صالحة (سماحيّة 1 م)');
+  });
+  it('is honest when nothing changed or validity stayed broken', () => {
+    expect(summarizeClean({ field_id: 'f', vertex_count_before: 100, vertex_count_after: 100, is_valid_before: true, is_valid_after: true, tolerance_m: 1 }))
+      .toContain('الرؤوس ثابتة');
+    expect(summarizeClean({ field_id: 'f', vertex_count_before: 100, vertex_count_after: 90, is_valid_before: false, is_valid_after: false, tolerance_m: 3 }))
+      .toContain('ما زالت غير صالحة');
+    expect(summarizeClean(null)).toBe('—');
+  });
+});
+
+describe('reviewStatusLabel', () => {
+  it('maps HIL statuses and passes unknown through', () => {
+    expect(reviewStatusLabel('approved')).toBe('مُعتمَد');
+    expect(reviewStatusLabel('needs_edit')).toBe('يحتاج تعديلاً');
+    expect(reviewStatusLabel('odd')).toBe('odd');
+    expect(reviewStatusLabel(null)).toBe('—');
   });
 });

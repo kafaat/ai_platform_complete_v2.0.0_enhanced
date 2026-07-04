@@ -1014,6 +1014,26 @@ export function useScoreBoundary(): ReturnType<typeof useMutation<BoundaryScoreR
   });
 }
 
+import type { BoundaryCleanResult, BoundaryReviewResult, BoundaryReviewStatus } from '../lib/fieldBoundaryReview';
+
+/** المراجعة البشريّة (HIL) لحدّ الحقل: approved|rejected|needs_edit (FIELD_EDIT خادميّاً). */
+export function useReviewBoundary(): ReturnType<typeof useMutation<BoundaryReviewResult, Error, { fieldId: string; status: BoundaryReviewStatus }>> {
+  return useMutation<BoundaryReviewResult, Error, { fieldId: string; status: BoundaryReviewStatus }>({
+    mutationFn: ({ fieldId, status }) => kongApi
+      .patch(`/api/v1/fields/${fieldId}/boundary/review`, { review_status: status })
+      .then(r => r.data),
+  });
+}
+
+/** التنظيف الطوبولوجيّ الحتميّ (MakeValid + إزالة تكرار + تبسيط حافظ) — شبه عديم الأثر عند الإعادة. */
+export function useCleanBoundary(): ReturnType<typeof useMutation<BoundaryCleanResult, Error, { fieldId: string; toleranceM?: number }>> {
+  return useMutation<BoundaryCleanResult, Error, { fieldId: string; toleranceM?: number }>({
+    mutationFn: ({ fieldId, toleranceM }) => kongApi
+      .post(`/api/v1/fields/${fieldId}/boundary/clean`, toleranceM != null ? { tolerance_m: toleranceM } : {})
+      .then(r => r.data),
+  });
+}
+
 // ── Admin Runtime Console — مسارات التشغيل الإداريّة (owner/manager) ──
 import type {
   AutomationRunsResponse, DeadLetterResponse, QueueStatusResponse, ReadinessReport, SecurityDenialsResponse,

@@ -64,3 +64,47 @@ export function confidencePct(confidence: number | null | undefined): string {
   if (confidence == null || !Number.isFinite(confidence)) return '—';
   return `${Math.round(confidence * 100)}٪`;
 }
+
+// ── كتابات الحوكمة: اعتماد المراجعة + التنظيف الطوبولوجيّ الحتميّ ──
+
+export type BoundaryReviewStatus = 'approved' | 'rejected' | 'needs_edit';
+
+export interface BoundaryReviewResult {
+  field_id: string;
+  review_status: BoundaryReviewStatus | string;
+}
+
+export interface BoundaryCleanResult {
+  field_id: string;
+  vertex_count_before: number | null;
+  vertex_count_after: number | null;
+  is_valid_before: boolean | null;
+  is_valid_after: boolean | null;
+  tolerance_m: number;
+}
+
+/** ملخّص عربيّ صادق لنتيجة التنظيف — من أرقام الخادم قبل/بعد، لا ادّعاء تحسّن. */
+export function summarizeClean(r: BoundaryCleanResult | null | undefined): string {
+  if (!r) return '—';
+  const before = r.vertex_count_before;
+  const after = r.vertex_count_after;
+  const verts = before != null && after != null
+    ? (before === after ? `الرؤوس ثابتة (${after})` : `الرؤوس ${before} ⇒ ${after}`)
+    : 'عدد الرؤوس غير معروف';
+  const validity = r.is_valid_after === true
+    ? 'هندسة صالحة'
+    : r.is_valid_after === false
+      ? 'ما زالت غير صالحة'
+      : 'صلاحيّة غير معروفة';
+  return `${verts} · ${validity} (سماحيّة ${r.tolerance_m} م)`;
+}
+
+const REVIEW_STATUS_AR: Record<string, string> = {
+  approved: 'مُعتمَد',
+  rejected: 'مرفوض',
+  needs_edit: 'يحتاج تعديلاً',
+};
+
+export function reviewStatusLabel(status: string | null | undefined): string {
+  return status ? (REVIEW_STATUS_AR[status] ?? status) : '—';
+}

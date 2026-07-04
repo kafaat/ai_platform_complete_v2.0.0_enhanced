@@ -1342,7 +1342,7 @@ export default function MapHub() {
       {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود
           كان أقوى من الواجهة (score/graph بلا قارئ). */}
       {selected && fieldMode === 'expert' && (
-        <BoundaryReviewCard fieldId={fieldId ?? null} enabled={expertMode} />
+        <BoundaryReviewCard fieldId={fieldId ?? null} enabled={expertMode} mutateAllowed={mutateAllowed} />
       )}
 
       {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —

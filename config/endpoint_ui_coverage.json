@@ -437,6 +437,16 @@
       "endpoint": "/api/v1/farm-ledger/revenues (POST)",
       "audience": "manager",
       "evidence": "/api/v1/farm-ledger/revenues"
+    },
+    {
+      "endpoint": "/api/v1/fields/{id}/boundary/review (PATCH)",
+      "audience": "agronomist",
+      "evidence": "/boundary/review"
+    },
+    {
+      "endpoint": "/api/v1/fields/{id}/boundary/clean (POST)",
+      "audience": "agronomist",
+      "evidence": "/boundary/clean"
     }
   ]
 }

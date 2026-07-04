@@ -845,7 +845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e3c03c75140769b0a0e127f98b733a7b8148fffa2220822acd4f0f85570c097e"
+          "content": "732baf73bc49a6aac4ee062de086ff3e7adf2ec56082ab7c7929edec3d8b672b"
         }
       ],
       "name": "frontend/src/components/fieldview/BoundaryReviewCard.tsx",
@@ -1825,7 +1825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7dd6401289abbc3d4153d3a51dc467eac3bb4251a15f2c54da43531e62d4de4"
+          "content": "1288ba3ece1d1762a77c86f2db9516861c9c0400dddfa97aaee6a2d71273f67c"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2135,7 +2135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c43dc61585b4af4e77890280173d0bdf4baac817ef5b5bf0717a8bce5511a4f"
+          "content": "9ba93b369c377f1ada1728c7e10593fd143226487245584d59030fd376e55d2f"
         }
       ],
       "name": "frontend/src/lib/fieldBoundaryReview.test.ts",
@@ -2145,7 +2145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdd1366ca093ad2e753e7b28695c12ffba14059a00223706bd1ad9ed04927125"
+          "content": "1dc06669ef1968354acde6f60986c6e83f05fa27f10f91b0d545fd4fd5eac563"
         }
       ],
       "name": "frontend/src/lib/fieldBoundaryReview.ts",
@@ -3605,7 +3605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59fec9fd7b945b1a830b5e424630baeea434f6cf6d6c30075826f0522c3a7e3c"
+          "content": "6678697ea7972056cb97539c5a67ee65789d061853f1830dbf6bfb4ffa828108"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

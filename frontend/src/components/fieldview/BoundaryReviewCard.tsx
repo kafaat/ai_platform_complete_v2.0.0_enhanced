@@ -1,8 +1,11 @@
-import { Hexagon, Share2, ScanSearch } from 'lucide-react';
-import { useBoundaryGraph, useScoreBoundary } from '../../hooks/useApi';
+import { useState } from 'react';
+import { Hexagon, Share2, ScanSearch, Stamp, Eraser } from 'lucide-react';
+import { useBoundaryGraph, useScoreBoundary, useReviewBoundary, useCleanBoundary } from '../../hooks/useApi';
 import {
   confidencePct,
   confidenceTone,
+  reviewStatusLabel,
+  summarizeClean,
   summarizeNeighbors,
   topPenalties,
 } from '../../lib/fieldBoundaryReview';
@@ -11,14 +14,19 @@ import { T } from '../ds';
 interface Props {
   fieldId?: string | null;
   enabled?: boolean;
+  /** كتابات الحوكمة (اعتماد/تنظيف) للمخوَّلين بالتعديل فقط — الخلفيّة تفرض FIELD_EDIT. */
+  mutateAllowed?: boolean;
 }
 
 /** مركز مراجعة الحدود: تهديف ثقة حدّ الحقل (حتميّ، يشتقّه الخادم من geom المخزَّنة
  *  ويخزّن النتيجة) + شبكة الجوار بطول الحافّة المشتركة. صدق: توصية المراجعة قرار
  *  الخادم (عتبته)، والعوامل تُعرَض كما رجعت — الواجهة لا تعيد الحكم. */
-export default function BoundaryReviewCard({ fieldId, enabled = true }: Props) {
+export default function BoundaryReviewCard({ fieldId, enabled = true, mutateAllowed = false }: Props) {
   const graphQ = useBoundaryGraph(fieldId, enabled);
   const scoreM = useScoreBoundary();
+  const reviewM = useReviewBoundary();
+  const cleanM = useCleanBoundary();
+  const [confirmClean, setConfirmClean] = useState(false);
 
   if (!enabled || !fieldId) return null;
 
@@ -90,6 +98,58 @@ export default function BoundaryReviewCard({ fieldId, enabled = true }: Props) {
       ) : (
         <div className="text-[11px]" style={{ color: T.muted }}>
           اضغط «قيّم الحدّ الآن» لتهديف حتميّ من الهندسة المخزَّنة (يُخزَّن كثقة رسميّة للحدّ).
+        </div>
+      )}
+
+      {/* كتابات الحوكمة: اعتماد المراجعة (HIL) + التنظيف الحتميّ — للمخوَّلين فقط */}
+      {mutateAllowed && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => fieldId && reviewM.mutate({ fieldId, status: 'approved' })}
+            disabled={reviewM.isPending}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold disabled:opacity-50"
+            style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}
+          >
+            <Stamp className="w-3 h-3" aria-hidden="true" /> اعتمِد الحدّ
+          </button>
+          <button
+            type="button"
+            onClick={() => fieldId && reviewM.mutate({ fieldId, status: 'needs_edit' })}
+            disabled={reviewM.isPending}
+            className="px-2 py-0.5 rounded-lg text-[11px] font-semibold disabled:opacity-50"
+            style={{ border: `1px solid ${T.line}`, color: '#fdba74', background: 'rgba(15,23,42,.45)' }}
+          >
+            يحتاج تعديلاً
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!fieldId) return;
+              if (!confirmClean) { setConfirmClean(true); return; }
+              setConfirmClean(false);
+              cleanM.mutate({ fieldId });
+            }}
+            disabled={cleanM.isPending}
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-semibold disabled:opacity-50"
+            style={{ border: `1px solid ${confirmClean ? '#7c2d12' : T.line}`, color: confirmClean ? '#fdba74' : T.muted, background: 'rgba(15,23,42,.45)' }}
+          >
+            <Eraser className="w-3 h-3" aria-hidden="true" />
+            {cleanM.isPending ? 'جارٍ التنظيف…' : confirmClean ? 'تأكيد التنظيف؟ (يعدّل الهندسة)' : 'نظّف الهندسة (حتميّ)'}
+          </button>
+          {reviewM.data && (
+            <span className="text-[11px]" role="status" style={{ color: '#86efac' }}>
+              الحالة: {reviewStatusLabel(reviewM.data.review_status)}
+            </span>
+          )}
+          {cleanM.data && (
+            <span className="text-[11px]" role="status" style={{ color: T.muted }}>{summarizeClean(cleanM.data)}</span>
+          )}
+          {(reviewM.isError || cleanM.isError) && (
+            <span className="text-[11px]" role="status" style={{ color: '#fdba74' }}>
+              تعذّر الحفظ — {(reviewM.error ?? cleanM.error)?.message}
+            </span>
+          )}
         </div>
       )}
 
