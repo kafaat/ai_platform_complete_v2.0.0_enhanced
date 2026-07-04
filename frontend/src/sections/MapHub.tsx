@@ -234,6 +234,15 @@ export default function MapHub() {
   const [showDevices, setShowDevices] = useState(savedWorkspace?.showDevices ?? false);
   const [showEquipment, setShowEquipment] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
+  // OneSoil-style وضع FieldView: «فلاح» (ملخّص أساسيّ) أو «خبير» (كلّ الأدوات).
+  // يُحفَظ محلّيّاً — لا يلمس نوع لقطة مساحة العمل. الافتراضيّ فلاح (بساطة أوّلاً).
+  const [fieldMode, setFieldMode] = useState<'farmer' | 'expert'>(() => {
+    try { return localStorage.getItem('sahool:fieldview:mode') === 'expert' ? 'expert' : 'farmer'; } catch { return 'farmer'; }
+  });
+  const setFieldModePersist = useCallback((m: 'farmer' | 'expert') => {
+    setFieldMode(m);
+    try { localStorage.setItem('sahool:fieldview:mode', m); } catch { /* تجاهُل حظر التخزين */ }
+  }, []);
   const [showPivots, setShowPivots] = useState(false);
   const [pivotDesigner, setPivotDesigner] = useState(false);
   const [pivotRadiusM, setPivotRadiusM] = useState(400);
@@ -1087,6 +1096,23 @@ export default function MapHub() {
       {/* FieldView Smart Deck — أفضل إجراء تالٍ للحقل النشط (صور/استكشاف/عمليّات/سجلّ/سياق).
           يظهر فقط عند وجود حقل نشط؛ العدّادات غير المتاحة تُترَك undefined فتسقط البطاقة
           إلى اقتراح صادق بدل رقم ملفَّق. الأزرار موصولة بأفعال MapHub الحقيقيّة فقط. */}
+      {selected && (
+        <div className="mb-3 inline-flex items-center gap-1 rounded-xl p-0.5" style={{ background: T.card, border: `1px solid ${T.line}` }} data-testid="fieldview-mode-toggle">
+          {(['farmer', 'expert'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setFieldModePersist(m)}
+              className="px-3 py-1 rounded-lg text-xs font-bold"
+              style={{ background: fieldMode === m ? '#14532d' : 'transparent', color: fieldMode === m ? '#bbf7d0' : T.muted }}
+              aria-pressed={fieldMode === m}
+            >
+              {m === 'farmer' ? 'وضع الفلاح' : 'وضع الخبير'}
+            </button>
+          ))}
+        </div>
+      )}
+
       {selected && <FarmerMetricsCard {...farmerMetricsInput} />}
 
       {selected && <FieldWaterBrainCard {...waterBrainInput} />}
@@ -1109,7 +1135,7 @@ export default function MapHub() {
         />
       )}
 
-      {selected && (
+      {selected && fieldMode === 'expert' && (
         <FieldViewInsightStrip
           fieldId={fieldId}
           fieldName={selected.name}
@@ -1130,7 +1156,7 @@ export default function MapHub() {
         />
       )}
 
-      {selected && (
+      {selected && fieldMode === 'expert' && (
         <ZoneVraEntryCard
           hasField={!!fieldId}
           imageryReadyCount={imageryReadyCount}
@@ -1139,7 +1165,7 @@ export default function MapHub() {
         />
       )}
 
-      {selected && (
+      {selected && fieldMode === 'expert' && (
         <OperationsCenterCard
           fieldId={fieldId ?? null}
           tasks={tasksQ.data?.tasks ?? []}
@@ -1149,7 +1175,7 @@ export default function MapHub() {
         />
       )}
 
-      {selected && <FieldEconomicsCard areaHa={typeof selected.area === 'number' ? selected.area : null} />}
+      {selected && fieldMode === 'expert' && <FieldEconomicsCard areaHa={typeof selected.area === 'number' ? selected.area : null} />}
 
       {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
       {compare && (
