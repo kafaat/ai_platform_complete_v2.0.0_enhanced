@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-07-05 (ن-35) — تدقيق جنائيّ خارجيّ: إصلاح مظروفَي صدق حقيقيَّين + دحض الإيجابيّات الكاذبة
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). دقّق المستخدم أرشيف `a3d6023`؛ فُرزت نتائجه:
+
+- **مُصلَح (حقيقيّ، يخالف عقد «لا اختلاق»):** (١) `cog_writer.write_cog(None, …)` كان ينهار بـ`NoneType.shape` بدل مظروف — أُضيف تحقّق مدخل ⇒ `{written:False, reason}`. (٢) `terrain.compute_slope_aspect('/missing')` كان يرفع `RasterioIOError` بدل `{computed:False, reason}` — أُضيف `os.path.isfile` + التقاط `RasterioIOError`. حارس `test_raster_honest_envelopes_20260705` (2 تمرّان).
+- **إيجابيّات كاذبة (دُحِضت بالكود):** «footgun المستأجِر في fixed.yml» — الإنتاج `docker-compose.v9.yml` فيه **صفر** `sahool_user`؛ و`fixed.yml` تطوير-فقط موثَّق ومحروس بطبقتين: ساكن (`test_compose_env_bypass_guard`) وتشغيليّ (`db_role_guard.assert_db_role_rls_safe` يرفع RuntimeError على BYPASSRLS في الإنتاج). المدقّق لم يُشغّل الحُرّاس (`make verify-static` انتهى وقته). · `VITE_MOCK_MODE` افتراضه `false` (mock في وضع التجريب الصريح فقط). · الإعفاءات الـ28 كلّها `intended_consumer=machine` (operational 23 + admin-ops 5) — مطابق لشرط المدقّق نفسه. · فشل npm ci بيئيّ (بيئة المدقّق) — CI عندنا يُثبت تثبيتاً نظيفاً + typecheck + vitest.
+
+**تحقّق:** pytest -m unit **2544** أخضر · حارس المظاريف 2/2 · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
 ## 2026-07-05 (ن-34) — إغلاق نهائيّ: صفر دَين واجهة (العقد 438 core)
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). النقاط الثلاث الأخيرة الموثَّقة بُنيت بواجهات حقيقيّة لا مؤجَّلة:

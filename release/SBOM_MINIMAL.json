@@ -8735,7 +8735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7638aafdba1f825fe48b84aa68024f60154c24d7846911d3c72b14fb74e85119"
+          "content": "4606c037dd3532b4498bd89fbf0ebc3d3e83e86fba94a3e13a24148ef3b7f7cb"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -9045,7 +9045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae4e17da6377c855e81e5421be61937710a9927094fbfdbe0452a64de655f647"
+          "content": "5b3ece62940f38c9dbf8181764bec3d4561b8b508c7f0c35d5b1751ff257c226"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -9219,6 +9219,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_error_sanitization_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bcb0e016605e04efe83dae98df4b77ede6ee64032be560d08e21178bf8a6b1df"
+        }
+      ],
+      "name": "services/raster-service/test_raster_honest_envelopes_20260705.py",
       "type": "file"
     },
     {

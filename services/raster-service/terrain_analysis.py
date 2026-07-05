@@ -11,6 +11,8 @@ terrain_analysis.py — تحليل التضاريس من DEM (سدّ فجوة: �
 
 from __future__ import annotations
 
+import os
+
 
 def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
     """يحسب الانحدار (درجات) والاتّجاه من DEM عبر طريقة Horn (المعياريّة).
@@ -24,8 +26,15 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
     except ImportError:
         return {"computed": False, "reason": "numpy/rasterio غير متوفّر — يُحسب في التشغيل"}
 
-    with rasterio.open(dem_path) as src:
-        dem = src.read(1).astype("float32")
+    # صدق: DEM مفقود/غير مقروء ⇒ مظروف «غير محسوب» صريح لا استثناء (تدقيق 2026-07-05).
+    # الـdocstring يعِد بـ«يُبلّغ»؛ فتح ملفّ مفقود مباشرةً كان يرفع RasterioIOError.
+    if not dem_path or not os.path.isfile(dem_path):
+        return {"computed": False, "reason": f"مصدر DEM غير موجود: {dem_path or '—'}"}
+    try:
+        with rasterio.open(dem_path) as src:
+            dem = src.read(1).astype("float32")
+    except rasterio.errors.RasterioIOError as e:
+        return {"computed": False, "reason": f"تعذّر قراءة DEM: {type(e).__name__}"}
 
     # تدرّج Horn (3×3) — dz/dx و dz/dy
     dzdx = np.gradient(dem, pixel_size_m, axis=1)
