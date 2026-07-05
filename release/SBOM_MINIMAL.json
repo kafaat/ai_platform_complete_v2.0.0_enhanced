@@ -465,6 +465,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0f4dbca491afda9b18714909503c08f4b37bacc63cf9fc407020297f9562ef87"
+        }
+      ],
+      "name": "frontend/src/components/DemoBadge.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "63fea4582b18a518fa0ee9092175703ce7f6a0b3691e73bf547a5ca49a550bd8"
         }
       ],
@@ -3599,6 +3609,26 @@
         }
       ],
       "name": "frontend/src/lib/projectFile.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1bc6e2282d7c43c7d3c7e76dc60087dd234b844e0c65de898552e0e64c6df80c"
+        }
+      ],
+      "name": "frontend/src/lib/realData.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4bbf25d73401487fac4bdd0e3b771cf0770433e603fa4263e7c10b98beb71dd4"
+        }
+      ],
+      "name": "frontend/src/lib/realData.ts",
       "type": "file"
     },
     {
