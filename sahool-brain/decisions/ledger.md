@@ -280,3 +280,12 @@ SHAs من `git log --oneline origin/main`.
 | `65c96cd` | `hashlib.sha1(..., usedforsecurity=False)` لبصمة كاش CDSE — استعمال غير أمنيّ؛ يُرضي bandit B324 HIGH (كان يحجب Security Scan) وFIPS بلا تغيير سلوك. |
 | `5cd765d` | رصد حفظ raster_assets (bool + سطر منظَّم + `persisted` في المهمّة) [v5-F1] + ملخّص فحص backfill [v5-F8]. F2/F4 (فحص لاتزامنيّ) مؤجَّل بصدق. |
 | `947c9af` | إضافة `sahool-raster-cache-invalidation-worker` لقائمة سماح JOBS **الثانية** (`tests/security/test_phase12`) — بوّابة الإنتاج main-only سقطت لأنّ القائمة تعيش في موضعَين. + تجديد بصمات الإصدار. |
+
+## 19) تحقّق تكامليّ على Postgres حيّ + إصلاح خلل الجسر الإنتاجيّ (2026-07-05)
+
+| SHA | القرار + السبب |
+|---|---|
+| `12329c4` | إضافة ٦ اختبارات `-m integration` (عامل الإبطال + جسر الكتالوج + STAC + v143 + Phase-1 SQL) على Postgres+PostGIS الحيّ في CI. دُفِعت للفرع أوّلاً وحُجِز main حتّى الخضرة. |
+| `c564d65` | إصلاح `$N::date`/`$N::timestamptz` ⇒ `$N::text::date`/`::timestamptz` في insert_raster_registry_entry/insert_stac_item — كانا يفشلان صامتاً (best-effort) فيُبقيان الكتالوج فارغاً في الإنتاج. كشفه الاختبار التكامليّ فقط. |
+
+**تحديث الفجوة:** «التحقّق التكامليّ» — الطبقة القاعديّة (worker/bridge/STAC/SQL على DB حيّ) **مُنجَزة ومُثبَتة في CI**؛ يبقى التفعيل الحيّ الكامل عبر compose (رفع + RASTER_CACHE_INVALIDATION_ENABLED) بيد المشغّل (يحتاج Docker).

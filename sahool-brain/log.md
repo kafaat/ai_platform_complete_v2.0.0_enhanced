@@ -1239,3 +1239,15 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **مؤجَّل بصدق (معماريّ، صنف v5-F2/F4 نفسه):** F1/F2 (backfill يعود job فوراً + مسح STAC الشهريّ في عامل، بدل مسار الطلب — يتفادى مهلة proxy 60s) · F4 (مفتاح idempotency + preflight raster_assets قبل الجدولة) · F6 (single-flight لكاش STAC ضدّ stampede المتزامن).
 
 **درس:** مهامّ FastAPI الخلفيّة المتزامنة الثقيلة يجب أن تكون `def` (threadpool) لا `async def` (حلقة الأحداث) — لفّ عمل متزامن في `async def` يُبطِل سلوك الـthreadpool.
+
+## 2026-07-05 (ي) — تحقّق تكامليّ على Postgres حيّ كشف خللاً إنتاجيّاً حقيقيّاً (الرأس `c564d65`)
+
+بطلب المستخدم، أُضيفت اختبارات `-m integration` تُشغّل عمل الجلسة على Postgres+PostGIS الحيّ في CI.
+**التزم بالانضباط: دُفِعت للفرع أوّلاً، وحُجِز main حتّى خضرة وظيفة Integration.** فكشفت **خللاً إنتاجيّاً**:
+
+- `insert_raster_registry_entry` و`insert_stac_item` (المرحلة ٥) كانا يُمرّران **نصّاً** لمعامل `$N::date`/`$N::timestamptz` ⇒ asyncpg يستنتج نوع date/timestamptz ويرفض النصّ. وبما أنّهما best-effort (try/except ⇒ False)، **ابتُلع الخطأ صامتاً** فبقي `raster_registry` و`stac_item_registry` **فارغَين في الإنتاج** — واختبارات الوحدة المُحاكاة لم ترَه.
+- **الإصلاح `c564d65`:** `$N::text::date` و`$N::text::timestamptz` (asyncpg يربط النصّ كـtext وPostgres يقصّه).
+
+**درس محوريّ:** الكتّاب best-effort (try/except يبتلع) لا تُثبِتهم اختبارات الوحدة المُحاكاة — يلزم **اختبار تكامليّ على قاعدة حيّة**. وأيّ معامل تاريخ/وقت مُمرَّر نصّاً لـasyncpg تحت `::date`/`::timestamptz` يحتاج `::text::` أو تحويلاً لكائن Python (نمط insert_raster_asset).
+
+التغطية التكامليّة الجديدة (٦ اختبارات، خضراء على PostGIS الحيّ): v143 asset_status/geometry_revision + استبعاد failed · v3-F1 حدّ التواريخ المميَّزة · v3-F3 انتقاء الجودة · جسر registry+STAC · عامل الإبطال (stale+processed).
