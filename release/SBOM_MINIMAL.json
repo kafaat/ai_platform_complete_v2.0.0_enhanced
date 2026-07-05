@@ -4485,7 +4485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "917bf6a3f3a567db1d5c2ce685e6b6c152c0ceee354e17e706215c91b6de2c80"
+          "content": "8bff71a597703a90b13b2211aba1c7818772a4ae4d69035281342c65791a19e0"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -8815,7 +8815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbedd2c2feb3708e7674b53d727a22832d5c890ec569d0629057bdd2996e4ba8"
+          "content": "5b4d12ed710195127925357ef346846980f370c411a764d9e126cc3b815dc168"
         }
       ],
       "name": "services/raster-service/object_store.py",
@@ -8895,7 +8895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43cfed5dea1e8ffd3c860f03c1b0936674222039a0e55eda11ff217bef70bd8d"
+          "content": "039419e4277538d0025d3f48416e33cf1beb201f83b430bfb1f1622cc01798b1"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -8905,7 +8905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c761a1922f97eadf08ebed371ab01571a92df60737a52805655854c9659cb16e"
+          "content": "a81029696f4389616423d91d46b553a5dfd6fbfa6bef0ffe0925e8326b6b38f1"
         }
       ],
       "name": "services/raster-service/routers/fields.py",

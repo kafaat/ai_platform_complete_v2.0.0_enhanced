@@ -902,17 +902,25 @@ async def field_tilejson(
     resolved_version = v or str(
         (layer or {}).get("created_at") or (layer or {}).get("cog_url") or "default"
     )
-    qs_parts = [f"index={out_index}", f"date={date}", f"resolved_date={resolved_date}"]
     # TileJSON is fetched by JS, but the returned tiles are loaded later as <img>
     # requests and cannot rely on axios headers. Propagate the tenant hint from the
     # already-validated request into the tile URL so restart/DB rehydration keeps
     # working for MapLibre/Leaflet consumers.
+    # urlencode بدل التسلسل اليدويّ: ``v`` قد يُشتقّ من cog_url (قد يحوي & / مسافات)
+    # فالتسلسل الخام يكسر سلسلة الاستعلام أو يحقن معاملات. urlencode يُرمِّز بأمان. v4-audit
+    from urllib.parse import urlencode
+
+    qs_params: dict[str, str] = {
+        "index": out_index,
+        "date": date,
+        "resolved_date": resolved_date,
+    }
     req_tenant = main._REQ_TENANT.get()
     if req_tenant:
-        qs_parts.append(f"tid={req_tenant}")
+        qs_params["tid"] = req_tenant
     if resolved_version:
-        qs_parts.append(f"v={resolved_version}")
-    qs = "&".join(qs_parts)
+        qs_params["v"] = resolved_version
+    qs = urlencode(qs_params)
     self_tiles = f"/v1/fields/{field_id}/tiles/{{z}}/{{x}}/{{y}}.png?{qs}"
 
     tj = {

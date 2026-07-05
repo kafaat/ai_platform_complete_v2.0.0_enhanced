@@ -26,6 +26,15 @@ S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY", "")
 S3_SECRET_KEY = os.getenv("S3_SECRET_KEY", "")
 S3_REGION = os.getenv("S3_REGION", "us-east-1")
 S3_USE_SSL = os.getenv("S3_USE_SSL", "false")
+# fail-closed افتراضيّاً: حين تكون S3 مُهيّأة لكنّ الرفع يفشل، لا نتدهور بصمت إلى
+# file:// (غير قابل للخدمة عبر المضيفين ويُخزَّن في raster_assets كأنّه صالح). نرفع
+# استثناءً صريحاً فيسجّله المُستدعي (cog_url=None، سبب موثَّق). للتطوير فقط: يمكن
+# استعادة التدهور اللطيف عبر S3_ALLOW_FILE_FALLBACK=1. غياب S3 (تطوير) يبقى file://. v3-Finding-9
+S3_ALLOW_FILE_FALLBACK = os.getenv("S3_ALLOW_FILE_FALLBACK", "false")
+
+
+def _allow_file_fallback() -> bool:
+    return str(S3_ALLOW_FILE_FALLBACK).strip().lower() in ("1", "true", "yes", "on")
 
 
 def _use_ssl() -> bool:
@@ -82,12 +91,17 @@ def gdal_configure() -> None:
     os.environ["CPL_VSIL_CURL_ALLOWED_EXTENSIONS"] = ".tif"
 
 
+class ObjectStoreUploadError(RuntimeError):
+    """رفع COG إلى S3 المُهيّأة فشل — fail-closed (لا تدهور صامت إلى file://)."""
+
+
 def upload_cog(local_path: str, key: str) -> str:
     """يرفع COG محلّي إلى الدلو تحت `key` ويُرجِع `s3://{bucket}/{key}`.
 
-    عند أيّ فشل (boto3 مفقود، شبكة، إلخ) يسجّل تحذيراً ويُرجِع
-    `file://{local_path}` (تدهور لطيف — لا يرفع استثناءً أبداً). إن لم يكن
-    enabled() يُرجِع `file://{local_path}` مباشرة.
+    إن لم يكن enabled() (بلا S3 — تطوير) يُرجِع `file://{local_path}` مباشرة (سلوك
+    مشروع). أمّا حين تكون S3 مُهيّأة والرفع يفشل فهذا خطأ بنية حقيقيّ: نرفع
+    ``ObjectStoreUploadError`` (fail-closed) بدل إرجاع file:// غير القابل للخدمة
+    عبر المضيفين — إلّا إذا ضُبط S3_ALLOW_FILE_FALLBACK=1 (تطوير) فنتدهور بتحذير عالٍ.
     """
     if not enabled():
         return f"file://{local_path}"
@@ -114,15 +128,24 @@ def upload_cog(local_path: str, key: str) -> str:
                 logger.warning("create_bucket(%s) failed (continuing): %s", S3_BUCKET, _ce)
         client.upload_file(local_path, S3_BUCKET, key)
         return f"s3://{S3_BUCKET}/{key}"
-    except Exception as _e:  # noqa: BLE001 — أيّ فشل → تدهور لطيف إلى file://
-        logger.warning(
-            "upload_cog to s3://%s/%s failed, falling back to file://%s: %s",
+    except Exception as _e:  # noqa: BLE001 — نقرّر حسب سياسة fail-closed أدناه
+        if _allow_file_fallback():
+            logger.warning(
+                "upload_cog to s3://%s/%s failed; S3_ALLOW_FILE_FALLBACK ⇒ file://%s (تطوير): %s",
+                S3_BUCKET,
+                key,
+                local_path,
+                _e,
+            )
+            return f"file://{local_path}"
+        # fail-closed: S3 مُهيّأة لكنّ الرفع فشل ⇒ لا نُخزِّن URL غير قابل للخدمة.
+        logger.error(
+            "upload_cog to s3://%s/%s failed — fail-closed (لا file:// صامت): %s",
             S3_BUCKET,
             key,
-            local_path,
             _e,
         )
-        return f"file://{local_path}"
+        raise ObjectStoreUploadError(f"S3 upload failed for s3://{S3_BUCKET}/{key}: {_e}") from _e
 
 
 def to_gdal_path(uri: str) -> str:

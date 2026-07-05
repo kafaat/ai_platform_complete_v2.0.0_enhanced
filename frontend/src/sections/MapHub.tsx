@@ -386,6 +386,18 @@ export default function MapHub() {
     if (!fieldId || !activeIndicator || mode !== '2d') return;
     const key = `${tenantId ?? 'default'}:${fieldId}:${activeIndicator}:${selectedImageryDate}`;
     if (imageryRefreshKeyRef.current === key) return;
+    // FINDING-007: لا نُطلق معالجة جديدة عند اختيار تاريخ تاريخيّ يملك COG جاهزاً
+    // بالفعل — إعادة المعالجة هدر وقد تُعيد كتابة أصل موجود. نكتفي بتبديل الطبقة
+    // (bump imageryTs فتُعيد البلاطات القراءة من COG القائم). الإطلاق يبقى فقط
+    // حين لا COG لهذا التاريخ، أو عند «latest» (نضمن أحدث مشهد).
+    const readyOption = selectedImageryDate !== 'latest'
+      ? availableImageryDates.find((d) => d.date === selectedImageryDate)
+      : undefined;
+    if (readyOption?.has_cog) {
+      imageryRefreshKeyRef.current = key;
+      setImageryTs(Date.now());
+      return;
+    }
     imageryRefreshKeyRef.current = key;
     let cancelled = false;
     refreshFieldImagery(fieldId, selectedImageryDate)
@@ -399,7 +411,7 @@ export default function MapHub() {
         if (!cancelled) setImageryTs(Date.now());
       });
     return () => { cancelled = true; };
-  }, [fieldId, activeIndicator, mode, tenantId, selectedImageryDate]);
+  }, [fieldId, activeIndicator, mode, tenantId, selectedImageryDate, availableImageryDates]);
 
   useEffect(() => {
     if (!fieldId) {
