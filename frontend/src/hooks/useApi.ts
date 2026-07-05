@@ -303,10 +303,11 @@ export function useAllFieldsNdvi() {
 export function useAnalyzeVegetation() {
   const qc = useQueryClient();
   return useMutation<unknown, Error, { fieldId: string; dateFrom?: string }>({
-    mutationFn: ({ fieldId, dateFrom }) =>
-      vegetationApi.get('/v1/analyze', {
-        params: { field_id: fieldId, ...(dateFrom ? { date_from: dateFrom } : {}) }
-      }).then(r => r.data),
+    // UI hotfix: معرّفات صفحة الأقمار هي معرّفات المنصّة (fld_*) يملكها raster عبر المنصّة؛
+    // vegetation-analysis-service /v1/analyze لا يملكها فيُرجِع «field_id not found». لذا
+    // «تحليل الآن» يُطلق مسار تحديث الصور القانونيّ (يتحقّق من الملكيّة ويُوكّل لـraster
+    // بهندسة الحقل) — لا احتياطيّ مُختلَق.
+    mutationFn: ({ fieldId, dateFrom }) => refreshFieldImagery(fieldId, dateFrom ?? null),
     onSuccess: (_data, { fieldId }) => {
       qc.invalidateQueries({ queryKey: ['field-timeseries', fieldId] });   // شريط raster الزمنيّ (كلّ المؤشّرات)
       qc.invalidateQueries({ queryKey: ['vegetation', 'ts', fieldId] });   // سلسلة vegetation البديلة
@@ -329,14 +330,14 @@ export function useRefreshFieldImagery() {
 }
 
 // ── Indicators ────────────────────────────────────────────────
-// صدق المصدر: لا توجد نقطة «33 مؤشّراً لكلّ حقل» حقيقيّة (indicators-service خدمة
-// stub). نشتقّ مؤشّرات الحقل من تحليل الغطاء النباتيّ الحيّ (vegetation-service)
-// عبر GET /v1/analyze — لا نطلب نقطة وهميّة. شكل الردّ (indices[*].value + health)
-// كافٍ للوحة المعلومات. عند الخطأ (404 حقل/503) يُرفض الاستعلام لحالة صادقة.
+// UI deeper-fix (ملكيّة المعرّف): معرّفات الحقل platform (fld_*) لا يملكها
+// vegetation-service؛ استدعاؤه بـGET /v1/analyze بهذه المعرّفات يُرجِع «field_id not
+// found» (404) دائماً. نقرأ كتالوج المؤشّرات من المنصّة (نقطة قائمة فعليّاً)، وزرّ
+// «تحليل الآن» يُطلق imagery refresh القانونيّ (raster عبر المنصّة).
 export function useIndicators(fieldId: string) {
   return useQuery({
     queryKey: QK.indicators(fieldId),
-    queryFn:  () => vegetationApi.get('/v1/analyze', { params: { field_id: fieldId } }).then(r => r.data),
+    queryFn:  () => kongApi.get('/api/v1/indicators/catalog').then(r => r.data),
     staleTime:5 * 60_000,
     enabled:  !!fieldId,
     retry:    false,

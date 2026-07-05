@@ -2115,7 +2115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52e81293b53b2cb1817cb38a29882054eb3faeb39f440e0c8a92c8181b4653bb"
+          "content": "ace8a3b06f88953cfb951b33c4651bfe9fd0ce0a21f680f114c6e26f7f53ed22"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4925,7 +4925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce94aab6171778f6bdc2cb8e1e685f21dd6b2a517025066e9a8e34b849baa780"
+          "content": "a9f3f9c4e2a8aacdee5ddf8410f5db23dd679264d99c5db934a766a020db511d"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -5589,6 +5589,16 @@
         }
       ],
       "name": "migrations/v146_backfill_runs_outcome_counters.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aaaa92c587ed28450225f870fe9f83bf1f6bd6eb6bf4d26406edb93d7e31623e"
+        }
+      ],
+      "name": "migrations/v147_backfill_runs_source_landsat_thermal.sql",
       "type": "file"
     },
     {
@@ -8755,7 +8765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e54823d8e7135c840809f35dd691759cd8097fe071b07373810414aae7afe0ba"
+          "content": "0597e2fa69642e28b8e04aa0b4cd9d90522207a8da026d7c47c3afd53eb2ab80"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -9259,6 +9269,16 @@
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "51d1e145a88555915851893e313ef0a8df95c9dd6425b33f6883bcf8ea7de742"
+        }
+      ],
+      "name": "services/raster-service/test_landsat_thermal_unique_contract.py",
       "type": "file"
     },
     {
