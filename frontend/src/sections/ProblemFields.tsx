@@ -30,6 +30,7 @@ import type { AlertRecord } from '../services/api';
 import {
   T, Card, Pill, Badge, SectionLabel, StatGrid, ProgressBar, FieldCabin, ndviColor, severityTone,
 } from '../components/ds';
+import { isRealData } from '../lib/realData';
 
 // ── أوزان شدّة التنبيه (حرِج > تحذير > معلومة) ──────────────────
 function severityWeight(severity?: string | null): number {
@@ -100,7 +101,7 @@ export default function ProblemFields() {
     return raw
       .map((f): ProblemField => {
         const id = String(f.field_id ?? '');
-        const ndviRaw = f.real_data === false ? null : f.ndvi;
+        const ndviRaw = isRealData(f) ? f.ndvi : null;
         const ndviValid =
           typeof ndviRaw === 'number' && Number.isFinite(ndviRaw) && ndviRaw >= 0 && ndviRaw <= 1;
         const ndvi = ndviValid ? (ndviRaw as number) : null;

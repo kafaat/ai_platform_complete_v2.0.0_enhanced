@@ -4315,7 +4315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4296945375b91dec90eac3883419d416f9b9e5e480afa87e8a2598d23d5a67a8"
+          "content": "e4719ddece2cd01efaecad3c5fd1796a013948d145c0a15c2287de31c924e400"
         }
       ],
       "name": "frontend/src/sections/FieldRanking.tsx",
@@ -4745,7 +4745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c957df31a463194c155dad00a8df3b620cf2b81bf60aa8f33d2381cd7fead93"
+          "content": "3f3f940b5382bc6f0ea942abf4bed8ba780b45a872fbd46e9e9bb30681047c13"
         }
       ],
       "name": "frontend/src/sections/ProblemFields.tsx",
