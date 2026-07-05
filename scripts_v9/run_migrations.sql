@@ -437,3 +437,5 @@
 \i migrations/v140_outbox_delivery_attempts.sql
 \echo '═══ 147. v141_mfa_totp_antireplay.sql ═══'
 \i migrations/v141_mfa_totp_antireplay.sql
+\echo '═══ 148. v142_raster_assets_dedup_traceability.sql ═══'
+\i migrations/v142_raster_assets_dedup_traceability.sql

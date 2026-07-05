@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-07-05 (ن-39) — إصلاح بوّابة الإنتاج: v142 نُقِص من run_migrations.sql (منظومة ترحيل ثانية)
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). بوّابة الإنتاج فشلت (رمز 1): `v142_raster_assets_dedup_traceability.sql is missing manifest entries`.
+
+- **الجذر:** المستودع يملك **منظومتَي ترحيل متوازيتين**: `migrations/MANIFEST.txt` (أضفتُ v142 إليها) و`scripts_v9/run_migrations.sql` (psql `\i` بنفس الترتيب) — والبوّابة تتحقّق من تطابقهما. أضفتُ v142 لـMANIFEST دون run_migrations.sql فاختلّ التطابق.
+- **الإصلاح:** أُضيف v142 كمدخل #148 في `run_migrations.sql` بنفس النمط. البوّابة الآن **PASS كاملةً** (148 migration · RLS · legacy quarantine · source-of-truth · certification matrix · compile 3282/0).
+- **حارس جديد `test_migration_runners_in_sync`:** unit يلتقط أيّ ترحيل في MANIFEST غائب عن run_migrations.sql محلّيّاً قبل CI/البوّابة — كي لا يتكرّر (الدرس: أيّ ترحيل جديد يُضاف للمنظومتين معاً).
+
+**درس تشغيليّ (مثل f9dc4c8 سابقاً):** *Sahool Production Gates* سير عمل منفصل يعمل على main فقط ولا يظهر في فحص الفرع — بعد أيّ ترحيل: `bash scripts/production_validation_gate.sh` محلّيّاً قبل اعتبار main نظيفاً.
+
+**تحقّق:** بوّابة الإنتاج PASS · pytest -m unit (migration/manifest/raster) أخضر · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
 ## 2026-07-05 (ن-38) — تدقيق صور الأقمار: idempotency + تتبّع raster_assets (v142)؛ إصلاح اختبار المستأجِر
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تدقيق عميق عالي الجودة على تخزين الصور التاريخيّة — نتائجه حقيقيّة، عولجت الأعلى قيمةً والأكثر أماناً:
