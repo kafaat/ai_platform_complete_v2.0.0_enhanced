@@ -1297,3 +1297,14 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - طُبِّق عبر `patch -p4` (الرقعة على أساس يحوي عمل CDSE، فلا تعارض مع `8a6d023`). مجموعات `LANDSAT_UNIQUE/DIRECT/DERIVED/DUPLICATE` + `IndicatorKind` (lst/cwsi/tvdi/tci/vhi/et_inputs) · `_stac_search_landsat`→`_stac_search_landsat_unique` (يُرجِع `thermal_urls.lst` فقط، `_landsat_thermal_href` يرفض red/nir/swir) · backfill route `source=landsat-thermal` يرفض المكررات · العامل+المتزامن يعالجان LST · ترحيل **v147** (`backfill_runs.source`).
 - **تحقّق-قبل-دمج اصطاد ثغرتَين حقيقيّتَين في رقعة المُدقِّق** (اختباراته لم تُشغّل `_process_run`): (١) `is_landsat_thermal` مُستعمَل في `_process_run` بلا تعريف ⇒ **NameError على كلّ تشغيلة** — عُرِّف من `run.source`؛ (٢) v147 في MANIFEST فقط لا `run_migrations.sql` ⇒ **فشل بوّابة الإنتاج** — أُضيف للمُشغّلَين. + إضافة `/imagery/search/landsat-thermal` لـPUBLIC_CATALOG (حارس التفويض). حارس `test_landsat_thermal_unique_v31_0` (يشمل الثغرتَين).
 - **v147 مُثبَت على Postgres حيّ:** v144→v146→v147 + إعادة تطبيق؛ يقبل `landsat-thermal` ويرفض `modis` (CHECK). unit **2615** · production gate **153 ترحيلاً**.
+
+## 2026-07-05 (س) — إصلاحات runtime/UI للأقمار (رقعات المستخدم؛ الرأس `0f0f973`)
+
+من رقعات المستخدم المتتالية (runtimefix → uihotfix → deeper)؛ أُدمِجت الإصلاحات الحقيقيّة بعد تحقّق-قبل-دمج:
+
+- **raster runtime:** preflight العامل ربط `acq` النصّيّ بـ`$5::date` ⇒ asyncpg يرفض الـstr (`'str' has no attribute 'toordinal'`). صُحِّح إلى `$5::text::date` (نمط INSERT الآمن المُثبَت). كان يُفشِل preflight لكلّ مشهد بتاريخ — التقطته رقعة المستخدم؛ INSERT عندي كان صحيحاً سلفاً لكن preflight فاتني.
+- **web ownership (fld_*):** معرّفات الحقل platform لا يملكها vegetation-service (`/v1/analyze` ⇒ «field_id not found»). حُوِّلت 3 مواضع للمسار القانونيّ: `useAnalyzeVegetation`/`analyzeVegetation` export → `refreshFieldImagery`؛ `useIndicators` → `/api/v1/indicators/catalog` (تحقّقت أنّه قائم في `routers/indicators.py:34`).
+- **web auth UX:** 401 من خدمة ميزة كان يطرد المستخدم؛ حُصِر الخروج القسريّ في `/auth/`.
+- حارس `SatellitePageRuntimeFix.static.test.ts` (أصلحت نمط قراءته: `resolve(__dirname)` لا `new URL(import.meta.url)` الذي يفشل في vitest بـ«URL must be of scheme file»).
+
+**درس:** الأصل الثابت لرقعات المُدقِّق المتتالية = `7b7bf54`؛ فالفروق الكبيرة معظمها عملي الأحدث (8a6d023+). قارنتُ «سطورهم غير الموجودة عندي» فقط لعزل إصلاحاتهم الحقيقيّة. unit 2615 · vitest 1047.
