@@ -289,3 +289,14 @@ SHAs من `git log --oneline origin/main`.
 | `c564d65` | إصلاح `$N::date`/`$N::timestamptz` ⇒ `$N::text::date`/`::timestamptz` في insert_raster_registry_entry/insert_stac_item — كانا يفشلان صامتاً (best-effort) فيُبقيان الكتالوج فارغاً في الإنتاج. كشفه الاختبار التكامليّ فقط. |
 
 **تحديث الفجوة:** «التحقّق التكامليّ» — الطبقة القاعديّة (worker/bridge/STAC/SQL على DB حيّ) **مُنجَزة ومُثبَتة في CI**؛ يبقى التفعيل الحيّ الكامل عبر compose (رفع + RASTER_CACHE_INVALIDATION_ENABLED) بيد المشغّل (يحتاج Docker).
+
+## 20) بنية backfill اللاتزامنيّة + STAC single-flight (2026-07-05، شريحتان)
+
+| SHA | القرار + السبب |
+|---|---|
+| Slice A | single-flight في عميل STAC (خريطة key→Future) — miss متطابق متزامن = POST واحد؛ يتفادى stampede على Earth Search عند backfill متوازٍ [v6-F6]. |
+| `10cb133` | v144 (backfill_runs/run_items + idempotency فريد + RLS) · نقطة تُرجِع run_id فوراً خلف راية · عامل فحص (Pattern A) يمسح خارج مسار الطلب + preflight + idempotent + threadpool؛ يعيد استخدام دوالّ main [v5-F1/F2/F4 · v6-F1/F2/F4]. |
+| `c564d65` | إصلاح ربط تاريخ جسر الكتالوج (`::text::date`) — كان يفشل صامتاً؛ كشفه اختبار تكامليّ حيّ. |
+| `ecc0061` | إزالة U+200F خفيّ (bandit B613 HIGH) من docstring العامل. |
+
+**قرار انضباط مؤكَّد:** الشرائح ذات migration/worker/best-effort تُدفَع للفرع أوّلاً، ويُحجَز main حتّى خضرة *Integration Tests* (PostGIS حيّ) و*Security Scan* — لأنّ هذه الأخطاء لا تظهر في `pytest -m unit` المُحاكى.

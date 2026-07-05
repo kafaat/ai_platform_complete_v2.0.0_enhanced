@@ -1251,3 +1251,16 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 **درس محوريّ:** الكتّاب best-effort (try/except يبتلع) لا تُثبِتهم اختبارات الوحدة المُحاكاة — يلزم **اختبار تكامليّ على قاعدة حيّة**. وأيّ معامل تاريخ/وقت مُمرَّر نصّاً لـasyncpg تحت `::date`/`::timestamptz` يحتاج `::text::` أو تحويلاً لكائن Python (نمط insert_raster_asset).
 
 التغطية التكامليّة الجديدة (٦ اختبارات، خضراء على PostGIS الحيّ): v143 asset_status/geometry_revision + استبعاد failed · v3-F1 حدّ التواريخ المميَّزة · v3-F3 انتقاء الجودة · جسر registry+STAC · عامل الإبطال (stale+processed).
+
+## 2026-07-05 (ك) — إنجاز بنية backfill اللاتزامنيّة + single-flight (v5-F2/F4 · v6-F1/F2/F4/F6؛ الرأس `ecc0061`)
+
+آخر «مؤجَّل معماريّ» أُنجِز، على شريحتَين مستقلّتَين، **دُفِعتا للفرع أوّلاً وحُجِز main حتّى خضرة CI الكاملة** (تكامل+أمن):
+
+- **Slice A `...` (v6-F6):** single-flight في `ResilientStacClient.search` — طلبات miss متطابقة متزامنة تتشارك POST واحداً (خريطة key→Future، تُنظَّف في finally). حارس: 5 متزامنة ⇒ 1 POST.
+- **Slice B `10cb133` (v5-F1/F2/F4 · v6-F1/F2/F4):** ترحيل **v144** (`backfill_runs` + `backfill_run_items` بمفتاح idempotency فريد + RLS FORCE) · نقطة `/imagery/backfill` تُرجِع `run_id` فوراً خلف راية `RASTER_ASYNC_BACKFILL_ENABLED` (لا مسح STAC في مسار الطلب ⇒ لا مهلة proxy 60s) · عامل `backfill_scan_worker` (Pattern A، JOBS) يمسح خارج مسار الطلب + preflight raster_assets + ON CONFLICT DO NOTHING + معالجة في threadpool؛ يعيد استخدام دوالّ main · خدمة compose خلف راية · تحديث القائمتَين (rls_gate + phase12) وtenant-audit وحارس مصادر الترحيل.
+
+**فشلان اصطادهما الفرع (لولا حجز main لاحمرّ):**
+1. `c564d65` سابقاً: جسر الكتالوج كان يفشل صامتاً على ربط التاريخ (`$::date` بنصّ) — أصلحه `::text::date`؛ كشفه اختبار تكامليّ حيّ.
+2. `ecc0061`: محرف bidi خفيّ (U+200F) في docstring العامل ⇒ bandit B613 HIGH حجب Security Scan — أُزيل.
+
+**نتيجة CI على `ecc0061`:** Integration **75 passed** (تكامل backfill+الكتالوج على PostGIS حيّ مع v144) · bandit HIGH نظيف · باقي الوظائف خضراء. **الدرس المؤكَّد:** الكتّاب best-effort + المحارف الخفيّة لا تُرى إلّا على DB حيّ/بوّابة أمن — لذا **ادفع للفرع أوّلاً واحجز main** حتّى خضرة التكامل والأمن.
