@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-05 (ن) — `3206dc6` إصلاح: لا ازدواج لمسار /terrain (الفرع اصطاده)
+
+بوّابة CI للفرع اصطادت أنّ المنصّة **تملك أصلاً** `GET /api/v1/fields/{id}/terrain` (`get_field_terrain`: enrich_terrain على أعمدة مخزّنة + ملاحظة «DEM مؤجَّل»)؛ فالوسيط الذي أضفتُه كان **تسجيلاً مزدوجاً** أسقط `test_router_decomposition_guard`. الإصلاح: حذف الوسيط المكرّر وبدلاً منه **إغناء النقطة القائمة من DEM حيّ**: عند غياب القيم المخزّنة، `get_field_terrain` ينادي best-effort راستر `/terrain` (bbox من الهندسة) ويغذّي enrich_terrain بالارتفاع/الانحدار(deg→pct)/الاتّجاه المحسوب، ويكشف المظروف الخام تحت `dem_auto_fill.computed` ويقلب `available`؛ التعذّر ⇒ available=false صادق. الواجهة `fetchFieldTerrain` تقرأ `dem_auto_fill.computed`. **درس:** ابحث عن نقطة قائمة قبل إضافة راوت — الفرع-أولاً أنقذ من ازدواج في main. البوّابات: router-guard أخضر · platform 3105 · unit 2626 · vitest 1057 · release 3157.
+
+---
+
 ## 2026-07-05 (ن) — `beec5ef` أساس TERRAIN: نقطة تضاريس خادميّة من DEM حقيقيّ
 
 على «استمر» بُني أساس فجوة TERRAIN بصدق (لا اختلاق): `terrain_analysis.compute_field_terrain(dem, bbox)` يقصّ DEM على bbox الحقل ويحسب ارتفاع/انحدار/اتّجاه عبر Horn + الجهة الغالبة؛ غياب DEM/bbox ⇒ `computed=false` بمصدره. راستر `GET /v1/fields/{id}/terrain` (tenant-scoped + `FIELD_DEM_PATH` + تصنيف حصاد المياه) · منصّة proxy (geometry→bbox عبر guard_field_geometry، 404 صادق خارج المستأجِر) · واجهة `fetchFieldTerrain`/`useFieldTerrain` + `TerrainView3D` يعرض إحصاءات محسوبة أو سبباً صادقاً («DEM غير مُهيّأ»)؛ تصيير 3D terrain-RGB يبقى حالة انتظار موثّقة (لا نقش مزيّف). اختبارات: سلوكيّ مرافق + حارس tests_v9 + TerrainView3D.static. **البوّابات:** unit 2626 · vitest 1057 · tsc/ruff نظيف · release 3154. بلا migration. **يبقى نشريّاً:** تزويد DEM حقيقيّ + بلاطات 3D.
