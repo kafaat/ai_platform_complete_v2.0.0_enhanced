@@ -89,6 +89,12 @@ export interface HubMapProps {
   slopeTilesUrl?: string | null;
   terrainOpacity?: number;
   contours?: FieldContours | null;
+  // ── طبقة التربة (SoilGrids) من raster-service — مستقلّة عن المؤشّر/التضاريس ──
+  // رابط قالب بلاطات ({z}/{x}/{y}) لخاصّيّة/عمق تربة، أو null لإخفائها. تُبنى في
+  // MapHub من fetchSoilTileJson (available:true) + soilTileUrl؛ البلاطة نصف-شفّافة،
+  // وشفّافة تماماً حيث لا مصدر (لا اختراع قيم تربة).
+  soilTilesUrl?: string | null;
+  soilOpacity?: number;
   // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
   // لقطة عرض مُستعادة (مركز lat/lng + تكبير) تبدأ منها الخريطة وتُلغي الملاءمة
   // التلقائيّة عند أوّل تركيب. null/غياب ⇒ سلوك v1 (ملاءمة للحقول).
@@ -359,6 +365,7 @@ export default function HubMap({
   pivotDesignerEnabled = false, onAddPivotDraft, pivotDrafts = [],
   imageryTs = 0, imageryDate = null, tenantId = null,
   hillshadeTilesUrl = null, slopeTilesUrl = null, terrainOpacity = 0.7, contours = null,
+  soilTilesUrl = null, soilOpacity = 0.6,
   initialView = null, onViewChange,
 }: HubMapProps) {
   const basemap = getLayer(basemapId);
@@ -419,6 +426,18 @@ export default function HubMap({
             key={`slope-${tenantId ?? 'tenant'}`}
             url={slopeTilesUrl}
             opacity={terrainOpacity}
+            errorTileUrl={TRANSPARENT_TILE}
+          />
+        )}
+
+        {/* طبقة التربة (SoilGrids) — تُرسَم فوق الأساس/التضاريس وتحت المؤشّر/الحدود.
+            البلاطة نصف-شفّافة، وشفّافة تماماً حيث لا مصدر (errorTileUrl) — لا اختراع
+            قيم تربة. تظهر فقط حين available:true (يبني MapHub الرابط عندئذ). */}
+        {soilTilesUrl && (
+          <TileLayer
+            key={`soil-${tenantId ?? 'tenant'}`}
+            url={soilTilesUrl}
+            opacity={soilOpacity}
             errorTileUrl={TRANSPARENT_TILE}
           />
         )}

@@ -206,3 +206,24 @@ psql "$DATABASE_URL" -v tenant_id="'<TENANT-UUID>'" \
 **تحقّق الحسابات:** الميل ٪ يُحسَب بأمتار الأرض (تصحيح mercator بـcos(lat))؛ nodata مُقنَّع
 (`masked=True`)؛ الكنتور عبر مربّع مسير نقيّ (بلا اعتماد خارجيّ). اختبار سلوكيّ:
 `services/raster-service/test_terrain_render.py` (DEM اصطناعيّ).
+
+## 12. طبقة التربة (SoilGrids) — تفعيلها بتزويد مصدر Raster
+
+طبقة خصائص التربة البصريّة (pH/طين/رمل/طمي/كربون عضويّ/CEC/نيتروجين/كثافة) جاهزة كوديّاً
+وتعمل **fail-closed صادق بلا مصدر**: بلاطة شفّافة + `available:false` + تحذير إلزاميّ دائم
+(«SoilGrids تقديريّ ~250م، لا يُغني عن المختبر»). **توجيهيّة لاختيار مواقع العيّنات فقط.**
+
+للتفعيل:
+1. **حمّل SoilGrids GeoTIFF** (ISRIC، CC‑BY 4.0) للخصائص/الأعماق المطلوبة عبر WCS
+   (`https://maps.isric.org/mapserv?map=/map/<property>.map`) أو من مستودع SoilGrids،
+   وقصّها على منطقتك. سمِّ كلّ ملفّ `<property>_<depth>.tif` (مثل `phh2o_0-5cm.tif`،
+   `clay_0-30cm`… الأعماق: 0-5cm/5-15cm/15-30cm/30-60cm/60-100cm/100-200cm).
+2. ضع الملفّات في مجلّد واحد واضبط `SOILGRIDS_DIR=/data/soilgrids` في بيئة `raster-service`
+   (mount المجلّد). القيم تبقى بوحدة SoilGrids المُخزّنة — التحويل يجري في `soil_render`.
+3. أعِد تشغيل `raster-service`. تحقّق:
+   `GET /api/raster/v1/soil/tilejson?property=phh2o&depth=0-5cm` ⇒ `available:true` + `legend`.
+4. في الواجهة: مبدّل «طبقة التربة (SoilGrids)» + منتقيا الخاصّيّة/العمق + الأسطورة + التحذير.
+
+**تكامل مع أخذ العيّنات:** الطبقة توجيهيّة؛ مُخطِّط العيّنات القائم (v61: grid/zone/hybrid،
+`/api/v1/sampling/strategy`) واستيعاب المختبر (`/api/v1/lab/*`) يبقيان مصدر القرار. اختبار
+سلوكيّ: `services/raster-service/test_soil_render.py` (SoilGrids اصطناعيّ).

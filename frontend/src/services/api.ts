@@ -3611,6 +3611,94 @@ export const fetchFieldContours = (
     .then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
+// SOIL (SoilGrids) — خصائص التربة التقديريّة (~250م) عبر raster-service
+// عقد الخادم (مثبّت — لا يُعدَّل من الواجهة):
+//   • GET /v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png?tid=<tenant> → PNG مُلوَّن نصف-شفّاف (شفّاف بلا مصدر)
+//   • GET /v1/soil/tilejson?property=<prop>&depth=<depth> → TileJSON + available/legend/disclaimer/user_message
+//   • GET /v1/soil/properties → قائمة الخصائص + الأعماق + source_configured + disclaimer
+// صدق صارم: SoilGrids تقدير عالميّ (~250م) لإرشاد أخذ العيّنات فقط — ليس بديلاً
+// عن تحليل مختبر. الـdisclaimer يُعرَض دوماً حين الطبقة مفعّلة. عند available:false
+// لا نبني بلاطة؛ نعرض user_message الصادق من الخادم (لا نختلق قيم تربة).
+// ══════════════════════════════════════════════════════════════════
+export type SoilProperty =
+  | 'phh2o' | 'clay' | 'sand' | 'silt' | 'soc' | 'cec' | 'nitrogen' | 'bdod';
+
+// درجة أسطورة التربة (من tilejson.legend) — قيمة + لون.
+export interface SoilLegendStop {
+  value: number;
+  color: string;
+}
+
+// TileJSON لطبقة تربة. available:false + user_message حين لا مصدر مُهيّأ (حالة صادقة).
+// disclaimer حاضر دوماً (تقدير SoilGrids — إرشاد أخذ عيّنات فقط، لا بديل مختبر).
+export interface SoilTileJson {
+  tilejson?: string;
+  tiles?: string[];           // قوالب روابط البلاطات ({z}/{x}/{y}) — قد تغيب عند عدم التوفّر
+  bounds?: [number, number, number, number];
+  available: boolean;
+  property: string;           // phh2o | clay | ...
+  name_ar: string;            // اسم الخاصّيّة بالعربيّة
+  unit: string;               // الوحدة (مثل pH / g/kg / cmol(+)/kg)
+  depth: string;              // 0-5cm | 5-15cm | ...
+  legend: SoilLegendStop[];   // قيمة + لون لكلّ درجة
+  disclaimer: string;         // إخلاء مسؤوليّة إلزاميّ العرض
+  reason?: string;
+  user_message?: string;      // رسالة عربيّة صريحة حين available:false (لا مصدر)
+}
+
+// عنصر قائمة خصائص التربة (GET /v1/soil/properties) — المفتاح + التسمية + المدى.
+export interface SoilPropertyMeta {
+  key: SoilProperty;
+  name_ar: string;
+  unit: string;
+  vmin: number;
+  vmax: number;
+}
+export interface SoilPropertiesResponse {
+  properties: SoilPropertyMeta[];
+  depths: string[];
+  source_configured: boolean;
+  disclaimer: string;
+}
+
+/** يجلب TileJSON لخاصّيّة تربة (property/depth) عبر raster-service. عند غياب المصدر
+ *  يعيد available:false + user_message — تعرضه الواجهة كحالة صادقة (لا تلفيق قيم تربة).
+ *  الـdisclaimer حاضر دوماً ويجب عرضه حين الطبقة مفعّلة. */
+export const fetchSoilTileJson = (
+  property: SoilProperty,
+  depth: string,
+  tenantId?: string | null,
+): Promise<SoilTileJson> =>
+  rasterApi
+    .get<SoilTileJson>('/v1/soil/tilejson', {
+      params: { property, depth, ...(tenantId ? { tid: tenantId } : {}) },
+    })
+    .then(r => r.data);
+
+// رابط قالب بلاطات التربة ({z}/{x}/{y}) — نُبقيها حرفيّة ليفسّرها Leaflet/MapLibre،
+// على نمط hillshadeTileUrl/slopeTileUrl: tid للمستأجِر + access_token لمصادقة بلاطة
+// <img> خلف البوّابة. البلاطة نصف-شفّافة، وشفّافة تماماً حيث لا مصدر (لا اختراع تربة).
+export const soilTileUrl = (
+  property: SoilProperty,
+  depth: string,
+  tenantId?: string | null,
+): string => {
+  const params = new URLSearchParams();
+  if (tenantId) params.set('tid', tenantId);
+  appendTileAccessToken(params);
+  const qs = params.toString();
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/soil/tiles/${property}/${depth}/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
+};
+
+/** يجلب قائمة خصائص التربة المدعومة + الأعماق + هل المصدر مُهيّأ (source_configured)
+ *  + إخلاء المسؤوليّة. أفضل-جهد للتعبئة الديناميكيّة للقوائم المنسدلة. */
+export const fetchSoilProperties = (): Promise<SoilPropertiesResponse> =>
+  rasterApi
+    .get<SoilPropertiesResponse>('/v1/soil/properties')
+    .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
 // صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج
 // الحقيقيّان مُخدَّمان من sahool-platform عبر /api/v1/indicators/* (تجميع من

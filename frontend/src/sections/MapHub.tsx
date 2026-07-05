@@ -31,7 +31,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
 import { fieldRepresentativePoint, geomToPolygon } from '../lib/geo';
-import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, type FieldImageryDateOption, type TerrainTileJson, type FieldContours } from '../services/api';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -224,6 +224,21 @@ function monthLabel(date: string): string {
 
 const PIN_CATEGORIES = ['آفة', 'مرض', 'نقص تغذية', 'إجهاد مائيّ', 'عشب ضارّ', 'أخرى'];
 
+// ── طبقة التربة (SoilGrids) — الخصائص الثمانية المدعومة + أعماقها (عقد raster-service) ──
+// التسميات العربيّة للقوائم المنسدلة (name_ar الرسميّ من الخادم يُعرَض للطبقة النشطة عبر
+// tilejson.name_ar). الأعماق مطابقة لعقد الخادم؛ الافتراضيّ 0-5cm.
+const SOIL_PROPERTIES: { key: SoilProperty; label: string }[] = [
+  { key: 'phh2o', label: 'الحموضة (pH)' },
+  { key: 'clay', label: 'الطين (Clay)' },
+  { key: 'sand', label: 'الرمل (Sand)' },
+  { key: 'silt', label: 'الطمي (Silt)' },
+  { key: 'soc', label: 'الكربون العضويّ (SOC)' },
+  { key: 'cec', label: 'السعة التبادليّة (CEC)' },
+  { key: 'nitrogen', label: 'النيتروجين (Nitrogen)' },
+  { key: 'bdod', label: 'الكثافة الظاهريّة (BDOD)' },
+];
+const SOIL_DEPTHS = ['0-5cm', '5-15cm', '15-30cm', '30-60cm', '60-100cm', '100-200cm'];
+
 type MapHubLocationState = {
   fieldId?: string;
   openCdse?: boolean;
@@ -308,6 +323,14 @@ export default function MapHub() {
   const [slopeTj, setSlopeTj] = useState<TerrainTileJson | null>(null);
   const [contoursData, setContoursData] = useState<FieldContours | null>(null);
   const [contoursNote, setContoursNote] = useState<string | null>(null);
+  // ── طبقة التربة (SoilGrids) — تقدير عالميّ (~250م) لإرشاد أخذ العيّنات فقط ──────
+  // صدق صارم: البلاطة تُعرَض فقط حين available:true؛ وإلّا نُظهر user_message من الخادم
+  // (لا اختراع قيم تربة). الـdisclaimer يُعرَض دوماً حين المبدّل مفعّل. لا تُستعاد من
+  // workspace (افتراضيّ مُطفأ). الافتراضيّ عمق 0-5cm وخاصّيّة الحموضة (phh2o).
+  const [showSoil, setShowSoil] = useState(false);
+  const [soilProperty, setSoilProperty] = useState<SoilProperty>('phh2o');
+  const [soilDepth, setSoilDepth] = useState<string>(SOIL_DEPTHS[0]);
+  const [soilTj, setSoilTj] = useState<SoilTileJson | null>(null);
   // OneSoil-style وضع FieldView: «فلاح» (ملخّص أساسيّ) أو «خبير» (كلّ الأدوات).
   // يُحفَظ محلّيّاً — لا يلمس نوع لقطة مساحة العمل. الافتراضيّ فلاح (بساطة أوّلاً).
   const [fieldMode, setFieldMode] = useState<'farmer' | 'expert'>(() => {
@@ -544,6 +567,29 @@ export default function MapHub() {
     return () => { cancelled = true; };
   }, [showSlope, tenantId]);
 
+  // ── تربة (SoilGrids): TileJSON للخاصّيّة/العمق (فحص التوفّر + أسطورة + إخلاء مسؤوليّة) ──
+  // يُطلَب عند التفعيل فقط (وعند تغيّر الخاصّيّة/العمق). available:false ⇒ نخزّن الردّ
+  // لعرض user_message الصادق (بلا بلاطة). خطأ الشبكة ⇒ حالة غير متاحة صريحة (لا اختراع تربة).
+  useEffect(() => {
+    if (!showSoil) return;
+    let cancelled = false;
+    fetchSoilTileJson(soilProperty, soilDepth, tenantId)
+      .then((tj) => { if (!cancelled) setSoilTj(tj); })
+      .catch(() => {
+        if (!cancelled) setSoilTj({
+          available: false,
+          property: soilProperty,
+          name_ar: SOIL_PROPERTIES.find((p) => p.key === soilProperty)?.label ?? soilProperty,
+          unit: '',
+          depth: soilDepth,
+          legend: [],
+          disclaimer: 'بيانات SoilGrids تقديريّة (~250م) للإرشاد بأخذ العيّنات فقط — ليست بديلاً عن تحليل مختبر.',
+          user_message: 'تعذّر الوصول إلى خدمة التربة (SoilGrids).',
+        });
+      });
+    return () => { cancelled = true; };
+  }, [showSoil, soilProperty, soilDepth, tenantId]);
+
   // ── كنتور: يُجلب للحقل المختار من bbox حدوده. لا حقل/هندسة ⇒ لا طلب + ملاحظة.
   // computed:false / features:[] ⇒ نعرض user_message الصادق (لا خطوط مخترعة).
   useEffect(() => {
@@ -585,6 +631,9 @@ export default function MapHub() {
   // روابط قوالب بلاطات التضاريس — تُبنى فقط حين available:true (وإلّا null فتُخفى الطبقة).
   const hillshadeTilesUrl = showHillshade && hillshadeTj?.available ? hillshadeTileUrl(tenantId) : null;
   const slopeTilesUrl = showSlope && slopeTj?.available ? slopeTileUrl(tenantId) : null;
+  // رابط قالب بلاطات التربة — يُبنى فقط حين available:true (وإلّا null فتُخفى الطبقة
+  // ويُعرَض user_message الصادق). لا اختراع تربة عند غياب المصدر.
+  const soilTilesUrl = showSoil && soilTj?.available ? soilTileUrl(soilProperty, soilDepth, tenantId) : null;
 
   const handleSelectImageryTimelineItem = useCallback((date: string, _item?: FieldImageryDateOption) => {
     const normalized = normalizeDateOnly(date);
@@ -2109,6 +2158,8 @@ export default function MapHub() {
                       icon={<CircleDotDashed className="w-3.5 h-3.5" />}
                       label="خطوط الكنتور (Contours)"
                     />
+                    {/* ── طبقة التربة (SoilGrids) — تقدير عالميّ (~250م) لإرشاد أخذ العيّنات ── */}
+                    <ToolToggle testid="btn-soil" active={showSoil} onClick={() => setShowSoil((v) => !v)} icon={<Layers className="w-3.5 h-3.5" />} label="طبقة التربة (SoilGrids)" />
                     {/* ملاحظات الأمانة: عناصر بلا حقل/هندسة غير قابلة للعرض — تُحتسَب لا تُختلَق */}
                     {showAlerts && alertsUnplaceable > 0 && (
                       <span className="text-[11px]" style={{ color: T.faint }}>
@@ -2169,6 +2220,74 @@ export default function MapHub() {
                         {s.label}
                       </span>
                     ))}
+                  </div>
+                )}
+
+                {/* لوحة التربة (SoilGrids) — خاصّيّة + عمق + إخلاء مسؤوليّة إلزاميّ + أسطورة (المهمّة B) */}
+                {!compare && showSoil && (
+                  <div data-testid="soil-panel" className="mt-3 pt-3 space-y-2" style={{ borderTop: `1px solid ${T.line}` }}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-semibold" style={{ color: T.muted }}>طبقة التربة (SoilGrids)</span>
+                      <label className="text-[11px] grid gap-1" style={{ color: T.muted }}>
+                        الخاصّيّة
+                        <select
+                          data-testid="soil-property-select"
+                          value={soilProperty}
+                          onChange={(e) => setSoilProperty(e.target.value as SoilProperty)}
+                          className="px-2 py-1 rounded-lg text-xs"
+                          style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                        >
+                          {SOIL_PROPERTIES.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+                        </select>
+                      </label>
+                      <label className="text-[11px] grid gap-1" style={{ color: T.muted }}>
+                        العمق
+                        <select
+                          data-testid="soil-depth-select"
+                          value={soilDepth}
+                          onChange={(e) => setSoilDepth(e.target.value)}
+                          className="px-2 py-1 rounded-lg text-xs"
+                          style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                        >
+                          {SOIL_DEPTHS.map((d) => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </label>
+                      {soilTj?.available && (
+                        <Pill tone="ok">{soilTj.name_ar}{soilTj.unit ? ` · ${soilTj.unit}` : ''}</Pill>
+                      )}
+                    </div>
+
+                    {/* حالة صادقة: المصدر غير مُهيّأ (available:false) ⇒ رسالة الخادم (لا بلاطة) */}
+                    {soilTj && !soilTj.available && (
+                      <div className="text-[11px]" data-testid="soil-unavailable" style={{ color: T.faint }}>
+                        {soilTj.user_message || 'طبقة التربة غير متاحة — مصدر SoilGrids غير مُهيّأ.'}
+                      </div>
+                    )}
+
+                    {/* أسطورة التربة (قيمة + لون) — من tilejson.legend حين الطبقة متاحة */}
+                    {soilTj?.available && soilTj.legend && soilTj.legend.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-3" data-testid="soil-legend">
+                        <span className="text-xs font-semibold" style={{ color: T.muted }}>مفتاح التربة</span>
+                        {soilTj.legend.map((s, i) => (
+                          <span key={`soil-legend-${i}`} className="inline-flex items-center gap-1 text-[11px]" style={{ color: T.faint }}>
+                            <span style={{ width: 12, height: 12, borderRadius: 3, background: s.color, border: `1px solid ${T.line}`, display: 'inline-block' }} />
+                            {s.value}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* إخلاء المسؤوليّة الإلزاميّ — يُعرَض دوماً حين الطبقة مفعّلة (صدق صارم:
+                        SoilGrids تقدير ~250م لإرشاد أخذ العيّنات فقط، لا بديل عن مختبر). */}
+                    {soilTj?.disclaimer && (
+                      <div
+                        data-testid="soil-disclaimer"
+                        className="text-[11px] rounded-lg px-2 py-1.5"
+                        style={{ color: T.warn, background: 'rgba(234,179,8,.08)', border: `1px solid ${T.line}` }}
+                      >
+                        ⚠️ {soilTj.disclaimer}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2371,6 +2490,8 @@ export default function MapHub() {
                     hillshadeTilesUrl={hillshadeTilesUrl}
                     slopeTilesUrl={slopeTilesUrl}
                     terrainOpacity={opacity}
+                    soilTilesUrl={soilTilesUrl}
+                    soilOpacity={opacity}
                     contours={showContours ? contoursData : null}
                     pivotDesignerEnabled={pivotDesigner}
                     onAddPivotDraft={handleAddPivotDraft}

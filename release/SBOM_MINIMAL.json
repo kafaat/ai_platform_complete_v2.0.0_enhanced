@@ -1435,7 +1435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d9aabed957b4a8a7690ad0c9ddca032dd4b7fddc222e2dd5ea85f3fd86fcf11"
+          "content": "10d8955e7e53cc775cae53cbf457f993d1020712a9119c86b9aaa8c907df4241"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -4555,7 +4555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbc992d515b2b4360637b2d7e2099c4af959bb821d8b2b2711ab722a7a33fc15"
+          "content": "636f3afaa68fb90eb501485ed5b3514f9535481777bfa69ae1f4d637ed66bda2"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5015,7 +5015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac172214b72c49be77b9aec26d8f5532df1c8974b2ff3506c17153edc98fbc95"
+          "content": "38e6ad03edcbf803c9078d24f8448ae204b4544db5936169330cbf046fe7132b"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9135,6 +9135,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cbd7e661b0721baf608a0b5903a976a1cf24c583552e67dab9ac2f23531021ee"
+        }
+      ],
+      "name": "services/raster-service/routers/soil_tiles.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "41a0b9198b33bc5d6d9d2148f124cbffc2c59c3f0db896e68d3e8571088b6e08"
         }
       ],
@@ -9209,6 +9219,16 @@
         }
       ],
       "name": "services/raster-service/soil_indices.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b48dbf49d247119221913b082f6fc83ad9751dad3371a7217cbbab27772182b6"
+        }
+      ],
+      "name": "services/raster-service/soil_render.py",
       "type": "file"
     },
     {
@@ -9489,6 +9509,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e049d3d8d5653896fd359a0edec86883d2ec66d1084e227c745417cd2ec7f31"
+        }
+      ],
+      "name": "services/raster-service/test_soil_render.py",
       "type": "file"
     },
     {
