@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-07-05 (ن) — `03281cb` مصغّرات True Color + خنق CDSE 429 + إعادة محاولة backfill التزايُديّ
+
+ثلاث رقعات من المستخدم على مسار الأقمار، طُبِّقت بعد تحقّق-قبل-دمج + تشغيل بوّاباتنا:
+
+- **مصغّرات True Color:** كانت المصغّرات تُعرض بالمؤشّر التحليليّ النشط (`activeIndicator ?? 'ndvi'` / `gridIndex`)؛ حُوِّلت إلى `'truecolor'` ثابتاً (معاينة بصريّة طبيعيّة). اختيار مصغّرة يبدّل التاريخ فقط ولا يلمس مؤشّر الخريطة. (`MapHub.tsx`, `SatellitePage.tsx`). فرعي عندي أبسط من فرع المُدقِّق: لا `handleSelectImageryTimelineItem`/`preferredTimelineIndex` عندي، فاختُصِر التغيير إلى وسيط الفهرس.
+- **خنق CDSE Process API:** تبنّيت نسخة `cdse_client.py` بخنق + إعادة محاولة (بوّابة `_throttle_process_api` عبر `_PROCESS_RATE_LOCK` بـ`CDSE_PROCESS_MIN_INTERVAL_SECONDS=2.0`، حلقة `process_index` تحترم `Retry-After` بـ`CDSE_PROCESS_MAX_RETRIES=5`). وُصِلت env في كتلتَي raster-service + backfill-scan-worker (compose) وhelm values. اختبار سلوكيّ مرافق + حارس ساكن في tests_v9 (CI unit لا يجمع `services/raster-service/`).
+- **إعادة محاولة backfill التزايُديّ (v12):** عند تصادم `ON CONFLICT (tenant_id, idempotency_key) DO NOTHING` كان العنصر يُسقَط بـ`continue` بصمت — فعنصر فشل سابقاً (429/عطل) لا يُعاد أبداً ويُعلَن نجاح كاذب. الآن: ready ⇒ skip؛ غير ready ⇒ `UPDATE backfill_run_items SET status='queued', job_id=NULL, error=NULL, processed_at=NULL` وإعادة ربطه بالتشغيلة؛ تصادم غير قابل للاستعادة ⇒ `items_failed`.
+
+**درس:** فرعي يتقدّم على أساس المُدقِّق؛ رقعة المصغّرات كانت تُزيل دوالّ لا أملكها — فُحِص أوّلاً فاختُصِر التطبيق لوسيط الفهرس فقط بلا كسر. بلا migration. unit 2623 · vitest 1047 · tsc نظيف · release 3147 checksums. HOLD main حتّى Integration + Security أخضر.
+
 ## 2026-07-05 (ن-40) — تدقيق صور الأقمار v2: إصلاح latest البائت (FINDING-001) + تصفية التواريخ بالمؤشّر (006)
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تدقيق أعمق — نتائجه حقيقيّة؛ عولج الأخطر والأكثر أماناً:

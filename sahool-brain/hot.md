@@ -63,6 +63,9 @@
 | AIMEM-TENANT | سياق ذاكرة AI عابر-المستأجر بلا فلتر صريح | **fixed** (v49.5) |
 | VEG-JWT | خدمة النبات بلا `JWT_SECRET` في compose ⇒ 503 «تحليل الآن» | **fixed** (`62989c6`؛ يلزم `--build`/إعادة تشغيل) |
 | BACKFILL-422 | «تجهيز سنتين» يرسل `truecolor` كمؤشّر ⇒ 422 | **fixed** (`2e353af`) |
+| THUMB-TRUECOLOR | مصغّرات السجلّ الزمنيّ كانت بالمؤشّر النشط لا True Color | **fixed** (`03281cb`؛ `'truecolor'` ثابت؛ الاختيار يبدّل التاريخ فقط) |
+| CDSE-429 | Process API قد يُغرِق حساب CDSE بـ429 ويفقد مشاهد بصمت | **fixed** (`03281cb`؛ خنق تباعُد + إعادة محاولة تحترم `Retry-After`) |
+| BACKFILL-RETRY | تصادم idempotency-key يُسقط عنصراً فشل سابقاً بصمت ويُعلن نجاحاً كاذباً | **fixed** (`03281cb`؛ ready⇒skip · غير ready⇒requeue · غير قابل للاستعادة⇒failed) |
 | SPATIAL-401 | «المؤشرات المكانية» تُخرج للدخول (raster `/indicator-grid` 401) | **open** (يحتاج status+body من Network) |
 | AUTO-SEG | «تحديد الحدود تلقائي» 503 (SAM2 غير منشور) | **by-design** (تشغيليّ: `SEGMENTATION_BACKEND=sam2`) |
 | v57.5-DB | soil_lab analyte (v50) · imagery quality (v54) · field_state recompute (v53) · tenant AI policy DB (v52) | **fixed** (v130/v131/v132 + v52 مظروف السياسة على v124) |
