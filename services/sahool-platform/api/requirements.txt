@@ -10,7 +10,9 @@ PyJWT==2.13.0   # مثبّت عند 2.13.0: يُغلق crit-bypass (PYSEC-2026-1
 python-multipart==0.0.31   # for form data؛ مثبّت ≥0.0.31: يُغلق DoS في تحليل multipart (CVE-2026-53538/53539/53540)
 
 # Open-Meteo integration
-httpx==0.27.0
+# مسار حرِج: >= لا == (اتّفاقيّة CLAUDE.md). التثبيت الصارم ==0.27.0 كان يتصادم في
+# الحلّ المُوحَّد مع بقيّة الخدمات (httpx>=0.27.0 ⇒ 0.28.1) ومع anthropic (httpx<1,>=0.25).
+httpx>=0.27.0
 
 # FIX (إقلاع الحاوية): api/main.py يستورد trial_engine→numpy؛ وzones_kmeans/
 # core.spatial يستوردان numpy/scipy. غيابها ⇒ ModuleNotFoundError وتعطّل المنصّة.
