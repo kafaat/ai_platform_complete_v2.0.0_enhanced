@@ -86,7 +86,13 @@ function makeClient(baseURL: string): AxiosInstance {
       return r;
     },
     (err) => {
-      if (err.response?.status === 401) {
+      // UI hotfix: 401 من خدمة ميزة (vegetation/raster…) لا يعني بالضرورة انتهاء جلسة
+      // المنصّة (قد تُرجِعه الخدمة لسبب داخليّ خاصّ بها)، فطردُ المستخدم لتسجيل الدخول عليه
+      // مُضلِّل. نحصر الخروج القسريّ في نقاط auth (تسجيل/تحقّق/تجديد) — دلالة انتهاء
+      // الاعتماد الفعليّة. انتهاء التوكن الحقيقيّ يلتقطه فحص الصلاحيّة جهة-العميل أعلاه.
+      const url = String(err.config?.url || '');
+      const isAuthEndpoint = url.startsWith('/auth/');
+      if (isAuthEndpoint && err.response?.status === 401) {
         clearAccessToken();
         window.dispatchEvent(new CustomEvent('sahool:auth:unauthorized'));
       }
@@ -3498,16 +3504,18 @@ export const fetchIndicatorsHealth = () =>
 // raster-service. أُصلحت المسارات/الأفعال لتطابق الخادم الفعليّ (GET /v1/*).
 // ══════════════════════════════════════════════════════════════════
 
-/** تحليل صورة + مؤشّرات + نشر NATS — GET /v1/analyze (الخادم يقبل GET بمعاملات) */
-export const analyzeVegetation = (fieldId: string, _satellite = 'sentinel-2', tenantId = 'default') =>
-  tryReal(
-    () => vegetationApi.get('/v1/analyze', { params:{ field_id:fieldId, tenant_id:tenantId } }).then(r => r.data),
-    () => mockVegetationAnalysis(fieldId)
-  );
-
 /** تشغيل معالجة صور Sentinel-2 الحقيقيّة للحقل عبر المنصّة/raster-service. */
 export const refreshFieldImagery = (fieldId: string, date?: string | null) =>
   kongApi.post(`/api/v1/fields/${fieldId}/imagery/refresh`, date && date !== 'latest' ? { date } : undefined).then(r => r.data);
+
+/** UI deeper-fix: غلاف متوافق للخلف — أيّ كود قديم يستدعي analyzeVegetation يجب ألّا
+ *  يذهب إلى vegetation-service /v1/analyze بمعرّفات platform (fld_*) لأنّها لا تملكها
+ *  (⇒ «field_id not found»). نُوجّهه للمسار القانونيّ نفسه: platform → raster-service. */
+export const analyzeVegetation = (fieldId: string, _satellite = 'sentinel-2', _tenantId = 'default') =>
+  tryReal(
+    () => refreshFieldImagery(fieldId),
+    () => mockVegetationAnalysis(fieldId)
+  );
 
 
 export interface FieldImageryDateOption {

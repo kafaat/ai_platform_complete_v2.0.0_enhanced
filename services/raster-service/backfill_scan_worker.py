@@ -219,7 +219,10 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                     exists = await conn.fetchval(
                         "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
                         "AND index_name=$3 AND scene_id=$4 "
-                        "AND ($5::date IS NULL OR acquisition_date=$5::date) "
+                        # acq نصّ (YYYY-MM-DD)؛ ``$5::date`` يجعل asyncpg يستنتج نوع date
+                        # فيرفض الـstr («'str' has no attribute 'toordinal'»). ``$5::text::date``
+                        # يُجبِر ربطاً نصّيّاً ثمّ يقصّه SQL — نفس نمط INSERT الآمن أدناه.
+                        "AND ($5::text::date IS NULL OR acquisition_date=$5::text::date) "
                         "AND asset_status = 'ready' "
                         "AND ($6::int IS NULL OR geometry_revision = $6::int) LIMIT 1",
                         tenant,
