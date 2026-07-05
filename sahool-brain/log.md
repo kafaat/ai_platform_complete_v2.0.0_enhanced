@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-07-05 (ن) — `8537724` نقطة الحالة الموحّدة (البند #4، مصدر حقيقة واحد)
+
+على خارطة المستخدم الإنتاجيّة، بُني الحجر المعماريّ #4: `GET /api/v1/fields/{id}/state/full` — قراءة tenant-scoped واحدة تركّب **القرّاء الحقيقيّين القائمين** (لا تخترع): field+geometry · الموسم النشط (_field_season_context) · الحالة القانونيّة (recompute_field_state) · تنبيهات مشتقّة · soil_lab_tests · water_ledger+irrigation_runs. كل قسم best-effort ⇒ `available:false` صادق عند التعذّر بدل 503؛ البوّابة الصلبة الوحيدة الحقل-ضمن-المستأجِر (404). المصادر بلا خزن حقيقيّ لكل حقل (عينات ماء مخبريّة · اقتصاد لكل حقل · توصيات حيّة ثقيلة) تُعلَن available:false + مؤشّر endpoint. مسار متمايز عن `/state` (لا ازدواج — router guard أخضر). واجهة: `fetchFieldState`/`useFieldState`. **جرد بوكيل Explore** أثبت أنّ `/state` القانونيّة موجودة لكنّها لا تضمّ field/season/alerts/irrigation — فبُنيت التجميعة عليها. البوّابات: coverage-gate (أُضيف للعقد بدليل) · platform 3105 · unit 2629 · vitest 1057 · release 3157. بلا migration.
+
+**ملاحظة صدق للمستخدم:** البنود 1–2 (docker build + اختبار متصفّح يدويّ) تحتاج بيئة الإنتاج؛ CI يغطّي Integration+E2E. الاقتصاد/الغلّة/الإشعارات تحتاج جداول بيانات حيّة — لا تُختلق.
+
+---
+
 ## 2026-07-05 (ن) — `3206dc6` إصلاح: لا ازدواج لمسار /terrain (الفرع اصطاده)
 
 بوّابة CI للفرع اصطادت أنّ المنصّة **تملك أصلاً** `GET /api/v1/fields/{id}/terrain` (`get_field_terrain`: enrich_terrain على أعمدة مخزّنة + ملاحظة «DEM مؤجَّل»)؛ فالوسيط الذي أضفتُه كان **تسجيلاً مزدوجاً** أسقط `test_router_decomposition_guard`. الإصلاح: حذف الوسيط المكرّر وبدلاً منه **إغناء النقطة القائمة من DEM حيّ**: عند غياب القيم المخزّنة، `get_field_terrain` ينادي best-effort راستر `/terrain` (bbox من الهندسة) ويغذّي enrich_terrain بالارتفاع/الانحدار(deg→pct)/الاتّجاه المحسوب، ويكشف المظروف الخام تحت `dem_auto_fill.computed` ويقلب `available`؛ التعذّر ⇒ available=false صادق. الواجهة `fetchFieldTerrain` تقرأ `dem_auto_fill.computed`. **درس:** ابحث عن نقطة قائمة قبل إضافة راوت — الفرع-أولاً أنقذ من ازدواج في main. البوّابات: router-guard أخضر · platform 3105 · unit 2626 · vitest 1057 · release 3157.
