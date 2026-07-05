@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-05 (ن) — حارس الديمو الموحّد (البند #6)
+
+`lib/realData.ts` مصدر واحد لقاعدة «لا تستخدم بيانات تجريبيّة كأنّها حقيقيّة»: `isRealData`/`filterRealData`/`hasDemoData`. الشاشات القراريّة الحسّاسة توجّه القاعدة عبره بدل إعادة تعريفها: FieldRanking (تصفية + شارة `DemoBadge` «حقول تجريبيّة مُستبعَدة» حين وُجِد ديمو) · ProblemFields (تجاهل NDVI للديمو). مكوّن `DemoBadge` مشترك. اختبارات: وحدة الحارس + حارس ساكن يؤكّد أنّ الشاشات تستورد القاعدة الموحّدة. tsc نظيف · vitest 1063 · release. واجهة فقط · بلا migration.
+
+---
+
 ## 2026-07-05 (ن) — نقطة الخطّ الزمنيّ الإنتاجيّة (البند #5)
 
 `GET /api/v1/fields/{id}/imagery/timeline?months=N`: تجميع خادميّ للخطّ الزمنيّ (بدل جمع الواجهة من عدّة مصادر). tenant-scoped؛ يبروكسي تواريخ raster المتوفّرة (COG حقيقيّ)، يقصرها على آخر N شهراً خادميّاً، ويبني لكل تاريخ `thumbnail_url` True Color (`/api/raster/.../cdse-thumbnail.png?index=truecolor&date=..&tid=..`) تُحمّل كسولاً. خدمة المصغّرة تقصّ على هندسة الحقل وتتراجع بصدق إن غاب المشهد؛ ETag/cache على تلك النقطة. واجهة: `fetchFieldImageryTimeline`/`useFieldImageryTimeline`. العقد محدَّث + حارس tests_v9. مسار متمايز (لا ازدواج). البوّابات: router + coverage · platform 3105 · unit 2631 · vitest 1057 · release 3158. بلا migration.
