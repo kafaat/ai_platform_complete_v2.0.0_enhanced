@@ -1351,6 +1351,11 @@ def _persist_raster_asset(
                 coverage_ratio=_quality["coverage_ratio"],
                 index_quality_flags=_quality["index_quality_flags"],
                 processing_job_id=job_id,  # v142: تتبّع + يُغني layer_owner_tenant عن ILIKE
+                # v105 (v4-audit): أعمدة الجودة تُكتب الآن فعلاً كي يعمل الترتيب الواعي بالجودة.
+                # confidence هو الدرجة 0..1 (أعلى=أفضل)؛ cloud_pct محسوب على AOI المقصوص.
+                quality_score=stats.get("confidence"),
+                aoi_cloud_pct=stats.get("cloud_pct"),
+                cloud_mask_sources=stats.get("cloud_mask_sources"),
                 provenance={
                     "stats": {
                         k: stats.get(k)
@@ -1361,6 +1366,7 @@ def _persist_raster_asset(
                             "std",
                             "cloud_pct",
                             "cloud_mask_applied",
+                            "cloud_mask_sources",  # v4-audit: كان يُنتَج ويُسقَط من النَّسَب
                             "quality",
                             "confidence",
                         )

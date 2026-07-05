@@ -101,6 +101,9 @@ async def insert_raster_asset(
     coverage_ratio: float | None = None,
     index_quality_flags: list | None = None,
     processing_job_id: str | None = None,
+    quality_score: float | None = None,
+    aoi_cloud_pct: float | None = None,
+    cloud_mask_sources: list | None = None,
 ) -> bool:
     """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند النجاح.
 
@@ -124,6 +127,9 @@ async def insert_raster_asset(
     # v131 (v62.3-B): أعمدة جودة الصور. القيم غياب ⇒ NULL (لا نخترع 0). القيد
     # chk_raster_quality_ratios يحرس 0..1 فيزيائيّاً؛ القائمة تُخزَّن jsonb.
     flags_json = json.dumps(index_quality_flags) if index_quality_flags is not None else None
+    # v105 (v4-audit): أعمدة الجودة كانت تُنشأ في المخطّط لكن لا تُكتب أبداً ⇒ ترتيب
+    # fetch_latest_asset حسب quality_score كان بلا أثر (كلّها NULL). نملؤها الآن من stats.
+    mask_sources_json = json.dumps(cloud_mask_sources) if cloud_mask_sources is not None else None
     # FIX: asyncpg يطلب datetime.date لعمود DATE (تمرير نصّ ⇒ 'str' has no
     # attribute 'toordinal'). نحوّل النصّ ISO إلى date؛ القيم غير الصالحة → None.
     acq_date = acquisition_date
@@ -144,7 +150,7 @@ async def insert_raster_asset(
             index_name, cloud_pct, srid, cog_uri, bands, nodata,
             footprint, provenance,
             valid_pixel_ratio, coverage_ratio, index_quality_flags,
-            processing_job_id
+            processing_job_id, quality_score, aoi_cloud_pct, cloud_mask_sources
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8, $9, $10::jsonb, $11,
@@ -152,7 +158,7 @@ async def insert_raster_asset(
                  ELSE ST_SetSRID(ST_GeomFromGeoJSON($12), 4326) END,
             $13::jsonb,
             $14, $15, COALESCE($16::jsonb, '[]'::jsonb),
-            $17
+            $17, $18, $19, COALESCE($20::jsonb, '[]'::jsonb)
         )
         ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id, cog_uri)
         WHERE tenant_id IS NOT NULL AND acquisition_date IS NOT NULL
@@ -164,7 +170,10 @@ async def insert_raster_asset(
             valid_pixel_ratio = EXCLUDED.valid_pixel_ratio,
             coverage_ratio = EXCLUDED.coverage_ratio,
             index_quality_flags = EXCLUDED.index_quality_flags,
-            processing_job_id = COALESCE(EXCLUDED.processing_job_id, raster_assets.processing_job_id)
+            processing_job_id = COALESCE(EXCLUDED.processing_job_id, raster_assets.processing_job_id),
+            quality_score = EXCLUDED.quality_score,
+            aoi_cloud_pct = EXCLUDED.aoi_cloud_pct,
+            cloud_mask_sources = EXCLUDED.cloud_mask_sources
     """
     try:
         await conn.execute(
@@ -190,6 +199,9 @@ async def insert_raster_asset(
             coverage_ratio,
             flags_json,
             processing_job_id,
+            quality_score,
+            aoi_cloud_pct,
+            mask_sources_json,
         )
         return True
     except Exception as e:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
@@ -232,7 +244,12 @@ async def fetch_latest_asset(
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
               AND tenant_id = $4::uuid   -- فلتر مستأجِر صريح (دفاع عميق فوق RLS)؛ None ⇒ لا صفوف
-            ORDER BY acquisition_date DESC NULLS LAST, created_at DESC
+            -- أحدث تاريخ يفوز أوّلاً (دلالة latest محفوظة)، ثمّ الأفضل جودةً لذلك اليوم:
+            -- quality_score (v105) DESC ثمّ cloud_pct ASC — يستفيد من idx_raster_assets_quality_pick.
+            ORDER BY acquisition_date DESC NULLS LAST,
+                     quality_score DESC NULLS LAST,
+                     cloud_pct ASC NULLS LAST,
+                     created_at DESC
             LIMIT 1
         ) s
     """
@@ -347,19 +364,37 @@ async def list_available_asset_dates(
     conn = await _connect()
     if conn is None:
         return []
+    # الحدّ يُطبَّق على التواريخ المميَّزة (CTE) لا على صفوف (تاريخ×مؤشّر): مع N مؤشّرات
+    # كان LIMIT على الصفوف يعيد ~limit/N تاريخاً فيبتر خطّ السنتين (v3-Finding-1).
+    # ثمّ DISTINCT ON ينتقي صفّاً واحداً متماسكاً لكلّ (تاريخ، مؤشّر) بدل خلط
+    # MIN(cloud_pct) مع MIN(scene_id) من صفَّين مختلفَين (v3-Finding-4): نفضّل صفّاً
+    # يملك COG (has_cog محفوظ) ثمّ الأفضل جودةً — فيعود scene_id/cloud_pct/has_cog من نفس السطر.
     sql = """
-        SELECT acquisition_date::text AS date, index_name,
-               MIN(cloud_pct) AS cloud_pct,
-               MIN(scene_id) AS scene_id,
-               BOOL_OR(cog_uri IS NOT NULL AND cog_uri <> '') AS has_cog
-        FROM raster_assets
-        WHERE field_id = $1
-          AND tenant_id = $2::uuid
-          AND acquisition_date IS NOT NULL
-          AND ($3::text[] IS NULL OR index_name = ANY($3::text[]))
-        GROUP BY acquisition_date, index_name
-        ORDER BY acquisition_date DESC
-        LIMIT $4
+        WITH recent_dates AS (
+            SELECT DISTINCT acquisition_date
+            FROM raster_assets
+            WHERE field_id = $1
+              AND tenant_id = $2::uuid
+              AND acquisition_date IS NOT NULL
+              AND ($3::text[] IS NULL OR index_name = ANY($3::text[]))
+            ORDER BY acquisition_date DESC
+            LIMIT $4
+        )
+        SELECT DISTINCT ON (a.acquisition_date, a.index_name)
+               a.acquisition_date::text AS date,
+               a.index_name,
+               a.cloud_pct,
+               a.scene_id,
+               (a.cog_uri IS NOT NULL AND a.cog_uri <> '') AS has_cog
+        FROM raster_assets a
+        JOIN recent_dates rd ON rd.acquisition_date = a.acquisition_date
+        WHERE a.field_id = $1
+          AND a.tenant_id = $2::uuid
+          AND ($3::text[] IS NULL OR a.index_name = ANY($3::text[]))
+        ORDER BY a.acquisition_date DESC, a.index_name,
+                 (a.cog_uri IS NOT NULL AND a.cog_uri <> '') DESC,
+                 a.quality_score DESC NULLS LAST,
+                 a.cloud_pct ASC NULLS LAST
     """
     try:
         await conn.execute(
