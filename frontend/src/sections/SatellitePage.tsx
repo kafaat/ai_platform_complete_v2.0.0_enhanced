@@ -213,12 +213,12 @@ export default function SatellitePage() {
     if (!fieldId || analyzing) return;
     setAnalyzeMsg(null);
     try {
-      await analyze({ fieldId });
+      await analyze({ fieldId, geometry: field?.geometry });
       setAnalyzeMsg({ ok: true, text: 'اكتمل التحليل — حُدِّث الشريط الزمنيّ والقيم.' });
     } catch (e) {
       setAnalyzeMsg({ ok: false, text: apiErrorMessage(e, 'تعذّر التحليل — حاول مجدّداً') });
     }
-  }, [fieldId, analyzing, analyze]);
+  }, [fieldId, field?.geometry, analyzing, analyze]);
   // إخفاء تنويه التحليل تلقائيّاً بعد مدّة وجيزة (لا يبقى عالقاً).
   useEffect(() => {
     if (!analyzeMsg) return;

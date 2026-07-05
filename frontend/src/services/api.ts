@@ -3505,8 +3505,15 @@ export const fetchIndicatorsHealth = () =>
 // ══════════════════════════════════════════════════════════════════
 
 /** تشغيل معالجة صور Sentinel-2 الحقيقيّة للحقل عبر المنصّة/raster-service. */
-export const refreshFieldImagery = (fieldId: string, date?: string | null) =>
-  kongApi.post(`/api/v1/fields/${fieldId}/imagery/refresh`, date && date !== 'latest' ? { date } : undefined).then(r => r.data);
+export const refreshFieldImagery = (fieldId: string, date?: string | null, geometry?: unknown) => {
+  const body: Record<string, unknown> = {};
+  if (date && date !== 'latest') body.date = date;
+  if (geometry) body.geometry = geometry;
+  return kongApi.post(
+    `/api/v1/fields/${fieldId}/imagery/refresh`,
+    Object.keys(body).length ? body : undefined,
+  ).then(r => r.data);
+};
 
 /** UI deeper-fix: غلاف متوافق للخلف — أيّ كود قديم يستدعي analyzeVegetation يجب ألّا
  *  يذهب إلى vegetation-service /v1/analyze بمعرّفات platform (fld_*) لأنّها لا تملكها
@@ -3535,9 +3542,10 @@ export interface FieldImageryDateOption {
 export const fetchFieldImageryAvailableDates = (
   fieldId: string,
   index?: string,
+  limit = 240,
 ): Promise<FieldImageryDateOption[]> =>
   kongApi.get(`/api/v1/fields/${fieldId}/available-dates`, {
-    params: index ? { index } : undefined,
+    params: { ...(index ? { index } : {}), limit },
   }).then((r) => {
     const raw = r.data?.dates ?? r.data?.items ?? r.data ?? [];
     if (!Array.isArray(raw)) return [];

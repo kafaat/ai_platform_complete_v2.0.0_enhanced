@@ -2115,7 +2115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ace8a3b06f88953cfb951b33c4651bfe9fd0ce0a21f680f114c6e26f7f53ed22"
+          "content": "99bdf196b9bfdf2b01bd2d8c1ad77b00bf68aa364fb33b5b350592eab2c1b914"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4495,7 +4495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88f0512b4869f8de1f6767b6dc2a99ccc1db863118125653abc46c8aa76ec7f7"
+          "content": "338f0f65ea21ab69d274bc0cfd7807d1792fb60caf1555d12ffda707165257fd"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4525,7 +4525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a57995b2f723d075dc3de54f17c6834fbe40a0c7163255eac374bf03296de6d6"
+          "content": "4667a744290024f41c987db7ea5055293eb67a6003c655df40f435706dfb5c4d"
         }
       ],
       "name": "frontend/src/sections/MapHubTwoYearBackfill.static.test.ts",
@@ -4535,7 +4535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17b13a64c8646392734cd141ee1afae9f12d512727bf251445064eeab4d7aa94"
+          "content": "9133f8f574f0895465a8b5d9fbc62f0b1b5b21227389cb2b1c44b7ce94465a00"
         }
       ],
       "name": "frontend/src/sections/MapHubTwoYearTimeline.static.test.ts",
@@ -4795,7 +4795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9faf2025e9c3d16993934e58ae2d6ab0831052757c7d865da8f8821143a4594"
+          "content": "4525bf067a1941616cd3c24d11e67d2de6fce64b493e34c7d76a8ddab090fb5b"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -4935,7 +4935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9f3f9c4e2a8aacdee5ddf8410f5db23dd679264d99c5db934a766a020db511d"
+          "content": "9b69dc744fff28baad6f2c1dbf693f73f8fb78b5c17aaae746e5fe85518467b5"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9155,6 +9155,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "65a8e6d2bcb3d4ceb3dcd1016b7fc0389e02d29b97de34b508233205d49df15d"
+        }
+      ],
+      "name": "services/raster-service/test_backfill_incremental_retry_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a0cef9857338fc3c68a28e2d00f374c7afddd5eb494988a154929dbc5764e576"
         }
       ],
@@ -9179,6 +9189,16 @@
         }
       ],
       "name": "services/raster-service/test_cdse_poly_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0a424570da5427554d04ebf1b04dcb31655e8ca394e80c1a8ef3c0e1dc419e29"
+        }
+      ],
+      "name": "services/raster-service/test_cdse_process_rate_limit.py",
       "type": "file"
     },
     {
@@ -11645,7 +11665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bcdbe7b2a79e05a5f0ab1e77d83fde0509dac1902db4ef8c3f56093361d98376"
+          "content": "73170f9fcdedbc84ef7bc77c18de80f19f81f515fb1795f03aedf48cd0485361"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

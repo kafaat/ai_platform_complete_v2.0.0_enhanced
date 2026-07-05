@@ -302,12 +302,12 @@ export function useAllFieldsNdvi() {
 // المؤشّر + المؤشّرات) بمطابقة البادئة، فيُحدَّث الشريط الزمنيّ والقيم فور اكتمال التحليل.
 export function useAnalyzeVegetation() {
   const qc = useQueryClient();
-  return useMutation<unknown, Error, { fieldId: string; dateFrom?: string }>({
+  return useMutation<unknown, Error, { fieldId: string; dateFrom?: string; geometry?: unknown }>({
     // UI hotfix: معرّفات صفحة الأقمار هي معرّفات المنصّة (fld_*) يملكها raster عبر المنصّة؛
     // vegetation-analysis-service /v1/analyze لا يملكها فيُرجِع «field_id not found». لذا
     // «تحليل الآن» يُطلق مسار تحديث الصور القانونيّ (يتحقّق من الملكيّة ويُوكّل لـraster
     // بهندسة الحقل) — لا احتياطيّ مُختلَق.
-    mutationFn: ({ fieldId, dateFrom }) => refreshFieldImagery(fieldId, dateFrom ?? null),
+    mutationFn: ({ fieldId, dateFrom, geometry }) => refreshFieldImagery(fieldId, dateFrom ?? null, geometry),
     onSuccess: (_data, { fieldId }) => {
       qc.invalidateQueries({ queryKey: ['field-timeseries', fieldId] });   // شريط raster الزمنيّ (كلّ المؤشّرات)
       qc.invalidateQueries({ queryKey: ['vegetation', 'ts', fieldId] });   // سلسلة vegetation البديلة

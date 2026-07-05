@@ -167,18 +167,34 @@ type TrueColorRuntimeStatus = {
   endpoint?: string;
 };
 
-const TRUECOLOR_UNAVAILABLE_MESSAGE = 'الصورة الخام غير جاهزة من raster-service — شغّل تجهيز سنتين تاريخية أو تحقّق من إعدادات CDSE.';
+const TRUECOLOR_UNAVAILABLE_MESSAGE = 'الصورة الخام غير جاهزة من raster-service — شغّل تجهيز 3/6/12/24 شهر أو تحقّق من إعدادات CDSE.';
 
 function summarizeTwoYearTimeline(dates: FieldImageryDateOption[]): { items: FieldImageryDateOption[]; ready: number; pending: number; avgCloud: number | null } {
-  const valid = dates
+  const byDate = new Map<string, FieldImageryDateOption>();
+  for (const raw of dates) {
+    const date = normalizeDateOnly(raw.date);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+    const prev = byDate.get(date);
+    if (!prev) {
+      byDate.set(date, { ...raw, date, indices: raw.indices ? [...new Set(raw.indices)] : undefined });
+      continue;
+    }
+    byDate.set(date, {
+      ...prev,
+      has_cog: Boolean(prev.has_cog || raw.has_cog),
+      cloud_pct: typeof prev.cloud_pct === 'number' ? prev.cloud_pct : raw.cloud_pct,
+      cloud_cover: typeof prev.cloud_cover === 'number' ? prev.cloud_cover : raw.cloud_cover,
+      scene_id: prev.scene_id ?? raw.scene_id ?? null,
+      indices: [...new Set([...(prev.indices ?? []), ...(raw.indices ?? [])])],
+    });
+  }
+  const valid = [...byDate.values()]
     .map((item) => ({ item, ms: parseDateMs(item.date) }))
     .filter((entry): entry is { item: FieldImageryDateOption; ms: number } => entry.ms != null)
     .sort((a, b) => b.ms - a.ms);
-  const newest = valid[0]?.ms ?? null;
-  const minMs = newest == null ? null : newest - 730 * 24 * 60 * 60 * 1000;
-  const items = valid
-    .filter((entry) => minMs == null || entry.ms >= minMs)
-    .map((entry) => entry.item);
+  // العرض البصري لا يقتصر على «آخر تاريخ/يوليو»؛ يعرض كل التواريخ الجاهزة التي
+  // أرجعها الخادم حتى حدّ السنتين/الـlimit. الخادم يحدّد النطاق الزمني الفعلي.
+  const items = valid.map((entry) => entry.item);
   const ready = items.filter((item) => item.has_cog).length;
   const pending = Math.max(0, items.length - ready);
   const cloudValues = items
@@ -186,6 +202,13 @@ function summarizeTwoYearTimeline(dates: FieldImageryDateOption[]): { items: Fie
     .filter((value): value is number => value != null);
   const avgCloud = cloudValues.length ? cloudValues.reduce((a, b) => a + b, 0) / cloudValues.length : null;
   return { items, ready, pending, avgCloud };
+}
+
+const BACKFILL_MONTH_OPTIONS = [3, 6, 12, 24] as const;
+
+function monthLabel(date: string): string {
+  const d = normalizeDateOnly(date);
+  return /^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d.slice(0, 4)}-${d.slice(5, 7)}` : '—';
 }
 
 const PIN_CATEGORIES = ['آفة', 'مرض', 'نقص تغذية', 'إجهاد مائيّ', 'عشب ضارّ', 'أخرى'];
@@ -240,6 +263,7 @@ export default function MapHub() {
   const [imageryTs, setImageryTs] = useState(0); // cache-bust للبلاطات بعد معالجة Sentinel/COG
   const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
   const [availableImageryDates, setAvailableImageryDates] = useState<FieldImageryDateOption[]>([]);
+  const [timelineImageryDates, setTimelineImageryDates] = useState<FieldImageryDateOption[]>([]);
   const [trueColorRuntime, setTrueColorRuntime] = useState<TrueColorRuntimeStatus>({ state: 'idle', message: 'لم يتم اختيار حقل بعد.' });
   const [historicalBackfillBusy, setHistoricalBackfillBusy] = useState(false);
   const [historicalBackfillStatus, setHistoricalBackfillStatus] = useState<string | null>(null);
@@ -314,7 +338,8 @@ export default function MapHub() {
   // عميل-فقط: التصدير يقرأ الحالة الحاليّة، والاستيراد يستدعي الـsetters القائمة.
   const projectInputRef = useRef<HTMLInputElement>(null);
   const imageryRefreshKeyRef = useRef<string>('');
-  const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(availableImageryDates), [availableImageryDates]);
+  const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(timelineImageryDates), [timelineImageryDates]);
+  const dateSelectorDates = availableImageryDates.length > 0 ? availableImageryDates : timelineImageryDates;
 
   useEffect(() => {
     if (!requestedCdseOpen) return;
@@ -352,6 +377,7 @@ export default function MapHub() {
   useEffect(() => {
     if (!fieldId || mode !== '2d') {
       setAvailableImageryDates([]);
+      setTimelineImageryDates([]);
       setSelectedImageryDate('latest');
       return;
     }
@@ -359,8 +385,13 @@ export default function MapHub() {
     // FINDING-006: نمرّر المؤشّر النشط كي يقصر الخادم التواريخ على ما له COG لهذا
     // المؤشّر تحديداً — فلا يُعرَض تاريخ «جاهز» لمؤشّر آخر فتظهر بلاطة شفّافة عند اختياره.
     const idx = activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID ? activeIndicator : undefined;
-    fetchFieldImageryAvailableDates(fieldId, idx)
-      .then((dates) => {
+    Promise.all([
+      fetchFieldImageryAvailableDates(fieldId, idx, 240),
+      // شريط thumbnails لا يجب أن يقتصر على المؤشر النشط؛ يعرض كل تواريخ COG الجاهزة
+      // التي تم سحبها خلال الفترة التاريخية، ثم عند الضغط يختار أفضل مؤشر متاح لذلك التاريخ.
+      fetchFieldImageryAvailableDates(fieldId, undefined, 240),
+    ])
+      .then(([dates, allDates]) => {
         if (cancelled) return;
         // تصفية دفاعيّة على العميل أيضاً: أبقِ التواريخ التي تملك المؤشّر النشط فعليّاً
         // (أو التي لا تحمل قائمة indices — لا نُخفي بلا دليل من الخادم).
@@ -368,14 +399,19 @@ export default function MapHub() {
           ? dates.filter((d) => !d.indices || d.indices.length === 0 || d.indices.includes(idx))
           : dates;
         const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
+        const timelineSorted = [...(allDates.length ? allDates : filtered)].sort((a, b) => b.date.localeCompare(a.date));
         setAvailableImageryDates(sorted);
+        setTimelineImageryDates(timelineSorted);
         setSelectedImageryDate((prev) => {
           if (prev === 'latest') return prev;
-          return sorted.some((d) => d.date === prev) ? prev : 'latest';
+          return timelineSorted.some((d) => d.date === prev) ? prev : 'latest';
         });
       })
       .catch(() => {
-        if (!cancelled) setAvailableImageryDates([]);
+        if (!cancelled) {
+          setAvailableImageryDates([]);
+          setTimelineImageryDates([]);
+        }
       });
     return () => { cancelled = true; };
   }, [fieldId, mode, activeIndicator]);
@@ -400,7 +436,7 @@ export default function MapHub() {
         toastStore.add(
           'info',
           'التاريخ غير مُجهَّز',
-          'هذا التاريخ لا يملك صورة جاهزة بعد. استخدم زرّ «تجهيز سنتين تاريخيّة» لتشغيل معالجة صريحة.',
+          'هذا التاريخ لا يملك صورة جاهزة بعد. استخدم خيارات تجهيز 3/6/12/24 شهر لتشغيل معالجة صريحة.',
         );
       }
       return;
@@ -466,7 +502,16 @@ export default function MapHub() {
   // تستعمله (تجهيز صور سنتين) لتفادي «used before declaration».
   const selected = fields.find((f) => f.id === fieldId);
 
-  const handlePrepareTwoYearImagery = useCallback(async () => {
+  const handleSelectImageryTimelineItem = useCallback((date: string, _item?: FieldImageryDateOption) => {
+    const normalized = normalizeDateOnly(date);
+    // اختيار thumbnail يبدّل تاريخ المشهد فقط. لا نغيّر المؤشر التحليلي المختار
+    // حتى تبقى الخريطة على NDVI/NDMI/... الذي اختاره المستخدم، بينما المصغّرات
+    // نفسها تُعرض دائمًا True Color كمعاينة بصرية طبيعية للحقل.
+    setSelectedImageryDate(normalized || 'latest');
+    setImageryTs(Date.now());
+  }, []);
+
+  const handlePrepareTwoYearImagery = useCallback(async (months = 24) => {
     if (!selected?.id) {
       toastStore.add('warning', 'اختر حقلاً أولاً', 'لا يمكن تجهيز الصور التاريخية بدون حقل نشط.');
       return;
@@ -477,7 +522,7 @@ export default function MapHub() {
     }
     if (historicalBackfillBusy) return;
     setHistoricalBackfillBusy(true);
-    setHistoricalBackfillStatus('جارٍ إنشاء خطة/مهمة backfill لمدة 24 شهر…');
+    setHistoricalBackfillStatus(`جارٍ إنشاء خطة/مهمة backfill لمدة ${months} شهر…`);
     try {
       // الـbackfill يحسب COGs لمؤشّرات نباتيّة؛ 'truecolor' تصيير للمشهد الأساسيّ لا
       // IndicatorKind — وعقد raster-service يقبل هذه المجموعة فقط. إرسال 'truecolor'
@@ -494,7 +539,7 @@ export default function MapHub() {
       if (indices.length === 0) indices.push('ndvi', 'ndmi');
       const payload = {
         preset: 'custom' as const,
-        months: 24,
+        months,
         indices,
         max_cloud_pct: 35,
         limit_per_month: 1,
@@ -508,26 +553,32 @@ export default function MapHub() {
       // صادقة: التشغيلة في الطابور يُنفّذها عامل الفحص، لا «اكتمل». لا نُوهِم بالنجاح.
       const isAsync = (result as { mode?: string })?.mode === 'async';
       const status = isAsync
-        ? `تمّ إدراج تشغيلة backfill في الطابور (run_id=${(result as { run_id?: number }).run_id ?? '?'}); يُنفّذها عامل الفحص لاتزامنيّاً — تظهر التواريخ تدريجيّاً بعد المعالجة.`
+        ? `تمّ إدراج تشغيلة backfill لمدة ${months} شهر في الطابور (run_id=${(result as { run_id?: number }).run_id ?? '?'}); يُنفّذها عامل الفحص لاتزامنيّاً — تظهر التواريخ تدريجيّاً بعد المعالجة.`
         : scheduled > 0
-          ? `تم تجهيز مهمة سنتين: ${scheduled} عنصر/مشهد مجدول.`
-          : 'تم إرسال طلب تجهيز سنتين؛ تحقق من حالة raster-service والتواريخ المتاحة بعد المعالجة.';
+          ? `تم تجهيز مهمة ${months} شهر: ${scheduled} عنصر/مشهد مجدول.`
+          : `تم إرسال طلب تجهيز ${months} شهر؛ تحقق من حالة raster-service والتواريخ المتاحة بعد المعالجة.`;
       setHistoricalBackfillStatus(status);
-      toastStore.add(isAsync ? 'info' : 'success', isAsync ? 'أُدرِجت تشغيلة سنتين في الطابور' : 'بدأ تجهيز سنتين تاريخية', status);
+      toastStore.add(isAsync ? 'info' : 'success', isAsync ? `أُدرِجت تشغيلة ${months} شهر في الطابور` : `بدأ تجهيز ${months} شهر تاريخية`, status);
       // v10-F9: مرّر المؤشّر النشط (أو أوّل مؤشّر مدعوم إن كان النشط truecolor) كي لا
       // يُعاد ملء المُنتقي بتواريخ مؤشّرات أخرى بعد الـbackfill مباشرةً.
       const refreshIndex = (activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID)
         ? activeIndicator
         : indices[0];
-      const dates = await fetchFieldImageryAvailableDates(selected.id, refreshIndex).catch(() => [] as FieldImageryDateOption[]);
+      const [dates, allDates] = await Promise.all([
+        fetchFieldImageryAvailableDates(selected.id, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
+        fetchFieldImageryAvailableDates(selected.id, undefined, 240).catch(() => [] as FieldImageryDateOption[]),
+      ]);
       if (Array.isArray(dates) && dates.length > 0) {
         setAvailableImageryDates([...dates].sort((a, b) => b.date.localeCompare(a.date)));
+      }
+      if (Array.isArray(allDates) && allDates.length > 0) {
+        setTimelineImageryDates([...allDates].sort((a, b) => b.date.localeCompare(a.date)));
       }
       setImageryTs(Date.now());
     } catch (e) {
       const detail = asApiError(e).message || 'تعذّر تشغيل backfill التاريخي. تحقق من token raster-service أو حدود الحقل.';
       setHistoricalBackfillStatus(detail);
-      toastStore.add('error', 'فشل تجهيز سنتين تاريخية', detail);
+      toastStore.add('error', `فشل تجهيز ${months} شهر تاريخية`, detail);
     } finally {
       setHistoricalBackfillBusy(false);
     }
@@ -1717,7 +1768,7 @@ export default function MapHub() {
                   </div>
                   <button
                     type="button"
-                    onClick={handlePrepareTwoYearImagery}
+                    onClick={() => handlePrepareTwoYearImagery(24)}
                     disabled={historicalBackfillBusy || !selected?.geometry}
                     className="px-2 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                     style={{ background: historicalBackfillBusy ? '#475569' : '#854d0e', border: '1px solid #f59e0b66', color: '#fff7ed' }}
@@ -1762,14 +1813,29 @@ export default function MapHub() {
                     <div className="flex items-center gap-2" data-testid="two-year-imagery-backfill">
                       <button
                         type="button"
-                        onClick={handlePrepareTwoYearImagery}
+                        onClick={() => handlePrepareTwoYearImagery(24)}
                         disabled={historicalBackfillBusy || !selected?.geometry}
                         className="px-2 py-1 rounded-lg text-xs font-semibold disabled:opacity-60 disabled:cursor-not-allowed"
                         style={{ background: historicalBackfillBusy ? '#475569' : '#854d0e', border: '1px solid #f59e0b66', color: '#fff7ed' }}
-                        title="يشغّل backfill تاريخي لمدة 24 شهر لصورة TrueColor + المؤشر الحالي + NDVI/NDMI"
+                        title="يشغّل backfill تاريخي؛ اختر 3 أو 6 أو 12 أو 24 شهر"
                       >
-                        {historicalBackfillBusy ? 'جارٍ تجهيز سنتين…' : 'تجهيز سنتين تاريخية'}
+                        {historicalBackfillBusy ? 'جارٍ التجهيز…' : 'تجهيز 24 شهر'}
                       </button>
+                      <div className="flex items-center gap-1" data-testid="imagery-backfill-month-options">
+                        {BACKFILL_MONTH_OPTIONS.map((months) => (
+                          <button
+                            key={months}
+                            type="button"
+                            onClick={() => handlePrepareTwoYearImagery(months)}
+                            disabled={historicalBackfillBusy || !selected?.geometry}
+                            className="px-2 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-60"
+                            style={{ background: T.card, border: `1px solid ${T.line}`, color: T.muted }}
+                            title={`تجهيز ${months} شهر من الصور التاريخية`}
+                          >
+                            {months} شهر
+                          </button>
+                        ))}
+                      </div>
                       {historicalBackfillStatus && (
                         <span className="text-[11px] max-w-[260px] truncate" style={{ color: T.faint }} title={historicalBackfillStatus}>
                           {historicalBackfillStatus}
@@ -1778,18 +1844,18 @@ export default function MapHub() {
                     </div>
                   )}
 
-                  {!compare && activeIndicator && availableImageryDates.length > 0 && (
+                  {!compare && activeIndicator && dateSelectorDates.length > 0 && (
                     <div className="flex items-center gap-2" data-testid="imagery-date-switcher">
                       <span className="text-xs font-semibold" style={{ color: T.muted }}>المشهد</span>
                       <select
                         value={selectedImageryDate}
-                        onChange={(e) => { setSelectedImageryDate(e.target.value); setImageryTs(Date.now()); }}
+                        onChange={(e) => handleSelectImageryTimelineItem(e.target.value)}
                         className="px-2 py-1 rounded-lg text-xs"
                         style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
                         aria-label="تاريخ صورة القمر الصناعي"
                       >
                         <option value="latest">الأحدث</option>
-                        {availableImageryDates.map((d) => (
+                        {dateSelectorDates.map((d) => (
                           <option key={d.date} value={d.date}>
                             {d.date}{typeof d.cloud_pct === 'number' ? ` · غيوم ${Math.round(d.cloud_pct)}%` : ''}{d.has_cog ? ' · جاهز' : ''}
                           </option>
@@ -1801,9 +1867,9 @@ export default function MapHub() {
                         className="px-2 py-1 rounded-lg text-xs font-semibold"
                         style={{ background: showImageryTimeline ? '#14532d' : T.card, border: `1px solid ${showImageryTimeline ? '#22c55e66' : T.line}`, color: showImageryTimeline ? '#bbf7d0' : T.ink }}
                         data-testid="two-year-imagery-timeline-toggle"
-                        title="يعرض المشاهد الجوية المتاحة خلال آخر سنتين من أحدث تاريخ متاح"
+                        title="يعرض كل المشاهد الجاهزة التي تم سحبها، وليس شهر يوليو فقط"
                       >
-                        Timeline سنتين
+                        Timeline الصور
                       </button>
                     </div>
                   )}
@@ -1818,7 +1884,7 @@ export default function MapHub() {
                         <div className="flex items-center gap-2">
                           <History className="w-4 h-4" style={{ color: T.green }} />
                           <div>
-                            <div className="text-xs font-bold" style={{ color: T.ink }}>Timeline الصور الجوية · آخر سنتين</div>
+                            <div className="text-xs font-bold" style={{ color: T.ink }}>Timeline الصور الجوية · السلسلة التاريخية</div>
                             <div className="text-[11px]" style={{ color: T.faint }}>
                               {twoYearTimeline.items.length} مشهد · جاهز {twoYearTimeline.ready} · قيد التجهيز {twoYearTimeline.pending}
                               {twoYearTimeline.avgCloud != null ? ` · متوسط غيوم ${Math.round(twoYearTimeline.avgCloud)}%` : ''}
@@ -1842,7 +1908,7 @@ export default function MapHub() {
                             <button
                               key={`${d.date}-${d.scene_id ?? 'scene'}`}
                               type="button"
-                              onClick={() => { setSelectedImageryDate(d.date); setImageryTs(Date.now()); }}
+                              onClick={() => handleSelectImageryTimelineItem(d.date, d)}
                               className="min-w-[132px] rounded-xl border px-3 py-2 text-right"
                               style={{ background: active ? '#123524' : '#111827', borderColor: active ? '#22c55e99' : T.line, color: T.ink }}
                               title={d.scene_id ?? d.date}
@@ -1868,6 +1934,7 @@ export default function MapHub() {
                               )}
                               <div className="flex items-center justify-between gap-2">
                                 <span className="text-xs font-bold">{d.date}</span>
+                                <span className="text-[10px]" style={{ color: T.faint }}>{monthLabel(d.date)}</span>
                                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: cloudBandColor(cloud) }} />
                               </div>
                               <div className="mt-1 flex items-center justify-between text-[10px]" style={{ color: T.faint }}>
