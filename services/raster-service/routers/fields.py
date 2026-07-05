@@ -1097,6 +1097,38 @@ async def field_available_dates(
     return {"field_id": field_id, "dates": dates[:limit]}
 
 
+@router.get("/v1/fields/{field_id}/terrain")
+async def field_terrain(
+    field_id: str,
+    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
+):
+    """إحصاءات تضاريس الحقل (ارتفاع + انحدار/اتّجاه + حصاد المياه) من DEM حقيقيّ.
+
+    الأساس الصادق لعرض التضاريس (سدّ فجوة TERRAIN): يقصّ نموذج الارتفاع المُهيّأ عبر
+    ``FIELD_DEM_PATH`` على مربّع إحاطة الحقل ويحسب الإحصاءات عبر Horn. لا تلفيق:
+    غياب DEM أو bbox ⇒ مظروف ``computed=false`` صريح بمصدره. تصيير 3D terrain-RGB
+    يبقى TODO موثّقاً حتّى تُنتَج بلاطات DEM.
+    """
+    await main._require_field_tenant(field_id, hide_existence=True)
+    parsed_bbox: list[float] | None = None
+    if bbox:
+        try:
+            parts = [float(x) for x in bbox.split(",")]
+            if len(parts) == 4:
+                parsed_bbox = parts
+        except (TypeError, ValueError):
+            parsed_bbox = None
+
+    import terrain_analysis as ta
+
+    dem_path = os.getenv("FIELD_DEM_PATH") or None
+    result = ta.compute_field_terrain(dem_path, parsed_bbox)
+    if result.get("computed") and (result.get("slope_deg") or {}).get("mean") is not None:
+        result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
+    result["field_id"] = field_id
+    return result
+
+
 @router.get("/v1/fields/{field_id}/tilejson")
 async def field_tilejson(
     field_id: str,

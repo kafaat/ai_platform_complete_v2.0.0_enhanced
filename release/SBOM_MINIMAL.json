@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0dd72b20d77a656332d9e8eb957563f92352ebaccde11f3fadd3276ff2a010d"
+          "content": "824fedb05f1d23493b7c98f58cd9be93566e98680173235bc9e10583649ecefc"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -1565,7 +1565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be3b2ea426bdca64a76d4913b89fb78efdb80ba6fad0d940f1896f22ae84dd41"
+          "content": "1eb50b8f4443989745d53ab556c0eb6bd92b7e405af060a84c697314da97b53b"
         }
       ],
       "name": "frontend/src/components/maphub/TerrainView3D.tsx",
@@ -2125,7 +2125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2e41c773dc05332daa4587b4e016b9f5c3d2d99caab190fb6948964be17b7b3"
+          "content": "a6557ca392ebb3fa9baa8388d0abe881739f89cba30fce13bd8baf245bb5f333"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4965,7 +4965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be1b7dfec8cd138ab61d67afb5379290c66ab2313fd1690da07f40614c762265"
+          "content": "27195f979ddb9c536f8472baa8401b912733168ff22c6587d2fd1bfff60c1175"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9025,7 +9025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "353a9ccd9da3570e7775bb76502ab5e2510b9e3b18d0fcc6b9ee4a3fab554149"
+          "content": "6a83816ac934579d21d38765318adc86cbc81a3dc082c3729efd913b93f90e92"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9175,7 +9175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b3ece62940f38c9dbf8181764bec3d4561b8b508c7f0c35d5b1751ff257c226"
+          "content": "32e7d202234fbba303e917525d9d940fe88a7232308d630e9ce5fdc9453faf6e"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -11695,7 +11695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73170f9fcdedbc84ef7bc77c18de80f19f81f515fb1795f03aedf48cd0485361"
+          "content": "546fa88e66fd7c93a0734f9f0cbbc7049fce3761294d135470650114cc69285a"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

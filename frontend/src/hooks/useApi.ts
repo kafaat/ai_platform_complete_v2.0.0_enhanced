@@ -62,6 +62,7 @@ import {
   type SavedPrescription, type PrescriptionListResponse, type PrescriptionCreateInput,
   // ── إعادة تشغيل الموسم (Agronomic Replay): خطّ زمنيّ واحد قابل للـscrub ──
   fetchAgronomicReplay, type AgronomicReplayResult,
+  fetchFieldTerrain, type FieldTerrain,
   refreshFieldImagery,
   // ── مساحة عمل الحقل (Field Workspace Map): ملخّص + طبقات + خطّ زمنيّ ──
   fetchFieldWorkspace, type FieldWorkspace,
@@ -1872,6 +1873,20 @@ export function useFieldDetail(fieldId?: string): UseQueryResult<FieldDetail, Er
     queryFn:  () => fetchFieldDetail(fieldId as string),
     enabled:  !!fieldId,
     staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// ── Field Terrain: إحصاءات التضاريس من DEM حقيقيّ (قراءة فقط، نطاق حقل) ──
+// GET /api/v1/fields/{id}/terrain. مُفعَّل مع fieldId فقط. retry:false كي تُكشَف
+// حالة `computed:false` (لا DEM/لا bbox) فوراً وتُعرَض بصدق. المفتاح يضمّ المستأجِر.
+export function useFieldTerrain(fieldId?: string): UseQueryResult<FieldTerrain, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldTerrain, Error>({
+    queryKey: ['field-terrain', tid, fieldId ?? 'none'],
+    queryFn:  () => fetchFieldTerrain(fieldId as string),
+    enabled:  !!fieldId,
+    staleTime:10 * 60_000,
     retry:    false,
   });
 }

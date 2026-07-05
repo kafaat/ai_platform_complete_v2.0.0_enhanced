@@ -797,6 +797,60 @@ async def field_imagery_available_dates(
         raise _db_unavailable("تواريخ صور الأقمار للحقل", e) from e
 
 
+@router.get("/api/v1/fields/{field_id}/terrain")
+async def field_terrain(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
+):
+    """Proxy tenant-verified terrain stats (elevation/slope/aspect) from raster-service.
+
+    Resolves the field geometry from the platform DB, derives its bbox, and forwards
+    to raster-service which computes terrain from a configured DEM (or returns an
+    honest computed=false envelope). No fabricated terrain.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT geometry FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            if row is None:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            geometry = row["geometry"]
+            if isinstance(geometry, str):
+                import json as _json
+
+                geometry = _json.loads(geometry)
+            guarded = guard_field_geometry(geometry)
+        import os as _os
+
+        import httpx as _httpx
+
+        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+            "/"
+        )
+        headers = {
+            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
+            "X-Tenant-Id": str(user.tenant_id),
+        }
+        params = {}
+        if guarded.bbox and len(guarded.bbox) == 4:
+            params["bbox"] = ",".join(str(v) for v in guarded.bbox)
+        async with _httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.get(
+                f"{raster_url}/v1/fields/{field_id}/terrain",
+                params=params,
+                headers=headers,
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("إحصاءات تضاريس الحقل", e) from e
+
+
 class FieldImageryBackfillProxyRequest(BaseModel):
     """Tenant-scoped platform proxy contract for raster historical imagery backfill.
 

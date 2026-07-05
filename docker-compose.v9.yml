@@ -781,6 +781,9 @@ services:
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
       CDSE_PROCESS_RETRY_MAX_SECONDS: ${CDSE_PROCESS_RETRY_MAX_SECONDS:-120}
       TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
+      # مسار نموذج ارتفاع رقميّ (Copernicus DEM 30م مثلاً) لإحصاءات تضاريس الحقل.
+      # فارغ = ميزة التضاريس تُبلّغ computed=false بصدق (لا تلفيق) حتى يُهيّأ DEM.
+      FIELD_DEM_PATH: ${FIELD_DEM_PATH:-}
       STAC_MAX_RETRIES: ${STAC_MAX_RETRIES:-3}
       STAC_CACHE_TTL: ${STAC_CACHE_TTL:-900}
       STAC_FALLBACK_ENABLED: ${STAC_FALLBACK_ENABLED:-true}
