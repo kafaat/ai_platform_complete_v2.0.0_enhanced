@@ -1207,3 +1207,15 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الـbrain:** إنشاء `sahool-brain/` — هذا الـvault (README/index/hot/log/dashboard +
   architecture/schema/gaps/decisions/agronomy) + قسم «الدماغ المعرفيّ» في
   [`../CLAUDE.md`](../CLAUDE.md).
+
+## 2026-07-05 (ز) — إنجاز «المؤجَّل» من تدقيقات الأقمار v2/v3/v4 (٥ مراحل، `main`=`develop`=`claude/code-review-34hO3`)
+
+**الرأس بعد الجلسة:** `5f52b63`. خطّة عميقة شاملة، ٥ commits مستقلّة، بوّابات خضراء لكلٍّ (تفاصيل + أسباب في [`decisions/ledger.md`](decisions/ledger.md) قسم ١٧).
+
+- **م1 `fe4426b`:** صحّة استعلامات db_persist — تواريخ متاحة محدودة بالتاريخ المميَّز (CTE) لا الصفوف [v3-F1] · `DISTINCT ON` لصفّ متماسك [v3-F4] · `fetch_latest_asset` واعٍ بالجودة [v3-F3] · **v4:** كتابة أعمدة v105 (quality_score/aoi_cloud_pct/cloud_mask_sources) التي كانت تُهمَل ⇒ الترتيب بالجودة كان بلا أثر.
+- **م2 `8ed6272`:** MapHub حارس `has_cog` [v2-007] · CDSE cache key tenant+هندسة [v3-6] · حذف bbox اليمن fail-closed [v3-7] · cdse-tilejson tid+urlencode [v3-8] · object_store fail-closed لرفع S3 [v3-9].
+- **م3 `f440b3f` (v143):** `asset_status` + `geometry_revision` على raster_assets + فهارس · نَسَب end-to-end (النماذج→ProcessRequest→المنصّة تحلّ MAX(revision)) [v2-011/004].
+- **م4 `bdf703a`:** عامل `cache_invalidation_worker` يستهلك raster_cache_invalidations (كان بلا مستهلِك) [v2-005] · `tile_cache_maint` إبطال+إخلاء TTL/حصّة [v2-010] · خدمة compose خلف راية.
+- **م5 `5f52b63`:** جسر الكتالوج `insert_raster_registry_entry` + `insert_stac_item` (كلا الجدولَين كانا بلا كاتب من الأنبوب) [v2-008/009].
+
+**درس متكرّر (عزل الاختبار):** اسم الوحدة العامّ `main` يتصادم عبر الخدمات في `pytest -m unit` الكامل — الحلّ استخراج الدوالّ لوحدة فريدة (`tile_cache_maint`) بدل حقن `sys.modules`، وحذف كعب `boto3` الملوِّث. **درس بوّابة:** بعد أيّ migration شغّل `production_validation_gate` محليّاً (v143 اجتاز RLS role-gate بعد إضافة العامل للـallowlist)، وأيّ raw query على جدول مُستأجَر يحتاج تصنيفاً في `tenant_query_audit`.
