@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-05 (ن) — نقطة الخطّ الزمنيّ الإنتاجيّة (البند #5)
+
+`GET /api/v1/fields/{id}/imagery/timeline?months=N`: تجميع خادميّ للخطّ الزمنيّ (بدل جمع الواجهة من عدّة مصادر). tenant-scoped؛ يبروكسي تواريخ raster المتوفّرة (COG حقيقيّ)، يقصرها على آخر N شهراً خادميّاً، ويبني لكل تاريخ `thumbnail_url` True Color (`/api/raster/.../cdse-thumbnail.png?index=truecolor&date=..&tid=..`) تُحمّل كسولاً. خدمة المصغّرة تقصّ على هندسة الحقل وتتراجع بصدق إن غاب المشهد؛ ETag/cache على تلك النقطة. واجهة: `fetchFieldImageryTimeline`/`useFieldImageryTimeline`. العقد محدَّث + حارس tests_v9. مسار متمايز (لا ازدواج). البوّابات: router + coverage · platform 3105 · unit 2631 · vitest 1057 · release 3158. بلا migration.
+
+---
+
 ## 2026-07-05 (ن) — `8537724` نقطة الحالة الموحّدة (البند #4، مصدر حقيقة واحد)
 
 على خارطة المستخدم الإنتاجيّة، بُني الحجر المعماريّ #4: `GET /api/v1/fields/{id}/state/full` — قراءة tenant-scoped واحدة تركّب **القرّاء الحقيقيّين القائمين** (لا تخترع): field+geometry · الموسم النشط (_field_season_context) · الحالة القانونيّة (recompute_field_state) · تنبيهات مشتقّة · soil_lab_tests · water_ledger+irrigation_runs. كل قسم best-effort ⇒ `available:false` صادق عند التعذّر بدل 503؛ البوّابة الصلبة الوحيدة الحقل-ضمن-المستأجِر (404). المصادر بلا خزن حقيقيّ لكل حقل (عينات ماء مخبريّة · اقتصاد لكل حقل · توصيات حيّة ثقيلة) تُعلَن available:false + مؤشّر endpoint. مسار متمايز عن `/state` (لا ازدواج — router guard أخضر). واجهة: `fetchFieldState`/`useFieldState`. **جرد بوكيل Explore** أثبت أنّ `/state` القانونيّة موجودة لكنّها لا تضمّ field/season/alerts/irrigation — فبُنيت التجميعة عليها. البوّابات: coverage-gate (أُضيف للعقد بدليل) · platform 3105 · unit 2629 · vitest 1057 · release 3157. بلا migration.
