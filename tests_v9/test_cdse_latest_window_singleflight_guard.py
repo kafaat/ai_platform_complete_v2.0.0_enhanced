@@ -44,6 +44,9 @@ def test_tile_fetch_single_flights_per_key_not_under_global_lock():
     # per-key lock helper exists and is used by the tile fetch path.
     assert "def _cdse_key_lock(" in main_src
     assert "_cdse_key_locks" in main_src
+    # stale key-locks are pruned so the registry doesn't grow unbounded.
+    assert "def _cdse_prune_key_locks_locked(" in main_src
+    assert "_cdse_prune_key_locks_locked()" in tiles_src
     assert "main._cdse_key_lock(" in tiles_src
     # the network fetch (process_index via run_in_executor) must run under the
     # per-key lock, so the global lock is not held across the CDSE call.

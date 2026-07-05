@@ -2880,6 +2880,17 @@ def _cdse_key_lock(cache_key: str):
     return lock
 
 
+def _cdse_prune_key_locks_locked() -> None:
+    """يُزيل أقفال المفاتيح التي لا كاش حيّ لها (يجب النداء تحت ``_cdse_lock()``).
+
+    يمنع نموّ ``_cdse_key_locks`` بلا حدّ عند تصفّح حقول/تواريخ كثيرة: نُبقي فقط أقفال
+    المفاتيح التي ما زال لها صفّ في ``_cdse_tile_cache``."""
+    live = set(_cdse_tile_cache.keys())
+    for key in list(_cdse_key_locks.keys()):
+        if key not in live:
+            _cdse_key_locks.pop(key, None)
+
+
 def _bbox_from_geom(geom: dict | None) -> list[float] | None:
     """يحسب [west, south, east, north] من هندسة GeoJSON (Polygon/MultiPolygon/Feature)."""
     if not geom:

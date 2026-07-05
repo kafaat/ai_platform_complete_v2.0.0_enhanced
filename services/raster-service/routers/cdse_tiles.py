@@ -228,6 +228,7 @@ async def _ensure_field_cog(
                     return None
             async with main._cdse_lock():
                 main._cdse_tile_cache[cache_key] = (_t.monotonic() + 3600.0, cog_path)
+                main._cdse_prune_key_locks_locked()
             return cog_path
         except Exception as e:  # noqa: BLE001
             main.logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)
