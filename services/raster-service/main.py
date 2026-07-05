@@ -2238,40 +2238,35 @@ def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None
     }
 
 
-async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | None:
-    """يجد طبقة COG للحقل: من الذاكرة أوّلاً، وإلّا يُعيد الترطيب من raster_assets.
+async def _rehydrate_field_layer_from_db(field_id: str, internal: str, date: str) -> dict | None:
+    """يستعيد طبقة COG من raster_assets ويبنيها في الذاكرة. يُرجِعها أو None.
 
-    يسدّ ثغرة «persistence مكتوب لا مقروء»: بعد إعادة التشغيل/على worker آخر،
-    فهرس الذاكرة فارغ ⇒ نستعيد cog_uri+الحدود من القاعدة ونُعيد بناء الفهرس،
-    فيعمل العرض على COG الموجود على القرص (UPLOAD_DIR كـvolume دائم).
+    معرّف الطبقة **مخصّص بالتاريخ** (`db_{field}_{index}_{acq}`) — كي لا يخلط ترطيبُ
+    تاريخ محدّد مع «latest» (إصلاح FINDING-001: كان `db_{field}_{index}` يجعل طلبَ
+    latest لاحقاً يُعيد تاريخاً قديماً مُرطَّباً بلا استشارة القاعدة).
     """
-    layer = _find_field_layer(field_id, index, date)
-    if layer is not None:
-        return layer
     try:
         import time as _t
 
         import db_persist
 
-        internal = _normalize_index(index)
         asset = await db_persist.fetch_latest_asset(
             field_id, internal, date, tenant_id=_REQ_TENANT.get()
         )
         if not asset or not asset.get("cog_url"):
             return None
-        # لـfile:// نفحص القرص؛ لـs3:// نؤجّل الوجود إلى rasterio (لا نرفضه هنا).
         if not object_store.exists_locally(asset["cog_url"]):
             logger.warning("raster_assets hit but COG missing on host: %s", asset["cog_url"])
             return None
-        lid = f"db_{field_id}_{internal}"
+        acq = asset.get("acquisition_date")
+        lid = f"db_{field_id}_{internal}_{acq or 'nodate'}"
         _layers[lid] = {
             "cog_url": asset["cog_url"],
             "index": internal,
             "tenant_id": _REQ_TENANT.get(),
-            "acquisition_date": asset.get("acquisition_date"),
+            "acquisition_date": acq,
             "bounds_4326": asset.get("bounds_4326"),
             "cloud_pct": asset.get("cloud_pct"),
-            # v131 (v62.3-B): إعادة ترطيب إشارات الجودة من raster_assets.
             "cloud_cover": asset.get("cloud_cover"),
             "valid_pixel_ratio": asset.get("valid_pixel_ratio"),
             "coverage_ratio": asset.get("coverage_ratio"),
@@ -2279,8 +2274,7 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
             "confidence": asset.get("confidence"),
             "quality": asset.get("quality"),
             "cloud_mask_applied": asset.get("cloud_mask_applied"),
-            # تفويض: tenant_id مثبت أعلى؛ DB fetch نفسه منطق بالمستأجر.
-            "created_at": asset.get("acquisition_date") or _t.strftime("%Y-%m-%dT%H:%M:%S"),
+            "created_at": acq or _t.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         _field_layers.setdefault(field_id, [])
         if lid not in _field_layers[field_id]:
@@ -2289,6 +2283,33 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
     except Exception as e:  # noqa: BLE001 — غياب القاعدة لا يُفشل القراءة
         logger.warning("DB rehydrate skipped (%s): %s", field_id, e)
         return None
+
+
+async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | None:
+    """يجد طبقة COG للحقل: من الذاكرة أوّلاً، وإلّا يُعيد الترطيب من raster_assets.
+
+    FINDING-001: طلب «latest» لا يثق بذاكرة قد تحوي ترطيبَ تاريخ محدّد أقدم فقط —
+    يستشير القاعدة عن الأحدث ويختار الأحدث acquisition_date بين الذاكرة والقاعدة.
+    طلب تاريخ محدّد يبقى ذاكرةً-أوّلاً (صارم بالتاريخ في _find_field_layer).
+    """
+    internal = _normalize_index(index)
+    mem = _find_field_layer(field_id, index, date)
+
+    if date and date != "latest":
+        if mem is not None:
+            return mem
+        return await _rehydrate_field_layer_from_db(field_id, internal, date)
+
+    # date == "latest": الذاكرة قد تكون قديمة (ترطيب تاريخ محدّد سابق) — استشِر القاعدة.
+    db_layer = await _rehydrate_field_layer_from_db(field_id, internal, "latest")
+    if db_layer is None:
+        return mem  # لا قاعدة/لا أصل ⇒ أفضل ما في الذاكرة (best-effort)
+    if mem is None:
+        return db_layer
+    # اختر الأحدث acquisition_date فعليّاً (الذاكرة قد تحمل معالجةً حيّةً أحدث من القاعدة).
+    mem_d = str(mem.get("acquisition_date") or "")
+    db_d = str(db_layer.get("acquisition_date") or "")
+    return mem if mem_d >= db_d else db_layer
 
 
 async def _rvi_from_sar_cog(field_id: str, date: str) -> float | None:

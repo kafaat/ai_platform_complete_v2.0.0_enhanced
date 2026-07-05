@@ -3516,11 +3516,21 @@ export interface FieldImageryDateOption {
   cloud_cover?: number | null;
   has_cog?: boolean;
   scene_id?: string | null;
+  // FINDING-006: المؤشّرات المتوفّرة لهذا التاريخ (الخادم يُرجِعها) — كي لا يُختار
+  // تاريخٌ «جاهز» لمؤشّر غير المؤشّر النشط فتظهر بلاطة شفّافة. تُستعمَل للتصفية.
+  indices?: string[];
 }
 
-/** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات. */
-export const fetchFieldImageryAvailableDates = (fieldId: string): Promise<FieldImageryDateOption[]> =>
-  kongApi.get(`/api/v1/fields/${fieldId}/available-dates`).then((r) => {
+/** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات.
+ *  index اختياريّ: عند تمريره يقصر الخادم التواريخ على ما له COG لذلك المؤشّر
+ *  (يُغني عن اختيار تاريخ لا يملك المؤشّر النشط — FINDING-006). */
+export const fetchFieldImageryAvailableDates = (
+  fieldId: string,
+  index?: string,
+): Promise<FieldImageryDateOption[]> =>
+  kongApi.get(`/api/v1/fields/${fieldId}/available-dates`, {
+    params: index ? { index } : undefined,
+  }).then((r) => {
     const raw = r.data?.dates ?? r.data?.items ?? r.data ?? [];
     if (!Array.isArray(raw)) return [];
     return raw
@@ -3536,6 +3546,9 @@ export const fetchFieldImageryAvailableDates = (fieldId: string): Promise<FieldI
           cloud_cover: typeof obj.cloud_cover === 'number' ? obj.cloud_cover : null,
           has_cog: Boolean(obj.has_cog ?? obj.ready ?? false),
           scene_id: typeof obj.scene_id === 'string' ? obj.scene_id : null,
+          indices: Array.isArray(obj.indices)
+            ? (obj.indices as unknown[]).map((v) => String(v))
+            : undefined,
         } as FieldImageryDateOption;
       })
       .filter(Boolean) as FieldImageryDateOption[];

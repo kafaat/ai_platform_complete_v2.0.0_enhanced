@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-05 (ن-40) — تدقيق صور الأقمار v2: إصلاح latest البائت (FINDING-001) + تصفية التواريخ بالمؤشّر (006)
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تدقيق أعمق — نتائجه حقيقيّة؛ عولج الأخطر والأكثر أماناً:
+
+- **FINDING-001 (High، أعاد المدقّق إنتاجه):** بعد ترطيب تاريخ محدّد من `raster_assets`، معرّف الطبقة `db_{field}_{index}` **غير مخصّص بالتاريخ** ⇒ طلب `latest` لاحقاً يجد الطبقة القديمة في الذاكرة ويُعيدها كأحدث بلا استشارة القاعدة (خريطة تُظهر صورة قديمة والنظام يبدو سليماً). **الإصلاح:** استخراج `_rehydrate_field_layer_from_db` بمعرّف مخصّص بالتاريخ `db_{field}_{index}_{acq}`؛ و`_resolve_field_layer('latest')` يستشير القاعدة ويختار الأحدث acquisition_date بين الذاكرة والقاعدة. حارس انحدار يُعيد سيناريو المدقّق حرفيّاً (2026-05-01 ثمّ latest ⇒ 2026-06-10).
+- **FINDING-006 (Med/High):** الواجهة كانت تطلب `/available-dates` بلا `index` وتُسقط `indices` ⇒ قد يُعرَض تاريخ «جاهز» لمؤشّر آخر فتظهر بلاطة شفّافة. **الإصلاح:** `fetchFieldImageryAvailableDates(fieldId, index?)` يمرّر المؤشّر + يحفظ `indices[]`، وMapHub يعيد الجلب عند تغيّر المؤشّر + تصفية دفاعيّة على العميل.
+- **مُنجَز سابقاً (v142، المدقّق على أرشيف أقدم):** FINDING-002 (dedup unique index + ON CONFLICT) · FINDING-003 (processing_job_id يُمرَّر ويُدرَج).
+- **مؤجَّل بصدق (يحتاج عاملاً/معماريّة، لا نصف حلّ):** FINDING-004 (ربط geometry_revision) · 005 (عامل استهلاك raster_cache_invalidations) · 007 (سلوك auto-refresh) · 008/009 (جسر registry + STAC) · 010 (احتفاظ كاش) · 011 (asset status).
+
+**تحقّق:** tsc نظيف · vitest **1043** · pytest -m unit **2551** · بوّابة الإنتاج PASS · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
 ## 2026-07-05 (ن-39) — إصلاح بوّابة الإنتاج: v142 نُقِص من run_migrations.sql (منظومة ترحيل ثانية)
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). بوّابة الإنتاج فشلت (رمز 1): `v142_raster_assets_dedup_traceability.sql is missing manifest entries`.

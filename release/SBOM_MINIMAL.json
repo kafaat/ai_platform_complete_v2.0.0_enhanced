@@ -4485,7 +4485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa4f1461bec1ec1bbd8c09f735d50514b1de06cd0b2784a56c0b23b6826ba9aa"
+          "content": "917bf6a3f3a567db1d5c2ce685e6b6c152c0ceee354e17e706215c91b6de2c80"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4915,7 +4915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54e80aa40ad7166ea3dc9ee6d15fecac0e4d87fc084c5d0bb41bbdb8ae09695a"
+          "content": "d987f9987b1a46b859c7127a44807b5192a659e37b2772870735382be7f007c1"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -8795,7 +8795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2dfc978648387e6d06d6254c7e505f542940573581de17ad7e8cbc084533034b"
+          "content": "ba2353b93acce60e035c59693199191d3a9c34de1d5aa045b0140ab305bb7200"
         }
       ],
       "name": "services/raster-service/main.py",

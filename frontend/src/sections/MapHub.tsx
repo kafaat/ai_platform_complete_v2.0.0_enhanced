@@ -356,10 +356,18 @@ export default function MapHub() {
       return;
     }
     let cancelled = false;
-    fetchFieldImageryAvailableDates(fieldId)
+    // FINDING-006: نمرّر المؤشّر النشط كي يقصر الخادم التواريخ على ما له COG لهذا
+    // المؤشّر تحديداً — فلا يُعرَض تاريخ «جاهز» لمؤشّر آخر فتظهر بلاطة شفّافة عند اختياره.
+    const idx = activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID ? activeIndicator : undefined;
+    fetchFieldImageryAvailableDates(fieldId, idx)
       .then((dates) => {
         if (cancelled) return;
-        const sorted = [...dates].sort((a, b) => b.date.localeCompare(a.date));
+        // تصفية دفاعيّة على العميل أيضاً: أبقِ التواريخ التي تملك المؤشّر النشط فعليّاً
+        // (أو التي لا تحمل قائمة indices — لا نُخفي بلا دليل من الخادم).
+        const filtered = idx
+          ? dates.filter((d) => !d.indices || d.indices.length === 0 || d.indices.includes(idx))
+          : dates;
+        const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
         setAvailableImageryDates(sorted);
         setSelectedImageryDate((prev) => {
           if (prev === 'latest') return prev;
@@ -370,7 +378,7 @@ export default function MapHub() {
         if (!cancelled) setAvailableImageryDates([]);
       });
     return () => { cancelled = true; };
-  }, [fieldId, mode]);
+  }, [fieldId, mode, activeIndicator]);
 
   // عند اختيار مؤشّر وحقل، نطلب معالجة/تحديث صور Sentinel ثم نكسر كاش البلاطات.
   // هذا لا يصنع قيماً وهمية: إذا لم تنتج الخلفية COG حقيقي، ستظل البلاطات شفافة.
