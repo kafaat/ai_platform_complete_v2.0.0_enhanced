@@ -208,7 +208,7 @@ function RegisterDeviceForm() {
   const [name, setName] = useState('');
   const [type, setType] = useState<DeviceType>('soil_moisture');
   const [fieldId, setFieldId] = useState('');
-  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  const { options: fieldOptions, isLoading: fieldsLoading, isError: fieldsError, fieldId: activeFieldId } = useSelectedField();
   useEffect(() => {
     if (!fieldId && activeFieldId) setFieldId(activeFieldId);
   }, [activeFieldId, fieldId]);
@@ -259,11 +259,19 @@ function RegisterDeviceForm() {
             value={type} onChange={v => setType(v)}
             options={TYPE_ORDER.map(t => ({ value: t, label: TYPE_CONFIG[t].label }))}
           />
-          <Input
-            label="معرّف الحقل (اختياري)"
-            value={fieldId} onChange={v => setFieldId(v)}
-            placeholder="field_01"
-          />
+          <label className="flex flex-col gap-1">
+            <span className="text-xs" style={{ color: T.muted }}>الحقل (اختياري)</span>
+            <select
+              value={fieldId}
+              onChange={(e) => setFieldId(e.target.value)}
+              disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+              className="rounded-xl px-3 py-2 text-sm disabled:opacity-60"
+              style={{ background: T.card2, border: `1px solid ${T.line}`, color: T.ink }}
+            >
+              <option value="">— بلا ربط بحقل —</option>
+              {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+            </select>
+          </label>
         </div>
 
         <Input

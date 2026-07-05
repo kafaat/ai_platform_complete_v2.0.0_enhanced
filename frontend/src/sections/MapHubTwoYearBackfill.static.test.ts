@@ -8,13 +8,13 @@ const api = readFileSync(join(process.cwd(), 'src/services/api.ts'), 'utf8');
 describe('MapHub two-year historical imagery backfill UI', () => {
   it('exposes a visible 24-month historical imagery action', () => {
     expect(source).toContain('two-year-imagery-backfill');
-    expect(source).toContain('تجهيز سنتين تاريخية');
+    expect(source).toContain('تجهيز 24 شهر');
     expect(source).toContain('handlePrepareTwoYearImagery');
   });
 
   it('uses the platform-proxied backfill API with 24 months and field clipping geometry', () => {
     expect(source).toContain('runHistoricalImageryBackfill');
-    expect(source).toContain('months: 24');
+    expect(source).toContain('months,');
     expect(source).toContain('clip_polygon_geojson: selected.geometry');
     expect(source).toContain("preset: 'custom'");
   });

@@ -279,9 +279,13 @@ export default function RecommendationPage() {
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معرّف الحقل</span>
-              <input value={fieldId} onChange={e => setFieldId(e.target.value)} placeholder="field_06"
-                className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+              <span className="text-xs text-slate-400">الحقل</span>
+              <select value={fieldId} onChange={e => setFieldId(e.target.value)}
+                disabled={fieldsLoading || fieldsError || fields.length === 0}
+                className="px-3 py-2 rounded-lg text-sm disabled:opacity-60" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                <option value="">اختر الحقل</option>
+                {fields.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+              </select>
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-xs text-slate-400">مرحلة النموّ (اختياريّ)</span>

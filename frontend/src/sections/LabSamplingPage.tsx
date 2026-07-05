@@ -1,9 +1,37 @@
 import { useMemo, useState } from 'react';
+import { MapContainer, TileLayer, Polygon, Marker, useMapEvents } from 'react-leaflet';
+import '../lib/leafletSetup';
 import { FlaskConical, MapPin, Plus, ShieldCheck } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useCreateLabSample, useLabDecisionContext, useLabSamples, useSubmitSoilLabResult } from '../hooks/useApi';
 import { asApiError, apiErrorMessage, type LabSampleCreateInput, type SoilLabResultInput } from '../services/api';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateViews';
+import { geomToPolygon, fieldRepresentativePoint } from '../lib/geo';
+
+
+const BASEMAP_SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+
+function SamplePointPicker({ value, onPick, polygon, center }: {
+  value: [number, number] | null;
+  onPick: (lat: number, lng: number) => void;
+  polygon?: [number, number][];
+  center: [number, number];
+}) {
+  function ClickLayer() {
+    useMapEvents({ click: (e) => onPick(e.latlng.lat, e.latlng.lng) });
+    return null;
+  }
+  return (
+    <div className="rounded-xl overflow-hidden border border-slate-800" style={{ height: 260 }}>
+      <MapContainer center={value ?? center} zoom={16} style={{ height: '100%', width: '100%' }}>
+        <TileLayer url={BASEMAP_SAT} attribution="Tiles &copy; Esri — World Imagery" />
+        {polygon && polygon.length >= 3 ? <Polygon positions={polygon} pathOptions={{ color: '#34d399', weight: 2, fillOpacity: 0.08 }} /> : null}
+        {value ? <Marker position={value} /> : null}
+        <ClickLayer />
+      </MapContainer>
+    </div>
+  );
+}
 
 function n(v: FormDataEntryValue | null): number | null {
   const s = String(v ?? '').trim();
@@ -20,6 +48,10 @@ export default function LabSamplingPage() {
   const submitSoil = useSubmitSoilLabResult();
   const [msg, setMsg] = useState<string | null>(null);
   const selected = options.find((f) => f.id === fieldId);
+  const fieldPolygon = useMemo(() => geomToPolygon(selected?.geometry), [selected?.geometry]);
+  const rep = selected ? fieldRepresentativePoint(selected) : null;
+  const mapCenter = (rep ?? fieldPolygon?.[0] ?? [15.0, 44.0]) as [number, number];
+  const [pickedPoint, setPickedPoint] = useState<[number, number] | null>(null);
   const soilSamples = useMemo(() => (samplesQ.data ?? []).filter((s) => s.kind === 'soil'), [samplesQ.data]);
 
   const onCreateSample = async (fd: FormData) => {
@@ -28,8 +60,8 @@ export default function LabSamplingPage() {
     const payload: LabSampleCreateInput = {
       field_id: fieldId,
       kind: fd.get('kind') === 'water' ? 'water' : 'soil',
-      latitude: Number(fd.get('latitude')),
-      longitude: Number(fd.get('longitude')),
+      latitude: Number(fd.get('latitude') || pickedPoint?.[0]),
+      longitude: Number(fd.get('longitude') || pickedPoint?.[1]),
       sampled_on: String(fd.get('sampled_on') || new Date().toISOString().slice(0, 10)),
       depth_cm_from: n(fd.get('depth_cm_from')),
       depth_cm_to: n(fd.get('depth_cm_to')),
@@ -87,7 +119,9 @@ export default function LabSamplingPage() {
           <form className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 space-y-3" action={(fd) => void onCreateSample(fd)}>
             <h2 className="font-semibold text-slate-100 flex items-center gap-2"><MapPin size={18} /> إضافة نقطة عينة</h2>
             <label className="block text-sm text-slate-300">نوع العينة<select name="kind" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2"><option value="soil">تربة</option><option value="water">مياه</option></select></label>
-            <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">Latitude<input required name="latitude" type="number" step="any" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">Longitude<input required name="longitude" type="number" step="any" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
+            <SamplePointPicker value={pickedPoint} onPick={(lat, lng) => setPickedPoint([lat, lng])} polygon={fieldPolygon} center={mapCenter} />
+            <p className="text-[11px] text-slate-400">انقر داخل الخريطة لتحديد نقطة العينة، أو أدخل الإحداثيات يدويًا.</p>
+            <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">Latitude<input required name="latitude" type="number" step="any" value={pickedPoint?.[0] ?? ''} onChange={(e) => setPickedPoint([Number(e.target.value), pickedPoint?.[1] ?? mapCenter[1]])} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">Longitude<input required name="longitude" type="number" step="any" value={pickedPoint?.[1] ?? ''} onChange={(e) => setPickedPoint([pickedPoint?.[0] ?? mapCenter[0], Number(e.target.value)])} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
             <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">من عمق سم<input name="depth_cm_from" type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">إلى عمق سم<input name="depth_cm_to" type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
             <label className="block text-sm text-slate-300">تاريخ العينة<input name="sampled_on" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label>
             <label className="block text-sm text-slate-300">مصدر/ملاحظة<input name="source" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" placeholder="بئر 3 / شبكة 1 / قطاع شمالي" /></label>

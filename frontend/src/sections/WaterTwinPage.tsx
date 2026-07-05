@@ -18,7 +18,7 @@ export default function WaterTwinPage() {
   const [baselineIrr, setBaselineIrr] = useState('6');
   const [rain, setRain] = useState('0');
   const [etcOverride, setEtcOverride] = useState('');
-  const [initOverride, setInitOverride] = useState('');
+  const [initOverride, setInitOverride] = useState('0');
   const [kind, setKind] = useState<'delay' | 'scale'>('scale');
   const [delayDays, setDelayDays] = useState(3);
   const [scalePct, setScalePct] = useState(80);
@@ -43,7 +43,7 @@ export default function WaterTwinPage() {
       baseline_irrigation_mm: numOr(baselineIrr, 0),
       daily_rain_mm: numOr(rain, 0),
       daily_etc_mm: optNum(etcOverride),
-      initial_depletion_mm: optNum(initOverride),
+      initial_depletion_mm: optNum(initOverride) ?? 0,
       scenario_kind: kind,
       delay_days: kind === 'delay' ? delayDays : 0,
       scale_factor: kind === 'scale' ? scalePct / 100 : 1,
@@ -71,7 +71,7 @@ export default function WaterTwinPage() {
       </div>
       <p className="text-sm text-slate-400">
         «ماذا لو أخّرتُ الريّ أيّاماً؟ خفّضتُه نسبةً؟» — يحاكي مسار نضوب منطقة الجذور للأيّام القادمة
-        (FAO-56) مُغذّى بأحدث صفوف <span className="text-slate-300">دفتر المياه</span> للحقل، ويقارن
+        (FAO-56) مُغذّى بأحدث صفوف <span className="text-slate-300">دفتر المياه</span> عند توفرها، أو بقيمة النضوب الابتدائي المدخلة هنا، ويقارن
         الأساس بالبديل. القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>، و
         <span className="text-amber-300"> لا يُقدَّر أثر الغلّة</span> (غير مُنمذَج).
       </p>

@@ -35,7 +35,7 @@ export default function PestEscalationPage() {
   const [pestType, setPestType] = useState(PESTS[0]);
   const [severity, setSeverity] = useState(0.7);
   const [fieldId, setFieldId] = useState('');
-  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  const { options: fieldOptions, isLoading: fieldsLoading, isError: fieldsError, fieldId: activeFieldId } = useSelectedField();
   useEffect(() => {
     if (!fieldId && activeFieldId) setFieldId(activeFieldId);
   }, [activeFieldId, fieldId]);
@@ -122,9 +122,17 @@ export default function PestEscalationPage() {
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-slate-400">معرّف الحقل (FieldView)</span>
-            <input value={fieldId} onChange={e => setFieldId(e.target.value)} placeholder={activeField?.name ? `${activeField.name} (${activeFieldId})` : 'field_06'}
-              className="px-3 py-2 rounded-lg text-sm" style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+            <span className="text-xs text-slate-400">الحقل</span>
+            <select
+              value={fieldId}
+              onChange={(e) => setFieldId(e.target.value)}
+              disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+              className="px-3 py-2 rounded-lg text-sm disabled:opacity-60"
+              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+            >
+              <option value="">اختر الحقل</option>
+              {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+            </select>
           </label>
         </div>
         <label className="flex flex-col gap-1">
@@ -134,7 +142,7 @@ export default function PestEscalationPage() {
           <span className="text-[10px] text-slate-600">≥ 0.40 يُؤكِّد التصعيد · ≥ 0.70 مكافحة عاجلة</span>
         </label>
         <div className="flex justify-end">
-          <button onClick={start} disabled={mut.isPending}
+          <button onClick={start} disabled={mut.isPending || !fieldId}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#ea580c' }}>
             <PlayCircle className="w-4 h-4" />

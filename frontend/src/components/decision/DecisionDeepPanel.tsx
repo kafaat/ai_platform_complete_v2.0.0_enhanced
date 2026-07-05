@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   BadgeDollarSign, BookOpenCheck, Compass, Layers, PenLine, Scale, Send, Trash2,
 } from 'lucide-react';
@@ -15,6 +15,7 @@ import {
   type ForLocationParams, type UnifiedSignalInput,
 } from '../../lib/decisionDeep';
 import { T } from '../ds';
+import { useSelectedField } from '../../hooks/useSelectedField';
 
 // خيارات المفردات المعروفة للخادم فقط — لا نخترع قيماً (الخادم يطبّع المجهول بتحفّظ).
 const DOMAINS = ['weather', 'soil', 'irrigation', 'pest', 'economics', 'yield'];
@@ -51,9 +52,23 @@ function HonestError({ error, gated }: { error: unknown; gated: boolean }) {
  *  وحراسة الواجهة بصريّة فقط: الحاكم الفعليّ صلاحيّات الخادم
  *  (RECOMMENDATION_REQUEST) وحواجزه ومفتاح إيقاف الطوارئ. */
 export default function DecisionDeepPanel() {
+  const { options: fieldOptions, fieldId: activeFieldId, setFieldId: setActiveFieldId, isLoading: fieldsLoading, isError: fieldsError } = useSelectedField();
+  const fieldSelect = (value: string, onChange: (v: string) => void, allowEmpty = true) => (
+    <select
+      value={value}
+      onChange={(e) => { const v = e.target.value; onChange(v); if (v) setActiveFieldId(v, { source: 'user' }); }}
+      disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+      className="w-44 px-2 py-1 rounded-lg disabled:opacity-60"
+      style={inputStyle}
+    >
+      {allowEmpty && <option value="">اختر الحقل</option>}
+      {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+    </select>
+  );
+
   // ── القرار الموحّد ──
   const unifiedM = useUnifiedDecision();
-  const [uFieldId, setUFieldId] = useState('');
+  const [uFieldId, setUFieldId] = useState(activeFieldId ?? '');
   const [uSignals, setUSignals] = useState<UnifiedSignalInput[]>([]);
   const [uMinMm, setUMinMm] = useState('');
   const [uBudgetMm, setUBudgetMm] = useState('');
@@ -123,7 +138,7 @@ export default function DecisionDeepPanel() {
   // ── إدامة قرار (تسجيل صادق — لا تنفيذ ولا نتيجة مُختلقة) ──
   const recordM = useRecordDecision();
   const [recType, setRecType] = useState('');
-  const [recFieldId, setRecFieldId] = useState('');
+  const [recFieldId, setRecFieldId] = useState(activeFieldId ?? '');
   const [recRegion, setRecRegion] = useState('');
   const [recConfidence, setRecConfidence] = useState('');
   const [recValueText, setRecValueText] = useState('');
@@ -151,10 +166,18 @@ export default function DecisionDeepPanel() {
   const [exRecId, setExRecId] = useState('');
   const [exAction, setExAction] = useState('irrigation');
   const [exRisk, setExRisk] = useState('MEDIUM');
-  const [exFieldId, setExFieldId] = useState('');
+  const [exFieldId, setExFieldId] = useState(activeFieldId ?? '');
   const [exDeviceId, setExDeviceId] = useState('');
   const [exCommand, setExCommand] = useState('');
   const [exConfirm, setExConfirm] = useState('');
+
+  // يزامن منتقي الحقل العميق مع مصدر الحقيقة المشترك بدل إدخال fld_* يدوياً.
+  useEffect(() => {
+    if (!activeFieldId) return;
+    setUFieldId((v) => v || activeFieldId);
+    setRecFieldId((v) => v || activeFieldId);
+    setExFieldId((v) => v || activeFieldId);
+  }, [activeFieldId]);
   const exReady = !!exRecId.trim() && executeConfirmed(exConfirm);
   const runExecute = () => {
     if (!exReady) return;
@@ -178,7 +201,7 @@ export default function DecisionDeepPanel() {
             <span className="text-[11px] font-normal" style={{ color: T.faint }}>· معاينة فقط — لا تنفيذ</span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px]" style={{ color: T.muted }}>
-            <input value={uFieldId} onChange={(e) => setUFieldId(e.target.value)} placeholder="معرّف الحقل" className="w-36 px-2 py-1 rounded-lg" style={inputStyle} />
+            {fieldSelect(uFieldId, setUFieldId, true)}
             <input type="number" value={uMinMm} onChange={(e) => setUMinMm(e.target.value)} placeholder="حدّ أدنى للغلّة (مم، اختياريّ)" className="w-44 px-2 py-1 rounded-lg" style={inputStyle} />
             <input type="number" value={uBudgetMm} onChange={(e) => setUBudgetMm(e.target.value)} placeholder="ميزانيّة ماء (مم، اختياريّ)" className="w-40 px-2 py-1 rounded-lg" style={inputStyle} />
           </div>
@@ -392,7 +415,7 @@ export default function DecisionDeepPanel() {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px]" style={{ color: T.muted }}>
             <input value={recType} onChange={(e) => setRecType(e.target.value)} placeholder="نوع القرار (irrigation_plan…)" className="w-44 px-2 py-1 rounded-lg" style={inputStyle} />
-            <input value={recFieldId} onChange={(e) => setRecFieldId(e.target.value)} placeholder="معرّف الحقل (اختياريّ)" className="w-36 px-2 py-1 rounded-lg" style={inputStyle} />
+            {fieldSelect(recFieldId, setRecFieldId, true)}
             <input value={recRegion} onChange={(e) => setRecRegion(e.target.value)} placeholder="المنطقة (اختياريّ)" className="w-28 px-2 py-1 rounded-lg" style={inputStyle} />
             <input type="number" value={recConfidence} onChange={(e) => setRecConfidence(e.target.value)} placeholder="ثقة 0–1 (اختياريّ)" className="w-28 px-2 py-1 rounded-lg" style={inputStyle} />
           </div>
@@ -443,7 +466,7 @@ export default function DecisionDeepPanel() {
             <select value={exRisk} onChange={(e) => setExRisk(e.target.value)} className="px-2 py-1 rounded-lg" style={inputStyle}>
               {RISKS.map((r) => <option key={r} value={r}>{r}</option>)}
             </select>
-            <input value={exFieldId} onChange={(e) => setExFieldId(e.target.value)} placeholder="معرّف الحقل (اختياريّ)" className="w-36 px-2 py-1 rounded-lg" style={inputStyle} />
+            {fieldSelect(exFieldId, setExFieldId, true)}
             <input value={exDeviceId} onChange={(e) => setExDeviceId(e.target.value)} placeholder="جهاز (لقرار READY)" className="w-36 px-2 py-1 rounded-lg" style={inputStyle} />
             <input value={exCommand} onChange={(e) => setExCommand(e.target.value)} placeholder="أمر (لقرار READY)" className="w-32 px-2 py-1 rounded-lg" style={inputStyle} />
           </div>

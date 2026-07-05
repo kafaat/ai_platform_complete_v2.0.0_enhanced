@@ -5,6 +5,8 @@ import {
 } from "../hooks/useApi";
 import FieldIndicatorMap from "../components/FieldIndicatorMap";
 import { GradientScale, SegmentedScale, type ScaleBand } from "../components/insights/ScaleLegend";
+import FieldSelector from "../components/FieldSelector";
+import { useSelectedField } from "../hooks/useSelectedField";
 
 // ════════════════════════════════════════════════════════════
 // SAHOOL — صفحة المؤشرات المكانية (Spatial Indicators View)
@@ -15,7 +17,6 @@ import { GradientScale, SegmentedScale, type ScaleBand } from "../components/ins
 //   • سقوط آمن (fallback) إلى محاكاة توضيحيّة عند فشل الجلب أو غياب البيانات الحقيقية
 // ════════════════════════════════════════════════════════════
 
-const FIELD_ID = "field_01";
 const FIELD_BBOX = { minLon: 45.300, minLat: 16.150, maxLon: 45.307, maxLat: 16.157 };
 const GRID = 24; // أبعاد شبكة المحاكاة الاحتياطيّة (الشبكة الحقيقيّة تأتي بأبعادها من الـ backend)
 
@@ -202,6 +203,7 @@ export default function SpatialView() {
   const [tIdx, setTIdx] = useState(0);
   const [selectedZone, setSelectedZone] = useState<Zone | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "map">("grid");
+  const { fieldId, field } = useSelectedField();
 
   // مبدّل المؤشّر مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=قابل للعرض المكانيّ)
   // مقاطَعاً مع البيانات الوصفيّة المحلّيّة (IND_META) — لا نعرض مؤشّراً لا نملك
@@ -226,14 +228,14 @@ export default function SpatialView() {
 
   const apiDate = tIdx === 0 ? "latest" : TIMELINE[tIdx].date;
   const { data: gridResp, isLoading, isError } = useIndicatorGrid(
-    FIELD_ID,
+    fieldId,
     activeKey as GridIndex,
     apiDate,
   );
 
   // وصفة مناطق الإدارة (VRT) — تقسيم كوانتايل + معدّل موصى به لكلّ منطقة.
   // base_rate إرشادي (كغ/هـ مثلاً)؛ المعدّل النهائي قرار agronomic يحتاج تحقّقاً.
-  const { data: rxResp } = useFieldPrescription(FIELD_ID, activeKey as GridIndex, apiDate, {
+  const { data: rxResp } = useFieldPrescription(fieldId, activeKey as GridIndex, apiDate, {
     nZones: 3,
     baseRate: 100,
     strategy: "compensate",
@@ -242,6 +244,7 @@ export default function SpatialView() {
   // هل لدينا بيانات حقيقيّة قابلة للعرض؟ (نتحقّق من zones/stats أيضاً لا الـgrid فقط —
   // وإلّا mapApiZones/fieldStats ينهاران على استجابة بشكل ناقص: zones.map / stats.mean)
   const hasReal =
+    !!fieldId &&
     !!gridResp &&
     gridResp.real_data &&
     Array.isArray(gridResp.grid) &&
@@ -312,6 +315,9 @@ export default function SpatialView() {
         </h1>
       </div>
 
+      <FieldSelector label="الحقل للمؤشرات المكانية" />
+      {field ? <div style={{ marginBottom: 12, color: "#9cb8a3", fontSize: 12 }}>الحقل النشط: <b>{field.name}</b> · {field.crop || "—"}</div> : null}
+
       {/* شريط مصدر البيانات: حقيقيّة أو محاكاة توضيحيّة (صدق المصدر) */}
       {hasReal ? (
         <div style={{
@@ -378,7 +384,7 @@ export default function SpatialView() {
             <>
               {/* خريطة حقيقية ببلاطات المؤشر مقصوصة فوق الحقل */}
               <FieldIndicatorMap
-                fieldId={FIELD_ID}
+                fieldId={fieldId}
                 index={activeKey as GridIndex}
                 date={apiDate}
                 fieldPolygon={fieldPolygon}

@@ -62,6 +62,10 @@ workloads:
     env:
       SERVICE_NAME: sahool-raster-service
       RUNTIME_ROLE_REQUIRED: "sahool_app"
+      CDSE_PROCESS_MIN_INTERVAL_SECONDS: "2.0"
+      CDSE_PROCESS_MAX_RETRIES: "5"
+      CDSE_PROCESS_RETRY_BASE_SECONDS: "5"
+      CDSE_PROCESS_RETRY_MAX_SECONDS: "120"
     secretEnv:
       DATABASE_URL: databaseUrl
       CDSE_CLIENT_ID: cdseClientId

@@ -98,6 +98,67 @@ _TOKEN_URL = os.getenv(
 _BASE_URL = os.getenv("SH_BASE_URL", "https://sh.dataspace.copernicus.eu")
 _COLLECTION = "sentinel-2-l2a"
 
+
+def _env_float(name: str, default: float, *, minimum: float | None = None) -> float:
+    try:
+        value = float(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        value = default
+    if minimum is not None:
+        value = max(minimum, value)
+    return value
+
+
+def _env_int(name: str, default: int, *, minimum: int | None = None) -> int:
+    try:
+        value = int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        value = default
+    if minimum is not None:
+        value = max(minimum, value)
+    return value
+
+
+_PROCESS_RATE_LOCK = threading.Lock()
+_PROCESS_NEXT_ALLOWED_AT = 0.0
+
+
+def _retry_after_seconds(value: str | None, fallback: float) -> float:
+    """Parse Retry-After seconds. HTTP-date is intentionally treated as fallback.
+
+    CDSE returns 429 without always providing a usable header. A conservative
+    fallback keeps the backfill worker from burning quota and losing scenes.
+    """
+    if not value:
+        return fallback
+    try:
+        return max(0.0, float(value.strip()))
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _throttle_process_api() -> None:
+    """Cross-thread minimum spacing for Sentinel Hub/CDSE Process API calls.
+
+    The async backfill worker executes individual scene/index jobs in threads.
+    Without a process-wide gate, multiple jobs or containers can hit CDSE in a
+    burst and trigger 429. This gate limits one Python process to a steady pace.
+    Horizontal deployments should keep worker replicas at 1 per CDSE account or
+    increase ``CDSE_PROCESS_MIN_INTERVAL_SECONDS``.
+    """
+    global _PROCESS_NEXT_ALLOWED_AT
+    interval = _env_float("CDSE_PROCESS_MIN_INTERVAL_SECONDS", 2.0, minimum=0.0)
+    if interval <= 0:
+        return
+    with _PROCESS_RATE_LOCK:
+        now = time.monotonic()
+        wait = _PROCESS_NEXT_ALLOWED_AT - now
+        if wait > 0:
+            time.sleep(wait)
+            now = time.monotonic()
+        _PROCESS_NEXT_ALLOWED_AT = now + interval
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # تعريف المؤشّرات: index → (نطاقات Sentinel-2 المطلوبة، تعبير JS بدلالة s.Bxx).
 # النطاقات انعكاس [0,1] كما يوفّرها Sentinel Hub. الصيغ تطابق مصدر الحقيقة في
@@ -310,26 +371,57 @@ class CdseClient:
             },
             "evalscript": evalscript,
         }
-        resp = httpx.post(
-            f"{self._base_url}/api/v1/process",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {self.token()}",
-                "Accept": "image/tiff",
-            },
-            timeout=120.0,
-        )
-        try:
-            resp.raise_for_status()
-        except httpx.HTTPStatusError:
+        max_retries = _env_int("CDSE_PROCESS_MAX_RETRIES", 5, minimum=0)
+        base_backoff = _env_float("CDSE_PROCESS_RETRY_BASE_SECONDS", 5.0, minimum=0.0)
+        max_backoff = _env_float("CDSE_PROCESS_RETRY_MAX_SECONDS", 120.0, minimum=1.0)
+        attempt = 0
+        last_resp: httpx.Response | None = None
+        while True:
+            _throttle_process_api()
+            resp = httpx.post(
+                f"{self._base_url}/api/v1/process",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {self.token()}",
+                    "Accept": "image/tiff",
+                },
+                timeout=120.0,
+            )
+            last_resp = resp
+            if resp.status_code != 429:
+                try:
+                    resp.raise_for_status()
+                except httpx.HTTPStatusError:
+                    logger.warning(
+                        "CDSE Process API failed status=%s body=%s payload=%s",
+                        resp.status_code,
+                        resp.text[:1200],
+                        _safe_log_payload(payload),
+                    )
+                    raise
+                return resp.content
+
+            if attempt >= max_retries:
+                logger.warning(
+                    "CDSE Process API rate limit exhausted retries=%s body=%s payload=%s",
+                    max_retries,
+                    resp.text[:1200],
+                    _safe_log_payload(payload),
+                )
+                resp.raise_for_status()
+
+            delay = min(max_backoff, base_backoff * (2**attempt))
+            delay = _retry_after_seconds(resp.headers.get("Retry-After"), delay)
             logger.warning(
-                "CDSE Process API failed status=%s body=%s payload=%s",
-                resp.status_code,
-                resp.text[:1200],
+                "CDSE Process API rate limited status=429 attempt=%s/%s sleeping=%.1fs payload=%s",
+                attempt + 1,
+                max_retries,
+                delay,
                 _safe_log_payload(payload),
             )
-            raise
-        return resp.content
+            time.sleep(delay)
+            attempt += 1
+        assert last_resp is not None  # for type checkers; loop returns or raises above
 
     def search_scenes(
         self,

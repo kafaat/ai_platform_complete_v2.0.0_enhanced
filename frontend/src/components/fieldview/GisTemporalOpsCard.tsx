@@ -180,7 +180,6 @@ export default function GisTemporalOpsCard({ fieldId, cropLabel, enabled = true 
 
   // ── إعادة البناء من الأحداث ──
   const [rEntityType, setREntityType] = useState('field');
-  const [rEntityId, setREntityId] = useState('');
   const [rEvents, setREvents] = useState('');
   const replayMut = useReplayReconstruct();
   const rEventsParsed = useMemo<{ arr: Array<Record<string, unknown>> | null; error: string | null }>(() => {
@@ -437,12 +436,22 @@ export default function GisTemporalOpsCard({ fieldId, cropLabel, enabled = true 
             <div className="flex flex-col gap-2 rounded-xl border p-2" style={{ borderColor: T.line, background: CARD_BG }}>
               <div className="text-[10px]" style={{ color: T.faint }}>إعادة بناء نقيّة من أحداث تُمرَّرها هنا (لا جلب من قاعدة الأحداث بعد). كلّ حدث: {'{event_type, occurred_at, payload}'}.</div>
               <div className="flex flex-wrap items-center gap-2">
-                <LabeledInput id="rp-type" label="نوع الكيان" value={rEntityType} onChange={setREntityType} placeholder="field" width="w-24" />
-                <LabeledInput id="rp-id" label="معرّف الكيان" value={rEntityId} onChange={setREntityId} placeholder="fld_…" width="w-28" />
+                <label className="flex flex-col gap-0.5 text-[10px]" style={{ color: T.faint }}>
+                  نوع الكيان
+                  <select value={rEntityType} onChange={(e) => setREntityType(e.target.value)} className="w-24 px-2 py-1 rounded-lg text-[11px]" style={inputStyle}>
+                    <option value="field">field</option>
+                  </select>
+                </label>
+                <div className="flex flex-col gap-0.5 text-[10px]" style={{ color: T.faint }}>
+                  الحقل
+                  <span className="w-40 px-2 py-1 rounded-lg font-mono text-[11px]" style={{ border: `1px solid ${T.line}`, color: fieldId ? T.ink : '#fbbf24', background: SUB_BG }}>
+                    {fieldId ?? 'اختر حقلاً من أعلى مساحة العمل'}
+                  </span>
+                </div>
               </div>
               <GeoTextarea value={rEvents} onChange={setREvents} placeholder='[{"event_type":"FIELD_CREATED","occurred_at":"2026-01-01T00:00:00Z","payload":{}}]' />
               {rEventsParsed.error && <div className="text-[11px]" style={{ color: '#fca5a5' }}>{rEventsParsed.error}</div>}
-              <RunButton pending={replayMut.isPending} disabled={!rEntityId.trim() || !rEntityType.trim() || !rEventsParsed.arr} onClick={() => replayMut.mutate({ entity_type: rEntityType.trim(), entity_id: rEntityId.trim(), events: rEventsParsed.arr as Array<Record<string, unknown>> })} label="أعِد البناء" />
+              <RunButton pending={replayMut.isPending} disabled={!fieldId || !rEntityType.trim() || !rEventsParsed.arr} onClick={() => fieldId && replayMut.mutate({ entity_type: rEntityType.trim(), entity_id: fieldId, events: rEventsParsed.arr as Array<Record<string, unknown>> })} label="أعِد البناء" />
               {replayMut.isError && <div className="text-[11px]" style={{ color: '#fca5a5' }}>{errText(replayMut.error)}</div>}
               {replayMut.data?.disabled ? disabledMsg : replayMut.data ? (
                 <div className="flex flex-col gap-1 rounded-lg border p-1.5" style={{ borderColor: T.line, background: SUB_BG }}>

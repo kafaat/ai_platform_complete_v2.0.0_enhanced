@@ -4,6 +4,7 @@ import {
   AlertTriangle, Calculator,
 } from 'lucide-react';
 import { useAuthStore } from '../hooks/useAuth';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { canManage } from '../lib/permissions';
 import { T, toneColors } from '../components/ds';
 import {
@@ -351,7 +352,8 @@ function MarketSection() {
 // ═══ القسم ٥: التقارير ═══════════════════════════════════════════════════════
 function ReportsSection() {
   const buildM = useReportBuild();
-  const [r, setR] = useState({ title: '', field_ids: '', format: 'csv' });
+  const { options: fieldOptions, isLoading: fieldsLoading, isError: fieldsError, fieldId: activeFieldId, setFieldId: setActiveFieldId } = useSelectedField();
+  const [r, setR] = useState({ title: '', field_ids: activeFieldId ?? '', format: 'csv' });
   const spec = buildM.data;
 
   return (
@@ -360,7 +362,23 @@ function ReportsSection() {
         <Muted>يبني مواصفة مُتحقَّقاً منها من اختيارك — المواصفة فقط لا بيانات مُجمَّعة (FIELD_VIEW).</Muted>
         <div className="flex flex-col gap-1.5 mt-1.5">
           <Txt label="العنوان" v={r.title} on={(v) => setR({ ...r, title: v })} wide />
-          <Txt label="معرّفات الحقول (مفصولة بفاصلة)" v={r.field_ids} on={(v) => setR({ ...r, field_ids: v })} wide />
+          {fieldWrap('الحقول', (
+            <select
+              multiple
+              value={r.field_ids.split(',').map((x) => x.trim()).filter(Boolean)}
+              disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+              onChange={(e) => {
+                const ids = Array.from(e.currentTarget.selectedOptions).map((o) => o.value).filter(Boolean);
+                const first = ids[0];
+                if (first) setActiveFieldId(first, { source: 'user' });
+                setR({ ...r, field_ids: ids.join(',') });
+              }}
+              className="rounded-lg px-2 py-1 text-[12px] min-h-[4.5rem] disabled:opacity-60"
+              style={inputStyle}
+            >
+              {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+            </select>
+          ), true)}
           <Sel label="الصيغة" v={r.format} on={(v) => setR({ ...r, format: v })} opts={['csv', 'json', 'pdf']} />
         </div>
         <button
@@ -398,6 +416,19 @@ function ReportsSection() {
 
 // ═══ القسم ٦: العمليّات ══════════════════════════════════════════════════════
 function OpsSection() {
+  const { options: fieldOptions, isLoading: fieldsLoading, isError: fieldsError, fieldId: activeFieldId, setFieldId: setActiveFieldId } = useSelectedField();
+  const managerFieldSelect = (value: string, onChange: (v: string) => void, label = 'الحقل') => fieldWrap(label, (
+    <select
+      value={value}
+      disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+      onChange={(e) => { const v = e.target.value; onChange(v); if (v) setActiveFieldId(v, { source: 'user' }); }}
+      className="rounded-lg px-2 py-1 text-[12px] disabled:opacity-60"
+      style={inputStyle}
+    >
+      <option value="">اختر الحقل</option>
+      {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+    </select>
+  ));
   const woM = useWorkOrderFromRecommendation();
   const keyM = useGenerateShareKey();
   const snapM = useSnapshotEvidence();
@@ -409,9 +440,9 @@ function OpsSection() {
   const settings = useSettings(settingsScope || null);
   const settingsData = arr<SettingRow>(settings.data);
 
-  const [wo, setWo] = useState({ field_id: '', recommendation: '{}' });
+  const [wo, setWo] = useState({ field_id: activeFieldId ?? '', recommendation: '{}' });
   const [key, setKey] = useState({ scope: 'read', third_party_name: '', third_party_type: '', expires_in_days: '30' });
-  const [snap, setSnap] = useState({ snapshot_id: '', camera_id: '', field_id: '', media_uri: '', captured_at: '' });
+  const [snap, setSnap] = useState({ snapshot_id: '', camera_id: '', field_id: activeFieldId ?? '', media_uri: '', captured_at: '' });
   const [ready, setReady] = useState('');
   const [fail, setFail] = useState({ cloud_pct: '', days_since_observation: '', weather_hours_since_update: '' });
   const keyData = keyM.data as Record<string, unknown> | undefined;
@@ -422,7 +453,7 @@ function OpsSection() {
       <Panel title="أمر عمل من توصية" icon={Wrench}>
         <Muted>يحوّل توصية إلى أمر عمل (FOES) ويُثبّته — persisted=true فقط عند إدراج صفّ.</Muted>
         <div className="flex flex-col gap-1.5 mt-1.5">
-          <Txt label="معرّف الحقل" v={wo.field_id} on={(v) => setWo({ ...wo, field_id: v })} wide />
+          {managerFieldSelect(wo.field_id, (v) => setWo({ ...wo, field_id: v }), 'الحقل')}
           <Area label="التوصية (JSON)" v={wo.recommendation} on={(v) => setWo({ ...wo, recommendation: v })} />
         </div>
         <button type="button" disabled={!wo.field_id || woM.isPending}
@@ -515,7 +546,7 @@ function OpsSection() {
         <div className="grid grid-cols-2 gap-1.5 mt-1.5">
           <Txt label="معرّف اللقطة" v={snap.snapshot_id} on={(v) => setSnap({ ...snap, snapshot_id: v })} />
           <Txt label="معرّف الكاميرا" v={snap.camera_id} on={(v) => setSnap({ ...snap, camera_id: v })} />
-          <Txt label="معرّف الحقل" v={snap.field_id} on={(v) => setSnap({ ...snap, field_id: v })} />
+          {managerFieldSelect(snap.field_id, (v) => setSnap({ ...snap, field_id: v }), 'الحقل')}
           <Txt label="وقت الالتقاط (ISO)" v={snap.captured_at} on={(v) => setSnap({ ...snap, captured_at: v })} />
           <Txt label="رابط الوسائط" v={snap.media_uri} on={(v) => setSnap({ ...snap, media_uri: v })} wide />
         </div>

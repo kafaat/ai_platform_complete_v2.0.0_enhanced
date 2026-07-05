@@ -402,6 +402,42 @@ export default function App() {
           {ALL_ROUTES.map((r) => (
             <Route key={r.id} path={r.path} element={pageContent} />
           ))}
+          <Route path="/health/timeline" element={pageContent} />
+          <Route path="/health/temporal-indicators" element={pageContent} />
+          <Route path="/health/indicators/timeline" element={pageContent} />
+          <Route path="/health/spatial-indicators" element={pageContent} />
+          <Route path="/health/indicators/spatial" element={pageContent} />
+          <Route path="/health/growth-stages" element={pageContent} />
+          <Route path="/health/growth" element={pageContent} />
+          <Route path="/health/prescription-builder" element={pageContent} />
+          <Route path="/health/soil-water-sampling" element={pageContent} />
+          <Route path="/health/soil-water" element={pageContent} />
+          <Route path="/irrigation/water-analysis" element={pageContent} />
+          <Route path="/irrigation/predicted-plan" element={pageContent} />
+          <Route path="/analysis/advanced" element={pageContent} />
+          <Route path="/analysis/roi" element={pageContent} />
+
+          <Route path="/health/indicator-timeline" element={pageContent} />
+          <Route path="/health/phenology-stages" element={pageContent} />
+          <Route path="/crop/growth-stages" element={pageContent} />
+          <Route path="/crop/phenology" element={pageContent} />
+          <Route path="/health/prescription" element={pageContent} />
+          <Route path="/health/prescriptions-builder" element={pageContent} />
+          <Route path="/irrigation/water" element={pageContent} />
+          <Route path="/irrigation/water-quality" element={pageContent} />
+          <Route path="/irrigation/water-twin" element={pageContent} />
+          <Route path="/irrigation/twin" element={pageContent} />
+          <Route path="/irrigation/etc-dual" element={pageContent} />
+          <Route path="/irrigation/fao56" element={pageContent} />
+          <Route path="/analysis/yield-analysis" element={pageContent} />
+          <Route path="/analysis/field-rankings" element={pageContent} />
+          <Route path="/analysis/problems" element={pageContent} />
+          <Route path="/analysis/economics-roi" element={pageContent} />
+          <Route path="/ops/iot" element={pageContent} />
+          <Route path="/ops/iot-devices" element={pageContent} />
+          <Route path="/ops/operational-irrigation" element={pageContent} />
+          <Route path="/ops/irrigation-network" element={pageContent} />
+          <Route path="/admin/manager" element={pageContent} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppShell>

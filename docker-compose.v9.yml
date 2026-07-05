@@ -775,6 +775,11 @@ services:
       CDSE_ENABLED: ${CDSE_ENABLED:-true}
       SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
       SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
+      # CDSE Process API quota guard: keep one account from hitting 429 during backfill.
+      CDSE_PROCESS_MIN_INTERVAL_SECONDS: ${CDSE_PROCESS_MIN_INTERVAL_SECONDS:-2.0}
+      CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
+      CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
+      CDSE_PROCESS_RETRY_MAX_SECONDS: ${CDSE_PROCESS_RETRY_MAX_SECONDS:-120}
       TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
       STAC_MAX_RETRIES: ${STAC_MAX_RETRIES:-3}
       STAC_CACHE_TTL: ${STAC_CACHE_TTL:-900}
@@ -859,6 +864,11 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
+      # Same account-level throttle used by cdse_client.process_index in this worker.
+      CDSE_PROCESS_MIN_INTERVAL_SECONDS: ${CDSE_PROCESS_MIN_INTERVAL_SECONDS:-2.0}
+      CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
+      CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
+      CDSE_PROCESS_RETRY_MAX_SECONDS: ${CDSE_PROCESS_RETRY_MAX_SECONDS:-120}
     command:
     - python
     - -m

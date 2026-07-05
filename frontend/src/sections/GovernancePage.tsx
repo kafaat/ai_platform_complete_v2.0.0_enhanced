@@ -19,6 +19,7 @@ import { useSharingKeys, useCreateSharingKey } from '../hooks/useApi';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { canManage } from '../lib/permissions';
 import { useAuthStore } from '../hooks/useAuth';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { toastStore } from '../services/websocket';
 import { Card as DSCard, Button, Pill, StatBox } from '../components/ds/atoms';
 import { Input, Select } from '../components/ds/forms';
@@ -82,21 +83,32 @@ function EntityInputs({
 }: {
   entityType: string; setEntityType: (v: string) => void;
   entityId: string; setEntityId: (v: string) => void;
-  onSubmit: () => void; busy: boolean;
+  onSubmit: (entityIdOverride?: string) => void; busy: boolean;
 }) {
-  const disabled = busy || !entityId.trim();
+  const { options, fieldId, setFieldId, isLoading: fieldsLoading } = useSelectedField();
+  const effectiveEntityId = entityType === 'field' ? (fieldId ?? '') : entityId;
+  const disabled = busy || !effectiveEntityId.trim();
   return (
     <div className="flex flex-wrap items-end gap-2">
       <div style={{ width: 128 }}>
-        <Input label="نوع الكيان" value={entityType} onChange={setEntityType} placeholder="field" />
+        <Select label="نوع الكيان" value={entityType} onChange={setEntityType} options={[{ value: 'field', label: 'field' }, { value: 'command', label: 'command' }, { value: 'recommendation', label: 'recommendation' }]} />
       </div>
-      <div
-        className="flex-1 min-w-[180px]"
-        onKeyDown={(e) => { if (e.key === 'Enter' && !disabled) onSubmit(); }}
-      >
-        <Input label="معرّف الكيان" value={entityId} onChange={setEntityId} placeholder="field_..." />
-      </div>
-      <Button tone="green" full={false} disabled={disabled} onClick={onSubmit}
+      {entityType === 'field' ? (
+        <div className="flex-1 min-w-[220px]">
+          <Select
+            label="الحقل"
+            value={fieldId ?? ''}
+            onChange={(v) => setFieldId(v || null, { source: 'user' })}
+            disabled={fieldsLoading || options.length === 0}
+            options={[{ value: '', label: fieldsLoading ? 'جارٍ تحميل الحقول…' : 'اختر الحقل' }, ...options.map((f) => ({ value: f.id, label: `${f.name}${f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}` }))]}
+          />
+        </div>
+      ) : (
+        <div className="flex-1 min-w-[180px]" onKeyDown={(e) => { if (e.key === 'Enter' && !disabled) onSubmit(entityId); }}>
+          <Input label="معرّف الكيان" value={entityId} onChange={setEntityId} placeholder="أدخل معرّف الكيان" />
+        </div>
+      )}
+      <Button tone="green" full={false} disabled={disabled} onClick={() => { if (entityType === 'field') setEntityId(effectiveEntityId); onSubmit(effectiveEntityId); }}
         style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
         {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
         تتبّع
@@ -110,10 +122,11 @@ function LineageSection() {
   const [entityId, setEntityId] = useState('');
   const [st, setSt] = useState<LookupState<EntityLineage>>(idle());
 
-  const run = async () => {
+  const run = async (entityIdOverride?: string) => {
+    const effectiveId = (entityIdOverride ?? entityId).trim();
     setSt({ loading: true, error: null, data: null, done: false });
     try {
-      const data = await getEntityLineage(entityType.trim() || 'field', entityId.trim());
+      const data = await getEntityLineage(entityType.trim() || 'field', effectiveId);
       setSt({ loading: false, error: null, data, done: true });
     } catch (error) {
       setSt({ loading: false, error, data: null, done: true });
@@ -175,10 +188,11 @@ function EventsSection() {
   const [entityId, setEntityId] = useState('');
   const [st, setSt] = useState<LookupState<unknown[]>>(idle());
 
-  const run = async () => {
+  const run = async (entityIdOverride?: string) => {
+    const effectiveId = (entityIdOverride ?? entityId).trim();
     setSt({ loading: true, error: null, data: null, done: false });
     try {
-      const res = await getEntityEvents(entityType.trim() || 'field', entityId.trim());
+      const res = await getEntityEvents(entityType.trim() || 'field', effectiveId);
       setSt({ loading: false, error: null, data: res.events ?? [], done: true });
     } catch (error) {
       setSt({ loading: false, error, data: null, done: true });

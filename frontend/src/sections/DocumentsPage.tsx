@@ -84,7 +84,7 @@ function RegisterForm({ onClose }: { onClose: () => void }) {
   const [contentType, setContentType] = useState('');
   const [sizeBytes, setSizeBytes] = useState('');
   const [fieldId, setFieldId] = useState('');
-  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
+  const { options: fieldOptions, isLoading: fieldsLoading, isError: fieldsError, fieldId: activeFieldId } = useSelectedField();
   useEffect(() => {
     if (!fieldId && activeFieldId) setFieldId(activeFieldId);
   }, [activeFieldId, fieldId]);
@@ -168,13 +168,19 @@ function RegisterForm({ onClose }: { onClose: () => void }) {
           inputMode="numeric"
           placeholder="مثال: 102400"
         />
-        <Input
-          label="معرّف الحقل (field_id) — اختياريّ"
-          value={fieldId}
-          onChange={setFieldId}
-          placeholder="field_01"
-          error={fieldId.length > 50 ? 'الحدّ الأقصى 50 محرفاً.' : undefined}
-        />
+        <label className="flex flex-col gap-1">
+          <span className="text-xs" style={{ color: T.muted }}>الحقل — اختياريّ</span>
+          <select
+            value={fieldId}
+            onChange={(e) => setFieldId(e.target.value)}
+            disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+            style={{ padding: '10px 12px', borderRadius: RADIUS.sm, border: `1px solid ${T.line}`, background: T.card2, color: T.ink }}
+          >
+            <option value="">— بلا ربط بحقل —</option>
+            {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+          </select>
+          {fieldId.length > 50 ? <span style={{ color: T.danger, fontSize: 11 }}>الحدّ الأقصى 50 محرفاً.</span> : null}
+        </label>
       </div>
 
       <div className="flex items-center gap-2 justify-end pt-1">

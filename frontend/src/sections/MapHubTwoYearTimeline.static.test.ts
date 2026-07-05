@@ -5,15 +5,18 @@ import { describe, expect, it } from 'vitest';
 const source = readFileSync(join(process.cwd(), 'src/sections/MapHub.tsx'), 'utf8');
 
 describe('MapHub two-year imagery timeline', () => {
-  it('adds a visible two-year timeline toggle and panel', () => {
+  it('adds a visible historical imagery timeline toggle and panel', () => {
     expect(source).toContain('two-year-imagery-timeline-toggle');
     expect(source).toContain('two-year-imagery-timeline');
-    expect(source).toContain('Timeline الصور الجوية · آخر سنتين');
+    expect(source).toContain('Timeline الصور الجوية · السلسلة التاريخية');
   });
 
-  it('limits the imagery timeline to 730 days from the newest available scene', () => {
+  it('lets the server bound the timeline range instead of a brittle client-side cutoff', () => {
+    // العرض البصري لا يقتصر على «آخر سنتين» بقصٍّ عميلٍ صلب؛ يعرض كل التواريخ الجاهزة
+    // التي أرجعها الخادم حتى حدّ الـlimit/السنتين — الخادم يحدّد النطاق الزمني الفعليّ.
     expect(source).toContain('summarizeTwoYearTimeline');
-    expect(source).toContain('730 * 24 * 60 * 60 * 1000');
+    expect(source).not.toContain('730 * 24 * 60 * 60 * 1000');
+    expect(source).toContain('الخادم يحدّد النطاق الزمني الفعلي');
   });
 
   it('surfaces scene readiness and cloud cover in the timeline UI', () => {
