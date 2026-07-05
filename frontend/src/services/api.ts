@@ -3513,6 +3513,104 @@ export const fieldCdseThumbnailUrl = (
 };
 
 // ══════════════════════════════════════════════════════════════════
+// TERRAIN — التضاريس (Hillshade / Slope / Contours) من DEM حقيقيّ عبر raster-service
+// عقد الخادم (مثبّت — لا يُعدَّل من الواجهة):
+//   • GET /v1/elevation/hillshade/{z}/{x}/{y}.png?tid=<tenant> → PNG رماديّ (شفّاف بلا DEM)
+//   • GET /v1/slope/{z}/{x}/{y}.png?tid=<tenant>              → PNG مُصنَّف مُلوَّن (شفّاف بلا DEM)
+//   • GET /v1/terrain/tilejson?layer=hillshade|slope          → TileJSON + available/legend/user_message
+//   • GET /v1/fields/{id}/contours.geojson?bbox=…&interval_m=… → FeatureCollection<MultiLineString>
+// صدق صارم (كسائر المنصّة): عند available:false / computed:false / features:[] لا
+// نخترع تضاريس؛ تعرض الواجهة حالة فارغة/معطّلة أو رسالة user_message من الخادم.
+// ══════════════════════════════════════════════════════════════════
+export type TerrainLayer = 'hillshade' | 'slope';
+
+// درجة أسطورة الانحدار (من tilejson.legend حين layer=slope) — لون + مدى نسبة مئويّة + وصف.
+export interface TerrainLegendStop {
+  min_pct: number;
+  max_pct: number;
+  color: string;
+  label: string;
+}
+
+// TileJSON لطبقة تضاريس. available:false + user_message حين لا DEM مُهيّأ (حالة صادقة).
+export interface TerrainTileJson {
+  tilejson?: string;
+  tiles: string[];            // قوالب روابط البلاطات ({z}/{x}/{y}) — قد تكون [] عند عدم التوفّر
+  bounds?: [number, number, number, number];
+  available: boolean;
+  layer: string;              // hillshade | slope
+  reason?: string;
+  user_message?: string;      // رسالة عربيّة صريحة حين available:false (لا DEM)
+  legend?: TerrainLegendStop[];
+}
+
+/** يجلب TileJSON لطبقة تضاريس (hillshade|slope) عبر raster-service. عند غياب DEM يعيد
+ *  available:false + user_message — تعرضه الواجهة كحالة صادقة (لا تلفيق تضاريس). */
+export const fetchTerrainTileJson = (
+  layer: TerrainLayer,
+  tenantId?: string | null,
+): Promise<TerrainTileJson> =>
+  rasterApi
+    .get<TerrainTileJson>('/v1/terrain/tilejson', {
+      params: { layer, ...(tenantId ? { tid: tenantId } : {}) },
+    })
+    .then(r => r.data);
+
+// روابط قوالب بلاطات التضاريس ({z}/{x}/{y}) — نُبقيها حرفيّة ليفسّرها Leaflet/MapLibre،
+// على نمط fieldCdseTileUrl: tid للمستأجِر + access_token لمصادقة بلاطة <img> خلف البوّابة.
+export const hillshadeTileUrl = (tenantId?: string | null): string => {
+  const params = new URLSearchParams();
+  if (tenantId) params.set('tid', tenantId);
+  appendTileAccessToken(params);
+  const qs = params.toString();
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/elevation/hillshade/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
+};
+
+export const slopeTileUrl = (tenantId?: string | null): string => {
+  const params = new URLSearchParams();
+  if (tenantId) params.set('tid', tenantId);
+  appendTileAccessToken(params);
+  const qs = params.toString();
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/slope/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
+};
+
+// خصائص عنصر كنتور — الارتفاع بالمتر مضمون؛ بقيّة المفاتيح متسامِحة (مصدر خارجيّ).
+export interface ContourFeatureProperties {
+  elevation_m: number;
+  [key: string]: unknown;
+}
+export type ContourFeature = GeoJSON.Feature<GeoJSON.MultiLineString, ContourFeatureProperties>;
+
+// FeatureCollection لخطوط الكنتور + أعلام الحساب. computed:false + features:[] حين لا DEM.
+export interface FieldContours
+  extends GeoJSON.FeatureCollection<GeoJSON.MultiLineString, ContourFeatureProperties> {
+  computed: boolean;
+  source?: string;
+  field_id?: string;
+  reason?: string;
+  user_message?: string;
+}
+
+/** يجلب خطوط كنتور الحقل (GeoJSON MultiLineString) من DEM حقيقيّ عبر raster-service.
+ *  bbox بترتيب [minLon,minLat,maxLon,maxLat] (اختياريّ)؛ intervalM فاصل الكنتور بالمتر.
+ *  عند غياب DEM يعيد computed:false + features:[] — لا نخترع خطوطاً. */
+export const fetchFieldContours = (
+  fieldId: string,
+  bbox?: [number, number, number, number] | null,
+  intervalM?: number,
+): Promise<FieldContours> =>
+  rasterApi
+    .get<FieldContours>(`/v1/fields/${fieldId}/contours.geojson`, {
+      params: {
+        ...(bbox && bbox.length === 4 ? { bbox: bbox.join(',') } : {}),
+        ...(intervalM ? { interval_m: intervalM } : {}),
+      },
+    })
+    .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
 // صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج
 // الحقيقيّان مُخدَّمان من sahool-platform عبر /api/v1/indicators/* (تجميع من

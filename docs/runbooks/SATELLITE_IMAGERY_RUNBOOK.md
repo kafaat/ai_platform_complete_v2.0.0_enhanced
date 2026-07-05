@@ -186,3 +186,23 @@ psql "$DATABASE_URL" -v tenant_id="'<TENANT-UUID>'" \
 - **idempotent** (ON CONFLICT DO UPDATE) — آمن للتكرار. مُثبَت على Postgres حيّ (6/6/1، بلا تكرار).
 - **صدق:** الإحداثيّات على مستوى المديريّة (16.15N)؛ حدود الحقل وGPS الحقليّ الدقيق **معلّقان** (يرسمها المشغّل لاحقاً؛ 7 عيّنات تنتظر تحقّق GPS). لا مضلّع مفبرك.
 - بعدها: شغّل backfill (القسم 1) لهذه الحقول لتظهر صورها الفعليّة، وقاعدة معرفة السنيدار (RAG) تُبذَر عبر خدمة `sahool-qdrant-seed` في compose.
+
+## 11. طبقات التضاريس (Hillshade / Slope / Contours) — تفعيلها بتزويد DEM
+
+الطبقات الثلاث (بلاطتا Hillshade وSlope + كنتور Vector) جاهزة كوديّاً وتعمل fail-closed
+**صادقاً بلا DEM**: بلاطة شفّافة / `features:[]` مع `available:false`/`computed:false`. لا تُصيَّر
+أيّ تضاريس مُلفَّقة. لتفعيلها بمنطقة حقيقيّة:
+
+1. **زوّد DEM** (يُنصَح Copernicus GLO‑30، ~30م، مجّانيّ، رخصة مفتوحة). حمّل بلاطات المنطقة
+   وادمِجها (`gdalbuildvrt`/`gdal_merge`) إلى ملفّ واحد (GeoTIFF/COG، EPSG:4326، nodata مضبوط).
+2. **اضبط المسار** في بيئة `raster-service` (و`raster-backfill-scan-worker` إن لزم):
+   `FIELD_DEM_PATH=/data/dem/aljawf_glo30.tif` (mount الملفّ في الحاوية).
+3. أعِد تشغيل `raster-service`. تحقّق:
+   - `GET /api/raster/v1/terrain/tilejson?layer=slope` ⇒ `available:true` + `legend`.
+   - `GET /api/raster/v1/fields/<id>/contours.geojson?bbox=…` ⇒ `computed:true` + `features[]`.
+4. في الواجهة: مبدّلات «التضاريس/الانحدار/خطوط الكنتور» فوق الخريطة تعرض الطبقات؛ قبل التزويد
+   تُظهر رسالة «التضاريس غير مُهيّأة» الصادقة.
+
+**تحقّق الحسابات:** الميل ٪ يُحسَب بأمتار الأرض (تصحيح mercator بـcos(lat))؛ nodata مُقنَّع
+(`masked=True`)؛ الكنتور عبر مربّع مسير نقيّ (بلا اعتماد خارجيّ). اختبار سلوكيّ:
+`services/raster-service/test_terrain_render.py` (DEM اصطناعيّ).

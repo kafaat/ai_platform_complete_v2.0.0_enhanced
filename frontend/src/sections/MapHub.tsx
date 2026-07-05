@@ -30,8 +30,8 @@ import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
-import { fieldRepresentativePoint } from '../lib/geo';
-import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, type FieldImageryDateOption } from '../services/api';
+import { fieldRepresentativePoint, geomToPolygon } from '../lib/geo';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, type FieldImageryDateOption, type TerrainTileJson, type FieldContours } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -298,6 +298,16 @@ export default function MapHub() {
   const [showDevices, setShowDevices] = useState(savedWorkspace?.showDevices ?? false);
   const [showEquipment, setShowEquipment] = useState(false);
   const [showTasks, setShowTasks] = useState(false);
+  // ── طبقات التضاريس (DEM حقيقيّ من raster-service) — ثلاثة مبدّلات مستقلّة ──────
+  // صدق صارم: البلاطات/الكنتور تُعرَض فقط حين available/computed؛ وإلّا نُظهر
+  // رسالة user_message من الخادم (لا اختراع تضاريس). لا تُستعاد من workspace (افتراضيّ مُطفأ).
+  const [showHillshade, setShowHillshade] = useState(false);
+  const [showSlope, setShowSlope] = useState(false);
+  const [showContours, setShowContours] = useState(false);
+  const [hillshadeTj, setHillshadeTj] = useState<TerrainTileJson | null>(null);
+  const [slopeTj, setSlopeTj] = useState<TerrainTileJson | null>(null);
+  const [contoursData, setContoursData] = useState<FieldContours | null>(null);
+  const [contoursNote, setContoursNote] = useState<string | null>(null);
   // OneSoil-style وضع FieldView: «فلاح» (ملخّص أساسيّ) أو «خبير» (كلّ الأدوات).
   // يُحفَظ محلّيّاً — لا يلمس نوع لقطة مساحة العمل. الافتراضيّ فلاح (بساطة أوّلاً).
   const [fieldMode, setFieldMode] = useState<'farmer' | 'expert'>(() => {
@@ -512,6 +522,69 @@ export default function MapHub() {
   // الحقل المختار (يُشتقّ من القائمة + الاختيار المشترك) — مُعرَّف قبل المُعالِجات التي
   // تستعمله (تجهيز صور سنتين) لتفادي «used before declaration».
   const selected = fields.find((f) => f.id === fieldId);
+
+  // ── تضاريس: TileJSON للتظليل/الانحدار (فحص التوفّر + أسطورة الانحدار) ──────────
+  // يُطلَب عند التفعيل فقط. available:false ⇒ نخزّن الردّ لعرض user_message الصادق
+  // (بلا بلاطة). خطأ الشبكة ⇒ حالة غير متاحة صريحة (لا اختراع تضاريس).
+  useEffect(() => {
+    if (!showHillshade) return;
+    let cancelled = false;
+    fetchTerrainTileJson('hillshade', tenantId)
+      .then((tj) => { if (!cancelled) setHillshadeTj(tj); })
+      .catch(() => { if (!cancelled) setHillshadeTj({ tiles: [], available: false, layer: 'hillshade', user_message: 'تعذّر الوصول إلى خدمة التضاريس (Hillshade).' }); });
+    return () => { cancelled = true; };
+  }, [showHillshade, tenantId]);
+
+  useEffect(() => {
+    if (!showSlope) return;
+    let cancelled = false;
+    fetchTerrainTileJson('slope', tenantId)
+      .then((tj) => { if (!cancelled) setSlopeTj(tj); })
+      .catch(() => { if (!cancelled) setSlopeTj({ tiles: [], available: false, layer: 'slope', user_message: 'تعذّر الوصول إلى خدمة التضاريس (Slope).' }); });
+    return () => { cancelled = true; };
+  }, [showSlope, tenantId]);
+
+  // ── كنتور: يُجلب للحقل المختار من bbox حدوده. لا حقل/هندسة ⇒ لا طلب + ملاحظة.
+  // computed:false / features:[] ⇒ نعرض user_message الصادق (لا خطوط مخترعة).
+  useEffect(() => {
+    if (!showContours) { setContoursData(null); setContoursNote(null); return; }
+    if (!selected?.id || !selected.geometry) {
+      setContoursData(null);
+      setContoursNote('اختر حقلاً ذا حدود مرسومة لحساب خطوط الكنتور من نموذج الارتفاع.');
+      return;
+    }
+    const poly = geomToPolygon(selected.geometry); // [lat,lng][]
+    if (!poly || poly.length < 3) {
+      setContoursData(null);
+      setContoursNote('حدود الحقل مطلوبة لحساب خطوط الكنتور — ارسم/استورد الحدود أوّلاً.');
+      return;
+    }
+    let minLat = Infinity, minLon = Infinity, maxLat = -Infinity, maxLon = -Infinity;
+    for (const [lat, lng] of poly) {
+      if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
+      if (lng < minLon) minLon = lng; if (lng > maxLon) maxLon = lng;
+    }
+    const bbox: [number, number, number, number] = [minLon, minLat, maxLon, maxLat];
+    let cancelled = false;
+    setContoursNote(null);
+    fetchFieldContours(selected.id, bbox, 10)
+      .then((fc) => {
+        if (cancelled) return;
+        setContoursData(fc);
+        if (!fc.computed || !Array.isArray(fc.features) || fc.features.length === 0) {
+          setContoursNote(fc.user_message || fc.reason || 'لا يوجد نموذج ارتفاع (DEM) لهذا الحقل — لا خطوط كنتور.');
+        }
+      })
+      .catch(() => {
+        if (!cancelled) { setContoursData(null); setContoursNote('تعذّر حساب خطوط الكنتور من خدمة التضاريس.'); }
+      });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showContours, selected?.id, JSON.stringify(selected?.geometry ?? null)]);
+
+  // روابط قوالب بلاطات التضاريس — تُبنى فقط حين available:true (وإلّا null فتُخفى الطبقة).
+  const hillshadeTilesUrl = showHillshade && hillshadeTj?.available ? hillshadeTileUrl(tenantId) : null;
+  const slopeTilesUrl = showSlope && slopeTj?.available ? slopeTileUrl(tenantId) : null;
 
   const handleSelectImageryTimelineItem = useCallback((date: string, _item?: FieldImageryDateOption) => {
     const normalized = normalizeDateOnly(date);
@@ -2024,6 +2097,18 @@ export default function MapHub() {
                     <ToolToggle testid="btn-equipment" active={showEquipment} onClick={() => setShowEquipment((v) => !v)} icon={<Tractor className="w-3.5 h-3.5" />} label="معدّات" />
                     <ToolToggle testid="btn-tasks" active={showTasks} onClick={() => setShowTasks((v) => !v)} icon={<CheckSquare className="w-3.5 h-3.5" />} label="مهام" />
                     <ToolToggle testid="btn-pivots" active={showPivots} onClick={() => setShowPivots((v) => !v)} icon={<CircleDotDashed className="w-3.5 h-3.5" />} label="محوري" />
+                    {/* ── طبقات التضاريس (DEM) — ثلاثة مبدّلات مستقلّة (Hillshade/Slope/Contours) ── */}
+                    <ToolToggle testid="btn-hillshade" active={showHillshade} onClick={() => setShowHillshade((v) => !v)} icon={<Mountain className="w-3.5 h-3.5" />} label="التضاريس (Hillshade)" />
+                    <ToolToggle testid="btn-slope" active={showSlope} onClick={() => setShowSlope((v) => !v)} icon={<Layers className="w-3.5 h-3.5" />} label="الانحدار (Slope)" />
+                    <ToolToggle
+                      testid="btn-contours"
+                      active={showContours}
+                      disabled={!selected?.geometry}
+                      title={!selected?.geometry ? 'اختر حقلاً ذا حدود مرسومة أوّلاً' : undefined}
+                      onClick={() => setShowContours((v) => !v)}
+                      icon={<CircleDotDashed className="w-3.5 h-3.5" />}
+                      label="خطوط الكنتور (Contours)"
+                    />
                     {/* ملاحظات الأمانة: عناصر بلا حقل/هندسة غير قابلة للعرض — تُحتسَب لا تُختلَق */}
                     {showAlerts && alertsUnplaceable > 0 && (
                       <span className="text-[11px]" style={{ color: T.faint }}>
@@ -2055,6 +2140,35 @@ export default function MapHub() {
                         اختر حقلاً ذا هندسة/نقطة لعرض طبقة الطقس واتجاه الرياح كبلاطة فوق الخريطة
                       </span>
                     )}
+                    {/* حالات صادقة للتضاريس: DEM غير مُهيّأ (available:false) ⇒ رسالة الخادم */}
+                    {showHillshade && hillshadeTj && !hillshadeTj.available && (
+                      <span className="text-[11px]" data-testid="hillshade-unavailable" style={{ color: T.faint }}>
+                        {hillshadeTj.user_message || 'التضاريس غير مُهيّأة — لا نموذج ارتفاع (DEM).'}
+                      </span>
+                    )}
+                    {showSlope && slopeTj && !slopeTj.available && (
+                      <span className="text-[11px]" data-testid="slope-unavailable" style={{ color: T.faint }}>
+                        {slopeTj.user_message || 'طبقة الانحدار غير مُهيّأة — لا نموذج ارتفاع (DEM).'}
+                      </span>
+                    )}
+                    {showContours && contoursNote && (
+                      <span className="text-[11px]" data-testid="contours-note" style={{ color: T.faint }}>
+                        {contoursNote}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* أسطورة الانحدار (Slope) — من tilejson.legend حين الطبقة مُفعَّلة ومتاحة (المهمّة C) */}
+                {!compare && showSlope && slopeTj?.available && slopeTj.legend && slopeTj.legend.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-3 mt-2" data-testid="slope-legend">
+                    <span className="text-xs font-semibold" style={{ color: T.muted }}>مفتاح الانحدار</span>
+                    {slopeTj.legend.map((s, i) => (
+                      <span key={`slope-legend-${i}`} className="inline-flex items-center gap-1 text-[11px]" style={{ color: T.faint }}>
+                        <span style={{ width: 12, height: 12, borderRadius: 3, background: s.color, border: `1px solid ${T.line}`, display: 'inline-block' }} />
+                        {s.label}
+                      </span>
+                    ))}
                   </div>
                 )}
 
@@ -2254,6 +2368,10 @@ export default function MapHub() {
                     imageryTs={imageryTs}
                     imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
                     tenantId={tenantId}
+                    hillshadeTilesUrl={hillshadeTilesUrl}
+                    slopeTilesUrl={slopeTilesUrl}
+                    terrainOpacity={opacity}
+                    contours={showContours ? contoursData : null}
                     pivotDesignerEnabled={pivotDesigner}
                     onAddPivotDraft={handleAddPivotDraft}
                     pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...pivotDrafts] : []}
@@ -2375,11 +2493,11 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
 }
 
 // زرّ تبديل أداة (مقارنة/رسم/دبابيس) — موحّد الشكل.
-function ToolToggle({ active, onClick, icon, label, testid }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; testid?: string }) {
+function ToolToggle({ active, onClick, icon, label, testid, disabled, title }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; testid?: string; disabled?: boolean; title?: string }) {
   return (
     <button
-      type="button" onClick={onClick} data-testid={testid}
-      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold"
+      type="button" onClick={onClick} data-testid={testid} disabled={disabled} title={title}
+      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
       style={{
         background: active ? T.green : T.card2, color: active ? '#fff' : T.ink,
         border: `1px solid ${active ? T.green : T.line}`,

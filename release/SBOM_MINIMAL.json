@@ -1435,7 +1435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be6e47ee71928b09c3ab1fdc4c53a0b43de43ca9c1da80033161ecc71cd2c9f4"
+          "content": "9d9aabed957b4a8a7690ad0c9ddca032dd4b7fddc222e2dd5ea85f3fd86fcf11"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -4555,7 +4555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6537e9a6a70460921513e9106dcf8ecffe4e9846061e8dce335e062bba21ff9c"
+          "content": "dbc992d515b2b4360637b2d7e2099c4af959bb821d8b2b2711ab722a7a33fc15"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5015,7 +5015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aea63e2344f345bc6be540ce74e5cca9bc4ad76fc50fb6ec1030df01647265b8"
+          "content": "ac172214b72c49be77b9aec26d8f5532df1c8974b2ff3506c17153edc98fbc95"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9155,6 +9155,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "551c503d1d4837b2a287be9cc12f34489bf9a9f8dcbfb8b2cb6d99858f1964a8"
+        }
+      ],
+      "name": "services/raster-service/routers/terrain_tiles.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4ae4dd756f15fd09c22de98478a5e885aacb9394ddbd5bbe0108e7d813b83ecf"
         }
       ],
@@ -9229,6 +9239,16 @@
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89cb66f1c23dc0dcfa48f4c1a77647870d82711ac572c8aa91476f8a65881bdd"
+        }
+      ],
+      "name": "services/raster-service/terrain_render.py",
       "type": "file"
     },
     {
@@ -9489,6 +9509,16 @@
         }
       ],
       "name": "services/raster-service/test_tenant_propagation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "420b8e31154223605415660dd4255c1ce01dc8c4d86e3aae0d5f95ac5331fd22"
+        }
+      ],
+      "name": "services/raster-service/test_terrain_render.py",
       "type": "file"
     },
     {
