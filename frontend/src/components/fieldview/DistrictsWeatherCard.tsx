@@ -10,6 +10,7 @@ import {
   useSubmitOnboarding,
   useWeatherAnalysis,
   useWeatherPlantingGuide,
+  useWeatherTileSeries,
 } from '../../hooks/useDistrictsWeather';
 import {
   activePestsList,
@@ -36,7 +37,9 @@ import {
   stringList,
   suitabilityColor,
   suitabilityLabelAr,
+  tileSeriesRows,
   weatherAlerts,
+  WEATHER_TILE_LAYERS,
   type PestWindow,
 } from '../../lib/districtsWeather';
 import { T } from '../ds';
@@ -167,6 +170,10 @@ export default function DistrictsWeatherCard({ fieldId, cropLabel, enabled = tru
   const parsedLog = useMemo(() => parseWeatherRecords(logInput), [logInput]);
   const analyzeQ = useWeatherAnalysis(parsedLog.records, enabled && open === 'weather');
   const guideQ = useWeatherPlantingGuide(parsedLog.records, enabled && open === 'weather');
+  // — سلسلة طقس زمنيّة للبلاطة (time-slider): طبقة تُختار + بلاطة تُشتقّ من إحداثيّات الحقل —
+  const [tsLayer, setTsLayer] = useState<string>('precipitation');
+  const tsQ = useWeatherTileSeries(lat, lon, tsLayer, enabled && open === 'weather');
+  const tsRows = useMemo(() => tileSeriesRows(tsQ.data), [tsQ.data]);
   const anFacts = useMemo(() => analysisFacts(analyzeQ.data), [analyzeQ.data]);
   const months = useMemo(() => plantingMonths(guideQ.data), [guideQ.data]);
 
@@ -368,6 +375,44 @@ export default function DistrictsWeatherCard({ fieldId, cropLabel, enabled = tru
                 {summaryQ.data.upstream_error && <div className="text-[10px]" style={{ color: '#fca5a5' }}>تعذّر تحديث المصدر — قد تكون البيانات مخبّأة.</div>}
               </>
             ) : null}
+          </div>
+
+          {/* سلسلة زمنيّة لطبقة طقس (time-slider) — بلاطة تُشتقّ من إحداثيّات الحقل */}
+          <div className="flex flex-col gap-1.5">
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold" style={{ color: T.ink }}>
+              <CloudSun className="w-3.5 h-3.5 text-indigo-300" aria-hidden="true" /> سلسلة زمنيّة (طبقة طقس عبر ساعات)
+            </span>
+            {needCoords ? (
+              <div className="text-[10px]" style={{ color: T.faint }}>حدّد الموقع أعلاه لجلب السلسلة الزمنيّة للبلاطة المطابقة.</div>
+            ) : (
+              <>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <label htmlFor="dw-ts-layer" className="text-[10px]" style={{ color: T.faint }}>الطبقة:</label>
+                  <select id="dw-ts-layer" value={tsLayer} onChange={(e) => setTsLayer(e.target.value)}
+                    className="px-2 py-0.5 rounded-lg text-[11px]" style={{ border: `1px solid ${T.line}`, background: 'rgba(2,6,23,.5)', color: T.ink }}>
+                    {WEATHER_TILE_LAYERS.map((l) => <option key={l} value={l}>{l}</option>)}
+                  </select>
+                </div>
+                {isDisabled(tsQ.data) ? (
+                  <DisabledNote />
+                ) : tsQ.isLoading ? (
+                  <div className="text-[11px]" style={{ color: T.faint }}>جارٍ جلب السلسلة الزمنيّة…</div>
+                ) : tsRows.length > 0 ? (
+                  <>
+                    <div className="flex flex-wrap gap-1">
+                      {tsRows.map((r) => (
+                        <span key={r.hour} className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ border: `1px solid ${T.line}`, color: T.ink }}>
+                          <span style={{ color: T.faint }}>{r.label}:</span> {r.value}
+                        </span>
+                      ))}
+                    </div>
+                    {tsQ.data?.partial && <div className="text-[10px]" style={{ color: '#fdba74' }}>⚠ سلسلة جزئيّة — بعض الإطارات تعذّر تحديثها من المصدر.</div>}
+                  </>
+                ) : (
+                  <div className="text-[10px]" style={{ color: T.faint }}>لا إطارات صالحة للسلسلة.</div>
+                )}
+              </>
+            )}
           </div>
 
           {/* تحليلات سجلّ الطقس (سجلّ يوميّ يُدخِله المستخدم) */}

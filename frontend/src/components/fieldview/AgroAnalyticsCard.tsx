@@ -6,6 +6,7 @@ import {
 import {
   useCropRisk, useCropRotation, useDecisionPlaybook, useEscalationAssess,
   useFieldLineage, useKcCompare, useKcSeries, usePersistKc, usePlantSoilFeedback,
+  usePlantSoilFeedbackTrend, type FeedbackTrendSeason,
   useSeasonComparison,
 } from '../../hooks/useAgroAnalytics';
 import {
@@ -233,6 +234,18 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
   const psfQ = usePlantSoilFeedback(isOpen('psf') ? psfInput : null);
   const psf = psfQ.data;
   const psfFactsList = useMemo(() => psfFacts(psf), [psf]);
+
+  // ── اتّجاه متعدّد المواسم: لقطات المؤشّرات الحاليّة تُضاف لسلسلة زمنيّة ──
+  // (الأقدم→الأحدث)؛ POST plant-soil-feedback/trend يشتقّ الاتّجاه (يحتاج موسمين+).
+  const [trendSeasonId, setTrendSeasonId] = useState('');
+  const [trendSeasons, setTrendSeasons] = useState<FeedbackTrendSeason[]>([]);
+  const trendM = usePlantSoilFeedbackTrend();
+  const addTrendSeason = () => {
+    if (!trendSeasonId.trim()) return;
+    setTrendSeasons((s) => [...s, { season_id: trendSeasonId.trim(), inputs: psfInput }]);
+    setTrendSeasonId('');
+    trendM.reset();
+  };
 
   // ── حالة قسم مقارنة المواسم ──
   const [scCurId, setScCurId] = useState('');
@@ -553,6 +566,44 @@ export default function AgroAnalyticsCard({ fieldId, cropLabel, enabled = true }
                   {psf.verdict_ar && <div className="text-[11px] font-semibold" style={{ color: T.ink }}>{psf.verdict_ar}</div>}
                 </>
               ) : null)}
+
+              {/* اتّجاه متعدّد المواسم — يلتقط المؤشّرات الحاليّة كموسم في السلسلة */}
+              <div className="flex flex-wrap items-center gap-2 pt-1" style={{ borderTop: `1px dashed ${T.line}` }}>
+                <span className="text-[11px] font-bold" style={{ color: T.ink }}>اتّجاه المواسم:</span>
+                <LabeledInput id="psf-trend-season" label="مُعرّف الموسم" value={trendSeasonId} onChange={setTrendSeasonId} width="w-24" />
+                <button type="button" onClick={addTrendSeason} disabled={!trendSeasonId.trim()}
+                  className="px-2 py-0.5 rounded-lg text-[11px] font-semibold disabled:opacity-40"
+                  style={{ border: `1px solid ${T.line}`, color: T.ink, background: 'rgba(15,23,42,.45)' }}>
+                  + أضِف الموسم الحاليّ
+                </button>
+                {trendSeasons.length > 0 && (
+                  <>
+                    <span className="text-[11px]" style={{ color: T.muted }}>{trendSeasons.map((s) => s.season_id).join(' → ')}</span>
+                    <button type="button" onClick={() => setTrendSeasons([])} className="text-[11px]" style={{ color: '#fca5a5' }}>مسح</button>
+                    <button type="button" onClick={() => trendM.mutate(trendSeasons)} disabled={trendSeasons.length < 2 || trendM.isPending}
+                      className="px-2 py-0.5 rounded-lg text-[11px] font-semibold disabled:opacity-40"
+                      style={{ border: `1px solid ${T.line}`, color: '#86efac', background: 'rgba(15,23,42,.45)' }}>
+                      {trendM.isPending ? '…' : 'احسب الاتّجاه'}
+                    </button>
+                  </>
+                )}
+                {trendSeasons.length === 1 && (
+                  <span className="text-[11px]" style={{ color: T.faint }}>يلزم موسمان على الأقلّ لاشتقاق اتّجاه.</span>
+                )}
+              </div>
+              {trendM.data && !trendM.data.disabled && (
+                <div className="flex flex-col gap-0.5">
+                  {trendM.data.direction && (
+                    <span className="w-fit px-1.5 py-0.5 rounded-full text-[10px] font-semibold" style={{ color: feedbackDirectionBadge(trendM.data.direction).color, border: `1px solid ${T.line}` }}>
+                      اتّجاه {feedbackDirectionBadge(trendM.data.direction).label_ar}
+                      {trendM.data.net_delta != null ? ` · Δ${fmtNum(trendM.data.net_delta, 2)}` : ''}
+                    </span>
+                  )}
+                  {(trendM.data.drivers_ar ?? []).map((d, i) => <div key={`t${i}`} className="text-[11px]" style={{ color: T.muted }}>· {d}</div>)}
+                  {trendM.data.verdict_ar && <div className="text-[11px] font-semibold" style={{ color: T.ink }}>{trendM.data.verdict_ar}</div>}
+                </div>
+              )}
+              {trendM.data?.disabled && <div className="text-[11px]" style={{ color: T.muted }}>تحليل الاتّجاه غير مُفعَّل على هذا الخادم.</div>}
             </div>
           )}
         </div>

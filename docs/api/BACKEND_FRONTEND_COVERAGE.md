@@ -9,12 +9,12 @@
 | الجمهور | المسارات | مغطّى نصّيّاً |
 |---|---|---|
 | admin | 19 | 9 |
-| agronomist | 163 | 161 |
-| farmer | 190 | 170 |
+| agronomist | 163 | 162 |
+| farmer | 190 | 172 |
 | internal | 229 | 59 |
 | manager | 52 | 51 |
 
-العقد الملزِم (core): 435 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 438 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -56,7 +56,7 @@
 | `/api/v1/agro/kc-timeseries/{field_id}` | agronomist | ✅ |
 | `/api/v1/agro/kc-timeseries/{field_id}/compare` | agronomist | ✅ |
 | `/api/v1/agro/plant-soil-feedback` | agronomist | ✅ |
-| `/api/v1/agro/plant-soil-feedback/trend` | agronomist | — |
+| `/api/v1/agro/plant-soil-feedback/trend` | agronomist | ✅ |
 | `/api/v1/agro/season-comparison` | agronomist | ✅ |
 | `/api/v1/ai/models` | internal | ✅ |
 | `/api/v1/alerts` | farmer | ✅ |
@@ -444,7 +444,7 @@
 | `/api/v1/weather/tile-cache/prune` | farmer | — |
 | `/api/v1/weather/tile-cache/stats` | farmer | — |
 | `/api/v1/weather/tile-data/{z}/{x}/{y}` | farmer | ✅ |
-| `/api/v1/weather/tile-series/{z}/{x}/{y}` | farmer | — |
+| `/api/v1/weather/tile-series/{z}/{x}/{y}` | farmer | ✅ |
 | `/api/v1/weather/wind-source-selftest` | farmer | — |
 | `/api/v1/wofost/adaptation-guidance` | agronomist | ✅ |
 | `/api/v1/wofost/crop-types` | agronomist | ✅ |
@@ -470,7 +470,7 @@
 | `/auth/password-reset/request` | farmer | ✅ |
 | `/auth/refresh` | farmer | ✅ |
 | `/auth/register` | farmer | ✅ |
-| `/auth/tenants` | farmer | — |
+| `/auth/tenants` | farmer | ✅ |
 | `/auth/users` | farmer | ✅ |
 | `/auth/users/{user_id}/deactivate` | farmer | ✅ |
 | `/auth/users/{user_id}/role` | farmer | ✅ |

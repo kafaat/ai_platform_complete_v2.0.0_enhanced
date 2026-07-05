@@ -588,6 +588,11 @@
       "evidence": "/api/v1/agro/plant-soil-feedback"
     },
     {
+      "endpoint": "/api/v1/agro/plant-soil-feedback/trend",
+      "audience": "agronomist",
+      "evidence": "/api/v1/agro/plant-soil-feedback/trend"
+    },
+    {
       "endpoint": "/api/v1/agro/season-comparison",
       "audience": "agronomist",
       "evidence": "/api/v1/agro/season-comparison"
@@ -2538,6 +2543,11 @@
       "evidence": "/api/v1/weather/tile-data"
     },
     {
+      "endpoint": "/api/v1/weather/tile-series/{z}/{x}/{y}",
+      "audience": "farmer",
+      "evidence": "/api/v1/weather/tile-series/"
+    },
+    {
       "endpoint": "/api/v1/wofost/adaptation-guidance",
       "audience": "agronomist",
       "evidence": "/api/v1/wofost/adaptation-guidance"
@@ -2626,6 +2636,11 @@
       "endpoint": "/auth/register",
       "audience": "farmer",
       "evidence": "/auth/register"
+    },
+    {
+      "endpoint": "/auth/tenants",
+      "audience": "admin",
+      "evidence": "/auth/tenants"
     },
     {
       "endpoint": "/auth/users",

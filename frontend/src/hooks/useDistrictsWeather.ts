@@ -26,9 +26,11 @@ import type {
   OnboardingSubmitResponse,
   PlantingGuideResponse,
   QuestionnaireResponse,
+  TileSeriesResponse,
   WeatherAnalysisResponse,
   WeatherRecord,
 } from '../lib/districtsWeather';
+import { lonLatToTile } from '../lib/districtsWeather';
 
 /** نسخة محليّة من عرف useApi.ts (الدالّة هناك غير مُصدَّرة — لا نعدّل ملفّاً قائماً). */
 function isDisabled404(e: unknown): boolean {
@@ -197,5 +199,27 @@ export function useSubmitOnboarding() {
       kongApi
         .post('/api/v1/onboarding/responses', payload)
         .then((r) => r.data as OnboardingSubmitResponse),
+  });
+}
+
+/** سلسلة طقس زمنيّة لبلاطة مشتقّة من (lat,lon) — GET /api/v1/weather/tile-series/{z}/{x}/{y}.
+ *  قيم JSON عبر إزاحات ساعيّة (animation/time-slider) لا بلاطة صور. z افتراضيّ 9 (إقليميّ). */
+export function useWeatherTileSeries(
+  lat: number | null,
+  lon: number | null,
+  layer: string,
+  enabled: boolean,
+  z = 9,
+): UseQueryResult<TileSeriesResponse> {
+  const tile = lat !== null && lon !== null ? lonLatToTile(lon, lat, z) : null;
+  return useQuery<TileSeriesResponse>({
+    queryKey: ['weather-tile-series', tile?.z, tile?.x, tile?.y, layer],
+    queryFn: () => kongApi
+      .get(`/api/v1/weather/tile-series/${tile!.z}/${tile!.x}/${tile!.y}`, { params: { layer } })
+      .then((r) => r.data as TileSeriesResponse)
+      .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; }),
+    enabled: enabled && tile !== null && !!layer,
+    staleTime: 5 * 60_000,
+    retry: false,
   });
 }

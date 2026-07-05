@@ -251,3 +251,30 @@ export function usePersistKc() {
       ),
   });
 }
+
+/** اتّجاه التغذية الراجعة نبات-تربة عبر عدّة مواسم — POST /api/v1/agro/plant-soil-feedback/trend.
+ *  حساب نقيّ (لا حفظ)؛ يحتاج موسمين+ لاشتقاق اتّجاه. القيم الفارغة تُرسَل null. */
+export interface FeedbackTrendSeason {
+  season_id: string;
+  inputs: SoilFeedbackInput;
+}
+export interface FeedbackTrendResponse {
+  seasons_analyzed?: number;
+  positive_series?: [string, number][];
+  net_series?: [string, number][];
+  positive_delta?: number | null;
+  net_delta?: number | null;
+  direction?: string;
+  slope_per_season?: number | null;
+  drivers_ar?: string[];
+  verdict_ar?: string;
+  disabled?: boolean;
+}
+export function usePlantSoilFeedbackTrend() {
+  return useMutation({
+    mutationFn: (seasons: FeedbackTrendSeason[]) =>
+      kongApi.post('/api/v1/agro/plant-soil-feedback/trend', { seasons }).then(
+        (r) => r.data as FeedbackTrendResponse,
+      ).catch((e) => { if (isDisabled404(e)) return { disabled: true } as FeedbackTrendResponse; throw e; }),
+  });
+}

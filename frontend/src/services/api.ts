@@ -387,6 +387,26 @@ export interface CurrentUser {
   tenant_id?: string;
 }
 
+// تهيئة مستأجِر جديد + أوّل مالك (إعداد B2B، admin المنصّة فقط عبر require_role).
+// لا كلمة مرور/دور من المُهيِّئ: الدور 'owner' يُفرَض خادميّاً والمالك يضبط كلمته عبر
+// رمز إعادة تعيين. 409 لبريد مسجّل، 403 لغير admin — تُعرَض كما هي بصدق.
+export interface TenantProvisionResult {
+  id: number;
+  email: string;
+  role: string;
+  full_name: string | null;
+  tenant_id: string | null;
+  reset_token?: string | null;
+  reset_url?: string | null;
+}
+
+export const provisionTenant = (payload: {
+  owner_email: string;
+  owner_full_name: string;
+  tenant_name?: string;
+}): Promise<TenantProvisionResult> =>
+  authApi.post<TenantProvisionResult>('/auth/tenants', payload).then(r => r.data);
+
 export const getCurrentUser = (): Promise<CurrentUser> =>
   kongApi.get<Record<string, unknown>>('/api/v1/me').then(r => {
     const d = r.data ?? {};

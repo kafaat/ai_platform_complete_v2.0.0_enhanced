@@ -8,7 +8,7 @@
 // SETTINGS_MANAGE/USER_INVITE/DEVICE_MANAGE…)؛ canManage في الصفحة تلميح صادق.
 
 import { useMutation, useQuery, type UseMutationResult, type UseQueryResult } from '@tanstack/react-query';
-import { kongApi } from '../services/api';
+import { kongApi, provisionTenant } from '../services/api';
 import type {
   CostCategoriesResult,
   FeasibilityResult,
@@ -268,5 +268,14 @@ export function useFailuresCheck(): UseMutationResult<Record<string, unknown>, u
       .post('/api/v1/failures/check', body)
       .then((r) => r.data as Record<string, unknown>)
       .catch((e) => { if (isDisabled404(e)) return { disabled: true }; throw e; }),
+  });
+}
+
+/** تهيئة مستأجِر جديد + أوّل مالك — POST /auth/tenants (admin المنصّة فقط).
+ *  عبر authApi (بوّابة auth) لا kongApi. 403 لغير admin و409 لبريد مسجّل تُعرَض بصدق. */
+export function useProvisionTenant() {
+  return useMutation({
+    mutationFn: (payload: { owner_email: string; owner_full_name: string; tenant_name?: string }) =>
+      provisionTenant(payload),
   });
 }

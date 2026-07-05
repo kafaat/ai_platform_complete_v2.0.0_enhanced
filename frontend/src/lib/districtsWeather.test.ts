@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   activePestsList,
+  lonLatToTile,
+  tileSeriesRows,
   analysisFacts,
   answeredCount,
   buildSubmitPayload,
@@ -282,5 +284,39 @@ describe('onboarding — required/answered/payload يطابق validate_response'
       field_id: null, answers: { crop: 'قمح' },
     });
     expect(buildSubmitPayload(null, {})).toEqual({ field_id: null, answers: {} });
+  });
+});
+
+describe('lonLatToTile — slippy-tile قياسيّ', () => {
+  it('صنعاء (~15.35,44.2) عند z=9 تقع في بلاطة صالحة', () => {
+    const t = lonLatToTile(44.2, 15.35, 9);
+    expect(t.z).toBe(9);
+    expect(t.x).toBeGreaterThanOrEqual(0);
+    expect(t.x).toBeLessThan(2 ** 9);
+    expect(t.y).toBeGreaterThanOrEqual(0);
+    expect(t.y).toBeLessThan(2 ** 9);
+  });
+  it('يقيّد القيم القصوى ضمن نطاق البلاطات', () => {
+    const t = lonLatToTile(179.9, 85, 3);
+    expect(t.x).toBeLessThan(8);
+    expect(t.y).toBeLessThan(8);
+    expect(t.y).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe('tileSeriesRows — القيمة null ⇒ «—» لا صفر', () => {
+  it('يحوّل الإطارات إلى صفوف عرض', () => {
+    const rows = tileSeriesRows({ frames: [
+      { hour_offset: 0, time: 't0', value: 2.5 },
+      { hour_offset: 3, time: 't3', value: null },
+    ] });
+    expect(rows).toEqual([
+      { hour: 0, label: '+0س', value: '2.5' },
+      { hour: 3, label: '+3س', value: '—' },
+    ]);
+  });
+  it('غياب الإطارات ⇒ قائمة فارغة', () => {
+    expect(tileSeriesRows(undefined)).toEqual([]);
+    expect(tileSeriesRows({})).toEqual([]);
   });
 });

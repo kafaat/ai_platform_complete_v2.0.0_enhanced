@@ -915,7 +915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cbe74d565ca9e46727da7fdfbe37adb48b4c4cb9f38af0bb1222b405808905f"
+          "content": "0729456336432248b4692c247741258d917effeeb8c8858720982a81e880a0cb"
         }
       ],
       "name": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
@@ -1015,7 +1015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a561ae4f5066ecce92142e40669f718fb9f76c99150d0a9bcc145ce97f39ef11"
+          "content": "25d77230e96df11d6f3b4ce54350db99eb1e463b3d8500db4a3cfc2373959dae"
         }
       ],
       "name": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
@@ -2075,7 +2075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "807da3a1a59af9a0045c0b0bcb0b90fc27d61885f2462e1030527c2a7d10c9cd"
+          "content": "9ef6e4e11cca9f8af125f00e4d93b9153abfa7a9e2f0ffca2f517fe5a27d344d"
         }
       ],
       "name": "frontend/src/hooks/useAgroAnalytics.ts",
@@ -2175,7 +2175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8357c74451a3788615b86110a286137bbd54451af81d08e2c177f408c42fc38b"
+          "content": "86f18644ffe4166e583318d0e0e3c8b7001359a29de35c5e6383fb9a9e1be307"
         }
       ],
       "name": "frontend/src/hooks/useDistrictsWeather.ts",
@@ -2255,7 +2255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e897c9b3c9f5e6930f37e090d98e457dead47d7b651f47f57d36161eafdd935"
+          "content": "59efa147d20f48b1d9a7af71b13dd28faef9e9b6194d4ad03b934260bdedbce1"
         }
       ],
       "name": "frontend/src/hooks/useManagerConsole.ts",
@@ -2645,7 +2645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5fee4480aeadcadf988b98ae9dd9cd631c81257f2ac9ecfb7df32b4b2b1cd6b"
+          "content": "b27af72ae92656d41bcb5cdbc254fe1cea2e5729b06978666eb89a6262f1f2c3"
         }
       ],
       "name": "frontend/src/lib/districtsWeather.test.ts",
@@ -2655,7 +2655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d53e93e9078d0998acf22e4035b13680c5352757bbbdd659a4fe4484bf36514"
+          "content": "f2c5774a61ab2c0d74695408a66ca908a26c329b635bd0cbb7a0d2ddcac646da"
         }
       ],
       "name": "frontend/src/lib/districtsWeather.ts",
@@ -4475,7 +4475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1f595f6bdf80c79d48db94e0c12093aa27fd770a8348d001f265aa3db7d5a77"
+          "content": "1a783503f6ac8263b1949a7f2f177ec9affca4c60b32d5d84ac8f296390d40ef"
         }
       ],
       "name": "frontend/src/sections/ManagerConsolePage.tsx",
@@ -4915,7 +4915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6bb89ff494c43db1c60363a15e9efa48fb346c0168d34b24c1a1d8819b54b6e"
+          "content": "54e80aa40ad7166ea3dc9ee6d15fecac0e4d87fc084c5d0bb41bbdb8ae09695a"
         }
       ],
       "name": "frontend/src/services/api.ts",

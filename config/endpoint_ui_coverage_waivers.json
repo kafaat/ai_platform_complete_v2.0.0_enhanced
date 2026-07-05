@@ -82,22 +82,6 @@
       "intended_consumer": "machine"
     },
     {
-      "endpoint": "/api/v1/agro/plant-soil-feedback/trend",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/agro_intelligence.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/AgronomicTimelinePage.tsx",
-      "criticality": "decision-support",
-      "importance": 80,
-      "importance_tier": "P0-حرِج",
-      "intended_consumer": "human"
-    },
-    {
       "endpoint": "/api/v1/auth/me",
       "audience": "farmer",
       "methods": [
@@ -434,22 +418,6 @@
       "intended_consumer": "machine"
     },
     {
-      "endpoint": "/api/v1/weather/tile-series/{z}/{x}/{y}",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/weather.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/sections/WeatherAdvicePage.tsx",
-      "criticality": "informational",
-      "importance": 40,
-      "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
-    },
-    {
       "endpoint": "/api/v1/weather/wind-source-selftest",
       "audience": "farmer",
       "methods": [
@@ -480,22 +448,6 @@
       "importance": 40,
       "importance_tier": "P2-متوسّط",
       "intended_consumer": "machine"
-    },
-    {
-      "endpoint": "/auth/tenants",
-      "audience": "farmer",
-      "methods": [
-        "post@services/auth/routers/tenants.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
-      "priority": "high",
-      "ui_effort": "page",
-      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
-      "criticality": "informational",
-      "importance": 48,
-      "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
     }
   ]
 }

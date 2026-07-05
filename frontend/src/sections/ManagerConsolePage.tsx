@@ -17,7 +17,8 @@ import {
   useAutowritePreview, useCostCategories, useCostsByField, useCropClassificationReadiness,
   useCropGap, useDataReadiness, useErpProjection, useFailuresCheck, useFeasibility,
   useGenerateShareKey, useInventoryProjection, usePermissionMatrix, usePreviewRoleChange,
-  useReportBuild, useSettings, useSnapshotEvidence, useWhoCan, useWorkOrderFromRecommendation,
+  useProvisionTenant, useReportBuild, useSettings, useSnapshotEvidence, useWhoCan,
+  useWorkOrderFromRecommendation,
 } from '../hooks/useManagerConsole';
 
 /** كونسول المدير: واجهة موحّدة لنقاط الإدارة اليتيمة (P3) — جدوى اقتصاديّة/تكاليف،
@@ -402,6 +403,8 @@ function OpsSection() {
   const snapM = useSnapshotEvidence();
   const readyM = useDataReadiness();
   const failM = useFailuresCheck();
+  const tenantM = useProvisionTenant();
+  const [tenant, setTenant] = useState({ owner_email: '', owner_full_name: '', tenant_name: '' });
   const [settingsScope, setSettingsScope] = useState('');
   const settings = useSettings(settingsScope || null);
   const settingsData = arr<SettingRow>(settings.data);
@@ -457,6 +460,37 @@ function OpsSection() {
           </div>
         )}
         {keyData && isDisabled(keyData) && <DisabledNote />}
+      </Panel>
+
+      {/* تهيئة مستأجِر جديد — إعداد B2B (admin المنصّة فقط عبر /auth/tenants) */}
+      <Panel title="تهيئة مستأجِر جديد" icon={ShieldCheck}>
+        <Muted>يُنشئ مؤسّسة جديدة + أوّل مالك (الدور owner يُفرَض خادميّاً). لا كلمة مرور هنا —
+          يُصدَر رابط إعادة تعيين يضبط به المالك كلمته. يتطلّب دور admin المنصّة (403 لغيره).</Muted>
+        <div className="flex flex-col gap-1.5 mt-1.5">
+          <Txt label="بريد المالك" v={tenant.owner_email} on={(v) => setTenant({ ...tenant, owner_email: v })} wide />
+          <Txt label="اسم المالك" v={tenant.owner_full_name} on={(v) => setTenant({ ...tenant, owner_full_name: v })} wide />
+          <Txt label="اسم المؤسّسة (اختياريّ)" v={tenant.tenant_name} on={(v) => setTenant({ ...tenant, tenant_name: v })} wide />
+        </div>
+        <button type="button"
+          disabled={!tenant.owner_email.trim() || tenant.owner_full_name.trim().length < 2 || tenantM.isPending}
+          onClick={() => tenantM.mutate({
+            owner_email: tenant.owner_email.trim(),
+            owner_full_name: tenant.owner_full_name.trim(),
+            ...(tenant.tenant_name.trim() ? { tenant_name: tenant.tenant_name.trim() } : {}),
+          })}
+          className="mt-2 px-2.5 py-1 rounded-lg text-[11px] font-semibold disabled:opacity-50"
+          style={{ border: '1px solid #14532d', color: '#86efac', background: 'rgba(15,23,42,.45)' }}>
+          {tenantM.isPending ? 'جارٍ…' : 'هيّئ المستأجِر'}
+        </button>
+        {tenantM.isError && <Muted>تعذّرت التهيئة — قد تحتاج دور admin أو البريد مسجّل مسبقاً (409).</Muted>}
+        {tenantM.data && (
+          <div className="mt-1.5 text-[11px] flex flex-col gap-0.5" style={{ color: T.muted }}>
+            <div>أُنشئ المالك: <b style={{ color: T.ink }}>{tenantM.data.email}</b> · الدور {tenantM.data.role}</div>
+            {tenantM.data.reset_url && (
+              <div>رابط ضبط كلمة المرور (يُعرَض مرّة): <span style={{ color: '#86efac', direction: 'ltr' }}>{tenantM.data.reset_url}</span></div>
+            )}
+          </div>
+        )}
       </Panel>
 
       {/* الإعدادات (قراءة) */}

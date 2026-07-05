@@ -551,3 +551,50 @@ export function buildSubmitPayload(
   }
   return { field_id: fieldId || null, answers: clean };
 }
+
+// ─── سلسلة الطقس الزمنيّة للبلاطة (weather/tile-series) ───────────
+// النقطة تُرجِع JSON (قيم طبقة عبر إزاحات ساعيّة لمركز البلاطة) لا صور PNG —
+// فتُعرَض كسلسلة قيم لا طبقة راستر. نشتقّ z/x/y من (lat,lon) بحساب slippy-tile
+// القياسيّ كي يستدعيها المستخدم من إحداثيّات حقله لا من بلاطة يدويّة.
+export function lonLatToTile(lon: number, lat: number, z: number): { z: number; x: number; y: number } {
+  const n = 2 ** z;
+  const x = Math.floor(((lon + 180) / 360) * n);
+  const latRad = (lat * Math.PI) / 180;
+  const y = Math.floor(
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n,
+  );
+  // تقييد ضمن نطاق البلاطات الصالح [0, n)
+  const clamp = (v: number) => Math.max(0, Math.min(n - 1, v));
+  return { z, x: clamp(x), y: clamp(y) };
+}
+
+export const WEATHER_TILE_LAYERS = [
+  'temperature', 'wind', 'precipitation', 'et0', 'vpd', 'soil_temperature',
+] as const;
+
+export interface TileSeriesFrame {
+  hour_offset: number;
+  time: string;
+  value: number | null;
+  cache_state?: string;
+  upstream_error?: string | null;
+}
+export interface TileSeriesResponse extends MaybeDisabled {
+  tile?: { z: number; x: number; y: number };
+  center?: { lat: number; lon: number };
+  layer?: string;
+  frames?: TileSeriesFrame[];
+  model?: string;
+  partial?: boolean;
+  upstream_errors?: string[];
+}
+
+/** صفوف عرض السلسلة (إزاحة ساعيّة · قيمة) — القيمة null ⇒ «—» لا صفر. */
+export function tileSeriesRows(data: TileSeriesResponse | undefined): { hour: number; label: string; value: string }[] {
+  if (!data?.frames) return [];
+  return data.frames.map((f) => ({
+    hour: f.hour_offset,
+    label: `+${f.hour_offset}س`,
+    value: f.value === null || f.value === undefined ? '—' : String(f.value),
+  }));
+}
