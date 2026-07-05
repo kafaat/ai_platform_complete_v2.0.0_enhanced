@@ -32,7 +32,9 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
         return {"computed": False, "reason": f"مصدر DEM غير موجود: {dem_path or '—'}"}
     try:
         with rasterio.open(dem_path) as src:
-            dem = src.read(1).astype("float32")
+            # masked=True يحترم nodata من بيانات DEM الوصفيّة (مثل -32768/-9999): بدونه
+            # يُعامَل الحارس كارتفاعٍ حقيقيّ (isfinite لا يمسكه) فيفسد الإحصاء ويخترع تدرّجاً.
+            dem = src.read(1, masked=True).filled(np.nan).astype("float32")
     except rasterio.errors.RasterioIOError as e:
         return {"computed": False, "reason": f"تعذّر قراءة DEM: {type(e).__name__}"}
 
@@ -103,7 +105,9 @@ def compute_field_terrain(
     try:
         with rasterio.open(dem_path) as src:
             window = from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src.transform)
-            dem = src.read(1, window=window).astype("float32")
+            # masked=True يحترم nodata (‑32768/‑9999…): بدونه يُحسَب الحارس كارتفاع حقيقيّ
+            # فيفسد min/max/mean ويخترع تدرّجاً هائلاً عند حوافّ الفجوات ⇒ انحدار خاطئ.
+            dem = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
     except rasterio.errors.RasterioIOError as e:
         return {
             "computed": False,
@@ -134,7 +138,11 @@ def compute_field_terrain(
     av = aspect[np.isfinite(aspect)]
     dominant_aspect = None
     if av.size:
-        idx = int(((av.mean() % 360) + 22.5) // 45) % 8
+        # متوسّط دائريّ (الاتّجاه كمّيّة زاويّة): المتوسّط الخطّيّ لزوايا حول 0/360 يعطي
+        # عكس الاتّجاه (350° و10° ⇒ خطّيّ=180°=جنوب، والصحيح=0°=شمال). atan2(mean sin, mean cos).
+        ar = np.radians(av)
+        mean_ang = np.degrees(np.arctan2(np.mean(np.sin(ar)), np.mean(np.cos(ar)))) % 360
+        idx = int((mean_ang + 22.5) // 45) % 8
         dominant_aspect = dirs[idx]
 
     return {
