@@ -137,8 +137,11 @@ async def _ensure_field_cog(
     geom_sig = "none"
     if field_geom is not None:
         try:
+            # بصمة كاش لا أمنيّة (تفريق مفاتيح فقط) ⇒ usedforsecurity=False يوضّح النيّة
+            # ويُرضي bandit B324 (SHA1 «الضعيف» ليس استعمالاً أمنيّاً هنا) وأنظمة FIPS.
             geom_sig = hashlib.sha1(
-                _json.dumps(field_geom, sort_keys=True, separators=(",", ":")).encode("utf-8")
+                _json.dumps(field_geom, sort_keys=True, separators=(",", ":")).encode("utf-8"),
+                usedforsecurity=False,
             ).hexdigest()[:12]
         except (TypeError, ValueError):
             geom_sig = "err"
