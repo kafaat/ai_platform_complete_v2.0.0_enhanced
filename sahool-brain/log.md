@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-07-05 (ن) — `f18c74b` الجولة 2: قوائم منسدلة للحقول في بقيّة الشاشات + aliases توجيه
+
+رقعة المستخدم (`rest_runtime_screens_round2_fix.diff`) — تُكمِل توصيل الشاشات التشغيليّة المتبقّية بالحقول الحيّة وتستبدل آخر مدخلات معرّف الحقل النصّيّة/الوهميّة بقوائم منسدلة. `patch -p1` نظيف بعد إصلاح عيبَين:
+
+- Devices/Documents/IrrigationOps (قناة+جدول): input نصّيّ ⇒ select من قائمة الحقول · Pest/Recommendation: dropdown + زرّ مشروط · Portfolio/PortfolioCommand: قوائم منسدلة لكلّ صفّ + **إزالة الحقول التجريبيّة المفبركة (حقل-أ/ب/ج)** (صفوف تبدأ فارغة؛ الحساب مشروط باختيار حقل حقيقيّ؛ الصفوف الفارغة تُسقَط) · `useDashboardData` افتراض `'field_01'`⇒`''` · توجيه: aliases + Routes لـindicators/growth/prescription/soil-water/water-analysis/predicted-plan/advanced/roi.
+
+**تحقّق-قبل-دمج اصطاد عيبَين:** (١) حارس `useSelectedField.static.test.ts` يمنع `useFieldOptions` في الأقسام؛ صفحتا Portfolio مُحرِّرا **تعدّد حقول** (استثناء مشروع كـFieldMapCenter) ⇒ allowlist بمبرّر بدل إجبارهما على hook الحقل المفرد. (٢) `PortfolioCommandPage.test.tsx` انكسر لأنّ الصفحة صارت تجرّ hook استعلام حيّ وتشترط اختيار حقل ⇒ stub لـuseFieldOptions + اختيار الحقل قبل المقارنة (كان يعتمد على الحقول التجريبيّة المُزالة).
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · release **3154** checksums. واجهة فقط · بلا migration. يُضاف لـPR **#580**.
+
 ## 2026-07-05 (ن) — `7cdefde` توصيل الشاشات التشغيليّة العريضة بالحقل النشط المشترك
 
 رقعة المستخدم (`wide_runtime_screens_fix.diff` على أساس `..._backfill_incremental_retry_hotfix.zip`) — تُوصِّل ~14 شاشة بالحقل المختار المشترك بدل معرّفات ثابتة/stub وتضيف تنقّلاً بين الشاشات بسياق الحقل. طُبِّقت بـ`patch -p1` (dry-run نظيف) بعد تحقّق:
