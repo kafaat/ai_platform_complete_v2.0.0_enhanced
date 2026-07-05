@@ -44,7 +44,16 @@ INSERT INTO seasons (season_id, tenant_id, field_id, crops, cultivar, irrigation
   ('aljawf_z1_2024', :tenant_id, 'aljawf_z1', '["wheat"]'::jsonb, 'sakha', 'pivot',
    DATE '2024-11-12', DATE '2025-04-08', 'closed'),
   ('aljawf_z1_2025', :tenant_id, 'aljawf_z1', '["wheat"]'::jsonb, 'sakha', 'pivot',
-   DATE '2025-11-10', DATE '2026-04-05', 'active')
+   DATE '2025-11-10', DATE '2026-04-05', 'active'),
+  -- بقيّة المناطق المنتِجة: المحصول حقيقيّ من farm_map؛ التواريخ الدقيقة غير موثّقة
+  -- (Z1 فقط له حصاد موزون) ⇒ NULL لا نلفّقها. المعمّرة (برسيم/أشجار) بلا سوينج منفصل.
+  ('aljawf_z2_2025', :tenant_id, 'aljawf_z2', '["wheat"]'::jsonb, 'sakha', 'pivot',
+   NULL, NULL, 'active'),
+  ('aljawf_z3_alfalfa', :tenant_id, 'aljawf_z3', '["alfalfa"]'::jsonb, NULL, 'sprinkler',
+   NULL, NULL, 'active'),
+  ('aljawf_z6_trees', :tenant_id, 'aljawf_z6',
+   '["citrus","grape","pomegranate","papaya"]'::jsonb, NULL, 'drip',
+   NULL, NULL, 'active')
 ON CONFLICT (season_id) DO UPDATE
   SET crops = EXCLUDED.crops, cultivar = EXCLUDED.cultivar,
       irrigation_type = EXCLUDED.irrigation_type, sowing_date = EXCLUDED.sowing_date,
