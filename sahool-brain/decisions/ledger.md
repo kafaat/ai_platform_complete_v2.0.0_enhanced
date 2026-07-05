@@ -300,3 +300,13 @@ SHAs من `git log --oneline origin/main`.
 | `ecc0061` | إزالة U+200F خفيّ (bandit B613 HIGH) من docstring العامل. |
 
 **قرار انضباط مؤكَّد:** الشرائح ذات migration/worker/best-effort تُدفَع للفرع أوّلاً، ويُحجَز main حتّى خضرة *Integration Tests* (PostGIS حيّ) و*Security Scan* — لأنّ هذه الأخطاء لا تظهر في `pytest -m unit` المُحاكى.
+
+## 2026-07-05 (ل) — تحويل CDSE + صدق «الحقيقة» (تدقيقات v8–v11)
+
+| SHA | القرار + السبب |
+|---|---|
+| `fa19e83` | تدقيقات v8–v11 مجمّعة: CDSE historical search + persisted-truth + v145/v146 + قرّاء ready + tilejson poly. **السبب:** المُدقِّق شغّل على `d85673c` القديم فمعظم نتائجه أُغلِق سلفاً؛ الجديد ركّز على «الحقيقة الكاذبة» (completed≠persisted، stale يُقدَّم كصالح، dedupe على cog_uri). |
+| `ff11e69` | إصلاح ترحيل v146: `DROP CONSTRAINT IF EXISTS backfill_runs_status_check` بالاسم الاصطلاحيّ (قيد v144 المضمَّن يُطبَّع `IN`→`= ANY` فتعذّر مطابقته ديناميكيّاً). **السبب:** فشل «Apply migrations» في Integration — اصطاده الفرع قبل main. مُثبَت على Postgres حيّ. |
+| `820cd41` | البحث التاريخيّ **fail-closed 503** بلا اعتمادات CDSE (لا ارتداد صامت لـElement84) + `_run_processing` exc_info=True. **السبب:** طلب المستخدم «بالكامل من Copernicus» + تقرير copernicus_historical_backfill_fix (لوج «TypeError» عارياً بعد بناء VRT). |
+
+**درس migration مؤكَّد:** القيد المضمَّن `CHECK (col IN (...))` يُسمّيه Postgres `<table>_<col>_check` ويُطبّعه `= ANY (ARRAY[...])` — فبحثه عبر `ILIKE '%IN%'` يفشل؛ استعمل `DROP CONSTRAINT IF EXISTS <conventional_name>` (idempotent). **مؤجَّل بصدق:** V8-05 (فصل مُنتقي التاريخ عن المعالجة — قرار UX) · V8-09 (fixed.yml dev-only موثَّق) · إخلاء `_layers` عبر العمليّات (يحتاج Redis pub/sub).
