@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-05 (ن-38) — تدقيق صور الأقمار: idempotency + تتبّع raster_assets (v142)؛ إصلاح اختبار المستأجِر
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تدقيق عميق عالي الجودة على تخزين الصور التاريخيّة — نتائجه حقيقيّة، عولجت الأعلى قيمةً والأكثر أماناً:
+
+- **P0-2 (تكرار):** `raster_assets` بلا قيد تفرّد ⇒ إعادة تشغيل backfill تُراكم صفوفاً مكرّرة. **v142:** فهرس فريد جزئيّ `uq_raster_assets_scene_product` (tenant/field/index/date/scene/cog، على غير الفارغ فقط) + حذف تكرارات قائمة (يُبقي الأحدث) + `insert_raster_asset` صار **ON CONFLICT DO UPDATE** (يُحدِّث الجودة/الأصل بدل الإدراج المكرّر).
+- **P0-3 (تتبّع):** العمود `processing_job_id` كان يُستعلَم في `layer_owner_tenant` لكنّه لا يُملأ (فيسقط إلى ILIKE هشّ على مسار COG). الآن يُمرَّر من `_run_processing`→`_persist_raster_asset`→الإدراج + فهرس `idx_raster_assets_processing_job`.
+- **P2-2 (اختبار بائت):** `test_db_rehydrate` كان يُدرِج `tenant_id=None` بينما قراءات الإنتاج تُرشِّح بـuuid ⇒ صحّح إلى مستأجِر UUID حقيقيّ + ترويسة `X-Tenant-Id` (يعكس واقع الإنتاج).
+- **مؤجَّل بصدق (أوسع، follow-up):** جسر `raster_assets`→`raster_registry` (P0-1) · عامل استهلاك `raster_cache_invalidations` (P1-2) · سياسة احتفاظ كاش البلاطات (P1-3) · ربط geometry_revision (P1-1) — عمل معماريّ يحتاج مستهلكاً/عاملاً، لا يُنجَز نصفاً. حارس v142 ساكن جديد (3 تأكيدات).
+
+**تحقّق:** pytest -m unit **2549** أخضر · حارس v142 3/3 · validator أخضر (v142) · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
 ## 2026-07-05 (ن-37) — تدقيق DB/هجرات: إصلاح أمر helm الميّت + تحذير .down.sql؛ دحض الباقي
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). فُرزت نتائج تدقيق القاعدة/الهجرات:

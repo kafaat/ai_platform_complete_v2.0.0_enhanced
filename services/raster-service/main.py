@@ -1277,7 +1277,12 @@ def _is_valid_field_id_text(value: str | None) -> bool:
 
 
 def _persist_raster_asset(
-    req: ProcessRequest, cog_url: str, meta: dict, bounds: list, stats: dict
+    req: ProcessRequest,
+    cog_url: str,
+    meta: dict,
+    bounds: list,
+    stats: dict,
+    job_id: str | None = None,
 ) -> None:
     """يُدرج صفّاً في raster_assets (best-effort). يُغلّف كلّ خطأ.
 
@@ -1345,6 +1350,7 @@ def _persist_raster_asset(
                 valid_pixel_ratio=_quality["valid_pixel_ratio"],
                 coverage_ratio=_quality["coverage_ratio"],
                 index_quality_flags=_quality["index_quality_flags"],
+                processing_job_id=job_id,  # v142: تتبّع + يُغني layer_owner_tenant عن ILIKE
                 provenance={
                     "stats": {
                         k: stats.get(k)
@@ -1490,7 +1496,7 @@ def _run_processing(job_id: str, req: ProcessRequest):
             _field_layers.setdefault(req.field_id, []).append(layer_id)
         # (٦) حفظ في raster_assets (best-effort — غياب القاعدة لا يُفشل المعالجة)
         if cog_url:
-            _persist_raster_asset(req, cog_url, meta, bounds, stats)
+            _persist_raster_asset(req, cog_url, meta, bounds, stats, job_id=job_id)
         job["result"] = {
             "job_id": job_id,
             "layer_id": layer_id,

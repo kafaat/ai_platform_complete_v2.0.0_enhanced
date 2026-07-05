@@ -547,3 +547,7 @@ v139_field_geometry_history_append_only.sql
 # (نمط v9/mfa_audit_events). إضافيّ idempotent؛ بعد v138.
 v140_outbox_delivery_attempts.sql
 v141_mfa_totp_antireplay.sql
+
+# v142: منع تكرار أصول الراستر (فهرس فريد جزئيّ) + فهرس processing_job_id للتتبّع.
+#   يمكّن ON CONFLICT DO UPDATE في insert_raster_asset. idempotent؛ بعد v141.
+v142_raster_assets_dedup_traceability.sql

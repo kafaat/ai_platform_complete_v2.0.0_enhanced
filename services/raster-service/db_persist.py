@@ -100,6 +100,7 @@ async def insert_raster_asset(
     valid_pixel_ratio: float | None = None,
     coverage_ratio: float | None = None,
     index_quality_flags: list | None = None,
+    processing_job_id: str | None = None,
 ) -> bool:
     """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند النجاح.
 
@@ -134,20 +135,36 @@ async def insert_raster_asset(
         except ValueError:
             acq_date = None
 
+    # v142: idempotency — إعادة تشغيل backfill لا تُراكم صفوفاً مكرّرة. ON CONFLICT على
+    # الفهرس الفريد الجزئيّ (tenant/field/index/date/scene/cog) يُحدِّث الجودة/الأصل بدل
+    # الإدراج المكرّر. + processing_job_id للتتبّع (يُغني layer_owner_tenant عن ILIKE الهشّ).
     sql = """
         INSERT INTO raster_assets (
             field_id, tenant_id, scene_id, acquisition_date, satellite,
             index_name, cloud_pct, srid, cog_uri, bands, nodata,
             footprint, provenance,
-            valid_pixel_ratio, coverage_ratio, index_quality_flags
+            valid_pixel_ratio, coverage_ratio, index_quality_flags,
+            processing_job_id
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8, $9, $10::jsonb, $11,
             CASE WHEN $12::text IS NULL THEN NULL
                  ELSE ST_SetSRID(ST_GeomFromGeoJSON($12), 4326) END,
             $13::jsonb,
-            $14, $15, COALESCE($16::jsonb, '[]'::jsonb)
+            $14, $15, COALESCE($16::jsonb, '[]'::jsonb),
+            $17
         )
+        ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id, cog_uri)
+        WHERE tenant_id IS NOT NULL AND acquisition_date IS NOT NULL
+              AND scene_id IS NOT NULL AND cog_uri IS NOT NULL
+        DO UPDATE SET
+            cloud_pct = EXCLUDED.cloud_pct,
+            bands = EXCLUDED.bands,
+            provenance = EXCLUDED.provenance,
+            valid_pixel_ratio = EXCLUDED.valid_pixel_ratio,
+            coverage_ratio = EXCLUDED.coverage_ratio,
+            index_quality_flags = EXCLUDED.index_quality_flags,
+            processing_job_id = COALESCE(EXCLUDED.processing_job_id, raster_assets.processing_job_id)
     """
     try:
         await conn.execute(
@@ -172,6 +189,7 @@ async def insert_raster_asset(
             valid_pixel_ratio,
             coverage_ratio,
             flags_json,
+            processing_job_id,
         )
         return True
     except Exception as e:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة

@@ -5035,7 +5035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abf8ffd4ed68d8874e8d8e14e013bd251508e54fae9b66d4548770eb4c8613a7"
+          "content": "4d6dffffe6d94c047be5011ccdd2ea907e043417c404bda4087e48e32fd79e28"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -5529,6 +5529,16 @@
         }
       ],
       "name": "migrations/v141_mfa_totp_antireplay.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3582dbd9f72355adc580a3c021311b13ec952d50337fb980b1158f26a817827a"
+        }
+      ],
+      "name": "migrations/v142_raster_assets_dedup_traceability.sql",
       "type": "file"
     },
     {
@@ -8745,7 +8755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2551a0002ebb32bb8b4caa93151323828bbc4b7a438171bf33e06eaa69c2d90a"
+          "content": "3c2e819e295c2ba05e61966b3998b2c3fd0ebe9f052c5e69413c63acd34efeca"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8785,7 +8795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fb14bf7301df36253ebfc7d38973743969f77537b7e68d901c4e8a2de417e43b"
+          "content": "2dfc978648387e6d06d6254c7e505f542940573581de17ad7e8cbc084533034b"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9145,7 +9155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b69ea58df1e97ea83d91fe905558fd4c6ed4043b6e6283777cc20383ca91223c"
+          "content": "ca86c45ad387fed2dbe0e70595884f247ef97636234513dba2671c6ef5ccb77d"
         }
       ],
       "name": "services/raster-service/test_db_rehydrate.py",
