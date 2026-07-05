@@ -15695,6 +15695,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4ad2f16fb24adb1b5f35210d17d83fd35ad3c852ab929ef3023aa0738ce08635"
+        }
+      ],
+      "name": "services/sahool-platform/tests/_public_read_allowlist.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "159dfdc44640c8da3d36a041b496ab1ff430fde3591f8a63206bfe7a1c092e6e"
         }
       ],
@@ -17909,6 +17919,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_review_fixes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "386979cac0b7ba8481822430384b79a9bae57f63dda691f692efc0720fa52414"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
       "type": "file"
     },
     {
