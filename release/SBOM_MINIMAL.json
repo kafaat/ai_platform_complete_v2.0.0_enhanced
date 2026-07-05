@@ -1435,6 +1435,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8d418caa28ae8839879528beb6eaca74a5617364b7dab745909c0bb0dbc3228d"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9957d481175d025560902e0be27f4a8088e8da5030b8f05675328cff2d98fd01"
         }
       ],
@@ -5035,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d6dffffe6d94c047be5011ccdd2ea907e043417c404bda4087e48e32fd79e28"
+          "content": "0a22d6bfd83a9bb4a3c4b8be34bfe690250e75fdb043c96fd5bc6e6c93f6f687"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8755,7 +8765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad7e963a40ae8f114a40f4b5722e4f53a80f14650659f201a7d175f60755ef01"
+          "content": "a674c50cdc595f6cc1bf548ca5178f88073c10784c0d01a16cc74ebdb82d58b2"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8795,7 +8805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fa8c4524e861b10b7912af6c4fb00fa55cbb473d403abe0359aae0030cca824"
+          "content": "ddff774d36256407f1fa01557b34e64e151d9a70292e2dcac1e21231efac1eff"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -8905,7 +8915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a81029696f4389616423d91d46b553a5dfd6fbfa6bef0ffe0925e8326b6b38f1"
+          "content": "c4a7f46c1fa26e5b65210eed5667f73b48c822d5dd90dd6252739a1155ebee11"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -10395,7 +10405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c148802885a1ac5a8b54cf1520d510107307bd64ee7cfc6372e42a4b5e90822"
+          "content": "a0a727681dec116c085a77b02e326cfded55de7365415be4ed9aa84135ddc666"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -11535,7 +11545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "520dc58519e46f089bb8616c9dfcb6cc405b1efc8acbfd9560e6dabce04ae55f"
+          "content": "355d15301968023370db75b2ad345bb6b067f69b4c29506abf6966253c50dfa0"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

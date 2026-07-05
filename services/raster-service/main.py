@@ -207,6 +207,9 @@ class ProcessRequest(BaseModel):
     # مؤشّر محسوب مسبقاً (CDSE Process API): الراستر نطاق-واحد جاهز للمؤشّر — لا band math.
     precomputed_index: bool = False
     provider: str | None = None  # مصدر الصورة (مثل "cdse" / "element84") للأصل (provenance)
+    # v143 (FINDING-004): مراجعة هندسة الحقل (field_geometry_history.revision) السارية
+    # وقت إطلاق المعالجة — تُسجَّل على raster_assets للنَّسَب end-to-end. None ⇒ غير معروفة.
+    geometry_revision: int | None = None
 
 
 class BatchProcessRequest(BaseModel):
@@ -226,6 +229,7 @@ class BatchProcessRequest(BaseModel):
     apply_cloud_mask: bool = True
     scene_id: str | None = None
     capture_datetime: str | None = None
+    geometry_revision: int | None = None  # v143 (FINDING-004): نَسَب هندسة الحقل
 
 
 class SearchRequest(BaseModel):
@@ -1356,6 +1360,8 @@ def _persist_raster_asset(
                 quality_score=stats.get("confidence"),
                 aoi_cloud_pct=stats.get("cloud_pct"),
                 cloud_mask_sources=stats.get("cloud_mask_sources"),
+                # v143 (FINDING-004): مراجعة الهندسة السارية وقت المعالجة (None إن لم تُمرَّر).
+                geometry_revision=getattr(req, "geometry_revision", None),
                 provenance={
                     "stats": {
                         k: stats.get(k)
@@ -1370,7 +1376,9 @@ def _persist_raster_asset(
                             "quality",
                             "confidence",
                         )
-                    }
+                    },
+                    # v143: النَّسَب — مراجعة الهندسة في الأصل نفسه (فوق العمود المخصّص).
+                    "geometry_revision": getattr(req, "geometry_revision", None),
                 },
             )
 
@@ -1560,6 +1568,7 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
             apply_cloud_mask=req.apply_cloud_mask,
             scene_id=req.scene_id,
             capture_datetime=req.capture_datetime,
+            geometry_revision=req.geometry_revision,  # v143: نَسَب الهندسة عبر المؤشّرات
         )
         sub_job_id = f"{job_id}_{ind.value}"
         _jobs.set(
@@ -1949,6 +1958,7 @@ class ProcessFromStacRequest(BaseModel):
     apply_cloud_mask: bool = True
     clip_polygon_geojson: dict | None = None
     source_format: SourceFormat = SourceFormat.sentinel2_l2a
+    geometry_revision: int | None = None  # v143 (FINDING-004): نَسَب هندسة الحقل
 
 
 # ─── CDSE (Copernicus Data Space) — المزوّد الافتراضيّ + fallback إلى Element84 ──
@@ -1970,6 +1980,7 @@ class ProcessCdseRequest(BaseModel):
     # tile cache depend on acquisition_date matching the requested scene.
     date_from: str | None = None
     date_to: str | None = None
+    geometry_revision: int | None = None  # v143 (FINDING-004): نَسَب هندسة الحقل
 
 
 def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
@@ -2085,6 +2096,7 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
                 capture_datetime=capture_datetime,
                 clip_polygon_geojson=req.geometry,
                 apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (dataMask + maxCloudCoverage)
+                geometry_revision=req.geometry_revision,  # v143: نَسَب الهندسة (المسار الافتراضيّ)
             )
             sub_job_id = f"{job_id}_{ind}"
             _run_processing(sub_job_id, preq)

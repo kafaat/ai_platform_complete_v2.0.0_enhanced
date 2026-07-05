@@ -57,6 +57,7 @@ async def process_from_stac(
         capture_datetime=req.capture_datetime,
         apply_cloud_mask=req.apply_cloud_mask,
         clip_polygon_geojson=req.clip_polygon_geojson,
+        geometry_revision=req.geometry_revision,  # v143: نَسَب هندسة الحقل
     )
     job_id = f"stac_{uuid.uuid4().hex[:12]}"
     main._jobs.set(

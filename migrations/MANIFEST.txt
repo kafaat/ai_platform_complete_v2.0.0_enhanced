@@ -551,3 +551,8 @@ v141_mfa_totp_antireplay.sql
 # v142: منع تكرار أصول الراستر (فهرس فريد جزئيّ) + فهرس processing_job_id للتتبّع.
 #   يمكّن ON CONFLICT DO UPDATE في insert_raster_asset. idempotent؛ بعد v141.
 v142_raster_assets_dedup_traceability.sql
+
+# v143: دورة حياة أصول الراستر (asset_status: pending/ready/stale/failed) + نَسَب
+#   هندسة الحقل (geometry_revision) + فهارس. يمكّن عامل الإبطال ووسم البائت.
+#   إضافة أعمدة idempotent؛ لا RLS جديد (raster_assets مُنطّق منذ v14)؛ بعد v142.
+v143_raster_assets_lifecycle_lineage.sql

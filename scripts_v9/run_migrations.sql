@@ -439,3 +439,5 @@
 \i migrations/v141_mfa_totp_antireplay.sql
 \echo '═══ 148. v142_raster_assets_dedup_traceability.sql ═══'
 \i migrations/v142_raster_assets_dedup_traceability.sql
+\echo '═══ 149. v143_raster_assets_lifecycle_lineage.sql ═══'
+\i migrations/v143_raster_assets_lifecycle_lineage.sql

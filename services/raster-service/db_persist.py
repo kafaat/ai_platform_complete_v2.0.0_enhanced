@@ -104,6 +104,8 @@ async def insert_raster_asset(
     quality_score: float | None = None,
     aoi_cloud_pct: float | None = None,
     cloud_mask_sources: list | None = None,
+    geometry_revision: int | None = None,
+    asset_status: str = "ready",
 ) -> bool:
     """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند النجاح.
 
@@ -150,7 +152,8 @@ async def insert_raster_asset(
             index_name, cloud_pct, srid, cog_uri, bands, nodata,
             footprint, provenance,
             valid_pixel_ratio, coverage_ratio, index_quality_flags,
-            processing_job_id, quality_score, aoi_cloud_pct, cloud_mask_sources
+            processing_job_id, quality_score, aoi_cloud_pct, cloud_mask_sources,
+            geometry_revision, asset_status
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8, $9, $10::jsonb, $11,
@@ -158,7 +161,8 @@ async def insert_raster_asset(
                  ELSE ST_SetSRID(ST_GeomFromGeoJSON($12), 4326) END,
             $13::jsonb,
             $14, $15, COALESCE($16::jsonb, '[]'::jsonb),
-            $17, $18, $19, COALESCE($20::jsonb, '[]'::jsonb)
+            $17, $18, $19, COALESCE($20::jsonb, '[]'::jsonb),
+            $21, $22
         )
         ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id, cog_uri)
         WHERE tenant_id IS NOT NULL AND acquisition_date IS NOT NULL
@@ -173,7 +177,9 @@ async def insert_raster_asset(
             processing_job_id = COALESCE(EXCLUDED.processing_job_id, raster_assets.processing_job_id),
             quality_score = EXCLUDED.quality_score,
             aoi_cloud_pct = EXCLUDED.aoi_cloud_pct,
-            cloud_mask_sources = EXCLUDED.cloud_mask_sources
+            cloud_mask_sources = EXCLUDED.cloud_mask_sources,
+            geometry_revision = COALESCE(EXCLUDED.geometry_revision, raster_assets.geometry_revision),
+            asset_status = EXCLUDED.asset_status
     """
     try:
         await conn.execute(
@@ -202,6 +208,8 @@ async def insert_raster_asset(
             quality_score,
             aoi_cloud_pct,
             mask_sources_json,
+            geometry_revision,
+            asset_status,
         )
         return True
     except Exception as e:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
@@ -244,6 +252,7 @@ async def fetch_latest_asset(
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
               AND tenant_id = $4::uuid   -- فلتر مستأجِر صريح (دفاع عميق فوق RLS)؛ None ⇒ لا صفوف
+              AND asset_status <> 'failed'  -- v143: لا نُرطّب من أصل فاشل (stale يبقى قابلاً للخدمة)
             -- أحدث تاريخ يفوز أوّلاً (دلالة latest محفوظة)، ثمّ الأفضل جودةً لذلك اليوم:
             -- quality_score (v105) DESC ثمّ cloud_pct ASC — يستفيد من idx_raster_assets_quality_pick.
             ORDER BY acquisition_date DESC NULLS LAST,
@@ -329,6 +338,7 @@ async def list_asset_dates(
             WHERE field_id = $1 AND index_name = $2
               AND acquisition_date IS NOT NULL
               AND tenant_id = $3::uuid
+              AND asset_status <> 'failed'
             ORDER BY ad DESC
             LIMIT $4
         ) recent
@@ -376,6 +386,7 @@ async def list_available_asset_dates(
             WHERE field_id = $1
               AND tenant_id = $2::uuid
               AND acquisition_date IS NOT NULL
+              AND asset_status <> 'failed'
               AND ($3::text[] IS NULL OR index_name = ANY($3::text[]))
             ORDER BY acquisition_date DESC
             LIMIT $4
@@ -390,6 +401,7 @@ async def list_available_asset_dates(
         JOIN recent_dates rd ON rd.acquisition_date = a.acquisition_date
         WHERE a.field_id = $1
           AND a.tenant_id = $2::uuid
+          AND a.asset_status <> 'failed'
           AND ($3::text[] IS NULL OR a.index_name = ANY($3::text[]))
         ORDER BY a.acquisition_date DESC, a.index_name,
                  (a.cog_uri IS NOT NULL AND a.cog_uri <> '') DESC,
