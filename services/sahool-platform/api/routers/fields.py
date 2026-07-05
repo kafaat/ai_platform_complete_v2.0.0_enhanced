@@ -3716,3 +3716,140 @@ async def field_alerts_derived(
         raise _db_unavailable("اشتقاق تنبيهات الحقل من الحالة القانونيّة", e) from e
 
     return {"field_id": field_id, "alerts": _derive_alerts_from_state(state)}
+
+
+@router.get("/api/v1/fields/{field_id}/state/full")
+async def field_state_full(
+    field_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """مصدر حقيقة واحد موحّد للحقل — يجمع كل ما تحتاجه الشاشات في قراءة tenant-scoped واحدة.
+
+    يركّب القرّاء الحقيقيّين القائمين (لا يخترع أيّاً منها): معلومات الحقل + الهندسة،
+    الموسم/المحصول النشط، الحالة القانونيّة (imagery/NDVI/تربة/طقس/ماء/حدود/جاهزيّة عبر
+    recompute_field_state)، فحوص التربة، التنبيهات المُشتقّة، ودفتر الريّ/التشغيلات.
+    كل قسم best-effort: تعذّره ⇒ ``{"available": false, "reason": ...}`` صادق لا تلفيق؛
+    المصادر غير الموجودة (عينات ماء مخبريّة، اقتصاد لكل حقل) تُعلَن كذلك مع مؤشّر endpoint.
+    البوّابة الصلبة الوحيدة: الحقل ضمن المستأجِر (404)؛ تعذّر القاعدة كلّياً ⇒ 503.
+    """
+    from api.field_context import _field_season_context
+    from api.field_state_projection import _derive_alerts_from_state, recompute_field_state
+
+    out: dict = {"field_id": field_id}
+    try:
+        async with tenant_connection(user) as conn:
+            await _assert_field_in_tenant(conn, field_id)
+
+            # ── الحقل + الهندسة (مصدر حقيقيّ: جدول fields) ──
+            try:
+                frow = await conn.fetchrow(
+                    f"SELECT {_FIELD_DETAIL_SELECT} FROM fields "
+                    "WHERE field_id = $1 AND tenant_id = $2::uuid",
+                    field_id,
+                    str(user.tenant_id),
+                )
+                detail = _row_to_field_detail(frow).model_dump() if frow else None
+                out["field"] = detail
+                out["geometry"] = (detail or {}).get("geometry")
+            except Exception:  # noqa: BLE001
+                out["field"] = None
+                out["geometry"] = None
+
+            # ── الموسم/المحصول النشط (جدول seasons) ──
+            try:
+                lat, lon, crop, stage, sowing_date = await _field_season_context(conn, field_id)
+                out["season"] = {
+                    "available": bool(crop or stage or sowing_date),
+                    "crop": crop,
+                    "stage": stage,
+                    "sowing_date": str(sowing_date) if sowing_date else None,
+                    "lat": lat,
+                    "lon": lon,
+                }
+                out["crop"] = crop
+            except Exception:  # noqa: BLE001
+                out["season"] = {"available": False, "reason": "تعذّر قراءة الموسم"}
+                out["crop"] = None
+
+            # ── الحالة القانونيّة (imagery/NDVI/تربة/طقس/ماء/حدود/جاهزيّة) ──
+            try:
+                out["canonical_state"] = (await recompute_field_state(conn, field_id))["state"]
+                out["alerts"] = _derive_alerts_from_state(out["canonical_state"])
+            except Exception:  # noqa: BLE001
+                out["canonical_state"] = {
+                    "available": False,
+                    "reason": "تعذّر حساب الحالة القانونيّة",
+                }
+                out["alerts"] = []
+
+            # ── فحوص التربة (جدول soil_lab_tests) ──
+            try:
+                srows = await conn.fetch(
+                    f"SELECT {_SOIL_TEST_SELECT} FROM soil_lab_tests "
+                    "WHERE field_id = $1 ORDER BY created_at DESC LIMIT 20",
+                    field_id,
+                )
+                out["soil_samples"] = [_row_to_soil_test(r).model_dump() for r in srows]
+            except Exception:  # noqa: BLE001
+                out["soil_samples"] = {"available": False, "reason": "تعذّر قراءة فحوص التربة"}
+
+            # ── الريّ: أحدث دفتر ماء + آخر تشغيلات (جدولا water_ledger / irrigation_runs) ──
+            irrigation: dict = {}
+            try:
+                led = await conn.fetchrow(
+                    "SELECT depletion_mm, soil_moisture_pct, confidence, ledger_date "
+                    "FROM water_ledger WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT 1",
+                    field_id,
+                )
+                irrigation["water_ledger"] = (
+                    {
+                        "depletion_mm": led["depletion_mm"],
+                        "soil_moisture_pct": led["soil_moisture_pct"],
+                        "confidence": led["confidence"],
+                        "ledger_date": str(led["ledger_date"]) if led["ledger_date"] else None,
+                    }
+                    if led
+                    else None
+                )
+            except Exception:  # noqa: BLE001
+                irrigation["water_ledger"] = None
+            try:
+                runs = await conn.fetch(
+                    "SELECT valve_id, started_at, stopped_at, status, trigger_source, volume_mm "
+                    "FROM irrigation_runs WHERE field_id = $1 ORDER BY started_at DESC LIMIT 10",
+                    field_id,
+                )
+                irrigation["recent_runs"] = [
+                    {
+                        "valve_id": r["valve_id"],
+                        "started_at": str(r["started_at"]) if r["started_at"] else None,
+                        "stopped_at": str(r["stopped_at"]) if r["stopped_at"] else None,
+                        "status": r["status"],
+                        "trigger_source": r["trigger_source"],
+                        "volume_mm": r["volume_mm"],
+                    }
+                    for r in runs
+                ]
+            except Exception:  # noqa: BLE001
+                irrigation["recent_runs"] = []
+            out["irrigation"] = irrigation
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر القاعدة كلّياً ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة الحالة الموحّدة للحقل", e) from e
+
+    # ── مصادر لا تملك خزناً حقيقيّاً لكل حقل — تُعلَن بصدق مع مؤشّر endpoint الحيّ ──
+    out["recommendations"] = {
+        "available": False,
+        "reason": "تُحسب حيّاً (طقس + حالة + سياسة المستأجِر) عبر نقطة مخصّصة — غير مُضمَّنة في التجميع لتفادي نداء خارجيّ بطيء.",
+        "endpoint": f"/api/v1/fields/{field_id}/recommendations",
+    }
+    out["water_samples"] = {
+        "available": False,
+        "reason": "لا خزن مخبريّ لعيّنات الماء لكل حقل بعد؛ تحليل الماء عبر POST /api/v1/irrigation/water-analysis (بلا حالة).",
+    }
+    out["economics"] = {
+        "available": False,
+        "reason": "لا سجلّات تكلفة/عائد لكل حقل بعد؛ حاسبات الاقتصاد عبر /api/v1/economics/* (بلا حالة).",
+    }
+    return out

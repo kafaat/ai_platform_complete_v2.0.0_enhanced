@@ -1483,6 +1483,11 @@
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/state/full",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/sustainability",
       "audience": "farmer",
       "evidence": "/api/v1/fields"

@@ -3592,6 +3592,26 @@ export interface FieldTerrain {
   dominant_aspect?: string | null;
   water_harvesting?: { recommended_technique?: string; suitability?: string };
 }
+// مصدر الحقيقة الموحّد للحقل: قراءة واحدة تجمع (field/geometry/season/canonical_state/
+// soil_samples/irrigation/…) لتفادي تشتّت الشاشات عبر عدّة نداءات. الأقسام غير المتاحة
+// تُعلَن available:false بصدق (لا تلفيق) — انظر backend /state/full.
+export interface FieldStateFull {
+  field_id: string;
+  field?: Record<string, unknown> | null;
+  geometry?: unknown;
+  crop?: string | null;
+  season?: { available: boolean; crop?: string | null; stage?: string | null; sowing_date?: string | null } & Record<string, unknown>;
+  canonical_state?: Record<string, unknown>;
+  alerts?: unknown[];
+  soil_samples?: unknown[] | { available: boolean; reason?: string };
+  irrigation?: { water_ledger?: unknown; recent_runs?: unknown[] };
+  recommendations?: { available: boolean; reason?: string; endpoint?: string };
+  water_samples?: { available: boolean; reason?: string };
+  economics?: { available: boolean; reason?: string };
+}
+export const fetchFieldState = (fieldId: string): Promise<FieldStateFull> =>
+  kongApi.get(`/api/v1/fields/${fieldId}/state/full`).then((r) => r.data as FieldStateFull);
+
 export const fetchFieldTerrain = (fieldId: string): Promise<FieldTerrain> =>
   kongApi.get(`/api/v1/fields/${fieldId}/terrain`).then((r) => {
     // الخادم يُرجِع تفسير enrich_terrain + dem_auto_fill.computed (المظروف الخام من
