@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b959b7549403840ade8c4e001f1dce3705701427fc71cb66fb51e2fb56abfbf"
+          "content": "703cde5caa181a459cda92c7281ad5ef5183d998fb157625df8ba9e28205b1dc"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -615,7 +615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "186ca5e87fa32d7905a3705db0639cb4589c644f1cdd34b9ec32462881d06249"
+          "content": "b411b73fdf627d894b33de94c3f1c76c00080d89916b55708067361c75bcfb1b"
         }
       ],
       "name": "frontend/src/components/decision/DecisionDeepPanel.tsx",
@@ -3635,7 +3635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "113b305befec1e52b9ac1acde01c32bcaa478cf2b46202634759c517af3d0993"
+          "content": "04502fc750e34dfcb4acb8fb586188c0cf62b9be1cc8cb6f85e8178ba70430ad"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -4495,7 +4495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a783503f6ac8263b1949a7f2f177ec9affca4c60b32d5d84ac8f296390d40ef"
+          "content": "d5bf33b40c7578e1e1d084aebd5810db4b64ed373b848fea2130b8aad2a07f4f"
         }
       ],
       "name": "frontend/src/sections/ManagerConsolePage.tsx",
@@ -4615,7 +4615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86006b515e3ad82cae05c91918d0f519e474d9c5e03f8d73ff0a4d83585b7697"
+          "content": "365f5747cf57a963449ef89eba33909e397adff87ce06bda339065400f1751e4"
         }
       ],
       "name": "frontend/src/sections/NotificationCenter.tsx",

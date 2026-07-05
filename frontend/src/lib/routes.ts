@@ -235,6 +235,29 @@ PATH_TO_PAGE.set('/irrigation/predicted-plan', 'irrigation-plan');
 PATH_TO_PAGE.set('/analysis/advanced', 'analytics');
 PATH_TO_PAGE.set('/analysis/roi', 'economics');
 
+PATH_TO_PAGE.set('/health/indicator-timeline', 'agronomic-timeline');
+PATH_TO_PAGE.set('/health/phenology-stages', 'phenology');
+PATH_TO_PAGE.set('/crop/growth-stages', 'phenology');
+PATH_TO_PAGE.set('/crop/phenology', 'phenology');
+PATH_TO_PAGE.set('/health/prescription', 'prescriptions');
+PATH_TO_PAGE.set('/health/prescriptions-builder', 'prescriptions');
+PATH_TO_PAGE.set('/irrigation/water', 'irrigation');
+PATH_TO_PAGE.set('/irrigation/water-quality', 'irrigation');
+PATH_TO_PAGE.set('/irrigation/water-twin', 'water-twin');
+PATH_TO_PAGE.set('/irrigation/twin', 'water-twin');
+PATH_TO_PAGE.set('/irrigation/etc-dual', 'etc-dual');
+PATH_TO_PAGE.set('/irrigation/fao56', 'etc-dual');
+PATH_TO_PAGE.set('/analysis/yield-analysis', 'yield-analysis');
+PATH_TO_PAGE.set('/analysis/yield', 'yield-analysis');
+PATH_TO_PAGE.set('/analysis/field-rankings', 'field-ranking');
+PATH_TO_PAGE.set('/analysis/problems', 'problem-fields');
+PATH_TO_PAGE.set('/analysis/economics-roi', 'economics');
+PATH_TO_PAGE.set('/ops/iot', 'devices');
+PATH_TO_PAGE.set('/ops/iot-devices', 'devices');
+PATH_TO_PAGE.set('/ops/operational-irrigation', 'irrigation-ops');
+PATH_TO_PAGE.set('/ops/irrigation-network', 'irrigation-network');
+PATH_TO_PAGE.set('/admin/manager', 'manager-console');
+
 /** مسار URL لمعرّف الصفحة (يقع على «/» إن غاب — لن يحدث: الحارس يضمن الاكتمال). */
 export function pathForPage(id: PageId): string {
   return PAGE_TO_PATH.get(id) ?? '/';
