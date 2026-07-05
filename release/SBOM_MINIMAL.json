@@ -8785,7 +8785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "60b9ad638a73ba841f65218169bbe35b311db09cb2166b9e196a4df9c6fde321"
+          "content": "617dfa425a2806928b648893355dc8a7281e3f6210fb0ffbca9ecb8707f25893"
         }
       ],
       "name": "services/raster-service/db_persist.py",

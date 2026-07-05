@@ -268,7 +268,7 @@ async def insert_raster_registry_entry(
             tenant_id, field_id, scene_id, product_date, index_type, cog_url,
             cloud_pct, quality_score, resolution_m, bbox, bands, metadata
         ) VALUES (
-            $1::uuid, $2, $3, $4::date, $5, $6,
+            $1::uuid, $2, $3, $4::text::date, $5, $6,
             $7, $8, $9, $10::jsonb, COALESCE($11::jsonb, '{}'::jsonb), $12::jsonb
         )
         ON CONFLICT (tenant_id, field_id, product_date, index_type, cog_url)
@@ -335,7 +335,7 @@ async def insert_stac_item(
             tenant_id, scene_id, collection, captured_at, bbox,
             cloud_pct, quality_score, assets, raw_item
         ) VALUES (
-            $1::uuid, $2, $3, $4::timestamptz, $5::jsonb,
+            $1::uuid, $2, $3, $4::text::timestamptz, $5::jsonb,
             $6, $7, COALESCE($8::jsonb, '{}'::jsonb), COALESCE($9::jsonb, '{}'::jsonb)
         )
         ON CONFLICT (tenant_id, scene_id)
