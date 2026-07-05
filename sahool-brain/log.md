@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-05 (ن) — `beec5ef` أساس TERRAIN: نقطة تضاريس خادميّة من DEM حقيقيّ
+
+على «استمر» بُني أساس فجوة TERRAIN بصدق (لا اختلاق): `terrain_analysis.compute_field_terrain(dem, bbox)` يقصّ DEM على bbox الحقل ويحسب ارتفاع/انحدار/اتّجاه عبر Horn + الجهة الغالبة؛ غياب DEM/bbox ⇒ `computed=false` بمصدره. راستر `GET /v1/fields/{id}/terrain` (tenant-scoped + `FIELD_DEM_PATH` + تصنيف حصاد المياه) · منصّة proxy (geometry→bbox عبر guard_field_geometry، 404 صادق خارج المستأجِر) · واجهة `fetchFieldTerrain`/`useFieldTerrain` + `TerrainView3D` يعرض إحصاءات محسوبة أو سبباً صادقاً («DEM غير مُهيّأ»)؛ تصيير 3D terrain-RGB يبقى حالة انتظار موثّقة (لا نقش مزيّف). اختبارات: سلوكيّ مرافق + حارس tests_v9 + TerrainView3D.static. **البوّابات:** unit 2626 · vitest 1057 · tsc/ruff نظيف · release 3154. بلا migration. **يبقى نشريّاً:** تزويد DEM حقيقيّ + بلاطات 3D.
+
+---
+
 ## 2026-07-05 (ن) — مواءمة الدماغ مع واقع CI: عدّة قيود `open`/`deferred` كانت بائتة
 
 على «قوم بتنفيذ الكل» أُجري تحقّق عميق فتبيّن أنّ أغلب البنود «المفتوحة» **منجَزة ومُتحقَّقة في CI**، لا عملاً كوديّاً متبقّياً. الدليل: **CI run 28750924733 عند `781f7a4` — 11 مهمّة كلّها success**، تشمل: **Frontend E2E (Playwright · MapLibre/WebGL QA)** (⇒ MAP-QA حيّ أخضر) · **Integration Tests** على Postgres+PostGIS حيّ (⇒ تحقّق SAT-DEFERRED التكامليّ) · **Flutter Analyze & Test** · Security/Unit/Typecheck/إلخ.
