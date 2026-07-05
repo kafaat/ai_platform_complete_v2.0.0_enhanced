@@ -955,7 +955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c587e21439db69af3a5ea23c552f878dec5875712e23004ec516a81aba6a5ce7"
+          "content": "fb85c9b74aa94cf89571edc8fb02cc1231527bd3f96143f75cbca7369d472d6c"
         }
       ],
       "name": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
@@ -1105,7 +1105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7386c238c9605e756e9681e8568bdea8eb417cf125aeeb0bf6e5109b712d841f"
+          "content": "6c7dd7d1d2194650d87f493b958c7b9778f8e87cde47381c5e45643b45dbf39d"
         }
       ],
       "name": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
@@ -4285,7 +4285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd61a0a8f2425b0678bcc98af4443f2d13fe0e2481d65395aac50ff4af26558a"
+          "content": "5b5da9d7a6bf141cb8e56a8947b766faa1abd7266c4ebf3fb4e51c0896f30f43"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -4375,7 +4375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5fcabda1c05b4f0f918c313c2b45d349664528c64773b644949e966607f275c3"
+          "content": "891b26a689f8d0a1c0e7a43166c4af496c267335ee87c4d154cdd80529bf5a4b"
         }
       ],
       "name": "frontend/src/sections/GovernancePage.tsx",
@@ -4965,7 +4965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "24139e51e36750110d86b271d85472518d80c3759b968bc941b1cfa6c860ef90"
+          "content": "be1b7dfec8cd138ab61d67afb5379290c66ab2313fd1690da07f40614c762265"
         }
       ],
       "name": "frontend/src/services/api.ts",

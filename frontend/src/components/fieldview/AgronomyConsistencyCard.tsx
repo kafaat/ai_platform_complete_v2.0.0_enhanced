@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   AlertTriangle, ChevronDown, ChevronLeft, FileSpreadsheet, Layers,
   MapPin, Recycle, ScatterChart, ShieldCheck, Sprout, Wheat,
@@ -20,6 +20,7 @@ import {
 } from '../../lib/agronomyConsistency';
 import type { AgroConflict, DisplayFact } from '../../lib/agronomyConsistency';
 import { useAuthRole, useTenantId } from '../../hooks/useAuth';
+import { useFieldOptions } from '../../hooks/useFieldOptions';
 import { canManage } from '../../lib/permissions';
 import { T } from '../ds';
 
@@ -143,6 +144,8 @@ const CONFIDENCE_OPTIONS: { key: string; label_ar: string }[] = [
 export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = true }: Props) {
   const role = useAuthRole();
   const tenantId = useTenantId();
+  const fieldOptionsQ = useFieldOptions();
+  const fieldOptions = fieldOptionsQ.options;
   const isManager = canManage(role);
 
   const [open, setOpen] = useState<Set<SectionKey>>(new Set());
@@ -263,11 +266,14 @@ export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = 
 
   // ── تحسين محفظة الحقول ──
   const [pfFields, setPfFields] = useState<PortfolioFieldInput[]>([]);
-  const [pfId, setPfId] = useState('');
+  const [pfId, setPfId] = useState(fieldId ?? '');
   const [pfMargin, setPfMargin] = useState('');
   const [pfDemand, setPfDemand] = useState('');
   const [pfArea, setPfArea] = useState('');
   const [pfTotal, setPfTotal] = useState('');
+  useEffect(() => {
+    if (fieldId && !pfId) setPfId(fieldId);
+  }, [fieldId, pfId]);
   const addPfField = () => {
     const margin = parseMeasure(pfMargin);
     const demand = parseMeasure(pfDemand);
@@ -278,7 +284,7 @@ export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = 
       water_demand_m3: demand,
       area_ha: parseMeasure(pfArea) ?? 1,
     }]);
-    setPfId(''); setPfMargin(''); setPfDemand(''); setPfArea('');
+    setPfId(fieldId ?? ''); setPfMargin(''); setPfDemand(''); setPfArea('');
   };
   const pfTotalWater = parseMeasure(pfTotal);
   const portfolioInput = useMemo(() => {
@@ -632,7 +638,20 @@ export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = 
             <div className="flex flex-col gap-2 rounded-xl border p-2" style={{ borderColor: T.line, background: CARD_BG }}>
               <div className="text-[10px]" style={{ color: T.faint }}>الهامش والاحتياج المائيّ لكلّ حقل يُدخِلهما المستخدم (من حالة اقتصاديّة/خطّة ريّ) — لا تُلفَّق.</div>
               <div className="flex flex-wrap items-center gap-2">
-                <LabeledInput id="pf-id" label="الحقل" value={pfId} onChange={setPfId} placeholder="fld_…" width="w-24" />
+                <label className="flex flex-col gap-0.5 text-[10px]" style={{ color: T.faint }}>
+                  الحقل
+                  <select
+                    id="pf-id"
+                    value={pfId}
+                    onChange={(e) => setPfId(e.target.value)}
+                    disabled={fieldOptionsQ.isLoading || fieldOptions.length === 0}
+                    className="w-44 px-2 py-1 rounded-lg text-[11px]"
+                    style={inputStyle}
+                  >
+                    <option value="">اختر حقلاً</option>
+                    {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+                  </select>
+                </label>
                 <LabeledInput id="pf-margin" label="الهامش المتوقّع" value={pfMargin} onChange={setPfMargin} type="number" width="w-16" />
                 <LabeledInput id="pf-demand" label="الاحتياج م³" value={pfDemand} onChange={setPfDemand} type="number" width="w-16" />
                 <LabeledInput id="pf-area" label="المساحة هكتار" value={pfArea} onChange={setPfArea} type="number" width="w-14" />

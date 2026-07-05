@@ -53,7 +53,7 @@ function mapField(f: Record<string, unknown>): Field {
   const str = (v: unknown, d: string) => (v == null || v === '' ? d : String(v));
   const ndvi = typeof f.ndvi === 'number' ? f.ndvi : num(f.ndvi, 0);
   return {
-    field_id: str(f.field_id ?? f.id, `field_${Date.now()}_${Math.floor(Math.random() * 1e4)}`),
+    field_id: str(f.field_id ?? f.id, ''),
     name: str(f.name_ar ?? f.name ?? f.field_name, 'حقل'),
     area_ha: num(f.area_ha ?? f.area),
     crop: str(f.crop ?? f.crop_ar, '—'),
@@ -111,7 +111,7 @@ export default function FieldManagementPage() {
   useEffect(() => {
     const apiFields = (data as { fields?: Record<string, unknown>[] } | undefined)?.fields;
     if (!seeded && Array.isArray(apiFields)) {
-      setFields(apiFields.map(mapField));
+      setFields(apiFields.map(mapField).filter((f) => f.field_id));
       setSeeded(true);
     }
   }, [data, seeded]);
