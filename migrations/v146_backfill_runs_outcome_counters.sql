@@ -15,22 +15,13 @@
 
 BEGIN;
 
--- توسيع قيد الحالة (إسقاط القديم ثمّ إضافة الموسَّع — أسماء القيد المولّدة تلقائيّاً
--- قد تختلف، لذا نبحث عنه ونُسقطه ديناميكيّاً ثمّ نُثبّت اسماً صريحاً).
-DO $$
-DECLARE
-    c_name TEXT;
-BEGIN
-    SELECT conname INTO c_name
-    FROM pg_constraint
-    WHERE conrelid = 'backfill_runs'::regclass
-      AND contype = 'c'
-      AND pg_get_constraintdef(oid) ILIKE '%status%IN%planned%';
-    IF c_name IS NOT NULL THEN
-        EXECUTE format('ALTER TABLE backfill_runs DROP CONSTRAINT %I', c_name);
-    END IF;
-END $$;
-
+-- توسيع قيد الحالة ليشمل 'completed_with_errors'. القيد المضمَّن في v144
+-- (``status ... CHECK (status IN (...))``) يُسمّيه Postgres اصطلاحيّاً
+-- ``backfill_runs_status_check`` (نمط <table>_<column>_check)، ويُطبّعه إلى
+-- ``= ANY (ARRAY[...])`` داخليّاً. نُسقطه بالاسم الاصطلاحيّ (IF EXISTS — idempotent)
+-- ثمّ نُعيد إضافته موسَّعاً بنفس الاسم. (بحث ديناميكيّ عبر ILIKE '%IN%' يفشل لأنّ
+-- التعريف المُطبَّع لا يحوي 'IN' — لذا الاسم الاصطلاحيّ أوثق.)
+ALTER TABLE backfill_runs DROP CONSTRAINT IF EXISTS backfill_runs_status_check;
 ALTER TABLE backfill_runs
     ADD CONSTRAINT backfill_runs_status_check
     CHECK (status IN (

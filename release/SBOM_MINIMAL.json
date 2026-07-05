@@ -5575,6 +5575,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4aecc742567b39e378e85c328684268c79b312f0cb264f8950b3b014a01ddb54"
+        }
+      ],
+      "name": "migrations/v145_raster_assets_product_dedup.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7ffbf7dcfc3f455dd56f3ddad89aa734172e4304ae28f7d67b47c914c88ff411"
+        }
+      ],
+      "name": "migrations/v146_backfill_runs_outcome_counters.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0e408c05960021f5040101bff1e4c1337012a8e4c153926e0c32345f26da9d76"
         }
       ],
