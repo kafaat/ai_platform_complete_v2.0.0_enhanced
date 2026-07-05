@@ -945,6 +945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c587e21439db69af3a5ea23c552f878dec5875712e23004ec516a81aba6a5ce7"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "732baf73bc49a6aac4ee062de086ff3e7adf2ec56082ab7c7929edec3d8b672b"
         }
       ],
@@ -989,6 +999,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/DiagnosticsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a561ae4f5066ecce92142e40669f718fb9f76c99150d0a9bcc145ce97f39ef11"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
       "type": "file"
     },
     {
@@ -1129,6 +1149,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/SeasonProfitabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "321330b11a4dd364dd56ea38731a29dd26af5613564a83cf78d90289681ec3fd"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SpecialtyCropsCard.tsx",
       "type": "file"
     },
     {
@@ -2035,6 +2065,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dd453a108b9d2af0dc0052a89518d372043ec5cb14a1929e7a10bc53b7041cbf"
+        }
+      ],
+      "name": "frontend/src/hooks/useAgronomyConsistency.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "52e81293b53b2cb1817cb38a29882054eb3faeb39f440e0c8a92c8181b4653bb"
         }
       ],
@@ -2089,6 +2129,16 @@
         }
       ],
       "name": "frontend/src/hooks/useDecisionDeep.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8357c74451a3788615b86110a286137bbd54451af81d08e2c177f408c42fc38b"
+        }
+      ],
+      "name": "frontend/src/hooks/useDistrictsWeather.ts",
       "type": "file"
     },
     {
@@ -2179,6 +2229,16 @@
         }
       ],
       "name": "frontend/src/hooks/useSelectedField.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f6e1c3fded790dd95b23ceb4d9e59e3fac886fdadaa455932fbf20a903bc3121"
+        }
+      ],
+      "name": "frontend/src/hooks/useSpecialtyCrops.ts",
       "type": "file"
     },
     {
@@ -2289,6 +2349,26 @@
         }
       ],
       "name": "frontend/src/lib/agroCalculators.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e40a3b6bbf523ff7ae87b6de2d5152c25b3096dd27c8c3958c1701a67e22d306"
+        }
+      ],
+      "name": "frontend/src/lib/agronomyConsistency.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "366506567110eff9ea79eba68433d4a2a74106d817d4d2e9d9e6cdeb29f11693"
+        }
+      ],
+      "name": "frontend/src/lib/agronomyConsistency.ts",
       "type": "file"
     },
     {
@@ -2469,6 +2549,26 @@
         }
       ],
       "name": "frontend/src/lib/designSystemGovernance.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5fee4480aeadcadf988b98ae9dd9cd631c81257f2ac9ecfb7df32b4b2b1cd6b"
+        }
+      ],
+      "name": "frontend/src/lib/districtsWeather.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d53e93e9078d0998acf22e4035b13680c5352757bbbdd659a4fe4484bf36514"
+        }
+      ],
+      "name": "frontend/src/lib/districtsWeather.ts",
       "type": "file"
     },
     {
@@ -3415,6 +3515,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "07cddd25e0f408cc35005c1e7e6e6a09626cea5ac5311ada569975ee8122ca15"
+        }
+      ],
+      "name": "frontend/src/lib/specialtyCrops.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "68b50fa517b385bd28bb5097cd1781e1e3f7614ef48b5d54b9336914a7091043"
+        }
+      ],
+      "name": "frontend/src/lib/specialtyCrops.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d33ea8f1da1483ff264af9e917897c03bdcdff31c98b463fc33bc81096fdde16"
         }
       ],
@@ -4205,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d09d0d6e27386c03842151086e6f3845b9c810af0d937b91b3228a472884bd0"
+          "content": "e509f767b67b957c88de07d6c822f0f7bb69f86704eb40e5961e228f8f92361d"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

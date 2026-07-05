@@ -42,7 +42,10 @@ BASELINE_PINNED = {
     "services/sahool-platform/api/requirements.txt": {
         "defusedxml",
         "fastapi",
-        "httpx",
+        # httpx فُكّ تثبيته عمداً (2026-07-05) إلى `>=0.27.0`: التثبيت الصارم كان
+        # يتصادم في حلّ pip-audit المُوحَّد مع بقيّة الخدمات (كلّها httpx>=0.27.0)
+        # ومع anthropic (httpx<1,>=0.25) ⇒ ResolutionImpossible. اتّفاقيّة CLAUDE.md
+        # تفرض `>=` على المسار الحرِج. تعارض حارسَين حُسم لصالح قابليّة التدقيق.
         "nats-py",
         "numpy",
         "pydantic",
@@ -64,7 +67,9 @@ BASELINE_PINNED = {
 # الزيادة (تبعيّة مدَى جديدة) وتُكافئ النقصان (تثبيت). خفّض هذه الأرقام عند
 # تنفيذ الخطّة المرحليّة كي لا يعود الانحراف.
 BASELINE_UNPINNED_MAX = {
-    "services/sahool-platform/api/requirements.txt": 2,
+    # 2 ⇒ 3: httpx فُكّ تثبيته عمداً (2026-07-05، انظر أعلاه) لحلّ تعارض pip-audit
+    # المُوحَّد. زيادة مقصودة موثّقة لا انحراف صامت.
+    "services/sahool-platform/api/requirements.txt": 3,
     "services/auth/requirements.txt": 8,
     "services/guardrails-engine/requirements.txt": 8,
     "requirements_real.txt": 12,

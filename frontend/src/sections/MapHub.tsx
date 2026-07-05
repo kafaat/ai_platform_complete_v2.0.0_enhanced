@@ -65,6 +65,9 @@ import IrrigationDecisionAidsCard from '../components/fieldview/IrrigationDecisi
 import CropSafetyKnowledgeCard from '../components/fieldview/CropSafetyKnowledgeCard';
 import AgroAnalyticsCard from '../components/fieldview/AgroAnalyticsCard';
 import WaterFieldOpsCard from '../components/fieldview/WaterFieldOpsCard';
+import SpecialtyCropsCard from '../components/fieldview/SpecialtyCropsCard';
+import DistrictsWeatherCard from '../components/fieldview/DistrictsWeatherCard';
+import AgronomyConsistencyCard from '../components/fieldview/AgronomyConsistencyCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
@@ -1415,6 +1418,25 @@ export default function MapHub() {
           تحليل ماء الريّ + تنبيهات/طبقات الطقس + خطّة 4R + إدامة النتيجة + geo-locate. */}
       {selected && fieldMode === 'expert' && (
         <WaterFieldOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المحاصيل المتخصّصة والتوقيت التراثيّ: عالية القيمة/متخصّصة/عطريّة/أعلاف + بطاقة
+          الإدخال وملاءمة الحقل + تخطيط البستان واقتصاده + النجوم/التقويم الثقافيّ/الإقليميّ. */}
+      {selected && fieldMode === 'expert' && (
+        <SpecialtyCropsCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المديريّات والطقس والتهيئة: معرفة إقليميّة (نوافذ الآفات) + توصية موقع +
+          ملخّص طقس الحقل وتحليلات السجلّ ودليل الزراعة + استبيان التهيئة. */}
+      {selected && fieldMode === 'expert' && (
+        <DistrictsWeatherCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* اتّساق البيانات والدورة وWOFOST والعمليّات: فحوص الاتّساق (ريّ + حداثة) +
+          تقييم الدورة ومبادئها + إرشاد تكيّف WOFOST + تقرير العمليّات + توصية ريّ +
+          الحالة التشغيليّة + تحسين المحفظة + التحقّق من الهندسة. */}
+      {selected && fieldMode === 'expert' && (
+        <AgronomyConsistencyCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
       )}
 
       {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود

@@ -613,6 +613,21 @@
       "evidence": "/api/v1/analytics/costs"
     },
     {
+      "endpoint": "/api/v1/aromatic-crops/list",
+      "audience": "farmer",
+      "evidence": "/api/v1/aromatic-crops/list"
+    },
+    {
+      "endpoint": "/api/v1/astronomical-timing/cross-check",
+      "audience": "farmer",
+      "evidence": "/api/v1/astronomical-timing/cross-check"
+    },
+    {
+      "endpoint": "/api/v1/astronomical-timing/stars",
+      "audience": "farmer",
+      "evidence": "/api/v1/astronomical-timing/stars"
+    },
+    {
       "endpoint": "/api/v1/auth/login",
       "audience": "farmer",
       "evidence": "/auth/login"
@@ -788,6 +803,16 @@
       "evidence": "/api/v1/confidence/ndvi"
     },
     {
+      "endpoint": "/api/v1/consistency/freshness",
+      "audience": "agronomist",
+      "evidence": "/api/v1/consistency/freshness"
+    },
+    {
+      "endpoint": "/api/v1/consistency/irrigation",
+      "audience": "agronomist",
+      "evidence": "/api/v1/consistency/irrigation"
+    },
+    {
       "endpoint": "/api/v1/crop-cards",
       "audience": "agronomist",
       "evidence": "/api/v1/crop-cards"
@@ -846,6 +871,11 @@
       "endpoint": "/api/v1/crops/{crop_id}/operations-calendar",
       "audience": "agronomist",
       "evidence": "/operations-calendar"
+    },
+    {
+      "endpoint": "/api/v1/cultural-calendar",
+      "audience": "farmer",
+      "evidence": "/api/v1/cultural-calendar"
     },
     {
       "endpoint": "/api/v1/decision/dispatch/decisions",
@@ -966,6 +996,21 @@
       "endpoint": "/api/v1/diagnose/symptoms",
       "audience": "agronomist",
       "evidence": "/api/v1/diagnose/symptoms"
+    },
+    {
+      "endpoint": "/api/v1/districts",
+      "audience": "farmer",
+      "evidence": "/api/v1/districts"
+    },
+    {
+      "endpoint": "/api/v1/districts/{district_id}",
+      "audience": "farmer",
+      "evidence": "/api/v1/districts/$"
+    },
+    {
+      "endpoint": "/api/v1/districts/{district_id}/active-pests",
+      "audience": "farmer",
+      "evidence": "/active-pests"
     },
     {
       "endpoint": "/api/v1/documents",
@@ -1098,6 +1143,16 @@
       "evidence": "/api/v1/field-portfolio/allocate"
     },
     {
+      "endpoint": "/api/v1/field-portfolio/optimize",
+      "audience": "farmer",
+      "evidence": "/api/v1/field-portfolio/optimize"
+    },
+    {
+      "endpoint": "/api/v1/field/operational-state",
+      "audience": "farmer",
+      "evidence": "/api/v1/field/operational-state"
+    },
+    {
       "endpoint": "/api/v1/field/{field_id}/lineage",
       "audience": "farmer",
       "evidence": "/api/v1/field/{field_id}/lineage"
@@ -1131,6 +1186,11 @@
       "endpoint": "/api/v1/fields/split",
       "audience": "farmer",
       "evidence": "/api/v1/fields/split"
+    },
+    {
+      "endpoint": "/api/v1/fields/validate-geometry",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields/validate-geometry"
     },
     {
       "endpoint": "/api/v1/fields/{field_id}",
@@ -1503,6 +1563,11 @@
       "evidence": "/water-efficiency"
     },
     {
+      "endpoint": "/api/v1/fodder-alternatives/list",
+      "audience": "farmer",
+      "evidence": "/api/v1/fodder-alternatives/list"
+    },
+    {
       "endpoint": "/api/v1/gdd/track",
       "audience": "agronomist",
       "evidence": "/api/v1/gdd/track"
@@ -1516,6 +1581,11 @@
       "endpoint": "/api/v1/geo-locate/field",
       "audience": "farmer",
       "evidence": "/api/v1/geo-locate/field"
+    },
+    {
+      "endpoint": "/api/v1/geo-locate/recommend",
+      "audience": "farmer",
+      "evidence": "/api/v1/geo-locate/recommend"
     },
     {
       "endpoint": "/api/v1/geo/reverse",
@@ -1583,6 +1653,11 @@
       "evidence": "/api/v1/high-value-crops/detail"
     },
     {
+      "endpoint": "/api/v1/high-value-crops/list",
+      "audience": "farmer",
+      "evidence": "/api/v1/high-value-crops/list"
+    },
+    {
       "endpoint": "/api/v1/indicators/catalog",
       "audience": "agronomist",
       "evidence": "/api/v1/indicators/catalog"
@@ -1596,6 +1671,16 @@
       "endpoint": "/api/v1/introduction/candidates",
       "audience": "farmer",
       "evidence": "/api/v1/introduction/candidates"
+    },
+    {
+      "endpoint": "/api/v1/introduction/card",
+      "audience": "farmer",
+      "evidence": "/api/v1/introduction/card"
+    },
+    {
+      "endpoint": "/api/v1/introduction/field-fit",
+      "audience": "farmer",
+      "evidence": "/api/v1/introduction/field-fit"
     },
     {
       "endpoint": "/api/v1/inventory",
@@ -1651,6 +1736,11 @@
       "endpoint": "/api/v1/irrigation-plan",
       "audience": "farmer",
       "evidence": "/api/v1/irrigation-plan"
+    },
+    {
+      "endpoint": "/api/v1/irrigation-recommendation",
+      "audience": "farmer",
+      "evidence": "/api/v1/irrigation-recommendation"
     },
     {
       "endpoint": "/api/v1/irrigation/moisture-decision",
@@ -1738,6 +1828,11 @@
       "evidence": "/api/v1/niche-crops/detail"
     },
     {
+      "endpoint": "/api/v1/niche-crops/list",
+      "audience": "farmer",
+      "evidence": "/api/v1/niche-crops/list"
+    },
+    {
       "endpoint": "/api/v1/nl-gis/query",
       "audience": "agronomist",
       "evidence": "/api/v1/nl-gis/query"
@@ -1758,9 +1853,29 @@
       "evidence": "/api/v1/nutrients/4r-plan"
     },
     {
+      "endpoint": "/api/v1/onboarding/questionnaire",
+      "audience": "farmer",
+      "evidence": "/api/v1/onboarding/questionnaire"
+    },
+    {
+      "endpoint": "/api/v1/onboarding/responses",
+      "audience": "farmer",
+      "evidence": "/api/v1/onboarding/responses"
+    },
+    {
       "endpoint": "/api/v1/operations/summary",
       "audience": "manager",
       "evidence": "/api/v1/operations/summary"
+    },
+    {
+      "endpoint": "/api/v1/orchard/economics",
+      "audience": "farmer",
+      "evidence": "/api/v1/orchard/economics"
+    },
+    {
+      "endpoint": "/api/v1/orchard/plan",
+      "audience": "farmer",
+      "evidence": "/api/v1/orchard/plan"
     },
     {
       "endpoint": "/api/v1/outcome/measure",
@@ -1868,6 +1983,11 @@
       "evidence": "/api/v1/recommendations"
     },
     {
+      "endpoint": "/api/v1/regional-calendar",
+      "audience": "farmer",
+      "evidence": "/api/v1/regional-calendar"
+    },
+    {
       "endpoint": "/api/v1/reports",
       "audience": "manager",
       "evidence": "/api/v1/reports"
@@ -1883,9 +2003,24 @@
       "evidence": "/api/v1/reports/field"
     },
     {
+      "endpoint": "/api/v1/reports/operation",
+      "audience": "manager",
+      "evidence": "/api/v1/reports/operation"
+    },
+    {
       "endpoint": "/api/v1/reports/season/{season_id}/summary",
       "audience": "manager",
       "evidence": "/api/v1/reports/season"
+    },
+    {
+      "endpoint": "/api/v1/rotation/evaluate",
+      "audience": "agronomist",
+      "evidence": "/api/v1/rotation/evaluate"
+    },
+    {
+      "endpoint": "/api/v1/rotation/principles",
+      "audience": "agronomist",
+      "evidence": "/api/v1/rotation/principles"
     },
     {
       "endpoint": "/api/v1/rotation/suggest",
@@ -2078,6 +2213,16 @@
       "evidence": "/api/v1/water-sensitivity/wheat-calendar"
     },
     {
+      "endpoint": "/api/v1/weather-analytics/analyze",
+      "audience": "farmer",
+      "evidence": "/api/v1/weather-analytics/analyze"
+    },
+    {
+      "endpoint": "/api/v1/weather-analytics/planting-guide",
+      "audience": "farmer",
+      "evidence": "/api/v1/weather-analytics/planting-guide"
+    },
+    {
       "endpoint": "/api/v1/weather/action-recommendation",
       "audience": "farmer",
       "evidence": "/api/v1/weather/action-recommendation"
@@ -2091,6 +2236,11 @@
       "endpoint": "/api/v1/weather/current",
       "audience": "farmer",
       "evidence": "/api/v1/weather/current"
+    },
+    {
+      "endpoint": "/api/v1/weather/field-weather-summary",
+      "audience": "farmer",
+      "evidence": "/api/v1/weather/field-weather-summary"
     },
     {
       "endpoint": "/api/v1/weather/forecast",
@@ -2141,6 +2291,16 @@
       "endpoint": "/api/v1/weather/tile-data/{z}/{x}/{y}",
       "audience": "farmer",
       "evidence": "/api/v1/weather/tile-data"
+    },
+    {
+      "endpoint": "/api/v1/wofost/adaptation-guidance",
+      "audience": "agronomist",
+      "evidence": "/api/v1/wofost/adaptation-guidance"
+    },
+    {
+      "endpoint": "/api/v1/wofost/crop-types",
+      "audience": "agronomist",
+      "evidence": "/api/v1/wofost/crop-types"
     },
     {
       "endpoint": "/approvals/approve|deny (ai-agronomist POST)",
