@@ -31,7 +31,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
 import { fieldRepresentativePoint } from '../lib/geo';
-import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, type FieldImageryDateOption } from '../services/api';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, type FieldImageryDateOption } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -498,12 +498,22 @@ export default function MapHub() {
       };
       const result = await runHistoricalImageryBackfill(selected.id, payload);
       const scheduled = Number(result?.jobs_scheduled ?? result?.jobs_created ?? result?.selected_scenes ?? 0);
-      const status = scheduled > 0
-        ? `تم تجهيز مهمة سنتين: ${scheduled} عنصر/مشهد مجدول.`
-        : 'تم إرسال طلب تجهيز سنتين؛ تحقق من حالة raster-service والتواريخ المتاحة بعد المعالجة.';
+      // v10-F10: المسار اللاتزامنيّ يُرجِع status='planned' (لم يبدأ العمل بعد) — رسالة
+      // صادقة: التشغيلة في الطابور يُنفّذها عامل الفحص، لا «اكتمل». لا نُوهِم بالنجاح.
+      const isAsync = (result as { mode?: string })?.mode === 'async';
+      const status = isAsync
+        ? `تمّ إدراج تشغيلة backfill في الطابور (run_id=${(result as { run_id?: number }).run_id ?? '?'}); يُنفّذها عامل الفحص لاتزامنيّاً — تظهر التواريخ تدريجيّاً بعد المعالجة.`
+        : scheduled > 0
+          ? `تم تجهيز مهمة سنتين: ${scheduled} عنصر/مشهد مجدول.`
+          : 'تم إرسال طلب تجهيز سنتين؛ تحقق من حالة raster-service والتواريخ المتاحة بعد المعالجة.';
       setHistoricalBackfillStatus(status);
-      toastStore.add('success', 'بدأ تجهيز سنتين تاريخية', status);
-      const dates = await fetchFieldImageryAvailableDates(selected.id).catch(() => [] as FieldImageryDateOption[]);
+      toastStore.add(isAsync ? 'info' : 'success', isAsync ? 'أُدرِجت تشغيلة سنتين في الطابور' : 'بدأ تجهيز سنتين تاريخية', status);
+      // v10-F9: مرّر المؤشّر النشط (أو أوّل مؤشّر مدعوم إن كان النشط truecolor) كي لا
+      // يُعاد ملء المُنتقي بتواريخ مؤشّرات أخرى بعد الـbackfill مباشرةً.
+      const refreshIndex = (activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID)
+        ? activeIndicator
+        : indices[0];
+      const dates = await fetchFieldImageryAvailableDates(selected.id, refreshIndex).catch(() => [] as FieldImageryDateOption[]);
       if (Array.isArray(dates) && dates.length > 0) {
         setAvailableImageryDates([...dates].sort((a, b) => b.date.localeCompare(a.date)));
       }
@@ -593,6 +603,9 @@ export default function MapHub() {
       index: RAW_IMAGERY_INDEX_ID,
       ...(selectedImageryDate && selectedImageryDate !== 'latest' ? { date: selectedImageryDate } : {}),
       ...(tenantId ? { tenant_id: tenantId, tid: tenantId } : {}),
+      // v8-F4: مرّر هندسة الحقل (poly) كي يبني cdse-tilejson روابط بلاطات مقصوصة على
+      // حدود الحقل، ويتّحد فحص الجاهزية مع القصّ الفعليّ (لا احتياطيّ DB/عالميّ).
+      ...cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null),
     };
     rasterApi
       .get(`/v1/fields/${fieldId}/cdse-tilejson`, { params })
@@ -614,7 +627,10 @@ export default function MapHub() {
         if (!cancelled) setTrueColorRuntime({ state: 'error', message: TRUECOLOR_UNAVAILABLE_MESSAGE, endpoint: 'cdse-tilejson' });
       });
     return () => { cancelled = true; };
-  }, [fieldId, indicatorActive, selectedImageryDate, tenantId]);
+    // v8-F4: أعِد الفحص عند تغيّر هندسة الحقل (بصمة مستقرّة — المرجع كائن غير مستقرّ).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldId, indicatorActive, selectedImageryDate, tenantId,
+      JSON.stringify(cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null))]);
 
   const fieldSummary = useMemo(() => {
     const totalArea = fields.reduce((sum, f) => sum + (Number(f.area) || 0), 0);

@@ -3391,6 +3391,31 @@ export const fieldIndicatorTileUrl = (
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/tiles/{z}/{x}/{y}.png?${qs}`;
 };
 
+// عقد القصّ الموحَّد لـCDSE (poly + bbox) كـ`Record<string,string>` — مصدر حقيقة واحد
+// يستعمله باني البلاطة والمُصغَّرة **و** فحص cdse-tilejson (v8-F4)، كي تحمل روابط
+// TileJSON نفس هندسة البلاطات الفعليّة (لا تباعد بين المُعاينة والقصّ الحقيقيّ).
+export const cdseClipParams = (
+  geometry?: { type?: string; coordinates?: unknown } | null,
+  bbox?: [number, number, number, number] | null,
+): Record<string, string> => {
+  const out: Record<string, string> = {};
+  if (bbox && bbox.length === 4) {
+    out.bbox_w = String(bbox[0]); out.bbox_s = String(bbox[1]);
+    out.bbox_e = String(bbox[2]); out.bbox_n = String(bbox[3]);
+  }
+  const ring = (() => {
+    const g = geometry as { type?: string; coordinates?: number[][][] } | undefined;
+    if (!g || !g.coordinates) return null;
+    if (g.type === 'Polygon') return g.coordinates[0] ?? null;
+    if (g.type === 'MultiPolygon') return (g.coordinates as unknown as number[][][][])[0]?.[0] ?? null;
+    return null;
+  })();
+  if (ring && ring.length >= 3) {
+    out.poly = ring.map((c) => `${c[0]},${c[1]}`).join(';');
+  }
+  return out;
+};
+
 // باني رابط بلاطات CDSE الحيّة (Sentinel Hub) — توحيد main↔cert: يدعم قصّ المضلّع
 // (poly) + bbox. العقد الموحَّد: poly="lng,lat;lng,lat;..." (ترتيب lng,lat). date مشروط (D).
 export const fieldCdseTileUrl = (
@@ -3406,21 +3431,8 @@ export const fieldCdseTileUrl = (
   if (date && date !== 'latest') params.set('date', date);
   if (tenantId) params.set('tid', tenantId);
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
-  if (bbox && bbox.length === 4) {
-    params.set('bbox_w', String(bbox[0])); params.set('bbox_s', String(bbox[1]));
-    params.set('bbox_e', String(bbox[2])); params.set('bbox_n', String(bbox[3]));
-  }
-  // عقد القصّ: حلقة المضلّع → "lng,lat;..." (مصدر الحقيقة للقصّ على حافّة الحقل).
-  const ring = (() => {
-    const g = geometry as { type?: string; coordinates?: number[][][] } | undefined;
-    if (!g || !g.coordinates) return null;
-    if (g.type === 'Polygon') return g.coordinates[0] ?? null;
-    if (g.type === 'MultiPolygon') return (g.coordinates as unknown as number[][][][])[0]?.[0] ?? null;
-    return null;
-  })();
-  if (ring && ring.length >= 3) {
-    params.set('poly', ring.map((c) => `${c[0]},${c[1]}`).join(';'));
-  }
+  // عقد القصّ الموحَّد (poly/bbox) — نفس ما يفحصه cdse-tilejson (مصدر حقيقة واحد).
+  for (const [k, v] of Object.entries(cdseClipParams(geometry, bbox))) params.set(k, v);
   appendTileAccessToken(params);  // مصادقة بلاطة <img> خلف بوّابة auth_request
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
@@ -3442,20 +3454,8 @@ export const fieldCdseThumbnailUrl = (
   if (date && date !== 'latest') params.set('date', date);
   if (tenantId) params.set('tid', tenantId);
   params.set('size', String(size));
-  if (bbox && bbox.length === 4) {
-    params.set('bbox_w', String(bbox[0])); params.set('bbox_s', String(bbox[1]));
-    params.set('bbox_e', String(bbox[2])); params.set('bbox_n', String(bbox[3]));
-  }
-  const ring = (() => {
-    const g = geometry as { type?: string; coordinates?: number[][][] } | undefined;
-    if (!g || !g.coordinates) return null;
-    if (g.type === 'Polygon') return g.coordinates[0] ?? null;
-    if (g.type === 'MultiPolygon') return (g.coordinates as unknown as number[][][][])[0]?.[0] ?? null;
-    return null;
-  })();
-  if (ring && ring.length >= 3) {
-    params.set('poly', ring.map((c) => `${c[0]},${c[1]}`).join(';'));
-  }
+  // عقد القصّ الموحَّد (poly/bbox) — نفس المصدر المشترك مع البلاطة وTileJSON.
+  for (const [k, v] of Object.entries(cdseClipParams(geometry, bbox))) params.set(k, v);
   appendTileAccessToken(params);
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/cdse-thumbnail.png?${params.toString()}`;
 };

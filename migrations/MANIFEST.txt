@@ -561,3 +561,12 @@ v143_raster_assets_lifecycle_lineage.sql
 #   مسح STAC الشهريّ من مسار الطلب + مفتاح idempotency يمنع تكرار المعالجة. RLS FORCE
 #   (نمط v140). idempotent؛ بعد v143.
 v144_backfill_runs.sql
+
+# v145: إزالة تكرار raster_assets على مستوى «المنتَج» لا مسار COG (v8-F6/v9-F8) — مسار
+#   COG عشوائيّ كان يُفلِت فهرس v142 (المتضمّن cog_uri) فيُدرَج صفّ مكرّر. الفهرس الجديد
+#   بلا cog_uri (قابل للتحديث) + إزالة التكرارات القائمة. idempotent؛ بعد v144.
+v145_raster_assets_product_dedup.sql
+
+# v146: صدق حالة تشغيلة backfill (v8-F8/v9-F5) — 'completed_with_errors' + عدّادات
+#   items_persisted/failed/skipped تُحسَب من الحفظ الفعليّ لا من عدد المحاولات. idempotent؛ بعد v145.
+v146_backfill_runs_outcome_counters.sql

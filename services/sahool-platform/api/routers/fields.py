@@ -800,6 +800,9 @@ class FieldImageryBackfillProxyRequest(BaseModel):
     apply_cloud_mask: bool | None = None
     clip_polygon_geojson: dict | None = None
     dry_run: bool | None = False
+    # v9-F7: النَّسَب — إن مرّرته الواجهة يُحترَم؛ وإلّا يستنتجه الخادم من
+    # field_geometry_history كي لا تبقى أصول backfill بـgeometry_revision=NULL.
+    geometry_revision: int | None = None
 
 
 @router.post("/api/v1/fields/{field_id}/imagery/backfill")
@@ -834,6 +837,19 @@ async def field_imagery_backfill_proxy(
                     geometry = _json.loads(geometry)
                 guarded = guard_field_geometry(geometry)
                 payload["clip_polygon_geojson"] = guarded.geometry
+
+            # v9-F7: النَّسَب — إن لم ترسل الواجهة geometry_revision نستنتج المراجعة
+            # السارية من field_geometry_history (نفس منطق مسار refresh) فيُسجَّل على
+            # raster_assets ولا تبقى أصول backfill بلا نَسَب. None إن لا مراجعات (لا اختلاق).
+            if payload.get("geometry_revision") is None:
+                geometry_revision = await conn.fetchval(
+                    "SELECT MAX(revision) FROM field_geometry_history "
+                    "WHERE tenant_id = $1::uuid AND field_id = $2",
+                    str(user.tenant_id),
+                    field_id,
+                )
+                if geometry_revision is not None:
+                    payload["geometry_revision"] = int(geometry_revision)
 
             import os as _os
 

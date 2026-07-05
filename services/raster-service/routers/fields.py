@@ -208,6 +208,14 @@ async def field_historical_backfill(
                 "indices": [i.value for i in req.indices],
                 "message": "تمّ إنشاء تشغيلة backfill؛ يُنفّذها عامل الفحص لاتزامنيّاً.",
             }
+        # v7-#3: تحصين الاحتياطيّ — حين تكون الراية مُفعَّلة لكنّ إنشاء التشغيلة فشل (جدول
+        # v144 مفقود/قاعدة متعذّرة) لا نرتدّ صامتاً للمسار المتزامن الحاجب للطلب (يُعيد
+        # مشكلة v5-F1/F2). نفشل مُغلَقاً بـ503 صريح — التشخيص أوضح من مسح STAC بطيء.
+        raise HTTPException(
+            503,
+            "تعذّر إنشاء تشغيلة backfill اللاتزامنيّة (تحقّق من ترحيل v144/القاعدة)؛ "
+            "المسار المتزامن مُعطَّل تحت RASTER_ASYNC_BACKFILL_ENABLED.",
+        )
 
     windows = main._month_windows(start, end)
     selected_scenes: list[dict] = []
@@ -219,6 +227,7 @@ async def field_historical_backfill(
             w_end.strftime("%Y-%m-%dT23:59:59Z"),
             req.max_cloud_pct,
             limit=max(10, req.limit_per_month * 4),
+            geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
         )
         items = main._rank_scenes(search.get("items", []), max_cloud_pct=req.max_cloud_pct)[
             : req.limit_per_month
@@ -280,6 +289,20 @@ async def field_historical_backfill(
                 try:
                     import stac_vrt
 
+                    # التحويل إلى CDSE: مشهد كتالوج Copernicus (بلا bands_urls) يُعالَج
+                    # خادميّاً عبر Process API (لا VRT من نطاقات Element84).
+                    if not (sc.get("bands_urls") or {}):
+                        main._process_backfill_scene_cdse(
+                            sc,
+                            ind.value if hasattr(ind, "value") else str(ind),
+                            field_id,
+                            tenant_id,
+                            clip,
+                            getattr(req, "geometry_revision", None),
+                            jid,
+                        )
+                        return
+
                     safe_hrefs = {
                         k: main._safe_raster_source(v)
                         for k, v in (sc.get("bands_urls") or {}).items()
@@ -308,6 +331,10 @@ async def field_historical_backfill(
                         scene_id=sc.get("item_id"),
                         capture_datetime=sc.get("datetime"),
                         provider="element84",
+                        # v8-F7: النَّسَب — مرّر مراجعة الهندسة في المسار المتزامن أيضاً
+                        # (كان يغفلها ⇒ أصول backfill بـgeometry_revision=NULL تُضعِف
+                        # كشف التقادم والتحليل الجنائيّ عند تغيّر حدود الحقل).
+                        geometry_revision=getattr(req, "geometry_revision", None),
                     )
                     main._run_processing(jid, preq)
                 except Exception as e:  # noqa: BLE001
@@ -371,6 +398,24 @@ async def field_historical_backfill(
             "custom": "from_date/to_date or months",
         },
     }
+
+
+@router.get("/v1/fields/{field_id}/imagery/backfill/{run_id}")
+async def field_backfill_run_status(field_id: str, run_id: int):
+    """حالة تشغيلة backfill اللاتزامنيّة + عدّاداتها (v10-F10).
+
+    يُتيح للواجهة استطلاع التقدّم الحقيقيّ بدل «نجاح» أعمى: الحالة
+    (planned/searching/processing/completed/completed_with_errors/failed) + عدّادات
+    persisted/failed/skipped + تجميع حالات العناصر + آخر خطأ. مُصفّى بالمستأجِر."""
+    await main._require_field_tenant(field_id)
+    import db_persist as _dbp
+
+    status = await _dbp.get_backfill_run_status(run_id, tenant_id=main._REQ_TENANT.get())
+    if status is None:
+        raise HTTPException(404, "تشغيلة backfill غير موجودة ضمن هذا المستأجِر/الحقل")
+    if status.get("field_id") and status["field_id"] != field_id:
+        raise HTTPException(404, "تشغيلة backfill لا تخصّ هذا الحقل")
+    return status
 
 
 @router.post("/v1/fields/{field_id}/geometry/versions")

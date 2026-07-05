@@ -393,18 +393,33 @@ async def field_cdse_tilejson(
     bbox_s: float | None = Query(None),
     bbox_e: float | None = Query(None),
     bbox_n: float | None = Query(None),
+    poly: str | None = Query(None),
 ):
-    """TileJSON 2.2.0 لبلاطات CDSE الحيّة — يُستخدَم لضبط إطار الخريطة."""
+    """TileJSON 2.2.0 لبلاطات CDSE الحيّة — يُستخدَم لضبط إطار الخريطة.
+
+    v7-#3: يقبل ``poly`` (نفس عقد بلاطة cdse-tiles) كي يتّحد فحص الحدود/الجاهزية مع
+    الهندسة الفعليّة للبلاطات، ويُحقَن ``poly`` في رابط البلاطة كي تقصّ البلاطات على
+    نفس المضلّع الذي مرّرته الواجهة (لا اختلاف بين المُعاينة والبلاطات الفعليّة)."""
     import cdse_client as _cdse
     import db_persist as _db
 
     await main._require_field_tenant(field_id)
 
-    if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
+    # الأولويّة: poly (هندسة الواجهة) ثمّ bbox الصريح ثمّ هندسة DB ثمّ احتياطيّ عالميّ.
+    # geom_resolved (v9-F7): هل اشتُقّت الحدود من هندسة حقيقيّة؟ الاحتياطيّ العالميّ
+    # ليس حدوداً حقيقيّة — نُعلن available=false عنده كي لا تبدو بلاطات بلا حدود «جاهزة».
+    _GLOBAL_BOUNDS = [-180.0, -85.0, 180.0, 85.0]
+    geom_resolved = True
+    poly_geom = _parse_poly(poly) if poly else None
+    if poly_geom is not None:
+        bounds = main._bbox_from_geom(poly_geom) or _GLOBAL_BOUNDS
+        geom_resolved = bounds is not _GLOBAL_BOUNDS
+    elif bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
         bounds = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
     else:
         field_geom = await _db.fetch_field_geometry(field_id)
-        bounds = main._bbox_from_geom(field_geom) or [-180.0, -85.0, 180.0, 85.0]
+        bounds = main._bbox_from_geom(field_geom) or _GLOBAL_BOUNDS
+        geom_resolved = bounds is not _GLOBAL_BOUNDS
     # حين لا يُطلَب تاريخ محدَّد (فارغ/"latest"/"today") نُسقط ``date`` من رابط
     # البلاطة كي يبقى الرابط بلا تاريخ ويُحلّ «الأحدث» في كلّ طلب؛ وإلّا نُثبّته.
     specific_date = date if (date and date not in ("latest", "today")) else None
@@ -419,11 +434,29 @@ async def field_cdse_tilejson(
     req_tenant = main._REQ_TENANT.get()
     if req_tenant:
         tile_params["tid"] = req_tenant
+    # v7-#3/v8-F4: مرّر عقد القصّ (poly أو bbox) إلى رابط البلاطة كي تقصّ البلاطات على
+    # نفس هندسة الواجهة (لا اختلاف بين المُعاينة عبر TileJSON والبلاطات الفعليّة).
+    if poly:
+        tile_params["poly"] = poly
+    elif bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
+        tile_params["bbox_w"] = str(bbox_w)
+        tile_params["bbox_s"] = str(bbox_s)
+        tile_params["bbox_e"] = str(bbox_e)
+        tile_params["bbox_n"] = str(bbox_n)
     qs = urlencode(tile_params)
     # المسار عبر البوّابة (nginx /api/raster/ → raster:8001/): الواجهة تحتاج
     # /api/raster/v1/… لا /v1/… المباشر كي تمرّ عبر proxy_pass في الإنتاج.
     configured = _cdse.is_configured()
     available, reason, user_message = _tilejson_availability(configured, index)
+    # v9-F7: بلا حدود حقيقيّة (تعذّر جلب الهندسة ولا poly/bbox) لا نُعلن الجاهزية — البلاطات
+    # ستعود شفّافة لغياب الحدود، فالإعلان «متاح» بحدود عالميّة تضليل. نفشل مُغلَقاً بصدق.
+    if available and not geom_resolved:
+        available = False
+        reason = reason or "field_geometry_unavailable"
+        user_message = user_message or (
+            "تعذّر تحديد حدود الحقل (لا poly/bbox ولا هندسة محفوظة) — مرّر هندسة الحقل أو "
+            "تحقّق من حفظ الحدود قبل عرض بلاطات CDSE."
+        )
     out = {
         "tilejson": "2.2.0",
         "name": f"cdse-{field_id}-{index}",

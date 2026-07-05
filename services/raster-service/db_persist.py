@@ -143,9 +143,10 @@ async def insert_raster_asset(
         except ValueError:
             acq_date = None
 
-    # v142: idempotency — إعادة تشغيل backfill لا تُراكم صفوفاً مكرّرة. ON CONFLICT على
-    # الفهرس الفريد الجزئيّ (tenant/field/index/date/scene/cog) يُحدِّث الجودة/الأصل بدل
-    # الإدراج المكرّر. + processing_job_id للتتبّع (يُغني layer_owner_tenant عن ILIKE الهشّ).
+    # v142/v145: idempotency على مستوى «المنتَج» لا مسار COG. ON CONFLICT على الفهرس
+    # الفريد الجزئيّ (tenant/field/index/date/scene) — بلا cog_uri (v8-F6/v9-F8): مسار
+    # COG عشوائيّ ({indicator}_{uuid}.tif) كان يُفلِت الفهرس فيُدرَج صفّ مكرّر لنفس المنتَج.
+    # الآن cog_uri قيمة قابلة للتحديث (يشير الصفّ الوحيد إلى أحدث COG) لا جزء من الهويّة.
     sql = """
         INSERT INTO raster_assets (
             field_id, tenant_id, scene_id, acquisition_date, satellite,
@@ -164,10 +165,11 @@ async def insert_raster_asset(
             $17, $18, $19, COALESCE($20::jsonb, '[]'::jsonb),
             $21, $22
         )
-        ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id, cog_uri)
+        ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id)
         WHERE tenant_id IS NOT NULL AND acquisition_date IS NOT NULL
-              AND scene_id IS NOT NULL AND cog_uri IS NOT NULL
+              AND scene_id IS NOT NULL
         DO UPDATE SET
+            cog_uri = EXCLUDED.cog_uri,
             cloud_pct = EXCLUDED.cloud_pct,
             bands = EXCLUDED.bands,
             provenance = EXCLUDED.provenance,
@@ -428,6 +430,51 @@ async def insert_backfill_run(
         await conn.close()
 
 
+async def get_backfill_run_status(run_id: int, tenant_id: str | None = None) -> dict | None:
+    """حالة تشغيلة backfill + عدّادات عناصرها المجمَّعة (v10-F10).
+
+    يُرجِع status/عدّادات التشغيلة + تجميع فعليّ لـbackfill_run_items (persisted/failed/
+    skipped/processing) كي لا تبقى الواجهة تعرض «نجاحاً» بلا رؤية للتقدّم الحقيقيّ.
+    None إن غاب الصفّ/الجدول/القاعدة. مُصفّى بالمستأجِر (WHERE + app.current_tenant).
+    """
+    conn = await _connect()
+    if conn is None:
+        return None
+    try:
+        await conn.execute(
+            "SELECT set_config('app.current_tenant', $1, false)",
+            str(tenant_id) if tenant_id else "",
+        )
+        run = await conn.fetchrow(
+            """
+            SELECT id, field_id, status, months_scanned, scenes_selected, jobs_scheduled,
+                   items_persisted, items_failed, items_skipped, error,
+                   created_at::text AS created_at, updated_at::text AS updated_at
+            FROM backfill_runs
+            WHERE id = $1 AND ($2::uuid IS NULL OR tenant_id = $2::uuid)
+            """,
+            int(run_id),
+            str(tenant_id) if tenant_id else None,
+        )
+        if run is None:
+            return None
+        # تجميع حيّ لحالات العناصر (مصدر الحقيقة الفعليّ لا عدّادات التشغيلة وحدها).
+        items = await conn.fetch(
+            "SELECT status, count(*) AS n FROM backfill_run_items "
+            "WHERE run_id = $1 GROUP BY status",
+            int(run_id),
+        )
+        item_counts = {str(r["status"]): int(r["n"]) for r in items}
+        out = dict(run)
+        out["item_counts"] = item_counts
+        return out
+    except Exception as e:  # noqa: BLE001 — غياب الجدول لا يُفشل القراءة
+        logger.warning("backfill_runs status fetch skipped (%s): %s", run_id, e)
+        return None
+    finally:
+        await conn.close()
+
+
 async def fetch_latest_asset(
     field_id: str,
     index_name: str,
@@ -451,19 +498,23 @@ async def fetch_latest_asset(
                provenance #>> '{stats,confidence}' AS confidence,
                provenance #>> '{stats,quality}' AS quality,
                provenance #>> '{stats,cloud_mask_applied}' AS cloud_mask_applied,
+               scene_id, geometry_revision, asset_status, processing_job_id,
                ST_XMin(env) AS minx, ST_YMin(env) AS miny,
                ST_XMax(env) AS maxx, ST_YMax(env) AS maxy
         FROM (
             SELECT cog_uri, acquisition_date, srid, cloud_pct,
                    valid_pixel_ratio, coverage_ratio, index_quality_flags,
-                   provenance, ST_Envelope(footprint) AS env
+                   provenance, scene_id, geometry_revision, asset_status, processing_job_id,
+                   ST_Envelope(footprint) AS env
             FROM raster_assets
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
               AND tenant_id = $4::uuid   -- فلتر مستأجِر صريح (دفاع عميق فوق RLS)؛ None ⇒ لا صفوف
-              AND asset_status <> 'failed'  -- v143: لا نُرطّب من أصل فاشل (stale يبقى قابلاً للخدمة)
-            -- أحدث تاريخ يفوز أوّلاً (دلالة latest محفوظة)، ثمّ الأفضل جودةً لذلك اليوم:
-            -- quality_score (v105) DESC ثمّ cloud_pct ASC — يستفيد من idx_raster_assets_quality_pick.
+              -- v9-F10/v11-F1: 'ready' حصراً — 'stale' (هندسة قديمة بعد تغيّر الحدود)
+              -- لا يُقدَّم كصورة صالحة للخريطة. الاستعادة بإعادة معالجة تُنتج 'ready'.
+              -- (يستفيد من idx_raster_assets_ready الجزئيّ WHERE asset_status='ready'.)
+              AND asset_status = 'ready'
+            -- أحدث تاريخ يفوز (دلالة latest)، ثمّ الأفضل جودةً (idx_raster_assets_quality_pick).
             ORDER BY acquisition_date DESC NULLS LAST,
                      quality_score DESC NULLS LAST,
                      cloud_pct ASC NULLS LAST,
@@ -511,6 +562,13 @@ async def fetch_latest_asset(
             "cloud_mask_applied": str(row["cloud_mask_applied"]).lower() == "true"
             if row["cloud_mask_applied"] is not None
             else None,
+            # v11-F4: نَسَب/هويّة الأصل — كي تحمل الطبقة المُعاد ترطيبها هذه الحقول
+            # (field_id/geometry_revision/asset_status/scene_id/job) فيُميَّز ready/stale
+            # ولا تعود شبكة بلا هويّة. field_id يُضيفه المُستدعي (معروف لديه).
+            "scene_id": row["scene_id"],
+            "geometry_revision": row["geometry_revision"],
+            "asset_status": row["asset_status"],
+            "processing_job_id": row["processing_job_id"],
         }
     except Exception as e:  # noqa: BLE001 — غياب القاعدة/الجدول لا يُفشل القراءة
         logger.warning("raster_assets fetch skipped: %s", e)
@@ -547,7 +605,7 @@ async def list_asset_dates(
             WHERE field_id = $1 AND index_name = $2
               AND acquisition_date IS NOT NULL
               AND tenant_id = $3::uuid
-              AND asset_status <> 'failed'
+              AND asset_status = 'ready'  -- v11-F1: الشريط الزمنيّ يعرض الجاهز فقط (لا stale)
             ORDER BY ad DESC
             LIMIT $4
         ) recent
@@ -595,7 +653,7 @@ async def list_available_asset_dates(
             WHERE field_id = $1
               AND tenant_id = $2::uuid
               AND acquisition_date IS NOT NULL
-              AND asset_status <> 'failed'
+              AND asset_status = 'ready'  -- v11-F1: التواريخ المتاحة = الجاهزة فقط (لا stale)
               AND ($3::text[] IS NULL OR index_name = ANY($3::text[]))
             ORDER BY acquisition_date DESC
             LIMIT $4
@@ -610,7 +668,7 @@ async def list_available_asset_dates(
         JOIN recent_dates rd ON rd.acquisition_date = a.acquisition_date
         WHERE a.field_id = $1
           AND a.tenant_id = $2::uuid
-          AND a.asset_status <> 'failed'
+          AND a.asset_status = 'ready'  -- v11-F1: صفوف جاهزة فقط (لا stale/pending)
           AND ($3::text[] IS NULL OR a.index_name = ANY($3::text[]))
         ORDER BY a.acquisition_date DESC, a.index_name,
                  (a.cog_uri IS NOT NULL AND a.cog_uri <> '') DESC,

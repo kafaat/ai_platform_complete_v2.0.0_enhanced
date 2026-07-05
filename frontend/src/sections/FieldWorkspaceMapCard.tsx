@@ -191,7 +191,8 @@ export default function FieldWorkspaceMapCard({
       setSelectedImageryDate('latest');
       return;
     }
-    fetchFieldImageryAvailableDates(fieldId)
+    // v11-F8: البطاقة تعرض NDVI؛ نقصر التواريخ على COG الخاصّ به (لا خلط مؤشّرات).
+    fetchFieldImageryAvailableDates(fieldId, 'ndvi')
       .then((items) => {
         if (cancelled) return;
         const sorted = [...items]

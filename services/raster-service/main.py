@@ -93,6 +93,11 @@ except ImportError:
 
 # ─── الإعداد ──────────────────────────────────────────────────────
 EARTH_SEARCH_URL = os.getenv("EARTH_SEARCH_URL", "https://earth-search.aws.element84.com/v1")
+# مزوّد البحث التاريخيّ عن مشاهد Sentinel-2: الافتراض "cdse" (Copernicus Data Space
+# Ecosystem — كتالوج Sentinel Hub) — التحويل الكامل بعيداً عن Element84 Earth Search
+# لطبقة البحث التاريخيّ (المعالجة على CDSE أصلاً). "element84" يبقى ارتداداً صريحاً
+# فقط (dev بلا اعتمادات CDSE، أو مجموعات لا يوفّرها CDSE كـرادار/Landsat/DEM).
+HISTORICAL_SEARCH_PROVIDER = os.getenv("HISTORICAL_SEARCH_PROVIDER", "cdse").strip().lower()
 SENTINEL_COLLECTION = "sentinel-2-l2a"
 SENTINEL1_COLLECTION = "sentinel-1-grd"  # رادار SAR — يخترق الغيوم والليل
 LANDSAT_COLLECTION = "landsat-c2-l2"  # Landsat C2 L2 — أرشيف 40+ سنة (تكميلي)
@@ -686,9 +691,107 @@ async def _stac_query(payload: dict) -> dict:
 
 
 async def _stac_search(
+    bbox: list[float],
+    dt_start: str,
+    dt_end: str,
+    max_cloud: float,
+    limit: int,
+    geometry: dict | None = None,
+) -> dict:
+    """يبحث عن مشاهد Sentinel-2 التاريخيّة — CDSE افتراضاً (Copernicus).
+
+    التحويل الكامل: ``HISTORICAL_SEARCH_PROVIDER=cdse`` (الافتراض) يستعمل كتالوج
+    CDSE (Sentinel Hub Catalog) للاكتشاف — نفس مصدر المعالجة (process_index)، فلا
+    اعتماد على Element84 Earth Search في المسار التاريخيّ.
+
+    الإغلاق الآمن (بطلب المستخدم — «بالكامل من Copernicus»): عند اختيار مزوّد CDSE
+    وغياب الاعتمادات لا نرتدّ صامتاً إلى Element84 — نفشل مُغلَقاً بـ503 صريح. الارتداد
+    إلى Element84 يقع **فقط** حين ``HISTORICAL_SEARCH_PROVIDER=element84`` صراحةً
+    (تجاوز واعٍ لمجموعات/بيئات لا يوفّرها CDSE).
+    """
+    import cdse_client as _cdse
+
+    if HISTORICAL_SEARCH_PROVIDER == "element84":
+        return await _stac_search_element84(bbox, dt_start, dt_end, max_cloud, limit)
+    # المزوّد الافتراضيّ = CDSE: لا اعتمادات ⇒ فشل مُغلَق (لا تسرّب صامت إلى Element84).
+    if not _cdse.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "بحث الأقمار التاريخيّ يعتمد Copernicus/CDSE حصراً؛ الاعتمادات غائبة "
+                "(CDSE_CLIENT_ID/SECRET أو SH_CLIENT_ID/SECRET). اضبطها، أو عيّن "
+                "HISTORICAL_SEARCH_PROVIDER=element84 صراحةً لتجاوز واعٍ."
+            ),
+        )
+    return await _stac_search_cdse(bbox, dt_start, dt_end, max_cloud, limit, geometry)
+
+
+async def _stac_search_cdse(
+    bbox: list[float],
+    dt_start: str,
+    dt_end: str,
+    max_cloud: float,
+    limit: int,
+    geometry: dict | None = None,
+) -> dict:
+    """اكتشاف مشاهد Sentinel-2 عبر كتالوج CDSE (Sentinel Hub Catalog).
+
+    يُرجِع نفس شكل مخرَج ``_stac_search`` (item_id/datetime/cloud/bbox/platform).
+    ``bands_urls`` فارغ عمداً: CDSE يعالج المشهد خادميّاً عبر Process API (بلا روابط
+    نطاقات COG)، فمسار المعالجة يستعمل ``process_index`` مثبَّتاً على تاريخ المشهد.
+    استدعاء العميل متزامن (httpx) فنُشغّله في threadpool كي لا يحجب حلقة الأحداث.
+    """
+    import asyncio
+
+    import cdse_client as _cdse
+
+    def _do() -> list[dict]:
+        return _cdse.get_client().search_scenes(
+            bbox=bbox,
+            time_from=dt_start,
+            time_to=dt_end,
+            max_cloud_pct=max_cloud,
+            limit=limit,
+            geometry=geometry,
+        )
+
+    try:
+        features = await asyncio.to_thread(_do)
+    except Exception as e:  # noqa: BLE001 — فشل الكتالوج لا يُسقط المسار (قائمة فارغة)
+        logger.warning("CDSE catalog search failed: %s", e)
+        features = []
+
+    items = []
+    for feat in features:
+        props = feat.get("properties", {}) or {}
+        items.append(
+            {
+                "item_id": feat.get("id", ""),
+                "datetime": props.get("datetime", ""),
+                "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
+                "bbox": feat.get("bbox"),
+                # CDSE يعالج بالـProcess API (لا نطاقات COG) — فارغ متعمَّد؛ مسار المعالجة
+                # يتفرّع على غيابها إلى process_index مثبَّت على تاريخ المشهد.
+                "bands_urls": {},
+                "thumbnail_url": None,
+                "preview_url": None,
+                "platform": props.get("platform", "sentinel-2"),
+                "provider": "cdse",
+            }
+        )
+    return {
+        "count": len(items),
+        "source": "cdse-catalog",
+        "cache": "miss",
+        "warning": None,
+        "items": items,
+    }
+
+
+async def _stac_search_element84(
     bbox: list[float], dt_start: str, dt_end: str, max_cloud: float, limit: int
 ) -> dict:
-    """يبحث في Element84 Earth Search عن صور Sentinel-2.
+    """يبحث في Element84 Earth Search عن صور Sentinel-2 (ارتداد/مجموعات غير CDSE).
 
     يستخدم العميل المرن (stac_client): إعادة محاولة + cache + stale-if-error
     — مرونة تشغيليّة لقلب النظام (مهمّ لبيئة اليمن عالية الـlatency).
@@ -717,6 +820,7 @@ async def _stac_search(
                 "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
                 "preview_url": (assets.get("visual") or {}).get("href"),
                 "platform": props.get("platform", "sentinel-2"),
+                "provider": "element84",
             }
         )
     return {
@@ -726,6 +830,62 @@ async def _stac_search(
         "warning": data.get("_warning"),
         "items": items,
     }
+
+
+def _process_backfill_scene_cdse(
+    scene: dict,
+    index: str,
+    field_id: str,
+    tenant_id: str | None,
+    clip: dict | None,
+    geometry_revision,
+    jid: str,
+) -> None:
+    """يعالج مشهداً مُكتشَفاً من كتالوج CDSE لمؤشّر واحد عبر Process API.
+
+    مسار المعالجة التاريخيّة على CDSE (بلا نطاقات COG من Element84): يُثبِّت نافذة
+    زمنيّة على يوم المشهد، يطلب المؤشّر خادميّاً (evalscript، مقصوصاً على ``clip``)،
+    يكتب TIFF، ثمّ يُشغّل ``_run_processing`` كأصل precomputed (provider="cdse").
+    متزامن (httpx + _run_processing) — يُستدعى عبر threadpool من مسار backfill.
+    """
+    import cdse_client
+
+    dt = scene.get("datetime") or ""
+    day = dt[:10]
+    if len(day) != 10:
+        raise RuntimeError("CDSE scene بلا تاريخ صالح")
+    bbox = scene.get("bbox") or _bbox_from_geojson(clip)
+    if not bbox:
+        raise RuntimeError("bbox مطلوب لمعالجة مشهد CDSE")
+    tiff = cdse_client.get_client().process_index(
+        index=index,
+        bbox=bbox,
+        time_from=f"{day}T00:00:00Z",
+        time_to=f"{day}T23:59:59Z",
+        geometry=clip,
+        max_cloud_pct=40.0,
+    )
+    if not tiff:
+        raise RuntimeError("CDSE process_index أرجع استجابة فارغة")
+    tif_path = os.path.join(UPLOAD_DIR, f"cdse_bf_{index}_{uuid.uuid4().hex[:8]}.tif")
+    with open(tif_path, "wb") as fh:
+        fh.write(tiff)
+    preq = ProcessRequest(
+        tenant_id=tenant_id or "",
+        field_id=field_id,
+        raster_url=tif_path,
+        indicator=IndicatorKind(index),
+        source_format=SourceFormat.sentinel2_l2a,
+        bands=BandMapping(),
+        precomputed_index=True,
+        provider="cdse",
+        scene_id=scene.get("item_id"),
+        capture_datetime=dt,
+        clip_polygon_geojson=clip,
+        apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (maxCloudCoverage + SCL)
+        geometry_revision=geometry_revision,
+    )
+    _run_processing(jid, preq)
 
 
 async def _stac_search_radar(bbox: list[float], dt_start: str, dt_end: str, limit: int) -> dict:
@@ -1432,7 +1592,16 @@ def _persist_raster_asset(
 
             t = threading.Thread(target=_runner, daemon=True)
             t.start()
-            t.join(timeout=10)
+            # v9-F2: مهلة أوسع (60s) لإدراج DB البطيء. لو تجاوزها الخيط لا نُعلن
+            # persisted=false كذباً بل نُصرّح بأنّ النتيجة «غير حاسمة» (قد يكتمل لاحقاً).
+            t.join(timeout=60)
+            if t.is_alive():
+                logger.warning(
+                    "raster_assets persist result indeterminate field_id=%s index=%s "
+                    "(خيط الإدراج ما زال يعمل بعد 60s — قد يكتمل الحفظ خلفيّاً)",
+                    req.field_id,
+                    req.indicator.value,
+                )
         if _holder["ok"]:
             logger.info(
                 "raster_assets persist ok field_id=%s tenant_id=%s index=%s scene_id=%s "
@@ -1602,7 +1771,9 @@ def _run_processing(job_id: str, req: ProcessRequest):
         job["error_message"] = "raster_processing_failed"
         _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
         _http = f" [{e.status_code}] {e.detail}" if isinstance(e, HTTPException) else ""
-        logger.error("job %s failed: %s%s", job_id, type(e).__name__, _http)
+        # exc_info=True: السجلّ الداخلي يحمل التتبّع الكامل — الرسالة العامّة كانت «TypeError»
+        # عارياً بعد بناء VRT فتعذّر التشخيص (بلاغ لوج المستخدم). الرمز العامّ للعميل يبقى مُعقَّماً.
+        logger.error("job %s failed: %s%s", job_id, type(e).__name__, _http, exc_info=True)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):
@@ -2128,6 +2299,9 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
     supported = cdse_client.supported_indices()
     results: dict[str, str] = {}
     failed: dict[str, str] = {}
+    # v9-F1: «نجاح» المؤشّر لا يعني بالضرورة الحفظ في DB. نفصل الحفظ الفعليّ عن اكتمال
+    # المعالجة كي لا يُعلن اللوج «5 نجح» بينما لم يُحفَظ أيّ صفّ في raster_assets.
+    persisted_indices: dict[str, bool] = {}
     total = max(len(req.indicators), 1)
     for i, ind in enumerate(req.indicators):
         if ind not in supported:
@@ -2167,7 +2341,10 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
             _run_processing(sub_job_id, preq)
             sj = _jobs.get(sub_job_id) or {}
             if sj.get("status") == JobStatus.completed:
-                results[ind] = (sj.get("result") or {}).get("layer_id") or sub_job_id
+                _sres = sj.get("result") or {}
+                results[ind] = _sres.get("layer_id") or sub_job_id
+                # v9-F1: نُسجّل هل حُفِظ الأصل في DB فعلاً (لا مجرّد اكتمال المعالجة).
+                persisted_indices[ind] = bool(_sres.get("persisted") is True)
             else:
                 failed[ind] = sj.get("error_message", "unknown")
         except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر (فشل CDSE → يُسجَّل)
@@ -2180,8 +2357,18 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
     job["provider"] = "cdse"
     job["cdse_results"] = results
     job["cdse_failed"] = failed
+    # v9-F1: صدق الحفظ — العدّاد الحقيقيّ هو ما حُفِظ في DB لا ما اكتملت معالجته.
+    _persisted_count = sum(1 for v in persisted_indices.values() if v)
+    job["cdse_persisted"] = persisted_indices
+    job["cdse_persisted_count"] = _persisted_count
     _jobs.set(job_id, job)
-    logger.info("cdse %s: %d نجح، %d فشل", job_id, len(results), len(failed))
+    logger.info(
+        "cdse %s: %d اكتمل (%d محفوظ في DB)، %d فشل",
+        job_id,
+        len(results),
+        _persisted_count,
+        len(failed),
+    )
 
 
 # بلاطة شفّافة 1×1 (PNG) — عند غياب البلاطة الفعليّة (بلا rasterio)
@@ -2346,6 +2533,10 @@ async def _rehydrate_field_layer_from_db(field_id: str, internal: str, date: str
         _layers[lid] = {
             "cog_url": asset["cog_url"],
             "index": internal,
+            # v11-F4: هويّة/نَسَب الطبقة المُعاد ترطيبها — field_id (كان يغيب فتعود شبكة
+            # بلا هويّة) + geometry_revision/asset_status/scene_id/processing_job_id كي
+            # يُميَّز ready/stale ويُربط run_item→job→asset. (القارئ يُرجِع ready حصراً.)
+            "field_id": field_id,
             "tenant_id": _REQ_TENANT.get(),
             "acquisition_date": acq,
             "bounds_4326": asset.get("bounds_4326"),
@@ -2357,6 +2548,10 @@ async def _rehydrate_field_layer_from_db(field_id: str, internal: str, date: str
             "confidence": asset.get("confidence"),
             "quality": asset.get("quality"),
             "cloud_mask_applied": asset.get("cloud_mask_applied"),
+            "scene_id": asset.get("scene_id"),
+            "geometry_revision": asset.get("geometry_revision"),
+            "asset_status": asset.get("asset_status"),
+            "processing_job_id": asset.get("processing_job_id"),
             "created_at": acq or _t.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         _field_layers.setdefault(field_id, [])
