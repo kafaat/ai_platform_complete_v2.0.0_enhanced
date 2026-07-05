@@ -2848,16 +2848,36 @@ class SalinityFitRequest(BaseModel):
 # التضمين في نهاية الملفّ بعد تعريف كلّ الرموز، كنمط register_routers).
 _cdse_tile_cache: dict[str, tuple[float, str]] = {}
 _cdse_cache_lock: object | None = None  # asyncio.Lock — تُنشأ عند أوّل استخدام
+_cdse_key_locks: dict[str, object] = {}  # per-cache-key asyncio.Lock (single-flight)
 
 
 def _cdse_lock():
-    """يُرجع asyncio.Lock الوحيد لحماية _cdse_tile_cache (lazy — آمن للخيوط)."""
+    """يُرجع asyncio.Lock الوحيد لحماية _cdse_tile_cache + سجلّ أقفال المفاتيح (lazy).
+
+    قفل **قصير**: يُحمَل فقط أثناء قراءة/كتابة الكاش وإنشاء قفل المفتاح — لا يُحمَل أبداً
+    أثناء جلب CDSE الشبكيّ (ذاك تحت قفل المفتاح). هكذا لا يحجب جلبٌ بطيء/فاشل لحقلٍ
+    بلاطاتِ كلّ الحقول الأخرى (كان قفلاً عالميّاً حول الجلب+الإعادة ⇒ توقّف على مستوى الخريطة).
+    """
     global _cdse_cache_lock
     import asyncio
 
     if _cdse_cache_lock is None:
         _cdse_cache_lock = asyncio.Lock()
     return _cdse_cache_lock
+
+
+def _cdse_key_lock(cache_key: str):
+    """قفل single-flight لكلّ مفتاح كاش (يجب النداء تحت ``_cdse_lock()``).
+
+    بلاطات نفس (حقل/مؤشّر/تاريخ/هندسة) تتشارك قفلاً واحداً ⇒ جلب CDSE مرّة واحدة
+    (يحمي حصّة المزوّد)، بينما حقول/تواريخ مختلفة تتقدّم بالتوازي بلا حجب متبادل."""
+    import asyncio
+
+    lock = _cdse_key_locks.get(cache_key)
+    if lock is None:
+        lock = asyncio.Lock()
+        _cdse_key_locks[cache_key] = lock
+    return lock
 
 
 def _bbox_from_geom(geom: dict | None) -> list[float] | None:

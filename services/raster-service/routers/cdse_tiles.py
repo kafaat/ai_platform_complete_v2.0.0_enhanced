@@ -24,8 +24,11 @@ router = APIRouter()
 # للضبط بالبيئة (``RASTER_PUBLIC_PREFIX``) بدل ترميزها صلباً — يفكّ الاقتران ببوّابة بعينها.
 _PUBLIC_PREFIX = os.getenv("RASTER_PUBLIC_PREFIX", "/api/raster").rstrip("/")
 
-# «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام (بدل كامل السنة) — حالة راهنة فعلاً.
-LATEST_WINDOW_DAYS = 60
+# «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام. نافذة واسعة (سنة) قابلة للضبط
+# بالبيئة: Sentinel-2 يعيد كلّ ~5 أيّام لكنّ الغطاء السحابيّ قد يترك فجوات > شهرين،
+# فنافذة 60 يوماً كانت تُرجِع «لا مشهد» ⇒ بلاطة شفّافة لحقول كانت تُصيَّر. (regression:
+# ضُيّقت من كامل السنة إلى 60 يوماً — نعيدها واسعة كي يظهر أحدث مشهد صافٍ فعليّاً.)
+LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))
 
 
 def _parse_poly(poly: str) -> dict | None:
@@ -146,16 +149,34 @@ async def _ensure_field_cog(
         except (TypeError, ValueError):
             geom_sig = "err"
     cache_key = f"{tenant}:{field_id}:{internal}:{today}:{'p' if has_poly else 'b'}:{geom_sig}"
-    async with main._cdse_lock():
-        now = _t.monotonic()
+
+    def _cache_hit() -> str | None:
         entry = main._cdse_tile_cache.get(cache_key)
-        if entry and entry[0] > now and os.path.exists(entry[1]):
+        if entry and entry[0] > _t.monotonic() and os.path.exists(entry[1]):
             return entry[1]
-        if entry and os.path.exists(entry[1]):
-            try:
-                os.unlink(entry[1])
-            except OSError:
-                pass
+        return None
+
+    # 1) فحص كاش سريع + إحضار قفل المفتاح — تحت القفل العالميّ **القصير** فقط.
+    async with main._cdse_lock():
+        hit = _cache_hit()
+        if hit is not None:
+            return hit
+        key_lock = main._cdse_key_lock(cache_key)
+
+    # 2) single-flight لهذا المفتاح: الجلب الشبكيّ (+الخنق/الإعادة) تحت قفل المفتاح لا
+    #    العالميّ — فلا يحجب بلاطاتِ حقولٍ أخرى. منتظِرٌ على نفس المفتاح يلتقط الكاش.
+    async with key_lock:
+        async with main._cdse_lock():
+            hit = _cache_hit()
+            if hit is not None:
+                return hit
+            entry = main._cdse_tile_cache.get(cache_key)
+            if entry and os.path.exists(entry[1]):
+                try:
+                    os.unlink(entry[1])
+                except OSError:
+                    pass
+                main._cdse_tile_cache.pop(cache_key, None)
         try:
             client = _cdse.get_client()
             # fail-closed: بلا bbox للحقل لا نطلب صورة على bbox ثابت (كان يمن [44.9..])
@@ -205,7 +226,8 @@ async def _ensure_field_cog(
                     except OSError:
                         pass
                     return None
-            main._cdse_tile_cache[cache_key] = (now + 3600.0, cog_path)
+            async with main._cdse_lock():
+                main._cdse_tile_cache[cache_key] = (_t.monotonic() + 3600.0, cog_path)
             return cog_path
         except Exception as e:  # noqa: BLE001
             main.logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)

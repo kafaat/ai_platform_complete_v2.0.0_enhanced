@@ -8965,7 +8965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e8d1bf641ddb037fde64337fed1368aa1a8a7f907e39a2eff2ebd63d1f6fe1e"
+          "content": "d36fb77bd1416e7629ada7a9e1fbf9c1b2ff62d3a30029b98f2e629597d66160"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9065,7 +9065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef6ce9f52354e514269504d07c804b264c931e0969dbe19c0ae90c6909f0ae30"
+          "content": "453040b328c7adb03dfc4717880ebef7224e439bc2b2cf7c8419fa0ea1874866"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
