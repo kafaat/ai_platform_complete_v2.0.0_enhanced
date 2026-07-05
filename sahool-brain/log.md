@@ -1289,3 +1289,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **v11-F3/F5 (معماريّ — كان مؤجَّلاً «يحتاج pub/sub»):** إخلاء طبقات الذاكرة عبر العمليّات. عامل الإبطال ينشر `field_id` على قناة Redis `raster:layer_evict` بعد إبطال القرص+DB؛ `raster-service` يشترك في `lifespan` (`_layer_evict_subscriber`) ويُخلي `_layers`/`_field_layers` (`_evict_field_layers`). راية `RASTER_LAYER_EVICT_ENABLED` (افتراض true) + تدهور لطيف بلا Redis/الحزمة + إعادة اتّصال. حارس `test_layer_evict_v30_9`.
 
 **درس تلوّث اختبار (تكرّر):** حقن `sys.modules["boto3"]` في اختبار جديد لوّث `test_sam2_polygon_cleaning` (فشل عابر في المجموعة الكاملة، نجاح منفرداً). الحلّ: لا تستورد `main` الثقيل في حارس ساكن — أكّد نصّيّاً وحاكِ المنطق. unit **2609** · production gate (3300 compiled) · حُرّاس compose الأمنيّة خضراء.
+
+## 2026-07-05 (ن) — Landsat طبقة حرارية فريدة (LST فقط، لا تكرار Sentinel-2؛ الرأس `2df1cf5`)
+
+قرار معماريّ من المستخدم (تقرير + diff + zip على أساس `7b7bf54`): **Copernicus/Sentinel-2 مصدر المؤشّرات النباتية/البصرية؛ Landsat يُستخدم فقط للطبقة الحرارية الفريدة** — LST كأصل مباشر، وCWSI/TVDI/TCI/VHI مشتقات لاحقة من LST+طقس/NDVI. لا يُعاد سحب NDVI/NDMI من Landsat.
+
+- طُبِّق عبر `patch -p4` (الرقعة على أساس يحوي عمل CDSE، فلا تعارض مع `8a6d023`). مجموعات `LANDSAT_UNIQUE/DIRECT/DERIVED/DUPLICATE` + `IndicatorKind` (lst/cwsi/tvdi/tci/vhi/et_inputs) · `_stac_search_landsat`→`_stac_search_landsat_unique` (يُرجِع `thermal_urls.lst` فقط، `_landsat_thermal_href` يرفض red/nir/swir) · backfill route `source=landsat-thermal` يرفض المكررات · العامل+المتزامن يعالجان LST · ترحيل **v147** (`backfill_runs.source`).
+- **تحقّق-قبل-دمج اصطاد ثغرتَين حقيقيّتَين في رقعة المُدقِّق** (اختباراته لم تُشغّل `_process_run`): (١) `is_landsat_thermal` مُستعمَل في `_process_run` بلا تعريف ⇒ **NameError على كلّ تشغيلة** — عُرِّف من `run.source`؛ (٢) v147 في MANIFEST فقط لا `run_migrations.sql` ⇒ **فشل بوّابة الإنتاج** — أُضيف للمُشغّلَين. + إضافة `/imagery/search/landsat-thermal` لـPUBLIC_CATALOG (حارس التفويض). حارس `test_landsat_thermal_unique_v31_0` (يشمل الثغرتَين).
+- **v147 مُثبَت على Postgres حيّ:** v144→v146→v147 + إعادة تطبيق؛ يقبل `landsat-thermal` ويرفض `modis` (CHECK). unit **2615** · production gate **153 ترحيلاً**.
