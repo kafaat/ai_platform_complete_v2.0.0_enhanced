@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-07-05 (ن) — `7cdefde` توصيل الشاشات التشغيليّة العريضة بالحقل النشط المشترك
+
+رقعة المستخدم (`wide_runtime_screens_fix.diff` على أساس `..._backfill_incremental_retry_hotfix.zip`) — تُوصِّل ~14 شاشة بالحقل المختار المشترك بدل معرّفات ثابتة/stub وتضيف تنقّلاً بين الشاشات بسياق الحقل. طُبِّقت بـ`patch -p1` (dry-run نظيف) بعد تحقّق:
+
+- FarmMapOverview (نقر يثبّت الاختيار + بطاقة crop/area/id + أزرار انتقال) · FieldWorkspaceMapCard (بطاقات فعّالة) · SpatialIndicatorsPage (إزالة `FIELD_ID="field_01"` الثابت ⇒ FieldSelector يقود useIndicatorGrid/prescription) · FieldIntelligencePage/maestro (dropdown بدل إدخال id خام) · LabSamplingPage (خريطة قمر تفاعليّة لنقطة العينة) · Irrigation Plan/Water (FieldSelector + field_id بالحمولة) · WaterTwinPage (`initial_depletion_mm=0` عند غياب دفتر المياه) · FieldRanking/ProblemFields (احترام `real_data !== false`) · توجيه `/health/timeline`+`/health/temporal-indicators` (aliases + Routes) · مكوّن FieldSelector جديد · `computeFieldEtcDual` fallback عميلٌ **شفّاف** فقط عند خطأ DATABASE_URL المعطَّل (موسوم `client_fallback`، لا يُقدَّم كإنتاج).
+
+**تحقّق-قبل-دمج اصطاد عيبَين في الرقعة:** (١) `source: 'map'` ليس قيمة `FieldSelectionSource` صالحة (`'user'|'route'|'auto'|'restore'|'system'`) ⇒ tsc error؛ صُحِّح لـ`'user'`. (٢) اختبار render لـFieldWorkspaceMapCard لم يُلَفّ بـRouter بعد إضافة `useNavigate` ⇒ 5 اختبارات فشلت؛ لُفّ بـ`MemoryRouter`.
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · release **3153** checksums. واجهة فقط · بلا migration. يُضاف لـPR **#580**.
+
 ## 2026-07-05 (ن) — `ad49e73` اعتماد الخطّ الزمنيّ التاريخيّ الأغنى + جسر geometry صادق
 
 رقعة المستخدم (`sahool_v2.0.0_5171ee6_backfill_incremental_retry_hotfix.zip`): جزؤها الخلفيّ (backfill incremental retry) كان **مطبَّقاً حرفيّاً** عندي (`backfill_scan_worker.py` + compose متطابقان). لكنّ واجهة الزيب أغنى؛ اختار المستخدم اعتمادها. طُبِّق بعد تحقّق-قبل-دمج:
