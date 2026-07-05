@@ -4555,7 +4555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd0bf1157eb5c60a992888c4cf302c8a28bedac6bfb7023c27ad6dbc5b81112b"
+          "content": "b4c00b746c3b7371c44c2008840a4a90180d0c68a115672231b38751cdbb2786"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -8885,7 +8885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ad082c3058fa9f84626cb2db5a3a7105e9540b34c504c8ccecf07a711110609"
+          "content": "cbc0c1bd898bcc3ba6b588421e7dc33e47107f58a2dbad5db2fbd9eaad3aeda6"
         }
       ],
       "name": "services/raster-service/cdse_client.py",

@@ -378,15 +378,41 @@ class CdseClient:
         last_resp: httpx.Response | None = None
         while True:
             _throttle_process_api()
-            resp = httpx.post(
-                f"{self._base_url}/api/v1/process",
-                json=payload,
-                headers={
-                    "Authorization": f"Bearer {self.token()}",
-                    "Accept": "image/tiff",
-                },
-                timeout=120.0,
-            )
+            # httpx.TransportError يغطّي فشل الاتّصال قبل وصول أيّ ردّ: قطع TLS
+            # (`SSL: UNEXPECTED_EOF_WHILE_READING` ⇒ ConnectError/RemoteProtocolError)،
+            # إعادة تعيين الوصلة، مهلة القراءة… وهي غالباً عابرة (proxy/egress/إعادة
+            # تفاوض TLS) وتنجح عند الإعادة. سابقاً كانت تُرمى فوراً بلا إعادة فتفشل
+            # بلاطة البكسل وتعود شفّافة. نعيدها بنفس backoff الـ429 حتى نفاد المحاولات.
+            try:
+                resp = httpx.post(
+                    f"{self._base_url}/api/v1/process",
+                    json=payload,
+                    headers={
+                        "Authorization": f"Bearer {self.token()}",
+                        "Accept": "image/tiff",
+                    },
+                    timeout=120.0,
+                )
+            except httpx.TransportError as exc:
+                if attempt >= max_retries:
+                    logger.warning(
+                        "CDSE Process API transport error exhausted retries=%s err=%r payload=%s",
+                        max_retries,
+                        exc,
+                        _safe_log_payload(payload),
+                    )
+                    raise
+                delay = min(max_backoff, base_backoff * (2**attempt))
+                logger.warning(
+                    "CDSE Process API transport error attempt=%s/%s sleeping=%.1fs err=%r",
+                    attempt + 1,
+                    max_retries,
+                    delay,
+                    exc,
+                )
+                time.sleep(delay)
+                attempt += 1
+                continue
             last_resp = resp
             if resp.status_code != 429:
                 try:
@@ -490,44 +516,71 @@ class CdseClient:
             keys = ("collections", "datetime", "limit", "bbox", "intersects")
             return {k: base[k] for k in keys if k in base}
 
-        try:
-            resp = httpx.post(url, json=payload, headers=headers, timeout=30.0)
-            if resp.status_code >= 400:
-                logger.warning(
-                    "CDSE catalog search failed: status=%s body=%s payload=%s",
-                    resp.status_code,
-                    resp.text[:1200],
-                    _safe_log_payload(payload),
-                )
-                fallback = _minimal_fallback(payload)
-                resp = httpx.post(url, json=fallback, headers=headers, timeout=30.0)
+        # قطع TLS/الاتّصال العابر (`SSL: UNEXPECTED_EOF_WHILE_READING` وأمثاله) كان
+        # يُبتَلع فوراً إلى [] فيبدو «لا مشهد» بينما المشكلة شبكيّة عابرة (هذا سبب فشل
+        # SAM2/backfill المُبلَّغ). نعيد على TransportError بـbackoff قبل الاستسلام.
+        max_retries = _env_int("CDSE_PROCESS_MAX_RETRIES", 5, minimum=0)
+        base_backoff = _env_float("CDSE_PROCESS_RETRY_BASE_SECONDS", 5.0, minimum=0.0)
+        max_backoff = _env_float("CDSE_PROCESS_RETRY_MAX_SECONDS", 120.0, minimum=1.0)
+        attempt = 0
+        while True:
+            try:
+                resp = httpx.post(url, json=payload, headers=headers, timeout=30.0)
                 if resp.status_code >= 400:
                     logger.warning(
-                        "CDSE catalog fallback failed: status=%s body=%s payload=%s",
+                        "CDSE catalog search failed: status=%s body=%s payload=%s",
                         resp.status_code,
                         resp.text[:1200],
-                        _safe_log_payload(fallback),
+                        _safe_log_payload(payload),
+                    )
+                    fallback = _minimal_fallback(payload)
+                    resp = httpx.post(url, json=fallback, headers=headers, timeout=30.0)
+                    if resp.status_code >= 400:
+                        logger.warning(
+                            "CDSE catalog fallback failed: status=%s body=%s payload=%s",
+                            resp.status_code,
+                            resp.text[:1200],
+                            _safe_log_payload(fallback),
+                        )
+                        return []
+                data = resp.json()
+                features = list(data.get("features") or [])
+                # Defensive client-side cloud filter in case fallback removed the provider filter.
+                filtered: list[dict] = []
+                for feature in features:
+                    props = feature.get("properties") or {}
+                    cc = props.get("eo:cloud_cover")
+                    try:
+                        if cc is not None and float(cc) > cloud:
+                            continue
+                    except (TypeError, ValueError):
+                        pass
+                    filtered.append(feature)
+                return filtered
+            except httpx.TransportError as exc:
+                if attempt >= max_retries:
+                    logger.warning(
+                        "CDSE catalog transport error exhausted retries=%s — returning []: %r",
+                        max_retries,
+                        exc,
                     )
                     return []
-            data = resp.json()
-            features = list(data.get("features") or [])
-            # Defensive client-side cloud filter in case fallback removed the provider filter.
-            filtered: list[dict] = []
-            for feature in features:
-                props = feature.get("properties") or {}
-                cc = props.get("eo:cloud_cover")
-                try:
-                    if cc is not None and float(cc) > cloud:
-                        continue
-                except (TypeError, ValueError):
-                    pass
-                filtered.append(feature)
-            return filtered
-        except Exception as e:  # noqa: BLE001
-            logger.warning(
-                "CDSE catalog search failed — returning empty list: %s", e, exc_info=True
-            )
-            return []
+                delay = min(max_backoff, base_backoff * (2**attempt))
+                logger.warning(
+                    "CDSE catalog transport error attempt=%s/%s sleeping=%.1fs err=%r",
+                    attempt + 1,
+                    max_retries,
+                    delay,
+                    exc,
+                )
+                time.sleep(delay)
+                attempt += 1
+                continue
+            except Exception as e:  # noqa: BLE001
+                logger.warning(
+                    "CDSE catalog search failed — returning empty list: %s", e, exc_info=True
+                )
+                return []
 
 
 # مثيل وحيد (يُعيد استخدام ذاكرة التوكن عبر الطلبات).

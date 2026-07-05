@@ -655,6 +655,20 @@ export default function MapHub() {
       return;
     }
     let cancelled = false;
+    // v8-F4: هندسة الحقل (poly) تُقصّ عليها بلاطات المؤشّرات. حقل بلا حدود مرسومة
+    // (هندسة NULL — مثل حقول مبذورة بإحداثيّات مديريّة فقط، أو GPS ميدانيّ معلّق) لا
+    // يمكن أن يُصيَّر بكسليّاً: raster-service سيفشل مُغلَقاً (available=false / بلاطة
+    // شفّافة). لا نُطلق الفحص فنُظهر رسالة CDSE المُضلِّلة («شغّل التجهيز/تحقّق من CDSE»)
+    // التي تُرسِل المستخدِم لإصلاح خاطئ؛ نُعلن السبب الحقيقيّ: الحدود مفقودة.
+    const clipParams = cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null);
+    if (!clipParams.poly) {
+      setTrueColorRuntime({
+        state: 'unavailable',
+        message: 'لا توجد حدود مرسومة لهذا الحقل. المؤشّرات على مستوى البكسل تُقصّ على حدود الحقل — ارسم أو استورد الحدود أوّلاً (إضافة/تعديل الحقل) ثمّ ستظهر الطبقة.',
+        endpoint: 'cdse-tilejson',
+      });
+      return;
+    }
     setTrueColorRuntime({ state: 'checking', message: 'جارٍ التحقق من جاهزية TrueColor عبر raster-service…', endpoint: 'cdse-tilejson' });
     const params = {
       index: RAW_IMAGERY_INDEX_ID,
@@ -662,7 +676,7 @@ export default function MapHub() {
       ...(tenantId ? { tenant_id: tenantId, tid: tenantId } : {}),
       // v8-F4: مرّر هندسة الحقل (poly) كي يبني cdse-tilejson روابط بلاطات مقصوصة على
       // حدود الحقل، ويتّحد فحص الجاهزية مع القصّ الفعليّ (لا احتياطيّ DB/عالميّ).
-      ...cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null),
+      ...clipParams,
     };
     rasterApi
       .get(`/v1/fields/${fieldId}/cdse-tilejson`, { params })
@@ -736,8 +750,14 @@ export default function MapHub() {
     if (!fieldId) return { tone: 'warn' as const, label: 'اختر حقلاً', hint: 'لن تُحمّل المؤشرات قبل تحديد حقل.' };
     if (!indicatorActive) return { tone: 'info' as const, label: 'لا طبقة نشطة', hint: 'افتح صورة الحقل الخام أو اختر مؤشراً تفسيرياً.' };
     if (indicatorActive === RAW_IMAGERY_INDEX_ID) return { tone: trueColorRuntime.state === 'ready' ? 'ok' as const : trueColorRuntime.state === 'checking' ? 'info' as const : 'warn' as const, label: 'صورة الحقل الخام TrueColor', hint: trueColorRuntime.message };
+    // المؤشّرات البكسليّة (NDVI…) تُقصّ على حدود الحقل. بلا هندسة مرسومة لا طبقة —
+    // نُعلن السبب الصادق بدل الادّعاء أنّها «ستُحمَّل داخل حدود الحقل».
+    if (!cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null).poly) {
+      return { tone: 'warn' as const, label: 'حدود الحقل مفقودة', hint: 'لا توجد حدود مرسومة لهذا الحقل — المؤشّرات على مستوى البكسل تُقصّ على الحدود. ارسم أو استورد الحدود أوّلاً.' };
+    }
     return { tone: 'ok' as const, label: 'مؤشر نشط', hint: `سيتم تحميل ${LAYER_LEGEND[indicatorActive]?.short ?? indicatorActive} داخل حدود الحقل.` };
-  }, [fieldId, indicatorActive, trueColorRuntime]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldId, indicatorActive, trueColorRuntime, JSON.stringify(cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null))]);
 
   // ── بيانات طبقات التراكب (حيّة، أمانة صارمة) ──────────────────
   // تنبيهات/أجهزة استعلامات React Query رخيصة مُخزَّنة — نُشغّلها دوماً (لا نُهدر

@@ -1453,3 +1453,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **إصلاح 409 حفظ الحقل (9008d35):** `frontend/src/sections/MapHub.tsx` — `handleSaveField`/`handleImportField` كانا يحطّان خطأ أكسيوس الغنيّ إلى `new Error(asApiError(e).message)` = «Request failed with status code 409» فيضيع `detail.message_ar` الصادق (اسم مكرّر / تداخل هندسة). صُحِّح إلى `apiErrorMessage(e, fallback)` كما في `AddFieldWithMap`. مسار SetupCabin كان سليماً سلفاً. زرّ الحفظ `disabled={saving}` ⇒ النقر المزدوج مضبوط، فلا حاجة idempotency.
 - **sam2-inference 503 (STAC SSL EOF):** ليس عطلاً — fail-closed صادق (`main.py:202-238`: فشل STAC ⇒ None ⇒ 503، لا اختلاق حدّ). `/readyz 200` ⇒ الخدمة حيّة؛ الخلل في TLS الصادر لمزوّد STAC (شبكة/proxy/throttle).
 - **الدمج:** CI أخضر على 9008d35 (run 28755086261، كلّ الوظائف 11)؛ fast-forward نظيف efa0e9b→9008d35 لـmain وdevelop. zip: `..._9008d35_aljawf_seed_field409_fix.zip` (3434 ملفّاً).
+
+## 2026-07-05 — بكسل المؤشّرات لا يظهر: قطع TLS عابر لـCDSE (main=develop=d21f947)
+- **العرَض:** حقل جديد بحدود صحيحة لا يُظهر مؤشّرات البكسل + `sam2/backfill` يسجّل `STAC: SSL UNEXPECTED_EOF`.
+- **الجذر (ثغرة كود):** مسار جلب CDSE يعيد على 429 فقط. قطع الاتّصال/TLS العابر (`httpx.TransportError`) كان: `process_index` يرمي فوراً ⇒ بلاطة شفّافة؛ `search_scenes` يبتلع إلى `[]` ⇒ «لا مشهد». `cdse_client.py`.
+- **الإصلاح (d21f947):** إعادة على `httpx.TransportError` بنفس backoff (`CDSE_PROCESS_MAX_RETRIES/BASE/MAX`) في المسارين؛ بعد النفاد يبقى fail-closed (لا اختلاق). حارس `test_cdse_process_throttle_retry_guard.py` (+حالة، 5 اجتياز).
+- **صدق:** الإعادة تُنقِذ من العابر فقط. الحجب الدائم (egress يمنع `*.dataspace.copernicus.eu` أو غياب CDSE creds) إصلاحٌ بيئيّ — سُلّمت للمستخدِم 3 أوامر تشخيص (env creds / curl خروج / logs).
+- **رسالة «لا حدود» الصادقة (5482b4d):** MapHub كان يُظهر رسالة CDSE المُضلِّلة لحقل بلا هندسة؛ الآن «ارسم/استورد الحدود أوّلاً» (TrueColor + mapDataStatus).
