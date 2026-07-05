@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-05 (ن) — بذرة تشغيليّة لمزرعة الجوف/السنيدار من بيانات مرجعيّة حقيقيّة
+
+`scripts/seed/aljawf_sunaydar_farm.sql`: يُدخِل المزرعة الحقيقيّة في قاعدة المنصّة لتظهر بالشاشات (قاعدة v9_foundation كانت تبذر حقول البيضاء الوهميّة فقط، بينما بيانات الجوف/السنيدار حيّة في YAML/CSV فقط). من مصادر حقيقيّة: 6 حقول (farm_map) · 3 مواسم قمح Z1 (yield_history 2.6→4.5→6.17 طن/هـ حصاد موزون) · فحص تربة مرجعيّ (sunaydar_soil_reference: pH 8.2/CaCO3 31%/OM 0.94%/P 2.7). **صدق:** المستأجِر `:tenant_id` (لا UUID مثبَّت) · idempotent (ON CONFLICT DO UPDATE) **مُثبَت على Postgres حيّ** (6/3/1، تشغيل مرّتين بلا تكرار) · إحداثيّات مديريّة (16.15 من climate.yaml)، حدود الحقل وGPS الدقيق **معلّقان** (7 عيّنات، لا مضلّع مفبرك). حارس tests_v9 + قسم Runbook. بذرة اختياريّة للمشغّل لا migration تلقائيّ. unit ناجح · ruff نظيف · release 3164.
+
+---
+
 ## 2026-07-05 (ن) — Runbook تشغيليّ لصور الأقمار (البند #10)
 
 `docs/runbooks/SATELLITE_IMAGERY_RUNBOOK.md` (مبنيّ على الكود الفعليّ): تشغيل backfill + عامل السحب · تشخيص/ضبط خنق CDSE 429 (env + Retry-After) · إعادة تشغيل العامل + استرداد الحجز/صدق إعادة المحاولة · التحقّق من `raster_assets` (`asset_status='ready'`) · التحقّق من الخطّ الزمنيّ (available-dates/imagery/timeline) · الحالة الموحّدة · تمييز demo عن real (`real_data`/`demo-only`/`lib/realData.ts`+DemoBadge) · إبطال الكاش · فحوص صحّة. حالة التشغيل موثّقة عبر نقطة raster الداخليّة + استعلام `backfill_runs` (المنصّة لا تبروكسيها — أُبقِي صادقاً). توثيق فقط · بلا كود/migration.
