@@ -760,6 +760,9 @@ services:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
+      # v7-#1: النقطة تقرأ الراية أيضاً (وإلّا افتراض false ⇒ بقاء المسار المتزامن).
+      # الافتراض true في الإنتاج: النقطة تُرجِع run_id فوراً وعامل الفحص يعالج لاتزامنيّاً.
+      RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
@@ -811,8 +814,11 @@ services:
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
-      RASTER_CACHE_INVALIDATION_ENABLED: ${RASTER_CACHE_INVALIDATION_ENABLED:-false}
-      TILE_CACHE_TTL_SECONDS: ${TILE_CACHE_TTL_SECONDS:-0}
+      # v8-F3: مُفعَّل افتراضاً في الإنتاج — تغيّر حدود الحقل يُبطِل بلاطات الكاش القديمة
+      # ويعلّم raster_assets.asset_status='stale' (وإلّا بقيت بلاطات هندسة قديمة تُخدَّم).
+      RASTER_CACHE_INVALIDATION_ENABLED: ${RASTER_CACHE_INVALIDATION_ENABLED:-true}
+      # نظافة القرص: TTL محافظ 30 يوماً افتراضاً (0=معطَّل). الحصّة تبقى opt-in (0).
+      TILE_CACHE_TTL_SECONDS: ${TILE_CACHE_TTL_SECONDS:-2592000}
       TILE_CACHE_MAX_BYTES: ${TILE_CACHE_MAX_BYTES:-0}
     command:
     - python
@@ -845,7 +851,7 @@ services:
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
-      RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-false}
+      RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}

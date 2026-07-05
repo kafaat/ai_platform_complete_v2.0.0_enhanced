@@ -443,3 +443,7 @@
 \i migrations/v143_raster_assets_lifecycle_lineage.sql
 \echo '═══ 150. v144_backfill_runs.sql ═══'
 \i migrations/v144_backfill_runs.sql
+\echo '═══ 151. v145_raster_assets_product_dedup.sql ═══'
+\i migrations/v145_raster_assets_product_dedup.sql
+\echo '═══ 152. v146_backfill_runs_outcome_counters.sql ═══'
+\i migrations/v146_backfill_runs_outcome_counters.sql

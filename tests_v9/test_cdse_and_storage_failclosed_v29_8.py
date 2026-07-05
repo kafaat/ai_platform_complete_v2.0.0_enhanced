@@ -56,7 +56,9 @@ def test_cdse_has_no_hardcoded_yemen_bbox_fallback() -> None:
 def test_cdse_tilejson_propagates_tid_and_urlencodes() -> None:
     src = CDSE_TILES.read_text(encoding="utf-8")
     idx = src.find("async def field_cdse_tilejson")
-    body = src[idx : idx + 1600]
+    # نقصّ حتّى مطلع الدالّة التالية (لا نافذة ثابتة هشّة تنكسر عند إضافة توثيق/منطق).
+    nxt = src.find("\n@router", idx + 1)
+    body = src[idx : nxt if nxt != -1 else idx + 3000]
     assert "urlencode(" in body, "روابط البلاطة يجب أن تُرمَّز بـurlencode لا تسلسل يدويّ"
     assert 'tile_params["tid"]' in body, "رابط البلاطة يجب أن يحمل tid وإلّا تُرفَض <img>"
     assert 'f"index={index}"' not in body, "بقي التسلسل اليدويّ للسلسلة — استبدله urlencode"

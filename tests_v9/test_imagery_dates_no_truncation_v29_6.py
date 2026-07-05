@@ -136,6 +136,8 @@ def test_query_orders_newest_first_before_limit() -> None:
     """الاستعلام يأخذ الأحدث (DESC داخليّ) لا الأقدم — حارس مصدريّ ضدّ ASC+LIMIT."""
     src = DB_PERSIST.read_text(encoding="utf-8")
     idx = src.find("def list_asset_dates")
-    body = src[idx : idx + 1400]
+    # نقصّ حتّى الدالّة التالية (نافذة ثابتة تنكسر عند إضافة تعليقات للاستعلام).
+    nxt = src.find("\nasync def ", idx + 1)
+    body = src[idx : nxt if nxt != -1 else idx + 2000]
     assert "ORDER BY ad DESC" in body, "يجب ترتيب DESC داخليّ لالتقاط الأحدث قبل LIMIT"
     assert "ORDER BY ad ASC" in body, "يجب إعادة الترتيب تصاعديّاً للمُستدعي"

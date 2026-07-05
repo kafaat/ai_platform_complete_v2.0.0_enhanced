@@ -101,6 +101,11 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
     "services/raster-service/backfill_scan_worker.py::backfill_run_items,backfill_runs": (
         "backfill scan worker: tenant GUC set tx-locally before per-tenant run_items write (RLS-scoped)"
     ),
+    # v9-F4/v10-F5/v10-F6: وسم run_item بـprocessing+job_id (وبعده persisted/failed) داخل
+    # معاملة تضبط app.current_tenant tx-locally أوّلاً (RLS-scoped) — تتبّع run_item→job.
+    "services/raster-service/backfill_scan_worker.py::backfill_run_items": (
+        "backfill scan worker: per-item processing/job_id + terminal status; tenant GUC set tx-locally (RLS-scoped)"
+    ),
 }
 ALLOWLIST: set[str] = set(_ALLOWLIST_JUSTIFIED)
 

@@ -151,7 +151,8 @@ export default function FieldMapCenter() {
   useEffect(() => {
     if (!field?.id) { setImageryDates([]); setSelectedDate('latest'); return; }
     let cancelled = false;
-    fetchFieldImageryAvailableDates(field.id)
+    // v11-F8: مرّر المؤشّر المعروض (leftLayer) كي لا تُخلَط تواريخ مؤشّرات أخرى في المُنتقي.
+    fetchFieldImageryAvailableDates(field.id, leftLayer)
       .then((dates) => {
         if (cancelled) return;
         const ready = dates.filter((d) => d.date && d.has_cog !== false);
@@ -162,7 +163,7 @@ export default function FieldMapCenter() {
         if (!cancelled) { setImageryDates([]); setSelectedDate('latest'); }
       });
     return () => { cancelled = true; };
-  }, [field?.id]);
+  }, [field?.id, leftLayer]);
 
   return (
     <FieldCabin

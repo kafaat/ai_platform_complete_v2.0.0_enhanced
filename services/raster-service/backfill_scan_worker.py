@@ -64,20 +64,31 @@ def _idempotency_key(
     return f"{tenant}:{field}:{geom_rev if geom_rev is not None else 0}:{provider}:{scene}:{index}"
 
 
+# مهلة الإيجار (lease): تشغيلة عالقة في حالة غير نهائيّة أطول من هذا تُعتبر «عاملها مات»
+# فتُستعاد (v9-F3). updated_at يُحدَّث عند كلّ انتقال، فهو نبض الحياة الفعليّ للتشغيلة.
+_LEASE_TIMEOUT_SECONDS = int(os.getenv("BACKFILL_LEASE_TIMEOUT_SECONDS", "1800"))
+
+
 async def run_once(pool: asyncpg.Pool) -> int:
-    """يطالب تشغيلة planned واحدة ويعالجها. يُرجِع 1 إن عولجت تشغيلة، 0 إن لا شيء."""
+    """يطالب تشغيلة planned (أو عالقة تجاوزت الإيجار) ويعالجها. يُرجِع 1 إن عولجت، 0 إن لا شيء."""
     async with pool.acquire() as conn:
         async with conn.transaction():
+            # v9-F3: نلتقط planned، **أو** تشغيلة عالقة في حالة غير نهائيّة تجاوز
+            # updated_at فيها مهلة الإيجار (عاملها مات بعد searching/queued/processing
+            # فبقيت عالقة للأبد). FOR UPDATE SKIP LOCKED يمنع الالتقاط المزدوج.
             row = await conn.fetch(
                 """
                 SELECT id, tenant_id, field_id, from_date, to_date, indices, max_cloud_pct,
                        geometry_revision, clip_polygon_geojson, apply_cloud_mask, limit_per_month
                 FROM backfill_runs
                 WHERE status = 'planned'
+                   OR (status IN ('searching', 'queued', 'processing')
+                       AND updated_at < now() - make_interval(secs => $1))
                 ORDER BY created_at
                 LIMIT 1
                 FOR UPDATE SKIP LOCKED
-                """
+                """,
+                _LEASE_TIMEOUT_SECONDS,
             )
             if not row:
                 return 0
@@ -133,6 +144,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
             w_end.strftime("%Y-%m-%dT23:59:59Z"),
             max_cloud,
             limit=max(10, limit_per_month * 4),
+            geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
         )
         items = main._rank_scenes(search.get("items", []), max_cloud_pct=max_cloud)[
             :limit_per_month
@@ -153,7 +165,14 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
         )
 
     # ٢. لكلّ (مشهد×مؤشّر): idempotency + preflight + معالجة.
+    # v9-F5: عدّادات نتائج دقيقة من الحفظ الفعليّ لا من عدد المحاولات (jobs_scheduled
+    # يبقى للتوافق لكنّ صدق النجاح يقوم على items_persisted/failed/skipped).
     jobs_scheduled = 0
+    items_persisted = 0
+    items_failed = 0
+    items_skipped = 0
+    import uuid as _uuid
+
     for scene in selected:
         scene_id = scene.get("item_id")
         acq = (scene.get("datetime") or "")[:10] or None
@@ -161,41 +180,62 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
             continue
         for index in indices:
             key = _idempotency_key(tenant, field, geom_rev, "element84", scene_id, index)
+            # v10-F6: set_config(...,true) عابرٌ للمعاملة؛ لذا نُغلّف الضبط + الاستعلامات
+            # في معاملة واحدة كي يظلّ app.current_tenant سارياً (يهمّ حين يسقط العامل إلى
+            # DATABASE_URL بدور مقيّد بلا BYPASSRLS — وإلّا رأت القراءات صفوفاً صفراً).
             async with pool.acquire() as conn:
-                await _set_tenant(conn, tenant)
-                # preflight: الأصل موجود بالفعل ⇒ تخطٍّ (لا إعادة معالجة). v6-F4.
-                exists = await conn.fetchval(
-                    "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
-                    "AND index_name=$3 AND scene_id=$4 AND ($5::date IS NULL OR acquisition_date=$5::date) "
-                    "AND asset_status <> 'failed' LIMIT 1",
-                    tenant,
-                    field,
-                    index,
-                    scene_id,
-                    acq,
-                )
-                item_id = await conn.fetchval(
-                    """
-                    INSERT INTO backfill_run_items (
-                        run_id, tenant_id, field_id, scene_id, index_name, acquisition_date,
-                        provider, idempotency_key, status
-                    ) VALUES ($1, $2::uuid, $3, $4, $5, $6::text::date, 'element84', $7, $8)
-                    ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
-                    RETURNING id
-                    """,
-                    run_id,
-                    tenant,
-                    field,
-                    scene_id,
-                    index,
-                    acq,
-                    key,
-                    "skipped" if exists else "queued",
-                )
+                async with conn.transaction():
+                    await _set_tenant(conn, tenant)
+                    # v10-F1: preflight يجب أن يطابق «أصلاً جاهزاً بنفس مراجعة الهندسة».
+                    # 'stale' (هندسة قديمة بعد تغيّر الحدود) لا يُعدّ «موجوداً» وإلّا مُنِعت
+                    # إعادة التوليد وبقيت الصورة مقصوصةً على حدود قديمة للأبد.
+                    exists = await conn.fetchval(
+                        "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
+                        "AND index_name=$3 AND scene_id=$4 "
+                        "AND ($5::date IS NULL OR acquisition_date=$5::date) "
+                        "AND asset_status = 'ready' "
+                        "AND ($6::int IS NULL OR geometry_revision = $6::int) LIMIT 1",
+                        tenant,
+                        field,
+                        index,
+                        scene_id,
+                        acq,
+                        geom_rev,
+                    )
+                    item_id = await conn.fetchval(
+                        """
+                        INSERT INTO backfill_run_items (
+                            run_id, tenant_id, field_id, scene_id, index_name, acquisition_date,
+                            provider, idempotency_key, status
+                        ) VALUES ($1, $2::uuid, $3, $4, $5, $6::text::date, 'element84', $7, $8)
+                        ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
+                        RETURNING id
+                        """,
+                        run_id,
+                        tenant,
+                        field,
+                        scene_id,
+                        index,
+                        acq,
+                        key,
+                        "skipped" if exists else "queued",
+                    )
             if item_id is None:
                 continue  # مفتاح مكرّر (نُقِر سابقاً) — idempotent، لا نُعيد
             if exists:
+                items_skipped += 1
                 continue  # الأصل موجود — سُجِّل skipped، لا معالجة
+            # v9-F4: سجّل job_id ووسم processing **قبل** المعالجة كي يبقى الأثر
+            # run_item → job → raster_asset واضحاً حتّى عند التعطّل أثناء المعالجة.
+            jid = f"backfill_{_uuid.uuid4().hex[:12]}"
+            async with pool.acquire() as conn:
+                async with conn.transaction():
+                    await _set_tenant(conn, tenant)
+                    await conn.execute(
+                        "UPDATE backfill_run_items SET status='processing', job_id=$2 WHERE id=$1",
+                        item_id,
+                        jid,
+                    )
             ok = await asyncio.to_thread(
                 _process_scene_index,
                 scene,
@@ -205,30 +245,45 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                 geom_rev,
                 clip,
                 run.get("apply_cloud_mask", True),
+                jid,
             )
             jobs_scheduled += 1
+            if ok:
+                items_persisted += 1
+            else:
+                items_failed += 1
             async with pool.acquire() as conn:
-                await _set_tenant(conn, tenant)
-                await conn.execute(
-                    "UPDATE backfill_run_items SET status=$2, processed_at=now() WHERE id=$1",
-                    item_id,
-                    "persisted" if ok else "failed",
-                )
+                async with conn.transaction():
+                    await _set_tenant(conn, tenant)
+                    await conn.execute(
+                        "UPDATE backfill_run_items SET status=$2, processed_at=now() WHERE id=$1",
+                        item_id,
+                        "persisted" if ok else "failed",
+                    )
 
+    # v8-F8/v9-F5: الحالة النهائيّة تعكس النتيجة الفعليّة لا مجرّد «انتهت الحلقة».
+    final_status = "completed_with_errors" if items_failed > 0 else "completed"
     async with pool.acquire() as conn:
         await conn.execute(
-            "UPDATE backfill_runs SET status='completed', jobs_scheduled=$2, updated_at=now() "
-            "WHERE id=$1",
+            "UPDATE backfill_runs SET status=$2, jobs_scheduled=$3, items_persisted=$4, "
+            "items_failed=$5, items_skipped=$6, updated_at=now() WHERE id=$1",
             run_id,
+            final_status,
             jobs_scheduled,
+            items_persisted,
+            items_failed,
+            items_skipped,
         )
     logger.info(
-        "backfill run %s completed field=%s months=%s scenes=%s jobs=%s",
+        "backfill run %s %s field=%s months=%s scenes=%s persisted=%s failed=%s skipped=%s",
         run_id,
+        final_status,
         field,
         months_scanned,
         len(selected),
-        jobs_scheduled,
+        items_persisted,
+        items_failed,
+        items_skipped,
     )
 
 
@@ -240,14 +295,27 @@ def _process_scene_index(
     geom_rev,
     clip: dict | None,
     apply_cloud_mask: bool,
+    jid: str,
 ) -> bool:
-    """يبني VRT ويعالج مؤشّراً لمشهد (متزامن — يُستدعى عبر asyncio.to_thread). يُرجِع True عند النجاح."""
-    import uuid as _uuid
+    """يبني VRT ويعالج مؤشّراً لمشهد (متزامن — يُستدعى عبر asyncio.to_thread). يُرجِع True عند النجاح.
 
+    v9-F4: jid يُمرَّر من المُستدعي (لا يُولَّد داخليّاً) كي يُسجَّل على backfill_run_items
+    قبل المعالجة — فيبقى أثر run_item → job → raster_asset حتّى عند التعطّل أثناء المعالجة.
+
+    التحويل إلى CDSE: المشاهد المُكتشَفة من كتالوج CDSE تأتي بلا ``bands_urls`` (لا نطاقات
+    COG) — تُعالَج عبر ``main._process_backfill_scene_cdse`` (Process API مثبَّت على تاريخ
+    المشهد). المشاهد ذات ``bands_urls`` (ارتداد Element84) تبقى على مسار الـVRT."""
     import stac_vrt
 
-    jid = f"backfill_{_uuid.uuid4().hex[:12]}"
     try:
+        if not (scene.get("bands_urls") or {}):
+            # مشهد CDSE (كتالوج Copernicus): معالجة خادميّة عبر Process API.
+            main._process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)
+            job = main._jobs.get(jid) or {}
+            result = job.get("result") or {}
+            return bool(
+                job.get("status") == main.JobStatus.completed and result.get("persisted") is True
+            )
         safe_hrefs = {
             k: main._safe_raster_source(v) for k, v in (scene.get("bands_urls") or {}).items() if v
         }
@@ -270,7 +338,13 @@ def _process_scene_index(
         )
         main._run_processing(jid, preq)
         job = main._jobs.get(jid) or {}
-        return job.get("status") == main.JobStatus.completed
+        # v7-#2: «persisted» يجب أن يعني الحفظ في DB فعلاً، لا مجرّد اكتمال المعالجة.
+        # _run_processing يضع result.persisted=False حين يفشل إدراج raster_assets (الصورة
+        # في الذاكرة/القرص فقط). اعتماد status==completed وحده يمنح دليلاً كاذباً بالحفظ.
+        result = job.get("result") or {}
+        return bool(
+            job.get("status") == main.JobStatus.completed and result.get("persisted") is True
+        )
     except Exception as e:  # noqa: BLE001
         logger.warning("backfill scene %s/%s failed: %s", scene.get("item_id"), index, e)
         return False

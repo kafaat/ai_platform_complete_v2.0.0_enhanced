@@ -17,7 +17,7 @@ import { MapContainer, TileLayer, Polygon, FeatureGroup, useMap } from 'react-le
 import DrawControl from './maphub/DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../lib/leafletSetup'; // CSS الأساسيّ + أيقونات Leaflet + أداة الرسم (side-effect) — حاسم للتصيير
-import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi } from '../services/api';
+import { fieldCdseTileUrl, fieldIndicatorTileUrl, normalizeIndicatorIndex, rasterApi, cdseClipParams } from '../services/api';
 import { getTenantId } from '../lib/authStorage';
 import { areaSqMeters, lengthMeters } from '../lib/geo';
 import { readFieldMapView, consumeDefaultViewOnce } from '../lib/fieldMapView';
@@ -280,6 +280,9 @@ export default function FieldIndicatorMap({
   // نمرّر tid في الاستعلام كما يفعل HubMap/HubMapGL حتى يعمل العزل بعد تشديده.
   const tenantId = getTenantId();
   const normalizedIndex = normalizeIndicatorIndex(index);
+  // v8-F4: بصمة مستقرّة لعقد القصّ (poly/bbox) — مرجع الهندسة كائنٌ غير مستقرّ، فنشتقّ
+  // سلسلة ثابتة كي تُعيد useEffect الفحص عند تغيّر الحدود فقط (لا حلقة تصيير لا نهائيّة).
+  const clipSig = JSON.stringify(cdseClipParams(fieldGeometry, fieldBbox));
   // توحيد main↔cert: بلاطات CDSE الحيّة (قصّ poly) عند tileSegment='cdse-tiles'، وإلّا COG محلّي.
   const tilesUrl = tileSegment === 'cdse-tiles'
     ? fieldCdseTileUrl(fieldId, normalizedIndex, date, tenantId, tileCacheVersion, fieldGeometry, fieldBbox)
@@ -305,6 +308,10 @@ export default function FieldIndicatorMap({
       index: normalizedIndex,
       ...(date && date !== 'latest' ? { date } : {}),
       ...(tenantId ? { tid: tenantId } : {}),
+      // v8-F4: في وضع CDSE مرّر نفس عقد القصّ (poly/bbox) الذي تحمله البلاطة، كي تُبنى
+      // روابط tiles[] في TileJSON على هندسة الواجهة لا على DB/احتياطيّ عالميّ، ويتّحد
+      // إطار الجاهزية مع القصّ الفعليّ (لا تباعد بين المُعاينة والبلاطات).
+      ...(isCdse ? cdseClipParams(fieldGeometry, fieldBbox) : {}),
     };
     rasterApi
       .get<TileJSON>(tilejsonEndpoint, { params })
@@ -340,7 +347,9 @@ export default function FieldIndicatorMap({
         }
       });
     return () => { cancelled = true; };
-  }, [fieldId, normalizedIndex, date, tenantId, tileSegment]);
+    // clipSig (v8-F4): يُعيد فحص TileJSON عند تغيّر هندسة القصّ في وضع CDSE.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldId, normalizedIndex, date, tenantId, tileSegment, clipSig]);
 
   // مركز افتراضي قبل ضبط fitBounds
   const center: [number, number] = fieldPolygon && fieldPolygon.length

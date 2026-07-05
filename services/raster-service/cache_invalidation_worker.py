@@ -92,18 +92,22 @@ async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
             field = row["field_id"]
             try:
                 deleted = tile_cache_maint.invalidate_field_tile_cache(tenant, field)
-                await _set_tenant(conn, tenant)
-                staled = await conn.execute(
-                    "UPDATE raster_assets SET asset_status='stale' "
-                    "WHERE tenant_id = $1::uuid AND field_id = $2 AND asset_status = 'ready'",
-                    tenant,
-                    field,
-                )
-                await conn.execute(
-                    "UPDATE raster_cache_invalidations "
-                    "SET status='processed', processed_at=now() WHERE id=$1",
-                    rid,
-                )
+                # v10-F6: set_config(...,true) عابرٌ للمعاملة — نُغلّف الضبط + التحديثات
+                # المُعتمدة على المستأجِر في معاملة واحدة كي يبقى app.current_tenant سارياً
+                # (يهمّ عند السقوط إلى DATABASE_URL بدور مقيّد بلا BYPASSRLS).
+                async with conn.transaction():
+                    await _set_tenant(conn, tenant)
+                    staled = await conn.execute(
+                        "UPDATE raster_assets SET asset_status='stale' "
+                        "WHERE tenant_id = $1::uuid AND field_id = $2 AND asset_status = 'ready'",
+                        tenant,
+                        field,
+                    )
+                    await conn.execute(
+                        "UPDATE raster_cache_invalidations "
+                        "SET status='processed', processed_at=now() WHERE id=$1",
+                        rid,
+                    )
                 processed += 1
                 logger.info(
                     "invalidation processed id=%s field=%s tiles_deleted=%s assets=%s reason=%s",

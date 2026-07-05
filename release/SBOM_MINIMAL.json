@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f491b3386c85b9faf8d5dac349b2ab418e1a37b65694ce70c6b0c5c421fa3bea"
+          "content": "44d941c13c0d181840a69486f73f50af13da7a0766bd0862729278fe6d730ccd"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -485,7 +485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5ad3fd3646146727f43430f672cc0fbd24bf2345a8aec191c108ea6f7a9461a9"
+          "content": "2aaa46fc144ab74e90f0b10f979a4264f83c643826e9bc703655e8aff9b9eca1"
         }
       ],
       "name": "frontend/src/components/FieldIndicatorMap.tsx",
@@ -4285,7 +4285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e33ebbd08bcd2f26adf5d51ed968731deccb8b339e7688689077103c3960fc49"
+          "content": "7e9a91d5770e0830ca4a815ffd9f007a89cd04972ff0a9589e54446b2427e891"
         }
       ],
       "name": "frontend/src/sections/FieldMapCenter.tsx",
@@ -4335,7 +4335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fed53402b30316f990113239d247910550ead81ff28979937ea21fdea0758541"
+          "content": "ce18e89dada80857a90de92e1ea626509d504beb2d5c6a8e36ffaf84ad31bfe6"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.tsx",
@@ -4495,7 +4495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bff71a597703a90b13b2211aba1c7818772a4ae4d69035281342c65791a19e0"
+          "content": "569cbd2da31e8a0fce61e126a7e00d5c6667093bd460c99763c28604c0041739"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4925,7 +4925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d987f9987b1a46b859c7127a44807b5192a659e37b2772870735382be7f007c1"
+          "content": "ce94aab6171778f6bdc2cb8e1e685f21dd6b2a517025066e9a8e34b849baa780"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -5045,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ea0c7ce00c47f4d393e3631d5d02f966504a4f3125660ba741a142faf0eaca3"
+          "content": "2eeadfae749c684bed17189e90ffa1409a00a1257de68e1fb322b4405775a054"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8735,7 +8735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b59473f4651740df7b9056139cb471026cab9c069f5e9e808c7d318c93a9cb76"
+          "content": "09e079b2180f2154931b69f408f85c2022fbb1204af7a8def06e067d2746d550"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -8755,7 +8755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd17f68d7ee9a596e87ca8cea607c0ee678575e8a685c7a1924eda997f8577ea"
+          "content": "92e1422671c724eb334cacc28f24c5476f624a0743cd4710a74a75e09a570d57"
         }
       ],
       "name": "services/raster-service/cache_invalidation_worker.py",
@@ -8805,7 +8805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4a182ecdd66edd5183d7301bcdd5a2bb8fd95636bcbc923246920ed65121d38"
+          "content": "83fd7a67d84692e5d900a82b0ae226817a5cc6d35514c262c6c7557b47b3d003"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8845,7 +8845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d19b1f3ea5bb4116a88235a5f478853f4955745d10684d223c966be9438a6bda"
+          "content": "1fe9938b417a4c74f49dd664ad54216b23595e09987295b4a338e3f492c2e25b"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -8945,7 +8945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ad98eb001f236fbfb66db823e633cea2e70c5528766557c00e31e9412cfc57e"
+          "content": "ef6ce9f52354e514269504d07c804b264c931e0969dbe19c0ae90c6909f0ae30"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -8955,7 +8955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15bbb34208329046291940ed2a5afdfea75fc165d4d4d1ff4bf2dde72424b532"
+          "content": "cb0f47e4e11d4f15902fd1901964f42312e9f3522f8b3fd726c79d43b652c593"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -11595,7 +11595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "355d15301968023370db75b2ad345bb6b067f69b4c29506abf6966253c50dfa0"
+          "content": "bcdbe7b2a79e05a5f0ab1e77d83fde0509dac1902db4ef8c3f56093361d98376"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

@@ -63,8 +63,13 @@ def test_insert_writes_status_and_revision() -> None:
 
 def test_readers_filter_failed_assets() -> None:
     src = DB_PERSIST.read_text(encoding="utf-8")
-    # الثلاثة قرّاء يصفّون 'failed'.
-    assert src.count("asset_status <> 'failed'") >= 3, "قرّاء الأصول لا يصفّون 'failed' كافّةً"
+    # v11-F1: شُدِّد الفلتر من «غير فاشل» إلى «ready حصراً» — 'stale' (هندسة قديمة بعد
+    # تغيّر الحدود) لم يعد يُقدَّم كصورة صالحة للخريطة/الشريط الزمنيّ. لا قارئ عرض يبقى
+    # على '<> failed' (يُدخِل stale)؛ القرّاء الثلاثة = 'ready'.
+    assert "asset_status <> 'failed'" not in src, (
+        "قرّاء العرض يجب أن يطلبوا 'ready' لا مجرّد غير فاشل"
+    )
+    assert src.count("asset_status = 'ready'") >= 3, "قرّاء الأصول يجب أن يصفّوا 'ready' حصراً"
 
 
 def test_request_models_carry_geometry_revision() -> None:
