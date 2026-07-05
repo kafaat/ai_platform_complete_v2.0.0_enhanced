@@ -4,6 +4,19 @@
 
 ---
 
+## 2026-07-05 (ن) — `960a86d` الجولة 3: قوائم حقول في لوحات القرار/المدير + إشعارات صادقة
+
+رقعة المستخدم (`..._rest_runtime_screens_round3_hotfix.zip`، حزمة كاملة). عزلتُ تغييراتها الحقيقيّة عن حالتي التراكميّة (r3 = حالتي + round3): App.tsx/routes.ts نُسخ متطابقة-فائقة (فقط 22 alias جديداً) + 3 ملفّات لم أمسّها:
+
+- **DecisionDeepPanel:** input نصّيّ fld_* ⇒ select مشترك (useSelectedField) متزامن مع الحقل النشط عبر منتقيات القرار الثلاثة.
+- **ManagerConsolePage:** مدخلات معرّف الحقل ⇒ selects (multi للتقارير، single لأمر العمل/اللقطة).
+- **NotificationCenter:** **إزالة إشعارات SEED المفبركة** (رسائل NDVI/طقس/معمل مخترعة) ⇒ حالة فارغة صادقة حتّى ربط مصدر حيّ (websocket/store). موافق لقاعدة «لا اختلاق».
+- **توجيه:** 22 alias + Routes (indicator-timeline · phenology/growth · prescription · water/twin/etc-dual/fao56 · yield/rankings/problems/roi · iot/irrigation-network · admin/manager).
+
+**حافظتُ على إصلاحاتي التي يفتقر إليها أساس الحزمة:** FarmMapOverview `source:'user'` (لا `'map'` غير الصالح) · allowlist حارس Portfolio · MemoryRouter في اختبار FieldWorkspaceMapCard · تأكيدات الخطّ الزمنيّ المحدود بالخادم · stub اختبار Portfolio. **لم أنسخ ملفّات الاختبار من r3** (كانت ستُرجِع أخطاء أصلحتُها).
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · release **3154** checksums. واجهة فقط · بلا migration. يُضاف لـPR **#580**.
+
 ## 2026-07-05 (ن) — `f18c74b` الجولة 2: قوائم منسدلة للحقول في بقيّة الشاشات + aliases توجيه
 
 رقعة المستخدم (`rest_runtime_screens_round2_fix.diff`) — تُكمِل توصيل الشاشات التشغيليّة المتبقّية بالحقول الحيّة وتستبدل آخر مدخلات معرّف الحقل النصّيّة/الوهميّة بقوائم منسدلة. `patch -p1` نظيف بعد إصلاح عيبَين:
