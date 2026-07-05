@@ -3593,7 +3593,12 @@ export interface FieldTerrain {
   water_harvesting?: { recommended_technique?: string; suitability?: string };
 }
 export const fetchFieldTerrain = (fieldId: string): Promise<FieldTerrain> =>
-  kongApi.get(`/api/v1/fields/${fieldId}/terrain`).then((r) => r.data as FieldTerrain);
+  kongApi.get(`/api/v1/fields/${fieldId}/terrain`).then((r) => {
+    // الخادم يُرجِع تفسير enrich_terrain + dem_auto_fill.computed (المظروف الخام من
+    // حساب DEM الحيّ). نقرأ الكتلة المحسوبة؛ غيابها ⇒ computed=false صادق.
+    const c = r.data?.dem_auto_fill?.computed;
+    return (c && typeof c === 'object' ? c : { computed: false }) as FieldTerrain;
+  });
 
 export const fetchFieldImageryAvailableDates = (
   fieldId: string,

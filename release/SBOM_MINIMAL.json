@@ -1565,6 +1565,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "05faa1678005997b0e83b29abdced6e6392507e9afa1935aa028ce17a576c70a"
+        }
+      ],
+      "name": "frontend/src/components/maphub/TerrainView3D.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1eb50b8f4443989745d53ab556c0eb6bd92b7e405af060a84c697314da97b53b"
         }
       ],
@@ -4965,7 +4975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "27195f979ddb9c536f8472baa8401b912733168ff22c6587d2fd1bfff60c1175"
+          "content": "68bd0008cddf5d765b6bc36fdc798686a56d62fecbb7f412d142b69913665bc5"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9315,6 +9325,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8a146879b249f93ca3ba1b24467e3a03b192655b169c75c17a752fbca614aa3c"
+        }
+      ],
+      "name": "services/raster-service/test_field_terrain.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d028e4cc4e010d49da7c707a82158015904781613021628e62e1636f79b89d94"
         }
       ],
@@ -11695,7 +11715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "546fa88e66fd7c93a0734f9f0cbbc7049fce3761294d135470650114cc69285a"
+          "content": "e9b51a52d50a0b25e382a7eaf550c020e0aed389d88e7d53d1a319463ab6be10"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

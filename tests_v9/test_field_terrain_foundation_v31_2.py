@@ -42,10 +42,13 @@ def test_raster_exposes_tenant_scoped_terrain_route():
     assert "_require_field_tenant" in src
 
 
-def test_platform_proxies_terrain_with_field_bbox():
+def test_platform_terrain_enriches_from_dem_without_duplicate_route():
     src = _PLATFORM_FIELDS.read_text(encoding="utf-8")
-    assert '@router.get("/api/v1/fields/{field_id}/terrain")' in src
+    # Single terrain route (the pre-existing enrich endpoint) — no duplicate registration.
+    assert src.count('@router.get("/api/v1/fields/{field_id}/terrain")') == 1
+    # It fills terrain from the live-DEM compute (best-effort) via raster-service.
+    assert "_compute_field_terrain_from_dem" in src
     assert "guard_field_geometry" in src
-    assert "bbox" in src
+    assert "/v1/fields/{field_id}/terrain" in src  # raster-service call
     # honest 404 when the field is not the tenant's.
     assert "الحقل غير موجود ضمن هذا المستأجِر" in src

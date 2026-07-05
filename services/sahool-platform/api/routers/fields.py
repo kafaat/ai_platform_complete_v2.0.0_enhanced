@@ -797,60 +797,6 @@ async def field_imagery_available_dates(
         raise _db_unavailable("تواريخ صور الأقمار للحقل", e) from e
 
 
-@router.get("/api/v1/fields/{field_id}/terrain")
-async def field_terrain(
-    field_id: str,
-    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
-):
-    """Proxy tenant-verified terrain stats (elevation/slope/aspect) from raster-service.
-
-    Resolves the field geometry from the platform DB, derives its bbox, and forwards
-    to raster-service which computes terrain from a configured DEM (or returns an
-    honest computed=false envelope). No fabricated terrain.
-    """
-    try:
-        async with tenant_connection(user) as conn:
-            row = await conn.fetchrow(
-                "SELECT geometry FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
-                field_id,
-                str(user.tenant_id),
-            )
-            if row is None:
-                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-            geometry = row["geometry"]
-            if isinstance(geometry, str):
-                import json as _json
-
-                geometry = _json.loads(geometry)
-            guarded = guard_field_geometry(geometry)
-        import os as _os
-
-        import httpx as _httpx
-
-        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
-            "/"
-        )
-        headers = {
-            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
-            "X-Tenant-Id": str(user.tenant_id),
-        }
-        params = {}
-        if guarded.bbox and len(guarded.bbox) == 4:
-            params["bbox"] = ",".join(str(v) for v in guarded.bbox)
-        async with _httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.get(
-                f"{raster_url}/v1/fields/{field_id}/terrain",
-                params=params,
-                headers=headers,
-            )
-            resp.raise_for_status()
-            return resp.json()
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001
-        raise _db_unavailable("إحصاءات تضاريس الحقل", e) from e
-
-
 class FieldImageryBackfillProxyRequest(BaseModel):
     """Tenant-scoped platform proxy contract for raster historical imagery backfill.
 
@@ -1006,8 +952,9 @@ async def get_field_terrain(
     يقرأ أعمدة التضاريس (v37) ويُرجِع enrich_terrain: تدريج/انجراف/صقيع/تعرّض
     شمسي/صرف. يعمل فوراً على القيم المخزّنة (يدويّة أو من DEM). صادق عند غيابها.
 
-    ⚠ التعبئة التلقائيّة من DEM (SRTM/Copernicus) بند مؤجَّل (POST_DEPLOYMENT_ROADMAP):
-    تحتاج مزوّد DEM حيّاً غير مضبوط هنا — حتى ذلك تُملأ يدويّاً عبر
+    التعبئة التلقائيّة من DEM: إن غابت القيم المخزّنة، تُحسب من نموذج ارتفاع حيّ عبر
+    raster-service (مقصوصاً على الحقل) حين يُهيَّأ ``FIELD_DEM_PATH``؛ وإلّا يبقى المظروف
+    صادقاً (``dem_auto_fill.available=false``) دون تلفيق، مع إمكان الإدخال اليدويّ عبر
     PATCH /api/v1/fields/{field_id}.
     """
     from core.engines.dem_enrichment import enrich_terrain
@@ -1015,7 +962,7 @@ async def get_field_terrain(
     try:
         async with tenant_connection(user) as conn:
             row = await conn.fetchrow(
-                "SELECT elevation_m, slope_pct, aspect FROM fields WHERE field_id = $1",
+                "SELECT elevation_m, slope_pct, aspect, geometry FROM fields WHERE field_id = $1",
                 field_id,
             )
     except HTTPException:
@@ -1025,21 +972,79 @@ async def get_field_terrain(
     if row is None:
         raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
 
-    result = enrich_terrain(
-        elevation_m=float(row["elevation_m"]) if row["elevation_m"] is not None else None,
-        slope_pct=float(row["slope_pct"]) if row["slope_pct"] is not None else None,
-        aspect=row["aspect"],
-    )
+    elevation_m = float(row["elevation_m"]) if row["elevation_m"] is not None else None
+    slope_pct = float(row["slope_pct"]) if row["slope_pct"] is not None else None
+    aspect = row["aspect"]
+
+    # DEM auto-fill: تُحسب من DEM حيّ فقط حين تغيب القيم المخزّنة (لا تدهس إدخالاً يدويّاً).
+    computed = None
+    if elevation_m is None and slope_pct is None and (aspect is None or aspect == ""):
+        computed = await _compute_field_terrain_from_dem(field_id, row["geometry"], user)
+        if computed and computed.get("computed"):
+            import math as _math
+
+            cev = (computed.get("elevation_m") or {}).get("mean")
+            csl = (computed.get("slope_deg") or {}).get("mean")
+            if cev is not None:
+                elevation_m = float(cev)
+            if csl is not None:
+                slope_pct = round(_math.tan(_math.radians(float(csl))) * 100, 2)
+            aspect = computed.get("dominant_aspect") or aspect
+
+    result = enrich_terrain(elevation_m=elevation_m, slope_pct=slope_pct, aspect=aspect)
     result["field_id"] = field_id
+    dem_available = bool(computed and computed.get("computed"))
     result["dem_auto_fill"] = {
-        "available": False,
+        "available": dem_available,
+        "source": (computed or {}).get("source") if dem_available else None,
+        "computed": computed,
         "note_ar": (
-            "التعبئة التلقائيّة من DEM مؤجَّلة (تحتاج مزوّد SRTM/Copernicus حيّاً). "
-            "حتى ذلك: أدخِل elevation_m/slope_pct/aspect عبر "
-            "PATCH /api/v1/fields/{field_id}، والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
+            "التضاريس محسوبة من نموذج ارتفاع حيّ (DEM) مقصوصٍ على الحقل."
+            if dem_available
+            else "التعبئة التلقائيّة من DEM غير مُهيّأة بعد (FIELD_DEM_PATH). "
+            "أدخِل elevation_m/slope_pct/aspect عبر PATCH /api/v1/fields/{field_id}، "
+            "والتفسير أعلاه يعمل فوراً على القيم المخزّنة."
         ),
     }
     return result
+
+
+async def _compute_field_terrain_from_dem(
+    field_id: str, geometry: object, user: UserSchema
+) -> dict | None:
+    """Best-effort DEM terrain compute via raster-service (bbox from field geometry).
+
+    Returns raster's honest envelope (computed True/False + source) or None if the
+    call cannot be made. Never raises — DEM auto-fill must not break the terrain view.
+    """
+    try:
+        if isinstance(geometry, str):
+            import json as _json
+
+            geometry = _json.loads(geometry)
+        guarded = guard_field_geometry(geometry)
+        import os as _os
+
+        import httpx as _httpx
+
+        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+            "/"
+        )
+        headers = {
+            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
+            "X-Tenant-Id": str(user.tenant_id),
+        }
+        params = {}
+        if guarded.bbox and len(guarded.bbox) == 4:
+            params["bbox"] = ",".join(str(v) for v in guarded.bbox)
+        async with _httpx.AsyncClient(timeout=20.0) as client:
+            resp = await client.get(
+                f"{raster_url}/v1/fields/{field_id}/terrain", params=params, headers=headers
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except Exception:  # noqa: BLE001 — best-effort؛ التعذّر ⇒ لا تعبئة، لا كسر
+        return None
 
 
 @router.get("/api/v1/fields/{field_id}/workspace")
