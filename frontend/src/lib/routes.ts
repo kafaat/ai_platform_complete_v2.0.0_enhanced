@@ -31,7 +31,7 @@ import {
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
   CalendarRange, GitCompare, GitBranch, Crosshair, Search, History,
   FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay, Share2, Repeat, Gauge,
-  Home, HeartPulse, FolderKanban, Wrench, Shapes,
+  Home, HeartPulse, FolderKanban, Wrench, Shapes, Briefcase,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { PageId } from '../App';
@@ -189,6 +189,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'governance',  path: '/admin/governance',  label: 'الحوكمة والتدقيق', icon: ShieldCheck, maturity: 'stable' },
       { id: 'admin-runtime', path: '/admin/runtime',   label: 'تشغيل المنصّة (Runtime)', icon: Wrench, maturity: 'beta' },
       { id: 'approvals-console', path: '/admin/approvals', label: 'كونسول الموافقات', icon: ShieldCheck, maturity: 'beta' },
+      { id: 'manager-console',    path: '/admin/manager-console', label: 'كونسول المدير', icon: Briefcase, maturity: 'beta' },
       { id: 'settings',    path: '/settings',          label: 'الإعدادات', icon: Settings, maturity: 'stable' },
     ],
   },

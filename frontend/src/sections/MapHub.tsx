@@ -68,6 +68,9 @@ import WaterFieldOpsCard from '../components/fieldview/WaterFieldOpsCard';
 import SpecialtyCropsCard from '../components/fieldview/SpecialtyCropsCard';
 import DistrictsWeatherCard from '../components/fieldview/DistrictsWeatherCard';
 import AgronomyConsistencyCard from '../components/fieldview/AgronomyConsistencyCard';
+import CropPropagationCard from '../components/fieldview/CropPropagationCard';
+import GisTemporalOpsCard from '../components/fieldview/GisTemporalOpsCard';
+import LearningEvidenceCard from '../components/fieldview/LearningEvidenceCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
@@ -1437,6 +1440,24 @@ export default function MapHub() {
           الحالة التشغيليّة + تحسين المحفظة + التحقّق من الهندسة. */}
       {selected && fieldMode === 'expert' && (
         <AgronomyConsistencyCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المعرفة الزراعيّة الاختصاصيّة (P3): ملاءمة المحاصيل + تركيب حالة (dry-run) +
+          الإكثار الخضري والأصل + الأساليب + صمود الجفاف + تقييم البذار + العيّنات. */}
+      {selected && fieldMode === 'expert' && (
+        <CropPropagationCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* عمليّات GIS الهندسيّة + التحكيم الزمني + محاكاة ماذا-لو + مخاطر المرحلة +
+          إعادة البناء + رابط النَّسَب + تحليل التجارب (P3، خلف أعلام ميزات). */}
+      {selected && fieldMode === 'expert' && (
+        <GisTemporalOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* التعلُّم والدليل (P3، إرشاديّ صرف): تفعيل التعلُّم · معايرة · مزج سابقة · عتبات ·
+          تغذية راجعة · تظافر قرائن · بوّابة ثقة · تسجيل مشاهدة · طبقات · تغطية مؤشّرات. */}
+      {selected && fieldMode === 'expert' && (
+        <LearningEvidenceCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
       )}
 
       {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود

@@ -126,6 +126,7 @@ const PrescriptionBuilderPage = lazy(() => import('./sections/PrescriptionBuilde
 const FarmAdvisoryReport  = lazy(() => import('./sections/FarmAdvisoryReport'));
 const OperationCenterWallPage = lazy(() => import('./sections/OperationCenterWallPage'));
 const AdminRuntimePage = lazy(() => import('./sections/AdminRuntimePage'));
+const ManagerConsolePage = lazy(() => import('./sections/ManagerConsolePage'));
 const DecisionRuntimePage = lazy(() => import('./sections/DecisionRuntimePage'));
 const GisExpertPage = lazy(() => import('./sections/GisExpertPage'));
 const ApprovalsConsolePage = lazy(() => import('./sections/ApprovalsConsolePage'));
@@ -139,7 +140,7 @@ export type PageId =
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'lab-sampling' | 'irrigation' | 'irrigation-plan' | 'water-twin' | 'etc-dual' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'decision-confidence' | 'decision-runtime' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
-  | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime' | 'approvals-console'
+  | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime' | 'approvals-console' | 'manager-console'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
   | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert'
   | 'agro-zones' | 'yemeni-calendars' | 'climate-analogs';
@@ -369,6 +370,7 @@ export default function App() {
       case 'governance':   return <GovernancePage />;
       case 'admin-runtime': return <AdminRuntimePage />;
       case 'approvals-console': return <ApprovalsConsolePage />;
+      case 'manager-console': return <ManagerConsolePage />;
       case 'decision-runtime': return <DecisionRuntimePage />;
       case 'gis-expert': return <GisExpertPage />;
       case 'tasks':        return <TasksPage />;

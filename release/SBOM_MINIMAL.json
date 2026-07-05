@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e80403baba7d44ded783abbd03982bb4fa64f46ac611ef2333c4ce89f21e7854"
+          "content": "463e5fcd8ae7f9550947bdfc68c5712db2dd95332c1d94d6bd0d088db54c26cb"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -985,6 +985,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "051bda143a2c573ae5222c816bf689e8936689dfcc41c81629bbf89c02bf2561"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/CropPropagationCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cc1eef8837b6958d694af9ed947fcd2438e61dc8dcc98aeb6c66162f431018f8"
         }
       ],
@@ -1085,6 +1095,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7386c238c9605e756e9681e8568bdea8eb417cf125aeeb0bf6e5109b712d841f"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "74c11227d498647b968ee96e4a1ba9cc12bac677e339676d5f37644dcfd5075a"
         }
       ],
@@ -1099,6 +1119,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/IrrigationDecisionAidsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "58de5535102d524b4f318462e5b7bc6c8c340606b6ff52c04dcb46ccd4f43748"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/LearningEvidenceCard.tsx",
       "type": "file"
     },
     {
@@ -2115,6 +2145,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "811e32945fd1c33d12bb97b37eef4df32db7a297f5432e1bba1a53962e1c11b1"
+        }
+      ],
+      "name": "frontend/src/hooks/useCropPropagation.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f6e830e6185f84dd7d1fdf7cd66c48653db9a2741c9fcecca9458c15effea396"
         }
       ],
@@ -2175,6 +2215,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "520602dcfaa11b99ca8612b875ce96c7ed9f83a246c9726c21a7e6f2f4b35735"
+        }
+      ],
+      "name": "frontend/src/hooks/useGisTemporalOps.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7c41f2859535a10af1db006535593cffae1f37afb7b035b7be04bdfa73924bf4"
         }
       ],
@@ -2189,6 +2239,26 @@
         }
       ],
       "name": "frontend/src/hooks/useIrrigationDecisionAids.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "865487d840103f0ecf4a59630386c8507d39c67a7f7c816715794b2a0a2daf41"
+        }
+      ],
+      "name": "frontend/src/hooks/useLearningEvidence.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e897c9b3c9f5e6930f37e090d98e457dead47d7b651f47f57d36161eafdd935"
+        }
+      ],
+      "name": "frontend/src/hooks/useManagerConsole.ts",
       "type": "file"
     },
     {
@@ -2429,6 +2499,26 @@
         }
       ],
       "name": "frontend/src/lib/canonicalGeometry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "630d98fda14a1e6c55c8a94bd3f7d80d6532879c70b3954bebd864f63b70a037"
+        }
+      ],
+      "name": "frontend/src/lib/cropPropagation.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "768db35c0802992c2dc4624f56787427fdade8fc74330d4c1ee0dc9e31fbf2e0"
+        }
+      ],
+      "name": "frontend/src/lib/cropPropagation.ts",
       "type": "file"
     },
     {
@@ -3185,6 +3275,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c9379563de56eecea9e17f14eb89f110597454e3134c8ef98f0269fcc7ac03e2"
+        }
+      ],
+      "name": "frontend/src/lib/gisTemporalOps.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10281e7912fbc2997f7d8a9c4df10906f8249414e9bfa9d9ad54272d3199672b"
+        }
+      ],
+      "name": "frontend/src/lib/gisTemporalOps.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2d6782b20b6d840e0b020380ac7bc3d1778a47bc9be552c1a3a3333110c969e2"
         }
       ],
@@ -3325,6 +3435,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7d772cfbbfe42d6f5b69a2b4bba670d9f0cef8e1935f77644401921f8f820100"
+        }
+      ],
+      "name": "frontend/src/lib/learningEvidence.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5bb22308f6d528f36f9912a776c6a5c8fe0207a21f70dc1e10135b998dad04b9"
+        }
+      ],
+      "name": "frontend/src/lib/learningEvidence.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4d8adddf2d5078ec4fb354bec13cb0388b107f564a5565e9d70ee04a67b87682"
         }
       ],
@@ -3339,6 +3469,26 @@
         }
       ],
       "name": "frontend/src/lib/ledgerEntry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "937f1e97c55cfe08b9e93762bb02b28837e2da05785bc0fde12c06b115439372"
+        }
+      ],
+      "name": "frontend/src/lib/managerConsole.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32af2bef4b2b771f51ebe8d5fac458226c00178553e66327973500503bfe7bbf"
+        }
+      ],
+      "name": "frontend/src/lib/managerConsole.ts",
       "type": "file"
     },
     {
@@ -3365,7 +3515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "263fa4c0e77dacd214496f7be0e27a7103b001fa702c30aab1f9af80d580b2d0"
+          "content": "6b6287bef07d44bee4fd6845bc76842ba35e8b78e0ffe4ff657c4dc46f850d32"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -3465,7 +3615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd23ac06e2d57b1434dfaaf79aa127c8f4538d06563479170a46c5321c1fbbf9"
+          "content": "cdf5447055f98ea97e30ff433e2b46f90873bb93cafba1566c1fde198dbee6cf"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -4325,7 +4475,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e509f767b67b957c88de07d6c822f0f7bb69f86704eb40e5961e228f8f92361d"
+          "content": "e1f595f6bdf80c79d48db94e0c12093aa27fd770a8348d001f265aa3db7d5a77"
+        }
+      ],
+      "name": "frontend/src/sections/ManagerConsolePage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa4f1461bec1ec1bbd8c09f735d50514b1de06cd0b2784a56c0b23b6826ba9aa"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
