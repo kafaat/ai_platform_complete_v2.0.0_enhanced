@@ -792,6 +792,41 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+  # عامل استهلاك طابور إبطال كاش الراستر (FINDING-005) + إخلاء كاش البلاطات (FINDING-010).
+  # يُبنى من صورة raster-service (يحتاج main.py + بنية مسار الكاش) ويتشارك مجلّد
+  # raster-data كي يحذف بلاطات /data/rasters/tile_cache. خامل حتّى RASTER_CACHE_INVALIDATION_ENABLED.
+  sahool-raster-cache-invalidation-worker:
+    build:
+      context: .
+      dockerfile: services/raster-service/Dockerfile
+    mem_limit: 512m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      RASTER_UPLOAD_DIR: /data/rasters
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
+      RASTER_CACHE_INVALIDATION_ENABLED: ${RASTER_CACHE_INVALIDATION_ENABLED:-false}
+      TILE_CACHE_TTL_SECONDS: ${TILE_CACHE_TTL_SECONDS:-0}
+      TILE_CACHE_MAX_BYTES: ${TILE_CACHE_MAX_BYTES:-0}
+    command:
+    - python
+    - -m
+    - cache_invalidation_worker
+    volumes:
+    - raster-data:/data/rasters
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
   sahool-titiler:
     image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers

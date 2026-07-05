@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eddc036dd4f3b21c87075282053e3c746c20edab8a4ab8fd0bf780f5aa0cd13a"
+          "content": "75d969c2aad1c83ece0f7d2dd29e78c21cadf69e087c057814021f18564a31e0"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5555,6 +5555,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "46c834e76c12a71a405cb5596a01c680d1f9a1f58eec88b6940cdfc196247718"
+        }
+      ],
+      "name": "migrations/v143_raster_assets_lifecycle_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0e408c05960021f5040101bff1e4c1337012a8e4c153926e0c32345f26da9d76"
         }
       ],
@@ -8805,7 +8815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ddff774d36256407f1fa01557b34e64e151d9a70292e2dcac1e21231efac1eff"
+          "content": "e1a12649c00024785914ce1980769be140bbc6e8b1cda96609cf3221afd19467"
         }
       ],
       "name": "services/raster-service/main.py",

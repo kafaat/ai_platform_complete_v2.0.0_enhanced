@@ -469,6 +469,16 @@ def _rank_scenes(
     )
 
 
+# صيانة كاش البلاطات (تعقيم المسار + الإبطال + الإخلاء) في وحدة مستقلّة بلا FastAPI
+# كي يستوردها عامل الإبطال بخفّة وتُختبَر بمعزل. نُعيد تصديرها هنا للتوافق.
+import tile_cache_maint  # noqa: E402
+
+invalidate_field_tile_cache = tile_cache_maint.invalidate_field_tile_cache
+prune_tile_cache = tile_cache_maint.prune_tile_cache
+_safe_cache_segment = tile_cache_maint.safe_cache_segment
+_tile_cache_field_dir = tile_cache_maint.tile_cache_field_dir
+
+
 def _tile_cache_key(
     field_id: str,
     index: str,
@@ -479,10 +489,7 @@ def _tile_cache_key(
     tenant_id: str | None,
     v: str | None = None,
 ) -> str:
-    def safe(s):
-        cleaned = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in str(s or "na"))
-        return cleaned.replace("..", "_")
-
+    safe = _safe_cache_segment
     return os.path.join(
         UPLOAD_DIR,
         "tile_cache",
