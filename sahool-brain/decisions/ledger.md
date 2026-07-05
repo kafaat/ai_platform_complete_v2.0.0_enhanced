@@ -310,3 +310,11 @@ SHAs من `git log --oneline origin/main`.
 | `820cd41` | البحث التاريخيّ **fail-closed 503** بلا اعتمادات CDSE (لا ارتداد صامت لـElement84) + `_run_processing` exc_info=True. **السبب:** طلب المستخدم «بالكامل من Copernicus» + تقرير copernicus_historical_backfill_fix (لوج «TypeError» عارياً بعد بناء VRT). |
 
 **درس migration مؤكَّد:** القيد المضمَّن `CHECK (col IN (...))` يُسمّيه Postgres `<table>_<col>_check` ويُطبّعه `= ANY (ARRAY[...])` — فبحثه عبر `ILIKE '%IN%'` يفشل؛ استعمل `DROP CONSTRAINT IF EXISTS <conventional_name>` (idempotent). **مؤجَّل بصدق:** V8-05 (فصل مُنتقي التاريخ عن المعالجة — قرار UX) · V8-09 (fixed.yml dev-only موثَّق) · إخلاء `_layers` عبر العمليّات (يحتاج Redis pub/sub).
+
+## 2026-07-05 (م) — إغلاق المؤجَّل المتبقّي
+
+| SHA | القرار + السبب |
+|---|---|
+| `8a6d023` | V8-09: fixed.yml→sahool_app + إزالة تعطيل RLS (اتّضح أنّ sahool-migrate ينشئ الأدوار؛ التعليقات القديمة stale) + حارس يمنع sahool_user في DATABASE_URL. V8-05: MapHub لا يُطلق معالجة صامتة عند اختيار تاريخ (CTA صريح). v11-F3/F5: إخلاء `_layers` عبر قناة Redis (pub/sub) — لم يعد مؤجَّلاً. **السبب:** طلب المستخدم «أصلِح المتبقّي». |
+
+**درس تلوّث اختبار (مُعاد):** لا تحقن `sys.modules["boto3"]` في حارس ساكن (لوّث sam2 في المجموعة الكاملة) — أكّد نصّيّاً بلا استيراد `main` الثقيل.
