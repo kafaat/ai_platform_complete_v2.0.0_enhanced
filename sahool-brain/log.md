@@ -1229,3 +1229,13 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **`947c9af` (فشل بوّابة الإنتاج):** *Sahool Production Gates* (main-only) سقط لأنّ `sahool-raster-cache-invalidation-worker` غاب عن قائمة سماح **ثانية**: `tests/security/test_phase12_final_production_gates.py` (منفصلة عن `scripts/security/rls_runtime_gate.py` التي حدّثتها المرحلة ٤). الإصلاح: أضفتُه للقائمتَين + جدّدتُ بصمات الإصدار.
 
 **درس متكرّر (حرج):** قائمة `JOBS_DATABASE_URL` المسموحة تعيش في **موضعَين** يجب مزامنتهما: (١) `scripts/security/rls_runtime_gate.py` — يفحصه `production_validation_gate.sh` محليّاً؛ (٢) `tests/security/test_phase12_final_production_gates.py` — تفحصه بوّابة Sahool Production Gates على main فقط (وظيفة `pytest-contracts`، على `tests/` لا `tests_v9/` فلا يلتقطها `pytest -m unit`). أيّ عامل جديد بدور JOBS يحتاج تحديث الاثنين + جدولة بصمات الإصدار.
+
+## 2026-07-05 (ط) — تدقيق v6: إصلاح حجب حلقة الأحداث + تثبيت الحالة (الرأس `6768ee6`)
+
+تدقيق v6 (٨ نتائج) على zip قديم — الفرز مقابل HEAD الحاليّ:
+
+- **`6768ee6` (v6-F3، حقيقيّ):** مهمّة معالجة مشهد backfill كانت `async def _run_scene_job` تستدعي `_run_processing` المتزامن الثقيل (VRT+COG) مباشرةً ⇒ FastAPI يُنفّذ مهامّ `async` على حلقة الأحداث فتُحجب طلبات raster الأخرى. الإصلاح: تعريفها `def` (threadpool). جسمها كلّه متزامن بلا await فالتحويل آمن.
+- **مُصلَح سابقاً (zip قديم):** F7 (lid ترطيب DB صار date-specific منذ 528203b) · F8 (persisted + سطر persist-ok منذ 5cd765d) · F5 (الرتّاب يسجّل `cloud_source` أصلاً).
+- **مؤجَّل بصدق (معماريّ، صنف v5-F2/F4 نفسه):** F1/F2 (backfill يعود job فوراً + مسح STAC الشهريّ في عامل، بدل مسار الطلب — يتفادى مهلة proxy 60s) · F4 (مفتاح idempotency + preflight raster_assets قبل الجدولة) · F6 (single-flight لكاش STAC ضدّ stampede المتزامن).
+
+**درس:** مهامّ FastAPI الخلفيّة المتزامنة الثقيلة يجب أن تكون `def` (threadpool) لا `async def` (حلقة الأحداث) — لفّ عمل متزامن في `async def` يُبطِل سلوك الـthreadpool.
