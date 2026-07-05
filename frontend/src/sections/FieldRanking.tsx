@@ -5,7 +5,7 @@
 // والمتأخّرين (فجوة «مقارنة الحقول / أفضل وأدنى الحقول» في التطبيقات
 // المنافسة). يجسّد الترتيب من useAllFieldsNdvi الحيّ.
 //
-// صدق البيانات: NDVI حقيقيّ فقط — تُستبعَد الحقول بلا قيمة عدديّة صالحة
+// صدق البيانات: NDVI حقيقيّ فقط (real_data !== false) — تُستبعَد الحقول بلا قيمة عدديّة صالحة
 // (لا تلفيق). الحالات (تحميل/خطأ/فراغ) صريحة. شاشة قراءة فقط.
 // ═══════════════════════════════════════════════════════════════
 import { useMemo } from 'react';
@@ -24,6 +24,7 @@ interface RawField {
   name?: string;
   crop?: string;
   ndvi?: number | null;
+  real_data?: boolean;
 }
 
 interface RankedField {
@@ -49,16 +50,17 @@ export default function FieldRanking() {
   const ranked = useMemo<RankedField[]>(() => {
     const data = q.data as { fields?: RawField[] } | undefined;
     const raw: RawField[] = Array.isArray(data?.fields) ? data.fields : [];
-    const mapped: { id: string; name: string; crop?: string; ndvi: number | null | undefined }[] = raw.map((f) => ({
+    const mapped: { id: string; name: string; crop?: string; ndvi: number | null | undefined; real_data?: boolean }[] = raw.map((f) => ({
       id: String(f.field_id ?? ''),
       name: f.field_name || f.name || 'حقل',
       crop: f.crop,
       ndvi: f.ndvi,
+      real_data: f.real_data !== false,
     }));
     return mapped
       // صدق المصدر: نُبقي فقط القيم العدديّة الصالحة (لا null/NaN/خارج النطاق).
       .filter((f): f is RankedField =>
-        typeof f.ndvi === 'number' && Number.isFinite(f.ndvi) && f.ndvi >= 0 && f.ndvi <= 1)
+        f.real_data !== false && typeof f.ndvi === 'number' && Number.isFinite(f.ndvi) && f.ndvi >= 0 && f.ndvi <= 1)
       .sort((a, b) => b.ndvi - a.ndvi);
   }, [q.data]);
 
@@ -96,7 +98,7 @@ export default function FieldRanking() {
       }
       note={
         <>
-          الترتيب من <code>/v1/all_fields</code> الحيّ — NDVI حقيقيّ فقط. الحقول بلا
+          الترتيب من <code>/v1/all_fields</code> الحيّ — NDVI حقيقيّ فقط (real_data !== false). الحقول بلا
           قراءة صالحة مُستبعَدة (لا تلفيق). الحالات صادقة.
         </>
       }

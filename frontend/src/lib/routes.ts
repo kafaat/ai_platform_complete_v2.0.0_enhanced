@@ -217,6 +217,11 @@ export function maturityBadge(m?: Maturity) {
 // ── خرائط تحويل ثنائيّة الاتّجاه: PageId ↔ path ────────────────
 const PAGE_TO_PATH = new Map<PageId, string>(ALL_ROUTES.map((r) => [r.id, r.path]));
 const PATH_TO_PAGE = new Map<string, PageId>(ALL_ROUTES.map((r) => [r.path, r.id]));
+// Aliases for legacy/sidebar deep links that existed before the route registry.
+// Without these, a direct click/reload on /health/timeline could fall through to the
+// wrong screen and look like an auth redirect.
+PATH_TO_PAGE.set('/health/timeline', 'agronomic-timeline');
+PATH_TO_PAGE.set('/health/temporal-indicators', 'agronomic-timeline');
 
 /** مسار URL لمعرّف الصفحة (يقع على «/» إن غاب — لن يحدث: الحارس يضمن الاكتمال). */
 export function pathForPage(id: PageId): string {

@@ -402,6 +402,8 @@ export default function App() {
           {ALL_ROUTES.map((r) => (
             <Route key={r.id} path={r.path} element={pageContent} />
           ))}
+          <Route path="/health/timeline" element={pageContent} />
+          <Route path="/health/temporal-indicators" element={pageContent} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppShell>

@@ -7,6 +7,7 @@
 // النقر على حقل يضبط «الحقل النشط» المشترك (useSelectedField) فيتبع المستخدم عبر
 // الشاشات. أساسٌ لاحقٌ لـclustering (لفّ العلامات بمجموعة تجميع فوق هذه الخريطة).
 import { useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Polygon, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Map as MapIcon, MapPin } from 'lucide-react';
@@ -38,6 +39,7 @@ function _cropLabel(crop: string): string {
 }
 
 export default function FarmMapOverview() {
+  const navigate = useNavigate();
   const { options: fields, isLoading, isError, refetch, fieldId, setFieldId } = useSelectedField();
 
   // كلّ النقاط لضبط الإطار + مركز افتراضيّ (متوسّطها) — منطق نقيّ مُذكَّر.
@@ -83,7 +85,7 @@ export default function FarmMapOverview() {
                       weight: isSel ? 3 : 1.5,
                       fillOpacity: isSel ? 0.35 : 0.15,
                     }}
-                    eventHandlers={{ click: () => setFieldId(f.id) }}
+                    eventHandlers={{ click: () => setFieldId(f.id, { source: 'user', name: f.name }) }}
                   >
                     <Tooltip>{label}</Tooltip>
                   </Polygon>
@@ -102,7 +104,7 @@ export default function FarmMapOverview() {
                     fillOpacity: 0.8,
                     weight: isSel ? 3 : 1.5,
                   }}
-                  eventHandlers={{ click: () => setFieldId(f.id) }}
+                  eventHandlers={{ click: () => setFieldId(f.id, { source: 'user', name: f.name }) }}
                 >
                   <Tooltip>{label}</Tooltip>
                 </CircleMarker>
@@ -123,7 +125,7 @@ export default function FarmMapOverview() {
               return (
                 <button
                   key={f.id}
-                  onClick={() => setFieldId(f.id)}
+                  onClick={() => setFieldId(f.id, { source: 'user', name: f.name })}
                   className="w-full text-right rounded-lg px-3 py-2 border transition-colors"
                   style={{
                     background: isSel ? '#0e7490' : '#1e293b',
@@ -145,10 +147,21 @@ export default function FarmMapOverview() {
             })}
           </div>
           {selected && (
-            <div className="rounded-lg p-3 border border-cyan-800 bg-cyan-950/40 text-sm text-cyan-100">
+            <div className="rounded-lg p-3 border border-cyan-800 bg-cyan-950/40 text-sm text-cyan-100 space-y-2">
               <div className="font-semibold">{selected.name}</div>
-              <div className="text-[11px] text-cyan-300/80 mt-1">
-                الحقل النشط — مُختار على كلّ الشاشات.
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-cyan-200/90">
+                <div>المحصول: {selected.crop || '—'}</div>
+                <div>المساحة: {selected.area ? `${selected.area} هـ` : '—'}</div>
+                <div className="col-span-2">المعرّف: {selected.id}</div>
+              </div>
+              <div className="text-[11px] text-cyan-300/80">
+                النقر على الحقل يثبّت الاختيار المشترك لكل الشاشات. استخدم الأزرار للانتقال بسياق الحقل نفسه.
+              </div>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button onClick={() => navigate('/fields/workspace')} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">مساحة العمل</button>
+                <button onClick={() => navigate('/health/satellite')} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">الأقمار</button>
+                <button onClick={() => navigate('/health/lab-sampling')} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">العينات</button>
+                <button onClick={() => navigate('/irrigation/plan')} className="rounded-lg border border-cyan-700 px-2 py-1 text-[11px] hover:bg-cyan-900/40">خطة الري</button>
               </div>
             </div>
           )}

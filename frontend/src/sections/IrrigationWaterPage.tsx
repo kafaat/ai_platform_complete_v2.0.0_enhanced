@@ -6,6 +6,8 @@
 import { useState } from 'react';
 import { Droplets, FlaskConical, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useWaterAnalysis } from '../hooks/useApi';
+import FieldSelector from '../components/FieldSelector';
+import { useSelectedField } from '../hooks/useSelectedField';
 import type { WaterSampleInput } from '../services/api';
 import { ErrorState } from '../components/StateViews';
 
@@ -21,6 +23,7 @@ const IONS: { key: keyof WaterSampleInput; label: string; hint: string }[] = [
 ];
 
 export default function IrrigationWaterPage() {
+  const { fieldId, field } = useSelectedField();
   const [vals, setVals] = useState<Record<string, string>>({});
   const mut = useWaterAnalysis();
 
@@ -33,11 +36,12 @@ export default function IrrigationWaterPage() {
 
   const onAnalyze = () => {
     const payload: WaterSampleInput = {
-      sample_id: `sample-${Date.now()}`,
-      source: 'well',
+      sample_id: `${fieldId || 'field'}-water-${Date.now()}`,
+      source: field ? `field:${field.name}` : 'well',
       na: num('na'), ca: num('ca'), mg: num('mg'), hco3: num('hco3'),
       co3: num('co3'), cl: num('cl'), ec_dsm: num('ec_dsm'), ph: num('ph'),
-    };
+      ...(fieldId ? { field_id: fieldId } : {}),
+    } as WaterSampleInput & { field_id?: string };
     mut.mutate(payload);
   };
 
@@ -53,6 +57,8 @@ export default function IrrigationWaterPage() {
         أدخِل نتائج تحليل العيّنة المخبريّ (الأيونات بـmeq/L). يُحسب SAR وRSC ويُصنَّف
         خطر الملوحة/الصوديوم/القلويّة. القيم الغائبة تُعلَن «غير محسوبة» (لا تقدير مفبرَك).
       </p>
+
+      <FieldSelector label="الحقل المرتبط بعينة ماء الري" />
 
       {/* Form */}
       <div className="rounded-xl border p-4" style={{ background: '#1e293b', borderColor: '#334155' }}>

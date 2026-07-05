@@ -7,6 +7,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
 // ── عميل axios وهميّ (يُلتقط داخل makeClient عبر axios.create) ──
@@ -108,7 +109,12 @@ const WS: FieldWorkspace = {
 
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  // البطاقة تستخدم useNavigate لأزرار الانتقال بسياق الحقل ⇒ تحتاج Router في الاختبار.
+  return (
+    <MemoryRouter>
+      <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+    </MemoryRouter>
+  );
 }
 
 beforeEach(() => {

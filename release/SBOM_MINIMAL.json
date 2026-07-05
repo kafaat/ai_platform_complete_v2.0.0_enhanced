@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "463e5fcd8ae7f9550947bdfc68c5712db2dd95332c1d94d6bd0d088db54c26cb"
+          "content": "7b83cc9ad6b424b38061c3e5233c24e03b3a2d4dee6833a057a4982db15bdb8b"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -3625,7 +3625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdf5447055f98ea97e30ff433e2b46f90873bb93cafba1566c1fde198dbee6cf"
+          "content": "c16222bffcb9c15fc017060fccbd8bc35e48266bbefbb4f765df8d3217fb90e7"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -4235,7 +4235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "916e6237f4868afd4ff9db28edba912d84e0ba1097ea9eb12f29416bea129712"
+          "content": "42ef607caf7924172e345cd14fa1830abf23e5e70b1c2fd640f5d76ec542874a"
         }
       ],
       "name": "frontend/src/sections/FarmMapOverview.tsx",
@@ -4265,7 +4265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3366415716435c212711ea34295bd2da16ef28acda9e2e325bbffef30ab74552"
+          "content": "49920d0ded04194a295dd117f4eb99fe63d2976ca0b58b312f388145a38621ec"
         }
       ],
       "name": "frontend/src/sections/FieldIntelligencePage.tsx",
@@ -4295,7 +4295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e1a03adab28da62ad2dbd94578013402e6876662106fc9e362830d87aaeb22f"
+          "content": "4296945375b91dec90eac3883419d416f9b9e5e480afa87e8a2598d23d5a67a8"
         }
       ],
       "name": "frontend/src/sections/FieldRanking.tsx",
@@ -4325,7 +4325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0bbc81eb8388ed38d191e0c72d48ccf1aa98eec8c12ff942afcaaebd9b9047a1"
+          "content": "191a6590f8f8a29039ca40ea4f64d172d55359dfb398c90b193ae9c704bcd661"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.test.tsx",
@@ -4335,7 +4335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ce18e89dada80857a90de92e1ea626509d504beb2d5c6a8e36ffaf84ad31bfe6"
+          "content": "c6f948991e779b7f4ecde97a6873ca033972e0da7215e68a600b4db971c87b18"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.tsx",
@@ -4435,7 +4435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "652094b91e7de5a352ef44786522acf2ceefd44e534395686bbab9dcb0ddb2ac"
+          "content": "7181580cdaec59a69bb6b7d1d7dc4149336aee3be64366d2751fd838d959bf44"
         }
       ],
       "name": "frontend/src/sections/IrrigationPlanPage.tsx",
@@ -4445,7 +4445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9364755b21fedbe7881b096ce64d1f6fe3f57f0acf1483601ccedc4fffc97526"
+          "content": "683bf0a16227aa5b71127652f5e82ed2092116f34c337550c095a22d87c6f8ec"
         }
       ],
       "name": "frontend/src/sections/IrrigationWaterPage.tsx",
@@ -4455,7 +4455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ff59c0d98765951ca398d450c6b1c5167d9b9dc6bd891511e87b77ca2a0895e"
+          "content": "3fac5cb7b5aaaae0c9a09af96b33e14dce4df78875d7f15c135b02b879cc7943"
         }
       ],
       "name": "frontend/src/sections/LabSamplingPage.tsx",
@@ -4499,6 +4499,16 @@
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4402637cff4c8c31194fe36ffc6e9b4a0c0c554221d332a0a53d160bbf1ebf56"
+        }
+      ],
+      "name": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
       "type": "file"
     },
     {
@@ -4715,7 +4725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "31004b8871e4479470fa7b140913a725e7bb68b6c16137239fc65da0755cd647"
+          "content": "9c957df31a463194c155dad00a8df3b620cf2b81bf60aa8f33d2381cd7fead93"
         }
       ],
       "name": "frontend/src/sections/ProblemFields.tsx",
@@ -4805,6 +4815,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eb8baef1bf4517793294136b50db02654f284a251f3a9420b4fb128a6ca90df5"
+        }
+      ],
+      "name": "frontend/src/sections/SatellitePageFieldGeometryRefresh.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b605ede52911079c8837ab0833550394a3a01b2dde63b4ac59db79dc8f4ad4ea"
         }
       ],
@@ -4855,7 +4875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2f89e8aac28316bf69b2efcdcfc1829bba40049923db110da22a90dc4c3a4b6"
+          "content": "c2ca2637be29cd8fa12297d886df75d21600fa861c2fcfdcf9ff131ddf946df6"
         }
       ],
       "name": "frontend/src/sections/SpatialIndicatorsPage.tsx",
@@ -4885,7 +4905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89de596df6b9bc09ef563172ae68ccd7cbbe2ccaea0746f981b4e25b1add72f5"
+          "content": "28adafe64306c26eebf8a7375cad9fbd889ad56c760d74cdd7689f33af8eebf4"
         }
       ],
       "name": "frontend/src/sections/WaterTwinPage.tsx",
@@ -4935,7 +4955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b69dc744fff28baad6f2c1dbf693f73f8fb78b5c17aaae746e5fe85518467b5"
+          "content": "24139e51e36750110d86b271d85472518d80c3759b968bc941b1cfa6c860ef90"
         }
       ],
       "name": "frontend/src/services/api.ts",

@@ -58,6 +58,7 @@ interface RawField {
   name?: string;
   crop?: string;
   ndvi?: number | null;
+  real_data?: boolean;
 }
 
 interface ProblemField {
@@ -99,7 +100,7 @@ export default function ProblemFields() {
     return raw
       .map((f): ProblemField => {
         const id = String(f.field_id ?? '');
-        const ndviRaw = f.ndvi;
+        const ndviRaw = f.real_data === false ? null : f.ndvi;
         const ndviValid =
           typeof ndviRaw === 'number' && Number.isFinite(ndviRaw) && ndviRaw >= 0 && ndviRaw <= 1;
         const ndvi = ndviValid ? (ndviRaw as number) : null;
@@ -142,7 +143,7 @@ export default function ProblemFields() {
     <FieldCabin
       eyebrow="حقول المشكلات"
       title="أشدّ الحقول مشكلةً"
-      subtitle="ترتيب مركّب: NDVI منخفض + التنبيهات المفتوحة — الأشدّ أوّلاً"
+      subtitle="ترتيب مركّب: NDVI حقيقي منخفض + التنبيهات المفتوحة — الأشدّ أوّلاً"
       headerRight={
         <Pill tone="danger" icon={<AlertTriangle style={{ width: 12, height: 12 }} />}>
           {problems.length} حقل
