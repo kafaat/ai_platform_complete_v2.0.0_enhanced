@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-05 (ن) — Runbook تشغيليّ لصور الأقمار (البند #10)
+
+`docs/runbooks/SATELLITE_IMAGERY_RUNBOOK.md` (مبنيّ على الكود الفعليّ): تشغيل backfill + عامل السحب · تشخيص/ضبط خنق CDSE 429 (env + Retry-After) · إعادة تشغيل العامل + استرداد الحجز/صدق إعادة المحاولة · التحقّق من `raster_assets` (`asset_status='ready'`) · التحقّق من الخطّ الزمنيّ (available-dates/imagery/timeline) · الحالة الموحّدة · تمييز demo عن real (`real_data`/`demo-only`/`lib/realData.ts`+DemoBadge) · إبطال الكاش · فحوص صحّة. حالة التشغيل موثّقة عبر نقطة raster الداخليّة + استعلام `backfill_runs` (المنصّة لا تبروكسيها — أُبقِي صادقاً). توثيق فقط · بلا كود/migration.
+
+---
+
 ## 2026-07-05 (ن) — سيناريوهات Playwright E2E لسياق الحقل (البند #9)
 
 `e2e/field-context-flows.spec.ts`: يتحقّق أنّ توصيل «الحقل المشترك» (الجولات 1–4) وصل الشاشات فعليّاً — satellite/spatial/lab-sampling/maestro/irrigation-plan تُحمَّل مُصادَقةً (seed)، المسار لا يُطرَد للدخول، الهيكل يُصيَّر (تسمية الشريط)، شاشات المنتقي تُظهر combobox حقيقيّاً مُغذّى من `/api/v1/fields`، بلا أعطال console حقيقيّة. هرمسيّ (نفس حزام Playwright في CI: /api مُعترَض + SwiftShader) — بلا خلفيّة/WebGL فحتميّ. رُشِّح ضجيج WS الإشعارات (يعالجه التطبيق بلطف). تشغيل محلّيّ 5/5. tsc نظيف · vitest 1063 · release. واجهة فقط · بلا migration.
