@@ -1660,7 +1660,7 @@ services:
     - |
       set -e
       if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch /conf/.sahool_init; fi
-      sed -i "s|^secret=.*|secret=${ZLM_API_SECRET}|" /conf/config.ini || true
+      sed -i "s|^secret=.*|secret=$$ZLM_API_SECRET|" /conf/config.ini || true
       echo "zlmediakit config: [api] secret pinned"
     volumes:
     - zlm-conf:/conf

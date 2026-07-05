@@ -627,7 +627,16 @@ _field_layers: dict[str, list[str]] = {}
 
 # ─── بحث الصور عبر Element84 STAC ─────────────────────────────────
 def _band_urls_from_assets(assets: dict) -> dict:
-    """يستخرج روابط النطاقات من STAC assets (Sentinel-2 L2A)."""
+    """يستخرج روابط النطاقات من STAC assets (Sentinel-2 L2A على Element84).
+
+    تعيين أسماء Element84 → حقول BandMapping:
+      • "rededge1" (B05, 705nm)  → "rededge"  (الأكثر استخداماً لـNDRE)
+      • "swir16"   (B11, 1610nm) → "swir1"    (مطلوب لـNDMI / MSI / BSI …)
+      • "swir22"   (B12, 2190nm) → "swir2"    (مطلوب لـBSI / SATVI / NDTI …)
+    النطاقات الزائدة (rededge2/3، nir08، visual، thumbnail) تُحذف كي لا تنتهي
+    في الـVRT كأعداد مجهولة تُفشل الحساب (كانت السبب الجذري لـTypeError في كلّ
+    مهامّ backfill التي تحتاج swir1/rededge — بلاغ 2026-07-04).
+    """
 
     def url(key: str) -> str | None:
         a = assets.get(key)
@@ -637,16 +646,11 @@ def _band_urls_from_assets(assets: dict) -> dict:
         "blue": url("blue"),
         "green": url("green"),
         "red": url("red"),
-        "rededge1": url("rededge1"),
-        "rededge2": url("rededge2"),
-        "rededge3": url("rededge3"),
         "nir": url("nir"),
-        "nir08": url("nir08"),
-        "swir16": url("swir16"),
-        "swir22": url("swir22"),
+        "rededge": url("rededge1"),   # B05 → BandMapping.rededge (NDRE / red-edge)
+        "swir1": url("swir16"),       # B11 → BandMapping.swir1   (NDMI / MSI / BSI)
+        "swir2": url("swir22"),       # B12 → BandMapping.swir2   (BSI / SATVI / NDTI)
         "scl": url("scl"),
-        "visual": url("visual"),
-        "thumbnail": url("thumbnail"),
     }
 
 

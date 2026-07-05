@@ -375,7 +375,8 @@ class CdseClient:
                 ],
                 "exclude": ["assets"],
             },
-            "sortby": [{"field": "properties.datetime", "direction": "desc"}],
+            # sortby removed: CDSE catalog rejects it with 400 ("problematic key 'sortby'").
+            # Client-side date sorting is applied below after features are received.
         }
         geom = _geometry_object(geometry)
         if geom:
