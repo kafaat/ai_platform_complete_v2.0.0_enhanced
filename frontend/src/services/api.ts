@@ -206,6 +206,9 @@ export function apiErrorMessage(e: unknown, fallback: string): string {
   }
   if (typeof d === 'string') return d;
   if (d && typeof d === 'object') return d.message_ar || d.msg || fallback;
+  if (err.response?.status === 409) {
+    return 'تعارض أثناء الحفظ: غالباً يوجد حقل بنفس الاسم أو تتداخل الحدود مع حقل قائم. غيّر الاسم أو صحّح الحدود ثم أعد المحاولة.';
+  }
   return err.message || fallback;
 }
 
@@ -3256,11 +3259,15 @@ export interface FieldImportInput {
   country?:      string;
   region?:       string;
   boundary_metadata?: Record<string, unknown>;
+  idempotency_key?: string;
 }
 
 /** يستورد حقلاً من ملفّ/نقاط GPS. يُرجع FieldSummary المُنشأ من ردّ الخادم. */
-export const importField = (payload: FieldImportInput): Promise<unknown> =>
-  kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
+export const importField = (payload: FieldImportInput): Promise<unknown> => {
+  const { idempotency_key, ...body } = payload;
+  const config = idempotency_key ? { headers: { 'Idempotency-Key': idempotency_key } } : undefined;
+  return kongApi.post('/api/v1/fields/import', body, config).then(r => r.data);
+};
 
 // ── دمج/انقسام الحقول ذرّيّاً (POST /merge · /split) — معاملة خادميّة واحدة ──
 // تستبدل لاذرّيّة الواجهة (POST جديد + حلقة DELETE) التي كانت تُخلّف حقولاً يتيمة

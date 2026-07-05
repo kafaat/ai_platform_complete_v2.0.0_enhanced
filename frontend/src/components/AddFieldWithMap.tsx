@@ -124,6 +124,7 @@ interface FieldData {
   // مشهد الخريطة عند الإنشاء (zoom + مركز) — يُحفَظ لِيُطار إليه عند فتح الحقل لاحقاً.
   map_view?:     { zoom: number; lat: number; lng: number };
   boundary_metadata?: Record<string, unknown>;
+  idempotency_key?: string;
 }
 
 interface Props {
@@ -425,6 +426,22 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   // حارس تسلسل لطلب الكشف العكسي: يمنع ردّ طلب قديم من الكتابة فوق الأحدث
   // (إعادة رسم سريعة قد تُظهر موقعاً لا يطابق المضلّع الحاليّ).
   const geoReqRef = useRef(0);
+  // مفتاح idempotency ثابت لكل محاولة حفظ/استيراد من نفس النموذج. يمنع تكرار
+  // POST /api/v1/fields عند النقر المزدوج أو إعادة إرسال المتصفّح بعد نجاح الخادم
+  // قبل تحديث الواجهة؛ بدونه قد يظهر 409 رغم أن الحقل أُنشئ فعلاً.
+  const saveInFlightRef = useRef(false);
+  const createIdempotencyKeyRef = useRef<string | null>(null);
+  const ensureCreateIdempotencyKey = useCallback(() => {
+    if (!createIdempotencyKeyRef.current) {
+      createIdempotencyKeyRef.current =
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : '10000000-1000-4000-8000-100000000000'.replace(/[018]/g, (c) =>
+              (Number(c) ^ (Math.random() * 16) >> (Number(c) / 4)).toString(16),
+            );
+    }
+    return createIdempotencyKeyRef.current;
+  }, []);
 
   // ── تاريخ تراجع/إعادة (Undo/Redo) لحدّ الحقل ───────────────────────────────
   // كلّ لقطة = حلقة رؤوس كأزواج [lat,lng] أرقام صرفة (غير قابلة للتغيّر ورخيصة، لا L.LatLng).
@@ -918,6 +935,8 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
     setAutoRegion(null);
     setError('');
     setSegNotice(null);
+    createIdempotencyKeyRef.current = null;
+    saveInFlightRef.current = false;
     // تفريغ تاريخ التراجع/الإعادة مع بقيّة الحالة.
     setHistory([]);
     setPointer(-1);
@@ -939,9 +958,11 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   };
 
   const handleSave = async () => {
+    if (saveInFlightRef.current) return;
     if (!name.trim()) { setError('اسم الحقل مطلوب'); return; }
     if (!mgr.trim())  { setError('اسم المسؤول مطلوب'); return; }
     if (latlngs.length < 3) { setError('يرجى رسم الحقل أولاً'); return; }
+    saveInFlightRef.current = true;
     setSaving(true); setError('');
     try {
       // إذا تم تعديل الرؤوس، نأخذ الإحداثيات المحدّثة
@@ -968,12 +989,15 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         geometry: { type: 'Polygon', coordinates: [coords] },
         map_view: mapView,
         boundary_metadata: boundaryMetadata ?? { source: 'manual', mode: 'manual' },
+        idempotency_key: ensureCreateIdempotencyKey(),
       });
+      createIdempotencyKeyRef.current = null;
     } catch (e: unknown) {
       // أظهِر رسالة الخادم العربيّة (message_ar) — مهمّة لتعارض 409 (اسم مكرّر/تداخل
       // هندسيّ) كي يفهم المستخدم سبب الرفض بدل «فشل الحفظ» المبهَم.
       setError(apiErrorMessage(e, 'فشل الحفظ'));
     } finally {
+      saveInFlightRef.current = false;
       setSaving(false);
     }
   };
@@ -1073,10 +1097,12 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   };
 
   const handleImport = async () => {
+    if (saveInFlightRef.current) return;
     if (!onImport) return;
     if (!name.trim()) { setError('اسم الحقل مطلوب'); return; }
     if (!mgr.trim())  { setError('اسم المسؤول مطلوب'); return; }
     if (!fileText || !fileFmt) { setError('اختر ملفّ الحدود أولاً (.geojson/.json/.kml).'); return; }
+    saveInFlightRef.current = true;
     setSaving(true); setError('');
     try {
       await onImport({
@@ -1085,11 +1111,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         name, manager: mgr, crop, soil_type: soil,
         field_code: fieldCode.trim() || undefined,
         water_source: waterSource,
+        idempotency_key: ensureCreateIdempotencyKey(),
       });
+      createIdempotencyKeyRef.current = null;
     } catch (e: unknown) {
-      // رسالة صادقة من الخادم (400 تحليل / 422 هندسة غير صالحة) لا ابتلاع.
-      setError(asApiError(e).message || 'فشل الاستيراد');
+      // رسالة صادقة من الخادم (400 تحليل / 409 تعارض / 422 هندسة غير صالحة) لا ابتلاع.
+      setError(apiErrorMessage(e, asApiError(e).message || 'فشل الاستيراد'));
     } finally {
+      saveInFlightRef.current = false;
       setSaving(false);
     }
   };

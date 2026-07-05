@@ -425,7 +425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fac38492fa0a938220148c485e1c881433a4e0c4d15c1e4b262f7b1a022ec434"
+          "content": "d6fec619ad43beaa61952552bcaec06075c2933169fe92e5a1cf44634fdab0f3"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -4335,7 +4335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b5da9d7a6bf141cb8e56a8947b766faa1abd7266c4ebf3fb4e51c0896f30f43"
+          "content": "99cfc3108005d891af8171962a1104eb9ab29e7183d79d2348ddd10461cf6ca9"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -4555,7 +4555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4c00b746c3b7371c44c2008840a4a90180d0c68a115672231b38751cdbb2786"
+          "content": "6537e9a6a70460921513e9106dcf8ecffe4e9846061e8dce335e062bba21ff9c"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4925,7 +4925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdf2c567af034fa1b22a64802367d06f2baf66cbebd1340cbc3be28c7cfdbdf1"
+          "content": "8a05fbbbf4a2523a9a10377ac1f1b65b95a60f6fd7017bc75f8d6f7da0590654"
         }
       ],
       "name": "frontend/src/sections/SetupCabin.tsx",
@@ -5015,7 +5015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c71cfac542ad0704c5e7c6c893c259451ee4a1678e60f092af7154533e344471"
+          "content": "aea63e2344f345bc6be540ce74e5cca9bc4ad76fc50fb6ec1030df01647265b8"
         }
       ],
       "name": "frontend/src/services/api.ts",

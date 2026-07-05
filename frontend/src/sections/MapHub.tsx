@@ -110,6 +110,17 @@ const HubMapGL = lazy(() => import('../components/maphub/HubMapGL'));
 // Draw) والدبابيس والتراكبات متاحة في كِلا المحرّكين (تكافؤ المزايا).
 const GL_ENGINE = MAP_ENGINE === 'maplibre';
 
+
+function idempotencyConfig(source: Record<string, unknown> | null | undefined) {
+  const key = source?.idempotency_key;
+  return key ? { headers: { 'Idempotency-Key': String(key) } } : undefined;
+}
+
+function withoutIdempotency<T extends Record<string, unknown>>(source: T): Omit<T, 'idempotency_key'> {
+  const { idempotency_key: _idempotencyKey, ...body } = source;
+  return body;
+}
+
 // ── الطبقات القابلة للعرض كبلاطات مؤشّر (raster) — من السجلّ ──
 // كلّ المؤشّرات التي يحسبها raster-service (CDSE INDEX_EXPR) مع لوحة DS موجودة.
 // ('moisture' المكافئ لـNDMI مُستثنى تفادياً للتكرار.)
@@ -1149,15 +1160,18 @@ export default function MapHub() {
     area_ha: number; geometry: { type: string; coordinates: number[][][] };
     map_view?: { zoom: number; lat: number; lng: number };
     boundary_metadata?: Record<string, unknown>;
+    idempotency_key?: string;
   }) => {
     try {
-      const r = await kongApi.post('/api/v1/fields', {
+      const fieldPayload = {
         name: data.name, crop: data.crop, soil_type: data.soil_type, manager: data.manager,
         field_code: data.field_code ?? null, water_source: data.water_source ?? null,
         irrigation_type: data.irrigation_type ?? null, pivot: data.pivot ?? null,
         country: data.country ?? null, region: data.region ?? null, geometry: data.geometry,
         boundary_metadata: data.boundary_metadata ?? undefined,
-      });
+        idempotency_key: (data as Record<string, unknown>).idempotency_key,
+      };
+      const r = await kongApi.post('/api/v1/fields', withoutIdempotency(fieldPayload), idempotencyConfig(fieldPayload));
       const rec = r.data as Record<string, unknown>;
       const newId = String(rec.field_id ?? '');
       // حفظ مشهد الخريطة (zoom + مركز) بمعرّف الحقل المُنشأ — يُطار إليه عند فتحه لاحقاً.
@@ -1182,7 +1196,7 @@ export default function MapHub() {
 
   const handleImportField = useCallback(async (payload: unknown) => {
     try {
-      const r = await kongApi.post('/api/v1/fields/import', payload);
+      const r = await kongApi.post('/api/v1/fields/import', withoutIdempotency(payload as Record<string, unknown>), idempotencyConfig(payload as Record<string, unknown>));
       const newId = String((r.data as Record<string, unknown>)?.field_id ?? '');
       setShowAddField(false);
       toastStore.add('success', '✅ تم استيراد الحقل', '');

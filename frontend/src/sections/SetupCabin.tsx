@@ -59,6 +59,17 @@ function readSettings(): { lang?: string; map?: string } {
   }
 }
 
+
+function idempotencyConfig(source: Record<string, unknown> | null | undefined) {
+  const key = source?.idempotency_key;
+  return key ? { headers: { 'Idempotency-Key': String(key) } } : undefined;
+}
+
+function withoutIdempotency<T extends Record<string, unknown>>(source: T): Omit<T, 'idempotency_key'> {
+  const { idempotency_key: _idempotencyKey, ...body } = source;
+  return body;
+}
+
 const LANG_AR: Record<string, string> = { ar: 'العربيّة', en: 'الإنجليزيّة' };
 const MAP_AR: Record<string, string> = { satellite: 'قمر صناعيّ', street: 'شوارع', terrain: 'تضاريس' };
 
@@ -104,7 +115,7 @@ export default function SetupCabin() {
   const invalidateFields = () => qc.invalidateQueries({ queryKey: QK.fields(tid) });
 
   const handleWizardSaveField = async (data: any): Promise<Record<string, unknown>> => {
-    const r = await kongApi.post('/api/v1/fields', {
+    const fieldPayload = {
       name: data.name, crop: data.crop,
       soil_type: data.soil_type ?? data.soil,
       manager: data.manager,
@@ -116,7 +127,9 @@ export default function SetupCabin() {
       country: data.country ?? null,
       region: data.region ?? null,
       geometry: data.geometry,
-    });
+      idempotency_key: data.idempotency_key,
+    };
+    const r = await kongApi.post('/api/v1/fields', withoutIdempotency(fieldPayload), idempotencyConfig(fieldPayload));
     const rec = r.data as Record<string, unknown>;
     invalidateFields();
     toastStore.add('success', '✅ تم إضافة الحقل', `${data.name}`);
@@ -124,7 +137,7 @@ export default function SetupCabin() {
   };
 
   const handleWizardImportField = async (payload: FieldImportInput): Promise<Record<string, unknown>> => {
-    const r = await kongApi.post('/api/v1/fields/import', payload);
+    const r = await kongApi.post('/api/v1/fields/import', withoutIdempotency(payload as unknown as Record<string, unknown>), idempotencyConfig(payload as unknown as Record<string, unknown>));
     const rec = r.data as Record<string, unknown>;
     invalidateFields();
     toastStore.add('success', '✅ تم استيراد الحقل', `${payload.name}`);
