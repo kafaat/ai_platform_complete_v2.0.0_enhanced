@@ -272,3 +272,11 @@ SHAs من `git log --oneline origin/main`.
 | **م5 `5f52b63`** (v2-008/009) | جسر الكتالوج: `insert_raster_registry_entry` (يملأ raster_registry من كلّ أصل ناجح — كان يملؤه فقط REST يدويّ) + `insert_stac_item` (يستمرّ مشاهد backfill في stac_item_registry — كان بلا كاتب). كلاهما ON CONFLICT + ضبط مستأجِر (RLS FORCE+WITH CHECK) + `_clamp_score_0_100` للقيد. best-effort لا يُفشل المعالجة. |
 
 **الحصيلة:** كلّ بنود المؤجَّل من v2 + كلّ v3 (عدا F2 المُصلَح سابقاً 528203b) + النتائج الحقيقيّة من v4 — مُنجَزة ومدفوعة. unit gate 2576 · production_validation_gate أخضر (v143، 149 ترحيلاً، 54 خدمة) · tenant-audit 0 · ruff/release نظيفة. **مؤجَّل بوعي:** التحقّق التكامليّ (`-m integration` بعد رفع Postgres+PostGIS) لتفعيل عامل الإبطال وملء الكتالوج فعليّاً على DB حيّ.
+
+## 18) متابعات ما بعد الدمج: أمن bandit + v5 + بوّابة الإنتاج (2026-07-05)
+
+| SHA | القرار + السبب |
+|---|---|
+| `65c96cd` | `hashlib.sha1(..., usedforsecurity=False)` لبصمة كاش CDSE — استعمال غير أمنيّ؛ يُرضي bandit B324 HIGH (كان يحجب Security Scan) وFIPS بلا تغيير سلوك. |
+| `5cd765d` | رصد حفظ raster_assets (bool + سطر منظَّم + `persisted` في المهمّة) [v5-F1] + ملخّص فحص backfill [v5-F8]. F2/F4 (فحص لاتزامنيّ) مؤجَّل بصدق. |
+| `947c9af` | إضافة `sahool-raster-cache-invalidation-worker` لقائمة سماح JOBS **الثانية** (`tests/security/test_phase12`) — بوّابة الإنتاج main-only سقطت لأنّ القائمة تعيش في موضعَين. + تجديد بصمات الإصدار. |

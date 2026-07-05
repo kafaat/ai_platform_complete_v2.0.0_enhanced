@@ -1219,3 +1219,13 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **م5 `5f52b63`:** جسر الكتالوج `insert_raster_registry_entry` + `insert_stac_item` (كلا الجدولَين كانا بلا كاتب من الأنبوب) [v2-008/009].
 
 **درس متكرّر (عزل الاختبار):** اسم الوحدة العامّ `main` يتصادم عبر الخدمات في `pytest -m unit` الكامل — الحلّ استخراج الدوالّ لوحدة فريدة (`tile_cache_maint`) بدل حقن `sys.modules`، وحذف كعب `boto3` الملوِّث. **درس بوّابة:** بعد أيّ migration شغّل `production_validation_gate` محليّاً (v143 اجتاز RLS role-gate بعد إضافة العامل للـallowlist)، وأيّ raw query على جدول مُستأجَر يحتاج تصنيفاً في `tenant_query_audit`.
+
+## 2026-07-05 (ح) — متابعة v5 + إصلاح أمنيّ + إصلاح بوّابة الإنتاج (الرأس `947c9af`؛ main=develop=الفرع)
+
+بعد دمج المرحلة ١-٥ إلى `main` (fast-forward)، ٣ متابعات:
+
+- **`65c96cd` (فشل أمنيّ):** بصمة كاش هندسة CDSE استخدمت `hashlib.sha1` بلا `usedforsecurity=False` ⇒ bandit **B324 HIGH** حجب بوّابة *Security Scan* (كانت الوظيفة الوحيدة الحمراء من ١١). الإصلاح: `usedforsecurity=False` (استعمال غير أمنيّ — تفريق مفاتيح فقط). تأكّد أخضر على CI.
+- **`5cd765d` (استجابة تدقيق السجلّ الحيّ v5):** F1 رصد حفظ raster_assets (`_persist_raster_asset` يُرجِع bool + سطر `persist ok/failed` + `persisted` في نتيجة المهمّة) · F8 ملخّص `historical_backfill_scan completed`. v5-F3/F5/F7 مُصلَحة سابقاً (zip قديم 9a4b9ab) · F2/F4 مؤجَّلة بصدق (فحص backfill لاتزامنيّ).
+- **`947c9af` (فشل بوّابة الإنتاج):** *Sahool Production Gates* (main-only) سقط لأنّ `sahool-raster-cache-invalidation-worker` غاب عن قائمة سماح **ثانية**: `tests/security/test_phase12_final_production_gates.py` (منفصلة عن `scripts/security/rls_runtime_gate.py` التي حدّثتها المرحلة ٤). الإصلاح: أضفتُه للقائمتَين + جدّدتُ بصمات الإصدار.
+
+**درس متكرّر (حرج):** قائمة `JOBS_DATABASE_URL` المسموحة تعيش في **موضعَين** يجب مزامنتهما: (١) `scripts/security/rls_runtime_gate.py` — يفحصه `production_validation_gate.sh` محليّاً؛ (٢) `tests/security/test_phase12_final_production_gates.py` — تفحصه بوّابة Sahool Production Gates على main فقط (وظيفة `pytest-contracts`، على `tests/` لا `tests_v9/` فلا يلتقطها `pytest -m unit`). أيّ عامل جديد بدور JOBS يحتاج تحديث الاثنين + جدولة بصمات الإصدار.
