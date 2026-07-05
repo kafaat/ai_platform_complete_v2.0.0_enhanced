@@ -1294,23 +1294,23 @@ def _persist_raster_asset(
     bounds: list,
     stats: dict,
     job_id: str | None = None,
-) -> None:
-    """يُدرج صفّاً في raster_assets (best-effort). يُغلّف كلّ خطأ.
+) -> bool:
+    """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند الحفظ الفعليّ.
 
     _run_processing يعمل في threadpool (مهمّة خلفيّة متزامنة) فلا حلقة
     أحداث في خيطه؛ لذا asyncio.run آمن هنا. غياب القاعدة (لا DATABASE_URL/
-    لا جدول/لا شبكة) يُبتلع بصدق ولا يُفشل المعالجة.
+    لا جدول/لا شبكة) يُبتلع بصدق ولا يُفشل المعالجة (يُرجِع False).
     """
     if not _is_valid_field_id_text(req.field_id):
         logger.warning("raster_assets persist skipped: missing/invalid field_id=%r", req.field_id)
-        return
+        return False
     if (
         req.tenant_id is not None
         and str(req.tenant_id).strip()
         and not _is_valid_uuid_text(req.tenant_id)
     ):
         logger.warning("raster_assets persist skipped: invalid tenant_id=%r", req.tenant_id)
-        return
+        return False
     try:
         import asyncio
 
@@ -1412,20 +1412,45 @@ def _persist_raster_asset(
                 )
             return ok
 
+        # v5-audit F1: نلتقط نتيجة الحفظ ونُصدِر سطراً منظَّماً — «job completed» وحده
+        # كان لا يُميّز «حُفِظ في DB» عن «في الذاكرة فقط والإدراج عاد False بصمت»، فبعد
+        # إعادة التشغيل قد يفشل الترطيب رغم «completed». الآن persisted صريح في السجلّ والمهمّة.
+        _holder = {"ok": False}
         try:
-            asyncio.run(_do())
+            _holder["ok"] = bool(asyncio.run(_do()))
         except RuntimeError:
             # حلقة أحداث قائمة بالفعل (نادر هنا) — شغّلها في خيط مستقلّ
             import threading
 
             def _runner():
-                asyncio.run(_do())
+                _holder["ok"] = bool(asyncio.run(_do()))
 
             t = threading.Thread(target=_runner, daemon=True)
             t.start()
             t.join(timeout=10)
+        if _holder["ok"]:
+            logger.info(
+                "raster_assets persist ok field_id=%s tenant_id=%s index=%s scene_id=%s "
+                "acquisition_date=%s cog_uri=%s",
+                req.field_id,
+                req.tenant_id,
+                req.indicator.value,
+                req.scene_id,
+                req.capture_datetime,
+                cog_url,
+            )
+        else:
+            logger.warning(
+                "raster_assets persist failed field_id=%s index=%s scene_id=%s "
+                "(best-effort؛ COG في الذاكرة/القرص المحلّيّ فقط — قد يفشل الترطيب بعد إعادة التشغيل)",
+                req.field_id,
+                req.indicator.value,
+                req.scene_id,
+            )
+        return _holder["ok"]
     except Exception as _dbe:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
         logger.warning("raster_assets persist skipped: %s", _dbe)
+        return False
 
 
 def _run_processing(job_id: str, req: ProcessRequest):
@@ -1539,8 +1564,12 @@ def _run_processing(job_id: str, req: ProcessRequest):
         if req.field_id:
             _field_layers.setdefault(req.field_id, []).append(layer_id)
         # (٦) حفظ في raster_assets (best-effort — غياب القاعدة لا يُفشل المعالجة)
-        if cog_url:
+        # v5-audit F1: نلتقط persisted كي يُميّز «completed» بين الحفظ في DB والذاكرة فقط.
+        persisted = (
             _persist_raster_asset(req, cog_url, meta, bounds, stats, job_id=job_id)
+            if cog_url
+            else False
+        )
         job["result"] = {
             "job_id": job_id,
             "layer_id": layer_id,
@@ -1552,12 +1581,13 @@ def _run_processing(job_id: str, req: ProcessRequest):
             "zoom_max": req.zoom_max,
             "finished_at": now,
             "provenance": provenance,
+            "persisted": persisted,  # v5-audit F1: هل حُفِظ في DB فعلاً (لا الذاكرة فقط)؟
         }
         job["status"] = JobStatus.completed
         job["progress_pct"] = 100
         job["finished_at"] = now
         _jobs.set(job_id, job)  # تثبيت النتيجة المكتملة (Redis/ذاكرة)
-        logger.info(f"job {job_id} completed → layer {layer_id}")
+        logger.info(f"job {job_id} completed → layer {layer_id} persisted={persisted}")
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
         # لا نُخزّن تفاصيل الاستثناء الخام في job status لأنّها تُقرأ عبر API وقد

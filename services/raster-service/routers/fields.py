@@ -274,6 +274,19 @@ async def field_historical_backfill(
             background_tasks.add_task(_run_scene_job)
             job_ids.append(job_id)
 
+    # v5-audit F8: ملخّص فحص backfill منظَّم — «job completed» الفرديّة لا تكشف نطاق
+    # الفحص (كم شهراً مُسِح · كم مشهداً اختير · كم مهمّة جُدولت) للتشخيص/التدقيق.
+    main.logger.info(
+        "historical_backfill_scan completed field_id=%s months_requested=%s months_scanned=%s "
+        "scenes_selected=%s jobs_scheduled=%s dry_run=%s",
+        field_id,
+        months,
+        len(windows),
+        len(selected_scenes),
+        len(job_ids),
+        req.dry_run,
+    )
+
     return {
         "field_id": field_id,
         "preset": req.preset.value,
