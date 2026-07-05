@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0dd72b20d77a656332d9e8eb957563f92352ebaccde11f3fadd3276ff2a010d"
+          "content": "824fedb05f1d23493b7c98f58cd9be93566e98680173235bc9e10583649ecefc"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -1565,7 +1565,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be3b2ea426bdca64a76d4913b89fb78efdb80ba6fad0d940f1896f22ae84dd41"
+          "content": "05faa1678005997b0e83b29abdced6e6392507e9afa1935aa028ce17a576c70a"
+        }
+      ],
+      "name": "frontend/src/components/maphub/TerrainView3D.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1eb50b8f4443989745d53ab556c0eb6bd92b7e405af060a84c697314da97b53b"
         }
       ],
       "name": "frontend/src/components/maphub/TerrainView3D.tsx",
@@ -2125,7 +2135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2e41c773dc05332daa4587b4e016b9f5c3d2d99caab190fb6948964be17b7b3"
+          "content": "a6557ca392ebb3fa9baa8388d0abe881739f89cba30fce13bd8baf245bb5f333"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4965,7 +4975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be1b7dfec8cd138ab61d67afb5379290c66ab2313fd1690da07f40614c762265"
+          "content": "68bd0008cddf5d765b6bc36fdc798686a56d62fecbb7f412d142b69913665bc5"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9025,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "353a9ccd9da3570e7775bb76502ab5e2510b9e3b18d0fcc6b9ee4a3fab554149"
+          "content": "6a83816ac934579d21d38765318adc86cbc81a3dc082c3729efd913b93f90e92"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9175,7 +9185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b3ece62940f38c9dbf8181764bec3d4561b8b508c7f0c35d5b1751ff257c226"
+          "content": "32e7d202234fbba303e917525d9d940fe88a7232308d630e9ce5fdc9453faf6e"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -9309,6 +9319,16 @@
         }
       ],
       "name": "services/raster-service/test_enterprise_imagery_best_practices.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8a146879b249f93ca3ba1b24467e3a03b192655b169c75c17a752fbca614aa3c"
+        }
+      ],
+      "name": "services/raster-service/test_field_terrain.py",
       "type": "file"
     },
     {
@@ -11695,7 +11715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73170f9fcdedbc84ef7bc77c18de80f19f81f515fb1795f03aedf48cd0485361"
+          "content": "e9b51a52d50a0b25e382a7eaf550c020e0aed389d88e7d53d1a319463ab6be10"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

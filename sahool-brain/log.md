@@ -4,6 +4,34 @@
 
 ---
 
+## 2026-07-05 (ن) — `3206dc6` إصلاح: لا ازدواج لمسار /terrain (الفرع اصطاده)
+
+بوّابة CI للفرع اصطادت أنّ المنصّة **تملك أصلاً** `GET /api/v1/fields/{id}/terrain` (`get_field_terrain`: enrich_terrain على أعمدة مخزّنة + ملاحظة «DEM مؤجَّل»)؛ فالوسيط الذي أضفتُه كان **تسجيلاً مزدوجاً** أسقط `test_router_decomposition_guard`. الإصلاح: حذف الوسيط المكرّر وبدلاً منه **إغناء النقطة القائمة من DEM حيّ**: عند غياب القيم المخزّنة، `get_field_terrain` ينادي best-effort راستر `/terrain` (bbox من الهندسة) ويغذّي enrich_terrain بالارتفاع/الانحدار(deg→pct)/الاتّجاه المحسوب، ويكشف المظروف الخام تحت `dem_auto_fill.computed` ويقلب `available`؛ التعذّر ⇒ available=false صادق. الواجهة `fetchFieldTerrain` تقرأ `dem_auto_fill.computed`. **درس:** ابحث عن نقطة قائمة قبل إضافة راوت — الفرع-أولاً أنقذ من ازدواج في main. البوّابات: router-guard أخضر · platform 3105 · unit 2626 · vitest 1057 · release 3157.
+
+---
+
+## 2026-07-05 (ن) — `beec5ef` أساس TERRAIN: نقطة تضاريس خادميّة من DEM حقيقيّ
+
+على «استمر» بُني أساس فجوة TERRAIN بصدق (لا اختلاق): `terrain_analysis.compute_field_terrain(dem, bbox)` يقصّ DEM على bbox الحقل ويحسب ارتفاع/انحدار/اتّجاه عبر Horn + الجهة الغالبة؛ غياب DEM/bbox ⇒ `computed=false` بمصدره. راستر `GET /v1/fields/{id}/terrain` (tenant-scoped + `FIELD_DEM_PATH` + تصنيف حصاد المياه) · منصّة proxy (geometry→bbox عبر guard_field_geometry، 404 صادق خارج المستأجِر) · واجهة `fetchFieldTerrain`/`useFieldTerrain` + `TerrainView3D` يعرض إحصاءات محسوبة أو سبباً صادقاً («DEM غير مُهيّأ»)؛ تصيير 3D terrain-RGB يبقى حالة انتظار موثّقة (لا نقش مزيّف). اختبارات: سلوكيّ مرافق + حارس tests_v9 + TerrainView3D.static. **البوّابات:** unit 2626 · vitest 1057 · tsc/ruff نظيف · release 3154. بلا migration. **يبقى نشريّاً:** تزويد DEM حقيقيّ + بلاطات 3D.
+
+---
+
+## 2026-07-05 (ن) — مواءمة الدماغ مع واقع CI: عدّة قيود `open`/`deferred` كانت بائتة
+
+على «قوم بتنفيذ الكل» أُجري تحقّق عميق فتبيّن أنّ أغلب البنود «المفتوحة» **منجَزة ومُتحقَّقة في CI**، لا عملاً كوديّاً متبقّياً. الدليل: **CI run 28750924733 عند `781f7a4` — 11 مهمّة كلّها success**، تشمل: **Frontend E2E (Playwright · MapLibre/WebGL QA)** (⇒ MAP-QA حيّ أخضر) · **Integration Tests** على Postgres+PostGIS حيّ (⇒ تحقّق SAT-DEFERRED التكامليّ) · **Flutter Analyze & Test** · Security/Unit/Typecheck/إلخ.
+
+صُحِّحت القيود البائتة في `gaps/registry.md`: MAP-QA ⇒ verified · SAT-DEFERRED ⇒ fixed (integration أخضر؛ يبقى تفعيل عامل الإبطال نشريّاً) · MAPHUB-CDSE + NOTIF-WS ⇒ fixed (PR **#564 مدموج** 2026-06-28، القيد «قيد المراجعة» بائت) · SPATIAL-401 ⇒ fixed (أفاد المستخدم بإصلاحه في dev) · v57.5-DB ⇒ fixed (سابقاً). **تشغيل Playwright محلّيّ** أكّد 8/9 خطوات gating خضراء؛ خطوة رسم Terra Draw حسّاسة لبناء Chromium تحت software-WebGL (تمرّ على Chromium المُدار في CI) — **لم أُضعِف البوّابة** لأجل بيئتي المحلّيّة.
+
+**المتبقّي حقّاً مقيَّد بالنشر/البيانات لا بالكود** (لا يُنفَّذ في حاوية تطوير بلا اختلاق): C4/M1 (اعتمادات FCM/APNs الإنتاجيّة) · TERRAIN 3D (بلاطات DEM/terrain-RGB حقيقيّة) · تفعيل عامل الإبطال كخدمة compose في الإنتاج. **درس:** أعِد التحقّق من الشيفرة/CI قبل «تنفيذ» بند — عدّة قيود كانت بائتة.
+
+---
+
+## 2026-07-05 (ن) — صيانة سجلّ: v57.5-DB بائت ⇒ fixed (إعادة تحقّق)
+
+استُفسِر عن الخطّة؛ عند إعادة التحقّق المُلزَم لبند P1 «v57.5-DB» تبيّن أنّه **مُغلَق downstream** وأنّ قيد `open` في `gaps/registry.md` كان بائتاً: v130/v131/v132/v124 موصولة في MANIFEST **و** run_migrations.sql، والقرّاء/الكتّاب موجودون. صُحِّح السجلّ إلى `fixed`. **درس:** لا تُنفَّذ إعادة بناء لبند قبل التحقّق من الشيفرة — أنقذ هذا ترحيلاً مكرّراً. الكود مكتمل إلى حدّ بعيد؛ المتبقّي أغلبه مقيَّد ببيئة (تحقّق تكامليّ `-m integration` · Playwright حيّ · موبايل Flutter · مسار /terrain خادميّ · متابعة PR #564).
+
+---
+
 ## 2026-07-05 (ن) — `567e8e3` الجولة 4: قوائم حقول في agronomy/GIS/governance + وسم الـmocks demo-only
 
 **بعد دمج PR #580** (`8f2109d`؛ main=develop=الفرع). عمل جديد على الفرع (لم يُعَد فتح أيّ PR):

@@ -29,6 +29,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { Mountain, Info } from 'lucide-react';
 import { T, RADIUS } from '../ds';
+import { useFieldTerrain } from '../../hooks/useApi';
 
 export interface TerrainView3DProps {
   fieldId?: string;
@@ -44,13 +45,36 @@ function fmt(v: number | null | undefined, unit: string): string {
   return v == null || !Number.isFinite(v) ? '—' : `${v} ${unit}`;
 }
 
+function round1(v: number | null | undefined): number | null {
+  return v == null || !Number.isFinite(v) ? null : Math.round(v * 10) / 10;
+}
+
 export default function TerrainView3D({
+  fieldId,
   fieldName,
   elevationM,
   slopePct,
   aspect,
   height = 460,
 }: TerrainView3DProps) {
+  // إحصاءات محسوبة من DEM حقيقيّ (مقصوص على الحقل) حين تتوفّر؛ وإلّا نُبقي البيانات
+  // الوصفيّة من workspace. صدق: لا نعرض رقماً لم يُرجِعه الخادم.
+  const terrainQ = useFieldTerrain(fieldId);
+  const t = terrainQ.data;
+  const computed = !!t?.computed;
+  const elevDisplay = computed ? round1(t?.elevation_m?.mean) : (elevationM ?? null);
+  const slopeDisplay = computed ? round1(t?.slope_deg?.mean) : (slopePct ?? null);
+  const slopeUnit = computed ? '°' : '%';
+  const aspectDisplay = computed ? (t?.dominant_aspect ?? null) : (aspect ?? null);
+  // مظروف صادق لتعذّر الحساب (لا DEM مُهيّأ / لا bbox) — لا نُخفيه.
+  const terrainReason =
+    terrainQ.isSuccess && t && !computed
+      ? t.source === 'dem-not-configured'
+        ? 'مصدر نموذج الارتفاع (DEM) غير مُهيّأ بعد على الخادم.'
+        : t.source === 'field-bbox-unavailable'
+          ? 'حدود الحقل غير متاحة لحساب التضاريس.'
+          : (t.reason ?? 'تعذّر حساب التضاريس.')
+      : null;
   return (
     <div
       dir="rtl"
@@ -91,9 +115,9 @@ export default function TerrainView3D({
         }}
       >
         {[
-          { label: 'الارتفاع', value: fmt(elevationM, 'م') },
-          { label: 'الميل', value: fmt(slopePct, '%') },
-          { label: 'الجهة', value: aspect && aspect.trim() ? aspect : '—' },
+          { label: 'الارتفاع', value: fmt(elevDisplay, 'م') },
+          { label: 'الميل', value: fmt(slopeDisplay, slopeUnit) },
+          { label: 'الجهة', value: aspectDisplay && aspectDisplay.trim() ? aspectDisplay : '—' },
         ].map((s) => (
           <div
             key={s.label}
@@ -109,6 +133,15 @@ export default function TerrainView3D({
           </div>
         ))}
       </div>
+
+      {computed && t?.water_harvesting?.recommended_technique ? (
+        <div style={{ fontSize: 11, color: '#9fb3a6', maxWidth: 460 }}>
+          حصاد المياه المقترح: <b style={{ color: '#cdddd2' }}>{t.water_harvesting.recommended_technique}</b>
+          {t.water_harvesting.suitability ? ` — ${t.water_harvesting.suitability}` : ''}
+        </div>
+      ) : terrainReason ? (
+        <div style={{ fontSize: 11, color: '#c9a94a', maxWidth: 460 }}>{terrainReason}</div>
+      ) : null}
 
       <div
         className="flex items-center gap-2"

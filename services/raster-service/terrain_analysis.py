@@ -61,6 +61,102 @@ def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
     }
 
 
+def compute_field_terrain(
+    dem_path: str | None,
+    bbox: list[float] | None = None,
+    pixel_size_m: float = 30.0,
+) -> dict:
+    """يحسب إحصاءات تضاريس حقل (ارتفاع + انحدار/اتّجاه) من DEM مقصوصٍ على bbox الحقل.
+
+    الأساس الصادق لعرض التضاريس: يقصّ نموذج الارتفاع على مربّع إحاطة الحقل
+    (lon/lat, EPSG:4326) ثمّ يحسب إحصاءات الارتفاع والانحدار عبر Horn. لا تلفيق:
+      • لا DEM مُهيّأ/موجود ⇒ ``{computed: false, source: 'dem-not-configured'}``.
+      • لا bbox للحقل ⇒ ``{computed: false, source: 'field-bbox-unavailable'}`` (لا
+        نحسب إحصاءات إقليميّة ونلصقها بالحقل).
+      • numpy/rasterio غير متوفّرة ⇒ يُبلّغ (تُحسب في التشغيل).
+    """
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.windows import from_bounds
+    except ImportError:
+        return {
+            "computed": False,
+            "source": "runtime-libs-missing",
+            "reason": "numpy/rasterio غير متوفّر — يُحسب في التشغيل",
+        }
+
+    if not dem_path or not os.path.isfile(dem_path):
+        return {
+            "computed": False,
+            "source": "dem-not-configured",
+            "reason": f"مصدر DEM غير مُهيّأ/موجود: {dem_path or '—'}",
+        }
+    if not bbox or len(bbox) != 4:
+        return {
+            "computed": False,
+            "source": "field-bbox-unavailable",
+            "reason": "مربّع إحاطة الحقل غير متاح — لا نحسب تضاريس إقليميّة كأنّها للحقل",
+        }
+
+    min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
+    try:
+        with rasterio.open(dem_path) as src:
+            window = from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src.transform)
+            dem = src.read(1, window=window).astype("float32")
+    except rasterio.errors.RasterioIOError as e:
+        return {
+            "computed": False,
+            "source": "dem-read-failed",
+            "reason": f"تعذّر قراءة DEM: {type(e).__name__}",
+        }
+
+    if dem.size == 0:
+        return {
+            "computed": False,
+            "source": "field-outside-dem",
+            "reason": "مربّع إحاطة الحقل خارج تغطية DEM",
+        }
+
+    finite = np.isfinite(dem)
+    ev = dem[finite]
+    dzdx = np.gradient(dem, pixel_size_m, axis=1)
+    dzdy = np.gradient(dem, pixel_size_m, axis=0)
+    slope_deg = np.degrees(np.arctan(np.sqrt(dzdx**2 + dzdy**2)))
+    aspect = np.degrees(np.arctan2(dzdy, -dzdx))
+    aspect = np.where(
+        aspect < 0, 90.0 - aspect, np.where(aspect > 90.0, 360.0 - aspect + 90.0, 90.0 - aspect)
+    )
+    sv = slope_deg[np.isfinite(slope_deg)]
+
+    # الاتّجاه الغالب (8 جهات) للجريان السطحيّ.
+    dirs = ["شمال", "شمال شرق", "شرق", "جنوب شرق", "جنوب", "جنوب غرب", "غرب", "شمال غرب"]
+    av = aspect[np.isfinite(aspect)]
+    dominant_aspect = None
+    if av.size:
+        idx = int(((av.mean() % 360) + 22.5) // 45) % 8
+        dominant_aspect = dirs[idx]
+
+    return {
+        "computed": True,
+        "source": "dem",
+        "elevation_m": {
+            "min": float(np.min(ev)) if ev.size else None,
+            "max": float(np.max(ev)) if ev.size else None,
+            "mean": float(np.mean(ev)) if ev.size else None,
+        },
+        "slope_deg": {
+            "min": float(np.min(sv)) if sv.size else 0.0,
+            "max": float(np.max(sv)) if sv.size else 0.0,
+            "mean": float(np.mean(sv)) if sv.size else 0.0,
+        },
+        "flat_pct": float((sv < 2).sum() / sv.size * 100) if sv.size else 0.0,
+        "steep_pct": float((sv > 15).sum() / sv.size * 100) if sv.size else 0.0,
+        "dominant_aspect": dominant_aspect,
+        "note": "الانحدار<2° مناسب للريّ السطحي؛ >15° يحتاج مدرّجات/حصاد مياه",
+    }
+
+
 def classify_water_harvesting(slope_deg_mean: float) -> dict:
     """يصنّف ملاءمة حصاد المياه حسب الانحدار (إرشادي زراعي).
 

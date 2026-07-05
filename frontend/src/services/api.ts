@@ -3578,6 +3578,28 @@ export interface FieldImageryDateOption {
 /** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات.
  *  index اختياريّ: عند تمريره يقصر الخادم التواريخ على ما له COG لذلك المؤشّر
  *  (يُغني عن اختيار تاريخ لا يملك المؤشّر النشط — FINDING-006). */
+// إحصاءات تضاريس الحقل (ارتفاع/انحدار/اتّجاه + حصاد المياه) من DEM حقيقيّ عبر
+// المنصّة → raster-service. صدق: قد يعود `computed:false` بمصدره (لا DEM/لا bbox)
+// وتعرضه الواجهة كحالة صادقة بدل رقم مفبرك.
+export interface FieldTerrain {
+  computed: boolean;
+  source?: string;
+  reason?: string;
+  elevation_m?: { min: number | null; max: number | null; mean: number | null };
+  slope_deg?: { min: number; max: number; mean: number };
+  flat_pct?: number;
+  steep_pct?: number;
+  dominant_aspect?: string | null;
+  water_harvesting?: { recommended_technique?: string; suitability?: string };
+}
+export const fetchFieldTerrain = (fieldId: string): Promise<FieldTerrain> =>
+  kongApi.get(`/api/v1/fields/${fieldId}/terrain`).then((r) => {
+    // الخادم يُرجِع تفسير enrich_terrain + dem_auto_fill.computed (المظروف الخام من
+    // حساب DEM الحيّ). نقرأ الكتلة المحسوبة؛ غيابها ⇒ computed=false صادق.
+    const c = r.data?.dem_auto_fill?.computed;
+    return (c && typeof c === 'object' ? c : { computed: false }) as FieldTerrain;
+  });
+
 export const fetchFieldImageryAvailableDates = (
   fieldId: string,
   index?: string,
