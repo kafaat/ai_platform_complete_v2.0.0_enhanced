@@ -1728,6 +1728,11 @@
       "evidence": "/api/v1/master-data"
     },
     {
+      "endpoint": "/api/v1/me",
+      "audience": "farmer",
+      "evidence": "/api/v1/me"
+    },
+    {
       "endpoint": "/api/v1/niche-crops/detail",
       "audience": "farmer",
       "evidence": "/api/v1/niche-crops/detail"

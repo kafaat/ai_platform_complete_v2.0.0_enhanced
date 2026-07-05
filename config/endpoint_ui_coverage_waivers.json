@@ -167,15 +167,15 @@
       "methods": [
         "get@services/sahool-platform/api/routers/auth.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
+      "reason_category": "operational",
+      "reason": "قدرة «المستخدم الحاليّ» نفسها؛ مغطّاة بـ/api/v1/me (getCurrentUser) — متغيّر بوّابة.",
+      "priority": "none",
       "ui_effort": "button",
       "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
       "criticality": "informational",
       "importance": 40,
       "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/auth/signup",
@@ -183,15 +183,15 @@
       "methods": [
         "post@services/sahool-platform/api/routers/auth.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
+      "reason_category": "operational",
+      "reason": "التسجيل مغطّى بـSignupPage عبر /auth/register؛ هذا متغيّر بوّابة المنصّة لنفس القدرة.",
+      "priority": "none",
       "ui_effort": "page",
       "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
       "criticality": "informational",
       "importance": 40,
       "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/api/v1/automation/imagery/register-field",
@@ -975,22 +975,6 @@
       "criticality": "informational",
       "importance": 18,
       "importance_tier": "P3-منخفض",
-      "intended_consumer": "human"
-    },
-    {
-      "endpoint": "/api/v1/me",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/me.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "قدرة مواجِهة بلا واجهة بعد — دَين واجهة مُوثَّق يُنجَز لاحقاً؛ مُجمّد بالإعفاء لا مكتوم.",
-      "priority": "high",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/components/ThemeToggle.tsx",
-      "criticality": "informational",
-      "importance": 40,
-      "importance_tier": "P2-متوسّط",
       "intended_consumer": "human"
     },
     {
@@ -1801,15 +1785,15 @@
       "methods": [
         "get@services/auth/routers/session.py"
       ],
-      "reason_category": "backlog-ui",
-      "reason": "تدفّق مصادقة/دعوة بلا شاشة مخصّصة بعد — دَين واجهة موثّق (login/register مغطّاة، البقيّة لاحقاً).",
-      "priority": "high",
+      "reason_category": "operational",
+      "reason": "قدرة «المستخدم الحاليّ» نفسها؛ المنصّة تستعمل /api/v1/me المُرقّى — متغيّر بوّابة auth لا شاشة ثانية.",
+      "priority": "none",
       "ui_effort": "button",
       "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
       "criticality": "informational",
       "importance": 40,
       "importance_tier": "P2-متوسّط",
-      "intended_consumer": "human"
+      "intended_consumer": "machine"
     },
     {
       "endpoint": "/auth/tenants",

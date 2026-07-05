@@ -376,6 +376,29 @@ export type AssignableRole = 'owner' | 'admin' | 'expert' | 'farmer' | 'viewer';
 export const listTeamUsers = (): Promise<TeamUser[]> =>
   authApi.get<TeamUser[]>('/auth/users').then(r => (Array.isArray(r.data) ? r.data : []));
 
+// المستخدم الحاليّ من المنصّة — GET /api/v1/me (الهويّة + المستأجر + الدور).
+// يُستعمَل لتحديث الدور بعد تغييره إداريّاً بلا خروج/دخول. نطبّع الحقول
+// المختلفة بين الخدمات (user_id/name_ar) إلى شكل موحّد للمتجر.
+export interface CurrentUser {
+  user_id?: number;
+  email?: string;
+  full_name?: string;
+  role?: string;
+  tenant_id?: string;
+}
+
+export const getCurrentUser = (): Promise<CurrentUser> =>
+  kongApi.get<Record<string, unknown>>('/api/v1/me').then(r => {
+    const d = r.data ?? {};
+    return {
+      user_id: (d.user_id ?? d.id) as number | undefined,
+      email: (d.email ?? d.sub) as string | undefined,
+      full_name: (d.full_name ?? d.name_ar) as string | undefined,
+      role: d.role as string | undefined,
+      tenant_id: d.tenant_id as string | undefined,
+    };
+  });
+
 /** يغيّر دور مستخدم (admin + step-up MFA إن فُعِّل). الخادم يُبطل جلسات
  *  المستخدم فوراً كي يسري الدور الجديد — يُعرَض ذلك للمشغّل بصدق. */
 export const changeUserRole = (

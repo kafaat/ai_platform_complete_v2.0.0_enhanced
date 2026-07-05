@@ -292,10 +292,13 @@ export default function SettingsPage() {
           </Section>
 
           <Section title="أدوار المستخدمين (RBAC — مُطبَّق فعليّاً)">
-            <p style={{ fontSize: 11, color: T.muted, marginBottom: 4 }}>
-              دورك الحاليّ:{' '}
-              <span style={{ color: T.green, fontWeight: 700 }}>{ROLE_LABEL_AR[normalizeRole(user?.role)]}</span>
-            </p>
+            <div className="flex items-center justify-between mb-1">
+              <p style={{ fontSize: 11, color: T.muted }}>
+                دورك الحاليّ:{' '}
+                <span style={{ color: T.green, fontWeight: 700 }}>{ROLE_LABEL_AR[normalizeRole(user?.role)]}</span>
+              </p>
+              <SessionRefreshButton />
+            </div>
             {([
               { r: 'owner',      perms: 'كل الصفحات + الإدارة' },
               { r: 'manager',    perms: 'كل الصفحات + إدارة' },
@@ -502,6 +505,37 @@ function TeamManagement({ Section, inputCls, inputSty }: {
 
       <TeamMembersRoles Section={Section} inputCls={inputCls} inputSty={inputSty} />
     </div>
+  );
+}
+
+// تحديث الجلسة/الدور من الخادم (GET /api/v1/me) — بعد أن يغيّر مشرفٌ دورَك،
+// يُبطل الخادم جلستك؛ هذا الزرّ يجلب الدور الجديد فوراً بلا خروج/دخول. رسالة
+// الخطأ (401 لو أُبطلت الجلسة فعلاً) تُعرَض بصدق كي يعيد المستخدم الدخول.
+function SessionRefreshButton() {
+  const refreshUser = useAuthStore(s => s.refreshUser);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const run = async () => {
+    setBusy(true); setMsg('');
+    try {
+      await refreshUser();
+      setMsg('حُدِّثت الجلسة');
+    } catch (err: unknown) {
+      setMsg(apiErrorMessage(err, 'تعذّر التحديث — قد تحتاج لإعادة الدخول'));
+    } finally {
+      setBusy(false);
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+  return (
+    <span className="inline-flex items-center gap-2">
+      {msg && <span style={{ fontSize: 11, color: T.muted }}>{msg}</span>}
+      <button type="button" onClick={run} disabled={busy}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded disabled:opacity-50"
+        style={{ fontSize: 11, color: T.muted, border: `1px solid ${T.line}` }}>
+        <RefreshCw className={`w-3 h-3 ${busy ? 'animate-spin' : ''}`} /> تحديث الجلسة
+      </button>
+    </span>
   );
 }
 

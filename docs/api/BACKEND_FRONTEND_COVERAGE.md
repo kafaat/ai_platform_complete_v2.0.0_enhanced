@@ -10,11 +10,11 @@
 |---|---|---|
 | admin | 19 | 9 |
 | agronomist | 163 | 123 |
-| farmer | 190 | 144 |
+| farmer | 190 | 145 |
 | internal | 229 | 59 |
 | manager | 52 | 32 |
 
-العقد الملزِم (core): 352 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
+العقد الملزِم (core): 353 endpoint في `config/endpoint_ui_coverage.json` — تحرسها بوّابة CI.
 
 ## الجدول الكامل
 
@@ -314,7 +314,7 @@
 | `/api/v1/market/crop-classification-readiness` | manager | — |
 | `/api/v1/market/crop-gap` | manager | — |
 | `/api/v1/master-data` | manager | ✅ |
-| `/api/v1/me` | farmer | — |
+| `/api/v1/me` | farmer | ✅ |
 | `/api/v1/niche-crops/detail` | farmer | ✅ |
 | `/api/v1/niche-crops/list` | farmer | — |
 | `/api/v1/nl-gis/query` | agronomist | ✅ |

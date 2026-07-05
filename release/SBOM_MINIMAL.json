@@ -2055,7 +2055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf2f63ae201e03779fff5c0efb236cabd1f84eaba5c1144ed8581e674f5b7d55"
+          "content": "291ff26ace017e5df5257e16494c535b513ac8ac7c9114e93bedf5e69b55ffff"
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
@@ -4535,7 +4535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fd425b814147dbaa6489966e8a8848dcf90c726379a822b7e2365813cc5c7ef"
+          "content": "3613655f5878b996cd182538d46c50ebe8124d6d4169439afcd4173726d68d10"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
@@ -4635,7 +4635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83220c1efd9e20603034e9b57e526dd515861edd284e866833bf73bfd2f47001"
+          "content": "b6bb89ff494c43db1c60363a15e9efa48fb346c0168d34b24c1a1d8819b54b6e"
         }
       ],
       "name": "frontend/src/services/api.ts",
