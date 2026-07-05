@@ -71,6 +71,8 @@ async def _cleanup(tenant_id: str, field_id: str, scene_id: str | None = None):
         await conn.execute("DELETE FROM raster_assets WHERE field_id = $1", field_id)
         await conn.execute("DELETE FROM raster_registry WHERE field_id = $1", field_id)
         await conn.execute("DELETE FROM raster_cache_invalidations WHERE field_id = $1", field_id)
+        await conn.execute("DELETE FROM backfill_run_items WHERE field_id = $1", field_id)
+        await conn.execute("DELETE FROM backfill_runs WHERE field_id = $1", field_id)
         if scene_id:
             await conn.execute("DELETE FROM stac_item_registry WHERE scene_id = $1", scene_id)
     finally:
@@ -403,6 +405,101 @@ def test_cache_invalidation_worker_marks_stale_and_processed():
             )
             assert inv["status"] == "processed", f"صفّ الإبطال لم يُنهَ (={inv['status']})"
             assert inv["processed_at"] is not None
+        finally:
+            await conn.close()
+        await _cleanup(tenant_id, field_id)
+
+    asyncio.run(_run())
+
+
+# ─── v144: backfill_runs creation + run_items idempotency (live DB) ────────────
+
+
+def test_insert_backfill_run_creates_planned_run():
+    if not _db_available():
+        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    import db_persist
+
+    db_persist.DATABASE_URL = _TEST_DB
+    field_id = str(uuid.uuid4())
+    tenant_id = str(uuid.uuid4())
+
+    async def _run():
+        run_id = await db_persist.insert_backfill_run(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            preset="last_2_years",
+            from_date="2024-06-01",
+            to_date="2026-06-01",
+            months=24,
+            indices=["ndvi", "ndmi"],
+            max_cloud_pct=30.0,
+            geometry_revision=2,
+            clip_polygon_geojson={
+                "type": "Polygon",
+                "coordinates": [[[44.3, 16.78], [44.36, 16.78], [44.36, 16.81], [44.3, 16.78]]],
+            },
+            apply_cloud_mask=True,
+            limit_per_month=2,
+        )
+        assert run_id is not None, "إنشاء التشغيلة فشل — تحقّق من v144 وRLS"
+        conn = await _connect(tenant_id)
+        try:
+            row = await conn.fetchrow(
+                "SELECT status, months, geometry_revision, indices::text AS idx "
+                "FROM backfill_runs WHERE id=$1 AND tenant_id=$2::uuid",
+                run_id,
+                tenant_id,
+            )
+            assert row["status"] == "planned", "التشغيلة يجب أن تبدأ planned (الردّ الفوريّ)"
+            assert row["months"] == 24
+            assert row["geometry_revision"] == 2
+            assert "ndvi" in row["idx"] and "ndmi" in row["idx"]
+        finally:
+            await conn.close()
+        await _cleanup(tenant_id, field_id)
+
+    asyncio.run(_run())
+
+
+def test_backfill_run_items_idempotency_key_dedups():
+    if not _db_available():
+        pytest.skip("TEST_DATABASE_URL غير متاح — اختبار تكامل")
+    import db_persist
+
+    db_persist.DATABASE_URL = _TEST_DB
+    field_id = str(uuid.uuid4())
+    tenant_id = str(uuid.uuid4())
+
+    async def _run():
+        run_id = await db_persist.insert_backfill_run(
+            tenant_id=tenant_id,
+            field_id=field_id,
+            preset="custom",
+            from_date="2026-06-01",
+            to_date="2026-06-30",
+            months=1,
+            indices=["ndvi"],
+            max_cloud_pct=30.0,
+            clip_polygon_geojson={
+                "type": "Polygon",
+                "coordinates": [[[44.3, 16.78], [44.36, 16.78], [44.36, 16.81], [44.3, 16.78]]],
+            },
+        )
+        assert run_id is not None
+        key = f"{tenant_id}:{field_id}:0:element84:S2_scene:ndvi"
+        conn = await _connect(tenant_id)
+        try:
+            insert_sql = (
+                "INSERT INTO backfill_run_items (run_id, tenant_id, field_id, scene_id, "
+                "index_name, provider, idempotency_key, status) VALUES "
+                "($1, $2::uuid, $3, 'S2_scene', 'ndvi', 'element84', $4, 'queued') "
+                "ON CONFLICT (tenant_id, idempotency_key) DO NOTHING RETURNING id"
+            )
+            first = await conn.fetchval(insert_sql, run_id, tenant_id, field_id, key)
+            second = await conn.fetchval(insert_sql, run_id, tenant_id, field_id, key)
+            assert first is not None, "الإدراج الأوّل يجب أن ينجح"
+            assert second is None, "مفتاح idempotency المكرّر يجب أن يُهمَل (لا تكرار)"
         finally:
             await conn.close()
         await _cleanup(tenant_id, field_id)

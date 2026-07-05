@@ -441,3 +441,5 @@
 \i migrations/v142_raster_assets_dedup_traceability.sql
 \echo '═══ 149. v143_raster_assets_lifecycle_lineage.sql ═══'
 \i migrations/v143_raster_assets_lifecycle_lineage.sql
+\echo '═══ 150. v144_backfill_runs.sql ═══'
+\i migrations/v144_backfill_runs.sql

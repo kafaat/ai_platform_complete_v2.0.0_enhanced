@@ -20,6 +20,17 @@ from fastapi.responses import Response
 router = APIRouter()
 
 
+def _async_backfill_enabled() -> bool:
+    """راية backfill اللاتزامنيّ (v5-F1/F2 · v6-F1/F2): يُنشئ تشغيلة ويعيد run_id فوراً
+    ويُخرج مسح STAC الشهريّ من مسار الطلب إلى عامل الفحص. خامل حتّى التحقّق التكامليّ."""
+    return str(os.getenv("RASTER_ASYNC_BACKFILL_ENABLED", "false")).strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
 @router.post("/v1/fields/{field_id}/process-from-stac")
 async def process_from_stac(
     field_id: str,
@@ -153,6 +164,51 @@ async def field_historical_backfill(
         raise HTTPException(400, "clip_polygon_geojson مطلوب لاشتقاق bbox وقصّ الصور على حدود الحقل")
 
     start, end, months = main._backfill_date_range(req)
+
+    # v5-F1/F2 · v6-F1/F2: المسار اللاتزامنيّ (خلف راية). أنشئ تشغيلة backfill وأعِد
+    # run_id فوراً بلا مسح STAC في مسار الطلب (يتفادى مهلة proxy 60s على النوافذ
+    # الطويلة). عامل الفحص يمسح ويجدول لاتزامنيّاً بمفتاح idempotency. dry_run يبقى
+    # متزامناً (معاينة). فشل الإنشاء (لا جدول) ⇒ تدهور لطيف للمسار المتزامن أدناه.
+    if _async_backfill_enabled() and not req.dry_run:
+        import db_persist as _dbp
+
+        _async_tenant = req.tenant_id or main._REQ_TENANT.get()
+        run_id = await _dbp.insert_backfill_run(
+            tenant_id=str(_async_tenant) if _async_tenant else None,
+            field_id=field_id,
+            preset=req.preset.value,
+            from_date=start.strftime("%Y-%m-%d"),
+            to_date=end.strftime("%Y-%m-%d"),
+            months=months,
+            indices=[i.value for i in req.indices],
+            max_cloud_pct=req.max_cloud_pct,
+            geometry_revision=getattr(req, "geometry_revision", None),
+            clip_polygon_geojson=clip,
+            apply_cloud_mask=req.apply_cloud_mask,
+            limit_per_month=req.limit_per_month,
+        )
+        if run_id is not None:
+            main.logger.info(
+                "historical_backfill_run created field_id=%s run_id=%s months=%s (async)",
+                field_id,
+                run_id,
+                months,
+            )
+            return {
+                "field_id": field_id,
+                "preset": req.preset.value,
+                "mode": "async",
+                "run_id": run_id,
+                "status": "planned",
+                "period": {
+                    "from": start.strftime("%Y-%m-%d"),
+                    "to": end.strftime("%Y-%m-%d"),
+                    "months": months,
+                },
+                "indices": [i.value for i in req.indices],
+                "message": "تمّ إنشاء تشغيلة backfill؛ يُنفّذها عامل الفحص لاتزامنيّاً.",
+            }
+
     windows = main._month_windows(start, end)
     selected_scenes: list[dict] = []
     monthly: list[dict] = []

@@ -370,6 +370,64 @@ async def insert_stac_item(
         await conn.close()
 
 
+async def insert_backfill_run(
+    *,
+    tenant_id: str | None,
+    field_id: str | None,
+    preset: str | None,
+    from_date: str | None,
+    to_date: str | None,
+    months: int | None,
+    indices: list | None,
+    max_cloud_pct: float | None,
+    geometry_revision: int | None = None,
+    clip_polygon_geojson: dict | None = None,
+    apply_cloud_mask: bool = True,
+    limit_per_month: int = 2,
+) -> int | None:
+    """يُنشئ تشغيلة backfill (status='planned') ويُرجِع id — يمكّن الردّ الفوريّ بلا
+    مسح STAC في مسار الطلب (v5-F1/F2). العامل يلتقطها لاحقاً. RLS: يضبط app.current_tenant."""
+    if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
+        return None
+    conn = await _connect()
+    if conn is None:
+        return None
+    sql = """
+        INSERT INTO backfill_runs (
+            tenant_id, field_id, preset, from_date, to_date, months, indices,
+            max_cloud_pct, geometry_revision, clip_polygon_geojson, apply_cloud_mask,
+            limit_per_month, status
+        ) VALUES (
+            $1::uuid, $2, $3, $4::text::date, $5::text::date, $6, COALESCE($7::jsonb, '[]'::jsonb),
+            $8, $9, $10::jsonb, $11, $12, 'planned'
+        )
+        RETURNING id
+    """
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        run_id = await conn.fetchval(
+            sql,
+            str(tenant_id),
+            field_id,
+            preset,
+            from_date[:10] if isinstance(from_date, str) else from_date,
+            to_date[:10] if isinstance(to_date, str) else to_date,
+            months,
+            json.dumps(indices or []),
+            max_cloud_pct,
+            geometry_revision,
+            json.dumps(clip_polygon_geojson) if clip_polygon_geojson else None,
+            apply_cloud_mask,
+            int(limit_per_month),
+        )
+        return int(run_id) if run_id is not None else None
+    except Exception as e:  # noqa: BLE001 — غياب الجدول لا يُفشل الطلب (يسقط للمسار المتزامن)
+        logger.warning("backfill_runs insert skipped: %s", e)
+        return None
+    finally:
+        await conn.close()
+
+
 async def fetch_latest_asset(
     field_id: str,
     index_name: str,

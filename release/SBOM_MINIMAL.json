@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75d969c2aad1c83ece0f7d2dd29e78c21cadf69e087c057814021f18564a31e0"
+          "content": "f491b3386c85b9faf8d5dac349b2ab418e1a37b65694ce70c6b0c5c421fa3bea"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5045,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a22d6bfd83a9bb4a3c4b8be34bfe690250e75fdb043c96fd5bc6e6c93f6f687"
+          "content": "9ea0c7ce00c47f4d393e3631d5d02f966504a4f3125660ba741a142faf0eaca3"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8785,7 +8785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "617dfa425a2806928b648893355dc8a7281e3f6210fb0ffbca9ecb8707f25893"
+          "content": "f4a182ecdd66edd5183d7301bcdd5a2bb8fd95636bcbc923246920ed65121d38"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8825,7 +8825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fade5b73e4d568e4b414fbc5d65ba30f6bfbee00adf250456f91eb7989b1d486"
+          "content": "d19b1f3ea5bb4116a88235a5f478853f4955745d10684d223c966be9438a6bda"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -8935,7 +8935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73cff2fde8d7f02dda0a1393a1d3825c028ec64962cd8ebfdaf2c730c8b75e0d"
+          "content": "15bbb34208329046291940ed2a5afdfea75fc165d4d4d1ff4bf2dde72424b532"
         }
       ],
       "name": "services/raster-service/routers/fields.py",

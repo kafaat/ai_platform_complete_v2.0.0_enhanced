@@ -556,3 +556,8 @@ v142_raster_assets_dedup_traceability.sql
 #   هندسة الحقل (geometry_revision) + فهارس. يمكّن عامل الإبطال ووسم البائت.
 #   إضافة أعمدة idempotent؛ لا RLS جديد (raster_assets مُنطّق منذ v14)؛ بعد v142.
 v143_raster_assets_lifecycle_lineage.sql
+
+# v144: backfill الصور كوظيفة لاتزامنيّة (backfill_runs + backfill_run_items) — يُخرج
+#   مسح STAC الشهريّ من مسار الطلب + مفتاح idempotency يمنع تكرار المعالجة. RLS FORCE
+#   (نمط v140). idempotent؛ بعد v143.
+v144_backfill_runs.sql

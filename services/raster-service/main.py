@@ -289,6 +289,7 @@ class HistoricalBackfillRequest(BaseModel):
     )
     max_cloud_pct: float = Field(default=30, ge=0, le=100)
     limit_per_month: int = Field(default=2, ge=1, le=8)
+    geometry_revision: int | None = None  # v144: نَسَب هندسة الحقل لتشغيلة backfill
     apply_cloud_mask: bool = True
     source: str = Field(default="sentinel-2")
     clip_polygon_geojson: dict | None = None

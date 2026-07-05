@@ -35,6 +35,8 @@ def test_jobs_database_url_is_limited_to_background_channels() -> None:
         # عامل إبطال كاش الراستر (FINDING-005): يطالب طابور raster_cache_invalidations
         # العابر بدور JOBS (BYPASSRLS) ثمّ يعلّم raster_assets stale بفلتر tenant_id صريح.
         "sahool-raster-cache-invalidation-worker",
+        # عامل فحص backfill (v5/v6): يطالب backfill_runs العابر بدور JOBS ويجدول المعالجة.
+        "sahool-raster-backfill-scan-worker",
     }
     offenders: list[str] = []
     for name, svc in compose["services"].items():
