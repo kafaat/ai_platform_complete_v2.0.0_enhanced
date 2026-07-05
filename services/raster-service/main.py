@@ -1345,7 +1345,7 @@ def _persist_raster_asset(
         }
 
         async def _do():
-            return await db_persist.insert_raster_asset(
+            ok = await db_persist.insert_raster_asset(
                 field_id=req.field_id,
                 tenant_id=req.tenant_id,
                 scene_id=req.scene_id,
@@ -1388,6 +1388,29 @@ def _persist_raster_asset(
                     "geometry_revision": getattr(req, "geometry_revision", None),
                 },
             )
+            # FINDING-008: جسر الكتالوج — عند نجاح الأصل نكتب صفّاً مُقابِلاً في
+            # raster_registry (كان يملؤه فقط مسار REST يدويّ) كي لا يبقى الكتالوج فارغاً.
+            if ok and cog_url and not str(cog_url).startswith("file://"):
+                await db_persist.insert_raster_registry_entry(
+                    tenant_id=req.tenant_id,
+                    field_id=req.field_id,
+                    scene_id=req.scene_id,
+                    product_date=req.capture_datetime,
+                    index_type=req.indicator.value,
+                    cog_url=cog_url,
+                    cloud_pct=stats.get("cloud_pct"),
+                    quality_score=stats.get("confidence"),
+                    resolution_m=meta.get("resolution_m") or 10.0,
+                    bbox=list(bounds) if bounds else None,
+                    bands=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
+                    metadata={
+                        "quality": stats.get("quality"),
+                        "confidence": stats.get("confidence"),
+                        "provider": getattr(req, "provider", None),
+                        "geometry_revision": getattr(req, "geometry_revision", None),
+                    },
+                )
+            return ok
 
         try:
             asyncio.run(_do())

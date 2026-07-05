@@ -78,6 +78,33 @@ async def process_from_stac(
     }
 
 
+async def _persist_selected_stac_scenes(tenant_id: str, scenes: list[dict]) -> None:
+    """FINDING-009: يستمرّ المشاهد المُختارة في stac_item_registry (كان بلا كاتب).
+
+    best-effort في مهمّة خلفيّة — لا يؤخّر ردّ backfill ولا يُفشله عند غياب القاعدة."""
+    import db_persist
+
+    for scene in scenes:
+        sid = scene.get("item_id")
+        if not sid:
+            continue
+        await db_persist.insert_stac_item(
+            tenant_id=tenant_id,
+            scene_id=sid,
+            collection=main.SENTINEL_COLLECTION,
+            captured_at=scene.get("datetime"),
+            bbox=scene.get("bbox"),
+            cloud_pct=scene.get("cloud_cover_pct"),
+            quality_score=scene.get("quality_score"),
+            assets={
+                "bands": scene.get("bands_urls"),
+                "thumbnail": scene.get("thumbnail_url"),
+                "preview": scene.get("preview_url"),
+            },
+            raw_item=scene,
+        )
+
+
 @router.post("/v1/fields/{field_id}/imagery/backfill")
 async def field_historical_backfill(
     field_id: str,
@@ -153,6 +180,11 @@ async def field_historical_backfill(
     job_ids: list[str] = []
     scheduled: list[dict] = []
     tenant_id = req.tenant_id or main._REQ_TENANT.get()
+    # FINDING-009: استمرار المشاهد المُختارة في stac_item_registry (خلفيّة، best-effort).
+    if not req.dry_run and tenant_id and selected_scenes:
+        background_tasks.add_task(
+            _persist_selected_stac_scenes, str(tenant_id), list(selected_scenes)
+        )
     for scene in selected_scenes:
         # For Element84 Sentinel-2 COGs, build a VRT lazily in the background via the
         # same processing core contract. The direct job stores enough provenance to re-run.

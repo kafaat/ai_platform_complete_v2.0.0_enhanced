@@ -219,6 +219,157 @@ async def insert_raster_asset(
         await conn.close()
 
 
+def _clamp_score_0_100(value) -> int | None:
+    """يحوّل درجة جودة إلى int في [0,100] (قيد raster_registry/stac_item_registry).
+    يقبل 0..1 (يضربها 100) أو 0..100 كما هي. None/غير رقميّ ⇒ None (لا اختراع)."""
+    if value is None:
+        return None
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    if 0.0 <= v <= 1.0:
+        v *= 100.0
+    return max(0, min(100, int(round(v))))
+
+
+async def insert_raster_registry_entry(
+    *,
+    tenant_id: str | None,
+    field_id: str | None,
+    scene_id: str | None,
+    product_date: str | None,
+    index_type: str,
+    cog_url: str,
+    cloud_pct: float | None,
+    quality_score: int | None,
+    resolution_m: float | None = 10.0,
+    bbox: list | dict | None = None,
+    bands: dict | list | None = None,
+    metadata: dict | None = None,
+) -> bool:
+    """يجسر أصل راستر مُنتَج إلى كتالوج ``raster_registry`` (v114) — سدّ FINDING-008.
+
+    raster_registry كان يكتبه فقط مسار REST يدويّ (/cog-registry)؛ الأنبوب لم يملأه ⇒
+    كتالوج GIS فارغ. نكتب صفّاً مُقابِلاً عند كلّ أصل ناجح. best-effort (لا يُفشل المعالجة).
+    RLS أصرم هنا (FORCE + WITH CHECK): نضبط app.current_tenant قبل الإدراج فيطابق tenant_id."""
+    if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
+        return False
+    if not product_date or not cog_url:
+        return False
+    conn = await _connect()
+    if conn is None:
+        return False
+    bbox_json = json.dumps(bbox) if bbox is not None else None
+    bands_json = json.dumps(bands) if bands is not None else None
+    meta_json = json.dumps(metadata or {})
+    sql = """
+        INSERT INTO raster_registry (
+            tenant_id, field_id, scene_id, product_date, index_type, cog_url,
+            cloud_pct, quality_score, resolution_m, bbox, bands, metadata
+        ) VALUES (
+            $1::uuid, $2, $3, $4::date, $5, $6,
+            $7, $8, $9, $10::jsonb, COALESCE($11::jsonb, '{}'::jsonb), $12::jsonb
+        )
+        ON CONFLICT (tenant_id, field_id, product_date, index_type, cog_url)
+        DO UPDATE SET
+            scene_id = EXCLUDED.scene_id,
+            cloud_pct = EXCLUDED.cloud_pct,
+            quality_score = EXCLUDED.quality_score,
+            resolution_m = EXCLUDED.resolution_m,
+            bbox = EXCLUDED.bbox,
+            bands = EXCLUDED.bands,
+            metadata = raster_registry.metadata || EXCLUDED.metadata
+    """
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        await conn.execute(
+            sql,
+            str(tenant_id),
+            field_id,
+            scene_id,
+            product_date[:10] if isinstance(product_date, str) else product_date,
+            index_type,
+            cog_url,
+            cloud_pct,
+            _clamp_score_0_100(quality_score),
+            float(resolution_m) if resolution_m is not None else 10.0,
+            bbox_json,
+            bands_json,
+            meta_json,
+        )
+        return True
+    except Exception as e:  # noqa: BLE001 — الكتالوج best-effort لا يُفشل المعالجة
+        logger.warning("raster_registry bridge skipped: %s", e)
+        return False
+    finally:
+        await conn.close()
+
+
+async def insert_stac_item(
+    *,
+    tenant_id: str | None,
+    scene_id: str | None,
+    collection: str,
+    captured_at: str | None = None,
+    bbox: list | dict | None = None,
+    cloud_pct: float | None = None,
+    quality_score: int | None = None,
+    assets: dict | None = None,
+    raw_item: dict | None = None,
+) -> bool:
+    """يستمرّ مشهد STAC مُختار في ``stac_item_registry`` (v114) — سدّ FINDING-009.
+
+    الجدول كان بلا أيّ كاتب. نكتب المشهد عند اختياره في backfill. best-effort، RLS
+    مضبوط بـapp.current_tenant قبل الإدراج."""
+    if not (tenant_id and _valid_uuid_text(tenant_id)) or not scene_id:
+        return False
+    conn = await _connect()
+    if conn is None:
+        return False
+    bbox_json = json.dumps(bbox) if bbox is not None else None
+    assets_json = json.dumps(assets or {})
+    raw_json = json.dumps(raw_item or {})
+    sql = """
+        INSERT INTO stac_item_registry (
+            tenant_id, scene_id, collection, captured_at, bbox,
+            cloud_pct, quality_score, assets, raw_item
+        ) VALUES (
+            $1::uuid, $2, $3, $4::timestamptz, $5::jsonb,
+            $6, $7, COALESCE($8::jsonb, '{}'::jsonb), COALESCE($9::jsonb, '{}'::jsonb)
+        )
+        ON CONFLICT (tenant_id, scene_id)
+        DO UPDATE SET
+            collection = EXCLUDED.collection,
+            captured_at = EXCLUDED.captured_at,
+            bbox = EXCLUDED.bbox,
+            cloud_pct = EXCLUDED.cloud_pct,
+            quality_score = EXCLUDED.quality_score,
+            assets = EXCLUDED.assets,
+            raw_item = EXCLUDED.raw_item
+    """
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        await conn.execute(
+            sql,
+            str(tenant_id),
+            scene_id,
+            collection,
+            captured_at,
+            bbox_json,
+            cloud_pct,
+            _clamp_score_0_100(quality_score),
+            assets_json,
+            raw_json,
+        )
+        return True
+    except Exception as e:  # noqa: BLE001 — الكتالوج best-effort
+        logger.warning("stac_item_registry persist skipped: %s", e)
+        return False
+    finally:
+        await conn.close()
+
+
 async def fetch_latest_asset(
     field_id: str,
     index_name: str,

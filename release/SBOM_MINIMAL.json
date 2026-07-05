@@ -8735,6 +8735,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dd17f68d7ee9a596e87ca8cea607c0ee678575e8a685c7a1924eda997f8577ea"
+        }
+      ],
+      "name": "services/raster-service/cache_invalidation_worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ad276434b02d51a3e3380a2605c418d3c9f5cd6ab00185addbe9a6d767e32d2c"
         }
       ],
@@ -8775,7 +8785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a674c50cdc595f6cc1bf548ca5178f88073c10784c0d01a16cc74ebdb82d58b2"
+          "content": "60b9ad638a73ba841f65218169bbe35b311db09cb2166b9e196a4df9c6fde321"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8815,7 +8825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1a12649c00024785914ce1980769be140bbc6e8b1cda96609cf3221afd19467"
+          "content": "9d5b6ca3ba6a8506199cc47e3baf0656d362c1bcd5c1f3976a1d1bafab8e3c36"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -8925,7 +8935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4a7f46c1fa26e5b65210eed5667f73b48c822d5dd90dd6252739a1155ebee11"
+          "content": "4d51fcf3c34088d00312175c88e947832eecd314d672045859f80cc53096ff20"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9319,6 +9329,16 @@
         }
       ],
       "name": "services/raster-service/test_tiles.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3b42c0c9d85c06dfe8eb3baa7a441f0e6af1fee46163b4441a503bd2a0a6720"
+        }
+      ],
+      "name": "services/raster-service/tile_cache_maint.py",
       "type": "file"
     },
     {
