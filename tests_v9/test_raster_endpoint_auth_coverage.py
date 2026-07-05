@@ -148,6 +148,15 @@ PUBLIC_CATALOG: set[str] = {
     "/v1/imagery/quality/policy",  # سياسة جودة الصور — قواعد ثابتة، لا بيانات.
     "/v1/imagery/scenes/rank",  # ترتيب المشاهد — حساب من بيانات وصفيّة عامّة بـbbox.
     "/v1/imagery/mosaic/plan",  # خطّة فسيفساء — تخطيط عامّ من بحث بـbbox.
+    # ── طبقات تضاريس/تربة من مصادر عالميّة عامّة (Copernicus DEM / SoilGrids) — ──
+    # لا تقرأ بيانات مستأجِر؛ إحداثيّات z/x/y جغرافيّة عامّة (نظير /imagery/dem). fail-closed
+    # شفّاف بلا مصدر مُهيّأ. tid سياقٌ ناعم (نسبة/معدّل) لا حارس ملكيّة بيانات.
+    "/v1/elevation/hillshade/{z}/{x}/{y}.png",  # ظلّ تضاريس من DEM عامّ.
+    "/v1/slope/{z}/{x}/{y}.png",  # انحدار مُصنّف من DEM عامّ.
+    "/v1/terrain/tilejson",  # TileJSON طبقة تضاريس — وصف عامّ + توفّر.
+    "/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png",  # خاصّيّة تربة من SoilGrids عالميّ.
+    "/v1/soil/tilejson",  # TileJSON طبقة تربة — وصف عامّ + توفّر + تحذير.
+    "/v1/soil/properties",  # قائمة خصائص/أعماق التربة المدعومة — بيانات وصفيّة ثابتة.
 }
 
 
