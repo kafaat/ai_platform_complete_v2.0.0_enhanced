@@ -5045,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2eeadfae749c684bed17189e90ffa1409a00a1257de68e1fb322b4405775a054"
+          "content": "050f21717a0997d4f6b72e9e0cceab5518c14947a6cbf3e9d718220cf2d5325f"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8755,7 +8755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09e079b2180f2154931b69f408f85c2022fbb1204af7a8def06e067d2746d550"
+          "content": "e54823d8e7135c840809f35dd691759cd8097fe071b07373810414aae7afe0ba"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -8825,7 +8825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83fd7a67d84692e5d900a82b0ae226817a5cc6d35514c262c6c7557b47b3d003"
+          "content": "e3a55c9b5646ba642510fad30c21e80aba916d066aae55e0065bd791e16b50e7"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8865,7 +8865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "77b3a5904231f3b489a351f2bf2399d88c42cf66e8fbe5c4a314131ec1a084ae"
+          "content": "7e8d1bf641ddb037fde64337fed1368aa1a8a7f907e39a2eff2ebd63d1f6fe1e"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -8975,7 +8975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb0f47e4e11d4f15902fd1901964f42312e9f3522f8b3fd726c79d43b652c593"
+          "content": "353a9ccd9da3570e7775bb76502ab5e2510b9e3b18d0fcc6b9ee4a3fab554149"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -8995,7 +8995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d639917248fb16bc66a8440e028581f7d8ab537a74e7d6f6ae127b0c9857daa2"
+          "content": "8790f508ef233db03767f27e817e36f0ee4edd4a108059540280f2379ba9cbd2"
         }
       ],
       "name": "services/raster-service/routers/imagery_search.py",

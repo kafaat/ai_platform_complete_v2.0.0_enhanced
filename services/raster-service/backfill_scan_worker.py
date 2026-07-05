@@ -79,7 +79,8 @@ async def run_once(pool: asyncpg.Pool) -> int:
             row = await conn.fetch(
                 """
                 SELECT id, tenant_id, field_id, from_date, to_date, indices, max_cloud_pct,
-                       geometry_revision, clip_polygon_geojson, apply_cloud_mask, limit_per_month
+                       geometry_revision, clip_polygon_geojson, apply_cloud_mask, limit_per_month,
+                       COALESCE(source, 'sentinel-2') AS source
                 FROM backfill_runs
                 WHERE status = 'planned'
                    OR (status IN ('searching', 'queued', 'processing')
@@ -118,6 +119,9 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
     tenant = str(run["tenant_id"])
     field = run["field_id"]
     geom_rev = run["geometry_revision"]
+    # v147: مصدر التشغيلة (sentinel-2 افتراضاً · landsat-thermal للطبقة الحرارية الفريدة).
+    # كان يُستعمَل أدناه بلا تعريف في رقعة Landsat ⇒ NameError على كلّ تشغيلة؛ نُعرّفه هنا.
+    is_landsat_thermal = str(run.get("source") or "sentinel-2").strip().lower() == "landsat-thermal"
     max_cloud = float(run["max_cloud_pct"]) if run["max_cloud_pct"] is not None else 30.0
     limit_per_month = int(run["limit_per_month"] or 2)
     indices = run["indices"] or []
@@ -138,14 +142,34 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
     selected: list[dict] = []
     months_scanned = 0
     for w_start, w_end in windows:
-        search = await main._stac_search(
-            bbox,
-            w_start.strftime("%Y-%m-%dT00:00:00Z"),
-            w_end.strftime("%Y-%m-%dT23:59:59Z"),
-            max_cloud,
-            limit=max(10, limit_per_month * 4),
-            geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
-        )
+        if is_landsat_thermal:
+            search = await main._stac_search_landsat_unique(
+                bbox,
+                w_start.strftime("%Y-%m-%dT00:00:00Z"),
+                w_end.strftime("%Y-%m-%dT23:59:59Z"),
+                max_cloud,
+                limit=max(10, limit_per_month * 4),
+            )
+        else:
+            try:
+                search = await main._stac_search(
+                    bbox,
+                    w_start.strftime("%Y-%m-%dT00:00:00Z"),
+                    w_end.strftime("%Y-%m-%dT23:59:59Z"),
+                    max_cloud,
+                    limit=max(10, limit_per_month * 4),
+                    geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
+                )
+            except TypeError as e:
+                if "unexpected keyword argument 'geometry'" not in str(e):
+                    raise
+                search = await main._stac_search(
+                    bbox,
+                    w_start.strftime("%Y-%m-%dT00:00:00Z"),
+                    w_end.strftime("%Y-%m-%dT23:59:59Z"),
+                    max_cloud,
+                    limit=max(10, limit_per_month * 4),
+                )
         items = main._rank_scenes(search.get("items", []), max_cloud_pct=max_cloud)[
             :limit_per_month
         ]
@@ -179,7 +203,10 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
         if not scene_id:
             continue
         for index in indices:
-            key = _idempotency_key(tenant, field, geom_rev, "element84", scene_id, index)
+            provider_key = (
+                "landsat-element84" if is_landsat_thermal else (scene.get("provider") or "cdse")
+            )
+            key = _idempotency_key(tenant, field, geom_rev, provider_key, scene_id, index)
             # v10-F6: set_config(...,true) عابرٌ للمعاملة؛ لذا نُغلّف الضبط + الاستعلامات
             # في معاملة واحدة كي يظلّ app.current_tenant سارياً (يهمّ حين يسقط العامل إلى
             # DATABASE_URL بدور مقيّد بلا BYPASSRLS — وإلّا رأت القراءات صفوفاً صفراً).
@@ -207,7 +234,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         INSERT INTO backfill_run_items (
                             run_id, tenant_id, field_id, scene_id, index_name, acquisition_date,
                             provider, idempotency_key, status
-                        ) VALUES ($1, $2::uuid, $3, $4, $5, $6::text::date, 'element84', $7, $8)
+                        ) VALUES ($1, $2::uuid, $3, $4, $5, $6::text::date, $9, $7, $8)
                         ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
                         RETURNING id
                         """,
@@ -219,6 +246,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         acq,
                         key,
                         "skipped" if exists else "queued",
+                        provider_key,
                     )
             if item_id is None:
                 continue  # مفتاح مكرّر (نُقِر سابقاً) — idempotent، لا نُعيد
@@ -308,6 +336,34 @@ def _process_scene_index(
     import stac_vrt
 
     try:
+        if (scene.get("provider") or "").startswith("landsat") or scene.get("thermal_urls"):
+            if index != "lst":
+                raise RuntimeError("landsat_derived_index_requires_lst_weather_ndvi")
+            thermal_url = (scene.get("thermal_urls") or {}).get("lst")
+            if not thermal_url:
+                raise RuntimeError("landsat_lst_asset_missing")
+            preq = main.ProcessRequest(
+                tenant_id=tenant,
+                field_id=field,
+                raster_url=main._safe_raster_source(thermal_url),
+                indicator=main.IndicatorKind.lst,
+                source_format=main.SourceFormat.landsat8,
+                bands=main.BandMapping(),
+                precomputed_index=True,
+                clip_polygon_geojson=clip,
+                apply_cloud_mask=False,
+                scene_id=scene.get("item_id"),
+                capture_datetime=scene.get("datetime"),
+                provider="landsat-element84",
+                geometry_revision=geom_rev,
+            )
+            main._run_processing(jid, preq)
+            job = main._jobs.get(jid) or {}
+            result = job.get("result") or {}
+            return bool(
+                job.get("status") == main.JobStatus.completed and result.get("persisted") is True
+            )
+
         if not (scene.get("bands_urls") or {}):
             # مشهد CDSE (كتالوج Copernicus): معالجة خادميّة عبر Process API.
             main._process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)

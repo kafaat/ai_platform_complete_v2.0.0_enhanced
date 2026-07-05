@@ -101,6 +101,41 @@ HISTORICAL_SEARCH_PROVIDER = os.getenv("HISTORICAL_SEARCH_PROVIDER", "cdse").str
 SENTINEL_COLLECTION = "sentinel-2-l2a"
 SENTINEL1_COLLECTION = "sentinel-1-grd"  # رادار SAR — يخترق الغيوم والليل
 LANDSAT_COLLECTION = "landsat-c2-l2"  # Landsat C2 L2 — أرشيف 40+ سنة (تكميلي)
+# Landsat في Sahool ليس بديلاً لمؤشّرات Sentinel-2 النباتية. نستخدمه فقط للميزة
+# الفريدة: الطبقة الحرارية/التاريخ الطويل. لا نكرّر NDVI/NDMI/MSI/SAVI... من Landsat
+# إلا إن فُتح مسار بحثي لاحق صراحةً.
+LANDSAT_UNIQUE_INDICES = {"lst", "cwsi", "tvdi", "tci", "vhi", "et_inputs"}
+LANDSAT_DIRECT_RASTER_INDICES = {"lst"}
+LANDSAT_DERIVED_INDICES = {"cwsi", "tvdi", "tci", "vhi", "et_inputs"}
+LANDSAT_DUPLICATE_SENTINEL_INDICES = {
+    "ndvi",
+    "ndmi",
+    "msi",
+    "ndwi",
+    "ndsi",
+    "savi",
+    "evi",
+    "gndvi",
+    "ndre",
+    "msavi",
+    "bsi",
+    "bi",
+    "bi2",
+    "ndti",
+    "dbsi",
+    "satvi",
+    "truecolor",
+    "falsecolor",
+}
+LANDSAT_THERMAL_ASSET_CANDIDATES = (
+    "lwir11",
+    "surface_temperature",
+    "st",
+    "st_b10",
+    "tir",
+    "thermal",
+    "thermal_ir",
+)
 DEM_COLLECTION = "cop-dem-glo-30"  # Copernicus DEM 30م — ارتفاع/انحدار/صرف
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
 HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))
@@ -158,6 +193,14 @@ class IndicatorKind(StrEnum):
     dbsi = "dbsi"
     ndsi = "ndsi"
     satvi = "satvi"
+    # Landsat-only thermal unique layer. LST is the direct raster product; CWSI/TVDI/TCI/VHI
+    # are derived downstream from LST + weather/NDVI history, not fetched as duplicate optical indices.
+    lst = "lst"
+    cwsi = "cwsi"
+    tvdi = "tvdi"
+    tci = "tci"
+    vhi = "vhi"
+    et_inputs = "et_inputs"
 
 
 class SourceFormat(StrEnum):
@@ -999,14 +1042,68 @@ async def _stac_search_radar(bbox: list[float], dt_start: str, dt_end: str, limi
     }
 
 
+def _landsat_thermal_href(assets: dict) -> str | None:
+    """اختر أصل LST الحراري فقط من Landsat C2 L2 STAC assets.
+
+    لا نُرجع RED/NIR/SWIR هنا عمداً: هذه مؤشّرات Sentinel-2 المكررة. الهدف أن يبقى
+    Landsat في Sahool طبقة حرارية فريدة (LST) تُشتق منها CWSI/TVDI/TCI/VHI لاحقاً.
+    """
+    for key in LANDSAT_THERMAL_ASSET_CANDIDATES:
+        href = (assets.get(key) or {}).get("href") if isinstance(assets.get(key), dict) else None
+        if href:
+            return href
+    # بعض كتالوجات Landsat تستعمل أسماء أطول/مختلفة؛ نقبل فقط ما يصرّح بسطح/حرارة،
+    # لا نقبل أصول optical مثل red/nir/swir لتجنّب تكرار مؤشرات Sentinel.
+    for key, asset in (assets or {}).items():
+        lk = str(key).lower()
+        title = str((asset or {}).get("title", "")).lower() if isinstance(asset, dict) else ""
+        href = (asset or {}).get("href") if isinstance(asset, dict) else None
+        if href and ("surface temperature" in title or "temperature" in lk or "thermal" in lk):
+            return href
+    return None
+
+
+def _landsat_unique_payload(feat: dict) -> dict | None:
+    props = feat.get("properties", {}) or {}
+    assets = feat.get("assets", {}) or {}
+    thermal_href = _landsat_thermal_href(assets)
+    if not thermal_href:
+        return None
+    platform = props.get("platform", "landsat")
+    return {
+        "item_id": feat.get("id", ""),
+        "datetime": props.get("datetime", ""),
+        "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
+        "bbox": feat.get("bbox"),
+        "platform": platform,
+        "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
+        "provider": "landsat-element84",
+        "data_type": "thermal_unique",
+        "thermal_urls": {"lst": thermal_href},
+        "direct_indices": sorted(LANDSAT_DIRECT_RASTER_INDICES),
+        "derived_indices": sorted(LANDSAT_DERIVED_INDICES),
+        "excluded_duplicate_sentinel_indices": sorted(LANDSAT_DUPLICATE_SENTINEL_INDICES),
+        "note_ar": (
+            "Landsat يُستخدم هنا للطبقة الحرارية الفريدة فقط: LST مباشرة، "
+            "ومنها تُشتق CWSI/TVDI/TCI/VHI مع الطقس/NDVI. لا نسحب NDVI/NDMI المكررة من Landsat."
+        ),
+    }
+
+
 async def _stac_search_landsat(
     bbox: list[float], dt_start: str, dt_end: str, max_cloud: float, limit: int
 ) -> dict:
-    """يبحث عن صور Landsat Collection 2 L2 عبر Element84 (نفس API المرن).
+    """بحث Landsat C2 L2 كطبقة حرارية فريدة فقط.
 
-    تكميلي لـSentinel-2: أرشيف 40+ سنة (تحليل تاريخي طويل المدى)، دقّة 30م.
-    يحمل نطاقات طيفيّة (يُحسب منه NDVI) لكن دقّة أخشن وتردّد أقلّ (16 يوماً).
+    القرار المعماري: Copernicus/Sentinel-2 هو مصدر NDVI/NDMI/MSI/...؛ Landsat لا يدخل
+    لإعادة حساب هذه المؤشرات الأخشن، بل فقط LST والاشتقاقات الحرارية المرتبطة بها.
     """
+    return await _stac_search_landsat_unique(bbox, dt_start, dt_end, max_cloud, limit)
+
+
+async def _stac_search_landsat_unique(
+    bbox: list[float], dt_start: str, dt_end: str, max_cloud: float, limit: int
+) -> dict:
     payload = {
         "collections": [LANDSAT_COLLECTION],
         "bbox": bbox,
@@ -1018,25 +1115,25 @@ async def _stac_search_landsat(
     data = await _stac_query(payload)
     items = []
     for feat in data.get("features", []):
-        props = feat.get("properties", {})
-        assets = feat.get("assets", {})
-        items.append(
-            {
-                "item_id": feat.get("id", ""),
-                "datetime": props.get("datetime", ""),
-                "cloud_cover_pct": props.get("eo:cloud_cover", 0.0),
-                "bbox": feat.get("bbox"),
-                "platform": props.get("platform", "landsat"),
-                "thumbnail_url": (assets.get("thumbnail") or {}).get("href"),
-                "data_type": "optical",
-                "note_ar": "Landsat 30م — أرشيف طويل المدى، تكميلي لـSentinel-2.",
-            }
-        )
+        item = _landsat_unique_payload(feat)
+        if item is not None:
+            items.append(item)
     return {
         "count": len(items),
         "source": "element84-earth-search",
         "collection": LANDSAT_COLLECTION,
+        "provider_role": "landsat_thermal_unique_only",
         "cache": data.get("_cache"),
+        "unique_indices": sorted(LANDSAT_UNIQUE_INDICES),
+        "direct_raster_indices": sorted(LANDSAT_DIRECT_RASTER_INDICES),
+        "derived_indices_require": {
+            "cwsi": ["lst", "air_temperature", "relative_humidity_or_vpd", "wet_dry_reference"],
+            "tvdi": ["lst", "ndvi"],
+            "tci": ["lst", "historical_lst_min_max"],
+            "vhi": ["tci", "vci_from_ndvi_history"],
+            "et_inputs": ["lst", "albedo_or_reflectance", "ndvi", "weather"],
+        },
+        "excluded_duplicate_sentinel_indices": sorted(LANDSAT_DUPLICATE_SENTINEL_INDICES),
         "items": items,
     }
 

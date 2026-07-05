@@ -570,3 +570,7 @@ v145_raster_assets_product_dedup.sql
 # v146: صدق حالة تشغيلة backfill (v8-F8/v9-F5) — 'completed_with_errors' + عدّادات
 #   items_persisted/failed/skipped تُحسَب من الحفظ الفعليّ لا من عدد المحاولات. idempotent؛ بعد v145.
 v146_backfill_runs_outcome_counters.sql
+
+# v147: مصدر backfill صريح لدعم Landsat thermal-only بدون خلطه مع Sentinel-2/CDSE.
+#   يضيف backfill_runs.source بقيم sentinel-2/landsat-thermal وفهرس تشغيل. بعد v146.
+v147_backfill_runs_source_landsat_thermal.sql

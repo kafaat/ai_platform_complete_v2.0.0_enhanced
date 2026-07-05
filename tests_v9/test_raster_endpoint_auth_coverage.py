@@ -128,6 +128,7 @@ PUBLIC_CATALOG: set[str] = {
     "/imagery/search/season",  # صور الموسم الزراعي — بحث عامّ بـbbox.
     "/imagery/search/radar",  # رادار Sentinel-1 — بحث عامّ بـbbox.
     "/imagery/search/landsat",  # أرشيف Landsat — بحث عامّ بـbbox.
+    "/imagery/search/landsat-thermal",  # v147: بحث Landsat الحراريّ الفريد — بحث عامّ بـbbox.
     "/imagery/best",  # أفضل مشهد حديث — اختيار من بحث عامّ بـbbox.
     "/imagery/dem",  # نموذج ارتفاع Copernicus — مرجع جغرافيّ عامّ بـbbox.
     "/imagery/timeseries",  # توفّر المشاهد الزمنيّ — بحث عامّ بـbbox (GET، لا قيم).

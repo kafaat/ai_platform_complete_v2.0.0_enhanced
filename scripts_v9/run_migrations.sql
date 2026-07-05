@@ -447,3 +447,5 @@
 \i migrations/v145_raster_assets_product_dedup.sql
 \echo '═══ 152. v146_backfill_runs_outcome_counters.sql ═══'
 \i migrations/v146_backfill_runs_outcome_counters.sql
+\echo '═══ 153. v147_backfill_runs_source_landsat_thermal.sql ═══'
+\i migrations/v147_backfill_runs_source_landsat_thermal.sql
