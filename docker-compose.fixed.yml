@@ -344,12 +344,9 @@ services:
       dockerfile: services/supervisor-agent/Dockerfile
     restart: unless-stopped
     environment:
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       MCP_SENTINEL_HUB_URL: http://sahool-sentinel-hub-mcp:8000/mcp/v1
       MCP_WEATHER_URL: http://sahool-weather-mcp:8000/mcp/v1
       MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
@@ -390,11 +387,9 @@ services:
       # so a careless run never gets production-env + RLS-bypass together. Override via env.
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       JWT_SECRET: ${JWT_SECRET}
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط (انظر بقيّة الخدمات): fixed.yml لا يُنشئ sahool_app ⇒ نُعطّل
-      # حارس FINDING-001 صراحةً. الإنتاج v9.yml يستعمل sahool_app ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
@@ -442,12 +437,9 @@ services:
       dockerfile: services/guardrails-engine/Dockerfile
     restart: unless-stopped
     environment:
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
       # FINDING-003: /validate يتطلّب X-Agent-Token مطابقاً لـSAHOOL_AGENT_TOKEN؛ بلا حقنه
@@ -528,12 +520,9 @@ services:
       dockerfile: services/mcp_servers/Dockerfile
     restart: unless-stopped
     environment:
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       JWT_SECRET: ${JWT_SECRET}
       ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
       ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126  # legacy env alias
@@ -617,12 +606,9 @@ services:
       dockerfile: services/indicators-service/Dockerfile
     restart: unless-stopped
     environment:
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
@@ -676,12 +662,9 @@ services:
       dockerfile: services/actuator-service/Dockerfile
     restart: unless-stopped
     environment:
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       # لا وسيط MQTT (sahool-fastbee) في هذا الـcompose ⇒ نُعطّل مستمع MQTT صراحةً
       # كي يقلع actuator نظيفاً (_mqtt_disabled) بدل حلقة "MQTT listener crashed" كلّ
@@ -811,12 +794,9 @@ services:
       dockerfile: services/odoo-bridge/Dockerfile
     restart: unless-stopped
     environment:
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       ERP_PROVIDER: ${ERP_PROVIDER:-erpnext}
       ERPNEXT_URL: ${ERPNEXT_URL:-http://sahool-erpnext:8000}
       ERPNEXT_API_KEY: ${ERPNEXT_API_KEY:-}
@@ -902,12 +882,9 @@ services:
     environment:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN required}
       TELEGRAM_WEBHOOK_SECRET: ${TELEGRAM_WEBHOOK_SECRET:?TELEGRAM_WEBHOOK_SECRET required}
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       EDGE_INFERENCE_URL: http://sahool-edge:8100
@@ -943,12 +920,9 @@ services:
       dockerfile: agents/notification/Dockerfile
     restart: unless-stopped
     environment:
-      # FIX(fields-503): قيمة افتراضية محلية كي لا تبدأ المنصّة وDB معطّلة.
-      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_user:${DB_PASSWORD:?DB_PASSWORD required}@sahool-postgres:5432/sahool}
-      # تطوير محلّيّ فقط: هذا الملفّ لا يُنشئ دور sahool_app المقيّد، فالاتّصال هنا بدور
-      # sahool_user (superuser) يتجاوز RLS. حارس FINDING-001 fail-closed افتراضيّاً، فنُعطّله
-      # هنا صراحةً (dev). الإنتاج (docker-compose.v9.yml) يستعمل sahool_app ولا يضبط هذا ⇒ يبقى مُفعَّلاً.
-      SAHOOL_ALLOW_RLS_BYPASS_ROLE: ${SAHOOL_ALLOW_RLS_BYPASS_ROLE:-1}
+      # v8-F9: يتّصل التطبيق بدور sahool_app المقيّد (NOBYPASSRLS) الذي يُنشئه sahool-migrate
+      # (apply_in_compose.sh) — لا sahool_user المُمتاز. RLS يبقى مفروضاً (بلا تعطيل حارس FINDING-001).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       NATS_URL: nats://sahool-nats:4222
       SMTP_HOST: ${SMTP_HOST}

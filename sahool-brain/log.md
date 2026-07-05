@@ -1279,3 +1279,21 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 **فشل اصطاده الفرع (لولا حجز main لاحمرّ):** `fa19e83` — ترحيل **v146** فشل «Apply migrations to test DB» في Integration: قيد v144 المضمَّن يُسمّيه Postgres اصطلاحيّاً `backfill_runs_status_check` ويُطبّع `IN`→`= ANY`، فبحث DO block الديناميكيّ عبر `ILIKE '%IN%'` لم يُطابقه ثمّ اصطدم `ADD CONSTRAINT` بالاسم القائم. أصلحه `ff11e69`: `DROP CONSTRAINT IF EXISTS` بالاسم الاصطلاحيّ ثمّ إعادة الإضافة (idempotent) — مُثبَت على Postgres حيّ (v144→v145→v146 + إعادة تطبيق).
 
 **نتيجة CI على `ff11e69`:** Integration **success** (152 ترحيلاً على PostGIS حيّ + pytest تكامليّ). **مؤجَّل بصدق (خارج نطاق المستخدم المؤكَّد، لم تُعده v9–v11):** V8-05 (فصل مُنتقي التاريخ عن المعالجة — قرار UX) · V8-09 (`docker-compose.fixed.yml` sahool_user — dev فقط، موثَّق؛ الإنتاج v9.yml يستعمل sahool_app). **مؤجَّل معماريّ:** إخلاء ذاكرة `_layers` عبر العمليّات (v11-03/05) يحتاج قناة Redis pub/sub (لا نصف حلّ).
+
+## 2026-07-05 (م) — إغلاق البنود المؤجَّلة الثلاثة المتبقّية (V8-05/V8-09/v11-F3·F5؛ الرأس `8a6d023`)
+
+بعد استقرار main على `7b7bf54`، طُلِب إغلاق «المتبقّي» — أُنجِزت الثلاثة بالكامل (لا نصف حلّ)، دُفِعت للفرع أوّلاً:
+
+- **V8-09 (Critical)** `docker-compose.fixed.yml`: كان يتّصل بـ`sahool_user` المُمتاز (يتجاوز RLS) + يُعطّل الحارس عبر 9 `SAHOOL_ALLOW_RLS_BYPASS_ROLE`. اتّضح أنّ الملفّ **يملك** `sahool-migrate` (apply_in_compose.sh ينشئ sahool_app/sahool_jobs) — فالتعليقات «لا يُنشئ sahool_app» كانت stale. صُلِّب: التطبيق→`sahool_app` المقيّد، أُزيل تعطيل الحارس. حارسا SEC-1 (`test_compose_rls_bypass_guard`/`test_compose_env_bypass_guard`) كانا يفترضان تفعيل التجاوز في fixed.yml — حُدِّثا للحالة المُصلَّبة + **حارس جديد** يمنع أيّ compose من `sahool_user` في `DATABASE_URL`.
+- **V8-05** `MapHub.tsx`: مجرّد اختيار تاريخ لم يعد يُطلق معالجة صامتة (توليد COG). «latest» فقط يُحدِّث؛ تاريخ جاهز يبدّل الطبقة؛ غير جاهز ⇒ حالة + CTA صريح (زرّ backfill). (v11-F1 قلّل التعرّض إذ صارت available-dates = ready فقط، لكن أُغلِق المسار البرمجيّ.)
+- **v11-F3/F5 (معماريّ — كان مؤجَّلاً «يحتاج pub/sub»):** إخلاء طبقات الذاكرة عبر العمليّات. عامل الإبطال ينشر `field_id` على قناة Redis `raster:layer_evict` بعد إبطال القرص+DB؛ `raster-service` يشترك في `lifespan` (`_layer_evict_subscriber`) ويُخلي `_layers`/`_field_layers` (`_evict_field_layers`). راية `RASTER_LAYER_EVICT_ENABLED` (افتراض true) + تدهور لطيف بلا Redis/الحزمة + إعادة اتّصال. حارس `test_layer_evict_v30_9`.
+
+**درس تلوّث اختبار (تكرّر):** حقن `sys.modules["boto3"]` في اختبار جديد لوّث `test_sam2_polygon_cleaning` (فشل عابر في المجموعة الكاملة، نجاح منفرداً). الحلّ: لا تستورد `main` الثقيل في حارس ساكن — أكّد نصّيّاً وحاكِ المنطق. unit **2609** · production gate (3300 compiled) · حُرّاس compose الأمنيّة خضراء.
+
+## 2026-07-05 (ن) — Landsat طبقة حرارية فريدة (LST فقط، لا تكرار Sentinel-2؛ الرأس `2df1cf5`)
+
+قرار معماريّ من المستخدم (تقرير + diff + zip على أساس `7b7bf54`): **Copernicus/Sentinel-2 مصدر المؤشّرات النباتية/البصرية؛ Landsat يُستخدم فقط للطبقة الحرارية الفريدة** — LST كأصل مباشر، وCWSI/TVDI/TCI/VHI مشتقات لاحقة من LST+طقس/NDVI. لا يُعاد سحب NDVI/NDMI من Landsat.
+
+- طُبِّق عبر `patch -p4` (الرقعة على أساس يحوي عمل CDSE، فلا تعارض مع `8a6d023`). مجموعات `LANDSAT_UNIQUE/DIRECT/DERIVED/DUPLICATE` + `IndicatorKind` (lst/cwsi/tvdi/tci/vhi/et_inputs) · `_stac_search_landsat`→`_stac_search_landsat_unique` (يُرجِع `thermal_urls.lst` فقط، `_landsat_thermal_href` يرفض red/nir/swir) · backfill route `source=landsat-thermal` يرفض المكررات · العامل+المتزامن يعالجان LST · ترحيل **v147** (`backfill_runs.source`).
+- **تحقّق-قبل-دمج اصطاد ثغرتَين حقيقيّتَين في رقعة المُدقِّق** (اختباراته لم تُشغّل `_process_run`): (١) `is_landsat_thermal` مُستعمَل في `_process_run` بلا تعريف ⇒ **NameError على كلّ تشغيلة** — عُرِّف من `run.source`؛ (٢) v147 في MANIFEST فقط لا `run_migrations.sql` ⇒ **فشل بوّابة الإنتاج** — أُضيف للمُشغّلَين. + إضافة `/imagery/search/landsat-thermal` لـPUBLIC_CATALOG (حارس التفويض). حارس `test_landsat_thermal_unique_v31_0` (يشمل الثغرتَين).
+- **v147 مُثبَت على Postgres حيّ:** v144→v146→v147 + إعادة تطبيق؛ يقبل `landsat-thermal` ويرفض `modis` (CHECK). unit **2615** · production gate **153 ترحيلاً**.

@@ -153,6 +153,7 @@ async def imagery_search_radar(
 
 
 @router.get("/imagery/search/landsat")
+@router.get("/imagery/search/landsat-thermal")
 async def imagery_search_landsat(
     west: float,
     south: float,
@@ -163,9 +164,10 @@ async def imagery_search_landsat(
     max_cloud_pct: float = Query(40, ge=0, le=100),
     limit: int = Query(20, ge=1, le=100),
 ):
-    """بحث Landsat C2 L2 — أرشيف طويل المدى (40+ سنة) تكميلي لـSentinel-2.
+    """بحث Landsat C2 L2 thermal-only.
 
-    دقّة 30م، تردّد 16 يوماً. مفيد للتحليل التاريخي قبل عصر Sentinel-2 (2015).
+    لا يرجع NDVI/NDMI/SAVI المكررة مع Sentinel-2. يرجع فقط LST كأصل حراري مباشر،
+    ويعلن CWSI/TVDI/TCI/VHI كمشتقات تحتاج LST + طقس/NDVI.
     """
     end_date = end or datetime.now(UTC).strftime("%Y-%m-%d")
     try:
@@ -177,7 +179,7 @@ async def imagery_search_landsat(
             limit,
         )
     except (httpx.HTTPError, RuntimeError) as e:
-        raise HTTPException(502, f"Earth Search (landsat): {e}") from e
+        raise HTTPException(502, f"Landsat thermal search: {e}") from e
 
 
 @router.get("/imagery/dem")

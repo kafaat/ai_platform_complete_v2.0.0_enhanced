@@ -34,6 +34,30 @@ logger = logging.getLogger("raster-service.cache_invalidation_worker")
 WORKER_POLL_SECONDS = float(os.getenv("WORKER_POLL_SECONDS", "5"))
 # دورة الإخلاء تُشغَّل كلّ N دورة استطلاع (تفادي مسح الشجرة كلّ ثانية).
 PRUNE_EVERY_CYCLES = int(os.getenv("TILE_CACHE_PRUNE_EVERY_CYCLES", "60"))
+# v11-F3/F5: قناة نشر إخلاء طبقات ذاكرة raster-service (نفس اسم القناة في main.py).
+LAYER_EVICT_CHANNEL = os.getenv("RASTER_LAYER_EVICT_CHANNEL", "raster:layer_evict")
+
+_redis_pub: Any = None
+
+
+async def _publish_layer_evict(field_id: str) -> None:
+    """ينشر ``field_id`` على قناة Redis كي تُخلي عمليّة raster-service طبقاته من الذاكرة.
+
+    best-effort: عامل الإبطال يحذف بلاطات القرص ويعلّم DB stale، لكنّ ذاكرة الخدمة
+    (عمليّة أخرى) تبقى تحمل الطبقة القديمة؛ هذا النشر يُخليها فوراً. غياب Redis/الحزمة
+    أو فشل النشر لا يُفشل الإبطال (القرص+DB أُبطِلا فعلاً)."""
+    global _redis_pub
+    url = os.getenv("REDIS_URL")
+    if not url or not field_id:
+        return
+    try:
+        if _redis_pub is None:
+            import redis.asyncio as _aioredis
+
+            _redis_pub = _aioredis.from_url(url, encoding="utf-8", decode_responses=True)
+        await _redis_pub.publish(LAYER_EVICT_CHANNEL, field_id)
+    except Exception as e:  # noqa: BLE001 — النشر best-effort؛ القرص+DB أُبطِلا
+        logger.warning("layer-evict publish skipped (field=%s): %s", field_id, e)
 
 
 def _enabled() -> bool:
@@ -108,6 +132,9 @@ async def run_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
                         "SET status='processed', processed_at=now() WHERE id=$1",
                         rid,
                     )
+                # v11-F3/F5: أبلِغ عمليّة raster-service لتُخلي طبقات الحقل من الذاكرة
+                # (بعد نجاح إبطال القرص+DB) — خارج المعاملة، best-effort.
+                await _publish_layer_evict(field)
                 processed += 1
                 logger.info(
                     "invalidation processed id=%s field=%s tiles_deleted=%s assets=%s reason=%s",

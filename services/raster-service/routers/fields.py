@@ -140,23 +140,48 @@ async def field_historical_backfill(
 
     if not req.indices:
         raise HTTPException(400, "indices مطلوبة")
-    unsupported = [
-        i.value
-        for i in req.indices
-        if i
-        not in {
-            main.IndicatorKind.ndvi,
-            main.IndicatorKind.ndmi,
-            main.IndicatorKind.savi,
-            main.IndicatorKind.evi,
-            main.IndicatorKind.gndvi,
-            main.IndicatorKind.ndre,
-            main.IndicatorKind.msi,
-            main.IndicatorKind.msavi,
-        }
-    ]
-    if unsupported:
-        raise HTTPException(400, f"مؤشّرات غير مناسبة للـbackfill البصري: {unsupported}")
+    source = (req.source or "sentinel-2").strip().lower().replace("_", "-")
+    is_landsat_thermal = source in {
+        "landsat",
+        "landsat-thermal",
+        "landsat-unique",
+        "landsat-thermal-unique",
+    }
+    if is_landsat_thermal:
+        unsupported = [i.value for i in req.indices if i.value not in main.LANDSAT_UNIQUE_INDICES]
+        if unsupported:
+            raise HTTPException(
+                400,
+                "Landsat في Sahool مخصّص للمؤشرات الحرارية الفريدة فقط؛ "
+                f"المؤشرات المكررة مع Sentinel-2 مرفوضة: {unsupported}",
+            )
+        non_direct = [
+            i.value for i in req.indices if i.value not in main.LANDSAT_DIRECT_RASTER_INDICES
+        ]
+        if non_direct and not req.dry_run:
+            raise HTTPException(
+                422,
+                "هذه مؤشرات مشتقة لا تُسحب كراستر مباشر من Landsat. اسحب lst أولاً، "
+                f"ثم اشتقها محلياً مع الطقس/NDVI: {non_direct}",
+            )
+    else:
+        unsupported = [
+            i.value
+            for i in req.indices
+            if i
+            not in {
+                main.IndicatorKind.ndvi,
+                main.IndicatorKind.ndmi,
+                main.IndicatorKind.savi,
+                main.IndicatorKind.evi,
+                main.IndicatorKind.gndvi,
+                main.IndicatorKind.ndre,
+                main.IndicatorKind.msi,
+                main.IndicatorKind.msavi,
+            }
+        ]
+        if unsupported:
+            raise HTTPException(400, f"مؤشّرات غير مناسبة للـbackfill البصري: {unsupported}")
 
     clip = req.clip_polygon_geojson
     bbox = main._bbox_from_geojson(clip)
@@ -186,6 +211,7 @@ async def field_historical_backfill(
             clip_polygon_geojson=clip,
             apply_cloud_mask=req.apply_cloud_mask,
             limit_per_month=req.limit_per_month,
+            source="landsat-thermal" if is_landsat_thermal else "sentinel-2",
         )
         if run_id is not None:
             main.logger.info(
@@ -206,6 +232,7 @@ async def field_historical_backfill(
                     "months": months,
                 },
                 "indices": [i.value for i in req.indices],
+                "source": "landsat-thermal" if is_landsat_thermal else "sentinel-2",
                 "message": "تمّ إنشاء تشغيلة backfill؛ يُنفّذها عامل الفحص لاتزامنيّاً.",
             }
         # v7-#3: تحصين الاحتياطيّ — حين تكون الراية مُفعَّلة لكنّ إنشاء التشغيلة فشل (جدول
@@ -221,14 +248,36 @@ async def field_historical_backfill(
     selected_scenes: list[dict] = []
     monthly: list[dict] = []
     for w_start, w_end in windows:
-        search = await main._stac_search(
-            bbox,
-            w_start.strftime("%Y-%m-%dT00:00:00Z"),
-            w_end.strftime("%Y-%m-%dT23:59:59Z"),
-            req.max_cloud_pct,
-            limit=max(10, req.limit_per_month * 4),
-            geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
-        )
+        if is_landsat_thermal:
+            search = await main._stac_search_landsat_unique(
+                bbox,
+                w_start.strftime("%Y-%m-%dT00:00:00Z"),
+                w_end.strftime("%Y-%m-%dT23:59:59Z"),
+                req.max_cloud_pct,
+                limit=max(10, req.limit_per_month * 4),
+            )
+        else:
+            try:
+                search = await main._stac_search(
+                    bbox,
+                    w_start.strftime("%Y-%m-%dT00:00:00Z"),
+                    w_end.strftime("%Y-%m-%dT23:59:59Z"),
+                    req.max_cloud_pct,
+                    limit=max(10, req.limit_per_month * 4),
+                    geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
+                )
+            except TypeError as e:
+                if "unexpected keyword argument 'geometry'" not in str(e):
+                    raise
+                # توافق اختبارات/بدائل قديمة monkeypatch لا تقبل geometry. الإنتاج يستخدم
+                # التوقيع الجديد، وهذا fallback لا يغيّر المسار الحقيقي.
+                search = await main._stac_search(
+                    bbox,
+                    w_start.strftime("%Y-%m-%dT00:00:00Z"),
+                    w_end.strftime("%Y-%m-%dT23:59:59Z"),
+                    req.max_cloud_pct,
+                    limit=max(10, req.limit_per_month * 4),
+                )
         items = main._rank_scenes(search.get("items", []), max_cloud_pct=req.max_cloud_pct)[
             : req.limit_per_month
         ]
@@ -289,12 +338,37 @@ async def field_historical_backfill(
                 try:
                     import stac_vrt
 
+                    ind_value = ind.value if hasattr(ind, "value") else str(ind)
+                    if (sc.get("provider") or "").startswith("landsat") or sc.get("thermal_urls"):
+                        if ind_value != "lst":
+                            raise RuntimeError("landsat_derived_index_requires_lst_weather_ndvi")
+                        thermal_url = (sc.get("thermal_urls") or {}).get("lst")
+                        if not thermal_url:
+                            raise RuntimeError("landsat_lst_asset_missing")
+                        preq = main.ProcessRequest(
+                            tenant_id=tenant_id,
+                            field_id=field_id,
+                            raster_url=main._safe_raster_source(thermal_url),
+                            indicator=main.IndicatorKind.lst,
+                            source_format=main.SourceFormat.landsat8,
+                            bands=main.BandMapping(),
+                            precomputed_index=True,
+                            clip_polygon_geojson=clip,
+                            apply_cloud_mask=False,
+                            scene_id=sc.get("item_id"),
+                            capture_datetime=sc.get("datetime"),
+                            provider="landsat-element84",
+                            geometry_revision=getattr(req, "geometry_revision", None),
+                        )
+                        main._run_processing(jid, preq)
+                        return
+
                     # التحويل إلى CDSE: مشهد كتالوج Copernicus (بلا bands_urls) يُعالَج
                     # خادميّاً عبر Process API (لا VRT من نطاقات Element84).
                     if not (sc.get("bands_urls") or {}):
                         main._process_backfill_scene_cdse(
                             sc,
-                            ind.value if hasattr(ind, "value") else str(ind),
+                            ind_value,
                             field_id,
                             tenant_id,
                             clip,
@@ -383,6 +457,18 @@ async def field_historical_backfill(
             "months": months,
         },
         "indices": [i.value for i in req.indices],
+        "source": "landsat-thermal" if is_landsat_thermal else "sentinel-2",
+        "landsat_policy": (
+            {
+                "direct_raster_indices": sorted(main.LANDSAT_DIRECT_RASTER_INDICES),
+                "derived_indices": sorted(main.LANDSAT_DERIVED_INDICES),
+                "excluded_duplicate_sentinel_indices": sorted(
+                    main.LANDSAT_DUPLICATE_SENTINEL_INDICES
+                ),
+            }
+            if is_landsat_thermal
+            else None
+        ),
         "max_cloud_pct": req.max_cloud_pct,
         "limit_per_month": req.limit_per_month,
         "dry_run": req.dry_run,

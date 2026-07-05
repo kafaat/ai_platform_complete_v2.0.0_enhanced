@@ -386,19 +386,25 @@ export default function MapHub() {
     if (!fieldId || !activeIndicator || mode !== '2d') return;
     const key = `${tenantId ?? 'default'}:${fieldId}:${activeIndicator}:${selectedImageryDate}`;
     if (imageryRefreshKeyRef.current === key) return;
-    // FINDING-007: لا نُطلق معالجة جديدة عند اختيار تاريخ تاريخيّ يملك COG جاهزاً
-    // بالفعل — إعادة المعالجة هدر وقد تُعيد كتابة أصل موجود. نكتفي بتبديل الطبقة
-    // (bump imageryTs فتُعيد البلاطات القراءة من COG القائم). الإطلاق يبقى فقط
-    // حين لا COG لهذا التاريخ، أو عند «latest» (نضمن أحدث مشهد).
-    const readyOption = selectedImageryDate !== 'latest'
-      ? availableImageryDates.find((d) => d.date === selectedImageryDate)
-      : undefined;
-    if (readyOption?.has_cog) {
-      imageryRefreshKeyRef.current = key;
+    // FINDING-007 + v8-F5: مجرّد اختيار تاريخ لا يُطلق معالجة صامتة (توليد COG جديد
+    // كأثر جانبيّ للاختيار). القاعدة:
+    //   • «latest» فقط ⇒ نطلب تحديثاً (نضمن أحدث مشهد) — فعلٌ ضمنيّ مقبول.
+    //   • تاريخ محدَّد جاهز (has_cog) ⇒ نبدّل الطبقة فقط (bump imageryTs، لا معالجة).
+    //   • تاريخ محدَّد غير جاهز ⇒ **لا** نُطلق معالجة تلقائيّاً؛ نعيد القراءة (تظهر
+    //     «غير متاح» بصدق) ونُبلّغ المستخدم أنّ التجهيز صريح (زرّ backfill التاريخيّ).
+    imageryRefreshKeyRef.current = key;
+    if (selectedImageryDate !== 'latest') {
+      const readyOption = availableImageryDates.find((d) => d.date === selectedImageryDate);
       setImageryTs(Date.now());
+      if (!readyOption?.has_cog) {
+        toastStore.add(
+          'info',
+          'التاريخ غير مُجهَّز',
+          'هذا التاريخ لا يملك صورة جاهزة بعد. استخدم زرّ «تجهيز سنتين تاريخيّة» لتشغيل معالجة صريحة.',
+        );
+      }
       return;
     }
-    imageryRefreshKeyRef.current = key;
     let cancelled = false;
     refreshFieldImagery(fieldId, selectedImageryDate)
       .then(() => {

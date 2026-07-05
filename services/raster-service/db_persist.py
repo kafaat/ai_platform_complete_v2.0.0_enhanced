@@ -386,6 +386,7 @@ async def insert_backfill_run(
     clip_polygon_geojson: dict | None = None,
     apply_cloud_mask: bool = True,
     limit_per_month: int = 2,
+    source: str = "sentinel-2",
 ) -> int | None:
     """يُنشئ تشغيلة backfill (status='planned') ويُرجِع id — يمكّن الردّ الفوريّ بلا
     مسح STAC في مسار الطلب (v5-F1/F2). العامل يلتقطها لاحقاً. RLS: يضبط app.current_tenant."""
@@ -398,10 +399,10 @@ async def insert_backfill_run(
         INSERT INTO backfill_runs (
             tenant_id, field_id, preset, from_date, to_date, months, indices,
             max_cloud_pct, geometry_revision, clip_polygon_geojson, apply_cloud_mask,
-            limit_per_month, status
+            limit_per_month, source, status
         ) VALUES (
             $1::uuid, $2, $3, $4::text::date, $5::text::date, $6, COALESCE($7::jsonb, '[]'::jsonb),
-            $8, $9, $10::jsonb, $11, $12, 'planned'
+            $8, $9, $10::jsonb, $11, $12, $13, 'planned'
         )
         RETURNING id
     """
@@ -421,6 +422,7 @@ async def insert_backfill_run(
             json.dumps(clip_polygon_geojson) if clip_polygon_geojson else None,
             apply_cloud_mask,
             int(limit_per_month),
+            source,
         )
         return int(run_id) if run_id is not None else None
     except Exception as e:  # noqa: BLE001 — غياب الجدول لا يُفشل الطلب (يسقط للمسار المتزامن)
