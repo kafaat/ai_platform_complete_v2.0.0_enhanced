@@ -182,7 +182,7 @@ psql "$DATABASE_URL" -v tenant_id="'<TENANT-UUID>'" \
      -f scripts/seed/aljawf_sunaydar_farm.sql
 ```
 
-- يُدخِل **6 حقول** (من `farm_map.yaml`) + **3 مواسم** قمح (من `yield_history.csv`: 2.6→4.5→6.17 طن/هـ) + **فحص تربة مرجعيّ** (من `sunaydar_soil_reference.yaml`: pH 8.2 · CaCO3 31% · ...).
-- **idempotent** (ON CONFLICT DO UPDATE) — آمن للتكرار. مُثبَت على Postgres حيّ (6/3/1، بلا تكرار).
+- يُدخِل **6 حقول** (من `farm_map.yaml`) + **6 مواسم** (Z1 قمح ×3 من `yield_history.csv`: 2.6→4.5→6.17 طن/هـ؛ Z2 قمح · Z3 برسيم · Z6 أشجار — نشطة، محاصيلها من `farm_map`) + **فحص تربة مرجعيّ** (من `sunaydar_soil_reference.yaml`: pH 8.2 · CaCO3 31% · ...).
+- **idempotent** (ON CONFLICT DO UPDATE) — آمن للتكرار. مُثبَت على Postgres حيّ (6/6/1، بلا تكرار).
 - **صدق:** الإحداثيّات على مستوى المديريّة (16.15N)؛ حدود الحقل وGPS الحقليّ الدقيق **معلّقان** (يرسمها المشغّل لاحقاً؛ 7 عيّنات تنتظر تحقّق GPS). لا مضلّع مفبرك.
 - بعدها: شغّل backfill (القسم 1) لهذه الحقول لتظهر صورها الفعليّة، وقاعدة معرفة السنيدار (RAG) تُبذَر عبر خدمة `sahool-qdrant-seed` في compose.

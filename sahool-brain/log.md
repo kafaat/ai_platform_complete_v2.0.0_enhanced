@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-05 (ن) — إكمال بذرة الجوف لكلّ المناطق المنتِجة
+
+«تحميل ما تبقّى من الجوف»: كلّ المناطق الستّ لها الآن موسم نشط بمحصولها الحقيقيّ من `farm_map` (لا Z1 فقط). Z1 يبقى بمواسمه الثلاثة المؤرَّخة (حصاد موزون)؛ Z2 قمح · Z3 برسيم · Z6 أشجار (حمضيات/عنب/رمان/بابايا) مواسم نشطة بتواريخ NULL (Z1 فقط موثَّق التواريخ؛ المعمّرة بلا سوينج) — **لا تواريخ مفبركة**. **لم يُبذَر** (لا مصدر/جدول صادق): الآبار (لا جدول) · اقتصاد لكل حقل (economics.yaml: «تُحسب لا تُخزَّن») · zone_factors (معايرة) · الـ22 عيّنة (المرجع متوسّط؛ 7 تنتظر GPS). **مُثبَت على Postgres حيّ: 6/6/1 idempotent**. release + runbook محدَّثان.
+
+---
+
 ## 2026-07-05 (ن) — بذرة تشغيليّة لمزرعة الجوف/السنيدار من بيانات مرجعيّة حقيقيّة
 
 `scripts/seed/aljawf_sunaydar_farm.sql`: يُدخِل المزرعة الحقيقيّة في قاعدة المنصّة لتظهر بالشاشات (قاعدة v9_foundation كانت تبذر حقول البيضاء الوهميّة فقط، بينما بيانات الجوف/السنيدار حيّة في YAML/CSV فقط). من مصادر حقيقيّة: 6 حقول (farm_map) · 3 مواسم قمح Z1 (yield_history 2.6→4.5→6.17 طن/هـ حصاد موزون) · فحص تربة مرجعيّ (sunaydar_soil_reference: pH 8.2/CaCO3 31%/OM 0.94%/P 2.7). **صدق:** المستأجِر `:tenant_id` (لا UUID مثبَّت) · idempotent (ON CONFLICT DO UPDATE) **مُثبَت على Postgres حيّ** (6/3/1، تشغيل مرّتين بلا تكرار) · إحداثيّات مديريّة (16.15 من climate.yaml)، حدود الحقل وGPS الدقيق **معلّقان** (7 عيّنات، لا مضلّع مفبرك). حارس tests_v9 + قسم Runbook. بذرة اختياريّة للمشغّل لا migration تلقائيّ. unit ناجح · ruff نظيف · release 3164.
@@ -1441,3 +1447,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - حارس `SatellitePageRuntimeFix.static.test.ts` (أصلحت نمط قراءته: `resolve(__dirname)` لا `new URL(import.meta.url)` الذي يفشل في vitest بـ«URL must be of scheme file»).
 
 **درس:** الأصل الثابت لرقعات المُدقِّق المتتالية = `7b7bf54`؛ فالفروق الكبيرة معظمها عملي الأحدث (8a6d023+). قارنتُ «سطورهم غير الموجودة عندي» فقط لعزل إصلاحاتهم الحقيقيّة. unit 2615 · vitest 1047.
+
+## 2026-07-05 — بذرة الجوف الكاملة + إصلاح رسالة 409 (main=develop=9008d35)
+- **بذرة الجوف الكاملة (8a7b715):** `scripts/seed/aljawf_sunaydar_farm.sql` — 6 حقول/6 مواسم/1 فحص تربة، بيانات مرجعيّة حقيقيّة (farm_map/yield_history/soil_reference)، idempotent، مُثبَت على Postgres رمينيّ. المُستبعَد بصدق: آبار (لا جدول)، اقتصاد لكلّ حقل (economics.yaml: يُحسَب لا يُخزَّن)، zone_factors (معايرة)، 22 عيّنة فرديّة (المرجع متوسّط؛ 7 GPS معلّقة).
+- **إصلاح 409 حفظ الحقل (9008d35):** `frontend/src/sections/MapHub.tsx` — `handleSaveField`/`handleImportField` كانا يحطّان خطأ أكسيوس الغنيّ إلى `new Error(asApiError(e).message)` = «Request failed with status code 409» فيضيع `detail.message_ar` الصادق (اسم مكرّر / تداخل هندسة). صُحِّح إلى `apiErrorMessage(e, fallback)` كما في `AddFieldWithMap`. مسار SetupCabin كان سليماً سلفاً. زرّ الحفظ `disabled={saving}` ⇒ النقر المزدوج مضبوط، فلا حاجة idempotency.
+- **sam2-inference 503 (STAC SSL EOF):** ليس عطلاً — fail-closed صادق (`main.py:202-238`: فشل STAC ⇒ None ⇒ 503، لا اختلاق حدّ). `/readyz 200` ⇒ الخدمة حيّة؛ الخلل في TLS الصادر لمزوّد STAC (شبكة/proxy/throttle).
+- **الدمج:** CI أخضر على 9008d35 (run 28755086261، كلّ الوظائف 11)؛ fast-forward نظيف efa0e9b→9008d35 لـmain وdevelop. zip: `..._9008d35_aljawf_seed_field409_fix.zip` (3434 ملفّاً).

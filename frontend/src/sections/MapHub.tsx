@@ -1151,7 +1151,10 @@ export default function MapHub() {
         setFieldId(newId);
       }
     } catch (e) {
-      const msg = asApiError(e).message || 'تعذّر حفظ الحقل — تحقّق من القاعدة/الصلاحيّة أو صحّة الحدود.';
+      // استخرج السبب الصادق من الخادم (detail.message_ar) — مثل «يوجد حقل بالاسم
+      // نفسه» أو «حدود الحقل تتداخل مع…» (409) — بدل رسالة أكسيوس الخام
+      // «Request failed with status code 409» التي لا تُفهِم المستخدِم السبب.
+      const msg = apiErrorMessage(e, 'تعذّر حفظ الحقل — تحقّق من القاعدة/الصلاحيّة أو صحّة الحدود.');
       toastStore.add('error', '⚠️ فشل حفظ الحقل', msg);
       throw new Error(msg);
     }
@@ -1167,7 +1170,8 @@ export default function MapHub() {
       // انتقل إلى الحقل المستورَد حديثاً واعرضه بالإطار الافتراضيّ.
       if (newId) { markDefaultViewOnce(newId); setFieldId(newId); }
     } catch (e) {
-      const msg = asApiError(e).message || 'تعذّر استيراد الحقل — تحقّق من صحّة الملفّ والحدود والصلاحيّة.';
+      // السبب الصادق من الخادم (detail.message_ar) بدل رسالة أكسيوس الخام (409/422…).
+      const msg = apiErrorMessage(e, 'تعذّر استيراد الحقل — تحقّق من صحّة الملفّ والحدود والصلاحيّة.');
       throw new Error(msg);
     }
   }, [refetch, setFieldId]);
