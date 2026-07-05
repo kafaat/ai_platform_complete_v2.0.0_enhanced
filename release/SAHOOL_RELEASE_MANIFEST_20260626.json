@@ -29,7 +29,7 @@
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
   "file_count": 3134,
-  "generated_at": "2026-07-05T12:43:14.283213+00:00",
+  "generated_at": "2026-07-05T12:50:33.784288+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -90,5 +90,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 22011857
+  "total_size_bytes": 22013521
 }

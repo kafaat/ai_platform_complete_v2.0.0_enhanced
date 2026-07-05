@@ -9065,7 +9065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82945d0fe8b406455b4456e7b96ec1f2932eb2b3e910b218f750245b68cc9096"
+          "content": "81af876f94b56d2d0234ab44d55991e8eac7cf88ca291eac5d108490928beba2"
         }
       ],
       "name": "services/raster-service/stac_client.py",
