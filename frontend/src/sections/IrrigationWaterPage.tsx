@@ -10,6 +10,7 @@ import FieldSelector from '../components/FieldSelector';
 import { useSelectedField } from '../hooks/useSelectedField';
 import type { WaterSampleInput } from '../services/api';
 import { ErrorState } from '../components/StateViews';
+import { useLocation } from 'react-router-dom';
 
 const IONS: { key: keyof WaterSampleInput; label: string; hint: string }[] = [
   { key: 'na',     label: 'الصوديوم Na',        hint: 'meq/L' },
@@ -23,7 +24,9 @@ const IONS: { key: keyof WaterSampleInput; label: string; hint: string }[] = [
 ];
 
 export default function IrrigationWaterPage() {
-  const { fieldId, field } = useSelectedField();
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
+  const { fieldId, field } = useSelectedField({ routeFieldId });
   const [vals, setVals] = useState<Record<string, string>>({});
   const mut = useWaterAnalysis();
 

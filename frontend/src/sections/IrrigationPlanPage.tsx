@@ -15,6 +15,7 @@ import { useSelectedField } from '../hooks/useSelectedField';
 import { computeIrrigationPlan } from '../services/api';
 import type { IrrigationPlanInput, IrrigationPlanResult, ForecastDayInput } from '../services/api';
 import { ErrorState } from '../components/StateViews';
+import { useLocation } from 'react-router-dom';
 
 const POLICIES: { key: string; label: string; why: string }[] = [
   { key: 'water_saving',   label: 'توفير الماء (ريّ عجزيّ)', why: 'ينتظر بلوغ RAW ثمّ يملأ جزئيّاً — يحفظ الماء ويقبل إجهاداً خفيفاً' },
@@ -40,7 +41,9 @@ const riskColor = (s: string): string =>
     : s === 'مرتفع' ? 'text-orange-300' : 'text-slate-500';
 
 export default function IrrigationPlanPage() {
-  const { fieldId, field } = useSelectedField();
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
+  const { fieldId, field } = useSelectedField({ routeFieldId });
   const mut = useComputeIrrigationPlan();
   const [horizon, setHorizon] = useState('7');
   const [et0, setEt0] = useState('6');

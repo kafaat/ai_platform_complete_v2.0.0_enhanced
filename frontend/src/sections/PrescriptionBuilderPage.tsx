@@ -33,6 +33,7 @@ import { geomToPolygon, areaSqMeters } from '../lib/geo';
 import { T, Card, Pill, Badge, SectionLabel, Button } from '../components/ds';
 import { Input, Select } from '../components/ds';
 import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
+import { useLocation } from 'react-router-dom';
 
 // خرائط الأساس (نفس روابط FieldIndicatorMap / AddFieldWithMap).
 const BASEMAP_SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -100,9 +101,11 @@ function prescriptionToCSV(rx: SavedPrescription): string {
 }
 
 export default function PrescriptionBuilderPage() {
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
   const {
     fieldId, field, options, isLoading: fieldsLoading, isError: fieldsError, setFieldId,
-  } = useSelectedField();
+  } = useSelectedField({ routeFieldId });
 
   // حدود الحقل المُختار (مضلّع Leaflet) — من هندسة خيار الحقل.
   const polygon = useMemo(

@@ -34,6 +34,7 @@ import {
 } from '../components/fieldhealth';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
+import { useLocation } from 'react-router-dom';
 
 // مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
 // لا بقائمة مُبرمَجة — مصدر حقيقة واحد للقابل للرسم (لا طبقة ميتة ولا مفقودة).
@@ -83,9 +84,11 @@ function zoneColor(zone: string): string {
 }
 
 export default function SatellitePage() {
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
   // «الحقل النشط» المشترك (useSelectedField): قائمة الحقول + الاختيار المشترك +
   // الافتراض للأوّل — يتبع المستخدم عبر الشاشات بدل اختيار محليّ يضيع عند التنقّل.
-  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch, fieldId, setFieldId } = useSelectedField();
+  const { options: fields, isLoading: fieldsLoading, isError: fieldsError, refetch, fieldId, setFieldId } = useSelectedField({ routeFieldId });
 
   // وضع صحّة الحقل (افتراضيّاً النباتيّ — السلوك السابق للصفحة).
   const [mode, setMode] = useState<HealthMode>('vegetation');

@@ -13,7 +13,7 @@
 // يُعرَض رقم/طبقة لم يُرجِعها API (قاعدة عدم الاختلاق).
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Map as MapIcon, Layers, Clock, FileText, Leaf } from 'lucide-react';
@@ -172,9 +172,11 @@ export default function FieldWorkspaceMapCard({
   fieldId: fieldIdProp,
   showPicker = true,
 }: FieldWorkspaceMapCardProps) {
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
   // الحقل النشط المشترك حين لا يُمرَّر field_id صراحةً (يتبع المستخدم عبر الشاشات).
   const navigate = useNavigate();
-  const selected = useSelectedField();
+  const selected = useSelectedField({ routeFieldId });
   const fieldId = fieldIdProp ?? selected.fieldId;
 
   const [ndviOn, setNdviOn] = useState(false);
@@ -278,10 +280,10 @@ export default function FieldWorkspaceMapCard({
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        <button onClick={() => navigate('/health/satellite')} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">الأقمار والمؤشرات</button>
-        <button onClick={() => navigate('/health/lab-sampling')} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">العينات والمختبر</button>
-        <button onClick={() => navigate('/health/prescriptions')} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">وصفات ومناطق</button>
-        <button onClick={() => navigate('/irrigation/plan')} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">خطة الري</button>
+        <button onClick={() => navigate('/health/satellite', { state: { fieldId } })} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">الأقمار والمؤشرات</button>
+        <button onClick={() => navigate('/health/lab-sampling', { state: { fieldId } })} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">العينات والمختبر</button>
+        <button onClick={() => navigate('/health/prescriptions', { state: { fieldId } })} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">وصفات ومناطق</button>
+        <button onClick={() => navigate('/irrigation/plan', { state: { fieldId } })} className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-emerald-500">خطة الري</button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">

@@ -7,6 +7,7 @@ import { useCreateLabSample, useLabDecisionContext, useLabSamples, useSubmitSoil
 import { asApiError, apiErrorMessage, type LabSampleCreateInput, type SoilLabResultInput } from '../services/api';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateViews';
 import { geomToPolygon, fieldRepresentativePoint } from '../lib/geo';
+import { useLocation } from 'react-router-dom';
 
 
 const BASEMAP_SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -41,7 +42,9 @@ function n(v: FormDataEntryValue | null): number | null {
 }
 
 export default function LabSamplingPage() {
-  const { fieldId, options, setFieldId } = useSelectedField();
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
+  const { fieldId, options, setFieldId } = useSelectedField({ routeFieldId });
   const samplesQ = useLabSamples(fieldId || undefined);
   const contextQ = useLabDecisionContext(fieldId || undefined);
   const createSample = useCreateLabSample();

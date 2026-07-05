@@ -9,9 +9,12 @@ import { Droplets, GitCompare, Info, AlertTriangle } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { simulateFieldWaterTwin, asApiError } from '../services/api';
 import type { FieldWaterTwinInput, WaterTwinResult } from '../services/api';
+import { useLocation } from 'react-router-dom';
 
 export default function WaterTwinPage() {
-  const { options, isLoading: fieldsLoading, fieldId, setFieldId } = useSelectedField();
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
+  const { options, isLoading: fieldsLoading, fieldId, setFieldId } = useSelectedField({ routeFieldId });
   const [taw, setTaw] = useState('100');
   const [raw, setRaw] = useState('40');
   const [horizon, setHorizon] = useState('7');

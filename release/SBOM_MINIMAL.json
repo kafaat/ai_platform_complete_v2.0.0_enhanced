@@ -4105,7 +4105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1f8d6e03ee69162da10caf8e5ea141affcf9c5df7e999cb38b2ac4acaa24553c"
+          "content": "ac6cfc8290c009b3a70662ac2586592337bbcad207dd9b43174ed3bfa351563d"
         }
       ],
       "name": "frontend/src/sections/DashboardPage.tsx",
@@ -4225,7 +4225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "096626694811745d61cc39c4080c62a5ec46fcdf9621bef9bf176e8f84126ebe"
+          "content": "61acbc93fbf42b73e78f2dda16479ef097a1716d6e6822c65300f97df3791d4e"
         }
       ],
       "name": "frontend/src/sections/EtcDualPage.tsx",
@@ -4295,7 +4295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42ef607caf7924172e345cd14fa1830abf23e5e70b1c2fd640f5d76ec542874a"
+          "content": "a37d2278cbdb0b5e21d73cabd84710eaa139b541debbb043d17926c89f7d6ab2"
         }
       ],
       "name": "frontend/src/sections/FarmMapOverview.tsx",
@@ -4395,7 +4395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6f948991e779b7f4ecde97a6873ca033972e0da7215e68a600b4db971c87b18"
+          "content": "52301786161fedbfa3bc4d2637f56e5c94aa77a14962bb5f63abb69e381882f0"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.tsx",
@@ -4495,7 +4495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7181580cdaec59a69bb6b7d1d7dc4149336aee3be64366d2751fd838d959bf44"
+          "content": "dbcce467101972d6766147afb98bdf99bdf6e958d411a047d251762ce0338243"
         }
       ],
       "name": "frontend/src/sections/IrrigationPlanPage.tsx",
@@ -4505,7 +4505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "683bf0a16227aa5b71127652f5e82ed2092116f34c337550c095a22d87c6f8ec"
+          "content": "7bdfe915551f5dda078161b524f6cbe333f9abfc92c06a579cfc67cae6d25514"
         }
       ],
       "name": "frontend/src/sections/IrrigationWaterPage.tsx",
@@ -4515,7 +4515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fac5cb7b5aaaae0c9a09af96b33e14dce4df78875d7f15c135b02b879cc7943"
+          "content": "6d20c49b2a202e1898ad2d9799cf752365ed3a57e68b6e4f7e37d466870097b2"
         }
       ],
       "name": "frontend/src/sections/LabSamplingPage.tsx",
@@ -4775,7 +4775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c6ab61e6826c6b5eb19c508a740d235c2e21c2e8923f925659abd4b3fbc14bd"
+          "content": "16c36c91f90aebd195ae60e10d1ec6c0f83f11375da13eb8a7ba26a0907366f5"
         }
       ],
       "name": "frontend/src/sections/PrescriptionBuilderPage.tsx",
@@ -4865,7 +4865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4525bf067a1941616cd3c24d11e67d2de6fce64b493e34c7d76a8ddab090fb5b"
+          "content": "8e77b902e531af625b880e8f640716379b88068902f0a875742fbe0ab84c6615"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -4965,7 +4965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28adafe64306c26eebf8a7375cad9fbd889ad56c760d74cdd7689f33af8eebf4"
+          "content": "922b872ed932ef2d284e8654642839cc087adfa3777df0f4a31f801d2df8fcb2"
         }
       ],
       "name": "frontend/src/sections/WaterTwinPage.tsx",
