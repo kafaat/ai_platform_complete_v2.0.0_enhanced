@@ -251,11 +251,35 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                         "skipped" if exists else "queued",
                         provider_key,
                     )
+                    if item_id is None:
+                        # v12 incremental-backfill: المفتاح العالمي يمنع التكرار، لكن لا يجوز
+                        # أن يمنع إعادة محاولة عنصر فشل سابقاً بسبب 429 أو تعطل مؤقت.
+                        # القرار الصادق:
+                        #   • إذا صار raster_asset جاهزاً فعلاً => skip.
+                        #   • إذا لا يوجد أصل ready => أعد ربط العنصر الحالي بهذه التشغيلة
+                        #     وأعده إلى queued ليُعاد السحب بدل أن يختفي بصمت.
+                        if exists:
+                            items_skipped += 1
+                            continue
+                        item_id = await conn.fetchval(
+                            """
+                            UPDATE backfill_run_items
+                               SET run_id=$1, status='queued', job_id=NULL, error=NULL,
+                                   processed_at=NULL
+                             WHERE tenant_id=$2::uuid AND idempotency_key=$3
+                             RETURNING id
+                            """,
+                            run_id,
+                            tenant,
+                            key,
+                        )
             if item_id is None:
-                continue  # مفتاح مكرّر (نُقِر سابقاً) — idempotent، لا نُعيد
+                # سباق نادر: عنصر تعذر إدراجه أو استعادته. لا نعلن نجاحاً ولا نرسل طلباً مكرراً.
+                items_failed += 1
+                continue
             if exists:
                 items_skipped += 1
-                continue  # الأصل موجود — سُجِّل skipped، لا معالجة
+                continue  # الأصل موجود وجاهز — لا معالجة جديدة
             # v9-F4: سجّل job_id ووسم processing **قبل** المعالجة كي يبقى الأثر
             # run_item → job → raster_asset واضحاً حتّى عند التعطّل أثناء المعالجة.
             jid = f"backfill_{_uuid.uuid4().hex[:12]}"

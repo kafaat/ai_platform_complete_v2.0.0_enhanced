@@ -287,7 +287,7 @@ export default function SatellitePage() {
       ...p,
       delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
       thumbUrl: fieldId && p.date
-        ? fieldCdseThumbnailUrl(fieldId, gridIndex, p.date.slice(0, 10), null, geom, null, 160)
+        ? fieldCdseThumbnailUrl(fieldId, 'truecolor', p.date.slice(0, 10), null, geom, null, 160)
         : null,
     }));
   }, [rasterPoints, ts, fieldId, gridIndex, field?.geometry]);

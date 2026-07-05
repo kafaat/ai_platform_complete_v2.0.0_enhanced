@@ -1852,7 +1852,7 @@ export default function MapHub() {
                                   <img
                                     src={fieldCdseThumbnailUrl(
                                       selected.id,
-                                      activeIndicator ?? 'ndvi',
+                                      'truecolor',
                                       d.date,
                                       tenantId ?? null,
                                       selected.geometry ?? null,

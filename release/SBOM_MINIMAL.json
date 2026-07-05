@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "50c7fef5c9b51e65f1324359621270d207a6bf2ac9053b589971743926e9c698"
+          "content": "d0dd72b20d77a656332d9e8eb957563f92352ebaccde11f3fadd3276ff2a010d"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4495,7 +4495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "60563e48c174512905ab094e4994f89c40f029ca1a258fd0d27345ef888c369d"
+          "content": "88f0512b4869f8de1f6767b6dc2a99ccc1db863118125653abc46c8aa76ec7f7"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4795,10 +4795,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a3e9f9e0a7dbfbfd38b3785628d6eab9373266e128e06a07c5faa653af43da6c"
+          "content": "f9faf2025e9c3d16993934e58ae2d6ab0831052757c7d865da8f8821143a4594"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b605ede52911079c8837ab0833550394a3a01b2dde63b4ac59db79dc8f4ad4ea"
+        }
+      ],
+      "name": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
       "type": "file"
     },
     {
@@ -8765,7 +8775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0597e2fa69642e28b8e04aa0b4cd9d90522207a8da026d7c47c3afd53eb2ab80"
+          "content": "c7b26a66e3f553336438b5f060810b9e7b168835d35131d5a2a0db908b8088a5"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -8795,7 +8805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad276434b02d51a3e3380a2605c418d3c9f5cd6ab00185addbe9a6d767e32d2c"
+          "content": "1ad082c3058fa9f84626cb2db5a3a7105e9540b34c504c8ccecf07a711110609"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
