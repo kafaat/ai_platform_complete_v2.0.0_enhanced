@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-07-05 (ن) — `567e8e3` الجولة 4: قوائم حقول في agronomy/GIS/governance + وسم الـmocks demo-only
+
+**بعد دمج PR #580** (`8f2109d`؛ main=develop=الفرع). عمل جديد على الفرع (لم يُعَد فتح أيّ PR):
+
+- AgronomyConsistencyCard: input معرّف حقل المحفظة ⇒ select (useFieldOptions) مبذور من prop الحقل.
+- GisTemporalOpsCard: replay-reconstruct يُسقِط إدخال المعرّف اليدويّ ويستخدم `fieldId` النشط؛ نوع الكيان select محدود.
+- GovernancePage (تتبّع النَّسَب): نوع الكيان ⇒ Select؛ عند `field` يأتي المعرّف من select الحقل المشترك (useSelectedField)، ويبقى حقل يدويّ لـcommand/recommendation.
+- FieldManagementPage: **إيقاف تلفيق field_id عشوائيّ** (`field_<ts>_<rand>`) عند غيابه من API ⇒ `''` وإسقاط الصفوف بلا معرّف.
+- api.ts: وسم كتلة الـmock بـ**DEMO-ONLY** (تحت VITE_MOCK_MODE فقط)، `field_01`⇒`demo-field-01`، `real_data:false` على fields_summary، و`status/source='demo-only'` — فلا تُخلَط بيانات العرض بالإنتاج أبداً.
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · release **3154** checksums. واجهة فقط · بلا migration.
+
 ## 2026-07-05 (ن) — `960a86d` الجولة 3: قوائم حقول في لوحات القرار/المدير + إشعارات صادقة
 
 رقعة المستخدم (`..._rest_runtime_screens_round3_hotfix.zip`، حزمة كاملة). عزلتُ تغييراتها الحقيقيّة عن حالتي التراكميّة (r3 = حالتي + round3): App.tsx/routes.ts نُسخ متطابقة-فائقة (فقط 22 alias جديداً) + 3 ملفّات لم أمسّها:
