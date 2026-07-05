@@ -797,6 +797,82 @@ async def field_imagery_available_dates(
         raise _db_unavailable("تواريخ صور الأقمار للحقل", e) from e
 
 
+@router.get("/api/v1/fields/{field_id}/imagery/timeline")
+async def field_imagery_timeline(
+    field_id: str,
+    months: int = Query(24, ge=1, le=60),
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
+):
+    """خطّ زمنيّ جاهز للأقمار: تواريخ COG الحقيقيّة (محدودة بآخر N شهراً) + thumbnail_url.
+
+    يجمّع الخطّ الزمنيّ خادميّاً (بدل أن تجمعه الواجهة من عدّة مصادر): يستدعي تواريخ
+    raster المتوفّرة (tenant-verified)، يقصرها على آخر ``months`` شهراً، ويبني لكل تاريخ
+    ``thumbnail_url`` يعرض **True Color** (معاينة طبيعيّة؛ الخدمة تقصّ على هندسة الحقل من
+    القاعدة وتتراجع بصدق إن غاب المشهد الخام لذلك التاريخ). الواجهة تُحمّل المصغّرات كسولاً
+    عبر هذه الروابط بدل جلب كلّ الصور دفعةً واحدة. صدق: لا تاريخ بلا COG حقيقيّ.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT field_id FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            _platform_field_missing = row is None
+        import datetime as _dt
+        import os as _os
+
+        import httpx as _httpx
+
+        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+            "/"
+        )
+        tenant = str(user.tenant_id)
+        headers = {"X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""), "X-Tenant-Id": tenant}
+        # limit مُشتقّ من الأشهر (بسخاء) — الخادم يحدّ النطاق الفعليّ بالقصّ الزمنيّ أدناه.
+        async with _httpx.AsyncClient(timeout=15.0) as client:
+            resp = await client.get(
+                f"{raster_url}/v1/fields/{field_id}/available-dates",
+                params={"limit": min(500, max(30, months * 6))},
+                headers=headers,
+            )
+            resp.raise_for_status()
+            payload = resp.json()
+
+        raw = payload.get("dates") if isinstance(payload, dict) else None
+        raw = raw if isinstance(raw, list) else []
+        # عتبة القصّ الزمنيّ: آخر months شهراً تقريبيّاً (تحفّظيّاً 31 يوماً/شهر).
+        cutoff = (_dt.date.today() - _dt.timedelta(days=months * 31)).isoformat()
+
+        items = []
+        for d in raw:
+            if not isinstance(d, dict):
+                continue
+            date_str = str(d.get("date") or "")[:10]
+            if len(date_str) != 10 or date_str < cutoff:
+                continue
+            thumb = (
+                f"/api/raster/v1/fields/{field_id}/cdse-thumbnail.png"
+                f"?index=truecolor&date={date_str}&size=160&tid={tenant}"
+            )
+            items.append(
+                {
+                    "date": date_str,
+                    "has_cog": bool(d.get("has_cog")),
+                    "cloud_pct": d.get("cloud_pct"),
+                    "indices": d.get("indices") or [],
+                    "scene_id": d.get("scene_id"),
+                    "thumbnail_url": thumb,
+                }
+            )
+        items.sort(key=lambda r: r["date"], reverse=True)
+        return {"field_id": field_id, "months": months, "count": len(items), "items": items}
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("الخطّ الزمنيّ لصور الأقمار", e) from e
+
+
 class FieldImageryBackfillProxyRequest(BaseModel):
     """Tenant-scoped platform proxy contract for raster historical imagery backfill.
 

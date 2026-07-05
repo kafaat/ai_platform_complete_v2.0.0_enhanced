@@ -3612,6 +3612,27 @@ export interface FieldStateFull {
 export const fetchFieldState = (fieldId: string): Promise<FieldStateFull> =>
   kongApi.get(`/api/v1/fields/${fieldId}/state/full`).then((r) => r.data as FieldStateFull);
 
+// خطّ زمنيّ جاهز للأقمار من الخادم (تواريخ COG حقيقيّة + thumbnail_url لكل تاريخ)،
+// محدود بآخر N شهراً. الواجهة تُحمّل المصغّرات كسولاً عبر thumbnail_url بدل جلب الكلّ.
+export interface ImageryTimelineItem {
+  date: string;
+  has_cog: boolean;
+  cloud_pct: number | null;
+  indices: string[];
+  scene_id?: string | null;
+  thumbnail_url: string;
+}
+export interface ImageryTimeline {
+  field_id: string;
+  months: number;
+  count: number;
+  items: ImageryTimelineItem[];
+}
+export const fetchFieldImageryTimeline = (fieldId: string, months = 24): Promise<ImageryTimeline> =>
+  kongApi
+    .get(`/api/v1/fields/${fieldId}/imagery/timeline`, { params: { months } })
+    .then((r) => r.data as ImageryTimeline);
+
 export const fetchFieldTerrain = (fieldId: string): Promise<FieldTerrain> =>
   kongApi.get(`/api/v1/fields/${fieldId}/terrain`).then((r) => {
     // الخادم يُرجِع تفسير enrich_terrain + dem_auto_fill.computed (المظروف الخام من

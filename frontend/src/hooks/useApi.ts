@@ -64,6 +64,7 @@ import {
   fetchAgronomicReplay, type AgronomicReplayResult,
   fetchFieldTerrain, type FieldTerrain,
   fetchFieldState, type FieldStateFull,
+  fetchFieldImageryTimeline, type ImageryTimeline,
   refreshFieldImagery,
   // ── مساحة عمل الحقل (Field Workspace Map): ملخّص + طبقات + خطّ زمنيّ ──
   fetchFieldWorkspace, type FieldWorkspace,
@@ -1874,6 +1875,23 @@ export function useFieldDetail(fieldId?: string): UseQueryResult<FieldDetail, Er
     queryFn:  () => fetchFieldDetail(fieldId as string),
     enabled:  !!fieldId,
     staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// ── Imagery Timeline (إنتاج): خطّ زمنيّ خادميّ جاهز + thumbnail_url (قراءة، نطاق حقل) ──
+// GET /api/v1/fields/{id}/imagery/timeline?months=N. retry:false كي تُكشَف الحالة الفارغة
+// الصادقة فوراً. المفتاح يضمّ المستأجِر + الأشهر لعزل الكاش.
+export function useFieldImageryTimeline(
+  fieldId?: string,
+  months = 24,
+): UseQueryResult<ImageryTimeline, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<ImageryTimeline, Error>({
+    queryKey: ['field-imagery-timeline', tid, fieldId ?? 'none', months],
+    queryFn:  () => fetchFieldImageryTimeline(fieldId as string, months),
+    enabled:  !!fieldId,
+    staleTime:5 * 60_000,
     retry:    false,
   });
 }
