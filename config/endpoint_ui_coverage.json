@@ -1313,6 +1313,11 @@
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/imagery/timeline",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/boundary-graph",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
@@ -1479,6 +1484,11 @@
     },
     {
       "endpoint": "/api/v1/fields/{field_id}/state",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/state/full",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },

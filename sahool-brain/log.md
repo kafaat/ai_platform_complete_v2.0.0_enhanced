@@ -4,6 +4,44 @@
 
 ---
 
+## 2026-07-05 (ن) — بذرة تشغيليّة لمزرعة الجوف/السنيدار من بيانات مرجعيّة حقيقيّة
+
+`scripts/seed/aljawf_sunaydar_farm.sql`: يُدخِل المزرعة الحقيقيّة في قاعدة المنصّة لتظهر بالشاشات (قاعدة v9_foundation كانت تبذر حقول البيضاء الوهميّة فقط، بينما بيانات الجوف/السنيدار حيّة في YAML/CSV فقط). من مصادر حقيقيّة: 6 حقول (farm_map) · 3 مواسم قمح Z1 (yield_history 2.6→4.5→6.17 طن/هـ حصاد موزون) · فحص تربة مرجعيّ (sunaydar_soil_reference: pH 8.2/CaCO3 31%/OM 0.94%/P 2.7). **صدق:** المستأجِر `:tenant_id` (لا UUID مثبَّت) · idempotent (ON CONFLICT DO UPDATE) **مُثبَت على Postgres حيّ** (6/3/1، تشغيل مرّتين بلا تكرار) · إحداثيّات مديريّة (16.15 من climate.yaml)، حدود الحقل وGPS الدقيق **معلّقان** (7 عيّنات، لا مضلّع مفبرك). حارس tests_v9 + قسم Runbook. بذرة اختياريّة للمشغّل لا migration تلقائيّ. unit ناجح · ruff نظيف · release 3164.
+
+---
+
+## 2026-07-05 (ن) — Runbook تشغيليّ لصور الأقمار (البند #10)
+
+`docs/runbooks/SATELLITE_IMAGERY_RUNBOOK.md` (مبنيّ على الكود الفعليّ): تشغيل backfill + عامل السحب · تشخيص/ضبط خنق CDSE 429 (env + Retry-After) · إعادة تشغيل العامل + استرداد الحجز/صدق إعادة المحاولة · التحقّق من `raster_assets` (`asset_status='ready'`) · التحقّق من الخطّ الزمنيّ (available-dates/imagery/timeline) · الحالة الموحّدة · تمييز demo عن real (`real_data`/`demo-only`/`lib/realData.ts`+DemoBadge) · إبطال الكاش · فحوص صحّة. حالة التشغيل موثّقة عبر نقطة raster الداخليّة + استعلام `backfill_runs` (المنصّة لا تبروكسيها — أُبقِي صادقاً). توثيق فقط · بلا كود/migration.
+
+---
+
+## 2026-07-05 (ن) — سيناريوهات Playwright E2E لسياق الحقل (البند #9)
+
+`e2e/field-context-flows.spec.ts`: يتحقّق أنّ توصيل «الحقل المشترك» (الجولات 1–4) وصل الشاشات فعليّاً — satellite/spatial/lab-sampling/maestro/irrigation-plan تُحمَّل مُصادَقةً (seed)، المسار لا يُطرَد للدخول، الهيكل يُصيَّر (تسمية الشريط)، شاشات المنتقي تُظهر combobox حقيقيّاً مُغذّى من `/api/v1/fields`، بلا أعطال console حقيقيّة. هرمسيّ (نفس حزام Playwright في CI: /api مُعترَض + SwiftShader) — بلا خلفيّة/WebGL فحتميّ. رُشِّح ضجيج WS الإشعارات (يعالجه التطبيق بلطف). تشغيل محلّيّ 5/5. tsc نظيف · vitest 1063 · release. واجهة فقط · بلا migration.
+
+---
+
+## 2026-07-05 (ن) — حارس الديمو الموحّد (البند #6)
+
+`lib/realData.ts` مصدر واحد لقاعدة «لا تستخدم بيانات تجريبيّة كأنّها حقيقيّة»: `isRealData`/`filterRealData`/`hasDemoData`. الشاشات القراريّة الحسّاسة توجّه القاعدة عبره بدل إعادة تعريفها: FieldRanking (تصفية + شارة `DemoBadge` «حقول تجريبيّة مُستبعَدة» حين وُجِد ديمو) · ProblemFields (تجاهل NDVI للديمو). مكوّن `DemoBadge` مشترك. اختبارات: وحدة الحارس + حارس ساكن يؤكّد أنّ الشاشات تستورد القاعدة الموحّدة. tsc نظيف · vitest 1063 · release. واجهة فقط · بلا migration.
+
+---
+
+## 2026-07-05 (ن) — نقطة الخطّ الزمنيّ الإنتاجيّة (البند #5)
+
+`GET /api/v1/fields/{id}/imagery/timeline?months=N`: تجميع خادميّ للخطّ الزمنيّ (بدل جمع الواجهة من عدّة مصادر). tenant-scoped؛ يبروكسي تواريخ raster المتوفّرة (COG حقيقيّ)، يقصرها على آخر N شهراً خادميّاً، ويبني لكل تاريخ `thumbnail_url` True Color (`/api/raster/.../cdse-thumbnail.png?index=truecolor&date=..&tid=..`) تُحمّل كسولاً. خدمة المصغّرة تقصّ على هندسة الحقل وتتراجع بصدق إن غاب المشهد؛ ETag/cache على تلك النقطة. واجهة: `fetchFieldImageryTimeline`/`useFieldImageryTimeline`. العقد محدَّث + حارس tests_v9. مسار متمايز (لا ازدواج). البوّابات: router + coverage · platform 3105 · unit 2631 · vitest 1057 · release 3158. بلا migration.
+
+---
+
+## 2026-07-05 (ن) — `8537724` نقطة الحالة الموحّدة (البند #4، مصدر حقيقة واحد)
+
+على خارطة المستخدم الإنتاجيّة، بُني الحجر المعماريّ #4: `GET /api/v1/fields/{id}/state/full` — قراءة tenant-scoped واحدة تركّب **القرّاء الحقيقيّين القائمين** (لا تخترع): field+geometry · الموسم النشط (_field_season_context) · الحالة القانونيّة (recompute_field_state) · تنبيهات مشتقّة · soil_lab_tests · water_ledger+irrigation_runs. كل قسم best-effort ⇒ `available:false` صادق عند التعذّر بدل 503؛ البوّابة الصلبة الوحيدة الحقل-ضمن-المستأجِر (404). المصادر بلا خزن حقيقيّ لكل حقل (عينات ماء مخبريّة · اقتصاد لكل حقل · توصيات حيّة ثقيلة) تُعلَن available:false + مؤشّر endpoint. مسار متمايز عن `/state` (لا ازدواج — router guard أخضر). واجهة: `fetchFieldState`/`useFieldState`. **جرد بوكيل Explore** أثبت أنّ `/state` القانونيّة موجودة لكنّها لا تضمّ field/season/alerts/irrigation — فبُنيت التجميعة عليها. البوّابات: coverage-gate (أُضيف للعقد بدليل) · platform 3105 · unit 2629 · vitest 1057 · release 3157. بلا migration.
+
+**ملاحظة صدق للمستخدم:** البنود 1–2 (docker build + اختبار متصفّح يدويّ) تحتاج بيئة الإنتاج؛ CI يغطّي Integration+E2E. الاقتصاد/الغلّة/الإشعارات تحتاج جداول بيانات حيّة — لا تُختلق.
+
+---
+
 ## 2026-07-05 (ن) — `3206dc6` إصلاح: لا ازدواج لمسار /terrain (الفرع اصطاده)
 
 بوّابة CI للفرع اصطادت أنّ المنصّة **تملك أصلاً** `GET /api/v1/fields/{id}/terrain` (`get_field_terrain`: enrich_terrain على أعمدة مخزّنة + ملاحظة «DEM مؤجَّل»)؛ فالوسيط الذي أضفتُه كان **تسجيلاً مزدوجاً** أسقط `test_router_decomposition_guard`. الإصلاح: حذف الوسيط المكرّر وبدلاً منه **إغناء النقطة القائمة من DEM حيّ**: عند غياب القيم المخزّنة، `get_field_terrain` ينادي best-effort راستر `/terrain` (bbox من الهندسة) ويغذّي enrich_terrain بالارتفاع/الانحدار(deg→pct)/الاتّجاه المحسوب، ويكشف المظروف الخام تحت `dem_auto_fill.computed` ويقلب `available`؛ التعذّر ⇒ available=false صادق. الواجهة `fetchFieldTerrain` تقرأ `dem_auto_fill.computed`. **درس:** ابحث عن نقطة قائمة قبل إضافة راوت — الفرع-أولاً أنقذ من ازدواج في main. البوّابات: router-guard أخضر · platform 3105 · unit 2626 · vitest 1057 · release 3157.

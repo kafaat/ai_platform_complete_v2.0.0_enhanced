@@ -63,6 +63,8 @@ import {
   // ── إعادة تشغيل الموسم (Agronomic Replay): خطّ زمنيّ واحد قابل للـscrub ──
   fetchAgronomicReplay, type AgronomicReplayResult,
   fetchFieldTerrain, type FieldTerrain,
+  fetchFieldState, type FieldStateFull,
+  fetchFieldImageryTimeline, type ImageryTimeline,
   refreshFieldImagery,
   // ── مساحة عمل الحقل (Field Workspace Map): ملخّص + طبقات + خطّ زمنيّ ──
   fetchFieldWorkspace, type FieldWorkspace,
@@ -1871,6 +1873,37 @@ export function useFieldDetail(fieldId?: string): UseQueryResult<FieldDetail, Er
   return useQuery<FieldDetail, Error>({
     queryKey: QK.fieldDetail(tid, fieldId ?? 'none'),
     queryFn:  () => fetchFieldDetail(fieldId as string),
+    enabled:  !!fieldId,
+    staleTime:60_000,
+    retry:    false,
+  });
+}
+
+// ── Imagery Timeline (إنتاج): خطّ زمنيّ خادميّ جاهز + thumbnail_url (قراءة، نطاق حقل) ──
+// GET /api/v1/fields/{id}/imagery/timeline?months=N. retry:false كي تُكشَف الحالة الفارغة
+// الصادقة فوراً. المفتاح يضمّ المستأجِر + الأشهر لعزل الكاش.
+export function useFieldImageryTimeline(
+  fieldId?: string,
+  months = 24,
+): UseQueryResult<ImageryTimeline, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<ImageryTimeline, Error>({
+    queryKey: ['field-imagery-timeline', tid, fieldId ?? 'none', months],
+    queryFn:  () => fetchFieldImageryTimeline(fieldId as string, months),
+    enabled:  !!fieldId,
+    staleTime:5 * 60_000,
+    retry:    false,
+  });
+}
+
+// ── Field State (موحّد): مصدر الحقيقة الواحد لكل الشاشات (قراءة فقط، نطاق حقل) ──
+// GET /api/v1/fields/{id}/state/full. مُفعَّل مع fieldId. retry:false كي تُكشَف
+// الأقسام غير المتاحة (available:false) بصدق. المفتاح يضمّ المستأجِر لعزل الكاش.
+export function useFieldState(fieldId?: string): UseQueryResult<FieldStateFull, Error> {
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
+  return useQuery<FieldStateFull, Error>({
+    queryKey: ['field-state-full', tid, fieldId ?? 'none'],
+    queryFn:  () => fetchFieldState(fieldId as string),
     enabled:  !!fieldId,
     staleTime:60_000,
     retry:    false,

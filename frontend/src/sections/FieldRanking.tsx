@@ -11,6 +11,8 @@
 import { useMemo } from 'react';
 import { TrendingUp, Trophy, AlertTriangle, Layers, BarChart3 } from 'lucide-react';
 import { useAllFieldsNdvi } from '../hooks/useApi';
+import { isRealData, hasDemoData } from '../lib/realData';
+import DemoBadge from '../components/DemoBadge';
 import {
   T, Card, Pill, Badge, SectionLabel, StatGrid, ProgressBar, FieldCabin, ndviColor,
 } from '../components/ds';
@@ -60,8 +62,14 @@ export default function FieldRanking() {
     return mapped
       // صدق المصدر: نُبقي فقط القيم العدديّة الصالحة (لا null/NaN/خارج النطاق).
       .filter((f): f is RankedField =>
-        f.real_data !== false && typeof f.ndvi === 'number' && Number.isFinite(f.ndvi) && f.ndvi >= 0 && f.ndvi <= 1)
+        isRealData(f) && typeof f.ndvi === 'number' && Number.isFinite(f.ndvi) && f.ndvi >= 0 && f.ndvi <= 1)
       .sort((a, b) => b.ndvi - a.ndvi);
+  }, [q.data]);
+
+  // هل استُبعِدت حقول تجريبيّة؟ (real_data===false) — لإظهار شارة صدق «عرض تجريبيّ».
+  const demoExcluded = useMemo(() => {
+    const data = q.data as { fields?: RawField[] } | undefined;
+    return hasDemoData(Array.isArray(data?.fields) ? data.fields : []);
   }, [q.data]);
 
   const summary = useMemo(() => {
@@ -92,9 +100,12 @@ export default function FieldRanking() {
       title="مقارنة الحقول"
       subtitle="ترتيب الحقول حسب NDVI — الأفضل والأدنى أداءً"
       headerRight={
-        <Pill tone="info" icon={<TrendingUp style={{ width: 12, height: 12 }} />}>
-          {ranked.length} حقل
-        </Pill>
+        <div className="flex items-center gap-2">
+          {demoExcluded ? <DemoBadge label="حقول تجريبيّة مُستبعَدة" /> : null}
+          <Pill tone="info" icon={<TrendingUp style={{ width: 12, height: 12 }} />}>
+            {ranked.length} حقل
+          </Pill>
+        </div>
       }
       note={
         <>

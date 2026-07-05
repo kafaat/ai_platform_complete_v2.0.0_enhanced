@@ -215,6 +215,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9be5da53d7acebf9631d716464b97cf61f5a426b96d0e303eed4b4f4670ab77e"
+        }
+      ],
+      "name": "frontend/e2e/field-context-flows.spec.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1810d263215628dca31752af949a92e35a47b02bd3aad3844652ad89a9b0a3b9"
         }
       ],
@@ -459,6 +469,16 @@
         }
       ],
       "name": "frontend/src/components/AlertBanner.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0f4dbca491afda9b18714909503c08f4b37bacc63cf9fc407020297f9562ef87"
+        }
+      ],
+      "name": "frontend/src/components/DemoBadge.tsx",
       "type": "file"
     },
     {
@@ -2135,7 +2155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6557ca392ebb3fa9baa8388d0abe881739f89cba30fce13bd8baf245bb5f333"
+          "content": "ecd5bf60ddd1043b2082a42fafbd9501c9e183395aa7c7e86a0b2e0f6b6587f2"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -3605,6 +3625,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1bc6e2282d7c43c7d3c7e76dc60087dd234b844e0c65de898552e0e64c6df80c"
+        }
+      ],
+      "name": "frontend/src/lib/realData.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4bbf25d73401487fac4bdd0e3b771cf0770433e603fa4263e7c10b98beb71dd4"
+        }
+      ],
+      "name": "frontend/src/lib/realData.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "939bc21ac093c707cc0ce496ed7bcc18334841ae658df2558da1c3597c69db39"
         }
       ],
@@ -4315,7 +4355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4296945375b91dec90eac3883419d416f9b9e5e480afa87e8a2598d23d5a67a8"
+          "content": "e4719ddece2cd01efaecad3c5fd1796a013948d145c0a15c2287de31c924e400"
         }
       ],
       "name": "frontend/src/sections/FieldRanking.tsx",
@@ -4745,7 +4785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c957df31a463194c155dad00a8df3b620cf2b81bf60aa8f33d2381cd7fead93"
+          "content": "3f3f940b5382bc6f0ea942abf4bed8ba780b45a872fbd46e9e9bb30681047c13"
         }
       ],
       "name": "frontend/src/sections/ProblemFields.tsx",
@@ -4975,7 +5015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68bd0008cddf5d765b6bc36fdc798686a56d62fecbb7f412d142b69913665bc5"
+          "content": "c71cfac542ad0704c5e7c6c893c259451ee4a1678e60f092af7154533e344471"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -11715,7 +11755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9b51a52d50a0b25e382a7eaf550c020e0aed389d88e7d53d1a319463ab6be10"
+          "content": "d7f6390b5782143dbcbcb8883e0bb3d84537a4307ddb851daae39a0e7ec6e21a"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
