@@ -641,6 +641,70 @@ _layers: dict[str, dict] = {}
 # فهرس حقل→قائمة معرّفات الطبقات (لإيجاد أحدث COG لحقل في شبكة المؤشّر)
 _field_layers: dict[str, list[str]] = {}
 
+# v11-F3/F5: إخلاء طبقات الذاكرة عبر العمليّات — عامل الإبطال (عمليّة منفصلة) يعلّم DB
+# stale ويحذف بلاطات القرص، لكنّه لا يصل ذاكرة raster-service؛ فتبقى _layers القديمة
+# (هندسة قديمة) تُخدَّم حتّى إعادة الترطيب. الحلّ: العامل ينشر field_id على قناة Redis،
+# وهذه الخدمة تشترك فيها وتُخلي طبقات الحقل فوراً. best-effort + راية + تدهور لطيف.
+_LAYER_EVICT_CHANNEL = os.getenv("RASTER_LAYER_EVICT_CHANNEL", "raster:layer_evict")
+
+
+def _layer_evict_enabled() -> bool:
+    return str(os.getenv("RASTER_LAYER_EVICT_ENABLED", "true")).strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _evict_field_layers(field_id: str) -> int:
+    """يُزيل كلّ طبقات الحقل من الذاكرة (_layers/_field_layers). يُرجِع العدد المُزال.
+
+    يُستدعى عند إبطال حدود الحقل (رسالة Redis من عامل الإبطال) كي لا تُخدَّم طبقة
+    مقصوصة على هندسة قديمة بعد التعديل. آمن — لا يرمي، وغياب الحقل ⇒ 0."""
+    if not field_id:
+        return 0
+    lids = _field_layers.pop(field_id, [])
+    for lid in lids:
+        _layers.pop(lid, None)
+    if lids:
+        logger.info(
+            "evicted %d in-memory layer(s) for field %s (cache invalidation)", len(lids), field_id
+        )
+    return len(lids)
+
+
+async def _layer_evict_subscriber() -> None:
+    """يشترك في قناة Redis لإخلاء طبقات الحقل عند إبطال الحدود (v11-F3/F5).
+
+    مرن: يُعيد الاتّصال عند انقطاع Redis، ولا يُسقِط الخدمة إن غاب Redis/العميل."""
+    import asyncio as _asyncio
+
+    url = os.getenv("REDIS_URL")
+    if not url:
+        logger.info("layer-evict subscriber معطَّل (لا REDIS_URL)")
+        return
+    try:
+        import redis.asyncio as _aioredis
+    except ImportError:
+        logger.info("layer-evict subscriber معطَّل (حزمة redis.asyncio غائبة)")
+        return
+    while True:
+        try:
+            client = _aioredis.from_url(url, encoding="utf-8", decode_responses=True)
+            pubsub = client.pubsub()
+            await pubsub.subscribe(_LAYER_EVICT_CHANNEL)
+            logger.info("layer-evict subscriber مشترِك في %s", _LAYER_EVICT_CHANNEL)
+            async for message in pubsub.listen():
+                if message.get("type") != "message":
+                    continue
+                _evict_field_layers(str(message.get("data") or "").strip())
+        except _asyncio.CancelledError:
+            raise
+        except Exception as e:  # noqa: BLE001 — انقطاع Redis لا يُسقِط الخدمة
+            logger.warning("layer-evict subscriber انقطع (إعادة محاولة خلال 5s): %s", e)
+            await _asyncio.sleep(5)
+
 
 # ─── بحث الصور عبر Element84 STAC ─────────────────────────────────
 def _band_urls_from_assets(assets: dict) -> dict:
@@ -1024,7 +1088,18 @@ async def lifespan(app: FastAPI):
     from shared.db_role_guard import assert_dsn_role_rls_safe
 
     await assert_dsn_role_rls_safe(_os.getenv("DATABASE_URL", ""), service="raster-service")
+    # v11-F3/F5: مشترِك إخلاء طبقات الذاكرة (best-effort، لا يُسقِط الإقلاع إن غاب Redis).
+    import asyncio as _asyncio
+    import contextlib as _contextlib
+
+    _evict_task = None
+    if _layer_evict_enabled():
+        _evict_task = _asyncio.create_task(_layer_evict_subscriber())
     yield
+    if _evict_task is not None:
+        _evict_task.cancel()
+        with _contextlib.suppress(_asyncio.CancelledError):
+            await _evict_task
     logger.info("raster-service stopping")
 
 

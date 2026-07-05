@@ -106,15 +106,17 @@ def test_bypass_compose_never_defaults_production_env():
 
 
 @pytest.mark.unit
-def test_fixed_compose_defaults_development_env():
-    """``docker-compose.fixed.yml`` (dev، يُفعّل التجاوز) يجب أن يفترض بيئة تطوير لا إنتاج."""
+def test_fixed_compose_no_longer_enables_bypass():
+    """v8-F9: ``docker-compose.fixed.yml`` صُلِّب — لم يعُد يُفعّل تجاوز RLS.
+
+    (سابقاً كان يُفعّله للتطوير المحلّيّ لأنّه يتّصل بـsahool_user المُمتاز؛ الآن يتّصل
+    بـsahool_app المقيّد الذي يُنشئه sahool-migrate، فلا حاجة لتعطيل حارس RLS.) الحارس
+    الأعمّ ``test_bypass_compose_never_defaults_production_env`` يبقى فوق كلّ الملفّات.
+    """
     path = _REPO_ROOT / "docker-compose.fixed.yml"
     assert path.exists(), "docker-compose.fixed.yml مفقود"
     text = path.read_text(encoding="utf-8")
-    assert _compose_enables_bypass(text), (
-        "docker-compose.fixed.yml لم يعُد يُفعّل التجاوز — راجِع فرضيّة هذا الحارس."
-    )
-    assert not _compose_defaults_production_env(text), (
-        "docker-compose.fixed.yml يُفعّل تجاوز RLS ويفترض بيئة إنتاجيّة معاً — "
-        "غيّر SAHOOL_ENV إلى ${SAHOOL_ENV:-development}."
+    assert not _compose_enables_bypass(text), (
+        "عاد docker-compose.fixed.yml لتفعيل SAHOOL_ALLOW_RLS_BYPASS_ROLE — "
+        "احذفه؛ الاتّصال بـsahool_app المقيّد لا يحتاج تعطيل حارس RLS."
     )

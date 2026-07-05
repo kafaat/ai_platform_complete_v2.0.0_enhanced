@@ -763,6 +763,9 @@ services:
       # v7-#1: النقطة تقرأ الراية أيضاً (وإلّا افتراض false ⇒ بقاء المسار المتزامن).
       # الافتراض true في الإنتاج: النقطة تُرجِع run_id فوراً وعامل الفحص يعالج لاتزامنيّاً.
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
+      # v11-F3/F5: يشترك في قناة Redis لإخلاء طبقات الذاكرة عند إبطال حدود الحقل
+      # (عامل الإبطال ينشرها) — كي لا تُخدَّم طبقة مقصوصة على هندسة قديمة عبر العمليّات.
+      RASTER_LAYER_EVICT_ENABLED: ${RASTER_LAYER_EVICT_ENABLED:-true}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
