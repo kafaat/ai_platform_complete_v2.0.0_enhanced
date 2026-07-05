@@ -8885,7 +8885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ad082c3058fa9f84626cb2db5a3a7105e9540b34c504c8ccecf07a711110609"
+          "content": "cbc0c1bd898bcc3ba6b588421e7dc33e47107f58a2dbad5db2fbd9eaad3aeda6"
         }
       ],
       "name": "services/raster-service/cdse_client.py",

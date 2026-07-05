@@ -53,6 +53,17 @@ def test_process_index_retries_on_429_with_bounded_backoff():
     assert "def _retry_after_seconds(" in src
 
 
+def test_transient_transport_errors_are_retried_not_dropped():
+    src = _source()
+    # An SSL/connection cut (`UNEXPECTED_EOF_WHILE_READING` ⇒ httpx.TransportError)
+    # must NOT fail the pixel-tile fetch on the first blip nor be silently swallowed
+    # to an empty scene list: both the Process API COG fetch and the STAC catalog
+    # search retry transient transport errors with backoff before giving up.
+    assert "except httpx.TransportError" in src
+    # It appears in both request paths (process_index COG fetch + search_scenes STAC).
+    assert src.count("except httpx.TransportError") >= 2
+
+
 def test_compose_wires_throttle_env_for_raster_and_worker():
     compose = (Path(__file__).resolve().parents[1] / "docker-compose.v9.yml").read_text(
         encoding="utf-8"
