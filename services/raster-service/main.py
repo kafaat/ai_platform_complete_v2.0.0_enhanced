@@ -698,15 +698,28 @@ async def _stac_search(
 
     التحويل الكامل: ``HISTORICAL_SEARCH_PROVIDER=cdse`` (الافتراض) يستعمل كتالوج
     CDSE (Sentinel Hub Catalog) للاكتشاف — نفس مصدر المعالجة (process_index)، فلا
-    اعتماد على Element84 Earth Search في المسار التاريخيّ. الارتداد إلى Element84 يقع
-    فقط حين ``HISTORICAL_SEARCH_PROVIDER=element84`` صراحةً، أو حين CDSE غير مُهيّأ
-    (dev بلا اعتمادات) — كي لا يتعطّل التطوير المحلّيّ.
+    اعتماد على Element84 Earth Search في المسار التاريخيّ.
+
+    الإغلاق الآمن (بطلب المستخدم — «بالكامل من Copernicus»): عند اختيار مزوّد CDSE
+    وغياب الاعتمادات لا نرتدّ صامتاً إلى Element84 — نفشل مُغلَقاً بـ503 صريح. الارتداد
+    إلى Element84 يقع **فقط** حين ``HISTORICAL_SEARCH_PROVIDER=element84`` صراحةً
+    (تجاوز واعٍ لمجموعات/بيئات لا يوفّرها CDSE).
     """
     import cdse_client as _cdse
 
-    if HISTORICAL_SEARCH_PROVIDER == "cdse" and _cdse.is_configured():
-        return await _stac_search_cdse(bbox, dt_start, dt_end, max_cloud, limit, geometry)
-    return await _stac_search_element84(bbox, dt_start, dt_end, max_cloud, limit)
+    if HISTORICAL_SEARCH_PROVIDER == "element84":
+        return await _stac_search_element84(bbox, dt_start, dt_end, max_cloud, limit)
+    # المزوّد الافتراضيّ = CDSE: لا اعتمادات ⇒ فشل مُغلَق (لا تسرّب صامت إلى Element84).
+    if not _cdse.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "بحث الأقمار التاريخيّ يعتمد Copernicus/CDSE حصراً؛ الاعتمادات غائبة "
+                "(CDSE_CLIENT_ID/SECRET أو SH_CLIENT_ID/SECRET). اضبطها، أو عيّن "
+                "HISTORICAL_SEARCH_PROVIDER=element84 صراحةً لتجاوز واعٍ."
+            ),
+        )
+    return await _stac_search_cdse(bbox, dt_start, dt_end, max_cloud, limit, geometry)
 
 
 async def _stac_search_cdse(
@@ -1754,7 +1767,9 @@ def _run_processing(job_id: str, req: ProcessRequest):
         job["error_message"] = "raster_processing_failed"
         _jobs.set(job_id, job)  # تثبيت الفشل (Redis/ذاكرة)
         _http = f" [{e.status_code}] {e.detail}" if isinstance(e, HTTPException) else ""
-        logger.error("job %s failed: %s%s", job_id, type(e).__name__, _http)
+        # exc_info=True: السجلّ الداخلي يحمل التتبّع الكامل — الرسالة العامّة كانت «TypeError»
+        # عارياً بعد بناء VRT فتعذّر التشخيص (بلاغ لوج المستخدم). الرمز العامّ للعميل يبقى مُعقَّماً.
+        logger.error("job %s failed: %s%s", job_id, type(e).__name__, _http, exc_info=True)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):

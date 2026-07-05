@@ -110,20 +110,27 @@ def test_stac_total_failure_maps_to_503_not_raw_500(rm):
             "STAC غير متاح بعد 3 محاولات ولا cache: [Errno -5] No address associated with hostname"
         )
 
+    # التحويل إلى CDSE جعل _stac_search يوجّه افتراضاً لكتالوج Copernicus؛ هذا الحارس
+    # يخصّ مسار Element84 (فشل العميل المرن → 503) فنُثبّت المزوّد صراحةً لاختباره.
+    _prev_provider = rm.HISTORICAL_SEARCH_PROVIDER
+    rm.HISTORICAL_SEARCH_PROVIDER = "element84"
     rm._stac.search = total_failure
-    with pytest.raises(HTTPException) as ei:
-        asyncio.run(
-            rm._stac_search(
-                [44.0, 15.0, 44.01, 15.01],
-                "2026-01-01T00:00:00Z",
-                "2026-01-31T23:59:59Z",
-                30,
-                5,
+    try:
+        with pytest.raises(HTTPException) as ei:
+            asyncio.run(
+                rm._stac_search(
+                    [44.0, 15.0, 44.01, 15.01],
+                    "2026-01-01T00:00:00Z",
+                    "2026-01-31T23:59:59Z",
+                    30,
+                    5,
+                )
             )
-        )
-    assert ei.value.status_code == 503
-    assert "Errno" not in str(ei.value.detail), "تفصيل الاستثناء الخام تسرّب للعميل"
-    assert "STAC" in str(ei.value.detail)
+        assert ei.value.status_code == 503
+        assert "Errno" not in str(ei.value.detail), "تفصيل الاستثناء الخام تسرّب للعميل"
+        assert "STAC" in str(ei.value.detail)
+    finally:
+        rm.HISTORICAL_SEARCH_PROVIDER = _prev_provider
 
 
 def test_cdse_index_tif_written_under_upload_dir():

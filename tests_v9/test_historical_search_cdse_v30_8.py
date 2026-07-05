@@ -29,14 +29,19 @@ def test_default_historical_search_provider_is_cdse():
     )
 
 
-# ── _stac_search يوجّه إلى CDSE أوّلاً (وElement84 ارتداد صريح فقط) ──
-def test_stac_search_dispatches_to_cdse():
+# ── _stac_search يوجّه إلى CDSE + يفشل مُغلَقاً بلا اعتمادات (لا ارتداد صامت لـElement84) ──
+def test_stac_search_dispatches_to_cdse_failclosed():
     src = _read(_RASTER / "main.py")
     assert "async def _stac_search_cdse" in src, "يجب وجود باحث CDSE للكتالوج"
-    assert 'HISTORICAL_SEARCH_PROVIDER == "cdse"' in src
     assert "search_scenes(" in src, "يجب استعمال cdse_client.search_scenes"
-    # الاكتشاف عبر كتالوج CDSE يُصدِر source=cdse-catalog
     assert '"source": "cdse-catalog"' in src
+    # Element84 ارتداد صريح فقط (تجاوز واعٍ)
+    assert 'HISTORICAL_SEARCH_PROVIDER == "element84"' in src
+    # لا اعتمادات CDSE ⇒ فشل مُغلَق بـ503 (لا تسرّب صامت إلى Element84)
+    idx = src.find("async def _stac_search(")
+    body = src[idx : idx + 1800]
+    assert "not _cdse.is_configured()" in body
+    assert "status_code=503" in body, "غياب اعتمادات CDSE يجب أن يفشل مُغلَقاً بـ503"
 
 
 # ── مسار المعالجة التاريخيّة يستعمل CDSE Process API لمشاهد الكتالوج ──
