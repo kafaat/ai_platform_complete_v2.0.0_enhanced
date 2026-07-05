@@ -6565,7 +6565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5714eaa8055f10870c92c156636eccb82eac437e16da38f563cceeb73b0ba74"
+          "content": "b6d6f3eee7ac51189e587fa75e99bd18b2adb20c55d13bac4e83d621bfee05f7"
         }
       ],
       "name": "migrations/validate_migrations.py",

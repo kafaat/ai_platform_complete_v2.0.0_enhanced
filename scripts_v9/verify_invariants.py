@@ -8,6 +8,7 @@ static تُنفَّذ هنا (offline)؛ المستويات live يُبلّغ ع
 
 ليس محرّك DSL عامّاً — مشغّل رفيع يربط الـmanifest بالاختبارات الموجودة.
 """
+
 import os
 import sys
 
@@ -49,6 +50,7 @@ def run_static() -> bool:
             if f.endswith(".py"):
                 try:
                     import py_compile
+
                     py_compile.compile(os.path.join(root, f), doraise=True)
                 except Exception:
                     e += 1
@@ -61,6 +63,7 @@ def run_static() -> bool:
     try:
         import test_roadmap_phase1 as p1
         import test_roadmap_phase23 as p23
+
         a, b = p1.run_all()
         c, d = p1.run_all2()
         ee, f = p1.run_all3()
@@ -76,8 +79,9 @@ def run_static() -> bool:
     print("═══ L2_FAIL_CLOSED — chaos ═══")
     try:
         import test_chaos_resilience as ch
+
         p, f = ch.run_all()
-        print(f"  {'✓' if f == 0 else '✗'} {p}/{p+f}")
+        print(f"  {'✓' if f == 0 else '✗'} {p}/{p + f}")
         ok = ok and f == 0
     except Exception as ex:
         print(f"  ✗ خطأ: {ex}")

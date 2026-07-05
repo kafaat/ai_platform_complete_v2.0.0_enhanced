@@ -4,6 +4,17 @@
 
 ---
 
+## 2026-07-05 (ن-37) — تدقيق DB/هجرات: إصلاح أمر helm الميّت + تحذير .down.sql؛ دحض الباقي
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). فُرزت نتائج تدقيق القاعدة/الهجرات:
+
+- **مُصلَح (حقيقيّ):** (١) `helm/sahool/values.yaml` كان أمر مهمّة الترحيل `python -m api.migrations.run` — **وحدة غير موجودة** ⇒ مهمّة k8s تفشل. صُحِّح إلى `scripts_v9/migrate.py up` (المُشغّل الفعليّ backed by MANIFEST) + `migrate.py._db_url` صار يقبل `JOBS_DATABASE_URL` (helm يمرّره باسمه) + حارس `test_helm_migration_command_valid`. (٢) `validate_migrations.py` كان يُبلّغ `.down.sql` (سكربتا تراجع v9) كـ«على القرص وليست في MANIFEST» — استُثنيا (ليسا في الترتيب الأماميّ عمداً).
+- **إيجابيّات كاذبة (دُحِضت):** تحذير `v18 ON CONFLICT(dedup_key)` — هدف فهرس جزئيّ فريد (`WHERE dedup_key IS NOT NULL`) معرَّف في ملفّ آخر؛ الفاحص الحدسيّ يمسح ملفّاً واحداً ويُرجِع 0 (غير حاجب). · تحذيرات BYPASSRLS كلّها سياق دور المهامّ المقصود (تعليقات/الحارس/apply_in_compose) — تصنيف WARN لا FAIL بأداة المدقّق نفسها. · `fixed.yml sahool_user×9` تطوير-فقط محروس بطبقتين (سبق دحضه). · `api_migrations_run_exists=False` هو نفسه بند helm المُصلَح.
+
+**تحقّق:** pytest -m unit **2546** أخضر · حارس helm 2/2 · validator بلا تحذير .down · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
 ## 2026-07-05 (ن-36) — إغلاق البند #4 من التدقيق: مصفوفة تفويض المسارات الرسميّة
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). البند الوحيد من التدقيق الذي وصفته «عمل مستقبليّ» أُنجِز:
