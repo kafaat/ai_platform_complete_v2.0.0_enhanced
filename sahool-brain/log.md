@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-07-05 (ن) — `ad49e73` اعتماد الخطّ الزمنيّ التاريخيّ الأغنى + جسر geometry صادق
+
+رقعة المستخدم (`sahool_v2.0.0_5171ee6_backfill_incremental_retry_hotfix.zip`): جزؤها الخلفيّ (backfill incremental retry) كان **مطبَّقاً حرفيّاً** عندي (`backfill_scan_worker.py` + compose متطابقان). لكنّ واجهة الزيب أغنى؛ اختار المستخدم اعتمادها. طُبِّق بعد تحقّق-قبل-دمج:
+
+- **الواجهة:** MapHub خطّ زمنيّ تاريخيّ (`timelineImageryDates` منفصل، جلب all-index، dedup لكلّ تاريخ، `monthLabel`، خيارات 3/6/12/24 شهراً، شريط مصغّرات). النطاق يحدّه الخادم (limit/backfill سنتين) لا قصٌّ عميلٌ صلب 730 يوماً. تسمية «السلسلة التاريخية».
+- **api/hooks:** `refreshFieldImagery(fieldId, date?, geometry?)` + طفرة analyze تمرّران هندسة الحقل المختار؛ `fetchFieldImageryAvailableDates` بمعامل `limit` (240).
+- **الخلفيّة (platform fields.py):** `/imagery/refresh` يقبل `geometry` كجسر صادق عند غياب صفّ fields للمستأجر (بعد guard؛ بلا هندسة يبقى 404). `/available-dates` بمعامل `limit` + لا يُسقِط 404 عند غياب الصفّ (raster يفرض ملكيّة المستأجر عبر X-Tenant-Id؛ لا اختلاق).
+
+**تحقّق-قبل-دمج اصطاد عيبَين في رقعة المُدقِّق:** (١) اختبارها `MapHubTwoYearTimeline` كان يؤكّد قصّ 730 المُزال وتسمية «آخر سنتين» القديمة — كان سيفشل ضدّ MapHub نفسه في الزيب؛ حُدِّث للسلوك المقصود (نطاق يحدّه الخادم). (٢) `platform_field_missing` ميّت ⇒ ruff F841؛ صُحِّح (`_`-prefix). حُرّاس جدد: MapHubHistoricalTimeline · SatellitePageFieldGeometryRefresh.
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · ruff format/lint نظيف · unit **2623** · release **3151** checksums. بلا migration. PR **#580** (claude/code-review-34hO3 → main).
+
 ## 2026-07-05 (ن) — `03281cb` مصغّرات True Color + خنق CDSE 429 + إعادة محاولة backfill التزايُديّ
 
 ثلاث رقعات من المستخدم على مسار الأقمار، طُبِّقت بعد تحقّق-قبل-دمج + تشغيل بوّاباتنا:
