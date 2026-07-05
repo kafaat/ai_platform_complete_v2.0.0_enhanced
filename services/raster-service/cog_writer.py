@@ -59,6 +59,11 @@ def write_cog(
     except ImportError:
         return {"written": False, "reason": "numpy غير متوفّر — يُكتب في التشغيل"}
 
+    # صدق: مدخل بلا مصفوفة ثنائيّة صالحة (None/بلا shape) ⇒ مظروف فشل صريح لا انهيار.
+    # الـdocstring يعِد بـ«لا يدّعي كتابة»؛ NoneType.shape كان يكسر ذلك (تدقيق 2026-07-05).
+    if array is None or not hasattr(array, "shape") or len(getattr(array, "shape", ())) != 2:
+        return {"written": False, "reason": "مصفوفة غير صالحة (متوقَّع مصفوفة ثنائيّة الأبعاد)"}
+
     h, w = array.shape
     # نكتب قيم NaN كما هي للحفاظ على توافق مسار الإحصاء/الاختبارات، لكن لا نعتمد
     # على NaN كـnodata tag. نضيف mask داخلياً كي يتعامل GDAL/overviews/tiles مع

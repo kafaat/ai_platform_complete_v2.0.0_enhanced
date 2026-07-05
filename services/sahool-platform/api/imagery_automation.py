@@ -259,6 +259,7 @@ class ImageryAutomation:
         tf,
         date_from: str | None = None,
         date_to: str | None = None,
+        geometry_revision: int | None = None,
     ) -> dict | None:
         """Try CDSE (the default, stronger provider) first; return None to fall back to Element84.
 
@@ -276,6 +277,7 @@ class ImageryAutomation:
                     "geometry": geometry,
                     "lookback_days": lookback_days,
                     "max_cloud_pct": max_cloud_pct,
+                    "geometry_revision": geometry_revision,  # v143: نَسَب هندسة الحقل
                     **(
                         {"date_from": date_from, "date_to": date_to or date_from}
                         if date_from or date_to
@@ -323,6 +325,7 @@ class ImageryAutomation:
         max_cloud_pct: float = 40.0,
         indicators: list[str] | None = None,
         date: str | None = None,
+        geometry_revision: int | None = None,
     ) -> dict:
         """Find the best real Sentinel-2 STAC scene and launch raster processing.
 
@@ -361,6 +364,7 @@ class ImageryAutomation:
                 tf=tf,
                 date_from=f"{date[:10]}T00:00:00Z" if date else None,
                 date_to=f"{date[:10]}T23:59:59Z" if date else None,
+                geometry_revision=geometry_revision,
             )
             if cdse is not None:
                 return cdse
@@ -433,6 +437,7 @@ class ImageryAutomation:
                             "apply_cloud_mask": True,
                             "clip_polygon_geojson": geometry,
                             "source_format": "sentinel2_l2a",
+                            "geometry_revision": geometry_revision,  # v143: نَسَب هندسة الحقل
                         },
                         headers=_RASTER_HEADERS,
                     )

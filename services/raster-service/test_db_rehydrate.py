@@ -43,10 +43,14 @@ def main_test():
     }
 
     field = "rehydrate_field_X"
+    # مستأجِر UUID حقيقيّ (لا None): قراءات الإنتاج تُرشِّح بـtenant_id=$uuid صراحةً،
+    # فصفّ tenant_id=NULL لا يُرى ⇒ الاختبار يجب أن يعكس واقع الإنتاج (تدقيق 2026-07-05).
+    tenant = "33333333-3333-3333-3333-333333333333"
+    svc._REQ_TENANT.set(tenant)
     ok = asyncio.run(
         db_persist.insert_raster_asset(
             field_id=field,
-            tenant_id=None,
+            tenant_id=tenant,
             scene_id="s",
             acquisition_date="2026-06-01",
             satellite="sentinel-2",
@@ -57,6 +61,7 @@ def main_test():
             bands={"red": 1, "nir": 2},
             nodata=0.0,
             footprint=footprint,
+            processing_job_id="rehydrate_job_1",
             provenance={},
         )
     )
@@ -71,7 +76,9 @@ def main_test():
     from fastapi.testclient import TestClient
 
     c = TestClient(svc.app)
-    r = c.get(f"/v1/fields/{field}/indicator-grid?index=ndvi&grid=8")
+    # الترويسة X-Tenant-Id يحقنها الجيت-واي في الإنتاج؛ القراءة tenant-scoped فتلزم.
+    _h = {"x-tenant-id": tenant}
+    r = c.get(f"/v1/fields/{field}/indicator-grid?index=ndvi&grid=8", headers=_h)
     j = r.json()
     print(
         f"status={r.status_code} real_data={j.get('real_data')} "
@@ -84,7 +91,7 @@ def main_test():
     )
 
     # وتبلاطة: يجب أن تُصيَّر فعليّاً (ليست شفّافة بالكامل) بعد الترطيب
-    rt = c.get(f"/v1/fields/{field}/tilejson?index=ndvi")
+    rt = c.get(f"/v1/fields/{field}/tilejson?index=ndvi", headers=_h)
     assert rt.status_code == 200 and rt.json().get("tiles"), "tilejson بعد الترطيب فشل"
     print(
         "✓ الترطيب من raster_assets يعمل — persistence مُستهلَك (شبكة + tilejson) عبر إعادة التشغيل"

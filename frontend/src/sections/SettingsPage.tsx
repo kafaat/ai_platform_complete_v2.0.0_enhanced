@@ -27,6 +27,7 @@ import {
   mfaSetup, mfaActivate, mfaDisable, changePassword, apiErrorMessage,
   getVerificationStatus, requestVerification, confirmVerification,
   createInvitation, listInvitations, revokeInvitation,
+  listTeamUsers, changeUserRole, deactivateUser, type TeamUser, type AssignableRole,
   type MfaSetupResponse, type VerifyChannel, type VerificationStatus,
   type InviteableRole, type PendingInvitation,
 } from '../services/api';
@@ -291,10 +292,13 @@ export default function SettingsPage() {
           </Section>
 
           <Section title="أدوار المستخدمين (RBAC — مُطبَّق فعليّاً)">
-            <p style={{ fontSize: 11, color: T.muted, marginBottom: 4 }}>
-              دورك الحاليّ:{' '}
-              <span style={{ color: T.green, fontWeight: 700 }}>{ROLE_LABEL_AR[normalizeRole(user?.role)]}</span>
-            </p>
+            <div className="flex items-center justify-between mb-1">
+              <p style={{ fontSize: 11, color: T.muted }}>
+                دورك الحاليّ:{' '}
+                <span style={{ color: T.green, fontWeight: 700 }}>{ROLE_LABEL_AR[normalizeRole(user?.role)]}</span>
+              </p>
+              <SessionRefreshButton />
+            </div>
             {([
               { r: 'owner',      perms: 'كل الصفحات + الإدارة' },
               { r: 'manager',    perms: 'كل الصفحات + إدارة' },
@@ -498,7 +502,179 @@ function TeamManagement({ Section, inputCls, inputSty }: {
           </div>
         ))}
       </Section>
+
+      <TeamMembersRoles Section={Section} inputCls={inputCls} inputSty={inputSty} />
     </div>
+  );
+}
+
+// تحديث الجلسة/الدور من الخادم (GET /api/v1/me) — بعد أن يغيّر مشرفٌ دورَك،
+// يُبطل الخادم جلستك؛ هذا الزرّ يجلب الدور الجديد فوراً بلا خروج/دخول. رسالة
+// الخطأ (401 لو أُبطلت الجلسة فعلاً) تُعرَض بصدق كي يعيد المستخدم الدخول.
+function SessionRefreshButton() {
+  const refreshUser = useAuthStore(s => s.refreshUser);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState('');
+  const run = async () => {
+    setBusy(true); setMsg('');
+    try {
+      await refreshUser();
+      setMsg('حُدِّثت الجلسة');
+    } catch (err: unknown) {
+      setMsg(apiErrorMessage(err, 'تعذّر التحديث — قد تحتاج لإعادة الدخول'));
+    } finally {
+      setBusy(false);
+      setTimeout(() => setMsg(''), 3000);
+    }
+  };
+  return (
+    <span className="inline-flex items-center gap-2">
+      {msg && <span style={{ fontSize: 11, color: T.muted }}>{msg}</span>}
+      <button type="button" onClick={run} disabled={busy}
+        className="inline-flex items-center gap-1 px-2 py-1 rounded disabled:opacity-50"
+        style={{ fontSize: 11, color: T.muted, border: `1px solid ${T.line}` }}>
+        <RefreshCw className={`w-3 h-3 ${busy ? 'animate-spin' : ''}`} /> تحديث الجلسة
+      </button>
+    </span>
+  );
+}
+
+// أعضاء الفريق + تغيير الأدوار — كان PATCH /auth/users/{id}/role بلا أيّ واجهة
+// (الدعوات تحدّد الدور عند الدعوة فقط، وتغيير دور عضو قائم كان API-فقط).
+// الخلفيّة admin-only + step-up MFA اختياريّ: عند 403 «يتطلّب رمز MFA» يظهر
+// حقل الرمز ويُعاد الإرسال — لا تخمين ولا إخفاء لرسالة الخادم.
+const ASSIGNABLE_ROLES: { value: AssignableRole; label: string }[] = [
+  { value: 'viewer', label: 'مُشاهِد' },
+  { value: 'farmer', label: 'مزارع/عامل' },
+  { value: 'expert', label: 'خبير زراعيّ' },
+  { value: 'admin',  label: 'مشرف' },
+  { value: 'owner',  label: 'مالك' },
+];
+
+function TeamMembersRoles({ Section, inputCls, inputSty }: {
+  Section: (p: { title?: string; children: React.ReactNode }) => React.JSX.Element;
+  inputCls: string;
+  inputSty: React.CSSProperties;
+}) {
+  const [users, setUsers] = useState<TeamUser[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [listError, setListError] = useState('');
+  const [pending, setPending] = useState<Record<number, AssignableRole>>({});
+  const [mfaCode, setMfaCode] = useState('');
+  const [needsMfa, setNeedsMfa] = useState(false);
+  const [rowMsg, setRowMsg] = useState<Record<number, string>>({});
+
+  const refresh = async () => {
+    setLoading(true); setListError('');
+    try {
+      setUsers(await listTeamUsers());
+    } catch (err: unknown) {
+      // 403 = الجلسة ليست admin في الخلفيّة — نُظهرها كما هي (لا إخفاء للقسم:
+      // المشغّل يعرف أنّ القدرة موجودة ويتطلّب دور مشرف).
+      setListError(apiErrorMessage(err, 'تعذّر جلب الأعضاء — يتطلّب دور مشرف (admin)'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { refresh(); /* mount */ }, []);
+
+  const deactivate = async (u: TeamUser) => {
+    // تأكيد صريح: التعطيل يُبطل كلّ جلسات الحساب فوراً، ولا مسار «إعادة تفعيل»
+    // في الخلفيّة (الاستعادة عبر مشغّل القاعدة) — يُقال ذلك قبل الفعل لا بعده.
+    if (!window.confirm(`تعطيل حساب ${u.email}؟ يُبطل كلّ جلساته فوراً ولا إعادة تفعيل من الواجهة.`)) return;
+    setRowMsg(m => ({ ...m, [u.id]: '…' }));
+    try {
+      const res = await deactivateUser(u.id, needsMfa && mfaCode.trim() ? mfaCode.trim() : undefined);
+      setRowMsg(m => ({ ...m, [u.id]: res.message }));
+      await refresh();
+    } catch (err: unknown) {
+      const msg = apiErrorMessage(err, 'تعذّر التعطيل');
+      if (msg.includes('MFA')) setNeedsMfa(true);
+      setRowMsg(m => ({ ...m, [u.id]: msg }));
+    }
+  };
+
+  const applyRole = async (u: TeamUser) => {
+    const newRole = pending[u.id];
+    if (!newRole || newRole === u.role) return;
+    setRowMsg(m => ({ ...m, [u.id]: '…' }));
+    try {
+      await changeUserRole(u.id, newRole, needsMfa && mfaCode.trim() ? mfaCode.trim() : undefined);
+      setRowMsg(m => ({ ...m, [u.id]: 'غُيِّر الدور — أُبطلت جلساته ليسري فوراً' }));
+      setNeedsMfa(false); setMfaCode('');
+      await refresh();
+    } catch (err: unknown) {
+      const msg = apiErrorMessage(err, 'تعذّر تغيير الدور');
+      // step-up MFA مُفعَّل: الخادم يطلب رمزاً حديثاً — أظهر الحقل وأعد المحاولة.
+      if (msg.includes('MFA')) setNeedsMfa(true);
+      setRowMsg(m => ({ ...m, [u.id]: msg }));
+    }
+  };
+
+  return (
+    <Section title="أعضاء الفريق وتغيير الأدوار">
+      <p style={{ fontSize: 11, color: T.muted }}>
+        تغيير الدور يسري فوراً (تُبطَل جلسات العضو ليُعاد تحميل دوره) ويُسجَّل في تدقيق
+        الخادم. قد يتطلّب رمز MFA حديثاً من المشرف المنفِّذ (step-up) حسب إعداد البيئة.
+      </p>
+      <div className="flex items-center justify-between mb-1">
+        <span style={{ fontSize: 12, color: T.muted }}>{users.length} عضواً</span>
+        <button type="button" onClick={refresh}
+          className="flex items-center gap-1 px-2 py-1 rounded"
+          style={{ fontSize: 12, color: T.muted }}>
+          <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} /> تحديث
+        </button>
+      </div>
+      {listError && (
+        <div className="p-3 rounded-xl text-sm" style={{ background: T.dangerBg, border: `1px solid ${T.danger}`, color: T.danger }}>
+          {listError}
+        </div>
+      )}
+      {needsMfa && (
+        <div className="mb-2">
+          <label className="block mb-1.5" style={{ fontSize: 13, color: T.brownSoft, fontWeight: 600 }}>
+            رمز MFA الحديث (مطلوب لتغيير الأدوار في هذه البيئة)
+          </label>
+          <input value={mfaCode} onChange={e => setMfaCode(e.target.value)} inputMode="numeric"
+            placeholder="123456" className={inputCls} style={{ ...inputSty, maxWidth: 180, direction: 'ltr' }} />
+        </div>
+      )}
+      {users.map(u => (
+        <div key={u.id} className="flex flex-wrap items-center gap-2 py-2"
+          style={{ borderBottom: `1px solid ${T.line}` }}>
+          <div className="min-w-0 flex-1">
+            <div className="truncate" style={{ fontSize: 13, color: T.ink }}>
+              {u.full_name || u.email}
+              {!u.active && <span style={{ color: T.danger, fontSize: 11 }}> · مُعطَّل</span>}
+            </div>
+            <div className="truncate" style={{ fontSize: 11, color: T.muted, direction: 'ltr', textAlign: 'right' }}>{u.email}</div>
+          </div>
+          <select value={pending[u.id] ?? (u.role as AssignableRole)}
+            onChange={e => setPending(p => ({ ...p, [u.id]: e.target.value as AssignableRole }))}
+            className={inputCls} style={{ ...inputSty, width: 150 }}>
+            {ASSIGNABLE_ROLES.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <button type="button" onClick={() => applyRole(u)}
+            disabled={!pending[u.id] || pending[u.id] === u.role}
+            className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-40"
+            style={{ background: T.card2, border: `1px solid ${T.line}`, color: T.brownSoft }}>
+            تطبيق
+          </button>
+          {u.active && (
+            <button type="button" onClick={() => deactivate(u)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+              style={{ background: T.dangerBg, border: `1px solid ${T.danger}`, color: T.danger }}>
+              تعطيل
+            </button>
+          )}
+          {rowMsg[u.id] && <span style={{ fontSize: 11, color: T.muted }}>{rowMsg[u.id]}</span>}
+        </div>
+      ))}
+      {users.length === 0 && !loading && !listError && (
+        <p className="py-2" style={{ fontSize: 12, color: T.muted }}>لا أعضاء بعد.</p>
+      )}
+    </Section>
   );
 }
 

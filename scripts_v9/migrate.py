@@ -6,6 +6,7 @@ migration list has been removed. The single source of truth is now
 ``migrations/MANIFEST.txt`` so Phase 9-12/Feature Store/Workers migrations are
 not skipped by old operational scripts.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -53,7 +54,9 @@ MIGRATION_ORDER = manifest_order()
 
 
 def _db_url() -> str:
-    url = os.getenv("DATABASE_URL") or os.getenv("MIGRATE_DB_URL")
+    # JOBS_DATABASE_URL: الهجرات تُطبَّق بدور sahool_jobs (صلاحيّة DDL عبر المسار
+    # المُهيَّأ)؛ helm/k8s يمرّره باسمه (migration-job.yaml)، فنقبله كي يعمل مسار النشر.
+    url = os.getenv("DATABASE_URL") or os.getenv("MIGRATE_DB_URL") or os.getenv("JOBS_DATABASE_URL")
     if not url:
         print("✗ DATABASE_URL غير مضبوط. اضبطه ثمّ أعِد المحاولة.")
         print("  export DATABASE_URL='postgresql://sahool_jobs:PASS@localhost/sahool'")
@@ -103,7 +106,9 @@ def cmd_status(url: str) -> None:
         else:
             print(f"  ○ {migration} (غير مُطبَّق)")
     pending = [m for m in MIGRATION_ORDER if m not in applied]
-    print(f"\n  المُطبَّق: {len(applied)} · المعلّق: {len(pending)} · المسجّل في MANIFEST: {len(MIGRATION_ORDER)}")
+    print(
+        f"\n  المُطبَّق: {len(applied)} · المعلّق: {len(pending)} · المسجّل في MANIFEST: {len(MIGRATION_ORDER)}"
+    )
 
 
 def cmd_up(url: str, dry_run: bool = False) -> None:
@@ -125,7 +130,11 @@ def cmd_up(url: str, dry_run: bool = False) -> None:
         print(f"  ⟳ تطبيق {migration} ...")
         try:
             _psql(url, file=path)
-            _psql(url, "INSERT INTO schema_migrations(version, checksum) VALUES (%s, %s);" % (repr(migration), repr(checksum)))
+            _psql(
+                url,
+                "INSERT INTO schema_migrations(version, checksum) VALUES (%s, %s);"
+                % (repr(migration), repr(checksum)),
+            )
             print(f"  ✓ {migration}")
         except RuntimeError as exc:
             print(f"  ✗ فشل {migration}: {exc}")

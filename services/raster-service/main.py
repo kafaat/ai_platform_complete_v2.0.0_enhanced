@@ -207,6 +207,9 @@ class ProcessRequest(BaseModel):
     # مؤشّر محسوب مسبقاً (CDSE Process API): الراستر نطاق-واحد جاهز للمؤشّر — لا band math.
     precomputed_index: bool = False
     provider: str | None = None  # مصدر الصورة (مثل "cdse" / "element84") للأصل (provenance)
+    # v143 (FINDING-004): مراجعة هندسة الحقل (field_geometry_history.revision) السارية
+    # وقت إطلاق المعالجة — تُسجَّل على raster_assets للنَّسَب end-to-end. None ⇒ غير معروفة.
+    geometry_revision: int | None = None
 
 
 class BatchProcessRequest(BaseModel):
@@ -226,6 +229,7 @@ class BatchProcessRequest(BaseModel):
     apply_cloud_mask: bool = True
     scene_id: str | None = None
     capture_datetime: str | None = None
+    geometry_revision: int | None = None  # v143 (FINDING-004): نَسَب هندسة الحقل
 
 
 class SearchRequest(BaseModel):
@@ -285,6 +289,7 @@ class HistoricalBackfillRequest(BaseModel):
     )
     max_cloud_pct: float = Field(default=30, ge=0, le=100)
     limit_per_month: int = Field(default=2, ge=1, le=8)
+    geometry_revision: int | None = None  # v144: نَسَب هندسة الحقل لتشغيلة backfill
     apply_cloud_mask: bool = True
     source: str = Field(default="sentinel-2")
     clip_polygon_geojson: dict | None = None
@@ -465,6 +470,16 @@ def _rank_scenes(
     )
 
 
+# صيانة كاش البلاطات (تعقيم المسار + الإبطال + الإخلاء) في وحدة مستقلّة بلا FastAPI
+# كي يستوردها عامل الإبطال بخفّة وتُختبَر بمعزل. نُعيد تصديرها هنا للتوافق.
+import tile_cache_maint  # noqa: E402
+
+invalidate_field_tile_cache = tile_cache_maint.invalidate_field_tile_cache
+prune_tile_cache = tile_cache_maint.prune_tile_cache
+_safe_cache_segment = tile_cache_maint.safe_cache_segment
+_tile_cache_field_dir = tile_cache_maint.tile_cache_field_dir
+
+
 def _tile_cache_key(
     field_id: str,
     index: str,
@@ -475,10 +490,7 @@ def _tile_cache_key(
     tenant_id: str | None,
     v: str | None = None,
 ) -> str:
-    def safe(s):
-        cleaned = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in str(s or "na"))
-        return cleaned.replace("..", "_")
-
+    safe = _safe_cache_segment
     return os.path.join(
         UPLOAD_DIR,
         "tile_cache",
@@ -1281,24 +1293,29 @@ def _is_valid_field_id_text(value: str | None) -> bool:
 
 
 def _persist_raster_asset(
-    req: ProcessRequest, cog_url: str, meta: dict, bounds: list, stats: dict
-) -> None:
-    """يُدرج صفّاً في raster_assets (best-effort). يُغلّف كلّ خطأ.
+    req: ProcessRequest,
+    cog_url: str,
+    meta: dict,
+    bounds: list,
+    stats: dict,
+    job_id: str | None = None,
+) -> bool:
+    """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند الحفظ الفعليّ.
 
     _run_processing يعمل في threadpool (مهمّة خلفيّة متزامنة) فلا حلقة
     أحداث في خيطه؛ لذا asyncio.run آمن هنا. غياب القاعدة (لا DATABASE_URL/
-    لا جدول/لا شبكة) يُبتلع بصدق ولا يُفشل المعالجة.
+    لا جدول/لا شبكة) يُبتلع بصدق ولا يُفشل المعالجة (يُرجِع False).
     """
     if not _is_valid_field_id_text(req.field_id):
         logger.warning("raster_assets persist skipped: missing/invalid field_id=%r", req.field_id)
-        return
+        return False
     if (
         req.tenant_id is not None
         and str(req.tenant_id).strip()
         and not _is_valid_uuid_text(req.tenant_id)
     ):
         logger.warning("raster_assets persist skipped: invalid tenant_id=%r", req.tenant_id)
-        return
+        return False
     try:
         import asyncio
 
@@ -1333,7 +1350,7 @@ def _persist_raster_asset(
         }
 
         async def _do():
-            return await db_persist.insert_raster_asset(
+            ok = await db_persist.insert_raster_asset(
                 field_id=req.field_id,
                 tenant_id=req.tenant_id,
                 scene_id=req.scene_id,
@@ -1349,6 +1366,14 @@ def _persist_raster_asset(
                 valid_pixel_ratio=_quality["valid_pixel_ratio"],
                 coverage_ratio=_quality["coverage_ratio"],
                 index_quality_flags=_quality["index_quality_flags"],
+                processing_job_id=job_id,  # v142: تتبّع + يُغني layer_owner_tenant عن ILIKE
+                # v105 (v4-audit): أعمدة الجودة تُكتب الآن فعلاً كي يعمل الترتيب الواعي بالجودة.
+                # confidence هو الدرجة 0..1 (أعلى=أفضل)؛ cloud_pct محسوب على AOI المقصوص.
+                quality_score=stats.get("confidence"),
+                aoi_cloud_pct=stats.get("cloud_pct"),
+                cloud_mask_sources=stats.get("cloud_mask_sources"),
+                # v143 (FINDING-004): مراجعة الهندسة السارية وقت المعالجة (None إن لم تُمرَّر).
+                geometry_revision=getattr(req, "geometry_revision", None),
                 provenance={
                     "stats": {
                         k: stats.get(k)
@@ -1359,27 +1384,78 @@ def _persist_raster_asset(
                             "std",
                             "cloud_pct",
                             "cloud_mask_applied",
+                            "cloud_mask_sources",  # v4-audit: كان يُنتَج ويُسقَط من النَّسَب
                             "quality",
                             "confidence",
                         )
-                    }
+                    },
+                    # v143: النَّسَب — مراجعة الهندسة في الأصل نفسه (فوق العمود المخصّص).
+                    "geometry_revision": getattr(req, "geometry_revision", None),
                 },
             )
+            # FINDING-008: جسر الكتالوج — عند نجاح الأصل نكتب صفّاً مُقابِلاً في
+            # raster_registry (كان يملؤه فقط مسار REST يدويّ) كي لا يبقى الكتالوج فارغاً.
+            if ok and cog_url and not str(cog_url).startswith("file://"):
+                await db_persist.insert_raster_registry_entry(
+                    tenant_id=req.tenant_id,
+                    field_id=req.field_id,
+                    scene_id=req.scene_id,
+                    product_date=req.capture_datetime,
+                    index_type=req.indicator.value,
+                    cog_url=cog_url,
+                    cloud_pct=stats.get("cloud_pct"),
+                    quality_score=stats.get("confidence"),
+                    resolution_m=meta.get("resolution_m") or 10.0,
+                    bbox=list(bounds) if bounds else None,
+                    bands=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
+                    metadata={
+                        "quality": stats.get("quality"),
+                        "confidence": stats.get("confidence"),
+                        "provider": getattr(req, "provider", None),
+                        "geometry_revision": getattr(req, "geometry_revision", None),
+                    },
+                )
+            return ok
 
+        # v5-audit F1: نلتقط نتيجة الحفظ ونُصدِر سطراً منظَّماً — «job completed» وحده
+        # كان لا يُميّز «حُفِظ في DB» عن «في الذاكرة فقط والإدراج عاد False بصمت»، فبعد
+        # إعادة التشغيل قد يفشل الترطيب رغم «completed». الآن persisted صريح في السجلّ والمهمّة.
+        _holder = {"ok": False}
         try:
-            asyncio.run(_do())
+            _holder["ok"] = bool(asyncio.run(_do()))
         except RuntimeError:
             # حلقة أحداث قائمة بالفعل (نادر هنا) — شغّلها في خيط مستقلّ
             import threading
 
             def _runner():
-                asyncio.run(_do())
+                _holder["ok"] = bool(asyncio.run(_do()))
 
             t = threading.Thread(target=_runner, daemon=True)
             t.start()
             t.join(timeout=10)
+        if _holder["ok"]:
+            logger.info(
+                "raster_assets persist ok field_id=%s tenant_id=%s index=%s scene_id=%s "
+                "acquisition_date=%s cog_uri=%s",
+                req.field_id,
+                req.tenant_id,
+                req.indicator.value,
+                req.scene_id,
+                req.capture_datetime,
+                cog_url,
+            )
+        else:
+            logger.warning(
+                "raster_assets persist failed field_id=%s index=%s scene_id=%s "
+                "(best-effort؛ COG في الذاكرة/القرص المحلّيّ فقط — قد يفشل الترطيب بعد إعادة التشغيل)",
+                req.field_id,
+                req.indicator.value,
+                req.scene_id,
+            )
+        return _holder["ok"]
     except Exception as _dbe:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
         logger.warning("raster_assets persist skipped: %s", _dbe)
+        return False
 
 
 def _run_processing(job_id: str, req: ProcessRequest):
@@ -1493,8 +1569,12 @@ def _run_processing(job_id: str, req: ProcessRequest):
         if req.field_id:
             _field_layers.setdefault(req.field_id, []).append(layer_id)
         # (٦) حفظ في raster_assets (best-effort — غياب القاعدة لا يُفشل المعالجة)
-        if cog_url:
-            _persist_raster_asset(req, cog_url, meta, bounds, stats)
+        # v5-audit F1: نلتقط persisted كي يُميّز «completed» بين الحفظ في DB والذاكرة فقط.
+        persisted = (
+            _persist_raster_asset(req, cog_url, meta, bounds, stats, job_id=job_id)
+            if cog_url
+            else False
+        )
         job["result"] = {
             "job_id": job_id,
             "layer_id": layer_id,
@@ -1506,12 +1586,13 @@ def _run_processing(job_id: str, req: ProcessRequest):
             "zoom_max": req.zoom_max,
             "finished_at": now,
             "provenance": provenance,
+            "persisted": persisted,  # v5-audit F1: هل حُفِظ في DB فعلاً (لا الذاكرة فقط)؟
         }
         job["status"] = JobStatus.completed
         job["progress_pct"] = 100
         job["finished_at"] = now
         _jobs.set(job_id, job)  # تثبيت النتيجة المكتملة (Redis/ذاكرة)
-        logger.info(f"job {job_id} completed → layer {layer_id}")
+        logger.info(f"job {job_id} completed → layer {layer_id} persisted={persisted}")
     except Exception as e:  # noqa: BLE001
         job["status"] = JobStatus.failed
         # لا نُخزّن تفاصيل الاستثناء الخام في job status لأنّها تُقرأ عبر API وقد
@@ -1552,6 +1633,7 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
             apply_cloud_mask=req.apply_cloud_mask,
             scene_id=req.scene_id,
             capture_datetime=req.capture_datetime,
+            geometry_revision=req.geometry_revision,  # v143: نَسَب الهندسة عبر المؤشّرات
         )
         sub_job_id = f"{job_id}_{ind.value}"
         _jobs.set(
@@ -1941,6 +2023,7 @@ class ProcessFromStacRequest(BaseModel):
     apply_cloud_mask: bool = True
     clip_polygon_geojson: dict | None = None
     source_format: SourceFormat = SourceFormat.sentinel2_l2a
+    geometry_revision: int | None = None  # v143 (FINDING-004): نَسَب هندسة الحقل
 
 
 # ─── CDSE (Copernicus Data Space) — المزوّد الافتراضيّ + fallback إلى Element84 ──
@@ -1962,6 +2045,7 @@ class ProcessCdseRequest(BaseModel):
     # tile cache depend on acquisition_date matching the requested scene.
     date_from: str | None = None
     date_to: str | None = None
+    geometry_revision: int | None = None  # v143 (FINDING-004): نَسَب هندسة الحقل
 
 
 def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
@@ -2077,6 +2161,7 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
                 capture_datetime=capture_datetime,
                 clip_polygon_geojson=req.geometry,
                 apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (dataMask + maxCloudCoverage)
+                geometry_revision=req.geometry_revision,  # v143: نَسَب الهندسة (المسار الافتراضيّ)
             )
             sub_job_id = f"{job_id}_{ind}"
             _run_processing(sub_job_id, preq)
@@ -2236,40 +2321,35 @@ def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None
     }
 
 
-async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | None:
-    """يجد طبقة COG للحقل: من الذاكرة أوّلاً، وإلّا يُعيد الترطيب من raster_assets.
+async def _rehydrate_field_layer_from_db(field_id: str, internal: str, date: str) -> dict | None:
+    """يستعيد طبقة COG من raster_assets ويبنيها في الذاكرة. يُرجِعها أو None.
 
-    يسدّ ثغرة «persistence مكتوب لا مقروء»: بعد إعادة التشغيل/على worker آخر،
-    فهرس الذاكرة فارغ ⇒ نستعيد cog_uri+الحدود من القاعدة ونُعيد بناء الفهرس،
-    فيعمل العرض على COG الموجود على القرص (UPLOAD_DIR كـvolume دائم).
+    معرّف الطبقة **مخصّص بالتاريخ** (`db_{field}_{index}_{acq}`) — كي لا يخلط ترطيبُ
+    تاريخ محدّد مع «latest» (إصلاح FINDING-001: كان `db_{field}_{index}` يجعل طلبَ
+    latest لاحقاً يُعيد تاريخاً قديماً مُرطَّباً بلا استشارة القاعدة).
     """
-    layer = _find_field_layer(field_id, index, date)
-    if layer is not None:
-        return layer
     try:
         import time as _t
 
         import db_persist
 
-        internal = _normalize_index(index)
         asset = await db_persist.fetch_latest_asset(
             field_id, internal, date, tenant_id=_REQ_TENANT.get()
         )
         if not asset or not asset.get("cog_url"):
             return None
-        # لـfile:// نفحص القرص؛ لـs3:// نؤجّل الوجود إلى rasterio (لا نرفضه هنا).
         if not object_store.exists_locally(asset["cog_url"]):
             logger.warning("raster_assets hit but COG missing on host: %s", asset["cog_url"])
             return None
-        lid = f"db_{field_id}_{internal}"
+        acq = asset.get("acquisition_date")
+        lid = f"db_{field_id}_{internal}_{acq or 'nodate'}"
         _layers[lid] = {
             "cog_url": asset["cog_url"],
             "index": internal,
             "tenant_id": _REQ_TENANT.get(),
-            "acquisition_date": asset.get("acquisition_date"),
+            "acquisition_date": acq,
             "bounds_4326": asset.get("bounds_4326"),
             "cloud_pct": asset.get("cloud_pct"),
-            # v131 (v62.3-B): إعادة ترطيب إشارات الجودة من raster_assets.
             "cloud_cover": asset.get("cloud_cover"),
             "valid_pixel_ratio": asset.get("valid_pixel_ratio"),
             "coverage_ratio": asset.get("coverage_ratio"),
@@ -2277,8 +2357,7 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
             "confidence": asset.get("confidence"),
             "quality": asset.get("quality"),
             "cloud_mask_applied": asset.get("cloud_mask_applied"),
-            # تفويض: tenant_id مثبت أعلى؛ DB fetch نفسه منطق بالمستأجر.
-            "created_at": asset.get("acquisition_date") or _t.strftime("%Y-%m-%dT%H:%M:%S"),
+            "created_at": acq or _t.strftime("%Y-%m-%dT%H:%M:%S"),
         }
         _field_layers.setdefault(field_id, [])
         if lid not in _field_layers[field_id]:
@@ -2287,6 +2366,33 @@ async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | N
     except Exception as e:  # noqa: BLE001 — غياب القاعدة لا يُفشل القراءة
         logger.warning("DB rehydrate skipped (%s): %s", field_id, e)
         return None
+
+
+async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | None:
+    """يجد طبقة COG للحقل: من الذاكرة أوّلاً، وإلّا يُعيد الترطيب من raster_assets.
+
+    FINDING-001: طلب «latest» لا يثق بذاكرة قد تحوي ترطيبَ تاريخ محدّد أقدم فقط —
+    يستشير القاعدة عن الأحدث ويختار الأحدث acquisition_date بين الذاكرة والقاعدة.
+    طلب تاريخ محدّد يبقى ذاكرةً-أوّلاً (صارم بالتاريخ في _find_field_layer).
+    """
+    internal = _normalize_index(index)
+    mem = _find_field_layer(field_id, index, date)
+
+    if date and date != "latest":
+        if mem is not None:
+            return mem
+        return await _rehydrate_field_layer_from_db(field_id, internal, date)
+
+    # date == "latest": الذاكرة قد تكون قديمة (ترطيب تاريخ محدّد سابق) — استشِر القاعدة.
+    db_layer = await _rehydrate_field_layer_from_db(field_id, internal, "latest")
+    if db_layer is None:
+        return mem  # لا قاعدة/لا أصل ⇒ أفضل ما في الذاكرة (best-effort)
+    if mem is None:
+        return db_layer
+    # اختر الأحدث acquisition_date فعليّاً (الذاكرة قد تحمل معالجةً حيّةً أحدث من القاعدة).
+    mem_d = str(mem.get("acquisition_date") or "")
+    db_d = str(db_layer.get("acquisition_date") or "")
+    return mem if mem_d >= db_d else db_layer
 
 
 async def _rvi_from_sar_cog(field_id: str, date: str) -> float | None:

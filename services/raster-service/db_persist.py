@@ -100,6 +100,12 @@ async def insert_raster_asset(
     valid_pixel_ratio: float | None = None,
     coverage_ratio: float | None = None,
     index_quality_flags: list | None = None,
+    processing_job_id: str | None = None,
+    quality_score: float | None = None,
+    aoi_cloud_pct: float | None = None,
+    cloud_mask_sources: list | None = None,
+    geometry_revision: int | None = None,
+    asset_status: str = "ready",
 ) -> bool:
     """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند النجاح.
 
@@ -123,6 +129,9 @@ async def insert_raster_asset(
     # v131 (v62.3-B): أعمدة جودة الصور. القيم غياب ⇒ NULL (لا نخترع 0). القيد
     # chk_raster_quality_ratios يحرس 0..1 فيزيائيّاً؛ القائمة تُخزَّن jsonb.
     flags_json = json.dumps(index_quality_flags) if index_quality_flags is not None else None
+    # v105 (v4-audit): أعمدة الجودة كانت تُنشأ في المخطّط لكن لا تُكتب أبداً ⇒ ترتيب
+    # fetch_latest_asset حسب quality_score كان بلا أثر (كلّها NULL). نملؤها الآن من stats.
+    mask_sources_json = json.dumps(cloud_mask_sources) if cloud_mask_sources is not None else None
     # FIX: asyncpg يطلب datetime.date لعمود DATE (تمرير نصّ ⇒ 'str' has no
     # attribute 'toordinal'). نحوّل النصّ ISO إلى date؛ القيم غير الصالحة → None.
     acq_date = acquisition_date
@@ -134,20 +143,43 @@ async def insert_raster_asset(
         except ValueError:
             acq_date = None
 
+    # v142: idempotency — إعادة تشغيل backfill لا تُراكم صفوفاً مكرّرة. ON CONFLICT على
+    # الفهرس الفريد الجزئيّ (tenant/field/index/date/scene/cog) يُحدِّث الجودة/الأصل بدل
+    # الإدراج المكرّر. + processing_job_id للتتبّع (يُغني layer_owner_tenant عن ILIKE الهشّ).
     sql = """
         INSERT INTO raster_assets (
             field_id, tenant_id, scene_id, acquisition_date, satellite,
             index_name, cloud_pct, srid, cog_uri, bands, nodata,
             footprint, provenance,
-            valid_pixel_ratio, coverage_ratio, index_quality_flags
+            valid_pixel_ratio, coverage_ratio, index_quality_flags,
+            processing_job_id, quality_score, aoi_cloud_pct, cloud_mask_sources,
+            geometry_revision, asset_status
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8, $9, $10::jsonb, $11,
             CASE WHEN $12::text IS NULL THEN NULL
                  ELSE ST_SetSRID(ST_GeomFromGeoJSON($12), 4326) END,
             $13::jsonb,
-            $14, $15, COALESCE($16::jsonb, '[]'::jsonb)
+            $14, $15, COALESCE($16::jsonb, '[]'::jsonb),
+            $17, $18, $19, COALESCE($20::jsonb, '[]'::jsonb),
+            $21, $22
         )
+        ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id, cog_uri)
+        WHERE tenant_id IS NOT NULL AND acquisition_date IS NOT NULL
+              AND scene_id IS NOT NULL AND cog_uri IS NOT NULL
+        DO UPDATE SET
+            cloud_pct = EXCLUDED.cloud_pct,
+            bands = EXCLUDED.bands,
+            provenance = EXCLUDED.provenance,
+            valid_pixel_ratio = EXCLUDED.valid_pixel_ratio,
+            coverage_ratio = EXCLUDED.coverage_ratio,
+            index_quality_flags = EXCLUDED.index_quality_flags,
+            processing_job_id = COALESCE(EXCLUDED.processing_job_id, raster_assets.processing_job_id),
+            quality_score = EXCLUDED.quality_score,
+            aoi_cloud_pct = EXCLUDED.aoi_cloud_pct,
+            cloud_mask_sources = EXCLUDED.cloud_mask_sources,
+            geometry_revision = COALESCE(EXCLUDED.geometry_revision, raster_assets.geometry_revision),
+            asset_status = EXCLUDED.asset_status
     """
     try:
         await conn.execute(
@@ -172,11 +204,226 @@ async def insert_raster_asset(
             valid_pixel_ratio,
             coverage_ratio,
             flags_json,
+            processing_job_id,
+            quality_score,
+            aoi_cloud_pct,
+            mask_sources_json,
+            geometry_revision,
+            asset_status,
         )
         return True
     except Exception as e:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة
         logger.warning("raster_assets insert skipped: %s", e)
         return False
+    finally:
+        await conn.close()
+
+
+def _clamp_score_0_100(value) -> int | None:
+    """يحوّل درجة جودة إلى int في [0,100] (قيد raster_registry/stac_item_registry).
+    يقبل 0..1 (يضربها 100) أو 0..100 كما هي. None/غير رقميّ ⇒ None (لا اختراع)."""
+    if value is None:
+        return None
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    if 0.0 <= v <= 1.0:
+        v *= 100.0
+    return max(0, min(100, int(round(v))))
+
+
+async def insert_raster_registry_entry(
+    *,
+    tenant_id: str | None,
+    field_id: str | None,
+    scene_id: str | None,
+    product_date: str | None,
+    index_type: str,
+    cog_url: str,
+    cloud_pct: float | None,
+    quality_score: int | None,
+    resolution_m: float | None = 10.0,
+    bbox: list | dict | None = None,
+    bands: dict | list | None = None,
+    metadata: dict | None = None,
+) -> bool:
+    """يجسر أصل راستر مُنتَج إلى كتالوج ``raster_registry`` (v114) — سدّ FINDING-008.
+
+    raster_registry كان يكتبه فقط مسار REST يدويّ (/cog-registry)؛ الأنبوب لم يملأه ⇒
+    كتالوج GIS فارغ. نكتب صفّاً مُقابِلاً عند كلّ أصل ناجح. best-effort (لا يُفشل المعالجة).
+    RLS أصرم هنا (FORCE + WITH CHECK): نضبط app.current_tenant قبل الإدراج فيطابق tenant_id."""
+    if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
+        return False
+    if not product_date or not cog_url:
+        return False
+    conn = await _connect()
+    if conn is None:
+        return False
+    bbox_json = json.dumps(bbox) if bbox is not None else None
+    bands_json = json.dumps(bands) if bands is not None else None
+    meta_json = json.dumps(metadata or {})
+    sql = """
+        INSERT INTO raster_registry (
+            tenant_id, field_id, scene_id, product_date, index_type, cog_url,
+            cloud_pct, quality_score, resolution_m, bbox, bands, metadata
+        ) VALUES (
+            $1::uuid, $2, $3, $4::text::date, $5, $6,
+            $7, $8, $9, $10::jsonb, COALESCE($11::jsonb, '{}'::jsonb), $12::jsonb
+        )
+        ON CONFLICT (tenant_id, field_id, product_date, index_type, cog_url)
+        DO UPDATE SET
+            scene_id = EXCLUDED.scene_id,
+            cloud_pct = EXCLUDED.cloud_pct,
+            quality_score = EXCLUDED.quality_score,
+            resolution_m = EXCLUDED.resolution_m,
+            bbox = EXCLUDED.bbox,
+            bands = EXCLUDED.bands,
+            metadata = raster_registry.metadata || EXCLUDED.metadata
+    """
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        await conn.execute(
+            sql,
+            str(tenant_id),
+            field_id,
+            scene_id,
+            product_date[:10] if isinstance(product_date, str) else product_date,
+            index_type,
+            cog_url,
+            cloud_pct,
+            _clamp_score_0_100(quality_score),
+            float(resolution_m) if resolution_m is not None else 10.0,
+            bbox_json,
+            bands_json,
+            meta_json,
+        )
+        return True
+    except Exception as e:  # noqa: BLE001 — الكتالوج best-effort لا يُفشل المعالجة
+        logger.warning("raster_registry bridge skipped: %s", e)
+        return False
+    finally:
+        await conn.close()
+
+
+async def insert_stac_item(
+    *,
+    tenant_id: str | None,
+    scene_id: str | None,
+    collection: str,
+    captured_at: str | None = None,
+    bbox: list | dict | None = None,
+    cloud_pct: float | None = None,
+    quality_score: int | None = None,
+    assets: dict | None = None,
+    raw_item: dict | None = None,
+) -> bool:
+    """يستمرّ مشهد STAC مُختار في ``stac_item_registry`` (v114) — سدّ FINDING-009.
+
+    الجدول كان بلا أيّ كاتب. نكتب المشهد عند اختياره في backfill. best-effort، RLS
+    مضبوط بـapp.current_tenant قبل الإدراج."""
+    if not (tenant_id and _valid_uuid_text(tenant_id)) or not scene_id:
+        return False
+    conn = await _connect()
+    if conn is None:
+        return False
+    bbox_json = json.dumps(bbox) if bbox is not None else None
+    assets_json = json.dumps(assets or {})
+    raw_json = json.dumps(raw_item or {})
+    sql = """
+        INSERT INTO stac_item_registry (
+            tenant_id, scene_id, collection, captured_at, bbox,
+            cloud_pct, quality_score, assets, raw_item
+        ) VALUES (
+            $1::uuid, $2, $3, $4::text::timestamptz, $5::jsonb,
+            $6, $7, COALESCE($8::jsonb, '{}'::jsonb), COALESCE($9::jsonb, '{}'::jsonb)
+        )
+        ON CONFLICT (tenant_id, scene_id)
+        DO UPDATE SET
+            collection = EXCLUDED.collection,
+            captured_at = EXCLUDED.captured_at,
+            bbox = EXCLUDED.bbox,
+            cloud_pct = EXCLUDED.cloud_pct,
+            quality_score = EXCLUDED.quality_score,
+            assets = EXCLUDED.assets,
+            raw_item = EXCLUDED.raw_item
+    """
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        await conn.execute(
+            sql,
+            str(tenant_id),
+            scene_id,
+            collection,
+            captured_at,
+            bbox_json,
+            cloud_pct,
+            _clamp_score_0_100(quality_score),
+            assets_json,
+            raw_json,
+        )
+        return True
+    except Exception as e:  # noqa: BLE001 — الكتالوج best-effort
+        logger.warning("stac_item_registry persist skipped: %s", e)
+        return False
+    finally:
+        await conn.close()
+
+
+async def insert_backfill_run(
+    *,
+    tenant_id: str | None,
+    field_id: str | None,
+    preset: str | None,
+    from_date: str | None,
+    to_date: str | None,
+    months: int | None,
+    indices: list | None,
+    max_cloud_pct: float | None,
+    geometry_revision: int | None = None,
+    clip_polygon_geojson: dict | None = None,
+    apply_cloud_mask: bool = True,
+    limit_per_month: int = 2,
+) -> int | None:
+    """يُنشئ تشغيلة backfill (status='planned') ويُرجِع id — يمكّن الردّ الفوريّ بلا
+    مسح STAC في مسار الطلب (v5-F1/F2). العامل يلتقطها لاحقاً. RLS: يضبط app.current_tenant."""
+    if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
+        return None
+    conn = await _connect()
+    if conn is None:
+        return None
+    sql = """
+        INSERT INTO backfill_runs (
+            tenant_id, field_id, preset, from_date, to_date, months, indices,
+            max_cloud_pct, geometry_revision, clip_polygon_geojson, apply_cloud_mask,
+            limit_per_month, status
+        ) VALUES (
+            $1::uuid, $2, $3, $4::text::date, $5::text::date, $6, COALESCE($7::jsonb, '[]'::jsonb),
+            $8, $9, $10::jsonb, $11, $12, 'planned'
+        )
+        RETURNING id
+    """
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        run_id = await conn.fetchval(
+            sql,
+            str(tenant_id),
+            field_id,
+            preset,
+            from_date[:10] if isinstance(from_date, str) else from_date,
+            to_date[:10] if isinstance(to_date, str) else to_date,
+            months,
+            json.dumps(indices or []),
+            max_cloud_pct,
+            geometry_revision,
+            json.dumps(clip_polygon_geojson) if clip_polygon_geojson else None,
+            apply_cloud_mask,
+            int(limit_per_month),
+        )
+        return int(run_id) if run_id is not None else None
+    except Exception as e:  # noqa: BLE001 — غياب الجدول لا يُفشل الطلب (يسقط للمسار المتزامن)
+        logger.warning("backfill_runs insert skipped: %s", e)
+        return None
     finally:
         await conn.close()
 
@@ -214,7 +461,13 @@ async def fetch_latest_asset(
             WHERE field_id = $1 AND index_name = $2
               AND ($3::date IS NULL OR acquisition_date = $3::date)
               AND tenant_id = $4::uuid   -- فلتر مستأجِر صريح (دفاع عميق فوق RLS)؛ None ⇒ لا صفوف
-            ORDER BY acquisition_date DESC NULLS LAST, created_at DESC
+              AND asset_status <> 'failed'  -- v143: لا نُرطّب من أصل فاشل (stale يبقى قابلاً للخدمة)
+            -- أحدث تاريخ يفوز أوّلاً (دلالة latest محفوظة)، ثمّ الأفضل جودةً لذلك اليوم:
+            -- quality_score (v105) DESC ثمّ cloud_pct ASC — يستفيد من idx_raster_assets_quality_pick.
+            ORDER BY acquisition_date DESC NULLS LAST,
+                     quality_score DESC NULLS LAST,
+                     cloud_pct ASC NULLS LAST,
+                     created_at DESC
             LIMIT 1
         ) s
     """
@@ -294,6 +547,7 @@ async def list_asset_dates(
             WHERE field_id = $1 AND index_name = $2
               AND acquisition_date IS NOT NULL
               AND tenant_id = $3::uuid
+              AND asset_status <> 'failed'
             ORDER BY ad DESC
             LIMIT $4
         ) recent
@@ -329,19 +583,39 @@ async def list_available_asset_dates(
     conn = await _connect()
     if conn is None:
         return []
+    # الحدّ يُطبَّق على التواريخ المميَّزة (CTE) لا على صفوف (تاريخ×مؤشّر): مع N مؤشّرات
+    # كان LIMIT على الصفوف يعيد ~limit/N تاريخاً فيبتر خطّ السنتين (v3-Finding-1).
+    # ثمّ DISTINCT ON ينتقي صفّاً واحداً متماسكاً لكلّ (تاريخ، مؤشّر) بدل خلط
+    # MIN(cloud_pct) مع MIN(scene_id) من صفَّين مختلفَين (v3-Finding-4): نفضّل صفّاً
+    # يملك COG (has_cog محفوظ) ثمّ الأفضل جودةً — فيعود scene_id/cloud_pct/has_cog من نفس السطر.
     sql = """
-        SELECT acquisition_date::text AS date, index_name,
-               MIN(cloud_pct) AS cloud_pct,
-               MIN(scene_id) AS scene_id,
-               BOOL_OR(cog_uri IS NOT NULL AND cog_uri <> '') AS has_cog
-        FROM raster_assets
-        WHERE field_id = $1
-          AND tenant_id = $2::uuid
-          AND acquisition_date IS NOT NULL
-          AND ($3::text[] IS NULL OR index_name = ANY($3::text[]))
-        GROUP BY acquisition_date, index_name
-        ORDER BY acquisition_date DESC
-        LIMIT $4
+        WITH recent_dates AS (
+            SELECT DISTINCT acquisition_date
+            FROM raster_assets
+            WHERE field_id = $1
+              AND tenant_id = $2::uuid
+              AND acquisition_date IS NOT NULL
+              AND asset_status <> 'failed'
+              AND ($3::text[] IS NULL OR index_name = ANY($3::text[]))
+            ORDER BY acquisition_date DESC
+            LIMIT $4
+        )
+        SELECT DISTINCT ON (a.acquisition_date, a.index_name)
+               a.acquisition_date::text AS date,
+               a.index_name,
+               a.cloud_pct,
+               a.scene_id,
+               (a.cog_uri IS NOT NULL AND a.cog_uri <> '') AS has_cog
+        FROM raster_assets a
+        JOIN recent_dates rd ON rd.acquisition_date = a.acquisition_date
+        WHERE a.field_id = $1
+          AND a.tenant_id = $2::uuid
+          AND a.asset_status <> 'failed'
+          AND ($3::text[] IS NULL OR a.index_name = ANY($3::text[]))
+        ORDER BY a.acquisition_date DESC, a.index_name,
+                 (a.cog_uri IS NOT NULL AND a.cog_uri <> '') DESC,
+                 a.quality_score DESC NULLS LAST,
+                 a.cloud_pct ASC NULLS LAST
     """
     try:
         await conn.execute(

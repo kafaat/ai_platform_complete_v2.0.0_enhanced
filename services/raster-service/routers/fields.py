@@ -20,6 +20,17 @@ from fastapi.responses import Response
 router = APIRouter()
 
 
+def _async_backfill_enabled() -> bool:
+    """راية backfill اللاتزامنيّ (v5-F1/F2 · v6-F1/F2): يُنشئ تشغيلة ويعيد run_id فوراً
+    ويُخرج مسح STAC الشهريّ من مسار الطلب إلى عامل الفحص. خامل حتّى التحقّق التكامليّ."""
+    return str(os.getenv("RASTER_ASYNC_BACKFILL_ENABLED", "false")).strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
 @router.post("/v1/fields/{field_id}/process-from-stac")
 async def process_from_stac(
     field_id: str,
@@ -57,6 +68,7 @@ async def process_from_stac(
         capture_datetime=req.capture_datetime,
         apply_cloud_mask=req.apply_cloud_mask,
         clip_polygon_geojson=req.clip_polygon_geojson,
+        geometry_revision=req.geometry_revision,  # v143: نَسَب هندسة الحقل
     )
     job_id = f"stac_{uuid.uuid4().hex[:12]}"
     main._jobs.set(
@@ -75,6 +87,33 @@ async def process_from_stac(
         "bands": index_map,
         "raster_url": vrt_path,
     }
+
+
+async def _persist_selected_stac_scenes(tenant_id: str, scenes: list[dict]) -> None:
+    """FINDING-009: يستمرّ المشاهد المُختارة في stac_item_registry (كان بلا كاتب).
+
+    best-effort في مهمّة خلفيّة — لا يؤخّر ردّ backfill ولا يُفشله عند غياب القاعدة."""
+    import db_persist
+
+    for scene in scenes:
+        sid = scene.get("item_id")
+        if not sid:
+            continue
+        await db_persist.insert_stac_item(
+            tenant_id=tenant_id,
+            scene_id=sid,
+            collection=main.SENTINEL_COLLECTION,
+            captured_at=scene.get("datetime"),
+            bbox=scene.get("bbox"),
+            cloud_pct=scene.get("cloud_cover_pct"),
+            quality_score=scene.get("quality_score"),
+            assets={
+                "bands": scene.get("bands_urls"),
+                "thumbnail": scene.get("thumbnail_url"),
+                "preview": scene.get("preview_url"),
+            },
+            raw_item=scene,
+        )
 
 
 @router.post("/v1/fields/{field_id}/imagery/backfill")
@@ -125,6 +164,51 @@ async def field_historical_backfill(
         raise HTTPException(400, "clip_polygon_geojson مطلوب لاشتقاق bbox وقصّ الصور على حدود الحقل")
 
     start, end, months = main._backfill_date_range(req)
+
+    # v5-F1/F2 · v6-F1/F2: المسار اللاتزامنيّ (خلف راية). أنشئ تشغيلة backfill وأعِد
+    # run_id فوراً بلا مسح STAC في مسار الطلب (يتفادى مهلة proxy 60s على النوافذ
+    # الطويلة). عامل الفحص يمسح ويجدول لاتزامنيّاً بمفتاح idempotency. dry_run يبقى
+    # متزامناً (معاينة). فشل الإنشاء (لا جدول) ⇒ تدهور لطيف للمسار المتزامن أدناه.
+    if _async_backfill_enabled() and not req.dry_run:
+        import db_persist as _dbp
+
+        _async_tenant = req.tenant_id or main._REQ_TENANT.get()
+        run_id = await _dbp.insert_backfill_run(
+            tenant_id=str(_async_tenant) if _async_tenant else None,
+            field_id=field_id,
+            preset=req.preset.value,
+            from_date=start.strftime("%Y-%m-%d"),
+            to_date=end.strftime("%Y-%m-%d"),
+            months=months,
+            indices=[i.value for i in req.indices],
+            max_cloud_pct=req.max_cloud_pct,
+            geometry_revision=getattr(req, "geometry_revision", None),
+            clip_polygon_geojson=clip,
+            apply_cloud_mask=req.apply_cloud_mask,
+            limit_per_month=req.limit_per_month,
+        )
+        if run_id is not None:
+            main.logger.info(
+                "historical_backfill_run created field_id=%s run_id=%s months=%s (async)",
+                field_id,
+                run_id,
+                months,
+            )
+            return {
+                "field_id": field_id,
+                "preset": req.preset.value,
+                "mode": "async",
+                "run_id": run_id,
+                "status": "planned",
+                "period": {
+                    "from": start.strftime("%Y-%m-%d"),
+                    "to": end.strftime("%Y-%m-%d"),
+                    "months": months,
+                },
+                "indices": [i.value for i in req.indices],
+                "message": "تمّ إنشاء تشغيلة backfill؛ يُنفّذها عامل الفحص لاتزامنيّاً.",
+            }
+
     windows = main._month_windows(start, end)
     selected_scenes: list[dict] = []
     monthly: list[dict] = []
@@ -152,6 +236,11 @@ async def field_historical_backfill(
     job_ids: list[str] = []
     scheduled: list[dict] = []
     tenant_id = req.tenant_id or main._REQ_TENANT.get()
+    # FINDING-009: استمرار المشاهد المُختارة في stac_item_registry (خلفيّة، best-effort).
+    if not req.dry_run and tenant_id and selected_scenes:
+        background_tasks.add_task(
+            _persist_selected_stac_scenes, str(tenant_id), list(selected_scenes)
+        )
     for scene in selected_scenes:
         # For Element84 Sentinel-2 COGs, build a VRT lazily in the background via the
         # same processing core contract. The direct job stores enough provenance to re-run.
@@ -183,7 +272,11 @@ async def field_historical_backfill(
             )
 
             # Reuse the same VRT/process path without issuing an HTTP subrequest.
-            async def _run_scene_job(jid=job_id, sc=scene, ind=indicator):
+            # v6-audit F3: دالّة **متزامنة** عمداً — جسمها كلّه I/O ثقيل متزامن
+            # (build_band_vrt + _run_processing، لا await). FastAPI يُشغّل مهامّ الخلفيّة
+            # المتزامنة في threadpool، بينما `async def` كان يُنفَّذها على حلقة الأحداث
+            # فيحجب باقي طلبات raster (tilejson/health) أثناء معالجة COG.
+            def _run_scene_job(jid=job_id, sc=scene, ind=indicator):
                 try:
                     import stac_vrt
 
@@ -240,6 +333,19 @@ async def field_historical_backfill(
 
             background_tasks.add_task(_run_scene_job)
             job_ids.append(job_id)
+
+    # v5-audit F8: ملخّص فحص backfill منظَّم — «job completed» الفرديّة لا تكشف نطاق
+    # الفحص (كم شهراً مُسِح · كم مشهداً اختير · كم مهمّة جُدولت) للتشخيص/التدقيق.
+    main.logger.info(
+        "historical_backfill_scan completed field_id=%s months_requested=%s months_scanned=%s "
+        "scenes_selected=%s jobs_scheduled=%s dry_run=%s",
+        field_id,
+        months,
+        len(windows),
+        len(selected_scenes),
+        len(job_ids),
+        req.dry_run,
+    )
 
     return {
         "field_id": field_id,
@@ -902,17 +1008,25 @@ async def field_tilejson(
     resolved_version = v or str(
         (layer or {}).get("created_at") or (layer or {}).get("cog_url") or "default"
     )
-    qs_parts = [f"index={out_index}", f"date={date}", f"resolved_date={resolved_date}"]
     # TileJSON is fetched by JS, but the returned tiles are loaded later as <img>
     # requests and cannot rely on axios headers. Propagate the tenant hint from the
     # already-validated request into the tile URL so restart/DB rehydration keeps
     # working for MapLibre/Leaflet consumers.
+    # urlencode بدل التسلسل اليدويّ: ``v`` قد يُشتقّ من cog_url (قد يحوي & / مسافات)
+    # فالتسلسل الخام يكسر سلسلة الاستعلام أو يحقن معاملات. urlencode يُرمِّز بأمان. v4-audit
+    from urllib.parse import urlencode
+
+    qs_params: dict[str, str] = {
+        "index": out_index,
+        "date": date,
+        "resolved_date": resolved_date,
+    }
     req_tenant = main._REQ_TENANT.get()
     if req_tenant:
-        qs_parts.append(f"tid={req_tenant}")
+        qs_params["tid"] = req_tenant
     if resolved_version:
-        qs_parts.append(f"v={resolved_version}")
-    qs = "&".join(qs_parts)
+        qs_params["v"] = resolved_version
+    qs = urlencode(qs_params)
     self_tiles = f"/v1/fields/{field_id}/tiles/{{z}}/{{x}}/{{y}}.png?{qs}"
 
     tj = {

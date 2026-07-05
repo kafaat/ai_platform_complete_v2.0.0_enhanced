@@ -3,7 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { login as apiLogin, register as apiRegister, acceptInvitation as apiAcceptInvitation } from '../services/api';
+import { login as apiLogin, register as apiRegister, acceptInvitation as apiAcceptInvitation, getCurrentUser as apiGetCurrentUser } from '../services/api';
 
 interface AuthUser {
   id?: number;
@@ -26,6 +26,10 @@ interface AuthState {
   loginDemo: () => void;
   logout: () => void;
   setTenant: (id: string) => void;
+  // يُعيد قراءة المستخدم الحاليّ من الخادم (GET /api/v1/me) — يُحدّث الدور بعد
+  // تغييره إداريّاً (يكمّل «أعضاء الفريق والأدوار»: الخادم يُبطل الجلسة، وهذا
+  // يجلب الدور الجديد فوراً بلا خروج/دخول). لا يُغيّر شيئاً في وضع التجريب.
+  refreshUser: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -114,6 +118,22 @@ export const useAuthStore = create<AuthState>()(
       setTenant: (id: string) => {
         sessionStorage.setItem('sahool_tenant_id', id);
         set({ tenantId: id });
+      },
+
+      refreshUser: async () => {
+        // وضع التجريب لا خادم له — لا نلمس الحالة (تفادي مسح مستخدم تجريبيّ).
+        if (get().isDemoMode || !get().token) return;
+        const me = await apiGetCurrentUser();
+        const prev = get().user;
+        const user: AuthUser = {
+          id: me.user_id ?? prev?.id,
+          email: me.email ?? prev?.email ?? '',
+          full_name: me.full_name ?? prev?.full_name,
+          role: me.role ?? prev?.role ?? 'farmer',
+          tenant_id: me.tenant_id ?? prev?.tenant_id,
+        };
+        sessionStorage.setItem('sahool_user', JSON.stringify(user));
+        set({ user, tenantId: me.tenant_id ?? get().tenantId });
       },
     }),
     {

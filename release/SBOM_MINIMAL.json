@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eddc036dd4f3b21c87075282053e3c746c20edab8a4ab8fd0bf780f5aa0cd13a"
+          "content": "f491b3386c85b9faf8d5dac349b2ab418e1a37b65694ce70c6b0c5c421fa3bea"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e80403baba7d44ded783abbd03982bb4fa64f46ac611ef2333c4ce89f21e7854"
+          "content": "463e5fcd8ae7f9550947bdfc68c5712db2dd95332c1d94d6bd0d088db54c26cb"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -575,10 +575,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8676c29ac39566dcd249b2124c907dd5bf16c312bb37dde26974bb52f3cd50f5"
+        }
+      ],
+      "name": "frontend/src/components/agrozones/AgroZonesPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "457f742f6069ea836f360fbcc56ba1a626a00cbe8bbd1755dfee73a358d3309c"
+        }
+      ],
+      "name": "frontend/src/components/calendars/YemeniCalendarPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a17d621f2fdf13ac819e287284d4800c9720b7c4a825fac2b745c4b21c2d6848"
+        }
+      ],
+      "name": "frontend/src/components/climate/ClimateAnalogsPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "186ca5e87fa32d7905a3705db0639cb4589c644f1cdd34b9ec32462881d06249"
+        }
+      ],
+      "name": "frontend/src/components/decision/DecisionDeepPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f860a2ace1b01aa21f0c4ee22b69a6cb95bb50868575ea9d4ac77f1cc680e7bc"
         }
       ],
       "name": "frontend/src/components/decision/DecisionInsightPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0930326ede3391f509a3c21e78935d40cdfe13ce3d4cd0fceae0f48e39ed457f"
+        }
+      ],
+      "name": "frontend/src/components/decision/RecommendationsLifecyclePanel.tsx",
       "type": "file"
     },
     {
@@ -745,6 +795,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e5b926e6308e2a4f91d6f97a67bfbaa2b9c6403dfd0fa6f37ac489e74c1f1296"
+        }
+      ],
+      "name": "frontend/src/components/fieldhealth/DateScrubber.grouping.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "872f8fa4a0aae48003245c865fd5c9ad872c34c41260eca211e4ed4c7d2ca558"
         }
       ],
@@ -855,6 +915,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0729456336432248b4692c247741258d917effeeb8c8858720982a81e880a0cb"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b8bd8700c193527ff3eb93249bf837f802403125a67c279f1a3e454a40c2ef86"
         }
       ],
@@ -869,6 +939,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/AgroKnowledgeCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c587e21439db69af3a5ea23c552f878dec5875712e23004ec516a81aba6a5ce7"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
       "type": "file"
     },
     {
@@ -905,10 +985,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "051bda143a2c573ae5222c816bf689e8936689dfcc41c81629bbf89c02bf2561"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/CropPropagationCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc1eef8837b6958d694af9ed947fcd2438e61dc8dcc98aeb6c66162f431018f8"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/CropSafetyKnowledgeCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f22391e4d77673131c45fb6af19ef64dfef4e1105b4fadf0bf714dc921a775c7"
         }
       ],
       "name": "frontend/src/components/fieldview/DiagnosticsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "25d77230e96df11d6f3b4ce54350db99eb1e463b3d8500db4a3cfc2373959dae"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
       "type": "file"
     },
     {
@@ -985,10 +1095,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7386c238c9605e756e9681e8568bdea8eb417cf125aeeb0bf6e5109b712d841f"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "74c11227d498647b968ee96e4a1ba9cc12bac677e339676d5f37644dcfd5075a"
         }
       ],
       "name": "frontend/src/components/fieldview/HarvestTraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "66d572f29e32ec4758a19e147f276954162514ce3be407c363461a72d44d52b5"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/IrrigationDecisionAidsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "58de5535102d524b4f318462e5b7bc6c8c340606b6ff52c04dcb46ccd4f43748"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/LearningEvidenceCard.tsx",
       "type": "file"
     },
     {
@@ -1045,10 +1185,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "321330b11a4dd364dd56ea38731a29dd26af5613564a83cf78d90289681ec3fd"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SpecialtyCropsCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "81eac276235d81c8e4be497f6e007d0efbb46c41318b762d7ad0ea161e0b4e44"
         }
       ],
       "name": "frontend/src/components/fieldview/TraceabilityCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d89e84f5b82e0d5af402e44afb14beadfcbf386588dc2b1c94daf1016301436"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
       "type": "file"
     },
     {
@@ -1269,6 +1429,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d418caa28ae8839879528beb6eaca74a5617364b7dab745909c0bb0dbc3228d"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts",
       "type": "file"
     },
     {
@@ -1915,6 +2085,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9ef6e4e11cca9f8af125f00e4d93b9153abfa7a9e2f0ffca2f517fe5a27d344d"
+        }
+      ],
+      "name": "frontend/src/hooks/useAgroAnalytics.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2e2ffde2adb1f1e8d7cde873e0111957a32af2faa055a3edbb6fa04f7d12502c"
+        }
+      ],
+      "name": "frontend/src/hooks/useAgroZones.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd453a108b9d2af0dc0052a89518d372043ec5cb14a1929e7a10bc53b7041cbf"
+        }
+      ],
+      "name": "frontend/src/hooks/useAgronomyConsistency.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "52e81293b53b2cb1817cb38a29882054eb3faeb39f440e0c8a92c8181b4653bb"
         }
       ],
@@ -1935,10 +2135,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf2f63ae201e03779fff5c0efb236cabd1f84eaba5c1144ed8581e674f5b7d55"
+          "content": "291ff26ace017e5df5257e16494c535b513ac8ac7c9114e93bedf5e69b55ffff"
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdf7e993cf9cc859ba7e8701bf1df7823bfff137f1c2d710cbe81c7e72b2d27b"
+        }
+      ],
+      "name": "frontend/src/hooks/useClimateAnalogs.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "811e32945fd1c33d12bb97b37eef4df32db7a297f5432e1bba1a53962e1c11b1"
+        }
+      ],
+      "name": "frontend/src/hooks/useCropPropagation.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f6e830e6185f84dd7d1fdf7cd66c48653db9a2741c9fcecca9458c15effea396"
+        }
+      ],
+      "name": "frontend/src/hooks/useCropSafetyKnowledge.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f263bcee14abbb68bdc2ed319e0d80b792092d217ecab69c920ba37d5c18052"
+        }
+      ],
+      "name": "frontend/src/hooks/useDecisionDeep.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "86f18644ffe4166e583318d0e0e3c8b7001359a29de35c5e6383fb9a9e1be307"
+        }
+      ],
+      "name": "frontend/src/hooks/useDistrictsWeather.ts",
       "type": "file"
     },
     {
@@ -1975,10 +2225,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "520602dcfaa11b99ca8612b875ce96c7ed9f83a246c9726c21a7e6f2f4b35735"
+        }
+      ],
+      "name": "frontend/src/hooks/useGisTemporalOps.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7c41f2859535a10af1db006535593cffae1f37afb7b035b7be04bdfa73924bf4"
         }
       ],
       "name": "frontend/src/hooks/useIndicators.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f493118b10c23c0a7ab12f4f8e8a4661b0f99a765fa908807e4f0206ce3904fb"
+        }
+      ],
+      "name": "frontend/src/hooks/useIrrigationDecisionAids.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "865487d840103f0ecf4a59630386c8507d39c67a7f7c816715794b2a0a2daf41"
+        }
+      ],
+      "name": "frontend/src/hooks/useLearningEvidence.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "59efa147d20f48b1d9a7af71b13dd28faef9e9b6194d4ad03b934260bdedbce1"
+        }
+      ],
+      "name": "frontend/src/hooks/useManagerConsole.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f72fbe6097531d9e22da927683895ba43871cf2d975038fdfa923e96b4d9f22"
+        }
+      ],
+      "name": "frontend/src/hooks/useRecommendationsLifecycle.ts",
       "type": "file"
     },
     {
@@ -2015,6 +2315,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f6e1c3fded790dd95b23ceb4d9e59e3fac886fdadaa455932fbf20a903bc3121"
+        }
+      ],
+      "name": "frontend/src/hooks/useSpecialtyCrops.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "864988187dff8d93560ef4c5e927cec300e4880d54fd9ddba1cbe76ecc4c40d4"
         }
       ],
@@ -2029,6 +2339,26 @@
         }
       ],
       "name": "frontend/src/hooks/useTheme.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10da9573dde6a19cdbd4b27902a3164cd9a8696b41324df9136582d47438f38e"
+        }
+      ],
+      "name": "frontend/src/hooks/useWaterFieldOps.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "666b4b6dff683c3eacd5a305a1e8000ff1c2c2ab5f7703bb0d34a6998bf799d9"
+        }
+      ],
+      "name": "frontend/src/hooks/useYemeniCalendars.ts",
       "type": "file"
     },
     {
@@ -2065,6 +2395,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2e338cf253c27fc760dee29221c1587217e09aa509bd3552200df05160fe0094"
+        }
+      ],
+      "name": "frontend/src/lib/agroAnalytics.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "837feb2937ea716d69fb1ce86f9a1c7c27684387761fa2a9cc7dfb8411ed5943"
+        }
+      ],
+      "name": "frontend/src/lib/agroAnalytics.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "658fa47857a50c147eb0e45813449bf58ebadbf65cb6e5938d2fbbcf3c9fd6d9"
         }
       ],
@@ -2079,6 +2429,26 @@
         }
       ],
       "name": "frontend/src/lib/agroCalculators.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e40a3b6bbf523ff7ae87b6de2d5152c25b3096dd27c8c3958c1701a67e22d306"
+        }
+      ],
+      "name": "frontend/src/lib/agronomyConsistency.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "366506567110eff9ea79eba68433d4a2a74106d817d4d2e9d9e6cdeb29f11693"
+        }
+      ],
+      "name": "frontend/src/lib/agronomyConsistency.ts",
       "type": "file"
     },
     {
@@ -2145,6 +2515,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "630d98fda14a1e6c55c8a94bd3f7d80d6532879c70b3954bebd864f63b70a037"
+        }
+      ],
+      "name": "frontend/src/lib/cropPropagation.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "768db35c0802992c2dc4624f56787427fdade8fc74330d4c1ee0dc9e31fbf2e0"
+        }
+      ],
+      "name": "frontend/src/lib/cropPropagation.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10112e75a10cfea9a1ccc52addd0a14e6245f0732e7f3094fe6a0c60a8439bfe"
+        }
+      ],
+      "name": "frontend/src/lib/cropSafetyKnowledge.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a4b40b6cefe87e5a24345999564256262306c7dcd3a68489ec8c5a02b946680a"
+        }
+      ],
+      "name": "frontend/src/lib/cropSafetyKnowledge.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4f2d1a9ff78c06e44788b4248b973d39e9d49fe80cb59d3122d9052d0b441446"
         }
       ],
@@ -2159,6 +2569,26 @@
         }
       ],
       "name": "frontend/src/lib/dates.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "65d9dcc774dc37c4d43a9688ddbe8646c933780728c32bd478895d83169777b8"
+        }
+      ],
+      "name": "frontend/src/lib/decisionDeep.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fcc695633f6cbfdae9dffa7d6f7d7306e88312ed4c92a6a063f9999a2b127888"
+        }
+      ],
+      "name": "frontend/src/lib/decisionDeep.ts",
       "type": "file"
     },
     {
@@ -2219,6 +2649,26 @@
         }
       ],
       "name": "frontend/src/lib/designSystemGovernance.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b27af72ae92656d41bcb5cdbc254fe1cea2e5729b06978666eb89a6262f1f2c3"
+        }
+      ],
+      "name": "frontend/src/lib/districtsWeather.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f2c5774a61ab2c0d74695408a66ca908a26c329b635bd0cbb7a0d2ddcac646da"
+        }
+      ],
+      "name": "frontend/src/lib/districtsWeather.ts",
       "type": "file"
     },
     {
@@ -2835,6 +3285,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c9379563de56eecea9e17f14eb89f110597454e3134c8ef98f0269fcc7ac03e2"
+        }
+      ],
+      "name": "frontend/src/lib/gisTemporalOps.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10281e7912fbc2997f7d8a9c4df10906f8249414e9bfa9d9ad54272d3199672b"
+        }
+      ],
+      "name": "frontend/src/lib/gisTemporalOps.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2d6782b20b6d840e0b020380ac7bc3d1778a47bc9be552c1a3a3333110c969e2"
         }
       ],
@@ -2869,6 +3339,26 @@
         }
       ],
       "name": "frontend/src/lib/globalScaleRuntime.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "931b5bcf6975ee6025610487e3152dbab724dc3863f68166d97437876c601a61"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationDecisionAids.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab14351ce08f725891e493335a3656ef31baf31bdbe8c07753eb0a52ff68fa6d"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationDecisionAids.ts",
       "type": "file"
     },
     {
@@ -2955,6 +3445,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7d772cfbbfe42d6f5b69a2b4bba670d9f0cef8e1935f77644401921f8f820100"
+        }
+      ],
+      "name": "frontend/src/lib/learningEvidence.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5bb22308f6d528f36f9912a776c6a5c8fe0207a21f70dc1e10135b998dad04b9"
+        }
+      ],
+      "name": "frontend/src/lib/learningEvidence.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4d8adddf2d5078ec4fb354bec13cb0388b107f564a5565e9d70ee04a67b87682"
         }
       ],
@@ -2969,6 +3479,26 @@
         }
       ],
       "name": "frontend/src/lib/ledgerEntry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "937f1e97c55cfe08b9e93762bb02b28837e2da05785bc0fde12c06b115439372"
+        }
+      ],
+      "name": "frontend/src/lib/managerConsole.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32af2bef4b2b771f51ebe8d5fac458226c00178553e66327973500503bfe7bbf"
+        }
+      ],
+      "name": "frontend/src/lib/managerConsole.ts",
       "type": "file"
     },
     {
@@ -2995,7 +3525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "263fa4c0e77dacd214496f7be0e27a7103b001fa702c30aab1f9af80d580b2d0"
+          "content": "6b6287bef07d44bee4fd6845bc76842ba35e8b78e0ffe4ff657c4dc46f850d32"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -3055,6 +3585,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "939bc21ac093c707cc0ce496ed7bcc18334841ae658df2558da1c3597c69db39"
+        }
+      ],
+      "name": "frontend/src/lib/recommendationsLifecycle.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad3996c77141ad743fdab58265d41a4e9df3d5d6b51513c0880624e9faf4051e"
+        }
+      ],
+      "name": "frontend/src/lib/recommendationsLifecycle.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "326d84de1afc2e08e8351e215a34e97fab141f409271c775fb4eeded33474c63"
         }
       ],
@@ -3075,7 +3625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd23ac06e2d57b1434dfaaf79aa127c8f4538d06563479170a46c5321c1fbbf9"
+          "content": "cdf5447055f98ea97e30ff433e2b46f90873bb93cafba1566c1fde198dbee6cf"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -3125,6 +3675,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "07cddd25e0f408cc35005c1e7e6e6a09626cea5ac5311ada569975ee8122ca15"
+        }
+      ],
+      "name": "frontend/src/lib/specialtyCrops.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "68b50fa517b385bd28bb5097cd1781e1e3f7614ef48b5d54b9336914a7091043"
+        }
+      ],
+      "name": "frontend/src/lib/specialtyCrops.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d33ea8f1da1483ff264af9e917897c03bdcdff31c98b463fc33bc81096fdde16"
         }
       ],
@@ -3139,6 +3709,26 @@
         }
       ],
       "name": "frontend/src/lib/sqlHistory.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1199ce52205dcfd3115aad9237d74891ced1dee662fb29bb002dec317763411"
+        }
+      ],
+      "name": "frontend/src/lib/waterFieldOps.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46df8fc862e474485a12dd3242001205e117bba491f18ff445de173e4813cfe1"
+        }
+      ],
+      "name": "frontend/src/lib/waterFieldOps.ts",
       "type": "file"
     },
     {
@@ -3485,7 +4075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d4b31121ed94c0f134d40dcf100e2afa7fe36a38ddfce133b2abca05f46ebbc"
+          "content": "eaf391570f2efc6cd21a9cb7ba5d642b949b0abf8b30afcadaa06b0a43ce8941"
         }
       ],
       "name": "frontend/src/sections/DecisionRuntimePage.tsx",
@@ -3895,7 +4485,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e0b5d82a753cee424833d5969ab0d30530d6a017d69c5d07aed4a9c453703c6"
+          "content": "1a783503f6ac8263b1949a7f2f177ec9affca4c60b32d5d84ac8f296390d40ef"
+        }
+      ],
+      "name": "frontend/src/sections/ManagerConsolePage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8bff71a597703a90b13b2211aba1c7818772a4ae4d69035281342c65791a19e0"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4225,7 +4825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1eb2ffddbc317562fffa9bf0691bf776218a3c1c357f1a0977a8d65761043d3d"
+          "content": "3613655f5878b996cd182538d46c50ebe8124d6d4169439afcd4173726d68d10"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
@@ -4325,7 +4925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6fd852fbd009d6ce7acd95f7f000ee730c19cefaf159f914842c85a2d5d1c38"
+          "content": "d987f9987b1a46b859c7127a44807b5192a659e37b2772870735382be7f007c1"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -4445,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "abf8ffd4ed68d8874e8d8e14e013bd251508e54fae9b66d4548770eb4c8613a7"
+          "content": "9ea0c7ce00c47f4d393e3631d5d02f966504a4f3125660ba741a142faf0eaca3"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -4939,6 +5539,36 @@
         }
       ],
       "name": "migrations/v141_mfa_totp_antireplay.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3582dbd9f72355adc580a3c021311b13ec952d50337fb980b1158f26a817827a"
+        }
+      ],
+      "name": "migrations/v142_raster_assets_dedup_traceability.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46c834e76c12a71a405cb5596a01c680d1f9a1f58eec88b6940cdfc196247718"
+        }
+      ],
+      "name": "migrations/v143_raster_assets_lifecycle_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9662e26a9bb8014276452109396f416f8271307778c32aae77427e4fc476fd17"
+        }
+      ],
+      "name": "migrations/v144_backfill_runs.sql",
       "type": "file"
     },
     {
@@ -5975,7 +6605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5714eaa8055f10870c92c156636eccb82eac437e16da38f563cceeb73b0ba74"
+          "content": "b6d6f3eee7ac51189e587fa75e99bd18b2adb20c55d13bac4e83d621bfee05f7"
         }
       ],
       "name": "migrations/validate_migrations.py",
@@ -8105,10 +8735,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b59473f4651740df7b9056139cb471026cab9c069f5e9e808c7d318c93a9cb76"
+        }
+      ],
+      "name": "services/raster-service/backfill_scan_worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1aa02e3c71fc8c193d6244ec5c989d7035ec181be386df637fec12ad03d3a174"
         }
       ],
       "name": "services/raster-service/band_math.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd17f68d7ee9a596e87ca8cea607c0ee678575e8a685c7a1924eda997f8577ea"
+        }
+      ],
+      "name": "services/raster-service/cache_invalidation_worker.py",
       "type": "file"
     },
     {
@@ -8145,7 +8795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7638aafdba1f825fe48b84aa68024f60154c24d7846911d3c72b14fb74e85119"
+          "content": "4606c037dd3532b4498bd89fbf0ebc3d3e83e86fba94a3e13a24148ef3b7f7cb"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -8155,7 +8805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2551a0002ebb32bb8b4caa93151323828bbc4b7a438171bf33e06eaa69c2d90a"
+          "content": "f4a182ecdd66edd5183d7301bcdd5a2bb8fd95636bcbc923246920ed65121d38"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8195,7 +8845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fb14bf7301df36253ebfc7d38973743969f77537b7e68d901c4e8a2de417e43b"
+          "content": "d19b1f3ea5bb4116a88235a5f478853f4955745d10684d223c966be9438a6bda"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -8215,7 +8865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbedd2c2feb3708e7674b53d727a22832d5c890ec569d0629057bdd2996e4ba8"
+          "content": "5b4d12ed710195127925357ef346846980f370c411a764d9e126cc3b815dc168"
         }
       ],
       "name": "services/raster-service/object_store.py",
@@ -8295,7 +8945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43cfed5dea1e8ffd3c860f03c1b0936674222039a0e55eda11ff217bef70bd8d"
+          "content": "2ad98eb001f236fbfb66db823e633cea2e70c5528766557c00e31e9412cfc57e"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -8305,7 +8955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c761a1922f97eadf08ebed371ab01571a92df60737a52805655854c9659cb16e"
+          "content": "15bbb34208329046291940ed2a5afdfea75fc165d4d4d1ff4bf2dde72424b532"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -8435,7 +9085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82945d0fe8b406455b4456e7b96ec1f2932eb2b3e910b218f750245b68cc9096"
+          "content": "81af876f94b56d2d0234ab44d55991e8eac7cf88ca291eac5d108490928beba2"
         }
       ],
       "name": "services/raster-service/stac_client.py",
@@ -8455,7 +9105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae4e17da6377c855e81e5421be61937710a9927094fbfdbe0452a64de655f647"
+          "content": "5b3ece62940f38c9dbf8181764bec3d4561b8b508c7f0c35d5b1751ff257c226"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -8555,7 +9205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b69ea58df1e97ea83d91fe905558fd4c6ed4043b6e6283777cc20383ca91223c"
+          "content": "ca86c45ad387fed2dbe0e70595884f247ef97636234513dba2671c6ef5ccb77d"
         }
       ],
       "name": "services/raster-service/test_db_rehydrate.py",
@@ -8635,6 +9285,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bcb0e016605e04efe83dae98df4b77ede6ee64032be560d08e21178bf8a6b1df"
+        }
+      ],
+      "name": "services/raster-service/test_raster_honest_envelopes_20260705.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9beea6ba1d508f95266f88bc4370cddf73692385174cd65fb689ce670dd2e88f"
         }
       ],
@@ -8689,6 +9349,16 @@
         }
       ],
       "name": "services/raster-service/test_tiles.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3b42c0c9d85c06dfe8eb3baa7a441f0e6af1fee46163b4441a503bd2a0a6720"
+        }
+      ],
+      "name": "services/raster-service/tile_cache_maint.py",
       "type": "file"
     },
     {
@@ -9785,7 +10455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c148802885a1ac5a8b54cf1520d510107307bd64ee7cfc6372e42a4b5e90822"
+          "content": "a0a727681dec116c085a77b02e326cfded55de7365415be4ed9aa84135ddc666"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -10235,7 +10905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39d981a9b523ee37eec3109041dfa9037ed5988a7649bbe148ea6c6015a8bfb2"
+          "content": "820298fc8f5468447f1235c193ff9dbb3103a49ebffd074d9f00607b04fc0849"
         }
       ],
       "name": "services/sahool-platform/api/requirements.txt",
@@ -10925,7 +11595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "520dc58519e46f089bb8616c9dfcb6cc405b1efc8acbfd9560e6dabce04ae55f"
+          "content": "355d15301968023370db75b2ad345bb6b067f69b4c29506abf6966253c50dfa0"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -15095,6 +15765,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4ad2f16fb24adb1b5f35210d17d83fd35ad3c852ab929ef3023aa0738ce08635"
+        }
+      ],
+      "name": "services/sahool-platform/tests/_public_read_allowlist.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "159dfdc44640c8da3d36a041b496ab1ff430fde3591f8a63206bfe7a1c092e6e"
         }
       ],
@@ -17309,6 +17989,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_review_fixes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "386979cac0b7ba8481822430384b79a9bae57f63dda691f692efc0720fa52414"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_route_auth_matrix_guard.py",
       "type": "file"
     },
     {

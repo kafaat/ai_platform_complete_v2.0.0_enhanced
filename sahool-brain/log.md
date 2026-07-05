@@ -4,6 +4,148 @@
 
 ---
 
+## 2026-07-05 (ن-40) — تدقيق صور الأقمار v2: إصلاح latest البائت (FINDING-001) + تصفية التواريخ بالمؤشّر (006)
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تدقيق أعمق — نتائجه حقيقيّة؛ عولج الأخطر والأكثر أماناً:
+
+- **FINDING-001 (High، أعاد المدقّق إنتاجه):** بعد ترطيب تاريخ محدّد من `raster_assets`، معرّف الطبقة `db_{field}_{index}` **غير مخصّص بالتاريخ** ⇒ طلب `latest` لاحقاً يجد الطبقة القديمة في الذاكرة ويُعيدها كأحدث بلا استشارة القاعدة (خريطة تُظهر صورة قديمة والنظام يبدو سليماً). **الإصلاح:** استخراج `_rehydrate_field_layer_from_db` بمعرّف مخصّص بالتاريخ `db_{field}_{index}_{acq}`؛ و`_resolve_field_layer('latest')` يستشير القاعدة ويختار الأحدث acquisition_date بين الذاكرة والقاعدة. حارس انحدار يُعيد سيناريو المدقّق حرفيّاً (2026-05-01 ثمّ latest ⇒ 2026-06-10).
+- **FINDING-006 (Med/High):** الواجهة كانت تطلب `/available-dates` بلا `index` وتُسقط `indices` ⇒ قد يُعرَض تاريخ «جاهز» لمؤشّر آخر فتظهر بلاطة شفّافة. **الإصلاح:** `fetchFieldImageryAvailableDates(fieldId, index?)` يمرّر المؤشّر + يحفظ `indices[]`، وMapHub يعيد الجلب عند تغيّر المؤشّر + تصفية دفاعيّة على العميل.
+- **مُنجَز سابقاً (v142، المدقّق على أرشيف أقدم):** FINDING-002 (dedup unique index + ON CONFLICT) · FINDING-003 (processing_job_id يُمرَّر ويُدرَج).
+- **مؤجَّل بصدق (يحتاج عاملاً/معماريّة، لا نصف حلّ):** FINDING-004 (ربط geometry_revision) · 005 (عامل استهلاك raster_cache_invalidations) · 007 (سلوك auto-refresh) · 008/009 (جسر registry + STAC) · 010 (احتفاظ كاش) · 011 (asset status).
+
+**تحقّق:** tsc نظيف · vitest **1043** · pytest -m unit **2551** · بوّابة الإنتاج PASS · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-05 (ن-39) — إصلاح بوّابة الإنتاج: v142 نُقِص من run_migrations.sql (منظومة ترحيل ثانية)
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). بوّابة الإنتاج فشلت (رمز 1): `v142_raster_assets_dedup_traceability.sql is missing manifest entries`.
+
+- **الجذر:** المستودع يملك **منظومتَي ترحيل متوازيتين**: `migrations/MANIFEST.txt` (أضفتُ v142 إليها) و`scripts_v9/run_migrations.sql` (psql `\i` بنفس الترتيب) — والبوّابة تتحقّق من تطابقهما. أضفتُ v142 لـMANIFEST دون run_migrations.sql فاختلّ التطابق.
+- **الإصلاح:** أُضيف v142 كمدخل #148 في `run_migrations.sql` بنفس النمط. البوّابة الآن **PASS كاملةً** (148 migration · RLS · legacy quarantine · source-of-truth · certification matrix · compile 3282/0).
+- **حارس جديد `test_migration_runners_in_sync`:** unit يلتقط أيّ ترحيل في MANIFEST غائب عن run_migrations.sql محلّيّاً قبل CI/البوّابة — كي لا يتكرّر (الدرس: أيّ ترحيل جديد يُضاف للمنظومتين معاً).
+
+**درس تشغيليّ (مثل f9dc4c8 سابقاً):** *Sahool Production Gates* سير عمل منفصل يعمل على main فقط ولا يظهر في فحص الفرع — بعد أيّ ترحيل: `bash scripts/production_validation_gate.sh` محلّيّاً قبل اعتبار main نظيفاً.
+
+**تحقّق:** بوّابة الإنتاج PASS · pytest -m unit (migration/manifest/raster) أخضر · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-05 (ن-38) — تدقيق صور الأقمار: idempotency + تتبّع raster_assets (v142)؛ إصلاح اختبار المستأجِر
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تدقيق عميق عالي الجودة على تخزين الصور التاريخيّة — نتائجه حقيقيّة، عولجت الأعلى قيمةً والأكثر أماناً:
+
+- **P0-2 (تكرار):** `raster_assets` بلا قيد تفرّد ⇒ إعادة تشغيل backfill تُراكم صفوفاً مكرّرة. **v142:** فهرس فريد جزئيّ `uq_raster_assets_scene_product` (tenant/field/index/date/scene/cog، على غير الفارغ فقط) + حذف تكرارات قائمة (يُبقي الأحدث) + `insert_raster_asset` صار **ON CONFLICT DO UPDATE** (يُحدِّث الجودة/الأصل بدل الإدراج المكرّر).
+- **P0-3 (تتبّع):** العمود `processing_job_id` كان يُستعلَم في `layer_owner_tenant` لكنّه لا يُملأ (فيسقط إلى ILIKE هشّ على مسار COG). الآن يُمرَّر من `_run_processing`→`_persist_raster_asset`→الإدراج + فهرس `idx_raster_assets_processing_job`.
+- **P2-2 (اختبار بائت):** `test_db_rehydrate` كان يُدرِج `tenant_id=None` بينما قراءات الإنتاج تُرشِّح بـuuid ⇒ صحّح إلى مستأجِر UUID حقيقيّ + ترويسة `X-Tenant-Id` (يعكس واقع الإنتاج).
+- **مؤجَّل بصدق (أوسع، follow-up):** جسر `raster_assets`→`raster_registry` (P0-1) · عامل استهلاك `raster_cache_invalidations` (P1-2) · سياسة احتفاظ كاش البلاطات (P1-3) · ربط geometry_revision (P1-1) — عمل معماريّ يحتاج مستهلكاً/عاملاً، لا يُنجَز نصفاً. حارس v142 ساكن جديد (3 تأكيدات).
+
+**تحقّق:** pytest -m unit **2549** أخضر · حارس v142 3/3 · validator أخضر (v142) · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-05 (ن-37) — تدقيق DB/هجرات: إصلاح أمر helm الميّت + تحذير .down.sql؛ دحض الباقي
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). فُرزت نتائج تدقيق القاعدة/الهجرات:
+
+- **مُصلَح (حقيقيّ):** (١) `helm/sahool/values.yaml` كان أمر مهمّة الترحيل `python -m api.migrations.run` — **وحدة غير موجودة** ⇒ مهمّة k8s تفشل. صُحِّح إلى `scripts_v9/migrate.py up` (المُشغّل الفعليّ backed by MANIFEST) + `migrate.py._db_url` صار يقبل `JOBS_DATABASE_URL` (helm يمرّره باسمه) + حارس `test_helm_migration_command_valid`. (٢) `validate_migrations.py` كان يُبلّغ `.down.sql` (سكربتا تراجع v9) كـ«على القرص وليست في MANIFEST» — استُثنيا (ليسا في الترتيب الأماميّ عمداً).
+- **إيجابيّات كاذبة (دُحِضت):** تحذير `v18 ON CONFLICT(dedup_key)` — هدف فهرس جزئيّ فريد (`WHERE dedup_key IS NOT NULL`) معرَّف في ملفّ آخر؛ الفاحص الحدسيّ يمسح ملفّاً واحداً ويُرجِع 0 (غير حاجب). · تحذيرات BYPASSRLS كلّها سياق دور المهامّ المقصود (تعليقات/الحارس/apply_in_compose) — تصنيف WARN لا FAIL بأداة المدقّق نفسها. · `fixed.yml sahool_user×9` تطوير-فقط محروس بطبقتين (سبق دحضه). · `api_migrations_run_exists=False` هو نفسه بند helm المُصلَح.
+
+**تحقّق:** pytest -m unit **2546** أخضر · حارس helm 2/2 · validator بلا تحذير .down · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-05 (ن-36) — إغلاق البند #4 من التدقيق: مصفوفة تفويض المسارات الرسميّة
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). البند الوحيد من التدقيق الذي وصفته «عمل مستقبليّ» أُنجِز:
+
+- **الحقيقة المحسومة:** مسح المدقّق النصّيّ («decorators بلا Depends محلّيّ») إيجابيّ كاذب — لم يحلّ تفويض الراوتر/الشجرة. المصفوفة مولَّدة من **شجرة تبعيّات FastAPI الفعليّة**: **197 مُطفِّرة** (194 user-auth · 1 service-token · 2 عامّة = login/signup فقط — **صفر مكشوف**) · **286 قراءة** (179 user-auth · 4 service-token · 103 عامّة).
+- **الـ103 قراءة عامّة كلّها مرجعيّة/معرفيّة/طقس بلا بيانات مستأجِر** (تقاويم · أقاليم · أدلّة محاصيل · IPM · إكثار · Open-Meteo · تركيب نقيّ `field/operational-state` بمدخلات query لا قراءة قاعدة — تُحقّق منه).
+- **مُنتَجات:** `docs/api/ROUTE_AUTH_MATRIX.md` + مولّد `scripts/ci/gen_route_auth_matrix.py` + **حارسان:** القائم `test_all_mutating_endpoints_require_auth` (fail-closed للمُطفِّرة) + جديد `test_public_reads_match_reviewed_allowlist` (يمنع تسرّب قراءة مستأجِر جديدة كـ«عامّة» بصمت عبر allowlist مُراجَع).
+
+**تحقّق:** الحارسان يمرّان على التطبيق الحقيقيّ · pytest -m unit **2544** أخضر · ruff نظيف.
+
+---
+
+## 2026-07-05 (ن-35) — تدقيق جنائيّ خارجيّ: إصلاح مظروفَي صدق حقيقيَّين + دحض الإيجابيّات الكاذبة
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). دقّق المستخدم أرشيف `a3d6023`؛ فُرزت نتائجه:
+
+- **مُصلَح (حقيقيّ، يخالف عقد «لا اختلاق»):** (١) `cog_writer.write_cog(None, …)` كان ينهار بـ`NoneType.shape` بدل مظروف — أُضيف تحقّق مدخل ⇒ `{written:False, reason}`. (٢) `terrain.compute_slope_aspect('/missing')` كان يرفع `RasterioIOError` بدل `{computed:False, reason}` — أُضيف `os.path.isfile` + التقاط `RasterioIOError`. حارس `test_raster_honest_envelopes_20260705` (2 تمرّان).
+- **إيجابيّات كاذبة (دُحِضت بالكود):** «footgun المستأجِر في fixed.yml» — الإنتاج `docker-compose.v9.yml` فيه **صفر** `sahool_user`؛ و`fixed.yml` تطوير-فقط موثَّق ومحروس بطبقتين: ساكن (`test_compose_env_bypass_guard`) وتشغيليّ (`db_role_guard.assert_db_role_rls_safe` يرفع RuntimeError على BYPASSRLS في الإنتاج). المدقّق لم يُشغّل الحُرّاس (`make verify-static` انتهى وقته). · `VITE_MOCK_MODE` افتراضه `false` (mock في وضع التجريب الصريح فقط). · الإعفاءات الـ28 كلّها `intended_consumer=machine` (operational 23 + admin-ops 5) — مطابق لشرط المدقّق نفسه. · فشل npm ci بيئيّ (بيئة المدقّق) — CI عندنا يُثبت تثبيتاً نظيفاً + typecheck + vitest.
+
+**تحقّق:** pytest -m unit **2544** أخضر · حارس المظاريف 2/2 · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-05 (ن-34) — إغلاق نهائيّ: صفر دَين واجهة (العقد 438 core)
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). النقاط الثلاث الأخيرة الموثَّقة بُنيت بواجهات حقيقيّة لا مؤجَّلة:
+
+- **اتّجاه نبات-تربة متعدّد المواسم** (`POST /api/v1/agro/plant-soil-feedback/trend`): في `AgroAnalyticsCard` — يلتقط مؤشّرات الموسم الحاليّ كلقطة في سلسلة زمنيّة (الأقدم→الأحدث)، «احسب الاتّجاه» يستدعي النقطة (يحتاج موسمين+) ويعرض الاتّجاه/المحرّكات/الحُكم من الخادم حرفيّاً.
+- **سلسلة طقس زمنيّة للبلاطة** (`GET /api/v1/weather/tile-series/{z}/{x}/{y}`): في `DistrictsWeatherCard` — النقطة تُرجِع **JSON** (قيم طبقة عبر إزاحات ساعيّة) لا صور، فعُرِضت كسلسلة قيم مع مُساعِد `lonLatToTile` نقيّ يشتقّ البلاطة من إحداثيّات الحقل (+اختباران).
+- **تهيئة مستأجِر** (`POST /auth/tenants`): في `ManagerConsolePage` (تبويب العمليّات) — إنشاء مؤسّسة + أوّل مالك (admin المنصّة؛ الدور owner يُفرَض خادميّاً، رابط إعادة تعيين يُعرَض مرّة، 403 لغير admin بصدق) + `provisionTenant` عبر authApi.
+- **العقد: 438 core + 28 إعفاء — كلّها admin-ops/operational (machine).** **backlog-ui = 0:** كلّ قدرة backend مواجِهة للمستخدم لها الآن قارئ واجهة. بدأ اليوم بـ24 endpoint ملزَماً.
+
+**تحقّق:** tsc نظيف · vitest **1043** · pytest -m unit **2544** · البوّابتان PASS · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-05 (ن-33) — سداد شريحة P3-منخفض كاملة (50 مساراً): العقد يبلغ 435 core
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). سابع (وأخير) دفعة وكلاء (R/S/T/U، اُستؤنفوا من نُسَخهم بعد حدّ جلسة بلا إعادة عمل):
+
+- **وكيل R — «المعرفة الزراعيّة الاختصاصيّة»:** ملاءمة المحاصيل + تركيب حالة (dry-run) + الإكثار الخضري/الأصل + الأساليب المحسّنة + صمود الجفاف + تقييم البذار + استراتيجيّة العيّنات (11 مساراً، 22 اختباراً).
+- **وكيل S — «GIS/الزمن/المحاكاة»:** عمليّات نواة GIS الهندسيّة (validate/buffer/split/union خلف `FEATURE_GIS_KERNEL`) + التحكيم الزمنيّ + ماذا-لو + مخاطر المرحلة + إعادة البناء + رابط النَّسَب (`FEATURE_UNIFIED_LINEAGE`) + تحليل التجارب (11 مساراً، 16 اختباراً).
+- **وكيل T — «التعلُّم والدليل» (إرشاديّ صرف):** تفعيل التعلُّم + معايرة التنبّؤ + مزج سابقة + اقتراح عتبات + تغذية راجعة معايرة + تسجيل مشاهدة + طبقات الخريطة + تغطية المؤشّرات + تظافر القرائن + بوّابة الثقة (10 مسارات، 22 اختباراً). **تصحيح صادق:** `calibration/feedback` حساب نقيّ (`auto_adjust:false`) لا كتابة — عُرِض كقراءة لا نموذج إرسال.
+- **وكيل U — «كونسول المدير» (صفحة `/admin/manager-console`، canManage):** اقتصاد الجدوى + فئات التكلفة + تكاليف الحقول + إسقاطات الدفتر (ERP/مخزون/autowrite) + بناء التقارير + RBAC (مصفوفة/من-يستطيع/معاينة تغيير دور) + جاهزيّة تصنيف السوق + فجوة المحاصيل + أوامر عمل من توصية + توليد مفتاح مشاركة + الإعدادات + دليل لقطة كاميرا + جاهزيّة البيانات + فحص الإخفاقات (18 مساراً، 16 اختباراً).
+- **العقد:** 50 ترقية ⇒ **435 core + 31 إعفاء**. **لم يبقَ إلا 3 دَين واجهة مُوثَّق** (لم يُختلَق له UI أجوف): اتّجاه نبات-تربة متعدّد المواسم · مصدر بلاطات طقس زمنيّة (طبقة خريطة) · تهيئة مستأجِر (`/auth/tenants`، admin). بدأ اليوم بـ24 endpoint ملزَماً.
+
+**تحقّق:** tsc نظيف · vitest **1039** (141 ملفّاً) · pytest -m unit **2544** · البوّابتان PASS · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-05 (ن-32) — سداد شريحة P2-متوسّط كاملة (32 مساراً) + إصلاح تعارض httpx/pip-audit
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). سادس دفعة وكلاء (O/P/Q) + إصلاح تبعيّات:
+
+- **وكيل O — «المحاصيل المتخصّصة والتوقيت التراثيّ»:** عالية القيمة/متخصّصة/عطريّة/أعلاف (list) + بطاقة الإدخال وملاءمة الحقل + تخطيط البستان واقتصاده + النجوم/التقويم الثقافيّ/الإقليميّ (12 مساراً، 19 اختباراً).
+- **وكيل P — «المديريّات والطقس والتهيئة»:** فهرس المديريّات + بطاقتها + آفاتها النشطة شهريّاً + توصية الموقع + ملخّص طقس الحقل + تحليلات السجلّ + دليل الزراعة + استبيان التهيئة (9 مسارات، 29 اختباراً).
+- **وكيل Q — «اتّساق البيانات والدورة وWOFOST والعمليّات»:** فحوص الاتّساق (ريّ + نضارة) + تقييم الدورة ومبادئها + تكيّف WOFOST + الحالة التشغيليّة + توصية ريّ + تحسين المحفظة + التحقّق من الهندسة + تقرير عمليّة CSV (مدير) (11 مساراً، 17 اختباراً). كشف Q إدخالاً وهميّاً في السجلّ (`rotation/evaluate` كان `covered` بلا قارئ — صار حقيقيّاً الآن).
+- **إصلاح تبعيّات (بلاغ المستخدم):** pip-audit المُوحَّد فشل ResolutionImpossible — `sahool-platform/api` وحده يثبّت `httpx==0.27.0` بينما 15 خدمة تطلب `>=0.27.0` وanthropic يقبل `<1,>=0.25`. لُيِّن إلى `>=0.27.0` (اتّفاقيّة المسار الحرِج) ⇒ «No known vulnerabilities found». تعارض حارسَين: SEC-6 (حارس التثبيت) حُدِّث أساسه بوعي موثَّق.
+- **العقد:** 32 ترقية ⇒ **385 core + 81 إعفاء** — لم يبقَ إلا **P3-منخفض**. تصحيح دليل الواجهة للمسارات ذات المعامل (`/districts/${...}`).
+
+**تحقّق:** tsc نظيف · vitest **963** (137 ملفّاً) · pytest -m unit **2544** · البوّابتان PASS · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-04 (ن-31) — سداد شريحة P1-عالٍ كاملة (30 مساراً): 3 وكلاء + شريحتي المباشرة
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام + `78f6d4a` الجزئيّ قبله). خامس دفعة وكلاء اليوم:
+
+- **شريحتي المباشرة (`78f6d4a`):** «أعضاء الفريق والأدوار» في الإعدادات — `PATCH /auth/users/{id}/role` كان بلا أيّ واجهة (الدعوات تحدّد الدور عند الدعوة فقط) وجمهوره في الخريطة كان خاطئاً (farmer ⇒ **admin**: `require_role("admin")` + step-up MFA يظهر حقله عند 403 ويُعاد الإرسال بـX-MFA-Code) + تعطيل الحساب بتأكيد يقول الحقيقة: «لا إعادة تفعيل من الواجهة» (لا مسار خلفيّاً — لا زرّ مُختلَق).
+- **وكيل L — «سلامة المدخلات ومعرفة المحاصيل»:** فحص كيميائيّ بحكم الخادم حرفيّاً (زرّ صريح لا كتابة حيّة — الاسم الجزئيّ يضلّل) + المحظورات + تقويم الزراعة + آفات التخزين + عالية القيمة/المتخصّصة + مرشّحو الإدخال (8 مسارات، 17 اختباراً).
+- **وكيل M — «التحليلات الزراعيّة-البيئيّة»:** مخاطر/دورة/playbook + سلسلة Kc لحقل + مقارنة **موسمين** (سمّاها بصدق كما يدعم الخادم لا «حقلين») + نبات-تربة + مقارنة مواسم + تصعيد + نسب أصل الحقل (9 مسارات، 18 اختباراً). استبعد `POST kc-timeseries` (كتابة IRRIGATION_MANAGE) — **أكملتُه أنا**: نموذج «حفظ Kc لموسم» (upsert؛ الفارغ يُحفَظ NULL) فرُقّي بحقّ لا بتصنيف زائف.
+- **وكيل N — «عمليّات الماء والحقل»:** إجهاد/نصيحة متكاملة (استدعاء واحد لا مزدوج) + تقويم القمح + ميزان FAO-56 (قرار الملوحة يظهر كما يقرّره الخادم) + سيول واردة + تحليل ماء المختبر + تنبيهات/طبقات الطقس + خطّة 4R + `outcome/record` (كتابة صادقة) + geo-locate (11 مساراً، **39 اختباراً**).
+- **العقد:** 30 ترقية ⇒ **352 core + 114 إعفاء** (تبقّى P2/P3 فقط). درس متكرّر: انقطاع حدّ الجلسة أثناء دفعة وكلاء يُستأنف بـSendMessage من نفس النسخ — صفر إعادة عمل.
+
+**تحقّق:** tsc نظيف · vitest **898** (134 ملفّاً) · pytest -m unit **2544** · البوّابتان PASS · ruff نظيف · الحزمة مُتحقَّقة.
+
+---
+
+## 2026-07-04 (ن-30) — سداد شريحة P0-الحرِجة كاملة (21 مساراً) بثلاثة وكلاء متوازين
+
+**رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). دفعة الوكلاء الرابعة اليوم (قطعها حدّ الجلسة 23:10 UTC واستُؤنفت من نُسَخها بلا إعادة عمل):
+
+- **وكيل I — «القرار العميق» (`DecisionDeepPanel` في كونسول تشغيل القرار):** unified · for-location · explain · economics · policies/resolve · record · **dispatch/execute المحروس** (تأكيد مكتوب «نفّذ» + حكم الخادم/halt_breaches/replayed حرفيّاً). **استبعاد صادق:** `dispatch/consume` مستهلِك طابور آليّ (`FOR UPDATE SKIP LOCKED`، decision_dispatch.py:403) — أُعيد تصنيف إعفائه operational/machine/priority:none. صحّح طرق HTTP عن خريطة الدَّين (economics/explain = GET).
+- **وكيل J — «دورة حياة التوصية» (`RecommendationsLifecyclePanel`):** engines · capacity-profiles · candidates · economic-adaptation · outcomes (كتابة-فقط: «النتيجة مجهولة حتى تُقاس»). لطيفة عقد FastAPI: candidates/economic-adaptation جسمهما مصفوفة خام والعدديّات query.
+- **وكيل K — «مساعدات قرار الريّ والعيّنات» (`IrrigationDecisionAidsCard`، FieldView خبير):** confidence/{ndvi·irrigation} (حكم الخادم «safe_for_action» كما هو) · moisture-decision (RWC + disclaimer) · soil-types · irrigation-method/gross (calibrated:false ⇒ تحذير) · water-sensitivity/crops · soil-sampling/{protocol·depth·subsamples}.
+- **العقد:** المسارات الـ21 رُقّيت من الإعفاءات إلى core ⇒ **320 core + 146 إعفاء** (backlog-ui 121 · operational 20 · admin-ops 5)؛ خريطة الدَّين حُدّث رأسها؛ P1 هي الشريحة التالية.
+
+**تحقّق:** tsc نظيف · vitest **824** (57 اختباراً جديداً) · pytest -m unit **2544** · البوّابتان PASS · ruff نظيف · الحزمة مُتحقَّقة (3060).
+
+---
+
 ## 2026-07-04 (ن-29) — أرشيف المستخدم ٤: سداد دَين UI (٣ لوحات) + fail-closed لقناع CDSE + تجميع شريط التواريخ
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). أرشيف على رأسنا `9a2deb5` (قبل التزام العقل الأخير) — دُمج انتقائيّاً:
@@ -1065,3 +1207,60 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الـbrain:** إنشاء `sahool-brain/` — هذا الـvault (README/index/hot/log/dashboard +
   architecture/schema/gaps/decisions/agronomy) + قسم «الدماغ المعرفيّ» في
   [`../CLAUDE.md`](../CLAUDE.md).
+
+## 2026-07-05 (ز) — إنجاز «المؤجَّل» من تدقيقات الأقمار v2/v3/v4 (٥ مراحل، `main`=`develop`=`claude/code-review-34hO3`)
+
+**الرأس بعد الجلسة:** `5f52b63`. خطّة عميقة شاملة، ٥ commits مستقلّة، بوّابات خضراء لكلٍّ (تفاصيل + أسباب في [`decisions/ledger.md`](decisions/ledger.md) قسم ١٧).
+
+- **م1 `fe4426b`:** صحّة استعلامات db_persist — تواريخ متاحة محدودة بالتاريخ المميَّز (CTE) لا الصفوف [v3-F1] · `DISTINCT ON` لصفّ متماسك [v3-F4] · `fetch_latest_asset` واعٍ بالجودة [v3-F3] · **v4:** كتابة أعمدة v105 (quality_score/aoi_cloud_pct/cloud_mask_sources) التي كانت تُهمَل ⇒ الترتيب بالجودة كان بلا أثر.
+- **م2 `8ed6272`:** MapHub حارس `has_cog` [v2-007] · CDSE cache key tenant+هندسة [v3-6] · حذف bbox اليمن fail-closed [v3-7] · cdse-tilejson tid+urlencode [v3-8] · object_store fail-closed لرفع S3 [v3-9].
+- **م3 `f440b3f` (v143):** `asset_status` + `geometry_revision` على raster_assets + فهارس · نَسَب end-to-end (النماذج→ProcessRequest→المنصّة تحلّ MAX(revision)) [v2-011/004].
+- **م4 `bdf703a`:** عامل `cache_invalidation_worker` يستهلك raster_cache_invalidations (كان بلا مستهلِك) [v2-005] · `tile_cache_maint` إبطال+إخلاء TTL/حصّة [v2-010] · خدمة compose خلف راية.
+- **م5 `5f52b63`:** جسر الكتالوج `insert_raster_registry_entry` + `insert_stac_item` (كلا الجدولَين كانا بلا كاتب من الأنبوب) [v2-008/009].
+
+**درس متكرّر (عزل الاختبار):** اسم الوحدة العامّ `main` يتصادم عبر الخدمات في `pytest -m unit` الكامل — الحلّ استخراج الدوالّ لوحدة فريدة (`tile_cache_maint`) بدل حقن `sys.modules`، وحذف كعب `boto3` الملوِّث. **درس بوّابة:** بعد أيّ migration شغّل `production_validation_gate` محليّاً (v143 اجتاز RLS role-gate بعد إضافة العامل للـallowlist)، وأيّ raw query على جدول مُستأجَر يحتاج تصنيفاً في `tenant_query_audit`.
+
+## 2026-07-05 (ح) — متابعة v5 + إصلاح أمنيّ + إصلاح بوّابة الإنتاج (الرأس `947c9af`؛ main=develop=الفرع)
+
+بعد دمج المرحلة ١-٥ إلى `main` (fast-forward)، ٣ متابعات:
+
+- **`65c96cd` (فشل أمنيّ):** بصمة كاش هندسة CDSE استخدمت `hashlib.sha1` بلا `usedforsecurity=False` ⇒ bandit **B324 HIGH** حجب بوّابة *Security Scan* (كانت الوظيفة الوحيدة الحمراء من ١١). الإصلاح: `usedforsecurity=False` (استعمال غير أمنيّ — تفريق مفاتيح فقط). تأكّد أخضر على CI.
+- **`5cd765d` (استجابة تدقيق السجلّ الحيّ v5):** F1 رصد حفظ raster_assets (`_persist_raster_asset` يُرجِع bool + سطر `persist ok/failed` + `persisted` في نتيجة المهمّة) · F8 ملخّص `historical_backfill_scan completed`. v5-F3/F5/F7 مُصلَحة سابقاً (zip قديم 9a4b9ab) · F2/F4 مؤجَّلة بصدق (فحص backfill لاتزامنيّ).
+- **`947c9af` (فشل بوّابة الإنتاج):** *Sahool Production Gates* (main-only) سقط لأنّ `sahool-raster-cache-invalidation-worker` غاب عن قائمة سماح **ثانية**: `tests/security/test_phase12_final_production_gates.py` (منفصلة عن `scripts/security/rls_runtime_gate.py` التي حدّثتها المرحلة ٤). الإصلاح: أضفتُه للقائمتَين + جدّدتُ بصمات الإصدار.
+
+**درس متكرّر (حرج):** قائمة `JOBS_DATABASE_URL` المسموحة تعيش في **موضعَين** يجب مزامنتهما: (١) `scripts/security/rls_runtime_gate.py` — يفحصه `production_validation_gate.sh` محليّاً؛ (٢) `tests/security/test_phase12_final_production_gates.py` — تفحصه بوّابة Sahool Production Gates على main فقط (وظيفة `pytest-contracts`، على `tests/` لا `tests_v9/` فلا يلتقطها `pytest -m unit`). أيّ عامل جديد بدور JOBS يحتاج تحديث الاثنين + جدولة بصمات الإصدار.
+
+## 2026-07-05 (ط) — تدقيق v6: إصلاح حجب حلقة الأحداث + تثبيت الحالة (الرأس `6768ee6`)
+
+تدقيق v6 (٨ نتائج) على zip قديم — الفرز مقابل HEAD الحاليّ:
+
+- **`6768ee6` (v6-F3، حقيقيّ):** مهمّة معالجة مشهد backfill كانت `async def _run_scene_job` تستدعي `_run_processing` المتزامن الثقيل (VRT+COG) مباشرةً ⇒ FastAPI يُنفّذ مهامّ `async` على حلقة الأحداث فتُحجب طلبات raster الأخرى. الإصلاح: تعريفها `def` (threadpool). جسمها كلّه متزامن بلا await فالتحويل آمن.
+- **مُصلَح سابقاً (zip قديم):** F7 (lid ترطيب DB صار date-specific منذ 528203b) · F8 (persisted + سطر persist-ok منذ 5cd765d) · F5 (الرتّاب يسجّل `cloud_source` أصلاً).
+- **مؤجَّل بصدق (معماريّ، صنف v5-F2/F4 نفسه):** F1/F2 (backfill يعود job فوراً + مسح STAC الشهريّ في عامل، بدل مسار الطلب — يتفادى مهلة proxy 60s) · F4 (مفتاح idempotency + preflight raster_assets قبل الجدولة) · F6 (single-flight لكاش STAC ضدّ stampede المتزامن).
+
+**درس:** مهامّ FastAPI الخلفيّة المتزامنة الثقيلة يجب أن تكون `def` (threadpool) لا `async def` (حلقة الأحداث) — لفّ عمل متزامن في `async def` يُبطِل سلوك الـthreadpool.
+
+## 2026-07-05 (ي) — تحقّق تكامليّ على Postgres حيّ كشف خللاً إنتاجيّاً حقيقيّاً (الرأس `c564d65`)
+
+بطلب المستخدم، أُضيفت اختبارات `-m integration` تُشغّل عمل الجلسة على Postgres+PostGIS الحيّ في CI.
+**التزم بالانضباط: دُفِعت للفرع أوّلاً، وحُجِز main حتّى خضرة وظيفة Integration.** فكشفت **خللاً إنتاجيّاً**:
+
+- `insert_raster_registry_entry` و`insert_stac_item` (المرحلة ٥) كانا يُمرّران **نصّاً** لمعامل `$N::date`/`$N::timestamptz` ⇒ asyncpg يستنتج نوع date/timestamptz ويرفض النصّ. وبما أنّهما best-effort (try/except ⇒ False)، **ابتُلع الخطأ صامتاً** فبقي `raster_registry` و`stac_item_registry` **فارغَين في الإنتاج** — واختبارات الوحدة المُحاكاة لم ترَه.
+- **الإصلاح `c564d65`:** `$N::text::date` و`$N::text::timestamptz` (asyncpg يربط النصّ كـtext وPostgres يقصّه).
+
+**درس محوريّ:** الكتّاب best-effort (try/except يبتلع) لا تُثبِتهم اختبارات الوحدة المُحاكاة — يلزم **اختبار تكامليّ على قاعدة حيّة**. وأيّ معامل تاريخ/وقت مُمرَّر نصّاً لـasyncpg تحت `::date`/`::timestamptz` يحتاج `::text::` أو تحويلاً لكائن Python (نمط insert_raster_asset).
+
+التغطية التكامليّة الجديدة (٦ اختبارات، خضراء على PostGIS الحيّ): v143 asset_status/geometry_revision + استبعاد failed · v3-F1 حدّ التواريخ المميَّزة · v3-F3 انتقاء الجودة · جسر registry+STAC · عامل الإبطال (stale+processed).
+
+## 2026-07-05 (ك) — إنجاز بنية backfill اللاتزامنيّة + single-flight (v5-F2/F4 · v6-F1/F2/F4/F6؛ الرأس `ecc0061`)
+
+آخر «مؤجَّل معماريّ» أُنجِز، على شريحتَين مستقلّتَين، **دُفِعتا للفرع أوّلاً وحُجِز main حتّى خضرة CI الكاملة** (تكامل+أمن):
+
+- **Slice A `...` (v6-F6):** single-flight في `ResilientStacClient.search` — طلبات miss متطابقة متزامنة تتشارك POST واحداً (خريطة key→Future، تُنظَّف في finally). حارس: 5 متزامنة ⇒ 1 POST.
+- **Slice B `10cb133` (v5-F1/F2/F4 · v6-F1/F2/F4):** ترحيل **v144** (`backfill_runs` + `backfill_run_items` بمفتاح idempotency فريد + RLS FORCE) · نقطة `/imagery/backfill` تُرجِع `run_id` فوراً خلف راية `RASTER_ASYNC_BACKFILL_ENABLED` (لا مسح STAC في مسار الطلب ⇒ لا مهلة proxy 60s) · عامل `backfill_scan_worker` (Pattern A، JOBS) يمسح خارج مسار الطلب + preflight raster_assets + ON CONFLICT DO NOTHING + معالجة في threadpool؛ يعيد استخدام دوالّ main · خدمة compose خلف راية · تحديث القائمتَين (rls_gate + phase12) وtenant-audit وحارس مصادر الترحيل.
+
+**فشلان اصطادهما الفرع (لولا حجز main لاحمرّ):**
+1. `c564d65` سابقاً: جسر الكتالوج كان يفشل صامتاً على ربط التاريخ (`$::date` بنصّ) — أصلحه `::text::date`؛ كشفه اختبار تكامليّ حيّ.
+2. `ecc0061`: محرف bidi خفيّ (U+200F) في docstring العامل ⇒ bandit B613 HIGH حجب Security Scan — أُزيل.
+
+**نتيجة CI على `ecc0061`:** Integration **75 passed** (تكامل backfill+الكتالوج على PostGIS حيّ مع v144) · bandit HIGH نظيف · باقي الوظائف خضراء. **الدرس المؤكَّد:** الكتّاب best-effort + المحارف الخفيّة لا تُرى إلّا على DB حيّ/بوّابة أمن — لذا **ادفع للفرع أوّلاً واحجز main** حتّى خضرة التكامل والأمن.

@@ -112,7 +112,10 @@ jobs:
   migration:
     enabled: true
     image: sahool/platform:2026.06.26-rc.15
-    command: ["python", "-m", "api.migrations.run"]
+    # مُشغّل الهجرات الفعليّ backed by migrations/MANIFEST.txt. الأمر السابق
+    # (python -m api.migrations.run) وحدة غير موجودة — كان يُفشِل مهمّة الترحيل
+    # في k8s (تدقيق 2026-07-05). migrate.py يقرأ JOBS_DATABASE_URL أيضاً.
+    command: ["python", "scripts_v9/migrate.py", "up"]
     secretEnv:
       JOBS_DATABASE_URL: jobsDatabaseUrl
 

@@ -15,6 +15,7 @@ validate_migrations.py — فحص ثابت للـmigrations بلا PostgreSQL
 
 الاستخدام: python3 validate_migrations.py
 """
+
 import os
 import re
 import sys
@@ -62,7 +63,9 @@ def check_file(path: str) -> list:
         # ابحث عن UNIQUE أو PRIMARY KEY أو UNIQUE INDEX يغطّي هذا العمود
         has_unique = (
             re.search(r"UNIQUE[^;,]*\b" + re.escape(cols.split(",")[0]), code, re.IGNORECASE)
-            or re.search(r"PRIMARY\s+KEY[^;,]*\b" + re.escape(cols.split(",")[0]), code, re.IGNORECASE)
+            or re.search(
+                r"PRIMARY\s+KEY[^;,]*\b" + re.escape(cols.split(",")[0]), code, re.IGNORECASE
+            )
             or re.search(re.escape(cols.split(",")[0]) + r"[^;]*PRIMARY\s+KEY", code, re.IGNORECASE)
         )
         if not has_unique:
@@ -83,8 +86,9 @@ def main():
         if line:
             manifest.append(line)
 
-    # ٥. تطابق MANIFEST مع القرص
-    on_disk = {f for f in os.listdir(MIG_DIR) if f.endswith(".sql")}
+    # ٥. تطابق MANIFEST مع القرص — نستثني ملفّات .down.sql (سكربتات تراجع/rollback،
+    # ليست في ترتيب التطبيق الأماميّ عمداً؛ إدراجها كان يُنتج تحذير «extra» كاذباً).
+    on_disk = {f for f in os.listdir(MIG_DIR) if f.endswith(".sql") and not f.endswith(".down.sql")}
     in_manifest = set(manifest)
     missing = in_manifest - on_disk
     extra = on_disk - in_manifest

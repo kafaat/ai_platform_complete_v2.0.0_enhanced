@@ -12,6 +12,7 @@ runtime_truth_report.py — جامع الحقيقة التشغيليّة (يُش
 الاستخدام:
     python3 scripts_v9/runtime_truth_report.py > runtime_truth_report.md
 """
+
 import json
 import os
 import subprocess
@@ -27,8 +28,9 @@ def _section(title):
 def _try(cmd, timeout=30):
     """يشغّل أمراً ويُرجع (نجح، المخرج). لا يرمي — يلتقط الفشل كحقيقة."""
     try:
-        r = subprocess.run(cmd, shell=True, capture_output=True, text=True,
-                           timeout=timeout, cwd=ROOT)
+        r = subprocess.run(
+            cmd, shell=True, capture_output=True, text=True, timeout=timeout, cwd=ROOT
+        )
         return r.returncode == 0, (r.stdout + r.stderr).strip()
     except Exception as e:
         return False, str(e)
@@ -58,13 +60,16 @@ def collect():
         lines.append("- ⚠️ DATABASE_URL/RLS_TEST_URL غير مضبوط. للقياس الحقيقي:")
         lines.append("  ```")
         lines.append("  export RLS_TEST_URL='postgresql://sahool_user:PASS@localhost/sahool'")
-        lines.append("  psql \"$RLS_TEST_URL\" -f scripts_v9/test_tenant_isolation.sql")
+        lines.append('  psql "$RLS_TEST_URL" -f scripts_v9/test_tenant_isolation.sql')
         lines.append("  ```")
-        lines.append("- ⚠️ **حرج**: شغّل كـnon-superuser (sahool_user)، وإلّا RLS يُتجاوَز "
-                     "ويعطي نجاحاً زائفاً (silent success — أخطر فشل).")
+        lines.append(
+            "- ⚠️ **حرج**: شغّل كـnon-superuser (sahool_user)، وإلّا RLS يُتجاوَز "
+            "ويعطي نجاحاً زائفاً (silent success — أخطر فشل)."
+        )
     else:
-        ok, out = _try(f'psql "{db_url}" -v ON_ERROR_STOP=1 '
-                       f'-f scripts_v9/test_tenant_isolation.sql', 60)
+        ok, out = _try(
+            f'psql "{db_url}" -v ON_ERROR_STOP=1 -f scripts_v9/test_tenant_isolation.sql', 60
+        )
         verdict = "✅ عزل سليم (لا تسريب)" if ok else "🔴 فشل العزل — تسريب محتمل!"
         lines.append(f"- نتيجة اختبار العزل: {verdict}")
         # ابحث عن إشارات التسريب الصريحة
@@ -80,11 +85,11 @@ def collect():
         lines.append(f"- evidence overall: **{ev.get('overall')}**")
         inv = ev.get("invariants", {})
         live_pending = [k for k, v in inv.items() if v == "requires_live"]
-        lines.append(f"- invariants بنيويّة مُثبَتة: "
-                     f"{sum(1 for v in inv.values() if v is True)}")
+        lines.append(f"- invariants بنيويّة مُثبَتة: {sum(1 for v in inv.values() if v is True)}")
         if live_pending:
-            lines.append(f"- ⏳ **لم تُقَس حيّاً بعد** (يجب تأكيدها من القسم ٢): "
-                         f"{', '.join(live_pending)}")
+            lines.append(
+                f"- ⏳ **لم تُقَس حيّاً بعد** (يجب تأكيدها من القسم ٢): {', '.join(live_pending)}"
+            )
             lines.append("  - حتّى تُقاس، هذه ادّعاءات بنيويّة لا حقيقة تشغيليّة.")
     else:
         lines.append("- ⚠️ لا build/evidence.json — شغّل `make ci` أوّلاً.")
@@ -93,15 +98,21 @@ def collect():
     lines.append(_section("٤. القرار المعماري (يُملأ من القياس أعلاه)"))
     lines.append("اختر **واحداً** بناءً على الأقسام ١-٣ (لا تخمين):")
     lines.append("")
-    lines.append("- 🟢 **APPROVED FOR SCALE**: العزل سليم + الخدمات صحّيّة + "
-                 "لا انحراف. → انتقل لـLevel 2 (PostGIS/NDVI).")
-    lines.append("- 🟡 **STABLE BUT NOT CLOSED**: يعمل لكن فجوة 1-3. → إصلاح "
-                 "محدود فقط (لا إعادة تصميم).")
-    lines.append("- 🔴 **ARCHITECTURE INVALID**: العزل غير مضمون. → جمّد "
-                 "الميزات + أعد تصميم طبقة واحدة.")
+    lines.append(
+        "- 🟢 **APPROVED FOR SCALE**: العزل سليم + الخدمات صحّيّة + "
+        "لا انحراف. → انتقل لـLevel 2 (PostGIS/NDVI)."
+    )
+    lines.append(
+        "- 🟡 **STABLE BUT NOT CLOSED**: يعمل لكن فجوة 1-3. → إصلاح محدود فقط (لا إعادة تصميم)."
+    )
+    lines.append(
+        "- 🔴 **ARCHITECTURE INVALID**: العزل غير مضمون. → جمّد الميزات + أعد تصميم طبقة واحدة."
+    )
     lines.append("")
-    lines.append("> ملاحظة صدق: هذا التقرير **يجمع** الحقيقة. القرار قرارك أنت "
-                 "بناءً على ما قِيس فعليّاً — لا يدّعي السكربت حكماً لم يقِسه.")
+    lines.append(
+        "> ملاحظة صدق: هذا التقرير **يجمع** الحقيقة. القرار قرارك أنت "
+        "بناءً على ما قِيس فعليّاً — لا يدّعي السكربت حكماً لم يقِسه."
+    )
 
     return "\n".join(lines)
 

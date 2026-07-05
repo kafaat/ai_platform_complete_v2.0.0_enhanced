@@ -357,6 +357,93 @@ export const createInvitation = (payload: {
 export const listInvitations = (): Promise<PendingInvitation[]> =>
   authApi.get<PendingInvitation[]>('/auth/invitations').then(r => Array.isArray(r.data) ? r.data : []);
 
+// ── أعضاء الفريق وتغيير الأدوار (admin فقط في الخلفيّة) ──────────
+// GET /auth/users و PATCH /auth/users/{id}/role محميّان بـrequire_role("admin")،
+// وتغيير الدور قد يتطلّب step-up MFA (رمز TOTP حديث عبر X-MFA-Code) حسب البيئة —
+// عند 403 «يتطلّب رمز MFA» تُظهر الواجهة حقل الرمز وتعيد المحاولة، لا تخمين.
+export interface TeamUser {
+  id: number;
+  email: string;
+  full_name: string | null;
+  role: string;
+  active: boolean;
+  created_at: string | null;
+  tenant_id: string | null;
+}
+
+export type AssignableRole = 'owner' | 'admin' | 'expert' | 'farmer' | 'viewer';
+
+export const listTeamUsers = (): Promise<TeamUser[]> =>
+  authApi.get<TeamUser[]>('/auth/users').then(r => (Array.isArray(r.data) ? r.data : []));
+
+// المستخدم الحاليّ من المنصّة — GET /api/v1/me (الهويّة + المستأجر + الدور).
+// يُستعمَل لتحديث الدور بعد تغييره إداريّاً بلا خروج/دخول. نطبّع الحقول
+// المختلفة بين الخدمات (user_id/name_ar) إلى شكل موحّد للمتجر.
+export interface CurrentUser {
+  user_id?: number;
+  email?: string;
+  full_name?: string;
+  role?: string;
+  tenant_id?: string;
+}
+
+// تهيئة مستأجِر جديد + أوّل مالك (إعداد B2B، admin المنصّة فقط عبر require_role).
+// لا كلمة مرور/دور من المُهيِّئ: الدور 'owner' يُفرَض خادميّاً والمالك يضبط كلمته عبر
+// رمز إعادة تعيين. 409 لبريد مسجّل، 403 لغير admin — تُعرَض كما هي بصدق.
+export interface TenantProvisionResult {
+  id: number;
+  email: string;
+  role: string;
+  full_name: string | null;
+  tenant_id: string | null;
+  reset_token?: string | null;
+  reset_url?: string | null;
+}
+
+export const provisionTenant = (payload: {
+  owner_email: string;
+  owner_full_name: string;
+  tenant_name?: string;
+}): Promise<TenantProvisionResult> =>
+  authApi.post<TenantProvisionResult>('/auth/tenants', payload).then(r => r.data);
+
+export const getCurrentUser = (): Promise<CurrentUser> =>
+  kongApi.get<Record<string, unknown>>('/api/v1/me').then(r => {
+    const d = r.data ?? {};
+    return {
+      user_id: (d.user_id ?? d.id) as number | undefined,
+      email: (d.email ?? d.sub) as string | undefined,
+      full_name: (d.full_name ?? d.name_ar) as string | undefined,
+      role: d.role as string | undefined,
+      tenant_id: d.tenant_id as string | undefined,
+    };
+  });
+
+/** يغيّر دور مستخدم (admin + step-up MFA إن فُعِّل). الخادم يُبطل جلسات
+ *  المستخدم فوراً كي يسري الدور الجديد — يُعرَض ذلك للمشغّل بصدق. */
+export const changeUserRole = (
+  userId: number,
+  role: AssignableRole,
+  mfaCode?: string,
+): Promise<{ id: number; email: string; role: string }> =>
+  authApi
+    .patch<{ id: number; email: string; role: string }>(
+      `/auth/users/${userId}/role`,
+      null,
+      { params: { role }, headers: mfaCode ? { 'X-MFA-Code': mfaCode } : undefined },
+    )
+    .then(r => r.data);
+
+/** يعطّل حساب عضو (admin + step-up MFA إن فُعِّل). التعطيل فوريّ — الخادم
+ *  يُبطل كلّ جلسات الحساب. لا يوجد مسار «إعادة تفعيل» في الخلفيّة (قرار
+ *  أمنيّ: الاستعادة عبر مشغّل القاعدة) — الواجهة لا تخترع زرّاً بلا مسار. */
+export const deactivateUser = (userId: number, mfaCode?: string): Promise<{ message: string }> =>
+  authApi
+    .patch<{ message: string }>(`/auth/users/${userId}/deactivate`, null, {
+      headers: mfaCode ? { 'X-MFA-Code': mfaCode } : undefined,
+    })
+    .then(r => r.data);
+
 /** قبول دعوة (عموميّ، محميّ بالـtoken): يُنشئ المستخدِم وينضمّ لمستأجِر الداعي
  *  بدوره المدعوّ، ويُصدِر توكناً (دخول تلقائيّ). 400 لرمز غير صالح/منتهٍ/مستهلَك،
  *  409 لبريد مسجّل مسبقاً. الردّ بشكل AuthResponse (مطبَّع كـlogin/register). */
@@ -3429,11 +3516,21 @@ export interface FieldImageryDateOption {
   cloud_cover?: number | null;
   has_cog?: boolean;
   scene_id?: string | null;
+  // FINDING-006: المؤشّرات المتوفّرة لهذا التاريخ (الخادم يُرجِعها) — كي لا يُختار
+  // تاريخٌ «جاهز» لمؤشّر غير المؤشّر النشط فتظهر بلاطة شفّافة. تُستعمَل للتصفية.
+  indices?: string[];
 }
 
-/** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات. */
-export const fetchFieldImageryAvailableDates = (fieldId: string): Promise<FieldImageryDateOption[]> =>
-  kongApi.get(`/api/v1/fields/${fieldId}/available-dates`).then((r) => {
+/** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات.
+ *  index اختياريّ: عند تمريره يقصر الخادم التواريخ على ما له COG لذلك المؤشّر
+ *  (يُغني عن اختيار تاريخ لا يملك المؤشّر النشط — FINDING-006). */
+export const fetchFieldImageryAvailableDates = (
+  fieldId: string,
+  index?: string,
+): Promise<FieldImageryDateOption[]> =>
+  kongApi.get(`/api/v1/fields/${fieldId}/available-dates`, {
+    params: index ? { index } : undefined,
+  }).then((r) => {
     const raw = r.data?.dates ?? r.data?.items ?? r.data ?? [];
     if (!Array.isArray(raw)) return [];
     return raw
@@ -3449,6 +3546,9 @@ export const fetchFieldImageryAvailableDates = (fieldId: string): Promise<FieldI
           cloud_cover: typeof obj.cloud_cover === 'number' ? obj.cloud_cover : null,
           has_cog: Boolean(obj.has_cog ?? obj.ready ?? false),
           scene_id: typeof obj.scene_id === 'string' ? obj.scene_id : null,
+          indices: Array.isArray(obj.indices)
+            ? (obj.indices as unknown[]).map((v) => String(v))
+            : undefined,
         } as FieldImageryDateOption;
       })
       .filter(Boolean) as FieldImageryDateOption[];

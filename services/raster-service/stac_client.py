@@ -68,6 +68,9 @@ class ResilientStacClient:
         self._cache: dict[str, _CacheEntry] = {}  # ذاكرة (fallback)
         self._redis = None  # يُهيّأ كسولاً
         self._redis_tried = False
+        # v6-F6: single-flight — طلبات miss متطابقة متزامنة تتشارك POST واحداً بدل
+        # قصف المصدر العامّ (Earth Search). خريطة مفتاح→Future (داخل العمليّة).
+        self._inflight: dict[str, asyncio.Future] = {}
         # عدّادات صحّة المصدر (للمراقبة /metrics)
         self.stats = {
             "requests": 0,
@@ -77,6 +80,7 @@ class ResilientStacClient:
             "stale_served": 0,
             "redis_hits": 0,
             "fallback_served": 0,
+            "coalesced": 0,
         }
 
     async def _get_redis(self):
@@ -146,6 +150,32 @@ class ResilientStacClient:
             self.stats["cache_hits"] += 1
             return {**entry.data, "_cache": "fresh"}
 
+        # v6-F6: single-flight — إن كان طلب متطابق قيد التنفيذ، انتظر نتيجته بدل POST
+        # ثانٍ على المصدر العامّ (تفادي stampede عند backfill متزامن لنفس الحقل/النافذة).
+        inflight = self._inflight.get(key)
+        if inflight is not None:
+            self.stats["coalesced"] += 1
+            data = await inflight  # يشارك نجاح/فشل القائد
+            return {**data, "_cache": "coalesced"}
+
+        loop = asyncio.get_event_loop()
+        fut: asyncio.Future = loop.create_future()
+        self._inflight[key] = fut
+        try:
+            data = await self._resolve_uncached(key, payload, entry)
+            if not fut.done():
+                fut.set_result(data)
+            return data
+        except Exception as exc:
+            if not fut.done():
+                fut.set_exception(exc)
+            raise
+        finally:
+            self._inflight.pop(key, None)
+
+    async def _resolve_uncached(self, key: str, payload: dict, entry: _CacheEntry | None) -> dict:
+        """يحلّ نتيجة STAC عند غياب cache طازج (الأساس→احتياطي→stale→فشل). يُلَفّ بـ
+        single-flight في ``search`` فيتشارك المتزامنون هذه المكالمة الواحدة."""
         # ٢. طلب بإعادة محاولة + backoff أُسّي (يحتاج httpx)
         import httpx
 

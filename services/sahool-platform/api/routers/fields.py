@@ -699,6 +699,15 @@ async def refresh_field_imagery(
 
                 geometry = _json.loads(geometry)
             guarded = guard_field_geometry(geometry)
+            # v143 (FINDING-004): مراجعة الهندسة السارية للحقل — تُمرَّر لتُسجَّل على
+            # raster_assets فيصبح النَّسَب مُتتبَّعاً (أيّ هندسة أنتجت هذا الأصل). None إن
+            # لم تُنشَأ مراجعات بعد (لا اختلاق).
+            geometry_revision = await conn.fetchval(
+                "SELECT MAX(revision) FROM field_geometry_history "
+                "WHERE tenant_id = $1::uuid AND field_id = $2",
+                str(user.tenant_id),
+                field_id,
+            )
             from api.imagery_automation import imagery_automation
 
             result = await imagery_automation.trigger_field_imagery_processing(
@@ -708,6 +717,9 @@ async def refresh_field_imagery(
                 geometry=guarded.geometry,
                 reason="manual.refresh",
                 date=(req.date[:10] if req and req.date else None),
+                geometry_revision=(
+                    int(geometry_revision) if geometry_revision is not None else None
+                ),
             )
             await _emit_domain_event(
                 conn,

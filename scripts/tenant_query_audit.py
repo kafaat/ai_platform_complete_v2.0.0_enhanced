@@ -85,6 +85,22 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
     "services/sahool-platform/api/phase_runtime_workers.py::iot_command_dispatch": (
         "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped dispatch)"
     ),
+    # عامل إبطال كاش الراستر (FINDING-005): طابور raster_cache_invalidations عابر
+    # بالتصميم — يطالب الصفوف ذرّيّاً (FOR UPDATE SKIP LOCKED) بدور JOBS (BYPASSRLS)
+    # وينهيها بـid (لا سياق مستأجِر لتحديث الحالة). لا تسرّب فيزيائيّ: العمل الوحيد
+    # حذف بلاطات دليل الحقل المُعقَّم + وسم raster_assets stale بفلتر tenant_id صريح.
+    "services/raster-service/cache_invalidation_worker.py::raster_cache_invalidations": (
+        "background invalidation queue consumer (JOBS role); claims by id via FOR UPDATE SKIP LOCKED"
+    ),
+    # عامل فحص backfill (v5/v6): يطالب backfill_runs العابر بدور JOBS (FOR UPDATE SKIP
+    # LOCKED) ويُحدّثه بـid؛ كتابة backfill_run_items لكلّ مستأجِر تضبط app.current_tenant
+    # tx-locally قبلها (RLS-scoped)؛ preflight على raster_assets بفلتر tenant_id صريح.
+    "services/raster-service/backfill_scan_worker.py::backfill_runs": (
+        "background backfill scan consumer (JOBS role); claims/updates runs by id"
+    ),
+    "services/raster-service/backfill_scan_worker.py::backfill_run_items,backfill_runs": (
+        "backfill scan worker: tenant GUC set tx-locally before per-tenant run_items write (RLS-scoped)"
+    ),
 }
 ALLOWLIST: set[str] = set(_ALLOWLIST_JUSTIFIED)
 

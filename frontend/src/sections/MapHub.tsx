@@ -61,6 +61,16 @@ import AgroCalculatorsCard from '../components/fieldview/AgroCalculatorsCard';
 import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
 import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
+import IrrigationDecisionAidsCard from '../components/fieldview/IrrigationDecisionAidsCard';
+import CropSafetyKnowledgeCard from '../components/fieldview/CropSafetyKnowledgeCard';
+import AgroAnalyticsCard from '../components/fieldview/AgroAnalyticsCard';
+import WaterFieldOpsCard from '../components/fieldview/WaterFieldOpsCard';
+import SpecialtyCropsCard from '../components/fieldview/SpecialtyCropsCard';
+import DistrictsWeatherCard from '../components/fieldview/DistrictsWeatherCard';
+import AgronomyConsistencyCard from '../components/fieldview/AgronomyConsistencyCard';
+import CropPropagationCard from '../components/fieldview/CropPropagationCard';
+import GisTemporalOpsCard from '../components/fieldview/GisTemporalOpsCard';
+import LearningEvidenceCard from '../components/fieldview/LearningEvidenceCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
 import { useCropScoutingIssues } from '../hooks/useScouting';
@@ -346,10 +356,18 @@ export default function MapHub() {
       return;
     }
     let cancelled = false;
-    fetchFieldImageryAvailableDates(fieldId)
+    // FINDING-006: نمرّر المؤشّر النشط كي يقصر الخادم التواريخ على ما له COG لهذا
+    // المؤشّر تحديداً — فلا يُعرَض تاريخ «جاهز» لمؤشّر آخر فتظهر بلاطة شفّافة عند اختياره.
+    const idx = activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID ? activeIndicator : undefined;
+    fetchFieldImageryAvailableDates(fieldId, idx)
       .then((dates) => {
         if (cancelled) return;
-        const sorted = [...dates].sort((a, b) => b.date.localeCompare(a.date));
+        // تصفية دفاعيّة على العميل أيضاً: أبقِ التواريخ التي تملك المؤشّر النشط فعليّاً
+        // (أو التي لا تحمل قائمة indices — لا نُخفي بلا دليل من الخادم).
+        const filtered = idx
+          ? dates.filter((d) => !d.indices || d.indices.length === 0 || d.indices.includes(idx))
+          : dates;
+        const sorted = [...filtered].sort((a, b) => b.date.localeCompare(a.date));
         setAvailableImageryDates(sorted);
         setSelectedImageryDate((prev) => {
           if (prev === 'latest') return prev;
@@ -360,7 +378,7 @@ export default function MapHub() {
         if (!cancelled) setAvailableImageryDates([]);
       });
     return () => { cancelled = true; };
-  }, [fieldId, mode]);
+  }, [fieldId, mode, activeIndicator]);
 
   // عند اختيار مؤشّر وحقل، نطلب معالجة/تحديث صور Sentinel ثم نكسر كاش البلاطات.
   // هذا لا يصنع قيماً وهمية: إذا لم تنتج الخلفية COG حقيقي، ستظل البلاطات شفافة.
@@ -368,6 +386,18 @@ export default function MapHub() {
     if (!fieldId || !activeIndicator || mode !== '2d') return;
     const key = `${tenantId ?? 'default'}:${fieldId}:${activeIndicator}:${selectedImageryDate}`;
     if (imageryRefreshKeyRef.current === key) return;
+    // FINDING-007: لا نُطلق معالجة جديدة عند اختيار تاريخ تاريخيّ يملك COG جاهزاً
+    // بالفعل — إعادة المعالجة هدر وقد تُعيد كتابة أصل موجود. نكتفي بتبديل الطبقة
+    // (bump imageryTs فتُعيد البلاطات القراءة من COG القائم). الإطلاق يبقى فقط
+    // حين لا COG لهذا التاريخ، أو عند «latest» (نضمن أحدث مشهد).
+    const readyOption = selectedImageryDate !== 'latest'
+      ? availableImageryDates.find((d) => d.date === selectedImageryDate)
+      : undefined;
+    if (readyOption?.has_cog) {
+      imageryRefreshKeyRef.current = key;
+      setImageryTs(Date.now());
+      return;
+    }
     imageryRefreshKeyRef.current = key;
     let cancelled = false;
     refreshFieldImagery(fieldId, selectedImageryDate)
@@ -381,7 +411,7 @@ export default function MapHub() {
         if (!cancelled) setImageryTs(Date.now());
       });
     return () => { cancelled = true; };
-  }, [fieldId, activeIndicator, mode, tenantId, selectedImageryDate]);
+  }, [fieldId, activeIndicator, mode, tenantId, selectedImageryDate, availableImageryDates]);
 
   useEffect(() => {
     if (!fieldId) {
@@ -1387,6 +1417,67 @@ export default function MapHub() {
           التراثيّة اليمنيّة ودليلها + ملامح طرق الريّ FAO — كان backend بلا قارئ. */}
       {selected && fieldMode === 'expert' && (
         <WaterHarvestingCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* مساعدات قرار الريّ والعيّنات: ثقة القراءة/التوصية + قرار رطوبة RWC +
+          الإجمالي المسحوب + مراجع العيّنة — نقاط P0/P1 كانت بلا قارئ واجهة. */}
+      {selected && fieldMode === 'expert' && (
+        <IrrigationDecisionAidsCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* سلامة المدخلات ومعرفة المحاصيل: فحص كيميائيّ (حكم الخادم حرفيّاً) + تقويم
+          الزراعة + آفات التخزين + عالية القيمة/المتخصّصة ومرشّحو الإدخال — P1 بلا قارئ. */}
+      {selected && fieldMode === 'expert' && (
+        <CropSafetyKnowledgeCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* التحليلات الزراعيّة-البيئيّة: مخاطر/دورة/دليل قرارات + سلسلة Kc (قراءة وحفظاً)
+          + تغذية راجعة نبات-تربة + مقارنة مواسم + تصعيد + نسب أصل الحقل. */}
+      {selected && fieldMode === 'expert' && (
+        <AgroAnalyticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* عمليّات الماء والحقل: إجهاد/نصيحة متكاملة + ميزان FAO-56 + سيول واردة +
+          تحليل ماء الريّ + تنبيهات/طبقات الطقس + خطّة 4R + إدامة النتيجة + geo-locate. */}
+      {selected && fieldMode === 'expert' && (
+        <WaterFieldOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المحاصيل المتخصّصة والتوقيت التراثيّ: عالية القيمة/متخصّصة/عطريّة/أعلاف + بطاقة
+          الإدخال وملاءمة الحقل + تخطيط البستان واقتصاده + النجوم/التقويم الثقافيّ/الإقليميّ. */}
+      {selected && fieldMode === 'expert' && (
+        <SpecialtyCropsCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المديريّات والطقس والتهيئة: معرفة إقليميّة (نوافذ الآفات) + توصية موقع +
+          ملخّص طقس الحقل وتحليلات السجلّ ودليل الزراعة + استبيان التهيئة. */}
+      {selected && fieldMode === 'expert' && (
+        <DistrictsWeatherCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* اتّساق البيانات والدورة وWOFOST والعمليّات: فحوص الاتّساق (ريّ + حداثة) +
+          تقييم الدورة ومبادئها + إرشاد تكيّف WOFOST + تقرير العمليّات + توصية ريّ +
+          الحالة التشغيليّة + تحسين المحفظة + التحقّق من الهندسة. */}
+      {selected && fieldMode === 'expert' && (
+        <AgronomyConsistencyCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* المعرفة الزراعيّة الاختصاصيّة (P3): ملاءمة المحاصيل + تركيب حالة (dry-run) +
+          الإكثار الخضري والأصل + الأساليب + صمود الجفاف + تقييم البذار + العيّنات. */}
+      {selected && fieldMode === 'expert' && (
+        <CropPropagationCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* عمليّات GIS الهندسيّة + التحكيم الزمني + محاكاة ماذا-لو + مخاطر المرحلة +
+          إعادة البناء + رابط النَّسَب + تحليل التجارب (P3، خلف أعلام ميزات). */}
+      {selected && fieldMode === 'expert' && (
+        <GisTemporalOpsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* التعلُّم والدليل (P3، إرشاديّ صرف): تفعيل التعلُّم · معايرة · مزج سابقة · عتبات ·
+          تغذية راجعة · تظافر قرائن · بوّابة ثقة · تسجيل مشاهدة · طبقات · تغطية مؤشّرات. */}
+      {selected && fieldMode === 'expert' && (
+        <LearningEvidenceCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
       )}
 
       {/* مراجعة الحدود: تهديف ثقة حتميّ (يُخزَّن) + شبكة جوار — backend حوكمة الحدود

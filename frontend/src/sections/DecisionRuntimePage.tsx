@@ -7,6 +7,8 @@ import {
   buildOutcomeInput, dispatchStateColor, dispatchStateLabel, outcomeStatusColor, summarizeDecisions,
 } from '../lib/decisionRuntime';
 import DecisionInsightPanel from '../components/decision/DecisionInsightPanel';
+import DecisionDeepPanel from '../components/decision/DecisionDeepPanel';
+import RecommendationsLifecyclePanel from '../components/decision/RecommendationsLifecyclePanel';
 import { T } from '../components/ds';
 
 const ACTIONS = ['irrigation', 'fertigation', 'spray', 'harvest', 'other'];
@@ -161,6 +163,12 @@ export default function DecisionRuntimePage() {
 
       {/* رؤى القرار: سجلّ مُدام + شرح (لماذا؟) + تعلُّم استشاريّ + أثر مُحقَّق */}
       <DecisionInsightPanel />
+
+      {/* القرار العميق: موحّد + موقع/شرح + اقتصاد + سياسات + إدامة + تنفيذ محروس */}
+      <DecisionDeepPanel />
+
+      {/* دورة حياة التوصية: محرّكات + بدائل حسب الهدف + تكييف اقتصاديّ + تسجيل النتيجة */}
+      <RecommendationsLifecyclePanel />
 
       {/* معاينة dry-run — لا تنفيذ */}
       {!disabled && (

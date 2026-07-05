@@ -123,13 +123,29 @@ async def _ensure_field_cog(
     مصدر واحد للجلب/التخبئة/القصّ تتشاركه بلاطة cdse-tiles والمُصغَّرة (cdse-thumbnail).
     يُرجِع مسار الـCOG أو ``None`` عند تعذّر الجلب (يخدم المُستدعي صورة شفّافة)."""
     import asyncio
+    import hashlib
+    import json as _json
     import os
     import tempfile
     import time as _t
 
     import cdse_client as _cdse
 
-    cache_key = f"{field_id}:{internal}:{today}:{'p' if has_poly else 'b'}"
+    # مفتاح الكاش يجب أن يعزل المستأجرين (تفادي تسريب COG عبر المستأجرين) وأن يتبدّل
+    # عند تغيّر هندسة الحقل (تفادي خدمة COG لهندسة قديمة بعد تعديل الحدود) — v3-Finding-6.
+    tenant = main._REQ_TENANT.get() or "_"
+    geom_sig = "none"
+    if field_geom is not None:
+        try:
+            # بصمة كاش لا أمنيّة (تفريق مفاتيح فقط) ⇒ usedforsecurity=False يوضّح النيّة
+            # ويُرضي bandit B324 (SHA1 «الضعيف» ليس استعمالاً أمنيّاً هنا) وأنظمة FIPS.
+            geom_sig = hashlib.sha1(
+                _json.dumps(field_geom, sort_keys=True, separators=(",", ":")).encode("utf-8"),
+                usedforsecurity=False,
+            ).hexdigest()[:12]
+        except (TypeError, ValueError):
+            geom_sig = "err"
+    cache_key = f"{tenant}:{field_id}:{internal}:{today}:{'p' if has_poly else 'b'}:{geom_sig}"
     async with main._cdse_lock():
         now = _t.monotonic()
         entry = main._cdse_tile_cache.get(cache_key)
@@ -142,7 +158,16 @@ async def _ensure_field_cog(
                 pass
         try:
             client = _cdse.get_client()
-            bbox_for_req = field_bbox or [44.9, 16.0, 45.1, 16.1]
+            # fail-closed: بلا bbox للحقل لا نطلب صورة على bbox ثابت (كان يمن [44.9..])
+            # فنخدِّم بلاطة لهندسة خاطئة صامتة. لا احتياطيّ مُضلِّل — نعيد None (بلاطة شفّافة). v3-Finding-7
+            if not field_bbox:
+                main.logger.warning(
+                    "CDSE fetch aborted (%s/%s): لا bbox للحقل — fail-closed بلا احتياطيّ ثابت",
+                    field_id,
+                    internal,
+                )
+                return None
+            bbox_for_req = list(field_bbox)
             geotiff_bytes = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: client.process_index(
@@ -383,7 +408,18 @@ async def field_cdse_tilejson(
     # حين لا يُطلَب تاريخ محدَّد (فارغ/"latest"/"today") نُسقط ``date`` من رابط
     # البلاطة كي يبقى الرابط بلا تاريخ ويُحلّ «الأحدث» في كلّ طلب؛ وإلّا نُثبّته.
     specific_date = date if (date and date not in ("latest", "today")) else None
-    qs = f"index={index}" + (f"&date={specific_date}" if specific_date else "")
+    # tid يجب أن يُحقَن في رابط البلاطة: البلاطات تُحمَّل كـ<img> بلا ترويسات auth،
+    # فبلا tid يصل الطلب بلا مستأجِر ويرفضه _require_field_tenant (403). نفس عقد
+    # field_tilejson القرصيّ. + urlencode بدل التسلسل اليدويّ (ترميز آمن). v3-Finding-8
+    from urllib.parse import urlencode
+
+    tile_params: dict[str, str] = {"index": index}
+    if specific_date:
+        tile_params["date"] = specific_date
+    req_tenant = main._REQ_TENANT.get()
+    if req_tenant:
+        tile_params["tid"] = req_tenant
+    qs = urlencode(tile_params)
     # المسار عبر البوّابة (nginx /api/raster/ → raster:8001/): الواجهة تحتاج
     # /api/raster/v1/… لا /v1/… المباشر كي تمرّ عبر proxy_pass في الإنتاج.
     configured = _cdse.is_configured()

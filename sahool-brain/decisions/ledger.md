@@ -258,3 +258,45 @@ SHAs من `git log --oneline origin/main`.
 | **قبول المسار المحلّيّ الخام تحت `UPLOAD_DIR` فقط** | `_safe_raster_source` كان يقبل `file://`/http(s) فقط بينما backfill/process-from-stac/CDSE تمرّر مخرجاتها (VRT/GeoTIFF) كمسار خام ⇒ 400 يُسقط كلّ المهامّ. القرار: معاملة المسار المطلق كـ`file://` بنفس احتواء realpath تحت `UPLOAD_DIR` — **لا اتّساع أمنيّاً** (traversal/`/etc/passwd` مرفوضان كما كانا)، بديل «بادئة file:// عند كلّ مُستدعٍ» أهشّ (ثلاثة مواضع اليوم ومَن يضمن الرابع؟). |
 | **`build_band_vrt(out_dir=main.UPLOAD_DIR)` في البوّابتين** | الـVRT كان يُكتب في `/tmp` — خارج المجلّد المسموح أصلاً، فقبول المسار الخام وحده لا يكفي. حارس ساكن يثبّت الوسيط في كلّ استدعاء. |
 | **سجلّ فشل المهمّة يُلحِق `[status] detail` لـHTTPException** | النوع وحده («HTTPException») جعل البلاغ غير قابل للتشخيص. detail نصّنا المتحكَّم به (رسائل عربيّة ثابتة) — يُسجَّل داخليّاً فقط؛ `error_message` المكشوف عبر API يبقى رمزاً عامّاً (عقد #542 وحارسه الساكن أخضران). |
+
+## 17) إنجاز «المؤجَّل» من تدقيقات سجلّ الأقمار v2/v3/v4 (جلسة 2026-07-05، ٥ مراحل)
+
+خطّة عميقة شاملة لبنود مؤجَّلة بصدق (كانت تحتاج عاملاً/معماريّة). ٥ commits مستقلّة، بوّابات خضراء لكلٍّ.
+
+| المرحلة/SHA | القرار + السبب |
+|---|---|
+| **م1 `fe4426b`** (v3-F1/3/4 + v4) | `list_available_asset_dates`: الحدّ على التواريخ المميَّزة (CTE) لا صفوف (تاريخ×مؤشّر) — كان يبتر خطّ السنتين. `DISTINCT ON` لصفّ متماسك بدل `MIN(cloud_pct)`+`MIN(scene_id)` من صفَّين. `fetch_latest_asset` واعٍ بالجودة بعد التاريخ. **v4 حرج:** `insert_raster_asset` كان لا يكتب أعمدة v105 (quality_score/aoi_cloud_pct/cloud_mask_sources) ⇒ الترتيب بالجودة بلا أثر — تُكتب الآن من stats؛ + cloud_mask_sources في provenance. بديل مرفوض: ترك quality_score NULL (يجعل م1.C زخرفة). |
+| **م2 `8ed6272`** (v2-007/v3-6/7/8/9) | MapHub: حارس `has_cog` — لا معالجة لتاريخ تاريخيّ له COG جاهز. CDSE cache key: +tenant +بصمة هندسة (تصادم/تسريب عبر المستأجرين). حذف bbox اليمن الثابت (fail-closed). cdse-tilejson: +tid في رابط البلاطة (البلاطات `<img>` بلا auth ⇒ 403 بلا tid) + urlencode. object_store: fail-closed عند فشل رفع S3 المُهيّأ (لا file:// صامت غير قابل للخدمة). |
+| **م3 `f440b3f`** (v2-011/004، v143) | عمود `asset_status` (pending/ready/stale/failed) + `geometry_revision` على raster_assets + فهارس. النَّسَب end-to-end: النماذج الأربعة تحمل geometry_revision، كلّ مواضع بناء ProcessRequest تمرّره، والمنصّة تحلّ `MAX(revision)` من field_geometry_history وتمرّره عبر imagery_automation. النَّسَب None عند الجهل (لا اختلاق). |
+| **م4 `bdf703a`** (v2-005/010) | عامل `cache_invalidation_worker` (Pattern A): يستهلك طابور raster_cache_invalidations (كان بلا مستهلِك) — يحذف بلاطات الحقل + يعلّم الأصول stale + ينهي الصفّ. `tile_cache_maint` (وحدة خفيفة بلا FastAPI) للإبطال+الإخلاء (TTL/حصّة — لم يكن هناك). خدمة compose خلف راية `RASTER_CACHE_INVALIDATION_ENABLED` (نشر ثمّ تفعيل). +allowlist tenant-audit +RLS role-gate. **درس عزل يتكرّر:** اسم `main` العامّ يتصادم عبر الخدمات ⇒ استخرجتُ الدوالّ لوحدة فريدة بدل حقن sys.modules في الاختبار. |
+| **م5 `5f52b63`** (v2-008/009) | جسر الكتالوج: `insert_raster_registry_entry` (يملأ raster_registry من كلّ أصل ناجح — كان يملؤه فقط REST يدويّ) + `insert_stac_item` (يستمرّ مشاهد backfill في stac_item_registry — كان بلا كاتب). كلاهما ON CONFLICT + ضبط مستأجِر (RLS FORCE+WITH CHECK) + `_clamp_score_0_100` للقيد. best-effort لا يُفشل المعالجة. |
+
+**الحصيلة:** كلّ بنود المؤجَّل من v2 + كلّ v3 (عدا F2 المُصلَح سابقاً 528203b) + النتائج الحقيقيّة من v4 — مُنجَزة ومدفوعة. unit gate 2576 · production_validation_gate أخضر (v143، 149 ترحيلاً، 54 خدمة) · tenant-audit 0 · ruff/release نظيفة. **مؤجَّل بوعي:** التحقّق التكامليّ (`-m integration` بعد رفع Postgres+PostGIS) لتفعيل عامل الإبطال وملء الكتالوج فعليّاً على DB حيّ.
+
+## 18) متابعات ما بعد الدمج: أمن bandit + v5 + بوّابة الإنتاج (2026-07-05)
+
+| SHA | القرار + السبب |
+|---|---|
+| `65c96cd` | `hashlib.sha1(..., usedforsecurity=False)` لبصمة كاش CDSE — استعمال غير أمنيّ؛ يُرضي bandit B324 HIGH (كان يحجب Security Scan) وFIPS بلا تغيير سلوك. |
+| `5cd765d` | رصد حفظ raster_assets (bool + سطر منظَّم + `persisted` في المهمّة) [v5-F1] + ملخّص فحص backfill [v5-F8]. F2/F4 (فحص لاتزامنيّ) مؤجَّل بصدق. |
+| `947c9af` | إضافة `sahool-raster-cache-invalidation-worker` لقائمة سماح JOBS **الثانية** (`tests/security/test_phase12`) — بوّابة الإنتاج main-only سقطت لأنّ القائمة تعيش في موضعَين. + تجديد بصمات الإصدار. |
+
+## 19) تحقّق تكامليّ على Postgres حيّ + إصلاح خلل الجسر الإنتاجيّ (2026-07-05)
+
+| SHA | القرار + السبب |
+|---|---|
+| `12329c4` | إضافة ٦ اختبارات `-m integration` (عامل الإبطال + جسر الكتالوج + STAC + v143 + Phase-1 SQL) على Postgres+PostGIS الحيّ في CI. دُفِعت للفرع أوّلاً وحُجِز main حتّى الخضرة. |
+| `c564d65` | إصلاح `$N::date`/`$N::timestamptz` ⇒ `$N::text::date`/`::timestamptz` في insert_raster_registry_entry/insert_stac_item — كانا يفشلان صامتاً (best-effort) فيُبقيان الكتالوج فارغاً في الإنتاج. كشفه الاختبار التكامليّ فقط. |
+
+**تحديث الفجوة:** «التحقّق التكامليّ» — الطبقة القاعديّة (worker/bridge/STAC/SQL على DB حيّ) **مُنجَزة ومُثبَتة في CI**؛ يبقى التفعيل الحيّ الكامل عبر compose (رفع + RASTER_CACHE_INVALIDATION_ENABLED) بيد المشغّل (يحتاج Docker).
+
+## 20) بنية backfill اللاتزامنيّة + STAC single-flight (2026-07-05، شريحتان)
+
+| SHA | القرار + السبب |
+|---|---|
+| Slice A | single-flight في عميل STAC (خريطة key→Future) — miss متطابق متزامن = POST واحد؛ يتفادى stampede على Earth Search عند backfill متوازٍ [v6-F6]. |
+| `10cb133` | v144 (backfill_runs/run_items + idempotency فريد + RLS) · نقطة تُرجِع run_id فوراً خلف راية · عامل فحص (Pattern A) يمسح خارج مسار الطلب + preflight + idempotent + threadpool؛ يعيد استخدام دوالّ main [v5-F1/F2/F4 · v6-F1/F2/F4]. |
+| `c564d65` | إصلاح ربط تاريخ جسر الكتالوج (`::text::date`) — كان يفشل صامتاً؛ كشفه اختبار تكامليّ حيّ. |
+| `ecc0061` | إزالة U+200F خفيّ (bandit B613 HIGH) من docstring العامل. |
+
+**قرار انضباط مؤكَّد:** الشرائح ذات migration/worker/best-effort تُدفَع للفرع أوّلاً، ويُحجَز main حتّى خضرة *Integration Tests* (PostGIS حيّ) و*Security Scan* — لأنّ هذه الأخطاء لا تظهر في `pytest -m unit` المُحاكى.

@@ -40,6 +40,11 @@ ALLOWED_JOBS_DB_SERVICES = {
     "sahool-plugin-runtime-worker",
     "sahool-model-registry-worker",
     "sahool-actuator-dispatch-worker",
+    # عامل إبطال كاش الراستر (FINDING-005): يطالب طابور raster_cache_invalidations
+    # العابر بدور BYPASSRLS ثمّ يعلّم raster_assets stale بفلتر tenant_id صريح.
+    "sahool-raster-cache-invalidation-worker",
+    # عامل فحص backfill (v5/v6): يطالب backfill_runs العابر بدور JOBS ويجدول المعالجة.
+    "sahool-raster-backfill-scan-worker",
 }
 
 TRUTHY = {"1", "true", "yes", "on"}
