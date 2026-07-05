@@ -404,6 +404,18 @@ export default function App() {
           ))}
           <Route path="/health/timeline" element={pageContent} />
           <Route path="/health/temporal-indicators" element={pageContent} />
+          <Route path="/health/indicators/timeline" element={pageContent} />
+          <Route path="/health/spatial-indicators" element={pageContent} />
+          <Route path="/health/indicators/spatial" element={pageContent} />
+          <Route path="/health/growth-stages" element={pageContent} />
+          <Route path="/health/growth" element={pageContent} />
+          <Route path="/health/prescription-builder" element={pageContent} />
+          <Route path="/health/soil-water-sampling" element={pageContent} />
+          <Route path="/health/soil-water" element={pageContent} />
+          <Route path="/irrigation/water-analysis" element={pageContent} />
+          <Route path="/irrigation/predicted-plan" element={pageContent} />
+          <Route path="/analysis/advanced" element={pageContent} />
+          <Route path="/analysis/roi" element={pageContent} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AppShell>

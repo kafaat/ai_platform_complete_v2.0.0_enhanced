@@ -3,7 +3,7 @@
 // (الميزة غير مُفعَّلة). المحاكاة في الاختبار فقط (لا mock في كود الإنتاج) —
 // نُحاكي computePortfolioCommand مباشرةً (الصفحة تستدعيه دون react-query).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import type { PortfolioCommandResult } from '../services/api';
 
 // نُحاكي وحدة الـapi: computePortfolioCommand قابل للتحكّم، وasApiError حقيقيّ الدلالة.
@@ -13,7 +13,26 @@ vi.mock('../services/api', () => ({
   asApiError: (e: unknown) => (e ?? {}) as { response?: { status?: number } },
 }));
 
+// الصفحة تقرأ قائمة الحقول الحيّة عبر useFieldOptions (تعدّد الحقول). نُحاكيه بخيار واحد
+// ثابت كي لا يجرّ سلسلة react-query/authApi في اختبار سلوكيّ، ونختار الحقل قبل المقارنة
+// (زرّ المقارنة صار مشروطاً باختيار حقل حقيقيّ بدل معرّفات تجريبيّة مفبركة).
+vi.mock('../hooks/useFieldOptions', () => ({
+  useFieldOptions: () => ({
+    options: [{ id: 'f-1', name: 'حقل تجريبيّ', crop: 'قمح' }],
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 import PortfolioCommandPage from './PortfolioCommandPage';
+
+// يختار الحقل الأوّل في أوّل صفّ (المُبدِّل الذي يحوي خيار «اختر الحقل») ليُفعِّل زرّ المقارنة.
+function selectFirstField() {
+  const combos = screen.getAllByRole('combobox');
+  const fieldSelect = combos.find((c) => within(c).queryByText('اختر الحقل'));
+  if (!fieldSelect) throw new Error('field select not found');
+  fireEvent.change(fieldSelect, { target: { value: 'f-1' } });
+}
 
 const RESULT: PortfolioCommandResult = {
   recommended_policy: 'أقصى ربح',
@@ -86,6 +105,7 @@ describe('PortfolioCommandPage — النتائج', () => {
   it('يعرض جدول المقارنة بكلّ السياسات + شارة «موصى بها» على الموصى بها', async () => {
     mockCompute.mockResolvedValueOnce(RESULT);
     render(<PortfolioCommandPage />);
+    selectFirstField();
     fireEvent.click(screen.getByText('قارن السياسات'));
 
     await waitFor(() => expect(screen.getByText('موصى بها')).toBeInTheDocument());
@@ -100,6 +120,7 @@ describe('PortfolioCommandPage — النتائج', () => {
   it('يعرض درجة المخاطرة بألوانها ونسبة التلبية المئويّة', async () => {
     mockCompute.mockResolvedValueOnce(RESULT);
     render(<PortfolioCommandPage />);
+    selectFirstField();
     fireEvent.click(screen.getByText('قارن السياسات'));
 
     // درجة المخاطرة 0.12 (أخضر) و0.55 (أحمر).
@@ -115,6 +136,7 @@ describe('PortfolioCommandPage — النتائج', () => {
   it('يعرض بانر «توصية فقط» وبانر «غير معايَر» + كلّ warnings_ar', async () => {
     mockCompute.mockResolvedValueOnce(RESULT);
     render(<PortfolioCommandPage />);
+    selectFirstField();
     fireEvent.click(screen.getByText('قارن السياسات'));
 
     expect(await screen.findByText('توصية فقط — لا تنفيذ ولا حجز ماء.')).toBeInTheDocument();
@@ -126,6 +148,7 @@ describe('PortfolioCommandPage — النتائج', () => {
   it('لوحة القيود تُبرِز المصدر المُقيَّد بتدفّقه (الفعليّة مقابل الاسميّة)', async () => {
     mockCompute.mockResolvedValueOnce(RESULT);
     render(<PortfolioCommandPage />);
+    selectFirstField();
     fireEvent.click(screen.getByText('قارن السياسات'));
 
     // المضخّة المُقيَّدة بتدفّقها تظهر؛ السعة الفعليّة 1500 مقابل 2000.
@@ -139,6 +162,7 @@ describe('PortfolioCommandPage — الميزة غير مُفعَّلة (404)', 
   it('404 ⇒ رسالة «الميزة غير مُفعَّلة» لا انهيار ولا حالة خطأ', async () => {
     mockCompute.mockRejectedValueOnce({ response: { status: 404 } });
     render(<PortfolioCommandPage />);
+    selectFirstField();
     fireEvent.click(screen.getByText('قارن السياسات'));
 
     expect(await screen.findByText('الميزة غير مُفعَّلة')).toBeInTheDocument();
@@ -149,6 +173,7 @@ describe('PortfolioCommandPage — الميزة غير مُفعَّلة (404)', 
   it('خطأ غير 404 (503) ⇒ حالة خطأ صادقة', async () => {
     mockCompute.mockRejectedValueOnce({ response: { status: 503 } });
     render(<PortfolioCommandPage />);
+    selectFirstField();
     fireEvent.click(screen.getByText('قارن السياسات'));
 
     expect(await screen.findByText('تعذّرت مقارنة السياسات')).toBeInTheDocument();

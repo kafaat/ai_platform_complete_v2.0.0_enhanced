@@ -23,6 +23,7 @@ import { asApiError } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { useSelectedField } from '../hooks/useSelectedField';
 
 // ── ترجمات/تسميات عربيّة ───────────────────────────────────────
 const VALVE_TYPE_LABELS: Record<string, string> = {
@@ -62,6 +63,7 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
   const [deviceId, setDeviceId] = useState('');
   const [valveType, setValveType] = useState<ValveType>('solenoid');
   const [flow, setFlow] = useState('');
+  const { options: fieldOptions, isLoading: fieldsLoading, isError: fieldsError } = useSelectedField();
 
   const onCreate = () => {
     if (!name.trim()) return;
@@ -132,10 +134,13 @@ function ValvesPanel({ mutable }: { mutable: boolean }) {
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معرّف الحقل (اختياريّ)</span>
-              <input value={fieldId} onChange={e => setFieldId(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+              <span className="text-xs text-slate-400">الحقل (اختياريّ)</span>
+              <select value={fieldId} onChange={e => setFieldId(e.target.value)} disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+                className="px-3 py-2 rounded-lg text-sm disabled:opacity-60"
+                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                <option value="">— بلا ربط بحقل —</option>
+                {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+              </select>
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-xs text-slate-400">معرّف الجهاز (اختياريّ)</span>
@@ -248,6 +253,7 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
   const [duration, setDuration] = useState('30');
   const [waterTarget, setWaterTarget] = useState('');
   const [days, setDays] = useState<number[]>([]);
+  const { options: fieldOptions, isLoading: fieldsLoading, isError: fieldsError } = useSelectedField();
 
   const toggleDay = (d: number) =>
     setDays(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d].sort((a, b) => a - b));
@@ -317,10 +323,13 @@ function SchedulesPanel({ mutable }: { mutable: boolean }) {
                 style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-slate-400">معرّف الحقل (اختياريّ)</span>
-              <input value={fieldId} onChange={e => setFieldId(e.target.value)}
-                className="px-3 py-2 rounded-lg text-sm"
-                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+              <span className="text-xs text-slate-400">الحقل (اختياريّ)</span>
+              <select value={fieldId} onChange={e => setFieldId(e.target.value)} disabled={fieldsLoading || fieldsError || fieldOptions.length === 0}
+                className="px-3 py-2 rounded-lg text-sm disabled:opacity-60"
+                style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                <option value="">— بلا ربط بحقل —</option>
+                {fieldOptions.map((f) => <option key={f.id} value={f.id}>{f.name}{f.crop && f.crop !== '—' ? ` · ${f.crop}` : ''}</option>)}
+              </select>
             </label>
             <label className="flex flex-col gap-1">
               <span className="text-xs text-slate-400">معرّف الصمّام (اختياريّ)</span>

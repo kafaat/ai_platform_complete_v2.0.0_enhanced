@@ -3055,7 +3055,7 @@ interface AllFieldsNdviResponse {
 // NDVI لكلّ حقل يُلحَق من vegetation `/v1/all_fields` بمطابقة field_id (مصدران حقيقيّان،
 // بلا تلفيق). كانت النسخة السابقة تبني مفاتيح (allNdvi/indicators/…) لا يقرؤها
 // المُستهلِك (kpis/fields_summary/total_fields…) ⇒ بيانات حيّة تُجلب ثمّ تُهمَل.
-export function useDashboardData(primaryFieldId = 'field_01') {
+export function useDashboardData(primaryFieldId = '') {
   const dash       = useDashboardKPIs();
   const allNdvi    = useAllFieldsNdvi();
   const indicators = useIndicators(primaryFieldId);

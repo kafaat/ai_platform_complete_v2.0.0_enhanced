@@ -222,6 +222,18 @@ const PATH_TO_PAGE = new Map<string, PageId>(ALL_ROUTES.map((r) => [r.path, r.id
 // wrong screen and look like an auth redirect.
 PATH_TO_PAGE.set('/health/timeline', 'agronomic-timeline');
 PATH_TO_PAGE.set('/health/temporal-indicators', 'agronomic-timeline');
+PATH_TO_PAGE.set('/health/indicators/timeline', 'agronomic-timeline');
+PATH_TO_PAGE.set('/health/spatial-indicators', 'spatial-indicators');
+PATH_TO_PAGE.set('/health/indicators/spatial', 'spatial-indicators');
+PATH_TO_PAGE.set('/health/growth-stages', 'phenology');
+PATH_TO_PAGE.set('/health/growth', 'phenology');
+PATH_TO_PAGE.set('/health/prescription-builder', 'prescriptions');
+PATH_TO_PAGE.set('/health/soil-water-sampling', 'lab-sampling');
+PATH_TO_PAGE.set('/health/soil-water', 'lab-sampling');
+PATH_TO_PAGE.set('/irrigation/water-analysis', 'irrigation');
+PATH_TO_PAGE.set('/irrigation/predicted-plan', 'irrigation-plan');
+PATH_TO_PAGE.set('/analysis/advanced', 'analytics');
+PATH_TO_PAGE.set('/analysis/roi', 'economics');
 
 /** مسار URL لمعرّف الصفحة (يقع على «/» إن غاب — لن يحدث: الحارس يضمن الاكتمال). */
 export function pathForPage(id: PageId): string {
