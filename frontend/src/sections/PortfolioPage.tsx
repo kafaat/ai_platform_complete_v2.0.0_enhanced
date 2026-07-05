@@ -13,6 +13,7 @@ import type {
   PortfolioFieldInput, PortfolioSourceInput,
 } from '../services/api';
 import { ErrorState } from '../components/StateViews';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 
 // صفوف الإدخال القابلة للتحرير (نصوص ليسهل التحرير، تُحوَّل لأرقام عند الإرسال).
 type FieldRow = {
@@ -22,9 +23,7 @@ type FieldRow = {
 type SourceRow = { source_id: string; capacity_m3: string };
 
 const DEFAULT_FIELDS: FieldRow[] = [
-  { field_id: 'حقل-أ', expected_margin: '3000', water_demand_m3: '1200', priority: '3', min_water_fraction: '0.4', source_ids: 'بئر-1' },
-  { field_id: 'حقل-ب', expected_margin: '1800', water_demand_m3: '900',  priority: '2', min_water_fraction: '0.3', source_ids: 'بئر-1' },
-  { field_id: 'حقل-ج', expected_margin: '1000', water_demand_m3: '700',  priority: '1', min_water_fraction: '0.2', source_ids: 'بئر-1' },
+  { field_id: '', expected_margin: '', water_demand_m3: '', priority: '1', min_water_fraction: '0.2', source_ids: 'بئر-1' },
 ];
 const DEFAULT_SOURCES: SourceRow[] = [
   { source_id: 'بئر-1', capacity_m3: '2000' },
@@ -33,6 +32,8 @@ const DEFAULT_SOURCES: SourceRow[] = [
 const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
 
 export default function PortfolioPage() {
+  const fieldOptionsQ = useFieldOptions();
+  const fieldOptions = fieldOptionsQ.options;
   const [fields, setFields] = useState<FieldRow[]>(DEFAULT_FIELDS);
   const [sources, setSources] = useState<SourceRow[]>(DEFAULT_SOURCES);
   const [res, setRes] = useState<PortfolioAllocResult | null>(null);
@@ -50,7 +51,7 @@ export default function PortfolioPage() {
     setSources(rows => rows.map((r, j) => (j === i ? { ...r, [key]: v } : r)));
 
   const addField = () => setFields(rows => [...rows, {
-    field_id: `حقل-${rows.length + 1}`, expected_margin: '1000', water_demand_m3: '500',
+    field_id: '', expected_margin: '', water_demand_m3: '',
     priority: '1', min_water_fraction: '0.2', source_ids: sources[0]?.source_id ?? '',
   }]);
   const removeField = (i: number) => setFields(rows => rows.filter((_, j) => j !== i));
@@ -58,8 +59,8 @@ export default function PortfolioPage() {
   const removeSource = (i: number) => setSources(rows => rows.filter((_, j) => j !== i));
 
   const buildPayload = (): PortfolioAllocInput => {
-    const f: PortfolioFieldInput[] = fields.map(r => ({
-      field_id: r.field_id.trim() || '—',
+    const f: PortfolioFieldInput[] = fields.filter(r => r.field_id.trim()).map(r => ({
+      field_id: r.field_id.trim(),
       expected_margin: numOr(r.expected_margin, 0),
       water_demand_m3: numOr(r.water_demand_m3, 0),
       priority: Math.round(numOr(r.priority, 1)),
@@ -168,8 +169,12 @@ export default function PortfolioPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-slate-400">المعرّف</span>
-                <input value={f.field_id} onChange={e => setField(i, 'field_id', e.target.value)}
-                  className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
+                <select value={f.field_id} onChange={e => setField(i, 'field_id', e.target.value)}
+                  disabled={fieldOptionsQ.isLoading || fieldOptionsQ.isError || fieldOptions.length === 0}
+                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-60" style={inputStyle}>
+                  <option value="">اختر الحقل</option>
+                  {fieldOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}{opt.crop && opt.crop !== '—' ? ` · ${opt.crop}` : ''}</option>)}
+                </select>
               </label>
               {[
                 { k: 'priority' as const, label: 'الأولويّة (أعلى = أهمّ)' },
@@ -193,7 +198,7 @@ export default function PortfolioPage() {
           </div>
         ))}
         <div className="flex justify-end">
-          <button onClick={onAllocate} disabled={loading}
+          <button onClick={onAllocate} disabled={loading || !fields.some((r) => r.field_id.trim())}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#0ea5e9' }}>
             <Droplets className="w-4 h-4" />

@@ -213,12 +213,12 @@ export default function SatellitePage() {
     if (!fieldId || analyzing) return;
     setAnalyzeMsg(null);
     try {
-      await analyze({ fieldId });
+      await analyze({ fieldId, geometry: field?.geometry });
       setAnalyzeMsg({ ok: true, text: 'اكتمل التحليل — حُدِّث الشريط الزمنيّ والقيم.' });
     } catch (e) {
       setAnalyzeMsg({ ok: false, text: apiErrorMessage(e, 'تعذّر التحليل — حاول مجدّداً') });
     }
-  }, [fieldId, analyzing, analyze]);
+  }, [fieldId, field?.geometry, analyzing, analyze]);
   // إخفاء تنويه التحليل تلقائيّاً بعد مدّة وجيزة (لا يبقى عالقاً).
   useEffect(() => {
     if (!analyzeMsg) return;
@@ -287,7 +287,7 @@ export default function SatellitePage() {
       ...p,
       delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
       thumbUrl: fieldId && p.date
-        ? fieldCdseThumbnailUrl(fieldId, gridIndex, p.date.slice(0, 10), null, geom, null, 160)
+        ? fieldCdseThumbnailUrl(fieldId, 'truecolor', p.date.slice(0, 10), null, geom, null, 160)
         : null,
     }));
   }, [rasterPoints, ts, fieldId, gridIndex, field?.geometry]);

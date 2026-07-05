@@ -669,6 +669,11 @@ async def import_field(
 
 class FieldImageryRefreshRequest(BaseModel):
     date: str | None = None
+    # UI hotfix: قد تكون صفحة الأقمار تعرض حقلاً محمّلاً/مخزّناً محليّاً أو من
+    # raster timeline قبل أن يوجد الصفّ في جدول fields لنفس المستأجر. لا نلفّق
+    # هندسة؛ نقبل geometry صريحة من خيار الحقل المختار ونمرّرها إلى raster-service
+    # بدل إسقاط التحليل بـ404. إذا لم تصل هندسة، يبقى 404 صادقاً.
+    geometry: dict | None = None
 
 
 @router.post("/api/v1/fields/{field_id}/imagery/refresh")
@@ -691,23 +696,30 @@ async def refresh_field_imagery(
                 field_id,
                 str(user.tenant_id),
             )
+            geometry_revision = None
             if row is None:
-                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-            geometry = row["geometry"]
-            if isinstance(geometry, str):
-                import json as _json
+                # UI/runtime hotfix: أحياناً يأتي field_id من طبقة raster/اختيار محفوظ بينما
+                # لا يوجد صف fields مطابق في platform DB بعد. إن أرسلت الواجهة هندسة صريحة
+                # للحقل المختار نستخدمها بعد guard_field_geometry. بلا هندسة نبقي 404 صادقاً.
+                if not (req and req.geometry):
+                    raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+                geometry = req.geometry
+            else:
+                geometry = row["geometry"]
+                if isinstance(geometry, str):
+                    import json as _json
 
-                geometry = _json.loads(geometry)
+                    geometry = _json.loads(geometry)
+                # v143 (FINDING-004): مراجعة الهندسة السارية للحقل — تُمرَّر لتُسجَّل على
+                # raster_assets فيصبح النَّسَب مُتتبَّعاً (أيّ هندسة أنتجت هذا الأصل). None إن
+                # لم تُنشَأ مراجعات بعد (لا اختلاق).
+                geometry_revision = await conn.fetchval(
+                    "SELECT MAX(revision) FROM field_geometry_history "
+                    "WHERE tenant_id = $1::uuid AND field_id = $2",
+                    str(user.tenant_id),
+                    field_id,
+                )
             guarded = guard_field_geometry(geometry)
-            # v143 (FINDING-004): مراجعة الهندسة السارية للحقل — تُمرَّر لتُسجَّل على
-            # raster_assets فيصبح النَّسَب مُتتبَّعاً (أيّ هندسة أنتجت هذا الأصل). None إن
-            # لم تُنشَأ مراجعات بعد (لا اختلاق).
-            geometry_revision = await conn.fetchval(
-                "SELECT MAX(revision) FROM field_geometry_history "
-                "WHERE tenant_id = $1::uuid AND field_id = $2",
-                str(user.tenant_id),
-                field_id,
-            )
             from api.imagery_automation import imagery_automation
 
             result = await imagery_automation.trigger_field_imagery_processing(
@@ -740,6 +752,7 @@ async def refresh_field_imagery(
 async def field_imagery_available_dates(
     field_id: str,
     index: str | None = Query(None),
+    limit: int = Query(240, ge=1, le=500),
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """Proxy tenant-verified imagery dates from raster-service for MapHub.
@@ -754,8 +767,10 @@ async def field_imagery_available_dates(
                 field_id,
                 str(user.tenant_id),
             )
-            if row is None:
-                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+            # Timeline/thumbnail must remain usable for fields that raster-service already owns
+            # even if the platform fields table is temporarily out of sync. Raster-service still
+            # enforces tenant ownership using X-Tenant-Id, so we do not fabricate dates here.
+            _platform_field_missing = row is None
         import os as _os
 
         import httpx as _httpx
@@ -767,7 +782,7 @@ async def field_imagery_available_dates(
             "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
             "X-Tenant-Id": str(user.tenant_id),
         }
-        params = {"index": index} if index else {}
+        params = {"limit": limit, **({"index": index} if index else {})}
         async with _httpx.AsyncClient(timeout=15.0) as client:
             resp = await client.get(
                 f"{raster_url}/v1/fields/{field_id}/available-dates",

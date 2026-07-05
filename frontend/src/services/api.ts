@@ -703,11 +703,50 @@ export interface EtcDualResult {
     soil_ece_source: string;
   };
 }
-export const computeFieldEtcDual = (
+function localEtcDualFallback(fieldId: string, payload: EtcDualInput): EtcDualResult {
+  const tMean = (payload.temp_max_c + payload.temp_min_c) / 2;
+  const et0 = Math.max(0, 0.0023 * (tMean + 17.8) * Math.sqrt(Math.max(0.1, payload.temp_max_c - payload.temp_min_c)) * Math.max(0, payload.solar_radiation_mj_m2 / 2.45));
+  const ndvi = payload.ndvi ?? null;
+  const kcbFromNdvi = ndvi == null ? null : Math.max(0.15, Math.min(1.15, 1.25 * ((ndvi - (payload.ndvi_bare ?? 0.15)) / Math.max(0.01, (payload.ndvi_full ?? 0.8) - (payload.ndvi_bare ?? 0.15)))));
+  const das = payload.days_after_planting ?? 45;
+  const kcb = kcbFromNdvi ?? Math.max(0.25, Math.min(1.05, 0.25 + das / 80));
+  const ks = payload.soil_ece && payload.soil_ece > 4 ? Math.max(0.55, 1 - (payload.soil_ece - 4) * 0.04) : 1;
+  const ke = Math.max(0.05, Math.min(0.25, (100 - payload.humidity_pct) / 500));
+  const kcDual = Math.min(1.35, kcb * ks + ke);
+  const etcDual = et0 * kcDual;
+  return {
+    et0_mm: Number(et0.toFixed(2)),
+    kcb: Number(kcb.toFixed(3)),
+    ks: Number(ks.toFixed(3)),
+    kc_max: 1.35,
+    kr: 1,
+    few: payload.fw ?? 0.35,
+    ke: Number(ke.toFixed(3)),
+    kc_dual: Number(kcDual.toFixed(3)),
+    etc_dual_mm: Number(etcDual.toFixed(2)),
+    etc_single_mm: Number((et0 * kcb * ks).toFixed(2)),
+    stage: 'client_fallback',
+    assumptions: ['حساب محلي مؤقت لأن قاعدة ETc الخلفية غير مفعّلة أو غير متاحة', 'فعّل DATABASE_URL في الخدمة الخلفية للاعتماد الإنتاجي'],
+    field_id: fieldId,
+    ndvi: { used: ndvi, source: ndvi == null ? 'not_provided' : 'manual_override', date: null },
+    inputs: { crop_id: 'unknown', days_after_planting: das, soil_ece: payload.soil_ece ?? 0, soil_ece_source: payload.soil_ece == null ? 'not_provided' : 'manual_override' },
+  };
+}
+
+export const computeFieldEtcDual = async (
   fieldId: string,
   payload: EtcDualInput,
-): Promise<EtcDualResult> =>
-  kongApi.post<EtcDualResult>(`/api/v1/fields/${fieldId}/etc-dual`, payload).then(r => r.data);
+): Promise<EtcDualResult> => {
+  try {
+    return await kongApi.post<EtcDualResult>(`/api/v1/fields/${fieldId}/etc-dual`, payload).then(r => r.data);
+  } catch (e) {
+    const msg = apiErrorMessage(e, '');
+    if (msg.includes('DATABASE_URL') || msg.includes('القاعدة غير مفعّلة')) {
+      return localEtcDualFallback(fieldId, payload);
+    }
+    throw e;
+  }
+};
 
 // ── توزيع ماء المزرعة (POST /api/v1/field-portfolio/allocate) ──
 // يوزّع ماء آبار محدودة على حقول متعدّدة وفق الأولويّة والحدّ الأدنى لكلّ حقل،
@@ -3505,8 +3544,15 @@ export const fetchIndicatorsHealth = () =>
 // ══════════════════════════════════════════════════════════════════
 
 /** تشغيل معالجة صور Sentinel-2 الحقيقيّة للحقل عبر المنصّة/raster-service. */
-export const refreshFieldImagery = (fieldId: string, date?: string | null) =>
-  kongApi.post(`/api/v1/fields/${fieldId}/imagery/refresh`, date && date !== 'latest' ? { date } : undefined).then(r => r.data);
+export const refreshFieldImagery = (fieldId: string, date?: string | null, geometry?: unknown) => {
+  const body: Record<string, unknown> = {};
+  if (date && date !== 'latest') body.date = date;
+  if (geometry) body.geometry = geometry;
+  return kongApi.post(
+    `/api/v1/fields/${fieldId}/imagery/refresh`,
+    Object.keys(body).length ? body : undefined,
+  ).then(r => r.data);
+};
 
 /** UI deeper-fix: غلاف متوافق للخلف — أيّ كود قديم يستدعي analyzeVegetation يجب ألّا
  *  يذهب إلى vegetation-service /v1/analyze بمعرّفات platform (fld_*) لأنّها لا تملكها
@@ -3535,9 +3581,10 @@ export interface FieldImageryDateOption {
 export const fetchFieldImageryAvailableDates = (
   fieldId: string,
   index?: string,
+  limit = 240,
 ): Promise<FieldImageryDateOption[]> =>
   kongApi.get(`/api/v1/fields/${fieldId}/available-dates`, {
-    params: index ? { index } : undefined,
+    params: { ...(index ? { index } : {}), limit },
   }).then((r) => {
     const raw = r.data?.dates ?? r.data?.items ?? r.data ?? [];
     if (!Array.isArray(raw)) return [];

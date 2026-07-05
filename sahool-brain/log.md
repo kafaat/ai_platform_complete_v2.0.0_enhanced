@@ -4,6 +4,61 @@
 
 ---
 
+## 2026-07-05 (ن) — `960a86d` الجولة 3: قوائم حقول في لوحات القرار/المدير + إشعارات صادقة
+
+رقعة المستخدم (`..._rest_runtime_screens_round3_hotfix.zip`، حزمة كاملة). عزلتُ تغييراتها الحقيقيّة عن حالتي التراكميّة (r3 = حالتي + round3): App.tsx/routes.ts نُسخ متطابقة-فائقة (فقط 22 alias جديداً) + 3 ملفّات لم أمسّها:
+
+- **DecisionDeepPanel:** input نصّيّ fld_* ⇒ select مشترك (useSelectedField) متزامن مع الحقل النشط عبر منتقيات القرار الثلاثة.
+- **ManagerConsolePage:** مدخلات معرّف الحقل ⇒ selects (multi للتقارير، single لأمر العمل/اللقطة).
+- **NotificationCenter:** **إزالة إشعارات SEED المفبركة** (رسائل NDVI/طقس/معمل مخترعة) ⇒ حالة فارغة صادقة حتّى ربط مصدر حيّ (websocket/store). موافق لقاعدة «لا اختلاق».
+- **توجيه:** 22 alias + Routes (indicator-timeline · phenology/growth · prescription · water/twin/etc-dual/fao56 · yield/rankings/problems/roi · iot/irrigation-network · admin/manager).
+
+**حافظتُ على إصلاحاتي التي يفتقر إليها أساس الحزمة:** FarmMapOverview `source:'user'` (لا `'map'` غير الصالح) · allowlist حارس Portfolio · MemoryRouter في اختبار FieldWorkspaceMapCard · تأكيدات الخطّ الزمنيّ المحدود بالخادم · stub اختبار Portfolio. **لم أنسخ ملفّات الاختبار من r3** (كانت ستُرجِع أخطاء أصلحتُها).
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · release **3154** checksums. واجهة فقط · بلا migration. يُضاف لـPR **#580**.
+
+## 2026-07-05 (ن) — `f18c74b` الجولة 2: قوائم منسدلة للحقول في بقيّة الشاشات + aliases توجيه
+
+رقعة المستخدم (`rest_runtime_screens_round2_fix.diff`) — تُكمِل توصيل الشاشات التشغيليّة المتبقّية بالحقول الحيّة وتستبدل آخر مدخلات معرّف الحقل النصّيّة/الوهميّة بقوائم منسدلة. `patch -p1` نظيف بعد إصلاح عيبَين:
+
+- Devices/Documents/IrrigationOps (قناة+جدول): input نصّيّ ⇒ select من قائمة الحقول · Pest/Recommendation: dropdown + زرّ مشروط · Portfolio/PortfolioCommand: قوائم منسدلة لكلّ صفّ + **إزالة الحقول التجريبيّة المفبركة (حقل-أ/ب/ج)** (صفوف تبدأ فارغة؛ الحساب مشروط باختيار حقل حقيقيّ؛ الصفوف الفارغة تُسقَط) · `useDashboardData` افتراض `'field_01'`⇒`''` · توجيه: aliases + Routes لـindicators/growth/prescription/soil-water/water-analysis/predicted-plan/advanced/roi.
+
+**تحقّق-قبل-دمج اصطاد عيبَين:** (١) حارس `useSelectedField.static.test.ts` يمنع `useFieldOptions` في الأقسام؛ صفحتا Portfolio مُحرِّرا **تعدّد حقول** (استثناء مشروع كـFieldMapCenter) ⇒ allowlist بمبرّر بدل إجبارهما على hook الحقل المفرد. (٢) `PortfolioCommandPage.test.tsx` انكسر لأنّ الصفحة صارت تجرّ hook استعلام حيّ وتشترط اختيار حقل ⇒ stub لـuseFieldOptions + اختيار الحقل قبل المقارنة (كان يعتمد على الحقول التجريبيّة المُزالة).
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · release **3154** checksums. واجهة فقط · بلا migration. يُضاف لـPR **#580**.
+
+## 2026-07-05 (ن) — `7cdefde` توصيل الشاشات التشغيليّة العريضة بالحقل النشط المشترك
+
+رقعة المستخدم (`wide_runtime_screens_fix.diff` على أساس `..._backfill_incremental_retry_hotfix.zip`) — تُوصِّل ~14 شاشة بالحقل المختار المشترك بدل معرّفات ثابتة/stub وتضيف تنقّلاً بين الشاشات بسياق الحقل. طُبِّقت بـ`patch -p1` (dry-run نظيف) بعد تحقّق:
+
+- FarmMapOverview (نقر يثبّت الاختيار + بطاقة crop/area/id + أزرار انتقال) · FieldWorkspaceMapCard (بطاقات فعّالة) · SpatialIndicatorsPage (إزالة `FIELD_ID="field_01"` الثابت ⇒ FieldSelector يقود useIndicatorGrid/prescription) · FieldIntelligencePage/maestro (dropdown بدل إدخال id خام) · LabSamplingPage (خريطة قمر تفاعليّة لنقطة العينة) · Irrigation Plan/Water (FieldSelector + field_id بالحمولة) · WaterTwinPage (`initial_depletion_mm=0` عند غياب دفتر المياه) · FieldRanking/ProblemFields (احترام `real_data !== false`) · توجيه `/health/timeline`+`/health/temporal-indicators` (aliases + Routes) · مكوّن FieldSelector جديد · `computeFieldEtcDual` fallback عميلٌ **شفّاف** فقط عند خطأ DATABASE_URL المعطَّل (موسوم `client_fallback`، لا يُقدَّم كإنتاج).
+
+**تحقّق-قبل-دمج اصطاد عيبَين في الرقعة:** (١) `source: 'map'` ليس قيمة `FieldSelectionSource` صالحة (`'user'|'route'|'auto'|'restore'|'system'`) ⇒ tsc error؛ صُحِّح لـ`'user'`. (٢) اختبار render لـFieldWorkspaceMapCard لم يُلَفّ بـRouter بعد إضافة `useNavigate` ⇒ 5 اختبارات فشلت؛ لُفّ بـ`MemoryRouter`.
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · release **3153** checksums. واجهة فقط · بلا migration. يُضاف لـPR **#580**.
+
+## 2026-07-05 (ن) — `ad49e73` اعتماد الخطّ الزمنيّ التاريخيّ الأغنى + جسر geometry صادق
+
+رقعة المستخدم (`sahool_v2.0.0_5171ee6_backfill_incremental_retry_hotfix.zip`): جزؤها الخلفيّ (backfill incremental retry) كان **مطبَّقاً حرفيّاً** عندي (`backfill_scan_worker.py` + compose متطابقان). لكنّ واجهة الزيب أغنى؛ اختار المستخدم اعتمادها. طُبِّق بعد تحقّق-قبل-دمج:
+
+- **الواجهة:** MapHub خطّ زمنيّ تاريخيّ (`timelineImageryDates` منفصل، جلب all-index، dedup لكلّ تاريخ، `monthLabel`، خيارات 3/6/12/24 شهراً، شريط مصغّرات). النطاق يحدّه الخادم (limit/backfill سنتين) لا قصٌّ عميلٌ صلب 730 يوماً. تسمية «السلسلة التاريخية».
+- **api/hooks:** `refreshFieldImagery(fieldId, date?, geometry?)` + طفرة analyze تمرّران هندسة الحقل المختار؛ `fetchFieldImageryAvailableDates` بمعامل `limit` (240).
+- **الخلفيّة (platform fields.py):** `/imagery/refresh` يقبل `geometry` كجسر صادق عند غياب صفّ fields للمستأجر (بعد guard؛ بلا هندسة يبقى 404). `/available-dates` بمعامل `limit` + لا يُسقِط 404 عند غياب الصفّ (raster يفرض ملكيّة المستأجر عبر X-Tenant-Id؛ لا اختلاق).
+
+**تحقّق-قبل-دمج اصطاد عيبَين في رقعة المُدقِّق:** (١) اختبارها `MapHubTwoYearTimeline` كان يؤكّد قصّ 730 المُزال وتسمية «آخر سنتين» القديمة — كان سيفشل ضدّ MapHub نفسه في الزيب؛ حُدِّث للسلوك المقصود (نطاق يحدّه الخادم). (٢) `platform_field_missing` ميّت ⇒ ruff F841؛ صُحِّح (`_`-prefix). حُرّاس جدد: MapHubHistoricalTimeline · SatellitePageFieldGeometryRefresh.
+
+**البوّابات:** tsc نظيف · vitest **1054** (145 ملفاً) · ruff format/lint نظيف · unit **2623** · release **3151** checksums. بلا migration. PR **#580** (claude/code-review-34hO3 → main).
+
+## 2026-07-05 (ن) — `03281cb` مصغّرات True Color + خنق CDSE 429 + إعادة محاولة backfill التزايُديّ
+
+ثلاث رقعات من المستخدم على مسار الأقمار، طُبِّقت بعد تحقّق-قبل-دمج + تشغيل بوّاباتنا:
+
+- **مصغّرات True Color:** كانت المصغّرات تُعرض بالمؤشّر التحليليّ النشط (`activeIndicator ?? 'ndvi'` / `gridIndex`)؛ حُوِّلت إلى `'truecolor'` ثابتاً (معاينة بصريّة طبيعيّة). اختيار مصغّرة يبدّل التاريخ فقط ولا يلمس مؤشّر الخريطة. (`MapHub.tsx`, `SatellitePage.tsx`). فرعي عندي أبسط من فرع المُدقِّق: لا `handleSelectImageryTimelineItem`/`preferredTimelineIndex` عندي، فاختُصِر التغيير إلى وسيط الفهرس.
+- **خنق CDSE Process API:** تبنّيت نسخة `cdse_client.py` بخنق + إعادة محاولة (بوّابة `_throttle_process_api` عبر `_PROCESS_RATE_LOCK` بـ`CDSE_PROCESS_MIN_INTERVAL_SECONDS=2.0`، حلقة `process_index` تحترم `Retry-After` بـ`CDSE_PROCESS_MAX_RETRIES=5`). وُصِلت env في كتلتَي raster-service + backfill-scan-worker (compose) وhelm values. اختبار سلوكيّ مرافق + حارس ساكن في tests_v9 (CI unit لا يجمع `services/raster-service/`).
+- **إعادة محاولة backfill التزايُديّ (v12):** عند تصادم `ON CONFLICT (tenant_id, idempotency_key) DO NOTHING` كان العنصر يُسقَط بـ`continue` بصمت — فعنصر فشل سابقاً (429/عطل) لا يُعاد أبداً ويُعلَن نجاح كاذب. الآن: ready ⇒ skip؛ غير ready ⇒ `UPDATE backfill_run_items SET status='queued', job_id=NULL, error=NULL, processed_at=NULL` وإعادة ربطه بالتشغيلة؛ تصادم غير قابل للاستعادة ⇒ `items_failed`.
+
+**درس:** فرعي يتقدّم على أساس المُدقِّق؛ رقعة المصغّرات كانت تُزيل دوالّ لا أملكها — فُحِص أوّلاً فاختُصِر التطبيق لوسيط الفهرس فقط بلا كسر. بلا migration. unit 2623 · vitest 1047 · tsc نظيف · release 3147 checksums. HOLD main حتّى Integration + Security أخضر.
+
 ## 2026-07-05 (ن-40) — تدقيق صور الأقمار v2: إصلاح latest البائت (FINDING-001) + تصفية التواريخ بالمؤشّر (006)
 
 **رأس main = develop = `claude/code-review-34hO3`** (هذا الالتزام). تدقيق أعمق — نتائجه حقيقيّة؛ عولج الأخطر والأكثر أماناً:

@@ -7,6 +7,11 @@ const sectionsDir = path.join(root, 'sections');
 const allowedSectionFiles = new Set([
   // FieldMapCenter keeps a map-specific URL/default sync path and writes to FieldView explicitly.
   'FieldMapCenter.tsx',
+  // Portfolio pages allocate water across MANY fields at once (multi-row tables), so they read
+  // the full field-options list — not a single active field. useSelectedField (single-selection)
+  // is the wrong shape here; useFieldOptions is the correct source for these multi-field editors.
+  'PortfolioPage.tsx',
+  'PortfolioCommandPage.tsx',
 ]);
 
 const allowedFieldContextFiles = new Set([

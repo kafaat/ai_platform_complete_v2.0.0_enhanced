@@ -10,6 +10,8 @@ import {
   Info, Scale, GitCompare, Gauge,
 } from 'lucide-react';
 import { useComputeIrrigationPlan } from '../hooks/useApi';
+import FieldSelector from '../components/FieldSelector';
+import { useSelectedField } from '../hooks/useSelectedField';
 import { computeIrrigationPlan } from '../services/api';
 import type { IrrigationPlanInput, IrrigationPlanResult, ForecastDayInput } from '../services/api';
 import { ErrorState } from '../components/StateViews';
@@ -38,6 +40,7 @@ const riskColor = (s: string): string =>
     : s === 'مرتفع' ? 'text-orange-300' : 'text-slate-500';
 
 export default function IrrigationPlanPage() {
+  const { fieldId, field } = useSelectedField();
   const mut = useComputeIrrigationPlan();
   const [horizon, setHorizon] = useState('7');
   const [et0, setEt0] = useState('6');
@@ -68,6 +71,7 @@ export default function IrrigationPlanPage() {
       et0_mm: numOr(et0, 6), kc: numOr(kc, 1.0), rain_mm: numOr(rain, 0),
     }));
     return {
+      ...(fieldId ? { field_id: fieldId } : {}),
       forecast,
       soil_texture: texture,
       root_depth_m: numOr(rootDepth, 1.0),
@@ -77,7 +81,7 @@ export default function IrrigationPlanPage() {
       season_budget_mm: optNum(budget),
       water_price_per_m3: optNum(waterPrice),
       yield_value_per_ha: optNum(yieldValue),
-    };
+    } as IrrigationPlanInput & { field_id?: string };
   };
 
   const onCompute = () => { setScenarios(null); mut.mutate(buildPayload()); };
@@ -150,6 +154,12 @@ export default function IrrigationPlanPage() {
         مع تفسير القرار وأثر السياسة والمخاطر. كلّ القيم <span className="text-amber-300">تقديريّة غير معايَرة</span>.
       </p>
 
+      <FieldSelector label="الحقل الذي ستُبنى عليه خطة الري" />
+      {field ? <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+        مصدر السياق: <b className="text-slate-100">{field.name}</b> · {field.crop || 'بلا محصول'} · {field.area ? `${field.area} هـ` : 'مساحة غير معروفة'}.
+        عند توفر بيانات الطقس/الأقمار/المختبر في الخلفية ستُحقن في محرك الخطة؛ القيم أدناه تبقى قابلة للتعديل اليدوي.
+      </div> : null}
+
       {/* Form */}
       <div className="rounded-xl border p-4 space-y-4" style={{ background: '#1e293b', borderColor: '#334155' }}>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -199,7 +209,7 @@ export default function IrrigationPlanPage() {
             <GitCompare className="w-4 h-4" />
             {scenLoading ? 'جارٍ المقارنة…' : 'قارن السياسات'}
           </button>
-          <button onClick={onCompute} disabled={mut.isPending}
+          <button onClick={onCompute} disabled={mut.isPending || !fieldId}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#0ea5e9' }}>
             <Droplets className="w-4 h-4" />

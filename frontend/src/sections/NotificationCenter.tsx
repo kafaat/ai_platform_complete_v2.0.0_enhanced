@@ -13,45 +13,21 @@ import { useState } from "react";
 // متّسق مع المعالج وبقية الواجهة (#14201a, أخضر #5cbf6e)
 // ════════════════════════════════════════════════════════════
 
-// بيانات تجريبية تطابق بنية build_notification() في الـ backend
-const SEED = [
-  {
-    id: 1, trigger: "precise_ready", field: "محوري ١", unread: true, time: "قبل ٥ دقائق",
-    title: "🟢 توصياتك الدقيقة جاهزة!",
-    body: "اكتملت بيانات «محوري ١» — توصياتك الآن دقيقة وقيّمة. اطّلع عليها.",
-    action: "عرض التوصية", accent: "#5cbf6e",
-  },
-  {
-    id: 2, trigger: "lab_results", field: "محوري ٢", unread: true, time: "قبل ساعة",
-    title: "🧫 وصلت نتائج تحليل التربة",
-    body: "نتائج «محوري ٢» جاهزة — أُدخلت تلقائياً وفُعّلت التوصيات الدقيقة.",
-    action: "عرض النتائج", accent: "#4a90d4",
-  },
-  {
-    id: 3, trigger: "ndvi_alert", field: "محوري ١", unread: true, time: "قبل ٣ ساعات",
-    title: "🔴 انخفاض NDVI في منطقة",
-    body: "رُصد انخفاض في الغطاء النباتي شمال «محوري ١» (NDVI 0.33 مقابل متوسط 0.69). افحص المنطقة.",
-    action: "عرض الخريطة", accent: "#d4593a",
-  },
-  {
-    id: 4, trigger: "reminder", field: "محوري ٣", unread: false, time: "أمس",
-    title: "💡 أكمل بيانات حقلك",
-    body: "أضف «ملوحة التربة S3» → يفتح: إدارة الملوحة وتوصيات دقيقة.",
-    action: "إكمال البيانات", accent: "#d4a017",
-  },
-  {
-    id: 5, trigger: "weather", field: "كل الحقول", unread: false, time: "أمس",
-    title: "🌡️ موجة حرّ متوقّعة",
-    body: "درجات حرارة ٤١°م خلال ٣ أيام. راجع جدولة الري لتجنّب الإجهاد المائي.",
-    action: "عرض الطقس", accent: "#d4a017",
-  },
-  {
-    id: 6, trigger: "data_complete", field: "محوري ٢", unread: false, time: "قبل يومين",
-    title: "✅ بياناتك مكتملة",
-    body: "شكراً! بيانات «محوري ٢» كاملة — توصياتك ستكون بأعلى دقّة.",
-    action: null, accent: "#5cbf6e",
-  },
-];
+// لا نستخدم seed وهميّاً في مركز الإشعارات. ستُعبّأ هذه القائمة لاحقاً من
+// websocket/toast store أو endpoint إشعارات فعلي؛ إلى أن يُربط المصدر الحيّ،
+// تعرض الشاشة حالة فارغة صادقة بدل رسائل NDVI/طقس مخترعة.
+type NotificationItem = {
+  id: number;
+  trigger: string;
+  field: string;
+  unread: boolean;
+  time: string;
+  title: string;
+  body: string;
+  action: string | null;
+  accent: string;
+};
+const INITIAL_NOTIFICATIONS: NotificationItem[] = [];
 
 const FILTERS = [
   { id: "all", label: "الكل" },
@@ -64,7 +40,7 @@ const DATA_TRIGGERS = ["precise_ready", "lab_results", "reminder", "data_complet
 const ALERT_TRIGGERS = ["ndvi_alert", "weather"];
 
 export default function NotificationCenter() {
-  const [items, setItems] = useState(SEED);
+  const [items, setItems] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
   const [filter, setFilter] = useState("all");
 
   const unreadCount = items.filter((i) => i.unread).length;
@@ -163,9 +139,9 @@ export default function NotificationCenter() {
 
       {/* تذييل */}
       <div style={{ maxWidth: 580, margin: "20px auto 0", textAlign: "center", fontSize: 11, color: "#7fae8c", lineHeight: 1.7 }}>
-        الإشعارات تُرسل عند: اكتمال البيانات · وصول نتائج المعمل · انخفاض NDVI · تنبيهات الطقس
+        لا تُعرض هنا إلا إشعارات وصلت فعلياً من النظام. لا توجد رسائل تجريبية أو مؤشرات مخترعة.
         <br />
-        <span style={{ color: "#5a7263" }}>تُسلَّم داخل التطبيق و(قريباً) عبر واتساب — مناسب للسياق اليمني</span>
+        <span style={{ color: "#5a7263" }}>اربط مصدر الإشعارات الحي websocket/store لبدء عرض التنبيهات.</span>
       </div>
     </div>
   );

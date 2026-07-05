@@ -15,6 +15,7 @@ import type {
   PortfolioCommandSourceKind,
 } from '../services/api';
 import { ErrorState } from '../components/StateViews';
+import { useFieldOptions } from '../hooks/useFieldOptions';
 
 // صفوف الإدخال القابلة للتحرير (نصوص ليسهل التحرير، تُحوَّل لأرقام عند الإرسال).
 // الحقول/المصادر مشتركة عبر السياسات؛ الربح/الطلب لكلّ حقل يختلف حسب السياسة.
@@ -39,8 +40,7 @@ const SOURCE_KINDS: { key: PortfolioCommandSourceKind; label: string }[] = [
 ];
 
 const DEFAULT_FIELDS: FieldRow[] = [
-  { field_id: 'حقل-أ', priority: '3', min_water_fraction: '0.4', source_ids: 'بئر-1, مضخّة-1' },
-  { field_id: 'حقل-ب', priority: '2', min_water_fraction: '0.3', source_ids: 'بئر-1' },
+  { field_id: '', priority: '1', min_water_fraction: '0.3', source_ids: 'بئر-1' },
 ];
 const DEFAULT_SOURCES: SourceRow[] = [
   { source_id: 'بئر-1',   capacity_m3: '1500', kind: 'well', max_rate_m3_per_day: '', window_days: '' },
@@ -48,25 +48,15 @@ const DEFAULT_SOURCES: SourceRow[] = [
 ];
 // سياستان مبدئيّتان: أقصى ربح (هوامش/طلب أعلى) مقابل توفير الماء (طلب أقلّ).
 const DEFAULT_POLICIES: PolicyRow[] = [
-  {
-    policy_label: 'أقصى ربح',
-    perField: {
-      'حقل-أ': { expected_margin: '3200', water_demand_m3: '1200' },
-      'حقل-ب': { expected_margin: '1800', water_demand_m3: '900' },
-    },
-  },
-  {
-    policy_label: 'توفير الماء',
-    perField: {
-      'حقل-أ': { expected_margin: '2600', water_demand_m3: '800' },
-      'حقل-ب': { expected_margin: '1500', water_demand_m3: '600' },
-    },
-  },
+  { policy_label: 'أقصى ربح', perField: {} },
+  { policy_label: 'توفير الماء', perField: {} },
 ];
 
 const inputStyle = { background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' } as const;
 
 export default function PortfolioCommandPage() {
+  const fieldOptionsQ = useFieldOptions();
+  const fieldOptions = fieldOptionsQ.options;
   const [fields, setFields] = useState<FieldRow[]>(DEFAULT_FIELDS);
   const [sources, setSources] = useState<SourceRow[]>(DEFAULT_SOURCES);
   const [policies, setPolicies] = useState<PolicyRow[]>(DEFAULT_POLICIES);
@@ -97,7 +87,7 @@ export default function PortfolioCommandPage() {
     }));
 
   const addField = () => setFields(rows => [...rows, {
-    field_id: `حقل-${rows.length + 1}`, priority: '1', min_water_fraction: '0.2',
+    field_id: '', priority: '1', min_water_fraction: '0.2',
     source_ids: sources[0]?.source_id ?? '',
   }]);
   const removeField = (i: number) => setFields(rows => rows.filter((_, j) => j !== i));
@@ -121,8 +111,8 @@ export default function PortfolioCommandPage() {
       window_days: s.kind === 'pump' ? optNum(s.window_days) : null,
     }));
     const scenarios: PortfolioCommandScenarioInput[] = policies.map(p => {
-      const fieldInputs: PortfolioCommandFieldInput[] = fields.map(f => {
-        const fid = f.field_id.trim() || '—';
+      const fieldInputs: PortfolioCommandFieldInput[] = fields.filter(f => f.field_id.trim()).map(f => {
+        const fid = f.field_id.trim();
         const pf = p.perField[f.field_id] ?? { expected_margin: '0', water_demand_m3: '0' };
         return {
           field_id: fid,
@@ -264,8 +254,12 @@ export default function PortfolioCommandPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-slate-400">المعرّف</span>
-                <input value={f.field_id} onChange={e => setField(i, 'field_id', e.target.value)}
-                  className="px-3 py-2 rounded-lg text-sm" style={inputStyle} />
+                <select value={f.field_id} onChange={e => setField(i, 'field_id', e.target.value)}
+                  disabled={fieldOptionsQ.isLoading || fieldOptionsQ.isError || fieldOptions.length === 0}
+                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-60" style={inputStyle}>
+                  <option value="">اختر الحقل</option>
+                  {fieldOptions.map((opt) => <option key={opt.id} value={opt.id}>{opt.name}{opt.crop && opt.crop !== '—' ? ` · ${opt.crop}` : ''}</option>)}
+                </select>
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs text-slate-400">الأولويّة (أعلى = أهمّ)</span>
@@ -337,7 +331,7 @@ export default function PortfolioCommandPage() {
           </div>
         ))}
         <div className="flex justify-end">
-          <button onClick={onCompare} disabled={loading}
+          <button onClick={onCompare} disabled={loading || !fields.some((r) => r.field_id.trim())}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#0ea5e9' }}>
             <Crosshair className="w-4 h-4" />

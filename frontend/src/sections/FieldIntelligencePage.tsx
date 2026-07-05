@@ -4,9 +4,10 @@
 // الحقائق التشغيليّة + الثقة + قرار السياسة + التناقضات + الإشارات الناقصة +
 // التنبيهات الاستباقيّة + أثر المحاكاة. صدق: المصادر المتعذّرة تُعلَن (لا اختراع).
 // ════════════════════════════════════════════════════════════
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Activity, Search, ChevronDown, ChevronUp, AlertTriangle, Map, FlaskConical, ListChecks, Bot } from 'lucide-react';
 import { useFieldIntelligence } from '../hooks/useApi';
+import FieldSelector from '../components/FieldSelector';
 import { ErrorState } from '../components/StateViews';
 import { useSelectedField } from '../hooks/useSelectedField';
 
@@ -56,11 +57,7 @@ function KV({ data }: { data: Record<string, unknown> }) {
 }
 
 export default function FieldIntelligencePage() {
-  const [fieldId, setFieldId] = useState('');
-  const { fieldId: activeFieldId, field: activeField } = useSelectedField();
-  useEffect(() => {
-    if (!fieldId && activeFieldId) setFieldId(activeFieldId);
-  }, [activeFieldId, fieldId]);
+  const { fieldId, field: activeField } = useSelectedField();
   const [lat, setLat] = useState('');
   const [lon, setLon] = useState('');
   const [crop, setCrop] = useState('');
@@ -74,9 +71,9 @@ export default function FieldIntelligencePage() {
   };
 
   const submit = () => {
-    if (!fieldId.trim()) return;
+    if (!fieldId) return;
     mut.mutate({
-      field_id: fieldId.trim(),
+      field_id: fieldId,
       lat: toNum(lat),
       lon: toNum(lon),
       crop: crop.trim() || undefined,
@@ -114,12 +111,13 @@ export default function FieldIntelligencePage() {
 
       {/* Form */}
       <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <FieldSelector label="الحقل للتحليل" />
+        {activeField ? <div className="text-xs text-slate-400">سيتم تحليل: <b className="text-slate-200">{activeField.name}</b> · {activeField.crop || 'بلا محصول'} · {activeField.area ? `${activeField.area} هـ` : 'مساحة غير معروفة'}</div> : null}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
-            { label: 'معرّف الحقل', v: fieldId, set: setFieldId, ph: 'field_06' },
-            { label: 'lat', v: lat, set: setLat, ph: '15.05' },
-            { label: 'lon', v: lon, set: setLon, ph: '45.55' },
-            { label: 'المحصول', v: crop, set: setCrop, ph: 'قمح صلب' },
+            { label: 'lat اختياري', v: lat, set: setLat, ph: '15.05' },
+            { label: 'lon اختياري', v: lon, set: setLon, ph: '45.55' },
+            { label: 'المحصول اختياري', v: crop, set: setCrop, ph: activeField?.crop || 'قمح صلب' },
           ].map(f => (
             <label key={f.label} className="flex flex-col gap-1">
               <span className="text-xs text-slate-400">{f.label}</span>
@@ -129,7 +127,7 @@ export default function FieldIntelligencePage() {
           ))}
         </div>
         <div className="flex justify-end">
-          <button onClick={submit} disabled={mut.isPending || !fieldId.trim()}
+          <button onClick={submit} disabled={mut.isPending || !fieldId}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#0ea5e9' }}>
             <Search className="w-4 h-4" />
