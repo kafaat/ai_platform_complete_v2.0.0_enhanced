@@ -216,7 +216,11 @@ async def field_historical_backfill(
             )
 
             # Reuse the same VRT/process path without issuing an HTTP subrequest.
-            async def _run_scene_job(jid=job_id, sc=scene, ind=indicator):
+            # v6-audit F3: دالّة **متزامنة** عمداً — جسمها كلّه I/O ثقيل متزامن
+            # (build_band_vrt + _run_processing، لا await). FastAPI يُشغّل مهامّ الخلفيّة
+            # المتزامنة في threadpool، بينما `async def` كان يُنفَّذها على حلقة الأحداث
+            # فيحجب باقي طلبات raster (tilejson/health) أثناء معالجة COG.
+            def _run_scene_job(jid=job_id, sc=scene, ind=indicator):
                 try:
                     import stac_vrt
 
