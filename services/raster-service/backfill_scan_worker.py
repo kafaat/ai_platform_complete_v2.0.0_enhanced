@@ -13,7 +13,7 @@
   • معالجة COG عبر ``main._run_processing`` في threadpool (لا يحجب الحلقة).
 ثمّ يُحدّث حالة التشغيلة (searching→queued→processing→completed/failed) وعدّاداتها.
 
-يعيد استخدام دوالّ ``main`` (‏_stac_search/_rank_scenes/_month_windows/ProcessRequest/
+يعيد استخدام دوالّ ``main`` (_stac_search/_rank_scenes/_month_windows/ProcessRequest/
 _run_processing) — لا تكرار منطق. خامل حتّى ``RASTER_ASYNC_BACKFILL_ENABLED=true``.
 """
 

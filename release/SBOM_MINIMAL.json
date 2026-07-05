@@ -5565,6 +5565,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9662e26a9bb8014276452109396f416f8271307778c32aae77427e4fc476fd17"
+        }
+      ],
+      "name": "migrations/v144_backfill_runs.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0e408c05960021f5040101bff1e4c1337012a8e4c153926e0c32345f26da9d76"
         }
       ],
@@ -8719,6 +8729,16 @@
         }
       ],
       "name": "services/raster-service/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b59473f4651740df7b9056139cb471026cab9c069f5e9e808c7d318c93a9cb76"
+        }
+      ],
+      "name": "services/raster-service/backfill_scan_worker.py",
       "type": "file"
     },
     {
