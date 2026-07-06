@@ -802,8 +802,13 @@ from router_registry import register_routers  # noqa: E402
 register_routers(app)
 
 # إعادة تصدير مُعالِجات مُنتقاة إلى فضاء ``main`` (نمط soil-service): بعض حُرّاس السلامة
-# تستورد المُعالِج من ``main`` مباشرةً لا عبر HTTP. سلوك مطابق للراوتر.
-from routers.health import health  # noqa: E402,F401
+# تستورد المُعالِج من ``main`` مباشرةً لا عبر HTTP. **best-effort** كـregister_routers:
+# في تشغيل مجمّع قد يكون ``sys.modules['routers']`` لخدمة أخرى (تلوّث monorepo) فلا يوجد
+# ``routers.health`` — لا نُسقِط تحميل main (المُختبِر الذي يحتاج main.health يعزل sys.modules).
+try:
+    from routers.health import health  # noqa: E402,F401
+except Exception:  # noqa: BLE001
+    pass
 
 if __name__ == "__main__":
     import uvicorn

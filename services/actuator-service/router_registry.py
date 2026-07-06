@@ -50,11 +50,14 @@ def _include_flat(app, router) -> None:
     للطريق القياسيّ الذي يربط المسارات بسياق التطبيق (overrides تعمل). نتفادى التكرار عند
     إعادة الاستيراد بتخطّي المسارات القائمة (path+methods).
     """
-    existing = {(getattr(r, "path", None), frozenset(getattr(r, "methods", None) or ())) for r in app.routes}
+    existing = {
+        (getattr(r, "path", None), frozenset(getattr(r, "methods", None) or ())) for r in app.routes
+    }
     fresh = [
         rt
         for rt in router.routes
-        if (getattr(rt, "path", None), frozenset(getattr(rt, "methods", None) or ())) not in existing
+        if (getattr(rt, "path", None), frozenset(getattr(rt, "methods", None) or ()))
+        not in existing
     ]
     if not fresh:
         return
