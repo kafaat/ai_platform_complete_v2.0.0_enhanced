@@ -12,16 +12,19 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
+import sys
 import tempfile
 import textwrap
 from pathlib import Path
 
 REQUIRED_WORKFLOWS = [
     ".github/workflows/sahool-production-gates.yml",
+    ".github/workflows/raster-service-gates.yml",
 ]
 
 REQUIRED_LOCAL_GATES = [
     "scripts/ci/local_quality_gate.sh",
+    "scripts/ci/raster_quality_gate.sh",
     "scripts/production_validation_gate.sh",
     "scripts/security_audit.sh",
     "scripts/security/rls_runtime_gate.py",
@@ -59,9 +62,11 @@ FORBIDDEN_WORKFLOW_PATTERNS = [
 REQUIRED_RELEASE_TOKENS = [
     "scripts/ci/validate_ci_gates.py",
     "scripts/ci/local_quality_gate.sh",
+    "scripts/ci/raster_quality_gate.sh",
     "scripts/migrations/validate_migration_manifest.py",
     "scripts/security/validate_rls_write_policies.py",
     ".github/workflows/sahool-production-gates.yml",
+    ".github/workflows/raster-service-gates.yml",
 ]
 
 

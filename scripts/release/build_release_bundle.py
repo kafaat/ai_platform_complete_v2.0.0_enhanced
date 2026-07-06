@@ -44,6 +44,7 @@ REQUIRED_FILES = [
     "scripts/recovery/recovery_smoke.sh",
     "scripts/ci/validate_ci_gates.py",
     "scripts/ci/local_quality_gate.sh",
+    "scripts/ci/raster_quality_gate.sh",
     "scripts/runtime/env_doctor.py",
     "scripts/runtime/runtime_doctor.sh",
     "scripts/migrations/validate_migration_manifest.py",
@@ -52,6 +53,7 @@ REQUIRED_FILES = [
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh",
     ".github/workflows/sahool-production-gates.yml",
+    ".github/workflows/raster-service-gates.yml",
     "RUNBOOK.md",
     "scripts/architecture/legacy_path_audit.py",
 ]
@@ -203,6 +205,7 @@ def main() -> int:
             "scripts/release/validate_release_package.py",
             "scripts/ci/validate_ci_gates.py",
             "scripts/ci/local_quality_gate.sh",
+            "scripts/ci/raster_quality_gate.sh",
             "scripts/runtime/env_doctor.py",
             "scripts/runtime/runtime_doctor.sh",
             "scripts/migrations/validate_migration_manifest.py",

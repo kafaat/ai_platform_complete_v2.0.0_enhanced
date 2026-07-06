@@ -7,8 +7,8 @@
       "migrations": 161,
       "mobile": 47,
       "prometheus": 2,
-      "scripts": 68,
-      "services": 1296,
+      "scripts": 69,
+      "services": 1299,
       "shared": 65,
       "tests": 37
     }
@@ -20,6 +20,7 @@
     "scripts/release/validate_release_package.py",
     "scripts/ci/validate_ci_gates.py",
     "scripts/ci/local_quality_gate.sh",
+    "scripts/ci/raster_quality_gate.sh",
     "scripts/runtime/env_doctor.py",
     "scripts/runtime/runtime_doctor.sh",
     "scripts/migrations/validate_migration_manifest.py",
@@ -28,8 +29,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 3233,
-  "generated_at": "2026-07-06T23:32:52.025103+00:00",
+  "file_count": 3245,
+  "generated_at": "2026-07-06T23:38:39.765181+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -48,6 +49,7 @@
     "scripts/recovery/recovery_smoke.sh",
     "scripts/ci/validate_ci_gates.py",
     "scripts/ci/local_quality_gate.sh",
+    "scripts/ci/raster_quality_gate.sh",
     "scripts/runtime/env_doctor.py",
     "scripts/runtime/runtime_doctor.sh",
     "scripts/migrations/validate_migration_manifest.py",
@@ -56,6 +58,7 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh",
     ".github/workflows/sahool-production-gates.yml",
+    ".github/workflows/raster-service-gates.yml",
     "RUNBOOK.md",
     "scripts/architecture/legacy_path_audit.py"
   ],
@@ -90,5 +93,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 22667211
+  "total_size_bytes": 22710179
 }

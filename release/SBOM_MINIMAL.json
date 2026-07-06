@@ -9145,6 +9145,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dfbc3e3b8dadcd33c7fd35a867ac9cb4bd903e5811fe3fd34485d8be567a8110"
+        }
+      ],
+      "name": "services/raster-service/raster_field_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "63a39e94798fdc4aeb9d27ecdb3eb1cb06789b1473bb2171d4e4b974ba0ef1fe"
         }
       ],
@@ -9785,6 +9795,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c88b9c01ebdbcb710dd3c878f36871a9110d433465d0eece1c4af73e9d6884e1"
+        }
+      ],
+      "name": "services/raster-service/test_raster_import_graph_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "92377655c8047de20e4015c80855e5910271224ca952cc32689c290cabb626f9"
         }
       ],
@@ -9809,6 +9829,16 @@
         }
       ],
       "name": "services/raster-service/test_reproject_nodata_mask_conflict.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d44053f53038ea043cefcbeb56b89c2e31720529176c9697d516739aaee548ce"
+        }
+      ],
+      "name": "services/raster-service/test_router_no_main_import_static.py",
       "type": "file"
     },
     {

@@ -7,6 +7,7 @@ cd "$ROOT_DIR"
 echo "== Sahool local CI quality gate =="
 
 python3 scripts/ci/validate_ci_gates.py --root .
+bash scripts/ci/raster_quality_gate.sh
 bash scripts/production_validation_gate.sh
 bash scripts/security_audit.sh
 python3 scripts/security/rls_runtime_gate.py --root .

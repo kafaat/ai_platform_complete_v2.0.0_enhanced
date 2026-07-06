@@ -106,3 +106,9 @@ chaos-load:
 
 gis-timeline-e2e:
 	cd frontend && npm run e2e:gis-timeline
+
+
+.PHONY: raster-ci
+raster-ci:
+	@echo "═══ Raster service architecture + tests ═══"
+	bash scripts/ci/raster_quality_gate.sh
