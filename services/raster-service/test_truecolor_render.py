@@ -180,3 +180,42 @@ def test_write_rgba_cog_accepts_hwc_and_rejects_2d(tmp_path):
         np.zeros((16, 16), dtype="uint8"), str(tmp_path / "bad.tif"), transform, crs="EPSG:3857"
     )
     assert bad["written"] is False
+
+
+def test_truecolor_thumbnail_preserves_rgb_channels(tmp_path):
+    """مصغّرة TrueColor يجب أن تكون RGB حقيقية، لا band-1 ملوّن بتدرّج المؤشرات."""
+    import io
+
+    import numpy as np
+    import rasterio
+    import tile_render
+    from PIL import Image
+    from rasterio.transform import from_bounds
+
+    path = tmp_path / "truecolor_thumb.tif"
+    profile = {
+        "driver": "GTiff",
+        "height": 16,
+        "width": 16,
+        "count": 4,
+        "dtype": "uint8",
+        "crs": "EPSG:4326",
+        "transform": from_bounds(44.0, 16.0, 44.1, 16.1, 16, 16),
+    }
+    data = np.zeros((4, 16, 16), dtype="uint8")
+    data[0, :, :] = 100  # R
+    data[1, :, :] = 150  # G
+    data[2, :, :] = 200  # B
+    data[3, :, :] = 255  # A
+    with rasterio.open(path, "w", **profile) as dst:
+        dst.write(data)
+
+    png = tile_render.render_cog_thumbnail_png(str(path), "truecolor", max_px=64)
+    assert png is not None
+    arr = np.array(Image.open(io.BytesIO(png)).convert("RGBA"))
+    visible = arr[arr[..., 3] > 0]
+    assert visible.size > 0
+    mean = visible[:, :3].mean(axis=0)
+    assert abs(float(mean[0]) - 100) < 4
+    assert abs(float(mean[1]) - 150) < 4
+    assert abs(float(mean[2]) - 200) < 4

@@ -9665,7 +9665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "33644fa71c38b5958cc7a0429ec2f95a4d448b895becc0e2c045d5beaa520409"
+          "content": "5d6dba809b508c306318c631ef6e65cd0e1acca7e71ed2e284531fe09d51b873"
         }
       ],
       "name": "services/raster-service/test_truecolor_render.py",
@@ -9685,7 +9685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a957e60743138509079ab25c74365710699bddf83f4f804e67edd6100c71208b"
+          "content": "f961551565a2162ab3bfd22989745616a17439e287cacb6a953ee0ec5b64a2bd"
         }
       ],
       "name": "services/raster-service/tile_render.py",
