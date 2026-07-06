@@ -91,3 +91,48 @@ async def soil_properties():
         "source_configured": _soil.is_source_configured(),
         "disclaimer": _soil.DISCLAIMER_AR,
     }
+
+
+def _parse_bbox(bbox: str | None) -> list[float] | None:
+    if not bbox:
+        return None
+    try:
+        parts = [float(v) for v in bbox.split(",")]
+        return parts if len(parts) == 4 else None
+    except (TypeError, ValueError):
+        return None
+
+
+@router.get("/v1/fields/{field_id}/soil/summary")
+async def field_soil_summary(
+    field_id: str,
+    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
+    depth: str = Query("0-5cm"),
+):
+    """ملخّص خصائص تربة الحقل (متوسّطات SoilGrids على bbox) + صنف القوام — tenant-scoped.
+
+    صدق: بلا مصدر/bbox ⇒ ``computed:false`` + سبب — لا تلفيق. توجيه لاختيار العيّنات.
+    """
+    await main._require_field_tenant(field_id, hide_existence=True)
+    result = _soil.compute_field_soil_summary(_parse_bbox(bbox), depth)
+    result["field_id"] = field_id
+    return result
+
+
+@router.get("/v1/fields/{field_id}/soil/sampling-zones.geojson")
+async def field_soil_sampling_zones(
+    field_id: str,
+    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
+    depth: str = Query("0-5cm"),
+    zones: int = Query(3, ge=2, le=5),
+):
+    """مناطق تربة متجانسة (GeoJSON) لتقسيم أخذ العيّنات — tenant-scoped.
+
+    صدق: بلا مصدر ⇒ ``features:[]`` + ``computed:false`` — لا تلفيق مناطق.
+    """
+    await main._require_field_tenant(field_id, hide_existence=True)
+    import soil_zones as _sz
+
+    result = _sz.compute_soil_sampling_zones(_parse_bbox(bbox), depth, zones)
+    result["field_id"] = field_id
+    return result

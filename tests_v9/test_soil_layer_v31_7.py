@@ -18,6 +18,7 @@ pytestmark = pytest.mark.unit
 _ROOT = Path(__file__).resolve().parents[1]
 _RENDER = _ROOT / "services" / "raster-service" / "soil_render.py"
 _ROUTER = _ROOT / "services" / "raster-service" / "routers" / "soil_tiles.py"
+_ZONES = _ROOT / "services" / "raster-service" / "soil_zones.py"
 
 
 def test_soil_render_is_honest_and_disclaimer_bound():
@@ -46,3 +47,21 @@ def test_soil_endpoints_exist_and_fail_closed_with_disclaimer():
     assert "soilgrids-source-not-configured" in src
     # geographic tiles require tenant context (tid) — no anonymous access.
     assert "_REQ_TENANT" in src
+
+
+def test_field_soil_summary_and_zones_are_honest_and_tenant_scoped():
+    render = _RENDER.read_text(encoding="utf-8")
+    zones = _ZONES.read_text(encoding="utf-8")
+    router = _ROUTER.read_text(encoding="utf-8")
+    # per-field soil summary + USDA texture, fail-closed without source.
+    assert "def compute_field_soil_summary(" in render
+    assert "def usda_texture_class(" in render
+    assert "soilgrids-source-not-configured" in render
+    # sampling zones: numpy k-means + polygonization, fail-closed, disclaimer.
+    assert "def compute_soil_sampling_zones(" in zones
+    assert "features.shapes" in zones or "rio_shapes" in zones  # polygonization
+    assert '"computed": False' in zones and "DISCLAIMER_AR" in zones
+    # field-scoped routes (tenant-guarded) — not anonymous.
+    assert '@router.get("/v1/fields/{field_id}/soil/summary")' in router
+    assert '@router.get("/v1/fields/{field_id}/soil/sampling-zones.geojson")' in router
+    assert "_require_field_tenant" in router

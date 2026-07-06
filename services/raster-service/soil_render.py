@@ -228,3 +228,100 @@ def is_source_configured() -> bool:
     """هل مجلّد SoilGrids مُهيّأ أصلاً (بصرف النظر عن ملفّ بعينه)؟"""
     base = os.getenv("SOILGRIDS_DIR")
     return bool(base and os.path.isdir(base))
+
+
+def read_property_bbox(prop: str, depth: str, bbox: list[float]):
+    """يقرأ نافذة خاصّيّة تربة على bbox الحقل ويحوّلها للوحدة التقليديّة (÷div).
+
+    يُرجِع مصفوفة float32 بـNaN للـnodata، أو ``None`` (بلا مصدر/خارج التغطية) — بلا تلفيق.
+    """
+    meta = SOIL_PROPERTIES.get(prop)
+    path = soil_raster_path(prop, depth)
+    if meta is None or path is None or not bbox or len(bbox) != 4:
+        return None
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.windows import from_bounds as win_from_bounds
+    except Exception:  # noqa: BLE001
+        return None
+    min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
+    try:
+        with rasterio.open(path) as src:
+            window = win_from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src.transform)
+            arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+    except Exception:  # noqa: BLE001
+        return None
+    if arr.size == 0 or not np.isfinite(arr).any():
+        return None
+    return arr / float(meta["div"])
+
+
+def usda_texture_class(clay_pct: float | None, sand_pct: float | None) -> str | None:
+    """صنف قوام USDA من نسبتَي الطين والرمل (٪) — مثلّث القوام القياسيّ (مبسّط)."""
+    if clay_pct is None or sand_pct is None:
+        return None
+    c, s = float(clay_pct), float(sand_pct)
+    silt = max(0.0, 100.0 - c - s)
+    if c >= 40 and s <= 45 and silt < 40:
+        return "طينيّ (clay)"
+    if c >= 27 and c < 40 and s <= 45:
+        return "طينيّ مزيجيّ (clay loam)" if s > 20 else "طينيّ غرينيّ مزيجيّ (silty clay loam)"
+    if c >= 35 and s >= 45:
+        return "طينيّ رمليّ (sandy clay)"
+    if s >= 85 and c < 10:
+        return "رمليّ (sand)"
+    if s >= 70 and c < 15:
+        return "رمليّ مزيجيّ (loamy sand)"
+    if silt >= 80 and c < 12:
+        return "غرينيّ (silt)"
+    if silt >= 50 and c < 27:
+        return "غرينيّ مزيجيّ (silt loam)"
+    if s >= 45 and c < 20:
+        return "مزيجيّ رمليّ (sandy loam)"
+    return "مزيجيّ (loam)"
+
+
+def compute_field_soil_summary(bbox: list[float] | None, depth: str = "0-5cm") -> dict:
+    """ملخّص خصائص التربة لحقلٍ (متوسّطات SoilGrids على bbox) + صنف القوام + تحذير.
+
+    صدق: بلا مصدر/تغطية ⇒ ``computed:false`` + سبب — لا تلفيق. توجيهيّ لاختيار العيّنات.
+    """
+    empty = {"computed": False, "properties": {}}
+    if not is_source_configured():
+        return {**empty, "source": "soilgrids-source-not-configured"}
+    if not bbox or len(bbox) != 4:
+        return {**empty, "source": "field-bbox-unavailable"}
+    try:
+        import numpy as np
+    except Exception:  # noqa: BLE001
+        return {**empty, "source": "runtime-libs-missing"}
+    depth = normalize_depth(depth)
+    props: dict[str, dict] = {}
+    for prop, meta in SOIL_PROPERTIES.items():
+        arr = read_property_bbox(prop, depth, bbox)
+        if arr is None:
+            continue
+        finite = arr[np.isfinite(arr)]
+        if not finite.size:
+            continue
+        props[prop] = {
+            "mean": round(float(finite.mean()), 2),
+            "min": round(float(finite.min()), 2),
+            "max": round(float(finite.max()), 2),
+            "unit": meta["unit"],
+            "name_ar": meta["name_ar"],
+        }
+    if not props:
+        return {**empty, "source": "field-outside-source"}
+    texture = usda_texture_class(
+        props.get("clay", {}).get("mean"), props.get("sand", {}).get("mean")
+    )
+    return {
+        "computed": True,
+        "source": "soilgrids",
+        "depth": depth,
+        "properties": props,
+        "texture_class": texture,
+        "disclaimer": DISCLAIMER_AR,
+    }
