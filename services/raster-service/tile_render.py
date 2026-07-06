@@ -478,15 +478,94 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
         return None
 
 
+def render_truecolor_thumbnail_png(cog_path: str, max_px: int = 160) -> bytes | None:
+    """يصيّر مُصغَّرة **TrueColor RGB/RGBA** من COG الصورة الخام بلا colormap.
+
+    هذا المسار مخصص لشريط thumbnails: يقرأ النطاقات 1/2/3 كـR/G/B، والنطاق 4 كألفا إن
+    وُجد. لا يقرأ band 1 فقط ولا يطبّق تدرّج NDVI؛ لذلك لا تتحول المصغّرة الطبيعية إلى
+    وردي/أحمر. خارج القناع يبقى شفافاً.
+    """
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.transform import from_bounds
+        from rasterio.warp import Resampling, reproject, transform_bounds
+    except Exception:  # noqa: BLE001
+        return None
+
+    try:
+        with rasterio.open(cog_path) as src:
+            if src.count < 3:
+                return None
+            minx, miny, maxx, maxy = transform_bounds(
+                "EPSG:4326" if not src.crs else src.crs, "EPSG:3857", *src.bounds
+            )
+            span_x = max(1e-6, maxx - minx)
+            span_y = max(1e-6, maxy - miny)
+            if span_x >= span_y:
+                out_w = max_px
+                out_h = max(16, int(round(max_px * span_y / span_x)))
+            else:
+                out_h = max_px
+                out_w = max(16, int(round(max_px * span_x / span_y)))
+            dst_transform = from_bounds(minx, miny, maxx, maxy, out_w, out_h)
+            rgba = np.zeros((out_h, out_w, 4), dtype="uint8")
+            for bi in range(3):
+                band = np.zeros((out_h, out_w), dtype="uint8")
+                reproject(
+                    source=rasterio.band(src, bi + 1),
+                    destination=band,
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=dst_transform,
+                    dst_crs="EPSG:3857",
+                    resampling=Resampling.bilinear,
+                    dst_nodata=0,
+                )
+                rgba[..., bi] = band
+            if src.count >= 4:
+                alpha = np.zeros((out_h, out_w), dtype="uint8")
+                reproject(
+                    source=rasterio.band(src, 4),
+                    destination=alpha,
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=dst_transform,
+                    dst_crs="EPSG:3857",
+                    resampling=Resampling.nearest,
+                    src_nodata=0,
+                    dst_nodata=0,
+                )
+            else:
+                alpha = np.full((out_h, out_w), 255, dtype="uint8")
+            dst_mask = _reproject_dataset_mask(
+                src, dst_transform=dst_transform, dst_crs="EPSG:3857", out_shape=(out_h, out_w)
+            )
+            if dst_mask is not None:
+                alpha = np.where(dst_mask == 0, 0, alpha).astype("uint8")
+            rgba[..., 3] = alpha
+    except Exception:  # noqa: BLE001
+        return None
+
+    if not (rgba[..., 3] > 0).any():
+        return None
+    try:
+        return encode_png_rgba(rgba)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> bytes | None:
     """يصيّر **مُصغَّرة** كاملة للحقل من COG مقصوص (لا بلاطة XYZ) — لشريط السجلّ الزمنيّ.
 
     يعيد إسقاط امتداد الـCOG كلّه (وهو أصلاً مقصوص على bbox الحقل + مُقنَّع بالمضلّع)
-    إلى صورة صغيرة (أطول ضلع = ``max_px``) محافظاً على نسبة الأبعاد، ثمّ يلوّن بتدرّج
-    المؤشّر ويرمّز PNG. خارج المضلّع (NaN) → شفّاف، فتظهر صورة شكل الحقل وحده.
+    إلى صورة صغيرة (أطول ضلع = ``max_px``) محافظاً على نسبة الأبعاد. المؤشّرات أحادية
+    النطاق تُلوَّن بتدرّجها، أمّا ``truecolor`` فيُصيَّر RGB/RGBA حقيقياً بلا colormap.
 
     None عند: غياب rasterio / ملفّ مفقود / لا بيانات صالحة (مشهد مُقنَّع كلّيّاً).
     """
+    if index == "truecolor":
+        return render_truecolor_thumbnail_png(cog_path, max_px=max_px)
     try:
         import numpy as np
         import rasterio

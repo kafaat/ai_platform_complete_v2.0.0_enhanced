@@ -4585,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "05c520f0c45b083f2ca83fc7ac75d567ece5fc19350f0d1aea5bf02b416fc36d"
+          "content": "8cbd60e10980d9ef79708f37a18897cfba819641318f6d397b0c8126ec4e15f5"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4625,7 +4625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4667a744290024f41c987db7ea5055293eb67a6003c655df40f435706dfb5c4d"
+          "content": "8c38a931be734265e8d6dd5e47bf29ac028ae2086492cdc517a1c7e2198251a5"
         }
       ],
       "name": "frontend/src/sections/MapHubTwoYearBackfill.static.test.ts",
@@ -9115,7 +9115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "124980150231d6a64a10988c88a8fc373486d27dfddba283b970523b2ac459f6"
+          "content": "2c60cc70cc87840e20ae6a00235e7e1b06fabc41347f438beff623becdbdf09e"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9475,7 +9475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5f56c8b3188017e795653546b8ae877c895cd31b792ed519e3d27fdc63b10955"
+          "content": "b4db77110f2e19a59e9a180d6b3c2717a0b9032fb97116ec5c133add12e8421e"
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
@@ -9665,7 +9665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "33644fa71c38b5958cc7a0429ec2f95a4d448b895becc0e2c045d5beaa520409"
+          "content": "5d6dba809b508c306318c631ef6e65cd0e1acca7e71ed2e284531fe09d51b873"
         }
       ],
       "name": "services/raster-service/test_truecolor_render.py",
@@ -9685,7 +9685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a957e60743138509079ab25c74365710699bddf83f4f804e67edd6100c71208b"
+          "content": "f961551565a2162ab3bfd22989745616a17439e287cacb6a953ee0ec5b64a2bd"
         }
       ],
       "name": "services/raster-service/tile_render.py",
