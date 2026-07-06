@@ -3698,6 +3698,55 @@ export const fetchSoilProperties = (): Promise<SoilPropertiesResponse> =>
     .get<SoilPropertiesResponse>('/v1/soil/properties')
     .then(r => r.data);
 
+// ── نقاط أخذ العيّنات المقترَحة (soil sampling plan) عبر raster-service ──
+// عقد الخادم (مثبّت — لا يُعدَّل من الواجهة):
+//   GET /v1/fields/{field_id}/soil/sampling-plan?bbox=minLon,minLat,maxLon,maxLat
+//       &depth=0-5cm&zones=3&samples_per_zone=1
+//   → GeoJSON FeatureCollection من نقاط (Point) + أعلام حساب. عند غياب مصدر
+//     SoilGrids المُهيّأ ⇒ { computed:false, features:[] } — لا نخترع نقاطاً.
+// خصائص كلّ نقطة: point_id (soil_A1) · zone_id (A) · reason_ar (شرح عربيّ)
+// · tests (قائمة الفحوص) · soil (لقطة قيم التربة التقديريّة، متسامِحة).
+export interface SoilSamplePointProperties {
+  point_id: string;
+  zone_id: string;
+  reason_ar: string;
+  tests: string[];
+  soil?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+export type SoilSamplePointFeature = GeoJSON.Feature<GeoJSON.Point, SoilSamplePointProperties>;
+
+// FeatureCollection لنقاط أخذ العيّنات + أعلام الحساب. computed:false + features:[]
+// حين لا مصدر تربة مُهيّأ (حالة صادقة — لا تلفيق نقاط).
+export interface SoilSamplingPlan
+  extends GeoJSON.FeatureCollection<GeoJSON.Point, SoilSamplePointProperties> {
+  computed: boolean;
+  source?: string;
+  field_id?: string;
+  reason?: string;
+  user_message?: string;
+}
+
+/** يجلب خطّة أخذ عيّنات التربة (GeoJSON نقاط Point) لحقل عبر raster-service.
+ *  bbox بترتيب [minLon,minLat,maxLon,maxLat] (اختياريّ)؛ opts: العمق/عدد المناطق/
+ *  عيّنات لكلّ منطقة. عند غياب مصدر SoilGrids يعيد computed:false + features:[] —
+ *  لا نخترع نقاطاً (نفس نمط fetchFieldContours / fetchSoilTileJson). */
+export const fetchSoilSamplingPlan = (
+  fieldId: string,
+  bbox?: [number, number, number, number] | null,
+  opts?: { depth?: string; zones?: number; samplesPerZone?: number },
+): Promise<SoilSamplingPlan> =>
+  rasterApi
+    .get<SoilSamplingPlan>(`/v1/fields/${fieldId}/soil/sampling-plan`, {
+      params: {
+        ...(bbox && bbox.length === 4 ? { bbox: bbox.join(',') } : {}),
+        ...(opts?.depth ? { depth: opts.depth } : {}),
+        ...(opts?.zones ? { zones: opts.zones } : {}),
+        ...(opts?.samplesPerZone ? { samples_per_zone: opts.samplesPerZone } : {}),
+      },
+    })
+    .then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)
 // صدق المصدر: indicators-service خدمة stub صحّيّة فقط (لا منطق). اللوحة والكتالوج

@@ -1435,7 +1435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10d8955e7e53cc775cae53cbf457f993d1020712a9119c86b9aaa8c907df4241"
+          "content": "aef1942f4be5ba79f0b6b353c8fd8a9d29d83bd563a088974a61ac8f2aadf205"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -4555,7 +4555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "636f3afaa68fb90eb501485ed5b3514f9535481777bfa69ae1f4d637ed66bda2"
+          "content": "38026aca724ae352aae8ec511ab85147c6e75c8767ffaee8d49f9c5ee9ff66e0"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5015,7 +5015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38e6ad03edcbf803c9078d24f8448ae204b4544db5936169330cbf046fe7132b"
+          "content": "c71280bf09b2fb223fea95d85e6fb83187a62dff7753b2fe4abe4487d9f9ec46"
         }
       ],
       "name": "frontend/src/services/api.ts",

@@ -22,7 +22,7 @@ import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type
 import {
   Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
-  Tractor, CheckSquare, CircleDotDashed, History, RotateCcw, Target,
+  Tractor, CheckSquare, CircleDotDashed, History, RotateCcw, Target, FlaskConical,
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
@@ -31,7 +31,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
 import { fieldRepresentativePoint, geomToPolygon } from '../lib/geo';
-import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, fetchSoilSamplingPlan, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -331,6 +331,13 @@ export default function MapHub() {
   const [soilProperty, setSoilProperty] = useState<SoilProperty>('phh2o');
   const [soilDepth, setSoilDepth] = useState<string>(SOIL_DEPTHS[0]);
   const [soilTj, setSoilTj] = useState<SoilTileJson | null>(null);
+  // ── نقاط أخذ العيّنات المقترَحة (🧪) — طبقة مستقلّة عن بلاطة التربة. لا تُستعاد من
+  // workspace (افتراضيّ مُطفأ). تُجلَب من fetchSoilSamplingPlan للحقل المختار بـbbox
+  // حدوده؛ computed:false/فارغ ⇒ لا نقاط + ملاحظة صادقة (لا اختراع نقاط).
+  const [showSoilSamples, setShowSoilSamples] = useState(false);
+  const [soilSamplePoints, setSoilSamplePoints] = useState<Array<{ id: string; lat: number; lng: number; label: string; reason?: string }>>([]);
+  const [soilSamplesBusy, setSoilSamplesBusy] = useState(false);
+  const [soilSamplesNote, setSoilSamplesNote] = useState<string | null>(null);
   // OneSoil-style وضع FieldView: «فلاح» (ملخّص أساسيّ) أو «خبير» (كلّ الأدوات).
   // يُحفَظ محلّيّاً — لا يلمس نوع لقطة مساحة العمل. الافتراضيّ فلاح (بساطة أوّلاً).
   const [fieldMode, setFieldMode] = useState<'farmer' | 'expert'>(() => {
@@ -627,6 +634,64 @@ export default function MapHub() {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showContours, selected?.id, JSON.stringify(selected?.geometry ?? null)]);
+
+  // نقاط أخذ العيّنات المقترَحة (🧪) — تُجلَب فقط حين المبدّل مفعّل + حقل ذو حدود.
+  // bbox يُشتقّ من مضلّع الحقل (geomToPolygon)؛ computed:false/فارغ ⇒ لا نقاط + ملاحظة
+  // صادقة (لا اختراع نقاط عند غياب مصدر SoilGrids).
+  useEffect(() => {
+    if (!showSoilSamples) { setSoilSamplePoints([]); setSoilSamplesNote(null); setSoilSamplesBusy(false); return; }
+    if (!selected?.id || !selected.geometry) {
+      setSoilSamplePoints([]);
+      setSoilSamplesNote('اختر حقلاً ذا حدود مرسومة لاقتراح نقاط أخذ العيّنات.');
+      return;
+    }
+    const poly = geomToPolygon(selected.geometry); // [lat,lng][]
+    if (!poly || poly.length < 3) {
+      setSoilSamplePoints([]);
+      setSoilSamplesNote('حدود الحقل مطلوبة لاقتراح نقاط أخذ العيّنات — ارسم/استورد الحدود أوّلاً.');
+      return;
+    }
+    let minLat = Infinity, minLon = Infinity, maxLat = -Infinity, maxLon = -Infinity;
+    for (const [lat, lng] of poly) {
+      if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
+      if (lng < minLon) minLon = lng; if (lng > maxLon) maxLon = lng;
+    }
+    const bbox: [number, number, number, number] = [minLon, minLat, maxLon, maxLat];
+    let cancelled = false;
+    setSoilSamplesBusy(true);
+    setSoilSamplesNote(null);
+    fetchSoilSamplingPlan(selected.id, bbox, { depth: soilDepth, samplesPerZone: 2 })
+      .then((plan) => {
+        if (cancelled) return;
+        const feats = Array.isArray(plan.features) ? plan.features : [];
+        if (!plan.computed || feats.length === 0) {
+          setSoilSamplePoints([]);
+          setSoilSamplesNote(plan.user_message || plan.reason || 'لا مصدر تربة مُهيّأ لهذا الحقل — لا نقاط عيّنات مقترَحة.');
+          return;
+        }
+        const pts = feats
+          .filter((f) => f.geometry?.type === 'Point' && Array.isArray(f.geometry.coordinates))
+          .map((f) => {
+            const [lon, lat] = f.geometry.coordinates as [number, number];
+            const props = f.properties || ({} as typeof f.properties);
+            return {
+              id: props?.point_id || `${lon},${lat}`,
+              lat,
+              lng: lon,
+              label: props?.point_id || 'عيّنة تربة',
+              reason: props?.reason_ar,
+            };
+          });
+        setSoilSamplePoints(pts);
+        setSoilSamplesNote(pts.length === 0 ? 'لا نقاط عيّنات قابلة للعرض.' : null);
+      })
+      .catch(() => {
+        if (!cancelled) { setSoilSamplePoints([]); setSoilSamplesNote('تعذّر جلب خطّة أخذ العيّنات من خدمة التربة.'); }
+      })
+      .finally(() => { if (!cancelled) setSoilSamplesBusy(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showSoilSamples, selected?.id, soilDepth, JSON.stringify(selected?.geometry ?? null)]);
 
   // روابط قوالب بلاطات التضاريس — تُبنى فقط حين available:true (وإلّا null فتُخفى الطبقة).
   const hillshadeTilesUrl = showHillshade && hillshadeTj?.available ? hillshadeTileUrl(tenantId) : null;
@@ -2160,6 +2225,20 @@ export default function MapHub() {
                     />
                     {/* ── طبقة التربة (SoilGrids) — تقدير عالميّ (~250م) لإرشاد أخذ العيّنات ── */}
                     <ToolToggle testid="btn-soil" active={showSoil} onClick={() => setShowSoil((v) => !v)} icon={<Layers className="w-3.5 h-3.5" />} label="طبقة التربة (SoilGrids)" />
+                    {/* ── نقاط أخذ العيّنات المقترَحة (🧪) — طبقة مستقلّة عن بلاطة التربة ── */}
+                    <ToolToggle
+                      testid="btn-soil-samples"
+                      active={showSoilSamples}
+                      disabled={!selected?.geometry}
+                      title={!selected?.geometry ? 'اختر حقلاً ذا حدود مرسومة أوّلاً' : undefined}
+                      onClick={() => setShowSoilSamples((v) => !v)}
+                      icon={<FlaskConical className="w-3.5 h-3.5" />}
+                      label={soilSamplesBusy ? 'نقاط العيّنات… (جارٍ)' : 'نقاط العينات'}
+                    />
+                    {/* ملاحظة صادقة لنقاط العيّنات — بلا مصدر تربة/بلا حدود ⇒ لا نقاط */}
+                    {showSoilSamples && soilSamplesNote && (
+                      <span className="text-[11px]" style={{ color: T.faint }}>{soilSamplesNote}</span>
+                    )}
                     {/* ملاحظات الأمانة: عناصر بلا حقل/هندسة غير قابلة للعرض — تُحتسَب لا تُختلَق */}
                     {showAlerts && alertsUnplaceable > 0 && (
                       <span className="text-[11px]" style={{ color: T.faint }}>
@@ -2492,6 +2571,7 @@ export default function MapHub() {
                     terrainOpacity={opacity}
                     soilTilesUrl={soilTilesUrl}
                     soilOpacity={opacity}
+                    soilSamplePoints={showSoilSamples ? soilSamplePoints : []}
                     contours={showContours ? contoursData : null}
                     pivotDesignerEnabled={pivotDesigner}
                     onAddPivotDraft={handleAddPivotDraft}

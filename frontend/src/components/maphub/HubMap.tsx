@@ -95,6 +95,11 @@ export interface HubMapProps {
   // وشفّافة تماماً حيث لا مصدر (لا اختراع قيم تربة).
   soilTilesUrl?: string | null;
   soilOpacity?: number;
+  // ── نقاط أخذ العيّنات المقترَحة (soil sampling plan) — مستقلّة عن طبقة التربة ──
+  // نقاط 🧪 من fetchSoilSamplingPlan (computed:true) للحقل المختار، تُبنى في MapHub؛
+  // فارغة/غياب ⇒ لا تُرسَم (لا اختراع نقاط عند غياب المصدر). label نصّ التلميح،
+  // reason شرح اختياريّ (reason_ar من الخادم).
+  soilSamplePoints?: Array<{ id: string; lat: number; lng: number; label: string; reason?: string }>;
   // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
   // لقطة عرض مُستعادة (مركز lat/lng + تكبير) تبدأ منها الخريطة وتُلغي الملاءمة
   // التلقائيّة عند أوّل تركيب. null/غياب ⇒ سلوك v1 (ملاءمة للحقول).
@@ -358,6 +363,14 @@ const PIN_ICON = L.divIcon({
   iconAnchor: [11, 22],
 });
 
+// أيقونة نقطة عيّنة تربة (divIcon — لا أصل صورة خارجيّ). 🧪
+const SOIL_SAMPLE_ICON = L.divIcon({
+  className: 'sahool-soil-sample-pin',
+  html: '<div style="font-size:20px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))">🧪</div>',
+  iconSize: [20, 20],
+  iconAnchor: [10, 20],
+});
+
 export default function HubMap({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity,
   drawTools, pinMode, pins, onAddPin, height = 520,
@@ -366,6 +379,7 @@ export default function HubMap({
   imageryTs = 0, imageryDate = null, tenantId = null,
   hillshadeTilesUrl = null, slopeTilesUrl = null, terrainOpacity = 0.7, contours = null,
   soilTilesUrl = null, soilOpacity = 0.6,
+  soilSamplePoints = [],
   initialView = null, onViewChange,
 }: HubMapProps) {
   const basemap = getLayer(basemapId);
@@ -534,6 +548,17 @@ export default function HubMap({
         {pins.map((p) => (
           <Marker key={p.id} position={[p.lat, p.lng]} icon={PIN_ICON}>
             <Tooltip>{p.note || p.category}</Tooltip>
+          </Marker>
+        ))}
+
+        {/* نقاط أخذ العيّنات المقترَحة (🧪) — من خطّة أخذ العيّنات للحقل المختار.
+            لا تُرسَم حين تكون القائمة فارغة (لا اختراع نقاط عند غياب المصدر). */}
+        {soilSamplePoints.map((p) => (
+          <Marker key={p.id} position={[p.lat, p.lng]} icon={SOIL_SAMPLE_ICON}>
+            <Tooltip>
+              <div>{p.label}</div>
+              {p.reason ? <div style={{ opacity: 0.8 }}>{p.reason}</div> : null}
+            </Tooltip>
           </Marker>
         ))}
 
