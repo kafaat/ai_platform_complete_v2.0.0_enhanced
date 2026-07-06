@@ -11,6 +11,7 @@ terrain_analysis.py — تحليل التضاريس من DEM (سدّ فجوة: �
 
 from __future__ import annotations
 
+import math
 import os
 
 
@@ -102,12 +103,26 @@ def compute_field_terrain(
         }
 
     min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
+    px_x_m = px_y_m = float(pixel_size_m)  # احتياطيّ إن تعذّر اشتقاق الدقّة
     try:
         with rasterio.open(dem_path) as src:
             window = from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src.transform)
             # masked=True يحترم nodata (‑32768/‑9999…): بدونه يُحسَب الحارس كارتفاع حقيقيّ
             # فيفسد min/max/mean ويخترع تدرّجاً هائلاً عند حوافّ الفجوات ⇒ انحدار خاطئ.
             dem = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+            # صحّة CRS: لا نحسب الانحدار من درجات lat/lon مباشرة. حجم البكسل على الأرض
+            # بالأمتار لكلّ محور: DEM مُسقَط (أمتار) ⇒ src.res مباشرةً؛ DEM جغرافيّ (درجات)
+            # ⇒ y = res·111320، x = res·111320·cos(lat) (البكسل الأفقيّ أقصر بـcos(lat)).
+            try:
+                xres, yres = (abs(v) for v in src.res)
+                if src.crs and src.crs.is_geographic:
+                    lat_c = math.radians((min_lat + max_lat) / 2.0)
+                    px_x_m = xres * 111320.0 * math.cos(lat_c)
+                    px_y_m = yres * 111320.0
+                else:
+                    px_x_m, px_y_m = xres, yres
+            except (TypeError, ValueError, AttributeError):
+                pass
     except rasterio.errors.RasterioIOError as e:
         return {
             "computed": False,
@@ -124,8 +139,8 @@ def compute_field_terrain(
 
     finite = np.isfinite(dem)
     ev = dem[finite]
-    dzdx = np.gradient(dem, pixel_size_m, axis=1)
-    dzdy = np.gradient(dem, pixel_size_m, axis=0)
+    dzdx = np.gradient(dem, max(px_x_m, 1e-6), axis=1)
+    dzdy = np.gradient(dem, max(px_y_m, 1e-6), axis=0)
     slope_deg = np.degrees(np.arctan(np.sqrt(dzdx**2 + dzdy**2)))
     aspect = np.degrees(np.arctan2(dzdy, -dzdx))
     aspect = np.where(

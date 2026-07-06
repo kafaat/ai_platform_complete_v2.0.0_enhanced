@@ -35,6 +35,24 @@ def _tenant_ctx_ok() -> bool:
     return main._REQ_TENANT.get() is not None
 
 
+@router.get("/v1/terrain/status")
+async def terrain_status():
+    """حالة تفعيل طبقات التضاريس (هل DEM مُهيّأ؟) — تستهلكها الواجهة لشارة صادقة مرّة واحدة.
+
+    صدق: ``dem_configured:false`` + سبب حين لا ``FIELD_DEM_PATH`` — لا تلفيق تفعيل.
+    """
+    dem = os.getenv("FIELD_DEM_PATH") or None
+    configured = bool(dem and os.path.isfile(dem))
+    return {
+        "dem_configured": configured,
+        "layers": ["hillshade", "slope", "contours"],
+        "reason": None if configured else "FIELD_DEM_PATH not configured",
+        "user_message": None
+        if configured
+        else "طبقات التضاريس غير مفعّلة: لم يُضبَط FIELD_DEM_PATH (نموذج ارتفاع DEM).",
+    }
+
+
 @router.get("/v1/elevation/hillshade/{z}/{x}/{y}.png")
 async def hillshade_tile(z: int, x: int, y: int, tid: str | None = Query(None)):
     """بلاطة Hillshade (شكل الأرض). شفّافة عند غياب DEM/السياق (fail-closed صادق)."""
@@ -45,7 +63,7 @@ async def hillshade_tile(z: int, x: int, y: int, tid: str | None = Query(None)):
     return Response(
         content=png or main._TRANSPARENT_PNG,
         media_type="image/png",
-        headers={"Cache-Control": "public, max-age=86400"},
+        headers={"Cache-Control": "public, max-age=604800"},
     )
 
 
@@ -59,7 +77,7 @@ async def slope_tile(z: int, x: int, y: int, tid: str | None = Query(None)):
     return Response(
         content=png or main._TRANSPARENT_PNG,
         media_type="image/png",
-        headers={"Cache-Control": "public, max-age=86400"},
+        headers={"Cache-Control": "public, max-age=604800"},
     )
 
 

@@ -36,7 +36,7 @@ async def soil_tile(prop: str, depth: str, z: int, x: int, y: int, tid: str | No
     return Response(
         content=png or main._TRANSPARENT_PNG,
         media_type="image/png",
-        headers={"Cache-Control": "public, max-age=86400"},
+        headers={"Cache-Control": "public, max-age=604800"},
     )
 
 

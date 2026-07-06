@@ -154,6 +154,7 @@ PUBLIC_CATALOG: set[str] = {
     "/v1/elevation/hillshade/{z}/{x}/{y}.png",  # ظلّ تضاريس من DEM عامّ.
     "/v1/slope/{z}/{x}/{y}.png",  # انحدار مُصنّف من DEM عامّ.
     "/v1/terrain/tilejson",  # TileJSON طبقة تضاريس — وصف عامّ + توفّر.
+    "/v1/terrain/status",  # حالة تهيئة DEM — علم بيئة عامّ، لا بيانات مستأجِر.
     "/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png",  # خاصّيّة تربة من SoilGrids عالميّ.
     "/v1/soil/tilejson",  # TileJSON طبقة تربة — وصف عامّ + توفّر + تحذير.
     "/v1/soil/properties",  # قائمة خصائص/أعماق التربة المدعومة — بيانات وصفيّة ثابتة.
