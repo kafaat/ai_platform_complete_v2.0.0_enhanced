@@ -2542,6 +2542,11 @@ export default function MapHub() {
                       pivotDesignerEnabled={pivotDesigner}
                       onAddPivotDraft={handleAddPivotDraft}
                       pivotDrafts={showPivots ? [...pivotPersisted, ...zonePersisted, ...pivotDrafts] : []}
+                      hillshadeTilesUrl={hillshadeTilesUrl}
+                      slopeTilesUrl={slopeTilesUrl}
+                      soilTilesUrl={soilTilesUrl}
+                      soilSamplePoints={showSoilSamples ? soilSamplePoints : []}
+                      contours={showContours ? contoursData : null}
                     />
                   </Suspense>
                 ) : (

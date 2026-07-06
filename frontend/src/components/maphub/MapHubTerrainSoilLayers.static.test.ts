@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 // (لا حراسة اختباريّة لهذه الطبقات الجديدة). مسح مصدر (لا تصيير) — يقرأ MapHub.tsx.
 const root = process.cwd();
 const mapHub = readFileSync(join(root, 'src/sections/MapHub.tsx'), 'utf8');
+const hubMapGL = readFileSync(join(root, 'src/components/maphub/HubMapGL.tsx'), 'utf8');
 
 describe('MapHub terrain + soil layer wiring (static guard)', () => {
   it('exposes the three terrain toggles + the soil toggle by testid', () => {
@@ -46,5 +47,26 @@ describe('MapHub terrain + soil layer wiring (static guard)', () => {
     expect(mapHub).toContain('testid="btn-soil-samples"');
     // العيّنات تُجلَب فقط عند التفعيل؛ وتُمسح عند إيقافه (لا نقاط مُلفَّقة بلا مصدر).
     expect(mapHub).toContain('if (!showSoilSamples) { setSoilSamplePoints([]);');
+  });
+
+  it('passes terrain/soil layers to BOTH map engines (Leaflet HubMap + MapLibre HubMapGL)', () => {
+    // P0: كانت الطبقات تصل Leaflet فقط؛ الآن تُمرَّر لـHubMapGL أيضاً (تكافؤ المحرّكين).
+    for (const engine of ['HubMap', 'HubMapGL']) {
+      const idx = mapHub.indexOf(`<${engine}`);
+      expect(idx, `${engine} غير موجود`).toBeGreaterThan(-1);
+      const block = mapHub.slice(idx, idx + 1600);
+      expect(block, `${engine} لا يستقبل hillshadeTilesUrl`).toContain('hillshadeTilesUrl=');
+      expect(block, `${engine} لا يستقبل soilTilesUrl`).toContain('soilTilesUrl=');
+      expect(block, `${engine} لا يستقبل contours`).toContain('contours=');
+    }
+  });
+
+  it('HubMapGL actually adds terrain/soil raster + contour layers to the GL map', () => {
+    expect(hubMapGL).toContain('LYR_HILLSHADE');
+    expect(hubMapGL).toContain('LYR_SLOPE');
+    expect(hubMapGL).toContain('LYR_SOIL');
+    expect(hubMapGL).toContain('LYR_CONTOURS');
+    // fail-closed: بلا رابط ⇒ تُزال الطبقة (لا بلاطة معلّقة).
+    expect(hubMapGL).toContain('if (!url) return;');
   });
 });

@@ -57,6 +57,15 @@ const LYR_INDICATOR = 'sahool-indicator-layer';
 const LYR_FILL = 'sahool-fields-fill';
 const LYR_LINE = 'sahool-fields-line';
 const LYR_SELECTED = 'sahool-fields-selected';
+// طبقات التضاريس/التربة (تكافؤ Leaflet في وضع GL) — بلاطات raster + كنتور vector.
+const SRC_HILLSHADE = 'sahool-hillshade';
+const LYR_HILLSHADE = 'sahool-hillshade-layer';
+const SRC_SLOPE = 'sahool-slope';
+const LYR_SLOPE = 'sahool-slope-layer';
+const SRC_SOIL = 'sahool-soil';
+const LYR_SOIL = 'sahool-soil-layer';
+const SRC_CONTOURS = 'sahool-contours';
+const LYR_CONTOURS = 'sahool-contours-layer';
 
 // أسماء أوضاع Terra Draw القياسيّة (من getters .mode في الحزمة).
 type DrawMode = 'polygon' | 'linestring' | 'select';
@@ -92,6 +101,12 @@ export interface HubMapGLProps {
   imageryTs?: number;
   imageryDate?: string | null;
   tenantId?: string | null;
+  // ── طبقات التضاريس/التربة (تكافؤ Leaflet) — روابط بلاطات + كنتور + نقاط عيّنات ──
+  hillshadeTilesUrl?: string | null;
+  slopeTilesUrl?: string | null;
+  soilTilesUrl?: string | null;
+  contours?: { type: string; features: unknown[] } | null;
+  soilSamplePoints?: Array<{ id: string; lat: number; lng: number; label: string; reason?: string }>;
   // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
   // لقطة عرض مُستعادة تبدأ منها الخريطة وتُلغي الملاءمة التلقائيّة عند أوّل تحميل.
   initialView?: { centerLat: number; centerLng: number; zoom: number } | null;
@@ -310,6 +325,8 @@ export default function HubMapGL({
   drawTools = false, pinMode = false, pins = [], onAddPin,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
   initialView = null, onViewChange, imageryTs = 0, imageryDate = null, tenantId = null,
+  hillshadeTilesUrl = null, slopeTilesUrl = null, soilTilesUrl = null,
+  contours = null, soilSamplePoints = [],
 }: HubMapGLProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -337,6 +354,7 @@ export default function HubMapGL({
   // مراجع علامات التراكب/الدبابيس (إزالة كلّ شيء عند كلّ مزامنة/تفكيك — لا تسريب).
   const overlayMarkersRef = useRef<maplibregl.Marker[]>([]);
   const pinMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const soilMarkersRef = useRef<maplibregl.Marker[]>([]);
 
   // ── Terra Draw (رسم/قياس) ──────────────────────────────────────────
   // نُبقي نسخة الرسم ومراجعها خارج React (لا إعادة إنشاء عند كلّ render).
@@ -453,6 +471,8 @@ export default function HubMapGL({
       overlayMarkersRef.current = [];
       pinMarkersRef.current.forEach((mk) => mk.remove());
       pinMarkersRef.current = [];
+      soilMarkersRef.current.forEach((mk) => mk.remove());
+      soilMarkersRef.current = [];
       popupRef.current?.remove();
       popupRef.current = null;
       map.remove();
@@ -506,6 +526,47 @@ export default function HubMapGL({
     syncIndicator(map);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [indicatorId, selectedId, indicatorOpacity, fields, tenantId, imageryTs, imageryDate]);
+
+  // ── طبقات التضاريس/التربة (تكافؤ Leaflet): بلاطات hillshade/slope/soil + كنتور +
+  // نقاط عيّنات 🧪. يعتمد على basemapId كي يُعاد بناؤها بعد إعادة تحميل الأساس (لا تختفي).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const beforeId = map.getLayer(LYR_LINE) ? LYR_LINE : undefined;
+    // مساعِد: أضِف/أزِل طبقة بلاطات raster حسب توفّر الرابط (fail-closed: بلا رابط ⇒ إزالة).
+    const syncRaster = (src: string, lyr: string, url: string | null, opacity: number) => {
+      if (map.getLayer(lyr)) map.removeLayer(lyr);
+      if (map.getSource(src)) map.removeSource(src);
+      if (!url) return;
+      map.addSource(src, { type: 'raster', tiles: [url], tileSize: 256 });
+      map.addLayer({ id: lyr, type: 'raster', source: src, paint: { 'raster-opacity': opacity } }, beforeId);
+    };
+    syncRaster(SRC_HILLSHADE, LYR_HILLSHADE, hillshadeTilesUrl, 0.7);
+    syncRaster(SRC_SLOPE, LYR_SLOPE, slopeTilesUrl, 0.65);
+    syncRaster(SRC_SOIL, LYR_SOIL, soilTilesUrl, 0.7);
+    // كنتور (GeoJSON خطّيّ) فوق البلاطات.
+    if (map.getLayer(LYR_CONTOURS)) map.removeLayer(LYR_CONTOURS);
+    if (map.getSource(SRC_CONTOURS)) map.removeSource(SRC_CONTOURS);
+    if (contours && Array.isArray(contours.features) && contours.features.length > 0) {
+      map.addSource(SRC_CONTOURS, { type: 'geojson', data: contours as unknown as GeoJSON.FeatureCollection });
+      map.addLayer({
+        id: LYR_CONTOURS, type: 'line', source: SRC_CONTOURS,
+        paint: { 'line-color': '#8b5a2b', 'line-width': 1, 'line-opacity': 0.8 },
+      });
+    }
+    // نقاط عيّنات التربة (علامات DOM 🧪) — إزالة الكلّ ثمّ إعادة بناء.
+    soilMarkersRef.current.forEach((mk) => mk.remove());
+    soilMarkersRef.current = [];
+    for (const p of soilSamplePoints) {
+      const el = document.createElement('div');
+      el.textContent = '🧪';
+      el.title = p.reason || p.label;
+      el.style.cssText = 'font-size:18px;cursor:default;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))';
+      const mk = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
+      soilMarkersRef.current.push(mk);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hillshadeTilesUrl, slopeTilesUrl, soilTilesUrl, contours, soilSamplePoints, basemapId, ready]);
 
   // ── علامات التراكب (تنبيهات/أجهزة/طقس) — إزالة الكلّ ثمّ إعادة بناء ──
   useEffect(() => {

@@ -1455,7 +1455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0ad52c6816d94d181eac9adefb7f661f31cc47498ba50499bacd310e3e4e13c"
+          "content": "e984b77fe5bab7404b3a6150a91c46e51730d1eec4f12e66d47ac9b3cf9be7bd"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -1515,7 +1515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "427c97823decde7d8b22baf8d82fb79e3cfcbe81b4b252301d4a05983716a6cf"
+          "content": "0e07d76353a339fa77ff63305048c31d4b4270764e4ce2eef2fc9d55d6ebb397"
         }
       ],
       "name": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
@@ -4565,7 +4565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "38026aca724ae352aae8ec511ab85147c6e75c8767ffaee8d49f9c5ee9ff66e0"
+          "content": "09dfb870641d78190a673df39736f2831db6e1f0073cf7f14d1ff39307e9b376"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
