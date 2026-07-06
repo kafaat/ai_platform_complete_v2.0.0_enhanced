@@ -73,4 +73,6 @@ def test_stac_persistence_wired_in_backfill() -> None:
     assert "background_tasks.add_task( _persist_selected_stac_scenes" in joined, (
         "استمرار STAC يجب أن يُجدوَل كمهمّة خلفيّة"
     )
-    assert "main.SENTINEL_COLLECTION" in src, "collection يجب أن يكون sentinel-2-l2a"
+    # phase21: fields.py يستورد SENTINEL_COLLECTION من raster_field_runtime (لا main.)؛
+    # الاستمرار يمرّره كـcollection للمشهد.
+    assert "collection=SENTINEL_COLLECTION" in src, "collection يجب أن يكون sentinel-2-l2a"

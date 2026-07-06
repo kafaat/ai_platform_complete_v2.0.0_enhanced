@@ -88,13 +88,16 @@ def test_remote_source_policy_unchanged(rm):
 
 
 def test_vrt_builders_write_under_upload_dir():
-    """ساكن: كلّ استدعاء build_band_vrt في routers/fields.py يمرّر out_dir=main.UPLOAD_DIR
-    (بوّابتا process-from-stac وbackfill) — الكتابة في /tmp تعيد إسقاط المهامّ."""
+    """ساكن: كلّ استدعاء build_band_vrt في routers/fields.py يمرّر out_dir=_upload_dir()
+    (بوّابتا process-from-stac وbackfill) — الكتابة في /tmp تعيد إسقاط المهامّ.
+
+    phase21: fields.py لم يعد يستورد main؛ يمرّر out_dir=_upload_dir() (يعيد UPLOAD_DIR من
+    main إن حُمّل وإلّا raster_settings.UPLOAD_DIR) — نفس عقد «الكتابة تحت UPLOAD_DIR»."""
     src = open(os.path.join(RASTER, "routers", "fields.py"), encoding="utf-8").read()
     calls = re.findall(r"build_band_vrt\(([^)]*)\)", src)
     assert len(calls) >= 2, f"توقّعنا بوّابتَي بناء VRT على الأقلّ، وجدنا {len(calls)}"
-    offenders = [c.strip() for c in calls if "out_dir=main.UPLOAD_DIR" not in c]
-    assert not offenders, f"build_band_vrt بلا out_dir=main.UPLOAD_DIR: {offenders}"
+    offenders = [c.strip() for c in calls if "out_dir=_upload_dir(" not in c]
+    assert not offenders, f"build_band_vrt بلا out_dir=_upload_dir(): {offenders}"
 
 
 def test_stac_total_failure_maps_to_503_not_raw_500(rm):

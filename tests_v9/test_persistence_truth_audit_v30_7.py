@@ -26,7 +26,8 @@ def _read(rel: pathlib.Path) -> str:
 def test_backfill_worker_requires_persisted_truth():
     src = _read(_RASTER / "backfill_scan_worker.py")
     assert 'result.get("persisted") is True' in src, "worker يجب أن يشترط persisted الفعليّ"
-    assert "main.JobStatus.completed and result.get" in src
+    # phase21: العامل يستعمل api_models.JobStatus (لا main.)؛ يبقى العقد «completed AND persisted».
+    assert "api_models.JobStatus.completed and result.get" in src
 
 
 # ── V9-01: مسار CDSE الأب يفصل الحفظ الفعليّ عن اكتمال المعالجة ──

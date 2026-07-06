@@ -66,10 +66,40 @@ def test_backfill_processes_cdse_scenes_via_process_api():
 
 # ── لا earth-search في مسار backfill التاريخيّ (العامل + الراوتر) ──
 def test_no_earth_search_in_backfill_paths():
+    # العقد الحقيقيّ: جلب/معالجة مشاهد backfill تمرّ عبر CDSE Process API + توجيه المزوّد
+    # الافتراضيّ (cdse)، لا عبر استعلام earth-search مباشر إلى element84. ليس «السلسلة
+    # الحرفيّة EARTH_SEARCH_URL لا تظهر أبداً».
+    #
+    # phase21: العامل المستقلّ يبني عميل STAC المرن في _configure_stac_search ويمرّر
+    # raster_settings.EARTH_SEARCH_URL كأساس/ارتداد للعميل — تماماً كما يفعل main. هذه
+    # تهيئة عميل، لا استعلام backfill. لذا نمنع مضيف earth-search الحرفيّ في الملفَّين،
+    # ونحصر EARTH_SEARCH_URL في تهيئة العميل فقط (لا في مسار الجلب/المعالجة).
     for rel in ("backfill_scan_worker.py", "routers/fields.py"):
         src = _read(_RASTER / rel)
         assert "earth-search.aws.element84.com" not in src, f"{rel} يجب ألا يشير إلى Earth Search"
-        assert "EARTH_SEARCH_URL" not in src, f"{rel} يجب ألا يستعمل EARTH_SEARCH_URL في backfill"
+
+    # الراوتر المتزامن لا يذكر EARTH_SEARCH_URL إطلاقاً (يفوّض التوجيه لوحدة stac_search).
+    fields_src = _read(_RASTER / "routers" / "fields.py")
+    assert "EARTH_SEARCH_URL" not in fields_src, (
+        "الراوتر يجب ألا يستعمل EARTH_SEARCH_URL في backfill"
+    )
+
+    # العامل: EARTH_SEARCH_URL محصور داخل _configure_stac_search (تهيئة العميل المرن)،
+    # ولا يظهر في مسار الجلب/المعالجة. مسار المشهد يستعمل CDSE Process API + توجيه المزوّد.
+    worker = _read(_RASTER / "backfill_scan_worker.py")
+    cfg_start = worker.index("def _configure_stac_search(")
+    cfg_end = worker.index("\n_configure_stac_search()", cfg_start)  # الاستدعاء على مستوى الوحدة
+    config_region = worker[cfg_start:cfg_end]
+    rest = worker[:cfg_start] + worker[cfg_end:]
+    assert "EARTH_SEARCH_URL" in config_region, "EARTH_SEARCH_URL يجب أن يبقى في تهيئة العميل"
+    assert "EARTH_SEARCH_URL" not in rest, (
+        "EARTH_SEARCH_URL خارج _configure_stac_search يعني استعلام earth-search في مسار backfill"
+    )
+    # مسار جلب/معالجة backfill يستعمل CDSE (Process API) لا استعلام element84 مباشر.
+    assert "_process_backfill_scene_cdse" in worker, "معالجة مشهد backfill يجب أن تمرّ عبر CDSE"
+    assert "stac_search_helpers.stac_search" in worker, (
+        "الجلب يجب أن يمرّ عبر موجّه المزوّد (cdse افتراضاً)"
+    )
 
 
 # ── البحث في مسار backfill يمرّر هندسة الحقل (intersects) للقصّ الدقيق ──

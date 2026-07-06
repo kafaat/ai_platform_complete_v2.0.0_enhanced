@@ -56,7 +56,7 @@ def test_landsat_payload_without_thermal_asset_is_dropped():
 def test_backfill_endpoint_static_rejects_landsat_duplicate_indices():
     src = (ROOT / "routers" / "fields.py").read_text(encoding="utf-8")
     assert "is_landsat_thermal" in src
-    assert "main.LANDSAT_UNIQUE_INDICES" in src
+    assert "LANDSAT_UNIQUE_INDICES" in src
     assert "المؤشرات المكررة مع Sentinel-2 مرفوضة" in src
-    assert "main._stac_search_landsat_unique" in src
-    assert "main.IndicatorKind.lst" in src
+    assert "_stac_search_landsat_unique" in src
+    assert "IndicatorKind.lst" in src

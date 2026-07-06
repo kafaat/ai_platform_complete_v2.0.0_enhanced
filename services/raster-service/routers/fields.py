@@ -1,10 +1,10 @@
 """routers/fields.py — مسارات الحقل (Field-scoped)
 ======================================================================
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
+شريحة من تفكيك ``py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
 نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المنطق مطابقة.
 التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main`` وتُشار إليها عبر
-``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
+``X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``py``.
 """
 
 from __future__ import annotations
@@ -13,9 +13,62 @@ import os
 import uuid
 from datetime import UTC, datetime
 
-import main
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, Query
 from fastapi.responses import Response
+from raster_field_runtime import (
+    _REQ_TENANT,
+    _TRANSPARENT_PNG,
+    LANDSAT_DERIVED_INDICES,
+    LANDSAT_DIRECT_RASTER_INDICES,
+    LANDSAT_DUPLICATE_SENTINEL_INDICES,
+    LANDSAT_UNIQUE_INDICES,
+    NDVI_HIGH_QUALITY_CLEAR_PCT,
+    NDVI_PULL_MIN_CLEAR_PCT,
+    NDVI_PULL_MIN_SPACING_DAYS,
+    NDVI_PULL_TARGET_SPACING_DAYS,
+    SENTINEL_COLLECTION,
+    TITILER_URL,
+    BandMapping,
+    FieldChangeRequest,
+    GeoParquetExportRequest,
+    HistoricalBackfillRequest,
+    IndicatorKind,
+    JobStatus,
+    PrescriptionRequest,
+    ProcessCdseRequest,
+    ProcessFromStacRequest,
+    ProcessRequest,
+    SourceFormat,
+    _backfill_date_range,
+    _bbox_from_geojson,
+    _display_index,
+    _field_layers,
+    _grid_from_cog,
+    _jobs,
+    _layers,
+    _month_windows,
+    _normalize_index,
+    _obs_inc,
+    _pixel_quality,
+    _process_backfill_scene_cdse,
+    _public_cog_url,
+    _read_tile_cache,
+    _real_field_grid,
+    _require_field_tenant,
+    _require_service_token,
+    _resolve_field_layer,
+    _run_cdse_processing,
+    _run_processing,
+    _safe_raster_source,
+    _select_backfill_scenes_by_policy,
+    _stac_search,
+    _stac_search_landsat_unique,
+    _tile_cache_key,
+    _upload_dir,
+    _write_tile_cache,
+    logger,
+    object_store,
+)
 
 router = APIRouter()
 
@@ -34,7 +87,7 @@ def _async_backfill_enabled() -> bool:
 @router.post("/v1/fields/{field_id}/process-from-stac")
 async def process_from_stac(
     field_id: str,
-    req: main.ProcessFromStacRequest,
+    req: ProcessFromStacRequest,
     background_tasks: BackgroundTasks,
     x_agent_token: str = Header(None),
 ):
@@ -44,23 +97,23 @@ async def process_from_stac(
     مناسب للمزوّد بلا مفتاح (Element84): استدعِ /imagery/best لجلب band hrefs،
     ثمّ مرّرها هنا. خلفيّة — يُرجِع job_id.
     """
-    main._require_service_token(x_agent_token)
+    _require_service_token(x_agent_token)
     import stac_vrt
 
     # كلّ href يُتحقَّق منه (traversal/SSRF) قبل بناء الـVRT.
-    safe_hrefs = {k: main._safe_raster_source(v) for k, v in (req.band_hrefs or {}).items()}
+    safe_hrefs = {k: _safe_raster_source(v) for k, v in (req.band_hrefs or {}).items()}
     try:
         # الـVRT يُكتَب تحت UPLOAD_DIR كي يقبله حارس المصدر (_safe_raster_source) —
         # كتابته في /tmp مباشرة كانت تُفشِل المعالجة بـ400 (خارج المجلّد المسموح).
-        vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs, out_dir=main.UPLOAD_DIR)
+        vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs, out_dir=_upload_dir())
     except Exception as e:  # noqa: BLE001 — مدخل غير صالح/نطاق غير مقروء
         raise HTTPException(400, f"تعذّر بناء VRT من نطاقات STAC: {e}") from e
 
-    band_kwargs = {k: v for k, v in index_map.items() if k in main.BandMapping.model_fields}
-    preq = main.ProcessRequest(
+    band_kwargs = {k: v for k, v in index_map.items() if k in BandMapping.model_fields}
+    preq = ProcessRequest(
         raster_url=vrt_path,
         indicator=req.indicator,
-        bands=main.BandMapping(**band_kwargs),
+        bands=BandMapping(**band_kwargs),
         field_id=field_id,
         tenant_id=req.tenant_id,
         source_format=req.source_format,
@@ -71,19 +124,19 @@ async def process_from_stac(
         geometry_revision=req.geometry_revision,  # v143: نَسَب هندسة الحقل
     )
     job_id = f"stac_{uuid.uuid4().hex[:12]}"
-    main._jobs.set(
+    _jobs.set(
         job_id,
         {
             "job_id": job_id,
-            "status": main.JobStatus.pending,
+            "status": JobStatus.pending,
             "progress_pct": 0,
             "created_at": datetime.now(UTC).isoformat(),
         },
     )
-    background_tasks.add_task(main._run_processing, job_id, preq)
+    background_tasks.add_task(_run_processing, job_id, preq)
     return {
         "job_id": job_id,
-        "status": main.JobStatus.pending,
+        "status": JobStatus.pending,
         "bands": index_map,
         "raster_url": vrt_path,
     }
@@ -102,7 +155,7 @@ async def _persist_selected_stac_scenes(tenant_id: str, scenes: list[dict]) -> N
         await db_persist.insert_stac_item(
             tenant_id=tenant_id,
             scene_id=sid,
-            collection=main.SENTINEL_COLLECTION,
+            collection=SENTINEL_COLLECTION,
             captured_at=scene.get("datetime"),
             bbox=scene.get("bbox"),
             cloud_pct=scene.get("cloud_cover_pct"),
@@ -119,7 +172,7 @@ async def _persist_selected_stac_scenes(tenant_id: str, scenes: list[dict]) -> N
 @router.post("/v1/fields/{field_id}/imagery/backfill")
 async def field_historical_backfill(
     field_id: str,
-    req: main.HistoricalBackfillRequest,
+    req: HistoricalBackfillRequest,
     background_tasks: BackgroundTasks,
     x_agent_token: str = Header(None),
 ):
@@ -135,8 +188,8 @@ async def field_historical_backfill(
     scenes per month, and schedules one processing job per (scene × index). When
     dry_run=true it returns the plan only, which is useful for UI cost previews.
     """
-    main._require_service_token(x_agent_token)
-    await main._require_field_tenant(field_id)
+    _require_service_token(x_agent_token)
+    await _require_field_tenant(field_id)
 
     if not req.indices:
         raise HTTPException(400, "indices مطلوبة")
@@ -148,16 +201,14 @@ async def field_historical_backfill(
         "landsat-thermal-unique",
     }
     if is_landsat_thermal:
-        unsupported = [i.value for i in req.indices if i.value not in main.LANDSAT_UNIQUE_INDICES]
+        unsupported = [i.value for i in req.indices if i.value not in LANDSAT_UNIQUE_INDICES]
         if unsupported:
             raise HTTPException(
                 400,
                 "Landsat في Sahool مخصّص للمؤشرات الحرارية الفريدة فقط؛ "
                 f"المؤشرات المكررة مع Sentinel-2 مرفوضة: {unsupported}",
             )
-        non_direct = [
-            i.value for i in req.indices if i.value not in main.LANDSAT_DIRECT_RASTER_INDICES
-        ]
+        non_direct = [i.value for i in req.indices if i.value not in LANDSAT_DIRECT_RASTER_INDICES]
         if non_direct and not req.dry_run:
             raise HTTPException(
                 422,
@@ -170,40 +221,40 @@ async def field_historical_backfill(
             for i in req.indices
             if i
             not in {
-                main.IndicatorKind.ndvi,
-                main.IndicatorKind.ndmi,
-                main.IndicatorKind.savi,
-                main.IndicatorKind.evi,
-                main.IndicatorKind.gndvi,
-                main.IndicatorKind.ndre,
-                main.IndicatorKind.reci,
-                main.IndicatorKind.gci,
-                main.IndicatorKind.arvi,
-                main.IndicatorKind.sipi,
-                main.IndicatorKind.nbr,
-                main.IndicatorKind.ccci,
-                main.IndicatorKind.vari,
-                main.IndicatorKind.gli,
-                main.IndicatorKind.bsi,
-                main.IndicatorKind.msi,
-                main.IndicatorKind.msavi,
+                IndicatorKind.ndvi,
+                IndicatorKind.ndmi,
+                IndicatorKind.savi,
+                IndicatorKind.evi,
+                IndicatorKind.gndvi,
+                IndicatorKind.ndre,
+                IndicatorKind.reci,
+                IndicatorKind.gci,
+                IndicatorKind.arvi,
+                IndicatorKind.sipi,
+                IndicatorKind.nbr,
+                IndicatorKind.ccci,
+                IndicatorKind.vari,
+                IndicatorKind.gli,
+                IndicatorKind.bsi,
+                IndicatorKind.msi,
+                IndicatorKind.msavi,
                 # طبقات مائيّة/ملوحة Sentinel-2 ظاهرة في MapHub ويجب أن تُحفظ تاريخياً عند طلبها.
-                main.IndicatorKind.ndwi,
-                main.IndicatorKind.ndsi,
+                IndicatorKind.ndwi,
+                IndicatorKind.ndsi,
                 # الصورة الخام (truecolor) تُحفَظ الآن كـCOG RGBA (مسار precomputed مخصّص)
                 # فتُقبَل في الـbackfill — فيخدمها /tiles المحفوظ للحقول المُجهَّزة.
-                main.IndicatorKind.truecolor,
+                IndicatorKind.truecolor,
             }
         ]
         if unsupported:
             raise HTTPException(400, f"مؤشّرات غير مناسبة للـbackfill البصري: {unsupported}")
 
     clip = req.clip_polygon_geojson
-    bbox = main._bbox_from_geojson(clip)
+    bbox = _bbox_from_geojson(clip)
     if bbox is None:
         raise HTTPException(400, "clip_polygon_geojson مطلوب لاشتقاق bbox وقصّ الصور على حدود الحقل")
 
-    start, end, months = main._backfill_date_range(req)
+    start, end, months = _backfill_date_range(req)
 
     # v5-F1/F2 · v6-F1/F2: المسار اللاتزامنيّ (خلف راية). أنشئ تشغيلة backfill وأعِد
     # run_id فوراً بلا مسح STAC في مسار الطلب (يتفادى مهلة proxy 60s على النوافذ
@@ -212,7 +263,7 @@ async def field_historical_backfill(
     if _async_backfill_enabled() and not req.dry_run:
         import db_persist as _dbp
 
-        _async_tenant = req.tenant_id or main._REQ_TENANT.get()
+        _async_tenant = req.tenant_id or _REQ_TENANT.get()
         run_id = await _dbp.insert_backfill_run(
             tenant_id=str(_async_tenant) if _async_tenant else None,
             field_id=field_id,
@@ -229,7 +280,7 @@ async def field_historical_backfill(
             source="landsat-thermal" if is_landsat_thermal else "sentinel-2",
         )
         if run_id is not None:
-            main.logger.info(
+            logger.info(
                 "historical_backfill_run created field_id=%s run_id=%s months=%s (async)",
                 field_id,
                 run_id,
@@ -259,12 +310,12 @@ async def field_historical_backfill(
             "المسار المتزامن مُعطَّل تحت RASTER_ASYNC_BACKFILL_ENABLED.",
         )
 
-    windows = main._month_windows(start, end)
+    windows = _month_windows(start, end)
     selected_scenes: list[dict] = []
     monthly: list[dict] = []
     for w_start, w_end in windows:
         if is_landsat_thermal:
-            search = await main._stac_search_landsat_unique(
+            search = await _stac_search_landsat_unique(
                 bbox,
                 w_start.strftime("%Y-%m-%dT00:00:00Z"),
                 w_end.strftime("%Y-%m-%dT23:59:59Z"),
@@ -273,7 +324,7 @@ async def field_historical_backfill(
             )
         else:
             try:
-                search = await main._stac_search(
+                search = await _stac_search(
                     bbox,
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
@@ -286,14 +337,14 @@ async def field_historical_backfill(
                     raise
                 # توافق اختبارات/بدائل قديمة monkeypatch لا تقبل geometry. الإنتاج يستخدم
                 # التوقيع الجديد، وهذا fallback لا يغيّر المسار الحقيقي.
-                search = await main._stac_search(
+                search = await _stac_search(
                     bbox,
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
                     req.max_cloud_pct,
                     limit=max(24, req.limit_per_month * 6),
                 )
-        items = main._select_backfill_scenes_by_policy(
+        items = _select_backfill_scenes_by_policy(
             search.get("items", []),
             indices=[i.value for i in req.indices],
             max_cloud_pct=req.max_cloud_pct,
@@ -311,7 +362,7 @@ async def field_historical_backfill(
 
     job_ids: list[str] = []
     scheduled: list[dict] = []
-    tenant_id = req.tenant_id or main._REQ_TENANT.get()
+    tenant_id = req.tenant_id or _REQ_TENANT.get()
     # FINDING-009: استمرار المشاهد المُختارة في stac_item_registry (خلفيّة، best-effort).
     if not req.dry_run and tenant_id and selected_scenes:
         background_tasks.add_task(
@@ -335,11 +386,11 @@ async def field_historical_backfill(
             scheduled.append(scheduled_item)
             if req.dry_run:
                 continue
-            main._jobs.set(
+            _jobs.set(
                 job_id,
                 {
                     **scheduled_item,
-                    "status": main.JobStatus.pending,
+                    "status": JobStatus.pending,
                     "progress_pct": 0,
                     "created_at": datetime.now(UTC).isoformat(),
                     "job_type": "historical_backfill",
@@ -363,13 +414,13 @@ async def field_historical_backfill(
                         thermal_url = (sc.get("thermal_urls") or {}).get("lst")
                         if not thermal_url:
                             raise RuntimeError("landsat_lst_asset_missing")
-                        preq = main.ProcessRequest(
+                        preq = ProcessRequest(
                             tenant_id=tenant_id,
                             field_id=field_id,
-                            raster_url=main._safe_raster_source(thermal_url),
-                            indicator=main.IndicatorKind.lst,
-                            source_format=main.SourceFormat.landsat8,
-                            bands=main.BandMapping(),
+                            raster_url=_safe_raster_source(thermal_url),
+                            indicator=IndicatorKind.lst,
+                            source_format=SourceFormat.landsat8,
+                            bands=BandMapping(),
                             precomputed_index=True,
                             clip_polygon_geojson=clip,
                             apply_cloud_mask=False,
@@ -378,13 +429,13 @@ async def field_historical_backfill(
                             provider="landsat-element84",
                             geometry_revision=getattr(req, "geometry_revision", None),
                         )
-                        main._run_processing(jid, preq)
+                        _run_processing(jid, preq)
                         return
 
                     # التحويل إلى CDSE: مشهد كتالوج Copernicus (بلا bands_urls) يُعالَج
                     # خادميّاً عبر Process API (لا VRT من نطاقات Element84).
                     if not (sc.get("bands_urls") or {}):
-                        main._process_backfill_scene_cdse(
+                        _process_backfill_scene_cdse(
                             sc,
                             ind_value,
                             field_id,
@@ -396,27 +447,21 @@ async def field_historical_backfill(
                         return
 
                     safe_hrefs = {
-                        k: main._safe_raster_source(v)
+                        k: _safe_raster_source(v)
                         for k, v in (sc.get("bands_urls") or {}).items()
                         if v
                     }
                     # تحت UPLOAD_DIR كي يقبله _safe_raster_source — كتابة الـVRT في
                     # /tmp أسقطت كلّ مهامّ backfill بـHTTPException 400 (بلاغ 2026-07-04).
-                    vrt_path, index_map = stac_vrt.build_band_vrt(
-                        safe_hrefs, out_dir=main.UPLOAD_DIR
-                    )
-                    preq = main.ProcessRequest(
+                    vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs, out_dir=_upload_dir())
+                    preq = ProcessRequest(
                         tenant_id=tenant_id,
                         field_id=field_id,
                         raster_url=vrt_path,
                         indicator=ind,
-                        source_format=main.SourceFormat.sentinel2_l2a,
-                        bands=main.BandMapping(
-                            **{
-                                k: v
-                                for k, v in index_map.items()
-                                if k in main.BandMapping.model_fields
-                            }
+                        source_format=SourceFormat.sentinel2_l2a,
+                        bands=BandMapping(
+                            **{k: v for k, v in index_map.items() if k in BandMapping.model_fields}
                         ),
                         clip_polygon_geojson=clip,
                         apply_cloud_mask=req.apply_cloud_mask,
@@ -428,34 +473,34 @@ async def field_historical_backfill(
                         # كشف التقادم والتحليل الجنائيّ عند تغيّر حدود الحقل).
                         geometry_revision=getattr(req, "geometry_revision", None),
                     )
-                    main._run_processing(jid, preq)
+                    _run_processing(jid, preq)
                 except Exception as e:  # noqa: BLE001
                     # توحيد main↔cert (#542): لا نُسرّب نصّ الاستثناء للعميل — رمز عامّ،
                     # والسجلّ الداخلي يحمل النوع (+ status/detail لـHTTPException —
                     # نصّنا المتحكَّم به؛ النوع وحده أخفى سبب فشل backfill 2026-07-04).
                     _http = f" [{e.status_code}] {e.detail}" if isinstance(e, HTTPException) else ""
-                    main.logger.warning(
+                    logger.warning(
                         "scene job %s فشل أثناء معالجة المشهد: %s%s",
                         jid,
                         type(e).__name__,
                         _http,
                     )
-                    j = main._jobs.get(jid) or {"job_id": jid}
+                    j = _jobs.get(jid) or {"job_id": jid}
                     j.update(
                         {
-                            "status": main.JobStatus.failed,
+                            "status": JobStatus.failed,
                             "error_message": "scene_processing_failed",
                             "finished_at": datetime.now(UTC).isoformat(),
                         }
                     )
-                    main._jobs.set(jid, j)
+                    _jobs.set(jid, j)
 
             background_tasks.add_task(_run_scene_job)
             job_ids.append(job_id)
 
     # v5-audit F8: ملخّص فحص backfill منظَّم — «job completed» الفرديّة لا تكشف نطاق
     # الفحص (كم شهراً مُسِح · كم مشهداً اختير · كم مهمّة جُدولت) للتشخيص/التدقيق.
-    main.logger.info(
+    logger.info(
         "historical_backfill_scan completed field_id=%s months_requested=%s months_scanned=%s "
         "scenes_selected=%s jobs_scheduled=%s dry_run=%s",
         field_id,
@@ -478,20 +523,18 @@ async def field_historical_backfill(
         "source": "landsat-thermal" if is_landsat_thermal else "sentinel-2",
         "landsat_policy": (
             {
-                "direct_raster_indices": sorted(main.LANDSAT_DIRECT_RASTER_INDICES),
-                "derived_indices": sorted(main.LANDSAT_DERIVED_INDICES),
-                "excluded_duplicate_sentinel_indices": sorted(
-                    main.LANDSAT_DUPLICATE_SENTINEL_INDICES
-                ),
+                "direct_raster_indices": sorted(LANDSAT_DIRECT_RASTER_INDICES),
+                "derived_indices": sorted(LANDSAT_DERIVED_INDICES),
+                "excluded_duplicate_sentinel_indices": sorted(LANDSAT_DUPLICATE_SENTINEL_INDICES),
             }
             if is_landsat_thermal
             else None
         ),
         "max_cloud_pct": req.max_cloud_pct,
         "min_clear_scene_pct": 100 - req.max_cloud_pct,
-        "high_quality_clear_pct": main.NDVI_HIGH_QUALITY_CLEAR_PCT,
-        "min_scene_spacing_days": main.NDVI_PULL_MIN_SPACING_DAYS,
-        "target_scene_spacing_days": main.NDVI_PULL_TARGET_SPACING_DAYS,
+        "high_quality_clear_pct": NDVI_HIGH_QUALITY_CLEAR_PCT,
+        "min_scene_spacing_days": NDVI_PULL_MIN_SPACING_DAYS,
+        "target_scene_spacing_days": NDVI_PULL_TARGET_SPACING_DAYS,
         "limit_per_month": req.limit_per_month,
         "dry_run": req.dry_run,
         "months_scanned": len(windows),
@@ -515,10 +558,10 @@ async def field_backfill_run_status(field_id: str, run_id: int):
     يُتيح للواجهة استطلاع التقدّم الحقيقيّ بدل «نجاح» أعمى: الحالة
     (planned/searching/processing/completed/completed_with_errors/failed) + عدّادات
     persisted/failed/skipped + تجميع حالات العناصر + آخر خطأ. مُصفّى بالمستأجِر."""
-    await main._require_field_tenant(field_id)
+    await _require_field_tenant(field_id)
     import db_persist as _dbp
 
-    status = await _dbp.get_backfill_run_status(run_id, tenant_id=main._REQ_TENANT.get())
+    status = await _dbp.get_backfill_run_status(run_id, tenant_id=_REQ_TENANT.get())
     if status is None:
         raise HTTPException(404, "تشغيلة backfill غير موجودة ضمن هذا المستأجِر/الحقل")
     if status.get("field_id") and status["field_id"] != field_id:
@@ -535,9 +578,9 @@ async def create_field_geometry_version(
     x_agent_token: str = Header(None),
 ):
     """Persist a field geometry snapshot for reproducible historical analytics."""
-    main._require_service_token(x_agent_token)
-    await main._require_field_tenant(field_id)
-    tenant_id = main._REQ_TENANT.get()
+    _require_service_token(x_agent_token)
+    await _require_field_tenant(field_id)
+    tenant_id = _REQ_TENANT.get()
     import db_persist
 
     version_id = await db_persist.insert_field_geometry_version(
@@ -557,7 +600,7 @@ async def create_field_geometry_version(
 
 @router.post("/v1/fields/analytics/geoparquet/export")
 async def export_field_analytics_geoparquet(
-    req: main.GeoParquetExportRequest, x_agent_token: str = Header(None)
+    req: GeoParquetExportRequest, x_agent_token: str = Header(None)
 ):
     """Export field analytics as GeoParquet when optional deps exist, else NDJSON.
 
@@ -565,8 +608,8 @@ async def export_field_analytics_geoparquet(
     fallback writes an explicit NDJSON file instead of mislabeling a non-GeoParquet
     artifact.
     """
-    main._require_service_token(x_agent_token)
-    tenant_id = req.tenant_id or main._REQ_TENANT.get()
+    _require_service_token(x_agent_token)
+    tenant_id = req.tenant_id or _REQ_TENANT.get()
     import json as _json
 
     import db_persist
@@ -575,7 +618,7 @@ async def export_field_analytics_geoparquet(
         tenant_id=tenant_id, field_ids=req.field_ids
     )
     safe_name = "".join(ch if ch.isalnum() or ch in ("-", "_") else "_" for ch in req.output_name)
-    out_dir = os.path.join(main.UPLOAD_DIR, "exports", str(tenant_id or "unknown"))
+    out_dir = os.path.join(_upload_dir(), "exports", str(tenant_id or "unknown"))
     os.makedirs(out_dir, exist_ok=True)
     try:
         import geopandas as gpd  # type: ignore
@@ -610,7 +653,7 @@ async def export_field_analytics_geoparquet(
 @router.post("/v1/fields/{field_id}/process-cdse")
 async def process_cdse(
     field_id: str,
-    req: main.ProcessCdseRequest,
+    req: ProcessCdseRequest,
     background_tasks: BackgroundTasks,
     x_agent_token: str = Header(None),
 ):
@@ -619,7 +662,7 @@ async def process_cdse(
     صدق: بلا اعتمادات CDSE (``CDSE_CLIENT_ID``/``SECRET`` أو ``CDSE_ENABLED=false``) ⇒
     ``available=false`` (200، لا خطأ) كي يسقط المنسّق إلى Element84 بصمت — لا توقّف ولا تلفيق.
     """
-    main._require_service_token(x_agent_token)
+    _require_service_token(x_agent_token)
     import cdse_client
 
     if not cdse_client.is_configured():
@@ -634,24 +677,24 @@ async def process_cdse(
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
-    main._jobs.set(
+    _jobs.set(
         job_id,
         {
             "job_id": job_id,
-            "status": main.JobStatus.pending,
+            "status": JobStatus.pending,
             "progress_pct": 0,
             "created_at": datetime.now(UTC).isoformat(),
             "indicators": list(req.indicators),
             "provider": "cdse",
         },
     )
-    background_tasks.add_task(main._run_cdse_processing, job_id, field_id, req)
+    background_tasks.add_task(_run_cdse_processing, job_id, field_id, req)
     return {
         "provider": "cdse",
         "available": True,
         "queued": True,
         "job_id": job_id,
-        "status": main.JobStatus.pending,
+        "status": JobStatus.pending,
         "indicators": list(req.indicators),
         "note": "معالجة CDSE خلفيّة — استعلم /jobs/{job_id} (cdse_results + cdse_failed).",
     }
@@ -670,16 +713,16 @@ async def field_indicator_grid(
     إلى grid×grid مع تصنيف مناطق الشدّة (real_data=True). وإلّا → شبكة محاكاة
     مُعلَّمة بصدق (real_data=False, source="simulation") — نفس شكل العقد دائماً.
     """
-    await main._require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
+    await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
     import indicator_grid as ig
 
     # تطبيع اسم المؤشّر المعروض (salinity/NDVU aliases مقبولة للواجهة)
-    out_index = main._display_index(index)
-    index = main._normalize_index(index)
+    out_index = _display_index(index)
+    index = _normalize_index(index)
 
-    layer = await main._resolve_field_layer(field_id, index, date)
+    layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None:
-        real = main._grid_from_cog(layer, out_index, date, grid)
+        real = _grid_from_cog(layer, out_index, date, grid)
         if real is not None:
             return real
 
@@ -705,10 +748,10 @@ async def field_pixel_value(
     لا يخترع قيماً: يجب وجود COG حقيقي للحقل/المؤشّر/التاريخ. يتحقق من ملكية
     الحقل، يرفض النقاط خارج حدود COG المقصوص، ويرجع value + metadata.
     """
-    await main._require_field_tenant(field_id, hide_existence=True)
-    out_index = main._display_index(index)
-    index = main._normalize_index(index)
-    layer = await main._resolve_field_layer(field_id, index, date)
+    await _require_field_tenant(field_id, hide_existence=True)
+    out_index = _display_index(index)
+    index = _normalize_index(index)
+    layer = await _resolve_field_layer(field_id, index, date)
     if layer is None:
         raise HTTPException(404, "لا توجد طبقة مؤشر حقيقية لهذا الحقل/التاريخ")
     bounds = layer.get("bounds_4326")
@@ -723,7 +766,7 @@ async def field_pixel_value(
         from rasterio.warp import transform
     except Exception as e:  # noqa: BLE001
         raise HTTPException(503, "rasterio غير متوفر لقراءة قيمة البكسل") from e
-    path = main.object_store.to_gdal_path(layer.get("cog_url") or layer.get("raster_url") or "")
+    path = object_store.to_gdal_path(layer.get("cog_url") or layer.get("raster_url") or "")
     if not path:
         raise HTTPException(404, "مصدر COG غير موجود")
     try:
@@ -749,7 +792,7 @@ async def field_pixel_value(
                     "confidence": 0.0,
                     "quality": "nodata",
                 }
-            quality = main._pixel_quality(layer, float(value))
+            quality = _pixel_quality(layer, float(value))
             return {
                 "field_id": field_id,
                 "index": out_index,
@@ -772,7 +815,7 @@ async def field_pixel_value(
 
 @router.post("/v1/fields/{field_id}/prescription")
 async def field_prescription(
-    field_id: str, req: main.PrescriptionRequest, x_agent_token: str = Header(None)
+    field_id: str, req: PrescriptionRequest, x_agent_token: str = Header(None)
 ):
     """وصفة مناطق الإدارة (VRT) من شبكة المؤشّر — سدّ Sprint 5b.
 
@@ -784,16 +827,14 @@ async def field_prescription(
     صدق: real_data ينعكس من مصدر الشبكة؛ المعدّلات إرشاديّة (قرار agronomic
     يحتاج تحقّقاً ميدانيّاً).
     """
-    main._require_service_token(
-        x_agent_token
-    )  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
+    _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
     import indicator_grid as ig
     import management_zones as mz
 
-    layer = await main._resolve_field_layer(field_id, req.index, req.date)
+    layer = await _resolve_field_layer(field_id, req.index, req.date)
     grid_resp = None
     if layer is not None:
-        grid_resp = main._grid_from_cog(layer, req.index, req.date, req.grid)
+        grid_resp = _grid_from_cog(layer, req.index, req.date, req.grid)
     if grid_resp is None:
         bbox = [44.0, 16.0, 44.01, 16.01]
         if layer is not None and layer.get("bounds_4326"):
@@ -820,20 +861,16 @@ async def field_prescription(
 
 
 @router.post("/v1/fields/{field_id}/change")
-async def field_change(
-    field_id: str, req: main.FieldChangeRequest, x_agent_token: str = Header(None)
-):
+async def field_change(field_id: str, req: FieldChangeRequest, x_agent_token: str = Header(None)):
     """كشف التغيّر المكاني (per-pixel 2D) للحقل بين تاريخين — أين تدهور/تحسّن.
 
     يبني شبكتي المؤشّر الحقيقيّتين (من COG المقصوص لكلّ تاريخ، نفس مسار
     indicator-grid) ويُمرّرهما لـdetect_change. صدق: إن لم تتوفّر شبكة حقيقيّة
     لأحد التاريخين (لا COG / لا rasterio) يُرجِع real_data=False بلا تغيّر مُفبرَك.
     """
-    main._require_service_token(
-        x_agent_token
-    )  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
-    grid_a = await main._real_field_grid(field_id, req.index, req.date_a, req.grid)
-    grid_b = await main._real_field_grid(field_id, req.index, req.date_b, req.grid)
+    _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
+    grid_a = await _real_field_grid(field_id, req.index, req.date_a, req.grid)
+    grid_b = await _real_field_grid(field_id, req.index, req.date_b, req.grid)
 
     if grid_a is None or grid_b is None:
         missing = [d for d, g in ((req.date_a, grid_a), (req.date_b, grid_b)) if g is None]
@@ -898,18 +935,18 @@ async def field_timeseries(
 
     أُزيل x_agent_token (كان مُعلَناً بلا فرض — مسار متصفّح). التفويض عبر ملكيّة الحقل.
     """
-    await main._require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
-    out_index = main._display_index(index)
-    index = main._normalize_index(index)
+    await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
+    out_index = _display_index(index)
+    index = _normalize_index(index)
     requested_dates = [d.strip() for d in dates.split(",") if d.strip()]
     if not requested_dates:
         # كلّ تواريخ الطبقات الحقيقيّة المتاحة للحقل+المؤشّر. نبدأ بالذاكرة، ثم
         # نقرأ raster_assets عند إعادة التشغيل/worker آخر؛ وإلّا يصبح الـtimeline
         # فارغاً رغم وجود COGs مخزّنة. لا نُنشئ نقاطاً، فقط نكتشف التواريخ.
-        internal = main._normalize_index(index)
+        internal = _normalize_index(index)
         seen: set[str] = set()
-        for lid in main._field_layers.get(field_id, []):
-            lyr = main._layers.get(lid)
+        for lid in _field_layers.get(field_id, []):
+            lyr = _layers.get(lid)
             if not lyr or not lyr.get("cog_url") or lyr.get("index") != internal:
                 continue
             d = lyr.get("acquisition_date")
@@ -921,16 +958,16 @@ async def field_timeseries(
 
                 seen.update(
                     await db_persist.list_asset_dates(
-                        field_id, internal, tenant_id=main._REQ_TENANT.get()
+                        field_id, internal, tenant_id=_REQ_TENANT.get()
                     )
                 )
             except Exception as e:  # noqa: BLE001 — لا نكسر السلسلة الزمنية عند غياب DB
-                main.logger.warning("raster_assets dates rehydrate skipped (%s): %s", field_id, e)
+                logger.warning("raster_assets dates rehydrate skipped (%s): %s", field_id, e)
         requested_dates = sorted(seen)
 
     points: list[dict] = []
     for date in requested_dates:
-        real = await main._real_field_grid(field_id, index, date, grid)
+        real = await _real_field_grid(field_id, index, date, grid)
         if real is None:
             continue
         points.append(
@@ -983,14 +1020,14 @@ async def field_tile(
     صدق + لا 500: عند غياب COG/rasterio/تقاطع البيانات → بلاطة شفّافة (الخريطة
     لا تُظهر شيئاً فوق الحقل) بدل خطأ خادم.
     """
-    await main._require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
-    index = main._normalize_index(index)
-    main._obs_inc("tile_requests_total", index)
-    tenant = main._REQ_TENANT.get()
-    cache_path = main._tile_cache_key(field_id, index, date, z, x, y, tenant, v=v)
-    cached_png = main._read_tile_cache(cache_path)
+    await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (DB مصدر الحقيقة + ذاكرة)
+    index = _normalize_index(index)
+    _obs_inc("tile_requests_total", index)
+    tenant = _REQ_TENANT.get()
+    cache_path = _tile_cache_key(field_id, index, date, z, x, y, tenant, v=v)
+    cached_png = _read_tile_cache(cache_path)
     if cached_png:
-        main._obs_inc("tile_cache_hits_total", index)
+        _obs_inc("tile_cache_hits_total", index)
         return Response(
             content=cached_png,
             media_type="image/png",
@@ -1001,17 +1038,17 @@ async def field_tile(
                 "X-Sahool-Tile-Version": v or "default",
             },
         )
-    layer = await main._resolve_field_layer(field_id, index, date)
+    layer = await _resolve_field_layer(field_id, index, date)
     if layer is not None and layer.get("cog_url"):
         try:
             import tile_render
 
-            cog_path = main.object_store.to_gdal_path(layer["cog_url"])
-            internal = main._normalize_index(index)
+            cog_path = object_store.to_gdal_path(layer["cog_url"])
+            internal = _normalize_index(index)
             png = tile_render.render_tile_png(cog_path, z, x, y, internal)
             if png:
-                main._obs_inc("tile_cache_misses_total", index)
-                main._write_tile_cache(cache_path, png)
+                _obs_inc("tile_cache_misses_total", index)
+                _write_tile_cache(cache_path, png)
                 return Response(
                     content=png,
                     media_type="image/png",
@@ -1023,12 +1060,12 @@ async def field_tile(
                     },
                 )
         except Exception as e:  # noqa: BLE001 — لا نُفشل الخريطة، نخدم شفّافاً
-            main._obs_inc("tile_render_errors_total", index)
-            main.logger.warning("field_tile render skipped (%s): %s", field_id, e)
+            _obs_inc("tile_render_errors_total", index)
+            logger.warning("field_tile render skipped (%s): %s", field_id, e)
     # لا COG/بيانات/rasterio → بلاطة شفّافة (لا 500)
-    main._obs_inc("tile_transparent_total", index)
+    _obs_inc("tile_transparent_total", index)
     return Response(
-        content=main._TRANSPARENT_PNG,
+        content=_TRANSPARENT_PNG,
         media_type="image/png",
         headers={
             "Cache-Control": "no-store, max-age=0",
@@ -1050,8 +1087,8 @@ async def field_available_dates(
     and must report dates from actual persisted/generated COGs, not from the UI
     or a provider search alone.
     """
-    await main._require_field_tenant(field_id, hide_existence=True)
-    wanted = [main._normalize_index(index)] if index else []
+    await _require_field_tenant(field_id, hide_existence=True)
+    wanted = [_normalize_index(index)] if index else []
     by_date: dict[str, dict] = {}
 
     def _add(
@@ -1085,7 +1122,7 @@ async def field_available_dates(
         )
         rec["has_cog"] = bool(rec["has_cog"] or has_cog)
         if idx:
-            rec["indices"].add(main._display_index(idx))
+            rec["indices"].add(_display_index(idx))
         if cloud_pct is not None and rec["cloud_pct"] is None:
             try:
                 cloud = max(0.0, min(100.0, float(cloud_pct)))
@@ -1093,9 +1130,9 @@ async def field_available_dates(
                 rec["clear_pct"] = 100.0 - cloud
                 rec["quality_label"] = (
                     "high"
-                    if rec["clear_pct"] >= main.NDVI_HIGH_QUALITY_CLEAR_PCT
+                    if rec["clear_pct"] >= NDVI_HIGH_QUALITY_CLEAR_PCT
                     else "medium"
-                    if rec["clear_pct"] >= main.NDVI_PULL_MIN_CLEAR_PCT
+                    if rec["clear_pct"] >= NDVI_PULL_MIN_CLEAR_PCT
                     else "cloudy"
                 )
             except (TypeError, ValueError):
@@ -1105,12 +1142,12 @@ async def field_available_dates(
         if acquisition_datetime and not rec["acquisition_datetime"]:
             rec["acquisition_datetime"] = str(acquisition_datetime)
 
-    for lid in main._field_layers.get(field_id, []):
-        lyr = main._layers.get(lid)
+    for lid in _field_layers.get(field_id, []):
+        lyr = _layers.get(lid)
         if not lyr or not lyr.get("cog_url"):
             continue
         idx = lyr.get("index")
-        if wanted and main._normalize_index(idx) not in wanted:
+        if wanted and _normalize_index(idx) not in wanted:
             continue
         _add(
             lyr.get("acquisition_date"),
@@ -1127,7 +1164,7 @@ async def field_available_dates(
 
         rows = await db_persist.list_available_asset_dates(
             field_id,
-            tenant_id=main._REQ_TENANT.get(),
+            tenant_id=_REQ_TENANT.get(),
             indices=wanted or None,
             limit=limit,
         )
@@ -1141,7 +1178,7 @@ async def field_available_dates(
                 acquisition_datetime=row.get("acquisition_datetime"),
             )
     except Exception as e:  # noqa: BLE001
-        main.logger.warning("available dates DB lookup skipped (%s): %s", field_id, e)
+        logger.warning("available dates DB lookup skipped (%s): %s", field_id, e)
 
     dates = []
     for rec in by_date.values():
@@ -1163,7 +1200,7 @@ async def field_terrain(
     غياب DEM أو bbox ⇒ مظروف ``computed=false`` صريح بمصدره. تصيير 3D terrain-RGB
     يبقى TODO موثّقاً حتّى تُنتَج بلاطات DEM.
     """
-    await main._require_field_tenant(field_id, hide_existence=True)
+    await _require_field_tenant(field_id, hide_existence=True)
     parsed_bbox: list[float] | None = None
     if bbox:
         try:
@@ -1200,13 +1237,13 @@ async def field_tilejson(
     COG بـ4326. إن ضُبط TITILER_URL ووُجد cog_url نعرض رابط TiTiler إضافيّاً
     (اختياري)، لكنّ البلاطات الذاتيّة تعمل دائماً.
     """
-    await main._require_field_tenant(
+    await _require_field_tenant(
         field_id, hide_existence=True
     )  # لا نكشف وجود حقل tenant آخر عبر tilejson
-    out_index = main._display_index(index)
-    index = main._normalize_index(index)
-    main._obs_inc("tilejson_requests_total", index)
-    layer = await main._resolve_field_layer(field_id, index, date)
+    out_index = _display_index(index)
+    index = _normalize_index(index)
+    _obs_inc("tilejson_requests_total", index)
+    layer = await _resolve_field_layer(field_id, index, date)
     bounds = None
     if layer is not None and layer.get("bounds_4326"):
         b = layer["bounds_4326"]
@@ -1216,7 +1253,7 @@ async def field_tilejson(
     # الحقل — نعلن available=False ونعطي حدوداً عالميّة محايدة (لا تُقفِز الخريطة لمكان
     # خاطئ)، فيستطيع المستهلِك (FieldIndicatorMap) أن يميّز "لا طبقة" من بيانات فعليّة.
     has_data = bounds is not None
-    main._obs_inc("tilejson_available_total" if has_data else "tilejson_unavailable_total", index)
+    _obs_inc("tilejson_available_total" if has_data else "tilejson_unavailable_total", index)
     if bounds is None:
         bounds = [-180.0, -85.0, 180.0, 85.0]
 
@@ -1242,7 +1279,7 @@ async def field_tilejson(
         "date": date,
         "resolved_date": resolved_date,
     }
-    req_tenant = main._REQ_TENANT.get()
+    req_tenant = _REQ_TENANT.get()
     if req_tenant:
         qs_params["tid"] = req_tenant
     if resolved_version:
@@ -1280,11 +1317,11 @@ async def field_tilejson(
     }
     # اختياري: رابط TiTiler الديناميكي إن توفّر (لا يُلغي الذاتي). cog_url للعميل:
     # عامّ http(s) فقط — لا نكشف مسارات التخزين الداخليّة (file://، s3://، مضيف داخليّ).
-    cog_url = main._public_cog_url(layer.get("cog_url") if layer else None)
-    if main.TITILER_URL and cog_url:
-        internal = main._normalize_index(index)
+    cog_url = _public_cog_url(layer.get("cog_url") if layer else None)
+    if TITILER_URL and cog_url:
+        internal = _normalize_index(index)
         colormap = "RdYlGn_r" if internal in ("ndsi", "salinity") else "RdYlGn"
         tj["titiler_tiles"] = [
-            f"{main.TITILER_URL}/cog/tiles/{{z}}/{{x}}/{{y}}.png?url={cog_url}&colormap_name={colormap}"
+            f"{TITILER_URL}/cog/tiles/{{z}}/{{x}}/{{y}}.png?url={cog_url}&colormap_name={colormap}"
         ]
     return tj

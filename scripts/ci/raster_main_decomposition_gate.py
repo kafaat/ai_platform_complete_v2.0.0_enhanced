@@ -2,15 +2,15 @@
 """Raster-service main.py decomposition contract gate.
 
 This guard keeps the ongoing main.py breakup honest without forcing a risky big-bang
-rewrite. It verifies that the pure policy/helper chunks extracted from main.py stay
-outside the application module and that main.py remains a compatibility façade for
-routers/workers that still import ``main``.
+rewrite. It verifies that the policy/helper/runtime chunks extracted from main.py stay
+outside the application module and that production raster modules do not depend on
+``main.py`` as a runtime dependency.
 """
 
 from __future__ import annotations
 
-import ast
 from pathlib import Path
+import ast
 
 ROOT = Path(__file__).resolve().parents[2]
 SVC = ROOT / "services" / "raster-service"
@@ -135,6 +135,17 @@ REQUIRED_MODULES = {
         "ensure_field_cog",
         "tilejson_availability",
     ],
+    "raster_field_runtime.py": [
+        "_require_service_token",
+        "_require_field_tenant",
+        "_safe_raster_source",
+        "_stac_search",
+        "_stac_search_landsat_unique",
+        "_run_processing",
+        "_run_cdse_processing",
+        "_process_backfill_scene_cdse",
+        "_upload_dir",
+    ],
 }
 
 MAX_MAIN_LINES = 620
@@ -152,6 +163,8 @@ DIRECT_ROUTER_IMPORTS = {
     "routers/cdse_tiles.py",
     "routers/timeseries_routes.py",
     "routers/storage.py",
+    "routers/fields.py",
+    "routers/stac.py",
 }
 FORBIDDEN_MAIN_DEFS = {
     # These names now live in modules and should not grow back into main.py.
@@ -287,7 +300,9 @@ def main() -> None:
         _fail(f"main.py grew to {line_count} lines; limit is {MAX_MAIN_LINES}")
 
     tree = ast.parse(source)
-    defs = {node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    defs = {
+        node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
     regressed = sorted(FORBIDDEN_MAIN_DEFS & defs)
     if regressed:
         _fail(f"extracted helper definitions returned to main.py: {regressed}")
@@ -323,15 +338,27 @@ def main() -> None:
         if alias not in source:
             _fail(f"main.py compatibility alias missing: {alias}")
 
-    for rel in DIRECT_ROUTER_IMPORTS:
-        router_path = SVC / rel
-        router_tree = ast.parse(router_path.read_text(encoding="utf-8"))
-        for node in ast.walk(router_tree):
+    dependency_scan_files = []
+    for dep_path in sorted(SVC.rglob("*.py")):
+        rel_parts = dep_path.relative_to(SVC).parts
+        if dep_path.name == "main.py" or dep_path.name.startswith("test_"):
+            continue
+        if "__pycache__" in rel_parts:
+            continue
+        dependency_scan_files.append(dep_path)
+    for dep_path in dependency_scan_files:
+        rel = dep_path.relative_to(SVC).as_posix()
+        dep_tree = ast.parse(dep_path.read_text(encoding="utf-8"))
+        for node in ast.walk(dep_tree):
             if isinstance(node, ast.Import) and any(alias.name == "main" for alias in node.names):
                 _fail(f"{rel} regressed to importing main instead of extracted modules directly")
             if isinstance(node, ast.ImportFrom) and node.module == "main":
                 _fail(f"{rel} regressed to importing main instead of extracted modules directly")
-            if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "main":
+            if (
+                isinstance(node, ast.Attribute)
+                and isinstance(node.value, ast.Name)
+                and node.value.id == "main"
+            ):
                 _fail(f"{rel} regressed to using main.* instead of extracted modules directly")
 
     forbidden_sources = {

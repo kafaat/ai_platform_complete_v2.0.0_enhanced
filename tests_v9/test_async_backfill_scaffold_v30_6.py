@@ -53,8 +53,12 @@ def test_worker_claims_idempotent_preflight_and_flag() -> None:
     assert "asyncio.to_thread(" in src, "المعالجة الثقيلة يجب أن تكون في threadpool"
     assert "RASTER_ASYNC_BACKFILL_ENABLED" in src
     assert "JOBS_DATABASE_URL" in src
-    # يعيد استخدام دوالّ main (لا تكرار منطق).
-    assert "main._stac_search" in src and "main._run_processing" in src
+    # يعيد استخدام الوحدات المفكَّكة (phase21: العامل لا يستورد main — لا تكرار منطق).
+    # مسح STAC عبر stac_search_helpers.stac_search؛ المعالجة عبر raster_processing_runtime.run_processing.
+    assert (
+        "stac_search_helpers.stac_search" in src
+        and "raster_processing_runtime.run_processing" in src
+    )
 
 
 def test_insert_backfill_run_helper_exists() -> None:

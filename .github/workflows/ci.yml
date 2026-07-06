@@ -40,6 +40,9 @@ jobs:
       - name: raster-main-decomposition-gate
         run: python scripts/ci/raster_main_decomposition_gate.py
 
+      - name: raster-import-graph-gate
+        run: python scripts/ci/raster_import_graph_gate.py
+
       - name: v9-feature-transfer-gate
         run: python scripts/ci/v9_feature_transfer_gate.py
 

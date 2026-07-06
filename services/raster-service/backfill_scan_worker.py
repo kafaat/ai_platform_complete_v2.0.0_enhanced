@@ -10,11 +10,11 @@
   • preflight على ``raster_assets`` (تخطٍّ إن كان الأصل موجوداً — v6-F4)،
   • إدراج ``backfill_run_items`` بمفتاح idempotency فريد (ON CONFLICT DO NOTHING —
     إعادة النقر لا تُكرّر)،
-  • معالجة COG عبر ``main._run_processing`` في threadpool (لا يحجب الحلقة).
+  • معالجة COG عبر ``raster_processing_runtime`` في threadpool (لا يحجب الحلقة).
 ثمّ يُحدّث حالة التشغيلة (searching→queued→processing→completed/failed) وعدّاداتها.
 
-يعيد استخدام دوالّ ``main`` (_stac_search/_rank_scenes/_month_windows/ProcessRequest/
-_run_processing) — لا تكرار منطق. خامل حتّى ``RASTER_ASYNC_BACKFILL_ENABLED=true``.
+يعيد استخدام الوحدات المفككة مباشرةً بدلاً من استيراد ``main.py``؛ خامل حتّى
+``RASTER_ASYNC_BACKFILL_ENABLED=true``.
 """
 
 from __future__ import annotations
@@ -28,11 +28,77 @@ from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
-import main  # يعيد استخدام مسح/ترتيب STAC ومعالجة COG (لا تكرار منطق)
+import raster_api_models as api_models
+import raster_backfill_scene_processing
+import raster_date_geo
+import raster_processing_runtime
+import raster_runtime_state
+import raster_security_context
+import raster_settings
+import scene_policy
+import stac_search as stac_search_helpers
+from stac_client import ResilientStacClient
 
 logger = logging.getLogger("raster-service.backfill_scan_worker")
 
 WORKER_POLL_SECONDS = float(os.getenv("WORKER_POLL_SECONDS", "5"))
+
+
+def _configure_stac_search() -> None:
+    """Configure STAC helpers for the standalone worker without importing main.py."""
+    fallback_chain = raster_settings.stac_fallback_chain()
+    stac = ResilientStacClient(
+        raster_settings.EARTH_SEARCH_URL,
+        timeout=raster_settings.HTTP_TIMEOUT,
+        max_retries=int(os.getenv("STAC_MAX_RETRIES", "3")),
+        cache_ttl=float(os.getenv("STAC_CACHE_TTL", "900")),
+        redis_url=os.getenv("REDIS_URL"),
+        fallback_urls=fallback_chain,
+    )
+    stac_search_helpers.configure(
+        stac=stac,
+        logger=logger,
+        earth_search_url=raster_settings.EARTH_SEARCH_URL,
+        http_timeout=raster_settings.HTTP_TIMEOUT,
+        historical_search_provider=raster_settings.HISTORICAL_SEARCH_PROVIDER,
+        sentinel_collection=raster_settings.SENTINEL_COLLECTION,
+        sentinel1_collection=raster_settings.SENTINEL1_COLLECTION,
+        landsat_collection=raster_settings.LANDSAT_COLLECTION,
+        dem_collection=raster_settings.DEM_COLLECTION,
+        landsat_unique_indices=raster_settings.LANDSAT_UNIQUE_INDICES,
+        landsat_direct_raster_indices=raster_settings.LANDSAT_DIRECT_RASTER_INDICES,
+        landsat_derived_indices=raster_settings.LANDSAT_DERIVED_INDICES,
+        landsat_duplicate_sentinel_indices=raster_settings.LANDSAT_DUPLICATE_SENTINEL_INDICES,
+        landsat_thermal_asset_candidates=raster_settings.LANDSAT_THERMAL_ASSET_CANDIDATES,
+    )
+
+
+_configure_stac_search()
+
+
+def _safe_raster_source(url: str | None) -> str:
+    return raster_security_context.safe_raster_source(
+        url, raster_settings.UPLOAD_DIR, raster_settings.SSRF_BLOCKED_HOSTS
+    )
+
+
+def _process_backfill_scene_cdse(
+    scene: dict,
+    index: str,
+    field_id: str,
+    tenant_id: str | None,
+    clip: dict | None,
+    geometry_revision,
+    jid: str,
+) -> None:
+    ctx = raster_processing_runtime.make_processing_context()
+    ctx._bbox_from_geojson = raster_date_geo.bbox_from_geojson
+    ctx.IndicatorKind = api_models.IndicatorKind
+    ctx.SourceFormat = api_models.SourceFormat
+    ctx.BandMapping = api_models.BandMapping
+    raster_backfill_scene_processing.process_backfill_scene_cdse(
+        ctx, scene, index, field_id, tenant_id, clip, geometry_revision, jid
+    )
 
 
 def _enabled() -> bool:
@@ -130,20 +196,20 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
     clip = run["clip_polygon_geojson"]
     if isinstance(clip, str):
         clip = json.loads(clip)
-    bbox = main._bbox_from_geojson(clip) if clip else None
+    bbox = raster_date_geo.bbox_from_geojson(clip) if clip else None
     if bbox is None:
         raise RuntimeError("clip_polygon_geojson مطلوب لاشتقاق bbox")
 
     start = _as_dt(run["from_date"])
     end = _as_dt(run["to_date"])
-    windows = main._month_windows(start, end)
+    windows = raster_date_geo.month_windows(start, end)
 
     # ١. مسح STAC شهريّاً خارج مسار الطلب (يستفيد من single-flight في العميل).
     selected: list[dict] = []
     months_scanned = 0
     for w_start, w_end in windows:
         if is_landsat_thermal:
-            search = await main._stac_search_landsat_unique(
+            search = await stac_search_helpers.stac_search_landsat_unique(
                 bbox,
                 w_start.strftime("%Y-%m-%dT00:00:00Z"),
                 w_end.strftime("%Y-%m-%dT23:59:59Z"),
@@ -152,7 +218,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
             )
         else:
             try:
-                search = await main._stac_search(
+                search = await stac_search_helpers.stac_search(
                     bbox,
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
@@ -163,14 +229,14 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
             except TypeError as e:
                 if "unexpected keyword argument 'geometry'" not in str(e):
                     raise
-                search = await main._stac_search(
+                search = await stac_search_helpers.stac_search(
                     bbox,
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
                     max_cloud,
                     limit=max(24, limit_per_month * 6),
                 )
-        items = main._select_backfill_scenes_by_policy(
+        items = scene_policy.select_backfill_scenes_by_policy(
             search.get("items", []),
             indices=[str(i) for i in indices],
             max_cloud_pct=max_cloud,
@@ -361,7 +427,7 @@ def _process_scene_index(
     قبل المعالجة — فيبقى أثر run_item → job → raster_asset حتّى عند التعطّل أثناء المعالجة.
 
     التحويل إلى CDSE: المشاهد المُكتشَفة من كتالوج CDSE تأتي بلا ``bands_urls`` (لا نطاقات
-    COG) — تُعالَج عبر ``main._process_backfill_scene_cdse`` (Process API مثبَّت على تاريخ
+    COG) — تُعالَج عبر ``_process_backfill_scene_cdse`` (Process API مثبَّت على تاريخ
     المشهد). المشاهد ذات ``bands_urls`` (ارتداد Element84) تبقى على مسار الـVRT."""
     import stac_vrt
 
@@ -372,13 +438,13 @@ def _process_scene_index(
             thermal_url = (scene.get("thermal_urls") or {}).get("lst")
             if not thermal_url:
                 raise RuntimeError("landsat_lst_asset_missing")
-            preq = main.ProcessRequest(
+            preq = api_models.ProcessRequest(
                 tenant_id=tenant,
                 field_id=field,
-                raster_url=main._safe_raster_source(thermal_url),
-                indicator=main.IndicatorKind.lst,
-                source_format=main.SourceFormat.landsat8,
-                bands=main.BandMapping(),
+                raster_url=_safe_raster_source(thermal_url),
+                indicator=api_models.IndicatorKind.lst,
+                source_format=api_models.SourceFormat.landsat8,
+                bands=api_models.BandMapping(),
                 precomputed_index=True,
                 clip_polygon_geojson=clip,
                 apply_cloud_mask=False,
@@ -387,33 +453,37 @@ def _process_scene_index(
                 provider="landsat-element84",
                 geometry_revision=geom_rev,
             )
-            main._run_processing(jid, preq)
-            job = main._jobs.get(jid) or {}
+            raster_processing_runtime.run_processing(jid, preq)
+            job = raster_runtime_state.JOBS.get(jid) or {}
             result = job.get("result") or {}
             return bool(
-                job.get("status") == main.JobStatus.completed and result.get("persisted") is True
+                job.get("status") == api_models.JobStatus.completed
+                and result.get("persisted") is True
             )
 
         if not (scene.get("bands_urls") or {}):
             # مشهد CDSE (كتالوج Copernicus): معالجة خادميّة عبر Process API.
-            main._process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)
-            job = main._jobs.get(jid) or {}
+            _process_backfill_scene_cdse(scene, index, field, tenant, clip, geom_rev, jid)
+            job = raster_runtime_state.JOBS.get(jid) or {}
             result = job.get("result") or {}
             return bool(
-                job.get("status") == main.JobStatus.completed and result.get("persisted") is True
+                job.get("status") == api_models.JobStatus.completed
+                and result.get("persisted") is True
             )
         safe_hrefs = {
-            k: main._safe_raster_source(v) for k, v in (scene.get("bands_urls") or {}).items() if v
+            k: _safe_raster_source(v) for k, v in (scene.get("bands_urls") or {}).items() if v
         }
-        vrt_path, index_map = stac_vrt.build_band_vrt(safe_hrefs, out_dir=main.UPLOAD_DIR)
-        preq = main.ProcessRequest(
+        vrt_path, index_map = stac_vrt.build_band_vrt(
+            safe_hrefs, out_dir=raster_settings.UPLOAD_DIR
+        )
+        preq = api_models.ProcessRequest(
             tenant_id=tenant,
             field_id=field,
             raster_url=vrt_path,
-            indicator=main.IndicatorKind(index),
-            source_format=main.SourceFormat.sentinel2_l2a,
-            bands=main.BandMapping(
-                **{k: v for k, v in index_map.items() if k in main.BandMapping.model_fields}
+            indicator=api_models.IndicatorKind(index),
+            source_format=api_models.SourceFormat.sentinel2_l2a,
+            bands=api_models.BandMapping(
+                **{k: v for k, v in index_map.items() if k in api_models.BandMapping.model_fields}
             ),
             clip_polygon_geojson=clip,
             apply_cloud_mask=bool(apply_cloud_mask),
@@ -422,14 +492,14 @@ def _process_scene_index(
             provider="element84",
             geometry_revision=geom_rev,
         )
-        main._run_processing(jid, preq)
-        job = main._jobs.get(jid) or {}
+        raster_processing_runtime.run_processing(jid, preq)
+        job = raster_runtime_state.JOBS.get(jid) or {}
         # v7-#2: «persisted» يجب أن يعني الحفظ في DB فعلاً، لا مجرّد اكتمال المعالجة.
         # _run_processing يضع result.persisted=False حين يفشل إدراج raster_assets (الصورة
         # في الذاكرة/القرص فقط). اعتماد status==completed وحده يمنح دليلاً كاذباً بالحفظ.
         result = job.get("result") or {}
         return bool(
-            job.get("status") == main.JobStatus.completed and result.get("persisted") is True
+            job.get("status") == api_models.JobStatus.completed and result.get("persisted") is True
         )
     except Exception as e:  # noqa: BLE001
         logger.warning("backfill scene %s/%s failed: %s", scene.get("item_id"), index, e)

@@ -28,4 +28,5 @@ def test_run_scene_job_is_sync_for_threadpool() -> None:
     assert "async def _run_scene_job(" not in src, "بقيت async def — ستُنفَّذ على حلقة الأحداث"
     # ما زالت تُجدوَل كمهمّة خلفيّة وتستدعي المعالجة المتزامنة.
     assert "background_tasks.add_task(_run_scene_job)" in src
-    assert "main._run_processing(jid, preq)" in src
+    # phase21: fields.py يستورد _run_processing من raster_field_runtime (لا main.) ويستدعيه متزامناً.
+    assert "_run_processing(jid, preq)" in src

@@ -602,7 +602,7 @@ def _bbox_from_geom(geom: dict | None) -> list[float] | None:
 # ════════════════════════════════════════════════════════════════════
 # تسجيل تلقائيّ لكلّ راوترات routers/ (تفكيك main.py محفوظ السلوك). يُستدعى في
 # نهاية الملفّ بعد تعريف app وكلّ التبعيّات المشتركة (مساعِدات/نماذج/حالة/مساعِدات
-# CDSE) فيُحلّ الاستيراد الدائريّ — وحدات routers تستورد رموزاً من main عبر main.X.
+# CDSE). الراوترات لا تعتمد على main.*؛ تُسجَّل هنا فقط لربط FastAPI.
 # يضمّ register_routers أيضاً routers/cdse_tiles.py تلقائيّاً (لا تضمين يدويّ).
 from router_registry import register_routers  # noqa: E402
 

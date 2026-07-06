@@ -49,13 +49,14 @@ def test_landsat_payload_thermal_only():
 
 # ── مسار backfill يرفض المؤشّرات المكررة ويوجّه لبحث Landsat الفريد ──
 def test_backfill_route_landsat_source_guard():
+    # phase21: fields.py يستورد هذه المجموعات/الباحث من raster_field_runtime (لا main.).
     src = _read("routers/fields.py")
     assert "is_landsat_thermal" in src
-    assert "main.LANDSAT_UNIQUE_INDICES" in src
+    assert "LANDSAT_UNIQUE_INDICES" in src
     assert "المؤشرات المكررة مع Sentinel-2 مرفوضة" in src
-    assert "main._stac_search_landsat_unique" in src
+    assert "_stac_search_landsat_unique" in src
     # مشتقات لا تُسحب كراستر مباشر إلّا dry_run
-    assert "main.LANDSAT_DIRECT_RASTER_INDICES" in src
+    assert "LANDSAT_DIRECT_RASTER_INDICES" in src
 
 
 # ── العامل: is_landsat_thermal مُعرَّف في _process_run (حارس ضدّ NameError) ──
@@ -64,8 +65,8 @@ def test_worker_defines_is_landsat_thermal():
     assert 'is_landsat_thermal = str(run.get("source")' in src, (
         "is_landsat_thermal مستعمَل في _process_run فيجب تعريفه (وإلّا NameError على كلّ تشغيلة)"
     )
-    # معالجة LST من الأصل الحراريّ مباشرةً
-    assert "main.IndicatorKind.lst" in src and "landsat-element84" in src
+    # معالجة LST من الأصل الحراريّ مباشرةً (phase21: العامل يستعمل api_models لا main.)
+    assert "api_models.IndicatorKind.lst" in src and "landsat-element84" in src
 
 
 # ── معالجة Landsat LST تُثبِت persisted (لا نجاح كاذب) ──

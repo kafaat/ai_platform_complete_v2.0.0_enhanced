@@ -8895,7 +8895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d8fe101c67b0b21c48700ba450ae00efea854bcb1b6afc319c5111d7a56d2e26"
+          "content": "e9f457c3b7de2e05f6c905ef5ac8e0a186a955d855601bb61bd5902a0345f175"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ff347f8a957ed255874350e98fc9c8674f76f72ed7c45e5f907971c31c16f5f6"
+          "content": "a6b9024417b44c154eedaa0baac4522610ef9110c7f7ed90f486cfd928dca622"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9125,6 +9125,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "97f31798a21ccc3c311bc700eba9b19b887db7e3efc4883c2f43163b3b0b1b44"
+        }
+      ],
+      "name": "services/raster-service/raster_cdse_tile_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8d20ecf6e7d299d2f2f810f68836fa27e3d9a393afce798c5579ccec25400f96"
         }
       ],
@@ -9159,6 +9169,16 @@
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89efd4e0255bcdb7fb02ef9c6defd4506cc31e3267fc1b1ebb59e9367ed194d6"
+        }
+      ],
+      "name": "services/raster-service/raster_processing_runtime.py",
       "type": "file"
     },
     {
@@ -9225,7 +9245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "58b714f4ec6e1c432dbcd3cbe8180be27ad65d7e5d5a0e419e981f4a7d07709a"
+          "content": "53581238f137e96a77b2870b1a5f0d4ab35de485b619b700157e0a83510dd377"
         }
       ],
       "name": "services/raster-service/router_registry.py",
@@ -9245,7 +9265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7c0add78414eb6d3274843f6c7087d653b9dcd9e70e8cb9f2396ce78862c08e"
+          "content": "18327281c96668378f00be861a868057097605c90f419e563c8587c82e6d1c59"
         }
       ],
       "name": "services/raster-service/routers/analysis.py",
@@ -9265,7 +9285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c55a2ccd44384fb2591d3a78c4c030bb5d3b8f8b28c36da4de2af9c2bca1dd1e"
+          "content": "94d3856412364bebf203de3128f29d0ea544f7041f4244282c186ba81e17e181"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9275,7 +9295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dccad72f04acee202dc3b6b0706460bd44bb1a8ca0bedf4e7874949ffaf78f4a"
+          "content": "618eca813d2a779d2f71177f3882ddc1a676256b54589be3c9deaf9e0e59d38f"
         }
       ],
       "name": "services/raster-service/routers/imagery.py",
@@ -9305,7 +9325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c2d419fd548ed45694b7f5ca6965b003019af35d18b05ac0325c3726798b8f6"
+          "content": "3e43e4336a2cbc58e39ff374ce00adef51f09b0af68f49d5a1cdcc69c99ea5c3"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -9315,7 +9335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b77f7e90c7856ea9cf58abc4a857a19e0a009b0c1944154ba8a39fbd6cf15708"
+          "content": "6589302e0c68f4040b77cbd2457fff02d84a2b7090cf04220e5451ba379b51b6"
         }
       ],
       "name": "services/raster-service/routers/processing.py",
@@ -9335,7 +9355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "41a0b9198b33bc5d6d9d2148f124cbffc2c59c3f0db896e68d3e8571088b6e08"
+          "content": "ca2e795990768aaf15a9976f84dfd9f2c5084a71e10025276fc756f6ce558148"
         }
       ],
       "name": "services/raster-service/routers/stac.py",
@@ -9685,7 +9705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "51d1e145a88555915851893e313ef0a8df95c9dd6425b33f6883bcf8ea7de742"
+          "content": "7a823c3102f6afaacf5cc904dd78918c04cc166faec0eff08cccc4b1ff37cdb2"
         }
       ],
       "name": "services/raster-service/test_landsat_thermal_unique_contract.py",
