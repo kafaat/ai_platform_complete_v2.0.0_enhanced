@@ -18,7 +18,16 @@ from __future__ import annotations
 import os
 
 # الأعماق القياسيّة الستّة في SoilGrids 2.0.
-SOIL_DEPTHS: tuple[str, ...] = ("0-5cm", "5-15cm", "15-30cm", "30-60cm", "60-100cm", "100-200cm")
+# الأعماق: الستّة المعياريّة في SoilGrids 2.0 + عمق مُجمَّع شائع (0-30cm) إن زُوِّد.
+SOIL_DEPTHS: tuple[str, ...] = (
+    "0-5cm",
+    "5-15cm",
+    "15-30cm",
+    "0-30cm",
+    "30-60cm",
+    "60-100cm",
+    "100-200cm",
+)
 
 # لكلّ خاصّيّة: (الاسم، الوحدة التقليديّة، معامل القسمة للتحويل من المُخزَّن، vmin, vmax,
 # تدرّج ألوان [(موضع 0..1, (r,g,b))]). المعاملات من توثيق SoilGrids الرسميّ.
@@ -150,13 +159,55 @@ def soil_legend(prop: str) -> list[dict]:
     return out
 
 
+# مرادفات أسماء الخصائص (مرونة تسمية عند التزويد) — تُطبَّع إلى مفاتيح SOIL_PROPERTIES.
+_PROPERTY_ALIASES: dict[str, str] = {
+    "ph": "phh2o",
+    "organic_carbon": "soc",
+    "oc": "soc",
+    "bulk_density": "bdod",
+    "n": "nitrogen",
+}
+
+
+def normalize_property(prop: str) -> str | None:
+    """يطبّع اسم الخاصّيّة (مع المرادفات) إلى مفتاح مدعوم، أو None."""
+    p = (prop or "").strip().lower().replace("-", "_")
+    p = _PROPERTY_ALIASES.get(p, p)
+    return p if p in SOIL_PROPERTIES else None
+
+
 def soil_raster_path(prop: str, depth: str) -> str | None:
-    """يحلّ مسار GeoTIFF لـ(خاصّيّة، عمق) من ``SOILGRIDS_DIR`` — أو None (بلا تلفيق)."""
-    base = os.getenv("SOILGRIDS_DIR")
-    if not base or prop not in SOIL_PROPERTIES or depth not in SOIL_DEPTHS:
+    """يحلّ مسار GeoTIFF لـ(خاصّيّة، عمق) عبر أنماط تهيئة متعدّدة — أو None (بلا تلفيق).
+
+    الأولويّة (مرونة التزويد): (1) مسار صريح ``SOILGRID_<PROP>_<DEPTH>_PATH``؛ (2) قالب
+    ``SOIL_LAYER_PATH_TEMPLATE`` (``{property}``/``{depth}``)؛ (3) مجلّد
+    ``SOILGRIDS_DIR``/``SOILGRIDS_COG_DIR``/``SOIL_COG_DIR`` بأسماء مرشّحة.
+    """
+    prop = normalize_property(prop) or ""
+    if prop not in SOIL_PROPERTIES or depth not in SOIL_DEPTHS:
         return None
-    path = os.path.join(base, f"{prop}_{depth}.tif")
-    return path if os.path.isfile(path) else None
+
+    explicit = os.getenv(f"SOILGRID_{prop.upper()}_{depth.upper().replace('-', '_')}_PATH")
+    if explicit:
+        return explicit if os.path.isfile(explicit) else None
+
+    template = os.getenv("SOIL_LAYER_PATH_TEMPLATE")
+    if template:
+        try:
+            path = template.format(property=prop, depth=depth, prop=prop)
+        except (KeyError, IndexError, ValueError):
+            path = ""
+        return path if path and os.path.isfile(path) else None
+
+    base = os.getenv("SOILGRIDS_DIR") or os.getenv("SOILGRIDS_COG_DIR") or os.getenv("SOIL_COG_DIR")
+    if not base:
+        return None
+    for name in (f"{prop}_{depth}.tif", f"{prop}_{depth.replace('-', '_')}.tif"):
+        cand = os.path.join(base, name)
+        if os.path.isfile(cand):
+            return cand
+    nested = os.path.join(base, prop, f"{depth}.tif")
+    return nested if os.path.isfile(nested) else None
 
 
 def render_soil_tile(prop: str, depth: str, z: int, x: int, y: int) -> bytes | None:
@@ -225,9 +276,14 @@ def normalize_depth(depth: str | None) -> str:
 
 
 def is_source_configured() -> bool:
-    """هل مجلّد SoilGrids مُهيّأ أصلاً (بصرف النظر عن ملفّ بعينه)؟"""
-    base = os.getenv("SOILGRIDS_DIR")
-    return bool(base and os.path.isdir(base))
+    """هل أيّ نمط تهيئة مصدر SoilGrids مضبوط (مجلّد/قالب/مسار صريح)؟"""
+    if os.getenv("SOIL_LAYER_PATH_TEMPLATE"):
+        return True
+    for base_env in ("SOILGRIDS_DIR", "SOILGRIDS_COG_DIR", "SOIL_COG_DIR"):
+        base = os.getenv(base_env)
+        if base and os.path.isdir(base):
+            return True
+    return any(k.startswith("SOILGRID_") and k.endswith("_PATH") for k in os.environ)
 
 
 def read_property_bbox(prop: str, depth: str, bbox: list[float]):

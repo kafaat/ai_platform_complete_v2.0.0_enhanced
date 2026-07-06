@@ -9225,10 +9225,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0552d56d8249f4647514546f007f6b5b4f9c471e2d815762eda785b61790d16a"
+          "content": "c14ee7664fe6fe1c8f4026331ac937bb50f9b7432cc0869d7ea7fe2b1327e654"
         }
       ],
       "name": "services/raster-service/soil_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e5d0d0ca157ba34245659d80dbf153f3cb65f8abf2e01e48b53a6515b05e136"
+        }
+      ],
+      "name": "services/raster-service/soil_zones.py",
       "type": "file"
     },
     {
@@ -9519,6 +9529,16 @@
         }
       ],
       "name": "services/raster-service/test_soil_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e98c166759dae461e701bd1dd8cca3ca13b21c07ed714feaf2d560a18adbba18"
+        }
+      ],
+      "name": "services/raster-service/test_soil_zones.py",
       "type": "file"
     },
     {

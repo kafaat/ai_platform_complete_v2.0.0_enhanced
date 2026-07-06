@@ -227,3 +227,5 @@ psql "$DATABASE_URL" -v tenant_id="'<TENANT-UUID>'" \
 **تكامل مع أخذ العيّنات:** الطبقة توجيهيّة؛ مُخطِّط العيّنات القائم (v61: grid/zone/hybrid،
 `/api/v1/sampling/strategy`) واستيعاب المختبر (`/api/v1/lab/*`) يبقيان مصدر القرار. اختبار
 سلوكيّ: `services/raster-service/test_soil_render.py` (SoilGrids اصطناعيّ).
+
+**أنماط تهيئة المصدر (مرونة):** (1) مجلّد `SOILGRIDS_DIR` (أو `SOILGRIDS_COG_DIR`) بأسماء `<property>_<depth>.tif`؛ (2) قالب `SOIL_LAYER_PATH_TEMPLATE=/data/soil/{property}_{depth}.tif`؛ (3) مسار صريح لكلّ طبقة `SOILGRID_<PROP>_<DEPTH>_PATH`. مرادفات مقبولة: `ph→phh2o`، `oc/organic_carbon→soc`، `bulk_density→bdod`. أعماق مقبولة: الستّة المعياريّة + `0-30cm` (مُجمَّع).
