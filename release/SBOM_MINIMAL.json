@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76a2fc1468a111f9addea0bbebf1494ba7d0e9090133b57414b25837430e36f9"
+          "content": "7f41afe3a221cbae25f799a1e2b018248e28ab1e4421264b5b3052a6cb496be9"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04641eb625896e48fd2a82a47982f5f2e259d5bafb3b542333fcc86c0ede3653"
+          "content": "e7f00a6221ef8ed8f30c6fa60bd5a99f3ac3536ab9b3404449ac608c70be7a39"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9025,7 +9025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b4d12ed710195127925357ef346846980f370c411a764d9e126cc3b815dc168"
+          "content": "0970271d8b1b8495a022e721a4c5a51b67ff533138b4dec30505519bc2fa23b1"
         }
       ],
       "name": "services/raster-service/object_store.py",
