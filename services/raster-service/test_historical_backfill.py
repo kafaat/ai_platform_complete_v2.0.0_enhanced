@@ -174,3 +174,37 @@ def test_backfill_rejects_unsupported_visual_index(monkeypatch):
     )
     assert resp.status_code == 400
     assert "غير مناسبة" in resp.text
+
+
+def test_backfill_accepts_truecolor_ndwi_and_ndsi_for_persisted_map_layers(monkeypatch):
+    """MapHub-visible layers must be accepted by the raster backfill contract so they can
+    become persisted COGs served through /fields/{id}/tiles instead of live CDSE fallback.
+    salinity is sent from the UI as backend ndsi.
+    """
+    monkeypatch.setattr(main, "AGENT_TOKEN", "test-token")
+
+    async def fake_search(bbox, dt_start, dt_end, max_cloud, limit):
+        return {"count": 1, "items": [_scene(dt_start[:7], "A", 5.0)]}
+
+    monkeypatch.setattr(main, "_stac_search", fake_search)
+    client = TestClient(main.app)
+    resp = client.post(
+        "/v1/fields/F-1/imagery/backfill",
+        headers={"x-agent-token": "test-token", "x-tenant-id": "T-1"},
+        json={
+            "tenant_id": "T-1",
+            "preset": "custom",
+            "from_date": "2026-01-01",
+            "to_date": "2026-01-31",
+            "indices": ["truecolor", "ndwi", "ndsi"],
+            "limit_per_month": 1,
+            "max_cloud_pct": 30,
+            "dry_run": True,
+            "clip_polygon_geojson": _poly(),
+        },
+    )
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert data["jobs_scheduled"] == 0
+    assert len(data["jobs"]) == 3
+    assert {j["index"] for j in data["jobs"]} == {"truecolor", "ndwi", "ndsi"}

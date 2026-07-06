@@ -178,6 +178,9 @@ async def field_historical_backfill(
                 main.IndicatorKind.ndre,
                 main.IndicatorKind.msi,
                 main.IndicatorKind.msavi,
+                # طبقات مائيّة/ملوحة Sentinel-2 ظاهرة في MapHub ويجب أن تُحفظ تاريخياً عند طلبها.
+                main.IndicatorKind.ndwi,
+                main.IndicatorKind.ndsi,
                 # الصورة الخام (truecolor) تُحفَظ الآن كـCOG RGBA (مسار precomputed مخصّص)
                 # فتُقبَل في الـbackfill — فيخدمها /tiles المحفوظ للحقول المُجهَّزة.
                 main.IndicatorKind.truecolor,

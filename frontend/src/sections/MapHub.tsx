@@ -728,11 +728,15 @@ export default function MapHub() {
       // غير مدعوم. NDVI/NDMI يبقيان أساساً مضموناً غير فارغ. تجهيز truecolor يمكّن /tiles
       // المحفوظ للصورة الخام (بدل تصيير CDSE الحيّ لكلّ بلاطة).
       const BACKFILL_SUPPORTED_INDICES = [
-        RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre', 'msi', 'msavi',
+        RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre',
+        'msi', 'msavi', 'ndwi', 'salinity',
       ];
+      const toBackfillIndex = (idx: string) => (idx === 'salinity' ? 'ndsi' : idx);
       const indices = Array.from(
         new Set([activeIndicator, 'ndvi', 'ndmi'].filter((i): i is string => !!i)),
-      ).filter((i) => BACKFILL_SUPPORTED_INDICES.includes(i));
+      )
+        .filter((i) => BACKFILL_SUPPORTED_INDICES.includes(i))
+        .map(toBackfillIndex);
       if (indices.length === 0) indices.push('ndvi', 'ndmi');
       const payload = {
         preset: 'custom' as const,
@@ -835,9 +839,8 @@ export default function MapHub() {
   // إصلاح «الطبقة الورديّة»: حين يكون للتاريخ المختار COG محفوظ للمؤشّر النشط نقرأ الطبقة
   // المحفوظة من raster_assets عبر /tiles بدل تصيير CDSE الحيّ /cdse-tiles. نشترط إدراج
   // المؤشّر صراحةً في indices (لا ارتداد «indices فارغة ⇒ نعم»): عند الشكّ نبقى على المسار
-  // الحيّ الذي يُصيّر دائماً. TrueColor لا يُحفَظ كـCOG (يُصيَّر حيّاً RGBA فقط) فلن يظهر
-  // في indices ⇒ يبقى على /cdse-tiles (تبديله إلى /tiles ⇒ بلاطة شفّافة). salinity محفوظ
-  // باسم NDSI. لا تبديل بلا مؤشّر نشط.
+  // الحيّ الذي يُصيّر دائماً. TrueColor يُحفَظ الآن كـCOG RGBA مثل المؤشرات؛ وsalinity
+  // تُحفَظ باسم NDSI. لا تبديل بلا مؤشّر نشط.
   const _persistNeedle = indicatorActive
     ? indicatorActive === 'salinity'
       ? 'NDSI'

@@ -30,16 +30,17 @@ describe('MapHub two-year historical imagery backfill UI', () => {
     expect(source).toContain('data-testid="imagery-timeline-items"');
   });
 
-  // Regression: the raster-service backfill contract types `indices` as list[IndicatorKind],
-  // which has NO 'truecolor' member (it is a rendering of the base scene, not an index) and
-  // the handler only accepts a vegetation-index subset. Sending 'truecolor' 422s every call.
-  it('does not send truecolor/raw as a backfill index (raster IndicatorKind contract)', () => {
+  // Regression: all MapHub-visible CDSE layers that users expect to persist historically
+  // must be allowed into backfill. salinity is a UI alias and must be sent to raster-service
+  // as its backend IndicatorKind value, ndsi.
+  it('includes truecolor, ndwi, and salinity/ndsi in persisted historical backfill', () => {
     const handler = source.slice(source.indexOf('handlePrepareTwoYearImagery'));
     const payloadStart = handler.indexOf('const payload');
     const indicesBlock = handler.slice(0, payloadStart);
-    // The indices array fed to the payload must be filtered to the supported set...
     expect(indicesBlock).toContain('BACKFILL_SUPPORTED_INDICES');
-    // ...and must NOT unconditionally include the literal 'truecolor' entry.
-    expect(indicesBlock).not.toContain("'truecolor', 'ndvi', 'ndmi'");
+    expect(indicesBlock).toContain('RAW_IMAGERY_INDEX_ID');
+    expect(indicesBlock).toContain("'ndwi'");
+    expect(indicesBlock).toContain("'salinity'");
+    expect(indicesBlock).toContain("idx === 'salinity' ? 'ndsi' : idx");
   });
 });
