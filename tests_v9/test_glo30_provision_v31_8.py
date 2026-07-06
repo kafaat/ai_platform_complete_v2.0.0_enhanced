@@ -46,3 +46,10 @@ def test_url_uses_anonymous_aws_open_data_host():
     url = m.tile_url(15, 44)
     assert url.startswith("https://copernicus-dem-30m.s3")
     assert url.endswith("Copernicus_DSM_COG_10_N15_00_E044_00_DEM.tif")
+
+
+def test_country_presets_include_yemen_full_coverage():
+    m = _load()
+    assert "yemen" in m._PRESETS and "aljawf" in m._PRESETS
+    # Yemen full-coverage bbox (12-19N, 42-54E) → many 1-degree tiles.
+    assert len(m.tiles_for_bbox(m._PRESETS["yemen"])) > 40

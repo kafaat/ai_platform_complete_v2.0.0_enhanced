@@ -30,6 +30,12 @@ import tempfile
 # مضيف AWS العامّ للبلاطات (وصول مجهول — لا توقيع/اعتماد).
 _BASE = "https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com"
 
+# نطاقات جاهزة (bbox = minLon,minLat,maxLon,maxLat). اليمن مُغطّى بالكامل في GLO-30.
+_PRESETS: dict[str, list[float]] = {
+    "yemen": [42.0, 12.0, 54.0, 19.0],  # كامل اليمن — تنبيه: كثير البلاطات (~84) وعدّة GB.
+    "aljawf": [43.5, 15.5, 46.0, 17.5],  # منطقة الجوف/السنيدار — كافٍ للمزرعة.
+}
+
 
 def tile_name(lat_sw: int, lon_sw: int) -> str:
     """اسم بلاطة GLO-30 من ركن الجنوب-الغرب الصحيح (درجات).
@@ -103,14 +109,26 @@ def main(argv: list[str] | None = None) -> int:
         "--bbox",
         nargs=4,
         type=float,
-        required=True,
         metavar=("MIN_LON", "MIN_LAT", "MAX_LON", "MAX_LAT"),
+    )
+    ap.add_argument(
+        "--country", choices=sorted(_PRESETS), help="نطاق جاهز بدل --bbox (مثل yemen/aljawf)."
     )
     ap.add_argument("--out", required=True, help="مسار COG الناتج (FIELD_DEM_PATH).")
     args = ap.parse_args(argv)
 
-    tiles = tiles_for_bbox(args.bbox)
-    print(f"بلاطات مطلوبة لـbbox {args.bbox}: {len(tiles)}")
+    bbox = args.bbox or (_PRESETS.get(args.country) if args.country else None)
+    if not bbox:
+        ap.error("مطلوب --bbox أو --country (مثل --country yemen).")
+
+    tiles = tiles_for_bbox(bbox)
+    print(f"بلاطات مطلوبة لـbbox {bbox}: {len(tiles)}")
+    if len(tiles) > 20:
+        print(
+            f"  ⚠ {len(tiles)} بلاطة — قد يبلغ الحجم عدّة GB ويطول التنزيل. "
+            "لمزرعة واحدة استعمل bbox أضيق (مثل --country aljawf).",
+            file=sys.stderr,
+        )
     with tempfile.TemporaryDirectory() as td:
         got: list[str] = []
         for la, lo in tiles:
