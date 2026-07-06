@@ -116,7 +116,7 @@ services:
       sahool-zlmediakit:
         condition: service_healthy
     networks:
-      sahool-internal:
+      sahool-internal: null
     healthcheck:
       test:
       - CMD
@@ -158,7 +158,7 @@ services:
       sahool-edge:
         condition: service_healthy
     networks:
-      sahool-internal:
+      sahool-internal: null
     healthcheck:
       test:
       - CMD
@@ -190,7 +190,7 @@ services:
       sahool-redis:
         condition: service_healthy
     networks:
-      sahool-internal:
+      sahool-internal: null
     healthcheck:
       test:
       - CMD
@@ -287,7 +287,8 @@ services:
     environment:
       # Single source of truth: .env/secret injection. Do not hardcode a different
       # root user here; otherwise backend S3 clients using MINIO_ACCESS_KEY/S3_*
-      # will authenticate with a credential different from the running MinIO root.
+      # authenticate with a credential different from the running MinIO root
+      # (enforced by scripts/ci/minio_s3_contract_gate.py).
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sahool-admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
     command: server /data --console-address ":9001"
@@ -318,6 +319,11 @@ services:
     - qdrant-storage:/qdrant/storage
     networks:
     - sahool-internal
+    # NO in-container healthcheck: qdrant/qdrant is DISTROLESS (no shell/curl/wget),
+    # so any CMD-SHELL/bash probe can never run and marks the container permanently
+    # "unhealthy", cascading to every service_healthy dependent (RAG/seed). Dependents
+    # gate on service_started; a real readiness probe belongs in a sidecar or the RAG
+    # service's own retry/backoff — not a self-healthcheck in the distroless image.
   sahool-ollama:
     image: ${OLLAMA_IMAGE:-ollama/ollama:0.3.14}
     mem_limit: 4g
@@ -413,7 +419,7 @@ services:
       retries: 6
       start_period: 30s
   sahool-platform:
-    build: &id002
+    build: &id003
       context: .
       dockerfile: services/sahool-platform/Dockerfile
     mem_limit: 1g
@@ -456,8 +462,6 @@ services:
       FEATURE_GIS_KERNEL: ${FEATURE_GIS_KERNEL:-0}
       FEATURE_IRRIGATION_NETWORK: ${FEATURE_IRRIGATION_NETWORK:-0}
       FEATURE_EXECUTION_FEEDBACK: ${FEATURE_EXECUTION_FEEDBACK:-0}
-      # RS256: عيّن JWT_PUBLIC_KEY (مفتاح auth العامّ PEM) للإنتاج الحقيقيّ.
-      # للترحيل المؤقّت (HS256): أضِف SAHOOL_ALLOW_HS256_IN_PROD=1 في ملفّ .env
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
     depends_on:
@@ -494,9 +498,9 @@ services:
         required}@sahool-postgres:5432/sahool}
       NATS_URL: nats://sahool-nats:4222
       WEATHER_HORIZON_HOURS: ${WEATHER_HORIZON_HOURS:-168}
-      # احتياط اتّجاه الرياح من MET Norway حين يغيب من Open-Meteo (بدل قيمة وهميّة).
       METNO_WIND_FALLBACK_ENABLED: ${METNO_WIND_FALLBACK_ENABLED:-1}
-      METNO_USER_AGENT: ${METNO_USER_AGENT:-SAHOOL-AgriPlatform/1.0 (https://sahool.ye; ops@sahool.ye)}
+      METNO_USER_AGENT: ${METNO_USER_AGENT:-SAHOOL-AgriPlatform/1.0 (https://sahool.ye;
+        ops@sahool.ye)}
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -694,7 +698,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       ERP_BRIDGE_URL: http://sahool-erp-bridge:8126
-      ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126  # legacy env alias
+      ODOO_BRIDGE_URL: http://sahool-erp-bridge:8126
       SAHOOL_API_URL: http://sahool-auth:8000
     depends_on:
       sahool-postgres:
@@ -721,8 +725,6 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      # عزل الثقة (مثل بقيّة الخدمات): التحقّق من توقيع JWT للمتّصِل. HS256 عبر JWT_SECRET
-      # أو RS256 عبر JWT_PUBLIC_KEY. غيابهما ⇒ الخدمة fail-closed 503 «JWT_SECRET غير مضبوط».
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       NATS_URL: nats://sahool-nats:4222
@@ -763,9 +765,6 @@ services:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
-      # Optional S3/MinIO COG persistence. Local/dev may leave S3_BUCKET empty and
-      # keep file:///data/rasters; production should set S3_BUCKET to store COGs
-      # in shared object storage and make raster_assets.cog_uri=s3://bucket/key.
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
@@ -773,11 +772,7 @@ services:
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
-      # v7-#1: النقطة تقرأ الراية أيضاً (وإلّا افتراض false ⇒ بقاء المسار المتزامن).
-      # الافتراض true في الإنتاج: النقطة تُرجِع run_id فوراً وعامل الفحص يعالج لاتزامنيّاً.
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
-      # v11-F3/F5: يشترك في قناة Redis لإخلاء طبقات الذاكرة عند إبطال حدود الحقل
-      # (عامل الإبطال ينشرها) — كي لا تُخدَّم طبقة مقصوصة على هندسة قديمة عبر العمليّات.
       RASTER_LAYER_EVICT_ENABLED: ${RASTER_LAYER_EVICT_ENABLED:-true}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
@@ -788,20 +783,13 @@ services:
       CDSE_ENABLED: ${CDSE_ENABLED:-true}
       SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
       SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
-      # CDSE Process API quota guard: keep one account from hitting 429 during backfill.
       CDSE_PROCESS_MIN_INTERVAL_SECONDS: ${CDSE_PROCESS_MIN_INTERVAL_SECONDS:-2.0}
       CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
       CDSE_PROCESS_RETRY_MAX_SECONDS: ${CDSE_PROCESS_RETRY_MAX_SECONDS:-120}
       TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
-      # مسار نموذج ارتفاع رقميّ (Copernicus DEM 30م مثلاً) لإحصاءات/طبقات تضاريس الحقل.
-      # الافتراضيّ داخل حجم DEM المربوط (اسقط ملفّاً هناك عبر fetch_glo30_dem.py). غياب
-      # الملفّ = التضاريس تُبلّغ computed/available=false بصدق (لا تلفيق) حتى يُهيّأ DEM.
       FIELD_DEM_PATH: ${FIELD_DEM_PATH:-/data/dem/aljawf_glo30_cog.tif}
-      # مجلّد طبقات SoilGrids (GeoTIFF باسم <property>_<depth>.tif). غياب المجلّد/الملفّات =
-      # طبقة التربة available=false بصدق (لا تلفيق). راجع runbook §12 للتزويد.
       SOILGRIDS_DIR: ${SOILGRIDS_DIR:-/data/soilgrids}
-      # سقف أبعاد نافذة قراءة الراستر للإحصاءات المتّجهة (تضاريس/تربة) — يمنع bbox ضخماً.
       RASTER_MAX_READ_DIM: ${RASTER_MAX_READ_DIM:-2048}
       STAC_MAX_RETRIES: ${STAC_MAX_RETRIES:-3}
       STAC_CACHE_TTL: ${STAC_CACHE_TTL:-900}
@@ -809,14 +797,8 @@ services:
       PLANETARY_COMPUTER_URL: ${PLANETARY_COMPUTER_URL:-https://planetarycomputer.microsoft.com/api/stac/v1}
       DEAFRICA_ENABLED: ${DEAFRICA_ENABLED:-false}
       DEAFRICA_STAC_URL: ${DEAFRICA_STAC_URL:-https://explorer.digitalearth.africa/stac}
-      # ملاحظة توحيد main↔cert: أُزيل تعريف DATABASE_URL المكرَّر هنا (كان يُكرّر المفتاح
-      # المعرَّف أعلاه بدور sahool_app المقيَّد — RLS سارٍ لجلب geometry وحفظ raster_assets).
     volumes:
     - raster-data:/data/rasters
-    # طبقات التضاريس/التربة (قراءة فقط): اسقط DEM في ./data/dem وطبقات SoilGrids في
-    # ./data/soilgrids على المضيف. مجلّدان فارغان افتراضاً ⇒ fail-closed صادق (لا تلفيق)
-    # حتى يُزوَّدا. راجع runbook §11/§12. (مسار مثبّت لا env — يبقى bind mount صالحاً في
-    # التحقّق؛ لتغيير الموقع أعِد ضبط FIELD_DEM_PATH/SOILGRIDS_DIR داخل الحاوية.)
     - ./data/dem:/data/dem:ro
     - ./data/soilgrids:/data/soilgrids:ro
     networks:
@@ -831,9 +813,6 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
-  # عامل استهلاك طابور إبطال كاش الراستر (FINDING-005) + إخلاء كاش البلاطات (FINDING-010).
-  # يُبنى من صورة raster-service (يحتاج main.py + بنية مسار الكاش) ويتشارك مجلّد
-  # raster-data كي يحذف بلاطات /data/rasters/tile_cache. خامل حتّى RASTER_CACHE_INVALIDATION_ENABLED.
   sahool-raster-cache-invalidation-worker:
     build:
       context: .
@@ -857,10 +836,7 @@ services:
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
-      # v8-F3: مُفعَّل افتراضاً في الإنتاج — تغيّر حدود الحقل يُبطِل بلاطات الكاش القديمة
-      # ويعلّم raster_assets.asset_status='stale' (وإلّا بقيت بلاطات هندسة قديمة تُخدَّم).
       RASTER_CACHE_INVALIDATION_ENABLED: ${RASTER_CACHE_INVALIDATION_ENABLED:-true}
-      # نظافة القرص: TTL محافظ 30 يوماً افتراضاً (0=معطَّل). الحصّة تبقى opt-in (0).
       TILE_CACHE_TTL_SECONDS: ${TILE_CACHE_TTL_SECONDS:-2592000}
       TILE_CACHE_MAX_BYTES: ${TILE_CACHE_MAX_BYTES:-0}
     command:
@@ -876,8 +852,15 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-  # عامل فحص backfill الصور التاريخيّة (v5/v6): يُخرج مسح STAC الشهريّ من مسار الطلب
-  # ويطبّق idempotency. يتشارك صورة/مجلّد raster-service. خامل حتّى RASTER_ASYNC_BACKFILL_ENABLED.
+    healthcheck: &id002
+      test:
+      - CMD-SHELL
+      - python -c "import os, sys; sys.exit(0 if (os.getenv('DATABASE_URL') or os.getenv('JOBS_DATABASE_URL'))
+        else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   sahool-raster-backfill-scan-worker:
     build:
       context: .
@@ -906,7 +889,6 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
-      # Same account-level throttle used by cdse_client.process_index in this worker.
       CDSE_PROCESS_MIN_INTERVAL_SECONDS: ${CDSE_PROCESS_MIN_INTERVAL_SECONDS:-2.0}
       CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
@@ -924,6 +906,7 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
+    healthcheck: *id002
   sahool-titiler:
     image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers
@@ -1121,7 +1104,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-qdrant:
-        condition: service_started
+        condition: service_started  # qdrant is distroless — no healthcheck; gate on start
       sahool-ollama:
         condition: service_healthy
     networks:
@@ -1155,7 +1138,7 @@ services:
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
     depends_on:
       sahool-qdrant:
-        condition: service_started
+        condition: service_started  # qdrant is distroless — no healthcheck; gate on start
     networks:
     - sahool-internal
     healthcheck:
@@ -1213,9 +1196,6 @@ services:
       PLATFORM_URL: http://sahool-platform:8000
       GUARDRAILS_URL: http://sahool-guardrails-engine:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
-      # H3: durable approval/audit store by default in v9. agent_stores.py fails
-      # closed in production when Redis is requested but unavailable (no silent
-      # memory fallback that would drop pending approvals on restart).
       SAHOOL_AGENT_STORE_BACKEND: ${SAHOOL_AGENT_STORE_BACKEND:-redis}
       SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://:${REDIS_PASSWORD}@sahool-redis:6379/0}
     depends_on:
@@ -1257,7 +1237,7 @@ services:
       EMBEDDING_MODEL: nomic-embed-text
     depends_on:
       sahool-qdrant:
-        condition: service_started
+        condition: service_started  # qdrant is distroless — no healthcheck; gate on start
       sahool-ollama:
         condition: service_healthy
     networks:
@@ -1599,11 +1579,7 @@ services:
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       SEGMENTATION_MODEL_PATH: ${SEGMENTATION_MODEL_PATH:-}
       SEGMENTATION_BACKEND: ${SEGMENTATION_BACKEND:-}
-      # H1: when SEGMENTATION_BACKEND=sam2 (GPU profile) this default wires
-      # field-segmentation to the SAM2 inference service with no code changes.
-      # Leaving SEGMENTATION_BACKEND blank keeps CPU/dev mode honest (503 for auto).
       SEGMENTATION_INFERENCE_URL: ${SEGMENTATION_INFERENCE_URL:-http://sahool-sam2-inference:8080/predict}
-      # ExG preprocessor safety/performance limits for map viewport screenshots.
       EXG_MAX_SIDE: ${EXG_MAX_SIDE:-1280}
       EXG_MAX_IMAGE_PIXELS: ${EXG_MAX_IMAGE_PIXELS:-12000000}
     networks:
@@ -1645,9 +1621,6 @@ services:
       SAM2_POLYGON_SIMPLIFY_TOLERANCE_M: ${SAM2_POLYGON_SIMPLIFY_TOLERANCE_M:-3}
       SAM2_POLYGON_DEDUP_TOLERANCE_M: ${SAM2_POLYGON_DEDUP_TOLERANCE_M:-0.5}
     volumes:
-    # host bind (بدل volume مُسمّى): يضع المشغّل الأوزان في مجلّد ./sam2-models/ المرئيّ
-    # فيراها /models داخل الحاوية. الـvolume المُسمّى كان يبقى فارغاً (لا مُعبِّئ) ⇒ SAM2
-    # يُقلِع لكن inference لا يكتمل. راجع sam2-models/README.md للتنزيل.
     - ./sam2-models:/models:ro
     networks:
     - sahool-internal
@@ -1663,7 +1636,7 @@ services:
       retries: 6
       start_period: 60s
   sahool-phase-runtime-outbox-worker:
-    build: *id002
+    build: *id003
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -1694,8 +1667,9 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
+    healthcheck: *id002
   sahool-plugin-runtime-worker:
-    build: *id002
+    build: *id003
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -1726,8 +1700,9 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
+    healthcheck: *id002
   sahool-model-registry-worker:
-    build: *id002
+    build: *id003
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -1758,8 +1733,9 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
+    healthcheck: *id002
   sahool-actuator-dispatch-worker:
-    build: *id002
+    build: *id003
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
@@ -1790,24 +1766,26 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-  # مُهيّئ إعداد ZLMediaKit: صورة zlmediakit تولّد api.secret عشوائيّاً عند الإقلاع ولا
-  # تقرأ ZLM_API_SECRET ⇒ video-processor لا يستطيع التحكّم بالبثّ (يردّ -100). هذا المُهيّئ
-  # ينسخ config الصورة الافتراضيّ (كلّ الإعدادات + الشهادات) إلى حجم مشترك مرّة واحدة، ثمّ
-  # يثبّت [api] secret. المُشغّل الرئيسيّ يركّب الحجم بلا تغيير entrypoint ⇒ لا خطر كسر إقلاع.
+    healthcheck: *id002
   sahool-zlmediakit-config:
     image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
     container_name: sahool-v9-zlmediakit-config
-    restart: "no"
+    restart: 'no'
     environment:
       ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
     entrypoint:
     - /bin/sh
     - -c
-    - |
-      set -e
-      if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch /conf/.sahool_init; fi
+    - 'set -e
+
+      if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch
+      /conf/.sahool_init; fi
+
       sed -i "s|^secret=.*|secret=${ZLM_API_SECRET}|" /conf/config.ini || true
+
       echo "zlmediakit config: [api] secret pinned"
+
+      '
     volumes:
     - zlm-conf:/conf
     networks:
@@ -1827,18 +1805,14 @@ services:
       sahool-zlmediakit-config:
         condition: service_completed_successfully
     volumes:
-    # الإعداد المُثبَّت السرّ (من المُهيّئ) بدل العشوائيّ ⇒ تحكّم فعليّ بالبثّ.
     - zlm-conf:/opt/media/conf
     ports:
-    # HTTP/API host port moved 8088 -> 8188: 8088 is already taken by
-    # raster-tiler-service (127.0.0.1:8088:8088). Internal callers use the
-    # container name (sahool-zlmediakit:80), so only the local dev/test port changes.
     - 127.0.0.1:8188:80
     - 127.0.0.1:8554:554
     - 127.0.0.1:1935:1935
     - 127.0.0.1:10000:10000/udp
     networks:
-      sahool-internal:
+      sahool-internal: null
     healthcheck:
       test:
       - CMD-SHELL
