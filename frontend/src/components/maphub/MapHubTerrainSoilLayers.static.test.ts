@@ -54,7 +54,7 @@ describe('MapHub terrain + soil layer wiring (static guard)', () => {
     for (const engine of ['HubMap', 'HubMapGL']) {
       const idx = mapHub.indexOf(`<${engine}`);
       expect(idx, `${engine} غير موجود`).toBeGreaterThan(-1);
-      const block = mapHub.slice(idx, idx + 1600);
+      const block = mapHub.slice(idx, idx + 2000);
       expect(block, `${engine} لا يستقبل hillshadeTilesUrl`).toContain('hillshadeTilesUrl=');
       expect(block, `${engine} لا يستقبل soilTilesUrl`).toContain('soilTilesUrl=');
       expect(block, `${engine} لا يستقبل contours`).toContain('contours=');

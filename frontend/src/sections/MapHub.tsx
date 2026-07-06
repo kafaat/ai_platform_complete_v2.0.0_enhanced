@@ -835,6 +835,16 @@ export default function MapHub() {
 
   const indicatorActive = mode === '2d' && !compare ? activeIndicator : null;
 
+  // إصلاح «الطبقة الورديّة»: حين يكون للتاريخ المختار COG محفوظ (has_cog) نقرأ الطبقة
+  // المحفوظة من raster_assets عبر /tiles بدل تصيير CDSE الحيّ /cdse-tiles. للمؤشّر المحدَّد
+  // نتحقّق أنّ COG لذلك المؤشّر (indices) موجود؛ 'latest' ⇒ يكفي وجود أيّ COG.
+  const selectedDateHasCog = selectedImageryDate !== 'latest'
+    ? availableImageryDates.some((d) =>
+        d.date === selectedImageryDate && d.has_cog &&
+        (!activeIndicator || !d.indices || d.indices.length === 0 ||
+          d.indices.includes(activeIndicator.toUpperCase())))
+    : availableImageryDates.some((d) => d.has_cog);
+
   // قائمة الحقول المُرشَّحة بالبحث (اسم/محصول) — لوحة الحقول الباحثة.
   const visibleFields = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -2538,6 +2548,7 @@ export default function MapHub() {
                       onViewChange={handleViewChange}
                       imageryTs={imageryTs}
                       imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
+                      preferPersistedCog={selectedDateHasCog}
                       tenantId={tenantId}
                       pivotDesignerEnabled={pivotDesigner}
                       onAddPivotDraft={handleAddPivotDraft}
@@ -2570,6 +2581,7 @@ export default function MapHub() {
                     onViewChange={handleViewChange}
                     imageryTs={imageryTs}
                     imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
+                    preferPersistedCog={selectedDateHasCog}
                     tenantId={tenantId}
                     hillshadeTilesUrl={hillshadeTilesUrl}
                     slopeTilesUrl={slopeTilesUrl}

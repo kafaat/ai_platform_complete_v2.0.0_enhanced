@@ -1435,7 +1435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aef1942f4be5ba79f0b6b353c8fd8a9d29d83bd563a088974a61ac8f2aadf205"
+          "content": "e5c61298eb0142ec1ab54a73d7b7c9b278256abf7458defa291669bc5010b8d1"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -1455,7 +1455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e984b77fe5bab7404b3a6150a91c46e51730d1eec4f12e66d47ac9b3cf9be7bd"
+          "content": "1f21ec90432d071109eddb0182d5a5ecdb1d4f149b9277ddf76ed95939d76877"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -1505,7 +1505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7fcefa5b6d9cf76ff8b7ab97b9946ae49192355b51de0f00224c5bd453fde0bd"
+          "content": "b061b1981c51d28c331cf05dcdc89a2337400e16fd3ac2eb2c5924b0a8b98029"
         }
       ],
       "name": "frontend/src/components/maphub/MapForensicHardening.static.test.ts",
@@ -1515,7 +1515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e07d76353a339fa77ff63305048c31d4b4270764e4ce2eef2fc9d55d6ebb397"
+          "content": "88fa34fd2e87ed98b259ee51ff95237a6fb30d370ea0f7ed4ba2c38e03111e8f"
         }
       ],
       "name": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
@@ -4565,7 +4565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a6d483a1fcfa29fcea8566206c00dc9bdbd05d0d429536f5fba8752c64eadf5"
+          "content": "5981e2aa519420c8eee8597a53f481c2973fd13fbf29d6819ab9f32ff594486b"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4595,7 +4595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da644923d44c8e4299d46b9cca2b5aad959f51a07b25ae7f0aa131407dfe41a8"
+          "content": "8214960f378917b3adf0a712a675766d196b25bc74573367f0ba7ad42e67029c"
         }
       ],
       "name": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",

@@ -22,11 +22,14 @@ describe('v54 TrueColor runtime verification', () => {
   });
 
   it('renders TrueColor through raster-service cdse-tiles with field polygon clipping, not as the basemap', () => {
-    expect(hubMap).toContain('/v1/fields/${field.id}/cdse-tiles/{z}/{x}/{y}.png');
+    // البلاطة مُقولَبة: `${segment}/{z}/{x}/{y}.png` حيث segment = cdse-tiles الحيّ افتراضاً
+    // (أو /tiles المحفوظ حين التاريخ has_cog). TrueColor الحيّ يبقى على cdse-tiles + قصّ المضلّع.
+    expect(hubMap).toContain('/v1/fields/${field.id}/${segment}/{z}/{x}/{y}.png');
+    expect(hubMap).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
     expect(hubMap).toContain("params.set('poly'");
     expect(hubMap).toContain("params.set('bbox_w'");
     expect(hubMap).toContain('access_token');
-    expect(hubMapGL).toContain('/cdse-tiles/');
+    expect(hubMapGL).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
     expect(hubMapGL).toContain("params.set('poly'");
   });
 

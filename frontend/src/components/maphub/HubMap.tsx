@@ -78,6 +78,8 @@ export interface HubMapProps {
   imageryTs?: number;
   // تاريخ مشهد Sentinel/CDSE المختار من الواجهة. 'latest' يبقى صريحاً فقط عند عدم اختيار تاريخ.
   imageryDate?: string | null;
+  // preferPersistedCog: التاريخ has_cog ⇒ اقرأ COG المحفوظ (/tiles) بدل CDSE الحيّ (/cdse-tiles).
+  preferPersistedCog?: boolean;
   // يُمرَّر في رابط البلاطات لعزل الكاش/التتبّع حسب المستأجِر. لا يستخدم للقرار.
   tenantId?: string | null;
   // ── طبقات التضاريس (DEM حقيقيّ من raster-service) — مستقلّة عن طبقة المؤشّر ──
@@ -325,7 +327,7 @@ function drawFeatureLabel(feature: DrawFeature): string {
 // بلاطات CDSE الحيّة (Sentinel Hub): المسار المحلّيّ `tiles` يحتاج COG مُسبق-التوليد غير
 // موجود لحقل بلا معالجة ⇒ 404 ⇒ لا يظهر المؤشّر (MAPHUB-CDSE). `cdse-tiles` يجلب المشهد
 // حيّاً ويقصّه على مضلّع الحقل (قناع rasterio بكسليّ) ⇒ شفّافيّة دقيقة خارج الحدّ.
-function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
+function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null, preferPersistedCog = false): string {
   const params = new URLSearchParams({ index });
   // عقد التاريخ (D): لا نمرّر date حين latest/فارغ — الخادم يختار أحدث مشهد.
   if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
@@ -336,23 +338,30 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
   // مصادقة بلاطة <img> خلف بوّابة الإنتاج (auth_request): JWT كـ`access_token` تقرأه البوّابة.
   const _tok = getAccessToken();
   if (_tok) params.set('access_token', _tok);
-  // عقد القصّ الموحَّد: bbox + رؤوس المضلّع poly=lng,lat;... (geomToPolygon يُعيد [lat,lng]).
-  const poly = geomToPolygon(field.geometry);
-  if (poly && poly.length >= 3) {
-    let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
-    for (const [lat, lng] of poly) {
-      if (lng < w) w = lng;
-      if (lng > e) e = lng;
-      if (lat < s) s = lat;
-      if (lat > n) n = lat;
+  // عقد القصّ (poly/bbox) لمسار CDSE الحيّ فقط: مسار `/tiles` المحفوظ يقرأ COG مقصوصاً
+  // مسبقاً من raster_assets (لا يحتاج poly، وتمريره لا يضرّ لكن نُبقيه للحيّ فقط).
+  if (!preferPersistedCog) {
+    const poly = geomToPolygon(field.geometry);
+    if (poly && poly.length >= 3) {
+      let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
+      for (const [lat, lng] of poly) {
+        if (lng < w) w = lng;
+        if (lng > e) e = lng;
+        if (lat < s) s = lat;
+        if (lat > n) n = lat;
+      }
+      params.set('bbox_w', String(w)); params.set('bbox_s', String(s));
+      params.set('bbox_e', String(e)); params.set('bbox_n', String(n));
+      params.set('poly', poly.map(([lat, lng]) => `${lng},${lat}`).join(';'));
     }
-    params.set('bbox_w', String(w)); params.set('bbox_s', String(s));
-    params.set('bbox_e', String(e)); params.set('bbox_n', String(n));
-    params.set('poly', poly.map(([lat, lng]) => `${lng},${lat}`).join(';'));
   }
   const qs = params.toString();
+  // preferPersistedCog=true (التاريخ has_cog) ⇒ اقرأ الطبقة المحفوظة `/tiles` (مصدر
+  // الحقيقة لـraster_assets)؛ وإلّا CDSE الحيّ `/cdse-tiles`. يُصلِح «الطبقة الورديّة»:
+  // كان يعرض تصيير مؤشّر حيّ دائماً بدل COG المحفوظ.
+  const segment = preferPersistedCog ? 'tiles' : 'cdse-tiles';
   // eslint-disable-next-line no-template-curly-in-string
-  return `${rasterBaseUrl()}/v1/fields/${field.id}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
+  return `${rasterBaseUrl()}/v1/fields/${field.id}/${segment}/{z}/{x}/{y}.png?${qs}`;
 }
 
 // أيقونة دبّوس استكشاف (divIcon — لا أصل صورة خارجيّ).
@@ -376,7 +385,7 @@ export default function HubMap({
   drawTools, pinMode, pins, onAddPin, height = 520,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
   pivotDesignerEnabled = false, onAddPivotDraft, pivotDrafts = [],
-  imageryTs = 0, imageryDate = null, tenantId = null,
+  imageryTs = 0, imageryDate = null, tenantId = null, preferPersistedCog = false,
   hillshadeTilesUrl = null, slopeTilesUrl = null, terrainOpacity = 0.7, contours = null,
   soilTilesUrl = null, soilOpacity = 0.6,
   soilSamplePoints = [],
@@ -461,7 +470,7 @@ export default function HubMap({
         {indicatorId && selected && !weatherMarker && (
           <TileLayer
             key={`${selected.id}-${indicatorId}-${imageryDate || 'latest'}-${tenantId ?? 'tenant'}-${imageryTs}`}
-            url={indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate)}
+            url={indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate, preferPersistedCog)}
             opacity={indicatorOpacity}
             errorTileUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg=="
           />

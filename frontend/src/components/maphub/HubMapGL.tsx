@@ -100,6 +100,7 @@ export interface HubMapGLProps {
   pivotDrafts?: DrawFeature[];
   imageryTs?: number;
   imageryDate?: string | null;
+  preferPersistedCog?: boolean;  // التاريخ has_cog ⇒ /tiles المحفوظ بدل /cdse-tiles الحيّ
   tenantId?: string | null;
   // ── طبقات التضاريس/التربة (تكافؤ Leaflet) — روابط بلاطات + كنتور + نقاط عيّنات ──
   hillshadeTilesUrl?: string | null;
@@ -117,7 +118,7 @@ export interface HubMapGLProps {
 // رابط بلاطات مؤشّر الحقل — نفس باني HubMap.indicatorTileUrl (مصدر واحد للصدق).
 // CDSE الحيّ: المسار المحلّيّ `tiles` يحتاج COG مُسبق-التوليد ⇒ 404 لحقل بلا معالجة
 // (MAPHUB-CDSE)؛ `cdse-tiles` يجلب المشهد حيّاً ويقصّه على المضلّع (قناع rasterio).
-function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null): string {
+function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null, preferPersistedCog = false): string {
   const params = new URLSearchParams({ index });
   if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
   // المستأجِر كـ`tenant_id` (لا `tid`): بوّابة nginx تقرأ `$arg_tenant_id` فتحقن X-Tenant-Id
@@ -127,6 +128,8 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
   // مصادقة بلاطة <img> خلف بوّابة auth_request: JWT كـ`access_token` تقرأه البوّابة.
   const _tok = getAccessToken();
   if (_tok) params.set('access_token', _tok);
+  // القصّ (poly/bbox) لمسار CDSE الحيّ فقط؛ /tiles المحفوظ يقرأ COG مقصوصاً مسبقاً.
+  if (!preferPersistedCog) {
   const poly = geomToPolygon(field.geometry);
   if (poly && poly.length >= 3) {
     let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
@@ -140,9 +143,12 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
     params.set('bbox_e', String(e)); params.set('bbox_n', String(n));
     params.set('poly', poly.map(([lat, lng]) => `${lng},${lat}`).join(';'));
   }
+  }
   const qs = params.toString();
+  // preferPersistedCog (has_cog) ⇒ COG المحفوظ /tiles؛ وإلّا CDSE الحيّ /cdse-tiles (يُصلِح الطبقة الورديّة).
+  const segment = preferPersistedCog ? 'tiles' : 'cdse-tiles';
   // eslint-disable-next-line no-template-curly-in-string
-  return `${rasterBaseUrl()}/v1/fields/${field.id}/cdse-tiles/{z}/{x}/{y}.png?${qs}`;
+  return `${rasterBaseUrl()}/v1/fields/${field.id}/${segment}/{z}/{x}/{y}.png?${qs}`;
 }
 
 // مصدر بلاطات الأساس مُكيَّف لـMapLibre (tiles: [url]):
@@ -324,7 +330,7 @@ export default function HubMapGL({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity, height = 520,
   drawTools = false, pinMode = false, pins = [], onAddPin,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
-  initialView = null, onViewChange, imageryTs = 0, imageryDate = null, tenantId = null,
+  initialView = null, onViewChange, imageryTs = 0, imageryDate = null, tenantId = null, preferPersistedCog = false,
   hillshadeTilesUrl = null, slopeTilesUrl = null, soilTilesUrl = null,
   contours = null, soilSamplePoints = [],
 }: HubMapGLProps) {
@@ -761,7 +767,7 @@ export default function HubMapGL({
     if (!active) return;
     map.addSource(SRC_INDICATOR, {
       type: 'raster',
-      tiles: [indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate)],
+      tiles: [indicatorTileUrl(selected, indicatorId, tenantId, imageryTs, imageryDate, preferPersistedCog)],
       tileSize: 256,
     });
     // أدرِج فوق الأساس وتحت أوّل طبقة خطّ حقول (إن وُجدت).
