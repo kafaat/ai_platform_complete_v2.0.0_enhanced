@@ -426,6 +426,14 @@ async def field_cdse_tilejson(
     import cdse_client as _cdse
     import db_persist as _db
 
+    # طبّع الافتراضيّات: عبر HTTP يحقن FastAPI القيم (str/float/None)، لكن عند الاستدعاء
+    # المباشر (اختبارات الوحدة) تبقى كائنات Query الافتراضيّة — فاقبل النوع الصحيح فقط.
+    poly = poly if isinstance(poly, str) else None
+    bbox_w = bbox_w if isinstance(bbox_w, (int, float)) else None
+    bbox_s = bbox_s if isinstance(bbox_s, (int, float)) else None
+    bbox_e = bbox_e if isinstance(bbox_e, (int, float)) else None
+    bbox_n = bbox_n if isinstance(bbox_n, (int, float)) else None
+
     await main._require_field_tenant(field_id)
 
     # الأولويّة: poly (هندسة الواجهة) ثمّ bbox الصريح ثمّ هندسة DB ثمّ احتياطيّ عالميّ.

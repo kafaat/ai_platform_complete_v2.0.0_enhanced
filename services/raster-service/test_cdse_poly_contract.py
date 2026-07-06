@@ -67,12 +67,25 @@ def _cdse_builder_block() -> str:
 
 
 def test_cdse_tile_builder_emits_poly_not_geom():
-    """مصدر الحقيقة لرابط بلاطة CDSE (fieldCdseTileUrl) يضبط poly ولا يُمرّر geom كاستعلام."""
+    """مصدر الحقيقة لرابط بلاطة CDSE يضبط poly ولا يُمرّر geom — عبر عقد القصّ المركزيّ.
+
+    بعد توحيد main↔cert صار القصّ يمرّ عبر ``cdseClipParams`` (مصدر حقيقة واحد يُصدِر
+    poly/bbox، لا geom) بدل ``params.set('poly')`` حرفيّاً داخل الباني. الحارس يتحقّق من
+    نفس العقد (poly لا geom) دون تقييد التصميم المركزيّ.
+    """
+    api = _read("frontend/src/services/api.ts")
     block = _cdse_builder_block()
-    assert "params.set('poly'" in block, "fieldCdseTileUrl لا يضبط poly"
+    assert "cdseClipParams(" in block, (
+        "fieldCdseTileUrl لا يستعمل عقد القصّ المركزيّ (cdseClipParams)"
+    )
     assert "/cdse-tiles/" in block, "fieldCdseTileUrl لا يبني مسار cdse-tiles"
     assert "set('geom'" not in block and "&geom=" not in block, (
         "fieldCdseTileUrl ما زال يُصدِر geom (تضارب عقد)"
+    )
+    # عقد القصّ المركزيّ يُصدِر poly (من حلقة الهندسة) ولا يُصدِر geom إطلاقاً.
+    assert "out.poly" in api, "cdseClipParams لا يضبط poly"
+    assert "out.geom" not in api and "set('geom'" not in api, (
+        "الواجهة ما زالت تُصدِر geom (تضارب عقد)"
     )
 
 
