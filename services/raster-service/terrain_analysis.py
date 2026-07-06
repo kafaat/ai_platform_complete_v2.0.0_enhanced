@@ -203,3 +203,63 @@ def classify_water_harvesting(slope_deg_mean: float) -> dict:
         "suitability": suitability,
         "note": "إرشادي من أدبيّات حصاد المياه — تحقّق ميداني مطلوب",
     }
+
+
+def interpret_terrain_for_agronomy(terrain: dict) -> dict | None:
+    """يربط إحصاءات التضاريس بقرارات زراعيّة إرشاديّة (خطر تعرية/سيولة/إجراءات).
+
+    من إحصاء ``compute_field_terrain`` المحسوب (slope_deg + dominant_aspect). لا يُنتِج
+    شيئاً إن لم يُحسَب التضاريس (``computed:false``) — لا تلفيق قرار بلا بيانات. العتبات
+    من أدبيّات تعرية التربة/ملاءمة الآليّات (٪ ميل)؛ القرار النهائيّ ميدانيّ (إرشاديّ).
+    """
+    if not terrain or not terrain.get("computed"):
+        return None
+    mean_deg = float((terrain.get("slope_deg") or {}).get("mean") or 0.0)
+    max_deg = float((terrain.get("slope_deg") or {}).get("max") or 0.0)
+    mean_pct = round(math.tan(math.radians(mean_deg)) * 100.0, 1)
+    max_pct = round(math.tan(math.radians(max_deg)) * 100.0, 1)
+    aspect = terrain.get("dominant_aspect")
+
+    # خطر التعرية (٪ ميل — عتبات أدبيّات حفظ التربة).
+    if mean_pct < 2:
+        erosion = "very_low"
+    elif mean_pct < 5:
+        erosion = "low"
+    elif mean_pct < 10:
+        erosion = "medium"
+    elif mean_pct < 15:
+        erosion = "high"
+    else:
+        erosion = "severe"
+
+    # ملاءمة مرور الآليّات (الحرث/الحصاد): ميل عالٍ ⇒ خطر انقلاب/انزلاق.
+    if mean_pct < 8:
+        traffic = "low"
+    elif mean_pct < 15:
+        traffic = "medium"
+    else:
+        traffic = "high"
+
+    actions: list[str] = []
+    if mean_pct >= 5:
+        actions.append("فضّل الريّ الكنتوريّ/بالتنقيط على الغمر السطحيّ (ينجرف على المنحدر).")
+    if mean_pct >= 10:
+        actions.append("أنشئ مصاطب/خطوط كنتور لكسر طول المنحدر وتقليل التعرية.")
+    if max_pct >= 20:
+        actions.append("ضع نقاط عيّنات تربة إضافيّة في مناطق الميل الأعلى (تربة أرقّ محتملة).")
+    if traffic == "high":
+        actions.append("قيّد مرور الآليّات الثقيلة في المناطق الحادّة (خطر انزلاق/انضغاط).")
+    if aspect in ("جنوب", "جنوب غرب", "جنوب شرق"):
+        actions.append("الجهات الجنوبيّة أكثر تبخّراً — راجع جدولة الريّ فيها.")
+    if not actions:
+        actions.append("التضاريس شبه مستوية — لا قيود انحدار خاصّة؛ تابع الممارسة المعتادة.")
+
+    return {
+        "mean_slope_pct": mean_pct,
+        "max_slope_pct": max_pct,
+        "dominant_aspect": aspect,
+        "erosion_risk": erosion,
+        "trafficability_risk": traffic,
+        "recommended_actions": actions,
+        "note": "إرشاديّ من أدبيّات حفظ التربة/ملاءمة الآليّات — لا يُغني عن الفحص الميدانيّ.",
+    }

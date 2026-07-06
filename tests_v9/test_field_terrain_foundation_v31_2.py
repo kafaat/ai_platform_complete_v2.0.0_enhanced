@@ -48,6 +48,23 @@ def test_terrain_masks_nodata_and_uses_circular_aspect_mean():
     assert "av.mean()" not in src, "linear mean of circular aspect is wrong"
 
 
+def test_terrain_agronomy_interpretation_is_honest_and_fail_closed():
+    """Slope→decisions bridge (erosion/trafficability/actions) must not fabricate:
+    it returns None unless terrain is actually computed from a DEM."""
+    src = _TERRAIN.read_text(encoding="utf-8")
+    assert "def interpret_terrain_for_agronomy(" in src
+    assert "erosion_risk" in src and "trafficability_risk" in src and "recommended_actions" in src
+    # honest: no interpretation without computed terrain (no DEM ⇒ no decision).
+    assert 'not terrain.get("computed")' in src
+    # slope % from degrees (not raw degrees) for agronomic thresholds.
+    assert "math.tan(math.radians(" in src
+    # wired into the field terrain endpoint.
+    rfields = (
+        _ROOT / "services" / "raster-service" / "routers" / "fields.py"
+    ).read_text(encoding="utf-8")
+    assert "interpret_terrain_for_agronomy" in rfields
+
+
 def test_raster_exposes_tenant_scoped_terrain_route():
     src = _RASTER_FIELDS.read_text(encoding="utf-8")
     assert '@router.get("/v1/fields/{field_id}/terrain")' in src

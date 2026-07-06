@@ -1125,6 +1125,10 @@ async def field_terrain(
     result = ta.compute_field_terrain(dem_path, parsed_bbox)
     if result.get("computed") and (result.get("slope_deg") or {}).get("mean") is not None:
         result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
+        # ربط الانحدار بقرارات زراعيّة (خطر تعرية/سيولة/إجراءات) — إرشاديّ، بلا تلفيق.
+        agronomy = ta.interpret_terrain_for_agronomy(result)
+        if agronomy:
+            result["agronomy"] = agronomy
     result["field_id"] = field_id
     return result
 
