@@ -229,3 +229,10 @@ psql "$DATABASE_URL" -v tenant_id="'<TENANT-UUID>'" \
 سلوكيّ: `services/raster-service/test_soil_render.py` (SoilGrids اصطناعيّ).
 
 **أنماط تهيئة المصدر (مرونة):** (1) مجلّد `SOILGRIDS_DIR` (أو `SOILGRIDS_COG_DIR`) بأسماء `<property>_<depth>.tif`؛ (2) قالب `SOIL_LAYER_PATH_TEMPLATE=/data/soil/{property}_{depth}.tif`؛ (3) مسار صريح لكلّ طبقة `SOILGRID_<PROP>_<DEPTH>_PATH`. مرادفات مقبولة: `ph→phh2o`، `oc/organic_carbon→soc`، `bulk_density→bdod`. أعماق مقبولة: الستّة المعياريّة + `0-30cm` (مُجمَّع).
+
+**تجهيز آليّ (GLO‑30 من AWS Open Data، مجّانيّ بلا اعتماد):** بدل التنزيل اليدويّ، شغّل:
+```bash
+python3 scripts/provision/fetch_glo30_dem.py --bbox 43.5 15.5 46.0 17.5 --out /data/dem/aljawf_glo30_cog.tif
+export FIELD_DEM_PATH=/data/dem/aljawf_glo30_cog.tif   # ثمّ أعِد تشغيل raster-service
+```
+يُنزّل بلاطات 1°×1° المُغطّية للـbbox من `copernicus-dem-30m` (HTTPS مجهول)، يتخطّى البحر (404)، ويدمجها COG واحداً. مصادر بديلة: CDSE (حساب مجّانيّ) · OpenTopography · GEE `projects/sat-io/open-datasets/GLO-30` · Digital Earth Africa (WCS `dem_cop_30`). ذكر المصدر إلزاميّ (© Copernicus DEM / ESA).
