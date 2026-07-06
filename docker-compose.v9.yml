@@ -1776,23 +1776,11 @@ services:
     entrypoint:
     - /bin/sh
     - -c
-<<<<<<< HEAD
     - |
       set -e
       if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch /conf/.sahool_init; fi
       sed -i "s|^secret=.*|secret=$$ZLM_API_SECRET|" /conf/config.ini || true
-=======
-    - 'set -e
-
-      if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch
-      /conf/.sahool_init; fi
-
-      sed -i "s|^secret=.*|secret=${ZLM_API_SECRET}|" /conf/config.ini || true
-
->>>>>>> e01abdbddd57f9936db1e64f5927b907148e1e95
       echo "zlmediakit config: [api] secret pinned"
-
-      '
     volumes:
     - zlm-conf:/conf
     networks:
