@@ -51,6 +51,10 @@ async def soil_tilejson(
 
     ``available`` يعكس تهيئة المصدر لهذه (الخاصّيّة، العمق) فعليّاً. ``disclaimer`` إلزاميّ
     دائماً (الطبقة توجيهيّة لا بديلة عن المختبر).
+
+    ملاحظة مصادقة (v31.9): روابط ``tiles`` **بيانات وصفيّة** (tid فقط)؛ خلف بوّابة
+    ``/api/raster/`` تحتاج البلاطة توكناً — تبنيه الواجهة عبر ``soilTileUrl`` (تُضيف
+    access_token). لا تُستهلَك ``tiles`` مباشرةً بلا حقن توكن.
     """
     prop = property if property in _soil.SOIL_PROPERTIES else "phh2o"
     depth = _soil.normalize_depth(depth)
@@ -104,14 +108,31 @@ async def soil_properties():
     }
 
 
-def _parse_bbox(bbox: str | None) -> list[float] | None:
-    if not bbox:
+def _parse_bbox(bbox) -> list[float] | None:
+    if not isinstance(bbox, str) or not bbox:
         return None
     try:
         parts = [float(v) for v in bbox.split(",")]
         return parts if len(parts) == 4 else None
     except (TypeError, ValueError):
         return None
+
+
+def _parse_poly_points(poly) -> list | None:
+    """``poly="lng,lat;lng,lat;..."`` (EPSG:4326) ⇒ قائمة [lng,lat] للقصّ على حدّ الحقل، أو None."""
+    if not isinstance(poly, str) or not poly:
+        return None
+    pts: list[list[float]] = []
+    for pair in poly.split(";"):
+        pair = pair.strip()
+        if not pair:
+            continue
+        try:
+            lng_s, lat_s = pair.split(",")
+            pts.append([float(lng_s), float(lat_s)])
+        except (TypeError, ValueError):
+            return None
+    return pts if len(pts) >= 3 else None
 
 
 @router.get("/v1/fields/{field_id}/soil/summary")
@@ -121,13 +142,15 @@ async def field_soil_summary(
         str | None, Query(description="minLon,minLat,maxLon,maxLat (EPSG:4326)")
     ] = None,
     depth: Annotated[str, Query()] = "0-5cm",
+    poly: Annotated[str | None, Query(description="lng,lat;... قصّ على حدّ الحقل")] = None,
 ):
-    """ملخّص خصائص تربة الحقل (متوسّطات SoilGrids على bbox) + صنف القوام — tenant-scoped.
+    """ملخّص خصائص تربة الحقل (متوسّطات SoilGrids على **مضلّع الحقل** إن مُرِّر، وإلّا bbox) +
+    صنف القوام — tenant-scoped.
 
     صدق: بلا مصدر/bbox ⇒ ``computed:false`` + سبب — لا تلفيق. توجيه لاختيار العيّنات.
     """
     await main._require_field_tenant(field_id, hide_existence=True)
-    result = _soil.compute_field_soil_summary(_parse_bbox(bbox), depth)
+    result = _soil.compute_field_soil_summary(_parse_bbox(bbox), depth, _parse_poly_points(poly))
     result["field_id"] = field_id
     return result
 
@@ -140,15 +163,19 @@ async def field_soil_sampling_zones(
     ] = None,
     depth: Annotated[str, Query()] = "0-5cm",
     zones: Annotated[int, Query(ge=2, le=5)] = 3,
+    poly: Annotated[str | None, Query(description="lng,lat;... قصّ على حدّ الحقل")] = None,
 ):
-    """مناطق تربة متجانسة (GeoJSON) لتقسيم أخذ العيّنات — tenant-scoped.
+    """مناطق تربة متجانسة (GeoJSON) لتقسيم أخذ العيّنات — مقصوصة على **مضلّع الحقل** (poly)،
+    tenant-scoped.
 
     صدق: بلا مصدر ⇒ ``features:[]`` + ``computed:false`` — لا تلفيق مناطق.
     """
     await main._require_field_tenant(field_id, hide_existence=True)
     import soil_zones as _sz
 
-    result = _sz.compute_soil_sampling_zones(_parse_bbox(bbox), depth, zones)
+    result = _sz.compute_soil_sampling_zones(
+        _parse_bbox(bbox), depth, zones, _parse_poly_points(poly)
+    )
     result["field_id"] = field_id
     return result
 
@@ -162,14 +189,18 @@ async def field_soil_sampling_plan(
     depth: Annotated[str, Query()] = "0-5cm",
     zones: Annotated[int, Query(ge=2, le=5)] = 3,
     samples_per_zone: Annotated[int, Query(ge=1, le=3)] = 1,
+    poly: Annotated[str | None, Query(description="lng,lat;... قصّ على حدّ الحقل")] = None,
 ):
-    """نقاط عيّنات تربة تمثيليّة (GeoJSON Point) من مراكز مناطق k-means — tenant-scoped.
+    """نقاط عيّنات تربة تمثيليّة (GeoJSON Point) داخل **مضلّع الحقل** من مناطق k-means —
+    tenant-scoped.
 
     صدق: بلا مصدر ⇒ ``features:[]`` + ``computed:false`` — لا نقاط مُلفَّقة.
     """
     await main._require_field_tenant(field_id, hide_existence=True)
     import soil_zones as _sz
 
-    result = _sz.compute_soil_sampling_points(_parse_bbox(bbox), depth, zones, samples_per_zone)
+    result = _sz.compute_soil_sampling_points(
+        _parse_bbox(bbox), depth, zones, samples_per_zone, _parse_poly_points(poly)
+    )
     result["field_id"] = field_id
     return result

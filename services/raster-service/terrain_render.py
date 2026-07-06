@@ -172,8 +172,10 @@ def compute_field_contours(
     dem_path: str | None,
     bbox: list[float] | None = None,
     interval_m: float = 10.0,
+    poly: list | None = None,
 ) -> dict:
-    """خطوط كنتور (GeoJSON FeatureCollection) لحقلٍ من DEM مقصوصٍ على bbox.
+    """خطوط كنتور (GeoJSON FeatureCollection) لحقلٍ من DEM مقصوصٍ على مضلّع الحقل (إن
+    مُرِّر ``poly``) وإلّا على bbox.
 
     مربّع مسير (marching squares) نقيّ بـnumpy (بلا اعتماد خارجيّ): لكلّ مستوى ارتفاع
     نُخرِج ``MultiLineString`` بخصائص ``elevation_m``. صدق: لا DEM/bbox أو مكتبات ⇒
@@ -209,6 +211,10 @@ def compute_field_contours(
             window = win_from_bounds(*b, transform=src.transform)
             dem = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
             wtransform = src.window_transform(window)
+            if poly:  # قصّ على مضلّع الحقل (لا كنتور خارج الحدّ)
+                from tile_render import mask_array_by_polygon
+
+                dem = mask_array_by_polygon(dem, wtransform, src_crs, poly)
     except Exception:  # noqa: BLE001
         return {**empty, "source": "dem-read-failed"}
 

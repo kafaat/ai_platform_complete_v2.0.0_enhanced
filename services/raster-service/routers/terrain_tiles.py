@@ -88,6 +88,10 @@ async def terrain_tilejson(layer: Annotated[str, Query()] = "hillshade"):
 
     صدق: ``available`` يعكس تهيئة DEM فعليّاً؛ بلا DEM ⇒ ``available:false`` + سبب
     كي تُظهر الواجهة حالة «التضاريس غير مُهيّأة» بدل طبقة فارغة صامتة.
+
+    ملاحظة مصادقة (v31.9): روابط ``tiles`` هنا **بيانات وصفيّة** (tid فقط)؛ خلف بوّابة
+    ``/api/raster/`` تحتاج بلاطة ``<img>`` توكناً — تبنيه الواجهة عبر ``hillshadeTileUrl``/
+    ``slopeTileUrl`` (تُضيف access_token). لا تُستهلَك ``tiles`` مباشرةً بلا حقن توكن.
     """
     layer = "slope" if layer == "slope" else "hillshade"
     dem_configured = _dem_path() is not None
@@ -116,6 +120,23 @@ async def terrain_tilejson(layer: Annotated[str, Query()] = "hillshade"):
     return out
 
 
+def _parse_poly_points(poly) -> list | None:
+    """يحوّل ``poly="lng,lat;lng,lat;..."`` (EPSG:4326) إلى قائمة [lng,lat]، أو None."""
+    if not isinstance(poly, str) or not poly:
+        return None
+    pts: list[list[float]] = []
+    for pair in poly.split(";"):
+        pair = pair.strip()
+        if not pair:
+            continue
+        try:
+            lng_s, lat_s = pair.split(",")
+            pts.append([float(lng_s), float(lat_s)])
+        except (TypeError, ValueError):
+            return None
+    return pts if len(pts) >= 3 else None
+
+
 @router.get("/v1/fields/{field_id}/contours.geojson")
 async def field_contours(
     field_id: str,
@@ -123,21 +144,25 @@ async def field_contours(
         str | None, Query(description="minLon,minLat,maxLon,maxLat (EPSG:4326)")
     ] = None,
     interval_m: Annotated[float, Query(ge=1.0, le=500.0)] = 10.0,
+    poly: Annotated[str | None, Query(description="lng,lat;... قصّ على حدّ الحقل")] = None,
 ):
-    """خطوط كنتور الحقل (GeoJSON) من DEM مقصوصٍ على bbox — لتخطيط المدرّجات/الريّ.
+    """خطوط كنتور الحقل (GeoJSON) من DEM مقصوصٍ على **مضلّع الحقل** (poly) وإلّا bbox — لتخطيط
+    المدرّجات/الريّ.
 
     tenant-scoped كبقيّة نقاط الحقل. صدق: بلا DEM/bbox ⇒ ``features: []`` +
     ``computed:false`` بمصدره — لا كنتور مُلفَّق.
     """
     await main._require_field_tenant(field_id, hide_existence=True)
     parsed_bbox: list[float] | None = None
-    if bbox:
+    if isinstance(bbox, str) and bbox:
         try:
             parts = [float(v) for v in bbox.split(",")]
             if len(parts) == 4:
                 parsed_bbox = parts
         except (TypeError, ValueError):
             parsed_bbox = None
-    result = _tr.compute_field_contours(_dem_path(), parsed_bbox, interval_m)
+    result = _tr.compute_field_contours(
+        _dem_path(), parsed_bbox, interval_m, _parse_poly_points(poly)
+    )
     result["field_id"] = field_id
     return result

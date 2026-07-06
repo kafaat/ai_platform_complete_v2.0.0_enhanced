@@ -3600,12 +3600,15 @@ export const fetchFieldContours = (
   fieldId: string,
   bbox?: [number, number, number, number] | null,
   intervalM?: number,
+  geometry?: { type?: string; coordinates?: unknown } | null,
 ): Promise<FieldContours> =>
   rasterApi
     .get<FieldContours>(`/v1/fields/${fieldId}/contours.geojson`, {
       params: {
         ...(bbox && bbox.length === 4 ? { bbox: bbox.join(',') } : {}),
         ...(intervalM ? { interval_m: intervalM } : {}),
+        // poly = حدّ الحقل ⇒ الخادم يقصّ الكنتور داخل الحقل (لا على المستطيل المحيط).
+        ...(cdseClipParams(geometry).poly ? { poly: cdseClipParams(geometry).poly } : {}),
       },
     })
     .then(r => r.data);
@@ -3734,7 +3737,7 @@ export interface SoilSamplingPlan
 export const fetchSoilSamplingPlan = (
   fieldId: string,
   bbox?: [number, number, number, number] | null,
-  opts?: { depth?: string; zones?: number; samplesPerZone?: number },
+  opts?: { depth?: string; zones?: number; samplesPerZone?: number; geometry?: { type?: string; coordinates?: unknown } | null },
 ): Promise<SoilSamplingPlan> =>
   rasterApi
     .get<SoilSamplingPlan>(`/v1/fields/${fieldId}/soil/sampling-plan`, {
@@ -3743,6 +3746,8 @@ export const fetchSoilSamplingPlan = (
         ...(opts?.depth ? { depth: opts.depth } : {}),
         ...(opts?.zones ? { zones: opts.zones } : {}),
         ...(opts?.samplesPerZone ? { samples_per_zone: opts.samplesPerZone } : {}),
+        // poly = حدّ الحقل ⇒ عيّنات داخل الحقل فقط (لا على المستطيل المحيط).
+        ...(cdseClipParams(opts?.geometry).poly ? { poly: cdseClipParams(opts?.geometry).poly } : {}),
       },
     })
     .then(r => r.data);

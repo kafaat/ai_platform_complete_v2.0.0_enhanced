@@ -301,10 +301,11 @@ def readable_layer_count(depth: str | None = None) -> int:
     )
 
 
-def read_property_bbox(prop: str, depth: str, bbox: list[float]):
-    """يقرأ نافذة خاصّيّة تربة على bbox الحقل ويحوّلها للوحدة التقليديّة (÷div).
+def read_property_bbox(prop: str, depth: str, bbox: list[float], poly: list | None = None):
+    """يقرأ نافذة خاصّيّة تربة على bbox الحقل (وقصّ اختياريّ على مضلّعه) ويحوّلها للوحدة (÷div).
 
-    يُرجِع مصفوفة float32 بـNaN للـnodata، أو ``None`` (بلا مصدر/خارج التغطية) — بلا تلفيق.
+    يُرجِع مصفوفة float32 بـNaN للـnodata (وخارج المضلّع إن مُرِّر)، أو ``None`` (بلا مصدر/
+    خارج التغطية) — بلا تلفيق.
     """
     meta = SOIL_PROPERTIES.get(prop)
     path = soil_raster_path(prop, depth)
@@ -318,7 +319,7 @@ def read_property_bbox(prop: str, depth: str, bbox: list[float]):
         return None
     try:
         with rasterio.open(path) as src:
-            res = read_field_window(src, bbox)  # CRS-correct + مسقوف الحجم
+            res = read_field_window(src, bbox, poly_lonlat=poly)  # CRS-correct + مسقوف + قصّ مضلّع
     except Exception:  # noqa: BLE001
         return None
     if res is None:
@@ -354,8 +355,11 @@ def usda_texture_class(clay_pct: float | None, sand_pct: float | None) -> str | 
     return "مزيجيّ (loam)"
 
 
-def compute_field_soil_summary(bbox: list[float] | None, depth: str = "0-5cm") -> dict:
-    """ملخّص خصائص التربة لحقلٍ (متوسّطات SoilGrids على bbox) + صنف القوام + تحذير.
+def compute_field_soil_summary(
+    bbox: list[float] | None, depth: str = "0-5cm", poly: list | None = None
+) -> dict:
+    """ملخّص خصائص التربة لحقلٍ (متوسّطات SoilGrids على مضلّع الحقل إن مُرِّر، وإلّا bbox)
+    + صنف القوام + تحذير.
 
     صدق: بلا مصدر/تغطية ⇒ ``computed:false`` + سبب — لا تلفيق. توجيهيّ لاختيار العيّنات.
     """
@@ -371,7 +375,7 @@ def compute_field_soil_summary(bbox: list[float] | None, depth: str = "0-5cm") -
     depth = normalize_depth(depth)
     props: dict[str, dict] = {}
     for prop, meta in SOIL_PROPERTIES.items():
-        arr = read_property_bbox(prop, depth, bbox)
+        arr = read_property_bbox(prop, depth, bbox, poly)
         if arr is None:
             continue
         finite = arr[np.isfinite(arr)]

@@ -41,10 +41,11 @@ def _kmeans(x, k: int, iters: int = 25):
     return labels, centroids
 
 
-def _cluster_field_soil(bbox, depth: str, n_zones: int):
-    """يقرأ خصائص التربة على bbox ويجمّعها. يُرجِع dict (نجاح) أو ``{"error": <source>}``.
+def _cluster_field_soil(bbox, depth: str, n_zones: int, poly: list | None = None):
+    """يقرأ خصائص التربة على bbox (وقصّ على مضلّع الحقل إن مُرِّر) ويجمّعها. يُرجِع dict
+    (نجاح) أو ``{"error": <source>}``.
 
-    مصدر واحد للحقيقة للمناطق والنقاط: نفس القراءة/التطبيع/التجميع.
+    مصدر واحد للحقيقة للمناطق والنقاط: نفس القراءة/التطبيع/التجميع/القصّ.
     """
     import soil_render as _soil
 
@@ -83,6 +84,10 @@ def _cluster_field_soil(bbox, depth: str, n_zones: int):
                 arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
                 if arr.size == 0:
                     continue
+                if poly:  # قصّ على مضلّع الحقل (لا مناطق/عيّنات خارج الحدّ)
+                    from tile_render import mask_array_by_polygon
+
+                    arr = mask_array_by_polygon(arr, src.window_transform(window), src.crs, poly)
                 real = arr / float(_soil.SOIL_PROPERTIES[prop]["div"])
                 if ref_shape is None:
                     ref_shape = real.shape
@@ -153,13 +158,13 @@ def _zone_props(layers, cell_mask):
 
 
 def compute_soil_sampling_zones(
-    bbox: list[float] | None, depth: str = "0-5cm", n_zones: int = 3
+    bbox: list[float] | None, depth: str = "0-5cm", n_zones: int = 3, poly: list | None = None
 ) -> dict:
-    """مناطق تربة متجانسة (GeoJSON MultiPolygon) — لتقسيم أخذ العيّنات."""
+    """مناطق تربة متجانسة (GeoJSON MultiPolygon) — لتقسيم أخذ العيّنات (مقصوصة على الحقل)."""
     import soil_render as _soil
 
     empty = {"type": "FeatureCollection", "features": [], "computed": False}
-    c = _cluster_field_soil(bbox, depth, n_zones)
+    c = _cluster_field_soil(bbox, depth, n_zones, poly)
     if "error" in c:
         return {**empty, "source": c["error"]}
     from rasterio.features import shapes as rio_shapes
@@ -203,19 +208,39 @@ def compute_soil_sampling_zones(
     }
 
 
-def compute_soil_sampling_points(
-    bbox: list[float] | None, depth: str = "0-5cm", n_zones: int = 3, samples_per_zone: int = 1
-) -> dict:
-    """نقاط عيّنات تمثيليّة (GeoJSON Point) — مركز كلّ منطقة k-means + سبب اختيارها.
+def _interior_pixels(cell_mask):
+    """بكسلات المنطقة الداخليّة (كلّ جيرانها الأربعة داخل المنطقة) — تتجنّب الحوافّ.
 
-    تُجيب «أين آخذ العيّنة» من تجميعٍ فعليّ لخصائص التربة. صدق: بلا مصدر ⇒ ``features:[]``
-    + ``computed:false`` — لا نقاط مُلفَّقة. (بديل أصدق من نقاط هندسيّة عشوائيّة.)
+    اختيار نقطة على الحافّة يقع قرب حدّ الحقل/المنطقة (خطر تلوّث العيّنة)؛ نُفضّل نقطة
+    داخليّة آمنة. الحدود تُصفَّر (لا التفاف). يُعيد (rows, cols) أو مصفوفتين فارغتين."""
+    import numpy as np
+
+    m = cell_mask
+    inner = m & np.roll(m, 1, 0) & np.roll(m, -1, 0) & np.roll(m, 1, 1) & np.roll(m, -1, 1)
+    inner[0, :] = inner[-1, :] = inner[:, 0] = inner[:, -1] = False
+    return np.where(inner)
+
+
+def compute_soil_sampling_points(
+    bbox: list[float] | None,
+    depth: str = "0-5cm",
+    n_zones: int = 3,
+    samples_per_zone: int = 1,
+    poly: list | None = None,
+) -> dict:
+    """نقاط عيّنات تمثيليّة (GeoJSON Point) — نقطة **داخليّة** آمنة لكلّ منطقة k-means + سببها.
+
+    تُجيب «أين آخذ العيّنة» من تجميعٍ فعليّ لخصائص التربة، مقصوصة على مضلّع الحقل (إن مُرِّر).
+    التحسينات (v31.9): نقطة داخليّة (لا حافّة) عبر ``_interior_pixels``؛ عيّنات إضافيّة
+    بتباعُد أقصى (farthest-point) بين البكسلات الداخليّة؛ تخطّي المناطق الصغيرة جدّاً
+    (< حدّ بكسلات)؛ ``confidence`` رقميّة من عدد بكسلات المنطقة. صدق: بلا مصدر ⇒
+    ``features:[]`` + ``computed:false`` — لا نقاط مُلفَّقة.
     """
     import numpy as np
     import soil_render as _soil
 
     empty = {"type": "FeatureCollection", "features": [], "computed": False}
-    c = _cluster_field_soil(bbox, depth, n_zones)
+    c = _cluster_field_soil(bbox, depth, n_zones, poly)
     if "error" in c:
         return {**empty, "source": c["error"]}
     label_grid = c["label_grid"]
@@ -230,23 +255,31 @@ def compute_soil_sampling_points(
             return xs[0], ys[0]
 
     samples_per_zone = max(1, min(int(samples_per_zone), 3))
+    _MIN_ZONE_PIXELS = 3  # منطقة أصغر من ذلك غير موثوقة لعيّنة ممثّلة (تُتخطّى بصدق)
 
     features = []
     for z_id in range(c["n_zones"]):
         cell_mask = label_grid == z_id
         rr, cc = np.where(cell_mask)
-        if rr.size == 0:
+        if rr.size < _MIN_ZONE_PIXELS:
             continue
         zprops, texture = _zone_props(c["layers"], cell_mask)
         zone_letter = _ZONE_LETTERS[z_id] if z_id < len(_ZONE_LETTERS) else str(z_id)
-        # نقاط ممثّلة: المركز أوّلاً ثمّ أبعد نقاط عن المركز (تباعُد داخل المنطقة).
+        # بركة الاختيار: البكسلات الداخليّة (لا حافّة)؛ إن غابت (منطقة رفيعة) فكلّها.
+        ir, ic = _interior_pixels(cell_mask)
+        pool_r, pool_c = (ir, ic) if ir.size else (rr, cc)
+        # النقطة الأولى: الأقرب لمركز المنطقة من بركة الداخل (تمثيليّة وآمنة).
         cr, cc0 = rr.mean(), cc.mean()
-        order = np.argsort(-((rr - cr) ** 2 + (cc - cc0) ** 2))  # الأبعد أوّلاً للتنويع
-        picks = [(int(cr), int(cc0))]
-        for k in order:
-            if len(picks) >= samples_per_zone:
-                break
-            picks.append((int(rr[k]), int(cc[k])))
+        first = int(np.argmin((pool_r - cr) ** 2 + (pool_c - cc0) ** 2))
+        picks = [(int(pool_r[first]), int(pool_c[first]))]
+        # عيّنات إضافيّة: أقصى تباعُد عن المُختارة (farthest-point) داخل البركة.
+        while len(picks) < samples_per_zone and pool_r.size > len(picks):
+            dist = np.full(pool_r.size, np.inf)
+            for pr, pc in picks:
+                dist = np.minimum(dist, (pool_r - pr) ** 2 + (pool_c - pc) ** 2)
+            nxt = int(np.argmax(dist))
+            picks.append((int(pool_r[nxt]), int(pool_c[nxt])))
+        conf = round(min(1.0, rr.size / 25.0), 2)  # ~25 بكسل ⇒ ثقة كاملة (نسبيّة)
         reason = f"منطقة {zone_letter}"
         if texture:
             reason += f" — {texture}"
@@ -267,7 +300,10 @@ def compute_soil_sampling_points(
                         "tests": _LAB_TESTS,
                         "soil": zprops,
                         "reason_ar": reason,
+                        "zone_pixels": int(rr.size),
                         "confidence": "advisory",
+                        "confidence_score": conf,
+                        "placement": "interior" if ir.size else "zone",
                     },
                 }
             )

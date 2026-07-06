@@ -620,7 +620,7 @@ export default function MapHub() {
     const bbox: [number, number, number, number] = [minLon, minLat, maxLon, maxLat];
     let cancelled = false;
     setContoursNote(null);
-    fetchFieldContours(selected.id, bbox, 10)
+    fetchFieldContours(selected.id, bbox, 10, selected.geometry)
       .then((fc) => {
         if (cancelled) return;
         setContoursData(fc);
@@ -660,7 +660,7 @@ export default function MapHub() {
     let cancelled = false;
     setSoilSamplesBusy(true);
     setSoilSamplesNote(null);
-    fetchSoilSamplingPlan(selected.id, bbox, { depth: soilDepth, samplesPerZone: 2 })
+    fetchSoilSamplingPlan(selected.id, bbox, { depth: soilDepth, samplesPerZone: 2, geometry: selected.geometry })
       .then((plan) => {
         if (cancelled) return;
         const feats = Array.isArray(plan.features) ? plan.features : [];

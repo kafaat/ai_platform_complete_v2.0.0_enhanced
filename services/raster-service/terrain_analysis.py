@@ -68,6 +68,7 @@ def compute_field_terrain(
     dem_path: str | None,
     bbox: list[float] | None = None,
     pixel_size_m: float = 30.0,
+    poly: list | None = None,
 ) -> dict:
     """يحسب إحصاءات تضاريس حقل (ارتفاع + انحدار/اتّجاه) من DEM مقصوصٍ على bbox الحقل.
 
@@ -109,7 +110,7 @@ def compute_field_terrain(
             # قراءة موحَّدة: تصحيح CRS (bbox lon/lat ⇒ src.crs قبل النافذة) + سقف حجم.
             # masked=True يحترم nodata (‑32768/‑9999…): بدونه يُحسَب الحارس كارتفاع حقيقيّ
             # فيفسد min/max/mean ويخترع تدرّجاً هائلاً عند حوافّ الفجوات ⇒ انحدار خاطئ.
-            read = read_field_window(src, (min_lon, min_lat, max_lon, max_lat))
+            read = read_field_window(src, (min_lon, min_lat, max_lon, max_lat), poly_lonlat=poly)
             if read is None:
                 return {
                     "computed": False,
