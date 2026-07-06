@@ -1488,3 +1488,13 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **حراسة UI:** حارس ساكن جديد `MapHubTerrainSoilLayers.static.test.ts` (المبدّلات الثلاثة + التربة · إغلاق آمن available-gated · رسائل غياب صادقة · أساطير · disclaimer إلزاميّ). 6 اختبارات.
 - **ملاحظة `jose` (بيئيّة لا كود):** فشل جمع `tests_v9` عند المُدقِّق سببه `python-jose` غير مُثبَّت في بيئته المؤقّتة — موجود في `requirements-dev.txt`/`tests_v9/requirements-test.txt`؛ ليس عيباً في الحزمة.
 - **التحقّق:** raster-service **131/131** (كان 123/5-فشل) · vitest الحارس 6/6 · ruff نظيف · المانيفست أُعيد بناؤه (+2 ملفّ اختبار مُتتبَّع، 3183 checksum).
+
+## 2026-07-06 (تكملة) — استجابة لتدقيق خارجيّ أعمق (P0×3 + P1×4) على التضاريس/التربة (فرع = 776d086)
+- **P0#1 — عطب Query عامّ في كلّ الراوترات الجديدة:** ليس محصوراً بـcdse — `field_terrain/contours/soil_summary/zones/plan` كلّها تعطب على الاستدعاء المباشر (`'Query'.split`). حُوِّلت كلّ بارامترات `= Query(...)` في `terrain_tiles.py`/`soil_tiles.py` إلى `Annotated[T, Query()] = default` (الافتراضيّ البايثونيّ قيمة حقيقيّة). حارس `test_router_query_direct_call.py` يقود كلّ نقطة مباشرةً + يمنع عودة `= Query(`.
+- **P0#2 — MapLibre GL لا يرسم الطبقات:** كانت تصل Leaflet فقط. `HubMapGL` يستقبل الآن hillshade/slope/soil URLs + contours + soilSamplePoints ويرسمها (نمط بلاطة المؤشّر المُثبَت + علامات DOM 🧪 + كنتور GeoJSON خطّيّ)؛ التأثير يعتمد على basemapId فتبقى بعد إعادة تحميل الأساس؛ fail-closed (بلا رابط ⇒ إزالة الطبقة). حارس ساكن يؤكّد تمرير المحرّكين + إضافة الطبقات. **صدق:** التصيير GL لم يُتحقَّق بصريّاً هنا (بيئة headless) — يحاكي مسار المؤشّر العامل.
+- **P0#3 — compose غير قابل للتفعيل:** `docker-compose.v9.yml` يُعلن الآن `SOILGRIDS_DIR` + `RASTER_MAX_READ_DIM` ويربط `/data/dem` و`/data/soilgrids` (read-only، مجلّدان فارغان افتراضاً ⇒ fail-closed صادق). حارس `test_terrain_soil_compose_provisioning.py`.
+- **P1 (صحّة) — CRS + سقف نافذة:** كانا مُصلَحَين أصلاً في `f092270` (المُدقِّق راجع zip أقدم). أُثبِت باختبار raster مُسقَط (UTM).
+- **P1 — صدق المصدر:** `/v1/soil/properties` يكشف `source_declared` مقابل `source_readable` + `readable_layers` (env مضبوط ≠ ملفّ موجود)؛ `source_configured` صار «قابل للخدمة». دالّة `readable_layer_count`.
+- **P1 — readyz تفصيليّ:** `/readyz` يكشف حالة terrain/soilgrids (غير حاجبة) كي لا تبدو الخدمة جاهزة وطبقاتها معطّلة.
+- **P1 مؤجَّل بصدق (موثَّق، غير مُنجَز بعد):** (٥) قصّ contours/عيّنات على **مضلّع** الحقل لا bbox — يحتاج تمرير poly + قناع rasterio عبر مسارات القراءة. (٨) تحسين خوارزميّة العيّنات (نقطة داخليّة/buffer/حدّ مساحة). (٩) توكن في روابط TileJSON (كامن — الواجهة تبني رابطها بتوكن). **لا ادّعاء إنجاز.**
+- **jose:** بيئيّ لا كود (موجود في requirements-dev). **التحقّق:** raster-service 134/134 · حُرّاس compose/GL/zone خضراء · vitest · tsc نظيف · المانيفست 3185.
