@@ -408,8 +408,14 @@ export default function MapHub() {
   // عميل-فقط: التصدير يقرأ الحالة الحاليّة، والاستيراد يستدعي الـsetters القائمة.
   const projectInputRef = useRef<HTMLInputElement>(null);
   const imageryRefreshKeyRef = useRef<string>('');
+  // Token يلغي polling الخلفيّ عند تغيير الحقل أو تفكيك المكوّن؛ يمنع تحديث Timeline لحقل قديم.
+  const backfillPollTokenRef = useRef(0);
   const twoYearTimeline = useMemo(() => summarizeTwoYearTimeline(timelineImageryDates), [timelineImageryDates]);
   const dateSelectorDates = availableImageryDates.length > 0 ? availableImageryDates : timelineImageryDates;
+
+  useEffect(() => {
+    return () => { backfillPollTokenRef.current += 1; };
+  }, []);
 
   useEffect(() => {
     if (!requestedCdseOpen) return;
@@ -571,6 +577,10 @@ export default function MapHub() {
   // الحقل المختار (يُشتقّ من القائمة + الاختيار المشترك) — مُعرَّف قبل المُعالِجات التي
   // تستعمله (تجهيز صور سنتين) لتفادي «used before declaration».
   const selected = fields.find((f) => f.id === fieldId);
+
+  useEffect(() => {
+    backfillPollTokenRef.current += 1;
+  }, [selected?.id]);
 
   // ── تضاريس: TileJSON للتظليل/الانحدار (فحص التوفّر + أسطورة الانحدار) ──────────
   // يُطلَب عند التفعيل فقط. available:false ⇒ نخزّن الردّ لعرض user_message الصادق
@@ -738,6 +748,10 @@ export default function MapHub() {
       return;
     }
     if (historicalBackfillBusy) return;
+    const pollFieldId = selected.id;
+    const pollToken = backfillPollTokenRef.current + 1;
+    backfillPollTokenRef.current = pollToken;
+    let finalRefreshImageryTimeline: null | (() => Promise<void>) = null;
     setHistoricalBackfillBusy(true);
     setHistoricalBackfillStatus(`جارٍ إنشاء خطة/مهمة backfill لمدة ${months} شهر…`);
     try {
@@ -781,7 +795,7 @@ export default function MapHub() {
         clip_polygon_geojson: selected.geometry,
         dry_run: false,
       };
-      const result = await runHistoricalImageryBackfill(selected.id, payload);
+      const result = await runHistoricalImageryBackfill(pollFieldId, payload);
       const scheduled = Number(result?.jobs_scheduled ?? result?.jobs_created ?? result?.selected_scenes ?? 0);
       // v10-F10/v20260706: المسار اللاتزامنيّ يُرجِع run_id. لا نكتفي برسالة "أُدرجت"؛
       // نستطلع حالة التشغيل من بوابة المنصّة ثم نعيد تحميل available-dates/timeline عند
@@ -791,8 +805,8 @@ export default function MapHub() {
       const refreshIndex = activeIndicator ?? indices[0];
       const refreshImageryTimeline = async () => {
         const [dates, allDates] = await Promise.all([
-          fetchFieldImageryAvailableDates(selected.id, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
-          fetchFieldImageryAvailableDates(selected.id, undefined, 240).catch(() => [] as FieldImageryDateOption[]),
+          fetchFieldImageryAvailableDates(pollFieldId, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
+          fetchFieldImageryAvailableDates(pollFieldId, undefined, 240).catch(() => [] as FieldImageryDateOption[]),
         ]);
         if (Array.isArray(dates) && dates.length > 0) {
           setAvailableImageryDates([...dates].sort((a, b) => b.date.localeCompare(a.date)));
@@ -802,6 +816,7 @@ export default function MapHub() {
         }
         setImageryTs(Date.now());
       };
+      finalRefreshImageryTimeline = refreshImageryTimeline;
       const status = isAsync
         ? `تمّ إدراج تشغيلة backfill لمدة ${months} شهر في الطابور (run_id=${runId || '?'}); جارٍ متابعة التقدّم حتى تكتمل وتُزامَن التواريخ تلقائياً.`
         : scheduled > 0
@@ -813,9 +828,23 @@ export default function MapHub() {
       if (isAsync && runId > 0) {
         const sleep = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
         let lastStatus = 'planned';
+        let transientErrors = 0;
         for (let attempt = 0; attempt < 80; attempt += 1) {
+          if (backfillPollTokenRef.current !== pollToken) break;
           await sleep(attempt < 6 ? 2500 : 5000);
-          const run = await fetchHistoricalImageryBackfillStatus(selected.id, runId);
+          if (backfillPollTokenRef.current !== pollToken) break;
+          let run;
+          try {
+            run = await fetchHistoricalImageryBackfillStatus(pollFieldId, runId);
+            transientErrors = 0;
+          } catch (pollError) {
+            transientErrors += 1;
+            if (transientErrors <= 5 && attempt < 79) {
+              setHistoricalBackfillStatus(`backfill #${runId}: تعذّر استطلاع الحالة مؤقتاً (${transientErrors}/5)؛ سنعيد المحاولة…`);
+              continue;
+            }
+            throw pollError;
+          }
           lastStatus = String(run.status || lastStatus);
           const persisted = Number(run.items_persisted ?? 0);
           const failed = Number(run.items_failed ?? 0);
@@ -844,7 +873,10 @@ export default function MapHub() {
       setHistoricalBackfillStatus(detail);
       toastStore.add('error', `فشل تجهيز ${months} شهر تاريخية`, detail);
     } finally {
-      setHistoricalBackfillBusy(false);
+      if (backfillPollTokenRef.current === pollToken && finalRefreshImageryTimeline) {
+        try { await finalRefreshImageryTimeline(); } catch { /* best-effort final sync */ }
+      }
+      if (backfillPollTokenRef.current === pollToken) setHistoricalBackfillBusy(false);
     }
   }, [activeIndicator, historicalBackfillBusy, selected]);
 

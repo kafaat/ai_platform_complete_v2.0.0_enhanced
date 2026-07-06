@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7f00a6221ef8ed8f30c6fa60bd5a99f3ac3536ab9b3404449ac608c70be7a39"
+          "content": "3fd1eeddd62f64bf0bfc240733cf16ec46f268dc58506f0375b3575afef759a2"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4585,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "77e8a74204abc31d9eafb2876ea86d93f5dc72d85e238eb2e6548de945a4990c"
+          "content": "8c4d78e522d233f24abaa30f0ef8a4065282740d155264447e845aba37138a22"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -9329,6 +9329,16 @@
         }
       ],
       "name": "services/raster-service/test_backfill_incremental_retry_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2671d888797401a8da050e308dffee1da31ccb5334b4311dcce37c46d19be65f"
+        }
+      ],
+      "name": "services/raster-service/test_backfill_scene_policy.py",
       "type": "file"
     },
     {
