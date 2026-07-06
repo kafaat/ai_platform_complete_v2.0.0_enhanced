@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76a2fc1468a111f9addea0bbebf1494ba7d0e9090133b57414b25837430e36f9"
+          "content": "7f41afe3a221cbae25f799a1e2b018248e28ab1e4421264b5b3052a6cb496be9"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04641eb625896e48fd2a82a47982f5f2e259d5bafb3b542333fcc86c0ede3653"
+          "content": "e7f00a6221ef8ed8f30c6fa60bd5a99f3ac3536ab9b3404449ac608c70be7a39"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -4585,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ecc513809bf5fd27d6e84162240f18293ebaae3990ea7f2ba45d2b5064135668"
+          "content": "77e8a74204abc31d9eafb2876ea86d93f5dc72d85e238eb2e6548de945a4990c"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5035,7 +5035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "81ce82f84b61de6321234481ff237dcecc5f0b97e939813e8ba2ad632fbcc968"
+          "content": "90c2183614c636f8e22bb8de29f1235e3f18e41a72adb0dd5f0564fbfbb76527"
         }
       ],
       "name": "frontend/src/services/api.test.ts",
@@ -5045,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0cf18095b610144f04f1987639a964b1cb0474a75408b81ed08f721a5d2d2a0"
+          "content": "07ed3d0b359c867830bccc727693ee0494c013e421e280153eed7f3ec3a92758"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9025,7 +9025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b4d12ed710195127925357ef346846980f370c411a764d9e126cc3b815dc168"
+          "content": "0970271d8b1b8495a022e721a4c5a51b67ff533138b4dec30505519bc2fa23b1"
         }
       ],
       "name": "services/raster-service/object_store.py",
@@ -10785,7 +10785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0a727681dec116c085a77b02e326cfded55de7365415be4ed9aa84135ddc666"
+          "content": "94fde0555d6d90c19f05a632d2ac6e385e0350785bb0726171eb02be4ac60323"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -11925,7 +11925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f8cdf7902fef35843b64a973c5909dbe42326eb936bf2c83ff03730c44d8697"
+          "content": "ba1bce6fb0df65d20427e551ba497de846b80e942b8a1d1b6c81858ce3de1898"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

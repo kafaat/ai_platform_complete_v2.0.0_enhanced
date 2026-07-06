@@ -28,6 +28,9 @@ jobs:
       - name: compose-env-contract-gate
         run: python scripts/ci/compose_env_contract_gate.py
 
+      - name: backfill-ui-sync-gate
+        run: python scripts/ci/backfill_ui_sync_gate.py
+
       - name: runtime-contract-gate
         run: python scripts/ci/runtime_contract_gate.py
 

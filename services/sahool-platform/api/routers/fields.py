@@ -998,6 +998,61 @@ async def field_imagery_backfill_proxy(
         raise _db_unavailable("تشغيل backfill التاريخي لصور الحقل", e) from e
 
 
+@router.get("/api/v1/fields/{field_id}/imagery/backfill/{run_id}")
+async def field_imagery_backfill_status_proxy(
+    field_id: str,
+    run_id: int,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """Tenant-scoped proxy for asynchronous raster backfill status.
+
+    The browser must not call raster-service directly because the platform owns
+    JWT/RBAC, field ownership checks, tenant header injection, and X-Agent-Token.
+    MapHub polls this route after POST /imagery/backfill and refreshes
+    available-dates/timeline when the worker reaches a terminal state.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            exists = await conn.fetchval(
+                "SELECT 1 FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            if not exists:
+                raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+
+        import os as _os
+
+        import httpx as _httpx
+
+        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+            "/"
+        )
+        headers = {
+            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
+            "X-Tenant-Id": str(user.tenant_id),
+        }
+        try:
+            async with _httpx.AsyncClient(timeout=30.0) as client:
+                resp = await client.get(
+                    f"{raster_url}/v1/fields/{field_id}/imagery/backfill/{run_id}",
+                    headers=headers,
+                )
+        except _httpx.HTTPError as exc:
+            raise HTTPException(status_code=502, detail=f"raster-service غير متاح: {exc}") from exc
+        if resp.status_code >= 400:
+            try:
+                detail = resp.json()
+            except Exception:  # noqa: BLE001
+                detail = resp.text
+            raise HTTPException(status_code=resp.status_code, detail=detail)
+        return resp.json()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة حالة backfill التاريخي", e) from e
+
+
 @router.get("/api/v1/fields/{field_id}", response_model=FieldDetail)
 async def get_field(
     field_id: str,

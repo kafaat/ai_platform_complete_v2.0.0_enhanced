@@ -32,7 +32,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
 import { fieldRepresentativePoint, geomToPolygon } from '../lib/geo';
-import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, fetchSoilSamplingPlan, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fetchHistoricalImageryBackfillStatus, isTerminalBackfillStatus, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, fetchSoilSamplingPlan, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -783,30 +783,62 @@ export default function MapHub() {
       };
       const result = await runHistoricalImageryBackfill(selected.id, payload);
       const scheduled = Number(result?.jobs_scheduled ?? result?.jobs_created ?? result?.selected_scenes ?? 0);
-      // v10-F10: المسار اللاتزامنيّ يُرجِع status='planned' (لم يبدأ العمل بعد) — رسالة
-      // صادقة: التشغيلة في الطابور يُنفّذها عامل الفحص، لا «اكتمل». لا نُوهِم بالنجاح.
+      // v10-F10/v20260706: المسار اللاتزامنيّ يُرجِع run_id. لا نكتفي برسالة "أُدرجت"؛
+      // نستطلع حالة التشغيل من بوابة المنصّة ثم نعيد تحميل available-dates/timeline عند
+      // اكتمال العامل، حتى يرى المستخدم تواريخ الـbackfill دون refresh يدوي.
       const isAsync = (result as { mode?: string })?.mode === 'async';
+      const runId = Number((result as { run_id?: number })?.run_id ?? 0);
+      const refreshIndex = activeIndicator ?? indices[0];
+      const refreshImageryTimeline = async () => {
+        const [dates, allDates] = await Promise.all([
+          fetchFieldImageryAvailableDates(selected.id, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
+          fetchFieldImageryAvailableDates(selected.id, undefined, 240).catch(() => [] as FieldImageryDateOption[]),
+        ]);
+        if (Array.isArray(dates) && dates.length > 0) {
+          setAvailableImageryDates([...dates].sort((a, b) => b.date.localeCompare(a.date)));
+        }
+        if (Array.isArray(allDates) && allDates.length > 0) {
+          setTimelineImageryDates([...allDates].sort((a, b) => b.date.localeCompare(a.date)));
+        }
+        setImageryTs(Date.now());
+      };
       const status = isAsync
-        ? `تمّ إدراج تشغيلة backfill لمدة ${months} شهر في الطابور (run_id=${(result as { run_id?: number }).run_id ?? '?'}); يُنفّذها عامل الفحص لاتزامنيّاً — تظهر التواريخ تدريجيّاً بعد المعالجة.`
+        ? `تمّ إدراج تشغيلة backfill لمدة ${months} شهر في الطابور (run_id=${runId || '?'}); جارٍ متابعة التقدّم حتى تكتمل وتُزامَن التواريخ تلقائياً.`
         : scheduled > 0
           ? `تم تجهيز مهمة ${months} شهر: ${scheduled} عنصر/مشهد مجدول.`
           : `تم إرسال طلب تجهيز ${months} شهر؛ تحقق من حالة raster-service والتواريخ المتاحة بعد المعالجة.`;
       setHistoricalBackfillStatus(status);
       toastStore.add(isAsync ? 'info' : 'success', isAsync ? `أُدرِجت تشغيلة ${months} شهر في الطابور` : `بدأ تجهيز ${months} شهر تاريخية`, status);
-      // v10-F9: مرّر المؤشّر النشط (يشمل truecolor الآن — يُحفَظ كـCOG RGBA) كي لا يُعاد
-      // ملء المُنتقي بتواريخ مؤشّرات أخرى بعد الـbackfill مباشرةً.
-      const refreshIndex = activeIndicator ?? indices[0];
-      const [dates, allDates] = await Promise.all([
-        fetchFieldImageryAvailableDates(selected.id, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
-        fetchFieldImageryAvailableDates(selected.id, undefined, 240).catch(() => [] as FieldImageryDateOption[]),
-      ]);
-      if (Array.isArray(dates) && dates.length > 0) {
-        setAvailableImageryDates([...dates].sort((a, b) => b.date.localeCompare(a.date)));
+
+      if (isAsync && runId > 0) {
+        const sleep = (ms: number) => new Promise(resolve => window.setTimeout(resolve, ms));
+        let lastStatus = 'planned';
+        for (let attempt = 0; attempt < 80; attempt += 1) {
+          await sleep(attempt < 6 ? 2500 : 5000);
+          const run = await fetchHistoricalImageryBackfillStatus(selected.id, runId);
+          lastStatus = String(run.status || lastStatus);
+          const persisted = Number(run.items_persisted ?? 0);
+          const failed = Number(run.items_failed ?? 0);
+          const skipped = Number(run.items_skipped ?? 0);
+          setHistoricalBackfillStatus(`backfill #${runId}: ${lastStatus} — حُفظ ${persisted}، فشل ${failed}، تخطّي ${skipped}`);
+          // أعِد تحميل التواريخ تدريجياً أثناء المعالجة أيضاً، لأن بعض العناصر تُحفَظ قبل نهاية التشغيل.
+          if (attempt % 2 === 1 || isTerminalBackfillStatus(lastStatus)) {
+            await refreshImageryTimeline();
+          }
+          if (isTerminalBackfillStatus(lastStatus)) {
+            if (lastStatus === 'failed') {
+              const detail = run.error ? ` — ${run.error}` : '';
+              toastStore.add('error', `فشل backfill #${runId}`, `انتهت التشغيلة بالحالة failed${detail}`);
+            } else {
+              toastStore.add(lastStatus === 'completed_with_errors' ? 'warning' : 'success', `اكتمل backfill #${runId}`, `تمت مزامنة Timeline والبلاطات للحقل.`);
+            }
+            break;
+          }
+        }
+      } else {
+        // المسار المتزامن/القديم: إعادة تحميل فورية كافية.
+        await refreshImageryTimeline();
       }
-      if (Array.isArray(allDates) && allDates.length > 0) {
-        setTimelineImageryDates([...allDates].sort((a, b) => b.date.localeCompare(a.date)));
-      }
-      setImageryTs(Date.now());
     } catch (e) {
       const detail = asApiError(e).message || 'تعذّر تشغيل backfill التاريخي. تحقق من token raster-service أو حدود الحقل.';
       setHistoricalBackfillStatus(detail);

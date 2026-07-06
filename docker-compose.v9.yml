@@ -769,7 +769,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY required}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -848,7 +848,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY required}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -892,7 +892,7 @@ services:
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY required}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -937,7 +937,7 @@ services:
       TITILER_API_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       AWS_S3_ENDPOINT: ${S3_ENDPOINT_HOST:-sahool-minio:9000}
       AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-sahool-admin}
-      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?S3_SECRET_KEY required}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-}
       AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
       AWS_HTTPS: ${S3_USE_SSL:-false}
       AWS_VIRTUAL_HOSTING: ${AWS_VIRTUAL_HOSTING:-false}

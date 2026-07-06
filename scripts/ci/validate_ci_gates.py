@@ -6,6 +6,7 @@ and minimal release environments. It validates presence and wiring of the
 release/security/observability/deployment gates that must block merges and
 production deployments.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -45,9 +46,15 @@ REQUIRED_WORKFLOW_TOKENS = [
 ]
 
 FORBIDDEN_WORKFLOW_PATTERNS = [
-    (re.compile(r"image:\s*latest\b", re.I), "workflow must not pin runner container images to latest"),
+    (
+        re.compile(r"image:\s*latest\b", re.I),
+        "workflow must not pin runner container images to latest",
+    ),
     (re.compile(r"continue-on-error:\s*true", re.I), "quality gates must not continue on error"),
-    (re.compile(r"pull_request_target\s*:", re.I), "pull_request_target is not allowed for untrusted CI"),
+    (
+        re.compile(r"pull_request_target\s*:", re.I),
+        "pull_request_target is not allowed for untrusted CI",
+    ),
 ]
 
 REQUIRED_RELEASE_TOKENS = [
@@ -95,9 +102,13 @@ def validate_workflow_shell_blocks(workflow_text: str) -> list[str]:
             tmp.write(block)
             tmp_path = Path(tmp.name)
         try:
-            result = subprocess.run(["bash", "-n", str(tmp_path)], text=True, capture_output=True, check=False)
+            result = subprocess.run(
+                ["bash", "-n", str(tmp_path)], text=True, capture_output=True, check=False
+            )
             if result.returncode != 0:
-                errors.append(f"workflow run block #{index} has invalid bash syntax: {result.stderr.strip()}")
+                errors.append(
+                    f"workflow run block #{index} has invalid bash syntax: {result.stderr.strip()}"
+                )
         finally:
             tmp_path.unlink(missing_ok=True)
     return errors
@@ -125,9 +136,19 @@ def validate(root: Path) -> list[str]:
     for pattern, message in FORBIDDEN_WORKFLOW_PATTERNS:
         require(not pattern.search(workflow), message, errors)
     errors.extend(validate_workflow_shell_blocks(workflow))
-    require("permissions:" in workflow and "contents: read" in workflow, "workflow must set read-only contents permissions", errors)
-    require("actions/checkout@v4" in workflow, "workflow must use pinned checkout major version", errors)
-    require("actions/setup-python@v5" in workflow, "workflow must use pinned setup-python major version", errors)
+    require(
+        "permissions:" in workflow and "contents: read" in workflow,
+        "workflow must set read-only contents permissions",
+        errors,
+    )
+    require(
+        "actions/checkout@v4" in workflow, "workflow must use pinned checkout major version", errors
+    )
+    require(
+        "actions/setup-python@v5" in workflow,
+        "workflow must use pinned setup-python major version",
+        errors,
+    )
     for script_call in [
         "bash scripts/production_validation_gate.sh",
         "bash scripts/security_audit.sh",
@@ -135,19 +156,29 @@ def validate(root: Path) -> list[str]:
         "bash scripts/e2e/e2e_field_imagery_ai.sh",
         "bash scripts/chaos/run_chaos_tests.sh",
     ]:
-        require(script_call in workflow, f"workflow must invoke {script_call} via bash, not executable bit", errors)
+        require(
+            script_call in workflow,
+            f"workflow must invoke {script_call} via bash, not executable bit",
+            errors,
+        )
 
     local_gate = root / "scripts/ci/local_quality_gate.sh"
     local_gate_text = read(local_gate) if local_gate.exists() else ""
     for rel in REQUIRED_LOCAL_GATES[1:]:
         require(rel in local_gate_text, f"local gate does not invoke {rel}", errors)
     require("py_compile" in local_gate_text, "local gate must include python compile sweep", errors)
-    require("pytest" in local_gate_text, "local gate must include targeted pytest contracts", errors)
+    require(
+        "pytest" in local_gate_text, "local gate must include targeted pytest contracts", errors
+    )
 
     release_builder = root / "scripts/release/build_release_bundle.py"
     release_builder_text = read(release_builder) if release_builder.exists() else ""
     for token in REQUIRED_RELEASE_TOKENS:
-        require(token in release_builder_text, f"release builder does not track CI asset: {token}", errors)
+        require(
+            token in release_builder_text,
+            f"release builder does not track CI asset: {token}",
+            errors,
+        )
 
     return errors
 

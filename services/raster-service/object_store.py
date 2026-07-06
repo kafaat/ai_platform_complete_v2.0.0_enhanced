@@ -66,7 +66,12 @@ def _endpoint_url() -> str:
 
 
 def enabled() -> bool:
-    """True فقط إذا ضُبط كلٌّ من S3_BUCKET و S3_ENDPOINT."""
+    """True إذا ضُبط S3_BUCKET و S3_ENDPOINT.
+
+    ملاحظة: لا نطلب S3_ACCESS_KEY/S3_SECRET_KEY هنا حتى لا يفشل docker compose
+    أو الاستيراد في بيئات التطوير التي لا تستخدم S3. عند تفعيل S3 فعلياً بدون
+    مفاتيح، يفشل upload_cog برسالة صريحة بدلاً من تدهور صامت إلى file://.
+    """
     return bool(S3_BUCKET) and bool(S3_ENDPOINT)
 
 
@@ -105,6 +110,18 @@ def upload_cog(local_path: str, key: str) -> str:
     """
     if not enabled():
         return f"file://{local_path}"
+    if not S3_ACCESS_KEY or not S3_SECRET_KEY:
+        # S3 مُهيّأة (bucket/endpoint) لكن بلا مفاتيح: fail-closed افتراضاً كبقيّة أخطاء
+        # الرفع — إلّا إذا سُمِح fallback (تطوير) فنتدهور إلى file:// بتحذير (لا رفع صامت
+        # ولا استثناء يكسر التطوير حين S3_ALLOW_FILE_FALLBACK=1).
+        msg = (
+            "S3_BUCKET/S3_ENDPOINT are configured but S3_ACCESS_KEY/S3_SECRET_KEY are missing; "
+            "set S3_SECRET_KEY in .env or leave S3_BUCKET empty for local file:// storage"
+        )
+        if _allow_file_fallback():
+            logger.warning("%s — S3_ALLOW_FILE_FALLBACK ⇒ file://%s", msg, local_path)
+            return f"file://{local_path}"
+        raise ObjectStoreUploadError(msg)
     try:
         import boto3
         from botocore.client import Config
