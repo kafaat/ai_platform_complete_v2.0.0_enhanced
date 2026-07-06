@@ -13,15 +13,16 @@ ROOT = pathlib.Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import main  # noqa: E402
+import raster_settings  # noqa: E402
+import stac_search  # noqa: E402
 
 
 def test_landsat_unique_sets_do_not_include_sentinel_duplicate_indices():
     duplicates = {"ndvi", "ndmi", "msi", "ndwi", "savi", "evi", "gndvi", "ndre"}
-    assert main.LANDSAT_UNIQUE_INDICES.isdisjoint(duplicates)
-    assert "lst" in main.LANDSAT_DIRECT_RASTER_INDICES
-    assert main.LANDSAT_DIRECT_RASTER_INDICES <= main.LANDSAT_UNIQUE_INDICES
-    assert main.LANDSAT_DERIVED_INDICES <= main.LANDSAT_UNIQUE_INDICES
+    assert raster_settings.LANDSAT_UNIQUE_INDICES.isdisjoint(duplicates)
+    assert "lst" in raster_settings.LANDSAT_DIRECT_RASTER_INDICES
+    assert raster_settings.LANDSAT_DIRECT_RASTER_INDICES <= raster_settings.LANDSAT_UNIQUE_INDICES
+    assert raster_settings.LANDSAT_DERIVED_INDICES <= raster_settings.LANDSAT_UNIQUE_INDICES
 
 
 def test_landsat_payload_keeps_only_thermal_urls_and_excludes_optical_bands():
@@ -36,7 +37,7 @@ def test_landsat_payload_keeps_only_thermal_urls_and_excludes_optical_bands():
             "lwir11": {"href": "https://example.test/lst.tif", "title": "Surface Temperature"},
         },
     }
-    item = main._landsat_unique_payload(feat)
+    item = stac_search.landsat_unique_payload(feat)
     assert item is not None
     assert item["thermal_urls"] == {"lst": "https://example.test/lst.tif"}
     assert "bands_urls" not in item
@@ -50,7 +51,7 @@ def test_landsat_payload_without_thermal_asset_is_dropped():
         "properties": {"datetime": "2026-07-01T08:00:00Z"},
         "assets": {"red": {"href": "https://example.test/red.tif"}},
     }
-    assert main._landsat_unique_payload(feat) is None
+    assert stac_search.landsat_unique_payload(feat) is None
 
 
 def test_backfill_endpoint_static_rejects_landsat_duplicate_indices():

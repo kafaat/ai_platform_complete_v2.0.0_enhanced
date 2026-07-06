@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a6b9024417b44c154eedaa0baac4522610ef9110c7f7ed90f486cfd928dca622"
+          "content": "0ef60b7030c6042b53be35be8b57fcf678b974ca7bc893634bbcb619e27c059a"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9115,7 +9115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40e47526f9869fbce8c52e218222462098a86b93382b615d83caf085ae7dd1fa"
+          "content": "4667ac8f7b3584c7bd5b9537466a1ac932a3f52a8d528c9a8f62f28ddc299d09"
         }
       ],
       "name": "services/raster-service/raster_cdse_processing.py",
@@ -9535,7 +9535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2671d888797401a8da050e308dffee1da31ccb5334b4311dcce37c46d19be65f"
+          "content": "14d33ace3e0bc39f926fe39aaa8403ddcd45dc9911536db90cb2debbdaa3ab89"
         }
       ],
       "name": "services/raster-service/test_backfill_scene_policy.py",
@@ -9625,7 +9625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52bfa5b1329336725b128a8117e27122768ded98fb0fc65cf8d3825bc68bf02f"
+          "content": "5226f88e3e478c9ab98fe3f37739789b5277777c22b5445a98af532bdccd80c7"
         }
       ],
       "name": "services/raster-service/test_cloud_masking.py",
@@ -9665,7 +9665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "feb421c0ff32b958a139affbaa62f62fc217b683ebfd15a042362017bfbe7fb1"
+          "content": "e1b94cbfcb8a6f2dc65e30bb84e3fb1cb9be2129c550b2adc4accd53da8a8d23"
         }
       ],
       "name": "services/raster-service/test_enterprise_imagery_best_practices.py",
@@ -9695,7 +9695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5fb77327155d16d422f39998ef2204aa13c6caad60f85e1e1350c94729c47ad0"
+          "content": "2a49f8ee5bc6a9b000f07ab5a1851f0dc58f04715da33557b80a6834ad3351b0"
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
@@ -9715,7 +9715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a823c3102f6afaacf5cc904dd78918c04cc166faec0eff08cccc4b1ff37cdb2"
+          "content": "1cdcd22f655a3056e18248139a87ef8f450ff1de232c3287b090fdfafef9d71f"
         }
       ],
       "name": "services/raster-service/test_landsat_thermal_unique_contract.py",
@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8fcd1a295d86426dff659ceeb63f774b9f7385b9b88006634f51a8ad5678b3ab"
+          "content": "7447874bb3c2e61d01b8356eda21c221b46b50a72f8ed7f5cac045e86dc49b83"
         }
       ],
       "name": "services/raster-service/test_raster_assets_text_field_id.py",
@@ -9809,6 +9809,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_map_deep_hardening_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f50b9fe6fbb89690c9c74ae17605b82185b4422a86c52478a72849d745ecbe1a"
+        }
+      ],
+      "name": "services/raster-service/test_raster_quality_gate_wiring_static.py",
       "type": "file"
     },
     {

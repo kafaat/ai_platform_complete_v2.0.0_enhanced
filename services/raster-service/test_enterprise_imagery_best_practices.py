@@ -1,4 +1,9 @@
 import main
+import raster_api_models
+import raster_settings
+import scene_policy
+import tile_cache_io
+import tile_cache_maint
 from fastapi.testclient import TestClient
 
 
@@ -19,19 +24,29 @@ def test_scene_ranking_prefers_aoi_low_cloud_over_latest_cloudy():
             "coverage_pct": 95,
         },
     ]
-    ranked = main._rank_scenes(scenes, max_cloud_pct=40, prefer_recent_days=60)
+    ranked = scene_policy.rank_scenes(scenes, max_cloud_pct=40, prefer_recent_days=60)
     assert ranked[0]["item_id"] == "older-clear"
     assert ranked[0]["sahool_quality"]["cloud_source"] == "aoi_cloud_pct"
 
 
 def test_band_mapping_supports_s2cloudless_quality_bands():
-    bands = main.BandMapping(red=1, nir=2, scl=3, clp=4, clm=5)
+    bands = raster_api_models.BandMapping(red=1, nir=2, scl=3, clp=4, clm=5)
     assert bands.clp == 4
     assert bands.clm == 5
 
 
 def test_tile_cache_key_is_tenant_scoped_and_safe():
-    key = main._tile_cache_key("fld/../1", "NDVI", "latest", 12, 345, 678, "tenant/../A")
+    key = tile_cache_io.tile_cache_key(
+        raster_settings.UPLOAD_DIR,
+        tile_cache_maint.safe_cache_segment,
+        "fld/../1",
+        "NDVI",
+        "latest",
+        12,
+        345,
+        678,
+        "tenant/../A",
+    )
     assert "tile_cache" in key
     assert ".." not in key
     assert "tenant" in key

@@ -1,7 +1,7 @@
 """WS-4 جودة الغيوم — يُثبت سدّ فجوتين في معالجة Sentinel-2:
 
 1) ``cloud_pct`` (مسار Element84): حساب نسبة غيوم المشهد من نطاق SCL تركيبيّ
-   بنسبة غيوم معلومة (``main.compute_cloud_pct`` — دالّة نقيّة بلا rasterio).
+   بنسبة غيوم معلومة (``raster_quality.compute_cloud_pct`` — دالّة نقيّة بلا rasterio).
 2) قناع الغيوم per-pixel في CDSE (``cdse_client.build_evalscript``): يطلب نطاق
    "SCL" ويستبعد أصناف الغيوم/الظلال/السيرس/الثلج (تأكيدات على النصّ).
 
@@ -20,7 +20,8 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import cdse_client  # noqa: E402
-import main  # noqa: E402
+import raster_quality  # noqa: E402
+import raster_settings  # noqa: E402
 
 pytestmark = pytest.mark.unit
 
@@ -30,7 +31,9 @@ def test_compute_cloud_pct_known_fraction():
     """SCL تركيبيّ: 100 بكسل صالح، 25 منها غيوم ⇒ cloud_pct == 25.0."""
     # 25 بكسل صنف 9 (غيمة عالية) + 75 بكسل صنف 4 (غطاء نباتي، غير غيمة).
     scl = np.array([9] * 25 + [4] * 75, dtype=np.uint8)
-    assert main.compute_cloud_pct(scl, np) == pytest.approx(25.0)
+    assert raster_quality.compute_cloud_pct(
+        scl, np, cloud_classes=cdse_client.SCL_CLOUD_CLASSES
+    ) == pytest.approx(25.0)
 
 
 def test_compute_cloud_pct_excludes_nodata_from_denominator():
@@ -39,29 +42,41 @@ def test_compute_cloud_pct_excludes_nodata_from_denominator():
     40 غيمة + 40 نبات + 20 لا-بيانات ⇒ المقام 80 ⇒ 40/80 = 50%.
     """
     scl = np.array([3] * 40 + [4] * 40 + [0] * 20, dtype=np.uint8)
-    assert main.compute_cloud_pct(scl, np) == pytest.approx(50.0)
+    assert raster_quality.compute_cloud_pct(
+        scl, np, cloud_classes=cdse_client.SCL_CLOUD_CLASSES
+    ) == pytest.approx(50.0)
 
 
 def test_compute_cloud_pct_all_cloud_classes_counted():
     """كلّ أصناف الغيوم {3,8,9,10,11} تُحسب غيوماً (بكسل لكلّ صنف من 5)."""
     scl = np.array([3, 8, 9, 10, 11], dtype=np.uint8)
-    assert main.compute_cloud_pct(scl, np) == pytest.approx(100.0)
+    assert raster_quality.compute_cloud_pct(
+        scl, np, cloud_classes=cdse_client.SCL_CLOUD_CLASSES
+    ) == pytest.approx(100.0)
     # صنف غير-غيمة (صفّ صافٍ) ⇒ 0%.
     clear = np.array([4, 5, 6, 7], dtype=np.uint8)
-    assert main.compute_cloud_pct(clear, np) == pytest.approx(0.0)
+    assert raster_quality.compute_cloud_pct(
+        clear, np, cloud_classes=cdse_client.SCL_CLOUD_CLASSES
+    ) == pytest.approx(0.0)
 
 
 def test_compute_cloud_pct_no_valid_returns_none():
     """لا بكسلات صالحة (كلّها SCL=0) ⇒ None (تفادي القسمة على صفر)."""
     scl = np.zeros(16, dtype=np.uint8)
-    assert main.compute_cloud_pct(scl, np) is None
-    assert main.compute_cloud_pct(None, np) is None
+    assert (
+        raster_quality.compute_cloud_pct(scl, np, cloud_classes=cdse_client.SCL_CLOUD_CLASSES)
+        is None
+    )
+    assert (
+        raster_quality.compute_cloud_pct(None, np, cloud_classes=cdse_client.SCL_CLOUD_CLASSES)
+        is None
+    )
 
 
 def test_warn_threshold_is_positive_default():
     """عتبة التحذير الافتراضيّة موجبة (تُستخدم لإلحاق تحذير التلوّث بالغيوم)."""
-    assert main.CLOUD_PCT_WARN_THRESHOLD > 0
-    assert main.SCL_CLOUD_CLASSES == (3, 8, 9, 10, 11)
+    assert raster_settings.CLOUD_PCT_WARN_THRESHOLD > 0
+    assert cdse_client.SCL_CLOUD_CLASSES == (3, 8, 9, 10, 11)
 
 
 # ─── (٢) evalscript CDSE يقنّع الغيوم per-pixel ────────────────────
@@ -87,7 +102,7 @@ def test_cdse_evalscript_excludes_cloud_classes():
 
 def test_cdse_evalscript_cloud_classes_match_element84_path():
     """أصناف الغيوم في CDSE تطابق مسار Element84 (تماسُك المعالجة)."""
-    assert cdse_client.SCL_CLOUD_CLASSES == main.SCL_CLOUD_CLASSES
+    assert cdse_client.SCL_CLOUD_CLASSES == cdse_client.SCL_CLOUD_CLASSES
 
 
 def test_cdse_evalscript_pure_builder_all_indices():

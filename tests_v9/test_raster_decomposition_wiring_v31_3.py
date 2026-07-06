@@ -33,10 +33,11 @@ _DECOMP_MODULES = (
     "tile_cache_io",
 )
 # رموز يعتمدها عامل الـbackfill/الراوترات عبر main.* (اختفاؤها = كسر صامت وقت التشغيل).
+# ملاحظة: phase23 أتمّ فصل main — لم يعُد يُعيد تصدير _is_valid_field_id_text ولا
+# _select_backfill_scenes_by_policy (العامل/الاختبارات تستورد raster_asset_persistence
+# و scene_policy مباشرةً)، فأُسقِطا من العقد. حارس بنية الاستيراد يضمن الفصل الكامل.
 _WORKER_CONTRACT = (
     "_persist_raster_asset",
-    "_is_valid_field_id_text",
-    "_select_backfill_scenes_by_policy",
     "_stac_search",
     "_run_processing",
     "_field_layers",

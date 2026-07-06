@@ -115,12 +115,11 @@ def test_stac_total_failure_maps_to_503_not_raw_500(rm):
 
     # التحويل إلى CDSE جعل _stac_search يوجّه افتراضاً لكتالوج Copernicus؛ هذا الحارس
     # يخصّ مسار Element84 (فشل العميل المرن → 503) فنُثبّت المزوّد صراحةً لاختباره.
-    # بعد التفكيك صار منطق التوجيه في وحدة stac_search؛ لذا نضبط المزوّد على الوحدة
-    # المفكَّكة (لا على main فقط) وإلّا سقط المسار على حارس «اعتمادات CDSE غائبة».
+    # بعد التفكيك (phase23) صار منطق التوجيه في وحدة stac_search وحدها؛ main لم يعُد
+    # يُعيد تصدير HISTORICAL_SEARCH_PROVIDER. نضبط المزوّد على الوحدة المفكَّكة فقط
+    # (مصدر قرار التوجيه) وإلّا سقط المسار على حارس «اعتمادات CDSE غائبة».
     _helpers = rm.stac_search_helpers
-    _prev_provider = rm.HISTORICAL_SEARCH_PROVIDER
     _prev_helpers_provider = _helpers.HISTORICAL_SEARCH_PROVIDER
-    rm.HISTORICAL_SEARCH_PROVIDER = "element84"
     _helpers.HISTORICAL_SEARCH_PROVIDER = "element84"
     rm._stac.search = total_failure
     try:
@@ -138,7 +137,6 @@ def test_stac_total_failure_maps_to_503_not_raw_500(rm):
         assert "Errno" not in str(ei.value.detail), "تفصيل الاستثناء الخام تسرّب للعميل"
         assert "STAC" in str(ei.value.detail)
     finally:
-        rm.HISTORICAL_SEARCH_PROVIDER = _prev_provider
         _helpers.HISTORICAL_SEARCH_PROVIDER = _prev_helpers_provider
 
 

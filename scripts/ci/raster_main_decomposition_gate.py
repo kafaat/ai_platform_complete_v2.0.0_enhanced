@@ -9,8 +9,8 @@ outside the application module and that production raster modules do not depend 
 
 from __future__ import annotations
 
-from pathlib import Path
 import ast
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SVC = ROOT / "services" / "raster-service"
@@ -148,7 +148,7 @@ REQUIRED_MODULES = {
     ],
 }
 
-MAX_MAIN_LINES = 620
+MAX_MAIN_LINES = 540
 
 DIRECT_ROUTER_IMPORTS = {
     "routers/jobs.py",
@@ -219,11 +219,6 @@ FORBIDDEN_MAIN_DEFS = {
     "lifespan",
 }
 REQUIRED_MAIN_ALIASES = {
-    "_scene_quality_score = scene_policy.scene_quality_score",
-    "_rank_scenes = scene_policy.rank_scenes",
-    "_select_backfill_scenes_by_policy = scene_policy.select_backfill_scenes_by_policy",
-    "_bbox_from_geojson = raster_date_geo.bbox_from_geojson",
-    "_month_windows = raster_date_geo.month_windows",
     "_cdse_key_lock = cdse_singleflight.cdse_key_lock",
     "_stac_search = stac_search_helpers.stac_search",
     "_stac_search_cdse = stac_search_helpers.stac_search_cdse",
@@ -283,7 +278,6 @@ REQUIRED_MAIN_ALIASES = {
     "_field_layers = raster_runtime_state.FIELD_LAYERS",
     "_TRANSPARENT_PNG = raster_settings.TRANSPARENT_PNG",
     "RASTER_NODATA = raster_settings.RASTER_NODATA",
-    "return _rq.compute_cloud_pct(scl, np, cloud_classes=SCL_CLOUD_CLASSES)",
 }
 
 
@@ -300,9 +294,7 @@ def main() -> None:
         _fail(f"main.py grew to {line_count} lines; limit is {MAX_MAIN_LINES}")
 
     tree = ast.parse(source)
-    defs = {
-        node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-    }
+    defs = {node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
     regressed = sorted(FORBIDDEN_MAIN_DEFS & defs)
     if regressed:
         _fail(f"extracted helper definitions returned to main.py: {regressed}")
@@ -354,17 +346,20 @@ def main() -> None:
                 _fail(f"{rel} regressed to importing main instead of extracted modules directly")
             if isinstance(node, ast.ImportFrom) and node.module == "main":
                 _fail(f"{rel} regressed to importing main instead of extracted modules directly")
-            if (
-                isinstance(node, ast.Attribute)
-                and isinstance(node.value, ast.Name)
-                and node.value.id == "main"
-            ):
+            if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "main":
                 _fail(f"{rel} regressed to using main.* instead of extracted modules directly")
 
     forbidden_sources = {
         "_jobs = JobStore(": "runtime job store must stay in raster_runtime_state.py",
         "_TRANSPARENT_PNG = bytes.fromhex(": "transparent PNG constant must stay in raster_settings.py",
         "RASTER_NODATA = -9999.0": "nodata constant must stay in raster_settings.py",
+        "def compute_cloud_pct(": "cloud percentage helper must stay in raster_quality.py",
+        "SCL_CLOUD_CLASSES =": "SCL cloud classes must stay in cdse_client.py",
+        "_rank_scenes = scene_policy.rank_scenes": "scene ranking alias must not return to main.py",
+        "_select_backfill_scenes_by_policy = scene_policy.select_backfill_scenes_by_policy": "backfill policy alias must not return to main.py",
+        "_landsat_unique_payload = stac_search_helpers.landsat_unique_payload": "Landsat payload alias must not return to main.py",
+        "def _tile_cache_key(": "tile cache key helper must stay in tile_cache_io.py",
+        "_is_valid_field_id_text,": "field-id validation helper must stay in raster_asset_persistence.py",
     }
     for needle, reason in forbidden_sources.items():
         if needle in source:

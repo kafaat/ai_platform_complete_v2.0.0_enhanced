@@ -3,6 +3,7 @@ import sys
 import types
 
 import main
+import scene_policy
 from fastapi.testclient import TestClient
 
 
@@ -260,7 +261,7 @@ def test_ndvi_backfill_policy_accepts_50pct_cloud_and_enforces_spacing():
         {"item_id": "day4", "datetime": "2026-07-04T08:00:00Z", "cloud_cover_pct": 50},
         {"item_id": "day8", "datetime": "2026-07-08T08:00:00Z", "cloud_cover_pct": 30},
     ]
-    selected = main._select_backfill_scenes_by_policy(
+    selected = scene_policy.select_backfill_scenes_by_policy(
         scenes,
         indices=["ndvi"],
         max_cloud_pct=50,

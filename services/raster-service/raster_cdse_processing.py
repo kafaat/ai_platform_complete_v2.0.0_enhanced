@@ -13,6 +13,8 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import scene_policy
+
 
 def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
     """Compute CDSE indices and register each successful output as a raster layer.
@@ -77,7 +79,9 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
                 limit=10,
                 geometry=req.geometry,
             )
-            ranked = ctx._rank_scenes(scenes, max_cloud_pct=req.max_cloud_pct) if scenes else []
+            ranked = (
+                scene_policy.rank_scenes(scenes, max_cloud_pct=req.max_cloud_pct) if scenes else []
+            )
             best = ranked[0] if ranked else None
             if best:
                 capture_datetime = (

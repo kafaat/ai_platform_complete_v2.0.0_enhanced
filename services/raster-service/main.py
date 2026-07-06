@@ -42,25 +42,9 @@ import band_math
 import object_store
 import raster_settings
 
-# توحيد main↔cert: إعادة تصدير أصناف غيوم SCL من المصدر الوحيد (cdse_client) كي تبقى
-# متاحة عبر ``main.SCL_CLOUD_CLASSES`` (يطابقها حارس test_cloud_masking — تماسُك معالجة
-# CDSE↔Element84). المصدر الوحيد في cdse_client يمنع انحراف القيم.
-from cdse_client import SCL_CLOUD_CLASSES  # noqa: E402
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from stac_client import ResilientStacClient
-
-# توحيد main↔cert: استعادة دالّة نسبة الغيوم النقيّة + عتبتها (كانتا في main وفُقِدتا حين
-# أُخِذت نسخة raster الخاصّة بـcert في الدمج التأسيسيّ). يطابقهما حارس test_cloud_masking.
-CLOUD_PCT_WARN_THRESHOLD = raster_settings.CLOUD_PCT_WARN_THRESHOLD
-
-
-def compute_cloud_pct(scl, np) -> float | None:
-    """Compatibility wrapper for the pure SCL cloud percentage helper."""
-    import raster_quality as _rq
-
-    return _rq.compute_cloud_pct(scl, np, cloud_classes=SCL_CLOUD_CLASSES)
-
 
 try:
     from shared.logging_config import setup_logging
@@ -77,21 +61,9 @@ except ImportError:
 # Phase 11 decomposition: runtime constants moved to raster_settings.py.
 # Re-export legacy names from main.py for routers/tests and staged ctx-based helpers.
 EARTH_SEARCH_URL = raster_settings.EARTH_SEARCH_URL
-HISTORICAL_SEARCH_PROVIDER = raster_settings.HISTORICAL_SEARCH_PROVIDER
-SENTINEL_COLLECTION = raster_settings.SENTINEL_COLLECTION
-SENTINEL1_COLLECTION = raster_settings.SENTINEL1_COLLECTION
-LANDSAT_COLLECTION = raster_settings.LANDSAT_COLLECTION
-LANDSAT_UNIQUE_INDICES = raster_settings.LANDSAT_UNIQUE_INDICES
-LANDSAT_DIRECT_RASTER_INDICES = raster_settings.LANDSAT_DIRECT_RASTER_INDICES
-LANDSAT_DERIVED_INDICES = raster_settings.LANDSAT_DERIVED_INDICES
-LANDSAT_DUPLICATE_SENTINEL_INDICES = raster_settings.LANDSAT_DUPLICATE_SENTINEL_INDICES
-LANDSAT_THERMAL_ASSET_CANDIDATES = raster_settings.LANDSAT_THERMAL_ASSET_CANDIDATES
-DEM_COLLECTION = raster_settings.DEM_COLLECTION
 CORS_ORIGINS = raster_settings.CORS_ORIGINS
 HTTP_TIMEOUT = raster_settings.HTTP_TIMEOUT
 TITILER_URL = raster_settings.TITILER_URL
-PC_STAC_URL = raster_settings.PC_STAC_URL
-DEAFRICA_STAC_URL = raster_settings.DEAFRICA_STAC_URL
 _fallback_chain = raster_settings.stac_fallback_chain()
 
 _stac = ResilientStacClient(
@@ -128,65 +100,12 @@ from raster_api_models import (  # noqa: E402
 # ─── Scene ranking / historical backfill selection policy ─────────────
 # Extracted from main.py; re-exported under legacy names so routers/tests/workers
 # that import main._scene_* keep working without behavior drift.
-import scene_policy  # noqa: E402
-
-CORE_TIMELINE_INDICES = scene_policy.CORE_TIMELINE_INDICES
-NDVI_PULL_MIN_CLEAR_PCT = scene_policy.NDVI_PULL_MIN_CLEAR_PCT
-NDVI_PULL_MAX_CLOUD_PCT = scene_policy.NDVI_PULL_MAX_CLOUD_PCT
-NDVI_HIGH_QUALITY_CLEAR_PCT = scene_policy.NDVI_HIGH_QUALITY_CLEAR_PCT
-NDVI_PULL_MIN_SPACING_DAYS = scene_policy.NDVI_PULL_MIN_SPACING_DAYS
-NDVI_PULL_TARGET_SPACING_DAYS = scene_policy.NDVI_PULL_TARGET_SPACING_DAYS
-
-_scene_datetime = scene_policy.scene_datetime
-_scene_to_dict = scene_policy.scene_to_dict
-_scene_cloud_pct = scene_policy.scene_cloud_pct
-_scene_clear_pct = scene_policy.scene_clear_pct
-_scene_quality_label = scene_policy.scene_quality_label
-_scene_day_key = scene_policy.scene_day_key
-_select_backfill_scenes_by_policy = scene_policy.select_backfill_scenes_by_policy
-_scene_quality_score = scene_policy.scene_quality_score
-_rank_scenes = scene_policy.rank_scenes
-
-
 # صيانة كاش البلاطات (تعقيم المسار + الإبطال + الإخلاء) في وحدة مستقلّة بلا FastAPI
 # كي يستوردها عامل الإبطال بخفّة وتُختبَر بمعزل. نُعيد تصديرها هنا للتوافق.
 import tile_cache_maint  # noqa: E402
-import tile_cache_io  # noqa: E402
 
 invalidate_field_tile_cache = tile_cache_maint.invalidate_field_tile_cache
 prune_tile_cache = tile_cache_maint.prune_tile_cache
-_safe_cache_segment = tile_cache_maint.safe_cache_segment
-_tile_cache_field_dir = tile_cache_maint.tile_cache_field_dir
-
-
-def _tile_cache_enabled() -> bool:
-    return os.getenv("TILE_CACHE_ENABLED", "true").lower() == "true"
-
-
-def _tile_cache_key(
-    field_id: str,
-    index: str,
-    date: str,
-    z: int,
-    x: int,
-    y: int,
-    tenant_id: str | None,
-    v: str | None = None,
-) -> str:
-    return tile_cache_io.tile_cache_key(
-        UPLOAD_DIR, _safe_cache_segment, field_id, index, date, z, x, y, tenant_id, v
-    )
-
-
-def _read_tile_cache(path: str) -> bytes | None:
-    return tile_cache_io.read_tile_cache(path, enabled=_tile_cache_enabled())
-
-
-def _write_tile_cache(path: str, data: bytes) -> None:
-    try:
-        tile_cache_io.write_tile_cache(path, data, enabled=_tile_cache_enabled())
-    except OSError as e:
-        logger.warning("tile cache write skipped: %s", type(e).__name__)
 
 
 # Phase 10 decomposition: tile/tilejson counters moved to tile_observability.py.
@@ -262,16 +181,16 @@ stac_search_helpers.configure(
     logger=logger,
     earth_search_url=EARTH_SEARCH_URL,
     http_timeout=HTTP_TIMEOUT,
-    historical_search_provider=HISTORICAL_SEARCH_PROVIDER,
-    sentinel_collection=SENTINEL_COLLECTION,
-    sentinel1_collection=SENTINEL1_COLLECTION,
-    landsat_collection=LANDSAT_COLLECTION,
-    dem_collection=DEM_COLLECTION,
-    landsat_unique_indices=LANDSAT_UNIQUE_INDICES,
-    landsat_direct_raster_indices=LANDSAT_DIRECT_RASTER_INDICES,
-    landsat_derived_indices=LANDSAT_DERIVED_INDICES,
-    landsat_duplicate_sentinel_indices=LANDSAT_DUPLICATE_SENTINEL_INDICES,
-    landsat_thermal_asset_candidates=LANDSAT_THERMAL_ASSET_CANDIDATES,
+    historical_search_provider=raster_settings.HISTORICAL_SEARCH_PROVIDER,
+    sentinel_collection=raster_settings.SENTINEL_COLLECTION,
+    sentinel1_collection=raster_settings.SENTINEL1_COLLECTION,
+    landsat_collection=raster_settings.LANDSAT_COLLECTION,
+    dem_collection=raster_settings.DEM_COLLECTION,
+    landsat_unique_indices=raster_settings.LANDSAT_UNIQUE_INDICES,
+    landsat_direct_raster_indices=raster_settings.LANDSAT_DIRECT_RASTER_INDICES,
+    landsat_derived_indices=raster_settings.LANDSAT_DERIVED_INDICES,
+    landsat_duplicate_sentinel_indices=raster_settings.LANDSAT_DUPLICATE_SENTINEL_INDICES,
+    landsat_thermal_asset_candidates=raster_settings.LANDSAT_THERMAL_ASSET_CANDIDATES,
 )
 
 # Compatibility façade: routers/tests still import these helpers from main.py.
@@ -282,7 +201,6 @@ _stac_search_cdse = stac_search_helpers.stac_search_cdse
 _stac_search_element84 = stac_search_helpers.stac_search_element84
 _stac_search_radar = stac_search_helpers.stac_search_radar
 _landsat_thermal_href = stac_search_helpers.landsat_thermal_href
-_landsat_unique_payload = stac_search_helpers.landsat_unique_payload
 _stac_search_landsat = stac_search_helpers.stac_search_landsat
 _stac_search_landsat_unique = stac_search_helpers.stac_search_landsat_unique
 _stac_search_dem = stac_search_helpers.stac_search_dem
@@ -428,11 +346,7 @@ _pixel_quality = raster_quality.pixel_quality
 
 # Persistence helpers are implemented outside main.py; keep private aliases here
 # for existing tests and routers that still import from main during the staged split.
-from raster_asset_persistence import (  # noqa: E402
-    _is_valid_field_id_text,
-    _is_valid_uuid_text,
-    persist_raster_asset as _persist_raster_asset,
-)
+from raster_asset_persistence import persist_raster_asset as _persist_raster_asset  # noqa: E402
 import raster_job_orchestration  # noqa: E402
 
 
