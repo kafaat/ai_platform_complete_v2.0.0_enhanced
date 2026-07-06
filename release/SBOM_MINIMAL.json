@@ -1555,6 +1555,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3450bcc0d2a2628be99e153e6bcd97f69358b1b0d41a51afdff84019648a7dc5"
+        }
+      ],
+      "name": "frontend/src/components/maphub/PersistedCogTiles.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f05b81649470d17641760c8ffd15572abf0d42517df2929f5b787abcf76d8206"
         }
       ],
@@ -4565,7 +4575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5981e2aa519420c8eee8597a53f481c2973fd13fbf29d6819ab9f32ff594486b"
+          "content": "ac00836c82f3b8584bfb59ded46bdda7c3efc9bcb21d3910f68c7767a4e5701a"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5025,7 +5035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c22be217ecf7c03d9a4cf27655b3e0810de810496c54e0d73dfab22097371b6"
+          "content": "1d53fe30e1b9274e552b22575f52530ca1b7565ab98a2d4433cbe3352a533057"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -8905,7 +8915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbc0c1bd898bcc3ba6b588421e7dc33e47107f58a2dbad5db2fbd9eaad3aeda6"
+          "content": "d8df5cd58a47705825519e0c93899a7ee76946149c90d6d8de958234b4a85e8d"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -8945,7 +8955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e3a55c9b5646ba642510fad30c21e80aba916d066aae55e0065bd791e16b50e7"
+          "content": "1583ddcad27a7d983f5e4cec628168613a5a499b056b7a290845802b3595d859"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -9085,7 +9095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9fff464aaab363c2e62527182360e8ccc5928450488cc49fef8da7faabf6cc97"
+          "content": "0ebc0593d2b27046be0deca615fee355a3ad2b207601ccdc1a2ac6bcc8899e68"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -9095,7 +9105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13de80c2dc83ad70ff2879608cfb742aa7e29633b67654b70e75fd3ce1e0b70b"
+          "content": "2a2d1599134f64978e5a55889647a626c2f66a13481ee8964619f365c4c1c10e"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9355,7 +9365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "381ec27c48a281e50765fae1a5dc0e080e39081bd5fc6dd812b8d28938761867"
+          "content": "59ee0c2a4d958d8d7bd07fe0cc84e0da910611587c1b12f32924bceac1396f28"
         }
       ],
       "name": "services/raster-service/test_cdse_tilejson_availability.py",
@@ -9655,7 +9665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9dccf6ed896667f9e125498bcc43142993209526f73d526dd3576c68a5f7646f"
+          "content": "a957e60743138509079ab25c74365710699bddf83f4f804e67edd6100c71208b"
         }
       ],
       "name": "services/raster-service/tile_render.py",

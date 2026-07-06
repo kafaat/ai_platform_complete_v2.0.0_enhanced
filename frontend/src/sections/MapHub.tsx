@@ -23,6 +23,7 @@ import {
   Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
   Tractor, CheckSquare, CircleDotDashed, History, RotateCcw, Target, FlaskConical,
+  Satellite,
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
@@ -835,15 +836,48 @@ export default function MapHub() {
 
   const indicatorActive = mode === '2d' && !compare ? activeIndicator : null;
 
-  // إصلاح «الطبقة الورديّة»: حين يكون للتاريخ المختار COG محفوظ (has_cog) نقرأ الطبقة
-  // المحفوظة من raster_assets عبر /tiles بدل تصيير CDSE الحيّ /cdse-tiles. للمؤشّر المحدَّد
-  // نتحقّق أنّ COG لذلك المؤشّر (indices) موجود؛ 'latest' ⇒ يكفي وجود أيّ COG.
-  const selectedDateHasCog = selectedImageryDate !== 'latest'
-    ? availableImageryDates.some((d) =>
-        d.date === selectedImageryDate && d.has_cog &&
-        (!activeIndicator || !d.indices || d.indices.length === 0 ||
-          d.indices.includes(activeIndicator.toUpperCase())))
-    : availableImageryDates.some((d) => d.has_cog);
+  // إصلاح «الطبقة الورديّة»: حين يكون للتاريخ المختار COG محفوظ للمؤشّر النشط نقرأ الطبقة
+  // المحفوظة من raster_assets عبر /tiles بدل تصيير CDSE الحيّ /cdse-tiles. نشترط إدراج
+  // المؤشّر صراحةً في indices (لا ارتداد «indices فارغة ⇒ نعم»): عند الشكّ نبقى على المسار
+  // الحيّ الذي يُصيّر دائماً. TrueColor لا يُحفَظ كـCOG (يُصيَّر حيّاً RGBA فقط) فلن يظهر
+  // في indices ⇒ يبقى على /cdse-tiles (تبديله إلى /tiles ⇒ بلاطة شفّافة). salinity محفوظ
+  // باسم NDSI. لا تبديل بلا مؤشّر نشط.
+  const _persistNeedle = indicatorActive
+    ? indicatorActive === 'salinity'
+      ? 'NDSI'
+      : indicatorActive.toUpperCase()
+    : null;
+  const _dateHasIndicatorCog = (d: { has_cog?: boolean; indices?: string[] }) =>
+    !!d.has_cog &&
+    !!_persistNeedle &&
+    Array.isArray(d.indices) &&
+    d.indices.some((i) => String(i).toUpperCase() === _persistNeedle);
+  const selectedDateHasCog = !_persistNeedle
+    ? false
+    : selectedImageryDate !== 'latest'
+      ? availableImageryDates.some(
+          (d) => d.date === selectedImageryDate && _dateHasIndicatorCog(d),
+        )
+      : availableImageryDates.some(_dateHasIndicatorCog);
+
+  // المشهد المختار (لعرض تاريخ الالتقاط الحقيقيّ). عند 'latest' نعرض أحدث مشهد جاهز.
+  const selectedScene =
+    selectedImageryDate !== 'latest'
+      ? availableImageryDates.find((d) => d.date === selectedImageryDate) ?? null
+      : (dateSelectorDates.find((d) => d.has_cog) ?? dateSelectorDates[0] ?? null);
+  // تاريخ الالتقاط بصدق: وقت المشهد الحقيقيّ (STAC) إن توفّر، وإلّا التاريخ وحده (بلا
+  // اختلاق ساعة). لا يظهر شيء إن لم نعرف مشهداً.
+  const acquisitionLabel = (() => {
+    if (!selectedScene) return null;
+    const iso = selectedScene.acquisition_datetime;
+    if (iso) {
+      const dt = new Date(iso);
+      if (!Number.isNaN(dt.getTime())) {
+        return new Intl.DateTimeFormat('ar', { dateStyle: 'medium', timeStyle: 'short' }).format(dt);
+      }
+    }
+    return selectedScene.date;
+  })();
 
   // قائمة الحقول المُرشَّحة بالبحث (اسم/محصول) — لوحة الحقول الباحثة.
   const visibleFields = useMemo(() => {
@@ -2106,6 +2140,17 @@ export default function MapHub() {
                       >
                         Timeline الصور
                       </button>
+                    </div>
+                  )}
+
+                  {!compare && activeIndicator && acquisitionLabel && (
+                    <div
+                      className="flex items-center gap-1 text-xs"
+                      style={{ color: T.muted }}
+                      data-testid="imagery-acquisition-date"
+                    >
+                      <Satellite className="w-3.5 h-3.5" style={{ color: T.green }} />
+                      <span>تاريخ الالتقاط: {acquisitionLabel}</span>
                     </div>
                   )}
 

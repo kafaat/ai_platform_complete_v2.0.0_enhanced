@@ -1032,14 +1032,32 @@ async def field_available_dates(
     wanted = [main._normalize_index(index)] if index else []
     by_date: dict[str, dict] = {}
 
-    def _add(date_value, *, idx=None, has_cog=True, cloud_pct=None, scene_id=None):
+    def _add(
+        date_value,
+        *,
+        idx=None,
+        has_cog=True,
+        cloud_pct=None,
+        scene_id=None,
+        acquisition_datetime=None,
+    ):
         if not date_value:
             return
         d = str(date_value)[:10]
         if len(d) != 10:
             return
         rec = by_date.setdefault(
-            d, {"date": d, "has_cog": False, "indices": set(), "cloud_pct": None, "scene_id": None}
+            d,
+            {
+                "date": d,
+                "has_cog": False,
+                "indices": set(),
+                "cloud_pct": None,
+                "scene_id": None,
+                # وقت الالتقاط الحقيقيّ (ISO8601 UTC) من كتالوج STAC حين توفّره؛ يبقى None
+                # (فتعرض الواجهة التاريخ وحده) إن لم يُسجَّل مشهد — لا اختلاق ساعة.
+                "acquisition_datetime": None,
+            },
         )
         rec["has_cog"] = bool(rec["has_cog"] or has_cog)
         if idx:
@@ -1051,6 +1069,8 @@ async def field_available_dates(
                 pass
         if scene_id and not rec["scene_id"]:
             rec["scene_id"] = str(scene_id)
+        if acquisition_datetime and not rec["acquisition_datetime"]:
+            rec["acquisition_datetime"] = str(acquisition_datetime)
 
     for lid in main._field_layers.get(field_id, []):
         lyr = main._layers.get(lid)
@@ -1085,6 +1105,7 @@ async def field_available_dates(
                 has_cog=row.get("has_cog", True),
                 cloud_pct=row.get("cloud_pct"),
                 scene_id=row.get("scene_id"),
+                acquisition_datetime=row.get("acquisition_datetime"),
             )
     except Exception as e:  # noqa: BLE001
         main.logger.warning("available dates DB lookup skipped (%s): %s", field_id, e)

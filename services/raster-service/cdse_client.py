@@ -192,8 +192,20 @@ INDEX_EXPR: dict[str, tuple[tuple[str, ...], str]] = {
 
 
 def supported_indices() -> set[str]:
-    """المؤشّرات التي يدعمها CDSE Process API هنا (evalscript معرَّف)."""
-    return set(INDEX_EXPR)
+    """المؤشّرات التي يدعمها CDSE Process API هنا (evalscript معرَّف) + الصورة الخام
+    ``truecolor`` (evalscript ألوان طبيعيّة RGBA)."""
+    return set(INDEX_EXPR) | {TRUECOLOR}
+
+
+# الصورة الخام بالألوان الطبيعيّة (True Color) — ليست مؤشّراً أحاديّ النطاق بل RGB بصريّ.
+TRUECOLOR = "truecolor"
+
+
+def is_truecolor(index: str | None) -> bool:
+    """هل ``index`` هو الصورة الخام بالألوان الطبيعيّة؟ (تطبيع مسافات/شرطات؛ يقبل
+    ``truecolor`` و``true_color``)."""
+    key = (index or "").strip().lower().replace(" ", "_").replace("-", "_")
+    return key in (TRUECOLOR, "true_color")
 
 
 def _cdse_credentials() -> tuple[str | None, str | None]:
@@ -232,8 +244,11 @@ def build_evalscript(index: str) -> str:
     نقيّ وقابل للاختبار. يقنّع per-pixel: يُرجِع ``NaN`` عندما يكون البكسل بلا
     بيانات (``dataMask !== 1``) **أو** يقع في صنف غيمة/ظلّ/سيرس/ثلج من نطاق
     ``SCL`` (الأصناف في ``SCL_CLOUD_CLASSES``) — نظير قناع SCL في مسار Element84.
+    الصورة الخام ``truecolor`` تُوجَّه لـ``build_truecolor_evalscript`` (RGBA UINT8).
     يرفع ``ValueError`` لمؤشّر غير مدعوم.
     """
+    if is_truecolor(index):
+        return build_truecolor_evalscript()
     if index not in INDEX_EXPR:
         raise ValueError(f"مؤشّر غير مدعوم في CDSE: {index} (المتاح: {sorted(INDEX_EXPR)})")
     bands, expr = INDEX_EXPR[index]
@@ -251,6 +266,33 @@ def build_evalscript(index: str) -> str:
         f"  let v = {expr};\n"
         "  let isCloud = SCL_CLOUD.indexOf(s.SCL) !== -1;\n"
         "  return [(s.dataMask === 1 && !isCloud) ? v : NaN];\n"
+        "}\n"
+    )
+
+
+def build_truecolor_evalscript() -> str:
+    """يبني evalscript (V3) للصورة الخام بالألوان الطبيعيّة (True Color) — RGBA UINT8.
+
+    R=B04 · G=B03 · B=B02 (انعكاس [0,1]) بكسبٍ بصريّ (``CDSE_TRUECOLOR_GAIN``، افتراض
+    3.5) ثمّ قصّ إلى [0,255]. تُقنَّع per-pixel: البكسل بلا بيانات (``dataMask !== 1``)
+    **أو** في صنف غيمة/ظلّ/سيرس/ثلج (``SCL_CLOUD_CLASSES``) ⇒ ألفا 0 (شفّاف) — نظير قناع
+    SCL في مسار المؤشّرات (اتّساق: لا نعرض غيوماً كأنّها حقل). نقيّ قابل للاختبار (بلا
+    شبكة). يُخرِج 4 نطاقات UINT8 (RGBA) بخلاف مسار المؤشّر أحاديّ النطاق FLOAT32."""
+    gain = _env_float("CDSE_TRUECOLOR_GAIN", 3.5, minimum=0.1)
+    cloud_set = ", ".join(str(c) for c in SCL_CLOUD_CLASSES)
+    return (
+        "//VERSION=3\n"
+        "function setup() {\n"
+        '  return { input: [{ bands: ["B04", "B03", "B02", "SCL", "dataMask"] }],\n'
+        '           output: { bands: 4, sampleType: "UINT8" } };\n'
+        "}\n"
+        f"const SCL_CLOUD = [{cloud_set}];\n"
+        f"const G = {gain:.6f};\n"
+        "function clamp255(v) { return Math.max(0, Math.min(255, Math.round(v * 255.0 * G))); }\n"
+        "function evaluatePixel(s) {\n"
+        "  let isCloud = SCL_CLOUD.indexOf(s.SCL) !== -1;\n"
+        "  if (s.dataMask !== 1 || isCloud) { return [0, 0, 0, 0]; }\n"
+        "  return [clamp255(s.B04), clamp255(s.B03), clamp255(s.B02), 255];\n"
         "}\n"
     )
 
@@ -340,6 +382,7 @@ class CdseClient:
         """
         import httpx
 
+        # الصورة الخام (truecolor) تُوجَّه داخل build_evalscript إلى evalscript ألوان RGBA.
         evalscript = build_evalscript(index)
         bbox = _validate_bbox_4326(bbox)
         width, height = bbox_dims(bbox)

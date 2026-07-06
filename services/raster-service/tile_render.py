@@ -309,6 +309,89 @@ def _reproject_dataset_mask(src, *, dst_transform, dst_crs: str, out_shape: tupl
         return None
 
 
+# ─── تصيير الصورة الخام (True Color): COG متعدّد النطاقات RGBA → بلاطة PNG ─────
+def render_truecolor_tile_png(cog_path: str, z: int, x: int, y: int) -> bytes | None:
+    """يصيّر بلاطة XYZ من COG صورة خام (RGBA UINT8، 3-4 نطاقات) — بلا خريطة ألوان.
+
+    يعيد إسقاط نطاقات R/G/B (bilinear لنعومة بصريّة) وقناة ألفا (nearest للحدّة) إلى
+    مصفوفة 256×256 في EPSG:3857 ثمّ يرمّزها PNG مباشرةً. البكسلات خارج البيانات/القناع
+    ⇒ ألفا 0 (شفّاف). يُرجِع None عند: لا rasterio / <3 نطاقات / لا تقاطع / لا بكسل مرئيّ.
+    """
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.transform import from_bounds
+        from rasterio.warp import Resampling, reproject, transform_bounds
+    except Exception:  # noqa: BLE001 — rasterio غير متوفّر → fallback شفّاف
+        return None
+
+    minx, miny, maxx, maxy = tile_bounds_3857(z, x, y)
+    dst_crs = "EPSG:3857"
+    dst_transform = from_bounds(minx, miny, maxx, maxy, TILE_SIZE, TILE_SIZE)
+
+    try:
+        with rasterio.open(cog_path) as src:
+            if src.count < 3:
+                return None  # ليست صورة RGB(A) — لا تصيير ألوان
+            try:
+                cb = transform_bounds(src.crs, dst_crs, *src.bounds)
+                if cb[2] < minx or cb[0] > maxx or cb[3] < miny or cb[1] > maxy:
+                    return None  # لا تقاطع → شفّاف
+            except Exception:  # noqa: BLE001 — تعذّر الفحص → تابع
+                pass
+
+            rgba = np.zeros((TILE_SIZE, TILE_SIZE, 4), dtype="uint8")
+            for bi in range(3):  # R,G,B من النطاقات 1..3
+                band = np.zeros((TILE_SIZE, TILE_SIZE), dtype="uint8")
+                reproject(
+                    source=rasterio.band(src, bi + 1),
+                    destination=band,
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=dst_transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.bilinear,
+                    dst_nodata=0,
+                )
+                rgba[..., bi] = band
+
+            if src.count >= 4:  # ألفا من النطاق الرابع (dataMask*255 من evalscript)
+                alpha = np.zeros((TILE_SIZE, TILE_SIZE), dtype="uint8")
+                reproject(
+                    source=rasterio.band(src, 4),
+                    destination=alpha,
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=dst_transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.nearest,
+                    src_nodata=0,
+                    dst_nodata=0,
+                )
+            else:
+                alpha = np.full((TILE_SIZE, TILE_SIZE), 255, dtype="uint8")
+
+            # قناع مجموعة البيانات (per-dataset mask): يمنع حواف مُعاد إسقاطها معتمة.
+            dst_mask = _reproject_dataset_mask(
+                src,
+                dst_transform=dst_transform,
+                dst_crs=dst_crs,
+                out_shape=(TILE_SIZE, TILE_SIZE),
+            )
+            if dst_mask is not None:
+                alpha = np.where(dst_mask == 0, 0, alpha).astype("uint8")
+            rgba[..., 3] = alpha
+    except Exception:  # noqa: BLE001 — قراءة/إسقاط فشل → fallback شفّاف
+        return None
+
+    if not (rgba[..., 3] > 0).any():
+        return None  # لا بكسل مرئيّ داخل البلاطة → شفّاف
+    try:
+        return encode_png_rgba(rgba)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 # ─── التصيير الرئيسي: COG → بلاطة 256×256 PNG ──────────────────────
 def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes | None:
     """يصيّر بلاطة XYZ من COG مقصوص. يُرجِع بايتات PNG أو None عند التعذّر.
@@ -323,6 +406,10 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
     None عند: غياب rasterio / ملفّ مفقود / لا تقاطع / فشل القراءة. المُستدعي
     يخدم بلاطة شفّافة عندها (لا 500).
     """
+    # الصورة الخام (truecolor) متعدّدة النطاقات (RGBA UINT8) — لا تُلوَّن بتدرّج مؤشّر
+    # بل تُمرَّر مباشرةً. مسار منفصل كي لا يمسّ منطق المؤشّر أحاديّ النطاق (أقلّ خطراً).
+    if index == "truecolor":
+        return render_truecolor_tile_png(cog_path, z, x, y)
     try:
         import numpy as np
         import rasterio
@@ -484,3 +571,33 @@ def apply_polygon_mask(cog_path: str, geom_4326: dict) -> None:
     profile.update(nodata=float("nan"))
     with rasterio.open(cog_path, "w", **profile) as dst:
         dst.write(out_img)
+
+
+def apply_polygon_mask_rgba(cog_path: str, geom_4326: dict) -> None:
+    """يطبّق قناع مضلّع **بكسليّ** على COG صورة خام (RGBA UINT8) في مكانه: خارج المضلّع
+    ⇒ ألفا 0 (شفّاف).
+
+    نظير ``apply_polygon_mask`` لكن لأنواع UINT8 (لا يمكن تخزين NaN فيها): بدل ملء
+    القيم بـNaN نُصفِّر قناة **ألفا** (النطاق الرابع) خارج الحقل — قصّ محلّيّ مستقلّ عن
+    قصّ المزوّد، مطابق لحافّة الحقل (fail-closed). يرفع عند الفشل فيعالجه المُستدعي.
+    """
+    import rasterio
+    from rasterio.features import geometry_mask
+    from rasterio.warp import transform_geom
+
+    with rasterio.open(cog_path) as src:
+        data = src.read()  # (bands, H, W) uint8
+        profile = src.profile.copy()
+        geom_src = transform_geom("EPSG:4326", src.crs, geom_4326)
+        inside = geometry_mask(
+            [geom_src],
+            out_shape=(src.height, src.width),
+            transform=src.transform,
+            invert=True,  # True داخل المضلّع
+        )
+    if data.shape[0] >= 4:
+        alpha = data[3]
+        alpha[~inside] = 0  # خارج الحقل ⇒ شفّاف
+        data[3] = alpha
+    with rasterio.open(cog_path, "w", **profile) as dst:
+        dst.write(data)

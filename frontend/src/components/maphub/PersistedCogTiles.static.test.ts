@@ -19,6 +19,16 @@ describe('MapHub uses persisted COG tiles when the selected date has a COG', () 
     expect(mapHub).toContain('d.has_cog');
   });
 
+  it('requires explicit indicator COG in indices (keeps TrueColor + unpersisted indices on live path)', () => {
+    // نشترط إدراج المؤشّر صراحةً في indices — لا ارتداد «indices فارغة ⇒ نعم». TrueColor
+    // لا يُحفَظ كـCOG فلن يُدرَج ⇒ يبقى على /cdse-tiles الحيّ (تبديله ⇒ بلاطة شفّافة).
+    expect(mapHub).toContain('_dateHasIndicatorCog');
+    expect(mapHub).toContain('String(i).toUpperCase() === _persistNeedle');
+    // salinity محفوظ باسم NDSI (تعيين المؤشّر النشط → اسم COG المخزَّن).
+    expect(mapHub).toContain("indicatorActive === 'salinity'");
+    expect(mapHub).toContain("'NDSI'");
+  });
+
   it('both map engines switch endpoint by preferPersistedCog (/tiles vs /cdse-tiles)', () => {
     for (const [name, src] of [['HubMap', hubMap], ['HubMapGL', hubMapGL]] as const) {
       expect(src, `${name} missing preferPersistedCog param`).toContain('preferPersistedCog');

@@ -3820,6 +3820,9 @@ export interface FieldImageryDateOption {
   // FINDING-006: المؤشّرات المتوفّرة لهذا التاريخ (الخادم يُرجِعها) — كي لا يُختار
   // تاريخٌ «جاهز» لمؤشّر غير المؤشّر النشط فتظهر بلاطة شفّافة. تُستعمَل للتصفية.
   indices?: string[];
+  // وقت الالتقاط الحقيقيّ (ISO8601 UTC) من كتالوج STAC حين يتوفّر — لعرض «تاريخ الالتقاط».
+  // غيابه (null) ⇒ الواجهة تعرض التاريخ وحده بصدق (acquisition_date تاريخ بلا وقت).
+  acquisition_datetime?: string | null;
 }
 
 /** تواريخ Sentinel/CDSE المتاحة للحقل؛ تُستخدم لربط زر التاريخ فعلياً برابط البلاطات.
@@ -3914,6 +3917,8 @@ export const fetchFieldImageryAvailableDates = (
           indices: Array.isArray(obj.indices)
             ? (obj.indices as unknown[]).map((v) => String(v))
             : undefined,
+          acquisition_datetime:
+            typeof obj.acquisition_datetime === 'string' ? obj.acquisition_datetime : null,
         } as FieldImageryDateOption;
       })
       .filter(Boolean) as FieldImageryDateOption[];
