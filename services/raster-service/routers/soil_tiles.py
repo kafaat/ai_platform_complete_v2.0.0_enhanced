@@ -13,6 +13,7 @@ routers/soil_tiles.py — طبقة تربة SoilGrids كبلاطات Raster (ت�
 from __future__ import annotations
 
 import os
+from typing import Annotated
 
 import main
 import soil_render as _soil
@@ -28,7 +29,9 @@ def _tenant_ctx_ok() -> bool:
 
 
 @router.get("/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png")
-async def soil_tile(prop: str, depth: str, z: int, x: int, y: int, tid: str | None = Query(None)):
+async def soil_tile(
+    prop: str, depth: str, z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None
+):
     """بلاطة خاصّيّة تربة ملوّنة. شفّافة عند غياب المصدر/السياق (fail-closed صادق)."""
     if not _tenant_ctx_ok():
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
@@ -41,7 +44,9 @@ async def soil_tile(prop: str, depth: str, z: int, x: int, y: int, tid: str | No
 
 
 @router.get("/v1/soil/tilejson")
-async def soil_tilejson(property: str = Query("phh2o"), depth: str = Query("0-5cm")):
+async def soil_tilejson(
+    property: Annotated[str, Query()] = "phh2o", depth: Annotated[str, Query()] = "0-5cm"
+):
     """TileJSON لطبقة خاصّيّة تربة — يستهلكه Leaflet/MapLibre.
 
     ``available`` يعكس تهيئة المصدر لهذه (الخاصّيّة، العمق) فعليّاً. ``disclaimer`` إلزاميّ
@@ -84,11 +89,17 @@ async def soil_tilejson(property: str = Query("phh2o"), depth: str = Query("0-5c
 
 @router.get("/v1/soil/properties")
 async def soil_properties():
-    """الخصائص/الأعماق المدعومة + هل مصدر SoilGrids مُهيّأ (للواجهة) + التحذير الإلزاميّ."""
+    """الخصائص/الأعماق المدعومة + حالة المصدر الصادقة (مُعلَن مقابل قابل للقراءة) + التحذير."""
+    readable = _soil.readable_layer_count()
     return {
         "properties": _soil.supported_properties(),
         "depths": list(_soil.SOIL_DEPTHS),
-        "source_configured": _soil.is_source_configured(),
+        # صدق: مُعلَن (env مضبوط) قد يختلف عن قابل للقراءة (ملفّ موجود). نكشف الاثنين.
+        "source_declared": _soil.is_source_configured(),
+        "source_readable": readable > 0,
+        "readable_layers": readable,
+        # source_configured يعني الآن «قابل للخدمة فعلاً» لا مجرّد إعلان (لا تضليل).
+        "source_configured": readable > 0,
         "disclaimer": _soil.DISCLAIMER_AR,
     }
 
@@ -106,8 +117,10 @@ def _parse_bbox(bbox: str | None) -> list[float] | None:
 @router.get("/v1/fields/{field_id}/soil/summary")
 async def field_soil_summary(
     field_id: str,
-    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
-    depth: str = Query("0-5cm"),
+    bbox: Annotated[
+        str | None, Query(description="minLon,minLat,maxLon,maxLat (EPSG:4326)")
+    ] = None,
+    depth: Annotated[str, Query()] = "0-5cm",
 ):
     """ملخّص خصائص تربة الحقل (متوسّطات SoilGrids على bbox) + صنف القوام — tenant-scoped.
 
@@ -122,9 +135,11 @@ async def field_soil_summary(
 @router.get("/v1/fields/{field_id}/soil/sampling-zones.geojson")
 async def field_soil_sampling_zones(
     field_id: str,
-    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
-    depth: str = Query("0-5cm"),
-    zones: int = Query(3, ge=2, le=5),
+    bbox: Annotated[
+        str | None, Query(description="minLon,minLat,maxLon,maxLat (EPSG:4326)")
+    ] = None,
+    depth: Annotated[str, Query()] = "0-5cm",
+    zones: Annotated[int, Query(ge=2, le=5)] = 3,
 ):
     """مناطق تربة متجانسة (GeoJSON) لتقسيم أخذ العيّنات — tenant-scoped.
 
@@ -141,10 +156,12 @@ async def field_soil_sampling_zones(
 @router.get("/v1/fields/{field_id}/soil/sampling-plan")
 async def field_soil_sampling_plan(
     field_id: str,
-    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
-    depth: str = Query("0-5cm"),
-    zones: int = Query(3, ge=2, le=5),
-    samples_per_zone: int = Query(1, ge=1, le=3),
+    bbox: Annotated[
+        str | None, Query(description="minLon,minLat,maxLon,maxLat (EPSG:4326)")
+    ] = None,
+    depth: Annotated[str, Query()] = "0-5cm",
+    zones: Annotated[int, Query(ge=2, le=5)] = 3,
+    samples_per_zone: Annotated[int, Query(ge=1, le=3)] = 1,
 ):
     """نقاط عيّنات تربة تمثيليّة (GeoJSON Point) من مراكز مناطق k-means — tenant-scoped.
 

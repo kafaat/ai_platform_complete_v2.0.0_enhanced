@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "824fedb05f1d23493b7c98f58cd9be93566e98680173235bc9e10583649ecefc"
+          "content": "a51cc43664cb03e9d715f6fe413aec42ef071dfe265ab812c49374feef86a17f"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9135,7 +9135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8850f30245c667067b5aa3a89068a56e3cc6ddb70e95d6d192e7a5a17dec271f"
+          "content": "4e7bc28fdea57c65999a52be9be1701274e7979ae9f663f69f6570bfd0351786"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -9155,7 +9155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "119e2ebd9b6bc25446a7a3188b3bee8499fb593166dba4661d7b0bb8a7de2cb4"
+          "content": "ce3cdf23250e989dd5a92275928f52f257f5ea4a6dafb64ce7fd4bfda9519719"
         }
       ],
       "name": "services/raster-service/routers/soil_tiles.py",
@@ -9185,7 +9185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b744251d89d9741e2fe179e875f0a88e3d7e6295b080785a2ab992d38612484"
+          "content": "da922af16b2bfdb516cd49f1943511ed2b5bbe712d45e87c2839a2d79628a706"
         }
       ],
       "name": "services/raster-service/routers/terrain_tiles.py",
@@ -9245,7 +9245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "356580726c56f74fa1e247ca8101a58f383bc7df2c8df6eaa444214713d8a087"
+          "content": "514f9a8f7900d69c9bc6fa4bcbddab5b071907ca5ab08ad45d9821b6b62adc87"
         }
       ],
       "name": "services/raster-service/soil_render.py",
@@ -9549,6 +9549,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0de4b9ff122b9b92f28032d21791ea7d49361705169696ce1bb9338101c7fdd"
+        }
+      ],
+      "name": "services/raster-service/test_router_query_direct_call.py",
       "type": "file"
     },
     {

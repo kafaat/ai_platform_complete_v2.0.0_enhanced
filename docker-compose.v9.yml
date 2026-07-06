@@ -781,9 +781,15 @@ services:
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
       CDSE_PROCESS_RETRY_MAX_SECONDS: ${CDSE_PROCESS_RETRY_MAX_SECONDS:-120}
       TITILER_URL: ${TITILER_URL:-http://sahool-titiler:8000}
-      # مسار نموذج ارتفاع رقميّ (Copernicus DEM 30م مثلاً) لإحصاءات تضاريس الحقل.
-      # فارغ = ميزة التضاريس تُبلّغ computed=false بصدق (لا تلفيق) حتى يُهيّأ DEM.
-      FIELD_DEM_PATH: ${FIELD_DEM_PATH:-}
+      # مسار نموذج ارتفاع رقميّ (Copernicus DEM 30م مثلاً) لإحصاءات/طبقات تضاريس الحقل.
+      # الافتراضيّ داخل حجم DEM المربوط (اسقط ملفّاً هناك عبر fetch_glo30_dem.py). غياب
+      # الملفّ = التضاريس تُبلّغ computed/available=false بصدق (لا تلفيق) حتى يُهيّأ DEM.
+      FIELD_DEM_PATH: ${FIELD_DEM_PATH:-/data/dem/aljawf_glo30_cog.tif}
+      # مجلّد طبقات SoilGrids (GeoTIFF باسم <property>_<depth>.tif). غياب المجلّد/الملفّات =
+      # طبقة التربة available=false بصدق (لا تلفيق). راجع runbook §12 للتزويد.
+      SOILGRIDS_DIR: ${SOILGRIDS_DIR:-/data/soilgrids}
+      # سقف أبعاد نافذة قراءة الراستر للإحصاءات المتّجهة (تضاريس/تربة) — يمنع bbox ضخماً.
+      RASTER_MAX_READ_DIM: ${RASTER_MAX_READ_DIM:-2048}
       STAC_MAX_RETRIES: ${STAC_MAX_RETRIES:-3}
       STAC_CACHE_TTL: ${STAC_CACHE_TTL:-900}
       STAC_FALLBACK_ENABLED: ${STAC_FALLBACK_ENABLED:-true}
@@ -794,6 +800,11 @@ services:
       # المعرَّف أعلاه بدور sahool_app المقيَّد — RLS سارٍ لجلب geometry وحفظ raster_assets).
     volumes:
     - raster-data:/data/rasters
+    # طبقات التضاريس/التربة (قراءة فقط): اسقط DEM في DEM_HOST_DIR وطبقات SoilGrids في
+    # SOILGRIDS_HOST_DIR على المضيف. مجلّدان فارغان افتراضاً ⇒ fail-closed صادق (لا تلفيق)
+    # حتى يُزوَّدا. راجع runbook §11/§12. (متّسق مع FIELD_DEM_PATH/SOILGRIDS_DIR أعلاه.)
+    - ${DEM_HOST_DIR:-./data/dem}:/data/dem:ro
+    - ${SOILGRIDS_HOST_DIR:-./data/soilgrids}:/data/soilgrids:ro
     networks:
     - sahool-internal
     healthcheck:

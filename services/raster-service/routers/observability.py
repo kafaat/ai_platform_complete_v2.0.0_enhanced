@@ -118,9 +118,38 @@ async def tile_observability():
     }
 
 
+def _terrain_soil_readiness() -> dict:
+    """حالة تفصيليّة لطبقات التضاريس/التربة (غير حاجبة لـready) — شفافيّة تشغيليّة.
+
+    DEM/SoilGrids اختياريّان (fail-closed بلا تلفيق)، فلا يجعلان الخدمة degraded؛ لكن
+    نكشف قابليّتهما للخدمة كي لا تبدو الخدمة «جاهزة» بينما الطبقات معطّلة صامتاً."""
+    dem = os.getenv("FIELD_DEM_PATH") or None
+    dem_readable = bool(dem and os.path.isfile(dem))
+    try:
+        import soil_render as _soil
+
+        readable_layers = _soil.readable_layer_count()
+        soil_declared = _soil.is_source_configured()
+    except Exception:  # noqa: BLE001
+        readable_layers, soil_declared = 0, False
+    return {
+        "terrain": {
+            "enabled": dem_readable,
+            "dem_path_set": bool(dem),
+            "dem_readable": dem_readable,
+        },
+        "soilgrids": {
+            "enabled": readable_layers > 0,
+            "source_declared": soil_declared,
+            "readable_layers": readable_layers,
+        },
+    }
+
+
 @router.get("/readyz")
 async def readyz():
-    """يتحقّق من الوصول لـEarth Search."""
+    """يتحقّق من الوصول لـEarth Search + يكشف حالة طبقات التضاريس/التربة (غير حاجبة)."""
+    detail = _terrain_soil_readiness()
     try:
         async with httpx.AsyncClient(timeout=5) as client:
             r = await client.get(f"{main.EARTH_SEARCH_URL}/")
@@ -128,11 +157,13 @@ async def readyz():
         body = {
             "status": "ready" if ok else "degraded",
             "earth_search": "reachable" if ok else "unreachable",
+            **detail,
         }
         return JSONResponse(status_code=200 if ok else 503, content=body)
     except httpx.HTTPError:
         return JSONResponse(
-            status_code=503, content={"status": "degraded", "earth_search": "unreachable"}
+            status_code=503,
+            content={"status": "degraded", "earth_search": "unreachable", **detail},
         )
 
 

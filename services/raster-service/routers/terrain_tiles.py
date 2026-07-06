@@ -15,6 +15,7 @@ routers/terrain_tiles.py — طبقات التضاريس الثلاث كنقاط
 from __future__ import annotations
 
 import os
+from typing import Annotated
 
 import main
 import terrain_render as _tr
@@ -54,7 +55,7 @@ async def terrain_status():
 
 
 @router.get("/v1/elevation/hillshade/{z}/{x}/{y}.png")
-async def hillshade_tile(z: int, x: int, y: int, tid: str | None = Query(None)):
+async def hillshade_tile(z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None):
     """بلاطة Hillshade (شكل الأرض). شفّافة عند غياب DEM/السياق (fail-closed صادق)."""
     if not _tenant_ctx_ok():
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
@@ -68,7 +69,7 @@ async def hillshade_tile(z: int, x: int, y: int, tid: str | None = Query(None)):
 
 
 @router.get("/v1/slope/{z}/{x}/{y}.png")
-async def slope_tile(z: int, x: int, y: int, tid: str | None = Query(None)):
+async def slope_tile(z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None):
     """بلاطة Slope مُصنّفة بالألوان (الأهمّ زراعيّاً). شفّافة عند غياب DEM/السياق."""
     if not _tenant_ctx_ok():
         return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
@@ -82,7 +83,7 @@ async def slope_tile(z: int, x: int, y: int, tid: str | None = Query(None)):
 
 
 @router.get("/v1/terrain/tilejson")
-async def terrain_tilejson(layer: str = Query("hillshade")):
+async def terrain_tilejson(layer: Annotated[str, Query()] = "hillshade"):
     """TileJSON للطبقة النقطيّة (hillshade|slope) — يستهلكه Leaflet/MapLibre.
 
     صدق: ``available`` يعكس تهيئة DEM فعليّاً؛ بلا DEM ⇒ ``available:false`` + سبب
@@ -118,8 +119,10 @@ async def terrain_tilejson(layer: str = Query("hillshade")):
 @router.get("/v1/fields/{field_id}/contours.geojson")
 async def field_contours(
     field_id: str,
-    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
-    interval_m: float = Query(10.0, ge=1.0, le=500.0),
+    bbox: Annotated[
+        str | None, Query(description="minLon,minLat,maxLon,maxLat (EPSG:4326)")
+    ] = None,
+    interval_m: Annotated[float, Query(ge=1.0, le=500.0)] = 10.0,
 ):
     """خطوط كنتور الحقل (GeoJSON) من DEM مقصوصٍ على bbox — لتخطيط المدرّجات/الريّ.
 

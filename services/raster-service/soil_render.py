@@ -276,7 +276,10 @@ def normalize_depth(depth: str | None) -> str:
 
 
 def is_source_configured() -> bool:
-    """هل أيّ نمط تهيئة مصدر SoilGrids مضبوط (مجلّد/قالب/مسار صريح)؟"""
+    """هل أيّ نمط تهيئة مصدر SoilGrids **مُعلَن** (مجلّد/قالب/مسار صريح)؟
+
+    إعلانٌ لا قابليّةُ قراءة: قد يكون المجلّد مضبوطاً بلا ملفّات. للتمييز الصادق استعمل
+    ``readable_layer_count`` (كم طبقة (خاصّيّة، عمق) تحلّ فعليّاً إلى ملفّ موجود)."""
     if os.getenv("SOIL_LAYER_PATH_TEMPLATE"):
         return True
     for base_env in ("SOILGRIDS_DIR", "SOILGRIDS_COG_DIR", "SOIL_COG_DIR"):
@@ -284,6 +287,18 @@ def is_source_configured() -> bool:
         if base and os.path.isdir(base):
             return True
     return any(k.startswith("SOILGRID_") and k.endswith("_PATH") for k in os.environ)
+
+
+def readable_layer_count(depth: str | None = None) -> int:
+    """عدد طبقات (خاصّيّة، عمق) التي تحلّ فعليّاً إلى ملفّ GeoTIFF موجود.
+
+    صدق: ``is_source_configured`` قد يكون True (المجلّد مضبوط) بينما لا ملفّ قابلاً للقراءة.
+    هذا يعطي الحقيقة التشغيليّة (0 = مُعلَن لكن غير قابل للخدمة). يفحص العمق المُمرَّر (أو
+    الأعماق كلّها) عبر ``soil_raster_path`` (يتحقّق من ``os.path.isfile``)."""
+    depths = [normalize_depth(depth)] if depth else list(SOIL_DEPTHS)
+    return sum(
+        1 for prop in SOIL_PROPERTIES for d in depths if soil_raster_path(prop, d) is not None
+    )
 
 
 def read_property_bbox(prop: str, depth: str, bbox: list[float]):
