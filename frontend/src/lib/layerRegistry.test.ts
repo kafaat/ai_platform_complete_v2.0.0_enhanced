@@ -30,6 +30,7 @@ describe('layerRegistry', () => {
     const indices = layersOfKind('index');
     expect(indices.map((l) => l.id)).toEqual(expect.arrayContaining([
       'truecolor', 'ndvi', 'ndmi', 'salinity', 'evi', 'savi', 'msavi', 'ndwi', 'gndvi', 'ndre', 'msi',
+      'reci', 'gci', 'arvi', 'sipi', 'nbr', 'ccci', 'vari', 'gli', 'bsi',
     ]));
     expect(indices.every((l) => l.kind === 'index')).toBe(true);
 

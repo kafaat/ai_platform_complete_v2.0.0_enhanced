@@ -188,6 +188,18 @@ _INDEX_DOMAIN = {
     "savi": (-0.2, 0.9, False),  # غطاء مُعدَّل للتربة — مثل NDVI
     "gndvi": (-0.2, 0.9, False),  # غطاء أخضر — مثل NDVI
     "msi": (0.4, 1.6, True),  # إجهاد مائيّ B11/B08: عالٍ = إجهاد (أحمر) ⇒ نعكس
+    # ─ المؤشّرات المتقدّمة (top-20): نطاقات دقيقة بدل الافتراضيّ NDVI. بلا نطاق صحيح كانت
+    # reci/gci (نِسَب 0..~5) تُقصَّر كلّها إلى قمّة المقياس فتظهر بلون مُشبَع واحد بلا معنًى.
+    "reci": (0.0, 5.0, False),  # Chlorophyll Red-Edge = B08/B05−1 (~0..6): عالٍ = يخضور أعلى
+    "gci": (0.0, 5.0, False),  # Green Chlorophyll = B08/B03−1 (~0..8): عالٍ = يخضور أعلى
+    "arvi": (-0.2, 0.9, False),  # مقاوم للغلاف الجوّيّ — مدى NDVI (−1..1)
+    "sipi": (0.0, 2.0, False),  # Structure Insensitive Pigment (~0.8..1.8 للنبات الصحّيّ)
+    "nbr": (-0.5, 0.9, False),  # Normalized Burn Ratio (−1..1): نبات صحّيّ عالٍ (أخضر)
+    "ccci": (0.0, 1.0, False),  # Canopy Chlorophyll = NDRE/NDVI (~0..1.5)
+    "vari": (-0.2, 0.7, False),  # Visible ARI (−1..1): غطاء أخضر عالٍ
+    "gli": (-0.2, 0.5, False),  # Green Leaf Index (−1..1): نبات موجب
+    # Bare Soil Index: عالٍ = تربة عارية (سيّئ للغطاء) ⇒ نعكس (عالٍ = أحمر).
+    "bsi": (-0.5, 0.5, True),
 }
 
 

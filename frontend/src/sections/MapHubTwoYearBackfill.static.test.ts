@@ -33,14 +33,17 @@ describe('MapHub two-year historical imagery backfill UI', () => {
   // Regression: all MapHub-visible CDSE layers that users expect to persist historically
   // must be allowed into backfill. salinity is a UI alias and must be sent to raster-service
   // as its backend IndicatorKind value, ndsi.
-  it('includes truecolor, ndwi, and salinity/ndsi in persisted historical backfill', () => {
+  it('includes core thumbnails and advanced top-20 indices in persisted historical backfill', () => {
     const handler = source.slice(source.indexOf('handlePrepareTwoYearImagery'));
     const payloadStart = handler.indexOf('const payload');
     const indicesBlock = handler.slice(0, payloadStart);
     expect(indicesBlock).toContain('BACKFILL_SUPPORTED_INDICES');
     expect(indicesBlock).toContain('RAW_IMAGERY_INDEX_ID');
-    expect(indicesBlock).toContain("'ndwi'");
-    expect(indicesBlock).toContain("'salinity'");
+    for (const idx of ['ndwi', 'salinity', 'reci', 'gci', 'arvi', 'sipi', 'nbr', 'ccci', 'vari', 'gli', 'bsi']) {
+      expect(indicesBlock).toContain(`'${idx}'`);
+    }
+    expect(source).toContain('CORE_TIMELINE_THUMBNAIL_INDEX_IDS');
+    expect(source).toContain('ADVANCED_ANALYSIS_INDEX_IDS');
     expect(indicesBlock).toContain("idx === 'salinity' ? 'ndsi' : idx");
   });
 });

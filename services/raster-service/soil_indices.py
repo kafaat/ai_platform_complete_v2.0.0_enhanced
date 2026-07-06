@@ -32,7 +32,7 @@ SOIL_INDEX_FORMULAS = {
     "bi2": "sqrt((RED^2 + GREEN^2 + NIR^2) / 3)",
     "ndti": "(SWIR1 - SWIR2) / (SWIR1 + SWIR2)",
     "dbsi": "((SWIR1 - GREEN) / (SWIR1 + GREEN)) - NDVI",
-    "ndsi": "(RED - NIR) / (RED + NIR)",
+    "ndsi": "(SWIR1 - SWIR2) / (SWIR1 + SWIR2)",
     "satvi": "((SWIR1 - RED) / (SWIR1 + RED + L)) * (1 + L) - (SWIR2 / 2)",
 }
 
@@ -81,9 +81,9 @@ def compute_dbsi(green, swir1, ndvi, _np):
     return ((swir1 - green) / _eps(swir1 + green, _np)) - ndvi
 
 
-def compute_ndsi(red, nir, _np):
-    """Normalized Difference Salinity Index — الملوحة (حرج للسياق اليمني)."""
-    return (red - nir) / _eps(red + nir, _np)
+def compute_ndsi(swir1, swir2, _np):
+    """Normalized Difference Salinity Index — الملوحة (SWIR1/SWIR2، متّسق مع CDSE)."""
+    return (swir1 - swir2) / _eps(swir1 + swir2, _np)
 
 
 def compute_satvi(red, swir1, swir2, _np, L: float = 0.5):

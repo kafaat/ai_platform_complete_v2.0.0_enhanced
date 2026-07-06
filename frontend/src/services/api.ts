@@ -3868,8 +3868,11 @@ export interface ImageryTimelineItem {
   date: string;
   has_cog: boolean;
   cloud_pct: number | null;
+  clear_pct?: number | null;
+  quality_label?: 'high' | 'medium' | 'cloudy' | 'unknown' | string | null;
   indices: string[];
   scene_id?: string | null;
+  acquisition_datetime?: string | null;
   thumbnail_url: string;
 }
 export interface ImageryTimeline {

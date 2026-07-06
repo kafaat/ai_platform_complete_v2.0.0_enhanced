@@ -167,7 +167,7 @@ def test_backfill_rejects_unsupported_visual_index(monkeypatch):
             "preset": "custom",
             "from_date": "2026-01-01",
             "to_date": "2026-01-31",
-            "indices": ["vari"],
+            "indices": ["lst"],
             "dry_run": True,
             "clip_polygon_geojson": _poly(),
         },
@@ -176,7 +176,7 @@ def test_backfill_rejects_unsupported_visual_index(monkeypatch):
     assert "غير مناسبة" in resp.text
 
 
-def test_backfill_accepts_truecolor_ndwi_and_ndsi_for_persisted_map_layers(monkeypatch):
+def test_backfill_accepts_top20_persisted_map_layers(monkeypatch):
     """MapHub-visible layers must be accepted by the raster backfill contract so they can
     become persisted COGs served through /fields/{id}/tiles instead of live CDSE fallback.
     salinity is sent from the UI as backend ndsi.
@@ -196,7 +196,28 @@ def test_backfill_accepts_truecolor_ndwi_and_ndsi_for_persisted_map_layers(monke
             "preset": "custom",
             "from_date": "2026-01-01",
             "to_date": "2026-01-31",
-            "indices": ["truecolor", "ndwi", "ndsi"],
+            "indices": [
+                "truecolor",
+                "ndvi",
+                "ndmi",
+                "savi",
+                "evi",
+                "gndvi",
+                "ndre",
+                "reci",
+                "gci",
+                "arvi",
+                "sipi",
+                "nbr",
+                "ccci",
+                "vari",
+                "gli",
+                "bsi",
+                "msi",
+                "msavi",
+                "ndwi",
+                "ndsi",
+            ],
             "limit_per_month": 1,
             "max_cloud_pct": 30,
             "dry_run": True,
@@ -206,5 +227,70 @@ def test_backfill_accepts_truecolor_ndwi_and_ndsi_for_persisted_map_layers(monke
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["jobs_scheduled"] == 0
-    assert len(data["jobs"]) == 3
-    assert {j["index"] for j in data["jobs"]} == {"truecolor", "ndwi", "ndsi"}
+    assert len(data["jobs"]) == 20
+    assert {j["index"] for j in data["jobs"]} == {
+        "truecolor",
+        "ndvi",
+        "ndmi",
+        "savi",
+        "evi",
+        "gndvi",
+        "ndre",
+        "reci",
+        "gci",
+        "arvi",
+        "sipi",
+        "nbr",
+        "ccci",
+        "vari",
+        "gli",
+        "bsi",
+        "msi",
+        "msavi",
+        "ndwi",
+        "ndsi",
+    }
+
+
+def test_ndvi_backfill_policy_accepts_50pct_cloud_and_enforces_spacing():
+    scenes = [
+        {"item_id": "too-cloudy", "datetime": "2026-07-01T08:00:00Z", "cloud_cover_pct": 55},
+        {"item_id": "day1", "datetime": "2026-07-01T08:00:00Z", "cloud_cover_pct": 20},
+        {"item_id": "day2-too-close", "datetime": "2026-07-02T08:00:00Z", "cloud_cover_pct": 5},
+        {"item_id": "day4", "datetime": "2026-07-04T08:00:00Z", "cloud_cover_pct": 50},
+        {"item_id": "day8", "datetime": "2026-07-08T08:00:00Z", "cloud_cover_pct": 30},
+    ]
+    selected = main._select_backfill_scenes_by_policy(
+        scenes,
+        indices=["ndvi"],
+        max_cloud_pct=50,
+        limit=8,
+    )
+    ids = [s["item_id"] for s in selected]
+    assert "too-cloudy" not in ids
+    assert "day4" in ids  # cloud=50 => clear=50 is accepted by policy
+    assert all((s.get("clear_pct") is None or s["clear_pct"] >= 50) for s in selected)
+    assert all(s.get("quality_label") in {"high", "medium"} for s in selected)
+
+
+def test_available_dates_cloud_quality_metadata(monkeypatch):
+    monkeypatch.setattr(main, "AGENT_TOKEN", "test-token")
+    main._field_layers["F-quality"] = ["L-quality"]
+    main._layers["L-quality"] = {
+        "field_id": "F-quality",
+        "index": "ndvi",
+        "cog_url": "file:///tmp/fake.tif",
+        "acquisition_date": "2026-07-05T07:35:29Z",
+        "cloud_pct": 50,
+        "provenance": {"scene_id": "S2_TEST"},
+    }
+    client = TestClient(main.app)
+    resp = client.get(
+        "/v1/fields/F-quality/available-dates?index=ndvi",
+        headers={"x-agent-token": "test-token", "x-tenant-id": "T-1"},
+    )
+    assert resp.status_code == 200, resp.text
+    item = resp.json()["dates"][0]
+    assert item["cloud_pct"] == 50
+    assert item["clear_pct"] == 50
+    assert item["quality_label"] == "medium"

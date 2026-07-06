@@ -16,7 +16,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import {
   useVegetationTimeseries, useAnalyzeVegetation, useCurrentNDVI,
-  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useRefreshFieldImagery, type GridIndex,
+  useIndicatorGrid, useFieldTimeseries, useFieldChange, useFieldPrescription, useRefreshFieldImagery, useFieldImageryTimeline, type GridIndex,
 } from '../hooks/useApi';
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
@@ -239,6 +239,18 @@ export default function SatellitePage() {
   const { data: rasterTs, isLoading: rasterTsLoading, isError: rasterTsError } =
     useFieldTimeseries(fieldId, gridIndex, '');
   const rasterPoints = rasterTs?.available ? (rasterTs.points ?? []) : [];
+  // خطّ زمنيّ خادميّ للتواريخ/المصغّرات من raster_assets؛ لا يعتمد على حساب mean للمؤشّر.
+  // هذا يمنع حالة: COGs محفوظة بنجاح لكن /timeseries لم يرجع نقاطاً بعد، فتختفي thumbnails.
+  const imageryTimelineMonths = useMemo(() => Math.max(1, Math.ceil(days / 31)), [days]);
+  const { data: imageryTimeline } = useFieldImageryTimeline(fieldId, imageryTimelineMonths);
+  const timelineItems = Array.isArray(imageryTimeline?.items) ? imageryTimeline.items : [];
+  const timelineThumbByDate = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const item of timelineItems) {
+      if (item?.date && item.thumbnail_url) m.set(String(item.date).slice(0, 10), item.thumbnail_url);
+    }
+    return m;
+  }, [timelineItems]);
   // تواريخ COG الحقيقيّة المتاحة (لاختيار تاريخَي كشف التغيّر).
   const availableDates = useMemo(
     () => rasterPoints.map((p) => p.datetime).filter(Boolean),
@@ -279,21 +291,42 @@ export default function SatellitePage() {
   // التاريخ الأسبق — لبطاقات السجلّ الزمنيّ (تاريخ · صورة · متوسّط + تغيّر).
   const stripPoints: ScrubberPoint[] = useMemo(() => {
     const base: ScrubberPoint[] = (Array.isArray(rasterPoints) && rasterPoints.length)
-      ? rasterPoints.map((p) => ({ date: p.datetime, value: p.mean, cloud: p.cloudy_pct ?? null }))
-      : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null }));
+      ? rasterPoints.map((p) => ({
+          date: p.datetime,
+          value: p.mean,
+          cloud: p.cloudy_pct ?? null,
+          thumbUrl: timelineThumbByDate.get(String(p.datetime).slice(0, 10)) ?? null,
+          acquisitionDatetime: (timelineItems.find((item) => String(item.date).slice(0, 10) === String(p.datetime).slice(0, 10))?.acquisition_datetime ?? null),
+        }))
+      : (timelineItems.length
+          ? timelineItems.map((item) => ({
+              date: item.date,
+              value: null,
+              cloud: typeof item.cloud_pct === 'number' ? item.cloud_pct : null,
+              thumbUrl: item.thumbnail_url,
+              acquisitionDatetime: item.acquisition_datetime ?? null,
+            }))
+          : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null })));
     // فرق المؤشّر عن التاريخ الأسبق (ترتيب زمنيّ تصاعديّ).
     const chron = base.filter((p) => p.date).slice().sort((a, b) => (a.date < b.date ? -1 : 1));
     const deltaByDate = new Map<string, number>();
-    for (let i = 1; i < chron.length; i++) deltaByDate.set(chron[i].date, chron[i].value - chron[i - 1].value);
+    for (let i = 1; i < chron.length; i++) {
+      const cur = chron[i];
+      const prev = chron[i - 1];
+      if (cur?.date && typeof cur.value === 'number' && Number.isFinite(cur.value)
+        && typeof prev?.value === 'number' && Number.isFinite(prev.value)) {
+        deltaByDate.set(cur.date, cur.value - prev.value);
+      }
+    }
     const geom = (field?.geometry ?? null) as { type?: string; coordinates?: unknown } | null;
     return base.map((p) => ({
       ...p,
       delta: p.date && deltaByDate.has(p.date) ? (deltaByDate.get(p.date) as number) : null,
-      thumbUrl: fieldId && p.date
+      thumbUrl: p.thumbUrl ?? (fieldId && p.date
         ? fieldCdseThumbnailUrl(fieldId, 'truecolor', p.date.slice(0, 10), null, geom, null, 160)
-        : null,
+        : null),
     }));
-  }, [rasterPoints, ts, fieldId, gridIndex, field?.geometry]);
+  }, [rasterPoints, timelineItems, timelineThumbByDate, ts, fieldId, gridIndex, field?.geometry]);
 
   // هل يوفّر المصدر نسبة غيوم؟ (raster نعم، vegetation لا) — يضبط إتاحة المُبدِّل.
   const hasCloudData = stripPoints.some((p) => typeof p.cloud === 'number');

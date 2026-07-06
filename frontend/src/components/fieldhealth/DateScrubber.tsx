@@ -18,10 +18,12 @@ import { T, RADIUS } from '../ds';
 
 export interface ScrubberPoint {
   date: string;
-  value: number;
+  value?: number | null;
   cloud: number | null;
   // رابط مُصغَّرة صورة الحقل لهذا التاريخ (cdse-thumbnail) — اختياريّ (يسقط لتدرّج لونيّ).
   thumbUrl?: string | null;
+  // وقت الالتقاط الحقيقيّ من STAC/CDSE إن توفر. لا نستخدم وقت تنفيذ التحليل.
+  acquisitionDatetime?: string | null;
   // فرق المؤشّر عن التاريخ الأسبق (لشارة التغيّر) — اختياريّ.
   delta?: number | null;
 }
@@ -37,6 +39,17 @@ function formatArabicDate(iso: string): string {
   }
 }
 
+function formatAcquisitionTime(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+  } catch {
+    return null;
+  }
+}
+
 export interface DateScrubberProps {
   points: ScrubberPoint[];
   selected: string;
@@ -48,7 +61,8 @@ export interface DateScrubberProps {
 }
 
 // لون القيمة (نمط NDVI صحّيّ) — أخضر مرتفع، أحمر منخفض.
-function valueColor(v: number): string {
+function valueColor(v: number | null | undefined): string {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return '#64748b';
   if (v > 0.7) return '#16a34a';
   if (v > 0.5) return '#65a30d';
   if (v > 0.3) return '#ca8a04';
@@ -210,9 +224,10 @@ export default function DateScrubber({
           <div className="flex gap-2.5" style={{ overflowX: 'auto', paddingBottom: 6 }}>
             {scrubberPoints.map((p, i) => {
               const c = valueColor(p.value);
+              const hasNumericValue = typeof p.value === 'number' && Number.isFinite(p.value);
               const isSel = !!p.date && p.date === selected;
               const cloudy = typeof p.cloud === 'number' && p.cloud > cloudThreshold;
-              const hasDelta = typeof p.delta === 'number' && Math.abs(p.delta as number) >= 0.005;
+              const hasDelta = typeof p.delta === 'number' && Number.isFinite(p.delta) && Math.abs(p.delta as number) >= 0.005;
               // في الوضع الشهريّ (غير مُوسَّع)، النقر يُوسّع الشهر بدل اختيار اليوم.
               const monthKey = (p.date ?? '').slice(0, 7);
               const groupedMode = shouldGroup && !expandedMonth;
@@ -221,12 +236,18 @@ export default function DateScrubber({
                 else if (p.date) onSelect(p.date);
               };
               const up = (p.delta ?? 0) >= 0;
+              const acquisitionTime = formatAcquisitionTime(p.acquisitionDatetime);
+              const cardTitle = p.date
+                ? [p.date, acquisitionTime ? `التقاط ${acquisitionTime}` : null, cloudy ? `غائم (${p.cloud}%)` : null]
+                    .filter(Boolean)
+                    .join(' · ')
+                : '';
               return (
                 <button
                   key={p.date || i}
                   type="button"
                   onClick={onCardClick}
-                  title={p.date ? (cloudy ? `${p.date} · غائم (${p.cloud}%)` : p.date) : ''}
+                  title={cardTitle}
                   style={{
                     flexShrink: 0,
                     width: 96,
@@ -242,9 +263,14 @@ export default function DateScrubber({
                   }}
                 >
                   {/* التاريخ (أعلى البطاقة) */}
-                  <div style={{ fontSize: 11, fontWeight: 700, color: isSel ? T.ink : T.muted, marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: isSel ? T.ink : T.muted, marginBottom: acquisitionTime ? 2 : 6 }}>
                     {p.date ? formatArabicDate(p.date) : ''}
                   </div>
+                  {acquisitionTime && (
+                    <div style={{ fontSize: 9, color: T.faint, marginBottom: 4, lineHeight: 1.1 }}>
+                      التقاط {acquisitionTime}
+                    </div>
+                  )}
 
                   {/* صورة الحقل لهذا التاريخ (تسقط لتدرّج لونيّ عند تعذّرها) */}
                   <div
@@ -276,7 +302,7 @@ export default function DateScrubber({
 
                   {/* المتوسّط + شارة التغيّر */}
                   <div className="flex items-center justify-center gap-1">
-                    <span style={{ fontSize: 15, fontWeight: 800, color: c }}>{p.value.toFixed(2)}</span>
+                    <span style={{ fontSize: 15, fontWeight: 800, color: c }}>{hasNumericValue ? (p.value as number).toFixed(2) : '—'}</span>
                     {hasDelta && (
                       <span
                         style={{
