@@ -275,7 +275,7 @@ services:
       retries: 8
       start_period: 60s
   sahool-minio:
-    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2024-10-13T13-34-11Z}
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
