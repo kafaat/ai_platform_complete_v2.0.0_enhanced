@@ -460,8 +460,24 @@ async def loop_worker() -> None:
             if pool is None:
                 pool = await _connect()
             await run_once(pool)
-        except Exception as e:  # noqa: BLE001 — القاعدة قد تتأخّر عند الإقلاع
-            logger.warning("backfill scan cycle skipped: %s", e)
+        except (asyncpg.UndefinedColumnError, asyncpg.UndefinedTableError) as e:
+            # خطأ مخطّط دائم (عمود/جدول مفقود بعد ترحيل ناقص) — ليس عابراً كتأخّر الإقلاع.
+            # لو بقي عند warning لظلّ العلوق صامتاً: استعلام المطالبة يفشل كلّ دورة فتتراكم
+            # التشغيلات في 'planned' بلا إشارة. نرفعه إلى ERROR بتلميح صريح للترحيل.
+            logger.error(
+                "backfill scan BLOCKED by schema drift (runs will stay 'planned' forever): %s — "
+                "apply pending migrations (v144–v147: backfill_runs + source column, "
+                "scripts_v9/run_migrations.sql steps 150–153)",
+                e,
+            )
+            if pool is not None:
+                try:
+                    await pool.close()
+                except Exception:  # noqa: BLE001
+                    pass
+            pool = None
+        except Exception as e:  # noqa: BLE001 — القاعدة قد تتأخّر عند الإقلاع (عابر)
+            logger.warning("backfill scan cycle skipped (transient, e.g. DB warming up): %s", e)
             if pool is not None:
                 try:
                     await pool.close()
