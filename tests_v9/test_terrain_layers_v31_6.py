@@ -44,10 +44,10 @@ def test_terrain_endpoints_exist_and_fail_closed():
     assert '@router.get("/v1/terrain/tilejson")' in src
     assert '@router.get("/v1/fields/{field_id}/contours.geojson")' in src
     # raster tiles fail-closed to a transparent PNG (no DEM / no tenant ctx).
-    assert "main._TRANSPARENT_PNG" in src
+    assert "TRANSPARENT_PNG" in src
     # tilejson reports availability honestly (available:false + reason when no DEM).
     assert "dem-not-configured" in src
     # contours route is tenant-scoped like other field routes.
-    assert "_require_field_tenant" in src
+    assert "require_field_tenant" in src
     # geographic tiles require a tenant context (tid), no anonymous access.
-    assert "_REQ_TENANT" in src
+    assert "REQ_TENANT" in src

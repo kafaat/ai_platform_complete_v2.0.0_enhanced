@@ -9,20 +9,32 @@
 
 from __future__ import annotations
 
-import main
+import salinity_calibration as _sal
 from fastapi import APIRouter, Header, HTTPException
+from raster_api_models import (
+    MAX_CHANGE_GRID_CELLS,
+    ChangeDetectRequest,
+    FvcComputeRequest,
+    ManagementZonesRequest,
+    SalinityClassifyRequest,
+    SalinityFitRequest,
+    SarRviRequest,
+    TerrainRequest,
+)
+from raster_security_context import require_service_token, safe_raster_source
+from raster_settings import AGENT_TOKEN, SSRF_BLOCKED_HOSTS, UPLOAD_DIR
 
 router = APIRouter()
 
 
 @router.post("/zones/classify")
-async def zones_classify(req: main.ManagementZonesRequest, x_agent_token: str = Header(None)):
+async def zones_classify(req: ManagementZonesRequest, x_agent_token: str = Header(None)):
     """مناطق الإدارة داخل الحقل (سدّ فجوة P1): تقسيم أداء + وصفة VRT.
 
     يقسّم قيم بكسلات المؤشّر لمناطق (عالٍ/متوسّط/منخفض) بالكوانتايل، ويُنتج
     وصفة متغيّرة المعدّل إن مُرّر base_rate. صدق: يعمل على قيم حقيقيّة.
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token, AGENT_TOKEN)
     import management_zones as mz
 
     result = mz.classify_zones(req.pixel_values, n_zones=req.n_zones)
@@ -34,7 +46,7 @@ async def zones_classify(req: main.ManagementZonesRequest, x_agent_token: str = 
 
 
 @router.post("/change/detect")
-async def change_detect(req: main.ChangeDetectRequest, x_agent_token: str = Header(None)):
+async def change_detect(req: ChangeDetectRequest, x_agent_token: str = Header(None)):
     """كشف التغيير المكاني (per-pixel 2D) بين تاريخين — أين تدهور/تحسّن الحقل.
 
     يسدّ فجوة كانت placeholder: التحليل الزمني 1D (متوسّط) يُخفي التدهور الموضعي
@@ -42,14 +54,14 @@ async def change_detect(req: main.ChangeDetectRequest, x_agent_token: str = Head
     COG لتاريخين (نفس النهج الصادق: لا يخترع NDVI من البحث) ويُرجِع خريطة فرق
     مُصنّفة + نسب المساحة المتدهورة + تفسير عربي. NaN/null لا تُحسب (صدق السحاب).
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token, AGENT_TOKEN)
     # حدّ الحجم قبل أيّ تحويل numpy (حماية من DoS) ⇒ 413 عند التجاوز.
     for name, g in (("grid_before", req.grid_before), ("grid_after", req.grid_after)):
         cells = sum(len(row) for row in g)
-        if cells > main.MAX_CHANGE_GRID_CELLS:
+        if cells > MAX_CHANGE_GRID_CELLS:
             raise HTTPException(
                 status_code=413,
-                detail=f"{name} كبير جدّاً: {cells} خليّة > الحدّ {main.MAX_CHANGE_GRID_CELLS}",
+                detail=f"{name} كبير جدّاً: {cells} خليّة > الحدّ {MAX_CHANGE_GRID_CELLS}",
             )
     import change_detection as cd
 
@@ -71,18 +83,18 @@ async def change_detect(req: main.ChangeDetectRequest, x_agent_token: str = Head
 
 
 @router.post("/fvc/compute")
-async def fvc_compute(req: main.FvcComputeRequest, x_agent_token: str = Header(None)):
+async def fvc_compute(req: FvcComputeRequest, x_agent_token: str = Header(None)):
     """نسبة التغطية النباتيّة (FVC) عبر نموذج البكسل الثنائي — تكمّل LAI.
 
     LAI (موجود) يقيس كثافة الأوراق (3D)؛ FVC يقيس نسبة الأرض المُغطّاة بالنبات
     (2D) — أساس موضوعي لرصد زحف التصحّر وتغطية المحاصيل في الجوف. يستقبل شبكة
     NDVI مُحسبة من COG ويُرجِع شبكة FVC + نسبة التصحّر + تصنيف + تفسير عربي.
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token, AGENT_TOKEN)
     cells = sum(len(row) for row in req.ndvi_grid)
-    if cells > main.MAX_CHANGE_GRID_CELLS:
+    if cells > MAX_CHANGE_GRID_CELLS:
         raise HTTPException(
-            status_code=413, detail=f"ndvi_grid كبير جدّاً: {cells} > {main.MAX_CHANGE_GRID_CELLS}"
+            status_code=413, detail=f"ndvi_grid كبير جدّاً: {cells} > {MAX_CHANGE_GRID_CELLS}"
         )
     import fvc
 
@@ -97,18 +109,18 @@ async def fvc_compute(req: main.FvcComputeRequest, x_agent_token: str = Header(N
 
 
 @router.post("/sar/rvi")
-async def sar_rvi_endpoint(req: main.SarRviRequest, x_agent_token: str = Header(None)):
+async def sar_rvi_endpoint(req: SarRviRequest, x_agent_token: str = Header(None)):
     """مؤشّر الغطاء الراداري RVI من Sentinel-1 VV/VH — يُكمل مقاومة السحاب.
 
     RVI = 4·σ°VH/(σ°VV+σ°VH) (قدرة خطّيّة)، مقصوص [0,1] كبديل غطاء قابل للدمج مع
     NDVI كـfamily="sar". المُدخلات شبكتا VV/VH مُحسبتان من COG رادار مُعايَر
     (العامل، rasterio). صدق: فجوات NaN محفوظة. rvi_mean يُمرَّر كإشارة source=rvi.
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token, AGENT_TOKEN)
     cells = sum(len(row) for row in req.vv_grid)
-    if cells > main.MAX_CHANGE_GRID_CELLS:
+    if cells > MAX_CHANGE_GRID_CELLS:
         raise HTTPException(
-            status_code=413, detail=f"vv_grid كبير جدّاً: {cells} > {main.MAX_CHANGE_GRID_CELLS}"
+            status_code=413, detail=f"vv_grid كبير جدّاً: {cells} > {MAX_CHANGE_GRID_CELLS}"
         )
     import sar_rvi
 
@@ -121,16 +133,18 @@ async def sar_rvi_endpoint(req: main.SarRviRequest, x_agent_token: str = Header(
 
 
 @router.post("/terrain/slope")
-async def terrain_slope(req: main.TerrainRequest, x_agent_token: str = Header(None)):
+async def terrain_slope(req: TerrainRequest, x_agent_token: str = Header(None)):
     """يحسب الانحدار من DEM + يصنّف ملاءمة حصاد المياه (زراعة اليمن).
 
     يأخذ dem_url (من /imagery/dem) ويحسب الانحدار/الاتّجاه ثمّ يوصي بتقنيّة
     حصاد المياه المناسبة. صدق: الحساب الفعلي يحتاج rasterio في التشغيل.
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token, AGENT_TOKEN)
     import terrain_analysis as ta
 
-    result = ta.compute_slope_aspect(main._safe_raster_source(req.dem_url), req.pixel_size_m)
+    result = ta.compute_slope_aspect(
+        safe_raster_source(req.dem_url, UPLOAD_DIR, SSRF_BLOCKED_HOSTS), req.pixel_size_m
+    )
     if result.get("computed") and result.get("slope_deg"):
         result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
     return result
@@ -142,7 +156,7 @@ async def cog_validate(path: str, x_agent_token: str = Header(None)):
 
     COG جيّد = قراءة جزئيّة سريعة. هذا يكشف "COG يفتح لكن بطيء".
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token, AGENT_TOKEN)
     # حماية path traversal
     if ".." in path:
         raise HTTPException(400, "مسار غير صالح")
@@ -152,16 +166,16 @@ async def cog_validate(path: str, x_agent_token: str = Header(None)):
 
 
 @router.post("/salinity/classify")
-async def salinity_classify(req: main.SalinityClassifyRequest, x_agent_token: str = Header(None)):
+async def salinity_classify(req: SalinityClassifyRequest, x_agent_token: str = Header(None)):
     """يصنّف NDSI لصنف ملوحة (heuristic إقليمي للجوف). تقديري."""
-    main._require_service_token(x_agent_token)
-    return main._sal.classify_ndsi_salinity(req.ndsi)
+    require_service_token(x_agent_token, AGENT_TOKEN)
+    return _sal.classify_ndsi_salinity(req.ndsi)
 
 
 @router.post("/salinity/calibrate")
-async def salinity_calibrate(req: main.SalinityFitRequest, x_agent_token: str = Header(None)):
+async def salinity_calibrate(req: SalinityFitRequest, x_agent_token: str = Header(None)):
     """يلائم انحدار NDSI→ECe من أزواج حقيقيّة (عند جمعها بإحداثيّات + EC).
 
     يفرض: 5 عيّنات+ وطريقة استخلاص موحّدة (لا يقبل بيانات تُنتج معايرة زائفة)."""
-    main._require_service_token(x_agent_token)
-    return main._sal.fit_regression(req.samples)
+    require_service_token(x_agent_token, AGENT_TOKEN)
+    return _sal.fit_regression(req.samples)

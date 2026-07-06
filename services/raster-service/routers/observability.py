@@ -9,12 +9,21 @@
 
 from __future__ import annotations
 
+import logging
 import os
 
 import httpx
-import main
+import object_store
+import stac_search as stac_search_helpers
 from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import JSONResponse, PlainTextResponse
+from layer_lookup import grid_from_cog, resolve_field_layer, rvi_from_sar_cog
+from raster_runtime_state import FIELD_LAYERS, JOBS, LAYERS
+from raster_security_context import REQ_TENANT, require_service_token
+from raster_settings import AGENT_TOKEN, EARTH_SEARCH_URL, UPLOAD_DIR
+from tile_observability import TILE_OBS, TILE_OBS_BY_INDEX
+
+logger = logging.getLogger("raster-service")
 
 router = APIRouter()
 
@@ -33,7 +42,7 @@ async def metrics():
     """
     from collections import Counter
 
-    by_status = Counter(j.get("status") for j in main._jobs.values())
+    by_status = Counter(j.get("status") for j in JOBS.values())
 
     # حوّل enum/قيمة لنصّ
     def _s(k):
@@ -48,14 +57,14 @@ async def metrics():
     lines += [
         "# HELP sahool_raster_layers_total الطبقات المُنتَجة المتاحة",
         "# TYPE sahool_raster_layers_total gauge",
-        f"sahool_raster_layers_total {len(main._layers)}",
+        f"sahool_raster_layers_total {len(LAYERS)}",
         "# HELP sahool_raster_jobs_active المهامّ قيد المعالجة الآن",
         "# TYPE sahool_raster_jobs_active gauge",
         f"sahool_raster_jobs_active "
-        f"{sum(1 for j in main._jobs.values() if _s(j.get('status')) == 'processing')}",
+        f"{sum(1 for j in JOBS.values() if _s(j.get('status')) == 'processing')}",
     ]
     # صحّة عميل STAC (مرونة قلب النظام)
-    h = main._stac.health()
+    h = stac_search_helpers.stac_health()
     lines += [
         "# HELP sahool_stac_requests_total إجمالي طلبات STAC",
         "# TYPE sahool_stac_requests_total counter",
@@ -76,27 +85,27 @@ async def metrics():
     lines += [
         "# HELP sahool_raster_tilejson_requests_total TileJSON requests reaching raster-service",
         "# TYPE sahool_raster_tilejson_requests_total counter",
-        f"sahool_raster_tilejson_requests_total {main._TILE_OBS['tilejson_requests_total']}",
+        f"sahool_raster_tilejson_requests_total {TILE_OBS['tilejson_requests_total']}",
         "# HELP sahool_raster_tilejson_unavailable_total TileJSON responses with available=false",
         "# TYPE sahool_raster_tilejson_unavailable_total counter",
-        f"sahool_raster_tilejson_unavailable_total {main._TILE_OBS['tilejson_unavailable_total']}",
+        f"sahool_raster_tilejson_unavailable_total {TILE_OBS['tilejson_unavailable_total']}",
         "# HELP sahool_raster_tile_requests_total Field tile image requests",
         "# TYPE sahool_raster_tile_requests_total counter",
-        f"sahool_raster_tile_requests_total {main._TILE_OBS['tile_requests_total']}",
+        f"sahool_raster_tile_requests_total {TILE_OBS['tile_requests_total']}",
         "# HELP sahool_raster_tile_cache_hits_total Persistent tile cache hits",
         "# TYPE sahool_raster_tile_cache_hits_total counter",
-        f"sahool_raster_tile_cache_hits_total {main._TILE_OBS['tile_cache_hits_total']}",
+        f"sahool_raster_tile_cache_hits_total {TILE_OBS['tile_cache_hits_total']}",
         "# HELP sahool_raster_tile_cache_misses_total Persistent tile cache misses",
         "# TYPE sahool_raster_tile_cache_misses_total counter",
-        f"sahool_raster_tile_cache_misses_total {main._TILE_OBS['tile_cache_misses_total']}",
+        f"sahool_raster_tile_cache_misses_total {TILE_OBS['tile_cache_misses_total']}",
         "# HELP sahool_raster_tile_transparent_total Transparent tiles returned because no raster data was available",
         "# TYPE sahool_raster_tile_transparent_total counter",
-        f"sahool_raster_tile_transparent_total {main._TILE_OBS['tile_transparent_total']}",
+        f"sahool_raster_tile_transparent_total {TILE_OBS['tile_transparent_total']}",
         "# HELP sahool_raster_tile_render_errors_total Tile rendering errors hidden behind transparent fallback",
         "# TYPE sahool_raster_tile_render_errors_total counter",
-        f"sahool_raster_tile_render_errors_total {main._TILE_OBS['tile_render_errors_total']}",
+        f"sahool_raster_tile_render_errors_total {TILE_OBS['tile_render_errors_total']}",
     ]
-    for idx, counters in sorted(main._TILE_OBS_BY_INDEX.items()):
+    for idx, counters in sorted(TILE_OBS_BY_INDEX.items()):
         safe_idx = idx.replace('"', "_")
         for key, value in sorted(counters.items()):
             metric = "sahool_raster_" + key
@@ -111,8 +120,8 @@ async def tile_observability():
     cache، أو أخطاء تصيير، دون كشف مسارات COG الداخلية."""
     return {
         "status": "ok",
-        "counters": dict(main._TILE_OBS),
-        "by_index": {k: dict(v) for k, v in main._TILE_OBS_BY_INDEX.items()},
+        "counters": dict(TILE_OBS),
+        "by_index": {k: dict(v) for k, v in TILE_OBS_BY_INDEX.items()},
         "cache_enabled": os.getenv("TILE_CACHE_ENABLED", "true").lower() == "true",
         "message": "راقب tilejson_unavailable_total و tile_transparent_total عند عدم ظهور طبقة المؤشر",
     }
@@ -152,7 +161,7 @@ async def readyz():
     detail = _terrain_soil_readiness()
     try:
         async with httpx.AsyncClient(timeout=5) as client:
-            r = await client.get(f"{main.EARTH_SEARCH_URL}/")
+            r = await client.get(f"{EARTH_SEARCH_URL}/")
             ok = r.status_code < 500
         body = {
             "status": "ready" if ok else "degraded",
@@ -169,8 +178,8 @@ async def readyz():
 
 @router.get("/v1/tile-cache/stats")
 async def tile_cache_stats(x_agent_token: str = Header(None)):
-    main._require_service_token(x_agent_token)
-    root = os.path.join(main.UPLOAD_DIR, "tile_cache")
+    require_service_token(x_agent_token, AGENT_TOKEN)
+    root = os.path.join(UPLOAD_DIR, "tile_cache")
     count = 0
     size = 0
     for base, _dirs, files in os.walk(root) if os.path.exists(root) else []:
@@ -191,8 +200,8 @@ async def tile_cache_stats(x_agent_token: str = Header(None)):
 @router.get("/info/{layer_id}")
 async def raster_info(layer_id: str, x_agent_token: str = Header(None)):
     """معلومات طبقة راستر معالَجة."""
-    main._require_service_token(x_agent_token)
-    layer = main._layers.get(layer_id)
+    require_service_token(x_agent_token, AGENT_TOKEN)
+    layer = LAYERS.get(layer_id)
     if not layer:
         raise HTTPException(404, "طبقة غير موجودة")
     return layer
@@ -217,7 +226,7 @@ async def field_indices(
     اختراع). cloud_cover يُمرَّر إن توفّر (من eo:cloud_cover عبر المستدعي) ليُفعّل
     تحويل الوزن للرادار في fuse_health.
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token, AGENT_TOKEN)
     requested = [i.strip() for i in indices.split(",") if i.strip()]
     out: dict = {
         "field_id": field_id,
@@ -231,13 +240,30 @@ async def field_indices(
     for idx in requested:
         # rvi رادارية: تُحسب من COG ثنائي النطاق (VV/VH) لا band واحد
         if idx == "rvi":
-            m = await main._rvi_from_sar_cog(field_id, date)
+            m = await rvi_from_sar_cog(
+                field_id,
+                date,
+                layers=LAYERS,
+                field_layers=FIELD_LAYERS,
+                tenant_getter=REQ_TENANT.get,
+                logger=logger,
+                object_store_module=object_store,
+            )
             out["rvi"] = m
             if m is not None:
                 out["real_data"] = True
             continue
-        layer = await main._resolve_field_layer(field_id, idx, date)
-        real = main._grid_from_cog(layer, idx, date, 16) if layer is not None else None
+        layer = await resolve_field_layer(
+            field_id,
+            idx,
+            date,
+            layers=LAYERS,
+            field_layers=FIELD_LAYERS,
+            tenant_getter=REQ_TENANT.get,
+            logger=logger,
+            object_store_module=object_store,
+        )
+        real = grid_from_cog(layer, idx, date, 16, object_store) if layer is not None else None
         if real is None:
             out[idx] = None
             continue

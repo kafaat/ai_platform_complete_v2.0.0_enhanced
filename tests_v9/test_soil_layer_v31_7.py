@@ -41,12 +41,12 @@ def test_soil_endpoints_exist_and_fail_closed_with_disclaimer():
     assert '@router.get("/v1/soil/tilejson")' in src
     assert '@router.get("/v1/soil/properties")' in src
     # transparent PNG when no source / no tenant context.
-    assert "main._TRANSPARENT_PNG" in src
+    assert "TRANSPARENT_PNG" in src
     # availability reported honestly + disclaimer always present in tilejson.
     assert "available" in src and "disclaimer" in src.lower()
     assert "soilgrids-source-not-configured" in src
     # geographic tiles require tenant context (tid) — no anonymous access.
-    assert "_REQ_TENANT" in src
+    assert "REQ_TENANT" in src
 
 
 def test_field_soil_summary_and_zones_are_honest_and_tenant_scoped():
@@ -66,4 +66,4 @@ def test_field_soil_summary_and_zones_are_honest_and_tenant_scoped():
     assert '@router.get("/v1/fields/{field_id}/soil/summary")' in router
     assert '@router.get("/v1/fields/{field_id}/soil/sampling-zones.geojson")' in router
     assert '@router.get("/v1/fields/{field_id}/soil/sampling-plan")' in router
-    assert "_require_field_tenant" in router
+    assert "require_field_tenant" in router

@@ -28,6 +28,9 @@ pytestmark = pytest.mark.unit
 
 _ROOT = Path(__file__).resolve().parents[1]
 _TILES = _ROOT / "services" / "raster-service" / "routers" / "cdse_tiles.py"
+# The latest-window knob and the per-key single-flight tile-fetch path were
+# extracted from the thin router into raster_cdse_tile_runtime.py (phase16).
+_RUNTIME = _ROOT / "services" / "raster-service" / "raster_cdse_tile_runtime.py"
 _MAIN = _ROOT / "services" / "raster-service" / "main.py"
 # Single-flight lock state/helpers were decomposed out of main.py into this
 # sibling module; main.py keeps thin _cdse_* alias re-exports of these.
@@ -35,7 +38,8 @@ _SINGLEFLIGHT = _ROOT / "services" / "raster-service" / "cdse_singleflight.py"
 
 
 def test_latest_window_is_wide_and_env_tunable():
-    src = _TILES.read_text(encoding="utf-8")
+    # LATEST_WINDOW_DAYS now lives in the extracted runtime module.
+    src = _TILES.read_text(encoding="utf-8") + "\n" + _RUNTIME.read_text(encoding="utf-8")
     # env-tunable, and the default must NOT be the regressing 60-day window.
     assert 'os.getenv("CDSE_LATEST_WINDOW_DAYS"' in src
     assert "LATEST_WINDOW_DAYS = int(" in src
@@ -44,7 +48,10 @@ def test_latest_window_is_wide_and_env_tunable():
 
 def test_tile_fetch_single_flights_per_key_not_under_global_lock():
     main_src = _MAIN.read_text(encoding="utf-8")
-    tiles_src = _TILES.read_text(encoding="utf-8")
+    # The tile-fetch path (which acquires the per-key lock and prunes stale locks)
+    # was extracted from the router into raster_cdse_tile_runtime.py; read both so
+    # the contract follows the moved code.
+    tiles_src = _TILES.read_text(encoding="utf-8") + "\n" + _RUNTIME.read_text(encoding="utf-8")
     singleflight_src = _SINGLEFLIGHT.read_text(encoding="utf-8")
     # The single-flight state/helpers were moved into cdse_singleflight.py (renamed
     # without the leading underscore) and re-exported by main under the historical
@@ -57,8 +64,11 @@ def test_tile_fetch_single_flights_per_key_not_under_global_lock():
     assert "cdse_key_locks" in combined
     # stale key-locks are pruned so the registry doesn't grow unbounded.
     assert "def cdse_prune_key_locks_locked(" in combined
-    assert "_cdse_prune_key_locks_locked()" in tiles_src
-    assert "main._cdse_key_lock(" in tiles_src
+    # Extraction dropped the leading-underscore aliases in the tile-fetch path: the
+    # runtime calls the bare cdse_singleflight helpers directly. The bare names are
+    # substrings of the old _cdse_* needles, so the contract is unchanged.
+    assert "cdse_prune_key_locks_locked()" in tiles_src
+    assert "cdse_singleflight.cdse_key_lock(" in tiles_src
     # the network fetch (process_index via run_in_executor) must run under the
     # per-key lock, so the global lock is not held across the CDSE call.
     assert "async with key_lock:" in tiles_src

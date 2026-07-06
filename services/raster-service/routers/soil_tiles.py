@@ -12,12 +12,17 @@ routers/soil_tiles.py — طبقة تربة SoilGrids كبلاطات Raster (ت�
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Annotated
 
-import main
 import soil_render as _soil
 from fastapi import APIRouter, Query, Response
+from raster_runtime_state import FIELD_LAYERS, LAYERS
+from raster_security_context import REQ_TENANT, require_field_tenant
+from raster_settings import TRANSPARENT_PNG
+
+logger = logging.getLogger("raster-service")
 
 router = APIRouter()
 
@@ -25,7 +30,7 @@ _PUBLIC_PREFIX = os.getenv("RASTER_PUBLIC_PREFIX", "/api/raster").rstrip("/")
 
 
 def _tenant_ctx_ok() -> bool:
-    return main._REQ_TENANT.get() is not None
+    return REQ_TENANT.get() is not None
 
 
 @router.get("/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png")
@@ -34,10 +39,10 @@ async def soil_tile(
 ):
     """بلاطة خاصّيّة تربة ملوّنة. شفّافة عند غياب المصدر/السياق (fail-closed صادق)."""
     if not _tenant_ctx_ok():
-        return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+        return Response(content=TRANSPARENT_PNG, media_type="image/png")
     png = _soil.render_soil_tile(prop, _soil.normalize_depth(depth), z, x, y)
     return Response(
-        content=png or main._TRANSPARENT_PNG,
+        content=png or TRANSPARENT_PNG,
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=604800"},
     )
@@ -60,7 +65,7 @@ async def soil_tilejson(
     depth = _soil.normalize_depth(depth)
     meta = _soil.SOIL_PROPERTIES[prop]
     available = _soil.soil_raster_path(prop, depth) is not None
-    tenant = main._REQ_TENANT.get()
+    tenant = REQ_TENANT.get()
     tid_q = f"?tid={tenant}" if tenant else ""
     out: dict = {
         "tilejson": "2.2.0",
@@ -149,7 +154,9 @@ async def field_soil_summary(
 
     صدق: بلا مصدر/bbox ⇒ ``computed:false`` + سبب — لا تلفيق. توجيه لاختيار العيّنات.
     """
-    await main._require_field_tenant(field_id, hide_existence=True)
+    await require_field_tenant(
+        field_id, hide_existence=True, layers=LAYERS, field_layers=FIELD_LAYERS, logger=logger
+    )
     result = _soil.compute_field_soil_summary(_parse_bbox(bbox), depth, _parse_poly_points(poly))
     result["field_id"] = field_id
     return result
@@ -170,7 +177,9 @@ async def field_soil_sampling_zones(
 
     صدق: بلا مصدر ⇒ ``features:[]`` + ``computed:false`` — لا تلفيق مناطق.
     """
-    await main._require_field_tenant(field_id, hide_existence=True)
+    await require_field_tenant(
+        field_id, hide_existence=True, layers=LAYERS, field_layers=FIELD_LAYERS, logger=logger
+    )
     import soil_zones as _sz
 
     result = _sz.compute_soil_sampling_zones(
@@ -196,7 +205,9 @@ async def field_soil_sampling_plan(
 
     صدق: بلا مصدر ⇒ ``features:[]`` + ``computed:false`` — لا نقاط مُلفَّقة.
     """
-    await main._require_field_tenant(field_id, hide_existence=True)
+    await require_field_tenant(
+        field_id, hide_existence=True, layers=LAYERS, field_layers=FIELD_LAYERS, logger=logger
+    )
     import soil_zones as _sz
 
     result = _sz.compute_soil_sampling_points(

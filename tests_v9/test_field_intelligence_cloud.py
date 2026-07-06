@@ -104,5 +104,5 @@ def test_indices_endpoint_wired_and_guarded():
     assert _dec in main, "نقطة /indices مفقودة (Gap 1)"
     # محميّة بتوكن الخدمة + صدق (real_data / note)
     seg = main[main.index(_dec) :]
-    assert "_require_service_token" in seg[:1200], "/indices غير محميّة بتوكن الخدمة"
+    assert "require_service_token" in seg[:1200], "/indices غير محميّة بتوكن الخدمة"
     assert "real_data" in seg[:1200], "/indices لا يُعلن صدق البيانات"

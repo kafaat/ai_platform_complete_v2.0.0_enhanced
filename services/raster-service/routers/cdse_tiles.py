@@ -1,250 +1,43 @@
-"""routers/cdse_tiles.py — بلاطات CDSE الحيّة ومعالجة CDSE (CDSE Live Tiles)
-======================================================================
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
-
-المسارات الثلاثة هنا حسّاسة (أضافها المالك حديثاً) — نُقلت حرفيّاً مع تغيير
-``@app`` إلى ``@router`` فقط؛ لا تغيير في المسار/المُدخلات/المخرجات. المساعِدات
-المشتركة (الذاكرة المؤقّتة/التفويض/التصيير/النماذج) تبقى في ``main`` وتُشار إليها
-عبر ``main.X``.
-"""
+"""routers/cdse_tiles.py — بلاطات CDSE الحيّة ومعالجة CDSE (CDSE Live Tiles)."""
 
 from __future__ import annotations
 
+import logging
 import os
-from datetime import UTC, datetime, timedelta
+from urllib.parse import urlencode
 
-import main
+import cdse_client as _cdse
+import db_persist as _db
+import raster_cdse_tile_runtime as _cdse_rt
+import raster_date_geo
 from fastapi import APIRouter, Query
 from fastapi.responses import Response
+from raster_runtime_state import FIELD_LAYERS, LAYERS
+from raster_security_context import REQ_TENANT, require_field_tenant
+from raster_settings import TRANSPARENT_PNG
 
 router = APIRouter()
+logger = logging.getLogger("raster-service")
 
 # بادئة البوّابة العامّة في روابط TileJSON: الواجهة تصل عبر nginx ``/api/raster/`` لا
-# ``/v1/`` المباشر، فمصفوفة ``tiles`` يجب أن تحمل البادئة لتُحلّ من أصل الصفحة. قابلة
-# للضبط بالبيئة (``RASTER_PUBLIC_PREFIX``) بدل ترميزها صلباً — يفكّ الاقتران ببوّابة بعينها.
+# ``/v1/`` المباشر، فمصفوفة ``tiles`` يجب أن تحمل البادئة لتُحلّ من أصل الصفحة.
 _PUBLIC_PREFIX = os.getenv("RASTER_PUBLIC_PREFIX", "/api/raster").rstrip("/")
 
-# «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام. نافذة واسعة (سنة) قابلة للضبط
-# بالبيئة: Sentinel-2 يعيد كلّ ~5 أيّام لكنّ الغطاء السحابيّ قد يترك فجوات > شهرين،
-# فنافذة 60 يوماً كانت تُرجِع «لا مشهد» ⇒ بلاطة شفّافة لحقول كانت تُصيَّر. (regression:
-# ضُيّقت من كامل السنة إلى 60 يوماً — نعيدها واسعة كي يظهر أحدث مشهد صافٍ فعليّاً.)
-LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))
+
+async def _require_field(field_id: str) -> None:
+    await require_field_tenant(field_id, layers=LAYERS, field_layers=FIELD_LAYERS, logger=logger)
 
 
-def _parse_poly(poly: str) -> dict | None:
-    """يحوّل عقد الواجهة الموحَّد ``poly="lng,lat;lng,lat;..."`` (ترتيب lng,lat لا
-    lat,lng) إلى GeoJSON Polygon مغلق الحلقة. يُرجِع None إن فسَد (≥3 رؤوس مطلوبة).
-
-    هذا **مصدر الحقيقة للقصّ**: تُستخدَم الهندسة لطلب CDSE **و** لقناع rasterio البكسليّ.
-    """
-    try:
-        pts: list[list[float]] = []
-        for pair in poly.split(";"):
-            pair = pair.strip()
-            if not pair:
-                continue
-            lng_s, lat_s = pair.split(",")
-            pts.append([float(lng_s), float(lat_s)])
-        if len(pts) < 3:
-            return None
-        if pts[0] != pts[-1]:
-            pts.append(pts[0])  # أغلق الحلقة (GeoJSON يتطلّب حلقة مغلقة)
-        return {"type": "Polygon", "coordinates": [pts]}
-    except (ValueError, TypeError):
-        return None
+# Backwards-compatible helper names retained for tests/imports while implementation lives outside router.
+_parse_poly = _cdse_rt.parse_poly
+_normalize_cdse_request = _cdse_rt.normalize_cdse_request
+_tilejson_availability = _cdse_rt.tilejson_availability
 
 
-async def _normalize_cdse_request(
-    field_id: str,
-    index: str,
-    date: str,
-    bbox: tuple[float | None, float | None, float | None, float | None],
-    poly: str | None,
-) -> dict | None:
-    """يطبّع طلب CDSE (مؤشّر/تاريخ/هندسة/bbox) — مشترك بين البلاطة والمُصغَّرة.
-
-    يُرجِع dict بالمعاملات المحلولة، أو ``None`` حين يتعذّر تقديم بيانات (CDSE غير
-    مُهيّأ / مؤشّر غير مدعوم) — يخدم المُستدعي عندها صورة شفّافة (لا 500). لا يجلب أيّ
-    شيء (نقيّ I/O خفيف: قد يقرأ هندسة الحقل من DB فقط)."""
-    import cdse_client as _cdse
-
-    if not _cdse.is_configured():
-        return None
-    internal = main._GRID_INDEX_ALIASES.get(index, index)
-    # truecolor صورة خام RGBA (تُصيَّر عبر evalscript ألوان)، وليست في INDEX_EXPR أحاديّ
-    # النطاق — نقبلها صراحةً. غيرها يجب أن يكون مؤشّراً مُصيَّراً وإلّا بلاطة شفّافة.
-    if not _cdse.is_truecolor(internal) and internal not in _cdse.INDEX_EXPR:
-        return None
-
-    _is_latest = not date or date in ("latest", "today")
-    _now = datetime.now(UTC)
-    today = _now.strftime("%Y-%m-%d") if _is_latest else date
-    if _is_latest:
-        date_from = (_now - timedelta(days=LATEST_WINDOW_DAYS)).strftime("%Y-%m-%dT00:00:00Z")
-    else:
-        date_from = f"{today}T00:00:00Z"
-    date_to = f"{today}T23:59:59Z"
-
-    field_geom: dict | None = _parse_poly(poly) if poly else None
-    if field_geom is None:
-        import db_persist as _db
-
-        field_geom = await _db.fetch_field_geometry(field_id)
-
-    bbox_w, bbox_s, bbox_e, bbox_n = bbox
-    if bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
-        field_bbox: list[float] | None = [
-            float(bbox_w),
-            float(bbox_s),
-            float(bbox_e),
-            float(bbox_n),
-        ]
-    else:
-        field_bbox = main._bbox_from_geom(field_geom)
-
-    return {
-        "internal": internal,
-        "today": today,
-        "date_from": date_from,
-        "date_to": date_to,
-        "field_geom": field_geom,
-        "field_bbox": field_bbox,
-        "has_poly": bool(poly),
-    }
+async def _ensure_field_cog(*args, **kwargs):
+    return await _cdse_rt.ensure_field_cog(*args, logger=logger, **kwargs)
 
 
-async def _ensure_field_cog(
-    field_id: str,
-    internal: str,
-    today: str,
-    date_from: str,
-    date_to: str,
-    field_bbox: list[float] | None,
-    field_geom: dict | None,
-    has_poly: bool,
-) -> str | None:
-    """يضمن وجود COG مقصوص للحقل/المؤشّر/التاريخ (جلب CDSE + تخبئة ساعة + قناع مضلّع).
-
-    مصدر واحد للجلب/التخبئة/القصّ تتشاركه بلاطة cdse-tiles والمُصغَّرة (cdse-thumbnail).
-    يُرجِع مسار الـCOG أو ``None`` عند تعذّر الجلب (يخدم المُستدعي صورة شفّافة)."""
-    import asyncio
-    import hashlib
-    import json as _json
-    import os
-    import tempfile
-    import time as _t
-
-    import cdse_client as _cdse
-
-    # مفتاح الكاش يجب أن يعزل المستأجرين (تفادي تسريب COG عبر المستأجرين) وأن يتبدّل
-    # عند تغيّر هندسة الحقل (تفادي خدمة COG لهندسة قديمة بعد تعديل الحدود) — v3-Finding-6.
-    tenant = main._REQ_TENANT.get() or "_"
-    geom_sig = "none"
-    if field_geom is not None:
-        try:
-            # بصمة كاش لا أمنيّة (تفريق مفاتيح فقط) ⇒ usedforsecurity=False يوضّح النيّة
-            # ويُرضي bandit B324 (SHA1 «الضعيف» ليس استعمالاً أمنيّاً هنا) وأنظمة FIPS.
-            geom_sig = hashlib.sha1(
-                _json.dumps(field_geom, sort_keys=True, separators=(",", ":")).encode("utf-8"),
-                usedforsecurity=False,
-            ).hexdigest()[:12]
-        except (TypeError, ValueError):
-            geom_sig = "err"
-    cache_key = f"{tenant}:{field_id}:{internal}:{today}:{'p' if has_poly else 'b'}:{geom_sig}"
-
-    def _cache_hit() -> str | None:
-        entry = main._cdse_tile_cache.get(cache_key)
-        if entry and entry[0] > _t.monotonic() and os.path.exists(entry[1]):
-            return entry[1]
-        return None
-
-    # 1) فحص كاش سريع + إحضار قفل المفتاح — تحت القفل العالميّ **القصير** فقط.
-    async with main._cdse_lock():
-        hit = _cache_hit()
-        if hit is not None:
-            return hit
-        key_lock = main._cdse_key_lock(cache_key)
-
-    # 2) single-flight لهذا المفتاح: الجلب الشبكيّ (+الخنق/الإعادة) تحت قفل المفتاح لا
-    #    العالميّ — فلا يحجب بلاطاتِ حقولٍ أخرى. منتظِرٌ على نفس المفتاح يلتقط الكاش.
-    async with key_lock:
-        async with main._cdse_lock():
-            hit = _cache_hit()
-            if hit is not None:
-                return hit
-            entry = main._cdse_tile_cache.get(cache_key)
-            if entry and os.path.exists(entry[1]):
-                try:
-                    os.unlink(entry[1])
-                except OSError:
-                    pass
-                main._cdse_tile_cache.pop(cache_key, None)
-        try:
-            client = _cdse.get_client()
-            # fail-closed: بلا bbox للحقل لا نطلب صورة على bbox ثابت (كان يمن [44.9..])
-            # فنخدِّم بلاطة لهندسة خاطئة صامتة. لا احتياطيّ مُضلِّل — نعيد None (بلاطة شفّافة). v3-Finding-7
-            if not field_bbox:
-                main.logger.warning(
-                    "CDSE fetch aborted (%s/%s): لا bbox للحقل — fail-closed بلا احتياطيّ ثابت",
-                    field_id,
-                    internal,
-                )
-                return None
-            bbox_for_req = list(field_bbox)
-            geotiff_bytes = await asyncio.get_event_loop().run_in_executor(
-                None,
-                lambda: client.process_index(
-                    index=internal,
-                    bbox=list(bbox_for_req),
-                    time_from=date_from,
-                    time_to=date_to,
-                    geometry=field_geom,
-                    max_cloud_pct=40.0,
-                ),
-            )
-            tf = tempfile.NamedTemporaryFile(
-                suffix=".tif", delete=False, prefix=f"cdse_{field_id[:8]}_{internal}_"
-            )
-            tf.write(geotiff_bytes)
-            tf.close()
-            cog_path = tf.name
-            if field_geom:
-                try:
-                    import tile_render as _tr
-
-                    # الصورة الخام RGBA UINT8 (لا تُخزَّن NaN) ⇒ قناع ألفا؛ المؤشّر
-                    # أحاديّ النطاق FLOAT32 ⇒ قناع NaN.
-                    if _cdse.is_truecolor(internal):
-                        _tr.apply_polygon_mask_rgba(cog_path, field_geom)
-                    else:
-                        _tr.apply_polygon_mask(cog_path, field_geom)
-                except Exception as e:  # noqa: BLE001
-                    # fail-closed: فشل القناع المحلّيّ ⇒ لا نُخدِّم/نُخزِّن بلاطة قد تتجاوز
-                    # حدّ الحقل. (المزوّد يقصّ على المضلّع أيضاً، لكن لا نعتمد على ذلك
-                    # وحده — نطابق فلسفة fail-closed للنظام.) نتخلّص من الملفّ المؤقّت.
-                    main.logger.warning(
-                        "polygon mask failed (%s/%s): %s — fail-closed (بلاطة مُهمَلة)",
-                        field_id,
-                        internal,
-                        type(e).__name__,
-                    )
-                    try:
-                        os.unlink(cog_path)
-                    except OSError:
-                        pass
-                    return None
-            async with main._cdse_lock():
-                main._cdse_tile_cache[cache_key] = (_t.monotonic() + 3600.0, cog_path)
-                main._cdse_prune_key_locks_locked()
-            return cog_path
-        except Exception as e:  # noqa: BLE001
-            main.logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)
-            return None
-
-
-# ملاحظة توحيد main↔cert: مسار process-cdse تملكه cert في main.py (نسخة مصلّبة بنفس
-# _run_cdse_processing)، فأُزيل من هذا الراوتر تفادياً للتسجيل المزدوج. هذا الراوتر يضيف
-# فقط ما تفتقده cert: خدمة بلاطات cdse-tiles وcdse-tilejson (قصّ poly + قناع rasterio).
 @router.get("/v1/fields/{field_id}/cdse-tiles/{z}/{x}/{y}.png")
 async def field_cdse_tile(
     field_id: str,
@@ -259,26 +52,17 @@ async def field_cdse_tile(
     bbox_n: float | None = Query(None),
     poly: str | None = Query(None),
 ):
-    """بلاطة Sentinel Hub حيّة: تجلب الصورة الكاملة للحقل مرّة واحدة (مُخبّأة ساعة)
-    وتُصيِّر منها كلّ بلاطة XYZ بنفس منطق COG (tile_render). البكسلات خارج حدود
-    الحقل/NaN → شفّافة. تعذّر CDSE → بلاطة شفّافة (لا 500).
-
-    عقد القصّ الموحَّد: ``poly="lng,lat;lng,lat;..."`` (رؤوس مضلّع الحقل من الواجهة).
-    تُستخدَم الهندسة لطلب CDSE **و** لقناع rasterio البكسليّ محليّاً (قصّ دقيق على
-    حافّة الحقل مستقلّ عن قصّ المزوّد). إن غابت ``poly`` تُجلَب الهندسة من DB."""
-    await main._require_field_tenant(field_id)
+    """بلاطة Sentinel Hub حيّة: تجلب COG مقصوص للحقل وتصيّر بلاطة XYZ."""
+    await _require_field(field_id)
 
     params = await _normalize_cdse_request(
         field_id, index, date, (bbox_w, bbox_s, bbox_e, bbox_n), poly
     )
     if params is None:
-        # CDSE غير مُهيّأ أو مؤشّر غير مدعوم ⇒ بلاطة شفّافة (لا 500).
-        return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+        return Response(content=TRANSPARENT_PNG, media_type="image/png")
     internal = params["internal"]
     field_bbox = params["field_bbox"]
-    field_geom = params["field_geom"]
 
-    # تحقّق سريع من التقاطع بين البلاطة وحدود الحقل (بلا I/O) — خاصّ بالبلاطة.
     if field_bbox:
         try:
             from rasterio.warp import transform_bounds as _tb
@@ -288,8 +72,8 @@ async def field_cdse_tile(
             tw, ts, te, tn = _tb("EPSG:3857", "EPSG:4326", *b3857)
             fw, fs, fe, fn = field_bbox
             if te < fw or tw > fe or tn < fs or ts > fn:
-                return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
-        except Exception:  # noqa: BLE001 — تخطَّ فحص التقاطع إن لم يتوفّر rasterio
+                return Response(content=TRANSPARENT_PNG, media_type="image/png")
+        except Exception:  # noqa: BLE001
             pass
 
     cog_path = await _ensure_field_cog(
@@ -299,11 +83,11 @@ async def field_cdse_tile(
         params["date_from"],
         params["date_to"],
         field_bbox,
-        field_geom,
+        params["field_geom"],
         params["has_poly"],
     )
     if cog_path is None:
-        return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+        return Response(content=TRANSPARENT_PNG, media_type="image/png")
 
     try:
         import tile_render
@@ -315,10 +99,7 @@ async def field_cdse_tile(
                 media_type="image/png",
                 headers={"Cache-Control": "public, max-age=3600"},
             )
-        # تشخيص: التصيير أعاد None = لا بكسلات صالحة (finite) داخل البلاطة — المشهد
-        # مُقنَّع بالكامل (غيوم SCL/خارج المضلّع) أو لا مشهد ضمن النافذة الزمنيّة. هذا
-        # سبب «المؤشّر لا يُعرَض داخل الحقل» رغم نجاح الجلب والقصّ. (القصّ سليم؛ المشكلة بيانات.)
-        main.logger.info(
+        logger.info(
             "cdse-tile شفّاف: لا بيانات صالحة في البلاطة (%s/%s z%s/%s/%s)",
             field_id,
             internal,
@@ -327,9 +108,9 @@ async def field_cdse_tile(
             y,
         )
     except Exception as e:  # noqa: BLE001
-        main.logger.warning("CDSE tile render failed (%s): %s", field_id, e)
+        logger.warning("CDSE tile render failed (%s): %s", field_id, e)
 
-    return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+    return Response(content=TRANSPARENT_PNG, media_type="image/png")
 
 
 @router.get("/v1/fields/{field_id}/cdse-thumbnail.png")
@@ -344,19 +125,14 @@ async def field_cdse_thumbnail(
     poly: str | None = Query(None),
     size: int = Query(160, ge=48, le=512),
 ):
-    """مُصغَّرة كاملة لصورة الحقل (مؤشّر) لتاريخ مُعطى — لبطاقات شريط السجلّ الزمنيّ.
-
-    يشارك بلاطةَ cdse-tiles منطقَ الجلب/التخبئة/القصّ (``_ensure_field_cog``)، لكن
-    يُصيِّر امتداد الحقل كلّه إلى صورة واحدة (``render_cog_thumbnail_png``) بدل بلاطة
-    XYZ. خارج المضلّع/NaN → شفّاف، فتظهر صورة شكل الحقل وحده. تعذّر CDSE/لا بيانات ⇒
-    صورة شفّافة (لا 500)."""
-    await main._require_field_tenant(field_id)
+    """مُصغَّرة كاملة لصورة الحقل (مؤشّر) لتاريخ مُعطى."""
+    await _require_field(field_id)
 
     params = await _normalize_cdse_request(
         field_id, index, date, (bbox_w, bbox_s, bbox_e, bbox_n), poly
     )
     if params is None:
-        return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+        return Response(content=TRANSPARENT_PNG, media_type="image/png")
 
     cog_path = await _ensure_field_cog(
         field_id,
@@ -369,7 +145,7 @@ async def field_cdse_thumbnail(
         params["has_poly"],
     )
     if cog_path is None:
-        return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+        return Response(content=TRANSPARENT_PNG, media_type="image/png")
 
     try:
         import tile_render
@@ -382,36 +158,9 @@ async def field_cdse_thumbnail(
                 headers={"Cache-Control": "public, max-age=3600"},
             )
     except Exception as e:  # noqa: BLE001
-        main.logger.warning("CDSE thumbnail render failed (%s): %s", field_id, e)
+        logger.warning("CDSE thumbnail render failed (%s): %s", field_id, e)
 
-    return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
-
-
-def _tilejson_availability(configured: bool, index: str) -> tuple[bool, str | None, str | None]:
-    """توافر بلاطات TileJSON بصدق: يجب أن تكون CDSE مُهيّأة **و** المؤشّر قابلاً
-    للتصيير — إمّا مؤشّراً في ``INDEX_EXPR`` (بعد المرادفات) أو الصورة الخام
-    ``truecolor`` (تُصيَّر RGBA عبر evalscript ألوان طبيعيّة)."""
-    import cdse_client as _cdse
-
-    if not configured:
-        return (
-            False,
-            "cdse_not_configured",
-            "صور Copernicus غير مُهيّأة: اضبط CDSE_CLIENT_ID وCDSE_CLIENT_SECRET "
-            "(أو SH_CLIENT_ID/SH_CLIENT_SECRET) في بيئة خدمة الراستر ثمّ أعِد التشغيل.",
-        )
-    internal = main._GRID_INDEX_ALIASES.get(index, index)
-    # الصورة الخام truecolor مُصيَّرة الآن (evalscript B04/B03/B02 → RGBA) ⇒ متاحة.
-    if _cdse.is_truecolor(internal):
-        return True, None, None
-    if internal not in _cdse.INDEX_EXPR:
-        return (
-            False,
-            "index_not_rendered",
-            "هذا المؤشّر ليس مُصيَّراً في raster-service؛ اختر مؤشّراً تفسيريّاً "
-            "(NDVI/NDMI…) أو الصورة الخام (TrueColor).",
-        )
-    return True, None, None
+    return Response(content=TRANSPARENT_PNG, media_type="image/png")
 
 
 @router.get("/v1/fields/{field_id}/cdse-tilejson")
@@ -425,46 +174,29 @@ async def field_cdse_tilejson(
     bbox_n: float | None = Query(None),
     poly: str | None = Query(None),
 ):
-    """TileJSON 2.2.0 لبلاطات CDSE الحيّة — يُستخدَم لضبط إطار الخريطة.
+    """TileJSON 2.2.0 لبلاطات CDSE الحيّة."""
+    await _require_field(field_id)
 
-    v7-#3: يقبل ``poly`` (نفس عقد بلاطة cdse-tiles) كي يتّحد فحص الحدود/الجاهزية مع
-    الهندسة الفعليّة للبلاطات، ويُحقَن ``poly`` في رابط البلاطة كي تقصّ البلاطات على
-    نفس المضلّع الذي مرّرته الواجهة (لا اختلاف بين المُعاينة والبلاطات الفعليّة)."""
-    import cdse_client as _cdse
-    import db_persist as _db
-
-    await main._require_field_tenant(field_id)
-
-    # الأولويّة: poly (هندسة الواجهة) ثمّ bbox الصريح ثمّ هندسة DB ثمّ احتياطيّ عالميّ.
-    # الفحص بـisinstance (لا `is not None`) كي يعمل الاستدعاء المباشر (unit) أيضاً.
     _GLOBAL_BOUNDS = [-180.0, -85.0, 180.0, 85.0]
     geom_resolved = True
     poly_geom = _parse_poly(poly) if isinstance(poly, str) and poly else None
     if poly_geom is not None:
-        bounds = main._bbox_from_geom(poly_geom) or _GLOBAL_BOUNDS
+        bounds = raster_date_geo.bbox_from_geom(poly_geom) or _GLOBAL_BOUNDS
         geom_resolved = bounds is not _GLOBAL_BOUNDS
     elif all(isinstance(v, (int, float)) for v in (bbox_w, bbox_s, bbox_e, bbox_n)):
         bounds = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
     else:
         field_geom = await _db.fetch_field_geometry(field_id)
-        bounds = main._bbox_from_geom(field_geom) or _GLOBAL_BOUNDS
+        bounds = raster_date_geo.bbox_from_geom(field_geom) or _GLOBAL_BOUNDS
         geom_resolved = bounds is not _GLOBAL_BOUNDS
-    # حين لا يُطلَب تاريخ محدَّد (فارغ/"latest"/"today") نُسقط ``date`` من رابط
-    # البلاطة كي يبقى الرابط بلا تاريخ ويُحلّ «الأحدث» في كلّ طلب؛ وإلّا نُثبّته.
-    specific_date = date if (date and date not in ("latest", "today")) else None
-    # tid يجب أن يُحقَن في رابط البلاطة: البلاطات تُحمَّل كـ<img> بلا ترويسات auth،
-    # فبلا tid يصل الطلب بلا مستأجِر ويرفضه _require_field_tenant (403). نفس عقد
-    # field_tilejson القرصيّ. + urlencode بدل التسلسل اليدويّ (ترميز آمن). v3-Finding-8
-    from urllib.parse import urlencode
 
+    specific_date = date if (date and date not in ("latest", "today")) else None
     tile_params: dict[str, str] = {"index": index}
     if specific_date:
         tile_params["date"] = specific_date
-    req_tenant = main._REQ_TENANT.get()
+    req_tenant = REQ_TENANT.get()
     if req_tenant:
         tile_params["tid"] = req_tenant
-    # v7-#3/v8-F4: مرّر عقد القصّ (poly أو bbox) إلى رابط البلاطة كي تقصّ البلاطات على
-    # نفس هندسة الواجهة (لا اختلاف بين المُعاينة عبر TileJSON والبلاطات الفعليّة).
     if poly:
         tile_params["poly"] = poly
     elif bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
@@ -473,12 +205,9 @@ async def field_cdse_tilejson(
         tile_params["bbox_e"] = str(bbox_e)
         tile_params["bbox_n"] = str(bbox_n)
     qs = urlencode(tile_params)
-    # المسار عبر البوّابة (nginx /api/raster/ → raster:8001/): الواجهة تحتاج
-    # /api/raster/v1/… لا /v1/… المباشر كي تمرّ عبر proxy_pass في الإنتاج.
+
     configured = _cdse.is_configured()
     available, reason, user_message = _tilejson_availability(configured, index)
-    # v9-F7: بلا حدود حقيقيّة (تعذّر جلب الهندسة ولا poly/bbox) لا نُعلن الجاهزية — البلاطات
-    # ستعود شفّافة لغياب الحدود، فالإعلان «متاح» بحدود عالميّة تضليل. نفشل مُغلَقاً بصدق.
     if available and not geom_resolved:
         available = False
         reason = reason or "field_geometry_unavailable"
@@ -501,8 +230,6 @@ async def field_cdse_tilejson(
         ],
         "available": available,
     }
-    # تشخيص صريح للواجهة (تقرأ note/reason/user_message): لا بيانات مُلفَّقة، بل سبب
-    # واضح (اعتماد غير مضبوط، أو مؤشّر غير مُصيَّر مثل truecolor).
     if reason:
         out["reason"] = reason
     if user_message:

@@ -54,9 +54,13 @@ HTTP_METHODS: frozenset[str] = frozenset({"get", "post", "put", "patch", "delete
 
 # حُرّاس الملكيّة/الخدمة المعروفون — وجود نداءٍ لأيّها داخل جسم الدالّة ⇒ النقطة
 # محميّة بذلك الحارس.
-FIELD_GUARD = "_require_field_tenant"
-LAYER_GUARD = "_require_layer_tenant"
-SERVICE_GUARD = "_require_service_token"
+# تُخزَّن بالصيغة المجرّدة الحاليّة (بعد التفكيك: routers/ تستورد الأسماء المجرّدة من
+# raster_security_context). الكاشف يُطبّع النداءات المكتشَفة بإزالة الشرطة السفليّة
+# البادئة، فيلتقط الصيغتين معاً: القديمة ``main._require_*`` (ما تبقّى في main.py وبعض
+# الراوترات) والجديدة المجرّدة ``require_*`` — بلا إضعاف، مجرّد توحيد صيغة الاسم.
+FIELD_GUARD = "require_field_tenant"
+LAYER_GUARD = "require_layer_tenant"
+SERVICE_GUARD = "require_service_token"
 GUARD_NAMES: frozenset[str] = frozenset({FIELD_GUARD, LAYER_GUARD, SERVICE_GUARD})
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -185,21 +189,77 @@ def _iter_app_routes(tree: ast.AST):
                 yield path, node
 
 
-def _guard_calls(node: ast.AST) -> set[str]:
-    """أسماء حُرّاس الملكيّة/الخدمة المُستدعاة داخل جسم الدالّة (Name أو Attribute)."""
+def _call_name(sub: ast.Call) -> str | None:
+    """اسم الدالّة المُستدعاة (Name.id أو Attribute.attr)، أو None."""
+    fn = sub.func
+    if isinstance(fn, ast.Name):
+        return fn.id
+    if isinstance(fn, ast.Attribute):
+        return fn.attr
+    return None
+
+
+def _guard_calls(node: ast.AST, aliases: dict[str, frozenset[str]] | None = None) -> set[str]:
+    """أسماء حُرّاس الملكيّة/الخدمة المُستدعاة داخل جسم الدالّة (Name أو Attribute).
+
+    ``aliases`` (اختياريّ): خريطة اسم-دالّة → مجموعة الحُرّاس القانونيّة التي تستدعيها
+    فعلاً (غلاف محليّ رفيع يفوّض إلى حارس معروف). النداء إلى غلافٍ كهذا يُحتسَب حمايةً
+    بذلك الحارس — إثباتيّ لا إضعاف: الدالّة تستدعي الحارس فعلاً. مثال: ``_require_field``
+    في ``routers/cdse_tiles.py`` يستدعي ``require_field_tenant(...)``.
+    """
     found: set[str] = set()
     for sub in ast.walk(node):
         if not isinstance(sub, ast.Call):
             continue
-        fn = sub.func
-        name = None
-        if isinstance(fn, ast.Name):
-            name = fn.id
-        elif isinstance(fn, ast.Attribute):
-            name = fn.attr
-        if name in GUARD_NAMES:
-            found.add(name)
+        name = _call_name(sub)
+        if name is None:
+            continue
+        # توحيد الصيغة القديمة (``_require_*`` / ``main._require_*``) مع الجديدة
+        # المجرّدة (``require_*``) بإزالة الشرطة السفليّة البادئة، فيُخزَّن الاسم القانونيّ.
+        canonical = name.lstrip("_")
+        if canonical in GUARD_NAMES:
+            found.add(canonical)
+        elif aliases and name in aliases:
+            found |= aliases[name]
     return found
+
+
+def _build_guard_aliases(trees: list[ast.AST]) -> dict[str, frozenset[str]]:
+    """يبني خريطة أغلفة الحُرّاس: اسم دالّة → الحُرّاس القانونيّة التي تستدعيها (تعدّيّاً).
+
+    غلاف محليّ رفيع مثل ``async def _require_field(fid): await require_field_tenant(...)``
+    يُدخِله التفكيك (phase13–15)؛ الكاشف لا «يتتبّع» النداء غير المباشر افتراضيّاً. نحلّ
+    المستوى (وتعدّيّاً غلاف-يستدعي-غلافاً) كي يُحتسَب النداء إلى الغلاف حمايةً بحارسه —
+    دون إضعاف: نُدرِج فقط دوالّ تستدعي حارساً معروفاً فعلاً.
+    """
+    func_nodes: dict[str, ast.AST] = {}
+    for tree in trees:
+        for n in ast.walk(tree):
+            if isinstance(n, ast.FunctionDef | ast.AsyncFunctionDef):
+                func_nodes[n.name] = n
+    # المرور الأوّل: الحُرّاس القانونيّة المُستدعاة مباشرةً في جسم كلّ دالّة.
+    resolved: dict[str, set[str]] = {}
+    for fname, n in func_nodes.items():
+        direct = _guard_calls(n)  # بلا أغلفة — نداء حارس قانونيّ مباشر فقط.
+        if direct:
+            resolved[fname] = set(direct)
+    # نقطة ثابتة: غلافٌ يستدعي غلافاً يرث حُرّاسه.
+    changed = True
+    while changed:
+        changed = False
+        for fname, n in func_nodes.items():
+            cur = resolved.get(fname, set())
+            for sub in ast.walk(n):
+                if not isinstance(sub, ast.Call):
+                    continue
+                cn = _call_name(sub)
+                if cn and cn in resolved:
+                    new = resolved[cn] - cur
+                    if new:
+                        cur = cur | new
+                        resolved[fname] = cur
+                        changed = True
+    return {k: frozenset(v) for k, v in resolved.items()}
 
 
 def _has_agent_token_header(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
@@ -226,14 +286,19 @@ def _collect_routes() -> list[tuple[str, set[str], bool]]:
     import glob
 
     sources = [RASTER_MAIN] + sorted(glob.glob(os.path.join(RASTER_ROUTERS_DIR, "*.py")))
-    routes: list[tuple[str, set[str], bool]] = []
+    trees: list[ast.AST] = []
     for src_path in sources:
         if not os.path.isfile(src_path):
             continue
         with open(src_path, encoding="utf-8") as f:
-            tree = ast.parse(f.read(), filename=src_path)
+            trees.append(ast.parse(f.read(), filename=src_path))
+    # أغلفة الحُرّاس المحليّة (مثل _require_field في cdse_tiles) تُحلّ أوّلاً كي يُحتسَب
+    # النداء غير المباشر حمايةً بحارسه — دون إضعاف.
+    aliases = _build_guard_aliases(trees)
+    routes: list[tuple[str, set[str], bool]] = []
+    for tree in trees:
         for path, node in _iter_app_routes(tree):
-            routes.append((path, _guard_calls(node), _has_agent_token_header(node)))
+            routes.append((path, _guard_calls(node, aliases), _has_agent_token_header(node)))
     return routes
 
 

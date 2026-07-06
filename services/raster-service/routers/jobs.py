@@ -1,16 +1,16 @@
-"""routers/jobs.py — حالة المهامّ ونتائجها (Jobs)
-======================================================================
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
+"""routers/jobs.py — حالة المهامّ ونتائجها (Jobs).
 
-نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المنطق مطابقة.
-التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main`` وتُشار إليها عبر
-``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
+Phase 13: this router no longer imports ``main``. It consumes the extracted
+runtime state, security helpers, and API models directly while preserving the
+same endpoints and response contract.
 """
 
 from __future__ import annotations
 
-import main
 from fastapi import APIRouter, Header, HTTPException
+from raster_api_models import JobStatus
+from raster_runtime_state import JOBS
+from raster_security_context import require_service_token
 
 router = APIRouter()
 
@@ -18,8 +18,8 @@ router = APIRouter()
 @router.get("/jobs/{job_id}")
 async def job_status(job_id: str, x_agent_token: str = Header(None)):
     """حالة المهمّة."""
-    main._require_service_token(x_agent_token)
-    j = main._jobs.get(job_id)
+    require_service_token(x_agent_token)
+    j = JOBS.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
     return {
@@ -36,10 +36,10 @@ async def job_status(job_id: str, x_agent_token: str = Header(None)):
 @router.get("/jobs/{job_id}/result")
 async def job_result(job_id: str, x_agent_token: str = Header(None)):
     """نتيجة المهمّة (بعد الاكتمال)."""
-    main._require_service_token(x_agent_token)
-    j = main._jobs.get(job_id)
+    require_service_token(x_agent_token)
+    j = JOBS.get(job_id)
     if not j:
         raise HTTPException(404, "مهمّة غير موجودة")
-    if j["status"] != main.JobStatus.completed:
+    if j["status"] != JobStatus.completed:
         raise HTTPException(409, f"المهمّة غير مكتملة (الحالة: {j['status']})")
     return j["result"]

@@ -39,7 +39,9 @@ def test_backend_no_geom_param_for_clipping():
 
 
 def test_backend_applies_rasterio_mask():
-    src = _read("services/raster-service/routers/cdse_tiles.py")
+    src = _read("services/raster-service/routers/cdse_tiles.py") + _read(
+        "services/raster-service/raster_cdse_tile_runtime.py"
+    )
     assert "apply_polygon_mask(" in src, "الخادم لا يطبّق قناع rasterio البكسليّ"
 
 

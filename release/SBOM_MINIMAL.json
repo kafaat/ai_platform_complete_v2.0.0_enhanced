@@ -9105,6 +9105,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "df6b4f3acc623dbb03911c8fa28d4f2a9822228ce6c3b5d6f77cb39b3178c7f5"
+        }
+      ],
+      "name": "services/raster-service/raster_backfill_scene_processing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "40e47526f9869fbce8c52e218222462098a86b93382b615d83caf085ae7dd1fa"
         }
       ],
@@ -9175,10 +9185,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "fdb00198304c08c73957470351979b534536f23169c8494505db51f2e68be01c"
+        }
+      ],
+      "name": "services/raster-service/raster_runtime_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "755efb608a7e04a6e040f70de38e1a92c3cec8781344290457c67f817be1e3e5"
         }
       ],
       "name": "services/raster-service/raster_security_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3faaafb78112c4cf140cd1e7375dd12f7ac64666de211ec6fc39a135db6efeef"
+        }
+      ],
+      "name": "services/raster-service/raster_settings.py",
       "type": "file"
     },
     {
@@ -9215,7 +9245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7eb47e0a13130d9a5d4a9e455be66b0e69184a78824add29ffd2aed4c69599d0"
+          "content": "e7c0add78414eb6d3274843f6c7087d653b9dcd9e70e8cb9f2396ce78862c08e"
         }
       ],
       "name": "services/raster-service/routers/analysis.py",
@@ -9225,7 +9255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ebc0593d2b27046be0deca615fee355a3ad2b207601ccdc1a2ac6bcc8899e68"
+          "content": "8123b6a6d81ad3d38945528149355e92fa3c16db79cee26e1bab51e292944469"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -9245,7 +9275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d95d2ce23f49efbee90fb50c9ed9b23f13d12f6b6fb4c930c3901481ea260dc"
+          "content": "dccad72f04acee202dc3b6b0706460bd44bb1a8ca0bedf4e7874949ffaf78f4a"
         }
       ],
       "name": "services/raster-service/routers/imagery.py",
@@ -9255,7 +9285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8790f508ef233db03767f27e817e36f0ee4edd4a108059540280f2379ba9cbd2"
+          "content": "ed8511ff1a2dfa8bbc0b86b9e26b718ba4f2bb4775a5170a63b50a70bc8a127e"
         }
       ],
       "name": "services/raster-service/routers/imagery_search.py",
@@ -9265,7 +9295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71ad5769751e5c11430c8f4abf46dfb32fa8c8f696b6b43e19181bc7017b33e3"
+          "content": "624813a159030ac0877c8ba1d69bd758c3a30412028d1f4c521edac0b76cfa5f"
         }
       ],
       "name": "services/raster-service/routers/jobs.py",
@@ -9275,7 +9305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e7bc28fdea57c65999a52be9be1701274e7979ae9f663f69f6570bfd0351786"
+          "content": "2c2d419fd548ed45694b7f5ca6965b003019af35d18b05ac0325c3726798b8f6"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -9285,7 +9315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "44d0017a4a2b2b7c75bdeced40e25e39f43e7b3523fe048ae35b60537145a52d"
+          "content": "b77f7e90c7856ea9cf58abc4a857a19e0a009b0c1944154ba8a39fbd6cf15708"
         }
       ],
       "name": "services/raster-service/routers/processing.py",
@@ -9295,7 +9325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c452c8083bf9ccabd6b02294c4e16d9eb2c81b892875e936d365b1ca3b5eafd8"
+          "content": "1b97aa784a302bd2708e9f43d70ccf118eacf397e9914356344d6faec6e26e5c"
         }
       ],
       "name": "services/raster-service/routers/soil_tiles.py",
@@ -9315,7 +9345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4910170c84914a809cb7f32214e2eb97bb4f5398b0ec4a7c24940c817eecd4b6"
+          "content": "e5e942b70701a102138ff693bb6a295d2816b168fcdd1c363fe57f875f67997f"
         }
       ],
       "name": "services/raster-service/routers/storage.py",
@@ -9325,7 +9355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d1c0a4e51bd77b6197662211507286c8363509d3851af94a27ae3d5bb4f44f0"
+          "content": "eedd8046bf35c8f3f90d7c45d500f899f1b96c397ac424cc3a6bf7b163b139ba"
         }
       ],
       "name": "services/raster-service/routers/terrain_tiles.py",
@@ -9335,7 +9365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ae4dd756f15fd09c22de98478a5e885aacb9394ddbd5bbe0108e7d813b83ecf"
+          "content": "3f15c977ddec9b2c369f895751ae0ecfb3dbaa50e015ef9bad67384cc41b3003"
         }
       ],
       "name": "services/raster-service/routers/tiles.py",
@@ -9345,7 +9375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a914cde0afeaa752e075e372053ec306068a635d26a9a792e1e8219844801d78"
+          "content": "1d1fa0a5007596d1c45fa9da86a91b38fde8f345ac30140f44f82fb90c74de8c"
         }
       ],
       "name": "services/raster-service/routers/timeseries_routes.py",
@@ -9425,7 +9455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4f9cad53cd40d497ae154fcdd57faf967047103ca4cae95250e8c57d8c10af33"
+          "content": "ac12af61a94d94c8eb2ddeea638a96845b506a950cc904fa92896c12dbaa8f66"
         }
       ],
       "name": "services/raster-service/stac_search.py",
@@ -9515,7 +9545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e558c70659bf1138fa587eea4e8864f3ea3723395af56f358bfa2dc206db61b"
+          "content": "1873f7f1e493ca5276d65ba7ffaa0c28520e668c2a26319947c28a885e700582"
         }
       ],
       "name": "services/raster-service/test_cdse_poly_contract.py",

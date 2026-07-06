@@ -4,7 +4,7 @@
 
 نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المنطق مطابقة.
 التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main`` وتُشار إليها عبر
-``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
+the extracted modules directly. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
 """
 
 from __future__ import annotations
@@ -12,8 +12,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import httpx
-import main
 from fastapi import APIRouter, Header, HTTPException, Query
+from raster_api_models import TimeSeriesAnalyzeRequest
+from raster_security_context import require_service_token
+from stac_search import stac_search
 
 router = APIRouter()
 
@@ -37,7 +39,7 @@ async def imagery_timeseries(
     """
     end_date = end or datetime.now(UTC).strftime("%Y-%m-%d")
     try:
-        search = await main._stac_search(
+        search = await stac_search(
             [west, south, east, north],
             f"{start}T00:00:00Z",
             f"{end_date}T23:59:59Z",
@@ -67,14 +69,14 @@ async def imagery_timeseries(
 
 @router.post("/imagery/timeseries/analyze")
 async def imagery_timeseries_analyze(
-    req: main.TimeSeriesAnalyzeRequest, x_agent_token: str = Header(None)
+    req: TimeSeriesAnalyzeRequest, x_agent_token: str = Header(None)
 ):
     """يحلّل قيم مؤشّر محسوبة عبر الزمن: تركيب شهري + اتّجاه + شذوذ.
 
     يستقبل قيم المؤشّر المحسوبة فعليّاً لكلّ مشهد (من /process) ويُرجِع
     التحليل الزمني الكامل. صدق: يعمل على قيم حقيقيّة مُمرَّرة، لا مخترعة.
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token)
     import time_series as ts
 
     return ts.build_time_series(req.scene_values, value_key="mean")
@@ -82,7 +84,7 @@ async def imagery_timeseries_analyze(
 
 @router.post("/imagery/timeseries/parallel")
 async def imagery_timeseries_parallel(
-    req: main.TimeSeriesAnalyzeRequest,
+    req: TimeSeriesAnalyzeRequest,
     max_concurrency: int = Query(4, ge=1, le=10),
     x_agent_token: str = Header(None),
 ):
@@ -91,7 +93,7 @@ async def imagery_timeseries_parallel(
     يحلّل قيماً محسوبة مسبقاً (من /process) بالتوازي المحدود + يبني التحليل.
     semaphore يحدّ التزامن (backpressure). عزل فشل كلّ مشهد.
     """
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token)
     import time_series as ts
 
     async def _passthrough(sc):

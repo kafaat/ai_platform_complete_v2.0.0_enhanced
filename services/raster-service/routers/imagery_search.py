@@ -4,7 +4,7 @@
 
 نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المنطق مطابقة.
 التبعيّات المشتركة (الحالة/المساعِدات/النماذج) تبقى في ``main`` وتُشار إليها عبر
-``main.X``. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
+the extracted modules directly. ``register_routers(app)`` يضمّ هذا الراوتر بلا prefix في نهاية ``main.py``.
 """
 
 from __future__ import annotations
@@ -12,8 +12,10 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import httpx
-import main
 from fastapi import APIRouter, Header, HTTPException, Query
+from raster_api_models import SearchRequest
+from raster_security_context import require_service_token
+from stac_search import stac_search, stac_search_dem, stac_search_landsat, stac_search_radar
 
 router = APIRouter()
 
@@ -32,9 +34,7 @@ async def imagery_search_recent(
     start = (now - timedelta(days=days_back)).strftime("%Y-%m-%dT00:00:00Z")
     end = now.strftime("%Y-%m-%dT23:59:59Z")
     try:
-        return await main._stac_search(
-            [west, south, east, north], start, end, max_cloud_pct, limit=20
-        )
+        return await stac_search([west, south, east, north], start, end, max_cloud_pct, limit=20)
     except httpx.HTTPError as e:
         raise HTTPException(502, f"Earth Search: {e}") from e
 
@@ -54,7 +54,7 @@ async def imagery_search_season(
     start = f"{sowing_date}T00:00:00Z"
     end_iso = f"{end}T23:59:59Z"
     try:
-        return await main._stac_search(
+        return await stac_search(
             [west, south, east, north], start, end_iso, max_cloud_pct, limit=60
         )
     except httpx.HTTPError as e:
@@ -82,7 +82,7 @@ async def imagery_best_scene(
     start = (now - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
     end = now.strftime("%Y-%m-%d")
     try:
-        result = await main._stac_search(
+        result = await stac_search(
             [west, south, east, north],
             f"{start}T00:00:00Z",
             f"{end}T23:59:59Z",
@@ -117,11 +117,11 @@ async def imagery_best_scene(
 
 
 @router.post("/imagery/search")
-async def imagery_search(req: main.SearchRequest, x_agent_token: str = Header(None)):
+async def imagery_search(req: SearchRequest, x_agent_token: str = Header(None)):
     """بحث متقدّم بكلّ الخيارات."""
-    main._require_service_token(x_agent_token)
+    require_service_token(x_agent_token)
     try:
-        return await main._stac_search(
+        return await stac_search(
             req.bbox, req.datetime_start, req.datetime_end, req.max_cloud_pct, req.limit
         )
     except httpx.HTTPError as e:
@@ -145,7 +145,7 @@ async def imagery_search_radar(
     """
     end_date = end or datetime.now(UTC).strftime("%Y-%m-%d")
     try:
-        return await main._stac_search_radar(
+        return await stac_search_radar(
             [west, south, east, north], f"{start}T00:00:00Z", f"{end_date}T23:59:59Z", limit
         )
     except httpx.HTTPError as e:
@@ -171,7 +171,7 @@ async def imagery_search_landsat(
     """
     end_date = end or datetime.now(UTC).strftime("%Y-%m-%d")
     try:
-        return await main._stac_search_landsat(
+        return await stac_search_landsat(
             [west, south, east, north],
             f"{start}T00:00:00Z",
             f"{end_date}T23:59:59Z",
@@ -190,6 +190,6 @@ async def imagery_dem(west: float, south: float, east: float, north: float):
     مواقع السدود الترابيّة. DEM ثابت (لا زمني) — لا datetime/cloud.
     """
     try:
-        return await main._stac_search_dem([west, south, east, north])
+        return await stac_search_dem([west, south, east, north])
     except (httpx.HTTPError, RuntimeError) as e:
         raise HTTPException(502, f"Earth Search (DEM): {e}") from e

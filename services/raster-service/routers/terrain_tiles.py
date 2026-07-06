@@ -14,12 +14,17 @@ routers/terrain_tiles.py — طبقات التضاريس الثلاث كنقاط
 
 from __future__ import annotations
 
+import logging
 import os
 from typing import Annotated
 
-import main
 import terrain_render as _tr
 from fastapi import APIRouter, Query, Response
+from raster_runtime_state import FIELD_LAYERS, LAYERS
+from raster_security_context import REQ_TENANT, require_field_tenant
+from raster_settings import TRANSPARENT_PNG
+
+logger = logging.getLogger("raster-service")
 
 router = APIRouter()
 
@@ -33,7 +38,7 @@ def _dem_path() -> str | None:
 
 def _tenant_ctx_ok() -> bool:
     # نفس عقد بلاطات CDSE: tid في الرابط ⇒ _REQ_TENANT مضبوط عبر الوسيط. بلا سياق ⇒ رفض.
-    return main._REQ_TENANT.get() is not None
+    return REQ_TENANT.get() is not None
 
 
 @router.get("/v1/terrain/status")
@@ -58,11 +63,11 @@ async def terrain_status():
 async def hillshade_tile(z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None):
     """بلاطة Hillshade (شكل الأرض). شفّافة عند غياب DEM/السياق (fail-closed صادق)."""
     if not _tenant_ctx_ok():
-        return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+        return Response(content=TRANSPARENT_PNG, media_type="image/png")
     dem = _dem_path()
     png = _tr.render_hillshade_tile(dem, z, x, y) if dem else None
     return Response(
-        content=png or main._TRANSPARENT_PNG,
+        content=png or TRANSPARENT_PNG,
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=604800"},
     )
@@ -72,11 +77,11 @@ async def hillshade_tile(z: int, x: int, y: int, tid: Annotated[str | None, Quer
 async def slope_tile(z: int, x: int, y: int, tid: Annotated[str | None, Query()] = None):
     """بلاطة Slope مُصنّفة بالألوان (الأهمّ زراعيّاً). شفّافة عند غياب DEM/السياق."""
     if not _tenant_ctx_ok():
-        return Response(content=main._TRANSPARENT_PNG, media_type="image/png")
+        return Response(content=TRANSPARENT_PNG, media_type="image/png")
     dem = _dem_path()
     png = _tr.render_slope_tile(dem, z, x, y) if dem else None
     return Response(
-        content=png or main._TRANSPARENT_PNG,
+        content=png or TRANSPARENT_PNG,
         media_type="image/png",
         headers={"Cache-Control": "public, max-age=604800"},
     )
@@ -95,7 +100,7 @@ async def terrain_tilejson(layer: Annotated[str, Query()] = "hillshade"):
     """
     layer = "slope" if layer == "slope" else "hillshade"
     dem_configured = _dem_path() is not None
-    tenant = main._REQ_TENANT.get()
+    tenant = REQ_TENANT.get()
     path = "slope" if layer == "slope" else "elevation/hillshade"
     tid_q = f"?tid={tenant}" if tenant else ""
     out: dict = {
@@ -152,7 +157,9 @@ async def field_contours(
     tenant-scoped كبقيّة نقاط الحقل. صدق: بلا DEM/bbox ⇒ ``features: []`` +
     ``computed:false`` بمصدره — لا كنتور مُلفَّق.
     """
-    await main._require_field_tenant(field_id, hide_existence=True)
+    await require_field_tenant(
+        field_id, hide_existence=True, layers=LAYERS, field_layers=FIELD_LAYERS, logger=logger
+    )
     parsed_bbox: list[float] | None = None
     if isinstance(bbox, str) and bbox:
         try:

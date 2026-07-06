@@ -18,16 +18,25 @@ import pytest
 
 REPO = Path(__file__).resolve().parents[1]
 TILES = REPO / "services" / "raster-service" / "routers" / "cdse_tiles.py"
+# The mask-fail-closed / cache-after-mask logic was extracted from the thin router
+# into raster_cdse_tile_runtime.py (phase16); the source guard reads both.
+RUNTIME = REPO / "services" / "raster-service" / "raster_cdse_tile_runtime.py"
+
+
+def _tiles_src() -> str:
+    """Combined router + extracted-runtime source for the mask fail-closed guard."""
+    return TILES.read_text(encoding="utf-8") + "\n" + RUNTIME.read_text(encoding="utf-8")
 
 
 @pytest.mark.unit
 def test_mask_failure_is_fail_closed() -> None:
-    src = TILES.read_text(encoding="utf-8")
+    src = _tiles_src()
     # استخرج كتلة apply_polygon_mask + المُعالِج التالي حتّى سطر التخزين.
     idx = src.find("apply_polygon_mask(cog_path")
     assert idx != -1, "استدعاء apply_polygon_mask اختفى — تحقّق من مسار البلاطة"
-    # النافذة من الاستدعاء حتّى أوّل إسناد للـcache بعده.
-    cache_idx = src.find("_cdse_tile_cache[cache_key]", idx)
+    # النافذة من الاستدعاء حتّى أوّل إسناد للـcache بعده. الإسناد فقد بادئة '_' عند
+    # الاستخراج (cdse_singleflight.cdse_tile_cache[...])، والاسم المجرّد جزء من القديم.
+    cache_idx = src.find("cdse_tile_cache[cache_key]", idx)
     assert cache_idx != -1, "لم يُعثر على تخزين الـcache بعد القناع"
     block = src[idx:cache_idx]
 
@@ -43,9 +52,9 @@ def test_mask_failure_is_fail_closed() -> None:
 @pytest.mark.unit
 def test_cache_stored_only_after_successful_mask() -> None:
     """التخزين في الـcache يقع بعد نجاح القناع فقط (لا قبله ولا في فرع الفشل)."""
-    src = TILES.read_text(encoding="utf-8")
+    src = _tiles_src()
     mask_idx = src.find("apply_polygon_mask(cog_path")
-    cache_idx = src.find("_cdse_tile_cache[cache_key]", mask_idx)
+    cache_idx = src.find("cdse_tile_cache[cache_key]", mask_idx)
     # لا يوجد تخزين cache بين استدعاء القناع وفرع الفشل (return None يسبق التخزين).
     fail_return = src.find("return None", mask_idx)
     assert fail_return != -1 and fail_return < cache_idx, (

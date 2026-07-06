@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import os
 
-import main
+import raster_api_models as api_models
+import scene_policy
+import stac_search as stac_search_helpers
 from fastapi import APIRouter, HTTPException
 
 router = APIRouter()
@@ -23,7 +25,7 @@ async def historical_backfill_policy():
 
     This makes the behavior explicit instead of hard-coding a costly global window.
     """
-    policy = main.AutoBackfillPolicy()
+    policy = api_models.AutoBackfillPolicy()
     return {
         **policy.model_dump(),
         "presets": {
@@ -74,8 +76,8 @@ async def imagery_quality_policy():
 
 
 @router.post("/v1/imagery/scenes/rank")
-async def rank_imagery_scenes(req: main.SceneRankRequest):
-    ranked = main._rank_scenes(
+async def rank_imagery_scenes(req: api_models.SceneRankRequest):
+    ranked = scene_policy.rank_scenes(
         req.scenes, max_cloud_pct=req.max_cloud_pct, prefer_recent_days=req.prefer_recent_days
     )
     return {
@@ -87,17 +89,17 @@ async def rank_imagery_scenes(req: main.SceneRankRequest):
 
 
 @router.post("/v1/imagery/mosaic/plan")
-async def imagery_mosaic_plan(req: main.MosaicPlanRequest):
+async def imagery_mosaic_plan(req: api_models.MosaicPlanRequest):
     """Build a least-cloud mosaic plan from STAC search results.
 
     The endpoint plans rather than silently rendering a fabricated mosaic. The
     selected scenes are the ranked candidates; processing can then call CDSE with
     leastCC or schedule Element84 VRT processing.
     """
-    search = await main._stac_search(
+    search = await stac_search_helpers.stac_search(
         req.bbox, req.datetime_start, req.datetime_end, req.max_cloud_pct, req.limit
     )
-    ranked = main._rank_scenes(search.get("items", []), max_cloud_pct=req.max_cloud_pct)
+    ranked = scene_policy.rank_scenes(search.get("items", []), max_cloud_pct=req.max_cloud_pct)
     return {
         "mosaic_rule": req.mosaic_rule,
         "bbox": req.bbox,

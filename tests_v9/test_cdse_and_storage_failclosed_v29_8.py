@@ -19,8 +19,16 @@ pytestmark = pytest.mark.unit
 REPO = Path(__file__).resolve().parents[1]
 RASTER = REPO / "services" / "raster-service"
 CDSE_TILES = RASTER / "routers" / "cdse_tiles.py"
+# CDSE tile logic (cache-key, fail-closed bbox) was extracted from the thin router
+# into raster_cdse_tile_runtime.py (phase16); source guards read both.
+CDSE_RUNTIME = RASTER / "raster_cdse_tile_runtime.py"
 FIELDS = RASTER / "routers" / "fields.py"
 OBJECT_STORE = RASTER / "object_store.py"
+
+
+def _cdse_src() -> str:
+    """Combined router + extracted-runtime source for CDSE tile guards."""
+    return CDSE_TILES.read_text(encoding="utf-8") + "\n" + CDSE_RUNTIME.read_text(encoding="utf-8")
 
 
 def _load(path: Path, name: str):
@@ -37,14 +45,14 @@ def _load(path: Path, name: str):
 
 
 def test_cdse_cache_key_isolates_tenant_and_geometry() -> None:
-    src = CDSE_TILES.read_text(encoding="utf-8")
+    src = _cdse_src()
     key_line = next(ln for ln in src.splitlines() if 'cache_key = f"' in ln)
     assert "{tenant}" in key_line, "مفتاح الكاش لا يعزل المستأجر — تصادم عبر المستأجرين"
     assert "{geom_sig}" in key_line, "مفتاح الكاش لا يتبدّل مع هندسة الحقل — تسريب COG قديم"
 
 
 def test_cdse_has_no_hardcoded_yemen_bbox_fallback() -> None:
-    src = CDSE_TILES.read_text(encoding="utf-8")
+    src = _cdse_src()
     assert "[44.9, 16.0, 45.1, 16.1]" not in src, "bbox يمن ثابت عاد — يجب fail-closed"
     # fail-closed صريح حين لا bbox.
     assert "if not field_bbox:" in src, "يجب fail-closed حين غياب bbox الحقل"

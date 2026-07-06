@@ -84,6 +84,19 @@ def configure(
     LANDSAT_THERMAL_ASSET_CANDIDATES = landsat_thermal_asset_candidates
 
 
+def stac_health() -> dict:
+    """Return the configured resilient STAC client health counters."""
+    if _stac is None:
+        return {
+            "requests": 0,
+            "cache_hit_rate": 0.0,
+            "failures": 0,
+            "stale_served": 0,
+            "fallback_served": 0,
+        }
+    return _stac.health()
+
+
 def band_urls_from_assets(assets: dict) -> dict:
     """يستخرج روابط النطاقات من STAC assets (Sentinel-2 L2A على Element84).
 

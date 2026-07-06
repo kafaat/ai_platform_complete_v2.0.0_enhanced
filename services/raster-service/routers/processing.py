@@ -12,7 +12,10 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-import main
+import raster_api_models as api_models
+import raster_processing_runtime
+import raster_runtime_state
+import raster_security_context
 from fastapi import APIRouter, BackgroundTasks, Header, HTTPException
 
 router = APIRouter()
@@ -20,22 +23,24 @@ router = APIRouter()
 
 @router.post("/process")
 async def process_raster(
-    req: main.ProcessRequest, background_tasks: BackgroundTasks, x_agent_token: str = Header(None)
+    req: api_models.ProcessRequest,
+    background_tasks: BackgroundTasks,
+    x_agent_token: str = Header(None),
 ):
-    main._require_service_token(x_agent_token)
+    raster_security_context.require_service_token(x_agent_token)
     """يبدأ معالجة مؤشّر (خلفيّة — لا يحجب الطلب). يُرجع job_id للاستعلام."""
     if not req.raster_url:
         raise HTTPException(400, "raster_url مطلوب (ارفع الراستر أوّلاً).")
     job_id = f"job_{uuid.uuid4().hex[:12]}"
     j = {
         "job_id": job_id,
-        "status": main.JobStatus.pending,
+        "status": api_models.JobStatus.pending,
         "progress_pct": 0,
         "created_at": datetime.now(UTC).isoformat(),
     }
-    main._jobs.set(job_id, j)
+    raster_runtime_state.JOBS.set(job_id, j)
     # معالجة في الخلفيّة — لا تحجب الطلب (مهمّ لقلب النظام تحت الحمل).
-    background_tasks.add_task(main._run_processing, job_id, req)
+    background_tasks.add_task(raster_processing_runtime.run_processing, job_id, req)
     return {
         "job_id": job_id,
         "status": j["status"],
@@ -49,7 +54,7 @@ async def process_raster(
 
 @router.post("/process/batch")
 async def process_batch(
-    req: main.BatchProcessRequest,
+    req: api_models.BatchProcessRequest,
     background_tasks: BackgroundTasks,
     x_agent_token: str = Header(None),
 ):
@@ -58,26 +63,26 @@ async def process_batch(
     بدل طلب لكلّ مؤشّر، طلب واحد يحسب NDVI+NDRE+NDSI+... من نفس المشهد. مفيد
     جدّاً للأتمتة (مشهد جديد → كلّ المؤشّرات دفعةً). خلفيّة، يُرجِع job_id.
     """
-    main._require_service_token(x_agent_token)
+    raster_security_context.require_service_token(x_agent_token)
     if not req.raster_url:
         raise HTTPException(400, "raster_url مطلوب (ارفع الراستر أوّلاً).")
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
     job_id = f"batch_{uuid.uuid4().hex[:12]}"
-    main._jobs.set(
+    raster_runtime_state.JOBS.set(
         job_id,
         {
             "job_id": job_id,
-            "status": main.JobStatus.pending,
+            "status": api_models.JobStatus.pending,
             "progress_pct": 0,
             "created_at": datetime.now(UTC).isoformat(),
             "indicators": [i.value for i in req.indicators],
         },
     )
-    background_tasks.add_task(main._run_batch_processing, job_id, req)
+    background_tasks.add_task(raster_processing_runtime.run_batch_processing, job_id, req)
     return {
         "job_id": job_id,
-        "status": main.JobStatus.pending,
+        "status": api_models.JobStatus.pending,
         "indicators": [i.value for i in req.indicators],
         "note": "استعلم /jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
     }

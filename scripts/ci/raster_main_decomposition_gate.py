@@ -29,6 +29,7 @@ REQUIRED_MODULES = {
         "stac_search_radar",
         "stac_search_landsat_unique",
         "stac_search_dem",
+        "stac_health",
     ],
     "layer_lookup.py": [
         "normalize_index",
@@ -123,9 +124,35 @@ REQUIRED_MODULES = {
         "LAYERS",
         "FIELD_LAYERS",
     ],
+    "raster_processing_runtime.py": [
+        "make_processing_context",
+        "run_processing",
+        "run_batch_processing",
+    ],
+    "raster_cdse_tile_runtime.py": [
+        "parse_poly",
+        "normalize_cdse_request",
+        "ensure_field_cog",
+        "tilejson_availability",
+    ],
 }
 
 MAX_MAIN_LINES = 620
+
+DIRECT_ROUTER_IMPORTS = {
+    "routers/jobs.py",
+    "routers/imagery.py",
+    "routers/imagery_search.py",
+    "routers/processing.py",
+    "routers/observability.py",
+    "routers/analysis.py",
+    "routers/soil_tiles.py",
+    "routers/terrain_tiles.py",
+    "routers/tiles.py",
+    "routers/cdse_tiles.py",
+    "routers/timeseries_routes.py",
+    "routers/storage.py",
+}
 FORBIDDEN_MAIN_DEFS = {
     # These names now live in modules and should not grow back into main.py.
     "_scene_quality_score",
@@ -260,9 +287,7 @@ def main() -> None:
         _fail(f"main.py grew to {line_count} lines; limit is {MAX_MAIN_LINES}")
 
     tree = ast.parse(source)
-    defs = {
-        node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
-    }
+    defs = {node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
     regressed = sorted(FORBIDDEN_MAIN_DEFS & defs)
     if regressed:
         _fail(f"extracted helper definitions returned to main.py: {regressed}")
@@ -297,6 +322,17 @@ def main() -> None:
     for alias in REQUIRED_MAIN_ALIASES:
         if alias not in source:
             _fail(f"main.py compatibility alias missing: {alias}")
+
+    for rel in DIRECT_ROUTER_IMPORTS:
+        router_path = SVC / rel
+        router_tree = ast.parse(router_path.read_text(encoding="utf-8"))
+        for node in ast.walk(router_tree):
+            if isinstance(node, ast.Import) and any(alias.name == "main" for alias in node.names):
+                _fail(f"{rel} regressed to importing main instead of extracted modules directly")
+            if isinstance(node, ast.ImportFrom) and node.module == "main":
+                _fail(f"{rel} regressed to importing main instead of extracted modules directly")
+            if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "main":
+                _fail(f"{rel} regressed to using main.* instead of extracted modules directly")
 
     forbidden_sources = {
         "_jobs = JobStore(": "runtime job store must stay in raster_runtime_state.py",
