@@ -34,14 +34,17 @@ def test_v123_preserves_using_qual_and_does_not_construct_replacement():
     )
 
 
-def test_v123_is_last_manifest_entry():
+def test_v123_present_in_manifest():
+    # كان يحرس «v123 آخر مُدخَل» — بائت بعد إضافة v124–v147. الحقيقة الدائمة: v123 **مُطبَّق**
+    # (موجود في المانيفست)؛ سلامة سياسته (USING+WITH CHECK) يحرسها الاختبار أعلاه، والترحيلات
+    # اللاحقة يحرسها validator RLS العامّ — لا افتراض «آخر مُدخَل» هشّ يكسر عند كلّ ترحيل جديد.
     entries = [
         ln.strip()
         for ln in (ROOT / "migrations/MANIFEST.txt").read_text(encoding="utf-8").splitlines()
         if ln.strip() and not ln.strip().startswith("#")
     ]
-    assert entries[-1] == "v123_rls_with_check_preserve_using.sql", (
-        f"v123 must be the LAST manifest entry (catalog-driven tail); got {entries[-1]}"
+    assert "v123_rls_with_check_preserve_using.sql" in entries, (
+        "v123 must be applied (present in migrations/MANIFEST.txt)"
     )
 
 
