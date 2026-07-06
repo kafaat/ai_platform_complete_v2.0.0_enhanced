@@ -344,8 +344,8 @@ class HistoricalBackfillRequest(BaseModel):
             IndicatorKind.evi,
         ]
     )
-    max_cloud_pct: float = Field(default=30, ge=0, le=100)
-    limit_per_month: int = Field(default=2, ge=1, le=8)
+    max_cloud_pct: float = Field(default=50, ge=0, le=100)
+    limit_per_month: int = Field(default=8, ge=1, le=8)
     geometry_revision: int | None = None  # v144: نَسَب هندسة الحقل لتشغيلة backfill
     apply_cloud_mask: bool = True
     source: str = Field(default="sentinel-2")
@@ -358,12 +358,13 @@ class AutoBackfillPolicy(BaseModel):
     default_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.last_2_years
     extended_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.extended_3_years
     research_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.research_5_years
-    default_indices: list[str] = ["ndvi", "ndmi", "savi", "evi"]
-    max_cloud_pct: float = 30
+    default_indices: list[str] = ["truecolor", "ndvi", "ndmi", "ndre", "msavi", "ndwi", "ndsi"]
+    max_cloud_pct: float = 50
     note: str = (
-        "Use last_2_years on field creation (two-season agronomic baseline); expose "
-        "auto_12_months (lighter), extended_3_years and research_5_years as explicit "
-        "user/plan toggles."
+        "Use last_2_years on field creation (two-season agronomic baseline). Core "
+        "timeline imagery follows agronomic policy: Sentinel-2 scenes every 3-5 days "
+        "when clear scene percentage is >=50% (cloud <=50%), with >=70% clear marked "
+        "high quality. Advanced indicators remain opt-in/on-demand."
     )
 
 
@@ -427,6 +428,119 @@ def _scene_datetime(scene: dict | SceneCandidate) -> datetime | None:
 
 def _scene_to_dict(scene: dict | SceneCandidate) -> dict:
     return scene.model_dump() if isinstance(scene, SceneCandidate) else dict(scene)
+
+
+# Agronomic pull policy for core satellite timeline imagery. The values are intentionally
+# conservative enough for Yemen/arid operations: do not reject every partially cloudy
+# Sentinel-2 scene, but never put scenes with less than 50% clear coverage into the
+# default NDVI timeline. >=70% clear is treated as high quality in UI/API metadata.
+CORE_TIMELINE_INDICES: set[str] = {"truecolor", "ndvi", "ndre", "ndmi", "msavi", "ndwi", "ndsi"}
+NDVI_PULL_MIN_CLEAR_PCT = 50.0
+NDVI_PULL_MAX_CLOUD_PCT = 100.0 - NDVI_PULL_MIN_CLEAR_PCT
+NDVI_HIGH_QUALITY_CLEAR_PCT = 70.0
+NDVI_PULL_MIN_SPACING_DAYS = 3.0
+NDVI_PULL_TARGET_SPACING_DAYS = 5.0
+
+
+def _scene_cloud_pct(scene: dict | SceneCandidate) -> float | None:
+    d = _scene_to_dict(scene)
+    props = d.get("properties") or {}
+    value = d.get("aoi_cloud_pct")
+    if value is None:
+        value = d.get("cloud_cover_pct", props.get("eo:cloud_cover", props.get("cloud_cover")))
+    try:
+        return max(0.0, min(100.0, float(value))) if value is not None else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _scene_clear_pct(scene: dict | SceneCandidate) -> float | None:
+    cloud = _scene_cloud_pct(scene)
+    return (100.0 - cloud) if cloud is not None else None
+
+
+def _scene_quality_label(scene: dict | SceneCandidate) -> str:
+    clear = _scene_clear_pct(scene)
+    if clear is None:
+        return "unknown"
+    if clear >= NDVI_HIGH_QUALITY_CLEAR_PCT:
+        return "high"
+    if clear >= NDVI_PULL_MIN_CLEAR_PCT:
+        return "medium"
+    return "cloudy"
+
+
+def _scene_day_key(scene: dict | SceneCandidate) -> str | None:
+    dt = _scene_datetime(scene)
+    return dt.date().isoformat() if dt else None
+
+
+def _select_backfill_scenes_by_policy(
+    scenes: list[dict | SceneCandidate],
+    *,
+    indices: list[str] | None = None,
+    max_cloud_pct: float = NDVI_PULL_MAX_CLOUD_PCT,
+    limit: int = 8,
+    min_spacing_days: float = NDVI_PULL_MIN_SPACING_DAYS,
+) -> list[dict]:
+    """Select provider scenes for historical backfill using the NDVI timeline policy.
+
+    Contract:
+      * NDVI/core timeline pulls accept scenes only when clear_pct >= 50% (cloud <= 50%).
+      * Prefer higher-quality scenes first, but keep temporal spacing >=3 days where possible
+        so a 3-month pull can produce an actual time series rather than one scene/month.
+      * When no NDVI/core index is requested, keep the old ranking behavior but still respect
+        the caller's max_cloud_pct.
+    """
+    requested = {str(i).lower() for i in (indices or [])}
+    core_requested = bool(requested & CORE_TIMELINE_INDICES) or not requested
+    effective_max_cloud = NDVI_PULL_MAX_CLOUD_PCT if core_requested else float(max_cloud_pct)
+    effective_max_cloud = (
+        min(float(max_cloud_pct), effective_max_cloud)
+        if max_cloud_pct is not None
+        else effective_max_cloud
+    )
+    ranked = _rank_scenes(scenes, max_cloud_pct=effective_max_cloud)
+
+    eligible: list[dict] = []
+    for item in ranked:
+        cloud = _scene_cloud_pct(item)
+        if cloud is not None and cloud > effective_max_cloud:
+            continue
+        clear = _scene_clear_pct(item)
+        item["clear_pct"] = round(clear, 3) if clear is not None else None
+        item["quality_label"] = _scene_quality_label(item)
+        eligible.append(item)
+
+    selected: list[dict] = []
+    selected_dt: list[datetime] = []
+    for item in eligible:
+        dt = _scene_datetime(item)
+        if dt and any(
+            abs((dt - prev).total_seconds()) < min_spacing_days * 86400 for prev in selected_dt
+        ):
+            continue
+        selected.append(item)
+        if dt:
+            selected_dt.append(dt)
+        if len(selected) >= max(1, int(limit)):
+            break
+
+    # If a month has fewer valid spaced scenes than requested, fill from remaining eligible
+    # scenes without duplicating days. This preserves availability in cloudy periods while
+    # still preferring the 3-5 day cadence.
+    if len(selected) < max(1, int(limit)):
+        seen_days = {_scene_day_key(s) for s in selected}
+        for item in eligible:
+            day = _scene_day_key(item)
+            if day in seen_days:
+                continue
+            selected.append(item)
+            seen_days.add(day)
+            if len(selected) >= max(1, int(limit)):
+                break
+
+    return sorted(selected, key=lambda it: _scene_datetime(it) or datetime.min.replace(tzinfo=UTC))
 
 
 def _scene_quality_score(

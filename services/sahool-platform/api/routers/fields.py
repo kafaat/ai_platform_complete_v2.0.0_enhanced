@@ -860,8 +860,13 @@ async def field_imagery_timeline(
                     "date": date_str,
                     "has_cog": bool(d.get("has_cog")),
                     "cloud_pct": d.get("cloud_pct"),
+                    "clear_pct": d.get("clear_pct"),
+                    "quality_label": d.get("quality_label"),
                     "indices": d.get("indices") or [],
                     "scene_id": d.get("scene_id"),
+                    # التاريخ/الوقت الحقيقيّ للالتقاط من STAC/raster_assets. لا نستخدم وقت
+                    # تشغيل backfill؛ الواجهة تعرضه عند توفره وتعود للتاريخ فقط عند غيابه.
+                    "acquisition_datetime": d.get("acquisition_datetime"),
                     "thumbnail_url": thumb,
                 }
             )

@@ -22,6 +22,8 @@ export interface ScrubberPoint {
   cloud: number | null;
   // رابط مُصغَّرة صورة الحقل لهذا التاريخ (cdse-thumbnail) — اختياريّ (يسقط لتدرّج لونيّ).
   thumbUrl?: string | null;
+  // وقت الالتقاط الحقيقيّ من STAC/CDSE إن توفر. لا نستخدم وقت تنفيذ التحليل.
+  acquisitionDatetime?: string | null;
   // فرق المؤشّر عن التاريخ الأسبق (لشارة التغيّر) — اختياريّ.
   delta?: number | null;
 }
@@ -34,6 +36,17 @@ function formatArabicDate(iso: string): string {
     return d.toLocaleDateString('ar', { day: 'numeric', month: 'long' });
   } catch {
     return iso.slice(5);
+  }
+}
+
+function formatAcquisitionTime(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  try {
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString('ar', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) + ' UTC';
+  } catch {
+    return null;
   }
 }
 
@@ -223,12 +236,18 @@ export default function DateScrubber({
                 else if (p.date) onSelect(p.date);
               };
               const up = (p.delta ?? 0) >= 0;
+              const acquisitionTime = formatAcquisitionTime(p.acquisitionDatetime);
+              const cardTitle = p.date
+                ? [p.date, acquisitionTime ? `التقاط ${acquisitionTime}` : null, cloudy ? `غائم (${p.cloud}%)` : null]
+                    .filter(Boolean)
+                    .join(' · ')
+                : '';
               return (
                 <button
                   key={p.date || i}
                   type="button"
                   onClick={onCardClick}
-                  title={p.date ? (cloudy ? `${p.date} · غائم (${p.cloud}%)` : p.date) : ''}
+                  title={cardTitle}
                   style={{
                     flexShrink: 0,
                     width: 96,
@@ -244,9 +263,14 @@ export default function DateScrubber({
                   }}
                 >
                   {/* التاريخ (أعلى البطاقة) */}
-                  <div style={{ fontSize: 11, fontWeight: 700, color: isSel ? T.ink : T.muted, marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: isSel ? T.ink : T.muted, marginBottom: acquisitionTime ? 2 : 6 }}>
                     {p.date ? formatArabicDate(p.date) : ''}
                   </div>
+                  {acquisitionTime && (
+                    <div style={{ fontSize: 9, color: T.faint, marginBottom: 4, lineHeight: 1.1 }}>
+                      التقاط {acquisitionTime}
+                    </div>
+                  )}
 
                   {/* صورة الحقل لهذا التاريخ (تسقط لتدرّج لونيّ عند تعذّرها) */}
                   <div

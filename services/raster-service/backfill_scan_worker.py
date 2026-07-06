@@ -148,7 +148,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                 w_start.strftime("%Y-%m-%dT00:00:00Z"),
                 w_end.strftime("%Y-%m-%dT23:59:59Z"),
                 max_cloud,
-                limit=max(10, limit_per_month * 4),
+                limit=max(24, limit_per_month * 6),
             )
         else:
             try:
@@ -157,7 +157,7 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
                     max_cloud,
-                    limit=max(10, limit_per_month * 4),
+                    limit=max(24, limit_per_month * 6),
                     geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
                 )
             except TypeError as e:
@@ -168,11 +168,14 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
                     max_cloud,
-                    limit=max(10, limit_per_month * 4),
+                    limit=max(24, limit_per_month * 6),
                 )
-        items = main._rank_scenes(search.get("items", []), max_cloud_pct=max_cloud)[
-            :limit_per_month
-        ]
+        items = main._select_backfill_scenes_by_policy(
+            search.get("items", []),
+            indices=[str(i) for i in indices],
+            max_cloud_pct=max_cloud,
+            limit=limit_per_month,
+        )
         selected.extend(items)
         months_scanned += 1
 

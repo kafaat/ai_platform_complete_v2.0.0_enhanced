@@ -835,7 +835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "001d1bff8ba82bd6dfcdcc00b8890cadd844ddc869ee95e41d1a07b004286d7d"
+          "content": "f7add5da4c326b66eba88d9efa7d6cb1ea1a108488c1dc20c28a8deebb53d51b"
         }
       ],
       "name": "frontend/src/components/fieldhealth/DateScrubber.tsx",
@@ -4585,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c13d8c3c94af4ad6b50b807b1f8e27152b00c905d3331d68e0b74942af80f8c"
+          "content": "ecc513809bf5fd27d6e84162240f18293ebaae3990ea7f2ba45d2b5064135668"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06d05c8f959c963cb136e8328d4abc269784c235dfd62775625500986ff2bc23"
+          "content": "665758cd0b5177addddbc3c4a6b194da6b2520383fdf4b45b21ce47f3dc95c25"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -5045,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d53fe30e1b9274e552b22575f52530ca1b7565ab98a2d4433cbe3352a533057"
+          "content": "f0cf18095b610144f04f1987639a964b1cb0474a75408b81ed08f721a5d2d2a0"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -8895,7 +8895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7b26a66e3f553336438b5f060810b9e7b168835d35131d5a2a0db908b8088a5"
+          "content": "105e5a58d88a146ec44980b7c28eb75c19c567ea83a02d9c0b06f995bd9ed5e5"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -9005,7 +9005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "325f7b411edab2e66422077c2d57797b39143dcc246eb91c3d36f287b5c53636"
+          "content": "308bd058718f6a87d43d907ea7d51529e227e7e78580b4e05be675a67012c83b"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9115,7 +9115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "205447adc1e911f246fcf44522d1db9a56c5b4a46011d0eae8b109f206f84bf6"
+          "content": "c55a2ccd44384fb2591d3a78c4c030bb5d3b8f8b28c36da4de2af9c2bca1dd1e"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9475,7 +9475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f6d75948ffcc2ed4cb9af400502935af1165cb2ff931059c9d383a65b57c5bd8"
+          "content": "5fb77327155d16d422f39998ef2204aa13c6caad60f85e1e1350c94729c47ad0"
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
@@ -11915,7 +11915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7f6390b5782143dbcbcb8883e0bb3d84537a4307ddb851daae39a0e7ec6e21a"
+          "content": "7f8cdf7902fef35843b64a973c5909dbe42326eb936bf2c83ff03730c44d8697"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

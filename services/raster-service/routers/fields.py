@@ -269,7 +269,7 @@ async def field_historical_backfill(
                 w_start.strftime("%Y-%m-%dT00:00:00Z"),
                 w_end.strftime("%Y-%m-%dT23:59:59Z"),
                 req.max_cloud_pct,
-                limit=max(10, req.limit_per_month * 4),
+                limit=max(24, req.limit_per_month * 6),
             )
         else:
             try:
@@ -278,7 +278,7 @@ async def field_historical_backfill(
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
                     req.max_cloud_pct,
-                    limit=max(10, req.limit_per_month * 4),
+                    limit=max(24, req.limit_per_month * 6),
                     geometry=clip,  # CDSE catalog يستعمل intersects للقصّ الدقيق على الحقل
                 )
             except TypeError as e:
@@ -291,11 +291,14 @@ async def field_historical_backfill(
                     w_start.strftime("%Y-%m-%dT00:00:00Z"),
                     w_end.strftime("%Y-%m-%dT23:59:59Z"),
                     req.max_cloud_pct,
-                    limit=max(10, req.limit_per_month * 4),
+                    limit=max(24, req.limit_per_month * 6),
                 )
-        items = main._rank_scenes(search.get("items", []), max_cloud_pct=req.max_cloud_pct)[
-            : req.limit_per_month
-        ]
+        items = main._select_backfill_scenes_by_policy(
+            search.get("items", []),
+            indices=[i.value for i in req.indices],
+            max_cloud_pct=req.max_cloud_pct,
+            limit=req.limit_per_month,
+        )
         selected_scenes.extend(items)
         monthly.append(
             {
@@ -485,6 +488,10 @@ async def field_historical_backfill(
             else None
         ),
         "max_cloud_pct": req.max_cloud_pct,
+        "min_clear_scene_pct": 100 - req.max_cloud_pct,
+        "high_quality_clear_pct": main.NDVI_HIGH_QUALITY_CLEAR_PCT,
+        "min_scene_spacing_days": main.NDVI_PULL_MIN_SPACING_DAYS,
+        "target_scene_spacing_days": main.NDVI_PULL_TARGET_SPACING_DAYS,
         "limit_per_month": req.limit_per_month,
         "dry_run": req.dry_run,
         "months_scanned": len(windows),
@@ -1068,6 +1075,8 @@ async def field_available_dates(
                 "has_cog": False,
                 "indices": set(),
                 "cloud_pct": None,
+                "clear_pct": None,
+                "quality_label": None,
                 "scene_id": None,
                 # وقت الالتقاط الحقيقيّ (ISO8601 UTC) من كتالوج STAC حين توفّره؛ يبقى None
                 # (فتعرض الواجهة التاريخ وحده) إن لم يُسجَّل مشهد — لا اختلاق ساعة.
@@ -1079,7 +1088,16 @@ async def field_available_dates(
             rec["indices"].add(main._display_index(idx))
         if cloud_pct is not None and rec["cloud_pct"] is None:
             try:
-                rec["cloud_pct"] = float(cloud_pct)
+                cloud = max(0.0, min(100.0, float(cloud_pct)))
+                rec["cloud_pct"] = cloud
+                rec["clear_pct"] = 100.0 - cloud
+                rec["quality_label"] = (
+                    "high"
+                    if rec["clear_pct"] >= main.NDVI_HIGH_QUALITY_CLEAR_PCT
+                    else "medium"
+                    if rec["clear_pct"] >= main.NDVI_PULL_MIN_CLEAR_PCT
+                    else "cloudy"
+                )
             except (TypeError, ValueError):
                 pass
         if scene_id and not rec["scene_id"]:

@@ -751,18 +751,32 @@ export default function MapHub() {
         'msi', 'msavi', 'ndwi', 'salinity',
       ];
       const toBackfillIndex = (idx: string) => (idx === 'salinity' ? 'ndsi' : idx);
+      const CORE_BACKFILL_INDICES = [
+        RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndre', 'ndmi', 'msavi', 'ndwi', 'salinity',
+      ];
+      const requestedBackfillIndices = Array.from(
+        new Set([
+          ...CORE_BACKFILL_INDICES,
+          ...(activeIndicator ? [activeIndicator] : []),
+        ]),
+      );
       const indices = Array.from(
-        new Set([activeIndicator, 'ndvi', 'ndmi'].filter((i): i is string => !!i)),
-      )
-        .filter((i) => BACKFILL_SUPPORTED_INDICES.includes(i))
-        .map(toBackfillIndex);
-      if (indices.length === 0) indices.push('ndvi', 'ndmi');
+        new Set(
+          requestedBackfillIndices
+            .filter((i) => BACKFILL_SUPPORTED_INDICES.includes(i))
+            .map(toBackfillIndex),
+        ),
+      );
+      if (indices.length === 0) indices.push('truecolor', 'ndvi', 'ndre', 'ndmi', 'msavi', 'ndwi', 'ndsi');
       const payload = {
         preset: 'custom' as const,
         months,
         indices,
-        max_cloud_pct: 35,
-        limit_per_month: 1,
+        // سياسة NDVI الأساسية: اسحب مشاهد Sentinel-2 كل 3-5 أيام عندما تكون
+        // نسبة المشهد الصافي >=50% (أي cloud<=50%). العامل ينتقي حتى 8 مشاهد/شهر
+        // مع تباعد >=3 أيام قدر الإمكان؛ >=70% صافي تُعد جودة عالية في البيانات.
+        max_cloud_pct: 50,
+        limit_per_month: 8,
         apply_cloud_mask: true,
         clip_polygon_geojson: selected.geometry,
         dry_run: false,

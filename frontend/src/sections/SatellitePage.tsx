@@ -296,6 +296,7 @@ export default function SatellitePage() {
           value: p.mean,
           cloud: p.cloudy_pct ?? null,
           thumbUrl: timelineThumbByDate.get(String(p.datetime).slice(0, 10)) ?? null,
+          acquisitionDatetime: (timelineItems.find((item) => String(item.date).slice(0, 10) === String(p.datetime).slice(0, 10))?.acquisition_datetime ?? null),
         }))
       : (timelineItems.length
           ? timelineItems.map((item) => ({
@@ -303,6 +304,7 @@ export default function SatellitePage() {
               value: null,
               cloud: typeof item.cloud_pct === 'number' ? item.cloud_pct : null,
               thumbUrl: item.thumbnail_url,
+              acquisitionDatetime: item.acquisition_datetime ?? null,
             }))
           : (Array.isArray(ts) ? ts : []).map((t) => ({ date: t.date, value: t.ndvi ?? 0, cloud: null })));
     // فرق المؤشّر عن التاريخ الأسبق (ترتيب زمنيّ تصاعديّ).
