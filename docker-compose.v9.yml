@@ -800,11 +800,12 @@ services:
       # المعرَّف أعلاه بدور sahool_app المقيَّد — RLS سارٍ لجلب geometry وحفظ raster_assets).
     volumes:
     - raster-data:/data/rasters
-    # طبقات التضاريس/التربة (قراءة فقط): اسقط DEM في DEM_HOST_DIR وطبقات SoilGrids في
-    # SOILGRIDS_HOST_DIR على المضيف. مجلّدان فارغان افتراضاً ⇒ fail-closed صادق (لا تلفيق)
-    # حتى يُزوَّدا. راجع runbook §11/§12. (متّسق مع FIELD_DEM_PATH/SOILGRIDS_DIR أعلاه.)
-    - ${DEM_HOST_DIR:-./data/dem}:/data/dem:ro
-    - ${SOILGRIDS_HOST_DIR:-./data/soilgrids}:/data/soilgrids:ro
+    # طبقات التضاريس/التربة (قراءة فقط): اسقط DEM في ./data/dem وطبقات SoilGrids في
+    # ./data/soilgrids على المضيف. مجلّدان فارغان افتراضاً ⇒ fail-closed صادق (لا تلفيق)
+    # حتى يُزوَّدا. راجع runbook §11/§12. (مسار مثبّت لا env — يبقى bind mount صالحاً في
+    # التحقّق؛ لتغيير الموقع أعِد ضبط FIELD_DEM_PATH/SOILGRIDS_DIR داخل الحاوية.)
+    - ./data/dem:/data/dem:ro
+    - ./data/soilgrids:/data/soilgrids:ro
     networks:
     - sahool-internal
     healthcheck:

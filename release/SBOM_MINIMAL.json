@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a51cc43664cb03e9d715f6fe413aec42ef071dfe265ab812c49374feef86a17f"
+          "content": "f0ee3e6a9bc208b80379d41e3b804be99c727f7f7cebd00c6dd6c62f80f7a45d"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9085,7 +9085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0b100562120607698b603905b7e335fae74a51d47530e39431ccc399e5898bd"
+          "content": "9fff464aaab363c2e62527182360e8ccc5928450488cc49fef8da7faabf6cc97"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",

@@ -426,26 +426,17 @@ async def field_cdse_tilejson(
     import cdse_client as _cdse
     import db_persist as _db
 
-    # طبّع الافتراضيّات: عبر HTTP يحقن FastAPI القيم (str/float/None)، لكن عند الاستدعاء
-    # المباشر (اختبارات الوحدة) تبقى كائنات Query الافتراضيّة — فاقبل النوع الصحيح فقط.
-    poly = poly if isinstance(poly, str) else None
-    bbox_w = bbox_w if isinstance(bbox_w, (int, float)) else None
-    bbox_s = bbox_s if isinstance(bbox_s, (int, float)) else None
-    bbox_e = bbox_e if isinstance(bbox_e, (int, float)) else None
-    bbox_n = bbox_n if isinstance(bbox_n, (int, float)) else None
-
     await main._require_field_tenant(field_id)
 
     # الأولويّة: poly (هندسة الواجهة) ثمّ bbox الصريح ثمّ هندسة DB ثمّ احتياطيّ عالميّ.
-    # geom_resolved (v9-F7): هل اشتُقّت الحدود من هندسة حقيقيّة؟ الاحتياطيّ العالميّ
-    # ليس حدوداً حقيقيّة — نُعلن available=false عنده كي لا تبدو بلاطات بلا حدود «جاهزة».
+    # الفحص بـisinstance (لا `is not None`) كي يعمل الاستدعاء المباشر (unit) أيضاً.
     _GLOBAL_BOUNDS = [-180.0, -85.0, 180.0, 85.0]
     geom_resolved = True
-    poly_geom = _parse_poly(poly) if poly else None
+    poly_geom = _parse_poly(poly) if isinstance(poly, str) and poly else None
     if poly_geom is not None:
         bounds = main._bbox_from_geom(poly_geom) or _GLOBAL_BOUNDS
         geom_resolved = bounds is not _GLOBAL_BOUNDS
-    elif bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
+    elif all(isinstance(v, (int, float)) for v in (bbox_w, bbox_s, bbox_e, bbox_n)):
         bounds = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
     else:
         field_geom = await _db.fetch_field_geometry(field_id)
