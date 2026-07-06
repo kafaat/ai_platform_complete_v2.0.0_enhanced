@@ -6,16 +6,14 @@
 ``ctx._persist_raster_asset`` ⇒ AttributeError على كلّ حفظ؛ (٢) سطر كتب
 ``_fieldctx._layers`` (اسم غير مُعرَّف + مخزن خاطئ) بدل ``ctx._field_layers``.
 
-هذا الحارس يستورد ``main`` فعليّاً ويؤكّد أنّ كلّ رمز يشير إليه العامل/الراوترات عبر
-``main.*``، وكلّ ``ctx.<attr>`` تستعمله وحدات التفكيك، موجودٌ فعلاً على main — فيسقط CI
-إن تُرِك أيّ استخراج لاحق بلا وصل. نقيّ (استيراد فقط، بلا شبكة/قاعدة).
+ساكنٌ عمداً (يقرأ المصدر نصّاً، لا ``import main``): وظيفة *Unit Tests* في CI تُثبّت
+تبعيّات دُنيا بلا fastapi/rasterio، فاستيراد main يرمي ModuleNotFoundError. نفحص وصل
+الرموز عبر تحليل مصدر main.py + الوحدات الشقيقة — يبقى الحارس فعّالاً في بيئة CI الدُّنيا.
 """
 
 from __future__ import annotations
 
-import importlib
 import re
-import sys
 from pathlib import Path
 
 import pytest
@@ -23,6 +21,7 @@ import pytest
 pytestmark = pytest.mark.unit
 
 RASTER = Path(__file__).resolve().parents[1] / "services" / "raster-service"
+MAIN = RASTER / "main.py"
 _DECOMP_MODULES = (
     "raster_job_orchestration",
     "scene_policy",
@@ -45,41 +44,40 @@ _WORKER_CONTRACT = (
 )
 
 
-@pytest.fixture(scope="module")
-def _main():
-    # عزل: خدمات أخرى (sam2/modbus) تستورد main.py خاصّتها فتشغل sys.modules['main']
-    # قبل هذا الاختبار في الجناح الكامل. نُزيح الوحدة الأجنبيّة، نستورد main راستر
-    # طازجاً (RASTER أوّل المسار لاستيراد الوحدات الشقيقة)، ثمّ نُعيد الأجنبيّة كما كانت.
-    saved = sys.modules.pop("main", None)
-    sys.path.insert(0, str(RASTER))
-    try:
-        yield importlib.import_module("main")
-    finally:
-        if str(RASTER) in sys.path:
-            sys.path.remove(str(RASTER))
-        sys.modules.pop("main", None)
-        if saved is not None:
-            sys.modules["main"] = saved
+def _defines(src: str, name: str) -> bool:
+    """صحيحٌ إن كان main.py يُعرِّف/يُسمّي ``name`` على مستوى الوحدة (دالّة/صنف/إسناد/
+    اسم مستورَد/ألياس) — أيّ منها يجعله متاحاً كـ``main.name`` وقت التشغيل."""
+    patterns = (
+        rf"^(?:async\s+def|def|class)\s+{re.escape(name)}\b",  # def/async def/class name
+        # name = ...  (إسناد/ألياس، مع نوع اختياريّ). يُسمَح بمسافة بادئة لأنّ بعض
+        # التعريفات على مستوى الوحدة تقع داخل try/except (مثل logger = setup_logging).
+        rf"^\s*{re.escape(name)}\s*(?::[^=]+)?=[^=]",
+        rf"\bas\s+{re.escape(name)}\b",  # import ... as name / X as name
+        rf"^\s*import\s+{re.escape(name)}\b",  # import name
+    )
+    return any(re.search(p, src, re.MULTILINE) for p in patterns)
 
 
-def test_main_exposes_worker_and_test_contract(_main):
-    missing = [s for s in _WORKER_CONTRACT if not hasattr(_main, s)]
+def test_main_exposes_worker_and_test_contract() -> None:
+    src = MAIN.read_text(encoding="utf-8")
+    missing = [s for s in _WORKER_CONTRACT if not _defines(src, s)]
     assert not missing, f"main فقد رموزاً يعتمدها العامل/الاختبارات بعد التفكيك: {missing}"
 
 
-def test_every_ctx_attr_used_by_decomposition_resolves_on_main(_main):
+def test_every_ctx_attr_used_by_decomposition_resolves_on_main() -> None:
+    src = MAIN.read_text(encoding="utf-8")
     missing: dict[str, list[str]] = {}
     for mod in _DECOMP_MODULES:
-        src = (RASTER / f"{mod}.py").read_text(encoding="utf-8")
-        attrs = set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)", src))
-        bad = sorted(a for a in attrs if not hasattr(_main, a))
+        msrc = (RASTER / f"{mod}.py").read_text(encoding="utf-8")
+        attrs = set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)", msrc))
+        bad = sorted(a for a in attrs if not _defines(src, a))
         if bad:
             missing[mod] = bad
     assert not missing, f"وحدات التفكيك تشير إلى رموز غير موجودة على main (ctx.*): {missing}"
 
 
-def test_no_undefined_fieldctx_alias(_main):
+def test_no_undefined_fieldctx_alias() -> None:
     # الاسم الخاطئ _fieldctx يجب ألّا يعود (استُبدِل بـctx._field_layers).
     for mod in _DECOMP_MODULES:
-        src = (RASTER / f"{mod}.py").read_text(encoding="utf-8")
-        assert "_fieldctx" not in src, f"{mod}: اسم غير مُعرَّف _fieldctx عاد للظهور"
+        msrc = (RASTER / f"{mod}.py").read_text(encoding="utf-8")
+        assert "_fieldctx" not in msrc, f"{mod}: اسم غير مُعرَّف _fieldctx عاد للظهور"
