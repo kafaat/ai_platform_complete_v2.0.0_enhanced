@@ -22,6 +22,12 @@ jobs:
       - name: service-port-gate
         run: python scripts/ci/service_port_gate.py
 
+      - name: minio-s3-contract-gate
+        run: python scripts/ci/minio_s3_contract_gate.py
+
+      - name: compose-env-contract-gate
+        run: python scripts/ci/compose_env_contract_gate.py
+
       - name: runtime-contract-gate
         run: python scripts/ci/runtime_contract_gate.py
 

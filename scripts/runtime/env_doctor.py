@@ -34,6 +34,7 @@ REQUIRED_FILES = [
     "scripts/observability/validate_observability_assets.py",
     "scripts/release/validate_release_package.py",
     "scripts/ci/local_quality_gate.sh",
+    "scripts/ci/minio_s3_contract_gate.py",
     "scripts/migrations/validate_migration_manifest.py",
 ]
 REQUIRED_MIGRATIONS = [
@@ -56,6 +57,8 @@ REQUIRED_ENV = [
     "NATS_URL",
     "MINIO_ROOT_USER",
     "MINIO_ROOT_PASSWORD",
+    "MINIO_ACCESS_KEY",
+    "MINIO_SECRET_KEY",
 ]
 DEFAULT_SECRET_PATTERNS = [
     re.compile(r"changeme", re.I),
@@ -162,10 +165,19 @@ def check_env(root: Path, checks: list[Check]) -> None:
     if db_url and not db_role_ok:
         status = "fail"
         issues.append("DATABASE_URL must use sahool_app runtime role")
+    minio_root = env.get("MINIO_ROOT_USER", "")
+    minio_access = env.get("MINIO_ACCESS_KEY", "")
+    s3_access = env.get("S3_ACCESS_KEY", "")
+    if minio_root and minio_access and minio_access not in {"${MINIO_ROOT_USER}", minio_root}:
+        status = "fail"
+        issues.append("MINIO_ACCESS_KEY must match MINIO_ROOT_USER unless a dedicated service account is documented")
+    if minio_root and s3_access and s3_access not in {"${MINIO_ACCESS_KEY}", "${MINIO_ROOT_USER}", minio_root, minio_access}:
+        status = "fail"
+        issues.append("S3_ACCESS_KEY must resolve from MINIO_ACCESS_KEY/MINIO_ROOT_USER by default")
     if jobs_url and not jobs_role_ok:
         status = "fail"
         issues.append("JOBS_DATABASE_URL must use sahool_jobs")
-    add(checks, "environment", status, "; ".join(issues) if issues else "environment contract looks safe", {"missing": missing, "default_like": defaults, "database_user": db_user, "jobs_user": jobs_user, "database_role_ok": db_role_ok, "jobs_role_ok": jobs_role_ok})
+    add(checks, "environment", status, "; ".join(issues) if issues else "environment contract looks safe", {"missing": missing, "default_like": defaults, "database_user": db_user, "jobs_user": jobs_user, "database_role_ok": db_role_ok, "jobs_role_ok": jobs_role_ok, "minio_root_user": minio_root, "minio_access_key": minio_access, "s3_access_key": s3_access})
 
 
 def check_migrations(root: Path, checks: list[Check]) -> None:
