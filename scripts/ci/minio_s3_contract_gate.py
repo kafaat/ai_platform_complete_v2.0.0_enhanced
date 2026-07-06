@@ -11,7 +11,6 @@ This static gate keeps the credential source-of-truth explicit and aligned.
 
 from __future__ import annotations
 
-import re
 import sys
 from pathlib import Path
 
@@ -98,6 +97,30 @@ def main() -> int:
         fail(
             f"docker-compose.v9.yml missing raster S3 environment keys: {', '.join(missing_compose)}"
         )
+
+    # MinIO version pin: the community admin console was gutted in RELEASE.2025-05-24,
+    # the repo was archived (2026-04), and later Docker Hub images carry a HIGH CVE and
+    # were pulled. This deployment relies on the console (--console-address :9001), so we
+    # pin the LAST full-console release and forbid drift/bare hardcodes across compose.
+    # Operators may still override via MINIO_IMAGE. See COMPOSE_ENV_CONTRACT report.
+    FULL_CONSOLE_PIN = "minio/minio:RELEASE.2025-04-22T22-12-26Z"
+    env_pin = env.get("MINIO_IMAGE", "")
+    if env_pin != FULL_CONSOLE_PIN:
+        fail(
+            f".env.example MINIO_IMAGE must pin the last full-console release "
+            f"{FULL_CONSOLE_PIN} (got {env_pin!r}); newer community images removed the admin UI"
+        )
+    for cf in sorted(ROOT.glob("docker-compose*.yml")):
+        for raw in cf.read_text(encoding="utf-8", errors="replace").splitlines():
+            s = raw.strip()
+            if "image:" in s and "minio/minio:" in s:
+                # Must use the ${MINIO_IMAGE:-...} override form with the pinned default —
+                # a bare hardcode risks shipping a console-stripped / CVE image.
+                if "${MINIO_IMAGE" not in s or FULL_CONSOLE_PIN not in s:
+                    fail(
+                        f"{cf.name}: MinIO image must be ${{MINIO_IMAGE:-{FULL_CONSOLE_PIN}}} "
+                        f"(no bare hardcode / no post-console-removal tag) — got: {s}"
+                    )
 
     # TiTiler should be able to inspect local file COGs in dev and S3 COGs in prod.
     if "sahool-titiler:" in compose:

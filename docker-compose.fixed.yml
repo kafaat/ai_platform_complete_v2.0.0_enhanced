@@ -213,7 +213,7 @@ services:
   # FIX-05: MINIO_ROOT_PASSWORD من .env
   # ═══════════════════════════════════════════════════════════════
   sahool-minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
     restart: unless-stopped
     # MEDIUM (تدقيق): تخزين داخليّ — لا يُكشَف على 0.0.0.0. حصر على loopback (المضيف فقط).
     ports:

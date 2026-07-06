@@ -591,7 +591,7 @@ services:
       start_period: 10s
 
   minio:
-    image: minio/minio:RELEASE.2024-11-07T00-52-20Z
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
     container_name: sahool-unified-minio
     restart: unless-stopped
     ports: ["127.0.0.1:9000:9000", "127.0.0.1:9001:9001"]  # MEDIUM: تخزين داخليّ — loopback فقط
