@@ -994,7 +994,7 @@ export function classifySegmentationError(e: unknown): SegmentationErrorKind {
  *  يرمي عند الخطأ ليصنّفه classifySegmentationError في الواجهة (503 نموذج غير مُهيَّأ
  *  ⇒ رسالة صريحة + رسم يدويّ؛ 404 غير منشورة ⇒ غير متاح بلطف). لا fallback مُفبرَك. */
 export const segmentField = (payload: SegmentFieldInput): Promise<SegmentFieldResult> =>
-  kongApi.post<SegmentFieldResult>('/api/segmentation/segment', payload).then(r => r.data);
+  kongApi.post<SegmentFieldResult>('/api/segmentation/segment', payload, { timeout: 90_000 }).then(r => r.data);
 
 // ── مركز قيادة المحفظة (POST /api/v1/portfolio/command) ──
 // يقارن سياسات ريّ متعدّدة عبر حقول المزرعة تحت قيود مصادر الماء، فيُراكِب الربح×المخاطرة
