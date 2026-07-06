@@ -18,6 +18,13 @@ from datetime import date, timedelta
 
 import pytest
 
+# اختبارات بيانات حقيقيّة تعتمد شبكة خارجيّة (Open-Meteo/WOFOST) — تُشغَّل فقط عند
+# REAL_DATA_TESTS=1 كي لا تُحمِّر CI/البيئات بلا إنترنت (فشل بيئيّ لا منطقيّ).
+pytestmark = pytest.mark.skipif(
+    not os.getenv("REAL_DATA_TESTS"),
+    reason="اختبارات بيانات حقيقيّة تتطلّب شبكة — فعّلها بـREAL_DATA_TESTS=1",
+)
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # ══════════════════════════════════════════════════════════════

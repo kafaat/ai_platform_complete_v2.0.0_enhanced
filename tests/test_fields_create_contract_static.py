@@ -32,7 +32,7 @@ def test_v104_field_create_contract_migration_in_manifest():
 
 
 def test_jobs_database_env_present_and_migrations_continue_idempotently():
-    env = (ROOT / ".env").read_text(encoding="utf-8")
+    env = (ROOT / ".env.example").read_text(encoding="utf-8")  # لا نشحن .env (أسرار)؛ نفحص القالب
     assert "JOBS_DB_PASSWORD" in env
     assert "JOBS_DATABASE_URL" in env
     script = (ROOT / "migrations" / "apply_in_compose.sh").read_text(encoding="utf-8")
