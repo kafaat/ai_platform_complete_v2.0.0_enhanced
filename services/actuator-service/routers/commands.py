@@ -26,6 +26,18 @@ async def send_command(req: main.CommandRequest, claims: dict = Depends(main._ve
     # الأمان: tenant_id يُشتقّ من التوكن المُتحقَّق، لا من جسم الطلب (منع انتحال).
     tenant_id = str(claims["tenant_id"])
     user_id = claims.get("sub")
+    # حراسة per-path (Safety Hardening #481): التحكّم اليدويّ معطّل افتراضيّاً ⇒ 403 صريح
+    # **قبل** أيّ عمل (DB/ملكيّة/نشر). فعّله FEATURE_MANUAL_ACTUATOR_COMMANDS صراحةً.
+    # يسبق فحص الملكيّة (503 بلا DB) كي تُرفَض الأوامر بأمان حتّى بلا قاعدة.
+    if not main._manual_commands_enabled(main.FEATURE_MANUAL_ACTUATOR_COMMANDS):
+        raise HTTPException(
+            status_code=403,
+            detail={
+                "error": "manual_actuator_commands_disabled_by_safety_policy",
+                "message_ar": "التحكّم اليدويّ بالمُشغّلات معطّل بسياسة السلامة "
+                "(فعّل FEATURE_MANUAL_ACTUATOR_COMMANDS)",
+            },
+        )
     # حارس السلامة الفيزيائيّة + العزل: فحص الدور + ملكيّة الجهاز للمستأجِر (fail-closed).
     await main._authorize_device_control(claims, req.device_id)
     # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): استشِر قبل النشر. مفتاح مُشتبَك

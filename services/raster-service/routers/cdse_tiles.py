@@ -71,7 +71,9 @@ async def _normalize_cdse_request(
     if not _cdse.is_configured():
         return None
     internal = main._GRID_INDEX_ALIASES.get(index, index)
-    if internal not in _cdse.INDEX_EXPR:
+    # truecolor صورة خام RGBA (تُصيَّر عبر evalscript ألوان)، وليست في INDEX_EXPR أحاديّ
+    # النطاق — نقبلها صراحةً. غيرها يجب أن يكون مؤشّراً مُصيَّراً وإلّا بلاطة شفّافة.
+    if not _cdse.is_truecolor(internal) and internal not in _cdse.INDEX_EXPR:
         return None
 
     _is_latest = not date or date in ("latest", "today")
@@ -210,7 +212,12 @@ async def _ensure_field_cog(
                 try:
                     import tile_render as _tr
 
-                    _tr.apply_polygon_mask(cog_path, field_geom)
+                    # الصورة الخام RGBA UINT8 (لا تُخزَّن NaN) ⇒ قناع ألفا؛ المؤشّر
+                    # أحاديّ النطاق FLOAT32 ⇒ قناع NaN.
+                    if _cdse.is_truecolor(internal):
+                        _tr.apply_polygon_mask_rgba(cog_path, field_geom)
+                    else:
+                        _tr.apply_polygon_mask(cog_path, field_geom)
                 except Exception as e:  # noqa: BLE001
                     # fail-closed: فشل القناع المحلّيّ ⇒ لا نُخدِّم/نُخزِّن بلاطة قد تتجاوز
                     # حدّ الحقل. (المزوّد يقصّ على المضلّع أيضاً، لكن لا نعتمد على ذلك
@@ -382,11 +389,8 @@ async def field_cdse_thumbnail(
 
 def _tilejson_availability(configured: bool, index: str) -> tuple[bool, str | None, str | None]:
     """توافر بلاطات TileJSON بصدق: يجب أن تكون CDSE مُهيّأة **و** المؤشّر قابلاً
-    للتصيير (ضمن ``INDEX_EXPR`` بعد المرادفات).
-
-    ``truecolor`` (صورة الحقل الخام) ليس مؤشّراً مُصيَّراً في raster-service بعد —
-    فبلا هذا الفحص يُبلَّغ ``available=true`` (لأنّ CDSE مُهيّأة) بينما بلاطة
-    ``cdse-tiles`` تعود شفّافة، فتبدو الخريطة فارغة بلا سبب. نُبلِّغ الحقيقة بدل ذلك."""
+    للتصيير — إمّا مؤشّراً في ``INDEX_EXPR`` (بعد المرادفات) أو الصورة الخام
+    ``truecolor`` (تُصيَّر RGBA عبر evalscript ألوان طبيعيّة)."""
     import cdse_client as _cdse
 
     if not configured:
@@ -397,12 +401,15 @@ def _tilejson_availability(configured: bool, index: str) -> tuple[bool, str | No
             "(أو SH_CLIENT_ID/SH_CLIENT_SECRET) في بيئة خدمة الراستر ثمّ أعِد التشغيل.",
         )
     internal = main._GRID_INDEX_ALIASES.get(index, index)
+    # الصورة الخام truecolor مُصيَّرة الآن (evalscript B04/B03/B02 → RGBA) ⇒ متاحة.
+    if _cdse.is_truecolor(internal):
+        return True, None, None
     if internal not in _cdse.INDEX_EXPR:
         return (
             False,
             "index_not_rendered",
-            "الصورة الخام (TrueColor) ليست مؤشّراً مُصيَّراً في raster-service بعد؛ "
-            "اختر مؤشّراً تفسيريّاً (NDVI/NDMI…) أو شغّل تجهيز الصور — ريثما يُضاف تصيير RGB.",
+            "هذا المؤشّر ليس مُصيَّراً في raster-service؛ اختر مؤشّراً تفسيريّاً "
+            "(NDVI/NDMI…) أو الصورة الخام (TrueColor).",
         )
     return True, None, None
 

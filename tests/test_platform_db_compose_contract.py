@@ -16,4 +16,4 @@ def test_v9_platform_database_url_not_blank_default():
 def test_fixed_platform_database_url_has_local_default():
     text = '\n'.join(uncommented_lines('docker-compose.fixed.yml'))
     assert 'DATABASE_URL: ${DATABASE_URL}' not in text
-    assert 'sahool_user:${DB_PASSWORD' in text
+    assert 'sahool_app:${APP_DB_PASSWORD' in text  # تصلّب RLS: دور مقيّد لا sahool_user (كان بائتاً)

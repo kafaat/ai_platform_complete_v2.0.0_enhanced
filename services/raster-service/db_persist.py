@@ -665,9 +665,16 @@ async def list_available_asset_dates(
                a.index_name,
                a.cloud_pct,
                a.scene_id,
+               -- وقت الالتقاط الحقيقيّ من كتالوج STAC (timestamptz) حين يتوفّر — لا نلفّق
+               -- ساعة من DATE (acquisition_date تاريخ فقط بلا وقت). NULL ⇒ الواجهة تعرض
+               -- التاريخ وحده بصدق (لا وقت مُختلَق).
+               to_char(si.captured_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')
+                   AS acquisition_datetime,
                (a.cog_uri IS NOT NULL AND a.cog_uri <> '') AS has_cog
         FROM raster_assets a
         JOIN recent_dates rd ON rd.acquisition_date = a.acquisition_date
+        LEFT JOIN stac_item_registry si
+               ON si.tenant_id = a.tenant_id AND si.scene_id = a.scene_id
         WHERE a.field_id = $1
           AND a.tenant_id = $2::uuid
           AND a.asset_status = 'ready'  -- v11-F1: صفوف جاهزة فقط (لا stale/pending)

@@ -23,6 +23,7 @@ import {
   Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
   Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
   Tractor, CheckSquare, CircleDotDashed, History, RotateCcw, Target, FlaskConical,
+  Satellite,
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
@@ -722,17 +723,15 @@ export default function MapHub() {
     setHistoricalBackfillBusy(true);
     setHistoricalBackfillStatus(`جارٍ إنشاء خطة/مهمة backfill لمدة ${months} شهر…`);
     try {
-      // الـbackfill يحسب COGs لمؤشّرات نباتيّة؛ 'truecolor' تصيير للمشهد الأساسيّ لا
-      // IndicatorKind — وعقد raster-service يقبل هذه المجموعة فقط. إرسال 'truecolor'
-      // (أو مؤشّر نشط غير مدعوم) يُرجِع 422. نُرشِّح للمجموعة المدعومة (مشاهد هذه المؤشّرات
-      // تُغذّي خطّ TrueColor الزمنيّ نفسه). يبقى NDVI/NDMI أساساً مضموناً غير فارغ.
-      const BACKFILL_SUPPORTED_INDICES = ['ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre', 'msi', 'msavi'];
+      // الـbackfill يحسب COGs للمؤشّرات + الصورة الخام truecolor (تُحفَظ الآن كـCOG RGBA
+      // في raster-service فيقبلها العقد). نُرشِّح للمجموعة المدعومة كي لا يُرجَع 400 لمؤشّر
+      // غير مدعوم. NDVI/NDMI يبقيان أساساً مضموناً غير فارغ. تجهيز truecolor يمكّن /tiles
+      // المحفوظ للصورة الخام (بدل تصيير CDSE الحيّ لكلّ بلاطة).
+      const BACKFILL_SUPPORTED_INDICES = [
+        RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre', 'msi', 'msavi',
+      ];
       const indices = Array.from(
-        new Set(
-          [activeIndicator, 'ndvi', 'ndmi'].filter(
-            (i): i is string => !!i && i !== RAW_IMAGERY_INDEX_ID,
-          ),
-        ),
+        new Set([activeIndicator, 'ndvi', 'ndmi'].filter((i): i is string => !!i)),
       ).filter((i) => BACKFILL_SUPPORTED_INDICES.includes(i));
       if (indices.length === 0) indices.push('ndvi', 'ndmi');
       const payload = {
@@ -757,11 +756,9 @@ export default function MapHub() {
           : `تم إرسال طلب تجهيز ${months} شهر؛ تحقق من حالة raster-service والتواريخ المتاحة بعد المعالجة.`;
       setHistoricalBackfillStatus(status);
       toastStore.add(isAsync ? 'info' : 'success', isAsync ? `أُدرِجت تشغيلة ${months} شهر في الطابور` : `بدأ تجهيز ${months} شهر تاريخية`, status);
-      // v10-F9: مرّر المؤشّر النشط (أو أوّل مؤشّر مدعوم إن كان النشط truecolor) كي لا
-      // يُعاد ملء المُنتقي بتواريخ مؤشّرات أخرى بعد الـbackfill مباشرةً.
-      const refreshIndex = (activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID)
-        ? activeIndicator
-        : indices[0];
+      // v10-F9: مرّر المؤشّر النشط (يشمل truecolor الآن — يُحفَظ كـCOG RGBA) كي لا يُعاد
+      // ملء المُنتقي بتواريخ مؤشّرات أخرى بعد الـbackfill مباشرةً.
+      const refreshIndex = activeIndicator ?? indices[0];
       const [dates, allDates] = await Promise.all([
         fetchFieldImageryAvailableDates(selected.id, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
         fetchFieldImageryAvailableDates(selected.id, undefined, 240).catch(() => [] as FieldImageryDateOption[]),
@@ -834,6 +831,49 @@ export default function MapHub() {
       drawTools, pinMode, showWeather, showAlerts, showDevices, pinCategory, mapView]);
 
   const indicatorActive = mode === '2d' && !compare ? activeIndicator : null;
+
+  // إصلاح «الطبقة الورديّة»: حين يكون للتاريخ المختار COG محفوظ للمؤشّر النشط نقرأ الطبقة
+  // المحفوظة من raster_assets عبر /tiles بدل تصيير CDSE الحيّ /cdse-tiles. نشترط إدراج
+  // المؤشّر صراحةً في indices (لا ارتداد «indices فارغة ⇒ نعم»): عند الشكّ نبقى على المسار
+  // الحيّ الذي يُصيّر دائماً. TrueColor لا يُحفَظ كـCOG (يُصيَّر حيّاً RGBA فقط) فلن يظهر
+  // في indices ⇒ يبقى على /cdse-tiles (تبديله إلى /tiles ⇒ بلاطة شفّافة). salinity محفوظ
+  // باسم NDSI. لا تبديل بلا مؤشّر نشط.
+  const _persistNeedle = indicatorActive
+    ? indicatorActive === 'salinity'
+      ? 'NDSI'
+      : indicatorActive.toUpperCase()
+    : null;
+  const _dateHasIndicatorCog = (d: { has_cog?: boolean; indices?: string[] }) =>
+    !!d.has_cog &&
+    !!_persistNeedle &&
+    Array.isArray(d.indices) &&
+    d.indices.some((i) => String(i).toUpperCase() === _persistNeedle);
+  const selectedDateHasCog = !_persistNeedle
+    ? false
+    : selectedImageryDate !== 'latest'
+      ? availableImageryDates.some(
+          (d) => d.date === selectedImageryDate && _dateHasIndicatorCog(d),
+        )
+      : availableImageryDates.some(_dateHasIndicatorCog);
+
+  // المشهد المختار (لعرض تاريخ الالتقاط الحقيقيّ). عند 'latest' نعرض أحدث مشهد جاهز.
+  const selectedScene =
+    selectedImageryDate !== 'latest'
+      ? availableImageryDates.find((d) => d.date === selectedImageryDate) ?? null
+      : (dateSelectorDates.find((d) => d.has_cog) ?? dateSelectorDates[0] ?? null);
+  // تاريخ الالتقاط بصدق: وقت المشهد الحقيقيّ (STAC) إن توفّر، وإلّا التاريخ وحده (بلا
+  // اختلاق ساعة). لا يظهر شيء إن لم نعرف مشهداً.
+  const acquisitionLabel = (() => {
+    if (!selectedScene) return null;
+    const iso = selectedScene.acquisition_datetime;
+    if (iso) {
+      const dt = new Date(iso);
+      if (!Number.isNaN(dt.getTime())) {
+        return new Intl.DateTimeFormat('ar', { dateStyle: 'medium', timeStyle: 'short' }).format(dt);
+      }
+    }
+    return selectedScene.date;
+  })();
 
   // قائمة الحقول المُرشَّحة بالبحث (اسم/محصول) — لوحة الحقول الباحثة.
   const visibleFields = useMemo(() => {
@@ -2099,6 +2139,17 @@ export default function MapHub() {
                     </div>
                   )}
 
+                  {!compare && activeIndicator && acquisitionLabel && (
+                    <div
+                      className="flex items-center gap-1 text-xs"
+                      style={{ color: T.muted }}
+                      data-testid="imagery-acquisition-date"
+                    >
+                      <Satellite className="w-3.5 h-3.5" style={{ color: T.green }} />
+                      <span>تاريخ الالتقاط: {acquisitionLabel}</span>
+                    </div>
+                  )}
+
                   {!compare && activeIndicator && showImageryTimeline && twoYearTimeline.items.length > 0 && (
                     <div
                       className="w-full rounded-xl border p-3"
@@ -2538,6 +2589,7 @@ export default function MapHub() {
                       onViewChange={handleViewChange}
                       imageryTs={imageryTs}
                       imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
+                      preferPersistedCog={selectedDateHasCog}
                       tenantId={tenantId}
                       pivotDesignerEnabled={pivotDesigner}
                       onAddPivotDraft={handleAddPivotDraft}
@@ -2570,6 +2622,7 @@ export default function MapHub() {
                     onViewChange={handleViewChange}
                     imageryTs={imageryTs}
                     imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate}
+                    preferPersistedCog={selectedDateHasCog}
                     tenantId={tenantId}
                     hillshadeTilesUrl={hillshadeTilesUrl}
                     slopeTilesUrl={slopeTilesUrl}

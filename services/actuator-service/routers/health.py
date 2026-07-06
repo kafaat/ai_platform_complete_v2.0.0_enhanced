@@ -19,10 +19,11 @@ router = APIRouter()
 @router.get("/health")
 async def health():
     # نكشف الوضع الفعّال للمراقبة (الصدق): simulation يُعلَن صراحةً فلا يُظنّ تنفيذاً حقيقيّاً.
+    # صدق أمنيّ: نُعلن أنّ MQTT مُهيّأ فقط — لا نكشف broker URL (تسريب بنية تحتيّة).
     return {
         "status": "alive",
         "service": "actuator",
-        "mqtt": main.MQTT_BROKER_URL,
+        "mqtt_configured": bool(main.MQTT_BROKER_URL),
         "mode": main.ACTUATOR_MODE,
     }
 

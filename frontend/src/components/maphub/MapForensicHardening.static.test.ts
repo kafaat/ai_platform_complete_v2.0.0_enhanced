@@ -24,10 +24,14 @@ describe('map forensic hardening', () => {
     expect(leaf).not.toContain("date: 'latest' });");
   });
 
-  it('indicator tiles use live CDSE path (cdse-tiles) with poly clip, not local COG (MAPHUB-CDSE)', () => {
-    // المسار المحلّيّ tiles يحتاج COG مُسبق-التوليد ⇒ 404 لحقل بلا معالجة؛ cdse-tiles حيّ + قصّ poly.
-    expect(gl).toContain('/cdse-tiles/');
-    expect(leaf).toContain('/cdse-tiles/');
+  it('indicator tiles default to live CDSE path (cdse-tiles) + poly clip; persisted COG only when has_cog (MAPHUB-CDSE)', () => {
+    // إصلاح «الطبقة الورديّة»: الافتراضيّ الحيّ cdse-tiles (يحتاج قصّ poly)، ويُبدَّل إلى /tiles
+    // المحفوظ فقط حين preferPersistedCog (التاريخ has_cog ⇒ COG مؤكَّد ⇒ لا 404 لحقل بلا معالجة).
+    expect(gl).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
+    expect(leaf).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
+    // القصّ (poly) يبقى لمسار CDSE الحيّ فقط — المحفوظ مقصوص مسبقاً.
+    expect(gl).toContain('if (!preferPersistedCog)');
+    expect(leaf).toContain('if (!preferPersistedCog)');
     expect(gl).toContain("params.set('poly'");
     expect(leaf).toContain("params.set('poly'");
   });

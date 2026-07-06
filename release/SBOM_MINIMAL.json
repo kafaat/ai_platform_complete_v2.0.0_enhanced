@@ -1435,7 +1435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aef1942f4be5ba79f0b6b353c8fd8a9d29d83bd563a088974a61ac8f2aadf205"
+          "content": "e5c61298eb0142ec1ab54a73d7b7c9b278256abf7458defa291669bc5010b8d1"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -1455,10 +1455,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e984b77fe5bab7404b3a6150a91c46e51730d1eec4f12e66d47ac9b3cf9be7bd"
+          "content": "1f21ec90432d071109eddb0182d5a5ecdb1d4f149b9277ddf76ed95939d76877"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01b6614dae93ffe1a64cb9d199b845c4fb15738a30eaebdcd5b812c49723fedd"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ImageryAcquisitionDate.static.test.ts",
       "type": "file"
     },
     {
@@ -1505,7 +1515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7fcefa5b6d9cf76ff8b7ab97b9946ae49192355b51de0f00224c5bd453fde0bd"
+          "content": "b061b1981c51d28c331cf05dcdc89a2337400e16fd3ac2eb2c5924b0a8b98029"
         }
       ],
       "name": "frontend/src/components/maphub/MapForensicHardening.static.test.ts",
@@ -1515,7 +1525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e07d76353a339fa77ff63305048c31d4b4270764e4ce2eef2fc9d55d6ebb397"
+          "content": "88fa34fd2e87ed98b259ee51ff95237a6fb30d370ea0f7ed4ba2c38e03111e8f"
         }
       ],
       "name": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
@@ -1549,6 +1559,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/OverlayMarkers.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3450bcc0d2a2628be99e153e6bcd97f69358b1b0d41a51afdff84019648a7dc5"
+        }
+      ],
+      "name": "frontend/src/components/maphub/PersistedCogTiles.static.test.ts",
       "type": "file"
     },
     {
@@ -4565,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a6d483a1fcfa29fcea8566206c00dc9bdbd05d0d429536f5fba8752c64eadf5"
+          "content": "05c520f0c45b083f2ca83fc7ac75d567ece5fc19350f0d1aea5bf02b416fc36d"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4595,7 +4615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da644923d44c8e4299d46b9cca2b5aad959f51a07b25ae7f0aa131407dfe41a8"
+          "content": "8214960f378917b3adf0a712a675766d196b25bc74573367f0ba7ad42e67029c"
         }
       ],
       "name": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",
@@ -4775,7 +4795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96b9e99de826b048aa6f099e85a1dfeca4225fa362f2041963be5f415b42eafc"
+          "content": "bf7843d6e3926737e6026855bdc42dadc1732fa5234688c66ca0ba544cb8e929"
         }
       ],
       "name": "frontend/src/sections/PrescriptionBuilderPage.test.tsx",
@@ -5025,7 +5045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c22be217ecf7c03d9a4cf27655b3e0810de810496c54e0d73dfab22097371b6"
+          "content": "1d53fe30e1b9274e552b22575f52530ca1b7565ab98a2d4433cbe3352a533057"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -7225,7 +7245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97140bc662318433e977d56f9e86c5a12e3ac314e17cee218115e3afbc79aa4d"
+          "content": "3436d90d7e14bdd73ecfaeb9e655c0806bfbc9b7c386845058e4c82441a32e4c"
         }
       ],
       "name": "services/actuator-service/main.py",
@@ -7245,7 +7265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0ac984d9f7078af4249d0b3069608c7fe5cc67038332841d2300b13a8d009e84"
+          "content": "f0c09bab53f7482c0ce77f8b842166d445a58a734ee8d52deaa6c213cef9d7c6"
         }
       ],
       "name": "services/actuator-service/router_registry.py",
@@ -7265,7 +7285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6db60bd19bc905a4a35083cc40130d1e1db31ba80f4cdb6398ebbeca054fc24f"
+          "content": "958c6413421a71063befcd676bc6fa7536e8c0ee7680c841bffddf41d87c6647"
         }
       ],
       "name": "services/actuator-service/routers/commands.py",
@@ -7275,7 +7295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "faf97c842ac4e8d6ba91791fbd8371c975390a4ae51f9fa7cbd5f588eb56cc83"
+          "content": "082a70c4fd270c1f15c9c5d0fda615e1bb0954e9fd0c3a85b7a6965288a86183"
         }
       ],
       "name": "services/actuator-service/routers/health.py",
@@ -7305,7 +7325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9a65cdabfea7c4cb8657d84a74ff8b368bbbb589ba0c3758b4ebd50fdc1c631"
+          "content": "002801429a8b2d21a7832a63ee2d85045d301bbe4798616a1822cc12ba52d3bd"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety.py",
@@ -7935,7 +7955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "930af32d42f2eb8d708cb7dba686e063b299f3c1d743782908ae6401daf1ffd5"
+          "content": "50cfcf20ff5ed51434e26b869c4da08e63a0873b2fb7d6152b1da9e9bfed7b7c"
         }
       ],
       "name": "services/auth/router_registry.py",
@@ -8315,7 +8335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2404edbe18bee899606766292165b547e923611b8ffb39e416555560d56838bd"
+          "content": "2dc73777cdb7c1cba7903cf8bfcd114d36dcd4637a1c029700117054bc033d6f"
         }
       ],
       "name": "services/guardrails-engine/router_registry.py",
@@ -8695,7 +8715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9434c6d0eb114e10a77444c21bedbbf4a11809406afc20ab32ad4e3c0934fae7"
+          "content": "7b7392bb7ec6abd7145646da7e62fddd5d97235c3ebc506e73597f4ca0fb3d25"
         }
       ],
       "name": "services/odoo-bridge/router_registry.py",
@@ -8905,7 +8925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbc0c1bd898bcc3ba6b588421e7dc33e47107f58a2dbad5db2fbd9eaad3aeda6"
+          "content": "d8df5cd58a47705825519e0c93899a7ee76946149c90d6d8de958234b4a85e8d"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -8935,7 +8955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4606c037dd3532b4498bd89fbf0ebc3d3e83e86fba94a3e13a24148ef3b7f7cb"
+          "content": "55b8ec66360a29e7b9ef4f10f0428041feb367ebeeffb845a821af770c9f9eab"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -8945,7 +8965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e3a55c9b5646ba642510fad30c21e80aba916d066aae55e0065bd791e16b50e7"
+          "content": "1583ddcad27a7d983f5e4cec628168613a5a499b056b7a290845802b3595d859"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -8985,7 +9005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9a1d61a6763051d37d50037ae7f6469111a2c8d1ea9bad8324e3eba1e00ce29"
+          "content": "8675e7f40b6e5b2136e82650be6199ad889815af29f7da77a9795ead1ac8fbb2"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9055,7 +9075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06d8b3bebeb1a5c296fe6ade455718e8ae07a82bbc9f983cd7e26e03c4d50c92"
+          "content": "58b714f4ec6e1c432dbcd3cbe8180be27ad65d7e5d5a0e419e981f4a7d07709a"
         }
       ],
       "name": "services/raster-service/router_registry.py",
@@ -9085,7 +9105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9fff464aaab363c2e62527182360e8ccc5928450488cc49fef8da7faabf6cc97"
+          "content": "0ebc0593d2b27046be0deca615fee355a3ad2b207601ccdc1a2ac6bcc8899e68"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -9095,7 +9115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13de80c2dc83ad70ff2879608cfb742aa7e29633b67654b70e75fd3ce1e0b70b"
+          "content": "124980150231d6a64a10988c88a8fc373486d27dfddba283b970523b2ac459f6"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9355,7 +9375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "381ec27c48a281e50765fae1a5dc0e080e39081bd5fc6dd812b8d28938761867"
+          "content": "59ee0c2a4d958d8d7bd07fe0cc84e0da910611587c1b12f32924bceac1396f28"
         }
       ],
       "name": "services/raster-service/test_cdse_tilejson_availability.py",
@@ -9645,6 +9665,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "33644fa71c38b5958cc7a0429ec2f95a4d448b895becc0e2c045d5beaa520409"
+        }
+      ],
+      "name": "services/raster-service/test_truecolor_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c3b42c0c9d85c06dfe8eb3baa7a441f0e6af1fee46163b4441a503bd2a0a6720"
         }
       ],
@@ -9655,7 +9685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9dccf6ed896667f9e125498bcc43142993209526f73d526dd3576c68a5f7646f"
+          "content": "a957e60743138509079ab25c74365710699bddf83f4f804e67edd6100c71208b"
         }
       ],
       "name": "services/raster-service/tile_render.py",
@@ -19065,7 +19095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66835f03a067f87bfd5ccd286e5875a021f7f0f10a44e29643fda55f136d5df0"
+          "content": "60bbac86102d3b24227ecc59ccf83d1c0c8b954879b5d4c593c26af830a7827b"
         }
       ],
       "name": "services/soil-service/router_registry.py",
@@ -19285,7 +19315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9cadc2b4769f085c84e69e2996bf6dea936482a6a1db15ee8916d309d89e439"
+          "content": "d6dcdf601af3789fe8a58ad6f7b2a4db50c5b48fecdb818832d3ba226174d272"
         }
       ],
       "name": "services/supervisor-agent/router_registry.py",
@@ -19515,7 +19545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d5ce492ee913d1d8ad2392bb17f79508676d30394de4109820a9c55bd11682d"
+          "content": "8502c82cc707c47e4ee5de041ebf8b3f759388c3b7c854ee1c274f0834225db4"
         }
       ],
       "name": "services/tts-service/router_registry.py",
@@ -19615,7 +19645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee2d88c4078479638c5d5a2b9876a12b71cd14448ef5f71fa583b9f291064648"
+          "content": "69928df3d49d160652937f8550154238635bb56a383490aa639f4d44a3e97515"
         }
       ],
       "name": "services/vegetation-analysis-service/router_registry.py",
@@ -19705,7 +19735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b157e59f63e3d98beb71c845686d3f0caf1a678bc7f01eee0981d701c85f258a"
+          "content": "e959dc3bed9964a761c0b6f301e0b650826c765e3ee694530e0e2d97222eea69"
         }
       ],
       "name": "services/video-processor/router_registry.py",

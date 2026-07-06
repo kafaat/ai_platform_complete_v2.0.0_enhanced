@@ -62,7 +62,7 @@ def test_v113_worker_policy_migration_registered_and_manifest_md_mirrors_txt() -
     manifest_md = (ROOT / "migrations/MANIFEST.md").read_text(encoding="utf-8")
     assert "v113_phase_runtime_workers_jobs.sql" in manifest_txt
     assert "v113_phase_runtime_workers_jobs.sql" in manifest_md
-    assert "Canonical source: `migrations/MANIFEST.txt`" in manifest_md
+    assert "Source of truth: `migrations/MANIFEST.txt`" in manifest_md  # الصياغة الفعليّة (كانت "Canonical source" بائتة)
     sql = (ROOT / "migrations/v113_phase_runtime_workers_jobs.sql").read_text(encoding="utf-8")
     assert "TO sahool_jobs" in sql
     assert "BYPASSRLS" not in sql.upper()

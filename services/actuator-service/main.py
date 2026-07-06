@@ -46,6 +46,90 @@ MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
 # MQTT_BROKER_URL (فارغ/'disabled' ⇒ disabled، وإلّا real). simulation لا ينشر
 # لكن يُبقي السلسلة (command → ledger → simulated_ack) حيّةً دون وسيط FastBee.
 ACTUATOR_MODE = resolve_actuator_mode(os.getenv("ACTUATOR_MODE"), MQTT_BROKER_URL)
+# أعلام السلامة per-path (آمن افتراضيّاً fail-closed): لا مسار تنفيذ فيزيائيّ يعمل بلا
+# تفعيل صريح. (أُعيدت بعد أن أسقطها تفكيك الراوترات — كانت في #481 Safety Hardening.)
+#   • POST /command (تحكّم يدويّ)      ⇒ FEATURE_MANUAL_ACTUATOR_COMMANDS
+#   • أتمتة القواعد (مسار المستشعرات)  ⇒ FEATURE_AUTOMATION_RULES_ACTUATION
+#   • جسر القرار (dispatch)            ⇒ FEATURE_DISPATCH_ACTUATOR
+FEATURE_MANUAL_ACTUATOR_COMMANDS = os.getenv("FEATURE_MANUAL_ACTUATOR_COMMANDS")
+FEATURE_AUTOMATION_RULES_ACTUATION = os.getenv("FEATURE_AUTOMATION_RULES_ACTUATION")
+FEATURE_DISPATCH_ACTUATOR = os.getenv("FEATURE_DISPATCH_ACTUATOR")
+_DISPATCH_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def _dispatch_consumer_enabled(env_value: str | None) -> bool:
+    """دالّة نقيّة: علم جسر القرار (dispatch)، default-OFF fail-closed."""
+    return (env_value or "").strip().lower() in _DISPATCH_TRUTHY
+
+
+def _automation_actuation_enabled(env_value: str | None) -> bool:
+    """دالّة نقيّة: علم أتمتة القواعد (مسار المستشعرات)، default-OFF fail-closed."""
+    return (env_value or "").strip().lower() in _DISPATCH_TRUTHY
+
+
+def _manual_commands_enabled(env_value: str | None) -> bool:
+    """دالّة نقيّة: علم التحكّم اليدويّ POST /command، default-OFF fail-closed."""
+    return (env_value or "").strip().lower() in _DISPATCH_TRUTHY
+
+
+def _safety_status(mode: str, dispatch_on: bool, automation_on: bool, manual_on: bool) -> dict:
+    """دالّة نقيّة: تكوين سلامة طبقة التنفيذ الفيزيائيّ — **لا أسرار** (لا broker/tokens/
+    tenant/secrets)، حالة فقط. physical_execution_enabled = (الوضع real)."""
+    real = mode == "real"
+    status = {
+        "actuator_mode": mode,
+        "physical_execution_enabled": real,
+        "dispatch_bridge_enabled": bool(dispatch_on),
+        "automation_rules_enabled": bool(automation_on),
+        "manual_command_enabled": bool(manual_on),
+    }
+    if real:
+        status["warning"] = "⚠️ PHYSICAL ACTUATION ENABLED — REAL MQTT COMMANDS MAY BE SENT ⚠️"
+    return status
+
+
+def _parse_risk_allowlist(env_value: str | None) -> set[str]:
+    """دالّة نقيّة: قائمة المخاطر المسموح بأتمتتها (CSV) ⇒ مجموعة محارف صغيرة. فارغ ⇒ low,medium."""
+    if not env_value or not env_value.strip():
+        return {"low", "medium"}
+    return {p.strip().lower() for p in env_value.split(",") if p.strip()}
+
+
+def _is_risk_allowed(risk_level, allowlist: set[str]) -> bool:
+    """دالّة نقيّة: هل يُسمح بأتمتة هذا المستوى؟ HIGH/CRITICAL خارج الافتراضيّ ⇒ لا (تبقى للإنسان)."""
+    return str(risk_level or "").strip().lower() in allowlist
+
+
+def _parse_dispatch_command(command):
+    """دالّة نقيّة fail-safe: يفكّ حمولة أمر القرار ⇒ ``(device_id, cmd, payload)`` أو ``None``.
+
+    أمر فاسد/ناقص ⇒ ``None`` (لا رمي) ⇒ يُعامَل القرار كـfailed (لا تخمين، لا إطلاق أعمى).
+    يتسامح مع المفاتيح: ``device_id``/``device`` و``command``/``cmd``.
+    """
+    if isinstance(command, str):
+        try:
+            command = json.loads(command)
+        except (ValueError, TypeError):
+            return None
+    if not isinstance(command, dict):
+        return None
+    device_id = command.get("device_id") or command.get("device")
+    cmd = command.get("command") or command.get("cmd")
+    if not isinstance(device_id, str) or not device_id:
+        return None
+    if not isinstance(cmd, str) or not cmd:
+        return None
+    payload = command.get("payload")
+    if not isinstance(payload, dict):
+        payload = {}
+    return device_id, cmd, payload
+
+
+def _dispatch_outcome_status(send_success: bool) -> str:
+    """دالّة نقيّة: نتيجة النشر ⇒ حالة التنفيذ. نجاح النشر ⇒ executed (نُشِر≠نُفِّذ)، وإلّا failed."""
+    return "executed" if send_success else "failed"
+
+
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "")
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
@@ -717,6 +801,14 @@ from router_registry import register_routers  # noqa: E402
 
 register_routers(app)
 
+# إعادة تصدير مُعالِجات مُنتقاة إلى فضاء ``main`` (نمط soil-service): بعض حُرّاس السلامة
+# تستورد المُعالِج من ``main`` مباشرةً لا عبر HTTP. **best-effort** كـregister_routers:
+# في تشغيل مجمّع قد يكون ``sys.modules['routers']`` لخدمة أخرى (تلوّث monorepo) فلا يوجد
+# ``routers.health`` — لا نُسقِط تحميل main (المُختبِر الذي يحتاج main.health يعزل sys.modules).
+try:
+    from routers.health import health  # noqa: E402,F401
+except Exception:  # noqa: BLE001
+    pass
 
 if __name__ == "__main__":
     import uvicorn

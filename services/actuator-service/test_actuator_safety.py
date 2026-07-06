@@ -50,7 +50,31 @@ os.environ.pop("FEATURE_DISPATCH_ACTUATOR", None)
 _MAIN_PATH = Path(__file__).resolve().parent / "main.py"
 _spec = importlib.util.spec_from_file_location("actuator_main_safety_test", _MAIN_PATH)
 main = importlib.util.module_from_spec(_spec)
+# حاسم بعد التفكيك: سجّل الوحدة باسم ``main`` قبل التنفيذ كي يستورد ``routers/*``
+# (عبر register_routers) **نفس النسخة** — وإلّا نسخة ثانية من main فتفشل
+# dependency_overrides[main._verify_token] لعدم تطابق كائن الدالّة (نمط عزل soil-service).
+# أخْلِ وحدات الراوتر المخبّأة (من خدمة/اختبار سابق في نفس العمليّة) كي يُعيد
+# register_routers استيرادها مقابل نسختنا من ``main`` — وإلّا تبقى routes مربوطة بـ
+# _verify_token من نسخة أخرى فتفشل dependency_overrides (تصادُم main/routers، monorepo).
+# **حاسم:** نحفظ ثمّ نستعيد sys.modules بعد التنفيذ كي لا نُلوّث ``main``/``routers`` على
+# اختبارات الخدمات اللاحقة (app مبنيّ بالكامل ومرجعنا ``main`` مثبَّت — الاستعادة آمنة).
+_saved = {
+    k: sys.modules.get(k)
+    for k in ["main", "router_registry"] + [m for m in sys.modules if m.startswith("routers")]
+}
+for _m in [m for m in sys.modules if m == "router_registry" or m.startswith("routers")]:
+    sys.modules.pop(_m, None)
+sys.modules["actuator_main_safety_test"] = main
+sys.modules["main"] = main
 _spec.loader.exec_module(main)
+# استعادة sys.modules لحالتها قبلنا (منع تلوّث عبر-الخدمات في التشغيل المجمّع).
+for _m in [
+    m for m in sys.modules if m == "main" or m == "router_registry" or m.startswith("routers")
+]:
+    sys.modules.pop(_m, None)
+for _k, _v in _saved.items():
+    if _v is not None:
+        sys.modules[_k] = _v
 
 
 # ── الادّعاء المركزيّ: آمن افتراضيّاً ────────────────────────────────

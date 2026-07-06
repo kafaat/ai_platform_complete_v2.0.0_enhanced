@@ -28,9 +28,10 @@ def test_supported_includes_default_indicators():
         assert ind in supported, f"{ind} مفقود من دعم CDSE"
 
 
-@pytest.mark.parametrize("index", sorted(cdse_client.supported_indices()))
+# مؤشّرات أحاديّة النطاق FLOAT32 فقط (truecolor مستثنًى — RGBA UINT8، يُختبَر أدناه).
+@pytest.mark.parametrize("index", sorted(cdse_client.INDEX_EXPR))
 def test_build_evalscript_is_valid_v3(index):
-    """كلّ مؤشّر مدعوم يُنتج evalscript V3 صالحاً: إصدار + setup + FLOAT32 + قناع dataMask."""
+    """كلّ مؤشّر أحاديّ النطاق يُنتج evalscript V3 صالحاً: إصدار + setup + FLOAT32 + قناع dataMask."""
     script = cdse_client.build_evalscript(index)
     assert "//VERSION=3" in script
     assert "function setup()" in script
@@ -41,6 +42,22 @@ def test_build_evalscript_is_valid_v3(index):
     bands, _expr = cdse_client.INDEX_EXPR[index]
     for band in bands:
         assert f'"{band}"' in script
+
+
+def test_build_truecolor_evalscript_is_valid_v3_rgba():
+    """الصورة الخام truecolor تُنتج evalscript V3 صالحاً بـRGBA UINT8 (لا FLOAT32 أحاديّ)،
+    وتقنّع الغيوم/بلا-البيانات إلى شفّاف. build_evalscript يُوجّهها تلقائيّاً."""
+    for script in (
+        cdse_client.build_truecolor_evalscript(),
+        cdse_client.build_evalscript("truecolor"),
+    ):
+        assert "//VERSION=3" in script
+        assert "function setup()" in script
+        assert "function evaluatePixel(s)" in script
+        assert "bands: 4" in script and '"UINT8"' in script
+        for band in ('"B04"', '"B03"', '"B02"', '"SCL"', '"dataMask"'):
+            assert band in script
+    assert "truecolor" in cdse_client.supported_indices()
 
 
 def test_ndvi_expression_uses_correct_bands():

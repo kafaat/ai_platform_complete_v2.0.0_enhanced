@@ -1,8 +1,8 @@
 """حارس صدق توافر TileJSON (V54) — لا «جاهز» كاذب لمؤشّر غير مُصيَّر.
 
-قبل V54 كان ``cdse-tilejson`` يُبلِّغ ``available = is_configured()`` فقط، فمع ضبط CDSE
-يُبلَّغ ``truecolor`` كجاهز بينما ``cdse-tiles`` يعود شفّافاً ⇒ خريطة فارغة تبدو
-«جاهزة». الآن التوافر يشترط أن يكون المؤشّر ضمن ``INDEX_EXPR`` (بعد المرادفات).
+التوافر يشترط أن يكون المؤشّر مُصيَّراً: إمّا ضمن ``INDEX_EXPR`` (بعد المرادفات) أو
+الصورة الخام ``truecolor`` (تُصيَّر الآن RGBA عبر evalscript ألوان طبيعيّة B04/B03/B02).
+مؤشّر غير مُصيَّر مع ضبط CDSE يُبلَّغ ``available=False`` بسبب ``index_not_rendered``.
 """
 
 from __future__ import annotations
@@ -20,11 +20,19 @@ def _fn():
     return _tilejson_availability
 
 
-def test_truecolor_is_not_reported_available_even_when_configured():
+def test_truecolor_is_reported_available_when_configured():
+    # بعد إضافة تصيير RGB الحقيقيّ: الصورة الخام مُصيَّرة ⇒ متاحة (لا رسالة «غير جاهزة»).
     available, reason, message = _fn()(True, "truecolor")
+    assert available is True
+    assert reason is None
+    assert message is None
+
+
+def test_unrendered_index_is_not_reported_available_even_when_configured():
+    available, reason, message = _fn()(True, "no_such_index")
     assert available is False
     assert reason == "index_not_rendered"
-    assert message and "TrueColor" in message
+    assert message
 
 
 def test_rendered_indices_available_when_configured():

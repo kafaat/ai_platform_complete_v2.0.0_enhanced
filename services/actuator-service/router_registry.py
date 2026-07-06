@@ -42,16 +42,25 @@ def register_routers(app) -> list[str]:
 def _include_flat(app, router) -> None:
     """يضمّ ``router`` بحيث تظهر مساراته **مسطّحةً** في ``app.routes`` (بلا prefix).
 
-    خلفيّة: ``app.include_router`` في Starlette الحديثة (≥1.3) يلفّ الراوتر في كائن
-    ``_IncludedRouter`` كسول (lazy) فلا تُسطَّح مساراته في ``app.routes`` — فيختلّ
-    عدّ المسارات وحارس التفكيك الذي يعدّ ``r.path`` على ``app.routes``. لتجنّب ذلك
-    نُمدّد قائمة مسارات التطبيق بمسارات الراوتر مباشرةً (راوتراتنا بلا prefix وكلّها
-    ``APIRoute`` مبنيّة عبر ``@router.<m>`` — فالتمديد مكافئ سلوكيّاً لـ
-    ``include_router`` الكلاسيكيّ: نفس كائنات المسار، نفس المطابقة والمخطّط). نتفادى
-    التكرار إن سُجِّل المسار مسبقاً (إعادة استيراد). يبقى ``include_router`` متاحاً
-    للإصدارات التي تُسطّح أصلاً، لكنّ التمديد المباشر أمتن عبر الإصدارات.
+    **إصلاح P0 (سلامة الفعّالات):** كان يُلحِق كائنات المسار مباشرةً بـ``app.router.routes``
+    تفادياً للفٍّ افتراضيّ ظُنّ في Starlette ≥1.3 — لكنّ ذلك **يكسر ``app.dependency_overrides``**:
+    المسارات تبقى غير مربوطة بموفِّر التطبيق فلا يُطبَّق ``dependency_overrides[_verify_token]``
+    (/command يعيد 503 auth بدل بلوغ حارس FEATURE_MANUAL ⇒ 403). التحقّق أثبت أنّ Starlette
+    1.3.1 يُسطّح ``include_router`` أصلاً في ``app.routes`` (حارس التفكيك يبقى سليماً)، فنعود
+    للطريق القياسيّ الذي يربط المسارات بسياق التطبيق (overrides تعمل). نتفادى التكرار عند
+    إعادة الاستيراد بتخطّي المسارات القائمة (path+methods).
     """
-    existing_ids = {id(r) for r in app.router.routes}
-    for route in router.routes:
-        if id(route) not in existing_ids:
-            app.router.routes.append(route)
+    existing = {
+        (getattr(r, "path", None), frozenset(getattr(r, "methods", None) or ())) for r in app.routes
+    }
+    fresh = [
+        rt
+        for rt in router.routes
+        if (getattr(rt, "path", None), frozenset(getattr(rt, "methods", None) or ()))
+        not in existing
+    ]
+    if not fresh:
+        return
+    _tmp = router.__class__()
+    _tmp.routes = fresh
+    app.include_router(_tmp)

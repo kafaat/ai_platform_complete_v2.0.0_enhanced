@@ -51,7 +51,20 @@ def _include_flat(app, router) -> None:
     التكرار إن سُجِّل المسار مسبقاً (إعادة استيراد). يبقى ``include_router`` متاحاً
     للإصدارات التي تُسطّح أصلاً، لكنّ التمديد المباشر أمتن عبر الإصدارات.
     """
-    existing_ids = {id(r) for r in app.router.routes}
-    for route in router.routes:
-        if id(route) not in existing_ids:
-            app.router.routes.append(route)
+    # إصلاح P0 (dependency_overrides): إلحاق كائنات المسار خاماً يكسر ربطها بموفِّر
+    # التطبيق فلا تُطبَّق app.dependency_overrides (اختبارات الحقن للـauth تفشل). Starlette
+    # 1.3.1 يُسطّح include_router في app.routes أصلاً — فنعود للطريق القياسيّ (يربط بالسياق).
+    existing = {
+        (getattr(r, "path", None), frozenset(getattr(r, "methods", None) or ())) for r in app.routes
+    }
+    fresh = [
+        rt
+        for rt in router.routes
+        if (getattr(rt, "path", None), frozenset(getattr(rt, "methods", None) or ()))
+        not in existing
+    ]
+    if not fresh:
+        return
+    _tmp = router.__class__()
+    _tmp.routes = fresh
+    app.include_router(_tmp)

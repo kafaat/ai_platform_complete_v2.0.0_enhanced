@@ -105,6 +105,79 @@ def write_cog(
     }
 
 
+# ملفّ RGBA (الصورة الخام truecolor): 4 نطاقات UINT8 بدل مؤشّر أحاديّ FLOAT32.
+RGBA_COG_PROFILE = {
+    "driver": "GTiff",
+    "dtype": "uint8",
+    "compress": "DEFLATE",
+    "predictor": 2,  # 2 للأعداد الصحيحة (RGB) — 3 للعائم فقط
+    "tiled": True,
+    "blockxsize": 512,
+    "blockysize": 512,
+    "BIGTIFF": "IF_SAFER",
+}
+
+
+def write_rgba_cog(array, output_path: str, transform, crs: str = "EPSG:4326") -> dict:
+    """يكتب صورة RGBA (4 نطاقات UINT8) كـCOG محسّن — للصورة الخام (truecolor).
+
+    ``array``: ``(4,H,W)`` أو ``(H,W,4)`` (يُقبَل 3 نطاقات RGB أيضاً). النطاق الرابع
+    ألفا (0=شفّاف) ويُعلَّم ColorInterp.alpha كي يقرأه GDAL/التصيير كقناع. بلاطات +
+    أهرامات داخليّة (nearest — يحافظ حدّة الحواف لصورة 8-بت). صدق: يكتب فعليّاً عند
+    توفّر rasterio؛ وإلّا يُبلّغ بأنّه غير متاح (لا يدّعي كتابة)."""
+    try:
+        import rasterio
+        from rasterio.enums import ColorInterp, Resampling
+    except ImportError:
+        return {"written": False, "reason": "rasterio غير متوفّر — يُكتب في التشغيل"}
+    try:
+        import numpy as np
+    except ImportError:
+        return {"written": False, "reason": "numpy غير متوفّر — يُكتب في التشغيل"}
+
+    if array is None or not hasattr(array, "shape"):
+        return {"written": False, "reason": "مصفوفة غير صالحة"}
+    arr = np.asarray(array)
+    # (H,W,C) ⇒ (C,H,W).
+    if arr.ndim == 3 and arr.shape[2] in (3, 4) and arr.shape[0] not in (3, 4):
+        arr = np.transpose(arr, (2, 0, 1))
+    if arr.ndim != 3 or arr.shape[0] not in (3, 4):
+        return {"written": False, "reason": "متوقَّع RGB/RGBA (3 أو 4 نطاقات)"}
+    arr = arr.astype("uint8")
+    bands, h, w = arr.shape[0], arr.shape[1], arr.shape[2]
+    profile = {
+        **RGBA_COG_PROFILE,
+        "height": h,
+        "width": w,
+        "count": bands,
+        "crs": crs,
+        "transform": transform,
+    }
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+    with rasterio.open(output_path, "w", **profile) as dst:
+        for i in range(bands):
+            dst.write(arr[i], i + 1)
+        interps = [ColorInterp.red, ColorInterp.green, ColorInterp.blue]
+        if bands >= 4:
+            interps.append(ColorInterp.alpha)  # النطاق الرابع = ألفا (قناع الخارج/الغيوم)
+        dst.colorinterp = interps
+        dst.build_overviews(OVERVIEW_LEVELS, Resampling.nearest)
+        dst.update_tags(ns="rio_overview", resampling="nearest")
+
+    size = os.path.getsize(output_path)
+    return {
+        "written": True,
+        "path": output_path,
+        "size_bytes": size,
+        "size_mb": round(size / 1e6, 2),
+        "compression": "DEFLATE+predictor2",
+        "overviews": OVERVIEW_LEVELS,
+        "block_size": "512x512",
+        "bands": bands,
+        "validation": validate_cog(output_path),
+    }
+
+
 def validate_cog(path: str) -> dict:
     """يتحقّق أنّ ملفّاً COG صالح (مبلّط + له أهرامات). للتدقيق بعد الكتابة."""
     try:
