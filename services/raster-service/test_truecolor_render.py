@@ -139,3 +139,44 @@ def test_render_truecolor_rejects_single_band_cog(tmp_path):
         dst.write(np.full((1, h, w), 100, dtype="uint8"))
     # <3 نطاقات ⇒ ليست RGB(A) ⇒ None (لا نُصيِّر صورة ألوان من نطاق واحد).
     assert tile_render.render_truecolor_tile_png(cog, 0, 0, 0) is None
+
+
+# ── حفظ COG RGBA (persist) → تصيير من /tiles المحفوظ (دورة كاملة) ─────
+def test_write_rgba_cog_roundtrips_to_truecolor_tile(tmp_path):
+    np = pytest.importorskip("numpy")
+    pytest.importorskip("rasterio")
+    import cog_writer
+    import tile_render
+    from rasterio.transform import from_bounds
+
+    w, h = 64, 64
+    transform = from_bounds(-5_000_000.0, -5_000_000.0, 5_000_000.0, 5_000_000.0, w, h)
+    rgba = np.zeros((4, h, w), dtype="uint8")
+    rgba[0], rgba[1], rgba[2], rgba[3] = 120, 160, 60, 255
+    out = str(tmp_path / "tc_cog.tif")
+    info = cog_writer.write_rgba_cog(rgba, out, transform, crs="EPSG:3857")
+    assert info["written"] is True
+    assert info["bands"] == 4
+    # COG المحفوظ يُصيَّر عبر نفس مسار truecolor (كما يفعل /tiles للحقل المُجهَّز).
+    png = tile_render.render_truecolor_tile_png(out, 0, 0, 0)
+    assert png is not None
+    assert png[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+def test_write_rgba_cog_accepts_hwc_and_rejects_2d(tmp_path):
+    np = pytest.importorskip("numpy")
+    pytest.importorskip("rasterio")
+    import cog_writer
+    from rasterio.transform import from_bounds
+
+    transform = from_bounds(-1_000_000.0, -1_000_000.0, 1_000_000.0, 1_000_000.0, 16, 16)
+    # (H,W,C) مقبول ويُحوَّل داخليّاً إلى (C,H,W).
+    hwc = np.zeros((16, 16, 4), dtype="uint8")
+    hwc[..., 3] = 255
+    info = cog_writer.write_rgba_cog(hwc, str(tmp_path / "hwc.tif"), transform, crs="EPSG:3857")
+    assert info["written"] is True and info["bands"] == 4
+    # مصفوفة ثنائيّة (نطاق واحد) مرفوضة بصدق (ليست RGB/RGBA) — لا كتابة مُلفَّقة.
+    bad = cog_writer.write_rgba_cog(
+        np.zeros((16, 16), dtype="uint8"), str(tmp_path / "bad.tif"), transform, crs="EPSG:3857"
+    )
+    assert bad["written"] is False

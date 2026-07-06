@@ -723,17 +723,15 @@ export default function MapHub() {
     setHistoricalBackfillBusy(true);
     setHistoricalBackfillStatus(`جارٍ إنشاء خطة/مهمة backfill لمدة ${months} شهر…`);
     try {
-      // الـbackfill يحسب COGs لمؤشّرات نباتيّة؛ 'truecolor' تصيير للمشهد الأساسيّ لا
-      // IndicatorKind — وعقد raster-service يقبل هذه المجموعة فقط. إرسال 'truecolor'
-      // (أو مؤشّر نشط غير مدعوم) يُرجِع 422. نُرشِّح للمجموعة المدعومة (مشاهد هذه المؤشّرات
-      // تُغذّي خطّ TrueColor الزمنيّ نفسه). يبقى NDVI/NDMI أساساً مضموناً غير فارغ.
-      const BACKFILL_SUPPORTED_INDICES = ['ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre', 'msi', 'msavi'];
+      // الـbackfill يحسب COGs للمؤشّرات + الصورة الخام truecolor (تُحفَظ الآن كـCOG RGBA
+      // في raster-service فيقبلها العقد). نُرشِّح للمجموعة المدعومة كي لا يُرجَع 400 لمؤشّر
+      // غير مدعوم. NDVI/NDMI يبقيان أساساً مضموناً غير فارغ. تجهيز truecolor يمكّن /tiles
+      // المحفوظ للصورة الخام (بدل تصيير CDSE الحيّ لكلّ بلاطة).
+      const BACKFILL_SUPPORTED_INDICES = [
+        RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre', 'msi', 'msavi',
+      ];
       const indices = Array.from(
-        new Set(
-          [activeIndicator, 'ndvi', 'ndmi'].filter(
-            (i): i is string => !!i && i !== RAW_IMAGERY_INDEX_ID,
-          ),
-        ),
+        new Set([activeIndicator, 'ndvi', 'ndmi'].filter((i): i is string => !!i)),
       ).filter((i) => BACKFILL_SUPPORTED_INDICES.includes(i));
       if (indices.length === 0) indices.push('ndvi', 'ndmi');
       const payload = {
@@ -758,11 +756,9 @@ export default function MapHub() {
           : `تم إرسال طلب تجهيز ${months} شهر؛ تحقق من حالة raster-service والتواريخ المتاحة بعد المعالجة.`;
       setHistoricalBackfillStatus(status);
       toastStore.add(isAsync ? 'info' : 'success', isAsync ? `أُدرِجت تشغيلة ${months} شهر في الطابور` : `بدأ تجهيز ${months} شهر تاريخية`, status);
-      // v10-F9: مرّر المؤشّر النشط (أو أوّل مؤشّر مدعوم إن كان النشط truecolor) كي لا
-      // يُعاد ملء المُنتقي بتواريخ مؤشّرات أخرى بعد الـbackfill مباشرةً.
-      const refreshIndex = (activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID)
-        ? activeIndicator
-        : indices[0];
+      // v10-F9: مرّر المؤشّر النشط (يشمل truecolor الآن — يُحفَظ كـCOG RGBA) كي لا يُعاد
+      // ملء المُنتقي بتواريخ مؤشّرات أخرى بعد الـbackfill مباشرةً.
+      const refreshIndex = activeIndicator ?? indices[0];
       const [dates, allDates] = await Promise.all([
         fetchFieldImageryAvailableDates(selected.id, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
         fetchFieldImageryAvailableDates(selected.id, undefined, 240).catch(() => [] as FieldImageryDateOption[]),

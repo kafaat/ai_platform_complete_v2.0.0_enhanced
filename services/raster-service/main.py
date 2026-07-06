@@ -201,6 +201,9 @@ class IndicatorKind(StrEnum):
     tci = "tci"
     vhi = "vhi"
     et_inputs = "et_inputs"
+    # الصورة الخام بالألوان الطبيعيّة (RGBA UINT8) — ليست مؤشّراً أحاديّ النطاق؛ تُصيَّر
+    # وتُحفَظ كـCOG متعدّد النطاقات (مسار precomputed truecolor). لا صيغة band-math لها.
+    truecolor = "truecolor"
 
 
 class SourceFormat(StrEnum):
@@ -2019,6 +2022,11 @@ def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
     import rasterio
     from rasterio.warp import transform_bounds
 
+    # الصورة الخام (truecolor) راستر RGBA متعدّد النطاقات — مسار حفظ منفصل (لا إحصاء
+    # مؤشّر/نطاق واحد؛ لا يمرّ عبر _INDICATOR_FORMULAS). يقرأ 4 نطاقات ويكتب COG RGBA.
+    if req.indicator.value == "truecolor":
+        return _process_precomputed_truecolor(req)
+
     with rasterio.open(_safe_raster_source(req.raster_url)) as src:
         res_m = abs(src.res[0])
         src_crs = src.crs
@@ -2061,6 +2069,63 @@ def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
         "nodata": RASTER_NODATA,
+    }
+    return stats, bounds, res_m, meta
+
+
+def _process_precomputed_truecolor(req: ProcessRequest):
+    """مسار CDSE للصورة الخام (truecolor): الراستر RGBA (4 نطاقات UINT8) جاهز خادميّاً.
+
+    يقرأ النطاقات كلّها، يحسب إحصاء توفّر بسيطاً من قناة ألفا (لا min/max/mean لمؤشّر —
+    RGB بلا معنًى إحصائيّ)، ويكتب COG RGBA محسّناً (``write_rgba_cog``) ثمّ يرفعه. يُرجِع
+    ``(stats, bounds_4326, resolution_m, meta)`` بنفس تعاقُد :func:`_process_precomputed_pixels`."""
+    import numpy as np
+    import rasterio
+    from rasterio.warp import transform_bounds
+
+    with rasterio.open(_safe_raster_source(req.raster_url)) as src:
+        res_m = abs(src.res[0])
+        src_crs = src.crs
+        if src_crs is not None:
+            bounds = list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
+        else:
+            bounds = list(src.bounds)
+        arr = src.read()  # (bands, H, W) uint8
+        transform = src.transform
+
+    # صدق الإحصاء: البكسل «صالح» = ألفا>0 (النطاق الرابع) إن وُجد، وإلّا كلّه صالح.
+    if arr.shape[0] >= 4:
+        valid = arr[3] > 0
+    else:
+        valid = np.ones(arr.shape[1:], dtype=bool)
+    stats = {
+        "min": 0.0,
+        "max": 255.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "valid_pixels": int(valid.sum()),
+        "nodata_pixels": int((~valid).sum()),
+    }
+    cog_url = None
+    cog_crs = str(src_crs or "EPSG:4326")
+    try:
+        import cog_writer
+
+        cog_uid = uuid.uuid4().hex[:8]
+        cog_path = os.path.join(UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
+        cog_info = cog_writer.write_rgba_cog(arr, cog_path, transform, crs=cog_crs)
+        stats["cog"] = cog_info
+        if cog_info.get("written"):
+            cog_url = object_store.upload_cog(
+                cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
+            )
+    except Exception as _e:  # noqa: BLE001 — حفظ COG اختياري لا يُفشل المعالجة
+        stats["cog"] = {"written": False, "reason": str(_e)}
+    meta = {
+        "cog_url": cog_url,
+        "cog_crs": cog_crs,
+        "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+        "nodata": None,  # RGBA يستخدم قناة ألفا لا قيمة nodata
     }
     return stats, bounds, res_m, meta
 

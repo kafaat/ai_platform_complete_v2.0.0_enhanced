@@ -1465,6 +1465,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "01b6614dae93ffe1a64cb9d199b845c4fb15738a30eaebdcd5b812c49723fedd"
+        }
+      ],
+      "name": "frontend/src/components/maphub/ImageryAcquisitionDate.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8d418caa28ae8839879528beb6eaca74a5617364b7dab745909c0bb0dbc3228d"
         }
       ],
@@ -4575,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac00836c82f3b8584bfb59ded46bdda7c3efc9bcb21d3910f68c7767a4e5701a"
+          "content": "05c520f0c45b083f2ca83fc7ac75d567ece5fc19350f0d1aea5bf02b416fc36d"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -8945,7 +8955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4606c037dd3532b4498bd89fbf0ebc3d3e83e86fba94a3e13a24148ef3b7f7cb"
+          "content": "55b8ec66360a29e7b9ef4f10f0428041feb367ebeeffb845a821af770c9f9eab"
         }
       ],
       "name": "services/raster-service/cog_writer.py",
@@ -8995,7 +9005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9a1d61a6763051d37d50037ae7f6469111a2c8d1ea9bad8324e3eba1e00ce29"
+          "content": "8675e7f40b6e5b2136e82650be6199ad889815af29f7da77a9795ead1ac8fbb2"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9105,7 +9115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a2d1599134f64978e5a55889647a626c2f66a13481ee8964619f365c4c1c10e"
+          "content": "124980150231d6a64a10988c88a8fc373486d27dfddba283b970523b2ac459f6"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9649,6 +9659,16 @@
         }
       ],
       "name": "services/raster-service/test_tiles.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "33644fa71c38b5958cc7a0429ec2f95a4d448b895becc0e2c045d5beaa520409"
+        }
+      ],
+      "name": "services/raster-service/test_truecolor_render.py",
       "type": "file"
     },
     {
