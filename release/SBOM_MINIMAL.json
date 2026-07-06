@@ -8895,7 +8895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "105e5a58d88a146ec44980b7c28eb75c19c567ea83a02d9c0b06f995bd9ed5e5"
+          "content": "d8fe101c67b0b21c48700ba450ae00efea854bcb1b6afc319c5111d7a56d2e26"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -9599,6 +9599,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "53f2098b3c245879b06d9ba2f84c8636f1470d8f88c2aaab56fa19d193a6f37d"
+        }
+      ],
+      "name": "services/raster-service/test_reproject_nodata_mask_conflict.py",
       "type": "file"
     },
     {
