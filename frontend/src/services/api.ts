@@ -206,6 +206,9 @@ export function apiErrorMessage(e: unknown, fallback: string): string {
   }
   if (typeof d === 'string') return d;
   if (d && typeof d === 'object') return d.message_ar || d.msg || fallback;
+  if (err.response?.status === 409) {
+    return 'تعارض أثناء الحفظ: غالباً يوجد حقل بنفس الاسم أو تتداخل الحدود مع حقل قائم. غيّر الاسم أو صحّح الحدود ثم أعد المحاولة.';
+  }
   return err.message || fallback;
 }
 
@@ -3256,11 +3259,15 @@ export interface FieldImportInput {
   country?:      string;
   region?:       string;
   boundary_metadata?: Record<string, unknown>;
+  idempotency_key?: string;
 }
 
 /** يستورد حقلاً من ملفّ/نقاط GPS. يُرجع FieldSummary المُنشأ من ردّ الخادم. */
-export const importField = (payload: FieldImportInput): Promise<unknown> =>
-  kongApi.post('/api/v1/fields/import', payload).then(r => r.data);
+export const importField = (payload: FieldImportInput): Promise<unknown> => {
+  const { idempotency_key, ...body } = payload;
+  const config = idempotency_key ? { headers: { 'Idempotency-Key': idempotency_key } } : undefined;
+  return kongApi.post('/api/v1/fields/import', body, config).then(r => r.data);
+};
 
 // ── دمج/انقسام الحقول ذرّيّاً (POST /merge · /split) — معاملة خادميّة واحدة ──
 // تستبدل لاذرّيّة الواجهة (POST جديد + حلقة DELETE) التي كانت تُخلّف حقولاً يتيمة
@@ -3504,6 +3511,246 @@ export const fieldCdseThumbnailUrl = (
   appendTileAccessToken(params);
   return `${rasterBaseUrl()}/v1/fields/${fieldId}/cdse-thumbnail.png?${params.toString()}`;
 };
+
+// ══════════════════════════════════════════════════════════════════
+// TERRAIN — التضاريس (Hillshade / Slope / Contours) من DEM حقيقيّ عبر raster-service
+// عقد الخادم (مثبّت — لا يُعدَّل من الواجهة):
+//   • GET /v1/elevation/hillshade/{z}/{x}/{y}.png?tid=<tenant> → PNG رماديّ (شفّاف بلا DEM)
+//   • GET /v1/slope/{z}/{x}/{y}.png?tid=<tenant>              → PNG مُصنَّف مُلوَّن (شفّاف بلا DEM)
+//   • GET /v1/terrain/tilejson?layer=hillshade|slope          → TileJSON + available/legend/user_message
+//   • GET /v1/fields/{id}/contours.geojson?bbox=…&interval_m=… → FeatureCollection<MultiLineString>
+// صدق صارم (كسائر المنصّة): عند available:false / computed:false / features:[] لا
+// نخترع تضاريس؛ تعرض الواجهة حالة فارغة/معطّلة أو رسالة user_message من الخادم.
+// ══════════════════════════════════════════════════════════════════
+export type TerrainLayer = 'hillshade' | 'slope';
+
+// درجة أسطورة الانحدار (من tilejson.legend حين layer=slope) — لون + مدى نسبة مئويّة + وصف.
+export interface TerrainLegendStop {
+  min_pct: number;
+  max_pct: number;
+  color: string;
+  label: string;
+}
+
+// TileJSON لطبقة تضاريس. available:false + user_message حين لا DEM مُهيّأ (حالة صادقة).
+export interface TerrainTileJson {
+  tilejson?: string;
+  tiles: string[];            // قوالب روابط البلاطات ({z}/{x}/{y}) — قد تكون [] عند عدم التوفّر
+  bounds?: [number, number, number, number];
+  available: boolean;
+  layer: string;              // hillshade | slope
+  reason?: string;
+  user_message?: string;      // رسالة عربيّة صريحة حين available:false (لا DEM)
+  legend?: TerrainLegendStop[];
+}
+
+/** يجلب TileJSON لطبقة تضاريس (hillshade|slope) عبر raster-service. عند غياب DEM يعيد
+ *  available:false + user_message — تعرضه الواجهة كحالة صادقة (لا تلفيق تضاريس). */
+export const fetchTerrainTileJson = (
+  layer: TerrainLayer,
+  tenantId?: string | null,
+): Promise<TerrainTileJson> =>
+  rasterApi
+    .get<TerrainTileJson>('/v1/terrain/tilejson', {
+      params: { layer, ...(tenantId ? { tid: tenantId } : {}) },
+    })
+    .then(r => r.data);
+
+// روابط قوالب بلاطات التضاريس ({z}/{x}/{y}) — نُبقيها حرفيّة ليفسّرها Leaflet/MapLibre،
+// على نمط fieldCdseTileUrl: tid للمستأجِر + access_token لمصادقة بلاطة <img> خلف البوّابة.
+export const hillshadeTileUrl = (tenantId?: string | null): string => {
+  const params = new URLSearchParams();
+  if (tenantId) params.set('tid', tenantId);
+  appendTileAccessToken(params);
+  const qs = params.toString();
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/elevation/hillshade/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
+};
+
+export const slopeTileUrl = (tenantId?: string | null): string => {
+  const params = new URLSearchParams();
+  if (tenantId) params.set('tid', tenantId);
+  appendTileAccessToken(params);
+  const qs = params.toString();
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/slope/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
+};
+
+// خصائص عنصر كنتور — الارتفاع بالمتر مضمون؛ بقيّة المفاتيح متسامِحة (مصدر خارجيّ).
+export interface ContourFeatureProperties {
+  elevation_m: number;
+  [key: string]: unknown;
+}
+export type ContourFeature = GeoJSON.Feature<GeoJSON.MultiLineString, ContourFeatureProperties>;
+
+// FeatureCollection لخطوط الكنتور + أعلام الحساب. computed:false + features:[] حين لا DEM.
+export interface FieldContours
+  extends GeoJSON.FeatureCollection<GeoJSON.MultiLineString, ContourFeatureProperties> {
+  computed: boolean;
+  source?: string;
+  field_id?: string;
+  reason?: string;
+  user_message?: string;
+}
+
+/** يجلب خطوط كنتور الحقل (GeoJSON MultiLineString) من DEM حقيقيّ عبر raster-service.
+ *  bbox بترتيب [minLon,minLat,maxLon,maxLat] (اختياريّ)؛ intervalM فاصل الكنتور بالمتر.
+ *  عند غياب DEM يعيد computed:false + features:[] — لا نخترع خطوطاً. */
+export const fetchFieldContours = (
+  fieldId: string,
+  bbox?: [number, number, number, number] | null,
+  intervalM?: number,
+  geometry?: { type?: string; coordinates?: unknown } | null,
+): Promise<FieldContours> =>
+  rasterApi
+    .get<FieldContours>(`/v1/fields/${fieldId}/contours.geojson`, {
+      params: {
+        ...(bbox && bbox.length === 4 ? { bbox: bbox.join(',') } : {}),
+        ...(intervalM ? { interval_m: intervalM } : {}),
+        // poly = حدّ الحقل ⇒ الخادم يقصّ الكنتور داخل الحقل (لا على المستطيل المحيط).
+        ...(cdseClipParams(geometry).poly ? { poly: cdseClipParams(geometry).poly } : {}),
+      },
+    })
+    .then(r => r.data);
+
+// ══════════════════════════════════════════════════════════════════
+// SOIL (SoilGrids) — خصائص التربة التقديريّة (~250م) عبر raster-service
+// عقد الخادم (مثبّت — لا يُعدَّل من الواجهة):
+//   • GET /v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png?tid=<tenant> → PNG مُلوَّن نصف-شفّاف (شفّاف بلا مصدر)
+//   • GET /v1/soil/tilejson?property=<prop>&depth=<depth> → TileJSON + available/legend/disclaimer/user_message
+//   • GET /v1/soil/properties → قائمة الخصائص + الأعماق + source_configured + disclaimer
+// صدق صارم: SoilGrids تقدير عالميّ (~250م) لإرشاد أخذ العيّنات فقط — ليس بديلاً
+// عن تحليل مختبر. الـdisclaimer يُعرَض دوماً حين الطبقة مفعّلة. عند available:false
+// لا نبني بلاطة؛ نعرض user_message الصادق من الخادم (لا نختلق قيم تربة).
+// ══════════════════════════════════════════════════════════════════
+export type SoilProperty =
+  | 'phh2o' | 'clay' | 'sand' | 'silt' | 'soc' | 'cec' | 'nitrogen' | 'bdod';
+
+// درجة أسطورة التربة (من tilejson.legend) — قيمة + لون.
+export interface SoilLegendStop {
+  value: number;
+  color: string;
+}
+
+// TileJSON لطبقة تربة. available:false + user_message حين لا مصدر مُهيّأ (حالة صادقة).
+// disclaimer حاضر دوماً (تقدير SoilGrids — إرشاد أخذ عيّنات فقط، لا بديل مختبر).
+export interface SoilTileJson {
+  tilejson?: string;
+  tiles?: string[];           // قوالب روابط البلاطات ({z}/{x}/{y}) — قد تغيب عند عدم التوفّر
+  bounds?: [number, number, number, number];
+  available: boolean;
+  property: string;           // phh2o | clay | ...
+  name_ar: string;            // اسم الخاصّيّة بالعربيّة
+  unit: string;               // الوحدة (مثل pH / g/kg / cmol(+)/kg)
+  depth: string;              // 0-5cm | 5-15cm | ...
+  legend: SoilLegendStop[];   // قيمة + لون لكلّ درجة
+  disclaimer: string;         // إخلاء مسؤوليّة إلزاميّ العرض
+  reason?: string;
+  user_message?: string;      // رسالة عربيّة صريحة حين available:false (لا مصدر)
+}
+
+// عنصر قائمة خصائص التربة (GET /v1/soil/properties) — المفتاح + التسمية + المدى.
+export interface SoilPropertyMeta {
+  key: SoilProperty;
+  name_ar: string;
+  unit: string;
+  vmin: number;
+  vmax: number;
+}
+export interface SoilPropertiesResponse {
+  properties: SoilPropertyMeta[];
+  depths: string[];
+  source_configured: boolean;
+  disclaimer: string;
+}
+
+/** يجلب TileJSON لخاصّيّة تربة (property/depth) عبر raster-service. عند غياب المصدر
+ *  يعيد available:false + user_message — تعرضه الواجهة كحالة صادقة (لا تلفيق قيم تربة).
+ *  الـdisclaimer حاضر دوماً ويجب عرضه حين الطبقة مفعّلة. */
+export const fetchSoilTileJson = (
+  property: SoilProperty,
+  depth: string,
+  tenantId?: string | null,
+): Promise<SoilTileJson> =>
+  rasterApi
+    .get<SoilTileJson>('/v1/soil/tilejson', {
+      params: { property, depth, ...(tenantId ? { tid: tenantId } : {}) },
+    })
+    .then(r => r.data);
+
+// رابط قالب بلاطات التربة ({z}/{x}/{y}) — نُبقيها حرفيّة ليفسّرها Leaflet/MapLibre،
+// على نمط hillshadeTileUrl/slopeTileUrl: tid للمستأجِر + access_token لمصادقة بلاطة
+// <img> خلف البوّابة. البلاطة نصف-شفّافة، وشفّافة تماماً حيث لا مصدر (لا اختراع تربة).
+export const soilTileUrl = (
+  property: SoilProperty,
+  depth: string,
+  tenantId?: string | null,
+): string => {
+  const params = new URLSearchParams();
+  if (tenantId) params.set('tid', tenantId);
+  appendTileAccessToken(params);
+  const qs = params.toString();
+  // eslint-disable-next-line no-template-curly-in-string
+  return `${rasterBaseUrl()}/v1/soil/tiles/${property}/${depth}/{z}/{x}/{y}.png${qs ? `?${qs}` : ''}`;
+};
+
+/** يجلب قائمة خصائص التربة المدعومة + الأعماق + هل المصدر مُهيّأ (source_configured)
+ *  + إخلاء المسؤوليّة. أفضل-جهد للتعبئة الديناميكيّة للقوائم المنسدلة. */
+export const fetchSoilProperties = (): Promise<SoilPropertiesResponse> =>
+  rasterApi
+    .get<SoilPropertiesResponse>('/v1/soil/properties')
+    .then(r => r.data);
+
+// ── نقاط أخذ العيّنات المقترَحة (soil sampling plan) عبر raster-service ──
+// عقد الخادم (مثبّت — لا يُعدَّل من الواجهة):
+//   GET /v1/fields/{field_id}/soil/sampling-plan?bbox=minLon,minLat,maxLon,maxLat
+//       &depth=0-5cm&zones=3&samples_per_zone=1
+//   → GeoJSON FeatureCollection من نقاط (Point) + أعلام حساب. عند غياب مصدر
+//     SoilGrids المُهيّأ ⇒ { computed:false, features:[] } — لا نخترع نقاطاً.
+// خصائص كلّ نقطة: point_id (soil_A1) · zone_id (A) · reason_ar (شرح عربيّ)
+// · tests (قائمة الفحوص) · soil (لقطة قيم التربة التقديريّة، متسامِحة).
+export interface SoilSamplePointProperties {
+  point_id: string;
+  zone_id: string;
+  reason_ar: string;
+  tests: string[];
+  soil?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+export type SoilSamplePointFeature = GeoJSON.Feature<GeoJSON.Point, SoilSamplePointProperties>;
+
+// FeatureCollection لنقاط أخذ العيّنات + أعلام الحساب. computed:false + features:[]
+// حين لا مصدر تربة مُهيّأ (حالة صادقة — لا تلفيق نقاط).
+export interface SoilSamplingPlan
+  extends GeoJSON.FeatureCollection<GeoJSON.Point, SoilSamplePointProperties> {
+  computed: boolean;
+  source?: string;
+  field_id?: string;
+  reason?: string;
+  user_message?: string;
+}
+
+/** يجلب خطّة أخذ عيّنات التربة (GeoJSON نقاط Point) لحقل عبر raster-service.
+ *  bbox بترتيب [minLon,minLat,maxLon,maxLat] (اختياريّ)؛ opts: العمق/عدد المناطق/
+ *  عيّنات لكلّ منطقة. عند غياب مصدر SoilGrids يعيد computed:false + features:[] —
+ *  لا نخترع نقاطاً (نفس نمط fetchFieldContours / fetchSoilTileJson). */
+export const fetchSoilSamplingPlan = (
+  fieldId: string,
+  bbox?: [number, number, number, number] | null,
+  opts?: { depth?: string; zones?: number; samplesPerZone?: number; geometry?: { type?: string; coordinates?: unknown } | null },
+): Promise<SoilSamplingPlan> =>
+  rasterApi
+    .get<SoilSamplingPlan>(`/v1/fields/${fieldId}/soil/sampling-plan`, {
+      params: {
+        ...(bbox && bbox.length === 4 ? { bbox: bbox.join(',') } : {}),
+        ...(opts?.depth ? { depth: opts.depth } : {}),
+        ...(opts?.zones ? { zones: opts.zones } : {}),
+        ...(opts?.samplesPerZone ? { samples_per_zone: opts.samplesPerZone } : {}),
+        // poly = حدّ الحقل ⇒ عيّنات داخل الحقل فقط (لا على المستطيل المحيط).
+        ...(cdseClipParams(opts?.geometry).poly ? { poly: cdseClipParams(opts?.geometry).poly } : {}),
+      },
+    })
+    .then(r => r.data);
 
 // ══════════════════════════════════════════════════════════════════
 // INDICATORS DASHBOARD — لوحة المؤشّرات المُجمَّعة (حيّة عبر البوّابة)

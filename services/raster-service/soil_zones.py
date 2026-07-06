@@ -1,0 +1,318 @@
+"""
+soil_zones.py — مناطق أخذ عيّنات التربة + نقاط العيّنات (من SoilGrids).
+
+يُكدّس خصائص التربة (طين/رمل/pH/كربون عضويّ) على bbox الحقل، يُطبّعها، يُجمّعها (k-means
+نقيّ بـnumpy، تهيئة حتميّة)، ثمّ:
+  • ``compute_soil_sampling_zones`` → مضلّعات GeoJSON لكلّ منطقة (rasterio.features.shapes).
+  • ``compute_soil_sampling_points`` → نقطة/نقاط تمثيليّة لكلّ منطقة (مركز البكسلات) —
+    تُجيب «أين آخذ العيّنة» من تجميعٍ فعليّ لخصائص التربة (لا نقاط هندسيّة عشوائيّة).
+
+صدق صارم: يحتاج مصدر SoilGrids. بلا مصدر/تغطية ⇒ ``features:[]`` + ``computed:false`` + سبب —
+لا تلفيق. تحذير إلزاميّ: تقديريّ ~250م، توجيه لا بديل عن المختبر.
+"""
+
+from __future__ import annotations
+
+_ZONE_PROPERTIES: tuple[str, ...] = ("clay", "sand", "phh2o", "soc")
+_ZONE_LETTERS = ["A", "B", "C", "D", "E"]
+_LAB_TESTS = ["pH", "EC", "OM", "NPK", "texture"]
+
+
+def _kmeans(x, k: int, iters: int = 25):
+    """k-means نقيّ بـnumpy بتهيئة حتميّة (بلا عشوائيّة — قابل لإعادة الإنتاج)."""
+    import numpy as np
+
+    n = x.shape[0]
+    if n <= k:
+        return np.arange(n) % k, x.copy()
+    idx = np.linspace(0, n - 1, k).astype(int)
+    centroids = x[idx].astype("float64").copy()
+    labels = np.zeros(n, dtype=int)
+    for _ in range(iters):
+        d = ((x[:, None, :] - centroids[None, :, :]) ** 2).sum(axis=2)
+        new_labels = d.argmin(axis=1)
+        if np.array_equal(new_labels, labels):
+            break
+        labels = new_labels
+        for j in range(k):
+            m = labels == j
+            if m.any():
+                centroids[j] = x[m].mean(axis=0)
+    return labels, centroids
+
+
+def _cluster_field_soil(bbox, depth: str, n_zones: int, poly: list | None = None):
+    """يقرأ خصائص التربة على bbox (وقصّ على مضلّع الحقل إن مُرِّر) ويجمّعها. يُرجِع dict
+    (نجاح) أو ``{"error": <source>}``.
+
+    مصدر واحد للحقيقة للمناطق والنقاط: نفس القراءة/التطبيع/التجميع/القصّ.
+    """
+    import soil_render as _soil
+
+    if not _soil.is_source_configured():
+        return {"error": "soilgrids-source-not-configured"}
+    if not bbox or len(bbox) != 4:
+        return {"error": "field-bbox-unavailable"}
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.windows import from_bounds as win_from_bounds
+    except Exception:  # noqa: BLE001
+        return {"error": "runtime-libs-missing"}
+
+    depth = _soil.normalize_depth(depth)
+    n_zones = max(2, min(int(n_zones), 5))
+
+    layers: dict[str, object] = {}
+    ref_shape = None
+    ref_transform = None
+    src_crs = None
+    for prop in _ZONE_PROPERTIES:
+        path = _soil.soil_raster_path(prop, depth)
+        if path is None:
+            continue
+        try:
+            with rasterio.open(path) as src:
+                # صحّة CRS: أعِد إسقاط bbox (lon/lat) إلى src.crs قبل النافذة إن كان
+                # المصدر مُسقَطاً (SoilGrids الأصليّ Homolosine…) وإلّا نافذة خاطئة.
+                b = tuple(float(v) for v in bbox)
+                if src.crs is not None and src.crs.to_epsg() != 4326:
+                    from rasterio.warp import transform_bounds
+
+                    b = transform_bounds("EPSG:4326", src.crs, *b)
+                window = win_from_bounds(*b, transform=src.transform)
+                arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+                if arr.size == 0:
+                    continue
+                if poly:  # قصّ على مضلّع الحقل (لا مناطق/عيّنات خارج الحدّ)
+                    from tile_render import mask_array_by_polygon
+
+                    arr = mask_array_by_polygon(arr, src.window_transform(window), src.crs, poly)
+                real = arr / float(_soil.SOIL_PROPERTIES[prop]["div"])
+                if ref_shape is None:
+                    ref_shape = real.shape
+                    ref_transform = src.window_transform(window)
+                    src_crs = src.crs
+                if real.shape == ref_shape:
+                    layers[prop] = real
+        except Exception:  # noqa: BLE001
+            continue
+
+    if len(layers) < 2 or ref_shape is None:
+        return {"error": "field-outside-source"}
+
+    stack = np.stack([layers[p] for p in layers], axis=-1)
+    valid = np.isfinite(stack).all(axis=-1)
+    if valid.sum() < n_zones:
+        return {"error": "insufficient-soil-pixels"}
+
+    feats = stack[valid]
+    mean = feats.mean(axis=0)
+    std = feats.std(axis=0)
+    std[std == 0] = 1.0
+    labels_flat, _ = _kmeans((feats - mean) / std, n_zones)
+
+    label_grid = np.full(ref_shape, -1, dtype="int32")
+    label_grid[valid] = labels_flat.astype("int32")
+    return {
+        "layers": layers,
+        "label_grid": label_grid,
+        "transform": ref_transform,
+        "src_crs": src_crs,  # CRS المصدر: تُعاد إحداثيّات المضلّعات إلى EPSG:4326 عند العرض
+        "depth": depth,
+        "n_zones": n_zones,
+    }
+
+
+def _reproject_ring_to_wgs84(coords, src_crs):
+    """يُعيد إسقاط إحداثيّات حلقة/حلقات GeoJSON من ``src_crs`` إلى EPSG:4326.
+
+    ``rio_shapes`` يُخرج إحداثيّات بـsrc_crs؛ حين لا يكون المصدر EPSG:4326 (Homolosine…)
+    يجب إعادتها إلى lon/lat وإلّا صار GeoJSON بأمتار الإسقاط (خطأ عرض). المصدر جغرافيّ
+    ⇒ إرجاع كما هي (لا كلفة)."""
+    if src_crs is None or src_crs.to_epsg() == 4326:
+        return coords
+    from rasterio.warp import transform as _warp_transform
+
+    def _ring(ring):
+        xs = [p[0] for p in ring]
+        ys = [p[1] for p in ring]
+        lon, lat = _warp_transform(src_crs, "EPSG:4326", xs, ys)
+        return [[round(lon[i], 7), round(lat[i], 7)] for i in range(len(lon))]
+
+    return [_ring(r) for r in coords]  # coords = قائمة حلقات (Polygon)
+
+
+def _zone_props(layers, cell_mask):
+    import numpy as np
+    import soil_render as _soil
+
+    out: dict[str, float] = {}
+    for p in layers:
+        vals = layers[p][cell_mask]
+        vals = vals[np.isfinite(vals)]
+        if vals.size:
+            out[p] = round(float(vals.mean()), 2)
+    texture = _soil.usda_texture_class(out.get("clay"), out.get("sand"))
+    return out, texture
+
+
+def compute_soil_sampling_zones(
+    bbox: list[float] | None, depth: str = "0-5cm", n_zones: int = 3, poly: list | None = None
+) -> dict:
+    """مناطق تربة متجانسة (GeoJSON MultiPolygon) — لتقسيم أخذ العيّنات (مقصوصة على الحقل)."""
+    import soil_render as _soil
+
+    empty = {"type": "FeatureCollection", "features": [], "computed": False}
+    c = _cluster_field_soil(bbox, depth, n_zones, poly)
+    if "error" in c:
+        return {**empty, "source": c["error"]}
+    from rasterio.features import shapes as rio_shapes
+
+    label_grid = c["label_grid"]
+    _src_crs = c.get("src_crs")
+    zone_geoms: dict[int, list] = {z_id: [] for z_id in range(c["n_zones"])}
+    for geom, val in rio_shapes(label_grid, mask=(label_grid >= 0), transform=c["transform"]):
+        z_id = int(val)
+        if 0 <= z_id < c["n_zones"]:
+            # إحداثيّات rio_shapes بـsrc_crs ⇒ أعِدها إلى EPSG:4326 لعرض GeoJSON صحيح.
+            zone_geoms[z_id].append(_reproject_ring_to_wgs84(geom["coordinates"], _src_crs))
+
+    features = []
+    for z_id in range(c["n_zones"]):
+        polys = zone_geoms.get(z_id) or []
+        if not polys:
+            continue
+        zprops, texture = _zone_props(c["layers"], label_grid == z_id)
+        features.append(
+            {
+                "type": "Feature",
+                "properties": {
+                    "zone_id": _ZONE_LETTERS[z_id] if z_id < len(_ZONE_LETTERS) else str(z_id),
+                    "soil": zprops,
+                    "texture_class": texture,
+                    "sampling_hint": "خذ عيّنة مركّبة ممثّلة من هذه المنطقة المتجانسة.",
+                },
+                "geometry": {"type": "MultiPolygon", "coordinates": polys},
+            }
+        )
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "computed": True,
+        "source": "soilgrids",
+        "depth": c["depth"],
+        "zones": len(features),
+        "properties_used": list(c["layers"].keys()),
+        "disclaimer": _soil.DISCLAIMER_AR,
+    }
+
+
+def _interior_pixels(cell_mask):
+    """بكسلات المنطقة الداخليّة (كلّ جيرانها الأربعة داخل المنطقة) — تتجنّب الحوافّ.
+
+    اختيار نقطة على الحافّة يقع قرب حدّ الحقل/المنطقة (خطر تلوّث العيّنة)؛ نُفضّل نقطة
+    داخليّة آمنة. الحدود تُصفَّر (لا التفاف). يُعيد (rows, cols) أو مصفوفتين فارغتين."""
+    import numpy as np
+
+    m = cell_mask
+    inner = m & np.roll(m, 1, 0) & np.roll(m, -1, 0) & np.roll(m, 1, 1) & np.roll(m, -1, 1)
+    inner[0, :] = inner[-1, :] = inner[:, 0] = inner[:, -1] = False
+    return np.where(inner)
+
+
+def compute_soil_sampling_points(
+    bbox: list[float] | None,
+    depth: str = "0-5cm",
+    n_zones: int = 3,
+    samples_per_zone: int = 1,
+    poly: list | None = None,
+) -> dict:
+    """نقاط عيّنات تمثيليّة (GeoJSON Point) — نقطة **داخليّة** آمنة لكلّ منطقة k-means + سببها.
+
+    تُجيب «أين آخذ العيّنة» من تجميعٍ فعليّ لخصائص التربة، مقصوصة على مضلّع الحقل (إن مُرِّر).
+    التحسينات (v31.9): نقطة داخليّة (لا حافّة) عبر ``_interior_pixels``؛ عيّنات إضافيّة
+    بتباعُد أقصى (farthest-point) بين البكسلات الداخليّة؛ تخطّي المناطق الصغيرة جدّاً
+    (< حدّ بكسلات)؛ ``confidence`` رقميّة من عدد بكسلات المنطقة. صدق: بلا مصدر ⇒
+    ``features:[]`` + ``computed:false`` — لا نقاط مُلفَّقة.
+    """
+    import numpy as np
+    import soil_render as _soil
+
+    empty = {"type": "FeatureCollection", "features": [], "computed": False}
+    c = _cluster_field_soil(bbox, depth, n_zones, poly)
+    if "error" in c:
+        return {**empty, "source": c["error"]}
+    label_grid = c["label_grid"]
+    transform = c["transform"]
+    _src_crs = c.get("src_crs")
+    _reproj_pt = None
+    if _src_crs is not None and _src_crs.to_epsg() != 4326:
+        from rasterio.warp import transform as _warp_transform
+
+        def _reproj_pt(x, y):
+            xs, ys = _warp_transform(_src_crs, "EPSG:4326", [x], [y])
+            return xs[0], ys[0]
+
+    samples_per_zone = max(1, min(int(samples_per_zone), 3))
+    _MIN_ZONE_PIXELS = 3  # منطقة أصغر من ذلك غير موثوقة لعيّنة ممثّلة (تُتخطّى بصدق)
+
+    features = []
+    for z_id in range(c["n_zones"]):
+        cell_mask = label_grid == z_id
+        rr, cc = np.where(cell_mask)
+        if rr.size < _MIN_ZONE_PIXELS:
+            continue
+        zprops, texture = _zone_props(c["layers"], cell_mask)
+        zone_letter = _ZONE_LETTERS[z_id] if z_id < len(_ZONE_LETTERS) else str(z_id)
+        # بركة الاختيار: البكسلات الداخليّة (لا حافّة)؛ إن غابت (منطقة رفيعة) فكلّها.
+        ir, ic = _interior_pixels(cell_mask)
+        pool_r, pool_c = (ir, ic) if ir.size else (rr, cc)
+        # النقطة الأولى: الأقرب لمركز المنطقة من بركة الداخل (تمثيليّة وآمنة).
+        cr, cc0 = rr.mean(), cc.mean()
+        first = int(np.argmin((pool_r - cr) ** 2 + (pool_c - cc0) ** 2))
+        picks = [(int(pool_r[first]), int(pool_c[first]))]
+        # عيّنات إضافيّة: أقصى تباعُد عن المُختارة (farthest-point) داخل البركة.
+        while len(picks) < samples_per_zone and pool_r.size > len(picks):
+            dist = np.full(pool_r.size, np.inf)
+            for pr, pc in picks:
+                dist = np.minimum(dist, (pool_r - pr) ** 2 + (pool_c - pc) ** 2)
+            nxt = int(np.argmax(dist))
+            picks.append((int(pool_r[nxt]), int(pool_c[nxt])))
+        conf = round(min(1.0, rr.size / 25.0), 2)  # ~25 بكسل ⇒ ثقة كاملة (نسبيّة)
+        reason = f"منطقة {zone_letter}"
+        if texture:
+            reason += f" — {texture}"
+        if "phh2o" in zprops:
+            reason += f" · pH≈{zprops['phh2o']}"
+        for i, (r, col) in enumerate(picks[:samples_per_zone], start=1):
+            lon, lat = transform * (col + 0.5, r + 0.5)  # بـsrc_crs
+            if _reproj_pt is not None:
+                lon, lat = _reproj_pt(lon, lat)  # ⇒ EPSG:4326 لعرض النقطة صحيحاً
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [round(lon, 7), round(lat, 7)]},
+                    "properties": {
+                        "point_id": f"soil_{zone_letter}{i}",
+                        "zone_id": zone_letter,
+                        "depth_cm": "0-30",
+                        "tests": _LAB_TESTS,
+                        "soil": zprops,
+                        "reason_ar": reason,
+                        "zone_pixels": int(rr.size),
+                        "confidence": "advisory",
+                        "confidence_score": conf,
+                        "placement": "interior" if ir.size else "zone",
+                    },
+                }
+            )
+    return {
+        "type": "FeatureCollection",
+        "features": features,
+        "computed": True,
+        "source": "soilgrids-zone-centroids",
+        "depth": c["depth"],
+        "zones": c["n_zones"],
+        "disclaimer": _soil.DISCLAIMER_AR,
+    }

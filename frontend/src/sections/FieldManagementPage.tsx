@@ -74,6 +74,17 @@ const SOIL_AR: Record<string,string> = {
   sandy_loam:'رملية مزيجية', silt_loam:'طمية مزيجية',
 };
 
+
+function idempotencyConfig(source: Record<string, unknown> | null | undefined) {
+  const key = source?.idempotency_key;
+  return key ? { headers: { 'Idempotency-Key': String(key) } } : undefined;
+}
+
+function withoutIdempotency<T extends Record<string, unknown>>(source: T): Omit<T, 'idempotency_key'> {
+  const { idempotency_key: _idempotencyKey, ...body } = source;
+  return body;
+}
+
 function healthConfig(h: string) {
   const table: Record<string, { label: string; color: string; bg: string }> = {
     excellent:{ label:'ممتاز', color:'#16a34a', bg:'#1e3a1e' },
@@ -132,7 +143,7 @@ export default function FieldManagementPage() {
     // إنشاء حقيقيّ: POST /api/v1/fields يتحقّق من الهندسة ويحسب المساحة/المركز
     // ويُخزّن. نَبني العرض من ردّ الخادم (لا تلفيق قيم). الفشل يُعرَض بصدق.
     try {
-      const r = await kongApi.post('/api/v1/fields', {
+      const fieldPayload = {
         name: data.name, crop: data.crop,
         soil_type: data.soil_type ?? data.soil,
         manager: data.manager,
@@ -145,7 +156,9 @@ export default function FieldManagementPage() {
         region: data.region ?? null,
         geometry: data.geometry,
         boundary_metadata: data.boundary_metadata ?? undefined,
-      });
+        idempotency_key: data.idempotency_key,
+      };
+      const r = await kongApi.post('/api/v1/fields', withoutIdempotency(fieldPayload), idempotencyConfig(fieldPayload));
       const rec = r.data as Record<string, unknown>;
       setFields(p => [...p, mapField(rec)]);
       // حفظ مشهد الخريطة (zoom + مركز) بمعرّف الحقل المُنشأ — يُطار إليه عند فتحه لاحقاً.
@@ -164,7 +177,7 @@ export default function FieldManagementPage() {
   //    field_id ويُكمل السلسلة (موسم/تربة/إنتاجيّة). نفس النقاط الحقيقيّة
   //    (POST /api/v1/fields و/fields/import). الخطأ يُرمى ليعرضه AddFieldWithMap.
   const handleWizardSaveField = async (data: any): Promise<Record<string, unknown>> => {
-    const r = await kongApi.post('/api/v1/fields', {
+    const fieldPayload = {
       name: data.name, crop: data.crop,
       soil_type: data.soil_type ?? data.soil,
       manager: data.manager,
@@ -177,7 +190,9 @@ export default function FieldManagementPage() {
       region: data.region ?? null,
       geometry: data.geometry,
       boundary_metadata: data.boundary_metadata ?? undefined,
-    });
+      idempotency_key: data.idempotency_key,
+    };
+    const r = await kongApi.post('/api/v1/fields', withoutIdempotency(fieldPayload), idempotencyConfig(fieldPayload));
     const rec = r.data as Record<string, unknown>;
     setFields(p => [...p, mapField(rec)]);
     if (data.map_view) saveFieldMapView(String(rec.field_id ?? ''), data.map_view);
@@ -205,7 +220,7 @@ export default function FieldManagementPage() {
     // مسار التحقّق/الحفظ. الفشل (400 تحليل / 422 هندسة / 503 DB) يُرمى رسالةً
     // عربيّةً صادقةً فيعرضها النموذج (لا ابتلاع، لا تلفيق).
     try {
-      const r = await kongApi.post('/api/v1/fields/import', payload);
+      const r = await kongApi.post('/api/v1/fields/import', withoutIdempotency(payload), idempotencyConfig(payload));
       setFields(p => [...p, mapField(r.data as Record<string, unknown>)]);
       setShowAddField(false);
       toastStore.add('success', '✅ تم استيراد الحقل', `${payload.name}`);

@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   MapContainer, TileLayer, Polygon, CircleMarker, Marker, Tooltip,
-  FeatureGroup, useMap, useMapEvents,
+  FeatureGroup, GeoJSON, useMap, useMapEvents,
 } from 'react-leaflet';
 import DrawControl from './DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
@@ -24,7 +24,7 @@ import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, area
 import { readFieldMapView, consumeDefaultViewOnce } from '../../lib/fieldMapView';
 import type { DrawFeature } from './drawing';
 import { getLayer, resolveLayerSource } from '../../lib/layerRegistry';
-import { rasterBaseUrl } from '../../services/api';
+import { rasterBaseUrl, type FieldContours } from '../../services/api';
 import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
 import {
@@ -35,6 +35,9 @@ import {
 const YEMEN_CENTER: [number, number] = [15.0, 44.0];
 const SELECTED_COLOR = '#22d3ee';
 const FIELD_COLOR = '#34d399';
+// بلاطة PNG شفّافة 1×1 — تُستعمَل كـerrorTileUrl فتُبتلَع بلاطات 404/شفّافة (لا DEM)
+// بلا ضجيج بصريّ، بدل مربّع «بلاطة مفقودة».
+const TRANSPARENT_TILE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABpfZFQAAAAABJRU5ErkJggg==';
 
 export interface ScoutPin {
   id: string;
@@ -77,6 +80,26 @@ export interface HubMapProps {
   imageryDate?: string | null;
   // يُمرَّر في رابط البلاطات لعزل الكاش/التتبّع حسب المستأجِر. لا يستخدم للقرار.
   tenantId?: string | null;
+  // ── طبقات التضاريس (DEM حقيقيّ من raster-service) — مستقلّة عن طبقة المؤشّر ──
+  // روابط قوالب بلاطات ({z}/{x}/{y}) للتظليل/الانحدار، أو null لإخفائها. تُبنى في
+  // MapHub من fetchTerrainTileJson (available:true) + hillshadeTileUrl/slopeTileUrl؛
+  // البلاطة شفّافة حيث لا DEM (لا اختراع تضاريس). contours خطوط كنتور الحقل المختار
+  // (GeoJSON MultiLineString) من fetchFieldContours (computed:true) أو null.
+  hillshadeTilesUrl?: string | null;
+  slopeTilesUrl?: string | null;
+  terrainOpacity?: number;
+  contours?: FieldContours | null;
+  // ── طبقة التربة (SoilGrids) من raster-service — مستقلّة عن المؤشّر/التضاريس ──
+  // رابط قالب بلاطات ({z}/{x}/{y}) لخاصّيّة/عمق تربة، أو null لإخفائها. تُبنى في
+  // MapHub من fetchSoilTileJson (available:true) + soilTileUrl؛ البلاطة نصف-شفّافة،
+  // وشفّافة تماماً حيث لا مصدر (لا اختراع قيم تربة).
+  soilTilesUrl?: string | null;
+  soilOpacity?: number;
+  // ── نقاط أخذ العيّنات المقترَحة (soil sampling plan) — مستقلّة عن طبقة التربة ──
+  // نقاط 🧪 من fetchSoilSamplingPlan (computed:true) للحقل المختار، تُبنى في MapHub؛
+  // فارغة/غياب ⇒ لا تُرسَم (لا اختراع نقاط عند غياب المصدر). label نصّ التلميح،
+  // reason شرح اختياريّ (reason_ar من الخادم).
+  soilSamplePoints?: Array<{ id: string; lat: number; lng: number; label: string; reason?: string }>;
   // ── v2: التقاط/استعادة عرض الخريطة (مركز + تكبير) ──
   // لقطة عرض مُستعادة (مركز lat/lng + تكبير) تبدأ منها الخريطة وتُلغي الملاءمة
   // التلقائيّة عند أوّل تركيب. null/غياب ⇒ سلوك v1 (ملاءمة للحقول).
@@ -340,12 +363,23 @@ const PIN_ICON = L.divIcon({
   iconAnchor: [11, 22],
 });
 
+// أيقونة نقطة عيّنة تربة (divIcon — لا أصل صورة خارجيّ). 🧪
+const SOIL_SAMPLE_ICON = L.divIcon({
+  className: 'sahool-soil-sample-pin',
+  html: '<div style="font-size:20px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))">🧪</div>',
+  iconSize: [20, 20],
+  iconAnchor: [10, 20],
+});
+
 export default function HubMap({
   fields, selectedId, onSelect, basemapId, indicatorId, indicatorOpacity,
   drawTools, pinMode, pins, onAddPin, height = 520,
   alertMarkers = [], deviceMarkers = [], weatherMarker = null, operationalMarkers = [],
   pivotDesignerEnabled = false, onAddPivotDraft, pivotDrafts = [],
   imageryTs = 0, imageryDate = null, tenantId = null,
+  hillshadeTilesUrl = null, slopeTilesUrl = null, terrainOpacity = 0.7, contours = null,
+  soilTilesUrl = null, soilOpacity = 0.6,
+  soilSamplePoints = [],
   initialView = null, onViewChange,
 }: HubMapProps) {
   const basemap = getLayer(basemapId);
@@ -389,6 +423,38 @@ export default function HubMap({
           attribution={basemapAttribution}
           maxZoom={basemapMaxZoom}
         />
+
+        {/* طبقات التضاريس (DEM من raster-service) — مستقلّة عن المؤشّر، تُرسَم فوق
+            الأساس وتحت المؤشّر/الحدود. البلاطة شفّافة حيث لا DEM (errorTileUrl) —
+            لا اختراع تضاريس. تظهر فقط حين available:true (يبني MapHub الرابط عندئذ). */}
+        {hillshadeTilesUrl && (
+          <TileLayer
+            key={`hillshade-${tenantId ?? 'tenant'}`}
+            url={hillshadeTilesUrl}
+            opacity={terrainOpacity}
+            errorTileUrl={TRANSPARENT_TILE}
+          />
+        )}
+        {slopeTilesUrl && (
+          <TileLayer
+            key={`slope-${tenantId ?? 'tenant'}`}
+            url={slopeTilesUrl}
+            opacity={terrainOpacity}
+            errorTileUrl={TRANSPARENT_TILE}
+          />
+        )}
+
+        {/* طبقة التربة (SoilGrids) — تُرسَم فوق الأساس/التضاريس وتحت المؤشّر/الحدود.
+            البلاطة نصف-شفّافة، وشفّافة تماماً حيث لا مصدر (errorTileUrl) — لا اختراع
+            قيم تربة. تظهر فقط حين available:true (يبني MapHub الرابط عندئذ). */}
+        {soilTilesUrl && (
+          <TileLayer
+            key={`soil-${tenantId ?? 'tenant'}`}
+            url={soilTilesUrl}
+            opacity={soilOpacity}
+            errorTileUrl={TRANSPARENT_TILE}
+          />
+        )}
 
         {/* طبقة بلاطات المؤشّر للحقل المختار (شفّافة خارج الحقل). تُخفى عند تفعيل الطقس
             ليحلّ محلّها العرض الحراريّ للطقس (المقصوص على حدّ الحقل) بدل صورة CDSE. */}
@@ -441,6 +507,20 @@ export default function HubMap({
           );
         })}
 
+        {/* خطوط كنتور الحقل المختار (MultiLineString من DEM حقيقيّ). تُعرَض فقط حين
+            توجد عناصر فعليّة (computed:true) — الحالة الفارغة تُعرَض كملاحظة في MapHub. */}
+        {contours && contours.features.length > 0 && (
+          <GeoJSON
+            key={`contours-${contours.field_id ?? 'field'}-${contours.features.length}`}
+            data={contours}
+            style={() => ({ color: '#b45309', weight: 1, opacity: 0.9 })}
+            onEachFeature={(feature, layer) => {
+              const el = feature.properties?.elevation_m;
+              if (typeof el === 'number') layer.bindTooltip(`${el} م`, { sticky: true });
+            }}
+          />
+        )}
+
         {/* حدّ الحقل المختار مُبرَزاً فوق البلاطات (وضوح بصريّ) */}
         {selectedPoly && selectedPoly.length >= 3 && (
           <Polygon
@@ -468,6 +548,17 @@ export default function HubMap({
         {pins.map((p) => (
           <Marker key={p.id} position={[p.lat, p.lng]} icon={PIN_ICON}>
             <Tooltip>{p.note || p.category}</Tooltip>
+          </Marker>
+        ))}
+
+        {/* نقاط أخذ العيّنات المقترَحة (🧪) — من خطّة أخذ العيّنات للحقل المختار.
+            لا تُرسَم حين تكون القائمة فارغة (لا اختراع نقاط عند غياب المصدر). */}
+        {soilSamplePoints.map((p) => (
+          <Marker key={p.id} position={[p.lat, p.lng]} icon={SOIL_SAMPLE_ICON}>
+            <Tooltip>
+              <div>{p.label}</div>
+              {p.reason ? <div style={{ opacity: 0.8 }}>{p.reason}</div> : null}
+            </Tooltip>
           </Marker>
         ))}
 

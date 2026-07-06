@@ -14,7 +14,10 @@ def test_chatbot_uses_ai_agronomist_runtime_not_legacy_agent_or_mock_chat():
     assert "kongApi.post('/api/ai-agronomist/chat'" in src
     assert "current_field_state" in src
     assert "activeFieldId" in src
-    assert "useFieldContextStore" in src
+    # سياق الحقل صار عبر hook `useSelectedField` + جلب `ai-context-pack` (بديل store مُفكَّك)؛
+    # الحارس يتحقّق من الربط الفعليّ بسياق الحقل لا باسم store بائت.
+    assert "useSelectedField" in src
+    assert "ai-context-pack" in src
     assert "RAG/KG/FieldState" in src
     assert "kongApi.post('/api/agent/query'" not in src
     assert "'/api/chat'" not in src and '"/api/chat"' not in src

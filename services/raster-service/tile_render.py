@@ -21,6 +21,95 @@ WEB_MERCATOR_R = 6378137.0
 # نصف محيط الأرض بالمتر (حدّ Web-Mercator على ±)
 _ORIGIN_SHIFT = math.pi * WEB_MERCATOR_R
 
+# سقف افتراضيّ لأبعاد نافذة القراءة (بكسل/محور): يمنع تحميل نافذة ضخمة (ذاكرة/زمن) عند
+# bbox كبير أو raster عالي الدقّة — يُخفَّض بالعيّنة عند القراءة عبر out_shape.
+MAX_READ_DIM = int(__import__("os").getenv("RASTER_MAX_READ_DIM", "2048"))
+
+
+def mask_array_by_polygon(arr, transform, src_crs, poly_lonlat):
+    """يقنّع مصفوفة: خارج **مضلّع الحقل** ⇒ ``NaN`` (قصّ على حدّ الحقل لا مربّع الإحاطة).
+
+    ``poly_lonlat``: حلقة [lng,lat] بـEPSG:4326. ``transform``: أفين المصفوفة في ``src_crs``.
+    يُعاد إسقاط المضلّع إلى ``src_crs`` ثمّ ``geometry_mask``. صدق: مضلّع غير صالح/فشل ⇒
+    تُعاد المصفوفة كما هي (لا انهيار، لا تلفيق). يُعيد نسخة مقنّعة."""
+    if not poly_lonlat or len(poly_lonlat) < 3:
+        return arr
+    try:
+        import numpy as np
+        from rasterio.features import geometry_mask
+
+        ring = [[float(p[0]), float(p[1])] for p in poly_lonlat]
+        if ring[0] != ring[-1]:
+            ring.append(ring[0])  # GeoJSON يتطلّب حلقة مغلقة
+        if src_crs is not None and src_crs.to_epsg() != 4326:
+            from rasterio.warp import transform as _wt
+
+            xs = [p[0] for p in ring]
+            ys = [p[1] for p in ring]
+            rx, ry = _wt("EPSG:4326", src_crs, xs, ys)
+            ring = [[rx[i], ry[i]] for i in range(len(rx))]
+        geom = {"type": "Polygon", "coordinates": [ring]}
+        # invert=False ⇒ True خارج المضلّع؛ نملأ الخارج بـNaN ونُبقي الداخل.
+        outside = geometry_mask([geom], out_shape=arr.shape, transform=transform, invert=False)
+        out = arr.copy()
+        out[outside] = np.nan
+        return out
+    except Exception:  # noqa: BLE001
+        return arr
+
+
+def read_field_window(src, lonlat_bbox, *, max_dim: int = MAX_READ_DIM, poly_lonlat=None):
+    """يقرأ نافذة الحقل من raster مفتوح مع **تصحيح CRS** و**سقف حجم** و**قصّ اختياريّ على
+    مضلّع الحقل** — مسار القراءة الموحَّد لكلّ الإحصاءات المتجهيّة (تضاريس/تربة/مناطق).
+
+    - يُعيد إسقاط ``lonlat_bbox`` (EPSG:4326) إلى ``src.crs`` قبل ``from_bounds`` حين لا
+      يكون المصدر بـEPSG:4326 (وإلّا نافذة خاطئة على raster مُسقَط: UTM/Homolosine…).
+    - يسقف أبعاد القراءة عند ``max_dim`` (تخفيض عيّنة عند القراءة) لتفادي نافذة ضخمة.
+    - إن مُرِّر ``poly_lonlat`` (حلقة [lng,lat]) قصّ خارج المضلّع إلى ``NaN`` (حدّ الحقل لا bbox).
+    - يُعيد ``(arr, scale_x, scale_y)``: arr float32 بـ``NaN`` للـnodata، وscale = أبعاد
+      النافذة ÷ أبعاد المخرَج (عامل التخفيض؛ 1.0 بلا تخفيض) كي يضبط المُستدعي حجم البكسل.
+      يُعيد ``None`` عند فشل القراءة أو نافذة فارغة (لا تلفيق).
+    """
+    import numpy as np
+    import rasterio
+    from rasterio.warp import transform_bounds
+    from rasterio.windows import from_bounds
+
+    minx, miny, maxx, maxy = (float(v) for v in lonlat_bbox)
+    if src.crs is not None:
+        try:
+            if src.crs.to_epsg() != 4326:  # None (CRS بلا رمز EPSG مثل Homolosine) ⇒ يُعاد إسقاطه
+                minx, miny, maxx, maxy = transform_bounds(
+                    "EPSG:4326", src.crs, minx, miny, maxx, maxy
+                )
+        except Exception:  # noqa: BLE001 — فشل الإسقاط ⇒ استعمل الحدود كما هي (احتياطيّ)
+            pass
+    try:
+        window = from_bounds(minx, miny, maxx, maxy, transform=src.transform)
+        win_w, win_h = float(window.width), float(window.height)
+        if win_w <= 0 or win_h <= 0:
+            return None
+        wt = src.window_transform(window)  # أفين النافذة في src.crs
+        if win_w <= max_dim and win_h <= max_dim:
+            arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+            sx = sy = 1.0
+            eff_t = wt
+        else:
+            out_w = int(min(max_dim, math.ceil(win_w)))
+            out_h = int(min(max_dim, math.ceil(win_h)))
+            arr = (
+                src.read(1, window=window, out_shape=(out_h, out_w), masked=True)
+                .filled(np.nan)
+                .astype("float32")
+            )
+            sx, sy = win_w / out_w, win_h / out_h
+            eff_t = wt * rasterio.Affine.scale(sx, sy)  # أفين المصفوفة المُخفَّضة
+        if poly_lonlat:
+            arr = mask_array_by_polygon(arr, eff_t, src.crs, poly_lonlat)
+        return arr, sx, sy
+    except Exception:  # noqa: BLE001
+        return None
+
 
 # ─── حسابات slippy-map (XYZ → حدود EPSG:3857) ──────────────────────
 def tile_bounds_3857(z: int, x: int, y: int) -> tuple[float, float, float, float]:

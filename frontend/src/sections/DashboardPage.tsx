@@ -14,12 +14,14 @@ import { LoadingState, SkeletonGrid, EmptyState } from '../components/StateViews
 import { GradientScale, SegmentedScale } from '../components/insights/ScaleLegend';
 import { NDVI_GRADIENT, NDVI_BANDS, WEATHER_QUICK_REFERENCE } from '../components/insights/scalePresets';
 import type { PageId } from '../App';
+import { useSelectedField } from '../hooks/useSelectedField';
 
 function ndviStatus(v: number) {
   return v>=0.70 ? 'excellent' : v>=0.50 ? 'good' : v>=0.30 ? 'fair' : 'poor';
 }
 
 export default function DashboardPage({ setPage }: { setPage: (p: PageId) => void }) {
+  const { setFieldId: setActiveFieldId } = useSelectedField({ autoSelect: false });
   const { data: dashboard, isLoading: loadDash, refetch } = useDashboardData();
   const { data: weatherData } = useWeatherForecast();
   const { data: alertsData } = useAlerts();
@@ -245,7 +247,7 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
               const ndvi = f.ndvi || 0;
               const c = STATUS_COLOR[ndviStatus(ndvi)];
               return (
-                <button key={f.field_id} onClick={() => setPage('satellite')}
+                <button key={f.field_id} onClick={() => { if (f.field_id) setActiveFieldId(String(f.field_id), { source: 'user', name: f.field_name ?? null }); setPage('satellite'); }}
                   className="rounded-xl p-2 border hover:border-emerald-800 transition-all text-center"
                   style={{ background:'#1e293b', borderColor:'#334155' }}>
                   <div className="text-sm font-bold" style={{ color:c }}>{ndvi.toFixed(2)}</div>

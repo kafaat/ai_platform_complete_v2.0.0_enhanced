@@ -137,6 +137,11 @@ jobs:
       - run: pip install ruff==0.15.8 mypy
       - run: ruff check services/ bots/ agents/ tests_v9/
       - run: ruff format --check services/ bots/ agents/ tests_v9/
+      # بوّابة مانيفست الإصدار على الفرع أيضاً (لا main-only فقط): تعديل ملفّ مشمول
+      # بالمانيفست دون إعادة بناء checksums كان يمرّ على الفرع ثمّ يفشل على main في
+      # «Sahool Production Gates». تشغيلها هنا يلتقط الانحراف قبل الدمج لا بعده.
+      - name: Release manifest checksum gate (mirror of main-only production gate)
+        run: python3 scripts/release/validate_release_package.py --root .
       # mypy إرشادي: أسماء مجلّدات الخدمات مُشرطَنة (services/guardrails-engine)
       # ليست أسماء حزم بايثون صالحة، والتغطية النوعيّة الكاملة ليست بوّابة إلزاميّة بعد.
       - name: mypy (advisory)

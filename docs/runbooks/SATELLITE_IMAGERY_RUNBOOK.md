@@ -186,3 +186,53 @@ psql "$DATABASE_URL" -v tenant_id="'<TENANT-UUID>'" \
 - **idempotent** (ON CONFLICT DO UPDATE) — آمن للتكرار. مُثبَت على Postgres حيّ (6/6/1، بلا تكرار).
 - **صدق:** الإحداثيّات على مستوى المديريّة (16.15N)؛ حدود الحقل وGPS الحقليّ الدقيق **معلّقان** (يرسمها المشغّل لاحقاً؛ 7 عيّنات تنتظر تحقّق GPS). لا مضلّع مفبرك.
 - بعدها: شغّل backfill (القسم 1) لهذه الحقول لتظهر صورها الفعليّة، وقاعدة معرفة السنيدار (RAG) تُبذَر عبر خدمة `sahool-qdrant-seed` في compose.
+
+## 11. طبقات التضاريس (Hillshade / Slope / Contours) — تفعيلها بتزويد DEM
+
+الطبقات الثلاث (بلاطتا Hillshade وSlope + كنتور Vector) جاهزة كوديّاً وتعمل fail-closed
+**صادقاً بلا DEM**: بلاطة شفّافة / `features:[]` مع `available:false`/`computed:false`. لا تُصيَّر
+أيّ تضاريس مُلفَّقة. لتفعيلها بمنطقة حقيقيّة:
+
+1. **زوّد DEM** (يُنصَح Copernicus GLO‑30، ~30م، مجّانيّ، رخصة مفتوحة). حمّل بلاطات المنطقة
+   وادمِجها (`gdalbuildvrt`/`gdal_merge`) إلى ملفّ واحد (GeoTIFF/COG، EPSG:4326، nodata مضبوط).
+2. **اضبط المسار** في بيئة `raster-service` (و`raster-backfill-scan-worker` إن لزم):
+   `FIELD_DEM_PATH=/data/dem/aljawf_glo30.tif` (mount الملفّ في الحاوية).
+3. أعِد تشغيل `raster-service`. تحقّق:
+   - `GET /api/raster/v1/terrain/tilejson?layer=slope` ⇒ `available:true` + `legend`.
+   - `GET /api/raster/v1/fields/<id>/contours.geojson?bbox=…` ⇒ `computed:true` + `features[]`.
+4. في الواجهة: مبدّلات «التضاريس/الانحدار/خطوط الكنتور» فوق الخريطة تعرض الطبقات؛ قبل التزويد
+   تُظهر رسالة «التضاريس غير مُهيّأة» الصادقة.
+
+**تحقّق الحسابات:** الميل ٪ يُحسَب بأمتار الأرض (تصحيح mercator بـcos(lat))؛ nodata مُقنَّع
+(`masked=True`)؛ الكنتور عبر مربّع مسير نقيّ (بلا اعتماد خارجيّ). اختبار سلوكيّ:
+`services/raster-service/test_terrain_render.py` (DEM اصطناعيّ).
+
+## 12. طبقة التربة (SoilGrids) — تفعيلها بتزويد مصدر Raster
+
+طبقة خصائص التربة البصريّة (pH/طين/رمل/طمي/كربون عضويّ/CEC/نيتروجين/كثافة) جاهزة كوديّاً
+وتعمل **fail-closed صادق بلا مصدر**: بلاطة شفّافة + `available:false` + تحذير إلزاميّ دائم
+(«SoilGrids تقديريّ ~250م، لا يُغني عن المختبر»). **توجيهيّة لاختيار مواقع العيّنات فقط.**
+
+للتفعيل:
+1. **حمّل SoilGrids GeoTIFF** (ISRIC، CC‑BY 4.0) للخصائص/الأعماق المطلوبة عبر WCS
+   (`https://maps.isric.org/mapserv?map=/map/<property>.map`) أو من مستودع SoilGrids،
+   وقصّها على منطقتك. سمِّ كلّ ملفّ `<property>_<depth>.tif` (مثل `phh2o_0-5cm.tif`،
+   `clay_0-30cm`… الأعماق: 0-5cm/5-15cm/15-30cm/30-60cm/60-100cm/100-200cm).
+2. ضع الملفّات في مجلّد واحد واضبط `SOILGRIDS_DIR=/data/soilgrids` في بيئة `raster-service`
+   (mount المجلّد). القيم تبقى بوحدة SoilGrids المُخزّنة — التحويل يجري في `soil_render`.
+3. أعِد تشغيل `raster-service`. تحقّق:
+   `GET /api/raster/v1/soil/tilejson?property=phh2o&depth=0-5cm` ⇒ `available:true` + `legend`.
+4. في الواجهة: مبدّل «طبقة التربة (SoilGrids)» + منتقيا الخاصّيّة/العمق + الأسطورة + التحذير.
+
+**تكامل مع أخذ العيّنات:** الطبقة توجيهيّة؛ مُخطِّط العيّنات القائم (v61: grid/zone/hybrid،
+`/api/v1/sampling/strategy`) واستيعاب المختبر (`/api/v1/lab/*`) يبقيان مصدر القرار. اختبار
+سلوكيّ: `services/raster-service/test_soil_render.py` (SoilGrids اصطناعيّ).
+
+**أنماط تهيئة المصدر (مرونة):** (1) مجلّد `SOILGRIDS_DIR` (أو `SOILGRIDS_COG_DIR`) بأسماء `<property>_<depth>.tif`؛ (2) قالب `SOIL_LAYER_PATH_TEMPLATE=/data/soil/{property}_{depth}.tif`؛ (3) مسار صريح لكلّ طبقة `SOILGRID_<PROP>_<DEPTH>_PATH`. مرادفات مقبولة: `ph→phh2o`، `oc/organic_carbon→soc`، `bulk_density→bdod`. أعماق مقبولة: الستّة المعياريّة + `0-30cm` (مُجمَّع).
+
+**تجهيز آليّ (GLO‑30 من AWS Open Data، مجّانيّ بلا اعتماد):** بدل التنزيل اليدويّ، شغّل:
+```bash
+python3 scripts/provision/fetch_glo30_dem.py --bbox 43.5 15.5 46.0 17.5 --out /data/dem/aljawf_glo30_cog.tif
+export FIELD_DEM_PATH=/data/dem/aljawf_glo30_cog.tif   # ثمّ أعِد تشغيل raster-service
+```
+يُنزّل بلاطات 1°×1° المُغطّية للـbbox من `copernicus-dem-30m` (HTTPS مجهول)، يتخطّى البحر (404)، ويدمجها COG واحداً. مصادر بديلة: CDSE (حساب مجّانيّ) · OpenTopography · GEE `projects/sat-io/open-datasets/GLO-30` · Digital Earth Africa (WCS `dem_cop_30`). ذكر المصدر إلزاميّ (© Copernicus DEM / ESA).

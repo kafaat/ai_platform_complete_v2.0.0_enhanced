@@ -113,10 +113,13 @@ def propose_productivity_zones(
             "method": "deterministic_productivity_zoning_fallback",
         }
 
+    # عدد المناطق: صريح من المستخدم (يُحترَم) أو تلقائيّ (FPI/NCE) عند العنقدة الحقيقيّة.
+    explicit_zone_count = params.get("zone_count") if isinstance(params, dict) else None
     try:
-        zone_count = int(params.get("zone_count") or 3)
+        zone_count = int(explicit_zone_count) if explicit_zone_count is not None else 3
     except (TypeError, ValueError):
         zone_count = 3
+        explicit_zone_count = None
     zone_count = min(5, max(2, zone_count))
     basis = str(params.get("basis") or "multi_index").strip().lower()
     if basis not in {"ndvi", "multi_index", "soil", "weather"}:
@@ -134,7 +137,9 @@ def propose_productivity_zones(
     from .productivity_zones_clustering import extract_ndvi_grid, zones_from_ndvi_grid
 
     grid = extract_ndvi_grid(params, evidence_context)
-    clustered = zones_from_ndvi_grid(grid, bbox, zone_count) if grid else None
+    # عدد صريح ⇒ يُحترَم؛ غيابه ⇒ k=None فيختار FPI/NCE الأمثل. + تنعيم تجاور مكانيّ.
+    k_arg = zone_count if explicit_zone_count is not None else None
+    clustered = zones_from_ndvi_grid(grid, bbox, k_arg, smooth=True) if grid else None
     if clustered:
         total_px = sum(len(r) for r in grid) or 1
         cl_conf = round(
@@ -166,6 +171,11 @@ def propose_productivity_zones(
             "cluster_separability": clustered["cluster_separability"],
             "ndvi_centroids": clustered["ndvi_centroids"],
             "k_effective": clustered["k_effective"],
+            "zone_count_source": "user_specified"
+            if explicit_zone_count is not None
+            else "auto_fpi_nce",
+            "zone_count_recommendation": clustered.get("zone_count_recommendation"),
+            "spatially_smoothed": clustered.get("spatially_smoothed", False),
             "productivity_zones": cl_zones,
             "requires_user_confirmation": True,
             "persistence": "proposal_only_until_user_confirms",

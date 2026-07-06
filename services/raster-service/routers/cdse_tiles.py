@@ -24,8 +24,11 @@ router = APIRouter()
 # للضبط بالبيئة (``RASTER_PUBLIC_PREFIX``) بدل ترميزها صلباً — يفكّ الاقتران ببوّابة بعينها.
 _PUBLIC_PREFIX = os.getenv("RASTER_PUBLIC_PREFIX", "/api/raster").rstrip("/")
 
-# «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام (بدل كامل السنة) — حالة راهنة فعلاً.
-LATEST_WINDOW_DAYS = 60
+# «أحدث» = أصفى مشهد ضمن آخر هذا العدد من الأيّام. نافذة واسعة (سنة) قابلة للضبط
+# بالبيئة: Sentinel-2 يعيد كلّ ~5 أيّام لكنّ الغطاء السحابيّ قد يترك فجوات > شهرين،
+# فنافذة 60 يوماً كانت تُرجِع «لا مشهد» ⇒ بلاطة شفّافة لحقول كانت تُصيَّر. (regression:
+# ضُيّقت من كامل السنة إلى 60 يوماً — نعيدها واسعة كي يظهر أحدث مشهد صافٍ فعليّاً.)
+LATEST_WINDOW_DAYS = int(os.getenv("CDSE_LATEST_WINDOW_DAYS", "365"))
 
 
 def _parse_poly(poly: str) -> dict | None:
@@ -146,16 +149,34 @@ async def _ensure_field_cog(
         except (TypeError, ValueError):
             geom_sig = "err"
     cache_key = f"{tenant}:{field_id}:{internal}:{today}:{'p' if has_poly else 'b'}:{geom_sig}"
-    async with main._cdse_lock():
-        now = _t.monotonic()
+
+    def _cache_hit() -> str | None:
         entry = main._cdse_tile_cache.get(cache_key)
-        if entry and entry[0] > now and os.path.exists(entry[1]):
+        if entry and entry[0] > _t.monotonic() and os.path.exists(entry[1]):
             return entry[1]
-        if entry and os.path.exists(entry[1]):
-            try:
-                os.unlink(entry[1])
-            except OSError:
-                pass
+        return None
+
+    # 1) فحص كاش سريع + إحضار قفل المفتاح — تحت القفل العالميّ **القصير** فقط.
+    async with main._cdse_lock():
+        hit = _cache_hit()
+        if hit is not None:
+            return hit
+        key_lock = main._cdse_key_lock(cache_key)
+
+    # 2) single-flight لهذا المفتاح: الجلب الشبكيّ (+الخنق/الإعادة) تحت قفل المفتاح لا
+    #    العالميّ — فلا يحجب بلاطاتِ حقولٍ أخرى. منتظِرٌ على نفس المفتاح يلتقط الكاش.
+    async with key_lock:
+        async with main._cdse_lock():
+            hit = _cache_hit()
+            if hit is not None:
+                return hit
+            entry = main._cdse_tile_cache.get(cache_key)
+            if entry and os.path.exists(entry[1]):
+                try:
+                    os.unlink(entry[1])
+                except OSError:
+                    pass
+                main._cdse_tile_cache.pop(cache_key, None)
         try:
             client = _cdse.get_client()
             # fail-closed: بلا bbox للحقل لا نطلب صورة على bbox ثابت (كان يمن [44.9..])
@@ -205,7 +226,9 @@ async def _ensure_field_cog(
                     except OSError:
                         pass
                     return None
-            main._cdse_tile_cache[cache_key] = (now + 3600.0, cog_path)
+            async with main._cdse_lock():
+                main._cdse_tile_cache[cache_key] = (_t.monotonic() + 3600.0, cog_path)
+                main._cdse_prune_key_locks_locked()
             return cog_path
         except Exception as e:  # noqa: BLE001
             main.logger.warning("CDSE fetch failed (%s/%s): %s", field_id, internal, e)
@@ -406,15 +429,14 @@ async def field_cdse_tilejson(
     await main._require_field_tenant(field_id)
 
     # الأولويّة: poly (هندسة الواجهة) ثمّ bbox الصريح ثمّ هندسة DB ثمّ احتياطيّ عالميّ.
-    # geom_resolved (v9-F7): هل اشتُقّت الحدود من هندسة حقيقيّة؟ الاحتياطيّ العالميّ
-    # ليس حدوداً حقيقيّة — نُعلن available=false عنده كي لا تبدو بلاطات بلا حدود «جاهزة».
+    # الفحص بـisinstance (لا `is not None`) كي يعمل الاستدعاء المباشر (unit) أيضاً.
     _GLOBAL_BOUNDS = [-180.0, -85.0, 180.0, 85.0]
     geom_resolved = True
-    poly_geom = _parse_poly(poly) if poly else None
+    poly_geom = _parse_poly(poly) if isinstance(poly, str) and poly else None
     if poly_geom is not None:
         bounds = main._bbox_from_geom(poly_geom) or _GLOBAL_BOUNDS
         geom_resolved = bounds is not _GLOBAL_BOUNDS
-    elif bbox_w is not None and bbox_s is not None and bbox_e is not None and bbox_n is not None:
+    elif all(isinstance(v, (int, float)) for v in (bbox_w, bbox_s, bbox_e, bbox_n)):
         bounds = [float(bbox_w), float(bbox_s), float(bbox_e), float(bbox_n)]
     else:
         field_geom = await _db.fetch_field_geometry(field_id)

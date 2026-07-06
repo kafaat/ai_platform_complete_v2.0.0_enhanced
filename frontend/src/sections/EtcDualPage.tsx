@@ -10,9 +10,12 @@ import { Droplets, Calculator, Info, AlertTriangle, Satellite } from 'lucide-rea
 import { useSelectedField } from '../hooks/useSelectedField';
 import { computeFieldEtcDual, asApiError } from '../services/api';
 import type { EtcDualInput, EtcDualResult } from '../services/api';
+import { useLocation } from 'react-router-dom';
 
 export default function EtcDualPage() {
-  const { options, isLoading: fieldsLoading, fieldId, setFieldId } = useSelectedField();
+  const location = useLocation();
+  const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
+  const { options, isLoading: fieldsLoading, fieldId, setFieldId } = useSelectedField({ routeFieldId });
   // الطقس (لـET0 — يمرّره المتّصِل)
   const [tMax, setTMax] = useState('35');
   const [tMin, setTMin] = useState('20');

@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "824fedb05f1d23493b7c98f58cd9be93566e98680173235bc9e10583649ecefc"
+          "content": "f0ee3e6a9bc208b80379d41e3b804be99c727f7f7cebd00c6dd6c62f80f7a45d"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -245,7 +245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "58eefd83ce1ce262323320b31657e8dc0fd0184e4d129bb4609814cc6a866d57"
+          "content": "7a74f1dfe2904c6470bb14a2b254eb39acf367df9c8581f7d5138a32651014f5"
         }
       ],
       "name": "frontend/e2e/maphub-webgl.spec.ts",
@@ -425,7 +425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fac38492fa0a938220148c485e1c881433a4e0c4d15c1e4b262f7b1a022ec434"
+          "content": "d6fec619ad43beaa61952552bcaec06075c2933169fe92e5a1cf44634fdab0f3"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -1435,7 +1435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be6e47ee71928b09c3ab1fdc4c53a0b43de43ca9c1da80033161ecc71cd2c9f4"
+          "content": "aef1942f4be5ba79f0b6b353c8fd8a9d29d83bd563a088974a61ac8f2aadf205"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -1455,7 +1455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0ad52c6816d94d181eac9adefb7f661f31cc47498ba50499bacd310e3e4e13c"
+          "content": "e984b77fe5bab7404b3a6150a91c46e51730d1eec4f12e66d47ac9b3cf9be7bd"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -1509,6 +1509,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/MapForensicHardening.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0e07d76353a339fa77ff63305048c31d4b4270764e4ce2eef2fc9d55d6ebb397"
+        }
+      ],
+      "name": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
       "type": "file"
     },
     {
@@ -4105,7 +4115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1f8d6e03ee69162da10caf8e5ea141affcf9c5df7e999cb38b2ac4acaa24553c"
+          "content": "ac6cfc8290c009b3a70662ac2586592337bbcad207dd9b43174ed3bfa351563d"
         }
       ],
       "name": "frontend/src/sections/DashboardPage.tsx",
@@ -4225,7 +4235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "096626694811745d61cc39c4080c62a5ec46fcdf9621bef9bf176e8f84126ebe"
+          "content": "61acbc93fbf42b73e78f2dda16479ef097a1716d6e6822c65300f97df3791d4e"
         }
       ],
       "name": "frontend/src/sections/EtcDualPage.tsx",
@@ -4295,7 +4305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42ef607caf7924172e345cd14fa1830abf23e5e70b1c2fd640f5d76ec542874a"
+          "content": "a37d2278cbdb0b5e21d73cabd84710eaa139b541debbb043d17926c89f7d6ab2"
         }
       ],
       "name": "frontend/src/sections/FarmMapOverview.tsx",
@@ -4335,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b5da9d7a6bf141cb8e56a8947b766faa1abd7266c4ebf3fb4e51c0896f30f43"
+          "content": "99cfc3108005d891af8171962a1104eb9ab29e7183d79d2348ddd10461cf6ca9"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -4395,7 +4405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6f948991e779b7f4ecde97a6873ca033972e0da7215e68a600b4db971c87b18"
+          "content": "52301786161fedbfa3bc4d2637f56e5c94aa77a14962bb5f63abb69e381882f0"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.tsx",
@@ -4495,7 +4505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7181580cdaec59a69bb6b7d1d7dc4149336aee3be64366d2751fd838d959bf44"
+          "content": "dbcce467101972d6766147afb98bdf99bdf6e958d411a047d251762ce0338243"
         }
       ],
       "name": "frontend/src/sections/IrrigationPlanPage.tsx",
@@ -4505,7 +4515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "683bf0a16227aa5b71127652f5e82ed2092116f34c337550c095a22d87c6f8ec"
+          "content": "7bdfe915551f5dda078161b524f6cbe333f9abfc92c06a579cfc67cae6d25514"
         }
       ],
       "name": "frontend/src/sections/IrrigationWaterPage.tsx",
@@ -4515,7 +4525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3fac5cb7b5aaaae0c9a09af96b33e14dce4df78875d7f15c135b02b879cc7943"
+          "content": "6d20c49b2a202e1898ad2d9799cf752365ed3a57e68b6e4f7e37d466870097b2"
         }
       ],
       "name": "frontend/src/sections/LabSamplingPage.tsx",
@@ -4555,7 +4565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4c00b746c3b7371c44c2008840a4a90180d0c68a115672231b38751cdbb2786"
+          "content": "3a6d483a1fcfa29fcea8566206c00dc9bdbd05d0d429536f5fba8752c64eadf5"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4775,7 +4785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c6ab61e6826c6b5eb19c508a740d235c2e21c2e8923f925659abd4b3fbc14bd"
+          "content": "16c36c91f90aebd195ae60e10d1ec6c0f83f11375da13eb8a7ba26a0907366f5"
         }
       ],
       "name": "frontend/src/sections/PrescriptionBuilderPage.tsx",
@@ -4865,7 +4875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4525bf067a1941616cd3c24d11e67d2de6fce64b493e34c7d76a8ddab090fb5b"
+          "content": "8e77b902e531af625b880e8f640716379b88068902f0a875742fbe0ab84c6615"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -4925,7 +4935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdf2c567af034fa1b22a64802367d06f2baf66cbebd1340cbc3be28c7cfdbdf1"
+          "content": "8a05fbbbf4a2523a9a10377ac1f1b65b95a60f6fd7017bc75f8d6f7da0590654"
         }
       ],
       "name": "frontend/src/sections/SetupCabin.tsx",
@@ -4965,7 +4975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28adafe64306c26eebf8a7375cad9fbd889ad56c760d74cdd7689f33af8eebf4"
+          "content": "922b872ed932ef2d284e8654642839cc087adfa3777df0f4a31f801d2df8fcb2"
         }
       ],
       "name": "frontend/src/sections/WaterTwinPage.tsx",
@@ -5015,7 +5025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c71cfac542ad0704c5e7c6c893c259451ee4a1678e60f092af7154533e344471"
+          "content": "8c22be217ecf7c03d9a4cf27655b3e0810de810496c54e0d73dfab22097371b6"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -7605,6 +7615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e08a2167d82c5d006ab4e4bc22357cc4d7f029bec8be2a97ed2ed2ac0873058a"
+        }
+      ],
+      "name": "services/ai_agronomist/management_zone_count.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "74e5b07f4e4a3aa50a87e8b378096576653bc564dbcb98fe28a729606b2555e2"
         }
       ],
@@ -7655,7 +7675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c381182c0c6a2740bdbda28515340580736bc9d1cf553a8c7e1ee5c637de31f"
+          "content": "141e0d7f206b3019e7ebce53fcf21584b517b262fad1c61c011d54fbd359a87f"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
@@ -7665,7 +7685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df29d439af0a0e15c94268f23fc1301907688b42ade16d943f1fbaada0016e83"
+          "content": "b4cdb56ea819475f04831a1a729722344e7c6a0951eb13ee00d5e3b1f3cd2ffa"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones_clustering.py",
@@ -8965,7 +8985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e8d1bf641ddb037fde64337fed1368aa1a8a7f907e39a2eff2ebd63d1f6fe1e"
+          "content": "d9a1d61a6763051d37d50037ae7f6469111a2c8d1ea9bad8324e3eba1e00ce29"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9065,7 +9085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef6ce9f52354e514269504d07c804b264c931e0969dbe19c0ae90c6909f0ae30"
+          "content": "9fff464aaab363c2e62527182360e8ccc5928450488cc49fef8da7faabf6cc97"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -9075,7 +9095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a83816ac934579d21d38765318adc86cbc81a3dc082c3729efd913b93f90e92"
+          "content": "13de80c2dc83ad70ff2879608cfb742aa7e29633b67654b70e75fd3ce1e0b70b"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9115,7 +9135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8850f30245c667067b5aa3a89068a56e3cc6ddb70e95d6d192e7a5a17dec271f"
+          "content": "4e7bc28fdea57c65999a52be9be1701274e7979ae9f663f69f6570bfd0351786"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -9129,6 +9149,16 @@
         }
       ],
       "name": "services/raster-service/routers/processing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c452c8083bf9ccabd6b02294c4e16d9eb2c81b892875e936d365b1ca3b5eafd8"
+        }
+      ],
+      "name": "services/raster-service/routers/soil_tiles.py",
       "type": "file"
     },
     {
@@ -9149,6 +9179,16 @@
         }
       ],
       "name": "services/raster-service/routers/storage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d1c0a4e51bd77b6197662211507286c8363509d3851af94a27ae3d5bb4f44f0"
+        }
+      ],
+      "name": "services/raster-service/routers/terrain_tiles.py",
       "type": "file"
     },
     {
@@ -9205,6 +9245,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d1004d0ed1e31cba1dae7a0bafcf8a318ee906257a97890a2dd1035b592b92d8"
+        }
+      ],
+      "name": "services/raster-service/soil_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2659f9ee945aac1e47d716433c2efaa8c7129f12a30e6b61affe34dd30ee552b"
+        }
+      ],
+      "name": "services/raster-service/soil_zones.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "81af876f94b56d2d0234ab44d55991e8eac7cf88ca291eac5d108490928beba2"
         }
       ],
@@ -9225,10 +9285,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32e7d202234fbba303e917525d9d940fe88a7232308d630e9ce5fdc9453faf6e"
+          "content": "7102704b07c98efabf822dcc22fac7ee73f28c3444b967359b935711bb51bea7"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1814b07887fe528ed4f4052c4ab7c531d72fd61e34dbf752c3e6b50e0e1fe87e"
+        }
+      ],
+      "name": "services/raster-service/terrain_render.py",
       "type": "file"
     },
     {
@@ -9265,7 +9335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c156e87f6b83f5a1bd0af7dd7f59570c6bdc508f720262061347edb3de680a33"
+          "content": "3e558c70659bf1138fa587eea4e8864f3ea3723395af56f358bfa2dc206db61b"
         }
       ],
       "name": "services/raster-service/test_cdse_poly_contract.py",
@@ -9425,10 +9495,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f36bcda8cf904788daea271316c7362e7d8e351adce8822e3a60bcd2776037d2"
+        }
+      ],
+      "name": "services/raster-service/test_poly_clip.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8fcd1a295d86426dff659ceeb63f774b9f7385b9b88006634f51a8ad5678b3ab"
         }
       ],
       "name": "services/raster-service/test_raster_assets_text_field_id.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8a44bbc6bcbfdd7d0633be878b69d589d84ed4d77f7991b5d04843d744fecb5c"
+        }
+      ],
+      "name": "services/raster-service/test_raster_crs_window.py",
       "type": "file"
     },
     {
@@ -9475,6 +9565,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d0de4b9ff122b9b92f28032d21791ea7d49361705169696ce1bb9338101c7fdd"
+        }
+      ],
+      "name": "services/raster-service/test_router_query_direct_call.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e049d3d8d5653896fd359a0edec86883d2ec66d1084e227c745417cd2ec7f31"
+        }
+      ],
+      "name": "services/raster-service/test_soil_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fd4c33c630ad9464c602ed85bf56d6ab4ff713b9ee0cd7f0b892210eb8b06a8a"
+        }
+      ],
+      "name": "services/raster-service/test_soil_zones.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5c372a41140d3714a53d02bb1a783151df4769884bde089176d09d10665a017b"
         }
       ],
@@ -9489,6 +9609,16 @@
         }
       ],
       "name": "services/raster-service/test_tenant_propagation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "420b8e31154223605415660dd4255c1ce01dc8c4d86e3aae0d5f95ac5331fd22"
+        }
+      ],
+      "name": "services/raster-service/test_terrain_render.py",
       "type": "file"
     },
     {
@@ -9525,7 +9655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1369723ec55388b1843e86d4816292732476d737ff1e0a78ca03ef44add8f9bb"
+          "content": "9dccf6ed896667f9e125498bcc43142993209526f73d526dd3576c68a5f7646f"
         }
       ],
       "name": "services/raster-service/tile_render.py",
