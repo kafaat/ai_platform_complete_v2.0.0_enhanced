@@ -56,6 +56,49 @@ def _nearest(value: float, centroids: list[float]) -> int:
     return min(range(len(centroids)), key=lambda c: abs(value - centroids[c]))
 
 
+def smooth_label_grid(
+    labels: list[list[int | None]],
+    *,
+    iters: int = 1,
+) -> list[list[int | None]]:
+    """مرشّح الأغلبيّة (8-جوار) لفرض تجاور مكانيّ على شبكة تصنيف المناطق (V60.2).
+
+    التخصيص لكلّ بكسل على حِدة يُنتج «ملح-وفلفل» (مناطق مبعثرة غير قابلة للإدارة).
+    مرشّح الأغلبيّة يُسنِد لكلّ خليّة صالحة أكثر تصنيفات جيرانها (مع نفسها) شيوعاً؛
+    التعادل يُبقي التصنيف الحالي. الخلايا غير الصالحة (``None``) لا تصوّت وتبقى كما هي.
+    idempotent على المناطق المتّصلة أصلاً (لا يغيّر حقلاً نظيفاً).
+    """
+    if not labels or not labels[0]:
+        return labels
+    rows, cols = len(labels), len(labels[0])
+    cur = labels
+    for _ in range(max(1, iters)):
+        nxt = [row[:] for row in cur]
+        for r in range(rows):
+            for c in range(cols):
+                if cur[r][c] is None:
+                    continue
+                counts: dict[int, int] = {}
+                for dr in (-1, 0, 1):
+                    for dc in (-1, 0, 1):
+                        rr, cc = r + dr, c + dc
+                        if 0 <= rr < rows and 0 <= cc < cols and cur[rr][cc] is not None:
+                            lbl = cur[rr][cc]
+                            counts[lbl] = counts.get(lbl, 0) + 1
+                if not counts:
+                    continue
+                best = max(counts.values())
+                # التعادل: أبقِ الحالي إن كان ضمن الأكثر شيوعاً؛ وإلّا أصغر تصنيف (حتميّ).
+                if counts.get(cur[r][c], 0) == best:
+                    nxt[r][c] = cur[r][c]
+                else:
+                    nxt[r][c] = min(lbl for lbl, n in counts.items() if n == best)
+        if nxt == cur:
+            break
+        cur = nxt
+    return cur
+
+
 def cluster_separability(values: list[float], centroids: list[float]) -> float:
     """Between-cluster / total variance in [0,1] — higher = cleaner clusters."""
     vals = [v for v in values if isinstance(v, (int, float))]
@@ -80,8 +123,19 @@ def _class_for_rank(rank: int, k: int) -> str:
     return "medium"
 
 
-def zones_from_ndvi_grid(grid: NdviGrid, bbox: list[float], k: int) -> dict[str, Any] | None:
+def zones_from_ndvi_grid(
+    grid: NdviGrid,
+    bbox: list[float],
+    k: int | None,
+    *,
+    smooth: bool = False,
+) -> dict[str, Any] | None:
     """NDVI grid → per-class productivity zones (polygons + score), or None if unusable.
+
+    ``k`` fixes the cluster count; pass ``None`` to auto-select the optimal number of
+    management zones via FPI/NCE (Management Zone Analyst, V60.2). ``smooth`` applies an
+    8-neighbour majority filter to the per-cell class grid first, enforcing spatial
+    contiguity (fewer salt-and-pepper zones) — idempotent on already-contiguous fields.
 
     Returns None when the grid is empty/degenerate so the caller can fall back to the
     deterministic strip zoning.
@@ -94,24 +148,34 @@ def zones_from_ndvi_grid(grid: NdviGrid, bbox: list[float], k: int) -> dict[str,
     if rows == 0 or cols == 0 or len(set(flat)) < 2:
         return None
 
+    recommendation: dict[str, Any] | None = None
+    if k is None:
+        from .management_zone_count import recommend_zone_count
+
+        recommendation = recommend_zone_count(flat)
+        if recommendation is None:
+            return None
+        k = recommendation["recommended_k"]
+
     centroids = kmeans_1d(flat, k)
     if len(centroids) < 2:
         return None
     k_eff = len(centroids)
 
+    # Per-cell class label grid (None where invalid), optionally contiguity-smoothed.
+    labels: list[list[int | None]] = [
+        [
+            _nearest(float(grid[r][c]), centroids) if isinstance(grid[r][c], (int, float)) else None
+            for c in range(cols)
+        ]
+        for r in range(rows)
+    ]
+    if smooth:
+        labels = smooth_label_grid(labels)
+
     zones: list[dict[str, Any]] = []
     for rank in range(k_eff):
-        # Binary mask of cells assigned to this cluster rank.
-        mask = [
-            [
-                1
-                if isinstance(grid[r][c], (int, float))
-                and _nearest(float(grid[r][c]), centroids) == rank
-                else 0
-                for c in range(cols)
-            ]
-            for r in range(rows)
-        ]
+        mask = [[1 if labels[r][c] == rank else 0 for c in range(cols)] for r in range(rows)]
         polys = mask_to_polygons(mask, bbox, min_area_px=1)
         if not polys:
             continue
@@ -130,12 +194,16 @@ def zones_from_ndvi_grid(grid: NdviGrid, bbox: list[float], k: int) -> dict[str,
             )
     if not zones:
         return None
-    return {
+    result: dict[str, Any] = {
         "zones": zones,
         "k_effective": k_eff,
         "cluster_separability": cluster_separability(flat, centroids),
         "ndvi_centroids": [round(c, 3) for c in centroids],
+        "spatially_smoothed": smooth,
     }
+    if recommendation is not None:
+        result["zone_count_recommendation"] = recommendation
+    return result
 
 
 def extract_ndvi_grid(params: dict[str, Any], evidence: dict[str, Any] | None) -> NdviGrid | None:
