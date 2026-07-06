@@ -4,6 +4,7 @@
 This is a static DNS contract gate: it catches compose/nginx drift before Docker starts.
 It accepts service names, container_name values, and explicit network aliases as resolvable names.
 """
+
 from __future__ import annotations
 
 import argparse

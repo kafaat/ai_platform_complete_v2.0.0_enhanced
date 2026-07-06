@@ -88,6 +88,18 @@ class ImageryAutomation:
         """يربط pool القاعدة لتمكين الاستمرار الدائم."""
         self._pool = pool
 
+    async def _set_tenant_context_if_any(self, conn, tenant_id: str | None) -> None:
+        """Set RLS tenant context for writes to tenant-scoped automation rows.
+
+        The automation worker uses a raw asyncpg pool rather than tenant_connection().
+        Under FORCE RLS, INSERT/UPDATE to imagery_automation_fields must run with
+        app.current_tenant set to the row tenant, otherwise PostgreSQL correctly
+        rejects the write. This helper keeps the worker fail-closed without using
+        BYPASSRLS.
+        """
+        if tenant_id:
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
+
     async def load_from_db(self) -> int:
         """يحمّل الحقول المتابَعة + آخر صورة معروفة من القاعدة عند الإقلاع.
 
@@ -130,34 +142,36 @@ class ImageryAutomation:
             return
         try:
             async with self._pool.acquire() as conn:
-                await conn.execute(
-                    "INSERT INTO imagery_automation_fields "
-                    "(field_id, tenant_id, bbox_west, bbox_south, bbox_east, bbox_north, "
-                    " last_image_id, last_image_date, last_checked_at, "
-                    " last_indicator_job, new_images_found, check_errors) "
-                    "VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,NOW(),$9,$10,$11) "
-                    "ON CONFLICT (field_id) DO UPDATE SET "
-                    " tenant_id=COALESCE(EXCLUDED.tenant_id, imagery_automation_fields.tenant_id), "
-                    " bbox_west=EXCLUDED.bbox_west, bbox_south=EXCLUDED.bbox_south, "
-                    " bbox_east=EXCLUDED.bbox_east, bbox_north=EXCLUDED.bbox_north, "
-                    " last_image_id=EXCLUDED.last_image_id, "
-                    " last_image_date=EXCLUDED.last_image_date, "
-                    " last_checked_at=NOW(), "
-                    " last_indicator_job=EXCLUDED.last_indicator_job, "
-                    " new_images_found=EXCLUDED.new_images_found, "
-                    " check_errors=EXCLUDED.check_errors",
-                    tf.field_id,
-                    tf.tenant_id,
-                    tf.bbox[0],
-                    tf.bbox[1],
-                    tf.bbox[2],
-                    tf.bbox[3],
-                    tf.last_image_id,
-                    tf.last_image_date,
-                    tf.last_indicator_job,
-                    tf.new_images_found,
-                    tf.check_errors,
-                )
+                async with conn.transaction():
+                    await self._set_tenant_context_if_any(conn, tf.tenant_id)
+                    await conn.execute(
+                        "INSERT INTO imagery_automation_fields "
+                        "(field_id, tenant_id, bbox_west, bbox_south, bbox_east, bbox_north, "
+                        " last_image_id, last_image_date, last_checked_at, "
+                        " last_indicator_job, new_images_found, check_errors) "
+                        "VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,NOW(),$9,$10,$11) "
+                        "ON CONFLICT (field_id) DO UPDATE SET "
+                        " tenant_id=COALESCE(EXCLUDED.tenant_id, imagery_automation_fields.tenant_id), "
+                        " bbox_west=EXCLUDED.bbox_west, bbox_south=EXCLUDED.bbox_south, "
+                        " bbox_east=EXCLUDED.bbox_east, bbox_north=EXCLUDED.bbox_north, "
+                        " last_image_id=EXCLUDED.last_image_id, "
+                        " last_image_date=EXCLUDED.last_image_date, "
+                        " last_checked_at=NOW(), "
+                        " last_indicator_job=EXCLUDED.last_indicator_job, "
+                        " new_images_found=EXCLUDED.new_images_found, "
+                        " check_errors=EXCLUDED.check_errors",
+                        tf.field_id,
+                        tf.tenant_id,
+                        tf.bbox[0],
+                        tf.bbox[1],
+                        tf.bbox[2],
+                        tf.bbox[3],
+                        tf.last_image_id,
+                        tf.last_image_date,
+                        tf.last_indicator_job,
+                        tf.new_images_found,
+                        tf.check_errors,
+                    )
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل حفظ حقل الصور %s: %s", tf.field_id, e)
 
@@ -661,13 +675,15 @@ class ImageryAutomation:
             return
         try:
             async with self._pool.acquire() as conn:
-                await conn.execute(
-                    "UPDATE imagery_automation_fields "
-                    "SET last_ndvi_mean = $2, last_ndvi_date = $3::date WHERE field_id = $1",
-                    tf.field_id,
-                    tf.last_ndvi_mean,
-                    tf.last_ndvi_date,
-                )
+                async with conn.transaction():
+                    await self._set_tenant_context_if_any(conn, tf.tenant_id)
+                    await conn.execute(
+                        "UPDATE imagery_automation_fields "
+                        "SET last_ndvi_mean = $2, last_ndvi_date = $3::date WHERE field_id = $1",
+                        tf.field_id,
+                        tf.last_ndvi_mean,
+                        tf.last_ndvi_date,
+                    )
         except Exception as e:  # noqa: BLE001 — حفظ best-effort
             logger.debug("حفظ NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
 
@@ -681,19 +697,21 @@ class ImageryAutomation:
             return
         try:
             async with self._pool.acquire() as conn:
-                await conn.execute(
-                    "UPDATE imagery_automation_fields SET "
-                    "last_ndmi_mean = COALESCE($2, last_ndmi_mean), "
-                    "last_ndmi_date = COALESCE($3::date, last_ndmi_date), "
-                    "last_msi_mean = COALESCE($4, last_msi_mean), "
-                    "last_msi_date = COALESCE($5::date, last_msi_date) "
-                    "WHERE field_id = $1",
-                    tf.field_id,
-                    tf.last_ndmi_mean,
-                    tf.last_ndmi_date,
-                    tf.last_msi_mean,
-                    tf.last_msi_date,
-                )
+                async with conn.transaction():
+                    await self._set_tenant_context_if_any(conn, tf.tenant_id)
+                    await conn.execute(
+                        "UPDATE imagery_automation_fields SET "
+                        "last_ndmi_mean = COALESCE($2, last_ndmi_mean), "
+                        "last_ndmi_date = COALESCE($3::date, last_ndmi_date), "
+                        "last_msi_mean = COALESCE($4, last_msi_mean), "
+                        "last_msi_date = COALESCE($5::date, last_msi_date) "
+                        "WHERE field_id = $1",
+                        tf.field_id,
+                        tf.last_ndmi_mean,
+                        tf.last_ndmi_date,
+                        tf.last_msi_mean,
+                        tf.last_msi_date,
+                    )
         except Exception as e:  # noqa: BLE001 — حفظ best-effort
             logger.debug("حفظ NDMI/MSI تخطٍّ للحقل %s: %s", tf.field_id, e)
 

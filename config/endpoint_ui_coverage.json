@@ -1388,6 +1388,11 @@
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/imagery/refresh",
       "audience": "farmer",
       "evidence": "/api/v1/fields"

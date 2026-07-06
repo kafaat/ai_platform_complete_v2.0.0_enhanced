@@ -41,6 +41,8 @@ import {
   segmentField,
   fetchImageryBackfillPolicy,
   runHistoricalImageryBackfill,
+  fetchHistoricalImageryBackfillStatus,
+  isTerminalBackfillStatus,
   fieldCdseThumbnailUrl,
 } from './api';
 
@@ -221,5 +223,20 @@ describe('historical imagery backfill API', () => {
     const out = await runHistoricalImageryBackfill('F-1', payload);
     expect(mockPost).toHaveBeenCalledWith('/api/v1/fields/F-1/imagery/backfill', payload);
     expect(out).toEqual(response);
+  });
+
+  it('polls a platform-proxied asynchronous backfill status endpoint', async () => {
+    const response = { run_id: 7, field_id: 'F-1', status: 'completed', items_persisted: 8 };
+    mockGet.mockResolvedValueOnce({ data: response });
+    const out = await fetchHistoricalImageryBackfillStatus('F-1', 7);
+    expect(mockGet).toHaveBeenCalledWith('/api/v1/fields/F-1/imagery/backfill/7');
+    expect(out).toEqual(response);
+  });
+
+  it('recognizes terminal asynchronous backfill statuses', () => {
+    expect(isTerminalBackfillStatus('completed')).toBe(true);
+    expect(isTerminalBackfillStatus('completed_with_errors')).toBe(true);
+    expect(isTerminalBackfillStatus('failed')).toBe(true);
+    expect(isTerminalBackfillStatus('processing')).toBe(false);
   });
 });

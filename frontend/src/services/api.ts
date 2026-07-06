@@ -3949,8 +3949,33 @@ export const fetchImageryBackfillPolicy = () =>
 
 /** إنشاء خطة/مهمة backfill تاريخية للحقل. dry_run=true يعطي تقدير تكلفة/عدد مشاهد قبل التشغيل.
  * يمرّ عبر بوّابة sahool-platform (لا مباشرةً إلى raster-service) كي لا يُكشف X-Agent-Token للمتصفّح. */
+export interface HistoricalImageryBackfillStatus {
+  run_id?: number;
+  id?: number;
+  field_id?: string;
+  status?: string;
+  items_persisted?: number;
+  items_failed?: number;
+  items_skipped?: number;
+  jobs_scheduled?: number;
+  scenes_selected?: number;
+  months_scanned?: number;
+  item_status_counts?: Record<string, number>;
+  error?: string | null;
+  updated_at?: string | null;
+}
+
+export const isTerminalBackfillStatus = (status?: string | null) =>
+  ['completed', 'completed_with_errors', 'failed', 'cancelled'].includes(String(status || '').toLowerCase());
+
+/** إنشاء خطة/مهمة backfill تاريخية للحقل. dry_run=true يعطي تقدير تكلفة/عدد مشاهد قبل التشغيل.
+ * يمرّ عبر بوّابة sahool-platform (لا مباشرةً إلى raster-service) كي لا يُكشف X-Agent-Token للمتصفّح. */
 export const runHistoricalImageryBackfill = (fieldId: string, payload: HistoricalImageryBackfillPayload) =>
   kongApi.post(`/api/v1/fields/${fieldId}/imagery/backfill`, payload).then(r => r.data);
+
+/** استطلاع حالة backfill اللاتزامني عبر بوابة المنصة، ثم إعادة مزامنة Timeline عند الاكتمال. */
+export const fetchHistoricalImageryBackfillStatus = (fieldId: string, runId: number) =>
+  kongApi.get(`/api/v1/fields/${fieldId}/imagery/backfill/${runId}`).then(r => r.data as HistoricalImageryBackfillStatus);
 
 /** سلسلة زمنية NDVI — GET /v1/timeseries/{fieldId} */
 export const fetchVegetationTimeseries = (fieldId: string, days = 30) =>
