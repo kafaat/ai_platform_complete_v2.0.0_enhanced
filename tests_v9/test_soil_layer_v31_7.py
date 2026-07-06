@@ -57,11 +57,13 @@ def test_field_soil_summary_and_zones_are_honest_and_tenant_scoped():
     assert "def compute_field_soil_summary(" in render
     assert "def usda_texture_class(" in render
     assert "soilgrids-source-not-configured" in render
-    # sampling zones: numpy k-means + polygonization, fail-closed, disclaimer.
+    # sampling zones + points: numpy k-means, fail-closed, disclaimer.
     assert "def compute_soil_sampling_zones(" in zones
+    assert "def compute_soil_sampling_points(" in zones  # points from real zone centroids
     assert "features.shapes" in zones or "rio_shapes" in zones  # polygonization
     assert '"computed": False' in zones and "DISCLAIMER_AR" in zones
     # field-scoped routes (tenant-guarded) — not anonymous.
     assert '@router.get("/v1/fields/{field_id}/soil/summary")' in router
     assert '@router.get("/v1/fields/{field_id}/soil/sampling-zones.geojson")' in router
+    assert '@router.get("/v1/fields/{field_id}/soil/sampling-plan")' in router
     assert "_require_field_tenant" in router

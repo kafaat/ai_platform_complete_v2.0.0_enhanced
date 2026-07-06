@@ -136,3 +136,23 @@ async def field_soil_sampling_zones(
     result = _sz.compute_soil_sampling_zones(_parse_bbox(bbox), depth, zones)
     result["field_id"] = field_id
     return result
+
+
+@router.get("/v1/fields/{field_id}/soil/sampling-plan")
+async def field_soil_sampling_plan(
+    field_id: str,
+    bbox: str | None = Query(None, description="minLon,minLat,maxLon,maxLat (EPSG:4326)"),
+    depth: str = Query("0-5cm"),
+    zones: int = Query(3, ge=2, le=5),
+    samples_per_zone: int = Query(1, ge=1, le=3),
+):
+    """نقاط عيّنات تربة تمثيليّة (GeoJSON Point) من مراكز مناطق k-means — tenant-scoped.
+
+    صدق: بلا مصدر ⇒ ``features:[]`` + ``computed:false`` — لا نقاط مُلفَّقة.
+    """
+    await main._require_field_tenant(field_id, hide_existence=True)
+    import soil_zones as _sz
+
+    result = _sz.compute_soil_sampling_points(_parse_bbox(bbox), depth, zones, samples_per_zone)
+    result["field_id"] = field_id
+    return result

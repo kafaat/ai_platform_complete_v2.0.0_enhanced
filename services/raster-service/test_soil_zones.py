@@ -65,8 +65,21 @@ def test_soil_sampling_zones_polygonized(tmp_path: Path):
         assert "soil" in f["properties"] and "zone_id" in f["properties"]
 
 
+def test_soil_sampling_points_from_zone_centroids(tmp_path: Path):
+    bbox = _synthetic_source(tmp_path)
+    p = sz.compute_soil_sampling_points(bbox, n_zones=3, samples_per_zone=1)
+    assert p["computed"] is True and p["source"] == "soilgrids-zone-centroids"
+    assert len(p["features"]) >= 2
+    for f in p["features"]:
+        assert f["geometry"]["type"] == "Point"
+        assert "point_id" in f["properties"] and "reason_ar" in f["properties"]
+        assert f["properties"]["tests"]
+
+
 def test_soil_summary_zones_fail_closed(monkeypatch):
     monkeypatch.delenv("SOILGRIDS_DIR", raising=False)
     assert s.compute_field_soil_summary([1, 2, 3, 4])["computed"] is False
     fc = sz.compute_soil_sampling_zones([1, 2, 3, 4])
     assert fc["computed"] is False and fc["features"] == []
+    pts = sz.compute_soil_sampling_points([1, 2, 3, 4])
+    assert pts["computed"] is False and pts["features"] == []
