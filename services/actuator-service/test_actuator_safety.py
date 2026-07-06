@@ -50,6 +50,16 @@ os.environ.pop("FEATURE_DISPATCH_ACTUATOR", None)
 _MAIN_PATH = Path(__file__).resolve().parent / "main.py"
 _spec = importlib.util.spec_from_file_location("actuator_main_safety_test", _MAIN_PATH)
 main = importlib.util.module_from_spec(_spec)
+# حاسم بعد التفكيك: سجّل الوحدة باسم ``main`` قبل التنفيذ كي يستورد ``routers/*``
+# (عبر register_routers) **نفس النسخة** — وإلّا نسخة ثانية من main فتفشل
+# dependency_overrides[main._verify_token] لعدم تطابق كائن الدالّة (نمط عزل soil-service).
+# أخْلِ وحدات الراوتر المخبّأة (من خدمة/اختبار سابق في نفس العمليّة) كي يُعيد
+# register_routers استيرادها مقابل نسختنا من ``main`` — وإلّا تبقى routes مربوطة بـ
+# _verify_token من نسخة أخرى فتفشل dependency_overrides (تصادُم main/routers، monorepo).
+for _m in [m for m in sys.modules if m == "router_registry" or m.startswith("routers")]:
+    sys.modules.pop(_m, None)
+sys.modules["actuator_main_safety_test"] = main
+sys.modules["main"] = main
 _spec.loader.exec_module(main)
 
 

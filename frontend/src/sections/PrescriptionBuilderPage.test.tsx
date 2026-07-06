@@ -8,6 +8,7 @@
 // المحاكاة في الاختبار فقط — حتميّة.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
 
 // ── ظِلّ react-leaflet / DrawControl / leaflet (jsdom بلا خريطة فعليّة) ──
@@ -83,20 +84,20 @@ beforeEach(() => {
 describe('PrescriptionBuilderPage', () => {
   it('(أ) يعرض شارة النضج alpha وإعلان أنّه يدويّ (صدق المنهج)', () => {
     stubList({ data: EMPTY });
-    render(<PrescriptionBuilderPage />);
+    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText('alpha')).toBeInTheDocument();
     expect(screen.getByText(/يدويّ/)).toBeInTheDocument();
   });
 
   it('(ب) فراغ صادق: لا وصفات محفوظة ⇒ تُعرَض note_ar (لا اختراع)', () => {
     stubList({ data: EMPTY });
-    render(<PrescriptionBuilderPage />);
+    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText(/لا وصفات مُخزَّنة/)).toBeInTheDocument();
   });
 
   it('(ج) معمورة: الوصفة المحفوظة تظهر مع أزرار التصدير GeoJSON/CSV', () => {
     stubList({ data: FULL });
-    render(<PrescriptionBuilderPage />);
+    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText(/تصدير GeoJSON/)).toBeInTheDocument();
     expect(screen.getByText(/تصدير CSV/)).toBeInTheDocument();
     // TODO صريح لصيغ المُتحكِّمات (لا ندّعي إنتاجها).
@@ -105,13 +106,13 @@ describe('PrescriptionBuilderPage', () => {
 
   it('(د) 503: قائمة الوصفات تعرض حالة خطأ صادقة', () => {
     stubList({ isError: true, error: { response: { status: 503 } } as unknown as Error });
-    render(<PrescriptionBuilderPage />);
+    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText(/غير متاحة \(503\)/)).toBeInTheDocument();
   });
 
   it('(هـ) يعرض أداة الرسم والخريطة (لرسم المناطق يدويّاً)', () => {
     stubList({ data: EMPTY });
-    render(<PrescriptionBuilderPage />);
+    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByTestId('map')).toBeInTheDocument();
     expect(screen.getByTestId('draw')).toBeInTheDocument();
   });
