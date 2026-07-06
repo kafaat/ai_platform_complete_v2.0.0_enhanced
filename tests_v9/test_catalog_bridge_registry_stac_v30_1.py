@@ -19,6 +19,9 @@ pytestmark = pytest.mark.unit
 REPO = Path(__file__).resolve().parents[1]
 DB_PERSIST = REPO / "services" / "raster-service" / "db_persist.py"
 RASTER_MAIN = REPO / "services" / "raster-service" / "main.py"
+# التفكيك (phase-4): جسر الكتالوج في مسار الأصل انتقل من main.py إلى
+# raster_asset_persistence.py (main يعيد تصدير persist_raster_asset فقط).
+RASTER_PERSIST = REPO / "services" / "raster-service" / "raster_asset_persistence.py"
 FIELDS = REPO / "services" / "raster-service" / "routers" / "fields.py"
 
 
@@ -52,7 +55,9 @@ def test_quality_score_clamped_to_0_100() -> None:
 
 
 def test_registry_bridge_wired_in_asset_persist() -> None:
-    src = RASTER_MAIN.read_text(encoding="utf-8")
+    src = (
+        RASTER_MAIN.read_text(encoding="utf-8") + "\n" + RASTER_PERSIST.read_text(encoding="utf-8")
+    )
     joined = " ".join(src.split())
     assert "db_persist.insert_raster_registry_entry(" in joined, "الجسر غير موصول بمسار الأصل"
     # لا نجسر أصلاً غير قابل للخدمة (file://).

@@ -112,8 +112,13 @@ def test_stac_total_failure_maps_to_503_not_raw_500(rm):
 
     # التحويل إلى CDSE جعل _stac_search يوجّه افتراضاً لكتالوج Copernicus؛ هذا الحارس
     # يخصّ مسار Element84 (فشل العميل المرن → 503) فنُثبّت المزوّد صراحةً لاختباره.
+    # بعد التفكيك صار منطق التوجيه في وحدة stac_search؛ لذا نضبط المزوّد على الوحدة
+    # المفكَّكة (لا على main فقط) وإلّا سقط المسار على حارس «اعتمادات CDSE غائبة».
+    _helpers = rm.stac_search_helpers
     _prev_provider = rm.HISTORICAL_SEARCH_PROVIDER
+    _prev_helpers_provider = _helpers.HISTORICAL_SEARCH_PROVIDER
     rm.HISTORICAL_SEARCH_PROVIDER = "element84"
+    _helpers.HISTORICAL_SEARCH_PROVIDER = "element84"
     rm._stac.search = total_failure
     try:
         with pytest.raises(HTTPException) as ei:
@@ -131,6 +136,7 @@ def test_stac_total_failure_maps_to_503_not_raw_500(rm):
         assert "STAC" in str(ei.value.detail)
     finally:
         rm.HISTORICAL_SEARCH_PROVIDER = _prev_provider
+        _helpers.HISTORICAL_SEARCH_PROVIDER = _prev_helpers_provider
 
 
 def test_cdse_index_tif_written_under_upload_dir():

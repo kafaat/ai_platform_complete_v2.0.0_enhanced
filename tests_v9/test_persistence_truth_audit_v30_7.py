@@ -124,8 +124,9 @@ def test_readers_require_ready_status():
 
 # ── V11-04: الطبقة المُعاد ترطيبها تحمل النَّسَب/الهويّة (لا شبكة بلا field_id) ──
 def test_rehydrated_layer_carries_lineage():
-    src = _read(_RASTER / "main.py")
-    idx = src.find("async def _rehydrate_field_layer_from_db")
+    # التفكيك (المرحلة ٣): انتقل التنفيذ من main.py إلى layer_lookup.py.
+    src = _read(_RASTER / "layer_lookup.py")
+    idx = src.find("async def rehydrate_field_layer_from_db")
     body = src[idx : idx + 2500]
     for key in ('"field_id": field_id', '"asset_status"', '"geometry_revision"', '"scene_id"'):
         assert key in body, f"طبقة الترطيب يجب أن تحمل {key}"

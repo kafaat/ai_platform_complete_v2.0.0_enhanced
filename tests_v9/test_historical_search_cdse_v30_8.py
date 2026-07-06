@@ -31,14 +31,20 @@ def test_default_historical_search_provider_is_cdse():
 
 # ── _stac_search يوجّه إلى CDSE + يفشل مُغلَقاً بلا اعتمادات (لا ارتداد صامت لـElement84) ──
 def test_stac_search_dispatches_to_cdse_failclosed():
-    src = _read(_RASTER / "main.py")
-    assert "async def _stac_search_cdse" in src, "يجب وجود باحث CDSE للكتالوج"
+    # منطق البحث فُكِّك من main.py إلى stac_search.py (بلا بادئة _)؛ main يعيد تصديره
+    # عبر ألقاب _stac_search*. نتتبّع الشيفرة المنقولة ونثبّت وصلها بواجهة main.
+    src = _read(_RASTER / "stac_search.py")
+    main_src = _read(_RASTER / "main.py")
+    assert "_stac_search = stac_search_helpers.stac_search" in main_src, (
+        "main يجب أن يوجّه _stac_search إلى الوحدة المفكَّكة"
+    )
+    assert "async def stac_search_cdse" in src, "يجب وجود باحث CDSE للكتالوج"
     assert "search_scenes(" in src, "يجب استعمال cdse_client.search_scenes"
     assert '"source": "cdse-catalog"' in src
     # Element84 ارتداد صريح فقط (تجاوز واعٍ)
     assert 'HISTORICAL_SEARCH_PROVIDER == "element84"' in src
     # لا اعتمادات CDSE ⇒ فشل مُغلَق بـ503 (لا تسرّب صامت إلى Element84)
-    idx = src.find("async def _stac_search(")
+    idx = src.find("async def stac_search(")
     body = src[idx : idx + 1800]
     assert "not _cdse.is_configured()" in body
     assert "status_code=503" in body, "غياب اعتمادات CDSE يجب أن يفشل مُغلَقاً بـ503"

@@ -9005,7 +9005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "308bd058718f6a87d43d907ea7d51529e227e7e78580b4e05be675a67012c83b"
+          "content": "5b6786973f7a05a0965ee27f13d054bf4d2b566702f2f7ef91a1ae0977faf971"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9345,6 +9345,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "096667a8849b98001f962e9f1c88dfe3030bb0c70bb053778c0ed2301a42cb6c"
+        }
+      ],
+      "name": "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a0cef9857338fc3c68a28e2d00f374c7afddd5eb494988a154929dbc5764e576"
         }
       ],
@@ -9565,7 +9575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29fd9b8be29bfc99441e4210024370ad1252b2c8ba6718723e1c8e61de5fd960"
+          "content": "5ce7000f214e50b8147bd9c5774b26e46d4dd47b747716c1ecfb3ae54d77acbf"
         }
       ],
       "name": "services/raster-service/test_raster_error_sanitization_static.py",

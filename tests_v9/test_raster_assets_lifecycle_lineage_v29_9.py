@@ -78,8 +78,11 @@ def test_request_models_carry_geometry_revision() -> None:
     assert src.count("geometry_revision: int | None = None") >= 4, (
         "ليست كلّ نماذج الطلب تحمل geometry_revision"
     )
-    # المُثابر يمرّر النَّسَب.
-    joined = " ".join(src.split())
+    # المُثابر يمرّر النَّسَب (انتقل جسمه إلى raster_asset_persistence.py بعد التفكيك).
+    persist = (REPO / "services" / "raster-service" / "raster_asset_persistence.py").read_text(
+        encoding="utf-8"
+    )
+    joined = " ".join((src + " " + persist).split())
     assert 'geometry_revision=getattr(req, "geometry_revision", None)' in joined
 
 

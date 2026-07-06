@@ -18,7 +18,12 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 
 ROOT = Path(__file__).resolve().parents[1]
 RASTER = ROOT / "services/raster-service"
-MAIN = (RASTER / "main.py").read_text(encoding="utf-8")
+# main.py فُكِّك: تطبيع/أسماء المؤشّرات (خرائط الأسماء المستعارة مثل "ndvu": "ndvi"
+# وأسماء الملوحة) انتقلت إلى layer_lookup.py، وتبقى في main.py مُغلِّفات _normalize_index/
+# _display_index المُعاد تصديرها. نقرأ الوحدتين معاً كي يبقى العقد محفوظاً دون إضعاف التأكيدات.
+MAIN = (RASTER / "main.py").read_text(encoding="utf-8") + (RASTER / "layer_lookup.py").read_text(
+    encoding="utf-8"
+)
 API_MAIN = (ROOT / "services/sahool-platform/api/main.py").read_text(encoding="utf-8")
 FRONT_API = (ROOT / "frontend/src/services/api.ts").read_text(encoding="utf-8")
 FIELD_MAP = (ROOT / "frontend/src/components/FieldIndicatorMap.tsx").read_text(encoding="utf-8")

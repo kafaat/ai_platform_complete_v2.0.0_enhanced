@@ -229,10 +229,18 @@ def test_public_cog_url_hides_internal_paths(rm):
 # ─── حُرّاس مصدر (دفاع عمق) ────────────────────────────────────────
 def test_rehydrated_layer_stores_tenant():
     """الطبقة المُعاد ترطيبها من القاعدة يجب أن تحمل tenant_id (وإلّا تسريب عبر cache)."""
-    src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
-    block = src[src.index('lid = f"db_') : src.index('lid = f"db_') + 600]
-    assert '"tenant_id": _REQ_TENANT.get()' in block, (
+    # التفكيك (المرحلة ٣): انتقل الترطيب إلى layer_lookup.py مع حقن tenant_getter.
+    src = open(os.path.join(RASTER, "layer_lookup.py"), encoding="utf-8").read()
+    block = src[src.index('layer_id = f"db_') : src.index('layer_id = f"db_') + 600]
+    assert '"tenant_id": tenant_id' in block, (
         "طبقة DB المُعاد ترطيبها بلا tenant_id ⇒ ثغرة تسريب عبر الـcache"
+    )
+    # النَّسَب المستأجِريّ يأتي من سياق الطلب: tenant_id = tenant_getter()،
+    # وmain يوصل tenant_getter=_REQ_TENANT.get (تعاقُد نطاق المستأجِر محفوظ).
+    assert "tenant_id = tenant_getter()" in src, "الترطيب يجب أن يشتقّ المستأجِر من الحاقن"
+    main_src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
+    assert "tenant_getter=_REQ_TENANT.get" in main_src, (
+        "main يجب أن يوصل مستأجِر الطلب (_REQ_TENANT) كمصدر للترطيب"
     )
 
 

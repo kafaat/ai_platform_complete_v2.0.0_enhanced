@@ -14,7 +14,8 @@ Two regressions turned previously-rendering pixel tiles blank:
 
 Evidence:
 - services/raster-service/routers/cdse_tiles.py :: LATEST_WINDOW_DAYS / _ensure_clipped_cog
-- services/raster-service/main.py :: _cdse_lock / _cdse_key_lock
+- services/raster-service/cdse_singleflight.py :: cdse_lock / cdse_key_lock
+  (re-exported by services/raster-service/main.py as _cdse_lock / _cdse_key_lock)
 """
 
 from __future__ import annotations
@@ -28,6 +29,9 @@ pytestmark = pytest.mark.unit
 _ROOT = Path(__file__).resolve().parents[1]
 _TILES = _ROOT / "services" / "raster-service" / "routers" / "cdse_tiles.py"
 _MAIN = _ROOT / "services" / "raster-service" / "main.py"
+# Single-flight lock state/helpers were decomposed out of main.py into this
+# sibling module; main.py keeps thin _cdse_* alias re-exports of these.
+_SINGLEFLIGHT = _ROOT / "services" / "raster-service" / "cdse_singleflight.py"
 
 
 def test_latest_window_is_wide_and_env_tunable():
@@ -41,11 +45,18 @@ def test_latest_window_is_wide_and_env_tunable():
 def test_tile_fetch_single_flights_per_key_not_under_global_lock():
     main_src = _MAIN.read_text(encoding="utf-8")
     tiles_src = _TILES.read_text(encoding="utf-8")
-    # per-key lock helper exists and is used by the tile fetch path.
-    assert "def _cdse_key_lock(" in main_src
-    assert "_cdse_key_locks" in main_src
+    singleflight_src = _SINGLEFLIGHT.read_text(encoding="utf-8")
+    # The single-flight state/helpers were moved into cdse_singleflight.py (renamed
+    # without the leading underscore) and re-exported by main under the historical
+    # _cdse_* names. Read the combined source so the contract follows the moved code.
+    combined = main_src + "\n" + singleflight_src
+    # per-key lock helper exists (in the module) and is re-exported + used by the
+    # tile fetch path via main's alias.
+    assert "def cdse_key_lock(" in combined
+    assert "_cdse_key_lock = cdse_singleflight.cdse_key_lock" in main_src
+    assert "cdse_key_locks" in combined
     # stale key-locks are pruned so the registry doesn't grow unbounded.
-    assert "def _cdse_prune_key_locks_locked(" in main_src
+    assert "def cdse_prune_key_locks_locked(" in combined
     assert "_cdse_prune_key_locks_locked()" in tiles_src
     assert "main._cdse_key_lock(" in tiles_src
     # the network fetch (process_index via run_in_executor) must run under the

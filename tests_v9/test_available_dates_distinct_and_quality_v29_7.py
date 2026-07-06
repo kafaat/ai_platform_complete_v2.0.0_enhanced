@@ -25,6 +25,9 @@ pytestmark = pytest.mark.unit
 REPO = Path(__file__).resolve().parents[1]
 DB_PERSIST = REPO / "services" / "raster-service" / "db_persist.py"
 RASTER_MAIN = REPO / "services" / "raster-service" / "main.py"
+# التفكيك (phase-4): مسار الحفظ ومُستدعي insert_raster_asset انتقلا من main.py
+# إلى raster_asset_persistence.py (main يعيد تصديرها فقط). نقرأ الوحدتَين معاً.
+RASTER_PERSIST = REPO / "services" / "raster-service" / "raster_asset_persistence.py"
 
 
 def _fn_body(src: str, marker: str, span: int = 1800) -> str:
@@ -104,7 +107,13 @@ def test_insert_writes_v105_quality_columns() -> None:
 
 def test_caller_passes_quality_values_from_stats() -> None:
     """المُستدعي في main.py يمرّر confidence/cloud_pct/cloud_mask_sources فعلاً."""
-    src = " ".join(RASTER_MAIN.read_text(encoding="utf-8").split())
+    src = " ".join(
+        (
+            RASTER_MAIN.read_text(encoding="utf-8")
+            + "\n"
+            + RASTER_PERSIST.read_text(encoding="utf-8")
+        ).split()
+    )
     assert 'quality_score=stats.get("confidence")' in src, "quality_score لا يُمرَّر من stats"
     assert 'aoi_cloud_pct=stats.get("cloud_pct")' in src, "aoi_cloud_pct لا يُمرَّر من stats"
     assert 'cloud_mask_sources=stats.get("cloud_mask_sources")' in src, (
