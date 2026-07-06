@@ -291,6 +291,25 @@ def encode_png_rgba(rgba) -> bytes:
     return sig + _png_chunk(b"IHDR", ihdr) + _png_chunk(b"IDAT", idat) + _png_chunk(b"IEND", b"")
 
 
+def _has_per_dataset_mask(src) -> bool:
+    """True if the source declares a per-dataset (GDAL internal) mask band.
+
+    When such a mask exists, passing ``src_nodata`` to ``reproject`` triggers a
+    GDAL warning ("Source dataset has both a per-dataset mask band and the warper
+    has been also configured with a source nodata value. Only taking into account
+    the latter …") — emitted once per warp, flooding the logs. The mask is the
+    authoritative validity signal here (we re-apply it via ``_reproject_dataset_mask``),
+    so callers omit ``src_nodata`` when this returns True to keep GDAL quiet while
+    preserving identical masking. COGs without a mask still rely on ``src_nodata``.
+    """
+    try:
+        from rasterio.enums import MaskFlags
+
+        return any(MaskFlags.per_dataset in flags for flags in src.mask_flag_enums)
+    except Exception:  # noqa: BLE001 — probe failure ⇒ treat as no mask (keep src_nodata)
+        return False
+
+
 def _reproject_dataset_mask(src, *, dst_transform, dst_crs: str, out_shape: tuple[int, int]):
     """Reproject GDAL internal/per-dataset mask to the render grid.
 
@@ -457,6 +476,9 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
 
             # قراءة جزئية: لا نقرأ COG كاملاً لكل بلاطة. نعيد الإسقاط مباشرةً من
             # DatasetReader إلى مصفوفة 256×256 كي يستفيد GDAL من tiling/overviews.
+            # حين يملك المصدر قناع مجموعة بيانات، لا نمرّر src_nodata (كي لا يحذّر GDAL
+            # ويتجاهل القناع)؛ نعتمد على القناع عبر _reproject_dataset_mask أدناه.
+            warp_nodata = None if _has_per_dataset_mask(src) else src_nodata
             dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
             reproject(
                 source=rasterio.band(src, 1),
@@ -466,7 +488,7 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
                 dst_transform=dst_transform,
                 dst_crs=dst_crs,
                 resampling=Resampling.nearest,
-                src_nodata=src_nodata,
+                src_nodata=warp_nodata,
                 dst_nodata=np.nan,
             )
             dst_mask = _reproject_dataset_mask(
@@ -609,6 +631,9 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
                 out_h = max_px
                 out_w = max(16, int(round(max_px * span_x / span_y)))
             dst_transform = from_bounds(minx, miny, maxx, maxy, out_w, out_h)
+            # لا تمرّر src_nodata حين يوجد قناع مجموعة بيانات (يتجنّب تحذير GDAL
+            # وتجاهله للقناع)؛ القناع يُعاد تطبيقه عبر _reproject_dataset_mask أدناه.
+            warp_nodata = None if _has_per_dataset_mask(src) else src_nodata
             dst = np.full((out_h, out_w), np.nan, dtype="float32")
             reproject(
                 source=rasterio.band(src, 1),
@@ -618,7 +643,7 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
                 dst_transform=dst_transform,
                 dst_crs="EPSG:3857",
                 resampling=Resampling.nearest,
-                src_nodata=src_nodata,
+                src_nodata=warp_nodata,
                 dst_nodata=np.nan,
             )
             dst_mask = _reproject_dataset_mask(
