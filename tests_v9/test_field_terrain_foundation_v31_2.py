@@ -59,9 +59,9 @@ def test_terrain_agronomy_interpretation_is_honest_and_fail_closed():
     # slope % from degrees (not raw degrees) for agronomic thresholds.
     assert "math.tan(math.radians(" in src
     # wired into the field terrain endpoint.
-    rfields = (
-        _ROOT / "services" / "raster-service" / "routers" / "fields.py"
-    ).read_text(encoding="utf-8")
+    rfields = (_ROOT / "services" / "raster-service" / "routers" / "fields.py").read_text(
+        encoding="utf-8"
+    )
     assert "interpret_terrain_for_agronomy" in rfields
 
 
