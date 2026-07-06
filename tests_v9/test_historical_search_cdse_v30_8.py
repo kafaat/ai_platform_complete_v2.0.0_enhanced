@@ -23,7 +23,8 @@ def _read(rel: pathlib.Path) -> str:
 
 # ── الافتراض CDSE: مزوّد البحث التاريخيّ = cdse ما لم يُطلَب Element84 صراحةً ──
 def test_default_historical_search_provider_is_cdse():
-    src = _read(_RASTER / "main.py")
+    # phase12: الإعدادات (المزوّد الافتراضيّ) انتقلت إلى raster_settings.py
+    src = _read(_RASTER / "main.py") + "\n" + _read(_RASTER / "raster_settings.py")
     assert 'os.getenv("HISTORICAL_SEARCH_PROVIDER", "cdse")' in src, (
         "المزوّد الافتراضيّ للبحث التاريخيّ يجب أن يكون cdse"
     )
@@ -52,8 +53,10 @@ def test_stac_search_dispatches_to_cdse_failclosed():
 
 # ── مسار المعالجة التاريخيّة يستعمل CDSE Process API لمشاهد الكتالوج ──
 def test_backfill_processes_cdse_scenes_via_process_api():
-    src = _read(_RASTER / "main.py")
-    assert "def _process_backfill_scene_cdse" in src
+    # phase12: مسار معالجة مشهد backfill عبر CDSE Process API انتقل إلى
+    # raster_backfill_scene_processing.py (وبقي غلاف التوافق في main.py).
+    src = _read(_RASTER / "main.py") + "\n" + _read(_RASTER / "raster_backfill_scene_processing.py")
+    assert "_process_backfill_scene_cdse" in src
     assert "cdse_client.get_client().process_index(" in src
     worker = _read(_RASTER / "backfill_scan_worker.py")
     assert "_process_backfill_scene_cdse" in worker, "العامل يجب أن يعالج مشاهد CDSE"

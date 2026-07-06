@@ -36,12 +36,11 @@ from __future__ import annotations
 import logging
 import os
 import sys
-import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import datetime
 
 import band_math
-import httpx
 import object_store
+import raster_settings
 
 # توحيد main↔cert: إعادة تصدير أصناف غيوم SCL من المصدر الوحيد (cdse_client) كي تبقى
 # متاحة عبر ``main.SCL_CLOUD_CLASSES`` (يطابقها حارس test_cloud_masking — تماسُك معالجة
@@ -49,29 +48,18 @@ import object_store
 from cdse_client import SCL_CLOUD_CLASSES  # noqa: E402
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from job_store import JobStore
 from stac_client import ResilientStacClient
 
 # توحيد main↔cert: استعادة دالّة نسبة الغيوم النقيّة + عتبتها (كانتا في main وفُقِدتا حين
 # أُخِذت نسخة raster الخاصّة بـcert في الدمج التأسيسيّ). يطابقهما حارس test_cloud_masking.
-CLOUD_PCT_WARN_THRESHOLD = float(os.getenv("CLOUD_PCT_WARN_THRESHOLD", "20"))
+CLOUD_PCT_WARN_THRESHOLD = raster_settings.CLOUD_PCT_WARN_THRESHOLD
 
 
 def compute_cloud_pct(scl, np) -> float | None:
-    """نسبة غيوم المشهد من نطاق SCL — دالّة نقيّة قابلة للاختبار بلا rasterio.
+    """Compatibility wrapper for the pure SCL cloud percentage helper."""
+    import raster_quality as _rq
 
-    = (عدد بكسلات أصناف الغيوم في ``SCL_CLOUD_CLASSES``) ÷ (عدد بكسلات SCL
-    الصالحة، أي ≠ 0 صنف لا-بيانات) × 100. تُرجِع ``None`` إن لم توجد بكسلات
-    صالحة (لتفادي القسمة على صفر) أو إن كان ``scl`` فارغاً.
-    """
-    if scl is None:
-        return None
-    valid = scl != 0  # SCL=0 ⇒ NO_DATA (مستبعَد من المقام).
-    valid_count = int(valid.sum())
-    if valid_count == 0:
-        return None
-    cloud_count = int(np.isin(scl, SCL_CLOUD_CLASSES).sum())
-    return cloud_count / valid_count * 100.0
+    return _rq.compute_cloud_pct(scl, np, cloud_classes=SCL_CLOUD_CLASSES)
 
 
 try:
@@ -86,72 +74,25 @@ except ImportError:
     logger = logging.getLogger("raster-service")
 
 # ─── الإعداد ──────────────────────────────────────────────────────
-EARTH_SEARCH_URL = os.getenv("EARTH_SEARCH_URL", "https://earth-search.aws.element84.com/v1")
-# مزوّد البحث التاريخيّ عن مشاهد Sentinel-2: الافتراض "cdse" (Copernicus Data Space
-# Ecosystem — كتالوج Sentinel Hub) — التحويل الكامل بعيداً عن Element84 Earth Search
-# لطبقة البحث التاريخيّ (المعالجة على CDSE أصلاً). "element84" يبقى ارتداداً صريحاً
-# فقط (dev بلا اعتمادات CDSE، أو مجموعات لا يوفّرها CDSE كـرادار/Landsat/DEM).
-HISTORICAL_SEARCH_PROVIDER = os.getenv("HISTORICAL_SEARCH_PROVIDER", "cdse").strip().lower()
-SENTINEL_COLLECTION = "sentinel-2-l2a"
-SENTINEL1_COLLECTION = "sentinel-1-grd"  # رادار SAR — يخترق الغيوم والليل
-LANDSAT_COLLECTION = "landsat-c2-l2"  # Landsat C2 L2 — أرشيف 40+ سنة (تكميلي)
-# Landsat في Sahool ليس بديلاً لمؤشّرات Sentinel-2 النباتية. نستخدمه فقط للميزة
-# الفريدة: الطبقة الحرارية/التاريخ الطويل. لا نكرّر NDVI/NDMI/MSI/SAVI... من Landsat
-# إلا إن فُتح مسار بحثي لاحق صراحةً.
-LANDSAT_UNIQUE_INDICES = {"lst", "cwsi", "tvdi", "tci", "vhi", "et_inputs"}
-LANDSAT_DIRECT_RASTER_INDICES = {"lst"}
-LANDSAT_DERIVED_INDICES = {"cwsi", "tvdi", "tci", "vhi", "et_inputs"}
-LANDSAT_DUPLICATE_SENTINEL_INDICES = {
-    "ndvi",
-    "ndmi",
-    "msi",
-    "ndwi",
-    "ndsi",
-    "savi",
-    "evi",
-    "gndvi",
-    "ndre",
-    "msavi",
-    "bsi",
-    "bi",
-    "bi2",
-    "ndti",
-    "dbsi",
-    "satvi",
-    "truecolor",
-    "falsecolor",
-}
-LANDSAT_THERMAL_ASSET_CANDIDATES = (
-    "lwir11",
-    "surface_temperature",
-    "st",
-    "st_b10",
-    "tir",
-    "thermal",
-    "thermal_ir",
-)
-DEM_COLLECTION = "cop-dem-glo-30"  # Copernicus DEM 30م — ارتفاع/انحدار/صرف
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
-HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))
-# خادم بلاطات COG ديناميكي (TiTiler) — سدّ فجوة P0. فارغ = البلاطات الثابتة.
-TITILER_URL = os.getenv("TITILER_URL", "")
-
-# عميل STAC مرن (تحسين قلب النظام): إعادة محاولة + cache (Redis مشترك +
-# ذاكرة fallback) + مصدر احتياطي + stale-if-error. TTL قابل للضبط.
-# المصدر الاحتياطي الأوّل: Microsoft Planetary Computer (STAC عامّ، بحث مجهول).
-# نفس بنية STAC، فيعمل بنفس payload عند تعذّر Element84.
-PC_STAC_URL = os.getenv(
-    "PLANETARY_COMPUTER_URL", "https://planetarycomputer.microsoft.com/api/stac/v1"
-)
-# مصدر احتياطي ثانٍ (اختياري): Digital Earth Africa — يغطّي أفريقيا فقط.
-# اليمن خارج تغطيته، لذا معطّل افتراضيّاً؛ يُفعَّل لمناطق أفريقيّة (القرن الأفريقي).
-DEAFRICA_STAC_URL = os.getenv("DEAFRICA_STAC_URL", "https://explorer.digitalearth.africa/stac")
-
-_fallback_chain = []
-if os.getenv("STAC_FALLBACK_ENABLED", "true") == "true":
-    _fallback_chain.append(PC_STAC_URL)
-if os.getenv("DEAFRICA_ENABLED", "false") == "true":  # معطّل افتراضيّاً (اليمن)
-    _fallback_chain.append(DEAFRICA_STAC_URL)
+# Phase 11 decomposition: runtime constants moved to raster_settings.py.
+# Re-export legacy names from main.py for routers/tests and staged ctx-based helpers.
+EARTH_SEARCH_URL = raster_settings.EARTH_SEARCH_URL
+HISTORICAL_SEARCH_PROVIDER = raster_settings.HISTORICAL_SEARCH_PROVIDER
+SENTINEL_COLLECTION = raster_settings.SENTINEL_COLLECTION
+SENTINEL1_COLLECTION = raster_settings.SENTINEL1_COLLECTION
+LANDSAT_COLLECTION = raster_settings.LANDSAT_COLLECTION
+LANDSAT_UNIQUE_INDICES = raster_settings.LANDSAT_UNIQUE_INDICES
+LANDSAT_DIRECT_RASTER_INDICES = raster_settings.LANDSAT_DIRECT_RASTER_INDICES
+LANDSAT_DERIVED_INDICES = raster_settings.LANDSAT_DERIVED_INDICES
+LANDSAT_DUPLICATE_SENTINEL_INDICES = raster_settings.LANDSAT_DUPLICATE_SENTINEL_INDICES
+LANDSAT_THERMAL_ASSET_CANDIDATES = raster_settings.LANDSAT_THERMAL_ASSET_CANDIDATES
+DEM_COLLECTION = raster_settings.DEM_COLLECTION
+CORS_ORIGINS = raster_settings.CORS_ORIGINS
+HTTP_TIMEOUT = raster_settings.HTTP_TIMEOUT
+TITILER_URL = raster_settings.TITILER_URL
+PC_STAC_URL = raster_settings.PC_STAC_URL
+DEAFRICA_STAC_URL = raster_settings.DEAFRICA_STAC_URL
+_fallback_chain = raster_settings.stac_fallback_chain()
 
 _stac = ResilientStacClient(
     EARTH_SEARCH_URL,
@@ -274,16 +215,14 @@ def _scene_band_mapping(bands: dict[str, str]) -> BandMapping:
     return BandMapping(**{k: i + 1 for i, k in enumerate(keys) if bands.get(k)})
 
 
-# ─── حالة المهامّ: Redis (مشترك + يبقى بعد إعادة التشغيل) مع ارتداد للذاكرة ──
-# كانت _jobs مجرّد dict في الذاكرة ⇒ تُفقد عند إعادة التشغيل ولا تُشارَك عبر
-# العمّال (فيفشل /jobs/{id}/result على عامل آخر). JobStore يخزّن في Redis إن
-# توفّر REDIS_URL وكان قابلاً للوصول، وإلّا يرتدّ للذاكرة (تطوير/CI بلا Redis).
-# يستخدم عميل redis متزامن (sync) لتجنّب كسر حلقة الحدث: الكتابة تجري في خيط
-# الخلفيّة (threadpool) والقراءة في حلقة الخادم — انظر job_store.py.
-_jobs = JobStore(redis_url=os.getenv("REDIS_URL"))
-_layers: dict[str, dict] = {}
-# فهرس حقل→قائمة معرّفات الطبقات (لإيجاد أحدث COG لحقل في شبكة المؤشّر)
-_field_layers: dict[str, list[str]] = {}
+# ─── حالة المهامّ والطبقات ─────────────────────────────────────────
+# Phase 12 decomposition: mutable runtime registries moved to raster_runtime_state.py.
+# Keep legacy main._jobs/_layers/_field_layers aliases while routers migrate gradually.
+import raster_runtime_state  # noqa: E402
+
+_jobs = raster_runtime_state.JOBS
+_layers = raster_runtime_state.LAYERS
+_field_layers = raster_runtime_state.FIELD_LAYERS
 
 # v11-F3/F5: layer cache eviction moved to layer_cache_events.py.
 # Compatibility wrappers preserve main._evict_field_layers/main._layer_evict_subscriber.
@@ -349,6 +288,9 @@ _stac_search_landsat_unique = stac_search_helpers.stac_search_landsat_unique
 _stac_search_dem = stac_search_helpers.stac_search_dem
 
 
+import raster_backfill_scene_processing  # noqa: E402
+
+
 def _process_backfill_scene_cdse(
     scene: dict,
     index: str,
@@ -358,51 +300,9 @@ def _process_backfill_scene_cdse(
     geometry_revision,
     jid: str,
 ) -> None:
-    """يعالج مشهداً مُكتشَفاً من كتالوج CDSE لمؤشّر واحد عبر Process API.
-
-    مسار المعالجة التاريخيّة على CDSE (بلا نطاقات COG من Element84): يُثبِّت نافذة
-    زمنيّة على يوم المشهد، يطلب المؤشّر خادميّاً (evalscript، مقصوصاً على ``clip``)،
-    يكتب TIFF، ثمّ يُشغّل ``_run_processing`` كأصل precomputed (provider="cdse").
-    متزامن (httpx + _run_processing) — يُستدعى عبر threadpool من مسار backfill.
-    """
-    import cdse_client
-
-    dt = scene.get("datetime") or ""
-    day = dt[:10]
-    if len(day) != 10:
-        raise RuntimeError("CDSE scene بلا تاريخ صالح")
-    bbox = scene.get("bbox") or _bbox_from_geojson(clip)
-    if not bbox:
-        raise RuntimeError("bbox مطلوب لمعالجة مشهد CDSE")
-    tiff = cdse_client.get_client().process_index(
-        index=index,
-        bbox=bbox,
-        time_from=f"{day}T00:00:00Z",
-        time_to=f"{day}T23:59:59Z",
-        geometry=clip,
-        max_cloud_pct=40.0,
+    return raster_backfill_scene_processing.process_backfill_scene_cdse(
+        sys.modules[__name__], scene, index, field_id, tenant_id, clip, geometry_revision, jid
     )
-    if not tiff:
-        raise RuntimeError("CDSE process_index أرجع استجابة فارغة")
-    tif_path = os.path.join(UPLOAD_DIR, f"cdse_bf_{index}_{uuid.uuid4().hex[:8]}.tif")
-    with open(tif_path, "wb") as fh:
-        fh.write(tiff)
-    preq = ProcessRequest(
-        tenant_id=tenant_id or "",
-        field_id=field_id,
-        raster_url=tif_path,
-        indicator=IndicatorKind(index),
-        source_format=SourceFormat.sentinel2_l2a,
-        bands=BandMapping(),
-        precomputed_index=True,
-        provider="cdse",
-        scene_id=scene.get("item_id"),
-        capture_datetime=dt,
-        clip_polygon_geojson=clip,
-        apply_cloud_mask=False,  # CDSE قنّع الغيوم خادميّاً (maxCloudCoverage + SCL)
-        geometry_revision=geometry_revision,
-    )
-    _run_processing(jid, preq)
 
 
 # ─── lifespan + التطبيق ───────────────────────────────────────────
@@ -498,8 +398,8 @@ from raster_api_models import (  # noqa: E402
 
 
 # ─── معالجة الراستر: الرفع ────────────────────────────────────────
-UPLOAD_DIR = os.getenv("RASTER_UPLOAD_DIR", "/tmp/sahool_rasters")
-_SSRF_BLOCKED_HOSTS = {"169.254.169.254", "metadata.google.internal", "metadata"}
+UPLOAD_DIR = raster_settings.UPLOAD_DIR
+_SSRF_BLOCKED_HOSTS = raster_settings.SSRF_BLOCKED_HOSTS
 
 
 def _safe_raster_source(url: str | None) -> str:
@@ -507,7 +407,7 @@ def _safe_raster_source(url: str | None) -> str:
 
 
 # مصادقة خدمة-لخدمة: رفع الراستر يكتب ملفّات — منع إساءة التخزين/الحقن
-AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+AGENT_TOKEN = raster_settings.AGENT_TOKEN
 
 
 def _require_service_token(x_agent_token: str = Header(None)) -> None:
@@ -575,27 +475,16 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
     return raster_cdse_processing.run_cdse_processing(sys.modules[__name__], job_id, field_id, req)
 
 
-# بلاطة شفّافة 1×1 (PNG) — عند غياب البلاطة الفعليّة (بلا rasterio)
-# FIX: السلسلة السابقة كانت بطول فردي (137 خانة ⇒ 68.5 بايت) فيفشل
-# bytes.fromhex عند الاستيراد ويتعطّل إقلاع الخدمة بالكامل. هذه بلاطة
-# PNG شفّافة 1×1 صحيحة (68 بايت، CRC سليمة، مُولّدة عبر zlib).
-_TRANSPARENT_PNG = bytes.fromhex(
-    # 1×1 RGBA fully transparent PNG.  Keep this exact: Leaflet/MapLibre use it
-    # for missing raster/index tiles so absent data never paints black stripes.
-    "89504e470d0a1a0a0000000d49484452000000010000000108060000001f"
-    "15c4890000000d49444154789c6360606060000000050001a5f64540000000"
-    "0049454e44ae426082"
-)
-
-# Finite nodata used in generated COGs. NaN nodata can produce unstable GDAL masks/overviews.
-RASTER_NODATA = -9999.0
+# Transparent fallback PNG and finite nodata moved to raster_settings.py.
+_TRANSPARENT_PNG = raster_settings.TRANSPARENT_PNG
+RASTER_NODATA = raster_settings.RASTER_NODATA
 
 
 # ─── دورة حياة الراستر (سدّ فجوة: لا سياسة تنظيف) ──────────────────────
 
 
 # ─── حزم offline (MBTiles) للمناطق ضعيفة الاتّصال — سدّ فجوة اليمن ──────
-OFFLINE_PACKS_DIR = os.path.join(UPLOAD_DIR, "offline_packs")
+OFFLINE_PACKS_DIR = raster_settings.OFFLINE_PACKS_DIR
 os.makedirs(OFFLINE_PACKS_DIR, exist_ok=True)
 
 

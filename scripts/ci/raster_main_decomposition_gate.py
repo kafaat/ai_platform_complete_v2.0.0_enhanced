@@ -86,6 +86,7 @@ REQUIRED_MODULES = {
         "INDICATOR_FORMULAS",
         "quality_from_cloud_pct",
         "pixel_quality",
+        "compute_cloud_pct",
     ],
     "tile_observability.py": [
         "TILE_OBS",
@@ -101,9 +102,30 @@ REQUIRED_MODULES = {
     "raster_app_lifecycle.py": [
         "make_lifespan",
     ],
+    "raster_settings.py": [
+        "EARTH_SEARCH_URL",
+        "HISTORICAL_SEARCH_PROVIDER",
+        "CORS_ORIGINS",
+        "HTTP_TIMEOUT",
+        "UPLOAD_DIR",
+        "SSRF_BLOCKED_HOSTS",
+        "AGENT_TOKEN",
+        "TRANSPARENT_PNG",
+        "RASTER_NODATA",
+        "stac_fallback_chain",
+    ],
+    "raster_backfill_scene_processing.py": [
+        "process_backfill_scene_cdse",
+    ],
+    "raster_runtime_state.py": [
+        "make_job_store",
+        "JOBS",
+        "LAYERS",
+        "FIELD_LAYERS",
+    ],
 }
 
-MAX_MAIN_LINES = 740
+MAX_MAIN_LINES = 620
 FORBIDDEN_MAIN_DEFS = {
     # These names now live in modules and should not grow back into main.py.
     "_scene_quality_score",
@@ -207,6 +229,21 @@ REQUIRED_MAIN_ALIASES = {
     "return await layer_cache_events.layer_evict_subscriber(",
     "import raster_app_lifecycle",
     "lifespan = raster_app_lifecycle.make_lifespan(",
+    "import raster_settings",
+    "EARTH_SEARCH_URL = raster_settings.EARTH_SEARCH_URL",
+    "UPLOAD_DIR = raster_settings.UPLOAD_DIR",
+    "_SSRF_BLOCKED_HOSTS = raster_settings.SSRF_BLOCKED_HOSTS",
+    "AGENT_TOKEN = raster_settings.AGENT_TOKEN",
+    "_fallback_chain = raster_settings.stac_fallback_chain()",
+    "import raster_backfill_scene_processing",
+    "return raster_backfill_scene_processing.process_backfill_scene_cdse(",
+    "import raster_runtime_state",
+    "_jobs = raster_runtime_state.JOBS",
+    "_layers = raster_runtime_state.LAYERS",
+    "_field_layers = raster_runtime_state.FIELD_LAYERS",
+    "_TRANSPARENT_PNG = raster_settings.TRANSPARENT_PNG",
+    "RASTER_NODATA = raster_settings.RASTER_NODATA",
+    "return _rq.compute_cloud_pct(scl, np, cloud_classes=SCL_CLOUD_CLASSES)",
 }
 
 
@@ -260,6 +297,15 @@ def main() -> None:
     for alias in REQUIRED_MAIN_ALIASES:
         if alias not in source:
             _fail(f"main.py compatibility alias missing: {alias}")
+
+    forbidden_sources = {
+        "_jobs = JobStore(": "runtime job store must stay in raster_runtime_state.py",
+        "_TRANSPARENT_PNG = bytes.fromhex(": "transparent PNG constant must stay in raster_settings.py",
+        "RASTER_NODATA = -9999.0": "nodata constant must stay in raster_settings.py",
+    }
+    for needle, reason in forbidden_sources.items():
+        if needle in source:
+            _fail(reason)
 
     print(
         "raster-main-decomposition contract: OK "

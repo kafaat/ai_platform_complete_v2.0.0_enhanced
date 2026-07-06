@@ -71,3 +71,19 @@ def pixel_quality(layer: dict, value: float | None) -> dict:
     if q["quality"] == "unknown" and layer.get("provider") in ("cdse", "sentinelhub", "element84"):
         q["reason"] = "provider_known_but_pixel_qa_unavailable"
     return q
+
+
+def compute_cloud_pct(scl, np, *, cloud_classes) -> float | None:
+    """Pure SCL cloud percentage helper used by tests and runtime.
+
+    The denominator excludes SCL=0 NO_DATA pixels.  ``cloud_classes`` is injected
+    by main.py from cdse_client so this module stays independent from CDSE.
+    """
+    if scl is None:
+        return None
+    valid = scl != 0
+    valid_count = int(valid.sum())
+    if valid_count == 0:
+        return None
+    cloud_count = int(np.isin(scl, cloud_classes).sum())
+    return cloud_count / valid_count * 100.0

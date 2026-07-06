@@ -24,7 +24,7 @@ def _read(rel: str) -> str:
 # ── مجموعات Landsat لا تحتوي مؤشّرات Sentinel-2 المكررة ──
 def test_landsat_unique_sets_exclude_sentinel_duplicates():
     # التفكيك: منطق Landsat الفريد انتقل إلى stac_search.py؛ main يحتفظ بالمجموعات + الأسماء المستعارة.
-    src = _read("main.py") + "\n" + _read("stac_search.py")
+    src = _read("main.py") + "\n" + _read("stac_search.py") + "\n" + _read("raster_settings.py")
     assert 'LANDSAT_UNIQUE_INDICES = {"lst", "cwsi", "tvdi", "tci", "vhi", "et_inputs"}' in src
     assert 'LANDSAT_DIRECT_RASTER_INDICES = {"lst"}' in src
     # الأصل الحراريّ المباشر lst فقط؛ لا red/nir/swir بصريّة
@@ -39,7 +39,7 @@ def test_landsat_unique_sets_exclude_sentinel_duplicates():
 # ── payload الحراريّ يحمل thermal_urls فقط (لا bands_urls بصريّة) ──
 def test_landsat_payload_thermal_only():
     # التفكيك: حمولة Landsat الحراريّة انتقلت إلى stac_search.py (landsat_unique_payload).
-    src = _read("main.py") + "\n" + _read("stac_search.py")
+    src = _read("main.py") + "\n" + _read("stac_search.py") + "\n" + _read("raster_settings.py")
     assert '"thermal_urls": {"lst": thermal_href}' in src
     # لا يُدرِج bands_urls (تفادي بناء NDVI من Landsat)
     idx = src.find("def landsat_unique_payload")

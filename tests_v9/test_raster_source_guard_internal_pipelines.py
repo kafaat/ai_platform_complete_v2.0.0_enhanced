@@ -141,7 +141,12 @@ def test_stac_total_failure_maps_to_503_not_raw_500(rm):
 
 def test_cdse_index_tif_written_under_upload_dir():
     """ساكن: GeoTIFF مؤشّر CDSE يُكتب تحت UPLOAD_DIR (يجتاز حارس المصدر)."""
-    src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
-    assert re.search(r"os\.path\.join\(UPLOAD_DIR,\s*f\"cdse_", src), (
+    # phase12: كتابة CDSE tif انتقلت إلى raster_cdse_processing.py وتستعمل ctx.UPLOAD_DIR
+    src = (
+        open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
+        + "\n"
+        + open(os.path.join(RASTER, "raster_cdse_processing.py"), encoding="utf-8").read()
+    )
+    assert re.search(r"os\.path\.join\((?:ctx\.)?UPLOAD_DIR,\s*f\"cdse_", src), (
         "كتابة CDSE tif يجب أن تبقى تحت UPLOAD_DIR — نقلها خارجه يُفشل المعالجة 400"
     )
