@@ -60,8 +60,7 @@ main = importlib.util.module_from_spec(_spec)
 # اختبارات الخدمات اللاحقة (app مبنيّ بالكامل ومرجعنا ``main`` مثبَّت — الاستعادة آمنة).
 _saved = {
     k: sys.modules.get(k)
-    for k in ["main", "router_registry"]
-    + [m for m in sys.modules if m.startswith("routers")]
+    for k in ["main", "router_registry"] + [m for m in sys.modules if m.startswith("routers")]
 }
 for _m in [m for m in sys.modules if m == "router_registry" or m.startswith("routers")]:
     sys.modules.pop(_m, None)
@@ -69,7 +68,9 @@ sys.modules["actuator_main_safety_test"] = main
 sys.modules["main"] = main
 _spec.loader.exec_module(main)
 # استعادة sys.modules لحالتها قبلنا (منع تلوّث عبر-الخدمات في التشغيل المجمّع).
-for _m in [m for m in sys.modules if m == "main" or m == "router_registry" or m.startswith("routers")]:
+for _m in [
+    m for m in sys.modules if m == "main" or m == "router_registry" or m.startswith("routers")
+]:
     sys.modules.pop(_m, None)
 for _k, _v in _saved.items():
     if _v is not None:

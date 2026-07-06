@@ -45,7 +45,7 @@ def _include_flat(app, router) -> None:
     **إصلاح P0 (سلامة الفعّالات):** كان يُلحِق كائنات المسار مباشرةً بـ``app.router.routes``
     تفادياً للفٍّ افتراضيّ ظُنّ في Starlette ≥1.3 — لكنّ ذلك **يكسر ``app.dependency_overrides``**:
     المسارات تبقى غير مربوطة بموفِّر التطبيق فلا يُطبَّق ``dependency_overrides[_verify_token]``
-    (‏/command يعيد 503 auth بدل بلوغ حارس FEATURE_MANUAL ⇒ 403). التحقّق أثبت أنّ Starlette
+    (/command يعيد 503 auth بدل بلوغ حارس FEATURE_MANUAL ⇒ 403). التحقّق أثبت أنّ Starlette
     1.3.1 يُسطّح ``include_router`` أصلاً في ``app.routes`` (حارس التفكيك يبقى سليماً)، فنعود
     للطريق القياسيّ الذي يربط المسارات بسياق التطبيق (overrides تعمل). نتفادى التكرار عند
     إعادة الاستيراد بتخطّي المسارات القائمة (path+methods).

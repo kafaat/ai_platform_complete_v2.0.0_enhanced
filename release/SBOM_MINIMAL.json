@@ -7245,7 +7245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1a1f725b61861bd540a284e24b702a5e8e26da1f3ee687cbdede812691099ae"
+          "content": "f0c09bab53f7482c0ce77f8b842166d445a58a734ee8d52deaa6c213cef9d7c6"
         }
       ],
       "name": "services/actuator-service/router_registry.py",
@@ -7305,7 +7305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa1f340d7ec137074b0b60723ce9071b950f92ca47a50fb5b197fcbdbf279d4c"
+          "content": "002801429a8b2d21a7832a63ee2d85045d301bbe4798616a1822cc12ba52d3bd"
         }
       ],
       "name": "services/actuator-service/test_actuator_safety.py",
