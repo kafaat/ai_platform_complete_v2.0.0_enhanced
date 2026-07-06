@@ -21,6 +21,54 @@ WEB_MERCATOR_R = 6378137.0
 # نصف محيط الأرض بالمتر (حدّ Web-Mercator على ±)
 _ORIGIN_SHIFT = math.pi * WEB_MERCATOR_R
 
+# سقف افتراضيّ لأبعاد نافذة القراءة (بكسل/محور): يمنع تحميل نافذة ضخمة (ذاكرة/زمن) عند
+# bbox كبير أو raster عالي الدقّة — يُخفَّض بالعيّنة عند القراءة عبر out_shape.
+MAX_READ_DIM = int(__import__("os").getenv("RASTER_MAX_READ_DIM", "2048"))
+
+
+def read_field_window(src, lonlat_bbox, *, max_dim: int = MAX_READ_DIM):
+    """يقرأ نافذة الحقل من raster مفتوح مع **تصحيح CRS** و**سقف حجم** — مسار القراءة
+    الموحَّد لكلّ الإحصاءات المتجهيّة (تضاريس/تربة/مناطق).
+
+    - يُعيد إسقاط ``lonlat_bbox`` (EPSG:4326) إلى ``src.crs`` قبل ``from_bounds`` حين لا
+      يكون المصدر بـEPSG:4326 (وإلّا نافذة خاطئة على raster مُسقَط: UTM/Homolosine…).
+    - يسقف أبعاد القراءة عند ``max_dim`` (تخفيض عيّنة عند القراءة) لتفادي نافذة ضخمة.
+    - يُعيد ``(arr, scale_x, scale_y)``: arr float32 بـ``NaN`` للـnodata، وscale = أبعاد
+      النافذة ÷ أبعاد المخرَج (عامل التخفيض؛ 1.0 بلا تخفيض) كي يضبط المُستدعي حجم البكسل.
+      يُعيد ``None`` عند فشل القراءة أو نافذة فارغة (لا تلفيق).
+    """
+    import numpy as np
+    from rasterio.warp import transform_bounds
+    from rasterio.windows import from_bounds
+
+    minx, miny, maxx, maxy = (float(v) for v in lonlat_bbox)
+    if src.crs is not None:
+        try:
+            if src.crs.to_epsg() != 4326:  # None (CRS بلا رمز EPSG مثل Homolosine) ⇒ يُعاد إسقاطه
+                minx, miny, maxx, maxy = transform_bounds(
+                    "EPSG:4326", src.crs, minx, miny, maxx, maxy
+                )
+        except Exception:  # noqa: BLE001 — فشل الإسقاط ⇒ استعمل الحدود كما هي (احتياطيّ)
+            pass
+    try:
+        window = from_bounds(minx, miny, maxx, maxy, transform=src.transform)
+        win_w, win_h = float(window.width), float(window.height)
+        if win_w <= 0 or win_h <= 0:
+            return None
+        if win_w <= max_dim and win_h <= max_dim:
+            arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+            return arr, 1.0, 1.0
+        out_w = int(min(max_dim, math.ceil(win_w)))
+        out_h = int(min(max_dim, math.ceil(win_h)))
+        arr = (
+            src.read(1, window=window, out_shape=(out_h, out_w), masked=True)
+            .filled(np.nan)
+            .astype("float32")
+        )
+        return arr, win_w / out_w, win_h / out_h
+    except Exception:  # noqa: BLE001
+        return None
+
 
 # ─── حسابات slippy-map (XYZ → حدود EPSG:3857) ──────────────────────
 def tile_bounds_3857(z: int, x: int, y: int) -> tuple[float, float, float, float]:

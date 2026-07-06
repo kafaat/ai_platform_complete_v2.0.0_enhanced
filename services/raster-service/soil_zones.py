@@ -65,13 +65,21 @@ def _cluster_field_soil(bbox, depth: str, n_zones: int):
     layers: dict[str, object] = {}
     ref_shape = None
     ref_transform = None
+    src_crs = None
     for prop in _ZONE_PROPERTIES:
         path = _soil.soil_raster_path(prop, depth)
         if path is None:
             continue
         try:
             with rasterio.open(path) as src:
-                window = win_from_bounds(*bbox, transform=src.transform)
+                # صحّة CRS: أعِد إسقاط bbox (lon/lat) إلى src.crs قبل النافذة إن كان
+                # المصدر مُسقَطاً (SoilGrids الأصليّ Homolosine…) وإلّا نافذة خاطئة.
+                b = tuple(float(v) for v in bbox)
+                if src.crs is not None and src.crs.to_epsg() != 4326:
+                    from rasterio.warp import transform_bounds
+
+                    b = transform_bounds("EPSG:4326", src.crs, *b)
+                window = win_from_bounds(*b, transform=src.transform)
                 arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
                 if arr.size == 0:
                     continue
@@ -79,6 +87,7 @@ def _cluster_field_soil(bbox, depth: str, n_zones: int):
                 if ref_shape is None:
                     ref_shape = real.shape
                     ref_transform = src.window_transform(window)
+                    src_crs = src.crs
                 if real.shape == ref_shape:
                     layers[prop] = real
         except Exception:  # noqa: BLE001
@@ -104,9 +113,29 @@ def _cluster_field_soil(bbox, depth: str, n_zones: int):
         "layers": layers,
         "label_grid": label_grid,
         "transform": ref_transform,
+        "src_crs": src_crs,  # CRS المصدر: تُعاد إحداثيّات المضلّعات إلى EPSG:4326 عند العرض
         "depth": depth,
         "n_zones": n_zones,
     }
+
+
+def _reproject_ring_to_wgs84(coords, src_crs):
+    """يُعيد إسقاط إحداثيّات حلقة/حلقات GeoJSON من ``src_crs`` إلى EPSG:4326.
+
+    ``rio_shapes`` يُخرج إحداثيّات بـsrc_crs؛ حين لا يكون المصدر EPSG:4326 (Homolosine…)
+    يجب إعادتها إلى lon/lat وإلّا صار GeoJSON بأمتار الإسقاط (خطأ عرض). المصدر جغرافيّ
+    ⇒ إرجاع كما هي (لا كلفة)."""
+    if src_crs is None or src_crs.to_epsg() == 4326:
+        return coords
+    from rasterio.warp import transform as _warp_transform
+
+    def _ring(ring):
+        xs = [p[0] for p in ring]
+        ys = [p[1] for p in ring]
+        lon, lat = _warp_transform(src_crs, "EPSG:4326", xs, ys)
+        return [[round(lon[i], 7), round(lat[i], 7)] for i in range(len(lon))]
+
+    return [_ring(r) for r in coords]  # coords = قائمة حلقات (Polygon)
 
 
 def _zone_props(layers, cell_mask):
@@ -136,11 +165,13 @@ def compute_soil_sampling_zones(
     from rasterio.features import shapes as rio_shapes
 
     label_grid = c["label_grid"]
+    _src_crs = c.get("src_crs")
     zone_geoms: dict[int, list] = {z_id: [] for z_id in range(c["n_zones"])}
     for geom, val in rio_shapes(label_grid, mask=(label_grid >= 0), transform=c["transform"]):
         z_id = int(val)
         if 0 <= z_id < c["n_zones"]:
-            zone_geoms[z_id].append(geom["coordinates"])
+            # إحداثيّات rio_shapes بـsrc_crs ⇒ أعِدها إلى EPSG:4326 لعرض GeoJSON صحيح.
+            zone_geoms[z_id].append(_reproject_ring_to_wgs84(geom["coordinates"], _src_crs))
 
     features = []
     for z_id in range(c["n_zones"]):
@@ -189,6 +220,15 @@ def compute_soil_sampling_points(
         return {**empty, "source": c["error"]}
     label_grid = c["label_grid"]
     transform = c["transform"]
+    _src_crs = c.get("src_crs")
+    _reproj_pt = None
+    if _src_crs is not None and _src_crs.to_epsg() != 4326:
+        from rasterio.warp import transform as _warp_transform
+
+        def _reproj_pt(x, y):
+            xs, ys = _warp_transform(_src_crs, "EPSG:4326", [x], [y])
+            return xs[0], ys[0]
+
     samples_per_zone = max(1, min(int(samples_per_zone), 3))
 
     features = []
@@ -213,7 +253,9 @@ def compute_soil_sampling_points(
         if "phh2o" in zprops:
             reason += f" · pH≈{zprops['phh2o']}"
         for i, (r, col) in enumerate(picks[:samples_per_zone], start=1):
-            lon, lat = transform * (col + 0.5, r + 0.5)
+            lon, lat = transform * (col + 0.5, r + 0.5)  # بـsrc_crs
+            if _reproj_pt is not None:
+                lon, lat = _reproj_pt(lon, lat)  # ⇒ EPSG:4326 لعرض النقطة صحيحاً
             features.append(
                 {
                     "type": "Feature",

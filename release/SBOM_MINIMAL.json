@@ -1515,6 +1515,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "427c97823decde7d8b22baf8d82fb79e3cfcbe81b4b252301d4a05983716a6cf"
+        }
+      ],
+      "name": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a66068b0841633681f617997cd48ca91de545e7e60c992202ae95a4bc6f2fb27"
         }
       ],
@@ -7605,6 +7615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e08a2167d82c5d006ab4e4bc22357cc4d7f029bec8be2a97ed2ed2ac0873058a"
+        }
+      ],
+      "name": "services/ai_agronomist/management_zone_count.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "74e5b07f4e4a3aa50a87e8b378096576653bc564dbcb98fe28a729606b2555e2"
         }
       ],
@@ -7655,7 +7675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c381182c0c6a2740bdbda28515340580736bc9d1cf553a8c7e1ee5c637de31f"
+          "content": "141e0d7f206b3019e7ebce53fcf21584b517b262fad1c61c011d54fbd359a87f"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
@@ -7665,7 +7685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df29d439af0a0e15c94268f23fc1301907688b42ade16d943f1fbaada0016e83"
+          "content": "b4cdb56ea819475f04831a1a729722344e7c6a0951eb13ee00d5e3b1f3cd2ffa"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones_clustering.py",
@@ -9065,7 +9085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "85e9f743e58578cc40f7d41ad7c2c77ddadc66ec904d06848712377ba2204934"
+          "content": "d0b100562120607698b603905b7e335fae74a51d47530e39431ccc399e5898bd"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -9225,7 +9245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c14ee7664fe6fe1c8f4026331ac937bb50f9b7432cc0869d7ea7fe2b1327e654"
+          "content": "356580726c56f74fa1e247ca8101a58f383bc7df2c8df6eaa444214713d8a087"
         }
       ],
       "name": "services/raster-service/soil_render.py",
@@ -9235,7 +9255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4592292545a70696d16f5dd3e5cabb4f1d84e9271eae9d41f01ca41ba78ddc8e"
+          "content": "d7eb4bb83062524ef54ff9f5a8b2ae7d9bf91c8e1d845de66a6e3e51bedac6a2"
         }
       ],
       "name": "services/raster-service/soil_zones.py",
@@ -9265,7 +9285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "753cb852633ec5f2eac4a5a4ff1ba3abb49ae292bcd7663819bc6eb15e7cd31b"
+          "content": "93f3e416de70f16df3a47ed0a8af2609a38e8845827be5ff1c3fe6bfd58d3099"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -9275,7 +9295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "89cb66f1c23dc0dcfa48f4c1a77647870d82711ac572c8aa91476f8a65881bdd"
+          "content": "e41e70531c371d936b2fe7c77d8f990139905309933eaf6aebec69054d026a70"
         }
       ],
       "name": "services/raster-service/terrain_render.py",
@@ -9315,7 +9335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c156e87f6b83f5a1bd0af7dd7f59570c6bdc508f720262061347edb3de680a33"
+          "content": "3e558c70659bf1138fa587eea4e8864f3ea3723395af56f358bfa2dc206db61b"
         }
       ],
       "name": "services/raster-service/test_cdse_poly_contract.py",
@@ -9485,6 +9505,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8a44bbc6bcbfdd7d0633be878b69d589d84ed4d77f7991b5d04843d744fecb5c"
+        }
+      ],
+      "name": "services/raster-service/test_raster_crs_window.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "29fd9b8be29bfc99441e4210024370ad1252b2c8ba6718723e1c8e61de5fd960"
         }
       ],
@@ -9605,7 +9635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1369723ec55388b1843e86d4816292732476d737ff1e0a78ca03ef44add8f9bb"
+          "content": "c16f4c066ad89aff12f4bcbf0200cdea1c4e699e4fb803f372310645423ba181"
         }
       ],
       "name": "services/raster-service/tile_render.py",

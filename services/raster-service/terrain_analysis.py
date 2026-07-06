@@ -81,7 +81,7 @@ def compute_field_terrain(
     try:
         import numpy as np
         import rasterio
-        from rasterio.windows import from_bounds
+        from tile_render import read_field_window
     except ImportError:
         return {
             "computed": False,
@@ -106,21 +106,29 @@ def compute_field_terrain(
     px_x_m = px_y_m = float(pixel_size_m)  # احتياطيّ إن تعذّر اشتقاق الدقّة
     try:
         with rasterio.open(dem_path) as src:
-            window = from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src.transform)
+            # قراءة موحَّدة: تصحيح CRS (bbox lon/lat ⇒ src.crs قبل النافذة) + سقف حجم.
             # masked=True يحترم nodata (‑32768/‑9999…): بدونه يُحسَب الحارس كارتفاع حقيقيّ
             # فيفسد min/max/mean ويخترع تدرّجاً هائلاً عند حوافّ الفجوات ⇒ انحدار خاطئ.
-            dem = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+            read = read_field_window(src, (min_lon, min_lat, max_lon, max_lat))
+            if read is None:
+                return {
+                    "computed": False,
+                    "source": "field-outside-dem",
+                    "reason": "الحقل خارج تغطية DEM أو نافذة فارغة",
+                }
+            dem, scale_x, scale_y = read
             # صحّة CRS: لا نحسب الانحدار من درجات lat/lon مباشرة. حجم البكسل على الأرض
             # بالأمتار لكلّ محور: DEM مُسقَط (أمتار) ⇒ src.res مباشرةً؛ DEM جغرافيّ (درجات)
             # ⇒ y = res·111320، x = res·111320·cos(lat) (البكسل الأفقيّ أقصر بـcos(lat)).
+            # scale_* يضبط الحجم عند تخفيض العيّنة (نافذة كبيرة): البكسل الأرضيّ يكبر بالعامل.
             try:
                 xres, yres = (abs(v) for v in src.res)
                 if src.crs and src.crs.is_geographic:
                     lat_c = math.radians((min_lat + max_lat) / 2.0)
-                    px_x_m = xres * 111320.0 * math.cos(lat_c)
-                    px_y_m = yres * 111320.0
+                    px_x_m = xres * 111320.0 * math.cos(lat_c) * scale_x
+                    px_y_m = yres * 111320.0 * scale_y
                 else:
-                    px_x_m, px_y_m = xres, yres
+                    px_x_m, px_y_m = xres * scale_x, yres * scale_y
             except (TypeError, ValueError, AttributeError):
                 pass
     except rasterio.errors.RasterioIOError as e:

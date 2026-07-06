@@ -195,9 +195,18 @@ def compute_field_contours(
         return {**empty, "source": "field-bbox-unavailable"}
 
     min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
+    src_crs = None
     try:
         with rasterio.open(dem_path) as src:
-            window = win_from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src.transform)
+            src_crs = src.crs
+            b = (min_lon, min_lat, max_lon, max_lat)
+            # صحّة CRS: أعِد إسقاط bbox (lon/lat) إلى src.crs قبل النافذة إن كان المصدر
+            # مُسقَطاً (UTM…) وإلّا نافذة خاطئة على raster غير جغرافيّ.
+            if src_crs is not None and src_crs.to_epsg() != 4326:
+                from rasterio.warp import transform_bounds
+
+                b = transform_bounds("EPSG:4326", src_crs, *b)
+            window = win_from_bounds(*b, transform=src.transform)
             dem = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
             wtransform = src.window_transform(window)
     except Exception:  # noqa: BLE001
@@ -218,10 +227,22 @@ def compute_field_contours(
 
     rows, cols = dem.shape
 
+    # عند DEM مُسقَط، wtransform يُخرج إحداثيّات المصدر (أمتار) لا lon/lat — أعِد إسقاطها
+    # إلى EPSG:4326 كي يبقى GeoJSON بإحداثيّات جغرافيّة (DEM جغرافيّ ⇒ لا تحويل، لا كلفة).
+    _reproj = None
+    if src_crs is not None and src_crs.to_epsg() != 4326:
+        from rasterio.warp import transform as _warp_transform
+
+        def _reproj(x, y):
+            xs, ys = _warp_transform(src_crs, "EPSG:4326", [x], [y])
+            return xs[0], ys[0]
+
     def _pt(col_f: float, row_f: float) -> list[float]:
-        # (col,row) شبه-مستمرّ ⇒ (lon,lat) عبر تحويل النافذة (مركز البكسل +0.5).
-        lon, lat = wtransform * (col_f + 0.5, row_f + 0.5)
-        return [round(lon, 7), round(lat, 7)]
+        # (col,row) شبه-مستمرّ ⇒ إحداثيّات النافذة (مركز البكسل +0.5) ثمّ lon/lat.
+        x, y = wtransform * (col_f + 0.5, row_f + 0.5)
+        if _reproj is not None:
+            x, y = _reproj(x, y)
+        return [round(x, 7), round(y, 7)]
 
     features = []
     for level in levels:

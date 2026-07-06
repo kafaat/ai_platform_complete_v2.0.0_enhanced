@@ -298,16 +298,17 @@ def read_property_bbox(prop: str, depth: str, bbox: list[float]):
     try:
         import numpy as np
         import rasterio
-        from rasterio.windows import from_bounds as win_from_bounds
+        from tile_render import read_field_window
     except Exception:  # noqa: BLE001
         return None
-    min_lon, min_lat, max_lon, max_lat = (float(v) for v in bbox)
     try:
         with rasterio.open(path) as src:
-            window = win_from_bounds(min_lon, min_lat, max_lon, max_lat, transform=src.transform)
-            arr = src.read(1, window=window, masked=True).filled(np.nan).astype("float32")
+            res = read_field_window(src, bbox)  # CRS-correct + مسقوف الحجم
     except Exception:  # noqa: BLE001
         return None
+    if res is None:
+        return None
+    arr, _sx, _sy = res
     if arr.size == 0 or not np.isfinite(arr).any():
         return None
     return arr / float(meta["div"])
