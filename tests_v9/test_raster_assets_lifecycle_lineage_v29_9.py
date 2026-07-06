@@ -73,7 +73,9 @@ def test_readers_filter_failed_assets() -> None:
 
 
 def test_request_models_carry_geometry_revision() -> None:
-    src = RASTER_MAIN.read_text(encoding="utf-8")
+    # نماذج الطلب/الاستجابة انتقلت إلى raster_api_models.py بعد التفكيك (phase10).
+    api_models = REPO / "services" / "raster-service" / "raster_api_models.py"
+    src = RASTER_MAIN.read_text(encoding="utf-8") + "\n" + api_models.read_text(encoding="utf-8")
     # ProcessRequest + BatchProcessRequest + ProcessCdseRequest + ProcessFromStacRequest.
     assert src.count("geometry_revision: int | None = None") >= 4, (
         "ليست كلّ نماذج الطلب تحمل geometry_revision"

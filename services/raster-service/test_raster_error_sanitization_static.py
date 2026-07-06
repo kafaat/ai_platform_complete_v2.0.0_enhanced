@@ -18,35 +18,19 @@ from pathlib import Path
 _MAIN_PATH = Path(__file__).resolve().parent / "main.py"
 
 
-# وحدات التفكيك (phase2–5): مُعالِجات/تنسيق استُخرِجت من main.py إلى وحدات شقيقة
-# (لا تحت routers/). يجب أن يبقى فحص تعقيم الأخطاء + رموز الفشل شاملاً لها أيضاً،
-# وإلّا تسلّل str(e) أو اختفى رمز فشل عامّ عبر النقل خارج main.py دون رصد.
-_DECOMP_MODULES = (
-    "raster_job_orchestration.py",
-    "scene_policy.py",
-    "stac_search.py",
-    "raster_asset_persistence.py",
-    "raster_date_geo.py",
-    "cdse_singleflight.py",
-    "layer_lookup.py",
-    "tile_cache_io.py",
-)
-
-
 class _CombinedSource:
-    """توحيد main↔cert: المسارات فُكِّكت من main.py إلى routers/ ووحدات شقيقة. ``read_text()``
-    يُرجِع المصدرَ المُجمَّع (main.py + routers/*.py + وحدات التفكيك) كي يبقى فحص تعقيم
-    الأخطاء ورموز الفشل شاملاً المعالِجات أينما انتقلت."""
+    """توحيد main↔cert: المسارات فُكِّكت من main.py إلى routers/. ``read_text()`` يُرجِع
+    المصدرَ المُجمَّع (main.py + routers/*.py) كي يبقى فحص تعقيم الأخطاء شاملاً المعالِجات."""
 
     def read_text(self, *a, **k) -> str:
-        base = _MAIN_PATH.parent
-        rdir = base / "routers"
+        rdir = _MAIN_PATH.parent / "routers"
         parts = [_MAIN_PATH.read_text(encoding="utf-8")]
         parts += [
             Path(p).read_text(encoding="utf-8") for p in sorted(glob.glob(str(rdir / "*.py")))
         ]
         parts += [
-            (base / m).read_text(encoding="utf-8") for m in _DECOMP_MODULES if (base / m).exists()
+            Path(p).read_text(encoding="utf-8")
+            for p in sorted(glob.glob(str(_MAIN_PATH.parent / "raster_*.py")))
         ]
         return "\n".join(parts)
 

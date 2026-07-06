@@ -31,7 +31,8 @@ def test_backfill_worker_requires_persisted_truth():
 
 # ── V9-01: مسار CDSE الأب يفصل الحفظ الفعليّ عن اكتمال المعالجة ──
 def test_cdse_parent_tracks_persisted():
-    src = _read(_RASTER / "main.py")
+    # التفكيك (المرحلة ١٠): مسار CDSE الأب انتقل من main.py إلى raster_cdse_processing.py.
+    src = _read(_RASTER / "raster_cdse_processing.py")
     assert "persisted_indices" in src, "مسار CDSE يجب أن يتتبّع الحفظ لكلّ مؤشّر"
     assert "cdse_persisted_count" in src
 

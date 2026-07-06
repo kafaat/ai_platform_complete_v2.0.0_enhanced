@@ -49,9 +49,61 @@ REQUIRED_MODULES = {
         "run_processing",
         "run_batch_processing",
     ],
+    "raster_pixel_processing.py": [
+        "process_precomputed_pixels",
+        "process_precomputed_truecolor",
+        "process_pixels",
+    ],
+    "raster_cdse_processing.py": [
+        "run_cdse_processing",
+    ],
+    "raster_api_models.py": [
+        "IndicatorKind",
+        "SourceFormat",
+        "JobStatus",
+        "BandMapping",
+        "ProcessRequest",
+        "BatchProcessRequest",
+        "HistoricalBackfillRequest",
+        "ProcessCdseRequest",
+        "TimeSeriesAnalyzeRequest",
+        "PrescriptionRequest",
+        "SalinityFitRequest",
+    ],
+    "raster_security_context.py": [
+        "REQ_TENANT",
+        "tenant_from_header",
+        "tenant_from_request",
+        "field_owner",
+        "require_field_tenant",
+        "require_layer_tenant",
+        "require_layer_tenant_authorized",
+        "public_cog_url",
+        "safe_raster_source",
+        "require_service_token",
+    ],
+    "raster_quality.py": [
+        "INDICATOR_FORMULAS",
+        "quality_from_cloud_pct",
+        "pixel_quality",
+    ],
+    "tile_observability.py": [
+        "TILE_OBS",
+        "TILE_OBS_BY_INDEX",
+        "obs_inc",
+    ],
+    "layer_cache_events.py": [
+        "DEFAULT_LAYER_EVICT_CHANNEL",
+        "layer_evict_enabled",
+        "evict_field_layers",
+        "layer_evict_subscriber",
+    ],
+    "raster_app_lifecycle.py": [
+        "make_lifespan",
+    ],
 }
 
-MAX_MAIN_LINES = 1950
+MAX_MAIN_LINES = 740
 FORBIDDEN_MAIN_DEFS = {
     # These names now live in modules and should not grow back into main.py.
     "_scene_quality_score",
@@ -74,6 +126,35 @@ FORBIDDEN_MAIN_DEFS = {
     "_is_valid_uuid_text",
     "_is_valid_field_id_text",
     "_persist_raster_asset",
+    "IndicatorKind",
+    "SourceFormat",
+    "JobStatus",
+    "BandMapping",
+    "ProcessRequest",
+    "BatchProcessRequest",
+    "SearchRequest",
+    "HistoricalBackfillPreset",
+    "HistoricalBackfillRequest",
+    "AutoBackfillPolicy",
+    "SceneCandidate",
+    "SceneRankRequest",
+    "MosaicPlanRequest",
+    "GeoParquetExportRequest",
+    "TimeSeriesAnalyzeRequest",
+    "ManagementZonesRequest",
+    "ChangeDetectRequest",
+    "FvcComputeRequest",
+    "SarRviRequest",
+    "TerrainRequest",
+    "ProcessFromStacRequest",
+    "ProcessCdseRequest",
+    "PrescriptionRequest",
+    "FieldChangeRequest",
+    "SalinityClassifyRequest",
+    "SalinityFitRequest",
+    "_quality_from_cloud_pct",
+    "_pixel_quality",
+    "lifespan",
 }
 REQUIRED_MAIN_ALIASES = {
     "_scene_quality_score = scene_policy.scene_quality_score",
@@ -95,6 +176,37 @@ REQUIRED_MAIN_ALIASES = {
     "import raster_job_orchestration",
     "return raster_job_orchestration.run_processing(sys.modules[__name__], job_id, req)",
     "return raster_job_orchestration.run_batch_processing(sys.modules[__name__], job_id, req)",
+    "import raster_pixel_processing",
+    "return raster_pixel_processing.process_precomputed_pixels(sys.modules[__name__], req, layer_id)",
+    "return raster_pixel_processing.process_precomputed_truecolor(sys.modules[__name__], req)",
+    "return raster_pixel_processing.process_pixels(sys.modules[__name__], req, layer_id)",
+    "import raster_cdse_processing",
+    "return raster_cdse_processing.run_cdse_processing(sys.modules[__name__], job_id, field_id, req)",
+    "from raster_api_models import",
+    "BACKFILL_PRESET_MONTHS as _BACKFILL_PRESET_MONTHS",
+    "ProcessCdseRequest, ProcessFromStacRequest",
+    "FieldChangeRequest, PrescriptionRequest",
+    "SalinityClassifyRequest, SalinityFitRequest",
+    "import raster_security_context",
+    "_REQ_TENANT = raster_security_context.REQ_TENANT",
+    "return raster_security_context.tenant_from_header(value)",
+    "return raster_security_context.safe_raster_source(url, UPLOAD_DIR, _SSRF_BLOCKED_HOSTS)",
+    "return raster_security_context.require_service_token(x_agent_token, AGENT_TOKEN)",
+    "import raster_quality",
+    "_INDICATOR_FORMULAS = raster_quality.INDICATOR_FORMULAS",
+    "_quality_from_cloud_pct = raster_quality.quality_from_cloud_pct",
+    "_pixel_quality = raster_quality.pixel_quality",
+    "import tile_observability",
+    "_TILE_OBS = tile_observability.TILE_OBS",
+    "_TILE_OBS_BY_INDEX = tile_observability.TILE_OBS_BY_INDEX",
+    "_obs_inc = tile_observability.obs_inc",
+    "import layer_cache_events",
+    "_LAYER_EVICT_CHANNEL = layer_cache_events.DEFAULT_LAYER_EVICT_CHANNEL",
+    "return layer_cache_events.layer_evict_enabled()",
+    "return layer_cache_events.evict_field_layers(",
+    "return await layer_cache_events.layer_evict_subscriber(",
+    "import raster_app_lifecycle",
+    "lifespan = raster_app_lifecycle.make_lifespan(",
 }
 
 
@@ -126,8 +238,21 @@ def main() -> None:
         mod_defs = {
             node.name
             for node in mod_tree.body
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
         }
+        # Constants exported from extracted modules are assignments, not defs.
+        mod_defs.update(
+            target.id
+            for node in mod_tree.body
+            if isinstance(node, ast.Assign)
+            for target in node.targets
+            if isinstance(target, ast.Name)
+        )
+        mod_defs.update(
+            node.target.id
+            for node in mod_tree.body
+            if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)
+        )
         missing = [name for name in exports if name not in mod_defs]
         if missing:
             _fail(f"{module} missing expected exports: {missing}")

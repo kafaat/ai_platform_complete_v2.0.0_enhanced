@@ -253,7 +253,12 @@ def test_db_backed_owner_lookup_wired():
     # fail-closed: قاعدة مُهيّأة + تعذّر الإثبات ⇒ OwnerLookupUnavailable ⇒ 503 (لا fail-open)
     assert "class OwnerLookupUnavailable" in dbp
     assert "raise OwnerLookupUnavailable" in dbp
-    main_src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
+    # التفكيك (المرحلة ١٠): منطق _require_field_tenant fail-closed انتقل من main.py إلى
+    # raster_security_context.py؛ نُوسّع قراءة مصدر الخدمة لتشمله.
+    main_src = (
+        open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
+        + open(os.path.join(RASTER, "raster_security_context.py"), encoding="utf-8").read()
+    )
     assert "OwnerLookupUnavailable" in main_src and "HTTPException(503" in main_src, (
         "_require_field_tenant لا يُغلق fail-closed عند تعذّر إثبات الملكيّة"
     )

@@ -54,6 +54,9 @@ def _defines(src: str, name: str) -> bool:
         rf"^\s*{re.escape(name)}\s*(?::[^=]+)?=[^=]",
         rf"\bas\s+{re.escape(name)}\b",  # import ... as name / X as name
         rf"^\s*import\s+{re.escape(name)}\b",  # import name
+        # عضو استيراد مُقنطَر: ``from X import (\n    name,\n ...)`` — الاسم وحده على سطر
+        # (بفاصلة/تعليق اختياريّ). التفكيك المرحليّ يعيد تصدير النماذج/الدوالّ هكذا.
+        rf"^\s*{re.escape(name)}\s*,?\s*(?:#.*)?$",
     )
     return any(re.search(p, src, re.MULTILINE) for p in patterns)
 

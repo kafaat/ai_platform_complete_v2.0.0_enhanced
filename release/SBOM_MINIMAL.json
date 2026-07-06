@@ -9025,7 +9025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b6786973f7a05a0965ee27f13d054bf4d2b566702f2f7ef91a1ae0977faf971"
+          "content": "8cc3750d07fd7a1b78344bb28b18cd70f61a4c750ed68a015ccef2fda643bebc"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9645,7 +9645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5ce7000f214e50b8147bd9c5774b26e46d4dd47b747716c1ecfb3ae54d77acbf"
+          "content": "53bf705bac163356051296c66a3f8a4eafea151aa5bcb47a9bf798d6cc4cea88"
         }
       ],
       "name": "services/raster-service/test_raster_error_sanitization_static.py",
@@ -9665,7 +9665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9beea6ba1d508f95266f88bc4370cddf73692385174cd65fb689ce670dd2e88f"
+          "content": "92377655c8047de20e4015c80855e5910271224ca952cc32689c290cabb626f9"
         }
       ],
       "name": "services/raster-service/test_raster_map_deep_hardening_static.py",

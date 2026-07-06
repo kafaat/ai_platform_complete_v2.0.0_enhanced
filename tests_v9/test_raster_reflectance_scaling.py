@@ -75,20 +75,25 @@ def test_nan_preserved_through_scaling(bm):
     assert np.isnan(out[0]) and abs(float(out[1]) - 0.2) < 1e-9
 
 
-# ── (B) حُرّاس المصدر (main.py) ──
-def _main_src() -> str:
-    with open(os.path.join(RASTER, "main.py"), encoding="utf-8") as f:
-        return f.read()
+# ── (B) حُرّاس المصدر (بعد تفكيك phase10) ──
+def _src(*names: str) -> str:
+    parts = []
+    for name in names:
+        with open(os.path.join(RASTER, name), encoding="utf-8") as f:
+            parts.append(f.read())
+    return "\n".join(parts)
 
 
 def test_band_applies_reflectance():
-    src = _main_src()
+    # قارئ band() ومنطق البكسل/النطاق انتقلا إلى raster_pixel_processing.py.
+    src = _src("raster_pixel_processing.py")
     assert "band_math.to_reflectance(" in src, "band() لا يطبّق تحويل الانعكاس"
     assert "src.scales" in src and "src.offsets" in src, "لا يحترم scale/offset المُعلَن في الراستر"
 
 
 def test_process_request_has_reflectance_override():
-    src = _main_src()
+    # حقول ProcessRequest في raster_api_models.py، وتُستهلَك في raster_pixel_processing.py.
+    src = _src("raster_api_models.py", "raster_pixel_processing.py")
     assert "reflectance_scale" in src and "reflectance_offset" in src, (
         "ProcessRequest لا يقبل تجاوز المقياس اليدويّ"
     )

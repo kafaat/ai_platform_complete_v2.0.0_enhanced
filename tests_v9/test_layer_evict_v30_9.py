@@ -25,7 +25,10 @@ def _read(rel: str) -> str:
 # ── السباكة: العامل ينشر + الخدمة تشترك على نفس القناة ──
 def test_evict_pubsub_wired_both_sides():
     worker = _read("cache_invalidation_worker.py")
-    main_src = _read("main.py")
+    # التفكيك (المرحلة ١٠): القناة/الرايةُ ودالّةُ الإخلاء والمشترِك انتقلت إلى
+    # layer_cache_events.py، وجدولةُ المشترِك في lifespan إلى raster_app_lifecycle.py.
+    # نُوسّع قراءة مصدر الخدمة لتشمل الوحدتين (main يُبقي أغلفة توافق).
+    main_src = _read("main.py") + _read("layer_cache_events.py") + _read("raster_app_lifecycle.py")
     # نفس اسم القناة الافتراضيّ على الطرفين
     assert 'RASTER_LAYER_EVICT_CHANNEL", "raster:layer_evict"' in worker
     assert 'RASTER_LAYER_EVICT_CHANNEL", "raster:layer_evict"' in main_src
@@ -35,7 +38,10 @@ def test_evict_pubsub_wired_both_sides():
     # الخدمة تشترك في lifespan + تُخلي عند الرسالة
     assert "_layer_evict_subscriber" in main_src
     assert "_evict_field_layers(" in main_src
-    assert "_asyncio.create_task(_layer_evict_subscriber())" in main_src
+    # main يُمرّر المشترِك إلى make_lifespan، وlifespan يجدوله كمهمّة خلفيّة عند الإقلاع
+    # (نفس تعاقُد «المشترِك مجدوَل في lifespan» بعد إعادة التسمية عند التفكيك).
+    assert "layer_evict_subscriber=_layer_evict_subscriber" in main_src
+    assert "asyncio.create_task(layer_evict_subscriber())" in main_src
 
 
 # ── دالّة الإخلاء: تُزيل طبقات الحقل من _layers/_field_layers فقط ──
@@ -66,7 +72,8 @@ def test_evict_field_layers_removes_only_target_field():
 
 # ── راية + تدهور لطيف: مُفعَّل افتراضاً في الإنتاج، لا يُسقِط الإقلاع بلا Redis ──
 def test_evict_default_enabled_and_graceful():
-    main_src = _read("main.py")
+    # التفكيك (المرحلة ١٠): الرايةُ ومنطقُ التدهور اللطيف انتقلا إلى layer_cache_events.py.
+    main_src = _read("main.py") + _read("layer_cache_events.py")
     assert 'RASTER_LAYER_EVICT_ENABLED", "true"' in main_src, "الإخلاء مُفعَّل افتراضاً"
     # لا REDIS_URL ⇒ المشترِك يعود بهدوء (لا رمي)
     assert "if not url:" in main_src and "layer-evict subscriber معطَّل" in main_src

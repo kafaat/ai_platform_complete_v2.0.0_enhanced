@@ -11,6 +11,10 @@ MAIN = (
         Path(p).read_text(encoding="utf-8")
         for p in sorted(glob.glob(str(ROOT / "routers" / "*.py")))
     )
+    + "\n"
+    + "\n".join(
+        Path(p).read_text(encoding="utf-8") for p in sorted(glob.glob(str(ROOT / "raster_*.py")))
+    )
 )
 CDSE = (ROOT / "cdse_client.py").read_text(encoding="utf-8")
 COG = (ROOT / "cog_writer.py").read_text(encoding="utf-8")
