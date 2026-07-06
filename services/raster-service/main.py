@@ -182,6 +182,12 @@ class IndicatorKind(StrEnum):
     gli = "gli"
     tgi = "tgi"
     ndre = "ndre"
+    reci = "reci"  # Red-edge chlorophyll index — تحليل متقدم عند الطلب
+    gci = "gci"  # Green chlorophyll index
+    arvi = "arvi"  # Atmospherically resistant vegetation index
+    sipi = "sipi"  # Structure insensitive pigment index
+    nbr = "nbr"  # Normalized burn/residue ratio (NIR/SWIR2)
+    ccci = "ccci"  # Canopy chlorophyll content index (NDRE/NDVI)
     msi = "msi"  # NDRE (نيتروجين/red-edge) + MSI (إجهاد مائي)
     msavi = "msavi"  # Modified SAVI (تصحيح تربة ذاتي L) — كثافة نباتيّة منخفضة
     moisture = "moisture"  # مؤشّر رطوبة (NDMI-style: NIR/SWIR1) للواجهة
@@ -1536,6 +1542,12 @@ _INDICATOR_FORMULAS = {
     "ndmi": "(NIR - SWIR1) / (NIR + SWIR1)",
     "gndvi": "(NIR - GREEN) / (NIR + GREEN)",
     "ndre": "(NIR - REDEDGE) / (NIR + REDEDGE)  # النيتروجين/الكلوروفيل (red-edge)",
+    "reci": "(NIR / REDEDGE) - 1  # Red-edge chlorophyll index",
+    "gci": "(NIR / GREEN) - 1  # Green chlorophyll index",
+    "arvi": "(NIR - (2*RED - BLUE)) / (NIR + (2*RED - BLUE))",
+    "sipi": "(NIR - BLUE) / (NIR - RED)",
+    "nbr": "(NIR - SWIR2) / (NIR + SWIR2)",
+    "ccci": "NDRE / NDVI  # Canopy chlorophyll content index",
     "msi": "SWIR1 / NIR  # Moisture Stress Index (الإجهاد المائي)",
     "msavi": "(2*NIR + 1 - sqrt((2*NIR+1)^2 - 8*(NIR-RED))) / 2  # Modified SAVI (L ذاتي)",
     "moisture": "(NIR - SWIR1) / (NIR + SWIR1)  # NDMI رطوبة المحتوى (للواجهة)",
@@ -1549,7 +1561,7 @@ _INDICATOR_FORMULAS = {
     "bi2": "sqrt((RED^2+GREEN^2+NIR^2)/3)",
     "ndti": "(SWIR1-SWIR2)/(SWIR1+SWIR2)",
     "dbsi": "((SWIR1-GREEN)/(SWIR1+GREEN)) - NDVI",
-    "ndsi": "(RED-NIR)/(RED+NIR)  # salinity — حرج لليمن",
+    "ndsi": "(SWIR1-SWIR2)/(SWIR1+SWIR2)  # salinity — حرج لليمن",
     "satvi": "((SWIR1-RED)/(SWIR1+RED+L))*(1+L) - SWIR2/2",
 }
 
@@ -2264,6 +2276,30 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
         elif ind == "gndvi":
             _d = nir + green
             arr = (nir - green) / np.where(_d == 0, 1e-10, _d)
+        elif ind == "reci":
+            if rededge is None:
+                raise HTTPException(400, "مؤشّر RECI يحتاج نطاق الحافّة الحمراء B05")
+            arr = (nir / np.where(rededge == 0, 1e-10, rededge)) - 1.0
+        elif ind == "gci":
+            arr = (nir / np.where(green == 0, 1e-10, green)) - 1.0
+        elif ind == "arvi":
+            rb = 2 * red - blue
+            _d = nir + rb
+            arr = (nir - rb) / np.where(_d == 0, 1e-10, _d)
+        elif ind == "sipi":
+            _d = nir - red
+            arr = (nir - blue) / np.where(_d == 0, 1e-10, _d)
+        elif ind == "nbr":
+            _d = nir + swir2
+            arr = (nir - swir2) / np.where(_d == 0, 1e-10, _d)
+        elif ind == "ccci":
+            if rededge is None:
+                raise HTTPException(400, "مؤشّر CCCI يحتاج نطاق الحافّة الحمراء B05")
+            ndre_d = nir + rededge
+            ndvi_d = nir + red
+            ndre_v = (nir - rededge) / np.where(ndre_d == 0, 1e-10, ndre_d)
+            ndvi_v = (nir - red) / np.where(ndvi_d == 0, 1e-10, ndvi_d)
+            arr = ndre_v / np.where(ndvi_v == 0, 1e-10, ndvi_v)
         elif ind == "msi":
             # Moisture Stress Index: SWIR1/NIR (أعلى = إجهاد مائي أكبر)
             arr = swir1 / np.where(nir == 0, 1e-10, nir)
@@ -2304,7 +2340,7 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
                 )  # حماية القسمة (اتّساقاً مع المؤشّرات أعلاه)
                 arr = si.compute_dbsi(green, swir1, _ndvi, np)
             elif ind == "ndsi":
-                arr = si.compute_ndsi(red, nir, np)
+                arr = si.compute_ndsi(swir1, swir2, np)
             else:  # satvi
                 arr = si.compute_satvi(red, swir1, swir2, np)
         else:  # fapar تقريب من ndvi

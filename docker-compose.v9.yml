@@ -1105,6 +1105,9 @@ services:
     build:
       context: .
       dockerfile: services/rag-retrieval/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PIP_EXTRA_INDEX_URL: ${PIP_EXTRA_INDEX_URL:-}
     mem_limit: 768m
     security_opt:
     - no-new-privileges:true
@@ -1135,6 +1138,9 @@ services:
     build:
       context: .
       dockerfile: services/knowledge-graph/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+        PIP_EXTRA_INDEX_URL: ${PIP_EXTRA_INDEX_URL:-}
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true

@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0ee3e6a9bc208b80379d41e3b804be99c727f7f7cebd00c6dd6c62f80f7a45d"
+          "content": "53e38d0d08e97121ba061f8b749c4b02ac290662e300d183069471f98845c576"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -835,7 +835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "872f8fa4a0aae48003245c865fd5c9ad872c34c41260eca211e4ed4c7d2ca558"
+          "content": "001d1bff8ba82bd6dfcdcc00b8890cadd844ddc869ee95e41d1a07b004286d7d"
         }
       ],
       "name": "frontend/src/components/fieldhealth/DateScrubber.tsx",
@@ -3475,7 +3475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0b31629bfbb05edd0b0de58b8457e558700c91013d4be1647b0a226d59b23255"
+          "content": "c82af4ddf80c34ef979586345e96a7628cf869eac7d271a63df934f27fe2286e"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.test.ts",
@@ -3485,7 +3485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e9518da1745d6f4b46dc4726cb275bd6a7f1feb7c08f7380a9abea3465bb425"
+          "content": "9f34e9919163cc9adc0b0ac1ce9b85f5f368f7a7efb2ccf83f7bc978a0b9fc5a"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",
@@ -4585,7 +4585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cbd60e10980d9ef79708f37a18897cfba819641318f6d397b0c8126ec4e15f5"
+          "content": "7c13d8c3c94af4ad6b50b807b1f8e27152b00c905d3331d68e0b74942af80f8c"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4625,7 +4625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c38a931be734265e8d6dd5e47bf29ac028ae2086492cdc517a1c7e2198251a5"
+          "content": "5c654fe339d345061a640e63105f40f84a6ac0fe81c367bd5bba3829a9f50327"
         }
       ],
       "name": "frontend/src/sections/MapHubTwoYearBackfill.static.test.ts",
@@ -4895,7 +4895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8e77b902e531af625b880e8f640716379b88068902f0a875742fbe0ab84c6615"
+          "content": "06d05c8f959c963cb136e8328d4abc269784c235dfd62775625500986ff2bc23"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -8475,7 +8475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b69c9b556ceea43a60db2344b5f2f8b06a322890ce7b6728579d4cda8df2a9c1"
+          "content": "b55ba91fbc8943abf3fd10e0f8e8123d84c3e2abd0058a43e9df790f4cee6d4f"
         }
       ],
       "name": "services/knowledge-graph/Dockerfile",
@@ -8855,7 +8855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "406b3d2030a2093b39336771e0f68af1bc55a3d74ee4ebca8e1719c3fcca5bbf"
+          "content": "cebe21e29a23e66055786cb3bdb961dc0f79315fd64828c6f93ab05f4868d759"
         }
       ],
       "name": "services/rag-retrieval/Dockerfile",
@@ -8925,7 +8925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d8df5cd58a47705825519e0c93899a7ee76946149c90d6d8de958234b4a85e8d"
+          "content": "32ec179a858eb412767feda6360326f57a1c585fc2de469c268e22e98859b4fd"
         }
       ],
       "name": "services/raster-service/cdse_client.py",
@@ -9005,7 +9005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8675e7f40b6e5b2136e82650be6199ad889815af29f7da77a9795ead1ac8fbb2"
+          "content": "325f7b411edab2e66422077c2d57797b39143dcc246eb91c3d36f287b5c53636"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9115,7 +9115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c60cc70cc87840e20ae6a00235e7e1b06fabc41347f438beff623becdbdf09e"
+          "content": "205447adc1e911f246fcf44522d1db9a56c5b4a46011d0eae8b109f206f84bf6"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9255,7 +9255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c0125ff659f3d8e3fa53ec9a160daeffc85843084b7fb80a4a0b8cc13fb0b84"
+          "content": "f9d982e6f7ba09cb197015798bf145a45b9ec883fb6c4031c858762db2d0616e"
         }
       ],
       "name": "services/raster-service/soil_indices.py",
@@ -9475,7 +9475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4db77110f2e19a59e9a180d6b3c2717a0b9032fb97116ec5c133add12e8421e"
+          "content": "f6d75948ffcc2ed4cb9af400502935af1165cb2ff931059c9d383a65b57c5bd8"
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",

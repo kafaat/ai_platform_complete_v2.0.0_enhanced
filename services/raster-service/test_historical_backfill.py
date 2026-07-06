@@ -167,7 +167,7 @@ def test_backfill_rejects_unsupported_visual_index(monkeypatch):
             "preset": "custom",
             "from_date": "2026-01-01",
             "to_date": "2026-01-31",
-            "indices": ["vari"],
+            "indices": ["lst"],
             "dry_run": True,
             "clip_polygon_geojson": _poly(),
         },
@@ -176,7 +176,7 @@ def test_backfill_rejects_unsupported_visual_index(monkeypatch):
     assert "غير مناسبة" in resp.text
 
 
-def test_backfill_accepts_truecolor_ndwi_and_ndsi_for_persisted_map_layers(monkeypatch):
+def test_backfill_accepts_top20_persisted_map_layers(monkeypatch):
     """MapHub-visible layers must be accepted by the raster backfill contract so they can
     become persisted COGs served through /fields/{id}/tiles instead of live CDSE fallback.
     salinity is sent from the UI as backend ndsi.
@@ -196,7 +196,28 @@ def test_backfill_accepts_truecolor_ndwi_and_ndsi_for_persisted_map_layers(monke
             "preset": "custom",
             "from_date": "2026-01-01",
             "to_date": "2026-01-31",
-            "indices": ["truecolor", "ndwi", "ndsi"],
+            "indices": [
+                "truecolor",
+                "ndvi",
+                "ndmi",
+                "savi",
+                "evi",
+                "gndvi",
+                "ndre",
+                "reci",
+                "gci",
+                "arvi",
+                "sipi",
+                "nbr",
+                "ccci",
+                "vari",
+                "gli",
+                "bsi",
+                "msi",
+                "msavi",
+                "ndwi",
+                "ndsi",
+            ],
             "limit_per_month": 1,
             "max_cloud_pct": 30,
             "dry_run": True,
@@ -206,5 +227,26 @@ def test_backfill_accepts_truecolor_ndwi_and_ndsi_for_persisted_map_layers(monke
     assert resp.status_code == 200, resp.text
     data = resp.json()
     assert data["jobs_scheduled"] == 0
-    assert len(data["jobs"]) == 3
-    assert {j["index"] for j in data["jobs"]} == {"truecolor", "ndwi", "ndsi"}
+    assert len(data["jobs"]) == 20
+    assert {j["index"] for j in data["jobs"]} == {
+        "truecolor",
+        "ndvi",
+        "ndmi",
+        "savi",
+        "evi",
+        "gndvi",
+        "ndre",
+        "reci",
+        "gci",
+        "arvi",
+        "sipi",
+        "nbr",
+        "ccci",
+        "vari",
+        "gli",
+        "bsi",
+        "msi",
+        "msavi",
+        "ndwi",
+        "ndsi",
+    }

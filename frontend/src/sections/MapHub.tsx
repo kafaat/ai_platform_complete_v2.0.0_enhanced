@@ -126,8 +126,17 @@ function withoutIdempotency<T extends Record<string, unknown>>(source: T): Omit<
 // كلّ المؤشّرات التي يحسبها raster-service (CDSE INDEX_EXPR) مع لوحة DS موجودة.
 // ('moisture' المكافئ لـNDMI مُستثنى تفادياً للتكرار.)
 const RAW_IMAGERY_INDEX_ID = 'truecolor';
+const CORE_TIMELINE_THUMBNAIL_INDEX_IDS = new Set([
+  RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndre', 'ndmi', 'msavi', 'ndwi', 'salinity',
+]);
+
+const ADVANCED_ANALYSIS_INDEX_IDS = new Set([
+  'evi', 'savi', 'gndvi', 'msi', 'reci', 'gci', 'arvi', 'sipi', 'nbr', 'ccci', 'vari', 'gli', 'bsi',
+]);
+
 const RASTER_INDEX_IDS = new Set([
-  RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndmi', 'salinity', 'evi', 'savi', 'msavi', 'ndwi', 'gndvi', 'ndre', 'msi',
+  ...CORE_TIMELINE_THUMBNAIL_INDEX_IDS,
+  ...ADVANCED_ANALYSIS_INDEX_IDS,
 ]);
 const INDICATOR_LAYERS = layersOfKind('index')
   .filter((l) => RASTER_INDEX_IDS.has(l.id))
@@ -149,6 +158,15 @@ const LAYER_LEGEND: Record<string, { short: string; low: string; high: string }>
   ndwi: { short: 'NDWI', low: 'جافّ', high: 'مياه' },
   gndvi: { short: 'GNDVI', low: 'منخفض', high: 'مرتفع' },
   ndre: { short: 'NDRE', low: 'منخفض', high: 'مرتفع' },
+  reci: { short: 'RECI', low: 'منخفض', high: 'كلوروفيل' },
+  gci: { short: 'GCI', low: 'منخفض', high: 'كلوروفيل' },
+  arvi: { short: 'ARVI', low: 'إجهاد', high: 'كثيف' },
+  sipi: { short: 'SIPI', low: 'منخفض', high: 'صبغات' },
+  nbr: { short: 'NBR', low: 'منخفض', high: 'مرتفع' },
+  ccci: { short: 'CCCI', low: 'منخفض', high: 'كلوروفيل' },
+  vari: { short: 'VARI', low: 'منخفض', high: 'أخضر' },
+  gli: { short: 'GLI', low: 'منخفض', high: 'أخضر' },
+  bsi: { short: 'BSI', low: 'غطاء', high: 'تربة عارية' },
   msi: { short: 'MSI', low: 'رطب', high: 'إجهاد' },
 };
 
@@ -729,6 +747,7 @@ export default function MapHub() {
       // المحفوظ للصورة الخام (بدل تصيير CDSE الحيّ لكلّ بلاطة).
       const BACKFILL_SUPPORTED_INDICES = [
         RAW_IMAGERY_INDEX_ID, 'ndvi', 'ndmi', 'savi', 'evi', 'gndvi', 'ndre',
+        'reci', 'gci', 'arvi', 'sipi', 'nbr', 'ccci', 'vari', 'gli', 'bsi',
         'msi', 'msavi', 'ndwi', 'salinity',
       ];
       const toBackfillIndex = (idx: string) => (idx === 'salinity' ? 'ndsi' : idx);
