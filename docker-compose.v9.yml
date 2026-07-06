@@ -285,7 +285,10 @@ services:
     - 127.0.0.1:9000:9000
     - 127.0.0.1:9001:9001
     environment:
-      MINIO_ROOT_USER: sahool-admin
+      # Single source of truth: .env/secret injection. Do not hardcode a different
+      # root user here; otherwise backend S3 clients using MINIO_ACCESS_KEY/S3_*
+      # will authenticate with a credential different from the running MinIO root.
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sahool-admin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
     command: server /data --console-address ":9001"
     volumes:
@@ -760,6 +763,16 @@ services:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
+      # Optional S3/MinIO COG persistence. Local/dev may leave S3_BUCKET empty and
+      # keep file:///data/rasters; production should set S3_BUCKET to store COGs
+      # in shared object storage and make raster_assets.cog_uri=s3://bucket/key.
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-sahool-admin}}}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD}}}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       # v7-#1: النقطة تقرأ الراية أيضاً (وإلّا افتراض false ⇒ بقاء المسار المتزامن).
       # الافتراض true في الإنتاج: النقطة تُرجِع run_id فوراً وعامل الفحص يعالج لاتزامنيّاً.
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
@@ -832,6 +845,13 @@ services:
     logging: *id001
     environment:
       RASTER_UPLOAD_DIR: /data/rasters
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-sahool-admin}}}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD}}}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
@@ -869,6 +889,13 @@ services:
     logging: *id001
     environment:
       RASTER_UPLOAD_DIR: /data/rasters
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-sahool-admin}}}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD}}}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
@@ -908,6 +935,14 @@ services:
     logging: *id001
     environment:
       TITILER_API_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      AWS_S3_ENDPOINT: ${S3_ENDPOINT_HOST:-sahool-minio:9000}
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-${MINIO_ACCESS_KEY:-${MINIO_ROOT_USER:-sahool-admin}}}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-${MINIO_SECRET_KEY:-${MINIO_ROOT_PASSWORD}}}
+      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
+      AWS_HTTPS: ${S3_USE_SSL:-false}
+      AWS_VIRTUAL_HOSTING: ${AWS_VIRTUAL_HOSTING:-false}
+    volumes:
+    - raster-data:/data/rasters:ro
     networks:
     - sahool-internal
     healthcheck:

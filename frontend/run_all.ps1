@@ -71,7 +71,7 @@ function Setup-Env {
 
 POSTGRES_PASSWORD=sahool_secure_pass_2026
 REDIS_PASSWORD=redis_secure_pass_2026
-MINIO_ROOT_USER=sahool
+MINIO_ROOT_USER=sahool-admin
 MINIO_ROOT_PASSWORD=minio_secure_pass_2026
 GRAFANA_PASSWORD=grafana_pass_2026
 

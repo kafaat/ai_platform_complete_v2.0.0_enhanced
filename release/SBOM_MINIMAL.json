@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53e38d0d08e97121ba061f8b749c4b02ac290662e300d183069471f98845c576"
+          "content": "3d3d8f3dc8f769669bda3f6ecd338a530141b41182028b13412b68add48cab8e"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -365,7 +365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1dce291d4fe895691a03bf2910f2235ac4266b04f4233ee4101b5b275dfa485a"
+          "content": "a72aff6e5560de6aa9fa46b70f3b7f4b882239b0f7790e7ab07b679c19d5e02f"
         }
       ],
       "name": "frontend/run_all.ps1",
@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c63b0200f887d7ea0edb12fdc5b2b988aadbbf012b76f453088a394761bfe806"
+          "content": "58ac3fc096356f37056047b3ea7fa4b2e45ef165faa63e1f4997de567dbb0884"
         }
       ],
       "name": "frontend/run_all.sh",
@@ -9479,6 +9479,16 @@
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8d03da89b08d92a4f8fa4b9e159151807853dba0ee24d5c6c9e7edc895d95168"
+        }
+      ],
+      "name": "services/raster-service/test_index_domains.py",
       "type": "file"
     },
     {
