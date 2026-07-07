@@ -39,14 +39,27 @@ WEATHER_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
     "nasa_power": {
         "id": "nasa_power",
         "label": "NASA POWER",
-        "active": False,  # صادق: غير موصول بعد (لا استدعاء في الكود).
+        "active": True,  # موصول فعلاً: connectors/nasa_power.py → /fields/{id}/wind/prevailing.
         "verified": True,
         "free": True,
         "auth": "none",
         "coverage_yemen": True,
         "resolution": "~0.5° (agroclimatology)",
-        "roles": ["solar_radiation", "agroclimatology", "historical_weather", "et_inputs"],
-        "note": "إشعاع شمسيّ + أرصاد زراعيّة-مناخيّة (مهمّ للطاقة الشمسيّة/ET) — يحتاج وصلاً.",
+        "roles": [
+            "solar_radiation",
+            "agroclimatology",
+            "historical_weather",
+            "et_inputs",
+            "historical_wind",  # WD10M/WS10M → وردة رياح + توصية مصدّات (wind_geometry).
+        ],
+        # صدق دقيق: الموصول فعلاً دور **الرياح التاريخيّة** فقط (سائد/وردة/مصدّ)؛ بقيّة
+        # الأدوار (إشعاع/أرصاد-مناخيّة/ET) مُسجَّلة لكن غير موصولة بعد.
+        "active_roles": ["historical_wind"],
+        "note": (
+            "موصول للرياح التاريخيّة (WD10M/WS10M) عبر connectors/nasa_power.py: يغذّي "
+            "الاتّجاه السائد ووردة الرياح وتوصية المصدّات. أدوار الإشعاع/الأرصاد-المناخيّة/ET "
+            "مُسجَّلة وتحتاج وصلاً لاحقاً."
+        ),
     },
     "chirps": {
         "id": "chirps",

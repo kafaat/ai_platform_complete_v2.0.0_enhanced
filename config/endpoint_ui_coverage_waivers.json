@@ -2,6 +2,22 @@
   "$comment": "سجلّ إعفاءات عقد backend⇒frontend (البوّابة العكسيّة). كلّ مسار مواجِه بلا دليل واجهة يجب أن يكون هنا بسبب صريح وإلّا تفشل البوّابة. backlog-ui دَين واجهة مقصود؛ admin-ops/operational لا تتطلّب شاشة مستخدم نهائيّ. مولّد أوّليّاً من حالة e5685b2 عبر منطق البوّابة نفسه؛ أيّ إضافة لاحقة قرار مرئيّ في المراجعة. نظّف البائت عبر البوّابة.",
   "waivers": [
     {
+      "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/fields.py"
+      ],
+      "reason_category": "backlog-ui",
+      "reason": "واجهة برمجيّة جاهزة (الرياح السائدة + توصية مصدّ من NASA POWER عبر core.wind_geometry)؛ شاشة المصدّات/وردة الرياح هي الشريحة التالية (B2-UI).",
+      "priority": "medium",
+      "ui_effort": "medium",
+      "ui_surface_hint": "field-wind-windbreak-card",
+      "criticality": "low",
+      "importance": 40,
+      "importance_tier": "medium",
+      "intended_consumer": "human"
+    },
+    {
       "endpoint": "/api/v1/admin/break-glass",
       "audience": "admin",
       "methods": [

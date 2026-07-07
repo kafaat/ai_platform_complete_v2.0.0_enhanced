@@ -20,11 +20,13 @@ from core.weather_sources import (
 )
 
 
-def test_only_openmeteo_is_active():
-    # صدق: Open-Meteo وحده موصول فعلاً؛ البقيّة مُخطَّطة (بما فيها الرياح/الإعادة-تحليل).
-    assert active_weather_sources() == ["open_meteo"]
+def test_active_sources_are_openmeteo_and_nasa_power():
+    # صدق: Open-Meteo (توقّع/ET0) وNASA POWER (رياح تاريخيّة، موصول عبر connectors/
+    # nasa_power.py) نشطان؛ البقيّة مُخطَّطة. NASA POWER نشط لدور الرياح التاريخيّة فقط.
+    assert set(active_weather_sources()) == {"open_meteo", "nasa_power"}
+    assert WEATHER_SOURCE_REGISTRY["nasa_power"]["active_roles"] == ["historical_wind"]
+    assert "historical_wind" in WEATHER_SOURCE_REGISTRY["nasa_power"]["roles"]
     for planned in (
-        "nasa_power",
         "chirps",
         "ecmwf_open_data",
         "gfs_noaa",
