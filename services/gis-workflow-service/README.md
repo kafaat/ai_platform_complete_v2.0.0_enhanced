@@ -5,10 +5,14 @@
 الإسقاط/الدقّة/الجودة).
 
 ## النطاق الحاليّ (صدق)
-- **مُنفَّذ:** `map_layout.py` (تخطيط نقيّ، بلا رسم) + `publication_map.py` (رِندرِر matplotlib Agg).
-- **غير مُنفَّذ بعد (شرائح لاحقة):** محرّك الـWorkflow Spec، حزمة التشغيلة (`maps/data/
-  reports/scripts/provenance`)، self-checks الكاملة (CRS/extent/nodata)، backends بحثيّة
-  (GEE/earthaccess — تبقى `active:false` حتّى اعتماد + تحقّق حيّ)، وأيّ نقطة HTTP.
+- **الشريحة A (V84):** `map_layout.py` (تخطيط نقيّ، بلا رسم) + `publication_map.py` (رِندرِر matplotlib Agg).
+- **الشريحة B (V85):** `workflow_spec.py` (تحقّق/حلّ عقد + حظر المصادر الخارجيّة) +
+  `self_checks.py` (فحوص required/quality حقيقيّة) + `run_bundle.py` (حزمة تشغيل كاملة
+  `maps/data/reports/scripts/provenance` **لا-تُكتَب-فوقها**، `run_id` فريد، checksums،
+  run_manifest نَسَب، ربط أدلّة اختياريّ). طبقة تشغيل/تدقيق فوق A/raster-service، لا محرّك بيانات.
+- **غير مُنفَّذ بعد (شرائح لاحقة):** الشريحة C (خرائط النشرة الإقليميّة)، AOI trend متعدّد
+  السنوات، backends بحثيّة (GEE/earthaccess — تبقى `active:false` حتّى اعتماد + تحقّق حيّ)،
+  وأيّ نقطة HTTP.
 - **لا ادّعاء:** الـcaption يعكس الحقول المُمرَّرة فقط؛ الناقص يُعرَض «غير متاح» (لا اختلاق
   مصدر/تاريخ/دقّة). بلا بيانات صالحة ⇒ `ValueError` (لا صورة فارغة مُضلِّلة).
 
