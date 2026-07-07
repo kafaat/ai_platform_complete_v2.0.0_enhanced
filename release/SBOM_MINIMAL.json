@@ -12785,6 +12785,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7814c795516afd606d86e7cf7c0c9be5c2b644f1af7afe8fa1b48d1e8e6d2558"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/regional_bulletin.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "613a9b75b6a24c9ccaec7942b93e75b251f40bbcbd9cf525e9e137d2de3926c0"
         }
       ],
@@ -18659,6 +18669,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_regional_bulletin.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "914a85b604f070b3c2ad668ff530623549284e8bd0d47821dcc9e70c67e8e49d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_regional_bulletin_route.py",
       "type": "file"
     },
     {
