@@ -15575,7 +15575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa506b9812c8eaa863672baef2f8f535ae6460023b0a4c2a407392c2439b31c7"
+          "content": "3723c5deef0ab1e1df18e7a4037edb1b70aa665c4da9141015a18e4c0db11d8c"
         }
       ],
       "name": "services/sahool-platform/core/regional_bulletin.py",

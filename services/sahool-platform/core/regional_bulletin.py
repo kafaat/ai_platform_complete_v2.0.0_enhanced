@@ -112,6 +112,31 @@ def _condition_distribution(
     return counts
 
 
+def bulletin_rows_to_records(rows: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    """يحوّل صفوف DB (``gov``/``field_id``/``ndvi_current``/``ndvi_historical_mean``/
+    ``scene_count``) إلى سجلّات النشرة التي يفهمها ``build_regional_bulletin``.
+
+    منطق صرف قابل للاختبار (الاستعلام المُقيَّد بالمستأجِر/RLS يبقى في الراوت). يقبل
+    ``gov`` (عمود جدول الحقول) أو ``governorate`` صراحةً. الصفوف بلا محافظة تُهمَل لاحقاً.
+    """
+    records: list[dict[str, Any]] = []
+    for r in rows or []:
+        if not isinstance(r, dict):
+            continue
+        records.append(
+            {
+                "governorate": r.get("gov") or r.get("governorate"),
+                "district": r.get("district"),
+                "tenant_id": r.get("tenant_id"),
+                "field_id": r.get("field_id"),
+                "ndvi_current": r.get("ndvi_current"),
+                "ndvi_historical_mean": r.get("ndvi_historical_mean"),
+                "scene_count": r.get("scene_count"),
+            }
+        )
+    return records
+
+
 def build_regional_bulletin(
     fields: list[dict[str, Any]],
     *,
