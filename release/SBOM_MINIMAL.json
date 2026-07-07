@@ -15745,6 +15745,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5e830fe47c115964d7ef91817afc673ef1904dd67de46dc222b99f501643f472"
+        }
+      ],
+      "name": "services/sahool-platform/core/soil_climate_sources.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ae0ed7d5de1532f3b5923c48f04c622ad3fcdc10d90904fbdf3b2d802d39751b"
         }
       ],
@@ -18949,6 +18959,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_skills_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5e365ae0e6f36b22496a68449fa15409586dd4182a900743f28f7c7fbcb6edeb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_soil_climate_sources.py",
       "type": "file"
     },
     {

@@ -1621,3 +1621,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **القناة (المُراجِع):** `earthdata_wget_batch` في EXTERNAL_SOURCE_REGISTRY (`source_type=manual_batch_download`, active_provider=False, requires_earthdata_login) — تدعم HLS/ASTER/SRTM/NASADEM/MODIS/VIIRS/MERRA2. قناة استيراد دفعيّ لا مزوّد حيّ. التصحيح: `.netrc` لا كلمة مرور في سكربت/مستودع.
 - **حارس صادق + أمنيّ:** `imported_asset_provenance_ok` — يرفض أصلاً مُستورَداً بلا checksum+source_url+acquisition_date (لا أصل يتيم)، ويرفض أيّ حقل يشبه سرّاً (password/token/netrc). الوثيقة حُدِّثت بطريقة `.netrc` + wget + قاعدة النَّسَب.
 - **التحقّق:** 4 حُرّاس · القناة ليست مزوّداً/نشطاً · حُرّاس السِجِلّ أخضر · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — سِجِلّ مصادر التربة/المناخ (V70، أربع طبقات)
+- **التصنيف:** `core/soil_climate_sources.py` بطبقات tier (production_baseline/planned_baseline/research_layer/manual_download_only). **SoilGrids نشط** (موصول فعلاً: `soil-service/soilgrids_client.py`→rest.isric.org + `/soil/soilgrids`) بتحذير «250م، ليس بديل مختبر». WorldClim/ESA-CCI مُخطَّطان؛ erodibility + DOC/MBC/fMAOC/GPP طبقات بحثيّة (requires_verification، coverage=needs_check/dataset_dependent، لا افتراض تغطية).
+- **صدق:** NASA POWER لم يُعَد تعليمه active (موجود مُخطَّطاً في weather_sources). **الأمن/الموثوقيّة:** حارس `has_baidu_source` يمنع أيّ رابط Baidu كمصدر رسميّ (المواقع الأصليّة + checksum فقط).
+- **التحقّق:** 5 حُرّاس · soilgrids وحده نشط · لا Baidu · ruff · manifest · SHA سيُثبَّت.
