@@ -139,6 +139,10 @@ REQUIRED_MODULES = {
         "ensure_field_cog",
         "tilejson_availability",
     ],
+    "raster_stac_runtime.py": [
+        "make_stac_client",
+        "configure_stac_search",
+    ],
     "raster_field_runtime.py": [
         "_require_service_token",
         "_require_field_tenant",
@@ -150,13 +154,9 @@ REQUIRED_MODULES = {
         "_process_backfill_scene_cdse",
         "_upload_dir",
     ],
-    "raster_stac_runtime.py": [
-        "make_stac_client",
-        "configure_stac_search",
-    ],
 }
 
-MAX_MAIN_LINES = 430
+MAX_MAIN_LINES = 370
 
 DIRECT_ROUTER_IMPORTS = {
     "routers/jobs.py",
@@ -225,8 +225,6 @@ FORBIDDEN_MAIN_DEFS = {
     "_quality_from_cloud_pct",
     "_pixel_quality",
     "lifespan",
-    # Phase 27: layer lookup + tenant compatibility wrappers removed from main.py
-    # (routers/workers import the extracted runtime modules directly).
     "_normalize_index",
     "_display_index",
     "_find_field_layer",
@@ -237,6 +235,14 @@ FORBIDDEN_MAIN_DEFS = {
     "_real_field_grid",
     "_tenant_from_header",
     "_tenant_from_request",
+    "_process_backfill_scene_cdse",
+    "_safe_raster_source",
+    "_run_processing",
+    "_run_batch_processing",
+    "_process_precomputed_pixels",
+    "_process_precomputed_truecolor",
+    "_process_pixels",
+    "_run_cdse_processing",
 }
 REQUIRED_MAIN_ALIASES = {
     "_cdse_key_lock = cdse_singleflight.cdse_key_lock",
@@ -244,25 +250,12 @@ REQUIRED_MAIN_ALIASES = {
     "_stac_search_cdse = stac_search_helpers.stac_search_cdse",
     "_stac_search_element84 = stac_search_helpers.stac_search_element84",
     "_stac_search_landsat_unique = stac_search_helpers.stac_search_landsat_unique",
-    "from raster_asset_persistence import",
-    "persist_raster_asset as _persist_raster_asset",
-    "import raster_processing_runtime",
-    "return raster_processing_runtime.run_processing(job_id, req, upload_dir=UPLOAD_DIR)",
-    "return raster_processing_runtime.run_batch_processing(job_id, req, upload_dir=UPLOAD_DIR)",
-    "return raster_processing_runtime.process_precomputed_pixels(req, layer_id, upload_dir=UPLOAD_DIR)",
-    "return raster_processing_runtime.process_precomputed_truecolor(req, upload_dir=UPLOAD_DIR)",
-    "return raster_processing_runtime.process_pixels(req, layer_id, upload_dir=UPLOAD_DIR)",
-    "import raster_cdse_processing",
-    "ctx = raster_processing_runtime.make_processing_context(upload_dir=UPLOAD_DIR)",
-    "return raster_cdse_processing.run_cdse_processing(ctx, job_id, field_id, req)",
     "from raster_api_models import",
     "BACKFILL_PRESET_MONTHS as _BACKFILL_PRESET_MONTHS",
-    "ProcessCdseRequest, ProcessFromStacRequest",
     "FieldChangeRequest, PrescriptionRequest",
     "SalinityClassifyRequest, SalinityFitRequest",
     "import raster_security_context",
     "_REQ_TENANT = raster_security_context.REQ_TENANT",
-    "return raster_security_context.safe_raster_source(url, UPLOAD_DIR, _SSRF_BLOCKED_HOSTS)",
     "return raster_security_context.require_service_token(x_agent_token, AGENT_TOKEN)",
     "import raster_quality",
     "_INDICATOR_FORMULAS = raster_quality.INDICATOR_FORMULAS",
@@ -282,12 +275,9 @@ REQUIRED_MAIN_ALIASES = {
     "import raster_settings",
     "EARTH_SEARCH_URL = raster_settings.EARTH_SEARCH_URL",
     "UPLOAD_DIR = raster_settings.UPLOAD_DIR",
-    "_SSRF_BLOCKED_HOSTS = raster_settings.SSRF_BLOCKED_HOSTS",
     "AGENT_TOKEN = raster_settings.AGENT_TOKEN",
     "import raster_stac_runtime",
     "_stac = raster_stac_runtime.configure_stac_search(logger=logger)",
-    "import raster_backfill_scene_processing",
-    "return raster_backfill_scene_processing.process_backfill_scene_cdse(",
     "import raster_runtime_state",
     "_jobs = raster_runtime_state.JOBS",
     "_layers = raster_runtime_state.LAYERS",
@@ -388,15 +378,21 @@ def main() -> None:
         "_is_valid_field_id_text,": "field-id validation helper must stay in raster_asset_persistence.py",
         "sys.modules[__name__]": "processing wrappers must use explicit RasterRuntimeContext, not main.py as context",
         "import sys": "main.py must not import sys for context self-reference",
-        # Phase 27: STAC bootstrap centralized in raster_stac_runtime.py.
         "ResilientStacClient(": "STAC client construction must stay in raster_stac_runtime.py",
         "stac_search_helpers.configure(": "STAC helper configuration must stay in raster_stac_runtime.py",
         "_fallback_chain = raster_settings.stac_fallback_chain()": "STAC fallback chain wiring must stay in raster_stac_runtime.py",
-        # Phase 27: layer lookup + tenant wrappers must not grow back into main.py.
         "import layer_lookup": "layer lookup compatibility wrappers must stay out of main.py",
         "def _find_field_layer(": "field layer lookup must stay in layer_lookup.py/raster_field_runtime.py",
         "def _resolve_field_layer(": "field layer resolution must stay in layer_lookup.py/raster_field_runtime.py",
         "def _tenant_from_header(": "tenant header normalization must stay in raster_security_context.py",
+        "def _process_backfill_scene_cdse(": "backfill scene processing must stay in raster_field_runtime/raster_backfill_scene_processing.py",
+        "def _safe_raster_source(": "source guard must stay in raster_security_context/raster_field_runtime.py",
+        "def _run_processing(": "processing job wrapper must stay in raster_processing_runtime/raster_field_runtime.py",
+        "def _run_batch_processing(": "batch processing wrapper must stay in raster_processing_runtime.py",
+        "def _process_precomputed_pixels(": "precomputed processing wrapper must stay in raster_processing_runtime.py",
+        "def _process_precomputed_truecolor(": "truecolor processing wrapper must stay in raster_processing_runtime.py",
+        "def _process_pixels(": "pixel processing wrapper must stay in raster_processing_runtime.py",
+        "def _run_cdse_processing(": "CDSE processing wrapper must stay in raster_field_runtime/raster_cdse_processing.py",
     }
     for needle, reason in forbidden_sources.items():
         if needle in source:

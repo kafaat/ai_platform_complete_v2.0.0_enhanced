@@ -36,10 +36,11 @@ _DECOMP_MODULES = (
 # ملاحظة: phase23 أتمّ فصل main — لم يعُد يُعيد تصدير _is_valid_field_id_text ولا
 # _select_backfill_scenes_by_policy (العامل/الاختبارات تستورد raster_asset_persistence
 # و scene_policy مباشرةً)، فأُسقِطا من العقد. حارس بنية الاستيراد يضمن الفصل الكامل.
+# phase28: أُسقِط _persist_raster_asset و_run_processing أيضاً — مُغلِّفات المعالجة/الحفظ
+# أُزيلت من main.py، والعامل/الاختبارات تستورد raster_processing_runtime/
+# raster_asset_persistence مباشرةً (وctx يُبنى صراحةً عبر make_processing_context).
 _WORKER_CONTRACT = (
-    "_persist_raster_asset",
     "_stac_search",
-    "_run_processing",
     "_field_layers",
     "_layers",
 )
@@ -70,14 +71,20 @@ def test_main_exposes_worker_and_test_contract() -> None:
 
 def test_every_ctx_attr_used_by_decomposition_resolves_on_main() -> None:
     src = MAIN.read_text(encoding="utf-8")
+    # phase28: ctx لم يعُد هو main — بل SimpleNamespace صريح يبنيه
+    # raster_processing_runtime.make_processing_context الذي يُسنِد ctx.<attr>. لذا
+    # يُعدّ الرمز مُحلّاً إن عُرِّف على main أو أُسنِد صراحةً على ctx في مصنع السياق
+    # (كلاهما يمنع كسر AttributeError صامت وقت التشغيل).
+    runtime_src = (RASTER / "raster_processing_runtime.py").read_text(encoding="utf-8")
+    ctx_assigned = set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)\s*=", runtime_src))
     missing: dict[str, list[str]] = {}
     for mod in _DECOMP_MODULES:
         msrc = (RASTER / f"{mod}.py").read_text(encoding="utf-8")
         attrs = set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)", msrc))
-        bad = sorted(a for a in attrs if not _defines(src, a))
+        bad = sorted(a for a in attrs if a not in ctx_assigned and not _defines(src, a))
         if bad:
             missing[mod] = bad
-    assert not missing, f"وحدات التفكيك تشير إلى رموز غير موجودة على main (ctx.*): {missing}"
+    assert not missing, f"وحدات التفكيك تشير إلى رموز غير محلولة (ctx.*): {missing}"
 
 
 def test_no_undefined_fieldctx_alias() -> None:

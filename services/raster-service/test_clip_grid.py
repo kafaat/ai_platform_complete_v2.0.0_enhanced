@@ -18,8 +18,9 @@ import tempfile
 
 import main
 import numpy as np
+import raster_processing_runtime
 import rasterio
-from main import BandMapping, IndicatorKind, ProcessRequest, SourceFormat
+from raster_api_models import BandMapping, IndicatorKind, ProcessRequest, SourceFormat
 from rasterio.transform import from_origin
 
 # منطقة الجوف (اليمن) تقع في UTM zone 38N (EPSG:32638).
@@ -133,10 +134,10 @@ def test_clip_index_bounds_and_grid():
         capture_datetime="2026-05-01T08:30:00Z",
     )
 
-    # وجّه COG إلى مجلّد مؤقّت
-    main.UPLOAD_DIR = tmpdir
-
-    stats, bounds, res_m, meta = main._process_pixels(req, "layer_test")
+    # وجّه COG إلى مجلّد مؤقّت عبر سياق المعالجة الصريح.
+    stats, bounds, res_m, meta = raster_processing_runtime.process_pixels(
+        req, "layer_test", upload_dir=tmpdir
+    )
 
     # ── (ب) NDVI داخل الحقل = 0.5 ────────────────────────────────────
     assert abs(stats["mean"] - 0.5) < 1e-4, f"NDVI mean متوقّع 0.5، وجد {stats['mean']}"

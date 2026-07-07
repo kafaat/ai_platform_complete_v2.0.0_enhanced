@@ -49,7 +49,14 @@ def rm():
     raster_main = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = raster_main
     spec.loader.exec_module(raster_main)
-    assert hasattr(raster_main, "_safe_raster_source"), "استُورد main خاطئ — ليس raster-service"
+    assert hasattr(raster_main, "UPLOAD_DIR"), "استُورد main خاطئ — ليس raster-service"
+    # phase28: مُغلِّف main._safe_raster_source أُزيل؛ حارس المصدر يعيش الآن في
+    # raster_field_runtime._safe_raster_source (يفوّض إلى raster_security_context.safe_raster_source
+    # مع UPLOAD_DIR = raster_settings.UPLOAD_DIR نفسه). نجلب الدالّة الإنتاجيّة الحقيقيّة التي
+    # تستعملها الراوترات كي يبقى الحارس يمسّ المسار الفعليّ لا غلافاً قديماً.
+    import raster_field_runtime
+
+    raster_main._safe_raster_source = raster_field_runtime._safe_raster_source
     try:
         yield raster_main
     finally:

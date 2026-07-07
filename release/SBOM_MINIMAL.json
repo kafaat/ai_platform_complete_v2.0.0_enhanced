@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "43602a9486c77af9c562df3627e5b7232eee642d2d881746b5e7b0c7548e55d5"
+          "content": "15e491b6a0193e90f0fd704654d139133fd56d01c5ac126f1161a96df54aaf2b"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9239,6 +9239,16 @@
         }
       ],
       "name": "services/raster-service/raster_settings.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd9a88fde99f45a035a47078918fbf68685b87e2e6c4b6be1d8fe8942b5824f8"
+        }
+      ],
+      "name": "services/raster-service/raster_stac_runtime.py",
       "type": "file"
     },
     {
@@ -9565,7 +9575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "49dec23d317981a94f0df5a318911494c9cef80c0969f10ebf9d68d4a760af5d"
+          "content": "b93c65248d99b9a61fef07b28ab648b34207f82a681f72df8be3d6b8c10b0935"
         }
       ],
       "name": "services/raster-service/test_cdse_date_normalization.py",
@@ -9615,7 +9625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b3cb0b0496f2989ad3847ab5f144cd972a5ad181f65a7a583f33e159f5aa6617"
+          "content": "874c026f77eda98436bab056d932d93778c8c5d6b0ba340c662c92be9a6a3f0b"
         }
       ],
       "name": "services/raster-service/test_clip_grid.py",
@@ -9695,7 +9705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a49f8ee5bc6a9b000f07ab5a1851f0dc58f04715da33557b80a6834ad3351b0"
+          "content": "83949f9c54d5ff097e503f519b782fe93c6ab0aa955a7d8a09424e762267516c"
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
@@ -9855,7 +9865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0de4b9ff122b9b92f28032d21791ea7d49361705169696ce1bb9338101c7fdd"
+          "content": "81dc2407ee4d70f8286cb3b24fdc2ba584ad7111a352f0097ea2871c2aa56040"
         }
       ],
       "name": "services/raster-service/test_router_query_direct_call.py",

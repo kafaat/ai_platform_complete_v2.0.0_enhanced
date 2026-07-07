@@ -19,15 +19,13 @@ import routers.soil_tiles as st
 import routers.terrain_tiles as tt
 
 
-def _noop_tenant(field_id, **kwargs):
-    async def _inner():
-        return None
-
-    return _inner()
+async def _noop_tenant(field_id, **kwargs):
+    return None
 
 
 def _patch_tenant(monkeypatch):
-    monkeypatch.setattr(main, "_require_field_tenant", _noop_tenant)
+    monkeypatch.setattr(tt, "require_field_tenant", _noop_tenant)
+    monkeypatch.setattr(st, "require_field_tenant", _noop_tenant)
     main._REQ_TENANT.set("t-test")  # ContextVar.get للقراءة فقط — نضبط القيمة
 
 

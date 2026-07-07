@@ -54,9 +54,10 @@ def test_stac_search_dispatches_to_cdse_failclosed():
 # ── مسار المعالجة التاريخيّة يستعمل CDSE Process API لمشاهد الكتالوج ──
 def test_backfill_processes_cdse_scenes_via_process_api():
     # phase12: مسار معالجة مشهد backfill عبر CDSE Process API انتقل إلى
-    # raster_backfill_scene_processing.py (وبقي غلاف التوافق في main.py).
+    # raster_backfill_scene_processing.py. phase28: أُزيل غلاف main._process_backfill_scene_cdse؛
+    # الدالّة الفعليّة process_backfill_scene_cdse تعيش في الوحدة المستخرَجة.
     src = _read(_RASTER / "main.py") + "\n" + _read(_RASTER / "raster_backfill_scene_processing.py")
-    assert "_process_backfill_scene_cdse" in src
+    assert "process_backfill_scene_cdse" in src
     assert "cdse_client.get_client().process_index(" in src
     worker = _read(_RASTER / "backfill_scan_worker.py")
     assert "_process_backfill_scene_cdse" in worker, "العامل يجب أن يعالج مشاهد CDSE"

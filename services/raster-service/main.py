@@ -37,11 +37,10 @@ import logging
 import os
 from datetime import datetime
 
-import band_math
 import object_store
 import raster_settings
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header
 from fastapi.middleware.cors import CORSMiddleware
 
 try:
@@ -180,25 +179,6 @@ _stac_search_landsat_unique = stac_search_helpers.stac_search_landsat_unique
 _stac_search_dem = stac_search_helpers.stac_search_dem
 
 
-import raster_backfill_scene_processing  # noqa: E402
-
-
-def _process_backfill_scene_cdse(
-    scene: dict,
-    index: str,
-    field_id: str,
-    tenant_id: str | None,
-    clip: dict | None,
-    geometry_revision,
-    jid: str,
-) -> None:
-    ctx = raster_processing_runtime.make_processing_context(upload_dir=UPLOAD_DIR)
-    ctx._bbox_from_geojson = raster_date_geo.bbox_from_geojson
-    return raster_backfill_scene_processing.process_backfill_scene_cdse(
-        ctx, scene, index, field_id, tenant_id, clip, geometry_revision, jid
-    )
-
-
 # ─── lifespan + التطبيق ───────────────────────────────────────────
 # Phase 10 decomposition: lifecycle/startup wiring moved to raster_app_lifecycle.py.
 import raster_app_lifecycle  # noqa: E402
@@ -285,11 +265,6 @@ from raster_api_models import (  # noqa: E402
 
 # ─── معالجة الراستر: الرفع ────────────────────────────────────────
 UPLOAD_DIR = raster_settings.UPLOAD_DIR
-_SSRF_BLOCKED_HOSTS = raster_settings.SSRF_BLOCKED_HOSTS
-
-
-def _safe_raster_source(url: str | None) -> str:
-    return raster_security_context.safe_raster_source(url, UPLOAD_DIR, _SSRF_BLOCKED_HOSTS)
 
 
 # مصادقة خدمة-لخدمة: رفع الراستر يكتب ملفّات — منع إساءة التخزين/الحقن
@@ -312,51 +287,7 @@ _quality_from_cloud_pct = raster_quality.quality_from_cloud_pct
 _pixel_quality = raster_quality.pixel_quality
 
 
-# Persistence helpers are implemented outside main.py; keep private aliases here
-# for existing tests and routers that still import from main during the staged split.
-from raster_asset_persistence import persist_raster_asset as _persist_raster_asset  # noqa: E402
-import raster_processing_runtime  # noqa: E402
-
-
-def _run_processing(job_id: str, req: ProcessRequest):
-    """Compatibility wrapper backed by an explicit processing context."""
-    return raster_processing_runtime.run_processing(job_id, req, upload_dir=UPLOAD_DIR)
-
-
-def _run_batch_processing(job_id: str, req: BatchProcessRequest):
-    """Compatibility wrapper backed by an explicit processing context."""
-    return raster_processing_runtime.run_batch_processing(job_id, req, upload_dir=UPLOAD_DIR)
-
-
-def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
-    """Compatibility wrapper backed by an explicit processing context."""
-    return raster_processing_runtime.process_precomputed_pixels(
-        req, layer_id, upload_dir=UPLOAD_DIR
-    )
-
-
-def _process_precomputed_truecolor(req: ProcessRequest):
-    """Compatibility wrapper backed by an explicit processing context."""
-    return raster_processing_runtime.process_precomputed_truecolor(req, upload_dir=UPLOAD_DIR)
-
-
-def _process_pixels(req: ProcessRequest, layer_id: str):
-    """Compatibility wrapper backed by an explicit processing context."""
-    return raster_processing_runtime.process_pixels(req, layer_id, upload_dir=UPLOAD_DIR)
-
-
-from raster_api_models import ProcessCdseRequest, ProcessFromStacRequest  # noqa: E402
-
-
-import raster_cdse_processing  # noqa: E402
-
-
-def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
-    """Compatibility wrapper backed by an explicit processing context."""
-    ctx = raster_processing_runtime.make_processing_context(upload_dir=UPLOAD_DIR)
-    return raster_cdse_processing.run_cdse_processing(ctx, job_id, field_id, req)
-
-
+# Processing helpers live in raster_processing_runtime.py; routers use raster_field_runtime.py.
 # Transparent fallback PNG and finite nodata moved to raster_settings.py.
 _TRANSPARENT_PNG = raster_settings.TRANSPARENT_PNG
 RASTER_NODATA = raster_settings.RASTER_NODATA
@@ -392,7 +323,7 @@ from raster_api_models import SalinityClassifyRequest, SalinityFitRequest  # noq
 # توحيد main↔cert (Stage B): تفعيل بلاطات CDSE الحيّة (poly clip) من main
 # ════════════════════════════════════════════════════════════════════
 # cert تفرّع قبل مسار cdse-tiles؛ بنيته التحتيّة لـCDSE موجودة هنا
-# (_run_cdse_processing/ProcessCdseRequest/_jobs/…) عدا مساعِدات للكاش/القفل.
+# (ProcessCdseRequest/_jobs/…) عدا مساعِدات للكاش/القفل.
 # نُبقي واجهة main._cdse_* للتوافق، لكن الحالة والمنطق صارا في وحدة صغيرة قابلة للاختبار.
 import cdse_singleflight  # noqa: E402
 

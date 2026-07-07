@@ -55,8 +55,8 @@ def _call_tilejson(date_value):
     async def _noop_tenant(_field_id):
         return None
 
-    orig = main._require_field_tenant
-    main._require_field_tenant = _noop_tenant
+    orig = cdse_tiles._require_field
+    cdse_tiles._require_field = _noop_tenant
     try:
         return asyncio.run(
             cdse_tiles.field_cdse_tilejson(
@@ -70,7 +70,7 @@ def _call_tilejson(date_value):
             )
         )
     finally:
-        main._require_field_tenant = orig
+        cdse_tiles._require_field = orig
 
 
 @pytest.mark.parametrize("raw", ["", "latest", "today"])

@@ -3,8 +3,10 @@ import sys
 import types
 
 import main
+import raster_field_runtime
 import scene_policy
 from fastapi.testclient import TestClient
+from routers import fields as field_routes
 
 
 def _poly():
@@ -52,7 +54,7 @@ def test_backfill_dry_run_builds_jobs_from_custom_range(monkeypatch):
         month = dt_start[:7]
         return {"count": 2, "items": [_scene(month, "A", 18.0), _scene(month, "B", 6.0)]}
 
-    monkeypatch.setattr(main, "_stac_search", fake_search)
+    monkeypatch.setattr(field_routes, "_stac_search", fake_search)
     client = TestClient(main.app)
     resp = client.post(
         "/v1/fields/F-1/imagery/backfill",
@@ -91,7 +93,7 @@ def test_backfill_scene_job_raster_url_passes_source_guard(monkeypatch):
     async def fake_search(bbox, dt_start, dt_end, max_cloud, limit):
         return {"count": 1, "items": [_scene(dt_start[:7], "A", 5.0)]}
 
-    monkeypatch.setattr(main, "_stac_search", fake_search)
+    monkeypatch.setattr(field_routes, "_stac_search", fake_search)
 
     captured: dict[str, object] = {}
 
@@ -101,7 +103,7 @@ def test_backfill_scene_job_raster_url_passes_source_guard(monkeypatch):
         j["status"] = main.JobStatus.completed
         main._jobs.set(job_id, j)
 
-    monkeypatch.setattr(main, "_run_processing", fake_run_processing)
+    monkeypatch.setattr(field_routes, "_run_processing", fake_run_processing)
 
     # stac_vrt الحقيقيّ يستورد rasterio ويفتح النطاقات — بديل خفيف يحترم out_dir
     # كي يبقى الاختبار وحدويّاً ويُثبت أين تُكتب مخرجات البناء فعلاً.
@@ -142,7 +144,7 @@ def test_backfill_scene_job_raster_url_passes_source_guard(monkeypatch):
     preq = next(iter(captured.values()))
     assert used["out_dir"] == main.UPLOAD_DIR, "الـVRT يجب أن يُكتَب تحت UPLOAD_DIR"
     # جوهر الانحدار: المسار المجدول كان يُرمى 400 «مخطّط URL غير مدعوم».
-    resolved = main._safe_raster_source(preq.raster_url)
+    resolved = raster_field_runtime._safe_raster_source(preq.raster_url)
     assert resolved.startswith(os.path.realpath(main.UPLOAD_DIR))
 
 
@@ -187,7 +189,7 @@ def test_backfill_accepts_top20_persisted_map_layers(monkeypatch):
     async def fake_search(bbox, dt_start, dt_end, max_cloud, limit):
         return {"count": 1, "items": [_scene(dt_start[:7], "A", 5.0)]}
 
-    monkeypatch.setattr(main, "_stac_search", fake_search)
+    monkeypatch.setattr(field_routes, "_stac_search", fake_search)
     client = TestClient(main.app)
     resp = client.post(
         "/v1/fields/F-1/imagery/backfill",
