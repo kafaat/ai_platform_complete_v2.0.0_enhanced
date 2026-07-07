@@ -137,7 +137,11 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "cog_direct": True,
         "processing_units": False,
         "active": True,
+        "verified": True,
         "license": _COPERNICUS_LICENSE,
+        "category": "imagery_scene",
+        "coverage_yemen": True,
+        "resolution": "10m (Sentinel-2), 30m (Landsat)",
         "note": "صور Sentinel-2 L2A خام (COG عامّ بلا مصادقة) — الافتراضيّ الحاليّ.",
     },
     "cdse": {
@@ -148,8 +152,14 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "cog_direct": False,
         "processing_units": True,
         "active": True,
+        "verified": True,
         "license": _COPERNICUS_LICENSE,
-        "note": "كتالوج + معالجة خادميّة تستهلك وحدات معالجة (رصيد شهريّ).",
+        "category": "imagery_scene",
+        "coverage_yemen": True,
+        "resolution": "10m/20m/60m (Sentinel-2)",
+        # المسار الرسميّ الحاليّ لـSentinel: SciHub (scihub.copernicus.eu) أُغلِق أواخر
+        # 2023 ⇒ لا يُضاف؛ CDSE هو البديل الرسميّ (STAC/OData/Process API + Browser).
+        "note": "المصدر الرسميّ لـSentinel (بديل SciHub المُغلَق 2023). معالجة تستهلك وحدات.",
     },
     "planetary_computer": {
         "provider": "planetary_computer",
@@ -159,7 +169,12 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "cog_direct": True,
         "processing_units": False,
         "active": False,  # صادق: مُستعمَل كـSTAC-fallback URL فقط، لا مسار توقيع SAS مخصّص.
+        "verified": True,
         "license": _COPERNICUS_LICENSE,
+        "category": "imagery_scene",
+        "coverage_yemen": True,
+        "resolution": "10m–60m (Sentinel-2 L2A)",
+        "recommended_use": "STAC fallback + HLS/DEM (يحتاج مُحوِّل توقيع SAS)",
         "note": "مُهيّأ كعنوان STAC احتياطيّ فقط؛ توقيع SAS المخصّص غير موصول بعد.",
     },
     "nasa_hls": {
@@ -170,6 +185,7 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "cog_direct": True,
         "processing_units": False,
         "active": False,  # صادق: غير مُنفَّذ (يحتاج Earthdata Login).
+        "verified": True,
         "license": "US-Gov open (no commercial restriction)",
         "category": "imagery_scene",
         "coverage_yemen": True,  # كلّ اليابسة عالميّاً عدا Antarctica.
@@ -188,6 +204,7 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "cog_direct": False,
         "processing_units": False,
         "active": False,  # صادق: لا مُحوِّل بعد.
+        "verified": True,
         "license": "CC-BY-4.0 (commercial OK)",
         "category": "water_productivity",
         "coverage_yemen": True,  # اليمن ضمن الشرق الأدنى → L2 100م.
@@ -207,6 +224,7 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "cog_direct": False,
         "processing_units": False,
         "active": False,  # صادق: لا مُحوِّل بعد.
+        "verified": True,
         "license": "CC-BY-4.0 (استعمل قسم CC-BY فقط؛ تجنّب NC/SA)",
         "category": "crop_prior",
         "coverage_yemen": True,  # منتج عالميّ 10م.
@@ -218,6 +236,25 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
             "غير موصول — يحتاج مُحوِّلاً واختبار عقد قبل active=True."
         ),
     },
+    "aster_gdem": {
+        "provider": "aster_gdem",
+        "label": "ASTER GDEM (NASA Earthdata / Japan Space Systems)",
+        "catalog_url": "https://search.earthdata.nasa.gov",
+        "auth": "earthdata-login",
+        "cog_direct": False,
+        "processing_units": False,
+        "active": False,  # صادق: نموذج ارتفاعات، غير موصول (يحتاج Earthdata).
+        "verified": True,
+        "license": "open (NASA/METI, attribution)",
+        "category": "dem",
+        "coverage_yemen": True,  # يغطّي اليابسة بين ~83°N و83°S.
+        "resolution": "~30m",
+        "recommended_use": "DEM/slope/hillshade/contours (رفد terrain)",
+        "note": (
+            "نموذج ارتفاعات رقميّ ~30م يغطّي اليمن؛ رفدٌ لطبقات terrain القائمة. غير "
+            "موصول — يحتاج Earthdata Login + مُحوِّل قبل active=True (تحميل يدويّ أوّليّ ممكن)."
+        ),
+    },
     "local_cog": {
         "provider": "local_cog",
         "label": "Local cached COG",
@@ -226,6 +263,7 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "cog_direct": True,
         "processing_units": False,
         "active": True,
+        "verified": True,
         "license": _COPERNICUS_LICENSE,
         "category": "imagery_scene",
         "note": "COGs مُنتَجة محليّاً ومُعادة الترطيب من قاعدة البيانات.",
@@ -299,6 +337,82 @@ RESEARCH_REGISTRY: dict[str, dict[str, Any]] = {
 def research_sources() -> list[str]:
     """أسماء المصادر البحثيّة/المكتبات (لا مزوّدو صور — provides_imagery=False دائماً)."""
     return list(RESEARCH_REGISTRY.keys())
+
+
+# ── سِجِلّ مصادر خارجيّة (تحميل يدويّ/تجاريّ/أحداث/تقييم) — منفصل عن المزوّدين الموصولين ──
+# **صدق:** هذه مصادر صور حقيقيّة لكنّها **ليست مزوّدين موصولين** (لا STAC آليّ مُهيّأ):
+# منها التجاريّ (مدفوع)، والأحداث فقط (كوارث)، واليدويّ (تحميل)، وقيد التقييم (ترخيص/API).
+# ``active_provider=False`` دائماً؛ ``source_type`` يصنّف الطبيعة كي لا نبالغ في الادّعاء.
+_EXTERNAL_SOURCE_TYPES = {
+    "manual_download",
+    "commercial",
+    "event_open_data",
+    "research_manual",
+}
+
+EXTERNAL_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
+    "usgs_earthexplorer": {
+        "id": "usgs_earthexplorer",
+        "label": "USGS EarthExplorer",
+        "source_type": "manual_download",
+        "active_provider": False,
+        "free": True,
+        "verified": True,
+        "provides_imagery": True,
+        "coverage_yemen": True,
+        "recommended_use": "Landsat/ASTER/DEM backfill (تسجيل + تحميل يدويّ)",
+        "note": "منصّة USGS للبحث/طلب الصور — تحتاج تسجيل دخول؛ مناسبة للباكفيل اليدويّ.",
+    },
+    "planet_scope": {
+        "id": "planet_scope",
+        "label": "Planet PlanetScope (Planet Labs)",
+        "source_type": "commercial",
+        "active_provider": False,
+        "free": False,
+        "verified": True,
+        "provides_imagery": True,
+        "coverage_yemen": True,
+        "resolution": "~3.7m (شبه يوميّ)",
+        "recommended_use": "طبقة عالية الدقة مدفوعة (تدقيق/حدود)",
+        "note": "تجاريّ باشتراك — لا يُفعَّل كمصدر مجانيّ يوميّ.",
+    },
+    "maxar_open_data": {
+        "id": "maxar_open_data",
+        "label": "Maxar Open Data Program",
+        "source_type": "event_open_data",
+        "active_provider": False,
+        "free": True,  # مجانيّ لكن محصور بالأحداث/الكوارث فقط.
+        "verified": True,
+        "provides_imagery": True,
+        "coverage_yemen": "event_only",
+        "resolution": "<1m (قبل/بعد الحدث)",
+        "recommended_use": "صور كوارث/أحداث فقط (لا تغطية يوميّة عامّة)",
+        "note": "صور عالية الدقة للاستجابة للكوارث (ARD/COG/STAC) — ليست اشتراكاً يوميّاً.",
+    },
+    "china_gaofen": {
+        "id": "china_gaofen",
+        "label": "China Gaofen (GF-1/GF-6) data platform (CNSA)",
+        "source_type": "research_manual",
+        "active_provider": False,
+        "free": "unverified",
+        "verified": "partial",  # صدق: يحتاج تحقّق ترخيص/API/تسجيل/تغطية قبل الإنتاج.
+        "requires_verification": True,
+        "provides_imagery": True,
+        "coverage_yemen": "unverified",
+        "recommended_use": "تقييم بحثيّ فقط حتّى يُتحقَّق الترخيص/الـAPI/التسجيل",
+        "note": "cnsageo.com يتيح بحث/تنزيل GF-1/GF-6 — لا يُعتمَد إنتاجيّاً قبل تحقّق عمليّ.",
+    },
+}
+
+
+def external_sources() -> list[str]:
+    """أسماء المصادر الخارجيّة (يدويّ/تجاريّ/أحداث/تقييم) — لا مزوّدون موصولون."""
+    return list(EXTERNAL_SOURCE_REGISTRY.keys())
+
+
+def sources_by_type(source_type: str) -> list[str]:
+    """أسماء المصادر الخارجيّة من نوع مُعيَّن (manual_download/commercial/…)."""
+    return [k for k, v in EXTERNAL_SOURCE_REGISTRY.items() if v.get("source_type") == source_type]
 
 
 # ── اقتراح احتياطيّ مُهيكَل عند فشل/نفاد CDSE ────────────────────────────────────
