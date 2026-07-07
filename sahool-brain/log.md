@@ -1728,3 +1728,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الوحدة:** `core/drift_geometry.py` منطق صرف (haversine + bearing كرويّ، بلا shapely): `downwind_azimuth` (اتّجاه+180) · `zone_drift_exposure` (منطقة في مخروط الانجراف؟) · `spray_drift_risk` (تقييم قائمة مناطق حسّاسة: منزل/طريق/قناة/جار/منحل). يبني على محرّك الرياح: «لا ترشّ نحو X الآن».
 - **صدق + تقريب معلَن:** بلا ريح ⇒ unknown (لا حكم)؛ الأصل مركز الحقل + مخروط ±30° (تقدير محافظ لا هندسة مضلّع دقيقة — شريحة GIS لاحقة). القرار النهائيّ ميدانيّ.
 - **التحقّق:** 5 حُرّاس (haversine/bearing · downwind · معرّض قريب لا بعيد/عكسيّ · قائمة مناطق · بلا ريح unknown) · ruff · manifest · SHA سيُثبَّت. (نقطة POST /wind/drift-risk + طبقة الخريطة شرائح لاحقة.)
+
+## 2026-07-07 (ن) — Drift-Geometry الشريحة 2 (V78): نقطة POST /wind/drift-risk
+- **النقطة:** `POST /api/v1/fields/{id}/wind/drift-risk` (require FIELD_VIEW): مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + اتّجاه ريح مُمرَّر أو **سائد من NASA POWER** (وردة تاريخيّة) ⇒ `core.drift_geometry.spray_drift_risk`. صدق: بلا ريح سائد ⇒ status=unknown؛ يُعلَن wind_source (provided/nasa_power_prevailing) والتقدير المحافظ.
+- **العقد:** صُنِّفت internal (بادئة `/api/v1/fields/{field_id}/wind/drift-risk` قبل قاعدة fields) — واجهة برمجيّة جاهزة بلا شاشة إدخال مناطق بعد (تُرقّى farmer/core مع شاشة الانجراف، شريحة 3). البوّابة PASS.
+- **التحقّق:** 13 حارس endpoint-coverage + gate PASS + drift_geometry الخمسة أخضر + ruff + manifest · SHA سيُثبَّت.

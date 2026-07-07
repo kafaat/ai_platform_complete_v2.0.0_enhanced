@@ -98,6 +98,10 @@
       "audience": "internal"
     },
     {
+      "prefix": "/api/v1/fields/{field_id}/wind/drift-risk",
+      "audience": "internal"
+    },
+    {
       "prefix": "/api/v1/fields",
       "audience": "farmer"
     },

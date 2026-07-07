@@ -12405,7 +12405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c8bca0d87501247952a4212223610a977ee87767041802b8e2d917d7784a9f6"
+          "content": "d86a710f6311e03e88b87c545a43d48861d218bcf1294f276d46c161f377cdbf"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -14649,6 +14649,16 @@
         }
       ],
       "name": "services/sahool-platform/core/districts/tihama_coastal.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "28359b280b86a6794f0f6c2b2ba156093e5994c734aa2db5cb4aed8937ec2930"
+        }
+      ],
+      "name": "services/sahool-platform/core/drift_geometry.py",
       "type": "file"
     },
     {
@@ -17549,6 +17559,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_drawing_features_v39_postgis_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c701cc5bb73d22b59c8b2882dcd794e36ad442012de787552186609889c0c4ca"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_drift_geometry.py",
       "type": "file"
     },
     {
