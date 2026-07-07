@@ -56,6 +56,8 @@ _TOOL_META: dict[str, tuple[str, str, bool, bool]] = {
     "get_truecolor_scene": ("can_read_historical_imagery", "low", False, False),
     "get_index_timeline": ("can_read_historical_imagery", "low", False, False),
     "get_weather_history": ("can_read_field_data", "low", False, False),
+    "get_water_productivity": ("can_read_field_data", "low", False, False),
+    "generate_report": ("can_read_field_data", "low", False, False),
     "get_operation_windows": ("can_read_field_data", "low", False, False),
     "get_alerts": ("can_read_field_data", "low", False, False),
     "get_drawings_and_zones": ("can_read_field_data", "low", False, False),
