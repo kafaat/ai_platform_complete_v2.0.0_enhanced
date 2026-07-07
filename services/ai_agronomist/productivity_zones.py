@@ -134,29 +134,47 @@ def propose_productivity_zones(
     zone_area = round(total_area / zone_count, 3) if zone_count else total_area
 
     # V60.1 — real NDVI-driven zoning when a grid is available (opt-in); else strips.
-    from .productivity_zones_clustering import extract_ndvi_grid, zones_from_ndvi_grid
+    # V60.3 — multi-index zoning (NDVI + NDMI/RECI/MSAVI/slope) when co-registered aux
+    # grids are supplied and basis is not explicitly "ndvi" (Management Zone Analyst:
+    # multi-variable clustering, not NDVI-only). Aux is fail-safe: misaligned ⇒ NDVI-only.
+    from .productivity_zones_clustering import (
+        extract_aux_grids,
+        extract_ndvi_grid,
+        zones_from_ndvi_grid,
+    )
 
     grid = extract_ndvi_grid(params, evidence_context)
+    aux_grids = (
+        extract_aux_grids(params, evidence_context, ndvi_grid=grid) if basis != "ndvi" else None
+    )
     # عدد صريح ⇒ يُحترَم؛ غيابه ⇒ k=None فيختار FPI/NCE الأمثل. + تنعيم تجاور مكانيّ.
     k_arg = zone_count if explicit_zone_count is not None else None
-    clustered = zones_from_ndvi_grid(grid, bbox, k_arg, smooth=True) if grid else None
+    clustered = (
+        zones_from_ndvi_grid(grid, bbox, k_arg, smooth=True, aux_grids=aux_grids) if grid else None
+    )
     if clustered:
         total_px = sum(len(r) for r in grid) or 1
         cl_conf = round(
             max(0.42, min(confidence + 0.05 * clustered["cluster_separability"], 0.92)), 2
         )
+        feature_names = clustered.get("feature_names") or ["ndvi"]
+        is_multi = len(feature_names) > 1
+        cl_method = "multi_index_kmeans_clustering" if is_multi else "ndvi_kmeans_clustering"
+        # وسوم مُوجِّهة صادقة: تعكس الميزات الفعليّة المستعملة (ndmi/reci/msavi/slope) لا مجرّد تسمية.
+        driver_tag = "multi_index_grid_kmeans" if is_multi else "ndvi_grid_kmeans"
+        cl_drivers = [driver_tag, *feature_names[1:], *drivers][:5]
         cl_zones = [
             {
                 "zone_id": z["zone_id"],
                 "productivity_class": z["productivity_class"],
                 "label_ar": _LABELS_AR[z["productivity_class"]],
-                "zoning_method": "ndvi_kmeans_clustering",
+                "zoning_method": cl_method,
                 "score": z["score"],
                 "ndvi_centroid": z["ndvi_centroid"],
                 "confidence": cl_conf,
                 "area_ha": round(total_area * z["pixel_area"] / total_px, 3),
                 "geometry": z["geometry"],
-                "drivers": ["ndvi_grid_kmeans", *drivers][:5],
+                "drivers": cl_drivers,
                 "recommended_use": "soil_sampling_stratum"
                 if z["productivity_class"] != "medium"
                 else "baseline_management",
@@ -166,7 +184,8 @@ def propose_productivity_zones(
         return {
             "field_id": field_id,
             "basis": basis,
-            "method": "ndvi_kmeans_clustering",
+            "method": cl_method,
+            "feature_names": feature_names,
             "source_evidence_dates": total_dates,
             "cluster_separability": clustered["cluster_separability"],
             "ndvi_centroids": clustered["ndvi_centroids"],

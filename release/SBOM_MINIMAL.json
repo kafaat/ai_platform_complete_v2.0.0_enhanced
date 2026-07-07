@@ -7695,7 +7695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "141e0d7f206b3019e7ebce53fcf21584b517b262fad1c61c011d54fbd359a87f"
+          "content": "9e933eae4a9223cfa3758e976d614216cc59678db5b5498539b02ddb97475f8f"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones.py",
@@ -7705,7 +7705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4cdb56ea819475f04831a1a729722344e7c6a0951eb13ee00d5e3b1f3cd2ffa"
+          "content": "115ab881e38fd7599abd9ce2b72e91758119bb41ca2e91830f27a3b35032538e"
         }
       ],
       "name": "services/ai_agronomist/productivity_zones_clustering.py",
