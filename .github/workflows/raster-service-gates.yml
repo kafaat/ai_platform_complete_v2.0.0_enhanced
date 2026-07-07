@@ -32,6 +32,8 @@ jobs:
           if [ -f services/raster-service/requirements.txt ]; then
             python -m pip install -r services/raster-service/requirements.txt
           fi
-          python -m pip install pytest pytest-asyncio
+          # Pillow is TEST-only (test_soil_render/test_terrain_render decode PNGs) —
+          # not a runtime dep, so it is installed here, not in requirements.txt.
+          python -m pip install pytest pytest-asyncio Pillow
       - name: Run raster service quality gate
         run: bash scripts/ci/raster_quality_gate.sh
