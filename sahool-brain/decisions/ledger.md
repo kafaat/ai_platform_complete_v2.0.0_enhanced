@@ -399,3 +399,9 @@ SHAs من `git log --oneline origin/main`.
 | SHA | القرار + السبب |
 |---|---|
 | _(هذا الالتزام)_ | **تغذية أقسام المشهد/NDVI-التاريخيّ في بطاقة V65 من قاعدة المنصّة (لا cross-service).** **السبب:** تقرير التحقّق P1: الأقسام كانت `missing` لأنّ الراوت لم يغذّها. اكتشفتُ أنّ `zonal_stats.mean` (تاريخ NDVI) و`raster_assets` (أحدث مشهد) في **قاعدة المنصّة ذاتها** ⇒ لا حاجة لنداء raster-service. النهج: محوّل صرف `card_signals_from_db_rows` (مُختبَر) + تحويل الراوت إلى async مع جلب مُقيَّد بالمستأجِر (RLS) **بسقوط آمن**: أيّ تعذّر ⇒ إشارات فارغة ⇒ البطاقة مطابقة لسلوك ما قبل التغذية (لا انحدار ممكن). **صدق:** التزمتُ «evidence حقيقيّ أو missing صريح» — provider_status يبقى missing عمداً (خدمة أخرى، لا mock). SQL يُغطّى بالتكامل. المصادر: تقرير التحقّق P1 · `zonal_stats`/`raster_assets` (v14). التحقّق: 4 حُرّاس + 133 شريحة منصّة + endpoint أخضر · الراوت async ومُسجَّل · ruff · manifest · CI معلّق. |
+
+## 2026-07-07 (ن) — جسر provider_status عبر الخدمات (V65.2)
+
+| SHA | القرار + السبب |
+|---|---|
+| _(هذا الالتزام)_ | **تغذية provider_status في البطاقة من raster-service (`/v1/providers/status`).** **السبب:** المُراجِع طلب جسر أدلّة platform→raster لملء provider_status. النهج: `fetch_provider_status` عبر `_get_json` القائم (آمن الفشل: raster متعذّر/بلا httpx ⇒ None) + محوّل صرف `provider_status_signal` (مُختبَر) + تغذية في الراوت **خارج معاملة القاعدة** بسقوط آمن. **صدق:** raster متعذّر ⇒ القسم missing بسبب صريح (لا mock)؛ active يعكس الوصل الفعليّ. المصدر الواحد الصادق = V63.4. نداء HTTP يُتحقَّق بالتكامل. التحقّق: 4 حُرّاس + 12 بطاقة + endpoint أخضر · ruff · manifest · CI معلّق. |

@@ -1579,3 +1579,7 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الخطوة (المُراجِع P1 cross-service):** `GET /v1/providers/status` في observability يكشف السِجِلّ الصادق (default + active + planned + PROVIDER_REGISTRY + RESEARCH_REGISTRY) كمصدر واحد للمنصّة (provider_status في البطاقة) والواجهة.
 - **صدق:** active يعكس الوصل (wapor/worldcereal/nasa_hls/PC مُخطَّطة)؛ المصادر البحثيّة منفصلة (provides_imagery=False)؛ بيانات وصفيّة غير حسّاسة. نقيّ فوق raster_scene_model.
 - **التحقّق:** 2 حارس جديد · 113 شريحة raster (تشمل decomposition/import-graph) أخضر · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت. **المتبقّي للجسر:** عميل المنصّة fail-safe يستهلك هذه النقطة لملء provider_status (HTTP يُتحقَّق بالتكامل).
+
+## 2026-07-07 (ن) — جسر provider_status عبر الخدمات (V65.2)
+- **الخطوة (المُراجِع P1 cross-service):** بطاقة V65 تُغذّى الآن `provider_status` من raster-service (`/v1/providers/status`، V63.4). `fetch_provider_status` (آمن الفشل عبر `_get_json`) + محوّل صرف `provider_status_signal` → {default/active/planned}. الراوت يغذّيه خارج معاملة القاعدة بسقوط آمن: raster متعذّر ⇒ القسم يبقى missing بسبب صريح (لا اختلاق). active يعكس الوصل الفعليّ.
+- **التحقّق:** 4 حُرّاس صرف · 12 اختبار بطاقة + endpoint أخضر · التطبيق يسجّل · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت. **الجسر مكتمل داخليّاً؛ نداء HTTP الفعليّ يُتحقَّق بالتكامل (خدمتان حيّتان).**
