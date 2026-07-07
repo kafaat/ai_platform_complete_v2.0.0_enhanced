@@ -15575,6 +15575,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "aa506b9812c8eaa863672baef2f8f535ae6460023b0a4c2a407392c2439b31c7"
+        }
+      ],
+      "name": "services/sahool-platform/core/regional_bulletin.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1b10e46a69e528b6a6b6013812fe1bf8eb61b23d36051148ed11523d3307c368"
         }
       ],
@@ -18639,6 +18649,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_recommendations_hub.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5edf589671d7015a9a5adfda98bff3c829e9939c5c136f334a8314daa6d4677"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_regional_bulletin.py",
       "type": "file"
     },
     {

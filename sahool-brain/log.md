@@ -1554,3 +1554,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **بحث Gitee (المُراجِع):** مفيد للمعالجة/التدريب/التقطيع/change-detection لكنّه **ليس** مصدر صور خام (PaddleRS · GeoTrellis Landsat tutorial · CDSystem · NWPU/RSOD datasets).
 - **الحلّ:** `RESEARCH_REGISTRY` منفصل تماماً عن `PROVIDER_REGISTRY`؛ كلّ عنصر `provides_imagery=False` بنوع (research_library/architecture_reference/dataset_reference) + `recommended_use`. `research_sources()` + حُرّاس: المجموعتان **منفصلتان** ولا يتسرّب مصدر بحثيّ إلى active/planned. صدق: Gitee مصدر أفكار/مكتبات لا مزوّد صور — المزوّدون الحقيقيّون يبقون CDSE/Element84/PC/NASA HLS.
 - **التحقّق:** 23 اختبار V63 أخضر (2 جديدة) · ruff نظيف · manifest 3263 · SHA d2da16e.
+
+## 2026-07-07 (ن) — النشرة الإقليميّة لحالة المحاصيل (V66، آمنة الخصوصيّة)
+- **الفجوة (P12):** لا تجميع حقل→مديريّة→محافظة ولا نشرة حالة ولا شذوذ مقابل التاريخ — فقط طبقة معرفة مديريّات ساكنة.
+- **الحلّ:** `core/regional_bulletin.build_regional_bulletin` — تصنيف GEOGLAM (exceptional/favourable/watch/poor) من شذوذ NDVI مقابل المتوسّط التاريخيّ، مُجمَّع محافظة→مديريّات. **خصوصيّة بالبناء:** أرضيّة k-anonymity (min_fields_privacy=5) — المجموعات دونها تُكتَم بلا أرقام (لا استنتاج حقل/مستأجِر مفرد)، ولا معرّفات حقول في المخرَج. **صدق:** بلا تاريخ ⇒ unknown (لا تخمين)؛ الثقة من عدد الحقول/المشاهد. منطق صرف (الجلب/RLS يبقيان في الراوتر).
+- **التحقّق:** 8 حُرّاس جديدة (نطاق ratchet المنصّة) · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
