@@ -10,9 +10,14 @@
   `self_checks.py` (فحوص required/quality حقيقيّة) + `run_bundle.py` (حزمة تشغيل كاملة
   `maps/data/reports/scripts/provenance` **لا-تُكتَب-فوقها**، `run_id` فريد، checksums،
   run_manifest نَسَب، ربط أدلّة اختياريّ). طبقة تشغيل/تدقيق فوق A/raster-service، لا محرّك بيانات.
-- **غير مُنفَّذ بعد (شرائح لاحقة):** الشريحة C (خرائط النشرة الإقليميّة)، AOI trend متعدّد
-  السنوات، backends بحثيّة (GEE/earthaccess — تبقى `active:false` حتّى اعتماد + تحقّق حيّ)،
-  وأيّ نقطة HTTP.
+- **الشريحة C (V86):** `bulletin_figure.py` (تحويل `build_regional_bulletin` → صفوف + فحوص
+  خصوصيّة) + `bulletin_render.py` (شكل تصنيفيّ ملوّن بحالة NDVI) + `bulletin_bundle.py` (حزمة
+  مُدقَّقة تعيد آليّة V85). **صدق حاسم:** المانيفست يُعلن `geographic=false` +
+  `representation=categorical_figure` — **ليست choropleth جغرافيّة** (لا حدود إداريّة في
+  المستودع؛ `geographic_blocker=no_admin_boundaries_in_repo`). المكتوم للخصوصيّة بلا أرقام.
+- **غير مُنفَّذ بعد (شرائح لاحقة):** choropleth جغرافيّ حقيقيّ (يحتاج GeoJSON حدود اليمن)،
+  AOI trend متعدّد السنوات، backends بحثيّة (GEE/earthaccess — `active:false` حتّى اعتماد +
+  تحقّق حيّ)، وأيّ نقطة HTTP.
 - **لا ادّعاء:** الـcaption يعكس الحقول المُمرَّرة فقط؛ الناقص يُعرَض «غير متاح» (لا اختلاق
   مصدر/تاريخ/دقّة). بلا بيانات صالحة ⇒ `ValueError` (لا صورة فارغة مُضلِّلة).
 

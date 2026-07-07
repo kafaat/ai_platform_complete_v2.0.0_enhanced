@@ -8475,7 +8475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d01b31a77476431638e75c5ead575f94db12f80e779bf9c9775cc6e9030c8235"
+          "content": "3a8d3011f9d19dfac9f29d7c8a24efceb5fcf0647bb7ae599a6cec2c6d7651e3"
         }
       ],
       "name": "services/gis-workflow-service/README.md",
@@ -8525,6 +8525,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ad8bcbd34d7f95a228acd17c353cefb43bcd618595c774f79dd2aabde521fbfe"
+        }
+      ],
+      "name": "services/gis-workflow-service/run_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "891154c81cbdb3d34b725432975d09b11303af244d248ba901bbf9a35014907b"
+        }
+      ],
+      "name": "services/gis-workflow-service/self_checks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
       ],
@@ -8545,10 +8565,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e196a96b09dc493829f58b0529dff64d910aab269ca46b5841a052df4c7b59b1"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_no_external_sources.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "221e0c4534eb606eb08054bae972ded71f9ee007d07d876ac8af040a3bed3141"
         }
       ],
       "name": "services/gis-workflow-service/tests/test_publication_map_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69e40d87e07e839f06b2cbe2caa178dae1f80d60c1765249d1d15fac68ab7a6e"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_run_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6fbb60712765e1464dd84f964ba6dd928bd592ca2b00d79ee8038a7bd10e995e"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_self_checks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "245bced659b853a034af82405fe08f7ddcac9aad94a1bc71acfe3c2d7c137696"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_workflow_spec.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5b601eb5587f8ca4d427af04589b47271097774258be76fd8e0e3c2c38d09b2"
+        }
+      ],
+      "name": "services/gis-workflow-service/workflow_spec.py",
       "type": "file"
     },
     {
