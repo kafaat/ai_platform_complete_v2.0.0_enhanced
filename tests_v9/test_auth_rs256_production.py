@@ -7,7 +7,7 @@ HS256 (سرّ متماثل مشترَك) لا يُنهي shared trust domain؛ R
 
 from __future__ import annotations
 
-import importlib
+import importlib.util
 import os
 import sys
 
@@ -19,10 +19,18 @@ _AUTH_DIR = os.path.join(os.path.dirname(__file__), "..", "services", "auth")
 
 
 def _load_auth_main():
+    """Load services/auth/main.py without colliding with any already-imported module named `main`."""
     if _AUTH_DIR not in sys.path:
         sys.path.insert(0, _AUTH_DIR)
     try:
-        return importlib.import_module("main")
+        spec = importlib.util.spec_from_file_location(
+            "sahool_auth_main_for_rs256_test", os.path.join(_AUTH_DIR, "main.py")
+        )
+        if spec is None or spec.loader is None:
+            pytest.skip("auth main.py could not be loaded")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
     except ModuleNotFoundError as e:  # تبعيّات auth غائبة محليّاً (jose/asyncpg…)
         pytest.skip(f"auth deps missing: {e}")
 
