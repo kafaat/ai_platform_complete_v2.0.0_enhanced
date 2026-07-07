@@ -1610,3 +1610,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الوصل الحقيقيّ:** حاجة الرياح على مستوى الحقل (رشّ/ET0) مُغطّاة أصلاً بـOpen-Meteo النشط (أُضيف دورا wind/spray_window) — لا حاجة لإعادة-تحليل خشنة أو رياح محيطيّة للقرار الحقليّ.
 - **مُضاف مُخطَّطاً:** era5_land (9كم، الأدقّ للأرض) · global_wind_atlas (~250م، مواقع طاقة الرياح لا forecast) · merra2 (~50كم مرجع) · ascat (رياح محيطيّة، coverage_scope=coastal_marine). China الإقليميّة **لم تُضَف** (جغرافيا خاطئة). لا مصدر يُدّعى active.
 - **التحقّق:** 7 حُرّاس طقس · active == {open_meteo} · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — OlmoEarth كنموذج أساس AI (V69، لا مزوّد صور)
+- **التصنيف الصادق (المُراجِع):** OlmoEarth (Ai2) نموذج أساس EO يعمل *فوق* الصور (Sentinel-1/2/Landsat)، **ليس مزوّد صور**. سِجِلّ `AI_MODEL_REGISTRY` منفصل: provides_imagery=False · active_provider=False · requires (أوزان/سلاسل زمنيّة/تحقّق محلّيّ اليمن) · requires_imagery_provider=[sentinel1,sentinel2,landsat] · coverage_note=true_by_input_sources (المدخلات تغطّي اليمن، النموذج غير مُتحقَّق محلّيّاً).
+- **عقد embedding صادق (#5 من طلبه):** `olmoearth_embedding_contract` — بلا أوزان/مدخلات ⇒ unavailable+سبب+embedding=None؛ حتّى مع توفّرهما **لا متّجه مُختلَق** (status=ready_pending_local_validation، الاستدلال خلف GPU + تحقّق محلّيّ). كُشِف في `/v1/providers/status` (ai_models).
+- **صدق:** لا يُغني عن CDSE/Element84 — يستهلكها. لا تفعيل بلا أوزان+GPU+تحقّق يمنيّ. المتبقّي (V70): benchmark محلّيّ NDVI-only مقابل V60.3 مقابل OlmoEarth.
+- **التحقّق:** 5 حُرّاس (السِجِلّات الأربعة منفصلة) · حُرّاس V63 أخضر · ruff · manifest · SHA سيُثبَّت.
