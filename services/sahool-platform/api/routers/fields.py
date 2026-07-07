@@ -2696,21 +2696,36 @@ async def field_wind_drift_risk(
     """خطر انجراف الرشّ نحو مناطق حسّاسة (downwind) — من الريح السائدة أو اتّجاه مُمرَّر.
 
     يستعمل الريح **السائدة** (وردة NASA POWER التاريخيّة) ما لم يُمرَّر ``wind_from_deg``.
-    **صدق:** بلا ريح ⇒ ``status=unknown``؛ المناطق يوفّرها العميل (لا تُخزَّن). تقدير محافظ
-    (مركز الحقل + مخروط) — القرار النهائيّ ميدانيّ (``core.drift_geometry``).
+    **صدق:** بلا ريح ⇒ ``status=unknown``؛ المناطق يوفّرها العميل (لا تُخزَّن). تقدير محافظ:
+    الزاوية من مركز الحقل، والمسافة من **أقرب حدّ للحقل** عند توفّر الهندسة (وإلّا من المركز)
+    — القرار النهائيّ ميدانيّ (``core.drift_geometry``).
     """
     from datetime import UTC, datetime, timedelta
 
     from core.drift_geometry import spray_drift_risk
     from core.wind_geometry import wind_rose
 
+    field_geom_raw = None
     try:
         async with tenant_connection(user) as conn:
             lat, lon, _crop, _stage, _days = await _field_weather_context(conn, field_id)
+            # هندسة الحقل (GeoJSON) لأصل انجراف على الحدّ — fail-soft: غيابها ⇒ سقوط للمركز.
+            field_geom_raw = await conn.fetchval(
+                "SELECT ST_AsGeoJSON(geom) FROM fields WHERE field_id = $1", field_id
+            )
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    field_geom = None
+    if isinstance(field_geom_raw, str):
+        import json as _json
+
+        try:
+            field_geom = _json.loads(field_geom_raw)
+        except (ValueError, TypeError):
+            field_geom = None
 
     wind_from = req.wind_from_deg
     wind_source = "provided"
@@ -2739,6 +2754,7 @@ async def field_wind_drift_risk(
         lon,
         wind_from,
         zones,
+        field_polygon=field_geom,
         max_distance_m=req.max_distance_m,
         half_angle_deg=req.half_angle_deg,
     )

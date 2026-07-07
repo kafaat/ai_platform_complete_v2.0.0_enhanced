@@ -10,7 +10,10 @@ from __future__ import annotations
 from core.drift_geometry import (
     bearing_deg,
     downwind_azimuth,
+    downwind_edge_point,
+    exterior_ring_from_geojson,
     haversine_m,
+    polygon_representative_point,
     spray_drift_risk,
     zone_drift_exposure,
 )
@@ -56,3 +59,64 @@ def test_no_wind_is_unknown_not_a_verdict():
     out = spray_drift_risk(15.0, 45.0, None, [{"id": "x", "lat": 14.99, "lon": 45.0}])
     assert out["status"] == "unknown" and out["reason"] == "no_wind"
     assert zone_drift_exposure(15.0, 45.0, None, 14.99, 45.0)["exposed"] is None
+
+
+# ── الشريحة 2: أصل الانجراف من حافّة المضلّع (لا مركز الحقل) ──────────────────
+
+# مربّع صغير حول (15.0, 45.0): حدوده الجنوبيّة عند 14.999، الشماليّة 15.001 (GeoJSON [lon,lat]).
+_SQUARE = [
+    [45.0, 14.999],  # جنوب-غرب
+    [45.002, 14.999],  # جنوب-شرق
+    [45.002, 15.001],  # شمال-شرق
+    [45.0, 15.001],  # شمال-غرب
+    [45.0, 14.999],  # إغلاق
+]
+
+
+def test_exterior_ring_extraction_polygon_and_multipolygon():
+    poly = {"type": "Polygon", "coordinates": [_SQUARE]}
+    assert exterior_ring_from_geojson(poly) == _SQUARE
+    multi = {"type": "MultiPolygon", "coordinates": [[_SQUARE]]}
+    assert exterior_ring_from_geojson(multi) == _SQUARE
+    assert exterior_ring_from_geojson({"type": "Point"}) is None
+    assert exterior_ring_from_geojson(None) is None
+
+
+def test_representative_point_drops_closing_vertex():
+    # متوسّط 4 رؤوس (بلا رأس الإغلاق المكرّر) = مركز المربّع.
+    rep = polygon_representative_point(_SQUARE)
+    assert rep is not None
+    assert abs(rep[0] - 15.0) < 1e-6 and abs(rep[1] - 45.001) < 1e-6
+
+
+def test_downwind_edge_point_picks_leading_boundary_vertex():
+    # ريح من الشمال (0°) ⇒ الانجراف جنوباً ⇒ الأصل يجب أن يكون على الحدّ الجنوبيّ (14.999).
+    edge = downwind_edge_point(_SQUARE, 0.0)
+    assert edge is not None and abs(edge[0] - 14.999) < 1e-6
+    # ريح من الجنوب (180°) ⇒ الانجراف شمالاً ⇒ الحدّ الشماليّ (15.001).
+    edge_n = downwind_edge_point(_SQUARE, 180.0)
+    assert edge_n is not None and abs(edge_n[0] - 15.001) < 1e-6
+    # بلا ريح/حلقة فارغة ⇒ None (لا اختلاق).
+    assert downwind_edge_point(_SQUARE, None) is None
+    assert downwind_edge_point([], 0.0) is None
+
+
+def test_polygon_origin_is_closer_to_downwind_zone_than_center():
+    # منطقة جنوب المربّع. الأصل الحافّيّ (14.999) أقرب لها من المركز (15.0) ⇒ مسافة أقصر.
+    zone = [{"id": "h", "type": "house", "lat": 14.9985, "lon": 45.001}]
+    poly = {"type": "Polygon", "coordinates": [_SQUARE]}
+    with_poly = spray_drift_risk(15.0, 45.001, 0.0, zone, field_polygon=poly, max_distance_m=300)
+    without = spray_drift_risk(15.0, 45.001, 0.0, zone, max_distance_m=300)
+    assert with_poly["origin_mode"] == "polygon_boundary"
+    assert without["origin_mode"] == "center"
+    # المسافة من أقرب حدّ أقصر من المسافة من المركز؛ والزاوية من المركز تبقى downwind.
+    assert with_poly["exposed_zones"][0]["distance_m"] < without["exposed_zones"][0]["distance_m"]
+    # drift_origin (رأس الحدّ تجاه downwind) مُعلَن للعرض على الحدّ الجنوبيّ.
+    assert with_poly["drift_origin"] is not None
+    assert abs(with_poly["drift_origin"]["lat"] - 14.999) < 1e-6
+
+
+def test_polygon_absent_keeps_center_behavior_backward_compatible():
+    # بلا مضلّع: origin_mode=center والنتيجة مطابقة للشريحة 1 (متوافق للخلف).
+    out = spray_drift_risk(15.0, 45.0, 0.0, [{"id": "x", "lat": 14.9992, "lon": 45.0}])
+    assert out["origin_mode"] == "center" and out["status"] == "at_risk"

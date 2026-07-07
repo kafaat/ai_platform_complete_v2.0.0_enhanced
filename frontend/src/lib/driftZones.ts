@@ -33,6 +33,8 @@ export interface DriftRiskResponse {
   status?: 'at_risk' | 'clear' | 'unknown';
   reason?: string;
   drift_azimuth_deg?: number;
+  origin_mode?: 'polygon_boundary' | 'center';
+  drift_origin?: { lat: number; lon: number } | null;
   exposed_zones?: DriftExposedZone[];
   n_zones?: number;
   note_ar?: string;

@@ -93,7 +93,9 @@ export default function DriftRiskCard({ fieldId, enabled = true }: Props) {
             </div>
           ) : null}
           <p className="text-[10px]" style={{ color: T.faint }}>
-            تقدير محافظ (مركز الحقل + مخروط) — لا ترشّ نحو الحقول المعرّضة؛ القرار النهائيّ ميدانيّ.
+            تقدير محافظ (مخروط، مسافة من{' '}
+            {data.origin_mode === 'polygon_boundary' ? 'أقرب حدّ للحقل' : 'مركز الحقل'}) — لا ترشّ
+            نحو الحقول المعرّضة؛ القرار النهائيّ ميدانيّ.
           </p>
         </div>
       )}

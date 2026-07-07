@@ -1055,7 +1055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aaef629d20daf8235414a8a35e953f0d9bee2dd05c0041c0450b032ecc8c434b"
+          "content": "ee7351b4a18c2c2675ed85db9ec904e91bf2ef71e005bd4b8c871958a83e8750"
         }
       ],
       "name": "frontend/src/components/fieldview/DriftRiskCard.tsx",
@@ -1069,6 +1069,16 @@
         }
       ],
       "name": "frontend/src/components/fieldview/EvidenceGraphCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c84ab1ce6c1757652012b3010ee41139c62c02e9b1e633f685b56e1355ef6dbd"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/EvidenceHistoryCard.tsx",
       "type": "file"
     },
     {
@@ -2315,6 +2325,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eef3a21faf7afd175d4f0d6f0287e5e49f232e0e85c215e35f045a8e0596b874"
+        }
+      ],
+      "name": "frontend/src/hooks/useEvidenceHistory.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6bc9f286b29c55c71149ede90fa8f166745aaf9a9ab1bee359b73e5172d76671"
         }
       ],
@@ -2825,7 +2845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5afd04a2aec8559b702c4d64f3e424e9037161699c76225cc5241ec901cafd61"
+          "content": "bf6894c26bda77f529fba2255ff14ee917e8add584af2c9cc73367f74c50ec08"
         }
       ],
       "name": "frontend/src/lib/driftZones.ts",
@@ -2869,6 +2889,26 @@
         }
       ],
       "name": "frontend/src/lib/evidenceGraph.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9fd32b2bc882d6fa6d0e5490f5e3b4661cbae0c2c89853574d58ceab9e56cb5a"
+        }
+      ],
+      "name": "frontend/src/lib/evidenceHistory.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "285524cad7b93ed2ca401bc7d731e6a098e53db0bf500a16ae5464f3b87b9afa"
+        }
+      ],
+      "name": "frontend/src/lib/evidenceHistory.ts",
       "type": "file"
     },
     {
@@ -12475,7 +12515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d86a710f6311e03e88b87c545a43d48861d218bcf1294f276d46c161f377cdbf"
+          "content": "1ed1b099d5346faac34287e5be81d25ac2732c193496fceed67b3f8aa164025f"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -14725,7 +14765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28359b280b86a6794f0f6c2b2ba156093e5994c734aa2db5cb4aed8937ec2930"
+          "content": "cfe72329bd393bd5a4da9c0c22eb203f9706628202f88b805bab89ad400f4b7c"
         }
       ],
       "name": "services/sahool-platform/core/drift_geometry.py",
@@ -15049,6 +15089,16 @@
         }
       ],
       "name": "services/sahool-platform/core/evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f81c23961873dcf05a9317d874cf33fece44b6598623dc95c63e38624edc8d0b"
+        }
+      ],
+      "name": "services/sahool-platform/core/evidence_graph_analytics.py",
       "type": "file"
     },
     {
@@ -17655,7 +17705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c701cc5bb73d22b59c8b2882dcd794e36ad442012de787552186609889c0c4ca"
+          "content": "587851a2e2f1eab2716fedccc09218021cc9e91b28040dc1eea8e862532ca34b"
         }
       ],
       "name": "services/sahool-platform/tests/test_drift_geometry.py",
@@ -17749,6 +17799,26 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "72f6e90a01dfc63223ac8959652547ec5636fa8dd0405d316c857db584f073ba"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_graph_analytics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6fb62656e5bc704b64ef72613c554c50c8ed1d50f3c05c44451c18006a66fe0b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py",
       "type": "file"
     },
     {
