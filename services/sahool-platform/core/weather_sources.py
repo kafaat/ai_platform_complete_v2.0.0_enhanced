@@ -22,8 +22,19 @@ WEATHER_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
         "auth": "none",
         "coverage_yemen": True,
         "resolution": "~9km (ERA5-based since 2017)",
-        "roles": ["forecast", "historical_weather", "hourly_weather", "et0_vpd_inputs"],
-        "note": "البوّابة الأساسيّة: توقّع + تاريخ (منذ 1940) + ساعيّ، بلا مفتاح.",
+        "roles": [
+            "forecast",
+            "historical_weather",
+            "hourly_weather",
+            "et0_vpd_inputs",
+            "wind",  # سرعة/اتّجاه الرياح 10م — نافذة الرشّ + ET0 + تحذير الرياح/الحرارة.
+            "spray_window",
+        ],
+        "note": (
+            "البوّابة الأساسيّة: توقّع + تاريخ (منذ 1940) + ساعيّ + رياح 10م (نافذة الرشّ/"
+            "ET0)، بلا مفتاح. حاجة الرياح على مستوى الحقل مُغطّاة هنا — لا حاجة لبيانات "
+            "إعادة تحليل خشنة (MERRA-2/JRA-55/NCEP) أو رياح محيطيّة (ASCAT/CCMP)."
+        ),
     },
     "nasa_power": {
         "id": "nasa_power",
@@ -73,14 +84,67 @@ WEATHER_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
     },
     "era5": {
         "id": "era5",
-        "label": "ERA5 / ERA5-Land (Copernicus)",
+        "label": "ERA5 (Copernicus)",
         "active": False,
         "verified": True,
         "free": True,
         "auth": "cds-api (أو عبر Open-Meteo)",
         "coverage_yemen": True,
-        "roles": ["climate_baseline", "historical_reanalysis"],
-        "note": "خطّ أساس مناخيّ/تحليل تاريخيّ طويل — متاح جزئيّاً عبر Open-Meteo.",
+        "resolution": "0.25° (~25–31km) — تصحيح: ليست 500م؛ مقياس منطقة/محافظة لا نقطة حقل.",
+        "roles": ["climate_baseline", "historical_reanalysis", "wind_climate", "long_history"],
+        "note": (
+            "خطّ أساس مناخيّ/تحليل تاريخيّ طويل (بما فيه رياح الإعادة-تحليل) — متاح جزئيّاً "
+            "عبر Open-Meteo. مقياس منطقة/محافظة؛ للدقّة الحقليّة يحتاج downscaling/دمج DEM."
+        ),
+    },
+    "era5_land": {
+        "id": "era5_land",
+        "label": "ERA5-Land (Copernicus)",
+        "active": False,
+        "verified": True,
+        "free": True,
+        "auth": "cds-api (أو عبر Open-Meteo)",
+        "coverage_yemen": True,
+        "resolution": "0.1° (~9km) — أدقّ من ERA5 للأرض/الزراعة (لا 500م).",
+        "roles": ["historical_wind", "climate_baseline", "agroclimate"],
+        "note": "أدقّ من ERA5 للحقول/المناطق (9كم)؛ مرجع تاريخيّ/مناخيّ زراعيّ — يحتاج وصلاً.",
+    },
+    "global_wind_atlas": {
+        "id": "global_wind_atlas",
+        "label": "Global Wind Atlas",
+        "active": False,
+        "verified": True,
+        "free": True,
+        "auth": "none",
+        "coverage_yemen": True,  # صفحة مخصّصة لليمن.
+        "resolution": "~250m (أطلس رياح للطاقة، لا توقّع يوميّ)",
+        "roles": ["wind_energy_siting", "long_term_wind_resource"],
+        "note": "أطلس رياح عالي الدقّة لتحديد مواقع طاقة الرياح/الآبار — مرجع طاقة لا forecast.",
+    },
+    "merra2": {
+        "id": "merra2",
+        "label": "MERRA-2 (NASA)",
+        "active": False,
+        "verified": True,
+        "free": True,
+        "auth": "earthdata-login",
+        "coverage_yemen": True,
+        "resolution": "~50km",
+        "roles": ["climate_reference", "renewable_energy_reference"],
+        "note": "مرجع مناخيّ/طاقة ثانويّ (~50كم) — خشن للحقل، مفيد للمقارنة.",
+    },
+    "ascat": {
+        "id": "ascat",
+        "label": "ASCAT (EUMETSAT scatterometer)",
+        "active": False,
+        "verified": True,
+        "free": True,
+        "auth": "none",
+        "coverage_yemen": True,  # يغطّي سواحل/بحار اليمن (رياح سطح البحر).
+        "coverage_scope": "coastal_marine",  # صدق: رياح محيطيّة، ضعيف للزراعة الداخليّة.
+        "resolution": "12.5–25km",
+        "roles": ["marine_wind", "coastal_wind_reference"],
+        "note": "رياح سطح البحر (سواحل/بحار اليمن) — للملاحة/السواحل لا لحقول الداخل.",
     },
 }
 

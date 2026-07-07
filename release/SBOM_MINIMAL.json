@@ -15965,7 +15965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ac440324b75d8995579a291897b87e4a2c27a1c81d52d16e700225042b2fa40"
+          "content": "aa9be2352bb9fb53026fbd368d23f809c9799cb16f9b4a9bb060a1ea9b71c9fb"
         }
       ],
       "name": "services/sahool-platform/core/weather_sources.py",
@@ -19355,7 +19355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "658453589fe311fb74a65b5c06f13ef38d19c63adaa076756ed36bc40d6c374b"
+          "content": "5f2109f052fa5d4bc84a2209e810afabd35d2224453523ae5db3ce9a0ae62a0d"
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_sources.py",
