@@ -1,7 +1,8 @@
-import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers } from 'lucide-react';
+import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers, Activity } from 'lucide-react';
 import { useFieldIntelligenceCard } from '../../hooks/useFieldIntelligenceCard';
 import {
   completenessPct,
+  conditionDriverAr,
   isPresent,
   missingReasonAr,
   ndviLabelAr,
@@ -77,6 +78,26 @@ export default function FieldIntelligenceCardView({ fieldId, enabled = true }: P
               </span>
             ) : (
               <Missing reason={card.sections.latest_scene.reason} />
+            )}
+          </Row>
+
+          {/* حالة الحقل (ما السبب؟) — تشخيص مُحتسَب مسبقاً يُبرِز المُحرِّك الأساسيّ */}
+          <Row icon={<Activity className="w-3.5 h-3.5" aria-hidden="true" />} label={SECTION_LABELS_AR.field_condition}>
+            {isPresent(card.sections.field_condition) ? (
+              <span style={{ color: card.sections.field_condition.primary_driver ? T.warn : T.ink }}>
+                {conditionDriverAr(
+                  card.sections.field_condition.primary_driver ??
+                    card.sections.field_condition.effective_status,
+                )}
+                {typeof card.sections.field_condition.crop_vigor === 'number'
+                  ? ` · حيويّة ${card.sections.field_condition.crop_vigor}`
+                  : ''}
+                {card.sections.field_condition.ndvi_trend
+                  ? ` · اتّجاه ${card.sections.field_condition.ndvi_trend}`
+                  : ''}
+              </span>
+            ) : (
+              <Missing reason={card.sections.field_condition.reason} />
             )}
           </Row>
 

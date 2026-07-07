@@ -24,6 +24,7 @@ _SCHEMA = "sahool.field_intelligence_card/1"
 _OPTIONAL_SECTIONS = (
     "latest_scene",
     "provider_status",
+    "field_condition",
     "ndvi_vs_historical",
     "water_deficit",
     "weak_zones",
@@ -127,6 +128,51 @@ def _evidence(analyze: dict[str, Any]) -> dict[str, Any]:
     return _present({"sources": sources, "count": len(sources)})
 
 
+def _field_condition(truths: dict[str, Any]) -> dict[str, Any]:
+    """يلخّص تشخيص الحالة المُحتسَب مسبقاً في ``operational_truths`` (ما حالة الحقل ولماذا).
+
+    **صدق:** يعرض فقط المفاتيح الحاضرة فعلاً — الحالة الفعليّة (effective_status) وسببها،
+    الحيويّة (crop_vigor)، صنف الملوحة، خطر الحرارة، اتّجاه NDVI. لا مفتاح تشخيصيّ ⇒
+    ``missing`` (لا اختلاق). يُبرِز ``primary_driver`` (المُحرِّك الأساسيّ للحالة) عند تحديده
+    — يُحوّل أدلّة مبعثرة في الحالة الموحّدة إلى إجابة «ما السبب؟» مرئيّة في البطاقة.
+    """
+    if not isinstance(truths, dict):
+        return _missing("no_condition_signals")
+    out: dict[str, Any] = {}
+    status = truths.get("effective_status")
+    if status is not None:
+        out["effective_status"] = status
+        if truths.get("effective_status_reason") is not None:
+            out["reason"] = truths.get("effective_status_reason")
+    vigor = _num(truths.get("crop_vigor"))
+    if vigor is not None:
+        out["crop_vigor"] = round(vigor, 3)
+        if truths.get("crop_vigor_confidence") is not None:
+            out["crop_vigor_confidence"] = truths.get("crop_vigor_confidence")
+    if truths.get("salinity_class") is not None:
+        out["salinity_class"] = truths.get("salinity_class")
+        sr = _num(truths.get("salinity_risk"))
+        if sr is not None:
+            out["salinity_risk"] = sr
+    heat = _num(truths.get("heat_risk"))
+    if heat is not None:
+        out["heat_risk"] = heat
+    if truths.get("ndvi_trend") is not None:
+        out["ndvi_trend"] = truths.get("ndvi_trend")
+    if not out:
+        return _missing("no_condition_signals")
+    # المُحرِّك الأساسيّ (لِمَ الحالة هكذا): الحالة الفعليّة إن وُجدت، وإلّا أبرز مخاطرة صريحة.
+    driver = status
+    if driver is None:
+        if out.get("salinity_class") == "critical":
+            driver = "salinity_limited"
+        elif heat is not None and heat >= 0.8:
+            driver = "heat_limited"
+    if driver is not None:
+        out["primary_driver"] = driver
+    return _present(out)
+
+
 def provider_status_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
     """يحوّل استجابة raster ``/v1/providers/status`` إلى إشارة ``provider_status`` للبطاقة.
 
@@ -218,6 +264,7 @@ def assemble_field_intelligence_card(
         if provider_status
         else _missing("no_provider_status_supplied")
     )
+    sections["field_condition"] = _field_condition(truths)
     sections["ndvi_vs_historical"] = _ndvi_vs_historical(cur_ndvi, ndvi_history)
     sections["water_deficit"] = (
         _present({"value": _num(wd)})

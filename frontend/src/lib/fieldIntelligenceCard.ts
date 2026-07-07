@@ -17,6 +17,18 @@ export interface LatestSceneSection extends CardSection {
   cog_ready?: boolean | null;
 }
 
+export interface FieldConditionSection extends CardSection {
+  effective_status?: string;
+  reason?: string;
+  primary_driver?: string;
+  crop_vigor?: number;
+  crop_vigor_confidence?: string;
+  salinity_class?: string;
+  salinity_risk?: number;
+  heat_risk?: number;
+  ndvi_trend?: string;
+}
+
 export interface NdviVsHistoricalSection extends CardSection {
   current?: number;
   historical_mean?: number;
@@ -67,6 +79,7 @@ export interface FieldIntelligenceCard {
   sections: {
     latest_scene: LatestSceneSection;
     provider_status: ProviderStatusSection;
+    field_condition: FieldConditionSection;
     ndvi_vs_historical: NdviVsHistoricalSection;
     water_deficit: WaterDeficitSection;
     weak_zones: WeakZonesSection;
@@ -87,6 +100,7 @@ export interface FieldIntelligenceAnalyzeResponse {
 export const SECTION_LABELS_AR: Record<string, string> = {
   latest_scene: 'أحدث مشهد',
   provider_status: 'حالة المزوّدين',
+  field_condition: 'حالة الحقل',
   ndvi_vs_historical: 'NDVI مقابل التاريخيّ',
   water_deficit: 'العجز المائيّ',
   weak_zones: 'المناطق الضعيفة',
@@ -138,6 +152,19 @@ export function missingReasonAr(reason?: string): string {
     no_water_deficit_signal: 'لا إشارة عجز مائيّ',
     no_zone_data: 'لا بيانات مناطق',
     no_provenance: 'لا أدلّة',
+    no_condition_signals: 'لا إشارات تشخيصيّة بعد',
   };
   return (reason && map[reason]) || reason || 'غير متاح';
+}
+
+/** تسمية عربيّة للحالة الفعليّة/المُحرِّك الأساسيّ (المجهول يُعرَض كما هو بصدق). */
+export function conditionDriverAr(driver?: string): string {
+  const map: Record<string, string> = {
+    salinity_limited: 'محكوم بالملوحة',
+    heat_limited: 'محكوم بالحرارة',
+    vigor_led: 'حيويّة جيّدة تقود الحالة',
+    declining: 'اتّجاه متراجع',
+    low_vigor: 'حيويّة منخفضة',
+  };
+  return (driver && map[driver]) || driver || '—';
 }

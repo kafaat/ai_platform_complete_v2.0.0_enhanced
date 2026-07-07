@@ -1645,3 +1645,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **صدق:** طبقة غائبة/غير رقميّة تُسقَط ووزنها معها (لا تُعامَل صفراً)؛ مدخل فاسد ⇒ value=None + سبب. يخدم قرار الريّ حسب المحصول (قمح/خضار سطحيّ 0–28سم؛ نخيل/عنب عميق 28–289سم) — جدول المُراجِع.
 - **لا تكرار (المُراجِع اقترح حساب الريّ):** ETc=ET0×Kc، net=max(0,ETc−مطر فعّال)، gross=net/كفاءة **موجودة كلّها فعلاً** — `api/water_balance.py` (سلسلة FAO-56 + Ks ملوحة) · `api/irrigation_method.py` (كفاءات flood 0.55/pivot 0.85/drip 0.90 + `gross_irrigation_mm`) · `api/irrigation_recommendation_policy.py` (net/leaching/gross) · Kc من NDVI (`kc_extraction_engine.py`). لم يُكرَّر شيء.
 - **التحقّق:** 15 حارس طقس أخضر (5 جديدة: depth-bounds + سطحيّ + عميق + إسقاط ناقص + unknown صريح) · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قسم «حالة الحقل» في بطاقة الذكاء (V65.3) — إظهار التشخيص المُحتسَب
+- **الفجوة الحقيقيّة:** جسر الأدلّة عبر-الخدمات (V65/V65.1/V65.2) موصول فعلاً (provider_status عبر HTTP + ndvi_history/latest_scene عبر RLS) لكن البطاقة **تُسقِط** التشخيص الذي يحسبه المايسترو في `operational_truths` (effective_status/crop_vigor/salinity_class/heat_risk/ndvi_trend) — تعرض ndvi/عجز مائيّ فقط، لا «ما حالة الحقل؟ ما السبب؟».
+- **الحلّ (منطق صرف، بلا جلب، بلا تغيير راوتر):** `_field_condition(truths)` يُبرِز فقط المفاتيح الحاضرة + `primary_driver` (الحالة الفعليّة أو أبرز مخاطرة صريحة salinity_limited/heat_limited). لا مفتاح تشخيصيّ ⇒ missing (no_condition_signals). يُشتقّ من `analyze` المُمرَّر أصلاً ⇒ لا لمس لـ`_fetch_card_signals`.
+- **الواجهة:** نوع `FieldConditionSection` + `conditionDriverAr` + صفّ «حالة الحقل» في `FieldIntelligenceCardView` (يُبرِز المُحرِّك بلون تحذير) + سبب missing عربيّ. صدق: المجهول يُعرَض كما هو.
+- **لا اختلاق أقسام soil/terrain/weather:** رغم ورودها في رؤية المُقترَح، لا مُنتِج يُغذّيها في الحالة بعد ⇒ إضافتها ستكون سقالة فارغة. أُبرِز ما هو محسوب فعلاً فقط.
+- **لا تكرار الريّ:** ETc/net/gross بكفاءة النظام موجودة في water_balance/irrigation_method/irrigation_recommendation_policy (أُبلِغ المستخدم، لم يُكرَّر).
+- **التحقّق:** 15 حارس بطاقة خلفيّ + 6 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت.

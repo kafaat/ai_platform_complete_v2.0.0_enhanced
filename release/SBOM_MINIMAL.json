@@ -1085,7 +1085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9c07aeea8951135b767744c672b79445f70abb5081869e0382bd2d7a962fd1a"
+          "content": "cf1d4cdc033be4d5eb8826b03cac706621bc4c5bf385965cdcdbe90ea17cc402"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
@@ -3045,7 +3045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d3cb19eb1ad931673c3fb014d8101af97ce9a65ea5179cfe1f13dd6592d8f2c"
+          "content": "a8b4591a44f9db302f08186f398560600c0a7b44e38ed10d171049a121d3ee51"
         }
       ],
       "name": "frontend/src/lib/fieldIntelligenceCard.test.ts",
@@ -3055,7 +3055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a2e527df585f5963442018c65c3800be1e04309d62dac5766c6e13c8427957d"
+          "content": "0440720061837ddba645f92c8fca35db29b9a1e0143cb12fa4c14120cf1e5631"
         }
       ],
       "name": "frontend/src/lib/fieldIntelligenceCard.ts",
@@ -15025,7 +15025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6732f990d2e7b3560642ab2961b9aa88f1c51ec01d4d34148c4001123cdcf681"
+          "content": "cc6d2bc04d54f47d910409efef4aeb5b70ef59e25f776cfd319eaea63710ff9c"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_card.py",
@@ -17775,7 +17775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c6b60f85bb6f8112627976bfc90c82fe3cdc3047d0af9b47def5930b972edb7"
+          "content": "476d242923358eba2fa15648fc4e09f3ca7a7fa60b71398965fa8db34400fa32"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_intelligence_card.py",

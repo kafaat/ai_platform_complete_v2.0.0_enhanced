@@ -4,6 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   completenessPct,
+  conditionDriverAr,
   isPresent,
   missingReasonAr,
   ndviLabelAr,
@@ -38,7 +39,15 @@ describe('fieldIntelligenceCard helpers', () => {
 
   it('missingReasonAr surfaces provider-unavailable honestly and passes unknown through', () => {
     expect(missingReasonAr('no_provider_status_supplied')).toContain('raster');
+    expect(missingReasonAr('no_condition_signals')).toContain('تشخيص');
     expect(missingReasonAr('some_new_reason')).toBe('some_new_reason');
     expect(missingReasonAr(undefined)).toBe('غير متاح');
+  });
+
+  it('conditionDriverAr maps drivers and passes unknown through honestly', () => {
+    expect(conditionDriverAr('salinity_limited')).toContain('ملوحة');
+    expect(conditionDriverAr('heat_limited')).toContain('حرارة');
+    expect(conditionDriverAr('some_future_driver')).toBe('some_future_driver');
+    expect(conditionDriverAr(undefined)).toBe('—');
   });
 });

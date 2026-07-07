@@ -123,6 +123,47 @@ def test_empty_analyze_does_not_crash():
     assert card["sections"]["risk_alerts"]["count"] == 0
 
 
+def test_field_condition_missing_without_diagnostic_truths():
+    # صدق: _ANALYZE يحمل ndvi/water_deficit فقط (لا مفاتيح تشخيصيّة) ⇒ missing صريح.
+    card = assemble_field_intelligence_card(_ANALYZE)
+    assert card["sections"]["field_condition"]["status"] == "missing"
+    assert card["sections"]["field_condition"]["reason"] == "no_condition_signals"
+
+
+def test_field_condition_surfaces_precomputed_diagnosis():
+    analyze = {
+        "field_id": "f-2",
+        "operational_truths": {
+            "effective_status": "salinity_limited",
+            "effective_status_reason": "ملوحة حرجة تحكم الحالة",
+            "crop_vigor": 0.383,
+            "crop_vigor_confidence": "medium",
+            "salinity_class": "critical",
+            "salinity_risk": 0.75,
+            "heat_risk": 0.4,
+            "ndvi_trend": "decreasing",
+        },
+    }
+    fc = assemble_field_intelligence_card(analyze)["sections"]["field_condition"]
+    assert fc["status"] == "present"
+    assert fc["effective_status"] == "salinity_limited"
+    assert fc["primary_driver"] == "salinity_limited"  # المُحرِّك = الحالة الفعليّة
+    assert fc["salinity_class"] == "critical" and fc["salinity_risk"] == 0.75
+    assert fc["crop_vigor"] == 0.383 and fc["ndvi_trend"] == "decreasing"
+
+
+def test_field_condition_infers_driver_from_risk_when_no_status():
+    # لا effective_status لكن ملوحة حرجة ⇒ يُستنتَج المُحرِّك (صدق: من دليل حاضر لا تخمين).
+    analyze = {"operational_truths": {"salinity_class": "critical", "salinity_risk": 0.9}}
+    fc = assemble_field_intelligence_card(analyze)["sections"]["field_condition"]
+    assert fc["status"] == "present" and fc["primary_driver"] == "salinity_limited"
+    # حرارة شديدة بلا حالة ⇒ heat_limited.
+    hot = assemble_field_intelligence_card({"operational_truths": {"heat_risk": 0.85}})["sections"][
+        "field_condition"
+    ]
+    assert hot["primary_driver"] == "heat_limited"
+
+
 # ── P1: تغذية البطاقة من صفوف DB (منطق صرف) ──────────────────────────────────────
 def test_card_signals_from_db_rows_builds_scene_and_ndvi():
     ndvi_rows = [{"mean": 0.62}, {"mean": 0.55}, {"mean": 0.58}]  # تنازليّ بالتاريخ
