@@ -35,6 +35,10 @@ def make_processing_context(*, upload_dir: str | None = None) -> SimpleNamespace
     ctx = SimpleNamespace()
     ctx._jobs = raster_runtime_state.JOBS
     ctx._layers = raster_runtime_state.LAYERS
+    # فهرس حقل→[طبقات] (raster_job_orchestration.run_processing يقيّده على كلّ معالجة لحقل).
+    # كان غيابه يرمي AttributeError على كلّ تشغيلة backfill لحقل (SimpleNamespace بلا
+    # _field_layers) فتفشل المعالجة صامتاً. نفس singleton المشترَك الذي يقرأه القرّاء.
+    ctx._field_layers = raster_runtime_state.FIELD_LAYERS
     ctx.JobStatus = api_models.JobStatus
     ctx.ProcessRequest = api_models.ProcessRequest
     ctx.IndicatorKind = api_models.IndicatorKind

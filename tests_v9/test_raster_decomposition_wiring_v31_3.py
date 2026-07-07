@@ -79,21 +79,28 @@ def test_main_exposes_worker_and_test_contract() -> None:
 
 
 def test_every_ctx_attr_used_by_decomposition_resolves_on_main() -> None:
-    src = _main_surface()
-    # phase28: ctx لم يعُد هو main — بل SimpleNamespace صريح يبنيه
-    # raster_processing_runtime.make_processing_context الذي يُسنِد ctx.<attr>. لذا
-    # يُعدّ الرمز مُحلّاً إن عُرِّف على main أو أُسنِد صراحةً على ctx في مصنع السياق
-    # (كلاهما يمنع كسر AttributeError صامت وقت التشغيل).
-    runtime_src = (RASTER / "raster_processing_runtime.py").read_text(encoding="utf-8")
-    ctx_assigned = set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)\s*=", runtime_src))
-    missing: dict[str, list[str]] = {}
-    for mod in _DECOMP_MODULES:
-        msrc = (RASTER / f"{mod}.py").read_text(encoding="utf-8")
-        attrs = set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)", msrc))
-        bad = sorted(a for a in attrs if a not in ctx_assigned and not _defines(src, a))
-        if bad:
-            missing[mod] = bad
-    assert not missing, f"وحدات التفكيك تشير إلى رموز غير محلولة (ctx.*): {missing}"
+    # ctx هو SimpleNamespace صريح (لا main): كلّ ``ctx.<attr>`` يُقرأ وقت التشغيل يجب أن
+    # يكون قد أُسنِد على ctx **في مكانٍ ما من كود الإنتاج** — إمّا في مصنع السياق
+    # make_processing_context أو على يد المُستدعي قبل التمرير. «التعريف على main» لا يكفي:
+    # ctx كائن مستقلّ، فرمزٌ موجود على main لكنّه غير مُسنَد على ctx = AttributeError صامت
+    # (بلاغ حيّ 2026-07-07: ctx._field_layers مفقود من المصنع فتفشل كلّ معالجة backfill لحقل).
+    prod = [
+        p for p in RASTER.glob("*.py") if not p.name.startswith("test_") and p.name != "main.py"
+    ]
+    ctx_set: set[str] = set()
+    ctx_used: dict[str, set[str]] = {}
+    for p in prod:
+        s = p.read_text(encoding="utf-8")
+        ctx_set |= set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)\s*=", s))
+        used = set(re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)", s)) - set(
+            re.findall(r"\bctx\.([A-Za-z_][A-Za-z0-9_]*)\s*=", s)
+        )
+        if used:
+            ctx_used[p.name] = used
+    missing = {name: sorted(u - ctx_set) for name, u in ctx_used.items() if u - ctx_set}
+    assert not missing, (
+        f"ctx.<attr> يُقرأ دون أن يُسنَد في أيّ مكان (AttributeError وقت التشغيل): {missing}"
+    )
 
 
 def test_no_undefined_fieldctx_alias() -> None:
