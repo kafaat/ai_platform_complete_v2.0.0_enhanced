@@ -4695,7 +4695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "972b7392ef8fea6b68f742ee47f5cb6714e0ddb10e452e34da7a1e39efb9bd89"
+          "content": "6d8a6b103ad7f3b2b9e457a377d560f2f9c298cde021326e8fa260bc27bf4206"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",

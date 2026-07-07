@@ -56,6 +56,7 @@ import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceability
 import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
 import FieldIntelligenceCardView from '../components/fieldview/FieldIntelligenceCardView';
 import WindbreakCard from '../components/fieldview/WindbreakCard';
+import DriftRiskCard from '../components/fieldview/DriftRiskCard';
 import EvidenceGraphCard from '../components/fieldview/EvidenceGraphCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
@@ -1936,6 +1937,11 @@ export default function MapHub() {
           مصدّاً شجريّاً؟ من تاريخ NASA POWER — صدق: المحسوب بقيمته والمتعذّر بسببه. */}
       {selected && fieldMode === 'expert' && (
         <WindbreakCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* خطر انجراف الرشّ (V79-UI): الحقول المجاورة كمناطق حسّاسة + هل الرشّ ينجرف نحوها
+          downwind من الريح السائدة — «لا ترشّ نحو X الآن». صدق: بلا ريح/جوار يُعلَن. */}
+      {selected && fieldMode === 'expert' && (
+        <DriftRiskCard fieldId={fieldId ?? null} enabled={expertMode} />
       )}
       {/* رسم أدلّة الحقل (V74-UI): أدلّة حاضرة بمصادرها + فجوات معرفة بأسبابها —
           يفسّر التوصية ويُثبت مصدر كلّ معلومة (يعيد استخدام استعلام analyze). */}

@@ -1733,3 +1733,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **النقطة:** `POST /api/v1/fields/{id}/wind/drift-risk` (require FIELD_VIEW): مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + اتّجاه ريح مُمرَّر أو **سائد من NASA POWER** (وردة تاريخيّة) ⇒ `core.drift_geometry.spray_drift_risk`. صدق: بلا ريح سائد ⇒ status=unknown؛ يُعلَن wind_source (provided/nasa_power_prevailing) والتقدير المحافظ.
 - **العقد:** صُنِّفت internal (بادئة `/api/v1/fields/{field_id}/wind/drift-risk` قبل قاعدة fields) — واجهة برمجيّة جاهزة بلا شاشة إدخال مناطق بعد (تُرقّى farmer/core مع شاشة الانجراف، شريحة 3). البوّابة PASS.
 - **التحقّق:** 13 حارس endpoint-coverage + gate PASS + drift_geometry الخمسة أخضر + ruff + manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — Drift-Geometry الشريحة 3 UI (V79) — بطاقة خطر انجراف الرشّ
+- **بيانات حقيقيّة بلا رسم:** `lib/driftZones.ts` (نقيّ) يشتقّ **الحقول المجاورة** (ضمن 2كم من مركز الحقل، من lat/lon أو متوسّط حلقة الهندسة) كمناطق حسّاسة (neighboring_field). `hooks/useFieldDriftRisk` يستدعي `POST /wind/drift-risk` بها. `components/fieldview/DriftRiskCard` يعرض: خطر/آمن + الحقول المعرّضة downwind + اتّجاه الانجراف + مصدر الريح. مركّبة في MapHub (expert) بعد بطاقة المصدّات.
+- **صدق:** بلا جوار ⇒ يُعلَن؛ بلا ريح سائد ⇒ unknown صريح؛ حقل بلا مركز يُتخطّى (لا إحداثيّة مُختلَقة). تقدير محافظ (مركز+مخروط) — القرار ميدانيّ.
+- **العقد:** نقطة `/wind/drift-risk` رُقِّيت من internal إلى farmer/core (evidence=`/wind/drift-risk` في الهوك) — صار لها consumer. حُذِف تصنيف internal. gate PASS.
+- **التحقّق:** 3 vitest driftZones + 13 endpoint-coverage + tsc نظيف + manifest · SHA سيُثبَّت. **ميزة انجراف الرشّ مكتملة end-to-end** (محرّك V77 + نقطة V78 + UI V79).

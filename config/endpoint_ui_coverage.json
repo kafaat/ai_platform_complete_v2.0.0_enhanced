@@ -98,10 +98,6 @@
       "audience": "internal"
     },
     {
-      "prefix": "/api/v1/fields/{field_id}/wind/drift-risk",
-      "audience": "internal"
-    },
-    {
       "prefix": "/api/v1/fields",
       "audience": "farmer"
     },
@@ -1523,6 +1519,11 @@
       "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
       "audience": "farmer",
       "evidence": "/wind/prevailing"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/wind/drift-risk",
+      "audience": "farmer",
+      "evidence": "/wind/drift-risk"
     },
     {
       "endpoint": "/api/v1/fields/{field_id}/timeline",
