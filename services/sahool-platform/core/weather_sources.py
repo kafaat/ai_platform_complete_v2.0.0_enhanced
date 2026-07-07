@@ -106,8 +106,47 @@ WEATHER_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
         "auth": "cds-api (أو عبر Open-Meteo)",
         "coverage_yemen": True,
         "resolution": "0.1° (~9km) — أدقّ من ERA5 للأرض/الزراعة (لا 500م).",
-        "roles": ["historical_wind", "climate_baseline", "agroclimate"],
-        "note": "أدقّ من ERA5 للحقول/المناطق (9كم)؛ مرجع تاريخيّ/مناخيّ زراعيّ — يحتاج وصلاً.",
+        "roles": [
+            "historical_wind",
+            "climate_baseline",
+            "agroclimate",
+            "soil_moisture",
+            "drought",
+        ],
+        # أسماء CDS الرسميّة (volumetric_soil_water_layer_1..4) → أسماء ساهول + الوحدة.
+        # صدق: لا أسماء MirrorEarth غير الموثّقة؛ soil_moisture_index مؤشّر مُشتقّ نحسبه.
+        "soil_moisture_layers": {
+            "soil_moisture_0_7cm": {
+                "provider_variable": "volumetric_soil_water_layer_1",
+                "unit": "m3/m3",
+            },
+            "soil_moisture_7_28cm": {
+                "provider_variable": "volumetric_soil_water_layer_2",
+                "unit": "m3/m3",
+            },
+            "soil_moisture_28_100cm": {
+                "provider_variable": "volumetric_soil_water_layer_3",
+                "unit": "m3/m3",
+            },
+            "soil_moisture_100_289cm": {  # العمق الرابع 289سم (لا 255).
+                "provider_variable": "volumetric_soil_water_layer_4",
+                "unit": "m3/m3",
+            },
+        },
+        "derived_variables": [
+            "root_zone_soil_moisture",
+            "soil_moisture_percentile",
+            "drought_anomaly",
+        ],
+        "limitations": [
+            "modelled_not_in_situ",  # رطوبة نموذجيّة لا قياس حساس داخل الحقل.
+            "too_coarse_for_small_field_without_downscaling",  # 9كم لا يرى المدرّجات.
+            "validate_with_local_sensors_or_farmer_records",
+        ],
+        "note": (
+            "أدقّ من ERA5 (9كم)؛ رطوبة تربة/جفاف تاريخيّ بمقياس منطقة. أسماء المتغيّرات "
+            "الرسميّة من CDS (volumetric_soil_water_layer_1..4) لا أسماء MirrorEarth. يحتاج وصلاً."
+        ),
     },
     "global_wind_atlas": {
         "id": "global_wind_atlas",
@@ -162,3 +201,55 @@ def planned_weather_sources() -> list[str]:
 def weather_sources_for_role(role: str) -> list[str]:
     """مصادر الطقس التي تخدم دوراً مُعيَّناً (forecast/rainfall_history/…)."""
     return [k for k, v in WEATHER_SOURCE_REGISTRY.items() if role in (v.get("roles") or [])]
+
+
+# ── سلسلة مزوّدي ET0 (المرجع evapotranspiration) — الأساسيّ الموصول ثمّ الاحتياطيّ ──
+ET0_PROVIDER_CHAIN: dict[str, Any] = {
+    "primary": "open_meteo",  # موصول (نشط) — ET0 مرجعيّ + مدخلاته.
+    "secondary": "nasa_power",  # مُخطَّط (إشعاع/أرصاد زراعيّة).
+    "fallback": "era5_land_derived",  # مُشتقّ من ERA5-Land عند الحاجة.
+    "variables": [
+        "et0_reference_evapotranspiration",
+        "temperature_2m",
+        "relative_humidity_2m",
+        "wind_speed_10m",
+        "shortwave_radiation",
+        "vapour_pressure_deficit",
+    ],
+}
+
+
+def soil_moisture_drought_class(
+    current: Any, history: Any, *, min_history: int = 10
+) -> dict[str, Any]:
+    """صنف الجفاف من **مئينيّة رطوبة التربة المحلّيّة** — لا عتبة SMI ثابتة لكلّ اليمن.
+
+    **صدق:** الجفاف يُقاس كمئينيّة قيمة اليوم مقابل تاريخ نفس الموقع/الموسم (الجوف/تهامة/
+    إب/حضرموت/صعدة مناخات وترب مختلفة). تاريخ غير كافٍ ⇒ ``unknown`` (لا تخمين).
+    العتبات: <10 شديد · 10–20 متوسّط · 20–30 بداية إجهاد · ≥30 طبيعيّ.
+    """
+
+    def _num(v: Any) -> float | None:
+        if isinstance(v, bool):
+            return None
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return None
+        return f if f == f else None
+
+    cur = _num(current)
+    vals = [x for x in (_num(v) for v in (history or [])) if x is not None]
+    if cur is None or len(vals) < min_history:
+        return {"class": "unknown", "reason": "insufficient_history", "percentile": None}
+    below = sum(1 for v in vals if v < cur)
+    pct = round(100.0 * below / len(vals), 1)
+    if pct < 10:
+        cls = "severe_drought"
+    elif pct < 20:
+        cls = "moderate_drought"
+    elif pct < 30:
+        cls = "stress_onset"
+    else:
+        cls = "normal"
+    return {"class": cls, "percentile": pct, "reason": None, "n_history": len(vals)}

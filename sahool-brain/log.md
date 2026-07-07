@@ -1626,3 +1626,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التصنيف:** `core/soil_climate_sources.py` بطبقات tier (production_baseline/planned_baseline/research_layer/manual_download_only). **SoilGrids نشط** (موصول فعلاً: `soil-service/soilgrids_client.py`→rest.isric.org + `/soil/soilgrids`) بتحذير «250م، ليس بديل مختبر». WorldClim/ESA-CCI مُخطَّطان؛ erodibility + DOC/MBC/fMAOC/GPP طبقات بحثيّة (requires_verification، coverage=needs_check/dataset_dependent، لا افتراض تغطية).
 - **صدق:** NASA POWER لم يُعَد تعليمه active (موجود مُخطَّطاً في weather_sources). **الأمن/الموثوقيّة:** حارس `has_baidu_source` يمنع أيّ رابط Baidu كمصدر رسميّ (المواقع الأصليّة + checksum فقط).
 - **التحقّق:** 5 حُرّاس · soilgrids وحده نشط · لا Baidu · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — تصحيح ERA5-Land رطوبة التربة + سلسلة ET0 + جفاف مئينيّ (V68.2)
+- **تصحيح المُراجِع:** أسماء المتغيّرات الرسميّة من CDS لا MirrorEarth. أُضيف `soil_moisture_layers` في `era5_land` يربط أسماء ساهول (soil_moisture_0_7cm/7_28cm/28_100cm/100_289cm) بأسماء CDS الرسميّة `volumetric_soil_water_layer_1..4` + الوحدة m3/m3. العمق الرابع **289سم** (لا 255). + `derived_variables` + `limitations` (نموذجيّ لا حسّاس · خشن للحقل الصغير · تحقّق محلّيّ).
+- **سلسلة ET0:** `ET0_PROVIDER_CHAIN` — primary=open_meteo (نشط) · secondary=nasa_power (مُخطَّط) · fallback=era5_land_derived. صدق: الأساسيّ وحده موصول.
+- **جفاف صادق:** `soil_moisture_drought_class(current, history, min_history=10)` — مئينيّة محلّيّة مقابل تاريخ الموقع/الموسم لا عتبة SMI ثابتة لكلّ اليمن؛ تاريخ<10 ⇒ unknown (لا تخمين). العتبات <10 شديد/10–20 متوسّط/20–30 بداية إجهاد/≥30 طبيعيّ.
+- **صدق الاختبار:** حُذِف فحص substring مُبالِغ ("mirrorearth" not in blob) لأنّه يتعثّر بنصّ الملاحظة التوضيحيّة نفسه؛ استُبدِل بفحص قيم `provider_variable` الفعليّة (كلّها تبدأ بـvolumetric_soil_water_layer_). نمط متكرّر: لا تفحص substring سلبيّ على نصّ يذكر المصطلح توثيقاً.
+- **التحقّق:** 10 حُرّاس طقس أخضر · ruff · manifest (3283) · SHA سيُثبَّت.

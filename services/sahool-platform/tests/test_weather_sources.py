@@ -10,9 +10,11 @@
 from __future__ import annotations
 
 from core.weather_sources import (
+    ET0_PROVIDER_CHAIN,
     WEATHER_SOURCE_REGISTRY,
     active_weather_sources,
     planned_weather_sources,
+    soil_moisture_drought_class,
     weather_sources_for_role,
 )
 
@@ -83,3 +85,37 @@ def test_active_and_planned_are_disjoint_and_complete():
     planned = set(planned_weather_sources())
     assert active.isdisjoint(planned)
     assert active | planned == set(WEATHER_SOURCE_REGISTRY)
+
+
+def test_era5_land_uses_official_cds_variable_names():
+    # صدق: أسماء CDS الرسميّة (volumetric_soil_water_layer_1..4)، لا أسماء MirrorEarth.
+    layers = WEATHER_SOURCE_REGISTRY["era5_land"]["soil_moisture_layers"]
+    assert layers["soil_moisture_0_7cm"]["provider_variable"] == "volumetric_soil_water_layer_1"
+    assert layers["soil_moisture_100_289cm"]["provider_variable"] == "volumetric_soil_water_layer_4"
+    # العمق الرابع 289سم (تصحيح لا 255).
+    assert "soil_moisture_100_289cm" in layers
+    assert any("100_289cm" in k for k in layers)
+    # صدق: متغيّرات المزوّد كلّها أسماء CDS الرسميّة (volumetric_soil_water_layer_*)،
+    # لا أسماء MirrorEarth غير الموثّقة (نفحص القيم الفعليّة لا نصّ الملاحظة التوضيحيّة).
+    for spec in layers.values():
+        pv = spec["provider_variable"]
+        assert pv.startswith("volumetric_soil_water_layer_"), pv
+        assert "mirrorearth" not in pv.lower()
+    assert WEATHER_SOURCE_REGISTRY["era5_land"]["limitations"], "قيود صريحة (نموذجيّ/خشن)"
+
+
+def test_et0_provider_chain_primary_is_active_openmeteo():
+    assert ET0_PROVIDER_CHAIN["primary"] == "open_meteo"
+    assert ET0_PROVIDER_CHAIN["primary"] in active_weather_sources()
+    assert ET0_PROVIDER_CHAIN["secondary"] == "nasa_power"
+    assert "et0_reference_evapotranspiration" in ET0_PROVIDER_CHAIN["variables"]
+
+
+def test_drought_class_uses_local_percentile_not_fixed_threshold():
+    hist = [0.30, 0.32, 0.28, 0.35, 0.31, 0.29, 0.33, 0.34, 0.27, 0.36, 0.30, 0.32]
+    # قيمة أدنى من كلّ التاريخ ⇒ مئينيّة ~0 ⇒ جفاف شديد.
+    assert soil_moisture_drought_class(0.10, hist)["class"] == "severe_drought"
+    # قيمة وسطى ⇒ طبيعيّ.
+    assert soil_moisture_drought_class(0.32, hist)["class"] == "normal"
+    # تاريخ غير كافٍ ⇒ unknown (لا تخمين، لا عتبة SMI ثابتة).
+    assert soil_moisture_drought_class(0.2, [0.3, 0.3])["class"] == "unknown"
