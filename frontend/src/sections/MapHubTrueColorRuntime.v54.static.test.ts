@@ -12,10 +12,10 @@ const api = readFileSync(join(here, '../services/api.ts'), 'utf8');
 const layerRegistry = readFileSync(join(here, '../lib/layerRegistry.ts'), 'utf8');
 
 describe('v54 TrueColor runtime verification', () => {
-  it('keeps TrueColor as the protected default and checks raster-service cdse-tilejson', () => {
+  it('keeps TrueColor as the protected default and checks raster-service tilejson (Element84 COG)', () => {
     expect(mapHub).toContain("const RAW_IMAGERY_INDEX_ID = 'truecolor'");
     expect(mapHub).toContain('rasterApi');
-    expect(mapHub).toContain('/v1/fields/${fieldId}/cdse-tilejson');
+    expect(mapHub).toContain('/v1/fields/${fieldId}/tilejson');
     expect(mapHub).toContain('index: RAW_IMAGERY_INDEX_ID');
     expect(mapHub).toContain('truecolor-runtime-readiness');
     expect(mapHub).toContain('TRUECOLOR_UNAVAILABLE_MESSAGE');
