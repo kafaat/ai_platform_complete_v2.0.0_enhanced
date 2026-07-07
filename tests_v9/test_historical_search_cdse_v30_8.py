@@ -21,12 +21,13 @@ def _read(rel: pathlib.Path) -> str:
     return rel.read_text(encoding="utf-8")
 
 
-# ── الافتراض CDSE: مزوّد البحث التاريخيّ = cdse ما لم يُطلَب Element84 صراحةً ──
-def test_default_historical_search_provider_is_cdse():
-    # phase12: الإعدادات (المزوّد الافتراضيّ) انتقلت إلى raster_settings.py
+# ── الافتراض Element84: صور خام مباشرة بلا وحدات معالجة CDSE (يُطلَب cdse صراحةً للعكس) ──
+def test_default_historical_search_provider_is_element84():
+    # الإعدادات (المزوّد الافتراضيّ) في raster_settings.py. حُوِّل الافتراض إلى element84
+    # (صور خام عبر VRT محليّ) كي يعمل الخطّ الزمنيّ التاريخيّ دون رصيد CDSE.
     src = _read(_RASTER / "main.py") + "\n" + _read(_RASTER / "raster_settings.py")
-    assert 'os.getenv("HISTORICAL_SEARCH_PROVIDER", "cdse")' in src, (
-        "المزوّد الافتراضيّ للبحث التاريخيّ يجب أن يكون cdse"
+    assert 'os.getenv("HISTORICAL_SEARCH_PROVIDER", "element84")' in src, (
+        "المزوّد الافتراضيّ للبحث التاريخيّ يجب أن يكون element84"
     )
 
 

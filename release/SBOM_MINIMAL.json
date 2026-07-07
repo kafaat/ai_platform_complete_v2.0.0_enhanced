@@ -9265,7 +9265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3faaafb78112c4cf140cd1e7375dd12f7ac64666de211ec6fc39a135db6efeef"
+          "content": "f1f4505d2396eacd7e7fb5ebbab0d5050498fd1f3bc5080ddfd23884fd10fd22"
         }
       ],
       "name": "services/raster-service/raster_settings.py",
@@ -9525,7 +9525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac12af61a94d94c8eb2ddeea638a96845b506a950cc904fa92896c12dbaa8f66"
+          "content": "0504dfbe5a5a8262e7959def2164fdcb5a834fae1425187e3414e9a6bdffd4e8"
         }
       ],
       "name": "services/raster-service/stac_search.py",

@@ -9,7 +9,9 @@ from __future__ import annotations
 import os
 
 EARTH_SEARCH_URL = os.getenv("EARTH_SEARCH_URL", "https://earth-search.aws.element84.com/v1")
-HISTORICAL_SEARCH_PROVIDER = os.getenv("HISTORICAL_SEARCH_PROVIDER", "cdse").strip().lower()
+# الافتراض element84: صور Sentinel-2 خام مباشرة (VRT محليّ) بلا وحدات معالجة CDSE.
+# عيّن HISTORICAL_SEARCH_PROVIDER=cdse لاستعمال Copernicus Process API عند توفّر الرصيد.
+HISTORICAL_SEARCH_PROVIDER = os.getenv("HISTORICAL_SEARCH_PROVIDER", "element84").strip().lower()
 SENTINEL_COLLECTION = "sentinel-2-l2a"
 SENTINEL1_COLLECTION = "sentinel-1-grd"
 LANDSAT_COLLECTION = "landsat-c2-l2"
