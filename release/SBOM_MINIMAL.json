@@ -1055,6 +1055,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "aaef629d20daf8235414a8a35e953f0d9bee2dd05c0041c0450b032ecc8c434b"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/DriftRiskCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b5b3b9684a7efceaa47dc261f0ce6cd8b767fb932f3e76c85f140f9b95d26ffc"
         }
       ],
@@ -2315,6 +2325,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f68601bcc09944140119bc8267ff551a82cb4956a5125800db7b1f672603a984"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldDriftRisk.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "af05a4d4f24895ee7c3f481cfe891d7560221095a0162b4a6be0e76d938d016a"
         }
       ],
@@ -2789,6 +2809,26 @@
         }
       ],
       "name": "frontend/src/lib/districtsWeather.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3d836644d83d71d8ce3fca532ba4cab32d4655082ed9bda98cefe22cfa31b83"
+        }
+      ],
+      "name": "frontend/src/lib/driftZones.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5afd04a2aec8559b702c4d64f3e424e9037161699c76225cc5241ec901cafd61"
+        }
+      ],
+      "name": "frontend/src/lib/driftZones.ts",
       "type": "file"
     },
     {
