@@ -1549,3 +1549,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الحلّ:** `core/field_intelligence_card.assemble_field_intelligence_card` مُجمِّع منطق صرف يبني بطاقة واحدة (أحدث مشهد/حالة مزوّد/NDVI-تاريخيّ/عجز مائيّ/مناطق ضعيفة/تنبيهات/توصية استطلاع/أدلّة/ثقة). **صدق:** كلّ قسم إمّا حاضر أو `missing` بسبب صريح؛ `completeness` نسبة أقسام **البيانات** الحاضرة (المخرجات المُشتقّة risk_alerts/confidence/scouting لا تُحسَب — الاكتمال يعكس توفّر البيانات لا النتائج). NDVI-vs-history يحسب الشذوذ + تصنيف فوق/تحت/قرب.
 - **الوصل:** إضافيّ في `/field-intelligence/analyze` (`field_intelligence_card`) — غير كاسر.
 - **التحقّق:** 8 حُرّاس جديدة (نطاق ratchet المنصّة) · 285 شريحة منصّة + 5 endpoint أخضر · ruff نظيف · manifest 3261 · SHA 9822dda.
+
+## 2026-07-07 (ن) — سِجِلّ المصادر البحثيّة (V63.3، فصل Gitee عن مزوّدي الصور)
+- **بحث Gitee (المُراجِع):** مفيد للمعالجة/التدريب/التقطيع/change-detection لكنّه **ليس** مصدر صور خام (PaddleRS · GeoTrellis Landsat tutorial · CDSystem · NWPU/RSOD datasets).
+- **الحلّ:** `RESEARCH_REGISTRY` منفصل تماماً عن `PROVIDER_REGISTRY`؛ كلّ عنصر `provides_imagery=False` بنوع (research_library/architecture_reference/dataset_reference) + `recommended_use`. `research_sources()` + حُرّاس: المجموعتان **منفصلتان** ولا يتسرّب مصدر بحثيّ إلى active/planned. صدق: Gitee مصدر أفكار/مكتبات لا مزوّد صور — المزوّدون الحقيقيّون يبقون CDSE/Element84/PC/NASA HLS.
+- **التحقّق:** 23 اختبار V63 أخضر (2 جديدة) · ruff نظيف · manifest 3263 · SHA d2da16e.
