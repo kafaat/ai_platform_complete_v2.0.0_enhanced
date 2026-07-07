@@ -58,6 +58,9 @@ _WEATHER_RATE_LIMITS: dict[str, tuple[int, int]] = {
     "operation-plan": (90, 60),
     "field-weather-summary": (120, 60),
     "weather-action-recommendation": (90, 60),
+    "current": (180, 60),
+    "forecast": (120, 60),
+    "historical": (60, 60),
     "task-from-operation-plan": (45, 60),
     "recommendation-from-operation-plan": (45, 60),
     "default": (300, 60),
@@ -2018,7 +2021,7 @@ def weather_runtime_smoke_plan():
     return result
 
 
-@router.get("/api/v1/weather/current")
+@router.get("/api/v1/weather/current", dependencies=[Depends(_rate_dependency("current"))])
 async def weather_current(lat: float, lon: float):
     """الطقس الحالي من Open-Meteo. مفتوح بدون auth."""
     try:
@@ -2044,7 +2047,7 @@ async def weather_current(lat: float, lon: float):
         raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
 
 
-@router.get("/api/v1/weather/forecast")
+@router.get("/api/v1/weather/forecast", dependencies=[Depends(_rate_dependency("forecast"))])
 async def weather_forecast(lat: float, lon: float, days: int = 7):
     """توقّعات ١-١٦ يوم + ET₀ (FAO-56) + spraying conditions."""
     try:
@@ -2088,7 +2091,7 @@ async def weather_forecast(lat: float, lon: float, days: int = 7):
         raise HTTPException(status_code=502, detail=f"Open-Meteo: {e}") from e
 
 
-@router.get("/api/v1/weather/historical")
+@router.get("/api/v1/weather/historical", dependencies=[Depends(_rate_dependency("historical"))])
 async def weather_historical(
     lat: float,
     lon: float,
@@ -2899,7 +2902,22 @@ async def weather_operation_plan(
 async def weather_action_recommendation(
     lat: float = Query(..., ge=-90, le=90),
     lon: float = Query(..., ge=-180, le=180),
-    field_id: str | None = Query(None),
+    client_field_ref: str | None = Query(
+        None,
+        min_length=1,
+        max_length=80,
+        description=(
+            "Opaque client-side field reference used only for draft labels. "
+            "This public endpoint must not dereference it against tenant data."
+        ),
+    ),
+    field_id: str | None = Query(
+        None,
+        min_length=1,
+        max_length=80,
+        deprecated=True,
+        description="Deprecated alias for client_field_ref; not dereferenced server-side.",
+    ),
     operations: str = Query("spraying,irrigation,harvesting,sowing"),
     hours: str = Query("0,1,3,6,12,24,48"),
     model: str = Query("best_match"),
@@ -2908,17 +2926,24 @@ async def weather_action_recommendation(
 
     هذا endpoint هو جسر المنتج بين الخريطة والمهام: يعطي أفضل توصية، ومسودة مهمة
     جاهزة، وروابط الإجراءات التالية. لا يكتب في قاعدة البيانات.
+
+    ``client_field_ref`` و``field_id`` ليسا مفاتيح ملكية tenant هنا؛ هما
+    معرفان شفافان لمسودة الواجهة فقط. أي قراءة فعلية من ``fields``/``farms``
+    يجب أن تنتقل إلى endpoint authenticated.
     """
+    field_ref = client_field_ref or field_id
     plan = await weather_operation_plan(
         lat=lat, lon=lon, operations=operations, hours=hours, model=model
     )
     top = plan.get("top_recommendation") or {}
-    draft = _build_weather_task_draft(field_id or "", top) if field_id and top else None
-    recommendation = _recommendation_payload_from_plan(field_id or "", plan) if field_id else None
+    draft = _build_weather_task_draft(field_ref or "", top) if field_ref and top else None
+    recommendation = _recommendation_payload_from_plan(field_ref or "", plan) if field_ref else None
     _record_weather_observation("weather-action-recommendation", cache_state="served")
     return {
         "location": {"lat": lat, "lon": lon},
-        "field_id": field_id,
+        "client_field_ref": field_ref,
+        "field_id": field_ref,  # backward-compatible response field; not DB-backed.
+        "field_ref_is_authoritative": False,
         "operation_plan": plan,
         "recommendation": recommendation,
         "task_draft": draft,

@@ -111,7 +111,11 @@ async def sync(
       • الاستجابة تُرفِق ``cursor`` (أحدث طابع لِيُرسله العميل تالياً) و
         ``delta_applied`` (هل طُبّق الترشيح فعلاً). stateless: لا جدول/migration.
     """
-    if req.tenant_id != user.tenant_id:
+    # Tenant isolation is authoritative from the authenticated user/JWT.
+    # req.tenant_id is retained only as a deprecated legacy compatibility field;
+    # if present it must match, but clients no longer need to send it.
+    tenant_id = user.tenant_id
+    if req.tenant_id is not None and req.tenant_id != tenant_id:
         raise HTTPException(status_code=403, detail="Tenant mismatch")
 
     # ٠) مزامنة تفاضليّة اختياريّة: خلف العلم وبتمرير since فقط نرشّح عمليّات الطلب
@@ -144,7 +148,7 @@ async def sync(
 
         op = record_operation_offline(
             _OFFLINE_QUEUE,
-            tenant_id=req.tenant_id,
+            tenant_id=tenant_id,
             user_id=user.user_id,
             kind=kind,
             payload=normalized["payload"],
@@ -157,12 +161,12 @@ async def sync(
         op_ids.append(op.op_id)
 
     # ٢) supersession أوّلاً (لا نُثبّت عمليّات قديمة حلّت محلّها أحدث منها)
-    superseded = apply_supersession(_OFFLINE_QUEUE, req.tenant_id)
+    superseded = apply_supersession(_OFFLINE_QUEUE, tenant_id)
 
     # ٣) نأخذ الدفعة الفعليّة من رأس الـqueue (FIFO، QUEUED فقط) — نفس ما كان
     #     sync_cycle سيعالجه — لنُثبّت بالضبط ما نعالج (إصلاح: كانت الكتابة تخصّ
     #     عمليّات هذا الطلب فقط بينما الـqueue قد يحوي أقدم، فتُعلَّم FAILED بلا رجعة).
-    batch = _OFFLINE_QUEUE.peek_pending(req.tenant_id, limit=max(len(incoming_ops), 1))
+    batch = _OFFLINE_QUEUE.peek_pending(tenant_id, limit=max(len(incoming_ops), 1))
 
     # ٤) نُثبّت كلّ عمليّة في الدفعة بمتانة ضمن سياق RLS. الناجح ⇒ SYNCED؛ الفاشل
     #    يبقى QUEUED (لا FAILED) ليُعاد في الدورة التالية (peek_pending يُرجع QUEUED
@@ -194,7 +198,7 @@ async def sync(
             for op in batch:
                 try:
                     async with conn.transaction():  # savepoint
-                        await enqueue_pending(conn, op=op, tenant_id=req.tenant_id)
+                        await enqueue_pending(conn, op=op, tenant_id=tenant_id)
                 except Exception as exc:  # noqa: BLE001 — fail-safe: الذاكريّ يبقى مرجعاً
                     logging.warning("sync: pending enqueue failed for %s: %s", op.op_id, exc)
             for op in batch:
@@ -211,7 +215,7 @@ async def sync(
                     logging.warning("sync: claim failed for %s: %s", op.op_id, exc)
                     claimed = True
                 if not claimed:
-                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.QUEUED)
+                    _OFFLINE_QUEUE.mark_status(tenant_id, op.op_id, SyncStatus.QUEUED)
                     op_status[op.op_id] = "queued"
                     pending_retry += 1
                     continue
@@ -220,27 +224,25 @@ async def sync(
                     # نوع آخر يبقى سجلّ فقط (ledger-only، idempotent ON CONFLICT DO NOTHING).
                     if dispatch_decision(op.kind) == "apply":
                         async with conn.transaction():  # savepoint لكلّ عمليّة
-                            outcome = await apply_field_update(conn, op=op, tenant_id=req.tenant_id)
+                            outcome = await apply_field_update(conn, op=op, tenant_id=tenant_id)
                         if outcome == "conflict":
                             # سلطة الخادم: الإصدار القديم لا يطابق ⇒ 409. لا كتابة فوقيّة
                             # صامتة. نُعلّمها CONFLICTED (لا تُعاد محاولتها عمياءً — العميل
                             # يحسم ثمّ يُعيد بإصدار أحدث).
-                            _OFFLINE_QUEUE.mark_status(
-                                req.tenant_id, op.op_id, SyncStatus.CONFLICTED
-                            )
+                            _OFFLINE_QUEUE.mark_status(tenant_id, op.op_id, SyncStatus.CONFLICTED)
                             op_status[op.op_id] = "conflict"
                             conflicted += 1
                             continue
                         # طُبِّق فعليّاً ⇒ نُدوّنه أيضاً في السجلّ (تتبّع/تدقيق) ثمّ SYNCED.
                         async with conn.transaction():
-                            await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
+                            await persist_synced_operation(conn, op=op, tenant_id=tenant_id)
                         op_status[op.op_id] = "applied"
                         applied += 1
                     else:
                         async with conn.transaction():  # savepoint لكلّ عمليّة
-                            await persist_synced_operation(conn, op=op, tenant_id=req.tenant_id)
+                            await persist_synced_operation(conn, op=op, tenant_id=tenant_id)
                         op_status[op.op_id] = "synced"
-                    _OFFLINE_QUEUE.mark_status(req.tenant_id, op.op_id, SyncStatus.SYNCED)
+                    _OFFLINE_QUEUE.mark_status(tenant_id, op.op_id, SyncStatus.SYNCED)
                     # طابور الإدامة: تُعلَّم processed (best-effort ضمن savepoint).
                     try:
                         async with conn.transaction():
@@ -250,7 +252,7 @@ async def sync(
                     synced += 1
                 except Exception as exc:  # noqa: BLE001 — تبقى QUEUED لإعادة المحاولة
                     _OFFLINE_QUEUE.mark_status(
-                        req.tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
+                        tenant_id, op.op_id, SyncStatus.QUEUED, error=str(exc)[:200]
                     )
                     op_status[op.op_id] = "queued"
                     try:

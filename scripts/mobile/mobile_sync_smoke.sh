@@ -2,8 +2,6 @@
 set -euo pipefail
 BASE_URL="${BASE_URL:-http://localhost}"
 : "${SAHOOL_JWT:?SAHOOL_JWT is required}"
-: "${TENANT_ID:?TENANT_ID is required}"
-
 curl_json() {
   curl -fsS -H "Authorization: Bearer ${SAHOOL_JWT}" -H "Accept: application/json" "$@"
 }

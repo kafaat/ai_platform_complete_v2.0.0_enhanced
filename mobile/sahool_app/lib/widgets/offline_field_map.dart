@@ -7,7 +7,7 @@
 // الاستخدام (عرض فقط — الافتراضيّ، يبقى متوافقاً مع المستدعين القدامى):
 //   OfflineFieldMap(
 //     center: LatLng(16.79, 44.33),   // الجوف
-//     offlinePackPath: 'assets/maps/aljawf.mbtiles',  // اختياري
+//     offlinePackFilePath: '/data/user/0/ye.sahool.app/files/maps/aljawf.mbtiles',  // اختياري
 //     fieldPolygons: [...],
 //   )
 //
@@ -44,7 +44,11 @@ enum DrawMode { points, circle }
 class OfflineFieldMap extends StatefulWidget {
   final LatLng center;
   final double zoom;
-  // مسار حزمة offline على الجهاز (إن وُجدت). الامتداد يحدّد النوع.
+  // مسار حزمة offline على filesystem الجهاز (إن وُجدت). الامتداد يحدّد النوع.
+  // لا تقبل assets مباشرةً؛ انقل asset أولاً إلى documents directory ثم مرّر مساره.
+  final String? offlinePackFilePath;
+  // Deprecated alias kept for source compatibility with older callers. Prefer
+  // offlinePackFilePath because this value is resolved with File(path).exists().
   final String? offlinePackPath;
   // رابط بلاطات الشبكة (fallback عند توفّر اتّصال).
   final String networkTileUrl;
@@ -86,6 +90,7 @@ class OfflineFieldMap extends StatefulWidget {
     super.key,
     required this.center,
     this.zoom = 13,
+    this.offlinePackFilePath,
     this.offlinePackPath,
     this.networkTileUrl =
         'https://server.arcgisonline.com/ArcGIS/rest/services/'
@@ -215,7 +220,7 @@ class _OfflineFieldMapState extends State<OfflineFieldMap> {
   }
 
   Future<void> _initOffline() async {
-    final path = widget.offlinePackPath;
+    final path = widget.offlinePackFilePath ?? widget.offlinePackPath;
     if (path == null) return;
     try {
       final file = File(path);

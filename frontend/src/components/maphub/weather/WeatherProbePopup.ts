@@ -47,7 +47,7 @@ export function registerWeatherProbePopup(
     const probeUrl = `/api/v1/weather/probe?lat=${lat.toFixed(5)}&lon=${lng.toFixed(5)}&time=${encodeURIComponent(time)}&model=${encodeURIComponent(model)}`;
     const windowUrl = `/api/v1/weather/operation-window?lat=${lat.toFixed(5)}&lon=${lng.toFixed(5)}&operation=${encodeURIComponent(selectedOperation)}&hours=0,1,3,6,12,24,48&model=${encodeURIComponent(model)}`;
     const planUrl = `/api/v1/weather/operation-plan?lat=${lat.toFixed(5)}&lon=${lng.toFixed(5)}&operations=spraying,irrigation,harvesting,sowing&hours=0,1,3,6,12,24,48&model=${encodeURIComponent(model)}`;
-    const actionUrl = fieldId ? `/api/v1/weather/action-recommendation?lat=${lat.toFixed(5)}&lon=${lng.toFixed(5)}&field_id=${encodeURIComponent(fieldId)}&operations=spraying,irrigation,harvesting,sowing&hours=0,1,3,6,12,24,48&model=${encodeURIComponent(model)}` : null;
+    const actionUrl = fieldId ? `/api/v1/weather/action-recommendation?lat=${lat.toFixed(5)}&lon=${lng.toFixed(5)}&client_field_ref=${encodeURIComponent(fieldId)}&operations=spraying,irrigation,harvesting,sowing&hours=0,1,3,6,12,24,48&model=${encodeURIComponent(model)}` : null;
     Promise.all([
       fetch(probeUrl, { headers: weatherFetchHeaders() }).then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status))))),
       fetch(windowUrl, { headers: weatherFetchHeaders() }).then((r) => (r.ok ? r.json() : null)).catch(() => null),

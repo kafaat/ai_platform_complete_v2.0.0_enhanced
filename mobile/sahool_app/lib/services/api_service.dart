@@ -10,6 +10,7 @@ import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import '../services/auth_service.dart';
+import '../services/websocket_service.dart';
 import '../utils/ids.dart';
 import '../utils/jwt.dart';
 import '../config/app_config.dart';
@@ -441,15 +442,16 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>> syncOfflineOperations(
-    String tenantId,
     List<Map<String, dynamic>> operations, {
     String? since,
   }) async {
+    // Tenant isolation is derived from the JWT on the server. The mobile client must
+    // not send tenant_id in the body; doing so can create drift or a future tenant
+    // spoofing footgun if a backend handler accidentally trusts request JSON.
     final r = await _dio.post(
       '/api/v1/sync',
       queryParameters: since != null ? {'since': since} : null,
       data: {
-        'tenant_id': tenantId,
         'operations': operations,
       },
     );
@@ -497,8 +499,13 @@ class ApiService {
     try {
       await _dio.post('/auth/logout',
           data: refreshToken != null ? {'refresh_token': refreshToken} : {});
-    } catch (_) {}
-    await AuthService.instance.clearAuth();
+    } catch (_) {
+      // Logout must remain local fail-closed even when the server is unreachable.
+    } finally {
+      await WebSocketService.instance.dispose();
+      clearCache();
+      await AuthService.instance.clearAuth();
+    }
   }
 
   Future<void> requestPasswordReset(String email) async {

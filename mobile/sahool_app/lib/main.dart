@@ -1,6 +1,7 @@
 // SAHOOL v9.1.0 — lib/main.dart (مُحسَّن)
 // Fixes: F01(BlocProvider), F02(WS connect), F03(ErrorBoundary)
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -61,7 +62,10 @@ void main() async {
                   style: TextStyle(color: Colors.white, fontSize: 18,
                       fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text(details.exception.toString(),
+              Text(
+                  kDebugMode
+                      ? details.exception.toString()
+                      : 'يرجى المحاولة مجدداً. تم تسجيل الخطأ لفريق الدعم.',
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                   textAlign: TextAlign.center),
               const SizedBox(height: 24),
@@ -133,7 +137,7 @@ class _AuthGateState extends State<AuthGate> {
 
   Future<void> _init() async {
     await AuthService.instance.loadSaved();
-    if (AuthService.instance.token != null) {
+    if (AuthService.instance.isAuthenticated) {
       // F02: Connect WebSocket when authenticated
       await WebSocketService.instance.connect();
       // C4/M1: تهيئة الدفع (FCM) بعد المصادقة — غير حاجبة ودفاعيّة بالكامل
@@ -159,7 +163,7 @@ class _AuthGateState extends State<AuthGate> {
       );
     }
 
-    if (AuthService.instance.token == null) {
+    if (!AuthService.instance.isAuthenticated) {
       return const LoginScreen();
     }
 

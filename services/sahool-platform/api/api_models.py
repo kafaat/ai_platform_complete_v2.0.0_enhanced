@@ -50,9 +50,13 @@ class ObservationRequest(BaseModel):
 
 
 class SyncBatchRequest(BaseModel):
-    """دفعة عمليات من العميل offline-first."""
+    """دفعة عمليات من العميل offline-first.
 
-    tenant_id: str
+    tenant_id is accepted only as a deprecated legacy echo. The authoritative
+    tenant is always derived from the authenticated JWT/session.
+    """
+
+    tenant_id: str | None = None
     operations: list[dict]
 
 

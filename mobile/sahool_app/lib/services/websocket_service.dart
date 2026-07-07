@@ -55,6 +55,11 @@ class WebSocketService {
 
   Future<void> connect() async {
     if (_socket != null) return;
+    if (!AuthService.instance.isAuthenticated) {
+      _logger.w('WS connect skipped: missing or expired auth token');
+      _intentionalClose = true;
+      return;
+    }
     _intentionalClose = false;
 
     try {
@@ -77,7 +82,13 @@ class WebSocketService {
 
       // أوّلاً: إطار المصادقة (التوكن في الرسالة الأولى لا في الرابط). الخادم يتحقّق
       // منه قبل تقديم أيّ أحداث ويعتمد sub من الـJWT (يتجاهل أيّ user_id من العميل).
-      final token = AuthService.instance.token ?? '';
+      final token = AuthService.instance.token;
+      if (token == null || !AuthService.instance.isAuthenticated) {
+        _logger.w('WS auth skipped: token disappeared or expired after connect');
+        await _socket?.close(WebSocketStatus.policyViolation, 'missing-auth');
+        _socket = null;
+        return;
+      }
       _socket!.add(json.encode({'type': 'auth', 'token': token}));
 
       // Flush queued messages
@@ -192,6 +203,7 @@ class WebSocketService {
     _reconnectTimer?.cancel();
     await _socket?.close(WebSocketStatus.normalClosure);
     _socket = null;
+    _messageQueue.clear();
     _reconnectAttempts = 0;
     _logger.d('WS disposed');
   }

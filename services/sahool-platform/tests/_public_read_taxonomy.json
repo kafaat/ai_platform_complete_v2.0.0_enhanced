@@ -1,0 +1,61 @@
+{
+  "schema": "sahool.public_read_taxonomy.v1",
+  "policy": "Public GET routes that accept precise location, field-like references, or upstream-provider calls must be classified. Any future DB-backed field/farm/user/tenant access must move to authenticated endpoints.",
+  "sensitive_public_reads": {
+    "/api/v1/weather/current": {
+      "category": "public_rate_limited_upstream",
+      "owner": "weather-engine",
+      "contract": "Open-Meteo current-weather calculator by lat/lon only; no tenant DB access; in-app and nginx rate-limited."
+    },
+    "/api/v1/weather/forecast": {
+      "category": "public_rate_limited_upstream",
+      "owner": "weather-engine",
+      "contract": "Open-Meteo forecast calculator by lat/lon/days only; no tenant DB access; in-app and nginx rate-limited."
+    },
+    "/api/v1/weather/historical": {
+      "category": "public_rate_limited_upstream",
+      "owner": "weather-engine",
+      "contract": "Open-Meteo archive calculator by lat/lon/date range only; no tenant DB access; in-app and nginx rate-limited."
+    },
+    "/api/v1/weather/probe": {
+      "category": "public_location_input",
+      "owner": "weather-engine",
+      "contract": "Map probe by lat/lon; derived weather/agronomy output; no tenant DB access."
+    },
+    "/api/v1/weather/operation-window": {
+      "category": "public_rate_limited_upstream",
+      "owner": "weather-engine",
+      "contract": "Operation suitability by lat/lon/operation; no tenant DB access; in-app rate-limited."
+    },
+    "/api/v1/weather/operation-plan": {
+      "category": "public_rate_limited_upstream",
+      "owner": "weather-engine",
+      "contract": "Multi-operation suitability by lat/lon; no tenant DB access; in-app rate-limited."
+    },
+    "/api/v1/weather/field-weather-summary": {
+      "category": "public_location_input",
+      "owner": "weather-engine",
+      "contract": "Field-shaped weather summary by supplied lat/lon/crop context only; no authoritative tenant field lookup."
+    },
+    "/api/v1/weather/action-recommendation": {
+      "category": "public_client_field_ref_only",
+      "owner": "weather-engine",
+      "contract": "Accepts client_field_ref only as an opaque draft label. It must not dereference fields/farms/tenants in DB; use authenticated task/recommendation endpoints for authoritative field IDs."
+    },
+    "/api/v1/weather/alerts": {
+      "category": "public_location_input",
+      "owner": "weather-engine",
+      "contract": "Weather-derived alerts by lat/lon/crop context only; no tenant DB access."
+    },
+    "/api/v1/geo-locate/field": {
+      "category": "public_location_input",
+      "owner": "geo-locate",
+      "contract": "Location helper by user-supplied lat/lon; must remain calculation/reference only unless authenticated."
+    },
+    "/api/v1/geo-locate/recommend": {
+      "category": "public_location_input",
+      "owner": "geo-locate",
+      "contract": "Location recommendation helper by user-supplied lat/lon; must remain calculation/reference only unless authenticated."
+    }
+  }
+}
