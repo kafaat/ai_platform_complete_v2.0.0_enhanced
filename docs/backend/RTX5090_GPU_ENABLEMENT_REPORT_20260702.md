@@ -218,3 +218,17 @@ python scripts/e2e/video_zlmediakit_live_gate.py  # ZLMediaKit + video-processor
   `NVIDIA_VISIBLE_DEVICES=all` are correct for a single-GPU box.
 - **150 W cap / WDDM:** inference-only workloads run comfortably; WDDM is the only mode
   on a consumer laptop GPU and WSL2 supports it.
+
+## تحديث 2026-07-07 — تحقّق التوافق (سائق CUDA 13.1) + تشخيص جاهزيّة SAM2
+
+**توافق CUDA 13.1 / سائق 592 مع صورة cuda12.8:** سائق NVIDIA بدرجة CUDA 13.1 **متوافق خلفيّاً**
+مع حاويات CUDA 12.8 (السائق الأحدث يشغّل runtime أقدم). لذا `PYTORCH_CUDA_IMAGE` الافتراضيّة
+`pytorch/pytorch:2.7.0-cuda12.8-cudnn9-runtime` صحيحة لـRTX 5090: PyTorch 2.7 + cu12.8 يدعم
+Blackwell **sm_120** (`TORCH_CUDA_ARCH_LIST=12.0`). **لا حاجة لصورة cuda13** — ومتى توفّرت رسميّاً
+تُمرَّر عبر `PYTORCH_CUDA_IMAGE` (قابلة للتجاوز أصلاً).
+
+**تشخيص جاهزيّة SAM2 (صادق قابل للتنفيذ):** `GET /readyz` يُصنّف سبب عدم التحميل صراحةً:
+- `reason_code: weights_missing` + `checkpoint_expected` — **حالتك الحاليّة** (GPU جاهز، الأوزان غير
+  مركّبة). الحلّ: ضع `sam2_hiera_large.pt` على مسار `SAM2_CHECKPOINT` (volume `sam2-models` → `/models`).
+- `cuda_unavailable` / `library_missing` / `load_failed` — تشخيص بقيّة الحالات دون قراءة السجلّات.
+التحقّق الحيّ للعتاد يبقى عبر `scripts/e2e/sam2_live_gpu_gate.py` على الجهاز (لا يمكن هنا: لا GPU).

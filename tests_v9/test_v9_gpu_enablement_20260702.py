@@ -58,6 +58,23 @@ def test_edge_detector_accepts_rtx5090_cuda_device():
     assert "CUDAExecutionProvider" in text
 
 
+def test_sam2_readyz_exposes_actionable_reason():
+    # صدق تشغيليّ: /readyz يُصنّف سبب عدم التحميل (weights_missing/…) + مسار الأوزان
+    # المتوقّع، كي يعرف المُشغّل ما ينقص دون قراءة السجلّات (حالة «GPU جاهز بلا أوزان»).
+    text = (ROOT / "services/sam2-inference/main.py").read_text(encoding="utf-8")
+    assert "reason_code" in text and "checkpoint_expected" in text
+    for code in ("weights_missing", "cuda_unavailable", "library_missing", "load_failed"):
+        assert code in text, f"reason_code مفقود: {code}"
+
+
+def test_sam2_gpu_arch_list_targets_blackwell():
+    # RTX 5090 = Blackwell sm_120 = arch "12.0"؛ صورة cuda12.8 تعمل مع سائق CUDA 13.x
+    # (توافق خلفيّ للسائق). العتاد يُتحقَّق حيّاً عبر sam2_live_gpu_gate على الجهاز.
+    gpu = load("docker-compose.v9.gpu.yml")
+    sam2_env = env(gpu["services"]["sahool-sam2-inference"])
+    assert "12.0" in sam2_env.get("TORCH_CUDA_ARCH_LIST", "")
+
+
 def test_static_gpu_contract_gate_runs():
     import subprocess
     import sys

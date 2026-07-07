@@ -83,6 +83,9 @@ app = FastAPI(title="SAHOOL SAM2 Inference", version=VERSION)
 # حالة النموذج العالميّة (تُملأ عند الإقلاع). None ⇒ غير محمّل ⇒ 503 صادق.
 _PREDICTOR = None  # SAM2ImagePredictor أو None
 _MODEL_LOAD_ERROR: str | None = None  # سبب فشل التحميل (للتشخيص الصادق)
+# رمز سبب مُصنَّف (للتشخيص الآليّ في /readyz): None عند التحميل، وإلّا أحد:
+#   cuda_unavailable · weights_missing · library_missing · load_failed.
+_MODEL_LOAD_REASON_CODE: str | None = None
 
 
 # ─── المصادقة ────────────────────────────────────────────────────────────
@@ -111,34 +114,45 @@ def _load_model() -> None:
 
     ملاحظة عتاد: لا يمكن تشغيل هذا هنا (لا GPU). تحقّق على RTX 4090.
     """
-    global _PREDICTOR, _MODEL_LOAD_ERROR
+    global _PREDICTOR, _MODEL_LOAD_ERROR, _MODEL_LOAD_REASON_CODE
     try:
         import torch  # ثقيل — داخل الدالّة كي يُترجَم الملفّ بلا torch.
 
         if not torch.cuda.is_available():
             _MODEL_LOAD_ERROR = "torch.cuda.is_available() == False — لا GPU/CUDA متاح"
+            _MODEL_LOAD_REASON_CODE = "cuda_unavailable"
             logger.warning(_MODEL_LOAD_ERROR)
             return
 
         if not os.path.isfile(SAM2_CHECKPOINT):
+            # حالتك الحاليّة: GPU متاح لكن الأوزان غير مركّبة على volume النماذج.
             _MODEL_LOAD_ERROR = f"أوزان SAM2 غير موجودة على {SAM2_CHECKPOINT}"
+            _MODEL_LOAD_REASON_CODE = "weights_missing"
             logger.warning(_MODEL_LOAD_ERROR)
             return
 
         # واجهة SAM2 الرسميّة (facebookresearch/sam2):
         #   from sam2.build_sam import build_sam2
         #   from sam2.sam2_image_predictor import SAM2ImagePredictor
-        from sam2.build_sam import build_sam2
-        from sam2.sam2_image_predictor import SAM2ImagePredictor
+        try:
+            from sam2.build_sam import build_sam2
+            from sam2.sam2_image_predictor import SAM2ImagePredictor
+        except ImportError as e:
+            _MODEL_LOAD_ERROR = f"مكتبة SAM2 غير مثبّتة: {e}"
+            _MODEL_LOAD_REASON_CODE = "library_missing"
+            logger.warning(_MODEL_LOAD_ERROR)
+            return
 
         device = torch.device("cuda")
         sam2_model = build_sam2(SAM2_MODEL_CFG, SAM2_CHECKPOINT, device=device)
         _PREDICTOR = SAM2ImagePredictor(sam2_model)
         _MODEL_LOAD_ERROR = None
+        _MODEL_LOAD_REASON_CODE = None
         logger.info("SAM2 محمّل على CUDA (checkpoint=%s, cfg=%s)", SAM2_CHECKPOINT, SAM2_MODEL_CFG)
     except Exception as e:  # noqa: BLE001 — أيّ فشل تحميل ⇒ خدمة معطّلة بصدق (503)
         _PREDICTOR = None
         _MODEL_LOAD_ERROR = f"فشل تحميل SAM2: {type(e).__name__}: {e}"
+        _MODEL_LOAD_REASON_CODE = "load_failed"
         logger.warning(_MODEL_LOAD_ERROR)
 
 
@@ -657,12 +671,20 @@ async def healthz():
 
 @app.get("/readyz")
 async def readyz():
-    """readiness — هل النموذج محمّل فعلاً؟ (model_loaded)."""
+    """readiness — هل النموذج محمّل؟ ولماذا لا (تشخيص صادق قابل للتنفيذ).
+
+    ``reason_code`` مُصنَّف (cuda_unavailable/weights_missing/library_missing/load_failed)
+    + ``reason`` نصّيّ + ``checkpoint_expected`` — كي يعرف المُشغّل بالضبط ما ينقص (مثلاً:
+    ركّب الأوزان على مسار الـcheckpoint) دون قراءة السجلّات.
+    """
     loaded = _PREDICTOR is not None
     return {
         "status": "ready" if loaded else "degraded",
         "model_loaded": loaded,
         "load_error_present": bool(_MODEL_LOAD_ERROR),
+        "reason_code": _MODEL_LOAD_REASON_CODE,
+        "reason": _MODEL_LOAD_ERROR,
+        "checkpoint_expected": SAM2_CHECKPOINT,
     }
 
 
