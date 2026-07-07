@@ -1085,6 +1085,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f9c07aeea8951135b767744c672b79445f70abb5081869e0382bd2d7a962fd1a"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "28658a78a876db1ca9de933992d14e7d135062451bf3bd36144877273680ddcb"
         }
       ],
@@ -2285,6 +2295,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "af05a4d4f24895ee7c3f481cfe891d7560221095a0162b4a6be0e76d938d016a"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldIntelligenceCard.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "346f2b251839df6df76c68cb4ede1aff08be0f322823e9b001a1a46285603295"
         }
       ],
@@ -3019,6 +3039,26 @@
         }
       ],
       "name": "frontend/src/lib/fieldHealthReport.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6d3cb19eb1ad931673c3fb014d8101af97ce9a65ea5179cfe1f13dd6592d8f2c"
+        }
+      ],
+      "name": "frontend/src/lib/fieldIntelligenceCard.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8a2e527df585f5963442018c65c3800be1e04309d62dac5766c6e13c8427957d"
+        }
+      ],
+      "name": "frontend/src/lib/fieldIntelligenceCard.ts",
       "type": "file"
     },
     {

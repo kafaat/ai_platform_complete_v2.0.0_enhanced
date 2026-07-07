@@ -1583,3 +1583,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 ## 2026-07-07 (ن) — جسر provider_status عبر الخدمات (V65.2)
 - **الخطوة (المُراجِع P1 cross-service):** بطاقة V65 تُغذّى الآن `provider_status` من raster-service (`/v1/providers/status`، V63.4). `fetch_provider_status` (آمن الفشل عبر `_get_json`) + محوّل صرف `provider_status_signal` → {default/active/planned}. الراوت يغذّيه خارج معاملة القاعدة بسقوط آمن: raster متعذّر ⇒ القسم يبقى missing بسبب صريح (لا اختلاق). active يعكس الوصل الفعليّ.
 - **التحقّق:** 4 حُرّاس صرف · 12 اختبار بطاقة + endpoint أخضر · التطبيق يسجّل · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت. **الجسر مكتمل داخليّاً؛ نداء HTTP الفعليّ يُتحقَّق بالتكامل (خدمتان حيّتان).**
+
+## 2026-07-07 (ن) — واجهة بطاقة ذكاء الحقل (P2، V65-UI)
+- **الخطوة (المُراجِع P2):** عرض عقد البطاقة للمستخدم لا backend-only. `FieldIntelligenceCardView` + هوك `useFieldIntelligenceCard` (POST analyze عبر البوّابة) + عقد/مساعِدات نقيّة `lib/fieldIntelligenceCard.ts`.
+- **صدق:** الأقسام الحاضرة تُعرَض بقيمها (مشهد/NDVI-تاريخيّ/حالة مزوّدين/تنبيهات/ثقة)، والمفقودة تُدرَج صراحةً «غير متاح» (provider-unavailable ⇒ «raster متعذّر») — لا اختلاق. مُوصَّلة في MapHub (الوضع الخبير) بجانب BoundaryReviewCard.
+- **التحقّق:** typecheck نظيف (tsc --noEmit) · 5 حُرّاس vitest نقيّة أخضر · manifest معاد بناؤه · SHA سيُثبَّت. **المتبقّي للواجهة:** عرض normalized_scenes/regional_bulletin (بطاقات إضافيّة، نفس النمط).
