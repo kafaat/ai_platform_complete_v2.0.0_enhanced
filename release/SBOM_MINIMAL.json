@@ -9385,7 +9385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e43e4336a2cbc58e39ff374ce00adef51f09b0af68f49d5a1cdcc69c99ea5c3"
+          "content": "118fe540fe8a0572e01a6f2c55210b44b9bc6da1f21b780135cc140f2f296abf"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
