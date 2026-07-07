@@ -9255,7 +9255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb97fdb86f432065f0971cdfc3ecf8325857094ee90e8df3bd9e8b646f6d72ad"
+          "content": "af4946dfd0e3f1642a4e8636854845cf98d8bcd8630e74e94d5422a6f63fe929"
         }
       ],
       "name": "services/raster-service/raster_scene_model.py",
@@ -9455,7 +9455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d1fa0a5007596d1c45fa9da86a91b38fde8f345ac30140f44f82fb90c74de8c"
+          "content": "8d6439c7b3849891ef9cf85b13268dff24b64e0e69da0448f6041ed0119d022d"
         }
       ],
       "name": "services/raster-service/routers/timeseries_routes.py",

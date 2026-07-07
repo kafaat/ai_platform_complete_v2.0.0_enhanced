@@ -57,11 +57,17 @@ async def imagery_timeseries(
 
     month_counts = Counter(s["datetime"][:7] for s in scenes if s.get("datetime"))
     timeline = [{"month": m, "scenes_available": c} for m, c in sorted(month_counts.items())]
+    # V63 — عقد مشهد موحَّد بجانب الخام (غير كاسر): كلّ مشهد بهويّة provider + تاريخ
+    # التقاط + cog_ready، كي يستهلكه UI/agent evidence دون إعادة تحليل قواميس مخصّصة.
+    from raster_scene_model import normalize_search_result
+
+    normalized = [s.to_dict() for s in normalize_search_result(search)]
     return {
         "period": {"start": start, "end": end_date},
         "total_scenes": len(scenes),
         "monthly_availability": timeline,
         "scenes": scenes,
+        "normalized_scenes": normalized,
         "note": "احسب المؤشّر لكلّ مشهد عبر /process ثمّ مرّر القيم لـ"
         "/imagery/timeseries/analyze للحصول على الاتّجاه والشذوذ",
     }

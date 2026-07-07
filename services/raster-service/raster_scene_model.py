@@ -171,7 +171,52 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "processing_units": False,
         "active": False,  # صادق: غير مُنفَّذ (يحتاج Earthdata Login).
         "license": "US-Gov open (no commercial restriction)",
-        "note": "مخطَّط للباكفيل التاريخيّ 30م؛ غير موصول (يتطلّب مصادقة Earthdata).",
+        "category": "imagery_scene",
+        "coverage_yemen": True,  # كلّ اليابسة عالميّاً عدا Antarctica.
+        "resolution": "30m",
+        "recommended_use": "historical_backfill, NDVI baseline, seasonal anomaly trend",
+        "note": (
+            "مخطَّط للباكفيل التاريخيّ 30م (يغطّي اليمن)؛ غير موصول — يتطلّب مصادقة "
+            "Earthdata + مُحوِّل واختبار عقد قبل active=True. غير مناسب لحدود الحقول الصغيرة."
+        ),
+    },
+    "wapor": {
+        "provider": "wapor",
+        "label": "FAO WaPOR v3 (water productivity)",
+        "catalog_url": "https://io.apps.fao.org/gismgr/api/v1",
+        "auth": "none",
+        "cog_direct": False,
+        "processing_units": False,
+        "active": False,  # صادق: لا مُحوِّل بعد.
+        "license": "CC-BY-4.0 (commercial OK)",
+        "category": "water_productivity",
+        "coverage_yemen": True,  # اليمن ضمن الشرق الأدنى → L2 100م.
+        "resolution": "100m (L2 Near-East), 300m (L1 global), 20m (L3 partner sites only)",
+        "recommended_use": "water_productivity, actual_ET, biomass, regional/large-field analytics",
+        "note": (
+            "إنتاجيّة المياه/ET الفعليّ فوق الشرق الأدنى (يغطّي اليمن، L2 100م، 2018→الآن). "
+            "مناسب للحيازات الكبيرة/الـpivots/المناطق/المحافظات — لا لحدود حقل دقيقة. "
+            "غير موصول — يحتاج مُحوِّلاً واختبار عقد قبل active=True."
+        ),
+    },
+    "worldcereal": {
+        "provider": "worldcereal",
+        "label": "ESA WorldCereal (crop/irrigation prior)",
+        "catalog_url": "https://esa-worldcereal.org",
+        "auth": "none (CC-BY partition only)",
+        "cog_direct": False,
+        "processing_units": False,
+        "active": False,  # صادق: لا مُحوِّل بعد.
+        "license": "CC-BY-4.0 (استعمل قسم CC-BY فقط؛ تجنّب NC/SA)",
+        "category": "crop_prior",
+        "coverage_yemen": True,  # منتج عالميّ 10م.
+        "resolution": "10m",
+        "recommended_use": "crop_extent_prior, irrigation_prior, confidence prior",
+        "note": (
+            "خرائط محاصيل/ريّ عالميّة 10م (تغطّي اليمن) — تُستعمل كأولويّة قرار مُثقَلة "
+            "بالثقة لا حقيقة نهائيّة (الزراعة المُدرَّجة/الحيازات الصغيرة تُفاوِت الثقة). "
+            "غير موصول — يحتاج مُحوِّلاً واختبار عقد قبل active=True."
+        ),
     },
     "local_cog": {
         "provider": "local_cog",
@@ -182,6 +227,7 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "processing_units": False,
         "active": True,
         "license": _COPERNICUS_LICENSE,
+        "category": "imagery_scene",
         "note": "COGs مُنتَجة محليّاً ومُعادة الترطيب من قاعدة البيانات.",
     },
 }
@@ -190,6 +236,11 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
 def active_providers() -> list[str]:
     """أسماء المزوّدين الموصولين فعلاً (active=True) — صدق لا طموح."""
     return [p for p, meta in PROVIDER_REGISTRY.items() if meta.get("active")]
+
+
+def planned_providers() -> list[str]:
+    """أسماء المزوّدين المُسجَّلين غير الموصولين بعد (active=False) — خارطة طريق صادقة."""
+    return [p for p, meta in PROVIDER_REGISTRY.items() if not meta.get("active")]
 
 
 # ── اقتراح احتياطيّ مُهيكَل عند فشل/نفاد CDSE ────────────────────────────────────
