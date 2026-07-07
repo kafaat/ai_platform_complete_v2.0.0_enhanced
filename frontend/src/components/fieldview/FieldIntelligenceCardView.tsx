@@ -1,8 +1,9 @@
-import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers, Activity, Sprout, CloudSun } from 'lucide-react';
+import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers, Activity, Sprout, CloudSun, Mountain } from 'lucide-react';
 import { useFieldIntelligenceCard } from '../../hooks/useFieldIntelligenceCard';
 import {
   completenessPct,
   conditionDriverAr,
+  erosionRiskAr,
   heatFlagAr,
   isPresent,
   missingReasonAr,
@@ -159,6 +160,29 @@ export default function FieldIntelligenceCardView({ fieldId, enabled = true }: P
               </span>
             ) : (
               <Missing reason={card.sections.weather_window.reason} />
+            )}
+          </Row>
+
+          {/* التضاريس (Copernicus DEM — انحدار/اتّجاه + خطر تعرية) */}
+          <Row icon={<Mountain className="w-3.5 h-3.5" aria-hidden="true" />} label={SECTION_LABELS_AR.terrain}>
+            {isPresent(card.sections.terrain) ? (
+              <span
+                style={{
+                  color: erosionRiskAr(card.sections.terrain.erosion_risk).danger ? T.danger : T.ink,
+                }}
+              >
+                {typeof card.sections.terrain.mean_slope_deg === 'number'
+                  ? `ميل ${card.sections.terrain.mean_slope_deg}°`
+                  : '—'}
+                {card.sections.terrain.dominant_aspect
+                  ? ` · ${card.sections.terrain.dominant_aspect}`
+                  : ''}
+                {card.sections.terrain.erosion_risk
+                  ? ` · ${erosionRiskAr(card.sections.terrain.erosion_risk).label}`
+                  : ''}
+              </span>
+            ) : (
+              <Missing reason={card.sections.terrain.reason} />
             )}
           </Row>
 

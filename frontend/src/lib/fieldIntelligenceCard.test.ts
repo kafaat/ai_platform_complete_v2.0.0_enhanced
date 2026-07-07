@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   completenessPct,
   conditionDriverAr,
+  erosionRiskAr,
   heatFlagAr,
   isPresent,
   missingReasonAr,
@@ -43,6 +44,7 @@ describe('fieldIntelligenceCard helpers', () => {
     expect(missingReasonAr('no_condition_signals')).toContain('تشخيص');
     expect(missingReasonAr('no_soil_baseline_supplied')).toContain('التربة');
     expect(missingReasonAr('no_weather_window_supplied')).toContain('الطقس');
+    expect(missingReasonAr('no_terrain_supplied')).toContain('DEM');
     expect(missingReasonAr('some_new_reason')).toBe('some_new_reason');
     expect(missingReasonAr(undefined)).toBe('غير متاح');
   });
@@ -59,5 +61,13 @@ describe('fieldIntelligenceCard helpers', () => {
     expect(heatFlagAr('elevated')).toContain('مرتفعة');
     expect(heatFlagAr('normal')).toContain('معتدلة');
     expect(heatFlagAr(undefined)).toBe('—');
+  });
+
+  it('erosionRiskAr maps risk + flags danger for high/severe', () => {
+    expect(erosionRiskAr('medium').label).toContain('متوسّطة');
+    expect(erosionRiskAr('medium').danger).toBe(false);
+    expect(erosionRiskAr('severe').danger).toBe(true);
+    expect(erosionRiskAr('high').danger).toBe(true);
+    expect(erosionRiskAr(undefined).label).toBe('—');
   });
 });

@@ -14,6 +14,7 @@ from core.field_intelligence_card import (
     card_signals_from_db_rows,
     provider_status_signal,
     soil_baseline_signal,
+    terrain_signal,
     weather_window_signal,
 )
 
@@ -199,6 +200,37 @@ def test_soil_baseline_signal_honest_when_unavailable():
     )
     assert card["sections"]["soil_baseline"]["status"] == "missing"
     assert card["sections"]["soil_baseline"]["reason"] == "no_soil_baseline_supplied"
+
+
+# ── P1 cross-service: تضاريس الحقل (raster DEM) — منطق صرف + سقوط آمن ──────────────
+def test_terrain_signal_flattens_raster_terrain_response():
+    resp = {
+        "computed": True,
+        "source": "dem",
+        "elevation_m": {"min": 1032.0, "mean": 1048.4, "max": 1079.0},
+        "slope_deg": {"min": 0.4, "mean": 4.83, "max": 12.61},
+        "dominant_aspect": "جنوب شرق",
+        "agronomy": {"erosion_risk": "medium", "recommended_actions": ["..."]},
+    }
+    sig = terrain_signal(resp)
+    assert sig["mean_slope_deg"] == 4.8 and sig["max_slope_deg"] == 12.6
+    assert sig["dominant_aspect"] == "جنوب شرق" and sig["erosion_risk"] == "medium"
+    assert sig["elevation_mean_m"] == 1048.4
+    card = assemble_field_intelligence_card({"field_id": "f"}, terrain=sig)
+    assert card["sections"]["terrain"]["status"] == "present"
+    assert card["sections"]["terrain"]["erosion_risk"] == "medium"
+
+
+def test_terrain_signal_honest_when_not_computed():
+    # صدق: raster يُرجِع computed=false (لا DEM/هندسة) ⇒ {} ⇒ القسم missing (لا اختلاق).
+    assert terrain_signal(None) == {}
+    assert terrain_signal({"computed": False, "source": "dem-not-configured"}) == {}
+    assert terrain_signal({"computed": True}) == {}  # لا حقول انحدار/ارتفاع ⇒ فارغ
+    card = assemble_field_intelligence_card(
+        {"field_id": "f"}, terrain=terrain_signal({"computed": False})
+    )
+    assert card["sections"]["terrain"]["status"] == "missing"
+    assert card["sections"]["terrain"]["reason"] == "no_terrain_supplied"
 
 
 # ── P1 cross-service: نافذة الطقس (Open-Meteo) — منطق صرف + عتبات مشتركة ───────────

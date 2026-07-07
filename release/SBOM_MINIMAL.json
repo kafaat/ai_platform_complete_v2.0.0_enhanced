@@ -1085,7 +1085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6bd352dd72c936c6dc97365890e07ab59a24b9b1d5ca7c79237c0fad153cb813"
+          "content": "cc6447352ca9b05c87c320767e6885297814594e097ab0e915a20b71c61b5fb8"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
@@ -3045,7 +3045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f1f1c9964f22484f0f69c01e65607a334def11d32b85f1a765ad8ce01a69f92d"
+          "content": "a83eb0ed2f18dcff5ce7700f9d029a569e0a97d8ac272c1a4c8fe76741fda017"
         }
       ],
       "name": "frontend/src/lib/fieldIntelligenceCard.test.ts",
@@ -3055,7 +3055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "116ce245637227ad9c5bd87ef3eea84a598eda3447777ccdef33904b651339e8"
+          "content": "02c07c434b5f41ea0d8643efa24d7e02a811a80d05b0de2229d426fe7d6ce5fd"
         }
       ],
       "name": "frontend/src/lib/fieldIntelligenceCard.ts",
@@ -9395,7 +9395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94d3856412364bebf203de3128f29d0ea544f7041f4244282c186ba81e17e181"
+          "content": "316d25e6cb3fd8717bb15aaf69f49902228d48f9c0d60977ca7c5ec0285553ea"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -9605,7 +9605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7102704b07c98efabf822dcc22fac7ee73f28c3444b967359b935711bb51bea7"
+          "content": "f3762ffcc18db7f292a012676f990ce5d9e1375a5e7f51ed5cdd1fe9a846c6e2"
         }
       ],
       "name": "services/raster-service/terrain_analysis.py",
@@ -9775,7 +9775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a146879b249f93ca3ba1b24467e3a03b192655b169c75c17a752fbca614aa3c"
+          "content": "996d462b97e0f773881eeac15502f251073243a24e8d3faffff72fd031809231"
         }
       ],
       "name": "services/raster-service/test_field_terrain.py",
@@ -12275,7 +12275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fbcb3801105739555d85fa08d1065bfb986373ad78fd984c3954d679ae3e5c5b"
+          "content": "2f3b567e7043170cfe090edd004c5f78b9bdde466fd22fdf0d429f38d2a6a087"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -15015,7 +15015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "07ef4980288c1b89d2d68246547edf778d6d426d5917200a259df549297f0820"
+          "content": "203077fc6a4dcebf7bb0d040901c3730bb043cdd13daed0580b10ac079b18606"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_adapters.py",
@@ -15025,7 +15025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "618e839ac103d66713b29355ea7aaa9f3cba46d018f634f9d1e207531de54532"
+          "content": "29f4dc07f0edd2f16a7fb8b73cbc79005fedb284afab37b3ba2d75d3001518d4"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_card.py",
@@ -15979,6 +15979,16 @@
         }
       ],
       "name": "services/sahool-platform/core/weather_sources.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3e51a72e29102b647b893450bb72d3e02ea583f1b852abdacf8c19b22961e25"
+        }
+      ],
+      "name": "services/sahool-platform/core/wind_geometry.py",
       "type": "file"
     },
     {
@@ -17775,7 +17785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75986829a90a9f1b6e54c676aae0203d7f98c94db4dfd03bf88a337d987808fb"
+          "content": "c77157b257024a9e7a09f27e33e37ff1fac33fbb6e7db2f7cc9bba072d8b7d11"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_intelligence_card.py",
@@ -19399,6 +19409,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_weather_wind_source_selftest.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "351ed3a0ab06f551787e3fe920bea95cd97bee13ec4afa4e3e03828bdae9d877"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_wind_geometry.py",
       "type": "file"
     },
     {

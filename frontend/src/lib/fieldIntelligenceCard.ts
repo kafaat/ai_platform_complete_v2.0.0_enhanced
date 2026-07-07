@@ -52,6 +52,14 @@ export interface SoilBaselineSection extends CardSection {
   cec?: number;
 }
 
+export interface TerrainSection extends CardSection {
+  mean_slope_deg?: number;
+  max_slope_deg?: number;
+  dominant_aspect?: string;
+  elevation_mean_m?: number;
+  erosion_risk?: 'very_low' | 'low' | 'medium' | 'high' | 'severe';
+}
+
 export interface WeatherWindowSection extends CardSection {
   date?: string;
   et0_mm?: number;
@@ -106,6 +114,7 @@ export interface FieldIntelligenceCard {
     water_deficit: WaterDeficitSection;
     soil_baseline: SoilBaselineSection;
     weather_window: WeatherWindowSection;
+    terrain: TerrainSection;
     weak_zones: WeakZonesSection;
     evidence: EvidenceSection;
     scouting_recommendation: ScoutingSection;
@@ -129,6 +138,7 @@ export const SECTION_LABELS_AR: Record<string, string> = {
   water_deficit: 'العجز المائيّ',
   soil_baseline: 'خطّ أساس التربة',
   weather_window: 'نافذة الطقس',
+  terrain: 'التضاريس',
   weak_zones: 'المناطق الضعيفة',
   evidence: 'الأدلّة',
   scouting_recommendation: 'توصية الاستطلاع',
@@ -181,8 +191,21 @@ export function missingReasonAr(reason?: string): string {
     no_condition_signals: 'لا إشارات تشخيصيّة بعد',
     no_soil_baseline_supplied: 'خطّ أساس التربة غير متاح (soil-service/إحداثيّات)',
     no_weather_window_supplied: 'نافذة الطقس غير متاحة (توقّع/إحداثيّات)',
+    no_terrain_supplied: 'التضاريس غير متاحة (لا DEM/هندسة حقل)',
   };
   return (reason && map[reason]) || reason || 'غير متاح';
+}
+
+/** تسمية + لون خطر التعرية (عتبات ميل مشتركة؛ المجهول يُعرَض كما هو). */
+export function erosionRiskAr(risk?: string): { label: string; danger: boolean } {
+  const map: Record<string, string> = {
+    very_low: 'تعرية منخفضة جدّاً',
+    low: 'تعرية منخفضة',
+    medium: 'تعرية متوسّطة',
+    high: 'تعرية عالية',
+    severe: 'تعرية شديدة',
+  };
+  return { label: (risk && map[risk]) || risk || '—', danger: risk === 'high' || risk === 'severe' };
 }
 
 /** تسمية عربيّة لعلَم الحرارة اليوميّ (عتبات مشتركة؛ المجهول يُعرَض كما هو). */

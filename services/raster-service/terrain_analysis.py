@@ -15,6 +15,36 @@ import math
 import os
 
 
+def field_terrain_extent(geom: dict | None) -> tuple[list[float] | None, list | None]:
+    """يستخرج (bbox, الحلقة الخارجيّة [[lon,lat]…]) من GeoJSON حقل — للقصّ الدقيق على المضلّع.
+
+    يدعم Polygon/MultiPolygon/Feature. صدق: هندسة غائبة/شاذّة ⇒ ``(None, None)`` (لا
+    نلفّق مربّعاً إقليميّاً). الحلقة تُمرَّر إلى ``read_field_window(poly_lonlat=…)`` فيُقصّ
+    خارج حدّ الحقل إلى NaN (لا مستطيل bbox) — «يقصّ داخل مضلّع الحقل فقط».
+    """
+    if not isinstance(geom, dict):
+        return None, None
+    g = geom.get("geometry") if geom.get("type") == "Feature" else geom
+    if not isinstance(g, dict):
+        return None, None
+    coords = g.get("coordinates")
+    try:
+        if g.get("type") == "Polygon":
+            ring = coords[0]
+        elif g.get("type") == "MultiPolygon":
+            ring = coords[0][0]
+        else:
+            return None, None
+        pts = [[float(p[0]), float(p[1])] for p in ring if len(p) >= 2]
+    except (TypeError, ValueError, IndexError):
+        return None, None
+    if len(pts) < 3:
+        return None, None
+    lons = [p[0] for p in pts]
+    lats = [p[1] for p in pts]
+    return [min(lons), min(lats), max(lons), max(lats)], pts
+
+
 def compute_slope_aspect(dem_path: str, pixel_size_m: float = 30.0) -> dict:
     """يحسب الانحدار (درجات) والاتّجاه من DEM عبر طريقة Horn (المعياريّة).
 

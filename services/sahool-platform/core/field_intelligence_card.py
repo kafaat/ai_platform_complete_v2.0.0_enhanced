@@ -35,6 +35,7 @@ _OPTIONAL_SECTIONS = (
     "water_deficit",
     "soil_baseline",
     "weather_window",
+    "terrain",
     "weak_zones",
     "evidence",
 )
@@ -223,6 +224,35 @@ def soil_baseline_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
     return out if out else {}
 
 
+def terrain_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
+    """يحوّل استجابة raster ``/v1/fields/{id}/terrain`` إلى إشارة ``terrain`` للبطاقة.
+
+    منطق صرف. ``computed=false`` (لا DEM/هندسة) أو ``None`` ⇒ ``{}`` فيبقى القسم missing
+    بصدق. عند الحساب: انحدار (متوسّط/أقصى) + الاتّجاه الغالب + خطر التعرية (من
+    ``agronomy``) + ارتفاع متوسّط. لا يُعيد حساب شيء — يسطّح مخرَج raster الموجود فقط.
+    """
+    if not isinstance(resp, dict) or not resp.get("computed"):
+        return {}
+    out: dict[str, Any] = {}
+    slope = resp.get("slope_deg") if isinstance(resp.get("slope_deg"), dict) else {}
+    mean_slope = _num(slope.get("mean"))
+    max_slope = _num(slope.get("max"))
+    if mean_slope is not None:
+        out["mean_slope_deg"] = round(mean_slope, 1)
+    if max_slope is not None:
+        out["max_slope_deg"] = round(max_slope, 1)
+    if resp.get("dominant_aspect"):
+        out["dominant_aspect"] = resp.get("dominant_aspect")
+    elev = resp.get("elevation_m") if isinstance(resp.get("elevation_m"), dict) else {}
+    mean_elev = _num(elev.get("mean"))
+    if mean_elev is not None:
+        out["elevation_mean_m"] = round(mean_elev, 1)
+    agronomy = resp.get("agronomy") if isinstance(resp.get("agronomy"), dict) else {}
+    if agronomy.get("erosion_risk"):
+        out["erosion_risk"] = agronomy.get("erosion_risk")
+    return out if out else {}
+
+
 def weather_window_signal(forecast: dict[str, Any] | None) -> dict[str, Any]:
     """يحوّل توقّع Open-Meteo (``weather_forecast_adapter``) إلى إشارة ``weather_window`` لليوم.
 
@@ -312,6 +342,7 @@ def assemble_field_intelligence_card(
     water_deficit: Any = None,
     soil_baseline: Any = None,
     weather_window: Any = None,
+    terrain: Any = None,
     weak_zones: Any = None,
 ) -> dict[str, Any]:
     """يبني بطاقة ذكاء الحقل من مخرَج ``analyze`` + إشارات تكميليّة (صادق، غير جالب).
@@ -367,6 +398,11 @@ def assemble_field_intelligence_card(
         _present(weather_window)
         if isinstance(weather_window, dict) and weather_window
         else _missing("no_weather_window_supplied")
+    )
+    sections["terrain"] = (
+        _present(terrain)
+        if isinstance(terrain, dict) and terrain
+        else _missing("no_terrain_supplied")
     )
     sections["weak_zones"] = _weak_zones(weak_zones)
     sections["evidence"] = _evidence(analyze)

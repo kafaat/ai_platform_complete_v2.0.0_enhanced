@@ -44,6 +44,7 @@ async def _fetch_card_signals(
         card_signals_from_db_rows,
         provider_status_signal,
         soil_baseline_signal,
+        terrain_signal,
         weather_window_signal,
     )
 
@@ -60,6 +61,22 @@ async def _fetch_card_signals(
             signals["provider_status"] = ps
     except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
         _logger.warning("provider status fetch failed: %s", exc)
+
+    # terrain من raster-service (/v1/fields/{id}/terrain) — يعمل من field_id (raster يشتقّ
+    # المضلّع). tenant-scoped عبر X-Tenant-Id الموثوق (لا lat/lon). آمن الفشل (DEM/هندسة
+    # متعذّرة ⇒ القسم يبقى missing بصدق).
+    try:
+        from types import SimpleNamespace
+
+        from core.field_intelligence_adapters import fetch_terrain_summary
+
+        ts = terrain_signal(
+            fetch_terrain_summary(SimpleNamespace(field_id=field_id), tenant_id=user.tenant_id)
+        )
+        if ts:
+            signals["terrain"] = ts
+    except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+        _logger.warning("terrain fetch failed for %s: %s", field_id, exc)
 
     # soil_baseline من soil-service (/soil/soilgrids) — يتطلّب lat/lon؛ آمن الفشل
     # (soil-service/تغطية/توكن متعذّر ⇒ القسم يبقى missing بصدق). خطّ أساس عالميّ لا مختبر.

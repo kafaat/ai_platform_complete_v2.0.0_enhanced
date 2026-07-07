@@ -57,11 +57,13 @@ def _get_json(
     *,
     authorization: str | None = None,
     agent_token: str | None = None,
+    tenant_id: str | None = None,
 ) -> dict | None:
     """نداء GET آمن — يُرجِع JSON أو None عند أيّ فشل (صدق: لا اختراع).
 
-    يمرّر رأس التفويض (Bearer) و/أو توكن الخدمة (X-Agent-Token) إن وُجدا — النقاط
-    المحميّة تُرجع 401/503 بدونهما ⇒ None دائماً.
+    يمرّر رأس التفويض (Bearer) و/أو توكن الخدمة (X-Agent-Token) و/أو المستأجِر الموثوق
+    (X-Tenant-Id، نمط SEC-3: الهُويّة من البوّابة/المنصّة الموثوقة) إن وُجدت — النقاط
+    المحميّة tenant-scoped تُرجِع لا صفوف بدونها ⇒ None/فارغ.
     """
     try:
         import httpx
@@ -70,6 +72,8 @@ def _get_json(
     headers = _auth_headers(authorization) or {}
     if agent_token:
         headers["X-Agent-Token"] = agent_token
+    if tenant_id:
+        headers["X-Tenant-Id"] = str(tenant_id)
     try:
         with httpx.Client(timeout=HTTP_TIMEOUT) as client:
             resp = client.get(url, params=params or {}, headers=headers or None)
@@ -101,6 +105,20 @@ def fetch_soil_baseline(req, *, agent_token: str | None = None) -> dict | None:
         f"{SOIL_URL}/soil/soilgrids",
         {"lon": req.lon, "lat": req.lat},
         agent_token=agent_token or AGENT_TOKEN,
+    )
+
+
+def fetch_terrain_summary(req, *, tenant_id: str | None = None) -> dict | None:
+    """يجلب مُلخّص تضاريس الحقل من raster-service ``/v1/fields/{id}/terrain`` — آمن الفشل.
+
+    النقطة tenant-scoped عبر ``X-Tenant-Id`` (المستأجِر الموثوق من المنصّة، نمط SEC-3)؛
+    raster يشتقّ مضلّع الحقل ذاتيّاً ويقصّ داخله. أيّ تعذّر (raster/DEM/هندسة) ⇒ ``None``
+    (⇒ قسم ``terrain`` في البطاقة يبقى missing بصدق، لا اختلاق). لا يُمرَّر tenant من الجسم.
+    """
+    return _get_json(
+        f"{RASTER_URL}/v1/fields/{req.field_id}/terrain",
+        agent_token=AGENT_TOKEN or None,
+        tenant_id=tenant_id,
     )
 
 
