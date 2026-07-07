@@ -5315,7 +5315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f860e8a3f8baf942f2263d06957ef1ff24da5b57fffa3d8b7feedc5e0b2b5179"
+          "content": "45dafb3b1cb4cbad13190fa463712141304576c5fa27bbc66a443c0d58b33b26"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -10175,6 +10175,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0fd8ac1cc2558d545f6dd9c6270f41bd42d5dda65e5875bea70962aebf7b4fab"
+        }
+      ],
+      "name": "services/raster-service/test_wapor_worldcereal.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a278c960e8eefba4e0b636a26afaeadc6a00a0913e392089219d4ad9cdbba7ed"
         }
       ],
@@ -10219,6 +10229,16 @@
         }
       ],
       "name": "services/raster-service/time_series.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "482f1ec8d057aefba617ef7f59612a2ef28077c5c1fa8b49aee4b389450f729f"
+        }
+      ],
+      "name": "services/raster-service/wapor_worldcereal.py",
       "type": "file"
     },
     {
@@ -12405,7 +12425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "efa2923ddeaa751a8a2820cffc7bbc104de84c555e8320fef3d3fc5d81715412"
+          "content": "1dd7e28a300f4744ab09a4aeb7cf7e8625ee533653bb5fb25d1c9a9c02dac305"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",

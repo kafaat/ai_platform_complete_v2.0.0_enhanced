@@ -579,3 +579,7 @@ v147_backfill_runs_source_landsat_thermal.sql
 #   (RLS FORCE) + فهارس (tenant/field/زمن + GIN). كاتب داخليّ fail-soft عند analyze،
 #   قراءة latest/timeline. لا أسرار تُخزَّن. المرحلة 1 (بلا Graph DB). بعد v147.
 v148_field_evidence_snapshots.sql
+
+# v149: تطبيع رسم الأدلّة (المرحلة 2) — evidence_graph_nodes/edges مُشتقّان من لقطة JSONB
+#   (v148 يبقى مصدر الحقيقة). RLS FORCE + فهارس + UNIQUE per snapshot. كاتب fail-soft. بعد v148.
+v149_evidence_graph_nodes_edges.sql

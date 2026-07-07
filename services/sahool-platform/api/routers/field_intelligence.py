@@ -27,7 +27,20 @@ _SNAPSHOT_INSERT_SQL = (
     "INSERT INTO field_evidence_snapshots "
     "(tenant_id, field_id, analysis_id, recommendation_hash, confidence_score, "
     "evidence_graph, evidence_sources, knowledge_gaps) "
-    "VALUES ($1::uuid, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb)"
+    "VALUES ($1::uuid, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb) RETURNING id"
+)
+# تطبيع الرسم (v149) — عُقَد/حوافّ مُشتقّة من اللقطة (idempotent عبر UNIQUE per snapshot).
+_NODE_INSERT_SQL = (
+    "INSERT INTO evidence_graph_nodes "
+    "(tenant_id, field_id, snapshot_id, node_id, node_type, source, status, reason) "
+    "VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8) "
+    "ON CONFLICT (snapshot_id, node_id) DO NOTHING"
+)
+_EDGE_INSERT_SQL = (
+    "INSERT INTO evidence_graph_edges "
+    "(tenant_id, field_id, snapshot_id, edge_id, edge_type, from_node, to_node) "
+    "VALUES ($1::uuid, $2, $3, $4, $5, $6, $7) "
+    "ON CONFLICT (snapshot_id, edge_id) DO NOTHING"
 )
 _SNAPSHOT_LATEST_SQL = (
     "SELECT generated_at, recommendation_hash, confidence_score, evidence_graph, "
@@ -43,8 +56,8 @@ _SNAPSHOT_TIMELINE_SQL = (
 )
 
 
-async def _persist_evidence_snapshot(user: UserSchema, field_id: str, response: dict) -> None:
-    """يحفظ لقطة رسم الأدلّة — **fail-soft**: فشل الكتابة لا يكسر استجابة analyze أبداً.
+async def _persist_evidence_snapshot(user: UserSchema, field_id: str, response: dict) -> int | None:
+    """يحفظ لقطة رسم الأدلّة ويُعيد ``snapshot_id`` (أو None) — **fail-soft** لا يكسر analyze.
 
     لا لقطة بلا رسم أدلّة فعليّ (``build_snapshot_payload`` يُرجِع None). القاعدة معطّلة ⇒
     تخطٍّ صامت. tenant_id من التوكن الموثوق؛ الرسم منقّى من الأسرار قبل التخزين.
@@ -54,13 +67,13 @@ async def _persist_evidence_snapshot(user: UserSchema, field_id: str, response: 
     from api.main import _DB_POOL, tenant_connection
 
     if _DB_POOL is None:
-        return
+        return None
     payload = build_snapshot_payload(response)
     if payload is None:
-        return
+        return None
     try:
         async with tenant_connection(user) as conn:
-            await conn.execute(
+            return await conn.fetchval(
                 _SNAPSHOT_INSERT_SQL,
                 str(user.tenant_id),
                 field_id,
@@ -73,6 +86,52 @@ async def _persist_evidence_snapshot(user: UserSchema, field_id: str, response: 
             )
     except Exception as exc:  # noqa: BLE001 — fail-soft: الاستمرار لا يكسر التحليل.
         _logger.warning("evidence snapshot persist skipped for %s: %s", field_id, exc)
+        return None
+
+
+async def _persist_evidence_graph_rows(
+    user: UserSchema, field_id: str, snapshot_id: int, response: dict
+) -> None:
+    """يشتقّ عُقَد/حوافّ اللقطة إلى الجدولَين المُطبَّعَين (v149) — **fail-soft، مُشتقّ فقط**.
+
+    اللقطة JSONB (v148) هي مصدر الحقيقة؛ فشل هذا الاشتقاق **لا يكسر** analyze ولا اللقطة
+    (معاملة منفصلة). ``ON CONFLICT DO NOTHING`` يمنع التكرار لنفس اللقطة (idempotent).
+    """
+    from core.evidence_graph_normalize import normalize_graph_to_rows
+
+    from api.main import tenant_connection
+
+    rows = normalize_graph_to_rows(response.get("evidence_graph"))
+    if not rows["nodes"] and not rows["edges"]:
+        return
+    tid = str(user.tenant_id)
+    try:
+        async with tenant_connection(user) as conn:
+            for n in rows["nodes"]:
+                await conn.execute(
+                    _NODE_INSERT_SQL,
+                    tid,
+                    field_id,
+                    snapshot_id,
+                    n["node_id"],
+                    n["node_type"],
+                    n["source"],
+                    n["status"],
+                    n["reason"],
+                )
+            for e in rows["edges"]:
+                await conn.execute(
+                    _EDGE_INSERT_SQL,
+                    tid,
+                    field_id,
+                    snapshot_id,
+                    e["edge_id"],
+                    e["edge_type"],
+                    e["from_node"],
+                    e["to_node"],
+                )
+    except Exception as exc:  # noqa: BLE001 — fail-soft: الاشتقاق لا يكسر اللقطة/التحليل.
+        _logger.warning("evidence graph normalize skipped for %s: %s", field_id, exc)
 
 
 # NDVI history (zonal_stats) + أحدث مشهد (raster_assets) لتغذية أقسام البطاقة — RLS.
@@ -272,7 +331,10 @@ async def field_intelligence_analyze(
 
     response["evidence_graph"] = build_evidence_graph(response)
     # استمرار اللقطة (v148) — fail-soft: فشل الكتابة لا يكسر التحليل (persistence غير حاجبة).
-    await _persist_evidence_snapshot(user, field_id, response)
+    snapshot_id = await _persist_evidence_snapshot(user, field_id, response)
+    # تطبيع المرحلة 2 (v149) — عُقَد/حوافّ مُشتقّة (fail-soft، معاملة منفصلة، اللقطة مصدر الحقيقة).
+    if snapshot_id is not None:
+        await _persist_evidence_graph_rows(user, field_id, snapshot_id, response)
     return response
 
 
