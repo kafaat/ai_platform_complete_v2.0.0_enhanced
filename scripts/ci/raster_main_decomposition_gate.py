@@ -143,6 +143,48 @@ REQUIRED_MODULES = {
         "make_stac_client",
         "configure_stac_search",
     ],
+    "raster_app_factory.py": [
+        "create_raster_app",
+    ],
+    "raster_main_runtime.py": [
+        "make_raster_lifespan",
+        "_require_service_token",
+        "_require_field_tenant",
+        "_require_layer_tenant",
+        "_require_layer_tenant_authorized",
+        "_layer_evict_enabled",
+        "_evict_field_layers",
+        "_layer_evict_subscriber",
+        "_jobs",
+        "_layers",
+        "_field_layers",
+        "UPLOAD_DIR",
+        "AGENT_TOKEN",
+        "OFFLINE_PACKS_DIR",
+    ],
+    "raster_main_compat_exports.py": [
+        "_backfill_date_range",
+        "_scene_band_mapping",
+        "_bbox_from_geom",
+        "_stac_search",
+        "_stac_search_cdse",
+        "_stac_search_element84",
+        "_stac_search_landsat_unique",
+        "_INDICATOR_FORMULAS",
+        "_quality_from_cloud_pct",
+        "_pixel_quality",
+        "_cdse_key_lock",
+        "_cdse_prune_key_locks_locked",
+        "_TILE_OBS",
+        "_obs_inc",
+        "ProcessRequest",
+        "BatchProcessRequest",
+        "HistoricalBackfillRequest",
+        "FieldChangeRequest",
+        "PrescriptionRequest",
+        "SalinityClassifyRequest",
+        "SalinityFitRequest",
+    ],
     "raster_field_runtime.py": [
         "_require_service_token",
         "_require_field_tenant",
@@ -156,7 +198,7 @@ REQUIRED_MODULES = {
     ],
 }
 
-MAX_MAIN_LINES = 370
+MAX_MAIN_LINES = 170
 
 DIRECT_ROUTER_IMPORTS = {
     "routers/jobs.py",
@@ -245,45 +287,18 @@ FORBIDDEN_MAIN_DEFS = {
     "_run_cdse_processing",
 }
 REQUIRED_MAIN_ALIASES = {
-    "_cdse_key_lock = cdse_singleflight.cdse_key_lock",
-    "_stac_search = stac_search_helpers.stac_search",
-    "_stac_search_cdse = stac_search_helpers.stac_search_cdse",
-    "_stac_search_element84 = stac_search_helpers.stac_search_element84",
-    "_stac_search_landsat_unique = stac_search_helpers.stac_search_landsat_unique",
-    "from raster_api_models import",
-    "BACKFILL_PRESET_MONTHS as _BACKFILL_PRESET_MONTHS",
-    "FieldChangeRequest, PrescriptionRequest",
-    "SalinityClassifyRequest, SalinityFitRequest",
-    "import raster_security_context",
-    "_REQ_TENANT = raster_security_context.REQ_TENANT",
-    "return raster_security_context.require_service_token(x_agent_token, AGENT_TOKEN)",
-    "import raster_quality",
-    "_INDICATOR_FORMULAS = raster_quality.INDICATOR_FORMULAS",
-    "_quality_from_cloud_pct = raster_quality.quality_from_cloud_pct",
-    "_pixel_quality = raster_quality.pixel_quality",
-    "import tile_observability",
-    "_TILE_OBS = tile_observability.TILE_OBS",
-    "_TILE_OBS_BY_INDEX = tile_observability.TILE_OBS_BY_INDEX",
-    "_obs_inc = tile_observability.obs_inc",
-    "import layer_cache_events",
-    "_LAYER_EVICT_CHANNEL = layer_cache_events.DEFAULT_LAYER_EVICT_CHANNEL",
-    "return layer_cache_events.layer_evict_enabled()",
-    "return layer_cache_events.evict_field_layers(",
-    "return await layer_cache_events.layer_evict_subscriber(",
-    "import raster_app_lifecycle",
-    "lifespan = raster_app_lifecycle.make_lifespan(",
+    "import raster_main_compat_exports as _compat_exports",
+    "import raster_main_runtime as _runtime_exports",
+    "globals().update({name: getattr(_compat_exports, name) for name in _compat_exports.__all__})",
+    "globals().update({name: getattr(_runtime_exports, name) for name in _runtime_exports.__all__})",
+    "def __getattr__(name: str):",
+    "lifespan = _runtime_exports.make_raster_lifespan(logger=logger)",
     "import raster_settings",
     "EARTH_SEARCH_URL = raster_settings.EARTH_SEARCH_URL",
-    "UPLOAD_DIR = raster_settings.UPLOAD_DIR",
-    "AGENT_TOKEN = raster_settings.AGENT_TOKEN",
     "import raster_stac_runtime",
     "_stac = raster_stac_runtime.configure_stac_search(logger=logger)",
-    "import raster_runtime_state",
-    "_jobs = raster_runtime_state.JOBS",
-    "_layers = raster_runtime_state.LAYERS",
-    "_field_layers = raster_runtime_state.FIELD_LAYERS",
-    "_TRANSPARENT_PNG = raster_settings.TRANSPARENT_PNG",
-    "RASTER_NODATA = raster_settings.RASTER_NODATA",
+    "import raster_app_factory",
+    "app = raster_app_factory.create_raster_app(",
 }
 
 
@@ -330,13 +345,16 @@ def main() -> None:
             for node in mod_tree.body
             if isinstance(node, ast.AnnAssign) and isinstance(node.target, ast.Name)
         )
+        mod_defs.update(
+            alias.asname or alias.name
+            for node in mod_tree.body
+            if isinstance(node, ast.ImportFrom)
+            for alias in node.names
+        )
         missing = [name for name in exports if name not in mod_defs]
         if missing:
             _fail(f"{module} missing expected exports: {missing}")
 
-    # Whitespace-insensitive: the contract is that main delegates to the extracted
-    # module (the exact call), not how ruff line-wraps it. Comparing whitespace-stripped
-    # source avoids a brittle single-line expectation that a 100-col reformat would break.
     _source_ws = re.sub(r"\s+", "", source)
     for alias in REQUIRED_MAIN_ALIASES:
         if re.sub(r"\s+", "", alias) not in _source_ws:
@@ -393,6 +411,28 @@ def main() -> None:
         "def _process_precomputed_truecolor(": "truecolor processing wrapper must stay in raster_processing_runtime.py",
         "def _process_pixels(": "pixel processing wrapper must stay in raster_processing_runtime.py",
         "def _run_cdse_processing(": "CDSE processing wrapper must stay in raster_field_runtime/raster_cdse_processing.py",
+        "app = FastAPI(": "FastAPI app construction must stay in raster_app_factory.py",
+        "CORSMiddleware": "CORS middleware wiring must stay in raster_app_factory.py",
+        "@app.middleware(": "tenant middleware wiring must stay in raster_app_factory.py",
+        "from router_registry import register_routers": "router registration must stay in raster_app_factory.py",
+        "register_routers(app)": "router registration must stay in raster_app_factory.py",
+        "from raster_api_models import (": "API model compatibility exports must stay in raster_main_compat_exports.py",
+        "import stac_search as stac_search_helpers": "STAC helper aliases must stay in raster_main_compat_exports.py",
+        "import raster_quality": "quality compatibility aliases must stay in raster_main_compat_exports.py",
+        "import tile_observability": "tile observability aliases must stay in raster_main_compat_exports.py",
+        "import tile_cache_maint": "tile cache maintenance aliases must stay in raster_main_compat_exports.py",
+        "import cdse_singleflight": "CDSE singleflight aliases must stay in raster_main_compat_exports.py",
+        "def _backfill_date_range(": "backfill date compatibility helper must stay in raster_main_compat_exports.py",
+        "def _scene_band_mapping(": "scene band mapping compatibility helper must stay in raster_main_compat_exports.py",
+        "def _bbox_from_geom(": "bbox helper compatibility must stay in raster_main_compat_exports.py",
+        "import raster_security_context": "security compatibility façade must stay in raster_main_runtime.py",
+        "import layer_cache_events": "layer eviction wiring must stay in raster_main_runtime.py",
+        "import raster_app_lifecycle": "lifecycle wiring must stay in raster_main_runtime.py",
+        "import raster_runtime_state": "runtime registries must stay in raster_main_runtime.py",
+        "def _require_service_token(": "service-token wrapper must stay in raster_main_runtime.py",
+        "def _require_field_tenant(": "field tenant wrapper must stay in raster_main_runtime.py",
+        "def _layer_evict_subscriber(": "layer eviction subscriber must stay in raster_main_runtime.py",
+        "from raster_api_models import": "API model compatibility exports must stay in raster_main_compat_exports.py",
     }
     for needle, reason in forbidden_sources.items():
         if needle in source:

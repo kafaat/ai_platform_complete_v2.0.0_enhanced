@@ -71,7 +71,11 @@ def test_latest_consults_db_and_returns_newest_not_stale_rehydrate(rm, monkeypat
     import db_persist as _dbp
 
     monkeypatch.setattr(_dbp, "fetch_latest_asset", fake_fetch)
-    monkeypatch.setattr(rm.object_store, "exists_locally", lambda *_a, **_k: True)
+    # phase30/31: main لم يعُد يعرّف object_store كسمة مباشرة؛ نُرقّع الوحدة ذاتها
+    # (نفس singleton الذي يستعمله layer_lookup.resolve_field_layer).
+    import object_store
+
+    monkeypatch.setattr(object_store, "exists_locally", lambda *_a, **_k: True)
 
     # Phase 27: مُغلِّف main._resolve_field_layer أُزيل؛ المنطق يعيش في
     # raster_field_runtime._resolve_field_layer الذي يشارك نفس سجلّات

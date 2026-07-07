@@ -11,8 +11,11 @@ class _CombinedSource:
     المصدرَ المُجمَّع (main.py + routers/*.py) كي تبقى تأكيدات الكود صحيحة بعد التفكيك."""
 
     def read_text(self, *a, **k) -> str:
-        rdir = _RASTER_MAIN_PATH.parent / "routers"
+        root = _RASTER_MAIN_PATH.parent
+        rdir = root / "routers"
         parts = [_RASTER_MAIN_PATH.read_text(encoding="utf-8")]
+        for extra in ("raster_main_compat_exports.py", "tile_observability.py"):
+            parts.append((root / extra).read_text(encoding="utf-8"))
         parts += [
             Path(p).read_text(encoding="utf-8") for p in sorted(glob.glob(str(rdir / "*.py")))
         ]

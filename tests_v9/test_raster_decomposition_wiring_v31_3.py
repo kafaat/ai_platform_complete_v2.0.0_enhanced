@@ -22,6 +22,15 @@ pytestmark = pytest.mark.unit
 
 RASTER = Path(__file__).resolve().parents[1] / "services" / "raster-service"
 MAIN = RASTER / "main.py"
+
+
+def _main_surface() -> str:
+    """phase31: main.py أصبح bootstrap رفيعاً يكشف رموز التوافق ديناميكيّاً عبر __getattr__
+    من raster_main_compat_exports و raster_main_runtime. «سطح main» الفعليّ = الثلاثة معاً."""
+    parts = ("main.py", "raster_main_compat_exports.py", "raster_main_runtime.py")
+    return "\n".join((RASTER / p).read_text(encoding="utf-8") for p in parts)
+
+
 _DECOMP_MODULES = (
     "raster_job_orchestration",
     "scene_policy",
@@ -64,13 +73,13 @@ def _defines(src: str, name: str) -> bool:
 
 
 def test_main_exposes_worker_and_test_contract() -> None:
-    src = MAIN.read_text(encoding="utf-8")
+    src = _main_surface()
     missing = [s for s in _WORKER_CONTRACT if not _defines(src, s)]
     assert not missing, f"main فقد رموزاً يعتمدها العامل/الاختبارات بعد التفكيك: {missing}"
 
 
 def test_every_ctx_attr_used_by_decomposition_resolves_on_main() -> None:
-    src = MAIN.read_text(encoding="utf-8")
+    src = _main_surface()
     # phase28: ctx لم يعُد هو main — بل SimpleNamespace صريح يبنيه
     # raster_processing_runtime.make_processing_context الذي يُسنِد ctx.<attr>. لذا
     # يُعدّ الرمز مُحلّاً إن عُرِّف على main أو أُسنِد صراحةً على ctx في مصنع السياق

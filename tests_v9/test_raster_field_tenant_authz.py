@@ -63,6 +63,12 @@ def rm():
     assert hasattr(raster_main, "_field_layers"), (
         "استُورد main خاطئ (تصادم أسماء عبر الخدمات) — ليس raster-service"
     )
+    # phase30/31: التحقّق من المستأجِر/المالك انتقل إلى raster_main_runtime، ودالّة
+    # _require_field_tenant تقرأ globals تلك الوحدة (owner_lookup=_field_owner). main يكشفها
+    # عبر __getattr__ لكن ترقيع main._field_owner لا يُبدّل إغلاق الدالّة. نمسّ الواجهة الحقيقيّة.
+    import raster_main_runtime
+
+    raster_main = raster_main_runtime
 
     raster_main._layers.clear()
     raster_main._field_layers.clear()

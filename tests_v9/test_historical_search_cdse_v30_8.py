@@ -35,7 +35,8 @@ def test_stac_search_dispatches_to_cdse_failclosed():
     # منطق البحث فُكِّك من main.py إلى stac_search.py (بلا بادئة _)؛ main يعيد تصديره
     # عبر ألقاب _stac_search*. نتتبّع الشيفرة المنقولة ونثبّت وصلها بواجهة main.
     src = _read(_RASTER / "stac_search.py")
-    main_src = _read(_RASTER / "main.py")
+    # phase31: ألقاب _stac_search* انتقلت من main.py إلى raster_main_compat_exports.py.
+    main_src = _read(_RASTER / "main.py") + "\n" + _read(_RASTER / "raster_main_compat_exports.py")
     assert "_stac_search = stac_search_helpers.stac_search" in main_src, (
         "main يجب أن يوجّه _stac_search إلى الوحدة المفكَّكة"
     )

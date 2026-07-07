@@ -28,7 +28,12 @@ def test_evict_pubsub_wired_both_sides():
     # التفكيك (المرحلة ١٠): القناة/الرايةُ ودالّةُ الإخلاء والمشترِك انتقلت إلى
     # layer_cache_events.py، وجدولةُ المشترِك في lifespan إلى raster_app_lifecycle.py.
     # نُوسّع قراءة مصدر الخدمة لتشمل الوحدتين (main يُبقي أغلفة توافق).
-    main_src = _read("main.py") + _read("layer_cache_events.py") + _read("raster_app_lifecycle.py")
+    main_src = (
+        _read("main.py")
+        + _read("layer_cache_events.py")
+        + _read("raster_app_lifecycle.py")
+        + _read("raster_main_runtime.py")  # phase31: مشترِك الإخلاء انتقل للواجهة
+    )
     # نفس اسم القناة الافتراضيّ على الطرفين
     assert 'RASTER_LAYER_EVICT_CHANNEL", "raster:layer_evict"' in worker
     assert 'RASTER_LAYER_EVICT_CHANNEL", "raster:layer_evict"' in main_src
@@ -38,9 +43,12 @@ def test_evict_pubsub_wired_both_sides():
     # الخدمة تشترك في lifespan + تُخلي عند الرسالة
     assert "_layer_evict_subscriber" in main_src
     assert "_evict_field_layers(" in main_src
-    # main يُمرّر المشترِك إلى make_lifespan، وlifespan يجدوله كمهمّة خلفيّة عند الإقلاع
-    # (نفس تعاقُد «المشترِك مجدوَل في lifespan» بعد إعادة التسمية عند التفكيك).
-    assert "layer_evict_subscriber=_layer_evict_subscriber" in main_src
+    # main يُمرّر المشترِك إلى make_lifespan، وlifespan يجدوله كمهمّة خلفيّة عند الإقلاع.
+    # phase31: raster_main_runtime.make_raster_lifespan يلفّ _layer_evict_subscriber في
+    # إغلاق ``subscriber`` (يحقن logger) ويمرّره ``layer_evict_subscriber=subscriber`` —
+    # نفس تعاقُد «المشترِك مجدوَل في lifespan» عبر إغلاق مسمّى بدل تمرير الدالّة حرفيّاً.
+    assert "layer_evict_subscriber=subscriber" in main_src
+    assert "await _layer_evict_subscriber(logger=logger)" in main_src
     assert "asyncio.create_task(layer_evict_subscriber())" in main_src
 
 
@@ -48,8 +56,9 @@ def test_evict_pubsub_wired_both_sides():
 def test_evict_field_layers_removes_only_target_field():
     # لا نستورد main (يجرّ FastAPI/إلخ وقد يلوّث sys.modules)؛ نؤكّد وجود الدالّة نصّيّاً
     # ثمّ نُحاكي منطقها على قاموسَي ذاكرة مطابقَين للبنية (منطق صرف، معزول تماماً).
-    src = _read("main.py")
-    assert "def _evict_field_layers(field_id: str) -> int:" in src, "دالّة الإخلاء مفقودة"
+    # phase31: _evict_field_layers انتقلت إلى raster_main_runtime (بتوقيع يقبل logger اختياريّاً).
+    src = _read("raster_main_runtime.py")
+    assert "def _evict_field_layers(field_id: str" in src, "دالّة الإخلاء مفقودة"
     layers: dict[str, dict] = {
         "L1": {"field_id": "A"},
         "L2": {"field_id": "A"},

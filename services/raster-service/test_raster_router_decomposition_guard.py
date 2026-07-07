@@ -75,10 +75,12 @@ def test_no_duplicate_route_registrations():
     assert not dups, f"مسارات مُكرَّرة: {dups}"
 
 
-def test_register_routers_wired_in_main():
-    """آليّة التسجيل التلقائيّ مُستدعاة في main (السقالة موصولة)."""
-    src = (_HERE / "main.py").read_text(encoding="utf-8")
-    assert "register_routers(app)" in src, "register_routers(app) غير موصول في main.py"
+def test_register_routers_wired_in_app_factory():
+    """آليّة التسجيل التلقائيّ مُستدعاة في app factory بعد تفكيك main.py."""
+    src = (_HERE / "raster_app_factory.py").read_text(encoding="utf-8")
+    assert "register_routers(app)" in src, (
+        "register_routers(app) غير موصول في raster_app_factory.py"
+    )
 
 
 # ─── حُرّاس انحدار دائمون بعد التفكيك (قفل الثوابت) ────────────────────────

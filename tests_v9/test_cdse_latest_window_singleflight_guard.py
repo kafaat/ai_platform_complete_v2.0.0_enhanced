@@ -47,7 +47,11 @@ def test_latest_window_is_wide_and_env_tunable():
 
 
 def test_tile_fetch_single_flights_per_key_not_under_global_lock():
-    main_src = _MAIN.read_text(encoding="utf-8")
+    main_src = (
+        _MAIN.read_text(encoding="utf-8")
+        + "\n"
+        + (_MAIN.parent / "raster_main_compat_exports.py").read_text(encoding="utf-8")
+    )  # phase31: ألقاب التوافق انتقلت إلى الواجهة
     # The tile-fetch path (which acquires the per-key lock and prunes stale locks)
     # was extracted from the router into raster_cdse_tile_runtime.py; read both so
     # the contract follows the moved code.

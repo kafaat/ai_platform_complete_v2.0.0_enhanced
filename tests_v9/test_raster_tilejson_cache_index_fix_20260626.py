@@ -55,6 +55,11 @@ def rm():
     raster_main = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = raster_main
     spec.loader.exec_module(raster_main)
+    # phase30/31: _require_field_tenant + _field_owner انتقلت إلى raster_main_runtime وتقرأ
+    # globals تلك الوحدة؛ نمسّها مباشرةً كي يصل ترقيع _field_owner إلى الإغلاق الفعليّ.
+    import raster_main_runtime
+
+    raster_main = raster_main_runtime
     raster_main._layers.clear()
     raster_main._field_layers.clear()
     raster_main._field_owner_cache.clear()

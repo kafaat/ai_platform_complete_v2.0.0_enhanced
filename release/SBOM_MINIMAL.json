@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15e491b6a0193e90f0fd704654d139133fd56d01c5ac126f1161a96df54aaf2b"
+          "content": "f7749cac1f092801248021a3877a9d17453f439db7a78c2861dcabfe5de9e117"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9745,7 +9745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b7c44e338b79215d452215dd93ca59b1b0cb259d04be75fed1c0617d9edc09f6"
+          "content": "19870e5a0b6b8d0c907b1bbb4c8373d2303fc2e059fc1c7e0db5f62b0d5d002b"
         }
       ],
       "name": "services/raster-service/test_p2_tile_observability_static.py",
@@ -9835,7 +9835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "868b0ab2356ee82c38939ba47c2c8ec205d09fa87ce790bd6fa0058e753b1e5d"
+          "content": "38a92c681f567d8461c0c1104a5255c54a6913ac8e23398be0562b32c004dd94"
         }
       ],
       "name": "services/raster-service/test_raster_router_decomposition_guard.py",
