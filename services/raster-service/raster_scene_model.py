@@ -236,23 +236,46 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
             "غير موصول — يحتاج مُحوِّلاً واختبار عقد قبل active=True."
         ),
     },
+    "copernicus_dem": {
+        "provider": "copernicus_dem",
+        "label": "Copernicus DEM GLO-30",
+        "catalog_url": "https://registry.opendata.aws/copernicus-dem/",
+        "auth": "none (AWS Open Data) / CDSE",
+        "cog_direct": True,
+        "processing_units": False,
+        "active": False,  # صادق: DEM مُفضَّل لكن غير موصول (يحتاج مستورِد).
+        "verified": True,
+        "license": "open (ESA/Copernicus)",
+        "category": "dem",
+        "coverage_yemen": True,
+        "resolution": "30m",
+        "preferred_dem": True,  # المُفضَّل: جودة أعلى من ASTER في الدراسات الحديثة.
+        "recommended_use": "DEM/slope/hillshade/contours/erosion (المصدر المُفضَّل)",
+        "note": (
+            "DEM المُفضَّل (COG عامّ عبر AWS Open Data؛ يوافق DEM_COLLECTION=cop-dem-glo-30). "
+            "غير موصول — يحتاج مستورِد قبل active=True. ASTER/SRTM/NASADEM احتياطيّ."
+        ),
+    },
     "aster_gdem": {
         "provider": "aster_gdem",
-        "label": "ASTER GDEM (NASA Earthdata / Japan Space Systems)",
+        "label": "ASTER GDEM V003 (NASA Earthdata / Japan Space Systems)",
         "catalog_url": "https://search.earthdata.nasa.gov",
         "auth": "earthdata-login",
-        "cog_direct": False,
+        "cog_direct": True,  # V003 يُوزَّع COG + NetCDF4.
         "processing_units": False,
-        "active": False,  # صادق: نموذج ارتفاعات، غير موصول (يحتاج Earthdata).
+        "active": False,  # صادق: نموذج ارتفاعات احتياطيّ، غير موصول (يحتاج Earthdata).
         "verified": True,
+        "requires_earthdata_login": True,
         "license": "open (NASA/METI, attribution)",
         "category": "dem",
-        "coverage_yemen": True,  # يغطّي اليابسة بين ~83°N و83°S.
-        "resolution": "~30m",
-        "recommended_use": "DEM/slope/hillshade/contours (رفد terrain)",
+        "coverage_yemen": True,  # يغطّي اليابسة بين ~83°N و83°S (~99٪ من اليابسة).
+        "resolution": "~30m (1 arc-second)",
+        "preferred_dem": False,  # احتياطيّ خلف Copernicus DEM.
+        "products": ["DEM", "NUM"],  # NUM = عدد المشاهد ⇒ إشارة جودة (dem_quality).
+        "recommended_use": "DEM/slope/hillshade/contours/erosion (احتياطيّ مجانيّ)",
         "note": (
-            "نموذج ارتفاعات رقميّ ~30م يغطّي اليمن؛ رفدٌ لطبقات terrain القائمة. غير "
-            "موصول — يحتاج Earthdata Login + مُحوِّل قبل active=True (تحميل يدويّ أوّليّ ممكن)."
+            "احتياطيّ DEM ~30م يغطّي اليمن؛ V003 يوزّع DEM+NUM (NUM إشارة جودة عبر "
+            "dem_quality). غير موصول — يحتاج Earthdata Login + مستورِد (تحميل يدويّ أوّليّ ممكن)."
         ),
     },
     "local_cog": {
@@ -279,6 +302,19 @@ def active_providers() -> list[str]:
 def planned_providers() -> list[str]:
     """أسماء المزوّدين المُسجَّلين غير الموصولين بعد (active=False) — خارطة طريق صادقة."""
     return [p for p, meta in PROVIDER_REGISTRY.items() if not meta.get("active")]
+
+
+def dem_providers() -> list[str]:
+    """أسماء مزوّدي نماذج الارتفاعات (category='dem')."""
+    return [p for p, meta in PROVIDER_REGISTRY.items() if meta.get("category") == "dem"]
+
+
+def preferred_dem() -> str | None:
+    """اسم DEM المُفضَّل (preferred_dem=True) — Copernicus DEM حاليّاً، أو None."""
+    for p, meta in PROVIDER_REGISTRY.items():
+        if meta.get("category") == "dem" and meta.get("preferred_dem"):
+            return p
+    return None
 
 
 # ── سِجِلّ المصادر البحثيّة/المكتبات (منفصل تماماً عن مزوّدي الصور) ───────────────────

@@ -28,7 +28,10 @@
 | **NASA HLS (HLSS30/L30)** | 30م | ✅ (كلّ اليابسة عدا Antarctica) | خطّ أساس تاريخيّ/شذوذ موسميّ | Earthdata Login |
 | **FAO WaPOR v3** | 100م (الشرق الأدنى)/300م عالميّ | ✅ | إنتاجيّة المياه/ET — **أعلى قيمة لليمن** | CC-BY، بلا مصادقة |
 | **ESA WorldCereal** | 10م | ✅ | prior محاصيل/ريّ مُثقَل بالثقة | استعمل قسم CC-BY فقط |
-| **ASTER GDEM** | ~30م | ✅ | DEM/slope/hillshade/contours (رفد terrain) | Earthdata/METI |
+| **Copernicus DEM GLO-30** | 30م | ✅ | DEM/slope/hillshade/contours/erosion — **المُفضَّل** | COG عامّ (AWS Open Data)/CDSE |
+| **ASTER GDEM V003** | ~30م | ✅ | DEM احتياطيّ (DEM+NUM؛ NUM إشارة جودة) | Earthdata Login |
+
+> **تفضيل DEM (دراسات حديثة):** Copernicus DEM 30م (وFABDEM) غالباً أعلى جودةً من ASTER ⇒ **Copernicus DEM هو الافتراضيّ المُفضَّل**، وASTER/SRTM/NASADEM احتياطيّ مجانيّ. ASTER V003 يوزّع طبقتَي **DEM** (الارتفاع) و**NUM** (عدد المشاهد) — يُستعمَل NUM كإشارة ثقة عبر `dem_quality.py` (NUM منخفض ⇒ ثقة أقلّ). يوافق `DEM_COLLECTION=cop-dem-glo-30` القائم في `raster_settings.py`.
 
 ## ج) مصادر خارجيّة (يدويّ/تجاريّ/أحداث/تقييم) — active_provider=False دائماً
 | المصدر | النوع | مجانيّ | الحكم |
