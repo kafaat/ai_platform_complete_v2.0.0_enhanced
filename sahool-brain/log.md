@@ -1599,3 +1599,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التفضيل (المُراجِع):** Copernicus DEM 30م أعلى جودة من ASTER (دراسات حديثة) ⇒ `copernicus_dem` مُسجَّل `preferred_dem=True` (active=False، يوافق `DEM_COLLECTION=cop-dem-glo-30`)؛ `aster_gdem` احتياطيّ بـ`products=[DEM,NUM]` + `requires_earthdata_login`. helpers `dem_providers`/`preferred_dem`.
 - **جودة NUM:** `dem_quality.py` منطق صرف يحوّل عدد المشاهد (NUM) إلى ثقة (كثافة أعلى ⇒ ثقة أعلى؛ بلا NUM ⇒ unknown، لا تخمين).
 - **التحقّق:** 10 حُرّاس جديدة · النشطون بلا تغيير · حُرّاس V63 أخضر · ruff · manifest · SHA سيُثبَّت. **لم أبنِ المستورِد** (قراءة GeoTIFF فعليّة = تكامل، يحتاج Earthdata) — مُعلَّم كخطوة متبقّية.
+
+## 2026-07-07 (ن) — سِجِلّ مصادر الطقس (V68) + إصلاح CI
+- **إصلاح CI (984b9c7):** وظيفة Unit Tests فشلت على 4 من إضافاتي (بقيّة الوظائف خضراء): (١) اختبارا V67 يستوردان `services.ai_agronomist.main` المحتاج fastapi ⇒ `importorskip("fastapi")` (يُتخطّى في بيئة الوحدة الدنيا) · (٢) `/v1/providers/status` ⇒ PUBLIC_CATALOG · (٣) `/api/v1/regional/bulletin` ⇒ تصنيف `internal` (لا واجهة بعد ⇒ مُعفى من البوّابة العكسيّة). كامل `-m unit`: 2740/0.
+- **سِجِلّ الطقس (V68):** `core/weather_sources.py` على نمط سِجِلّ الصور. **صدق:** Open-Meteo وحده active (موصول: `connectors/openmeteo.py` + `field_intelligence_adapters:159` + `main:1679`)؛ NASA POWER/CHIRPS/ECMWF/GFS/ERA5 مُخطَّطة (مجانيّة + تغطّي اليمن لكن غير موصولة) — **صحّحتُ اقتراح «nasa_power active» إلى planned**. أدوار لكلّ مصدر + helpers. 4 حُرّاس.
+- **التحقّق:** 4 حُرّاس طقس + كامل unit أخضر · ruff · manifest معاد بناؤه · SHA سيُثبَّت.
