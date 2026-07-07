@@ -1574,3 +1574,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الفجوة (تقرير التحقّق P1):** أقسام latest_scene/ndvi_vs_historical في بطاقة V65 كانت `missing` في المسار الحيّ (الراوت لم يغذّها).
 - **الحلّ:** `card_signals_from_db_rows` (منطق صرف مُختبَر) يبني {ndvi_current/ndvi_history/latest_scene} من `zonal_stats` (NDVI تاريخيّ) + `raster_assets` (أحدث مشهد). الراوت صار async ويجلبها عبر `tenant_connection` (RLS) بسقوط آمن: قاعدة معطّلة/خطأ ⇒ إشارات فارغة ⇒ البطاقة كما قبل (لا انحدار، لا اختلاق). SQL يُغطّى بالتكامل. **صدق:** provider_status يبقى `missing` عمداً (يعيش في raster-service، لا mock).
 - **التحقّق:** 4 حُرّاس صرف جديدة · 133 شريحة منصّة + endpoint أخضر · الراوت async ومُسجَّل · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — كشف سِجِلّ المزوّدين عبر HTTP (V63.4، أساس الجسر cross-service)
+- **الخطوة (المُراجِع P1 cross-service):** `GET /v1/providers/status` في observability يكشف السِجِلّ الصادق (default + active + planned + PROVIDER_REGISTRY + RESEARCH_REGISTRY) كمصدر واحد للمنصّة (provider_status في البطاقة) والواجهة.
+- **صدق:** active يعكس الوصل (wapor/worldcereal/nasa_hls/PC مُخطَّطة)؛ المصادر البحثيّة منفصلة (provides_imagery=False)؛ بيانات وصفيّة غير حسّاسة. نقيّ فوق raster_scene_model.
+- **التحقّق:** 2 حارس جديد · 113 شريحة raster (تشمل decomposition/import-graph) أخضر · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت. **المتبقّي للجسر:** عميل المنصّة fail-safe يستهلك هذه النقطة لملء provider_status (HTTP يُتحقَّق بالتكامل).
