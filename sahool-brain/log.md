@@ -1639,3 +1639,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الحقيقة:** قناة-جانبيّة (Minerva timing على P-256) صنّفها صانعو ecdsa **WONTFIX** صراحةً — لا نسخة إصلاح (0.19.2 الأحدث 2026-03-26؛ README يوصي بـpyca/cryptography). مسارنا `python-jose[cryptography]` ⇒ JWT عبر خلفيّة cryptography/OpenSSL لا ecdsa ⇒ المسار المُصاب غير مُستخدَم.
 - **القرار:** `--ignore-vuln PYSEC-2026-1325` مُوثّق ومحصور في بوّابة pip-audit الحرجة (`ci.yml:333`)، على نمط استثناء local-ai-rag القائم. ecdsa يبقى مرئيّاً في المسح الإرشاديّ (غير حاجب) للشفافيّة. **لا** ترحيل 5 خدمات عن python-jose (تغيير مصادقة خطر خارج النطاق لثغرة بلا إصلاح لا يُمَسّ مسارها).
 - **التحقّق:** `--ignore-vuln` صالح (pip-audit --help) · YAML سليم · manifest (3283) · SHA سيُثبَّت. المتوقّع: Security Scan يعود أخضر.
+
+## 2026-07-07 (ن) — رطوبة منطقة الجذر ERA5-Land (V68.3) + تأكيد لا-تكرار الريّ
+- **إغلاق فجوة عقد:** V68.2 أعلن `derived_variables: [root_zone_soil_moisture, soil_moisture_percentile, drought_anomaly]` لكن نفّذ المئينيّة فقط. أُضيف `root_zone_soil_moisture(layer_values, root_depth_cm)` — متوسّط طبقات ERA5-Land موزوناً بسُمك تداخلها مع [0, عمق الجذر]. الأعماق مصدرها الوحيد `soil_moisture_layers` (أُضيف depth_top_cm/depth_bottom_cm لكلّ طبقة) لا أرقام مُثبَّتة.
+- **صدق:** طبقة غائبة/غير رقميّة تُسقَط ووزنها معها (لا تُعامَل صفراً)؛ مدخل فاسد ⇒ value=None + سبب. يخدم قرار الريّ حسب المحصول (قمح/خضار سطحيّ 0–28سم؛ نخيل/عنب عميق 28–289سم) — جدول المُراجِع.
+- **لا تكرار (المُراجِع اقترح حساب الريّ):** ETc=ET0×Kc، net=max(0,ETc−مطر فعّال)، gross=net/كفاءة **موجودة كلّها فعلاً** — `api/water_balance.py` (سلسلة FAO-56 + Ks ملوحة) · `api/irrigation_method.py` (كفاءات flood 0.55/pivot 0.85/drip 0.90 + `gross_irrigation_mm`) · `api/irrigation_recommendation_policy.py` (net/leaching/gross) · Kc من NDVI (`kc_extraction_engine.py`). لم يُكرَّر شيء.
+- **التحقّق:** 15 حارس طقس أخضر (5 جديدة: depth-bounds + سطحيّ + عميق + إسقاط ناقص + unknown صريح) · ruff · manifest · SHA سيُثبَّت.

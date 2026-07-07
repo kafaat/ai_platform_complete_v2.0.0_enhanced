@@ -115,22 +115,31 @@ WEATHER_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
         ],
         # أسماء CDS الرسميّة (volumetric_soil_water_layer_1..4) → أسماء ساهول + الوحدة.
         # صدق: لا أسماء MirrorEarth غير الموثّقة؛ soil_moisture_index مؤشّر مُشتقّ نحسبه.
+        # حدود العمق (سم) مصدرها الوحيد هنا — تشتقّها دالّة منطقة الجذر لا أرقام مُثبَّتة.
         "soil_moisture_layers": {
             "soil_moisture_0_7cm": {
                 "provider_variable": "volumetric_soil_water_layer_1",
                 "unit": "m3/m3",
+                "depth_top_cm": 0,
+                "depth_bottom_cm": 7,
             },
             "soil_moisture_7_28cm": {
                 "provider_variable": "volumetric_soil_water_layer_2",
                 "unit": "m3/m3",
+                "depth_top_cm": 7,
+                "depth_bottom_cm": 28,
             },
             "soil_moisture_28_100cm": {
                 "provider_variable": "volumetric_soil_water_layer_3",
                 "unit": "m3/m3",
+                "depth_top_cm": 28,
+                "depth_bottom_cm": 100,
             },
             "soil_moisture_100_289cm": {  # العمق الرابع 289سم (لا 255).
                 "provider_variable": "volumetric_soil_water_layer_4",
                 "unit": "m3/m3",
+                "depth_top_cm": 100,
+                "depth_bottom_cm": 289,
             },
         },
         "derived_variables": [
@@ -253,3 +262,62 @@ def soil_moisture_drought_class(
     else:
         cls = "normal"
     return {"class": cls, "percentile": pct, "reason": None, "n_history": len(vals)}
+
+
+def root_zone_soil_moisture(
+    layer_values: Any, root_depth_cm: Any, *, source: str = "era5_land"
+) -> dict[str, Any]:
+    """رطوبة منطقة الجذر — متوسّط طبقات ERA5-Land موزوناً بسُمك التداخل مع [0, عمق الجذر].
+
+    **صدق:** الأعماق من ``soil_moisture_layers`` (مصدر واحد) لا أرقام مُثبَّتة؛ الطبقات
+    الغائبة/غير الرقميّة تُسقَط ووزنها معها. لا مدخل صالح ⇒ ``value=None`` + سبب (لا اختلاق).
+    ``layer_values`` قاموس مفتاحه اسم طبقة ساهول (soil_moisture_0_7cm…) وقيمته رطوبة حجميّة
+    m3/m3. يخدم قرار الريّ حسب المحصول (قمح/خضار سطحيّ 0–28سم؛ نخيل/عنب عميق 28–289سم).
+    """
+
+    def _num(v: Any) -> float | None:
+        if isinstance(v, bool):
+            return None
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return None
+        return f if f == f else None
+
+    depth = _num(root_depth_cm)
+    if depth is None or depth <= 0:
+        return {"value": None, "unit": "m3/m3", "reason": "invalid_root_depth", "layers_used": []}
+    if not isinstance(layer_values, dict) or not layer_values:
+        return {"value": None, "unit": "m3/m3", "reason": "no_layer_values", "layers_used": []}
+
+    specs = WEATHER_SOURCE_REGISTRY.get(source, {}).get("soil_moisture_layers") or {}
+    num = 0.0
+    weight = 0.0
+    used: list[str] = []
+    for name, spec in specs.items():
+        top = _num(spec.get("depth_top_cm"))
+        bottom = _num(spec.get("depth_bottom_cm"))
+        val = _num(layer_values.get(name))
+        if top is None or bottom is None or val is None:
+            continue
+        overlap = min(bottom, depth) - top  # سُمك تداخل الطبقة مع منطقة الجذر (سم).
+        if overlap <= 0:
+            continue
+        num += val * overlap
+        weight += overlap
+        used.append(name)
+
+    if weight <= 0:
+        return {
+            "value": None,
+            "unit": "m3/m3",
+            "reason": "no_overlapping_layers",
+            "layers_used": [],
+        }
+    return {
+        "value": round(num / weight, 4),
+        "unit": "m3/m3",
+        "reason": None,
+        "root_depth_cm": depth,
+        "layers_used": used,
+    }

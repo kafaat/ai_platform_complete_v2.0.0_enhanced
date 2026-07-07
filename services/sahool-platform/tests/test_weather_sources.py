@@ -14,6 +14,7 @@ from core.weather_sources import (
     WEATHER_SOURCE_REGISTRY,
     active_weather_sources,
     planned_weather_sources,
+    root_zone_soil_moisture,
     soil_moisture_drought_class,
     weather_sources_for_role,
 )
@@ -119,3 +120,55 @@ def test_drought_class_uses_local_percentile_not_fixed_threshold():
     assert soil_moisture_drought_class(0.32, hist)["class"] == "normal"
     # تاريخ غير كافٍ ⇒ unknown (لا تخمين، لا عتبة SMI ثابتة).
     assert soil_moisture_drought_class(0.2, [0.3, 0.3])["class"] == "unknown"
+
+
+def test_layer_depth_bounds_are_single_source_and_reach_289():
+    layers = WEATHER_SOURCE_REGISTRY["era5_land"]["soil_moisture_layers"]
+    assert layers["soil_moisture_0_7cm"]["depth_top_cm"] == 0
+    assert layers["soil_moisture_0_7cm"]["depth_bottom_cm"] == 7
+    # الطبقة الرابعة تصل 289سم (تصحيح لا 255) — تُغطّي جذور النخيل/العنب العميقة.
+    assert layers["soil_moisture_100_289cm"]["depth_bottom_cm"] == 289
+
+
+def test_root_zone_shallow_crop_weights_top_layers_only():
+    # قمح/خضار جذور سطحيّة ~28سم ⇒ يوزن الطبقتين العلويتين فقط (0–7، 7–28) بسُمكهما.
+    vals = {
+        "soil_moisture_0_7cm": 0.20,
+        "soil_moisture_7_28cm": 0.30,
+        "soil_moisture_28_100cm": 0.10,
+        "soil_moisture_100_289cm": 0.05,
+    }
+    out = root_zone_soil_moisture(vals, 28)
+    # (0.20*7 + 0.30*21) / 28 = 0.275؛ الطبقات العميقة خارج منطقة الجذر لا تدخل.
+    assert out["value"] == 0.275
+    assert out["layers_used"] == ["soil_moisture_0_7cm", "soil_moisture_7_28cm"]
+
+
+def test_root_zone_deep_crop_includes_deep_layer_partial_overlap():
+    # نخيل جذور عميقة 150سم ⇒ يشمل الطبقة الرابعة جزئيّاً (100–150 من 100–289).
+    vals = {
+        "soil_moisture_0_7cm": 0.20,
+        "soil_moisture_7_28cm": 0.20,
+        "soil_moisture_28_100cm": 0.20,
+        "soil_moisture_100_289cm": 0.20,
+    }
+    out = root_zone_soil_moisture(vals, 150)
+    assert out["value"] == 0.20  # كلّها متساوية ⇒ المتوسّط الموزون 0.20 مهما اختلفت الأوزان.
+    assert "soil_moisture_100_289cm" in out["layers_used"]
+
+
+def test_root_zone_drops_missing_layers_and_reduces_weight():
+    # طبقة غائبة/غير رقميّة تُسقَط ووزنها معها — لا تُعامَل صفراً (لا اختلاق).
+    vals = {"soil_moisture_0_7cm": 0.20, "soil_moisture_7_28cm": None}
+    out = root_zone_soil_moisture(vals, 28)
+    assert out["value"] == 0.20  # الطبقة الثانية غائبة ⇒ يبقى وزن الأولى فقط.
+    assert out["layers_used"] == ["soil_moisture_0_7cm"]
+
+
+def test_root_zone_explicit_unknown_on_bad_inputs():
+    # لا اختلاق: مدخلات فاسدة ⇒ value=None + سبب صريح.
+    assert root_zone_soil_moisture({}, 30)["value"] is None
+    assert (
+        root_zone_soil_moisture({"soil_moisture_0_7cm": 0.2}, 0)["reason"] == "invalid_root_depth"
+    )
+    assert root_zone_soil_moisture({"soil_moisture_0_7cm": "x"}, 30)["value"] is None
