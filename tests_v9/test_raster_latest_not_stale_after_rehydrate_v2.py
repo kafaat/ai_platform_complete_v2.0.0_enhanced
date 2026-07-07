@@ -73,12 +73,17 @@ def test_latest_consults_db_and_returns_newest_not_stale_rehydrate(rm, monkeypat
     monkeypatch.setattr(_dbp, "fetch_latest_asset", fake_fetch)
     monkeypatch.setattr(rm.object_store, "exists_locally", lambda *_a, **_k: True)
 
+    # Phase 27: مُغلِّف main._resolve_field_layer أُزيل؛ المنطق يعيش في
+    # raster_field_runtime._resolve_field_layer الذي يشارك نفس سجلّات
+    # raster_runtime_state (LAYERS/FIELD_LAYERS) وContextVar المستأجِر التي رطّبها rm.
+    import raster_field_runtime as rfr
+
     # ١) رطّب تاريخاً محدّداً قديماً (يملأ الذاكرة).
-    old = asyncio.run(rm._resolve_field_layer(field, "ndvi", "2026-05-01"))
+    old = asyncio.run(rfr._resolve_field_layer(field, "ndvi", "2026-05-01"))
     assert old is not None and old["acquisition_date"] == "2026-05-01"
 
     # ٢) اطلب latest — يجب أن يُعيد الأحدث (2026-06-10) لا القديم المُرطَّب.
-    latest = asyncio.run(rm._resolve_field_layer(field, "ndvi", "latest"))
+    latest = asyncio.run(rfr._resolve_field_layer(field, "ndvi", "latest"))
     assert latest is not None
     assert latest["acquisition_date"] == "2026-06-10", (
         f"latest أعاد تاريخاً قديماً ({latest['acquisition_date']}) — انحدار FINDING-001"

@@ -43,7 +43,6 @@ import raster_settings
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from stac_client import ResilientStacClient
 
 try:
     from shared.logging_config import setup_logging
@@ -63,16 +62,9 @@ EARTH_SEARCH_URL = raster_settings.EARTH_SEARCH_URL
 CORS_ORIGINS = raster_settings.CORS_ORIGINS
 HTTP_TIMEOUT = raster_settings.HTTP_TIMEOUT
 TITILER_URL = raster_settings.TITILER_URL
-_fallback_chain = raster_settings.stac_fallback_chain()
+import raster_stac_runtime  # noqa: E402
 
-_stac = ResilientStacClient(
-    EARTH_SEARCH_URL,
-    timeout=HTTP_TIMEOUT,
-    max_retries=int(os.getenv("STAC_MAX_RETRIES", "3")),
-    cache_ttl=float(os.getenv("STAC_CACHE_TTL", "900")),
-    redis_url=os.getenv("REDIS_URL"),  # None → ذاكرة فقط (تدهور لطيف)
-    fallback_urls=_fallback_chain,
-)
+_stac = raster_stac_runtime.configure_stac_search(logger=logger)
 
 
 # ─── API models / enums ─────────────────────────────────────────────
@@ -175,23 +167,6 @@ async def _layer_evict_subscriber() -> None:
 # ─── بحث الصور عبر STAC/CDSE ──────────────────────────────────────
 import stac_search as stac_search_helpers
 
-stac_search_helpers.configure(
-    stac=_stac,
-    logger=logger,
-    earth_search_url=EARTH_SEARCH_URL,
-    http_timeout=HTTP_TIMEOUT,
-    historical_search_provider=raster_settings.HISTORICAL_SEARCH_PROVIDER,
-    sentinel_collection=raster_settings.SENTINEL_COLLECTION,
-    sentinel1_collection=raster_settings.SENTINEL1_COLLECTION,
-    landsat_collection=raster_settings.LANDSAT_COLLECTION,
-    dem_collection=raster_settings.DEM_COLLECTION,
-    landsat_unique_indices=raster_settings.LANDSAT_UNIQUE_INDICES,
-    landsat_direct_raster_indices=raster_settings.LANDSAT_DIRECT_RASTER_INDICES,
-    landsat_derived_indices=raster_settings.LANDSAT_DERIVED_INDICES,
-    landsat_duplicate_sentinel_indices=raster_settings.LANDSAT_DUPLICATE_SENTINEL_INDICES,
-    landsat_thermal_asset_candidates=raster_settings.LANDSAT_THERMAL_ASSET_CANDIDATES,
-)
-
 # Compatibility façade: routers/tests still import these helpers from main.py.
 _band_urls_from_assets = stac_search_helpers.band_urls_from_assets
 _stac_query = stac_search_helpers.stac_query
@@ -255,17 +230,9 @@ import raster_security_context  # noqa: E402
 _REQ_TENANT = raster_security_context.REQ_TENANT
 
 
-def _tenant_from_header(value: str | None) -> str | None:
-    return raster_security_context.tenant_from_header(value)
-
-
-def _tenant_from_request(request) -> str | None:
-    return raster_security_context.tenant_from_request(request)
-
-
 @app.middleware("http")
 async def _tenant_context_mw(request, call_next):
-    token = _REQ_TENANT.set(_tenant_from_request(request))
+    token = _REQ_TENANT.set(raster_security_context.tenant_from_request(request))
     try:
         return await call_next(request)
     finally:
@@ -404,83 +371,9 @@ os.makedirs(OFFLINE_PACKS_DIR, exist_ok=True)
 
 
 # ─── (٥) شبكة المؤشّر لكلّ بكسل (per-pixel grid) للموبايل ──────────────
-# Phase 3 decomposition: layer lookup/grid/RVI helpers moved to layer_lookup.py.
-# Compatibility wrappers below preserve the public main._* symbols used by routers/tests.
-import layer_lookup  # noqa: E402
-
-_GRID_INDEX_ALIASES = layer_lookup.GRID_INDEX_ALIASES
-
-
-def _normalize_index(index: str | None) -> str:
-    return layer_lookup.normalize_index(index)
-
-
-def _display_index(index: str | None) -> str:
-    return layer_lookup.display_index(index)
-
-
-def _find_field_layer(field_id: str, index: str, date: str) -> dict | None:
-    return layer_lookup.find_field_layer(_layers, _field_layers, field_id, index, date)
-
-
-def _grid_from_cog(layer: dict, index: str, date: str, grid: int) -> dict | None:
-    return layer_lookup.grid_from_cog(layer, index, date, grid, object_store)
-
-
-async def _rehydrate_field_layer_from_db(field_id: str, internal: str, date: str) -> dict | None:
-    return await layer_lookup.rehydrate_field_layer_from_db(
-        field_id,
-        internal,
-        date,
-        layers=_layers,
-        field_layers=_field_layers,
-        tenant_getter=_REQ_TENANT.get,
-        logger=logger,
-        object_store_module=object_store,
-    )
-
-
-async def _resolve_field_layer(field_id: str, index: str, date: str) -> dict | None:
-    return await layer_lookup.resolve_field_layer(
-        field_id,
-        index,
-        date,
-        layers=_layers,
-        field_layers=_field_layers,
-        tenant_getter=_REQ_TENANT.get,
-        logger=logger,
-        object_store_module=object_store,
-    )
-
-
-async def _rvi_from_sar_cog(field_id: str, date: str) -> float | None:
-    return await layer_lookup.rvi_from_sar_cog(
-        field_id,
-        date,
-        layers=_layers,
-        field_layers=_field_layers,
-        tenant_getter=_REQ_TENANT.get,
-        logger=logger,
-        object_store_module=object_store,
-    )
-
-
+# Layer lookup/grid/RVI logic lives in layer_lookup.py and raster_field_runtime.py.
+# main.py no longer re-exports layer lookup wrappers; routers import the runtime module directly.
 from raster_api_models import FieldChangeRequest, PrescriptionRequest  # noqa: E402
-
-
-async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> dict | None:
-    return await layer_lookup.real_field_grid(
-        field_id,
-        index,
-        date,
-        grid,
-        layers=_layers,
-        field_layers=_field_layers,
-        tenant_getter=_REQ_TENANT.get,
-        logger=logger,
-        object_store_module=object_store,
-    )
-
 
 # ─── السلسلة الزمنيّة للمؤشّر (field-scoped) ──────────────────────────
 

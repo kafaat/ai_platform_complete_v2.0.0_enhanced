@@ -15,6 +15,7 @@ import struct
 import tempfile
 import zlib
 
+import layer_lookup
 import main
 import numpy as np
 import rasterio
@@ -386,16 +387,22 @@ def test_field_layer_date_and_index_selection_is_strict():
     }
     main._field_layers[field].extend(["strict_ndvi_old", "strict_ndvi_new", "strict_msi_new"])
 
-    latest = main._find_field_layer(field, "ndvi", "latest")
+    latest = layer_lookup.find_field_layer(
+        main._layers, main._field_layers, field, "ndvi", "latest"
+    )
     assert latest and latest["layer_id"] == "strict_ndvi_new"
 
-    exact_old = main._find_field_layer(field, "ndvi", "2026-05-01")
+    exact_old = layer_lookup.find_field_layer(
+        main._layers, main._field_layers, field, "ndvi", "2026-05-01"
+    )
     assert exact_old and exact_old["layer_id"] == "strict_ndvi_old"
 
-    missing = main._find_field_layer(field, "ndvi", "2026-05-09")
+    missing = layer_lookup.find_field_layer(
+        main._layers, main._field_layers, field, "ndvi", "2026-05-09"
+    )
     assert missing is None, "missing date must not silently render latest imagery"
 
-    msi = main._find_field_layer(field, "msi", "latest")
+    msi = layer_lookup.find_field_layer(main._layers, main._field_layers, field, "msi", "latest")
     assert msi and msi["layer_id"] == "strict_msi_new"
 
     client = TestClient(main.app)

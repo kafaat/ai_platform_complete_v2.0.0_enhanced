@@ -235,12 +235,13 @@ def test_rehydrated_layer_stores_tenant():
     assert '"tenant_id": tenant_id' in block, (
         "طبقة DB المُعاد ترطيبها بلا tenant_id ⇒ ثغرة تسريب عبر الـcache"
     )
-    # النَّسَب المستأجِريّ يأتي من سياق الطلب: tenant_id = tenant_getter()،
-    # وmain يوصل tenant_getter=_REQ_TENANT.get (تعاقُد نطاق المستأجِر محفوظ).
+    # النَّسَب المستأجِريّ يأتي من سياق الطلب: tenant_id = tenant_getter().
     assert "tenant_id = tenant_getter()" in src, "الترطيب يجب أن يشتقّ المستأجِر من الحاقن"
-    main_src = open(os.path.join(RASTER, "main.py"), encoding="utf-8").read()
-    assert "tenant_getter=_REQ_TENANT.get" in main_src, (
-        "main يجب أن يوصل مستأجِر الطلب (_REQ_TENANT) كمصدر للترطيب"
+    # phase27: مُغلِّفات ترطيب/حلّ الطبقة انتقلت من main.py إلى raster_field_runtime.py،
+    # وهي التي توصل tenant_getter=_REQ_TENANT.get (تعاقُد نطاق المستأجِر محفوظ).
+    runtime_src = open(os.path.join(RASTER, "raster_field_runtime.py"), encoding="utf-8").read()
+    assert "tenant_getter=_REQ_TENANT.get" in runtime_src, (
+        "raster_field_runtime يجب أن يوصل مستأجِر الطلب (_REQ_TENANT) كمصدر للترطيب"
     )
 
 

@@ -7,15 +7,17 @@
 import asyncio
 
 import db_persist
+import layer_lookup
 import main
+import raster_security_context
 
 
 def test_tenant_from_header_normalisation():
-    assert main._tenant_from_header("t-1") == "t-1"
-    assert main._tenant_from_header("  t-2  ") == "t-2"
-    assert main._tenant_from_header("") is None
-    assert main._tenant_from_header("   ") is None
-    assert main._tenant_from_header(None) is None
+    assert raster_security_context.tenant_from_header("t-1") == "t-1"
+    assert raster_security_context.tenant_from_header("  t-2  ") == "t-2"
+    assert raster_security_context.tenant_from_header("") is None
+    assert raster_security_context.tenant_from_header("   ") is None
+    assert raster_security_context.tenant_from_header(None) is None
 
 
 def _resolve_with_tenant(tenant, monkeypatch):
@@ -28,7 +30,18 @@ def _resolve_with_tenant(tenant, monkeypatch):
     monkeypatch.setattr(db_persist, "fetch_latest_asset", fake_fetch)
     token = main._REQ_TENANT.set(tenant)
     try:
-        res = asyncio.run(main._resolve_field_layer("fld-unknown", "ndvi", "latest"))
+        res = asyncio.run(
+            layer_lookup.resolve_field_layer(
+                "fld-unknown",
+                "ndvi",
+                "latest",
+                layers=main._layers,
+                field_layers=main._field_layers,
+                tenant_getter=main._REQ_TENANT.get,
+                logger=main.logger,
+                object_store_module=main.object_store,
+            )
+        )
     finally:
         main._REQ_TENANT.reset(token)
     assert res is None

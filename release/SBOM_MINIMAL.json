@@ -8895,7 +8895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9f457c3b7de2e05f6c905ef5ac8e0a186a955d855601bb61bd5902a0345f175"
+          "content": "f74b5df29ab893cd66882eeb0c5443d8924ba31054f623fc307b035c4944277d"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a33a2d674dd5ba7ecd9c056c99d5a5fc9fa22a4cd45ee832f0275c1d7582661"
+          "content": "43602a9486c77af9c562df3627e5b7232eee642d2d881746b5e7b0c7548e55d5"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9895,7 +9895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c44dda5337f17520389dc8f06e245439a71f428ad15110ca58757379b91c00f"
+          "content": "438265b24fe9c26898287ca5680420c6ba16534bbee0b2edf6eff390a5899e53"
         }
       ],
       "name": "services/raster-service/test_tenant_propagation.py",
@@ -9925,7 +9925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c4f49e6027c870f0a40997876053ece215a29e0a2c2cdc893515fd95fd044b39"
+          "content": "9a684b7d7e728c554132c123b9a1b1f37a72702505a963c8484d22e9c09ec804"
         }
       ],
       "name": "services/raster-service/test_tiles.py",

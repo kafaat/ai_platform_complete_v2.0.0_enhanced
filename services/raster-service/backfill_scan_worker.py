@@ -35,9 +35,9 @@ import raster_processing_runtime
 import raster_runtime_state
 import raster_security_context
 import raster_settings
+import raster_stac_runtime
 import scene_policy
 import stac_search as stac_search_helpers
-from stac_client import ResilientStacClient
 
 logger = logging.getLogger("raster-service.backfill_scan_worker")
 
@@ -46,31 +46,7 @@ WORKER_POLL_SECONDS = float(os.getenv("WORKER_POLL_SECONDS", "5"))
 
 def _configure_stac_search() -> None:
     """Configure STAC helpers for the standalone worker without importing main.py."""
-    fallback_chain = raster_settings.stac_fallback_chain()
-    stac = ResilientStacClient(
-        raster_settings.EARTH_SEARCH_URL,
-        timeout=raster_settings.HTTP_TIMEOUT,
-        max_retries=int(os.getenv("STAC_MAX_RETRIES", "3")),
-        cache_ttl=float(os.getenv("STAC_CACHE_TTL", "900")),
-        redis_url=os.getenv("REDIS_URL"),
-        fallback_urls=fallback_chain,
-    )
-    stac_search_helpers.configure(
-        stac=stac,
-        logger=logger,
-        earth_search_url=raster_settings.EARTH_SEARCH_URL,
-        http_timeout=raster_settings.HTTP_TIMEOUT,
-        historical_search_provider=raster_settings.HISTORICAL_SEARCH_PROVIDER,
-        sentinel_collection=raster_settings.SENTINEL_COLLECTION,
-        sentinel1_collection=raster_settings.SENTINEL1_COLLECTION,
-        landsat_collection=raster_settings.LANDSAT_COLLECTION,
-        dem_collection=raster_settings.DEM_COLLECTION,
-        landsat_unique_indices=raster_settings.LANDSAT_UNIQUE_INDICES,
-        landsat_direct_raster_indices=raster_settings.LANDSAT_DIRECT_RASTER_INDICES,
-        landsat_derived_indices=raster_settings.LANDSAT_DERIVED_INDICES,
-        landsat_duplicate_sentinel_indices=raster_settings.LANDSAT_DUPLICATE_SENTINEL_INDICES,
-        landsat_thermal_asset_candidates=raster_settings.LANDSAT_THERMAL_ASSET_CANDIDATES,
-    )
+    raster_stac_runtime.configure_stac_search(logger=logger)
 
 
 _configure_stac_search()

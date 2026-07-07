@@ -58,5 +58,8 @@ def test_shape_guard_and_endpoint_wired():
     assert '@router.post("/sar/rvi")' in main or '@app.post("/sar/rvi")' in main, (
         "نقطة /sar/rvi مفقودة"
     )
-    assert "_rvi_from_sar_cog" in main, "مسار RVI من COG الرادار مفقود في /indices"
+    # Phase 27: مُغلِّف main._rvi_from_sar_cog أُزيل؛ مسار RVI من COG الرادار انتقل إلى
+    # layer_lookup.rvi_from_sar_cog ويُستدعى مباشرة من routers/observability.py. النمط
+    # ``rvi_from_sar_cog`` يطابق الاستدعاء الحاليّ (والمُغلِّف القديم لو عاد) دون إضعاف العقد.
+    assert "rvi_from_sar_cog" in main, "مسار RVI من COG الرادار مفقود في /indices"
     assert "status_code=413" in main

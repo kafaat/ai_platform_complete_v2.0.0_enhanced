@@ -84,16 +84,24 @@ def test_no_earth_search_in_backfill_paths():
         "الراوتر يجب ألا يستعمل EARTH_SEARCH_URL في backfill"
     )
 
-    # العامل: EARTH_SEARCH_URL محصور داخل _configure_stac_search (تهيئة العميل المرن)،
-    # ولا يظهر في مسار الجلب/المعالجة. مسار المشهد يستعمل CDSE Process API + توجيه المزوّد.
+    # phase27: تهيئة عميل STAC (بما فيها EARTH_SEARCH_URL كأساس/ارتداد) انتقلت من العامل
+    # إلى raster_stac_runtime.py. العامل الآن يفوّض عبر _configure_stac_search الذي يستدعي
+    # raster_stac_runtime.configure_stac_search فقط، فلا يظهر EARTH_SEARCH_URL في العامل
+    # إطلاقاً — وهذا أقوى من الحصر السابق (لا تسريب في مسار الجلب/المعالجة). نؤكّد بقاء
+    # الأساس محصوراً في وحدة البوتستراب المخصّصة.
     worker = _read(_RASTER / "backfill_scan_worker.py")
     cfg_start = worker.index("def _configure_stac_search(")
     cfg_end = worker.index("\n_configure_stac_search()", cfg_start)  # الاستدعاء على مستوى الوحدة
     config_region = worker[cfg_start:cfg_end]
-    rest = worker[:cfg_start] + worker[cfg_end:]
-    assert "EARTH_SEARCH_URL" in config_region, "EARTH_SEARCH_URL يجب أن يبقى في تهيئة العميل"
-    assert "EARTH_SEARCH_URL" not in rest, (
-        "EARTH_SEARCH_URL خارج _configure_stac_search يعني استعلام earth-search في مسار backfill"
+    assert "raster_stac_runtime.configure_stac_search" in config_region, (
+        "تهيئة العميل يجب أن تفوّض إلى raster_stac_runtime"
+    )
+    assert "EARTH_SEARCH_URL" not in worker, (
+        "EARTH_SEARCH_URL يجب ألّا يظهر في العامل — البوتستراب مفوَّض إلى raster_stac_runtime"
+    )
+    stac_runtime = _read(_RASTER / "raster_stac_runtime.py")
+    assert "EARTH_SEARCH_URL" in stac_runtime, (
+        "EARTH_SEARCH_URL يجب أن يبقى في تهيئة العميل داخل raster_stac_runtime"
     )
     # مسار جلب/معالجة backfill يستعمل CDSE (Process API) لا استعلام element84 مباشر.
     assert "_process_backfill_scene_cdse" in worker, "معالجة مشهد backfill يجب أن تمرّ عبر CDSE"

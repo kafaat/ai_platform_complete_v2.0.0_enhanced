@@ -19,8 +19,9 @@ pytestmark = [pytest.mark.unit, pytest.mark.security]
 ROOT = Path(__file__).resolve().parents[1]
 RASTER = ROOT / "services/raster-service"
 # main.py فُكِّك: تطبيع/أسماء المؤشّرات (خرائط الأسماء المستعارة مثل "ndvu": "ndvi"
-# وأسماء الملوحة) انتقلت إلى layer_lookup.py، وتبقى في main.py مُغلِّفات _normalize_index/
-# _display_index المُعاد تصديرها. نقرأ الوحدتين معاً كي يبقى العقد محفوظاً دون إضعاف التأكيدات.
+# وأسماء الملوحة) تعيش في layer_lookup.py كدالّتَي normalize_index/display_index.
+# Phase 27: مُغلِّفات main._normalize_index/_display_index أُزيلت (الراوترات تستورد
+# من raster_field_runtime مباشرة). نقرأ الوحدتين معاً كي يبقى العقد محفوظاً دون إضعاف التأكيدات.
 MAIN = (RASTER / "main.py").read_text(encoding="utf-8") + (RASTER / "layer_lookup.py").read_text(
     encoding="utf-8"
 )
@@ -90,8 +91,8 @@ async def test_db_owner_overrides_and_prunes_stale_field_layer_cache(rm):
 
 def test_index_aliases_cover_ndvu_and_salinity():
     assert '"ndvu": "ndvi"' in MAIN
-    assert "def _normalize_index" in MAIN
-    assert "def _display_index" in MAIN
+    assert "def normalize_index" in MAIN
+    assert "def display_index" in MAIN
 
 
 def test_field_tilejson_and_tiles_normalize_index_before_lookup():
