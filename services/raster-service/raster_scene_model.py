@@ -243,6 +243,64 @@ def planned_providers() -> list[str]:
     return [p for p, meta in PROVIDER_REGISTRY.items() if not meta.get("active")]
 
 
+# ── سِجِلّ المصادر البحثيّة/المكتبات (منفصل تماماً عن مزوّدي الصور) ───────────────────
+# **صدق حاسم:** هذه **مكتبات/معماريّات/مجموعات بيانات بحثيّة** لا مزوّدو صور. تُفصَل عن
+# ``PROVIDER_REGISTRY`` كي لا يخلط أحد PaddleRS/GeoTrellis بمزوّد صور. ``provides_imagery``
+# صراحةً False — لا تُستبدَل بـCDSE/Element84/Planetary Computer/NASA HLS.
+RESEARCH_REGISTRY: dict[str, dict[str, Any]] = {
+    "gitee_paddlers": {
+        "id": "gitee_paddlers",
+        "label": "PaddleRS (Gitee mirror)",
+        "type": "research_library",
+        "provides_imagery": False,
+        "recommended_use": [
+            "segmentation",
+            "change_detection",
+            "super_resolution_experiment",
+            "mask_to_geojson",
+        ],
+        "note": "أداة AI للاستشعار عن بعد — تحسين حدود الحقول/التقطيع/كشف التغيّر بعد SAM2/ExG.",
+    },
+    "gitee_geotrellis_landsat_tutorial": {
+        "id": "gitee_geotrellis_landsat_tutorial",
+        "label": "GeoTrellis Landsat Tutorial (Gitee)",
+        "type": "architecture_reference",
+        "provides_imagery": False,
+        "recommended_use": [
+            "dynamic_ndvi_tile_rendering",
+            "ndwi_rendering",
+            "tile_cache_design",
+        ],
+        "note": "مرجع معماريّ لتصيير COG→نافذة→مؤشّر→PNG ديناميكيّاً (يوافق هدف raster-service).",
+    },
+    "gitee_remote_sensing_datasets": {
+        "id": "gitee_remote_sensing_datasets",
+        "label": "RS change-detection / VHR datasets (Gitee mirrors)",
+        "type": "dataset_reference",
+        "provides_imagery": False,  # مجموعات بحثيّة محدودة، لا مزوّد تشغيليّ
+        "recommended_use": ["training", "benchmark", "algorithm_validation"],
+        "note": "NWPU VHR-10/RSOD/SpaceNet — تدريب/اختبار فقط، لا تغطية يوميّة ولا اليمن.",
+    },
+    "gitee_cdsystem": {
+        "id": "gitee_cdsystem",
+        "label": "CDSystem (PaddleRS inference service, Gitee)",
+        "type": "architecture_reference",
+        "provides_imagery": False,
+        "recommended_use": [
+            "gpu_inference_service_pattern",
+            "cache_by_image_hash",
+            "concurrency_limit",
+        ],
+        "note": "نمط خدمة استدلال GPU منفصلة (لو فُصِل boundary_ai/segmentation عن raster-service).",
+    },
+}
+
+
+def research_sources() -> list[str]:
+    """أسماء المصادر البحثيّة/المكتبات (لا مزوّدو صور — provides_imagery=False دائماً)."""
+    return list(RESEARCH_REGISTRY.keys())
+
+
 # ── اقتراح احتياطيّ مُهيكَل عند فشل/نفاد CDSE ────────────────────────────────────
 _FALLBACK_REASONS = {
     "cdse_unconfigured": "اعتمادات CDSE غائبة (CDSE_CLIENT_ID/SECRET أو SH_CLIENT_ID/SECRET).",

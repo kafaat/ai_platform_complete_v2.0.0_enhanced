@@ -96,3 +96,22 @@ def test_wapor_worldcereal_never_leak_into_active():
     # صدق حاسم: لا تُفعَّل طبقات المياه/المحاصيل قبل مُحوِّل واختبار عقد.
     active = M.active_providers()
     assert "wapor" not in active and "worldcereal" not in active
+
+
+# ── سِجِلّ المصادر البحثيّة منفصل تماماً عن مزوّدي الصور (Gitee ليس مزوّداً) ──────────
+def test_research_registry_never_provides_imagery():
+    for name, meta in M.RESEARCH_REGISTRY.items():
+        assert meta["provides_imagery"] is False, f"{name} مصدر بحثيّ لا مزوّد صور"
+        assert meta["type"] in {"research_library", "architecture_reference", "dataset_reference"}
+        assert meta["recommended_use"]
+
+
+def test_research_sources_disjoint_from_providers():
+    research = set(M.research_sources())
+    providers = set(M.PROVIDER_REGISTRY.keys())
+    # لا تداخل: مصدر بحثيّ لا يكون مزوّداً، ولا يظهر نشطاً/مخطَّطاً.
+    assert research.isdisjoint(providers)
+    assert research.isdisjoint(set(M.active_providers()))
+    assert research.isdisjoint(set(M.planned_providers()))
+    # PaddleRS/GeoTrellis مُسجَّلان كمرجع (لا كمزوّد صور).
+    assert "gitee_paddlers" in research and "gitee_geotrellis_landsat_tutorial" in research
