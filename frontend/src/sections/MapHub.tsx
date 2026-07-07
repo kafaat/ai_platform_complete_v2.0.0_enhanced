@@ -56,6 +56,7 @@ import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceability
 import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
 import FieldIntelligenceCardView from '../components/fieldview/FieldIntelligenceCardView';
 import WindbreakCard from '../components/fieldview/WindbreakCard';
+import EvidenceGraphCard from '../components/fieldview/EvidenceGraphCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
@@ -1935,6 +1936,11 @@ export default function MapHub() {
           مصدّاً شجريّاً؟ من تاريخ NASA POWER — صدق: المحسوب بقيمته والمتعذّر بسببه. */}
       {selected && fieldMode === 'expert' && (
         <WindbreakCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* رسم أدلّة الحقل (V74-UI): أدلّة حاضرة بمصادرها + فجوات معرفة بأسبابها —
+          يفسّر التوصية ويُثبت مصدر كلّ معلومة (يعيد استخدام استعلام analyze). */}
+      {selected && fieldMode === 'expert' && (
+        <EvidenceGraphCard fieldId={fieldId ?? null} enabled={expertMode} />
       )}
 
       {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —

@@ -3075,7 +3075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02c07c434b5f41ea0d8643efa24d7e02a811a80d05b0de2229d426fe7d6ce5fd"
+          "content": "d336f92170d7223dc332ed2b8dfd58f8c4cd20b440fe1f3278cc50353e20f68e"
         }
       ],
       "name": "frontend/src/lib/fieldIntelligenceCard.ts",
@@ -4665,7 +4665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9357029f83cdd2cb24a4bb44cb730aba2475c1c08871bb16640d26dc05927830"
+          "content": "972b7392ef8fea6b68f742ee47f5cb6714e0ddb10e452e34da7a1e39efb9bd89"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -14925,6 +14925,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c87a5e3ae192dd4b4a6c282aa564aceddec32cf2df3019676911fe87ff16ef3f"
+        }
+      ],
+      "name": "services/sahool-platform/core/evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a9a46699671819a72cdd33db1a7d5bbf690cec85f0bed645252d73724b0986c6"
         }
       ],
@@ -17569,6 +17579,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_evidence_class.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76ee5688d97360acc9d65036cbddbda48e2cebe1c73d203d299256a16381a5f2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_graph.py",
       "type": "file"
     },
     {

@@ -128,6 +128,7 @@ export interface FieldIntelligenceCard {
 export interface FieldIntelligenceAnalyzeResponse {
   field_id?: string;
   field_intelligence_card?: FieldIntelligenceCard;
+  evidence_graph?: import('./evidenceGraph').EvidenceGraph;
 }
 
 export const SECTION_LABELS_AR: Record<string, string> = {
