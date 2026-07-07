@@ -1275,6 +1275,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e6992946a57ca60d66f82c23de941227abcfc5f86debed40e70f84f84dde6174"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/WindbreakCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b3e36ea0add92f2ff507be09c3934d1d1288a3f9eaaaac3d3abecddfec84b94c"
         }
       ],
@@ -2309,6 +2319,16 @@
         }
       ],
       "name": "frontend/src/hooks/useFieldOptions.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "929a847bff1fdcbbadf0363498eb861bd2c422f263af2e472e3ace737a6c7861"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldWindPrevailing.ts",
       "type": "file"
     },
     {
@@ -3899,6 +3919,26 @@
         }
       ],
       "name": "frontend/src/lib/whatIfScenarios.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1042a4d001c5ccb7ab1d2341785253160a7615e721448c93c748b023377f1fe"
+        }
+      ],
+      "name": "frontend/src/lib/windbreak.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "30e021dc84d9498b2610a8fc16d4bc23c5b20d1b2624f2568cebf5e337b12c14"
+        }
+      ],
+      "name": "frontend/src/lib/windbreak.ts",
       "type": "file"
     },
     {
@@ -12285,7 +12325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f3b567e7043170cfe090edd004c5f78b9bdde466fd22fdf0d429f38d2a6a087"
+          "content": "417f50cff068a653c60111ae97e445fb01afc06bdb32370280689c8fd6a48a49"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",

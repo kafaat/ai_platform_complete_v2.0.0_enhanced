@@ -212,4 +212,9 @@ async def field_intelligence_analyze(
 
     signals = await _fetch_card_signals(user, field_id, lat=lat, lon=lon)
     response["field_intelligence_card"] = assemble_field_intelligence_card(response, **signals)
+    # رسم الأدلّة (Evidence Graph): يُهيكل أدلّة البطاقة كعُقَد/حوافّ مع مصادرها وفجوات
+    # المعرفة — لتفسير التوصية وإثبات مصدر كلّ معلومة. منطق صرف من المُجمَّع (بلا جلب).
+    from core.evidence_graph import build_evidence_graph
+
+    response["evidence_graph"] = build_evidence_graph(response)
     return response
