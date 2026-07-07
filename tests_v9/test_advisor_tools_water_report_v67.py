@@ -70,3 +70,32 @@ def test_registry_still_unique_and_sized():
     names = REG.tool_names()
     assert len(names) == len(set(names))  # لا تكرار
     assert len(REG.TOOLS) >= 12
+
+
+# ── V67.1: التنفيذ الفعليّ — الجالب الحيّ يُرجِع أدلّة (لا يفشل مُغلَقاً) ──────────────
+def test_live_fetcher_executes_new_tools_with_evidence():
+    from services.ai_agronomist import main as MAIN
+
+    fetcher = MAIN._build_agent_tool_fetcher(
+        field_state={"field_id": "f1", "water_deficit": 18.0},
+        ai_pack={
+            "imagery_timeline": {"total_dates": 12},
+            "weather_history": {"x": 1},
+            "readiness": "ok",
+        },
+        annotations={},
+    )
+    wp = fetcher("get_water_productivity", {"field_id": "f1"})
+    assert wp["available"] is True and "water_deficit" in wp["water_productivity"]
+    rep = fetcher("generate_report", {"field_id": "f1", "period": "2026-Q2"})
+    assert rep["report_type"] == "read_only_field_digest"
+    assert "imagery_timeline" in rep["evidence_sources"]  # أدلّة حقيقيّة من السياق
+
+
+def test_live_fetcher_water_productivity_honest_when_empty():
+    from services.ai_agronomist import main as MAIN
+
+    fetcher = MAIN._build_agent_tool_fetcher(field_state={}, ai_pack={}, annotations={})
+    wp = fetcher("get_water_productivity", {})
+    # لا اختلاق: سياق فارغ ⇒ available=False + سبب صريح (لا رقم مُخترَع).
+    assert wp["available"] is False and wp["note_ar"]

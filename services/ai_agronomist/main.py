@@ -585,6 +585,52 @@ def _build_agent_tool_fetcher(
                 field_id=str(field_id) if field_id is not None else None,
                 evidence_context=vra_ctx,
             )
+        if tool_name == "get_water_productivity":
+            # V67.1 — إشارات المياه المتوفّرة في السياق (لا جلب خارجيّ، لا اختلاق).
+            # فارغ ⇒ available=False بصدق (لا رقم مُختلَق حتّى يوصَل WaPOR/الميزان المائيّ).
+            water: dict[str, Any] = {}
+            for key in (
+                "water_balance",
+                "water_deficit_mm",
+                "water_deficit",
+                "water_use_efficiency",
+                "irrigation_mm",
+                "et0_mm",
+                "water_productivity",
+            ):
+                for src in (fs, pack):
+                    if isinstance(src, dict) and src.get(key) is not None:
+                        water[key] = src.get(key)
+                        break
+            return {
+                "field_id": field_id,
+                "days": params.get("days"),
+                "water_productivity": water,
+                "available": bool(water),
+                "note_ar": None
+                if water
+                else "لا إشارة إنتاجيّة مياه في السياق بعد (يُغذّيها الميزان المائيّ/WaPOR لاحقاً).",
+            }
+        if tool_name == "generate_report":
+            # V67.1 — تقرير قراءة موحّد: هضم منظَّم لأدلّة السياق القائمة (لا إرسال، لا اختلاق).
+            imagery = pack.get("imagery_timeline") if isinstance(pack, dict) else None
+            imagery = imagery if isinstance(imagery, dict) else {}
+            return {
+                "field_id": field_id,
+                "period": params.get("period"),
+                "report_type": "read_only_field_digest",
+                "sections": {
+                    "state": fs or {"status": "missing"},
+                    "imagery": {"total_dates": imagery.get("total_dates")},
+                    "weather": pack.get("weather_history") or {"status": "missing"},
+                    "alerts": pack.get("alerts_context") or {"status": "missing"},
+                    "readiness": pack.get("readiness") if isinstance(pack, dict) else None,
+                },
+                "evidence_sources": sorted(k for k in pack if pack.get(k))
+                if isinstance(pack, dict)
+                else [],
+                "note_ar": "تقرير قراءة مُجمَّع من أدلّة السياق (لا إرسال، لا اختلاق).",
+            }
         # يفترض ألا يصل المجهول إلى الجالب بسبب البوابة، لكن نبقيه fail-closed.
         raise ValueError(f"unsupported_read_tool:{tool_name}")
 
