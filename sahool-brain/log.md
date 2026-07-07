@@ -1633,3 +1633,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **جفاف صادق:** `soil_moisture_drought_class(current, history, min_history=10)` — مئينيّة محلّيّة مقابل تاريخ الموقع/الموسم لا عتبة SMI ثابتة لكلّ اليمن؛ تاريخ<10 ⇒ unknown (لا تخمين). العتبات <10 شديد/10–20 متوسّط/20–30 بداية إجهاد/≥30 طبيعيّ.
 - **صدق الاختبار:** حُذِف فحص substring مُبالِغ ("mirrorearth" not in blob) لأنّه يتعثّر بنصّ الملاحظة التوضيحيّة نفسه؛ استُبدِل بفحص قيم `provider_variable` الفعليّة (كلّها تبدأ بـvolumetric_soil_water_layer_). نمط متكرّر: لا تفحص substring سلبيّ على نصّ يذكر المصطلح توثيقاً.
 - **التحقّق:** 10 حُرّاس طقس أخضر · ruff · manifest (3283) · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — إلغاء حجب CI: ثغرة ecdsa عبوريّة WONTFIX (Security Scan)
+- **السبب:** ثغرة جديدة نُشِرت (`PYSEC-2026-1325` في `ecdsa 0.19.2`) حجبت وظيفة *Security Scan* على **كلّ** الـcommits (بما فيها الخضراء سابقاً 984b9c7) — لا علاقة لها بتغييراتنا. ecdsa تبعيّة عبوريّة أساسيّة لـ`python-jose` (auth/tts/video-processor/odoo-bridge/local-ai-rag).
+- **الحقيقة:** قناة-جانبيّة (Minerva timing على P-256) صنّفها صانعو ecdsa **WONTFIX** صراحةً — لا نسخة إصلاح (0.19.2 الأحدث 2026-03-26؛ README يوصي بـpyca/cryptography). مسارنا `python-jose[cryptography]` ⇒ JWT عبر خلفيّة cryptography/OpenSSL لا ecdsa ⇒ المسار المُصاب غير مُستخدَم.
+- **القرار:** `--ignore-vuln PYSEC-2026-1325` مُوثّق ومحصور في بوّابة pip-audit الحرجة (`ci.yml:333`)، على نمط استثناء local-ai-rag القائم. ecdsa يبقى مرئيّاً في المسح الإرشاديّ (غير حاجب) للشفافيّة. **لا** ترحيل 5 خدمات عن python-jose (تغيير مصادقة خطر خارج النطاق لثغرة بلا إصلاح لا يُمَسّ مسارها).
+- **التحقّق:** `--ignore-vuln` صالح (pip-audit --help) · YAML سليم · manifest (3283) · SHA سيُثبَّت. المتوقّع: Security Scan يعود أخضر.
