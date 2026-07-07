@@ -9,7 +9,10 @@
 
 from __future__ import annotations
 
-from core.field_intelligence_card import assemble_field_intelligence_card
+from core.field_intelligence_card import (
+    assemble_field_intelligence_card,
+    card_signals_from_db_rows,
+)
 
 _ANALYZE = {
     "field_id": "f-1",
@@ -117,3 +120,32 @@ def test_empty_analyze_does_not_crash():
     assert card["completeness"] == 0.0
     assert card["sections"]["confidence"]["value"] is None
     assert card["sections"]["risk_alerts"]["count"] == 0
+
+
+# ── P1: تغذية البطاقة من صفوف DB (منطق صرف) ──────────────────────────────────────
+def test_card_signals_from_db_rows_builds_scene_and_ndvi():
+    ndvi_rows = [{"mean": 0.62}, {"mean": 0.55}, {"mean": 0.58}]  # تنازليّ بالتاريخ
+    scene = {
+        "scene_id": "S2_X",
+        "acquisition_date": "2026-07-01",
+        "cloud_pct": 4.0,
+        "provider": "element84",
+        "has_cog": True,
+    }
+    sig = card_signals_from_db_rows(ndvi_rows, scene)
+    assert sig["ndvi_current"] == 0.62 and sig["ndvi_history"] == [0.62, 0.55, 0.58]
+    assert sig["latest_scene"]["scene_id"] == "S2_X"
+    # مُغذّاة إلى البطاقة ⇒ أقسام حاضرة (لا missing).
+    card = assemble_field_intelligence_card({"field_id": "f"}, **sig)
+    assert card["sections"]["latest_scene"]["status"] == "present"
+    assert card["sections"]["ndvi_vs_historical"]["status"] == "present"
+
+
+def test_card_signals_empty_when_no_data():
+    # صدق: لا بيانات ⇒ إشارات فارغة ⇒ أقسام البطاقة تبقى missing (لا اختلاق).
+    assert card_signals_from_db_rows([], None) == {}
+    assert card_signals_from_db_rows(None, None) == {}
+    card = assemble_field_intelligence_card(
+        {"field_id": "f"}, **card_signals_from_db_rows([], None)
+    )
+    assert card["sections"]["latest_scene"]["status"] == "missing"

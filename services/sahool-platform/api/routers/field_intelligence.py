@@ -12,15 +12,52 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends, Header
 
 from api.main import UserSchema, get_current_user
 
 router = APIRouter()
+_logger = logging.getLogger("sahool.field_intelligence")
+
+# NDVI history (zonal_stats) + أحدث مشهد (raster_assets) لتغذية أقسام البطاقة — RLS.
+_CARD_NDVI_SQL = (
+    "SELECT mean FROM zonal_stats WHERE field_id = $1 AND index_name = 'ndvi' "
+    "ORDER BY stat_date DESC LIMIT 24"
+)
+_CARD_SCENE_SQL = (
+    "SELECT scene_id, acquisition_date, cloud_pct FROM raster_assets "
+    "WHERE field_id = $1 ORDER BY acquisition_date DESC NULLS LAST LIMIT 1"
+)
+
+
+async def _fetch_card_signals(user: UserSchema, field_id: str) -> dict:
+    """يجلب إشارات البطاقة (ndvi_history/latest_scene) مُقيَّدة بالمستأجِر — سقوط آمن.
+
+    أيّ تعذّر (قاعدة معطّلة/خطأ استعلام) ⇒ إشارات فارغة فتبقى أقسام البطاقة ``missing``
+    صراحةً (سلوك ما قبل التغذية دون تغيير) — لا اختلاق ولا انحدار.
+    """
+    from core.field_intelligence_card import card_signals_from_db_rows
+
+    from api.main import _DB_POOL, tenant_connection
+
+    if _DB_POOL is None:
+        return {}
+    try:
+        async with tenant_connection(user) as conn:
+            ndvi_rows = await conn.fetch(_CARD_NDVI_SQL, field_id)
+            scene = await conn.fetchrow(_CARD_SCENE_SQL, field_id)
+        return card_signals_from_db_rows(
+            [dict(r) for r in ndvi_rows], dict(scene) if scene else None
+        )
+    except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة؛ فشلها لا يكسر التحليل.
+        _logger.warning("card signal fetch failed for %s: %s", field_id, exc)
+        return {}
 
 
 @router.post("/api/v1/field-intelligence/analyze")
-def field_intelligence_analyze(
+async def field_intelligence_analyze(
     field_id: str,
     lat: float | None = None,
     lon: float | None = None,
@@ -102,8 +139,10 @@ def field_intelligence_analyze(
     }
     # V65 — بطاقة ذكاء الحقل الموحّدة: تجميع صادق للأوليّات القائمة في بطاقة قرار
     # واحدة (أحدث مشهد/حالة مزوّد/NDVI-تاريخيّ/عجز مائيّ/مناطق ضعيفة/تنبيهات/أدلّة/ثقة).
-    # الأقسام غير المتوفّرة تُعلَّم missing بصدق (لا اختلاق) — إضافيّ غير كاسر.
+    # P1 — تُغذّى أقسام المشهد/NDVI-التاريخيّ من قاعدة المنصّة (zonal_stats/raster_assets)
+    # مُقيَّدةً بالمستأجِر؛ التعذّر ⇒ الأقسام تبقى missing صراحةً (لا اختلاق ولا انحدار).
     from core.field_intelligence_card import assemble_field_intelligence_card
 
-    response["field_intelligence_card"] = assemble_field_intelligence_card(response)
+    signals = await _fetch_card_signals(user, field_id)
+    response["field_intelligence_card"] = assemble_field_intelligence_card(response, **signals)
     return response

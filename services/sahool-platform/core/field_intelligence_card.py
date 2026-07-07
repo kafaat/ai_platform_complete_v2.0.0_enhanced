@@ -127,6 +127,37 @@ def _evidence(analyze: dict[str, Any]) -> dict[str, Any]:
     return _present({"sources": sources, "count": len(sources)})
 
 
+def card_signals_from_db_rows(
+    ndvi_rows: list[dict[str, Any]] | None,
+    scene_row: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """يبني إشارات البطاقة (ndvi_current/ndvi_history/latest_scene) من صفوف DB.
+
+    ``ndvi_rows`` صفوف ``zonal_stats`` مُرتّبة تنازليّاً بالتاريخ (الأحدث أوّلاً)، كلٌّ
+    ``{mean, stat_date}``. ``scene_row`` أحدث صفّ ``raster_assets`` للحقل. منطق صرف
+    قابل للاختبار (الجلب المُقيَّد بالمستأجِر يبقى في الراوت). **صدق:** لا بيانات ⇒ إشارات
+    فارغة (لا اختلاق) فتبقى أقسام البطاقة ``missing`` صراحةً.
+    """
+    signals: dict[str, Any] = {}
+    means = [
+        _num(r.get("mean"))
+        for r in (ndvi_rows or [])
+        if isinstance(r, dict) and _num(r.get("mean")) is not None
+    ]
+    if means:
+        signals["ndvi_current"] = means[0]  # الأحدث (الصفوف تنازليّة بالتاريخ)
+        signals["ndvi_history"] = means  # كامل السلسلة (متوسّطها = الأساس التاريخيّ)
+    if isinstance(scene_row, dict) and scene_row.get("scene_id"):
+        signals["latest_scene"] = {
+            "scene_id": scene_row.get("scene_id"),
+            "acquisition_date": scene_row.get("acquisition_date"),
+            "provider": scene_row.get("provider"),
+            "cloud_cover": scene_row.get("cloud_pct"),
+            "cog_ready": scene_row.get("has_cog"),
+        }
+    return signals
+
+
 def assemble_field_intelligence_card(
     analyze: dict[str, Any],
     *,

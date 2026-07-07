@@ -12225,7 +12225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "062415af416867ce64d8a366eebc1aa4956a3235da5326913c80ec9eb89c9e80"
+          "content": "6b84669d93921bfc0885db8d06fdc794f6a78286cdc7c2a68d4899728372bdb8"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -14975,7 +14975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3af935373b1cd097a51d0bdc39c2ba0dcac7d09fe369e38c5b7687a6227afce0"
+          "content": "2f32149aa2a6d6cb1d76091e8168e79dadb5ec048f883821513c87ee523067d7"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_card.py",
@@ -17705,7 +17705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c0a55298bddc058ad71020cf9688a1ce8a48a830f79af77c8cb37111beb4066e"
+          "content": "88a59c07654f25ab21951c8511692f1126886515f0146ea03ddae64414ee8de5"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_intelligence_card.py",
