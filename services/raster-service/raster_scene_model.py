@@ -554,6 +554,58 @@ def olmoearth_embedding_contract(*, has_weights: bool, inputs_available: bool) -
     }
 
 
+def olmoearth_runtime_status(checkpoint_path: str | None = None) -> dict[str, Any]:
+    """تشخيص جاهزيّة OlmoEarth على العتاد (صادق قابل للتنفيذ) — **لا استدلال هنا**.
+
+    يجيب: ما الذي ينقص لتفعيل OlmoEarth على هذا الجهاز؟ ``reason_code`` مُصنَّف (نمط
+    تشخيص SAM2): ``weights_missing`` (ركّب الأوزان على المسار) · ``cuda_unavailable``
+    (لا GPU) · ``library_missing`` (torch/olmoearth غير مثبّتة) · ``ready_pending_validation``
+    (أوزان+GPU متاحة لكن **يبقى تحقّق محلّيّ يمنيّ** قبل التفعيل الإنتاجيّ — لا نُفعّل بلا benchmark).
+
+    **صدق:** ``ready`` يبقى ``False`` دائماً حتّى بعد توفّر الأوزان/GPU — التفعيل قرار بشريّ
+    بعد قياس محلّيّ (اليمن)؛ لا يُختلَق embedding ولا يُدّعى «يغطّي اليمن» بلا تدريب/تحقّق.
+    """
+    import os
+
+    path = (
+        checkpoint_path or os.getenv("OLMOEARTH_CHECKPOINT", "/models/olmoearth_v1_base.pt")
+    ).strip()
+    base = {"model": "olmoearth", "ready": False, "checkpoint_expected": path}
+    if not path or not os.path.isfile(path):
+        return {
+            **base,
+            "reason_code": "weights_missing",
+            "reason": f"أوزان OlmoEarth غير موجودة على {path or '—'}",
+        }
+    try:
+        import torch  # ثقيل — داخل الدالّة.
+    except ImportError:
+        return {
+            **base,
+            "reason_code": "library_missing",
+            "reason": "torch غير مثبّت (بيئة بلا استدلال)",
+        }
+    try:
+        cuda_ok = bool(torch.cuda.is_available())
+    except Exception:  # noqa: BLE001 — أيّ خطأ torch ⇒ غير جاهز بصدق
+        cuda_ok = False
+    if not cuda_ok:
+        return {
+            **base,
+            "reason_code": "cuda_unavailable",
+            "reason": "torch.cuda.is_available()==False — لا GPU",
+        }
+    return {
+        **base,
+        "reason_code": "ready_pending_validation",
+        "reason": None,
+        "note_ar": (
+            "الأوزان وGPU متاحة؛ يبقى تحقّق محلّيّ يمنيّ (benchmark مقابل NDVI/V60.3) قبل "
+            "التفعيل الإنتاجيّ — لا embedding مُختلَق ولا ادّعاء تغطية محلّيّة بلا قياس."
+        ),
+    }
+
+
 def sources_by_type(source_type: str) -> list[str]:
     """أسماء المصادر الخارجيّة من نوع مُعيَّن (manual_download/commercial/…)."""
     return [k for k, v in EXTERNAL_SOURCE_REGISTRY.items() if v.get("source_type") == source_type]

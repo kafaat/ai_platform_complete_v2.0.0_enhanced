@@ -225,6 +225,9 @@ async def providers_status():
         "research_sources": _sm.RESEARCH_REGISTRY,
         "external_sources": _sm.EXTERNAL_SOURCE_REGISTRY,
         "ai_models": _sm.AI_MODEL_REGISTRY,
+        # تشخيص جاهزيّة OlmoEarth على العتاد (صادق): ما ينقص لتفعيله (أوزان/GPU/تحقّق محلّيّ).
+        # يبقى ready=False حتّى بعد الأوزان+GPU (تفعيل بشريّ بعد benchmark يمنيّ).
+        "olmoearth_runtime": _sm.olmoearth_runtime_status(),
     }
 
 

@@ -1744,3 +1744,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **المُوحِّد:** `core/spray_readiness.py` منطق صرف — `spray_go_no_go(wind_suitability, drift_risk)` يدمج مخرَجَي محرّكَين قائمَين (صلاحيّة الطقس `_operation_suitability` + خطر الانجراف `spray_drift_risk`) في قرار واحد go/caution/no_go بأسوأ العاملَين. **لا يُعيد حساب أيّهما** (مصدر واحد لكلّ منطق).
 - **صدق:** مجهولان ⇒ unknown؛ الانجراف الفعليّ (at_risk) حاجب مطلق no_go (سلامة الجوار تسبق التوقيت)؛ انجراف unknown لا يرفع الشدّة (لا حجب بلا دليل). القرار النهائيّ ميدانيّ.
 - **التحقّق:** 5 حُرّاس (go/انجراف حاجب/أسوأ عامل/unknown/انجراف مجهول لا يحجب) · ruff · manifest · SHA سيُثبَّت. يُغلِق مسار الرشّ (طقس+رياح+مصدّات+انجراف+قرار موحّد).
+
+## 2026-07-07 (ن) — تشخيص جاهزيّة OlmoEarth على العتاد (V81) — تنفيذ الكل (AI path)
+- **الوصل (بعد توفّر GPU):** `raster_scene_model.olmoearth_runtime_status(checkpoint_path?)` — تشخيص صادق (نمط SAM2 readyz): `reason_code` مُصنَّف (weights_missing/cuda_unavailable/library_missing/ready_pending_validation) + `checkpoint_expected`. يُكشَف في `/v1/providers/status` (olmoearth_runtime).
+- **صدق حاسم:** `ready` يبقى **False دائماً** حتّى بعد الأوزان+GPU — التفعيل قرار بشريّ بعد **benchmark يمنيّ محلّيّ** (مقابل NDVI/V60.3)؛ لا embedding مُختلَق ولا ادّعاء «يغطّي اليمن» بلا قياس. AI_MODEL_REGISTRY يبقى active_provider=False.
+- **الحالة العمليّة على جهازك:** ركّب أوزان OlmoEarth على `OLMOEARTH_CHECKPOINT` ⇒ يتحوّل reason_code من weights_missing إلى ready_pending_validation؛ بعدها benchmark محلّيّ ثمّ تفعيل بشريّ.
+- **التحقّق:** 7 حُرّاس OlmoEarth (2 جديدة: weights_missing + never-ready-بلا-تحقّق) · ruff · manifest · SHA سيُثبَّت. (WaPOR/WorldCereal scaffolds تاليان.)

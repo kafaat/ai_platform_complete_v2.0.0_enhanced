@@ -9425,7 +9425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2c0a113e66f5676b373aa434b8fd9bc9793c8c9380f97418a58682891973563"
+          "content": "d5542d0334f66c4fc6fbdb5356711fddbba093e891f5750e3132ceafb457667f"
         }
       ],
       "name": "services/raster-service/raster_scene_model.py",
@@ -9555,7 +9555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e0fe9d68ceed4bfef981e9b3e3e88b26e9158bf0906d2497d10d020476fad67"
+          "content": "f4a59cf5825181fc0fd2e9c425044ed058bf4b024ae128ee62bce9b2f645529f"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -16035,6 +16035,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "94177b801c3301ad7d13e1eb70282213cfc425fafab0e978ebafd8c9ebd09ec7"
+        }
+      ],
+      "name": "services/sahool-platform/core/spray_readiness.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fcae01e57a82c2d69937f42c50745029dc1c4a3dc28ebe65e191e224c8cf71fc"
         }
       ],
@@ -19269,6 +19279,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_spectral_stress_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89a422c2fb80962f5b82935ecfcaa490fc6680b9aad8afd38332feb0c636d949"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_spray_readiness.py",
       "type": "file"
     },
     {
