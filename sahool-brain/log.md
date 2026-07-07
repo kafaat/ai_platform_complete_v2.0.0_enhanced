@@ -1537,3 +1537,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **وصل V63.2 (غير كاسر):** `/imagery/timeseries` يعيد `normalized_scenes` (عقد موحَّد) **بجانب** `scenes` الخام (المفتاح القديم محفوظ، حارس انحدار). التطبيع عند حدّ الاستجابة فيبقى قاموس البحث الداخليّ رشيقاً لمسار backfill.
 - **إثراء السِجِلّ (صادق، يبقى active=False):** أضفتُ `wapor` + `worldcereal` كمزوّدَين مُسجَّلَين غير موصولَين، وأثريتُ `nasa_hls`، ببيانات تغطية اليمن المُتحقَّقة (المُراجِع): `coverage_yemen`/`resolution`/`recommended_use`/`category`. WaPOR L2 100م (الشرق الأدنى)، WorldCereal 10م عالميّ، HLS 30م عالميّ. `planned_providers()` جديدة؛ active/planned منفصلان؛ حارس يمنع تسرّب wapor/worldcereal إلى النشط. الأولويّة التنفيذيّة لليمن: WaPOR → WorldCereal → HLS، **لا تُفعَّل إلّا بعد مُحوِّل + اختبار عقد**.
 - **التحقّق:** 21 اختبار V63 أخضر (9 جديدة) · 193 نطاق raster/stac · ruff نظيف · manifest 3259 · SHA 4a9eeef.
+
+## 2026-07-07 (ن) — عدم يقين نموذج المحصول (V64، «لا غلّة بلا عدم يقين»)
+- **الفجوة (P10):** `wofost_adapter.simulate()` كان يُرجِع غلّة نقطة عارية بلا عدم يقين، و`profit_planner` يرتّب على النقطة. الآن كلّ مخرَج simulate يحمل `yield_interval` (مُرفَق عند نقطة الاختناق الوحيدة فلا يفلت مسار).
+- **النهج الصادق:** `_yield_uncertainty` نطاق **نموذجيّ** (`method="deterministic_model_band"`) — **ليس** conformal التجريبيّ (ذاك يحتاج بيانات حصاد ويعيش في `core/engines/yield_interval.py`؛ note_ar يُحيل إليه). يتّسع بنقص المدخلات (طقس/مطر/ماء تربة/ريّ/وسائط محصول) وقرب عتبة العامل المُقيِّد (حراريّ↔مائيّ)؛ كلّ موسِّع في `drivers` (لا رقم بلا سبب)؛ سقف 60٪. مدخلات أوفى ⇒ نطاق أضيق (رتابة). حتميّ.
+- **التمرير:** `profit_planner.evaluate_candidate` يعيد مدى ربح (`expected_profit_low/high` + `yield_confidence`) من النطاق — توافق خلفيّ (يُحذَف بلا نطاق).
+- **التحقّق:** 9 حُرّاس جديدة + 18 اختبار agriai قائم أخضر · ruff نظيف · manifest 3260 · SHA b2c9897.
