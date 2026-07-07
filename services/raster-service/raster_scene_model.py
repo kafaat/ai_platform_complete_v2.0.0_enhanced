@@ -446,6 +446,71 @@ def external_sources() -> list[str]:
     return list(EXTERNAL_SOURCE_REGISTRY.keys())
 
 
+# ── سِجِلّ نماذج الذكاء الاصطناعيّ (foundation models) — منفصل عن مزوّدي الصور تماماً ──
+# **صدق حاسم:** OlmoEarth (Ai2) نموذج أساس EO يعمل *فوق* الصور (Sentinel-1/2/Landsat)،
+# **ليس مزوّد صور** (``provides_imagery=False``). لا يُغني عن CDSE/Element84. غير مُفعَّل:
+# يحتاج أوزاناً + GPU + **تحقّق محلّيّ (اليمن)** قبل الاعتماد. لا يُختلَق embedding بدون ذلك.
+AI_MODEL_REGISTRY: dict[str, dict[str, Any]] = {
+    "olmoearth": {
+        "id": "olmoearth",
+        "label": "OlmoEarth (Ai2 / Allen Institute for AI)",
+        "type": "ai_foundation_model",
+        "provides_imagery": False,
+        "active_provider": False,
+        "verified": True,
+        "requires_model_weights": True,
+        "requires_satellite_time_series": True,
+        "requires_local_validation_yemen": True,
+        "requires_imagery_provider": ["sentinel1", "sentinel2", "landsat"],
+        "coverage_note": "true_by_input_sources",  # المدخلات تغطّي اليمن؛ النموذج غير مُتحقَّق محلّيّاً.
+        "recommended_use": [
+            "embeddings",
+            "crop_classification",
+            "field_condition_similarity",
+            "change_detection",
+            "productivity_zone_features",
+        ],
+        "license": "open (Ai2) — راجع الرخصة قبل الإنتاج",
+        "refs": [
+            "arXiv: OlmoEarth (Stable Latent Image Modeling for Multimodal EO)",
+            "github.com/allenai/olmoearth_pretrain",
+            "huggingface: OlmoEarth-v1-Base (ViT-B, 89M)",
+        ],
+        "status": "research_or_planned_ai_adapter",
+        "note": (
+            "نموذج أساس متعدّد الوسائط فوق Sentinel-1/2/Landsat/DEM/WorldCereal/OSM — محرّك "
+            "embeddings لا مزوّد صور. لا يُغني عن CDSE/Element84. غير مُفعَّل: أوزان + GPU + "
+            "تحقّق محلّيّ (مدرّجات/حقول صغيرة/جفاف اليمن) قبل أيّ اعتماد إنتاجيّ."
+        ),
+    },
+}
+
+
+def ai_models() -> list[str]:
+    """أسماء نماذج الذكاء الاصطناعيّ المُسجَّلة (لا مزوّدو صور — provides_imagery=False)."""
+    return list(AI_MODEL_REGISTRY.keys())
+
+
+def olmoearth_embedding_contract(*, has_weights: bool, inputs_available: bool) -> dict[str, Any]:
+    """عقد إتاحة embedding من OlmoEarth — **صدق: لا يُختلَق embedding**.
+
+    لا يُنفّذ استدلالاً هنا (يحتاج أوزاناً + GPU)؛ عقد إتاحة فقط. غياب الأوزان أو مدخلات
+    السلاسل الزمنيّة (Sentinel-1/2/Landsat) ⇒ ``available=False`` بسبب صريح و``embedding=None``.
+    حتّى عند توفّرهما لا يُعاد متّجه مُختلَق — الحالة ``ready_pending_local_validation`` فقط.
+    """
+    if not has_weights:
+        return {"available": False, "reason": "no_model_weights", "embedding": None}
+    if not inputs_available:
+        return {"available": False, "reason": "no_satellite_time_series", "embedding": None}
+    return {
+        "available": True,
+        "reason": None,
+        "embedding": None,  # لا متّجه مُختلَق — الاستدلال الفعليّ خلف GPU + تحقّق محلّيّ.
+        "status": "ready_pending_local_validation",
+        "note_ar": "الأوزان والمدخلات متاحة؛ الاستدلال يتطلّب GPU + تحقّق محلّيّ (اليمن) قبل الاعتماد.",
+    }
+
+
 def sources_by_type(source_type: str) -> list[str]:
     """أسماء المصادر الخارجيّة من نوع مُعيَّن (manual_download/commercial/…)."""
     return [k for k, v in EXTERNAL_SOURCE_REGISTRY.items() if v.get("source_type") == source_type]

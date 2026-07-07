@@ -224,6 +224,7 @@ async def providers_status():
         "providers": _sm.PROVIDER_REGISTRY,
         "research_sources": _sm.RESEARCH_REGISTRY,
         "external_sources": _sm.EXTERNAL_SOURCE_REGISTRY,
+        "ai_models": _sm.AI_MODEL_REGISTRY,
     }
 
 
