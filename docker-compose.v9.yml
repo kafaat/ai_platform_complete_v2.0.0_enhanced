@@ -763,6 +763,9 @@ services:
     logging: *id001
     environment:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
+      # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
+      # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
+      HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
@@ -886,6 +889,9 @@ services:
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
+      # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
+      # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
+      HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}

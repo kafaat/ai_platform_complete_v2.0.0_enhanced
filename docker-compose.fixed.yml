@@ -584,6 +584,7 @@ services:
       - "127.0.0.1:8001:8001"
     environment:
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
+      HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
