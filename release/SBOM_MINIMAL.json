@@ -9425,7 +9425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5542d0334f66c4fc6fbdb5356711fddbba093e891f5750e3132ceafb457667f"
+          "content": "08affe5d68b43fa73dc12b79ab68dd3d1757f3770669c5aa4e99805931cf872f"
         }
       ],
       "name": "services/raster-service/raster_scene_model.py",
@@ -9555,7 +9555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f4a59cf5825181fc0fd2e9c425044ed058bf4b024ae128ee62bce9b2f645529f"
+          "content": "f77d9977210bcfd2f4a9f232bd6476322491c51682f63a5ae405511e06152c3d"
         }
       ],
       "name": "services/raster-service/routers/observability.py",

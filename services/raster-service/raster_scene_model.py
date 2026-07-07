@@ -205,6 +205,16 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "processing_units": False,
         "active": False,  # صادق: لا مُحوِّل بعد.
         "verified": True,
+        # صدق التحقّق (docs-based، لا تخمين): النقطة keyless + عناصر mapsets (code/caption)
+        # مُتحقَّقة من وثائق FAO؛ الغلاف الكامل/قراءة البكسل غير مُتحقَّقة حيّاً (بيئة محجوبة).
+        "live_verified": False,
+        "schema_verified_from_docs": True,
+        "provides": ["evapotranspiration", "biomass", "water_productivity"],
+        "activation_blockers": [
+            "live FAO request",
+            "contract fixture from real response",
+            "Yemen AOI sample validation",
+        ],
         "license": "CC-BY-4.0 (commercial OK)",
         "category": "water_productivity",
         "coverage_yemen": True,  # اليمن ضمن الشرق الأدنى → L2 100م.
@@ -225,6 +235,16 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "processing_units": False,
         "active": False,  # صادق: لا مُحوِّل بعد.
         "verified": True,
+        # صدق: واجهة WorldCereal لم تُتحقَّق من مصدر موثوق في هذه البيئة (ESA محجوب) —
+        # لا نكتب parser بلا مخطّط مُتحقَّق (شرط: no guessed schemas).
+        "live_verified": False,
+        "schema_verified_from_docs": False,
+        "provides": ["crop_type_prior", "irrigation_prior", "confidence"],
+        "activation_blockers": [
+            "verify product access schema from authoritative docs",
+            "live ESA/WorldCereal sample",
+            "Yemen AOI validation + local threshold tuning",
+        ],
         "license": "CC-BY-4.0 (استعمل قسم CC-BY فقط؛ تجنّب NC/SA)",
         "category": "crop_prior",
         "coverage_yemen": True,  # منتج عالميّ 10م.

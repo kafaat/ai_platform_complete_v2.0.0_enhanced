@@ -1750,3 +1750,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **صدق حاسم:** `ready` يبقى **False دائماً** حتّى بعد الأوزان+GPU — التفعيل قرار بشريّ بعد **benchmark يمنيّ محلّيّ** (مقابل NDVI/V60.3)؛ لا embedding مُختلَق ولا ادّعاء «يغطّي اليمن» بلا قياس. AI_MODEL_REGISTRY يبقى active_provider=False.
 - **الحالة العمليّة على جهازك:** ركّب أوزان OlmoEarth على `OLMOEARTH_CHECKPOINT` ⇒ يتحوّل reason_code من weights_missing إلى ready_pending_validation؛ بعدها benchmark محلّيّ ثمّ تفعيل بشريّ.
 - **التحقّق:** 7 حُرّاس OlmoEarth (2 جديدة: weights_missing + never-ready-بلا-تحقّق) · ruff · manifest · SHA سيُثبَّت. (WaPOR/WorldCereal scaffolds تاليان.)
+
+## 2026-07-07 (ن) — محوّلا WaPOR/WorldCereal (V82، اختيار A) — docs-based بلا تخمين
+- **بحث الوثائق:** WaPOR v3 **بلا مفتاح**؛ كتالوج mapsets GET `.../gismgr/api/v2/catalog/workspaces/WAPOR-3/mapsets` عناصره `code`+`caption` (موثّق)؛ القيم من COG عبر GDAL /vsicurl/. (مصادر: تعليم FAO WaPOR v3 API + fao.org/wapor-data-access.) **حاجز البيئة:** مضيفو FAO/ESA محجوبون بوكيل الشبكة (403) ⇒ لا تحقّق حيّ للغلاف الكامل/واجهة WorldCereal ⇒ **لا parser بالتخمين**.
+- **البُني (صادق):** `wapor_worldcereal.py` — `parse_wapor_mapsets` (envelope-agnostic، يقرأ code/caption الموثّقَين فقط؛ mismatch⇒None) + `fetch_wapor_mapsets` آمن الفشل + `wapor_readiness`/`worldcereal_readiness`. السِجِلّ: `live_verified=false` لكليهما؛ `schema_verified_from_docs=true` لـWaPOR (endpoint+عناصر موثّقة) و**false** لـWorldCereal (لم تُتحقَّق الواجهة — لا ادّعاء). `activation_blockers` صريحة (تشمل «contract fixture from real response»). مكشوف في `/v1/providers/status`.
+- **صدق حاسم:** لا قيم ET/biomass/crop-prior تُرجَع (قراءة البكسل غير مُتحقَّقة)؛ لا اعتمادات مخزّنة؛ active=false. **يحتاج عيّنة عقد حقيقيّة من شبكتك** لإكمال parser القيم (حاجز مُعلَن، مطابق لشرطك).
+- **التحقّق:** 5 حُرّاس WaPOR/WorldCereal + 7 OlmoEarth · ruff · manifest · SHA سيُثبَّت. (wiring بطاقة missing-with-reason + B تاليان.)
