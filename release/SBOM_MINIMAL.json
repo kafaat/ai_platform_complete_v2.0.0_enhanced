@@ -9255,6 +9255,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eb97fdb86f432065f0971cdfc3ecf8325857094ee90e8df3bd9e8b646f6d72ad"
+        }
+      ],
+      "name": "services/raster-service/raster_scene_model.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "755efb608a7e04a6e040f70de38e1a92c3cec8781344290457c67f817be1e3e5"
         }
       ],
