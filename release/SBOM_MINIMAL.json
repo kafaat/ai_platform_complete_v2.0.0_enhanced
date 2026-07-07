@@ -5835,6 +5835,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "90b0bd2a8ad1619319beeb45ac8bed0f7711c15567c947a28e90520a3f0c0316"
+        }
+      ],
+      "name": "migrations/v148_field_evidence_snapshots.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0e408c05960021f5040101bff1e4c1337012a8e4c153926e0c32345f26da9d76"
         }
       ],
@@ -14965,6 +14975,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5896cc0e5a2fabaf88bf0bd24aa63a0dd3a4d34227be68dbfed58c021a794c78"
+        }
+      ],
+      "name": "services/sahool-platform/core/evidence_snapshot.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a9a46699671819a72cdd33db1a7d5bbf690cec85f0bed645252d73724b0986c6"
         }
       ],
@@ -17619,6 +17639,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f371dd1cfda8bb3d6403d412ff60358a26a2a20dcd8a042ee9d1201950be1b93"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_snapshot.py",
       "type": "file"
     },
     {

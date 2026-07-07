@@ -1712,3 +1712,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **القراءة:** `GET /evidence-graph/latest` (أحدث لقطة) + `/timeline` (خطّ زمنيّ مُوجَز: بصمة/ثقة/عدّ أدلّة-فجوات) — معزولة بالمستأجِر (RLS). لا لقطة ⇒ available:false صريح. إعفاءان backlog-ui (شاشة التاريخ لاحقاً).
 - **صدق/أمن:** لا سرّ يُخزَّن (تنقية + حارس مخطّط) · tenant من السياق · fail-soft. لم نُدخِل Graph DB (المرحلة 2 عند الحاجة).
 - **التحقّق:** 5 حُرّاس snapshot صرف + 4 حُرّاس ترحيل ساكن (RLS/فهارس/تسجيل/لا-أسرار) + sync guard + coverage gate PASS + validate_migrations (v148 ✓) + ruff + manifest · SHA سيُثبَّت. (integration بعد رفع Postgres.)
+
+## 2026-07-07 (ن) — إصلاح بوّابة CI (V75.1): تصنيف قراءات evidence-graph internal
+- **الفشل (Unit Tests على f80fc14):** `test_no_waiver_has_real_ui_evidence` + `test_every_waiver_has_explicit_reason`. السبب: إعفاء لمسار `/api/v1/fields/…` يُطابِق دائماً الجذع العامّ `/api/v1/fields` في الواجهة ⇒ يُعَدّ «له دليل» فيُطالَب بالترقية؛ و`ui_effort:"medium"` غير صالح (المسموح page/button/panel/none). (نفس سبب فشل c47d06f سابقاً قبل ترقية wind إلى core.)
+- **الإصلاح الصادق:** قراءتا `/evidence-graph/latest|timeline` أدوات audit/تاريخ بلا شاشة مستخدم نهائيّ بعد ⇒ صُنِّفتا `internal` (بادئة `/api/v1/fields/{field_id}/evidence-graph` قبل قاعدة `/api/v1/fields`، الأوّل يفوز) بدل الإعفاء. internal لا يُطالَب بواجهة (نمط نقطة النشرة). حُذِف الإعفاءان.
+- **التحقّق:** 13 حارس endpoint-coverage أخضر + gate PASS (442 core/28 إعفاء) + manifest · SHA سيُثبَّت.

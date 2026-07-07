@@ -94,6 +94,10 @@
       "audience": "internal"
     },
     {
+      "prefix": "/api/v1/fields/{field_id}/evidence-graph",
+      "audience": "internal"
+    },
+    {
       "prefix": "/api/v1/fields",
       "audience": "farmer"
     },
