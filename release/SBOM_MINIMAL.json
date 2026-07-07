@@ -14965,6 +14965,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3af935373b1cd097a51d0bdc39c2ba0dcac7d09fe369e38c5b7687a6227afce0"
+        }
+      ],
+      "name": "services/sahool-platform/core/field_intelligence_card.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8981f149da3110ec0ff2ddfa8865645f77ba5a985144a3825a60c47ffd44ace9"
         }
       ],
@@ -17669,6 +17679,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_field_geocode.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c0a55298bddc058ad71020cf9688a1ce8a48a830f79af77c8cb37111beb4066e"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_intelligence_card.py",
       "type": "file"
     },
     {
