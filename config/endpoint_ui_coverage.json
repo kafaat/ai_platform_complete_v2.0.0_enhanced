@@ -90,6 +90,10 @@
       "audience": "farmer"
     },
     {
+      "prefix": "/api/v1/regional/bulletin",
+      "audience": "internal"
+    },
+    {
       "prefix": "/api/v1/fields",
       "audience": "farmer"
     },

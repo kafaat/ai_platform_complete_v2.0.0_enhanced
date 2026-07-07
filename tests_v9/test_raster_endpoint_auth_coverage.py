@@ -148,6 +148,7 @@ PUBLIC_CATALOG: set[str] = {
     "/v1/scenes/quality-score",  # تقييم جودة مشهد — حساب من بيانات وصفيّة عامّة.
     "/v1/cog/registry/preview",  # معاينة سجلّ COG — كتالوج عامّ، لا بيانات مستأجِر.
     "/v1/tiles/observability",  # مراقبة البلاطات (عدّ مُجمَّع) — لا بيانات مستأجِر.
+    "/v1/providers/status",  # V63.4: سِجِلّ المزوّدين الوصفيّ (active/planned) — بيانات ثابتة عامّة، لا مستأجِر.
     "/v1/imagery/backfill/policy",  # سياسة ردم الصور — قواعد ثابتة، لا بيانات.
     "/v1/imagery/quality/policy",  # سياسة جودة الصور — قواعد ثابتة، لا بيانات.
     "/v1/imagery/scenes/rank",  # ترتيب المشاهد — حساب من بيانات وصفيّة عامّة بـbbox.

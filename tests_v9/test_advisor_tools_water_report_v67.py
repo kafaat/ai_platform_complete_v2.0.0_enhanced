@@ -74,6 +74,7 @@ def test_registry_still_unique_and_sized():
 
 # ── V67.1: التنفيذ الفعليّ — الجالب الحيّ يُرجِع أدلّة (لا يفشل مُغلَقاً) ──────────────
 def test_live_fetcher_executes_new_tools_with_evidence():
+    pytest.importorskip("fastapi")  # main يستورد fastapi — يُتخطّى في بيئة الوحدة الدنيا
     from services.ai_agronomist import main as MAIN
 
     fetcher = MAIN._build_agent_tool_fetcher(
@@ -93,6 +94,7 @@ def test_live_fetcher_executes_new_tools_with_evidence():
 
 
 def test_live_fetcher_water_productivity_honest_when_empty():
+    pytest.importorskip("fastapi")  # main يستورد fastapi — يُتخطّى في بيئة الوحدة الدنيا
     from services.ai_agronomist import main as MAIN
 
     fetcher = MAIN._build_agent_tool_fetcher(field_state={}, ai_pack={}, annotations={})
