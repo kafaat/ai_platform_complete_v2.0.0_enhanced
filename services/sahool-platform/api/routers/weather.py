@@ -2931,7 +2931,12 @@ async def weather_action_recommendation(
     معرفان شفافان لمسودة الواجهة فقط. أي قراءة فعلية من ``fields``/``farms``
     يجب أن تنتقل إلى endpoint authenticated.
     """
-    field_ref = client_field_ref or field_id
+    # يُفضَّل client_field_ref ثمّ field_id (الاسم المهجور). نقبل السلاسل فقط: عند استدعاء
+    # الدالّة مباشرةً (كما في اختبارات الوحدة) لا يحلّ FastAPI القيم الافتراضيّة، فيبقى وسم
+    # ``Query(None)`` (كائن FieldInfo صادق منطقيّاً) بدل None ويطغى خطأً على القيمة المُمرَّرة.
+    client_ref = client_field_ref if isinstance(client_field_ref, str) else None
+    legacy_ref = field_id if isinstance(field_id, str) else None
+    field_ref = client_ref or legacy_ref
     plan = await weather_operation_plan(
         lat=lat, lon=lon, operations=operations, hours=hours, model=model
     )
