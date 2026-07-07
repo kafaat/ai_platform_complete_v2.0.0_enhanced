@@ -9025,6 +9025,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "75f6b8bc3415075160fb891f2948502af8d195202879da66d74bcb5b47be15df"
+        }
+      ],
+      "name": "services/raster-service/dem_quality.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cbd6f2ed1018eca78f86161c25017427ec19d155175d5fd262ebfc3f28373290"
         }
       ],

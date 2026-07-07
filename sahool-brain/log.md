@@ -1594,3 +1594,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التصنيف:** أثريتُ PROVIDER_REGISTRY (category/verified/coverage_yemen/resolution للكلّ) + أضفتُ `aster_gdem` (DEM مُخطَّط). سِجِلّ `EXTERNAL_SOURCE_REGISTRY` منفصل: usgs (manual)/planet (commercial)/maxar (event)/china_gaofen (research، requires_verification) — active_provider=False دائماً. helpers external_sources/sources_by_type + كشفها في `/v1/providers/status`. النشطون يبقون {element84, cdse, local_cog} بالضبط.
 - **الوثيقة:** `docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md`.
 - **التحقّق:** 6 حُرّاس جديدة (السِجِلّات الثلاثة منفصلة) · حُرّاس V63 القائمة أخضر · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — DEM: Copernicus مُفضَّل + ASTER احتياطيّ + جودة NUM (V63.6)
+- **التفضيل (المُراجِع):** Copernicus DEM 30م أعلى جودة من ASTER (دراسات حديثة) ⇒ `copernicus_dem` مُسجَّل `preferred_dem=True` (active=False، يوافق `DEM_COLLECTION=cop-dem-glo-30`)؛ `aster_gdem` احتياطيّ بـ`products=[DEM,NUM]` + `requires_earthdata_login`. helpers `dem_providers`/`preferred_dem`.
+- **جودة NUM:** `dem_quality.py` منطق صرف يحوّل عدد المشاهد (NUM) إلى ثقة (كثافة أعلى ⇒ ثقة أعلى؛ بلا NUM ⇒ unknown، لا تخمين).
+- **التحقّق:** 10 حُرّاس جديدة · النشطون بلا تغيير · حُرّاس V63 أخضر · ruff · manifest · SHA سيُثبَّت. **لم أبنِ المستورِد** (قراءة GeoTIFF فعليّة = تكامل، يحتاج Earthdata) — مُعلَّم كخطوة متبقّية.
