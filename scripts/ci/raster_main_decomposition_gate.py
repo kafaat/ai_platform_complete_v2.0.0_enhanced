@@ -10,6 +10,7 @@ outside the application module and that production raster modules do not depend 
 from __future__ import annotations
 
 import ast
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -331,8 +332,12 @@ def main() -> None:
         if missing:
             _fail(f"{module} missing expected exports: {missing}")
 
+    # Whitespace-insensitive: the contract is that main delegates to the extracted
+    # module (the exact call), not how ruff line-wraps it. Comparing whitespace-stripped
+    # source avoids a brittle single-line expectation that a 100-col reformat would break.
+    _source_ws = re.sub(r"\s+", "", source)
     for alias in REQUIRED_MAIN_ALIASES:
-        if alias not in source:
+        if re.sub(r"\s+", "", alias) not in _source_ws:
             _fail(f"main.py compatibility alias missing: {alias}")
 
     dependency_scan_files = []

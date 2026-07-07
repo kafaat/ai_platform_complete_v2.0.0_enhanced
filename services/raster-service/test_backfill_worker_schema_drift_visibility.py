@@ -15,9 +15,12 @@ from __future__ import annotations
 import asyncio
 import logging
 
-import asyncpg
-import backfill_scan_worker as bsw
 import pytest
+
+asyncpg = pytest.importorskip(
+    "asyncpg", reason="asyncpg is required for schema-drift integration guard"
+)
+import backfill_scan_worker as bsw  # noqa: E402  — must follow importorskip (needs asyncpg)
 
 pytestmark = pytest.mark.unit
 

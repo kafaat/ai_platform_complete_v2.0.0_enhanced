@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00da1fa8f805d181b4f4cedb7257cd8c12e1385d4250d2ddb19ac0bf6ea39d92"
+          "content": "0a33a2d674dd5ba7ecd9c056c99d5a5fc9fa22a4cd45ee832f0275c1d7582661"
         }
       ],
       "name": "services/raster-service/main.py",
@@ -9545,7 +9545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "096667a8849b98001f962e9f1c88dfe3030bb0c70bb053778c0ed2301a42cb6c"
+          "content": "655ee9e0c7dd49641cf65f92533df1b37db22088ee0092e95a8e648b75f58188"
         }
       ],
       "name": "services/raster-service/test_backfill_worker_schema_drift_visibility.py",
@@ -9975,7 +9975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01eaa60f2960add1cd76dc97b07a4443f17ed6f706902167241840a09583f1db"
+          "content": "64f9b24ed4b7e1eadcde14466718decdc11cabccf21ae216d36d02857b145554"
         }
       ],
       "name": "services/raster-service/tile_render.py",

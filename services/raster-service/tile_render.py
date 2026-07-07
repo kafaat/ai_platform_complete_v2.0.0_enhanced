@@ -474,23 +474,36 @@ def render_tile_png(cog_path: str, z: int, x: int, y: int, index: str) -> bytes 
             except Exception:  # noqa: BLE001 — تعذّر التحقّق → تابع التصيير
                 pass
 
-            # قراءة جزئية: لا نقرأ COG كاملاً لكل بلاطة. نعيد الإسقاط مباشرةً من
-            # DatasetReader إلى مصفوفة 256×256 كي يستفيد GDAL من tiling/overviews.
-            # حين يملك المصدر قناع مجموعة بيانات، لا نمرّر src_nodata (كي لا يحذّر GDAL
-            # ويتجاهل القناع)؛ نعتمد على القناع عبر _reproject_dataset_mask أدناه.
-            warp_nodata = None if _has_per_dataset_mask(src) else src_nodata
+            # قراءة جزئية للمصادر العادية؛ أمّا COGs ذات per-dataset mask فلا نمرّر
+            # DatasetBand مباشرةً إلى reproject لأن GDAL قد يستنتج nodata من dataset
+            # حتى عند src_nodata=None ثم يُطلق تحذير تعارض القناع/nodata. لذلك نحوّل
+            # القناع إلى NaN في مصفوفة المصدر ونُسقط المصفوفة بلا src_nodata صريح.
+            has_dataset_mask = _has_per_dataset_mask(src)
             dst = np.full((TILE_SIZE, TILE_SIZE), np.nan, dtype="float32")
-            reproject(
-                source=rasterio.band(src, 1),
-                destination=dst,
-                src_transform=src.transform,
-                src_crs=src_crs,
-                dst_transform=dst_transform,
-                dst_crs=dst_crs,
-                resampling=Resampling.nearest,
-                src_nodata=warp_nodata,
-                dst_nodata=np.nan,
-            )
+            if has_dataset_mask:
+                source = src.read(1, masked=True).filled(np.nan).astype("float32")
+                reproject(
+                    source=source,
+                    destination=dst,
+                    src_transform=src.transform,
+                    src_crs=src_crs,
+                    dst_transform=dst_transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.nearest,
+                    dst_nodata=np.nan,
+                )
+            else:
+                reproject(
+                    source=rasterio.band(src, 1),
+                    destination=dst,
+                    src_transform=src.transform,
+                    src_crs=src_crs,
+                    dst_transform=dst_transform,
+                    dst_crs=dst_crs,
+                    resampling=Resampling.nearest,
+                    src_nodata=src_nodata,
+                    dst_nodata=np.nan,
+                )
             dst_mask = _reproject_dataset_mask(
                 src,
                 dst_transform=dst_transform,
@@ -631,21 +644,32 @@ def render_cog_thumbnail_png(cog_path: str, index: str, max_px: int = 160) -> by
                 out_h = max_px
                 out_w = max(16, int(round(max_px * span_x / span_y)))
             dst_transform = from_bounds(minx, miny, maxx, maxy, out_w, out_h)
-            # لا تمرّر src_nodata حين يوجد قناع مجموعة بيانات (يتجنّب تحذير GDAL
-            # وتجاهله للقناع)؛ القناع يُعاد تطبيقه عبر _reproject_dataset_mask أدناه.
-            warp_nodata = None if _has_per_dataset_mask(src) else src_nodata
+            has_dataset_mask = _has_per_dataset_mask(src)
             dst = np.full((out_h, out_w), np.nan, dtype="float32")
-            reproject(
-                source=rasterio.band(src, 1),
-                destination=dst,
-                src_transform=src.transform,
-                src_crs=src.crs,
-                dst_transform=dst_transform,
-                dst_crs="EPSG:3857",
-                resampling=Resampling.nearest,
-                src_nodata=warp_nodata,
-                dst_nodata=np.nan,
-            )
+            if has_dataset_mask:
+                source = src.read(1, masked=True).filled(np.nan).astype("float32")
+                reproject(
+                    source=source,
+                    destination=dst,
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=dst_transform,
+                    dst_crs="EPSG:3857",
+                    resampling=Resampling.nearest,
+                    dst_nodata=np.nan,
+                )
+            else:
+                reproject(
+                    source=rasterio.band(src, 1),
+                    destination=dst,
+                    src_transform=src.transform,
+                    src_crs=src.crs,
+                    dst_transform=dst_transform,
+                    dst_crs="EPSG:3857",
+                    resampling=Resampling.nearest,
+                    src_nodata=src_nodata,
+                    dst_nodata=np.nan,
+                )
             dst_mask = _reproject_dataset_mask(
                 src,
                 dst_transform=dst_transform,

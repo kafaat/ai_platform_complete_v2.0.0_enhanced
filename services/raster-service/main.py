@@ -224,7 +224,6 @@ def _process_backfill_scene_cdse(
     )
 
 
-
 # ─── lifespan + التطبيق ───────────────────────────────────────────
 # Phase 10 decomposition: lifecycle/startup wiring moved to raster_app_lifecycle.py.
 import raster_app_lifecycle  # noqa: E402
@@ -351,6 +350,7 @@ _pixel_quality = raster_quality.pixel_quality
 from raster_asset_persistence import persist_raster_asset as _persist_raster_asset  # noqa: E402
 import raster_processing_runtime  # noqa: E402
 
+
 def _run_processing(job_id: str, req: ProcessRequest):
     """Compatibility wrapper backed by an explicit processing context."""
     return raster_processing_runtime.run_processing(job_id, req, upload_dir=UPLOAD_DIR)
@@ -363,7 +363,9 @@ def _run_batch_processing(job_id: str, req: BatchProcessRequest):
 
 def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
     """Compatibility wrapper backed by an explicit processing context."""
-    return raster_processing_runtime.process_precomputed_pixels(req, layer_id, upload_dir=UPLOAD_DIR)
+    return raster_processing_runtime.process_precomputed_pixels(
+        req, layer_id, upload_dir=UPLOAD_DIR
+    )
 
 
 def _process_precomputed_truecolor(req: ProcessRequest):
@@ -376,7 +378,6 @@ def _process_pixels(req: ProcessRequest, layer_id: str):
     return raster_processing_runtime.process_pixels(req, layer_id, upload_dir=UPLOAD_DIR)
 
 
-
 from raster_api_models import ProcessCdseRequest, ProcessFromStacRequest  # noqa: E402
 
 
@@ -387,6 +388,7 @@ def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
     """Compatibility wrapper backed by an explicit processing context."""
     ctx = raster_processing_runtime.make_processing_context(upload_dir=UPLOAD_DIR)
     return raster_cdse_processing.run_cdse_processing(ctx, job_id, field_id, req)
+
 
 # Transparent fallback PNG and finite nodata moved to raster_settings.py.
 _TRANSPARENT_PNG = raster_settings.TRANSPARENT_PNG
@@ -478,6 +480,7 @@ async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> d
         logger=logger,
         object_store_module=object_store,
     )
+
 
 # ─── السلسلة الزمنيّة للمؤشّر (field-scoped) ──────────────────────────
 
