@@ -117,6 +117,79 @@ def test_fallback_suggestion_points_to_element84():
     assert "cdse" not in sug["alternatives"] and "local_cog" not in sug["alternatives"]
 
 
+# ── حارس ١: المزوّدون غير الموصولين لا يظهرون نشطين إطلاقاً ──────────────────────
+def test_unwired_providers_never_active():
+    active = M.active_providers()
+    for p in ("nasa_hls", "planetary_computer"):
+        assert p not in active, f"{p} غير موصول ⇒ يجب ألّا يظهر نشطاً"
+        assert M.PROVIDER_REGISTRY[p]["active"] is False
+
+
+# ── الحالات الحديّة لعقد cog_ready (assets مفقودة / نطاقات جزئيّة) ────────────────
+def test_cog_ready_missing_assets_is_false():
+    # لا مفتاح bands_urls إطلاقاً ⇒ لا قراءة COG مباشرة
+    s = M.normalize_scene({"item_id": "z", "datetime": "2026-07-01T00:00:00Z"}, source="x")
+    assert s.cog_ready is False and s.bands_available == []
+
+
+def test_cog_ready_partial_bands_is_ready_with_subset():
+    # نطاقات جزئيّة (red فقط، swir1 مفقود) ⇒ جاهز مع عكس المجموعة الفعليّة المتوفّرة
+    item = {
+        "item_id": "p",
+        "datetime": "2026-07-01T00:00:00Z",
+        "bands_urls": {"red": "http://x/r.tif", "swir1": None},
+    }
+    s = M.normalize_scene(item, source="element84-earth-search")
+    assert s.cog_ready is True
+    assert s.bands_available == ["red"]  # يعكس المتوفّر فقط (لا يدّعي swir1)
+
+
+# ── حارس ٢: الاقتراح الاحتياطيّ عقدٌ CDSE-محصور (لا يُطلَق لمزوّد آخر ضمنيّاً) ──────
+def test_fallback_suggestion_is_cdse_scoped_contract():
+    for code in ("cdse_unconfigured", "cdse_quota_exhausted", "cdse_catalog_unavailable"):
+        sug = M.provider_fallback_suggestion(code)
+        assert sug["current_provider"] == "cdse"
+        assert sug["suggested_provider"] == "element84"
+    # الافتراض current_provider=cdse — لا يُنسَب فشل مزوّد آخر إلى CDSE ضمنيّاً.
+    assert M.provider_fallback_suggestion("anything")["current_provider"] == "cdse"
+
+
+def test_element84_path_carries_no_fallback_suggestion():
+    # مسار element84 يقصر الدائرة قبل عقد اقتراح CDSE — لا تسريب للاقتراح خارج فشل CDSE.
+    src = (_RASTER / "stac_search.py").read_text(encoding="utf-8")
+    assert src.count('"fallback_suggestion"') == 1, "الاقتراح يجب أن يظهر مرّة واحدة (عقد CDSE فقط)"
+    i_e84 = src.find("async def stac_search_element84(")
+    body_e84 = src[i_e84 : i_e84 + 1600]
+    assert "fallback_suggestion" not in body_e84
+
+
+# ── حارس ٣ (الأهمّ): acquisition_date لا يقبل processed_at كبديل صامت ──────────────
+def test_acquisition_date_never_falls_back_to_processed_at():
+    # عنصر يحمل datetime + processed_at/created_at ⇒ يُختار datetime (وقت الالتقاط) حصراً.
+    item = {
+        "item_id": "a",
+        "datetime": "2026-07-01T08:00:00Z",
+        "processed_at": "2026-07-05T00:00:00Z",
+        "created_at": "2026-07-06T00:00:00Z",
+        "bands_urls": {"red": "http://x/r.tif"},
+    }
+    s = M.normalize_scene(item, source="element84-earth-search")
+    assert s.acquisition_date == "2026-07-01T08:00:00Z"
+    # غياب datetime ⇒ فراغ صريح، لا انحدار صامت إلى processed_at/created_at.
+    s2 = M.normalize_scene(
+        {"item_id": "b", "processed_at": "2026-07-05T00:00:00Z", "created_at": "2026-07-06"},
+        source="x",
+    )
+    assert s2.acquisition_date == ""
+    assert "2026-07-05" not in s2.acquisition_date and "2026-07-06" not in s2.acquisition_date
+
+
+def test_model_source_has_no_processed_at_mapping():
+    # حارس انحدار ساكن: النموذج يجب ألّا يشير إلى processed_at إطلاقاً (منع تعيينه سرّاً).
+    src = (_RASTER / "raster_scene_model.py").read_text(encoding="utf-8")
+    assert "processed_at" not in src, "النموذج يجب ألّا يعيّن processed_at كتاريخ التقاط"
+
+
 # ── حارس ساكن: مسار 503 يحمل الاقتراح المُهيكَل ─────────────────────────────────
 def test_stac_search_503_carries_structured_suggestion():
     src = (_RASTER / "stac_search.py").read_text(encoding="utf-8")
