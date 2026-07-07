@@ -75,7 +75,7 @@ def field_intelligence_analyze(
     except ValueError:
         event_row = None  # بلا tenant — لا يُحفَظ (لن يحدث: tenant من التوكن)
 
-    return {
+    response = {
         "field_id": state.field_id,
         "tenant_id": state.tenant_id,
         "generated_at": state.generated_at,
@@ -100,3 +100,10 @@ def field_intelligence_analyze(
         "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
         "_persistable_event": event_row,  # جاهز للإدراج في events table
     }
+    # V65 — بطاقة ذكاء الحقل الموحّدة: تجميع صادق للأوليّات القائمة في بطاقة قرار
+    # واحدة (أحدث مشهد/حالة مزوّد/NDVI-تاريخيّ/عجز مائيّ/مناطق ضعيفة/تنبيهات/أدلّة/ثقة).
+    # الأقسام غير المتوفّرة تُعلَّم missing بصدق (لا اختلاق) — إضافيّ غير كاسر.
+    from core.field_intelligence_card import assemble_field_intelligence_card
+
+    response["field_intelligence_card"] = assemble_field_intelligence_card(response)
+    return response

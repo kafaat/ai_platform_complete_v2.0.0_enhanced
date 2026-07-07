@@ -12225,7 +12225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bfef457740e37afcd841f89ad431854bef969092fe3d9ccaa2dcef5cc7d38f35"
+          "content": "062415af416867ce64d8a366eebc1aa4956a3235da5326913c80ec9eb89c9e80"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
