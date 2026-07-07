@@ -1588,3 +1588,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الخطوة (المُراجِع P2):** عرض عقد البطاقة للمستخدم لا backend-only. `FieldIntelligenceCardView` + هوك `useFieldIntelligenceCard` (POST analyze عبر البوّابة) + عقد/مساعِدات نقيّة `lib/fieldIntelligenceCard.ts`.
 - **صدق:** الأقسام الحاضرة تُعرَض بقيمها (مشهد/NDVI-تاريخيّ/حالة مزوّدين/تنبيهات/ثقة)، والمفقودة تُدرَج صراحةً «غير متاح» (provider-unavailable ⇒ «raster متعذّر») — لا اختلاق. مُوصَّلة في MapHub (الوضع الخبير) بجانب BoundaryReviewCard.
 - **التحقّق:** typecheck نظيف (tsc --noEmit) · 5 حُرّاس vitest نقيّة أخضر · manifest معاد بناؤه · SHA سيُثبَّت. **المتبقّي للواجهة:** عرض normalized_scenes/regional_bulletin (بطاقات إضافيّة، نفس النمط).
+
+## 2026-07-07 (ن) — تصنيف سِجِلّ المصادر الصادق + مراجعة قنوات الصور (V63.5)
+- **التصحيح الجوهريّ:** SciHub مُغلَق (2023) ⇒ لا يُضاف؛ CDSE البديل الرسميّ (مُوثَّق في note الإدخال).
+- **التصنيف:** أثريتُ PROVIDER_REGISTRY (category/verified/coverage_yemen/resolution للكلّ) + أضفتُ `aster_gdem` (DEM مُخطَّط). سِجِلّ `EXTERNAL_SOURCE_REGISTRY` منفصل: usgs (manual)/planet (commercial)/maxar (event)/china_gaofen (research، requires_verification) — active_provider=False دائماً. helpers external_sources/sources_by_type + كشفها في `/v1/providers/status`. النشطون يبقون {element84, cdse, local_cog} بالضبط.
+- **الوثيقة:** `docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md`.
+- **التحقّق:** 6 حُرّاس جديدة (السِجِلّات الثلاثة منفصلة) · حُرّاس V63 القائمة أخضر · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
