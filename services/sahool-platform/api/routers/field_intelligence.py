@@ -44,6 +44,7 @@ async def _fetch_card_signals(
         card_signals_from_db_rows,
         provider_status_signal,
         soil_baseline_signal,
+        weather_window_signal,
     )
 
     from api.main import _DB_POOL, tenant_connection
@@ -75,6 +76,21 @@ async def _fetch_card_signals(
                 signals["soil_baseline"] = sb
         except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
             _logger.warning("soil baseline fetch failed for %s: %s", field_id, exc)
+
+        # weather_window من توقّع Open-Meteo (keyless، نشط) — دوافع اليوم الموضوعيّة.
+        # آمن الفشل (منع خروج/شبكة ⇒ القسم يبقى missing بصدق). لا يُعيد حساب الرشّ/الريّ.
+        try:
+            from types import SimpleNamespace
+
+            from core.field_intelligence_adapters import weather_forecast_adapter
+
+            ww = weather_window_signal(
+                weather_forecast_adapter(SimpleNamespace(field_id=field_id, lat=lat, lon=lon))
+            )
+            if ww:
+                signals["weather_window"] = ww
+        except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+            _logger.warning("weather window fetch failed for %s: %s", field_id, exc)
 
     if _DB_POOL is None:
         return signals

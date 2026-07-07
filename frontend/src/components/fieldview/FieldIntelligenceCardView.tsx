@@ -1,8 +1,9 @@
-import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers, Activity, Sprout } from 'lucide-react';
+import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers, Activity, Sprout, CloudSun } from 'lucide-react';
 import { useFieldIntelligenceCard } from '../../hooks/useFieldIntelligenceCard';
 import {
   completenessPct,
   conditionDriverAr,
+  heatFlagAr,
   isPresent,
   missingReasonAr,
   ndviLabelAr,
@@ -129,6 +130,35 @@ export default function FieldIntelligenceCardView({ fieldId, enabled = true }: P
               </span>
             ) : (
               <Missing reason={card.sections.soil_baseline.reason} />
+            )}
+          </Row>
+
+          {/* نافذة الطقس (توقّع Open-Meteo — دوافع اليوم + علَم حرارة/صقيع) */}
+          <Row icon={<CloudSun className="w-3.5 h-3.5" aria-hidden="true" />} label={SECTION_LABELS_AR.weather_window}>
+            {isPresent(card.sections.weather_window) ? (
+              <span
+                style={{
+                  color:
+                    card.sections.weather_window.heat_flag === 'critical'
+                      ? T.danger
+                      : card.sections.weather_window.heat_flag === 'elevated'
+                        ? T.warn
+                        : T.ink,
+                }}
+              >
+                {card.sections.weather_window.heat_flag
+                  ? heatFlagAr(card.sections.weather_window.heat_flag)
+                  : '—'}
+                {typeof card.sections.weather_window.et0_mm === 'number'
+                  ? ` · ET0 ${card.sections.weather_window.et0_mm}مم`
+                  : ''}
+                {typeof card.sections.weather_window.wind_max_ms === 'number'
+                  ? ` · ريح ${card.sections.weather_window.wind_max_ms}م/ث`
+                  : ''}
+                {card.sections.weather_window.frost_flag ? ' · صقيع' : ''}
+              </span>
+            ) : (
+              <Missing reason={card.sections.weather_window.reason} />
             )}
           </Row>
 

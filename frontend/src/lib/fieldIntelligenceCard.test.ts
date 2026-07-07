@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import {
   completenessPct,
   conditionDriverAr,
+  heatFlagAr,
   isPresent,
   missingReasonAr,
   ndviLabelAr,
@@ -41,6 +42,7 @@ describe('fieldIntelligenceCard helpers', () => {
     expect(missingReasonAr('no_provider_status_supplied')).toContain('raster');
     expect(missingReasonAr('no_condition_signals')).toContain('تشخيص');
     expect(missingReasonAr('no_soil_baseline_supplied')).toContain('التربة');
+    expect(missingReasonAr('no_weather_window_supplied')).toContain('الطقس');
     expect(missingReasonAr('some_new_reason')).toBe('some_new_reason');
     expect(missingReasonAr(undefined)).toBe('غير متاح');
   });
@@ -50,5 +52,12 @@ describe('fieldIntelligenceCard helpers', () => {
     expect(conditionDriverAr('heat_limited')).toContain('حرارة');
     expect(conditionDriverAr('some_future_driver')).toBe('some_future_driver');
     expect(conditionDriverAr(undefined)).toBe('—');
+  });
+
+  it('heatFlagAr maps daily heat flags and passes unknown through', () => {
+    expect(heatFlagAr('critical')).toContain('حرجة');
+    expect(heatFlagAr('elevated')).toContain('مرتفعة');
+    expect(heatFlagAr('normal')).toContain('معتدلة');
+    expect(heatFlagAr(undefined)).toBe('—');
   });
 });

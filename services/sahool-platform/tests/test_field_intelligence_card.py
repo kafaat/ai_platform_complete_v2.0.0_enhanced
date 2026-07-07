@@ -14,6 +14,7 @@ from core.field_intelligence_card import (
     card_signals_from_db_rows,
     provider_status_signal,
     soil_baseline_signal,
+    weather_window_signal,
 )
 
 _ANALYZE = {
@@ -198,6 +199,49 @@ def test_soil_baseline_signal_honest_when_unavailable():
     )
     assert card["sections"]["soil_baseline"]["status"] == "missing"
     assert card["sections"]["soil_baseline"]["reason"] == "no_soil_baseline_supplied"
+
+
+# ── P1 cross-service: نافذة الطقس (Open-Meteo) — منطق صرف + عتبات مشتركة ───────────
+def test_weather_window_signal_surfaces_drivers_and_flags():
+    forecast = {
+        "source": "open-meteo",
+        "daily": [
+            {
+                "date": "2026-07-07",
+                "temp_max_c": 41.0,  # ≥40 ⇒ حرارة حرجة (عتبة مشتركة).
+                "temp_min_c": 24.0,
+                "precipitation_mm": 0.0,
+                "et0_mm": 7.2,
+                "wind_max_ms": 3.1,
+            },
+            {"date": "2026-07-08", "temp_max_c": 30.0},
+        ],
+    }
+    sig = weather_window_signal(forecast)
+    assert sig["date"] == "2026-07-07" and sig["et0_mm"] == 7.2 and sig["wind_max_ms"] == 3.1
+    assert sig["heat_flag"] == "critical" and sig["frost_flag"] is False
+    card = assemble_field_intelligence_card({"field_id": "f"}, weather_window=sig)
+    assert card["sections"]["weather_window"]["status"] == "present"
+    assert card["sections"]["weather_window"]["heat_flag"] == "critical"
+
+
+def test_weather_window_heat_and_frost_flag_boundaries():
+    elevated = weather_window_signal({"daily": [{"temp_max_c": 36.0, "temp_min_c": 10.0}]})
+    assert elevated["heat_flag"] == "elevated" and elevated["frost_flag"] is False
+    frosty = weather_window_signal({"daily": [{"temp_max_c": 12.0, "temp_min_c": 1.0}]})
+    assert frosty["heat_flag"] == "normal" and frosty["frost_flag"] is True
+
+
+def test_weather_window_honest_when_unavailable():
+    # توقّع متعذّر (None)/بلا daily/بلا دافع موضوعيّ ⇒ {} ⇒ القسم missing بصدق.
+    assert weather_window_signal(None) == {}
+    assert weather_window_signal({"daily": []}) == {}
+    assert weather_window_signal({"daily": [{"date": "2026-07-07"}]}) == {}  # تاريخ وحده لا يكفي
+    card = assemble_field_intelligence_card(
+        {"field_id": "f"}, weather_window=weather_window_signal(None)
+    )
+    assert card["sections"]["weather_window"]["status"] == "missing"
+    assert card["sections"]["weather_window"]["reason"] == "no_weather_window_supplied"
 
 
 # ── P1: تغذية البطاقة من صفوف DB (منطق صرف) ──────────────────────────────────────

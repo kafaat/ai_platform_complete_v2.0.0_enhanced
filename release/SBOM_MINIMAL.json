@@ -1085,7 +1085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "560ba6286f2794f6fe73bc07413315d2c6b4d5d34e09987306064ff1b04a8cdb"
+          "content": "6bd352dd72c936c6dc97365890e07ab59a24b9b1d5ca7c79237c0fad153cb813"
         }
       ],
       "name": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
@@ -3045,7 +3045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c13cdc090dd8d8908f1db4d751f472c0a5c4ae1cfe8bf3e38189bfa94609ebd9"
+          "content": "f1f1c9964f22484f0f69c01e65607a334def11d32b85f1a765ad8ce01a69f92d"
         }
       ],
       "name": "frontend/src/lib/fieldIntelligenceCard.test.ts",
@@ -3055,7 +3055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4cbc67f9367562424225fd3d0488fc410f1fcc2eb3a4f1f9f740f2c98c694a42"
+          "content": "116ce245637227ad9c5bd87ef3eea84a598eda3447777ccdef33904b651339e8"
         }
       ],
       "name": "frontend/src/lib/fieldIntelligenceCard.ts",
@@ -12275,7 +12275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "254cd84f1bfa927c85cbae83aa4748132e59b67f586c98649c3837055f5c31b3"
+          "content": "fbcb3801105739555d85fa08d1065bfb986373ad78fd984c3954d679ae3e5c5b"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -15025,7 +15025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a102aeb00aa8e3c0c855fa5a004eaf297244b0f83a6cfe17722f718549f3b09b"
+          "content": "618e839ac103d66713b29355ea7aaa9f3cba46d018f634f9d1e207531de54532"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_card.py",
@@ -17775,7 +17775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "54501d73755d4d0ac75005f8f681fa9b29633a7d9f0b11f405a681cba6116b4a"
+          "content": "75986829a90a9f1b6e54c676aae0203d7f98c94db4dfd03bf88a337d987808fb"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_intelligence_card.py",

@@ -16,6 +16,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from core.thresholds import (
+    FROST_RISK_C,
+    HEAT_STRESS_CRITICAL_DAILY_TMAX_C,
+    HEAT_STRESS_DAILY_TMAX_C,
+)
+
 _SCHEMA = "sahool.field_intelligence_card/1"
 
 # أقسام بيانات اختياريّة تدخل حساب الاكتمال (توفّر إشارة). الأقسام المُشتقّة دائمة
@@ -28,6 +34,7 @@ _OPTIONAL_SECTIONS = (
     "ndvi_vs_historical",
     "water_deficit",
     "soil_baseline",
+    "weather_window",
     "weak_zones",
     "evidence",
 )
@@ -216,6 +223,54 @@ def soil_baseline_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
     return out if out else {}
 
 
+def weather_window_signal(forecast: dict[str, Any] | None) -> dict[str, Any]:
+    """يحوّل توقّع Open-Meteo (``weather_forecast_adapter``) إلى إشارة ``weather_window`` لليوم.
+
+    منطق صرف. ``None``/بلا ``daily`` ⇒ ``{}`` فيبقى القسم missing بصدق. يعرض **دوافع اليوم
+    الموضوعيّة** (ET0/حرارة عظمى-دنيا/مطر/رياح) + أعلام حرارة/صقيع من عتبات ``core.thresholds``
+    المشتركة (لا عتبات مُختلَقة). **صدق:** لا يُعيد حساب توصية الرشّ/الريّ — تلك في
+    ``weather_advice``/``weather_overlay`` (مصدر واحد للحقيقة، بلا تكرار).
+    """
+    if not isinstance(forecast, dict):
+        return {}
+    daily = forecast.get("daily")
+    if not isinstance(daily, list) or not daily:
+        return {}
+    today = daily[0]
+    if not isinstance(today, dict):
+        return {}
+    out: dict[str, Any] = {}
+    date = today.get("date")
+    if date:
+        out["date"] = date
+    tmax = _num(today.get("temp_max_c"))
+    tmin = _num(today.get("temp_min_c"))
+    for key, val in (
+        ("et0_mm", _num(today.get("et0_mm"))),
+        ("temp_max_c", tmax),
+        ("temp_min_c", tmin),
+        ("precipitation_mm", _num(today.get("precipitation_mm"))),
+        ("wind_max_ms", _num(today.get("wind_max_ms"))),
+    ):
+        if val is not None:
+            out[key] = val
+    # أعلام من عتبات يوميّة مشتركة (لا أرقام مُختلَقة): حرارة/صقيع.
+    if tmax is not None:
+        if tmax >= HEAT_STRESS_CRITICAL_DAILY_TMAX_C:
+            out["heat_flag"] = "critical"
+        elif tmax >= HEAT_STRESS_DAILY_TMAX_C:
+            out["heat_flag"] = "elevated"
+        else:
+            out["heat_flag"] = "normal"
+    if tmin is not None:
+        out["frost_flag"] = tmin < FROST_RISK_C
+    # التاريخ وحده لا يكفي — نطلب دافعاً موضوعيّاً واحداً على الأقلّ.
+    has_metric = any(
+        k in out for k in ("et0_mm", "temp_max_c", "temp_min_c", "precipitation_mm", "wind_max_ms")
+    )
+    return out if has_metric else {}
+
+
 def card_signals_from_db_rows(
     ndvi_rows: list[dict[str, Any]] | None,
     scene_row: dict[str, Any] | None,
@@ -256,6 +311,7 @@ def assemble_field_intelligence_card(
     ndvi_history: Any = None,
     water_deficit: Any = None,
     soil_baseline: Any = None,
+    weather_window: Any = None,
     weak_zones: Any = None,
 ) -> dict[str, Any]:
     """يبني بطاقة ذكاء الحقل من مخرَج ``analyze`` + إشارات تكميليّة (صادق، غير جالب).
@@ -306,6 +362,11 @@ def assemble_field_intelligence_card(
         )
         if isinstance(soil_baseline, dict) and soil_baseline
         else _missing("no_soil_baseline_supplied")
+    )
+    sections["weather_window"] = (
+        _present(weather_window)
+        if isinstance(weather_window, dict) and weather_window
+        else _missing("no_weather_window_supplied")
     )
     sections["weak_zones"] = _weak_zones(weak_zones)
     sections["evidence"] = _evidence(analyze)

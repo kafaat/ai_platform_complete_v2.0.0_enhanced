@@ -52,6 +52,17 @@ export interface SoilBaselineSection extends CardSection {
   cec?: number;
 }
 
+export interface WeatherWindowSection extends CardSection {
+  date?: string;
+  et0_mm?: number;
+  temp_max_c?: number;
+  temp_min_c?: number;
+  precipitation_mm?: number;
+  wind_max_ms?: number;
+  heat_flag?: 'critical' | 'elevated' | 'normal';
+  frost_flag?: boolean;
+}
+
 export interface WeakZonesSection extends CardSection {
   count?: number;
   zone_ids?: string[];
@@ -94,6 +105,7 @@ export interface FieldIntelligenceCard {
     ndvi_vs_historical: NdviVsHistoricalSection;
     water_deficit: WaterDeficitSection;
     soil_baseline: SoilBaselineSection;
+    weather_window: WeatherWindowSection;
     weak_zones: WeakZonesSection;
     evidence: EvidenceSection;
     scouting_recommendation: ScoutingSection;
@@ -116,6 +128,7 @@ export const SECTION_LABELS_AR: Record<string, string> = {
   ndvi_vs_historical: 'NDVI مقابل التاريخيّ',
   water_deficit: 'العجز المائيّ',
   soil_baseline: 'خطّ أساس التربة',
+  weather_window: 'نافذة الطقس',
   weak_zones: 'المناطق الضعيفة',
   evidence: 'الأدلّة',
   scouting_recommendation: 'توصية الاستطلاع',
@@ -167,8 +180,23 @@ export function missingReasonAr(reason?: string): string {
     no_provenance: 'لا أدلّة',
     no_condition_signals: 'لا إشارات تشخيصيّة بعد',
     no_soil_baseline_supplied: 'خطّ أساس التربة غير متاح (soil-service/إحداثيّات)',
+    no_weather_window_supplied: 'نافذة الطقس غير متاحة (توقّع/إحداثيّات)',
   };
   return (reason && map[reason]) || reason || 'غير متاح';
+}
+
+/** تسمية عربيّة لعلَم الحرارة اليوميّ (عتبات مشتركة؛ المجهول يُعرَض كما هو). */
+export function heatFlagAr(flag?: string): string {
+  switch (flag) {
+    case 'critical':
+      return 'حرارة حرجة';
+    case 'elevated':
+      return 'حرارة مرتفعة';
+    case 'normal':
+      return 'حرارة معتدلة';
+    default:
+      return flag || '—';
+  }
 }
 
 /** تسمية عربيّة للحالة الفعليّة/المُحرِّك الأساسيّ (المجهول يُعرَض كما هو بصدق). */

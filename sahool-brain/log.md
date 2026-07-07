@@ -1660,3 +1660,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **صدق:** بلا إحداثيّات/توكن/تغطية ⇒ القسم missing صريح (no_soil_baseline_supplied) — لا اختلاق. لا يُمَسّ مسار المايسترو/الحَوكمة.
 - **الواجهة:** `SoilBaselineSection` + صفّ «خطّ أساس التربة» (قوام/pH/طين% + تحذير في title) + سبب missing عربيّ.
 - **التحقّق:** 17 حارس بطاقة خلفيّ (2 جديدة) + 6 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قسم «نافذة الطقس» (Open-Meteo) في بطاقة الذكاء (V65.5)
+- **الفجوة:** توقّع Open-Meteo نشط (`weather_forecast_adapter`, keyless) لكن دوافع اليوم لا تصل للبطاقة الموحّدة. P0/P1 يطلب weather window/spray.
+- **الحلّ (نمط الجلب الآمن، بلا تكرار):** `weather_window_signal(forecast)` منطق صرف — يعرض **دوافع اليوم الموضوعيّة** (ET0/حرارة عظمى-دنيا/مطر/رياح 10م) + علَمَي حرارة/صقيع من عتبات `core.thresholds` المشتركة (HEAT_STRESS_DAILY_TMAX_C=35/CRITICAL=40، FROST_RISK_C=2) — **لا عتبات مُختلَقة**. `_fetch_card_signals` يجلبه آمن الفشل (lat/lon).
+- **صدق/لا تكرار:** لا يُعيد حساب توصية الرشّ/الريّ — تلك في `weather_advice.irrigation_advice`/`disease_risk` و`weather_overlay.compute_scores` (مصدر واحد). القسم يعرض القياس الخام + علَم مشترك فقط. بلا توقّع/إحداثيّات ⇒ missing صريح (no_weather_window_supplied).
+- **الواجهة:** `WeatherWindowSection` + `heatFlagAr` + صفّ «نافذة الطقس» (لون حسب علَم الحرارة: حرج=danger/مرتفع=warn) + ET0/ريح/صقيع + سبب missing عربيّ.
+- **التحقّق:** 20 حارس بطاقة خلفيّ (3 جديدة) + 7 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت. البطاقة الآن: مشهد·حالة الحقل·تربة·نافذة طقس·NDVI·عجز مائيّ·مزوّدون·مناطق·أدلّة·تنبيهات·ثقة.
