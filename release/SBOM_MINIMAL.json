@@ -2435,7 +2435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "768da6eb2980c4b535bfa45327c2c154449c6ede63969919b2826e62cc80486f"
+          "content": "11a6e502e096478d5557b149812bfdb2d68eee9dba707c50f69bcc2a4e90a175"
         }
       ],
       "name": "frontend/src/index.css",
@@ -9789,6 +9789,16 @@
         }
       ],
       "name": "services/raster-service/test_poly_clip.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5db11394ff2e82579a82ca595e3f4abb8e78a7864dcc5a0489f5099b0ffb8f74"
+        }
+      ],
+      "name": "services/raster-service/test_processing_context_wiring.py",
       "type": "file"
     },
     {
