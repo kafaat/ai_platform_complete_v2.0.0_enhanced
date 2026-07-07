@@ -44,14 +44,18 @@ def _sum_costs(costs: Any) -> tuple[float, dict[str, float]]:
 
 
 def evaluate_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
-    """يقيّم مرشّحاً واحداً ⇒ تفصيل إيراد/كلفة/ربح متوقّع (حتميّ)."""
+    """يقيّم مرشّحاً واحداً ⇒ تفصيل إيراد/كلفة/ربح متوقّع (حتميّ).
+
+    عند حمل المرشّح ``yield_interval`` (من مُحوِّل المحاكاة) يُشتقّ **مدى ربح** صادق
+    (منخفض/مرتفع) من حدّي الغلّة — لا رقم ربح واحد يُوهِم يقيناً غير موجود.
+    """
     name = str(candidate.get("name", candidate.get("id", candidate.get("crop", "candidate"))))
     yield_kg_ha = _num(candidate.get("yield_kg_ha"))
     price = _num(candidate.get("price_per_kg", candidate.get("price")))
     revenue = round(yield_kg_ha * price, _ROUND)
     total_cost, cost_breakdown = _sum_costs(candidate.get("costs"))
     expected_profit = round(revenue - total_cost, _ROUND)
-    return {
+    result = {
         "name": name,
         "yield_kg_ha": round(yield_kg_ha, _ROUND),
         "price_per_kg": round(price, _ROUND),
@@ -60,6 +64,16 @@ def evaluate_candidate(candidate: dict[str, Any]) -> dict[str, Any]:
         "cost_breakdown": cost_breakdown,
         "expected_profit": expected_profit,
     }
+
+    # تمرير عدم اليقين: مدى ربح من حدّي الغلّة (إن توفّر النطاق النموذجيّ).
+    interval = candidate.get("yield_interval")
+    if isinstance(interval, dict) and interval.get("low_kg_ha") is not None:
+        low_y = _num(interval.get("low_kg_ha"))
+        high_y = _num(interval.get("high_kg_ha"))
+        result["expected_profit_low"] = round(low_y * price - total_cost, _ROUND)
+        result["expected_profit_high"] = round(high_y * price - total_cost, _ROUND)
+        result["yield_confidence"] = str(interval.get("confidence", "unknown"))
+    return result
 
 
 def plan_profit(
