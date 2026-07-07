@@ -405,3 +405,8 @@ SHAs من `git log --oneline origin/main`.
 | SHA | القرار + السبب |
 |---|---|
 | _(هذا الالتزام)_ | **تغذية provider_status في البطاقة من raster-service (`/v1/providers/status`).** **السبب:** المُراجِع طلب جسر أدلّة platform→raster لملء provider_status. النهج: `fetch_provider_status` عبر `_get_json` القائم (آمن الفشل: raster متعذّر/بلا httpx ⇒ None) + محوّل صرف `provider_status_signal` (مُختبَر) + تغذية في الراوت **خارج معاملة القاعدة** بسقوط آمن. **صدق:** raster متعذّر ⇒ القسم missing بسبب صريح (لا mock)؛ active يعكس الوصل الفعليّ. المصدر الواحد الصادق = V63.4. نداء HTTP يُتحقَّق بالتكامل. التحقّق: 4 حُرّاس + 12 بطاقة + endpoint أخضر · ruff · manifest · CI معلّق. |
+
+## 2026-07-07 — fast-forward main/develop → 27be67c (المسار الداخليّ evidence-driven)
+- **القرار:** بعد CI أخضر على 27be67c، fast-forward `main` و`develop` من 712890a → 27be67c (تقديم سريع نظيف؛ 712890a سلف مباشر).
+- **المحتوى:** V68.2/68.3 (ERA5-Land) · إلغاء حجب ecdsa · V65.3–65.5 (حالة/تربة/طقس) · V72 (تضاريس) · V71/V73/V73-UI (رياح/مصدّات + NASA POWER) · V74/74-UI (Evidence Graph) · V75/75.1 (Evidence Graph Persistence + إصلاح تصنيف internal).
+- **السبب:** المسار الداخليّ (بطاقة الذكاء/تضاريس/رياح/رسم أدلّة/استمرار) مكتمل، مُختبَر، وأخضر. المؤجَّل (WaPOR/WorldCereal/OlmoEarth) خارجيّ الاعتماد؛ Drift-Geometry + normalized graph مرحلة 2.
