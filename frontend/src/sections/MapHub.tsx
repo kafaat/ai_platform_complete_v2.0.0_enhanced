@@ -54,6 +54,7 @@ import SeasonProfitabilityCard from '../components/fieldview/SeasonProfitability
 import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
 import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceabilityCard';
 import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
+import FieldIntelligenceCardView from '../components/fieldview/FieldIntelligenceCardView';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
@@ -1922,6 +1923,12 @@ export default function MapHub() {
           كان أقوى من الواجهة (score/graph بلا قارئ). */}
       {selected && fieldMode === 'expert' && (
         <BoundaryReviewCard fieldId={fieldId ?? null} enabled={expertMode} mutateAllowed={mutateAllowed} />
+      )}
+
+      {/* بطاقة ذكاء الحقل الموحّدة (V65): تجمع أحدث مشهد/حالة المزوّدين/NDVI-تاريخيّ/
+          العجز المائيّ/التنبيهات/الثقة في بطاقة واحدة، مع إظهار المفقود صراحةً. */}
+      {selected && fieldMode === 'expert' && (
+        <FieldIntelligenceCardView fieldId={fieldId ?? null} enabled={expertMode} />
       )}
 
       {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
