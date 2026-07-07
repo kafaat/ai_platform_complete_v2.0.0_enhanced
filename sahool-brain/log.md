@@ -1723,3 +1723,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التقوية الحقيقيّة (حالتك: GPU جاهز، SAM2 بلا أوزان):** `sam2-inference/main.py` `/readyz` يعرض الآن تشخيصاً **صادقاً قابلاً للتنفيذ**: `reason_code` مُصنَّف (weights_missing/cuda_unavailable/library_missing/load_failed) + `reason` + `checkpoint_expected` — يعرف المُشغّل ما ينقص (ركّب الأوزان على مسار الـcheckpoint) دون قراءة السجلّات. صنّف ImportError لمكتبة SAM2 صراحةً library_missing.
 - **صدق:** لا تشغيل GPU هنا (أُعلن)؛ التحقّق الحيّ عبر `sam2_live_gpu_gate.py` على الجهاز. لم يُفعَّل أيّ نموذج بلا أوزان (SAM2 يبقى degraded بصدق حتّى تُركَّب).
 - **التحقّق:** 8 حُرّاس GPU-enablement أخضر (2 جديدة: readyz-reason + arch-Blackwell) + contract gate PASS + ruff + manifest · SHA سيُثبَّت. وثيقة RTX5090 حُدِّثت (توافق CUDA 13.1 + تشخيص الجاهزيّة).
+
+## 2026-07-07 (ن) — Drift-Geometry GIS الشريحة 1 (V77) — خطر انجراف الرشّ downwind
+- **الوحدة:** `core/drift_geometry.py` منطق صرف (haversine + bearing كرويّ، بلا shapely): `downwind_azimuth` (اتّجاه+180) · `zone_drift_exposure` (منطقة في مخروط الانجراف؟) · `spray_drift_risk` (تقييم قائمة مناطق حسّاسة: منزل/طريق/قناة/جار/منحل). يبني على محرّك الرياح: «لا ترشّ نحو X الآن».
+- **صدق + تقريب معلَن:** بلا ريح ⇒ unknown (لا حكم)؛ الأصل مركز الحقل + مخروط ±30° (تقدير محافظ لا هندسة مضلّع دقيقة — شريحة GIS لاحقة). القرار النهائيّ ميدانيّ.
+- **التحقّق:** 5 حُرّاس (haversine/bearing · downwind · معرّض قريب لا بعيد/عكسيّ · قائمة مناطق · بلا ريح unknown) · ruff · manifest · SHA سيُثبَّت. (نقطة POST /wind/drift-risk + طبقة الخريطة شرائح لاحقة.)
