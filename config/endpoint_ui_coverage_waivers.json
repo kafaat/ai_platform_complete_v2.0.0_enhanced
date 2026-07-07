@@ -2,6 +2,38 @@
   "$comment": "سجلّ إعفاءات عقد backend⇒frontend (البوّابة العكسيّة). كلّ مسار مواجِه بلا دليل واجهة يجب أن يكون هنا بسبب صريح وإلّا تفشل البوّابة. backlog-ui دَين واجهة مقصود؛ admin-ops/operational لا تتطلّب شاشة مستخدم نهائيّ. مولّد أوّليّاً من حالة e5685b2 عبر منطق البوّابة نفسه؛ أيّ إضافة لاحقة قرار مرئيّ في المراجعة. نظّف البائت عبر البوّابة.",
   "waivers": [
     {
+      "endpoint": "/api/v1/fields/{field_id}/evidence-graph/latest",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/field_intelligence.py"
+      ],
+      "reason_category": "backlog-ui",
+      "reason": "قراءة تاريخ رسم الأدلّة (v148 persistence) — واجهة برمجيّة جاهزة؛ شاشة تاريخ الأدلّة/القرارات شريحة لاحقة.",
+      "priority": "low",
+      "ui_effort": "medium",
+      "ui_surface_hint": "field-evidence-history",
+      "criticality": "low",
+      "importance": 30,
+      "importance_tier": "low",
+      "intended_consumer": "human"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/evidence-graph/timeline",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/field_intelligence.py"
+      ],
+      "reason_category": "backlog-ui",
+      "reason": "خطّ زمنيّ للقطات الأدلّة (v148 persistence) للـaudit — واجهة برمجيّة جاهزة؛ شاشة الخطّ الزمنيّ شريحة لاحقة.",
+      "priority": "low",
+      "ui_effort": "medium",
+      "ui_surface_hint": "field-evidence-timeline",
+      "criticality": "low",
+      "importance": 30,
+      "importance_tier": "low",
+      "intended_consumer": "human"
+    },
+    {
       "endpoint": "/api/v1/admin/break-glass",
       "audience": "admin",
       "methods": [

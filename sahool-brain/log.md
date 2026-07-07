@@ -1704,3 +1704,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الواجهة:** `lib/evidenceGraph.ts` (أنواع + مساعِدات نقيّة: evidenceNodes/supportingEvidenceCount) · `components/fieldview/EvidenceGraphCard.tsx` يعرض الأدلّة الحاضرة **بمصادرها** (رقاقات + عدد داعمي التوصية) + **فجوات المعرفة بأسبابها** (missingReasonAr) · مركّبة في MapHub (expert) بعد بطاقة المصدّات. يعيد استخدام استعلام analyze (evidence_graph مُرفَق) — بلا نقطة/هوك جديد.
 - **صدق:** الحاضر بمصدره والناقص بسببه صراحةً؛ لا رسم ⇒ رسالة صادقة. لا حاجة لتعديل عقد التغطية (نقطة analyze لها دليل واجهة أصلاً).
 - **التحقّق:** 2 vitest جديدة (5 مع windbreak) + tsc نظيف + manifest · SHA سيُثبَّت. ميزة رسم الأدلّة مكتملة end-to-end (backend V74 + UI).
+
+## 2026-07-07 (ن) — استمرار رسم الأدلّة Evidence Graph Persistence (V75، VNext المرحلة 1)
+- **الهدف:** تحويل evidence_graph من كائن عابر في analyze إلى **سجلّ قابل للاستعلام عبر الزمن** (Postgres JSONB، بلا Graph DB). أساس audit/تتبّع القرار/تعلّم لاحق.
+- **الترحيل v148:** `field_evidence_snapshots` (JSONB) معزول بالمستأجِر (RLS FORCE، نمط v140/v144) + فهرسا (tenant/field/زمن) و(GIN على الرسم). مُسجَّل في MANIFEST + run_migrations.sql (خطوة 154). لا أعمدة أسرار.
+- **الكاتب (fail-soft):** `core/evidence_snapshot.py` صرف — `recommendation_hash` (بصمة ثابتة لمدخلات القرار، لا توقيت) · `strip_secrets` (يحذف token/password/… من الرسم قبل التخزين) · `should_persist` (لا لقطة بلا دليل/توصية) · `build_snapshot_payload`. `field_intelligence.analyze` يستدعي `_persist_evidence_snapshot` **بعد** إرفاق الرسم — **فشل الكتابة لا يكسر التحليل** (persistence غير حاجبة). tenant_id من التوكن (لا الجسم).
+- **القراءة:** `GET /evidence-graph/latest` (أحدث لقطة) + `/timeline` (خطّ زمنيّ مُوجَز: بصمة/ثقة/عدّ أدلّة-فجوات) — معزولة بالمستأجِر (RLS). لا لقطة ⇒ available:false صريح. إعفاءان backlog-ui (شاشة التاريخ لاحقاً).
+- **صدق/أمن:** لا سرّ يُخزَّن (تنقية + حارس مخطّط) · tenant من السياق · fail-soft. لم نُدخِل Graph DB (المرحلة 2 عند الحاجة).
+- **التحقّق:** 5 حُرّاس snapshot صرف + 4 حُرّاس ترحيل ساكن (RLS/فهارس/تسجيل/لا-أسرار) + sync guard + coverage gate PASS + validate_migrations (v148 ✓) + ruff + manifest · SHA سيُثبَّت. (integration بعد رفع Postgres.)

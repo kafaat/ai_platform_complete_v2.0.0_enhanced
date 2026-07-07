@@ -574,3 +574,8 @@ v146_backfill_runs_outcome_counters.sql
 # v147: مصدر backfill صريح لدعم Landsat thermal-only بدون خلطه مع Sentinel-2/CDSE.
 #   يضيف backfill_runs.source بقيم sentinel-2/landsat-thermal وفهرس تشغيل. بعد v146.
 v147_backfill_runs_source_landsat_thermal.sql
+
+# v148: استمرار رسم أدلّة الحقل (Evidence Graph) — جدول لقطات JSONB معزول بالمستأجِر
+#   (RLS FORCE) + فهارس (tenant/field/زمن + GIN). كاتب داخليّ fail-soft عند analyze،
+#   قراءة latest/timeline. لا أسرار تُخزَّن. المرحلة 1 (بلا Graph DB). بعد v147.
+v148_field_evidence_snapshots.sql

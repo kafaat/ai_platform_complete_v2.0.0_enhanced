@@ -449,3 +449,5 @@
 \i migrations/v146_backfill_runs_outcome_counters.sql
 \echo '═══ 153. v147_backfill_runs_source_landsat_thermal.sql ═══'
 \i migrations/v147_backfill_runs_source_landsat_thermal.sql
+\echo '═══ 154. v148_field_evidence_snapshots.sql ═══'
+\i migrations/v148_field_evidence_snapshots.sql

@@ -1055,6 +1055,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b5b3b9684a7efceaa47dc261f0ce6cd8b767fb932f3e76c85f140f9b95d26ffc"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/EvidenceGraphCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb7e36a2a785a6da770a856005350e6dc96f13459e0e411b10f4c84fda96c903"
         }
       ],
@@ -2799,6 +2809,26 @@
         }
       ],
       "name": "frontend/src/lib/enterpriseGisPhase7.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7d490d2e629fa5d1e158af1e6882051d99682dcc74ec14a60643be9e45a1aff9"
+        }
+      ],
+      "name": "frontend/src/lib/evidenceGraph.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a80ca0a94287a5da9d0a87c8aefd6340cc0d32fa77a3a9df8e7a89e584c70371"
+        }
+      ],
+      "name": "frontend/src/lib/evidenceGraph.ts",
       "type": "file"
     },
     {
@@ -5245,7 +5275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "050f21717a0997d4f6b72e9e0cceab5518c14947a6cbf3e9d718220cf2d5325f"
+          "content": "f860e8a3f8baf942f2263d06957ef1ff24da5b57fffa3d8b7feedc5e0b2b5179"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -12325,7 +12355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "417f50cff068a653c60111ae97e445fb01afc06bdb32370280689c8fd6a48a49"
+          "content": "efa2923ddeaa751a8a2820cffc7bbc104de84c555e8320fef3d3fc5d81715412"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
