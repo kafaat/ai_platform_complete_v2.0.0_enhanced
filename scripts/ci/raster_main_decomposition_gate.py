@@ -128,6 +128,9 @@ REQUIRED_MODULES = {
         "make_processing_context",
         "run_processing",
         "run_batch_processing",
+        "process_precomputed_pixels",
+        "process_precomputed_truecolor",
+        "process_pixels",
     ],
     "raster_cdse_tile_runtime.py": [
         "parse_poly",
@@ -148,7 +151,7 @@ REQUIRED_MODULES = {
     ],
 }
 
-MAX_MAIN_LINES = 540
+MAX_MAIN_LINES = 530
 
 DIRECT_ROUTER_IMPORTS = {
     "routers/jobs.py",
@@ -230,15 +233,15 @@ REQUIRED_MAIN_ALIASES = {
     "return await layer_lookup.real_field_grid(",
     "from raster_asset_persistence import",
     "persist_raster_asset as _persist_raster_asset",
-    "import raster_job_orchestration",
-    "return raster_job_orchestration.run_processing(sys.modules[__name__], job_id, req)",
-    "return raster_job_orchestration.run_batch_processing(sys.modules[__name__], job_id, req)",
-    "import raster_pixel_processing",
-    "return raster_pixel_processing.process_precomputed_pixels(sys.modules[__name__], req, layer_id)",
-    "return raster_pixel_processing.process_precomputed_truecolor(sys.modules[__name__], req)",
-    "return raster_pixel_processing.process_pixels(sys.modules[__name__], req, layer_id)",
+    "import raster_processing_runtime",
+    "return raster_processing_runtime.run_processing(job_id, req, upload_dir=UPLOAD_DIR)",
+    "return raster_processing_runtime.run_batch_processing(job_id, req, upload_dir=UPLOAD_DIR)",
+    "return raster_processing_runtime.process_precomputed_pixels(req, layer_id, upload_dir=UPLOAD_DIR)",
+    "return raster_processing_runtime.process_precomputed_truecolor(req, upload_dir=UPLOAD_DIR)",
+    "return raster_processing_runtime.process_pixels(req, layer_id, upload_dir=UPLOAD_DIR)",
     "import raster_cdse_processing",
-    "return raster_cdse_processing.run_cdse_processing(sys.modules[__name__], job_id, field_id, req)",
+    "ctx = raster_processing_runtime.make_processing_context(upload_dir=UPLOAD_DIR)",
+    "return raster_cdse_processing.run_cdse_processing(ctx, job_id, field_id, req)",
     "from raster_api_models import",
     "BACKFILL_PRESET_MONTHS as _BACKFILL_PRESET_MONTHS",
     "ProcessCdseRequest, ProcessFromStacRequest",
@@ -294,7 +297,9 @@ def main() -> None:
         _fail(f"main.py grew to {line_count} lines; limit is {MAX_MAIN_LINES}")
 
     tree = ast.parse(source)
-    defs = {node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    defs = {
+        node.name for node in tree.body if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
     regressed = sorted(FORBIDDEN_MAIN_DEFS & defs)
     if regressed:
         _fail(f"extracted helper definitions returned to main.py: {regressed}")
@@ -346,7 +351,11 @@ def main() -> None:
                 _fail(f"{rel} regressed to importing main instead of extracted modules directly")
             if isinstance(node, ast.ImportFrom) and node.module == "main":
                 _fail(f"{rel} regressed to importing main instead of extracted modules directly")
-            if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name) and node.value.id == "main":
+            if (
+                isinstance(node, ast.Attribute)
+                and isinstance(node.value, ast.Name)
+                and node.value.id == "main"
+            ):
                 _fail(f"{rel} regressed to using main.* instead of extracted modules directly")
 
     forbidden_sources = {
@@ -360,6 +369,8 @@ def main() -> None:
         "_landsat_unique_payload = stac_search_helpers.landsat_unique_payload": "Landsat payload alias must not return to main.py",
         "def _tile_cache_key(": "tile cache key helper must stay in tile_cache_io.py",
         "_is_valid_field_id_text,": "field-id validation helper must stay in raster_asset_persistence.py",
+        "sys.modules[__name__]": "processing wrappers must use explicit RasterRuntimeContext, not main.py as context",
+        "import sys": "main.py must not import sys for context self-reference",
     }
     for needle, reason in forbidden_sources.items():
         if needle in source:

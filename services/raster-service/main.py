@@ -35,7 +35,6 @@ from __future__ import annotations
 
 import logging
 import os
-import sys
 from datetime import datetime
 
 import band_math
@@ -218,9 +217,12 @@ def _process_backfill_scene_cdse(
     geometry_revision,
     jid: str,
 ) -> None:
+    ctx = raster_processing_runtime.make_processing_context(upload_dir=UPLOAD_DIR)
+    ctx._bbox_from_geojson = raster_date_geo.bbox_from_geojson
     return raster_backfill_scene_processing.process_backfill_scene_cdse(
-        sys.modules[__name__], scene, index, field_id, tenant_id, clip, geometry_revision, jid
+        ctx, scene, index, field_id, tenant_id, clip, geometry_revision, jid
     )
+
 
 
 # ─── lifespan + التطبيق ───────────────────────────────────────────
@@ -347,35 +349,32 @@ _pixel_quality = raster_quality.pixel_quality
 # Persistence helpers are implemented outside main.py; keep private aliases here
 # for existing tests and routers that still import from main during the staged split.
 from raster_asset_persistence import persist_raster_asset as _persist_raster_asset  # noqa: E402
-import raster_job_orchestration  # noqa: E402
-
+import raster_processing_runtime  # noqa: E402
 
 def _run_processing(job_id: str, req: ProcessRequest):
-    """Compatibility wrapper for staged raster main.py decomposition."""
-    return raster_job_orchestration.run_processing(sys.modules[__name__], job_id, req)
+    """Compatibility wrapper backed by an explicit processing context."""
+    return raster_processing_runtime.run_processing(job_id, req, upload_dir=UPLOAD_DIR)
 
 
 def _run_batch_processing(job_id: str, req: BatchProcessRequest):
-    """Compatibility wrapper for staged raster main.py decomposition."""
-    return raster_job_orchestration.run_batch_processing(sys.modules[__name__], job_id, req)
-
-
-import raster_pixel_processing  # noqa: E402
+    """Compatibility wrapper backed by an explicit processing context."""
+    return raster_processing_runtime.run_batch_processing(job_id, req, upload_dir=UPLOAD_DIR)
 
 
 def _process_precomputed_pixels(req: ProcessRequest, layer_id: str):
-    """Compatibility wrapper for staged raster main.py decomposition."""
-    return raster_pixel_processing.process_precomputed_pixels(sys.modules[__name__], req, layer_id)
+    """Compatibility wrapper backed by an explicit processing context."""
+    return raster_processing_runtime.process_precomputed_pixels(req, layer_id, upload_dir=UPLOAD_DIR)
 
 
 def _process_precomputed_truecolor(req: ProcessRequest):
-    """Compatibility wrapper for staged raster main.py decomposition."""
-    return raster_pixel_processing.process_precomputed_truecolor(sys.modules[__name__], req)
+    """Compatibility wrapper backed by an explicit processing context."""
+    return raster_processing_runtime.process_precomputed_truecolor(req, upload_dir=UPLOAD_DIR)
 
 
 def _process_pixels(req: ProcessRequest, layer_id: str):
-    """Compatibility wrapper for staged raster main.py decomposition."""
-    return raster_pixel_processing.process_pixels(sys.modules[__name__], req, layer_id)
+    """Compatibility wrapper backed by an explicit processing context."""
+    return raster_processing_runtime.process_pixels(req, layer_id, upload_dir=UPLOAD_DIR)
+
 
 
 from raster_api_models import ProcessCdseRequest, ProcessFromStacRequest  # noqa: E402
@@ -385,9 +384,9 @@ import raster_cdse_processing  # noqa: E402
 
 
 def _run_cdse_processing(job_id: str, field_id: str, req: ProcessCdseRequest):
-    """Compatibility wrapper for staged raster main.py decomposition."""
-    return raster_cdse_processing.run_cdse_processing(sys.modules[__name__], job_id, field_id, req)
-
+    """Compatibility wrapper backed by an explicit processing context."""
+    ctx = raster_processing_runtime.make_processing_context(upload_dir=UPLOAD_DIR)
+    return raster_cdse_processing.run_cdse_processing(ctx, job_id, field_id, req)
 
 # Transparent fallback PNG and finite nodata moved to raster_settings.py.
 _TRANSPARENT_PNG = raster_settings.TRANSPARENT_PNG
@@ -479,7 +478,6 @@ async def _real_field_grid(field_id: str, index: str, date: str, grid: int) -> d
         logger=logger,
         object_store_module=object_store,
     )
-
 
 # ─── السلسلة الزمنيّة للمؤشّر (field-scoped) ──────────────────────────
 
