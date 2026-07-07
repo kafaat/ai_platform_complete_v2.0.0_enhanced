@@ -1512,6 +1512,11 @@
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
+      "audience": "farmer",
+      "evidence": "/wind/prevailing"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/timeline",
       "audience": "farmer",
       "evidence": "/api/v1/fields"

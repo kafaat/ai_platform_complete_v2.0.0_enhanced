@@ -4625,7 +4625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57b1b3c1494f38d5ba009402a5533980a68b4b81e8c7234ebfd58e95d924701d"
+          "content": "9357029f83cdd2cb24a4bb44cb730aba2475c1c08871bb16640d26dc05927830"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -10479,6 +10479,16 @@
         }
       ],
       "name": "services/sahool-platform/api/connectors/metno_wind.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c6de0551fb77bd458b93b2ae707cb191c4f9cc8678df2af1ffce677386edad17"
+        }
+      ],
+      "name": "services/sahool-platform/api/connectors/nasa_power.py",
       "type": "file"
     },
     {
@@ -18319,6 +18329,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_mutating_endpoints_authn_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43d7f372f4b3a2bc64df7c22dfe4287775bb8daac6fa7cb3233421408e63c437"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_nasa_power_wind.py",
       "type": "file"
     },
     {

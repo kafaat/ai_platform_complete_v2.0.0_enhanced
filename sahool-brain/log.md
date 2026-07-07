@@ -1687,3 +1687,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **العقد:** إعفاء `endpoint_ui_coverage_waivers.json` (backlog-ui: API جاهزة، شاشة وردة الرياح/المصدّات شريحة B2-UI). البوّابة العكسيّة PASS (29 إعفاء، لا مسار فالت).
 - **صدق/لا تكرار:** لم يُكرَّر محرّك صلاحيّة الرشّ القائم (`_operation_suitability`/`weather_overlay`)؛ هذه نقطة **مصدّات/سائد** مستقلّة. NASA POWER ~0.5° مقياس منطقة لا نقطة حقل (مُعلَن).
 - **التحقّق:** 3 حُرّاس parse (حارس -999/شاذّ/وصل بالمحرّك) + 15 حارس weather-sources + 5 wind_geometry + gate PASS + ruff + manifest · SHA سيُثبَّت. (شاشة المستخدم B2-UI متبقّية.)
+
+## 2026-07-07 (ن) — واجهة الرياح السائدة/المصدّات (V73-UI، B2-UI) — إغلاق ميزة الرياح end-to-end
+- **الواجهة:** `lib/windbreak.ts` (أنواع + مساعِدات نقيّة: topRoseSectors/windMissingReasonAr/protectionSummaryAr — بلا ارتفاع لا رقم متر) · `hooks/useFieldWindPrevailing.ts` (react-query GET `/wind/prevailing`، kongApi) · `components/fieldview/WindbreakCard.tsx` (اتّجاه سائد + توصية مصدّ عموديّ + جهة الزرع + حماية + أعلى قطاعات وردة الرياح؛ المحسوب بقيمته والمتعذّر بسببه صراحةً) · مركّبة في MapHub (expert mode) بعد بطاقة الذكاء.
+- **العقد:** نُقِل `/api/v1/fields/{field_id}/wind/prevailing` من الإعفاءات إلى `core_endpoints` (evidence=`/wind/prevailing` موجود في الهوك) — لم يعد دَين واجهة. البوّابة PASS (442 core، 28 إعفاء، لا فالت).
+- **صدق:** البطاقة تُعلن «مقياس منطقة لا نقطة حقل» + سبب التعذّر (NASA POWER غير متاح/تاريخ غير كافٍ)؛ لا اختلاق. ميزة الرياح/المصدّات مكتملة end-to-end (backend V73 + UI).
+- **التحقّق:** 3 vitest جديدة (11 إجمالاً) + tsc نظيف + coverage gate PASS + manifest · SHA سيُثبَّت.

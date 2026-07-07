@@ -55,6 +55,7 @@ import CropKnowledgeCard from '../components/fieldview/CropKnowledgeCard';
 import HarvestTraceabilityCard from '../components/fieldview/HarvestTraceabilityCard';
 import BoundaryReviewCard from '../components/fieldview/BoundaryReviewCard';
 import FieldIntelligenceCardView from '../components/fieldview/FieldIntelligenceCardView';
+import WindbreakCard from '../components/fieldview/WindbreakCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
@@ -1929,6 +1930,11 @@ export default function MapHub() {
           العجز المائيّ/التنبيهات/الثقة في بطاقة واحدة، مع إظهار المفقود صراحةً. */}
       {selected && fieldMode === 'expert' && (
         <FieldIntelligenceCardView fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* بطاقة الرياح السائدة + المصدّات (V73-UI): من أين تأتي الرياح غالباً؟ وكيف أوجّه
+          مصدّاً شجريّاً؟ من تاريخ NASA POWER — صدق: المحسوب بقيمته والمتعذّر بسببه. */}
+      {selected && fieldMode === 'expert' && (
+        <WindbreakCard fieldId={fieldId ?? null} enabled={expertMode} />
       )}
 
       {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
