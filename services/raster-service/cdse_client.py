@@ -335,6 +335,18 @@ def bbox_dims(bbox: list[float], target_res_m: float = 10.0, max_px: int = 2500)
     return w, h
 
 
+class CdseQuotaExhausted(RuntimeError):
+    """حساب CDSE نفدت وحدات معالجته/رصيده (403 ACCESS_INSUFFICIENT_PROCESSING_UNITS).
+
+    حالة نهائيّة على مستوى الحساب لا تُصلَح بإعادة المحاولة ولا بالانتقال إلى مشهد/مؤشّر
+    آخر (كلّها ستُرفَض بـ403 حتى إضافة رصيد). يلتقطها مُشغّلو الدُّفعات ليتوقّفوا فوراً
+    ويُعلنوا السبب بوضوح بدل طحن كلّ المؤشّرات/المشاهد وإغراق السجلّ."""
+
+
+# رمز الخطأ الذي تُعيده CDSE عند نفاد وحدات المعالجة/الرصيد على مستوى الحساب.
+CDSE_QUOTA_EXHAUSTED_CODE = "ACCESS_INSUFFICIENT_PROCESSING_UNITS"
+
+
 class CdseClient:
     """عميل Process API مع ذاكرة توكن OAuth (client_credentials) آمنة للخيوط.
 
@@ -477,6 +489,18 @@ class CdseClient:
                 continue
             last_resp = resp
             if resp.status_code != 429:
+                # نفاد رصيد/وحدات الحساب (403): حالة نهائيّة لا تُصلَح بإعادة المحاولة ولا
+                # بالانتقال لمؤشّر/مشهد آخر. نرفعها كنوع مميَّز كي يتوقّف مُشغّل الدُّفعة فوراً
+                # ويُعلن السبب بوضوح بدل رفض كلّ طلب لاحق بـ403 وإغراق السجلّ.
+                if resp.status_code == 403 and CDSE_QUOTA_EXHAUSTED_CODE in resp.text:
+                    logger.warning(
+                        "CDSE quota exhausted (%s): الحساب نفدت وحدات معالجته — أضِف رصيداً. payload=%s",
+                        CDSE_QUOTA_EXHAUSTED_CODE,
+                        _safe_log_payload(payload),
+                    )
+                    raise CdseQuotaExhausted(
+                        "CDSE account has insufficient processing units; add credits to resume imagery."
+                    )
                 try:
                     resp.raise_for_status()
                 except httpx.HTTPStatusError:

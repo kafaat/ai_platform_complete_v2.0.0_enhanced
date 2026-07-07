@@ -147,6 +147,16 @@ def run_cdse_processing(ctx: Any, job_id: str, field_id: str, req: Any) -> None:
                 persisted_indices[ind] = bool(_sres.get("persisted") is True)
             else:
                 failed[ind] = sj.get("error_message", "unknown")
+        except cdse_client.CdseQuotaExhausted as e:
+            # نفاد رصيد الحساب حالة نهائيّة: كلّ مؤشّر لاحق سيُرفَض بـ403 أيضاً. نتوقّف
+            # فوراً ونُعلن السبب بوضوح (بدل طحن بقيّة المؤشّرات وإغراق السجلّ بالـ403).
+            failed[ind] = "cdse_quota_exhausted"
+            job["cdse_quota_exhausted"] = True
+            job["cdse_error_reason"] = str(e)
+            ctx.logger.warning("cdse %s: توقّف مبكّر — رصيد الحساب نفد (%s)", job_id, e)
+            job["progress_pct"] = int((i + 1) / total * 100)
+            ctx._jobs.set(job_id, job)
+            break
         except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر (فشل CDSE → يُسجَّل)
             failed[ind] = type(e).__name__
         job["progress_pct"] = int((i + 1) / total * 100)
