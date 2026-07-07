@@ -127,6 +127,24 @@ def _evidence(analyze: dict[str, Any]) -> dict[str, Any]:
     return _present({"sources": sources, "count": len(sources)})
 
 
+def provider_status_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
+    """يحوّل استجابة raster ``/v1/providers/status`` إلى إشارة ``provider_status`` للبطاقة.
+
+    منطق صرف. ``None`` (raster متعذّر) ⇒ ``{}`` فيبقى القسم missing بصدق. عند التوفّر:
+    ملخّص مُوجَز (default/active/planned) — active يعكس الوصل الفعليّ لا الطموح.
+    """
+    if not isinstance(resp, dict):
+        return {}
+    active = resp.get("active")
+    if not isinstance(active, list):
+        return {}
+    return {
+        "default": resp.get("default_historical_provider"),
+        "active": active,
+        "planned": resp.get("planned") if isinstance(resp.get("planned"), list) else [],
+    }
+
+
 def card_signals_from_db_rows(
     ndvi_rows: list[dict[str, Any]] | None,
     scene_row: dict[str, Any] | None,

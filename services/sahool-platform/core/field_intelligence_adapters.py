@@ -79,6 +79,15 @@ def _get_json(
         return None
 
 
+def fetch_provider_status(*, agent_token: str | None = None) -> dict | None:
+    """يجلب حالة مزوّدي الصور من raster-service (/v1/providers/status) — آمن الفشل.
+
+    raster متعذّر/بلا httpx ⇒ ``None`` (⇒ ``provider_status`` في البطاقة يبقى missing
+    بسبب صريح، لا اختلاق). بيانات وصفيّة غير حسّاسة.
+    """
+    return _get_json(f"{RASTER_URL}/v1/providers/status", agent_token=agent_token)
+
+
 def _post_json(
     url: str,
     payload: dict | None = None,

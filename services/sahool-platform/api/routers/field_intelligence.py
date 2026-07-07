@@ -38,22 +38,34 @@ async def _fetch_card_signals(user: UserSchema, field_id: str) -> dict:
     أيّ تعذّر (قاعدة معطّلة/خطأ استعلام) ⇒ إشارات فارغة فتبقى أقسام البطاقة ``missing``
     صراحةً (سلوك ما قبل التغذية دون تغيير) — لا اختلاق ولا انحدار.
     """
-    from core.field_intelligence_card import card_signals_from_db_rows
+    from core.field_intelligence_card import card_signals_from_db_rows, provider_status_signal
 
     from api.main import _DB_POOL, tenant_connection
 
+    signals: dict = {}
+    # provider_status من raster-service (/v1/providers/status) — آمن الفشل (raster متعذّر
+    # ⇒ القسم يبقى missing بصدق). خارج معاملة القاعدة كي لا يعطّله تعذّرها.
+    try:
+        from core.field_intelligence_adapters import fetch_provider_status
+
+        ps = provider_status_signal(fetch_provider_status())
+        if ps:
+            signals["provider_status"] = ps
+    except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+        _logger.warning("provider status fetch failed: %s", exc)
+
     if _DB_POOL is None:
-        return {}
+        return signals
     try:
         async with tenant_connection(user) as conn:
             ndvi_rows = await conn.fetch(_CARD_NDVI_SQL, field_id)
             scene = await conn.fetchrow(_CARD_SCENE_SQL, field_id)
-        return card_signals_from_db_rows(
-            [dict(r) for r in ndvi_rows], dict(scene) if scene else None
+        signals.update(
+            card_signals_from_db_rows([dict(r) for r in ndvi_rows], dict(scene) if scene else None)
         )
     except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة؛ فشلها لا يكسر التحليل.
         _logger.warning("card signal fetch failed for %s: %s", field_id, exc)
-        return {}
+    return signals
 
 
 @router.post("/api/v1/field-intelligence/analyze")

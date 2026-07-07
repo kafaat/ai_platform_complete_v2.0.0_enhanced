@@ -12,6 +12,7 @@ from __future__ import annotations
 from core.field_intelligence_card import (
     assemble_field_intelligence_card,
     card_signals_from_db_rows,
+    provider_status_signal,
 )
 
 _ANALYZE = {
@@ -149,3 +150,28 @@ def test_card_signals_empty_when_no_data():
         {"field_id": "f"}, **card_signals_from_db_rows([], None)
     )
     assert card["sections"]["latest_scene"]["status"] == "missing"
+
+
+# ── P1 cross-service: provider_status من استجابة raster (منطق صرف + سقوط آمن) ──────
+def test_provider_status_signal_from_raster_response():
+    resp = {
+        "default_historical_provider": "element84",
+        "active": ["element84", "cdse", "local_cog"],
+        "planned": ["wapor", "nasa_hls"],
+    }
+    sig = provider_status_signal(resp)
+    assert sig["default"] == "element84"
+    assert "element84" in sig["active"] and "wapor" in sig["planned"]
+    # مُغذّى ⇒ قسم provider_status حاضر في البطاقة.
+    card = assemble_field_intelligence_card({"field_id": "f"}, provider_status=sig)
+    assert card["sections"]["provider_status"]["status"] == "present"
+
+
+def test_provider_status_signal_honest_when_raster_unavailable():
+    # raster متعذّر (None) أو استجابة مشوّهة ⇒ {} ⇒ القسم يبقى missing بصدق (لا اختلاق).
+    assert provider_status_signal(None) == {}
+    assert provider_status_signal({"nope": 1}) == {}
+    card = assemble_field_intelligence_card(
+        {"field_id": "f"}, provider_status=provider_status_signal(None)
+    )
+    assert card["sections"]["provider_status"]["status"] == "missing"
