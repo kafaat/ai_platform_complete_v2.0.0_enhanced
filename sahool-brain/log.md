@@ -1604,3 +1604,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **إصلاح CI (984b9c7):** وظيفة Unit Tests فشلت على 4 من إضافاتي (بقيّة الوظائف خضراء): (١) اختبارا V67 يستوردان `services.ai_agronomist.main` المحتاج fastapi ⇒ `importorskip("fastapi")` (يُتخطّى في بيئة الوحدة الدنيا) · (٢) `/v1/providers/status` ⇒ PUBLIC_CATALOG · (٣) `/api/v1/regional/bulletin` ⇒ تصنيف `internal` (لا واجهة بعد ⇒ مُعفى من البوّابة العكسيّة). كامل `-m unit`: 2740/0.
 - **سِجِلّ الطقس (V68):** `core/weather_sources.py` على نمط سِجِلّ الصور. **صدق:** Open-Meteo وحده active (موصول: `connectors/openmeteo.py` + `field_intelligence_adapters:159` + `main:1679`)؛ NASA POWER/CHIRPS/ECMWF/GFS/ERA5 مُخطَّطة (مجانيّة + تغطّي اليمن لكن غير موصولة) — **صحّحتُ اقتراح «nasa_power active» إلى planned**. أدوار لكلّ مصدر + helpers. 4 حُرّاس.
 - **التحقّق:** 4 حُرّاس طقس + كامل unit أخضر · ruff · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — مصادر الرياح/الإعادة-تحليل (V68.1، تصحيح الدقّة)
+- **التصحيح الأهمّ (المُراجِع):** ERA5 ~25كم، ERA5-Land ~9كم — **ليست 500م**؛ مقياس منطقة/محافظة لا نقطة حقل (يحتاج downscaling/دمج DEM). صُحّح في السِجِلّ + حارس.
+- **الوصل الحقيقيّ:** حاجة الرياح على مستوى الحقل (رشّ/ET0) مُغطّاة أصلاً بـOpen-Meteo النشط (أُضيف دورا wind/spray_window) — لا حاجة لإعادة-تحليل خشنة أو رياح محيطيّة للقرار الحقليّ.
+- **مُضاف مُخطَّطاً:** era5_land (9كم، الأدقّ للأرض) · global_wind_atlas (~250م، مواقع طاقة الرياح لا forecast) · merra2 (~50كم مرجع) · ascat (رياح محيطيّة، coverage_scope=coastal_marine). China الإقليميّة **لم تُضَف** (جغرافيا خاطئة). لا مصدر يُدّعى active.
+- **التحقّق:** 7 حُرّاس طقس · active == {open_meteo} · ruff · manifest · SHA سيُثبَّت.
