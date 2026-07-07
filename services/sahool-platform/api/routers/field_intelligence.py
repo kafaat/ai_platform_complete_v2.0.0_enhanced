@@ -54,6 +54,28 @@ _SNAPSHOT_TIMELINE_SQL = (
     "FROM field_evidence_snapshots WHERE field_id = $1 "
     "ORDER BY generated_at DESC LIMIT $2"
 )
+# تحليلات عبر الحقول (v149): عُقَد آخر لقطة لكلّ حقل (DISTINCT ON) — التجميع في نواة صرف.
+# RLS يفرض عزل المستأجِر على كلا الجدولَين، فلا حاجة لشرط tenant صريح هنا.
+_GAP_ANALYTICS_SQL = (
+    "WITH latest AS ("
+    "  SELECT DISTINCT ON (field_id) id AS snapshot_id "
+    "  FROM field_evidence_snapshots ORDER BY field_id, generated_at DESC"
+    ") "
+    "SELECT n.field_id, n.node_type, n.status "
+    "FROM evidence_graph_nodes n JOIN latest l ON n.snapshot_id = l.snapshot_id"
+)
+# آخر لقطة مُطبَّعة لحقل واحد (v149): عُقَد ثمّ حوافّ عبر معرّف اللقطة نفسه.
+_FIELD_LATEST_SNAPSHOT_ID_SQL = (
+    "SELECT id FROM field_evidence_snapshots WHERE field_id = $1 ORDER BY generated_at DESC LIMIT 1"
+)
+_FIELD_NODES_SQL = (
+    "SELECT node_id, node_type, source, status, reason FROM evidence_graph_nodes "
+    "WHERE snapshot_id = $1 ORDER BY status, node_type"
+)
+_FIELD_EDGES_SQL = (
+    "SELECT edge_id, edge_type, from_node, to_node FROM evidence_graph_edges "
+    "WHERE snapshot_id = $1 ORDER BY edge_id"
+)
 
 
 async def _persist_evidence_snapshot(user: UserSchema, field_id: str, response: dict) -> int | None:
@@ -402,6 +424,65 @@ async def field_evidence_graph_timeline(
             for r in rows
         ],
     }
+
+
+@router.get("/api/v1/evidence-graph/analytics")
+async def evidence_graph_analytics(
+    user: UserSchema = Depends(get_current_user),
+):
+    """تحليلات رسم الأدلّة عبر حقول المستأجِر (من الجداول المُطبَّعة v149).
+
+    يجيب «ما المعلومة الأكثر غياباً عبر حقولي؟» — تجميع على **آخر لقطة لكلّ حقل**:
+    أكثر الفجوات تكراراً + توزيع الحالات + عدد الحقول المُحلَّلة. معزول بالمستأجِر (RLS).
+    صدق: القاعدة معطّلة أو لا لقطات مُطبَّعة ⇒ أصفار صريحة (لا اختلاق)؛ الجداول مُشتقّة
+    (الكاتب fail-soft) فقد تتأخّر عن JSONB — نُعلن ذلك في ``derived``.
+    """
+    from core.evidence_graph_analytics import shape_gap_analytics
+
+    from api.main import _DB_POOL, tenant_connection
+
+    if _DB_POOL is None:
+        return {
+            "available": False,
+            "reason": "db_disabled",
+            "fields_analyzed": 0,
+            "top_gaps": [],
+            "status_distribution": [],
+        }
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(_GAP_ANALYTICS_SQL)
+    analytics = shape_gap_analytics([dict(r) for r in rows])
+    return {
+        "available": analytics["fields_analyzed"] > 0,
+        "derived": "evidence_graph_nodes (v149) — مُشتقّ من لقطة JSONB مصدر الحقيقة",
+        **analytics,
+    }
+
+
+@router.get("/api/v1/fields/{field_id}/evidence-graph/nodes")
+async def field_evidence_graph_nodes(
+    field_id: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """عُقَد/حوافّ **آخر لقطة مُطبَّعة** لحقل (v149) — بنية جاهزة للعرض/التحليل.
+
+    تكمّل ``/latest`` (JSONB): تُرجِع الصفوف المُسطَّحة (present + gap) بحالتها وسببها من
+    الجداول المُشتقّة. معزول بالمستأجِر (RLS). صدق: لا قاعدة/لقطة ⇒ ``available: false``.
+    """
+    from core.evidence_graph_analytics import shape_field_graph
+
+    from api.main import _DB_POOL, tenant_connection
+
+    if _DB_POOL is None:
+        return {"field_id": field_id, "available": False, "reason": "db_disabled"}
+    async with tenant_connection(user) as conn:
+        snap = await conn.fetchval(_FIELD_LATEST_SNAPSHOT_ID_SQL, field_id)
+        if snap is None:
+            return {"field_id": field_id, "available": False, "reason": "no_snapshot"}
+        node_rows = await conn.fetch(_FIELD_NODES_SQL, snap)
+        edge_rows = await conn.fetch(_FIELD_EDGES_SQL, snap)
+    graph = shape_field_graph([dict(r) for r in node_rows], [dict(r) for r in edge_rows])
+    return {"field_id": field_id, **graph}
 
 
 def _json_col(value):

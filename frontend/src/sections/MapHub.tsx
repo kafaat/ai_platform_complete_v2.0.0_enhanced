@@ -58,6 +58,7 @@ import FieldIntelligenceCardView from '../components/fieldview/FieldIntelligence
 import WindbreakCard from '../components/fieldview/WindbreakCard';
 import DriftRiskCard from '../components/fieldview/DriftRiskCard';
 import EvidenceGraphCard from '../components/fieldview/EvidenceGraphCard';
+import EvidenceHistoryCard from '../components/fieldview/EvidenceHistoryCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
@@ -1947,6 +1948,11 @@ export default function MapHub() {
           يفسّر التوصية ويُثبت مصدر كلّ معلومة (يعيد استخدام استعلام analyze). */}
       {selected && fieldMode === 'expert' && (
         <EvidenceGraphCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* تاريخ الأدلّة (E1-UI): تطوّر الأدلّة/الفجوات/الثقة عبر اللقطات المحفوظة +
+          أكثر الفجوات تكراراً عبر الحقول (تحليلات v149). صدق: بلا لقطات/تحليلات يُعلَن. */}
+      {selected && fieldMode === 'expert' && (
+        <EvidenceHistoryCard fieldId={fieldId ?? null} enabled={expertMode} />
       )}
 
       {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —

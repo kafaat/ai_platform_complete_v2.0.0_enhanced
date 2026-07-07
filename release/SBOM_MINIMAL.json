@@ -4735,7 +4735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d8a6b103ad7f3b2b9e457a377d560f2f9c298cde021326e8fa260bc27bf4206"
+          "content": "fe80674c448036a66a3175403dee9d3a048bf3270fae800da07c00c2a2a13a72"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5879,6 +5879,16 @@
         }
       ],
       "name": "migrations/v148_field_evidence_snapshots.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ad048b232c879da8a0a1056e82b9cb54c56f8bcf562b50ccf8a726c0e7af2ea"
+        }
+      ],
+      "name": "migrations/v149_evidence_graph_nodes_edges.sql",
       "type": "file"
     },
     {
@@ -12425,7 +12435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1dd7e28a300f4744ab09a4aeb7cf7e8625ee533653bb5fb25d1c9a9c02dac305"
+          "content": "cfb68ccd017823928a9e369de0c5e564a20d43f966b8c3b7c41ba411ccb355f5"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -15039,6 +15049,16 @@
         }
       ],
       "name": "services/sahool-platform/core/evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "18e2ca7791263d84003ce1440b3f73992a14f776ce7811ec2370664e9940e2d7"
+        }
+      ],
+      "name": "services/sahool-platform/core/evidence_graph_normalize.py",
       "type": "file"
     },
     {
@@ -17729,6 +17749,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "566631547bc708dd787020734cbdbce550d47ae224e505c3aac3ab9c25b3a6be"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_graph_normalize.py",
       "type": "file"
     },
     {
