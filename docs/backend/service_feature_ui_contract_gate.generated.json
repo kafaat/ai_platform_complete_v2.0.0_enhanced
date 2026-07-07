@@ -37,6 +37,16 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/useManagerConsole.ts",
+              "pattern": "/auth/"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/useApi.ts",
               "pattern": "refresh"
             },
@@ -47,6 +57,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/hooks/useAuth.ts",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "/auth/"
             },
@@ -54,39 +69,24 @@
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/SatellitePageFieldGeometryRefresh.static.test.ts",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ManagerConsolePage.tsx",
+              "pattern": "/auth/"
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/sections/MapHub.tsx",
               "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/SettingsPage.tsx",
-              "pattern": "SignupPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/SettingsPage.tsx",
-              "pattern": "/auth/"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/SettingsPage.tsx",
-              "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/SatellitePage.tsx",
-              "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/pages/LoginPage.tsx",
-              "pattern": "LoginPage"
             }
           ],
-          "match_count": 33
+          "match_count": 40
         },
         {
           "kind": "gateway",
@@ -222,7 +222,7 @@
               "pattern": "AddFieldWithMap"
             }
           ],
-          "match_count": 117
+          "match_count": 167
         },
         {
           "kind": "gateway",
@@ -299,6 +299,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
+              "pattern": "tilejson"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/maphub/HubMap.tsx",
               "pattern": "FieldIndicatorMap"
             },
@@ -315,6 +320,11 @@
             {
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
+              "pattern": "cdse-tilejson"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/services/api.ts",
               "pattern": "tilejson"
             },
             {
@@ -326,19 +336,9 @@
               "root": "frontend/src",
               "path": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",
               "pattern": "cdse-tilejson"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",
-              "pattern": "tilejson"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/MapHub.tsx",
-              "pattern": "cdse-tilejson"
             }
           ],
-          "match_count": 23
+          "match_count": 25
         },
         {
           "kind": "gateway",
@@ -430,31 +430,31 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/CropPropagationCard.tsx",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/IrrigationDecisionAidsCard.tsx",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/fieldhealth/index.ts",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldhealth/DateScrubber.tsx",
-              "pattern": "vegetation"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldhealth/DateScrubber.tsx",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldsetup/YieldStep.tsx",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/insights/MapIndicatorLegend.tsx",
               "pattern": "NDVI"
             }
           ],
-          "match_count": 75
+          "match_count": 91
         },
         {
           "kind": "gateway",
@@ -545,6 +545,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/hooks/useLearningEvidence.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/useIndicators.ts",
               "pattern": "indicators"
             },
@@ -562,14 +567,9 @@
               "root": "frontend/src",
               "path": "frontend/src/sections/SettingsPage.tsx",
               "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/SatellitePage.tsx",
-              "pattern": "useIndicators"
             }
           ],
-          "match_count": 21
+          "match_count": 23
         },
         {
           "kind": "gateway",
@@ -760,7 +760,7 @@
               "pattern": "weather"
             }
           ],
-          "match_count": 164
+          "match_count": 166
         }
       ]
     },
@@ -782,6 +782,11 @@
             "Soil"
           ],
           "matches": [
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/App.tsx",
+              "pattern": "soil"
+            },
             {
               "root": "frontend/src",
               "path": "frontend/src/components/AddFieldWithMap.tsx",
@@ -836,14 +841,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts",
               "pattern": "Soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/ProductivityZonesPanel.static.test.ts",
-              "pattern": "soil"
             }
           ],
-          "match_count": 70
+          "match_count": 128
         },
         {
           "kind": "platform-proxy",
@@ -917,7 +917,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 232
+          "match_count": 233
         }
       ]
     },
@@ -991,6 +991,11 @@
           "matches": [
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/field_geometry_save_guard.py",
+              "pattern": "segmentation"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/routers/service_proxy.py",
               "pattern": "SEGMENTATION_URL"
             },
@@ -1015,7 +1020,7 @@
               "pattern": "segmentation"
             }
           ],
-          "match_count": 5
+          "match_count": 6
         }
       ]
     },
@@ -1071,6 +1076,16 @@
               "pattern": "sam2"
             },
             {
+              "root": "services/field-segmentation",
+              "path": "services/field-segmentation/test_exg_preprocess.py",
+              "pattern": "sam2"
+            },
+            {
+              "root": "services/field-segmentation",
+              "path": "services/field-segmentation/exg_preprocess.py",
+              "pattern": "sam2"
+            },
+            {
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "SEGMENTATION_INFERENCE_URL"
@@ -1089,19 +1104,9 @@
               "root": "docker-compose.v9.yml",
               "path": "docker-compose.v9.yml",
               "pattern": "sahool-sam2-inference"
-            },
-            {
-              "root": "docker-compose.fixed.yml",
-              "path": "docker-compose.fixed.yml",
-              "pattern": "SEGMENTATION_INFERENCE_URL"
-            },
-            {
-              "root": "docker-compose.fixed.yml",
-              "path": "docker-compose.fixed.yml",
-              "pattern": "SEGMENTATION_BACKEND"
             }
           ],
-          "match_count": 24
+          "match_count": 32
         }
       ]
     },
@@ -1126,6 +1131,16 @@
             {
               "root": "frontend/src",
               "path": "frontend/src/App.tsx",
+              "pattern": "ChatbotPage"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/useApi.ts",
+              "pattern": "ai-agronomist"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/fieldViewUiWide.static.test.ts",
               "pattern": "ChatbotPage"
             },
             {
@@ -1172,19 +1187,9 @@
               "root": "frontend/src",
               "path": "frontend/src/sections/ChatbotProviderToolApproval.v58.static.test.ts",
               "pattern": "ChatbotPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
-              "pattern": "ChatbotPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
-              "pattern": "ai-agronomist"
             }
           ],
-          "match_count": 15
+          "match_count": 19
         },
         {
           "kind": "gateway",
@@ -1427,6 +1432,16 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/sections/MapHub.tsx",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ApprovalsConsolePage.tsx",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
               "pattern": "/api/agent"
             },
@@ -1436,22 +1451,22 @@
               "pattern": "agent"
             },
             {
-              "root": "mobile",
-              "path": "mobile/sahool_app/lib/services/api_service.dart",
-              "pattern": "/api/agent"
-            },
-            {
-              "root": "mobile",
-              "path": "mobile/sahool_app/lib/services/api_service.dart",
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldViewGovernance.ts",
               "pattern": "agent"
             },
             {
-              "root": "mobile",
-              "path": "mobile/sahool_app/lib/services/websocket_service.dart",
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldHealthReport.test.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldViewDecisionScript.test.ts",
               "pattern": "agent"
             }
           ],
-          "match_count": 10
+          "match_count": 19
         },
         {
           "kind": "gateway",
@@ -1528,6 +1543,11 @@
           "matches": [
             {
               "root": "frontend/src",
+              "path": "frontend/src/App.tsx",
+              "pattern": "approval"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/AddFieldWithMap.undoredo.test.tsx",
               "pattern": "validate"
             },
@@ -1580,14 +1600,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/maphub/drawing/zoneDesigner.ts",
               "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/DrawingRemainingPhases.static.test.ts",
-              "pattern": "validate"
             }
           ],
-          "match_count": 41
+          "match_count": 81
         },
         {
           "kind": "gateway",
@@ -1765,7 +1780,7 @@
               "pattern": "MCP"
             }
           ],
-          "match_count": 81
+          "match_count": 85
         }
       ]
     },
@@ -1835,21 +1850,21 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldsetup/SeasonStep.tsx",
+              "path": "frontend/src/components/decision/DecisionDeepPanel.tsx",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/insights/scalePresets.ts",
+              "path": "frontend/src/components/fieldview/LedgerEntryCard.tsx",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
+              "path": "frontend/src/components/fieldview/CropSafetyKnowledgeCard.tsx",
               "pattern": "irrigation"
             }
           ],
-          "match_count": 83
+          "match_count": 158
         },
         {
           "kind": "platform-proxy",
@@ -1973,41 +1988,41 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldhealth/ScoutingPinPanel.tsx",
+              "path": "frontend/src/components/decision/DecisionDeepPanel.tsx",
               "pattern": "pest"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldhealth/ScoutingMap.tsx",
+              "path": "frontend/src/components/decision/DecisionDeepPanel.tsx",
+              "pattern": "yield"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/decision/RecommendationsLifecyclePanel.tsx",
+              "pattern": "yield"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/LedgerEntryCard.tsx",
               "pattern": "pest"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldsetup/YieldStep.tsx",
+              "path": "frontend/src/components/fieldview/CropSafetyKnowledgeCard.tsx",
+              "pattern": "pest"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
               "pattern": "yield"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldsetup/YieldStep.tsx",
-              "pattern": "YieldStep"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldsetup/steps.ts",
-              "pattern": "yield"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldsetup/steps.ts",
-              "pattern": "YieldStep"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldsetup/SeasonStep.tsx",
+              "path": "frontend/src/components/fieldview/FieldEconomicsCard.tsx",
               "pattern": "yield"
             }
           ],
-          "match_count": 57
+          "match_count": 117
         },
         {
           "kind": "platform-proxy",
@@ -2070,51 +2085,56 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
+              "pattern": "stream"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
+              "pattern": "stream"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/useManagerConsole.ts",
+              "pattern": "camera"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/useManagerConsole.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/useWaterFieldOps.ts",
+              "pattern": "stream"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "camera"
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/sections/ManagerConsolePage.tsx",
+              "pattern": "camera"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ManagerConsolePage.tsx",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/sections/DevicesPage.tsx",
               "pattern": "camera"
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/sections/DevicesPage.tsx",
-              "pattern": "DevicesPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/lib/precisionAgriculture.test.ts",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/lib/precisionAgriculture.ts",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "mobile",
-              "path": "mobile/sahool_app/lib/services/websocket_service.dart",
-              "pattern": "stream"
-            },
-            {
-              "root": "mobile",
-              "path": "mobile/sahool_app/lib/screens/advisor_screen.dart",
-              "pattern": "camera"
-            },
-            {
-              "root": "mobile",
-              "path": "mobile/sahool_app/lib/screens/devices_screen.dart",
-              "pattern": "camera"
-            },
-            {
-              "root": "mobile",
-              "path": "mobile/sahool_app/lib/screens/devices_screen.dart",
               "pattern": "DevicesPage"
             }
           ],
-          "match_count": 11
+          "match_count": 20
         },
         {
           "kind": "platform-proxy",
@@ -2492,9 +2512,14 @@
               "root": "frontend/src",
               "path": "frontend/src/sections/RecommendationPage.tsx",
               "pattern": "SpeakButton"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
+              "pattern": "synthesize"
             }
           ],
-          "match_count": 6
+          "match_count": 7
         }
       ]
     },
@@ -2606,12 +2631,17 @@
           "matches": [
             {
               "root": "services/raster-service",
+              "path": "services/raster-service/test_router_query_direct_call.py",
+              "pattern": "tilejson"
+            },
+            {
+              "root": "services/raster-service",
               "path": "services/raster-service/main.py",
               "pattern": "TITILER_URL"
             },
             {
               "root": "services/raster-service",
-              "path": "services/raster-service/main.py",
+              "path": "services/raster-service/raster_job_orchestration.py",
               "pattern": "tilejson"
             },
             {
@@ -2631,7 +2661,17 @@
             },
             {
               "root": "services/raster-service",
+              "path": "services/raster-service/raster_settings.py",
+              "pattern": "TITILER_URL"
+            },
+            {
+              "root": "services/raster-service",
               "path": "services/raster-service/test_p2_tile_observability_static.py",
+              "pattern": "tilejson"
+            },
+            {
+              "root": "services/raster-service",
+              "path": "services/raster-service/tile_observability.py",
               "pattern": "tilejson"
             },
             {
@@ -2648,24 +2688,9 @@
               "root": "services/raster-service",
               "path": "services/raster-service/cloud_native_catalog.py",
               "pattern": "tilejson"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/test_cloud_native_catalog.py",
-              "pattern": "tilejson"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/test_tile_tenant_query.py",
-              "pattern": "tilejson"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/test_final_field_imagery_runtime_contract_static_20260626.py",
-              "pattern": "tilejson"
             }
           ],
-          "match_count": 47
+          "match_count": 63
         }
       ]
     },
@@ -2736,21 +2761,21 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_deferred_satellite_integration_v30_4.py",
+              "pattern": "collection"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
+              "pattern": "collection"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_research_pipeline.py",
-              "pattern": "collection"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_gis_kernel_geojson.py",
-              "pattern": "collection"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_raster_endpoint_auth_coverage.py",
               "pattern": "collection"
             }
           ],
-          "match_count": 14
+          "match_count": 16
         }
       ]
     }
