@@ -9305,7 +9305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "24b85332cd7ab33d634878bbf663201fea2cc6a88a336872693766b4930a4415"
+          "content": "c2c0a113e66f5676b373aa434b8fd9bc9793c8c9380f97418a58682891973563"
         }
       ],
       "name": "services/raster-service/raster_scene_model.py",

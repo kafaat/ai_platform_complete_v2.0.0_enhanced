@@ -44,8 +44,23 @@
 ## د) المصادر الصينيّة — حكم عمليّ
 منصّات مثل CRESDA/CPEOS/NSMC/Geospatial Data Cloud/geodata.cn مفيدة للبحث، لكن لا تُعتمَد كمزوّد إنتاجيّ قبل التحقّق من: التسجيل خارج الصين · السماح التجاريّ · تغطية اليمن · وضوح الـAPI · ترخيص إعادة الاستخدام داخل SaaS. لذا `china_gaofen.requires_verification=True`، `source_type=research_manual`.
 
+## هـ) قناة استيراد NASA Earthdata الدفعيّ (wget/earthaccess + `.netrc`)
+`earthdata_wget_batch` (`source_type=manual_batch_download`, `active_provider=false`) — قناة **تنزيل دفعيّ** لـHLS/ASTER GDEM/SRTM/NASADEM/MODIS/VIIRS/MERRA-2 عبر Earthdata Login. سير العمل: Earthdata Search → روابط/سكربت → `wget`/`earthaccess` → MinIO → تسجيل كـ`local_cog`/`terrain_asset`.
+
+**الأمن (إلزاميّ):** الاعتماد عبر `~/.netrc` (0600) أو مدير أسرار — **لا** كلمة مرور في سكربت/مستودع:
+```
+machine urs.earthdata.nasa.gov
+login YOUR_EARTHDATA_USERNAME
+password YOUR_EARTHDATA_PASSWORD
+```
+```bash
+wget --load-cookies ~/.urs_cookies --save-cookies ~/.urs_cookies \
+     --keep-session-cookies --auth-no-challenge=on --content-disposition -i urls.txt
+```
+كلّ مُستورَد يُسجَّل بـ**checksum + source_url + acquisition_date** (يفرضه `imported_asset_provenance_ok`؛ يرفض أيّ سرّ مُسرَّب). ليس مزوّداً حيّاً حتّى يُبنى adapter.
+
 ## الخلاصة
-- **تدخل كقنوات موثوقة الآن:** CDSE · Element84 (نشطان) + المُخطَّطون المُتحقَّقون: PC · NASA HLS · WaPOR · WorldCereal · ASTER GDEM (+ USGS EarthExplorer كتحميل يدويّ).
+- **تدخل كقنوات موثوقة الآن:** CDSE · Element84 (نشطان) + المُخطَّطون المُتحقَّقون: PC · NASA HLS · WaPOR · WorldCereal · ASTER GDEM (+ USGS EarthExplorer / Earthdata batch كتحميل يدويّ).
 - **تبقى غير مفعّلة (بلا مبالغة):** PlanetScope (مدفوع) · Maxar (أحداث) · China Gaofen (تحقّق) · SciHub (مُغلَق — لا يُضاف).
 - **الأولويّة التنفيذيّة القادمة لليمن:** WaPOR → WorldCereal → NASA HLS → ASTER GDEM (كلّها تحتاج مُحوِّلاً + اعتمادات/عقد).
 

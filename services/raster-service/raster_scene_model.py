@@ -381,6 +381,7 @@ def research_sources() -> list[str]:
 # ``active_provider=False`` دائماً؛ ``source_type`` يصنّف الطبيعة كي لا نبالغ في الادّعاء.
 _EXTERNAL_SOURCE_TYPES = {
     "manual_download",
+    "manual_batch_download",
     "commercial",
     "event_open_data",
     "research_manual",
@@ -438,7 +439,49 @@ EXTERNAL_SOURCE_REGISTRY: dict[str, dict[str, Any]] = {
         "recommended_use": "تقييم بحثيّ فقط حتّى يُتحقَّق الترخيص/الـAPI/التسجيل",
         "note": "cnsageo.com يتيح بحث/تنزيل GF-1/GF-6 — لا يُعتمَد إنتاجيّاً قبل تحقّق عمليّ.",
     },
+    "earthdata_wget_batch": {
+        "id": "earthdata_wget_batch",
+        "label": "NASA Earthdata batch import (wget/earthaccess + .netrc)",
+        "source_type": "manual_batch_download",
+        "active_provider": False,
+        "free": True,
+        "verified": True,
+        "requires_earthdata_login": True,
+        "provides_imagery": True,  # قناة تنزيل: HLS/MODIS/VIIRS + DEM + مناخ.
+        "coverage_yemen": True,
+        "supports": ["hls", "aster_gdem", "srtm", "nasadem", "modis", "viirs", "merra2"],
+        "recommended_use": ["historical_backfill", "dem_import", "climate_archive"],
+        "note": (
+            "قناة استيراد دفعيّ (Earthdata Search → روابط/سكربت → wget/earthaccess → MinIO → "
+            "تسجيل كـlocal_cog/terrain_asset). **الأمن:** الاعتماد عبر ~/.netrc (0600) أو "
+            "مدير أسرار، **لا** كلمة مرور في سكربت/مستودع. سجّل كلّ مُستورَد بـchecksum + "
+            "source_url + acquisition_date. ليس مزوّداً حيّاً حتّى يُبنى adapter."
+        ),
+    },
 }
+
+
+# ── نَسَب الأصول المُستورَدة يدويّاً (Earthdata batch وغيره) — صدق + أمن ──────────────
+REQUIRED_IMPORT_PROVENANCE: tuple[str, ...] = ("checksum", "source_url", "acquisition_date")
+_SECRET_FIELD_HINTS = {"password", "passwd", "netrc", "secret", "token", "credential"}
+
+
+def imported_asset_provenance_ok(record: dict[str, Any]) -> dict[str, Any]:
+    """يتحقّق أنّ سجلّ أصل مُستورَد يحمل النَّسَب الإلزاميّ ولا يُسرّب أسراراً.
+
+    **صدق:** أصل مُستورَد بلا (checksum + source_url + acquisition_date) يُرفَض — لا أصل
+    يتيم بلا مصدر/تحقّق. **أمن:** يُرفَض أيّ حقل يشبه سرّاً (password/token/netrc) — الاعتماد
+    عبر ``.netrc``/مدير أسرار لا في السجلّ/المستودع. منطق صرف (بلا I/O).
+    """
+    if not isinstance(record, dict):
+        return {
+            "ok": False,
+            "missing": list(REQUIRED_IMPORT_PROVENANCE),
+            "leaked_secret_fields": [],
+        }
+    missing = [f for f in REQUIRED_IMPORT_PROVENANCE if not record.get(f)]
+    leaked = [k for k in record if str(k).lower() in _SECRET_FIELD_HINTS]
+    return {"ok": not missing and not leaked, "missing": missing, "leaked_secret_fields": leaked}
 
 
 def external_sources() -> list[str]:
