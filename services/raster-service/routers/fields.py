@@ -1212,8 +1212,21 @@ async def field_terrain(
 
     import terrain_analysis as ta
 
+    # يعمل من ``field_id`` وحده: عند غياب bbox صريح نشتقّ المضلّع الفعليّ من قاعدة الحقول
+    # (RLS-safe) ونقصّ **داخل حدّ الحقل** لا مستطيل bbox. تعذّر الجلب ⇒ يبقى المسار الصادق
+    # ``computed=false`` (field-bbox-unavailable) — لا تلفيق.
+    poly: list | None = None
+    if parsed_bbox is None:
+        try:
+            import db_persist
+
+            geom = await db_persist.fetch_field_geometry(field_id, _REQ_TENANT.get())
+            parsed_bbox, poly = ta.field_terrain_extent(geom)
+        except Exception as e:  # noqa: BLE001 — اشتقاق اختياريّ؛ فشله ⇒ computed=false صريح.
+            logger.warning("terrain geometry derive skipped (%s): %s", field_id, e)
+
     dem_path = os.getenv("FIELD_DEM_PATH") or None
-    result = ta.compute_field_terrain(dem_path, parsed_bbox)
+    result = ta.compute_field_terrain(dem_path, parsed_bbox, poly=poly)
     if result.get("computed") and (result.get("slope_deg") or {}).get("mean") is not None:
         result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
         # ربط الانحدار بقرارات زراعيّة (خطر تعرية/سيولة/إجراءات) — إرشاديّ، بلا تلفيق.

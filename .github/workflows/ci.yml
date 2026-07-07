@@ -330,9 +330,16 @@ jobs:
       # فعليّاً بـpip-audit، كلّها نظيفة). يُستثنى services/local-ai-rag/requirements.txt
       # عمداً: يحمل ثغرة out-of-range (PYSEC-2026-77 في langchain-text-splitters،
       # وقيود langchain 0.3.x/pypdf) — يبقى تحت المسح الإرشاديّ أدناه لا البوّابة.
+      # استثناء موثّق واحد (PYSEC-2026-1325 في ecdsa 0.19.2): تبعيّة عبوريّة أساسيّة
+      # لـpython-jose. ثغرة قناة-جانبيّة (Minerva timing) صنّفها صانعو ecdsa WONTFIX
+      # صراحةً (لا نسخة إصلاح — 0.19.2 هي الأحدث 2026-03-26؛ README يوصي بـpyca/
+      # cryptography بديلاً). مسارنا يستعمل python-jose[cryptography] ⇒ توقيع/تحقّق JWT
+      # عبر خلفيّة cryptography/OpenSSL لا خلفيّة ecdsa، فالمسار المُصاب غير مُستخدَم.
+      # يبقى ecdsa مرئيّاً في المسح الإرشاديّ أدناه (غير حاجب) للشفافيّة.
       - name: pip-audit (gating — critical path)
         run: >-
           pip-audit
+          --ignore-vuln PYSEC-2026-1325
           -r services/sahool-platform/api/requirements.txt
           -r services/auth/requirements.txt
           -r services/guardrails-engine/requirements.txt

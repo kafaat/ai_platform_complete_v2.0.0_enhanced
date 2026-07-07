@@ -2612,6 +2612,63 @@ async def field_disease_risk(
     return risk
 
 
+@router.get("/api/v1/fields/{field_id}/wind/prevailing")
+async def field_wind_prevailing(
+    field_id: str,
+    years: int = Query(3, ge=1, le=10, description="سنوات التاريخ لوردة الرياح"),
+    tree_height_m: float | None = Query(None, gt=0, le=50),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """الرياح السائدة + توصية مصدّ رياح (shelterbelt) للحقل من تاريخ NASA POWER.
+
+    يبني وردة رياح (``core.wind_geometry``) من رياح يوميّة تاريخيّة (WD10M/WS10M، 10م،
+    مجّانيّة بلا مفتاح) ويشتقّ الاتّجاه السائد ثمّ توصية توجيه المصدّ (عموديّ على الريح +
+    زرع upwind + حماية ~10H). **صدق:** مصدر متعذّر/تاريخ غير كافٍ ⇒ ``computed=false``
+    + سبب صريح (لا سائد موهوم من عيّنة صغيرة). NASA POWER دقّة ~0.5° (مقياس منطقة لا نقطة).
+    """
+    from datetime import UTC, datetime, timedelta
+
+    from core.wind_geometry import wind_rose, windbreak_recommendation
+
+    from api.connectors import nasa_power
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, _crop, _stage, _days = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    end = datetime.now(UTC).date()
+    start = end - timedelta(days=365 * years)
+    obs = await nasa_power.fetch_wind_history(
+        lat, lon, start.strftime("%Y%m%d"), end.strftime("%Y%m%d")
+    )
+    base = {"field_id": field_id, "source": "nasa_power", "resolution": "~0.5° (منطقة لا نقطة حقل)"}
+    if not obs:
+        # صدق: مصدر متعذّر ⇒ لا نُلفّق سائداً (لا 503؛ مظروف صريح كنمط البطاقة).
+        return {**base, "computed": False, "reason": "nasa_power_wind_unavailable"}
+    rose = wind_rose(obs)
+    if rose.get("prevailing") is None:
+        return {
+            **base,
+            "computed": False,
+            "reason": rose.get("reason") or "insufficient_observations",
+            "n_observations": rose.get("n"),
+        }
+    windbreak = windbreak_recommendation(rose["prevailing_deg"], tree_height_m=tree_height_m)
+    return {
+        **base,
+        "computed": True,
+        "years": years,
+        "n_observations": rose["n"],
+        "prevailing": rose["prevailing"],
+        "wind_rose": rose["sectors"],
+        "windbreak": windbreak,
+    }
+
+
 @router.get("/api/v1/fields/{field_id}/recommendations")
 async def field_recommendations(
     field_id: str,

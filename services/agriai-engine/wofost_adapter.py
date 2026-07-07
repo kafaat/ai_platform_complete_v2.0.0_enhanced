@@ -148,6 +148,78 @@ def _fallback_simulate(
     }
 
 
+def _yield_uncertainty(
+    base_result: dict[str, Any],
+    crop: dict[str, Any],
+    weather: dict[str, Any],
+    soil: dict[str, Any],
+    agromanagement: dict[str, Any],
+) -> dict[str, Any]:
+    """نطاق غلّة نموذجيّ (لا نقطة عارية) — «لا غلّة بلا عدم يقين».
+
+    **صدق:** هذا **نطاق نموذجيّ** مشتقّ من ثقة النموذج، لا نطاق مُعايَر تجريبيّاً
+    (conformal) — ذاك يتطلّب بيانات حصاد محلّية ويعيش في
+    ``core/engines/yield_interval.py``. يتّسع النطاق بأمانة كلّما:
+      • قلّت المدخلات (طقس يوميّ/مطر/ماء تربة/إدارة/وسائط محصول مفقودة)،
+      • اقترب العامل المُقيِّد من عتبة التبدّل (تغيّر طفيف يقلب النظام حراريّ↔مائيّ)،
+      • كان المصدر بديلاً حتميّاً لا PCSE حقيقيّاً.
+    كلّ موسِّع مُدرَج في ``drivers`` (لا رقم بلا سبب).
+    """
+    y = _num(base_result.get("yield_kg_ha"))
+    prov = base_result.get("provenance")
+    diag = base_result.get("diagnostics") or {}
+
+    is_pcse = prov == "pcse_wofost"
+    u = 0.12 if is_pcse else 0.25
+    drivers: list[str] = [] if is_pcse else ["deterministic_fallback_model"]
+
+    w = weather if isinstance(weather, dict) else {}
+    has_daily = isinstance(w.get("daily"), list) and bool(w.get("daily"))
+    if w.get("gdd") is None and not has_daily:
+        u += 0.08
+        drivers.append("missing_daily_weather")
+    if w.get("total_rain_mm") is None:
+        u += 0.04
+        drivers.append("missing_rainfall")
+    if not (isinstance(soil, dict) and soil.get("available_water_mm") is not None):
+        u += 0.05
+        drivers.append("missing_soil_water")
+    if not (isinstance(agromanagement, dict) and agromanagement.get("irrigation_mm") is not None):
+        u += 0.03
+        drivers.append("missing_irrigation_plan")
+    if not (isinstance(crop, dict) and crop):
+        u += 0.05
+        drivers.append("default_crop_params")
+
+    # قرب عتبة العامل المُقيِّد ⇒ عدم يقين أعلى (تبدّل النظام يقلب الغلّة).
+    ty = _num(diag.get("thermal_yield_kg_ha"))
+    wy = _num(diag.get("water_limited_yield_kg_ha"))
+    if ty > 0 and wy > 0:
+        closeness = 1.0 - abs(ty - wy) / max(ty, wy)
+        add = round(0.10 * max(0.0, closeness), _ROUND)
+        if add > 0:
+            u += add
+            drivers.append("near_limiting_factor_crossover")
+
+    u = min(0.6, round(u, _ROUND))  # سقف 60٪ — لا نطاق عبثيّ
+    low = max(0.0, round(y * (1.0 - u), _ROUND))
+    high = round(y * (1.0 + u), _ROUND)
+    confidence = "high" if u < 0.20 else "medium" if u < 0.35 else "low"
+    return {
+        "point_kg_ha": round(y, _ROUND),
+        "low_kg_ha": low,
+        "high_kg_ha": high,
+        "relative_uncertainty": u,
+        "confidence": confidence,
+        "method": "deterministic_model_band",
+        "drivers": drivers,
+        "note_ar": (
+            "نطاق نموذجيّ لا نقطة وهميّة — يتّسع بنقص المدخلات وقرب عتبة العامل المُقيِّد. "
+            "النطاق المُعايَر إحصائيّاً (conformal) يتطلّب بيانات حصاد محلّية."
+        ),
+    }
+
+
 def _inputs_sufficient_for_pcse(
     crop: dict[str, Any],
     weather: dict[str, Any],
@@ -212,9 +284,15 @@ def simulate(
     soil = soil or {}
     agromanagement = agromanagement or {}
 
+    result: dict[str, Any] | None = None
     if _PCSE_AVAILABLE and _inputs_sufficient_for_pcse(crop, weather, soil, agromanagement):
         try:  # pragma: no cover - يتطلّب pcse
-            return _pcse_simulate(crop, weather, soil, agromanagement)
+            result = _pcse_simulate(crop, weather, soil, agromanagement)
         except Exception:  # noqa: BLE001 - fail-safe: البديل الحتميّ يضمن استجابة موحّدة
-            pass
-    return _fallback_simulate(crop, weather, soil, agromanagement)
+            result = None
+    if result is None:
+        result = _fallback_simulate(crop, weather, soil, agromanagement)
+
+    # «لا غلّة بلا عدم يقين»: كلّ مخرَج simulate يحمل نطاقاً نموذجيّاً (نقطة مصحوبة بحدود).
+    result["yield_interval"] = _yield_uncertainty(result, crop, weather, soil, agromanagement)
+    return result

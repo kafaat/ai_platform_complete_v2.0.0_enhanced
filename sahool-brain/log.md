@@ -1525,3 +1525,201 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التنفيذ (أعلى قيمة محتواة):** `productivity_zones_clustering.py` — `kmeans_nd` حتميّ (stdlib، بلا numpy) + معايرة min-max لكلّ ميزة (يمنع هيمنة الانحدار 0..90 على NDVI −1..1) + تعويض القيم المفقودة بمتوسّط الميزة. المناطق تُرتَّب بمتوسّط NDVI الفعليّ فيبقى score/التصنيف متّسقاً مع V60.1. `basis="multi_index"` (الافتراضيّ) صار **حقيقيّاً** لا تسمية شكليّة. توافق خلفيّ تامّ (بلا مساعدة ⇒ مطابق V60.1) + سقوط آمن (مساعدة غير مُتراصفة تُسقَط) + `basis="ndvi"` صريح يُلغي المساعدة. موجِّهات صادقة (تُدرِج ndmi/reci/msavi/slope الفعليّة). 10 حُرّاس جديدة.
 - **التحقّق:** 28/28 (وحدة المناطق) · 170/1 (نطاق agronomist/zones/evidence/planner) · ruff نظيف · manifest معاد بناؤه (3256 checksum) · SHA 0b024af · فرع مدفوع. main/develop قُدِّمت إلى 7292575 (Element84 افتراض الكود، CI #28876569401 أخضر).
 - **درس:** إعادة بناء manifest إلزاميّة عند لمس ملفّات متتبَّعة (تكرار درس 0682f62 — أُنجِز هذه المرّة قبل الالتزام).
+
+## 2026-07-07 (ن) — مراجعة تقرير التحقّق الخارجيّ + سدّ فجوتَين (V63)
+- **مراجعة التقرير الخارجيّ (`SAHOOL_22b92d6_..._VERIFICATION`):** أمين في البنية، مضلِّل في النسبة — قاس مقابل **خطّة بناء 15 مرحلة كاملة** بينما تفويض الجلسة كان **تدقيق + تنفيذ أعلى قيمة**. لا دليل فشل مصدر (compileall + 10 + 13 اختباراً نجحت؛ `jose` بيئة الفاحِص). أخطأ موضع الفحص: صنّف توصيته P4 (مناطق متعدّدة المصادر) «غير منفَّذ» وهي V60.3 مُنجَزة في `ai_agronomist/` (فحص `core/` فقط). التقرير الكامل: scratchpad.
+- **العلل الخمس لـ«عدم التنفيذ»:** (١) اختلاف تفويض (جذريّ) · (٢) قياس البنية لا الوظيفة (سلسلة المزوّد تعمل عبر `stac_search.py:145-258`) · (٣) خطأ موضع فحص أخفى V60.3 · (٤) تأجيل صادق للخدمات الخارجيّة (WaPOR/HLS/WorldCereal تحتاج API+اعتمادات+تغطية اليمن) · (٥) نقص تبعيّة عند الفاحِص.
+- **سدّ فجوتَين محتوتَين مُتحقَّقتَين (V63، `raster_scene_model.py`):** (أ) `NormalizedScene` — نموذج مشهد موحَّد يلفّ مخرَج `stac_search_*` (cog_ready **مُشتقّ** من توفّر الروابط، لا مُختلَق) + `PROVIDER_REGISTRY` صادق (active=False لِـnasa_hls/planetary_computer غير الموصولَين). (ب) `provider_fallback_suggestion` — اقتراح مُهيكَل يوجّه إلى element84، مُدمَج في تفاصيل 503 لمسار CDSE غير المُهيّأ (بدل نصّ حرّ). لم أبنِ WaPOR/HLS: مسار HTTP خارجيّ لا يمكن التحقّق منه end-to-end بلا خدمة حيّة ⇒ تجنّب نصف حلّ.
+- **التحقّق:** 8 حُرّاس جديدة + حارس CDSE fail-closed القائم (5) أخضر · 200/1 نطاق raster/stac · ruff نظيف · manifest معاد بناؤه · SHA 200b163.
+
+## 2026-07-07 (ن) — وصل NormalizedScene (V63.2) + إثراء السِجِلّ بتغطية اليمن
+- **حُرّاس V63 (طلب المُراجِع):** أضفتُ الثلاثة صراحةً — مزوّد غير موصول لا يظهر نشطاً · اقتراح احتياطيّ CDSE-محصور (يظهر مرّة واحدة، لا في مسار element84) · **acquisition_date لا يقبل processed_at** (فراغ عند غياب datetime) + حارس ساكن يمنع أيّ تعيين لـprocessed_at في النموذج. + حالتا cog_ready الحديّتان (assets مفقودة⇒false، نطاقات جزئيّة⇒جاهز بالمجموعة المتوفّرة فقط). SHA 8227fa1.
+- **وصل V63.2 (غير كاسر):** `/imagery/timeseries` يعيد `normalized_scenes` (عقد موحَّد) **بجانب** `scenes` الخام (المفتاح القديم محفوظ، حارس انحدار). التطبيع عند حدّ الاستجابة فيبقى قاموس البحث الداخليّ رشيقاً لمسار backfill.
+- **إثراء السِجِلّ (صادق، يبقى active=False):** أضفتُ `wapor` + `worldcereal` كمزوّدَين مُسجَّلَين غير موصولَين، وأثريتُ `nasa_hls`، ببيانات تغطية اليمن المُتحقَّقة (المُراجِع): `coverage_yemen`/`resolution`/`recommended_use`/`category`. WaPOR L2 100م (الشرق الأدنى)، WorldCereal 10م عالميّ، HLS 30م عالميّ. `planned_providers()` جديدة؛ active/planned منفصلان؛ حارس يمنع تسرّب wapor/worldcereal إلى النشط. الأولويّة التنفيذيّة لليمن: WaPOR → WorldCereal → HLS، **لا تُفعَّل إلّا بعد مُحوِّل + اختبار عقد**.
+- **التحقّق:** 21 اختبار V63 أخضر (9 جديدة) · 193 نطاق raster/stac · ruff نظيف · manifest 3259 · SHA 4a9eeef.
+
+## 2026-07-07 (ن) — عدم يقين نموذج المحصول (V64، «لا غلّة بلا عدم يقين»)
+- **الفجوة (P10):** `wofost_adapter.simulate()` كان يُرجِع غلّة نقطة عارية بلا عدم يقين، و`profit_planner` يرتّب على النقطة. الآن كلّ مخرَج simulate يحمل `yield_interval` (مُرفَق عند نقطة الاختناق الوحيدة فلا يفلت مسار).
+- **النهج الصادق:** `_yield_uncertainty` نطاق **نموذجيّ** (`method="deterministic_model_band"`) — **ليس** conformal التجريبيّ (ذاك يحتاج بيانات حصاد ويعيش في `core/engines/yield_interval.py`؛ note_ar يُحيل إليه). يتّسع بنقص المدخلات (طقس/مطر/ماء تربة/ريّ/وسائط محصول) وقرب عتبة العامل المُقيِّد (حراريّ↔مائيّ)؛ كلّ موسِّع في `drivers` (لا رقم بلا سبب)؛ سقف 60٪. مدخلات أوفى ⇒ نطاق أضيق (رتابة). حتميّ.
+- **التمرير:** `profit_planner.evaluate_candidate` يعيد مدى ربح (`expected_profit_low/high` + `yield_confidence`) من النطاق — توافق خلفيّ (يُحذَف بلا نطاق).
+- **التحقّق:** 9 حُرّاس جديدة + 18 اختبار agriai قائم أخضر · ruff نظيف · manifest 3260 · SHA b2c9897.
+
+## 2026-07-07 (ن) — بطاقة ذكاء الحقل الموحّدة (V65)
+- **الفجوة (P5/P9):** أوليّات القرار (حالة موحّدة/أدلّة/ثقة/تنبيهات) موجودة لكن مبعثرة عبر ~10 بطاقات FieldView؛ لا بطاقة قرار واحدة.
+- **الحلّ:** `core/field_intelligence_card.assemble_field_intelligence_card` مُجمِّع منطق صرف يبني بطاقة واحدة (أحدث مشهد/حالة مزوّد/NDVI-تاريخيّ/عجز مائيّ/مناطق ضعيفة/تنبيهات/توصية استطلاع/أدلّة/ثقة). **صدق:** كلّ قسم إمّا حاضر أو `missing` بسبب صريح؛ `completeness` نسبة أقسام **البيانات** الحاضرة (المخرجات المُشتقّة risk_alerts/confidence/scouting لا تُحسَب — الاكتمال يعكس توفّر البيانات لا النتائج). NDVI-vs-history يحسب الشذوذ + تصنيف فوق/تحت/قرب.
+- **الوصل:** إضافيّ في `/field-intelligence/analyze` (`field_intelligence_card`) — غير كاسر.
+- **التحقّق:** 8 حُرّاس جديدة (نطاق ratchet المنصّة) · 285 شريحة منصّة + 5 endpoint أخضر · ruff نظيف · manifest 3261 · SHA 9822dda.
+
+## 2026-07-07 (ن) — سِجِلّ المصادر البحثيّة (V63.3، فصل Gitee عن مزوّدي الصور)
+- **بحث Gitee (المُراجِع):** مفيد للمعالجة/التدريب/التقطيع/change-detection لكنّه **ليس** مصدر صور خام (PaddleRS · GeoTrellis Landsat tutorial · CDSystem · NWPU/RSOD datasets).
+- **الحلّ:** `RESEARCH_REGISTRY` منفصل تماماً عن `PROVIDER_REGISTRY`؛ كلّ عنصر `provides_imagery=False` بنوع (research_library/architecture_reference/dataset_reference) + `recommended_use`. `research_sources()` + حُرّاس: المجموعتان **منفصلتان** ولا يتسرّب مصدر بحثيّ إلى active/planned. صدق: Gitee مصدر أفكار/مكتبات لا مزوّد صور — المزوّدون الحقيقيّون يبقون CDSE/Element84/PC/NASA HLS.
+- **التحقّق:** 23 اختبار V63 أخضر (2 جديدة) · ruff نظيف · manifest 3263 · SHA d2da16e.
+
+## 2026-07-07 (ن) — النشرة الإقليميّة لحالة المحاصيل (V66، آمنة الخصوصيّة)
+- **الفجوة (P12):** لا تجميع حقل→مديريّة→محافظة ولا نشرة حالة ولا شذوذ مقابل التاريخ — فقط طبقة معرفة مديريّات ساكنة.
+- **الحلّ:** `core/regional_bulletin.build_regional_bulletin` — تصنيف GEOGLAM (exceptional/favourable/watch/poor) من شذوذ NDVI مقابل المتوسّط التاريخيّ، مُجمَّع محافظة→مديريّات. **خصوصيّة بالبناء:** أرضيّة k-anonymity (min_fields_privacy=5) — المجموعات دونها تُكتَم بلا أرقام (لا استنتاج حقل/مستأجِر مفرد)، ولا معرّفات حقول في المخرَج. **صدق:** بلا تاريخ ⇒ unknown (لا تخمين)؛ الثقة من عدد الحقول/المشاهد. منطق صرف (الجلب/RLS يبقيان في الراوتر).
+- **التحقّق:** 8 حُرّاس جديدة (نطاق ratchet المنصّة) · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — سدّ ثغرتَي أدوات المستشار (V67، P13)
+- **الفجوة (P13):** `get_water_productivity` و`generate_report` مفقودتان من سجلّ أدوات المستشار.
+- **الحلّ:** أُضيفتا كأداتَي **قراءة فقط** (low/غير مُعدِّلة/بلا موافقة، `can_read_field_data`) في `tool_registry`، ومُعلَنتان للمزوّد في `provider_tooling` (READ_ONLY_TOOL_NAMES + وصف + مخطّط JSON)، ومرآتهما في `tool_executor._TOOL_META` (حارس اللا-انحراف). `generate_report` تكوين/قراءة لا إرسال (صدق: تُميَّز عن send_recommendation عالية الخطر).
+- **التحقّق:** 6 حُرّاس جديدة + حُرّاس السجلّ/المنفّذ/الحوكمة القائمة أخضر (190) · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — راوت النشرة الإقليميّة (V66.1، إغلاق السلسلة end-to-end)
+- **الفجوة (تقرير التحقّق):** V66 كانت وحدة بلا راوت. الآن موصولة: `GET /api/v1/regional/bulletin` (تسجيل تلقائيّ) معزول بالمستأجِر (`tenant_connection`/RLS) + `require_permission(FIELD_VIEW)`.
+- **البيانات:** NDVI لكلّ حقل (الحاليّ + المتوسّط التاريخيّ من `zonal_stats`) + `fields.gov` (المحافظة موجودة؛ المديريّة اختياريّة) → محوّل صرف `bulletin_rows_to_records` → `build_regional_bulletin`. **صدق:** القاعدة معطّلة ⇒ نشرة فارغة+سبب؛ تعذّرها ⇒ 503؛ لا NDVI ⇒ `unknown`؛ أرضيّة الخصوصيّة + لا معرّفات حقول محفوظة. المحوّل مُختبَر وحدةً؛ SQL يُغطّى بالتكامل.
+- **التحقّق:** 5 حُرّاس راوت/محوّل + 8 حُرّاس المنطق أخضر · 69 شريحة منصّة · التطبيق يبني ويسجّل الراوت · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — تغذية بطاقة ذكاء الحقل من قاعدة المنصّة (V65.1)
+- **الفجوة (تقرير التحقّق P1):** أقسام latest_scene/ndvi_vs_historical في بطاقة V65 كانت `missing` في المسار الحيّ (الراوت لم يغذّها).
+- **الحلّ:** `card_signals_from_db_rows` (منطق صرف مُختبَر) يبني {ndvi_current/ndvi_history/latest_scene} من `zonal_stats` (NDVI تاريخيّ) + `raster_assets` (أحدث مشهد). الراوت صار async ويجلبها عبر `tenant_connection` (RLS) بسقوط آمن: قاعدة معطّلة/خطأ ⇒ إشارات فارغة ⇒ البطاقة كما قبل (لا انحدار، لا اختلاق). SQL يُغطّى بالتكامل. **صدق:** provider_status يبقى `missing` عمداً (يعيش في raster-service، لا mock).
+- **التحقّق:** 4 حُرّاس صرف جديدة · 133 شريحة منصّة + endpoint أخضر · الراوت async ومُسجَّل · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — كشف سِجِلّ المزوّدين عبر HTTP (V63.4، أساس الجسر cross-service)
+- **الخطوة (المُراجِع P1 cross-service):** `GET /v1/providers/status` في observability يكشف السِجِلّ الصادق (default + active + planned + PROVIDER_REGISTRY + RESEARCH_REGISTRY) كمصدر واحد للمنصّة (provider_status في البطاقة) والواجهة.
+- **صدق:** active يعكس الوصل (wapor/worldcereal/nasa_hls/PC مُخطَّطة)؛ المصادر البحثيّة منفصلة (provides_imagery=False)؛ بيانات وصفيّة غير حسّاسة. نقيّ فوق raster_scene_model.
+- **التحقّق:** 2 حارس جديد · 113 شريحة raster (تشمل decomposition/import-graph) أخضر · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت. **المتبقّي للجسر:** عميل المنصّة fail-safe يستهلك هذه النقطة لملء provider_status (HTTP يُتحقَّق بالتكامل).
+
+## 2026-07-07 (ن) — جسر provider_status عبر الخدمات (V65.2)
+- **الخطوة (المُراجِع P1 cross-service):** بطاقة V65 تُغذّى الآن `provider_status` من raster-service (`/v1/providers/status`، V63.4). `fetch_provider_status` (آمن الفشل عبر `_get_json`) + محوّل صرف `provider_status_signal` → {default/active/planned}. الراوت يغذّيه خارج معاملة القاعدة بسقوط آمن: raster متعذّر ⇒ القسم يبقى missing بسبب صريح (لا اختلاق). active يعكس الوصل الفعليّ.
+- **التحقّق:** 4 حُرّاس صرف · 12 اختبار بطاقة + endpoint أخضر · التطبيق يسجّل · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت. **الجسر مكتمل داخليّاً؛ نداء HTTP الفعليّ يُتحقَّق بالتكامل (خدمتان حيّتان).**
+
+## 2026-07-07 (ن) — واجهة بطاقة ذكاء الحقل (P2، V65-UI)
+- **الخطوة (المُراجِع P2):** عرض عقد البطاقة للمستخدم لا backend-only. `FieldIntelligenceCardView` + هوك `useFieldIntelligenceCard` (POST analyze عبر البوّابة) + عقد/مساعِدات نقيّة `lib/fieldIntelligenceCard.ts`.
+- **صدق:** الأقسام الحاضرة تُعرَض بقيمها (مشهد/NDVI-تاريخيّ/حالة مزوّدين/تنبيهات/ثقة)، والمفقودة تُدرَج صراحةً «غير متاح» (provider-unavailable ⇒ «raster متعذّر») — لا اختلاق. مُوصَّلة في MapHub (الوضع الخبير) بجانب BoundaryReviewCard.
+- **التحقّق:** typecheck نظيف (tsc --noEmit) · 5 حُرّاس vitest نقيّة أخضر · manifest معاد بناؤه · SHA سيُثبَّت. **المتبقّي للواجهة:** عرض normalized_scenes/regional_bulletin (بطاقات إضافيّة، نفس النمط).
+
+## 2026-07-07 (ن) — تصنيف سِجِلّ المصادر الصادق + مراجعة قنوات الصور (V63.5)
+- **التصحيح الجوهريّ:** SciHub مُغلَق (2023) ⇒ لا يُضاف؛ CDSE البديل الرسميّ (مُوثَّق في note الإدخال).
+- **التصنيف:** أثريتُ PROVIDER_REGISTRY (category/verified/coverage_yemen/resolution للكلّ) + أضفتُ `aster_gdem` (DEM مُخطَّط). سِجِلّ `EXTERNAL_SOURCE_REGISTRY` منفصل: usgs (manual)/planet (commercial)/maxar (event)/china_gaofen (research، requires_verification) — active_provider=False دائماً. helpers external_sources/sources_by_type + كشفها في `/v1/providers/status`. النشطون يبقون {element84, cdse, local_cog} بالضبط.
+- **الوثيقة:** `docs/research/SATELLITE_IMAGERY_DOWNLOAD_CHANNELS_REVIEW_20260707.md`.
+- **التحقّق:** 6 حُرّاس جديدة (السِجِلّات الثلاثة منفصلة) · حُرّاس V63 القائمة أخضر · ruff نظيف · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — DEM: Copernicus مُفضَّل + ASTER احتياطيّ + جودة NUM (V63.6)
+- **التفضيل (المُراجِع):** Copernicus DEM 30م أعلى جودة من ASTER (دراسات حديثة) ⇒ `copernicus_dem` مُسجَّل `preferred_dem=True` (active=False، يوافق `DEM_COLLECTION=cop-dem-glo-30`)؛ `aster_gdem` احتياطيّ بـ`products=[DEM,NUM]` + `requires_earthdata_login`. helpers `dem_providers`/`preferred_dem`.
+- **جودة NUM:** `dem_quality.py` منطق صرف يحوّل عدد المشاهد (NUM) إلى ثقة (كثافة أعلى ⇒ ثقة أعلى؛ بلا NUM ⇒ unknown، لا تخمين).
+- **التحقّق:** 10 حُرّاس جديدة · النشطون بلا تغيير · حُرّاس V63 أخضر · ruff · manifest · SHA سيُثبَّت. **لم أبنِ المستورِد** (قراءة GeoTIFF فعليّة = تكامل، يحتاج Earthdata) — مُعلَّم كخطوة متبقّية.
+
+## 2026-07-07 (ن) — سِجِلّ مصادر الطقس (V68) + إصلاح CI
+- **إصلاح CI (984b9c7):** وظيفة Unit Tests فشلت على 4 من إضافاتي (بقيّة الوظائف خضراء): (١) اختبارا V67 يستوردان `services.ai_agronomist.main` المحتاج fastapi ⇒ `importorskip("fastapi")` (يُتخطّى في بيئة الوحدة الدنيا) · (٢) `/v1/providers/status` ⇒ PUBLIC_CATALOG · (٣) `/api/v1/regional/bulletin` ⇒ تصنيف `internal` (لا واجهة بعد ⇒ مُعفى من البوّابة العكسيّة). كامل `-m unit`: 2740/0.
+- **سِجِلّ الطقس (V68):** `core/weather_sources.py` على نمط سِجِلّ الصور. **صدق:** Open-Meteo وحده active (موصول: `connectors/openmeteo.py` + `field_intelligence_adapters:159` + `main:1679`)؛ NASA POWER/CHIRPS/ECMWF/GFS/ERA5 مُخطَّطة (مجانيّة + تغطّي اليمن لكن غير موصولة) — **صحّحتُ اقتراح «nasa_power active» إلى planned**. أدوار لكلّ مصدر + helpers. 4 حُرّاس.
+- **التحقّق:** 4 حُرّاس طقس + كامل unit أخضر · ruff · manifest معاد بناؤه · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — مصادر الرياح/الإعادة-تحليل (V68.1، تصحيح الدقّة)
+- **التصحيح الأهمّ (المُراجِع):** ERA5 ~25كم، ERA5-Land ~9كم — **ليست 500م**؛ مقياس منطقة/محافظة لا نقطة حقل (يحتاج downscaling/دمج DEM). صُحّح في السِجِلّ + حارس.
+- **الوصل الحقيقيّ:** حاجة الرياح على مستوى الحقل (رشّ/ET0) مُغطّاة أصلاً بـOpen-Meteo النشط (أُضيف دورا wind/spray_window) — لا حاجة لإعادة-تحليل خشنة أو رياح محيطيّة للقرار الحقليّ.
+- **مُضاف مُخطَّطاً:** era5_land (9كم، الأدقّ للأرض) · global_wind_atlas (~250م، مواقع طاقة الرياح لا forecast) · merra2 (~50كم مرجع) · ascat (رياح محيطيّة، coverage_scope=coastal_marine). China الإقليميّة **لم تُضَف** (جغرافيا خاطئة). لا مصدر يُدّعى active.
+- **التحقّق:** 7 حُرّاس طقس · active == {open_meteo} · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — OlmoEarth كنموذج أساس AI (V69، لا مزوّد صور)
+- **التصنيف الصادق (المُراجِع):** OlmoEarth (Ai2) نموذج أساس EO يعمل *فوق* الصور (Sentinel-1/2/Landsat)، **ليس مزوّد صور**. سِجِلّ `AI_MODEL_REGISTRY` منفصل: provides_imagery=False · active_provider=False · requires (أوزان/سلاسل زمنيّة/تحقّق محلّيّ اليمن) · requires_imagery_provider=[sentinel1,sentinel2,landsat] · coverage_note=true_by_input_sources (المدخلات تغطّي اليمن، النموذج غير مُتحقَّق محلّيّاً).
+- **عقد embedding صادق (#5 من طلبه):** `olmoearth_embedding_contract` — بلا أوزان/مدخلات ⇒ unavailable+سبب+embedding=None؛ حتّى مع توفّرهما **لا متّجه مُختلَق** (status=ready_pending_local_validation، الاستدلال خلف GPU + تحقّق محلّيّ). كُشِف في `/v1/providers/status` (ai_models).
+- **صدق:** لا يُغني عن CDSE/Element84 — يستهلكها. لا تفعيل بلا أوزان+GPU+تحقّق يمنيّ. المتبقّي (V70): benchmark محلّيّ NDVI-only مقابل V60.3 مقابل OlmoEarth.
+- **التحقّق:** 5 حُرّاس (السِجِلّات الأربعة منفصلة) · حُرّاس V63 أخضر · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قناة استيراد Earthdata الدفعيّ + حارس نَسَب/أسرار (V63.7)
+- **القناة (المُراجِع):** `earthdata_wget_batch` في EXTERNAL_SOURCE_REGISTRY (`source_type=manual_batch_download`, active_provider=False, requires_earthdata_login) — تدعم HLS/ASTER/SRTM/NASADEM/MODIS/VIIRS/MERRA2. قناة استيراد دفعيّ لا مزوّد حيّ. التصحيح: `.netrc` لا كلمة مرور في سكربت/مستودع.
+- **حارس صادق + أمنيّ:** `imported_asset_provenance_ok` — يرفض أصلاً مُستورَداً بلا checksum+source_url+acquisition_date (لا أصل يتيم)، ويرفض أيّ حقل يشبه سرّاً (password/token/netrc). الوثيقة حُدِّثت بطريقة `.netrc` + wget + قاعدة النَّسَب.
+- **التحقّق:** 4 حُرّاس · القناة ليست مزوّداً/نشطاً · حُرّاس السِجِلّ أخضر · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — سِجِلّ مصادر التربة/المناخ (V70، أربع طبقات)
+- **التصنيف:** `core/soil_climate_sources.py` بطبقات tier (production_baseline/planned_baseline/research_layer/manual_download_only). **SoilGrids نشط** (موصول فعلاً: `soil-service/soilgrids_client.py`→rest.isric.org + `/soil/soilgrids`) بتحذير «250م، ليس بديل مختبر». WorldClim/ESA-CCI مُخطَّطان؛ erodibility + DOC/MBC/fMAOC/GPP طبقات بحثيّة (requires_verification، coverage=needs_check/dataset_dependent، لا افتراض تغطية).
+- **صدق:** NASA POWER لم يُعَد تعليمه active (موجود مُخطَّطاً في weather_sources). **الأمن/الموثوقيّة:** حارس `has_baidu_source` يمنع أيّ رابط Baidu كمصدر رسميّ (المواقع الأصليّة + checksum فقط).
+- **التحقّق:** 5 حُرّاس · soilgrids وحده نشط · لا Baidu · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — تصحيح ERA5-Land رطوبة التربة + سلسلة ET0 + جفاف مئينيّ (V68.2)
+- **تصحيح المُراجِع:** أسماء المتغيّرات الرسميّة من CDS لا MirrorEarth. أُضيف `soil_moisture_layers` في `era5_land` يربط أسماء ساهول (soil_moisture_0_7cm/7_28cm/28_100cm/100_289cm) بأسماء CDS الرسميّة `volumetric_soil_water_layer_1..4` + الوحدة m3/m3. العمق الرابع **289سم** (لا 255). + `derived_variables` + `limitations` (نموذجيّ لا حسّاس · خشن للحقل الصغير · تحقّق محلّيّ).
+- **سلسلة ET0:** `ET0_PROVIDER_CHAIN` — primary=open_meteo (نشط) · secondary=nasa_power (مُخطَّط) · fallback=era5_land_derived. صدق: الأساسيّ وحده موصول.
+- **جفاف صادق:** `soil_moisture_drought_class(current, history, min_history=10)` — مئينيّة محلّيّة مقابل تاريخ الموقع/الموسم لا عتبة SMI ثابتة لكلّ اليمن؛ تاريخ<10 ⇒ unknown (لا تخمين). العتبات <10 شديد/10–20 متوسّط/20–30 بداية إجهاد/≥30 طبيعيّ.
+- **صدق الاختبار:** حُذِف فحص substring مُبالِغ ("mirrorearth" not in blob) لأنّه يتعثّر بنصّ الملاحظة التوضيحيّة نفسه؛ استُبدِل بفحص قيم `provider_variable` الفعليّة (كلّها تبدأ بـvolumetric_soil_water_layer_). نمط متكرّر: لا تفحص substring سلبيّ على نصّ يذكر المصطلح توثيقاً.
+- **التحقّق:** 10 حُرّاس طقس أخضر · ruff · manifest (3283) · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — إلغاء حجب CI: ثغرة ecdsa عبوريّة WONTFIX (Security Scan)
+- **السبب:** ثغرة جديدة نُشِرت (`PYSEC-2026-1325` في `ecdsa 0.19.2`) حجبت وظيفة *Security Scan* على **كلّ** الـcommits (بما فيها الخضراء سابقاً 984b9c7) — لا علاقة لها بتغييراتنا. ecdsa تبعيّة عبوريّة أساسيّة لـ`python-jose` (auth/tts/video-processor/odoo-bridge/local-ai-rag).
+- **الحقيقة:** قناة-جانبيّة (Minerva timing على P-256) صنّفها صانعو ecdsa **WONTFIX** صراحةً — لا نسخة إصلاح (0.19.2 الأحدث 2026-03-26؛ README يوصي بـpyca/cryptography). مسارنا `python-jose[cryptography]` ⇒ JWT عبر خلفيّة cryptography/OpenSSL لا ecdsa ⇒ المسار المُصاب غير مُستخدَم.
+- **القرار:** `--ignore-vuln PYSEC-2026-1325` مُوثّق ومحصور في بوّابة pip-audit الحرجة (`ci.yml:333`)، على نمط استثناء local-ai-rag القائم. ecdsa يبقى مرئيّاً في المسح الإرشاديّ (غير حاجب) للشفافيّة. **لا** ترحيل 5 خدمات عن python-jose (تغيير مصادقة خطر خارج النطاق لثغرة بلا إصلاح لا يُمَسّ مسارها).
+- **التحقّق:** `--ignore-vuln` صالح (pip-audit --help) · YAML سليم · manifest (3283) · SHA سيُثبَّت. المتوقّع: Security Scan يعود أخضر.
+
+## 2026-07-07 (ن) — رطوبة منطقة الجذر ERA5-Land (V68.3) + تأكيد لا-تكرار الريّ
+- **إغلاق فجوة عقد:** V68.2 أعلن `derived_variables: [root_zone_soil_moisture, soil_moisture_percentile, drought_anomaly]` لكن نفّذ المئينيّة فقط. أُضيف `root_zone_soil_moisture(layer_values, root_depth_cm)` — متوسّط طبقات ERA5-Land موزوناً بسُمك تداخلها مع [0, عمق الجذر]. الأعماق مصدرها الوحيد `soil_moisture_layers` (أُضيف depth_top_cm/depth_bottom_cm لكلّ طبقة) لا أرقام مُثبَّتة.
+- **صدق:** طبقة غائبة/غير رقميّة تُسقَط ووزنها معها (لا تُعامَل صفراً)؛ مدخل فاسد ⇒ value=None + سبب. يخدم قرار الريّ حسب المحصول (قمح/خضار سطحيّ 0–28سم؛ نخيل/عنب عميق 28–289سم) — جدول المُراجِع.
+- **لا تكرار (المُراجِع اقترح حساب الريّ):** ETc=ET0×Kc، net=max(0,ETc−مطر فعّال)، gross=net/كفاءة **موجودة كلّها فعلاً** — `api/water_balance.py` (سلسلة FAO-56 + Ks ملوحة) · `api/irrigation_method.py` (كفاءات flood 0.55/pivot 0.85/drip 0.90 + `gross_irrigation_mm`) · `api/irrigation_recommendation_policy.py` (net/leaching/gross) · Kc من NDVI (`kc_extraction_engine.py`). لم يُكرَّر شيء.
+- **التحقّق:** 15 حارس طقس أخضر (5 جديدة: depth-bounds + سطحيّ + عميق + إسقاط ناقص + unknown صريح) · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قسم «حالة الحقل» في بطاقة الذكاء (V65.3) — إظهار التشخيص المُحتسَب
+- **الفجوة الحقيقيّة:** جسر الأدلّة عبر-الخدمات (V65/V65.1/V65.2) موصول فعلاً (provider_status عبر HTTP + ndvi_history/latest_scene عبر RLS) لكن البطاقة **تُسقِط** التشخيص الذي يحسبه المايسترو في `operational_truths` (effective_status/crop_vigor/salinity_class/heat_risk/ndvi_trend) — تعرض ndvi/عجز مائيّ فقط، لا «ما حالة الحقل؟ ما السبب؟».
+- **الحلّ (منطق صرف، بلا جلب، بلا تغيير راوتر):** `_field_condition(truths)` يُبرِز فقط المفاتيح الحاضرة + `primary_driver` (الحالة الفعليّة أو أبرز مخاطرة صريحة salinity_limited/heat_limited). لا مفتاح تشخيصيّ ⇒ missing (no_condition_signals). يُشتقّ من `analyze` المُمرَّر أصلاً ⇒ لا لمس لـ`_fetch_card_signals`.
+- **الواجهة:** نوع `FieldConditionSection` + `conditionDriverAr` + صفّ «حالة الحقل» في `FieldIntelligenceCardView` (يُبرِز المُحرِّك بلون تحذير) + سبب missing عربيّ. صدق: المجهول يُعرَض كما هو.
+- **لا اختلاق أقسام soil/terrain/weather:** رغم ورودها في رؤية المُقترَح، لا مُنتِج يُغذّيها في الحالة بعد ⇒ إضافتها ستكون سقالة فارغة. أُبرِز ما هو محسوب فعلاً فقط.
+- **لا تكرار الريّ:** ETc/net/gross بكفاءة النظام موجودة في water_balance/irrigation_method/irrigation_recommendation_policy (أُبلِغ المستخدم، لم يُكرَّر).
+- **التحقّق:** 15 حارس بطاقة خلفيّ + 6 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قسم «خطّ أساس التربة» (SoilGrids) في بطاقة الذكاء (V65.4)
+- **الفجوة:** `soil_adapter` يجلب EC/الملوحة فقط، لا قوام/pH/كربون عضويّ. P0 المُقترَح يطلب «SoilGrids baseline» في البطاقة. soil-service يملك `/soil/soilgrids` (soilgrids_client→rest.isric.org) يعيد قوام USDA + clay/sand/silt/ph/soc/cec — لكن لا يصل للبطاقة.
+- **الحلّ (نمط provider_status الآمن، بلا مسّ مسار القرار):** `fetch_soil_baseline(req)` (GET /soil/soilgrids بـlat/lon + X-Agent-Token، آمن الفشل) + `soil_baseline_signal(resp)` منطق صرف (None/مشوّه ⇒ {}) + قسم `soil_baseline` في البطاقة (حاضر بقيمته + **تحذير 250م ليس بديل مختبر**، أو missing بسبب). `_fetch_card_signals` يمرّر lat/lon ويجلب آمن الفشل.
+- **صدق:** بلا إحداثيّات/توكن/تغطية ⇒ القسم missing صريح (no_soil_baseline_supplied) — لا اختلاق. لا يُمَسّ مسار المايسترو/الحَوكمة.
+- **الواجهة:** `SoilBaselineSection` + صفّ «خطّ أساس التربة» (قوام/pH/طين% + تحذير في title) + سبب missing عربيّ.
+- **التحقّق:** 17 حارس بطاقة خلفيّ (2 جديدة) + 6 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قسم «نافذة الطقس» (Open-Meteo) في بطاقة الذكاء (V65.5)
+- **الفجوة:** توقّع Open-Meteo نشط (`weather_forecast_adapter`, keyless) لكن دوافع اليوم لا تصل للبطاقة الموحّدة. P0/P1 يطلب weather window/spray.
+- **الحلّ (نمط الجلب الآمن، بلا تكرار):** `weather_window_signal(forecast)` منطق صرف — يعرض **دوافع اليوم الموضوعيّة** (ET0/حرارة عظمى-دنيا/مطر/رياح 10م) + علَمَي حرارة/صقيع من عتبات `core.thresholds` المشتركة (HEAT_STRESS_DAILY_TMAX_C=35/CRITICAL=40، FROST_RISK_C=2) — **لا عتبات مُختلَقة**. `_fetch_card_signals` يجلبه آمن الفشل (lat/lon).
+- **صدق/لا تكرار:** لا يُعيد حساب توصية الرشّ/الريّ — تلك في `weather_advice.irrigation_advice`/`disease_risk` و`weather_overlay.compute_scores` (مصدر واحد). القسم يعرض القياس الخام + علَم مشترك فقط. بلا توقّع/إحداثيّات ⇒ missing صريح (no_weather_window_supplied).
+- **الواجهة:** `WeatherWindowSection` + `heatFlagAr` + صفّ «نافذة الطقس» (لون حسب علَم الحرارة: حرج=danger/مرتفع=warn) + ET0/ريح/صقيع + سبب missing عربيّ.
+- **التحقّق:** 20 حارس بطاقة خلفيّ (3 جديدة) + 7 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت. البطاقة الآن: مشهد·حالة الحقل·تربة·نافذة طقس·NDVI·عجز مائيّ·مزوّدون·مناطق·أدلّة·تنبيهات·ثقة.
+
+## 2026-07-07 (ن) — محرّك اتّجاه الرياح المكانيّ للمصدّات (V71) + تدقيق ما هو قائم
+- **تحقّق (سؤال المستخدم «هل يوجد محرّك رياح على مستوى الحقل للمصدّات/الأشجار؟»):** أغلب «Wind Intelligence Engine» **قائم فعلاً**: `connectors/openmeteo.py` يجلب سرعة+**اتّجاه** (مع احتياط met.no `wind_direction_source`)+**هبّات**؛ `routers/weather.py:_operation_suitability` يُهدّف الرشّ/الحصاد/البذر/الريّ (رياح>18كم/س، هبّة>29 ⇒ خصم)؛ نقاط operation-window/operation-plan؛ بلاطة `spraying_drift_risk`؛ `weather_overlay.compute_scores` (نافذة رشّ ساعيّة).
+- **الفجوة الحقيقيّة (رأس السؤال: مصدّات/أشجار):** لا منطق **مصدّ رياح/shelterbelt** ولا **وردة رياح/سائد** ولا بوصلة 16-نقطة قابلة لإعادة الاستخدام. أُنشئ `core/wind_geometry.py` (منطق صرف): `compass_16` (16 قطاعاً + عربيّة، اصطلاح «تأتي من») · `wind_rose` (سائد بمتّجه-متوسّط موزون بالسرعة؛ عيّنة<min_obs ⇒ prevailing=None صراحةً) · `windbreak_recommendation` (توجيه الحاجز **عموديّ** على الريح + زرع upwind + حماية ~10H downwind/3H upwind، FAO/USDA-NRCS؛ بلا ارتفاع ⇒ يُعلن الحاجة لا يختلق رقماً).
+- **صدق:** المصدّ يحتاج **الرياح السائدة** (تاريخ) لا قراءة لحظيّة؛ الوحدة جاهزة-للوصل بانتظار تغذية اتّجاه رياح تاريخيّ (NASA POWER/ERA5 — غير موصولة بعد). لم يُكرَّر محرّك الصلاحيّة القائم.
+- **التحقّق:** 5 حُرّاس (بوصلة/التفاف · سائد موزون · عيّنة صغيرة صادقة · توجيه عموديّ+حماية 10H · بلا ارتفاع لا اختلاق) · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قسم «التضاريس» في بطاقة الذكاء (V72) — إغلاق آخر فجوة أقسام البطاقة
+- **تحقّق:** منطق التضاريس **قائم فعلاً** (`raster-service/terrain_analysis.py`: `compute_field_terrain` ارتفاع/انحدار/اتّجاه + fail-safe computed:false · `interpret_terrain_for_agronomy` خطر تعرية) ونقطة `GET /v1/fields/{id}/terrain` (`routers/fields.py`). الفجوتان الحقيقيّتان: (1) النقطة كانت تتطلّب bbox مُمرَّراً؛ (2) لا تصل للبطاقة.
+- **B1a (raster):** `field_terrain_extent(geom)` منطق صرف يشتقّ (bbox, حلقة خارجيّة) من GeoJSON (Polygon/MultiPolygon/Feature؛ هندسة شاذّة ⇒ (None,None)). النقطة الآن **تعمل من field_id وحده**: عند غياب bbox تجلب هندسة الحقل (RLS-safe عبر `fetch_field_geometry`) وتقصّ **داخل المضلّع** (poly) لا مستطيل bbox.
+- **B1b (platform+frontend):** `terrain_signal(resp)` يسطّح مخرَج raster (mean/max slope + dominant_aspect + erosion_risk + elevation) — computed:false ⇒ {} ⇒ missing صادق. `fetch_terrain_summary` cross-service عبر **X-Tenant-Id** الموثوق (SEC-3، `_get_json` اكتسب دعم tenant header)؛ tenant من التوكن لا الجسم. قسم `terrain` في البطاقة + صفّ «التضاريس» (ميل/اتّجاه/تعرية، لون danger عند high/severe) + `erosionRiskAr`.
+- **صدق:** لا DEM/هندسة ⇒ missing (no_terrain_supplied). لم يُكرَّر منطق الانحدار — أُعيد استخدام terrain_analysis + النقطة القائمة.
+- **التحقّق:** 6 حُرّاس terrain (raster) + 22 حارس بطاقة (2 جديدة) + 8 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت. **بطاقة الحقل اكتملت أقسامها** (مشهد·حالة·تربة·طقس·تضاريس·NDVI·ماء·مزوّدون·مناطق·أدلّة·تنبيهات·ثقة).
+
+## 2026-07-07 (ن) — تفعيل محرّك المصدّات بتاريخ رياح NASA POWER (V73، B2)
+- **الوصل الحقيقيّ:** `api/connectors/nasa_power.py` (مجّانيّ بلا مفتاح، community=AG، ~0.5°) — `parse_wind_history` منطق صرف يستخرج (اتّجاه WD10M, سرعة WS10M) ويُسقِط حارس -999 بصدق؛ `fetch_wind_history` آمن الفشل. نقطة `GET /api/v1/fields/{id}/wind/prevailing`: تبني وردة رياح (`core.wind_geometry`) من رياح يوميّة تاريخيّة → سائد → `windbreak_recommendation` (توجيه عموديّ + زرع upwind + حماية ~10H). **صدق:** مصدر متعذّر/تاريخ<min_obs ⇒ computed=false + سبب (لا 503، لا سائد موهوم).
+- **تفعيل السِجِلّ:** `nasa_power` أصبح `active=True` **لدور الرياح التاريخيّة فقط** (`active_roles=["historical_wind"]` + note صريح: الإشعاع/الأرصاد-المناخيّة/ET ما زالت مُخطَّطة). تحديث `test_weather_sources` (النشط الآن {open_meteo, nasa_power}).
+- **العقد:** إعفاء `endpoint_ui_coverage_waivers.json` (backlog-ui: API جاهزة، شاشة وردة الرياح/المصدّات شريحة B2-UI). البوّابة العكسيّة PASS (29 إعفاء، لا مسار فالت).
+- **صدق/لا تكرار:** لم يُكرَّر محرّك صلاحيّة الرشّ القائم (`_operation_suitability`/`weather_overlay`)؛ هذه نقطة **مصدّات/سائد** مستقلّة. NASA POWER ~0.5° مقياس منطقة لا نقطة حقل (مُعلَن).
+- **التحقّق:** 3 حُرّاس parse (حارس -999/شاذّ/وصل بالمحرّك) + 15 حارس weather-sources + 5 wind_geometry + gate PASS + ruff + manifest · SHA سيُثبَّت. (شاشة المستخدم B2-UI متبقّية.)
+
+## 2026-07-07 (ن) — واجهة الرياح السائدة/المصدّات (V73-UI، B2-UI) — إغلاق ميزة الرياح end-to-end
+- **الواجهة:** `lib/windbreak.ts` (أنواع + مساعِدات نقيّة: topRoseSectors/windMissingReasonAr/protectionSummaryAr — بلا ارتفاع لا رقم متر) · `hooks/useFieldWindPrevailing.ts` (react-query GET `/wind/prevailing`، kongApi) · `components/fieldview/WindbreakCard.tsx` (اتّجاه سائد + توصية مصدّ عموديّ + جهة الزرع + حماية + أعلى قطاعات وردة الرياح؛ المحسوب بقيمته والمتعذّر بسببه صراحةً) · مركّبة في MapHub (expert mode) بعد بطاقة الذكاء.
+- **العقد:** نُقِل `/api/v1/fields/{field_id}/wind/prevailing` من الإعفاءات إلى `core_endpoints` (evidence=`/wind/prevailing` موجود في الهوك) — لم يعد دَين واجهة. البوّابة PASS (442 core، 28 إعفاء، لا فالت).
+- **صدق:** البطاقة تُعلن «مقياس منطقة لا نقطة حقل» + سبب التعذّر (NASA POWER غير متاح/تاريخ غير كافٍ)؛ لا اختلاق. ميزة الرياح/المصدّات مكتملة end-to-end (backend V73 + UI).
+- **التحقّق:** 3 vitest جديدة (11 إجمالاً) + tsc نظيف + coverage gate PASS + manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — رسم أدلّة الحقل Evidence Graph (V74) — الشريحة الأولى من رؤية #14
+- **الوحدة:** `core/evidence_graph.py` منطق صرف — `build_evidence_graph(analyze)` يحوّل أقسام بطاقة الذكاء إلى عُقَد (الحقل + دليل لكلّ قسم حاضر: مشهد/حالة/تربة/طقس/تضاريس/NDVI/ماء/مناطق) + حوافّ (has_evidence: الحقل→دليل، supports: دليل→توصية). كلّ عقدة دليل تحمل مصدرها (latest_scene = provider الفعليّ لا ثابت؛ البقيّة مصادر معروفة soilgrids/open_meteo/copernicus_dem/…).
+- **صدق:** لا عقدة لدليل غائب — الأقسام المفقودة ⇒ `knowledge_gaps` بسببها («ما لا نعرفه بعد»). عقدة توصية فقط عند وجود policy_decision. يستهلك مخرَج analyze المُجمَّع (بلا جلب).
+- **الوصل:** `field-intelligence/analyze` يُرفِق `evidence_graph` في الاستجابة (بعد البطاقة) — يخدم تفسير التوصية وإثبات المصدر وإظهار الفجوات.
+- **التحقّق:** 5 حُرّاس (عُقَد/فجوات · مصدر المشهد الفعليّ · توصية+supports · بلا قرار · analyze فارغ) + حُرّاس البطاقة أخضر · ruff · manifest · SHA سيُثبَّت. (الرسم البصريّ/الاستمرار في graph DB شرائح لاحقة.)
+
+## 2026-07-07 (ن) — واجهة رسم الأدلّة Evidence Graph (V74-UI)
+- **الواجهة:** `lib/evidenceGraph.ts` (أنواع + مساعِدات نقيّة: evidenceNodes/supportingEvidenceCount) · `components/fieldview/EvidenceGraphCard.tsx` يعرض الأدلّة الحاضرة **بمصادرها** (رقاقات + عدد داعمي التوصية) + **فجوات المعرفة بأسبابها** (missingReasonAr) · مركّبة في MapHub (expert) بعد بطاقة المصدّات. يعيد استخدام استعلام analyze (evidence_graph مُرفَق) — بلا نقطة/هوك جديد.
+- **صدق:** الحاضر بمصدره والناقص بسببه صراحةً؛ لا رسم ⇒ رسالة صادقة. لا حاجة لتعديل عقد التغطية (نقطة analyze لها دليل واجهة أصلاً).
+- **التحقّق:** 2 vitest جديدة (5 مع windbreak) + tsc نظيف + manifest · SHA سيُثبَّت. ميزة رسم الأدلّة مكتملة end-to-end (backend V74 + UI).
+
+## 2026-07-07 (ن) — استمرار رسم الأدلّة Evidence Graph Persistence (V75، VNext المرحلة 1)
+- **الهدف:** تحويل evidence_graph من كائن عابر في analyze إلى **سجلّ قابل للاستعلام عبر الزمن** (Postgres JSONB، بلا Graph DB). أساس audit/تتبّع القرار/تعلّم لاحق.
+- **الترحيل v148:** `field_evidence_snapshots` (JSONB) معزول بالمستأجِر (RLS FORCE، نمط v140/v144) + فهرسا (tenant/field/زمن) و(GIN على الرسم). مُسجَّل في MANIFEST + run_migrations.sql (خطوة 154). لا أعمدة أسرار.
+- **الكاتب (fail-soft):** `core/evidence_snapshot.py` صرف — `recommendation_hash` (بصمة ثابتة لمدخلات القرار، لا توقيت) · `strip_secrets` (يحذف token/password/… من الرسم قبل التخزين) · `should_persist` (لا لقطة بلا دليل/توصية) · `build_snapshot_payload`. `field_intelligence.analyze` يستدعي `_persist_evidence_snapshot` **بعد** إرفاق الرسم — **فشل الكتابة لا يكسر التحليل** (persistence غير حاجبة). tenant_id من التوكن (لا الجسم).
+- **القراءة:** `GET /evidence-graph/latest` (أحدث لقطة) + `/timeline` (خطّ زمنيّ مُوجَز: بصمة/ثقة/عدّ أدلّة-فجوات) — معزولة بالمستأجِر (RLS). لا لقطة ⇒ available:false صريح. إعفاءان backlog-ui (شاشة التاريخ لاحقاً).
+- **صدق/أمن:** لا سرّ يُخزَّن (تنقية + حارس مخطّط) · tenant من السياق · fail-soft. لم نُدخِل Graph DB (المرحلة 2 عند الحاجة).
+- **التحقّق:** 5 حُرّاس snapshot صرف + 4 حُرّاس ترحيل ساكن (RLS/فهارس/تسجيل/لا-أسرار) + sync guard + coverage gate PASS + validate_migrations (v148 ✓) + ruff + manifest · SHA سيُثبَّت. (integration بعد رفع Postgres.)
+
+## 2026-07-07 (ن) — إصلاح بوّابة CI (V75.1): تصنيف قراءات evidence-graph internal
+- **الفشل (Unit Tests على f80fc14):** `test_no_waiver_has_real_ui_evidence` + `test_every_waiver_has_explicit_reason`. السبب: إعفاء لمسار `/api/v1/fields/…` يُطابِق دائماً الجذع العامّ `/api/v1/fields` في الواجهة ⇒ يُعَدّ «له دليل» فيُطالَب بالترقية؛ و`ui_effort:"medium"` غير صالح (المسموح page/button/panel/none). (نفس سبب فشل c47d06f سابقاً قبل ترقية wind إلى core.)
+- **الإصلاح الصادق:** قراءتا `/evidence-graph/latest|timeline` أدوات audit/تاريخ بلا شاشة مستخدم نهائيّ بعد ⇒ صُنِّفتا `internal` (بادئة `/api/v1/fields/{field_id}/evidence-graph` قبل قاعدة `/api/v1/fields`، الأوّل يفوز) بدل الإعفاء. internal لا يُطالَب بواجهة (نمط نقطة النشرة). حُذِف الإعفاءان.
+- **التحقّق:** 13 حارس endpoint-coverage أخضر + gate PASS (442 core/28 إعفاء) + manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — تحقّق/تقوية GPU overlay لـRTX 5090/CUDA 13.1 (V76، اختيار B)
+- **التحقّق الساكن (لا GPU هنا):** overlay `docker-compose.v9.gpu.yml` سليم لـ5090: صورة `pytorch:2.7.0-cuda12.8` تدعم Blackwell sm_120، `TORCH_CUDA_ARCH_LIST=12.0` صحيح، حجز الأجهزة بصيغة compose الحديثة، `video` capability لـNVENC. سائق CUDA 13.1/592 **متوافق خلفيّاً** مع حاوية cuda12.8 (لا حاجة صورة cuda13؛ قابلة للتجاوز عبر PYTORCH_CUDA_IMAGE).
+- **التقوية الحقيقيّة (حالتك: GPU جاهز، SAM2 بلا أوزان):** `sam2-inference/main.py` `/readyz` يعرض الآن تشخيصاً **صادقاً قابلاً للتنفيذ**: `reason_code` مُصنَّف (weights_missing/cuda_unavailable/library_missing/load_failed) + `reason` + `checkpoint_expected` — يعرف المُشغّل ما ينقص (ركّب الأوزان على مسار الـcheckpoint) دون قراءة السجلّات. صنّف ImportError لمكتبة SAM2 صراحةً library_missing.
+- **صدق:** لا تشغيل GPU هنا (أُعلن)؛ التحقّق الحيّ عبر `sam2_live_gpu_gate.py` على الجهاز. لم يُفعَّل أيّ نموذج بلا أوزان (SAM2 يبقى degraded بصدق حتّى تُركَّب).
+- **التحقّق:** 8 حُرّاس GPU-enablement أخضر (2 جديدة: readyz-reason + arch-Blackwell) + contract gate PASS + ruff + manifest · SHA سيُثبَّت. وثيقة RTX5090 حُدِّثت (توافق CUDA 13.1 + تشخيص الجاهزيّة).

@@ -157,13 +157,19 @@ async def stac_search(
     if HISTORICAL_SEARCH_PROVIDER == "element84":
         return await stac_search_element84(bbox, dt_start, dt_end, max_cloud, limit)
     if not _cdse.is_configured():
+        # اقتراح احتياطيّ مُهيكَل (قابل للقراءة آليّاً) بدل نصّ حرّ فقط — يوجّه إلى Element84.
+        from raster_scene_model import provider_fallback_suggestion
+
         raise HTTPException(
             status_code=503,
-            detail=(
-                "بحث الأقمار التاريخيّ يعتمد Copernicus/CDSE حصراً؛ الاعتمادات غائبة "
-                "(CDSE_CLIENT_ID/SECRET أو SH_CLIENT_ID/SECRET). اضبطها، أو عيّن "
-                "HISTORICAL_SEARCH_PROVIDER=element84 صراحةً لتجاوز واعٍ."
-            ),
+            detail={
+                "message": (
+                    "بحث الأقمار التاريخيّ يعتمد Copernicus/CDSE حصراً؛ الاعتمادات غائبة "
+                    "(CDSE_CLIENT_ID/SECRET أو SH_CLIENT_ID/SECRET). اضبطها، أو عيّن "
+                    "HISTORICAL_SEARCH_PROVIDER=element84 صراحةً لتجاوز واعٍ."
+                ),
+                "fallback_suggestion": provider_fallback_suggestion("cdse_unconfigured"),
+            },
         )
     return await stac_search_cdse(bbox, dt_start, dt_end, max_cloud, limit, geometry)
 

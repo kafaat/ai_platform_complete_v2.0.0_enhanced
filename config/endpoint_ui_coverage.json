@@ -90,6 +90,14 @@
       "audience": "farmer"
     },
     {
+      "prefix": "/api/v1/regional/bulletin",
+      "audience": "internal"
+    },
+    {
+      "prefix": "/api/v1/fields/{field_id}/evidence-graph",
+      "audience": "internal"
+    },
+    {
       "prefix": "/api/v1/fields",
       "audience": "farmer"
     },
@@ -1506,6 +1514,11 @@
       "endpoint": "/api/v1/fields/{field_id}/terrain",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
+      "audience": "farmer",
+      "evidence": "/wind/prevailing"
     },
     {
       "endpoint": "/api/v1/fields/{field_id}/timeline",

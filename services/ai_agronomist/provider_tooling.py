@@ -19,9 +19,11 @@ READ_ONLY_TOOL_NAMES: tuple[str, ...] = (
     "get_truecolor_scene",
     "get_index_timeline",
     "get_weather_history",
+    "get_water_productivity",
     "get_operation_windows",
     "get_alerts",
     "get_drawings_and_zones",
+    "generate_report",
     "open_map_layer",
 )
 
@@ -30,9 +32,11 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "get_truecolor_scene": "Return metadata for a Sentinel-2 TrueColor scene for the selected field/date.",
     "get_index_timeline": "Return a vegetation/water index timeline such as NDVI, NDMI, NDRE, or MSAVI.",
     "get_weather_history": "Return historical weather context for the selected field and day range.",
+    "get_water_productivity": "Return the field's water productivity / water-use efficiency (water consumed vs yield/biomass). Read-only.",
     "get_operation_windows": "Return agricultural operation windows such as spraying, irrigation, and harvesting.",
     "get_alerts": "Return active or recent field alerts.",
     "get_drawings_and_zones": "Return field drawings, pivots, management zones, and prescription zones.",
+    "generate_report": "Compose a unified read-only field report (intelligence card, state, evidence) for display/export. Does not send.",
     "open_map_layer": "Request that the UI opens a map layer/date for the current field. Read-only UI intent.",
 }
 
@@ -54,6 +58,10 @@ _BASE_PROPERTIES: dict[str, dict[str, Any]] = {
         "description": "History window in days.",
     },
     "layer": {"type": "string", "description": "Map layer to open in the UI."},
+    "period": {
+        "type": "string",
+        "description": "Optional reporting period label or ISO range for the report.",
+    },
 }
 
 _TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
@@ -79,6 +87,19 @@ _TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
     "get_weather_history": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"], "days": _BASE_PROPERTIES["days"]},
+        "additionalProperties": False,
+    },
+    "get_water_productivity": {
+        "type": "object",
+        "properties": {"field_id": _BASE_PROPERTIES["field_id"], "days": _BASE_PROPERTIES["days"]},
+        "additionalProperties": False,
+    },
+    "generate_report": {
+        "type": "object",
+        "properties": {
+            "field_id": _BASE_PROPERTIES["field_id"],
+            "period": _BASE_PROPERTIES["period"],
+        },
         "additionalProperties": False,
     },
     "get_operation_windows": {

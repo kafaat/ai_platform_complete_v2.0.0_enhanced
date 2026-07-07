@@ -206,6 +206,28 @@ async def raster_info(layer_id: str, x_agent_token: str = Header(None)):
     return layer
 
 
+@router.get("/v1/providers/status")
+async def providers_status():
+    """حالة مزوّدي الصور (سِجِلّ صادق) — يكشف ``PROVIDER_REGISTRY`` كعقد HTTP.
+
+    يمكّن المنصّة/الواجهة من ملء ``provider_status`` في بطاقة ذكاء الحقل من مصدر واحد
+    صادق. صدق: ``active`` يعكس الوصل الفعليّ لا الطموح (wapor/worldcereal/nasa_hls/
+    planetary_computer مُخطَّطة active=False)؛ المصادر البحثيّة (Gitee) منفصلة تماماً
+    (``provides_imagery=False``). بيانات وصفيّة غير حسّاسة (لا معلومات مستأجِر).
+    """
+    import raster_scene_model as _sm
+
+    return {
+        "default_historical_provider": stac_search_helpers.HISTORICAL_SEARCH_PROVIDER,
+        "active": _sm.active_providers(),
+        "planned": _sm.planned_providers(),
+        "providers": _sm.PROVIDER_REGISTRY,
+        "research_sources": _sm.RESEARCH_REGISTRY,
+        "external_sources": _sm.EXTERNAL_SOURCE_REGISTRY,
+        "ai_models": _sm.AI_MODEL_REGISTRY,
+    }
+
+
 @router.get("/indices")
 async def field_indices(
     field_id: str,

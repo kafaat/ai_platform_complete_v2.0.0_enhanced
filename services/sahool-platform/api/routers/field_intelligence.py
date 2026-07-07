@@ -12,15 +12,173 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Header
+import json
+import logging
+
+from fastapi import APIRouter, Depends, Header, Query
 
 from api.main import UserSchema, get_current_user
 
 router = APIRouter()
+_logger = logging.getLogger("sahool.field_intelligence")
+
+# استمرار لقطة رسم الأدلّة (v148). tenant_id من السياق الموثوق (لا الجسم)؛ RLS يفرض العزل.
+_SNAPSHOT_INSERT_SQL = (
+    "INSERT INTO field_evidence_snapshots "
+    "(tenant_id, field_id, analysis_id, recommendation_hash, confidence_score, "
+    "evidence_graph, evidence_sources, knowledge_gaps) "
+    "VALUES ($1::uuid, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb)"
+)
+_SNAPSHOT_LATEST_SQL = (
+    "SELECT generated_at, recommendation_hash, confidence_score, evidence_graph, "
+    "evidence_sources, knowledge_gaps FROM field_evidence_snapshots "
+    "WHERE field_id = $1 ORDER BY generated_at DESC LIMIT 1"
+)
+_SNAPSHOT_TIMELINE_SQL = (
+    "SELECT generated_at, recommendation_hash, confidence_score, "
+    "(evidence_graph->'summary'->>'evidence_count')::int AS evidence_count, "
+    "(evidence_graph->'summary'->>'gap_count')::int AS gap_count "
+    "FROM field_evidence_snapshots WHERE field_id = $1 "
+    "ORDER BY generated_at DESC LIMIT $2"
+)
+
+
+async def _persist_evidence_snapshot(user: UserSchema, field_id: str, response: dict) -> None:
+    """يحفظ لقطة رسم الأدلّة — **fail-soft**: فشل الكتابة لا يكسر استجابة analyze أبداً.
+
+    لا لقطة بلا رسم أدلّة فعليّ (``build_snapshot_payload`` يُرجِع None). القاعدة معطّلة ⇒
+    تخطٍّ صامت. tenant_id من التوكن الموثوق؛ الرسم منقّى من الأسرار قبل التخزين.
+    """
+    from core.evidence_snapshot import build_snapshot_payload
+
+    from api.main import _DB_POOL, tenant_connection
+
+    if _DB_POOL is None:
+        return
+    payload = build_snapshot_payload(response)
+    if payload is None:
+        return
+    try:
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                _SNAPSHOT_INSERT_SQL,
+                str(user.tenant_id),
+                field_id,
+                payload["analysis_id"],
+                payload["recommendation_hash"],
+                payload["confidence_score"],
+                json.dumps(payload["evidence_graph"], ensure_ascii=False),
+                json.dumps(payload["evidence_sources"], ensure_ascii=False),
+                json.dumps(payload["knowledge_gaps"], ensure_ascii=False),
+            )
+    except Exception as exc:  # noqa: BLE001 — fail-soft: الاستمرار لا يكسر التحليل.
+        _logger.warning("evidence snapshot persist skipped for %s: %s", field_id, exc)
+
+
+# NDVI history (zonal_stats) + أحدث مشهد (raster_assets) لتغذية أقسام البطاقة — RLS.
+_CARD_NDVI_SQL = (
+    "SELECT mean FROM zonal_stats WHERE field_id = $1 AND index_name = 'ndvi' "
+    "ORDER BY stat_date DESC LIMIT 24"
+)
+_CARD_SCENE_SQL = (
+    "SELECT scene_id, acquisition_date, cloud_pct FROM raster_assets "
+    "WHERE field_id = $1 ORDER BY acquisition_date DESC NULLS LAST LIMIT 1"
+)
+
+
+async def _fetch_card_signals(
+    user: UserSchema, field_id: str, *, lat: float | None = None, lon: float | None = None
+) -> dict:
+    """يجلب إشارات البطاقة (ndvi_history/latest_scene) مُقيَّدة بالمستأجِر — سقوط آمن.
+
+    أيّ تعذّر (قاعدة معطّلة/خطأ استعلام) ⇒ إشارات فارغة فتبقى أقسام البطاقة ``missing``
+    صراحةً (سلوك ما قبل التغذية دون تغيير) — لا اختلاق ولا انحدار.
+    """
+    from core.field_intelligence_card import (
+        card_signals_from_db_rows,
+        provider_status_signal,
+        soil_baseline_signal,
+        terrain_signal,
+        weather_window_signal,
+    )
+
+    from api.main import _DB_POOL, tenant_connection
+
+    signals: dict = {}
+    # provider_status من raster-service (/v1/providers/status) — آمن الفشل (raster متعذّر
+    # ⇒ القسم يبقى missing بصدق). خارج معاملة القاعدة كي لا يعطّله تعذّرها.
+    try:
+        from core.field_intelligence_adapters import fetch_provider_status
+
+        ps = provider_status_signal(fetch_provider_status())
+        if ps:
+            signals["provider_status"] = ps
+    except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+        _logger.warning("provider status fetch failed: %s", exc)
+
+    # terrain من raster-service (/v1/fields/{id}/terrain) — يعمل من field_id (raster يشتقّ
+    # المضلّع). tenant-scoped عبر X-Tenant-Id الموثوق (لا lat/lon). آمن الفشل (DEM/هندسة
+    # متعذّرة ⇒ القسم يبقى missing بصدق).
+    try:
+        from types import SimpleNamespace
+
+        from core.field_intelligence_adapters import fetch_terrain_summary
+
+        ts = terrain_signal(
+            fetch_terrain_summary(SimpleNamespace(field_id=field_id), tenant_id=user.tenant_id)
+        )
+        if ts:
+            signals["terrain"] = ts
+    except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+        _logger.warning("terrain fetch failed for %s: %s", field_id, exc)
+
+    # soil_baseline من soil-service (/soil/soilgrids) — يتطلّب lat/lon؛ آمن الفشل
+    # (soil-service/تغطية/توكن متعذّر ⇒ القسم يبقى missing بصدق). خطّ أساس عالميّ لا مختبر.
+    if lat is not None and lon is not None:
+        try:
+            from types import SimpleNamespace
+
+            from core.field_intelligence_adapters import fetch_soil_baseline
+
+            sb = soil_baseline_signal(
+                fetch_soil_baseline(SimpleNamespace(field_id=field_id, lat=lat, lon=lon))
+            )
+            if sb:
+                signals["soil_baseline"] = sb
+        except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+            _logger.warning("soil baseline fetch failed for %s: %s", field_id, exc)
+
+        # weather_window من توقّع Open-Meteo (keyless، نشط) — دوافع اليوم الموضوعيّة.
+        # آمن الفشل (منع خروج/شبكة ⇒ القسم يبقى missing بصدق). لا يُعيد حساب الرشّ/الريّ.
+        try:
+            from types import SimpleNamespace
+
+            from core.field_intelligence_adapters import weather_forecast_adapter
+
+            ww = weather_window_signal(
+                weather_forecast_adapter(SimpleNamespace(field_id=field_id, lat=lat, lon=lon))
+            )
+            if ww:
+                signals["weather_window"] = ww
+        except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+            _logger.warning("weather window fetch failed for %s: %s", field_id, exc)
+
+    if _DB_POOL is None:
+        return signals
+    try:
+        async with tenant_connection(user) as conn:
+            ndvi_rows = await conn.fetch(_CARD_NDVI_SQL, field_id)
+            scene = await conn.fetchrow(_CARD_SCENE_SQL, field_id)
+        signals.update(
+            card_signals_from_db_rows([dict(r) for r in ndvi_rows], dict(scene) if scene else None)
+        )
+    except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة؛ فشلها لا يكسر التحليل.
+        _logger.warning("card signal fetch failed for %s: %s", field_id, exc)
+    return signals
 
 
 @router.post("/api/v1/field-intelligence/analyze")
-def field_intelligence_analyze(
+async def field_intelligence_analyze(
     field_id: str,
     lat: float | None = None,
     lon: float | None = None,
@@ -75,7 +233,7 @@ def field_intelligence_analyze(
     except ValueError:
         event_row = None  # بلا tenant — لا يُحفَظ (لن يحدث: tenant من التوكن)
 
-    return {
+    response = {
         "field_id": state.field_id,
         "tenant_id": state.tenant_id,
         "generated_at": state.generated_at,
@@ -100,3 +258,95 @@ def field_intelligence_analyze(
         "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
         "_persistable_event": event_row,  # جاهز للإدراج في events table
     }
+    # V65 — بطاقة ذكاء الحقل الموحّدة: تجميع صادق للأوليّات القائمة في بطاقة قرار
+    # واحدة (أحدث مشهد/حالة مزوّد/NDVI-تاريخيّ/عجز مائيّ/مناطق ضعيفة/تنبيهات/أدلّة/ثقة).
+    # P1 — تُغذّى أقسام المشهد/NDVI-التاريخيّ من قاعدة المنصّة (zonal_stats/raster_assets)
+    # مُقيَّدةً بالمستأجِر؛ التعذّر ⇒ الأقسام تبقى missing صراحةً (لا اختلاق ولا انحدار).
+    from core.field_intelligence_card import assemble_field_intelligence_card
+
+    signals = await _fetch_card_signals(user, field_id, lat=lat, lon=lon)
+    response["field_intelligence_card"] = assemble_field_intelligence_card(response, **signals)
+    # رسم الأدلّة (Evidence Graph): يُهيكل أدلّة البطاقة كعُقَد/حوافّ مع مصادرها وفجوات
+    # المعرفة — لتفسير التوصية وإثبات مصدر كلّ معلومة. منطق صرف من المُجمَّع (بلا جلب).
+    from core.evidence_graph import build_evidence_graph
+
+    response["evidence_graph"] = build_evidence_graph(response)
+    # استمرار اللقطة (v148) — fail-soft: فشل الكتابة لا يكسر التحليل (persistence غير حاجبة).
+    await _persist_evidence_snapshot(user, field_id, response)
+    return response
+
+
+@router.get("/api/v1/fields/{field_id}/evidence-graph/latest")
+async def field_evidence_graph_latest(
+    field_id: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """أحدث لقطة رسم أدلّة محفوظة للحقل (معزولة بالمستأجِر عبر RLS).
+
+    صدق: لا لقطة بعد ⇒ ``{available: false}`` (لا اختلاق). القاعدة معطّلة ⇒ نفسه.
+    """
+    from api.main import _DB_POOL, tenant_connection
+
+    if _DB_POOL is None:
+        return {"field_id": field_id, "available": False, "reason": "db_disabled"}
+    async with tenant_connection(user) as conn:
+        row = await conn.fetchrow(_SNAPSHOT_LATEST_SQL, field_id)
+    if row is None:
+        return {"field_id": field_id, "available": False, "reason": "no_snapshot"}
+    r = dict(row)
+    return {
+        "field_id": field_id,
+        "available": True,
+        "generated_at": r["generated_at"],
+        "recommendation_hash": r["recommendation_hash"],
+        "confidence_score": (
+            float(r["confidence_score"]) if r["confidence_score"] is not None else None
+        ),
+        "evidence_graph": _json_col(r["evidence_graph"]),
+        "evidence_sources": _json_col(r["evidence_sources"]),
+        "knowledge_gaps": _json_col(r["knowledge_gaps"]),
+    }
+
+
+@router.get("/api/v1/fields/{field_id}/evidence-graph/timeline")
+async def field_evidence_graph_timeline(
+    field_id: str,
+    limit: int = Query(20, ge=1, le=100),
+    user: UserSchema = Depends(get_current_user),
+):
+    """خطّ زمنيّ مُوجَز للقطات الأدلّة (تنازليّاً): بصمة القرار + الثقة + عدّ الأدلّة/الفجوات.
+
+    يخدم audit «كيف تطوّرت الأدلّة/التوصية عبر الزمن» دون نقل الرسم كاملاً كلّ مرّة.
+    معزول بالمستأجِر (RLS). لا لقطات ⇒ قائمة فارغة صريحة.
+    """
+    from api.main import _DB_POOL, tenant_connection
+
+    if _DB_POOL is None:
+        return {"field_id": field_id, "snapshots": [], "reason": "db_disabled"}
+    async with tenant_connection(user) as conn:
+        rows = await conn.fetch(_SNAPSHOT_TIMELINE_SQL, field_id, limit)
+    return {
+        "field_id": field_id,
+        "snapshots": [
+            {
+                "generated_at": r["generated_at"],
+                "recommendation_hash": r["recommendation_hash"],
+                "confidence_score": (
+                    float(r["confidence_score"]) if r["confidence_score"] is not None else None
+                ),
+                "evidence_count": r["evidence_count"],
+                "gap_count": r["gap_count"],
+            }
+            for r in rows
+        ],
+    }
+
+
+def _json_col(value):
+    """عمود JSONB قد يعود نصّاً (asyncpg بلا codec) أو بنية — نطبّع إلى بنية."""
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return None
+    return value
