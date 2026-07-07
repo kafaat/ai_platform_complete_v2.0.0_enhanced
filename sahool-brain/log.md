@@ -1616,3 +1616,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **عقد embedding صادق (#5 من طلبه):** `olmoearth_embedding_contract` — بلا أوزان/مدخلات ⇒ unavailable+سبب+embedding=None؛ حتّى مع توفّرهما **لا متّجه مُختلَق** (status=ready_pending_local_validation، الاستدلال خلف GPU + تحقّق محلّيّ). كُشِف في `/v1/providers/status` (ai_models).
 - **صدق:** لا يُغني عن CDSE/Element84 — يستهلكها. لا تفعيل بلا أوزان+GPU+تحقّق يمنيّ. المتبقّي (V70): benchmark محلّيّ NDVI-only مقابل V60.3 مقابل OlmoEarth.
 - **التحقّق:** 5 حُرّاس (السِجِلّات الأربعة منفصلة) · حُرّاس V63 أخضر · ruff · manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قناة استيراد Earthdata الدفعيّ + حارس نَسَب/أسرار (V63.7)
+- **القناة (المُراجِع):** `earthdata_wget_batch` في EXTERNAL_SOURCE_REGISTRY (`source_type=manual_batch_download`, active_provider=False, requires_earthdata_login) — تدعم HLS/ASTER/SRTM/NASADEM/MODIS/VIIRS/MERRA2. قناة استيراد دفعيّ لا مزوّد حيّ. التصحيح: `.netrc` لا كلمة مرور في سكربت/مستودع.
+- **حارس صادق + أمنيّ:** `imported_asset_provenance_ok` — يرفض أصلاً مُستورَداً بلا checksum+source_url+acquisition_date (لا أصل يتيم)، ويرفض أيّ حقل يشبه سرّاً (password/token/netrc). الوثيقة حُدِّثت بطريقة `.netrc` + wget + قاعدة النَّسَب.
+- **التحقّق:** 4 حُرّاس · القناة ليست مزوّداً/نشطاً · حُرّاس السِجِلّ أخضر · ruff · manifest · SHA سيُثبَّت.
