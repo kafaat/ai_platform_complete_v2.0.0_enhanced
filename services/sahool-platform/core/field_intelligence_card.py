@@ -27,6 +27,7 @@ _OPTIONAL_SECTIONS = (
     "field_condition",
     "ndvi_vs_historical",
     "water_deficit",
+    "soil_baseline",
     "weak_zones",
     "evidence",
 )
@@ -191,6 +192,30 @@ def provider_status_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
+def soil_baseline_signal(resp: dict[str, Any] | None) -> dict[str, Any]:
+    """يحوّل استجابة soil-service ``/soil/soilgrids`` إلى إشارة ``soil_baseline`` للبطاقة.
+
+    منطق صرف. ``None``/مشوّه ⇒ ``{}`` فيبقى القسم missing بصدق. عند التوفّر: صنف القوام
+    (USDA) + خصائص الطبقة العلويّة (طين/رمل/طمي/pH/كربون عضويّ/CEC). **صدق:** خطّ أساس
+    عالميّ 250م — ليس بديلاً عن تحليل مختبر محلّيّ (يُعلَن كتحذير في القسم).
+    """
+    if not isinstance(resp, dict):
+        return {}
+    props = resp.get("properties")
+    if not isinstance(props, dict) or not props:
+        return {}
+    texture = resp.get("texture") if isinstance(resp.get("texture"), dict) else {}
+    out: dict[str, Any] = {}
+    label = texture.get("label_ar") or texture.get("key")
+    if label:
+        out["texture"] = label
+    for k in ("clay_pct", "sand_pct", "silt_pct", "ph", "soc_pct", "cec"):
+        v = _num(props.get(k))
+        if v is not None:
+            out[k] = v
+    return out if out else {}
+
+
 def card_signals_from_db_rows(
     ndvi_rows: list[dict[str, Any]] | None,
     scene_row: dict[str, Any] | None,
@@ -230,6 +255,7 @@ def assemble_field_intelligence_card(
     ndvi_current: Any = None,
     ndvi_history: Any = None,
     water_deficit: Any = None,
+    soil_baseline: Any = None,
     weak_zones: Any = None,
 ) -> dict[str, Any]:
     """يبني بطاقة ذكاء الحقل من مخرَج ``analyze`` + إشارات تكميليّة (صادق، غير جالب).
@@ -270,6 +296,16 @@ def assemble_field_intelligence_card(
         _present({"value": _num(wd)})
         if _num(wd) is not None
         else _missing("no_water_deficit_signal")
+    )
+    sections["soil_baseline"] = (
+        _present(
+            {
+                "warning": "SoilGrids ~250م — خطّ أساس عالميّ، ليس بديلاً عن تحليل مختبر محلّيّ",
+                **soil_baseline,
+            }
+        )
+        if isinstance(soil_baseline, dict) and soil_baseline
+        else _missing("no_soil_baseline_supplied")
     )
     sections["weak_zones"] = _weak_zones(weak_zones)
     sections["evidence"] = _evidence(analyze)

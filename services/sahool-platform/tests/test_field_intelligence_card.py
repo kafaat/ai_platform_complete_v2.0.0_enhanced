@@ -13,6 +13,7 @@ from core.field_intelligence_card import (
     assemble_field_intelligence_card,
     card_signals_from_db_rows,
     provider_status_signal,
+    soil_baseline_signal,
 )
 
 _ANALYZE = {
@@ -162,6 +163,41 @@ def test_field_condition_infers_driver_from_risk_when_no_status():
         "field_condition"
     ]
     assert hot["primary_driver"] == "heat_limited"
+
+
+# ── P1 cross-service: خطّ أساس التربة SoilGrids (منطق صرف + سقوط آمن) ──────────────
+def test_soil_baseline_signal_from_soilgrids_response():
+    resp = {
+        "source": "soilgrids",
+        "properties": {
+            "clay_pct": 22.5,
+            "sand_pct": 40.0,
+            "silt_pct": 37.5,
+            "ph": 7.4,
+            "soc_pct": 1.2,
+            "cec": 18.0,
+        },
+        "texture": {"key": "loam", "label_ar": "طَفال"},
+    }
+    sig = soil_baseline_signal(resp)
+    assert sig["texture"] == "طَفال" and sig["clay_pct"] == 22.5 and sig["ph"] == 7.4
+    card = assemble_field_intelligence_card({"field_id": "f"}, soil_baseline=sig)
+    sb = card["sections"]["soil_baseline"]
+    assert sb["status"] == "present" and sb["clay_pct"] == 22.5
+    # صدق: تحذير خطّ الأساس 250م حاضر (ليس بديل مختبر).
+    assert "250" in sb["warning"]
+
+
+def test_soil_baseline_signal_honest_when_unavailable():
+    # soil-service متعذّر (None)/مشوّه ⇒ {} ⇒ القسم يبقى missing بصدق (لا اختلاق).
+    assert soil_baseline_signal(None) == {}
+    assert soil_baseline_signal({"error": "soilgrids_unavailable"}) == {}
+    assert soil_baseline_signal({"properties": {}}) == {}
+    card = assemble_field_intelligence_card(
+        {"field_id": "f"}, soil_baseline=soil_baseline_signal(None)
+    )
+    assert card["sections"]["soil_baseline"]["status"] == "missing"
+    assert card["sections"]["soil_baseline"]["reason"] == "no_soil_baseline_supplied"
 
 
 # ── P1: تغذية البطاقة من صفوف DB (منطق صرف) ──────────────────────────────────────

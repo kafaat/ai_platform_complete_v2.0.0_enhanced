@@ -1653,3 +1653,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **لا اختلاق أقسام soil/terrain/weather:** رغم ورودها في رؤية المُقترَح، لا مُنتِج يُغذّيها في الحالة بعد ⇒ إضافتها ستكون سقالة فارغة. أُبرِز ما هو محسوب فعلاً فقط.
 - **لا تكرار الريّ:** ETc/net/gross بكفاءة النظام موجودة في water_balance/irrigation_method/irrigation_recommendation_policy (أُبلِغ المستخدم، لم يُكرَّر).
 - **التحقّق:** 15 حارس بطاقة خلفيّ + 6 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت.
+
+## 2026-07-07 (ن) — قسم «خطّ أساس التربة» (SoilGrids) في بطاقة الذكاء (V65.4)
+- **الفجوة:** `soil_adapter` يجلب EC/الملوحة فقط، لا قوام/pH/كربون عضويّ. P0 المُقترَح يطلب «SoilGrids baseline» في البطاقة. soil-service يملك `/soil/soilgrids` (soilgrids_client→rest.isric.org) يعيد قوام USDA + clay/sand/silt/ph/soc/cec — لكن لا يصل للبطاقة.
+- **الحلّ (نمط provider_status الآمن، بلا مسّ مسار القرار):** `fetch_soil_baseline(req)` (GET /soil/soilgrids بـlat/lon + X-Agent-Token، آمن الفشل) + `soil_baseline_signal(resp)` منطق صرف (None/مشوّه ⇒ {}) + قسم `soil_baseline` في البطاقة (حاضر بقيمته + **تحذير 250م ليس بديل مختبر**، أو missing بسبب). `_fetch_card_signals` يمرّر lat/lon ويجلب آمن الفشل.
+- **صدق:** بلا إحداثيّات/توكن/تغطية ⇒ القسم missing صريح (no_soil_baseline_supplied) — لا اختلاق. لا يُمَسّ مسار المايسترو/الحَوكمة.
+- **الواجهة:** `SoilBaselineSection` + صفّ «خطّ أساس التربة» (قوام/pH/طين% + تحذير في title) + سبب missing عربيّ.
+- **التحقّق:** 17 حارس بطاقة خلفيّ (2 جديدة) + 6 vitest + tsc نظيف + ruff + manifest · SHA سيُثبَّت.

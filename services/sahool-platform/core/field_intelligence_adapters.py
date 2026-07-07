@@ -88,6 +88,22 @@ def fetch_provider_status(*, agent_token: str | None = None) -> dict | None:
     return _get_json(f"{RASTER_URL}/v1/providers/status", agent_token=agent_token)
 
 
+def fetch_soil_baseline(req, *, agent_token: str | None = None) -> dict | None:
+    """يجلب خطّ أساس التربة (SoilGrids) من soil-service ``/soil/soilgrids`` — آمن الفشل.
+
+    يتطلّب lat/lon (خصائص نقطيّة). ``/soil/soilgrids`` محميّ بـ``_require_service_token``
+    ⇒ يُمرَّر ``agent_token`` (X-Agent-Token). أيّ تعذّر (بلا إحداثيّات/توكن/تغطية/شبكة)
+    ⇒ ``None`` (⇒ ``soil_baseline`` في البطاقة يبقى missing بصدق، لا اختلاق).
+    """
+    if req.lat is None or req.lon is None:
+        return None
+    return _get_json(
+        f"{SOIL_URL}/soil/soilgrids",
+        {"lon": req.lon, "lat": req.lat},
+        agent_token=agent_token or AGENT_TOKEN,
+    )
+
+
 def _post_json(
     url: str,
     payload: dict | None = None,

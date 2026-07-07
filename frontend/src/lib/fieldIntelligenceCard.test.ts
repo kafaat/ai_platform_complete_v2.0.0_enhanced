@@ -40,6 +40,7 @@ describe('fieldIntelligenceCard helpers', () => {
   it('missingReasonAr surfaces provider-unavailable honestly and passes unknown through', () => {
     expect(missingReasonAr('no_provider_status_supplied')).toContain('raster');
     expect(missingReasonAr('no_condition_signals')).toContain('تشخيص');
+    expect(missingReasonAr('no_soil_baseline_supplied')).toContain('التربة');
     expect(missingReasonAr('some_new_reason')).toBe('some_new_reason');
     expect(missingReasonAr(undefined)).toBe('غير متاح');
   });

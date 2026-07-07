@@ -32,13 +32,19 @@ _CARD_SCENE_SQL = (
 )
 
 
-async def _fetch_card_signals(user: UserSchema, field_id: str) -> dict:
+async def _fetch_card_signals(
+    user: UserSchema, field_id: str, *, lat: float | None = None, lon: float | None = None
+) -> dict:
     """يجلب إشارات البطاقة (ndvi_history/latest_scene) مُقيَّدة بالمستأجِر — سقوط آمن.
 
     أيّ تعذّر (قاعدة معطّلة/خطأ استعلام) ⇒ إشارات فارغة فتبقى أقسام البطاقة ``missing``
     صراحةً (سلوك ما قبل التغذية دون تغيير) — لا اختلاق ولا انحدار.
     """
-    from core.field_intelligence_card import card_signals_from_db_rows, provider_status_signal
+    from core.field_intelligence_card import (
+        card_signals_from_db_rows,
+        provider_status_signal,
+        soil_baseline_signal,
+    )
 
     from api.main import _DB_POOL, tenant_connection
 
@@ -53,6 +59,22 @@ async def _fetch_card_signals(user: UserSchema, field_id: str) -> dict:
             signals["provider_status"] = ps
     except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
         _logger.warning("provider status fetch failed: %s", exc)
+
+    # soil_baseline من soil-service (/soil/soilgrids) — يتطلّب lat/lon؛ آمن الفشل
+    # (soil-service/تغطية/توكن متعذّر ⇒ القسم يبقى missing بصدق). خطّ أساس عالميّ لا مختبر.
+    if lat is not None and lon is not None:
+        try:
+            from types import SimpleNamespace
+
+            from core.field_intelligence_adapters import fetch_soil_baseline
+
+            sb = soil_baseline_signal(
+                fetch_soil_baseline(SimpleNamespace(field_id=field_id, lat=lat, lon=lon))
+            )
+            if sb:
+                signals["soil_baseline"] = sb
+        except Exception as exc:  # noqa: BLE001 — تغذية اختياريّة.
+            _logger.warning("soil baseline fetch failed for %s: %s", field_id, exc)
 
     if _DB_POOL is None:
         return signals
@@ -155,6 +177,6 @@ async def field_intelligence_analyze(
     # مُقيَّدةً بالمستأجِر؛ التعذّر ⇒ الأقسام تبقى missing صراحةً (لا اختلاق ولا انحدار).
     from core.field_intelligence_card import assemble_field_intelligence_card
 
-    signals = await _fetch_card_signals(user, field_id)
+    signals = await _fetch_card_signals(user, field_id, lat=lat, lon=lon)
     response["field_intelligence_card"] = assemble_field_intelligence_card(response, **signals)
     return response

@@ -1,4 +1,4 @@
-import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers, Activity } from 'lucide-react';
+import { Brain, Satellite, AlertTriangle, ShieldCheck, Layers, Activity, Sprout } from 'lucide-react';
 import { useFieldIntelligenceCard } from '../../hooks/useFieldIntelligenceCard';
 import {
   completenessPct,
@@ -112,6 +112,23 @@ export default function FieldIntelligenceCardView({ fieldId, enabled = true }: P
               </span>
             ) : (
               <Missing reason={card.sections.ndvi_vs_historical.reason} />
+            )}
+          </Row>
+
+          {/* خطّ أساس التربة (SoilGrids ~250م — ليس بديل مختبر) */}
+          <Row icon={<Sprout className="w-3.5 h-3.5" aria-hidden="true" />} label={SECTION_LABELS_AR.soil_baseline}>
+            {isPresent(card.sections.soil_baseline) ? (
+              <span style={{ color: T.ink }} title={card.sections.soil_baseline.warning}>
+                {card.sections.soil_baseline.texture ?? '—'}
+                {typeof card.sections.soil_baseline.ph === 'number'
+                  ? ` · pH ${card.sections.soil_baseline.ph}`
+                  : ''}
+                {typeof card.sections.soil_baseline.clay_pct === 'number'
+                  ? ` · طين ${card.sections.soil_baseline.clay_pct}%`
+                  : ''}
+              </span>
+            ) : (
+              <Missing reason={card.sections.soil_baseline.reason} />
             )}
           </Row>
 

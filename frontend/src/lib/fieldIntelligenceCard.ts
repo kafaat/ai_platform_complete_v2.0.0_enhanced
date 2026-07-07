@@ -41,6 +41,17 @@ export interface WaterDeficitSection extends CardSection {
   value?: number | null;
 }
 
+export interface SoilBaselineSection extends CardSection {
+  warning?: string;
+  texture?: string;
+  clay_pct?: number;
+  sand_pct?: number;
+  silt_pct?: number;
+  ph?: number;
+  soc_pct?: number;
+  cec?: number;
+}
+
 export interface WeakZonesSection extends CardSection {
   count?: number;
   zone_ids?: string[];
@@ -82,6 +93,7 @@ export interface FieldIntelligenceCard {
     field_condition: FieldConditionSection;
     ndvi_vs_historical: NdviVsHistoricalSection;
     water_deficit: WaterDeficitSection;
+    soil_baseline: SoilBaselineSection;
     weak_zones: WeakZonesSection;
     evidence: EvidenceSection;
     scouting_recommendation: ScoutingSection;
@@ -103,6 +115,7 @@ export const SECTION_LABELS_AR: Record<string, string> = {
   field_condition: 'حالة الحقل',
   ndvi_vs_historical: 'NDVI مقابل التاريخيّ',
   water_deficit: 'العجز المائيّ',
+  soil_baseline: 'خطّ أساس التربة',
   weak_zones: 'المناطق الضعيفة',
   evidence: 'الأدلّة',
   scouting_recommendation: 'توصية الاستطلاع',
@@ -153,6 +166,7 @@ export function missingReasonAr(reason?: string): string {
     no_zone_data: 'لا بيانات مناطق',
     no_provenance: 'لا أدلّة',
     no_condition_signals: 'لا إشارات تشخيصيّة بعد',
+    no_soil_baseline_supplied: 'خطّ أساس التربة غير متاح (soil-service/إحداثيّات)',
   };
   return (reason && map[reason]) || reason || 'غير متاح';
 }
