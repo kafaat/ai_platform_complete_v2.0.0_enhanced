@@ -6965,7 +6965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6d6f3eee7ac51189e587fa75e99bd18b2adb20c55d13bac4e83d621bfee05f7"
+          "content": "e8119e4495fc7b61bf309b2274b994d51c800fb14146c3548adffbb71bca5067"
         }
       ],
       "name": "migrations/validate_migrations.py",
@@ -7659,6 +7659,16 @@
         }
       ],
       "name": "services/ai_agronomist/ab_testing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4486d00f4090c5ef6a77101b54364dfcd8d256e2363d1867ec52c1cad9eda336"
+        }
+      ],
+      "name": "services/ai_agronomist/advisory_contract.py",
       "type": "file"
     },
     {

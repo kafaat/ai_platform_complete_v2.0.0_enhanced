@@ -34,8 +34,14 @@ def strip_comments(sql: str) -> str:
     return sql
 
 
-def check_file(path: str) -> list:
-    """يفحص ملفّ migration واحداً، يعيد قائمة مشاكل."""
+def check_file(path: str, all_code: str | None = None) -> list:
+    """يفحص ملفّ migration واحداً، يعيد قائمة مشاكل.
+
+    ``all_code`` (اختياريّ): تجميع كلّ الـmigrations — يُستخدم لفحص ``ON CONFLICT`` **عبر
+    الملفّات**، لأنّ قيد/فهرس UNIQUE المطابق قد يُعرَّف في migration سابق (مثل الفهرس الجزئيّ
+    ``ux_events_dedup`` في v11 المطابق لـ``ON CONFLICT (dedup_key)`` في دالّة v18). غيابه ⇒
+    يقتصر الفحص على نفس الملفّ (السلوك القديم).
+    """
     issues = []
     raw = open(path, encoding="utf-8").read()
     code = strip_comments(raw)
@@ -57,16 +63,16 @@ def check_file(path: str) -> list:
             if re.search(r"\b" + re.escape(fn), idx, re.IGNORECASE):
                 issues.append(f"فهرس على دالّة non-IMMUTABLE ({fn}) — PostgreSQL سيرفضه")
 
-    # ٤. ON CONFLICT (col) — تحقّق وجود UNIQUE/PK على نفس العمود
+    # ٤. ON CONFLICT (col) — تحقّق وجود UNIQUE/PK على نفس العمود (عبر كلّ الـmigrations إن توفّر)
+    scope = all_code if all_code is not None else code
     for m in re.finditer(r"ON\s+CONFLICT\s*\(\s*([a-zA-Z_][\w,\s]*)\)", code, re.IGNORECASE):
         cols = m.group(1).replace(" ", "")
-        # ابحث عن UNIQUE أو PRIMARY KEY أو UNIQUE INDEX يغطّي هذا العمود
+        first = cols.split(",")[0]
+        # UNIQUE (قيد أو فهرس، شامل الجزئيّ) أو PRIMARY KEY يغطّي هذا العمود — في أيّ migration.
         has_unique = (
-            re.search(r"UNIQUE[^;,]*\b" + re.escape(cols.split(",")[0]), code, re.IGNORECASE)
-            or re.search(
-                r"PRIMARY\s+KEY[^;,]*\b" + re.escape(cols.split(",")[0]), code, re.IGNORECASE
-            )
-            or re.search(re.escape(cols.split(",")[0]) + r"[^;]*PRIMARY\s+KEY", code, re.IGNORECASE)
+            re.search(r"UNIQUE[^;,]*\b" + re.escape(first), scope, re.IGNORECASE)
+            or re.search(r"PRIMARY\s+KEY[^;,]*\b" + re.escape(first), scope, re.IGNORECASE)
+            or re.search(re.escape(first) + r"[^;]*PRIMARY\s+KEY", scope, re.IGNORECASE)
         )
         if not has_unique:
             issues.append(f"ON CONFLICT ({cols}) بلا UNIQUE/PK مطابق واضح (تحقّق يدويّاً)")
@@ -98,12 +104,18 @@ def main():
         print(f"⚠ على القرص لكن ليست في MANIFEST: {extra}")
 
     print("═══ فحص ثابت للـmigrations ═══\n")
+    # تجميع كلّ الـmigrations لفحص ON CONFLICT عبر الملفّات (القيد/الفهرس قد يسبق الاستخدام).
+    all_code = "\n".join(
+        strip_comments(open(os.path.join(MIG_DIR, f), encoding="utf-8").read())
+        for f in manifest
+        if os.path.exists(os.path.join(MIG_DIR, f))
+    )
     total_issues = 0
     for fname in manifest:
         path = os.path.join(MIG_DIR, fname)
         if not os.path.exists(path):
             continue
-        issues = check_file(path)
+        issues = check_file(path, all_code=all_code)
         if issues:
             print(f"  ⚠ {fname}:")
             for iss in issues:
