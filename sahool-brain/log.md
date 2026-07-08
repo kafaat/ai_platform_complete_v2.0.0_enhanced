@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-07-08 — تحقيق ترقية decision-service لـSoR: اكتشاف مانع مخطّطيّ (لا كود غير آمن)
+
+على «استمر» بحثتُ الخطوة الكبيرة التالية (ترقية decision-service لمصدر سجلّ حقيقيّ) وأصّلتُها في مخطّطات الجداول الخمسة. **اكتشاف حاسم:** جعل decision-service يستمرّ الجداول *بالإضافة* (مِرْآة flag-gated تكتب مع المنصّة) آمنٌ فقط لجداول لها مفتاح إزالة تكرار طبيعيّ (المِرْآة تعمل **بعد** كتابة المنصّة فتكون no-op بـ`ON CONFLICT DO NOTHING`). الحالة: `decision_record`/`dispatch_decisions` (PK decision_id) ✅ · `outcome_record` (PK + UNIQUE idempotency_key) ✅ · `online_learning_updates` (UNIQUE tenant_id,update_id) ✅ · **`recommendation_outcomes` ❌** — PK `BIGSERIAL` وإدراج المنصّة (`recommendations.py:347`) بلا `ON CONFLICT` ⇒ كلّ نداء يُلحِق صفّاً؛ مِرْآة تستمرّه تُنشئ **صفّاً مكرّراً** لنتيجة واحدة ⇒ pseudoreplication يُضخّم العيّنة ويُفسِد `success_rate` (عين ما يحميه `outcome_reconciler` وتدقيق إغلاق الحلقة).
+
+**الخلاصة الصادقة:** ترقية SoR **يجب أن تكون cutover حقيقيّ** (المنصّة تتوقّف عن الكتابة ⇒ decision-service الكاتب الأوحد + backfill)، **لا** خطوة «كلاهما يكتب» إضافيّة. سابقة لأيّ flip: migration يضيف مفتاح إزالة تكرار لـ`recommendation_outcomes` (مرشّح `UNIQUE(tenant_id, recommendation_id, season_id)` بعد تأكيد أنّ المجال يمنع تعدّد النتائج لكلّ (توصية، موسم)، وإلا عمود `idempotency_key` صريح) — يُصمَّم ويُتحقَّق على Postgres حيّ (`-m integration`) قبل الـcutover، لا يُنفَّذ بأمان من بيئة وحدات فقط. **لم أكتب كوداً يكتب DB مزدوجاً** (كان سيُفسِد البيانات) — وثّقتُ المانع + السابقة في `DECISION_SERVICE_BOUNDARY_CONTRACT.md`. لا تغيير كود تنفيذيّ هذه الخطوة (توثيق قرار معماريّ صادق فقط).
+
+---
+
 ## 2026-07-08 — نشر decision-service (البند الحرج من قائمة المتبقّي)
 
 المستخدم حدّد المتبقّي ورتّبه؛ الحرج: `decision-service` غير قابل للنشر (بلا Dockerfile/compose/env) ⇒ المضيف `sahool-decision-service:8160` غير موجود ⇒ المِرْآة best-effort ميتة (تحذير لكلّ كتابة). لا فقدان بيانات (الجسر الانتقاليّ `d201527` جعل المنصّة SoR)، لكنّ P4.5–P4.7 لا تُعتبَر صالحة إنتاجاً حتى يُنشَر المِرْآة.
