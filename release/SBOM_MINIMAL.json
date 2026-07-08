@@ -11435,6 +11435,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2ab4288104bafdad824d954d81200806099a0a7038bf3312a13d24c88d8c7730"
+        }
+      ],
+      "name": "services/sahool-platform/api/field_season_projection.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d893bea256d8d8eaf4b46c642f5f062e92f4019ebfff79a680cdccb0a5a99085"
         }
       ],
@@ -18909,6 +18919,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_field_portfolio_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "940eaba8ec41faee8100292e06dc402dba776b880b491bd1fd9fb98adade4e09"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_season_projection.py",
       "type": "file"
     },
     {
