@@ -20,7 +20,8 @@
 | [`decisions/precision-ag-direction.md`](decisions/precision-ag-direction.md) | اتّجاه الزراعة الدقيقة التنفيذيّة (إلهام CultiWise) — مقترَح |
 | [`decisions/water-intelligence-direction.md`](decisions/water-intelligence-direction.md) | اتّجاه ذكاء المياه (إلهام IrriPro/FAO-56) — مقترَح |
 | [`decisions/field-intelligence-direction.md`](decisions/field-intelligence-direction.md) | اتّجاه ذكاء الحقل المتمحور (إلهام Agribound) — مقترَح |
-| [`agronomy/data-providers.md`](agronomy/data-providers.md) | مزوّدو البيانات (STAC/Open-Meteo/SAM2/التربة) |
+| [`agronomy/data-providers.md`](agronomy/data-providers.md) | مزوّدو البيانات **الموصولون** (STAC/Open-Meteo/SAM2/التربة) |
+| [`agronomy/data-inputs-catalog.md`](agronomy/data-inputs-catalog.md) | كتالوج مدخلات البيانات **المرشّحة** (غير موصولة) — imagery/soil/climate/ET/DEM/cropland بتراخيصها وتغطية اليمن |
 
 ## المصادر القائمة الرئيسة (تُربَط لا تُكرَّر)
 

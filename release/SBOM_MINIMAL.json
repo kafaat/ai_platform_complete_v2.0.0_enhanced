@@ -14405,6 +14405,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "affe81d0f629c43dde0683f6362cab97882811a33211bf2511de6b888aa0e7a7"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/banana.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "83572582e0032d80d47bb1d1b7a7091b92a512a2c889c07740ff160337a479c0"
         }
       ],
@@ -14419,6 +14429,16 @@
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/chickpea.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "098c8c51e39f220b71a4fd0065e76dfd09c270429782024749e756f791a1107b"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/citrus.yaml",
       "type": "file"
     },
     {
@@ -14525,6 +14545,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e33d805688f7b0e734f28338e196e457717e4f69bd052214da9e5a64d665b5f4"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/fig.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8ad2718be64221f49a3235ded0f491e81d5513624b394aefa38a8e960d194757"
         }
       ],
@@ -14539,6 +14569,16 @@
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/grape.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3c1a41f0e8e2e7699f3ec1899493229f5bfbda32a5a53049b4d144817e4bb6a2"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/guava.yaml",
       "type": "file"
     },
     {
@@ -14569,6 +14609,16 @@
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/maize.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "094c429f6bc0f0d86037b560263b77d05f385cca5a19dd4169b64cc12ba9c5f3"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/mango.yaml",
       "type": "file"
     },
     {
@@ -14615,6 +14665,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5f8aad6ce2c107af83eda402bfc9529d9f439ed6b29d16076ea18dae707e1b8c"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/papaya.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7b251d14604ce89e69edb6918015829f3bfdd1a31ba896841fa19241aebf687a"
         }
       ],
@@ -14645,10 +14705,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f65f2039f630a6e046f3f03746c11252897f910bdd0f3b3172622de3dda323c0"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/pomegranate.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5409c8038e56484443e81b32e689fc7cfe05e47a6ea13ff7667fb6a5dde74da5"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/potato.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8cd5fcacdb004a7d575cd9bc5b656204944ddebec93bc6d672792109fdac19a"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/qat.yaml",
       "type": "file"
     },
     {
