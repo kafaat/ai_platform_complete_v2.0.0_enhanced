@@ -4775,7 +4775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe80674c448036a66a3175403dee9d3a048bf3270fae800da07c00c2a2a13a72"
+          "content": "20f4b294fdc25d169db4c37f9f9fe816d40636ab9b549eb20cb596da6ec3eb70"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -13385,7 +13385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "609197ab1ba899008dc828bce3b0ae1e40dce08f029c876d4126d4138b297747"
+          "content": "87687b1c25577eb0a7b71fda20e96cad6c5b447cf3be9ed68414a334f6dfc37c"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",

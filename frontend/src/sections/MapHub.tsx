@@ -59,6 +59,7 @@ import WindbreakCard from '../components/fieldview/WindbreakCard';
 import DriftRiskCard from '../components/fieldview/DriftRiskCard';
 import EvidenceGraphCard from '../components/fieldview/EvidenceGraphCard';
 import EvidenceHistoryCard from '../components/fieldview/EvidenceHistoryCard';
+import SeasonEvidenceCard from '../components/fieldview/SeasonEvidenceCard';
 import YemeniCalendarCard from '../components/fieldview/YemeniCalendarCard';
 import PlantingAdvisorCard from '../components/fieldview/PlantingAdvisorCard';
 import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
@@ -1953,6 +1954,15 @@ export default function MapHub() {
           أكثر الفجوات تكراراً عبر الحقول (تحليلات v149). صدق: بلا لقطات/تحليلات يُعلَن. */}
       {selected && fieldMode === 'expert' && (
         <EvidenceHistoryCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* بطاقة أدلّة الموسم (الحقيقة التشغيليّة الموحّدة field_season_state_projection) —
+          تُعرَض عند وجود موسم نشط للحقل المحدَّد في وضع الخبير. */}
+      {selected && fieldMode === 'expert' && activeSeasonId && (
+        <SeasonEvidenceCard
+          fieldId={fieldId ?? null}
+          seasonId={activeSeasonId}
+          enabled={expertMode}
+        />
       )}
 
       {/* تتبّع الحصاد المُخزَّن: دفعات + سلسلة حيازة append-only + دفتر مدخلات —
