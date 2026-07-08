@@ -1,0 +1,19 @@
+{
+  "version": "P5",
+  "single_owner_domains": {
+    "raster": "raster-service",
+    "weather": "weather-service",
+    "decision_outcome_learning": "decision-service",
+    "fields": "field-management-service",
+    "segmentation": "field-segmentation-service",
+    "advisory": "agriai-engine",
+    "ai_tool_orchestration": "supervisor-agent",
+    "mcp_tool_servers": "mcp_servers"
+  },
+  "deprecated_or_duplicate_notes": {
+    "indicators-service": "consumer/facade only unless promoted with explicit ownership contract",
+    "raster-tiler-service": "must not own raster computation if raster-service already owns tiles/COG",
+    "ai_agronomist": "must not duplicate agriai-engine decision ownership",
+    "supervisor-agent": "orchestration only; no direct domain persistence ownership"
+  }
+}

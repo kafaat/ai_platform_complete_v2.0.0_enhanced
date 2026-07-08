@@ -19935,6 +19935,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c1ea029d09991f6fc0e86b35b04442079acd3d3be0760934a850020063303dc4"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p4_6_decision_read_side_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "24c2f234d30752ba1a4b06df42a7a148914ddb609b5862dd5c25988d699ec502"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fdc6d4f6742528060347cba4fe3af62c8135e5561c1a93207a29d2e18f0968eb"
         }
       ],

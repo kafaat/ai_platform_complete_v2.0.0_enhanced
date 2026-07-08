@@ -5671,5 +5671,11 @@
       "owner_type": "decision-compute",
       "route_key": "api/routers/yield_interval.py::POST /api/v1/fields/{field_id}/yield-interval::field_yield_interval_endpoint"
     }
-  ]
+  ],
+  "p2_6_route_budget_reduction": {
+    "previous_baseline_route_count": 567,
+    "measured_route_count_after_p4_5": 564,
+    "new_max_platform_routes": 567,
+    "policy": "No route growth above the verified AST route budget after P3/P4 extraction without ownership-map review; extraction progress is enforced by service boundary guards, not artificial route deletion."
+  }
 }
