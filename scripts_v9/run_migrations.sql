@@ -455,3 +455,5 @@
 \i migrations/v149_evidence_graph_nodes_edges.sql
 \echo '═══ 156. v150_seasons_yield_nonnegative_check.sql ═══'
 \i migrations/v150_seasons_yield_nonnegative_check.sql
+\echo '═══ 157. v151_learning_source_lineage.sql ═══'
+\i migrations/v151_learning_source_lineage.sql

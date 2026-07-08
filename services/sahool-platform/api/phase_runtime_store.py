@@ -448,12 +448,22 @@ async def persist_phase10_learning_outputs(
             )
         update = outputs.get("online_learning_update") or {}
         if update:
+            # جسر #2: نَسَب المصدر — كلّ تحديث تعلّم يُخزَّن بمصدره وحالة قابليّة تتبّعه.
+            # صدق: تحديث بلا مصدر ⇒ traceability_status='rejected_untraceable' (لا يُطبَّق سياسةً).
+            from core.learning_source_lineage import resolve_learning_source
+
+            _lin = resolve_learning_source(update)
             await conn.execute(
                 """
                 INSERT INTO online_learning_updates
-                    (tenant_id, update_id, model_id, feature_set_id, learning_rate, sample_count, label_summary, drift_score, action)
-                VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9)
-                ON CONFLICT (tenant_id, update_id) DO UPDATE SET action = EXCLUDED.action, drift_score = EXCLUDED.drift_score
+                    (tenant_id, update_id, model_id, feature_set_id, learning_rate, sample_count,
+                     label_summary, drift_score, action, source_type, source_id, field_id, season_id,
+                     recommendation_id, decision_id, evidence_snapshot_id, traceability_status)
+                VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+                ON CONFLICT (tenant_id, update_id) DO UPDATE SET
+                    action = EXCLUDED.action, drift_score = EXCLUDED.drift_score,
+                    source_type = EXCLUDED.source_type, source_id = EXCLUDED.source_id,
+                    traceability_status = EXCLUDED.traceability_status
                 """,
                 tenant,
                 str(update.get("update_id")),
@@ -464,6 +474,14 @@ async def persist_phase10_learning_outputs(
                 _json(update.get("label_summary", {})),
                 float(update.get("drift_score", 0)),
                 str(update.get("action")),
+                _lin["source_type"],
+                _lin["source_id"],
+                _lin["field_id"],
+                _lin["season_id"],
+                _lin["recommendation_id"],
+                _lin["decision_id"],
+                _lin["evidence_snapshot_id"],
+                _lin["traceability_status"],
             )
         scenario = outputs.get("scenario_result") or {}
         if scenario:

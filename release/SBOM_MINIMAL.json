@@ -1245,6 +1245,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e917d06857fc2d0747f0805a025ec919b29b28359241d6a7c53eb0183df66367"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SeasonEvidenceCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "83d56b90b55e983ecb14cc06b9240d70b1c8126611b8c2a45926d87404be7d4c"
         }
       ],
@@ -2375,6 +2385,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7909b4d7da38d2f768ae4aa9fffe3be1114078b752de1bc1b2f009d16c92fa70"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldSeasonState.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "929a847bff1fdcbbadf0363498eb861bd2c422f263af2e472e3ace737a6c7861"
         }
       ],
@@ -3329,6 +3349,16 @@
         }
       ],
       "name": "frontend/src/lib/fieldSeason.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6723552f0f61f7abb989f6a158af19fd613c19b498fb1483be514b8e14bfec2d"
+        }
+      ],
+      "name": "frontend/src/lib/fieldSeasonState.ts",
       "type": "file"
     },
     {
@@ -5355,7 +5385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "813a6c48cb6d360da919faf9be928a5c24a5568fd8508e05aad5242139e7ab37"
+          "content": "4927d83419d7e9b8bda2d3b13f48ff511a5bc437b7af647d93a6d73691b912d7"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -11925,7 +11955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a8ced3a3bbebee3fc37fcd3252e8a5d9a1c1efd9d77d38d066e83c53b028df1"
+          "content": "7d87ed782cdf55eeaa0461b58bdf47c56ef7124b4467f4fc8dd49c6abf1185bc"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_store.py",

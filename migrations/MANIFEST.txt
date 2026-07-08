@@ -587,3 +587,8 @@ v149_evidence_graph_nodes_edges.sql
 # v150: قيود CHECK على غلّة الموسم (actual/target_yield_kg_ha ≥ 0 أو NULL) — دفاع في العمق
 #   يطابق تحقّق Pydantic ge=0 على مستوى القاعدة. idempotent (فحص pg_constraint). بعد v149.
 v150_seasons_yield_nonnegative_check.sql
+
+# v151: نَسَب مصدر التعلّم (جسر #2) — أعمدة source_type/source_id/field/season/rec/decision/
+#   evidence_snapshot + traceability_status على online_learning_updates. nullable + backfill
+#   unverified (متوافق للخلف؛ الفرض لاحقاً). قابليّة التتبّع تُحكَم في core. idempotent. بعد v150.
+v151_learning_source_lineage.sql
