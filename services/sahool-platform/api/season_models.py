@@ -203,3 +203,11 @@ class SeasonSimResponse(BaseModel):
     assumptions_ar: list[str]
     warnings_ar: list[str]
     sim_ran_at: str
+    # صدق العرض (season_integrity #6): إشارات صريحة تمنع عرض التقدير كحقيقة معايَرة.
+    # النموذج RUE/FAO-56 إرشاديّ غير معاير محلّيّاً ⇒ يتطلّب تحقّقاً حقليّاً دائماً.
+    estimate_only: bool = True
+    requires_field_validation: bool = True
+    estimate_disclaimer_ar: str = (
+        "تقدير نموذجيّ (RUE/FAO-56) غير معاير محلّيّاً — يُعرَض بنطاق وثقة، ويتطلّب تحقّقاً "
+        "حقليّاً قبل اعتماده قراراً. ليس غلّة فعليّة."
+    )
