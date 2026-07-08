@@ -1,0 +1,32 @@
+# بطاقة صنف — شعير «بكّور» (Bakkur). يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات الشعير.
+# صدق: مصدر PDF محجوب آليّاً؛ الاسم من ملخّص بحث + سجلّ IAEA INIS — يُعاد التحقّق قبل الاعتماد.
+variety_id: barley_bakkur
+parent_crop_id: barley
+name_ar: شعير بكّور
+name_en: Bakkur barley
+
+passport:
+  origin_type: landrace             # سلالة يمنيّة محلّيّة
+  source_ar: "IAEA INIS RN:44066260 (تطوير طفرات شعير بكّور المحلّي)؛ مقال genresj (موارد وراثيّة اليمن)"
+  upov_code: "HORVX"               # Hordeum vulgare
+  collection_note_ar: "الاسم «بكّور» يعني «المبكّر»؛ استُخدِم كأساس لتربية بالطفرات (أشعّة غاما ⁶⁰Co) لسنبلة أطول ومقاومة الرقاد"
+
+distinctness:
+  morphology_ar: "سلالة محلّية مبكّرة؛ تفاصيل DUS دقيقة غير موثّقة في مصدر متاح"
+  maturity_class: early             # مُستدَلّ من الاسم «بكّور» = مبكّر (لا نصّ صريح)
+  plant_height_cm: null
+
+uniformity_note_ar: "سلالة محلّية — تنوّع داخليّ (مصدر مرونة)"
+stability_note_ar: "متوارثة محلّيّاً؛ استُخدِمت أساساً لبرامج التحسين"
+
+variety_traits:
+  drought_tolerance: high           # شعير مطريّ من المرتفعات
+  salt_tolerance_modifier: 0.0      # كعتبة الشعير
+  disease_resistance_ar: []         # غير موثّق (صدق: لا يُخترَع)
+  special_quality_ar: "صفات كمّيّة/نوعيّة جيّدة تحت الظروف المطريّة (نصّ INIS)"
+  source: "IAEA INIS RN:44066260؛ يُعاد التحقّق قبل الاعتماد"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "المرتفعات المطريّة (مُستدَلّ)"
+  note_ar: "شعير مرتفعات مطريّ؛ النطاق الدقيق غير موثّق في مصدر متاح"

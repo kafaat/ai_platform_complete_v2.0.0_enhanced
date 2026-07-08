@@ -1,0 +1,31 @@
+# بطاقة صنف — نخيل تمر «مجراف» (Mijraf). سلالة يمنيّة سائدة. محايد الموقع — يرث حاكمات النخيل.
+variety_id: date_palm_mijraf
+parent_crop_id: date_palm
+name_ar: نخيل تمر مجراف
+name_en: Mijraf date palm
+
+passport:
+  origin_type: landrace
+  source_ar: "Al-Khayri/Ba-Angood «Date Palm Status and Perspective in Yemen» (Springer 2015، فصل 7) — من الأصناف السبعة السائدة"
+  upov_code: "PHXDA"
+  collection_note_ar: "أحد الأصناف السبعة السائدة في اليمن؛ التركّز في حضرموت والحديدة"
+
+distinctness:
+  morphology_ar: "صنف سائد؛ DUS تفصيليّ غير موثّق في مصدر متاح"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "سلالة أصيلة (إكثار بالفسائل)"
+stability_note_ar: "مستقرّة (إكثار خضريّ)"
+
+variety_traits:
+  drought_tolerance: high
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "من الأصناف السبعة السائدة؛ الخصائص التفصيليّة غير موثّقة"
+  source: "Al-Khayri/Ba-Angood 2015 (Springer)"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "حضرموت/الحديدة"
+  note_ar: "صنف سائد؛ الموقع الدقيق غير محدّد"

@@ -1,0 +1,31 @@
+# بطاقة صنف — عنب «أسود» (Aswad). سلالة يمنيّة أصيلة. محايد الموقع — يرث حاكمات العنب.
+variety_id: grape_aswad
+parent_crop_id: grape
+name_ar: عنب أسود
+name_en: Aswad (black) grape
+
+passport:
+  origin_type: landrace
+  source_ar: "Almulaiky et al. (أصناف العنب اليمنيّة، RG 308386254)؛ UN-Yemen «Yemeni Grapes: Ancient History, Uncertain Future»"
+  upov_code: "VITIS_VIN"
+  collection_note_ar: "عنب مائدة أسود أصيل؛ أعلى نسبة تجذير في تجارب الإكثار (~46.66%)"
+
+distinctness:
+  morphology_ar: "حبّة سوداء (مائدة)؛ DUS تفصيليّ غير موثّق"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "سلالة أصيلة متوارثة"
+stability_note_ar: "مستقرّة، متوارثة محلّيّاً"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "عنب مائدة أسود؛ سهولة إكثار عالية (أعلى تجذير في التجارب)"
+  source: "Almulaiky et al. (RG 308386254)؛ UN-Yemen"
+
+adaptation:
+  altitude_range_m: [1800, 2500]
+  agro_ecological_zone_ar: "مرتفعات صنعاء وما حولها"
+  note_ar: "عنب مرتفعات؛ النطاق تقديريّ عامّ"

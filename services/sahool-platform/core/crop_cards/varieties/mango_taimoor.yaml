@@ -1,0 +1,31 @@
+# بطاقة صنف — مانجو «تيمور» (Taimoor). نوع مُدخَل/متأقلم موثّق. محايد الموقع — يرث حاكمات المانجو.
+variety_id: mango_taimoor
+parent_crop_id: mango
+name_ar: مانجو تيمور (يمنيّ)
+name_en: Taimoor mango
+
+passport:
+  origin_type: introduced           # مُدخَل/متأقلم (المانجو حديث الإدخال في اليمن)
+  source_ar: "Yemen Times «Mangos find a place in Yemen»؛ دراسات مقارنة لأصناف المانجو (Yemen Taimoor)"
+  upov_code: "MNGIF"               # Mangifera indica
+  collection_note_ar: "من أنواع المانجو المُسمّاة في اليمن؛ المانجو مُدخَل حديثاً ومتأقلم في المناطق الدافئة"
+
+distinctness:
+  morphology_ar: "نوع مُسمّى؛ DUS تفصيليّ غير موثّق في مصدر متاح"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "صنف مطعوم (تجانس عالٍ)"
+stability_note_ar: "مستقرّ (إكثار بالتطعيم)"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "من أنواع المانجو اليمنيّة المُسمّاة؛ الخصائص التفصيليّة غير موثّقة"
+  source: "Yemen Times؛ دراسات أصناف المانجو"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "المناطق الدافئة الساحليّة/الوديان"
+  note_ar: "مانجو مناطق دافئة؛ الموقع الدقيق غير محدّد"

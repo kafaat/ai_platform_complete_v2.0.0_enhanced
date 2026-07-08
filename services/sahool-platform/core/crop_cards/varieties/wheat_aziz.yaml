@@ -1,0 +1,32 @@
+# بطاقة صنف — قمح «عزيز» (Aziz). يتبع UPOV/Bioversity. محايد الموقع — يرث حاكمات القمح.
+# صدق: مصدر PDF محجوب آليّاً (403)؛ الاسم من ملخّص بحث — يُعاد التحقّق من المصدر الأوّليّ قبل الاعتماد.
+variety_id: wheat_aziz
+parent_crop_id: wheat
+name_ar: قمح عزيز
+name_en: Aziz wheat
+
+passport:
+  origin_type: introduced           # مُدخَل/محسّن — سلالة CIMMYT مُطلَقة محلّيّاً
+  source_ar: "CIMMYT — سلالة Veery-5 (CM33027) مُطلَقة في اليمن باسم «عزيز»؛ صفحة wheat.org لليمن"
+  upov_code: "TRZAX"                # Triticum aestivum
+  collection_note_ar: "قمح خبز نصف-قزم من عائلة Veery/Kauz؛ الاسم موثّق عبر ملخّص بحث — يُتحقَّق من مصدر CIMMYT الأوّليّ"
+
+distinctness:
+  morphology_ar: "نصف-قزم (semi-dwarf)؛ تفاصيل DUS غير موثّقة في مصدر متاح"
+  maturity_class: null              # غير موثّق
+  plant_height_cm: null
+
+uniformity_note_ar: "صنف محسّن — تجانس عالٍ (نمط الأصناف المُطلَقة)"
+stability_note_ar: "سلالة CIMMYT مستقرّة"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0      # كعتبة القمح (6.0)
+  disease_resistance_ar: [مقاومة الصدأ (سمعة عائلة Veery)]
+  special_quality_ar: "عالي الغلّة، واسع التأقلم (سمعة CIMMYT Veery-5) — غير مُتحقَّق يمنيّاً في مصدر متاح"
+  source: "CIMMYT / wheat.org (Veery-5 = عزيز)؛ يُعاد التحقّق قبل الاعتماد"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "غير موثّق تفصيليّاً"
+  note_ar: "مُدخَل واسع التأقلم؛ التكيّف اليمنيّ المحدّد غير موثّق في مصدر متاح"

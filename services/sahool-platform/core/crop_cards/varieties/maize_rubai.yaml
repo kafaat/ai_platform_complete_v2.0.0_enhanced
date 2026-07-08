@@ -1,0 +1,32 @@
+# بطاقة صنف — ذرة شاميّة «رباعي» (Ruba'i). فئة تسمية شعبيّة يمنيّة بالنضج (لا صنف مُسجَّل).
+# صدق: تصنيف شعبيّ موثّق (FAO YEMENRE) لا صنف DUS مُسجَّل؛ المصدر PDF محجوب آليّاً — يُعاد التحقّق.
+variety_id: maize_rubai
+parent_crop_id: maize
+name_ar: ذرة شاميّة رباعيّ (فئة شعبيّة متوسّطة)
+name_en: Maize Ruba'i (folk medium class)
+
+passport:
+  origin_type: landrace
+  source_ar: "FAO — تقرير اليمن القُطريّ للموارد الوراثيّة (YEMENRE.pdf): نظام تسمية محلّيّ بالنضج"
+  upov_code: "ZEAMX"
+  collection_note_ar: "«رباعي» = أربعة أشهر (متوسّط). فئة تسمية شعبيّة يمنيّة بالنضج، ليست صنفاً مُسجَّلاً"
+
+distinctness:
+  morphology_ar: "حبّة فلينت/شبه-فلينت (نمط الفئة)؛ لا وصف DUS رسميّ"
+  maturity_class: medium            # أربعة أشهر
+  plant_height_cm: null
+
+uniformity_note_ar: "فئة شعبيّة — تنوّع داخليّ واسع"
+stability_note_ar: "فئة نضج متوارثة محلّيّاً"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "دورة متوسّطة (~٤ أشهر) — توازن بين الغلّة وطول الموسم"
+  source: "FAO YEMENRE.pdf (فئات التسمية الشعبيّة)؛ يُعاد التحقّق قبل الاعتماد"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "غير موثّق تفصيليّاً"
+  note_ar: "فئة نضج شعبيّة متوسّطة؛ ليست صنفاً مُسجَّلاً — قرينة معرفيّة"

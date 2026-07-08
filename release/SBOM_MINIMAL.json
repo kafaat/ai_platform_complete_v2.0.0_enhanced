@@ -17755,7 +17755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3dff5ca77e53bcb193edf25e5ec595ff104dcdc02dea0555151b6c5ce1645882"
+          "content": "cbf3abe628c918482bb065bb5405c1a3d3929f95699931c4ccbdd2df09ae35a6"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_cards.py",

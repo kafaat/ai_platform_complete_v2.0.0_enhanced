@@ -1,0 +1,32 @@
+# بطاقة صنف — ذرة شاميّة «ثلاثي» (Thulathi). فئة تسمية شعبيّة يمنيّة بالنضج (لا صنف مُسجَّل).
+# صدق: تصنيف شعبيّ موثّق (FAO YEMENRE) لا صنف DUS مُسجَّل؛ المصدر PDF محجوب آليّاً — يُعاد التحقّق.
+variety_id: maize_thulathi
+parent_crop_id: maize
+name_ar: ذرة شاميّة ثلاثيّ (فئة شعبيّة مبكّرة)
+name_en: Maize Thulathi (folk early class)
+
+passport:
+  origin_type: landrace             # سلالة محلّية — فئة تسمية شعبيّة لا صنف مُسجَّل
+  source_ar: "FAO — تقرير اليمن القُطريّ للموارد الوراثيّة (YEMENRE.pdf): نظام تسمية محلّيّ بالنضج"
+  upov_code: "ZEAMX"               # Zea mays
+  collection_note_ar: "«ثلاثي» = ثلاثة أشهر (مبكّر). فئة تسمية شعبيّة يمنيّة بالنضج، ليست صنفاً مُسجَّلاً لدى لجنة التسجيل"
+
+distinctness:
+  morphology_ar: "حبّة فلينت/شبه-فلينت (نمط الفئة)؛ لا وصف DUS رسميّ"
+  maturity_class: early             # ثلاثة أشهر
+  plant_height_cm: null
+
+uniformity_note_ar: "فئة شعبيّة — تنوّع داخليّ واسع (ليست سلالة موحّدة)"
+stability_note_ar: "فئة نضج متوارثة محلّيّاً"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0      # كعتبة الذرة الشاميّة (1.7)
+  disease_resistance_ar: []         # غير موثّق
+  special_quality_ar: "دورة قصيرة (~٣ أشهر) تناسب مواسم الأمطار القصيرة/المزارع المتعدّدة"
+  source: "FAO YEMENRE.pdf (فئات التسمية الشعبيّة)؛ يُعاد التحقّق قبل الاعتماد"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "غير موثّق تفصيليّاً"
+  note_ar: "فئة نضج شعبيّة مبكّرة؛ ليست صنفاً مُسجَّلاً — تُعامَل كقرينة معرفيّة"

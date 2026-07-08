@@ -1,0 +1,32 @@
+# بطاقة صنف — بُنّ «يمنية / New-Yemen» (المجموعة الجينيّة المُتحقَّقة). محايد الموقع.
+# صدق: هذه هي المجموعة الجينيّة الوحيدة المُتحقَّقة وراثيّاً الخاصّة باليمن (خلاف الأسماء العاميّة).
+variety_id: coffee_yemenia
+parent_crop_id: coffee
+name_ar: بُنّ يمنية (المجموعة الجينيّة الجديدة)
+name_en: Coffee Yemenia (New-Yemen genetic group)
+
+passport:
+  origin_type: landrace             # مجموعة جينيّة أصيلة اكتُشِفت في اليمن فقط
+  source_ar: "Montagnon et al. 2021, Genet Resour Crop Evol (Springer 10.1007/s10722-021-01139-y) — بصمة DNA لـ148 مزرعة؛ مجموعة «Yemenia/New-Yemen» خاصّة باليمن. Qima Coffee/RD2 Vision"
+  upov_code: "COFFA"               # Coffea arabica
+  collection_note_ar: "مجموعة جينيّة مُتحقَّقة (خلاف الأسماء العاميّة غير المتمايزة جينيّاً)؛ إحدى ثلاث مجموعات: Yemenia + SL34-derived + Bourbon/Typica-derived"
+
+distinctness:
+  morphology_ar: "مجموعة جينيّة مميّزة مؤكّدة بـDNA (لا مجرّد اسم عاميّ)"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "مجموعة جينيّة — تنوّع داخليّ (أصيلة يمنيّة)"
+stability_note_ar: "مُثبَتة وراثيّاً كمجموعة متمايزة"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []         # غير موثّق
+  special_quality_ar: "أساس جودة البُنّ اليمنيّ المتميّزة (اهتمام تجارة القهوة المختصّة)"
+  source: "Montagnon et al. 2021 (Springer)؛ Qima/RD2 Vision"
+
+adaptation:
+  altitude_range_m: [1000, 2400]    # مرتفعات البُنّ اليمنيّة (تقديريّ عامّ)
+  agro_ecological_zone_ar: "المرتفعات الغربيّة (حراز/بني مطر/يافع … عموماً)"
+  note_ar: "بُنّ مرتفعات مظلّل؛ النطاق تقديريّ عامّ لا موقع محدّد"

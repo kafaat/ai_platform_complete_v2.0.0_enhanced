@@ -1,0 +1,31 @@
+# بطاقة صنف — عنب «رازقي» (Razqi/Raziqi). سلالة يمنيّة أصيلة. محايد الموقع — يرث حاكمات العنب.
+variety_id: grape_razqi
+parent_crop_id: grape
+name_ar: عنب رازقي
+name_en: Razqi grape
+
+passport:
+  origin_type: landrace
+  source_ar: "Slow Food Ark of Taste «Al-Razqi Grapes»؛ Almulaiky et al. (تقييم أصناف العنب اليمنيّة، ResearchGate 308386254)"
+  upov_code: "VITIS_VIN"           # Vitis vinifera
+  collection_note_ar: "صنف مائدة/زبيب أصيل حول مرتفعات صنعاء؛ يُجفَّف لزبيب فاخر («رازقي خولاني»)"
+
+distinctness:
+  morphology_ar: "عنب مائدة فاتح؛ حبّة مستطيلة (وصف عامّ) — DUS تفصيليّ غير موثّق"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "سلالة أصيلة متوارثة"
+stability_note_ar: "مستقرّة، متوارثة عبر أجيال في مرتفعات صنعاء"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0      # كعتبة العنب (1.5)
+  disease_resistance_ar: []
+  special_quality_ar: "جودة مائدة وزبيب عالية؛ الزبيب الرازقي منتَج فاخر تقليديّ"
+  source: "Slow Food Ark of Taste؛ Almulaiky et al. (RG 308386254)"
+
+adaptation:
+  altitude_range_m: [1800, 2500]    # مرتفعات صنعاء (تقديريّ عامّ)
+  agro_ecological_zone_ar: "مرتفعات صنعاء وما حولها"
+  note_ar: "عنب مرتفعات؛ النطاق تقديريّ عامّ لا موقع محدّد"
