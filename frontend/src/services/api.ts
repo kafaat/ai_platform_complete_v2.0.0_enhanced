@@ -2198,9 +2198,24 @@ export interface FieldIntelResult {
   correlation_id?: string;
   [k: string]: unknown;
 }
-export const analyzeFieldIntelligence = (input: FieldIntelInput): Promise<FieldIntelResult> =>
+export type FieldIntelJobStatusValue = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+export interface FieldIntelJobStatus {
+  job_id: string;
+  status: FieldIntelJobStatusValue;
+  field_id: string;
+  progress: number;
+  stage: string;
+  created_at?: string;
+  updated_at?: string;
+  cancel_requested?: boolean;
+  result?: FieldIntelResult;
+  error?: { code?: string; message?: string } | string;
+}
+
+export const startAnalyzeFieldIntelligence = (input: FieldIntelInput): Promise<FieldIntelJobStatus> =>
   kongApi
-    .post<FieldIntelResult>('/api/v1/field-intelligence/analyze', null, {
+    .post<FieldIntelJobStatus>('/api/v1/field-intelligence/analyze', null, {
       params: {
         field_id: input.field_id,
         ...(input.lat != null ? { lat: input.lat } : {}),
@@ -2209,6 +2224,27 @@ export const analyzeFieldIntelligence = (input: FieldIntelInput): Promise<FieldI
       },
     })
     .then(r => r.data);
+
+export const getFieldIntelligenceJob = (jobId: string): Promise<FieldIntelJobStatus> =>
+  kongApi.get<FieldIntelJobStatus>(`/api/v1/field-intelligence/analyze/jobs/${encodeURIComponent(jobId)}`).then(r => r.data);
+
+export const cancelFieldIntelligenceJob = (jobId: string): Promise<FieldIntelJobStatus> =>
+  kongApi.post<FieldIntelJobStatus>(`/api/v1/field-intelligence/analyze/jobs/${encodeURIComponent(jobId)}/cancel`).then(r => r.data);
+
+// Compatibility shim: callers that still need the final result can poll explicitly here.
+// New UI should prefer startAnalyzeFieldIntelligence + getFieldIntelligenceJob to show progress.
+export const analyzeFieldIntelligence = async (input: FieldIntelInput): Promise<FieldIntelResult> => {
+  const started = await startAnalyzeFieldIntelligence(input);
+  let job = started;
+  for (let i = 0; i < 120; i += 1) {
+    if (job.status === 'completed' && job.result) return job.result;
+    if (job.status === 'failed') throw new Error(typeof job.error === 'string' ? job.error : job.error?.message || 'field intelligence job failed');
+    if (job.status === 'cancelled') throw new Error('field intelligence job cancelled');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    job = await getFieldIntelligenceJob(started.job_id);
+  }
+  throw new Error('field intelligence job timed out while polling');
+};
 
 // ══════════════════════════════════════════════════════════════════
 // ANALYTICS — تحليلات التكلفة (حيّة، مُقيَّدة بالدور analytics:view وبالمستأجِر)

@@ -6,7 +6,7 @@
 // staleTime متوسّط (البطاقة تُجمَّع من إشارات تتغيّر بطيئاً).
 
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { kongApi } from '../services/api';
+import { getFieldIntelligenceJob, startAnalyzeFieldIntelligence } from '../services/api';
 import type { FieldIntelligenceAnalyzeResponse } from '../lib/fieldIntelligenceCard';
 
 export function useFieldIntelligenceCard(
@@ -18,9 +18,17 @@ export function useFieldIntelligenceCard(
     enabled: enabled && !!fieldId,
     retry: false,
     staleTime: 5 * 60_000,
-    queryFn: () =>
-      kongApi
-        .post(`/api/v1/field-intelligence/analyze?field_id=${encodeURIComponent(fieldId as string)}`)
-        .then((r) => r.data as FieldIntelligenceAnalyzeResponse),
+    queryFn: async () => {
+      const started = await startAnalyzeFieldIntelligence({ field_id: fieldId as string });
+      let job = started;
+      for (let i = 0; i < 120; i += 1) {
+        if (job.status === 'completed' && job.result) return job.result as FieldIntelligenceAnalyzeResponse;
+        if (job.status === 'failed') throw new Error(typeof job.error === 'string' ? job.error : job.error?.message || 'تعذّر تجميع بطاقة ذكاء الحقل');
+        if (job.status === 'cancelled') throw new Error('تم إلغاء تحليل ذكاء الحقل');
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        job = await getFieldIntelligenceJob(started.job_id);
+      }
+      throw new Error('انتهت مهلة متابعة تحليل ذكاء الحقل');
+    },
   });
 }

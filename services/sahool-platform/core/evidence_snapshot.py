@@ -9,7 +9,15 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
+from uuid import UUID
+
+try:  # pydantic v2 objects (optional at import time for tests)
+    from pydantic import BaseModel
+except Exception:  # pragma: no cover
+    BaseModel = None  # type: ignore[assignment]
 
 # مفاتيح تُعامَل كأسرار وتُحذَف من أيّ مكان في الرسم قبل التخزين (أمن: لا اعتماد يُخزَّن).
 _SECRET_KEY_HINTS = (
@@ -29,6 +37,37 @@ _SECRET_KEY_HINTS = (
 def _looks_secret(key: Any) -> bool:
     k = str(key).lower()
     return any(hint in k for hint in _SECRET_KEY_HINTS)
+
+
+def json_safe(value: Any) -> Any:
+    """Return a JSON-serializable copy while preserving structure and stripping secrets.
+
+    Evidence graphs can contain runtime values such as ``date``/``datetime`` from
+    agronomic state, scene acquisition dates, DB rows, UUIDs, Decimal values, or
+    pydantic models. JSONB persistence must be fail-soft for database outages,
+    but it should not skip valid snapshots merely because one nested value is not
+    directly serializable by ``json.dumps``.
+    """
+    if isinstance(value, dict):
+        return {str(k): json_safe(v) for k, v in value.items() if not _looks_secret(k)}
+    if isinstance(value, (list, tuple, set)):
+        return [json_safe(v) for v in value]
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, Decimal):
+        return float(value)
+    if BaseModel is not None and isinstance(value, BaseModel):
+        return json_safe(value.model_dump(mode="json"))
+    if hasattr(value, "model_dump"):
+        try:
+            return json_safe(value.model_dump(mode="json"))
+        except Exception:  # noqa: BLE001 — model_dump قد يفشل لنموذج غير قياسيّ؛ نسقط للقيمة الخام بلا كسر
+            pass
+    return value
 
 
 def strip_secrets(value: Any) -> Any:
@@ -88,7 +127,7 @@ def build_snapshot_payload(analyze: dict[str, Any]) -> dict[str, Any] | None:
     """
     if not should_persist(analyze):
         return None
-    graph = strip_secrets(analyze.get("evidence_graph") or {})
+    graph = json_safe(analyze.get("evidence_graph") or {})
     sources = sorted(
         {
             n.get("source")
@@ -107,5 +146,5 @@ def build_snapshot_payload(analyze: dict[str, Any]) -> dict[str, Any] | None:
         "confidence_score": conf_num,
         "evidence_graph": graph,
         "evidence_sources": sources,
-        "knowledge_gaps": graph.get("knowledge_gaps") or [],
+        "knowledge_gaps": json_safe(graph.get("knowledge_gaps") or []),
     }

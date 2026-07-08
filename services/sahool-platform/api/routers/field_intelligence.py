@@ -12,15 +12,73 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import uuid
+from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, Header, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query, status
 
 from api.main import UserSchema, get_current_user
 
 router = APIRouter()
 _logger = logging.getLogger("sahool.field_intelligence")
+
+_FIELD_INTELLIGENCE_JOBS: dict[str, dict] = {}
+_JOB_TERMINAL_STATES = {"completed", "failed", "cancelled"}
+
+
+def _utcnow_iso() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def _job_public(job: dict, *, include_result: bool = True) -> dict:
+    payload = {
+        "job_id": job["job_id"],
+        "status": job["status"],
+        "field_id": job["field_id"],
+        "progress": job.get("progress", 0),
+        "stage": job.get("stage", "queued"),
+        "created_at": job["created_at"],
+        "updated_at": job["updated_at"],
+        "cancel_requested": bool(job.get("cancel_requested", False)),
+    }
+    if job.get("error"):
+        payload["error"] = job["error"]
+    if include_result and job.get("status") == "completed":
+        payload["result"] = job.get("result")
+    return payload
+
+
+def _authorize_job(job_id: str, user: UserSchema) -> dict:
+    job = _FIELD_INTELLIGENCE_JOBS.get(job_id)
+    if job is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="field_intelligence_job_not_found"
+        )
+    if str(job.get("tenant_id")) != str(user.tenant_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="field_intelligence_job_not_found"
+        )
+    return job
+
+
+def _patch_job(job_id: str, **updates: object) -> dict | None:
+    job = _FIELD_INTELLIGENCE_JOBS.get(job_id)
+    if job is None:
+        return None
+    job.update(updates)
+    job["updated_at"] = _utcnow_iso()
+    return job
+
+
+def _raise_if_cancelled(job_id: str) -> None:
+    job = _FIELD_INTELLIGENCE_JOBS.get(job_id)
+    if job and job.get("cancel_requested"):
+        _patch_job(job_id, status="cancelled", progress=100, stage="cancelled")
+        raise asyncio.CancelledError
+
 
 # استمرار لقطة رسم الأدلّة (v148). tenant_id من السياق الموثوق (لا الجسم)؛ RLS يفرض العزل.
 _SNAPSHOT_INSERT_SQL = (
@@ -102,9 +160,9 @@ async def _persist_evidence_snapshot(user: UserSchema, field_id: str, response: 
                 payload["analysis_id"],
                 payload["recommendation_hash"],
                 payload["confidence_score"],
-                json.dumps(payload["evidence_graph"], ensure_ascii=False),
-                json.dumps(payload["evidence_sources"], ensure_ascii=False),
-                json.dumps(payload["knowledge_gaps"], ensure_ascii=False),
+                json.dumps(payload["evidence_graph"], ensure_ascii=False, default=str),
+                json.dumps(payload["evidence_sources"], ensure_ascii=False, default=str),
+                json.dumps(payload["knowledge_gaps"], ensure_ascii=False, default=str),
             )
     except Exception as exc:  # noqa: BLE001 — fail-soft: الاستمرار لا يكسر التحليل.
         _logger.warning("evidence snapshot persist skipped for %s: %s", field_id, exc)
@@ -258,21 +316,22 @@ async def _fetch_card_signals(
     return signals
 
 
-@router.post("/api/v1/field-intelligence/analyze")
-async def field_intelligence_analyze(
+async def _compute_field_intelligence_response(
+    *,
     field_id: str,
-    lat: float | None = None,
-    lon: float | None = None,
-    crop: str | None = None,
-    notify: bool = False,
-    authorization: str = Header(None),
-    user: UserSchema = Depends(get_current_user),
-):
-    """يُشغّل المسار الكامل للمايسترو لحقل ويُرجِع الحالة الموحّدة + القرار.
+    lat: float | None,
+    lon: float | None,
+    crop: str | None,
+    notify: bool,
+    authorization: str | None,
+    user: UserSchema,
+    job_id: str | None = None,
+) -> dict:
+    """يشغّل التحليل الثقيل ويُرجِع النتيجة النهائية.
 
-    سيادة البيانات: tenant_id من التوكن (موثوق) لا من الجسم (لا spoofing).
-    المصادر: محوّلات HTTP حيّة (weather/soil/raster). المتعذّر يُعلَن بصدق.
-    الحالة الناتجة جاهزة للحفظ في events (state_to_event_row) كذاكرة موسميّة.
+    استُخرج من route المتزامن حتى يصبح endpoint العام job-based: لا نُبقي اتصال
+    المتصفح مفتوحاً أثناء جلب raster/weather/soil/AI، وبالتالي لا يتحوّل بطء
+    التحليل إلى 499 في nginx عند إغلاق العميل.
     """
     from core.agronomic_state_engine import state_to_event_row
     from core.alert_engine import evaluate_alerts, summarize_alerts
@@ -280,27 +339,29 @@ async def field_intelligence_analyze(
     from core.field_intelligence_adapters import build_live_adapters
     from core.field_intelligence_coordinator import FieldRequest, run_field_intelligence
 
-    # ربط موحّد: correlation_id يمرّ بكلّ ما ينتج عن هذا الطلب (workflow/
-    # events/alerts) — لتتبّع "ماذا أنتج ماذا" عبر الخدمات (نمط OpenTelemetry).
     correlation_id = set_correlation()
+    if job_id:
+        _patch_job(job_id, status="running", progress=5, stage="building_context")
+        _raise_if_cancelled(job_id)
 
-    # tenant_id من التوكن الموثوق (لا من جسم الطلب — حماية multi-tenant)
     req = FieldRequest(field_id=field_id, lat=lat, lon=lon, crop=crop, tenant_id=user.tenant_id)
-    # تمرير رأس التفويض للمحوّلات المحميّة (memory/simulate تنادي نقاط JWT داخليّة)
     adapters = build_live_adapters(authorization=authorization)
-    result = run_field_intelligence(req, **adapters)
+
+    # run_field_intelligence يستدعي محوّلات HTTP/AI/طقس/تربة وقد يطول؛ نشغّله في
+    # thread منفصل كي لا يحبس event loop ولا يعلّق اتصالات أخرى في FastAPI.
+    result = await asyncio.to_thread(run_field_intelligence, req, **adapters)
+    if job_id:
+        _patch_job(job_id, progress=65, stage="building_operational_truth")
+        _raise_if_cancelled(job_id)
 
     state = result.canonical_state
-    # التنبيهات الاستباقيّة: من الحالة الموحّدة (change_detection/FVC يُمرَّران عند
-    # توفّرهما من العامل — هنا الحالة فقط، فالمحرّك سلبيّ→استباقيّ على ما هو متاح).
     alerts = evaluate_alerts(state)
-    # التوصيل اختياريّ (notify=true): warning فأعلى عبر القنوات المُهيّأة. صدق:
-    # الإرسال الخارجي يحدث فقط عند تهيئة القناة (لا ادّعاء إرسال).
     alerts_delivery = None
     if notify and alerts:
         from core.alert_delivery import deliver_alerts
 
-        alerts_delivery = deliver_alerts(
+        alerts_delivery = await asyncio.to_thread(
+            deliver_alerts,
             alerts,
             context={
                 "field_id": state.field_id,
@@ -308,11 +369,10 @@ async def field_intelligence_analyze(
                 "now": state.generated_at,
             },
         )
-    # حدث الحفظ جاهز (الكتابة الفعليّة في events عبر event_bus على بيئة التشغيل)
     try:
         event_row = state_to_event_row(state, actor_id=user.user_id)
     except ValueError:
-        event_row = None  # بلا tenant — لا يُحفَظ (لن يحدث: tenant من التوكن)
+        event_row = None
 
     response = {
         "field_id": state.field_id,
@@ -326,38 +386,153 @@ async def field_intelligence_analyze(
         "missing_signals": state.missing_signals,
         "policy_decision": result.policy_decision,
         "governance": result.governance,
-        # بوّابة التنفيذ المحكومة: القرار غير قابل للتوزيع ما لم تُقَرّ الحَوكمة.
-        # في المسار الحيّ لا يُمرَّر guardrails_fn ⇒ executable=False (استشاريّ فقط)،
-        # وسبب المنع صريح (governance_not_evaluated) — لا تُختلق موافقة.
         "executable": result.executable,
         "dispatch_block_reason": result.dispatch_block_reason,
-        "farm_memory_context": result.farm_memory_context,  # السياق التاريخي
-        "correlation_id": correlation_id,  # خيط التتبّع الموحّد (OpenTelemetry-style)
-        "simulation": result.simulation,  # أثر what-if المتوقّع
-        "alerts": alerts,  # تنبيهات استباقيّة مُصنّفة (محرّك التنبيهات)
+        "farm_memory_context": result.farm_memory_context,
+        "correlation_id": correlation_id,
+        "simulation": result.simulation,
+        "alerts": alerts,
         "alerts_summary": summarize_alerts(alerts),
-        "alerts_delivery": alerts_delivery,  # نتيجة التوصيل (إن notify=true)
-        "_persistable_event": event_row,  # جاهز للإدراج في events table
+        "alerts_delivery": alerts_delivery,
+        "_persistable_event": event_row,
     }
-    # V65 — بطاقة ذكاء الحقل الموحّدة: تجميع صادق للأوليّات القائمة في بطاقة قرار
-    # واحدة (أحدث مشهد/حالة مزوّد/NDVI-تاريخيّ/عجز مائيّ/مناطق ضعيفة/تنبيهات/أدلّة/ثقة).
-    # P1 — تُغذّى أقسام المشهد/NDVI-التاريخيّ من قاعدة المنصّة (zonal_stats/raster_assets)
-    # مُقيَّدةً بالمستأجِر؛ التعذّر ⇒ الأقسام تبقى missing صراحةً (لا اختلاق ولا انحدار).
+
+    if job_id:
+        _patch_job(job_id, progress=78, stage="fetching_field_card_signals")
+        _raise_if_cancelled(job_id)
+
     from core.field_intelligence_card import assemble_field_intelligence_card
 
     signals = await _fetch_card_signals(user, field_id, lat=lat, lon=lon)
     response["field_intelligence_card"] = assemble_field_intelligence_card(response, **signals)
-    # رسم الأدلّة (Evidence Graph): يُهيكل أدلّة البطاقة كعُقَد/حوافّ مع مصادرها وفجوات
-    # المعرفة — لتفسير التوصية وإثبات مصدر كلّ معلومة. منطق صرف من المُجمَّع (بلا جلب).
+
+    if job_id:
+        _patch_job(job_id, progress=88, stage="building_evidence_graph")
+        _raise_if_cancelled(job_id)
+
     from core.evidence_graph import build_evidence_graph
 
     response["evidence_graph"] = build_evidence_graph(response)
-    # استمرار اللقطة (v148) — fail-soft: فشل الكتابة لا يكسر التحليل (persistence غير حاجبة).
+
+    if job_id:
+        _patch_job(job_id, progress=94, stage="persisting_evidence_snapshot")
+        _raise_if_cancelled(job_id)
+
     snapshot_id = await _persist_evidence_snapshot(user, field_id, response)
-    # تطبيع المرحلة 2 (v149) — عُقَد/حوافّ مُشتقّة (fail-soft، معاملة منفصلة، اللقطة مصدر الحقيقة).
     if snapshot_id is not None:
         await _persist_evidence_graph_rows(user, field_id, snapshot_id, response)
     return response
+
+
+async def _run_field_intelligence_job(
+    job_id: str,
+    *,
+    field_id: str,
+    lat: float | None,
+    lon: float | None,
+    crop: str | None,
+    notify: bool,
+    authorization: str | None,
+    user: UserSchema,
+) -> None:
+    """خلفية job غير متزامنة: فشل/إلغاء العميل لا يفسد حالة التحليل."""
+    try:
+        _raise_if_cancelled(job_id)
+        result = await _compute_field_intelligence_response(
+            field_id=field_id,
+            lat=lat,
+            lon=lon,
+            crop=crop,
+            notify=notify,
+            authorization=authorization,
+            user=user,
+            job_id=job_id,
+        )
+        if _FIELD_INTELLIGENCE_JOBS.get(job_id, {}).get("cancel_requested"):
+            _patch_job(job_id, status="cancelled", progress=100, stage="cancelled")
+            return
+        _patch_job(job_id, status="completed", progress=100, stage="completed", result=result)
+    except asyncio.CancelledError:
+        _patch_job(job_id, status="cancelled", progress=100, stage="cancelled")
+    except Exception as exc:  # noqa: BLE001 — job يفشل بصراحة، ولا يُترك عالقاً running.
+        _logger.exception("field intelligence job failed job_id=%s field_id=%s", job_id, field_id)
+        _patch_job(
+            job_id,
+            status="failed",
+            progress=100,
+            stage="failed",
+            error={"code": "field_intelligence_analysis_failed", "message": str(exc)},
+        )
+
+
+@router.post("/api/v1/field-intelligence/analyze", status_code=status.HTTP_202_ACCEPTED)
+async def field_intelligence_analyze(
+    background_tasks: BackgroundTasks,
+    field_id: str,
+    lat: float | None = None,
+    lon: float | None = None,
+    crop: str | None = None,
+    notify: bool = False,
+    authorization: str = Header(None),
+    user: UserSchema = Depends(get_current_user),
+):
+    """يبدأ تحليل ذكاء الحقل كـ async job ويُرجِع job_id بسرعة.
+
+    P0 runtime/UX fix: لا يُسمح لهذا المسار الثقيل أن يبقى متزامناً؛ 499 في nginx
+    غالباً يعني أن العميل أغلق الاتصال قبل انتهاء التحليل. العقد الجديد:
+    POST ⇒ queued job خلال <1s، ثم GET /jobs/{job_id} أو WebSocket/polling للنتيجة.
+    """
+    job_id = f"fia_{uuid.uuid4().hex[:16]}"
+    now = _utcnow_iso()
+    _FIELD_INTELLIGENCE_JOBS[job_id] = {
+        "job_id": job_id,
+        "status": "queued",
+        "field_id": field_id,
+        "tenant_id": str(user.tenant_id),
+        "user_id": str(user.user_id),
+        "progress": 0,
+        "stage": "queued",
+        "created_at": now,
+        "updated_at": now,
+        "cancel_requested": False,
+        "result": None,
+        "error": None,
+    }
+    background_tasks.add_task(
+        _run_field_intelligence_job,
+        job_id,
+        field_id=field_id,
+        lat=lat,
+        lon=lon,
+        crop=crop,
+        notify=notify,
+        authorization=authorization,
+        user=user,
+    )
+    return _job_public(_FIELD_INTELLIGENCE_JOBS[job_id], include_result=False)
+
+
+@router.get("/api/v1/field-intelligence/analyze/jobs/{job_id}")
+async def field_intelligence_analyze_job_status(
+    job_id: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """حالة job التحليل: polling صريح بدل انتظار اتصال POST طويل."""
+    job = _authorize_job(job_id, user)
+    return _job_public(job)
+
+
+@router.post("/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel")
+async def field_intelligence_analyze_job_cancel(
+    job_id: str,
+    user: UserSchema = Depends(get_current_user),
+):
+    """إلغاء منطقي آمن: لا يفسد الحالة حتى لو كان العمل الداخلي قد بدأ فعلاً."""
+    job = _authorize_job(job_id, user)
+    if job.get("status") in _JOB_TERMINAL_STATES:
+        return _job_public(job, include_result=False)
+    _patch_job(job_id, cancel_requested=True, status="cancelled", progress=100, stage="cancelled")
+    return _job_public(job, include_result=False)
 
 
 @router.get("/api/v1/fields/{field_id}/evidence-graph/latest")

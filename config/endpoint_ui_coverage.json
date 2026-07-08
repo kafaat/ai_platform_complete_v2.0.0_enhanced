@@ -2719,6 +2719,16 @@
       "endpoint": "/auth/verify/status",
       "audience": "farmer",
       "evidence": "/auth/verify/status"
+    },
+    {
+      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
+      "audience": "agronomist",
+      "evidence": "/api/v1/field-intelligence/analyze"
+    },
+    {
+      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
+      "audience": "agronomist",
+      "evidence": "/api/v1/field-intelligence/analyze"
     }
   ]
 }
