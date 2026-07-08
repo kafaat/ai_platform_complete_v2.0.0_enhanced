@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-07-08 — نشر decision-service (البند الحرج من قائمة المتبقّي)
+
+المستخدم حدّد المتبقّي ورتّبه؛ الحرج: `decision-service` غير قابل للنشر (بلا Dockerfile/compose/env) ⇒ المضيف `sahool-decision-service:8160` غير موجود ⇒ المِرْآة best-effort ميتة (تحذير لكلّ كتابة). لا فقدان بيانات (الجسر الانتقاليّ `d201527` جعل المنصّة SoR)، لكنّ P4.5–P4.7 لا تُعتبَر صالحة إنتاجاً حتى يُنشَر المِرْآة.
+
+**المُطبَّق (٥ ملفّات):** `services/decision-service/Dockerfile` (python:3.11-slim، non-root `USER sahool` SEC-2، `EXPOSE 8160`، uvicorn على 8160، healthcheck `/healthz`، لا نسخ shared لأنّه لا يستورده) · خدمة `sahool-decision-service` في `docker-compose.v9.yml` و`docker-compose.fixed.yml` (build من Dockerfile + healthcheck 8160/healthz + no-new-privileges + شبكة داخليّة) · `DECISION_SERVICE_URL=${...:-http://sahool-decision-service:8160}` على `sahool-platform` في كلا الملفّين + `.env.example` · حارس `tests_v9/test_decision_service_deployment_contract.py` (٧ تأكيدات: Dockerfile non-root/8160/healthz · الخدمة معرَّفة بـbuild+healthcheck في كلا الملفّين · المنصّة تُوصِّل DECISION_SERVICE_URL · لا env قاعدة مُضلِّل).
+
+**قرار صدق موثَّق (انحراف عن حرفيّة طلب المستخدم «JOBS_DATABASE_URL/DB»):** لم أُوصِّل `DATABASE_URL/JOBS_DATABASE_URL` للخدمة — فهي جذع بلا asyncpg/DB (يُرجِع `persisted:false`)؛ وصل env قاعدة يتجاهله يُوهِم استمراراً غير موجود ويخالف مبدأ الصدق. حارس رابع يُثبِّت هذا (لا env قاعدة على المِرْآة). DB env + تبعيّة postgres تأتيان مع ترقية SoR الحقيقيّ (`DECISION_SERVICE_BOUNDARY_CONTRACT.md`). لا مسار nginx (مِرْآة داخليّة فقط، لا مستهلِك أماميّ مباشر — خلاف weather/raster). المنصّة لا تعتمد على صحّة المِرْآة (فشلها لا يحجب الكتابة).
+
+**التحقّق المستقلّ:** ruff format+check نظيف · tests_v9 unit **2801** (+7) · حارسا Dockerfile non-root/shared (auto-discover) يمرّان على الملفّ الجديد · YAML صالح (pyyaml) · release **3518**. الفرع بانتظار خُضرة CI قبل التقديم السريع.
+
+**يبقى (موثَّق، مؤجَّل بصدق):** تأكيد استماع weather-service على 8000 + healthcheck · P6 توجيه بوّابة فعليّ (عقد نصّيّ حاليّاً) · بقايا aggregators مركّبة · تقليص ميزانيّة مسارات BFF · تقسيم عامل حالة dispatch · تشغيل `-m integration` end-to-end بالخدمات مرفوعة · ترقية decision-service لـSoR حقيقيّ (asyncpg+DB) · عمل منتَج أقدم (field-season↔أدلّة · Field Normal Behavior · Disease Forecast).
+
+---
+
 ## 2026-07-08 — لوحة التعلّم: حالة متدهورة صادقة (P0) + تقديم main/develop إلى الأخضر
 
 **التقديم السريع أوّلاً:** CI للرأس `cfa768e` (الجسر الانتقاليّ `7347e92` + hotfix المقاييس `419847c`/`cfa768e`) أخضر ⇒ `main` و`develop` قُدِّما من `3609fdb` إلى `cfa768e` ودُفِعا (يُزامن إصلاح سلامة البيانات + hotfix معاً).
