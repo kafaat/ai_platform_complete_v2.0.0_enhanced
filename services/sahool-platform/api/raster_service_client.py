@@ -16,7 +16,10 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from fastapi import HTTPException
+# NOTE: fastapi is imported lazily inside the functions that raise/catch HTTPException.
+# This module is reachable from the pure-logic `pytest -m unit` tier (imagery_automation ->
+# raster_service_client import chain) which runs WITHOUT fastapi installed, so a module-level
+# fastapi import would break test collection. Keep fastapi out of module import time.
 
 DEFAULT_RASTER_SERVICE_URL = "http://sahool-raster-service:8001"
 
@@ -48,6 +51,7 @@ async def raster_get_json(
 ) -> dict[str, Any]:
     """GET JSON from raster-service with service token + optional tenant header."""
     import httpx
+    from fastapi import HTTPException
 
     url = f"{raster_service_url()}/{path.lstrip('/')}"
     try:
@@ -72,6 +76,7 @@ async def raster_post_json(
 ) -> dict[str, Any]:
     """POST JSON to raster-service with service token + optional tenant header."""
     import httpx
+    from fastapi import HTTPException
 
     url = f"{raster_service_url()}/{path.lstrip('/')}"
     try:
@@ -103,6 +108,7 @@ async def raster_get_raw(
     filtering so legacy routers do not open-code raster transport details.
     """
     import httpx
+    from fastapi import HTTPException
 
     url = f"{raster_service_url()}/{path.lstrip('/')}"
     headers = raster_service_headers(tenant_id=tenant_id)
@@ -363,6 +369,8 @@ async def get_job_result(
     timeout_s: float = 10.0,
 ) -> dict[str, Any] | None:
     """Best-effort job result fetch; returns None when result is not ready."""
+    from fastapi import HTTPException
+
     try:
         return await raster_get_json(
             f"/jobs/{job_id}/result",
