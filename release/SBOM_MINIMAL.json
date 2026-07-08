@@ -19585,6 +19585,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dcb1baf72cd67318d8e7b6a32fc850138f8f56507bbf2dcc956facd9ea031626"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_learning_dashboard_degraded_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3adc5265bf67d8bca6134b0e9ed7e1395b6e11d5f4c5e9e336ab5ba9ce76e197"
         }
       ],
