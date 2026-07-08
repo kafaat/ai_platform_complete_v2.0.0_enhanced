@@ -1,6 +1,12 @@
 FROM python:3.11-slim-bookworm
 WORKDIR /app
 COPY services/weather-signal-engine/requirements.txt /tmp/req.txt
+# ── مرآة Tencent Cloud (افتراضي — أكثر موثوقيّة في شبكتنا؛ pypi.org يفشل حتى مع VPN) ──
+# للرجوع إلى PyPI الرسميّ عالميّاً: --build-arg PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple/
+ARG PIP_TRUSTED_HOST=
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN pip install --no-cache-dir -r /tmp/req.txt
 # نواة التراكب النقيّة المشترَكة (تُختبَر في وظيفة Platform Unit Tests).
 COPY services/sahool-platform/core/thresholds.py /app/core/thresholds.py

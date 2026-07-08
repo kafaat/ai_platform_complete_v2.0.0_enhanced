@@ -395,6 +395,8 @@ services:
       RASTER_SERVICE_URL: ${RASTER_SERVICE_URL:-http://sahool-raster-service:8001}
       WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       SOIL_SERVICE_URL: ${SOIL_SERVICE_URL:-http://sahool-soil-service:8000}
+      # Best-effort mirror target (dual-path): platform writes are authoritative; mirror failures are swallowed.
+      DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       # أعلام الميزات المتقدّمة (تحرس راوترات؛ مُطفأة افتراضاً ⇒ 404 والواجهة تعرض حالة
       # «معطّلة» صادقة). فعّل ما تريد عبر .env (1/true). انظر RUNBOOK.md +
       # services/sahool-platform/api/feature_registry.py + frontend featureFlags.ts.
@@ -660,6 +662,27 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+
+  # ═══════════════════════════════════════════════════════════════
+  # 14b. Decision Service (INTERIM non-authoritative mirror, dual-path d201527)
+  # ═══════════════════════════════════════════════════════════════
+  # sahool-platform is the authoritative Source-of-Record and performs the real DB write,
+  # then best-effort mirrors here. NO database yet (honest stub → persisted:false); no
+  # DATABASE_URL/JOBS_DATABASE_URL is wired (unused DB env would falsely imply persistence).
+  # Platform does NOT depend on this service's health — a dead mirror never blocks the write.
+  sahool-decision-service:
+    build:
+      context: .
+      dockerfile: services/decision-service/Dockerfile
+    restart: unless-stopped
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8160/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
 
   # ═══════════════════════════════════════════════════════════════
   # 15. Actuator Service

@@ -65,8 +65,35 @@ reads to the not-yet-SoR `decision-service` returned empty data.
   the platform re-becomes the authoritative writer; `decision-service` is a best-effort mirror.
 
 ## Migration path to a future `decision-service` SoR
+
+### ⚠️ Schema prerequisite discovered 2026-07-08 (blocks any additive dual-write)
+Making `decision-service` *also* persist the loop tables (an additive, flag-gated mirror that
+writes alongside the platform) is **only safe for tables with a natural dedup key**, because the
+mirror runs *after* the platform's authoritative write and must be a no-op on the already-written
+row (`ON CONFLICT DO NOTHING`). Per-table status (verified against migrations + platform INSERTs):
+- `decision_record` — PK `decision_id` ✅ dedup-able.
+- `dispatch_decisions` — PK `decision_id` ✅ dedup-able.
+- `outcome_record` — PK `outcome_id` + `UNIQUE ux_outcome_record_idem(idempotency_key)` ✅.
+- `online_learning_updates` — `UNIQUE (tenant_id, update_id)` ✅ dedup-able.
+- **`recommendation_outcomes` — ❌ NOT dedup-able.** PK is `BIGSERIAL outcome_id` and the platform
+  INSERT (`services/sahool-platform/api/routers/recommendations.py:347`) has **no `ON CONFLICT`**,
+  so every call appends a fresh row. A mirror that also persisted this write would create a
+  **duplicate outcome row** for one real-world outcome → pseudoreplication that inflates the
+  learning sample and corrupts `success_rate` — exactly what `core/outcome_reconciler.py` and the
+  loop-closure audit protect against.
+
+**Therefore the SoR move must be a real cutover (platform stops writing → `decision-service`
+becomes the sole writer), NOT an additive "both write" step.** Prerequisite before any flip:
+a migration adds a natural dedup key to `recommendation_outcomes` (candidate
+`UNIQUE (tenant_id, recommendation_id, season_id)` — first confirm the domain truly forbids
+multiple outcome rows per (recommendation, season); if legitimate re-measurements exist, add an
+explicit `idempotency_key` column instead). Design + verify on live Postgres (`-m integration`)
+before any cutover — it cannot be done safely from a unit-only environment.
+
+### Steps
 1. Give `decision-service` a real datastore (Postgres + RLS + outbox), mirroring the loop
    schema; keep it accepting mirror writes (idempotent on `decision_id`/`idempotency_key`).
+   **Prereq:** add the `recommendation_outcomes` dedup key above first.
 2. Backfill from the platform SoR; run the mirror in shadow until row parity is verified.
 3. Flip the authoritative write from platform → `decision-service` one table at a time
    (dual-write with `decision-service` authoritative, platform mirror), then
