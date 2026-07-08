@@ -85,3 +85,53 @@ def test_decision_service_has_no_misleading_db_env(compose):
     assert not leaked, (
         f"{compose}: interim mirror must not carry DB env {leaked} (implies persistence it does not have)"
     )
+
+
+# Internal service-URL vars whose .env.example value must match the docker-compose default —
+# these are container-to-container URLs, so the port must be the service's real container port.
+# Drift here is a silent footgun: an operator copying .env.example verbatim points the platform
+# at a dead port and the read silently degrades (e.g. WEATHER=8092/SOIL=8094 vs real 8000).
+_INTERNAL_SERVICE_URL_VARS = [
+    "RASTER_SERVICE_URL",
+    "WEATHER_SERVICE_URL",
+    "SOIL_SERVICE_URL",
+    "DECISION_SERVICE_URL",
+]
+
+
+def _env_example() -> dict[str, str]:
+    out: dict[str, str] = {}
+    for line in (ROOT / ".env.example").read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        out[k.strip()] = v.strip()
+    return out
+
+
+def _compose_default(env_val: str) -> str | None:
+    """Extract the ``${VAR:-default}`` fallback from a compose env value, else None."""
+    import re
+
+    m = re.search(r":-([^}]+)\}", str(env_val))
+    return m.group(1).strip() if m else None
+
+
+@pytest.mark.parametrize("var", _INTERNAL_SERVICE_URL_VARS)
+def test_env_example_service_urls_match_compose_default_ports(var):
+    """.env.example internal service URLs must match the v9 compose default (real container port).
+
+    Regression: WEATHER_SERVICE_URL=:8092 and SOIL_SERVICE_URL=:8094 in .env.example pointed at
+    ports the services never listen on (real port 8000), so copying the example verbatim broke
+    weather/soil reads.  Pin them to the compose default so the example is deployable as-is.
+    """
+    example = _env_example()
+    assert var in example, f".env.example is missing {var}"
+    plat_env = _load("docker-compose.v9.yml")["services"]["sahool-platform"]["environment"]
+    default = _compose_default(plat_env[var])
+    assert default, f"docker-compose.v9.yml platform env {var} has no :- default to compare against"
+    assert example[var] == default, (
+        f".env.example {var}={example[var]} does not match compose default {default} "
+        f"(container-to-container URL must use the real service port)"
+    )

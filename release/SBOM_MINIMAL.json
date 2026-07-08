@@ -8385,6 +8385,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5d5833437a961b9fbe014e577f71a869c0f94445fb6fa84b0d5b985c09bf264e"
+        }
+      ],
+      "name": "services/decision-service/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
       ],
