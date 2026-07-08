@@ -5995,6 +5995,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ea6ccb2868d22da3c3fd7a113c85167e91c180b9048b1525bbddfea75a5c6364"
+        }
+      ],
+      "name": "migrations/v152_deprecate_recommendation_feedback.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb0f425d3153fa93f00c48cc9b3fd8c85913f8cff4a953be22c98bf62b74f10c"
         }
       ],
