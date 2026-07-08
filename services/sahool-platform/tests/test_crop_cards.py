@@ -579,3 +579,46 @@ class TestYemenCropsBatch2:
             assert "source" in card["kc"] and "source" in card["salinity"]
             for forbidden in ("yield", "calibration", "zone_factor", "region"):
                 assert forbidden not in card, (cid, forbidden)
+
+
+class TestYemenVegetablesBatch3a:
+    """خضراوات يمنيّة (الدفعة 3أ): خيار · فلفل · باذنجان · بامية · ثوم · شمّام.
+    حوليّة بـ4 مراحل FAO-56؛ القيم خارج جداول FAO-56 مُعلَّمة بصدق."""
+
+    VEG = ("cucumber", "pepper", "eggplant", "okra", "garlic", "melon")
+
+    def test_all_present_valid_with_phenology(self):
+        from core.crop_cards.loader import growth_stages
+
+        cards = list_crop_cards()
+        for cid in self.VEG:
+            assert cid in cards, cid
+            card = load_crop_card(cid)
+            assert validate_crop_card(card)["valid"], cid
+            stages = growth_stages(cid)
+            assert len(stages) == 4, cid
+            cum = 0
+            for sd, st in zip(card["kc"]["stage_days"], stages, strict=True):
+                assert st["day_start"] == cum, cid
+                cum += sd
+                assert st["day_end"] == cum, cid
+            assert cum == card["phenology"]["total_cycle_days"], cid
+
+    def test_pepper_flower_drop_heat_threshold(self):
+        # الفلفل: تساقط الأزهار فوق ~32°م (حسّاسيّة حراريّة موثّقة).
+        assert load_crop_card("pepper")["thermal"]["flowering_safe_max_c"] <= 32.0
+
+    def test_okra_is_hot_season_high_base_temp(self):
+        # البامية محصول حارّ — حرارة أساس مرتفعة (≥ 15°م).
+        assert load_crop_card("okra")["thermal"]["gdd_base_c"] >= 15.0
+
+    def test_garlic_salt_sensitive_allium(self):
+        # الثوم من الثوميّات الحسّاسة للملوحة (عتبة ≤ 1.5).
+        assert load_crop_card("garlic")["salinity"]["threshold_ece_ds_m"] <= 1.5
+
+    def test_region_agnostic_and_sourced(self):
+        for cid in self.VEG:
+            card = load_crop_card(cid)
+            assert "source" in card["kc"] and "source" in card["salinity"]
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in card, (cid, forbidden)

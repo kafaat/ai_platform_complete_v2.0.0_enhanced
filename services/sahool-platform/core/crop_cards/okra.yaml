@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Okra (البامية)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: okra
+name_ar: البامية
+name_en: Okra
+crop_family: vegetable_C3
+
+kc:
+  initial: 0.50
+  mid: 1.05
+  end: 0.75
+  stage_days: [20, 35, 40, 25]   # ⇒ 120 يوماً (تقدير أدبيّ — خارج جدول FAO-56 Kc)
+  source: "Okra agronomy (indicative Kc; not in FAO-56 Kc table)"
+
+salinity:
+  threshold_ece_ds_m: 1.5        # البامية متوسّطة الحساسيّة (تقدير أدبيّ)
+  slope_pct_per_ds_m: 12.0       # ليس Maas-Hoffman معياريّاً
+  germination_ece_max: 1.3
+  source: "Okra salinity literature (moderately sensitive; not in FAO-56 T23)"
+
+thermal:
+  gdd_base_c: 15.0               # محصول حارّ جدّاً
+  gdd_to_maturity: 1200
+  flowering_safe_max_c: 40.0     # متحمّل للحرارة العالية
+  chilling_hours_required: 0
+  source: "Okra agronomy; hot-season, base ~15C"
+
+governing:
+  ph:        { min: 6.0, max: 7.5, error: 0.1,  source: "ECOCROP okra" }
+  ece_ds_m:  { min: 0.0, max: 6.0, error: 0.02, source: "Okra salt tolerance (indicative)" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.2
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Okra OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 100
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 80
+
+pest_susceptibility:
+  pests: [aphids, whitefly, fruit_borer, yellow_vein_mosaic]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [20,35,40,25] ⇒ [0–20, 20–55, 55–95, 95–120].
+phenology:
+  source: "Okra stage lengths (indicative)"
+  total_cycle_days: 120
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.50
+      key_action_ar: "ريّ تأسيس دافئ"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 20
+      day_end: 55
+      kc_end: 1.05
+      key_action_ar: "تسميد آزوتيّ + مكافحة الحشائش"
+    - stage: mid
+      name_ar: "التزهير والإثمار المتتابع"
+      day_start: 55
+      day_end: 95
+      kc: 1.05
+      key_action_ar: "ذروة الاحتياج — قطاف متكرّر للقرون الغضّة يطيل الإثمار"
+    - stage: late
+      name_ar: "تراجع الإنتاج"
+      day_start: 95
+      day_end: 120
+      kc: 0.75
+      key_action_ar: "تقليل الريّ نحو نهاية الموسم"
+
+# NO calibration block. NO yield. NO zone_factor.

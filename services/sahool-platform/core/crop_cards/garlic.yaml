@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Garlic (الثوم)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: garlic
+name_ar: الثوم
+name_en: Garlic
+crop_family: vegetable_C3
+
+kc:
+  initial: 0.70
+  mid: 1.00
+  end: 0.70
+  stage_days: [20, 30, 50, 20]   # ⇒ 120 يوماً
+  source: "FAO-56 Table 12 (Garlic)"
+
+salinity:
+  threshold_ece_ds_m: 1.3        # الثوم حسّاس للملوحة (فصيلة الثوميّات — تقدير أدبيّ)
+  slope_pct_per_ds_m: 16.0       # قريب من البصل — ليس Maas-Hoffman معياريّاً للثوم
+  germination_ece_max: 1.3
+  source: "Garlic salinity literature (sensitive, allium-like onion; not in FAO-56 T23)"
+
+thermal:
+  gdd_base_c: 5.0
+  gdd_to_maturity: 1200
+  flowering_safe_max_c: 30.0
+  chilling_hours_required: 0     # يحتاج إرباعاً بارداً للتفصيص لا «ساعات برودة» شجريّة
+  source: "Garlic agronomy; base ~5C; bulbing needs cool induction (not tree-chill)"
+
+governing:
+  ph:        { min: 6.0, max: 7.5, error: 0.1,  source: "ECOCROP garlic" }
+  ece_ds_m:  { min: 0.0, max: 8.0, error: 0.02, source: "Garlic salt tolerance (indicative)" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.8
+    optimal_min: 1.5
+    optimal_max: 3.0
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Garlic OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 100
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 120
+
+pest_susceptibility:
+  pests: [thrips, white_rot, rust]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [20,30,50,20] ⇒ [0–20, 20–50, 50–100, 100–120].
+phenology:
+  source: "FAO-56 Table 12 (Garlic) stage lengths"
+  total_cycle_days: 120
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.70
+      key_action_ar: "ريّ تأسيس بعد زراعة الفصوص"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 20
+      day_end: 50
+      kc_end: 1.00
+      key_action_ar: "تسميد آزوتيّ + مكافحة الحشائش"
+    - stage: mid
+      name_ar: "تكوّن الرؤوس والتفصيص"
+      day_start: 50
+      day_end: 100
+      kc: 1.00
+      key_action_ar: "ذروة الاحتياج المائي أثناء تكوّن الرأس"
+    - stage: late
+      name_ar: "النضج وجفاف الأوراق"
+      day_start: 100
+      day_end: 120
+      kc: 0.70
+      key_action_ar: "إيقاف الريّ عند جفاف ثلث الأوراق قبل الحصاد"
+
+# NO calibration block. NO yield. NO zone_factor.
