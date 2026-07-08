@@ -16715,6 +16715,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "740a267d2891a637a965904580406a41f25a6e0c337ae8902f4a36288bdaabab"
+        }
+      ],
+      "name": "services/sahool-platform/core/season_stage_risk.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "316674c721925afb15d29372bb5c11c94ac73eab92465542d40f54908101fff6"
         }
       ],
@@ -20029,6 +20039,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_season_simulation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c77c97b3f9cbd5b000a419e79ccc0d169fb84a790d1d21b9f38526b07dc2078b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_stage_risk.py",
       "type": "file"
     },
     {
