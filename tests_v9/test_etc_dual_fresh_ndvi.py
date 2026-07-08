@@ -68,43 +68,22 @@ def test_pick_ndvi_casts_to_float():
     assert source == "imagery_automation_fields"
 
 
-# ─── _fetch_fresh_ndvi: الجلب الخدميّ (mock لردّ raster) — صدق real_data ─────────
+# ─── _fetch_fresh_ndvi: الجلب الخدميّ (mock لواجهة raster) — صدق real_data ────────
 
 
-class _FakeResp:
-    def __init__(self, payload):
-        self._payload = payload
+def _patch_client(monkeypatch, *, payload=None, raise_exc=None):
+    """P2 raster facade: ``_fetch_fresh_ndvi`` يقرأ COG عبر ``get_indicator_grid`` (واجهة
+    raster) بدل فتح ``httpx.AsyncClient`` محلّيّاً. نُرقِّع الواجهة كما تستوردها الوحدة —
+    النيّة محفوظة: real_data=true ⇒ stats.mean؛ محاكاة/شكل ناقص/تعذّر ⇒ None."""
 
-    def raise_for_status(self):
-        return None
+    async def _fake_get_indicator_grid(
+        field_id, *, tenant_id=None, index="ndvi", date="latest", timeout_s=8.0
+    ):
+        if raise_exc is not None:
+            raise raise_exc
+        return payload
 
-    def json(self):
-        return self._payload
-
-
-class _FakeClient:
-    """عميل httpx مزيّف: يُرجِع ردّاً ثابتاً أو يرفع استثناءً (محاكاة تعذّر شبكيّ)."""
-
-    def __init__(self, payload=None, raise_exc=None):
-        self._payload = payload
-        self._raise_exc = raise_exc
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *a):
-        return False
-
-    async def get(self, *a, **k):
-        if self._raise_exc is not None:
-            raise self._raise_exc
-        return _FakeResp(self._payload)
-
-
-def _patch_client(monkeypatch, **kwargs):
-    import httpx
-
-    monkeypatch.setattr(httpx, "AsyncClient", lambda *a, **k: _FakeClient(**kwargs))
+    monkeypatch.setattr(etc_dual, "get_indicator_grid", _fake_get_indicator_grid)
 
 
 async def test_fetch_fresh_ndvi_real_data_returns_mean(monkeypatch):

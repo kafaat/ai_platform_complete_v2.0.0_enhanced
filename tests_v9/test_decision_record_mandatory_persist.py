@@ -12,14 +12,16 @@
   (د) OwnerLookupUnavailable ⇒ 503 (fail-closed).
   (هـ) بلا DATABASE_URL (DB-less/CI) ⇒ لا حجب (تُبقى خضرة CI).
 
-نقيّ بلا قاعدة: نحقن tenant_connection وهميّاً ونُرقِّع مصدر الملكيّة.
+P4.7 direct-DB final sweep: الإدامة لم تعد INSERT مباشراً بل تفويض عبر واجهة
+decision-service. نقيّ بلا قاعدة: نُرقِّع دالّة الواجهة كما تُستورَد في الموجِّه
+(``_record_decision_via_service``) ونُرقِّع مصدر الملكيّة — نتحقّق أنّ المنصّة تحفظ فحص
+الملكيّة/الإلزاميّة/الإغلاق المرن وتُفوّض الكتابة للمالك (decision-service).
 """
 
 from __future__ import annotations
 
 import os
 import sys
-from contextlib import asynccontextmanager
 
 import pytest
 
@@ -58,36 +60,24 @@ _ADVISORY_DECISION = {
 }
 
 
-class _FakeConn:
-    """اتّصال وهميّ يسجّل الإدراجات بلا قاعدة فعليّة."""
-
-    def __init__(self, recorder):
-        self._rec = recorder
-
-    async def execute(self, sql, *args):
-        if "INSERT INTO decision_record" in sql:
-            self._rec.append(args)
-        return "INSERT 0 1"
-
-
-def _fake_tenant_connection_factory(recorder):
-    @asynccontextmanager
-    async def _cm(user):
-        yield _FakeConn(recorder)
-
-    return _cm
-
-
 @pytest.fixture
 def captured_inserts(monkeypatch):
-    """يلتقط إدراجات decision_record عبر tenant_connection وهميّ، ويُعطّل البثّ."""
+    """يلتقط تفويض الإدامة إلى decision-service عبر ترقيع دالّة الواجهة في الموجِّه.
+
+    كلّ عنصر في المُسجِّل هو حمولة القرار المُمرَّرة إلى ``_record_decision_via_service``.
+    فحص الملكيّة يسبق التفويض؛ رفض الملكيّة ⇒ لا استدعاء ⇒ مُسجِّل فارغ (كالإدراج سابقاً).
+    """
     recorder: list = []
-    monkeypatch.setattr(dr, "tenant_connection", _fake_tenant_connection_factory(recorder))
 
-    async def _noop_emit(*a, **k):
-        return None
+    async def _fake_record(payload, *, tenant_id=None):
+        recorder.append(payload)
+        return {
+            "persisted": True,
+            "decision_id": payload.get("decision_id"),
+            "tenant_id": tenant_id,
+        }
 
-    monkeypatch.setattr(dr, "_emit_domain_event", _noop_emit)
+    monkeypatch.setattr(dr, "_record_decision_via_service", _fake_record)
     return recorder
 
 
@@ -133,12 +123,10 @@ async def test_executable_persist_failure_fails_closed(captured_inserts, monkeyp
     monkeypatch.delenv("SAHOOL_AUTO_PERSIST_DECISIONS", raising=False)
     monkeypatch.setattr(dr, "DATABASE_URL", "")
 
-    @asynccontextmanager
-    async def _boom(user):
-        raise RuntimeError("db down")
-        yield  # pragma: no cover
+    async def _boom(payload, *, tenant_id=None):
+        raise RuntimeError("decision-service down")
 
-    monkeypatch.setattr(dr, "tenant_connection", _boom)
+    monkeypatch.setattr(dr, "_record_decision_via_service", _boom)
 
     with pytest.raises(HTTPException) as exc:
         await dr.persist_decision_if_enabled(
@@ -191,12 +179,10 @@ async def test_advisory_persist_failure_is_best_effort(monkeypatch):
     monkeypatch.setenv("SAHOOL_AUTO_PERSIST_DECISIONS", "1")
     monkeypatch.setattr(dr, "DATABASE_URL", "")
 
-    @asynccontextmanager
-    async def _boom(user):
-        raise RuntimeError("db down")
-        yield  # pragma: no cover
+    async def _boom(payload, *, tenant_id=None):
+        raise RuntimeError("decision-service down")
 
-    monkeypatch.setattr(dr, "tenant_connection", _boom)
+    monkeypatch.setattr(dr, "_record_decision_via_service", _boom)
 
     ok = await dr.persist_decision_if_enabled(
         _USER,

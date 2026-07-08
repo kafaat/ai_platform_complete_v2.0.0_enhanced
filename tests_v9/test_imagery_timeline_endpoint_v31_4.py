@@ -48,6 +48,8 @@ def test_items_carry_truecolor_thumbnail_and_real_cog():
     assert "index=truecolor" in b
     assert '"thumbnail_url"' in b
     assert '"has_cog"' in b
-    # sources from the tenant-verified raster available-dates proxy.
-    assert "available-dates" in b
-    assert "X-Tenant-Id" in b
+    # P2 raster facade: the available-dates read + tenant forwarding moved into
+    # get_available_dates (raster_service_client). The source stays explicit — it still
+    # fetches available dates and forwards the verified tenant — just through the facade.
+    assert "get_available_dates" in b
+    assert "tenant_id=tenant" in b

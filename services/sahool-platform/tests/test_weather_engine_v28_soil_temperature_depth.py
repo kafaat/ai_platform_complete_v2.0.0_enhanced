@@ -31,35 +31,8 @@ def test_soil_temperature_10_40cm_derived_value():
     assert 22.0 <= value <= 25.0
 
 
-@pytest.mark.asyncio
-async def test_weather_tile_data_supports_soil_temperature_10_40cm(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat: float, lon: float, time_key: str = "now", model: str = "best_match"):
-        return {
-            "temperature_2m_c": 30.0,
-            "wind_speed_10m_kmh": 8.0,
-            "wind_direction_10m_deg": 270.0,
-            "soil_temperature_6cm_c": 29.0,
-            "soil_temperature_18cm_c": 25.0,
-            "soil_temperature_54cm_c": 21.0,
-            "soil_temperature_10_40cm_c": 23.9,
-        }
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    result = await weather.weather_tile_data(
-        5,
-        16,
-        14,
-        layer="soil_temperature_10_40cm",
-        time="now",
-        model="best_match",
-        interpolation="center",
-    )
-
-    assert result["layer"] == "soil_temperature_10_40cm"
-    assert result["unit"] == "°C"
-    assert result["value"] == 23.9
+# NOTE (P3.4): the tile-data endpoint's derived soil_temperature_10_40cm rendering moved to
+# weather-service (the platform route is now a thin facade). The endpoint-integration test
+# now lives in services/weather-service/tests/ (test_p3_tile_neutral_resilience.py::
+# test_tile_data_supports_soil_temperature_depth_layer). The manifest advertisement and the
+# pure derivation contract above remain platform-owned and stay here.

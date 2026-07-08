@@ -30,13 +30,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api.decision_lineage import ensure_decision_id, lineage_stage
+from api.decision_service_client import (
+    record_decision as _record_decision_via_service,
+)
+from api.decision_service_client import (
+    record_outcome as _record_outcome_via_service,
+)
 from api.main import (
     Permission,
     UserSchema,
     _db_unavailable,
-    _emit_domain_event,
     require_permission,
-    tenant_connection,
 )
 from api.outcome_measurement import measure_outcome
 
@@ -170,47 +174,37 @@ async def persist_decision_if_enabled(
     await _assert_field_ownership(user, field_id)
 
     conf = confidence if isinstance(confidence, (int, float)) else None
+    # P4.7 direct-DB final sweep: loop-table ownership belongs to decision-service.  This
+    # source-side auto-persist now delegates the write (decision-service owns decision_record
+    # + the DECISION_RECORDED outbox event).  Ownership check above stays in-platform.
     try:
-        async with tenant_connection(user) as conn:
-            await conn.execute(
-                """INSERT INTO decision_record
-                    (decision_id, tenant_id, field_id, decision_type, region,
-                     stage, decision_value, confidence, created_by)
-                   VALUES ($1, $2::uuid, $3, $4, $5, 'decision', $6::jsonb, $7, $8)
-                   ON CONFLICT (decision_id) DO NOTHING""",
-                decision_id,
-                str(user.tenant_id),
-                field_id,
-                decision_type,
-                region,
-                _json.dumps(decision_value),
-                conf,
-                str(user.user_id),
-            )
-            await _emit_domain_event(
-                conn,
-                user,
-                "DECISION_RECORDED",
-                "decision_record",
-                decision_id,
-                {
-                    "decision_type": decision_type,
-                    "field_id": field_id,
-                    "region": region,
-                    "confidence": conf,
-                },
-                critical=True,  # رأس سلسلة النَّسَب — fail-closed
-            )
+        await _record_decision_via_service(
+            {
+                "decision_id": decision_id,
+                "field_id": field_id,
+                "decision_type": decision_type,
+                "region": region,
+                "stage": "decision",
+                "decision_value": decision_value,
+                "confidence": conf,
+                "created_by": str(user.user_id),
+            },
+            tenant_id=str(user.tenant_id),
+        )
         return True
     except HTTPException:
-        raise  # 403/404/503 من فحص الملكيّة لا يُبتلَع
+        raise  # 403/404/503 من فحص الملكيّة أو خطأ الخدمة الموثَّق لا يُبتلَع
     except Exception as e:  # noqa: BLE001
         if is_executable:
             # قرار قابل للتنفيذ بلا سجلّ ⇒ fail-closed: لا نُمضي كأنّه سُجِّل (503 موثَّق).
-            logger.error("إدامة قرار قابل للتنفيذ %s فشلت — fail-closed: %s", decision_id, e)
+            logger.error(
+                "إدامة قرار قابل للتنفيذ %s فشلت عبر decision-service — fail-closed: %s",
+                decision_id,
+                e,
+            )
             raise _db_unavailable("إدامة قرار قابل للتنفيذ", e) from e
         # استشاريّ: أثر جانبيّ — فشل الإدامة لا يكسر إصدار القرار.
-        logger.warning("auto-persist decision %s تخطّي: %s", decision_id, e)
+        logger.warning("auto-persist decision %s تخطّي عبر decision-service: %s", decision_id, e)
         return False
 
 
@@ -291,55 +285,30 @@ async def record_decision(
     req: DecisionRecordRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ) -> dict:
-    """يُدِيم رأس القرار في decision_record + حدث DECISION_RECORDED (تدقيق/بثّ).
+    """BFF/facade write path for decision records.
 
-    يُغلق فجوة «قرار يُحسَب ويُنسى»: يجعل القرار متتبَّعاً بمعرّف موحّد ليُربَط به القياس
-    لاحقاً. 503 عند تعذّر القاعدة. مسار كتابة (يتطلّب Postgres). الصدق: confidence الناقص
-    يُدام NULL لا يُفبرَك؛ decision_value يُدام كما عُرِض دون إعادة حساب.
+    P4.5: loop-table ownership moved to decision-service.  The platform still keeps
+    authentication and request shaping, but it must not insert into ``decision_record``
+    directly on this write path.
     """
     did = ensure_decision_id(req.decision_id)
     lineage = lineage_stage(did, "decision", field_id=req.field_id, region=req.region)
-    try:
-        async with tenant_connection(user) as conn:
-            await conn.execute(
-                """INSERT INTO decision_record
-                    (decision_id, tenant_id, field_id, decision_type, region,
-                     stage, decision_value, confidence, created_by)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9)
-                   ON CONFLICT (decision_id) DO NOTHING""",
-                did,
-                str(user.tenant_id),
-                req.field_id,
-                req.decision_type,
-                req.region,
-                lineage["stage"],
-                _json.dumps(req.decision_value),
-                req.confidence,
-                str(user.user_id),
-            )
-            await _emit_domain_event(
-                conn,
-                user,
-                "DECISION_RECORDED",
-                "decision_record",
-                did,
-                {
-                    "decision_type": req.decision_type,
-                    "field_id": req.field_id,
-                    "region": req.region,
-                    "confidence": req.confidence,
-                },
-                critical=True,  # رأس سلسلة النَّسَب — fail-closed
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إدامة القرار", e) from e
-
-    return {
+    payload = {
         "decision_id": did,
-        "lineage": lineage,
-        "persisted": True,
-        "recorded_by": str(user.user_id),
+        "field_id": req.field_id,
+        "decision_type": req.decision_type,
+        "region": req.region,
+        "stage": lineage["stage"],
+        "decision_value": req.decision_value,
+        "confidence": req.confidence,
+        "created_by": str(user.user_id),
     }
+    out = await _record_decision_via_service(payload, tenant_id=str(user.tenant_id))
+    out.setdefault("decision_id", did)
+    out["lineage"] = lineage
+    out["recorded_by"] = str(user.user_id)
+    out["via"] = "decision-service"
+    return out
 
 
 class OutcomePlannedIn(BaseModel):
@@ -375,86 +344,37 @@ async def record_outcome(
     req: OutcomeRecordRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ) -> dict:
-    """يقيس نتيجة قرار (نقيّاً) **ثمّ** يُدِيمها في outcome_record مربوطةً بـdecision_id.
+    """BFF/facade write path for measured outcomes.
 
-    يُغلق P0-1 (إدامة النتيجة): يجعل أثر القرار يتراكم كدليل ميدانيّ — الأساس الذي يبني
-    عليه evidence_registry لاحقاً. + حدث OUTCOME_MEASURED. 503 عند تعذّر القاعدة. مسار
-    كتابة (يتطلّب Postgres). الصدق: القياس نقيّ (measure_outcome)؛ success الناقص ⇒ NULL.
-
-    لاتكرار (cluster-safe عبر القاعدة): مع idempotency_key، إعادة POST لا تُدرِج عيّنة
-    ثانية (ON CONFLICT) — فلا يتضخّم sample_count الذي يحرس عتبة field_verified (سلامة
-    حلقة التعلّم). الإعادة تُعيد القياس القائم (replayed=true) بلا حدث جديد.
+    The metric calculation remains pure in the platform for response compatibility, but
+    persistence is delegated to decision-service, which owns ``outcome_record``.
     """
     metrics = measure_outcome(req.planned.model_dump(), req.actual.model_dump())
     success = _derive_success(metrics["metrics"])
     did = ensure_decision_id(req.decision_id)
     outcome_id = "out_" + _uuid.uuid4().hex[:16]
     lineage = lineage_stage(did, "outcome", field_id=req.field_id, region=req.region)
-    try:
-        async with tenant_connection(user) as conn:
-            inserted = await conn.fetchval(
-                """INSERT INTO outcome_record
-                    (outcome_id, tenant_id, decision_id, field_id, region,
-                     stage, planned, actual, metrics, success, created_by, idempotency_key)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6,
-                     $7::jsonb, $8::jsonb, $9::jsonb, $10, $11, $12)
-                   ON CONFLICT (tenant_id, idempotency_key)
-                     WHERE idempotency_key IS NOT NULL
-                   DO NOTHING
-                   RETURNING outcome_id""",
-                outcome_id,
-                str(user.tenant_id),
-                did,
-                req.field_id,
-                req.region,
-                lineage["stage"],
-                _json.dumps(req.planned.model_dump()),
-                _json.dumps(req.actual.model_dump()),
-                _json.dumps(metrics),
-                success,
-                str(user.user_id),
-                req.idempotency_key,
-            )
-            # تكرار (نفس idempotency_key) ⇒ لم يُدرَج جديد؛ نُعيد القياس القائم بلا حدث.
-            if inserted is None and req.idempotency_key is not None:
-                existing = await conn.fetchrow(
-                    "SELECT * FROM outcome_record WHERE idempotency_key = $1 "
-                    "ORDER BY created_at ASC LIMIT 1",
-                    req.idempotency_key,
-                )
-                if existing is not None:
-                    out = _shape_outcome_row(existing)
-                    out["lineage"] = lineage_stage(
-                        out["decision_id"],
-                        "outcome",
-                        field_id=out["field_id"],
-                        region=out["region"],
-                    )
-                    out["persisted"] = True
-                    out["replayed"] = True  # صدق: أُعيد القياس القائم — لم تُكرَّر العيّنة
-                    return out
-            await _emit_domain_event(
-                conn,
-                user,
-                "OUTCOME_MEASURED",
-                "outcome_record",
-                outcome_id,
-                {"decision_id": did, "field_id": req.field_id, "success": success},
-                critical=True,  # نتيجة القرار (سلسلة النَّسَب) — fail-closed
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إدامة نتيجة القرار", e) from e
-
-    return {
+    payload = {
         "outcome_id": outcome_id,
         "decision_id": did,
-        "lineage": lineage,
+        "field_id": req.field_id,
+        "region": req.region,
+        "planned": req.planned.model_dump(),
+        "actual": req.actual.model_dump(),
         "metrics": metrics,
         "success": success,
-        "persisted": True,
-        "replayed": False,
-        "recorded_by": str(user.user_id),
+        "created_by": str(user.user_id),
+        "idempotency_key": req.idempotency_key,
     }
+    out = await _record_outcome_via_service(payload, tenant_id=str(user.tenant_id))
+    out.setdefault("outcome_id", outcome_id)
+    out.setdefault("decision_id", did)
+    out["lineage"] = lineage
+    out["metrics"] = metrics
+    out["success"] = success
+    out["recorded_by"] = str(user.user_id)
+    out["via"] = "decision-service"
+    return out
 
 
 @router.get("/api/v1/decision/{decision_id}/lineage")
@@ -465,36 +385,17 @@ async def get_decision_lineage(
 ) -> dict:
     """يُعيد بناء سلسلة النَّسَب المُدامة لقرار: القرار (إن أُدِيم) + نتائجه — معزولة بـRLS.
 
-    قراءة فقط. القرار المفقود (لم يُدَم/لمستأجِر آخر) ⇒ decision=None لا 404 (النتائج قد
-    تكون أُدِيمت عبر المسار النقيّ). 503 عند تعذّر القاعدة.
+    P4.6 read-side facade: sahool-platform لم تعد تقرأ جداول الحلقة مباشرةً؛ تُمرّر سياق
+    المستأجِر إلى decision-service التي تملك دلالات القراءة. تبقى المصادقة/الصلاحيّة هنا.
     """
-    try:
-        async with tenant_connection(user) as conn:
-            drow = await conn.fetchrow(
-                "SELECT * FROM decision_record WHERE decision_id = $1", decision_id
-            )
-            orows = await conn.fetch(
-                "SELECT * FROM outcome_record WHERE decision_id = $1 "
-                "ORDER BY created_at ASC LIMIT $2",
-                decision_id,
-                limit,
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة سلسلة النَّسَب", e) from e
+    from api.decision_service_client import (
+        get_decision_lineage as _get_decision_lineage_via_service,
+    )
 
-    outcomes = [_shape_outcome_row(r) for r in orows]
-    stages_present = []
-    if drow is not None:
-        stages_present.append("decision")
-    if outcomes:
-        stages_present.append("outcome")
-    return {
-        "decision_id": decision_id,
-        "decision": _shape_decision_row(drow) if drow is not None else None,
-        "outcomes": outcomes,
-        "outcome_count": len(outcomes),
-        "stages_present": stages_present,
-    }
+    out = await _get_decision_lineage_via_service(decision_id, tenant_id=str(user.tenant_id))
+    out.setdefault("decision_id", decision_id)
+    out["via"] = "decision-service"
+    return out
 
 
 @router.get("/api/v1/decision/records")
@@ -506,27 +407,17 @@ async def list_decision_records(
 ) -> dict:
     """يسرد قرارات المستأجِر المُدامة (الأحدث أوّلاً) — معزولة بـRLS.
 
-    قراءة فقط. تصفية اختياريّة بـfield_id/decision_type (WHERE ديناميكيّ). 503 عند
-    تعذّر القاعدة. مسار القراءة تكامليّ (يتطلّب Postgres، كـdecision_dispatch).
+    قراءة فقط. تصفية اختياريّة بـfield_id/decision_type. P4.6 read-side facade:
+    السرد يُفوَّض إلى decision-service (تملك دلالات القراءة)؛ المصادقة/الصلاحيّة تبقى هنا.
     """
-    clauses, args = [], []
-    if field_id:
-        args.append(field_id)
-        clauses.append(f"field_id = ${len(args)}")
-    if decision_type:
-        args.append(decision_type)
-        clauses.append(f"decision_type = ${len(args)}")
-    where = (" WHERE " + " AND ".join(clauses)) if clauses else ""
-    args.append(limit)
-    try:
-        async with tenant_connection(user) as conn:
-            rows = await conn.fetch(
-                f"SELECT * FROM decision_record{where} ORDER BY created_at DESC LIMIT ${len(args)}",
-                *args,
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة سجلّ القرارات", e) from e
-    return {"decisions": [_shape_decision_row(r) for r in rows], "count": len(rows)}
+    from api.decision_service_client import list_decisions as _list_decisions_via_service
+
+    return await _list_decisions_via_service(
+        tenant_id=str(user.tenant_id),
+        field_id=field_id,
+        decision_type=decision_type,
+        limit=limit,
+    )
 
 
 def _group_outcomes_by_decision(decision_ids, orows):
@@ -556,30 +447,12 @@ async def get_field_lineage(
 ) -> dict:
     """يجمّع سلسلة حقل: قراراته المُدامة (الأحدث أوّلاً)، ولكلّ قرار نتائجه المربوطة.
 
-    قراءة فقط، معزول بـRLS. النتائج التي لا قرار مُدام لها (حُسِبت عبر المسار النقيّ بلا
-    إدامة رأس) تُكشَف تحت orphan_outcomes — صدق: لا تُخفى. 503 عند تعذّر القاعدة. مسار
-    القراءة تكامليّ (يتطلّب Postgres، كـdecision_dispatch).
+    P4.6 read-side facade: التجميع يُفوَّض إلى decision-service (تملك دلالات القراءة وكشف
+    orphan_outcomes)؛ المصادقة/الصلاحيّة تبقى في المنصّة. تجميع النتائج النقيّ محفوظ في
+    ``_group_outcomes_by_decision`` (مُختبَر وحدويّاً) لإعادة استخدامه في الخدمة المالكة.
     """
-    try:
-        async with tenant_connection(user) as conn:
-            drows = await conn.fetch(
-                "SELECT * FROM decision_record WHERE field_id = $1 "
-                "ORDER BY created_at DESC LIMIT $2",
-                field_id,
-                limit,
-            )
-            orows = await conn.fetch(
-                "SELECT * FROM outcome_record WHERE field_id = $1 ORDER BY created_at ASC",
-                field_id,
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("قراءة سجلّ القرارات", e) from e
+    from api.decision_service_client import get_field_lineage as _get_field_lineage_via_service
 
-    grouped, orphans = _group_outcomes_by_decision([d["decision_id"] for d in drows], orows)
-    decisions = [{**_shape_decision_row(d), "outcomes": grouped[d["decision_id"]]} for d in drows]
-    return {
-        "field_id": field_id,
-        "decisions": decisions,
-        "orphan_outcomes": orphans,
-        "count": len(drows),
-    }
+    return await _get_field_lineage_via_service(
+        field_id, tenant_id=str(user.tenant_id), limit=limit
+    )

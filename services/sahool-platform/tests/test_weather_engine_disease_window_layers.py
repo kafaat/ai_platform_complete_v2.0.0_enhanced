@@ -210,32 +210,8 @@ def test_stripe_rust_missing_fields_returns_none():
     assert weather._safe_layer_value("disease_stripe_rust", {"temperature_2m_c": 10.0}) is None
 
 
-@pytest.mark.asyncio
-async def test_weather_tile_data_supports_disease_late_blight(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat: float, lon: float, time_key: str = "now", model: str = "best_match"):
-        return {
-            "temperature_2m_c": 18.0,
-            "relative_humidity_2m_pct": 95.0,
-            "precipitation_mm": 1.0,
-        }
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    result = await weather.weather_tile_data(
-        5,
-        16,
-        14,
-        layer="disease_late_blight",
-        time="now",
-        model="best_match",
-        interpolation="center",
-    )
-
-    assert result["layer"] == "disease_late_blight"
-    assert result["unit"] == "0..1"
-    assert result["value"] is not None
-    assert result["value"] > 0.6
+# NOTE (P3.4): the tile-data endpoint's derived-layer rendering (disease windows via
+# GET /tile-data) moved to weather-service; the platform route is now a thin facade to
+# weather-service (which owns tile math + provider calls). The disease derivation formulas
+# above stay here as pure platform unit contracts (_safe_layer_value). The endpoint no
+# longer derives layers in-platform, so the former endpoint-integration test was removed.

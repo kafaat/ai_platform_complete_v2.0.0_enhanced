@@ -16,12 +16,12 @@
     "raster_assets"
   ],
   "allowed_platform_files": {
-    "api/imagery_automation.py": "service_client: triggers raster-service scene search/process-from-stac after field geometry changes",
+    "api/imagery_automation.py": "facade_orchestrator: triggers raster-service scene search/process-from-stac through api.raster_service_client only",
     "api/routers/automation.py": "facade_proxy: imagery automation endpoints registered as raster-service target owner",
     "api/routers/compat_gateway.py": "legacy_compat: temporary passthrough for misrouted /api/raster and /api/vegetation paths",
     "api/routers/confidence.py": "aggregation_consumer: NDVI confidence endpoint classified as raster-service extraction target",
     "api/routers/etc_dual.py": "aggregation_consumer: consumes fresh NDVI grid from raster-service for ETc calculation",
-    "api/routers/field_ai_context.py": "aggregation_consumer: reads raster facts for AI context packs",
+    "api/routers/field_ai_context.py": "aggregation_consumer_cleaned: reads imagery dates and optional NDVI grid through api.raster_service_client only",
     "api/routers/field_intelligence.py": "aggregation_consumer: field card reads raster facts and provider/terrain status",
     "api/routers/fields.py": "facade_proxy: tenant-verified imagery refresh/dates/timeline/backfill proxies",
     "api/routers/gis_cloud_native.py": "legacy_compat: cloud-native GIS/STAC endpoints marked for raster-service extraction",
@@ -30,7 +30,8 @@
     "api/spatial_sync.py": "field_geometry_signal: emits/stores raster cache stale markers when geometry changes",
     "api/cost_governance.py": "cost_accounting: declares raster-service cost profile, not raster computation",
     "api/event_bus.py": "event_contracts: contains raster event comments/contracts, not computation",
-    "api/routers/regional_bulletin.py": "aggregation_consumer: reads zonal_stats for regional bulletin until summary endpoint exists"
+    "api/routers/regional_bulletin.py": "aggregation_consumer: reads zonal_stats for regional bulletin until summary endpoint exists",
+    "api/raster_service_client.py": "facade_client: the single platform HTTP client for raster-service boundary calls"
   },
   "allowed_raster_tables_read_by_platform": [
     "raster_assets",
@@ -45,5 +46,14 @@
     "from services.raster_service",
     "import raster_service",
     "services/raster-service"
-  ]
+  ],
+  "direct_service_wiring_allowed_files": {
+    "api/raster_service_client.py": "single allowed platform file that may read RASTER_SERVICE_URL, default sahool-raster-service URL, construct X-Agent-Token/X-Tenant-Id transport headers, and open raster HTTP transport"
+  },
+  "browser_api_raster_alias_allowed_files": {
+    "api/routers/compat_gateway.py": "legacy GET passthrough endpoint /api/raster/{path:path}; delegates transport to api.raster_service_client.raster_get_raw",
+    "api/routers/fields.py": "BFF imagery timeline may return browser thumbnail URLs under /api/raster/... so nginx/compat gateway can serve lazy thumbnails; does not open raster transport directly",
+    "api/raster_service_client.py": "documents and implements raw raster compatibility transport behind the facade"
+  },
+  "final_sweep_status": "P2.5: all direct raster-service URL/token/transport wiring is allowed only in api/raster_service_client.py; browser /api/raster aliases are restricted to compatibility gateway and thumbnail URL generation."
 }

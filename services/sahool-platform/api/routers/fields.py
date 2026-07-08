@@ -108,6 +108,16 @@ from api.pivot_geometry import (
     resolve_pivot_update_geometry,
 )
 from api.prescriptions import ZoneCharacteristics, ZoneClass, prescription_to_dict
+from api.raster_service_client import (
+    get_available_dates,
+    get_imagery_backfill_status,
+    start_imagery_backfill,
+)
+from api.raster_service_client import (
+    # aliased: the route handler below is also named get_field_terrain; keep the
+    # facade call distinct so DEM auto-fill hits raster-service, not the route.
+    get_field_terrain as raster_get_field_terrain,
+)
 from api.scouting_pins import make_pin
 
 # نماذج/مساعدات المواسم نُقِلت إلى api.season_models (تفكيك B1) وتُستورَد من هناك.
@@ -771,26 +781,12 @@ async def field_imagery_available_dates(
             # even if the platform fields table is temporarily out of sync. Raster-service still
             # enforces tenant ownership using X-Tenant-Id, so we do not fabricate dates here.
             _platform_field_missing = row is None
-        import os as _os
-
-        import httpx as _httpx
-
-        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
-            "/"
+        return await get_available_dates(
+            field_id,
+            tenant_id=str(user.tenant_id),
+            index=index,
+            limit=limit,
         )
-        headers = {
-            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
-            "X-Tenant-Id": str(user.tenant_id),
-        }
-        params = {"limit": limit, **({"index": index} if index else {})}
-        async with _httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(
-                f"{raster_url}/v1/fields/{field_id}/available-dates",
-                params=params,
-                headers=headers,
-            )
-            resp.raise_for_status()
-            return resp.json()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
@@ -820,24 +816,14 @@ async def field_imagery_timeline(
             )
             _platform_field_missing = row is None
         import datetime as _dt
-        import os as _os
 
-        import httpx as _httpx
-
-        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
-            "/"
-        )
         tenant = str(user.tenant_id)
-        headers = {"X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""), "X-Tenant-Id": tenant}
         # limit مُشتقّ من الأشهر (بسخاء) — الخادم يحدّ النطاق الفعليّ بالقصّ الزمنيّ أدناه.
-        async with _httpx.AsyncClient(timeout=15.0) as client:
-            resp = await client.get(
-                f"{raster_url}/v1/fields/{field_id}/available-dates",
-                params={"limit": min(500, max(30, months * 6))},
-                headers=headers,
-            )
-            resp.raise_for_status()
-            payload = resp.json()
+        payload = await get_available_dates(
+            field_id,
+            tenant_id=tenant,
+            limit=min(500, max(30, months * 6)),
+        )
 
         raw = payload.get("dates") if isinstance(payload, dict) else None
         raw = raw if isinstance(raw, list) else []
@@ -947,36 +933,11 @@ async def field_imagery_backfill_proxy(
                 if geometry_revision is not None:
                     payload["geometry_revision"] = int(geometry_revision)
 
-            import os as _os
-
-            import httpx as _httpx
-
-            raster_url = _os.getenv(
-                "RASTER_SERVICE_URL", "http://sahool-raster-service:8001"
-            ).rstrip("/")
-            headers = {
-                "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
-                "X-Tenant-Id": str(user.tenant_id),
-            }
-            try:
-                async with _httpx.AsyncClient(timeout=60.0) as client:
-                    resp = await client.post(
-                        f"{raster_url}/v1/fields/{field_id}/imagery/backfill",
-                        json=payload,
-                        headers=headers,
-                    )
-            except _httpx.HTTPError as exc:
-                raise HTTPException(
-                    status_code=502, detail=f"raster-service غير متاح: {exc}"
-                ) from exc
-            if resp.status_code >= 400:
-                try:
-                    detail = resp.json()
-                except Exception:  # noqa: BLE001
-                    detail = resp.text
-                raise HTTPException(status_code=resp.status_code, detail=detail)
-
-            result = resp.json()
+            result = await start_imagery_backfill(
+                field_id,
+                tenant_id=str(user.tenant_id),
+                payload=payload,
+            )
             await _emit_domain_event(
                 conn,
                 user,
@@ -1021,32 +982,11 @@ async def field_imagery_backfill_status_proxy(
             if not exists:
                 raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
 
-        import os as _os
-
-        import httpx as _httpx
-
-        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
-            "/"
+        return await get_imagery_backfill_status(
+            field_id,
+            run_id,
+            tenant_id=str(user.tenant_id),
         )
-        headers = {
-            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
-            "X-Tenant-Id": str(user.tenant_id),
-        }
-        try:
-            async with _httpx.AsyncClient(timeout=30.0) as client:
-                resp = await client.get(
-                    f"{raster_url}/v1/fields/{field_id}/imagery/backfill/{run_id}",
-                    headers=headers,
-                )
-        except _httpx.HTTPError as exc:
-            raise HTTPException(status_code=502, detail=f"raster-service غير متاح: {exc}") from exc
-        if resp.status_code >= 400:
-            try:
-                detail = resp.json()
-            except Exception:  # noqa: BLE001
-                detail = resp.text
-            raise HTTPException(status_code=resp.status_code, detail=detail)
-        return resp.json()
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
@@ -1159,26 +1099,12 @@ async def _compute_field_terrain_from_dem(
 
             geometry = _json.loads(geometry)
         guarded = guard_field_geometry(geometry)
-        import os as _os
-
-        import httpx as _httpx
-
-        raster_url = _os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
-            "/"
+        return await raster_get_field_terrain(
+            field_id,
+            tenant_id=str(user.tenant_id),
+            bbox=guarded.bbox,
+            timeout_s=20.0,
         )
-        headers = {
-            "X-Agent-Token": _os.getenv("SAHOOL_AGENT_TOKEN", ""),
-            "X-Tenant-Id": str(user.tenant_id),
-        }
-        params = {}
-        if guarded.bbox and len(guarded.bbox) == 4:
-            params["bbox"] = ",".join(str(v) for v in guarded.bbox)
-        async with _httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.get(
-                f"{raster_url}/v1/fields/{field_id}/terrain", params=params, headers=headers
-            )
-            resp.raise_for_status()
-            return resp.json()
     except Exception:  # noqa: BLE001 — best-effort؛ التعذّر ⇒ لا تعبئة، لا كسر
         return None
 

@@ -182,8 +182,8 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v69_decision_policies.sql"
   decision_record:
-    owner: agriai-engine
-    writers: [agriai-engine]
+    owner: decision-service
+    writers: [decision-service]
     readers: [sahool-platform]
     source: "migrations/v78_decision_record.sql"
   device_commands_log:
@@ -202,8 +202,8 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v116_enterprise_gis_phase7.sql"
   dispatch_decisions:
-    owner: agriai-engine
-    writers: [agriai-engine]
+    owner: decision-service
+    writers: [decision-service]
     readers: [sahool-platform]
     source: "migrations/v66_dispatch_decisions.sql"
   distributed_raster_jobs:
@@ -742,8 +742,8 @@ tables:
     readers: []
     source: "migrations/v106_phase9_10_runtime_strengthening.sql"
   online_learning_updates:
-    owner: agriai-engine
-    writers: [agriai-engine]
+    owner: decision-service
+    writers: [decision-service]
     readers: [sahool-platform]
     source: "migrations/v119_phase10_continuous_learning.sql"
   outbox_delivery_attempts:
@@ -752,8 +752,8 @@ tables:
     readers: []
     source: "migrations/v140_outbox_delivery_attempts.sql"
   outcome_record:
-    owner: agriai-engine
-    writers: [agriai-engine]
+    owner: decision-service
+    writers: [decision-service]
     readers: [sahool-platform]
     source: "migrations/v79_outcome_record.sql"
   plugin_permission_audit:
@@ -807,8 +807,8 @@ tables:
     readers: [sahool-platform]
     source: "services/sahool-platform/storage/lite_store.py"
   recommendation_feedback:
-    owner: agriai-engine
-    writers: [agriai-engine]
+    owner: decision-service
+    writers: [decision-service]
     readers: [sahool-platform]
     source: "alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql"
   recommendation_lifecycle_events:
@@ -817,8 +817,8 @@ tables:
     readers: [sahool-platform]
     source: "alembic/versions/v101_field_runtime_cohesion.sql"
   recommendation_outcomes:
-    owner: agriai-engine
-    writers: [agriai-engine]
+    owner: decision-service
+    writers: [decision-service]
     readers: [sahool-platform]
     source: "migrations/v49_zone_key_recommendation_outcomes.sql"
   recommendation_reviews:

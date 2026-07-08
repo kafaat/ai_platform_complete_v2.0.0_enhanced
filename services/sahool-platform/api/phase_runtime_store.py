@@ -448,40 +448,36 @@ async def persist_phase10_learning_outputs(
             )
         update = outputs.get("online_learning_update") or {}
         if update:
-            # جسر #2: نَسَب المصدر — كلّ تحديث تعلّم يُخزَّن بمصدره وحالة قابليّة تتبّعه.
-            # صدق: تحديث بلا مصدر ⇒ traceability_status='rejected_untraceable' (لا يُطبَّق سياسةً).
+            # جسر #2: نَسَب المصدر — كلّ تحديث تعلّم يُحَلّ مصدره وحالة قابليّة تتبّعه قبل
+            # مغادرته المنصّة. صدق: تحديث بلا مصدر ⇒ traceability_status='rejected_untraceable'.
+            # P4.7 direct-DB final sweep: ملكيّة online_learning_updates لدى decision-service؛
+            # نُحلّ النَّسَب هنا ثمّ نُفوّض الكتابة عبر واجهة decision-service (لا INSERT مباشر).
             from core.learning_source_lineage import resolve_learning_source
 
+            from api.decision_service_client import (
+                record_learning_update as _record_learning_update_via_service,
+            )
+
             _lin = resolve_learning_source(update)
-            await conn.execute(
-                """
-                INSERT INTO online_learning_updates
-                    (tenant_id, update_id, model_id, feature_set_id, learning_rate, sample_count,
-                     label_summary, drift_score, action, source_type, source_id, field_id, season_id,
-                     recommendation_id, decision_id, evidence_snapshot_id, traceability_status)
-                VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
-                ON CONFLICT (tenant_id, update_id) DO UPDATE SET
-                    action = EXCLUDED.action, drift_score = EXCLUDED.drift_score,
-                    source_type = EXCLUDED.source_type, source_id = EXCLUDED.source_id,
-                    traceability_status = EXCLUDED.traceability_status
-                """,
-                tenant,
-                str(update.get("update_id")),
-                str(update.get("model_id")),
-                str(update.get("feature_set_id")),
-                float(update.get("learning_rate", 0.01)),
-                int(update.get("sample_count", 0)),
-                _json(update.get("label_summary", {})),
-                float(update.get("drift_score", 0)),
-                str(update.get("action")),
-                _lin["source_type"],
-                _lin["source_id"],
-                _lin["field_id"],
-                _lin["season_id"],
-                _lin["recommendation_id"],
-                _lin["decision_id"],
-                _lin["evidence_snapshot_id"],
-                _lin["traceability_status"],
+            await _record_learning_update_via_service(
+                {
+                    "update_id": str(update.get("update_id")),
+                    "model_id": str(update.get("model_id")),
+                    "feature_set_id": str(update.get("feature_set_id")),
+                    "learning_rate": float(update.get("learning_rate", 0.01)),
+                    "sample_count": int(update.get("sample_count", 0)),
+                    "label_summary": update.get("label_summary", {}),
+                    "drift_score": float(update.get("drift_score", 0)),
+                    "action": str(update.get("action")),
+                    "source_type": _lin["source_type"],
+                    "source_id": _lin["source_id"],
+                    "field_id": _lin["field_id"],
+                    "season_id": _lin["season_id"],
+                    "recommendation_id": _lin["recommendation_id"],
+                    "decision_id": _lin["decision_id"],
+                    "evidence_snapshot_id": _lin["evidence_snapshot_id"],
+                },
+                tenant_id=str(tenant),
             )
         scenario = outputs.get("scenario_result") or {}
         if scenario:

@@ -1787,7 +1787,7 @@
       "method": "POST",
       "path": "/api/v1/decision/dispatch/execute",
       "line": 238,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::POST /api/v1/decision/dispatch/execute::execute_dispatch_endpoint"
     },
@@ -1917,7 +1917,7 @@
       "method": "POST",
       "path": "/api/v1/decision/record",
       "line": 290,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/decision/record::record_decision"
     },
@@ -1927,7 +1927,7 @@
       "method": "POST",
       "path": "/api/v1/outcome/record",
       "line": 374,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/outcome/record::record_outcome"
     },
@@ -1937,7 +1937,7 @@
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/lineage",
       "line": 461,
-      "target_owner": "knowledge-graph",
+      "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/{decision_id}/lineage::get_decision_lineage"
     },
@@ -1947,7 +1947,7 @@
       "method": "GET",
       "path": "/api/v1/decision/records",
       "line": 501,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/records::list_decision_records"
     },
@@ -1957,7 +1957,7 @@
       "method": "GET",
       "path": "/api/v1/field/{field_id}/lineage",
       "line": 552,
-      "target_owner": "knowledge-graph",
+      "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/field/{field_id}/lineage::get_field_lineage"
     },
@@ -3927,7 +3927,7 @@
       "method": "GET",
       "path": "/api/v1/learning/summary",
       "line": 53,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning_summary.py::GET /api/v1/learning/summary::get_learning_summary"
     },
@@ -4517,7 +4517,7 @@
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
       "line": 323,
-      "target_owner": "agriai-engine",
+      "target_owner": "decision-service",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/outcomes::record_recommendation_outcome"
     },
@@ -5671,5 +5671,11 @@
       "owner_type": "decision-compute",
       "route_key": "api/routers/yield_interval.py::POST /api/v1/fields/{field_id}/yield-interval::field_yield_interval_endpoint"
     }
-  ]
+  ],
+  "p2_6_route_budget_reduction": {
+    "previous_baseline_route_count": 567,
+    "measured_route_count_after_p4_5": 564,
+    "new_max_platform_routes": 567,
+    "policy": "No route growth above the verified AST route budget after P3/P4 extraction without ownership-map review; extraction progress is enforced by service boundary guards, not artificial route deletion."
+  }
 }

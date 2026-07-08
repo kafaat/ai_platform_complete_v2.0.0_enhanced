@@ -34,48 +34,67 @@ def test_weather_manifest_advertises_observability_endpoints():
     assert "/api/v1/weather/observability" in manifest["observability_endpoints"]
 
 
+# P3.4 note: the per-tile / per-operation-plan RUNTIME counters (cache items, refreshed/fresh
+# cache states, layer/operation breakdown) moved to weather-service along with the tile
+# runtime. The platform observability SUBSYSTEM still counts the BFF endpoints that remain
+# in-platform. `weather_action_recommendation` is exactly such an endpoint: it fetches its
+# data via the operation-plan facade (converted → weather-service) and records a platform
+# observation. We mock the facade so no live weather-service is needed, and assert the
+# platform observability subsystem still counts the request.
+
+
+def _canned_operation_plan(lat: float = 15.0, lon: float = 44.0) -> dict:
+    """A weather-service-shaped operation-plan payload (what the facade would return)."""
+    top = {
+        "operation": "irrigation",
+        "best": {
+            "hour_offset": 3,
+            "time": "+3h",
+            "weather_time": "2026-07-08T15:00",
+            "operation": {
+                "operation": "irrigation",
+                "score": 0.82,
+                "suitability": "optimal",
+                "limiting_factors": ["soil_moisture_low"],
+            },
+        },
+        "frames": [],
+        "recommended": True,
+        "priority": 0.82,
+        "advice_ar": "أولوية ريّ مرتفعة.",
+    }
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "model": "best_match",
+        "operations": [top],
+        "recommended_now": [top],
+        "top_recommendation": top,
+        "source": "open-meteo+sahool-operation-plan",
+        "partial": False,
+        "upstream_errors": [],
+    }
+
+
 @pytest.mark.asyncio
-async def test_observability_counts_tile_requests(monkeypatch):
-    from api.connectors import openmeteo
+async def test_observability_counts_action_recommendation(monkeypatch):
     from api.routers import weather
 
-    weather._WEATHER_TILE_CACHE.clear()
     for counter in weather._WEATHER_TILE_METRICS.values():
         counter.clear()
 
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        return _sample(temperature_2m_c=34.0)
+    async def fake_plan(lat, lon, *, operations, hours, model="best_match"):
+        return _canned_operation_plan(lat, lon)
 
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    await weather.weather_tile_data(5, 16, 14, layer="temperature", time="now", model="best_match")
-    await weather.weather_tile_data(5, 16, 14, layer="temperature", time="now", model="best_match")
-
-    obs = weather.weather_observability()
-    assert obs["cache"]["items"] == 1
-    assert obs["metrics"]["requests"]["tile-data"] == 2
-    assert obs["metrics"]["layers"]["temperature"] == 2
-    assert obs["metrics"]["cache_states"]["refreshed"] == 1
-    assert obs["metrics"]["cache_states"]["fresh"] == 1
-
-
-@pytest.mark.asyncio
-async def test_observability_counts_operation_plan(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-    for counter in weather._WEATHER_TILE_METRICS.values():
-        counter.clear()
-
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        return _sample(vapour_pressure_deficit_kpa=2.7, soil_moisture_1_to_3cm_m3m3=0.16)
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    await weather.weather_operation_plan(
-        15.0, 44.0, operations="irrigation,spraying", hours="0,3", model="best_match"
+    monkeypatch.setattr(weather, "get_operation_plan", fake_plan)
+    await weather.weather_action_recommendation(
+        lat=15.0,
+        lon=44.0,
+        field_id="field-1",
+        operations="irrigation,spraying",
+        hours="0,3",
+        model="best_match",
     )
 
     obs = weather.weather_observability()
-    assert obs["metrics"]["requests"]["operation-plan"] == 2
-    assert obs["metrics"]["operations"]["irrigation"] == 1
-    assert obs["metrics"]["operations"]["spraying"] == 1
+    assert obs["metrics"]["requests"]["weather-action-recommendation"] == 1
+    assert obs["metrics"]["cache_states"]["served"] == 1

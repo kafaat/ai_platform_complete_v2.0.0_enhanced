@@ -14,10 +14,15 @@ from __future__ import annotations
 import os
 from datetime import UTC, datetime
 
+from api.raster_service_client import (
+    get_field_terrain_sync,
+    get_indices_sync,
+    get_provider_status_sync,
+)
+
 # عناوين الخدمات الداخليّة (قابلة للضبط من البيئة — افتراضات compose)
 WEATHER_URL = os.getenv("WEATHER_SERVICE_URL", "http://sahool-weather-service:8000")
 SOIL_URL = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000")
-RASTER_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
 PLATFORM_URL = os.getenv("PLATFORM_SERVICE_URL", "http://sahool-platform:8000")
 # بوّابة القرار المركزيّة (guardrails-engine /validate) — نفس افتراض supervisor-agent
 # (main.py:72). كلّ قرار قابل للتنفيذ يجب أن يمرّ بها فعليّاً قبل أن يصير executable.
@@ -84,12 +89,13 @@ def _get_json(
 
 
 def fetch_provider_status(*, agent_token: str | None = None) -> dict | None:
-    """يجلب حالة مزوّدي الصور من raster-service (/v1/providers/status) — آمن الفشل.
+    """يجلب حالة مزوّدي الصور عبر raster facade — آمن الفشل.
 
+    P2.3: لا يفتح هذا المحوّل عنوان raster-service أو توكنه مباشرة.
     raster متعذّر/بلا httpx ⇒ ``None`` (⇒ ``provider_status`` في البطاقة يبقى missing
     بسبب صريح، لا اختلاق). بيانات وصفيّة غير حسّاسة.
     """
-    return _get_json(f"{RASTER_URL}/v1/providers/status", agent_token=agent_token)
+    return get_provider_status_sync(timeout_s=HTTP_TIMEOUT)
 
 
 def fetch_soil_baseline(req, *, agent_token: str | None = None) -> dict | None:
@@ -109,17 +115,13 @@ def fetch_soil_baseline(req, *, agent_token: str | None = None) -> dict | None:
 
 
 def fetch_terrain_summary(req, *, tenant_id: str | None = None) -> dict | None:
-    """يجلب مُلخّص تضاريس الحقل من raster-service ``/v1/fields/{id}/terrain`` — آمن الفشل.
+    """يجلب مُلخّص تضاريس الحقل عبر raster facade — آمن الفشل.
 
     النقطة tenant-scoped عبر ``X-Tenant-Id`` (المستأجِر الموثوق من المنصّة، نمط SEC-3)؛
     raster يشتقّ مضلّع الحقل ذاتيّاً ويقصّ داخله. أيّ تعذّر (raster/DEM/هندسة) ⇒ ``None``
     (⇒ قسم ``terrain`` في البطاقة يبقى missing بصدق، لا اختلاق). لا يُمرَّر tenant من الجسم.
     """
-    return _get_json(
-        f"{RASTER_URL}/v1/fields/{req.field_id}/terrain",
-        agent_token=AGENT_TOKEN or None,
-        tenant_id=tenant_id,
-    )
+    return get_field_terrain_sync(req.field_id, tenant_id=tenant_id, timeout_s=HTTP_TIMEOUT)
 
 
 def _post_json(
@@ -243,11 +245,7 @@ def sensing_adapter(req) -> dict | None:
     """يجلب مؤشّرات الاستشعار → {ndvi, ndre, ...}. None عند التعذّر."""
     if req.lat is None or req.lon is None:
         return None
-    data = _get_json(
-        f"{RASTER_URL}/indices",
-        {"field_id": req.field_id, "lat": req.lat, "lon": req.lon},
-        agent_token=AGENT_TOKEN,  # /indices محميّ بـ_require_service_token
-    )
+    data = get_indices_sync(req.field_id, lat=req.lat, lon=req.lon, timeout_s=HTTP_TIMEOUT)
     if not data:
         return None
     # تمرير المؤشّرات المتاحة فقط (الغائب يُعلَن في المايسترو)

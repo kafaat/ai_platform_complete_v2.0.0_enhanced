@@ -154,17 +154,20 @@ def test_weather_owned_tables_have_single_weather_writer():
     )
 
 
-def test_weather_service_remains_honest_contract_stub_until_runtime_moves():
+def test_weather_service_runtime_contract_is_now_realized():
     text = WEATHER_SERVICE_MAIN.read_text(encoding="utf-8", errors="ignore")
     required = [
-        '"mode": "stub"',
-        "not_implemented_here",
-        '@app.get("/v1/weather/{path:path}")',
-        '@app.get("/weather/{path:path}")',
+        '"mode": "runtime"',
+        '"implemented_runtime": True',
+        '@app.get("/v1/weather/current")',
+        '@app.get("/v1/weather/forecast")',
+        '@app.get("/v1/weather/historical")',
+        '@app.get("/v1/weather/operation-window")',
+        '@app.get("/v1/weather/tile-data/{z}/{x}/{y}")',
+        '@app.get("/v1/weather/wind-grid/{z}/{x}/{y}")',
         '@app.get("/contract")',
     ]
     missing = [marker for marker in required if marker not in text]
     assert not missing, (
-        "weather-service must expose an honest P1 contract/stub before runtime extraction: "
-        + repr(missing)
+        "weather-service must expose the P3 runtime contract after realization: " + repr(missing)
     )

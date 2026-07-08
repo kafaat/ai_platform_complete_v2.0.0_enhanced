@@ -1,0 +1,27 @@
+{
+  "purpose": "P3.5 final sweep — enumerate every sahool-platform file that still performs direct Open-Meteo wiring (imports api.connectors.openmeteo or calls fetch_current/fetch_daily_forecast/fetch_historical/fetch_weather_tile_data) and pin each to an honest reason. The guard test scans api/**/*.py and fails on any offender that is neither a legitimate home nor a documented residual.",
+  "direct_wiring_markers": [
+    "connectors.openmeteo",
+    "fetch_weather_tile_data",
+    "fetch_current",
+    "fetch_daily_forecast",
+    "fetch_historical"
+  ],
+  "legitimate_homes": {
+    "api/connectors/openmeteo.py": "The Open-Meteo provider adapter itself. The single sanctioned place that speaks to the Open-Meteo HTTP provider (with the circuit breaker). All other platform weather reads should flow through weather-service (via api/weather_service_client.py) or this adapter, not re-open provider transport.",
+    "api/weather_service_client.py": "The P3.4 weather-service boundary transport (weather-service system-of-record). Thin HTTP client the platform uses to reach weather-service; it does NOT import Open-Meteo connectors (so it does not match the markers above) but is listed here as the sanctioned weather transport home."
+  },
+  "composite_residuals_pending_p4": {
+    "api/routers/weather.py": "The 9 core weather routes (current/forecast/historical/tile-data/operation-tile-data/operation-window/operation-plan/tile-series/tile-cache-stats) are P3.4 facades to weather-service. Residual LOCAL endpoints (probe, field-weather-summary, alerts) still derive from the provider adapter and are pending P4 facade conversion.",
+    "api/main.py": "App-root legacy combined dashboard endpoint still composes current + daily forecast inline; cross-domain composite pending P4 consolidation behind the weather facade.",
+    "api/field_context.py": "Cross-domain field-context aggregator: pulls historical weather to enrich phenology/season context alongside soil/raster facts. Not a weather runtime; composite read pending P4.",
+    "api/routers/fields.py": "Fields BFF exposes per-field weather summary/forecast by composing current + daily forecast; cross-domain field aggregator pending P4.",
+    "api/routers/etc_dual.py": "ETc dual-crop coefficient endpoint composes current + forecast weather with crop coefficients; cross-domain agronomic aggregator pending P4.",
+    "api/routers/field_ai_context.py": "Field AI-context builder reads historical weather to ground agronomy/LLM context; cross-domain composite pending P4.",
+    "api/routers/season_workspace.py": "Season workspace composes forecast/current weather into the seasonal planning view; cross-domain aggregator pending P4.",
+    "api/routers/seasons.py": "Seasons endpoint pulls historical weather for season retrospectives; cross-domain aggregator pending P4.",
+    "api/weather_automation.py": "Weather-driven automation/alerts worker polls current weather per configured location; cross-domain automation composite pending P4."
+  },
+  "neutral_tile_guarantee": "api/weather_service_client.py get_weather_tile_data/get_operation_tile_data catch a 502 (weather-service unreachable) and return a neutral tile (value=null, available=false, cache_state=service_unavailable) instead of propagating one Bad Gateway per tile. This preserves the pre-extraction 'don't flood the map with 502 per tile' guarantee across the platform->weather-service network hop.",
+  "final_sweep_status": "P3.5 complete: direct Open-Meteo wiring is pinned to api/connectors/openmeteo.py (provider adapter) + api/weather_service_client.py (weather-service transport); all other referencing files are documented composite_residuals_pending_p4. New offenders are blocked by tests/test_p3_5_weather_direct_wiring_final_sweep.py."
+}

@@ -17,6 +17,8 @@ import os
 import httpx
 from fastapi import APIRouter, Header, HTTPException, Request, Response
 
+from api.raster_service_client import raster_get_raw
+
 router = APIRouter()
 
 
@@ -105,9 +107,7 @@ async def vegetation_analyze_passthrough(
 # 404 في سجلات المنصّة عند طلب TileJSON/tiles. هذا fallback ضيق وآمن لمسارات GET
 # فقط حتى لا تنكسر خرائط الحقول عند اختلاف ترتيب locations. التوجيه الصحيح يبقى
 # nginx /api/raster/ → raster-service مباشرة.
-RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
-    "/"
-)
+# P2.4: even this legacy path uses api.raster_service_client for raster transport.
 
 
 @router.get("/api/raster/{path:path}")
@@ -125,27 +125,17 @@ async def raster_api_passthrough(
     can still return 404/403 when the request lands on sahool-platform instead
     of nginx's raster upstream.
     """
-    query = str(request.url.query or "")
-    target = f"{RASTER_SERVICE_URL}/{path.lstrip('/')}" + (f"?{query}" if query else "")
-    headers: dict[str, str] = {}
     tenant_from_query = request.query_params.get("tid") or request.query_params.get("tenant_id")
-    effective_tenant = x_tenant_id or tenant_from_query
-    if effective_tenant:
-        headers["X-Tenant-Id"] = effective_tenant
-    if authorization:
-        headers["Authorization"] = authorization
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            r = await client.get(target, headers=headers)
-    except httpx.HTTPError as e:
-        raise HTTPException(502, f"raster-service غير متاح: {e}") from e
+    content, status_code, media_type, forwarded_headers = await raster_get_raw(
+        path,
+        tenant_id=x_tenant_id or tenant_from_query,
+        authorization=authorization,
+        params=dict(request.query_params),
+        timeout_s=30.0,
+    )
     return Response(
-        content=r.content,
-        status_code=r.status_code,
-        media_type=r.headers.get("content-type"),
-        headers={
-            k: v
-            for k, v in r.headers.items()
-            if k.lower() in {"cache-control", "etag", "last-modified"}
-        },
+        content=content,
+        status_code=status_code,
+        media_type=media_type,
+        headers=forwarded_headers,
     )

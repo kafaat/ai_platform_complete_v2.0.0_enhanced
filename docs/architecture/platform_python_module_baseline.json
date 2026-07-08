@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 578,
+  "baseline_python_module_count": 581,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -53,6 +53,7 @@
     "api/decision_explain.py",
     "api/decision_explainer.py",
     "api/decision_lineage.py",
+    "api/decision_service_client.py",
     "api/device_models.py",
     "api/device_registry.py",
     "api/disease_diagnosis.py",
@@ -147,6 +148,7 @@
     "api/prescription_shapefile.py",
     "api/prescriptions.py",
     "api/propagation_advisor.py",
+    "api/raster_service_client.py",
     "api/recommendations_hub.py",
     "api/report_builder.py",
     "api/reports.py",
@@ -347,6 +349,7 @@
     "api/weather_alerts.py",
     "api/weather_analytics.py",
     "api/weather_automation.py",
+    "api/weather_service_client.py",
     "api/wofost_crop_params.py",
     "api/workflow_definitions.py",
     "api/yemeni_calendars.py",
@@ -579,5 +582,7 @@
     "storage/lite_store.py",
     "tools_check_doc_consistency.py",
     "validate_observations.py"
-  ]
+  ],
+  "p3_4_note": "Deliberate one-file BFF facade for weather-service transport; prevents provider/runtime logic from spreading in sahool-platform.",
+  "p4_note": "Deliberate one-file BFF facade for decision-service transport; loop persistence moves to decision-service ownership."
 }

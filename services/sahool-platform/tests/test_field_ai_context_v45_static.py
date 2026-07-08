@@ -20,7 +20,10 @@ def test_two_year_context_sources_are_explicit():
     src = ROUTER.read_text(encoding="utf-8")
     assert "days: int = Query(730" in src
     assert "fetch_historical" in src
-    assert "available-dates" in src
+    # P2.2 raster facade cleanup: the available-dates read moved from an open-coded
+    # endpoint literal into the raster_service_client facade. The source stays explicit
+    # (the router still fetches available dates), it just goes through the boundary client.
+    assert "get_available_dates" in src
     assert "truecolor" in src
     assert "ndvi" in src
     assert "ndmi" in src
