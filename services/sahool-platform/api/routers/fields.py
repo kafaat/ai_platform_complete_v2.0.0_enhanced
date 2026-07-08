@@ -2126,9 +2126,7 @@ async def create_season(
     # من نافذة الزراعة/الحصاد المعتادة للمحصول الأوّل. لا يمنع الإنشاء (توجّه لا فرض).
     from api.season_calendar_guard import evaluate_season_calendar
 
-    calendar_check = evaluate_season_calendar(
-        req.crops[0] if req.crops else None, sow, end
-    )
+    calendar_check = evaluate_season_calendar(req.crops[0] if req.crops else None, sow, end)
     season_id = "ssn_" + _uuid.uuid4().hex[:12]
     # تنظيف + تحقّق سلامة المراحل المخصّصة (season_integrity): يُسقِط الفارغة (سلوك قديم)
     # ويرفض المضلِّلة (تاريخ غير صالح / خارج نافذة الموسم / ترتيب متراجع / اسم مكرّر) بـ422.
