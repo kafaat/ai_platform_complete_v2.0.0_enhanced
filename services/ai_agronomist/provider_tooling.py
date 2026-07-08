@@ -43,7 +43,7 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
 _BASE_PROPERTIES: dict[str, dict[str, Any]] = {
     "field_id": {
         "type": "string",
-        "description": "Field identifier. Use the active field when omitted.",
+        "description": "SAHOOL field identifier (prefer the active field). Required.",
     },
     "date": {"type": "string", "description": "Optional ISO date for imagery or map layer."},
     "index": {
@@ -64,15 +64,20 @@ _BASE_PROPERTIES: dict[str, dict[str, Any]] = {
     },
 }
 
+# قوائم ``required`` مطابقة لعقد السجلّ الحيّ ``shared/ai/tool_registry`` (مصدر الحقيقة):
+# الحقل الإلزاميّ من كلّ أداة (بلا ``?`` في السجلّ) يُعلَن هنا كي يُوجَّه النموذج من البداية
+# لإرسال tool calls كاملة (M1) — لا اعتماد على رفض الـharness وحده. (حارس التطابق يفرضه.)
 _TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
     "get_field_state": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"]},
+        "required": ["field_id"],
         "additionalProperties": False,
     },
     "get_truecolor_scene": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"], "date": _BASE_PROPERTIES["date"]},
+        "required": ["field_id"],
         "additionalProperties": False,
     },
     "get_index_timeline": {
@@ -82,16 +87,19 @@ _TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
             "index": _BASE_PROPERTIES["index"],
             "days": _BASE_PROPERTIES["days"],
         },
+        "required": ["field_id", "index", "days"],
         "additionalProperties": False,
     },
     "get_weather_history": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"], "days": _BASE_PROPERTIES["days"]},
+        "required": ["field_id", "days"],
         "additionalProperties": False,
     },
     "get_water_productivity": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"], "days": _BASE_PROPERTIES["days"]},
+        "required": ["field_id"],
         "additionalProperties": False,
     },
     "generate_report": {
@@ -100,21 +108,25 @@ _TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
             "field_id": _BASE_PROPERTIES["field_id"],
             "period": _BASE_PROPERTIES["period"],
         },
+        "required": ["field_id"],
         "additionalProperties": False,
     },
     "get_operation_windows": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"]},
+        "required": ["field_id"],
         "additionalProperties": False,
     },
     "get_alerts": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"]},
+        "required": ["field_id"],
         "additionalProperties": False,
     },
     "get_drawings_and_zones": {
         "type": "object",
         "properties": {"field_id": _BASE_PROPERTIES["field_id"]},
+        "required": ["field_id"],
         "additionalProperties": False,
     },
     "open_map_layer": {
@@ -124,6 +136,7 @@ _TOOL_PARAMETERS: dict[str, dict[str, Any]] = {
             "layer": _BASE_PROPERTIES["layer"],
             "date": _BASE_PROPERTIES["date"],
         },
+        "required": ["field_id", "layer"],
         "additionalProperties": False,
     },
 }
