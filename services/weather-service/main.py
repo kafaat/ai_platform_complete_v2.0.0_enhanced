@@ -234,9 +234,16 @@ async def tile_data(
     time, model = validate_time_model(time, model)
     lat, lon = tile_center(z, x, y)
     interpolation_payload = None
-    sample, cache_state, cache_age_s, upstream_error = await _cached_sample(
-        lat, lon, time, model, f"tile:{z}:{x}:{y}"
-    )
+    # Neutral-tile guarantee: a total upstream failure with no cache must NOT 500/flood
+    # the map with errors per tile. Return a neutral tile (value=null, 200) instead —
+    # honest "unavailable" state, not a fabricated value. (Stale cache still wins via
+    # _cached_sample's own stale_fallback path.)
+    try:
+        sample, cache_state, cache_age_s, upstream_error = await _cached_sample(
+            lat, lon, time, model, f"tile:{z}:{x}:{y}"
+        )
+    except Exception as exc:  # noqa: BLE001 — upstream down + no cache ⇒ neutral tile
+        sample, cache_state, cache_age_s, upstream_error = None, "unavailable", 0, str(exc)
     if interpolation == "grid":
         points = []
         for pt in tile_interpolation_points(z, x, y):

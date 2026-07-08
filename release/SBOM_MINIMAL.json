@@ -19825,6 +19825,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ca8202eed327d3b7ed41ed25c740b89d2f8a34bd402a0c22a7dcb4f6616d397d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f47aee1a3475b45edc4c35d40b23c4dc231493d2c20951b2bae5aa093e545bd1"
         }
       ],
@@ -21865,10 +21875,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ef4fba7756c11612461fabc6acb4065a21a5995c27a712687c0825044f3262b"
+          "content": "0ab04936186ce1d2b7b6e575a436aaeabcba857312514b90cc9dba56b1a13eec"
+        }
+      ],
+      "name": "services/weather-service/cache.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "937734c96c084299db6e068b97dfa9ff2630f41407a69f3a695103b4a724b673"
         }
       ],
       "name": "services/weather-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "75925261a7145b1998be3b99735c8c20ae882f9aecb068a2692032c93133988d"
+        }
+      ],
+      "name": "services/weather-service/open_meteo.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec360932ed1962c4e187f4a48413094b623268e57ed0558526e86dbb362796a3"
+        }
+      ],
+      "name": "services/weather-service/operations.py",
       "type": "file"
     },
     {
@@ -21879,6 +21919,26 @@
         }
       ],
       "name": "services/weather-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e4f9b87de7f0574f1baf6c454ed374af76e685df3581d74979b7227e02d26229"
+        }
+      ],
+      "name": "services/weather-service/tests/test_p3_weather_service_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b6257abf70fb5c6e2447745660253feae26b2c89df83f7d3ae02a58949deb8a"
+        }
+      ],
+      "name": "services/weather-service/tiles.py",
       "type": "file"
     },
     {

@@ -100,7 +100,9 @@ def _ramp(value: float, low: float, high: float) -> float:
     return (value - low) / (high - low)
 
 
-def derived_layer_value(layer: str, sample: dict[str, Any]) -> Any:
+def derived_layer_value(layer: str, sample: dict[str, Any] | None) -> Any:
+    if sample is None:
+        return None  # neutral tile: no sample ⇒ no value (never fabricate)
     if layer == "temperature":
         return sample.get("temperature_c")
     if layer == "wind":
