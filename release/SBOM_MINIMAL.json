@@ -5985,6 +5985,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c3b282d9ed4521beb352d093606fde7cc04fa6667a6dad68e6327518404935c9"
+        }
+      ],
+      "name": "migrations/v151_learning_source_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb0f425d3153fa93f00c48cc9b3fd8c85913f8cff4a953be22c98bf62b74f10c"
         }
       ],
@@ -16415,6 +16425,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0549b4b45086b3b575953a898491bad0662294061c1d46f2c9e728c5f274a094"
+        }
+      ],
+      "name": "services/sahool-platform/core/learning_source_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
       ],
@@ -19399,6 +19419,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_learning.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3adc5265bf67d8bca6134b0e9ed7e1395b6e11d5f4c5e9e336ab5ba9ce76e197"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_learning_source_lineage.py",
       "type": "file"
     },
     {
