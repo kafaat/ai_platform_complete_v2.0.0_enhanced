@@ -1389,33 +1389,73 @@ def _build_weather_decision_record(
 
 
 async def _persist_weather_decision_record(conn, user, record: dict) -> str | None:
-    """يُدِيم القرار المشتقّ من الطقس عبر decision-service (حدّ P4/P3).
+    """يُدِيم صفّ القرار المشتقّ من الطقس في decision_record ضمن **نفس** معاملة المستأجِر.
 
-    P4.7 direct-DB final sweep: ملكيّة decision_record لدى decision-service؛ لم تعد المنصّة
-    تُدرِج مباشرةً. يبقى ``conn`` في التوقيع لتوافق نقطة النداء (تُستدعى داخل معاملة الطقس)
-    لكنّه لا يُستعمل للكتابة. يُربَط بالحقل عبر field_id فيظهر في خطّ الحقل الزمني.
+    يعكس حرفيّاً نمط routers/decision_record.py: INSERT في decision_record (RLS عبر
+    tenant_connection) + حدث DECISION_RECORDED عبر outbox داخل نفس المعاملة. يُربَط
+    بالحقل عبر field_id فيظهر في الخطّ الزمني للحقل (GET …/field/{id}/lineage).
 
     يُستدعى فقط حين يوجد field_id (لا قرار حقل بلا حقل). يُرجِع decision_id المُدام.
+    لا يكتب جدولاً جديداً ولا يتطلّب هجرة — يعيد استخدام decision_record (v78).
     """
     if not record.get("field_id"):
         return None
+    import json as _json
+    import logging as _logging
     from uuid import uuid4 as _uuid4
 
-    from api.decision_service_client import record_decision as _record_decision_via_service
+    from api.decision_service_client import record_decision as _mirror_decision_to_service
+    from api.main import _emit_domain_event
 
     decision_id = f"weather-{_uuid4().hex[:16]}"
-    await _record_decision_via_service(
-        {
-            "decision_id": decision_id,
-            "field_id": record["field_id"],
-            "decision_type": record["decision_type"],
-            "stage": "decision",
-            "decision_value": record.get("decision_value") or {},
-            "confidence": record.get("confidence"),
-            "created_by": str(user.user_id),
-        },
-        tenant_id=str(user.tenant_id),
+    await conn.execute(
+        """INSERT INTO decision_record
+            (decision_id, tenant_id, field_id, decision_type, region,
+             stage, decision_value, confidence, created_by)
+           VALUES ($1, $2::uuid, $3, $4, NULL, 'decision', $5::jsonb, $6, $7)
+           ON CONFLICT (decision_id) DO NOTHING""",
+        decision_id,
+        str(user.tenant_id),
+        record["field_id"],
+        record["decision_type"],
+        _json.dumps(record["decision_value"], ensure_ascii=False, default=str),
+        record["confidence"],
+        str(user.user_id),
     )
+    await _emit_domain_event(
+        conn,
+        user,
+        "DECISION_RECORDED",
+        "decision_record",
+        decision_id,
+        {
+            "decision_type": record["decision_type"],
+            "field_id": record["field_id"],
+            "source": "weather_operation_plan",
+            "confidence": record["confidence"],
+        },
+    )
+    # الجسر الانتقاليّ: كتابة decision_record أعلاه موثوقة؛ نعكسها best-effort إلى
+    # decision-service — الفشل يُسجَّل ولا يُفشِل مسار خطّة الطقس ولا يفقد بيانات المنصّة.
+    try:
+        await _mirror_decision_to_service(
+            {
+                "decision_id": decision_id,
+                "field_id": record["field_id"],
+                "decision_type": record["decision_type"],
+                "stage": "decision",
+                "decision_value": record.get("decision_value") or {},
+                "confidence": record.get("confidence"),
+                "created_by": str(user.user_id),
+            },
+            tenant_id=str(user.tenant_id),
+        )
+    except Exception as e:  # noqa: BLE001 — مِرْآة best-effort: الفشل يُسجَّل ولا يُفشِل الطلب
+        _logging.getLogger(__name__).warning(
+            "decision-service mirror (weather-decision %s) فشلت — كتابة المنصّة موثوقة: %s",
+            decision_id,
+            e,
+        )
     return decision_id
 
 

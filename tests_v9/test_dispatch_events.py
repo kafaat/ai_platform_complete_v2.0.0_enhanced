@@ -42,13 +42,15 @@ def test_execution_write_point_still_emits_its_event():
     assert "DISPATCH_EXECUTION_RECORDED" in emitted
 
 
-def test_dispatch_decision_recording_is_delegated_to_decision_service():
-    """P4.5: dispatch-decision persistence (and its audit event) moved to decision-service.
+def test_dispatch_decision_recording_is_authoritative_then_mirrored():
+    """INTERIM bridge: dispatch persistence is AUTHORITATIVE in the platform (temporary SoR)
+    and best-effort mirrored to decision-service.
 
-    The platform execute route must no longer emit DISPATCH_DECISION_RECORDED locally;
-    it delegates the write through the decision-service facade instead.
+    The execute route writes ``dispatch_decisions`` and emits DISPATCH_DECISION_RECORDED via
+    the outbox (authoritative), then best-effort mirrors through the decision-service facade.
     """
     src = _DISPATCH_SRC.read_text(encoding="utf-8")
     emitted = set(re.findall(r'_emit_domain_event\(\s*conn,\s*user,\s*"([A-Z_]+)"', src))
-    assert "DISPATCH_DECISION_RECORDED" not in emitted
-    assert "_record_dispatch_decision_via_service" in src
+    assert "DISPATCH_DECISION_RECORDED" in emitted
+    assert "INSERT INTO dispatch_decisions" in src
+    assert "_mirror_dispatch_to_service" in src

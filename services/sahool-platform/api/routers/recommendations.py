@@ -20,22 +20,25 @@ from core.api_adapter import ApiRequest, handle_recommendation_request
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-from api.decision_service_client import (
-    record_recommendation_outcome as _record_recommendation_outcome_via_service,
-)
-
 # ApiRequest/handle_recommendation_request تُستورَدان مباشرةً من core.api_adapter —
 # نفس الرمزين اللذين كان main يستوردهما (نُقل استيرادهما هنا لإزالة F401 من main
 # بعد نقل دالّتي التوصية).
+from api.decision_service_client import (
+    record_recommendation_outcome as _mirror_recommendation_outcome_to_service,
+)
 from api.field_models import FieldRecommendationRequest
 from api.main import (
+    CommandStore,
     OutcomeRecordRequest,
     Permission,
     RecommendationRequest,
     UserSchema,
+    _db_unavailable,
     _emit_domain_event,
     _idem_key,
+    _idempotent,
     _resolve_recommendation_policy,
+    get_pool,
     require_permission,
     tenant_connection,
 )
@@ -325,36 +328,91 @@ async def record_recommendation_outcome(
     idem: str | None = Depends(_idem_key),
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ):
-    """Records recommendation outcomes via decision-service.
+    """يسجّل نتيجة توصية (توقّع/فعليّ + قبول/نضج) — مسار الكتابة لحلقة التعلّم (v49).
 
-    P4.5 removes direct writes to ``recommendation_outcomes`` from sahool-platform.
-    The platform remains responsible for auth/idempotency header intake and request
-    validation, while decision-service owns loop persistence semantics.
+    تقرأ هذه الصفوفَ نقطتا learning/activation-status و prediction-calibration حيّاً.
+    tenant عبر RLS (WITH CHECK يفرض المستأجِر). صدق: يسجّل المُرسَل فقط (لا اختراع).
     """
+    # اتّساق: matured_within_lag يعني نضج نتيجة فعليّة — يستلزم actual_yield_t_ha.
     if req.matured_within_lag and req.actual_yield_t_ha is None:
         raise HTTPException(
             status_code=422,
             detail="matured_within_lag=true يستلزم actual_yield_t_ha (نتيجة فعليّة)",
         )
-    payload = {
-        "recommendation_id": req.recommendation_id,
-        "field_id": req.field_id,
-        "season_id": req.season_id,
-        "outcome": "actual_recorded" if req.actual_yield_t_ha is not None else "pending",
-        "metadata": {
-            "farm_id": req.farm_id,
-            "crop": req.crop,
-            "predicted_yield_t_ha": req.predicted_yield_t_ha,
-            "actual_yield_t_ha": req.actual_yield_t_ha,
-            "accepted": req.accepted,
-            "matured_within_lag": req.matured_within_lag,
-            "idempotency_key": idem,
-        },
-    }
-    out = await _record_recommendation_outcome_via_service(payload, tenant_id=str(user.tenant_id))
-    out["recorded"] = bool(out.get("persisted", True))
-    out["via"] = "decision-service"
-    return out
+    try:
+        async with tenant_connection(user) as conn:
+
+            async def _work():
+                row = await conn.fetchrow(
+                    """INSERT INTO recommendation_outcomes
+                           (tenant_id, field_id, farm_id, season_id, crop, recommendation_id,
+                            predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag,
+                            outcome_recorded_at)
+                       VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+                               CASE WHEN $8 IS NOT NULL THEN now() ELSE NULL END)
+                       RETURNING outcome_id""",
+                    str(getattr(user, "tenant_id", "")),
+                    req.field_id,
+                    req.farm_id,
+                    req.season_id,
+                    req.crop,
+                    req.recommendation_id,
+                    req.predicted_yield_t_ha,
+                    req.actual_yield_t_ha,
+                    req.accepted,
+                    req.matured_within_lag,
+                )
+                # نُعيد النتيجة لتُخزَّن كنتيجة أمر idempotent وتُعاد حرفيّاً عند الإعادة
+                # (مع حفظ outcome_id الأصليّ) — قيم قابلة للتسلسل.
+                return {"outcome_id": row["outcome_id"], "recorded": True}
+
+            # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر الإدراج)؛ وإلّا تنفيذ عاديّ.
+            if idem:
+                result = await _idempotent(
+                    CommandStore(get_pool(), conn=conn),
+                    idem,
+                    _work,
+                    command_type="recommendation.outcome.record",
+                    actor_id=str(user.user_id),
+                    tenant_id=str(user.tenant_id),
+                    payload={"field_id": req.field_id, "crop": req.crop},
+                )
+            else:
+                result = await _work()
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("تسجيل نتيجة التوصية", e) from e
+
+    # الجسر الانتقاليّ: كتابة recommendation_outcomes أعلاه موثوقة ومحفوظة؛ نعكسها
+    # best-effort إلى decision-service — **لا ترفع أبداً** إلى مسار الطلب.
+    try:
+        await _mirror_recommendation_outcome_to_service(
+            {
+                "recommendation_id": req.recommendation_id,
+                "field_id": req.field_id,
+                "season_id": req.season_id,
+                "outcome": "actual_recorded" if req.actual_yield_t_ha is not None else "pending",
+                "metadata": {
+                    "farm_id": req.farm_id,
+                    "crop": req.crop,
+                    "predicted_yield_t_ha": req.predicted_yield_t_ha,
+                    "actual_yield_t_ha": req.actual_yield_t_ha,
+                    "accepted": req.accepted,
+                    "matured_within_lag": req.matured_within_lag,
+                    "idempotency_key": idem,
+                    "outcome_id": result.get("outcome_id"),
+                },
+            },
+            tenant_id=str(user.tenant_id),
+        )
+    except Exception as e:  # noqa: BLE001 — مِرْآة best-effort: الفشل يُسجَّل ولا يُفشِل الطلب
+        logger.warning(
+            "decision-service mirror (recommendation-outcome %s) فشلت — كتابة المنصّة موثوقة: %s",
+            req.recommendation_id,
+            e,
+        )
+    return result
 
 
 # مُسجَّل أخيراً عمداً: مسار البارامتر {rec_id} يجب ألّا يسبق المسارات الساكنة

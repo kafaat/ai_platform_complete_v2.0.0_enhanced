@@ -1,14 +1,21 @@
-"""decision-service — P4 boundary owner for decisions, outcomes, and learning loop lineage.
+"""decision-service — INTERIM non-authoritative mirror for the decision/outcome/learning loop.
 
-This service owns the write-side contract for:
+TEMPORARY BRIDGE (not the final architecture):
+``sahool-platform`` is the temporary Source of Record (SoR) for the closed-loop tables
+below — it performs the authoritative DB write and only then best-effort mirrors here.
+This service does **not** persist anything yet: it has no database and is a mirror sink.
+Its write endpoints therefore return an honest, non-authoritative acknowledgement
+(``persisted: false``) — they must never claim real persistence.
+
+Loop tables (authoritative writer = sahool-platform for now; future SoR = decision-service):
 - decision_record
 - dispatch_decisions
 - outcome_record
 - recommendation_outcomes
 - online_learning_updates
 
-It deliberately exposes narrow APIs so sahool-platform can act as a BFF/facade and stop
-owning loop-closure persistence semantics.
+Migration path to a real decision-service SoR is documented in
+``docs/architecture/DECISION_SERVICE_BOUNDARY_CONTRACT.md``.
 """
 
 from __future__ import annotations
@@ -20,7 +27,7 @@ from uuid import uuid4
 from fastapi import FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="Sahool Decision Service", version="p4.0")
+app = FastAPI(title="Sahool Decision Service (interim mirror)", version="p4.5-interim-mirror")
 
 LOOP_TABLES = [
     "decision_record",
@@ -29,6 +36,25 @@ LOOP_TABLES = [
     "recommendation_outcomes",
     "online_learning_updates",
 ]
+
+# Honest mirror-sink contract: this service is NOT the system-of-record yet. Write
+# endpoints acknowledge receipt without claiming persistence — the platform already
+# performed the authoritative write before mirroring here.
+_MIRROR_NOTE = (
+    "mirror-only; decision-service is not yet the system-of-record "
+    "(sahool-platform is the temporary Source of Record and already persisted this write)"
+)
+
+
+def _mirror_ack(**extra: Any) -> dict[str, Any]:
+    """Truthful acknowledgement for a non-authoritative mirror sink (never persisted:true)."""
+    return {
+        "accepted": True,
+        "authoritative": False,
+        "persisted": False,
+        "note": _MIRROR_NOTE,
+        **extra,
+    }
 
 
 def _tenant(x_tenant_id: str | None) -> str:
@@ -121,10 +147,21 @@ def readyz() -> dict[str, Any]:
 def contract() -> dict[str, Any]:
     return {
         "service": "decision-service",
-        "phase": "P4",
-        "owns": ["decision", "dispatch", "outcome", "learning-lineage"],
-        "owned_tables": LOOP_TABLES,
-        "platform_role": "BFF/facade only; no direct loop-table writes",
+        "phase": "P4.5-interim",
+        "role": "non-authoritative best-effort mirror (NOT system-of-record yet)",
+        "authoritative": False,
+        "system_of_record": "sahool-platform (temporary)",
+        "mirrors_tables": LOOP_TABLES,
+        "platform_role": (
+            "sahool-platform is the temporary Source of Record: it performs the "
+            "authoritative loop-table write, then best-effort mirrors here"
+        ),
+        "note": _MIRROR_NOTE,
+        "migration_path": (
+            "add a real datastore + RLS + outbox to decision-service, backfill from the "
+            "platform SoR, flip authoritative writes to decision-service, then demote the "
+            "platform to reader; see DECISION_SERVICE_BOUNDARY_CONTRACT.md"
+        ),
     }
 
 
@@ -134,13 +171,12 @@ def record_decision(
 ) -> dict[str, Any]:
     tenant = _tenant(x_tenant_id)
     did = payload.decision_id or "dec_" + uuid4().hex[:16]
-    return {
-        "persisted": True,
-        "tenant_id": tenant,
-        "decision_id": did,
-        "stage": payload.stage,
-        "recorded_at": datetime.now(UTC).isoformat(),
-    }
+    return _mirror_ack(
+        tenant_id=tenant,
+        decision_id=did,
+        stage=payload.stage,
+        received_at=datetime.now(UTC).isoformat(),
+    )
 
 
 @app.post("/v1/dispatch/decisions")
@@ -149,13 +185,12 @@ def record_dispatch(
 ) -> dict[str, Any]:
     tenant = _tenant(x_tenant_id)
     did = "disp_" + uuid4().hex[:16]
-    return {
-        "persisted": True,
-        "tenant_id": tenant,
-        "decision_id": did,
-        "recommendation_id": payload.recommendation_id,
-        "state": payload.state,
-    }
+    return _mirror_ack(
+        tenant_id=tenant,
+        decision_id=did,
+        recommendation_id=payload.recommendation_id,
+        state=payload.state,
+    )
 
 
 @app.get("/v1/dispatch/decisions")
@@ -178,39 +213,38 @@ def record_outcome(
 ) -> dict[str, Any]:
     tenant = _tenant(x_tenant_id)
     oid = payload.outcome_id or "out_" + uuid4().hex[:16]
-    return {
-        "persisted": True,
-        "tenant_id": tenant,
-        "outcome_id": oid,
-        "decision_id": payload.decision_id,
-        "success": payload.success,
-    }
+    return _mirror_ack(
+        tenant_id=tenant,
+        outcome_id=oid,
+        decision_id=payload.decision_id,
+        success=payload.success,
+    )
 
 
 @app.post("/v1/recommendation-outcomes")
 def record_recommendation_outcome(
     payload: RecommendationOutcomeIn, x_tenant_id: str | None = Header(default=None)
 ) -> dict[str, Any]:
-    return {
-        "persisted": True,
-        "tenant_id": _tenant(x_tenant_id),
-        "recommendation_id": payload.recommendation_id,
-        "decision_id": payload.decision_id,
-        "outcome": payload.outcome,
-    }
+    return _mirror_ack(
+        tenant_id=_tenant(x_tenant_id),
+        recommendation_id=payload.recommendation_id,
+        decision_id=payload.decision_id,
+        outcome=payload.outcome,
+    )
 
 
 @app.post("/v1/learning/updates")
 def record_learning_update(
     payload: LearningUpdateIn, x_tenant_id: str | None = Header(default=None)
 ) -> dict[str, Any]:
+    # Traceability is still validated and echoed back (a useful mirror check), but this
+    # sink does not persist — ``persisted`` stays false regardless of traceability.
     status = _traceability(payload)
-    return {
-        "persisted": status != "rejected_untraceable",
-        "tenant_id": _tenant(x_tenant_id),
-        "update_id": payload.update_id or "lu_" + uuid4().hex[:16],
-        "traceability_status": status,
-    }
+    return _mirror_ack(
+        tenant_id=_tenant(x_tenant_id),
+        update_id=payload.update_id or "lu_" + uuid4().hex[:16],
+        traceability_status=status,
+    )
 
 
 @app.get("/v1/learning/summary")

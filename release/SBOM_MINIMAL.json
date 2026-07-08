@@ -8375,7 +8375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70c7543fa76c3d211f1e40c24931d6d5ab2391159b1a18a735e7e688e67a4a4e"
+          "content": "3c910b4d46ce563512202ebf920063c62185e616a5ec456445a523821932b24b"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -8395,7 +8395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0a8c88a613be18ea366e7b5d3df1ad7f034c9be564bbc88618a6e200ffc5f6c"
+          "content": "e59bbffd168f7371bb243d5d359ce0f6a2ecec27145411bfe40ac40a92dc4f07"
         }
       ],
       "name": "services/decision-service/tests/test_p4_decision_service_runtime.py",
@@ -12025,7 +12025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b55be9a1352825821d5cfe27dad10bb0829a3086dbdb3c83f868e3df92f7aa9b"
+          "content": "e1f45cc6db961e7278183bcb9b004e3b80ec9ff0ba0d061f2b7a2474b4bfcb08"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_store.py",
@@ -12555,7 +12555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f47ecd17ecb7dfbb27ec1f6745721c326ace4ed3c71d3a5e9f8e9137c3832dbd"
+          "content": "99d207fb40419c43f344c0adbf4b506e655d853ef3a920a9332aefd2ecf987a0"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_dispatch.py",
@@ -12595,7 +12595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "528909867c85ebe280b86fa8f5a3126e81de901c35ab4645c16470a78f7ae515"
+          "content": "f1c1a03cf6c400fb8ec43e200d1ddf2e29c3e8c3f3dcea1d713a9d7fedcbc979"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_record.py",
@@ -13065,7 +13065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a644e001489bc1a9124bf321d4d8a0f46cca47249707f60b9e43c8f936ed002"
+          "content": "556af90472fce063d0e143652d57c583db03459e475807008843cea498406d66"
         }
       ],
       "name": "services/sahool-platform/api/routers/learning_summary.py",
@@ -13365,7 +13365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d25c0ba90a6ff43e75ee48e2ce870ca28f4bc83bbaf1e38d13bf98ee0bc4b9c7"
+          "content": "5236fc86f09a3860d2d179750b622c090a1239e657a10911204595161a255eec"
         }
       ],
       "name": "services/sahool-platform/api/routers/recommendations.py",
@@ -13675,7 +13675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "260af09df4ff5f701a306acb8c15be2d36f47afdcad26add6cb3fa305c2d3a0c"
+          "content": "a10acd9a2bf3fca85b9eda444cf4015f04ca85a58602e16316119b27c6211e5b"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",
@@ -19795,7 +19795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5ea353964ff0c12367ae3b17d7a0d6d5f70bc44124238bbcb8e22ab9a08043be"
+          "content": "5bbb233d6382c6813135133efcab4146705a3e6c976a874e331ca3c7a16fca75"
         }
       ],
       "name": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
@@ -19875,6 +19875,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "790456c44fbe7e13416d8b819217884048be8e451eef6c4681849fd6dc62df48"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a49f509e0378de9947b132a5ef9ee0071a2454302c9c897eec76ce1526d84292"
         }
       ],
@@ -19925,7 +19935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "363a9bebc4df5398cc488bbc39f0bcf77474835aaf2088cf13bd2edf2588f8b6"
+          "content": "7a6a84343df53318e270dda66efcb7476be0a2e009d2115703b1bbb0225fb491"
         }
       ],
       "name": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
@@ -19935,7 +19945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c1ea029d09991f6fc0e86b35b04442079acd3d3be0760934a850020063303dc4"
+          "content": "d6d6e7d4ffd1d5d1821a7d574a3bb06f650d53255772ab42fc85050a1f39e2e8"
         }
       ],
       "name": "services/sahool-platform/tests/test_p4_6_decision_read_side_facade_guard.py",
@@ -19945,7 +19955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "24c2f234d30752ba1a4b06df42a7a148914ddb609b5862dd5c25988d699ec502"
+          "content": "bc1cbaa02cb6d8a4794270f02b959692da80d187034995a58e063fce6e42a503"
         }
       ],
       "name": "services/sahool-platform/tests/test_p4_7_decision_direct_db_final_sweep.py",
@@ -19955,10 +19965,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fdc6d4f6742528060347cba4fe3af62c8135e5561c1a93207a29d2e18f0968eb"
+          "content": "ac215f1f4bc91682e04135ee0163fb7af04cada15330536205484d2bb5a3a613"
         }
       ],
       "name": "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "97d7db84dab53dd83450558486254ad2d2fbd85fa513621746a99844b3e605b5"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p5_service_registry_hardening_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "01cb8cfb65ab9a42f8590e5488d6fb2dd5322327abb41dd87b6964b3d1754ea0"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p6_gateway_split_contract_guard.py",
       "type": "file"
     },
     {
