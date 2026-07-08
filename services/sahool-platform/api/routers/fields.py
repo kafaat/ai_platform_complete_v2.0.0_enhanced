@@ -2122,6 +2122,13 @@ async def create_season(
         raise HTTPException(status_code=422, detail="تاريخ البذار قبل الحراثة")
     if end and sow and end < sow:
         raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
+    # حارس تقويم الموسم (Season Calendar Guard): إرشاديّ **غير حاجب** — يقيّم موقع الموسم
+    # من نافذة الزراعة/الحصاد المعتادة للمحصول الأوّل. لا يمنع الإنشاء (توجّه لا فرض).
+    from api.season_calendar_guard import evaluate_season_calendar
+
+    calendar_check = evaluate_season_calendar(
+        req.crops[0] if req.crops else None, sow, end
+    )
     season_id = "ssn_" + _uuid.uuid4().hex[:12]
     # تنظيف + تحقّق سلامة المراحل المخصّصة (season_integrity): يُسقِط الفارغة (سلوك قديم)
     # ويرفض المضلِّلة (تاريخ غير صالح / خارج نافذة الموسم / ترتيب متراجع / اسم مكرّر) بـ422.
@@ -2260,6 +2267,7 @@ async def create_season(
                     tillage_type=req.tillage_type,
                     actual_yield_kg_ha=req.actual_yield_kg_ha,
                     notes_ar=req.notes_ar,
+                    calendar_check=calendar_check,  # إرشاديّ (Season Calendar Guard)
                 ).model_dump()
 
             # idempotent عند توفّر مفتاح (إعادة الموبايل لا تُكرّر)؛ وإلّا تنفيذ عاديّ.

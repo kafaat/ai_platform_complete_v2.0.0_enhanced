@@ -5945,6 +5945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "181078972b87c058b9b3f582b02bc1a525426b2db7963c079b2f6db085dfede0"
+        }
+      ],
+      "name": "migrations/v150_seasons_yield_nonnegative_check.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb0f425d3153fa93f00c48cc9b3fd8c85913f8cff4a953be22c98bf62b74f10c"
         }
       ],
@@ -12725,7 +12735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d36bb71d32501273adcb5c37562527aa5949e0a5cbc412ec37ac45d2602786b3"
+          "content": "b3d41d91fa576d0c0714a97afe2b2ff4d73821f3d1704c6279fa686153b2242f"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -13635,6 +13645,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a26b6b3dd1b654341791d0d3373537fce8af616e09071affa24e49907833578f"
+        }
+      ],
+      "name": "services/sahool-platform/api/season_integrity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e070bd012a2e409c1ba9aadf01c53641a51a75bb97af773076d9af104a108e38"
         }
       ],
@@ -13645,7 +13665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e76a3ed27e66b691057f913ea41d0f64d066e852a80a294e779dff875274086"
+          "content": "aadc9c5207e667dcd870070012d6918d274016d4f7e49ae30a0d78e83f6f21be"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",
@@ -19929,6 +19949,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_season_comparison.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "83685a26e7990ee083ce5b3de859c6d2f15e4af05fcac72e907e47fee6ecb4a2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_integrity.py",
       "type": "file"
     },
     {
