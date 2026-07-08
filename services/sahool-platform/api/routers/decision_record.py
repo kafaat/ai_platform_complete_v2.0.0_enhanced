@@ -30,6 +30,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api.decision_lineage import ensure_decision_id, lineage_stage
+from api.decision_service_client import (
+    record_decision as _record_decision_via_service,
+)
+from api.decision_service_client import (
+    record_outcome as _record_outcome_via_service,
+)
 from api.main import (
     Permission,
     UserSchema,
@@ -291,55 +297,30 @@ async def record_decision(
     req: DecisionRecordRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ) -> dict:
-    """يُدِيم رأس القرار في decision_record + حدث DECISION_RECORDED (تدقيق/بثّ).
+    """BFF/facade write path for decision records.
 
-    يُغلق فجوة «قرار يُحسَب ويُنسى»: يجعل القرار متتبَّعاً بمعرّف موحّد ليُربَط به القياس
-    لاحقاً. 503 عند تعذّر القاعدة. مسار كتابة (يتطلّب Postgres). الصدق: confidence الناقص
-    يُدام NULL لا يُفبرَك؛ decision_value يُدام كما عُرِض دون إعادة حساب.
+    P4.5: loop-table ownership moved to decision-service.  The platform still keeps
+    authentication and request shaping, but it must not insert into ``decision_record``
+    directly on this write path.
     """
     did = ensure_decision_id(req.decision_id)
     lineage = lineage_stage(did, "decision", field_id=req.field_id, region=req.region)
-    try:
-        async with tenant_connection(user) as conn:
-            await conn.execute(
-                """INSERT INTO decision_record
-                    (decision_id, tenant_id, field_id, decision_type, region,
-                     stage, decision_value, confidence, created_by)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9)
-                   ON CONFLICT (decision_id) DO NOTHING""",
-                did,
-                str(user.tenant_id),
-                req.field_id,
-                req.decision_type,
-                req.region,
-                lineage["stage"],
-                _json.dumps(req.decision_value),
-                req.confidence,
-                str(user.user_id),
-            )
-            await _emit_domain_event(
-                conn,
-                user,
-                "DECISION_RECORDED",
-                "decision_record",
-                did,
-                {
-                    "decision_type": req.decision_type,
-                    "field_id": req.field_id,
-                    "region": req.region,
-                    "confidence": req.confidence,
-                },
-                critical=True,  # رأس سلسلة النَّسَب — fail-closed
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إدامة القرار", e) from e
-
-    return {
+    payload = {
         "decision_id": did,
-        "lineage": lineage,
-        "persisted": True,
-        "recorded_by": str(user.user_id),
+        "field_id": req.field_id,
+        "decision_type": req.decision_type,
+        "region": req.region,
+        "stage": lineage["stage"],
+        "decision_value": req.decision_value,
+        "confidence": req.confidence,
+        "created_by": str(user.user_id),
     }
+    out = await _record_decision_via_service(payload, tenant_id=str(user.tenant_id))
+    out.setdefault("decision_id", did)
+    out["lineage"] = lineage
+    out["recorded_by"] = str(user.user_id)
+    out["via"] = "decision-service"
+    return out
 
 
 class OutcomePlannedIn(BaseModel):
@@ -375,86 +356,37 @@ async def record_outcome(
     req: OutcomeRecordRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ) -> dict:
-    """يقيس نتيجة قرار (نقيّاً) **ثمّ** يُدِيمها في outcome_record مربوطةً بـdecision_id.
+    """BFF/facade write path for measured outcomes.
 
-    يُغلق P0-1 (إدامة النتيجة): يجعل أثر القرار يتراكم كدليل ميدانيّ — الأساس الذي يبني
-    عليه evidence_registry لاحقاً. + حدث OUTCOME_MEASURED. 503 عند تعذّر القاعدة. مسار
-    كتابة (يتطلّب Postgres). الصدق: القياس نقيّ (measure_outcome)؛ success الناقص ⇒ NULL.
-
-    لاتكرار (cluster-safe عبر القاعدة): مع idempotency_key، إعادة POST لا تُدرِج عيّنة
-    ثانية (ON CONFLICT) — فلا يتضخّم sample_count الذي يحرس عتبة field_verified (سلامة
-    حلقة التعلّم). الإعادة تُعيد القياس القائم (replayed=true) بلا حدث جديد.
+    The metric calculation remains pure in the platform for response compatibility, but
+    persistence is delegated to decision-service, which owns ``outcome_record``.
     """
     metrics = measure_outcome(req.planned.model_dump(), req.actual.model_dump())
     success = _derive_success(metrics["metrics"])
     did = ensure_decision_id(req.decision_id)
     outcome_id = "out_" + _uuid.uuid4().hex[:16]
     lineage = lineage_stage(did, "outcome", field_id=req.field_id, region=req.region)
-    try:
-        async with tenant_connection(user) as conn:
-            inserted = await conn.fetchval(
-                """INSERT INTO outcome_record
-                    (outcome_id, tenant_id, decision_id, field_id, region,
-                     stage, planned, actual, metrics, success, created_by, idempotency_key)
-                   VALUES ($1, $2::uuid, $3, $4, $5, $6,
-                     $7::jsonb, $8::jsonb, $9::jsonb, $10, $11, $12)
-                   ON CONFLICT (tenant_id, idempotency_key)
-                     WHERE idempotency_key IS NOT NULL
-                   DO NOTHING
-                   RETURNING outcome_id""",
-                outcome_id,
-                str(user.tenant_id),
-                did,
-                req.field_id,
-                req.region,
-                lineage["stage"],
-                _json.dumps(req.planned.model_dump()),
-                _json.dumps(req.actual.model_dump()),
-                _json.dumps(metrics),
-                success,
-                str(user.user_id),
-                req.idempotency_key,
-            )
-            # تكرار (نفس idempotency_key) ⇒ لم يُدرَج جديد؛ نُعيد القياس القائم بلا حدث.
-            if inserted is None and req.idempotency_key is not None:
-                existing = await conn.fetchrow(
-                    "SELECT * FROM outcome_record WHERE idempotency_key = $1 "
-                    "ORDER BY created_at ASC LIMIT 1",
-                    req.idempotency_key,
-                )
-                if existing is not None:
-                    out = _shape_outcome_row(existing)
-                    out["lineage"] = lineage_stage(
-                        out["decision_id"],
-                        "outcome",
-                        field_id=out["field_id"],
-                        region=out["region"],
-                    )
-                    out["persisted"] = True
-                    out["replayed"] = True  # صدق: أُعيد القياس القائم — لم تُكرَّر العيّنة
-                    return out
-            await _emit_domain_event(
-                conn,
-                user,
-                "OUTCOME_MEASURED",
-                "outcome_record",
-                outcome_id,
-                {"decision_id": did, "field_id": req.field_id, "success": success},
-                critical=True,  # نتيجة القرار (سلسلة النَّسَب) — fail-closed
-            )
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إدامة نتيجة القرار", e) from e
-
-    return {
+    payload = {
         "outcome_id": outcome_id,
         "decision_id": did,
-        "lineage": lineage,
+        "field_id": req.field_id,
+        "region": req.region,
+        "planned": req.planned.model_dump(),
+        "actual": req.actual.model_dump(),
         "metrics": metrics,
         "success": success,
-        "persisted": True,
-        "replayed": False,
-        "recorded_by": str(user.user_id),
+        "created_by": str(user.user_id),
+        "idempotency_key": req.idempotency_key,
     }
+    out = await _record_outcome_via_service(payload, tenant_id=str(user.tenant_id))
+    out.setdefault("outcome_id", outcome_id)
+    out.setdefault("decision_id", did)
+    out["lineage"] = lineage
+    out["metrics"] = metrics
+    out["success"] = success
+    out["recorded_by"] = str(user.user_id)
+    out["via"] = "decision-service"
+    return out
 
 
 @router.get("/api/v1/decision/{decision_id}/lineage")

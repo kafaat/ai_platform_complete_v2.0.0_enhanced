@@ -1787,7 +1787,7 @@
       "method": "POST",
       "path": "/api/v1/decision/dispatch/execute",
       "line": 238,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_dispatch.py::POST /api/v1/decision/dispatch/execute::execute_dispatch_endpoint"
     },
@@ -1917,7 +1917,7 @@
       "method": "POST",
       "path": "/api/v1/decision/record",
       "line": 290,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/decision/record::record_decision"
     },
@@ -1927,7 +1927,7 @@
       "method": "POST",
       "path": "/api/v1/outcome/record",
       "line": 374,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::POST /api/v1/outcome/record::record_outcome"
     },
@@ -4517,7 +4517,7 @@
       "method": "POST",
       "path": "/api/v1/recommendations/outcomes",
       "line": 323,
-      "target_owner": "agriai-engine",
+      "target_owner": "decision-service",
       "owner_type": "decision-compute",
       "route_key": "api/routers/recommendations.py::POST /api/v1/recommendations/outcomes::record_recommendation_outcome"
     },

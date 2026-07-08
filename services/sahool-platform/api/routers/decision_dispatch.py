@@ -32,14 +32,17 @@ from core.actuator_command import build_actuator_command
 from core.agronomic_decision import DomainSignal, reconcile_decision, to_urgency
 from core.cross_domain_optimization import optimize_irrigation
 from core.decision_dispatch import evaluate_dispatch
-from core.dispatch_executor import ExecutionResult, ExecutionStatus, execute_dispatch
-from core.dispatch_lifecycle import assert_transition, derive_idempotency_key
+from core.dispatch_executor import ExecutionStatus
+from core.dispatch_lifecycle import assert_transition
 from core.dispatch_notification import build_dispatch_notification, normalize_channel
 from core.execution_ledger_entry import build_ledger_entry, normalize_outcome
 from core.guardrails import check_guardrails
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from api.decision_service_client import (
+    record_dispatch_decision as _record_dispatch_decision_via_service,
+)
 from api.main import (
     Permission,
     UserSchema,
@@ -48,7 +51,6 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from shared.actuation_killswitch import is_actuation_halted
 
 router = APIRouter()
 
@@ -239,11 +241,11 @@ async def execute_dispatch_endpoint(
     req: DispatchExecuteRequest,
     user: UserSchema = Depends(require_permission(Permission.RECOMMENDATION_REQUEST)),
 ) -> dict:
-    """ينفّذ قرار توزيع محروساً: حواجز → تقييم → إدامة (تدقيق) + إدراج READY فقط.
+    """Evaluates dispatch and records the dispatch decision through decision-service.
 
-    404 إن كانت الميزة مُطفأة. BLOCKED/PENDING ⇒ يُسجَّل بـnot_executed ولا يُنفَّذ.
-    READY ⇒ يُبنى أمر المُشغِّل ويُدرَج (exec_status=queued) ليستهلكه actuator-service —
-    لا إطلاق MQTT من هنا. 422 إن غاب device_id/command لقرار READY. 503 عند تعذّر القاعدة.
+    P4.5 keeps the guardrail/evaluation preview logic in the platform but removes the
+    direct local dispatch table write path.  Physical execution remains
+    outside this router; decision-service owns dispatch persistence.
     """
     if not _dispatch_enabled():
         raise HTTPException(
@@ -267,7 +269,6 @@ async def execute_dispatch_endpoint(
         approvals_collected=req.approvals_collected,
     )
 
-    # أمر المُشغِّل يُبنى لقرار READY فقط (fail-closed داخل build_actuator_command).
     command = None
     if decision.executable:
         try:
@@ -280,109 +281,30 @@ async def execute_dispatch_endpoint(
         except ValueError as e:
             raise HTTPException(status_code=422, detail=str(e)) from e
 
-    # مفتاح اللاتكرار يُحسَب لقرار READY فقط (هو وحده يُدرَج حيّاً في الطابور). تصليب
-    # الموزِّع (v67): فهرس فريد جزئيّ يمنع إدراج أمرين حيّين لنفس التوصية ⇒ لا إطلاق مزدوج.
-    idem_key = (
-        derive_idempotency_key(req.recommendation_id, req.action_type, req.field_id)
-        if decision.executable
-        else None
+    exec_status = (
+        ExecutionStatus.QUEUED.value if decision.executable else ExecutionStatus.NOT_EXECUTED.value
     )
-    decision_id = "disp_" + _uuid.uuid4().hex[:16]
-    try:
-        async with tenant_connection(user) as conn:
-            # لاتكرار: إن وُجد قرار حيّ (queued/dispatched) بنفس المفتاح ⇒ نُعيده دون
-            # إدراج جديد (إعادة نداء آمنة) — والفهرس الفريد هو الحارس النهائيّ ضدّ السباق.
-            if idem_key is not None:
-                existing = await conn.fetchrow(
-                    "SELECT * FROM dispatch_decisions WHERE idempotency_key = $1 "
-                    "AND exec_status IN ('queued', 'dispatched') ORDER BY created_at DESC LIMIT 1",
-                    idem_key,
-                )
-                if existing is not None:
-                    out = _shape_dispatch_row(existing)
-                    out["replayed"] = True  # صدق: لم يُدرَج جديد — أُعيد القرار الحيّ القائم
-                    out["audit"] = decision.to_audit()
-                    return out
-
-            async def _persist(dec, command_dict, exec_status):
-                # ON CONFLICT DO NOTHING على الفهرس الفريد الجزئيّ — حارس قاعديّ ضدّ السباق.
-                await conn.execute(
-                    """INSERT INTO dispatch_decisions
-                        (decision_id, tenant_id, recommendation_id, action_type, field_id,
-                         state, risk_level, required_approvals, approvals_collected,
-                         halt_breaches, warn_breaches, reason_ar, command, exec_status,
-                         created_by, idempotency_key)
-                       VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8, $9,
-                         $10::jsonb, $11::jsonb, $12, $13::jsonb, $14, $15, $16)
-                       ON CONFLICT (tenant_id, idempotency_key)
-                         WHERE idempotency_key IS NOT NULL
-                           AND exec_status IN ('queued', 'dispatched')
-                       DO NOTHING""",
-                    decision_id,
-                    str(user.tenant_id),
-                    dec.recommendation_id,
-                    dec.action_type,
-                    dec.field_id,
-                    dec.state.value,
-                    dec.risk_level,
-                    dec.required_approvals,
-                    dec.approvals_collected,
-                    _json.dumps(dec.halt_breaches),
-                    _json.dumps(dec.warn_breaches),
-                    dec.reason_ar,
-                    (_json.dumps(command_dict) if command_dict is not None else None),
-                    exec_status,
-                    str(user.user_id),
-                    (idem_key if exec_status == "queued" else None),
-                )
-
-            # مفتاح إيقاف طوارئ التشغيل (v133، fail-closed): قبل إدراج READY في الطابور.
-            # مفتاح مُشتبَك (نطاق مستأجِر/حقل/صمّام) ⇒ لا يُدرَج للتنفيذ — يُدام not_executed
-            # (تدقيق) بسبب واضح، والمُشغِّل لا يستهلك شيئاً. لا نُطلِق MQTT أعمى. قرار غير
-            # قابل للتنفيذ (BLOCKED/PENDING) يمرّ كما هو (execute_dispatch يُسجّله not_executed).
-            ks_halted = False
-            ks_reason: str | None = None
-            if decision.executable and command is not None:
-                ks_halted, ks_reason = await is_actuation_halted(
-                    conn,
-                    str(user.tenant_id),
-                    field_id=decision.field_id,
-                    valve_id=(req.device_id or None),
-                )
-            if ks_halted:
-                await _persist(decision, None, ExecutionStatus.NOT_EXECUTED.value)
-                result = ExecutionResult(
-                    status=ExecutionStatus.NOT_EXECUTED,
-                    dispatch_state=decision.state.value,
-                    command=None,
-                    reason_ar=f"محجوب — مفتاح إيقاف الطوارئ مُشتبَك: {ks_reason}",
-                )
-            else:
-                result = await execute_dispatch(decision, persist=_persist, command=command)
-            # تدقيق (H3): حدث domain عبر outbox ضمن المعاملة — مسار غير مُعاد فقط
-            # (replayed يعود مبكّراً أعلاه ولا يصل هنا). best-effort داخل _emit.
-            await _emit_domain_event(
-                conn,
-                user,
-                "DISPATCH_DECISION_RECORDED",
-                "dispatch_decision",
-                decision_id,
-                {
-                    "state": decision.state.value,
-                    "action_type": decision.action_type,
-                    "field_id": decision.field_id,
-                    "exec_status": result.status.value,
-                },
-                critical=True,  # حوكمة توزيع القرار — fail-closed (لا commit بلا حدثه)
-            )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
-        raise _db_unavailable("إدامة قرار التوزيع", e) from e
-
-    out = result.to_dict()
-    out["decision_id"] = decision_id
+    payload = {
+        "recommendation_id": decision.recommendation_id,
+        "action_type": decision.action_type,
+        "risk_level": decision.risk_level,
+        "field_id": decision.field_id,
+        "state": decision.state.value,
+        "command": command.to_dict() if hasattr(command, "to_dict") else command,
+        "created_by": str(user.user_id),
+        "metadata": {
+            "required_approvals": decision.required_approvals,
+            "approvals_collected": decision.approvals_collected,
+            "halt_breaches": decision.halt_breaches,
+            "warn_breaches": decision.warn_breaches,
+            "reason_ar": decision.reason_ar,
+            "exec_status": exec_status,
+        },
+    }
+    out = await _record_dispatch_decision_via_service(payload, tenant_id=str(user.tenant_id))
     out["audit"] = decision.to_audit()
+    out["exec_status"] = exec_status
+    out["via"] = "decision-service"
     return out
 
 

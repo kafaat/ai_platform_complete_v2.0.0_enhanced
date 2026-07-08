@@ -35,9 +35,20 @@ def test_dispatch_events_registered_in_catalog():
     assert event_catalog.is_registered("DISPATCH_EXECUTION_RECORDED")
 
 
-def test_write_points_emit_both_events():
+def test_execution_write_point_still_emits_its_event():
+    """DISPATCH_EXECUTION_RECORDED remains a platform-owned ledger write-point event."""
     src = _DISPATCH_SRC.read_text(encoding="utf-8")
-    # كلّ اسم مُمرَّر لـ_emit_domain_event يجب أن يكون اسم نقطة كتابة فعليّة موصولة.
     emitted = set(re.findall(r'_emit_domain_event\(\s*conn,\s*user,\s*"([A-Z_]+)"', src))
-    assert "DISPATCH_DECISION_RECORDED" in emitted
     assert "DISPATCH_EXECUTION_RECORDED" in emitted
+
+
+def test_dispatch_decision_recording_is_delegated_to_decision_service():
+    """P4.5: dispatch-decision persistence (and its audit event) moved to decision-service.
+
+    The platform execute route must no longer emit DISPATCH_DECISION_RECORDED locally;
+    it delegates the write through the decision-service facade instead.
+    """
+    src = _DISPATCH_SRC.read_text(encoding="utf-8")
+    emitted = set(re.findall(r'_emit_domain_event\(\s*conn,\s*user,\s*"([A-Z_]+)"', src))
+    assert "DISPATCH_DECISION_RECORDED" not in emitted
+    assert "_record_dispatch_decision_via_service" in src

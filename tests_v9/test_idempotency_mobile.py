@@ -187,7 +187,10 @@ _IDEMPOTENT_WRITE_HANDLERS = [
     ("add_custody_event", "custody.event.add"),
     ("create_master_data", "master_data.create"),
     ("submit_onboarding", "onboarding.submit"),
-    ("record_recommendation_outcome", "recommendation.outcome.record"),
+    # NOTE: record_recommendation_outcome moved off the local CommandStore path in
+    # P4.5 (decision-service owns loop persistence). Its boundary-forwarding
+    # idempotency contract is asserted separately in
+    # test_recommendation_outcome_forwards_idempotency_to_decision_service.
 ]
 
 
@@ -199,6 +202,28 @@ def test_write_endpoint_wires_idempotency(handler, command_type):
     assert "CommandStore(" in body, f"{handler} لا يبني CommandStore"
     assert f'"{command_type}"' in body or f"'{command_type}'" in body, (
         f"{handler}: نوع أمر {command_type} مفقود"
+    )
+
+
+def test_recommendation_outcome_forwards_idempotency_to_decision_service():
+    """P4.5: recommendation-outcome loop persistence moved to decision-service.
+
+    The platform no longer wraps the write in a local CommandStore/_idempotent; instead
+    it still intakes the Idempotency-Key header and forwards it to the decision-service
+    facade, which owns loop-table idempotency semantics. This asserts the key is not
+    silently dropped at the boundary.
+    """
+    body = _handler_src("record_recommendation_outcome")
+    assert "Depends(_idem_key)" in body, "record_recommendation_outcome لا يقبل مفتاح idempotency"
+    assert "_record_recommendation_outcome_via_service" in body, (
+        "record_recommendation_outcome لا يفوّض الكتابة إلى decision-service"
+    )
+    assert '"idempotency_key": idem' in body, (
+        "record_recommendation_outcome لا يمرّر مفتاح idempotency إلى decision-service"
+    )
+    # الكتابة المباشرة (CommandStore محلّيّ) انتقلت إلى decision-service — يجب ألّا تبقى.
+    assert "CommandStore(" not in body, (
+        "record_recommendation_outcome ما زال يبني CommandStore محلّيّاً بعد نقل الملكيّة"
     )
 
 

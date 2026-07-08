@@ -13,6 +13,7 @@
   ],
   "allowed_target_owners": [
     "agriai-engine",
+    "decision-service",
     "learning-service-target",
     "guardrails-engine",
     "actuator-service",
