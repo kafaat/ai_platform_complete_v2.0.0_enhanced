@@ -85,70 +85,62 @@ async def test_remote_sensing_honest_unavailable_when_absent(core_on_path):
     assert rs == {"available": False, "ndvi_mean": None, "ndvi_date": None, "source": None}
 
 
-class _Resp:
-    def __init__(self, status, payload):
-        self.status_code = status
-        self._p = payload
+def _patch_job_result(monkeypatch, result_payload):
+    """P2 raster facade: ``_collect_ndvi_value`` يقرأ نتيجة المهمّة الفرعيّة عبر
+    ``get_job_result`` (واجهة raster) بدل عميل httpx مُمرَّر. نُرقِّع الواجهة كما تستوردها
+    الوحدة ونسجّل ``job_id`` المطلوب — النيّة محفوظة: تُقرأ المهمّة الفرعيّة «{job}_ndvi»."""
+    from api import imagery_automation as ia_mod
 
-    def json(self):
-        return self._p
+    calls: list[str] = []
 
+    async def _fake_get_job_result(job_id, *, tenant_id=None, timeout_s=10.0):
+        calls.append(job_id)
+        if job_id.endswith("_ndvi"):
+            return result_payload
+        return None
 
-class _FakeClient:
-    """يحاكي raster الفعليّ: GET /jobs/{job_id}_ndvi/result → {stats:{mean, valid_pixels}}."""
-
-    def __init__(self, result_payload, *, status=200):
-        self._result = result_payload
-        self._status = status
-        self.calls: list[str] = []
-
-    async def get(self, url, **kwargs):
-        # **kwargs: يقبل headers=… (توكن الخدمة X-Agent-Token الذي تُرسله الأتمتة
-        # لـraster /jobs/{id}/result بعد فرض _require_service_token) — يحاكي httpx.
-        self.calls.append(url)
-        if url.endswith("_ndvi/result"):
-            return _Resp(self._status, self._result)
-        return _Resp(404, {})
+    monkeypatch.setattr(ia_mod, "get_job_result", _fake_get_job_result)
+    return calls
 
 
 @pytest.mark.asyncio
-async def test_collect_ndvi_value_extracts_mean_from_subjob_result(core_on_path):
+async def test_collect_ndvi_value_extracts_mean_from_subjob_result(core_on_path, monkeypatch):
     from api.imagery_automation import ImageryAutomation, TrackedField
 
     ia = ImageryAutomation()  # pool=None ⇒ _persist_ndvi لا-عمل، نفحص tf
     tf = TrackedField(field_id="fld_1", bbox=[44.0, 15.0, 44.1, 15.1])
-    client = _FakeClient({"stats": {"mean": 0.62, "valid_pixels": 1500, "std": 0.1}})
-    await ia._collect_ndvi_value(
-        client, tf, {"datetime": "2026-06-10T08:00:00Z"}, {"job_id": "jb1"}
+    calls = _patch_job_result(
+        monkeypatch, {"stats": {"mean": 0.62, "valid_pixels": 1500, "std": 0.1}}
     )
-    assert len(client.calls) == 1 and client.calls[0].endswith("/jobs/jb1_ndvi/result")
+    await ia._collect_ndvi_value(tf, {"datetime": "2026-06-10T08:00:00Z"}, {"job_id": "jb1"})
+    assert calls == ["jb1_ndvi"]
     assert tf.last_ndvi_mean == 0.62
     assert tf.last_ndvi_date == "2026-06-10"
 
 
 @pytest.mark.asyncio
-async def test_collect_ndvi_value_skips_when_no_valid_pixels(core_on_path):
+async def test_collect_ndvi_value_skips_when_no_valid_pixels(core_on_path, monkeypatch):
     from api.imagery_automation import ImageryAutomation, TrackedField
 
     ia = ImageryAutomation()
     tf = TrackedField(field_id="fld_1", bbox=[44.0, 15.0, 44.1, 15.1])
     # valid_pixels=0 ⇒ المتوسّط بلا معنى ⇒ لا حفظ (صدق)
-    client = _FakeClient({"stats": {"mean": 0.0, "valid_pixels": 0}})
-    await ia._collect_ndvi_value(client, tf, {"datetime": "2026-06-10"}, {"job_id": "jb1"})
+    _patch_job_result(monkeypatch, {"stats": {"mean": 0.0, "valid_pixels": 0}})
+    await ia._collect_ndvi_value(tf, {"datetime": "2026-06-10"}, {"job_id": "jb1"})
     assert tf.last_ndvi_mean is None
 
 
 @pytest.mark.asyncio
-async def test_collect_ndvi_value_fails_safe_without_job(core_on_path):
+async def test_collect_ndvi_value_fails_safe_without_job(core_on_path, monkeypatch):
     from api.imagery_automation import ImageryAutomation, TrackedField
 
     ia = ImageryAutomation()
     tf = TrackedField(field_id="fld_1", bbox=[44.0, 15.0, 44.1, 15.1])
-    client = _FakeClient({})
+    calls = _patch_job_result(monkeypatch, {})
     # لا job_id ولا last_indicator_job ⇒ تخطٍّ صامت، لا نداء
-    await ia._collect_ndvi_value(client, tf, {"datetime": "2026-06-10"}, {})
+    await ia._collect_ndvi_value(tf, {"datetime": "2026-06-10"}, {})
     assert tf.last_ndvi_mean is None
-    assert client.calls == []
+    assert calls == []
 
 
 def test_v54_migration_in_manifest_before_append_only():

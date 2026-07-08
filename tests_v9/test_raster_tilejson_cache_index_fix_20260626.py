@@ -137,5 +137,6 @@ def test_platform_has_api_raster_compatibility_proxy_for_misrouted_nginx():
         encoding="utf-8"
     )
     assert '@router.get("/api/raster/{path:path}")' in compat
-    assert "RASTER_SERVICE_URL" in compat
-    assert "httpx.AsyncClient" in compat
+    # P2.4 raster facade: the raster passthrough builds its transport via the
+    # raster_service_client facade (raster_get_raw) instead of open-coding RASTER_SERVICE_URL.
+    assert "raster_get_raw" in compat

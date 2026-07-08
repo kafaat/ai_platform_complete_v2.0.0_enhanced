@@ -14095,6 +14095,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8bf67f478df5bef491e66e871e3d486497db01aa74272bc7db5c2357d22dbe4a"
+        }
+      ],
+      "name": "services/sahool-platform/api/weather_service_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "36f2ce301d816d02121e67e1c179b29d77d8cdc3ca5f2938f00ba22b4d026312"
         }
       ],
@@ -19825,6 +19835,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "06c49b7c645894f6d769584bfc26d96c01b47474724b33eb2b628046f95e990b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p3_4_platform_weather_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "48329b51aeb216bbb33770c2aa461abc865391e3af6a60cc06194ff835ed2a0b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p3_4_weather_facade_neutral.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "889dc3332eb39bc2e9efe019d923c1bf1981d79b7a1e9e33e15e04989927c2eb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ca8202eed327d3b7ed41ed25c740b89d2f8a34bd402a0c22a7dcb4f6616d397d"
         }
       ],
@@ -21919,6 +21959,16 @@
         }
       ],
       "name": "services/weather-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "91ec5ca02d3dd4719a636de08013ef5df60ed1174ee3be54e3805d0f83dfb403"
+        }
+      ],
+      "name": "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
       "type": "file"
     },
     {

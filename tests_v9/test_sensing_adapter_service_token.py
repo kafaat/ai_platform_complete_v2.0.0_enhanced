@@ -21,12 +21,21 @@ ADAPTERS = os.path.join(ROOT, "services/sahool-platform/core/field_intelligence_
 
 
 def test_sensing_adapter_passes_agent_token_source():
-    """تعاقُد مصدريّ: sensing_adapter يمرّر agent_token، و_get_json يحوّله لـX-Agent-Token."""
+    """تعاقُد مصدريّ: sensing_adapter يقرأ /indices عبر واجهة raster التي تحمل X-Agent-Token.
+
+    P2 raster facade: توكن الخدمة انتقل من _get_json المحلّيّ إلى raster_service_client
+    (raster_service_headers تبني X-Agent-Token من SAHOOL_AGENT_TOKEN). النيّة محفوظة:
+    نداء /indices ما زال يحمل توكن الخدمة — عبر الواجهة.
+    """
     src = open(ADAPTERS, encoding="utf-8").read()
     sa = src[src.index("def sensing_adapter") : src.index("def sensing_adapter") + 500]
-    assert "agent_token=AGENT_TOKEN" in sa, "sensing_adapter لا يمرّر توكن الخدمة لـ/indices"
-    assert 'AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN"' in src
-    assert '"X-Agent-Token"' in src, "_get_json لا يبني رأس X-Agent-Token"
+    assert "get_indices_sync" in sa, "sensing_adapter لا يقرأ /indices عبر واجهة raster"
+    client = open(
+        os.path.join(ROOT, "services/sahool-platform/api/raster_service_client.py"),
+        encoding="utf-8",
+    ).read()
+    assert 'os.getenv("SAHOOL_AGENT_TOKEN"' in client, "الواجهة لا تقرأ توكن الخدمة"
+    assert '"X-Agent-Token"' in client, "الواجهة لا تبني رأس X-Agent-Token"
 
 
 @pytest.mark.skipif(

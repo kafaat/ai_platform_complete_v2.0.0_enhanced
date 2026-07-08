@@ -148,17 +148,19 @@ def test_ndvi_grid_from_raster_payload_real_and_synthetic():
 
 
 # 5 ── fetch helper degrades safely on raster error (pack still built, no grid) ─
-def test_optional_ndvi_grid_degrades_on_raster_error():
+def test_optional_ndvi_grid_degrades_on_raster_error(monkeypatch):
     fac = _load_field_ai_context()
     import asyncio
 
-    class _BoomClient:
-        async def get(self, *a, **k):  # noqa: ANN002, ANN003
-            raise RuntimeError("raster down")
+    # P2.2 raster facade: _optional_ndvi_grid reads the grid through get_indicator_grid
+    # (raster_service_client) instead of an injected httpx client. Patch the facade to
+    # raise; the fail-safe degrade (no grid + warning) behaviour is unchanged.
+    async def _boom(*a, **k):  # noqa: ANN002, ANN003
+        raise RuntimeError("raster down")
 
-    grid, quality, warn = asyncio.run(
-        fac._optional_ndvi_grid(_BoomClient(), "http://raster", "f-1", {})
-    )
+    monkeypatch.setattr(fac, "get_indicator_grid", _boom)
+
+    grid, quality, warn = asyncio.run(fac._optional_ndvi_grid("f-1", "t-1"))
     assert grid is None and quality is None
     assert warn is not None and "ndvi_grid" in warn
 

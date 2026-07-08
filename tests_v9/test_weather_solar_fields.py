@@ -96,5 +96,10 @@ def test_forecast_endpoint_exposes_solar_fields():
         body = src[start : start + 1 + nxt.start()] if nxt else src[start:]
         break
     assert body is not None, "لم يُعثر على معالِج weather_forecast في main.py ولا routers/"
+    # P3.4 weather facade: the platform forecast route is now a thin facade to
+    # weather-service (get_weather_forecast). The solar fields are OWNED and exposed by
+    # weather-service; the platform forwards them unchanged.
+    assert "get_weather_forecast" in body, "نقطة التوقّع لا تفوّض لواجهة weather-service"
+    om = open(os.path.join(ROOT, "services/weather-service/open_meteo.py"), encoding="utf-8").read()
     for key in ('"sunrise"', '"sunset"', '"daylight_hours"', '"solar_radiation_mj_m2"'):
-        assert key in body, f"نقطة التوقّع لا تكشف {key}"
+        assert key in om, f"weather-service forecast لا يكشف {key}"
