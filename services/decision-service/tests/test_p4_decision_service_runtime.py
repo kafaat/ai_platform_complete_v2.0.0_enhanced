@@ -7,12 +7,39 @@ client = TestClient(app)
 HEADERS = {"X-Tenant-Id": "tenant-1"}
 
 
-def test_contract_names_owned_loop_tables():
+def test_contract_declares_interim_non_authoritative_mirror():
+    """INTERIM: decision-service is an honest, non-authoritative mirror (not yet SoR)."""
     data = client.get("/contract").json()
     assert data["service"] == "decision-service"
-    assert "decision_record" in data["owned_tables"]
-    assert "online_learning_updates" in data["owned_tables"]
-    assert data["platform_role"].startswith("BFF")
+    assert "decision_record" in data["mirrors_tables"]
+    assert "online_learning_updates" in data["mirrors_tables"]
+    # It must NOT claim to be the system-of-record while the platform is the temporary SoR.
+    assert data["authoritative"] is False
+    assert "sahool-platform" in data["system_of_record"]
+    assert data["migration_path"]  # documented path to a future real SoR
+
+
+def test_write_endpoints_never_claim_real_persistence():
+    """Requirement (d): the stub mirror sink must never return persisted=true."""
+    cases = [
+        ("/v1/decisions/record", {"decision_type": "irrigation", "decision_value": {}}),
+        (
+            "/v1/dispatch/decisions",
+            {"recommendation_id": "r", "action_type": "irrigate", "state": "queued"},
+        ),
+        ("/v1/outcomes/record", {"decision_id": "d"}),
+        ("/v1/recommendation-outcomes", {"recommendation_id": "r"}),
+        (
+            "/v1/learning/updates",
+            {"model_id": "m", "source_type": "outcome_record", "source_id": "x"},
+        ),
+    ]
+    for path, payload in cases:
+        body = client.post(path, headers=HEADERS, json=payload).json()
+        assert body["persisted"] is False, path
+        assert body["authoritative"] is False, path
+        assert body["accepted"] is True, path
+        assert "mirror-only" in body["note"], path
 
 
 def test_decision_outcome_and_learning_endpoints_exist():
@@ -31,7 +58,9 @@ def test_decision_outcome_and_learning_endpoints_exist():
     assert out.status_code == 200
     learn = client.post("/v1/learning/updates", headers=HEADERS, json={"model_id": "m1"})
     assert learn.status_code == 200
+    # Traceability is still validated/echoed as a mirror check, but nothing is persisted.
     assert learn.json()["traceability_status"] == "rejected_untraceable"
+    assert learn.json()["persisted"] is False
 
 
 def test_learning_update_traceable_when_source_present():
@@ -44,8 +73,8 @@ def test_learning_update_traceable_when_source_present():
     assert res.json()["traceability_status"] == "traceable"
 
 
-def test_dispatch_decision_persistence_endpoint():
-    """P4.5: the platform dispatch/execute write route now delegates here."""
+def test_dispatch_decision_mirror_endpoint():
+    """INTERIM: the platform dispatch/execute route best-effort mirrors here (non-authoritative)."""
     res = client.post(
         "/v1/dispatch/decisions",
         headers=HEADERS,
@@ -53,15 +82,16 @@ def test_dispatch_decision_persistence_endpoint():
     )
     assert res.status_code == 200
     body = res.json()
-    assert body["persisted"] is True
+    assert body["persisted"] is False  # mirror sink — the platform is the SoR
+    assert body["accepted"] is True
     assert body["tenant_id"] == "tenant-1"
     assert body["recommendation_id"] == "rec-1"
     assert body["state"] == "queued"
     assert body["decision_id"].startswith("disp_")
 
 
-def test_recommendation_outcome_persistence_endpoint():
-    """P4.5: the platform recommendations/outcomes write route now delegates here."""
+def test_recommendation_outcome_mirror_endpoint():
+    """INTERIM: the platform recommendations/outcomes route best-effort mirrors here."""
     res = client.post(
         "/v1/recommendation-outcomes",
         headers=HEADERS,
@@ -69,7 +99,8 @@ def test_recommendation_outcome_persistence_endpoint():
     )
     assert res.status_code == 200
     body = res.json()
-    assert body["persisted"] is True
+    assert body["persisted"] is False
+    assert body["accepted"] is True
     assert body["recommendation_id"] == "rec-9"
     assert body["outcome"] == "actual_recorded"
 

@@ -1,5 +1,5 @@
 {
-  "baseline_route_count": 567,
+  "baseline_route_count": 570,
   "routes": [
     {
       "file": "api/chat_proxy_reference.py",
@@ -5670,12 +5670,42 @@
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/yield_interval.py::POST /api/v1/fields/{field_id}/yield-interval::field_yield_interval_endpoint"
+    },
+    {
+      "file": "api/main.py",
+      "function": "metrics",
+      "method": "GET",
+      "path": "/metrics",
+      "line": 786,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-observability",
+      "route_key": "api/main.py::GET /metrics::metrics"
+    },
+    {
+      "file": "api/routers/field_intelligence.py",
+      "function": "field_intelligence_analyze_job_status",
+      "method": "GET",
+      "path": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
+      "line": 515,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/field_intelligence.py::GET /api/v1/field-intelligence/analyze/jobs/{job_id}::field_intelligence_analyze_job_status"
+    },
+    {
+      "file": "api/routers/field_intelligence.py",
+      "function": "field_intelligence_analyze_job_cancel",
+      "method": "POST",
+      "path": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
+      "line": 525,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/field_intelligence.py::POST /api/v1/field-intelligence/analyze/jobs/{job_id}/cancel::field_intelligence_analyze_job_cancel"
     }
   ],
   "p2_6_route_budget_reduction": {
     "previous_baseline_route_count": 567,
-    "measured_route_count_after_p4_5": 564,
-    "new_max_platform_routes": 567,
-    "policy": "No route growth above the verified AST route budget after P3/P4 extraction without ownership-map review; extraction progress is enforced by service boundary guards, not artificial route deletion."
+    "measured_route_count_after_p4_5": 570,
+    "new_max_platform_routes": 570,
+    "policy": "No route growth above the verified AST route budget after P3/P4 extraction without ownership-map review; extraction progress is enforced by service boundary guards, not artificial route deletion. Budget deliberately raised 567->570 for the JSON-metrics hotfix (field-intelligence async-job + evidence-graph read endpoints, platform-owned)."
   }
 }

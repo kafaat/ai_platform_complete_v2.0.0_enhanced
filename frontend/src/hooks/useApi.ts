@@ -7,7 +7,7 @@ import {
   kongApi, indicatorsApi, vegetationApi,
   weatherApi, soilApi, authApi, rasterApi,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
-  analyzeFieldIntelligence, getCostAnalytics,
+  analyzeFieldIntelligence, startAnalyzeFieldIntelligence, getFieldIntelligenceJob, cancelFieldIntelligenceJob, getCostAnalytics,
   getYieldAnalysis, type YieldAnalysisResult,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
@@ -17,7 +17,7 @@ import {
   type WaterSampleInput, type WaterAnalysisResult,
   type PestEscalationInput, type PestEscalationResult,
   type FieldRecommendationInput, type RecommendationResult,
-  type FieldIntelInput, type FieldIntelResult,
+  type FieldIntelInput, type FieldIntelResult, type FieldIntelJobStatus,
   type CostAnalytics,
   type FarmSummary, type FieldReportSummary, type SeasonReportSummary,
   // ── الأنظمة الجديدة (شاشات الويب): مخزون/معدّات/أجهزة/ري تشغيلي/مرجعيّة/وثائق ──
@@ -2595,7 +2595,32 @@ export function useFieldRecommendation() {
   });
 }
 
-// المايسترو — تحليل موحّد لحقل (operational truths + قرار + تنبيهات استباقيّة).
+// المايسترو — النمط الجديد: يبدأ job سريعاً ثم تُقرأ الحالة عبر polling.
+export function useStartFieldIntelligenceJob() {
+  return useMutation<FieldIntelJobStatus, Error, FieldIntelInput>({
+    mutationFn: (input) => startAnalyzeFieldIntelligence(input),
+  });
+}
+
+export function useFieldIntelligenceJob(jobId?: string | null) {
+  return useQuery<FieldIntelJobStatus, Error>({
+    queryKey: ['field-intelligence-job', jobId],
+    enabled: !!jobId,
+    queryFn: () => getFieldIntelligenceJob(jobId as string),
+    refetchInterval: (q) => {
+      const status = q.state.data?.status;
+      return status === 'completed' || status === 'failed' || status === 'cancelled' ? false : 1000;
+    },
+  });
+}
+
+export function useCancelFieldIntelligenceJob() {
+  return useMutation<FieldIntelJobStatus, Error, string>({
+    mutationFn: (jobId) => cancelFieldIntelligenceJob(jobId),
+  });
+}
+
+// توافق قديم: يبقى متاحاً لكنه يستعمل job + polling، وليس POST متزامناً طويلاً.
 export function useFieldIntelligence() {
   return useMutation<FieldIntelResult, Error, FieldIntelInput>({
     mutationFn: (input) => analyzeFieldIntelligence(input),

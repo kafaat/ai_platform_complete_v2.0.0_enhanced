@@ -57,7 +57,7 @@ from core.canonical_schemas import UserRole, UserSchema
 from core.offline_first import OfflineQueue
 from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
@@ -1210,6 +1210,32 @@ def healthz():
     """Liveness — لا dependency، فقط أنّ التطبيق يعمل."""
     resp = handle_healthz()
     return JSONResponse(status_code=resp.status_code, content=resp.body)
+
+
+@app.get("/metrics")
+def metrics():
+    """Minimal Prometheus-compatible platform metrics endpoint.
+
+    The rate limiter already exempts /metrics, and compose/prometheus probes this path.
+    Returning a small text/plain payload is preferable to a noisy 404; detailed
+    domain metrics can remain under their own service endpoints.
+    """
+    db_enabled = 1 if _DB_POOL is not None else 0
+    payload = "\n".join(
+        [
+            "# HELP sahool_platform_up Platform process is serving requests",
+            "# TYPE sahool_platform_up gauge",
+            "sahool_platform_up 1",
+            "# HELP sahool_platform_db_pool_enabled Database pool configured",
+            "# TYPE sahool_platform_db_pool_enabled gauge",
+            f"sahool_platform_db_pool_enabled {db_enabled}",
+            "# HELP sahool_platform_rate_limit_buckets In-process rate limit bucket count",
+            "# TYPE sahool_platform_rate_limit_buckets gauge",
+            f"sahool_platform_rate_limit_buckets {len(_rate_buckets)}",
+            "",
+        ]
+    )
+    return PlainTextResponse(payload, media_type="text/plain; version=0.0.4")
 
 
 @app.get("/readyz")

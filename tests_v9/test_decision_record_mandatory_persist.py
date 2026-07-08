@@ -12,10 +12,12 @@
   (د) OwnerLookupUnavailable ⇒ 503 (fail-closed).
   (هـ) بلا DATABASE_URL (DB-less/CI) ⇒ لا حجب (تُبقى خضرة CI).
 
-P4.7 direct-DB final sweep: الإدامة لم تعد INSERT مباشراً بل تفويض عبر واجهة
-decision-service. نقيّ بلا قاعدة: نُرقِّع دالّة الواجهة كما تُستورَد في الموجِّه
-(``_record_decision_via_service``) ونُرقِّع مصدر الملكيّة — نتحقّق أنّ المنصّة تحفظ فحص
-الملكيّة/الإلزاميّة/الإغلاق المرن وتُفوّض الكتابة للمالك (decision-service).
+الجسر الانتقاليّ (INTERIM): المنصّة هي مصدر السجلّ المؤقّت — تُدِيم القرار عبر كتابة قاعدة
+موثوقة (``tenant_connection`` + INSERT + ``_emit_domain_event``) **ثمّ** تعكسها best-effort
+إلى decision-service (مِرْآة غير موثوقة لا تُفشِل الطلب). نقيّ بلا قاعدة: نُرقِّع
+``tenant_connection``/``_emit_domain_event`` لالتقاط الكتابة الموثوقة، ونُرقِّع المِرْآة
+(``_mirror_decision_to_service``) لتكون بلا أثر — نتحقّق أنّ المنصّة تحفظ فحص الملكيّة
+والإلزاميّة والإغلاق المرن على **كتابتها الموثوقة**.
 """
 
 from __future__ import annotations
@@ -60,24 +62,62 @@ _ADVISORY_DECISION = {
 }
 
 
+class _FailConn:
+    async def execute(self, *args, **kwargs):
+        raise RuntimeError("simulated platform DB failure")
+
+
+class _FailTenantConn:
+    async def __aenter__(self):
+        return _FailConn()
+
+    async def __aexit__(self, *exc):
+        return False
+
+
+def _wire_failing_platform_write(monkeypatch):
+    """Authoritative platform write fails (tenant_connection.execute raises)."""
+    monkeypatch.setattr(dr, "tenant_connection", lambda user: _FailTenantConn())
+
+    async def _noop_mirror(payload, *, tenant_id=None):
+        return {"accepted": True, "authoritative": False, "persisted": False}
+
+    monkeypatch.setattr(dr, "_mirror_decision_to_service", _noop_mirror)
+
+
 @pytest.fixture
 def captured_inserts(monkeypatch):
-    """يلتقط تفويض الإدامة إلى decision-service عبر ترقيع دالّة الواجهة في الموجِّه.
+    """يلتقط **الكتابة الموثوقة** في المنصّة (INSERT INTO decision_record) بترقيع
+    ``tenant_connection``/``_emit_domain_event``، مع جعل المِرْآة بلا أثر.
 
-    كلّ عنصر في المُسجِّل هو حمولة القرار المُمرَّرة إلى ``_record_decision_via_service``.
-    فحص الملكيّة يسبق التفويض؛ رفض الملكيّة ⇒ لا استدعاء ⇒ مُسجِّل فارغ (كالإدراج سابقاً).
+    كلّ عنصر في المُسجِّل هو استدعاء INSERT الموثوق. فحص الملكيّة يسبق الكتابة؛ رفض الملكيّة
+    ⇒ لا كتابة ⇒ مُسجِّل فارغ.
     """
     recorder: list = []
 
-    async def _fake_record(payload, *, tenant_id=None):
-        recorder.append(payload)
-        return {
-            "persisted": True,
-            "decision_id": payload.get("decision_id"),
-            "tenant_id": tenant_id,
-        }
+    class _Conn:
+        async def execute(self, sql, *args):
+            if "INSERT INTO decision_record" in sql:
+                recorder.append({"sql": sql, "args": args})
 
-    monkeypatch.setattr(dr, "_record_decision_via_service", _fake_record)
+    class _TenantConn:
+        async def __aenter__(self):
+            return _Conn()
+
+        async def __aexit__(self, *exc):
+            return False
+
+    monkeypatch.setattr(dr, "tenant_connection", lambda user: _TenantConn())
+
+    async def _fake_emit(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(dr, "_emit_domain_event", _fake_emit)
+
+    async def _noop_mirror(payload, *, tenant_id=None):
+        return {"accepted": True, "authoritative": False, "persisted": False}
+
+    monkeypatch.setattr(dr, "_mirror_decision_to_service", _noop_mirror)
     return recorder
 
 
@@ -118,15 +158,11 @@ async def test_executable_via_explicit_param_persists(captured_inserts, monkeypa
 
 
 @pytest.mark.unit
-async def test_executable_persist_failure_fails_closed(captured_inserts, monkeypatch):
-    """فشل إدامة قرار قابل للتنفيذ ⇒ 503 (fail-closed، لا يُمضى كأنّه سُجِّل)."""
+async def test_executable_persist_failure_fails_closed(monkeypatch):
+    """فشل الكتابة الموثوقة لقرار قابل للتنفيذ ⇒ 503 (fail-closed، لا يُمضى كأنّه سُجِّل)."""
     monkeypatch.delenv("SAHOOL_AUTO_PERSIST_DECISIONS", raising=False)
     monkeypatch.setattr(dr, "DATABASE_URL", "")
-
-    async def _boom(payload, *, tenant_id=None):
-        raise RuntimeError("decision-service down")
-
-    monkeypatch.setattr(dr, "_record_decision_via_service", _boom)
+    _wire_failing_platform_write(monkeypatch)
 
     with pytest.raises(HTTPException) as exc:
         await dr.persist_decision_if_enabled(
@@ -175,14 +211,10 @@ async def test_advisory_persists_when_flag_on(captured_inserts, monkeypatch):
 
 @pytest.mark.unit
 async def test_advisory_persist_failure_is_best_effort(monkeypatch):
-    """فشل إدامة قرار استشاريّ (العلم مرفوع) ⇒ False بلا رمي (لا يكسر إصدار القرار)."""
+    """فشل الكتابة الموثوقة لقرار استشاريّ (العلم مرفوع) ⇒ False بلا رمي (لا يكسر الإصدار)."""
     monkeypatch.setenv("SAHOOL_AUTO_PERSIST_DECISIONS", "1")
     monkeypatch.setattr(dr, "DATABASE_URL", "")
-
-    async def _boom(payload, *, tenant_id=None):
-        raise RuntimeError("decision-service down")
-
-    monkeypatch.setattr(dr, "_record_decision_via_service", _boom)
+    _wire_failing_platform_write(monkeypatch)
 
     ok = await dr.persist_decision_if_enabled(
         _USER,

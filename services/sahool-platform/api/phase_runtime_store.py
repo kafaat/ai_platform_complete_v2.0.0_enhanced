@@ -10,11 +10,14 @@ breaking local contract tests.
 from __future__ import annotations
 
 import json
+import logging
 import os
 from typing import Any
 from uuid import UUID
 
 from fastapi import HTTPException, Request
+
+logger = logging.getLogger(__name__)
 
 
 def _persistence_required(request: Request | None = None) -> bool:
@@ -449,36 +452,74 @@ async def persist_phase10_learning_outputs(
         update = outputs.get("online_learning_update") or {}
         if update:
             # جسر #2: نَسَب المصدر — كلّ تحديث تعلّم يُحَلّ مصدره وحالة قابليّة تتبّعه قبل
-            # مغادرته المنصّة. صدق: تحديث بلا مصدر ⇒ traceability_status='rejected_untraceable'.
-            # P4.7 direct-DB final sweep: ملكيّة online_learning_updates لدى decision-service؛
-            # نُحلّ النَّسَب هنا ثمّ نُفوّض الكتابة عبر واجهة decision-service (لا INSERT مباشر).
+            # الكتابة. صدق: تحديث بلا مصدر ⇒ traceability_status='rejected_untraceable'.
             from core.learning_source_lineage import resolve_learning_source
 
-            from api.decision_service_client import (
-                record_learning_update as _record_learning_update_via_service,
-            )
-
             _lin = resolve_learning_source(update)
-            await _record_learning_update_via_service(
-                {
-                    "update_id": str(update.get("update_id")),
-                    "model_id": str(update.get("model_id")),
-                    "feature_set_id": str(update.get("feature_set_id")),
-                    "learning_rate": float(update.get("learning_rate", 0.01)),
-                    "sample_count": int(update.get("sample_count", 0)),
-                    "label_summary": update.get("label_summary", {}),
-                    "drift_score": float(update.get("drift_score", 0)),
-                    "action": str(update.get("action")),
-                    "source_type": _lin["source_type"],
-                    "source_id": _lin["source_id"],
-                    "field_id": _lin["field_id"],
-                    "season_id": _lin["season_id"],
-                    "recommendation_id": _lin["recommendation_id"],
-                    "decision_id": _lin["decision_id"],
-                    "evidence_snapshot_id": _lin["evidence_snapshot_id"],
-                },
-                tenant_id=str(tenant),
+            await conn.execute(
+                """
+                INSERT INTO online_learning_updates
+                    (tenant_id, update_id, model_id, feature_set_id, learning_rate, sample_count,
+                     label_summary, drift_score, action, source_type, source_id, field_id, season_id,
+                     recommendation_id, decision_id, evidence_snapshot_id, traceability_status)
+                VALUES ($1,$2,$3,$4,$5,$6,$7::jsonb,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
+                ON CONFLICT (tenant_id, update_id) DO UPDATE SET
+                    action = EXCLUDED.action, drift_score = EXCLUDED.drift_score,
+                    source_type = EXCLUDED.source_type, source_id = EXCLUDED.source_id,
+                    traceability_status = EXCLUDED.traceability_status
+                """,
+                tenant,
+                str(update.get("update_id")),
+                str(update.get("model_id")),
+                str(update.get("feature_set_id")),
+                float(update.get("learning_rate", 0.01)),
+                int(update.get("sample_count", 0)),
+                _json(update.get("label_summary", {})),
+                float(update.get("drift_score", 0)),
+                str(update.get("action")),
+                _lin["source_type"],
+                _lin["source_id"],
+                _lin["field_id"],
+                _lin["season_id"],
+                _lin["recommendation_id"],
+                _lin["decision_id"],
+                _lin["evidence_snapshot_id"],
+                _lin["traceability_status"],
             )
+            # الجسر الانتقاليّ: كتابة online_learning_updates أعلاه موثوقة ومحفوظة (المنصّة
+            # هي مصدر السجلّ المؤقّت). نعكسها best-effort إلى decision-service — الفشل يُسجَّل
+            # ولا يُفشِل مسار الطلب ولا يفقد بيانات المنصّة.
+            try:
+                from api.decision_service_client import (
+                    record_learning_update as _mirror_learning_update_to_service,
+                )
+
+                await _mirror_learning_update_to_service(
+                    {
+                        "update_id": str(update.get("update_id")),
+                        "model_id": str(update.get("model_id")),
+                        "feature_set_id": str(update.get("feature_set_id")),
+                        "learning_rate": float(update.get("learning_rate", 0.01)),
+                        "sample_count": int(update.get("sample_count", 0)),
+                        "label_summary": update.get("label_summary", {}),
+                        "drift_score": float(update.get("drift_score", 0)),
+                        "action": str(update.get("action")),
+                        "source_type": _lin["source_type"],
+                        "source_id": _lin["source_id"],
+                        "field_id": _lin["field_id"],
+                        "season_id": _lin["season_id"],
+                        "recommendation_id": _lin["recommendation_id"],
+                        "decision_id": _lin["decision_id"],
+                        "evidence_snapshot_id": _lin["evidence_snapshot_id"],
+                    },
+                    tenant_id=str(tenant),
+                )
+            except Exception as e:  # noqa: BLE001 — مِرْآة best-effort: لا تُفشِل الطلب
+                logger.warning(
+                    "decision-service mirror (learning-update %s) فشلت — كتابة المنصّة موثوقة: %s",
+                    update.get("update_id"),
+                    e,
+                )
         scenario = outputs.get("scenario_result") or {}
         if scenario:
             await conn.execute(

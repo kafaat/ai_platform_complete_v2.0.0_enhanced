@@ -182,9 +182,11 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v69_decision_policies.sql"
   decision_record:
-    owner: decision-service
-    writers: [decision-service]
-    readers: [sahool-platform]
+    owner: sahool-platform
+    writers: [sahool-platform]
+    mirror: decision-service
+    status: interim-bridge
+    readers: [decision-service]
     source: "migrations/v78_decision_record.sql"
   device_commands_log:
     owner: actuator-service
@@ -202,9 +204,11 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v116_enterprise_gis_phase7.sql"
   dispatch_decisions:
-    owner: decision-service
-    writers: [decision-service]
-    readers: [sahool-platform]
+    owner: sahool-platform
+    writers: [sahool-platform]
+    mirror: decision-service
+    status: interim-bridge
+    readers: [decision-service]
     source: "migrations/v66_dispatch_decisions.sql"
   distributed_raster_jobs:
     owner: raster-service
@@ -742,9 +746,11 @@ tables:
     readers: []
     source: "migrations/v106_phase9_10_runtime_strengthening.sql"
   online_learning_updates:
-    owner: decision-service
-    writers: [decision-service]
-    readers: [sahool-platform]
+    owner: sahool-platform
+    writers: [sahool-platform]
+    mirror: decision-service
+    status: interim-bridge
+    readers: [decision-service]
     source: "migrations/v119_phase10_continuous_learning.sql"
   outbox_delivery_attempts:
     owner: sahool-platform
@@ -752,9 +758,11 @@ tables:
     readers: []
     source: "migrations/v140_outbox_delivery_attempts.sql"
   outcome_record:
-    owner: decision-service
-    writers: [decision-service]
-    readers: [sahool-platform]
+    owner: sahool-platform
+    writers: [sahool-platform]
+    mirror: decision-service
+    status: interim-bridge
+    readers: [decision-service]
     source: "migrations/v79_outcome_record.sql"
   plugin_permission_audit:
     owner: sahool-platform
@@ -817,9 +825,11 @@ tables:
     readers: [sahool-platform]
     source: "alembic/versions/v101_field_runtime_cohesion.sql"
   recommendation_outcomes:
-    owner: decision-service
-    writers: [decision-service]
-    readers: [sahool-platform]
+    owner: sahool-platform
+    writers: [sahool-platform]
+    mirror: decision-service
+    status: interim-bridge
+    readers: [decision-service]
     source: "migrations/v49_zone_key_recommendation_outcomes.sql"
   recommendation_reviews:
     owner: agriai-engine

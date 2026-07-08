@@ -584,5 +584,5 @@
     "validate_observations.py"
   ],
   "p3_4_note": "Deliberate one-file BFF facade for weather-service transport; prevents provider/runtime logic from spreading in sahool-platform.",
-  "p4_note": "Deliberate one-file BFF facade for decision-service transport; loop persistence moves to decision-service ownership."
+  "p4_note": "INTERIM bridge: sahool-platform is the temporary Source of Record for loop tables (authoritative DB write) and best-effort mirrors to decision-service via the one-file transport facade api/decision_service_client.py; decision-service is a non-authoritative mirror, not yet the system-of-record. See docs/architecture/DECISION_SERVICE_BOUNDARY_CONTRACT.md."
 }

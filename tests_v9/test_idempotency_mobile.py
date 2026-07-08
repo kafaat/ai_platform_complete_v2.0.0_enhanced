@@ -205,25 +205,25 @@ def test_write_endpoint_wires_idempotency(handler, command_type):
     )
 
 
-def test_recommendation_outcome_forwards_idempotency_to_decision_service():
-    """P4.5: recommendation-outcome loop persistence moved to decision-service.
+def test_recommendation_outcome_is_authoritative_idempotent_then_mirrors_idempotency():
+    """INTERIM bridge: recommendation-outcome persistence is AUTHORITATIVE in the platform
+    (temporary SoR) and best-effort mirrored to decision-service.
 
-    The platform no longer wraps the write in a local CommandStore/_idempotent; instead
-    it still intakes the Idempotency-Key header and forwards it to the decision-service
-    facade, which owns loop-table idempotency semantics. This asserts the key is not
-    silently dropped at the boundary.
+    The platform keeps its local CommandStore/_idempotent write (authoritative idempotency
+    over ``recommendation_outcomes``) and forwards the Idempotency-Key to the best-effort
+    mirror so it is not silently dropped at the boundary.
     """
     body = _handler_src("record_recommendation_outcome")
     assert "Depends(_idem_key)" in body, "record_recommendation_outcome لا يقبل مفتاح idempotency"
-    assert "_record_recommendation_outcome_via_service" in body, (
-        "record_recommendation_outcome لا يفوّض الكتابة إلى decision-service"
+    # Authoritative local idempotent write restored (temporary SoR).
+    assert "CommandStore(" in body, "record_recommendation_outcome فقد الكتابة الموثوقة المحلّيّة"
+    assert "INSERT INTO recommendation_outcomes" in body
+    # Best-effort mirror that also forwards the idempotency key.
+    assert "_mirror_recommendation_outcome_to_service" in body, (
+        "record_recommendation_outcome لا يعكس إلى decision-service"
     )
     assert '"idempotency_key": idem' in body, (
-        "record_recommendation_outcome لا يمرّر مفتاح idempotency إلى decision-service"
-    )
-    # الكتابة المباشرة (CommandStore محلّيّ) انتقلت إلى decision-service — يجب ألّا تبقى.
-    assert "CommandStore(" not in body, (
-        "record_recommendation_outcome ما زال يبني CommandStore محلّيّاً بعد نقل الملكيّة"
+        "record_recommendation_outcome لا يمرّر مفتاح idempotency إلى المِرْآة"
     )
 
 

@@ -60,31 +60,26 @@ def test_core_bridge_artifacts_and_migrations_are_present():
     assert not missing, "Decision/outcome/learning bridge artifacts are missing: " + repr(missing)
 
 
-def test_online_learning_update_writer_resolves_source_lineage_before_delegating():
-    """P4.7: online_learning_updates ownership moved to decision-service.
+def test_online_learning_update_writer_resolves_lineage_then_writes_authoritatively_and_mirrors():
+    """INTERIM: the learning-update invariant is preserved under the temporary bridge.
 
-    The invariant is preserved, not dropped: the platform still resolves explicit source
-    lineage *before* the write leaves it (``resolve_learning_source``), then delegates the
-    write to the single owner (decision-service), which recomputes ``traceability_status``.
-    A learning update is therefore still never silently trusted, and there is no direct
-    loop-table INSERT left on this path.
+    The platform resolves explicit source lineage (``resolve_learning_source``) and writes it
+    (including ``traceability_status``) AUTHORITATIVELY to ``online_learning_updates`` — the
+    platform is the temporary Source of Record — then best-effort mirrors to decision-service.
+    A learning update is therefore still never silently trusted, and no platform data is lost
+    if decision-service is down.
     """
     text = PHASE_RUNTIME_STORE.read_text(encoding="utf-8", errors="ignore")
     allow = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
-    # Lineage input columns are still forwarded; traceability_status is now computed by the
-    # owner service (decision-service._traceability), so it is not asserted on the writer.
-    lineage_inputs = [c for c in allow["learning_source_columns"] if c != "traceability_status"]
     required = [
         "resolve_learning_source(update)",
-        "record_learning_update as _record_learning_update_via_service",
-    ] + lineage_inputs
+        "INSERT INTO online_learning_updates",  # authoritative local write (temporary SoR)
+        "record_learning_update as _mirror_learning_update_to_service",  # best-effort mirror
+    ] + list(allow["learning_source_columns"])  # incl. traceability_status, written locally
     missing = [marker for marker in required if marker not in text]
     assert not missing, (
-        "learning update writer must resolve source lineage then delegate to the owner: "
+        "learning update writer must resolve lineage, write authoritatively, then mirror: "
         + repr(missing)
-    )
-    assert "INSERT INTO online_learning_updates" not in text, (
-        "P4.7: platform must not directly own the online_learning_updates write."
     )
 
 
@@ -160,10 +155,11 @@ def test_decisionish_routes_have_explicit_allowed_target_owner():
 def test_outcome_reconciler_is_wired_into_learning_summary_read_path():
     """The bridge must not remain pure-only; reconciliation logic must stay live.
 
-    P4.6 read-side facade: the learning-summary *route* no longer reads loop tables itself —
-    it delegates to decision-service (the owner).  The pure reconciliation logic still lives
-    in ``api/learning_summary.py`` (asserted below) and is still consumed on a live read path
-    by the field-season projection (see the dedicated test), so the reconciler is not orphaned.
+    INTERIM: while the platform is the temporary Source of Record, the learning-summary route
+    reads the platform loop tables AUTHORITATIVELY again (delegating to the not-yet-SoR
+    decision-service returned empty data).  The pure reconciliation logic still lives in
+    ``api/learning_summary.py`` and is consumed on this live read path, so the reconciler is
+    not orphaned.
     """
     summary_core = (PLATFORM / "api" / "learning_summary.py").read_text(
         encoding="utf-8", errors="ignore"
@@ -183,20 +179,18 @@ def test_outcome_reconciler_is_wired_into_learning_summary_read_path():
         "learning summary core must expose reconciled outcome metadata: " + repr(missing_core)
     )
 
-    # Route now delegates read semantics to the owning service (no direct loop-table reads).
-    required_router = ["decision_service_client", "get_learning_summary"]
+    # Route reads the platform loop tables authoritatively and runs the reconciler live.
+    required_router = [
+        "tenant_connection",
+        "summarize_learning_with_reconciled_outcomes",
+        "outcome_record",
+        "recommendation_outcomes",
+    ]
     missing_router = [marker for marker in required_router if marker not in summary_router]
     assert not missing_router, (
-        "learning summary route must delegate reads to decision-service: " + repr(missing_router)
+        "learning summary route must read platform loop tables authoritatively + reconcile: "
+        + repr(missing_router)
     )
-    for forbidden in (
-        "FROM recommendation_outcomes",
-        "FROM dispatch_decisions",
-        "tenant_connection",
-    ):
-        assert forbidden not in summary_router, (
-            "P4.6: learning summary route must not read loop tables directly: " + forbidden
-        )
 
 
 def test_outcome_reconciler_is_wired_into_field_season_state_projection():

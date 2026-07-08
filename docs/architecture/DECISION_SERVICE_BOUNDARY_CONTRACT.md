@@ -1,9 +1,25 @@
-# P4 Decision / Outcome / Learning Boundary Contract
+# Decision / Outcome / Learning Boundary Contract
 
-## Owner
-`decision-service` is the write-side owner for the closed-loop decision domain.
+## Status: INTERIM BRIDGE (temporary — NOT the final architecture)
 
-## Owned tables
+The P4.5–P4.7 extraction pointed the platform's decision/outcome/learning writes at
+`decision-service`, but `decision-service` has **no datastore** — it was silently dropping
+data and returning a fake `persisted: true`. Until `decision-service` becomes a real
+system-of-record, we run a **temporary dual-path bridge**:
+
+- **`sahool-platform` = temporary Source of Record (SoR).** It performs the **authoritative**
+  loop-table DB write (`tenant_connection` + `INSERT` [+ `_emit_domain_event` outbox]). The
+  request only returns success if this platform write succeeds (fail-closed, exactly like the
+  pre-extraction behavior). No data is lost if `decision-service` is down.
+- **`decision-service` = best-effort, non-authoritative mirror (NOT yet the SoR).** After the
+  authoritative platform write, each write path best-effort mirrors to `decision-service`
+  through `api/decision_service_client.py`. The mirror call is wrapped so a mirror failure is
+  **logged and observable but never fails the user request** and never loses platform data.
+- The `decision-service` stub is **honest**: its write endpoints return
+  `{"accepted": true, "authoritative": false, "persisted": false, "note": "mirror-only; …"}`.
+  It never claims real persistence.
+
+## Loop tables (authoritative writer = `sahool-platform`, mirror = `decision-service`)
 - `decision_record`
 - `dispatch_decisions`
 - `outcome_record`
@@ -11,27 +27,48 @@
 - `online_learning_updates`
 - `recommendation_feedback` remains deprecated and has no runtime writer.
 
-## Platform role
-`sahool-platform` is allowed to remain a BFF/read facade during migration. It must not introduce new loop-table write semantics outside `api/decision_service_client.py` and documented transitional legacy routers.
+`db_ownership.yml` records these tables as `owner: sahool-platform`,
+`writers: [sahool-platform]`, `mirror: decision-service`, `status: interim-bridge`.
 
-## P4 sub-phases
+## Interim write-path shape (per converted route)
+```
+request → platform router
+        → platform AUTHORITATIVE DB write (must succeed first; 503 on failure)
+        → best-effort mirror to decision-service (try/except; never raises)
+        → success response derived ONLY from the platform write
+```
+Authoritative writers (temporary SoR): `api/routers/decision_record.py`,
+`api/routers/decision_dispatch.py`, `api/routers/recommendations.py`,
+`api/phase_runtime_store.py`, `api/routers/weather.py`.
+
+## Interim read-path shape
+Loop **reads** (`learning/summary`, `decision/{id}/lineage`, `decision/records`,
+`field/{id}/lineage`) read the platform loop tables **authoritatively** again — delegating
+reads to the not-yet-SoR `decision-service` returned empty data.
+
+## Rules
+1. A decision write must never return success unless the platform DB write succeeded.
+2. Learning updates without source lineage are still rejected/marked `rejected_untraceable`;
+   `resolve_learning_source` runs before the authoritative write; a learning update is never
+   silently trusted.
+3. Outcome reconciliation keeps reading both `outcome_record` and `recommendation_outcomes`.
+4. The mirror transport (`X-Tenant-Id` / `X-Agent-Token` forwarding) stays centralized in
+   `api/decision_service_client.py`.
+5. `decision-service` write endpoints must never return `persisted: true` (mirror sink only).
+
+## History (superseded by the interim bridge)
 - P4.1 Decision Service Contract and runtime skeleton.
 - P4.2 Outcome Service Contract and write endpoint.
 - P4.3 Learning Summary / Learning Update Facade.
 - P4.4 DB Ownership Guard for loop tables.
+- P4.5–P4.7 converted platform write/read paths to facade-only. **Rescoped by this bridge:**
+  the platform re-becomes the authoritative writer; `decision-service` is a best-effort mirror.
 
-## Rules
-1. Learning updates without source lineage must be rejected or marked `rejected_untraceable`.
-2. Outcome reconciliation must continue to read both `outcome_record` and `recommendation_outcomes` until the historical data model is consolidated.
-3. `sahool-platform` may shape responses, apply auth, and forward tenant context only.
-4. The service boundary must keep `X-Tenant-Id` and `X-Agent-Token` forwarding centralized in `api/decision_service_client.py`.
-
-## P4.5 Legacy Decision Write Routers Facade Conversion
-The first high-risk legacy write routers in `sahool-platform` are converted to BFF/facade mode:
-
-- `POST /api/v1/decision/record` delegates persistence to `decision-service`.
-- `POST /api/v1/outcome/record` computes pure metrics for compatibility, then delegates persistence to `decision-service`.
-- `POST /api/v1/decision/dispatch/execute` keeps guardrail evaluation in platform, then delegates dispatch persistence to `decision-service`.
-- `POST /api/v1/recommendations/outcomes` validates request shape, then delegates recommendation-outcome persistence to `decision-service`.
-
-These routers must not call `tenant_connection`, `_emit_domain_event`, or direct `INSERT INTO` loop tables on their write paths.
+## Migration path to a future `decision-service` SoR
+1. Give `decision-service` a real datastore (Postgres + RLS + outbox), mirroring the loop
+   schema; keep it accepting mirror writes (idempotent on `decision_id`/`idempotency_key`).
+2. Backfill from the platform SoR; run the mirror in shadow until row parity is verified.
+3. Flip the authoritative write from platform → `decision-service` one table at a time
+   (dual-write with `decision-service` authoritative, platform mirror), then
+4. Demote the platform to a reader, update `db_ownership.yml` to
+   `owner: decision-service`, and retire this interim bridge.

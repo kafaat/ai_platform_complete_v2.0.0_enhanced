@@ -6,7 +6,7 @@
 // ════════════════════════════════════════════════════════════
 import { useState } from 'react';
 import { Activity, Search, ChevronDown, ChevronUp, AlertTriangle, Map, FlaskConical, ListChecks, Bot } from 'lucide-react';
-import { useFieldIntelligence } from '../hooks/useApi';
+import { useCancelFieldIntelligenceJob, useFieldIntelligenceJob, useStartFieldIntelligenceJob } from '../hooks/useApi';
 import FieldSelector from '../components/FieldSelector';
 import { ErrorState } from '../components/StateViews';
 import { useSelectedField } from '../hooks/useSelectedField';
@@ -62,7 +62,10 @@ export default function FieldIntelligencePage() {
   const [lon, setLon] = useState('');
   const [crop, setCrop] = useState('');
   const [showProv, setShowProv] = useState(false);
-  const mut = useFieldIntelligence();
+  const [jobId, setJobId] = useState<string | null>(null);
+  const startMut = useStartFieldIntelligenceJob();
+  const jobQ = useFieldIntelligenceJob(jobId);
+  const cancelMut = useCancelFieldIntelligenceJob();
 
   // رقم محدود صالح أو undefined — لئلّا نُرسل NaN كـquery param (يسبب 422).
   const toNum = (s: string): number | undefined => {
@@ -72,15 +75,24 @@ export default function FieldIntelligencePage() {
 
   const submit = () => {
     if (!fieldId) return;
-    mut.mutate({
+    startMut.mutate({
       field_id: fieldId,
       lat: toNum(lat),
       lon: toNum(lon),
       crop: crop.trim() || undefined,
+    }, {
+      onSuccess: (job) => setJobId(job.job_id),
     });
   };
 
-  const res = mut.data;
+  const cancel = () => {
+    if (!jobId) return;
+    cancelMut.mutate(jobId);
+  };
+
+  const job = jobQ.data ?? startMut.data;
+  const isWorking = startMut.isPending || job?.status === 'queued' || job?.status === 'running';
+  const res = job?.status === 'completed' ? job.result : undefined;
   const conf = asText(res?.confidence);
   const truths = (res?.operational_truths ?? {}) as Record<string, unknown>;
   const policy = (res?.policy_decision ?? {}) as Record<string, unknown>;
@@ -127,16 +139,43 @@ export default function FieldIntelligencePage() {
           ))}
         </div>
         <div className="flex justify-end">
-          <button onClick={submit} disabled={mut.isPending || !fieldId}
+          <button onClick={submit} disabled={isWorking || !fieldId}
             className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
             style={{ background: '#0ea5e9' }}>
             <Search className="w-4 h-4" />
-            {mut.isPending ? 'جارٍ التحليل…' : 'تحليل الحقل'}
+            {isWorking ? 'التحليل يعمل في الخلفية…' : 'تحليل الحقل'}
           </button>
         </div>
       </div>
 
-      {mut.isError && <ErrorState title="تعذّر تحليل الحقل" onRetry={submit} />}
+      {(startMut.isError || jobQ.isError || job?.status === 'failed') && <ErrorState title="تعذّر تحليل الحقل" onRetry={submit} />}
+
+      {job && job.status !== 'completed' && (
+        <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold text-slate-100">جاري تحليل الحقل في الخلفية</div>
+              <div className="text-xs text-slate-400 mt-1">المرحلة: {job.stage || 'queued'} · التقدم {job.progress ?? 0}%</div>
+            </div>
+            {(job.status === 'queued' || job.status === 'running') && (
+              <button onClick={cancel} disabled={cancelMut.isPending} className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ background: '#334155', color: '#e2e8f0' }}>
+                إلغاء التحليل
+              </button>
+            )}
+          </div>
+          <div className="h-2 rounded-full overflow-hidden" style={{ background: '#0f172a' }}>
+            <div className="h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, job.progress ?? 0))}%`, background: '#0ea5e9' }} />
+          </div>
+          <ol className="grid sm:grid-cols-5 gap-2 text-[11px] text-slate-400">
+            <li>1. تحميل بيانات الحقل</li>
+            <li>2. قراءة الموسم</li>
+            <li>3. جلب الطقس</li>
+            <li>4. جلب صور القمر الصناعي</li>
+            <li>5. توليد التوصيات</li>
+          </ol>
+          {job.status === 'cancelled' && <p className="text-xs text-amber-400">تم إلغاء التحليل. يمكنك تشغيله لاحقاً.</p>}
+        </div>
+      )}
 
       {res && (
         <div className="space-y-4">
