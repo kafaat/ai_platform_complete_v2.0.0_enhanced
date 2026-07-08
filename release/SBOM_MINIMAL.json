@@ -7675,7 +7675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "369983a2848867449e65c8bb5d51048ac047c22eae3a24f69d5da322279a8724"
+          "content": "c7ba8bd0f68b34b9dc9223a72e039ed79f81a712d38e20290e223fd05e98d7e0"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -8495,6 +8495,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "860c460a013085cc49294e4be9ded0c97963e51174186e40576650c0e20439ca"
+        }
+      ],
+      "name": "services/gis-workflow-service/bulletin_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a2282e6c9dfafad29b15bbea23b4b87858af3b29679af07bb2494701584da08"
+        }
+      ],
+      "name": "services/gis-workflow-service/bulletin_figure.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d10aedef97f388c54edd6e371fa5c3dcf7d5271b861389f498c51f63d1fdb0f"
+        }
+      ],
+      "name": "services/gis-workflow-service/bulletin_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "39b3090ddd659c13bc551ccee14ef6d2b54a09108cad8695996520167cfcadd4"
         }
       ],
@@ -8549,6 +8579,26 @@
         }
       ],
       "name": "services/gis-workflow-service/tests/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1fe6f13a8f4790360ed14267858842462b38a23175258fe269994f61deb02c10"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_bulletin_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ec264f618cd7a829f113d58512693477636bdca6aea2db89afe9e6f656981b3"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_bulletin_figure.py",
       "type": "file"
     },
     {
