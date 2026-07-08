@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 const source = readFileSync(join(process.cwd(), 'src/sections/MapHub.tsx'), 'utf8');
 const api = readFileSync(join(process.cwd(), 'src/services/api.ts'), 'utf8');
 const platformFields = readFileSync(join(process.cwd(), '../services/sahool-platform/api/routers/fields.py'), 'utf8');
+const rasterClient = readFileSync(join(process.cwd(), '../services/sahool-platform/api/raster_service_client.py'), 'utf8');
 
 describe('MapHub historical imagery timeline thumbnails', () => {
   it('keeps a separate all-index timeline so thumbnails are not limited to the active index/month', () => {
@@ -43,6 +44,9 @@ describe('MapHub historical imagery timeline thumbnails', () => {
     expect(api).toContain('limit = 240');
     expect(api).toContain('params: { ...(index ? { index } : {}), limit }');
     expect(platformFields).toContain('limit: int = Query(240, ge=1, le=500)');
-    expect(platformFields).toContain('params = {"limit": limit, **({"index": index} if index else {})}');
+    // P2 raster facade: بناء limit/index انتقل من fields.py إلى raster_service_client.get_available_dates
+    expect(rasterClient).toContain('limit: int = 240,');
+    expect(rasterClient).toContain('params: dict[str, Any] = {"limit": limit}');
+    expect(rasterClient).toContain('params["index"] = index');
   });
 });

@@ -14,14 +14,14 @@
 // 503 ⇒ القاعدة غير متاحة (ErrorState صادقة). لا حقل مُختار ⇒ مطالبة بالاختيار.
 // (يطابق أنماط DeviceTwinPage/AgronomicTimelinePage بصريّاً ولونيّاً.)
 // ═══════════════════════════════════════════════════════════════
-import { Gauge, MapPin, AlertTriangle, ShieldAlert, Lock, Clock, CircleHelp } from 'lucide-react';
+import { Gauge, MapPin, AlertTriangle, Lock, Clock, CircleHelp } from 'lucide-react';
 import { useDecisionConfidence } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { asApiError } from '../services/api';
 import type {
   DecisionConfidenceLevel, DecisionConfidenceComponent, DecisionConfidenceResult,
 } from '../services/api';
-import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
+import { LoadingState, EmptyState } from '../components/StateViews';
+import { AdvancedServiceState } from '../components/product/AdvancedServiceState';
 
 // ربط مستوى الثقة (level) بألوان CSS محدّدة — لا فئات إضافيّة.
 // insufficient ⇒ رماديّ محايد (يحتاج بيانات — لا حالة إيجابيّة مُختلَقة).
@@ -130,8 +130,6 @@ export default function DecisionConfidencePage() {
   const query = useDecisionConfidence(fieldId);
   const data: DecisionConfidenceResult | undefined = query.data;
 
-  // كشف 404 (العلم مُطفأ) عبر شكل خطأ أكسيوس الموحّد — رسالة ودودة لا حالة خطأ.
-  const featureOff = query.isError && asApiError(query.error).response?.status === 404;
 
   const insufficient = !!data && (data.confidence == null || data.level === 'insufficient');
   const confHex = data ? (insufficient ? '#9ca3af' : levelHex(data.level)) : '#9ca3af';
@@ -182,28 +180,11 @@ export default function DecisionConfidencePage() {
       {/* ── الحالات ── */}
       {fieldId && query.isLoading && <LoadingState message="جارٍ جلب ثقة القرار…" />}
 
-      {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
-      {fieldId && featureOff && (
-        <div
-          className="rounded-xl border p-4 flex items-start gap-3"
-          style={{ background: '#1e293b', borderColor: '#334155' }}
-          role="status"
-        >
-          <ShieldAlert className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة (FEATURE_DECISION_CONFIDENCE)</div>
-            <div className="text-[12px] text-slate-400">
-              ثقة القرار الموحَّدة خلف علم تشغيل (FEATURE_DECISION_CONFIDENCE) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 503/أيّ خطأ آخر — حالة خطأ صادقة */}
-      {fieldId && query.isError && !featureOff && (
-        <ErrorState
-          title="تعذّر جلب ثقة القرار"
-          detail="قد تكون قاعدة البيانات غير متاحة (503) أو الحقل ليس لمستأجِرك (404)."
+      {fieldId && query.isError && (
+        <AdvancedServiceState
+          page="decision-confidence"
+          error={query.error}
+          resourceName="ثقة القرار الموحَّدة"
           onRetry={() => query.refetch()}
         />
       )}

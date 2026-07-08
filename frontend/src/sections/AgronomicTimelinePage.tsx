@@ -14,7 +14,8 @@ import {
 import { useUnifiedTimeline } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
 import type { UnifiedTimelineEvent } from '../services/api';
-import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
+import { LoadingState, EmptyState } from '../components/StateViews';
+import { AdvancedServiceState } from '../components/product/AdvancedServiceState';
 
 // فئات الخطّ الزمنيّ (تطابق TimelineCategory الخلفيّ) — أيقونة + لون + تسمية عربيّة.
 const CATEGORY_META: Record<
@@ -112,9 +113,12 @@ export default function AgronomicTimelinePage() {
 
       {fieldId && tl.isLoading && <LoadingState message="جارٍ جلب الخطّ الزمنيّ…" />}
       {fieldId && tl.isError && (
-        <ErrorState title="تعذّر جلب الخطّ الزمنيّ"
-          detail="قد تكون القاعدة غير متاحة (503) أو الحقل ليس لمستأجِرك (404)."
-          onRetry={() => tl.refetch()} />
+        <AdvancedServiceState
+          page="agronomic-timeline"
+          error={tl.error}
+          resourceName="الخطّ الزمنيّ الأغرونوميّ"
+          onRetry={() => tl.refetch()}
+        />
       )}
 
       {data && (

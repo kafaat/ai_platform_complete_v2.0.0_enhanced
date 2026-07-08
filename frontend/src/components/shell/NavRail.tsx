@@ -16,6 +16,7 @@ import { wsService } from '../../services/websocket';
 import { canAccess } from '../../lib/permissions';
 import { NAV_SECTIONS, ALL_ROUTES, pageForPath, maturityBadge, type RouteDef } from '../../lib/routes';
 import { isPageEnabled } from '../../lib/featureFlags';
+import { isRuntimePageEnabled, useFeatureRegistry } from '../../hooks/useFeatureRegistry';
 
 interface NavRailProps {
   collapsed: boolean;
@@ -28,6 +29,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
   const navigate = useNavigate();
   const location = useLocation();
   const wsOk = wsService.isConnected();
+  const featureRegistry = useFeatureRegistry();
   // الصفحة النشطة من مسار URL الحاليّ (مصدر الحقيقة للتمييز).
   const activePage = pageForPath(location.pathname);
 
@@ -81,7 +83,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
   };
 
   // مُرشِّح موحّد: الصفحة مُفعّلة (علم الميزة) + يحقّ للدور فتحها (RBAC).
-  const allowed = (r: RouteDef) => isPageEnabled(r.id) && canAccess(user?.role, r.id) && !r.hidden;
+  const allowed = (r: RouteDef) => isPageEnabled(r.id) && isRuntimePageEnabled(r.id, featureRegistry) && canAccess(user?.role, r.id) && !r.hidden;
 
   return (
     <aside className="flex flex-col h-full" style={{

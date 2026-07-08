@@ -6,6 +6,8 @@ import { resolve } from 'node:path';
 // الذي يفشل في vitest بـ«URL must be of scheme file»).
 const hooks = readFileSync(resolve(__dirname, '../hooks/useApi.ts'), 'utf8');
 const api = readFileSync(resolve(__dirname, '../services/api.ts'), 'utf8');
+// UI3: عميل axios واعتراض 401 انتقلا إلى services/api/client.ts (تقسيم api.ts)
+const apiClient = readFileSync(resolve(__dirname, '../services/api/client.ts'), 'utf8');
 
 describe('Satellite runtime fixes', () => {
   it('تحليل الآن يستخدم imagery refresh القانوني لا vegetation /v1/analyze بمعرّف fld_*', () => {
@@ -15,8 +17,8 @@ describe('Satellite runtime fixes', () => {
   });
 
   it('401 من خدمة ميزة لا يطرد المستخدم إلى تسجيل الدخول؛ الخروج القسري محصور في auth', () => {
-    expect(api).toContain('const isAuthEndpoint');
-    expect(api).toContain("url.startsWith('/auth/')");
-    expect(api).toContain('if (isAuthEndpoint');
+    expect(apiClient).toContain('const isAuthEndpoint');
+    expect(apiClient).toContain("url.startsWith('/auth/')");
+    expect(apiClient).toContain('if (isAuthEndpoint');
   });
 });

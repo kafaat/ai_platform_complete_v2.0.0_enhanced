@@ -29,6 +29,7 @@
     "/api/v1/diagnose/symptoms",
     "/api/v1/economics/break-even",
     "/api/v1/economics/cost-categories",
+    "/api/v1/features",
     "/api/v1/field/operational-state",
     "/api/v1/fodder-alternatives/list",
     "/api/v1/geo-locate/field",

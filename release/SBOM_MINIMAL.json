@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "703cde5caa181a459cda92c7281ad5ef5183d998fb157625df8ba9e28205b1dc"
+          "content": "e196841d42f9f3d96bac46074a7b17278c3330324b08aa5f65d99eddc66d9514"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -2155,7 +2155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a9c3f65081bca6b30f2c2fe265eb8656bf644a234c7af65a8d729c6fa754244"
+          "content": "cb506e1977f4d8bbb6387eeae8cc3e0d40c8a1bd0a1816bfc87dd79eb866b162"
         }
       ],
       "name": "frontend/src/components/shell/NavRail.tsx",
@@ -4205,7 +4205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a907e74f18351947cea134358962f9eb8bfc643ffb523ccea7d94063b1e884d7"
+          "content": "8ebeb656d9d9d0ba6479e5994ef912225ffff7e15caa69b37ff98db135699be4"
         }
       ],
       "name": "frontend/src/sections/AgronomicTimelinePage.tsx",
@@ -4385,7 +4385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "80d5dd4e59e80d3d0d3d6f94c05bdcdda0db553c0beb01ecdfff54a7655c56a1"
+          "content": "2fa08924ed556ceedaddeb258ff1a18b7390df124884c8ec32a5d1c5fbd167d4"
         }
       ],
       "name": "frontend/src/sections/DecisionConfidencePage.test.tsx",
@@ -4395,7 +4395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02d27c620b4cc64d9d25620761f94be7b05ea2fbf05ec3fbf7c32f94806443ca"
+          "content": "f0dc72748f9deecd0ad68f28b86e398ca509df8a4685042442d877c6cf05d620"
         }
       ],
       "name": "frontend/src/sections/DecisionConfidencePage.tsx",
@@ -4505,7 +4505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d574ada957a16a48e80284ca489bc1a71bc4c3b7560e34dbf44f5bba07f37a98"
+          "content": "32abe35237e8686cc0b5dac49a455ea0b90e4afbeb839c1ecc7d0d674c4759fb"
         }
       ],
       "name": "frontend/src/sections/EvidenceMapPage.test.tsx",
@@ -4515,7 +4515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "762c345f488f4882b5901f32414ad22ffbf6691418a029edcda2b62863510356"
+          "content": "8e7c170a5e91f1064e231df9c95635be7290c60426dd0a1966c014d84d9198fc"
         }
       ],
       "name": "frontend/src/sections/EvidenceMapPage.tsx",
@@ -4525,7 +4525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29d494317df52fa1009015411818852e48723fe0fd8c314db0d763e3ac069cdf"
+          "content": "b5d1ca524978438529cf6c8443161cc82dd5423091e1ee9cb5e8a70366ac2b60"
         }
       ],
       "name": "frontend/src/sections/ExecutionFeedbackPage.test.tsx",
@@ -4535,7 +4535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f5760da84dbff2125484652a0738c0896204ad8d33c5037a26a6a0e6ba043c3"
+          "content": "9cef3a2a6f977317e782de8051894056dfc2c01d58a5897880405920ab00c223"
         }
       ],
       "name": "frontend/src/sections/ExecutionFeedbackPage.tsx",
@@ -4675,7 +4675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "44fe917b34a49df683c18ac3aabbeb9be7e1a9129e3874f97220c5adb3873121"
+          "content": "d2a7c4ac76e8f4091abfddcc34da05bc7b62d6e86e60de45613569173608ed79"
         }
       ],
       "name": "frontend/src/sections/GisExpertPage.tsx",
@@ -4835,7 +4835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4402637cff4c8c31194fe36ffc6e9b4a0c0c554221d332a0a53d160bbf1ebf56"
+          "content": "415e688ac3947c2e812b431d2203aa9cb0b9b9dbc9f3f9fb9a0c038b0e9c89a0"
         }
       ],
       "name": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
@@ -5085,7 +5085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53889343947139b079f21159a02a7ca584c986b56c40fc64af146b7a8c5b90c6"
+          "content": "f830b5cb5afbd00106b08a588e4c76d4ece86f78e028cc5b6d1d40dc1c87e59e"
         }
       ],
       "name": "frontend/src/sections/ReplayMapPage.test.tsx",
@@ -5095,7 +5095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a16ae842b61486631c51cba493a43038d54367dce4d24f25202b884fd42b43af"
+          "content": "d215762ca996135f8f6f08aada75168aa3ca3ac18af4a5f6e3530d854dc01acb"
         }
       ],
       "name": "frontend/src/sections/ReplayMapPage.tsx",
@@ -5155,7 +5155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b605ede52911079c8837ab0833550394a3a01b2dde63b4ac59db79dc8f4ad4ea"
+          "content": "ba6c267cdd8b2727bf50398d4e1155895a4c40bab7ca343a6eeac4294f3d1f91"
         }
       ],
       "name": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
@@ -5275,7 +5275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90c2183614c636f8e22bb8de29f1235e3f18e41a72adb0dd5f0564fbfbb76527"
+          "content": "06d2f925db940742a9e0b878b7a51f5fd706e4583b44b689b48f66e2065115cd"
         }
       ],
       "name": "frontend/src/services/api.test.ts",
@@ -5285,7 +5285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1d9b66c9d9b88409afc185d53649299887c2a79899e95b78ef2ef7d962da4c42"
+          "content": "770a303953ff9f04fd992ed126c5e8ece22fa68a29a3577a44f5c077826728d4"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -17765,7 +17765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ad2f16fb24adb1b5f35210d17d83fd35ad3c852ab929ef3023aa0738ce08635"
+          "content": "2c9509e5762877ed949de1a274d5e2b9185f4f8780ca22f5f84cb7e04313e1cb"
         }
       ],
       "name": "services/sahool-platform/tests/_public_read_allowlist.json",
@@ -19945,7 +19945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d034b22a7020ea1cd03db38a3e98883544168d058820d28979795a3ddde80f0f"
+          "content": "71cd6e86c5095857f0c31ef43c24188b418d545f75a45aa706813ee55c65b456"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",

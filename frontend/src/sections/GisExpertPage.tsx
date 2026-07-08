@@ -8,6 +8,8 @@ import {
   itemsQualitySummary, ogcItemTypeLabel,
 } from '../lib/gisCatalog';
 import { T } from '../components/ds';
+import { DegradedState } from '../components/product/DegradedState';
+import { isAvailabilityError } from '../components/product/AdvancedServiceState';
 
 /** كونسول كتالوج GIS للخبراء (قراءة فقط): بوّابة STAC ومجموعاتها وعناصرها +
  *  مطابقة OGC API ومجموعاتها + خطّة كاش البلاطات — طبقة خلفيّة قائمة
@@ -25,12 +27,27 @@ export default function GisExpertPage() {
   const quality = itemsQualitySummary(itemsQ.data?.features);
   const cache = cachePlanSummary(cacheQ.data);
   const recentItems = (itemsQ.data?.features ?? []).slice(0, 5);
+  const serviceDegraded = [landingQ, collectionsQ, itemsQ, ogcConfQ, ogcCollQ, cacheQ]
+    .some((q) => q.isError && isAvailabilityError(q.error));
 
   return (
     <div className="p-4 flex flex-col gap-3" data-testid="gis-expert">
       <h1 className="inline-flex items-center gap-2 text-lg font-bold" style={{ color: T.ink }}>
         <Globe2 className="w-5 h-5 text-emerald-300" aria-hidden="true" /> كتالوج GIS السحابيّ (STAC · OGC · COG)
       </h1>
+
+      {serviceDegraded && (
+        <DegradedState
+          title="كتالوج GIS يعمل في وضع متدهور"
+          detail="بعض مسارات STAC/OGC أو خطة كاش البلاطات غير متاحة حالياً. تُعرض البطاقات المتاحة فقط ولا تُستبدل القيم الناقصة بأرقام مُخترعة."
+          availableActions={[
+            'استعراض البطاقات التي عادت من الخادم بنجاح',
+            'استخدام آخر كتالوج محفوظ إن وُجد',
+            'إعادة المحاولة بعد عودة raster/GIS registry',
+          ]}
+          onRetry={() => { landingQ.refetch(); collectionsQ.refetch(); itemsQ.refetch(); ogcConfQ.refetch(); ogcCollQ.refetch(); cacheQ.refetch(); }}
+        />
+      )}
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {/* بوّابة STAC */}

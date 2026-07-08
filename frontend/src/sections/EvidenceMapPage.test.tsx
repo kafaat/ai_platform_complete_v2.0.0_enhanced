@@ -120,7 +120,8 @@ describe('EvidenceMapPage', () => {
   it('(هـ) 503/خطأ آخر ⇒ حالة خطأ صادقة (لا تلفيق)', () => {
     stub(qError(503));
     render(<EvidenceMapPage />);
-    expect(screen.getByText('تعذّر جلب خريطة الدليل')).toBeInTheDocument();
+    // UI2: تعطل التوفّر (503) يُعرَض حالةً متدهورة صادقة (AdvancedServiceState→DegradedState)
+    expect(screen.getByText('تعمل خريطة الدليل في وضع متدهور')).toBeInTheDocument();
   });
 
   it('fields:[] ⇒ «لا حقول» صادقة', () => {

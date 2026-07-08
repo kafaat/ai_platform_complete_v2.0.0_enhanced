@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-07-08 — دمج أرشيف UI3b/UI4 (سجلّ الميزات الحيّ + عقود تشغيل الحقل + تقسيم api.ts)
+
+أرشيف `dab14b7_ui3b_ui4_auto_continuation` مبنيّ على رأسنا الأخضر بالضبط ⇒ الدلتا (22 ملفّاً) حقيقيّة مباشرة. **الميزة:** (UI3b) سجلّ رايات ميزات حيّ `GET /api/v1/features` + `useFeatureRegistry` (fail-open حتى التحميل؛ يُخفي صفحات الأعلام المطفأة بعد التحميل) + `AdvancedServiceState` يميّز 404=ميزة مطفأة / 502-504=وضع متدهور / 401-403=صلاحيّة · (UI4) واجهة `GET /api/v1/fields/{id}/readiness` (إعادة تشكيل عقد data-completeness، `calibrated=false` صادق) + عقود `fieldOperating.ts` (منها priority-queue **خامل** بلا خلفيّة — موثَّق «مخطَّط») · (UI3) بدء تقسيم api.ts إلى `api/{client,auth,features,fieldOperating}.ts` مع واجهة توافق + 5 حُرّاس منصّة جديدة.
+
+**تحقّق-قبل-دمج اصطاد وأصلح:** (أ) **6 أخطاء tsc** — `api.ts` يعيد تصدير `asApiError/apiErrorMessage` ويستخدمهما داخليّاً (إعادة التصدير لا تربط في نطاق الوحدة ⇒ استيراد صريح) + `getAccessToken` بلا استيراد + `deactivateUser` سقط من إعادة التصدير (كسر SettingsPage) + `App.tsx` يستخدم `featureRegistry` بلا استدعاء الـhook. (ب) **توصيل الحَوكمة** (الأرشيف شحن الراوترَين بلا تهيئة): baseline الوحدات 581→583 + ملكيّة المسارَين (bff-orchestrator) + ميزانيّة 570→572 (سقف P2.6 مرفوع موثَّقاً) + `/api/v1/features` في قائمتَي القراءة العامّة المُراجَعة (طوبولوجيا أعلام فقط، لا بيانات مستخدم/مستأجِر) + تصنيف/تغطية UI للنقطتين. (ج) **7 اختبارات vitest بائتة رُقِّيت لا أُضعِفت:** 4 صفحات (503 صار «وضعاً متدهوراً» أصدق) · segmentField (+`timeout:90000` مشروع) · Satellite static (معالج 401 انتقل إلى `api/client.ts`) · MapHub static (**فشل موروث** من P2: بناء params انتقل إلى `raster_service_client.py` — vitest ليس في CI فمرّ صامتاً؛ المؤشّر ثُبِّت على الموطن الحاليّ). ملاحظة: التسجيل تلقائيّ أصلاً (`register_routers` يلتقط كلّ `api/routers/*`) — لا حاجة لتعديل registry.
+
+**التحقّق المستقلّ:** tsc 0 · vitest **1099/155** · منصّة **3479** (CI-style بلا -m) · tests_v9 unit **2806** · ruff نظيف · release **3521**.
+
+---
+
 ## 2026-07-08 — مرآة Tencent Cloud لـpip في كلّ Dockerfile (يُصلح فشل build المتكرّر)
 
 المشغّل: build يفشل باستمرار على `pypi.org` من شبكتنا حتى مع VPN. الحلّ: كلّ Dockerfile حقيقيّ يستخدم `pip install` (٢٩ ملفّاً تحت services/·agents/·bots/؛ استُثنيت نُسَخ `.claude/worktrees` لفرع آخر) صار افتراضه `ARG PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple/` — قابل للتجاوز بـ`--build-arg PIP_INDEX_URL=https://pypi.org/simple`. **٢٥** ملفّاً كان لديه نمط ARG (بدّلتُ القيمة الافتراضيّة + علّقتُ الافتراض القديم الكاذب)؛ **٤** بلا نمط (ai_agronomist · raster-tiler-service · weather-polygon-worker · weather-signal-engine) حقنتُ فيها كتلة ARG+ENV قبل pip. **صدق أمنيّ:** مرآة Tencent HTTPS ⇒ **لم أضبط `--trusted-host`** (ضبطه يُضعِف TLS بلا داعٍ)؛ `PIP_TRUSTED_HOST` يبقى فارغاً افتراضيّاً (تحقّق TLS طبيعيّ). أصلحتُ تعليقات local-ai-rag المتناقضة (كانت تدّعي عكس ذلك) وحدّثتُ فحص `test_roadmap_phase23` #2 (كان يزعم «PyPI الرسميّ افتراضيّاً» — صار يتحقّق من افتراض Tencent + بقاء pypi.org كـoverride). حارس جديد `test_dockerfile_pip_mirror_guard.py` (أرضيّة ≥25) يمنع انحدار أيّ Dockerfile للافتراض على pypi.org. التحقّق: unit **2806** · ruff نظيف · حارسا non-root/shared يمرّان · release 3520.

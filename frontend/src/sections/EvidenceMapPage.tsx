@@ -12,12 +12,12 @@
 // ═══════════════════════════════════════════════════════════════
 import { useMemo } from 'react';
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
-import { ShieldCheck, MapPinned, AlertTriangle, ShieldAlert, MapPinOff } from 'lucide-react';
+import { ShieldCheck, MapPinned, AlertTriangle, MapPinOff } from 'lucide-react';
 import '../lib/leafletSetup'; // CSS + أيقونات Leaflet (side-effect حاسم للتصيير)
 import { useEvidenceMap } from '../hooks/useApi';
-import { asApiError } from '../services/api';
 import type { EvidenceMapField, EvidenceMapColor } from '../services/api';
-import { ErrorState, LoadingState } from '../components/StateViews';
+import { LoadingState } from '../components/StateViews';
+import { AdvancedServiceState } from '../components/product/AdvancedServiceState';
 
 // مركز اليمن وتكبير معقول (نفس نمط OperationCenterWall لكن نطاق وطنيّ).
 const YEMEN_CENTER: [number, number] = [15.5, 45.5];
@@ -69,9 +69,6 @@ export default function EvidenceMapPage() {
   const query = useEvidenceMap();
   const data = query.data;
 
-  // كشف 404 (العلم مُطفأ) عبر شكل خطأ أكسيوس الموحّد — رسالة ودودة لا حالة خطأ.
-  const featureOff = query.isError && asApiError(query.error).response?.status === 404;
-
   // الحقول القابلة للرسم فقط (has_coords + إحداثيّات رقميّة) — لا إحداثيّات مُختلَقة.
   const plottable = useMemo(
     () =>
@@ -97,28 +94,11 @@ export default function EvidenceMapPage() {
       {/* ── الحالات ── */}
       {query.isLoading && <LoadingState message="جارٍ جلب خريطة الدليل…" />}
 
-      {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
-      {featureOff && (
-        <div
-          className="rounded-xl border p-4 flex items-start gap-3"
-          style={{ background: '#1e293b', borderColor: '#334155' }}
-          role="status"
-        >
-          <ShieldAlert className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة (FEATURE_EVIDENCE_MAP)</div>
-            <div className="text-[12px] text-slate-400">
-              خريطة الدليل خلف علم تشغيل (FEATURE_EVIDENCE_MAP) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 503/أيّ خطأ آخر — حالة خطأ صادقة */}
-      {query.isError && !featureOff && (
-        <ErrorState
-          title="تعذّر جلب خريطة الدليل"
-          detail="قد تكون قاعدة البيانات غير متاحة (503) أو حدث انقطاع."
+      {query.isError && (
+        <AdvancedServiceState
+          page="evidence-map"
+          error={query.error}
+          resourceName="خريطة الدليل"
           onRetry={() => query.refetch()}
         />
       )}

@@ -157,6 +157,7 @@ describe('ExecutionFeedbackPage', () => {
   it('(ح) 503/خطأ آخر ⇒ حالة خطأ صادقة (لا تلفيق)', () => {
     stub(qError(503));
     render(<ExecutionFeedbackPage />);
-    expect(screen.getByText('تعذّر جلب رصد حلقة التنفيذ')).toBeInTheDocument();
+    // UI2: تعطل التوفّر (503) يُعرَض حالةً متدهورة صادقة (AdvancedServiceState→DegradedState)
+    expect(screen.getByText('تعمل رصد حلقة التنفيذ في وضع متدهور')).toBeInTheDocument();
   });
 });
