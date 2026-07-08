@@ -457,3 +457,5 @@
 \i migrations/v150_seasons_yield_nonnegative_check.sql
 \echo '═══ 157. v151_learning_source_lineage.sql ═══'
 \i migrations/v151_learning_source_lineage.sql
+\echo '═══ 158. v152_deprecate_recommendation_feedback.sql ═══'
+\i migrations/v152_deprecate_recommendation_feedback.sql
