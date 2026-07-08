@@ -15,7 +15,7 @@ weather-service/main.py — خدمة طقس (stub رفيع صادق)
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-app = FastAPI(title="SAHOOL Weather Service (stub)", version="9.0")
+app = FastAPI(title="SAHOOL Weather Service (stub)", version="9.1")
 
 
 @app.get("/healthz")
@@ -42,13 +42,47 @@ def root():
     }
 
 
-@app.get("/weather/{path:path}")
-def weather_not_implemented(path: str):
-    """أيّ مسار طقس فعلي → 501 بصدق (الوظيفة في sahool-platform)."""
+@app.get("/contract")
+def contract():
+    """عقد P1: يعلن الملكية المستهدفة بدون ادعاء تنفيذ غير موجود."""
+    return {
+        "service": "weather-service",
+        "mode": "stub",
+        "ownership": "target-weather-system-of-record",
+        "implemented_runtime": False,
+        "target_capabilities": [
+            "current-weather",
+            "forecast",
+            "historical-weather",
+            "weather-tiles",
+            "operation-windows",
+            "weather-alerts",
+            "weather-signals",
+        ],
+        "current_runtime_owner": "sahool-platform legacy facade",
+    }
+
+
+def _weather_not_implemented_response(path: str):
     return JSONResponse(
         status_code=501,
         content={
             "error": "not_implemented_here",
-            "note_ar": "منطق الطقس في sahool-platform/api، لا في هذه الخدمة الرفيعة.",
+            "service": "weather-service",
+            "mode": "stub",
+            "path": path,
+            "note_ar": "منطق الطقس في sahool-platform/api حالياً، لا في هذه الخدمة الرفيعة.",
         },
     )
+
+
+@app.get("/weather/{path:path}")
+def weather_not_implemented(path: str):
+    """أيّ مسار طقس فعلي legacy → 501 بصدق."""
+    return _weather_not_implemented_response(f"/weather/{path}")
+
+
+@app.get("/v1/weather/{path:path}")
+def v1_weather_not_implemented(path: str):
+    """أيّ مسار طقس فعلي v1 → 501 بصدق حتى يكتمل الاستخراج."""
+    return _weather_not_implemented_response(f"/v1/weather/{path}")

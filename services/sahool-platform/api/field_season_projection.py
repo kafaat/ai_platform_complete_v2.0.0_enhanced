@@ -33,6 +33,71 @@ from core.season_stage_risk import stage_weather_risks
 from api.season_calendar_guard import evaluate_season_calendar
 
 
+def _safe_max_stamp(stamps: list[object]) -> object | None:
+    """Returns the latest comparable stamp without fabricating time when types differ."""
+    present = [s for s in stamps if s is not None]
+    if not present:
+        return None
+    try:
+        return max(present)
+    except TypeError:
+        # Mixed datetime/string values can happen in tests or partial adapters. Keep the last
+        # supplied non-null value rather than inventing a normalized timestamp.
+        return present[-1]
+
+
+def _summarize_reconciled_outcomes_for_season(
+    outcome_records: list[dict] | None,
+    recommendation_outcomes: list[dict] | None,
+    *,
+    dispatch_links: dict | None = None,
+) -> dict:
+    """Compact, read-path view of reconciled outcomes for the season projection.
+
+    Truthfulness rules:
+      * `success_rate` is computed only from decided outcomes (`success is True/False`).
+      * pending / immature recommendation outcomes stay pending and never inflate samples.
+      * the source mix is exposed, so consumers can see whether evidence came from
+        decision effects, yield-learning outcomes, or both.
+    """
+    from core.outcome_reconciler import reconcile_outcomes
+
+    reconciled = reconcile_outcomes(
+        outcome_records or [],
+        recommendation_outcomes or [],
+        dispatch_links=dispatch_links or {},
+    )
+    decided = succeeded = failed = pending = 0
+    stamps: list[object] = []
+    for item in reconciled["unified"]:
+        stamps.append(item.get("recorded_at"))
+        success = item.get("success")
+        if success is True:
+            decided += 1
+            succeeded += 1
+        elif success is False:
+            decided += 1
+            failed += 1
+        else:
+            pending += 1
+
+    return {
+        "enabled": True,
+        "total": reconciled["total"],
+        "decided": decided,
+        "succeeded": succeeded,
+        "failed": failed,
+        "pending": pending,
+        "success_rate": round(succeeded / decided, 3) if decided else None,
+        "sample_count": decided,
+        "by_source": reconciled["by_source"],
+        "by_kind": reconciled["by_kind"],
+        "linked_group_count": len(reconciled["linked_groups"]),
+        "latest_recorded_at": _safe_max_stamp(stamps),
+        "authoritative_note": reconciled["authoritative_note"],
+    }
+
+
 def assemble_field_season_state(
     *,
     field_id: str | None = None,
@@ -52,6 +117,9 @@ def assemble_field_season_state(
     water_deficit_14d_mm: float | None = None,
     water_stress_factor: float | None = None,
     open_tasks_count: int | None = None,
+    outcome_records: list[dict] | None = None,
+    recommendation_outcomes: list[dict] | None = None,
+    dispatch_links: dict | None = None,
 ) -> dict:
     """يبني الحقيقة التشغيليّة الموحّدة للحقل-الموسم من مُدخَلات خام. نقيّ.
 
@@ -92,6 +160,13 @@ def assemble_field_season_state(
         cloud_pct=cloud_pct,
     )
 
+    # ⑥ النتائج المتصالحة (Decision outcome + Recommendation yield-learning)
+    outcome_reconciliation = _summarize_reconciled_outcomes_for_season(
+        outcome_records,
+        recommendation_outcomes,
+        dispatch_links=dispatch_links,
+    )
+
     # ── تجميع الأدلّة (صدق: ما توفّر مقابل ما نقص من الإشارات الجوهريّة) ──
     core_signals = {
         "crop": crop_id is not None,
@@ -104,6 +179,7 @@ def assemble_field_season_state(
         or water_deficit_7d_mm is not None
         or water_deficit_14d_mm is not None,
         "open_tasks": open_tasks_count is not None,
+        "outcomes": outcome_reconciliation["total"] > 0,
     }
     evidence_used = [k for k, present in core_signals.items() if present]
     evidence_missing = [k for k, present in core_signals.items() if not present]
@@ -142,6 +218,8 @@ def assemble_field_season_state(
         "weather_stage_risks": stage_risk,
         # العمليّات
         "open_operations": open_tasks_count,
+        # النتائج/التعلّم — لا ترفع الثقة وحدها؛ المعلّقة مُعلنة ولا تدخل success_rate.
+        "outcome_reconciliation": outcome_reconciliation,
         # الحوكمة/الصدق
         "season_confidence": season_confidence,
         "requires_review": bool(

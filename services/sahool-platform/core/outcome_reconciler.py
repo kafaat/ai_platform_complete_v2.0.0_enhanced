@@ -36,6 +36,7 @@ def normalize_outcome_record(row: dict) -> dict:
         "kind": "decision_effect",
         "outcome_id": row.get("outcome_id"),
         "field_id": row.get("field_id"),
+        "region": row.get("region"),
         "season_id": None,  # v79 لا يحمل season_id مباشرةً
         "decision_id": row.get("decision_id"),
         "recommendation_id": None,
@@ -74,6 +75,7 @@ def normalize_recommendation_outcome(row: dict) -> dict:
         "kind": "yield_learning",
         "outcome_id": row.get("outcome_id"),
         "field_id": row.get("field_id"),
+        "region": row.get("region"),
         "season_id": row.get("season_id"),
         "decision_id": None,
         "recommendation_id": row.get("recommendation_id"),
@@ -87,6 +89,7 @@ def normalize_recommendation_outcome(row: dict) -> dict:
             "accepted": bool(row.get("accepted")),
             "matured_within_lag": bool(row.get("matured_within_lag")),
             "crop": row.get("crop"),
+            "region": row.get("region"),
         },
         "recorded_at": row.get("outcome_recorded_at") or row.get("issued_at"),
     }

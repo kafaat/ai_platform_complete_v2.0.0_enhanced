@@ -23,7 +23,7 @@ import os
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.learning_summary import summarize_learning
+from api.learning_summary import summarize_learning_with_reconciled_outcomes
 from api.main import (
     Permission,
     UserSchema,
@@ -68,8 +68,27 @@ async def get_learning_summary(
         async with tenant_connection(user) as conn:
             drows = await conn.fetch("SELECT region, created_at FROM decision_record")
             orows = await conn.fetch(
-                "SELECT region, success, metrics, created_at FROM outcome_record"
+                "SELECT outcome_id, field_id, region, decision_id, success, metrics, "
+                "planned, actual, stage, created_at FROM outcome_record"
             )
+            # Optional v49/v66 bridge: these tables may be absent in partial deployments.
+            # Absence must not hide outcome_record evidence or turn the dashboard into 503.
+            rorows = []
+            dispatch_rows = []
+            try:
+                rorows = await conn.fetch(
+                    "SELECT outcome_id, field_id, season_id, crop, recommendation_id, "
+                    "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
+                    "issued_at, outcome_recorded_at FROM recommendation_outcomes"
+                )
+            except Exception:  # noqa: BLE001 — optional bridge table; absence ⇒ zero yield-learning rows
+                rorows = []
+            try:
+                dispatch_rows = await conn.fetch(
+                    "SELECT recommendation_id, decision_id FROM dispatch_decisions"
+                )
+            except Exception:  # noqa: BLE001 — optional link table; absence ⇒ no soft linking
+                dispatch_rows = []
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("قراءة حلقة التعلّم", e) from e
 
@@ -77,15 +96,47 @@ async def get_learning_summary(
     decision_rows = [{"region": r["region"], "created_at": r["created_at"]} for r in drows]
     outcome_rows = [
         {
+            "outcome_id": r["outcome_id"],
+            "field_id": r["field_id"],
             "region": r["region"],
+            "decision_id": r["decision_id"],
             "success": r["success"],
             "metrics": _loads(r["metrics"]) or {},
+            "planned": _loads(r["planned"]),
+            "actual": _loads(r["actual"]),
+            "stage": r["stage"],
             "created_at": r["created_at"],
         }
         for r in orows
     ]
+    recommendation_outcomes = [
+        {
+            "outcome_id": r["outcome_id"],
+            "field_id": r["field_id"],
+            "season_id": r["season_id"],
+            "crop": r["crop"],
+            "recommendation_id": r["recommendation_id"],
+            "predicted_yield_t_ha": r["predicted_yield_t_ha"],
+            "actual_yield_t_ha": r["actual_yield_t_ha"],
+            "accepted": r["accepted"],
+            "matured_within_lag": r["matured_within_lag"],
+            "issued_at": r["issued_at"],
+            "outcome_recorded_at": r["outcome_recorded_at"],
+        }
+        for r in rorows
+    ]
+    dispatch_links = {
+        r["recommendation_id"]: r["decision_id"]
+        for r in dispatch_rows
+        if r["recommendation_id"] and r["decision_id"]
+    }
 
-    summary = summarize_learning(decision_rows, outcome_rows)
+    summary = summarize_learning_with_reconciled_outcomes(
+        decision_rows,
+        outcome_rows,
+        recommendation_outcomes,
+        dispatch_links=dispatch_links,
+    )
     # تنسيق الطوابع الزمنيّة (datetime ⇒ ISO) في اللقطة المُجمَّعة — التجميع نفسه يبقى نقيّاً.
     _isoformat_stamps(summary)
     return summary

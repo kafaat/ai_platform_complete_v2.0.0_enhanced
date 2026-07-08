@@ -1,0 +1,49 @@
+{
+  "owner": "raster-service",
+  "platform_boundary_rule": "sahool-platform may proxy or consume raster facts, but must not own raster computation/state",
+  "raster_keywords": [
+    "raster",
+    "imagery",
+    "ndvi",
+    "stac",
+    "cog",
+    "tilejson",
+    "tiles",
+    "thumbnail",
+    "indicator-grid",
+    "process-from-stac",
+    "zonal_stats",
+    "raster_assets"
+  ],
+  "allowed_platform_files": {
+    "api/imagery_automation.py": "service_client: triggers raster-service scene search/process-from-stac after field geometry changes",
+    "api/routers/automation.py": "facade_proxy: imagery automation endpoints registered as raster-service target owner",
+    "api/routers/compat_gateway.py": "legacy_compat: temporary passthrough for misrouted /api/raster and /api/vegetation paths",
+    "api/routers/confidence.py": "aggregation_consumer: NDVI confidence endpoint classified as raster-service extraction target",
+    "api/routers/etc_dual.py": "aggregation_consumer: consumes fresh NDVI grid from raster-service for ETc calculation",
+    "api/routers/field_ai_context.py": "aggregation_consumer: reads raster facts for AI context packs",
+    "api/routers/field_intelligence.py": "aggregation_consumer: field card reads raster facts and provider/terrain status",
+    "api/routers/fields.py": "facade_proxy: tenant-verified imagery refresh/dates/timeline/backfill proxies",
+    "api/routers/gis_cloud_native.py": "legacy_compat: cloud-native GIS/STAC endpoints marked for raster-service extraction",
+    "api/routers/ndvi_analysis.py": "facade_proxy: NDVI analysis endpoint marked for raster-service extraction",
+    "api/routers/weather.py": "legacy_compat: weather tile cache endpoints marked for extraction; final owner to split between weather-service and raster tile cache",
+    "api/spatial_sync.py": "field_geometry_signal: emits/stores raster cache stale markers when geometry changes",
+    "api/cost_governance.py": "cost_accounting: declares raster-service cost profile, not raster computation",
+    "api/event_bus.py": "event_contracts: contains raster event comments/contracts, not computation",
+    "api/routers/regional_bulletin.py": "aggregation_consumer: reads zonal_stats for regional bulletin until summary endpoint exists"
+  },
+  "allowed_raster_tables_read_by_platform": [
+    "raster_assets",
+    "raster_cache_invalidations",
+    "raster_registry",
+    "raster_snapshots",
+    "zonal_stats",
+    "distributed_raster_jobs"
+  ],
+  "disallowed_platform_patterns": [
+    "from services.raster-service",
+    "from services.raster_service",
+    "import raster_service",
+    "services/raster-service"
+  ]
+}

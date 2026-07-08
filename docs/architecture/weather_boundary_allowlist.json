@@ -1,0 +1,71 @@
+{
+  "owner": "weather-service",
+  "platform_boundary_rule": "sahool-platform may temporarily host legacy weather facades/aggregators, but must not grow new weather provider or operation-window logic outside this allowlist",
+  "weather_route_keywords": [
+    "weather",
+    "forecast",
+    "historical",
+    "wind",
+    "meteo",
+    "spray",
+    "operation-window",
+    "operation-plan",
+    "field-weather",
+    "alerts"
+  ],
+  "provider_or_runtime_markers": [
+    "Open-Meteo",
+    "openmeteo",
+    "METNO",
+    "metno_wind",
+    "NASA POWER",
+    "nasa_power",
+    "WEATHER_TILE",
+    "_WEATHER_TILE_CACHE",
+    "_WEATHER_RATE",
+    "operation-window",
+    "weather_operation_window",
+    "weather_tile_data",
+    "derive_weather_alerts"
+  ],
+  "allowed_platform_files": {
+    "api/alert_rules.py": "legacy_consumer: alert rule materialization until weather signals are emitted by weather-service/workers",
+    "api/connectors/metno_wind.py": "legacy_provider_client: to be moved behind weather-service provider adapter",
+    "api/connectors/openmeteo.py": "legacy_provider_client: to be moved behind weather-service provider adapter",
+    "api/field_context.py": "aggregation_consumer: field context reads weather facts",
+    "api/field_state_projection.py": "aggregation_consumer: field state combines weather facts with season state",
+    "api/main.py": "legacy_compat: residual weather registration/import surface",
+    "api/recommendations_hub.py": "aggregation_consumer: weather facts influence recommendations until decision split completes",
+    "api/routers/automation.py": "legacy_facade: automation/weather endpoints target weather-service",
+    "api/routers/etc_dual.py": "aggregation_consumer: weather/ET facts are consumed for crop water calculations",
+    "api/routers/field_ai_context.py": "aggregation_consumer: AI context packs include weather facts",
+    "api/routers/field_intelligence.py": "aggregation_consumer: field card reads weather facts",
+    "api/routers/fields.py": "legacy_facade: field weather/wind endpoints target weather-service",
+    "api/routers/planting.py": "legacy_facade: planting window target weather-service",
+    "api/routers/season_workspace.py": "aggregation_consumer: season workspace reads weather facts",
+    "api/routers/seasons.py": "aggregation_consumer: season state reads weather facts",
+    "api/routers/weather.py": "legacy_implementation: current weather runtime stays here only until weather-service realization",
+    "api/routers/weather_analytics.py": "legacy_facade: weather analytics endpoints target weather-service",
+    "api/scheduler.py": "legacy_worker_scheduler: scheduled weather refresh until worker split completes",
+    "api/weather_advice.py": "legacy_domain_helper: weather advisory helper until AI/weather boundary split",
+    "api/weather_alerts.py": "legacy_domain_helper: alert derivation until weather-service emits weather.signal.computed.v1",
+    "api/weather_analytics.py": "legacy_domain_helper: analytics helper until service extraction",
+    "api/weather_automation.py": "legacy_integration: automation glue until service extraction",
+    "api/connectors/nasa_power.py": "legacy_provider_client: NASA POWER weather/wind adapter to be moved behind weather-service provider adapter",
+    "api/decision_engine.py": "legacy_consumer: reads historical weather summary until decision/weather ownership split completes"
+  },
+  "allowed_weather_tables_read_by_platform": [
+    "weather_cache",
+    "weather_events",
+    "weather_hourly_cache",
+    "weather_polygon_cache",
+    "weather_signals",
+    "weather_tile_cache"
+  ],
+  "required_weather_service_stub_markers": [
+    "mode\": \"stub",
+    "not_implemented_here",
+    "/v1/weather/{path:path}",
+    "/weather/{path:path}"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "owner": "agriai-engine / learning-service-target bridge",
+  "platform_boundary_rule": "sahool-platform may temporarily host decision/outcome/learning compatibility routes, but must not add untraceable learning or revive deprecated recommendation_feedback.",
+  "decision_route_keywords": [
+    "decision",
+    "recommendation",
+    "recommend",
+    "outcome",
+    "learning",
+    "feedback",
+    "dispatch",
+    "policy"
+  ],
+  "allowed_target_owners": [
+    "agriai-engine",
+    "learning-service-target",
+    "guardrails-engine",
+    "actuator-service",
+    "knowledge-graph",
+    "field-management-service",
+    "soil-service",
+    "weather-service",
+    "sahool-platform"
+  ],
+  "required_core_bridge_files": [
+    "core/learning_source_lineage.py",
+    "core/outcome_reconciler.py",
+    "core/loop_referential_integrity.py"
+  ],
+  "required_migrations": [
+    "migrations/v151_learning_source_lineage.sql",
+    "migrations/v152_deprecate_recommendation_feedback.sql"
+  ],
+  "learning_source_columns": [
+    "source_type",
+    "source_id",
+    "field_id",
+    "season_id",
+    "recommendation_id",
+    "decision_id",
+    "evidence_snapshot_id",
+    "traceability_status"
+  ],
+  "deprecated_tables": [
+    "recommendation_feedback"
+  ],
+  "loop_tables": [
+    "recommendations",
+    "dispatch_decisions",
+    "execution_ledger",
+    "execution_verification_event",
+    "decision_record",
+    "outcome_record",
+    "recommendation_outcomes",
+    "online_learning_updates",
+    "lineage_link"
+  ]
+}

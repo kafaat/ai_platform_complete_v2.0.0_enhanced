@@ -10,7 +10,14 @@ from uuid import uuid4
 
 import httpx
 import pytest
-from jose import jwt
+
+try:
+    from jose import jwt
+except (
+    ModuleNotFoundError
+):  # pragma: no cover - local/CI fallback when python-jose is not installed yet
+    import jwt  # type: ignore[no-redef]
+
 
 # جذر المستودع على sys.path حتى تُستورَد حِزَم المشروع (sahool_ai, shared) في CI.
 # CI يشغّل `pytest` (سكربت الكونسول) لا `python -m pytest`، فلا يُضاف cwd تلقائيّاً

@@ -155,3 +155,68 @@ def summarize_learning(
         "overall": overall,
         "calibrated": False,  # العتبات تقديريّة — اللقطة وصفيّة لا توجيهيّة معايَرة
     }
+
+
+def _learning_row_from_unified_outcome(item: dict) -> dict:
+    """Converts a reconciled outcome item into the compact row used by learning summary.
+
+    Truthfulness rules:
+      * success is copied from the reconciler; unresolved/immature outcomes stay None.
+      * region is copied from the source row when available; missing region remains unspecified.
+      * metrics are evidence counters only: one evaluated sample when the outcome is decided,
+        zero when pending. This prevents yield-learning rows from inflating evidence before maturity.
+    """
+    success = item.get("success")
+    decided = success is True or success is False
+    result = item.get("result") or {}
+    return {
+        "region": item.get("region") or result.get("region"),
+        "success": success,
+        "metrics": {
+            "n_evaluated": 1 if decided else 0,
+            "n_success": 1 if success is True else 0,
+            "source_model": item.get("source_model"),
+            "kind": item.get("kind"),
+        },
+        "created_at": item.get("recorded_at"),
+    }
+
+
+def summarize_learning_with_reconciled_outcomes(
+    decision_rows: list[dict],
+    outcome_records: list[dict],
+    recommendation_outcomes: list[dict] | None = None,
+    *,
+    dispatch_links: dict | None = None,
+    expert_calibrated_regions: set[str] | None = None,
+) -> dict:
+    """Summarizes learning after reconciling the two outcome models.
+
+    This is the read-path bridge for the previously pure ``core.outcome_reconciler``:
+    ``outcome_record`` remains authoritative for decision effects, while
+    ``recommendation_outcomes`` contributes yield-learning outcomes when present. Both are exposed
+    under ``outcome_reconciliation`` so dashboards can see the source mix rather than silently
+    merging incompatible models.
+    """
+    from core.outcome_reconciler import reconcile_outcomes
+
+    reconciled = reconcile_outcomes(
+        outcome_records or [],
+        recommendation_outcomes or [],
+        dispatch_links=dispatch_links or {},
+    )
+    learning_outcomes = [_learning_row_from_unified_outcome(u) for u in reconciled["unified"]]
+    summary = summarize_learning(
+        decision_rows,
+        learning_outcomes,
+        expert_calibrated_regions=expert_calibrated_regions,
+    )
+    summary["outcome_reconciliation"] = {
+        "enabled": True,
+        "total": reconciled["total"],
+        "by_source": reconciled["by_source"],
+        "by_kind": reconciled["by_kind"],
+        "linked_group_count": len(reconciled["linked_groups"]),
+        "authoritative_note": reconciled["authoritative_note"],
+    }
+    return summary
