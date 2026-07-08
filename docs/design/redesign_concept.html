@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>سهول — رؤية إعادة تصميم الواجهات</title>
+<style>
+  :root{
+    --ground:#F4EFE4; --ground-2:#ECE4D4; --surface:#FFFFFF; --surface-2:#F8F3E9;
+    --ink:#241606; --ink-soft:#5B4636; --muted:#6E6152; --line:#E4DAC8;
+    --gold:#E8A020; --gold-soft:#F6C760; --on-gold:#2C1A0E;
+    --green:#2E7D32; --green-bright:#3EB050; --green-soft:#E7F4E9;
+    --danger:#B23A2E; --info:#1C79A8;
+    /* منحدر NDVI — لغة البيانات المميِّزة لسهول (منخفض→مرتفع) */
+    --n1:#C0392B; --n2:#E67E22; --n3:#F1C40F; --n4:#A3CB38; --n5:#3EB050; --n6:#16794A;
+    --shadow:0 1px 2px rgba(36,22,6,.06), 0 8px 30px -12px rgba(36,22,6,.18);
+    --r:14px; --font-ar:'Cairo','Tajawal',system-ui,'Segoe UI',Tahoma,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --ground:#16100A; --ground-2:#1E160E; --surface:#241B12; --surface-2:#2C2118;
+    --ink:#F3ECDD; --ink-soft:#CDBFA8; --muted:#9E8F79; --line:#352A1D;
+    --gold:#EDA828; --gold-soft:#3A2c12; --on-gold:#1A1006;
+    --green:#5FB865; --green-bright:#57C368; --green-soft:#1D2A1E;
+    --danger:#E5776B; --info:#4FB0DA;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 34px -14px rgba(0,0,0,.7);
+  }}
+  :root[data-theme="light"]{
+    --ground:#F4EFE4; --ground-2:#ECE4D4; --surface:#FFFFFF; --surface-2:#F8F3E9;
+    --ink:#241606; --ink-soft:#5B4636; --muted:#6E6152; --line:#E4DAC8;
+    --gold:#E8A020; --gold-soft:#F6C760; --on-gold:#2C1A0E; --green:#2E7D32;
+    --green-bright:#3EB050; --green-soft:#E7F4E9; --danger:#B23A2E; --info:#1C79A8;
+    --shadow:0 1px 2px rgba(36,22,6,.06), 0 8px 30px -12px rgba(36,22,6,.18);
+  }
+  :root[data-theme="dark"]{
+    --ground:#16100A; --ground-2:#1E160E; --surface:#241B12; --surface-2:#2C2118;
+    --ink:#F3ECDD; --ink-soft:#CDBFA8; --muted:#9E8F79; --line:#352A1D;
+    --gold:#EDA828; --gold-soft:#3A2c12; --on-gold:#1A1006; --green:#5FB865;
+    --green-bright:#57C368; --green-soft:#1D2A1E; --danger:#E5776B; --info:#4FB0DA;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 34px -14px rgba(0,0,0,.7);
+  }
+  *{box-sizing:border-box}
+  .doc{direction:rtl;text-align:right;background:var(--ground);color:var(--ink);
+    font-family:var(--font-ar);line-height:1.65;
+    font-feature-settings:"kern" 1;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{margin:0;text-wrap:balance;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  p{margin:0}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--gold);
+    text-transform:uppercase}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  a.skip{position:absolute;right:-999px}
+  a.skip:focus{right:16px;top:16px;background:var(--gold);color:var(--on-gold);
+    padding:8px 14px;border-radius:8px;z-index:9}
+  :focus-visible{outline:2.5px solid var(--gold);outline-offset:2px;border-radius:4px}
+
+  /* ── الشريط العلويّ ── */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:16px 24px;border-bottom:1px solid var(--line);position:sticky;top:0;
+    background:color-mix(in oklab,var(--ground) 82%,transparent);
+    backdrop-filter:blur(10px);z-index:5}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+  .seed{width:26px;height:26px;border-radius:50% 50% 50% 8px;
+    background:conic-gradient(from 210deg,var(--n1),var(--n3),var(--n5),var(--n6));
+    box-shadow:inset 0 0 0 2px color-mix(in oklab,var(--ink) 12%,transparent)}
+  .toggle{border:1px solid var(--line);background:var(--surface);color:var(--ink);
+    font-family:inherit;font-size:12.5px;font-weight:700;padding:7px 12px;
+    border-radius:999px;cursor:pointer}
+  .toggle:hover{border-color:var(--gold)}
+
+  /* ── الغلاف ── */
+  .hero{position:relative;padding:76px 0 52px}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+  .hero h1{font-size:clamp(34px,5.4vw,60px)}
+  .hero .lede{color:var(--ink-soft);font-size:clamp(16px,2.1vw,20px);
+    max-width:34ch;margin-top:18px}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;
+    color:var(--ink-soft);border:1px solid var(--line);background:var(--surface);
+    padding:6px 12px;border-radius:999px;margin-bottom:20px}
+  .kicker b{color:var(--green)}
+  .cta-row{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+  .btn{font-family:inherit;font-weight:800;font-size:14.5px;padding:12px 20px;
+    border-radius:11px;border:1px solid transparent;cursor:pointer;text-decoration:none;
+    display:inline-flex;align-items:center;gap:8px}
+  .btn-gold{background:var(--gold);color:var(--on-gold)} /* نصّ داكن على ذهبيّ — إصلاح تباين */
+  .btn-gold:hover{background:var(--gold-soft)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--gold)}
+  .field-card{position:relative;border-radius:20px;overflow:hidden;box-shadow:var(--shadow);
+    border:1px solid var(--line);aspect-ratio:4/3;background:var(--surface)}
+  #ndvi{display:block;width:100%;height:100%}
+  .field-tag{position:absolute;top:14px;right:14px;background:color-mix(in oklab,var(--surface) 88%,transparent);
+    backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;
+    padding:8px 12px;font-size:12px;font-weight:700}
+  .field-legend{position:absolute;bottom:12px;right:14px;left:14px;display:flex;
+    align-items:center;gap:8px;font-size:11px;color:var(--ink-soft)}
+  .ramp{height:8px;flex:1;border-radius:99px;
+    background:linear-gradient(to left,var(--n1),var(--n2),var(--n3),var(--n4),var(--n5),var(--n6))}
+
+  /* ── الأقسام ── */
+  section{padding:56px 0;border-top:1px solid var(--line)}
+  .sec-head{max-width:60ch;margin-bottom:34px}
+  .sec-head h2{font-size:clamp(24px,3.4vw,34px)}
+  .sec-head p{color:var(--ink-soft);margin-top:12px;font-size:16px}
+
+  /* المبادئ */
+  .principles{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .pr{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:22px;box-shadow:var(--shadow)}
+  .pr .n{font-family:var(--mono);font-size:12px;color:var(--gold);font-weight:700}
+  .pr h3{font-size:17px;margin:10px 0 8px}
+  .pr p{color:var(--muted);font-size:14px}
+
+  /* اللوحة اللونيّة + إصلاح التباين */
+  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+  .sw{border-radius:12px;border:1px solid var(--line);overflow:hidden;background:var(--surface)}
+  .sw .chip{height:70px}
+  .sw .meta{padding:9px 11px;font-size:11.5px}
+  .sw .meta b{display:block;font-size:12.5px;font-weight:800}
+  .sw .meta .num{color:var(--muted);font-size:10.5px}
+  .contrast{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .cx{border:1px solid var(--line);border-radius:var(--r);padding:16px;background:var(--surface)}
+  .cx .lbl{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;
+    display:flex;justify-content:space-between}
+  .swatch-btn{display:inline-flex;align-items:center;gap:8px;padding:11px 16px;
+    border-radius:10px;font-weight:800;font-size:14px}
+  .bad{background:var(--gold);color:#fff}
+  .good{background:var(--gold);color:var(--on-gold)}
+  .verdict{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .v-fail{background:color-mix(in oklab,var(--danger) 18%,var(--surface));color:var(--danger)}
+  .v-pass{background:var(--green-soft);color:var(--green)}
+
+  /* سلّم الخطوط */
+  .scale{display:grid;gap:2px}
+  .scale-row{display:flex;align-items:baseline;gap:18px;padding:12px 0;
+    border-bottom:1px solid var(--line)}
+  .scale-row .tag{font-family:var(--mono);font-size:11px;color:var(--muted);width:120px;
+    flex:none}
+  .s-display{font-size:40px;font-weight:800;letter-spacing:-.02em}
+  .s-h2{font-size:26px;font-weight:800}
+  .s-lede{font-size:19px;color:var(--ink-soft)}
+  .s-body{font-size:16px}
+  .s-cap{font-size:12.5px;color:var(--muted);letter-spacing:.02em}
+
+  /* نماذج الشاشات */
+  .concepts{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .mock{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+    padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px}
+  .mock .cap{font-size:12px;color:var(--muted);border-top:1px dashed var(--line);
+    padding-top:10px;margin-top:2px}
+  .mhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .mhead .t{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .pill{font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:999px}
+  .p-go{background:var(--green-soft);color:var(--green)}
+  .p-caution{background:color-mix(in oklab,var(--gold) 22%,var(--surface));color:var(--on-gold)}
+  .p-no{background:color-mix(in oklab,var(--danger) 16%,var(--surface));color:var(--danger)}
+  .evrow{display:flex;flex-wrap:wrap;gap:6px}
+  .ev{font-size:11px;font-weight:700;padding:4px 9px;border-radius:8px;
+    background:var(--surface-2);color:var(--ink-soft);display:inline-flex;gap:5px;align-items:center}
+  .ev .k{width:6px;height:6px;border-radius:2px;background:var(--green-bright)}
+  .ev.miss .k{background:var(--muted)}
+  .meter{height:8px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+  .meter>i{display:block;height:100%;background:linear-gradient(to left,var(--n5),var(--n6))}
+  .kv{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+  .kv b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-weight:700}
+  .bars{display:flex;flex-direction:column;gap:7px}
+  .bar{display:flex;align-items:center;gap:8px;font-size:12px}
+  .bar .lab{width:70px;flex:none;color:var(--ink-soft)}
+  .bar .track{flex:1;height:16px;border-radius:6px;position:relative;overflow:hidden}
+  .bar .v{font-family:var(--mono);font-size:11px;width:34px;text-align:left;color:var(--muted)}
+  .maptile{aspect-ratio:16/10;border-radius:10px;position:relative;overflow:hidden;border:1px solid var(--line)}
+  #wind,#drift{position:absolute;inset:0;width:100%;height:100%}
+
+  /* الحركة */
+  .motion{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .mo{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+  .mo h3{font-size:15px;margin-bottom:6px}
+  .mo p{font-size:13px;color:var(--muted)}
+
+  footer{padding:40px 0 64px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
+  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+  @media (max-width:820px){
+    .hero-grid,.contrast,.concepts{grid-template-columns:1fr}
+    .principles,.palette,.motion{grid-template-columns:1fr 1fr}
+    .scale-row{flex-direction:column;gap:6px}.scale-row .tag{width:auto}
+  }
+  @media (max-width:520px){.palette,.principles,.motion{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<a href="#concepts" class="skip">تخطَّ إلى نماذج الشاشات</a>
+<div class="doc">
+  <div class="top">
+    <div class="brand"><span class="seed" aria-hidden="true"></span> سهول · نظام تصميم</div>
+    <button class="toggle" id="tt" aria-label="تبديل السمة">◐ الوضع</button>
+  </div>
+
+  <div class="wrap">
+    <!-- الغلاف: الأطروحة -->
+    <header class="hero">
+      <div class="hero-grid">
+        <div class="reveal in">
+          <span class="kicker">رؤية · <b>تطوير لا استبدال</b> للهويّة القائمة</span>
+          <h1>من واجهة «تعرض بيانات»<br>إلى <span style="color:var(--gold)">نظام ذكاء حقل</span></h1>
+          <p class="lede">لغة بصريّة واحدة تربط القمر الصناعيّ بالقرار الميدانيّ: تُرابيّة
+            دافئة، منحدر NDVI كإشارة بيانات، وعربيّة RTL بوصول WCAG AA.</p>
+          <div class="cta-row">
+            <a class="btn btn-gold" href="#palette">استعرض النظام</a>
+            <a class="btn btn-ghost" href="#concepts">نماذج الشاشات</a>
+          </div>
+        </div>
+        <div class="field-card reveal in" aria-label="حقل بمنحدر NDVI (تمثيليّ)">
+          <canvas id="ndvi" width="640" height="480"></canvas>
+          <div class="field-tag">الجوف · <span class="num">NDVI 0.62</span> · صحّيّ</div>
+          <div class="field-legend"><span>إجهاد</span><span class="ramp"></span><span>كثيف</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- المبادئ -->
+    <section id="principles">
+      <div class="sec-head reveal">
+        <span class="eyebrow">المبادئ</span>
+        <h2>أربعة ثوابت تصميميّة، مشتقّة من عمل سهول لا من قوالب</h2>
+        <p>كلّ قرار بصريّ يخدم المزارع اليمنيّ والفنّيّ والمدير — الوضوح قبل البهرجة،
+          والدليل قبل الادّعاء.</p>
+      </div>
+      <div class="principles">
+        <div class="pr reveal"><div class="n">01</div><h3>مؤرَّض بالدليل</h3>
+          <p>كلّ رقم يحمل مصدره؛ الناقص يُعلَن «غير متاح» بلونٍ خافت لا يُخفى. الثقة تُعرَض، لا تُدّعى.</p></div>
+        <div class="pr reveal"><div class="n">02</div><h3>الحالة تُقرأ باللون والشكل</h3>
+          <p>go / caution / no_go لها لون دلاليّ ووسم مستقلّ عن لون العلامة — يُلتقط بنظرة.</p></div>
+        <div class="pr reveal"><div class="n">03</div><h3>عربيّ RTL أوّلاً</h3>
+          <p>الاتّجاه والخطّ (Cairo/Tajawal) والأرقام الجدوليّة مُصمَّمة للعربيّة لا مُكيَّفة عنها.</p></div>
+        <div class="pr reveal"><div class="n">04</div><h3>وصول WCAG AA</h3>
+          <p>كلّ نصّ أساسيّ يحقّق 4.5:1؛ حارس آليّ في CI يمنع الانحدار (لا شعار، بل قاعدة).</p></div>
+      </div>
+    </section>
+
+    <!-- اللوحة اللونيّة + الإصلاح -->
+    <section id="palette">
+      <div class="sec-head reveal">
+        <span class="eyebrow">اللون</span>
+        <h2>لوحة الأرض الدافئة — مُطوَّرة لتعبر اختبار الوصول</h2>
+        <p>نبقي على هويّة سهول (التربة، الذهبيّ، أخضر المحصول) لكن نُصلح نقاط تباين حقيقيّة
+          كشفها التدقيق: الأبيض على الذهبيّ يفشل (2.22)، فنستبدله بنصّ داكن.</p>
+      </div>
+      <div class="palette">
+        <div class="sw reveal"><div class="chip" style="background:#241606"></div>
+          <div class="meta"><b>حبر</b><span class="num">#241606</span></div></div>
+        <div class="sw reveal"><div class="chip" style="background:#E8A020"></div>
+          <div class="meta"><b>ذهبيّ · CTA</b><span class="num">#E8A020</span></div></div>
+        <div class="sw reveal"><div class="chip" style="background:#2E7D32"></div>
+          <div class="meta"><b>أخضر</b><span class="num">#2E7D32</span></div></div>
+        <div class="sw reveal"><div class="chip" style="background:#6E6152"></div>
+          <div class="meta"><b>ثانويّ*</b><span class="num">#6E6152</span></div></div>
+        <div class="sw reveal"><div class="chip" style="background:#F4EFE4"></div>
+          <div class="meta"><b>أرضيّة</b><span class="num">#F4EFE4</span></div></div>
+        <div class="sw reveal"><div class="chip" style="background:linear-gradient(to left,#C0392B,#E67E22,#F1C40F,#A3CB38,#3EB050,#16794A)"></div>
+          <div class="meta"><b>منحدر NDVI</b><span class="num">إشارة البيانات</span></div></div>
+      </div>
+      <div class="contrast reveal">
+        <div class="cx">
+          <div class="lbl"><span>قبل — أبيض على ذهبيّ</span><span class="verdict v-fail">2.22 · FAIL AA</span></div>
+          <span class="swatch-btn bad">احسب اتّجاه الرياح</span>
+        </div>
+        <div class="cx">
+          <div class="lbl"><span>بعد — حبر داكن على ذهبيّ</span><span class="verdict v-pass">7.3 · PASS AA</span></div>
+          <span class="swatch-btn good">احسب اتّجاه الرياح</span>
+        </div>
+      </div>
+      <p class="s-cap" style="margin-top:12px">* «الثانويّ» أُغمِق من ‎#8A7B6B إلى ‎#6E6152 ليعبر AA للنصّ الصغير — تغيير مشتقّ من نتيجة الحارس، لا ذوقيّ.</p>
+    </section>
+
+    <!-- سلّم الخطوط -->
+    <section id="type">
+      <div class="sec-head reveal">
+        <span class="eyebrow">الخطّ</span>
+        <h2>سلّم عربيّ واضح — Cairo للعناوين، Tajawal للنصّ، مونو للبيانات</h2>
+        <p>تباين وزنٍ حادّ يحمل الهرميّة؛ الأرقام جدوليّة (tabular) كي تصطفّ الإحداثيّات والقيم.</p>
+      </div>
+      <div class="scale reveal">
+        <div class="scale-row"><span class="tag">display · 40/800</span><span class="s-display">حالة الحقل اليوم</span></div>
+        <div class="scale-row"><span class="tag">h2 · 26/800</span><span class="s-h2">نافذة الرشّ المناسبة</span></div>
+        <div class="scale-row"><span class="tag">lede · 19</span><span class="s-lede">الرطوبة كافية والريح ضمن الحدّ الآمن.</span></div>
+        <div class="scale-row"><span class="tag">body · 16</span><span class="s-body">أُنشئت التوصية من مؤشّر NDVI ونافذة الطقس وتضاريس الحقل.</span></div>
+        <div class="scale-row"><span class="tag">data · mono</span><span class="s-body num">15.812°N · 45.104°E · NDVI 0.62 · CWSI 0.18</span></div>
+        <div class="scale-row"><span class="tag">caption · 12.5</span><span class="s-cap">آخر التقاط: 2026-06-01 · CDSE/Sentinel-2 · دقّة 10م</span></div>
+      </div>
+    </section>
+
+    <!-- نماذج الشاشات -->
+    <section id="concepts">
+      <div class="sec-head reveal">
+        <span class="eyebrow">الشاشات</span>
+        <h2>أربعة مكوّنات جوهريّة، بلغةٍ واحدة</h2>
+        <p>نماذج تمثيليّة تُظهر النظام مطبَّقاً على قلب سهول: الذكاء، القرار، الخريطة، والنشرة.</p>
+      </div>
+      <div class="concepts">
+        <!-- بطاقة ذكاء الحقل -->
+        <div class="mock reveal">
+          <div class="mhead"><span class="t"><span class="dot" style="background:var(--green-bright)"></span> بطاقة ذكاء الحقل</span>
+            <span class="pill p-go">ثقة 82٪</span></div>
+          <div class="evrow">
+            <span class="ev"><span class="k"></span> NDVI · soilgrids</span>
+            <span class="ev"><span class="k"></span> نافذة الطقس · NASA POWER</span>
+            <span class="ev miss"><span class="k"></span> التضاريس: غير متاح</span>
+          </div>
+          <div class="meter"><i style="width:82%"></i></div>
+          <div class="cap">الأدلّة الحاضرة بمصادرها، والفجوة بسببها صراحةً — لا اختلاق.</div>
+        </div>
+
+        <!-- مظروف القرار الاستشاريّ -->
+        <div class="mock reveal">
+          <div class="mhead"><span class="t"><span class="dot" style="background:var(--gold)"></span> قرار الرشّ الآن</span>
+            <span class="pill p-caution">تنبّه · مراجعة بشريّة</span></div>
+          <div class="kv"><span>القرار</span><b>advisory_only</b></div>
+          <div class="kv"><span>خطر الانجراف (downwind)</span><b style="color:var(--danger)">منزل · 118م</b></div>
+          <div class="kv"><span>الأصل</span><b>حافّة الحقل</b></div>
+          <div class="cap">القرار التنفيذيّ للمنسّق لا للنموذج؛ requires_human_review = true.</div>
+        </div>
+
+        <!-- بلاطة الخريطة: ريح + مخروط انجراف -->
+        <div class="mock reveal">
+          <div class="mhead"><span class="t"><span class="dot" style="background:var(--info)"></span> مركز الخرائط · الريح والانجراف</span>
+            <span class="pill p-no">لا ترشّ نحو ↙</span></div>
+          <div class="maptile"><canvas id="drift" width="480" height="300"></canvas></div>
+          <div class="cap">وردة الريح السائدة + مخروط الانجراف من أقرب حدّ — تقدير محافظ مُعلَن.</div>
+        </div>
+
+        <!-- النشرة الإقليميّة -->
+        <div class="mock reveal">
+          <div class="mhead"><span class="t"><span class="dot" style="background:var(--n5)"></span> النشرة الإقليميّة · حالة NDVI</span>
+            <span class="pill p-go">2026-06</span></div>
+          <div class="bars">
+            <div class="bar"><span class="lab">الجوف</span><span class="track" style="background:var(--n3)"></span><span class="v">مراقبة</span></div>
+            <div class="bar"><span class="lab">— الحزم</span><span class="track" style="background:var(--n1)"></span><span class="v">ضعيفة</span></div>
+            <div class="bar"><span class="lab">— المطمّة</span><span class="track" style="background:var(--n5)"></span><span class="v">جيّدة</span></div>
+            <div class="bar"><span class="lab">مأرب</span><span class="track" style="background:var(--muted)"></span><span class="v">مكتوم</span></div>
+          </div>
+          <div class="cap">تصنيفيّ لا جغرافيّ (لا حدود إداريّة)؛ المكتوم للخصوصيّة بلا أرقام.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- الحركة -->
+    <section id="motion">
+      <div class="sec-head reveal">
+        <span class="eyebrow">الحركة</span>
+        <h2>حركة تخدم القراءة، لا تزيّنها</h2>
+        <p>ثلاث لحظات مقصودة فقط — واحترام <span class="num">prefers-reduced-motion</span> دائماً.</p>
+      </div>
+      <div class="motion">
+        <div class="mo reveal"><h3>كشف بالتمرير</h3><p>البطاقات تظهر بانزياح لطيف (14px، 600ms) — لتوجيه العين لا لإبهارها.</p></div>
+        <div class="mo reveal"><h3>عدّاد الثقة</h3><p>شريط الثقة يملأ من الصفر عند التحميل — إشارة أنّ الرقم مُشتقّ لا ثابت.</p></div>
+        <div class="mo reveal"><h3>نبض المخروط</h3><p>مخروط الانجراف ينبض بهدوء حين at_risk فقط — تنبيه سلامة لا ديكور.</p></div>
+      </div>
+    </section>
+
+    <footer>
+      رؤية إعادة تصميم — <b>مفهوم للمراجعة، لا شحنة إنتاج</b>. تُطوِّر نظام سهول القائم
+      (<span class="num">ds/tokens.ts</span> · Cairo/Tajawal · RTL) وتُصلح نتائج تدقيق التباين
+      الفعليّة (<span class="num">design_token_contrast_gate</span>). قِيَم NDVI وأسماء الحقول تمثيليّة.
+    </footer>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root=document.documentElement, tt=document.getElementById('tt');
+  function cur(){var t=root.getAttribute('data-theme'); if(t)return t;
+    return matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+  tt.addEventListener('click',function(){root.setAttribute('data-theme',cur()==='dark'?'light':'dark'); draw();});
+
+  var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
+  document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+
+  function css(v){return getComputedStyle(root).getPropertyValue(v).trim();}
+
+  // حقل NDVI تمثيليّ (Canvas — رسم توليديّ لا SVG مكتوب يدويّاً)
+  function drawField(){
+    var c=document.getElementById('ndvi'); if(!c)return; var x=c.getContext('2d');
+    var w=c.width,h=c.height, ramp=[css('--n1'),css('--n2'),css('--n3'),css('--n4'),css('--n5'),css('--n6')];
+    for(var i=0;i<w;i+=8)for(var j=0;j<h;j+=8){
+      var v=0.55+0.35*Math.sin(i/70)+0.28*Math.cos(j/58)+0.12*Math.sin((i+j)/40);
+      v=Math.max(0,Math.min(1,(v+0.4)/1.6));
+      var idx=Math.min(ramp.length-1,Math.floor(v*ramp.length));
+      x.fillStyle=ramp[idx]; x.globalAlpha=.92; x.fillRect(i,j,8,8);
+    }
+    x.globalAlpha=1;
+    // حدّ الحقل
+    x.strokeStyle='rgba(255,255,255,.55)'; x.lineWidth=3;
+    x.beginPath();x.moveTo(w*.12,h*.2);x.lineTo(w*.9,h*.14);x.lineTo(w*.86,h*.86);x.lineTo(w*.16,h*.8);x.closePath();x.stroke();
+  }
+  // مخروط الانجراف + سهم الريح
+  function drawDrift(){
+    var c=document.getElementById('drift'); if(!c)return; var x=c.getContext('2d');
+    var w=c.width,h=c.height; x.clearRect(0,0,w,h);
+    x.fillStyle=css('--surface-2'); x.fillRect(0,0,w,h);
+    // شبكة خفيفة
+    x.strokeStyle=css('--line'); x.lineWidth=1;
+    for(var g=0;g<w;g+=32){x.beginPath();x.moveTo(g,0);x.lineTo(g,h);x.stroke();}
+    var cx=w*.62, cy=h*.42;
+    // مخروط downwind نحو أسفل-يسار
+    x.save(); x.translate(cx,cy); x.rotate(Math.PI*0.82);
+    var grad=x.createLinearGradient(0,0,150,0);
+    grad.addColorStop(0,'rgba(192,57,43,.34)'); grad.addColorStop(1,'rgba(192,57,43,0)');
+    x.fillStyle=grad; x.beginPath(); x.moveTo(0,0);
+    x.lineTo(160,-52); x.lineTo(160,52); x.closePath(); x.fill(); x.restore();
+    // الحقل (نقطة)
+    x.fillStyle=css('--green'); x.beginPath(); x.arc(cx,cy,7,0,7); x.fill();
+    // المنزل المعرَّض
+    x.fillStyle=css('--danger'); x.fillRect(w*.2,h*.72,16,14);
+    x.fillStyle=css('--ink'); x.font='12px '+css('--mono');
+    // سهم الريح (أعلى يمين)
+    x.strokeStyle=css('--info'); x.lineWidth=3; x.beginPath();
+    x.moveTo(w*.86,h*.16); x.lineTo(w*.74,h*.3); x.stroke();
+    x.beginPath();x.moveTo(w*.74,h*.3);x.lineTo(w*.79,h*.28);x.moveTo(w*.74,h*.3);x.lineTo(w*.765,h*.245);x.stroke();
+  }
+  function draw(){drawField();drawDrift();}
+  draw();
+  // نبض المخروط عند at_risk (إن لم يُطلَب تقليل الحركة)
+  if(!reduce){var t=0; setInterval(function(){t+=0.05;
+    var c=document.getElementById('drift'); if(c){c.style.opacity=(0.92+0.08*Math.sin(t)).toFixed(3);}},60);}
+})();
+</script>
+</body>
+</html>
