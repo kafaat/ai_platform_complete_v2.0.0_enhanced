@@ -1,0 +1,50 @@
+# SAHOOL CORE crop card — Banana (الموز)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+# مُعمِّر (عشب ضخم مُعمِّر) — كتلة phenology الحوليّة مُغفَلة عمداً.
+crop_id: banana
+name_ar: الموز
+name_en: Banana
+crop_family: tree_C3
+
+kc:
+  initial: 1.00
+  mid: 1.20
+  end: 1.10
+  stage_days: [90, 90, 90, 95]   # ≈ سنة (إرشاديّ لمُعمِّر دائم الخضرة)
+  source: "FAO-56 Table 12 (Banana, tropical); perennial — indicative annual cycle"
+
+salinity:
+  threshold_ece_ds_m: 1.3        # الموز حسّاس للملوحة (خارج جدول FAO-56 T23)
+  slope_pct_per_ds_m: 9.0        # تقدير أدبيّ — ليس Maas-Hoffman معياريّاً
+  source: "Banana salinity literature (sensitive; not in FAO-56 T23 — indicative)"
+
+thermal:
+  gdd_base_c: 14.0
+  gdd_to_maturity: 0             # مُعمِّر — إثمار مستمرّ (خلفات)
+  flowering_safe_max_c: 38.0
+  chilling_hours_required: 0     # مداريّ — يتضرّر بالبرد لا بنقص البرودة
+  source: "Banana agronomy (tropical; base ~14C; chilling-injured below ~12C)"
+
+governing:
+  ph:        { min: 5.5, max: 7.5, error: 0.1,  source: "ECOCROP banana" }
+  ece_ds_m:  { min: 0.0, max: 4.0, error: 0.02, source: "Banana salt sensitivity (indicative)" }
+  drainage:  { needs: good }     # يحتاج ماءً وفيراً لكن يتعفّن بالغدق
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 1.0
+    optimal_min: 2.0
+    optimal_max: 4.0
+    max_acceptable: 8.0
+    weight: 0.3
+    error: 0.05
+    source: "Banana OM thresholds (high-humus tropical)"
+  nitrogen_kg_ha_required: 200
+  phosphorus_kg_ha_required: 40
+  potassium_kg_ha_required: 300  # مُستهلِك بوتاسيوم مرتفع جدّاً
+
+pest_susceptibility:
+  pests: [panama_disease, black_sigatoka, banana_weevil, nematodes]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# لا كتلة phenology (مُعمِّر). لا calibration/yield/zone_factor.

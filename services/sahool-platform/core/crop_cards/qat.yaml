@@ -1,0 +1,54 @@
+# SAHOOL CORE crop card — Qat / khat (القات)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+# مُعمِّر (شجيرة دائمة الخضرة) — كتلة phenology الحوليّة مُغفَلة عمداً.
+#
+# ملاحظة صدق: يُدرَج بوصفه واقعاً زراعيّاً يمنيّاً مهيمناً (أوسع المحاصيل مساحةً،
+# الأعلى استهلاكاً للمياه) — لا ترويجاً له. لا مصدر FAO-56/ECOCROP معياريّ للقات؛
+# كلّ القيم أدناه تقديريّة (indicative) من أدبيّات زراعيّة عامّة، مُعلَّمة صراحةً.
+crop_id: qat
+name_ar: القات
+name_en: Qat (khat, Catha edulis)
+crop_family: tree_C3
+
+kc:
+  initial: 0.60
+  mid: 0.80
+  end: 0.75
+  stage_days: [90, 90, 90, 95]   # ≈ سنة (إرشاديّ لمُعمِّر دائم الخضرة يُقطَف دوريّاً)
+  source: "Catha edulis agronomy (indicative Kc; no FAO-56/ECOCROP standard); perennial evergreen"
+
+salinity:
+  threshold_ece_ds_m: 2.0        # لا بيانات ملوحة معياريّة للقات — تقدير أدبيّ فقط
+  slope_pct_per_ds_m: 7.0        # indicative — ليس Maas-Hoffman
+  source: "Qat salinity — no standard data (indicative estimate only)"
+
+thermal:
+  gdd_base_c: 10.0
+  gdd_to_maturity: 0             # مُعمِّر — قطاف أوراق دوريّ لا نضج حوليّ
+  flowering_safe_max_c: 33.0
+  chilling_hours_required: 0     # مرتفعات باردة (1500–2500م) — لا ساعات برودة شجريّة موثّقة
+  source: "Catha edulis agronomy (Yemeni highlands 1500-2500m; indicative)"
+
+governing:
+  ph:        { min: 5.5, max: 7.5, error: 0.1,  source: "Qat soil preference (indicative)" }
+  ece_ds_m:  { min: 0.0, max: 6.0, error: 0.02, source: "Qat salt tolerance (indicative)" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.5
+    optimal_min: 1.0
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Qat OM thresholds (indicative)"
+  nitrogen_kg_ha_required: 100
+  phosphorus_kg_ha_required: 40
+  potassium_kg_ha_required: 100
+
+pest_susceptibility:
+  pests: []                      # صدق: آفات القات غير موثّقة معياريّاً — قائمة فارغة لا مُختلَقة
+  note: "بيانات آفات القات محدودة التوثيق؛ النوافذ الإقليمية (إن وُجدت) في districts/<region>/pests.yaml"
+
+# لا كتلة phenology (مُعمِّر). لا calibration/yield/zone_factor. إدراج واقعيّ لا ترويجيّ.

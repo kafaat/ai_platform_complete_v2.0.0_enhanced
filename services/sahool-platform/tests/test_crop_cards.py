@@ -622,3 +622,60 @@ class TestYemenVegetablesBatch3a:
             assert "source" in card["kc"] and "source" in card["salinity"]
             for forbidden in ("yield", "calibration", "zone_factor", "region"):
                 assert forbidden not in card, (cid, forbidden)
+
+
+class TestYemenFruitsAndQatBatch3b:
+    """فواكه مُعمِّرة + القات (الدفعة 3ب): موز · مانجو · بابايا · حمضيات · رمّان ·
+    تين · جوافة · قات. كلّها مُعمِّرة ⇒ بلا كتلة phenology حوليّة (صدق: لا مراحل
+    مُلفَّقة لمُعمِّر). أغلب القيم «indicative» (خارج FAO-56/ECOCROP المعياريّ)."""
+
+    PERENNIALS = ("banana", "mango", "papaya", "citrus", "pomegranate", "fig", "guava", "qat")
+
+    def test_all_present_valid_perennial(self):
+        from core.crop_cards.loader import growth_stages
+
+        cards = list_crop_cards()
+        for cid in self.PERENNIALS:
+            assert cid in cards, cid
+            card = load_crop_card(cid)
+            assert validate_crop_card(card)["valid"], cid
+            # مُعمِّر ⇒ لا كتلة phenology حوليّة، ولا «نضج» حوليّ.
+            assert growth_stages(cid) == [], cid
+            assert card["thermal"]["gdd_to_maturity"] == 0, cid
+
+    def test_citrus_uses_standard_maas_hoffman(self):
+        # الحمضيات (البرتقال) في FAO-56 T23 فعليّاً — عتبة 1.7 حسّاسة.
+        sal = load_crop_card("citrus")["salinity"]
+        assert sal["threshold_ece_ds_m"] == 1.7
+        assert "FAO-56" in sal["source"] or "Maas" in sal["source"]
+
+    def test_indicative_values_flagged_honestly(self):
+        # ما لا مصدر معياريّ له (موز/مانجو/بابايا/رمّان/تين/جوافة/قات) يُعلَّم بصدق.
+        for cid in ("banana", "mango", "papaya", "pomegranate", "fig", "guava", "qat"):
+            src = load_crop_card(cid)["salinity"]["source"].lower()
+            assert "indicative" in src or "no standard" in src, cid
+
+    def test_qat_is_neutral_indicative_and_honest_empty_pests(self):
+        # القات: إدراج واقعيّ لا ترويجيّ — كلّ قيمه «indicative»، وآفاته قائمة فارغة
+        # بصدق (غير موثّقة معياريّاً) لا مُختلَقة.
+        qat = load_crop_card("qat")
+        assert qat["pest_susceptibility"]["pests"] == []
+        assert "indicative" in qat["kc"]["source"].lower()
+        assert "no fao-56" in qat["kc"]["source"].lower()
+
+    def test_deciduous_fruits_need_winter_chill(self):
+        # الرمّان والتين مُتساقطان ⇒ يحتاجان بردَ سُبات (ساعات برودة > 0).
+        for cid in ("pomegranate", "fig"):
+            assert load_crop_card(cid)["thermal"]["chilling_hours_required"] > 0, cid
+
+    def test_banana_heavy_potassium_feeder(self):
+        # الموز مُستهلِك بوتاسيوم مرتفع جدّاً (K > N).
+        m = load_crop_card("banana")["modifying"]
+        assert m["potassium_kg_ha_required"] > m["nitrogen_kg_ha_required"]
+
+    def test_all_region_agnostic_and_sourced(self):
+        for cid in self.PERENNIALS:
+            card = load_crop_card(cid)
+            assert "source" in card["kc"] and "source" in card["salinity"]
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in card, (cid, forbidden)
