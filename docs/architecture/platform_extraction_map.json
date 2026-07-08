@@ -1937,7 +1937,7 @@
       "method": "GET",
       "path": "/api/v1/decision/{decision_id}/lineage",
       "line": 461,
-      "target_owner": "knowledge-graph",
+      "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/{decision_id}/lineage::get_decision_lineage"
     },
@@ -1947,7 +1947,7 @@
       "method": "GET",
       "path": "/api/v1/decision/records",
       "line": 501,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_record.py::GET /api/v1/decision/records::list_decision_records"
     },
@@ -1957,7 +1957,7 @@
       "method": "GET",
       "path": "/api/v1/field/{field_id}/lineage",
       "line": 552,
-      "target_owner": "knowledge-graph",
+      "target_owner": "decision-service",
       "owner_type": "knowledge-store",
       "route_key": "api/routers/decision_record.py::GET /api/v1/field/{field_id}/lineage::get_field_lineage"
     },
@@ -3927,7 +3927,7 @@
       "method": "GET",
       "path": "/api/v1/learning/summary",
       "line": 53,
-      "target_owner": "sahool-platform",
+      "target_owner": "decision-service",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/learning_summary.py::GET /api/v1/learning/summary::get_learning_summary"
     },

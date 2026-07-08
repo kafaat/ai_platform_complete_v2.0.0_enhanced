@@ -85,3 +85,47 @@ def test_write_endpoints_require_tenant_header():
     ]:
         res = client.post(path, json=payload)
         assert res.status_code == 401, path
+
+
+def test_p4_6_read_side_decision_list_endpoint():
+    """P4.6: the platform decision-records read route now delegates here."""
+    res = client.get("/v1/decisions", headers=HEADERS, params={"field_id": "fld-1", "limit": 25})
+    assert res.status_code == 200
+    body = res.json()
+    assert body["tenant_id"] == "tenant-1"
+    assert body["field_id"] == "fld-1"
+    assert body["limit"] == 25
+    assert body["decisions"] == []
+    assert body["count"] == 0
+
+
+def test_p4_6_read_side_field_lineage_endpoint():
+    """P4.6: the platform field-lineage read route now delegates here."""
+    res = client.get("/v1/fields/fld-9/lineage", headers=HEADERS)
+    assert res.status_code == 200
+    body = res.json()
+    assert body["field_id"] == "fld-9"
+    assert body["decisions"] == []
+    assert body["orphan_outcomes"] == []
+    assert body["count"] == 0
+
+
+def test_p4_6_read_side_reconciled_outcomes_endpoint():
+    """P4.6: reconciled-outcome semantics (learning dashboard) belong to the owner service."""
+    res = client.get(
+        "/v1/outcomes/reconciled", headers=HEADERS, params={"field_id": "fld-1", "season_id": "s1"}
+    )
+    assert res.status_code == 200
+    body = res.json()
+    assert body["tenant_id"] == "tenant-1"
+    recon = body["outcome_reconciliation"]
+    assert recon["enabled"] is True
+    assert recon["success_rate"] is None
+    assert recon["by_source"] == {}
+
+
+def test_read_endpoints_require_tenant_header():
+    """Read scoping is tenant-bound too: reads without X-Tenant-Id are rejected."""
+    for path in ("/v1/decisions", "/v1/fields/fld-1/lineage", "/v1/outcomes/reconciled"):
+        res = client.get(path)
+        assert res.status_code == 401, path

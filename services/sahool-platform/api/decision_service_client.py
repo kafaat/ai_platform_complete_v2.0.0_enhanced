@@ -134,3 +134,37 @@ async def get_learning_summary(
 
 async def get_decision_lineage(decision_id: str, *, tenant_id: str | None = None) -> dict[str, Any]:
     return await decision_get_json(f"/v1/decisions/{decision_id}/lineage", tenant_id=tenant_id)
+
+
+# P4.6 read-side facade helpers.  These are intentionally thin; sahool-platform may shape
+# BFF responses (auth/flag/validation) but must not own loop-table read semantics.
+async def list_decisions(
+    *,
+    tenant_id: str | None = None,
+    field_id: str | None = None,
+    decision_type: str | None = None,
+    limit: int = 50,
+) -> dict[str, Any]:
+    return await decision_get_json(
+        "/v1/decisions",
+        tenant_id=tenant_id,
+        params={"field_id": field_id, "decision_type": decision_type, "limit": limit},
+    )
+
+
+async def get_field_lineage(
+    field_id: str, *, tenant_id: str | None = None, limit: int = 50
+) -> dict[str, Any]:
+    return await decision_get_json(
+        f"/v1/fields/{field_id}/lineage", tenant_id=tenant_id, params={"limit": limit}
+    )
+
+
+async def get_reconciled_outcomes(
+    *, tenant_id: str | None = None, field_id: str | None = None, season_id: str | None = None
+) -> dict[str, Any]:
+    return await decision_get_json(
+        "/v1/outcomes/reconciled",
+        tenant_id=tenant_id,
+        params={"field_id": field_id, "season_id": season_id},
+    )

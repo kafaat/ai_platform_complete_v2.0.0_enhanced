@@ -227,6 +227,59 @@ def learning_summary(
     }
 
 
+@app.get("/v1/decisions")
+def list_decisions(
+    field_id: str | None = None,
+    decision_type: str | None = None,
+    limit: int = Query(50, ge=1, le=200),
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    return {
+        "tenant_id": _tenant(x_tenant_id),
+        "field_id": field_id,
+        "decision_type": decision_type,
+        "limit": limit,
+        "decisions": [],
+        "count": 0,
+    }
+
+
+@app.get("/v1/fields/{field_id}/lineage")
+def field_lineage(
+    field_id: str,
+    limit: int = Query(50, ge=1, le=200),
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    return {
+        "tenant_id": _tenant(x_tenant_id),
+        "field_id": field_id,
+        "limit": limit,
+        "decisions": [],
+        "orphan_outcomes": [],
+        "count": 0,
+    }
+
+
+@app.get("/v1/outcomes/reconciled")
+def reconciled_outcomes(
+    field_id: str | None = None,
+    season_id: str | None = None,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    return {
+        "tenant_id": _tenant(x_tenant_id),
+        "field_id": field_id,
+        "season_id": season_id,
+        "outcome_reconciliation": {
+            "enabled": True,
+            "sample_count": 0,
+            "success_rate": None,
+            "by_source": {},
+            "by_kind": {},
+        },
+    }
+
+
 @app.get("/v1/decisions/{decision_id}/lineage")
 def decision_lineage(
     decision_id: str, x_tenant_id: str | None = Header(default=None)

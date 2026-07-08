@@ -8365,6 +8365,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "name": "services/decision-service/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "70c7543fa76c3d211f1e40c24931d6d5ab2391159b1a18a735e7e688e67a4a4e"
+        }
+      ],
+      "name": "services/decision-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "79fcea1e7738bf34f6ce92844b7d0bb0777649c97d79295186629c09c90b863c"
+        }
+      ],
+      "name": "services/decision-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0a8c88a613be18ea366e7b5d3df1ad7f034c9be564bbc88618a6e200ffc5f6c"
+        }
+      ],
+      "name": "services/decision-service/tests/test_p4_decision_service_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c84f88c4dad353f473edd75b6a07007ae84670918fa836d94aa52c508c62810"
         }
       ],
@@ -11135,6 +11175,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "cccdf53acd2dc76694de9f0c9756686cb4d93776675f124d22bc4decf5a4ff3a"
+        }
+      ],
+      "name": "services/sahool-platform/api/decision_service_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "10bc30a47f2135ce3fe3be0bb0f5d3cca56318b7b14da39007026568600eb324"
         }
       ],
@@ -11975,7 +12025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d87ed782cdf55eeaa0461b58bdf47c56ef7124b4467f4fc8dd49c6abf1185bc"
+          "content": "b55be9a1352825821d5cfe27dad10bb0829a3086dbdb3c83f868e3df92f7aa9b"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_store.py",
@@ -12545,7 +12595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03a69f988f8f5bbcc1ccf0baebc619e4017aacee6d3cb6e0d29c564dc2d2c81f"
+          "content": "528909867c85ebe280b86fa8f5a3126e81de901c35ab4645c16470a78f7ae515"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_record.py",
@@ -13015,7 +13065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "556af90472fce063d0e143652d57c583db03459e475807008843cea498406d66"
+          "content": "6a644e001489bc1a9124bf321d4d8a0f46cca47249707f60b9e43c8f936ed002"
         }
       ],
       "name": "services/sahool-platform/api/routers/learning_summary.py",
@@ -13625,7 +13675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f4228f1bb21b420ce151e01935c345e52513be932f6131a5a3145945aa0f99d"
+          "content": "260af09df4ff5f701a306acb8c15be2d36f47afdcad26add6cb3fa305c2d3a0c"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather.py",
@@ -19745,7 +19795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c3bedb5c6d0c029c5abc44bd6209790b9f0766ea15b6f2a52beb1a536b9cd45d"
+          "content": "5ea353964ff0c12367ae3b17d7a0d6d5f70bc44124238bbcb8e22ab9a08043be"
         }
       ],
       "name": "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
@@ -19869,6 +19919,26 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "363a9bebc4df5398cc488bbc39f0bcf77474835aaf2088cf13bd2edf2588f8b6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdc6d4f6742528060347cba4fe3af62c8135e5561c1a93207a29d2e18f0968eb"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p4_decision_boundary_extraction_guard.py",
       "type": "file"
     },
     {

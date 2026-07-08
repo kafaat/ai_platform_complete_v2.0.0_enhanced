@@ -60,15 +60,31 @@ def test_core_bridge_artifacts_and_migrations_are_present():
     assert not missing, "Decision/outcome/learning bridge artifacts are missing: " + repr(missing)
 
 
-def test_online_learning_update_writer_resolves_source_lineage_before_insert():
+def test_online_learning_update_writer_resolves_source_lineage_before_delegating():
+    """P4.7: online_learning_updates ownership moved to decision-service.
+
+    The invariant is preserved, not dropped: the platform still resolves explicit source
+    lineage *before* the write leaves it (``resolve_learning_source``), then delegates the
+    write to the single owner (decision-service), which recomputes ``traceability_status``.
+    A learning update is therefore still never silently trusted, and there is no direct
+    loop-table INSERT left on this path.
+    """
     text = PHASE_RUNTIME_STORE.read_text(encoding="utf-8", errors="ignore")
     allow = json.loads(ALLOWLIST.read_text(encoding="utf-8"))
-    required = ["resolve_learning_source(update)", "INSERT INTO online_learning_updates"] + allow[
-        "learning_source_columns"
-    ]
+    # Lineage input columns are still forwarded; traceability_status is now computed by the
+    # owner service (decision-service._traceability), so it is not asserted on the writer.
+    lineage_inputs = [c for c in allow["learning_source_columns"] if c != "traceability_status"]
+    required = [
+        "resolve_learning_source(update)",
+        "record_learning_update as _record_learning_update_via_service",
+    ] + lineage_inputs
     missing = [marker for marker in required if marker not in text]
     assert not missing, (
-        "online_learning_updates writer must persist explicit source lineage: " + repr(missing)
+        "learning update writer must resolve source lineage then delegate to the owner: "
+        + repr(missing)
+    )
+    assert "INSERT INTO online_learning_updates" not in text, (
+        "P4.7: platform must not directly own the online_learning_updates write."
     )
 
 
@@ -142,7 +158,13 @@ def test_decisionish_routes_have_explicit_allowed_target_owner():
 
 
 def test_outcome_reconciler_is_wired_into_learning_summary_read_path():
-    """The bridge must not remain pure-only; the learning summary read path must consume it."""
+    """The bridge must not remain pure-only; reconciliation logic must stay live.
+
+    P4.6 read-side facade: the learning-summary *route* no longer reads loop tables itself —
+    it delegates to decision-service (the owner).  The pure reconciliation logic still lives
+    in ``api/learning_summary.py`` (asserted below) and is still consumed on a live read path
+    by the field-season projection (see the dedicated test), so the reconciler is not orphaned.
+    """
     summary_core = (PLATFORM / "api" / "learning_summary.py").read_text(
         encoding="utf-8", errors="ignore"
     )
@@ -161,16 +183,20 @@ def test_outcome_reconciler_is_wired_into_learning_summary_read_path():
         "learning summary core must expose reconciled outcome metadata: " + repr(missing_core)
     )
 
-    required_router = [
-        "summarize_learning_with_reconciled_outcomes",
-        "FROM recommendation_outcomes",
-        "FROM dispatch_decisions",
-        "dispatch_links",
-    ]
+    # Route now delegates read semantics to the owning service (no direct loop-table reads).
+    required_router = ["decision_service_client", "get_learning_summary"]
     missing_router = [marker for marker in required_router if marker not in summary_router]
     assert not missing_router, (
-        "learning summary route must read both outcome models best-effort: " + repr(missing_router)
+        "learning summary route must delegate reads to decision-service: " + repr(missing_router)
     )
+    for forbidden in (
+        "FROM recommendation_outcomes",
+        "FROM dispatch_decisions",
+        "tenant_connection",
+    ):
+        assert forbidden not in summary_router, (
+            "P4.6: learning summary route must not read loop tables directly: " + forbidden
+        )
 
 
 def test_outcome_reconciler_is_wired_into_field_season_state_projection():
