@@ -72,3 +72,29 @@
 `field_season_state_projection` كنموذج قراءة واحد. لا يُعاد بناء الذاكرة/النتيجة/الاقتصاد (موجودة).
 
 > المصادر: كلّ صفّ أعلاه من فحص فعليّ لـ`migrations/*.sql` و`services/*` (2026-07-08). لا استنتاج بلا `file:line`.
+
+---
+
+## سجلّ حلّ الجسور (يُحدَّث مع التنفيذ)
+
+- **جسر #2 — نَسَب مصدر التعلّم ✅ (`09fcc71`, migration v151):** أعمدة مصدر + `traceability_status`
+  على `online_learning_updates`؛ `core.learning_source_lineage` يحكم القابليّة (traceable/pending/
+  rejected)؛ التحديث بلا مصدر يُخزَّن `rejected_untraceable` **فلا يُطبِّق سياسة**.
+- **جسر #3 — موفِّق النتائج ✅ (`3651764`):** `core.outcome_reconciler` يوحّد `outcome_record`
+  (أثر القرار) و`recommendation_outcomes` (تعلّم الغلّة) بوسم `source_model`/`kind`، ويربطهما عبر
+  `dispatch_decisions`. **متكاملان لا مكرّران** — كلٌّ مرجعيّ لسؤاله.
+- **جسر #4 — إيقاف `recommendation_feedback` ✅ (migration v152):** الفحص الأعمق أثبت أنّه **مكرّر
+  ميّت** لا مجرّد غير-مكتوب: القبول+الغلّة موطنها الحيّ `recommendation_outcomes`، التكلفة
+  `farm_operations_ledger`، الماء `water_ledger`. لذا **لا يُوصَل كاتب** (يُعيد تجزئة جسر #3) —
+  بل **إيقاف مُوثَّق** بتعليق يوجّه للمسارات المرجعيّة + حارس ساكن يمنع إضافة كاتب صامتاً. لا DROP
+  (سلامة بيانات). ملاحظة: `ai_agronomist.InMemoryFeedbackRepository` في-الذاكرة (غير دائم) — التغذية
+  الراجعة الدائمة تمرّ عبر `recommendation_outcomes` في المنصّة.
+- **جسر #5 — سلامة مرجعيّة الحلقة ✅ (`core.loop_referential_integrity`):** التدقيق رصد «لا FK ⇒ أيتام
+  ممكنة». الفحص الأعمق أثبت أنّ غياب الـFK **مقصود معماريّاً لا إهمال**: (أ) `recommendation_id` نصّيّ
+  (VARCHAR/TEXT) في كلّ الحلقة بينما `recommendations.id` من نوع **UUID** ⇒ عدم توافق نوع، فهو **مُعرِّف
+  ربط ليّن عبر الخدمات**؛ (ب) `outcome_record.decision_id` مُصرَّح صراحةً (COMMENT v79) «ربط نَسَب ليّن …
+  يحفظ RLS»؛ (ج) كُتّاب متعدّدو الخدمات + عزل RLS + عمود `lineage_link` (v82) — فرض FK صلب **يكسر** الإدراج
+  عبر الخدمات ويناقض المعماريّة. لذا الحماية الصحيحة **ليست FK صلباً** (يكسر المرونة) بل **كشف الأيتام**:
+  دالّات نقيّة (`find_orphan_outcomes`/`find_orphan_dispatches`/`reconciliation_report`) تكشف طفلاً يشير إلى
+  أبٍ غائب — للمراجعة/التنبيه الدوريّ لا للحجب. لا migration/جدول جديد (الكشف مصالحة قراءة على صفوف
+  مُمرَّرة). المُعرِّف الفارغ لا يُعَدّ يتيماً (لا مرجع). **لا فبركة:** الغياب يُعلَن، لا يُصلَح ولا يُخترَع.

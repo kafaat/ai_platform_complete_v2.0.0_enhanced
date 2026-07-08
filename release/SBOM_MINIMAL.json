@@ -5385,7 +5385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4927d83419d7e9b8bda2d3b13f48ff511a5bc437b7af647d93a6d73691b912d7"
+          "content": "77892176d897d6a41de03d1d2fe5f6da0db804004606441e1cce9a9c9810d734"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -5989,6 +5989,16 @@
         }
       ],
       "name": "migrations/v151_learning_source_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea6ccb2868d22da3c3fd7a113c85167e91c180b9048b1525bbddfea75a5c6364"
+        }
+      ],
+      "name": "migrations/v152_deprecate_recommendation_feedback.sql",
       "type": "file"
     },
     {
@@ -16545,6 +16555,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4644c78b58ffcbc143b9acff83011014ebb70688fc21d1d1907a1c951924bfb8"
+        }
+      ],
+      "name": "services/sahool-platform/core/outcome_reconciler.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "61d2968cf8eb2677942e1fa8c5c11c99fd1dcc3d3f59e1e1f34ce51480bc3ea4"
         }
       ],
@@ -19609,6 +19629,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_outcome_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "de9719f7cd820993f31bc47338c87d2365a70fb99c8951e3b5013854f69118c1"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_outcome_reconciler.py",
       "type": "file"
     },
     {

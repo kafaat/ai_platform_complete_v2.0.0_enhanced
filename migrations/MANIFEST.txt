@@ -592,3 +592,8 @@ v150_seasons_yield_nonnegative_check.sql
 #   evidence_snapshot + traceability_status على online_learning_updates. nullable + backfill
 #   unverified (متوافق للخلف؛ الفرض لاحقاً). قابليّة التتبّع تُحكَم في core. idempotent. بعد v150.
 v151_learning_source_lineage.sql
+
+# v152: إيقاف recommendation_feedback الميّت (جسر #4) — تعليق DEPRECATED يوجّه للمسارات المرجعيّة
+#   (recommendation_outcomes/farm_operations_ledger/water_ledger). لا كاتب (يُعيد التجزئة)، لا DROP.
+#   idempotent (COMMENT). بعد v151.
+v152_deprecate_recommendation_feedback.sql
