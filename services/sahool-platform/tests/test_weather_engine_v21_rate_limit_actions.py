@@ -88,15 +88,44 @@ def test_build_weather_task_draft_maps_priority_and_notes():
 
 @pytest.mark.asyncio
 async def test_weather_action_recommendation_returns_task_draft(monkeypatch):
-    from api.connectors import openmeteo
+    # P3.4: action-recommendation is a PLATFORM product-bridge concern (map -> task/
+    # recommendation drafts). Its weather data now comes from weather-service via the
+    # operation-plan facade. We mock the facade with a weather-service-shaped payload so the
+    # platform task-draft/recommendation bridge is exercised without a live weather-service.
     from api.routers import weather
 
-    weather._WEATHER_TILE_CACHE.clear()
+    top = {
+        "operation": "irrigation",
+        "best": {
+            "hour_offset": 3,
+            "time": "+3h",
+            "weather_time": "2026-06-29T15:00:00Z",
+            "operation": {
+                "operation": "irrigation",
+                "score": 0.82,
+                "suitability": "optimal",
+                "limiting_factors": ["high_vpd_irrigation_need", "soil_moisture_low"],
+            },
+        },
+        "frames": [{"hour_offset": 3, "time": "+3h"}],
+        "recommended": True,
+        "priority": 0.82,
+        "advice_ar": "أولوية ريّ مرتفعة.",
+    }
 
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        return _sample()
+    async def fake_plan(lat, lon, *, operations, hours, model="best_match"):
+        return {
+            "location": {"lat": lat, "lon": lon},
+            "model": model,
+            "operations": [top],
+            "recommended_now": [top],
+            "top_recommendation": top,
+            "source": "open-meteo+sahool-operation-plan",
+            "partial": False,
+            "upstream_errors": [],
+        }
 
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
+    monkeypatch.setattr(weather, "get_operation_plan", fake_plan)
     result = await weather.weather_action_recommendation(
         lat=15.0,
         lon=45.0,
@@ -107,5 +136,6 @@ async def test_weather_action_recommendation_returns_task_draft(monkeypatch):
     )
     assert result["field_id"] == "field-1"
     assert result["task_draft"]["field_id"] == "field-1"
+    assert result["task_draft"]["operation"] == "irrigation"
     assert result["recommendation"]["recommendation_type"] == "weather_operation_plan"
     assert result["actions"]["create_task_endpoint"].endswith("tasks/from-operation-plan")

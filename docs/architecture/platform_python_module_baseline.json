@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 579,
+  "baseline_python_module_count": 580,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -348,6 +348,7 @@
     "api/weather_alerts.py",
     "api/weather_analytics.py",
     "api/weather_automation.py",
+    "api/weather_service_client.py",
     "api/wofost_crop_params.py",
     "api/workflow_definitions.py",
     "api/yemeni_calendars.py",
@@ -580,5 +581,6 @@
     "storage/lite_store.py",
     "tools_check_doc_consistency.py",
     "validate_observations.py"
-  ]
+  ],
+  "p3_4_note": "Deliberate one-file BFF facade for weather-service transport; prevents provider/runtime logic from spreading in sahool-platform."
 }

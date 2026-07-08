@@ -1,6 +1,6 @@
 {
   "owner": "weather-service",
-  "platform_boundary_rule": "sahool-platform may temporarily host legacy weather facades/aggregators, but must not grow new weather provider or operation-window logic outside this allowlist",
+  "platform_boundary_rule": "weather-service owns provider calls, cache, tile math, wind grid, and operation-window scoring; sahool-platform may expose BFF/facade routes through api/weather_service_client.py.",
   "weather_route_keywords": [
     "weather",
     "forecast",
@@ -44,7 +44,7 @@
     "api/routers/planting.py": "legacy_facade: planting window target weather-service",
     "api/routers/season_workspace.py": "aggregation_consumer: season workspace reads weather facts",
     "api/routers/seasons.py": "aggregation_consumer: season state reads weather facts",
-    "api/routers/weather.py": "legacy_implementation: current weather runtime stays here only until weather-service realization",
+    "api/routers/weather.py": "P3.4 BFF router: primary weather routes delegate to api/weather_service_client.py; composite legacy endpoints remain until P3.5/P4",
     "api/routers/weather_analytics.py": "legacy_facade: weather analytics endpoints target weather-service",
     "api/scheduler.py": "legacy_worker_scheduler: scheduled weather refresh until worker split completes",
     "api/weather_advice.py": "legacy_domain_helper: weather advisory helper until AI/weather boundary split",
@@ -52,7 +52,8 @@
     "api/weather_analytics.py": "legacy_domain_helper: analytics helper until service extraction",
     "api/weather_automation.py": "legacy_integration: automation glue until service extraction",
     "api/connectors/nasa_power.py": "legacy_provider_client: NASA POWER weather/wind adapter to be moved behind weather-service provider adapter",
-    "api/decision_engine.py": "legacy_consumer: reads historical weather summary until decision/weather ownership split completes"
+    "api/decision_engine.py": "legacy_consumer: reads historical weather summary until decision/weather ownership split completes",
+    "api/weather_service_client.py": "P3.4 facade: only platform file allowed to know WEATHER_SERVICE_URL and weather-service transport headers"
   },
   "allowed_weather_tables_read_by_platform": [
     "weather_cache",
@@ -62,10 +63,11 @@
     "weather_signals",
     "weather_tile_cache"
   ],
-  "required_weather_service_stub_markers": [
-    "mode\": \"stub",
-    "not_implemented_here",
-    "/v1/weather/{path:path}",
-    "/weather/{path:path}"
+  "required_weather_service_runtime_markers": [
+    "\"mode\": \"runtime\"",
+    "\"implemented_runtime\": True",
+    "/v1/weather/current",
+    "/v1/weather/operation-window",
+    "/v1/weather/wind-grid/{z}/{x}/{y}"
   ]
 }

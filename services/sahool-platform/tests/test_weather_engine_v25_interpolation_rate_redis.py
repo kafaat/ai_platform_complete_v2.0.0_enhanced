@@ -30,72 +30,12 @@ class FakeRateRedis:
         return True
 
 
-@pytest.mark.asyncio
-async def test_weather_tile_data_grid_interpolation(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-    monkeypatch.delenv("SAHOOL_WEATHER_CACHE_BACKEND", raising=False)
-
-    async def fake_fetch(lat: float, lon: float, time_key: str = "now", model: str = "best_match"):
-        return {
-            "temperature_2m_c": round(20 + lat * 0.01 + lon * 0.01, 3),
-            "wind_speed_10m_kmh": 10,
-            "wind_direction_10m_deg": 270,
-            "relative_humidity_2m_pct": 50,
-            "wind_gusts_10m_kmh": 14,
-            "precipitation_mm": 0,
-            "vapour_pressure_deficit_kpa": 1.2,
-            "soil_moisture_1_to_3cm_m3m3": 0.23,
-            "soil_temperature_6cm_c": 21,
-        }
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    result = await weather.weather_tile_data(
-        5, 16, 14, layer="temperature", time="now", model="best_match", interpolation="grid"
-    )
-
-    assert result["interpolation"]["mode"] == "bilinear_2x2_center"
-    assert result["interpolation"]["point_count"] == 5
-    assert {p["id"] for p in result["interpolation"]["points"]} == {
-        "nw",
-        "ne",
-        "sw",
-        "se",
-        "center",
-    }
-    assert result["interpolation"]["average_value"] is not None
-    assert result["cache_state"] in {"refreshed", "fresh", "partial"}
-
-
-@pytest.mark.asyncio
-async def test_weather_operation_tile_data_grid_interpolation(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat: float, lon: float, time_key: str = "now", model: str = "best_match"):
-        return {
-            "temperature_2m_c": 24,
-            "relative_humidity_2m_pct": 52,
-            "wind_speed_10m_kmh": 8,
-            "wind_gusts_10m_kmh": 13,
-            "precipitation_mm": 0,
-            "vapour_pressure_deficit_kpa": 1.4,
-            "soil_moisture_1_to_3cm_m3m3": 0.20,
-            "soil_temperature_6cm_c": 20,
-        }
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    result = await weather.weather_operation_tile_data(
-        5, 16, 14, operation="spraying", time="now", model="best_match", interpolation="grid"
-    )
-
-    assert result["layer"] == "operation_spraying"
-    assert result["interpolation"]["point_count"] == 5
-    assert all(0 <= p["value"] <= 1 for p in result["interpolation"]["points"])
+# NOTE (P3.4): spatial 2x2+center tile interpolation (tile-data and operation-tile-data grid
+# mode) moved to weather-service; the platform routes are now thin facades. The grid
+# interpolation runtime is covered in weather-service by
+# services/weather-service/tests/test_p3_weather_service_runtime.py
+# (test_p3_3_tile_data_operation_tile_series_and_wind_grid). The Redis-backed multi-tenant
+# rate limiter below is a PLATFORM (BFF) concern and stays here.
 
 
 @pytest.mark.asyncio

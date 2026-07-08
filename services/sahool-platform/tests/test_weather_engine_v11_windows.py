@@ -26,49 +26,11 @@ def _sample(**overrides):
     return data
 
 
-@pytest.mark.asyncio
-async def test_operation_window_selects_best_future_frame(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        if time_key == "now":
-            return _sample(wind_speed_10m_kmh=31.0, wind_gusts_10m_kmh=42.0, precipitation_mm=1.0)
-        if time_key == "+3h":
-            return _sample(wind_speed_10m_kmh=9.0, wind_gusts_10m_kmh=12.0, precipitation_mm=0.0)
-        return _sample(wind_speed_10m_kmh=18.0, wind_gusts_10m_kmh=22.0, precipitation_mm=0.0)
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    res = await weather.weather_operation_window(
-        15.0, 44.0, operation="spraying", hours="0,3,6", model="best_match"
-    )
-    assert res["best"]["time"] == "+3h"
-    assert res["best"]["operation"]["suitability"] in {"optimal", "acceptable"}
-    assert res["frames"][0]["operation"]["suitability"] == "unsafe"
-    assert res["partial"] is False
-
-
-@pytest.mark.asyncio
-async def test_tile_series_is_partial_when_one_frame_fails(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        if time_key == "+3h":
-            raise RuntimeError("one frame failed")
-        return _sample(precipitation_mm=0.4 if time_key == "+1h" else 0.0)
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    res = await weather.weather_tile_series(
-        5, 16, 14, layer="precipitation", hours="0,1,3", model="best_match"
-    )
-    assert len(res["frames"]) == 2
-    assert res["partial"] is True
-    assert any("+3h" in e for e in res["upstream_errors"])
+# NOTE (P3.4): operation-window best-frame selection and tile-series partial handling moved
+# to weather-service (platform routes are now thin facades to it). The equivalent runtime
+# tests now live in services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py.
+# The field-weather-summary endpoint below is still composed in-platform (it derives alerts
+# and operations locally), so its test stays here.
 
 
 @pytest.mark.asyncio

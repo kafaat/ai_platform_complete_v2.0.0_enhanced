@@ -167,31 +167,8 @@ def test_heat_stress_missing_temperature_returns_none():
     assert weather._safe_layer_value("heat_stress", {"relative_humidity_2m_pct": 80.0}) is None
 
 
-@pytest.mark.asyncio
-async def test_weather_tile_data_supports_heat_stress(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat: float, lon: float, time_key: str = "now", model: str = "best_match"):
-        return {
-            "temperature_2m_c": 43.0,
-            "relative_humidity_2m_pct": 55.0,
-            "wind_speed_10m_kmh": 6.0,
-        }
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    result = await weather.weather_tile_data(
-        5,
-        16,
-        14,
-        layer="heat_stress",
-        time="now",
-        model="best_match",
-        interpolation="center",
-    )
-
-    assert result["layer"] == "heat_stress"
-    assert result["unit"] == "0..1"
-    assert result["value"] == 1.0
+# NOTE (P3.4): the tile-data endpoint's derived-layer rendering (heat_stress via
+# GET /tile-data) moved to weather-service; the platform route is now a thin facade.
+# The equivalent endpoint-integration test lives in
+# services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py. The pure
+# _safe_layer_value derivation above remains a platform unit contract and stays here.

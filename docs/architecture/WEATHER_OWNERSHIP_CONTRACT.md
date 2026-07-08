@@ -52,3 +52,30 @@ The P1 state was an honest contract/stub; P3 now gives `weather-service` a real 
 2. Switch platform weather routes to a `weather_service_client` facade.
 3. Move frontend/gateway routing to `weather-service` where safe.
 4. Remove legacy platform implementation after deprecation and lower platform route budget.
+
+## P3.4 — Platform Weather Facade
+
+P3.4 converts the primary `sahool-platform` weather routes from embedded provider/runtime logic into BFF facade calls through:
+
+```text
+services/sahool-platform/api/weather_service_client.py
+```
+
+Boundary rule: **weather-service owns** provider calls, weather cache semantics, tile math, wind-grid interpolation, and operation-window scoring. `sahool-platform` may keep public/API compatibility routes, rate limiting, auth/tenant forwarding, and response aggregation, but primary weather reads must call the weather facade rather than importing Open-Meteo connectors directly.
+
+Facade-covered platform routes:
+
+```text
+GET /api/v1/weather/current
+GET /api/v1/weather/forecast
+GET /api/v1/weather/historical
+GET /api/v1/weather/tile-data/{z}/{x}/{y}
+GET /api/v1/weather/operation-tile-data/{z}/{x}/{y}
+GET /api/v1/weather/operation-window
+GET /api/v1/weather/operation-plan
+GET /api/v1/weather/tile-series/{z}/{x}/{y}
+GET /api/v1/weather/wind-grid/{z}/{x}/{y}
+GET /api/v1/weather/tile-cache/stats
+```
+
+Residual composite endpoints such as `field-weather-summary`, `action-recommendation`, and alert/task creation remain platform aggregators until P3.5/P4 because they combine weather facts with task, alert, and recommendation domains.

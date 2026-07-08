@@ -37,25 +37,57 @@ def test_weather_manifest_advertises_prometheus_and_prune_endpoints():
 
 @pytest.mark.asyncio
 async def test_prometheus_metrics_contains_weather_counters(monkeypatch):
-    from api.connectors import openmeteo
+    # P3.4: the tile runtime (and its per-tile request/layer/cache counters) moved to
+    # weather-service. The platform Prometheus EXPORT is still a platform concern: it renders
+    # counters for the BFF endpoints that remain in-platform. We drive a remaining local
+    # endpoint (action-recommendation) whose data comes via the operation-plan facade
+    # (mocked, no live weather-service), then assert the exporter renders the counter.
     from api.routers import weather
 
-    weather._WEATHER_TILE_CACHE.clear()
     for counter in weather._WEATHER_TILE_METRICS.values():
         counter.clear()
 
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        return _sample(temperature_2m_c=35.0)
+    top = {
+        "operation": "irrigation",
+        "best": {
+            "hour_offset": 3,
+            "time": "+3h",
+            "operation": {
+                "operation": "irrigation",
+                "score": 0.82,
+                "suitability": "optimal",
+                "limiting_factors": ["soil_moisture_low"],
+            },
+        },
+        "frames": [],
+        "recommended": True,
+        "priority": 0.82,
+        "advice_ar": "أولوية ريّ مرتفعة.",
+    }
 
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    await weather.weather_tile_data(5, 16, 14, layer="temperature", time="now", model="best_match")
+    async def fake_plan(lat, lon, *, operations, hours, model="best_match"):
+        return {
+            "location": {"lat": lat, "lon": lon},
+            "model": model,
+            "operations": [top],
+            "recommended_now": [top],
+            "top_recommendation": top,
+            "source": "open-meteo+sahool-operation-plan",
+            "partial": False,
+            "upstream_errors": [],
+        }
+
+    monkeypatch.setattr(weather, "get_operation_plan", fake_plan)
+    await weather.weather_action_recommendation(
+        lat=15.0, lon=44.0, field_id="field-1", operations="irrigation", hours="0,3"
+    )
 
     response = weather.weather_metrics_prometheus()
     body = response.body.decode("utf-8")
     assert "# TYPE sahool_weather_requests_total counter" in body
-    assert 'sahool_weather_requests_total{endpoint="tile-data"} 1' in body
-    assert 'sahool_weather_layers_total{layer="temperature"} 1' in body
-    assert 'sahool_weather_cache_items{state="total"} 1' in body
+    assert 'sahool_weather_requests_total{endpoint="weather-action-recommendation"} 1' in body
+    assert "# TYPE sahool_weather_cache_items gauge" in body
+    assert 'sahool_weather_cache_items{state="total"}' in body
 
 
 def test_weather_cache_prune_removes_expired_only():

@@ -70,75 +70,12 @@ def test_operation_suitability_flags_bad_spraying_conditions():
     assert "precipitation_present" in decision["limiting_factors"]
 
 
-@pytest.mark.asyncio
-async def test_weather_tile_data_uses_cache_after_first_fetch(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-    calls = {"n": 0}
-
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        calls["n"] += 1
-        return _sample(temperature_2m_c=33.0)
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    first = await weather.weather_tile_data(
-        5, 16, 14, layer="temperature", time="now", model="best_match"
-    )
-    second = await weather.weather_tile_data(
-        5, 16, 14, layer="temperature", time="now", model="best_match"
-    )
-    assert calls["n"] == 1
-    assert first["value"] == 33.0
-    assert second["cache_state"] == "fresh"
-
-
-@pytest.mark.asyncio
-async def test_weather_tile_data_returns_stale_cache_on_upstream_failure(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-    key = "5:16:14:now:best_match"
-    # اجعل العينة أقدم من TTL الطازج، وأصغر من stale TTL.
-    weather._WEATHER_TILE_CACHE[key] = (
-        weather.monotonic() - weather._WEATHER_TILE_CACHE_TTL_S - 5,
-        _sample(temperature_2m_c=29.0),
-    )
-
-    async def failing_fetch(*_args, **_kwargs):
-        raise RuntimeError("upstream down")
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", failing_fetch)
-    res = await weather.weather_tile_data(
-        5, 16, 14, layer="temperature", time="now", model="best_match"
-    )
-    assert res["value"] == 29.0
-    assert res["cache_state"] == "stale_fallback"
-    assert "upstream down" in res["upstream_error"]
-
-
-@pytest.mark.asyncio
-async def test_weather_tile_data_returns_neutral_tile_when_no_cache_and_upstream_down(monkeypatch):
-    """انقطاع Open-Meteo بلا أيّ كاش ⇒ بلاطة محايدة (value=null, available=false) لا 502:
-    لا تكسر الخريطة ولا تُغرِق السجلّ بـBad Gateway لكلّ بلاطة (طلب المستخدم)."""
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()  # لا كاش إطلاقاً
-
-    async def failing_fetch(*_args, **_kwargs):
-        raise RuntimeError("upstream down")
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", failing_fetch)
-    # لا يُرفَع HTTPException (كان 502 سابقاً) — يُرجَع ردّ محايد بحالة 200.
-    res = await weather.weather_tile_data(
-        5, 16, 14, layer="temperature", time="now", model="best_match"
-    )
-    assert res["value"] is None
-    assert res["sample"] is None
-    assert res["available"] is False
-    assert res["cache_state"] == "unavailable"
-    assert "upstream down" in res["upstream_error"]
-    assert res["unit"] == "°C"  # الوحدة تبقى صحيحة للأسطورة
+# NOTE (P3.4): the tile runtime — fresh-cache reuse, stale-cache fallback on upstream
+# failure, and the neutral-tile guarantee (value=null/200, never 502 per tile) — moved to
+# weather-service, which now owns tile math, cache, and provider calls. The platform
+# tile-data route is a thin facade. Those runtime behaviors are covered in weather-service:
+#   - fresh reuse + stale fallback: test_p3_4_weather_service_runtime_coverage.py
+#   - neutral tile on total upstream failure: test_p3_tile_neutral_resilience.py
+# The neutral fallback across the platform->weather-service hop (facade returns a neutral
+# tile on a 502) is covered by tests/test_p3_4_weather_facade_neutral.py. The pure manifest,
+# validation, and operation-suitability contracts above remain platform-owned and stay here.

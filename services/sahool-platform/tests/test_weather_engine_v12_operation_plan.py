@@ -34,54 +34,8 @@ def test_parse_operations_csv_rejects_unknown_operation():
         _parse_operations_csv("spraying,plowing")
 
 
-@pytest.mark.asyncio
-async def test_operation_plan_ranks_irrigation_need(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        if time_key == "+3h":
-            return _sample(vapour_pressure_deficit_kpa=2.8, soil_moisture_1_to_3cm_m3m3=0.16)
-        return _sample(
-            wind_speed_10m_kmh=24.0, wind_gusts_10m_kmh=36.0, vapour_pressure_deficit_kpa=2.6
-        )
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    res = await weather.weather_operation_plan(
-        15.0,
-        44.0,
-        operations="spraying,irrigation,harvesting,sowing",
-        hours="0,3",
-        model="best_match",
-    )
-    assert res["operations"][0]["operation"] == "irrigation"
-    assert res["operations"][0]["priority"] >= 60
-    assert any("VPD" in alert for alert in res["alerts_ar"])
-    assert res["partial"] is False
-
-
-@pytest.mark.asyncio
-async def test_operation_plan_is_partial_when_some_frames_fail(monkeypatch):
-    from api.connectors import openmeteo
-    from api.routers import weather
-
-    weather._WEATHER_TILE_CACHE.clear()
-
-    async def fake_fetch(lat, lon, time_key="now", model="best_match", **_kw):
-        if time_key == "+1h":
-            raise RuntimeError("openmeteo temporary failure")
-        return _sample()
-
-    monkeypatch.setattr(openmeteo, "fetch_weather_tile_data", fake_fetch)
-    res = await weather.weather_operation_plan(
-        15.0,
-        44.0,
-        operations="spraying",
-        hours="0,1,3",
-        model="best_match",
-    )
-    assert res["partial"] is True
-    assert res["operations"][0]["frames"]
-    assert any("+1h" in err for err in res["upstream_errors"])
+# NOTE (P3.4): operation-plan ranking and partial-on-frame-failure are runtime behaviors that
+# moved to weather-service (the platform route is now a thin facade to it). The equivalent
+# runtime tests now live in
+# services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py. The pure
+# _parse_operations_csv validation contract above remains platform-owned and stays here.
