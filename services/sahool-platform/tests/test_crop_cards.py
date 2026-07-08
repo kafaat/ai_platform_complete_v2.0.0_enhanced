@@ -418,3 +418,89 @@ class TestCerealPhenology:
             assert "yield" not in ph
             assert "region" not in ph
             assert "calibration" not in ph
+
+
+class TestYemenStaplesBatch1:
+    """المحاصيل الأساسية اليمنية (الدفعة 1): الذرة الشامية · السمسم · البطاطس · البُنّ.
+    فيزياء وفسيولوجيا فقط (FAO-56 Kc/T23 · ECOCROP · أدبيّات الملوحة)؛ محايدة الموقع.
+    البُنّ مُعمِّر ⇒ بلا كتلة phenology حوليّة (صدق: لا مراحل مُلفَّقة لمُعمِّر)."""
+
+    STAPLES = ("maize", "sesame", "potato", "coffee")
+
+    def test_all_present_and_valid(self):
+        cards = list_crop_cards()
+        for cid in self.STAPLES:
+            assert cid in cards, cid
+            v = validate_crop_card(load_crop_card(cid))
+            assert v["valid"], f"{cid}: {v['errors']}"
+
+    def test_families_are_correct(self):
+        fam = {cid: load_crop_card(cid)["crop_family"] for cid in self.STAPLES}
+        assert fam["maize"] == "cereal_C4"  # حبوب دافئة C4
+        assert fam["sesame"] == "oilseed_C3"
+        assert fam["potato"] == "tuber_C3"
+        assert fam["coffee"] == "tree_C3"  # مُعمِّر
+
+    def test_annual_staples_have_consistent_phenology(self):
+        # الحوليّة الثلاثة: 4 مراحل، حدودها = المجاميع التراكميّة لـ kc.stage_days.
+        from core.crop_cards.loader import growth_stages
+
+        for cid in ("maize", "sesame", "potato"):
+            card = load_crop_card(cid)
+            stages = growth_stages(cid)
+            assert len(stages) == 4, cid
+            cum = 0
+            for sd, st in zip(card["kc"]["stage_days"], stages, strict=True):
+                assert st["day_start"] == cum, cid
+                cum += sd
+                assert st["day_end"] == cum, cid
+            assert cum == card["phenology"]["total_cycle_days"], cid
+
+    def test_coffee_is_perennial_no_annual_phenology(self):
+        # مُعمِّر: بلا كتلة phenology ⇒ growth_stages فارغة، وبلا «نضج» حوليّ.
+        from core.crop_cards.loader import growth_stages
+
+        assert growth_stages("coffee") == []
+        assert load_crop_card("coffee")["thermal"]["gdd_to_maturity"] == 0
+
+    def test_coffee_prefers_acidic_soil(self):
+        # أرابيكا تفضّل تربة حمضيّة (pH أقصى ≤ 6.5) — عكس أغلب محاصيلنا القلويّة.
+        assert load_crop_card("coffee")["governing"]["ph"]["max"] <= 6.5
+
+    def test_potato_is_heavy_potassium_feeder(self):
+        # البطاطس مُستهلِك بوتاسيوم مرتفع جدّاً (K > N) — جودة الدرنات.
+        m = load_crop_card("potato")["modifying"]
+        assert m["potassium_kg_ha_required"] > m["nitrogen_kg_ha_required"]
+
+    def test_maize_more_salt_sensitive_than_wheat(self):
+        # الذرة الشامية (1.7) أحسّ للملوحة من القمح (6.0) والشعير.
+        maize = load_crop_card("maize")["salinity"]["threshold_ece_ds_m"]
+        wheat = load_crop_card("wheat")["salinity"]["threshold_ece_ds_m"]
+        assert maize < wheat
+
+    def test_sesame_is_hot_season_high_base_temp(self):
+        # السمسم محصول حارّ — حرارة أساس مرتفعة (≥ 15°م، أعلى من القمح البارد base 0).
+        t = load_crop_card("sesame")["thermal"]
+        assert t["gdd_base_c"] >= 15.0
+        assert t["chilling_hours_required"] == 0
+
+    def test_germination_not_stricter_violated(self):
+        # حيث تُذكر عتبة الإنبات، يجب أن تكون ≤ العتبة العامّة (مرحلة حسّاسة).
+        for cid in self.STAPLES:
+            sal = load_crop_card(cid)["salinity"]
+            if "germination_ece_max" in sal:
+                assert sal["germination_ece_max"] <= sal["threshold_ece_ds_m"], cid
+
+    def test_staples_region_agnostic_no_calibration(self):
+        for cid in self.STAPLES:
+            card = load_crop_card(cid)
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in card, (cid, forbidden)
+
+    def test_all_staples_cite_sources(self):
+        # صدق: كل كتلة فيزيائيّة تذكر مصدرها (لا أرقام مُختلَقة).
+        for cid in self.STAPLES:
+            card = load_crop_card(cid)
+            assert "source" in card["kc"]
+            assert "source" in card["salinity"]
+            assert "source" in card["thermal"]
