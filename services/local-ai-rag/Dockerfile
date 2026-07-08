@@ -2,13 +2,11 @@ FROM python:3.11-slim-bookworm
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends     gcc curl && rm -rf /var/lib/apt/lists/*
 COPY services/local-ai-rag/requirements.txt /tmp/requirements.txt
-# ── PyPI الرسمي هو الافتراضي فعليّاً (HTTPS، لا اعتماد على مرآة طرف ثالث) ──
-# لا نضبط trusted-host افتراضيّاً (غير ضروريّ مع HTTPS، وضبطه يُضعِف أمان TLS).
-# للمرآة الصينيّة (تسريع داخل الصين) مرّر كليهما صراحةً:
-#   --build-arg PIP_INDEX_URL=https://pypi.org/simple \
-#   --build-arg PIP_TRUSTED_HOST=pypi.org
+# ── مرآة Tencent Cloud (افتراضي — أكثر موثوقيّة في شبكتنا؛ pypi.org يفشل حتى مع VPN) ──
+# HTTPS، فلا نضبط trusted-host افتراضيّاً (غير ضروريّ، وضبطه يُضعِف أمان TLS).
+# للرجوع إلى PyPI الرسميّ عالميّاً: --build-arg PIP_INDEX_URL=https://pypi.org/simple
 # (أو علي بابا: https://mirrors.aliyun.com/pypi/simple/)
-ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple/
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 # trusted-host فقط إن مُرِّر (مرآة تتطلّبه) — وإلّا لا نخفّض أمان TLS.

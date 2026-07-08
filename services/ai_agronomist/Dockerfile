@@ -1,6 +1,12 @@
 FROM python:3.12-slim-bookworm
 WORKDIR /app
 COPY services/ai_agronomist/requirements.txt /tmp/requirements.txt
+# ── مرآة Tencent Cloud (افتراضي — أكثر موثوقيّة في شبكتنا؛ pypi.org يفشل حتى مع VPN) ──
+# للرجوع إلى PyPI الرسميّ عالميّاً: --build-arg PIP_INDEX_URL=https://pypi.org/simple
+ARG PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple/
+ARG PIP_TRUSTED_HOST=
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY services/ai_agronomist /app/ai_agronomist
 # حزمة الأدوات المشتركة (shared/ai/*) يستوردها ai_generation/main لحلقة الـHarness

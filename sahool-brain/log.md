@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-07-08 — مرآة Tencent Cloud لـpip في كلّ Dockerfile (يُصلح فشل build المتكرّر)
+
+المشغّل: build يفشل باستمرار على `pypi.org` من شبكتنا حتى مع VPN. الحلّ: كلّ Dockerfile حقيقيّ يستخدم `pip install` (٢٩ ملفّاً تحت services/·agents/·bots/؛ استُثنيت نُسَخ `.claude/worktrees` لفرع آخر) صار افتراضه `ARG PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple/` — قابل للتجاوز بـ`--build-arg PIP_INDEX_URL=https://pypi.org/simple`. **٢٥** ملفّاً كان لديه نمط ARG (بدّلتُ القيمة الافتراضيّة + علّقتُ الافتراض القديم الكاذب)؛ **٤** بلا نمط (ai_agronomist · raster-tiler-service · weather-polygon-worker · weather-signal-engine) حقنتُ فيها كتلة ARG+ENV قبل pip. **صدق أمنيّ:** مرآة Tencent HTTPS ⇒ **لم أضبط `--trusted-host`** (ضبطه يُضعِف TLS بلا داعٍ)؛ `PIP_TRUSTED_HOST` يبقى فارغاً افتراضيّاً (تحقّق TLS طبيعيّ). أصلحتُ تعليقات local-ai-rag المتناقضة (كانت تدّعي عكس ذلك) وحدّثتُ فحص `test_roadmap_phase23` #2 (كان يزعم «PyPI الرسميّ افتراضيّاً» — صار يتحقّق من افتراض Tencent + بقاء pypi.org كـoverride). حارس جديد `test_dockerfile_pip_mirror_guard.py` (أرضيّة ≥25) يمنع انحدار أيّ Dockerfile للافتراض على pypi.org. التحقّق: unit **2806** · ruff نظيف · حارسا non-root/shared يمرّان · release 3520.
+
+---
+
 ## 2026-07-08 — تحقيق ترقية decision-service لـSoR: اكتشاف مانع مخطّطيّ (لا كود غير آمن)
 
 على «استمر» بحثتُ الخطوة الكبيرة التالية (ترقية decision-service لمصدر سجلّ حقيقيّ) وأصّلتُها في مخطّطات الجداول الخمسة. **اكتشاف حاسم:** جعل decision-service يستمرّ الجداول *بالإضافة* (مِرْآة flag-gated تكتب مع المنصّة) آمنٌ فقط لجداول لها مفتاح إزالة تكرار طبيعيّ (المِرْآة تعمل **بعد** كتابة المنصّة فتكون no-op بـ`ON CONFLICT DO NOTHING`). الحالة: `decision_record`/`dispatch_decisions` (PK decision_id) ✅ · `outcome_record` (PK + UNIQUE idempotency_key) ✅ · `online_learning_updates` (UNIQUE tenant_id,update_id) ✅ · **`recommendation_outcomes` ❌** — PK `BIGSERIAL` وإدراج المنصّة (`recommendations.py:347`) بلا `ON CONFLICT` ⇒ كلّ نداء يُلحِق صفّاً؛ مِرْآة تستمرّه تُنشئ **صفّاً مكرّراً** لنتيجة واحدة ⇒ pseudoreplication يُضخّم العيّنة ويُفسِد `success_rate` (عين ما يحميه `outcome_reconciler` وتدقيق إغلاق الحلقة).
