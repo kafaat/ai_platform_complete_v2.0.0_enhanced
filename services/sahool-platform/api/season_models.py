@@ -70,6 +70,9 @@ class SeasonSummary(BaseModel):
     tillage_type: str | None = None
     actual_yield_kg_ha: float | None = None
     notes_ar: str | None = None
+    # ─── حارس تقويم الموسم (Season Calendar Guard) — إرشاديّ غير حاجب، يُحسَب عند الإنشاء ─
+    # {status, requires_review, confidence, reason_ar, ...} أو None (محصول بلا تقويم/بلا بذار).
+    calendar_check: dict | None = None
     # ─── نتائج محاكاة الموسم (v39) — تُملأ عند تشغيل /simulate، تقديريّة ─
     sim_yield_kg_ha: float | None = None
     sim_biomass_kg_ha: float | None = None

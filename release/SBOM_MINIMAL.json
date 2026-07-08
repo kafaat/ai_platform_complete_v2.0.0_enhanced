@@ -5945,6 +5945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "181078972b87c058b9b3f582b02bc1a525426b2db7963c079b2f6db085dfede0"
+        }
+      ],
+      "name": "migrations/v150_seasons_yield_nonnegative_check.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb0f425d3153fa93f00c48cc9b3fd8c85913f8cff4a953be22c98bf62b74f10c"
         }
       ],
@@ -12725,7 +12735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d36bb71d32501273adcb5c37562527aa5949e0a5cbc412ec37ac45d2602786b3"
+          "content": "680373aec97e73f0df69ee73432190978bd1a97a3c80e2f3d3fe47a6711cf7c0"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -13635,6 +13645,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "79dc9fff295d115f4c75b66cc4be4b0f7efc0116de2e81b72500f0559401e020"
+        }
+      ],
+      "name": "services/sahool-platform/api/season_calendar_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a26b6b3dd1b654341791d0d3373537fce8af616e09071affa24e49907833578f"
+        }
+      ],
+      "name": "services/sahool-platform/api/season_integrity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e070bd012a2e409c1ba9aadf01c53641a51a75bb97af773076d9af104a108e38"
         }
       ],
@@ -13645,7 +13675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e76a3ed27e66b691057f913ea41d0f64d066e852a80a294e779dff875274086"
+          "content": "aadc9c5207e667dcd870070012d6918d274016d4f7e49ae30a0d78e83f6f21be"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",
@@ -16039,6 +16069,16 @@
         }
       ],
       "name": "services/sahool-platform/core/field_twin.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0236757204fca3aeddbdc693d6a9ec2ec0ea47b0674a1bcadeb04ac84c1fcc37"
+        }
+      ],
+      "name": "services/sahool-platform/core/gdd_phenology.py",
       "type": "file"
     },
     {
@@ -18955,6 +18995,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dbb816daee353091f62f842f5399cafaa82aae86ce58a8583530215a790c8302"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f4f64a08d0b53cd4491a83e9c73153720b1294866480c93bcb8c95b0a7f50c1a"
         }
       ],
@@ -19925,10 +19975,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "778861d8a1084ba04126def058d1e1816c95267e9134842c70aac0ca026156b6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_calendar_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d52cc1c41e5dfb8b3e37bf94fe28653845777f24659c385c1c1395d13889787d"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_comparison.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "83685a26e7990ee083ce5b3de859c6d2f15e4af05fcac72e907e47fee6ecb4a2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_integrity.py",
       "type": "file"
     },
     {
