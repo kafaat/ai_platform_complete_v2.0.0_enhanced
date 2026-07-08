@@ -10,7 +10,7 @@
 مرحليّة موثّقة (`docs/security/dependency_locking_plan.md`).
 
 هذا الحارس **مسح ملفّات صرف** (لا يستورد fastapi ولا يرفع خدمة) و**سقّاطة
-(ratchet)**: أخضر اليوم، ويمنع الانحدار فقط. يفرض ثلاثة ثوابت على الملفّات
+(ratchet)**: أخضر اليوم، ويمنع الانحدار فقط. يفرض أربعة ثوابت على الملفّات
 الأربعة التي تحرسها بوّابة pip-audit في CI (المسار الحرج — راجع CLAUDE.md):
 
   1. لا يُفكّ تثبيت حزمة مثبّتة اليوم بـ`==` (أرضيّة السقّاطة).
@@ -18,6 +18,8 @@
      (يُسمح بالنقصان — أي بتثبيت المزيد — لا بالزيادة).
   3. إطار العمل النواة (fastapi/uvicorn/pydantic) مثبّت على **نفس** الإصدار
      عبر الملفّات الأربعة (يمنع انزلاق إصدار الإطار على المسار الحرج).
+  4. **لا تبعيّة غير مقيَّدة** (اسم عارٍ بلا أيّ عامل إصدار): تحلّ إلى **أيّ**
+     إصدار (شامل yanked/0.x) — أسوأ من `>=`. سقّاطة أماميّة (M5، تدقيق خارجيّ).
 """
 
 import os
@@ -157,3 +159,27 @@ def test_core_framework_version_consistent_across_critical_path():
     assert not problems, "انزلاق إصدار إطار العمل النواة على المسار الحرج:\n  " + "\n  ".join(
         problems
     )
+
+
+# عوامل قيد الإصدار المقبولة (PEP 440). اسم بلا أيّ منها = غير مقيَّد.
+_VERSION_OP = re.compile(r"(===|==|>=|<=|~=|!=|<|>)")
+
+
+@pytest.mark.unit
+def test_no_unconstrained_critical_path_dependency():
+    """رابع الثوابت (M5): لا تبعيّة على المسار الحرج بلا قيد إصدار (اسم عارٍ).
+
+    اسم بلا أيّ عامل يحلّ إلى **أيّ** إصدار (شامل yanked/0.x) — أسوأ من `>=`.
+    سقّاطة أماميّة: أخضر اليوم (كلّها بأرضيّة ≥)، يمنع تسلّل اسم بلا قيد مستقبلاً.
+    """
+    problems = []
+    for rel in CRITICAL_PATH:
+        with open(os.path.join(ROOT, rel), encoding="utf-8") as fh:
+            for line in fh:
+                spec = line.split("#", 1)[0].strip()
+                if not spec or spec.startswith("-"):
+                    continue
+                bare = re.sub(r"\[.*?\]", "", spec)  # جرّد الـextras قبل فحص العامل
+                if not _VERSION_OP.search(bare):
+                    problems.append(f"{rel}: '{spec}' بلا قيد إصدار (يحلّ إلى أيّ إصدار).")
+    assert not problems, "تبعيّة غير مقيَّدة على المسار الحرج:\n  " + "\n  ".join(problems)
