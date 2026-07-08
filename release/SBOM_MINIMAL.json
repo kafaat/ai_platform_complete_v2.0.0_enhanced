@@ -1245,6 +1245,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e917d06857fc2d0747f0805a025ec919b29b28359241d6a7c53eb0183df66367"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SeasonEvidenceCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "83d56b90b55e983ecb14cc06b9240d70b1c8126611b8c2a45926d87404be7d4c"
         }
       ],
@@ -2375,6 +2385,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7909b4d7da38d2f768ae4aa9fffe3be1114078b752de1bc1b2f009d16c92fa70"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldSeasonState.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "929a847bff1fdcbbadf0363498eb861bd2c422f263af2e472e3ace737a6c7861"
         }
       ],
@@ -3329,6 +3349,16 @@
         }
       ],
       "name": "frontend/src/lib/fieldSeason.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6723552f0f61f7abb989f6a158af19fd613c19b498fb1483be514b8e14bfec2d"
+        }
+      ],
+      "name": "frontend/src/lib/fieldSeasonState.ts",
       "type": "file"
     },
     {
@@ -4775,7 +4805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe80674c448036a66a3175403dee9d3a048bf3270fae800da07c00c2a2a13a72"
+          "content": "20f4b294fdc25d169db4c37f9f9fe816d40636ab9b549eb20cb596da6ec3eb70"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5355,7 +5385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "813a6c48cb6d360da919faf9be928a5c24a5568fd8508e05aad5242139e7ab37"
+          "content": "4927d83419d7e9b8bda2d3b13f48ff511a5bc437b7af647d93a6d73691b912d7"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -5949,6 +5979,16 @@
         }
       ],
       "name": "migrations/v150_seasons_yield_nonnegative_check.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3b282d9ed4521beb352d093606fde7cc04fa6667a6dad68e6327518404935c9"
+        }
+      ],
+      "name": "migrations/v151_learning_source_lineage.sql",
       "type": "file"
     },
     {
@@ -11435,6 +11475,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2ab4288104bafdad824d954d81200806099a0a7038bf3312a13d24c88d8c7730"
+        }
+      ],
+      "name": "services/sahool-platform/api/field_season_projection.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d893bea256d8d8eaf4b46c642f5f062e92f4019ebfff79a680cdccb0a5a99085"
         }
       ],
@@ -11915,7 +11965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2a8ced3a3bbebee3fc37fcd3252e8a5d9a1c1efd9d77d38d066e83c53b028df1"
+          "content": "7d87ed782cdf55eeaa0461b58bdf47c56ef7124b4467f4fc8dd49c6abf1185bc"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_store.py",
@@ -13375,7 +13425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "609197ab1ba899008dc828bce3b0ae1e40dce08f029c876d4126d4138b297747"
+          "content": "87687b1c25577eb0a7b71fda20e96cad6c5b447cf3be9ed68414a334f6dfc37c"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -15805,6 +15855,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "13cd4a5abbbe3cb127b94d06422f92f7bfc7b753993ecf3f39cc338161e9766d"
+        }
+      ],
+      "name": "services/sahool-platform/core/eo_stage_mismatch.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2f966a770553e5bd4e6bd30310579abf8c72552035b692cb503ead432bd29acb"
         }
       ],
@@ -16365,6 +16425,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0549b4b45086b3b575953a898491bad0662294061c1d46f2c9e728c5f274a094"
+        }
+      ],
+      "name": "services/sahool-platform/core/learning_source_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
         }
       ],
@@ -16709,6 +16779,16 @@
         }
       ],
       "name": "services/sahool-platform/core/season_phenology.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "740a267d2891a637a965904580406a41f25a6e0c337ae8902f4a36288bdaabab"
+        }
+      ],
+      "name": "services/sahool-platform/core/season_stage_risk.py",
       "type": "file"
     },
     {
@@ -18505,6 +18585,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0351dd323c7850c4b442a6074448794252171765fd236b905f734b472441496d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_eo_stage_mismatch.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "91e2d909fb76bbc57bff007ee1f7d6d15663ebc327d46bc7aa316e1629327f73"
         }
       ],
@@ -18879,6 +18969,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_field_portfolio_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "940eaba8ec41faee8100292e06dc402dba776b880b491bd1fd9fb98adade4e09"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_season_projection.py",
       "type": "file"
     },
     {
@@ -19319,6 +19419,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_learning.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3adc5265bf67d8bca6134b0e9ed7e1395b6e11d5f4c5e9e336ab5ba9ce76e197"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_learning_source_lineage.py",
       "type": "file"
     },
     {
@@ -20029,6 +20139,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_season_simulation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c77c97b3f9cbd5b000a419e79ccc0d169fb84a790d1d21b9f38526b07dc2078b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_stage_risk.py",
       "type": "file"
     },
     {

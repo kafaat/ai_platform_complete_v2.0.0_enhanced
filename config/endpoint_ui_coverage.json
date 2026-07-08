@@ -1481,6 +1481,11 @@
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/soil-lab-tests",
       "audience": "farmer",
       "evidence": "/api/v1/fields"

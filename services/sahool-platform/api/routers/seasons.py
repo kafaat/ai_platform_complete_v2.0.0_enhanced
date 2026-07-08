@@ -176,3 +176,104 @@ async def simulate_season_endpoint(
         ),
         sim_ran_at=ran_at.isoformat(),
     )
+
+
+@router.get("/api/v1/fields/{field_id}/seasons/{season_id}/state")
+async def field_season_state_endpoint(
+    field_id: str,
+    season_id: str,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """الحقيقة التشغيليّة الموحّدة للحقل-الموسم (Season Evidence) — قراءة واحدة.
+
+    نقطة **رقيقة**: تجمع البيانات الموجودة فعلاً (صفّ الموسم + أحدث NDVI/NDMI وجودته +
+    عجز الماء 7/14 يوم من water_ledger + عدد المهام المفتوحة) ثمّ تستدعي المحرّك النقيّ
+    ``field_season_projection.assemble_field_season_state`` وتعيد نتيجته حرفيّاً.
+
+    صدق: ما لا يُقرأ بسهولة الآن (accumulated_gdd، إشارات الطقس الحيّة، Ks) يُمرَّر None فيظهر
+    في ``evidence_missing`` — لا رقم مُختلَق. 404 إن غاب الموسم لهذا الحقل/المستأجِر؛ القراءات
+    التكميليّة best-effort (فشلها ⇒ None لا 500). 503 عند تعذّر القاعدة الأساسيّ.
+    """
+    import json as _json
+
+    from api.field_season_projection import assemble_field_season_state
+
+    ndvi = ndmi = vpr = cloud = def7 = def14 = open_tasks = None
+    try:
+        async with tenant_connection(user) as conn:
+            srow = await conn.fetchrow(
+                "SELECT crops, cultivar, sowing_date, season_end FROM seasons "
+                "WHERE season_id = $1 AND field_id = $2",
+                season_id,
+                field_id,
+            )
+            if srow is None:
+                raise HTTPException(
+                    status_code=404, detail="الموسم غير موجود لهذا الحقل ضمن هذا المستأجِر"
+                )
+            # أحدث مؤشّرات + جودة المشهد (best-effort).
+            try:
+                irow = await conn.fetchrow(
+                    "SELECT ndvi_mean, ndmi_mean, valid_pixel_ratio, cloud_pct "
+                    "FROM imagery_automation_fields WHERE field_id = $1 "
+                    "ORDER BY acquisition_date DESC NULLS LAST LIMIT 1",
+                    field_id,
+                )
+                if irow is not None:
+                    ndvi, ndmi = irow["ndvi_mean"], irow["ndmi_mean"]
+                    vpr, cloud = irow["valid_pixel_ratio"], irow["cloud_pct"]
+            except Exception:  # noqa: BLE001 — تكميليّ: الغياب ⇒ evidence_missing لا 500
+                pass
+            # عجز الماء التراكميّ 7/14 يوم من دفتر المياه (best-effort).
+            try:
+                wrow = await conn.fetchrow(
+                    "SELECT SUM(deficit_mm) FILTER "
+                    "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '7 days')  AS d7, "
+                    "SUM(deficit_mm) FILTER "
+                    "(WHERE ledger_date >= CURRENT_DATE - INTERVAL '14 days') AS d14 "
+                    "FROM water_ledger WHERE field_id = $1",
+                    field_id,
+                )
+                if wrow is not None:
+                    def7 = float(wrow["d7"]) if wrow["d7"] is not None else None
+                    def14 = float(wrow["d14"]) if wrow["d14"] is not None else None
+            except Exception:  # noqa: BLE001
+                pass
+            # عدد المهام المفتوحة (best-effort).
+            try:
+                cnt = await conn.fetchval(
+                    "SELECT COUNT(*) FROM field_tasks WHERE field_id = $1 "
+                    "AND status NOT IN ('done', 'completed', 'cancelled')",
+                    field_id,
+                )
+                open_tasks = int(cnt) if cnt is not None else None
+            except Exception:  # noqa: BLE001
+                pass
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — تعذّر القاعدة الأساسيّ ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة حالة الحقل-الموسم", e) from e
+
+    crops = srow["crops"]
+    if isinstance(crops, str):
+        try:
+            crops = _json.loads(crops)
+        except (ValueError, TypeError):
+            crops = []
+    first_crop = str(crops[0]) if isinstance(crops, list) and crops else None
+
+    return assemble_field_season_state(
+        field_id=field_id,
+        season_id=season_id,
+        crop=first_crop,
+        cultivar=srow["cultivar"],
+        sowing_date=srow["sowing_date"],
+        season_end=srow["season_end"],
+        observed_ndvi=ndvi,
+        observed_ndmi=ndmi,
+        valid_pixel_ratio=vpr,
+        cloud_pct=cloud,
+        water_deficit_7d_mm=def7,
+        water_deficit_14d_mm=def14,
+        open_tasks_count=open_tasks,
+    )
