@@ -13645,6 +13645,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "79dc9fff295d115f4c75b66cc4be4b0f7efc0116de2e81b72500f0559401e020"
+        }
+      ],
+      "name": "services/sahool-platform/api/season_calendar_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a26b6b3dd1b654341791d0d3373537fce8af616e09071affa24e49907833578f"
         }
       ],
@@ -19939,6 +19949,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_schema_factory.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "778861d8a1084ba04126def058d1e1816c95267e9134842c70aac0ca026156b6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_calendar_guard.py",
       "type": "file"
     },
     {
