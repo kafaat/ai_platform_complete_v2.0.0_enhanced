@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Watermelon (البطيخ)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: watermelon
+name_ar: البطيخ (الحبحب)
+name_en: Watermelon
+crop_family: cucurbit_C3
+
+kc:
+  initial: 0.40
+  mid: 1.00
+  end: 0.75
+  stage_days: [20, 30, 30, 30]   # ⇒ 110 يوماً
+  source: "FAO-56 Table 12 (Watermelon)"
+
+salinity:
+  threshold_ece_ds_m: 2.5        # القرعيّات متوسّطة الحساسيّة (تقدير أدبيّ)
+  slope_pct_per_ds_m: 9.0        # ليس Maas-Hoffman معياريّاً
+  germination_ece_max: 2.0
+  source: "Cucurbit salinity literature (moderately sensitive; not in FAO-56 T23)"
+
+thermal:
+  gdd_base_c: 12.0              # قرعيّة دافئة جدّاً
+  gdd_to_maturity: 900
+  flowering_safe_max_c: 35.0
+  chilling_hours_required: 0
+  source: "Watermelon agronomy; warm-season cucurbit, base ~12C"
+
+governing:
+  ph:        { min: 5.5, max: 7.5, error: 0.1,  source: "ECOCROP watermelon" }
+  ece_ds_m:  { min: 0.0, max: 6.0, error: 0.02, source: "Cucurbit salt tolerance (indicative)" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.2
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Watermelon OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 100
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 120
+
+pest_susceptibility:
+  pests: [aphids, cucumber_beetle, fusarium_wilt, powdery_mildew]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [20,30,30,30] ⇒ [0–20, 20–50, 50–80, 80–110].
+phenology:
+  source: "FAO-56 Table 12 (Watermelon) stage lengths"
+  total_cycle_days: 110
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.40
+      key_action_ar: "ريّ تأسيس دافئ — البذرة تحتاج دفئاً للإنبات"
+    - stage: development
+      name_ar: "زحف المجموع الخضري"
+      day_start: 20
+      day_end: 50
+      kc_end: 1.00
+      key_action_ar: "تسميد متوازن + توجيه العرش"
+    - stage: mid
+      name_ar: "التزهير وعقد الثمار وتضخّمها"
+      day_start: 50
+      day_end: 80
+      kc: 1.00
+      key_action_ar: "ذروة الاحتياج المائي أثناء تضخّم الثمرة"
+    - stage: late
+      name_ar: "النضج"
+      day_start: 80
+      day_end: 110
+      kc: 0.75
+      key_action_ar: "تقليل الريّ قبل الجني لرفع نسبة السكّر"
+
+# NO calibration block. NO yield. NO zone_factor.

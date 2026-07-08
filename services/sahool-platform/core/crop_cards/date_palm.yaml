@@ -1,0 +1,52 @@
+# SAHOOL CORE crop card — Date palm (نخيل التمر)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+# مُعمِّر (شجرة دائمة) — لا نموذج مراحل حوليّ. كتلة phenology مُغفَلة عمداً (صدق).
+crop_id: date_palm
+name_ar: نخيل التمر
+name_en: Date palm
+crop_family: tree_C3
+
+kc:
+  initial: 0.90
+  mid: 0.95
+  end: 0.95
+  # مُعمِّر دائم الخضرة ⇒ Kc≈ثابت. stage_days أرباع سنويّة إرشاديّة فقط.
+  stage_days: [90, 90, 90, 95]   # ≈ سنة (إرشاديّ لمُعمِّر)
+  source: "FAO-56 Table 12 (Date palm); perennial — Kc≈const, stage_days indicative annual cycle"
+
+salinity:
+  threshold_ece_ds_m: 4.0        # النخيل من أكثر المحاصيل تحمّلاً للملوحة (Maas-Hoffman)
+  slope_pct_per_ds_m: 3.6
+  sar_max: 20.0
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Date palm)"
+
+thermal:
+  gdd_base_c: 10.0
+  gdd_to_maturity: 0             # مُعمِّر — لا «نضج» حوليّ (إثمار موسميّ متكرّر)
+  flowering_safe_max_c: 45.0     # متحمّل للحرارة الشديدة (نبات صحراويّ)
+  chilling_hours_required: 0
+  source: "Date palm agronomy (extreme heat tolerance; arid crop)"
+
+governing:
+  ph:        { min: 6.0, max: 8.5, error: 0.1,  source: "ECOCROP date palm" }
+  ece_ds_m:  { min: 0.0, max: 20.0, error: 0.02, source: "FAO-56 T23 (salt-tolerant)" }
+  drainage:  { needs: any }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.3
+    optimal_min: 0.8
+    optimal_max: 2.0
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Date palm OM thresholds (arid soils)"
+  nitrogen_kg_ha_required: 100
+  phosphorus_kg_ha_required: 40
+  potassium_kg_ha_required: 150
+
+pest_susceptibility:
+  pests: [red_palm_weevil, dubas_bug, lesser_date_moth]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# لا كتلة phenology (مُعمِّر). لا calibration/yield/zone_factor.
