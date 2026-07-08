@@ -9,17 +9,16 @@ breaking the chat UI.
 from __future__ import annotations
 
 import json
-import os
 from datetime import UTC, date, datetime, timedelta
 from statistics import mean
 from typing import Any
 
-import httpx
 from core.ai_policy_envelope import build_ai_policy_envelope, load_tenant_ai_policy_row
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from api.main import Permission, UserSchema, require_permission, tenant_connection
+from api.raster_service_client import get_available_dates, get_indicator_grid
 
 router = APIRouter(tags=["field-ai-context"])
 
@@ -508,22 +507,19 @@ def _ndvi_grid_from_raster_payload(
 
 
 async def _optional_ndvi_grid(
-    client: httpx.AsyncClient, raster_url: str, field_id: str, headers: dict[str, str]
+    field_id: str, tenant_id: str
 ) -> tuple[list[list[float]] | None, dict[str, Any] | None, str | None]:
-    """Fetch the latest real NDVI grid + quality for the field (v62.3-C).
+    """Fetch the latest real NDVI grid + quality through the raster facade.
 
-    Reuses the caller's tenant-scoped httpx client/base-URL/headers. Fail-safe: any
-    raster error/timeout, or a synthetic/missing grid, degrades to ``(None, None)``
+    P2.2: this router must not open direct raster-service HTTP clients. Fail-safe:
+    any raster error/timeout, or a synthetic/missing grid, degrades to ``(None, None)``
     so the pack is still built exactly as before (no grid attached).
     """
     try:
-        resp = await client.get(
-            f"{raster_url}/v1/fields/{field_id}/indicator-grid",
-            params={"index": "ndvi", "date": "latest"},
-            headers=headers,
+        payload = await get_indicator_grid(
+            field_id, tenant_id=tenant_id, index="ndvi", date="latest", timeout_s=12.0
         )
-        resp.raise_for_status()
-        grid, quality = _ndvi_grid_from_raster_payload(resp.json())
+        grid, quality = _ndvi_grid_from_raster_payload(payload)
         return grid, quality, None
     except Exception as exc:  # noqa: BLE001 — raster outage never breaks the pack
         return None, None, f"ndvi_grid: {exc}"
@@ -532,48 +528,39 @@ async def _optional_ndvi_grid(
 async def _optional_imagery_timeline(
     field_id: str, tenant_id: str, days: int
 ) -> tuple[dict[str, Any], str | None]:
-    raster_url = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip("/")
-    headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", ""), "X-Tenant-Id": tenant_id}
     since = date.today() - timedelta(days=days)
     indicators = ["truecolor", "ndvi", "ndmi", "ndre", "msavi"]
     per_indicator: dict[str, Any] = {}
     warnings: list[str] = []
     ndvi_grid: list[list[float]] | None = None
     ndvi_grid_quality: dict[str, Any] | None = None
-    async with httpx.AsyncClient(timeout=12.0) as client:
-        for indicator in indicators:
-            try:
-                resp = await client.get(
-                    f"{raster_url}/v1/fields/{field_id}/available-dates",
-                    params={"index": indicator},
-                    headers=headers,
-                )
-                resp.raise_for_status()
-                payload = resp.json()
-                dates = payload.get("dates") if isinstance(payload, dict) else payload
-                if not isinstance(dates, list):
-                    dates = []
-                filtered = []
-                for item in dates:
-                    d = item.get("date") if isinstance(item, dict) else str(item)
-                    if d and d[:10] >= since.isoformat():
-                        filtered.append(item)
-                per_indicator[indicator] = {
-                    "available": True,
-                    "dates": filtered,
-                    "total": len(filtered),
-                }
-            except Exception as exc:  # noqa: BLE001
-                per_indicator[indicator] = {"available": False, "dates": [], "total": 0}
-                warnings.append(f"{indicator}: {exc}")
-        # v62.3-C — also carry the latest *real* NDVI grid + quality so the AI pack can
-        # fire the k-means productivity-zoning path and feed the VRA raster-quality gate.
-        # Reuses the same tenant-scoped client; a raster outage degrades to no grid.
-        ndvi_grid, ndvi_grid_quality, grid_warn = await _optional_ndvi_grid(
-            client, raster_url, field_id, headers
-        )
-        if grid_warn:
-            warnings.append(grid_warn)
+    for indicator in indicators:
+        try:
+            payload = await get_available_dates(
+                field_id, tenant_id=tenant_id, index=indicator, limit=240
+            )
+            dates = payload.get("dates") if isinstance(payload, dict) else payload
+            if not isinstance(dates, list):
+                dates = []
+            filtered = []
+            for item in dates:
+                d = item.get("date") if isinstance(item, dict) else str(item)
+                if d and d[:10] >= since.isoformat():
+                    filtered.append(item)
+            per_indicator[indicator] = {
+                "available": True,
+                "dates": filtered,
+                "total": len(filtered),
+            }
+        except Exception as exc:  # noqa: BLE001
+            per_indicator[indicator] = {"available": False, "dates": [], "total": 0}
+            warnings.append(f"{indicator}: {exc}")
+    # v62.3-C — also carry the latest *real* NDVI grid + quality so the AI pack can
+    # fire the k-means productivity-zoning path and feed the VRA raster-quality gate.
+    # P2.2: this is routed through api.raster_service_client, not direct httpx.
+    ndvi_grid, ndvi_grid_quality, grid_warn = await _optional_ndvi_grid(field_id, tenant_id)
+    if grid_warn:
+        warnings.append(grid_warn)
     total_dates = sum(int(v.get("total", 0)) for v in per_indicator.values())
     result: dict[str, Any] = {
         "available": total_dates > 0,

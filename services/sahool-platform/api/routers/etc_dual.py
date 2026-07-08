@@ -23,7 +23,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from dataclasses import asdict
 from datetime import date
 
@@ -42,15 +41,12 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.raster_service_client import get_indicator_grid
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-# نداء raster-service خدمة-لخدمة (نفس نمط api/imagery_automation.py — لا توكن جديد):
-# raster يحمي المسارات بـ_require_field_tenant/_require_service_token (X-Agent-Token).
-RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
-_RASTER_HEADERS = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
 # مهلة قصيرة: NDVI الطازج تحسين لا حاجز — أيّ بطء/تعذّر ⇒ تدرّج صامت للمخزَّن.
 _FRESH_NDVI_TIMEOUT_S = 8.0
 
@@ -125,17 +121,13 @@ async def _fetch_fresh_ndvi(field_id: str) -> float | None:
     ``real_data is True`` (COG حقيقيّ)؛ أيّ تعذّر/``real_data=false``/شكل غير متوقَّع
     ⇒ ``None`` (تدرّج صامت للمخزَّن، لا خطأ، لا تعطيل النقطة، لا اختلاق).
     """
-    import httpx
-
     try:
-        async with httpx.AsyncClient(timeout=_FRESH_NDVI_TIMEOUT_S) as client:
-            resp = await client.get(
-                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-grid",
-                params={"index": "ndvi", "date": "latest"},
-                headers=_RASTER_HEADERS,
-            )
-            resp.raise_for_status()
-            data = resp.json()
+        data = await get_indicator_grid(
+            field_id,
+            index="ndvi",
+            date="latest",
+            timeout_s=_FRESH_NDVI_TIMEOUT_S,
+        )
     except Exception as e:  # noqa: BLE001 — أيّ تعذّر شبكيّ/تحليل ⇒ تدرّج صامت
         logger.info("جلب NDVI الطازج تعذّر للحقل %s ⇒ تدرّج للمخزَّن: %s", field_id, e)
         return None

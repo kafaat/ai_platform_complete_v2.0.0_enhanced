@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 578,
+  "baseline_python_module_count": 579,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -147,6 +147,7 @@
     "api/prescription_shapefile.py",
     "api/prescriptions.py",
     "api/propagation_advisor.py",
+    "api/raster_service_client.py",
     "api/recommendations_hub.py",
     "api/report_builder.py",
     "api/reports.py",

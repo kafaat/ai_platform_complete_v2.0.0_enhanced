@@ -23,19 +23,21 @@ api/imagery_automation.py — أتمتة سحب الصور الجوّية وحس
 from __future__ import annotations
 
 import logging
-import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
+from api.raster_service_client import (
+    get_best_imagery_scene,
+    get_job_result,
+    process_field_cdse,
+    process_field_from_stac,
+    process_indicator_batch,
+    raster_service_url,
+    search_imagery_scenes,
+)
+
 logger = logging.getLogger("sahool.imagery_automation")
 
-RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001")
-# توكن الخدمة (خدمة-لخدمة): raster-service يحمي /imagery/search و/process/batch
-# و/jobs/*/result بـ_require_service_token (X-Agent-Token == SAHOOL_AGENT_TOKEN).
-# بدونه كانت نداءات الأتمتة تُرفَض (503/403) وتُبتلَع في الـexcept ⇒ الأتمتة معطّلة
-# صامتاً. نرسله على كلّ نداء. fail-closed: إن لم يُضبط، raster يرفض (لا تجاوز).
-AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
-_RASTER_HEADERS = {"X-Agent-Token": AGENT_TOKEN}
 # مؤشّرات تُحسب تلقائيّاً عند صورة جديدة (دفعةً من نفس المشهد):
 #   NDVI صحّة نباتيّة · NDRE نيتروجين (red-edge) · NDSI ملوحة (حرج لليمن الجافّ)
 #   NDMI رطوبة المحتوى · MSI إجهاد مائيّ — (D2b) يغذّيان تأكيد الإجهاد الطيفيّ.
@@ -204,7 +206,7 @@ class ImageryAutomation:
     def status(self) -> dict:
         return {
             "tracked_fields": len(self._fields),
-            "raster_service_url": RASTER_SERVICE_URL,
+            "raster_service_url": raster_service_url(),
             "auto_indicators": DEFAULT_INDICATORS,
             # المزوّد الافتراضيّ CDSE (إن هُيّئ في raster-service) مع fallback إلى Element84.
             "default_provider": "cdse",
@@ -260,7 +262,6 @@ class ImageryAutomation:
 
     async def _try_cdse(
         self,
-        client,
         *,
         field_id: str,
         tenant_id: str,
@@ -282,26 +283,27 @@ class ImageryAutomation:
         return a result dict when CDSE actually queued processing — never fabricate data.
         """
         try:
-            resp = await client.post(
-                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/process-cdse",
-                json={
-                    "tenant_id": tenant_id,
-                    "indicators": inds,
-                    "bbox": bbox,
-                    "geometry": geometry,
-                    "lookback_days": lookback_days,
-                    "max_cloud_pct": max_cloud_pct,
-                    "geometry_revision": geometry_revision,  # v143: نَسَب هندسة الحقل
-                    **(
-                        {"date_from": date_from, "date_to": date_to or date_from}
-                        if date_from or date_to
-                        else {}
-                    ),
-                },
-                headers=_RASTER_HEADERS,
+            body = (
+                await process_field_cdse(
+                    field_id,
+                    tenant_id=tenant_id,
+                    payload={
+                        "tenant_id": tenant_id,
+                        "indicators": inds,
+                        "bbox": bbox,
+                        "geometry": geometry,
+                        "lookback_days": lookback_days,
+                        "max_cloud_pct": max_cloud_pct,
+                        "geometry_revision": geometry_revision,  # v143: نَسَب هندسة الحقل
+                        **(
+                            {"date_from": date_from, "date_to": date_to or date_from}
+                            if date_from or date_to
+                            else {}
+                        ),
+                    },
+                )
+                or {}
             )
-            resp.raise_for_status()
-            body = resp.json() or {}
         except Exception:  # noqa: BLE001 — CDSE متعذّر ⇒ fallback صامت إلى Element84
             return None
         # CDSE غير مُهيّأ (لا اعتمادات) ⇒ المسار القائم (Element84) دون ضجيج.
@@ -348,8 +350,6 @@ class ImageryAutomation:
         - missing band hrefs => no job, honest `queued:false`;
         - raster-service error => propagated in `status:error` for UI/operator visibility.
         """
-        import httpx
-
         if isinstance(bbox, dict):
             stac_bbox = self._bbox_from_guard_bbox(bbox)
         else:
@@ -361,125 +361,112 @@ class ImageryAutomation:
         self.register_field(field_id, stac_bbox, tenant_id=tenant_id)
         tf = self._fields[field_id]
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # ── المزوّد الافتراضيّ: CDSE (أقوى) ───────────────────────────────
-            # نجرّب CDSE أوّلاً (يحسب المؤشّر خادميّاً على نطاقات Sentinel-2 الكاملة).
-            # غير مُهيّأ / متعذّر ⇒ None ⇒ نسقط بصمت إلى Element84 أدناه (لا كسر، لا تلفيق).
-            cdse = await self._try_cdse(
-                client,
-                field_id=field_id,
-                tenant_id=tenant_id,
+        # ── المزوّد الافتراضيّ: CDSE (أقوى) ───────────────────────────────
+        # نجرّب CDSE أوّلاً (يحسب المؤشّر خادميّاً على نطاقات Sentinel-2 الكاملة).
+        # غير مُهيّأ / متعذّر ⇒ None ⇒ نسقط بصمت إلى Element84 أدناه (لا كسر، لا تلفيق).
+        cdse = await self._try_cdse(
+            field_id=field_id,
+            tenant_id=tenant_id,
+            bbox=stac_bbox,
+            geometry=geometry,
+            inds=inds,
+            lookback_days=lookback_days,
+            max_cloud_pct=max_cloud_pct,
+            reason=reason,
+            tf=tf,
+            date_from=f"{date[:10]}T00:00:00Z" if date else None,
+            date_to=f"{date[:10]}T23:59:59Z" if date else None,
+            geometry_revision=geometry_revision,
+        )
+        if cdse is not None:
+            return cdse
+        try:
+            best_body = await get_best_imagery_scene(
                 bbox=stac_bbox,
-                geometry=geometry,
-                inds=inds,
                 lookback_days=lookback_days,
                 max_cloud_pct=max_cloud_pct,
-                reason=reason,
-                tf=tf,
-                date_from=f"{date[:10]}T00:00:00Z" if date else None,
-                date_to=f"{date[:10]}T23:59:59Z" if date else None,
-                geometry_revision=geometry_revision,
             )
-            if cdse is not None:
-                return cdse
-            try:
-                best_resp = await client.get(
-                    f"{RASTER_SERVICE_URL}/imagery/best",
-                    params={
-                        "west": stac_bbox[0],
-                        "south": stac_bbox[1],
-                        "east": stac_bbox[2],
-                        "north": stac_bbox[3],
-                        "lookback_days": lookback_days,
-                        "max_cloud_pct": max_cloud_pct,
-                    },
-                    headers=_RASTER_HEADERS,
-                )
-                best_resp.raise_for_status()
-                best_body = best_resp.json()
-            except Exception as e:  # noqa: BLE001
-                tf.check_errors += 1
-                await self._persist_field(tf)
-                return {
-                    "status": "error",
-                    "queued": False,
-                    "field_id": field_id,
-                    "reason": reason,
-                    "error": type(e).__name__,
-                    "note_ar": "تعذّر البحث عن مشهد Sentinel-2 حقيقي عبر raster-service.",
-                }
-
-            scene = best_body.get("best")
-            if not scene:
-                await self._persist_field(tf)
-                return {
-                    "status": "no_scene",
-                    "queued": False,
-                    "field_id": field_id,
-                    "reason": reason,
-                    "candidates": best_body.get("candidates", 0),
-                    "note_ar": best_body.get("note")
-                    or "لا يوجد مشهد Sentinel-2 مطابق ضمن المعايير.",
-                }
-
-            band_hrefs = self._band_hrefs_from_scene(scene)
-            required = {"red", "nir"}
-            if not required.issubset(band_hrefs):
-                await self._persist_field(tf)
-                return {
-                    "status": "missing_bands",
-                    "queued": False,
-                    "field_id": field_id,
-                    "reason": reason,
-                    "scene_id": self._scene_id(scene),
-                    "available_bands": sorted(band_hrefs),
-                    "note_ar": "المشهد لا يحتوي على نطاقات كافية لحساب NDVI الحقيقي.",
-                }
-
-            jobs: list[dict] = []
-            failures: list[dict] = []
-            for indicator in inds:
-                try:
-                    resp = await client.post(
-                        f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/process-from-stac",
-                        json={
-                            "tenant_id": tenant_id,
-                            "indicator": indicator,
-                            "band_hrefs": band_hrefs,
-                            "scene_id": self._scene_id(scene),
-                            "capture_datetime": scene.get("datetime") or scene.get("date"),
-                            "apply_cloud_mask": True,
-                            "clip_polygon_geojson": geometry,
-                            "source_format": "sentinel2_l2a",
-                            "geometry_revision": geometry_revision,  # v143: نَسَب هندسة الحقل
-                        },
-                        headers=_RASTER_HEADERS,
-                    )
-                    resp.raise_for_status()
-                    jobs.append({"indicator": indicator, **(resp.json() or {})})
-                except Exception as e:  # noqa: BLE001
-                    failures.append({"indicator": indicator, "error": type(e).__name__})
-
-            tf.last_image_id = self._scene_id(scene)
-            tf.last_image_date = scene.get("datetime") or scene.get("date")
-            tf.new_images_found += 1 if jobs else 0
-            if jobs:
-                tf.last_indicator_job = jobs[0].get("job_id")
-            if failures:
-                tf.check_errors += len(failures)
+        except Exception as e:  # noqa: BLE001
+            tf.check_errors += 1
             await self._persist_field(tf)
             return {
-                "status": "queued" if jobs else "error",
-                "queued": bool(jobs),
+                "status": "error",
+                "queued": False,
                 "field_id": field_id,
                 "reason": reason,
-                "scene_id": tf.last_image_id,
-                "capture_datetime": tf.last_image_date,
-                "jobs": jobs,
-                "failures": failures,
-                "real_data": False,
-                "note_ar": "أُطلقت معالجة COG من Sentinel-2 الحقيقي. تصبح real_data=true فقط بعد اكتمال COG وقراءته.",
+                "error": type(e).__name__,
+                "note_ar": "تعذّر البحث عن مشهد Sentinel-2 حقيقي عبر raster-service.",
             }
+
+        scene = best_body.get("best")
+        if not scene:
+            await self._persist_field(tf)
+            return {
+                "status": "no_scene",
+                "queued": False,
+                "field_id": field_id,
+                "reason": reason,
+                "candidates": best_body.get("candidates", 0),
+                "note_ar": best_body.get("note") or "لا يوجد مشهد Sentinel-2 مطابق ضمن المعايير.",
+            }
+
+        band_hrefs = self._band_hrefs_from_scene(scene)
+        required = {"red", "nir"}
+        if not required.issubset(band_hrefs):
+            await self._persist_field(tf)
+            return {
+                "status": "missing_bands",
+                "queued": False,
+                "field_id": field_id,
+                "reason": reason,
+                "scene_id": self._scene_id(scene),
+                "available_bands": sorted(band_hrefs),
+                "note_ar": "المشهد لا يحتوي على نطاقات كافية لحساب NDVI الحقيقي.",
+            }
+
+        jobs: list[dict] = []
+        failures: list[dict] = []
+        for indicator in inds:
+            try:
+                body = await process_field_from_stac(
+                    field_id,
+                    tenant_id=tenant_id,
+                    payload={
+                        "tenant_id": tenant_id,
+                        "indicator": indicator,
+                        "band_hrefs": band_hrefs,
+                        "scene_id": self._scene_id(scene),
+                        "capture_datetime": scene.get("datetime") or scene.get("date"),
+                        "apply_cloud_mask": True,
+                        "clip_polygon_geojson": geometry,
+                        "source_format": "sentinel2_l2a",
+                        "geometry_revision": geometry_revision,  # v143: نَسَب هندسة الحقل
+                    },
+                )
+                jobs.append({"indicator": indicator, **(body or {})})
+            except Exception as e:  # noqa: BLE001
+                failures.append({"indicator": indicator, "error": type(e).__name__})
+
+        tf.last_image_id = self._scene_id(scene)
+        tf.last_image_date = scene.get("datetime") or scene.get("date")
+        tf.new_images_found += 1 if jobs else 0
+        if jobs:
+            tf.last_indicator_job = jobs[0].get("job_id")
+        if failures:
+            tf.check_errors += len(failures)
+        await self._persist_field(tf)
+        return {
+            "status": "queued" if jobs else "error",
+            "queued": bool(jobs),
+            "field_id": field_id,
+            "reason": reason,
+            "scene_id": tf.last_image_id,
+            "capture_datetime": tf.last_image_date,
+            "jobs": jobs,
+            "failures": failures,
+            "real_data": False,
+            "note_ar": "أُطلقت معالجة COG من Sentinel-2 الحقيقي. تصبح real_data=true فقط بعد اكتمال COG وقراءته.",
+        }
 
     async def scan_all(self, lookback_days: int = 10) -> dict:
         """يفحص كلّ الحقول المتابَعة عن صور جديدة (تُستدعى من scheduler).
@@ -490,9 +477,6 @@ class ImageryAutomation:
         if not self._fields:
             return {"scanned": 0, "new_images": 0, "failed": 0, "note": "لا حقول مُتابَعة"}
 
-        # استيراد متأخّر (httpx متاح في الحاوية)
-        import httpx
-
         now = datetime.now(UTC)
         start = (now - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
         end = now.strftime("%Y-%m-%d")
@@ -502,44 +486,38 @@ class ImageryAutomation:
         failed = 0
         errors: list[str] = []
 
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            for field_id, tf in list(self._fields.items()):
-                scanned += 1
-                tf.last_checked_at = now.isoformat()
-                try:
-                    # ابحث عن صور Sentinel-2 جديدة لهذا الحقل
-                    resp = await client.post(
-                        f"{RASTER_SERVICE_URL}/imagery/search",
-                        json={
-                            "bbox": tf.bbox,
-                            "datetime_start": start,
-                            "datetime_end": end,
-                            "limit": 5,
-                        },
-                        headers=_RASTER_HEADERS,
-                    )
-                    resp.raise_for_status()
-                    items = resp.json().get("items", [])
-                    if not items:
-                        continue
-                    # الأحدث أوّلاً (نفترض ترتيب raster-service تنازليّاً)
-                    newest = items[0]
-                    newest_id = newest.get("id") or newest.get("image_id")
-                    # صورة جديدة؟ (مختلفة عن آخر معروفة)
-                    if newest_id and newest_id != tf.last_image_id:
-                        tf.last_image_id = newest_id
-                        tf.last_image_date = newest.get("datetime") or newest.get("date")
-                        tf.new_images_found += 1
-                        new_images += 1
-                        # اطلب حساب المؤشّرات (NDVI) لو توفّر رابط الراستر
-                        await self._trigger_indicators(client, tf, newest)
-                        # احفظ الحالة الجديدة (لا إعادة معالجة بعد إعادة التشغيل)
-                        await self._persist_field(tf)
-                except Exception as e:  # noqa: BLE001 — عزل لكلّ حقل
-                    failed += 1
-                    tf.check_errors += 1
-                    errors.append(f"{field_id}: {type(e).__name__}")
-                    logger.warning("فشل فحص صور الحقل %s: %s", field_id, e)
+        for field_id, tf in list(self._fields.items()):
+            scanned += 1
+            tf.last_checked_at = now.isoformat()
+            try:
+                # ابحث عن صور Sentinel-2 جديدة لهذا الحقل
+                body = await search_imagery_scenes(
+                    bbox=tf.bbox,
+                    datetime_start=start,
+                    datetime_end=end,
+                    limit=5,
+                )
+                items = body.get("items", [])
+                if not items:
+                    continue
+                # الأحدث أوّلاً (نفترض ترتيب raster-service تنازليّاً)
+                newest = items[0]
+                newest_id = newest.get("id") or newest.get("image_id")
+                # صورة جديدة؟ (مختلفة عن آخر معروفة)
+                if newest_id and newest_id != tf.last_image_id:
+                    tf.last_image_id = newest_id
+                    tf.last_image_date = newest.get("datetime") or newest.get("date")
+                    tf.new_images_found += 1
+                    new_images += 1
+                    # اطلب حساب المؤشّرات (NDVI) لو توفّر رابط الراستر
+                    await self._trigger_indicators(tf, newest)
+                    # احفظ الحالة الجديدة (لا إعادة معالجة بعد إعادة التشغيل)
+                    await self._persist_field(tf)
+            except Exception as e:  # noqa: BLE001 — عزل لكلّ حقل
+                failed += 1
+                tf.check_errors += 1
+                errors.append(f"{field_id}: {type(e).__name__}")
+                logger.warning("فشل فحص صور الحقل %s: %s", field_id, e)
 
         return {
             "scanned": scanned,
@@ -548,7 +526,7 @@ class ImageryAutomation:
             "errors": errors[:10],
         }
 
-    async def _trigger_indicators(self, client, tf: TrackedField, image: dict) -> None:
+    async def _trigger_indicators(self, tf: TrackedField, image: dict) -> None:
         """يطلب حساب المؤشّرات لصورة جديدة عبر raster-service /process/batch.
 
         يحسب المؤشّرات الأساسيّة دفعةً من نفس المشهد (كفاءة): NDVI (صحّة) +
@@ -584,22 +562,21 @@ class ImageryAutomation:
                 "scene_id": image.get("id") or image.get("image_id"),
                 "capture_datetime": image.get("datetime") or image.get("date"),
             }
-            resp = await client.post(
-                f"{RASTER_SERVICE_URL}/process/batch",
-                json=payload,
-                headers=_RASTER_HEADERS,
+            body = await process_indicator_batch(
+                tenant_id=tf.tenant_id,
+                payload=payload,
             )
-            resp.raise_for_status()
-            body = resp.json()
             tf.last_indicator_job = body.get("job_id")
             # Stage D: best-effort — استخرج متوسّط NDVI الحقيقيّ واحفظه (fail-safe).
-            await self._collect_ndvi_value(client, tf, image, body)
+            await self._collect_ndvi_value(tf, image, body)
             # D2b: best-effort — استخرج NDMI/MSI (تأكيد الإجهاد الطيفيّ) واحفظهما.
-            await self._collect_spectral_values(client, tf, image, body)
+            await self._collect_spectral_values(tf, image, body)
         except Exception as e:  # noqa: BLE001
             logger.warning("فشل طلب مؤشّرات الحقل %s: %s", tf.field_id, e)
 
-    async def _fetch_index_mean(self, client, job_id: str, indicator: str) -> float | None:
+    async def _fetch_index_mean(
+        self, job_id: str, indicator: str, tenant_id: str | None = None
+    ) -> float | None:
         """best-effort: متوسّط مؤشّر من المهمّة الفرعيّة «{job_id}_{indicator}».
 
         raster-service: /process/batch ينشئ مهمّة فرعيّة لكلّ مؤشّر بمعرّف
@@ -607,12 +584,10 @@ class ImageryAutomation:
         {stats:{mean, valid_pixels, ...}}. صدق: نُرجِع المتوسّط فقط حين valid_pixels>0
         (وإلّا 0.0 افتراضيّ بلا معنى). fail-safe تامّ: أيّ تعذّر ⇒ None (لا تلفيق).
         """
-        rr = await client.get(
-            f"{RASTER_SERVICE_URL}/jobs/{job_id}_{indicator}/result", headers=_RASTER_HEADERS
-        )
-        if rr.status_code != 200:
+        body = await get_job_result(f"{job_id}_{indicator}", tenant_id=tenant_id)
+        if not body:
             return None
-        stats = (rr.json() or {}).get("stats") or {}
+        stats = (body or {}).get("stats") or {}
         mean = stats.get("mean")
         valid = stats.get("valid_pixels")
         if mean is None or not valid:  # لا قيمة أو لا بكسلات صالحة ⇒ None
@@ -623,9 +598,7 @@ class ImageryAutomation:
     def _image_date(image: dict) -> str | None:
         return (image.get("datetime") or image.get("date") or "")[:10] or None
 
-    async def _collect_ndvi_value(
-        self, client, tf: TrackedField, image: dict, batch_body: dict
-    ) -> None:
+    async def _collect_ndvi_value(self, tf: TrackedField, image: dict, batch_body: dict) -> None:
         """best-effort: يستخرج متوسّط NDVI الحقيقيّ من نتيجة المعالجة ويحفظه.
 
         fail-safe تامّ: أيّ تعذّر ⇒ تخطٍّ صامت، العمود يبقى NULL (لا تلفيق).
@@ -634,7 +607,7 @@ class ImageryAutomation:
             job_id = batch_body.get("job_id") or tf.last_indicator_job
             if not job_id:
                 return
-            mean = await self._fetch_index_mean(client, job_id, "ndvi")
+            mean = await self._fetch_index_mean(job_id, "ndvi", tenant_id=tf.tenant_id)
             if mean is None:
                 return
             tf.last_ndvi_mean = mean
@@ -644,7 +617,7 @@ class ImageryAutomation:
             logger.debug("جمع قيمة NDVI تخطٍّ للحقل %s: %s", tf.field_id, e)
 
     async def _collect_spectral_values(
-        self, client, tf: TrackedField, image: dict, batch_body: dict
+        self, tf: TrackedField, image: dict, batch_body: dict
     ) -> None:
         """best-effort (D2b): يستخرج NDMI/MSI ويحفظهما — تأكيد الإجهاد الطيفيّ.
 
@@ -656,11 +629,11 @@ class ImageryAutomation:
             if not job_id:
                 return
             img_date = self._image_date(image)
-            ndmi = await self._fetch_index_mean(client, job_id, "ndmi")
+            ndmi = await self._fetch_index_mean(job_id, "ndmi", tenant_id=tf.tenant_id)
             if ndmi is not None:
                 tf.last_ndmi_mean = ndmi
                 tf.last_ndmi_date = img_date
-            msi = await self._fetch_index_mean(client, job_id, "msi")
+            msi = await self._fetch_index_mean(job_id, "msi", tenant_id=tf.tenant_id)
             if msi is not None:
                 tf.last_msi_mean = msi
                 tf.last_msi_date = img_date
