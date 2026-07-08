@@ -1,0 +1,32 @@
+# بطاقة صنف — ذرة رفيعة «غربة» (Ghurbah). يتبع UPOV/Bioversity. محايد الموقع.
+# صدق: المصدر (كتاب CEFAS مفتوح) 403 آليّاً؛ الاسم من ملخّص بحث — يُعاد التحقّق قبل الاعتماد.
+variety_id: sorghum_ghurbah
+parent_crop_id: sorghum
+name_ar: ذرة رفيعة غربة
+name_en: Ghurbah sorghum
+
+passport:
+  origin_type: landrace             # سلالة يمنيّة محلّيّة
+  source_ar: "CEFAS/OpenEdition — «Savoirs locaux et agriculture durable au Yémen» (books.openedition.org/cefas/2852): «ghurbah نوع ذرة رفيعة في اليمن»"
+  upov_code: "SORGH_BIC"           # Sorghum bicolor
+  collection_note_ar: "أحد أصناف الذرة الرفيعة اليمنيّة المحلّيّة الكثيرة (~75 صنفاً حسب CEFAS، تنتمي لأعراق durra/caudatum/guinea)"
+
+distinctness:
+  morphology_ar: "صنف محلّيّ؛ تفاصيل DUS غير موثّقة في مصدر متاح"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "سلالة محلّية — تنوّع داخليّ"
+stability_note_ar: "متوارثة محلّيّاً"
+
+variety_traits:
+  drought_tolerance: high           # ذرة رفيعة محلّية
+  salt_tolerance_modifier: 0.0      # كعتبة السورغم (6.8)
+  disease_resistance_ar: []         # غير موثّق
+  special_quality_ar: "صنف يمنيّ محلّيّ موثّق بالاسم (CEFAS)؛ الخصائص التفصيليّة غير موثّقة"
+  source: "CEFAS/OpenEdition cefas/2852؛ يُعاد التحقّق قبل الاعتماد"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "غير موثّق تفصيليّاً"
+  note_ar: "صنف ذرة رفيعة يمنيّ محلّيّ؛ النطاق الدقيق غير موثّق"

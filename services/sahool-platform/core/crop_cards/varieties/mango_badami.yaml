@@ -1,0 +1,31 @@
+# بطاقة صنف — مانجو «بادامي» (Badami). نوع مُدخَل/متأقلم موثّق. محايد الموقع — يرث حاكمات المانجو.
+variety_id: mango_badami
+parent_crop_id: mango
+name_ar: مانجو بادامي
+name_en: Badami mango
+
+passport:
+  origin_type: introduced
+  source_ar: "Yemen Times «Mangos find a place in Yemen»؛ دراسات مقارنة لأصناف المانجو (Badami)"
+  upov_code: "MNGIF"
+  collection_note_ar: "من أنواع المانجو المُسمّاة في اليمن؛ الاسم «بادامي» شائع في جنوب آسيا (مُدخَل)"
+
+distinctness:
+  morphology_ar: "نوع مُسمّى؛ DUS تفصيليّ غير موثّق في مصدر متاح"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "صنف مطعوم (تجانس عالٍ)"
+stability_note_ar: "مستقرّ (إكثار بالتطعيم)"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "من أنواع المانجو اليمنيّة المُسمّاة؛ الخصائص التفصيليّة غير موثّقة"
+  source: "Yemen Times؛ دراسات أصناف المانجو"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "المناطق الدافئة الساحليّة/الوديان"
+  note_ar: "مانجو مناطق دافئة؛ الموقع الدقيق غير محدّد"

@@ -1,0 +1,32 @@
+# بطاقة صنف — بُنّ «بُرعي» (Bura'i). اسم عاميّ تقليديّ. محايد الموقع.
+# ⚠️ صدق: اسم عاميّ لا صنف جينيّ متمايز (Al-Aswad et al., MDPI Agronomy 12/8/1970, 2022).
+variety_id: coffee_burai
+parent_crop_id: coffee
+name_ar: بُنّ بُرعي (اسم عاميّ)
+name_en: Coffee Bura'i (vernacular name)
+
+passport:
+  origin_type: landrace
+  source_ar: "Sana'a Univ. JAST مقال 1065 (الأصناف الأربعة الرئيسة للبُنّ في اليمن)؛ Al-Aswad et al. 2022 MDPI Agronomy 12/8/1970"
+  upov_code: "COFFA"
+  collection_note_ar: "أحد الأصناف الأربعة الرئيسة عاميّاً؛ اسم تقليديّ لا يُطابِق صنفاً جينيّاً متمايزاً (MDPI 2022)"
+
+distinctness:
+  morphology_ar: "اسم عاميّ — لا تمايز جينيّ مؤكّد؛ تربة رمليّة-طميّة إلى طميّة-رمليّة (JAST 1065)"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "غير متجانس جينيّاً (MDPI 2022)"
+stability_note_ar: "اسم تقليديّ؛ لا ثبات جينيّ كصنف"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "أحد أنماط البُنّ اليمنيّ الرئيسة (صفة تجاريّة/موقعيّة لا جينيّة)"
+  source: "Sana'a Univ. JAST 1065؛ MDPI Agronomy 12/8/1970 (2022)"
+
+adaptation:
+  altitude_range_m: [1000, 2400]
+  agro_ecological_zone_ar: "المرتفعات الغربيّة"
+  note_ar: "اسم عاميّ تجاريّ؛ قرينة تسويقيّة لا صنف وراثيّ متمايز"

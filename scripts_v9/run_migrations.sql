@@ -453,3 +453,5 @@
 \i migrations/v148_field_evidence_snapshots.sql
 \echo '═══ 155. v149_evidence_graph_nodes_edges.sql ═══'
 \i migrations/v149_evidence_graph_nodes_edges.sql
+\echo '═══ 156. v150_seasons_yield_nonnegative_check.sql ═══'
+\i migrations/v150_seasons_yield_nonnegative_check.sql

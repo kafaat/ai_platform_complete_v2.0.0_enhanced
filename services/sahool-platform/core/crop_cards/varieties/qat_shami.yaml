@@ -1,0 +1,32 @@
+# بطاقة صنف — قات «شامي» (Shami / الشكل المرتفعيّ «شامخ»). نوع محلّيّ موثّق. محايد الموقع.
+# صدق: إدراج واقعيّ لا ترويجيّ (يرث محصول قات الـindicative)؛ القيم تقديريّة من مصدر واحد.
+variety_id: qat_shami
+parent_crop_id: qat
+name_ar: قات شامي (شامخ)
+name_en: Qat Shami (highland type)
+
+passport:
+  origin_type: landrace
+  source_ar: "«Qat farms in Yemen: Ecology, dangerous impacts and future promise», Egyptian J. Basic & Applied Sciences (2013) — يذكر ~40 نوعاً محلّيّاً بالارتفاع"
+  upov_code: null                   # لا كود UPOV للقات
+  collection_note_ar: "نوع مرتفعيّ يُعدّ الأجود؛ سعره قد يبلغ 5× الأنواع الأخرى؛ يُصدَّر. إدراج واقعيّ لا ترويجيّ"
+
+distinctness:
+  morphology_ar: "نوع مرتفعيّ (شكل «شامخ»)؛ لا وصف DUS رسميّ"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "نوع محلّيّ — تنوّع داخليّ"
+stability_note_ar: "متوارث محلّيّاً بالإكثار الخضريّ"
+
+variety_traits:
+  drought_tolerance: medium         # indicative (يرث قيم القات التقديريّة)
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []         # غير موثّق
+  special_quality_ar: "الأعلى جودةً/سعراً بين أنواع القات (نصّ المصدر) — واصفة تجاريّة لا جينيّة"
+  source: "Egyptian J. Basic & Applied Sciences (2013) — قات اليمن"
+
+adaptation:
+  altitude_range_m: [1800, 2500]    # مرتفعيّ (تقديريّ)
+  agro_ecological_zone_ar: "المرتفعات الباردة"
+  note_ar: "نوع مرتفعيّ؛ النطاق تقديريّ. إدراج واقعيّ لا ترويجيّ"

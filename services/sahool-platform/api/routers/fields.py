@@ -2123,12 +2123,21 @@ async def create_season(
     if end and sow and end < sow:
         raise HTTPException(status_code=422, detail="نهاية الموسم قبل البذار")
     season_id = "ssn_" + _uuid.uuid4().hex[:12]
-    # تصفية المراحل الفارغة كليّاً (name/date/notes فارغة) — لا تلوّث JSONB
-    # بمدخلات غير مفيدة (مرحلة أُضيفت ثمّ تُركت فارغة في الواجهة).
-    clean_stages = [
-        s for s in req.custom_stages if (s.name.strip() or s.date.strip() or s.notes.strip())
-    ]
-    stages_json = _json.dumps([s.model_dump() for s in clean_stages])
+    # تنظيف + تحقّق سلامة المراحل المخصّصة (season_integrity): يُسقِط الفارغة (سلوك قديم)
+    # ويرفض المضلِّلة (تاريخ غير صالح / خارج نافذة الموسم / ترتيب متراجع / اسم مكرّر) بـ422.
+    from api.season_integrity import validate_custom_stages
+
+    clean_stages, _stage_errors = validate_custom_stages(
+        [s.model_dump() for s in req.custom_stages],
+        sowing_date=sow,
+        season_end=end,
+    )
+    if _stage_errors:
+        raise HTTPException(
+            status_code=422,
+            detail={"code": "invalid_custom_stages", "errors_ar": _stage_errors},
+        )
+    stages_json = _json.dumps(clean_stages)
     crops_json = _json.dumps(req.crops)
 
     import asyncpg as _asyncpg  # لالتقاط سباق الموسم النشط (UniqueViolation → 409)
@@ -2241,7 +2250,7 @@ async def create_season(
                     plowing_date=plow.isoformat() if plow else None,
                     sowing_date=sow.isoformat() if sow else None,
                     season_end=end.isoformat() if end else None,
-                    stages=[s.model_dump() for s in clean_stages],  # نفس ما خُزّن (لا بناء)
+                    stages=clean_stages,  # نفس ما خُزّن (dicts مُنظَّفة من season_integrity)
                     status="active",
                     target_yield_kg_ha=req.target_yield_kg_ha,
                     plant_density=req.plant_density,
@@ -2375,13 +2384,28 @@ async def update_season(
             await _assert_field_in_tenant(conn, field_id)
             async with conn.transaction():
                 current = await conn.fetchrow(
-                    "SELECT status, row_version FROM seasons "
+                    "SELECT status, row_version, sowing_date, season_end FROM seasons "
                     "WHERE season_id = $1 AND field_id = $2 FOR UPDATE",
                     season_id,
                     field_id,
                 )
                 if current is None:
                     raise HTTPException(status_code=404, detail="الموسم غير موجود لهذا الحقل")
+
+                # سلامة التواريخ (season_integrity #1): عند تعديل تاريخ واحد فقط، ادمِجه مع
+                # المخزّن وافحص الترتيب النهائيّ — يمنع أن تقع النهاية قبل البذار المخزّن
+                # (الفحص pre-DB أعلاه لا يُغطّيه إلّا عند إرسال التاريخين معاً).
+                from api.season_integrity import UNSET as _DATE_UNSET
+                from api.season_integrity import resolve_and_check_date_order
+
+                _date_err = resolve_and_check_date_order(
+                    current_sowing=current["sowing_date"],
+                    current_end=current["season_end"],
+                    new_sowing=sow if req.sowing_date is not None else _DATE_UNSET,
+                    new_end=end if req.season_end is not None else _DATE_UNSET,
+                )
+                if _date_err:
+                    raise HTTPException(status_code=422, detail=_date_err)
 
                 # تزامن تفاؤليّ (v64): إن مرّر العميل base_version ولم يطابق الإصدار
                 # الحاليّ ⇒ عُدِّل الموسم من جلسة أخرى منذ قراءته ⇒ 409 (لا فقد صامت).

@@ -679,3 +679,98 @@ class TestYemenFruitsAndQatBatch3b:
             assert "source" in card["kc"] and "source" in card["salinity"]
             for forbidden in ("yield", "calibration", "zone_factor", "region"):
                 assert forbidden not in card, (cid, forbidden)
+
+
+class TestYemenVarietyCardsResearched:
+    """أصناف يمنيّة موثّقة من بحث (2026-07-08): حبوب + بُنّ + عنب + نخيل + قات + مانجو.
+    صدق: فقط الأصناف المُسمّاة بمصدر تُدرَج؛ الأسماء غير الموثّقة لم تُختلَق. بُنّ: الأسماء
+    العاميّة موثّقة لكن DNA أثبت أنّها ليست أصنافاً جينيّة متمايزة (MDPI 2022)."""
+
+    NEW = (
+        "wheat_aziz",
+        "barley_bakkur",
+        "sorghum_ghurbah",
+        "maize_thulathi",
+        "maize_rubai",
+        "maize_khumasi",
+        "coffee_yemenia",
+        "coffee_udaini",
+        "coffee_tuffahi",
+        "coffee_burai",
+        "coffee_dawairi",
+        "grape_razqi",
+        "grape_aswad",
+        "grape_asmi",
+        "date_palm_hamra",
+        "date_palm_mijraf",
+        "date_palm_sokotri",
+        "date_palm_serfaneh",
+        "qat_shami",
+        "qat_baladi",
+        "mango_taimoor",
+        "mango_badami",
+    )
+
+    def test_all_present_valid_linked_to_real_parent(self):
+        from core.crop_cards.loader import (
+            list_variety_cards,
+            load_crop_card,
+            load_variety_card,
+            validate_variety_card,
+        )
+
+        cards = list_variety_cards()
+        for vid in self.NEW:
+            assert vid in cards, vid
+            v = load_variety_card(vid)
+            assert validate_variety_card(v)["valid"], f"{vid}: {validate_variety_card(v)['errors']}"
+            # كلّ صنف مربوط بمحصول أمّ موجود فعلاً (لا صنف يتيم).
+            assert load_crop_card(v["parent_crop_id"]) is not None, vid
+
+    def test_every_variety_cites_a_source(self):
+        # صدق: لا صنف بلا مصدر (passport.source_ar).
+        from core.crop_cards.loader import load_variety_card
+
+        for vid in self.NEW:
+            assert load_variety_card(vid)["passport"]["source_ar"].strip(), vid
+
+    def test_varieties_region_agnostic_no_yield_calibration(self):
+        from core.crop_cards.loader import load_variety_card
+
+        for vid in self.NEW:
+            v = load_variety_card(vid)
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in v, (vid, forbidden)
+
+    def test_coffee_vernacular_carries_genetic_caveat(self):
+        # صدق حاسم: بطاقات البُنّ العاميّة يجب أن تُصرّح بأنّها ليست أصنافاً جينيّة متمايزة.
+        from core.crop_cards.loader import load_variety_card
+
+        for vid in ("coffee_udaini", "coffee_tuffahi", "coffee_burai", "coffee_dawairi"):
+            text = " ".join(str(v) for v in load_variety_card(vid).values())
+            assert "عاميّ" in text or "MDPI" in text, vid
+        # المجموعة الجينيّة المُتحقَّقة الوحيدة:
+        yem = load_variety_card("coffee_yemenia")
+        assert "Montagnon" in yem["passport"]["source_ar"]
+
+    def test_maize_folk_classes_labeled_not_registered(self):
+        # فئات الذرة الشعبيّة يجب أن تُصرَّح كفئة نضج شعبيّة لا صنفاً مُسجَّلاً.
+        from core.crop_cards.loader import load_variety_card
+
+        classes = {
+            "maize_thulathi": "early",
+            "maize_rubai": "medium",
+            "maize_khumasi": "late",
+        }
+        for vid, mat in classes.items():
+            v = load_variety_card(vid)
+            assert v["distinctness"]["maturity_class"] == mat, vid
+            assert "شعبيّة" in v["passport"]["collection_note_ar"], vid
+
+    def test_qat_varieties_neutral_not_promotional(self):
+        # القات: إدراج واقعيّ — البطاقة تُصرّح «لا ترويجيّ» وقيمها indicative موروثة.
+        from core.crop_cards.loader import load_variety_card
+
+        for vid in ("qat_shami", "qat_baladi"):
+            note = load_variety_card(vid)["passport"]["collection_note_ar"]
+            assert "ترويجيّ" in note, vid

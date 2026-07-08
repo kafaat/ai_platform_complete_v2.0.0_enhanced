@@ -1,0 +1,32 @@
+# بطاقة صنف — نخيل تمر «حمرا» (Hamra). سلالة يمنيّة سائدة. محايد الموقع — يرث حاكمات النخيل.
+# صدق: الاسم من مصدر واحد موثّق؛ DUS تفصيليّ غير متاح — يُعامَل كقرينة معرفيّة.
+variety_id: date_palm_hamra
+parent_crop_id: date_palm
+name_ar: نخيل تمر حمرا
+name_en: Hamra date palm
+
+passport:
+  origin_type: landrace
+  source_ar: "Al-Khayri/Ba-Angood «Date Palm Status and Perspective in Yemen» (Springer 2015، فصل 7) — من الأصناف السبعة السائدة"
+  upov_code: "PHXDA"               # Phoenix dactylifera
+  collection_note_ar: "أحد ~321 صنف نخيل مُسجَّل باليمن (42 «ممتازة»)؛ التركّز في حضرموت والحديدة"
+
+distinctness:
+  morphology_ar: "صنف سائد؛ DUS تفصيليّ غير موثّق في مصدر متاح"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "سلالة أصيلة (إكثار بالفسائل — تجانس عالٍ)"
+stability_note_ar: "مستقرّة (إكثار خضريّ بالفسائل)"
+
+variety_traits:
+  drought_tolerance: high
+  salt_tolerance_modifier: 0.0      # كعتبة النخيل (4.0، متحمّل)
+  disease_resistance_ar: []
+  special_quality_ar: "من الأصناف السبعة السائدة في اليمن؛ الخصائص التفصيليّة غير موثّقة"
+  source: "Al-Khayri/Ba-Angood 2015 (Springer)"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "حضرموت/الحديدة (مناطق النخيل)"
+  note_ar: "صنف سائد؛ الموقع الدقيق غير محدّد"

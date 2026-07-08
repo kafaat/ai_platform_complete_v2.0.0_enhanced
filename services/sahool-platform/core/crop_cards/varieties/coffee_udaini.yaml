@@ -1,0 +1,34 @@
+# بطاقة صنف — بُنّ «عُديني» (Udaini). اسم عاميّ تقليديّ. محايد الموقع.
+# ⚠️ صدق حاسم: دراسة DNA (Al-Aswad et al., MDPI Agronomy 12/8/1970, 2022) أثبتت أنّ الأسماء
+# العاميّة اليمنيّة للبُنّ (عُديني/دواري/تُفّاحي…) لا تُطابِق أصنافاً جينيّة متمايزة — تُوثَّق كأسماء
+# تقليديّة/تجاريّة لا كأصناف وراثيّة. المجموعة الجينيّة المُتحقَّقة هي coffee_yemenia.
+variety_id: coffee_udaini
+parent_crop_id: coffee
+name_ar: بُنّ عُديني (اسم عاميّ)
+name_en: Coffee Udaini (vernacular name)
+
+passport:
+  origin_type: landrace             # اسم عاميّ لسلالة محلّية (لا صنف جينيّ متمايز)
+  source_ar: "Al-Aswad et al. 2022, MDPI Agronomy 12(8):1970؛ Sana'a Univ. JAST (الأصناف الأربعة الرئيسة). نُسِب لمنطقة عُدين"
+  upov_code: "COFFA"
+  collection_note_ar: "اسم عاميّ تقليديّ؛ دراسة DNA أثبتت أنّه لا يُطابِق صنفاً جينيّاً واحداً (56% Yemenia، 23% Typica-Bourbon، 21% SL34) — يُوثَّق كاسم تجاريّ لا صنف وراثيّ"
+
+distinctness:
+  morphology_ar: "اسم عاميّ — لا تمايز جينيّ مؤكّد (MDPI 2022)"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "غير متجانس جينيّاً (خليط مجموعات) — MDPI 2022"
+stability_note_ar: "اسم تقليديّ متوارث؛ لا ثبات جينيّ كصنف"
+
+variety_traits:
+  drought_tolerance: medium
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "واصفة تجارة مختصّة: قوام كامل، نكهة عميقة ترابيّة (صفة حسّيّة لا جينيّة)"
+  source: "MDPI Agronomy 12/8/1970 (2022)؛ واصفات تجارة البُنّ المختصّة"
+
+adaptation:
+  altitude_range_m: [1000, 2400]
+  agro_ecological_zone_ar: "المرتفعات الغربيّة (منطقة عُدين وغيرها)"
+  note_ar: "اسم عاميّ تجاريّ؛ يُعامَل كقرينة تسويقيّة لا كصنف وراثيّ متمايز"

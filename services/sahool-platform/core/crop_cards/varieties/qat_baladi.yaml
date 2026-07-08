@@ -1,0 +1,32 @@
+# بطاقة صنف — قات «بلدي» (Baladi/Taazi). نوع محلّيّ موثّق. محايد الموقع.
+# صدق: إدراج واقعيّ لا ترويجيّ (يرث محصول قات الـindicative)؛ القيم تقديريّة من مصدر واحد.
+variety_id: qat_baladi
+parent_crop_id: qat
+name_ar: قات بلدي (تعزّي)
+name_en: Qat Baladi (Taazi type)
+
+passport:
+  origin_type: landrace
+  source_ar: "«Qat farms in Yemen…», Egyptian J. Basic & Applied Sciences (2013) — ضمن ~40 نوعاً محلّيّاً"
+  upov_code: null
+  collection_note_ar: "نوع محلّيّ شائع (يُنسَب لتعزّ)؛ إدراج واقعيّ لا ترويجيّ"
+
+distinctness:
+  morphology_ar: "نوع محلّيّ شائع؛ لا وصف DUS رسميّ"
+  maturity_class: null
+  plant_height_cm: null
+
+uniformity_note_ar: "نوع محلّيّ — تنوّع داخليّ"
+stability_note_ar: "متوارث محلّيّاً بالإكثار الخضريّ"
+
+variety_traits:
+  drought_tolerance: medium         # indicative
+  salt_tolerance_modifier: 0.0
+  disease_resistance_ar: []
+  special_quality_ar: "نوع محلّيّ واسع الانتشار (أقلّ سعراً من الشامي)"
+  source: "Egyptian J. Basic & Applied Sciences (2013)"
+
+adaptation:
+  altitude_range_m: null
+  agro_ecological_zone_ar: "متوسّط الارتفاع (تعزّ وما حولها)"
+  note_ar: "نوع محلّيّ شائع؛ النطاق تقديريّ. إدراج واقعيّ لا ترويجيّ"

@@ -74,7 +74,16 @@ async def simulate_season_endpoint(
             crops = _json.loads(crops)
         except (ValueError, TypeError):
             crops = []
-    crop = str(crops[0]) if isinstance(crops, list) and crops else None
+    crop_list = [str(c) for c in crops if str(c).strip()] if isinstance(crops, list) else []
+    crop = crop_list[0] if crop_list else None
+    # صدق (season_integrity #4): المحاكاة أحاديّة المحصول. زراعة مختلطة ⇒ تحذير صريح بأنّ
+    # النتيجة تخصّ المحصول الأوّل فقط ولا تمثّل بقيّة المحاصيل — لا تجاهُل صامت.
+    multi_crop_warning: str | None = None
+    if len(crop_list) > 1:
+        multi_crop_warning = (
+            f"الموسم يضمّ {len(crop_list)} محاصيل ({'، '.join(crop_list)})؛ حوكِيَ المحصول "
+            f"الأوّل فقط ({crop}). النتيجة لا تمثّل الزراعة المختلطة."
+        )
 
     # ٢) نافذة المحاكاة: من البذار إلى نهاية الموسم (أو اليوم)، بحدّ أقصى.
     today = datetime.now(UTC).date()
@@ -162,6 +171,8 @@ async def simulate_season_endpoint(
         confidence=result.confidence,
         rationale_ar=result.rationale_ar,
         assumptions_ar=result.assumptions_ar,
-        warnings_ar=result.warnings_ar,
+        warnings_ar=(
+            [multi_crop_warning, *result.warnings_ar] if multi_crop_warning else result.warnings_ar
+        ),
         sim_ran_at=ran_at.isoformat(),
     )
