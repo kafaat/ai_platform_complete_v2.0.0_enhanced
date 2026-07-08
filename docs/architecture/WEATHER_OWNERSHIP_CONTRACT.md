@@ -1,57 +1,54 @@
-# Weather Ownership Contract — P1 Boundary
+# Weather Ownership Contract — P3 Runtime Realization
 
-This contract freezes the weather boundary before any extraction from `sahool-platform`.
-It is deliberately a **contract/guard phase**, not a functional migration phase, because
-`services/weather-service/main.py` is still an honest stub in the current source tree.
+This contract defines the ownership boundary for weather after P3.1–P3.3.
+The P1 state was an honest contract/stub; P3 now gives `weather-service` a real runtime surface while keeping `sahool-platform` compatibility routes intact until P3.4.
 
 ## Target owner
 
-`weather-service` owns weather facts and weather-derived operational windows after extraction.
+`weather-service` owns weather facts and weather-derived operational windows.
 
-## Current state verified from source
+## Current state after P3.1–P3.3
 
-- `services/weather-service/main.py` exposes health/readiness and returns `501` for weather work.
-- `services/sahool-platform/api/routers/weather.py` still contains the runtime implementation for
-  Open-Meteo calls, tile cache, probes, operation windows, operation plans, weather alerts, and
-  weather-derived task/recommendation helpers.
-- Therefore extraction must be staged through facades and guards, not direct deletion.
+- `services/weather-service/main.py` now exposes runtime endpoints instead of 501 stubs.
+- `services/weather-service/open_meteo.py` owns Open-Meteo provider calls and response normalization.
+- `services/weather-service/operations.py` owns operation suitability rules.
+- `services/weather-service/tiles.py` owns tile math, tile layer values, and wind-grid interpolation points.
+- `services/weather-service/cache.py` owns the local runtime cache used by the weather-service.
+- `sahool-platform` still contains legacy compatibility routes in `api/routers/weather.py`; these are target-owned by `weather-service` in `platform_extraction_map.json` and must become facades in P3.4.
 
-## Ownership rule
+## Runtime capabilities now owned by `weather-service`
 
-`sahool-platform` may temporarily host legacy weather endpoints only as compatibility/facade code.
-It must not gain new weather provider clients, new weather caches, new weather rate-limit stores,
-or new weather-derived operational-window implementations outside the allowlisted files.
-
-## Target responsibilities
-
-| Capability | Target owner | Notes |
+| Capability | Endpoint(s) | Phase |
 |---|---|---|
-| Current weather | `weather-service` | External provider calls move here. |
-| Forecast | `weather-service` | Unified provider/model contract. |
-| Historical weather | `weather-service` | Includes historical backfill contracts. |
-| Weather tiles / wind grid | `weather-service` | Tile cache may later split into a weather tile worker, but not platform. |
-| Operation windows | `weather-service` | Spray/harvest/sowing/fertilizer suitability windows. |
-| Weather alerts/signals | `weather-service` + workers | Workers emit signal events; platform consumes summaries. |
-| Weather-based recommendation creation | `agriai-engine` + `weather-service` | Weather provides facts; AI/decision services decide. |
+| Current weather | `GET /v1/weather/current` | P3.1 |
+| Forecast | `GET /v1/weather/forecast` | P3.1 |
+| Historical weather | `GET /v1/weather/historical` | P3.1 |
+| Runtime contract/readiness | `GET /contract`, `/readyz`, `/healthz` | P3.1 |
+| Operation window | `GET /v1/weather/operation-window` | P3.2 |
+| Operation plan | `GET /v1/weather/operation-plan` | P3.2 |
+| Operation tile | `GET /v1/weather/operation-tile-data/{z}/{x}/{y}` | P3.2 |
+| Weather tile data | `GET /v1/weather/tile-data/{z}/{x}/{y}` | P3.3 |
+| Tile time series | `GET /v1/weather/tile-series/{z}/{x}/{y}` | P3.3 |
+| Wind grid | `GET /v1/weather/wind-grid/{z}/{x}/{y}` | P3.3 |
+| Tile cache status | `GET /v1/weather/tile-cache/stats` | P3.3 |
 
-## Platform allowed behavior during migration
+## Platform allowed behavior during P3.4 migration
 
 - Proxy/facade endpoints for existing UI/API compatibility.
 - Tenant/field ownership checks before calling `weather-service`.
 - Aggregated read models/cards that consume weather facts.
 - Legacy helpers listed in `weather_boundary_allowlist.json` until replaced.
 
-## Platform forbidden behavior after this guard
+## Platform forbidden behavior after P3 realization
 
 - New direct Open-Meteo/NASA/Metno provider implementation outside allowlist.
 - New long-lived weather cache or weather rate-limit state outside allowlist.
 - New weather operation-window algorithm outside allowlist.
 - New database writer ownership for weather-owned tables/signals.
 
-## Extraction sequence
+## Next extraction sequence
 
-1. Keep current platform endpoints stable.
-2. Add real `weather-service` endpoints behind the same contract.
-3. Switch platform weather routes to HTTP clients/facades.
-4. Move frontend/gateway routing to `weather-service` where safe.
-5. Remove legacy platform implementation after deprecation.
+1. Keep current platform weather endpoints stable.
+2. Switch platform weather routes to a `weather_service_client` facade.
+3. Move frontend/gateway routing to `weather-service` where safe.
+4. Remove legacy platform implementation after deprecation and lower platform route budget.

@@ -12075,6 +12075,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a867b7813f54ed3f9a79729c1e1e47c1e6d128970078d031f0d89d8547fff0af"
+        }
+      ],
+      "name": "services/sahool-platform/api/raster_service_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "31c5039655a4482ba326863ed6157d8e825fc9621a3bc6501126f765ada60eef"
         }
       ],
@@ -19745,10 +19755,70 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5275d7f2b36e2c2b2ed5b5f78a77055393afeba7e70d767263a5ed1075fc4003"
+          "content": "953154b6f2f2339d33811cbe927ecc490524d5d669cd72000f5512e9c675d09d"
         }
       ],
       "name": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "77048759d0f3c62c6aad07936c25d5b12d62dea45a34aa38309494f452154d67"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p2_1_imagery_automation_raster_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8738aaafe0feb33ec9e7978964a201e7215c3e536341bb9cf60bac8c1ba9fb11"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p2_2_field_ai_context_raster_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b5a9bb4a3d2006b09007839f29d6d73f32d15fd123da6cde0fdd6aa64ea0f278"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p2_3_field_intelligence_adapter_raster_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93fb3f675aa931eb0c005f4e8c4cdd39dcaaa319d886e73446278e56ded6e39a"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p2_4_compat_gateway_raster_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8cbf926f05953b7c699c4a6244cf89dcb7213d1fb4be8cd11154087dc7407508"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a49f509e0378de9947b132a5ef9ee0071a2454302c9c897eec76ce1526d84292"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p2_raster_facade_cleanup_guard.py",
       "type": "file"
     },
     {
@@ -21795,7 +21865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2bdfddfd729d76f55d8cbfe10647b3d74c09ced532b3a7293014897c8f6d0bfb"
+          "content": "4ef4fba7756c11612461fabc6acb4065a21a5995c27a712687c0825044f3262b"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -21805,7 +21875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d12cb0ef3a1e1500f98a2f026c6ff298b87f689c72f45b10df8e544b9d662c6"
+          "content": "2009ebbf0e30ac5dfed6813566f892df4530e7eb0b2821de12ad310d9e1f0bc4"
         }
       ],
       "name": "services/weather-service/requirements.txt",
