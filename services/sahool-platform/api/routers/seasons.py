@@ -198,7 +198,15 @@ async def field_season_state_endpoint(
 
     from api.field_season_projection import assemble_field_season_state
 
+    def _loads(v):
+        if v is None:
+            return None
+        return _json.loads(v) if isinstance(v, str) else v
+
     ndvi = ndmi = vpr = cloud = def7 = def14 = open_tasks = None
+    outcome_records: list[dict] = []
+    recommendation_outcomes: list[dict] = []
+    dispatch_links: dict = {}
     try:
         async with tenant_connection(user) as conn:
             srow = await conn.fetchrow(
@@ -249,6 +257,70 @@ async def field_season_state_endpoint(
                 open_tasks = int(cnt) if cnt is not None else None
             except Exception:  # noqa: BLE001
                 pass
+            # النتائج المتصالحة (best-effort): outcome_record + recommendation_outcomes.
+            # الغياب/الجداول الجزئية لا يعطل حقيقة الموسم؛ يظهر outcomes ضمن evidence_missing.
+            try:
+                rows = await conn.fetch(
+                    "SELECT outcome_id, field_id, region, decision_id, success, metrics, "
+                    "planned, actual, stage, created_at FROM outcome_record "
+                    "WHERE field_id = $1",
+                    field_id,
+                )
+                outcome_records = [
+                    {
+                        "outcome_id": r["outcome_id"],
+                        "field_id": r["field_id"],
+                        "region": r["region"],
+                        "decision_id": r["decision_id"],
+                        "success": r["success"],
+                        "metrics": _loads(r["metrics"]) or {},
+                        "planned": _loads(r["planned"]),
+                        "actual": _loads(r["actual"]),
+                        "stage": r["stage"],
+                        "created_at": r["created_at"],
+                    }
+                    for r in rows
+                ]
+            except Exception:  # noqa: BLE001
+                outcome_records = []
+            try:
+                rows = await conn.fetch(
+                    "SELECT outcome_id, field_id, season_id, crop, recommendation_id, "
+                    "predicted_yield_t_ha, actual_yield_t_ha, accepted, matured_within_lag, "
+                    "issued_at, outcome_recorded_at FROM recommendation_outcomes "
+                    "WHERE field_id = $1 AND (season_id = $2 OR season_id IS NULL)",
+                    field_id,
+                    season_id,
+                )
+                recommendation_outcomes = [
+                    {
+                        "outcome_id": r["outcome_id"],
+                        "field_id": r["field_id"],
+                        "season_id": r["season_id"],
+                        "crop": r["crop"],
+                        "recommendation_id": r["recommendation_id"],
+                        "predicted_yield_t_ha": r["predicted_yield_t_ha"],
+                        "actual_yield_t_ha": r["actual_yield_t_ha"],
+                        "accepted": r["accepted"],
+                        "matured_within_lag": r["matured_within_lag"],
+                        "issued_at": r["issued_at"],
+                        "outcome_recorded_at": r["outcome_recorded_at"],
+                    }
+                    for r in rows
+                ]
+            except Exception:  # noqa: BLE001
+                recommendation_outcomes = []
+            try:
+                rows = await conn.fetch(
+                    "SELECT recommendation_id, decision_id FROM dispatch_decisions"
+                )
+                dispatch_links = {
+                    r["recommendation_id"]: r["decision_id"]
+                    for r in rows
+                    if r["recommendation_id"] and r["decision_id"]
+                }
+            except Exception:  # noqa: BLE001
+                dispatch_links = {}
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001 — تعذّر القاعدة الأساسيّ ⇒ 503 موثَّق
@@ -276,4 +348,7 @@ async def field_season_state_endpoint(
         water_deficit_7d_mm=def7,
         water_deficit_14d_mm=def14,
         open_tasks_count=open_tasks,
+        outcome_records=outcome_records,
+        recommendation_outcomes=recommendation_outcomes,
+        dispatch_links=dispatch_links,
     )
