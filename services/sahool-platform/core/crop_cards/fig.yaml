@@ -1,0 +1,50 @@
+# SAHOOL CORE crop card — Fig (التين)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+# مُعمِّر مُتساقط الأوراق — كتلة phenology الحوليّة مُغفَلة عمداً.
+crop_id: fig
+name_ar: التين
+name_en: Fig
+crop_family: tree_C3
+
+kc:
+  initial: 0.40
+  mid: 0.90
+  end: 0.50
+  stage_days: [50, 60, 80, 40]   # ≈ 230 يوماً موسم نموّ (إرشاديّ لمُعمِّر مُتساقط)
+  source: "Fig agronomy (indicative Kc; not in FAO-56 Kc table); perennial deciduous"
+
+salinity:
+  threshold_ece_ds_m: 2.5        # التين متوسّط التحمّل للملوحة (خارج جدول FAO-56 T23)
+  slope_pct_per_ds_m: 6.0        # تقدير أدبيّ
+  source: "Fig salinity literature (moderately tolerant; not in FAO-56 T23 — indicative)"
+
+thermal:
+  gdd_base_c: 10.0
+  gdd_to_maturity: 0             # مُعمِّر — إثمار موسميّ
+  flowering_safe_max_c: 42.0     # متحمّل للحرارة والجفاف (شجرة متوسّطيّة)
+  chilling_hours_required: 100   # مُتساقط — يحتاج بردَ سُبات منخفضاً
+  source: "Fig agronomy (Mediterranean deciduous; low chill; drought tolerant)"
+
+governing:
+  ph:        { min: 6.0, max: 8.0, error: 0.1,  source: "ECOCROP fig" }
+  ece_ds_m:  { min: 0.0, max: 8.0, error: 0.02, source: "Fig salt tolerance (indicative)" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.5
+    optimal_min: 1.0
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Fig OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 60
+  phosphorus_kg_ha_required: 30
+  potassium_kg_ha_required: 80
+
+pest_susceptibility:
+  pests: [fig_mosaic, fruit_fly, rust]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# لا كتلة phenology (مُعمِّر). لا calibration/yield/zone_factor.

@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Cucumber (الخيار)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: cucumber
+name_ar: الخيار
+name_en: Cucumber
+crop_family: cucurbit_C3
+
+kc:
+  initial: 0.60
+  mid: 1.00
+  end: 0.75
+  stage_days: [20, 30, 40, 15]   # ⇒ 105 يوماً
+  source: "FAO-56 Table 12 (Cucumber, fresh market)"
+
+salinity:
+  threshold_ece_ds_m: 2.5        # الخيار متوسّط الحساسيّة (Maas-Hoffman)
+  slope_pct_per_ds_m: 13.0
+  germination_ece_max: 2.0
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Cucumber)"
+
+thermal:
+  gdd_base_c: 12.0
+  gdd_to_maturity: 800
+  flowering_safe_max_c: 35.0
+  chilling_hours_required: 0
+  source: "Cucumber agronomy; warm-season cucurbit, base ~12C"
+
+governing:
+  ph:        { min: 5.5, max: 7.5, error: 0.1,  source: "ECOCROP cucumber" }
+  ece_ds_m:  { min: 0.0, max: 6.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.8
+    optimal_min: 1.5
+    optimal_max: 3.0
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Cucumber OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 90
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 100
+
+pest_susceptibility:
+  pests: [aphids, powdery_mildew, downy_mildew, whitefly]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [20,30,40,15] ⇒ [0–20, 20–50, 50–90, 90–105].
+phenology:
+  source: "FAO-56 Table 12 (Cucumber) stage lengths"
+  total_cycle_days: 105
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.60
+      key_action_ar: "ريّ تأسيس دافئ"
+    - stage: development
+      name_ar: "النموّ الخضري وزحف العرش"
+      day_start: 20
+      day_end: 50
+      kc_end: 1.00
+      key_action_ar: "تدعيم/توجيه + تسميد متوازن"
+    - stage: mid
+      name_ar: "التزهير والإثمار المتتابع"
+      day_start: 50
+      day_end: 90
+      kc: 1.00
+      key_action_ar: "ذروة الاحتياج المائي — قطاف متكرّر يحفّز الإثمار"
+    - stage: late
+      name_ar: "تراجع الإنتاج والنضج"
+      day_start: 90
+      day_end: 105
+      kc: 0.75
+      key_action_ar: "تقليل الريّ نحو نهاية الموسم"
+
+# NO calibration block. NO yield. NO zone_factor.

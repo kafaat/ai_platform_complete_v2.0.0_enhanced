@@ -16,6 +16,7 @@ from shared.security.trusted_tenant import (
 )
 
 from . import (
+    advisory_contract,
     ai_generation,
     approval,
     harness_transparency,
@@ -1089,7 +1090,7 @@ async def _build_evidence_response(
         pending_approvals=all_pending_approvals,
     )
 
-    return {
+    response = {
         "status": "ok",
         "mode": mode,
         "endpoint_mode": endpoint_mode,
@@ -1124,6 +1125,9 @@ async def _build_evidence_response(
         "audit_event": audit_event,
         "decision_authority": "field_intelligence_coordinator",
     }
+    # M2 — مظروف استشاريّ مُهيكَل مُتحقَّق (مُشتقّ؛ القرار advisory_only — لا يخترعه النموذج).
+    response["advisory"] = advisory_contract.build_advisory_envelope(response)
+    return response
 
 
 @app.post("/query")

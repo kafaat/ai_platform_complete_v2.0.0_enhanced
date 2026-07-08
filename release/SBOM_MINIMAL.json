@@ -1055,10 +1055,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ee7351b4a18c2c2675ed85db9ec904e91bf2ef71e005bd4b8c871958a83e8750"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/DriftRiskCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b5b3b9684a7efceaa47dc261f0ce6cd8b767fb932f3e76c85f140f9b95d26ffc"
         }
       ],
       "name": "frontend/src/components/fieldview/EvidenceGraphCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c84ab1ce6c1757652012b3010ee41139c62c02e9b1e633f685b56e1355ef6dbd"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/EvidenceHistoryCard.tsx",
       "type": "file"
     },
     {
@@ -2305,10 +2325,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eef3a21faf7afd175d4f0d6f0287e5e49f232e0e85c215e35f045a8e0596b874"
+        }
+      ],
+      "name": "frontend/src/hooks/useEvidenceHistory.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6bc9f286b29c55c71149ede90fa8f166745aaf9a9ab1bee359b73e5172d76671"
         }
       ],
       "name": "frontend/src/hooks/useFieldContext.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f68601bcc09944140119bc8267ff551a82cb4956a5125800db7b1f672603a984"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldDriftRisk.ts",
       "type": "file"
     },
     {
@@ -2795,6 +2835,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c3d836644d83d71d8ce3fca532ba4cab32d4655082ed9bda98cefe22cfa31b83"
+        }
+      ],
+      "name": "frontend/src/lib/driftZones.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bf6894c26bda77f529fba2255ff14ee917e8add584af2c9cc73367f74c50ec08"
+        }
+      ],
+      "name": "frontend/src/lib/driftZones.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "60ccd799f4f728993a1e21fc69b16e13c2ffa1d53b93fa4a79dbca03ce170816"
         }
       ],
@@ -2829,6 +2889,26 @@
         }
       ],
       "name": "frontend/src/lib/evidenceGraph.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9fd32b2bc882d6fa6d0e5490f5e3b4661cbae0c2c89853574d58ceab9e56cb5a"
+        }
+      ],
+      "name": "frontend/src/lib/evidenceHistory.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "285524cad7b93ed2ca401bc7d731e6a098e53db0bf500a16ae5464f3b87b9afa"
+        }
+      ],
+      "name": "frontend/src/lib/evidenceHistory.ts",
       "type": "file"
     },
     {
@@ -4695,7 +4775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "972b7392ef8fea6b68f742ee47f5cb6714e0ddb10e452e34da7a1e39efb9bd89"
+          "content": "fe80674c448036a66a3175403dee9d3a048bf3270fae800da07c00c2a2a13a72"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5275,7 +5355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f860e8a3f8baf942f2263d06957ef1ff24da5b57fffa3d8b7feedc5e0b2b5179"
+          "content": "45dafb3b1cb4cbad13190fa463712141304576c5fa27bbc66a443c0d58b33b26"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -5839,6 +5919,16 @@
         }
       ],
       "name": "migrations/v148_field_evidence_snapshots.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ad048b232c879da8a0a1056e82b9cb54c56f8bcf562b50ccf8a726c0e7af2ea"
+        }
+      ],
+      "name": "migrations/v149_evidence_graph_nodes_edges.sql",
       "type": "file"
     },
     {
@@ -6875,7 +6965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6d6f3eee7ac51189e587fa75e99bd18b2adb20c55d13bac4e83d621bfee05f7"
+          "content": "e8119e4495fc7b61bf309b2274b994d51c800fb14146c3548adffbb71bca5067"
         }
       ],
       "name": "migrations/validate_migrations.py",
@@ -7575,6 +7665,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4486d00f4090c5ef6a77101b54364dfcd8d256e2363d1867ec52c1cad9eda336"
+        }
+      ],
+      "name": "services/ai_agronomist/advisory_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9c754e454b444da8a84f471bb3c5a9b9f4ea9c44d42b619e2b05f7cda5dab78f"
         }
       ],
@@ -7585,7 +7685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "369983a2848867449e65c8bb5d51048ac047c22eae3a24f69d5da322279a8724"
+          "content": "c7ba8bd0f68b34b9dc9223a72e039ed79f81a712d38e20290e223fd05e98d7e0"
         }
       ],
       "name": "services/ai_agronomist/ai_generation.py",
@@ -7745,7 +7845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7e468679ca71bb5b1a7ae67d4975f79c0fbe6920c5d105e4527e5acee0a2449"
+          "content": "ae84409dc2aef14dd231e50ebbb51cb7e10580513a4b4485272f380a63c1c2ad"
         }
       ],
       "name": "services/ai_agronomist/main.py",
@@ -7835,7 +7935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86e96beaf0bf54a088677c538e71c7e91b8a03f8218d0ee3208a61518321b509"
+          "content": "0d0d96cc92ae238e2e11e76d8b0074665111c4f896b4260bdc5ed3dbeda33972"
         }
       ],
       "name": "services/ai_agronomist/provider_tooling.py",
@@ -8379,6 +8479,206 @@
         }
       ],
       "name": "services/field-segmentation/test_segmentation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a8d3011f9d19dfac9f29d7c8a24efceb5fcf0647bb7ae599a6cec2c6d7651e3"
+        }
+      ],
+      "name": "services/gis-workflow-service/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "name": "services/gis-workflow-service/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "860c460a013085cc49294e4be9ded0c97963e51174186e40576650c0e20439ca"
+        }
+      ],
+      "name": "services/gis-workflow-service/bulletin_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9a2282e6c9dfafad29b15bbea23b4b87858af3b29679af07bb2494701584da08"
+        }
+      ],
+      "name": "services/gis-workflow-service/bulletin_figure.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2d10aedef97f388c54edd6e371fa5c3dcf7d5271b861389f498c51f63d1fdb0f"
+        }
+      ],
+      "name": "services/gis-workflow-service/bulletin_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "39b3090ddd659c13bc551ccee14ef6d2b54a09108cad8695996520167cfcadd4"
+        }
+      ],
+      "name": "services/gis-workflow-service/map_layout.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80143f9cd6903c6e27bbf4a37172020bc7b4ca9ecb2e2b4e9b8b90318e712b1f"
+        }
+      ],
+      "name": "services/gis-workflow-service/publication_map.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "92a73ce272a97eb933a425036203dfcde453665571c744c0fa571f3fec045bc0"
+        }
+      ],
+      "name": "services/gis-workflow-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad8bcbd34d7f95a228acd17c353cefb43bcd618595c774f79dd2aabde521fbfe"
+        }
+      ],
+      "name": "services/gis-workflow-service/run_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "891154c81cbdb3d34b725432975d09b11303af244d248ba901bbf9a35014907b"
+        }
+      ],
+      "name": "services/gis-workflow-service/self_checks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1fe6f13a8f4790360ed14267858842462b38a23175258fe269994f61deb02c10"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_bulletin_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ec264f618cd7a829f113d58512693477636bdca6aea2db89afe9e6f656981b3"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_bulletin_figure.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e10e82ec5e0daa2d352feba04f2311655befa99afade6c03806defedf8a2c56d"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_map_layout.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e196a96b09dc493829f58b0529dff64d910aab269ca46b5841a052df4c7b59b1"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_no_external_sources.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "221e0c4534eb606eb08054bae972ded71f9ee007d07d876ac8af040a3bed3141"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_publication_map_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69e40d87e07e839f06b2cbe2caa178dae1f80d60c1765249d1d15fac68ab7a6e"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_run_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6fbb60712765e1464dd84f964ba6dd928bd592ca2b00d79ee8038a7bd10e995e"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_self_checks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "245bced659b853a034af82405fe08f7ddcac9aad94a1bc71acfe3c2d7c137696"
+        }
+      ],
+      "name": "services/gis-workflow-service/tests/test_workflow_spec.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5b601eb5587f8ca4d427af04589b47271097774258be76fd8e0e3c2c38d09b2"
+        }
+      ],
+      "name": "services/gis-workflow-service/workflow_spec.py",
       "type": "file"
     },
     {
@@ -9385,7 +9685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2c0a113e66f5676b373aa434b8fd9bc9793c8c9380f97418a58682891973563"
+          "content": "08affe5d68b43fa73dc12b79ab68dd3d1757f3770669c5aa4e99805931cf872f"
         }
       ],
       "name": "services/raster-service/raster_scene_model.py",
@@ -9515,7 +9815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e0fe9d68ceed4bfef981e9b3e3e88b26e9158bf0906d2497d10d020476fad67"
+          "content": "f77d9977210bcfd2f4a9f232bd6476322491c51682f63a5ae405511e06152c3d"
         }
       ],
       "name": "services/raster-service/routers/observability.py",
@@ -10135,6 +10435,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0fd8ac1cc2558d545f6dd9c6270f41bd42d5dda65e5875bea70962aebf7b4fab"
+        }
+      ],
+      "name": "services/raster-service/test_wapor_worldcereal.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a278c960e8eefba4e0b636a26afaeadc6a00a0913e392089219d4ad9cdbba7ed"
         }
       ],
@@ -10179,6 +10489,16 @@
         }
       ],
       "name": "services/raster-service/time_series.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "482f1ec8d057aefba617ef7f59612a2ef28077c5c1fa8b49aee4b389450f729f"
+        }
+      ],
+      "name": "services/raster-service/wapor_worldcereal.py",
       "type": "file"
     },
     {
@@ -12365,7 +12685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "efa2923ddeaa751a8a2820cffc7bbc104de84c555e8320fef3d3fc5d81715412"
+          "content": "cfb68ccd017823928a9e369de0c5e564a20d43f966b8c3b7c41ba411ccb355f5"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_intelligence.py",
@@ -12405,7 +12725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c8bca0d87501247952a4212223610a977ee87767041802b8e2d917d7784a9f6"
+          "content": "1ed1b099d5346faac34287e5be81d25ac2732c193496fceed67b3f8aa164025f"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -14075,10 +14395,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b8a2e57ed21dd124db0de8a5dda2c128ac09452a26cccba397c9f0cc5412f30e"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/alfalfa.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "83572582e0032d80d47bb1d1b7a7091b92a512a2c889c07740ff160337a479c0"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/barley.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "28a63e720b68dc9562df58d7563d336a1510271d0c3bd789f9910e93eb746ec5"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/chickpea.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe7a952c9535f5378441ffcf0fb58c7bbf3ef04415f39fc9ba124fc09b2ab1d7"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/coffee.yaml",
       "type": "file"
     },
     {
@@ -14095,10 +14445,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "01c7e02e2070b29b2c62017d8a7329074678ca48fe3d2917d2e6f3986aee49d6"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/cotton.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "460c0370b5285ace763c870bb0cc7fb3879542ff958367f5000a1870500d065f"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/cowpea.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "27739d37971061eb3cd1058a93f4b47503499dc5a5ef83b4d172af64bc0982a6"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/cranberry.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dc3d1f3a5f55c54b41fab1b92b4b48bc6865bd64672861935313bebfa5ffe922"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/cucumber.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d8d424c8df0bfa765bd987fd08aec2801f876d942a8d59be7ae24128ea2217b7"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/date_palm.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29169973c8d2242b0a6554ae35fe525b0f6660246efb7134dc01b73b959663cc"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/eggplant.yaml",
       "type": "file"
     },
     {
@@ -14125,6 +14525,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8ad2718be64221f49a3235ded0f491e81d5513624b394aefa38a8e960d194757"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/garlic.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "04aba5a3ee0c5dd40b2ceaf7868d962e23308cffcd59d5f5af3b9066c2caf24b"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/grape.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "59151db692784d3806d9d2a31f2a1e84d34cca4b073da64e79a025eb2ddf4854"
         }
       ],
@@ -14145,10 +14565,50 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "38fa5d88a149c6beaf56f4dd07c1d77b2df13e58564182b82efb399f3b5ee75f"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/maize.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "64d7d3f74fb1fe28b274d5c5fd39170806d636da2c096f7cf5d0b340e363f363"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/melon.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d9fb451178c9fe256c870660bed00f6bba1ee61eecfaec72558591be6932ef1c"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/millet.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbb6444d76fc2e4295ace27643fd90294818e2b7d7362bc2b009b36b561912d2"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/okra.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0200f14d942894ddd9e49aae99a827a6d0a974f67d15ee87916b119f5149909d"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/onion.yaml",
       "type": "file"
     },
     {
@@ -14175,10 +14635,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "22ed796714f65f73c85c0c4454bb04ac397ff87f016b318c165fc34d40c6b8de"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/pepper.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5409c8038e56484443e81b32e689fc7cfe05e47a6ea13ff7667fb6a5dde74da5"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/potato.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3b59c155e285204b5cce63b32aa155abdfb3900acb74104147b6aace2505f791"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/sesame.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3491d9829242d319d8833208f94f4bfa1f3eaa7c3bceaa0a9e13507d48075476"
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/sorghum.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cfd5e7abcb87dbb4f795fda5f2c5ce99a5aadab2c1900b80bca50c52563037a0"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/sunflower.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32f2ec7baf0a8400f3f8c03d15a3c1dd5975cea727bfbcbf6b586efc91f8159c"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/tomato.yaml",
       "type": "file"
     },
     {
@@ -14349,6 +14859,16 @@
         }
       ],
       "name": "services/sahool-platform/core/crop_cards/varieties/wheat_local_highland.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f803ef4b93bc8b89499c16b002e3f8ba8ca8e071bff529f42b56d65ad649dea"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_cards/watermelon.yaml",
       "type": "file"
     },
     {
@@ -14649,6 +15169,16 @@
         }
       ],
       "name": "services/sahool-platform/core/districts/tihama_coastal.yaml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cfe72329bd393bd5a4da9c0c22eb203f9706628202f88b805bab89ad400f4b7c"
+        }
+      ],
+      "name": "services/sahool-platform/core/drift_geometry.py",
       "type": "file"
     },
     {
@@ -14969,6 +15499,26 @@
         }
       ],
       "name": "services/sahool-platform/core/evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f81c23961873dcf05a9317d874cf33fece44b6598623dc95c63e38624edc8d0b"
+        }
+      ],
+      "name": "services/sahool-platform/core/evidence_graph_analytics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "18e2ca7791263d84003ce1440b3f73992a14f776ce7811ec2370664e9940e2d7"
+        }
+      ],
+      "name": "services/sahool-platform/core/evidence_graph_normalize.py",
       "type": "file"
     },
     {
@@ -15979,6 +16529,16 @@
         }
       ],
       "name": "services/sahool-platform/core/spatial/raster_export.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "94177b801c3301ad7d13e1eb70282213cfc425fafab0e978ebafd8c9ebd09ec7"
+        }
+      ],
+      "name": "services/sahool-platform/core/spray_readiness.py",
       "type": "file"
     },
     {
@@ -17115,7 +17675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3327ee638234da38cdfe10841e99d629ecee777979c7922fd37694b629f68065"
+          "content": "3dff5ca77e53bcb193edf25e5ec595ff104dcdc02dea0555151b6c5ce1645882"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_cards.py",
@@ -17555,6 +18115,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "587851a2e2f1eab2716fedccc09218021cc9e91b28040dc1eea8e862532ca34b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_drift_geometry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "55d9f92790621f294f96d5f8573878e5424971d6cf063e42421a95537cb21904"
         }
       ],
@@ -17639,6 +18209,36 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_evidence_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "72f6e90a01dfc63223ac8959652547ec5636fa8dd0405d316c857db584f073ba"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_graph_analytics.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6fb62656e5bc704b64ef72613c554c50c8ed1d50f3c05c44451c18006a66fe0b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "566631547bc708dd787020734cbdbce550d47ae224e505c3aac3ab9c25b3a6be"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_evidence_graph_normalize.py",
       "type": "file"
     },
     {
@@ -19209,6 +19809,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_spectral_stress_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89a422c2fb80962f5b82935ecfcaa490fc6680b9aad8afd38332feb0c636d949"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_spray_readiness.py",
       "type": "file"
     },
     {

@@ -216,6 +216,7 @@ async def providers_status():
     (``provides_imagery=False``). بيانات وصفيّة غير حسّاسة (لا معلومات مستأجِر).
     """
     import raster_scene_model as _sm
+    import wapor_worldcereal as _ww
 
     return {
         "default_historical_provider": stac_search_helpers.HISTORICAL_SEARCH_PROVIDER,
@@ -225,6 +226,13 @@ async def providers_status():
         "research_sources": _sm.RESEARCH_REGISTRY,
         "external_sources": _sm.EXTERNAL_SOURCE_REGISTRY,
         "ai_models": _sm.AI_MODEL_REGISTRY,
+        # تشخيص جاهزيّة OlmoEarth على العتاد (صادق): ما ينقص لتفعيله (أوزان/GPU/تحقّق محلّيّ).
+        # يبقى ready=False حتّى بعد الأوزان+GPU (تفعيل بشريّ بعد benchmark يمنيّ).
+        "olmoearth_runtime": _sm.olmoearth_runtime_status(),
+        # جاهزيّة WaPOR/WorldCereal (docs-based، صادق): active/live_verified=false +
+        # activation_blockers صريحة (تحتاج عيّنة عقد حقيقيّة + تحقّق AOI يمنيّ).
+        "wapor_readiness": _ww.wapor_readiness(),
+        "worldcereal_readiness": _ww.worldcereal_readiness(),
     }
 
 

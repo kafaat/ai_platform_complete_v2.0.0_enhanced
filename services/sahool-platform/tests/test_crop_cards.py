@@ -418,3 +418,264 @@ class TestCerealPhenology:
             assert "yield" not in ph
             assert "region" not in ph
             assert "calibration" not in ph
+
+
+class TestYemenStaplesBatch1:
+    """المحاصيل الأساسية اليمنية (الدفعة 1): الذرة الشامية · السمسم · البطاطس · البُنّ.
+    فيزياء وفسيولوجيا فقط (FAO-56 Kc/T23 · ECOCROP · أدبيّات الملوحة)؛ محايدة الموقع.
+    البُنّ مُعمِّر ⇒ بلا كتلة phenology حوليّة (صدق: لا مراحل مُلفَّقة لمُعمِّر)."""
+
+    STAPLES = ("maize", "sesame", "potato", "coffee")
+
+    def test_all_present_and_valid(self):
+        cards = list_crop_cards()
+        for cid in self.STAPLES:
+            assert cid in cards, cid
+            v = validate_crop_card(load_crop_card(cid))
+            assert v["valid"], f"{cid}: {v['errors']}"
+
+    def test_families_are_correct(self):
+        fam = {cid: load_crop_card(cid)["crop_family"] for cid in self.STAPLES}
+        assert fam["maize"] == "cereal_C4"  # حبوب دافئة C4
+        assert fam["sesame"] == "oilseed_C3"
+        assert fam["potato"] == "tuber_C3"
+        assert fam["coffee"] == "tree_C3"  # مُعمِّر
+
+    def test_annual_staples_have_consistent_phenology(self):
+        # الحوليّة الثلاثة: 4 مراحل، حدودها = المجاميع التراكميّة لـ kc.stage_days.
+        from core.crop_cards.loader import growth_stages
+
+        for cid in ("maize", "sesame", "potato"):
+            card = load_crop_card(cid)
+            stages = growth_stages(cid)
+            assert len(stages) == 4, cid
+            cum = 0
+            for sd, st in zip(card["kc"]["stage_days"], stages, strict=True):
+                assert st["day_start"] == cum, cid
+                cum += sd
+                assert st["day_end"] == cum, cid
+            assert cum == card["phenology"]["total_cycle_days"], cid
+
+    def test_coffee_is_perennial_no_annual_phenology(self):
+        # مُعمِّر: بلا كتلة phenology ⇒ growth_stages فارغة، وبلا «نضج» حوليّ.
+        from core.crop_cards.loader import growth_stages
+
+        assert growth_stages("coffee") == []
+        assert load_crop_card("coffee")["thermal"]["gdd_to_maturity"] == 0
+
+    def test_coffee_prefers_acidic_soil(self):
+        # أرابيكا تفضّل تربة حمضيّة (pH أقصى ≤ 6.5) — عكس أغلب محاصيلنا القلويّة.
+        assert load_crop_card("coffee")["governing"]["ph"]["max"] <= 6.5
+
+    def test_potato_is_heavy_potassium_feeder(self):
+        # البطاطس مُستهلِك بوتاسيوم مرتفع جدّاً (K > N) — جودة الدرنات.
+        m = load_crop_card("potato")["modifying"]
+        assert m["potassium_kg_ha_required"] > m["nitrogen_kg_ha_required"]
+
+    def test_maize_more_salt_sensitive_than_wheat(self):
+        # الذرة الشامية (1.7) أحسّ للملوحة من القمح (6.0) والشعير.
+        maize = load_crop_card("maize")["salinity"]["threshold_ece_ds_m"]
+        wheat = load_crop_card("wheat")["salinity"]["threshold_ece_ds_m"]
+        assert maize < wheat
+
+    def test_sesame_is_hot_season_high_base_temp(self):
+        # السمسم محصول حارّ — حرارة أساس مرتفعة (≥ 15°م، أعلى من القمح البارد base 0).
+        t = load_crop_card("sesame")["thermal"]
+        assert t["gdd_base_c"] >= 15.0
+        assert t["chilling_hours_required"] == 0
+
+    def test_germination_not_stricter_violated(self):
+        # حيث تُذكر عتبة الإنبات، يجب أن تكون ≤ العتبة العامّة (مرحلة حسّاسة).
+        for cid in self.STAPLES:
+            sal = load_crop_card(cid)["salinity"]
+            if "germination_ece_max" in sal:
+                assert sal["germination_ece_max"] <= sal["threshold_ece_ds_m"], cid
+
+    def test_staples_region_agnostic_no_calibration(self):
+        for cid in self.STAPLES:
+            card = load_crop_card(cid)
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in card, (cid, forbidden)
+
+    def test_all_staples_cite_sources(self):
+        # صدق: كل كتلة فيزيائيّة تذكر مصدرها (لا أرقام مُختلَقة).
+        for cid in self.STAPLES:
+            card = load_crop_card(cid)
+            assert "source" in card["kc"]
+            assert "source" in card["salinity"]
+            assert "source" in card["thermal"]
+
+
+class TestYemenCropsBatch2:
+    """محاصيل يمنيّة إضافيّة (الدفعة 2): خضراوات/ألياف/علف/فاكهة/قرعيّات/بقوليّات.
+    FAO-56 Kc/T23 معياريّة حيث تتوفّر؛ القيم خارج T23 مُعلَّمة «indicative» بصدق.
+    المُعمِّرات (نخيل/عنب/برسيم) بلا كتلة phenology حوليّة."""
+
+    ANNUALS = ("tomato", "onion", "cotton", "cowpea", "chickpea", "sunflower", "watermelon")
+    PERENNIALS = ("date_palm", "grape", "alfalfa")
+
+    def test_all_present_and_valid(self):
+        cards = list_crop_cards()
+        for cid in self.ANNUALS + self.PERENNIALS:
+            assert cid in cards, cid
+            v = validate_crop_card(load_crop_card(cid))
+            assert v["valid"], f"{cid}: {v['errors']}"
+
+    def test_annual_phenology_consistent_with_stage_days(self):
+        from core.crop_cards.loader import growth_stages
+
+        for cid in self.ANNUALS:
+            card = load_crop_card(cid)
+            stages = growth_stages(cid)
+            assert len(stages) == 4, cid
+            cum = 0
+            for sd, st in zip(card["kc"]["stage_days"], stages, strict=True):
+                assert st["day_start"] == cum, cid
+                cum += sd
+                assert st["day_end"] == cum, cid
+            assert cum == card["phenology"]["total_cycle_days"], cid
+
+    def test_perennials_have_no_annual_phenology(self):
+        from core.crop_cards.loader import growth_stages
+
+        for cid in self.PERENNIALS:
+            assert growth_stages(cid) == [], cid
+            # مُعمِّر ⇒ لا «نضج» حوليّ.
+            assert load_crop_card(cid)["thermal"]["gdd_to_maturity"] == 0, cid
+
+    def test_date_palm_is_most_salt_tolerant_added(self):
+        # النخيل من أكثر المحاصيل تحمّلاً للملوحة (عتبة 4.0 > حسّاسة كالبصل 1.2).
+        palm = load_crop_card("date_palm")["salinity"]["threshold_ece_ds_m"]
+        onion = load_crop_card("onion")["salinity"]["threshold_ece_ds_m"]
+        assert palm > onion
+
+    def test_cotton_salt_tolerant_high_threshold(self):
+        # القطن متحمّل للملوحة (عتبة ~7.7 Maas-Hoffman) — من الأعلى في مجموعتنا.
+        assert load_crop_card("cotton")["salinity"]["threshold_ece_ds_m"] >= 7.0
+
+    def test_onion_is_salt_sensitive(self):
+        # البصل من أحسّ الخضراوات للملوحة (عتبة 1.2).
+        assert load_crop_card("onion")["salinity"]["threshold_ece_ds_m"] <= 1.5
+
+    def test_legumes_fix_nitrogen_low_n_requirement(self):
+        # البقوليّات (لوبيا/حمّص/برسيم) تثبّت النيتروجين ⇒ احتياج آزوتيّ منخفض.
+        wheat_n = load_crop_card("wheat")["modifying"]["nitrogen_kg_ha_required"]
+        for cid in ("cowpea", "chickpea", "alfalfa"):
+            assert load_crop_card(cid)["modifying"]["nitrogen_kg_ha_required"] < wheat_n, cid
+
+    def test_grape_needs_some_winter_chill(self):
+        # العنب مُتساقط يحتاج بردَ سُبات (ساعات برودة > 0) — عكس المحاصيل الحوليّة.
+        assert load_crop_card("grape")["thermal"]["chilling_hours_required"] > 0
+
+    def test_indicative_salinity_flagged_honestly(self):
+        # القيم خارج FAO-56 T23 يجب أن تُعلَّم بصدق (لا ادّعاء معياريّة Maas-Hoffman).
+        for cid in ("chickpea", "sunflower", "watermelon"):
+            src = load_crop_card(cid)["salinity"]["source"].lower()
+            assert "not in fao-56 t23" in src or "indicative" in src, cid
+
+    def test_all_cite_sources_region_agnostic(self):
+        for cid in self.ANNUALS + self.PERENNIALS:
+            card = load_crop_card(cid)
+            assert "source" in card["kc"] and "source" in card["salinity"]
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in card, (cid, forbidden)
+
+
+class TestYemenVegetablesBatch3a:
+    """خضراوات يمنيّة (الدفعة 3أ): خيار · فلفل · باذنجان · بامية · ثوم · شمّام.
+    حوليّة بـ4 مراحل FAO-56؛ القيم خارج جداول FAO-56 مُعلَّمة بصدق."""
+
+    VEG = ("cucumber", "pepper", "eggplant", "okra", "garlic", "melon")
+
+    def test_all_present_valid_with_phenology(self):
+        from core.crop_cards.loader import growth_stages
+
+        cards = list_crop_cards()
+        for cid in self.VEG:
+            assert cid in cards, cid
+            card = load_crop_card(cid)
+            assert validate_crop_card(card)["valid"], cid
+            stages = growth_stages(cid)
+            assert len(stages) == 4, cid
+            cum = 0
+            for sd, st in zip(card["kc"]["stage_days"], stages, strict=True):
+                assert st["day_start"] == cum, cid
+                cum += sd
+                assert st["day_end"] == cum, cid
+            assert cum == card["phenology"]["total_cycle_days"], cid
+
+    def test_pepper_flower_drop_heat_threshold(self):
+        # الفلفل: تساقط الأزهار فوق ~32°م (حسّاسيّة حراريّة موثّقة).
+        assert load_crop_card("pepper")["thermal"]["flowering_safe_max_c"] <= 32.0
+
+    def test_okra_is_hot_season_high_base_temp(self):
+        # البامية محصول حارّ — حرارة أساس مرتفعة (≥ 15°م).
+        assert load_crop_card("okra")["thermal"]["gdd_base_c"] >= 15.0
+
+    def test_garlic_salt_sensitive_allium(self):
+        # الثوم من الثوميّات الحسّاسة للملوحة (عتبة ≤ 1.5).
+        assert load_crop_card("garlic")["salinity"]["threshold_ece_ds_m"] <= 1.5
+
+    def test_region_agnostic_and_sourced(self):
+        for cid in self.VEG:
+            card = load_crop_card(cid)
+            assert "source" in card["kc"] and "source" in card["salinity"]
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in card, (cid, forbidden)
+
+
+class TestYemenFruitsAndQatBatch3b:
+    """فواكه مُعمِّرة + القات (الدفعة 3ب): موز · مانجو · بابايا · حمضيات · رمّان ·
+    تين · جوافة · قات. كلّها مُعمِّرة ⇒ بلا كتلة phenology حوليّة (صدق: لا مراحل
+    مُلفَّقة لمُعمِّر). أغلب القيم «indicative» (خارج FAO-56/ECOCROP المعياريّ)."""
+
+    PERENNIALS = ("banana", "mango", "papaya", "citrus", "pomegranate", "fig", "guava", "qat")
+
+    def test_all_present_valid_perennial(self):
+        from core.crop_cards.loader import growth_stages
+
+        cards = list_crop_cards()
+        for cid in self.PERENNIALS:
+            assert cid in cards, cid
+            card = load_crop_card(cid)
+            assert validate_crop_card(card)["valid"], cid
+            # مُعمِّر ⇒ لا كتلة phenology حوليّة، ولا «نضج» حوليّ.
+            assert growth_stages(cid) == [], cid
+            assert card["thermal"]["gdd_to_maturity"] == 0, cid
+
+    def test_citrus_uses_standard_maas_hoffman(self):
+        # الحمضيات (البرتقال) في FAO-56 T23 فعليّاً — عتبة 1.7 حسّاسة.
+        sal = load_crop_card("citrus")["salinity"]
+        assert sal["threshold_ece_ds_m"] == 1.7
+        assert "FAO-56" in sal["source"] or "Maas" in sal["source"]
+
+    def test_indicative_values_flagged_honestly(self):
+        # ما لا مصدر معياريّ له (موز/مانجو/بابايا/رمّان/تين/جوافة/قات) يُعلَّم بصدق.
+        for cid in ("banana", "mango", "papaya", "pomegranate", "fig", "guava", "qat"):
+            src = load_crop_card(cid)["salinity"]["source"].lower()
+            assert "indicative" in src or "no standard" in src, cid
+
+    def test_qat_is_neutral_indicative_and_honest_empty_pests(self):
+        # القات: إدراج واقعيّ لا ترويجيّ — كلّ قيمه «indicative»، وآفاته قائمة فارغة
+        # بصدق (غير موثّقة معياريّاً) لا مُختلَقة.
+        qat = load_crop_card("qat")
+        assert qat["pest_susceptibility"]["pests"] == []
+        assert "indicative" in qat["kc"]["source"].lower()
+        assert "no fao-56" in qat["kc"]["source"].lower()
+
+    def test_deciduous_fruits_need_winter_chill(self):
+        # الرمّان والتين مُتساقطان ⇒ يحتاجان بردَ سُبات (ساعات برودة > 0).
+        for cid in ("pomegranate", "fig"):
+            assert load_crop_card(cid)["thermal"]["chilling_hours_required"] > 0, cid
+
+    def test_banana_heavy_potassium_feeder(self):
+        # الموز مُستهلِك بوتاسيوم مرتفع جدّاً (K > N).
+        m = load_crop_card("banana")["modifying"]
+        assert m["potassium_kg_ha_required"] > m["nitrogen_kg_ha_required"]
+
+    def test_all_region_agnostic_and_sourced(self):
+        for cid in self.PERENNIALS:
+            card = load_crop_card(cid)
+            assert "source" in card["kc"] and "source" in card["salinity"]
+            for forbidden in ("yield", "calibration", "zone_factor", "region"):
+                assert forbidden not in card, (cid, forbidden)

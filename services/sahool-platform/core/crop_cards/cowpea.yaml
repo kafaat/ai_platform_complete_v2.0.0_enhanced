@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Cowpea (اللوبيا)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: cowpea
+name_ar: اللوبيا
+name_en: Cowpea
+crop_family: legume_C3
+
+kc:
+  initial: 0.40
+  mid: 1.05
+  end: 0.60
+  stage_days: [20, 30, 30, 20]   # ⇒ 100 يوم
+  source: "FAO-56 Table 12 (Cowpea / legumes)"
+
+salinity:
+  threshold_ece_ds_m: 4.9        # اللوبيا متوسّطة التحمّل (Maas-Hoffman)
+  slope_pct_per_ds_m: 12.0
+  germination_ece_max: 4.0
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Cowpea)"
+
+thermal:
+  gdd_base_c: 10.0               # بقوليّة دافئة
+  gdd_to_maturity: 1100
+  flowering_safe_max_c: 35.0     # متحمّلة للحرارة والجفاف
+  chilling_hours_required: 0
+  source: "Cowpea agronomy; warm-season legume, base 10C"
+
+governing:
+  ph:        { min: 5.5, max: 7.5, error: 0.1,  source: "ECOCROP cowpea" }
+  ece_ds_m:  { min: 0.0, max: 10.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.4
+    optimal_min: 0.8
+    optimal_max: 1.8
+    max_acceptable: 4.0
+    weight: 0.3
+    error: 0.05
+    source: "Cowpea OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 20    # بقوليّة مثبّتة للنيتروجين ⇒ دفعة بادئة فقط
+  phosphorus_kg_ha_required: 40
+  potassium_kg_ha_required: 40
+
+pest_susceptibility:
+  pests: [aphids, pod_borer, thrips]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [20,30,30,20] ⇒ [0–20, 20–50, 50–80, 80–100].
+phenology:
+  source: "FAO-56 Table 12 (Cowpea) stage lengths"
+  total_cycle_days: 100
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.40
+      key_action_ar: "ريّ تأسيس خفيف"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 20
+      day_end: 50
+      kc_end: 1.05
+      key_action_ar: "خفض النيتروجين (تثبيت حيويّ) + مكافحة الحشائش"
+    - stage: mid
+      name_ar: "التزهير وتكوّن القرون"
+      day_start: 50
+      day_end: 80
+      kc: 1.05
+      key_action_ar: "ذروة الاحتياج المائي عند التزهير"
+    - stage: late
+      name_ar: "امتلاء الحبّ والنضج"
+      day_start: 80
+      day_end: 100
+      kc: 0.60
+      key_action_ar: "تقليل الريّ قبل الحصاد"
+
+# NO calibration block. NO yield. NO zone_factor.

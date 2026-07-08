@@ -1126,6 +1126,11 @@
       "evidence": "/api/v1/escalation/assess"
     },
     {
+      "endpoint": "/api/v1/evidence-graph/analytics",
+      "audience": "agronomist",
+      "evidence": "/api/v1/evidence-graph/analytics"
+    },
+    {
       "endpoint": "/api/v1/evidence/corroborate",
       "audience": "agronomist",
       "evidence": "/api/v1/evidence/corroborate"
@@ -1321,11 +1326,6 @@
       "evidence": "/api/v1/fields"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/imagery/timeline",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
       "endpoint": "/api/v1/fields/{field_id}/boundary-graph",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
@@ -1402,6 +1402,11 @@
     },
     {
       "endpoint": "/api/v1/fields/{field_id}/imagery/refresh",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/imagery/timeline",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
@@ -1516,11 +1521,6 @@
       "evidence": "/api/v1/fields"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
-      "audience": "farmer",
-      "evidence": "/wind/prevailing"
-    },
-    {
       "endpoint": "/api/v1/fields/{field_id}/timeline",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
@@ -1579,6 +1579,16 @@
       "endpoint": "/api/v1/fields/{field_id}/weather/irrigation-advice",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/wind/drift-risk",
+      "audience": "farmer",
+      "evidence": "/wind/drift-risk"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
+      "audience": "farmer",
+      "evidence": "/wind/prevailing"
     },
     {
       "endpoint": "/api/v1/fields/{field_id}/workspace",

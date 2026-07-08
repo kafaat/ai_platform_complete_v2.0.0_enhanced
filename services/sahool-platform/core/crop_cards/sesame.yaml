@@ -1,0 +1,82 @@
+# SAHOOL CORE crop card — Sesame (السمسم)
+# REGION-AGNOSTIC. Physics & physiology ONLY. Knows no farm, no region.
+# Calibration (zone_factor, yield) lives in districts/ and tenants/ — NOT here.
+crop_id: sesame
+name_ar: السمسم
+name_en: Sesame
+crop_family: oilseed_C3
+
+kc:
+  initial: 0.35
+  mid: 1.10
+  end: 0.25
+  stage_days: [20, 30, 40, 25]   # FAO-56 السمسم ⇒ ~115 يوماً
+  source: "FAO-56 Table 12 (Sesame)"
+
+salinity:
+  threshold_ece_ds_m: 1.5        # السمسم حسّاس للملوحة (خارج جدول FAO-56 T23)
+  slope_pct_per_ds_m: 9.0        # تقدير أدبيّ — ليس Maas-Hoffman معياريّاً
+  germination_ece_max: 1.2       # الإنبات أكثر حساسية
+  source: "Sesame salinity literature (sensitive; not in FAO-56 T23 — indicative)"
+
+thermal:
+  gdd_base_c: 15.0               # محصول حارّ جدّاً — حرارة أساس مرتفعة ~15°م
+  gdd_to_maturity: 1500
+  flowering_safe_max_c: 40.0     # متحمّل للحرارة (نبات مداريّ/شبه مداريّ)
+  chilling_hours_required: 0
+  source: "Sesame agronomy; warm-season C3, GDD base ~15-16C"
+
+governing:
+  ph:        { min: 5.5, max: 8.0, error: 0.1,  source: "ECOCROP sesame" }
+  ece_ds_m:  { min: 0.0, max: 6.0, error: 0.02, source: "Sesame salt tolerance (indicative)" }
+  drainage:  { needs: good }     # حسّاس جدّاً للغدق — يموت بالتشبّع المائي
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.5
+    optimal_min: 1.0
+    optimal_max: 2.0
+    max_acceptable: 4.0
+    weight: 0.3
+    error: 0.05
+    source: "Sesame OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 60
+  phosphorus_kg_ha_required: 35
+  potassium_kg_ha_required: 40
+
+pest_susceptibility:
+  pests: [sesame_webworm, gall_midge, aphids]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
+# الحدود اليوميّة تطابق kc.stage_days التراكميّة [20,30,40,25] ⇒ [0–20, 20–50, 50–90, 90–115].
+phenology:
+  source: "FAO-56 Table 12 (Sesame) stage lengths"
+  total_cycle_days: 115
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 20
+      kc: 0.35
+      key_action_ar: "ريّ خفيف متكرّر — البذرة صغيرة وسطحيّة"
+    - stage: development
+      name_ar: "النموّ الخضري والتفرّع"
+      day_start: 20
+      day_end: 50
+      kc_end: 1.10
+      key_action_ar: "مكافحة الحشائش المبكّرة + تجنّب الغدق"
+    - stage: mid
+      name_ar: "التزهير وتكوّن الكبسولات"
+      day_start: 50
+      day_end: 90
+      kc: 1.10
+      key_action_ar: "ذروة الاحتياج المائي عند التزهير — تجنّب الإجهاد المائي"
+    - stage: late
+      name_ar: "امتلاء البذور والنضج"
+      day_start: 90
+      day_end: 115
+      kc: 0.25
+      key_action_ar: "إيقاف الريّ عند اصفرار الكبسولات السفليّة — حصاد قبل التفتّح"
+
+# NO calibration block. NO yield. NO zone_factor. Those are districts/tenant OUTPUTS.

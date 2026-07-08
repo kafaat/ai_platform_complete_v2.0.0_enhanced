@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Sunflower (عبّاد الشمس)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: sunflower
+name_ar: عبّاد الشمس (دوّار الشمس)
+name_en: Sunflower
+crop_family: oilseed_C3
+
+kc:
+  initial: 0.35
+  mid: 1.10
+  end: 0.35
+  stage_days: [25, 35, 45, 25]   # ⇒ 130 يوماً
+  source: "FAO-56 Table 12 (Sunflower)"
+
+salinity:
+  threshold_ece_ds_m: 3.0        # عبّاد الشمس متوسّط التحمّل (تقدير أدبيّ)
+  slope_pct_per_ds_m: 6.0        # ليس Maas-Hoffman معياريّاً
+  germination_ece_max: 2.5
+  source: "Sunflower salinity literature (moderately tolerant; not in FAO-56 T23)"
+
+thermal:
+  gdd_base_c: 8.0
+  gdd_to_maturity: 1600
+  flowering_safe_max_c: 35.0
+  chilling_hours_required: 0
+  source: "Sunflower agronomy; base ~8C"
+
+governing:
+  ph:        { min: 5.5, max: 8.0, error: 0.1,  source: "ECOCROP sunflower" }
+  ece_ds_m:  { min: 0.0, max: 10.0, error: 0.02, source: "Sunflower salt tolerance (indicative)" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.5
+    optimal_min: 1.0
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Sunflower OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 80
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 100
+
+pest_susceptibility:
+  pests: [sunflower_moth, downy_mildew, birds]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [25,35,45,25] ⇒ [0–25, 25–60, 60–105, 105–130].
+phenology:
+  source: "FAO-56 Table 12 (Sunflower) stage lengths"
+  total_cycle_days: 130
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 25
+      kc: 0.35
+      key_action_ar: "ريّ تأسيس + خفّ النباتات"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 25
+      day_end: 60
+      kc_end: 1.10
+      key_action_ar: "تسميد آزوتيّ + مكافحة الحشائش"
+    - stage: mid
+      name_ar: "تكوّن القرص والتزهير"
+      day_start: 60
+      day_end: 105
+      kc: 1.10
+      key_action_ar: "ذروة الاحتياج المائي عند التزهير وامتلاء البذور"
+    - stage: late
+      name_ar: "امتلاء البذور والنضج"
+      day_start: 105
+      day_end: 130
+      kc: 0.35
+      key_action_ar: "إيقاف الريّ عند اصفرار ظهر القرص"
+
+# NO calibration block. NO yield. NO zone_factor.

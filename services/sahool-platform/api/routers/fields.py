@@ -2669,6 +2669,103 @@ async def field_wind_prevailing(
     }
 
 
+class _SensitiveZone(BaseModel):
+    id: str | None = None
+    type: str | None = None
+    lat: float = Field(ge=-90, le=90)
+    lon: float = Field(ge=-180, le=180)
+
+
+class DriftRiskRequest(BaseModel):
+    """طلب تقييم انجراف الرشّ: مناطق حسّاسة يوفّرها العميل (لا تُخزَّن) + معاملات اختياريّة."""
+
+    sensitive_zones: list[_SensitiveZone] = Field(default_factory=list, max_length=200)
+    # تجاوز اتّجاه الريح (أرصاديّ)؛ None ⇒ يُشتقّ السائد من NASA POWER (تاريخ).
+    wind_from_deg: float | None = Field(default=None, ge=0, le=360)
+    years: int = Field(default=3, ge=1, le=10)
+    max_distance_m: float = Field(default=200.0, gt=0, le=5000)
+    half_angle_deg: float = Field(default=30.0, gt=0, le=90)
+
+
+@router.post("/api/v1/fields/{field_id}/wind/drift-risk")
+async def field_wind_drift_risk(
+    field_id: str,
+    req: DriftRiskRequest,
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """خطر انجراف الرشّ نحو مناطق حسّاسة (downwind) — من الريح السائدة أو اتّجاه مُمرَّر.
+
+    يستعمل الريح **السائدة** (وردة NASA POWER التاريخيّة) ما لم يُمرَّر ``wind_from_deg``.
+    **صدق:** بلا ريح ⇒ ``status=unknown``؛ المناطق يوفّرها العميل (لا تُخزَّن). تقدير محافظ:
+    الزاوية من مركز الحقل، والمسافة من **أقرب حدّ للحقل** عند توفّر الهندسة (وإلّا من المركز)
+    — القرار النهائيّ ميدانيّ (``core.drift_geometry``).
+    """
+    from datetime import UTC, datetime, timedelta
+
+    from core.drift_geometry import spray_drift_risk
+    from core.wind_geometry import wind_rose
+
+    field_geom_raw = None
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, _crop, _stage, _days = await _field_weather_context(conn, field_id)
+            # هندسة الحقل (GeoJSON) لأصل انجراف على الحدّ — fail-soft: غيابها ⇒ سقوط للمركز.
+            field_geom_raw = await conn.fetchval(
+                "SELECT ST_AsGeoJSON(geom) FROM fields WHERE field_id = $1", field_id
+            )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
+        raise _db_unavailable("قراءة سياق الحقل", e) from e
+
+    field_geom = None
+    if isinstance(field_geom_raw, str):
+        import json as _json
+
+        try:
+            field_geom = _json.loads(field_geom_raw)
+        except (ValueError, TypeError):
+            field_geom = None
+
+    wind_from = req.wind_from_deg
+    wind_source = "provided"
+    if wind_from is None:
+        from api.connectors import nasa_power
+
+        end = datetime.now(UTC).date()
+        start = end - timedelta(days=365 * req.years)
+        obs = await nasa_power.fetch_wind_history(
+            lat, lon, start.strftime("%Y%m%d"), end.strftime("%Y%m%d")
+        )
+        rose = wind_rose(obs) if obs else {"prevailing": None}
+        if rose.get("prevailing") is None:
+            return {
+                "field_id": field_id,
+                "status": "unknown",
+                "reason": "no_prevailing_wind",
+                "wind_source": "nasa_power",
+            }
+        wind_from = rose["prevailing_deg"]
+        wind_source = "nasa_power_prevailing"
+
+    zones = [z.model_dump() for z in req.sensitive_zones]
+    result = spray_drift_risk(
+        lat,
+        lon,
+        wind_from,
+        zones,
+        field_polygon=field_geom,
+        max_distance_m=req.max_distance_m,
+        half_angle_deg=req.half_angle_deg,
+    )
+    return {
+        "field_id": field_id,
+        "wind_from_deg": round(float(wind_from), 1),
+        "wind_source": wind_source,
+        **result,
+    }
+
+
 @router.get("/api/v1/fields/{field_id}/recommendations")
 async def field_recommendations(
     field_id: str,

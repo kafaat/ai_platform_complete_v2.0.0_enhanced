@@ -1,0 +1,51 @@
+# SAHOOL CORE crop card — Grape / table (العنب)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+# مُعمِّر مُتساقط الأوراق — كتلة phenology الحوليّة مُغفَلة (يُدار موسميّاً في districts/).
+crop_id: grape
+name_ar: العنب
+name_en: Grape (table)
+crop_family: vine_C3
+
+kc:
+  initial: 0.30
+  mid: 0.85
+  end: 0.45
+  # كرمة مُعمِّرة — stage_days تمثّل دورة سنويّة إرشاديّة (تبرعم→حصاد).
+  stage_days: [30, 60, 90, 45]   # ≈ 225 يوماً موسم نموّ (إرشاديّ)
+  source: "FAO-56 Table 12 (Grape, table); perennial deciduous — indicative annual cycle"
+
+salinity:
+  threshold_ece_ds_m: 1.5        # العنب متوسّط الحساسيّة (Maas-Hoffman)
+  slope_pct_per_ds_m: 9.6
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Grape)"
+
+thermal:
+  gdd_base_c: 10.0
+  gdd_to_maturity: 0             # مُعمِّر — إثمار موسميّ
+  flowering_safe_max_c: 35.0
+  chilling_hours_required: 100   # يحتاج بردَ سُبات (صنف منخفض الاحتياج؛ مرتفعات اليمن)
+  source: "Grapevine agronomy (low-chill table grape ~100h; deciduous dormancy)"
+
+governing:
+  ph:        { min: 5.5, max: 8.0, error: 0.1,  source: "ECOCROP grape" }
+  ece_ds_m:  { min: 0.0, max: 8.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.2
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Grape OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 80
+  phosphorus_kg_ha_required: 40
+  potassium_kg_ha_required: 150
+
+pest_susceptibility:
+  pests: [powdery_mildew, downy_mildew, grape_berry_moth]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# لا كتلة phenology (مُعمِّر مُتساقط — يُدار موسميّاً). لا calibration/yield/zone_factor.

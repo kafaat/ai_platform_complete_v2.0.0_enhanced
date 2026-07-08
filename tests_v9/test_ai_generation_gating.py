@@ -89,6 +89,25 @@ def test_model_allowlist_enforced(gen, monkeypatch):
     assert gen.resolve_generation("evil/jailbreak").model == "deepseek/deepseek-chat"
 
 
+def test_generation_requested_model_falls_back_to_default_catalog_when_ai_models_missing(
+    gen, monkeypatch
+):
+    """H-AI-1: حين يغيب ``AI_MODELS`` يجب أن يبقى النموذج المطلوب محكوماً بالكتالوج الافتراضيّ.
+
+    قبل الإصلاح: كتالوج فارغ ⇒ **أيّ** نموذج مطلوب يُقبَل (تجاوز allowlist). بعده: يُرفَض
+    الخارج عن الكتالوج الافتراضيّ ويعود إلى ``AI_MODEL`` الموثوق (fail-closed).
+    """
+    _clear(monkeypatch)
+    monkeypatch.setenv("AI_PROVIDER", "openrouter")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-test")
+    monkeypatch.setenv("AI_MODEL", "deepseek/deepseek-chat")
+    # AI_MODELS غير مضبوط عمداً (الحالة الحرجة).
+    # نموذج خبيث خارج الكتالوج الافتراضيّ ⇒ يُرفَض ويعود للافتراضيّ الموثوق.
+    assert gen.resolve_generation("evil/jailbreak").model == "deepseek/deepseek-chat"
+    # نموذج ضمن الكتالوج الافتراضيّ ⇒ يُقبَل (قائمة السماح الافتراضيّة فعّالة).
+    assert gen.resolve_generation("google/gemini-3-pro").model == "google/gemini-3-pro"
+
+
 @pytest.mark.asyncio
 async def test_generate_returns_none_when_disabled(gen, monkeypatch):
     _clear(monkeypatch)

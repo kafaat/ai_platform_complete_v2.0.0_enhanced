@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Onion / dry bulb (البصل)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: onion
+name_ar: البصل
+name_en: Onion (dry bulb)
+crop_family: vegetable_C3
+
+kc:
+  initial: 0.70
+  mid: 1.05
+  end: 0.75
+  stage_days: [15, 25, 70, 40]   # FAO-56 بصل جافّ ⇒ 150 يوماً
+  source: "FAO-56 Table 12 (Onion, dry)"
+
+salinity:
+  threshold_ece_ds_m: 1.2        # البصل حسّاس للملوحة (Maas-Hoffman)
+  slope_pct_per_ds_m: 16.0
+  germination_ece_max: 1.2
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Onion)"
+
+thermal:
+  gdd_base_c: 6.0
+  gdd_to_maturity: 1200
+  flowering_safe_max_c: 30.0
+  chilling_hours_required: 0
+  source: "Onion agronomy; base ~6C (bulbing photoperiod/temperature driven)"
+
+governing:
+  ph:        { min: 6.0, max: 7.5, error: 0.1,  source: "ECOCROP onion" }
+  ece_ds_m:  { min: 0.0, max: 8.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.8
+    optimal_min: 1.5
+    optimal_max: 3.0
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Onion OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 110
+  phosphorus_kg_ha_required: 50
+  potassium_kg_ha_required: 120
+
+pest_susceptibility:
+  pests: [thrips, downy_mildew, onion_fly, purple_blotch]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [15,25,70,40] ⇒ [0–15, 15–40, 40–110, 110–150].
+phenology:
+  source: "FAO-56 Table 12 (Onion, dry) stage lengths"
+  total_cycle_days: 150
+  stages:
+    - stage: initial
+      name_ar: "التأسيس"
+      day_start: 0
+      day_end: 15
+      kc: 0.70
+      key_action_ar: "ريّ متكرّر خفيف — جذور سطحيّة"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 15
+      day_end: 40
+      kc_end: 1.05
+      key_action_ar: "مكافحة الحشائش + تسميد آزوتيّ"
+    - stage: mid
+      name_ar: "تكوّن الأبصال وتضخّمها"
+      day_start: 40
+      day_end: 110
+      kc: 1.05
+      key_action_ar: "ذروة الاحتياج المائي أثناء التبصيل"
+    - stage: late
+      name_ar: "طيّ الأعناق والنضج"
+      day_start: 110
+      day_end: 150
+      kc: 0.75
+      key_action_ar: "إيقاف الريّ عند طيّ الأعناق (necking) قبل الحصاد"
+
+# NO calibration block. NO yield. NO zone_factor.

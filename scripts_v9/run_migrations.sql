@@ -451,3 +451,5 @@
 \i migrations/v147_backfill_runs_source_landsat_thermal.sql
 \echo '═══ 154. v148_field_evidence_snapshots.sql ═══'
 \i migrations/v148_field_evidence_snapshots.sql
+\echo '═══ 155. v149_evidence_graph_nodes_edges.sql ═══'
+\i migrations/v149_evidence_graph_nodes_edges.sql

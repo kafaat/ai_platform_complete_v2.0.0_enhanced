@@ -1,0 +1,83 @@
+# SAHOOL CORE crop card — Maize / grain (الذرة الشامية)
+# REGION-AGNOSTIC. Physics & physiology ONLY. Knows no farm, no region.
+# Calibration (zone_factor, yield) lives in districts/ and tenants/ — NOT here.
+crop_id: maize
+name_ar: الذرة الشامية
+name_en: Maize (grain)
+crop_family: cereal_C4
+
+kc:
+  initial: 0.30
+  mid: 1.20
+  end: 0.60
+  stage_days: [25, 40, 45, 30]   # FAO-56 (arid/warm) grain maize ⇒ 140 يوماً
+  source: "FAO-56 Table 11/12 (Maize, grain)"
+
+salinity:
+  threshold_ece_ds_m: 1.7        # الذرة الشامية حسّاسة نسبيّاً (Maas-Hoffman)
+  slope_pct_per_ds_m: 12.0       # 12% نقص لكل dS/m فوق العتبة
+  sar_max: 10.0
+  germination_ece_max: 1.7       # الإنبات/البادرة حسّاس (لا يتجاوز العتبة العامّة)
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Maize)"
+
+thermal:
+  gdd_base_c: 10.0               # C4 دافئة — حرارة أساس 10°م
+  gdd_to_maturity: 1400
+  flowering_safe_max_c: 35.0     # عقم حبوب اللقاح فوق ~35°م عند التزهير/الحرير
+  chilling_hours_required: 0
+  source: "Maize agronomy; GDD base 10C; tassel/silk pollen sterility >35C"
+
+governing:
+  ph:        { min: 5.5, max: 8.0, error: 0.1,  source: "ECOCROP maize" }
+  ece_ds_m:  { min: 0.0, max: 10.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }     # حسّاسة للغدق
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.2
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Maize OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 160   # مُستهلِك نيتروجين مرتفع (لا تثبيت حيويّ)
+  phosphorus_kg_ha_required: 60
+  potassium_kg_ha_required: 60
+
+pest_susceptibility:
+  pests: [stem_borer, fall_armyworm, aphids]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
+# الحدود اليوميّة تطابق kc.stage_days التراكميّة [25,40,45,30] ⇒ [0–25, 25–65, 65–110, 110–140].
+phenology:
+  source: "FAO-56 Table 11/12 (Maize, grain) stage lengths"
+  total_cycle_days: 140
+  stages:
+    - stage: initial
+      name_ar: "الإنبات والتأسيس"
+      day_start: 0
+      day_end: 25
+      kc: 0.30
+      key_action_ar: "ريّ تأسيس لضمان إنبات منتظم"
+    - stage: development
+      name_ar: "النموّ الخضري السريع"
+      day_start: 25
+      day_end: 65
+      kc_end: 1.20
+      key_action_ar: "تسميد آزوتيّ تعلويّ عند 6–8 أوراق + مكافحة الحشائش"
+    - stage: mid
+      name_ar: "التزهير والحرير وامتلاء الحبّ"
+      day_start: 65
+      day_end: 110
+      kc: 1.20
+      key_action_ar: "ذروة الاحتياج المائي عند الحرير — تجنّب الإجهاد المائي والحراري (>35°م)"
+    - stage: late
+      name_ar: "النضج الفسيولوجيّ والجفاف"
+      day_start: 110
+      day_end: 140
+      kc: 0.60
+      key_action_ar: "تقليل الريّ نحو النضج الأسود (black layer)"
+
+# NO calibration block. NO yield. NO zone_factor. Those are districts/tenant OUTPUTS.

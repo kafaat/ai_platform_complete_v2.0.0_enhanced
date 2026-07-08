@@ -16,6 +16,9 @@ jobs:
       - name: endpoint-ui-coverage-gate
         run: python scripts/ci/endpoint_ui_coverage_gate.py
 
+      - name: design-token-contrast-gate
+        run: python scripts/ci/design_token_contrast_gate.py
+
       - name: nginx-compose-dns-gate
         run: python scripts/ci/nginx_compose_dns_gate.py
 

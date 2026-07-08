@@ -205,6 +205,16 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "processing_units": False,
         "active": False,  # صادق: لا مُحوِّل بعد.
         "verified": True,
+        # صدق التحقّق (docs-based، لا تخمين): النقطة keyless + عناصر mapsets (code/caption)
+        # مُتحقَّقة من وثائق FAO؛ الغلاف الكامل/قراءة البكسل غير مُتحقَّقة حيّاً (بيئة محجوبة).
+        "live_verified": False,
+        "schema_verified_from_docs": True,
+        "provides": ["evapotranspiration", "biomass", "water_productivity"],
+        "activation_blockers": [
+            "live FAO request",
+            "contract fixture from real response",
+            "Yemen AOI sample validation",
+        ],
         "license": "CC-BY-4.0 (commercial OK)",
         "category": "water_productivity",
         "coverage_yemen": True,  # اليمن ضمن الشرق الأدنى → L2 100م.
@@ -225,6 +235,16 @@ PROVIDER_REGISTRY: dict[str, dict[str, Any]] = {
         "processing_units": False,
         "active": False,  # صادق: لا مُحوِّل بعد.
         "verified": True,
+        # صدق: واجهة WorldCereal لم تُتحقَّق من مصدر موثوق في هذه البيئة (ESA محجوب) —
+        # لا نكتب parser بلا مخطّط مُتحقَّق (شرط: no guessed schemas).
+        "live_verified": False,
+        "schema_verified_from_docs": False,
+        "provides": ["crop_type_prior", "irrigation_prior", "confidence"],
+        "activation_blockers": [
+            "verify product access schema from authoritative docs",
+            "live ESA/WorldCereal sample",
+            "Yemen AOI validation + local threshold tuning",
+        ],
         "license": "CC-BY-4.0 (استعمل قسم CC-BY فقط؛ تجنّب NC/SA)",
         "category": "crop_prior",
         "coverage_yemen": True,  # منتج عالميّ 10م.
@@ -551,6 +571,58 @@ def olmoearth_embedding_contract(*, has_weights: bool, inputs_available: bool) -
         "embedding": None,  # لا متّجه مُختلَق — الاستدلال الفعليّ خلف GPU + تحقّق محلّيّ.
         "status": "ready_pending_local_validation",
         "note_ar": "الأوزان والمدخلات متاحة؛ الاستدلال يتطلّب GPU + تحقّق محلّيّ (اليمن) قبل الاعتماد.",
+    }
+
+
+def olmoearth_runtime_status(checkpoint_path: str | None = None) -> dict[str, Any]:
+    """تشخيص جاهزيّة OlmoEarth على العتاد (صادق قابل للتنفيذ) — **لا استدلال هنا**.
+
+    يجيب: ما الذي ينقص لتفعيل OlmoEarth على هذا الجهاز؟ ``reason_code`` مُصنَّف (نمط
+    تشخيص SAM2): ``weights_missing`` (ركّب الأوزان على المسار) · ``cuda_unavailable``
+    (لا GPU) · ``library_missing`` (torch/olmoearth غير مثبّتة) · ``ready_pending_validation``
+    (أوزان+GPU متاحة لكن **يبقى تحقّق محلّيّ يمنيّ** قبل التفعيل الإنتاجيّ — لا نُفعّل بلا benchmark).
+
+    **صدق:** ``ready`` يبقى ``False`` دائماً حتّى بعد توفّر الأوزان/GPU — التفعيل قرار بشريّ
+    بعد قياس محلّيّ (اليمن)؛ لا يُختلَق embedding ولا يُدّعى «يغطّي اليمن» بلا تدريب/تحقّق.
+    """
+    import os
+
+    path = (
+        checkpoint_path or os.getenv("OLMOEARTH_CHECKPOINT", "/models/olmoearth_v1_base.pt")
+    ).strip()
+    base = {"model": "olmoearth", "ready": False, "checkpoint_expected": path}
+    if not path or not os.path.isfile(path):
+        return {
+            **base,
+            "reason_code": "weights_missing",
+            "reason": f"أوزان OlmoEarth غير موجودة على {path or '—'}",
+        }
+    try:
+        import torch  # ثقيل — داخل الدالّة.
+    except ImportError:
+        return {
+            **base,
+            "reason_code": "library_missing",
+            "reason": "torch غير مثبّت (بيئة بلا استدلال)",
+        }
+    try:
+        cuda_ok = bool(torch.cuda.is_available())
+    except Exception:  # noqa: BLE001 — أيّ خطأ torch ⇒ غير جاهز بصدق
+        cuda_ok = False
+    if not cuda_ok:
+        return {
+            **base,
+            "reason_code": "cuda_unavailable",
+            "reason": "torch.cuda.is_available()==False — لا GPU",
+        }
+    return {
+        **base,
+        "reason_code": "ready_pending_validation",
+        "reason": None,
+        "note_ar": (
+            "الأوزان وGPU متاحة؛ يبقى تحقّق محلّيّ يمنيّ (benchmark مقابل NDVI/V60.3) قبل "
+            "التفعيل الإنتاجيّ — لا embedding مُختلَق ولا ادّعاء تغطية محلّيّة بلا قياس."
+        ),
     }
 
 

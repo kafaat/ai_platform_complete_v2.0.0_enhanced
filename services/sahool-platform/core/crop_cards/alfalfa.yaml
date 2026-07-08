@@ -1,0 +1,52 @@
+# SAHOOL CORE crop card — Alfalfa / lucerne (البرسيم الحجازي)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+# علف مُعمِّر يُحَشّ دوريّاً — لا دورة نضج حوليّة واحدة. كتلة phenology مُغفَلة عمداً.
+crop_id: alfalfa
+name_ar: البرسيم الحجازي (الفصّة)
+name_en: Alfalfa (lucerne)
+crop_family: forage_legume_C3
+
+kc:
+  initial: 0.40
+  mid: 0.95
+  end: 0.90
+  # مُعمِّر يُحَشّ كل ~30 يوماً — stage_days دورة حشّة إرشاديّة فقط لا مراحل نضج.
+  stage_days: [10, 12, 5, 3]     # ≈ دورة حشّة 30 يوماً (إرشاديّ لمُعمِّر)
+  source: "FAO-56 Table 12 (Alfalfa); perennial cut forage — indicative cutting cycle"
+
+salinity:
+  threshold_ece_ds_m: 2.0        # البرسيم الحجازي متوسّط التحمّل (Maas-Hoffman)
+  slope_pct_per_ds_m: 7.3
+  germination_ece_max: 1.8       # الإنبات أحسّ من النبات المُؤسَّس
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Alfalfa)"
+
+thermal:
+  gdd_base_c: 5.0
+  gdd_to_maturity: 0             # مُعمِّر — لا نضج حوليّ (حشّات متكرّرة)
+  flowering_safe_max_c: 35.0
+  chilling_hours_required: 0
+  source: "Alfalfa agronomy; base ~5C; perennial forage legume"
+
+governing:
+  ph:        { min: 6.0, max: 8.5, error: 0.1,  source: "ECOCROP alfalfa (prefers neutral-alkaline)" }
+  ece_ds_m:  { min: 0.0, max: 10.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }     # حسّاس للغدق (تعفّن التاج)
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.6
+    optimal_min: 1.2
+    optimal_max: 2.5
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Alfalfa OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 20    # بقوليّة مثبّتة — لا تسميد آزوتيّ إلّا بادئ
+  phosphorus_kg_ha_required: 60
+  potassium_kg_ha_required: 200  # سحب بوتاسيوم مرتفع مع كل حشّة
+
+pest_susceptibility:
+  pests: [alfalfa_weevil, aphids, spider_mites]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# لا كتلة phenology (مُعمِّر يُحَشّ دوريّاً). لا calibration/yield/zone_factor.

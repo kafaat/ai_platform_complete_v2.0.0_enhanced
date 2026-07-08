@@ -188,20 +188,22 @@ def public_provider_snapshot(requested_model: str | None = None) -> dict[str, An
     }
 
 
-def _catalog_ids() -> set[str]:
-    raw = (os.getenv("AI_MODELS") or "").strip()
-    ids: set[str] = set()
-    for entry in raw.split(","):
-        mid = entry.partition("|")[0].strip()
-        if mid:
-            ids.add(mid)
-    return ids
+def _catalog_ids(provider: str) -> set[str]:
+    """معرّفات النماذج المسموحة للمزوّد — من ``AI_MODELS`` **أو الكتالوج الافتراضيّ**.
+
+    fail-closed: لا تعود فارغةً لمزوّد معروف حين يغيب ``AI_MODELS`` — فيبقى النموذج المطلوب
+    محكوماً بقائمة سماح فعليّة (يسدّ تجاوز allowlist H-AI-1).
+    """
+    return {m["id"] for m in public_model_catalog(provider)}
 
 
-def _resolve_model(shared_model: str, requested: str | None) -> str:
-    allowed = _catalog_ids()
+def _resolve_model(provider: str, shared_model: str, requested: str | None) -> str:
+    """يحلّ النموذج **fail-closed**: النموذج المطلوب (من الواجهة/المستخدم) يُقبَل **فقط** إن
+    كان ضمن كتالوج المزوّد الفعليّ (``AI_MODELS`` أو الافتراضيّ) — **لا تجاوز لقائمة السماح
+    حتّى حين غياب ``AI_MODELS``**. خلافه ⇒ ``shared_model`` المضبوط بيئيّاً (الافتراضيّ الموثوق)."""
+    allowed = _catalog_ids(provider)
     req = (requested or "").strip()
-    if req and (not allowed or req in allowed):
+    if req and req in allowed:
         return req
     return shared_model
 
@@ -237,7 +239,7 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
 
     if provider == "openrouter":
         api_key = (os.getenv("OPENROUTER_API_KEY") or "").strip()
-        model = _resolve_model(shared_model, requested_model)
+        model = _resolve_model("openrouter", shared_model, requested_model)
         if not api_key or not model:
             return None
         base = (os.getenv("OPENROUTER_BASE_URL") or DEFAULT_OPENROUTER_BASE_URL).strip()
@@ -252,7 +254,9 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
     if provider == "anthropic":
         api_key = (os.getenv("ANTHROPIC_API_KEY") or "").strip()
         model = _resolve_model(
-            shared_model or (os.getenv("ANTHROPIC_MODEL") or "").strip(), requested_model
+            "anthropic",
+            shared_model or (os.getenv("ANTHROPIC_MODEL") or "").strip(),
+            requested_model,
         )
         if not api_key or not model:
             return None
@@ -266,7 +270,7 @@ def resolve_generation(requested_model: str | None = None) -> GenConfig | None:
 
     # المحلّيّ (Ollama، Anthropic-compatible) — لا مفتاح؛ يُولّد إن كان مُشغَّلاً.
     model = _resolve_model(
-        shared_model or (os.getenv("LOCAL_LLM_MODEL") or "qwen3").strip(), requested_model
+        "local", shared_model or (os.getenv("LOCAL_LLM_MODEL") or "qwen3").strip(), requested_model
     )
     if not model:
         return None

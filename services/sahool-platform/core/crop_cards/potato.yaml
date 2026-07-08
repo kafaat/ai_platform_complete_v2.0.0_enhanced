@@ -1,0 +1,83 @@
+# SAHOOL CORE crop card — Potato (البطاطس)
+# REGION-AGNOSTIC. Physics & physiology ONLY. Knows no farm, no region.
+# Calibration (zone_factor, yield) lives in districts/ and tenants/ — NOT here.
+crop_id: potato
+name_ar: البطاطس
+name_en: Potato
+crop_family: tuber_C3
+
+kc:
+  initial: 0.50
+  mid: 1.15
+  end: 0.75
+  stage_days: [25, 30, 45, 30]   # FAO-56 البطاطس ⇒ 130 يوماً
+  source: "FAO-56 Table 12 (Potato)"
+
+salinity:
+  threshold_ece_ds_m: 1.7        # البطاطس حسّاسة نسبيّاً (Maas-Hoffman)
+  slope_pct_per_ds_m: 12.0       # 12% نقص لكل dS/m فوق العتبة
+  sar_max: 8.0
+  germination_ece_max: 1.7       # الإنبات/البزوغ حسّاس
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Potato)"
+
+thermal:
+  gdd_base_c: 7.0                # محصول بارد الموسم — حرارة أساس منخفضة ~7°م
+  gdd_to_maturity: 1400
+  flowering_safe_max_c: 30.0     # تكوّن الدرنات يُثبَّط فوق ~30°م (خاصّة ليلاً)
+  chilling_hours_required: 0
+  source: "Potato agronomy; base ~7C; tuberization impaired >30C (night)"
+
+governing:
+  ph:        { min: 4.8, max: 8.0, error: 0.1,  source: "ECOCROP potato (optimal 5.5-6.5)" }
+  ece_ds_m:  { min: 0.0, max: 8.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }     # الدرنات تتعفّن بالغدق
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.8
+    optimal_min: 1.5
+    optimal_max: 3.0
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Potato OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 150
+  phosphorus_kg_ha_required: 80
+  potassium_kg_ha_required: 200  # مُستهلِك بوتاسيوم مرتفع جدّاً (جودة الدرنات)
+
+pest_susceptibility:
+  pests: [late_blight, colorado_beetle, potato_tuber_moth, aphids]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو (Phenology) — محايدة الموقع، مُحاذاة لمراحل FAO-56 ──
+# الحدود اليوميّة تطابق kc.stage_days التراكميّة [25,30,45,30] ⇒ [0–25, 25–55, 55–100, 100–130].
+phenology:
+  source: "FAO-56 Table 12 (Potato) stage lengths"
+  total_cycle_days: 130
+  stages:
+    - stage: initial
+      name_ar: "البزوغ والتأسيس"
+      day_start: 0
+      day_end: 25
+      kc: 0.50
+      key_action_ar: "ريّ تأسيس + ترديم أوّليّ (hilling)"
+    - stage: development
+      name_ar: "النموّ الخضري وبدء تكوّن الدرنات"
+      day_start: 25
+      day_end: 55
+      kc_end: 1.15
+      key_action_ar: "ترديم رئيسيّ + تسميد بوتاسيّ — بدء تكوين الدرنات حسّاس للحرارة"
+    - stage: mid
+      name_ar: "تضخّم الدرنات"
+      day_start: 55
+      day_end: 100
+      kc: 1.15
+      key_action_ar: "ذروة الاحتياج المائي — انتظام الرطوبة يمنع تشقّق/تجويف الدرنات"
+    - stage: late
+      name_ar: "النضج وتصلّب القشرة"
+      day_start: 100
+      day_end: 130
+      kc: 0.75
+      key_action_ar: "تقليل الريّ لتصلّب القشرة قبل الحصاد (skin set)"
+
+# NO calibration block. NO yield. NO zone_factor. Those are districts/tenant OUTPUTS.

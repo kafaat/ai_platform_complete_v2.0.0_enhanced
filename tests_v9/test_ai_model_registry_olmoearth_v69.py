@@ -59,6 +59,28 @@ def test_embedding_contract_never_fabricates():
     assert r3["status"] == "ready_pending_local_validation"
 
 
+def test_olmoearth_runtime_status_diagnoses_missing_weights():
+    # جهاز بلا أوزان (مسار غير موجود) ⇒ weights_missing + المسار المتوقّع (صادق قابل للتنفيذ).
+    r = M.olmoearth_runtime_status("/no/such/olmoearth.pt")
+    assert r["ready"] is False
+    assert r["reason_code"] == "weights_missing"
+    assert r["checkpoint_expected"] == "/no/such/olmoearth.pt"
+
+
+def test_olmoearth_runtime_never_ready_without_local_validation():
+    # صدق: حتّى مع أوزان+GPU لا يصير ready تلقائيّاً — يبقى ready_pending_validation
+    # (تفعيل بشريّ بعد benchmark يمنيّ). نختبر أنّ الدالّة لا تُرجِع ready=True أبداً هنا.
+    r = M.olmoearth_runtime_status("/no/such/olmoearth.pt")
+    assert r["ready"] is False
+    # القيم المسموحة لرمز السبب.
+    assert r["reason_code"] in {
+        "weights_missing",
+        "cuda_unavailable",
+        "library_missing",
+        "ready_pending_validation",
+    }
+
+
 def test_all_four_registries_disjoint():
     providers = set(M.PROVIDER_REGISTRY)
     research = set(M.RESEARCH_REGISTRY)

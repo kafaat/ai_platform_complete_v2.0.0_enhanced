@@ -1,0 +1,55 @@
+# SAHOOL CORE crop card — Coffee / Arabica (البُنّ)
+# REGION-AGNOSTIC. Physics & physiology ONLY. Knows no farm, no region.
+# Calibration (zone_factor, yield) lives in districts/ and tenants/ — NOT here.
+#
+# محصول مُعمِّر (شجيرة دائمة) — لا نموذج مراحل سنويّ FAO-56 كالمحاصيل الحوليّة.
+# لذلك كتلة phenology (اختياريّة) مُغفَلة عمداً (صدق: لا مراحل حوليّة مُلفَّقة لمُعمِّر).
+crop_id: coffee
+name_ar: البُنّ (أرابيكا)
+name_en: Coffee (Arabica)
+crop_family: tree_C3
+
+kc:
+  initial: 0.90
+  mid: 0.95
+  end: 0.95
+  # مُعمِّر دائم الخضرة ⇒ Kc≈ثابت طوال السنة (لا مراحل تأسيس/نضج حوليّة).
+  # stage_days أرباع سنويّة إرشاديّة فقط (لتماسك القالب) لا مراحل نموّ حقيقيّة.
+  stage_days: [90, 90, 90, 95]   # ≈ سنة كاملة (إرشاديّ لمُعمِّر)
+  source: "FAO-56 Table 12 (Coffee, weed-free); perennial — Kc≈const, stage_days indicative annual cycle"
+
+salinity:
+  threshold_ece_ds_m: 1.5        # البُنّ حسّاس للملوحة (خارج جدول FAO-56 T23)
+  slope_pct_per_ds_m: 10.0       # تقدير أدبيّ — ليس Maas-Hoffman معياريّاً
+  source: "Coffee salinity literature (sensitive; not in FAO-56 T23 — indicative)"
+
+thermal:
+  gdd_base_c: 10.0               # أرابيكا: حرارة أساس ~10°م
+  gdd_to_maturity: 0             # مُعمِّر — لا «نضج» حوليّ (نضج الكرز موسميّ متعدّد)
+  flowering_safe_max_c: 28.0     # أرابيكا تُجهَد فوق ~28-30°م (المثلى 18-24°م)
+  chilling_hours_required: 0     # أرابيكا لا تحتاج ساعات برودة (تفضّل مرتفعات باردة/ظلّ)
+  source: "Coffea arabica agronomy (optimal 18-24C; heat stress >28-30C; highland shade crop)"
+
+governing:
+  ph:        { min: 5.0, max: 6.5, error: 0.1,  source: "ECOCROP coffee (acidic, optimal 5-6)" }
+  ece_ds_m:  { min: 0.0, max: 4.0, error: 0.02, source: "Coffee salt sensitivity (indicative)" }
+  drainage:  { needs: good }     # يتطلّب صرفاً جيّداً — حسّاس للغدق الجذريّ
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 1.0
+    optimal_min: 2.0
+    optimal_max: 4.0
+    max_acceptable: 8.0
+    weight: 0.3
+    error: 0.05
+    source: "Coffee OM thresholds (shade litter / high humus)"
+  nitrogen_kg_ha_required: 200   # مُعمِّر منتِج — احتياج نيتروجينيّ سنويّ مرتفع
+  phosphorus_kg_ha_required: 30
+  potassium_kg_ha_required: 200  # مُستهلِك بوتاسيوم مرتفع (امتلاء الكرز)
+
+pest_susceptibility:
+  pests: [coffee_berry_borer, leaf_rust, coffee_leaf_miner]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# لا كتلة phenology (مُعمِّر — نموذج المراحل الحوليّ لا ينطبق). لا calibration/yield/zone_factor.

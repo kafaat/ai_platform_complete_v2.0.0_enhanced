@@ -1,0 +1,80 @@
+# SAHOOL CORE crop card — Tomato (الطماطم / البندورة)
+# REGION-AGNOSTIC. Physics & physiology ONLY.
+crop_id: tomato
+name_ar: الطماطم (البندورة)
+name_en: Tomato
+crop_family: vegetable_C3
+
+kc:
+  initial: 0.60
+  mid: 1.15
+  end: 0.80
+  stage_days: [30, 40, 40, 25]   # ⇒ 135 يوماً (نقل شتلات)
+  source: "FAO-56 Table 12 (Tomato)"
+
+salinity:
+  threshold_ece_ds_m: 2.5        # الطماطم متوسّطة الحساسيّة (Maas-Hoffman)
+  slope_pct_per_ds_m: 9.9
+  germination_ece_max: 2.5
+  source: "FAO-56 Table 23; Maas & Hoffman 1977 (Tomato)"
+
+thermal:
+  gdd_base_c: 10.0
+  gdd_to_maturity: 1400
+  flowering_safe_max_c: 32.0     # فشل العقد فوق ~32°م (خاصّة حرارة الليل)
+  chilling_hours_required: 0
+  source: "Tomato agronomy; base 10C; fruit-set failure >32C"
+
+governing:
+  ph:        { min: 5.5, max: 7.5, error: 0.1,  source: "ECOCROP tomato" }
+  ece_ds_m:  { min: 0.0, max: 10.0, error: 0.02, source: "FAO-56 T23" }
+  drainage:  { needs: good }
+
+modifying:
+  organic_matter_pct:
+    min_acceptable: 0.8
+    optimal_min: 1.5
+    optimal_max: 3.0
+    max_acceptable: 5.0
+    weight: 0.3
+    error: 0.05
+    source: "Tomato OM thresholds (agronomy)"
+  nitrogen_kg_ha_required: 120
+  phosphorus_kg_ha_required: 60
+  potassium_kg_ha_required: 150
+
+pest_susceptibility:
+  pests: [early_blight, late_blight, tuta_absoluta, whitefly]
+  note: "نوافذ الخطر الإقليمية في districts/<region>/pests.yaml"
+
+# ── مراحل النمو ── الحدود = المجاميع التراكميّة [30,40,40,25] ⇒ [0–30, 30–70, 70–110, 110–135].
+phenology:
+  source: "FAO-56 Table 12 (Tomato) stage lengths"
+  total_cycle_days: 135
+  stages:
+    - stage: initial
+      name_ar: "تأسيس الشتلة"
+      day_start: 0
+      day_end: 30
+      kc: 0.60
+      key_action_ar: "ريّ تأسيس بعد الشتل"
+    - stage: development
+      name_ar: "النموّ الخضري"
+      day_start: 30
+      day_end: 70
+      kc_end: 1.15
+      key_action_ar: "تدعيم + تقليم + تسميد متوازن"
+    - stage: mid
+      name_ar: "التزهير والعقد والإثمار"
+      day_start: 70
+      day_end: 110
+      kc: 1.15
+      key_action_ar: "ذروة الاحتياج — انتظام الرطوبة يمنع عفن الطرف الزهريّ (نقص Ca)"
+    - stage: late
+      name_ar: "النضج والقطاف"
+      day_start: 110
+      day_end: 135
+      kc: 0.80
+      key_action_ar: "تقليل الريّ عند بدء النضج لتحسين النكهة"
+
+# NO calibration block. NO yield. NO zone_factor.
