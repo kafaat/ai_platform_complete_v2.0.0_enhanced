@@ -1641,6 +1641,11 @@ export type DecisionRecord = LineageDecision;
 export interface DecisionRecordsResult {
   decisions: DecisionRecord[];
   count:     number;
+  degraded?: boolean;
+  source?:   string;
+  reason?:   string;
+  status_code?: number;
+  warning_ar?: string;
 }
 export const fetchDecisionRecords = (limit = 200): Promise<DecisionRecordsResult> =>
   kongApi
@@ -1648,7 +1653,31 @@ export const fetchDecisionRecords = (limit = 200): Promise<DecisionRecordsResult
     .then(r => ({
       decisions: Array.isArray(r.data?.decisions) ? r.data.decisions : [],
       count: typeof r.data?.count === 'number' ? r.data.count : 0,
-    }));
+      degraded: Boolean(r.data?.degraded),
+      source: r.data?.source,
+      reason: r.data?.reason,
+      status_code: r.data?.status_code,
+      warning_ar: r.data?.warning_ar,
+    }))
+    .catch((err) => {
+      // Learning/lineage dashboard is a read-side observability surface. If the
+      // authoritative platform read is unavailable (404/502/503/504), degrade to an
+      // honest empty state — never fabricate numbers — instead of collapsing the page.
+      // Auth/RBAC failures (401/403) stay hard: they are not availability degradation.
+      const status = err?.response?.status;
+      if ([404, 502, 503, 504].includes(status)) {
+        return {
+          decisions: [],
+          count: 0,
+          degraded: true,
+          source: 'sahool-platform',
+          reason: 'decision_records_unavailable',
+          status_code: status,
+          warning_ar: 'تعذّر جلب سجلّ القرارات المُدامة. تُعرَض اللوحة كحالة متدهورة صادقة دون أرقام مُلفَّقة.',
+        };
+      }
+      throw err;
+    });
 
 // تلخيص حلقة التعلّم لكلّ منطقة (GET /api/v1/learning/summary) — قد لا تتوفّر النقطة بعد.
 // صدق: نستهلكها إن نجحت، ونُعيد null عند 404/أيّ خطأ (لا تلفيق) فتعرض الواجهة حالةً

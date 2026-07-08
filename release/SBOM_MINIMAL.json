@@ -2095,6 +2095,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ac9a70698b55e8beeee79a6a0dcb7351e41dc935b1179850b41030272f6fc76b"
+        }
+      ],
+      "name": "frontend/src/components/product/DegradedState.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d127de6676dfb08202d29027620d81247f43d2d6f80f4e4ada93fd613719746c"
         }
       ],
@@ -3269,6 +3279,16 @@
         }
       ],
       "name": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "631b9e101aabfe2f4657f8210b7da1347f91c689abb1484dfb05e7de0ca7dc4e"
+        }
+      ],
+      "name": "frontend/src/lib/fieldOperatingContract.ts",
       "type": "file"
     },
     {
@@ -4775,7 +4795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7f618d96e54dbe027cbcb1ba08a9b827483c70b30887f26d60dddb829d59848"
+          "content": "9049fd55e3de9bd3a57dc8628ecf69d7b277c3e4cd90c07f23cd02a28eb68fce"
         }
       ],
       "name": "frontend/src/sections/LearningDashboardPage.tsx",
@@ -5265,7 +5285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "98607133c6f91ff6ab211faf634a56baf7bd55c995e2b8cf401a3ff03acd20ae"
+          "content": "1d9b66c9d9b88409afc185d53649299887c2a79899e95b78ef2ef7d962da4c42"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -19055,10 +19075,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "be41c0e8e3d6564b6f359aa5dc297fe9fae60df5dc90f9f5a710e755983aef64"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_intelligence_async_job_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c77157b257024a9e7a09f27e33e37ff1fac33fbb6e7db2f7cc9bba072d8b7d11"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_intelligence_card.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4ec2f478ec624e99f726549c8da54dca91a2437e94f95db7f0d15e5f0a18c9c6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_intelligence_json_snapshot_and_metrics_guard.py",
       "type": "file"
     },
     {
@@ -19539,6 +19579,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_learning.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dcb1baf72cd67318d8e7b6a32fc850138f8f56507bbf2dcc956facd9ea031626"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_learning_dashboard_degraded_guard.py",
       "type": "file"
     },
     {
@@ -20769,6 +20819,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_time_series.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "314b97cc1fe29a2489c74c418f7a8b7f9b41c05f2e87ce4d33efbeb2a97ab431"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui_product_rules_contract_guard.py",
       "type": "file"
     },
     {
