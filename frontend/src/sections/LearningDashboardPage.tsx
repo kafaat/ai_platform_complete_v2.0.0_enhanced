@@ -167,8 +167,10 @@ export default function LearningDashboardPage() {
   const regionsVerified = summary?.regions_verified ?? null;
 
   const isLoading = records.isLoading || learning.isLoading;
-  // الخطأ الحاجب الوحيد هو فشل سرد القرارات (المصدر المُثبَّت)؛ learning أفضل-جهد (null).
-  const isError = records.isError;
+  const recordsDegraded = Boolean(records.data?.degraded);
+  // الخطأ الحاجب الوحيد هو فشل صلاحيّة/مصادقة أو خطأ غير قابل للتدهور.
+  // تعطل read-side لخدمة القرار يُعرض كـdegraded empty state لا كفشل صفحة.
+  const isError = records.isError && !recordsDegraded;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto" dir="rtl">
@@ -186,8 +188,25 @@ export default function LearningDashboardPage() {
       {isLoading && <LoadingState message="جارٍ جلب لقطة التعلّم…" />}
       {isError && (
         <ErrorState title="تعذّر جلب سجلّ القرارات المُدامة"
-          detail="قد تكون قاعدة البيانات غير متاحة (503) أو لا صلاحيّة عرض."
+          detail="قد تكون المشكلة صلاحيّة عرض أو خطأ غير قابل للتدهور. أما تعطل خدمة القرار فيُعرض كحالة متدهورة صادقة."
           onRetry={() => records.refetch()} />
+      )}
+
+      {!isLoading && !isError && recordsDegraded && (
+        <div className="rounded-xl border p-4 flex items-start gap-3" style={{ background: '#1a1400', borderColor: '#f59e0b33' }}>
+          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1 text-[12px]">
+            <div className="text-sm font-semibold text-amber-200">
+              تعمل اللوحة في وضع متدهور
+            </div>
+            <div className="text-amber-300/80">
+              {records.data?.warning_ar ?? 'تعذّر جلب سجلّ القرارات المُدامة حالياً. لا تُعرض أرقام مُلفّقة، ويمكن متابعة بقية الصفحة عند توفر البيانات.'}
+            </div>
+            {records.data?.status_code && (
+              <div className="text-[11px] text-slate-500">status={records.data.status_code} · source={records.data?.source ?? 'decision-service'}</div>
+            )}
+          </div>
+        </div>
       )}
 
       {!isLoading && !isError && (
