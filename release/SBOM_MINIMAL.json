@@ -1055,7 +1055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee7351b4a18c2c2675ed85db9ec904e91bf2ef71e005bd4b8c871958a83e8750"
+          "content": "72b5036e50838cfd32d3a389423bca87578bb45827f4ba51b0add2626e048bfa"
         }
       ],
       "name": "frontend/src/components/fieldview/DriftRiskCard.tsx",
