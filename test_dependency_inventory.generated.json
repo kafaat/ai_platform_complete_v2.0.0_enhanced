@@ -106,7 +106,7 @@
   {
     "file": "tests_v9/requirements-test.txt",
     "line": 16,
-    "requirement": "redis==5.0.0",
+    "requirement": "redis==5.3.1",
     "package": "redis",
     "exact_pinned": true,
     "issue": ""

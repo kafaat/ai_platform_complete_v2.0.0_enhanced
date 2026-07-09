@@ -1,0 +1,10 @@
+service,dockerfile,dockerfile_exists,docker_health_uses_healthz,docker_health_uses_readyz,compose_health_uses_healthz,compose_health_uses_readyz,copies_shared,copies_service_dir,pip_timeout_retries
+sahool-ai-agronomist,services/ai_agronomist/Dockerfile,True,True,False,True,False,True,True,True
+sahool-agriai-engine,services/agriai-engine/Dockerfile,True,True,False,True,False,True,True,True
+sahool-local-ai-rag,services/local-ai-rag/Dockerfile,True,True,False,True,False,True,True,True
+sahool-rag-retrieval,services/rag-retrieval/Dockerfile,True,True,False,True,False,True,True,True
+sahool-knowledge-graph,services/knowledge-graph/Dockerfile,True,True,False,True,False,True,True,True
+sahool-supervisor-agent,services/supervisor-agent/Dockerfile,True,True,False,True,False,True,True,True
+sahool-guardrails-engine,services/guardrails-engine/Dockerfile,True,True,False,True,False,True,True,True
+sahool-edge,services/edge-inference/Dockerfile.arm64,True,True,False,True,False,False,True,True
+sahool-sam2-inference,services/sam2-inference/Dockerfile,True,True,False,True,False,False,True,True

@@ -22,12 +22,16 @@ import pytest
 pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا يُنفَّذ
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-VEG = os.path.join(ROOT, "services/vegetation-analysis-service/main.py")
+VEG_MAIN = os.path.join(ROOT, "services/vegetation-analysis-service/main.py")
+VEG_RUNTIME = os.path.join(ROOT, "services/vegetation-analysis-service/vegetation_runtime.py")
 
 
 def _src() -> str:
-    with open(VEG, encoding="utf-8") as f:
-        return f.read()
+    with open(VEG_MAIN, encoding="utf-8") as f:
+        main_src = f.read()
+    with open(VEG_RUNTIME, encoding="utf-8") as f:
+        runtime_src = f.read()
+    return main_src + "\n" + runtime_src
 
 
 def _func_src(name: str) -> str:
@@ -80,7 +84,7 @@ def veg():
     pytest.importorskip("jwt")
     pytest.importorskip("httpx")
     pytest.importorskip("prometheus_client")
-    spec = importlib.util.spec_from_file_location("veg_field_source_test", VEG)
+    spec = importlib.util.spec_from_file_location("veg_field_source_test", VEG_MAIN)
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
     return m
@@ -132,34 +136,41 @@ def test_geometry_to_bbox(veg):
 async def test_load_field_off_by_default_returns_registry(veg, monkeypatch):
     # العلم مُطفأ (الافتراض): يرتدّ للسجلّ التركيبيّ ولا يلمس القاعدة إطلاقاً.
     monkeypatch.setattr(veg, "FEATURE_SENTINEL_DB_FIELDS", False)
+    monkeypatch.setattr(veg._vegetation_runtime, "FEATURE_SENTINEL_DB_FIELDS", False)
 
     async def _boom(*a, **k):
         raise AssertionError("يجب ألّا يُستدعى مُحمِّل القاعدة والعلم مُطفأ")
 
     monkeypatch.setattr(veg, "_load_field_from_db", _boom)
+    monkeypatch.setattr(veg._vegetation_runtime, "_load_field_from_db", _boom)
     field = await veg.load_field("field_01", "t1")
     assert field == veg.FIELD_REGISTRY["field_01"]
 
 
 async def test_load_field_db_used_when_flag_on(veg, monkeypatch):
     monkeypatch.setattr(veg, "FEATURE_SENTINEL_DB_FIELDS", True)
+    monkeypatch.setattr(veg._vegetation_runtime, "FEATURE_SENTINEL_DB_FIELDS", True)
     sentinel = {"name": "from-db", "bbox": [1, 2, 3, 4], "crop": "wheat"}
 
     async def _db(field_id, tenant_id=None):
         return sentinel
 
     monkeypatch.setattr(veg, "_load_field_from_db", _db)
+    monkeypatch.setattr(veg._vegetation_runtime, "_load_field_from_db", _db)
     assert await veg.load_field("field_01", "t1") is sentinel
 
 
 async def test_load_field_failsoft_falls_back_to_registry(veg, monkeypatch):
     monkeypatch.setattr(veg, "FEATURE_SENTINEL_DB_FIELDS", True)
+    monkeypatch.setattr(veg._vegetation_runtime, "FEATURE_SENTINEL_DB_FIELDS", True)
     monkeypatch.setattr(veg, "ALLOW_LEGACY_FIELD_REGISTRY", True)
+    monkeypatch.setattr(veg._vegetation_runtime, "ALLOW_LEGACY_FIELD_REGISTRY", True)
 
     async def _db(field_id, tenant_id=None):
         raise RuntimeError("platform down")
 
     monkeypatch.setattr(veg, "_load_field_from_db", _db)
+    monkeypatch.setattr(veg._vegetation_runtime, "_load_field_from_db", _db)
     field = await veg.load_field("field_01", "t1")
     assert field == veg.FIELD_REGISTRY["field_01"], "يجب الارتداد للسجلّ عند فشل القاعدة"
 
@@ -167,10 +178,13 @@ async def test_load_field_failsoft_falls_back_to_registry(veg, monkeypatch):
 async def test_load_field_no_legacy_returns_none(veg, monkeypatch):
     # ALLOW_LEGACY_FIELD_REGISTRY=false ⇒ فشل القاعدة لا يرتدّ للسجلّ (None).
     monkeypatch.setattr(veg, "FEATURE_SENTINEL_DB_FIELDS", True)
+    monkeypatch.setattr(veg._vegetation_runtime, "FEATURE_SENTINEL_DB_FIELDS", True)
     monkeypatch.setattr(veg, "ALLOW_LEGACY_FIELD_REGISTRY", False)
+    monkeypatch.setattr(veg._vegetation_runtime, "ALLOW_LEGACY_FIELD_REGISTRY", False)
 
     async def _db(field_id, tenant_id=None):
         return None
 
     monkeypatch.setattr(veg, "_load_field_from_db", _db)
+    monkeypatch.setattr(veg._vegetation_runtime, "_load_field_from_db", _db)
     assert await veg.load_field("field_01", "t1") is None

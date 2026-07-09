@@ -1,0 +1,110 @@
+[
+  {
+    "service": "sahool-ai-agronomist",
+    "dockerfile": "services/ai_agronomist/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": true,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-agriai-engine",
+    "dockerfile": "services/agriai-engine/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": true,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-local-ai-rag",
+    "dockerfile": "services/local-ai-rag/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": true,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-rag-retrieval",
+    "dockerfile": "services/rag-retrieval/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": true,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-knowledge-graph",
+    "dockerfile": "services/knowledge-graph/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": true,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-supervisor-agent",
+    "dockerfile": "services/supervisor-agent/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": true,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-guardrails-engine",
+    "dockerfile": "services/guardrails-engine/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": true,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-edge",
+    "dockerfile": "services/edge-inference/Dockerfile.arm64",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": false,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  },
+  {
+    "service": "sahool-sam2-inference",
+    "dockerfile": "services/sam2-inference/Dockerfile",
+    "dockerfile_exists": true,
+    "docker_health_uses_healthz": true,
+    "docker_health_uses_readyz": false,
+    "compose_health_uses_healthz": true,
+    "compose_health_uses_readyz": false,
+    "copies_shared": false,
+    "copies_service_dir": true,
+    "pip_timeout_retries": true
+  }
+]

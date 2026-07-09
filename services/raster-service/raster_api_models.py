@@ -98,6 +98,30 @@ class ProcessRequest(BaseModel):
     geometry_revision: int | None = None
 
 
+
+
+class RawDataProcessRequest(BaseModel):
+    tenant_id: str
+    field_id: str | None = None
+    raster_url: str
+    bands: list[int] | None = Field(default=None, description="1-based raw band indices to inspect")
+    normalize_reflectance: bool = False
+    include_tags: bool = False
+    max_pixels: int = Field(default=2_000_000, ge=10_000, le=25_000_000)
+
+
+class RawDataProcessResponse(BaseModel):
+    schema: str
+    status: str
+    tenant_id: str
+    field_id: str | None = None
+    source: dict
+    raw_bands: list[dict]
+    normalized_bands: list[dict] = Field(default_factory=list)
+    tags: dict = Field(default_factory=dict)
+    provenance: dict
+
+
 class BatchProcessRequest(BaseModel):
     tenant_id: str
     field_id: str | None = None

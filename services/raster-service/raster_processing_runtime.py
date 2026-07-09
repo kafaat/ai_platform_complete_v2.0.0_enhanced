@@ -19,6 +19,7 @@ import raster_pixel_processing
 import raster_quality
 import raster_runtime_state
 import raster_security_context
+import raw_data_processing
 import raster_settings
 from fastapi import HTTPException
 
@@ -106,4 +107,11 @@ def process_pixels(req: api_models.ProcessRequest, layer_id: str, *, upload_dir:
     """Process a source raster using an explicit context."""
     return raster_pixel_processing.process_pixels(
         make_processing_context(upload_dir=upload_dir), req, layer_id
+    )
+
+
+def process_raw_raster(req: api_models.RawDataProcessRequest, *, upload_dir: str | None = None):
+    """Inspect raw raster data without computing agronomic indicators."""
+    return raw_data_processing.process_raw_raster(
+        make_processing_context(upload_dir=upload_dir), req
     )

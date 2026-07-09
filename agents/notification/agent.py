@@ -653,6 +653,7 @@ async def test_notification(payload: dict, _: None = Depends(_require_agent_toke
 
 
 @app.get("/health")
+@app.get("/healthz")
 async def health():
     return {"status": "ok", "ws_connections": manager.total_connections}
 

@@ -73,8 +73,11 @@ from vegetation_runtime import (  # noqa: E402,F401
     CDSE_USER, CDSE_PASSWORD, FEATURE_SENTINEL_DB_FIELDS, ALLOW_LEGACY_FIELD_REGISTRY,
     PLATFORM_API_URL, security, _verify_claims, _tenant_from_claims, _valid_date,
     ANALYSIS_COUNT, ANALYSIS_LATENCY, FIELD_REGISTRY, select_field_source,
-    load_field, fetch_from_sentinel_hub, fetch_from_cdse, run_analysis,
-    _generate_timeseries, _current_ndvi_payload, CONTENT_TYPE_LATEST, generate_latest,
+    _flag_enabled, _geometry_to_bbox, _load_field_from_db, load_field,
+    fetch_from_sentinel_hub, fetch_from_cdse, run_analysis, _real_index_mean_from_raster,
+    _deterministic_seed, _realistic_bands, _compute_indices, _health_classification,
+    _recommendations_ar, _generate_timeseries, _current_ndvi_payload,
+    CONTENT_TYPE_LATEST, generate_latest,
 )
 import vegetation_runtime as _vegetation_runtime  # noqa: E402
 # ── Lifespan ───────────────────────────────────────────────────

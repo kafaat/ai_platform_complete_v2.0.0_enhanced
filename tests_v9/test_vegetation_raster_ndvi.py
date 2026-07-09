@@ -20,12 +20,16 @@ import pytest
 pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا يُنفَّذ
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-VEG = os.path.join(ROOT, "services/vegetation-analysis-service/main.py")
+VEG_MAIN = os.path.join(ROOT, "services/vegetation-analysis-service/main.py")
+VEG_RUNTIME = os.path.join(ROOT, "services/vegetation-analysis-service/vegetation_runtime.py")
 
 
 def _src() -> str:
-    with open(VEG, encoding="utf-8") as f:
-        return f.read()
+    with open(VEG_MAIN, encoding="utf-8") as f:
+        main_src = f.read()
+    with open(VEG_RUNTIME, encoding="utf-8") as f:
+        runtime_src = f.read()
+    return main_src + "\n" + runtime_src
 
 
 def _func_src(name: str) -> str:
@@ -77,7 +81,7 @@ def veg():
     pytest.importorskip("jwt")
     pytest.importorskip("httpx")
     pytest.importorskip("prometheus_client")
-    spec = importlib.util.spec_from_file_location("veg_main_test", VEG)
+    spec = importlib.util.spec_from_file_location("veg_main_test", VEG_MAIN)
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
 
@@ -87,9 +91,13 @@ def veg():
     async def _noop_pub(*a, **k):
         return None
 
+    # P1 decomposition: run_analysis lives in vegetation_runtime.py; patch runtime globals too.
     m.fetch_from_sentinel_hub = _noop_meta
     m.fetch_from_cdse = _noop_meta
     m._publish_analysis = _noop_pub
+    m._vegetation_runtime.fetch_from_sentinel_hub = _noop_meta
+    m._vegetation_runtime.fetch_from_cdse = _noop_meta
+    m._vegetation_runtime._publish_analysis = _noop_pub
     return m
 
 
@@ -99,6 +107,7 @@ async def test_real_indices_used_and_labeled(veg):
         return 0.77
 
     veg._real_index_mean_from_raster = _r
+    veg._vegetation_runtime._real_index_mean_from_raster = _r
     res = await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
     # المؤشّرات الأربعة صارت حقيقيّة (raster-service)
     for real_idx in ("ndvi", "evi", "savi", "ndmi"):
@@ -116,6 +125,7 @@ async def test_fallback_to_estimate_when_raster_absent(veg):
         return None
 
     veg._real_index_mean_from_raster = _none
+    veg._vegetation_runtime._real_index_mean_from_raster = _none
     res = await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
     # السلوك الحاليّ محفوظ تماماً: تقدير مُعلَّم، لا حقيقيّ
     assert res["real_data"] is False

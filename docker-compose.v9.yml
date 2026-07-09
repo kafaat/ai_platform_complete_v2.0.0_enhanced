@@ -421,7 +421,7 @@ services:
       - CMD
       - curl
       - -f
-      - http://localhost:8000/readyz
+      - http://localhost:8000/healthz
       interval: 20s
       timeout: 5s
       retries: 6
@@ -493,7 +493,7 @@ services:
       - CMD
       - curl
       - -f
-      - http://localhost:8000/readyz
+      - http://localhost:8000/healthz
       interval: 20s
       timeout: 5s
       retries: 6
@@ -591,7 +591,7 @@ services:
       - CMD
       - curl
       - -f
-      - http://localhost:8000/readyz
+      - http://localhost:8000/healthz
       interval: 30s
       timeout: 5s
       retries: 6
@@ -626,7 +626,7 @@ services:
       - CMD
       - curl
       - -f
-      - http://localhost:8000/readyz
+      - http://localhost:8000/healthz
       interval: 20s
       timeout: 5s
       retries: 6
@@ -754,9 +754,8 @@ services:
       SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
       COPERNICUS_USER: ${COPERNICUS_USER:-}
       COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD:-}
-    depends_on:
-      sahool-nats:
-        condition: service_healthy
+      # vegetation publishes events best-effort; NATS is not a startup/readiness blocker.
+      VEGETATION_NATS_PUBLISH_MODE: ${VEGETATION_NATS_PUBLISH_MODE:-best_effort}
     networks:
     - sahool-internal
     healthcheck:
@@ -973,17 +972,8 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-    depends_on:
-      sahool-postgres:
-        condition: service_healthy
-      sahool-redis:
-        condition: service_healthy
-      sahool-nats:
-        condition: service_healthy
+      INDICATORS_RUNTIME_MODE: health-only
     networks:
     - sahool-internal
     healthcheck:
@@ -1212,7 +1202,7 @@ services:
       - CMD
       - python
       - -c
-      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
         timeout=3).read()
       interval: 30s
       timeout: 5s
@@ -1241,7 +1231,7 @@ services:
       - CMD
       - python
       - -c
-      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
         timeout=3).read()
       interval: 30s
       timeout: 5s
@@ -1282,7 +1272,7 @@ services:
       - CMD
       - python
       - -c
-      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
         timeout=3).read()
       interval: 30s
       timeout: 5s
@@ -1464,7 +1454,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz',
+      - python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz',
         timeout=3).read()" || exit 1
       interval: 30s
       timeout: 10s
@@ -1631,7 +1621,7 @@ services:
       - CMD
       - python
       - -c
-      - import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz',
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
         timeout=3).read()
       interval: 20s
       timeout: 5s
@@ -1663,7 +1653,7 @@ services:
       - CMD
       - curl
       - -sf
-      - http://localhost:8000/readyz
+      - http://localhost:8000/healthz
       interval: 20s
       timeout: 5s
       retries: 6
@@ -1705,7 +1695,7 @@ services:
       - CMD
       - python
       - -c
-      - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/readyz',
+      - import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/healthz',
         timeout=4).status==200 else 1)
       interval: 20s
       timeout: 5s

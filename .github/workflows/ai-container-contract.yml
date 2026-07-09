@@ -1,0 +1,30 @@
+name: AI Container Contract
+
+on:
+  pull_request:
+    paths:
+      - 'services/ai_agronomist/**'
+      - 'services/agriai-engine/**'
+      - 'services/local-ai-rag/**'
+      - 'services/rag-retrieval/**'
+      - 'services/knowledge-graph/**'
+      - 'services/supervisor-agent/**'
+      - 'services/guardrails-engine/**'
+      - 'services/edge-inference/**'
+      - 'services/sam2-inference/**'
+      - 'docker-compose.v9.yml'
+      - 'scripts/ci/ai_container_contract_guard.py'
+      - 'tests_v9/test_ai_container_contract_guard.py'
+  push:
+    branches: [ main ]
+
+jobs:
+  ai-container-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/ci/ai_container_contract_guard.py --check
+      - run: python -m pytest -q tests_v9/test_ai_container_contract_guard.py

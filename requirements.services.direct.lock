@@ -9,7 +9,7 @@ uvicorn[standard]==0.30.6
 pydantic==2.13.4
 httpx==0.27.0
 asyncpg==0.30.0
-redis==5.0.0
+redis==5.3.1
 aiomqtt==2.0.0
 PyJWT==2.13.0
 
@@ -40,7 +40,7 @@ python-jose[cryptography]==3.4.0
 pydantic[email]==2.13.4
 prometheus-client==0.19.0
 aiosmtplib==3.0.0
-redis==5.0.0
+redis==5.3.1
 
 # --- services/decision-service/requirements.txt ---
 fastapi==0.115.6
@@ -78,7 +78,7 @@ pydantic==2.13.4
 python-multipart==0.0.18
 httpx==0.27.0
 asyncpg==0.30.0
-redis==5.0.0
+redis==5.3.1
 prometheus-client==0.19.0
 opentelemetry-instrumentation-fastapi==0.44b0
 opentelemetry-instrumentation-asyncpg==0.44b0
@@ -87,11 +87,6 @@ PyJWT==2.13.0
 # --- services/indicators-service/requirements.txt ---
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
-asyncpg==0.30.0
-nats-py==2.3.0
-redis==5.2.1
-pydantic==2.13.4
-prometheus-client==0.20.0
 
 # --- services/knowledge-graph/requirements.txt ---
 fastapi==0.136.3
@@ -154,13 +149,12 @@ httpx==0.27.0
 python-multipart==0.0.18
 rasterio==1.3.0
 numpy==1.26.0
-redis==5.0.0
+redis==5.3.1
 asyncpg==0.29.0
 boto3==1.34.0
 pyarrow==16.0.0
 shapely==2.0.0
 geopandas==0.14.0
-asyncpg==0.29.0
 
 # --- services/sam2-inference/requirements.txt ---
 fastapi==0.136.3
@@ -198,7 +192,7 @@ opentelemetry-instrumentation-asyncpg==0.44b0
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 edge-tts==6.1.12
-redis==5.0.0
+redis==5.3.1
 python-jose[cryptography]==3.4.0
 pydantic==2.13.4
 prometheus-client==0.19.0
@@ -220,7 +214,7 @@ pydantic==2.13.4
 httpx==0.27.0
 opencv-python-headless==4.9.0
 numpy==1.26.0
-redis==5.0.0
+redis==5.3.1
 aiomqtt==2.0.0
 python-multipart==0.0.18
 python-jose[cryptography]==3.4.0
@@ -233,7 +227,7 @@ nats-py==2.3.0
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 httpx==0.28.1
-redis==5.2.1
+redis==5.3.1
 
 # --- services/weather-signal-engine/requirements.txt ---
 asyncpg==0.30.0

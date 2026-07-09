@@ -14,6 +14,11 @@ SECTIONS = {
         "P1_MAIN_DECOMPOSITION_COMPLETE_REPORT_20260709.md",
         "AI_AGRONOMIST_MAIN_DECOMPOSITION_P0_REPORT_20260709.md",
         "AUTH_MAIN_DECOMPOSITION_P0_REPORT_20260709.md",
+        "INDICATORS_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md",
+        "VEGETATION_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md",
+        "PIP_AUDIT_REDIS_RESOLUTION_FIX_REPORT_20260709.md",
+        "CONTAINER_FLEET_REVIEW_AND_FIX_REPORT_20260709.md",
+        "AI_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md",
     ],
     "Production certification": [
         "docs/runbooks/PRODUCTION_CERTIFICATION_CHECKLIST.md",
@@ -29,6 +34,8 @@ SECTIONS = {
         "platform_main_subinventory.generated.json",
         "route_mount_inventory.generated.json",
         "api_versioning_inventory.generated.json",
+        "container_fleet_audit.generated.json",
+        "ai_container_audit.generated.json",
     ],
     "Operational runbooks": [
         "docs/runbooks/ALIBABA_PYPI_MIRROR.md",

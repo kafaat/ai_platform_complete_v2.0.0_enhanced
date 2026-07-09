@@ -1636,6 +1636,14 @@
     "file": "services/raster-service/routers/processing.py",
     "line": 55,
     "method": "POST",
+    "path": "/raw/process",
+    "function": "process_raw_data"
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/routers/processing.py",
+    "line": 74,
+    "method": "POST",
     "path": "/process/batch",
     "function": "process_batch"
   },
@@ -6762,7 +6770,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
-    "line": 33,
+    "line": 45,
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
@@ -6899,6 +6907,14 @@
     "service": "weather-service",
     "file": "services/weather-service/main.py",
     "line": 29,
+    "method": "POST",
+    "path": "/v1/weather/raw/process",
+    "function": "raw_weather_process"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 30,
     "method": "GET",
     "path": "/v1/weather/current",
     "function": "current_weather"
@@ -6906,7 +6922,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 30,
+    "line": 31,
     "method": "GET",
     "path": "/v1/weather/forecast",
     "function": "forecast_weather"
@@ -6914,7 +6930,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 31,
+    "line": 32,
     "method": "GET",
     "path": "/v1/weather/historical",
     "function": "historical_weather"
@@ -6922,7 +6938,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 32,
+    "line": 33,
     "method": "GET",
     "path": "/v1/weather/operation-window",
     "function": "operation_window"
@@ -6930,7 +6946,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 33,
+    "line": 34,
     "method": "GET",
     "path": "/v1/weather/operation-plan",
     "function": "operation_plan"
@@ -6938,7 +6954,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 34,
+    "line": 35,
     "method": "GET",
     "path": "/v1/weather/tile-data/{z}/{x}/{y}",
     "function": "tile_data"
@@ -6946,7 +6962,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 35,
+    "line": 36,
     "method": "GET",
     "path": "/v1/weather/operation-tile-data/{z}/{x}/{y}",
     "function": "operation_tile_data"
@@ -6954,7 +6970,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 36,
+    "line": 37,
     "method": "GET",
     "path": "/v1/weather/tile-series/{z}/{x}/{y}",
     "function": "tile_series"
@@ -6962,7 +6978,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 37,
+    "line": 38,
     "method": "GET",
     "path": "/v1/weather/wind-grid/{z}/{x}/{y}",
     "function": "wind_grid"
@@ -6970,7 +6986,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 38,
+    "line": 39,
     "method": "GET",
     "path": "/v1/weather/cache-stats",
     "function": "tile_cache_stats"

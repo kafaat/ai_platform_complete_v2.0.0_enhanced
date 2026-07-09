@@ -7,9 +7,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # المتطلّبات
 COPY services/sahool-platform/api/requirements.txt /tmp/requirements.txt
-# ── PyPI الرسميّ (تمّ التبديل من مرآة Tencent — كانت تُقدِّم حزمة pip بتجزئة مغلوطة) ──
-# للتبديل إلى مرآة بديلة: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ أو https://mirrors.cloud.tencent.com/pypi/simple/
-ARG PIP_INDEX_URL=https://pypi.org/simple/
+# ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
@@ -28,7 +28,7 @@ USER sahool
 
 EXPOSE 8000
 HEALTHCHECK --interval=20s --timeout=5s --retries=3 \
-    CMD curl -sf http://localhost:8000/readyz || curl -sf http://localhost:8000/healthz || exit 1
+    CMD curl -sf http://localhost:8000/healthz || exit 1
 
 # main.py في api/ ويستورد api.* و core.* — نشغّل من /app
 # N2: عامل واحد إلزاميّ ما دام _OFFLINE_QUEUE في الذاكرة — عاملان = طابوران

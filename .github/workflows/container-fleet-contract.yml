@@ -1,0 +1,21 @@
+name: container-fleet-contract
+
+on:
+  pull_request:
+    paths:
+      - 'services/**/Dockerfile*'
+      - 'services/**/requirements.txt'
+      - 'scripts/ci/container_fleet_contract_guard.py'
+      - 'tests_v9/test_container_fleet_contract_guard.py'
+  workflow_dispatch:
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/ci/container_fleet_contract_guard.py
+      - run: python -m pytest -q tests_v9/test_container_fleet_contract_guard.py

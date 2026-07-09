@@ -202,7 +202,8 @@ raster-service,services/raster-service/routers/observability.py,200,GET,/info/{l
 raster-service,services/raster-service/routers/observability.py,210,GET,/v1/providers/status,providers_status,versioned
 raster-service,services/raster-service/routers/observability.py,240,GET,/indices,field_indices,legacy_unversioned_business
 raster-service,services/raster-service/routers/processing.py,24,POST,/process,process_raster,legacy_unversioned_business
-raster-service,services/raster-service/routers/processing.py,55,POST,/process/batch,process_batch,legacy_unversioned_business
+raster-service,services/raster-service/routers/processing.py,55,POST,/raw/process,process_raw_data,legacy_unversioned_business
+raster-service,services/raster-service/routers/processing.py,74,POST,/process/batch,process_batch,legacy_unversioned_business
 raster-service,services/raster-service/routers/soil_tiles.py,37,GET,/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png,soil_tile,versioned
 raster-service,services/raster-service/routers/soil_tiles.py,52,GET,/v1/soil/tilejson,soil_tilejson,versioned
 raster-service,services/raster-service/routers/soil_tiles.py,100,GET,/v1/soil/properties,soil_properties,versioned
@@ -839,7 +840,7 @@ vegetation-analysis-service,services/vegetation-analysis-service/routers/analysi
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,21,GET,/healthz,healthz,infra
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,21,GET,/health,healthz,infra
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,26,GET,/readyz,readyz,infra
-vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,33,GET,/metrics,metrics,infra
+vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,45,GET,/metrics,metrics,infra
 video-processor,services/video-processor/routers/health.py,20,GET,/healthz,health,infra
 video-processor,services/video-processor/routers/health.py,20,GET,/health,health,infra
 video-processor,services/video-processor/routers/health.py,29,GET,/readyz,readyz,infra
