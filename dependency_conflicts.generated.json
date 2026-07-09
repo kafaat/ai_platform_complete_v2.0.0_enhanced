@@ -21,13 +21,6 @@
     "files": "services/actuator-service/requirements.txt:3; services/agriai-engine/requirements.txt:8; services/ai_agronomist/requirements.txt:3; services/auth/requirements.txt:8; services/decision-service/requirements.txt:4; services/edge-inference/requirements.txt:3; services/field-segmentation/requirements.txt:7; services/guardrails-engine/requirements.txt:3; services/indicators-service/requirements.txt:6; services/knowledge-graph/requirements.txt:3; services/local-ai-rag/requirements.txt:3; services/mcp_servers/requirements.txt:3; services/odoo-bridge/requirements.txt:3; services/rag-retrieval/requirements.txt:3; services/raster-service/requirements.txt:3; services/sahool-platform/api/requirements.txt:8; services/sam2-inference/requirements.txt:13; services/soil-service/requirements.txt:5; services/supervisor-agent/requirements.txt:3; services/tts-service/requirements.txt:7; services/vegetation-analysis-service/requirements.txt:5; services/video-processor/requirements.txt:3"
   },
   {
-    "package": "redis",
-    "version_count": 2,
-    "versions": "5.2.1, 5.3.1",
-    "services": "5.2.1=>weather-service; 5.3.1=>sahool-platform",
-    "files": "services/sahool-platform/api/requirements.txt:23; services/weather-service/requirements.txt:5"
-  },
-  {
     "package": "uvicorn",
     "version_count": 2,
     "versions": "0.30.6, 0.34.0",

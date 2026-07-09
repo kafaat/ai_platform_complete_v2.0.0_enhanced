@@ -233,7 +233,7 @@ nats-py>=2.3.0
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 httpx==0.28.1
-redis==5.2.1
+redis==5.3.1
 
 # --- services/weather-signal-engine/requirements.txt ---
 asyncpg>=0.30.0,<0.32.0
