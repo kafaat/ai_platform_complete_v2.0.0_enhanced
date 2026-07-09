@@ -183,7 +183,8 @@ describe('segmentField (POST /api/segmentation/segment)', () => {
     mockPost.mockResolvedValueOnce({ data: result });
     const payload = { mode: 'auto' as const, bbox: [44, 15, 44.01, 15.01] as [number, number, number, number] };
     const out = await segmentField(payload);
-    expect(mockPost).toHaveBeenCalledWith('/api/segmentation/segment', payload);
+    // UI3: مهلة 90s صريحة للنداء الثقيل
+    expect(mockPost).toHaveBeenCalledWith('/api/segmentation/segment', payload, { timeout: 90000 });
     expect(out).toEqual(result);
   });
 

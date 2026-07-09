@@ -7,7 +7,9 @@ import { describe, expect, it } from 'vitest';
 // والأساطير، وإخلاء المسؤوليّة الإلزاميّ لـSoilGrids. سدّ فجوة أشار إليها التدقيق الخارجيّ
 // (لا حراسة اختباريّة لهذه الطبقات الجديدة). مسح مصدر (لا تصيير) — يقرأ MapHub.tsx.
 const root = process.cwd();
-const mapHub = readFileSync(join(root, 'src/sections/MapHub.tsx'), 'utf8');
+// UI7: أدوات الطبقات استُخرجت إلى maphub/OperationalOverlayControls.tsx — نقرأ المُركَّب.
+const mapHub = readFileSync(join(root, 'src/sections/MapHub.tsx'), 'utf8')
+  + readFileSync(join(root, 'src/sections/maphub/OperationalOverlayControls.tsx'), 'utf8');
 const hubMapGL = readFileSync(join(root, 'src/components/maphub/HubMapGL.tsx'), 'utf8');
 
 describe('MapHub terrain + soil layer wiring (static guard)', () => {

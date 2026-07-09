@@ -53,7 +53,10 @@
     "api/weather_automation.py": "legacy_integration: automation glue until service extraction",
     "api/connectors/nasa_power.py": "legacy_provider_client: NASA POWER weather/wind adapter to be moved behind weather-service provider adapter",
     "api/decision_engine.py": "legacy_consumer: reads historical weather summary until decision/weather ownership split completes",
-    "api/weather_service_client.py": "P3.4 facade: only platform file allowed to know WEATHER_SERVICE_URL and weather-service transport headers"
+    "api/weather_service_client.py": "P3.4 facade: only platform file allowed to know WEATHER_SERVICE_URL and weather-service transport headers",
+    "api/routers/field_workspace_weather.py": "bff_facade + legacy_consumer: operation-windows via api.weather_service_client; irrigation-advice/disease-risk are relocated composite residuals (Open-Meteo direct) pending P4 — see weather_direct_wiring_allowlist.json",
+    "api/field_workspace_route_contract.py": "contract_manifest: lists Field Workspace route paths (incl. weather); no weather runtime",
+    "api/field_workspace_completion_contract.py": "contract_manifest: lists Field Workspace completion endpoints; no weather runtime"
   },
   "allowed_weather_tables_read_by_platform": [
     "weather_cache",

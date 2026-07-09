@@ -20,7 +20,8 @@
     "api/routers/field_ai_context.py": "Field AI-context builder reads historical weather to ground agronomy/LLM context; cross-domain composite pending P4.",
     "api/routers/season_workspace.py": "Season workspace composes forecast/current weather into the seasonal planning view; cross-domain aggregator pending P4.",
     "api/routers/seasons.py": "Seasons endpoint pulls historical weather for season retrospectives; cross-domain aggregator pending P4.",
-    "api/weather_automation.py": "Weather-driven automation/alerts worker polls current weather per configured location; cross-domain automation composite pending P4."
+    "api/weather_automation.py": "Weather-driven automation/alerts worker polls current weather per configured location; cross-domain automation composite pending P4.",
+    "api/routers/field_workspace_weather.py": "Relocated from fields.py (UI27-30 workspace cleanup): irrigation-advice + disease-risk still call connectors.openmeteo (fetch_current/fetch_daily_forecast) directly — same pre-existing residual, pending P4 move behind weather-service."
   },
   "neutral_tile_guarantee": "api/weather_service_client.py get_weather_tile_data/get_operation_tile_data catch a 502 (weather-service unreachable) and return a neutral tile (value=null, available=false, cache_state=service_unavailable) instead of propagating one Bad Gateway per tile. This preserves the pre-extraction 'don't flood the map with 502 per tile' guarantee across the platform->weather-service network hop.",
   "final_sweep_status": "P3.5 complete: direct Open-Meteo wiring is pinned to api/connectors/openmeteo.py (provider adapter) + api/weather_service_client.py (weather-service transport); all other referencing files are documented composite_residuals_pending_p4. New offenders are blocked by tests/test_p3_5_weather_direct_wiring_final_sweep.py."

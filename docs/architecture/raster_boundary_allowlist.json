@@ -31,7 +31,10 @@
     "api/cost_governance.py": "cost_accounting: declares raster-service cost profile, not raster computation",
     "api/event_bus.py": "event_contracts: contains raster event comments/contracts, not computation",
     "api/routers/regional_bulletin.py": "aggregation_consumer: reads zonal_stats for regional bulletin until summary endpoint exists",
-    "api/raster_service_client.py": "facade_client: the single platform HTTP client for raster-service boundary calls"
+    "api/raster_service_client.py": "facade_client: the single platform HTTP client for raster-service boundary calls",
+    "api/routers/field_workspace_imagery.py": "bff_facade: reads raster-service available-dates via api.raster_service_client.get_available_dates; returns browser thumbnail URLs (UI27, relocated from fields.py)",
+    "api/field_workspace_route_contract.py": "contract_manifest: lists Field Workspace route paths (incl. imagery); no raster transport",
+    "api/field_workspace_completion_contract.py": "contract_manifest: lists Field Workspace completion endpoints; no raster transport"
   },
   "allowed_raster_tables_read_by_platform": [
     "raster_assets",
@@ -53,7 +56,8 @@
   "browser_api_raster_alias_allowed_files": {
     "api/routers/compat_gateway.py": "legacy GET passthrough endpoint /api/raster/{path:path}; delegates transport to api.raster_service_client.raster_get_raw",
     "api/routers/fields.py": "BFF imagery timeline may return browser thumbnail URLs under /api/raster/... so nginx/compat gateway can serve lazy thumbnails; does not open raster transport directly",
-    "api/raster_service_client.py": "documents and implements raw raster compatibility transport behind the facade"
+    "api/raster_service_client.py": "documents and implements raw raster compatibility transport behind the facade",
+    "api/routers/field_workspace_imagery.py": "BFF imagery timeline returns browser thumbnail URLs under /api/raster/... (relocated from fields.py, UI27); no raster transport opened directly"
   },
   "final_sweep_status": "P2.5: all direct raster-service URL/token/transport wiring is allowed only in api/raster_service_client.py; browser /api/raster aliases are restricted to compatibility gateway and thumbnail URL generation."
 }

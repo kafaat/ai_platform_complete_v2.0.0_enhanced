@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": []
+  },
+  "include": [
+    "src/vite-env.d.ts",
+    "src/sections/fieldWorkspaceContract.ts",
+    "src/sections/fieldWorkspaceAvailability.ts",
+    "src/sections/fieldWorkspaceCompletionContract.ts",
+    "src/services/api/fieldImagery.ts",
+    "src/services/api/fieldIrrigation.ts",
+    "src/services/api/fieldOperating.ts",
+    "src/services/api/fieldTasks.ts",
+    "src/services/api/fieldTimeline.ts",
+    "src/services/api/fieldWeather.ts"
+  ]
+}

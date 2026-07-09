@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 581,
+  "baseline_python_module_count": 589,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -95,6 +95,8 @@
     "api/field_sustainability.py",
     "api/field_timeline.py",
     "api/field_type_catalog.py",
+    "api/field_workspace_completion_contract.py",
+    "api/field_workspace_route_contract.py",
     "api/fleet_health.py",
     "api/gdd_tracker.py",
     "api/geo_import.py",
@@ -214,12 +216,18 @@
     "api/routers/failures.py",
     "api/routers/farm_operations_ledger.py",
     "api/routers/farms.py",
+    "api/routers/features.py",
     "api/routers/field_ai_context.py",
     "api/routers/field_completeness.py",
     "api/routers/field_intelligence.py",
     "api/routers/field_portfolio.py",
+    "api/routers/field_priority_queue.py",
+    "api/routers/field_readiness.py",
     "api/routers/field_single.py",
     "api/routers/field_twin.py",
+    "api/routers/field_workspace_imagery.py",
+    "api/routers/field_workspace_timeline.py",
+    "api/routers/field_workspace_weather.py",
     "api/routers/fields.py",
     "api/routers/fodder_alternatives.py",
     "api/routers/gdd.py",
@@ -584,5 +592,7 @@
     "validate_observations.py"
   ],
   "p3_4_note": "Deliberate one-file BFF facade for weather-service transport; prevents provider/runtime logic from spreading in sahool-platform.",
-  "p4_note": "INTERIM bridge: sahool-platform is the temporary Source of Record for loop tables (authoritative DB write) and best-effort mirrors to decision-service via the one-file transport facade api/decision_service_client.py; decision-service is a non-authoritative mirror, not yet the system-of-record. See docs/architecture/DECISION_SERVICE_BOUNDARY_CONTRACT.md."
+  "p4_note": "INTERIM bridge: sahool-platform is the temporary Source of Record for loop tables (authoritative DB write) and best-effort mirrors to decision-service via the one-file transport facade api/decision_service_client.py; decision-service is a non-authoritative mirror, not yet the system-of-record. See docs/architecture/DECISION_SERVICE_BOUNDARY_CONTRACT.md.",
+  "ui3b_ui4_note": "UI3b/UI4 continuation: api/routers/features.py (runtime feature registry for UI/navigation alignment — env-flag topology only, DB-free) and api/routers/field_readiness.py (thin UI facade re-shaping the existing data-completeness contract; no new domain logic). Both are BFF/UI-alignment surfaces owned by sahool-platform, not extractable domain code.",
+  "ui27_ui35_note": "UI27-UI35 Field Workspace: BFF facade routers (imagery/weather/timeline/priority) delegate to raster-service/weather-service via the P1/P2/P3 facades; route+completion contract manifests. UI-alignment/BFF surfaces owned by sahool-platform, not extractable domain code."
 }

@@ -11,13 +11,13 @@
 // العلم مُطفأً (FEATURE_EXECUTION_FEEDBACK) ⇒ 404 ⇒ «الميزة غير مُفعَّلة» (لا انهيار).
 // 503 ⇒ القاعدة غير متاحة (ErrorState صادقة). decisions:[] ⇒ «لا قرارات مُدامة بعد».
 // ═══════════════════════════════════════════════════════════════
-import { Repeat, AlertTriangle, ShieldAlert, Lock, CircleHelp, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Repeat, AlertTriangle, Lock, CircleHelp, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { useExecutionFeedback } from '../hooks/useApi';
-import { asApiError } from '../services/api';
 import type {
   ExecutionFeedbackDecision, ExecutionFeedbackResult, ExecutionLoopStatus,
 } from '../services/api';
-import { ErrorState, LoadingState } from '../components/StateViews';
+import { LoadingState } from '../components/StateViews';
+import { AdvancedServiceState } from '../components/product/AdvancedServiceState';
 
 // ربط لون الخادم (green|red|amber|gray) بألوان CSS محدّدة في الواجهة.
 // لون مجهول ⇒ رماديّ محايد (fail-safe، لا حالة إيجابيّة مُختلَقة).
@@ -176,9 +176,6 @@ export default function ExecutionFeedbackPage() {
   const query = useExecutionFeedback();
   const data: ExecutionFeedbackResult | undefined = query.data;
 
-  // كشف 404 (العلم مُطفأ) عبر شكل خطأ أكسيوس الموحّد — رسالة ودودة لا حالة خطأ.
-  const featureOff = query.isError && asApiError(query.error).response?.status === 404;
-
   return (
     <div className="space-y-6 max-w-6xl mx-auto" dir="rtl">
       {/* ── الترويسة ── */}
@@ -196,28 +193,11 @@ export default function ExecutionFeedbackPage() {
       {/* ── الحالات ── */}
       {query.isLoading && <LoadingState message="جارٍ جلب رصد حلقة التنفيذ…" />}
 
-      {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
-      {featureOff && (
-        <div
-          className="rounded-xl border p-4 flex items-start gap-3"
-          style={{ background: '#1e293b', borderColor: '#334155' }}
-          role="status"
-        >
-          <ShieldAlert className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة (FEATURE_EXECUTION_FEEDBACK)</div>
-            <div className="text-[12px] text-slate-400">
-              رصد حلقة التنفيذ خلف علم تشغيل (FEATURE_EXECUTION_FEEDBACK) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 503/أيّ خطأ آخر — حالة خطأ صادقة */}
-      {query.isError && !featureOff && (
-        <ErrorState
-          title="تعذّر جلب رصد حلقة التنفيذ"
-          detail="قد تكون قاعدة البيانات غير متاحة (503) أو حدث انقطاع."
+      {query.isError && (
+        <AdvancedServiceState
+          page="execution-feedback"
+          error={query.error}
+          resourceName="رصد حلقة التنفيذ"
           onRetry={() => query.refetch()}
         />
       )}

@@ -21,7 +21,8 @@ _FIELDS = (
     / "sahool-platform"
     / "api"
     / "routers"
-    / "fields.py"
+    # UI28-30 cleanup: imagery timeline relocated from fields.py to the workspace imagery facade.
+    / "field_workspace_imagery.py"
 )
 
 

@@ -131,6 +131,7 @@ describe('DecisionConfidencePage', () => {
   it('(و) 503/خطأ آخر ⇒ حالة خطأ صادقة (لا تلفيق)', () => {
     stub(qError(503));
     render(<DecisionConfidencePage />);
-    expect(screen.getByText('تعذّر جلب ثقة القرار')).toBeInTheDocument();
+    // UI2: تعطل التوفّر (503) ⇒ حالة متدهورة صادقة
+    expect(screen.getByText('تعمل ثقة القرار الموحَّدة في وضع متدهور')).toBeInTheDocument();
   });
 });

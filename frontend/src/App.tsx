@@ -17,7 +17,8 @@ import { canAccess, canCreateFarm } from './lib/permissions';
 import { isPageEnabled } from './lib/featureFlags';
 import { ALL_ROUTES, pageForPath, pathForPage } from './lib/routes';
 import AppShell from './components/shell/AppShell';
-import { LoadingState } from './components/StateViews';
+import { FeatureDisabledState, LoadingState } from './components/StateViews';
+import { isRuntimePageEnabled, useFeatureRegistry } from './hooks/useFeatureRegistry';
 
 // ── Error Boundary ──────────────────────────────────────────
 import React from 'react';
@@ -110,6 +111,7 @@ const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 const MapHub              = lazy(() => import('./sections/MapHub'));
 const FarmMapOverview     = lazy(() => import('./sections/FarmMapOverview'));
 const FieldWorkspaceMapCard = lazy(() => import('./sections/FieldWorkspaceMapCard'));
+const FieldWorkspaceRouteShell = lazy(() => import('./sections/FieldWorkspaceRouteShell'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
 const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
 const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
@@ -166,6 +168,8 @@ function Loader() {
 
 export default function App() {
   const { isAuthenticated, user, isDemoMode, logout } = useAuthStore();
+  // سجلّ الميزات الحيّ من الخلفيّة (fail-open حتى التحميل) — يُغذّي حارس الصفحات المتقدّمة.
+  const featureRegistry = useFeatureRegistry();
   // السمة (فاتح/داكن) على مستوى الجذر — تُطبَّق على <html> وتُحفظ في localStorage.
   const { theme, setTheme } = useTheme();
   // بوّابة التأهيل: بعد المصادقة نفحص وجود مزرعة. مُعطَّلة قبل المصادقة وفي الوضع
@@ -286,12 +290,10 @@ export default function App() {
     }
     // حارس الميزة: صفحة محجوبة خلف علم مُطفأ (لا خلفيّة جاهزة) ⇒ لافتة صريحة بدل
     // شاشة مكسورة. تبقى في اتّحاد PageId والمُصيِّر؛ تُعاد بالتفعيل (VITE_ENABLE_*).
-    if (!isPageEnabled(page)) {
+    if (!isPageEnabled(page) || !isRuntimePageEnabled(page, featureRegistry)) {
       return (
-        <div className="flex flex-col items-center justify-center h-64 text-center" dir="rtl">
-          <Shield className="w-10 h-10 text-amber-500 mb-3" />
-          <h2 className="text-lg font-bold text-slate-100">الميزة غير مفعّلة</h2>
-          <p className="text-sm text-slate-400 mt-1">هذه الشاشة بانتظار جهوزيّة خدمتها الخلفيّة.</p>
+        <div className="max-w-3xl mx-auto py-8" dir="rtl">
+          <FeatureDisabledState page={page} />
           <button onClick={() => setPage('dashboard')}
             className="mt-4 px-4 py-2 rounded-lg text-sm text-emerald-400 border border-emerald-900 hover:bg-emerald-950">
             العودة للوحة المعلومات
@@ -306,7 +308,7 @@ export default function App() {
       // مُستورَداً ومتاحاً (يُحتفَظ به مرجعاً) لكنّ الـMap Hub يَخلُفه افتراضيّاً.
       case 'map-center':   return <MapHub />;
       case 'farm-map':     return <FarmMapOverview />;
-      case 'field-workspace': return <FieldWorkspaceMapCard />;
+      case 'field-workspace': return <FieldWorkspaceRouteShell />;
       case 'tasks-cabin':  return <FieldTasksCabin />;
       case 'rec-flow':     return <RecommendationFlow />;
       case 'hybrid-monitor': return <HybridMonitor />;
@@ -402,6 +404,8 @@ export default function App() {
           {ALL_ROUTES.map((r) => (
             <Route key={r.id} path={r.path} element={pageContent} />
           ))}
+          <Route path="/fields/:fieldId/workspace" element={<FieldWorkspaceRouteShell />} />
+          <Route path="/field/:fieldId/workspace" element={<FieldWorkspaceRouteShell />} />
           <Route path="/health/timeline" element={pageContent} />
           <Route path="/health/temporal-indicators" element={pageContent} />
           <Route path="/health/indicators/timeline" element={pageContent} />

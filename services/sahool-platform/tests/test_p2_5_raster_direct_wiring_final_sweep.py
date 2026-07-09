@@ -83,6 +83,9 @@ def test_browser_api_raster_aliases_are_narrowly_allowlisted():
         "api/routers/compat_gateway.py",
         "api/routers/fields.py",
         "api/raster_service_client.py",
+        # UI27-30: imagery timeline (+ its /api/raster browser thumbnail URLs) relocated
+        # from fields.py into the Field Workspace imagery facade — same BFF pattern.
+        "api/routers/field_workspace_imagery.py",
     }
     assert allowed == expected
 

@@ -4,7 +4,9 @@ import { join } from 'node:path';
 
 const root = process.cwd();
 const overlay = readFileSync(join(root, 'src/components/maphub/OverlayMarkers.tsx'), 'utf8');
-const hub = readFileSync(join(root, 'src/sections/MapHub.tsx'), 'utf8');
+// UI7: أدوات الطبقات استُخرجت إلى maphub/OperationalOverlayControls.tsx — نقرأ المُركَّب.
+const hub = readFileSync(join(root, 'src/sections/MapHub.tsx'), 'utf8')
+  + readFileSync(join(root, 'src/sections/maphub/OperationalOverlayControls.tsx'), 'utf8');
 const gl = readFileSync(join(root, 'src/components/maphub/HubMapGL.tsx'), 'utf8');
 
 describe('unified operational map overlays', () => {

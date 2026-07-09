@@ -21,8 +21,8 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import {
   Layers, MapPin, Columns2, Square, Ruler, Crosshair, Box, Mountain,
-  Search as SearchIcon, Trash2, CloudSun, Bell, Radio, Combine, Download, Upload,
-  Tractor, CheckSquare, CircleDotDashed, History, RotateCcw, Target, FlaskConical,
+  Search as SearchIcon, Trash2, Combine, Download, Upload,
+  History, RotateCcw, Target,
   Satellite,
 } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
@@ -88,6 +88,22 @@ import {
   LayerSwitcher, ColormapLegend, SideBySide, type CmapId,
 } from '../components/ds';
 import { MapIndicatorLegend } from '../components/insights/MapIndicatorLegend';
+import { MapHubShell } from './maphub/MapHubShell';
+import { MapHubToolToggle } from './maphub/MapHubToolToggle';
+import { OperationalOverlayControls } from './maphub/OperationalOverlayControls';
+import { MapCanvasBoundary } from './maphub/MapCanvasBoundary';
+import { FieldContextStrip } from './maphub/FieldContextStrip';
+import { PriorityQueuePanel } from './maphub/PriorityQueuePanel';
+import { FieldDrawerShell } from './maphub/FieldDrawerShell';
+import { FieldTimelineShell } from './maphub/FieldTimelineShell';
+import { MapActionPalette } from './maphub/MapActionPalette';
+import { RoleAwareMapSurface } from './maphub/RoleAwareMapSurface';
+import {
+  isOperationalOverlayBlocked,
+  mapClutterBlockedTitle,
+  type OperationalOverlayId,
+  type OperationalOverlayState,
+} from './maphub/mapClutterControl';
 
 // نطاقات المؤشّرات (vmin/vmax/invert) — مرآة لـ_INDEX_DOMAIN في raster-service
 // (tile_render.py) كي تتطابق أسطورة المقياس مع التصيير الفعليّ. مجهول ⇒ افتراضيّ NDVI.
@@ -272,7 +288,7 @@ type MapHubLocationState = {
   showWeather?: boolean;
 };
 
-export default function MapHub() {
+function MapHubCore() {
   const location = useLocation();
   const initialSearch = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const routeState = (location.state ?? {}) as MapHubLocationState;
@@ -583,6 +599,16 @@ export default function MapHub() {
   // الحقل المختار (يُشتقّ من القائمة + الاختيار المشترك) — مُعرَّف قبل المُعالِجات التي
   // تستعمله (تجهيز صور سنتين) لتفادي «used before declaration».
   const selected = fields.find((f) => f.id === fieldId);
+  const operationalOverlayState = useMemo<OperationalOverlayState>(() => ({
+    weather: showWeather,
+    alerts: showAlerts,
+    devices: showDevices,
+    equipment: showEquipment,
+    tasks: showTasks,
+  }), [showWeather, showAlerts, showDevices, showEquipment, showTasks]);
+  const isOverlayBlocked = useCallback((id: OperationalOverlayId) => isOperationalOverlayBlocked(id, operationalOverlayState), [operationalOverlayState]);
+  const overlayBlockedTitle = useCallback((id: OperationalOverlayId) => mapClutterBlockedTitle(isOverlayBlocked(id)), [isOverlayBlocked]);
+
 
   useEffect(() => {
     backfillPollTokenRef.current += 1;
@@ -1999,6 +2025,37 @@ export default function MapHub() {
         <SummaryStat label="حقول بهندسة" value={`${fieldSummary.withGeometry}/${fields.length}`} />
       </div>
 
+      <RoleAwareMapSurface role={user?.role}>
+        <FieldContextStrip
+          fieldId={fieldId}
+          fieldName={selected?.name ?? null}
+          cropName={selected?.crop ?? null}
+          activeSeasonId={activeSeasonId}
+          activeLayerId={indicatorActive}
+        />
+
+        <PriorityQueuePanel
+          fieldId={fieldId}
+          activeSeasonId={activeSeasonId}
+          hasAlerts={alertMarkers.length > 0}
+          hasTasks={operationalMarkers.length > 0}
+          hasWeatherWindow={Boolean(weatherMarker)}
+        />
+
+        <MapActionPalette
+          fieldId={fieldId}
+          canMutate={mutateAllowed}
+          hasGeometry={Boolean(selected?.geometry)}
+          hasActiveSeason={Boolean(activeSeasonId)}
+          hasAlerts={alertMarkers.length > 0}
+          hasTasks={operationalMarkers.length > 0}
+          onPinScouting={() => { setPinMode(true); setDrawTools(false); }}
+          onOpenTimeline={() => setShowImageryTimeline(true)}
+          onOpenAlerts={() => setShowAlerts(true)}
+          onAddField={() => setShowAddField(true)}
+        />
+      </RoleAwareMapSurface>
+
       {fields.length === 0 ? (
         <EmptyState
           title="لا حقول مُسجّلة بعد"
@@ -2286,7 +2343,12 @@ export default function MapHub() {
                     </div>
                   )}
 
-                  {!compare && activeIndicator && showImageryTimeline && twoYearTimeline.items.length > 0 && (
+                  <FieldTimelineShell
+                    fieldId={fieldId}
+                    activeSeasonId={activeSeasonId}
+                    kind="imagery"
+                    visible={!compare && Boolean(activeIndicator) && showImageryTimeline && twoYearTimeline.items.length > 0}
+                  >
                     <div
                       className="w-full rounded-xl border p-3"
                       style={{ background: '#0f172acc', borderColor: T.line }}
@@ -2358,7 +2420,7 @@ export default function MapHub() {
                         })}
                       </div>
                     </div>
-                  )}
+                  </FieldTimelineShell>
 
                   {/* شريط الشفّافيّة — يظهر حين توجد طبقة مؤشّر نشطة */}
                   {!compare && activeIndicator && (
@@ -2377,104 +2439,55 @@ export default function MapHub() {
                   {/* أزرار الوضع: مقارنة / رسم / دبابيس — متاحة في كِلا المحرّكين
                       (Leaflet · MapLibre GL · المرحلة 2ب). */}
                   <div className="flex items-center gap-1.5" style={{ marginInlineStart: 'auto' }}>
-                    <ToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
+                    <MapHubToolToggle testid="btn-compare" active={compare} onClick={() => { setCompare((v) => !v); setPinMode(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={compare ? <Columns2 className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />} label="مقارنة" />
                     {/* حصر متبادل: الرسم/القياس والدبابيس يستهلكان نقرات الخريطة معاً، فتفعيل
                         أحدهما يُعطّل الآخر (والمقارنة) — وإلّا كلّ نقرة قياس تُسقط دبّوساً بالخطأ. */}
-                    <ToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
-                    <ToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
-                    <ToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
-                    <ToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="Zones" />
+                    <MapHubToolToggle testid="btn-draw" active={drawTools} onClick={() => { setDrawTools((v) => !v); setPinMode(false); setCompare(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Ruler className="w-3.5 h-3.5" />} label="رسم/قياس" />
+                    <MapHubToolToggle testid="btn-pins" active={pinMode} onClick={() => { setPinMode((v) => !v); setCompare(false); setDrawTools(false); setPivotDesigner(false); setZoneDesigner(false); }} icon={<Crosshair className="w-3.5 h-3.5" />} label="دبابيس" />
+                    <MapHubToolToggle testid="btn-pivot-designer" active={pivotDesigner} onClick={() => { setPivotDesigner((v) => !v); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); setZoneDesigner(false); }} icon={<Target className="w-3.5 h-3.5" />} label="تصميم Pivot" />
+                    <MapHubToolToggle testid="btn-zone-designer" active={zoneDesigner} onClick={() => { setZoneDesigner((v) => !v); setPivotDesigner(false); setPinMode(false); setCompare(false); setDrawTools(false); setShowPivots(true); }} icon={<Combine className="w-3.5 h-3.5" />} label="Zones" />
                   </div>
                 </div>
 
-                {/* صفّ طبقات التراكب: طقس / تنبيهات / أجهزة (مستقلّة، لا تظهر في
-                    المقارنة) — متاحة في كِلا المحرّكين. */}
-                {!compare && (
-                  <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: `1px solid ${T.line}` }}>
-                    <span className="text-xs font-semibold" style={{ color: T.muted }}>طبقات التراكب</span>
-                    <ToolToggle testid="btn-weather" active={showWeather} onClick={() => setShowWeather((v) => !v)} icon={<CloudSun className="w-3.5 h-3.5" />} label="طقس/رياح" />
-                    <ToolToggle testid="btn-alerts" active={showAlerts} onClick={() => setShowAlerts((v) => !v)} icon={<Bell className="w-3.5 h-3.5" />} label="تنبيهات" />
-                    <ToolToggle testid="btn-devices" active={showDevices} onClick={() => setShowDevices((v) => !v)} icon={<Radio className="w-3.5 h-3.5" />} label="أجهزة" />
-                    <ToolToggle testid="btn-equipment" active={showEquipment} onClick={() => setShowEquipment((v) => !v)} icon={<Tractor className="w-3.5 h-3.5" />} label="معدّات" />
-                    <ToolToggle testid="btn-tasks" active={showTasks} onClick={() => setShowTasks((v) => !v)} icon={<CheckSquare className="w-3.5 h-3.5" />} label="مهام" />
-                    <ToolToggle testid="btn-pivots" active={showPivots} onClick={() => setShowPivots((v) => !v)} icon={<CircleDotDashed className="w-3.5 h-3.5" />} label="محوري" />
-                    {/* ── طبقات التضاريس (DEM) — ثلاثة مبدّلات مستقلّة (Hillshade/Slope/Contours) ── */}
-                    <ToolToggle testid="btn-hillshade" active={showHillshade} onClick={() => setShowHillshade((v) => !v)} icon={<Mountain className="w-3.5 h-3.5" />} label="التضاريس (Hillshade)" />
-                    <ToolToggle testid="btn-slope" active={showSlope} onClick={() => setShowSlope((v) => !v)} icon={<Layers className="w-3.5 h-3.5" />} label="الانحدار (Slope)" />
-                    <ToolToggle
-                      testid="btn-contours"
-                      active={showContours}
-                      disabled={!selected?.geometry}
-                      title={!selected?.geometry ? 'اختر حقلاً ذا حدود مرسومة أوّلاً' : undefined}
-                      onClick={() => setShowContours((v) => !v)}
-                      icon={<CircleDotDashed className="w-3.5 h-3.5" />}
-                      label="خطوط الكنتور (Contours)"
-                    />
-                    {/* ── طبقة التربة (SoilGrids) — تقدير عالميّ (~250م) لإرشاد أخذ العيّنات ── */}
-                    <ToolToggle testid="btn-soil" active={showSoil} onClick={() => setShowSoil((v) => !v)} icon={<Layers className="w-3.5 h-3.5" />} label="طبقة التربة (SoilGrids)" />
-                    {/* ── نقاط أخذ العيّنات المقترَحة (🧪) — طبقة مستقلّة عن بلاطة التربة ── */}
-                    <ToolToggle
-                      testid="btn-soil-samples"
-                      active={showSoilSamples}
-                      disabled={!selected?.geometry}
-                      title={!selected?.geometry ? 'اختر حقلاً ذا حدود مرسومة أوّلاً' : undefined}
-                      onClick={() => setShowSoilSamples((v) => !v)}
-                      icon={<FlaskConical className="w-3.5 h-3.5" />}
-                      label={soilSamplesBusy ? 'نقاط العيّنات… (جارٍ)' : 'نقاط العينات'}
-                    />
-                    {/* ملاحظة صادقة لنقاط العيّنات — بلا مصدر تربة/بلا حدود ⇒ لا نقاط */}
-                    {showSoilSamples && soilSamplesNote && (
-                      <span className="text-[11px]" style={{ color: T.faint }}>{soilSamplesNote}</span>
-                    )}
-                    {/* ملاحظات الأمانة: عناصر بلا حقل/هندسة غير قابلة للعرض — تُحتسَب لا تُختلَق */}
-                    {showAlerts && alertsUnplaceable > 0 && (
-                      <span className="text-[11px]" style={{ color: T.faint }}>
-                        {alertsUnplaceable} تنبيه غير قابل للعرض على الخريطة (بلا حقل/هندسة)
-                      </span>
-                    )}
-                    {showDevices && devicesUnplaceable > 0 && (
-                      <span className="text-[11px]" style={{ color: T.faint }}>
-                        {devicesUnplaceable} جهاز غير قابل للعرض على الخريطة (بلا حقل/هندسة)
-                      </span>
-                    )}
-                    {showEquipment && equipmentUnplaceable > 0 && (
-                      <span className="text-[11px]" style={{ color: T.faint }}>
-                        {equipmentUnplaceable} معدّة غير قابلة للعرض (بلا حقل/هندسة)
-                      </span>
-                    )}
-                    {showTasks && tasksUnplaceable > 0 && (
-                      <span className="text-[11px]" style={{ color: T.faint }}>
-                        {tasksUnplaceable} مهمة غير قابلة للعرض (بلا حقل/هندسة)
-                      </span>
-                    )}
-                    {showPivots && pivotMarkers.length === 0 && (
-                      <span className="text-[11px]" style={{ color: T.faint }}>
-                        المحوري يظهر للحقل المختار فقط عند وجود بيانات pivot/irrigation_type
-                      </span>
-                    )}
-                    {showWeather && !selectedPoint && (
-                      <span className="text-[11px]" style={{ color: T.faint }}>
-                        اختر حقلاً ذا هندسة/نقطة لعرض طبقة الطقس واتجاه الرياح كبلاطة فوق الخريطة
-                      </span>
-                    )}
-                    {/* حالات صادقة للتضاريس: DEM غير مُهيّأ (available:false) ⇒ رسالة الخادم */}
-                    {showHillshade && hillshadeTj && !hillshadeTj.available && (
-                      <span className="text-[11px]" data-testid="hillshade-unavailable" style={{ color: T.faint }}>
-                        {hillshadeTj.user_message || 'التضاريس غير مُهيّأة — لا نموذج ارتفاع (DEM).'}
-                      </span>
-                    )}
-                    {showSlope && slopeTj && !slopeTj.available && (
-                      <span className="text-[11px]" data-testid="slope-unavailable" style={{ color: T.faint }}>
-                        {slopeTj.user_message || 'طبقة الانحدار غير مُهيّأة — لا نموذج ارتفاع (DEM).'}
-                      </span>
-                    )}
-                    {showContours && contoursNote && (
-                      <span className="text-[11px]" data-testid="contours-note" style={{ color: T.faint }}>
-                        {contoursNote}
-                      </span>
-                    )}
-                  </div>
-                )}
+                <OperationalOverlayControls
+                  isVisible={!compare}
+                  showWeather={showWeather}
+                  showAlerts={showAlerts}
+                  showDevices={showDevices}
+                  showEquipment={showEquipment}
+                  showTasks={showTasks}
+                  showPivots={showPivots}
+                  showHillshade={showHillshade}
+                  showSlope={showSlope}
+                  showContours={showContours}
+                  showSoil={showSoil}
+                  showSoilSamples={showSoilSamples}
+                  soilSamplesBusy={soilSamplesBusy}
+                  selectedHasGeometry={!!selected?.geometry}
+                  selectedHasPoint={!!selectedPoint}
+                  alertsUnplaceable={alertsUnplaceable}
+                  devicesUnplaceable={devicesUnplaceable}
+                  equipmentUnplaceable={equipmentUnplaceable}
+                  tasksUnplaceable={tasksUnplaceable}
+                  pivotMarkersCount={pivotMarkers.length}
+                  soilSamplesNote={soilSamplesNote}
+                  hillshadeUnavailableMessage={showHillshade && hillshadeTj && !hillshadeTj.available ? (hillshadeTj.user_message || 'التضاريس غير مُهيّأة — لا نموذج ارتفاع (DEM).') : null}
+                  slopeUnavailableMessage={showSlope && slopeTj && !slopeTj.available ? (slopeTj.user_message || 'طبقة الانحدار غير مُهيّأة — لا نموذج ارتفاع (DEM).') : null}
+                  contoursNote={contoursNote}
+                  isOverlayBlocked={isOverlayBlocked}
+                  overlayBlockedTitle={overlayBlockedTitle}
+                  setShowWeather={setShowWeather}
+                  setShowAlerts={setShowAlerts}
+                  setShowDevices={setShowDevices}
+                  setShowEquipment={setShowEquipment}
+                  setShowTasks={setShowTasks}
+                  setShowPivots={setShowPivots}
+                  setShowHillshade={setShowHillshade}
+                  setShowSlope={setShowSlope}
+                  setShowContours={setShowContours}
+                  setShowSoil={setShowSoil}
+                  setShowSoilSamples={setShowSoilSamples}
+                />
 
                 {/* أسطورة الانحدار (Slope) — من tilejson.legend حين الطبقة مُفعَّلة ومتاحة (المهمّة C) */}
                 {!compare && showSlope && slopeTj?.available && slopeTj.legend && slopeTj.legend.length > 0 && (
@@ -2676,6 +2689,12 @@ export default function MapHub() {
             )}
 
             {/* الخريطة */}
+            <MapCanvasBoundary
+              mode={mode === '3d' ? 'terrain3d' : compare ? 'compare' : GL_ENGINE ? 'maplibre' : 'leaflet'}
+              fieldId={fieldId}
+              indicatorId={indicatorActive}
+              hasGeometry={Boolean(selected?.geometry)}
+            >
             {mode === '3d' ? (
               <Suspense fallback={<LoadingState message="جارٍ تحميل وضع التضاريس…" />}>
                 <TerrainView3D
@@ -2785,6 +2804,7 @@ export default function MapHub() {
                 })()}
               </div>
             )}
+            </MapCanvasBoundary>
 
             <div className="text-[11px]" style={{ color: T.muted }}>
               السطح الموحّد «الحقول والخريطة» — بلاطات <code>/raster</code> الحقيقيّة فوق حدود <code>/fields</code>.
@@ -2795,12 +2815,14 @@ export default function MapHub() {
       )}
 
       {/* درج تفاصيل الحقل المنزلق */}
-      <FieldDetailDrawer
-        fieldId={detailOpen ? fieldId : null}
-        fieldName={selected?.name ?? ''}
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-      />
+      <FieldDrawerShell fieldId={fieldId} open={detailOpen}>
+        <FieldDetailDrawer
+          fieldId={detailOpen ? fieldId : null}
+          fieldName={selected?.name ?? ''}
+          open={detailOpen}
+          onClose={() => setDetailOpen(false)}
+        />
+      </FieldDrawerShell>
 
       {/* إنشاء/استيراد حقل داخل المركز */}
       {showAddField && (
@@ -2850,6 +2872,15 @@ export default function MapHub() {
 }
 
 
+export default function MapHub() {
+  return (
+    <MapHubShell>
+      <MapHubCore />
+    </MapHubShell>
+  );
+}
+
+
 function NumberField({ label, value, min, max, step, onChange }: {
   label: string;
   value: number;
@@ -2887,23 +2918,6 @@ function SummaryStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-// زرّ تبديل أداة (مقارنة/رسم/دبابيس) — موحّد الشكل.
-function ToolToggle({ active, onClick, icon, label, testid, disabled, title }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; testid?: string; disabled?: boolean; title?: string }) {
-  return (
-    <button
-      type="button" onClick={onClick} data-testid={testid} disabled={disabled} title={title}
-      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{
-        background: active ? T.green : T.card2, color: active ? '#fff' : T.ink,
-        border: `1px solid ${active ? T.green : T.line}`,
-      }}
-    >
-      {icon}{label}
-    </button>
-  );
-}
-
-// لوحة خريطة مفردة لوضع المقارنة (بلا أدوات/دبابيس) — تعيد استخدام HubMap.
 function CompareMap({
   fields, selectedId, basemapId, indicatorId, opacity, imageryTs, imageryDate, tenantId,
 }: {

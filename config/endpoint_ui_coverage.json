@@ -492,6 +492,10 @@
     {
       "prefix": "/api/v1/districts",
       "audience": "farmer"
+    },
+    {
+      "prefix": "/api/v1/features",
+      "audience": "farmer"
     }
   ],
   "core_endpoints": [
@@ -2729,6 +2733,31 @@
       "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
       "audience": "agronomist",
       "evidence": "/api/v1/field-intelligence/analyze"
+    },
+    {
+      "endpoint": "/api/v1/features",
+      "audience": "farmer",
+      "evidence": "/api/v1/features"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/readiness",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/priority-queue",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/farms/{farm_id}/priority-queue",
+      "audience": "farmer",
+      "evidence": "/api/v1/farms"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/weather/operation-windows",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
     }
   ]
 }

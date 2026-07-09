@@ -13,14 +13,14 @@
 // ═══════════════════════════════════════════════════════════════
 import { useMemo, useState } from 'react';
 import {
-  History, MapPin, AlertTriangle, ShieldAlert, Clock, Sliders,
+  History, MapPin, AlertTriangle, Clock, Sliders,
   Leaf, CloudRain, Droplets, GitCommitHorizontal, CheckCircle2,
 } from 'lucide-react';
 import { useAgronomicReplay } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { asApiError } from '../services/api';
 import type { ReplayTrackKey, ReplayEvent, AgronomicReplayResult } from '../services/api';
-import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
+import { LoadingState, EmptyState } from '../components/StateViews';
+import { AdvancedServiceState } from '../components/product/AdvancedServiceState';
 
 // لون + أيقونة + خلفيّة شارة لكلّ مسار (يطابق مواصفة الألوان: ndvi=أخضر/weather=
 // سماويّ/irrigation=أزرق/decision=بنفسجيّ/outcome=كهرمانيّ). أيّ مفتاح مجهول ⇒ رماديّ.
@@ -85,9 +85,6 @@ export default function ReplayMapPage() {
   const { options, fieldId, setFieldId, isLoading: fieldsLoading, isError: fieldsError } = useSelectedField();
   const query = useAgronomicReplay(fieldId);
   const data = query.data;
-
-  // كشف 404 (العلم FEATURE_REPLAY_MAP مُطفأ) عبر شكل خطأ أكسيوس الموحّد.
-  const featureOff = query.isError && asApiError(query.error).response?.status === 404;
 
   // موضع المنزلق: كسر [0..1] على span. القيمة 1 (النهاية) = عرض كلّ الأحداث.
   const [scrub, setScrub] = useState(1);
@@ -161,28 +158,11 @@ export default function ReplayMapPage() {
       {/* ── الحالات ── */}
       {fieldId && query.isLoading && <LoadingState message="جارٍ جلب إعادة التشغيل…" />}
 
-      {/* الميزة غير مُفعَّلة (404 — العلم مُطفأ) */}
-      {fieldId && featureOff && (
-        <div
-          className="rounded-xl border p-4 flex items-start gap-3"
-          style={{ background: '#1e293b', borderColor: '#334155' }}
-          role="status"
-        >
-          <ShieldAlert className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-          <div className="space-y-1">
-            <div className="text-sm font-semibold text-slate-200">الميزة غير مُفعَّلة (FEATURE_REPLAY_MAP)</div>
-            <div className="text-[12px] text-slate-400">
-              إعادة تشغيل الموسم خلف علم تشغيل (FEATURE_REPLAY_MAP) لم يُفعَّل بعد على الخادم. تواصل مع المسؤول لتفعيله.
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 503/أيّ خطأ آخر — حالة خطأ صادقة */}
-      {fieldId && query.isError && !featureOff && (
-        <ErrorState
-          title="تعذّر جلب إعادة التشغيل"
-          detail="قد تكون قاعدة البيانات غير متاحة (503) أو الحقل ليس لمستأجِرك."
+      {fieldId && query.isError && (
+        <AdvancedServiceState
+          page="replay-map"
+          error={query.error}
+          resourceName="إعادة تشغيل الموسم"
           onRetry={() => query.refetch()}
         />
       )}
