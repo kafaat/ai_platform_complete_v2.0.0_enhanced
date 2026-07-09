@@ -7,7 +7,7 @@ ARG PIP_INDEX_URL=https://pypi.org/simple/
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
-RUN pip install --no-cache-dir -r /tmp/requirements.txt
+RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
 COPY services/ai_agronomist /app/ai_agronomist
 # حزمة الأدوات المشتركة (shared/ai/*) يستوردها ai_generation/main لحلقة الـHarness
 # (V58+): ``from shared.ai import tool_schema/...`` — يجب تضمينها في الصورة وإلّا

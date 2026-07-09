@@ -166,7 +166,9 @@ def _process_pixels_truecolor(ctx, req, layer_id: str):
             # source COGs — GDAL fills the field with the default 1.0 (identity).
             # Without this fallback, Sentinel-2 L2A DN values (0-10000) pass through
             # to_reflectance unchanged and clip(raw, 0, 1) → all-white image.
-            if (_sc is None or float(_sc) == 1.0) and req.source_format == ctx.SourceFormat.sentinel2_l2a:
+            if (
+                _sc is None or float(_sc) == 1.0
+            ) and req.source_format == ctx.SourceFormat.sentinel2_l2a:
                 _sc = 0.0001
             raw = ctx.band_math.to_reflectance(raw, _sc, _of, np)
             raw = np.nan_to_num(np.clip(raw, 0.0, 1.0), nan=0.0)

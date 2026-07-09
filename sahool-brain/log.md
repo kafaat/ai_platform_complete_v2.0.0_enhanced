@@ -4,6 +4,42 @@
 
 ---
 
+## 2026-07-09 — مزامنة main + إصلاح فشل بناء ai_agronomist + إصلاح حارسَين فاشلَين على main
+
+**المُشغِّل:** المستخدم لصق سجلّ فشل `docker compose up` حقيقيّاً (٣٩ صورة، بناء متوازٍ) — الفشل الحاسم:
+```
+[sahool-ai-agronomist 4/7] RUN pip install --no-cache-dir -r /tmp/requirements.txt
+ERROR: Could not find a version that satisfies the requirement pydantic-core==2.46.4 (from pydantic)
+ERROR: No matching distribution found for pydantic-core==2.46.4
+```
+وطلب: تحقّق من `main` وأصلح المشكلة مع التأكّد من باقي الخدمات.
+
+**اكتشاف: main تقدّم 16 التزاماً خارج انضباط الفرع.** `git fetch origin main` كشف أنّ `origin/main` تقدّم عن آخر تقدّمة معروفة لي (`6bf6465`) بـ16 التزاماً — دفعات مباشرة من مطوّر بشريّ (Haithm Garallah)، أبرزها:
+- `b42e879` "fix(raster): fix Element84 backfill failures — OverflowError, truecolor KeyError, white-image scale"
+- `0f778ab` "fixing pip mirrors" — بدّل `ARG PIP_INDEX_URL` الافتراضيّ في 29 Dockerfile من مرآة Tencent Cloud (`mirrors.cloud.tencent.com`) إلى PyPI الرسميّ، لأنّ مرآة Tencent — بحسب رسالة الالتزام — **كانت تُقدِّم حزمة pip بتجزئة (hash) مغلوطة**، ما يكسر البناء كليّاً.
+
+أعدتُ بناء فرعي المخصّص من هذا الأساس: `git checkout -B claude/code-review-34hO3 origin/main` — لا فقدان لأيّ عمل (main تحوي كامل تاريخ عملي حتى `6bf6465` بالإضافة إلى عمل المطوّر).
+
+**تشخيص فشل `pydantic-core==2.46.4`:** تحقّقتُ مباشرةً أنّ الحزمة موجودة فعلاً على PyPI الرسميّ (`pip index versions pydantic-core` أظهرها ضمن ٨٠+ إصدار متاح، و`pip download pydantic==2.13.4` نجح فوراً من هذه البيئة) — فالفشل **ليس** حزمة مفقودة بل عطل شبكة/فهرس عابر، مرجّح بسبب ضغط الشبكة من بناء ٣٩ صورة بالتوازي على مرآة PyPI الجديدة (بلا CDN مثل Tencent). **الدليل الحاسم:** `grep -rn "pip install" --include=Dockerfile*` أظهر أنّ `services/ai_agronomist/Dockerfile` هو الوحيد بين ~29 Dockerfile يشغّل `pip install` **بلا** `--timeout 300 --retries 10` — كلّ إخوته يملكونها. عطل عابر واحد بلا إعادة محاولة كافٍ لإسقاط بناء كامل.
+
+**الإصلاح — طبّقته على كلّ Dockerfile كان ناقصاً (فحصتُ الجميع via grep، لا افتراض جزئيّ):**
+- `services/ai_agronomist/Dockerfile` (الفاشل فعلاً في السجلّ الملصَق)
+- `services/weather-signal-engine/Dockerfile`، `services/weather-polygon-worker/Dockerfile`، `services/raster-tiler-service/Dockerfile` — كانت تفتقر الرايتين بالمثل
+- `services/knowledge-graph/Dockerfile`، `services/rag-retrieval/Dockerfile` — نمط مختلف (`python -m pip install --upgrade pip setuptools wheel && ... -r requirements.txt`)؛ أُضيفت الرايتان لكلا الاستدعاءين
+- `services/sam2-inference/Dockerfile` — استدعاء ثانٍ ثانويّ (تثبيت sam2 من git) كان بلا الرايتين أيضاً؛ أُضيفتا للاتّساق رغم أنّه ليس مصدر الفشل المُبلَّغ
+
+**حارسان كانا يفشلان فعلاً على `main` (`pytest -m unit` أحمر — اكتشفتُه أثناء التحقّق، لا في السجلّ الملصَق):**
+1. `tests_v9/test_dockerfile_pip_mirror_guard.py` — لم يُحدَّث بعد `0f778ab`؛ كان لا يزال يفرض «كلّ Dockerfile يجب أن يُشير افتراضيّاً إلى مرآة Tencent» فيفشل على كلّ الـ29 ملفّاً التي بدّلها المطوّر بحقّ. أعدتُ كتابته بالكامل: (أ) يفرض الآن PyPI افتراضيّاً لا Tencent (مع توثيق التاريخ التشغيليّ الكامل في docstring: لماذا Tencent أُضيفت 2026-07-08 ثمّ أُزيلت 2026-07-09 لتلف الحزمة)، (ب) اختبار جديد `test_pip_installs_pass_timeout_and_retries` يفرض وجود `--timeout`/`--retries` على كلّ استدعاء pip install — يمنع تكرار فشل `ai_agronomist` تحديداً.
+2. `tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py::test_full_switch_cdse_failclosed` (ملفّ جديد من `b42e879`) — فشل بـ`ModuleNotFoundError: No module named 'raster_scene_model'`. السبب: الملفّ يحمّل `stac_search.py` عبر `importlib.util.spec_from_file_location` (استيراد مباشر بمسار، لا حزمة) لكنّه نسي `sys.path.insert(0, str(_RASTER))` — نمط قياسيّ في كلّ اختبار مشابه (`test_raster_scene_model_v63.py` وغيره). بعد إصلاح الاستيراد ظهر عطل ثانٍ: التأكيد `"cdse" in detail.lower()` افترض `detail` نصّاً حرّاً بينما `stac_search.py` يُعيد فعلاً dict مُهيكَلاً (`{"message": ..., "fallback_suggestion": {"suggested_provider": "element84", ...}}` — تصميم متعمَّد موثَّق في `raster_scene_model.provider_fallback_suggestion`). صحّحتُ التأكيد ليقرأ `detail["message"]` و`detail["fallback_suggestion"]["suggested_provider"]` — **لم أُضعِف** الفحص، بل قوّيته (يتحقّق الآن من الحقول المُهيكَلة الفعليّة لا نصّ حرّ تخمينيّ).
+
+**صدق:** كلا الحارسين كانا خطأً حقيقيّاً في كود الاختبار من دفعات المطوّر المباشرة (نسيان تحديث حارس بعد قرار مُعاكِس؛ نسيان سطر sys.path قياسيّ) — لا خطأ في كود الإنتاج (`stac_search.py` سليم وصحيح التصميم). تنسيق ruff بحت (بلا تغيير منطق) لملفّين إضافيّين من نفس الدفعات: `services/raster-service/raster_pixel_processing.py`، `tests_v9/test_raster_reflectance_scaling.py`.
+
+**قيد صادق:** لا Docker daemon في بيئة عملي (`docker build` يفشل بـ«failed to connect to the docker API»). لم أُعِد بناء صورة `sahool-ai-agronomist` فعليّاً لأؤكّد نجاح البناء حيّاً؛ التحقّق اعتمد على: (أ) تأكيد وجود الحزمة الحقيقيّ على PyPI عبر `pip index`/`pip download` من بيئتي، (ب) مطابقة نمط الإصلاح لكلّ الخدمات الأخرى التي تبني بنجاح بنفس الرايتين، (ج) `docker compose config --no-interpolate` للتحقّق من سلامة بنية YAML. **يبقى تأكيد حيّ مطلوب** من المستخدم عند إعادة تشغيل `docker compose up` على بنيته الفعليّة.
+
+**التحقّق المستقلّ الكامل:** `pytest -m unit` **2844 نجاح / 5 تخطٍّ** (0 فشل — كان فشلان قبل الإصلاح) · حُرّاس منصّة (بـCWD الصحيح `services/sahool-platform/`) **3576 نجاح** · tsc **0** · vitest **1100/155** · ruff format+check نظيف بالكامل (`services/ bots/ agents/ tests_v9/`) · `docker compose -f docker-compose.v9.yml config --no-interpolate` صالح بنيويّاً · release مُعاد بناؤه والتحقّق منه (**3619** checksum).
+
+---
+
 ## 2026-07-09 — إصلاح تكرار OpenAPI operation_id في proxy الخدمات الداخليّة
 
 أرشيف + تقرير `openapi_proxy_operation_id_fix` (متابعة بعد الشهادة النهائيّة لـSoR وإصلاح jwt). **الفارق الحقيقيّ عن `9cc6b2a`:** 3 أسطر فقط في ملفّ واحد + حارس ساكن جديد — تحقّقتُ بـ`diff` أنّ باقي الأرشيف (نسخة كاملة للمستودع على أساس `d01a7a9`) ضجيج بائت محض.

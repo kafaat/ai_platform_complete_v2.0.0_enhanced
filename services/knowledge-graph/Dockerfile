@@ -13,8 +13,8 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 
 WORKDIR /app
 COPY services/knowledge-graph/requirements.txt .
-RUN python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
-    && python -m pip install --no-cache-dir -r requirements.txt
+RUN python -m pip install --no-cache-dir --timeout 300 --retries 10 --upgrade pip setuptools wheel \
+    && python -m pip install --no-cache-dir --timeout 300 --retries 10 -r requirements.txt
 COPY services/sahool-platform/core /app/core
 # SEC-3: shared gateway-trusted identity helpers (shared.security.gateway_deps).
 # Must be copied or the container crashes at import (ModuleNotFoundError: shared).

@@ -31,6 +31,12 @@ pytestmark = pytest.mark.unit
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _RASTER = _ROOT / "services" / "raster-service"
+# stac_search.py يُحمَّل هنا عبر importlib.util.spec_from_file_location (استيراد مباشر
+# بمسار ملفّ، لا حزمة)، فاستيراداته الداخليّة المؤجَّلة مثل
+# ``from raster_scene_model import provider_fallback_suggestion`` (فرع fail-closed) تحتاج
+# services/raster-service على sys.path — نفس نمط test_raster_scene_model_v63.py.
+if str(_RASTER) not in sys.path:
+    sys.path.insert(0, str(_RASTER))
 
 # ─────────────────────────────────────────────────────────────────────────────
 # حارس sys.modules — يُعيد كلّ تعديل بعد كلّ اختبار تلقائيّاً.
@@ -46,10 +52,7 @@ def _restore_sys_modules():
     saved = {k: sys.modules.get(k) for k in _GUARDED_MODULES}
     # نزيل أيضاً أيّ وحدة stac_search_* مُحمَّلة باسم مؤقّت كي لا تتراكم.
     stac_keys_before = {k for k in sys.modules if k.startswith("stac_search_")}
-    cdse_proc_keys_before = {
-        k for k in sys.modules
-        if k.startswith("raster_cdse_proc")
-    }
+    cdse_proc_keys_before = {k for k in sys.modules if k.startswith("raster_cdse_proc")}
     yield
     # استعادة الوحدات المحفوظة
     for key, val in saved.items():
@@ -64,9 +67,11 @@ def _restore_sys_modules():
         if k.startswith("raster_cdse_proc") and k not in cdse_proc_keys_before:
             sys.modules.pop(k, None)
 
+
 # ─────────────────────────────────────────────────────────────────────────────
 # مساعدات
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 def _read(rel: pathlib.Path) -> str:
     return rel.read_text(encoding="utf-8")
@@ -75,6 +80,7 @@ def _read(rel: pathlib.Path) -> str:
 # ─────────────────────────────────────────────────────────────────────────────
 # القسم ١ — حُرّاس الإعدادات الساكنة (بلا استيراد)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestStaticProviderConfig:
     """الإعداد الافتراضيّ يجب أن يكون element84؛ والتبديل إلى CDSE يتمّ بمتغيّر البيئة."""
@@ -94,18 +100,14 @@ class TestStaticProviderConfig:
     def test_stac_search_failclosed_without_cdse_credentials(self):
         src = _read(_RASTER / "stac_search.py")
         idx = src.find("async def stac_search(")
-        body = src[idx: idx + 2000]
-        assert "not _cdse.is_configured()" in body, (
-            "غياب اعتمادات CDSE يجب أن يُفشَل مُغلَقاً"
-        )
-        assert "status_code=503" in body, (
-            "الفشل المُغلَق يجب أن يُعيد 503"
-        )
+        body = src[idx : idx + 2000]
+        assert "not _cdse.is_configured()" in body, "غياب اعتمادات CDSE يجب أن يُفشَل مُغلَقاً"
+        assert "status_code=503" in body, "الفشل المُغلَق يجب أن يُعيد 503"
 
     def test_element84_search_returns_provider_element84_tag(self):
         src = _read(_RASTER / "stac_search.py")
         idx = src.find("async def stac_search_element84(")
-        body = src[idx: idx + 2000]
+        body = src[idx : idx + 2000]
         assert '"provider": "element84"' in body, (
             "stac_search_element84 يجب أن يُعلِّم المشاهد بـprovider=element84"
         )
@@ -116,7 +118,7 @@ class TestStaticProviderConfig:
     def test_cdse_search_returns_provider_cdse_tag(self):
         src = _read(_RASTER / "stac_search.py")
         idx = src.find("async def stac_search_cdse(")
-        body = src[idx: idx + 2000]
+        body = src[idx : idx + 2000]
         assert '"provider": "cdse"' in body
         assert '"source": "cdse-catalog"' in body
 
@@ -124,7 +126,7 @@ class TestStaticProviderConfig:
         """band_urls_from_assets يُقرأ من Element84 — التعيين يجب أن يشمل rededge1/swir16/swir22."""
         src = _read(_RASTER / "stac_search.py")
         idx = src.find("def band_urls_from_assets(")
-        body = src[idx: idx + 1000]
+        body = src[idx : idx + 1000]
         assert '"rededge1"' in body, "rededge1 (B05) يجب أن يُعيَّن إلى rededge"
         assert '"swir16"' in body, "swir16 (B11) يجب أن يُعيَّن إلى swir1"
         assert '"swir22"' in body, "swir22 (B12) يجب أن يُعيَّن إلى swir2"
@@ -159,17 +161,14 @@ class TestStaticProviderConfig:
         assert "cdse_client.CdseQuotaExhausted" in src, (
             "raster_cdse_processing يجب أن يلتقط CdseQuotaExhausted"
         )
-        assert '"cdse_quota_exhausted"' in src, (
-            "حالة النفاد يجب أن تُوسَم بـcdse_quota_exhausted"
-        )
-        assert "break" in src, (
-            "يجب كسر حلقة المؤشّرات عند نفاد الرصيد"
-        )
+        assert '"cdse_quota_exhausted"' in src, "حالة النفاد يجب أن تُوسَم بـcdse_quota_exhausted"
+        assert "break" in src, "يجب كسر حلقة المؤشّرات عند نفاد الرصيد"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # القسم ٢ — band_urls_from_assets وحدة (بلا شبكة)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestBandUrlsFromAssets:
     """التحقّق من تعيين أصول Element84 إلى حقول BandMapping."""
@@ -177,9 +176,7 @@ class TestBandUrlsFromAssets:
     @pytest.fixture(autouse=True)
     def _import(self):
         # stac_search.py بلا تبعيّات ثقيلة — يمكن استيراده مباشرةً.
-        spec = importlib.util.spec_from_file_location(
-            "stac_search_e2e", _RASTER / "stac_search.py"
-        )
+        spec = importlib.util.spec_from_file_location("stac_search_e2e", _RASTER / "stac_search.py")
         mod = importlib.util.module_from_spec(spec)
         # cdse_client يُستورَد داخل دوالّ async — لا يُحتاج عند اختبار band_urls_from_assets.
         # نستخدم إسناداً مباشراً (لا setdefault) — _restore_sys_modules يُعيد القيمة الأصليّة.
@@ -191,14 +188,14 @@ class TestBandUrlsFromAssets:
 
     def test_typical_element84_assets_complete(self):
         assets = {
-            "blue":     {"href": "https://example.com/B02.tif"},
-            "green":    {"href": "https://example.com/B03.tif"},
-            "red":      {"href": "https://example.com/B04.tif"},
-            "nir":      {"href": "https://example.com/B08.tif"},
+            "blue": {"href": "https://example.com/B02.tif"},
+            "green": {"href": "https://example.com/B03.tif"},
+            "red": {"href": "https://example.com/B04.tif"},
+            "nir": {"href": "https://example.com/B08.tif"},
             "rededge1": {"href": "https://example.com/B05.tif"},
-            "swir16":   {"href": "https://example.com/B11.tif"},
-            "swir22":   {"href": "https://example.com/B12.tif"},
-            "scl":      {"href": "https://example.com/SCL.tif"},
+            "swir16": {"href": "https://example.com/B11.tif"},
+            "swir22": {"href": "https://example.com/B12.tif"},
+            "scl": {"href": "https://example.com/SCL.tif"},
         }
         result = self.fn(assets)
         assert result["blue"] == "https://example.com/B02.tif"
@@ -208,12 +205,8 @@ class TestBandUrlsFromAssets:
         assert result["rededge"] == "https://example.com/B05.tif", (
             "rededge1 يجب أن يُعيَّن إلى rededge"
         )
-        assert result["swir1"] == "https://example.com/B11.tif", (
-            "swir16 يجب أن يُعيَّن إلى swir1"
-        )
-        assert result["swir2"] == "https://example.com/B12.tif", (
-            "swir22 يجب أن يُعيَّن إلى swir2"
-        )
+        assert result["swir1"] == "https://example.com/B11.tif", "swir16 يجب أن يُعيَّن إلى swir1"
+        assert result["swir2"] == "https://example.com/B12.tif", "swir22 يجب أن يُعيَّن إلى swir2"
         assert result["scl"] == "https://example.com/SCL.tif"
 
     def test_missing_optional_bands_return_none(self):
@@ -225,10 +218,10 @@ class TestBandUrlsFromAssets:
     def test_extra_assets_ignored(self):
         """الأصول الزائدة (visual, thumbnail, rededge2…) لا تُضاف إلى النتيجة."""
         assets = {
-            "blue":      {"href": "https://example.com/B02.tif"},
-            "visual":    {"href": "https://example.com/TCI.tif"},
+            "blue": {"href": "https://example.com/B02.tif"},
+            "visual": {"href": "https://example.com/TCI.tif"},
             "thumbnail": {"href": "https://example.com/thumb.jpg"},
-            "rededge2":  {"href": "https://example.com/B06.tif"},
+            "rededge2": {"href": "https://example.com/B06.tif"},
         }
         result = self.fn(assets)
         assert "visual" not in result
@@ -242,6 +235,7 @@ class TestBandUrlsFromAssets:
 # القسم ٣ — stac_search_element84 محاكاة (mock stac_query)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 def _make_element84_feature(item_id: str, datetime: str, cloud: float) -> dict:
     return {
         "id": item_id,
@@ -252,16 +246,16 @@ def _make_element84_feature(item_id: str, datetime: str, cloud: float) -> dict:
             "platform": "sentinel-2a",
         },
         "assets": {
-            "blue":     {"href": f"https://cdn.example.com/{item_id}/B02.tif"},
-            "green":    {"href": f"https://cdn.example.com/{item_id}/B03.tif"},
-            "red":      {"href": f"https://cdn.example.com/{item_id}/B04.tif"},
-            "nir":      {"href": f"https://cdn.example.com/{item_id}/B08.tif"},
+            "blue": {"href": f"https://cdn.example.com/{item_id}/B02.tif"},
+            "green": {"href": f"https://cdn.example.com/{item_id}/B03.tif"},
+            "red": {"href": f"https://cdn.example.com/{item_id}/B04.tif"},
+            "nir": {"href": f"https://cdn.example.com/{item_id}/B08.tif"},
             "rededge1": {"href": f"https://cdn.example.com/{item_id}/B05.tif"},
-            "swir16":   {"href": f"https://cdn.example.com/{item_id}/B11.tif"},
-            "swir22":   {"href": f"https://cdn.example.com/{item_id}/B12.tif"},
-            "scl":      {"href": f"https://cdn.example.com/{item_id}/SCL.tif"},
+            "swir16": {"href": f"https://cdn.example.com/{item_id}/B11.tif"},
+            "swir22": {"href": f"https://cdn.example.com/{item_id}/B12.tif"},
+            "scl": {"href": f"https://cdn.example.com/{item_id}/SCL.tif"},
             "thumbnail": {"href": f"https://cdn.example.com/{item_id}/thumb.jpg"},
-            "visual":   {"href": f"https://cdn.example.com/{item_id}/TCI.tif"},
+            "visual": {"href": f"https://cdn.example.com/{item_id}/TCI.tif"},
         },
     }
 
@@ -309,9 +303,7 @@ class TestStacSearchElement84Unit:
         assert result["count"] == 2
         assert result["source"] == "element84-earth-search"
         for item in result["items"]:
-            assert item["provider"] == "element84", (
-                "كلّ مشهد يجب أن يُوسَم بـprovider=element84"
-            )
+            assert item["provider"] == "element84", "كلّ مشهد يجب أن يُوسَم بـprovider=element84"
         # التحقّق من تعيين النطاقات
         first = result["items"][0]
         assert first["bands_urls"]["rededge"] is not None, "rededge1→rededge يجب أن يُعيَّن"
@@ -356,8 +348,17 @@ class TestStacSearchElement84Unit:
             )
         )
         item = result["items"][0]
-        required_keys = {"item_id", "datetime", "cloud_cover_pct", "bbox", "bands_urls",
-                         "thumbnail_url", "preview_url", "platform", "provider"}
+        required_keys = {
+            "item_id",
+            "datetime",
+            "cloud_cover_pct",
+            "bbox",
+            "bands_urls",
+            "thumbnail_url",
+            "preview_url",
+            "platform",
+            "provider",
+        }
         missing = required_keys - set(item.keys())
         assert not missing, f"حقول مفقودة: {missing}"
         assert item["item_id"] == "S2A_2025_ABC"
@@ -369,6 +370,7 @@ class TestStacSearchElement84Unit:
 # ─────────────────────────────────────────────────────────────────────────────
 # القسم ٤ — stac_search() توجيه المزوّد (mock كامل)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestStacSearchProviderRouting:
     """stac_search() يوجّه إلى المزوّد الصحيح بحسب HISTORICAL_SEARCH_PROVIDER."""
@@ -450,6 +452,7 @@ class TestStacSearchProviderRouting:
 
         # أعد إضافة المزوّد الوهميّ المُهيَّأ في الوحدة
         import importlib as _il
+
         _il.import_module("cdse_client")
 
         self._run(
@@ -486,14 +489,13 @@ class TestStacSearchProviderRouting:
                     limit=10,
                 )
             )
-        assert not called_e84, (
-            "Element84 يجب ألّا يُستدعى كارتداد صامت — لا silent fallback"
-        )
+        assert not called_e84, "Element84 يجب ألّا يُستدعى كارتداد صامت — لا silent fallback"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # القسم ٥ — stac_search_cdse بنية الاستجابة (mock CDSE client)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestStacSearchCdseResponseFormat:
     """stac_search_cdse تُعيد البنية الصحيحة."""
@@ -526,13 +528,12 @@ class TestStacSearchCdseResponseFormat:
             }
         ]
 
-        import types as _t
         import asyncio as _a
+        import types as _t
 
-        fake_client = _t.SimpleNamespace(
-            search_scenes=lambda **kw: fake_scenes
-        )
+        fake_client = _t.SimpleNamespace(search_scenes=lambda **kw: fake_scenes)
         import sys as _sys
+
         _sys.modules["cdse_client"].get_client = lambda: fake_client  # type: ignore[attr-defined]
 
         result = self._run(
@@ -584,6 +585,7 @@ class TestStacSearchCdseResponseFormat:
 # القسم ٦ — CdseQuotaExhausted: توقّف الحلقة + تعليم الـJob
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestCdseQuotaExhaustedBreaksLoop:
     """عند نفاد رصيد CDSE، run_cdse_processing يكسر الحلقة فوراً ويُعلِّم الـJob."""
 
@@ -601,9 +603,9 @@ class TestCdseQuotaExhaustedBreaksLoop:
 
     def _make_fake_ctx(self, process_side_effect):
         """يبني ctx وهميّاً يرفع process_side_effect عند الاستدعاء."""
+        import enum
         import sys as _sys
         import types as _t
-        import enum
 
         # تأكّد من وجود cdse_client وهميّ
         fake_cdse = types.ModuleType("cdse_client")
@@ -646,6 +648,7 @@ class TestCdseQuotaExhaustedBreaksLoop:
 
     def test_quota_exhausted_breaks_after_first_index(self):
         """CdseQuotaExhausted عند المؤشّر الأوّل يوقف الحلقة فوراً."""
+
         # يجب أن تُنشَأ fake_cdse + FakeQuotaExhausted أوّلاً، ثمّ تُحمَّل الوحدة —
         # كي يكون except cdse_client.CdseQuotaExhausted يلتقط نفس الصنف المُستخدَم في raise.
         class _FakeQuotaExhausted(RuntimeError):
@@ -729,9 +732,7 @@ class TestCdseQuotaExhaustedBreaksLoop:
         assert job.get("cdse_quota_exhausted") is True, (
             "يجب تعليم الـJob بـcdse_quota_exhausted=True"
         )
-        assert "cdse_error_reason" in job, (
-            "يجب حفظ سبب النفاد في cdse_error_reason"
-        )
+        assert "cdse_error_reason" in job, "يجب حفظ سبب النفاد في cdse_error_reason"
         # المؤشّر الأوّل سُجِّل كفاشل بسبب نفاد الرصيد
         failed = job.get("cdse_failed", {})
         assert "ndvi" in failed
@@ -742,6 +743,7 @@ class TestCdseQuotaExhaustedBreaksLoop:
 
     def test_quota_exhausted_on_second_index_stops_third(self):
         """CdseQuotaExhausted في المؤشّر الثاني يوقف الثالث — لا انتظار."""
+
         # نُعدّ cdse_client أوّلاً بـCdseQuotaExhausted الصحيح، ثمّ نحمّل الوحدة.
         class _FakeQE2(RuntimeError):
             pass
@@ -768,7 +770,7 @@ class TestCdseQuotaExhaustedBreaksLoop:
                 calls.append(index)
                 if index == "ndmi":
                     raise _FakeQE2("quota")
-                return b"\x49\x49\x2A\x00"  # TIFF magic bytes
+                return b"\x49\x49\x2a\x00"  # TIFF magic bytes
 
             def search_scenes(self, **kw):
                 return []
@@ -796,16 +798,19 @@ class TestCdseQuotaExhaustedBreaksLoop:
                 pass
 
             class ProcessRequest:
-                def __init__(self, **kw): pass
+                def __init__(self, **kw):
+                    pass
 
             class IndicatorKind:
-                def __init__(self, v): self.v = v
+                def __init__(self, v):
+                    self.v = v
 
             class SourceFormat:
                 sentinel2_l2a = "sentinel2_l2a"
 
             class BandMapping:
-                def __init__(self): pass
+                def __init__(self):
+                    pass
 
         ctx2 = Ctx2()
         ctx2._jobs.set("job-seq", {"job_id": "job-seq"})
@@ -815,6 +820,7 @@ class TestCdseQuotaExhaustedBreaksLoop:
         # (المؤشّر الأوّل سيصل إلى process_index ويُعيد تيف مصغَّر)
         # لتجاوز حفظ الملفّ نُعيّن UPLOAD_DIR لمجلّد موجود
         import tempfile
+
         ctx2.UPLOAD_DIR = tempfile.gettempdir()
 
         class FakeReq2:
@@ -838,9 +844,7 @@ class TestCdseQuotaExhaustedBreaksLoop:
         # المؤشّر الأوّل جُرِّب على الأقلّ، الحلقة توقّفت عند ndmi أو بعده
         failed = job.get("cdse_failed", {})
         # المهمّ: msi لا يجب أن يُجرَّب بعد نفاد الرصيد عند ndmi
-        assert "msi" not in failed, (
-            "msi لا يجب أن يُعالَج بعد CdseQuotaExhausted في ndmi"
-        )
+        assert "msi" not in failed, "msi لا يجب أن يُعالَج بعد CdseQuotaExhausted في ndmi"
         assert not any(k in calls for k in ["msi"]), (
             "process_index لا يجب أن يُستدعى لـmsi بعد نفاد الرصيد"
         )
@@ -849,6 +853,7 @@ class TestCdseQuotaExhaustedBreaksLoop:
 # ─────────────────────────────────────────────────────────────────────────────
 # القسم ٧ — تكامل العامل + Element84 (static source analysis)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestBackfillWorkerElement84Integration:
     """العامل يحترم مزوّد المشهد ويُخزَّن provider_key بشكل صحيح."""
@@ -881,13 +886,17 @@ class TestBackfillWorkerElement84Integration:
 # القسم ٨ — حارس تسرّب Earth Search (لا مسار backfill يصل element84 مباشرةً)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestNoDirectEarthSearchInBackfillPaths:
     """لا يجب أن يشير أيّ ملفّ backfill/router إلى Earth Search مباشرةً."""
 
-    @pytest.mark.parametrize("filename", [
-        "backfill_scan_worker.py",
-        "routers/fields.py",
-    ])
+    @pytest.mark.parametrize(
+        "filename",
+        [
+            "backfill_scan_worker.py",
+            "routers/fields.py",
+        ],
+    )
     def test_no_direct_earth_search_host(self, filename):
         src = _read(_RASTER / filename)
         assert "earth-search.aws.element84.com" not in src, (
@@ -912,6 +921,7 @@ class TestNoDirectEarthSearchInBackfillPaths:
 # ─────────────────────────────────────────────────────────────────────────────
 # القسم ٩ — تكامل نهائيّ (محاكاة شاملة: env=element84 → item.provider=element84)
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestEndToEndElement84Switch:
     """سيناريو E2E كامل: ضبط المتغيّر → بحث → نتائج element84."""
@@ -1004,11 +1014,16 @@ class TestEndToEndElement84Switch:
                 )
             )
         assert exc_info.value.status_code == 503
-        # الرسالة يجب أن تذكر CDSE والاعتمادات والطريقة البديلة
+        # detail مُهيكَل (dict) لا نصّ حرّ — {"message": ..., "fallback_suggestion": {...}}
         detail = exc_info.value.detail
-        assert "CDSE" in detail or "cdse" in detail.lower(), (
-            "رسالة الخطأ يجب أن تُشير إلى CDSE"
-        )
-        assert "element84" in detail.lower() or "HISTORICAL_SEARCH_PROVIDER" in detail, (
+        assert isinstance(detail, dict), "detail يجب أن يكون مُهيكَلاً (dict) لا نصّاً حرّاً"
+        message = detail["message"]
+        # الرسالة يجب أن تذكر CDSE والاعتمادات والطريقة البديلة
+        assert "CDSE" in message or "cdse" in message.lower(), "رسالة الخطأ يجب أن تُشير إلى CDSE"
+        assert "element84" in message.lower() or "HISTORICAL_SEARCH_PROVIDER" in message, (
             "رسالة الخطأ يجب أن تُرشد إلى HISTORICAL_SEARCH_PROVIDER=element84 كبديل"
         )
+        # الاقتراح الاحتياطيّ المُهيكَل يوجّه صراحةً إلى element84
+        suggestion = detail["fallback_suggestion"]
+        assert suggestion["suggested_provider"] == "element84"
+        assert "HISTORICAL_SEARCH_PROVIDER=element84" in suggestion["action"]

@@ -110,7 +110,7 @@ def test_process_pixels_truecolor_guard_exists():
     src = _src("raster_pixel_processing.py")
     # يجب أن يوجد الحارس قبل سطر الجلب من القاموس
     guard_pos = src.find('req.indicator.value == "truecolor"')
-    formula_pos = src.find('_INDICATOR_FORMULAS[req.indicator.value]')
+    formula_pos = src.find("_INDICATOR_FORMULAS[req.indicator.value]")
     assert guard_pos != -1, "حارس truecolor مفقود من process_pixels"
     assert formula_pos != -1, "_INDICATOR_FORMULAS lookup مفقود"
     # الحارس يجب أن يظهر قبل سطر جلب القاموس (في دالّة process_pixels على الأقل)
@@ -139,7 +139,9 @@ def test_truecolor_sentinel2_fallback_scale_exists():
         "_process_pixels_truecolor لا يتحقّق من source_format=sentinel2_l2a للمقياس الاحتياطي"
     )
     # المقياس 0.0001 (÷10000) يجب أن يُطبَّق كارتداد في _process_pixels_truecolor
-    truecolor_section = src[src.find("def _process_pixels_truecolor") : src.find("def process_pixels")]
+    truecolor_section = src[
+        src.find("def _process_pixels_truecolor") : src.find("def process_pixels")
+    ]
     assert "0.0001" in truecolor_section, (
         "_process_pixels_truecolor لا تطبّق مقياس Sentinel-2 L2A الاحتياطي (0.0001)"
     )

@@ -41,8 +41,8 @@ ARG SAM2_REF=main
 ENV SAM2_BUILD_CUDA=0
 # ضمان توفّر خلفيّة البناء لـ--no-build-isolation (setuptools/wheel/torch حاضرة عادةً
 # في صورة pytorch الأساس؛ نثبّتها صراحةً كتأمين ضدّ صورة قاعدة نحيلة).
-RUN pip install --no-cache-dir --upgrade "setuptools>=61.0" wheel \
-    && pip install --no-cache-dir --no-build-isolation \
+RUN pip install --no-cache-dir --timeout 300 --retries 10 --upgrade "setuptools>=61.0" wheel \
+    && pip install --no-cache-dir --timeout 300 --retries 10 --no-build-isolation \
         "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}"
 
 COPY services/sam2-inference/ /app/
