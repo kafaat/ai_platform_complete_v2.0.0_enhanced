@@ -11,5 +11,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install -r tests_v9/requirements-test.txt
+      # اختبارات العقد المستهدفة (weather/edge) تستورد fastapi/TestClient وonnxruntime-path —
+      # تبعيّات الخدمتين إلزاميّة لا tests_v9 فقط (نفس درس jwt في workflow الإغلاق:
+      # التحقّق المحلّي لا يُحاكي fresh runner).
+      - run: >-
+          python -m pip install
+          -r tests_v9/requirements-test.txt
+          -r services/weather-service/requirements.txt
+          -r services/edge-inference/requirements.txt
       - run: scripts/ci/runtime_real_smoke.sh
