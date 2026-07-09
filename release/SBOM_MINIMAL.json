@@ -8805,10 +8805,50 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25c705c3b734087c721ad626ae3e1c9974fed3845ff26655861c7365ac580252"
+          "content": "2070e82d00ce474e5c4c7cd5a5c679a6c35ae0befdbdfa12d072a10257485c71"
+        }
+      ],
+      "name": "services/decision-service/backfill.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "120197a226d876565835d8d5eb9959bf41e4c5779c00d191d9c89203c9bfb67e"
         }
       ],
       "name": "services/decision-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe3fa9758bf74599550438ac4800a4b5ce6a98633141cf04dd2a10ae45cccc52"
+        }
+      ],
+      "name": "services/decision-service/migration_runner.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "61c288a43787acead1f18c5e726c3fb0a70fcb04408866e5fadf95c7c59a6188"
+        }
+      ],
+      "name": "services/decision-service/migrations/001_decision_sor.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "37d782e471ff7a61eaa322d394988eac5ce5ee509f4af2fdcc783483a7b75d19"
+        }
+      ],
+      "name": "services/decision-service/persistence.py",
       "type": "file"
     },
     {
@@ -8819,6 +8859,16 @@
         }
       ],
       "name": "services/decision-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0e3eebbd09ff94857d5496767b28bdacef9de05fca7941fe9f55f6f799c7b34f"
+        }
+      ],
+      "name": "services/decision-service/tests/conftest.py",
       "type": "file"
     },
     {
@@ -20315,10 +20365,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "218291242f04a9a0dc7e1841017083245841579255f8d50fe4d2918f5fbb7840"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4397f9cc7a65dc582eea19d26bd6a4d761296b23494508a0abe49e7f7eddc437"
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_db_ownership_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d01a4d968ad4a2e651b5feb7494c4f87badedd5a01518203b3f7ffff4cef3415"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
       "type": "file"
     },
     {
@@ -20339,6 +20409,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e6a7b8d0fabe44d0ef405cd6cc7970e531496340942a5e9b5d79bfeb416b5ba"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
       "type": "file"
     },
     {

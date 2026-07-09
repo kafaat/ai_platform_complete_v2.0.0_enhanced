@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-07-09 — Decision SoR staging probe (P0-3/P0-4) + إصلاح فجوة تثبيت تبعيّات CI حرجة
+
+أرشيف `d01a7a9_decision_sor_staging_probe` — يبني فوق جاهزيّة الـSoR (P0-2). **الفارق الحقيقيّ عن الأساس المحلّيّ الحاليّ (`4cfa233`) بعد استبعاد الضجيج (الأرشيف مبنيّ على `d01a7a9` أقدم فأعاد نسخاً بائتة من tsconfig المكسور + تنسيق ruff/tsc سبق إصلاحه):** ٩ ملفّات جديدة فعليّاً + إضافة صغيرة لـmain.py.
+
+**P0-3 (shadow/promotion control surface):**
+- `services/decision-service/cutover.py`: `readiness_from_env()` نموذج صرف (dataclass, لا I/O) يفصل بوضوح `can_enable_sor` (DB+migrations+backfill+tenant+outbox+staging-approval) عن `can_demote_platform` (كلّ ما سبق + production-approval) — لا يمكن تخمين إسقاط كتابة المنصّة بعلم واحد.
+- `/v1/cutover/readiness` نقطة جديدة في `main.py` (أضفتُها يدويّاً: import + endpoint + حقلا `cutover_readiness_endpoint`/`demotion_gate` في `/contract` — لم أنسخ main.py الأرشيف لأنّه كان يُعيد كسر تنسيقي/بنيويّ سبق إصلاحه في `4cfa233`).
+- `services/sahool-platform/api/decision_sor_mode.py`: `get_platform_decision_sor_mode()` — `SAHOOL_DECISION_WRITE_MODE` (platform_sor افتراضيّ / shadow / decision_service_sor)، **لم يُستهلَك من أيّ راوتر بعد** (تحقّقتُ: grep صفر استيراد خارج ملفّه واختباره وgate). سطح تحكّم مُجهَّز، لا تفعيل.
+- تأكيد صريح في اختبار جديد (`test_platform_router_still_contains_authoritative_writes_until_runtime_cutover`) أنّ `decision_record.py` ما زال يحوي `INSERT INTO decision_record`/`outcome_record` و`_mirror_to_decision_service` — مسار الكتابة الموثوق سليم.
+
+**P0-4 (staging probe harness):** `services/decision-service/staging_probe.py` — أداة CLI للمشغّل: dry-run افتراضيّ (لا شبكة/DB)، `--live` يتطلّب `SAHOOL_ENV≠production` + `DECISION_SERVICE_STAGING_PROBE_APPROVED=true` + `DECISION_SERVICE_STAGING_PROBE_ALLOW_LIVE=true` معاً، `--sample-write` منفصل تماماً (كتابة noop عبر BFF المنصّة بمفتاح idempotency). runbook + gate + حارس يفرضان هذا التسلسل نصّيّاً.
+
+**تحقّق-قبل-دمج:** رفضتُ نسخ ملفّات الأرشيف حرفيّاً حين تحتوي انحداراً معروفاً (نفس نمط الجلسات السابقة: tsconfig المكسور، تنسيق main.py/persistence.py/gate scripts القديم) — طبّقتُ فقط الإضافات الجوهريّة الجديدة يدويّاً أو بنسخ الملفّات الجديدة فعلاً (لا تعديل على موجود). ruff: 4 ملفّات جديدة احتاجت `--fix`+format (ترتيب استيراد، لا منطق).
+
+**⚠️ إصلاح CI حرج بعد الدمج (اكتُشِف من سجلّ GitHub Actions الفعليّ، لا محليّاً):** أوّل تشغيل حيّ لـ`field-workspace-production-closure.yml` (الذي أنشأتُه في جلسة سابقة) فشل: `ModuleNotFoundError: No module named 'jwt'` في خطوة "Field Workspace Python closure gate" — السبب: الـworkflow يستورد `api.main` (عبر `field_workspace_production_closure_gate.py::check_runtime_routes`) لكنّه **لم يُثبِّت تبعيّات المنصّة إطلاقاً** (فقط `actions/setup-python` بلا `pip install`). **لم أكتشف هذا محليّاً** لأنّ `jwt`/fastapi/asyncpg كلّها مثبَّتة مسبقاً في بيئة عملي — تحقّقي المحلّي لم يُحاكِ "fresh runner". الإصلاح: أضفتُ `pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow` (نفس أمر وظيفة Platform Unit Tests في `ci.yml`) كخطوة مبكرة قبل أيّ بوّابة تستورد `api.main`. **درس تشغيليّ مُسجَّل:** أيّ workflow جديد يستورد تطبيقاً حيّاً يحتاج تحقّقاً صريحاً من خطوة تثبيت التبعيّات — لا يكفي أن يعمل محليّاً.
+
+**توصيل الحَوكمة:** baseline وحدات المنصّة 589→590 (`api/decision_sor_mode.py` جديد ومُبرَّر).
+
+**التحقّق المستقلّ الكامل (بعد إصلاح CI):** tsc 0 · vitest **1100/155** · منصّة **3569** (+2 P0 حارس جديد، 56/56 في مجموعة حُرّاس الـworkflow) · tests_v9 unit **2806** · ruff CI نظيف · YAML صالح (كلا الملفّين) · release مُعاد بناؤه (3602 checksum).
+
+---
+
 ## 2026-07-09 — جاهزيّة cutover لـ decision-service SoR (بنية flag-gated آمنة)
 
 أرشيف `d01a7a9_decision_sor_cutover_readiness`. **يُنجِز مسار الترقية الذي وثّقتُه** (الجسر الانتقاليّ → SoR حقيقيّ) بأمان: **يجعل الـcutover قابلاً للتدقيق آليّاً دون قلب إنتاج**. `DECISION_SERVICE_SOR_CUTOVER_READINESS.md` يعلن الحالات (Mirror افتراضيّ / Staging SoR / Production SoR) والثوابت غير القابلة للتفاوض.

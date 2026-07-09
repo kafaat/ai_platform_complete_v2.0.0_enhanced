@@ -26,6 +26,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
+from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
 from persistence import (
     list_decision_records,
@@ -160,6 +161,16 @@ def readyz() -> dict[str, Any]:
     }
 
 
+@app.get("/v1/cutover/readiness")
+def cutover_readiness() -> dict[str, Any]:
+    """Fail-closed SoR promotion status.
+
+    This endpoint is intentionally stricter than `/readyz`: setting
+    DECISION_SERVICE_SOR_ENABLED alone is not enough to demote sahool-platform.
+    """
+    return readiness_from_env().as_dict()
+
+
 @app.get("/contract")
 def contract() -> dict[str, Any]:
     return {
@@ -178,6 +189,8 @@ def contract() -> dict[str, Any]:
             "after cutover: sahool-platform becomes orchestrator/BFF and decision-service persists"
         ),
         "persistence_gate": "DECISION_SERVICE_SOR_ENABLED=true + DATABASE_URL",
+        "cutover_readiness_endpoint": "/v1/cutover/readiness",
+        "demotion_gate": "DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED=true",
         "outbox": "decision_outbox_events",
         "note": "SoR disabled: " + _MIRROR_NOTE
         if not sor_enabled()
