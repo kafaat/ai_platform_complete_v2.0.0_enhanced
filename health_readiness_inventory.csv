@@ -5,8 +5,8 @@ services/ai_agronomist/main.py,healthz,/healthz,113,True,True,True,ok
 services/ai_agronomist/main.py,readyz,/readyz,323,True,True,True,ok
 services/decision-service/main.py,healthz,/healthz,150,True,True,True,ok
 services/decision-service/main.py,readyz,/readyz,155,True,True,True,ok
-services/edge-inference/main.py,health_check,/healthz,166,True,True,True,ok
-services/edge-inference/main.py,readyz,/readyz,363,True,True,True,ok
+services/edge-inference/main.py,health_check,/healthz,168,True,True,True,ok
+services/edge-inference/main.py,readyz,/readyz,365,True,True,True,ok
 services/field-segmentation/main.py,healthz,/healthz,370,True,True,True,ok
 services/field-segmentation/main.py,readyz,/readyz,380,True,True,True,ok
 services/indicators-service/main.py,healthz,/healthz,27,True,True,True,ok

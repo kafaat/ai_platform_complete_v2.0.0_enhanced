@@ -554,7 +554,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 166,
+    "line": 168,
     "method": "GET",
     "path": "/healthz",
     "function": "health_check"
@@ -562,7 +562,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 198,
+    "line": 200,
     "method": "POST",
     "path": "/inference/pest-detect",
     "function": "detect_pest"
@@ -570,7 +570,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 260,
+    "line": 262,
     "method": "POST",
     "path": "/inference/yield-estimate",
     "function": "estimate_yield"
@@ -578,7 +578,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 326,
+    "line": 328,
     "method": "POST",
     "path": "/sync/trigger",
     "function": "trigger_sync"
@@ -586,7 +586,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 358,
+    "line": 360,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -594,7 +594,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 363,
+    "line": 365,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"

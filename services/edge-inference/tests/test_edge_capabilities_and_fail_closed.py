@@ -14,6 +14,10 @@ EDGE = ROOT / "services" / "edge-inference"
 
 def _load_edge(monkeypatch, *, preserve_model_env: bool = False):
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "test-agent-token")
+    # CI runner بلا صلاحيّة كتابة على /data — وجِّه sync_queue لمجلّد مؤقّت.
+    import tempfile
+
+    monkeypatch.setenv("EDGE_SYNC_DIR", tempfile.mkdtemp(prefix="edge-sync-"))
     if not preserve_model_env:
         monkeypatch.delenv("PEST_MODEL_PATH", raising=False)
         monkeypatch.delenv("YIELD_MODEL_PATH", raising=False)

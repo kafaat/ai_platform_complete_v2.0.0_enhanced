@@ -76,7 +76,9 @@ def get_sync_service() -> CloudSyncService:
         _sync_service = CloudSyncService(
             cloud_url=os.getenv("SAHOOL_CLOUD_URL", "https://api.sahool.local"),
             token=os.getenv("EDGE_SYNC_TOKEN", ""),
-            sync_dir="/data/sync_queue",
+            # قابل للضبط: الحاوية تستخدم /data (volume)؛ بيئات الاختبار/CI بلا صلاحيّة
+            # كتابة على الجذر تمرّر EDGE_SYNC_DIR لمجلّد مؤقّت.
+            sync_dir=os.getenv("EDGE_SYNC_DIR", "/data/sync_queue"),
         )
     return _sync_service
 

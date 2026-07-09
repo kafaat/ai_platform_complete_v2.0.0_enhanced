@@ -9025,7 +9025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e78eeb1e53f098914a56fd7f26a28d025cac381a9e1fe5d463f2a496733319ef"
+          "content": "3fa53f78910c164244e4a032cd3765d0c4b64d611272cfaf5ef365ceaf5d455f"
         }
       ],
       "name": "services/edge-inference/main.py",
@@ -9105,7 +9105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75cc2560a03d54335c9a2bc88c3384bcc714a0dbc1c43db116294e12ae3af9e4"
+          "content": "02adb597bc2d338177c8c56e4a006544a05308f6d18b8833edd4db48633d8e9b"
         }
       ],
       "name": "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py",
