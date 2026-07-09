@@ -325,7 +325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b36bc9b8f24f14c367a784afec95cb7d3ab5f70f868df918287a6a14be3e89e7"
+          "content": "ae542c8ecef4030a35358bde7a8cfe3beef06303a84149820f1940feb58d6493"
         }
       ],
       "name": "frontend/package.json",
@@ -4675,6 +4675,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9ebaaa0e77be9a7038acafb652797fc39785181efcba964ccd89bcbad84aa19b"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceContextBanner.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1817bee193f18f1edc6935b1fe2f8efdbe45987ccb05321ae5e32ae4cd822bec"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceDataPanels.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5782be9acbaa705657f837cf1edf1197e1f578ef07f9babec13020dac299878b"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceImageryPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6c5317fd1756ce8a510d7f9e876b1954071be17127698b5a0e8ff019fdf57a3f"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "191a6590f8f8a29039ca40ea4f64d172d55359dfb398c90b193ae9c704bcd661"
         }
       ],
@@ -4689,6 +4729,96 @@
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "88cff9f969f7b520e171b6bb956a545a7fceb6fd83b6c29fc86ef7a1bd7fb619"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceOperationsPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "080cebde77766ac00b159ee6606b6b30ec58d38238e0f716c4f296b2bd9a2582"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspacePriorityPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "10fdd5c0642ecec020d66d162353ed6a1f6a8f181327d4052e41b86c640686cf"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceRecommendationsPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "20438bf3c88359c51f0871d59d9f1e8d7b000e7f836ab45ff9a1826d02bf9491"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceReportsPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29de2e45e0be27f21560e9c8b4706fff3c91c15463a823d968843c86c8f51f5c"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "69dfdeb8ea6a6661b05b6a9544dca3d78f02a1ee757315fdfc3e4012b5d3c0b2"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceTabs.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2f799be5f8c2080739bd5ebcdb9ea4a5b33541be6f0cbe352e66df52cf103497"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceTasksPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc15b319b8441a266f0e15aeadb8e15f409bbadde2e939c5a16c78d59e989c89"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceTimelinePanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "868c89d422b27ef5f2f563987f2f504915d15bc83d1542cb52876d00e01bbc68"
+        }
+      ],
+      "name": "frontend/src/sections/FieldWorkspaceWeatherPanel.tsx",
       "type": "file"
     },
     {
@@ -5295,6 +5425,156 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b74e8ea237e96c66940a3bd0bdf8d18728c8301900e87390407823e360a979ed"
+        }
+      ],
+      "name": "frontend/src/sections/fieldWorkspaceAvailability.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "57b7299c04d4a64265a65d1acec0a4175f68866b848bd6bdd8cbf6c6a2697e1e"
+        }
+      ],
+      "name": "frontend/src/sections/fieldWorkspaceCompletionContract.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5f441e4e924996d6ced1c33e630669392769d21809804bcd9ce0034595921480"
+        }
+      ],
+      "name": "frontend/src/sections/fieldWorkspaceContract.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "27aee6a9a68ac80180c240a2fac0f66ca6f77dbfabf790ecf6849eaebb05ea31"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/FieldContextStrip.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eb4bd05a0e0f34302f80d7541eb630149bd6371d9cc2932c5d74c6377690e445"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/FieldDrawerShell.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1bcfc2d0afbf9be34f40921ea7740b7fe2a3e9af5d3e1f880a419688b45fa1f8"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/FieldTimelineShell.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b6d1e6071a43ec6fc51d31cc84e8424685182af491fb1eff88b59c0d160b5dfb"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/MapActionPalette.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9d6fc3d7dc08c8fe95c7cc09e0766fa9451c120e1a8b25c2180779a7767a158f"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/MapCanvasBoundary.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c06bd4450a0102198c92d9b0f5e1bef1fea57d50056cec8f168c151f24b71851"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/MapHubShell.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6af81f97c64ed33c8ce91a5460d36f699474630facd8759e6d419e74dd4d0b13"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/MapHubToolToggle.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c33b5c4d74bf76669335d07c5be908051555c85d51797b1b753652c434352fd7"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/OperationalOverlayControls.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d22f08f6aed3dcbb5bda0ab97d64d343afd64f65c8fac2ca145daa5c3cf8d39e"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/PriorityQueuePanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3cb6e5c3941836af15845061f6eed48c53d3597d29e7b6baf4e8a0433a421ed1"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/RoleAwareMapSurface.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b45a1d160de7e6c2104e9c4635ba7cf02beec652434d3c5cd9148cdb7a718f8c"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/mapClutterControl.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "05fde300fb015c98515c76a9f47624e97df56fc08fb82f0e72e132a3a3cd5654"
+        }
+      ],
+      "name": "frontend/src/sections/maphub/roleUiContract.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3f02ee58688e635540b49bd5c176a83dc179137078b2f3d7cfb44781c53d0635"
         }
       ],
@@ -5325,10 +5605,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d66da88debb9dba54168172dcbaa29b482c0f7e6d6fde0a503e50ec7518f39e5"
+        }
+      ],
+      "name": "frontend/src/services/api/fieldImagery.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c5e288e677c56c8dd11510918944b0e4aca2d8c68d86685bc1133fca14d1f0a4"
+        }
+      ],
+      "name": "frontend/src/services/api/fieldIrrigation.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "256e8d70fd1fac8d4e5feb80f568203b0b4023a663678df8945225f529a53b5e"
         }
       ],
       "name": "frontend/src/services/api/fieldOperating.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89d35346a377dbfec11e69b931e2354887d0bde1b05edd27fb1951030f575fab"
+        }
+      ],
+      "name": "frontend/src/services/api/fieldTasks.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2e74e6787c8237fe16cfa6bd9f4e83914d863373c5e54aa9631d29a7e2fb46d2"
+        }
+      ],
+      "name": "frontend/src/services/api/fieldTimeline.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "79df573de6aaf57339d166afa9b13f87367da5957345f0f8dca7550ac1758044"
+        }
+      ],
+      "name": "frontend/src/services/api/fieldWeather.ts",
       "type": "file"
     },
     {
@@ -11685,6 +12015,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "14d235b3a7fd029375c97d2f34c3764fd553393e2be051e13f530f62eb790eba"
+        }
+      ],
+      "name": "services/sahool-platform/api/field_workspace_completion_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a4882a185e7e0791cfa97a970630a27644d9ea9d489d70ddfca0d9af184d1b44"
+        }
+      ],
+      "name": "services/sahool-platform/api/field_workspace_route_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "29d8592d084d627e95dbf865090378a5831877d89ffc709c8d29878f85e5ec83"
         }
       ],
@@ -12935,6 +13285,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "352665e731d9b1e5811f156e8be0293887fcf5d23b327a0bbadc8090f2081800"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_priority_queue.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1f9d2d8e81d454d49e3d6d3434f9ff31fcba1e343ae1336f2f7af28cbd2b82ae"
         }
       ],
@@ -12959,6 +13319,36 @@
         }
       ],
       "name": "services/sahool-platform/api/routers/field_twin.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "359784e816ef23e168c89be7262260e3747d993048e03429421f29606da44cf6"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_workspace_imagery.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e560841681cb3f4f14893ba2af249b2e62c232486099639b9d56cb8e3b269264"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_workspace_timeline.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "673ea1716618f6017a00ae4536a9b5cf71778f93173e1c5740c53a4ff091036f"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
       "type": "file"
     },
     {
@@ -20925,10 +21315,100 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c06a9b725844dce819c9ceec2df7b191c1f7da093a09559c7b6e529acd8bb107"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui11_ui13_map_workspace_progress_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f7faf79b2f4d8c3c61fb663a557fd16874984ce0adf0c153964599fdacbb80c2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui14_field_workspace_route_shell_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c7c15895e34966c1d3473547a99fe33c249fb931fb78215a855b0b07bc141456"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui17_ui19_workspace_data_panels_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a9fa5a16152eff258da181e9d3ae55f24db233500e37a0d794f5fb3f4123e22"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b3514e060933fb9abad5104029f996d478be4d4a9c0581e65e3e2eee5bb5c795"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui21_ui23_workspace_operations_reports_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f74b804fd494fd6fc7fbeefdbd46cb0e30ca28ffb076a3857279acb0a4978096"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui24_ui26_workspace_imagery_weather_irrigation_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f3f3ec13922361b8a534d17019b4d9cf48441ff45359e356e4fbc0dc8cae9c51"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bdcef3a7910b3b78f2fc00c65539269e1abbda9a47ef9817c0258433bfb5856b"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c1f29aeb2bd0fcdbc8c01acc890024e48e53ca3da344e2aaba9bb2f2264bda3a"
         }
       ],
       "name": "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0d3832c065c2f764c54eed85e18539813de9f39bf4fbdd14d1bb2238a6317366"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py",
       "type": "file"
     },
     {
@@ -20959,6 +21439,46 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9da281e69de7ab97bacec23f16d277058b45f289670e0c04dfd1f6972dcb260"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui5_maphub_shell_preparation_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d8b16caa42cea13d9547de9700ae2804d9f9d91b3e0119a4331a196463df2b0a"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui6_maphub_clutter_control_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "556be0ea5e3e73a76285a9a16349370aa1e671366ba1e23152ffd5ed432d260c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui7_maphub_controls_extraction_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bd898928fd4274d902055244991f6cf129de2fcf9e6b1b1937c13411ca3cbf5a"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui8_ui10_maphub_operating_surface_guard.py",
       "type": "file"
     },
     {

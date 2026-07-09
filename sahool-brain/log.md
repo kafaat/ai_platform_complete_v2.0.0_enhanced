@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-07-08 — إغلاق مساحة عمل الحقل الإنتاجيّ (بوّابة runtime + workflow)
+
+أرشيف `d01a7a9_field_workspace_production_closure` (على رأسنا الأخضر). **القيمة المُطبَّقة:** بوّابة runtime `scripts/ci/field_workspace_production_closure_gate.py` (تستورد تطبيق FastAPI: مسارات مساحة العمل مُسجَّلة مرّة واحدة · OpenAPI يكشف العقود · fields.py لا يملك المسارات المتخصّصة · ملفّات العقد الأماميّة موجودة) · workflow `.github/workflows/field-workspace-production-closure.yml` (contract-typecheck + build + gate + 5 حُرّاس ui20/24-26/27/28-30/31-35) · `tsconfig.field-workspace-contract.json` · doc.
+
+**رفض صادق (تحقّق-قبل-دمج):** الأرشيف غيّر `package.json:typecheck` إلى `tsc -p tsconfig.app.json` — و`tsconfig.app.json` تضمينه `["src/vite-env.d.ts"]` فقط ⇒ **يفحص ملفّاً واحداً** (`--listFiles` أكّد 1) ⇒ لا فحص أنواع للتطبيق إطلاقاً (انحدار خطير). و`tsconfig.test`/`tsconfig.field-workspace` يفشلان (TS7016 حلّ exports لـ@turf في التجميع المعزول — يعالجه الفحص الموحّد بلا مشكلة؛ +TS5010 glob غير صالح `src/test/**`). أعدتُ `typecheck: tsc --noEmit` الموحّد (الأخضر المُثبَت مراراً)، وأزلتُ scripts المكسورة (typecheck:test/field-workspace) وtsconfig المكسورة/الميتة (app·test·field-workspace·field-core) + scratch (one·tmpone غير المُرجَّعة أصلاً)، وأبقيتُ فقط `typecheck:field-workspace-contract` (يعمل، يستخدمه الـworkflow). لم أُضِف typecheck:test إلى ci.yml (الموحّد يغطّي الاختبارات أصلاً).
+
+**التحقّق:** unified `tsc --noEmit` 0 · `typecheck:field-workspace-contract` 0 · `npm run build` 0 · بوّابة الإغلاق 0 (6 فحوص) · 5 حُرّاس (21 اختبار) · YAML صالح (workflow + ci.yml) · ruff نظيف · release مُعاد بناؤه.
+
+---
+
 ## 2026-07-08 — دمج أرشيف UI5–UI35 (تفكيك MapHub + مساحة عمل الحقل الكاملة + واجهات BFF خلفيّة)
 
 أرشيف المستخدم `3573402_ui31_ui35_field_workspace_final_completion` مبنيّ على رأسنا الأخضر بالضبط (بلا حذوفات زائفة). دلتا 69 ملفّاً. **الميزة:** تفكيك `MapHub.tsx` إلى قشور `sections/maphub/*` (Shell/ToolToggle/OperationalOverlayControls/RoleAwareMapSurface…) + **مساحة عمل الحقل** (FieldWorkspace* ألسنة/لوحات: imagery/weather/irrigation/tasks/timeline/priority/operations/reports) + **٤ راوترات BFF خلفيّة** تفوّض عبر الواجهات: `field_workspace_imagery` (available-dates/timeline → raster facade) · `field_workspace_weather` (operation-windows → weather facade؛ irrigation-advice/disease-risk بقايا Open-Meteo منقولة من fields.py) · `field_workspace_timeline` (unified-timeline) · `field_priority_queue` (farm/field) + عقود route/completion. **UI28-30 تنظيف:** نُقِلت 5 مسارات من fields.py إلى الراوترات الجديدة (لا تكرار تسجيل).
