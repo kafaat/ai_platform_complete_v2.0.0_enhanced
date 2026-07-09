@@ -1,0 +1,6 @@
+service,expected_liveness_url,compose_healthcheck,uses_healthz_or_health,uses_readyz
+sahool-auth,http://localhost:8000/healthz,CMD curl -f http://localhost:8000/healthz,True,False
+sahool-platform,http://localhost:8000/healthz,CMD curl -f http://localhost:8000/healthz,True,False
+sahool-notification-agent,http://localhost:8123/healthz,"CMD-SHELL python -c ""import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz', timeout=3).read()"" || exit 1",True,False
+sahool-soil-service,http://localhost:8000/healthz,"CMD python -c import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read()",True,False
+sahool-field-segmentation,http://localhost:8000/healthz,CMD curl -sf http://localhost:8000/healthz,True,False

@@ -16,8 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# ── PyPI الرسميّ (تمّ التبديل من مرآة Tencent — كانت تُقدِّم حزمة pip بتجزئة مغلوطة) ──
-ARG PIP_INDEX_URL=https://pypi.org/simple/
+# ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
@@ -41,8 +42,8 @@ ARG SAM2_REF=main
 ENV SAM2_BUILD_CUDA=0
 # ضمان توفّر خلفيّة البناء لـ--no-build-isolation (setuptools/wheel/torch حاضرة عادةً
 # في صورة pytorch الأساس؛ نثبّتها صراحةً كتأمين ضدّ صورة قاعدة نحيلة).
-RUN pip install --no-cache-dir --timeout 300 --retries 10 --upgrade "setuptools>=61.0" wheel \
-    && pip install --no-cache-dir --timeout 300 --retries 10 --no-build-isolation \
+RUN pip install --timeout 300 --retries 10 --no-cache-dir --upgrade "setuptools>=61.0" wheel \
+    && pip install --timeout 300 --retries 10 --no-cache-dir --no-build-isolation \
         "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}"
 
 COPY services/sam2-inference/ /app/
@@ -57,8 +58,8 @@ USER sahool
 EXPOSE 8080
 
 # HEALTHCHECK عبر python-urllib (لا نفترض وجود curl في صورة CUDA).
-# نفحص /readyz؛ exit 0 لو الردّ 200 (العمليّة حيّة). model_loaded يُفحَص بالمنطق.
+# نفحص /healthz كلiveness/liveness فقط؛ model_loaded يُفحَص عبر /readyz داخل readiness. قاعدة الحاوية لا تفشل لمجرّد نقص أوزان النموذج.
 HEALTHCHECK --interval=20s --timeout=5s --start-period=60s --retries=6 \
-    CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/readyz', timeout=4).status==200 else 1)"]
+    CMD ["python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/healthz', timeout=4).status==200 else 1)"]
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--workers", "1"]

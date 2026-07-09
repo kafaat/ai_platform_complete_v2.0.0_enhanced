@@ -16,7 +16,7 @@ interface Props {
 export default function DriftRiskCard({ fieldId, enabled = true }: Props) {
   const fieldsQ = useFields();
   const zones = useMemo(
-    () => neighborZones((fieldsQ.data as { fields?: FieldLike[] } | undefined)?.fields, fieldId, 2),
+    () => neighborZones(fieldsQ.data as FieldLike[] | undefined, fieldId, 2),
     [fieldsQ.data, fieldId],
   );
   const q = useFieldDriftRisk(fieldId, zones, enabled);

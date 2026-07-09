@@ -3,9 +3,9 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends gcc libpq-dev curl \
     && rm -rf /var/lib/apt/lists/*
 COPY services/auth/requirements.txt /tmp/requirements.txt
-# ── PyPI الرسميّ (تمّ التبديل من مرآة Tencent — كانت تُقدِّم حزمة pip بتجزئة مغلوطة) ──
-# للتبديل إلى مرآة بديلة: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ أو https://mirrors.cloud.tencent.com/pypi/simple/
-ARG PIP_INDEX_URL=https://pypi.org/simple/
+# ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
@@ -26,11 +26,11 @@ COPY services/auth/otp.py /app/otp.py
 # No module named 'mfa_crypto' عند الإقلاع ⇒ auth unhealthy. نسخها إلزاميّ.
 COPY services/auth/mfa_crypto.py /app/mfa_crypto.py
 # mfa_runtime.py وحدة شقيقة (P0 auth decomposition — مساعدو MFA DB/تدقيق/anti-replay)
-# يستوردها main.py: `from mfa_runtime import …` (main.py:935). غير منسوخة ⇒
-# ModuleNotFoundError عند الإقلاع ⇒ auth unhealthy. نسخها إلزاميّ (نفس درس otp/mfa_crypto).
+# يستوردها main.py: `from mfa_runtime import …`. غير منسوخة ⇒ ModuleNotFoundError
+# عند الإقلاع ⇒ auth unhealthy. نسخها إلزاميّ (نفس درس otp/mfa_crypto).
 COPY services/auth/mfa_runtime.py /app/mfa_runtime.py
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 EXPOSE 8000
-HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/readyz || exit 1
+HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

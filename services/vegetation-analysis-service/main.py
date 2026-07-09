@@ -73,6 +73,15 @@ except ImportError:
 import vegetation_runtime as _vegetation_runtime  # noqa: E402
 from vegetation_runtime import (  # noqa: E402,F401
     _RASTER_REAL_INDEX,
+    _compute_indices,
+    _deterministic_seed,
+    _flag_enabled,
+    _geometry_to_bbox,
+    _health_classification,
+    _load_field_from_db,
+    _real_index_mean_from_raster,
+    _realistic_bands,
+    _recommendations_ar,
     ALLOW_LEGACY_FIELD_REGISTRY,
     ANALYSIS_COUNT,
     ANALYSIS_LATENCY,

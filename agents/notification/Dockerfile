@@ -4,8 +4,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends gcc \
     && rm -rf /var/lib/apt/lists/*
 COPY agents/notification/requirements.txt /tmp/requirements.txt
 # ── مرآة pip صينيّة (PyPI محجوب/بطيء) — قابلة للتجاوز بـ--build-arg ──
-# للتبديل إلى مرآة بديلة: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ أو https://mirrors.cloud.tencent.com/pypi/simple/
-ARG PIP_INDEX_URL=https://pypi.org/simple/
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
@@ -15,7 +15,7 @@ COPY agents/base_agent.py /app/base_agent.py
 COPY agents/notification/ /app/
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
-# الصورة لا تثبّت curl — نستخدم python (متوفّر) ونطلب /readyz على المنفذ 8123.
+# الصورة لا تثبّت curl — نستخدم python (متوفّر) ونطلب /healthz على المنفذ 8123.
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/readyz', timeout=3).read()" || exit 1
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz', timeout=3).read()" || exit 1
 CMD ["python", "agent.py"]

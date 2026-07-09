@@ -643,6 +643,7 @@
     "POST /quality",
     "POST /query",
     "POST /quota/check",
+    "POST /raw/process",
     "POST /recommend",
     "POST /replay/verify",
     "POST /retraining/plan",

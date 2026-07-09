@@ -1017,7 +1017,7 @@ function MapHubCore() {
 
 
   // v54: تحقق Runtime من أن العرض الافتراضي TrueColor ليس مجرد حالة UI؛ بل
-  // يطلب /tilejson (COG Element84) من raster-service لنفس الحقل/التاريخ/المؤشر. عند عدم
+  // يطلب cdse-tilejson من raster-service لنفس الحقل/التاريخ/المؤشر. عند عدم
   // الجاهزية نعرض رسالة صادقة بدلاً من ترك خريطة الأساس تبدو كصورة حقل محلّلة.
   useEffect(() => {
     if (!fieldId || indicatorActive !== RAW_IMAGERY_INDEX_ID) {
@@ -1025,26 +1025,31 @@ function MapHubCore() {
       return;
     }
     let cancelled = false;
-    // فحص الجاهزية عبر /tilejson (COG من Element84) — لا CDSE. حقل بلا حدود مرسومة
-    // لا يُنتِج COG في backfill ⇒ tilejson سيُعيد available=false تلقائيّاً.
-    // نُظهر رسالة مبكّرة واضحة إن كانت الهندسة غائبة بدل انتظار الاستجابة.
+    // v8-F4: هندسة الحقل (poly) تُقصّ عليها بلاطات المؤشّرات. حقل بلا حدود مرسومة
+    // (هندسة NULL — مثل حقول مبذورة بإحداثيّات مديريّة فقط، أو GPS ميدانيّ معلّق) لا
+    // يمكن أن يُصيَّر بكسليّاً: raster-service سيفشل مُغلَقاً (available=false / بلاطة
+    // شفّافة). لا نُطلق الفحص فنُظهر رسالة CDSE المُضلِّلة («شغّل التجهيز/تحقّق من CDSE»)
+    // التي تُرسِل المستخدِم لإصلاح خاطئ؛ نُعلن السبب الحقيقيّ: الحدود مفقودة.
     const clipParams = cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null);
     if (!clipParams.poly) {
       setTrueColorRuntime({
         state: 'unavailable',
         message: 'لا توجد حدود مرسومة لهذا الحقل. المؤشّرات على مستوى البكسل تُقصّ على حدود الحقل — ارسم أو استورد الحدود أوّلاً (إضافة/تعديل الحقل) ثمّ ستظهر الطبقة.',
-        endpoint: 'tilejson',
+        endpoint: 'cdse-tilejson',
       });
       return;
     }
-    setTrueColorRuntime({ state: 'checking', message: 'جارٍ التحقق من جاهزية TrueColor عبر Element84/raster-service…', endpoint: 'tilejson' });
+    setTrueColorRuntime({ state: 'checking', message: 'جارٍ التحقق من جاهزية TrueColor عبر raster-service…', endpoint: 'cdse-tilejson' });
     const params = {
       index: RAW_IMAGERY_INDEX_ID,
       ...(selectedImageryDate && selectedImageryDate !== 'latest' ? { date: selectedImageryDate } : {}),
-      ...(tenantId ? { tid: tenantId } : {}),
+      ...(tenantId ? { tenant_id: tenantId, tid: tenantId } : {}),
+      // v8-F4: مرّر هندسة الحقل (poly) كي يبني cdse-tilejson روابط بلاطات مقصوصة على
+      // حدود الحقل، ويتّحد فحص الجاهزية مع القصّ الفعليّ (لا احتياطيّ DB/عالميّ).
+      ...clipParams,
     };
     rasterApi
-      .get(`/v1/fields/${fieldId}/tilejson`, { params })
+      .get(`/v1/fields/${fieldId}/cdse-tilejson`, { params })
       .then((r) => {
         if (cancelled) return;
         const data = r.data as { available?: boolean; user_message?: string; note?: string; reason?: string; resolved_date?: string | null };
@@ -1052,18 +1057,18 @@ function MapHubCore() {
           setTrueColorRuntime({
             state: 'unavailable',
             message: data.user_message || data.note || data.reason || TRUECOLOR_UNAVAILABLE_MESSAGE,
-            endpoint: 'tilejson',
+            endpoint: 'cdse-tilejson',
           });
           return;
         }
         const resolved = data?.resolved_date ? ` · التاريخ: ${data.resolved_date}` : '';
-        setTrueColorRuntime({ state: 'ready', message: `TrueColor جاهز كصور Sentinel-2 خام من Element84 (COG محلّيّ داخل حدود الحقل)${resolved}.`, endpoint: 'tilejson' });
+        setTrueColorRuntime({ state: 'ready', message: `TrueColor جاهز كبلاطات Sentinel-2 من raster-service داخل حدود الحقل${resolved}.`, endpoint: 'cdse-tilejson' });
       })
       .catch(() => {
-        if (!cancelled) setTrueColorRuntime({ state: 'error', message: TRUECOLOR_UNAVAILABLE_MESSAGE, endpoint: 'tilejson' });
+        if (!cancelled) setTrueColorRuntime({ state: 'error', message: TRUECOLOR_UNAVAILABLE_MESSAGE, endpoint: 'cdse-tilejson' });
       });
     return () => { cancelled = true; };
-    // أعِد الفحص عند تغيّر هندسة الحقل (بصمة مستقرّة — المرجع كائن غير مستقرّ).
+    // v8-F4: أعِد الفحص عند تغيّر هندسة الحقل (بصمة مستقرّة — المرجع كائن غير مستقرّ).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fieldId, indicatorActive, selectedImageryDate, tenantId,
       JSON.stringify(cdseClipParams(selected?.geometry as { type?: string; coordinates?: unknown } | null))]);

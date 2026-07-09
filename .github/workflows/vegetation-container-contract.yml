@@ -1,0 +1,22 @@
+name: vegetation-container-contract
+
+on:
+  pull_request:
+    paths:
+      - 'services/vegetation-analysis-service/**'
+      - 'docker-compose.v9.yml'
+      - 'scripts/ci/vegetation_container_contract_guard.py'
+      - 'tests_v9/test_vegetation_container_contract_guard.py'
+  push:
+    branches: [ main ]
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/ci/vegetation_container_contract_guard.py
+      - run: python -m pytest -q tests_v9/test_vegetation_container_contract_guard.py

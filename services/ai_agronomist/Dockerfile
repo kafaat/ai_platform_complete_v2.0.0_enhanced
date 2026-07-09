@@ -1,13 +1,13 @@
 FROM python:3.12-slim-bookworm
 WORKDIR /app
 COPY services/ai_agronomist/requirements.txt /tmp/requirements.txt
-# ── PyPI الرسميّ (تمّ التبديل من مرآة Tencent — كانت تُقدِّم حزمة pip بتجزئة مغلوطة) ──
-# للتبديل إلى مرآة بديلة: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/ أو https://mirrors.cloud.tencent.com/pypi/simple/
-ARG PIP_INDEX_URL=https://pypi.org/simple/
+# ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
-RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
+RUN pip install --timeout 300 --retries 10 --no-cache-dir -r /tmp/requirements.txt
 COPY services/ai_agronomist /app/ai_agronomist
 # حزمة الأدوات المشتركة (shared/ai/*) يستوردها ai_generation/main لحلقة الـHarness
 # (V58+): ``from shared.ai import tool_schema/...`` — يجب تضمينها في الصورة وإلّا

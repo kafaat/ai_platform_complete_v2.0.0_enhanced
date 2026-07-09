@@ -1,0 +1,262 @@
+[
+  {
+    "service": "actuator-service",
+    "dockerfile": "services/actuator-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "agriai-engine",
+    "dockerfile": "services/agriai-engine/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s --retries=3 \\ CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "ai_agronomist",
+    "dockerfile": "services/ai_agronomist/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)\"",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "auth",
+    "dockerfile": "services/auth/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": false,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "decision-service",
+    "dockerfile": "services/decision-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8160/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": false,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "field-segmentation",
+    "dockerfile": "services/field-segmentation/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": false,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "guardrails-engine",
+    "dockerfile": "services/guardrails-engine/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "indicators-service",
+    "dockerfile": "services/indicators-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "knowledge-graph",
+    "dockerfile": "services/knowledge-graph/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)\"",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": false,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "local-ai-rag",
+    "dockerfile": "services/local-ai-rag/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "mcp_servers",
+    "dockerfile": "services/mcp_servers/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": false,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "odoo-bridge",
+    "dockerfile": "services/odoo-bridge/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8126/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "qdrant-seed",
+    "dockerfile": "services/qdrant-seed/Dockerfile",
+    "healthcheck": "",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": false,
+    "copies_full_service_dir": false,
+    "copies_shared": false,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "rag-retrieval",
+    "dockerfile": "services/rag-retrieval/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)\"",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": false,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "raster-service",
+    "dockerfile": "services/raster-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s CMD python -c \"import httpx; httpx.get('http://localhost:8001/healthz')\"",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "raster-tiler-service",
+    "dockerfile": "services/raster-tiler-service/Dockerfile",
+    "healthcheck": "",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": false,
+    "copies_full_service_dir": false,
+    "copies_shared": false,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "sahool-platform",
+    "dockerfile": "services/sahool-platform/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --retries=3 \\ CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "sam2-inference",
+    "dockerfile": "services/sam2-inference/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --start-period=60s --retries=6 \\ CMD [\"python\", \"-c\", \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/healthz', timeout=4).status==200 else 1)\"]",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": false,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "soil-service",
+    "dockerfile": "services/soil-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "supervisor-agent",
+    "dockerfile": "services/supervisor-agent/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \\ CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "tts-service",
+    "dockerfile": "services/tts-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=5s --retries=3 \\ CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "dockerfile": "services/vegetation-analysis-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": false,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "video-processor",
+    "dockerfile": "services/video-processor/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "weather-polygon-worker",
+    "dockerfile": "services/weather-polygon-worker/Dockerfile",
+    "healthcheck": "",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": false,
+    "copies_full_service_dir": false,
+    "copies_shared": false,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "weather-service",
+    "dockerfile": "services/weather-service/Dockerfile",
+    "healthcheck": "HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": true,
+    "copies_full_service_dir": true,
+    "copies_shared": true,
+    "pip_retries_timeout": true
+  },
+  {
+    "service": "weather-signal-engine",
+    "dockerfile": "services/weather-signal-engine/Dockerfile",
+    "healthcheck": "",
+    "healthcheck_uses_readyz": false,
+    "healthcheck_uses_healthz": false,
+    "copies_full_service_dir": false,
+    "copies_shared": false,
+    "pip_retries_timeout": true
+  }
+]

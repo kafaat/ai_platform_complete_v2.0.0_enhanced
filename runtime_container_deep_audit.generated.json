@@ -1,0 +1,37 @@
+[
+  {
+    "service": "sahool-auth",
+    "expected_liveness_url": "http://localhost:8000/healthz",
+    "compose_healthcheck": "CMD curl -f http://localhost:8000/healthz",
+    "uses_healthz_or_health": true,
+    "uses_readyz": false
+  },
+  {
+    "service": "sahool-platform",
+    "expected_liveness_url": "http://localhost:8000/healthz",
+    "compose_healthcheck": "CMD curl -f http://localhost:8000/healthz",
+    "uses_healthz_or_health": true,
+    "uses_readyz": false
+  },
+  {
+    "service": "sahool-notification-agent",
+    "expected_liveness_url": "http://localhost:8123/healthz",
+    "compose_healthcheck": "CMD-SHELL python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8123/healthz', timeout=3).read()\" || exit 1",
+    "uses_healthz_or_health": true,
+    "uses_readyz": false
+  },
+  {
+    "service": "sahool-soil-service",
+    "expected_liveness_url": "http://localhost:8000/healthz",
+    "compose_healthcheck": "CMD python -c import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).read()",
+    "uses_healthz_or_health": true,
+    "uses_readyz": false
+  },
+  {
+    "service": "sahool-field-segmentation",
+    "expected_liveness_url": "http://localhost:8000/healthz",
+    "compose_healthcheck": "CMD curl -sf http://localhost:8000/healthz",
+    "uses_healthz_or_health": true,
+    "uses_readyz": false
+  }
+]

@@ -1,0 +1,31 @@
+name: pip-audit resolution guard
+
+on:
+  pull_request:
+    paths:
+      - "requirements*.txt"
+      - "services/**/requirements*.txt"
+      - "tests_v9/requirements-test.txt"
+      - "scripts/ci/pip_audit_resolution_guard.py"
+      - "tests_v9/test_pip_audit_resolution_guard.py"
+      - ".github/workflows/pip-audit-resolution-guard.yml"
+  push:
+    branches: [main]
+    paths:
+      - "requirements*.txt"
+      - "services/**/requirements*.txt"
+      - "tests_v9/requirements-test.txt"
+      - "scripts/ci/pip_audit_resolution_guard.py"
+      - "tests_v9/test_pip_audit_resolution_guard.py"
+      - ".github/workflows/pip-audit-resolution-guard.yml"
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python scripts/ci/pip_audit_resolution_guard.py
+      - run: python -m pytest -q tests_v9/test_pip_audit_resolution_guard.py

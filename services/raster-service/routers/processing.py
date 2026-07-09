@@ -51,6 +51,25 @@ async def process_raster(
     }
 
 
+@router.post("/raw/process")
+async def process_raw_data(
+    req: api_models.RawDataProcessRequest,
+    x_agent_token: str = Header(None),
+):
+    """يفحص الراستر الخام ويعيد metadata + إحصاءات النطاقات بلا حساب مؤشرات.
+
+    هذا مسار QA/provenance للبيانات الخام قبل أي NDVI/EVI/...؛ لا يصنع مؤشراً
+    زراعياً ولا يحفظ نتيجة كأنها طبقة مؤشر.
+    """
+    raster_security_context.require_service_token(x_agent_token)
+    if not req.raster_url:
+        raise HTTPException(400, "raster_url مطلوب لمعالجة البيانات الخام")
+    try:
+        return raster_processing_runtime.process_raw_raster(req)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+
+
 @router.post("/process/batch")
 async def process_batch(
     req: api_models.BatchProcessRequest,

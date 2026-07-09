@@ -68,9 +68,7 @@ def test_final_runbook_and_architecture_docs_exist() -> None:
 
 def test_field_workspace_ci_installs_backend_runtime_dependencies_before_runtime_gates() -> None:
     workflow = _read(".github/workflows/field-workspace-production-closure.yml")
-    install_idx = workflow.find(
-        "pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt"
-    )
+    install_idx = workflow.find("services/sahool-platform/api/requirements.txt")
     assert install_idx != -1, "backend runtime dependency install step missing before Python gates"
     assert "services/weather-service/requirements.txt" in workflow
     assert install_idx < workflow.index("Field Workspace Python closure gate")

@@ -6,7 +6,7 @@ from typing import Literal
 from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
-from fastapi import HTTPException, Query
+from fastapi import Body, HTTPException, Query
 from open_meteo import (
     circuit_breaker_state,
     fetch_current,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
@@ -16,6 +16,7 @@ from open_meteo import (
     readiness_probe,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
 from operations import advice_ar, best_operation_frame, operation_suitability
+from raw_weather_processing import RawWeatherProcessRequest, build_raw_weather_response
 from tiles import (
     ALLOWED_LAYERS,
     derived_layer_value,
@@ -85,9 +86,43 @@ def contract():
             "p3_1_core": ["current-weather", "forecast", "historical-weather", "cache"],
             "p3_2_operation_windows": ["operation-window", "operation-plan", "operation-tile-data"],
             "p3_3_tiles_wind_grid": ["tile-data", "tile-series", "wind-grid", "tile-interpolation"],
+            "raw_weather_processing": ["raw-process", "numeric-summary", "provenance"],
         },
         "source": "open-meteo+sahool-rules",
     }
+
+
+async def raw_weather_process(request: RawWeatherProcessRequest = Body(...)):
+    """Return bounded QA/provenance for raw weather payloads.
+
+    This endpoint deliberately does not compute operation windows, agronomic
+    decisions, or indicators. It is a raw-data inspection boundary for weather
+    ingestion and CI/runtime diagnostics.
+    """
+    try:
+        if request.source_kind == "current":
+            payload = await _facade_attr("fetch_current")(request.lat, request.lon, model=request.model)
+        elif request.source_kind == "forecast":
+            payload = await _facade_attr("fetch_forecast")(
+                request.lat, request.lon, days=request.days, model=request.model
+            )
+        elif request.source_kind == "historical":
+            payload = await _facade_attr("fetch_historical")(
+                request.lat,
+                request.lon,
+                start_date=request.start_date or "",
+                end_date=request.end_date or "",
+            )
+        else:
+            time, model = validate_time_model(request.time, request.model)
+            payload = await _facade_attr("fetch_tile_sample")(
+                request.lat, request.lon, time_key=time, model=model
+            )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Open-Meteo raw weather: {exc}") from exc
+    return build_raw_weather_response(request, payload)
 
 
 async def current_weather(

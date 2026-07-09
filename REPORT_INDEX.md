@@ -9,6 +9,11 @@ This index identifies the current release-candidate evidence and separates it fr
 - `P1_MAIN_DECOMPOSITION_COMPLETE_REPORT_20260709.md` — present
 - `AI_AGRONOMIST_MAIN_DECOMPOSITION_P0_REPORT_20260709.md` — present
 - `AUTH_MAIN_DECOMPOSITION_P0_REPORT_20260709.md` — present
+- `INDICATORS_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md` — present
+- `VEGETATION_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md` — present
+- `PIP_AUDIT_REDIS_RESOLUTION_FIX_REPORT_20260709.md` — present
+- `CONTAINER_FLEET_REVIEW_AND_FIX_REPORT_20260709.md` — present
+- `AI_CONTAINER_REVIEW_AND_FIX_REPORT_20260709.md` — present
 
 ## Production certification
 
@@ -26,6 +31,8 @@ This index identifies the current release-candidate evidence and separates it fr
 - `platform_main_subinventory.generated.json` — present
 - `route_mount_inventory.generated.json` — present
 - `api_versioning_inventory.generated.json` — present
+- `container_fleet_audit.generated.json` — present
+- `ai_container_audit.generated.json` — present
 
 ## Operational runbooks
 
@@ -115,4 +122,4 @@ This index identifies the current release-candidate evidence and separates it fr
 - `PHASE22_RLS_WITH_CHECK_TENANT_SESSION_HARDENING_REPORT_20260626.md`
 - `PHASE2_AI_RUNTIME_E2E_WEB_BINDING_REPORT_20260626.md`
 - `PHASE3_EXECUTION_REPORT.md`
-- ... 50 additional historical reports omitted from this index view
+- ... 55 additional historical reports omitted from this index view

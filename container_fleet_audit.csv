@@ -1,0 +1,27 @@
+service,dockerfile,healthcheck,healthcheck_uses_readyz,healthcheck_uses_healthz,copies_full_service_dir,copies_shared,pip_retries_timeout
+actuator-service,services/actuator-service/Dockerfile,HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+agriai-engine,services/agriai-engine/Dockerfile,HEALTHCHECK --interval=30s --timeout=5s --retries=3 \ CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+ai_agronomist,services/ai_agronomist/Dockerfile,"HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c ""import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)""",False,True,True,True,True
+auth,services/auth/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,False,True,True
+decision-service,services/decision-service/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8160/healthz || exit 1,False,True,True,False,True
+field-segmentation,services/field-segmentation/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,False,True
+guardrails-engine,services/guardrails-engine/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+indicators-service,services/indicators-service/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+knowledge-graph,services/knowledge-graph/Dockerfile,"HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c ""import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)""",False,True,False,True,True
+local-ai-rag,services/local-ai-rag/Dockerfile,HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+mcp_servers,services/mcp_servers/Dockerfile,HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,False,True,True
+odoo-bridge,services/odoo-bridge/Dockerfile,HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8126/healthz || exit 1,False,True,True,True,True
+qdrant-seed,services/qdrant-seed/Dockerfile,,False,False,False,False,True
+rag-retrieval,services/rag-retrieval/Dockerfile,"HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD python -c ""import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=3)""",False,True,False,True,True
+raster-service,services/raster-service/Dockerfile,"HEALTHCHECK --interval=30s --timeout=5s CMD python -c ""import httpx; httpx.get('http://localhost:8001/healthz')""",False,True,True,True,True
+raster-tiler-service,services/raster-tiler-service/Dockerfile,,False,False,False,False,True
+sahool-platform,services/sahool-platform/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s --retries=3 \ CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+sam2-inference,services/sam2-inference/Dockerfile,"HEALTHCHECK --interval=20s --timeout=5s --start-period=60s --retries=6 \ CMD [""python"", ""-c"", ""import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8080/healthz', timeout=4).status==200 else 1)""]",False,True,True,False,True
+soil-service,services/soil-service/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+supervisor-agent,services/supervisor-agent/Dockerfile,HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \ CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+tts-service,services/tts-service/Dockerfile,HEALTHCHECK --interval=30s --timeout=5s --retries=3 \ CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+vegetation-analysis-service,services/vegetation-analysis-service/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,False,True,True
+video-processor,services/video-processor/Dockerfile,HEALTHCHECK --interval=30s --timeout=10s --retries=3   CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+weather-polygon-worker,services/weather-polygon-worker/Dockerfile,,False,False,False,False,True
+weather-service,services/weather-service/Dockerfile,HEALTHCHECK --interval=20s --timeout=5s --retries=3 CMD curl -sf http://localhost:8000/healthz || exit 1,False,True,True,True,True
+weather-signal-engine,services/weather-signal-engine/Dockerfile,,False,False,False,False,True

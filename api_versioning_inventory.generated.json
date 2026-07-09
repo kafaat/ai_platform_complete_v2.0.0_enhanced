@@ -1831,6 +1831,15 @@
     "file": "services/raster-service/routers/processing.py",
     "line": 55,
     "method": "POST",
+    "path": "/raw/process",
+    "handler": "process_raw_data",
+    "classification": "legacy_unversioned_business"
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/routers/processing.py",
+    "line": 74,
+    "method": "POST",
     "path": "/process/batch",
     "handler": "process_batch",
     "classification": "legacy_unversioned_business"
@@ -7562,7 +7571,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
-    "line": 33,
+    "line": 45,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",

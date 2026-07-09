@@ -1,0 +1,17 @@
+name: raw-data-processing-contract
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  raw-data-processing-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/ci/raw_data_processing_contract_guard.py
+      - run: python -m pytest -q tests_v9/test_raw_data_processing_contract_guard.py

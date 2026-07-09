@@ -4,7 +4,8 @@ FROM python:3.12-slim-bookworm
 # Docker image/pip defaults while the rest of the monorepo made the index
 # explicit. With compose --no-cache this could resolve against an incomplete
 # mirror and fail with: "No matching distribution found for fastapi==0.136.3".
-ARG PIP_INDEX_URL=https://pypi.org/simple/
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_EXTRA_INDEX_URL=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL} \
@@ -13,8 +14,8 @@ ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
 
 WORKDIR /app
 COPY services/rag-retrieval/requirements.txt .
-RUN python -m pip install --no-cache-dir --timeout 300 --retries 10 --upgrade pip setuptools wheel \
-    && python -m pip install --no-cache-dir --timeout 300 --retries 10 -r requirements.txt
+RUN python -m pip install --timeout 300 --retries 10 --no-cache-dir --upgrade pip setuptools wheel \
+    && python -m pip install --timeout 300 --retries 10 --no-cache-dir -r requirements.txt
 COPY services/sahool-platform/core /app/core
 # SEC-3: shared gateway-trusted identity helpers (shared.security.trusted_tenant).
 # Must be copied or the container crashes at import (ModuleNotFoundError: shared).
