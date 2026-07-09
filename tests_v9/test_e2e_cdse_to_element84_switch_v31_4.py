@@ -77,6 +77,17 @@ def _read(rel: pathlib.Path) -> str:
     return rel.read_text(encoding="utf-8")
 
 
+def _require_stac_runtime_deps() -> None:
+    """تخطَّ الاختبار إذا غابت التبعيّات الثقيلة التي يستوردها ``stac_search.py``.
+
+    ``stac_search.py`` يستورد ``fastapi`` على مستوى الوحدة (``from fastapi import
+    HTTPException``)، وبيئة الوحدة الدنيا في CI (وظيفة *Unit Tests*) لا تُثبّت fastapi.
+    هذا نفس نمط ``pytest.importorskip("fastapi")`` المُستخدَم في عشرات الاختبارات الأخرى
+    التي تُحمّل نقاط النهاية.
+    """
+    pytest.importorskip("fastapi")
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # القسم ١ — حُرّاس الإعدادات الساكنة (بلا استيراد)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -176,6 +187,7 @@ class TestBandUrlsFromAssets:
     @pytest.fixture(autouse=True)
     def _import(self):
         # stac_search.py بلا تبعيّات ثقيلة — يمكن استيراده مباشرةً.
+        _require_stac_runtime_deps()
         spec = importlib.util.spec_from_file_location("stac_search_e2e", _RASTER / "stac_search.py")
         mod = importlib.util.module_from_spec(spec)
         # cdse_client يُستورَد داخل دوالّ async — لا يُحتاج عند اختبار band_urls_from_assets.
@@ -265,6 +277,7 @@ class TestStacSearchElement84Unit:
 
     @pytest.fixture(autouse=True)
     def _load_module(self):
+        _require_stac_runtime_deps()
         spec = importlib.util.spec_from_file_location(
             "stac_search_e84_unit", _RASTER / "stac_search.py"
         )
@@ -378,6 +391,7 @@ class TestStacSearchProviderRouting:
     @pytest.fixture(autouse=True)
     def _load_module(self, monkeypatch):
         # نعزل stac_search.py تماماً بموفِّر cdse وهميّ
+        _require_stac_runtime_deps()
         fake_cdse = types.ModuleType("cdse_client")
         fake_cdse.is_configured = lambda: False  # type: ignore[attr-defined]
         monkeypatch.setitem(sys.modules, "cdse_client", fake_cdse)
@@ -502,6 +516,7 @@ class TestStacSearchCdseResponseFormat:
 
     @pytest.fixture(autouse=True)
     def _load_module(self):
+        _require_stac_runtime_deps()
         spec = importlib.util.spec_from_file_location(
             "stac_search_cdse_fmt", _RASTER / "stac_search.py"
         )
@@ -932,6 +947,7 @@ class TestEndToEndElement84Switch:
     def test_full_switch_cdse_to_element84(self):
         """HISTORICAL_SEARCH_PROVIDER=element84 → stac_search() → items بـprovider=element84."""
         # تحميل الوحدة مع المزوّد element84
+        _require_stac_runtime_deps()
         fake_cdse = types.ModuleType("cdse_client")
         fake_cdse.is_configured = lambda: False  # type: ignore[attr-defined]
         sys.modules["cdse_client"] = fake_cdse
@@ -989,6 +1005,7 @@ class TestEndToEndElement84Switch:
 
     def test_full_switch_cdse_failclosed(self):
         """HISTORICAL_SEARCH_PROVIDER=cdse + لا اعتمادات → 503 (لا ارتداد صامت)."""
+        _require_stac_runtime_deps()
         fake_cdse = types.ModuleType("cdse_client")
         fake_cdse.is_configured = lambda: False  # type: ignore[attr-defined]
         sys.modules["cdse_client"] = fake_cdse
