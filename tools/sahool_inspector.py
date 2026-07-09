@@ -346,6 +346,13 @@ def check_endpoint_authz() -> Result:
         for dm in decorators:
             method, path = dm.group(1), dm.group(2)
             total += 1
+            # نقاط الفحص الصحّي/الرصد عمداً بلا مصادقة: healthchecks في compose/k8s
+            # وكاشط Prometheus لا يحملان JWT. readyz يلمس _DB_POOL كمسبار جاهزيّة فقط
+            # (يُعيد حالة منطقيّة، لا بيانات مستأجِر). كانت هذه النقاط في api/main.py
+            # خارج نطاق مسح routers/ قبل تفكيك P2 إلى platform_health.py — الإعفاء
+            # يُثبّت الدلالة القائمة نفسها صراحةً، لا يُضعِف الفحص.
+            if method == "get" and path in {"/healthz", "/health", "/readyz", "/metrics"}:
+                continue
             # طابِق جسم الدالّة التالي للديكور
             body = next((b for b in bodies if b.start() > dm.start()), None)
             if body is None:

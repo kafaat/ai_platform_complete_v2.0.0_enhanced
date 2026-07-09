@@ -23185,7 +23185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f5bda05229c6f4433fe4b3820a6a4fe8f481b4b7d875d3b210df96d5c9682ea0"
+          "content": "34522c10656443437e2295ab9456c007114b103d4342eff3edde36f48c9a8362"
         }
       ],
       "name": "services/weather-service/requirements.txt",
