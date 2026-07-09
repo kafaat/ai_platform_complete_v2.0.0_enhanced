@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-07-09 — Decision SoR final certification (P0-5) + رفض إصلاح CI مُكرَّر أضيق
+
+أرشيف `d01a7a9_decision_sor_final_certification` — الطبقة الأخيرة قبل ترقية decision-service إلى SoR فعليّاً. **الفارق الحقيقيّ عن الأساس المحلّيّ (`5af67ea`) بعد استبعاد الضجيج** (الأرشيف مبنيّ على `d01a7a9` أقدم فأعاد نسخاً بائتة من tsconfig المكسور + workflow بلا إصلاح jwt/pip-install المُطبَّق سابقاً؛ ملفّات `platform_python_module_baseline.json`/`backfill.py`/`cutover.py`/`main.py`/`migration_runner.py`/`persistence.py`/`staging_probe.py`/`decision_sor_mode.py`/`test_p0_3...guard.py` كلّها ضجيج تنسيقي محض تأكّد بـ`diff`): **٧ ملفّات جديدة فعليّاً**.
+
+**قراءة-فقط بالتصميم (تحقّقتُ من الثلاثة قبل التطبيق):**
+- `services/decision-service/production_promotion.py`: preflight للترقية الإنتاجيّة. dry-run افتراضيّ يطبع فقط `required_flags`. `--live` يتطلّب `SAHOOL_ENV=production` + `DATABASE_URL` + 7 رايات `REQUIRED_TRUE_FLAGS` (SOR_ENABLED/MIGRATIONS_VERIFIED/BACKFILL_VERIFIED/TENANT_ISOLATION_VERIFIED/OUTBOX_VERIFIED/STAGING_CUTOVER_APPROVED/PRODUCTION_CUTOVER_APPROVED) + `PRODUCTION_PROMOTION_APPROVED`+`_ALLOW_LIVE` + استعلام GET حيّ لـ`/v1/cutover/readiness` يشترط `can_demote_platform=true` و`production_approved=true`. لا `INSERT`/`UPDATE`/`DELETE` في أيّ مسار من الملفّ.
+- `services/decision-service/read_side_compare.py`: مقارنة قراءة-فقط بين المِرْآة والمنصّة. dry-run افتراضيّ؛ `--live` يتطلّب `DECISION_SERVICE_READ_COMPARE_APPROVED`+`_ALLOW_LIVE` (و`_ALLOW_PRODUCTION` إضافيّاً إن `SAHOOL_ENV=production`). يُشغِّل `migration_runner.py --check` + `backfill.py --verify-counts` + GET على readiness/health فقط.
+- `services/decision-service/rollback.py`: **تحقّقتُ يدويّاً أنّه لا يُنفِّذ أيّ فعل** — `_plan()` تُرجِع قائمة ثابتة من 7 `RollbackStep` (ترتيب/اسم/أمر نصّيّ، `destructive=False` افتراضيّاً) تصف تسلسلاً يدويّاً للمشغّل (مثال: "set DECISION_SERVICE_SOR_ENABLED=false"). `run_rollback()` يطبع هذه الخطّة كـJSON فقط خلف رايتَي موافقة (`ROLLBACK_APPROVED`+`_ALLOW_LIVE`) لحالة "preflight" — **بلا تنفيذ فعليّ لأيّ خطوة**. موثَّق صراحةً غير هدّام (يُبقي جداول decision-service للمقارنة الجنائيّة).
+
+**توصيل الحَوكمة:** خطوة `Decision SoR final certification gate` (`scripts/ci/decision_sor_final_certification_gate.py` — حارس ساكن يتحقّق من وجود الملفّات السبعة + توكِنات نصّيّة إلزاميّة كـ"no writes are performed"/"non-destructive"/"dry-run" + توصيل الـworkflow والحارس) + `test_p0_5_decision_sor_final_certification_guard.py` (٦ اختبارات) أُلحِقا يدويّاً بـ`.github/workflows/field-workspace-production-closure.yml` **الحاليّ المُصلَح** — لم يُنسَخ ملفّ workflow الأرشيف لأنّه يفتقر إصلاح `pip install` الحرج المُطبَّق في `5af67ea`.
+
+**⚠️ رفض إصلاح CI مُكرَّر أضيق (مُقدَّم من المستخدم أثناء العمل):** وصل تقرير `SAHOOL_FIELD_WORKSPACE_CI_PYJWT_FIX_REPORT.md` + أرشيف `d01a7a9_ci_pyjwt_fix` يقترحان استبدال خطوة التثبيت الحاليّة (`pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow`) بخطوة أضيق باسم "Install backend runtime dependencies" (`pip install -r services/sahool-platform/api/requirements.txt pytest` فقط — بلا `tests_v9/requirements-test.txt` وبلا `pillow`، وكلاهما تبعيّتان يحتاجهما تحقّق آخر في نفس الـworkflow). **رُفِض الاستبدال** (انحدار — الإصلاح الحاليّ أوسع وسبق تطبيقه وتأكيد نجاحه في `5af67ea`). اعتُمِد فقط جوهر اقتراح الأرشيف (حارس انحدار CI): أُضيفت `test_field_workspace_ci_installs_backend_runtime_dependencies_before_runtime_gates` إلى `test_p0_5_decision_sor_final_certification_guard.py` — مُكيَّفة لتتحقّق من **نصّ خطوتي الفعليّة** (لا اسم خطوة الأرشيف الوهميّ) وتؤكّد سبقها لخطوتَي "Field Workspace Python closure gate" و"Field Workspace guard tests" نصّيّاً في الـYAML، فتمنع أيّ تراجع مستقبليّ عن ترتيب التثبيت.
+
+**التحقّق المستقلّ الكامل:** بوّابة P0-5 مستقلّة (exit 0) · حُرّاس منصّة **62** (11 ملفّ P0/UI، شامل P0-5 الجديد بـ6 اختبارات) · تست_v9 unit **2806 نجاح / 5 تخطٍّ** · ruff format+check نظيف (4 ملفّات جديدة، إصلاح `F401 sys غير مُستخدَم` في `production_promotion.py`) · YAML صالح · لا تغييرات frontend في هذا الأرشيف (tsc/vitest غير مُعاد تشغيلهما، لا حاجة) · release مُعاد بناؤه والتحقّق منه (**3611** checksum).
+
+---
+
 ## 2026-07-09 — Decision SoR staging probe (P0-3/P0-4) + إصلاح فجوة تثبيت تبعيّات CI حرجة
 
 أرشيف `d01a7a9_decision_sor_staging_probe` — يبني فوق جاهزيّة الـSoR (P0-2). **الفارق الحقيقيّ عن الأساس المحلّيّ الحاليّ (`4cfa233`) بعد استبعاد الضجيج (الأرشيف مبنيّ على `d01a7a9` أقدم فأعاد نسخاً بائتة من tsconfig المكسور + تنسيق ruff/tsc سبق إصلاحه):** ٩ ملفّات جديدة فعليّاً + إضافة صغيرة لـmain.py.

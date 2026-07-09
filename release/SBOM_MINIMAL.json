@@ -8815,6 +8815,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "170c2e5403fad3105e98f04ae5e73b2e383aed3fc8eff5ba09cb9f136e6c4e74"
+        }
+      ],
+      "name": "services/decision-service/cutover.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "120197a226d876565835d8d5eb9959bf41e4c5779c00d191d9c89203c9bfb67e"
         }
       ],
@@ -8859,6 +8869,16 @@
         }
       ],
       "name": "services/decision-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ed0a0647ba6deda55da16c4d68b1a1b864813ea078e9dfcca03742406f5e7000"
+        }
+      ],
+      "name": "services/decision-service/staging_probe.py",
       "type": "file"
     },
     {
@@ -11659,6 +11679,16 @@
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ac76efc97fe80d616137c0e25df5815177c668bfbd4b0bd21f9108b8d7bddb8a"
+        }
+      ],
+      "name": "services/sahool-platform/api/decision_sor_mode.py",
       "type": "file"
     },
     {
@@ -20369,6 +20399,26 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8e7a058c5e3895ac09f1e3c9e7bfdf9830e347778bc7fc5997404c10a562e6cd"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ca980c0feb467ed401dd280753d368d0ed60b07295a546823919edcac1548e74"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py",
       "type": "file"
     },
     {

@@ -42,6 +42,8 @@ jobs:
         run: python scripts/ci/decision_sor_shadow_promotion_gate.py
       - name: Decision SoR staging probe gate
         run: python scripts/ci/decision_sor_staging_probe_gate.py
+      - name: Decision SoR final certification gate
+        run: python scripts/ci/decision_sor_final_certification_gate.py
       - name: Field Workspace guard tests
         run: |
           pytest -q \
@@ -50,6 +52,7 @@ jobs:
             services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py \
             services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py \
             services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py \
+            services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py \
             services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py \
             services/sahool-platform/tests/test_ui24_ui26_workspace_imagery_weather_irrigation_guard.py \
             services/sahool-platform/tests/test_ui27_backend_facades_guard.py \
