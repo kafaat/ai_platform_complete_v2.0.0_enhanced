@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 """Validate that Sahool certification matrix is honest and staged."""
+
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
 
-REQUIRED_COLUMNS = ["Static gates", "Contract tests", "Local runtime", "Staging runtime", "7-day soak", "14-day soak"]
+REQUIRED_COLUMNS = [
+    "Static gates",
+    "Contract tests",
+    "Local runtime",
+    "Staging runtime",
+    "7-day soak",
+    "14-day soak",
+]
 REQUIRED_ROWS = [
     "Security / RLS roles",
     "Migrations manifest",
@@ -48,6 +56,7 @@ def main() -> int:
         return 1
     print("certification matrix validation: passed")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

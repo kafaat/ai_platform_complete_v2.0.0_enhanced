@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Guard P2 main.py decomposition for actuator, SAM2, and weather services."""
+
 from __future__ import annotations
 
 import ast
@@ -22,7 +23,11 @@ def _loc(rel: str) -> int:
 
 def _function_names(rel: str) -> set[str]:
     tree = ast.parse(_text(rel), filename=rel)
-    return {node.name for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    return {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
 
 
 def _assert_file(rel: str) -> None:

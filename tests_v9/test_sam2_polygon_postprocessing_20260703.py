@@ -12,7 +12,8 @@ def read(rel: str) -> str:
 
 
 def test_sam2_polygon_postprocessing_is_meter_configurable() -> None:
-    src = read("services/sam2-inference/main.py")
+    # P1 decomposition: منطق المعالجة انتقل إلى sam2_runtime.py الشقيقة — نفحص الملفّين معاً.
+    src = read("services/sam2-inference/main.py") + read("services/sam2-inference/sam2_runtime.py")
     assert "SAM2_POLYGON_SIMPLIFY_TOLERANCE_M" in src
     assert "SAM2_POLYGON_DEDUP_TOLERANCE_M" in src
     assert "SIMPLIFY_TOLERANCE_M" in src

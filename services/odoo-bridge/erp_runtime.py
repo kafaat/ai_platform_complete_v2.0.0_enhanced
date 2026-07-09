@@ -4,6 +4,7 @@ Extracted from ``main.py`` as a behavior-preserving P1 decomposition step.
 Routes still import these names through ``main`` re-exports, while the mutable
 ERP/Odoo/DB state now lives here instead of bloating the FastAPI entrypoint.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -20,6 +21,7 @@ import httpx
 
 try:
     from shared.logging_config import setup_logging
+
     logger = setup_logging("erp-bridge")
 except ImportError:
     logging.basicConfig(
@@ -880,4 +882,3 @@ async def periodic_sync():
         except Exception as e:  # noqa: BLE001
             logger.error("Periodic ERP sync error: %s", type(e).__name__)
         await asyncio.sleep(SYNC_INTERVAL_SEC)
-

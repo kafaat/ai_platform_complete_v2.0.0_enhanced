@@ -4,6 +4,7 @@
 Runtime smoke is still required in deployment, but this catches the common drift where
 /api/weather or /api/edge disappears from the production-reference nginx config.
 """
+
 from __future__ import annotations
 
 from pathlib import Path

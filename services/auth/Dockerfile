@@ -25,6 +25,10 @@ COPY services/auth/otp.py /app/otp.py
 # `import mfa_crypto` (main.py:163). كانت غير منسوخة ⇒ ModuleNotFoundError:
 # No module named 'mfa_crypto' عند الإقلاع ⇒ auth unhealthy. نسخها إلزاميّ.
 COPY services/auth/mfa_crypto.py /app/mfa_crypto.py
+# mfa_runtime.py وحدة شقيقة (P0 auth decomposition — مساعدو MFA DB/تدقيق/anti-replay)
+# يستوردها main.py: `from mfa_runtime import …` (main.py:935). غير منسوخة ⇒
+# ModuleNotFoundError عند الإقلاع ⇒ auth unhealthy. نسخها إلزاميّ (نفس درس otp/mfa_crypto).
+COPY services/auth/mfa_runtime.py /app/mfa_runtime.py
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 EXPOSE 8000

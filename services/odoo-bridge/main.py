@@ -13,17 +13,17 @@ Odoo API docs: https://www.odoo.com/documentation/18.0/developer/reference/exter
 from __future__ import annotations
 
 import asyncio
-import hashlib
+import hashlib  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 import logging
 import os
-import sys
+import sys  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from contextlib import asynccontextmanager
-from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
+from datetime import UTC, datetime  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+from pathlib import Path  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+from typing import Any  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 
 import asyncpg
-import httpx
+import httpx  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from fastapi import FastAPI, Header, HTTPException
 from jose import JWTError as _JE
 from jose import jwt as _jwt
@@ -40,16 +40,36 @@ except ImportError:
     logger = logging.getLogger("erp-bridge")
 
 # ── ERP runtime (P1 decomposition) ─────────────────────────────
-from erp_runtime import (  # noqa: E402,F401
-    ODOO_URL, ODOO_DB, ODOO_USER, ODOO_PASSWORD, ODOO_API_KEY,
-    SAHOOL_DB_URL, SAHOOL_API_URL, SAHOOL_AGENT_TOKEN, SYNC_INTERVAL_SEC,
-    WEBHOOK_SECRET, ODOO_SYNC_TENANT_ID, OdooClient, _selected_erp_provider,
-    get_active_erp_provider, get_odoo, get_pool, _run_migrations, get_last_sync,
-    set_last_sync, log_sync_record, sync_products, sync_suppliers, sync_warehouses,
-    sync_procurement_orders_to_odoo, sync_purchase_order_inbound,
-    sync_field_costs_to_odoo, periodic_sync,
-)
 import erp_runtime as _erp_runtime  # noqa: E402
+from erp_runtime import (  # noqa: E402,F401
+    ODOO_API_KEY,
+    ODOO_DB,
+    ODOO_PASSWORD,
+    ODOO_SYNC_TENANT_ID,
+    ODOO_URL,
+    ODOO_USER,
+    SAHOOL_AGENT_TOKEN,
+    SAHOOL_API_URL,
+    SAHOOL_DB_URL,
+    SYNC_INTERVAL_SEC,
+    WEBHOOK_SECRET,
+    OdooClient,
+    _run_migrations,
+    _selected_erp_provider,
+    get_active_erp_provider,
+    get_last_sync,
+    get_odoo,
+    get_pool,
+    log_sync_record,
+    periodic_sync,
+    set_last_sync,
+    sync_field_costs_to_odoo,
+    sync_procurement_orders_to_odoo,
+    sync_products,
+    sync_purchase_order_inbound,
+    sync_suppliers,
+    sync_warehouses,
+)
 
 
 # ══════════════════════════════════════════════════════════════

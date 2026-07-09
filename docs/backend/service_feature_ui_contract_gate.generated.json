@@ -72,21 +72,21 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/SatellitePageFieldGeometryRefresh.static.test.ts",
-              "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ManagerConsolePage.tsx",
+              "path": "frontend/src/services/api/auth.ts",
               "pattern": "/auth/"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/MapHub.tsx",
+              "path": "frontend/src/services/api/auth.ts",
               "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/services/api/client.ts",
+              "pattern": "/auth/"
             }
           ],
-          "match_count": 40
+          "match_count": 43
         },
         {
           "kind": "gateway",
@@ -222,7 +222,7 @@
               "pattern": "AddFieldWithMap"
             }
           ],
-          "match_count": 167
+          "match_count": 187
         },
         {
           "kind": "gateway",
@@ -334,11 +334,11 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",
-              "pattern": "cdse-tilejson"
+              "path": "frontend/src/services/api/client.ts",
+              "pattern": "tilejson"
             }
           ],
-          "match_count": 25
+          "match_count": 24
         },
         {
           "kind": "gateway",
@@ -430,6 +430,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
               "pattern": "NDVI"
             },
@@ -447,14 +452,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/fieldview/IrrigationDecisionAidsCard.tsx",
               "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldhealth/index.ts",
-              "pattern": "NDVI"
             }
           ],
-          "match_count": 91
+          "match_count": 94
         },
         {
           "kind": "gateway",
@@ -560,16 +560,16 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/SetupCabin.tsx",
+              "path": "frontend/src/services/api/client.ts",
               "pattern": "indicators"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/SettingsPage.tsx",
+              "path": "frontend/src/sections/SetupCabin.tsx",
               "pattern": "indicators"
             }
           ],
-          "match_count": 23
+          "match_count": 25
         },
         {
           "kind": "gateway",
@@ -682,11 +682,11 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/WeatherAdvicePage.tsx",
-              "pattern": "WeatherAdvice"
+              "path": "frontend/src/services/api/fieldWeather.ts",
+              "pattern": "operation-window"
             }
           ],
-          "match_count": 12
+          "match_count": 15
         },
         {
           "kind": "platform-proxy",
@@ -760,7 +760,7 @@
               "pattern": "weather"
             }
           ],
-          "match_count": 166
+          "match_count": 230
         }
       ]
     },
@@ -843,7 +843,7 @@
               "pattern": "Soil"
             }
           ],
-          "match_count": 128
+          "match_count": 138
         },
         {
           "kind": "platform-proxy",
@@ -917,7 +917,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 233
+          "match_count": 255
         }
       ]
     },
@@ -1010,6 +1010,16 @@
               "pattern": "segmentation"
             },
             {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py",
+              "pattern": "/api/segmentation/"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py",
+              "pattern": "segmentation"
+            },
+            {
               "root": "nginx",
               "path": "nginx/nginx.v9.conf",
               "pattern": "/api/segmentation/"
@@ -1020,7 +1030,7 @@
               "pattern": "segmentation"
             }
           ],
-          "match_count": 6
+          "match_count": 8
         }
       ]
     },
@@ -1246,6 +1256,16 @@
               "pattern": "rag-retrieval"
             },
             {
+              "root": "services/ai_agronomist",
+              "path": "services/ai_agronomist/ai_evidence_runtime.py",
+              "pattern": "RAG_BASE_URL"
+            },
+            {
+              "root": "services/ai_agronomist",
+              "path": "services/ai_agronomist/ai_evidence_runtime.py",
+              "pattern": "rag-retrieval"
+            },
+            {
               "root": "tests_v9",
               "path": "tests_v9/test_real_findings_closure_20260702.py",
               "pattern": "rag-retrieval"
@@ -1284,19 +1304,9 @@
               "root": "tests_v9",
               "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
               "pattern": "rag-retrieval"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
-              "pattern": "/api/rag/"
-            },
-            {
-              "root": "nginx",
-              "path": "nginx/nginx.v9.conf",
-              "pattern": "rag-retrieval"
             }
           ],
-          "match_count": 14
+          "match_count": 16
         }
       ]
     },
@@ -1330,6 +1340,16 @@
             {
               "root": "services/ai_agronomist",
               "path": "services/ai_agronomist/main.py",
+              "pattern": "knowledge-graph"
+            },
+            {
+              "root": "services/ai_agronomist",
+              "path": "services/ai_agronomist/ai_evidence_runtime.py",
+              "pattern": "KNOWLEDGE_GRAPH_URL"
+            },
+            {
+              "root": "services/ai_agronomist",
+              "path": "services/ai_agronomist/ai_evidence_runtime.py",
               "pattern": "knowledge-graph"
             },
             {
@@ -1371,19 +1391,9 @@
               "root": "tests_v9",
               "path": "tests_v9/test_remaining_closure_20260702.py",
               "pattern": "/api/knowledge-graph/"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_service_feature_ui_contract_gate.py",
-              "pattern": "knowledge-graph"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-              "pattern": "knowledge-graph"
             }
           ],
-          "match_count": 18
+          "match_count": 20
         }
       ]
     },
@@ -1422,12 +1432,12 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
+              "path": "frontend/src/services/api/client.ts",
               "pattern": "/api/agent"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
+              "path": "frontend/src/services/api/client.ts",
               "pattern": "agent"
             },
             {
@@ -1457,16 +1467,16 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/lib/fieldHealthReport.test.ts",
-              "pattern": "agent"
+              "path": "frontend/src/lib/fieldOperatingContract.ts",
+              "pattern": "supervisor"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/lib/fieldViewDecisionScript.test.ts",
+              "path": "frontend/src/lib/fieldHealthReport.test.ts",
               "pattern": "agent"
             }
           ],
-          "match_count": 19
+          "match_count": 20
         },
         {
           "kind": "gateway",
@@ -1602,7 +1612,7 @@
               "pattern": "validate"
             }
           ],
-          "match_count": 81
+          "match_count": 82
         },
         {
           "kind": "gateway",
@@ -1675,6 +1685,11 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_crop_model_uncertainty_v64.py",
+              "pattern": "agriai-engine"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_real_findings_closure_20260702.py",
               "pattern": "agriai-engine"
             },
@@ -1694,7 +1709,7 @@
               "pattern": "agriai-engine"
             }
           ],
-          "match_count": 7
+          "match_count": 8
         }
       ]
     },
@@ -1780,7 +1795,7 @@
               "pattern": "MCP"
             }
           ],
-          "match_count": 85
+          "match_count": 90
         }
       ]
     },
@@ -1864,7 +1879,7 @@
               "pattern": "irrigation"
             }
           ],
-          "match_count": 158
+          "match_count": 171
         },
         {
           "kind": "platform-proxy",
@@ -1894,12 +1909,22 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/decision_service_client.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/command_dispatcher.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/offline_sync_db.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/learning_summary.py",
               "pattern": "dispatch"
             },
             {
@@ -1926,19 +1951,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
               "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/workflow_definitions.py",
-              "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/offline_sync_contracts.py",
-              "pattern": "dispatch"
             }
           ],
-          "match_count": 60
+          "match_count": 77
         }
       ]
     },
@@ -1974,6 +1989,11 @@
             {
               "root": "frontend/src",
               "path": "frontend/src/components/FieldDetailPanel.tsx",
+              "pattern": "yield"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/AddSeasonWithStages.tsx",
               "pattern": "yield"
             },
             {
@@ -2015,14 +2035,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
               "pattern": "yield"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/FieldEconomicsCard.tsx",
-              "pattern": "yield"
             }
           ],
-          "match_count": 117
+          "match_count": 120
         },
         {
           "kind": "platform-proxy",
@@ -2090,6 +2105,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/EvidenceHistoryCard.tsx",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
               "pattern": "stream"
             },
@@ -2127,14 +2147,9 @@
               "root": "frontend/src",
               "path": "frontend/src/sections/DevicesPage.tsx",
               "pattern": "camera"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/DevicesPage.tsx",
-              "pattern": "DevicesPage"
             }
           ],
-          "match_count": 20
+          "match_count": 23
         },
         {
           "kind": "platform-proxy",
@@ -2315,6 +2330,11 @@
           "matches": [
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/field_season_projection.py",
+              "pattern": "weather_signals"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/routers/agro_intelligence.py",
               "pattern": "weather_signals"
             },
@@ -2322,6 +2342,11 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/routers/agro_intelligence.py",
               "pattern": "decision_playbook"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_field_season_projection.py",
+              "pattern": "weather_signals"
             },
             {
               "root": "services/sahool-platform",
@@ -2350,31 +2375,21 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/core/decision_playbook.py",
+              "path": "services/sahool-platform/tests/test_p1_4_recommendation_to_learning_lineage_e2e.py",
+              "pattern": "weather_signals"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_field_season_projection_reconciled_outcomes.py",
               "pattern": "weather_signals"
             },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/core/decision_playbook.py",
-              "pattern": "decision_playbook"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/core/weather_signals.py",
-              "pattern": "weather_signals"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/core/weather_overlay_pipeline.py",
-              "pattern": "weather_signals"
-            },
-            {
-              "root": "services/weather-signal-engine",
-              "path": "services/weather-signal-engine/src/main.py",
               "pattern": "weather_signals"
             }
           ],
-          "match_count": 13
+          "match_count": 17
         }
       ]
     },
@@ -2515,11 +2530,16 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/sections/maphub/FieldTimelineShell.tsx",
+              "pattern": "synthesize"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
               "pattern": "synthesize"
             }
           ],
-          "match_count": 7
+          "match_count": 8
         }
       ]
     },
@@ -2604,7 +2624,7 @@
               "pattern": "RAG"
             }
           ],
-          "match_count": 60
+          "match_count": 61
         }
       ]
     },
@@ -2690,7 +2710,7 @@
               "pattern": "tilejson"
             }
           ],
-          "match_count": 63
+          "match_count": 67
         }
       ]
     },
@@ -2771,11 +2791,11 @@
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_research_pipeline.py",
+              "path": "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
               "pattern": "collection"
             }
           ],
-          "match_count": 16
+          "match_count": 18
         }
       ]
     }

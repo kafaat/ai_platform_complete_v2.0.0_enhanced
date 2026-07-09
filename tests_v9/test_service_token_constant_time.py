@@ -23,9 +23,11 @@ def m():
     if CORE not in sys.path:
         sys.path.insert(0, CORE)
     pytest.importorskip("fastapi")
-    import api.main as main_mod
+    # P1 decomposition: الحارس انتقل من api.main إلى api/service_token_auth.py (تستهلكه
+    # نقاط /internal في api/routers/internal_service.py) — نفحصه في موضعه الجديد.
+    import api.service_token_auth as guard_mod
 
-    return main_mod
+    return guard_mod
 
 
 def test_missing_secret_is_fail_closed(m, monkeypatch):

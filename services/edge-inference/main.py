@@ -37,8 +37,15 @@ DEVICE = os.getenv("EDGE_DEVICE", "rpi5")
 OFFLINE_MODE = os.getenv("OFFLINE_MODE", "false").lower() == "true"
 SYNC_INTERVAL = int(os.getenv("SYNC_INTERVAL", "3600"))
 MODEL_CACHE_DIR = os.getenv("MODEL_CACHE", "/models")
-EDGE_READINESS_MODE = os.getenv("EDGE_READINESS_MODE", "partial").strip().lower()  # partial | strict
-EDGE_PRODUCTION_REQUIRED = os.getenv("EDGE_PRODUCTION_REQUIRED", "false").strip().lower() in {"1", "true", "yes", "on"}
+EDGE_READINESS_MODE = (
+    os.getenv("EDGE_READINESS_MODE", "partial").strip().lower()
+)  # partial | strict
+EDGE_PRODUCTION_REQUIRED = os.getenv("EDGE_PRODUCTION_REQUIRED", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
 
 _pest_detector: EdgePestDetector | None = None
 _yield_estimator: EdgeYieldEstimator | None = None
@@ -165,7 +172,9 @@ async def health_check() -> EdgeHealthCheck:
         offline_mode=OFFLINE_MODE,
         models_loaded={
             "pest_detector": bool(capabilities_payload()["capabilities"]["pest_detect"]["active"]),
-            "yield_estimator": bool(capabilities_payload()["capabilities"]["yield_estimate"]["active"]),
+            "yield_estimator": bool(
+                capabilities_payload()["capabilities"]["yield_estimate"]["active"]
+            ),
         },
         last_sync=sync.last_sync.isoformat() if sync.last_sync else None,
         queue_size=sync.queue_size(),

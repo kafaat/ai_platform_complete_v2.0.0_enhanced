@@ -8,6 +8,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 PLATFORM = ROOT / "services" / "sahool-platform"
 WEATHER_SERVICE_MAIN = ROOT / "services" / "weather-service" / "main.py"
+WEATHER_SERVICE_RUNTIME = (
+    ROOT / "services" / "weather-service" / "weather_runtime.py"
+)  # P2 shell: المنطق هنا
 MAP_PATH = ROOT / "docs" / "architecture" / "platform_extraction_map.json"
 ALLOWLIST_PATH = ROOT / "docs" / "architecture" / "weather_boundary_allowlist.json"
 DB_OWNERSHIP_PATH = ROOT / "docs" / "architecture" / "db_ownership.yml"
@@ -155,17 +158,19 @@ def test_weather_owned_tables_have_single_weather_writer():
 
 
 def test_weather_service_runtime_contract_is_now_realized():
-    text = WEATHER_SERVICE_MAIN.read_text(encoding="utf-8", errors="ignore")
+    text = WEATHER_SERVICE_MAIN.read_text(
+        encoding="utf-8", errors="ignore"
+    ) + WEATHER_SERVICE_RUNTIME.read_text(encoding="utf-8", errors="ignore")
     required = [
         '"mode": "runtime"',
         '"implemented_runtime": True',
-        '@app.get("/v1/weather/current")',
-        '@app.get("/v1/weather/forecast")',
-        '@app.get("/v1/weather/historical")',
-        '@app.get("/v1/weather/operation-window")',
-        '@app.get("/v1/weather/tile-data/{z}/{x}/{y}")',
-        '@app.get("/v1/weather/wind-grid/{z}/{x}/{y}")',
-        '@app.get("/contract")',
+        'app.get("/v1/weather/current")',
+        'app.get("/v1/weather/forecast")',
+        'app.get("/v1/weather/historical")',
+        'app.get("/v1/weather/operation-window")',
+        'app.get("/v1/weather/tile-data/{z}/{x}/{y}")',
+        'app.get("/v1/weather/wind-grid/{z}/{x}/{y}")',
+        'app.get("/contract")',
     ]
     missing = [marker for marker in required if marker not in text]
     assert not missing, (

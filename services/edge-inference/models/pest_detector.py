@@ -37,10 +37,12 @@ def _ml_pest_model_path(fallback_path: str | None = None) -> str | None:
     # Backward-compatible names seen across earlier packages/downloaders.
     if fallback_path:
         base = os.path.dirname(fallback_path)
-        candidates.extend([
-            os.path.join(base, "pest_detector_int8.onnx"),
-            os.path.join(base, "pest_detector_quantized.onnx"),
-        ])
+        candidates.extend(
+            [
+                os.path.join(base, "pest_detector_int8.onnx"),
+                os.path.join(base, "pest_detector_quantized.onnx"),
+            ]
+        )
     for p in candidates:
         if p and os.path.exists(p):
             return p

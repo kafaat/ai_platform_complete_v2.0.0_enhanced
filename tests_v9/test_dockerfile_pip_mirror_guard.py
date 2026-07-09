@@ -17,6 +17,9 @@ Operational history:
   PyPI). Its Dockerfile was the one holdout still missing ``--timeout``/``--retries``
   that every sibling Dockerfile already had. Both defects are now guarded here.
 
+Every mention of the Tencent host in this file is a stale Tencent mirror reference kept
+for operational history — the guard *forbids* it as a default, never requires it.
+
 Static scan (no image build) — Unit Tests tier. For every Dockerfile under services/,
 agents/, and bots/ that runs ``pip install``, assert: (1) it declares an
 ``ARG PIP_INDEX_URL`` whose default is the public PyPI, never the Tencent mirror, and

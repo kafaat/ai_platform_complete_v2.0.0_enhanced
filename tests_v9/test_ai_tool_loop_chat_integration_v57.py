@@ -44,7 +44,10 @@ def test_advisor_query_accepts_tool_calls_contract():
 
 
 def test_main_wires_tool_loop_into_chat_response_static():
-    source = Path("services/ai_agronomist/main.py").read_text(encoding="utf-8")
+    # P1 decomposition: منطق chat انتقل إلى ai_evidence_runtime.py — نفحص الملفّين معاً.
+    source = (ROOT / "services/ai_agronomist/main.py").read_text(encoding="utf-8") + (
+        ROOT / "services/ai_agronomist/ai_evidence_runtime.py"
+    ).read_text(encoding="utf-8")
     assert "tool_loop.run_tool_calls" in source
     assert 'allowed_capabilities=_policy.get("allowed_capabilities")' in source
     assert "normalize_policy" in source

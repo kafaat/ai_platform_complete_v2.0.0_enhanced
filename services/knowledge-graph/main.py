@@ -54,7 +54,9 @@ def _assert_graphql_query_budget(query: str) -> None:
         raise HTTPException(413, "graphql_query_too_large")
     if _graphql_depth(query) > MAX_GRAPHQL_DEPTH:
         raise HTTPException(400, "graphql_query_too_deep")
-    token_count = len(query.replace("{", " ").replace("}", " ").replace("(", " ").replace(")", " ").split())
+    token_count = len(
+        query.replace("{", " ").replace("}", " ").replace("(", " ").replace(")", " ").split()
+    )
     if token_count > MAX_GRAPHQL_TOKENS:
         raise HTTPException(400, "graphql_query_too_complex")
     lowered = query.lower()

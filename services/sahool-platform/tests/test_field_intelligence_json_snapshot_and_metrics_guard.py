@@ -56,10 +56,14 @@ def test_field_intelligence_persist_uses_json_default_str_guard():
 
 
 def test_platform_metrics_endpoint_exists_for_prometheus_scrape_guard():
+    # P2: /metrics انتقلت إلى routers/platform_health.py — نفحص الملفّين
     main_path = ROOT / "api" / "main.py"
+    health_path = ROOT / "api" / "routers" / "platform_health.py"
+    combined = main_path.read_text() + health_path.read_text()
     tree = ast.parse(main_path.read_text())
+    health_tree = ast.parse(health_path.read_text())
     routes = []
-    for node in ast.walk(tree):
+    for node in [*ast.walk(tree), *ast.walk(health_tree)]:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             for dec in node.decorator_list:
                 if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
@@ -70,6 +74,5 @@ def test_platform_metrics_endpoint_exists_for_prometheus_scrape_guard():
                     ):
                         routes.append((dec.args[0].value, node.name))
     assert ("/metrics", "metrics") in routes
-    text = main_path.read_text()
-    assert "PlainTextResponse" in text
-    assert "sahool_platform_up 1" in text
+    assert "PlainTextResponse" in combined
+    assert "sahool_platform_up 1" in combined

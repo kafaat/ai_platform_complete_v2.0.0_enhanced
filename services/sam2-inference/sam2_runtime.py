@@ -34,9 +34,9 @@ from __future__ import annotations
 
 import logging
 import os
-import time
+import time  # noqa: F401 — إعادة تصدير (نمط main.X)
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException  # noqa: F401 — إعادة تصدير (نمط main.X)
 from pydantic import BaseModel, Field
 
 logging.basicConfig(
@@ -153,8 +153,6 @@ def _load_model() -> None:
         _MODEL_LOAD_ERROR = f"فشل تحميل SAM2: {type(e).__name__}: {e}"
         _MODEL_LOAD_REASON_CODE = "load_failed"
         logger.warning(_MODEL_LOAD_ERROR)
-
-
 
 
 # ─── أدوات هندسيّة مساعدة ─────────────────────────────────────────────────

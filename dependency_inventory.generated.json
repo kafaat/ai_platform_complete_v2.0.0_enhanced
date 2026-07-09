@@ -33,51 +33,51 @@
     "service": "actuator-service",
     "file": "services/actuator-service/requirements.txt",
     "line": 4,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "actuator-service",
     "file": "services/actuator-service/requirements.txt",
     "line": 5,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "actuator-service",
     "file": "services/actuator-service/requirements.txt",
     "line": 6,
-    "requirement": "redis==5.0.0",
+    "requirement": "redis>=5.0.0",
     "package": "redis",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "actuator-service",
     "file": "services/actuator-service/requirements.txt",
     "line": 7,
-    "requirement": "aiomqtt==2.0.0",
+    "requirement": "aiomqtt>=2.0.0",
     "package": "aiomqtt",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "actuator-service",
     "file": "services/actuator-service/requirements.txt",
     "line": 8,
-    "requirement": "PyJWT==2.13.0",
+    "requirement": "PyJWT>=2.13.0",
     "package": "PyJWT",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "agriai-engine",
@@ -103,51 +103,51 @@
     "service": "agriai-engine",
     "file": "services/agriai-engine/requirements.txt",
     "line": 3,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/requirements.txt",
     "line": 4,
-    "requirement": "prometheus-client==0.20.0",
+    "requirement": "prometheus-client>=0.19.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/requirements.txt",
     "line": 5,
-    "requirement": "scikit-learn==1.4.0",
+    "requirement": "scikit-learn>=1.4.0",
     "package": "scikit-learn",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/requirements.txt",
     "line": 6,
-    "requirement": "numpy==2.3.5",
+    "requirement": "numpy>=1.26.0",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "agriai-engine",
     "file": "services/agriai-engine/requirements.txt",
     "line": 7,
-    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "requirement": "opentelemetry-instrumentation-fastapi>=0.44b0",
     "package": "opentelemetry-instrumentation-fastapi",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "agriai-engine",
@@ -223,51 +223,51 @@
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 3,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 4,
-    "requirement": "bcrypt==4.1.0",
+    "requirement": "bcrypt>=4.1.0",
     "package": "bcrypt",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 5,
-    "requirement": "pyotp==2.9.0",
+    "requirement": "pyotp>=2.9.0",
     "package": "pyotp",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 6,
-    "requirement": "cryptography==44.0.0",
+    "requirement": "cryptography>=44.0.0",
     "package": "cryptography",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 7,
-    "requirement": "python-jose[cryptography]==3.4.0",
+    "requirement": "python-jose[cryptography]>=3.4.0",
     "package": "python-jose",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "auth",
@@ -283,31 +283,31 @@
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 9,
-    "requirement": "prometheus-client==0.19.0",
+    "requirement": "prometheus-client>=0.19.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 11,
-    "requirement": "aiosmtplib==3.0.0",
+    "requirement": "aiosmtplib>=3.0.0",
     "package": "aiosmtplib",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "auth",
     "file": "services/auth/requirements.txt",
     "line": 12,
-    "requirement": "redis==5.0.0",
+    "requirement": "redis>=5.0.0",
     "package": "redis",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "decision-service",
@@ -393,51 +393,51 @@
     "service": "edge-inference",
     "file": "services/edge-inference/requirements.txt",
     "line": 4,
-    "requirement": "python-multipart==0.0.29",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "edge-inference",
     "file": "services/edge-inference/requirements.txt",
     "line": 5,
-    "requirement": "httpx==0.28.1",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "edge-inference",
     "file": "services/edge-inference/requirements.txt",
     "line": 6,
-    "requirement": "numpy==2.3.5",
+    "requirement": "numpy>=1.26.0",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "edge-inference",
     "file": "services/edge-inference/requirements.txt",
     "line": 7,
-    "requirement": "pillow==12.2.0",
+    "requirement": "pillow>=10.0.0",
     "package": "pillow",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "edge-inference",
     "file": "services/edge-inference/requirements.txt",
     "line": 8,
-    "requirement": "onnxruntime==1.23.2",
+    "requirement": "onnxruntime>=1.17.0",
     "package": "onnxruntime",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "field-segmentation",
@@ -483,41 +483,41 @@
     "service": "field-segmentation",
     "file": "services/field-segmentation/requirements.txt",
     "line": 9,
-    "requirement": "numpy==1.26.0",
+    "requirement": "numpy>=1.26.0",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/requirements.txt",
     "line": 10,
-    "requirement": "Pillow==10.0.0",
+    "requirement": "Pillow>=10.0.0",
     "package": "Pillow",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "gis-workflow-service",
     "file": "services/gis-workflow-service/requirements.txt",
     "line": 3,
-    "requirement": "matplotlib==3.9.0",
+    "requirement": "matplotlib>=3.9,<4",
     "package": "matplotlib",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "gis-workflow-service",
     "file": "services/gis-workflow-service/requirements.txt",
     "line": 4,
-    "requirement": "numpy==1.24.0",
+    "requirement": "numpy>=1.24",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
@@ -553,81 +553,81 @@
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 4,
-    "requirement": "python-multipart==0.0.18",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 5,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 6,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 7,
-    "requirement": "redis==5.0.0",
+    "requirement": "redis>=5.0.0",
     "package": "redis",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 9,
-    "requirement": "prometheus-client==0.19.0",
+    "requirement": "prometheus-client>=0.19.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 11,
-    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "requirement": "opentelemetry-instrumentation-fastapi>=0.44b0",
     "package": "opentelemetry-instrumentation-fastapi",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 12,
-    "requirement": "opentelemetry-instrumentation-asyncpg==0.44b0",
+    "requirement": "opentelemetry-instrumentation-asyncpg>=0.44b0",
     "package": "opentelemetry-instrumentation-asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "guardrails-engine",
     "file": "services/guardrails-engine/requirements.txt",
     "line": 13,
-    "requirement": "PyJWT==2.13.0",
+    "requirement": "PyJWT>=2.13.0",
     "package": "PyJWT",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "indicators-service",
@@ -653,31 +653,31 @@
     "service": "indicators-service",
     "file": "services/indicators-service/requirements.txt",
     "line": 3,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "indicators-service",
     "file": "services/indicators-service/requirements.txt",
     "line": 4,
-    "requirement": "nats-py==2.3.0",
+    "requirement": "nats-py>=2.3.0",
     "package": "nats-py",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "indicators-service",
     "file": "services/indicators-service/requirements.txt",
     "line": 5,
-    "requirement": "redis==5.2.1",
+    "requirement": "redis>=5.0.0",
     "package": "redis",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "indicators-service",
@@ -693,11 +693,11 @@
     "service": "indicators-service",
     "file": "services/indicators-service/requirements.txt",
     "line": 7,
-    "requirement": "prometheus-client==0.20.0",
+    "requirement": "prometheus-client>=0.19.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "knowledge-graph",
@@ -763,111 +763,111 @@
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 4,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 5,
-    "requirement": "langchain==0.3.0",
+    "requirement": "langchain>=0.3.0,<1.0",
     "package": "langchain",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 6,
-    "requirement": "langchain-community==0.3.0",
+    "requirement": "langchain-community>=0.3.0,<1.0",
     "package": "langchain-community",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 7,
-    "requirement": "langchain-ollama==0.2.0",
+    "requirement": "langchain-ollama>=0.2.0,<1.0",
     "package": "langchain-ollama",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 8,
-    "requirement": "langchain-text-splitters==0.3.0",
+    "requirement": "langchain-text-splitters>=0.3.0,<1.0",
     "package": "langchain-text-splitters",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 9,
-    "requirement": "langchain-qdrant==0.2.0",
+    "requirement": "langchain-qdrant>=0.2.0,<1.0",
     "package": "langchain-qdrant",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 10,
-    "requirement": "qdrant-client==1.14.0",
+    "requirement": "qdrant-client>=1.14.0,<2.0",
     "package": "qdrant-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 11,
-    "requirement": "python-multipart==0.0.18",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 12,
-    "requirement": "aiofiles==24.0.0",
+    "requirement": "aiofiles>=24.0.0",
     "package": "aiofiles",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 13,
-    "requirement": "pypdf==6.7.1",
+    "requirement": "pypdf>=6.7.1,<7.0",
     "package": "pypdf",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "local-ai-rag",
     "file": "services/local-ai-rag/requirements.txt",
     "line": 14,
-    "requirement": "python-jose[cryptography]==3.4.0",
+    "requirement": "python-jose[cryptography]>=3.4.0",
     "package": "python-jose",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
@@ -903,91 +903,91 @@
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 4,
-    "requirement": "httpx==0.28.1",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 5,
-    "requirement": "PyJWT==2.13.0",
+    "requirement": "PyJWT>=2.13.0",
     "package": "PyJWT",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 6,
-    "requirement": "cryptography==44.0.0",
+    "requirement": "cryptography>=42.0.0",
     "package": "cryptography",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 7,
-    "requirement": "numpy==2.3.5",
+    "requirement": "numpy>=1.26.0",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 8,
-    "requirement": "python-multipart==0.0.29",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 10,
-    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "requirement": "opentelemetry-instrumentation-fastapi>=0.44b0",
     "package": "opentelemetry-instrumentation-fastapi",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 11,
-    "requirement": "opentelemetry-instrumentation-asyncpg==0.44b0",
+    "requirement": "opentelemetry-instrumentation-asyncpg>=0.44b0",
     "package": "opentelemetry-instrumentation-asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 15,
-    "requirement": "prometheus-client==0.20.0",
+    "requirement": "prometheus-client>=0.20.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/requirements.txt",
     "line": 16,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": true,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "odoo-bridge",
@@ -1023,61 +1023,61 @@
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/requirements.txt",
     "line": 4,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/requirements.txt",
     "line": 5,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/requirements.txt",
     "line": 6,
-    "requirement": "python-multipart==0.0.18",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/requirements.txt",
     "line": 7,
-    "requirement": "python-jose[cryptography]==3.4.0",
+    "requirement": "python-jose[cryptography]>=3.4.0",
     "package": "python-jose",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "qdrant-seed",
     "file": "services/qdrant-seed/requirements.txt",
     "line": 1,
-    "requirement": "qdrant-client==1.14.0",
+    "requirement": "qdrant-client>=1.14.0,<2.0",
     "package": "qdrant-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "qdrant-seed",
     "file": "services/qdrant-seed/requirements.txt",
     "line": 2,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "rag-retrieval",
@@ -1143,111 +1143,111 @@
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 4,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 5,
-    "requirement": "python-multipart==0.0.18",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 7,
-    "requirement": "rasterio==1.3.0",
+    "requirement": "rasterio>=1.3.0",
     "package": "rasterio",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 8,
-    "requirement": "numpy==1.26.0",
+    "requirement": "numpy>=1.26.0",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 9,
-    "requirement": "redis==5.0.0",
+    "requirement": "redis>=5.0.0",
     "package": "redis",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 12,
-    "requirement": "asyncpg==0.29.0",
+    "requirement": "asyncpg>=0.29.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 15,
-    "requirement": "boto3==1.34.0",
+    "requirement": "boto3>=1.34.0",
     "package": "boto3",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 17,
-    "requirement": "pyarrow==16.0.0",
+    "requirement": "pyarrow>=16.0.0",
     "package": "pyarrow",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 18,
-    "requirement": "shapely==2.0.0",
+    "requirement": "shapely>=2.0.0",
     "package": "shapely",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 19,
-    "requirement": "geopandas==0.14.0",
+    "requirement": "geopandas>=0.14.0",
     "package": "geopandas",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "raster-service",
     "file": "services/raster-service/requirements.txt",
     "line": 22,
-    "requirement": "asyncpg==0.29.0",
+    "requirement": "asyncpg>=0.29.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "sam2-inference",
@@ -1343,11 +1343,11 @@
     "service": "soil-service",
     "file": "services/soil-service/requirements.txt",
     "line": 3,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "soil-service",
@@ -1373,11 +1373,11 @@
     "service": "soil-service",
     "file": "services/soil-service/requirements.txt",
     "line": 6,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
@@ -1413,101 +1413,101 @@
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 4,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 5,
-    "requirement": "PyJWT==2.13.0",
+    "requirement": "PyJWT>=2.13.0",
     "package": "PyJWT",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 6,
-    "requirement": "cryptography==42.0.0",
+    "requirement": "cryptography>=42.0.0",
     "package": "cryptography",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 7,
-    "requirement": "numpy==1.26.0",
+    "requirement": "numpy>=1.26.0",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 8,
-    "requirement": "python-multipart==0.0.18",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 9,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 10,
-    "requirement": "prometheus-client==0.19.0",
+    "requirement": "prometheus-client>=0.19.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 12,
-    "requirement": "anthropic==0.28.0",
+    "requirement": "anthropic>=0.28.0,<1.0",
     "package": "anthropic",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 14,
-    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "requirement": "opentelemetry-instrumentation-fastapi>=0.44b0",
     "package": "opentelemetry-instrumentation-fastapi",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "supervisor-agent",
     "file": "services/supervisor-agent/requirements.txt",
     "line": 15,
-    "requirement": "opentelemetry-instrumentation-asyncpg==0.44b0",
+    "requirement": "opentelemetry-instrumentation-asyncpg>=0.44b0",
     "package": "opentelemetry-instrumentation-asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "tts-service",
@@ -1533,31 +1533,31 @@
     "service": "tts-service",
     "file": "services/tts-service/requirements.txt",
     "line": 4,
-    "requirement": "edge-tts==6.1.12",
+    "requirement": "edge-tts>=6.1.12",
     "package": "edge-tts",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "tts-service",
     "file": "services/tts-service/requirements.txt",
     "line": 5,
-    "requirement": "redis==5.0.0",
+    "requirement": "redis>=5.0.0",
     "package": "redis",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "tts-service",
     "file": "services/tts-service/requirements.txt",
     "line": 6,
-    "requirement": "python-jose[cryptography]==3.4.0",
+    "requirement": "python-jose[cryptography]>=3.4.0",
     "package": "python-jose",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "tts-service",
@@ -1573,11 +1573,11 @@
     "service": "tts-service",
     "file": "services/tts-service/requirements.txt",
     "line": 8,
-    "requirement": "prometheus-client==0.19.0",
+    "requirement": "prometheus-client>=0.19.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "vegetation-analysis-service",
@@ -1603,21 +1603,21 @@
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/requirements.txt",
     "line": 3,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/requirements.txt",
     "line": 4,
-    "requirement": "nats-py==2.3.0",
+    "requirement": "nats-py>=2.3.0",
     "package": "nats-py",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "vegetation-analysis-service",
@@ -1633,31 +1633,31 @@
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/requirements.txt",
     "line": 6,
-    "requirement": "prometheus-client==0.19.0",
+    "requirement": "prometheus-client>=0.19.0",
     "package": "prometheus-client",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/requirements.txt",
     "line": 7,
-    "requirement": "python-dotenv==1.0.0",
+    "requirement": "python-dotenv>=1.0.0",
     "package": "python-dotenv",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/requirements.txt",
     "line": 8,
-    "requirement": "PyJWT==2.13.0",
+    "requirement": "PyJWT>=2.13.0",
     "package": "PyJWT",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "video-processor",
@@ -1693,91 +1693,91 @@
     "service": "video-processor",
     "file": "services/video-processor/requirements.txt",
     "line": 4,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/requirements.txt",
     "line": 5,
-    "requirement": "opencv-python-headless==4.9.0",
+    "requirement": "opencv-python-headless>=4.9.0",
     "package": "opencv-python-headless",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/requirements.txt",
     "line": 6,
-    "requirement": "numpy==1.26.0",
+    "requirement": "numpy>=1.26.0",
     "package": "numpy",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/requirements.txt",
     "line": 7,
-    "requirement": "redis==5.0.0",
+    "requirement": "redis>=5.0.0",
     "package": "redis",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/requirements.txt",
     "line": 8,
-    "requirement": "aiomqtt==2.0.0",
+    "requirement": "aiomqtt>=2.0.0",
     "package": "aiomqtt",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/requirements.txt",
     "line": 9,
-    "requirement": "python-multipart==0.0.18",
+    "requirement": "python-multipart>=0.0.18",
     "package": "python-multipart",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "video-processor",
     "file": "services/video-processor/requirements.txt",
     "line": 10,
-    "requirement": "python-jose[cryptography]==3.4.0",
+    "requirement": "python-jose[cryptography]>=3.4.0",
     "package": "python-jose",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "weather-polygon-worker",
     "file": "services/weather-polygon-worker/requirements.txt",
     "line": 1,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "weather-polygon-worker",
     "file": "services/weather-polygon-worker/requirements.txt",
     "line": 2,
-    "requirement": "nats-py==2.3.0",
+    "requirement": "nats-py>=2.3.0",
     "package": "nats-py",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "weather-service",
@@ -1823,11 +1823,11 @@
     "service": "weather-signal-engine",
     "file": "services/weather-signal-engine/requirements.txt",
     "line": 1,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "sahool-platform",
@@ -1893,11 +1893,11 @@
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/requirements.txt",
     "line": 15,
-    "requirement": "httpx==0.27.0",
+    "requirement": "httpx>=0.27.0",
     "package": "httpx",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "sahool-platform",
@@ -1963,11 +1963,11 @@
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/requirements.txt",
     "line": 25,
-    "requirement": "anthropic==0.69.0",
+    "requirement": "anthropic>=0.69,<1.0",
     "package": "anthropic",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   },
   {
     "service": "sahool-platform",
@@ -1983,10 +1983,10 @@
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/requirements.txt",
     "line": 27,
-    "requirement": "asyncpg==0.30.0",
+    "requirement": "asyncpg>=0.30.0,<0.32.0",
     "package": "asyncpg",
-    "exact_pinned": true,
+    "exact_pinned": false,
     "strict_service": false,
-    "issue": ""
+    "issue": "range_or_minimum_pin"
   }
 ]

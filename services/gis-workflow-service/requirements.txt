@@ -1,4 +1,4 @@
 # gis-workflow-service — رِندرِر خرائط النشر (الشريحة A). تبعيّات معزولة عن بقيّة الخدمات.
 # pip-audit نظيف عند الإضافة (matplotlib 3.11.0 / numpy 2.x — لا ثغرات معروفة).
-matplotlib==3.9.0
-numpy==1.24.0
+matplotlib>=3.9,<4
+numpy>=1.24

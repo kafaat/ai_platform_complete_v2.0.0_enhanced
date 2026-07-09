@@ -9,6 +9,7 @@ This is a static guard for the production migration chain:
 * New migrations after v122 may not use app.tenant_id as the sole tenant
   session variable; app.current_tenant is canonical.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -67,10 +68,20 @@ def main() -> int:
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         for idx, stmt in enumerate(CREATE_POLICY_RE.findall(text), start=1):
-            if policy_is_write_path(stmt) and policy_is_tenant_aware(stmt) and "WITH CHECK" not in stmt.upper():
+            if (
+                policy_is_write_path(stmt)
+                and policy_is_tenant_aware(stmt)
+                and "WITH CHECK" not in stmt.upper()
+            ):
                 errors.append(f"{path.name}: tenant write policy #{idx} missing WITH CHECK")
-            if "app.tenant_id" in stmt and "sahool_effective_tenant_id" not in stmt and "app.current_tenant" not in stmt:
-                errors.append(f"{path.name}: policy #{idx} uses app.tenant_id without canonical app.current_tenant fallback")
+            if (
+                "app.tenant_id" in stmt
+                and "sahool_effective_tenant_id" not in stmt
+                and "app.current_tenant" not in stmt
+            ):
+                errors.append(
+                    f"{path.name}: policy #{idx} uses app.tenant_id without canonical app.current_tenant fallback"
+                )
 
     # Phase 9-12 runtime writers must set both tenant session variables once they
     # exist. They are not part of this focused security change, so the check is
@@ -84,7 +95,9 @@ def main() -> int:
         if "set_config('app.current_tenant'" not in text:
             errors.append(f"{source.relative_to(root)} does not set app.current_tenant")
         if "set_config('app.tenant_id'" not in text:
-            errors.append(f"{source.relative_to(root)} does not preserve app.tenant_id compatibility")
+            errors.append(
+                f"{source.relative_to(root)} does not preserve app.tenant_id compatibility"
+            )
 
     if errors:
         print("RLS write-policy validation failed:")

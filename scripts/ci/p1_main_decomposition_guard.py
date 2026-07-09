@@ -9,6 +9,7 @@ This guard prevents regression after the conservative P1 refactors:
 - vegetation-analysis-service/main.py is a slim app shell; vegetation runtime
   lives in vegetation_runtime.py.
 """
+
 from __future__ import annotations
 
 import ast
@@ -33,15 +34,27 @@ def _route_decorators(rel: str) -> list[str]:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         for dec in node.decorator_list:
-            if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute) and dec.func.attr in ROUTE_METHODS:
-                route = dec.args[0].value if dec.args and isinstance(dec.args[0], ast.Constant) else "<dynamic>"
+            if (
+                isinstance(dec, ast.Call)
+                and isinstance(dec.func, ast.Attribute)
+                and dec.func.attr in ROUTE_METHODS
+            ):
+                route = (
+                    dec.args[0].value
+                    if dec.args and isinstance(dec.args[0], ast.Constant)
+                    else "<dynamic>"
+                )
                 found.append(f"{dec.func.attr.upper()} {route} -> {node.name}")
     return found
 
 
 def _function_names(rel: str) -> set[str]:
     tree = ast.parse(_text(rel), filename=rel)
-    return {node.name for node in ast.walk(tree) if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    return {
+        node.name
+        for node in ast.walk(tree)
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+    }
 
 
 def _assert_file(rel: str) -> None:
@@ -58,7 +71,9 @@ def main() -> int:
     ]:
         _assert_file(rel)
     if _route_decorators(platform_main):
-        raise SystemExit(f"platform main.py regained direct routes: {_route_decorators(platform_main)}")
+        raise SystemExit(
+            f"platform main.py regained direct routes: {_route_decorators(platform_main)}"
+        )
     if "register_routers(app)" not in _text(platform_main):
         raise SystemExit("platform main.py no longer delegates to router_registry")
     if _loc(platform_main) > 2550:
@@ -80,9 +95,13 @@ def main() -> int:
         "periodic_sync",
     }
     if heavy & _function_names(odoo_main):
-        raise SystemExit(f"odoo heavy sync functions returned to main.py: {sorted(heavy & _function_names(odoo_main))}")
+        raise SystemExit(
+            f"odoo heavy sync functions returned to main.py: {sorted(heavy & _function_names(odoo_main))}"
+        )
     if not heavy <= _function_names(odoo_runtime):
-        raise SystemExit(f"odoo runtime missing heavy functions: {sorted(heavy - _function_names(odoo_runtime))}")
+        raise SystemExit(
+            f"odoo runtime missing heavy functions: {sorted(heavy - _function_names(odoo_runtime))}"
+        )
 
     # Vegetation runtime extraction.
     veg_main = "services/vegetation-analysis-service/main.py"
@@ -99,9 +118,13 @@ def main() -> int:
         "_current_ndvi_payload",
     }
     if veg_heavy & _function_names(veg_main):
-        raise SystemExit(f"vegetation heavy functions returned to main.py: {sorted(veg_heavy & _function_names(veg_main))}")
+        raise SystemExit(
+            f"vegetation heavy functions returned to main.py: {sorted(veg_heavy & _function_names(veg_main))}"
+        )
     if not veg_heavy <= _function_names(veg_runtime):
-        raise SystemExit(f"vegetation runtime missing heavy functions: {sorted(veg_heavy - _function_names(veg_runtime))}")
+        raise SystemExit(
+            f"vegetation runtime missing heavy functions: {sorted(veg_heavy - _function_names(veg_runtime))}"
+        )
 
     print("p1_main_decomposition_guard_ok")
     return 0

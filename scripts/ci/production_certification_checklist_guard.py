@@ -5,6 +5,7 @@ This guard intentionally does not pretend to run external blockers that require
 connected CI, Redis, or model artifacts. It freezes the blocker contract so the
 repo cannot silently mark production certification complete without evidence.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -126,7 +127,15 @@ def write_files() -> None:
     with CSV_PATH.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["id", "name", "severity", "status", "certification_rule", "commands", "required_evidence"],
+            fieldnames=[
+                "id",
+                "name",
+                "severity",
+                "status",
+                "certification_rule",
+                "commands",
+                "required_evidence",
+            ],
         )
         writer.writeheader()
         for item in BLOCKERS:
@@ -163,26 +172,30 @@ def _runbook_text() -> str:
         "",
     ]
     for item in BLOCKERS:
-        lines.extend([
-            f"### {item['id']} — {item['name']}",
-            "",
-            f"- Severity: `{item['severity']}`",
-            f"- Current status: `{item['status']}`",
-            f"- Certification rule: {item['certification_rule']}",
-            "",
-            "Required evidence:",
-            "",
-        ])
+        lines.extend(
+            [
+                f"### {item['id']} — {item['name']}",
+                "",
+                f"- Severity: `{item['severity']}`",
+                f"- Current status: `{item['status']}`",
+                f"- Certification rule: {item['certification_rule']}",
+                "",
+                "Required evidence:",
+                "",
+            ]
+        )
         lines.extend([f"- {e}" for e in item["required_evidence"]])
         lines.extend(["", "Commands:", ""])
         lines.extend([f"```bash\n{cmd}\n```" for cmd in item["commands"]])
         lines.append("")
-    lines.extend([
-        "## Non-negotiable policy",
-        "",
-        "Do not change this checklist to `certified` by editing text. Certification requires fresh branch/deployment evidence for every blocker.",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Non-negotiable policy",
+            "",
+            "Do not change this checklist to `certified` by editing text. Certification requires fresh branch/deployment evidence for every blocker.",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -198,10 +211,16 @@ def check_files() -> None:
     for item in BLOCKERS:
         if item["id"] not in runbook or item["name"] not in runbook:
             raise SystemExit(f"runbook missing blocker {item['id']}")
-    if "test_weather_redis_live_optional.py" not in runbook or "WEATHER_REDIS_INTEGRATION_URL" not in runbook:
+    if (
+        "test_weather_redis_live_optional.py" not in runbook
+        or "WEATHER_REDIS_INTEGRATION_URL" not in runbook
+    ):
         raise SystemExit("runbook must document the known Redis live skipped test")
     # prevent accidental false certification without evidence automation
-    if "production_certified" in expected_json and "release_candidate_not_production_certified" not in expected_json:
+    if (
+        "production_certified" in expected_json
+        and "release_candidate_not_production_certified" not in expected_json
+    ):
         raise SystemExit("checklist must not claim production certification")
     print("production_certification_checklist_ok")
 

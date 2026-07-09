@@ -5,6 +5,7 @@ The output is intentionally labelled DIRECT. It is not a transitive lock. A true
 transitive lock must be produced by a resolver (for example pip-tools) in connected CI
 or in the final container build context.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -20,7 +21,9 @@ def meaningful(line: str) -> str:
 
 
 def iter_req_files() -> list[Path]:
-    return sorted(SERVICES.glob("*/requirements*.txt")) + sorted(SERVICES.glob("*/*/requirements*.txt"))
+    return sorted(SERVICES.glob("*/requirements*.txt")) + sorted(
+        SERVICES.glob("*/*/requirements*.txt")
+    )
 
 
 def build() -> str:
@@ -52,7 +55,9 @@ def main() -> None:
     if args.check:
         old = OUT.read_text(encoding="utf-8") if OUT.exists() else None
         if old != content:
-            raise SystemExit("Direct dependency bundle drift detected; run scripts/ci/build_service_dependency_bundle.py")
+            raise SystemExit(
+                "Direct dependency bundle drift detected; run scripts/ci/build_service_dependency_bundle.py"
+            )
         print("direct_dependency_bundle_check_ok")
         return
     OUT.write_text(content, encoding="utf-8")

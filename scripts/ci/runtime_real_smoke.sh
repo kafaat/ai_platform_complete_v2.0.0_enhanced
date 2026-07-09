@@ -19,9 +19,11 @@ echo "[runtime-smoke] static/runtime contract guards"
 "$PYTHON_BIN" scripts/ci/edge_model_contract_guard.py
 "$PYTHON_BIN" scripts/ci/edge_production_readiness_guard.py
 
-if command -v pytest >/dev/null 2>&1; then
+if "$PYTHON_BIN" -m pytest --version >/dev/null 2>&1; then
   echo "[runtime-smoke] targeted pytest contracts"
-  pytest -q \
+  # "$PYTHON_BIN" -m pytest (لا pytest المجرّد): يضمن نفس مفسّر التبعيّات المثبَّتة —
+  # pytest مجرّد قد يشير لتثبيت آخر بلا httpx (درس مُوثَّق في هذه الجلسة).
+  "$PYTHON_BIN" -m pytest -q \
     services/weather-service/tests \
     services/edge-inference/tests \
     tests_v9/test_internal_graphql_security_guard.py \

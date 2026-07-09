@@ -9,9 +9,9 @@ back into a large monolith.
 
 from __future__ import annotations
 
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVICE = ROOT / "services" / "ai_agronomist"
@@ -56,7 +56,9 @@ def main() -> None:
     runtime_src = EVIDENCE_RUNTIME.read_text(encoding="utf-8") if EVIDENCE_RUNTIME.exists() else ""
     loc = len(main_src.splitlines())
     if loc > MAX_MAIN_LOC:
-        fail(f"services/ai_agronomist/main.py LOC {loc} exceeds {MAX_MAIN_LOC}; keep evidence runtime decomposed")
+        fail(
+            f"services/ai_agronomist/main.py LOC {loc} exceeds {MAX_MAIN_LOC}; keep evidence runtime decomposed"
+        )
     if not EVIDENCE_RUNTIME.exists():
         fail("services/ai_agronomist/ai_evidence_runtime.py missing")
     for name in sorted(REQUIRED_RUNTIME_FUNCS):
@@ -66,12 +68,19 @@ def main() -> None:
         if _has_function(main_src, name):
             fail(f"{name} implementation drifted back into main.py")
     if "build_evidence_response as _build_evidence_response_runtime" not in main_src:
-        fail("main.py must delegate query/chat/explain/recommend through ai_evidence_runtime.build_evidence_response")
+        fail(
+            "main.py must delegate query/chat/explain/recommend through ai_evidence_runtime.build_evidence_response"
+        )
     if "save_agent_tool_audit=_save_agent_tool_audit" not in main_src:
         fail("main.py wrapper must inject audit store callback into evidence runtime")
     if "save_pending_approval=_save_pending_approval" not in main_src:
         fail("main.py wrapper must inject approval store callback into evidence runtime")
-    for route in ('@app.post("/query")', '@app.post("/chat")', '@app.post("/explain")', '@app.post("/recommend")'):
+    for route in (
+        '@app.post("/query")',
+        '@app.post("/chat")',
+        '@app.post("/explain")',
+        '@app.post("/recommend")',
+    ):
         if route not in main_src:
             fail(f"missing route decorator {route}")
     print("✓ ai-agronomist main decomposition guard passed")

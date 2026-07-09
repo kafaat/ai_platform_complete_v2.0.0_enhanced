@@ -10,6 +10,7 @@ Expected env:
 
 The script intentionally checks reject paths as well as one internal-token happy path.
 """
+
 from __future__ import annotations
 
 import json
@@ -26,7 +27,9 @@ OTHER_TENANT_ID = os.getenv("OTHER_TENANT_ID", "tenant-live-b")
 TIMEOUT = float(os.getenv("CURL_TIMEOUT", "10"))
 
 
-def request(method: str, path: str, body: dict | None = None, headers: dict | None = None) -> tuple[int, str]:
+def request(
+    method: str, path: str, body: dict | None = None, headers: dict | None = None
+) -> tuple[int, str]:
     data = None if body is None else json.dumps(body).encode()
     hdrs = {"Content-Type": "application/json"}
     if JWT:
@@ -49,36 +52,67 @@ def assert_status(label: str, got: int, expected: set[int]) -> bool:
 def main() -> int:
     checks: list[bool] = []
 
-    status, _ = request("POST", "/api/ai-agronomist/recommend", {
-        "tenant_id": TENANT_ID,
-        "field_id": "field-live",
-        "question": "test",
-        "current_field_state": {"forged": True},
-    }, {"X-Tenant-Id": TENANT_ID})
-    checks.append(assert_status("AI rejects client-supplied current_field_state", status, {401, 403}))
+    status, _ = request(
+        "POST",
+        "/api/ai-agronomist/recommend",
+        {
+            "tenant_id": TENANT_ID,
+            "field_id": "field-live",
+            "question": "test",
+            "current_field_state": {"forged": True},
+        },
+        {"X-Tenant-Id": TENANT_ID},
+    )
+    checks.append(
+        assert_status("AI rejects client-supplied current_field_state", status, {401, 403})
+    )
 
-    status, _ = request("POST", "/api/ai-agronomist/recommend", {
-        "tenant_id": OTHER_TENANT_ID,
-        "field_id": "field-live",
-        "question": "test",
-    }, {"X-Tenant-Id": TENANT_ID})
+    status, _ = request(
+        "POST",
+        "/api/ai-agronomist/recommend",
+        {
+            "tenant_id": OTHER_TENANT_ID,
+            "field_id": "field-live",
+            "question": "test",
+        },
+        {"X-Tenant-Id": TENANT_ID},
+    )
     checks.append(assert_status("AI rejects tenant_mismatch", status, {401, 403}))
 
-    status, _ = request("POST", "/api/rag/ingest", {"chunks": [{"tenant_id": TENANT_ID, "text": "x"}]}, {"X-Tenant-Id": TENANT_ID})
+    status, _ = request(
+        "POST",
+        "/api/rag/ingest",
+        {"chunks": [{"tenant_id": TENANT_ID, "text": "x"}]},
+        {"X-Tenant-Id": TENANT_ID},
+    )
     checks.append(assert_status("RAG ingest requires service token", status, {401, 403}))
 
-    status, _ = request("POST", "/api/rag/search", {"tenant_id": OTHER_TENANT_ID, "query": "test", "top_k": 1}, {"X-Tenant-Id": TENANT_ID})
+    status, _ = request(
+        "POST",
+        "/api/rag/search",
+        {"tenant_id": OTHER_TENANT_ID, "query": "test", "top_k": 1},
+        {"X-Tenant-Id": TENANT_ID},
+    )
     checks.append(assert_status("RAG search rejects tenant_mismatch", status, {401, 403}))
 
-    status, _ = request("POST", "/api/knowledge-graph/nodes", {"id": "n1", "label": "x"}, {"X-Tenant-Id": TENANT_ID})
+    status, _ = request(
+        "POST", "/api/knowledge-graph/nodes", {"id": "n1", "label": "x"}, {"X-Tenant-Id": TENANT_ID}
+    )
     checks.append(assert_status("KG write requires service token", status, {401, 403}))
 
     if AGENT_TOKEN:
-        status, _ = request("POST", "/api/rag/ingest", {"chunks": [{"tenant_id": OTHER_TENANT_ID, "text": "x"}]}, {
-            "X-Tenant-Id": TENANT_ID,
-            "X-Agent-Token": AGENT_TOKEN,
-        })
-        checks.append(assert_status("RAG ingest rejects service-token tenant mismatch", status, {403}))
+        status, _ = request(
+            "POST",
+            "/api/rag/ingest",
+            {"chunks": [{"tenant_id": OTHER_TENANT_ID, "text": "x"}]},
+            {
+                "X-Tenant-Id": TENANT_ID,
+                "X-Agent-Token": AGENT_TOKEN,
+            },
+        )
+        checks.append(
+            assert_status("RAG ingest rejects service-token tenant mismatch", status, {403})
+        )
     else:
         print("RAG service-token mismatch check: SKIP (SAHOOL_AGENT_TOKEN not set)")
 

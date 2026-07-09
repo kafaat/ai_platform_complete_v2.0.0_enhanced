@@ -6,6 +6,7 @@ A zero-route ``main.py`` is acceptable only when it explicitly delegates to
 worker/bot entrypoint. This prevents dead-code services hidden by stale
 inventories that only scan ``main.py`` decorators.
 """
+
 from __future__ import annotations
 
 import ast
@@ -40,10 +41,13 @@ def _route_count(tree: ast.Module) -> int:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         for dec in node.decorator_list:
-            if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute) and dec.func.attr in ROUTE_METHODS:
+            if (
+                isinstance(dec, ast.Call)
+                and isinstance(dec.func, ast.Attribute)
+                and dec.func.attr in ROUTE_METHODS
+            ):
                 count += 1
     return count
-
 
 
 def _route_registration_call_count(tree: ast.Module) -> int:
@@ -53,8 +57,16 @@ def _route_registration_call_count(tree: ast.Module) -> int:
         if not isinstance(node, ast.Call):
             continue
         inner = node.func
-        if isinstance(inner, ast.Call) and isinstance(inner.func, ast.Attribute) and inner.func.attr in ROUTE_METHODS:
-            if inner.args and isinstance(inner.args[0], ast.Constant) and isinstance(inner.args[0].value, str):
+        if (
+            isinstance(inner, ast.Call)
+            and isinstance(inner.func, ast.Attribute)
+            and inner.func.attr in ROUTE_METHODS
+        ):
+            if (
+                inner.args
+                and isinstance(inner.args[0], ast.Constant)
+                and isinstance(inner.args[0].value, str)
+            ):
                 count += 1
     return count
 
@@ -68,6 +80,7 @@ def _delegates_to_runtime_module(tree: ast.Module) -> bool:
                 if alias.name.endswith("_runtime"):
                     return True
     return False
+
 
 def _has_fastapi_app(tree: ast.Module) -> bool:
     for node in ast.walk(tree):
@@ -120,7 +133,12 @@ def _calls_known_app_factory(tree: ast.Module) -> bool:
 
 
 def collect() -> list[dict[str, object]]:
-    candidates = sorted(ROOT.glob("services/*/main.py")) + sorted(ROOT.glob("services/*/src/main.py")) + sorted(ROOT.glob("services/sahool-platform/api/main.py")) + sorted(ROOT.glob("bots/*/main.py"))
+    candidates = (
+        sorted(ROOT.glob("services/*/main.py"))
+        + sorted(ROOT.glob("services/*/src/main.py"))
+        + sorted(ROOT.glob("services/sahool-platform/api/main.py"))
+        + sorted(ROOT.glob("bots/*/main.py"))
+    )
     rows: list[dict[str, object]] = []
     for path in candidates:
         rel = _rel(path)
@@ -169,18 +187,20 @@ def collect() -> list[dict[str, object]]:
         else:
             status = "non_http_unknown"
             reason = "no FastAPI routes detected and not explicitly allowed"
-        rows.append({
-            "path": rel,
-            "service": service_root.name,
-            "has_fastapi": has_fastapi,
-            "direct_routes": direct_routes,
-            "router_routes": router_routes,
-            "delegates_to_router_registry": delegates,
-            "delegates_to_app_factory": app_factory,
-            "delegates_to_runtime_module": runtime_delegation,
-            "status": status,
-            "reason": reason,
-        })
+        rows.append(
+            {
+                "path": rel,
+                "service": service_root.name,
+                "has_fastapi": has_fastapi,
+                "direct_routes": direct_routes,
+                "router_routes": router_routes,
+                "delegates_to_router_registry": delegates,
+                "delegates_to_app_factory": app_factory,
+                "delegates_to_runtime_module": runtime_delegation,
+                "status": status,
+                "reason": reason,
+            }
+        )
     return rows
 
 
@@ -188,14 +208,21 @@ def write(rows: list[dict[str, object]]) -> None:
     OUT_JSON.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     with OUT_CSV.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()) if rows else ["path"])
-        writer.writeheader(); writer.writerows(rows)
+        writer.writeheader()
+        writer.writerows(rows)
 
 
 def main() -> int:
     import sys
+
     check = "--check" in sys.argv
     rows = collect()
-    bad = [r for r in rows if r["status"] in {"parse_error", "broken_delegation", "unmounted_fastapi", "non_http_unknown"}]
+    bad = [
+        r
+        for r in rows
+        if r["status"]
+        in {"parse_error", "broken_delegation", "unmounted_fastapi", "non_http_unknown"}
+    ]
     if bad:
         for r in bad:
             print(f"route mount violation: {r['path']}: {r['status']} - {r['reason']}")

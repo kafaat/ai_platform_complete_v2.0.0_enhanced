@@ -5,6 +5,7 @@ Default package index is official PyPI. Alibaba Cloud PyPI remains a first-class
 override for CI environments where it is faster or required. The guard is static and does
 not contact the internet.
 """
+
 from __future__ import annotations
 
 import re
@@ -39,7 +40,10 @@ def main() -> None:
     docker_guard = blobs[ROOT / "tests_v9/test_dockerfile_pip_mirror_guard.py"]
     workflow = blobs[ROOT / ".github/workflows/transitive-lock-compile-manual.yml"]
 
-    if PYPI not in env_script or 'DEFAULT_PYPI_INDEX_URL="https://pypi.org/simple"' not in env_script:
+    if (
+        PYPI not in env_script
+        or 'DEFAULT_PYPI_INDEX_URL="https://pypi.org/simple"' not in env_script
+    ):
         raise SystemExit("pip mirror env must default to official PyPI")
     if ALIBABA not in combined or "ALIBABA_PYPI_MIRROR" not in env_script:
         raise SystemExit("Alibaba PyPI mirror must remain documented and overridable")
@@ -54,7 +58,7 @@ def main() -> None:
     compile_script = blobs[ROOT / "scripts/ci/compile_transitive_service_locks.sh"]
     if "source scripts/ci/pip_mirror_env.sh" not in compile_script:
         raise SystemExit("transitive lock compiler must source pip_mirror_env.sh")
-    if "--index-url \"$PIP_INDEX_URL\"" not in compile_script:
+    if '--index-url "$PIP_INDEX_URL"' not in compile_script:
         raise SystemExit("pip-compile must use the configured PIP_INDEX_URL")
     if "PIP_DEFAULT_TIMEOUT" not in env_script or "PIP_RETRIES" not in env_script:
         raise SystemExit("pip index contract must define retry/timeout environment controls")

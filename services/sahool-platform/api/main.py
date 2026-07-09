@@ -35,7 +35,7 @@ api/main.py — FastAPI application للنواة سهول
 from __future__ import annotations
 
 import asyncio
-import hmac
+import hmac  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 import logging
 import os
 import secrets
@@ -48,16 +48,25 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import jwt  # PyJWT
 from core.api_adapter import (
-    db_probe_ok,
-    handle_healthz,
-    handle_readyz,
+    db_probe_ok,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    handle_healthz,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    handle_readyz,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 )
 from core.authorization import Permission, has_permission
 from core.canonical_schemas import UserRole, UserSchema
 from core.offline_first import OfflineQueue
-from fastapi import Depends, FastAPI, Header, HTTPException, Query
+from fastapi import (  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    Depends,
+    FastAPI,
+    Header,
+    HTTPException,
+    Query,
+)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    JSONResponse,
+    PlainTextResponse,
+)
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 

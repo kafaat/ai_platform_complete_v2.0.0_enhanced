@@ -1,5 +1,5 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 
 def test_production_certification_checklist_guard_passes():

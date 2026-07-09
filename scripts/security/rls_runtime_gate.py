@@ -8,6 +8,7 @@ DB role, or broad BYPASSRLS access outside the explicit jobs channel.
 This script does not connect to Postgres. It validates checked-in deployment
 contracts before a container is started.
 """
+
 from __future__ import annotations
 
 import os
@@ -76,13 +77,21 @@ def _check_env_files(errors: list[str]) -> None:
     for path in ENV_FILES:
         if not path.exists():
             continue
-        text = "\n".join(_strip_comment(line) for line in path.read_text(encoding="utf-8").splitlines())
+        text = "\n".join(
+            _strip_comment(line) for line in path.read_text(encoding="utf-8").splitlines()
+        )
         for pattern in OWNER_OR_SUPERUSER_PATTERNS:
             if pattern.search(text):
-                errors.append(f"{path.name}: forbidden runtime DB/TLS pattern matched: {pattern.pattern}")
-        if "DATABASE_URL=" in text and not re.search(r"^DATABASE_URL=postgresql://sahool_app:", text, re.M):
+                errors.append(
+                    f"{path.name}: forbidden runtime DB/TLS pattern matched: {pattern.pattern}"
+                )
+        if "DATABASE_URL=" in text and not re.search(
+            r"^DATABASE_URL=postgresql://sahool_app:", text, re.M
+        ):
             errors.append(f"{path.name}: DATABASE_URL must point to sahool_app")
-        if "JOBS_DATABASE_URL=" in text and not re.search(r"^JOBS_DATABASE_URL=postgresql://sahool_jobs:", text, re.M):
+        if "JOBS_DATABASE_URL=" in text and not re.search(
+            r"^JOBS_DATABASE_URL=postgresql://sahool_jobs:", text, re.M
+        ):
             errors.append(f"{path.name}: JOBS_DATABASE_URL must point to sahool_jobs")
 
 
@@ -101,14 +110,21 @@ def _check_compose(errors: list[str]) -> None:
             errors.append(f"{name}: POSTGRES_USER=postgres is forbidden for runtime services")
         db_url = env.get("DATABASE_URL", "")
         if db_url:
-            for forbidden in ("postgresql://postgres", "postgres://postgres", "postgresql://sahool_user", "postgres://sahool_user"):
+            for forbidden in (
+                "postgresql://postgres",
+                "postgres://postgres",
+                "postgresql://sahool_user",
+                "postgres://sahool_user",
+            ):
                 if forbidden in db_url:
                     errors.append(f"{name}: DATABASE_URL uses owner/superuser role: {forbidden}")
             if "sslmode=disable" in db_url:
                 errors.append(f"{name}: DATABASE_URL disables DB TLS")
         jobs_url = env.get("JOBS_DATABASE_URL")
         if jobs_url and name not in ALLOWED_JOBS_DB_SERVICES:
-            errors.append(f"{name}: JOBS_DATABASE_URL is only allowed for {sorted(ALLOWED_JOBS_DB_SERVICES)}")
+            errors.append(
+                f"{name}: JOBS_DATABASE_URL is only allowed for {sorted(ALLOWED_JOBS_DB_SERVICES)}"
+            )
         allow_bypass = env.get("SAHOOL_ALLOW_RLS_BYPASS_ROLE", "").strip().lower()
         if allow_bypass in TRUTHY:
             errors.append(f"{name}: SAHOOL_ALLOW_RLS_BYPASS_ROLE must not be enabled in compose")

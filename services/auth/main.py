@@ -15,8 +15,8 @@ SAHOOL v9.1 — services/auth/main.py (المُحسَّن)
 from __future__ import annotations
 
 import asyncio
-import hashlib
-import hmac
+import hashlib  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+import hmac  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 import logging
 import os
 import secrets
@@ -159,7 +159,6 @@ def _admin_stepup_required() -> bool:
 # otp_codes_match / otp_redis_key لم تَعُد تُستعمَل داخل main.py مباشرةً — بل تُشير
 # إليها وحدة routers/email_verify.py عبر main.X وقت التشغيل. لذا نُبقيها مستورَدةً
 # في فضاء أسماء main (مع تعليق تجاهُل F401) كي تُحلَّ تلك المراجع — حذفُها يكسر التحقّق.
-import mfa_crypto  # noqa: E402 — V29.5 MFA hardening (encryption/recovery/lockout, pure module)
 from otp import (  # noqa: E402
     OTP_LENGTH,
     OTP_MAX_REQUESTS,
@@ -933,17 +932,16 @@ async def _ensure_admin_user():
 # They are re-exported here to preserve the existing router/test contract
 # (routers still reference main._verify_caller_mfa, main.mfa_login_verify, etc.).
 from mfa_runtime import (  # noqa: E402
-    _consume_recovery_code,
-    _consume_totp_step,
-    _emit_mfa_audit,
-    _ip_hash,
-    _mfa_reset_and_maybe_migrate,
-    _register_mfa_failure,
-    _store_recovery_codes,
-    _verify_caller_mfa,
-    mfa_login_verify,
+    _consume_recovery_code,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _consume_totp_step,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _emit_mfa_audit,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _ip_hash,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _mfa_reset_and_maybe_migrate,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _register_mfa_failure,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _store_recovery_codes,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _verify_caller_mfa,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    mfa_login_verify,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 )
-
 
 # ── Tenant member invitations ─────────────────────────────────
 # القرار: الأعضاء الإضافيّون ينضمّون لمستأجِر **قائم** عبر دعوة بأدوار **أدنى**

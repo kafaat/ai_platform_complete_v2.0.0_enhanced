@@ -44,7 +44,10 @@ def test_actuator_command_authorizes_device_control():
 
 
 def test_actuator_guard_checks_role_and_ownership():
-    src = _read("services/actuator-service/main.py")
+    from actuator_route_source import actuator_combined_source
+
+    # P1 decomposition: الحارس انتقل إلى actuator_runtime.py — نمسح main.py + الشقيقات.
+    src = actuator_combined_source(ROOT)
     guard = _func_body(src, "_authorize_device_control")
     # فحص الدور (owner/manager فقط) ⇒ 403
     assert "_DEVICE_CONTROL_ROLES" in guard and "403" in guard, "لا يفحص الدور"
@@ -56,7 +59,10 @@ def test_actuator_guard_checks_role_and_ownership():
 
 
 def test_actuator_control_roles_are_owner_manager_only():
-    src = _read("services/actuator-service/main.py")
+    from actuator_route_source import actuator_combined_source
+
+    # P1 decomposition: الأدوار انتقلت إلى actuator_runtime.py — نمسح main.py + الشقيقات.
+    src = actuator_combined_source(ROOT)
     m = re.search(r"_DEVICE_CONTROL_ROLES\s*=\s*\{([^}]*)\}", src)
     assert m, "_DEVICE_CONTROL_ROLES غير معرّف"
     roles = m.group(1)
@@ -118,12 +124,23 @@ def actuator():
     pytest.importorskip("jwt")
     pytest.importorskip("fastapi")
     import importlib.util
+    import sys
 
     path = os.path.join(ROOT, "services/actuator-service/main.py")
+    # P1 decomposition: main.py يستورد وحدة شقيقة (actuator_runtime) — يجب أن يكون
+    # مجلّد الخدمة على sys.path قبل exec_module.
+    svc_dir = os.path.dirname(path)
+    if svc_dir not in sys.path:
+        sys.path.insert(0, svc_dir)
+    stale = sys.modules.get("actuator_runtime")
+    if stale is not None and os.path.dirname(getattr(stale, "__file__", "") or "") != svc_dir:
+        sys.modules.pop("actuator_runtime", None)
     spec = importlib.util.spec_from_file_location("actuator_main_test", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
-    return mod
+    # الحارس و_pool يعيشان في actuator_runtime — الحقن على وحدة الواجهة لا يصل
+    # globals المنطق؛ نُرجِع وحدة الـruntime نفسها.
+    return sys.modules["actuator_runtime"]
 
 
 async def test_guard_rejects_low_role(actuator):

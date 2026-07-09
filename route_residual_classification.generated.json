@@ -88,7 +88,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 109,
+      "line": 113,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -97,7 +97,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 114,
+      "line": 118,
       "method": "GET",
       "path": "/healthz/ai-provider",
       "function": "ai_provider_snapshot",
@@ -106,7 +106,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 122,
+      "line": 126,
       "method": "GET",
       "path": "/approvals/pending",
       "function": "list_pending_approvals",
@@ -115,7 +115,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 142,
+      "line": 146,
       "method": "POST",
       "path": "/approvals/approve",
       "function": "approve_tool_request",
@@ -124,7 +124,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 194,
+      "line": 198,
       "method": "POST",
       "path": "/approvals/deny",
       "function": "deny_tool_request",
@@ -133,7 +133,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 240,
+      "line": 244,
       "method": "POST",
       "path": "/approvals/resume",
       "function": "resume_approved_tool",
@@ -142,7 +142,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 284,
+      "line": 288,
       "method": "POST",
       "path": "/prescription/export-preview",
       "function": "prescription_export_preview",
@@ -151,7 +151,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 300,
+      "line": 304,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -160,7 +160,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 319,
+      "line": 323,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -169,7 +169,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 358,
+      "line": 360,
       "method": "POST",
       "path": "/query",
       "function": "query",
@@ -178,7 +178,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 369,
+      "line": 371,
       "method": "POST",
       "path": "/chat",
       "function": "chat",
@@ -187,7 +187,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 380,
+      "line": 382,
       "method": "POST",
       "path": "/explain",
       "function": "explain",
@@ -196,7 +196,7 @@
     {
       "service": "ai_agronomist",
       "file": "services/ai_agronomist/main.py",
-      "line": 391,
+      "line": 393,
       "method": "POST",
       "path": "/recommend",
       "function": "recommend",
@@ -340,7 +340,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 159,
+      "line": 166,
       "method": "GET",
       "path": "/healthz",
       "function": "health_check",
@@ -349,7 +349,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 189,
+      "line": 198,
       "method": "POST",
       "path": "/inference/pest-detect",
       "function": "detect_pest",
@@ -358,7 +358,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 251,
+      "line": 260,
       "method": "POST",
       "path": "/inference/yield-estimate",
       "function": "estimate_yield",
@@ -367,7 +367,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 317,
+      "line": 326,
       "method": "POST",
       "path": "/sync/trigger",
       "function": "trigger_sync",
@@ -376,7 +376,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 349,
+      "line": 358,
       "method": "GET",
       "path": "/capabilities",
       "function": "capabilities",
@@ -385,7 +385,7 @@
     {
       "service": "edge-inference",
       "file": "services/edge-inference/main.py",
-      "line": 354,
+      "line": 363,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -421,7 +421,7 @@
     {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
-      "line": 386,
+      "line": 391,
       "method": "POST",
       "path": "/segment",
       "function": "segment",
@@ -493,7 +493,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 87,
+      "line": 89,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -502,7 +502,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 92,
+      "line": 94,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -511,7 +511,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 109,
+      "line": 111,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -520,7 +520,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 118,
+      "line": 120,
       "method": "POST",
       "path": "/nodes",
       "function": "upsert_node",
@@ -529,7 +529,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 126,
+      "line": 128,
       "method": "POST",
       "path": "/edges",
       "function": "upsert_edge",
@@ -538,7 +538,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 135,
+      "line": 137,
       "method": "GET",
       "path": "/edges",
       "function": "edges",
@@ -547,7 +547,7 @@
     {
       "service": "knowledge-graph",
       "file": "services/knowledge-graph/main.py",
-      "line": 149,
+      "line": 151,
       "method": "POST",
       "path": "/graphql",
       "function": "graphql",
@@ -646,7 +646,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 25,
+      "line": 24,
       "method": "POST",
       "path": "/predict",
       "function": "predict",
@@ -655,7 +655,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 106,
+      "line": 105,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -664,7 +664,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 111,
+      "line": 110,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -673,7 +673,7 @@
     {
       "service": "sam2-inference",
       "file": "services/sam2-inference/main.py",
-      "line": 116,
+      "line": 115,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",

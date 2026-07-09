@@ -4,6 +4,7 @@ Extracted from ``main.py`` as a behavior-preserving P1 decomposition step. The
 FastAPI entrypoint re-exports these names so existing routers and tests that
 refer to ``main.X`` keep working while computation/provider logic lives here.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -20,15 +21,16 @@ import jwt as _jwt
 from fastapi import HTTPException
 from fastapi.security import HTTPBearer
 from prometheus_client import (
-    CONTENT_TYPE_LATEST,
+    CONTENT_TYPE_LATEST,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     CollectorRegistry,
     Counter,
     Histogram,
-    generate_latest,
+    generate_latest,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
 
 try:
     from shared.logging_config import setup_logging
+
     logger = setup_logging("vegetation-analysis-service")
 except ImportError:
     logging.basicConfig(
@@ -888,5 +890,3 @@ def _current_ndvi_payload(field_id: str, field: dict, analysis: dict) -> dict:
         "real_data": analysis.get("real_data", False),
         "provider_reachable": analysis.get("provider_reachable", False),
     }
-
-

@@ -379,7 +379,12 @@ async def legacy_health():
 @app.get("/readyz")
 async def readyz():
     # خدمة عديمة الحالة: جاهزة بمجرّد إقلاع العمليّة. (لا قاعدة/كاش يُفحَص.)
-    return {"status": "ready", "service": "field-segmentation", "implemented_runtime": True, "model_configured": _model_configured()}
+    return {
+        "status": "ready",
+        "service": "field-segmentation",
+        "implemented_runtime": True,
+        "model_configured": _model_configured(),
+    }
 
 
 @app.post("/segment")

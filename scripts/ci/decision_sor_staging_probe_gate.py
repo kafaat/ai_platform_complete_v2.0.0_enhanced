@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Static gate for P0-4 decision-service staging probe harness."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,7 +8,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PROBE = ROOT / "services" / "decision-service" / "staging_probe.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "field-workspace-production-closure.yml"
-TEST = ROOT / "services" / "sahool-platform" / "tests" / "test_p0_4_decision_sor_staging_probe_guard.py"
+TEST = (
+    ROOT
+    / "services"
+    / "sahool-platform"
+    / "tests"
+    / "test_p0_4_decision_sor_staging_probe_guard.py"
+)
 RUNBOOK = ROOT / "docs" / "runbooks" / "DECISION_SERVICE_SOR_STAGING_PROBE_RUNBOOK.md"
 
 

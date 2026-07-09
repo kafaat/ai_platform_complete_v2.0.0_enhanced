@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Create a compact markdown report from soak scenario and metrics JSON."""
+
 from __future__ import annotations
 
 import argparse
@@ -43,6 +44,7 @@ def main() -> int:
     Path(args.output).write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(args.output)
     return 0 if ok else 1
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

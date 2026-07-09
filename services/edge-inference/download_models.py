@@ -94,7 +94,9 @@ if __name__ == "__main__":
     results = download_all()
     missing = [n for n, ok in results.items() if not ok]
     if missing:
-        logger.warning(f"Missing models (not provisioned; inference endpoints fail closed): {missing}")
+        logger.warning(
+            f"Missing models (not provisioned; inference endpoints fail closed): {missing}"
+        )
     else:
         logger.info("All models ready!")
     sys.exit(0)

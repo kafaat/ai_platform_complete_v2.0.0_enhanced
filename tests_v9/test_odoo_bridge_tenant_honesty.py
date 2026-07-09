@@ -49,13 +49,20 @@ def _load_main(monkeypatch, *, sync_tenant: str | None = None):
     if added:
         sys.path.insert(0, ODOO_BRIDGE)
     try:
+        # P1 decomposition: المنطق انتقل إلى erp_runtime.py الشقيقة — نُسقِط النسخة
+        # المُخبّأة كي تُعاد قراءتها بالبيئة الجديدة (ODOO_SYNC_TENANT_ID يُقرأ عند
+        # الاستيراد)، ونُرجِع وحدة الـruntime نفسها لأنّ monkeypatch على وحدة الواجهة
+        # لا يصل globals دوالّ المزامنة.
+        sys.modules.pop("erp_runtime", None)
         spec = importlib.util.spec_from_file_location(
             f"sahool_odoo_bridge_test_{sync_tenant or 'global'}", MAIN_PATH
         )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
-        return mod
+        return sys.modules["erp_runtime"]
     finally:
+        # عزل: لا نُبقي نسخة erp_runtime المرتبطة ببيئة هذا الاختبار للاختبارات التالية.
+        sys.modules.pop("erp_runtime", None)
         if added and ODOO_BRIDGE in sys.path:
             sys.path.remove(ODOO_BRIDGE)
 

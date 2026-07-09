@@ -128,7 +128,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 109,
+    "line": 113,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -137,7 +137,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 114,
+    "line": 118,
     "method": "GET",
     "path": "/healthz/ai-provider",
     "handler": "ai_provider_snapshot",
@@ -146,7 +146,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 122,
+    "line": 126,
     "method": "GET",
     "path": "/approvals/pending",
     "handler": "list_pending_approvals",
@@ -155,7 +155,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 142,
+    "line": 146,
     "method": "POST",
     "path": "/approvals/approve",
     "handler": "approve_tool_request",
@@ -164,7 +164,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 194,
+    "line": 198,
     "method": "POST",
     "path": "/approvals/deny",
     "handler": "deny_tool_request",
@@ -173,7 +173,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 240,
+    "line": 244,
     "method": "POST",
     "path": "/approvals/resume",
     "handler": "resume_approved_tool",
@@ -182,7 +182,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 284,
+    "line": 288,
     "method": "POST",
     "path": "/prescription/export-preview",
     "handler": "prescription_export_preview",
@@ -191,7 +191,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 300,
+    "line": 304,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -200,7 +200,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 319,
+    "line": 323,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -209,7 +209,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 358,
+    "line": 360,
     "method": "POST",
     "path": "/query",
     "handler": "query",
@@ -218,7 +218,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 369,
+    "line": 371,
     "method": "POST",
     "path": "/chat",
     "handler": "chat",
@@ -227,7 +227,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 380,
+    "line": 382,
     "method": "POST",
     "path": "/explain",
     "handler": "explain",
@@ -236,7 +236,7 @@
   {
     "service": "ai_agronomist",
     "file": "services/ai_agronomist/main.py",
-    "line": 391,
+    "line": 393,
     "method": "POST",
     "path": "/recommend",
     "handler": "recommend",
@@ -623,7 +623,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 159,
+    "line": 166,
     "method": "GET",
     "path": "/healthz",
     "handler": "health_check",
@@ -632,7 +632,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 189,
+    "line": 198,
     "method": "POST",
     "path": "/inference/pest-detect",
     "handler": "detect_pest",
@@ -641,7 +641,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 251,
+    "line": 260,
     "method": "POST",
     "path": "/inference/yield-estimate",
     "handler": "estimate_yield",
@@ -650,7 +650,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 317,
+    "line": 326,
     "method": "POST",
     "path": "/sync/trigger",
     "handler": "trigger_sync",
@@ -659,7 +659,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 349,
+    "line": 358,
     "method": "GET",
     "path": "/capabilities",
     "handler": "capabilities",
@@ -668,7 +668,7 @@
   {
     "service": "edge-inference",
     "file": "services/edge-inference/main.py",
-    "line": 354,
+    "line": 363,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -704,7 +704,7 @@
   {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
-    "line": 386,
+    "line": 391,
     "method": "POST",
     "path": "/segment",
     "handler": "segment",
@@ -839,7 +839,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 87,
+    "line": 89,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -848,7 +848,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 92,
+    "line": 94,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -857,7 +857,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 109,
+    "line": 111,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -866,7 +866,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 118,
+    "line": 120,
     "method": "POST",
     "path": "/nodes",
     "handler": "upsert_node",
@@ -875,7 +875,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 126,
+    "line": 128,
     "method": "POST",
     "path": "/edges",
     "handler": "upsert_edge",
@@ -884,7 +884,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 135,
+    "line": 137,
     "method": "GET",
     "path": "/edges",
     "handler": "edges",
@@ -893,7 +893,7 @@
   {
     "service": "knowledge-graph",
     "file": "services/knowledge-graph/main.py",
-    "line": 149,
+    "line": 151,
     "method": "POST",
     "path": "/graphql",
     "handler": "graphql",
@@ -5339,7 +5339,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 17,
+    "line": 18,
     "method": "GET",
     "path": "/internal/fields/{field_id}/state",
     "handler": "internal_field_state",
@@ -5348,7 +5348,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 37,
+    "line": 38,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "handler": "internal_ai_advice_event",
@@ -5915,7 +5915,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 20,
+    "line": 21,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -5924,7 +5924,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 27,
+    "line": 28,
     "method": "GET",
     "path": "/metrics",
     "handler": "metrics",
@@ -5933,7 +5933,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/platform_health.py",
-    "line": 48,
+    "line": 49,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -7220,7 +7220,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 25,
+    "line": 24,
     "method": "POST",
     "path": "/predict",
     "handler": "predict",
@@ -7229,7 +7229,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 106,
+    "line": 105,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -7238,7 +7238,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 111,
+    "line": 110,
     "method": "GET",
     "path": "/health",
     "handler": "legacy_health",
@@ -7247,7 +7247,7 @@
   {
     "service": "sam2-inference",
     "file": "services/sam2-inference/main.py",
-    "line": 116,
+    "line": 115,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",

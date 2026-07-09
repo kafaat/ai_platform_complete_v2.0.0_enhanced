@@ -29,10 +29,18 @@ def _load_sam2_main():
     mod = sys.modules.get("main")
     if mod is not None and "sam2-inference" not in getattr(mod, "__file__", "").replace("\\", "/"):
         sys.modules.pop("main", None)
+    # P1 decomposition: منطق المعالجة انتقل إلى sam2_runtime.py الشقيقة — نتبع الرموز هناك.
+    rt = sys.modules.get("sam2_runtime")
+    if rt is not None and "sam2-inference" not in getattr(rt, "__file__", "").replace("\\", "/"):
+        sys.modules.pop("sam2_runtime", None)
     import main
+    import sam2_runtime
 
-    assert hasattr(main, "_mask_to_polygon"), "استُورِدت وحدة main لخدمة أخرى (تصادم اسم)"
-    return main
+    assert "sam2-inference" in getattr(main, "__file__", "").replace("\\", "/"), (
+        "استُورِدت وحدة main لخدمة أخرى (تصادم اسم)"
+    )
+    assert hasattr(sam2_runtime, "_mask_to_polygon"), "استُورِدت وحدة sam2_runtime خاطئة"
+    return sam2_runtime
 
 
 # ── دوالّ نقيّة (بلا shapely) ────────────────────────────────────────────────

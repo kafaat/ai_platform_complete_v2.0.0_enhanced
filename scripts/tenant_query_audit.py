@@ -57,6 +57,11 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
         "background automation worker (fail-closed under sahool_app)"
     ),
     "services/actuator-service/main.py::automation_rules": "background scene-linkage worker",
+    # P1 decomposition: العامل الخلفيّ نفسه انتقل من main.py إلى actuator_runtime.py —
+    # نُبقي المفتاح القديم (غير ضارّ) ونضيف الجديد بنفس التبرير (نمط soil-service أعلاه).
+    "services/actuator-service/actuator_runtime.py::automation_rules": (
+        "background scene-linkage worker; moved from main.py in P1 decomposition"
+    ),
     # توحيد main↔cert: soil مُفكَّكة (main #570) فالمفتاح بمسار routers؛ نُبقي مفتاح cert
     # القديم (services/soil-service/main.py::soil_readings) لأنّه غير ضارّ (مسار غير موجود).
     "services/soil-service/routers/readings.py::soil_readings": "soil ingestion service (sensor-scoped); handler moved to routers/ in router decomposition",

@@ -4,6 +4,7 @@
 The service must not silently package opaque ONNX weights in the repo, and the manifest
 must stay aligned with the runtime defaults in main.py/docker-compose.v9.yml.
 """
+
 from __future__ import annotations
 
 import json
@@ -23,9 +24,16 @@ def main() -> None:
     errors: list[str] = []
 
     if "EDGE_READINESS_MODE" not in main_text or "EDGE_READINESS_MODE" not in compose_text:
-        errors.append("EDGE_READINESS_MODE must be supported in main.py and exposed in docker-compose.v9.yml")
-    if "EDGE_PRODUCTION_REQUIRED" not in main_text or "EDGE_PRODUCTION_REQUIRED" not in compose_text:
-        errors.append("EDGE_PRODUCTION_REQUIRED must be supported in main.py and exposed in docker-compose.v9.yml")
+        errors.append(
+            "EDGE_READINESS_MODE must be supported in main.py and exposed in docker-compose.v9.yml"
+        )
+    if (
+        "EDGE_PRODUCTION_REQUIRED" not in main_text
+        or "EDGE_PRODUCTION_REQUIRED" not in compose_text
+    ):
+        errors.append(
+            "EDGE_PRODUCTION_REQUIRED must be supported in main.py and exposed in docker-compose.v9.yml"
+        )
 
     for model in payload.get("required_models", []):
         env = model["env"]

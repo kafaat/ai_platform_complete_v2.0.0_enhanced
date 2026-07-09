@@ -5,6 +5,7 @@ Prevents regression from honest fail-closed services back to mock/stub/fabricate
 outputs on production routes. Test files are ignored; explicit 501 or degraded
 health-only boundaries are allowed.
 """
+
 from __future__ import annotations
 
 import ast
@@ -25,7 +26,12 @@ def text(path: Path) -> str:
 
 def check_edge_download_does_not_claim_simulation_fallback() -> None:
     source = text(EDGE / "download_models.py").lower()
-    forbidden = ["simulation mode", '"fallback": "simulation"', "will use simulation", '"fallback": "regression"']
+    forbidden = [
+        "simulation mode",
+        '"fallback": "simulation"',
+        "will use simulation",
+        '"fallback": "regression"',
+    ]
     found = [item for item in forbidden if item in source]
     if found:
         fail("edge model downloader still advertises fabricated fallback modes: " + repr(found))
@@ -63,7 +69,12 @@ def check_indicators_health_only_boundary_is_honest() -> None:
     source = text(INDICATORS / "main.py")
     if '"status": "ready"' in source and "health_only" in source:
         fail("indicators-service must not report ready while health-only")
-    required = ['"status": "degraded"', '"implemented_runtime": False', 'status_code=501', "No fabricated"]
+    required = [
+        '"status": "degraded"',
+        '"implemented_runtime": False',
+        "status_code=501",
+        "No fabricated",
+    ]
     missing = [item for item in required if item not in source]
     if missing:
         fail("indicators-service health-only boundary missing honesty markers: " + repr(missing))

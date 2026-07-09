@@ -69,7 +69,6 @@ def test_wrong_or_missing_agent_token_is_rejected(monkeypatch):
     assert response.status_code == 401
 
 
-
 def test_strict_readyz_is_ready_when_required_models_are_present(monkeypatch, tmp_path):
     pest = tmp_path / "pest_detector_int8.onnx"
     yld = tmp_path / "yield_estimator_int8.onnx"
@@ -78,7 +77,9 @@ def test_strict_readyz_is_ready_when_required_models_are_present(monkeypatch, tm
     monkeypatch.setenv("EDGE_READINESS_MODE", "strict")
     monkeypatch.setenv("PEST_MODEL_PATH", str(pest))
     monkeypatch.setenv("YIELD_MODEL_PATH", str(yld))
-    monkeypatch.setattr(importlib.util, "find_spec", lambda name: object() if name == "onnxruntime" else object())
+    monkeypatch.setattr(
+        importlib.util, "find_spec", lambda name: object() if name == "onnxruntime" else object()
+    )
 
     module = _load_edge(monkeypatch, preserve_model_env=True)
     client = TestClient(module.app)

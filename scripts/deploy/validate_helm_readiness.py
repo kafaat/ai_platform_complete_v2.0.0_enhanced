@@ -4,6 +4,7 @@
 This is intentionally dependency-light and does not render Helm templates. It validates
 values and template contracts that are easy to break during release packaging.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -110,21 +111,27 @@ def main() -> int:
         if args.env == "production" and int(spec.get("replicas", 0)) < 2:
             failures.append(f"{name} production replicas must be >=2")
         secret_env = spec.get("secretEnv", {})
-        if name in {"sahool-platform", "sahool-raster-service"} and "DATABASE_URL" not in secret_env:
+        if (
+            name in {"sahool-platform", "sahool-raster-service"}
+            and "DATABASE_URL" not in secret_env
+        ):
             failures.append(f"{name} must source DATABASE_URL from a secret reference")
         for key, value in spec.get("env", {}).items():
             text = f"{key}={value}"
             if any(bad.lower() in text.lower() for bad in FORBIDDEN_SECRET_LITERALS):
                 failures.append(f"{name} contains forbidden literal env: {key}")
 
-    template_text = "\n".join((CHART / "templates" / name).read_text(encoding="utf-8") for name in ["deployments.yaml", "migration-job.yaml", "networkpolicy.yaml"])
+    template_text = "\n".join(
+        (CHART / "templates" / name).read_text(encoding="utf-8")
+        for name in ["deployments.yaml", "migration-job.yaml", "networkpolicy.yaml"]
+    )
     required_snippets = [
         "readinessProbe",
         "livenessProbe",
         "runAsNonRoot: true",
         "allowPrivilegeEscalation: false",
         "readOnlyRootFilesystem: true",
-        "drop: [\"ALL\"]",
+        'drop: ["ALL"]',
         "helm.sh/hook: pre-install,pre-upgrade",
         "NetworkPolicy",
     ]
@@ -137,7 +144,9 @@ def main() -> int:
             print(f"FAIL: {item}")
         return 1
 
-    print(f"Helm deployment readiness validation passed for {args.env}: {len(workloads)} workloads checked")
+    print(
+        f"Helm deployment readiness validation passed for {args.env}: {len(workloads)} workloads checked"
+    )
     return 0
 
 

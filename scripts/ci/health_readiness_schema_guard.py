@@ -6,15 +6,16 @@ runtime dependencies. It verifies that HTTP entrypoints exposing `/healthz` and
 `/readyz` keep a minimum machine-readable envelope so probes, dashboards and
 operators can reason about liveness/readiness uniformly.
 """
+
 from __future__ import annotations
 
 import argparse
 import ast
 import csv
 import json
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
 
 ROOT = Path(__file__).resolve().parents[2]
 GENERATED_JSON = ROOT / "health_readiness_inventory.generated.json"
@@ -72,8 +73,20 @@ def collect() -> list[EndpointRecord]:
             route_paths = [_route_path(d) for d in node.decorator_list]
             for route in [r for r in route_paths if r in {"/healthz", "/readyz"}]:
                 src = _function_source(path, node)
-                has_status = '"status"' in src or "'status'" in src or "status=" in src or "handle_healthz" in src or "handle_readyz" in src
-                has_service = '"service"' in src or "'service'" in src or "service=" in src or "handle_healthz" in src or "handle_readyz" in src
+                has_status = (
+                    '"status"' in src
+                    or "'status'" in src
+                    or "status=" in src
+                    or "handle_healthz" in src
+                    or "handle_readyz" in src
+                )
+                has_service = (
+                    '"service"' in src
+                    or "'service'" in src
+                    or "service=" in src
+                    or "handle_healthz" in src
+                    or "handle_readyz" in src
+                )
                 if route == "/healthz":
                     has_ready = True
                     verdict = "ok" if has_status and has_service else "missing_health_envelope"
@@ -85,7 +98,11 @@ def collect() -> list[EndpointRecord]:
                         or "'ready'" in src
                         or "handle_readyz" in src
                     )
-                    verdict = "ok" if has_status and has_service and has_ready else "missing_readiness_envelope"
+                    verdict = (
+                        "ok"
+                        if has_status and has_service and has_ready
+                        else "missing_readiness_envelope"
+                    )
                 records.append(
                     EndpointRecord(
                         file=str(path.relative_to(ROOT)),
@@ -103,7 +120,9 @@ def collect() -> list[EndpointRecord]:
 
 def write(records: Iterable[EndpointRecord]) -> None:
     rows = [asdict(r) for r in records]
-    GENERATED_JSON.write_text(json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    GENERATED_JSON.write_text(
+        json.dumps(rows, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     with GENERATED_CSV.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()) if rows else ["file"])
         writer.writeheader()
@@ -120,7 +139,11 @@ def main() -> int:
     if args.write:
         write(records)
     if args.check:
-        expected = json.loads(GENERATED_JSON.read_text(encoding="utf-8")) if GENERATED_JSON.exists() else None
+        expected = (
+            json.loads(GENERATED_JSON.read_text(encoding="utf-8"))
+            if GENERATED_JSON.exists()
+            else None
+        )
         current = [asdict(r) for r in records]
         if expected != current:
             print("health_readiness_inventory_drift")

@@ -63,5 +63,9 @@ def test_readyz_endpoint_awaits_db_probe():
     import os
 
     base = os.path.join(os.path.dirname(__file__), "..", "api", "main.py")
-    src = open(base, encoding="utf-8").read()
-    assert "await db_probe_ok(_DB_POOL)" in src, "readyz لا يفحص القاعدة ⇒ إيجابيّة كاذبة"
+    health = os.path.join(os.path.dirname(__file__), "..", "api", "routers", "platform_health.py")
+    # P2: نقطة readyz انتقلت إلى routers/platform_health.py — نفحص الملفّين
+    src = open(base, encoding="utf-8").read() + open(health, encoding="utf-8").read()
+    assert "await db_probe_ok(_DB_POOL)" in src or "await db_probe_ok(main._DB_POOL)" in src, (
+        "readyz لا يفحص القاعدة ⇒ إيجابيّة كاذبة"
+    )

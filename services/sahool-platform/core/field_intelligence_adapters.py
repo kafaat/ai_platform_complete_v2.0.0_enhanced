@@ -33,6 +33,7 @@ HTTP_TIMEOUT = float(os.getenv("ADAPTER_TIMEOUT", "20.0"))
 # ⇒ كلّ قرار استشاريّ فقط (executable=False) — رجوع آمن لسلوك ما قبل التفعيل بلا كود.
 LIVE_GUARDRAILS_ENABLED = os.getenv("ENABLE_LIVE_GUARDRAILS", "true").strip().lower() != "false"
 
+
 def _is_truthy(val: str | None) -> bool:
     """هل قيمة بيئة تعني التفعيل؟ (1/true/yes/on — بلا حساسيّة لحالة الأحرف)."""
     return (val or "").strip().lower() in {"1", "true", "yes", "on"}

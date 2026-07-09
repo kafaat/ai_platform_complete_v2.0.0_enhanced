@@ -5,6 +5,7 @@ CanonicalFieldState must remain the authoritative source. FieldTwin/CropTwin/
 WaterTwin/DigitalTwin/phase snapshots/feature projections may exist only as
 projections, caches, or derived views unless explicitly quarantined.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,13 +15,39 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 RUNTIME_DIRS = ("services", "shared")
-SKIP_DIRS = {"__pycache__", ".pytest_cache", "node_modules", ".git", "venv", ".venv", "tests", "docs"}
+SKIP_DIRS = {
+    "__pycache__",
+    ".pytest_cache",
+    "node_modules",
+    ".git",
+    "venv",
+    ".venv",
+    "tests",
+    "docs",
+}
 TEXT_SUFFIXES = {".py", ".ts", ".tsx", ".js", ".sql", ".md"}
-TWIN_RE = re.compile(r"\b(FieldTwin|CropTwin|WaterTwin|DigitalTwin|phase snapshot|phase_snapshot|Feature Store projection|feature projection)\b", re.I)
-CANON_RE = re.compile(r"CanonicalFieldState|canonical_field_state|compose_field_state|field_state", re.I)
-DERIVED_RE = re.compile(r"derived|projection|cache|snapshot|materiali[sz]ed|read[-_ ]model|view|مشتق", re.I)
-FORBIDDEN_RE = re.compile(r"source[-_ ]of[-_ ]truth|authoritative|canonical\s*=\s*False|independent truth|truth source", re.I)
-QUARANTINE_TOKENS = ("SOURCE_OF_TRUTH_OK", "DERIVED_VIEW", "PROJECTION_ONLY", "DOC_ONLY", "TEST_ONLY")
+TWIN_RE = re.compile(
+    r"\b(FieldTwin|CropTwin|WaterTwin|DigitalTwin|phase snapshot|phase_snapshot|Feature Store projection|feature projection)\b",
+    re.I,
+)
+CANON_RE = re.compile(
+    r"CanonicalFieldState|canonical_field_state|compose_field_state|field_state", re.I
+)
+DERIVED_RE = re.compile(
+    r"derived|projection|cache|snapshot|materiali[sz]ed|read[-_ ]model|view|مشتق", re.I
+)
+FORBIDDEN_RE = re.compile(
+    r"source[-_ ]of[-_ ]truth|authoritative|canonical\s*=\s*False|independent truth|truth source",
+    re.I,
+)
+QUARANTINE_TOKENS = (
+    "SOURCE_OF_TRUTH_OK",
+    "DERIVED_VIEW",
+    "PROJECTION_ONLY",
+    "DOC_ONLY",
+    "TEST_ONLY",
+)
+
 
 @dataclass
 class Finding:
@@ -36,7 +63,11 @@ def iter_files(root: Path):
         if not base_path.exists():
             continue
         for path in base_path.rglob("*"):
-            if path.is_file() and path.suffix in TEXT_SUFFIXES and not any(part in SKIP_DIRS for part in path.parts):
+            if (
+                path.is_file()
+                and path.suffix in TEXT_SUFFIXES
+                and not any(part in SKIP_DIRS for part in path.parts)
+            ):
                 yield path
 
 
@@ -54,11 +85,25 @@ def audit(root: Path) -> list[Finding]:
                 continue
             if not TWIN_RE.search(line):
                 continue
-            window = "\n".join(lines[max(0, idx-6): min(len(lines), idx+5)])
+            window = "\n".join(lines[max(0, idx - 6) : min(len(lines), idx + 5)])
             if FORBIDDEN_RE.search(line) and not DERIVED_RE.search(window):
-                findings.append(Finding(str(path.relative_to(root)), idx, "independent_truth_claim", line.strip()[:240]))
+                findings.append(
+                    Finding(
+                        str(path.relative_to(root)),
+                        idx,
+                        "independent_truth_claim",
+                        line.strip()[:240],
+                    )
+                )
             elif not (has_canonical or CANON_RE.search(window) or DERIVED_RE.search(window)):
-                findings.append(Finding(str(path.relative_to(root)), idx, "unlinked_twin_projection", line.strip()[:240]))
+                findings.append(
+                    Finding(
+                        str(path.relative_to(root)),
+                        idx,
+                        "unlinked_twin_projection",
+                        line.strip()[:240],
+                    )
+                )
     return findings
 
 
@@ -77,6 +122,7 @@ def main() -> int:
         for f in findings[:100]:
             print(f"{f.path}:{f.line}: {f.code}: {f.text}")
     return 1 if args.strict and findings else 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

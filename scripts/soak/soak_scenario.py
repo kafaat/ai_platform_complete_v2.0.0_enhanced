@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Generate deterministic 7-14 day soak test scenarios for Sahool."""
+
 from __future__ import annotations
 
 import argparse
 import json
 from dataclasses import asdict, dataclass
+
 
 @dataclass(frozen=True)
 class SoakScenario:
@@ -41,8 +43,13 @@ def main() -> int:
     p.add_argument("--fields", type=int, default=100000)
     p.add_argument("--days", type=int, default=7)
     args = p.parse_args()
-    print(json.dumps(asdict(build_scenario(args.tenants, args.fields, args.days)), indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            asdict(build_scenario(args.tenants, args.fields, args.days)), indent=2, sort_keys=True
+        )
+    )
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

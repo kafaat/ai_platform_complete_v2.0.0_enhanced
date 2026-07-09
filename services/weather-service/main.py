@@ -7,9 +7,8 @@ FastAPI route registration and keeps the public contract unchanged.
 
 from __future__ import annotations
 
-from fastapi import FastAPI
-
 import weather_runtime as rt
+from fastapi import FastAPI
 
 app = FastAPI(title="SAHOOL Weather Service", version="10.0")
 

@@ -33,27 +33,30 @@ NOTE ON DATA PROVENANCE (honesty):
 
 from __future__ import annotations
 
-import asyncio
-import hashlib
-import json
+import asyncio  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+import hashlib  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+import json  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 import logging
-import math
-import os
-import re
+import math  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+import os  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+import re  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from contextlib import asynccontextmanager
-from datetime import UTC, date, datetime, timedelta
+from datetime import (  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    UTC,
+    date,
+    datetime,
+    timedelta,
+)
 
-import httpx
-import jwt as _jwt
-from fastapi import FastAPI, HTTPException
+import httpx  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+import jwt as _jwt  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+from fastapi import FastAPI, HTTPException  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer
+from fastapi.security import HTTPBearer  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 from prometheus_client import (
-    CONTENT_TYPE_LATEST,  # noqa: F401 — يُستخدَم عبر main.X في routers/health.py
-    CollectorRegistry,
-    Counter,
-    Histogram,
-    generate_latest,  # noqa: F401 — يُستخدَم عبر main.X في routers/health.py
+    CollectorRegistry,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    Counter,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    Histogram,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
 )
 
 try:
@@ -67,16 +70,41 @@ except ImportError:
     logger = logging.getLogger("vegetation-analysis-service")
 
 # ── Vegetation runtime (P1 decomposition) ───────────────────────
-from vegetation_runtime import (  # noqa: E402,F401
-    NATS_URL, CORS_ORIGINS, RASTER_SERVICE_URL, VEGETATION_PREFER_RASTER,
-    _RASTER_REAL_INDEX, SH_CLIENT_ID, SH_CLIENT_SECRET, SH_TOKEN_URL, SH_PROCESS_URL,
-    CDSE_USER, CDSE_PASSWORD, FEATURE_SENTINEL_DB_FIELDS, ALLOW_LEGACY_FIELD_REGISTRY,
-    PLATFORM_API_URL, security, _verify_claims, _tenant_from_claims, _valid_date,
-    ANALYSIS_COUNT, ANALYSIS_LATENCY, FIELD_REGISTRY, select_field_source,
-    load_field, fetch_from_sentinel_hub, fetch_from_cdse, run_analysis,
-    _generate_timeseries, _current_ndvi_payload, CONTENT_TYPE_LATEST, generate_latest,
-)
 import vegetation_runtime as _vegetation_runtime  # noqa: E402
+from vegetation_runtime import (  # noqa: E402,F401
+    _RASTER_REAL_INDEX,
+    ALLOW_LEGACY_FIELD_REGISTRY,
+    ANALYSIS_COUNT,
+    ANALYSIS_LATENCY,
+    CDSE_PASSWORD,
+    CDSE_USER,
+    CONTENT_TYPE_LATEST,
+    CORS_ORIGINS,
+    FEATURE_SENTINEL_DB_FIELDS,
+    FIELD_REGISTRY,
+    NATS_URL,
+    PLATFORM_API_URL,
+    RASTER_SERVICE_URL,
+    SH_CLIENT_ID,
+    SH_CLIENT_SECRET,
+    SH_PROCESS_URL,
+    SH_TOKEN_URL,
+    VEGETATION_PREFER_RASTER,
+    _current_ndvi_payload,
+    _generate_timeseries,
+    _tenant_from_claims,
+    _valid_date,
+    _verify_claims,
+    fetch_from_cdse,
+    fetch_from_sentinel_hub,
+    generate_latest,
+    load_field,
+    run_analysis,
+    security,
+    select_field_source,
+)
+
+
 # ── Lifespan ───────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):

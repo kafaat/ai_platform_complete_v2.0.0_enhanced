@@ -19,7 +19,7 @@
       "line": 1209,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
-      "route_key": "api/main.py::GET /healthz::healthz"
+      "route_key": "api/routers/platform_health.py::GET /healthz::healthz"
     },
     {
       "file": "api/main.py",
@@ -29,7 +29,7 @@
       "line": 1216,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
-      "route_key": "api/main.py::GET /readyz::readyz"
+      "route_key": "api/routers/platform_health.py::GET /readyz::readyz"
     },
     {
       "file": "api/main.py",
@@ -39,7 +39,7 @@
       "line": 2438,
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
-      "route_key": "api/main.py::GET /internal/fields/{field_id}/state::internal_field_state"
+      "route_key": "api/routers/internal_service.py::GET /internal/fields/{field_id}/state::internal_field_state"
     },
     {
       "file": "api/main.py",
@@ -49,7 +49,7 @@
       "line": 2463,
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
-      "route_key": "api/main.py::POST /internal/events/ai-advice::internal_ai_advice_event"
+      "route_key": "api/routers/internal_service.py::POST /internal/events/ai-advice::internal_ai_advice_event"
     },
     {
       "file": "api/phase10_continuous_learning.py",
@@ -5629,7 +5629,7 @@
       "line": 786,
       "target_owner": "sahool-platform",
       "owner_type": "bff-observability",
-      "route_key": "api/main.py::GET /metrics::metrics"
+      "route_key": "api/routers/platform_health.py::GET /metrics::metrics"
     },
     {
       "file": "api/routers/field_intelligence.py",

@@ -23,7 +23,9 @@ def _redis():
     try:
         import redis  # type: ignore
 
-        _REDIS_CLIENT = redis.Redis.from_url(REDIS_URL, socket_timeout=0.25, socket_connect_timeout=0.25)
+        _REDIS_CLIENT = redis.Redis.from_url(
+            REDIS_URL, socket_timeout=0.25, socket_connect_timeout=0.25
+        )
         _REDIS_CLIENT.ping()
         _REDIS_ERROR = None
         return _REDIS_CLIENT
@@ -73,7 +75,9 @@ def get(key: str) -> tuple[dict[str, Any] | None, str, int | None]:
 def set(key: str, value: dict[str, Any]) -> None:
     client = _redis()
     if client is not None:
-        payload = json.dumps({"stored_monotonic": monotonic(), "age_hint_s": 0, "value": value}, default=str)
+        payload = json.dumps(
+            {"stored_monotonic": monotonic(), "age_hint_s": 0, "value": value}, default=str
+        )
         try:
             client.setex(_fresh_key(key), int(TTL_S), payload)
             client.setex(_stale_key(key), int(STALE_TTL_S), payload)

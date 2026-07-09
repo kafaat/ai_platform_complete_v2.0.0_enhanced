@@ -80,14 +80,21 @@ def test_blank_inputs_fail_closed():
 
 # ══ 2. حُرّاس مصدر — لا فحص pyotp خام متبقٍّ؛ كلّ مسار يستهلك الخطوة ══
 def test_no_raw_totp_verify_remains_in_verify_paths():
-    combined = _read("services/auth/main.py") + _read("services/auth/routers/mfa.py")
+    # P1 decomposition: منطق MFA انتقل إلى mfa_runtime.py — نمسحه أيضاً (توسيع نطاق).
+    combined = (
+        _read("services/auth/main.py")
+        + _read("services/auth/mfa_runtime.py")
+        + _read("services/auth/routers/mfa.py")
+    )
     assert "pyotp.TOTP(secret).verify(" not in combined, (
         "فحص TOTP خام متبقٍّ (بلا anti-replay) في مسار تحقّق"
     )
 
 
 def test_all_four_verify_sites_consume_step():
-    main_src = _read("services/auth/main.py")
+    # P1 decomposition: _consume_totp_step ومواضع الاستدعاء انتقلت إلى mfa_runtime.py —
+    # نمسح main.py + الشقيقة معاً بنفس التأكيدات.
+    main_src = _read("services/auth/main.py") + _read("services/auth/mfa_runtime.py")
     mfa_src = _read("services/auth/routers/mfa.py")
     assert "async def _consume_totp_step" in main_src, "دالّة الاستهلاك الذرّيّ مفقودة"
     # التحديث الذرّيّ بشرط التقدّم (آمن ضدّ التسابق).

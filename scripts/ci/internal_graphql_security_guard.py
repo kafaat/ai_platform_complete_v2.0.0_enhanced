@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Static guard for internal S2S routes and GraphQL read facade security."""
+
 from __future__ import annotations
 
 import ast
@@ -23,21 +24,30 @@ def _decorated_function_source(path: Path, route: str) -> str:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
         for dec in node.decorator_list:
-            if isinstance(dec, ast.Call) and dec.args and isinstance(dec.args[0], ast.Constant) and dec.args[0].value == route:
-                start = min([getattr(d, "lineno", node.lineno) for d in node.decorator_list] + [node.lineno])
+            if (
+                isinstance(dec, ast.Call)
+                and dec.args
+                and isinstance(dec.args[0], ast.Constant)
+                and dec.args[0].value == route
+            ):
+                start = min(
+                    [getattr(d, "lineno", node.lineno) for d in node.decorator_list] + [node.lineno]
+                )
                 end = getattr(node, "end_lineno", node.lineno)
                 return "\n".join(lines[start - 1 : end])
     raise SystemExit(f"route not found: {path}:{route}")
 
 
 def main() -> int:
-    platform = _text(PLATFORM_MAIN) + "\n" + _text(PLATFORM_INTERNAL)
     for route in ["/internal/fields/{field_id}/state", "/internal/events/ai-advice"]:
         src = _decorated_function_source(PLATFORM_INTERNAL, route)
         if "Depends(_require_service_token)" not in src:
             raise SystemExit(f"internal route missing service-token dependency: {route}")
         service_guard = _text(ROOT / "services/sahool-platform/api/service_token_auth.py")
-        if "Header(None, alias=\"X-Agent-Token\")" not in service_guard and "X-Agent-Token" not in service_guard:
+        if (
+            'Header(None, alias="X-Agent-Token")' not in service_guard
+            and "X-Agent-Token" not in service_guard
+        ):
             raise SystemExit("platform service-token guard does not reference X-Agent-Token")
     kg = _text(KG_MAIN)
     graphql_src = _decorated_function_source(KG_MAIN, "/graphql")

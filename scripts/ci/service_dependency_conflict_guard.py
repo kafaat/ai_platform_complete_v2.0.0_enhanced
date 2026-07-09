@@ -6,6 +6,7 @@ incompatible direct versions of the same package? That matters before attempting
 single transitive lock, and it explains why Sahool uses service-local images instead
 of one shared Python environment.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -39,7 +40,9 @@ def normalize(name: str) -> str:
 
 
 def iter_req_files() -> list[Path]:
-    return sorted(SERVICES.glob("*/requirements*.txt")) + sorted(SERVICES.glob("*/*/requirements*.txt"))
+    return sorted(SERVICES.glob("*/requirements*.txt")) + sorted(
+        SERVICES.glob("*/*/requirements*.txt")
+    )
 
 
 def discover() -> list[ConflictRow]:
@@ -47,7 +50,9 @@ def discover() -> list[ConflictRow]:
     files: dict[str, set[str]] = defaultdict(set)
     for req_file in iter_req_files():
         service = req_file.relative_to(SERVICES).parts[0]
-        for line_no, raw in enumerate(req_file.read_text(encoding="utf-8", errors="ignore").splitlines(), 1):
+        for line_no, raw in enumerate(
+            req_file.read_text(encoding="utf-8", errors="ignore").splitlines(), 1
+        ):
             req = meaningful(raw)
             if not req or req.startswith("-") or req.startswith("--"):
                 continue
@@ -65,31 +70,50 @@ def discover() -> list[ConflictRow]:
         service_bits = []
         for version, services in sorted(by_version.items()):
             service_bits.append(f"{version}=>{','.join(sorted(set(services)))}")
-        rows.append(ConflictRow(
-            package=package,
-            version_count=len(by_version),
-            versions=", ".join(sorted(by_version)),
-            services="; ".join(service_bits),
-            files="; ".join(sorted(files[package])),
-        ))
+        rows.append(
+            ConflictRow(
+                package=package,
+                version_count=len(by_version),
+                versions=", ".join(sorted(by_version)),
+                services="; ".join(service_bits),
+                files="; ".join(sorted(files[package])),
+            )
+        )
     return rows
 
 
 def write(rows: list[ConflictRow]) -> None:
     payload = [asdict(r) for r in rows]
-    (ROOT / "dependency_conflicts.generated.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (ROOT / "dependency_conflicts.generated.json").write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     with (ROOT / "dependency_conflicts.csv").open("w", encoding="utf-8", newline="") as f:
-        fields = list(asdict(rows[0]).keys()) if rows else ["package", "version_count", "versions", "services", "files"]
+        fields = (
+            list(asdict(rows[0]).keys())
+            if rows
+            else ["package", "version_count", "versions", "services", "files"]
+        )
         w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader(); w.writerows(payload)
+        w.writeheader()
+        w.writerows(payload)
 
 
 def check() -> None:
-    before = {name: (ROOT / name).read_text(encoding="utf-8") if (ROOT / name).exists() else None for name in ["dependency_conflicts.generated.json", "dependency_conflicts.csv"]}
-    rows = discover(); write(rows)
-    drift = [name for name, old in before.items() if (ROOT / name).read_text(encoding="utf-8") != old]
+    before = {
+        name: (ROOT / name).read_text(encoding="utf-8") if (ROOT / name).exists() else None
+        for name in ["dependency_conflicts.generated.json", "dependency_conflicts.csv"]
+    }
+    rows = discover()
+    write(rows)
+    drift = [
+        name for name, old in before.items() if (ROOT / name).read_text(encoding="utf-8") != old
+    ]
     if drift:
-        raise SystemExit("Dependency conflict inventory drift detected: " + ", ".join(drift) + "; run scripts/ci/service_dependency_conflict_guard.py")
+        raise SystemExit(
+            "Dependency conflict inventory drift detected: "
+            + ", ".join(drift)
+            + "; run scripts/ci/service_dependency_conflict_guard.py"
+        )
 
 
 def main() -> None:
@@ -97,9 +121,14 @@ def main() -> None:
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     if args.check:
-        check(); print("dependency_conflict_inventory_check_ok"); return
-    rows = discover(); write(rows)
-    print(f"generated dependency conflict report: {len(rows)} packages with cross-service version divergence")
+        check()
+        print("dependency_conflict_inventory_check_ok")
+        return
+    rows = discover()
+    write(rows)
+    print(
+        f"generated dependency conflict report: {len(rows)} packages with cross-service version divergence"
+    )
 
 
 if __name__ == "__main__":

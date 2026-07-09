@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate SAHOOL production observability assets without requiring Docker."""
+
 from __future__ import annotations
 
 import json
@@ -67,10 +68,7 @@ def validate_dashboards() -> None:
         if len(panels) < 4:
             fail(f"dashboard has too few panels: {path.name}")
         exprs = "\n".join(
-            t.get("expr", "")
-            for p in panels
-            for t in p.get("targets", [])
-            if isinstance(t, dict)
+            t.get("expr", "") for p in panels for t in p.get("targets", []) if isinstance(t, dict)
         )
         if "up" not in exprs:
             fail(f"dashboard lacks availability query: {path.name}")
@@ -111,7 +109,13 @@ def validate_compose_mounts() -> None:
 def validate_scrape_jobs() -> None:
     prom_text = (ROOT / "prometheus/prometheus.yml").read_text(encoding="utf-8")
     # These may be direct jobs or route-level metrics through platform/nginx; enforce key names in assets.
-    assets = prom_text + "\n" + (ROOT / "grafana/dashboards/json/sahool-field-imagery-ai-runtime.json").read_text(encoding="utf-8")
+    assets = (
+        prom_text
+        + "\n"
+        + (ROOT / "grafana/dashboards/json/sahool-field-imagery-ai-runtime.json").read_text(
+            encoding="utf-8"
+        )
+    )
     for job in REQUIRED_JOBS:
         if job not in assets:
             fail(f"observability assets do not mention critical job/domain {job}")

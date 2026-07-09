@@ -17,6 +17,7 @@
   CHAOS_LATENCY_MS=250
   REQUIRE_LIVE_E2E=1  # يفشل عند غياب المكدس بدل SKIPPED
 """
+
 from __future__ import annotations
 
 import concurrent.futures
@@ -41,13 +42,20 @@ class Result:
 
 def ssl_context():
     if os.getenv("INSECURE_TLS", "").lower() in {"1", "true", "yes", "on"}:
-        ctx = ssl.create_default_context(); ctx.check_hostname = False; ctx.verify_mode = ssl.CERT_NONE; return ctx
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
     return None
 
 
 def reachable(base: str) -> bool:
     try:
-        urllib.request.urlopen(urllib.request.Request(base.rstrip("/") + "/", method="GET"), timeout=5, context=ssl_context())  # noqa: S310
+        urllib.request.urlopen(
+            urllib.request.Request(base.rstrip("/") + "/", method="GET"),
+            timeout=5,
+            context=ssl_context(),
+        )  # noqa: S310
     except urllib.error.HTTPError:
         return True
     except Exception:
@@ -55,27 +63,42 @@ def reachable(base: str) -> bool:
     return True
 
 
-def call(method: str, url: str, *, body: dict | None = None, token: str | None = None, chaos_latency_ms: int = 0) -> Result:
+def call(
+    method: str,
+    url: str,
+    *,
+    body: dict | None = None,
+    token: str | None = None,
+    chaos_latency_ms: int = 0,
+) -> Result:
     if chaos_latency_ms > 0:
         time.sleep(random.uniform(0, chaos_latency_ms) / 1000.0)
     data = dumps(body).encode("utf-8") if body is not None else None
-    headers = {"Accept":"application/json"}
-    if data is not None: headers["Content-Type"] = "application/json"
-    if token: headers["Authorization"] = f"Bearer {token}"
+    headers = {"Accept": "application/json"}
+    if data is not None:
+        headers["Content-Type"] = "application/json"
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     start = time.perf_counter()
     try:
-        with urllib.request.urlopen(urllib.request.Request(url, data=data, headers=headers, method=method), timeout=float(os.getenv("E2E_TIMEOUT", "15")), context=ssl_context()) as resp:  # noqa: S310
+        with urllib.request.urlopen(
+            urllib.request.Request(url, data=data, headers=headers, method=method),
+            timeout=float(os.getenv("E2E_TIMEOUT", "15")),
+            context=ssl_context(),
+        ) as resp:  # noqa: S310
             resp.read()
             return Result(resp.status, (time.perf_counter() - start) * 1000)
     except urllib.error.HTTPError as e:
-        if e.fp: e.fp.read()
+        if e.fp:
+            e.fp.read()
         return Result(e.code, (time.perf_counter() - start) * 1000, f"HTTP {e.code}")
     except Exception as e:
         return Result(0, (time.perf_counter() - start) * 1000, type(e).__name__)
 
 
 def percentile(values: list[float], pct: float) -> float:
-    if not values: return float("inf")
+    if not values:
+        return float("inf")
     values = sorted(values)
     idx = min(len(values) - 1, max(0, int(round((pct / 100) * (len(values) - 1)))))
     return values[idx]
@@ -98,13 +121,26 @@ def main() -> int:
         return 1 if os.getenv("REQUIRE_LIVE_E2E") == "1" else 0
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=concurrency) as pool:
-        futs = [pool.submit(call, "GET", url, token=token, chaos_latency_ms=chaos_latency_ms) for _ in range(total)]
+        futs = [
+            pool.submit(call, "GET", url, token=token, chaos_latency_ms=chaos_latency_ms)
+            for _ in range(total)
+        ]
         results = [f.result() for f in concurrent.futures.as_completed(futs)]
 
     # Chaos probes: malformed payload and impossible id should be controlled 4xx/401/403/422, not 5xx/timeout.
     probes = [
-        call("POST", base + os.getenv("FIELDS_PATH", "/api/v1/fields"), token=token, body={"geometry": {"type":"Polygon", "coordinates": []}}),
-        call("PATCH", base + os.getenv("FIELDS_PATH", "/api/v1/fields") + "/missing-field", token=token, body={"base_version": -1}),
+        call(
+            "POST",
+            base + os.getenv("FIELDS_PATH", "/api/v1/fields"),
+            token=token,
+            body={"geometry": {"type": "Polygon", "coordinates": []}},
+        ),
+        call(
+            "PATCH",
+            base + os.getenv("FIELDS_PATH", "/api/v1/fields") + "/missing-field",
+            token=token,
+            body={"base_version": -1},
+        ),
     ]
 
     latencies = [r.elapsed_ms for r in results]
@@ -119,11 +155,14 @@ def main() -> int:
 
     ok = True
     if p95 > p95_budget:
-        print(f"FAIL p95 budget: {p95:.1f}ms > {p95_budget:.1f}ms"); ok = False
+        print(f"FAIL p95 budget: {p95:.1f}ms > {p95_budget:.1f}ms")
+        ok = False
     if error_rate > max_error_rate:
-        print(f"FAIL error rate: {error_rate:.3%} > {max_error_rate:.3%}"); ok = False
+        print(f"FAIL error rate: {error_rate:.3%} > {max_error_rate:.3%}")
+        ok = False
     if probe_bad:
-        print("FAIL chaos probes produced 5xx/transport error: " + repr(probe_bad)); ok = False
+        print("FAIL chaos probes produced 5xx/transport error: " + repr(probe_bad))
+        ok = False
     if ok:
         print("PASS chaos+load gates")
     return 0 if ok else 1

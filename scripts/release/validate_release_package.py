@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Validate Sahool release packaging assets and checksum integrity."""
+
 from __future__ import annotations
 
 import argparse
@@ -38,7 +39,9 @@ def main() -> int:
         print("missing release assets:", ", ".join(missing))
         return 1
 
-    manifest = json.loads((root / "release/SAHOOL_RELEASE_MANIFEST_20260626.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (root / "release/SAHOOL_RELEASE_MANIFEST_20260626.json").read_text(encoding="utf-8")
+    )
     if manifest.get("missing_required_assets"):
         print("manifest reports missing required assets:", manifest["missing_required_assets"])
         return 1

@@ -7,7 +7,14 @@ from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
 from fastapi import HTTPException, Query
-from open_meteo import circuit_breaker_state, fetch_current, fetch_forecast, fetch_historical, fetch_tile_sample, readiness_probe
+from open_meteo import (
+    circuit_breaker_state,
+    fetch_current,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+    fetch_forecast,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+    fetch_historical,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+    fetch_tile_sample,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+    readiness_probe,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+)
 from operations import advice_ar, best_operation_frame, operation_suitability
 from tiles import (
     ALLOWED_LAYERS,
@@ -21,15 +28,13 @@ from tiles import (
 )
 
 
-
-
 def _facade_attr(name: str):
     """Resolve monkeypatch-compatible runtime hooks from the public main module.
 
-Legacy tests and operators patch ``main.fetch_*`` directly. After P2 extraction the
-real implementation lives here, so route handlers resolve patchable hooks through
-``sys.modules['main']`` when available, falling back to local imports.
-"""
+    Legacy tests and operators patch ``main.fetch_*`` directly. After P2 extraction the
+    real implementation lives here, so route handlers resolve patchable hooks through
+    ``sys.modules['main']`` when available, falling back to local imports.
+    """
     facade = sys.modules.get("main")
     if facade is not None and hasattr(facade, name):
         return getattr(facade, name)
@@ -115,7 +120,9 @@ async def historical_weather(
     end_date: str = Query(...),
 ):
     try:
-        return await _facade_attr("fetch_historical")(lat, lon, start_date=start_date, end_date=end_date)
+        return await _facade_attr("fetch_historical")(
+            lat, lon, start_date=start_date, end_date=end_date
+        )
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"Open-Meteo historical: {exc}") from exc
 

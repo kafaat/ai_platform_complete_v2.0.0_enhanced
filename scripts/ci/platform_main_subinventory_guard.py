@@ -5,6 +5,7 @@ The P1 decomposition removed direct routes from platform main.py. This guard
 freezes the remaining bootstrap surface so future changes are reviewed instead
 of silently re-growing business routes in main.py.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -106,7 +107,9 @@ def inventory() -> dict:
             cat = _category(node.name, node.lineno, decorators)
             route_decos = _route_decorators(decorators)
             if route_decos:
-                direct_routes.append({"name": node.name, "line": node.lineno, "decorators": route_decos})
+                direct_routes.append(
+                    {"name": node.name, "line": node.lineno, "decorators": route_decos}
+                )
             items.append(
                 {
                     "name": node.name,
@@ -131,7 +134,9 @@ def inventory() -> dict:
         "top_level_symbols": len(items),
         "direct_route_decorators": len(direct_routes),
         "category_totals": category_totals,
-        "category_classification": {cat: CATEGORY_CLASSIFICATION.get(cat, "unclassified_runtime") for cat in category_totals},
+        "category_classification": {
+            cat: CATEGORY_CLASSIFICATION.get(cat, "unclassified_runtime") for cat in category_totals
+        },
         "embedded_business_logic_loc": sum(
             totals["loc"]
             for cat, totals in category_totals.items()
@@ -149,12 +154,18 @@ def inventory() -> dict:
     return result
 
 
-def _recommendation(total_lines: int, categories: dict[str, dict[str, int]], route_count: int) -> dict:
+def _recommendation(
+    total_lines: int, categories: dict[str, dict[str, int]], route_count: int
+) -> dict:
     recs = []
     if route_count:
-        recs.append("Route decorators returned to platform main.py; move them to routers before production certification.")
+        recs.append(
+            "Route decorators returned to platform main.py; move them to routers before production certification."
+        )
     if total_lines > 1000:
-        recs.append("Extract remaining bootstrap/runtime helpers into api/platform_bootstrap_runtime.py and api/platform_auth_runtime.py.")
+        recs.append(
+            "Extract remaining bootstrap/runtime helpers into api/platform_bootstrap_runtime.py and api/platform_auth_runtime.py."
+        )
     for cat, threshold in {
         "auth_jwt_permissions": 120,
         "db_tenant_rls_bootstrap": 160,
@@ -163,7 +174,9 @@ def _recommendation(total_lines: int, categories: dict[str, dict[str, int]], rou
         "middleware_and_rate_limit": 120,
     }.items():
         if categories.get(cat, {}).get("loc", 0) > threshold:
-            recs.append(f"Category {cat} exceeds {threshold} LOC; extract a dedicated runtime module.")
+            recs.append(
+                f"Category {cat} exceeds {threshold} LOC; extract a dedicated runtime module."
+            )
     embedded_business_logic = sum(
         totals["loc"]
         for cat, totals in categories.items()
@@ -171,10 +184,16 @@ def _recommendation(total_lines: int, categories: dict[str, dict[str, int]], rou
     )
     status = "route_regression"
     if route_count == 0:
-        status = "route_free_with_embedded_business_logic" if embedded_business_logic else "bootstrap_large_but_route_free"
+        status = (
+            "route_free_with_embedded_business_logic"
+            if embedded_business_logic
+            else "bootstrap_large_but_route_free"
+        )
     return {
         "status": status,
-        "next_action": "P3 business-runtime extraction after production certification blockers" if route_count == 0 else "P0 fix before release",
+        "next_action": "P3 business-runtime extraction after production certification blockers"
+        if route_count == 0
+        else "P0 fix before release",
         "recommendations": recs,
     }
 
@@ -213,10 +232,26 @@ def _report(data: dict) -> str:
         "| Category | Classification | Symbols | LOC |",
         "|---|---|---:|---:|",
     ]
-    for cat, totals in sorted(data["category_totals"].items(), key=lambda kv: kv[1]["loc"], reverse=True):
+    for cat, totals in sorted(
+        data["category_totals"].items(), key=lambda kv: kv[1]["loc"], reverse=True
+    ):
         cls = data.get("category_classification", {}).get(cat, "unclassified_runtime")
         lines.append(f"| `{cat}` | `{cls}` | {totals['symbols']} | {totals['loc']} |")
-    lines.extend(["", "## Business-logic note", "", f"- Embedded business logic still present in platform main: `{data.get('embedded_business_logic_loc', 0)}` LOC.", "- This does not reopen P1 because direct routes remain zero, but it makes P3 a real runtime extraction, not a cosmetic cleanup.", f"- Uncategorized/residual line estimate after imports and categorized symbols: `{data.get('uncategorized_residual_loc_estimate', 0)}` LOC. This must be reviewed before any P3 extraction plan is finalized.", "", "## Largest top-level symbols", "", "| Symbol | Category | Classification | LOC | Lines |", "|---|---|---|---:|---|"])
+    lines.extend(
+        [
+            "",
+            "## Business-logic note",
+            "",
+            f"- Embedded business logic still present in platform main: `{data.get('embedded_business_logic_loc', 0)}` LOC.",
+            "- This does not reopen P1 because direct routes remain zero, but it makes P3 a real runtime extraction, not a cosmetic cleanup.",
+            f"- Uncategorized/residual line estimate after imports and categorized symbols: `{data.get('uncategorized_residual_loc_estimate', 0)}` LOC. This must be reviewed before any P3 extraction plan is finalized.",
+            "",
+            "## Largest top-level symbols",
+            "",
+            "| Symbol | Category | Classification | LOC | Lines |",
+            "|---|---|---|---:|---|",
+        ]
+    )
     for item in sorted(data["items"], key=lambda x: x["loc"], reverse=True)[:20]:
         cls = data.get("category_classification", {}).get(item["category"], "unclassified_runtime")
         lines.append(
@@ -227,13 +262,15 @@ def _report(data: dict) -> str:
         lines.append(f"- {rec}")
     if not data["recommendation"]["recommendations"]:
         lines.append("- No extraction recommendation from current thresholds.")
-    lines.extend([
-        "",
-        "## Decision",
-        "",
-        "The platform main file is route-free after P1, but it still embeds event/outbox and field-alert business runtime. Treat further extraction as P3 business-runtime extraction, not as bootstrap cleanup, and do not begin it until the production certification blockers are closed.",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Decision",
+            "",
+            "The platform main file is route-free after P1, but it still embeds event/outbox and field-alert business runtime. Treat further extraction as P3 business-runtime extraction, not as bootstrap cleanup, and do not begin it until the production certification blockers are closed.",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 
@@ -248,9 +285,15 @@ def check_files() -> None:
     data = inventory()
     if data["direct_route_decorators"] != 0:
         raise SystemExit("platform main.py has direct route decorators after P1")
-    if data.get("category_classification", {}).get("idempotency_outbox_events") != "embedded_business_logic":
+    if (
+        data.get("category_classification", {}).get("idempotency_outbox_events")
+        != "embedded_business_logic"
+    ):
         raise SystemExit("idempotency_outbox_events must be classified as embedded_business_logic")
-    if data.get("category_classification", {}).get("field_task_alert_helpers") != "embedded_business_logic":
+    if (
+        data.get("category_classification", {}).get("field_task_alert_helpers")
+        != "embedded_business_logic"
+    ):
         raise SystemExit("field_task_alert_helpers must be classified as embedded_business_logic")
     print("platform_main_subinventory_check_ok")
 

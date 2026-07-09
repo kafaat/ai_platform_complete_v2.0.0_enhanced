@@ -153,7 +153,10 @@ async def test_generate_executes_provider_native_tool_and_second_pass(monkeypatc
 
 
 def test_main_merges_provider_and_manual_tool_calls_static():
-    source = Path("services/ai_agronomist/main.py").read_text(encoding="utf-8")
+    # P1 decomposition: منطق chat انتقل إلى ai_evidence_runtime.py — نفحص الملفّين معاً.
+    source = (ROOT / "services/ai_agronomist/main.py").read_text(encoding="utf-8") + (
+        ROOT / "services/ai_agronomist/ai_evidence_runtime.py"
+    ).read_text(encoding="utf-8")
     assert 'allowed_capabilities=_policy_for_generation.get("allowed_capabilities")' in source
     assert "tool_fetcher=_build_agent_tool_fetcher" in source
     assert "provider_tool_calls" in source

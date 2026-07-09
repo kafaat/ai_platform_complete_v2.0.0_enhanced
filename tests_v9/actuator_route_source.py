@@ -17,9 +17,14 @@ import os
 
 
 def actuator_combined_source(root: str) -> str:
-    """يُرجِع نصّ ``main.py`` + كلّ ``routers/*.py`` مُسلسَلاً (لمسح ساكن للمسارات)."""
+    """يُرجِع نصّ ``main.py`` + ``*_runtime.py`` + كلّ ``routers/*.py`` مُسلسَلاً (لمسح ساكن)."""
     svc = os.path.join(root, "services", "actuator-service")
     src = open(os.path.join(svc, "main.py"), encoding="utf-8").read()
+    # P1 decomposition: المنطق المشترك (الحُرّاس/الحالة) انتقل إلى actuator_runtime.py
+    # الشقيقة — نوسّع المسح إليها (توسيع نطاق فقط، لا إضعاف للتأكيدات).
+    for fn in sorted(os.listdir(svc)):
+        if fn.endswith("_runtime.py"):
+            src += "\n" + open(os.path.join(svc, fn), encoding="utf-8").read()
     rdir = os.path.join(svc, "routers")
     if os.path.isdir(rdir):
         for fn in sorted(os.listdir(rdir)):

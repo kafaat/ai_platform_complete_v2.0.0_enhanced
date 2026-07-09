@@ -5,7 +5,9 @@
 legacy alias only as its own hidden route, not as a duplicate decorator on the same
 handler.
 """
+
 from __future__ import annotations
+
 import ast
 from pathlib import Path
 
@@ -16,7 +18,11 @@ def _route_paths(node: ast.FunctionDef | ast.AsyncFunctionDef) -> list[str]:
     paths: list[str] = []
     for dec in node.decorator_list:
         if isinstance(dec, ast.Call) and isinstance(dec.func, ast.Attribute):
-            if dec.args and isinstance(dec.args[0], ast.Constant) and isinstance(dec.args[0].value, str):
+            if (
+                dec.args
+                and isinstance(dec.args[0], ast.Constant)
+                and isinstance(dec.args[0].value, str)
+            ):
                 paths.append(dec.args[0].value)
     return paths
 
@@ -37,6 +43,7 @@ def main() -> int:
         raise SystemExit("duplicate /healthz+/health decorators remain:\n" + "\n".join(offenders))
     print("health_alias_contract_guard_ok")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

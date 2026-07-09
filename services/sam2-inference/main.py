@@ -9,9 +9,8 @@ from __future__ import annotations
 import os
 import time
 
-from fastapi import FastAPI, Header, HTTPException
-
 import sam2_runtime as rt
+from fastapi import FastAPI, Header, HTTPException
 
 app = FastAPI(title="SAHOOL SAM2 Inference", version=rt.VERSION)
 

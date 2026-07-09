@@ -3,6 +3,7 @@
 Extracted from api.main as a P1 residual-bootstrap decomposition step. These
 routes remain service-token protected and preserve their paths/contracts.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query

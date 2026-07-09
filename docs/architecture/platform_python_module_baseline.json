@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 590,
+  "baseline_python_module_count": 592,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -240,6 +240,7 @@
     "api/routers/high_value_crops.py",
     "api/routers/indicators.py",
     "api/routers/indices.py",
+    "api/routers/internal_service.py",
     "api/routers/introduction.py",
     "api/routers/inventory.py",
     "api/routers/ipm.py",
@@ -270,6 +271,7 @@
     "api/routers/pest_escalation.py",
     "api/routers/phenology.py",
     "api/routers/planting.py",
+    "api/routers/platform_health.py",
     "api/routers/policy_learning.py",
     "api/routers/portfolio_command.py",
     "api/routers/postharvest.py",

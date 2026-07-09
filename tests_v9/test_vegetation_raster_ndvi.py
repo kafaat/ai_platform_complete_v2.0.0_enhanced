@@ -21,11 +21,16 @@ pytestmark = pytest.mark.unit  # CI يشغّل -m unit؛ بلا الوسم لا 
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 VEG = os.path.join(ROOT, "services/vegetation-analysis-service/main.py")
+# P1 decomposition: المنطق انتقل إلى vegetation_runtime.py الشقيقة — نفحص الملفّين معاً.
+VEG_RT = os.path.join(ROOT, "services/vegetation-analysis-service/vegetation_runtime.py")
 
 
 def _src() -> str:
     with open(VEG, encoding="utf-8") as f:
-        return f.read()
+        src = f.read()
+    with open(VEG_RT, encoding="utf-8") as f:
+        src += "\n" + f.read()
+    return src
 
 
 def _func_src(name: str) -> str:
@@ -77,9 +82,23 @@ def veg():
     pytest.importorskip("jwt")
     pytest.importorskip("httpx")
     pytest.importorskip("prometheus_client")
+    # P1 decomposition: main.py يستورد وحدة شقيقة (*_runtime) — يجب أن يكون
+    # مجلّد الخدمة على sys.path قبل exec_module.
+    import sys as _sys
+
+    _svc_dir = os.path.dirname(VEG)
+    if _svc_dir not in _sys.path:
+        _sys.path.insert(0, _svc_dir)
+    # عزل: نسخة شقيقة قديمة (خدمة أخرى/بيئة سابقة) في sys.modules تُفسد الاستيراد.
+    _stale = _sys.modules.get("vegetation_runtime")
+    if _stale is not None and os.path.dirname(getattr(_stale, "__file__", "") or "") != _svc_dir:
+        _sys.modules.pop("vegetation_runtime", None)
     spec = importlib.util.spec_from_file_location("veg_main_test", VEG)
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
+    # P1 decomposition: run_analysis وخطافات الجلب تعيش في vegetation_runtime — الحقن
+    # على وحدة الواجهة لا يصل globals المنطق؛ نحقن ونُرجِع وحدة الـruntime نفسها.
+    m = _sys.modules["vegetation_runtime"]
 
     async def _noop_meta(*a, **k):
         return {}

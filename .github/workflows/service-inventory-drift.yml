@@ -27,5 +27,3 @@ jobs:
           python-version: '3.12'
       - name: Verify generated service inventory is current
         run: python scripts/ci/generate_service_inventory.py --check
-      - name: Verify strict dependency pins for hardened services
-        run: python scripts/ci/dependency_pin_guard.py

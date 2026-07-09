@@ -5,6 +5,7 @@ The goal is to make the residual route surface explicit. Business endpoints may
 remain only if listed in the generated allowlist; otherwise new business routes
 must move to routers/runtime modules.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -43,15 +44,17 @@ def _route_decorators(path: Path) -> list[dict]:
                 route_path = arg0.value
             else:
                 continue
-            rows.append({
-                "service": _service_name(path),
-                "file": str(path.relative_to(ROOT)),
-                "line": node.lineno,
-                "method": method,
-                "path": route_path,
-                "function": node.name,
-                "classification": classify_route(route_path, node.name),
-            })
+            rows.append(
+                {
+                    "service": _service_name(path),
+                    "file": str(path.relative_to(ROOT)),
+                    "line": node.lineno,
+                    "method": method,
+                    "path": route_path,
+                    "function": node.name,
+                    "classification": classify_route(route_path, node.name),
+                }
+            )
     return rows
 
 
@@ -120,7 +123,10 @@ def write_files() -> None:
     data = payload()
     JSON_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     with CSV_PATH.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["service", "file", "line", "method", "path", "function", "classification"])
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["service", "file", "line", "method", "path", "function", "classification"],
+        )
         writer.writeheader()
         writer.writerows(data["rows"])
     allow = {
@@ -132,7 +138,9 @@ def write_files() -> None:
             if r["classification"] == "business_endpoint"
         ],
     }
-    ALLOWLIST_PATH.write_text(json.dumps(allow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    ALLOWLIST_PATH.write_text(
+        json.dumps(allow, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def check_files() -> None:

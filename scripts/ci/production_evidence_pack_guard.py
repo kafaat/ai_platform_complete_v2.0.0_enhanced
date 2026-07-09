@@ -5,6 +5,7 @@ This guard creates and validates a strict evidence manifest for Sahool productio
 certification. It intentionally keeps the repository in release-candidate state
 until external CI/deployment evidence is attached for every blocker.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -39,7 +40,13 @@ BLOCKERS = [
         "required_file": "model_provisioning_summary.json",
         "required_status": "verified",
         "waivable": False,
-        "minimum_fields": ["status", "edge_readiness_mode", "edge_production_required", "artifacts", "timestamp_utc"],
+        "minimum_fields": [
+            "status",
+            "edge_readiness_mode",
+            "edge_production_required",
+            "artifacts",
+            "timestamp_utc",
+        ],
     },
     {
         "id": "P-CERT-3",
@@ -47,7 +54,13 @@ BLOCKERS = [
         "required_file": "redis_live_test_summary.json",
         "required_status": "verified",
         "waivable": True,
-        "minimum_fields": ["status", "redis_url_kind", "test_command", "readyz_cache_backend", "timestamp_utc"],
+        "minimum_fields": [
+            "status",
+            "redis_url_kind",
+            "test_command",
+            "readyz_cache_backend",
+            "timestamp_utc",
+        ],
     },
     {
         "id": "GUARDS",
@@ -91,15 +104,17 @@ def manifest_payload() -> dict:
                 status = data.get("status", "unknown")
             except Exception:
                 status = "invalid_json"
-        evidence_files.append({
-            "blocker_id": item["id"],
-            "name": item["name"],
-            "file": f"certification/evidence/{item['required_file']}",
-            "current_status": status,
-            "required_status": item["required_status"],
-            "waivable": item["waivable"],
-            "minimum_fields": item["minimum_fields"],
-        })
+        evidence_files.append(
+            {
+                "blocker_id": item["id"],
+                "name": item["name"],
+                "file": f"certification/evidence/{item['required_file']}",
+                "current_status": status,
+                "required_status": item["required_status"],
+                "waivable": item["waivable"],
+                "minimum_fields": item["minimum_fields"],
+            }
+        )
     return {"schema_version": 1, **TEMPLATE_STATUS, "evidence_files": evidence_files}
 
 
@@ -108,8 +123,13 @@ def write_files() -> None:
     for item in BLOCKERS:
         p = EVIDENCE_DIR / item["required_file"]
         if not p.exists():
-            p.write_text(json.dumps(_placeholder(item), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    MANIFEST.write_text(json.dumps(manifest_payload(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            p.write_text(
+                json.dumps(_placeholder(item), indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+    MANIFEST.write_text(
+        json.dumps(manifest_payload(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     RUNBOOK.write_text(runbook_text(), encoding="utf-8")
 
 
@@ -117,7 +137,7 @@ def _load_json(path: Path) -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
-        raise SystemExit(f"invalid evidence JSON {path}: {exc}")
+        raise SystemExit(f"invalid evidence JSON {path}: {exc}") from exc
 
 
 def check_files() -> None:
@@ -144,7 +164,10 @@ def check_files() -> None:
     actual = MANIFEST.read_text(encoding="utf-8")
     if actual != expected:
         raise SystemExit("production evidence manifest drift; run with --write")
-    if not RUNBOOK.exists() or "release_candidate_not_production_certified" not in RUNBOOK.read_text(encoding="utf-8"):
+    if (
+        not RUNBOOK.exists()
+        or "release_candidate_not_production_certified" not in RUNBOOK.read_text(encoding="utf-8")
+    ):
         raise SystemExit("production evidence runbook missing or incomplete")
     print("production_evidence_pack_check_ok")
 
@@ -159,25 +182,29 @@ def runbook_text() -> str:
         "",
     ]
     for item in BLOCKERS:
-        lines.extend([
-            f"### {item['id']} — {item['name']}",
+        lines.extend(
+            [
+                f"### {item['id']} — {item['name']}",
+                "",
+                f"- File: `certification/evidence/{item['required_file']}`",
+                f"- Required status: `{item['required_status']}`",
+                f"- Waivable: `{str(item['waivable']).lower()}`",
+                f"- Minimum fields when verified: `{', '.join(item['minimum_fields'])}`",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## State machine",
             "",
-            f"- File: `certification/evidence/{item['required_file']}`",
-            f"- Required status: `{item['required_status']}`",
-            f"- Waivable: `{str(item['waivable']).lower()}`",
-            f"- Minimum fields when verified: `{', '.join(item['minimum_fields'])}`",
+            "Allowed evidence states: `pending`, `evidence_attached`, `verified`, `waived_with_reason`, `failed`.",
             "",
-        ])
-    lines.extend([
-        "## State machine",
-        "",
-        "Allowed evidence states: `pending`, `evidence_attached`, `verified`, `waived_with_reason`, `failed`.",
-        "",
-        "Non-waivable: `P-CERT-1`, `P-CERT-2`, `P-CERT-4`, and `GUARDS`.",
-        "",
-        "`P-CERT-3` may be waived only with an explicit reason and only when Redis is not used for correctness/state in the target deployment.",
-        "",
-    ])
+            "Non-waivable: `P-CERT-1`, `P-CERT-2`, `P-CERT-4`, and `GUARDS`.",
+            "",
+            "`P-CERT-3` may be waived only with an explicit reason and only when Redis is not used for correctness/state in the target deployment.",
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 

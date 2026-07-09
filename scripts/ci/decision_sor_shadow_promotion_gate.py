@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Static gate for P0-3 decision-service shadow/promotion controls."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,7 +10,11 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = [
     ROOT / "services" / "decision-service" / "cutover.py",
     ROOT / "services" / "sahool-platform" / "api" / "decision_sor_mode.py",
-    ROOT / "services" / "sahool-platform" / "tests" / "test_p0_3_decision_sor_shadow_promotion_guard.py",
+    ROOT
+    / "services"
+    / "sahool-platform"
+    / "tests"
+    / "test_p0_3_decision_sor_shadow_promotion_guard.py",
 ]
 
 
@@ -47,9 +52,16 @@ def main() -> None:
         "DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED",
     ):
         require(token in mode, f"platform mode contract missing {token}")
-    require('/v1/cutover/readiness' in main_py, "decision-service missing runtime cutover readiness endpoint")
-    require("decision_sor_shadow_promotion_gate.py" in workflow, "CI does not run shadow promotion gate")
-    require("test_p0_3_decision_sor_shadow_promotion_guard.py" in workflow, "CI does not run P0-3 guard")
+    require(
+        "/v1/cutover/readiness" in main_py,
+        "decision-service missing runtime cutover readiness endpoint",
+    )
+    require(
+        "decision_sor_shadow_promotion_gate.py" in workflow, "CI does not run shadow promotion gate"
+    )
+    require(
+        "test_p0_3_decision_sor_shadow_promotion_guard.py" in workflow, "CI does not run P0-3 guard"
+    )
     print("Decision SoR shadow promotion gate passed")
 
 

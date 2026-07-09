@@ -5,6 +5,7 @@ The goal is not to ban historical reports. It scans only executable/runtime
 areas and requires legacy markers to be explicitly quarantined with one of:
 LEGACY_OK, LEGACY_QUARANTINED, DOC_ONLY, TEST_ONLY, COMPAT_ONLY.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -14,17 +15,32 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 RUNTIME_DIRS = ("services", "shared", "scripts", ".github", "helm")
-SKIP_DIRS = {"__pycache__", ".pytest_cache", "node_modules", ".git", "venv", ".venv", "build", "dist", "tests", "docs"}
+SKIP_DIRS = {
+    "__pycache__",
+    ".pytest_cache",
+    "node_modules",
+    ".git",
+    "venv",
+    ".venv",
+    "build",
+    "dist",
+    "tests",
+    "docs",
+}
 TEXT_SUFFIXES = {".py", ".sh", ".yml", ".yaml", ".json", ".toml", ".ini", ".env", ".md", ".txt"}
 QUARANTINE_TOKENS = ("LEGACY_OK", "LEGACY_QUARANTINED", "DOC_ONLY", "TEST_ONLY", "COMPAT_ONLY")
 ALLOWLIST_FILE = "architecture/legacy_quarantine_allowlist.json"
 PATTERNS = [
     ("mvp_in_memory", re.compile(r"\b(in[-_ ]memory|memory only|MVP)\b", re.I)),
     ("dev_hs256", re.compile(r"\bHS256\b.*\b(dev|secret|default)|\bdev secret\b", re.I)),
-    ("mock_runtime", re.compile(r"\b(mock|stub|fake)\b.*\b(runtime|production|adapter|model|executor)", re.I)),
+    (
+        "mock_runtime",
+        re.compile(r"\b(mock|stub|fake)\b.*\b(runtime|production|adapter|model|executor)", re.I),
+    ),
     ("prod_todo", re.compile(r"\bTODO\b.*\b(prod|production|runtime|security)", re.I)),
     ("unsafe_fallback", re.compile(r"\b(fallback)\b.*\b(fake|mock|stub|dev|in-memory)", re.I)),
 ]
+
 
 @dataclass
 class Finding:
@@ -93,7 +109,9 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", default=".")
     parser.add_argument("--format", choices=["text", "json"], default="text")
-    parser.add_argument("--strict", action="store_true", help="exit non-zero when findings are present")
+    parser.add_argument(
+        "--strict", action="store_true", help="exit non-zero when findings are present"
+    )
     args = parser.parse_args()
     root = Path(args.root).resolve()
     findings = audit(root)
@@ -105,8 +123,9 @@ def main() -> int:
         for f in findings[:100]:
             print(f"{f.path}:{f.line}: {f.code}: {f.text}")
         if len(findings) > 100:
-            print(f"... truncated {len(findings)-100} additional findings")
+            print(f"... truncated {len(findings) - 100} additional findings")
     return 1 if args.strict and findings else 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -4,6 +4,32 @@
 
 ---
 
+## 2026-07-09 — دمج أرشيف الحوكمة الكبير (prod_evidence_runtime_smoke) بدمج ثلاثيّ + مصالحة شاملة
+
+أكبر أرشيف في الجلسة: **166 ملفّاً جديداً / 88 مُعدَّلاً / برنامج متكامل من ~10 تقارير** (P0/P1/P2 تفكيك mains + جرد مسارات/تبعيّات + شهادة إنتاج + smoke + نظافة تقارير). الأساس المُعلَن `6bf6465` صحيح، لكنّ الأرشيف **لم يُشغِّل قطّ** حزم الاختبارات الكاملة (تقريره يعترف بـ«targeted tests» فقط) — فكان مليئاً بكسور لم يرَها.
+
+**آليّة الدمج (جديدة في الجلسة):** بدل النسخ الانتقائيّ اليدويّ، استيراد الأرشيف commit كاملاً على فرع `smoke-import` عند أساسه الحقيقيّ `6bf6465` ثمّ `git merge` في الفرع المخصّص — git عزل التعارضات الحقيقيّة آليّاً: **30 فقط** (29 Dockerfile + حارس المرآة؛ كلا الطرفين طبّق إصلاح PyPI+retries باستقلال) حُسِمت كلّها «لنا» (المُتحقَّق نجاحه حيّاً).
+
+**المقبول:** تفكيك ٧ خدمات (`weather_runtime`/`mfa_runtime`/`vegetation_runtime`/`actuator_runtime`/`erp_runtime`/`sam2_runtime`/`ai_evidence_runtime`) · راوتران منصّة جديدان (`internal_service`/`platform_health`؛ baseline 590→592 + 5 route_keys في extraction_map) · weather-service **runtime حقيقيّ** (Open-Meteo مباشر + قاطع دائرة + كاش Redis اختياريّ + بوّابة عقد TestClient بلا شبكة) · طبقة certification/evidence (`certification/evidence/*` + evidence pack guard) · بروفايل smoke (`scripts/ci/runtime_real_smoke.sh`) · تصنيف بقايا المسارات + جرد mounts + سياسة versioning · نظافة تقارير (REPORT_INDEX + no-report-only-change) · ~30 بوّابة و~20 workflow جديدة · تصلّب compose (`SAHOOL_AGENT_TOKEN:?required`، رايات edge بآمن افتراضيّ partial/false).
+
+**المرفوض بالدليل:**
+1. **نقل compose إلى `legacy/`** — بوّابة الأرشيف الجديدة (`compose_reference_guard`) تحرّم وجود fixed/unified بالجذر بينما ~10 حُرّاس قائمة (لم يلمسها الأرشيف!) تؤكّد وجودها بالجذر (`assert path.exists()` في `test_compose_env_bypass_guard` مثلاً) — تناقض داخليّ يقطع بأنّ suite الأرشيف الكاملة لم تُشغَّل. أُبقيت الملفّات بالجذر وأُسقِطت البوّابة+workflow.
+2. **برنامج التثبيت الصارم (== في 22 requirements)** — يناقض اتّفاقيّة CLAUDE.md الموثَّقة نصّاً فوق `httpx>=0.27.0` (التثبيت الصارم يتصادم في الحلّ المُوحَّد) ويحوي أسطراً **مكسورة نحويّاً** (`pyotp==2.9.0# TOTP` بلا مسافة قبل # — تحقّقتُ: pip يرفضها بـInvalid requirement ⇒ كلّ بناءات الخدمات المتأثّرة كانت ستفشل). أُرجعت الـ22 ملفّاً لنسختنا (استُبقيت إضافة واحدة: `redis==5.2.1` لكاش weather — pip-audit نظيف) وأُسقِطت `dependency_pin_guard`/`dependency_inventory_guard`/`test_requirements_inventory_guard` + workflows + الاختبار المرتبط (المرجعيّة القائمة: SEC-6).
+3. **workflow الإغلاق بنسخة الأرشيف** — يفتقد إصلاح jwt/pip-install المُتحقَّق؛ رُكِّب المُوحَّد (أمرنا الواسع + تبعيّات weather الجديدة) وحُدِّث حارس P0-5 ليطابقه.
+
+**عيوب حقيقيّة في الأرشيف نفسه أُصلِحت:**
+- بوّابة عقد weather تتوقّع `@app.get(` بينما main-ه المُفكَّك سجّل النداءات call-style (`app.get(path)(rt.handler)`) — البوّابة أقدم من تفكيكه ولم تُعَد تشغيلها. وُسِّعت للملفّين + call-style.
+- monkeypatch في نفس البوّابة كان بلا `sys.modules["main"]` الذي يعتمده `_facade_attr` — أُضيف.
+- **Dockerfiles لم تُحدَّث للتفكيك:** `mfa_runtime.py` (auth) و`vegetation_runtime.py` (vegetation) غير منسوخين — الحاويتان كانتا ستتعطّلان عند الإقلاع **حتى في شجرة الأرشيف** (Dockerfiles الأرشيف مطابقة!). حارسنا `test_decomposed_service_dockerfile_guard` التقطها؛ أُضيف سطرا COPY بتعليق الدرس.
+- درس pytest المزدوج (المُوثَّق بجلستنا) مُكرَّر في `runtime_real_smoke.sh` (`pytest` مجرّد بلا httpx) — أُصلح بـ`"$PYTHON_BIN" -m pytest`.
+- 5 متغيّرات compose جديدة غير مُعلَنة في `.env.example` — بوّابة `compose_env_contract_gate` (blocking في ci.yml) كانت ستفشل. أُعلِنت.
+
+**مصالحة 45 اختباراً قائماً كسرها التفكيك** (نُفِّذت عبر subagent بقواعد صارمة: لا إضعاف أيّ تأكيد — فقط توسيع نطاق المسح إلى main+الشقيقة أو تتبّع السمة المنقولة): 15 ملفّ اختبار + `scripts/tenant_query_audit.py` (مفتاح allowlist جديد بنفس التبرير). صفر انحدارات سلوكيّة حقيقيّة. + توسيع 6 حُرّاس منصّة (weather الأربعة + readyz + metrics) + سطر «Field Intelligence Backbone» في مولّد SERVICE_REGISTRY (حارس V50). + noqa F401 لإعادة تصديرات نمط `main.X` في mains المُفكَّكة (noqa السطر الأوّل لا يغطّي القائمة المُقوَّسة) + إزالة F811 مزدوج حقيقيّ في vegetation main.
+
+**التحقّق الكامل:** tests_v9 unit **2846 نجاح / 5 تخطٍّ (0 فشل)** · منصّة **3579** · بروفايل smoke كاملاً `runtime_real_smoke_ok` · **45/47** بوّابة scripts/ci (الاستثناء الوحيد الفعليّ: `gen_route_auth_matrix.py` مولّد يدويّ قديم خارج CI، فشله سابق للدمج) · ruff format+check نظيف على النطاق الكامل + scripts/ · 27 workflow YAML صالحة · compose config صالح · pip-audit نظيف على weather requirements · release مُعاد بناؤه (**3766** checksum، +148 ملفّاً).
+
+---
+
 ## 2026-07-09 — مزامنة main + إصلاح فشل بناء ai_agronomist + إصلاح حارسَين فاشلَين على main
 
 **المُشغِّل:** المستخدم لصق سجلّ فشل `docker compose up` حقيقيّاً (٣٩ صورة، بناء متوازٍ) — الفشل الحاسم:

@@ -21,6 +21,7 @@ def _main():
 
     return main
 
+
 # ══════════════════════════════════════════════════════════════
 # V29.5 — MFA production hardening: encryption-at-rest + recovery + DB lockout + audit.
 # Pure crypto/lockout/recovery decisions live in ``mfa_crypto``; these helpers wire them
@@ -171,7 +172,9 @@ async def _mfa_reset_and_maybe_migrate(user_id: int, secret: str | None, *, migr
         try:
             enc = mfa_crypto.encrypt_secret(secret)
         except Exception as exc:  # noqa: BLE001 — الترحيل أفضل-جهد لا يمنع الدخول
-            _main().logger.warning("mfa plaintext→encrypted migrate skipped: %s", type(exc).__name__)
+            _main().logger.warning(
+                "mfa plaintext→encrypted migrate skipped: %s", type(exc).__name__
+            )
             enc = None
     if not _main()._pool:
         return
@@ -350,5 +353,3 @@ async def _verify_caller_mfa(
         ip=ip,
     )
     return True
-
-

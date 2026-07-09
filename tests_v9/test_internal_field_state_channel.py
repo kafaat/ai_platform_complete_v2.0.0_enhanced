@@ -66,18 +66,21 @@ def test_internal_state_route_registered(app_mod):
 
 
 def test_require_service_token_fail_closed(app_mod, monkeypatch):
+    # P1 decomposition: النقطة الداخليّة وحارسها انتقلا إلى api/routers/internal_service.py
+    # (الحارس نفسه في api/service_token_auth.py) — نفحصه حيث تستهلكه النقطة.
+    from api.routers.internal_service import _require_service_token
     from fastapi import HTTPException
 
     monkeypatch.delenv("SAHOOL_AGENT_TOKEN", raising=False)
     with pytest.raises(HTTPException) as e1:  # سرّ غير مضبوط ⇒ يُرفض دائماً
-        app_mod._require_service_token("anything")
+        _require_service_token("anything")
     assert e1.value.status_code == 403
 
     monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "s3cr3t-token-value")
     with pytest.raises(HTTPException) as e2:  # سرّ مختلف ⇒ يُرفض
-        app_mod._require_service_token("wrong")
+        _require_service_token("wrong")
     assert e2.value.status_code == 403
-    assert app_mod._require_service_token("s3cr3t-token-value") is None  # مطابق ⇒ يمرّ
+    assert _require_service_token("s3cr3t-token-value") is None  # مطابق ⇒ يمرّ
 
 
 # ── supervisor: اختبار سلوكيّ لـ_fetch_field_state بعميل مُزيّف ──

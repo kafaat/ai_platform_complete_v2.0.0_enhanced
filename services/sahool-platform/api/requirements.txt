@@ -12,7 +12,7 @@ python-multipart==0.0.31   # for form data؛ مثبّت ≥0.0.31: يُغلق Do
 # Open-Meteo integration
 # مسار حرِج: >= لا == (اتّفاقيّة CLAUDE.md). التثبيت الصارم ==0.27.0 كان يتصادم في
 # الحلّ المُوحَّد مع بقيّة الخدمات (httpx>=0.27.0 ⇒ 0.28.1) ومع anthropic (httpx<1,>=0.25).
-httpx==0.27.0
+httpx>=0.27.0
 
 # FIX (إقلاع الحاوية): api/main.py يستورد trial_engine→numpy؛ وzones_kmeans/
 # core.spatial يستوردان numpy/scipy. غيابها ⇒ ModuleNotFoundError وتعطّل المنصّة.
@@ -22,6 +22,6 @@ PyYAML==6.0.2  # FIX: core/crop_cards/loader.py + core/learning/calibration_loop
 nats-py==2.10.0  # OutboxWorker → NATS (relay الأحداث الموثوق)
 redis==5.3.1  # denylist (إبطال JWT) — مشترك مع خدمة auth (sahool:jti:revoked)
 pyotp==2.9.0  # TOTP (RFC 6238) — تحقّق MFA لمنح break-glass (نفس آليّة خدمة auth، قاعدة users مشتركة)
-anthropic==0.69.0# مساعد NL→SQL (api/routers/nl_sql.py) — استدعاء Claude خادميّاً، المفتاح لا يصل المتصفّح
+anthropic>=0.69,<1.0  # مساعد NL→SQL (api/routers/nl_sql.py) — استدعاء Claude خادميّاً، المفتاح لا يصل المتصفّح
 pyshp==2.3.1  # تصدير الوصفة لـShapefile (api/prescription_shapefile.py) — نقيّ-Python، بلا GDAL
-asyncpg==0.30.0# بركة اتصالات PostgreSQL غير متزامنة (api/main.py → create_pool)
+asyncpg>=0.30.0,<0.32.0  # بركة اتصالات PostgreSQL غير متزامنة (api/main.py → create_pool)

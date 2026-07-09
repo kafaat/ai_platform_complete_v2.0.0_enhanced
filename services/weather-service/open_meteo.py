@@ -44,7 +44,6 @@ def _record_failure(exc: Exception) -> None:
         _BREAKER_OPEN_UNTIL = time.monotonic() + BREAKER_RESET_S
 
 
-
 def _as_list(payload: dict[str, Any], section: str, key: str) -> list[Any]:
     value = (payload.get(section) or {}).get(key)
     return value if isinstance(value, list) else []

@@ -98,5 +98,8 @@ def test_envelope_has_no_forbidden_decision_keys():
 
 
 def test_main_wires_advisory_envelope():
-    txt = (ROOT / "services/ai_agronomist/main.py").read_text(encoding="utf-8")
+    # P1 decomposition: منطق الاستجابة انتقل إلى ai_evidence_runtime.py — نفحص الملفّين.
+    txt = (ROOT / "services/ai_agronomist/main.py").read_text(encoding="utf-8") + (
+        ROOT / "services/ai_agronomist/ai_evidence_runtime.py"
+    ).read_text(encoding="utf-8")
     assert 'response["advisory"] = advisory_contract.build_advisory_envelope(response)' in txt

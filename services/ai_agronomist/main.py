@@ -8,24 +8,28 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from shared.security.gateway_deps import require_authenticated_user, require_trusted_tenant
+
 from . import ai_generation, approval
 from .agent_stores import build_approval_store, build_audit_store
 from .ai_evidence_runtime import (
-    _ai_context_memory_lines,
-    _build_agent_tool_fetcher,
-    _confidence_from_payloads,
-    _evidence_sources,
-    _extract_ai_context_pack,
-    _extract_evidence_ids,
-    _fetch_canonical_field_state,
-    _field_memory_evidence_ids,
-    _generation_allowed,
-    _grounding_context_text,
-    _record_ai_advice_event,
-    _source_count,
+    _ai_context_memory_lines,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _build_agent_tool_fetcher,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _confidence_from_payloads,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _evidence_sources,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _extract_ai_context_pack,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _extract_evidence_ids,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _fetch_canonical_field_state,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _field_memory_evidence_ids,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _generation_allowed,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _grounding_context_text,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _record_ai_advice_event,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
+    _source_count,  # noqa: F401 — إعادة تصدير (نمط main.X للراوترات/الحُرّاس)
     _utc_timestamp,
+)
+from .ai_evidence_runtime import (
     build_evidence_response as _build_evidence_response_runtime,
 )
+
 VERSION = "2026.2-e2e-runtime"
 RAG_BASE_URL = os.getenv("RAG_BASE_URL", "http://sahool-rag-retrieval:8000")
 KNOWLEDGE_GRAPH_URL = os.getenv("KNOWLEDGE_GRAPH_URL", "http://sahool-knowledge-graph:8000")
@@ -333,8 +337,6 @@ async def readyz() -> dict[str, Any]:
             },
         )
     return {"status": "ready", "service": "ai-agronomist", "dependencies": deps}
-
-
 
 
 async def _build_evidence_response(

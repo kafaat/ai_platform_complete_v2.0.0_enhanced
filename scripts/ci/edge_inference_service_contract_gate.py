@@ -9,6 +9,7 @@ make edge appear healthy while being unreachable or incapable of real inference:
 - all internal URLs must target port 8100, not 8000
 - model path resolution must support MODEL_CACHE default paths
 """
+
 from __future__ import annotations
 
 import ast
@@ -30,8 +31,8 @@ def check_edge_app_import_contract() -> None:
     main = _read(EDGE / "main.py")
     assert 'AGENT_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")' in main
     assert 'raise HTTPException(503, "SAHOOL_AGENT_TOKEN' in main
-    assert 'PEST_MODEL_PATH' in main and 'pest_detector_int8.onnx' in main
-    assert 'YIELD_MODEL_PATH' in main and 'yield_estimator_int8.onnx' in main
+    assert "PEST_MODEL_PATH" in main and "pest_detector_int8.onnx" in main
+    assert "YIELD_MODEL_PATH" in main and "yield_estimator_int8.onnx" in main
     assert '@app.get("/capabilities")' in main
     assert '"status": status' in main and '"degraded"' in main
     ast.parse(main)

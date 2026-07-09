@@ -17,6 +17,10 @@ COPY services/vegetation-analysis-service/main.py /app/main.py
 # ModuleNotFoundError: 'router_registry' عند الإقلاع ⇒ تعطّل الخدمة. نسخها إلزاميّ.
 COPY services/vegetation-analysis-service/router_registry.py /app/router_registry.py
 COPY services/vegetation-analysis-service/routers/ /app/routers/
+# vegetation_runtime.py وحدة شقيقة (P1 decomposition) يستوردها main.py:
+# `from vegetation_runtime import …` (main.py:70). غير منسوخة ⇒ ModuleNotFoundError
+# عند الإقلاع ⇒ تعطّل الخدمة. نسخها إلزاميّ (نفس درس router_registry).
+COPY services/vegetation-analysis-service/vegetation_runtime.py /app/vegetation_runtime.py
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1

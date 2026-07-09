@@ -13,6 +13,7 @@
 السلوك الآمن: إن لم توجد بيئة حية، يطبع SKIPPED ويخرج 0 حتى لا يكسر CI offline.
 لإجبار الفشل عند غياب البيئة: REQUIRE_LIVE_E2E=1.
 """
+
 from __future__ import annotations
 
 import os
@@ -26,9 +27,19 @@ from math import isfinite
 
 TIMEOUT = float(os.getenv("E2E_TIMEOUT", "15"))
 
-VALID_POLYGON = {"type":"Polygon","coordinates":[[[44.20,15.35],[44.21,15.35],[44.21,15.36],[44.20,15.36],[44.20,15.35]]]}
-EDITED_POLYGON = {"type":"Polygon","coordinates":[[[44.20,15.35],[44.215,15.35],[44.215,15.365],[44.20,15.365],[44.20,15.35]]]}
-INVALID_POLYGON = {"type":"Polygon","coordinates":[[[44.20,15.35],[44.21,15.36]]]}
+VALID_POLYGON = {
+    "type": "Polygon",
+    "coordinates": [
+        [[44.20, 15.35], [44.21, 15.35], [44.21, 15.36], [44.20, 15.36], [44.20, 15.35]]
+    ],
+}
+EDITED_POLYGON = {
+    "type": "Polygon",
+    "coordinates": [
+        [[44.20, 15.35], [44.215, 15.35], [44.215, 15.365], [44.20, 15.365], [44.20, 15.35]]
+    ],
+}
+INVALID_POLYGON = {"type": "Polygon", "coordinates": [[[44.20, 15.35], [44.21, 15.36]]]}
 
 
 def ssl_context():
@@ -42,7 +53,7 @@ def ssl_context():
 
 def request(method: str, url: str, *, token: str | None = None, body: dict | None = None):
     data = dumps(body).encode("utf-8") if body is not None else None
-    headers = {"Accept":"application/json"}
+    headers = {"Accept": "application/json"}
     if data is not None:
         headers["Content-Type"] = "application/json"
     if token:
@@ -67,7 +78,11 @@ def request(method: str, url: str, *, token: str | None = None, body: dict | Non
 
 def reachable(base: str) -> bool:
     try:
-        urllib.request.urlopen(urllib.request.Request(base.rstrip("/") + "/", method="GET"), timeout=min(TIMEOUT, 5), context=ssl_context())  # noqa: S310
+        urllib.request.urlopen(
+            urllib.request.Request(base.rstrip("/") + "/", method="GET"),
+            timeout=min(TIMEOUT, 5),
+            context=ssl_context(),
+        )  # noqa: S310
     except urllib.error.HTTPError:
         return True
     except Exception:
@@ -77,7 +92,7 @@ def reachable(base: str) -> bool:
 
 def area_degrees2(poly: dict) -> float:
     """Shoelace تقريبي فقط للمقارنة النسبية داخل E2E؛ ليس بديلاً عن PostGIS/Turf."""
-    ring = (((poly or {}).get("coordinates") or [[]])[0])
+    ring = ((poly or {}).get("coordinates") or [[]])[0]
     if len(ring) < 4:
         return 0.0
     acc = 0.0
@@ -108,53 +123,95 @@ def main() -> int:
         return 1 if os.getenv("REQUIRE_LIVE_E2E") == "1" else 0
 
     ok = True
-    status, payload = request("POST", auth_base + os.getenv("REGISTER_PATH", "/auth/register"), body={"email": email, "password": password, "full_name":"Live Full E2E"})
+    status, payload = request(
+        "POST",
+        auth_base + os.getenv("REGISTER_PATH", "/auth/register"),
+        body={"email": email, "password": password, "full_name": "Live Full E2E"},
+    )
     token = payload.get("access_token") if isinstance(payload, dict) else None
     if status not in (200, 201) or not token:
-        fail_step("auth.register", f"status={status} body={payload}"); return 1
+        fail_step("auth.register", f"status={status} body={payload}")
+        return 1
     pass_step("auth.register", email)
 
-    status, payload = request("POST", auth_base + os.getenv("LOGIN_PATH", "/auth/login"), body={"email": email, "password": password})
+    status, payload = request(
+        "POST",
+        auth_base + os.getenv("LOGIN_PATH", "/auth/login"),
+        body={"email": email, "password": password},
+    )
     token = payload.get("access_token") or token
     if status != 200 or not token:
-        fail_step("auth.login", f"status={status} body={payload}"); return 1
+        fail_step("auth.login", f"status={status} body={payload}")
+        return 1
     pass_step("auth.login")
 
-    status, payload = request("POST", api_base + fields_path, token=token, body={"name": f"Timeline Full {int(time.time())}", "crop":"wheat", "geometry": VALID_POLYGON})
+    status, payload = request(
+        "POST",
+        api_base + fields_path,
+        token=token,
+        body={
+            "name": f"Timeline Full {int(time.time())}",
+            "crop": "wheat",
+            "geometry": VALID_POLYGON,
+        },
+    )
     field_id = payload.get("field_id") or payload.get("id") if isinstance(payload, dict) else None
     if status not in (200, 201) or not field_id:
-        fail_step("field.create", f"status={status} body={payload}"); return 1
+        fail_step("field.create", f"status={status} body={payload}")
+        return 1
     pass_step("field.create", f"id={field_id}")
 
-    status, payload = request("PATCH", f"{api_base}{fields_path}/{field_id}", token=token, body={"geometry": EDITED_POLYGON})
+    status, payload = request(
+        "PATCH",
+        f"{api_base}{fields_path}/{field_id}",
+        token=token,
+        body={"geometry": EDITED_POLYGON},
+    )
     if status != 200:
-        fail_step("field.patch_geometry", f"status={status} body={payload}"); ok = False
+        fail_step("field.patch_geometry", f"status={status} body={payload}")
+        ok = False
     else:
         pass_step("field.patch_geometry")
 
-    status, payload = request("GET", f"{api_base}{fields_path}/{field_id}/geometry/history", token=token)
+    status, payload = request(
+        "GET", f"{api_base}{fields_path}/{field_id}/geometry/history", token=token
+    )
     revisions = payload.get("revisions", []) if isinstance(payload, dict) else []
     if status != 200 or len(revisions) < 2:
-        fail_step("timeline.history", f"status={status} revisions={len(revisions)} body={payload}"); ok = False
+        fail_step("timeline.history", f"status={status} revisions={len(revisions)} body={payload}")
+        ok = False
     else:
         pass_step("timeline.history", f"revisions={len(revisions)}")
         newest = revisions[0].get("geometry") if isinstance(revisions[0], dict) else None
         oldest = revisions[-1].get("geometry") if isinstance(revisions[-1], dict) else None
         delta = area_degrees2(newest) - area_degrees2(oldest)
         if not isfinite(delta):
-            fail_step("comparison.area_delta", "non-finite delta"); ok = False
+            fail_step("comparison.area_delta", "non-finite delta")
+            ok = False
         else:
             pass_step("comparison.area_delta", f"delta_degrees2={delta:.10f}")
 
-    status, payload = request("PATCH", f"{api_base}{fields_path}/{field_id}", token=token, body={"name":"stale", "base_version": 1})
+    status, payload = request(
+        "PATCH",
+        f"{api_base}{fields_path}/{field_id}",
+        token=token,
+        body={"name": "stale", "base_version": 1},
+    )
     if status != 409:
-        fail_step("conflict.stale_base_version", f"expected 409 got {status} body={payload}"); ok = False
+        fail_step("conflict.stale_base_version", f"expected 409 got {status} body={payload}")
+        ok = False
     else:
         pass_step("conflict.stale_base_version")
 
-    status, payload = request("POST", api_base + fields_path, token=token, body={"name":"invalid geometry", "geometry": INVALID_POLYGON})
+    status, payload = request(
+        "POST",
+        api_base + fields_path,
+        token=token,
+        body={"name": "invalid geometry", "geometry": INVALID_POLYGON},
+    )
     if status != 422:
-        fail_step("geometry.reject_invalid", f"expected 422 got {status} body={payload}"); ok = False
+        fail_step("geometry.reject_invalid", f"expected 422 got {status} body={payload}")
+        ok = False
     else:
         pass_step("geometry.reject_invalid")
 

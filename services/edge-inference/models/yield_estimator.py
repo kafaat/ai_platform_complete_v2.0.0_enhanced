@@ -36,10 +36,12 @@ def _ml_yield_model_path(fallback_path: str | None = None) -> str | None:
     candidates = [os.getenv(YIELD_MODEL_ENV, ""), fallback_path or ""]
     if fallback_path:
         base = os.path.dirname(fallback_path)
-        candidates.extend([
-            os.path.join(base, "yield_estimator_int8.onnx"),
-            os.path.join(base, "yield_estimator_quantized.onnx"),
-        ])
+        candidates.extend(
+            [
+                os.path.join(base, "yield_estimator_int8.onnx"),
+                os.path.join(base, "yield_estimator_quantized.onnx"),
+            ]
+        )
     for p in candidates:
         if p and os.path.exists(p):
             return p

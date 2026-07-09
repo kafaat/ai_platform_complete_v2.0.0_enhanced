@@ -5,6 +5,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 FRONTEND = ROOT / "frontend" / "src"
 WEATHER_MAIN = ROOT / "services" / "weather-service" / "main.py"
+WEATHER_RUNTIME = (
+    ROOT / "services" / "weather-service" / "weather_runtime.py"
+)  # P2 shell: المنطق هنا
 WEATHER_CLIENT = ROOT / "services" / "sahool-platform" / "api" / "weather_service_client.py"
 WEATHER_ROUTER = ROOT / "services" / "sahool-platform" / "api" / "routers" / "weather.py"
 DECISION_MAIN = ROOT / "services" / "decision-service" / "main.py"
@@ -18,15 +21,15 @@ def _read(path: Path) -> str:
 
 def test_weather_service_is_runtime_not_documented_as_501_stub() -> None:
     """Weather-service must not regress to the old stub+platform-fallback narrative."""
-    main = _read(WEATHER_MAIN)
+    main = _read(WEATHER_MAIN) + _read(WEATHER_RUNTIME)
     assert '"implemented_runtime": True' in main
     for route in (
-        '@app.get("/v1/weather/current")',
-        '@app.get("/v1/weather/forecast")',
-        '@app.get("/v1/weather/historical")',
-        '@app.get("/v1/weather/operation-window")',
-        '@app.get("/v1/weather/tile-data/{z}/{x}/{y}")',
-        '@app.get("/v1/weather/wind-grid/{z}/{x}/{y}")',
+        'app.get("/v1/weather/current")',
+        'app.get("/v1/weather/forecast")',
+        'app.get("/v1/weather/historical")',
+        'app.get("/v1/weather/operation-window")',
+        'app.get("/v1/weather/tile-data/{z}/{x}/{y}")',
+        'app.get("/v1/weather/wind-grid/{z}/{x}/{y}")',
     ):
         assert route in main, route
 

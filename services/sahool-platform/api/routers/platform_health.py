@@ -3,6 +3,7 @@
 Behavior-preserving P1 decomposition: routes keep the same paths and response
 contracts, while main.py keeps only bootstrap/shared state.
 """
+
 from __future__ import annotations
 
 import logging

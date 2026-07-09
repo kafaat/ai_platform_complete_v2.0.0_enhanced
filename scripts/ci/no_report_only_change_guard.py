@@ -9,6 +9,7 @@ changes, but blocks changes that are exclusively generated reports/csv/json unde
 release-report patterns unless a code, test, guard, inventory, workflow, or runbook
 change accompanies them.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,11 +18,21 @@ from pathlib import Path
 
 REPORT_SUFFIXES = (".md", ".csv", ".json")
 REPORT_NAME_HINTS = (
-    "REPORT", "INVENTORY", "CHECKLIST", "SUMMARY", "MATRIX", "REGISTRY",
+    "REPORT",
+    "INVENTORY",
+    "CHECKLIST",
+    "SUMMARY",
+    "MATRIX",
+    "REGISTRY",
 )
 SUBSTANTIVE_PREFIXES = (
-    "services/", "bots/", "scripts/ci/", "tests_v9/", ".github/workflows/",
-    "docs/runbooks/", "certification/evidence/",
+    "services/",
+    "bots/",
+    "scripts/ci/",
+    "tests_v9/",
+    ".github/workflows/",
+    "docs/runbooks/",
+    "certification/evidence/",
 )
 SUBSTANTIVE_EXACT = {"requirements.services.direct.lock", "REPORT_INDEX.md"}
 

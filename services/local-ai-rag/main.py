@@ -507,9 +507,18 @@ async def readyz():
     if _llm is None or _vectorstore is None:
         raise HTTPException(
             status_code=503,
-            detail={"status": "initialising", "service": "local-ai-rag", "message": "النماذج قيد التحميل"},
+            detail={
+                "status": "initialising",
+                "service": "local-ai-rag",
+                "message": "النماذج قيد التحميل",
+            },
         )
-    return {"status": "ready", "service": "local-ai-rag", "version": "9.1.0", "implemented_runtime": True}
+    return {
+        "status": "ready",
+        "service": "local-ai-rag",
+        "version": "9.1.0",
+        "implemented_runtime": True,
+    }
 
 
 if __name__ == "__main__":

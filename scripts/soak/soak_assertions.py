@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Evaluate Sahool soak-test summary metrics against certification thresholds."""
+
 from __future__ import annotations
 
 import argparse
@@ -21,7 +22,10 @@ def evaluate(metrics: dict) -> tuple[bool, list[str]]:
     failures: list[str] = []
     if float(metrics.get("http_5xx_rate", 0)) > THRESHOLDS["max_5xx_rate"]:
         failures.append("http_5xx_rate exceeded")
-    if int(metrics.get("outbox_backlog_age_seconds", 0)) > THRESHOLDS["max_outbox_backlog_age_seconds"]:
+    if (
+        int(metrics.get("outbox_backlog_age_seconds", 0))
+        > THRESHOLDS["max_outbox_backlog_age_seconds"]
+    ):
         failures.append("outbox backlog age exceeded")
     if int(metrics.get("dead_letters", 0)) > THRESHOLDS["max_dead_letters"]:
         failures.append("dead letters detected")
@@ -42,8 +46,13 @@ def main() -> int:
     args = p.parse_args()
     metrics = json.loads(Path(args.metrics_json).read_text(encoding="utf-8"))
     ok, failures = evaluate(metrics)
-    print(json.dumps({"passed": ok, "failures": failures, "thresholds": THRESHOLDS}, indent=2, sort_keys=True))
+    print(
+        json.dumps(
+            {"passed": ok, "failures": failures, "thresholds": THRESHOLDS}, indent=2, sort_keys=True
+        )
+    )
     return 0 if ok else 1
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
