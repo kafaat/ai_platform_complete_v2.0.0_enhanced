@@ -121,7 +121,7 @@ start_backend() {
         "http://localhost:5432 PostgreSQL"       # سيُتحقق عبر healthcheck
         "http://localhost:8091/health indicators-service"
         "http://localhost:8090/health vegetation-service"
-        "http://localhost:8092/health weather-service"
+        "http://localhost:8092/healthz weather-service"
         "http://localhost:8094/health soil-service"
         "http://localhost:8000/health kong-gateway"
     )
@@ -205,7 +205,7 @@ show_status() {
     local services=(
         "8091:/health:indicators-service (33 مؤشر)"
         "8090:/health:vegetation-service (Sentinel-2)"
-        "8092:/health:weather-service (WOFOST)"
+        "8092:/healthz:weather-service"
         "8094:/health:soil-service (FAO)"
         "8000:/:kong-gateway"
         "8222:/healthz:nats-jetstream"

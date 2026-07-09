@@ -1,10 +1,10 @@
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
-asyncpg>=0.30.0,<0.32.0
-prometheus-client>=0.19.0
-scikit-learn>=1.4.0
-numpy>=1.26.0
-opentelemetry-instrumentation-fastapi>=0.44b0
+asyncpg==0.30.0
+prometheus-client==0.20.0
+scikit-learn==1.4.0
+numpy==2.3.5
+opentelemetry-instrumentation-fastapi==0.44b0
 pydantic==2.13.4
 # تبعيّة ثقيلة اختياريّة (PCSE/WOFOST) — ليست تبعيّة صلبة ولا تدخل طبقة الوحدات/pip-audit.
 # wofost_adapter.py يحيطها بحارس استيراد ويلجأ لبديل حتميّ عند غيابها. للتفعيل:

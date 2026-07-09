@@ -1,0 +1,202 @@
+[
+  {
+    "file": "services/agriai-engine/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 50,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/agriai-engine/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 60,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/ai_agronomist/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 109,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/ai_agronomist/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 319,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/decision-service/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 150,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/decision-service/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 155,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/edge-inference/main.py",
+    "function": "health_check",
+    "path": "/healthz",
+    "line": 159,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/edge-inference/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 354,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/field-segmentation/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 370,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/field-segmentation/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 380,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/indicators-service/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 27,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/indicators-service/main.py",
+    "function": "ready",
+    "path": "/readyz",
+    "line": 37,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/knowledge-graph/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 87,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/knowledge-graph/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 109,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/local-ai-rag/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 482,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/local-ai-rag/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 505,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/rag-retrieval/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 55,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/rag-retrieval/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 73,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/sam2-inference/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 106,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/sam2-inference/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 116,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  }
+]

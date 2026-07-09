@@ -1,0 +1,326 @@
+{
+  "schema_version": 1,
+  "policy": "Existing business endpoints in main.py are frozen residual compatibility surface. New entries require review.",
+  "business_endpoints": [
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 196,
+      "method": "POST",
+      "path": "/recommend",
+      "function": "recommend"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 242,
+      "method": "POST",
+      "path": "/simulate",
+      "function": "simulate"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 251,
+      "method": "POST",
+      "path": "/plan",
+      "function": "plan"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 261,
+      "method": "POST",
+      "path": "/replay/verify",
+      "function": "replay_verify"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 114,
+      "method": "GET",
+      "path": "/healthz/ai-provider",
+      "function": "ai_provider_snapshot"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 122,
+      "method": "GET",
+      "path": "/approvals/pending",
+      "function": "list_pending_approvals"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 142,
+      "method": "POST",
+      "path": "/approvals/approve",
+      "function": "approve_tool_request"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 194,
+      "method": "POST",
+      "path": "/approvals/deny",
+      "function": "deny_tool_request"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 240,
+      "method": "POST",
+      "path": "/approvals/resume",
+      "function": "resume_approved_tool"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 284,
+      "method": "POST",
+      "path": "/prescription/export-preview",
+      "function": "prescription_export_preview"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 358,
+      "method": "POST",
+      "path": "/query",
+      "function": "query"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 369,
+      "method": "POST",
+      "path": "/chat",
+      "function": "chat"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 380,
+      "method": "POST",
+      "path": "/explain",
+      "function": "explain"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 391,
+      "method": "POST",
+      "path": "/recommend",
+      "function": "recommend"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 169,
+      "method": "GET",
+      "path": "/v1/cutover/readiness",
+      "function": "cutover_readiness"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 212,
+      "method": "POST",
+      "path": "/v1/decisions/record",
+      "function": "record_decision"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 238,
+      "method": "POST",
+      "path": "/v1/dispatch/decisions",
+      "function": "record_dispatch"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 264,
+      "method": "GET",
+      "path": "/v1/dispatch/decisions",
+      "function": "list_dispatch"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 278,
+      "method": "POST",
+      "path": "/v1/outcomes/record",
+      "function": "record_outcome"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 304,
+      "method": "POST",
+      "path": "/v1/recommendation-outcomes",
+      "function": "record_recommendation_outcome"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 329,
+      "method": "POST",
+      "path": "/v1/learning/updates",
+      "function": "record_learning_update"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 360,
+      "method": "GET",
+      "path": "/v1/learning/summary",
+      "function": "learning_summary"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 374,
+      "method": "GET",
+      "path": "/v1/decisions",
+      "function": "list_decisions"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 403,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/lineage",
+      "function": "field_lineage"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 419,
+      "method": "GET",
+      "path": "/v1/outcomes/reconciled",
+      "function": "reconciled_outcomes"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 439,
+      "method": "GET",
+      "path": "/v1/decisions/{decision_id}/lineage",
+      "function": "decision_lineage"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 189,
+      "method": "POST",
+      "path": "/inference/pest-detect",
+      "function": "detect_pest"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 251,
+      "method": "POST",
+      "path": "/inference/yield-estimate",
+      "function": "estimate_yield"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 317,
+      "method": "POST",
+      "path": "/sync/trigger",
+      "function": "trigger_sync"
+    },
+    {
+      "service": "field-segmentation",
+      "file": "services/field-segmentation/main.py",
+      "line": 386,
+      "method": "POST",
+      "path": "/segment",
+      "function": "segment"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 79,
+      "method": "POST",
+      "path": "/v1/indicators/compute",
+      "function": "compute_indicator"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 118,
+      "method": "POST",
+      "path": "/nodes",
+      "function": "upsert_node"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 126,
+      "method": "POST",
+      "path": "/edges",
+      "function": "upsert_edge"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 135,
+      "method": "GET",
+      "path": "/edges",
+      "function": "edges"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 149,
+      "method": "POST",
+      "path": "/graphql",
+      "function": "graphql"
+    },
+    {
+      "service": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "line": 420,
+      "method": "POST",
+      "path": "/query",
+      "function": "query_endpoint"
+    },
+    {
+      "service": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "line": 430,
+      "method": "POST",
+      "path": "/ingest",
+      "function": "ingest_endpoint"
+    },
+    {
+      "service": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "line": 90,
+      "method": "POST",
+      "path": "/ingest",
+      "function": "ingest"
+    },
+    {
+      "service": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "line": 115,
+      "method": "POST",
+      "path": "/search",
+      "function": "search"
+    },
+    {
+      "service": "sam2-inference",
+      "file": "services/sam2-inference/main.py",
+      "line": 25,
+      "method": "POST",
+      "path": "/predict",
+      "function": "predict"
+    }
+  ]
+}

@@ -367,15 +367,19 @@ def run_segmentation_model(
 
 # ─── المسارات ───────────────────────────────────────────────────────────
 @app.get("/healthz")
-@app.get("/health")
 async def healthz():
     return {"status": "alive", "service": "field-segmentation", "version": VERSION}
+
+
+@app.get("/health", include_in_schema=False)
+async def legacy_health():
+    return await healthz()
 
 
 @app.get("/readyz")
 async def readyz():
     # خدمة عديمة الحالة: جاهزة بمجرّد إقلاع العمليّة. (لا قاعدة/كاش يُفحَص.)
-    return {"status": "ready", "model_configured": _model_configured()}
+    return {"status": "ready", "service": "field-segmentation", "implemented_runtime": True, "model_configured": _model_configured()}
 
 
 @app.post("/segment")

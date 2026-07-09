@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 SAHOOL v9.0 — edge_inference/download_models.py
-FIX: تحميل نماذج ONNX تلقائياً عند الـ startup
+تحميل نماذج ONNX اختيارياً؛ عند الفشل تبقى الخدمة fail-closed ولا تستخدم محاكاة
 """
 
 import hashlib
@@ -22,13 +22,13 @@ REQUIRED_MODELS = {
         "url": f"{MODELS_BASE}/pest_detector_int8.onnx",
         "size_mb": 18,
         "sha256": "",  # set in production
-        "fallback": "simulation",
+        "fallback": "not_provisioned",
     },
     "yield_estimator_int8.onnx": {
         "url": f"{MODELS_BASE}/yield_estimator_int8.onnx",
         "size_mb": 12,
         "sha256": "",
-        "fallback": "regression",
+        "fallback": "not_provisioned",
     },
 }
 
@@ -76,7 +76,7 @@ def download_model(name: str, info: dict) -> bool:
             os.remove(dest)
             return False
     except Exception as e:
-        logger.warning(f"  ⚠️  Cannot download {name}: {e} — will use {info['fallback']} mode")
+        logger.warning(f"  ⚠️  Cannot download {name}: {e} — model remains {info['fallback']}")
         return False
 
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     results = download_all()
     missing = [n for n, ok in results.items() if not ok]
     if missing:
-        logger.warning(f"Missing models (simulation mode): {missing}")
+        logger.warning(f"Missing models (not provisioned; inference endpoints fail closed): {missing}")
     else:
         logger.info("All models ready!")
     sys.exit(0)

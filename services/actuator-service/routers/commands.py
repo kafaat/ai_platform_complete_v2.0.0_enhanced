@@ -1,6 +1,6 @@
 """routers/commands.py — أوامر التحكّم بالأجهزة (Actuator commands)
 ======================================================================
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
+شريحة من تفكيك ``actuator_runtime.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
 نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المعاملات/
 الأجسام/المخرجات والتبعيّات الأمنيّة مطابقة بايت-ببايت. هذه الوحدة **حسّاسة أمنيّاً**:
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-import main
+import actuator_runtime as main
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from shared.actuation_killswitch import is_actuation_halted

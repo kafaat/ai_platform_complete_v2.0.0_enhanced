@@ -1,0 +1,29 @@
+name: Manual Transitive Lock Compile
+
+on:
+  workflow_dispatch:
+    inputs:
+      pypi_mirror_url:
+        description: 'Package index URL used for pip/pip-tools. Defaults to official PyPI; Alibaba mirror may be supplied explicitly.'
+        required: false
+        default: 'https://pypi.org/simple'
+      pip_trusted_host:
+        description: 'Trusted host for the configured package index.'
+        required: false
+        default: ''
+
+jobs:
+  compile-transitive-locks:
+    runs-on: ubuntu-latest
+    env:
+      PYPI_MIRROR_URL: ${{ inputs.pypi_mirror_url }}
+      PIP_TRUSTED_HOST: ${{ inputs.pip_trusted_host }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile transitive service locks through configured mirror
+        run: scripts/ci/compile_transitive_service_locks.sh
+      - name: Show generated lock diff
+        run: git diff -- services/**/requirements.lock || true

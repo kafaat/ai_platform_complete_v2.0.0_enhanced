@@ -1,6 +1,6 @@
 """routers/metrics.py — مقاييس إزالة التكرار (idempotency metrics)
 ======================================================================
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
+شريحة من تفكيك ``actuator_runtime.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
 نُقلت المُعالِجة حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسار/المخرجات مطابقة.
 قراءة فقط — لا أسرار. الرموز المشتركة تبقى في ``main`` وتُشار إليها عبر ``main.X``.
@@ -8,7 +8,7 @@
 
 from __future__ import annotations
 
-import main
+import actuator_runtime as main
 from fastapi import APIRouter
 
 router = APIRouter()

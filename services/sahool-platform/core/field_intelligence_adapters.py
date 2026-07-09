@@ -12,7 +12,6 @@ field_intelligence_adapters.py — محوّلات المصادر الحيّة (H
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime
 
 from api.raster_service_client import (
     get_field_terrain_sync,
@@ -33,12 +32,6 @@ HTTP_TIMEOUT = float(os.getenv("ADAPTER_TIMEOUT", "20.0"))
 # "false" يُحذَف guardrails_fn من build_live_adapters ⇒ تبقى الحَوكمة not_evaluated
 # ⇒ كلّ قرار استشاريّ فقط (executable=False) — رجوع آمن لسلوك ما قبل التفعيل بلا كود.
 LIVE_GUARDRAILS_ENABLED = os.getenv("ENABLE_LIVE_GUARDRAILS", "true").strip().lower() != "false"
-
-# Open-Meteo — توقّع مجّاني بلا مفتاح API (المصدر الافتراضي للتوقّع الجوّي).
-# يُحاوَل دائماً متى توفّرت lat/lon (بلا راية تفعيل — keyless). الانسحاب للنشر
-# المعزول: WEATHER_LIVE_DISABLED صادقة ⇒ None. أيّ فشل شبكيّ ⇒ None (صدق، لا اختراع).
-OPENMETEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
-
 
 def _is_truthy(val: str | None) -> bool:
     """هل قيمة بيئة تعني التفعيل؟ (1/true/yes/on — بلا حساسيّة لحالة الأحرف)."""
@@ -153,83 +146,63 @@ def _post_json(
 
 
 def weather_adapter(req) -> dict | None:
-    """يجلب الطقس الحيّ → {heat_risk, forecast_at}. None عند التعذّر."""
+    """يجلب الطقس الحيّ من weather-service → {heat_risk, forecast_at}.
+
+    weather-service هو مالك اتصال Open-Meteo والتطبيع. هذه الطبقة لا تضرب
+    Open-Meteo مباشرة ولا تُعيد حساب ET0؛ هي adapter orchestration فقط.
+    """
     if req.lat is None or req.lon is None:
         return None
-    data = _get_json(f"{WEATHER_URL}/api/v1/weather", {"lat": req.lat, "lon": req.lon})
+    data = _get_json(
+        f"{WEATHER_URL}/v1/weather/current",
+        {"lat": req.lat, "lon": req.lon, "model": "best_match"},
+        agent_token=AGENT_TOKEN,
+        tenant_id=getattr(req, "tenant_id", None),
+    )
     if not data:
         return None
-    # تطبيع لمخطّط المنسّق (heat_risk من مؤشّر الإجهاد الحراري)
+    temp = data.get("temperature_c")
+    heat_risk = None
+    if isinstance(temp, (int, float)):
+        heat_risk = max(0.0, min(1.0, (float(temp) - 30.0) / 15.0))
     return {
-        "heat_risk": data.get("heat_stress_index", data.get("heat_risk")),
-        "forecast_at": data.get("forecast_at"),
+        "source": data.get("source", "weather-service"),
+        "heat_risk": data.get("heat_stress_index", data.get("heat_risk", heat_risk)),
+        "forecast_at": data.get("timestamp") or data.get("time"),
+        "temperature_c": temp,
+        "humidity_pct": data.get("humidity_pct"),
+        "wind_speed_ms": data.get("wind_speed_ms"),
+        "precipitation_mm": data.get("precipitation_mm"),
     }
 
 
 def weather_forecast_adapter(req, *, authorization: str | None = None) -> dict | None:
-    """يجلب توقّع الطقس الحيّ (7 أيّام) من Open-Meteo → مخطّط مطبَّع. None عند التعذّر.
+    """يجلب توقع 7 أيام من weather-service. None عند التعذّر.
 
-    Open-Meteo مجّاني بلا مفتاح ⇒ هو المصدر الافتراضي: يُحاوَل النداء دائماً متى
-    توفّرت lat/lon (بلا راية تفعيل). الانسحاب (air-gapped): WEATHER_LIVE_DISABLED.
-    الصدق: عند أيّ فشل (منع الخروج/≠200/تفكيك/غياب httpx) → None — لا أرقام مخترَعة.
+    يمنع نمط Platform fallback القديم: لا يوجد اتصال مباشر بـOpen-Meteo هنا؛
+    الخدمة المختصة هي التي تملك provider/cache/ET0.
     """
     if _is_truthy(os.getenv("WEATHER_LIVE_DISABLED")):
-        return None  # انسحاب صريح للنشر المعزول
+        return None
     if req.lat is None or req.lon is None:
         return None
-    try:
-        import httpx
-    except ImportError:
-        return None  # بيئة بلا httpx — يُعلَن كمتعذّر
-    params = {
-        "latitude": req.lat,
-        "longitude": req.lon,
-        "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,"
-        "et0_fao_evapotranspiration,wind_speed_10m_max,weather_code",
-        "timezone": "auto",
-        "wind_speed_unit": "ms",
-        "forecast_days": 7,
-    }
-    try:
-        with httpx.Client(timeout=HTTP_TIMEOUT) as client:
-            resp = client.get(OPENMETEO_FORECAST_URL, params=params)
-            resp.raise_for_status()
-            data = resp.json()
-    except Exception:  # noqa: BLE001 — أيّ فشل → متعذّر (لا نُسقط الطلب)
+    data = _get_json(
+        f"{WEATHER_URL}/v1/weather/forecast",
+        {"lat": req.lat, "lon": req.lon, "days": 7, "model": "best_match"},
+        authorization=authorization,
+        agent_token=AGENT_TOKEN,
+        tenant_id=getattr(req, "tenant_id", None),
+    )
+    if not data:
         return None
-    daily = data.get("daily") if isinstance(data, dict) else None
-    if not isinstance(daily, dict):
-        return None
-    dates = daily.get("time")
-    if not isinstance(dates, list) or not dates:
-        return None
-
-    def _at(key: str, i: int):
-        lst = daily.get(key)
-        if not isinstance(lst, list) or i >= len(lst):
-            return None
-        return lst[i]
-
-    days = [
-        {
-            "date": date,
-            "temp_max_c": _at("temperature_2m_max", i),
-            "temp_min_c": _at("temperature_2m_min", i),
-            "precipitation_mm": _at("precipitation_sum", i),
-            "et0_mm": _at("et0_fao_evapotranspiration", i),
-            "wind_max_ms": _at("wind_speed_10m_max", i),
-            "weather_code": _at("weather_code", i),
-        }
-        for i, date in enumerate(dates)
-    ]
-    if not days:
+    daily = data.get("daily")
+    if not isinstance(daily, list) or not daily:
         return None
     return {
-        "source": "open-meteo",
-        "forecast_at": dates[0],
-        "fetched_at": datetime.now(UTC).isoformat(),
-        "elevation_m": data.get("elevation"),
-        "daily": days,
+        "source": data.get("source", "weather-service"),
+        "forecast_at": daily[0].get("date") or data.get("time"),
+        "elevation_m": data.get("elevation_m"),
+        "daily": daily,
     }
 
 

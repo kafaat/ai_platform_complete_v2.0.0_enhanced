@@ -1,0 +1,25 @@
+{
+  "service": "edge-inference",
+  "model_cache": "/models",
+  "readiness_modes": ["partial", "strict"],
+  "required_models": [
+    {
+      "capability": "pest_detect",
+      "env": "PEST_MODEL_PATH",
+      "default_path": "/models/pest_detector_int8.onnx",
+      "format": "onnx",
+      "packaged_in_repository": false,
+      "operator_must_provision": true,
+      "sha256_env": "PEST_MODEL_SHA256"
+    },
+    {
+      "capability": "yield_estimate",
+      "env": "YIELD_MODEL_PATH",
+      "default_path": "/models/yield_estimator_int8.onnx",
+      "format": "onnx",
+      "packaged_in_repository": false,
+      "operator_must_provision": true,
+      "sha256_env": "YIELD_MODEL_SHA256"
+    }
+  ]
+}

@@ -26,6 +26,12 @@ def _load_auth_main():
     """يُحمّل main.py الخاصّ بخدمة auth، ويتخطّى الاختبار إن غابت تبعيّاتها."""
     if _AUTH_DIR not in sys.path:
         sys.path.insert(0, _AUTH_DIR)
+    existing = sys.modules.get("main")
+    if existing is not None and not str(getattr(existing, "__file__", "")).startswith(_AUTH_DIR):
+        # Other service tests sometimes import their own top-level main.py first.
+        # Do not let that generic module-name collision make auth tests inspect
+        # weather/raster/etc. instead of services/auth/main.py.
+        sys.modules.pop("main", None)
     try:
         return importlib.import_module("main")
     except ImportError as e:  # تبعيّات الخدمة (fastapi…) غير مثبّتة في بيئة الوحدات

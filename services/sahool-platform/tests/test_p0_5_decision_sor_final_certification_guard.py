@@ -72,6 +72,7 @@ def test_field_workspace_ci_installs_backend_runtime_dependencies_before_runtime
         "pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt"
     )
     assert install_idx != -1, "backend runtime dependency install step missing before Python gates"
+    assert "services/weather-service/requirements.txt" in workflow
     assert install_idx < workflow.index("Field Workspace Python closure gate")
     assert install_idx < workflow.index("Field Workspace guard tests")
 

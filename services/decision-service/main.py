@@ -148,13 +148,17 @@ def _traceability(payload: LearningUpdateIn) -> str:
 
 @app.get("/healthz")
 def healthz() -> dict[str, Any]:
-    return {"ok": True, "service": "decision-service"}
+    return {"status": "alive", "ok": True, "service": "decision-service"}
 
 
 @app.get("/readyz")
 def readyz() -> dict[str, Any]:
+    ready = not sor_requested_without_db()
     return {
-        "ready": not sor_requested_without_db(),
+        "status": "ready" if ready else "degraded",
+        "ready": ready,
+        "service": "decision-service",
+        "implemented_runtime": True,
         "owned_tables": LOOP_TABLES,
         "sor_enabled": sor_enabled(),
         "mode": "system-of-record" if sor_enabled() else "interim-mirror",
@@ -175,6 +179,8 @@ def cutover_readiness() -> dict[str, Any]:
 def contract() -> dict[str, Any]:
     return {
         "service": "decision-service",
+        "contract_version": "2026-07-09.sor-strangler",
+        "implemented_runtime": True,
         "phase": "P0-SOR-strangler",
         "role": (
             "system-of-record when DECISION_SERVICE_SOR_ENABLED=true and DATABASE_URL is set; "

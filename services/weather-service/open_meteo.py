@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 import httpx
@@ -8,6 +9,40 @@ import httpx
 FORECAST_URL = os.getenv("OPEN_METEO_FORECAST_URL", "https://api.open-meteo.com/v1/forecast")
 ARCHIVE_URL = os.getenv("OPEN_METEO_ARCHIVE_URL", "https://archive-api.open-meteo.com/v1/archive")
 TIMEOUT_S = float(os.getenv("WEATHER_OPEN_METEO_TIMEOUT_S", "10"))
+BREAKER_FAILURE_THRESHOLD = int(os.getenv("WEATHER_OPEN_METEO_BREAKER_FAILURES", "3"))
+BREAKER_RESET_S = float(os.getenv("WEATHER_OPEN_METEO_BREAKER_RESET_S", "30"))
+_BREAKER_FAILURES = 0
+_BREAKER_OPEN_UNTIL = 0.0
+_LAST_ERROR: str | None = None
+
+
+def circuit_breaker_state() -> dict[str, Any]:
+    remaining = max(0.0, _BREAKER_OPEN_UNTIL - time.monotonic())
+    return {
+        "provider": "open-meteo",
+        "state": "open" if remaining > 0 else "closed",
+        "failure_count": _BREAKER_FAILURES,
+        "opens_after_failures": BREAKER_FAILURE_THRESHOLD,
+        "reset_after_s": int(BREAKER_RESET_S),
+        "open_remaining_s": round(remaining, 3),
+        "last_error": _LAST_ERROR,
+    }
+
+
+def _record_success() -> None:
+    global _BREAKER_FAILURES, _BREAKER_OPEN_UNTIL, _LAST_ERROR
+    _BREAKER_FAILURES = 0
+    _BREAKER_OPEN_UNTIL = 0.0
+    _LAST_ERROR = None
+
+
+def _record_failure(exc: Exception) -> None:
+    global _BREAKER_FAILURES, _BREAKER_OPEN_UNTIL, _LAST_ERROR
+    _BREAKER_FAILURES += 1
+    _LAST_ERROR = str(exc)
+    if _BREAKER_FAILURES >= BREAKER_FAILURE_THRESHOLD:
+        _BREAKER_OPEN_UNTIL = time.monotonic() + BREAKER_RESET_S
+
 
 
 def _as_list(payload: dict[str, Any], section: str, key: str) -> list[Any]:
@@ -23,10 +58,18 @@ def _at(values: list[Any], idx: int, default: Any = None) -> Any:
 
 
 async def _fetch_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
-    async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
-        response = await client.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+    if _BREAKER_OPEN_UNTIL > time.monotonic():
+        raise RuntimeError("Open-Meteo circuit breaker is open")
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT_S) as client:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            _record_success()
+            return data
+    except Exception as exc:  # noqa: BLE001
+        _record_failure(exc)
+        raise
 
 
 async def fetch_current(lat: float, lon: float, *, model: str = "best_match") -> dict[str, Any]:
@@ -311,3 +354,27 @@ def normalize_tile_sample(
     sample["model"] = model
     sample["time_key"] = time_key
     return sample
+
+
+async def readiness_probe(lat: float = 15.3694, lon: float = 44.1910) -> dict[str, Any]:
+    """Small upstream probe used by /readyz.
+
+    It intentionally reuses the real provider adapter so readiness reflects the same
+    path used by current/forecast/tile calls. Operators can keep the platform alive
+    with degraded status while the circuit breaker protects Open-Meteo from storms.
+    """
+    try:
+        data = await fetch_current(lat, lon, model="best_match")
+        return {
+            "ok": True,
+            "provider": "open-meteo",
+            "time": data.get("time"),
+            "circuit_breaker": circuit_breaker_state(),
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {
+            "ok": False,
+            "provider": "open-meteo",
+            "error": str(exc),
+            "circuit_breaker": circuit_breaker_state(),
+        }

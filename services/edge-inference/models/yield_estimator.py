@@ -26,14 +26,24 @@ YIELD_MODEL_ENV = "YIELD_MODEL_PATH"
 _ONNX_SESSION_CACHE: dict[str, object] = {}
 
 
-def _ml_yield_model_path() -> str | None:
-    """Return the configured yield model path iff it is set and the file exists.
+def _ml_yield_model_path(fallback_path: str | None = None) -> str | None:
+    """Return the configured yield ONNX path if present on disk.
 
-    Same condition as capabilities.ml_yield_active(): YIELD_MODEL_PATH present on disk.
-    Returns None when the capability is dormant (no model → rule-based fallback).
+    Resolution order is explicit env first, then the service-level fallback path
+    provided by main.py. This keeps the container usable with MODEL_CACHE only
+    while still allowing operators to pin an exact model via YIELD_MODEL_PATH.
     """
-    p = os.getenv(YIELD_MODEL_ENV, "")
-    return p if p and os.path.exists(p) else None
+    candidates = [os.getenv(YIELD_MODEL_ENV, ""), fallback_path or ""]
+    if fallback_path:
+        base = os.path.dirname(fallback_path)
+        candidates.extend([
+            os.path.join(base, "yield_estimator_int8.onnx"),
+            os.path.join(base, "yield_estimator_quantized.onnx"),
+        ])
+    for p in candidates:
+        if p and os.path.exists(p):
+            return p
+    return None
 
 
 def _load_onnx_session(model_path: str, device: str):
@@ -113,7 +123,7 @@ class EdgeYieldEstimator:
         else:
             self.session = None
             logger.info(
-                f"[EdgeYieldEstimator] Model not found: {self.model_path}. Using simulation mode."
+                f"[EdgeYieldEstimator] Model not found: {self.model_path}. Capability dormant."
             )
 
     def extract_features(self, image_bytes: bytes) -> dict[str, float]:
@@ -152,13 +162,13 @@ class EdgeYieldEstimator:
         Gated on capabilities.ml_yield_active(): when YIELD_MODEL_PATH points at an
         existing ONNX file AND onnxruntime is importable, run REAL model inference over
         the already-computed band-stat features and tag the result "source": "ml_onnx".
-        Otherwise fall back to the EXISTING rule-based heuristic, byte-for-byte unchanged.
+        Otherwise fail closed with ModelNotProvisioned; no synthetic yield is returned.
         """
         if not features:
             return {"yield_kg_ha": 0, "biomass_proxy": 0, "plant_count": 0}
 
         # ── Conditional REAL ONNX path (dormant unless a model file is provisioned) ──
-        model_path = _ml_yield_model_path()
+        model_path = _ml_yield_model_path(self.model_path)
         if model_path is not None:
             session = _load_onnx_session(model_path, self.device)
             if session is not None:

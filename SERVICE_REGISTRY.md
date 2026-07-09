@@ -1,93 +1,76 @@
-# SAHOOL Backend Service Registry v50
+# SAHOOL Backend Service Registry
 
-> Generated from source code.
-> Compatibility aliases: `odoo-bridge`, `sahool-odoo-bridge`, and `ODOO_BRIDGE_URL` remain supported during migration to `erp-bridge`. This registry is the service-boundary baseline for backend ownership, refactoring, CI gates, and future product design.
+> Generated automatically from source code by `scripts/ci/generate_service_inventory.py`.
+> Do not hand-edit counts; run the generator and commit the generated inventory files.
 
 ## Inventory summary
 
-- Services discovered: **26**
-- Python LOC discovered: **179,515**
-- Routes discovered: **770**
+- Services discovered: **28**
+- Python LOC discovered: **176,204**
+- Routes discovered: **872**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
 
 ## Service registry
 
-| Service | Domain | LOC | Routes | Main | Docker | Ports | Risk |
-|---|---:|---:|---:|---|---|---|---|
-| `actuator-service` | IoT Actuation | 1359 | 6 | `services/actuator-service/main.py` | yes | 8000 | `normal` |
-| `agriai-engine` | AI Advisor | 92 | 5 | `services/agriai-engine/main.py` | yes | 8000 | `normal` |
-| `ai_agronomist` | AI Advisor | 1581 | 7 | `services/ai_agronomist/main.py` | yes | 8000 | `normal` |
-| `auth` | Identity & Access | 2202 | 27 | `services/auth/main.py` | yes | 8000 | `normal` |
-| `edge-inference` | Edge Inference | 1138 | 5 | `services/edge-inference/main.py` | no | - | `medium-runtime-contract-gap` |
-| `field-segmentation` | Field Boundary AI | 613 | 4 | `services/field-segmentation/main.py` | yes | 8000 | `normal` |
-| `guardrails-engine` | AI Safety & Governance | 1900 | 7 | `services/guardrails-engine/main.py` | yes | 8000 | `normal` |
-| `indicators-service` | Vegetation Analytics | 51 | 4 | `services/indicators-service/main.py` | yes | - | `normal` |
-| `knowledge-graph` | Edge Inference | 102 | 7 | `services/knowledge-graph/main.py` | yes | 8000 | `normal` |
-| `local-ai-rag` | Knowledge Retrieval | 594 | 5 | `services/local-ai-rag/main.py` | yes | 8000 | `normal` |
-| `mcp_servers` | Agent Tools | 2249 | 32 | `-` | yes | 8000 | `medium-runtime-contract-gap` |
-| `erp-bridge` | ERP Integration | 1876 | 10 | `services/odoo-bridge/main.py` | yes | 8126 | `normal` |
-| `qdrant-seed` | Unclassified / Support | 997 | 0 | `-` | yes | - | `medium-runtime-contract-gap` |
-| `rag-retrieval` | Knowledge Retrieval | 106 | 5 | `services/rag-retrieval/main.py` | yes | 8000 | `normal` |
-| `raster-service` | Imagery & Raster | 11158 | 62 | `services/raster-service/main.py` | yes | 8001 | `high-boundary-pressure` |
-| `raster-tiler-service` | Imagery & Raster | 0 | 0 | `-` | yes | 8088 | `medium-runtime-contract-gap` |
-| `sahool-platform` | Core Field Platform | 144999 | 537 | `services/sahool-platform/api/main.py` | yes | 8000 | `critical-core-concentration` |
-| `sam2-inference` | Field Boundary AI | 580 | 4 | `services/sam2-inference/main.py` | yes | 8080 | `normal` |
-| `soil-service` | Soil Intelligence | 698 | 6 | `services/soil-service/main.py` | yes | 8000 | `normal` |
-| `supervisor-agent` | Agent Orchestration | 3847 | 10 | `services/supervisor-agent/main.py` | yes | - | `normal` |
-| `tts-service` | Voice & Notifications | 595 | 7 | `services/tts-service/main.py` | yes | 8000 | `normal` |
-| `vegetation-analysis-service` | Vegetation Analytics | 1539 | 8 | `services/vegetation-analysis-service/main.py` | yes | - | `normal` |
-| `video-processor` | Video Processing | 777 | 8 | `services/video-processor/main.py` | yes | 8000 | `normal` |
-| `weather-polygon-worker` | Weather Intelligence | 215 | 0 | `services/weather-polygon-worker/src/main.py` | yes | - | `normal` |
-| `weather-service` | Weather Intelligence | 60 | 4 | `services/weather-service/main.py` | yes | 8000 | `normal` |
-| `weather-signal-engine` | Weather Intelligence | 143 | 0 | `services/weather-signal-engine/src/main.py` | yes | - | `normal` |
+| Service | Domain | Python files | LOC | Tests | Routes | Main | Docker | Requirements | Risk |
+|---|---:|---:|---:|---:|---:|---|---|---|---|
+| `actuator-service` | IoT Actuation | 11 | 1154 | 4 | 6 | `services/actuator-service/main.py` | `services/actuator-service/Dockerfile` | `services/actuator-service/requirements.txt` | `normal` |
+| `agriai-engine` | AI Advisor | 6 | 747 | 1 | 8 | `services/agriai-engine/main.py` | `services/agriai-engine/Dockerfile` | `services/agriai-engine/requirements.txt` | `normal` |
+| `ai_agronomist` | AI Advisor | 46 | 6004 | 1 | 13 | `services/ai_agronomist/main.py` | `services/ai_agronomist/Dockerfile` | `services/ai_agronomist/requirements.txt` | `normal` |
+| `auth` | Identity & Access | 18 | 2242 | 2 | 27 | `services/auth/main.py` | `services/auth/Dockerfile` | `services/auth/requirements.txt` | `normal` |
+| `decision-service` | Decision SoR | 12 | 1662 | 2 | 15 | `services/decision-service/main.py` | `services/decision-service/Dockerfile` | `services/decision-service/requirements.txt` | `normal` |
+| `edge-inference` | Edge Inference | 9 | 1093 | 1 | 6 | `services/edge-inference/main.py` | `services/edge-inference/Dockerfile.arm64` | `services/edge-inference/requirements.txt` | `normal` |
+| `field-segmentation` | Field Boundary AI | 5 | 981 | 2 | 4 | `services/field-segmentation/main.py` | `services/field-segmentation/Dockerfile` | `services/field-segmentation/requirements.txt` | `normal` |
+| `gis-workflow-service` | Unclassified / Support | 18 | 1347 | 9 | 0 | `-` | `-` | `services/gis-workflow-service/requirements.txt` | `medium-runtime-contract-gap` |
+| `guardrails-engine` | AI Safety & Governance | 13 | 1553 | 1 | 7 | `services/guardrails-engine/main.py` | `services/guardrails-engine/Dockerfile` | `services/guardrails-engine/requirements.txt` | `normal` |
+| `indicators-service` | Vegetation Analytics | 4 | 125 | 2 | 7 | `services/indicators-service/main.py` | `services/indicators-service/Dockerfile` | `services/indicators-service/requirements.txt` | `normal` |
+| `knowledge-graph` | Edge Inference | 2 | 143 | 1 | 7 | `services/knowledge-graph/main.py` | `services/knowledge-graph/Dockerfile` | `services/knowledge-graph/requirements.txt` | `normal` |
+| `local-ai-rag` | Knowledge Retrieval | 2 | 436 | 1 | 5 | `services/local-ai-rag/main.py` | `services/local-ai-rag/Dockerfile` | `services/local-ai-rag/requirements.txt` | `normal` |
+| `mcp_servers` | Agent Tools | 11 | 1906 | 1 | 33 | `-` | `services/mcp_servers/Dockerfile` | `services/mcp_servers/requirements.txt` | `normal` |
+| `odoo-bridge` | ERP Integration | 10 | 1518 | 1 | 10 | `services/odoo-bridge/main.py` | `services/odoo-bridge/Dockerfile` | `services/odoo-bridge/requirements.txt` | `normal` |
+| `qdrant-seed` | Unclassified / Support | 4 | 866 | 1 | 0 | `-` | `services/qdrant-seed/Dockerfile` | `services/qdrant-seed/requirements.txt` | `medium-runtime-contract-gap` |
+| `rag-retrieval` | Knowledge Retrieval | 2 | 127 | 1 | 5 | `services/rag-retrieval/main.py` | `services/rag-retrieval/Dockerfile` | `services/rag-retrieval/requirements.txt` | `normal` |
+| `raster-service` | Imagery & Raster | 118 | 16511 | 44 | 77 | `services/raster-service/main.py` | `services/raster-service/Dockerfile` | `services/raster-service/requirements.txt` | `normal` |
+| `raster-tiler-service` | Imagery & Raster | 0 | 0 | 0 | 0 | `-` | `services/raster-tiler-service/Dockerfile` | `-` | `medium-runtime-contract-gap` |
+| `sahool-platform` | Core Field Platform | 959 | 128374 | 367 | 577 | `services/sahool-platform/api/main.py` | `services/sahool-platform/Dockerfile` | `-` | `critical-core-concentration` |
+| `sam2-inference` | Field Boundary AI | 3 | 534 | 0 | 4 | `services/sam2-inference/main.py` | `services/sam2-inference/Dockerfile` | `services/sam2-inference/requirements.txt` | `high-zero-test-routes` |
+| `soil-service` | Soil Intelligence | 14 | 934 | 2 | 9 | `services/soil-service/main.py` | `services/soil-service/Dockerfile` | `services/soil-service/requirements.txt` | `normal` |
+| `supervisor-agent` | Agent Orchestration | 26 | 3107 | 7 | 10 | `services/supervisor-agent/main.py` | `services/supervisor-agent/Dockerfile` | `services/supervisor-agent/requirements.txt` | `normal` |
+| `tts-service` | Voice & Notifications | 8 | 784 | 1 | 8 | `services/tts-service/main.py` | `services/tts-service/Dockerfile` | `services/tts-service/requirements.txt` | `normal` |
+| `vegetation-analysis-service` | Vegetation Analytics | 9 | 1299 | 2 | 8 | `services/vegetation-analysis-service/main.py` | `services/vegetation-analysis-service/Dockerfile` | `services/vegetation-analysis-service/requirements.txt` | `normal` |
+| `video-processor` | Video Processing | 9 | 1015 | 1 | 11 | `services/video-processor/main.py` | `services/video-processor/Dockerfile` | `services/video-processor/requirements.txt` | `normal` |
+| `weather-polygon-worker` | Weather Intelligence | 2 | 177 | 0 | 0 | `services/weather-polygon-worker/src/main.py` | `services/weather-polygon-worker/Dockerfile` | `services/weather-polygon-worker/requirements.txt` | `medium-runtime-contract-gap` |
+| `weather-service` | Weather Intelligence | 12 | 1450 | 5 | 15 | `services/weather-service/main.py` | `services/weather-service/Dockerfile` | `services/weather-service/requirements.txt` | `normal` |
+| `weather-signal-engine` | Weather Intelligence | 2 | 115 | 0 | 0 | `services/weather-signal-engine/src/main.py` | `services/weather-signal-engine/Dockerfile` | `services/weather-signal-engine/requirements.txt` | `medium-runtime-contract-gap` |
 
 ## Domain ownership matrix
 
-| Domain | Services | Current role | Recommended ownership rule |
-|---|---:|---|---|
-| AI Advisor | 2 | Agronomic chat runtime and field-memory evidence grounding. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| AI Safety & Governance | 1 | Guardrails, prompt-safety, policy tiers, answer governance. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Agent Orchestration | 1 | Supervisor-agent planning/skill execution. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Agent Tools | 1 | MCP tool layer and agent-callable skills. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Core Field Platform | 1 | Core field/farm/season/tasks/recommendation API surface and many cross-domain routes. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| ERP Integration | 1 | Odoo bridge and business system integration. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Edge Inference | 2 | Edge/vision runtime support. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Field Boundary AI | 2 | Segmentation and boundary extraction inference. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Identity & Access | 1 | Support service. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Imagery & Raster | 2 | Satellite scenes, COG/tile readiness, historical imagery timeline, CDSE backfill, TileJSON. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| IoT Actuation | 1 | Actuator command/control domain. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Knowledge Retrieval | 2 | RAG/query retrieval layer for documents and advice grounding. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Soil Intelligence | 1 | Soil/lab context and tenant-scoped soil operations. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Unclassified / Support | 1 | Support/runtime utilities requiring explicit ownership. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Vegetation Analytics | 2 | NDVI/NDMI/NDRE and crop-vigor derived analytics. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Video Processing | 1 | Video inference/processing pipeline. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Voice & Notifications | 1 | TTS and voice response infrastructure. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
-| Weather Intelligence | 3 | Forecast/history/weather tiles, wind direction fallback, operation windows, risk signals. | One product owner, one API contract, explicit data-source ownership, and CI smoke per domain. |
+| Domain | Services | Recommended ownership rule |
+|---|---:|---|
+| AI Advisor | `agriai-engine`, `ai_agronomist` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| AI Safety & Governance | `guardrails-engine` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Agent Orchestration | `supervisor-agent` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Agent Tools | `mcp_servers` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Core Field Platform | `sahool-platform` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Decision SoR | `decision-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| ERP Integration | `odoo-bridge` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Edge Inference | `edge-inference`, `knowledge-graph` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Field Boundary AI | `field-segmentation`, `sam2-inference` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Identity & Access | `auth` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Imagery & Raster | `raster-service`, `raster-tiler-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| IoT Actuation | `actuator-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Knowledge Retrieval | `local-ai-rag`, `rag-retrieval` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Soil Intelligence | `soil-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Unclassified / Support | `gis-workflow-service`, `qdrant-seed` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Vegetation Analytics | `indicators-service`, `vegetation-analysis-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Video Processing | `video-processor` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Voice & Notifications | `tts-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Weather Intelligence | `weather-polygon-worker`, `weather-service`, `weather-signal-engine` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 
-## Immediate architecture decisions
+## Governance rules
 
-1. **Create Field Intelligence Backbone**: a thin aggregation/orchestration layer that composes field profile, raw truecolor imagery, indices, weather history, events, zones, alerts, recommendations, and AI evidence without moving all domain logic into one service.
-2. **Keep raw imagery first**: truecolor field imagery is the default operator view; NDVI/NDMI are interpretation overlays and should be opt-in or preserved from explicit user choice.
-3. **Separate job lifecycle from tile rendering**: backfill jobs need status/progress/retry semantics independent of tile serving.
-4. **Treat AI as an evidence client**: AI should consume context packs and evidence references; it should not become the owner of field, imagery, weather, or operations data.
-5. **Reduce sahool-platform concentration by seams, not by random splitting**: extract stable capabilities only after contract tests exist.
-
-## Recommended next services / capabilities
-
-| Proposed capability | Why it matters | Source-aligned inspiration | First implementation step |
-|---|---|---|---|
-| `field-intelligence-service` | Single evidence-backed context for field decisions. | Data Manager style agricultural data model + FieldView field health + Xarvio stage/weather/image reasoning. | Add read-only `/field-intelligence/analyze` composer backed by existing services. |
-| `imagery-job-service` | Turns historical backfill into a visible, retryable operation. | Enterprise async job lifecycle used by geospatial/data platforms. | Persist `job_id`, status, counters, scene errors, and retry contract. |
-| `productivity-zones-service` | Converts imagery history into stable management zones. | EOSDA-style zoning and VRA workflows. | Generate zones from multi-date NDVI/NDMI quantiles and expose GeoJSON. |
-| `operation-window-service` | Converts weather into safe spray/harvest/sowing/fertilizer windows. | Xarvio/CropX-style weather-aware operation planning. | Produce per-field hourly suitability with limiting factors. |
-| `recommendation-lifecycle-service` | Moves advice from text to draft/review/approve/execute/learn. | Deere/Agworld work-plan and collaboration patterns. | Add recommendation states and audit events. |
-| `machine-workplan-export-service` | Converts prescriptions into equipment/export formats. | John Deere Operations Center work plans. | Add adapter abstraction, start with neutral GeoJSON/CSV. |
-| `data-quality-service` | Explains missing tiles/weather/sensors and confidence. | Enterprise agronomy platforms surface data coverage and quality. | Add `/data-quality/field/{id}` with coverage badges. |
-
-## CI guardrails to add next
-
-- Static guard: MapHub default remains raw satellite/truecolor, never weather, never NDVI-only.
-- Static guard: every new backend service must appear in `SERVICE_REGISTRY.md`.
-- Contract guard: every external connector declares timeout, circuit breaker, user-agent/key requirements, and fail-safe behavior.
-- Domain guard: new routes in `sahool-platform` over a size threshold require ownership note or extraction plan.
+1. `SERVICE_REGISTRY.md`, `service_inventory.generated.json`, and `route_inventory.generated.json` are generated from code.
+2. CI must fail when generated inventory differs from committed inventory.
+3. Services with routes and zero tests are `high-zero-test-routes` until a smoke/contract test exists.
+4. Legacy compose files live under `legacy/compose/`; `docker-compose.v9.yml` is the production-reference local runtime.

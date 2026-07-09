@@ -1,11 +1,11 @@
 # SAHOOL v9.1.0 — TTS Service
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
-edge-tts>=6.1.12
-redis>=5.0.0
-python-jose[cryptography]>=3.4.0
+edge-tts==6.1.12
+redis==5.0.0
+python-jose[cryptography]==3.4.0
 pydantic==2.13.4
-prometheus-client>=0.19.0
+prometheus-client==0.19.0
 
 # ── مزوّدات TTS اختياريّة (استيراد محروس، ليست تبعيّات إلزاميّة) ────────────────
 # edge-tts أعلاه هو المحرّك الإلزاميّ الوحيد والافتراضيّ. المحرّكات التالية اختياريّة

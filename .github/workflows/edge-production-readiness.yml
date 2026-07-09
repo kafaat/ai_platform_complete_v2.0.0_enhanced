@@ -1,0 +1,24 @@
+name: Edge Production Readiness Policy
+
+on:
+  pull_request:
+    paths:
+      - 'services/edge-inference/**'
+      - 'docker-compose.v9.yml'
+      - 'scripts/ci/edge_production_readiness_guard.py'
+  push:
+    branches: [ main ]
+    paths:
+      - 'services/edge-inference/**'
+      - 'docker-compose.v9.yml'
+      - 'scripts/ci/edge_production_readiness_guard.py'
+
+jobs:
+  edge-production-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/ci/edge_production_readiness_guard.py
