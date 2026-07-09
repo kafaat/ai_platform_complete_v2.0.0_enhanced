@@ -96,7 +96,11 @@ async def _proxy(
     )
 
 
-@router.api_route("/api/edge/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+@router.api_route(
+    "/api/edge/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    include_in_schema=False,
+)
 async def proxy_edge(
     path: str,
     request: Request,
@@ -107,7 +111,11 @@ async def proxy_edge(
     return await _proxy(request=request, user=user, base_url=base, path=path, timeout=120.0)
 
 
-@router.api_route("/api/soil/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
+@router.api_route(
+    "/api/soil/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    include_in_schema=False,
+)
 async def proxy_soil(
     path: str,
     request: Request,
@@ -119,7 +127,9 @@ async def proxy_soil(
 
 
 @router.api_route(
-    "/api/segmentation/{path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"]
+    "/api/segmentation/{path:path}",
+    methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    include_in_schema=False,
 )
 async def proxy_segmentation(
     path: str,

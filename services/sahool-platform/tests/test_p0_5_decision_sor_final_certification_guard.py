@@ -74,3 +74,18 @@ def test_field_workspace_ci_installs_backend_runtime_dependencies_before_runtime
     assert install_idx != -1, "backend runtime dependency install step missing before Python gates"
     assert install_idx < workflow.index("Field Workspace Python closure gate")
     assert install_idx < workflow.index("Field Workspace guard tests")
+
+
+def test_service_proxy_catch_all_routes_are_excluded_from_openapi_schema() -> None:
+    proxy = _read("services/sahool-platform/api/routers/service_proxy.py")
+    # Catch-all multi-method proxies generate duplicate OpenAPI operation IDs when
+    # exposed as one api_route with several methods. They are internal gateway
+    # pass-through routes, not SDK contracts, so they must stay hidden from OpenAPI.
+    for path in (
+        '"/api/edge/{path:path}",',
+        '"/api/soil/{path:path}",',
+        '"/api/segmentation/{path:path}",',
+    ):
+        idx = proxy.index(path)
+        segment = proxy[idx : idx + 200]
+        assert "include_in_schema=False" in segment

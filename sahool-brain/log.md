@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-07-09 — إصلاح تكرار OpenAPI operation_id في proxy الخدمات الداخليّة
+
+أرشيف + تقرير `openapi_proxy_operation_id_fix` (متابعة بعد الشهادة النهائيّة لـSoR وإصلاح jwt). **الفارق الحقيقيّ عن `9cc6b2a`:** 3 أسطر فقط في ملفّ واحد + حارس ساكن جديد — تحقّقتُ بـ`diff` أنّ باقي الأرشيف (نسخة كاملة للمستودع على أساس `d01a7a9`) ضجيج بائت محض.
+
+**المشكلة:** استيراد `api.main` حيّاً كان يُصدِر 3 تحذيرات FastAPI:
+```
+Duplicate Operation ID proxy_edge_api_edge__path__patch
+Duplicate Operation ID proxy_soil_api_soil__path__patch
+Duplicate Operation ID proxy_segmentation_api_segmentation__path__patch
+```
+السبب: `services/sahool-platform/api/routers/service_proxy.py` يُعرِّف كلّ بوّابة (`proxy_edge`/`proxy_soil`/`proxy_segmentation`) بـ`@router.api_route(path, methods=["GET","POST","PUT","PATCH","DELETE"])` واحد — FastAPI يُوَلِّد نمط operation_id واحداً للمسار متعدّد الطرق فيتكرّر.
+
+**الإصلاح:** أضفتُ `include_in_schema=False` للمسارات الثلاثة فقط (`grep` أكّد أنّها الوحيدة بنمط `@router.api_route` في كامل `services/sahool-platform/api/`). هذه بوّابات تمرير داخليّة (JWT→X-Agent-Token) لا عقود SDK عامّة، فإخفاؤها من المخطّط لا يُغيِّر سلوك التشغيل — تبقى حيّة، فقط لا تظهر في `/openapi.json`.
+
+**تحقّق-قبل-دمج:** التقرير المرفق ادّعى "7 passed" لملفّ حارس P0-5 مع نسخة **مُتراجِعة** لحارس pip-install الذي أصلحتُه للتوّ في `9cc6b2a` (الأرشيف مبنيّ على أساس أقدم من ذلك الإصلاح). **لم أنسخ** دالّة الحارس تلك — أضفتُ فقط الحارس الجديد الحقيقيّ (`test_service_proxy_catch_all_routes_are_excluded_from_openapi_schema`) فوق حارسي القائم، فبقي حارس pip-install الأوسع (يشمل `tests_v9/requirements-test.txt`+`pillow`) سليماً بلا تراجع.
+
+**تحقّق حيّ لا افتراضيّ:** استوردتُ `api.main` فعليّاً (بنفس `sys.path` الذي تستخدمه بوّابات CI) داخل `warnings.catch_warnings(record=True)` وعددتُ رسائل "Duplicate Operation ID" — **صفر** بعد الإصلاح (كانت 3 قبل تطبيقه، تأكّدتُ يدويّاً من وجودها في الكود الأصليّ عبر الـdiff). لم أكتفِ بتشغيل بوّابة الإغلاق الساكنة فقط.
+
+**التحقّق المستقلّ الكامل:** `field_workspace_production_closure_gate.py` + 4 بوّابات SoR (final-certification/cutover-readiness/shadow-promotion/staging-probe) كلّها exit 0 · حُرّاس منصّة **63** (11 ملفّ، P0-5 الآن 7 اختبارات) · tests_v9 unit **2806 نجاح / 5 تخطٍّ** · ruff format+check نظيف · py_compile نظيف · لا تغييرات frontend (tsc/vitest غير مُعاد تشغيلهما) · release مُعاد بناؤه والتحقّق منه (**3618** checksum).
+
+---
+
 ## 2026-07-09 — Decision SoR final certification (P0-5) + رفض إصلاح CI مُكرَّر أضيق
 
 أرشيف `d01a7a9_decision_sor_final_certification` — الطبقة الأخيرة قبل ترقية decision-service إلى SoR فعليّاً. **الفارق الحقيقيّ عن الأساس المحلّيّ (`5af67ea`) بعد استبعاد الضجيج** (الأرشيف مبنيّ على `d01a7a9` أقدم فأعاد نسخاً بائتة من tsconfig المكسور + workflow بلا إصلاح jwt/pip-install المُطبَّق سابقاً؛ ملفّات `platform_python_module_baseline.json`/`backfill.py`/`cutover.py`/`main.py`/`migration_runner.py`/`persistence.py`/`staging_probe.py`/`decision_sor_mode.py`/`test_p0_3...guard.py` كلّها ضجيج تنسيقي محض تأكّد بـ`diff`): **٧ ملفّات جديدة فعليّاً**.
