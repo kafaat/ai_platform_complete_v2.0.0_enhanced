@@ -4,6 +4,20 @@
 
 ---
 
+## 2026-07-09 — جاهزيّة cutover لـ decision-service SoR (بنية flag-gated آمنة)
+
+أرشيف `d01a7a9_decision_sor_cutover_readiness`. **يُنجِز مسار الترقية الذي وثّقتُه** (الجسر الانتقاليّ → SoR حقيقيّ) بأمان: **يجعل الـcutover قابلاً للتدقيق آليّاً دون قلب إنتاج**. `DECISION_SERVICE_SOR_CUTOVER_READINESS.md` يعلن الحالات (Mirror افتراضيّ / Staging SoR / Production SoR) والثوابت غير القابلة للتفاوض.
+
+**البنية المُطبَّقة (decision-service، قاعدة خاصّة منفصلة عن المنصّة):** `migrations/001_decision_sor.sql` — جداول الحلقة الخمسة + outbox. **حلّ مانعي السابق:** `recommendation_outcomes PRIMARY KEY (tenant_id, recommendation_id)` (مفتاح إزالة التكرار)؛ `outcome_record` UNIQUE (tenant_id, idempotency_key) WHERE NOT NULL؛ `online_learning_updates` قيد `CHECK ck_learning_traceable` (يفرض النَّسَب على مستوى DB). `persistence.py` (asyncpg مستورَد كسولاً ⇒ آمن الاستيراد لطبقة الوحدات) · `migration_runner.py` (يتطلّب `DECISION_SERVICE_ALLOW_SCHEMA_CHANGE` — لا تغيير مخطّط كأثر استيراد) · `backfill.py --verify-counts` · `tests/conftest.py`. `main.py` write endpoints: `persisted:true, authoritative:true` **فقط** إن `sor_enabled()` (DECISION_SERVICE_SOR_ENABLED=true + DATABASE_URL)، وإلّا `_mirror_ack` (persisted:false). `requirements.txt` +`asyncpg==0.30.0` (pip-audit نظيف). عميل المنصّة: docstring فقط (مسار الكتابة الموثوق محفوظ). 3 حُرّاس P0 + بوّابة `decision_sor_cutover_readiness_gate.py` (تتحقّق من migration_runner/backfill/الوثائق/توصيل CI).
+
+**flag-gated افتراضيّاً OFF ⇒ صفر تغيير سلوك إنتاج** (المنصّة تبقى SoR؛ decision-service مِرْآة صادقة حتى تفعيل صريح بعد backfill + تحقّق تكامليّ).
+
+**تحقّق-قبل-دمج (الأرشيف مزج production-closure المدموج + عمل SoR جديد + تغييرات واجهة عرضيّة):** لم أُعِد أجزاء production-closure المكسورة (tsconfig no-op/scratch، package.json) — أبقيتُ نسخي النظيفة؛ أخذتُ workflow الأرشيف (نظيف = قاعدتي + توصيل SoR). أصلحتُ: **tsc** في `layerRegistry.ts` (الوصول لحقل اختياريّ على `as const satisfies MapLayer[]` ⇒ توسيع لـMapLayer) · **25 خطأ ruff** في decision-service (autofix + B904 raise-from + F841). تغييرات الواجهة العرضيّة (api.ts/useApi تعليقات · SettingsPage · layerRegistry metadata+test) طُبِّقت (تمرّ tsc+vitest).
+
+**التحقّق المستقلّ:** tsc 0 · vitest **1100/155** · منصّة **3554** (+20 حارس SoR، CI-style) · tests_v9 unit **2806** · ruff CI نظيف · pip-audit asyncpg نظيف · release مُعاد بناؤه.
+
+---
+
 ## 2026-07-08 — إغلاق مساحة عمل الحقل الإنتاجيّ (بوّابة runtime + workflow)
 
 أرشيف `d01a7a9_field_workspace_production_closure` (على رأسنا الأخضر). **القيمة المُطبَّقة:** بوّابة runtime `scripts/ci/field_workspace_production_closure_gate.py` (تستورد تطبيق FastAPI: مسارات مساحة العمل مُسجَّلة مرّة واحدة · OpenAPI يكشف العقود · fields.py لا يملك المسارات المتخصّصة · ملفّات العقد الأماميّة موجودة) · workflow `.github/workflows/field-workspace-production-closure.yml` (contract-typecheck + build + gate + 5 حُرّاس ui20/24-26/27/28-30/31-35) · `tsconfig.field-workspace-contract.json` · doc.

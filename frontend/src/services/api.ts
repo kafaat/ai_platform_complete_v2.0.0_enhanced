@@ -3679,10 +3679,10 @@ export const fetchCurrentNDVI = (fieldId: string) =>
 // ══════════════════════════════════════════════════════════════════
 // WEATHER — موحّد على المنصّة (sahool-platform/api/routers/weather.py)
 // ══════════════════════════════════════════════════════════════════
-// المنطق الحقيقيّ للطقس (Open-Meteo + ET₀ FAO-56) يعيش في المنصّة عبر
-// /api/v1/weather/{current,forecast,historical}. خدمة weather-service جذعيّة تردّ
-// 501 لأيّ مسار طقس، لذا نُمرّر هذه الدوالّ عبر kongApi (مسارات /api/v1/weather عبر
-// البوّابة) لا weatherApi المعطوبة. الردّ بشكل المنصّة الخام (days[].temp_max_c …).
+// weather-service يملك منطق الطقس الحقيقيّ (Open-Meteo + ET₀ FAO-56)، والمنصّة
+// تعرضه عبر BFF آمن: /api/v1/weather/{current,forecast,historical}. لذلك تبقى
+// الواجهة على kongApi ولا تستدعي weatherApi مباشرةً من المتصفح. الردّ بشكل المنصّة
+// الخام (days[].temp_max_c …).
 
 export const fetchCurrentWeather = (lat = 15.05, lon = 45.55) =>
   tryReal(
@@ -3728,9 +3728,9 @@ export const fetchWofostFormat = (days = 30, lat = 15.05, lon = 45.55) =>
     () => ({ wofost_input:mockWeatherDays(days).map(d => ({ date:d.date, tmax:d.tmax, tmin:d.tmin, radiation_mj:18, et0:d.et0, precipitation:d.rain, soil_moisture_pct:35 })), total_days:days, source:'demo-only' })
   );
 
-// ملاحظة صدق: لا نقطة agro-indicators مكافئة على المنصّة (كانت تستهدف weather-service
-// الجذعيّة ⇒ 501). غير مُستهلَكة في أيّ واجهة. مُبقاة للـMOCK_MODE فقط؛ خارجه ترمي
-// بصدق (لا تلفيق) حتى تُبنى نقطة مكافئة على المنصّة.
+// ملاحظة صدق: لا نقطة agro-indicators مكافئة ضمن BFF المنصّة حتى الآن. غير
+// مُستهلَكة في أيّ واجهة. مُبقاة للـMOCK_MODE فقط؛ خارجه ترمي بصدق (لا تلفيق)
+// حتى تُبنى نقطة مكافئة وتُمرّر عبر المنصّة.
 export const fetchAgroIndicators = (_days = 30) =>
   tryReal(
     () => Promise.reject(new Error('agro-indicators: لا نقطة مكافئة على المنصّة بعد')),

@@ -27,11 +27,19 @@ jobs:
       - name: Frontend production build
         working-directory: frontend
         run: npm run build
+      - name: Layer registry contract test
+        working-directory: frontend
+        run: npx vitest run src/lib/layerRegistry.test.ts
       - name: Field Workspace Python closure gate
         run: python scripts/ci/field_workspace_production_closure_gate.py
+      - name: Decision SoR cutover readiness gate
+        run: python scripts/ci/decision_sor_cutover_readiness_gate.py
       - name: Field Workspace guard tests
         run: |
           pytest -q \
+            services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py \
+            services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py \
+            services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py \
             services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py \
             services/sahool-platform/tests/test_ui24_ui26_workspace_imagery_weather_irrigation_guard.py \
             services/sahool-platform/tests/test_ui27_backend_facades_guard.py \

@@ -2265,7 +2265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "34a24fd5b9716f60101783d560ad788304e410f6e12456e2919d4b8e1bc9a635"
+          "content": "a144132f6809cde85647c46a74b85e010c9dbbbeee8429fe954d30c7342086d2"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -3715,7 +3715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c82af4ddf80c34ef979586345e96a7628cf869eac7d271a63df934f27fe2286e"
+          "content": "ddfc1b9a3a82f8842388f3b3a68de4b222da3eca5b12e3e9ae8491fee3c85693"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.test.ts",
@@ -3725,7 +3725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f34e9919163cc9adc0b0ac1ce9b85f5f368f7a7efb2ccf83f7bc978a0b9fc5a"
+          "content": "a6e092802f0b4348d1c9126f73ccd1905dda4dff3192fe5576079687880f86a7"
         }
       ],
       "name": "frontend/src/lib/layerRegistry.ts",
@@ -5335,7 +5335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3613655f5878b996cd182538d46c50ebe8124d6d4169439afcd4173726d68d10"
+          "content": "a99e5789f10a5176df05f3a11dc35a6e6fc0aedf2d16bea8cd215d9ecd90ec34"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
@@ -5675,7 +5675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ac9fe5389bcb3da90f488a766a5965f22b615b86eaee82045849095545ab244"
+          "content": "b8c1de71c75628defb6129ac8d35914ac004e953f944be271b9dea0061cd2b5d"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -5749,6 +5749,16 @@
         }
       ],
       "name": "frontend/tailwind.config.js",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9938fd1b512c26a326b2d42a3b049714daf0e137fbeb044f220103474aa416cb"
+        }
+      ],
+      "name": "frontend/tsconfig.field-workspace-contract.json",
       "type": "file"
     },
     {
@@ -8795,7 +8805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3c910b4d46ce563512202ebf920063c62185e616a5ec456445a523821932b24b"
+          "content": "25c705c3b734087c721ad626ae3e1c9974fed3845ff26655861c7365ac580252"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -8805,7 +8815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "79fcea1e7738bf34f6ce92844b7d0bb0777649c97d79295186629c09c90b863c"
+          "content": "7aed2d6017a864f81b604cc0b66019000bb406cb174e3c34c8eff91ee8b2c2b3"
         }
       ],
       "name": "services/decision-service/requirements.txt",
@@ -11595,7 +11605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cccdf53acd2dc76694de9f0c9756686cb4d93776675f124d22bc4decf5a4ff3a"
+          "content": "1bf46a351577e68334d84ba5d23fbdebdd6014f0c52804db14ac5348692f6a05"
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",

@@ -9,6 +9,8 @@ import {
   defaultVisibleLayers,
   resolveLayerSource,
   availableBasemapLayers,
+  layersRequiringBackfill,
+  requiresLayerAvailabilityCheck,
 } from './layerRegistry';
 
 describe('layerRegistry', () => {
@@ -72,4 +74,20 @@ describe('layerRegistry', () => {
     expect(withToken).toContain('mapbox-satellite');
     expect(withToken).not.toContain('google-satellite-official');
   });
+
+  it('طبقات raster تصرّح بمصدر الخدمة وفحص التوفر والبديل قبل العرض', () => {
+    const truecolor = getLayer('truecolor');
+    expect(truecolor?.sourceService).toBe('raster-service');
+    expect(truecolor?.requiresBackfill).toBe(true);
+    expect(truecolor?.availabilityEndpoint).toBe('/api/v1/fields/{field_id}/available-dates');
+    expect(truecolor?.fallbackLayerId).toBe('satellite');
+
+    const rasterLayers = layersRequiringBackfill();
+    expect(rasterLayers.map((l) => l.id)).toEqual(expect.arrayContaining(['truecolor', 'ndvi', 'ndmi']));
+    expect(rasterLayers.every((l) => l.sourceService === 'raster-service')).toBe(true);
+    expect(rasterLayers.every((l) => Boolean(l.availabilityEndpoint))).toBe(true);
+    expect(requiresLayerAvailabilityCheck('truecolor')).toBe(true);
+    expect(requiresLayerAvailabilityCheck('satellite')).toBe(false);
+  });
+
 });
