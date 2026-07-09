@@ -228,12 +228,12 @@ export default function SettingsPage() {
             {(!services || services.length === 0) && !svLoading && (
               <div className="space-y-2">
                 {[
-                  {n:'auth-service (:8120)',    ok:false},
-                  {n:'indicators-service (:8091)',ok:false},
-                  {n:'vegetation-service (:8090)',ok:false},
-                  {n:'weather-service (:8092)',  ok:false},
-                  {n:'soil-service (:8094)',      ok:false},
-                  {n:'kong-gateway (:8000)',      ok:false},
+                  {n:'auth-service (:8120)'},
+                  {n:'indicators-service (:8091)'},
+                  {n:'vegetation-service (:8090)'},
+                  {n:'weather-service (:8092)'},
+                  {n:'soil-service (:8094)'},
+                  {n:'kong-gateway (:8000)'},
                 ].map((s,i)=>(
                   <div key={i} className="flex justify-between items-center py-1">
                     <span style={{ fontSize: 12, color: T.muted }}>{s.n}</span>

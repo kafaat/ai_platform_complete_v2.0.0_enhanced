@@ -4,6 +4,81 @@
 
 ---
 
+## 2026-07-09 — إصلاح تكرار OpenAPI operation_id في proxy الخدمات الداخليّة
+
+أرشيف + تقرير `openapi_proxy_operation_id_fix` (متابعة بعد الشهادة النهائيّة لـSoR وإصلاح jwt). **الفارق الحقيقيّ عن `9cc6b2a`:** 3 أسطر فقط في ملفّ واحد + حارس ساكن جديد — تحقّقتُ بـ`diff` أنّ باقي الأرشيف (نسخة كاملة للمستودع على أساس `d01a7a9`) ضجيج بائت محض.
+
+**المشكلة:** استيراد `api.main` حيّاً كان يُصدِر 3 تحذيرات FastAPI:
+```
+Duplicate Operation ID proxy_edge_api_edge__path__patch
+Duplicate Operation ID proxy_soil_api_soil__path__patch
+Duplicate Operation ID proxy_segmentation_api_segmentation__path__patch
+```
+السبب: `services/sahool-platform/api/routers/service_proxy.py` يُعرِّف كلّ بوّابة (`proxy_edge`/`proxy_soil`/`proxy_segmentation`) بـ`@router.api_route(path, methods=["GET","POST","PUT","PATCH","DELETE"])` واحد — FastAPI يُوَلِّد نمط operation_id واحداً للمسار متعدّد الطرق فيتكرّر.
+
+**الإصلاح:** أضفتُ `include_in_schema=False` للمسارات الثلاثة فقط (`grep` أكّد أنّها الوحيدة بنمط `@router.api_route` في كامل `services/sahool-platform/api/`). هذه بوّابات تمرير داخليّة (JWT→X-Agent-Token) لا عقود SDK عامّة، فإخفاؤها من المخطّط لا يُغيِّر سلوك التشغيل — تبقى حيّة، فقط لا تظهر في `/openapi.json`.
+
+**تحقّق-قبل-دمج:** التقرير المرفق ادّعى "7 passed" لملفّ حارس P0-5 مع نسخة **مُتراجِعة** لحارس pip-install الذي أصلحتُه للتوّ في `9cc6b2a` (الأرشيف مبنيّ على أساس أقدم من ذلك الإصلاح). **لم أنسخ** دالّة الحارس تلك — أضفتُ فقط الحارس الجديد الحقيقيّ (`test_service_proxy_catch_all_routes_are_excluded_from_openapi_schema`) فوق حارسي القائم، فبقي حارس pip-install الأوسع (يشمل `tests_v9/requirements-test.txt`+`pillow`) سليماً بلا تراجع.
+
+**تحقّق حيّ لا افتراضيّ:** استوردتُ `api.main` فعليّاً (بنفس `sys.path` الذي تستخدمه بوّابات CI) داخل `warnings.catch_warnings(record=True)` وعددتُ رسائل "Duplicate Operation ID" — **صفر** بعد الإصلاح (كانت 3 قبل تطبيقه، تأكّدتُ يدويّاً من وجودها في الكود الأصليّ عبر الـdiff). لم أكتفِ بتشغيل بوّابة الإغلاق الساكنة فقط.
+
+**التحقّق المستقلّ الكامل:** `field_workspace_production_closure_gate.py` + 4 بوّابات SoR (final-certification/cutover-readiness/shadow-promotion/staging-probe) كلّها exit 0 · حُرّاس منصّة **63** (11 ملفّ، P0-5 الآن 7 اختبارات) · tests_v9 unit **2806 نجاح / 5 تخطٍّ** · ruff format+check نظيف · py_compile نظيف · لا تغييرات frontend (tsc/vitest غير مُعاد تشغيلهما) · release مُعاد بناؤه والتحقّق منه (**3618** checksum).
+
+---
+
+## 2026-07-09 — Decision SoR final certification (P0-5) + رفض إصلاح CI مُكرَّر أضيق
+
+أرشيف `d01a7a9_decision_sor_final_certification` — الطبقة الأخيرة قبل ترقية decision-service إلى SoR فعليّاً. **الفارق الحقيقيّ عن الأساس المحلّيّ (`5af67ea`) بعد استبعاد الضجيج** (الأرشيف مبنيّ على `d01a7a9` أقدم فأعاد نسخاً بائتة من tsconfig المكسور + workflow بلا إصلاح jwt/pip-install المُطبَّق سابقاً؛ ملفّات `platform_python_module_baseline.json`/`backfill.py`/`cutover.py`/`main.py`/`migration_runner.py`/`persistence.py`/`staging_probe.py`/`decision_sor_mode.py`/`test_p0_3...guard.py` كلّها ضجيج تنسيقي محض تأكّد بـ`diff`): **٧ ملفّات جديدة فعليّاً**.
+
+**قراءة-فقط بالتصميم (تحقّقتُ من الثلاثة قبل التطبيق):**
+- `services/decision-service/production_promotion.py`: preflight للترقية الإنتاجيّة. dry-run افتراضيّ يطبع فقط `required_flags`. `--live` يتطلّب `SAHOOL_ENV=production` + `DATABASE_URL` + 7 رايات `REQUIRED_TRUE_FLAGS` (SOR_ENABLED/MIGRATIONS_VERIFIED/BACKFILL_VERIFIED/TENANT_ISOLATION_VERIFIED/OUTBOX_VERIFIED/STAGING_CUTOVER_APPROVED/PRODUCTION_CUTOVER_APPROVED) + `PRODUCTION_PROMOTION_APPROVED`+`_ALLOW_LIVE` + استعلام GET حيّ لـ`/v1/cutover/readiness` يشترط `can_demote_platform=true` و`production_approved=true`. لا `INSERT`/`UPDATE`/`DELETE` في أيّ مسار من الملفّ.
+- `services/decision-service/read_side_compare.py`: مقارنة قراءة-فقط بين المِرْآة والمنصّة. dry-run افتراضيّ؛ `--live` يتطلّب `DECISION_SERVICE_READ_COMPARE_APPROVED`+`_ALLOW_LIVE` (و`_ALLOW_PRODUCTION` إضافيّاً إن `SAHOOL_ENV=production`). يُشغِّل `migration_runner.py --check` + `backfill.py --verify-counts` + GET على readiness/health فقط.
+- `services/decision-service/rollback.py`: **تحقّقتُ يدويّاً أنّه لا يُنفِّذ أيّ فعل** — `_plan()` تُرجِع قائمة ثابتة من 7 `RollbackStep` (ترتيب/اسم/أمر نصّيّ، `destructive=False` افتراضيّاً) تصف تسلسلاً يدويّاً للمشغّل (مثال: "set DECISION_SERVICE_SOR_ENABLED=false"). `run_rollback()` يطبع هذه الخطّة كـJSON فقط خلف رايتَي موافقة (`ROLLBACK_APPROVED`+`_ALLOW_LIVE`) لحالة "preflight" — **بلا تنفيذ فعليّ لأيّ خطوة**. موثَّق صراحةً غير هدّام (يُبقي جداول decision-service للمقارنة الجنائيّة).
+
+**توصيل الحَوكمة:** خطوة `Decision SoR final certification gate` (`scripts/ci/decision_sor_final_certification_gate.py` — حارس ساكن يتحقّق من وجود الملفّات السبعة + توكِنات نصّيّة إلزاميّة كـ"no writes are performed"/"non-destructive"/"dry-run" + توصيل الـworkflow والحارس) + `test_p0_5_decision_sor_final_certification_guard.py` (٦ اختبارات) أُلحِقا يدويّاً بـ`.github/workflows/field-workspace-production-closure.yml` **الحاليّ المُصلَح** — لم يُنسَخ ملفّ workflow الأرشيف لأنّه يفتقر إصلاح `pip install` الحرج المُطبَّق في `5af67ea`.
+
+**⚠️ رفض إصلاح CI مُكرَّر أضيق (مُقدَّم من المستخدم أثناء العمل):** وصل تقرير `SAHOOL_FIELD_WORKSPACE_CI_PYJWT_FIX_REPORT.md` + أرشيف `d01a7a9_ci_pyjwt_fix` يقترحان استبدال خطوة التثبيت الحاليّة (`pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow`) بخطوة أضيق باسم "Install backend runtime dependencies" (`pip install -r services/sahool-platform/api/requirements.txt pytest` فقط — بلا `tests_v9/requirements-test.txt` وبلا `pillow`، وكلاهما تبعيّتان يحتاجهما تحقّق آخر في نفس الـworkflow). **رُفِض الاستبدال** (انحدار — الإصلاح الحاليّ أوسع وسبق تطبيقه وتأكيد نجاحه في `5af67ea`). اعتُمِد فقط جوهر اقتراح الأرشيف (حارس انحدار CI): أُضيفت `test_field_workspace_ci_installs_backend_runtime_dependencies_before_runtime_gates` إلى `test_p0_5_decision_sor_final_certification_guard.py` — مُكيَّفة لتتحقّق من **نصّ خطوتي الفعليّة** (لا اسم خطوة الأرشيف الوهميّ) وتؤكّد سبقها لخطوتَي "Field Workspace Python closure gate" و"Field Workspace guard tests" نصّيّاً في الـYAML، فتمنع أيّ تراجع مستقبليّ عن ترتيب التثبيت.
+
+**التحقّق المستقلّ الكامل:** بوّابة P0-5 مستقلّة (exit 0) · حُرّاس منصّة **62** (11 ملفّ P0/UI، شامل P0-5 الجديد بـ6 اختبارات) · تست_v9 unit **2806 نجاح / 5 تخطٍّ** · ruff format+check نظيف (4 ملفّات جديدة، إصلاح `F401 sys غير مُستخدَم` في `production_promotion.py`) · YAML صالح · لا تغييرات frontend في هذا الأرشيف (tsc/vitest غير مُعاد تشغيلهما، لا حاجة) · release مُعاد بناؤه والتحقّق منه (**3611** checksum).
+
+---
+
+## 2026-07-09 — Decision SoR staging probe (P0-3/P0-4) + إصلاح فجوة تثبيت تبعيّات CI حرجة
+
+أرشيف `d01a7a9_decision_sor_staging_probe` — يبني فوق جاهزيّة الـSoR (P0-2). **الفارق الحقيقيّ عن الأساس المحلّيّ الحاليّ (`4cfa233`) بعد استبعاد الضجيج (الأرشيف مبنيّ على `d01a7a9` أقدم فأعاد نسخاً بائتة من tsconfig المكسور + تنسيق ruff/tsc سبق إصلاحه):** ٩ ملفّات جديدة فعليّاً + إضافة صغيرة لـmain.py.
+
+**P0-3 (shadow/promotion control surface):**
+- `services/decision-service/cutover.py`: `readiness_from_env()` نموذج صرف (dataclass, لا I/O) يفصل بوضوح `can_enable_sor` (DB+migrations+backfill+tenant+outbox+staging-approval) عن `can_demote_platform` (كلّ ما سبق + production-approval) — لا يمكن تخمين إسقاط كتابة المنصّة بعلم واحد.
+- `/v1/cutover/readiness` نقطة جديدة في `main.py` (أضفتُها يدويّاً: import + endpoint + حقلا `cutover_readiness_endpoint`/`demotion_gate` في `/contract` — لم أنسخ main.py الأرشيف لأنّه كان يُعيد كسر تنسيقي/بنيويّ سبق إصلاحه في `4cfa233`).
+- `services/sahool-platform/api/decision_sor_mode.py`: `get_platform_decision_sor_mode()` — `SAHOOL_DECISION_WRITE_MODE` (platform_sor افتراضيّ / shadow / decision_service_sor)، **لم يُستهلَك من أيّ راوتر بعد** (تحقّقتُ: grep صفر استيراد خارج ملفّه واختباره وgate). سطح تحكّم مُجهَّز، لا تفعيل.
+- تأكيد صريح في اختبار جديد (`test_platform_router_still_contains_authoritative_writes_until_runtime_cutover`) أنّ `decision_record.py` ما زال يحوي `INSERT INTO decision_record`/`outcome_record` و`_mirror_to_decision_service` — مسار الكتابة الموثوق سليم.
+
+**P0-4 (staging probe harness):** `services/decision-service/staging_probe.py` — أداة CLI للمشغّل: dry-run افتراضيّ (لا شبكة/DB)، `--live` يتطلّب `SAHOOL_ENV≠production` + `DECISION_SERVICE_STAGING_PROBE_APPROVED=true` + `DECISION_SERVICE_STAGING_PROBE_ALLOW_LIVE=true` معاً، `--sample-write` منفصل تماماً (كتابة noop عبر BFF المنصّة بمفتاح idempotency). runbook + gate + حارس يفرضان هذا التسلسل نصّيّاً.
+
+**تحقّق-قبل-دمج:** رفضتُ نسخ ملفّات الأرشيف حرفيّاً حين تحتوي انحداراً معروفاً (نفس نمط الجلسات السابقة: tsconfig المكسور، تنسيق main.py/persistence.py/gate scripts القديم) — طبّقتُ فقط الإضافات الجوهريّة الجديدة يدويّاً أو بنسخ الملفّات الجديدة فعلاً (لا تعديل على موجود). ruff: 4 ملفّات جديدة احتاجت `--fix`+format (ترتيب استيراد، لا منطق).
+
+**⚠️ إصلاح CI حرج بعد الدمج (اكتُشِف من سجلّ GitHub Actions الفعليّ، لا محليّاً):** أوّل تشغيل حيّ لـ`field-workspace-production-closure.yml` (الذي أنشأتُه في جلسة سابقة) فشل: `ModuleNotFoundError: No module named 'jwt'` في خطوة "Field Workspace Python closure gate" — السبب: الـworkflow يستورد `api.main` (عبر `field_workspace_production_closure_gate.py::check_runtime_routes`) لكنّه **لم يُثبِّت تبعيّات المنصّة إطلاقاً** (فقط `actions/setup-python` بلا `pip install`). **لم أكتشف هذا محليّاً** لأنّ `jwt`/fastapi/asyncpg كلّها مثبَّتة مسبقاً في بيئة عملي — تحقّقي المحلّي لم يُحاكِ "fresh runner". الإصلاح: أضفتُ `pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow` (نفس أمر وظيفة Platform Unit Tests في `ci.yml`) كخطوة مبكرة قبل أيّ بوّابة تستورد `api.main`. **درس تشغيليّ مُسجَّل:** أيّ workflow جديد يستورد تطبيقاً حيّاً يحتاج تحقّقاً صريحاً من خطوة تثبيت التبعيّات — لا يكفي أن يعمل محليّاً.
+
+**توصيل الحَوكمة:** baseline وحدات المنصّة 589→590 (`api/decision_sor_mode.py` جديد ومُبرَّر).
+
+**التحقّق المستقلّ الكامل (بعد إصلاح CI):** tsc 0 · vitest **1100/155** · منصّة **3569** (+2 P0 حارس جديد، 56/56 في مجموعة حُرّاس الـworkflow) · tests_v9 unit **2806** · ruff CI نظيف · YAML صالح (كلا الملفّين) · release مُعاد بناؤه (3602 checksum).
+
+---
+
+## 2026-07-09 — جاهزيّة cutover لـ decision-service SoR (بنية flag-gated آمنة)
+
+أرشيف `d01a7a9_decision_sor_cutover_readiness`. **يُنجِز مسار الترقية الذي وثّقتُه** (الجسر الانتقاليّ → SoR حقيقيّ) بأمان: **يجعل الـcutover قابلاً للتدقيق آليّاً دون قلب إنتاج**. `DECISION_SERVICE_SOR_CUTOVER_READINESS.md` يعلن الحالات (Mirror افتراضيّ / Staging SoR / Production SoR) والثوابت غير القابلة للتفاوض.
+
+**البنية المُطبَّقة (decision-service، قاعدة خاصّة منفصلة عن المنصّة):** `migrations/001_decision_sor.sql` — جداول الحلقة الخمسة + outbox. **حلّ مانعي السابق:** `recommendation_outcomes PRIMARY KEY (tenant_id, recommendation_id)` (مفتاح إزالة التكرار)؛ `outcome_record` UNIQUE (tenant_id, idempotency_key) WHERE NOT NULL؛ `online_learning_updates` قيد `CHECK ck_learning_traceable` (يفرض النَّسَب على مستوى DB). `persistence.py` (asyncpg مستورَد كسولاً ⇒ آمن الاستيراد لطبقة الوحدات) · `migration_runner.py` (يتطلّب `DECISION_SERVICE_ALLOW_SCHEMA_CHANGE` — لا تغيير مخطّط كأثر استيراد) · `backfill.py --verify-counts` · `tests/conftest.py`. `main.py` write endpoints: `persisted:true, authoritative:true` **فقط** إن `sor_enabled()` (DECISION_SERVICE_SOR_ENABLED=true + DATABASE_URL)، وإلّا `_mirror_ack` (persisted:false). `requirements.txt` +`asyncpg==0.30.0` (pip-audit نظيف). عميل المنصّة: docstring فقط (مسار الكتابة الموثوق محفوظ). 3 حُرّاس P0 + بوّابة `decision_sor_cutover_readiness_gate.py` (تتحقّق من migration_runner/backfill/الوثائق/توصيل CI).
+
+**flag-gated افتراضيّاً OFF ⇒ صفر تغيير سلوك إنتاج** (المنصّة تبقى SoR؛ decision-service مِرْآة صادقة حتى تفعيل صريح بعد backfill + تحقّق تكامليّ).
+
+**تحقّق-قبل-دمج (الأرشيف مزج production-closure المدموج + عمل SoR جديد + تغييرات واجهة عرضيّة):** لم أُعِد أجزاء production-closure المكسورة (tsconfig no-op/scratch، package.json) — أبقيتُ نسخي النظيفة؛ أخذتُ workflow الأرشيف (نظيف = قاعدتي + توصيل SoR). أصلحتُ: **tsc** في `layerRegistry.ts` (الوصول لحقل اختياريّ على `as const satisfies MapLayer[]` ⇒ توسيع لـMapLayer) · **25 خطأ ruff** في decision-service (autofix + B904 raise-from + F841). تغييرات الواجهة العرضيّة (api.ts/useApi تعليقات · SettingsPage · layerRegistry metadata+test) طُبِّقت (تمرّ tsc+vitest).
+
+**التحقّق المستقلّ:** tsc 0 · vitest **1100/155** · منصّة **3554** (+20 حارس SoR، CI-style) · tests_v9 unit **2806** · ruff CI نظيف · pip-audit asyncpg نظيف · release مُعاد بناؤه.
+
+---
+
 ## 2026-07-08 — إغلاق مساحة عمل الحقل الإنتاجيّ (بوّابة runtime + workflow)
 
 أرشيف `d01a7a9_field_workspace_production_closure` (على رأسنا الأخضر). **القيمة المُطبَّقة:** بوّابة runtime `scripts/ci/field_workspace_production_closure_gate.py` (تستورد تطبيق FastAPI: مسارات مساحة العمل مُسجَّلة مرّة واحدة · OpenAPI يكشف العقود · fields.py لا يملك المسارات المتخصّصة · ملفّات العقد الأماميّة موجودة) · workflow `.github/workflows/field-workspace-production-closure.yml` (contract-typecheck + build + gate + 5 حُرّاس ui20/24-26/27/28-30/31-35) · `tsconfig.field-workspace-contract.json` · doc.

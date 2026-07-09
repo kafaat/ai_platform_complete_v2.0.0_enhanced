@@ -798,10 +798,15 @@ class ApiService {
     required String crop,
     String? cultivar,
     String? irrigationType,
-    String? sowingDate, // "YYYY-MM-DD"
-    String? seasonEnd, // "YYYY-MM-DD"
+    String? landLevelingDate, // "YYYY-MM-DD" — تسوية الأرض
+    String? plowingDate,      // "YYYY-MM-DD" — حراثة الأرض
+    String? sowingDate,       // "YYYY-MM-DD"
+    String? seasonEnd,        // "YYYY-MM-DD"
     num? targetYieldKgHa,
     num? seedRateKgHa,
+    num? plantDensity,        // نبات/م² (v42)
+    num? rowSpacingCm,        // سم (v42)
+    String? seedVarietySource, // مصدر البذور (v42)
     String? tillageType,
     String? maturity, // early/medium/late
     num? actualYieldKgHa,
@@ -811,10 +816,15 @@ class ApiService {
       'crops': [crop],
       if (cultivar != null) 'cultivar': cultivar,
       if (irrigationType != null) 'irrigation_type': irrigationType,
+      if (landLevelingDate != null) 'land_leveling_date': landLevelingDate,
+      if (plowingDate != null) 'plowing_date': plowingDate,
       if (sowingDate != null) 'sowing_date': sowingDate,
       if (seasonEnd != null) 'season_end': seasonEnd,
       if (targetYieldKgHa != null) 'target_yield_kg_ha': targetYieldKgHa,
       if (seedRateKgHa != null) 'seed_rate_kg_ha': seedRateKgHa,
+      if (plantDensity != null) 'plant_density': plantDensity,
+      if (rowSpacingCm != null) 'row_spacing_cm': rowSpacingCm,
+      if (seedVarietySource != null) 'seed_variety_source': seedVarietySource,
       if (tillageType != null) 'tillage_type': tillageType,
       if (maturity != null) 'maturity': maturity,
       if (actualYieldKgHa != null) 'actual_yield_kg_ha': actualYieldKgHa,

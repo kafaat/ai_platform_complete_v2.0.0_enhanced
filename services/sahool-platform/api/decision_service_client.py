@@ -1,9 +1,9 @@
 """Thin sahool-platform client for decision-service boundary calls.
 
-P4 Decision / Outcome / Learning Boundary Extraction:
-- decision-service owns loop write semantics and loop-table persistence;
-- sahool-platform may keep auth/rate-limit/BFF routes, but should call this facade
-  instead of writing decision/outcome/learning loop tables directly.
+P0 Decision / Outcome / Learning SoR Strangler:
+- before cutover, sahool-platform remains the temporary authoritative writer and mirrors here;
+- after DECISION_SERVICE_SOR_ENABLED + real DB verification, decision-service owns persistence;
+- sahool-platform keeps auth/rate-limit/BFF orchestration and calls this facade.
 """
 
 from __future__ import annotations

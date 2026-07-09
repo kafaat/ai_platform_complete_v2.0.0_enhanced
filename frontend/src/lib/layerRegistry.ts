@@ -60,6 +60,14 @@ export type MapLayer = {
   opacity?: number;
   defaultVisible?: boolean;
   description?: string;
+  /** الخدمة أو المزود المسؤول عن إنتاج الطبقة، لمنع Layer Manager من استدعاء scaffolds. */
+  sourceService?: 'raster-service' | 'sahool-platform' | 'basemap-provider' | 'field-geometry' | 'unavailable';
+  /** هل تحتاج الطبقة تجهيزاً/Backfill قبل العرض، مثل TrueColor أو المؤشرات التاريخية. */
+  requiresBackfill?: boolean;
+  /** endpoint فحص التوفر runtime. يدعم {field_id} كقالب. */
+  availabilityEndpoint?: string;
+  /** طبقة بديلة آمنة عند عدم توفر المصدر runtime. */
+  fallbackLayerId?: string;
   /** حقوق/نَسَب المزود عند عرض الطبقة. */
   attribution?: string;
   /** أقصى تكبير موصى به للطبقة. */
@@ -86,6 +94,7 @@ export const LAYER_REGISTRY = [
     kind: 'basemap',
     // BASEMAP_SAT — ArcGIS World Imagery (FieldIndicatorMap.tsx)
     source: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    sourceService: 'basemap-provider',
     opacity: 1,
     defaultVisible: true,
     maxZoom: 19,
@@ -98,6 +107,7 @@ export const LAYER_REGISTRY = [
     kind: 'basemap',
     // يُفعَّل فقط عند وجود VITE_MAPBOX_TOKEN. لا يُستخدم للتحليل الآليّ/SAM2؛ هو خلفيّة عرض.
     source: 'https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/256/{z}/{x}/{y}@2x?access_token={token}',
+    sourceService: 'basemap-provider',
     opacity: 1,
     defaultVisible: false,
     maxZoom: 22,
@@ -113,6 +123,7 @@ export const LAYER_REGISTRY = [
     kind: 'basemap',
     // يُفعَّل فقط عند وجود VITE_MAPTILER_KEY. بديل احترافي لـMapbox كخلفية عرض، لا كمدخل تحليل.
     source: 'https://api.maptiler.com/tiles/satellite-v2/{z}/{x}/{y}.jpg?key={token}',
+    sourceService: 'basemap-provider',
     opacity: 1,
     defaultVisible: false,
     maxZoom: 20,
@@ -127,6 +138,7 @@ export const LAYER_REGISTRY = [
     kind: 'basemap',
     // Google Map Tiles API يحتاج session/token flow رسميّاً؛ لا نستخدم روابط tiles غير موثّقة.
     source: 'google-map-tiles-api://satellite',
+    sourceService: 'basemap-provider',
     opacity: 1,
     defaultVisible: false,
     maxZoom: 22,
@@ -143,6 +155,7 @@ export const LAYER_REGISTRY = [
     kind: 'basemap',
     // BASEMAP_LIGHT — Carto light_all (FieldIndicatorMap.tsx / AddFieldWithMap.tsx)
     source: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    sourceService: 'basemap-provider',
     opacity: 1,
     defaultVisible: false,
     maxZoom: 19,
@@ -157,6 +170,7 @@ export const LAYER_REGISTRY = [
     kind: 'boundary',
     // مشتقّ من هندسة الحقل عبر geomToPolygon (lib/geo) ويُرسم كـLeaflet Polygon.
     source: 'field-geometry',
+    sourceService: 'field-geometry',
     opacity: 0.9,
     defaultVisible: true,
     description: 'تراكب مضلّع حدود الحقل المشتقّ من هندسة الحقل (لا بلاطات).',
@@ -168,6 +182,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'صورة الحقل الخام (TrueColor)',
     kind: 'index',
     source: 'truecolor',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'satellite',
     opacity: 1,
     defaultVisible: true,
     description: 'صورة Sentinel-2 خام بألوان طبيعية داخل حدود الحقل؛ ليست مؤشّراً ملوّناً ولا تحتاج scale legend.',
@@ -180,6 +198,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الغطاء النباتيّ (NDVI)',
     kind: 'index',
     source: 'ndvi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -190,6 +212,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الرطوبة (NDMI)',
     kind: 'index',
     source: 'ndmi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     // أقرب لوحة دلاليّاً في CMAP (الرطوبة) — مطابق لاختيار FieldMapCenter.
     colormap: 'moisture',
     opacity: 0.85,
@@ -201,6 +227,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الملوحة',
     kind: 'index',
     source: 'salinity',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     // أقرب لوحة دلاليّاً في CMAP (التوصيل الكهربيّ ec) — مطابق لـFieldMapCenter.
     colormap: 'ec',
     opacity: 0.85,
@@ -216,6 +246,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الغطاء النباتيّ المحسّن (EVI)',
     kind: 'index',
     source: 'evi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -226,6 +260,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الغطاء المُعدَّل للتربة (SAVI)',
     kind: 'index',
     source: 'savi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -236,6 +274,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الغطاء المُعدَّل المُحسَّن (MSAVI)',
     kind: 'index',
     source: 'msavi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -246,6 +288,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر المياه (NDWI)',
     kind: 'index',
     source: 'ndwi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'moisture',
     opacity: 0.85,
     defaultVisible: false,
@@ -256,6 +302,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الغطاء الأخضر (GNDVI)',
     kind: 'index',
     source: 'gndvi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -266,6 +316,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الحافّة الحمراء (NDRE)',
     kind: 'index',
     source: 'ndre',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -276,6 +330,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الكلوروفيل بالحافّة الحمراء (RECI)',
     kind: 'index',
     source: 'reci',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -286,6 +344,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الكلوروفيل الأخضر (GCI)',
     kind: 'index',
     source: 'gci',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -296,6 +358,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الغطاء المقاوم للغلاف الجوي (ARVI)',
     kind: 'index',
     source: 'arvi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -306,6 +372,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الصبغات النباتية (SIPI)',
     kind: 'index',
     source: 'sipi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -316,6 +386,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الحرق/البقايا (NBR)',
     kind: 'index',
     source: 'nbr',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -326,6 +400,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر محتوى كلوروفيل المظلة (CCCI)',
     kind: 'index',
     source: 'ccci',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -336,6 +414,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الخضرة المرئي (VARI)',
     kind: 'index',
     source: 'vari',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -346,6 +428,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الورقة الخضراء (GLI)',
     kind: 'index',
     source: 'gli',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'ndvi',
     opacity: 0.85,
     defaultVisible: false,
@@ -356,6 +442,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر التربة العارية (BSI)',
     kind: 'index',
     source: 'bsi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'soil',
     opacity: 0.85,
     defaultVisible: false,
@@ -366,6 +456,10 @@ export const LAYER_REGISTRY = [
     labelAr: 'مؤشّر الإجهاد المائيّ (MSI)',
     kind: 'index',
     source: 'msi',
+    sourceService: 'raster-service',
+    requiresBackfill: true,
+    availabilityEndpoint: '/api/v1/fields/{field_id}/available-dates',
+    fallbackLayerId: 'truecolor',
     colormap: 'moisture',
     opacity: 0.85,
     defaultVisible: false,
@@ -379,6 +473,7 @@ export const LAYER_REGISTRY = [
     kind: 'radar',
     // لا تُنتج المنصّة بلاطات رادار اصطناعيّ اليوم — واصف صريح لا رابط ملفّق.
     source: 'unavailable',
+    sourceService: 'unavailable',
     opacity: 0.7,
     defaultVisible: false,
     description: 'طبقة رادار اصطناعيّ (SAR) — غير منتَجة بعد؛ نقطة تمديد موثّقة.',
@@ -424,6 +519,19 @@ export function resolveLayerSource(layer: MapLayer | undefined, env: Record<stri
 /** خرائط الأساس القابلة للعرض فعلياً في الواجهة بعد احترام tokens والتعطيل. */
 export function availableBasemapLayers(env: Record<string, string | undefined> = {}): MapLayer[] {
   return layersOfKind('basemap').filter((layer) => Boolean(resolveLayerSource(layer, env)));
+}
+
+/** طبقات raster التي تحتاج backfill/availability check قبل العرض. */
+export function layersRequiringBackfill(): MapLayer[] {
+  // LAYER_REGISTRY هو `as const satisfies MapLayer[]` فأنواعه حرفيّة بلا المفاتيح الاختياريّة؛
+  // نوسّع إلى MapLayer للوصول إلى الحقل الاختياريّ requiresBackfill.
+  return (LAYER_REGISTRY as readonly MapLayer[]).filter((layer) => layer.requiresBackfill === true);
+}
+
+/** هل طبقة معيّنة يجب أن تُفحص عبر availabilityEndpoint قبل إظهارها. */
+export function requiresLayerAvailabilityCheck(layerId: string): boolean {
+  const layer = getLayer(layerId);
+  return Boolean(layer?.requiresBackfill && layer?.availabilityEndpoint);
 }
 
 

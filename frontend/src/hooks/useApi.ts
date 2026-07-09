@@ -536,9 +536,9 @@ export function useIndicatorsCatalog(): UseQueryResult<IndicatorsCatalogResponse
 //   GET /api/v1/weather/forecast → {location, days:[{date, temp_max_c, temp_min_c,
 //                                    et0_mm, daylight_hours, sunrise/sunset, …}]}
 //   GET /api/v1/weather/historical (start_date/end_date) → {days:[…]}
-// المنطق الحقيقيّ (Open-Meteo + ET₀ FAO-56) يعيش في المنصّة؛ خدمة weather-service
-// جذعيّة تردّ 501 لأيّ مسار طقس. لذا نُمرّر كلّ طلبات الطقس عبر kongApi (مسارات
-// /api/v1/weather النسبيّة عبر البوّابة) بدل weatherApi المعطوبة، ونُطبّع الردّ إلى
+// المنطق الحقيقيّ (Open-Meteo + ET₀ FAO-56) انتقل إلى weather-service؛ المنصّة
+// تعمل الآن كـBFF آمن عبر kongApi (/api/v1/weather/*) حتى لا تستدعي الواجهة خدمة
+// الطقس مباشرةً ولا تكشف توكنات الخدمة. نُطبّع الردّ إلى
 // الشكل الذي تقرؤه المكوّنات بثبات: {current:{tmean,humidity_pct,wind_speed_kmh,
 // et0_mm}, forecast:[{date,tmean,tmax,tmin,…}], daily:[…]}. لا تلفيق: أيّ حقل غائب
 // يبقى null والمكوّنات تعرض «—». فشل المصدر (502/503) يُرفع لتعرض الواجهة حالة خطأ.
@@ -625,7 +625,7 @@ export function useWeatherForecast(lat = 15.05, lon = 45.55, days = 7) {
 
 export function useWeatherWofost(lat = 15.05, lon = 45.55, days = 14) {
   // لا نقطة wofost_format على المنصّة؛ نشتقّ مدخلات بنمط WOFOST من توقّعات المنصّة
-  // الحقيقيّة (نفس مصدر Open-Meteo) بدل ضرب خدمة weather-service الجذعيّة (501).
+  // الحقيقيّة عبر BFF المنصّة؛ weather-service يملك مصدر Open-Meteo وتبقى الواجهة خلف البوابة.
   return useQuery({
     queryKey: QK.weatherWofost(lat, lon, days),
     queryFn:  async () => {

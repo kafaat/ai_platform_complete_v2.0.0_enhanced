@@ -57,6 +57,8 @@ export default function SeasonStep({
   const [crops, setCrops] = useState<string[]>(initialCrop);
   const [cultivar, setCultivar] = useState('');
   const [irrType, setIrrType] = useState('drip');
+  const [landDate, setLandDate] = useState('');
+  const [plowDate, setPlowDate] = useState('');
   const [sowDate, setSowDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [targetYield, setTargetYield] = useState('');
@@ -66,6 +68,10 @@ export default function SeasonStep({
   const [maturity, setMaturity] = useState('');
   const [actualYield, setActualYield] = useState('');
   const [notesAr, setNotesAr] = useState('');
+  // KPIs زراعيّة (v42) — ملء تدريجيّ.
+  const [plantDensity, setPlantDensity] = useState('');
+  const [rowSpacing, setRowSpacing] = useState('');
+  const [seedVarietySource, setSeedVarietySource] = useState('');
   const [showOptional, setShowOptional] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -84,6 +90,12 @@ export default function SeasonStep({
 
   const handleNext = async () => {
     if (!crops.length) { setError('اختر محصولاً واحداً على الأقلّ'); return; }
+    if (landDate && plowDate && plowDate < landDate) {
+      setError('تاريخ الحراثة يجب أن يكون بعد تسوية الأرض'); return;
+    }
+    if (plowDate && sowDate && sowDate < plowDate) {
+      setError('تاريخ البذار يجب أن يكون بعد الحراثة'); return;
+    }
     if (endDate && sowDate && endDate < sowDate) {
       setError('نهاية الموسم يجب أن تكون بعد البذار'); return;
     }
@@ -102,14 +114,21 @@ export default function SeasonStep({
     setSaving(true); setError('');
     try {
       // نداء حقيقيّ على عقد الخلفيّة المُتّفق عليه (الحقول الأغرونوميّة داخل جسم الموسم).
+      const plantDensityVal = parseNonNeg(plantDensity);
+      const rowSpacingVal   = parseNonNeg(rowSpacing);
       await kongApi.post(`/api/v1/fields/${ctx.fieldId}/seasons`, {
         crops,
         cultivar: cultivar.trim() || undefined,
         irrigation_type: irrType,
+        land_leveling_date: landDate || undefined,
+        plowing_date: plowDate || undefined,
         seed_rate_kg_ha: seedRateVal,
         sowing_date: sowDate || undefined,
         season_end: endDate || undefined,
         target_yield_kg_ha: targetYieldVal,
+        plant_density: plantDensityVal ?? undefined,
+        row_spacing_cm: rowSpacingVal ?? undefined,
+        seed_variety_source: seedVarietySource.trim() || undefined,
         tillage_type: tillageType.trim() || undefined,
         maturity: maturity || undefined,
         actual_yield_kg_ha: actualYieldVal,
@@ -196,20 +215,25 @@ export default function SeasonStep({
         </div>
       </div>
 
-      {/* تواريخ + إنتاجيّة مستهدفة */}
+      {/* تواريخ إعداد الأرض والبذار */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'تسوية الأرض', val: landDate, set: setLandDate },
+          { label: 'حراثة الأرض', val: plowDate, set: setPlowDate },
+          { label: 'تاريخ البذار', val: sowDate,  set: setSowDate  },
+          { label: 'نهاية الموسم', val: endDate,  set: setEndDate  },
+        ].map(f => (
+          <div key={f.label}>
+            <label className="block text-xs text-slate-400 mb-1">{f.label}</label>
+            <input type="date" value={f.val} onChange={e => f.set(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm"
+              style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+          </div>
+        ))}
+      </div>
+
+      {/* إنتاجيّة مستهدفة + كثافة النبات + تباعد الصفوف */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">تاريخ البذار</label>
-          <input type="date" value={sowDate} onChange={e => setSowDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-400 mb-1">نهاية الموسم (حصاد متوقّع)</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg text-sm"
-            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
-        </div>
         <div>
           <label className="block text-xs text-slate-400 mb-1">إنتاجيّة مستهدفة (كجم/هـ)</label>
           <input type="number" min={0} value={targetYield} onChange={e => setTargetYield(e.target.value)}
@@ -217,6 +241,29 @@ export default function SeasonStep({
             className="w-full px-3 py-2 rounded-lg text-sm"
             style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
         </div>
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">كثافة النبات (نبات/م²)</label>
+          <input type="number" min={0} value={plantDensity} onChange={e => setPlantDensity(e.target.value)}
+            placeholder="اختياري"
+            className="w-full px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+        </div>
+        <div>
+          <label className="block text-xs text-slate-400 mb-1">تباعد الصفوف (سم)</label>
+          <input type="number" min={0} value={rowSpacing} onChange={e => setRowSpacing(e.target.value)}
+            placeholder="اختياري"
+            className="w-full px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+        </div>
+      </div>
+
+      {/* مصدر البذور */}
+      <div>
+        <label className="block text-xs text-slate-400 mb-1">مصدر البذور / الصنف</label>
+        <input value={seedVarietySource} onChange={e => setSeedVarietySource(e.target.value)}
+          placeholder="مثال: مركز البحوث الزراعيّة / سوق محلّي"
+          className="w-full px-3 py-2 rounded-lg text-sm"
+          style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
       </div>
 
       {/* حقول أغرونوميّة (v52): كمية البذور + نوع الحراثة + مرحلة النضج — تُحفظ فعليّاً */}

@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 589,
+  "baseline_python_module_count": 590,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -54,6 +54,7 @@
     "api/decision_explainer.py",
     "api/decision_lineage.py",
     "api/decision_service_client.py",
+    "api/decision_sor_mode.py",
     "api/device_models.py",
     "api/device_registry.py",
     "api/disease_diagnosis.py",

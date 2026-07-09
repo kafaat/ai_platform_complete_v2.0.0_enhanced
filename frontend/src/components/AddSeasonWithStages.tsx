@@ -18,16 +18,24 @@ import { asApiError } from '../services/api';
 interface Stage { name: string; date: string; notes: string; }
 
 interface SeasonData {
-  field_id:          string;
-  crops:             string[];
-  cultivar:          string;
-  land_leveling_date:string;
-  plowing_date:      string;
-  sowing_date:       string;
-  season_end:        string;
-  seed_rate_kg_ha:   number;
-  irrigation_type:   string;
-  custom_stages:     Stage[];
+  field_id:            string;
+  crops:               string[];
+  cultivar:            string;
+  land_leveling_date:  string;
+  plowing_date:        string;
+  sowing_date:         string;
+  season_end:          string;
+  seed_rate_kg_ha:     number;
+  irrigation_type:     string;
+  custom_stages:       Stage[];
+  target_yield_kg_ha?: number;
+  plant_density?:      number;
+  row_spacing_cm?:     number;
+  seed_variety_source?:string;
+  maturity?:           string;
+  tillage_type?:       string;
+  actual_yield_kg_ha?: number;
+  notes_ar?:           string;
 }
 
 interface Props {
@@ -67,18 +75,27 @@ function suitabilityColor(s: string) {
 }
 
 export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCancel }: Props) {
-  const [selectedCrops, setSelectedCrops] = useState<string[]>([]);
-  const [cultivar,   setCultivar]   = useState('');
-  const [landDate,   setLandDate]   = useState('');
-  const [plowDate,   setPlowDate]   = useState('');
-  const [sowDate,    setSowDate]    = useState('');
-  const [endDate,    setEndDate]    = useState('');
-  const [seedRate,   setSeedRate]   = useState<string>('');
-  const [irrType,    setIrrType]    = useState('drip');
-  const [stages,     setStages]     = useState<Stage[]>([]);
-  const [saving,     setSaving]     = useState(false);
-  const [errors,     setErrors]     = useState<Record<string, string>>({});
-  const [showCropPicker, setShowCropPicker] = useState(false);
+  const [selectedCrops,      setSelectedCrops]      = useState<string[]>([]);
+  const [cultivar,           setCultivar]           = useState('');
+  const [landDate,           setLandDate]           = useState('');
+  const [plowDate,           setPlowDate]           = useState('');
+  const [sowDate,            setSowDate]            = useState('');
+  const [endDate,            setEndDate]            = useState('');
+  const [seedRate,           setSeedRate]           = useState<string>('');
+  const [irrType,            setIrrType]            = useState('drip');
+  const [stages,             setStages]             = useState<Stage[]>([]);
+  const [saving,             setSaving]             = useState(false);
+  const [errors,             setErrors]             = useState<Record<string, string>>({});
+  const [showCropPicker,     setShowCropPicker]     = useState(false);
+  const [showOptional,       setShowOptional]       = useState(false);
+  const [targetYield,        setTargetYield]        = useState('');
+  const [plantDensity,       setPlantDensity]       = useState('');
+  const [rowSpacing,         setRowSpacing]         = useState('');
+  const [seedVarietySource,  setSeedVarietySource]  = useState('');
+  const [maturity,           setMaturity]           = useState('');
+  const [tillageType,        setTillageType]        = useState('');
+  const [actualYield,        setActualYield]        = useState('');
+  const [notesAr,            setNotesAr]            = useState('');
 
   const addCrop = (label: string) => {
     if (!selectedCrops.includes(label)) setSelectedCrops(p => [...p, label]);
@@ -104,16 +121,24 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
     setSaving(true);
     try {
       await onSave({
-        field_id:           fieldId,
-        crops:              selectedCrops,
-        cultivar:           cultivar,
-        land_leveling_date: landDate,
-        plowing_date:       plowDate,
-        sowing_date:        sowDate,
-        season_end:         endDate,
-        seed_rate_kg_ha:    +seedRate,
-        irrigation_type:    irrType,
-        custom_stages:      stages,
+        field_id:            fieldId,
+        crops:               selectedCrops,
+        cultivar:            cultivar,
+        land_leveling_date:  landDate,
+        plowing_date:        plowDate,
+        sowing_date:         sowDate,
+        season_end:          endDate,
+        seed_rate_kg_ha:     +seedRate,
+        irrigation_type:     irrType,
+        custom_stages:       stages,
+        target_yield_kg_ha:  targetYield  ? +targetYield  : undefined,
+        plant_density:       plantDensity ? +plantDensity : undefined,
+        row_spacing_cm:      rowSpacing   ? +rowSpacing   : undefined,
+        seed_variety_source: seedVarietySource.trim() || undefined,
+        maturity:            maturity || undefined,
+        tillage_type:        tillageType.trim() || undefined,
+        actual_yield_kg_ha:  actualYield  ? +actualYield  : undefined,
+        notes_ar:            notesAr.trim() || undefined,
       });
     } catch (e: unknown) {
       setErrors({ general: asApiError(e).message || 'فشل الحفظ' });
@@ -255,6 +280,88 @@ export default function AddSeasonWithStages({ fieldId, fieldName, onSave, onCanc
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* ③ب حقول زراعية اختيارية */}
+          <div>
+            <button type="button" onClick={() => setShowOptional(p => !p)}
+              className="text-xs text-slate-400 hover:text-slate-200 flex items-center gap-1">
+              <ChevronDown className={`w-3 h-3 transition-transform ${showOptional ? 'rotate-180' : ''}`} />
+              {showOptional ? 'إخفاء الحقول الزراعيّة التفصيليّة' : 'حقول زراعيّة تفصيليّة (اختياريّ)'}
+            </button>
+            {showOptional && (
+              <div className="mt-3 space-y-3">
+                {/* نوع الحراثة + النضج + مصدر البذور */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">نوع الحراثة</label>
+                    <input value={tillageType} onChange={e => setTillageType(e.target.value)}
+                      placeholder="مثال: تقليديّة / بدون حراثة"
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">مرحلة النضج</label>
+                    <select value={maturity} onChange={e => setMaturity(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}>
+                      <option value="">— غير محدّد —</option>
+                      <option value="early">مبكّر</option>
+                      <option value="medium">متوسّط</option>
+                      <option value="late">متأخّر</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">مصدر البذور</label>
+                    <input value={seedVarietySource} onChange={e => setSeedVarietySource(e.target.value)}
+                      placeholder="مثال: مركز البحوث / سوق محلّي"
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                  </div>
+                </div>
+                {/* KPIs: إنتاجيّة مستهدفة + كثافة النبات + تباعد الصفوف */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">إنتاجيّة مستهدفة (كجم/هـ)</label>
+                    <input type="number" min={0} value={targetYield} onChange={e => setTargetYield(e.target.value)}
+                      placeholder="اختياري"
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">كثافة النبات (نبات/م²)</label>
+                    <input type="number" min={0} value={plantDensity} onChange={e => setPlantDensity(e.target.value)}
+                      placeholder="اختياري"
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">تباعد الصفوف (سم)</label>
+                    <input type="number" min={0} value={rowSpacing} onChange={e => setRowSpacing(e.target.value)}
+                      placeholder="اختياري"
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                  </div>
+                </div>
+                {/* غلّة فعليّة + ملاحظات */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">الغلّة الفعليّة (كجم/هـ) — بعد الحصاد</label>
+                    <input type="number" min={0} value={actualYield} onChange={e => setActualYield(e.target.value)}
+                      placeholder="تُسجَّل بعد الحصاد"
+                      className="w-full px-3 py-2 rounded-lg text-sm"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">ملاحظات</label>
+                    <textarea value={notesAr} onChange={e => setNotesAr(e.target.value)} rows={2}
+                      placeholder="ملاحظات حرّة على الموسم"
+                      className="w-full px-3 py-2 rounded-lg text-sm resize-y"
+                      style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ④ مراحل إضافية */}
