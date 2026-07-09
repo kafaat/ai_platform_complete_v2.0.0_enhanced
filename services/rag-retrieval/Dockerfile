@@ -4,7 +4,7 @@ FROM python:3.12-slim-bookworm
 # Docker image/pip defaults while the rest of the monorepo made the index
 # explicit. With compose --no-cache this could resolve against an incomplete
 # mirror and fail with: "No matching distribution found for fastapi==0.136.3".
-ARG PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple/
 ARG PIP_EXTRA_INDEX_URL=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL} \
