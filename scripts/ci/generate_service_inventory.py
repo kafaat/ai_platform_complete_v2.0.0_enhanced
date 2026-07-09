@@ -218,7 +218,9 @@ def discover() -> tuple[list[ServiceRow], list[RouteRow]]:
     service_rows: list[ServiceRow] = []
     route_rows: list[RouteRow] = []
     for svc_dir in sorted(p for p in SERVICES.iterdir() if p.is_dir()):
-        py_files = [p for p in svc_dir.rglob("*.py") if "__pycache__" not in p.parts]
+        # فرز صريح: ترتيب rglob يعتمد نظام الملفّات/إصدار بايثون (اختلف فعليّاً بين
+        # 3.11 محليّاً و3.12 في CI ⇒ انجراف كاذب في route_inventory) — الحتميّة إلزاميّة.
+        py_files = sorted(p for p in svc_dir.rglob("*.py") if "__pycache__" not in p.parts)
         test_files = [p for p in py_files if p.name.startswith("test_") or "/tests/" in str(p)]
         svc_routes: list[RouteRow] = []
         for py in py_files:
