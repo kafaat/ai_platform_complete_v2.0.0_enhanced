@@ -111,6 +111,7 @@ const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 const MapHub              = lazy(() => import('./sections/MapHub'));
 const FarmMapOverview     = lazy(() => import('./sections/FarmMapOverview'));
 const FieldWorkspaceMapCard = lazy(() => import('./sections/FieldWorkspaceMapCard'));
+const FieldWorkspaceRouteShell = lazy(() => import('./sections/FieldWorkspaceRouteShell'));
 const FieldTasksCabin     = lazy(() => import('./sections/FieldTasksCabin'));
 const RecommendationFlow  = lazy(() => import('./sections/RecommendationFlow'));
 const HybridMonitor       = lazy(() => import('./sections/HybridMonitor'));
@@ -307,7 +308,7 @@ export default function App() {
       // مُستورَداً ومتاحاً (يُحتفَظ به مرجعاً) لكنّ الـMap Hub يَخلُفه افتراضيّاً.
       case 'map-center':   return <MapHub />;
       case 'farm-map':     return <FarmMapOverview />;
-      case 'field-workspace': return <FieldWorkspaceMapCard />;
+      case 'field-workspace': return <FieldWorkspaceRouteShell />;
       case 'tasks-cabin':  return <FieldTasksCabin />;
       case 'rec-flow':     return <RecommendationFlow />;
       case 'hybrid-monitor': return <HybridMonitor />;
@@ -403,6 +404,8 @@ export default function App() {
           {ALL_ROUTES.map((r) => (
             <Route key={r.id} path={r.path} element={pageContent} />
           ))}
+          <Route path="/fields/:fieldId/workspace" element={<FieldWorkspaceRouteShell />} />
+          <Route path="/field/:fieldId/workspace" element={<FieldWorkspaceRouteShell />} />
           <Route path="/health/timeline" element={pageContent} />
           <Route path="/health/temporal-indicators" element={pageContent} />
           <Route path="/health/indicators/timeline" element={pageContent} />

@@ -41,26 +41,15 @@ export interface FieldDataCompletenessResponse {
   [key: string]: unknown;
 }
 
-export interface FieldTimelineEvent {
-  event_id?: string;
-  event_type?: string;
-  category?: string;
-  occurred_at?: string;
-  title_ar?: string;
-  description_ar?: string;
-  payload?: Record<string, unknown>;
-  actor_id?: string | number | null;
-}
+export type { FieldTimelineEvent, FieldUnifiedTimelineParams, FieldUnifiedTimelineResponse } from './fieldTimeline';
 
-export interface FieldUnifiedTimelineResponse {
-  field_id: string;
-  events: FieldTimelineEvent[];
-  total_events?: number;
-  categories?: Record<string, number>;
-  note_ar?: string;
-  error?: string;
-  [key: string]: unknown;
-}
+
+export const getFieldUnifiedTimeline = (
+  fieldId: string,
+  params?: import('./fieldTimeline').FieldUnifiedTimelineParams,
+): Promise<import('./fieldTimeline').FieldUnifiedTimelineResponse> =>
+  // UI-32: compatibility wrapper; domain module and this stable route stay explicit.
+  kongApi.get<import('./fieldTimeline').FieldUnifiedTimelineResponse>(`/api/v1/fields/${fieldId}/unified-timeline`, { params }).then(r => r.data);
 
 export interface PriorityQueueItem {
   id: string;
@@ -90,12 +79,6 @@ export const getFieldReadiness = (fieldId: string): Promise<FieldReadinessRespon
 
 export const getFieldDataCompleteness = (fieldId: string): Promise<FieldDataCompletenessResponse> =>
   kongApi.get<FieldDataCompletenessResponse>(`/api/v1/fields/${fieldId}/data-completeness`).then(r => r.data);
-
-export const getFieldUnifiedTimeline = (
-  fieldId: string,
-  params?: { limit?: number; newest_first?: boolean; category?: string },
-): Promise<FieldUnifiedTimelineResponse> =>
-  kongApi.get<FieldUnifiedTimelineResponse>(`/api/v1/fields/${fieldId}/unified-timeline`, { params }).then(r => r.data);
 
 export const getFarmPriorityQueue = (farmId: string): Promise<PriorityQueueResponse> =>
   kongApi.get<PriorityQueueResponse>(`/api/v1/farms/${farmId}/priority-queue`).then(r => r.data);

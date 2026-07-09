@@ -6,7 +6,6 @@ import { resolve } from 'node:path';
 // الذي يفشل في vitest بـ«URL must be of scheme file»).
 const hooks = readFileSync(resolve(__dirname, '../hooks/useApi.ts'), 'utf8');
 const api = readFileSync(resolve(__dirname, '../services/api.ts'), 'utf8');
-// UI3: عميل axios واعتراض 401 انتقلا إلى services/api/client.ts (تقسيم api.ts)
 const apiClient = readFileSync(resolve(__dirname, '../services/api/client.ts'), 'utf8');
 
 describe('Satellite runtime fixes', () => {

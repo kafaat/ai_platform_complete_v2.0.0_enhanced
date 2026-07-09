@@ -2743,6 +2743,21 @@
       "endpoint": "/api/v1/fields/{field_id}/readiness",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/priority-queue",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/farms/{farm_id}/priority-queue",
+      "audience": "farmer",
+      "evidence": "/api/v1/farms"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/weather/operation-windows",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
     }
   ]
 }

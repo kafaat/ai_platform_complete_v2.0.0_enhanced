@@ -129,7 +129,7 @@ describe('ReplayMapPage', () => {
   it('(و) 503/خطأ آخر ⇒ حالة خطأ صادقة (لا تلفيق)', () => {
     stubReplay(qError(503));
     render(<ReplayMapPage />);
-    // UI2: تعطل التوفّر (503) يُعرَض حالةً متدهورة صادقة (AdvancedServiceState→DegradedState)
+    // UI2: تعطل التوفّر (503) ⇒ حالة متدهورة صادقة
     expect(screen.getByText('تعمل إعادة تشغيل الموسم في وضع متدهور')).toBeInTheDocument();
   });
 });

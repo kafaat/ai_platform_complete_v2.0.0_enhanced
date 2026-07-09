@@ -44,7 +44,7 @@ describe('MapHub historical imagery timeline thumbnails', () => {
     expect(api).toContain('limit = 240');
     expect(api).toContain('params: { ...(index ? { index } : {}), limit }');
     expect(platformFields).toContain('limit: int = Query(240, ge=1, le=500)');
-    // P2 raster facade: بناء limit/index انتقل من fields.py إلى raster_service_client.get_available_dates
+    // P2 raster facade: بناء limit/index في raster_service_client.get_available_dates
     expect(rasterClient).toContain('limit: int = 240,');
     expect(rasterClient).toContain('params: dict[str, Any] = {"limit": limit}');
     expect(rasterClient).toContain('params["index"] = index');

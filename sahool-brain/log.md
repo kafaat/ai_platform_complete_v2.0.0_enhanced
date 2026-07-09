@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-07-08 — دمج أرشيف UI5–UI35 (تفكيك MapHub + مساحة عمل الحقل الكاملة + واجهات BFF خلفيّة)
+
+أرشيف المستخدم `3573402_ui31_ui35_field_workspace_final_completion` مبنيّ على رأسنا الأخضر بالضبط (بلا حذوفات زائفة). دلتا 69 ملفّاً. **الميزة:** تفكيك `MapHub.tsx` إلى قشور `sections/maphub/*` (Shell/ToolToggle/OperationalOverlayControls/RoleAwareMapSurface…) + **مساحة عمل الحقل** (FieldWorkspace* ألسنة/لوحات: imagery/weather/irrigation/tasks/timeline/priority/operations/reports) + **٤ راوترات BFF خلفيّة** تفوّض عبر الواجهات: `field_workspace_imagery` (available-dates/timeline → raster facade) · `field_workspace_weather` (operation-windows → weather facade؛ irrigation-advice/disease-risk بقايا Open-Meteo منقولة من fields.py) · `field_workspace_timeline` (unified-timeline) · `field_priority_queue` (farm/field) + عقود route/completion. **UI28-30 تنظيف:** نُقِلت 5 مسارات من fields.py إلى الراوترات الجديدة (لا تكرار تسجيل).
+
+**تحقّق-قبل-دمج أصلح (الأرشيف مكسور كما شُحِن رغم بنائه على رأسنا):** (أ) **٤ أخطاء tsc متكرّرة** (App.tsx بلا استدعاء الـhook · api.ts إعادة تصدير لا تربط + deactivateUser ساقط · **MapHub حذف تعريف `CompareMap` مع إبقاء استخدامه** — استعدتُه). (ب) **١١ اختبار vitest** (7 بائتة رُقِّيت + حارسا تفكيك MapHub وُسِّعا لقراءة OperationalOverlayControls). (ج) **١٣ حارس منصّة** — توصيل حَوكمة كامل: baseline وحدات 583→589 · مسارات 572→575 (إزالة 5 مدخلات fields.py بائتة للمسارات المنقولة + إضافة 8 بمالكيها: imagery→raster-service · weather→weather-service · priority/timeline→sahool-platform) · سقف P2.6→575 · allowlists الحدود (raster/weather boundary + P2.5 alias + weather_direct_wiring: field_workspace_weather بقيّة منقولة موثَّقة) · /api/v1/features في القراءة العامّة · UI20 guard (unified-timeline انتقل) · تصحيح imagery-timeline test لموطنه الجديد. **صدق معماريّ محفوظ:** لم أطبّق النسخة الأقدم (`dab14b7_ui27`) التي كرّرت المسارات وخرقت حدود الطقس؛ هذه النسخة نظّفتها (UI28-30). بقايا Open-Meteo المباشرة = **نفس بقايا fields.py السابقة منقولة** (موثَّقة residual، لا خرق جديد).
+
+**التحقّق المستقلّ:** tsc 0 · vitest **1099/155** · منصّة **3534** · tests_v9 unit **2806** · ruff نظيف · release **3534**.
+
+---
+
 ## 2026-07-08 — دمج أرشيف UI3b/UI4 (سجلّ الميزات الحيّ + عقود تشغيل الحقل + تقسيم api.ts)
 
 أرشيف `dab14b7_ui3b_ui4_auto_continuation` مبنيّ على رأسنا الأخضر بالضبط ⇒ الدلتا (22 ملفّاً) حقيقيّة مباشرة. **الميزة:** (UI3b) سجلّ رايات ميزات حيّ `GET /api/v1/features` + `useFeatureRegistry` (fail-open حتى التحميل؛ يُخفي صفحات الأعلام المطفأة بعد التحميل) + `AdvancedServiceState` يميّز 404=ميزة مطفأة / 502-504=وضع متدهور / 401-403=صلاحيّة · (UI4) واجهة `GET /api/v1/fields/{id}/readiness` (إعادة تشكيل عقد data-completeness، `calibrated=false` صادق) + عقود `fieldOperating.ts` (منها priority-queue **خامل** بلا خلفيّة — موثَّق «مخطَّط») · (UI3) بدء تقسيم api.ts إلى `api/{client,auth,features,fieldOperating}.ts` مع واجهة توافق + 5 حُرّاس منصّة جديدة.

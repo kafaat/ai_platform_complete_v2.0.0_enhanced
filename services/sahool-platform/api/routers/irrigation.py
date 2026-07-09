@@ -32,6 +32,8 @@ from api.main import (
     Permission,
     UserSchema,
     WaterAnalysisRequest,
+    _assert_field_in_tenant,
+    _db_unavailable,
     _emit_domain_event,
     _idem_key,
     _idempotent,
@@ -306,20 +308,32 @@ async def list_schedules(
     field_id: str | None = None,
     user: UserSchema = Depends(require_permission(Permission.IRRIGATION_VIEW)),
 ):
-    async with tenant_connection(user) as conn:
-        if field_id:
-            rows = await conn.fetch(
-                "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
-                "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
-                "WHERE field_id = $1 ORDER BY start_time",
-                field_id,
-            )
-        else:
-            rows = await conn.fetch(
-                "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
-                "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
-                "ORDER BY start_time"
-            )
+    """جداول ري محفوظة فقط.
+
+    عند تمرير ``field_id`` نثبت ملكية الحقل أولاً حتى لا تكشف واجهة Field Workspace
+    جدولاً لحقل خارج المستأجر حتى لو كانت RLS في وضع متراخٍ في بيئة تطوير. لا توجد
+    جداول افتراضية أو خطة ري مصطنعة من الواجهة.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            if field_id:
+                await _assert_field_in_tenant(conn, field_id)
+                rows = await conn.fetch(
+                    "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
+                    "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
+                    "WHERE field_id = $1 ORDER BY start_time",
+                    field_id,
+                )
+            else:
+                rows = await conn.fetch(
+                    "SELECT schedule_id, field_id, valve_id, name, start_time, duration_min, "
+                    "days_of_week, water_target_mm, enabled, last_run_at FROM irrigation_schedules "
+                    "ORDER BY start_time"
+                )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("قراءة جداول الري", exc) from exc
     return [
         {
             "schedule_id": r["schedule_id"],

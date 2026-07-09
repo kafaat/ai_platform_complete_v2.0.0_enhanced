@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e196841d42f9f3d96bac46074a7b17278c3330324b08aa5f65d99eddc66d9514"
+          "content": "2c0e9bce25aef032053649ea7a841cddf318089a71665a611f17b6817a9fcbf2"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -1585,7 +1585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88fa34fd2e87ed98b259ee51ff95237a6fb30d370ea0f7ed4ba2c38e03111e8f"
+          "content": "8bd2032e61857e076ca74cf69590ecdcb33cf797f1d5fa9fd22dd4f8e7422804"
         }
       ],
       "name": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
@@ -1595,7 +1595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a66068b0841633681f617997cd48ca91de545e7e60c992202ae95a4bc6f2fb27"
+          "content": "cefda588c4b5504a7650bc36a7616ff8f47b1c229c6ce9b3365b95044911e907"
         }
       ],
       "name": "frontend/src/components/maphub/OperationalOverlay.static.test.ts",
@@ -2095,6 +2095,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4447c960b2a9db56f312641b67663e67144640417daf70befbec1b5d6810df36"
+        }
+      ],
+      "name": "frontend/src/components/product/AdvancedServiceState.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ac9a70698b55e8beeee79a6a0dcb7351e41dc935b1179850b41030272f6fc76b"
         }
       ],
@@ -2349,6 +2359,16 @@
         }
       ],
       "name": "frontend/src/hooks/useEvidenceHistory.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "13cd2604662be06dbbf9a0deffeb91099066672e6654f4a2db3f7e63088eb510"
+        }
+      ],
+      "name": "frontend/src/hooks/useFeatureRegistry.ts",
       "type": "file"
     },
     {
@@ -4385,7 +4405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fa08924ed556ceedaddeb258ff1a18b7390df124884c8ec32a5d1c5fbd167d4"
+          "content": "32c91b4a3db8aac7bccc2e508662f1eba71c6ccbaba6ea228abd8ee316863c90"
         }
       ],
       "name": "frontend/src/sections/DecisionConfidencePage.test.tsx",
@@ -4505,7 +4525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32abe35237e8686cc0b5dac49a455ea0b90e4afbeb839c1ecc7d0d674c4759fb"
+          "content": "a82b1103516d3f1875361699202cbc5091f53fc7478ea8a468230dda23bef8c6"
         }
       ],
       "name": "frontend/src/sections/EvidenceMapPage.test.tsx",
@@ -4525,7 +4545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5d1ca524978438529cf6c8443161cc82dd5423091e1ee9cb5e8a70366ac2b60"
+          "content": "44e73cc0178b469720c94924a71e13edf719ec367597ad3ca45a468d8694708d"
         }
       ],
       "name": "frontend/src/sections/ExecutionFeedbackPage.test.tsx",
@@ -4825,7 +4845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20f4b294fdc25d169db4c37f9f9fe816d40636ab9b549eb20cb596da6ec3eb70"
+          "content": "aeffc04dbc550308642dcb7756b7904dc41b644944394b90e4f59bf9ceebabbf"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -4835,7 +4855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "415e688ac3947c2e812b431d2203aa9cb0b9b9dbc9f3f9fb9a0c038b0e9c89a0"
+          "content": "0191d824abe5d5e779e3f2c684547cb45a7ab1a11e3f1960ae5701060bbab6ab"
         }
       ],
       "name": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
@@ -5085,7 +5105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f830b5cb5afbd00106b08a588e4c76d4ece86f78e028cc5b6d1d40dc1c87e59e"
+          "content": "13027ca7dbee5dd5c5f1bc47cefc00894382af160b8106e4fb318620ddbd3869"
         }
       ],
       "name": "frontend/src/sections/ReplayMapPage.test.tsx",
@@ -5155,7 +5175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba6c267cdd8b2727bf50398d4e1155895a4c40bab7ca343a6eeac4294f3d1f91"
+          "content": "fdfa91897f54ded9ada30b539365c0b2874c40accea77f0b0a98f687a33d3b35"
         }
       ],
       "name": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
@@ -5275,7 +5295,47 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06d2f925db940742a9e0b878b7a51f5fd706e4583b44b689b48f66e2065115cd"
+          "content": "3f02ee58688e635540b49bd5c176a83dc179137078b2f3d7cfb44781c53d0635"
+        }
+      ],
+      "name": "frontend/src/services/api/auth.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "86bc5ca22474c664a3007ede39c61faae5006406b64f94e3e9e95c2de9815ff4"
+        }
+      ],
+      "name": "frontend/src/services/api/client.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ac1263a74ac9bc62894b711a0dc686559f22ef84db04f0b1be26b724e7a916b1"
+        }
+      ],
+      "name": "frontend/src/services/api/features.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "256e8d70fd1fac8d4e5feb80f568203b0b4023a663678df8945225f529a53b5e"
+        }
+      ],
+      "name": "frontend/src/services/api/fieldOperating.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0bd29e688b5011b53599de50e48a6a21f17983a908fcea1284815e75a01d09e2"
         }
       ],
       "name": "frontend/src/services/api.test.ts",
@@ -5285,7 +5345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "770a303953ff9f04fd992ed126c5e8ece22fa68a29a3577a44f5c077826728d4"
+          "content": "7ac9fe5389bcb3da90f488a766a5965f22b615b86eaee82045849095545ab244"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -12825,6 +12885,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c89b2904a6a19f54aa42bb128e61bfa86e5326262ea5e6d8909171e1717c4d18"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/features.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "549821653f94c4b722be91761c782950e6ea3995b61124c37aaac9ba5d8ddd23"
         }
       ],
@@ -12865,6 +12935,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1f9d2d8e81d454d49e3d6d3434f9ff31fcba1e343ae1336f2f7af28cbd2b82ae"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/field_readiness.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c61eb8d4f1c737ee8b5645ecf8d31187725f06fe14b2578b0b113dda722504ba"
         }
       ],
@@ -12885,7 +12965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6cdd547ee9cc907bae1fababfc6fc31b0257ef00d2f1727a5b0f8cf79d889165"
+          "content": "09c70c291ba063677294ad4a9f7781e03391ed6fb85980b4618fcc64d5fc0d88"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -13025,7 +13105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e85f12e274767fa8ed88bacc3e5585de3f1b4d70b74b3bd5aa95a4faa8e3cc7"
+          "content": "634c02ffd47776bafe164373fe719387984d50582ae0c233c61dc3fa87d0a365"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation.py",
@@ -18975,6 +19055,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b5142ab0594706601405adf6841e8040a4d627181919fe5751bd39ddca6a9103"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_feature_flag_navigation_alignment_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "da74d4cb4914e933edc7746e10f303e006270ab9133c86491c564738d60a3461"
         }
       ],
@@ -19935,7 +20025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cbf926f05953b7c699c4a6244cf89dcb7213d1fb4be8cd11154087dc7407508"
+          "content": "10d468bc6ed4ef533ec9155272a34124ec1232a34916cb4c4ff592655055d077"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
@@ -19945,7 +20035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71cd6e86c5095857f0c31ef43c24188b418d545f75a45aa706813ee55c65b456"
+          "content": "6bc1903e30df8af88e7a7b5b71eca99ed289782f80c9c87e70a792a4405bf4a7"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -20829,6 +20919,46 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_time_series.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c1f29aeb2bd0fcdbc8c01acc890024e48e53ca3da344e2aaba9bb2f2264bda3a"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd90fcbc6716760344a522aab257f9da964ffc175d05e8973248548253051644"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui3_api_module_split_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "04fd9d13f88b89161555a18e4dce7a0afcb1a8909b256b10b6ff1644b150c719"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui3b_api_domain_modules_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7022d99bff90c19b3b72b26a3b55a03c2f5c98af2561a204405383d1e1ac4eb6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
       "type": "file"
     },
     {

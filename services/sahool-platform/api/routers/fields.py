@@ -758,7 +758,8 @@ async def refresh_field_imagery(
         raise _db_unavailable("تحديث صور الأقمار للحقل", e) from e
 
 
-@router.get("/api/v1/fields/{field_id}/available-dates")
+# UI-28 route ownership: exposed by api/routers/field_workspace_imagery.py
+# legacy implementation kept as callable helper; do not register duplicate route.
 async def field_imagery_available_dates(
     field_id: str,
     index: str | None = Query(None),
@@ -793,7 +794,8 @@ async def field_imagery_available_dates(
         raise _db_unavailable("تواريخ صور الأقمار للحقل", e) from e
 
 
-@router.get("/api/v1/fields/{field_id}/imagery/timeline")
+# UI-28 route ownership: exposed by api/routers/field_workspace_imagery.py
+# legacy implementation kept as callable helper; do not register duplicate route.
 async def field_imagery_timeline(
     field_id: str,
     months: int = Query(24, ge=1, le=60),
@@ -2448,7 +2450,8 @@ async def field_soil_moisture(
     }
 
 
-@router.get("/api/v1/fields/{field_id}/weather/irrigation-advice")
+# UI-28 route ownership: exposed by api/routers/field_workspace_weather.py
+# legacy implementation kept as callable helper; do not register duplicate route.
 async def field_irrigation_advice(
     field_id: str,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
@@ -2516,7 +2519,8 @@ async def field_irrigation_advice(
     return advice
 
 
-@router.get("/api/v1/fields/{field_id}/weather/disease-risk")
+# UI-28 route ownership: exposed by api/routers/field_workspace_weather.py
+# legacy implementation kept as callable helper; do not register duplicate route.
 async def field_disease_risk(
     field_id: str,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
@@ -3688,7 +3692,7 @@ async def field_history(
     return {"field_id": field_id, "events": out_events, "total_events": len(out_events)}
 
 
-@router.get("/api/v1/fields/{field_id}/unified-timeline")
+# UI-31 route ownership: exposed by api/routers/field_workspace_timeline.py
 async def field_unified_timeline(
     field_id: str,
     limit: int = 200,

@@ -57,8 +57,7 @@ export {
   apiErrorMessage,
   deactivateUser,
 } from './api/auth';
-// إعادة التصدير أعلاه لا تربط الأسماء في نطاق هذه الوحدة — الواجهة نفسها تستخدم
-// أدوات الخطأ/التوكن داخليّاً، فنستوردها صراحةً أيضاً.
+// إعادة التصدير أعلاه لا تربط الأسماء في نطاق هذه الوحدة — الواجهة تستخدمها داخليّاً.
 import { asApiError, apiErrorMessage } from './api/auth';
 import { getAccessToken } from '../lib/authStorage';
 export type {
@@ -4234,3 +4233,12 @@ export const updateEditingUndoRedo = (fieldId: string, action: 'push' | 'undo' |
 // ══════════════════════════════════════════════════════════════════
 export { getFeatureRegistry } from './api/features';
 export type { FeatureRegistryItem, FeatureRegistryResponse } from './api/features';
+export * from './api/fieldTasks';
+
+// FIELD WORKSPACE TAB FACADES — UI-24/UI-26 compatibility exports
+export * from './api/fieldImagery';
+export * from './api/fieldWeather';
+export * from './api/fieldIrrigation';
+
+// FIELD WORKSPACE TIMELINE FACADE — UI-32 compatibility export
+export * from './api/fieldTimeline';

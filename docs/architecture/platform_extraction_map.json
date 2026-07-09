@@ -1,5 +1,5 @@
 {
-  "baseline_route_count": 572,
+  "baseline_route_count": 575,
   "routes": [
     {
       "file": "api/chat_proxy_reference.py",
@@ -2633,26 +2633,6 @@
     },
     {
       "file": "api/routers/fields.py",
-      "function": "field_imagery_available_dates",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/available-dates",
-      "line": 752,
-      "target_owner": "raster-service",
-      "owner_type": "compute-store",
-      "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/available-dates::field_imagery_available_dates"
-    },
-    {
-      "file": "api/routers/fields.py",
-      "function": "field_imagery_timeline",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/imagery/timeline",
-      "line": 801,
-      "target_owner": "raster-service",
-      "owner_type": "compute-store",
-      "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/imagery/timeline::field_imagery_timeline"
-    },
-    {
-      "file": "api/routers/fields.py",
       "function": "field_imagery_backfill_proxy",
       "method": "POST",
       "path": "/api/v1/fields/{field_id}/imagery/backfill",
@@ -2810,26 +2790,6 @@
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/soil-moisture::field_soil_moisture"
-    },
-    {
-      "file": "api/routers/fields.py",
-      "function": "field_irrigation_advice",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
-      "line": 2526,
-      "target_owner": "weather-service",
-      "owner_type": "system-of-record",
-      "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/weather/irrigation-advice::field_irrigation_advice"
-    },
-    {
-      "file": "api/routers/fields.py",
-      "function": "field_disease_risk",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/weather/disease-risk",
-      "line": 2594,
-      "target_owner": "weather-service",
-      "owner_type": "system-of-record",
-      "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/weather/disease-risk::field_disease_risk"
     },
     {
       "file": "api/routers/fields.py",
@@ -3020,16 +2980,6 @@
       "target_owner": "field-management-service",
       "owner_type": "system-of-record-target",
       "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/history::field_history"
-    },
-    {
-      "file": "api/routers/fields.py",
-      "function": "field_unified_timeline",
-      "method": "GET",
-      "path": "/api/v1/fields/{field_id}/unified-timeline",
-      "line": 3766,
-      "target_owner": "field-management-service",
-      "owner_type": "system-of-record-target",
-      "route_key": "api/routers/fields.py::GET /api/v1/fields/{field_id}/unified-timeline::field_unified_timeline"
     },
     {
       "file": "api/routers/fields.py",
@@ -5720,13 +5670,94 @@
       "target_owner": "sahool-platform",
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/field_readiness.py::GET /api/v1/fields/{field_id}/readiness::field_readiness"
+    },
+    {
+      "file": "api/routers/field_priority_queue.py",
+      "function": "field_priority_queue",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/priority-queue",
+      "line": 112,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/field_priority_queue.py::GET /api/v1/fields/{field_id}/priority-queue::field_priority_queue"
+    },
+    {
+      "file": "api/routers/field_priority_queue.py",
+      "function": "farm_priority_queue",
+      "method": "GET",
+      "path": "/api/v1/farms/{farm_id}/priority-queue",
+      "line": 174,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/field_priority_queue.py::GET /api/v1/farms/{farm_id}/priority-queue::farm_priority_queue"
+    },
+    {
+      "file": "api/routers/field_workspace_imagery.py",
+      "function": "field_imagery_available_dates_facade",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/available-dates",
+      "line": 40,
+      "target_owner": "raster-service",
+      "owner_type": "bff-facade-to-raster",
+      "route_key": "api/routers/field_workspace_imagery.py::GET /api/v1/fields/{field_id}/available-dates::field_imagery_available_dates_facade"
+    },
+    {
+      "file": "api/routers/field_workspace_imagery.py",
+      "function": "field_imagery_timeline_facade",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/imagery/timeline",
+      "line": 72,
+      "target_owner": "raster-service",
+      "owner_type": "bff-facade-to-raster",
+      "route_key": "api/routers/field_workspace_imagery.py::GET /api/v1/fields/{field_id}/imagery/timeline::field_imagery_timeline_facade"
+    },
+    {
+      "file": "api/routers/field_workspace_timeline.py",
+      "function": "field_unified_timeline_facade",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/unified-timeline",
+      "line": 31,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/field_workspace_timeline.py::GET /api/v1/fields/{field_id}/unified-timeline::field_unified_timeline_facade"
+    },
+    {
+      "file": "api/routers/field_workspace_weather.py",
+      "function": "field_weather_operation_windows",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/operation-windows",
+      "line": 62,
+      "target_owner": "weather-service",
+      "owner_type": "bff-facade-to-weather",
+      "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/operation-windows::field_weather_operation_windows"
+    },
+    {
+      "file": "api/routers/field_workspace_weather.py",
+      "function": "field_irrigation_advice_facade",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
+      "line": 113,
+      "target_owner": "weather-service",
+      "owner_type": "bff-facade-to-weather",
+      "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/irrigation-advice::field_irrigation_advice_facade"
+    },
+    {
+      "file": "api/routers/field_workspace_weather.py",
+      "function": "field_disease_risk_facade",
+      "method": "GET",
+      "path": "/api/v1/fields/{field_id}/weather/disease-risk",
+      "line": 166,
+      "target_owner": "weather-service",
+      "owner_type": "bff-facade-to-weather",
+      "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/disease-risk::field_disease_risk_facade"
     }
   ],
   "p2_6_route_budget_reduction": {
     "previous_baseline_route_count": 567,
     "measured_route_count_after_p4_5": 570,
-    "new_max_platform_routes": 572,
+    "new_max_platform_routes": 575,
     "policy": "No route growth above the verified AST route budget after P3/P4 extraction without ownership-map review; extraction progress is enforced by service boundary guards, not artificial route deletion. Budget deliberately raised 567->570 for the JSON-metrics hotfix (field-intelligence async-job + evidence-graph read endpoints, platform-owned).",
-    "ui3b_ui4_note": "Budget deliberately raised 570->572 for two UI-alignment BFF routes (/api/v1/features runtime flag registry; /api/v1/fields/{field_id}/readiness facade over data-completeness). Documented raise via the sanctioned guard path, not silent growth."
+    "ui3b_ui4_note": "Budget deliberately raised 570->572 for two UI-alignment BFF routes (/api/v1/features runtime flag registry; /api/v1/fields/{field_id}/readiness facade over data-completeness). Documented raise via the sanctioned guard path, not silent growth.",
+    "ui27_ui35_note": "Budget raised 572->575 for UI27-UI35 Field Workspace BFF facades (imagery/weather/timeline/priority), owned+documented."
   }
 }
