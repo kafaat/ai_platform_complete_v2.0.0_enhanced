@@ -1,0 +1,31 @@
+name: Dependency Conflict Inventory
+
+on:
+  pull_request:
+    paths:
+      - 'services/**/requirements*.txt'
+      - 'scripts/ci/service_dependency_conflict_guard.py'
+      - 'scripts/ci/build_service_dependency_bundle.py'
+      - 'dependency_conflicts.generated.json'
+      - 'dependency_conflicts.csv'
+      - 'requirements.services.direct.lock'
+  push:
+    branches: [ main ]
+    paths:
+      - 'services/**/requirements*.txt'
+      - 'scripts/ci/service_dependency_conflict_guard.py'
+      - 'scripts/ci/build_service_dependency_bundle.py'
+      - 'dependency_conflicts.generated.json'
+      - 'dependency_conflicts.csv'
+      - 'requirements.services.direct.lock'
+
+jobs:
+  dependency-conflict-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/ci/service_dependency_conflict_guard.py --check
+      - run: python scripts/ci/build_service_dependency_bundle.py --check

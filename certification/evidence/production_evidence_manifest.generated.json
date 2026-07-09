@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "certification_state": "release_candidate_not_production_certified",
+  "allowed_states": [
+    "pending",
+    "evidence_attached",
+    "verified",
+    "waived_with_reason",
+    "failed"
+  ],
+  "non_waivable_blockers": [
+    "P-CERT-1",
+    "P-CERT-2",
+    "P-CERT-4",
+    "GUARDS"
+  ],
+  "policy": "Do not set production_certified until every non-waivable blocker has verified evidence from target CI/deployment.",
+  "evidence_files": [
+    {
+      "blocker_id": "P-CERT-2",
+      "name": "Connected transitive lock generation",
+      "file": "certification/evidence/transitive_locks_summary.json",
+      "current_status": "pending",
+      "required_status": "verified",
+      "waivable": false,
+      "minimum_fields": [
+        "status",
+        "command",
+        "index_url_policy",
+        "lock_files",
+        "timestamp_utc"
+      ]
+    },
+    {
+      "blocker_id": "P-CERT-1",
+      "name": "Full branch CI",
+      "file": "certification/evidence/ci_summary.json",
+      "current_status": "pending",
+      "required_status": "verified",
+      "waivable": false,
+      "minimum_fields": [
+        "status",
+        "branch",
+        "commit",
+        "jobs",
+        "timestamp_utc"
+      ]
+    },
+    {
+      "blocker_id": "P-CERT-4",
+      "name": "ONNX/SAM2 model provisioning",
+      "file": "certification/evidence/model_provisioning_summary.json",
+      "current_status": "pending",
+      "required_status": "verified",
+      "waivable": false,
+      "minimum_fields": [
+        "status",
+        "edge_readiness_mode",
+        "edge_production_required",
+        "artifacts",
+        "timestamp_utc"
+      ]
+    },
+    {
+      "blocker_id": "P-CERT-3",
+      "name": "Redis live integration",
+      "file": "certification/evidence/redis_live_test_summary.json",
+      "current_status": "pending",
+      "required_status": "verified",
+      "waivable": true,
+      "minimum_fields": [
+        "status",
+        "redis_url_kind",
+        "test_command",
+        "readyz_cache_backend",
+        "timestamp_utc"
+      ]
+    },
+    {
+      "blocker_id": "GUARDS",
+      "name": "Guard results summary",
+      "file": "certification/evidence/guard_results_summary.json",
+      "current_status": "pending",
+      "required_status": "verified",
+      "waivable": false,
+      "minimum_fields": [
+        "status",
+        "guards",
+        "timestamp_utc"
+      ]
+    }
+  ]
+}

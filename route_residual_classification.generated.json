@@ -1,0 +1,683 @@
+{
+  "schema_version": 1,
+  "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
+  "total_residual_main_routes": 74,
+  "classification_counts": {
+    "business_endpoint": 40,
+    "capabilities": 2,
+    "contract": 2,
+    "health": 15,
+    "legacy_alias": 1,
+    "metrics": 4,
+    "readiness": 10
+  },
+  "business_endpoint_count": 40,
+  "rows": [
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 50,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 55,
+      "method": "GET",
+      "path": "/health",
+      "function": "legacy_health",
+      "classification": "health"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 60,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 67,
+      "method": "GET",
+      "path": "/metrics",
+      "function": "metrics",
+      "classification": "metrics"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 196,
+      "method": "POST",
+      "path": "/recommend",
+      "function": "recommend",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 242,
+      "method": "POST",
+      "path": "/simulate",
+      "function": "simulate",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 251,
+      "method": "POST",
+      "path": "/plan",
+      "function": "plan",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "agriai-engine",
+      "file": "services/agriai-engine/main.py",
+      "line": 261,
+      "method": "POST",
+      "path": "/replay/verify",
+      "function": "replay_verify",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 109,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 114,
+      "method": "GET",
+      "path": "/healthz/ai-provider",
+      "function": "ai_provider_snapshot",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 122,
+      "method": "GET",
+      "path": "/approvals/pending",
+      "function": "list_pending_approvals",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 142,
+      "method": "POST",
+      "path": "/approvals/approve",
+      "function": "approve_tool_request",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 194,
+      "method": "POST",
+      "path": "/approvals/deny",
+      "function": "deny_tool_request",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 240,
+      "method": "POST",
+      "path": "/approvals/resume",
+      "function": "resume_approved_tool",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 284,
+      "method": "POST",
+      "path": "/prescription/export-preview",
+      "function": "prescription_export_preview",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 300,
+      "method": "GET",
+      "path": "/metrics",
+      "function": "metrics",
+      "classification": "metrics"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 319,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 358,
+      "method": "POST",
+      "path": "/query",
+      "function": "query",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 369,
+      "method": "POST",
+      "path": "/chat",
+      "function": "chat",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 380,
+      "method": "POST",
+      "path": "/explain",
+      "function": "explain",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "ai_agronomist",
+      "file": "services/ai_agronomist/main.py",
+      "line": 391,
+      "method": "POST",
+      "path": "/recommend",
+      "function": "recommend",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 150,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 155,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 169,
+      "method": "GET",
+      "path": "/v1/cutover/readiness",
+      "function": "cutover_readiness",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 179,
+      "method": "GET",
+      "path": "/contract",
+      "function": "contract",
+      "classification": "contract"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 212,
+      "method": "POST",
+      "path": "/v1/decisions/record",
+      "function": "record_decision",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 238,
+      "method": "POST",
+      "path": "/v1/dispatch/decisions",
+      "function": "record_dispatch",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 264,
+      "method": "GET",
+      "path": "/v1/dispatch/decisions",
+      "function": "list_dispatch",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 278,
+      "method": "POST",
+      "path": "/v1/outcomes/record",
+      "function": "record_outcome",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 304,
+      "method": "POST",
+      "path": "/v1/recommendation-outcomes",
+      "function": "record_recommendation_outcome",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 329,
+      "method": "POST",
+      "path": "/v1/learning/updates",
+      "function": "record_learning_update",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 360,
+      "method": "GET",
+      "path": "/v1/learning/summary",
+      "function": "learning_summary",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 374,
+      "method": "GET",
+      "path": "/v1/decisions",
+      "function": "list_decisions",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 403,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/lineage",
+      "function": "field_lineage",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 419,
+      "method": "GET",
+      "path": "/v1/outcomes/reconciled",
+      "function": "reconciled_outcomes",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 439,
+      "method": "GET",
+      "path": "/v1/decisions/{decision_id}/lineage",
+      "function": "decision_lineage",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 159,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "health_check",
+      "classification": "health"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 189,
+      "method": "POST",
+      "path": "/inference/pest-detect",
+      "function": "detect_pest",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 251,
+      "method": "POST",
+      "path": "/inference/yield-estimate",
+      "function": "estimate_yield",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 317,
+      "method": "POST",
+      "path": "/sync/trigger",
+      "function": "trigger_sync",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 349,
+      "method": "GET",
+      "path": "/capabilities",
+      "function": "capabilities",
+      "classification": "capabilities"
+    },
+    {
+      "service": "edge-inference",
+      "file": "services/edge-inference/main.py",
+      "line": 354,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "field-segmentation",
+      "file": "services/field-segmentation/main.py",
+      "line": 370,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "field-segmentation",
+      "file": "services/field-segmentation/main.py",
+      "line": 375,
+      "method": "GET",
+      "path": "/health",
+      "function": "legacy_health",
+      "classification": "health"
+    },
+    {
+      "service": "field-segmentation",
+      "file": "services/field-segmentation/main.py",
+      "line": 380,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "field-segmentation",
+      "file": "services/field-segmentation/main.py",
+      "line": 386,
+      "method": "POST",
+      "path": "/segment",
+      "function": "segment",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 27,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 32,
+      "method": "GET",
+      "path": "/health",
+      "function": "legacy_health",
+      "classification": "health"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 37,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "ready",
+      "classification": "readiness"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 50,
+      "method": "GET",
+      "path": "/capabilities",
+      "function": "capabilities",
+      "classification": "capabilities"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 67,
+      "method": "GET",
+      "path": "/contract",
+      "function": "contract",
+      "classification": "contract"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 79,
+      "method": "POST",
+      "path": "/v1/indicators/compute",
+      "function": "compute_indicator",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 90,
+      "method": "GET",
+      "path": "/",
+      "function": "root",
+      "classification": "legacy_alias"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 87,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 92,
+      "method": "GET",
+      "path": "/metrics",
+      "function": "metrics",
+      "classification": "metrics"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 109,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 118,
+      "method": "POST",
+      "path": "/nodes",
+      "function": "upsert_node",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 126,
+      "method": "POST",
+      "path": "/edges",
+      "function": "upsert_edge",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 135,
+      "method": "GET",
+      "path": "/edges",
+      "function": "edges",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "knowledge-graph",
+      "file": "services/knowledge-graph/main.py",
+      "line": 149,
+      "method": "POST",
+      "path": "/graphql",
+      "function": "graphql",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "line": 420,
+      "method": "POST",
+      "path": "/query",
+      "function": "query_endpoint",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "line": 430,
+      "method": "POST",
+      "path": "/ingest",
+      "function": "ingest_endpoint",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "line": 482,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "line": 500,
+      "method": "GET",
+      "path": "/health",
+      "function": "legacy_health",
+      "classification": "health"
+    },
+    {
+      "service": "local-ai-rag",
+      "file": "services/local-ai-rag/main.py",
+      "line": 505,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "line": 55,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "line": 60,
+      "method": "GET",
+      "path": "/metrics",
+      "function": "metrics",
+      "classification": "metrics"
+    },
+    {
+      "service": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "line": 73,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "line": 90,
+      "method": "POST",
+      "path": "/ingest",
+      "function": "ingest",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "rag-retrieval",
+      "file": "services/rag-retrieval/main.py",
+      "line": 115,
+      "method": "POST",
+      "path": "/search",
+      "function": "search",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "sam2-inference",
+      "file": "services/sam2-inference/main.py",
+      "line": 25,
+      "method": "POST",
+      "path": "/predict",
+      "function": "predict",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "sam2-inference",
+      "file": "services/sam2-inference/main.py",
+      "line": 106,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "sam2-inference",
+      "file": "services/sam2-inference/main.py",
+      "line": 111,
+      "method": "GET",
+      "path": "/health",
+      "function": "legacy_health",
+      "classification": "health"
+    },
+    {
+      "service": "sam2-inference",
+      "file": "services/sam2-inference/main.py",
+      "line": 116,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    }
+  ]
+}

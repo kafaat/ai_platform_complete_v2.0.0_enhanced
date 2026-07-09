@@ -4306,14 +4306,15 @@ def test_rag_hidden_deps_complete():
     # 1. sentence-transformers مُزال (السبب الأصلي)
     if "sentence-transformers" not in req and "sentence_transformers" not in main:
         r.append(("\u2713", "sentence-transformers مُزال (السبب الأصلي للفشل)"))
-    # 2. المرآة: Tencent Cloud افتراضيّاً (قرار المشغّل — pypi.org يفشل من شبكتنا حتى مع VPN)،
-    #    مع بقاء PyPI الرسميّ override موثَّقاً، وبلا مرآة tsinghua غير موثوقة.
+    # 2. PyPI الرسمي افتراضياً، مع دعم Alibaba mirror كـ override، وبلا Tencent stale default.
     if (
-        "mirrors.cloud.tencent.com/pypi/simple" in dockerfile
-        and "pypi.org/simple" in dockerfile
-        and "pypi.tuna.tsinghua" not in dockerfile
+        "ARG PIP_INDEX_URL=https://pypi.org/simple" in dockerfile
+        and "mirrors.aliyun.com/pypi/simple" in dockerfile
+        and "mirrors.cloud.tencent.com" not in dockerfile
+        and "--timeout" in dockerfile
+        and "--retries" in dockerfile
     ):
-        r.append(("\u2713", "المرآة: Tencent Cloud افتراضيّاً (+ override رسميّ pypi.org موثَّق)"))
+        r.append(("\u2713", "PyPI افتراضي + Alibaba override + retry/timeout controls"))
     # 3. pypdf موجود (PyPDFLoader يحتاجه وقت التشغيل)
     if "PyPDFLoader" in main and "pypdf" in req:
         r.append(("\u2713", "pypdf موجود (PyPDFLoader لا يفشل عند تحميل PDF)"))

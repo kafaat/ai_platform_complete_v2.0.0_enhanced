@@ -1,0 +1,5 @@
+file,endpoint,handler,mode,status,missing_keys,keys
+services/decision-service/main.py,/contract,contract,inline-dict,ok,,"authoritative,contract_version,cutover_readiness_endpoint,demotion_gate,implemented_runtime,migration_path,mirrors_tables,note,outbox,owns_tables_when_promoted,persistence_gate,phase,platform_role,role,service,system_of_record"
+services/edge-inference/main.py,/capabilities,capabilities,helper-inline-dict,ok,,"active_capability_count,agent_token_configured,all_required_models_active,capabilities,device,offline_mode,production_required,queue_size,readiness_mode,required_capability_count,schema_version,service,sync_token_configured"
+services/indicators-service/main.py,/capabilities,capabilities,inline-dict,ok,,"capabilities,handoff_owner,health_only,implemented_runtime,schema_version,service"
+services/indicators-service/main.py,/contract,contract,inline-dict,ok,,"allowed_routes,contract_version,handoff_owner,implemented_runtime,service,truth_policy"

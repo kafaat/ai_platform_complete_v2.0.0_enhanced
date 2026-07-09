@@ -1,0 +1,16 @@
+{
+  "blocker_id": "P-CERT-3",
+  "name": "Redis live integration",
+  "status": "pending",
+  "required_status": "verified",
+  "waivable": true,
+  "minimum_fields": [
+    "status",
+    "redis_url_kind",
+    "test_command",
+    "readyz_cache_backend",
+    "timestamp_utc"
+  ],
+  "timestamp_utc": null,
+  "notes": "Attach real CI/deployment evidence here; pending placeholders are not certification evidence."
+}

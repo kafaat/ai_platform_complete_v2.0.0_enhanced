@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "certification_state": "release_candidate_not_production_certified",
+  "policy": "Do not mark production certified until every blocker has evidence from the target branch/deployment environment.",
+  "recommended_closure_order": [
+    "P-CERT-2",
+    "P-CERT-1",
+    "P-CERT-4",
+    "P-CERT-3"
+  ],
+  "known_local_skip": {
+    "test": "services/weather-service/tests/test_weather_redis_live_optional.py",
+    "reason": "Skipped unless WEATHER_REDIS_INTEGRATION_URL is set; this is the explicit P-CERT-3 live Redis blocker, not a hidden failure.",
+    "certification_impact": "acceptable for local offline guard runs; not acceptable for final production certification evidence"
+  },
+  "blockers": [
+    {
+      "id": "P-CERT-1",
+      "name": "Full branch CI",
+      "severity": "critical",
+      "status": "pending_external_ci",
+      "required_evidence": [
+        "pytest -m unit exits 0",
+        "platform test suite exits 0",
+        "tsc --noEmit exits 0",
+        "vitest run exits 0",
+        "ruff check exits 0",
+        "Docker build matrix exits 0",
+        "release bundle exits 0",
+        "all generated inventories are clean"
+      ],
+      "commands": [
+        "pytest -m unit",
+        "pytest platform/tests",
+        "tsc --noEmit",
+        "vitest run",
+        "ruff check .",
+        "docker build matrix",
+        "release bundle"
+      ],
+      "certification_rule": "0 failed, no unexpected critical skip, no inventory/guard drift"
+    },
+    {
+      "id": "P-CERT-2",
+      "name": "Connected transitive lock generation",
+      "severity": "critical",
+      "status": "pending_connected_index_or_internal_mirror",
+      "required_evidence": [
+        "scripts/ci/compile_transitive_service_locks.sh exits 0 in connected CI",
+        "official PyPI is the default index",
+        "Alibaba mirror is only an explicit override",
+        "Tencent mirror is not a default",
+        "pip install uses --timeout 300 and --retries 10",
+        "generated transitive lock files are committed or attached to the release bundle"
+      ],
+      "commands": [
+        "scripts/ci/compile_transitive_service_locks.sh",
+        "python scripts/ci/pip_mirror_contract_guard.py"
+      ],
+      "certification_rule": "reproducible locks generated from connected PyPI/default index or reviewed internal mirror"
+    },
+    {
+      "id": "P-CERT-3",
+      "name": "Redis live integration",
+      "severity": "medium-critical",
+      "status": "pending_live_redis_endpoint",
+      "required_evidence": [
+        "WEATHER_REDIS_INTEGRATION_URL points at a real Redis instance",
+        "weather Redis live optional test exits 0",
+        "cache write/read works",
+        "stale fallback behavior remains verified",
+        "/readyz reports cache backend truthfully"
+      ],
+      "commands": [
+        "WEATHER_REDIS_INTEGRATION_URL=redis://localhost:6379/0 pytest services/weather-service/tests/test_weather_redis_live_optional.py",
+        "scripts/ci/run_weather_redis_integration.sh"
+      ],
+      "certification_rule": "live Redis passes without downgrading readiness honesty"
+    },
+    {
+      "id": "P-CERT-4",
+      "name": "ONNX/SAM2 model provisioning",
+      "severity": "critical",
+      "status": "pending_operator_model_artifacts",
+      "required_evidence": [
+        "/models/pest_detector_int8.onnx exists in deployment environment",
+        "/models/yield_estimator_int8.onnx exists in deployment environment",
+        "SAM2 artifacts exist in deployment environment",
+        "EDGE_READINESS_MODE=strict and EDGE_PRODUCTION_REQUIRED=true",
+        "/readyz is ready when artifacts exist",
+        "missing model still fails closed",
+        "no simulation fallback is used"
+      ],
+      "commands": [
+        "python scripts/ci/edge_model_contract_guard.py",
+        "python scripts/ci/edge_production_readiness_guard.py",
+        "EDGE_READINESS_MODE=strict EDGE_PRODUCTION_REQUIRED=true pytest services/edge-inference/tests"
+      ],
+      "certification_rule": "strict readiness passes only with provisioned artifacts; absent artifacts fail closed"
+    }
+  ]
+}

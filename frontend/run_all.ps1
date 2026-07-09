@@ -125,7 +125,7 @@ function Start-Backend {
     $services = @(
         @{ Url = 'http://localhost:8091/health'; Name = 'indicators-service' },
         @{ Url = 'http://localhost:8090/health'; Name = 'vegetation-service' },
-        @{ Url = 'http://localhost:8092/health'; Name = 'weather-service' },
+        @{ Url = 'http://localhost:8092/healthz'; Name = 'weather-service' },
         @{ Url = 'http://localhost:8094/health'; Name = 'soil-service' },
         @{ Url = 'http://localhost:8000/health'; Name = 'kong-gateway' }
     )
@@ -185,7 +185,7 @@ function Show-Status {
     $services = @(
         @{ Port = 8091; Path = '/health';     Name = 'indicators-service (33 مؤشر)' },
         @{ Port = 8090; Path = '/health';     Name = 'vegetation-service (Sentinel-2)' },
-        @{ Port = 8092; Path = '/health';     Name = 'weather-service (WOFOST)' },
+        @{ Port = 8092; Path = '/healthz';    Name = 'weather-service' },
         @{ Port = 8094; Path = '/health';     Name = 'soil-service (FAO)' },
         @{ Port = 8000; Path = '/';           Name = 'kong-gateway' },
         @{ Port = 8222; Path = '/healthz';    Name = 'nats-jetstream' },

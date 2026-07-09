@@ -39,7 +39,9 @@ services:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
       NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN
       DOMAIN: ${DOMAIN:-localhost}
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
       sahool-auth:
         condition: service_healthy
@@ -103,7 +105,9 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/3
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       FRAME_INTERVAL_SEC: ${FRAME_INTERVAL_SEC:-5}
       MAX_CONCURRENT_STREAMS: ${MAX_CONCURRENT_STREAMS:-10}
     depends_on:
@@ -139,7 +143,9 @@ services:
     environment:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SENTINEL_HUB_MCP_URL: http://sahool-sentinel-hub-mcp:8000
       WEATHER_MCP_URL: http://sahool-weather-mcp:8000
       WOFOST_MCP_URL: http://sahool-wofost-mcp:8000
@@ -182,7 +188,9 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/2
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SAHOOL_ENV: ${SAHOOL_ENV:-development}
       TTS_CACHE_TTL: ${TTS_CACHE_TTL:-86400}
       TTS_MAX_TEXT_LEN: ${TTS_MAX_TEXT_LEN:-1000}
@@ -445,6 +453,8 @@ services:
       # mirrors to this URL and swallows failures. Unreachable mirror ⇒ logged warning, never data loss.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
       RAG_RETRIEVAL_URL: ${RAG_RETRIEVAL_URL:-http://sahool-rag-retrieval:8000}
       KNOWLEDGE_GRAPH_URL: ${KNOWLEDGE_GRAPH_URL:-http://sahool-knowledge-graph:8000}
@@ -568,6 +578,8 @@ services:
       MCP_WOFOST_URL: http://sahool-wofost-mcp:8000/mcp/v1
       MCP_MARKET_URL: http://sahool-market-mcp:8000/mcp/v1
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-auth:
@@ -600,6 +612,8 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -783,7 +797,9 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
       CDSE_ENABLED: ${CDSE_ENABLED:-true}
@@ -992,7 +1008,13 @@ services:
     environment:
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      WEATHER_REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/4
+      WEATHER_OPEN_METEO_TIMEOUT_S: ${WEATHER_OPEN_METEO_TIMEOUT_S:-4}
+      WEATHER_OPEN_METEO_BREAKER_FAILURES: ${WEATHER_OPEN_METEO_BREAKER_FAILURES:-3}
+      WEATHER_OPEN_METEO_BREAKER_RESET_S: ${WEATHER_OPEN_METEO_BREAKER_RESET_S:-30}
     depends_on:
+      sahool-redis:
+        condition: service_healthy
       sahool-nats:
         condition: service_healthy
     networks:
@@ -1101,12 +1123,16 @@ services:
     logging: *id001
     environment:
       SAHOOL_CLOUD_URL: https://api.sahool.local
-      EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:-}
+      EDGE_SYNC_TOKEN: ${EDGE_SYNC_TOKEN:?EDGE_SYNC_TOKEN required for edge sync}
       EDGE_DEVICE: ${EDGE_DEVICE:-rpi5}
       OFFLINE_MODE: ${OFFLINE_MODE:-false}
       SYNC_INTERVAL: ${SYNC_INTERVAL:-3600}
       MODEL_CACHE: /models
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      PEST_MODEL_PATH: /models/pest_detector_int8.onnx
+      YIELD_MODEL_PATH: /models/yield_estimator_int8.onnx
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     volumes:
     - edge-models:/models
     - edge-sync:/data/sync_queue
@@ -1134,7 +1160,9 @@ services:
       QDRANT_HOST: sahool-qdrant
       QDRANT_PORT: 6333
       QDRANT_API_KEY: ${QDRANT_API_KEY}
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       EMBEDDING_URL: http://sahool-ollama:11434/api/embeddings
       LLM_URL: http://sahool-ollama:11434/api/generate
       EMBEDDING_MODEL: nomic-embed-text
@@ -1234,6 +1262,8 @@ services:
       PLATFORM_URL: http://sahool-platform:8000
       GUARDRAILS_URL: http://sahool-guardrails-engine:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SAHOOL_AGENT_STORE_BACKEND: ${SAHOOL_AGENT_STORE_BACKEND:-redis}
       SAHOOL_AGENT_REDIS_URL: ${SAHOOL_AGENT_REDIS_URL:-redis://:${REDIS_PASSWORD}@sahool-redis:6379/0}
     depends_on:
@@ -1417,7 +1447,9 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       SMTP_FROM: ${SMTP_FROM}
       TTS_URL: http://sahool-tts-service:8000
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -1585,6 +1617,8 @@ services:
         required}@sahool-postgres:5432/sahool}
       NATS_URL: nats://sahool-nats:4222
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -1614,7 +1648,9 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SEGMENTATION_MODEL_PATH: ${SEGMENTATION_MODEL_PATH:-}
       SEGMENTATION_BACKEND: ${SEGMENTATION_BACKEND:-}
       SEGMENTATION_INFERENCE_URL: ${SEGMENTATION_INFERENCE_URL:-http://sahool-sam2-inference:8080/predict}
@@ -1653,7 +1689,9 @@ services:
             capabilities:
             - gpu
     environment:
-      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
+      EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SAM2_CHECKPOINT: ${SAM2_CHECKPOINT:-/models/sam2_hiera_large.pt}
       SAM2_MODEL_CFG: ${SAM2_MODEL_CFG:-sam2_hiera_l.yaml}
       SAM2_POLYGON_SIMPLIFY_TOLERANCE_M: ${SAM2_POLYGON_SIMPLIFY_TOLERANCE_M:-3}

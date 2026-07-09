@@ -1,0 +1,17 @@
+name: Test dependency inventory
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+jobs:
+  test-dependency-inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check tests_v9 dependency contract
+        run: python scripts/ci/test_requirements_inventory_guard.py --check

@@ -479,8 +479,7 @@ async def ingest_endpoint(
 
 
 @app.get("/healthz")
-@app.get("/health")
-async def health():
+async def healthz():
     ollama_ok = False
     try:
         async with httpx.AsyncClient(timeout=60.0) as c:
@@ -490,10 +489,16 @@ async def health():
         logger.debug("فحص صحّة Ollama فشل: %s", type(e).__name__)
     return {
         "status": "alive",
+        "service": "local-ai-rag",
         "ollama": "connected" if ollama_ok else "disconnected",
         "model": LLM_MODEL,
         "embed_model": EMBED_MODEL,
     }
+
+
+@app.get("/health", include_in_schema=False)
+async def legacy_health():
+    return await healthz()
 
 
 @app.get("/readyz")
@@ -502,9 +507,9 @@ async def readyz():
     if _llm is None or _vectorstore is None:
         raise HTTPException(
             status_code=503,
-            detail={"status": "initialising", "message": "النماذج قيد التحميل"},
+            detail={"status": "initialising", "service": "local-ai-rag", "message": "النماذج قيد التحميل"},
         )
-    return {"status": "ready", "version": "9.1.0"}
+    return {"status": "ready", "service": "local-ai-rag", "version": "9.1.0", "implemented_runtime": True}
 
 
 if __name__ == "__main__":

@@ -47,16 +47,20 @@ app = FastAPI(title="SAHOOL AgriAI Engine", version=VERSION, lifespan=lifespan)
 
 
 @app.get("/healthz")
-@app.get("/health")
-async def health():
+async def healthz():
     return {"status": "alive", "service": "agriai-engine", "version": VERSION}
+
+
+@app.get("/health", include_in_schema=False)
+async def legacy_health():
+    return await healthz()
 
 
 @app.get("/readyz")
 async def readyz():
     # بلا تبعيّات خارجيّة قصداً: حوسبة صرفة (توصيات/تحسين غلّة بلا قاعدة/Redis/NATS).
     # لا شيء ننتظره ⇒ جاهز دائماً بصدق.
-    return {"status": "ready"}
+    return {"status": "ready", "service": "agriai-engine", "implemented_runtime": True}
 
 
 @app.get("/metrics")

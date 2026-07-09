@@ -1,0 +1,15 @@
+name: Runtime Real Smoke
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+jobs:
+  runtime-real-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r tests_v9/requirements-test.txt
+      - run: scripts/ci/runtime_real_smoke.sh

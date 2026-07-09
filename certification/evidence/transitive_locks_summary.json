@@ -1,0 +1,16 @@
+{
+  "blocker_id": "P-CERT-2",
+  "name": "Connected transitive lock generation",
+  "status": "pending",
+  "required_status": "verified",
+  "waivable": false,
+  "minimum_fields": [
+    "status",
+    "command",
+    "index_url_policy",
+    "lock_files",
+    "timestamp_utc"
+  ],
+  "timestamp_utc": null,
+  "notes": "Attach real CI/deployment evidence here; pending placeholders are not certification evidence."
+}

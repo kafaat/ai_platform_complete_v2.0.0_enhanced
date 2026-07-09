@@ -1,0 +1,17 @@
+name: Edge Model Contract
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  edge-model-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify edge model provisioning contract
+        run: python scripts/ci/edge_model_contract_guard.py

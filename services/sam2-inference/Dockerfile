@@ -16,8 +16,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# ── مرآة Tencent Cloud (افتراضي — أكثر موثوقيّة في شبكتنا؛ pypi.org يفشل حتى مع VPN) ──
-ARG PIP_INDEX_URL=https://mirrors.cloud.tencent.com/pypi/simple/
+# ── PyPI الرسمي افتراضياً؛ يمكن استخدام Alibaba mirror عبر build arg ──
+# Alibaba override: --build-arg PIP_INDEX_URL=https://mirrors.aliyun.com/pypi/simple/
+ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
@@ -41,8 +42,8 @@ ARG SAM2_REF=main
 ENV SAM2_BUILD_CUDA=0
 # ضمان توفّر خلفيّة البناء لـ--no-build-isolation (setuptools/wheel/torch حاضرة عادةً
 # في صورة pytorch الأساس؛ نثبّتها صراحةً كتأمين ضدّ صورة قاعدة نحيلة).
-RUN pip install --no-cache-dir --upgrade "setuptools>=61.0" wheel \
-    && pip install --no-cache-dir --no-build-isolation \
+RUN pip install --timeout 300 --retries 10 --no-cache-dir --upgrade "setuptools>=61.0" wheel \
+    && pip install --timeout 300 --retries 10 --no-cache-dir --no-build-isolation \
         "git+https://github.com/facebookresearch/sam2.git@${SAM2_REF}"
 
 COPY services/sam2-inference/ /app/

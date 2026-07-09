@@ -4,13 +4,14 @@ SAHOOL Edge Inference Service v9.1 (FIXED)
 """
 
 import asyncio
+import importlib.util
 import logging
 import os
 import time
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Response, UploadFile
 from models.errors import ModelNotProvisioned
 from models.pest_detector import EdgePestDetector
 from models.yield_estimator import EdgeYieldEstimator
@@ -36,6 +37,8 @@ DEVICE = os.getenv("EDGE_DEVICE", "rpi5")
 OFFLINE_MODE = os.getenv("OFFLINE_MODE", "false").lower() == "true"
 SYNC_INTERVAL = int(os.getenv("SYNC_INTERVAL", "3600"))
 MODEL_CACHE_DIR = os.getenv("MODEL_CACHE", "/models")
+EDGE_READINESS_MODE = os.getenv("EDGE_READINESS_MODE", "partial").strip().lower()  # partial | strict
+EDGE_PRODUCTION_REQUIRED = os.getenv("EDGE_PRODUCTION_REQUIRED", "false").strip().lower() in {"1", "true", "yes", "on"}
 
 _pest_detector: EdgePestDetector | None = None
 _yield_estimator: EdgeYieldEstimator | None = None
@@ -46,7 +49,7 @@ def get_pest_detector() -> EdgePestDetector:
     global _pest_detector
     if _pest_detector is None:
         _pest_detector = EdgePestDetector(
-            model_path=f"{MODEL_CACHE_DIR}/pest_detector_quantized.onnx", device=DEVICE
+            model_path=_model_path("PEST_MODEL_PATH", "pest_detector_int8.onnx"), device=DEVICE
         )
     return _pest_detector
 
@@ -55,7 +58,7 @@ def get_yield_estimator() -> EdgeYieldEstimator:
     global _yield_estimator
     if _yield_estimator is None:
         _yield_estimator = EdgeYieldEstimator(
-            model_path=f"{MODEL_CACHE_DIR}/yield_estimator_quantized.onnx", device=DEVICE
+            model_path=_model_path("YIELD_MODEL_PATH", "yield_estimator_int8.onnx"), device=DEVICE
         )
     return _yield_estimator
 
@@ -69,6 +72,55 @@ def get_sync_service() -> CloudSyncService:
             sync_dir="/data/sync_queue",
         )
     return _sync_service
+
+
+def _model_path(env_name: str, default_name: str) -> str:
+    return os.getenv(env_name, f"{MODEL_CACHE_DIR}/{default_name}")
+
+
+def _model_capability(env_name: str, default_name: str) -> dict[str, object]:
+    path = _model_path(env_name, default_name)
+    exists = os.path.exists(path)
+    runtime_available = importlib.util.find_spec("onnxruntime") is not None
+    active = bool(exists and runtime_available)
+    reason = None
+    if not exists:
+        reason = "model_file_missing"
+    elif not runtime_available:
+        reason = "onnxruntime_missing"
+    return {
+        "active": active,
+        "model_path": path,
+        "model_file_present": exists,
+        "onnxruntime_available": runtime_available,
+        "reason": reason,
+    }
+
+
+def capabilities_payload() -> dict[str, object]:
+    pest = _model_capability("PEST_MODEL_PATH", "pest_detector_int8.onnx")
+    yld = _model_capability("YIELD_MODEL_PATH", "yield_estimator_int8.onnx")
+    sync = get_sync_service()
+    capabilities = {
+        "pest_detect": pest,
+        "yield_estimate": yld,
+    }
+    active_count = sum(1 for cap in capabilities.values() if cap["active"])
+    return {
+        "service": "edge-inference",
+        "schema_version": "2026-07-09.capabilities",
+        "device": DEVICE,
+        "offline_mode": OFFLINE_MODE,
+        "readiness_mode": EDGE_READINESS_MODE,
+        "production_required": EDGE_PRODUCTION_REQUIRED,
+        "agent_token_configured": bool(AGENT_TOKEN),
+        "sync_token_configured": bool(os.getenv("EDGE_SYNC_TOKEN")),
+        "capabilities": capabilities,
+        "active_capability_count": active_count,
+        "required_capability_count": len(capabilities),
+        "all_required_models_active": active_count == len(capabilities),
+        "queue_size": sync.queue_size(),
+    }
 
 
 class PestDetectionRequest(BaseModel):
@@ -90,6 +142,8 @@ class YieldEstimationRequest(BaseModel):
 
 
 class EdgeHealthCheck(BaseModel):
+    status: str = "alive"
+    service: str = "edge-inference"
     device: str
     offline_mode: bool
     models_loaded: dict[str, bool]
@@ -105,11 +159,13 @@ _start_time = time.time()
 async def health_check() -> EdgeHealthCheck:
     sync = get_sync_service()
     return EdgeHealthCheck(
+        status="alive",
+        service="edge-inference",
         device=DEVICE,
         offline_mode=OFFLINE_MODE,
         models_loaded={
-            "pest_detector": _pest_detector is not None,
-            "yield_estimator": _yield_estimator is not None,
+            "pest_detector": bool(capabilities_payload()["capabilities"]["pest_detect"]["active"]),
+            "yield_estimator": bool(capabilities_payload()["capabilities"]["yield_estimate"]["active"]),
         },
         last_sync=sync.last_sync.isoformat() if sync.last_sync else None,
         queue_size=sync.queue_size(),
@@ -289,12 +345,37 @@ async def _periodic_sync():
             logger.info(f"[Edge] Sync error: {e}")
 
 
+@app.get("/capabilities")
+async def capabilities():
+    return capabilities_payload()
+
+
 @app.get("/readyz")
-async def readyz():
-    # بلا تبعيّة صلبة قصداً: خدمة طرفيّة تعمل دون اتّصال (offline). نماذج ONNX
-    # تُحمَّل كسولاً عند أوّل طلب، وغيابها يُعالَج بـ503 صريح لكلّ طلب (ModelNotProvisioned)
-    # لا بفشل الجاهزيّة؛ والمزامنة السحابيّة محاولة-أفضل. لا شيء صلب ننتظره ⇒ جاهز.
-    return {"status": "ready", "version": "9.1.0"}
+async def readyz(response: Response):
+    payload = capabilities_payload()
+    any_model_active = payload["active_capability_count"] > 0
+    all_models_active = payload["all_required_models_active"] is True
+    token_ready = payload["agent_token_configured"] is True
+
+    effective_strict = EDGE_READINESS_MODE == "strict" or EDGE_PRODUCTION_REQUIRED
+    if effective_strict:
+        status = "ready" if token_ready and all_models_active else "degraded"
+        if status != "ready":
+            response.status_code = 503
+        model_policy = "strict-readiness; all configured inference contracts require ONNX models before the service is ready"
+        if EDGE_PRODUCTION_REQUIRED:
+            model_policy += "; EDGE_PRODUCTION_REQUIRED forces strict readiness"
+    else:
+        status = "ready" if token_ready and any_model_active else "degraded"
+        model_policy = "partial-readiness; inference endpoints fail closed with 503 when required ONNX models are absent"
+
+    return {
+        "status": status,
+        "version": "9.1.0",
+        "service": "edge-inference",
+        "model_policy": model_policy,
+        **payload,
+    }
 
 
 if __name__ == "__main__":

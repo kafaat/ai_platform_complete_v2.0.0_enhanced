@@ -13,15 +13,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      # الحُرّاس تستورد التطبيق الحيّ (api.main) عبر check_runtime_routes ⇒ تحتاج
-      # تبعيّات المنصّة الكاملة (jwt/fastapi/asyncpg/numpy...) لا فقط مفسّر بايثون.
-      # نفس أمر وظيفة Platform Unit Tests في ci.yml كي يبقى الاستيراد سليماً هنا أيضاً.
-      - run: pip install -r tests_v9/requirements-test.txt -r services/sahool-platform/api/requirements.txt pillow
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Install backend runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r services/sahool-platform/api/requirements.txt pytest
+          python -m pip install -r services/weather-service/requirements.txt
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci --ignore-scripts --no-audit --no-fund
@@ -35,11 +36,15 @@ jobs:
         working-directory: frontend
         run: npx vitest run src/lib/layerRegistry.test.ts
       - name: Field Workspace Python closure gate
-        run: python scripts/ci/field_workspace_production_closure_gate.py
+        run: |
+          python scripts/ci/field_workspace_production_closure_gate.py
+          python scripts/ci/edge_inference_service_contract_gate.py
+          python scripts/ci/weather_service_real_contract_gate.py
       - name: Decision SoR cutover readiness gate
         run: python scripts/ci/decision_sor_cutover_readiness_gate.py
       - name: Decision SoR shadow promotion gate
         run: python scripts/ci/decision_sor_shadow_promotion_gate.py
+
       - name: Decision SoR staging probe gate
         run: python scripts/ci/decision_sor_staging_probe_gate.py
       - name: Decision SoR final certification gate
@@ -53,6 +58,7 @@ jobs:
             services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py \
             services/sahool-platform/tests/test_p0_4_decision_sor_staging_probe_guard.py \
             services/sahool-platform/tests/test_p0_5_decision_sor_final_certification_guard.py \
+            services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py \
             services/sahool-platform/tests/test_ui20_field_workspace_backend_facade_guard.py \
             services/sahool-platform/tests/test_ui24_ui26_workspace_imagery_weather_irrigation_guard.py \
             services/sahool-platform/tests/test_ui27_backend_facades_guard.py \

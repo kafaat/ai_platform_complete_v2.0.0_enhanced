@@ -26,14 +26,25 @@ PEST_MODEL_ENV = "PEST_MODEL_PATH"
 _ONNX_SESSION_CACHE: dict[str, object] = {}
 
 
-def _ml_pest_model_path() -> str | None:
-    """Return the configured pest model path iff it is set and the file exists.
+def _ml_pest_model_path(fallback_path: str | None = None) -> str | None:
+    """Return the configured pest ONNX path if present on disk.
 
-    Same condition as capabilities.ml_pest_active(): PEST_MODEL_PATH present on disk.
-    Returns None when the capability is dormant (no model → rule-based fallback).
+    Resolution order is explicit env first, then the service-level fallback path
+    provided by main.py. This keeps the container usable with MODEL_CACHE only
+    while still allowing operators to pin an exact model via PEST_MODEL_PATH.
     """
-    p = os.getenv(PEST_MODEL_ENV, "")
-    return p if p and os.path.exists(p) else None
+    candidates = [os.getenv(PEST_MODEL_ENV, ""), fallback_path or ""]
+    # Backward-compatible names seen across earlier packages/downloaders.
+    if fallback_path:
+        base = os.path.dirname(fallback_path)
+        candidates.extend([
+            os.path.join(base, "pest_detector_int8.onnx"),
+            os.path.join(base, "pest_detector_quantized.onnx"),
+        ])
+    for p in candidates:
+        if p and os.path.exists(p):
+            return p
+    return None
 
 
 def _load_onnx_session(model_path: str, device: str):
@@ -175,7 +186,7 @@ class EdgePestDetector:
         else:
             self.session = None
             logger.info(
-                f"[EdgePestDetector] Model not found: {self.model_path}. Using simulation mode."
+                f"[EdgePestDetector] Model not found: {self.model_path}. Capability dormant."
             )
 
     def predict(self, image_bytes: bytes, confidence_threshold: float = 0.6) -> list[dict]:
@@ -185,8 +196,7 @@ class EdgePestDetector:
 
         Gated on capabilities.ml_pest_active(): when PEST_MODEL_PATH points at an
         existing ONNX file AND onnxruntime is importable, run REAL model inference and
-        tag detections "source": "ml_onnx". Otherwise fall back to the EXISTING
-        rule-based simulation, byte-for-byte unchanged.
+        tag detections "source": "ml_onnx". Otherwise fail closed with ModelNotProvisioned; no synthetic detections are returned.
         """
         # Preprocess (shared by both paths — image features are computed here).
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -199,7 +209,7 @@ class EdgePestDetector:
         img_array = np.expand_dims(img_array, axis=0)
 
         # ── Conditional REAL ONNX path (dormant unless a model file is provisioned) ──
-        model_path = _ml_pest_model_path()
+        model_path = _ml_pest_model_path(self.model_path)
         if model_path is not None:
             session = _load_onnx_session(model_path, self.device)
             if session is not None:

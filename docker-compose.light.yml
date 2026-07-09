@@ -214,6 +214,10 @@ services:
       SAHOOL_CLOUD_URL: "http://sahool-supervisor:8000"
       EDGE_SYNC_TOKEN: "${EDGE_SYNC_TOKEN}"
       AUTO_DOWNLOAD_MODELS: "true"
+      MODEL_CACHE: /models
+      PEST_MODEL_PATH: /models/pest_detector_int8.onnx
+      YIELD_MODEL_PATH: /models/yield_estimator_int8.onnx
+      SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN:-}"
     volumes:
       - edge_data:/data
       - ./models:/models:ro

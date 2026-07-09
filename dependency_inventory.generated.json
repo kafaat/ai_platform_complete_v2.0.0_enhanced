@@ -1,0 +1,1992 @@
+[
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 5,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 6,
+    "requirement": "redis==5.0.0",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 7,
+    "requirement": "aiomqtt==2.0.0",
+    "package": "aiomqtt",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "actuator-service",
+    "file": "services/actuator-service/requirements.txt",
+    "line": 8,
+    "requirement": "PyJWT==2.13.0",
+    "package": "PyJWT",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 3,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 4,
+    "requirement": "prometheus-client==0.20.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 5,
+    "requirement": "scikit-learn==1.4.0",
+    "package": "scikit-learn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 6,
+    "requirement": "numpy==2.3.5",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 7,
+    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "package": "opentelemetry-instrumentation-fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "agriai-engine",
+    "file": "services/agriai-engine/requirements.txt",
+    "line": 8,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "ai_agronomist",
+    "file": "services/ai_agronomist/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "ai_agronomist",
+    "file": "services/ai_agronomist/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "ai_agronomist",
+    "file": "services/ai_agronomist/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "ai_agronomist",
+    "file": "services/ai_agronomist/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.28.1",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 3,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 4,
+    "requirement": "bcrypt==4.1.0",
+    "package": "bcrypt",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 5,
+    "requirement": "pyotp==2.9.0",
+    "package": "pyotp",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 6,
+    "requirement": "cryptography==44.0.0",
+    "package": "cryptography",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 7,
+    "requirement": "python-jose[cryptography]==3.4.0",
+    "package": "python-jose",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 8,
+    "requirement": "pydantic[email]==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 9,
+    "requirement": "prometheus-client==0.19.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 11,
+    "requirement": "aiosmtplib==3.0.0",
+    "package": "aiosmtplib",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "auth",
+    "file": "services/auth/requirements.txt",
+    "line": 12,
+    "requirement": "redis==5.0.0",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "decision-service",
+    "file": "services/decision-service/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.115.6",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "decision-service",
+    "file": "services/decision-service/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn==0.34.0",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "decision-service",
+    "file": "services/decision-service/requirements.txt",
+    "line": 3,
+    "requirement": "httpx==0.28.1",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "decision-service",
+    "file": "services/decision-service/requirements.txt",
+    "line": 4,
+    "requirement": "pydantic==2.10.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "decision-service",
+    "file": "services/decision-service/requirements.txt",
+    "line": 6,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 4,
+    "requirement": "python-multipart==0.0.29",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 5,
+    "requirement": "httpx==0.28.1",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 6,
+    "requirement": "numpy==2.3.5",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 7,
+    "requirement": "pillow==12.2.0",
+    "package": "pillow",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "edge-inference",
+    "file": "services/edge-inference/requirements.txt",
+    "line": 8,
+    "requirement": "onnxruntime==1.23.2",
+    "package": "onnxruntime",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "field-segmentation",
+    "file": "services/field-segmentation/requirements.txt",
+    "line": 4,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "field-segmentation",
+    "file": "services/field-segmentation/requirements.txt",
+    "line": 5,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "field-segmentation",
+    "file": "services/field-segmentation/requirements.txt",
+    "line": 6,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "field-segmentation",
+    "file": "services/field-segmentation/requirements.txt",
+    "line": 7,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "field-segmentation",
+    "file": "services/field-segmentation/requirements.txt",
+    "line": 9,
+    "requirement": "numpy==1.26.0",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "field-segmentation",
+    "file": "services/field-segmentation/requirements.txt",
+    "line": 10,
+    "requirement": "Pillow==10.0.0",
+    "package": "Pillow",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "gis-workflow-service",
+    "file": "services/gis-workflow-service/requirements.txt",
+    "line": 3,
+    "requirement": "matplotlib==3.9.0",
+    "package": "matplotlib",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "gis-workflow-service",
+    "file": "services/gis-workflow-service/requirements.txt",
+    "line": 4,
+    "requirement": "numpy==1.24.0",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 4,
+    "requirement": "python-multipart==0.0.18",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 5,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 6,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 7,
+    "requirement": "redis==5.0.0",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 9,
+    "requirement": "prometheus-client==0.19.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 11,
+    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "package": "opentelemetry-instrumentation-fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 12,
+    "requirement": "opentelemetry-instrumentation-asyncpg==0.44b0",
+    "package": "opentelemetry-instrumentation-asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "guardrails-engine",
+    "file": "services/guardrails-engine/requirements.txt",
+    "line": 13,
+    "requirement": "PyJWT==2.13.0",
+    "package": "PyJWT",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/requirements.txt",
+    "line": 3,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/requirements.txt",
+    "line": 4,
+    "requirement": "nats-py==2.3.0",
+    "package": "nats-py",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/requirements.txt",
+    "line": 5,
+    "requirement": "redis==5.2.1",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/requirements.txt",
+    "line": 6,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/requirements.txt",
+    "line": 7,
+    "requirement": "prometheus-client==0.20.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "knowledge-graph",
+    "file": "services/knowledge-graph/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "knowledge-graph",
+    "file": "services/knowledge-graph/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "knowledge-graph",
+    "file": "services/knowledge-graph/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 5,
+    "requirement": "langchain==0.3.0",
+    "package": "langchain",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 6,
+    "requirement": "langchain-community==0.3.0",
+    "package": "langchain-community",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 7,
+    "requirement": "langchain-ollama==0.2.0",
+    "package": "langchain-ollama",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 8,
+    "requirement": "langchain-text-splitters==0.3.0",
+    "package": "langchain-text-splitters",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 9,
+    "requirement": "langchain-qdrant==0.2.0",
+    "package": "langchain-qdrant",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 10,
+    "requirement": "qdrant-client==1.14.0",
+    "package": "qdrant-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 11,
+    "requirement": "python-multipart==0.0.18",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 12,
+    "requirement": "aiofiles==24.0.0",
+    "package": "aiofiles",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 13,
+    "requirement": "pypdf==6.7.1",
+    "package": "pypdf",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "local-ai-rag",
+    "file": "services/local-ai-rag/requirements.txt",
+    "line": 14,
+    "requirement": "python-jose[cryptography]==3.4.0",
+    "package": "python-jose",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.28.1",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 5,
+    "requirement": "PyJWT==2.13.0",
+    "package": "PyJWT",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 6,
+    "requirement": "cryptography==44.0.0",
+    "package": "cryptography",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 7,
+    "requirement": "numpy==2.3.5",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 8,
+    "requirement": "python-multipart==0.0.29",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 10,
+    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "package": "opentelemetry-instrumentation-fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 11,
+    "requirement": "opentelemetry-instrumentation-asyncpg==0.44b0",
+    "package": "opentelemetry-instrumentation-asyncpg",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 15,
+    "requirement": "prometheus-client==0.20.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "mcp_servers",
+    "file": "services/mcp_servers/requirements.txt",
+    "line": 16,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "odoo-bridge",
+    "file": "services/odoo-bridge/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "odoo-bridge",
+    "file": "services/odoo-bridge/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "odoo-bridge",
+    "file": "services/odoo-bridge/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "odoo-bridge",
+    "file": "services/odoo-bridge/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "odoo-bridge",
+    "file": "services/odoo-bridge/requirements.txt",
+    "line": 5,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "odoo-bridge",
+    "file": "services/odoo-bridge/requirements.txt",
+    "line": 6,
+    "requirement": "python-multipart==0.0.18",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "odoo-bridge",
+    "file": "services/odoo-bridge/requirements.txt",
+    "line": 7,
+    "requirement": "python-jose[cryptography]==3.4.0",
+    "package": "python-jose",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "qdrant-seed",
+    "file": "services/qdrant-seed/requirements.txt",
+    "line": 1,
+    "requirement": "qdrant-client==1.14.0",
+    "package": "qdrant-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "qdrant-seed",
+    "file": "services/qdrant-seed/requirements.txt",
+    "line": 2,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "rag-retrieval",
+    "file": "services/rag-retrieval/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "rag-retrieval",
+    "file": "services/rag-retrieval/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "rag-retrieval",
+    "file": "services/rag-retrieval/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 5,
+    "requirement": "python-multipart==0.0.18",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 7,
+    "requirement": "rasterio==1.3.0",
+    "package": "rasterio",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 8,
+    "requirement": "numpy==1.26.0",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 9,
+    "requirement": "redis==5.0.0",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 12,
+    "requirement": "asyncpg==0.29.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 15,
+    "requirement": "boto3==1.34.0",
+    "package": "boto3",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 17,
+    "requirement": "pyarrow==16.0.0",
+    "package": "pyarrow",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 18,
+    "requirement": "shapely==2.0.0",
+    "package": "shapely",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 19,
+    "requirement": "geopandas==0.14.0",
+    "package": "geopandas",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/requirements.txt",
+    "line": 22,
+    "requirement": "asyncpg==0.29.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sam2-inference",
+    "file": "services/sam2-inference/requirements.txt",
+    "line": 11,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sam2-inference",
+    "file": "services/sam2-inference/requirements.txt",
+    "line": 12,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sam2-inference",
+    "file": "services/sam2-inference/requirements.txt",
+    "line": 13,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sam2-inference",
+    "file": "services/sam2-inference/requirements.txt",
+    "line": 14,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sam2-inference",
+    "file": "services/sam2-inference/requirements.txt",
+    "line": 17,
+    "requirement": "rasterio==1.3.10",
+    "package": "rasterio",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sam2-inference",
+    "file": "services/sam2-inference/requirements.txt",
+    "line": 18,
+    "requirement": "shapely==2.0.6",
+    "package": "shapely",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sam2-inference",
+    "file": "services/sam2-inference/requirements.txt",
+    "line": 19,
+    "requirement": "numpy==1.26.4",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/requirements.txt",
+    "line": 3,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/requirements.txt",
+    "line": 4,
+    "requirement": "prometheus-client==0.20.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/requirements.txt",
+    "line": 5,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/requirements.txt",
+    "line": 6,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 5,
+    "requirement": "PyJWT==2.13.0",
+    "package": "PyJWT",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 6,
+    "requirement": "cryptography==42.0.0",
+    "package": "cryptography",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 7,
+    "requirement": "numpy==1.26.0",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 8,
+    "requirement": "python-multipart==0.0.18",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 9,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 10,
+    "requirement": "prometheus-client==0.19.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 12,
+    "requirement": "anthropic==0.28.0",
+    "package": "anthropic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 14,
+    "requirement": "opentelemetry-instrumentation-fastapi==0.44b0",
+    "package": "opentelemetry-instrumentation-fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "supervisor-agent",
+    "file": "services/supervisor-agent/requirements.txt",
+    "line": 15,
+    "requirement": "opentelemetry-instrumentation-asyncpg==0.44b0",
+    "package": "opentelemetry-instrumentation-asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "tts-service",
+    "file": "services/tts-service/requirements.txt",
+    "line": 2,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "tts-service",
+    "file": "services/tts-service/requirements.txt",
+    "line": 3,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "tts-service",
+    "file": "services/tts-service/requirements.txt",
+    "line": 4,
+    "requirement": "edge-tts==6.1.12",
+    "package": "edge-tts",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "tts-service",
+    "file": "services/tts-service/requirements.txt",
+    "line": 5,
+    "requirement": "redis==5.0.0",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "tts-service",
+    "file": "services/tts-service/requirements.txt",
+    "line": 6,
+    "requirement": "python-jose[cryptography]==3.4.0",
+    "package": "python-jose",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "tts-service",
+    "file": "services/tts-service/requirements.txt",
+    "line": 7,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "tts-service",
+    "file": "services/tts-service/requirements.txt",
+    "line": 8,
+    "requirement": "prometheus-client==0.19.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 3,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 4,
+    "requirement": "nats-py==2.3.0",
+    "package": "nats-py",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 5,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 6,
+    "requirement": "prometheus-client==0.19.0",
+    "package": "prometheus-client",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 7,
+    "requirement": "python-dotenv==1.0.0",
+    "package": "python-dotenv",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/requirements.txt",
+    "line": 8,
+    "requirement": "PyJWT==2.13.0",
+    "package": "PyJWT",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 3,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 4,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 5,
+    "requirement": "opencv-python-headless==4.9.0",
+    "package": "opencv-python-headless",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 6,
+    "requirement": "numpy==1.26.0",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 7,
+    "requirement": "redis==5.0.0",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 8,
+    "requirement": "aiomqtt==2.0.0",
+    "package": "aiomqtt",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 9,
+    "requirement": "python-multipart==0.0.18",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "video-processor",
+    "file": "services/video-processor/requirements.txt",
+    "line": 10,
+    "requirement": "python-jose[cryptography]==3.4.0",
+    "package": "python-jose",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "weather-polygon-worker",
+    "file": "services/weather-polygon-worker/requirements.txt",
+    "line": 1,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "weather-polygon-worker",
+    "file": "services/weather-polygon-worker/requirements.txt",
+    "line": 2,
+    "requirement": "nats-py==2.3.0",
+    "package": "nats-py",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/requirements.txt",
+    "line": 1,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/requirements.txt",
+    "line": 2,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/requirements.txt",
+    "line": 3,
+    "requirement": "httpx==0.28.1",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/requirements.txt",
+    "line": 5,
+    "requirement": "redis==5.2.1",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": true,
+    "issue": ""
+  },
+  {
+    "service": "weather-signal-engine",
+    "file": "services/weather-signal-engine/requirements.txt",
+    "line": 1,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 5,
+    "requirement": "defusedxml==0.7.1",
+    "package": "defusedxml",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 6,
+    "requirement": "fastapi==0.136.3",
+    "package": "fastapi",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 7,
+    "requirement": "uvicorn[standard]==0.30.6",
+    "package": "uvicorn",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 8,
+    "requirement": "pydantic==2.13.4",
+    "package": "pydantic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 9,
+    "requirement": "PyJWT==2.13.0",
+    "package": "PyJWT",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 10,
+    "requirement": "python-multipart==0.0.31",
+    "package": "python-multipart",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 15,
+    "requirement": "httpx==0.27.0",
+    "package": "httpx",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 19,
+    "requirement": "numpy==1.26.4",
+    "package": "numpy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 20,
+    "requirement": "scipy==1.13.1",
+    "package": "scipy",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 21,
+    "requirement": "PyYAML==6.0.2",
+    "package": "PyYAML",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 22,
+    "requirement": "nats-py==2.10.0",
+    "package": "nats-py",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 23,
+    "requirement": "redis==5.3.1",
+    "package": "redis",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 24,
+    "requirement": "pyotp==2.9.0",
+    "package": "pyotp",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 25,
+    "requirement": "anthropic==0.69.0",
+    "package": "anthropic",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 26,
+    "requirement": "pyshp==2.3.1",
+    "package": "pyshp",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/requirements.txt",
+    "line": 27,
+    "requirement": "asyncpg==0.30.0",
+    "package": "asyncpg",
+    "exact_pinned": true,
+    "strict_service": false,
+    "issue": ""
+  }
+]

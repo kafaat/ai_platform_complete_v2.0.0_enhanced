@@ -19,6 +19,48 @@ app = FastAPI(title="SAHOOL Agricultural Knowledge Graph", version="2026.2")
 store = SQLiteAgGraphStore(os.getenv("KG_SQLITE_PATH", "/data/kg.sqlite"))
 seed_reference_ontology(store)
 
+MAX_GRAPHQL_QUERY_BYTES = int(os.getenv("KG_GRAPHQL_MAX_QUERY_BYTES", "4096"))
+MAX_GRAPHQL_DEPTH = int(os.getenv("KG_GRAPHQL_MAX_DEPTH", "6"))
+MAX_GRAPHQL_TOKENS = int(os.getenv("KG_GRAPHQL_MAX_TOKENS", "120"))
+
+
+def _graphql_depth(query: str) -> int:
+    depth = 0
+    max_depth = 0
+    in_string = False
+    escape = False
+    for ch in query:
+        if escape:
+            escape = False
+            continue
+        if ch == "\\" and in_string:
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == "{":
+            depth += 1
+            max_depth = max(max_depth, depth)
+        elif ch == "}":
+            depth = max(0, depth - 1)
+    return max_depth
+
+
+def _assert_graphql_query_budget(query: str) -> None:
+    if len(query.encode("utf-8")) > MAX_GRAPHQL_QUERY_BYTES:
+        raise HTTPException(413, "graphql_query_too_large")
+    if _graphql_depth(query) > MAX_GRAPHQL_DEPTH:
+        raise HTTPException(400, "graphql_query_too_deep")
+    token_count = len(query.replace("{", " ").replace("}", " ").replace("(", " ").replace(")", " ").split())
+    if token_count > MAX_GRAPHQL_TOKENS:
+        raise HTTPException(400, "graphql_query_too_complex")
+    lowered = query.lower()
+    if "__schema" in lowered or "__type" in lowered:
+        raise HTTPException(400, "graphql_introspection_disabled")
+
 
 class NodeIn(BaseModel):
     node_id: str
@@ -75,7 +117,7 @@ async def readyz():
 @app.post("/nodes")
 async def upsert_node(node: NodeIn, _token: None = Depends(require_service_token)):
     # SEC-3: graph writes are internal-only; require the trusted service token
-    # (X-Agent-Token == SAHOOL_AGENT_TOKEN). Reads (GET /edges, /graphql) stay open.
+    # (X-Agent-Token == SAHOOL_AGENT_TOKEN). Reads require gateway-injected tenant.
     store.upsert_node(GraphNode(**node.model_dump()))
     return {"ok": True}
 
@@ -105,6 +147,7 @@ async def edges(
 
 @app.post("/graphql")
 async def graphql(req: GraphQLRequest, _tenant: str = Depends(require_trusted_tenant)):
+    _assert_graphql_query_budget(req.query)
     try:
         return graphql_readonly(store, req.query)
     except ValueError as exc:

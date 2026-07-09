@@ -1,6 +1,6 @@
 """routers/health.py — فحوص الحياة والجاهزيّة (health / readiness)
 ======================================================================
-شريحة من تفكيك ``main.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
+شريحة من تفكيك ``actuator_runtime.py`` إلى وحدات ``APIRouter`` (سلوك محفوظ).
 
 نُقلت المُعالِجات حرفيّاً مع تغيير ``@app`` إلى ``@router``؛ المسارات/المخرجات مطابقة.
 ``health`` تخدم ``/healthz`` و``/health`` معاً (مُزخرِفان كما في الأصل). الرموز المشتركة
@@ -9,7 +9,7 @@
 
 from __future__ import annotations
 
-import main
+import actuator_runtime as main
 from fastapi import APIRouter, HTTPException
 
 router = APIRouter()

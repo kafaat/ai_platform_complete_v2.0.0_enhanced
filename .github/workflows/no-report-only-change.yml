@@ -1,0 +1,16 @@
+name: No Report-only Change
+on:
+  pull_request:
+jobs:
+  no-report-only-change:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check changed files
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD | python scripts/ci/no_report_only_change_guard.py --stdin

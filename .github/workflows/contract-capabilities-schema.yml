@@ -1,0 +1,17 @@
+name: Contract and Capabilities Schema Guard
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+jobs:
+  contract-capabilities-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check /contract and /capabilities schema inventory
+        run: python scripts/ci/contract_capabilities_schema_guard.py --check

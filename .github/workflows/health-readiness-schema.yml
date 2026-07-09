@@ -1,0 +1,17 @@
+name: health-readiness-schema
+
+on:
+  pull_request:
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  health-readiness-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate health/readiness schema inventory
+        run: python scripts/ci/health_readiness_schema_guard.py --check

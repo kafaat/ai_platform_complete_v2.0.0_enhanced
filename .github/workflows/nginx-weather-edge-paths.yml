@@ -1,0 +1,17 @@
+name: Nginx Weather Edge Paths
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  nginx-weather-edge-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify weather and edge gateway paths
+        run: python scripts/ci/nginx_weather_edge_path_guard.py
