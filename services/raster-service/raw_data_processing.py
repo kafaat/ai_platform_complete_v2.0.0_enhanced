@@ -76,6 +76,7 @@ def _normalize_band_names(count: int, requested: list[int] | None) -> list[RawBa
         out.append(RawBandSpec(index=idx, name=f"band_{idx}"))
     return out
 
+
 def compute_quality_score(
     *,
     valid_pixel_ratio: float | None,

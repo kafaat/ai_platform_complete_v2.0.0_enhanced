@@ -4,6 +4,7 @@ Cloud QA is not a single boolean. Sentinel-2, Landsat, drone imagery, and
 commercial imagery expose different QA bands.  This module standardizes the
 strategy interface while keeping missing masks explicit and honest.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

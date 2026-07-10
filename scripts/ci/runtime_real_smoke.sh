@@ -25,6 +25,9 @@ echo "[runtime-smoke] static/runtime contract guards"
 "$PYTHON_BIN" scripts/ci/pip_audit_resolution_guard.py
 "$PYTHON_BIN" scripts/ci/raw_data_processing_contract_guard.py
 "$PYTHON_BIN" scripts/ci/raw_weather_processing_contract_guard.py
+"$PYTHON_BIN" scripts/ci/raster_pixel_qa_indicator_guard.py
+"$PYTHON_BIN" scripts/ci/raster_topographic_qa_guard.py
+"$PYTHON_BIN" scripts/ci/raster_validated_product_guard.py
 
 if "$PYTHON_BIN" -m pytest --version >/dev/null 2>&1; then
   echo "[runtime-smoke] targeted pytest contracts"
@@ -48,7 +51,3 @@ else
 fi
 
 echo "runtime_real_smoke_ok"
-
-python scripts/ci/raster_pixel_qa_indicator_guard.py
-python scripts/ci/raster_topographic_qa_guard.py
-python scripts/ci/raster_validated_product_guard.py

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Guard: raster indicators must expose ValidatedRasterProduct + cloud strategies."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -71,7 +72,9 @@ def main() -> int:
     forbidden_inline = ["b.clp is not None", "b.clm is not None", "np.isin(scl"]
     present = [x for x in forbidden_inline if x in pixel]
     if present:
-        raise SystemExit(f"indicator path still contains inline source-native cloud mask logic: {present}")
+        raise SystemExit(
+            f"indicator path still contains inline source-native cloud mask logic: {present}"
+        )
 
     if "qa_pixel" not in models:
         raise SystemExit("BandMapping missing qa_pixel for Landsat QA_PIXEL strategy")

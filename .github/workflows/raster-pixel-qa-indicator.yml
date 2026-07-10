@@ -23,6 +23,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      # الاختبار يمرّ عبر conftest tests_v9 (httpx/pydantic/numpy) — بيئة الاختبار
+      # القانونيّة إلزاميّة، لا مفسّراً عارياً (درس fresh-runner المُوثَّق).
+      - name: Install test dependencies
+        run: python -m pip install -r tests_v9/requirements-test.txt
       - name: Run raster pixel QA indicator guard
         run: |
           python scripts/ci/raster_pixel_qa_indicator_guard.py

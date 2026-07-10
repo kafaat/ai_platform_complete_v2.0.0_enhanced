@@ -3,6 +3,26 @@
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
+## 2026-07-10 — دمج clp_all_nan_test_fix (برنامج جودة الراستر) + Docker Build Matrix (P-CERT)
+
+أرشيف `57cf56e_clp_all_nan_test_fix` — البصمات كشفت أساسه الحقيقيّ **استيرادنا السابق `c53875c`** (vs 57cf56e: 85+213؛ vs c53875c: **34 جديد + 7 مُعدَّل فقط**) ⇒ استيراد على c53875c ثمّ merge نظيف **بلا تعارضات** (git حسم تلقائيّاً؛ دُقّق يدويّاً: runtime_real_smoke.sh وملفّات الراستر الخمسة المتداخلة، وبقاء المرفوضات السابقة محذوفة).
+
+**قيمة مقبولة:** `raster_cloud_mask_strategies.py` (Sentinel2SCLStrategy: قناع SCL + عتبة CLP بحراسة `np.isfinite` قبل nanmax — علّة all-NaN — وتسجيل `sentinel2_clp_all_nan_unavailable` بصدق) · `raster_topographic_qa.py` (انحدار/ظلّ تضاريس من DEM بهندسة شمس اختياريّة؛ `dem_not_configured_for_topographic_qa` عند الغياب) · `raster_validated_product.py` (تجميع منتَج مُصادَق: pixel_qa + quality_flags + استراتيجيّة السحب + topographic_qa + provenance) · تكامل في `raster_pixel_processing.py`/`raster_api_models.py`/`raster_job_orchestration.py`/`raw_data_processing.py` · 4 حُرّاس CI (`raster_pixel_qa_indicator_guard` · `raster_topographic_qa_guard` · `raster_validated_product_guard` · `production_certification_blockers_status`) · 4 workflows · 29 اختبار راستر جديد (`services/raster-service/test_*.py` + `tests_v9/test_raster_*`).
+
+**مرفوض (ثالث مرّة، نفس الدليل):** legacy/compose + compose_reference_guard + workflow-ه (يناقض ~10 حُرّاس compose-جذر قائمة).
+
+**إصلاحات إلزاميّة على دلتا الأرشيف (فئات أعطال CI موثَّقة سابقاً):**
+- workflows الثلاثة الجديدة كانت بلا خطوة تثبيت (pytest غير مثبَّت على runner عارٍ) ⇒ أُضيف `pip install -r tests_v9/requirements-test.txt` + `python -m pytest` (درسا fresh-runner وdual-pytest).
+- `production-certification-blockers.yml`: P-CERT-1 كان يثبّت pytest فقط ثمّ يشغّل runtime_real_smoke.sh (فخّ ModuleNotFoundError: fastapi ذاته) ⇒ تثبيت tests_v9+weather+edge؛ و`if: secrets.X != ''` على مستوى الوظيفة (سياق secrets **غير متاح** في `jobs.<id>.if`) ⇒ فحص داخل الخطوة بتخطٍّ صريح مُعلَن.
+- ذيل runtime_real_smoke.sh في الأرشيف أضاف الحُرّاس الثلاثة **بعد** سطر `runtime_real_smoke_ok` وبـ`python` العاري ⇒ نُقلت قبل السطر وبـ`"$PYTHON_BIN"`.
+- ruff: I001/UP037/E402 (استيراد numpy منتصف ملف اختبار مُلحَق) ⇒ أُصلحت، والحُرّاس الساكنة بقيت خضراء بعد التنسيق.
+
+**Docker Build Checklist — P-CERT (طلب المستخدم الصريح، مواصفة §0–§12):** نُفِّذ كـ(1) `.github/workflows/docker-build-matrix.yml`: مصفوفة `fail-fast: false` للأربع (raster/weather/edge/sam2)، لكلّ ساق: حُرّاس ساكنة stdlib ← docker build بسياق الجذر ← إقلاع منفرد ← `/healthz` إلزاميّ (30×2s) ← `/readyz` معلوماتيّ (degraded صادق مسموح) ← `! grep -E "ModuleNotFoundError|ImportError|Traceback"` على السجلّات؛ و(2) runbook `docs/runbooks/DOCKER_BUILD_CHECKLIST_P_CERT_CRITICAL_SERVICES.md`. **تكييفات مُوثَّقة (§8) عن مواصفة المستخدم بعد تحقّق ميدانيّ:** منافذ الحاويات الفعليّة 8001/8000/8100/8080 (لا 8001/8092/8180/8150 — 8092 منفذ مضيف compose فقط) · edge-inference لا يملك إلّا `Dockerfile.arm64` وقاعدته python:3.12 متعدّدة المعماريّات (تُبنى على amd64) · sam2 صورة CUDA موجَّهة GPU (البناء+الإقلاع يثبتان الاستيراد وصدق readyz فقط) · الرايات الحقيقيّة الوحيدة: FIELD_DEM_PATH/WEATHER_REDIS_URL/EDGE_PRODUCTION_REQUIRED/EDGE_READINESS_MODE/SAM2_CHECKPOINT+SAM2_MODEL_CFG (لا وجود لـRASTER_RUNTIME_MODE/WEATHER_CACHE_BACKEND/SAM2_PRODUCTION_REQUIRED/…) · `raster_container_contract_guard.py`/`dependency_inventory_guard.py` غير موجودَين ⇒ استُبدلا بالمكافئات القائمة.
+
+**التحقّق المحلّيّ:** unit **2858 passed** (5 skipped) · منصّة 3579 (خلفيّة — انظر السطر الختاميّ) · `runtime_real_smoke_ok` (35 passed +الحُرّاس الثلاثة الجديدة داخله) · inventory regenerated (874 routes) · validate_ci_gates ✓ · YAML الخمسة الجديدة/المعدَّلة صالحة · ruff نظيف (scope services/bots/agents/tests_v9) · release bundle **3842 checksums**.
+
+---
+
 
 ## 2026-07-09 — دمج raw-processing + container-fleet (أساس موازٍ 15398bd) بدمج ثلاثيّ ثانٍ
 

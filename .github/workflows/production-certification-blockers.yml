@@ -12,10 +12,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      # runtime_real_smoke.sh يشغّل عقود weather/edge عبر pytest — تبعيّات الخدمتين
+      # إلزاميّة لا pytest وحده (درس ModuleNotFoundError: fastapi المُوثَّق في
+      # runtime-real-smoke.yml).
       - name: Install test tooling
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pytest
+          python -m pip install \
+            -r tests_v9/requirements-test.txt \
+            -r services/weather-service/requirements.txt \
+            -r services/edge-inference/requirements.txt
       - name: Run core smoke guards
         run: bash scripts/ci/runtime_real_smoke.sh
       - name: Show blocker status
@@ -37,7 +43,8 @@ jobs:
   redis-live-evidence:
     name: P-CERT-3 Redis live evidence
     runs-on: ubuntu-latest
-    if: ${{ secrets.WEATHER_REDIS_INTEGRATION_URL != '' }}
+    # سياق secrets غير متاح في if على مستوى الوظيفة (jobs.<id>.if) — الفحص يتمّ
+    # داخل خطوة، مع تخطٍّ صريح مُعلَن (لا دليل مُختلَق) عند غياب السرّ.
     env:
       WEATHER_REDIS_INTEGRATION_URL: ${{ secrets.WEATHER_REDIS_INTEGRATION_URL }}
     steps:
@@ -45,8 +52,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run weather Redis live integration
-        run: bash scripts/ci/run_weather_redis_integration.sh
+      - name: Run weather Redis live integration (or declare missing secret)
+        run: |
+          if [ -z "${WEATHER_REDIS_INTEGRATION_URL}" ]; then
+            echo "P-CERT-3 evidence NOT produced: WEATHER_REDIS_INTEGRATION_URL secret is not configured." >&2
+            echo "redis_live_evidence_skipped_secret_missing"
+            exit 0
+          fi
+          bash scripts/ci/run_weather_redis_integration.sh
 
   model-provisioning-evidence:
     name: P-CERT-4 ONNX/SAM2 model provisioning evidence

@@ -13,7 +13,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      # الاختبارات تستورد pydantic/numpy وتمرّ عبر conftest tests_v9 — بيئة الاختبار
+      # القانونيّة إلزاميّة، وpython -m pytest لا pytest المجرّد (درس dual-pytest).
+      - name: Install test dependencies
+        run: python -m pip install -r tests_v9/requirements-test.txt
       - name: Run raster validated product guard
         run: python scripts/ci/raster_validated_product_guard.py
       - name: Run raster validated product tests
-        run: PYTHONPATH=services/raster-service pytest -q services/raster-service/test_raster_validated_product.py tests_v9/test_raster_validated_product_guard.py
+        run: PYTHONPATH=services/raster-service python -m pytest -q services/raster-service/test_raster_validated_product.py services/raster-service/test_cloud_mask_strategies.py tests_v9/test_raster_validated_product_guard.py tests_v9/test_raster_pixel_processing_edge_cases.py

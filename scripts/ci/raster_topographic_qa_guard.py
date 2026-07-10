@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Guard: raster indicator QA must carry honest topographic QA provenance."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -65,7 +66,6 @@ def main() -> int:
     if missing:
         raise SystemExit(f"raster_pixel_processing.py missing topographic QA wiring: {missing}")
 
-
     required_models = [
         "sun_azimuth_deg",
         "sun_altitude_deg",
@@ -82,7 +82,9 @@ def main() -> int:
     ]
     missing = [token for token in required_orch if token not in orch]
     if missing:
-        raise SystemExit(f"raster_job_orchestration.py does not propagate sun geometry in batch processing: {missing}")
+        raise SystemExit(
+            f"raster_job_orchestration.py does not propagate sun geometry in batch processing: {missing}"
+        )
 
     required_raw = [
         "terrain_shadow_risk_pct",
@@ -96,7 +98,9 @@ def main() -> int:
     ]
     missing = [token for token in required_raw if token not in raw]
     if missing:
-        raise SystemExit(f"raw_data_processing.py missing topographic QA scoring/provenance: {missing}")
+        raise SystemExit(
+            f"raw_data_processing.py missing topographic QA scoring/provenance: {missing}"
+        )
 
     if "raster_topographic_qa_guard.py" not in smoke:
         raise SystemExit("runtime_real_smoke.sh does not include raster topographic QA guard")

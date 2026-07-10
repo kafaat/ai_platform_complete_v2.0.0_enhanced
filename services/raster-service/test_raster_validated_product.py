@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-
 from raster_api_models import BandMapping, IndicatorKind, ProcessRequest, SourceFormat
 from raster_cloud_mask_strategies import (
     LandsatQAPixelStrategy,

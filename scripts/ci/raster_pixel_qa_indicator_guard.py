@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Guard: raster indicators must carry raw pixel QA/provenance."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -59,7 +60,11 @@ def main() -> int:
         if token not in models:
             raise SystemExit(f"raster API models missing {token}")
 
-    for token in ['"raw_processing"', '"sahool.raw_processing/1"', '"derived_product_computed": True']:
+    for token in [
+        '"raw_processing"',
+        '"sahool.raw_processing/1"',
+        '"derived_product_computed": True',
+    ]:
         if token not in job:
             raise SystemExit(f"raster job provenance missing {token}")
 

@@ -20,7 +20,6 @@ def _clamp_pct(value: float | int | None) -> float | None:
     return max(0.0, min(100.0, float(value)))
 
 
-
 def compute_cast_shadow_mask_from_dem(
     dem,
     *,
@@ -44,7 +43,11 @@ def compute_cast_shadow_mask_from_dem(
 
     arr = np.asarray(dem, dtype="float32")
     valid = np.isfinite(arr)
-    sun_ok = sun_azimuth_deg is not None and sun_altitude_deg is not None and float(sun_altitude_deg) > 0.0
+    sun_ok = (
+        sun_azimuth_deg is not None
+        and sun_altitude_deg is not None
+        and float(sun_altitude_deg) > 0.0
+    )
     if arr.ndim != 2 or arr.size == 0 or not bool(valid.any()) or not sun_ok:
         return {
             "mask": np.zeros(arr.shape if arr.ndim == 2 else (0, 0), dtype=bool),
@@ -110,6 +113,7 @@ def compute_cast_shadow_mask_from_dem(
         "warnings": warnings,
     }
 
+
 def compute_topographic_risk_from_dem(
     dem,
     *,
@@ -142,7 +146,9 @@ def compute_topographic_risk_from_dem(
             "terrain_shadow_risk_pct": None,
             "slope_risk_pct": None,
             "hillshade_available": False,
-            "sun_geometry_available": bool(sun_azimuth_deg is not None and sun_altitude_deg is not None),
+            "sun_geometry_available": bool(
+                sun_azimuth_deg is not None and sun_altitude_deg is not None
+            ),
             "valid_dem_pixel_ratio": 0.0,
             "warnings": ["dem_array_empty_or_invalid"],
         }
@@ -152,9 +158,15 @@ def compute_topographic_risk_from_dem(
     dzdy = np.gradient(arr, px, axis=0)
     grad = np.sqrt(dzdx**2 + dzdy**2)
     slope_pct = 100.0 * grad
-    slope_risk_pct = float(np.nanmean((slope_pct >= float(slope_risk_threshold_pct)) & valid) * 100.0)
+    slope_risk_pct = float(
+        np.nanmean((slope_pct >= float(slope_risk_threshold_pct)) & valid) * 100.0
+    )
 
-    sun_ok = sun_azimuth_deg is not None and sun_altitude_deg is not None and float(sun_altitude_deg) > 0.0
+    sun_ok = (
+        sun_azimuth_deg is not None
+        and sun_altitude_deg is not None
+        and float(sun_altitude_deg) > 0.0
+    )
     terrain_shadow_risk_pct: float | None = None
     hillshade_available = False
     warnings: list[str] = []
@@ -163,9 +175,13 @@ def compute_topographic_risk_from_dem(
         aspect = np.arctan2(dzdy, -dzdx)
         zenith = math.radians(90.0 - float(sun_altitude_deg))
         az_math = math.radians((360.0 - float(sun_azimuth_deg) + 90.0) % 360.0)
-        hillshade = np.cos(zenith) * np.cos(slope_rad) + np.sin(zenith) * np.sin(slope_rad) * np.cos(az_math - aspect)
+        hillshade = np.cos(zenith) * np.cos(slope_rad) + np.sin(zenith) * np.sin(
+            slope_rad
+        ) * np.cos(az_math - aspect)
         hillshade = np.clip(hillshade, 0.0, 1.0)
-        terrain_shadow_risk_pct = float(np.nanmean((hillshade <= float(shadow_hillshade_threshold)) & valid) * 100.0)
+        terrain_shadow_risk_pct = float(
+            np.nanmean((hillshade <= float(shadow_hillshade_threshold)) & valid) * 100.0
+        )
         hillshade_available = True
     else:
         warnings.append("sun_geometry_unavailable_for_terrain_shadow_model")
@@ -189,7 +205,9 @@ def compute_topographic_risk_from_dem(
                 warnings.append(warning)
         if cast_shadow_risk_pct is not None:
             # Use the stricter of local hillshade risk and cast-shadow horizon risk.
-            terrain_shadow_risk_pct = max(float(terrain_shadow_risk_pct or 0.0), float(cast_shadow_risk_pct))
+            terrain_shadow_risk_pct = max(
+                float(terrain_shadow_risk_pct or 0.0), float(cast_shadow_risk_pct)
+            )
 
     valid_ratio = float(np.mean(valid)) if valid.size else 0.0
     return {
@@ -309,6 +327,8 @@ def build_topographic_qa_from_dem_array(
         slope_risk_threshold_pct=risk.get("slope_risk_threshold_pct"),
         shadow_hillshade_threshold=risk.get("shadow_hillshade_threshold"),
         cast_shadow_max_steps=risk.get("cast_shadow_max_steps"),
-        method="dem_cast_shadow_hillshade_slope" if risk.get("cast_shadow_available") else "dem_hillshade_slope",
+        method="dem_cast_shadow_hillshade_slope"
+        if risk.get("cast_shadow_available")
+        else "dem_hillshade_slope",
         extra_warnings=list(risk.get("warnings") or []),
     )

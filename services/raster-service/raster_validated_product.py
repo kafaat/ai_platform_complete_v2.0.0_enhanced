@@ -5,6 +5,7 @@ product.  This module defines the explicit data contract passed from raw/pixel
 QA into indicator provenance.  It is intentionally lightweight: it records the
 quality/provenance envelope, not the full pixel array payload.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -87,7 +88,7 @@ class ValidatedRasterProduct(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def _cloud_mask_status_must_be_explicit(self) -> "ValidatedRasterProduct":
+    def _cloud_mask_status_must_be_explicit(self) -> ValidatedRasterProduct:
         if not self.cloud_mask_applied and self.cloud_mask_strategy not in {
             "noop_unavailable",
             "provider_precomputed_expected",
@@ -128,8 +129,14 @@ def build_validated_raster_product(
     return ValidatedRasterProduct(
         source=getattr(req, "raster_url", None),
         source_format=str(getattr(req, "source_format", "")) or None,
-        indicator=str(getattr(getattr(req, "indicator", None), "value", getattr(req, "indicator", None))),
-        bands=(getattr(req, "bands", None).model_dump() if hasattr(getattr(req, "bands", None), "model_dump") else {}),
+        indicator=str(
+            getattr(getattr(req, "indicator", None), "value", getattr(req, "indicator", None))
+        ),
+        bands=(
+            getattr(req, "bands", None).model_dump()
+            if hasattr(getattr(req, "bands", None), "model_dump")
+            else {}
+        ),
         quality_score=float(pixel_qa["quality_score"]),
         valid_pixel_ratio=float(pixel_qa.get("valid_pixel_ratio", 0.0)),
         cloud_mask_applied=bool(quality_flags.get("cloud_mask_applied")),

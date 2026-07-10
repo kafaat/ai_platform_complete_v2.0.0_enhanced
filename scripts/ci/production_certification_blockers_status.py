@@ -4,6 +4,7 @@
 This script is intentionally read-only. It does not promote certification and
 it does not convert local/sandbox checks into deployment evidence.
 """
+
 from __future__ import annotations
 
 import json
@@ -41,8 +42,15 @@ def main() -> int:
                 "timestamp_utc": payload.get("timestamp_utc"),
             }
         )
-    certified = all(row["status"] == "verified" or (row["waivable"] and row["status"] == "waived_with_reason") for row in rows)
-    print(json.dumps({"production_certified": certified, "blockers": rows}, indent=2, ensure_ascii=False))
+    certified = all(
+        row["status"] == "verified" or (row["waivable"] and row["status"] == "waived_with_reason")
+        for row in rows
+    )
+    print(
+        json.dumps(
+            {"production_certified": certified, "blockers": rows}, indent=2, ensure_ascii=False
+        )
+    )
     if certified:
         return 0
     return 0

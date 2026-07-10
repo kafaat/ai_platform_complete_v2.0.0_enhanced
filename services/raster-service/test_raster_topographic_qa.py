@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import raster_topographic_qa as tq
 
 
@@ -26,8 +27,6 @@ def test_topographic_qa_available_only_with_aligned_dem_and_real_risk():
     assert out["terrain_shadow_risk_pct"] == 12.5
     assert out["slope_risk_pct"] == 4.0
     assert out["sources"] == ["FIELD_DEM_PATH", "sun_geometry"]
-
-import numpy as np
 
 
 def test_topographic_risk_from_dem_computes_slope_without_sun():
@@ -103,7 +102,6 @@ def test_topographic_qa_from_aligned_dem_array_includes_cast_shadow_contract():
     assert out["cast_shadow_risk_pct"] is not None
     assert out["method"] == "dem_cast_shadow_hillshade_slope"
     assert out["fabricated_topographic_mask"] is False
-
 
 
 def test_topographic_indicator_helper_fails_closed_on_dem_alignment_error(tmp_path, monkeypatch):
