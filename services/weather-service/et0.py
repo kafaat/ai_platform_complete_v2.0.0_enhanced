@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import math
 
 from vapor_pressure import (
@@ -26,6 +28,7 @@ from vapor_pressure import (
 
 FORMULA_VERSION = "et0/fao56-pm/1.0.0"
 PRODUCT_ID = "et0"
+SNAPSHOT_SCHEME = "wsnap/sha1/1"
 
 _MJ_TO_MM = 0.408  # تحويل الطاقة (MJ/m²/يوم) إلى مكافئ تبخّر (mm/يوم) — FAO-56.
 
@@ -200,4 +203,78 @@ def compute_et0(
             + ", ".join(pm_missing)
             + ") — Hargreaves fallback used; NOT full FAO-56."
         ],
+    }
+
+
+def weather_snapshot_id(inputs: dict) -> str:
+    """بصمة حتميّة لمتّجه الطقس المُستخدَم — هويّة اللقطة (لا زمن/عشوائيّة).
+
+    نفس الطقس ⇒ نفس المُعرِّف (يفيد shadow-compare والـdedup). في هذه المرحلة
+    اللقطة يُوفّرها المُستهلِك؛ حين يملك المحرّك جلب اللقطة (WS-D.2c) يأتي المُعرِّف
+    من نَسَب اللقطة المجلوبة. الصيغة: sha1 لـJSON مقنَّن للمدخلات المُقرَّبة.
+    """
+    canonical = {
+        k: (round(v, 4) if isinstance(v, float) else v)
+        for k, v in sorted(inputs.items())
+        if v is not None
+    }
+    digest = hashlib.sha1(  # noqa: S324 — هويّة/بصمة لا أمان تعميّة
+        json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()[:16]
+    return f"{SNAPSHOT_SCHEME}:{digest}"
+
+
+def et0_agro_product(
+    *,
+    t_max_c: float | None,
+    t_min_c: float | None,
+    solar_rad_mj_m2: float | None = None,
+    rh_mean_pct: float | None = None,
+    wind_2m_ms: float | None = None,
+    t_mean_c: float | None = None,
+    lat_deg: float | None = None,
+    elevation_m: float | None = None,
+    day_of_year: int | None = None,
+    valid_time: str | None = None,
+    weather_snapshot_id_override: str | None = None,
+) -> dict:
+    """منتج ET0 الزراعيّ لعقد محرّك الطقس — ``compute_et0`` + نَسَب الخدمة.
+
+    يضيف على عقد الجودة الحسابيّ حقلَي نَسَب لا يختلقهما: ``valid_time`` (وقت صلاحيّة
+    اللقطة كما يُصرّح به المُستهلِك؛ مفقود ⇒ None + قيد) و``weather_snapshot_id``
+    (بصمة متّجه الطقس). **صدق:** المحرّك يملك تنفيذ الصيغة؛ اللقطة يُوفّرها المُستهلِك
+    في هذه المرحلة (يُصرَّح صراحةً كقيد حتّى WS-D.2c جلب اللقطة داخل المحرّك).
+    """
+    result = compute_et0(
+        t_max_c=t_max_c,
+        t_min_c=t_min_c,
+        solar_rad_mj_m2=solar_rad_mj_m2,
+        rh_mean_pct=rh_mean_pct,
+        wind_2m_ms=wind_2m_ms,
+        t_mean_c=t_mean_c,
+        lat_deg=lat_deg,
+        elevation_m=elevation_m,
+        day_of_year=day_of_year,
+    )
+    snapshot_inputs = {
+        "t_max_c": t_max_c,
+        "t_min_c": t_min_c,
+        "solar_rad_mj_m2": solar_rad_mj_m2,
+        "rh_mean_pct": rh_mean_pct,
+        "wind_2m_ms": wind_2m_ms,
+        "t_mean_c": t_mean_c,
+        "lat_deg": lat_deg,
+        "elevation_m": elevation_m,
+        "day_of_year": day_of_year,
+    }
+    snap_id = weather_snapshot_id_override or weather_snapshot_id(snapshot_inputs)
+    limitations = list(result.get("limitations", []))
+    if valid_time is None:
+        limitations = [*limitations, "valid_time not supplied by consumer"]
+    return {
+        **result,
+        "limitations": limitations,
+        "valid_time": valid_time,
+        "weather_snapshot_id": snap_id,
+        "snapshot_source": "consumer_supplied_inputs",
     }

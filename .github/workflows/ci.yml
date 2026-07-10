@@ -262,6 +262,23 @@ jobs:
           --cov=api --cov=core --cov-config=.coveragerc
           --cov-report=term --cov-report=xml
 
+  weather-service-unit-tests:
+    name: Weather Service Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      # اختبارات محرّك الطقس (services/weather-service/tests) كانت خارج نطاق CI:
+      # الوظيفة الجذر «Unit Tests» تحصر testpaths في tests_v9، و«Platform Unit Tests»
+      # تشغّل sahool-platform فقط — فلم تُجمَع اختبارات ET0/VPD/vapor_pressure الكنسيّة
+      # (C.1a/C.1b) قطّ رغم نجاحها محليّاً. هذه الوظيفة تُشغّلها فعليّاً (TestClient،
+      # بلا شبكة/قاعدة) لتصبح عقود الجودة الكنسيّة (fao56-pm/vpd) مُحكَّمة في CI.
+      - run: pip install -r services/weather-service/requirements.txt pytest pytest-asyncio
+      - name: Run weather-service pure-logic + route tests (no network/DB)
+        working-directory: services/weather-service
+        run: PYTHONPATH=. pytest tests -q -p no:cacheprovider
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-24.04

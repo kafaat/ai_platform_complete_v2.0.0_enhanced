@@ -875,8 +875,9 @@ weather-service,services/weather-service/main.py,34,GET,/v1/weather/thermal-stre
 weather-service,services/weather-service/main.py,35,GET,/v1/weather/lodging-risk,lodging_risk
 weather-service,services/weather-service/main.py,36,GET,/v1/weather/pollination-risk,pollination_risk
 weather-service,services/weather-service/main.py,37,GET,/v1/weather/chill-accumulation,chill_accumulation
-weather-service,services/weather-service/main.py,38,GET,/v1/weather/tile-data/{z}/{x}/{y},tile_data
-weather-service,services/weather-service/main.py,39,GET,/v1/weather/operation-tile-data/{z}/{x}/{y},operation_tile_data
-weather-service,services/weather-service/main.py,40,GET,/v1/weather/tile-series/{z}/{x}/{y},tile_series
-weather-service,services/weather-service/main.py,41,GET,/v1/weather/wind-grid/{z}/{x}/{y},wind_grid
-weather-service,services/weather-service/main.py,42,GET,/v1/weather/cache-stats,tile_cache_stats
+weather-service,services/weather-service/main.py,38,POST,/v1/weather/agro/et0,agro_et0
+weather-service,services/weather-service/main.py,39,GET,/v1/weather/tile-data/{z}/{x}/{y},tile_data
+weather-service,services/weather-service/main.py,40,GET,/v1/weather/operation-tile-data/{z}/{x}/{y},operation_tile_data
+weather-service,services/weather-service/main.py,41,GET,/v1/weather/tile-series/{z}/{x}/{y},tile_series
+weather-service,services/weather-service/main.py,42,GET,/v1/weather/wind-grid/{z}/{x}/{y},wind_grid
+weather-service,services/weather-service/main.py,43,GET,/v1/weather/cache-stats,tile_cache_stats

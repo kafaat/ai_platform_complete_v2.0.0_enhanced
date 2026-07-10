@@ -7011,6 +7011,14 @@
     "service": "weather-service",
     "file": "services/weather-service/main.py",
     "line": 38,
+    "method": "POST",
+    "path": "/v1/weather/agro/et0",
+    "function": "agro_et0"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 39,
     "method": "GET",
     "path": "/v1/weather/tile-data/{z}/{x}/{y}",
     "function": "tile_data"
@@ -7018,7 +7026,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 39,
+    "line": 40,
     "method": "GET",
     "path": "/v1/weather/operation-tile-data/{z}/{x}/{y}",
     "function": "operation_tile_data"
@@ -7026,7 +7034,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 40,
+    "line": 41,
     "method": "GET",
     "path": "/v1/weather/tile-series/{z}/{x}/{y}",
     "function": "tile_series"
@@ -7034,7 +7042,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 41,
+    "line": 42,
     "method": "GET",
     "path": "/v1/weather/wind-grid/{z}/{x}/{y}",
     "function": "wind_grid"
@@ -7042,7 +7050,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 42,
+    "line": 43,
     "method": "GET",
     "path": "/v1/weather/cache-stats",
     "function": "tile_cache_stats"

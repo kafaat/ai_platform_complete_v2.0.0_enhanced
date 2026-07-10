@@ -7,6 +7,7 @@ from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
 from chill_accumulation import compute_chill_accumulation
+from et0 import et0_agro_product
 from fastapi import Body, HTTPException, Query
 from lodging_risk import compute_lodging_risk
 from open_meteo import (
@@ -22,6 +23,7 @@ from open_meteo import (
 )
 from operations import advice_ar, best_operation_frame, operation_suitability
 from pollination_risk import compute_pollination_risk
+from pydantic import BaseModel
 from raw_weather_processing import RawWeatherProcessRequest, build_raw_weather_response
 from thermal_stress import compute_compound_thermal_stress
 from tiles import (
@@ -438,6 +440,49 @@ async def chill_accumulation(
         "window": {"start_date": start_date, "end_date": end_date},
         **result,
     }
+
+
+class Et0ProductRequest(BaseModel):
+    """مدخلات ET0 المرجعيّ — المحرّك يملك تنفيذ الصيغة (FAO-56).
+
+    اللقطة (الطقس) يُوفّرها المُستهلِك في هذه المرحلة (C.1b)؛ جلبها داخل المحرّك من
+    lat/lon/valid_time لاحق (WS-D.2c). مفقود ≠ افتراض — النقص يُخفِّض الطريقة/الجودة.
+    """
+
+    t_max_c: float | None = None
+    t_min_c: float | None = None
+    solar_rad_mj_m2: float | None = None
+    rh_mean_pct: float | None = None
+    wind_2m_ms: float | None = None
+    t_mean_c: float | None = None
+    lat_deg: float | None = None
+    elevation_m: float | None = None
+    day_of_year: int | None = None
+    valid_time: str | None = None  # وقت صلاحيّة اللقطة (ISO) كما يُصرّح به المُستهلِك
+    weather_snapshot_id: str | None = None  # هويّة اللقطة إن كانت للمُستهلِك مسبقاً
+
+
+async def agro_et0(req: Et0ProductRequest = Body(...)):
+    """منتج ET0 المرجعيّ (FAO-56) لعقد محرّك الطقس — **كلّ ET0 من هنا**.
+
+    يُنفِّذ الصيغة في المحرّك (لا في المنصّة) ويعيد عقد الجودة + نَسَب الخدمة:
+    ``et0_mm`` · ``method`` (fao56_penman_monteith|hargreaves_fallback|insufficient) ·
+    ``quality_status`` · ``formula_version`` · ``valid_time`` · ``weather_snapshot_id``.
+    نقيّ حتميّ لا يجلب شبكة (اللقطة من المُستهلِك)؛ لذا لا 5xx على تعذّر مزوّد.
+    """
+    return et0_agro_product(
+        t_max_c=req.t_max_c,
+        t_min_c=req.t_min_c,
+        solar_rad_mj_m2=req.solar_rad_mj_m2,
+        rh_mean_pct=req.rh_mean_pct,
+        wind_2m_ms=req.wind_2m_ms,
+        t_mean_c=req.t_mean_c,
+        lat_deg=req.lat_deg,
+        elevation_m=req.elevation_m,
+        day_of_year=req.day_of_year,
+        valid_time=req.valid_time,
+        weather_snapshot_id_override=req.weather_snapshot_id,
+    )
 
 
 async def tile_data(
