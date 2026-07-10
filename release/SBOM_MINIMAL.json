@@ -10335,7 +10335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9268c3074c52ed826a2d8b90cd53cc32f327c0878dfdaf0d9461d671103e010c"
+          "content": "1ab0e8707fe8ec951edff0dbf8627733bd529ee1b645fb8ad4cde1f8658753dd"
         }
       ],
       "name": "services/raster-service/raster_cloud_mask_strategies.py",
@@ -10405,7 +10405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75a91022395a805f17d9dcccabaa76266d4cc6a2c430d7002c3c63a838528064"
+          "content": "3315b5cbf63c05d06592c52851a2593996c202814a2606f4ab727f548f3ffdc6"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -10505,7 +10505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e63845af3ea1369ec839fe322cc815e1a477afb30decd91dad73cc31311a892d"
+          "content": "86a7518a27be0ef484b6026873169b8a6cb0ca6a29311a21283237c6096f665d"
         }
       ],
       "name": "services/raster-service/raster_validated_product.py",
@@ -10905,7 +10905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "241e42b10e907c8b65daf7734db9f5fff0c79deb6e07be2e6b462246ea10691d"
+          "content": "daf49175449a5b37d9933f37c6d5f6d8b4c6302756cf5a34dd18fa1cdc47560b"
         }
       ],
       "name": "services/raster-service/test_cloud_mask_strategies.py",
@@ -11145,7 +11145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e51acbd93461e2900fd57544e9114e5ef5dcc3ccd24eaab3bb3d3332efb57690"
+          "content": "ca995316805fd57e539b9e9521fe1fd63ec02e8ff2a9af15e41cbfe0526a451d"
         }
       ],
       "name": "services/raster-service/test_raster_validated_product.py",

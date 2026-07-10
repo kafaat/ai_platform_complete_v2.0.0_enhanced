@@ -28,13 +28,31 @@ class MaskResult:
     warnings: list[str] = field(default_factory=list)
 
 
+def _pct(np, mask, valid_mask):
+    """نسبة بكسلات القناع مئويّةً على مجموعة البكسلات **الصالحة داخل الحقل** فقط.
+
+    صدق: عند القصّ على مضلّع الحقل تُملأ بكسلات خارج المضلّع (nodata) فتُصنَّف
+    «غير غائمة»؛ حسابها ضمن المقام يُخفّف نسبة الغيوم ويُضخّم الجودة كذباً. لذا
+    نقصر المقام على `valid_mask` (داخل الحقل + بيانات صالحة) حين يُمرَّر. غياب أيّ
+    بكسل صالح ⇒ None (لا نختلق صفراً).
+    """
+    if mask is None:
+        return None
+    if valid_mask is not None:
+        selected = mask[valid_mask]
+        if getattr(selected, "size", 0) == 0:
+            return None
+        return float(np.mean(selected) * 100.0)
+    return float(np.mean(mask) * 100.0)
+
+
 class CloudMaskStrategy(ABC):
     """Abstract strategy for source-native cloud/quality masks."""
 
     name: str
 
     @abstractmethod
-    def apply(self, *, np, band_reader, band_mapping, target_shape) -> MaskResult:
+    def apply(self, *, np, band_reader, band_mapping, target_shape, valid_mask=None) -> MaskResult:
         """Apply a source-specific mask using a band reader callback."""
 
 
@@ -56,7 +74,7 @@ class Sentinel2SCLStrategy(CloudMaskStrategy):
             return right
         return np.logical_or(left, right)
 
-    def apply(self, *, np, band_reader, band_mapping, target_shape) -> MaskResult:
+    def apply(self, *, np, band_reader, band_mapping, target_shape, valid_mask=None) -> MaskResult:
         warnings: list[str] = []
         sources: list[str] = []
         cloud = None
@@ -118,11 +136,11 @@ class Sentinel2SCLStrategy(CloudMaskStrategy):
             strategy=self.name,
             mask=combined,
             cloud_mask_applied=cloud is not None,
-            cloud_pct=float(np.mean(cloud) * 100.0) if cloud is not None else None,
+            cloud_pct=_pct(np, cloud, valid_mask),
             shadow_mask=shadow,
-            shadow_pct=float(np.mean(shadow) * 100.0) if shadow is not None else None,
+            shadow_pct=_pct(np, shadow, valid_mask),
             snow_mask=snow,
-            snow_pct=float(np.mean(snow) * 100.0) if snow is not None else None,
+            snow_pct=_pct(np, snow, valid_mask),
             sources=sources,
             warnings=warnings,
         )
@@ -138,7 +156,7 @@ class LandsatQAPixelStrategy(CloudMaskStrategy):
     SHADOW_BIT = 4
     SNOW_BIT = 5
 
-    def apply(self, *, np, band_reader, band_mapping, target_shape) -> MaskResult:
+    def apply(self, *, np, band_reader, band_mapping, target_shape, valid_mask=None) -> MaskResult:
         qa_idx = getattr(band_mapping, "qa_pixel", None) or getattr(band_mapping, "scl", None)
         if qa_idx is None:
             return MaskResult(
@@ -164,11 +182,11 @@ class LandsatQAPixelStrategy(CloudMaskStrategy):
             strategy=self.name,
             mask=combined,
             cloud_mask_applied=True,
-            cloud_pct=float(np.mean(cloud) * 100.0),
+            cloud_pct=_pct(np, cloud, valid_mask),
             shadow_mask=shadow,
-            shadow_pct=float(np.mean(shadow) * 100.0),
+            shadow_pct=_pct(np, shadow, valid_mask),
             snow_mask=snow,
-            snow_pct=float(np.mean(snow) * 100.0),
+            snow_pct=_pct(np, snow, valid_mask),
             sources=["QA_PIXEL"],
         )
 
@@ -178,7 +196,7 @@ class NoOpCloudMaskStrategy(CloudMaskStrategy):
 
     name = "noop_unavailable"
 
-    def apply(self, *, np, band_reader, band_mapping, target_shape) -> MaskResult:  # noqa: ARG002
+    def apply(self, *, np, band_reader, band_mapping, target_shape, valid_mask=None) -> MaskResult:  # noqa: ARG002
         return MaskResult(
             strategy=self.name,
             mask=None,

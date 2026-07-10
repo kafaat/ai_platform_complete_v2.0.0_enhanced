@@ -94,6 +94,7 @@ class ValidatedRasterProduct(BaseModel):
             "provider_precomputed_expected",
             "rgba_alpha_mask",
             "unknown_unavailable",
+            "not_requested",
         }:
             raise ValueError(
                 "cloud mask must be applied or explicitly represented by a no-op/provider strategy"

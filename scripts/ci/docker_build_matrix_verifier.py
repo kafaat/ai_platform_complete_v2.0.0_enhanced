@@ -188,6 +188,10 @@ class ComposeResult:
     all_services_up: bool
     cross_service_connectivity: bool
     errors: list[str]
+    # صدق: فحص `docker compose config` يتحقّق من صحّة المخطّط فقط ولا يُقلِع أيّ
+    # حاوية ⇒ لا يجوز ادّعاء all_services_up. هذا الحقل يفصل «المخطّط صالح» عن
+    # «الخدمات تعمل» (الأخير يتطلّب إقلاعاً فعليّاً لا يجريه هذا الفحص).
+    config_valid: bool = False
 
 
 def run_command(
@@ -224,7 +228,10 @@ def dockerfile_for(service: str) -> Path | None:
     )
     if configured:
         candidate = ROOT / configured
-        return candidate if candidate.exists() else candidate
+        if candidate.exists():
+            return candidate
+        # المسار المُهيّأ بائت ⇒ اسقط إلى Dockerfile الافتراضيّ للخدمة بدل إرجاع
+        # مسار غير موجود يُبلَّغ خطأً كاذباً «Dockerfile مفقود».
     candidate = ROOT / "services" / service / "Dockerfile"
     if candidate.exists():
         return candidate
@@ -454,7 +461,11 @@ def compose_check(compose_file: Path) -> ComposeResult:
         return ComposeResult(
             "fail", str(compose_file.relative_to(ROOT)), False, False, [stderr[-1000:]]
         )
-    return ComposeResult("pass", str(compose_file.relative_to(ROOT)), True, False, [])
+    # المخطّط صالح فقط — لم تُقلَع خدمات؛ لذا all_services_up=False (صدق) و
+    # config_valid=True (ما ثبت فعلاً).
+    return ComposeResult(
+        "pass", str(compose_file.relative_to(ROOT)), False, False, [], config_valid=True
+    )
 
 
 def build_evidence(

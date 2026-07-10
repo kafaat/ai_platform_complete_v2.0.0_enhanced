@@ -657,11 +657,17 @@ def process_pixels(ctx, req, layer_id: str):
                 str(getattr(req, "source_format", "") or "")
             )
             cloud_strategy_name = strategy.name
+            # قناع الصلاحيّة داخل الحقل: `arr` (المؤشّر) NaN خارج مضلّع القصّ وعند
+            # nodata، فـ`isfinite` يعطي «داخل الحقل + بيانات صالحة». تمريره يقصر
+            # حساب نِسَب الغيوم/الظلّ/الثلج على هذه البكسلات فقط بدل تخفيفها ببكسلات
+            # خارج الحقل المملوءة صفراً (تُصنَّف غير غائمة كذباً).
+            _in_field_valid = np.isfinite(arr)
             mask_result = strategy.apply(
                 np=np,
                 band_reader=band_raw,
                 band_mapping=b,
                 target_shape=arr.shape,
+                valid_mask=_in_field_valid,
             )
             cloud_strategy_warnings = list(mask_result.warnings or [])
             cloud_mask = mask_result.mask
@@ -808,7 +814,15 @@ def process_pixels(ctx, req, layer_id: str):
         }
         cog_crs = str(src_crs or "EPSG:4326")
 
-        _cloud_strategy = cloud_strategy_name
+        # عقد المنتَج المُصادَق يتطلّب — عند عدم تطبيق قناع فعليّ — استراتيجيّةً صريحة
+        # تُمثّل «غير متاح» بدل اسم محاولة قد يُوهِم تطبيقاً لم يحدث. المحاولة نفسها
+        # (sentinel2_scl/landsat_qa_pixel) وسببها محفوظان في
+        # stats["cloud_mask_strategy"]/التحذيرات، فلا فقدان معلومة. حالة
+        # not_requested (المستخدم لم يطلب قناعاً) تُمثَّل صراحةً بذاتها.
+        if cloud_pct is not None or cloud_strategy_name == "not_requested":
+            _cloud_strategy = cloud_strategy_name
+        else:
+            _cloud_strategy = "unknown_unavailable"
         validated_product = raster_validated_product.build_validated_raster_product(
             req=req,
             pixel_qa=pixel_qa,

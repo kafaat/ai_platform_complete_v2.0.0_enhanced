@@ -87,3 +87,37 @@ def test_noop_strategy_is_explicitly_unavailable():
     assert result.mask is None
     assert result.cloud_mask_applied is False
     assert "source_has_no_native_cloud_mask" in result.warnings
+
+
+def test_valid_mask_excludes_out_of_field_pixels_from_cloud_pct():
+    # مشهد: حقل صغير (بكسل واحد) غائم بالكامل داخل نافذة أكبرها خارج المضلّع (SCL=0
+    # مملوء ⇒ يُصنَّف «صافياً»). بلا valid_mask تُخفَّف الغيوم كذباً؛ مع valid_mask
+    # يُحسب على البكسل داخل الحقل فقط ⇒ 100%.
+    scl = np.array([[0, 0], [0, 8]], dtype=np.uint8)  # فقط البكسل الأخير غيمة (SCL=8)
+    valid = np.array([[False, False], [False, True]])  # داخل الحقل = البكسل الغائم
+    reader = _reader({1: scl})
+    diluted = Sentinel2SCLStrategy().apply(
+        np=np, band_reader=reader, band_mapping=BandMapping(scl=1), target_shape=(2, 2)
+    )
+    in_field = Sentinel2SCLStrategy().apply(
+        np=np,
+        band_reader=reader,
+        band_mapping=BandMapping(scl=1),
+        target_shape=(2, 2),
+        valid_mask=valid,
+    )
+    assert diluted.cloud_pct == 25.0  # 1 من 4 (مخفَّف كذباً)
+    assert in_field.cloud_pct == 100.0  # 1 من 1 داخل الحقل (صادق)
+
+
+def test_valid_mask_all_false_yields_none_not_fabricated_zero():
+    scl = np.array([[8, 8]], dtype=np.uint8)
+    valid = np.array([[False, False]])
+    result = Sentinel2SCLStrategy().apply(
+        np=np,
+        band_reader=_reader({1: scl}),
+        band_mapping=BandMapping(scl=1),
+        target_shape=(1, 2),
+        valid_mask=valid,
+    )
+    assert result.cloud_pct is None  # لا اختلاق صفر عند غياب بكسل صالح

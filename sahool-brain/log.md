@@ -76,6 +76,23 @@
 **حالة الأسطول عند 949074f:** 18/20 أخضر (شاملاً Production Gates وField Workspace Closure وDependency Conflict Inventory)؛ المتبقّيان: Runtime Real Smoke (أُصلح هنا) وci.yml (كان قيد التشغيل).
 
 ---
+## 2026-07-10 — مراجعة عدائيّة + إغلاق فجوات الكود المدموج حديثاً (raster QA + verifier)
+
+استجابةً لـ«قوم بعمل تحسينات و إغلاق الفجوات»: بما أنّ سجلّ الفجوات مُغلَق أساساً (fixed/verified/by-design؛ المتبقّي deferred يحتاج GPU/Flutter/معايرة ميدانيّة، وP-CERT يتطلّب أدلّة نشر حقيقيّة **لا تُختلَق**)، وُجِّه الجهد إلى **الكود المدموج حديثاً الذي لم يُراجَع مستقلّاً** (~1000 سطر: برنامج جودة الراستر + verifier). وكيل مراجعة عدائيّة رفع 7 فجوات؛ أُصلحت الأربع الحقيقيّة (كلٌّ بمشهد فشل ملموس مُتحقَّق):
+
+- **HIGH — عقد المنتَج المُصادَق يرفض المسار الصادق «قناع غير متاح» ⇒ 500:** `raster_validated_product.py` كان يقبل فقط {noop_unavailable, provider_precomputed_expected, rgba_alpha_mask, unknown_unavailable} عند cloud_mask_applied=False، لكنّ `process_pixels` يمرّر اسم المحاولة الخام (`sentinel2_scl`/`landsat_qa_pixel` عند غياب قناع، أو `not_requested` عند `apply_cloud_mask=False`) ⇒ ValueError غير محروس ⇒ 500 على طلب مشروع (يستخدمه `test_clip_grid.py:133` فعلاً). **الإصلاح:** عند غياب قناع فعليّ (cloud_pct is None) تُعيَّن الاستراتيجيّة إلى `unknown_unavailable` صراحةً قبل البناء (المحاولة+سببها محفوظان في stats/التحذيرات، فلا فقدان)؛ و`not_requested` أُضيف لمجموعة العقد المقبولة (حالة صريحة صادقة). `raster_pixel_processing.py` + `raster_validated_product.py`.
+- **MED — `cloud_pct` مُخفَّف ببكسلات خارج الحقل ⇒ يُخفي الغيوم:** الاستراتيجيّات حسبت `np.mean(cloud)*100` على كامل المصفوفة؛ عند القصّ تُملأ بكسلات خارج المضلّع بـ0 (SCL 0 = «صافٍ») فتُخفّض النسبة. حقل صغير غائم في زاوية نافذة كبيرة ⇒ ~10% بدل ~100% ⇒ جودة مُضخَّمة (اتّجاه-كذب يُخفي مشكلة). **الإصلاح:** دالّة `_pct(np, mask, valid_mask)` تقصر المقام على البكسلات الصالحة داخل الحقل؛ `process_pixels` يمرّر `valid_mask=np.isfinite(arr)` (arr NaN خارج المضلّع/nodata)؛ غياب بكسل صالح ⇒ None لا صفر مُختلَق. توقيع `apply()` كسب `valid_mask=None` (متوافق للخلف).
+- **MED — verifier يدّعي `all_services_up=True` بعد فحص config فقط:** `docker compose config` يتحقّق من المخطّط ولا يُقلِع خدمات. **الإصلاح:** حقل `config_valid: bool` جديد على `ComposeResult` (يفصل «المخطّط صالح» عن «الخدمات تعمل»)؛ فحص config-only يعيد الآن all_services_up=False + config_valid=True (صدق).
+- **MED — `dockerfile_for` ثلاثيّ ميّت:** `return candidate if candidate.exists() else candidate` (فرعان متطابقان) لا يسقط للـDockerfile الافتراضيّ حين المسار المُهيّأ بائت. **الإصلاح:** سقوط فعليّ إلى `services/<svc>/Dockerfile`.
+
+**فجوات LOW مقبولة بوعي (لا إصلاح، موثَّق السبب):** عتبة CLP `0.40 if clp_max<=1.0 else 40.0` (تفشل نحو القناع — محافِظة، لا اتّجاه-كذب) · security «skipped» تُعدّ pass داخل verified (لكنّ `phases_run` يسجّلها و`production_certified` صلب-False دائماً — لا تسريب اعتماد) · حقل pydantic `schema` يظلّ `.schema()` (تسمية عقد سلكيّ مقصودة `sahool.validated_raster_product/1`؛ إعادة التسمية تكسر العقد والاختبارات).
+
+**نظيف من المراجعة:** `raster_topographic_qa.py` (حُرّاس all-NaN/DEM-غائب + fabricated=False صادقة) · حارس CLP all-NaN (`np.isfinite` قبل `nanmax`) صحيح · verifier: `production_certified` صلب-False في المخرَجات الثلاثة، وbuild/health يتطلّبان pass حقيقيّاً (skipped≠pass).
+
+**اختبارات مُضافة (3):** dilution (25% مخفَّف مقابل 100% داخل الحقل) · valid-mask كلّه False ⇒ None · قبول الاستراتيجيّات الصادقة غير المتاحة. التحقّق: unit كامل + 28 اختبار راستر + كلّ الحُرّاس + verifier static (4) + ruff نظيف.
+
+---
+
 
 ## 2026-07-09 — دمج أرشيف الحوكمة الكبير (prod_evidence_runtime_smoke) بدمج ثلاثيّ + مصالحة شاملة
 

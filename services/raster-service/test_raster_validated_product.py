@@ -78,3 +78,28 @@ def test_source_strategy_selection_is_explicit():
     assert isinstance(strategy_for_source_format("sentinel2_l2a"), Sentinel2SCLStrategy)
     assert isinstance(strategy_for_source_format("landsat8"), LandsatQAPixelStrategy)
     assert isinstance(strategy_for_source_format("drone_orthomosaic"), NoOpCloudMaskStrategy)
+
+
+def test_validated_product_accepts_honest_unavailable_cloud_strategies():
+    # الإصلاح: المسار الصادق «حاولنا قناعاً لكنّه غير متاح» أو «لم يُطلَب» يجب أن
+    # يُقبَل بعلامة صريحة (unknown_unavailable / not_requested) لا أن ينهار 500.
+    pixel_qa = {
+        "schema": "sahool.raster_pixel_qa/1",
+        "quality_score": 0.5,
+        "valid_pixel_ratio": 0.7,
+        "warnings": ["cloud_mask_not_applied_or_unavailable"],
+    }
+    quality_flags = {
+        "schema": "sahool.raster_quality_flags/1",
+        "cloud_mask_applied": False,
+    }
+    for strat in ("unknown_unavailable", "not_requested"):
+        product = build_validated_raster_product(
+            req=_req(),
+            pixel_qa=pixel_qa,
+            quality_flags=quality_flags,
+            spatial_crs="EPSG:32638",
+            cloud_mask_strategy=strat,
+        )
+        assert product.cloud_mask_applied is False
+        assert product.cloud_mask_strategy == strat
