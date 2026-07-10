@@ -23005,7 +23005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "458f6cab2e2bec60664b1b9924f718a59ab1facf737d0b6a75635db4e3c24d29"
+          "content": "bdbae24d45509b54ca525bd37c8062f81771c193195ff8f5aa432d08f930cd6b"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -23045,7 +23045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01fe1af0eb925707aa866f79c2dffed54fc2292cc9a6b22fe017c8817cfb099a"
+          "content": "0b8fc06d7c13ff3a14a6a8a63dc258fd317efb50ee0a387db731872d0162f178"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",
@@ -23339,6 +23339,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_crop_stress_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc6bde68b1930a4faca7bf46c3c0a87aa0d9cd23cd927f17108666e57229b60a"
+        }
+      ],
+      "name": "services/weather-service/tests/test_operation_fail_closed.py",
       "type": "file"
     },
     {

@@ -51,6 +51,13 @@ async def timeseries(
         "field_id": field_id,
         "days": days,
         "timeseries": main._generate_timeseries(field_id, days),
+        # صدق (V2): هذه سلسلة تقديريّة تركيبيّة، لا رصد حقيقيّ — كي لا تُعرَض كأنّها
+        # بيانات فعليّة. المصدر الحقيقيّ raster-service (`/imagery/timeseries`).
+        "data_source": "synthetic_estimate",
+        "real_data": False,
+        "synthetic": True,
+        "authoritative_source": "raster-service:/imagery/timeseries",
+        "warning_ar": "سلسلة زمنيّة تقديريّة (تركيبيّة) لا رصد فعليّ — المصدر الحقيقيّ خدمة الراستر.",
         "generated_at": main.datetime.now(main.UTC).isoformat(),
     }
 

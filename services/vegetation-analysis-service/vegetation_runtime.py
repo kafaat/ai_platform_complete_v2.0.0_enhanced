@@ -860,13 +860,22 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
 
 
 def _generate_timeseries(field_id: str, days: int) -> list[dict]:
+    """سلسلة زمنيّة **تقديريّة تركيبيّة** (لا بكسلات حقيقيّة).
+
+    صدق (إصلاح V2): كلّ نقطة تُوسَم `source="synthetic_estimate"` + `estimated=True`
+    كي لا يعرضها المستهلك (رسوم NDVI في الويب/الموبايل) كأنّها رصد حقيقيّ. المصدر
+    الحقيقيّ للسلسلة الزمنيّة هو raster-service (`/imagery/timeseries`)؛ وصلُه هنا
+    خطوة تالية تتطلّب تشغيل Raster حيّاً — حتّى ذلك، تبقى هذه مُعلَّمة تركيبيّة صراحةً.
+    """
     result = []
     today = date.today()
     for i in range(0, days, 5):
         acq = (today - timedelta(days=days - i)).isoformat()
         bands = _realistic_bands(field_id, acq)
         indices = _compute_indices(bands)
-        result.append({"date": acq, **{k: v for k, v in indices.items()}})
+        result.append(
+            {"date": acq, "source": "synthetic_estimate", "estimated": True, **dict(indices)}
+        )
     return result
 
 

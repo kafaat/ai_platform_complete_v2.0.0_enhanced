@@ -275,6 +275,21 @@ Duplicate Operation ID proxy_segmentation_api_segmentation__path__patch
 **التحقّق المستقلّ الكامل (بعد إصلاح CI):** tsc 0 · vitest **1100/155** · منصّة **3569** (+2 P0 حارس جديد، 56/56 في مجموعة حُرّاس الـworkflow) · tests_v9 unit **2806** · ruff CI نظيف · YAML صالح (كلا الملفّين) · release مُعاد بناؤه (3602 checksum).
 
 ---
+## 2026-07-10 — P0-1 (Vegetation V2): وسم السلسلة الزمنيّة التركيبيّة صراحةً (منع «تركيبيّ يُعرَض كحقيقيّ»)
+
+أوّل بند من الخطّة consumer-driven المعتمَدة. المراجعة سمّت هذا «ذا أولويّة قصوى»: `/v1/timeseries/{field_id}` كان يعيد `_generate_timeseries` (سلسلة تركيبيّة من نطاقات مُصطنَعة) **بلا أيّ وسم مصدر**، والرسوم في الويب/الموبايل (NDVI charts) تستهلكها كأنّها رصد حقيقيّ.
+
+**الإصلاح (V2 — الشريحة القابلة للتحقّق الآن):** لا يُقدَّم التركيبيّ كحقيقيّ أبداً:
+- `_generate_timeseries`: كلّ نقطة تُوسَم `source="synthetic_estimate"` + `estimated=True`.
+- مُعالِج المسار: الرد يحمل `data_source="synthetic_estimate"` · `real_data=False` · `synthetic=True` · `authoritative_source="raster-service:/imagery/timeseries"` · `warning_ar` صريح.
+- حارس `test_timeseries_honesty.py` يمنع عودة الفجوة (نقاط مُعلَّمة + أعلام الرد).
+
+**صدق النطاق:** هذه شريحة **الوسم الأمين** (منع الخداع)، لا الوصل الكامل بسلسلة Raster الحقيقيّة — الأخير يتطلّب تشغيل Raster حيّاً (غير متاح للتحقّق هنا) وهو الخطوة التالية المُعلَنة في كود/رسالة التحذير. المكسب الآن: **مستحيل أن تُعرَض السلسلة التركيبيّة كرصد حقيقيّ** بعد اليوم.
+
+**التحقّق:** vegetation-service 21 passed (2 honesty + 19 logic) · حارس تفكيك الراوترات 7 · ruff · إضافيّ متوافق للخلف (لا كسر مستهلك). المتبقّي من P0-Vegetation (season_id · FIELD_REGISTRY الإنتاجيّ · anomaly/state · hypotheses بدل توصيات · وصل Raster timeseries) يبقى مُتسلسلاً.
+
+---
+
 
 ## 2026-07-09 — جاهزيّة cutover لـ decision-service SoR (بنية flag-gated آمنة)
 
