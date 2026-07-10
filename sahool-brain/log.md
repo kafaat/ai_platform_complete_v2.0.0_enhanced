@@ -2329,3 +2329,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **تفويض المنصّة (`bd75cc5`):** `irrigation-recommendation` (field + generic) تستهلك ET0 من المحرّك عبر `weather_service_client.get_et0_product` — **لا محرّكا ET0 متوازيان**. تعذّر المحرّك ⇒ `dependency_unavailable`/503 (**لا حساب ET0 محلّيّ بديل صامت**). **مقارنة ظلّيّة مؤقّتة** (`_shadow_et0_diff`): الإرث المحلّيّ (allowlisted) للمقارنة فقط، لا يدخل القرار — نفس مدخلات المحرّك ⇒ فرق ≈ 0 (إثبات أمانة إعادة الإنتاج). نَسَب `et0` في المخرَج + `evidence_ids`.
 - **الحالة:** WS-C.1b core = منجز · consolidation (تفويض irrigation) = منجز · **متبقٍ:** ترحيل بقيّة مستهلكي ET0 (season_simulation/weather_analytics/water-balance route) ثمّ حذف `core/engines/et0.py` المحلّيّ وإسقاط الـallowlist (cons-4) · حفظ candidate في decision-service (WS-D.2d).
 - **التحقّق:** `pytest -m unit` (2871) · platform suite (3614) · weather suite (82) · ruff · bandit HIGH (0) · الحارس الحدوديّ · جرود main-only محلّيّاً · release bundle. main/develop = `fc3572a` ثمّ `bd75cc5` بعد CI الأخضر.
+
+## C.1c تفويض المستهلكين + خريطة ملكيّة المحرّكات
+
+- **`073613a`:** تفويض `/gdd/track` — فصل الحساب عن السياسة (`stage_result_from_cumulative` سياسة تبقى؛ نواة تُفوَّض)، shadow per-consumer (`gdd_shadow`، 5 مقاييس، طريقة مصنّفة لا مُذابة عند دقّة 3 منازل)، fail-closed 503.
+- **`5fff601`:** تفويض محاكاة الموسم (RUE) — حقن اختياريّ `SimContext.gdd_daily_override` (مُحافِظ على الطريقة `modified`؛ `override=None` ⇒ سلوك مطابق، 178 اختبار موسم أخضر)، `crop_gdd_policy` يُصدّر العتبات، shadow + fail-closed. `SeasonSimResponse.gdd_provenance`.
+- **قرار معماريّ (المستخدم):** [`decisions/engine-ownership.md`](decisions/engine-ownership.md) — Weather = مالك الطقس والمشتقّات الجوّيّة (ET0/VPD/GDD/…)؛ Crop Twin = مالك المحصول (phenology/biomass/yield)، يستهلك الطقس ولا يحسبه؛ الحارس يمنع تسرّب النوى خارجاً والملكيّة تمنع تسرّب منطق المحصول داخلاً. **crop_twin compose حاسبة offline (تستقبل et0_mm مُورَّداً) ⇒ تفويض GDD لها = C.2 (BFF)، لا C.1c** — فيبقى `season_simulation.gdd_day` على allowlist حتّى C.2.
+- **الحيّ المتبقّي:** crop_twin (عبر C.2). الميت: gdd_phenology kernel. **لا حذف** حتّى C.2 + قرار الطريقة الموحَّدة.
+- main/develop = `5fff601` (CI أخضر؛ unit 2871 · weather 93 · platform 3632 · guards · archive 3891).
