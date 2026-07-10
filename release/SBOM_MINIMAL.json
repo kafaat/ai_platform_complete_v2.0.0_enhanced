@@ -10185,7 +10185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7657e89ecc9a13d9fae23fbd3ca6c7c9b9964aff16db18cbf8fdab73d3185526"
+          "content": "dee3ab178282e283750a0fed9c6026f7a7211583dfdcfed7fe1d020dc6c40bbd"
         }
       ],
       "name": "services/raster-service/indicator_grid.py",
@@ -10215,7 +10215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92e7a26da311bbbc1eb56c74347b970fd5f475d5a15d7de63c65404722ac484e"
+          "content": "73bf8def6ca90a383bcb2d8444a0123b97e00cfa2ed5aa71ee4a2306edcbb61d"
         }
       ],
       "name": "services/raster-service/layer_lookup.py",
@@ -10895,7 +10895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "874c026f77eda98436bab056d932d93778c8c5d6b0ba340c662c92be9a6a3f0b"
+          "content": "293acd3713f0a868e4120255f56f8fb2988a17cb945adb0b1c5750435d0958fc"
         }
       ],
       "name": "services/raster-service/test_clip_grid.py",
@@ -20305,6 +20305,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "11935a76aa98d314f1cad4de8a092acd2a85ffb5d28f68b8454de092095a9546"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_depletion_trigger.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f4ae7d6c6b28a279351b462490674d0bc888790c3c5b71d274563c6a1a828d95"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a3484e40f5c0ee03eba41693f63ec0ad407877a50f83c005af3914835c9c3b3f"
         }
       ],
@@ -23055,7 +23075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d31273161d69361a45d70794849439eab7ac39990809cf918468dfb336b6160"
+          "content": "29ec3e9f59fb4e662a4a1d53f9e43ffb1a6b717e8cd07ef5423b2871dc273669"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

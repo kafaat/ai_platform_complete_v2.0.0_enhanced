@@ -222,9 +222,21 @@ def test_clip_index_bounds_and_grid():
         "zones",
         "source",
         "real_data",
+        "indicator_product",
     }
     assert required.issubset(body.keys()), f"حقول ناقصة: {required - set(body.keys())}"
     assert body["real_data"] is True, "متوقّع real_data=True (COG حقيقي موجود)"
+
+    # ── ValidatedIndicatorProduct على المسار الحقيقي (raster-service, غير تقديريّ) ──
+    ip = body["indicator_product"]
+    assert ip["schema"] == "sahool.validated_indicator_product/1"
+    assert ip["source"] == "raster-service"
+    assert ip["estimated"] is False
+    assert ip["real_data"] is True
+    assert ip["quality_gate_passed"] is True
+    # provenance مبنيّة من بيانات الطبقة الحقيقيّة (source_format/cog_url) لا مختلَقة
+    assert ip["provenance"] is not None
+    assert ip["provenance"]["source_uri"], "متوقّع source_uri من cog_url الحقيقيّ"
     assert body["field_id"] == "field_001"
     assert body["index"] == "ndvi"
     assert isinstance(body["bbox"], list) and len(body["bbox"]) == 4
@@ -262,6 +274,16 @@ def test_clip_index_bounds_and_grid():
     sim = resp2.json()
     assert sim["real_data"] is False and sim["source"] == "simulation"
     assert required.issubset(sim.keys())
+
+    # ── ValidatedIndicatorProduct على مسار المحاكاة (simulation, تقديريّ بصدق) ──
+    sim_ip = sim["indicator_product"]
+    assert sim_ip["schema"] == "sahool.validated_indicator_product/1"
+    assert sim_ip["source"] == "simulation"
+    assert sim_ip["estimated"] is True
+    assert sim_ip["real_data"] is False
+    assert sim_ip["quality_gate_passed"] is False
+    assert sim_ip["quality_score"] is None
+    assert sim_ip["provenance"] is None
     print(f"(هـ) fallback محاكاة صحيح: real_data={sim['real_data']} source={sim['source']}")
 
     print("\nALL ASSERTIONS PASSED")

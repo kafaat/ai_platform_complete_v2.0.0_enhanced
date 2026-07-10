@@ -17,3 +17,19 @@ def test_raster_validated_product_guard_passes():
         cwd=ROOT,
         check=True,
     )
+
+
+def test_guard_covers_validated_indicator_product():
+    """The guard must also protect the ValidatedIndicatorProduct wiring (WS-A)."""
+    guard = (ROOT / "scripts/ci/raster_validated_product_guard.py").read_text(encoding="utf-8")
+    for token in (
+        "raster_indicator_product.py",
+        "class ValidatedIndicatorProduct",
+        "sahool.validated_indicator_product/1",
+        "layer_lookup.grid_from_cog missing indicator_product wiring",
+        "indicator_grid.synthetic_grid missing indicator_product wiring",
+    ):
+        assert token in guard, f"guard no longer enforces: {token}"
+
+    module = ROOT / "services/raster-service/raster_indicator_product.py"
+    assert module.exists(), "raster_indicator_product.py must exist for the guard to protect"

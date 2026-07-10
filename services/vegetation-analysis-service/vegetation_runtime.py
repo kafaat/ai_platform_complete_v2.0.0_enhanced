@@ -763,9 +763,12 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
-async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi") -> float | None:
-    """متوسّط المؤشّر الحقيقيّ (بكسليّ) من raster-service (band_math، Sentinel-2) إن
-    توفّر — وإلّا None.
+async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi") -> dict | None:
+    """المؤشّر الحقيقيّ (بكسليّ) من raster-service (band_math، Sentinel-2) إن توفّر — وإلّا None.
+
+    يُرجِع dict فيه المتوسّط والغلاف النوعيّ/المصدريّ (quality_score/provenance) المقروء
+    من `indicator_product` الجديد (ValidatedIndicatorProduct) إن وُجد، إضافةً إلى
+    stats.mean + real_data. الحقول النوعيّة اختياريّة: غيابها ⇒ None (لا اختلاق).
 
     `raster_index`: اسم المؤشّر في raster band_math (ndvi|evi|msavi|moisture|ndre).
     fail-safe مطلق: أيّ خطأ/مهلة/غياب طبقة/real_data=false ⇒ None (لا استثناء يصعد)،
@@ -785,7 +788,18 @@ async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi"
         if not data.get("real_data"):
             return None
         mean = (data.get("stats") or {}).get("mean")
-        return float(mean) if isinstance(mean, (int, float)) else None
+        if not isinstance(mean, (int, float)):
+            return None
+        # الغلاف الأغنى (ValidatedIndicatorProduct) إن نشره raster-service؛ متوافق
+        # رجعيّاً مع خدمة أقدم لا تحمله (product = {} ⇒ الحقول None، estimated=False).
+        product = data.get("indicator_product") or {}
+        return {
+            "mean": float(mean),
+            "quality_score": product.get("quality_score"),
+            "valid_pixel_ratio": product.get("valid_pixel_ratio"),
+            "provenance": product.get("provenance"),
+            "estimated": bool(product.get("estimated", False)),
+        }
     except Exception as e:  # noqa: BLE001 — fail-safe: ارتداد للتقدير، لا كسر
         logger.debug("raster %s الحقيقيّ غير متاح لـ%s: %s", raster_index, field_id, e)
         return None
@@ -819,6 +833,9 @@ async def run_analysis(
         # ndvi + evi + savi(msavi) + ndmi(moisture). تُجلب بالتوازي (gather) ويُستبدَل
         # القيمة فقط (لا تتغيّر الصيَغ). lai/cwsi/ndwi/gndvi/recl تبقى تقديريّة بصدق.
         index_sources: dict[str, str] = dict.fromkeys(indices, "estimate")
+        # الغلاف النوعيّ/المصدريّ لكلّ مؤشّر حقيقيّ (quality_score/provenance) المقروء
+        # من ValidatedIndicatorProduct — يُرفَق بصدق في العقد لكلّ index من raster فقط.
+        index_quality: dict[str, dict] = {}
         _veg_keys = ["ndvi", *_RASTER_REAL_INDEX.keys()]
         _raster_idxs = ["ndvi", *_RASTER_REAL_INDEX.values()]
         _real_means = await asyncio.gather(
@@ -826,8 +843,13 @@ async def run_analysis(
         )
         for _vk, _rv in zip(_veg_keys, _real_means, strict=True):
             if _rv is not None:
-                indices[_vk] = round(_rv, 3)
+                indices[_vk] = round(_rv["mean"], 3)
                 index_sources[_vk] = "raster-service"
+                index_quality[_vk] = {
+                    "quality_score": _rv.get("quality_score"),
+                    "valid_pixel_ratio": _rv.get("valid_pixel_ratio"),
+                    "provenance": _rv.get("provenance"),
+                }
         ndvi_is_real = index_sources["ndvi"] == "raster-service"
         health = _health_classification(indices["ndvi"], indices["cwsi"])
         recs = _recommendations_ar(indices, health, field.get("crop") or "wheat")
@@ -868,6 +890,16 @@ async def run_analysis(
                 "source": index_sources.get(k, "estimate"),
                 # V3: علم صريح لا نصّ فقط — تقديريّ ما لم يكن من raster-service.
                 "estimated": index_sources.get(k, "estimate") != "raster-service",
+                # الغلاف النوعيّ/المصدريّ من ValidatedIndicatorProduct — يُرفَق فقط
+                # للمؤشّرات الحقيقيّة من raster-service (غيابه ⇒ لا مفاتيح إضافيّة، لا اختلاق).
+                **(
+                    {
+                        "quality_score": index_quality[k].get("quality_score"),
+                        "provenance": index_quality[k].get("provenance"),
+                    }
+                    if k in index_quality
+                    else {}
+                ),
             }
             for k, v in indices.items()
         },

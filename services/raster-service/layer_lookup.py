@@ -106,7 +106,7 @@ def grid_from_cog(
         return None
 
     part = ig.grid_from_array(arr, index, grid)
-    return {
+    result = {
         "field_id": layer.get("field_id") or "",
         "index": index,
         "date": (layer.get("acquisition_date") or date),
@@ -126,6 +126,28 @@ def grid_from_cog(
         "confidence": layer.get("confidence"),
         "quality": layer.get("quality"),
     }
+    # Surface the typed provenance/quality envelope onto the wire alongside the
+    # existing (unchanged) contract keys. source="raster-service", estimated=False,
+    # quality gate passed. Provenance is built only from real layer metadata —
+    # never fabricated (absent fields stay None).
+    import raster_indicator_product as rip
+    from raster_validated_product import ProvenanceRecord
+
+    provenance = None
+    if any(layer.get(k) for k in ("scene_id", "cog_url", "source_format")):
+        provenance = ProvenanceRecord(
+            source=layer.get("source_format"),
+            source_format=layer.get("source_format"),
+            scene_id=layer.get("scene_id"),
+            capture_datetime=layer.get("acquisition_date"),
+            source_uri=layer.get("cog_url"),
+        )
+    result["indicator_product"] = rip.from_grid_response(
+        result,
+        quality_score=layer.get("confidence"),
+        provenance=provenance,
+    )
+    return result
 
 
 async def rehydrate_field_layer_from_db(

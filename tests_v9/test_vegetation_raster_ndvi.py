@@ -113,9 +113,16 @@ def veg():
 
 
 async def test_real_indices_used_and_labeled(veg):
-    # المنفذ الحقيقيّ يُرجِع قيمة لكلّ مؤشّر مدعوم (ndvi/evi/msavi/moisture).
+    # المنفذ الحقيقيّ يُرجِع الآن غلافاً (dict) فيه المتوسّط + النوعيّة/المصدر
+    # (ValidatedIndicatorProduct) بدل float مجرّد — WS-A. القيمة تبقى تحت "mean".
     async def _r(field_id, raster_index="ndvi"):
-        return 0.77
+        return {
+            "mean": 0.77,
+            "quality_score": 0.9,
+            "valid_pixel_ratio": 0.95,
+            "provenance": None,
+            "estimated": False,
+        }
 
     veg._real_index_mean_from_raster = _r
     res = await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")

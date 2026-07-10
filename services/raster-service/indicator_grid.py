@@ -184,7 +184,7 @@ def synthetic_grid(field_id: str, index: str, date: str, bbox: list[float], grid
         stats = {"min": 0.0, "max": 0.0, "mean": 0.0}
     zones = classify_zones(grid_vals, index, rows, cols)
 
-    return {
+    result = {
         "field_id": field_id,
         "index": index,
         "date": date,
@@ -197,3 +197,10 @@ def synthetic_grid(field_id: str, index: str, date: str, bbox: list[float], grid
         "source": "simulation",
         "real_data": False,
     }
+    # Same indicator_product contract shape as the real branch (see
+    # layer_lookup.grid_from_cog) — but honestly labelled: source="simulation",
+    # estimated=True, real_data=False, quality gate NOT passed, no provenance.
+    import raster_indicator_product as rip
+
+    result["indicator_product"] = rip.from_grid_response(result)
+    return result
