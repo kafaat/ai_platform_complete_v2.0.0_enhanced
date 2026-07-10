@@ -547,7 +547,7 @@ sahool-platform,services/sahool-platform/api/routers/fields.py,3918,GET,/api/v1/
 sahool-platform,services/sahool-platform/api/routers/fields.py,3946,GET,/api/v1/fields/{field_id}/alerts/derived,field_alerts_derived
 sahool-platform,services/sahool-platform/api/routers/fields.py,3972,GET,/api/v1/fields/{field_id}/state/full,field_state_full
 sahool-platform,services/sahool-platform/api/routers/fodder_alternatives.py,25,GET,/api/v1/fodder-alternatives/list,fodder_alternatives_list_endpoint
-sahool-platform,services/sahool-platform/api/routers/gdd.py,30,POST,/api/v1/gdd/track,gdd_track
+sahool-platform,services/sahool-platform/api/routers/gdd.py,52,POST,/api/v1/gdd/track,gdd_track
 sahool-platform,services/sahool-platform/api/routers/geo.py,28,GET,/api/v1/geo/reverse,geo_reverse_endpoint
 sahool-platform,services/sahool-platform/api/routers/geo_locate.py,24,GET,/api/v1/geo-locate/field,geo_locate_field_endpoint
 sahool-platform,services/sahool-platform/api/routers/geo_locate.py,30,GET,/api/v1/geo-locate/recommend,geo_locate_recommend_endpoint

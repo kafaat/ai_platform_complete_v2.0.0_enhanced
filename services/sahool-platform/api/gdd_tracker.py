@@ -127,21 +127,17 @@ def daily_gdd(t_min: float, t_max: float, t_base: float, t_upper: float | None =
     return max(0.0, mean - t_base)
 
 
-def track_gdd(crop: str, temps: list[DailyTemp]) -> GDDResult:
-    """يتراكم GDD عبر سلسلة أيّام ويحدّد المرحلة الحاليّة.
+def stage_result_from_cumulative(crop: str, cumulative: float, days_counted: int) -> GDDResult:
+    """**سياسة الموسم** (لا نواة): تعيين المرحلة من GDD التراكميّ + عتبات المحصول.
 
-    يرفع ValueError لو المحصول غير معروف.
+    مفصولة عن نواة الحساب (C.1c): النواة (daily/cumulative) قد تأتي من محرّك الطقس،
+    وهذه الدالّة تطبّق عتبات المراحل (تبقى في المنصّة/الموسم، لا تُنقَل للمحرّك).
     """
     params = GDD_CROP_PARAMS.get(crop)
     if params is None:
         raise ValueError(f"محصول غير معروف لـGDD: {crop}. المتاح: {list(GDD_CROP_PARAMS)}")
     t_base = params["t_base"]
-    t_upper = params["t_upper"]
     stages: list[tuple[str, float]] = params["stages"]
-
-    cumulative = 0.0
-    for d in temps:
-        cumulative += daily_gdd(d.t_min_c, d.t_max_c, t_base, t_upper)
 
     # حدّد المرحلة الحاليّة (آخر مرحلة بلغ GDD عتبتها)
     current = "planting"
@@ -167,7 +163,7 @@ def track_gdd(crop: str, temps: list[DailyTemp]) -> GDDResult:
 
     if next_stage:
         notes = (
-            f"تراكم {cumulative:.0f} GDD خلال {len(temps)} يوم. "
+            f"تراكم {cumulative:.0f} GDD خلال {days_counted} يوم. "
             f"المرحلة الحاليّة: {current}. المتبقّي لـ{next_stage}: {gdd_to_next:.0f} GDD."
         )
     else:
@@ -176,7 +172,7 @@ def track_gdd(crop: str, temps: list[DailyTemp]) -> GDDResult:
     return GDDResult(
         crop=crop,
         t_base=t_base,
-        days_counted=len(temps),
+        days_counted=days_counted,
         cumulative_gdd=cumulative,
         current_stage=current,
         next_stage=next_stage,
@@ -184,3 +180,18 @@ def track_gdd(crop: str, temps: list[DailyTemp]) -> GDDResult:
         stage_progress=progress,
         notes_ar=notes,
     )
+
+
+def track_gdd(crop: str, temps: list[DailyTemp]) -> GDDResult:
+    """يتراكم GDD (نواة محلّيّة) عبر سلسلة أيّام ثمّ يطبّق سياسة المراحل.
+
+    الإرث: النواة هنا (``daily_gdd``, طريقة ``simple``). التفويض للمحرّك في الراوتر؛
+    تبقى هذه للمقارنة الظلّيّة والمستهلكين غير المُرحَّلين. يرفع ValueError لمحصول مجهول.
+    """
+    params = GDD_CROP_PARAMS.get(crop)
+    if params is None:
+        raise ValueError(f"محصول غير معروف لـGDD: {crop}. المتاح: {list(GDD_CROP_PARAMS)}")
+    t_base = params["t_base"]
+    t_upper = params["t_upper"]
+    cumulative = sum(daily_gdd(d.t_min_c, d.t_max_c, t_base, t_upper) for d in temps)
+    return stage_result_from_cumulative(crop, cumulative, len(temps))

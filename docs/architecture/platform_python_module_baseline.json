@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 593,
+  "baseline_python_module_count": 594,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -99,6 +99,7 @@
     "api/field_workspace_completion_contract.py",
     "api/field_workspace_route_contract.py",
     "api/fleet_health.py",
+    "api/gdd_shadow.py",
     "api/gdd_tracker.py",
     "api/geo_import.py",
     "api/geo_zone_locator.py",
