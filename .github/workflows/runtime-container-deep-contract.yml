@@ -28,6 +28,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install --upgrade pip
-      - run: python -m pip install pytest PyYAML
+      # conftest tests_v9 يستورد httpx ⇒ بيئة الاختبار الكاملة إلزاميّة (درس conftest).
+      - run: python -m pip install -r tests_v9/requirements-test.txt
       - run: python scripts/ci/runtime_container_deep_contract_guard.py --check
       - run: pytest -q tests_v9/test_runtime_container_deep_contract_guard.py

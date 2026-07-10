@@ -39,6 +39,27 @@
 **التحقّق:** unit **2851/5** · منصّة **3579** · smoke كامل (شاملاً حُرّاسهم الجدد) · كلّ بوّابات scripts/ci (الاستثناء الموثَّق: gen_route_auth_matrix اليدويّ) · pip-audit نظيف · ruff نظيف · release **3813** checksum.
 
 ---
+## 2026-07-10 — إصلاح فشل CI على main (push:main workflows) + دمج docker_build_matrix_verifier
+
+بعد تسريع main إلى `2f75665`، أطلقت workflows بمُطلِق `push: branches:[main]` لأوّل مرّة (لم تُشغَّل على الفرع قطّ لأنّها ليست pull_request-triggered). **5 فشلت** — التشخيص من السجلّات:
+- `pip-audit-resolution` و`raw-data-processing-contract`: `python: No module named pytest` (خطوة `python -m pytest tests_v9/...` بلا أيّ تثبيت).
+- `ai-container-contract` · `vegetation-container-contract` · `runtime-container-deep-contract`: `conftest.py:11 import httpx ⇒ ModuleNotFoundError: httpx`. conftest tests_v9 يستورد httpx **بلا شرط** عند الجمع ⇒ أيّ `pytest tests_v9/*` يحتاج httpx. (runtime-deep كان يثبّت `pytest PyYAML` فقط — ناقص httpx.)
+
+**الإصلاح:** أضيفت خطوة `pip install -r tests_v9/requirements-test.txt` إلى **6** workflows (الخمسة + container-fleet الذي يحمل نفس الفخّ لكن لم يُطلَق هذا الدفع لفلتر مساراته). تدقيق شامل: كلّ workflow يُشغّل `pytest tests_v9/test_*` الآن يثبّت httpx (11/11 OK).
+
+**درس جديد مُوثَّق (مهمّ):** workflow بمُطلِق `push: branches:[main]` **فقط** (بلا pull_request) لا يُشغَّل على فرع التطوير إطلاقاً — أوّل تشغيل حقيقيّ له يقع على main بعد التسريع. ⇒ **يجب تدقيق خطوات تثبيت هذه الـworkflows محليّاً (أو بـact) قبل التسريع، لا الاكتفاء بتشغيل الحُرّاس/الاختبارات محليّاً حيث التبعيّات مثبَّتة.** الجذر: بيئة الـrunner العارية ≠ صندوق التطوير (الدرس المتكرّر، بُعد جديد: مُطلِقات push:main العمياء عن الفرع).
+
+**دمج archive `57cf56e_docker_build_matrix_verifier` (نسخة المسار الموازي للطلب ذاته، أنضج):** أساسه الحقيقيّ `c53875c` (8 مُعدَّل + 39 جديد؛ بقيّة الـ202 «مُعدَّل vs HEAD» ضوضاء أساس-بائت من قبل مصالحتي `2f75665`) ⇒ **نسخ انتقائيّ** للملفّات الجديدة الخمسة (لا merge — تجنّباً لسحب مصالحاتي للخلف):
+- `scripts/ci/docker_build_matrix_verifier.py`: verifier أمين — أوضاع `--critical/--extended/--all/--services`، مراحل build/file-in-image/health/trivy/compose-config، **لا يضع `production_certified=true` أبداً**، skipped يُسجَّل skipped لا pass، ويكتب `certification/evidence/{docker_build_matrix_full,ci_summary,model_provisioning_summary}.json` — الأدلّة ذاتها التي يقرأها `production_certification_blockers_status.py` (يُغلق حلقة أدلّة P-CERT-1/4).
+- **تصحيح خطأ حقيقيّ:** `edge-inference internal_port` كان **8180** (خطأ) ← **8100** (الحاوية تستمع 8100؛ 8180 كان سيُفشِل فحص الصحّة). الرايات الوهميّة (RASTER_RUNTIME_MODE/WEATHER_CACHE_BACKEND/EDGE_MODEL_DIR/SAM2_*) خاملة (env مجهول يُتجاهَل) — تُركت مع بانر صدق على الـrunbook.
+- اختبار ساكن + workflow (build ثقيل على `workflow_dispatch` فقط، static test على PR — تصميم أذكى من مصفوفتي المباشرة التي كانت ستبني صورة sam2 CUDA على كلّ PR) + runbook موسّع (7 خدمات، +auth/platform/odoo).
+
+**تقاعد (تفادي ازدواج):** حُذف `docker-build-matrix.yml` (مصفوفتي المباشرة) و`DOCKER_BUILD_CHECKLIST_P_CERT_CRITICAL_SERVICES.md` (runbook-ي الضيّق) — استبدلهما نظام الموازي الأنضج (verifier + runbook موسّع). قصّة Docker-matrix واحدة متماسكة بدل اثنتين متداخلتين.
+
+**التحقّق المحلّيّ:** 10 اختبارات (verifier ساكن + الحُرّاس الستّة الفاشلة) تمرّ · verifier `py_compile` ok · YAML السبعة صالحة · ruff نظيف · report_index_check_ok · release **3842**. **بعد الدفع:** يجب تأكيد خضرة الستّة على الفرع (الآن pull_request-triggered؟ لا — push:main فقط ⇒ ستُختبَر فعليّاً عند التسريع التالي؛ لذا أُبقي main عند 2f75665 حتّى تأكيد الفرع، ثمّ أسرّع).
+
+---
+
 
 ## 2026-07-09 — تثبيت أسطول workflows الحوكمة على main (a86f229→949074f→الحاليّ)
 

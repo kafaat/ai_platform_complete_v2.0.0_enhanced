@@ -1,0 +1,82 @@
+name: Docker Build Matrix Verifier
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "critical, extended, or all"
+        required: true
+        default: "critical"
+        type: choice
+        options:
+          - critical
+          - extended
+          - all
+      skip_security:
+        description: "Skip Trivy scan"
+        required: false
+        default: true
+        type: boolean
+  pull_request:
+    paths:
+      - "services/raster-service/**"
+      - "services/weather-service/**"
+      - "services/edge-inference/**"
+      - "services/sam2-inference/**"
+      - "services/auth/**"
+      - "services/sahool-platform/**"
+      - "services/odoo-bridge/**"
+      - "scripts/ci/docker_build_matrix_verifier.py"
+      - "docs/runbooks/DOCKER_BUILD_CHECKLIST_CRITICAL_AND_EXTENDED_SERVICES_20260710.md"
+      - "tests_v9/test_docker_build_matrix_verifier_static.py"
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # conftest tests_v9 يستورد httpx/pydantic دائماً ⇒ بيئة الاختبار الكاملة
+      # إلزاميّة لا pytest وحده (درس fresh-runner + conftest المُوثَّق).
+      - run: python -m pip install -r tests_v9/requirements-test.txt
+      - name: Static verifier tests
+        run: |
+          python -m py_compile scripts/ci/docker_build_matrix_verifier.py
+          python -m pytest -q tests_v9/test_docker_build_matrix_verifier_static.py
+
+  docker-build:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Select mode
+        id: mode
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "all" ]; then
+            echo "args=--all" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.inputs.mode }}" = "extended" ]; then
+            echo "args=--extended" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=--critical" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Docker build matrix verifier
+        run: |
+          SECURITY_ARGS=""
+          if [ "${{ github.event.inputs.skip_security }}" = "true" ]; then
+            SECURITY_ARGS="--skip-security"
+          fi
+          python scripts/ci/docker_build_matrix_verifier.py \
+            ${{ steps.mode.outputs.args }} \
+            $SECURITY_ARGS \
+            --write
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-build-matrix-evidence
+          path: certification/evidence/
