@@ -138,6 +138,35 @@ async def get_et0_product(
     return await weather_post_json("/v1/weather/agro/et0", json_body=body, tenant_id=tenant_id)
 
 
+async def get_gdd_product(
+    *,
+    daily_t_min: list,
+    daily_t_max: list,
+    base_c: float | None,
+    upper_cutoff_c: float | None = None,
+    method: str = "modified",
+    start_date: str | None = None,
+    end_date: str | None = None,
+    tenant_id: str | None = None,
+) -> dict[str, Any]:
+    """منتج GDD الموحَّد من محرّك الطقس — **مصدر نواة GDD الوحيد للمنصّة**.
+
+    النواة تُنفَّذ في المحرّك؛ السياسة (base_c/upper_cutoff_c/method) من Season وتُمرَّر.
+    يعيد العقد الموحَّد (daily_gdd/accumulated_gdd/thresholds_used/calculation_version/
+    valid_period). تعذّر المحرّك ⇒ HTTPException(502) (لا حساب GDD محلّيّ بديل).
+    """
+    body = {
+        "daily_t_min": list(daily_t_min),
+        "daily_t_max": list(daily_t_max),
+        "base_c": base_c,
+        "upper_cutoff_c": upper_cutoff_c,
+        "method": method,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+    return await weather_post_json("/v1/weather/agro/gdd", json_body=body, tenant_id=tenant_id)
+
+
 async def get_current_weather(
     lat: float, lon: float, *, model: str = "best_match"
 ) -> dict[str, Any]:

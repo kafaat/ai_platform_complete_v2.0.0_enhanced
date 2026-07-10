@@ -15085,7 +15085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0b2f1522c27b08c9c4c95ae7a434b9489bd86d0757576681dc53c0c9c870b713"
+          "content": "5088427dffc0319f5e3a94c352a925529c3b598afebe0bdc67bb5be7e028df40"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -23415,6 +23415,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8d74732d838bc52fe1f0eee63c9405226d6f5c767af5695b2242974db8d06ff2"
+        }
+      ],
+      "name": "services/weather-service/gdd.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a3bdb3434153caa9d51916824142c86f22c16aac23684a6d4d2995dcb0db71a1"
         }
       ],
@@ -23519,6 +23529,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_et0_agro_product.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "14e3bd9c12928bd919ca5f9520c2845b7e3b1d137dd8c1ec53fc08ba902d8e47"
+        }
+      ],
+      "name": "services/weather-service/tests/test_gdd.py",
       "type": "file"
     },
     {
