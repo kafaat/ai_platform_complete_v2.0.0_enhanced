@@ -21635,6 +21635,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "917463abe434aa80ee4722ee6dbdade677c24a69c5a9ccb7c0c3e72be0971ff7"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_et0_injection.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0ddfebadb10a3ceff6f135ce04128a8b83856e2ce961f46e445e72e9cfb04c88"
         }
       ],
@@ -21675,7 +21685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bae3a1eefc6725e8815976f7b0b5a7f67d97c45d99471dafd6d0af795566a1d5"
+          "content": "231da67b510e31f50ff925a7c99f898347597d6c632fb845d9ac5cb50d9b4877"
         }
       ],
       "name": "services/sahool-platform/tests/test_season_simulation.py",

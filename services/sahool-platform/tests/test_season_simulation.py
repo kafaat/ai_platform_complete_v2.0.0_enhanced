@@ -149,12 +149,21 @@ class TestWaterStress:
 
 
 class TestEstimationAssumptions:
-    def test_missing_et0_is_estimated_and_noted(self):
-        # طقس بلا ET₀ ⇒ يُقدَّر (Hargreaves) ويُوسم في الافتراضات
+    def test_missing_et0_excluded_not_fabricated_and_noted(self):
+        # WS-C.1b: طقس بلا ET₀ ولا سلسلة محقونة ⇒ لا Hargreaves محلّيّ داخل المنصّة.
+        # الأيّام الناقصة تُستبعَد من احتياج الماء (لا تُلفَّق صفراً مُضلِّلاً) ويُوسَم القيد.
         weather = [DayWeather(t_min_c=14.0, t_max_c=30.0, et0_mm=None) for _ in range(60)]
         r = simulate_season(SimContext(crop="wheat", weather=weather))
-        assert r.water_need_mm > 0  # ET₀ مُقدَّر ⇒ احتياج موجب
+        assert r.water_need_mm == 0.0  # لا تقدير محلّيّ ⇒ لا احتياج مُختلَق
         assert any("ET" in a for a in r.assumptions_ar)
+
+    def test_injected_et0_series_yields_positive_water_need(self):
+        # WS-C.1b: سلسلة ET0 كنسيّة محقونة من المحرّك ⇒ احتياج ماء موجب (المصدر الوحيد).
+        weather = [DayWeather(t_min_c=14.0, t_max_c=30.0, et0_mm=None) for _ in range(60)]
+        r = simulate_season(
+            SimContext(crop="wheat", weather=weather, et0_daily_override=[5.0] * 60)
+        )
+        assert r.water_need_mm > 0
 
     def test_solar_estimated_when_absent(self):
         # solar=None دائماً في المسار الحالي ⇒ يُقدَّر ويُوسم
