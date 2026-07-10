@@ -237,6 +237,22 @@ Duplicate Operation ID proxy_segmentation_api_segmentation__path__patch
 **التحقّق المستقلّ الكامل:** بوّابة P0-5 مستقلّة (exit 0) · حُرّاس منصّة **62** (11 ملفّ P0/UI، شامل P0-5 الجديد بـ6 اختبارات) · تست_v9 unit **2806 نجاح / 5 تخطٍّ** · ruff format+check نظيف (4 ملفّات جديدة، إصلاح `F401 sys غير مُستخدَم` في `production_promotion.py`) · YAML صالح · لا تغييرات frontend في هذا الأرشيف (tsc/vitest غير مُعاد تشغيلهما، لا حاجة) · release مُعاد بناؤه والتحقّق منه (**3611** checksum).
 
 ---
+## 2026-07-10 — مراجعة استهلاك تنفيذيّة (المستخدم) + إصلاح W2 (Weather operation fail-closed)
+
+المستخدم قدّم **مراجعة تنفيذيّة** بتتبّع مستهلكي الحاويات الأربع (raster/indicators/vegetation/weather) عبر platform/web/mobile/nginx/decision/MCP. الحكم: **قدرات كثيرة تُنتَج بلا مستهلك، ومستهلكون يعتمدون على بيانات تركيبيّة/افتراضيّة؛ الأولويّة للقدرات ذات المستهلك القائم لا البناء دفعةً.**
+
+**اعتراف صدق (يُسجَّل لا يُخفى):** منتجاتي الثلاثة السابقة `lodging_risk`/`pollination_weather_risk`/`chill_accumulation` تقع في **P2-التأجيل** بمعيار المراجعة (façade `crop-stress` مُجمَّع موجود، لكن **لا كرت واجهة ولا مستهلك Decision موصَّل بعد**). القرار: **تُبقى** (أمينة، مُختبَرة، إضافيّة، دور `supporting` لا حاجب، fail-closed) وتُصنَّف «مبنيّة تنتظر مستهلكاً» — لا يُدّعى أنّها موصولة بمسار قرار. الدرس: «تنفيذ الكل» لا يعني بناء قدرات بلا مستهلك؛ المعيار الصحيح **consumer-first**.
+
+**نُفِّذ أعلى بند صادق فوراً — W2 (المراجعة تسمّيه «أخطر فجوة زراعيّة في Weather»):** `services/weather-service/operations.py` كان يقرأ مدخلات السلامة بافتراضات طبيعيّة عند الغياب: `temp=20 · rh=50 · wind→0 (عند غياب kmh وms) · precip=0`. النتيجة الخطرة: عيّنة بلا رياح ⇒ `wind=0` ⇒ `penalize(wind>18)`/`penalize(gust>29)` لا تُطلَق ⇒ نافذة الرشّ **`safe=true` زوراً**. مستهلكوه المباشرون: `/operation-window`·`/operation-plan` → إنشاء مهمّة/توصية/تنبيه.
+
+**الإصلاح (fail-closed):** قراءة صادقة (None=مفقود، لا افتراض)؛ جدول `_SAFETY_CRITICAL` لكلّ عمليّة (spraying/fertilizing: wind+precip · harvesting/sowing/irrigation: precip)؛ أيّ مدخل حرِج مفقود ⇒ `{status:"insufficient_data", safe:false, suitability:"insufficient_data", missing_inputs:[...]}` بلا نافذة مُختلَقة. `_wind_kmh` يقبل m/s كبديل صحيح (ليس مفقوداً). عقوبات المدخلات غير-الحرِجة (temp/rh/gust) محروسة بالوجود. `advice_ar` يضيف رسالة «بيانات ناقصة». `gust` المفقود يُقدَّر محافظاً من wind.
+
+**التحقّق:** weather-service **47 passed** (6 اختبارات fail-closed جديدة: رياح مفقودة⇒unsafe · مطر مفقود⇒insufficient · m/s مقبول · رياح عالية تُعاقَب كالمعتاد · عيّنة كاملة هادئة⇒safe · الريّ لا يحتاج رياح) · **مسار البيانات الكاملة غير مُتأثِّر** (Open-Meteo يُرجِع رياح/مطر عادةً ⇒ لا انحدار) · ruff · عقد weather الحقيقيّ ✓.
+
+**الخطّة المعتمَدة (بترتيب المراجعة):** P0 = Vegetation (حذف FIELD_REGISTRY التركيبيّ + season_id + timeseries حقيقيّ من Raster + منع fallback تقديريّ صامت + hypotheses بدل توصيات) · ValidatedIndicatorProduct في Raster · Indicators **Registry أوّلاً لا Job Platform** · Weather ET0/VPD/GDD موحَّدة + provider ثانٍ/freshness · مسار الإجهاد المائي E2E كأوّل مستهلك تكامليّ للأربع. + بوّابة CI: أيّ capability جديدة بلا Consumer Contract تفشل.
+
+---
+
 
 ## 2026-07-09 — Decision SoR staging probe (P0-3/P0-4) + إصلاح فجوة تثبيت تبعيّات CI حرجة
 

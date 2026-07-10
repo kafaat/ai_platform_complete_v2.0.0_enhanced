@@ -23,21 +23,57 @@ def _status(score: float, unsafe: bool = False) -> str:
     return "optimal"
 
 
+# مدخلات حرِجة للسلامة لكلّ عمليّة — غيابها لا يُعوَّض بافتراض «طبيعيّ» يُوهِم الأمان.
+# (سابقاً: رياح مفقودة ⇒ 0 ⇒ نافذة رشّ «آمنة» زوراً؛ مطر مفقود ⇒ 0 ⇒ «لا مطر».)
+_SAFETY_CRITICAL: dict[str, list[str]] = {
+    "spraying": ["wind", "precip"],
+    "harvesting": ["precip"],
+    "sowing": ["precip"],
+    "fertilizing": ["wind", "precip"],
+    "irrigation": ["precip"],
+}
+
+
+def _wind_kmh(sample: dict[str, Any]) -> float | None:
+    w = _num(sample, "wind_speed_10m_kmh", None)
+    if w is not None:
+        return w
+    ms = _num(sample, "wind_speed_ms", None)
+    return ms * 3.6 if ms is not None else None
+
+
 def operation_suitability(sample: dict[str, Any], operation: str) -> dict[str, Any]:
     op = (operation or "spraying").lower()
     if op not in SUPPORTED_OPERATIONS:
         op = "spraying"
-    temp = _num(sample, "temperature_c", 20.0) or 20.0
-    rh = _num(sample, "humidity_pct", 50.0) or 50.0
-    wind = _num(sample, "wind_speed_10m_kmh", None)
-    if wind is None:
-        wind_ms = _num(sample, "wind_speed_ms", 0.0) or 0.0
-        wind = wind_ms * 3.6
-    gust = _num(sample, "wind_gusts_10m_kmh", wind) or wind
-    precip = _num(sample, "precipitation_mm", 0.0) or 0.0
+
+    # قراءة صادقة: None = مفقود (لا افتراض طبيعيّ لمدخل سلامة).
+    temp = _num(sample, "temperature_c", None)
+    rh = _num(sample, "humidity_pct", None)
+    wind = _wind_kmh(sample)
+    gust = _num(sample, "wind_gusts_10m_kmh", None)
+    if gust is None:
+        gust = wind  # تقدير محافظ من سرعة الرياح إن غابت الهبّة (وإلّا يبقى None)
+    precip = _num(sample, "precipitation_mm", None)
     soil_moisture = _num(sample, "soil_moisture_1_to_3cm_m3m3", None)
-    soil_temp = _num(sample, "soil_temperature_6cm_c", temp) or temp
+    soil_temp = _num(sample, "soil_temperature_6cm_c", None)
+    if soil_temp is None:
+        soil_temp = temp
     vpd = _num(sample, "vpd_kpa", None)
+
+    # fail-closed: أيّ مدخل سلامة حرِج مفقود ⇒ لا حكم بالأمان (لا نافذة زائفة).
+    present = {"wind": wind is not None, "precip": precip is not None, "temp": temp is not None}
+    missing = [k for k in _SAFETY_CRITICAL[op] if not present.get(k, True)]
+    if missing:
+        return {
+            "operation": op,
+            "score": 0.0,
+            "suitability": "insufficient_data",
+            "limiting_factors": [f"missing_{m}" for m in missing],
+            "safe": False,
+            "status": "insufficient_data",
+            "missing_inputs": missing,
+        }
 
     factors: list[str] = []
     score = 1.0
@@ -50,29 +86,35 @@ def operation_suitability(sample: dict[str, Any], operation: str) -> dict[str, A
 
     if op == "spraying":
         penalize(wind > 18, 0.45, "wind_speed_high")
-        penalize(gust > 29, 0.25, "wind_gust_high")
-        penalize(temp < 5 or temp > 30, 0.25, "temperature_outside_spray_window")
-        penalize(rh > 85, 0.15, "humidity_high")
+        penalize(gust is not None and gust > 29, 0.25, "wind_gust_high")
+        penalize(
+            temp is not None and (temp < 5 or temp > 30), 0.25, "temperature_outside_spray_window"
+        )
+        penalize(rh is not None and rh > 85, 0.15, "humidity_high")
         penalize(precip > 0.1, 0.35, "rain_present")
         if vpd is not None:
             penalize(vpd < 0.2 or vpd > 3.5, 0.10, "vpd_outside_preferred_range")
     elif op == "harvesting":
-        penalize(wind > 36, 0.20, "wind_high")
-        penalize(rh > 70, 0.30, "humidity_high")
+        penalize(wind is not None and wind > 36, 0.20, "wind_high")
+        penalize(rh is not None and rh > 70, 0.30, "humidity_high")
         penalize(precip > 0.1, 0.45, "rain_present")
-        penalize(temp < 0, 0.20, "temperature_below_minimum")
+        penalize(temp is not None and temp < 0, 0.20, "temperature_below_minimum")
     elif op == "sowing":
-        penalize(soil_temp < 8 or soil_temp > 35, 0.35, "soil_temperature_outside_window")
+        penalize(
+            soil_temp is not None and (soil_temp < 8 or soil_temp > 35),
+            0.35,
+            "soil_temperature_outside_window",
+        )
         penalize(precip > 8, 0.20, "heavy_rain_risk")
         if soil_moisture is not None:
             penalize(soil_moisture < 0.12, 0.25, "soil_too_dry")
     elif op == "fertilizing":
         penalize(wind > 25, 0.25, "wind_high")
         penalize(precip > 0.2, 0.45, "rain_present")
-        penalize(temp > 35, 0.15, "heat_loss_risk")
+        penalize(temp is not None and temp > 35, 0.15, "heat_loss_risk")
     elif op == "irrigation":
         penalize(precip > 2, 0.50, "rain_expected_or_present")
-        penalize(temp < 2, 0.20, "cold_conditions")
+        penalize(temp is not None and temp < 2, 0.20, "cold_conditions")
         if soil_moisture is not None:
             penalize(soil_moisture > 0.35, 0.35, "soil_already_wet")
             if soil_moisture < 0.18:
@@ -86,6 +128,7 @@ def operation_suitability(sample: dict[str, Any], operation: str) -> dict[str, A
         "suitability": suitability,
         "limiting_factors": factors,
         "safe": suitability not in {"unsafe"},
+        "status": "ok",
     }
 
 
@@ -100,6 +143,8 @@ def advice_ar(decision: dict[str, Any] | None) -> str:
         return "لا توجد نافذة موثوقة."
     op = decision.get("operation", "operation")
     suitability = decision.get("suitability", "poor")
+    if suitability == "insufficient_data":
+        return f"بيانات الطقس ناقصة — لا يمكن تأكيد سلامة {op}."
     if suitability == "optimal":
         return f"النافذة مناسبة جداً لتنفيذ {op}."
     if suitability == "acceptable":

@@ -19165,6 +19165,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "444d9e82a3f5dda298c2e1f1023eeb43d78ebd555f06bb75911cb829e62cae3c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_stress_facades_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7960f44f1c2bf9484a0ab917044cc8692c672bfffec7d5d93dd2daab3d91fb8d"
         }
       ],
@@ -23235,6 +23245,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ca5e4204c4c4bfd35bbb76bfcb8a8de889c3df01fbf6bbafa00e3717a1e11e34"
+        }
+      ],
+      "name": "services/weather-service/chill_accumulation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a3bdb3434153caa9d51916824142c86f22c16aac23684a6d4d2995dcb0db71a1"
+        }
+      ],
+      "name": "services/weather-service/lodging_risk.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7f28a925a5ce5efac7b6ac67d5c615ca6fd65e62485871ab0c564636bd7ad8f4"
         }
       ],
@@ -23265,10 +23295,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec360932ed1962c4e187f4a48413094b623268e57ed0558526e86dbb362796a3"
+          "content": "aaf119768ddd762e331d258e32e28fe8f918634c395abc6f544da93b2b4408bb"
         }
       ],
       "name": "services/weather-service/operations.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2113308d52b020c9575d55a740e14e54f18d1f0fca31a86a5eab95f93b05c723"
+        }
+      ],
+      "name": "services/weather-service/pollination_risk.py",
       "type": "file"
     },
     {
@@ -23289,6 +23329,16 @@
         }
       ],
       "name": "services/weather-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6f5ecd6e013b74229b18a7c1115fe1205c46dfa2d3f15060b3011d4779f3551b"
+        }
+      ],
+      "name": "services/weather-service/tests/test_crop_stress_products.py",
       "type": "file"
     },
     {
