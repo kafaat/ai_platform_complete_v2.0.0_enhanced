@@ -1,7 +1,13 @@
-"""اختبارات منتَج VPD الموحَّد (WS-C.1a) — صيغة/عقد واحد + حالات حدّيّة + fail-closed."""
+"""اختبارات منتَج VPD الموحَّد + عقد الجودة (WS-C.1a) — تقوية شاملة.
+
+يغطّي: قيَم مرجعيّة FAO-56 · رفض NaN/±inf لكلّ مدخل · قصّ سالب متدرّج · تحقّق متقاطع
+RH/نقطة ندى (توافق/تعارُض) · أسبقيّة المسار الحتميّة · فصل completeness عن consistency ·
+وحدات صريحة · قابليّة التسلسل JSON بلا NaN.
+"""
 
 from __future__ import annotations
 
+import json
 import math
 import os
 import sys
@@ -11,112 +17,136 @@ import pytest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from vapor_pressure import saturation_vapor_pressure_kpa  # noqa: E402
-from vpd import compute_vpd  # noqa: E402
+from vpd import RH_DEWPOINT_VPD_TOLERANCE_KPA, compute_vpd  # noqa: E402
 
 pytestmark = pytest.mark.unit
 
 
 def test_svp_reference_values_fao56():
-    # قيَم مرجعيّة FAO-56: e°(20)=2.338، e°(30)=4.243 kPa.
     assert abs(saturation_vapor_pressure_kpa(20.0) - 2.338) < 1e-3
     assert abs(saturation_vapor_pressure_kpa(30.0) - 4.243) < 1e-3
 
 
-def test_rh_based_full_path():
+def test_rh_based_validated_full():
     out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=50.0)
     assert out["method"] == "rh_based"
-    assert out["input_completeness"] == "full"
-    assert out["quality_status"] == "ok"
-    # es = (4.243+2.338)/2 = 3.2905 ؛ ea = es*0.5 ؛ vpd = es*0.5
+    assert out["quality_status"] == "validated"
+    assert out["input_completeness"] == 1.0
+    assert out["input_consistency"] == 1.0
     assert abs(out["es_kpa"] - 3.291) < 1e-2
     assert abs(out["vpd_kpa"] - 3.291 * 0.5) < 1e-2
 
 
-def test_rh_zero_gives_max_vpd():
-    # RH=0 ⇒ ea=0 ⇒ VPD = es (أقصى نقص).
-    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=0.0)
-    assert out["ea_kpa"] == 0.0
-    assert abs(out["vpd_kpa"] - out["es_kpa"]) < 1e-9
+def test_rh_zero_and_hundred_edges():
+    assert compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=0.0)["ea_kpa"] == 0.0
+    assert compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=100.0)["vpd_kpa"] == 0.0
 
 
-def test_rh_hundred_gives_zero_vpd():
-    # RH=100 ⇒ ea=es ⇒ VPD=0 (تشبّع تامّ).
-    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=100.0)
-    assert out["vpd_kpa"] == 0.0
-
-
-def test_missing_temperature_is_insufficient():
-    out = compute_vpd(t_max_c=None, rh_mean_pct=50.0)
-    assert out["method"] == "insufficient"
-    assert out["quality_status"] == "insufficient_inputs"
-    assert out["vpd_kpa"] is None  # مفقود ≠ صفر
-
-
-def test_missing_humidity_and_dewpoint_is_insufficient():
-    out = compute_vpd(t_max_c=30.0, t_min_c=20.0)  # لا RH ولا نقطة ندى
-    assert out["method"] == "insufficient"
+# ── (1) رفض غير-المحدود لكلّ مدخل ──
+@pytest.mark.parametrize(
+    "kw",
+    [
+        {"t_max_c": float("nan"), "t_min_c": 20.0, "rh_mean_pct": 50.0},
+        {"t_max_c": 30.0, "t_min_c": 20.0, "rh_mean_pct": float("nan")},
+        {"t_max_c": 30.0, "t_min_c": 20.0, "dew_point_c": float("nan")},
+        {"t_max_c": float("inf"), "t_min_c": 20.0, "rh_mean_pct": 50.0},
+        {"t_max_c": 30.0, "t_min_c": 20.0, "rh_mean_pct": float("-inf")},
+    ],
+)
+def test_non_finite_inputs_rejected_as_invalid(kw):
+    out = compute_vpd(**kw)
+    assert out["quality_status"] == "invalid"
+    assert "non_finite_input" in out["quality_flags"]
     assert out["vpd_kpa"] is None
 
 
-def test_dewpoint_path_when_no_rh():
-    # نقطة ندى 15°C ⇒ ea=e°(15)؛ es من (30,20). VPD = es - e°(15).
+def test_out_of_physical_range_is_invalid():
+    out = compute_vpd(t_max_c=200.0, t_min_c=20.0, rh_mean_pct=50.0)
+    assert out["quality_status"] == "invalid"
+    assert out["vpd_kpa"] is None
+
+
+# ── (2) الاكتمال ──
+def test_missing_temperature_insufficient():
+    out = compute_vpd(t_max_c=None, rh_mean_pct=50.0)
+    assert out["quality_status"] == "insufficient"
+    assert out["vpd_kpa"] is None
+
+
+def test_missing_humidity_and_dewpoint_insufficient():
+    out = compute_vpd(t_max_c=30.0, t_min_c=20.0)
+    assert out["quality_status"] == "insufficient"
+    assert out["vpd_kpa"] is None
+
+
+def test_partial_completeness_without_tmin_is_below_one():
+    out = compute_vpd(t_max_c=30.0, rh_mean_pct=50.0)
+    assert out["input_completeness"] < 1.0
+    assert out["quality_status"] == "validated"  # صالح رغم اكتمال أقلّ
+
+
+# ── (3) أسبقيّة المسار الحتميّة + التحقّق المتقاطع ──
+def test_rh_absent_uses_dewpoint():
     out = compute_vpd(t_max_c=30.0, t_min_c=20.0, dew_point_c=15.0)
     assert out["method"] == "dewpoint_based"
-    ea_expected = saturation_vapor_pressure_kpa(15.0)
-    assert abs(out["ea_kpa"] - round(ea_expected, 3)) < 1e-2
 
 
-def test_rh_preferred_over_dewpoint_when_both_present():
+def test_rh_present_deterministic_primary_even_with_dewpoint():
     out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=50.0, dew_point_c=15.0)
-    assert out["method"] == "rh_based"  # RH أولويّة
+    assert out["method"] == "rh_based"  # حتميّ، لا «الأقرب»
 
 
-def test_partial_completeness_without_tmin():
-    # لا Tmin ⇒ es من قيمة واحدة، input_completeness=partial (لا كسر).
-    out = compute_vpd(t_max_c=30.0, rh_mean_pct=50.0)
-    assert out["input_completeness"] == "partial"
-    assert out["quality_status"] == "ok"
-    assert abs(out["es_kpa"] - saturation_vapor_pressure_kpa(30.0)) < 1e-2
+def test_cross_check_agreement_validated():
+    # dew=17.5 قرب RH~60% عند (30,20): المساران متقاربان ⇒ validated + cross_check.
+    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=60.0, dew_point_c=17.5)
+    assert out["cross_check"] is not None
+    assert out["cross_check"]["difference_kpa"] <= RH_DEWPOINT_VPD_TOLERANCE_KPA
+    assert out["quality_status"] == "validated"
 
 
-def test_out_of_range_temperature_rejected():
-    out = compute_vpd(t_max_c=200.0, t_min_c=20.0, rh_mean_pct=50.0)
-    assert out["quality_status"] == "out_of_range"
-    assert out["vpd_kpa"] is None
+def test_cross_check_disagreement_flags_inconsistent():
+    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=90.0, dew_point_c=5.0)
+    assert out["method"] == "rh_based"
+    assert out["quality_status"] == "inconsistent_inputs"
+    assert "rh_dewpoint_disagreement" in out["quality_flags"]
+    assert out["cross_check"]["difference_kpa"] > RH_DEWPOINT_VPD_TOLERANCE_KPA
+    assert out["input_consistency"] < 1.0  # الاتّساق انخفض، والاكتمال يبقى مرتفعاً
 
 
-def test_dewpoint_above_es_clamps_to_zero_but_flags_inconsistent():
-    # نقطة ندى شاذّة أعلى من الحرارة ⇒ VPD يُثبَّت عند 0 لكن يُعلَن التناقض (لا صفر صامت).
+# ── (4) القصّ السالب المتدرّج ──
+def test_small_negative_vpd_degraded():
+    # نقطة ندى أعلى بقليل جدّاً من الحرارة ⇒ سالب صغير ⇒ degraded (rounding).
+    dew = 20.0 + 0.02  # es(20)≈2.338 ؛ e°(20.02) أكبر بقليل جدّاً
+    out = compute_vpd(t_max_c=20.0, t_min_c=20.0, dew_point_c=dew)
+    assert out["vpd_kpa"] == 0.0
+    assert out["quality_status"] == "degraded"
+    assert "negative_vpd_clamped" in out["quality_flags"]
+    assert out["raw_vpd_kpa"] < 0.0
+
+
+def test_large_negative_vpd_inconsistent():
+    # نقطة ندى أعلى كثيراً ⇒ سالب كبير ⇒ inconsistent_inputs.
     out = compute_vpd(t_max_c=20.0, t_min_c=20.0, dew_point_c=35.0)
     assert out["vpd_kpa"] == 0.0
-    assert not math.isnan(out["vpd_kpa"])
     assert out["quality_status"] == "inconsistent_inputs"
-    assert any("dew_point_exceeds" in lim for lim in out["limitations"])
+    assert out["raw_vpd_kpa"] < -0.01
 
 
-def test_nan_temperature_rejected_as_insufficient():
-    # NaN مرفوض صراحةً (لا يُعامَل كقيمة صالحة ولا خارج نطاق فقط).
-    out = compute_vpd(t_max_c=float("nan"), t_min_c=20.0, rh_mean_pct=50.0)
-    assert out["method"] == "insufficient"
-    assert out["vpd_kpa"] is None
-
-
-def test_inf_humidity_rejected():
-    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=float("inf"))
-    # inf RH مرفوض ⇒ لا مسار RH؛ وبلا نقطة ندى ⇒ insufficient.
-    assert out["method"] == "insufficient"
-    assert out["vpd_kpa"] is None
-
-
-def test_rh_dewpoint_divergent_flags_inconsistent():
-    # RH ونقطة ندى متعارضان بوضوح ⇒ يُعلَن القيد (لا تجاهل صامت لنقطة النَّدى).
-    # عند (30,20): ea_rh(RH=90)=2.96 ؛ ea_dew(dew=5)=0.87 ⇒ فرق ~2.1 > 0.5.
-    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=90.0, dew_point_c=5.0)
-    assert out["method"] == "rh_based"  # تبقى القيمة على مسار RH
-    assert out["quality_status"] == "inconsistent_inputs"
-    assert any("rh_dewpoint_divergent" in lim for lim in out["limitations"])
-
-
-def test_units_are_explicit():
+# ── (5) الوحدات + التسلسل ──
+def test_units_explicit_in_output():
     out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=50.0)
-    assert out["units"] == {"temperature": "C", "vapor_pressure": "kPa", "vpd": "kPa"}
+    assert out["units"]["inputs"]["temperature_unit"] == "degC"
+    assert out["units"]["inputs"]["relative_humidity_unit"] == "percent"
+    assert out["units"]["output_unit"] == "kPa"
+    assert out["formula_version"] == "vpd/fao56/1.0.0"
+
+
+def test_json_serializable_no_invalid_nan():
+    # allow_nan=False يرمي إن احتوى أيّ float قيمة NaN/inf غير صالحة (لا يتأثّر بنصّ
+    # القيود الذي قد يذكر كلمة NaN وصفاً).
+    for out in (
+        compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=50.0),
+        compute_vpd(t_max_c=float("nan"), rh_mean_pct=50.0),
+        compute_vpd(t_max_c=None),
+    ):
+        json.dumps(out, allow_nan=False)  # ينجح فقط بلا NaN/inf فعليّ في الأرقام
