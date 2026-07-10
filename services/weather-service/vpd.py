@@ -17,6 +17,8 @@
 
 from __future__ import annotations
 
+import math
+
 from vapor_pressure import (
     FORMULA_VERSION,
     actual_vapor_pressure_from_dewpoint_kpa,
@@ -28,17 +30,30 @@ from vapor_pressure import (
 PRODUCT_ID = "vpd"
 PRODUCT_VERSION = "1.0.0"
 
+# الوحدات الصريحة للعقد (لا لبس): الحرارة °C، الضغط البخاري وVPD بالـkPa.
+UNITS = {"temperature": "C", "vapor_pressure": "kPa", "vpd": "kPa"}
+
 # حدود معقوليّة (تحقّق المدى، لا قصّ صامت للقيمة الناتجة).
 _T_MIN_C, _T_MAX_C = -60.0, 70.0
+# عتبة تباعُد مساري RH ونقطة النَّدى (kPa) التي تُعدّ تعارُض مدخلات يُعلَن.
+_EA_DIVERGENCE_KPA = 0.5
+
+# سياسة اختيار المسار (عقد صريح موثَّق):
+#   • مسار RH مُفضَّل حين يكون RH صالحاً (متاح ومعقول).
+#   • مسار نقطة النَّدى يُستخدَم حين يغيب RH.
+#   • حين يتوفّر الاثنان ويتعارضان بوضوح (فرق ea يتجاوز العتبة) ⇒ يُعلَن قيدٌ
+#     ``rh_dewpoint_divergent`` مع الفرق المحسوب (تبقى القيمة على مسار RH).
 
 
 def _num(v) -> float | None:
+    """float مُتناهٍ أو None — يرفض NaN/inf صراحةً (لا مجرّد خارج النطاق)."""
     if v is None or isinstance(v, bool):
         return None
     try:
-        return float(v)
+        f = float(v)
     except (TypeError, ValueError):
         return None
+    return f if math.isfinite(f) else None
 
 
 def _in_temp_range(*ts: float) -> bool:
@@ -73,9 +88,11 @@ def compute_vpd(
         "product": PRODUCT_ID,
         "version": PRODUCT_VERSION,
         "formula_version": FORMULA_VERSION,
+        "units": UNITS,
         "vpd_kpa": None,
         "es_kpa": None,
         "ea_kpa": None,
+        "limitations": [],
     }
 
     # (1) الاكتمال — حرارة إلزاميّة + (RH أو نقطة ندى). مفقود ≠ افتراض.
@@ -105,16 +122,27 @@ def compute_vpd(
         es = saturation_vapor_pressure_kpa(tmax)
         completeness = "partial"
 
-    # ea: أولويّة RH (أدقّ لقياس الرطوبة)، وإلّا نقطة النَّدى.
+    # ea: أولويّة RH (أدقّ لقياس الرطوبة)، وإلّا نقطة النَّدى (عقد صريح أعلاه).
+    limitations: list[str] = []
+    quality = "ok"
     if rh is not None:
         ea = actual_vapor_pressure_from_rh_kpa(es, rh)
         method = "rh_based"
+        # كشف تعارُض المسارين حين يتوفّر الاثنان (لا نتجاهل نقطة النَّدى صمتاً).
+        if dew is not None:
+            ea_dew = actual_vapor_pressure_from_dewpoint_kpa(dew)
+            if abs(ea - ea_dew) > _EA_DIVERGENCE_KPA:
+                limitations.append(f"rh_dewpoint_divergent(delta_ea={round(abs(ea - ea_dew), 3)})")
+                quality = "inconsistent_inputs"
     else:
         ea = actual_vapor_pressure_from_dewpoint_kpa(dew)  # dew ليس None هنا
         method = "dewpoint_based"
-        # نقطة ندى أعلى من es (شذوذ رصد) ⇒ VPD سالب؛ نُثبّته عند 0 ونُعلن القيد.
+        # نقطة ندى أعلى من الحرارة (ea>es) ⇒ VPD سالب: تناقض مدخلات، لا صفر صامت.
+        # نُثبّت عند 0 لكن نُعلن القيد وحالة الجودة (قرار المستخدم).
         if ea > es:
             ea = es
+            limitations.append("dew_point_exceeds_air_saturation")
+            quality = "inconsistent_inputs"
 
     vpd = max(0.0, es - ea)
     return {
@@ -124,5 +152,6 @@ def compute_vpd(
         "ea_kpa": round(ea, 3),
         "method": method,
         "input_completeness": completeness,
-        "quality_status": "ok",
+        "quality_status": quality,
+        "limitations": limitations,
     }

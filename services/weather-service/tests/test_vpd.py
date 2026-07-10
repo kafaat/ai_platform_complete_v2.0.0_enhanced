@@ -85,8 +85,38 @@ def test_out_of_range_temperature_rejected():
     assert out["vpd_kpa"] is None
 
 
-def test_dewpoint_above_es_clamps_to_zero_not_negative():
-    # نقطة ندى شاذّة أعلى من الحرارة ⇒ VPD لا يكون سالباً (يُثبَّت عند 0).
+def test_dewpoint_above_es_clamps_to_zero_but_flags_inconsistent():
+    # نقطة ندى شاذّة أعلى من الحرارة ⇒ VPD يُثبَّت عند 0 لكن يُعلَن التناقض (لا صفر صامت).
     out = compute_vpd(t_max_c=20.0, t_min_c=20.0, dew_point_c=35.0)
     assert out["vpd_kpa"] == 0.0
     assert not math.isnan(out["vpd_kpa"])
+    assert out["quality_status"] == "inconsistent_inputs"
+    assert any("dew_point_exceeds" in lim for lim in out["limitations"])
+
+
+def test_nan_temperature_rejected_as_insufficient():
+    # NaN مرفوض صراحةً (لا يُعامَل كقيمة صالحة ولا خارج نطاق فقط).
+    out = compute_vpd(t_max_c=float("nan"), t_min_c=20.0, rh_mean_pct=50.0)
+    assert out["method"] == "insufficient"
+    assert out["vpd_kpa"] is None
+
+
+def test_inf_humidity_rejected():
+    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=float("inf"))
+    # inf RH مرفوض ⇒ لا مسار RH؛ وبلا نقطة ندى ⇒ insufficient.
+    assert out["method"] == "insufficient"
+    assert out["vpd_kpa"] is None
+
+
+def test_rh_dewpoint_divergent_flags_inconsistent():
+    # RH ونقطة ندى متعارضان بوضوح ⇒ يُعلَن القيد (لا تجاهل صامت لنقطة النَّدى).
+    # عند (30,20): ea_rh(RH=90)=2.96 ؛ ea_dew(dew=5)=0.87 ⇒ فرق ~2.1 > 0.5.
+    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=90.0, dew_point_c=5.0)
+    assert out["method"] == "rh_based"  # تبقى القيمة على مسار RH
+    assert out["quality_status"] == "inconsistent_inputs"
+    assert any("rh_dewpoint_divergent" in lim for lim in out["limitations"])
+
+
+def test_units_are_explicit():
+    out = compute_vpd(t_max_c=30.0, t_min_c=20.0, rh_mean_pct=50.0)
+    assert out["units"] == {"temperature": "C", "vapor_pressure": "kPa", "vpd": "kPa"}
