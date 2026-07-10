@@ -13,7 +13,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from api.canonical_water_stress import canonical_water_stress
@@ -29,8 +31,81 @@ from api.main import (
 )
 from api.soil_water import soil_water_params
 from api.water_balance import WeatherInput, compute_et0
+from api.weather_service_client import get_et0_product
 
 router = APIRouter()
+
+_LOG = logging.getLogger("sahool.irrigation.et0")
+
+# رموز حالة المحرّك المتعذّر ⇒ فشل مُغلَق (لا حساب ET0 محلّيّ بديل).
+_ENGINE_DOWN_CODES = (502, 503, 504)
+
+
+async def _engine_et0(
+    *,
+    t_min_c: float,
+    t_max_c: float,
+    solar_rad_mj_m2: float | None,
+    rh_mean_pct: float | None,
+    wind_2m_ms: float | None,
+    day_of_year: int,
+    latitude_deg: float,
+    elevation_m: float,
+    valid_time: str | None = None,
+    tenant_id: str | None = None,
+) -> dict:
+    """ET0 من محرّك الطقس — **مصدر ET0 الوحيد**. تعذّره ⇒ HTTPException (لا محلّيّ).
+
+    نقطة وصل قابلة للـmonkeypatch في الاختبار (تُثبِت أنّ المسار يستهلك المحرّك فعلاً).
+    """
+    return await get_et0_product(
+        t_max_c=t_max_c,
+        t_min_c=t_min_c,
+        solar_rad_mj_m2=solar_rad_mj_m2,
+        rh_mean_pct=rh_mean_pct,
+        wind_2m_ms=wind_2m_ms,
+        lat_deg=latitude_deg,
+        elevation_m=elevation_m,
+        day_of_year=day_of_year,
+        valid_time=valid_time,
+        tenant_id=tenant_id,
+    )
+
+
+def _shadow_et0_diff(engine_et0_mm: float | None, w: WeatherInput) -> dict | None:
+    """مقارنة ظلّيّة مؤقّتة: الإرث المحلّيّ (allowlisted) يُحسب للمقارنة فقط — **لا يدخل
+    القرار قطّ**. الفرق ≈ 0 يُثبِت أنّ المحرّك يُعيد إنتاج الصيغة بأمانة قبل حذف الإرث.
+    تُحذَف هذه الدالّة عند retire الإرث (C.1b النهائيّة).
+    """
+    try:
+        legacy_mm, legacy_method = compute_et0(w)
+    except Exception:  # noqa: BLE001 — الظلّ لا يجب أن يُعطّل المسار الحقيقيّ أبداً
+        return None
+    if engine_et0_mm is None or legacy_mm is None:
+        return {"legacy_et0_mm": legacy_mm, "legacy_method": legacy_method, "diff_mm": None}
+    diff = round(float(engine_et0_mm) - float(legacy_mm), 3)
+    return {
+        "legacy_et0_mm": round(float(legacy_mm), 3),
+        "legacy_method": legacy_method,
+        "diff_mm": diff,
+        "diff_pct": round(100.0 * diff / legacy_mm, 1) if legacy_mm else None,
+    }
+
+
+def _et0_provenance(prod: dict, shadow: dict | None) -> dict:
+    """كتلة نَسَب ET0 للمخرَج — المصدر والعقد والمقارنة الظلّيّة المؤقّتة."""
+    block = {
+        "et0_mm": prod.get("et0_mm"),
+        "method": prod.get("method"),
+        "quality_status": prod.get("quality_status"),
+        "formula_version": prod.get("formula_version"),
+        "valid_time": prod.get("valid_time"),
+        "weather_snapshot_id": prod.get("weather_snapshot_id"),
+        "source": "weather-engine",
+    }
+    if shadow is not None:
+        block["shadow"] = shadow  # مؤقّت — يُحذَف مع الإرث
+    return block
 
 
 class IrrigationRecommendationRequest(BaseModel):
@@ -69,7 +144,7 @@ class IrrigationRecommendationRequest(BaseModel):
 
 
 @router.post("/api/v1/irrigation-recommendation")
-def irrigation_recommendation(
+async def irrigation_recommendation(
     req: IrrigationRecommendationRequest,
     user: UserSchema = Depends(get_current_user),
 ):
@@ -78,18 +153,28 @@ def irrigation_recommendation(
     يُرجِع: ``net_irrigation_mm``/``salinity_leaching_mm``/``gross_irrigation_mm`` +
     ``policy`` (net_only/salinity_adjusted/salinity_with_leaching/blocked_for_review) +
     ``requires_expert_review`` + ``salinity_ks`` + ``evidence`` + ``rationale_ar``.
+
+    ET0 من محرّك الطقس (المصدر الوحيد)؛ تعذّره ⇒ 503 صريح (لا حساب محلّيّ بديل).
     """
-    w = WeatherInput(
-        t_min_c=req.t_min_c,
-        t_max_c=req.t_max_c,
-        solar_rad_mj_m2=req.solar_rad_mj_m2,
-        rh_mean_pct=req.rh_mean_pct,
-        wind_2m_ms=req.wind_2m_ms,
-        latitude_deg=req.latitude_deg,
-        elevation_m=req.elevation_m,
-        day_of_year=req.day_of_year,
-    )
-    et0_mm, _method = compute_et0(w)
+    try:
+        et0_prod = await _engine_et0(
+            t_min_c=req.t_min_c,
+            t_max_c=req.t_max_c,
+            solar_rad_mj_m2=req.solar_rad_mj_m2,
+            rh_mean_pct=req.rh_mean_pct,
+            wind_2m_ms=req.wind_2m_ms,
+            day_of_year=req.day_of_year,
+            latitude_deg=req.latitude_deg,
+            elevation_m=req.elevation_m,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503,
+                detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+            ) from exc
+        raise
+    et0_mm = et0_prod.get("et0_mm")
     return recommend_irrigation(
         et0_mm=et0_mm,
         crop=req.crop,
@@ -150,7 +235,7 @@ async def field_irrigation_recommendation(
 
     async with tenant_connection(user) as conn:
         # سياق الحقل + الموسم النشط (يرفع 404 إن غاب الحقل).
-        _lat, _lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+        field_lat, _lon, crop, stage, _days = await _field_weather_context(conn, field_id)
         season = await conn.fetchrow(
             "SELECT season_id FROM seasons WHERE field_id = $1 AND status = 'active' "
             "ORDER BY created_at DESC LIMIT 1",
@@ -219,16 +304,67 @@ async def field_irrigation_recommendation(
     )
     water_stress_class = stress["water_stress_class"] if stress else None
 
-    et0_mm, _method = compute_et0(
-        WeatherInput(
+    # ET0 من محرّك الطقس (المصدر الوحيد). خطّ العرض الحقيقيّ للحقل؛ الارتفاع افتراض
+    # الهضبة اليمنيّة (2000م) حتّى إثراء التربة/الحقل (WS-D.2b/c). elevation مطابق للإرث
+    # ليكون فرق الظلّ ≈ 0 (إثبات أمانة إعادة الإنتاج).
+    _elev_default_m = 2000.0
+    try:
+        et0_prod = await _engine_et0(
             t_min_c=req.t_min_c,
             t_max_c=req.t_max_c,
             solar_rad_mj_m2=req.solar_rad_mj_m2,
             rh_mean_pct=req.rh_mean_pct,
             wind_2m_ms=req.wind_2m_ms,
             day_of_year=req.day_of_year,
+            latitude_deg=field_lat,
+            elevation_m=_elev_default_m,
         )
+    except HTTPException as exc:
+        # فشل مُغلَق: تعذّر المحرّك ⇒ لا حساب ET0 محلّيّ بديل (dependency_unavailable).
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            return {
+                "status": "dependency_unavailable",
+                "field_id": field_id,
+                "season_id": season_id,
+                "inputs": inputs,
+                "recommendation": None,
+                "ownership": "recommendation_candidate → decision-service",
+                "confidence": None,
+                "evidence_ids": evidence_ids,
+                "limitations": [
+                    *state["limitations"],
+                    "weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+                ],
+                "calibrated": False,
+            }
+        raise
+
+    et0_mm = et0_prod.get("et0_mm")
+    # مقارنة ظلّيّة مؤقّتة (الإرث لا يدخل القرار) — نفس مدخلات المحرّك ⇒ فرق ≈ 0.
+    shadow = _shadow_et0_diff(
+        et0_mm,
+        WeatherInput(
+            t_min_c=req.t_min_c,
+            t_max_c=req.t_max_c,
+            solar_rad_mj_m2=req.solar_rad_mj_m2,
+            rh_mean_pct=req.rh_mean_pct,
+            wind_2m_ms=req.wind_2m_ms,
+            latitude_deg=field_lat,
+            elevation_m=_elev_default_m,
+            day_of_year=req.day_of_year,
+        ),
     )
+    if shadow and shadow.get("diff_mm") is not None:
+        _LOG.info(
+            "et0_shadow_diff field=%s snapshot=%s engine_mm=%s legacy_mm=%s diff_mm=%s",
+            field_id,
+            et0_prod.get("weather_snapshot_id"),
+            et0_mm,
+            shadow["legacy_et0_mm"],
+            shadow["diff_mm"],
+        )
+    evidence_ids.append(f"weather-engine-et0:{et0_prod.get('weather_snapshot_id')}")
+
     rec = recommend_irrigation(
         et0_mm=et0_mm,
         crop=crop,
@@ -261,6 +397,7 @@ async def field_irrigation_recommendation(
             "urgency": rec["urgency"],
             "policy_knobs": rec["policy_knobs"],
         },
+        "et0": _et0_provenance(et0_prod, shadow),
         "ownership": "recommendation_candidate → decision-service",
         "confidence": confidence,
         "evidence_ids": evidence_ids,

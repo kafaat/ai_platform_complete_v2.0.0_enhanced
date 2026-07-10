@@ -69,6 +69,75 @@ async def weather_get_json(
     return data if isinstance(data, dict) else {"value": data}
 
 
+async def weather_post_json(
+    path: str,
+    *,
+    json_body: dict[str, Any],
+    tenant_id: str | None = None,
+    authorization: str | None = None,
+    timeout_s: float = 20.0,
+) -> dict[str, Any]:
+    """POST JSON to weather-service with service token + optional tenant/auth forwarding.
+
+    يرفع ``HTTPException(502)`` عند تعذّر المحرّك (شبكة) — ليتمكّن المُستهلِك من
+    الفشل مُغلَقاً (dependency_unavailable) بلا حساب محلّيّ بديل صامت.
+    """
+    import httpx
+    from fastapi import HTTPException
+
+    url = f"{weather_service_url()}/{path.lstrip('/')}"
+    try:
+        async with httpx.AsyncClient(timeout=timeout_s) as client:
+            resp = await client.post(
+                url,
+                json=json_body,
+                headers=weather_service_headers(tenant_id=tenant_id, authorization=authorization),
+            )
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail=f"weather-service غير متاح: {exc}") from exc
+    if resp.status_code >= 400:
+        raise HTTPException(status_code=resp.status_code, detail=_detail_from_response(resp))
+    data = resp.json()
+    return data if isinstance(data, dict) else {"value": data}
+
+
+async def get_et0_product(
+    *,
+    t_max_c: float | None,
+    t_min_c: float | None,
+    solar_rad_mj_m2: float | None = None,
+    rh_mean_pct: float | None = None,
+    wind_2m_ms: float | None = None,
+    t_mean_c: float | None = None,
+    lat_deg: float | None = None,
+    elevation_m: float | None = None,
+    day_of_year: int | None = None,
+    valid_time: str | None = None,
+    weather_snapshot_id: str | None = None,
+    tenant_id: str | None = None,
+) -> dict[str, Any]:
+    """منتج ET0 المرجعيّ (FAO-56) من محرّك الطقس — **مصدر ET0 الوحيد للمنصّة**.
+
+    الصيغة تُنفَّذ في المحرّك لا هنا. يعيد العقد الكامل: et0_mm/method/quality_status/
+    formula_version/valid_time/weather_snapshot_id. تعذّر المحرّك ⇒ HTTPException(502)
+    (لا يُحسب ET0 محلّيّاً بديلاً — fail-closed).
+    """
+    body = {
+        "t_max_c": t_max_c,
+        "t_min_c": t_min_c,
+        "solar_rad_mj_m2": solar_rad_mj_m2,
+        "rh_mean_pct": rh_mean_pct,
+        "wind_2m_ms": wind_2m_ms,
+        "t_mean_c": t_mean_c,
+        "lat_deg": lat_deg,
+        "elevation_m": elevation_m,
+        "day_of_year": day_of_year,
+        "valid_time": valid_time,
+        "weather_snapshot_id": weather_snapshot_id,
+    }
+    return await weather_post_json("/v1/weather/agro/et0", json_body=body, tenant_id=tenant_id)
+
+
 async def get_current_weather(
     lat: float, lon: float, *, model: str = "best_match"
 ) -> dict[str, Any]:

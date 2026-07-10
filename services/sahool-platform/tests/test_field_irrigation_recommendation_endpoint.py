@@ -42,7 +42,22 @@ class _FakeConn:
         return None
 
 
-def _patch(monkeypatch, conn):
+def _fake_et0_product(**over):
+    base = {
+        "product": "et0",
+        "et0_mm": 5.1,
+        "method": "hargreaves_fallback",
+        "quality_status": "degraded",
+        "formula_version": "et0/fao56-pm/1.0.0",
+        "unit": "mm/day",
+        "valid_time": None,
+        "weather_snapshot_id": "wsnap/sha1/1:deadbeefcafef00d",
+    }
+    base.update(over)
+    return base
+
+
+def _patch(monkeypatch, conn, *, engine=None, engine_raises=None):
     @contextlib.asynccontextmanager
     async def _tc(_user):
         yield conn
@@ -50,8 +65,15 @@ def _patch(monkeypatch, conn):
     async def _ctx(_conn, _field_id):
         return (16.0, 44.9, "wheat", "mid", 40)
 
+    async def _engine(**_kw):
+        if engine_raises is not None:
+            raise engine_raises
+        return engine if engine is not None else _fake_et0_product()
+
     monkeypatch.setattr(mod, "tenant_connection", _tc)
     monkeypatch.setattr(mod, "_field_weather_context", _ctx)
+    # كلّ ET0 من المحرّك — نُثبِّت نقطة الوصل (لا شبكة) لنُثبِت أنّ المسار يستهلكها.
+    monkeypatch.setattr(mod, "_engine_et0", _engine)
 
 
 _REQ = FieldIrrigationRequest(t_min_c=18.0, t_max_c=34.0, policy="water_saving")
@@ -69,6 +91,59 @@ async def test_ready_produces_candidate(monkeypatch):
     assert "should_irrigate" in out["recommendation"]
     assert out["calibrated"] is False
     assert any(e.startswith("water-ledger:") for e in out["evidence_ids"])
+
+
+@pytest.mark.asyncio
+async def test_et0_provenance_from_weather_engine(monkeypatch):
+    # نَسَب ET0 يأتي من المحرّك: method/quality/formula_version/snapshot + مصدر صريح.
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    et0 = out["et0"]
+    assert et0["source"] == "weather-engine"
+    assert et0["method"] == "hargreaves_fallback"
+    assert et0["formula_version"] == "et0/fao56-pm/1.0.0"
+    assert et0["weather_snapshot_id"] == "wsnap/sha1/1:deadbeefcafef00d"
+    # نَسَب المحرّك في أدلّة القرار.
+    assert any(e.startswith("weather-engine-et0:") for e in out["evidence_ids"])
+    # مقارنة ظلّيّة مؤقّتة موجودة (الإرث لا يدخل القرار).
+    assert "shadow" in et0
+    assert et0["shadow"]["diff_mm"] is not None
+
+
+@pytest.mark.asyncio
+async def test_engine_down_fails_closed_no_local_et0(monkeypatch):
+    # تعذّر المحرّك ⇒ dependency_unavailable، لا توصية، لا حساب ET0 محلّيّ بديل.
+    from fastapi import HTTPException
+
+    _patch(
+        monkeypatch,
+        _FakeConn(depletion_mm=60.0),
+        engine_raises=HTTPException(status_code=502, detail="weather-service down"),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["status"] == "dependency_unavailable"
+    assert out["recommendation"] is None
+    assert any("fail-closed" in lim for lim in out["limitations"])
+
+
+@pytest.mark.asyncio
+async def test_shadow_diff_is_near_zero_faithful_reproduction(monkeypatch):
+    # المحرّك (المُثبَّت) يُعيد قيمة الإرث نفسها ⇒ diff = 0 (إثبات أمانة إعادة الإنتاج).
+    # نحسب الإرث فعليّاً لنُطابق قيمة المحرّك المُثبَّتة معه.
+    from api.water_balance import WeatherInput, compute_et0
+
+    legacy_mm, _ = compute_et0(
+        WeatherInput(
+            t_min_c=18.0, t_max_c=34.0, latitude_deg=16.0, elevation_m=2000.0, day_of_year=100
+        )
+    )
+    _patch(
+        monkeypatch,
+        _FakeConn(depletion_mm=60.0),
+        engine=_fake_et0_product(et0_mm=round(legacy_mm, 3), method="fao56_penman_monteith"),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["et0"]["shadow"]["diff_mm"] == 0.0
 
 
 @pytest.mark.asyncio

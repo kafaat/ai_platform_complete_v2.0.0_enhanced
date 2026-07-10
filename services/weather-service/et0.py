@@ -218,8 +218,10 @@ def weather_snapshot_id(inputs: dict) -> str:
         for k, v in sorted(inputs.items())
         if v is not None
     }
-    digest = hashlib.sha1(  # noqa: S324 — هويّة/بصمة لا أمان تعميّة
-        json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    # بصمة/هويّة لا أمان تعميّة — usedforsecurity=False يُرضي bandit B324 وruff S324.
+    digest = hashlib.sha1(
+        json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8"),
+        usedforsecurity=False,
     ).hexdigest()[:16]
     return f"{SNAPSHOT_SCHEME}:{digest}"
 
