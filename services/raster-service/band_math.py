@@ -77,6 +77,16 @@ def moisture(nir, swir1, _np):
     return (nir - swir1) / _eps(nir + swir1, _np)
 
 
+def msi(nir, swir1, _np):
+    """MSI (Moisture Stress Index) = SWIR1 / NIR — الإجهاد المائيّ.
+
+    قيمة عالية = إجهاد مائيّ أكبر (عكس moisture/NDMI). يُستهلَك في تأكيد الإجهاد
+    الطيفيّ (canonical_water_stress عبر spectral_stress_bridge). المقام (NIR) يُحمى
+    من الصفر عبر _eps (اتّساقاً مع سائر الصيَغ) — نفس سلوك الفرع السطريّ السابق.
+    """
+    return swir1 / _eps(nir, _np)
+
+
 # توجيه اسم المؤشّر → (الدالّة، أسماء النطاقات المطلوبة) لمسار band-math الجديد.
 # يُستخدم في _process_pixels لتجنّب تكرار الفروع وتسهيل الاختبار.
 NEW_INDEX_BANDS = {
@@ -84,6 +94,7 @@ NEW_INDEX_BANDS = {
     "evi": ("blue", "red", "nir"),
     "msavi": ("red", "nir"),
     "moisture": ("nir", "swir1"),
+    "msi": ("nir", "swir1"),
 }
 
 
@@ -105,6 +116,9 @@ def compute(index: str, bands: dict, _np):
     if index == "moisture":
         _require(bands, ("nir", "swir1"), index)
         return moisture(bands["nir"], bands["swir1"], _np)
+    if index == "msi":
+        _require(bands, ("nir", "swir1"), index)
+        return msi(bands["nir"], bands["swir1"], _np)
     raise ValueError(f"مؤشّر غير مدعوم في band_math: {index}")
 
 

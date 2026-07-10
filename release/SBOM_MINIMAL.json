@@ -10085,7 +10085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1aa02e3c71fc8c193d6244ec5c989d7035ec181be386df637fec12ad03d3a174"
+          "content": "ea305895d1003f4fd587f423b8d1924d56c91658d0ae5fe87ebf3e351081f254"
         }
       ],
       "name": "services/raster-service/band_math.py",
@@ -10415,7 +10415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3315b5cbf63c05d06592c52851a2593996c202814a2606f4ab727f548f3ffdc6"
+          "content": "57f6299220075223f58763ff1ddcb86aeef3d70a5eadbe91f7a4e5943ab303aa"
         }
       ],
       "name": "services/raster-service/raster_pixel_processing.py",
@@ -10845,7 +10845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0cef9857338fc3c68a28e2d00f374c7afddd5eb494988a154929dbc5764e576"
+          "content": "a6cc844f973cbdce878f0311ec93015b53f5a4b09f1f9b6c7eeb448c7923015a"
         }
       ],
       "name": "services/raster-service/test_band_math_zones.py",
@@ -16755,7 +16755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bbdabf168623c285ad888cde0bdc04680ff0e533d2b87aa5aeb3e82281acaaca"
+          "content": "a105d134d13623f1a19082a0db219e9ddd8bed42dedb9169468a30e4bf0cafd8"
         }
       ],
       "name": "services/sahool-platform/core/engines/spectral_stress_bridge.py",

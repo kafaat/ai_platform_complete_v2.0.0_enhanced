@@ -29,6 +29,29 @@ def test_moisture_known_value():
     assert abs(out[0] - 0.5) < 1e-9
 
 
+def test_msi_known_value():
+    # MSI = SWIR1/NIR (أعلى = إجهاد أكبر) — 1000/4000 = 0.25.
+    nir = np.array([4000.0])
+    swir1 = np.array([1000.0])
+    out = band_math.msi(nir, swir1, np)
+    assert abs(out[0] - 0.25) < 1e-9
+
+
+def test_msi_via_compute_and_registered_bands():
+    # المصدر الأوحد: msi في NEW_INDEX_BANDS + compute() (بدل الفرع السطريّ المُزال).
+    assert band_math.NEW_INDEX_BANDS["msi"] == ("nir", "swir1")
+    out = band_math.compute("msi", {"nir": np.array([4000.0]), "swir1": np.array([1000.0])}, np)
+    assert abs(out[0] - 0.25) < 1e-9
+
+
+def test_msi_missing_band_raises():
+    # صدق: نطاق مطلوب مفقود ⇒ ValueError (لا اختراع نطاق).
+    import pytest
+
+    with pytest.raises(ValueError, match="msi"):
+        band_math.compute("msi", {"nir": np.array([4000.0])}, np)
+
+
 def test_evi_known_value():
     # NIR=0.3, RED=0.1, BLUE=0.05 (reflectance) → 2.5*0.2/(0.3+0.6-0.375+1)=0.5/1.525
     blue = np.array([0.05])
@@ -79,7 +102,8 @@ def test_compute_dispatch_and_missing_band():
 
 
 def test_new_index_bands_registry_covers_sprint5b():
-    assert set(band_math.NEW_INDEX_BANDS) == {"ndre", "evi", "msavi", "moisture"}
+    # Sprint 5b (ndre/evi/msavi/moisture) + msi (وُحِّد من الفرع السطريّ إلى المصدر الأوحد).
+    assert set(band_math.NEW_INDEX_BANDS) == {"ndre", "evi", "msavi", "moisture", "msi"}
 
 
 # ─── prescription_from_grid: تقسيم الكوانتايل + الوصفة ─────────────

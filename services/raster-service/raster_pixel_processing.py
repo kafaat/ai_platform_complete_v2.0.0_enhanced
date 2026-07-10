@@ -581,9 +581,8 @@ def process_pixels(ctx, req, layer_id: str):
             ndre_v = (nir - rededge) / np.where(ndre_d == 0, 1e-10, ndre_d)
             ndvi_v = (nir - red) / np.where(ndvi_d == 0, 1e-10, ndvi_d)
             arr = ndre_v / np.where(ndvi_v == 0, 1e-10, ndvi_v)
-        elif ind == "msi":
-            # Moisture Stress Index: SWIR1/NIR (أعلى = إجهاد مائي أكبر)
-            arr = swir1 / np.where(nir == 0, 1e-10, nir)
+        # msi (SWIR1/NIR) يُحسَب الآن عبر band_math.NEW_INDEX_BANDS (المصدر الأوحد)
+        # في الفرع الأعلى؛ أُزيل الفرع السطريّ المكرَّر (سلوك محفوظ: نفس _eps للمقام).
         elif ind == "ndwi":
             _d = green + nir
             arr = (green - nir) / np.where(_d == 0, 1e-10, _d)
