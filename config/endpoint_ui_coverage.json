@@ -1,2763 +1,2768 @@
 {
-  "$comment": "عقد تغطية backend⇒واجهة. core_endpoints: مسارات جوهريّة يجب أن يبقى لها دليل نصّيّ في frontend/src أو mobile/lib (تحرسها scripts/ci/endpoint_ui_coverage_gate.py + tests_v9/test_endpoint_ui_coverage_gate.py). classifications: تصنيف جمهور بالبادئة (الأوّل يفوز) لمصفوفة docs/api/BACKEND_FRONTEND_COVERAGE.md — internal/admin لا تُطالَب بواجهة مستخدم عاديّ.",
-  "classifications": [
-    {
-      "prefix": "/api/v1/admin/",
-      "audience": "admin"
-    },
-    {
-      "prefix": "/api/v1/automation/",
-      "audience": "admin"
-    },
-    {
-      "prefix": "/api/v1/queue/",
-      "audience": "admin"
-    },
-    {
-      "prefix": "/api/v1/registry/",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/events/",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/outbox",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/internal/",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/decision/",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/outcome/",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/farm-ledger/",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/economics/",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/analytics/",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/harvest-lots",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/crop-cards",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/crop-suitability",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/planting/",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/rotation/",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/gdd/",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/calendars",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/astronomical-timing",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/agricultural-proverbs",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/regional-calendar",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/regional/bulletin",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/fields/{field_id}/evidence-graph",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/fields",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/farms",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/seasons",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/weather",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/alerts",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/tasks",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/activities",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/equipment",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/inventory",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/devices",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/irrigation",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/documents",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/reports",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/recommendations",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/scouting",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/prescriptions",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/auth",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/auth/",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/agro",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/agro-zones",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/calibration",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/climate-analogs",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/coffee",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/crop-twin",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/crops",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/diagnose",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/evidence",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/confidence",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/consistency",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/ipm",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/lab",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/learning",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/lineage",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/nl-gis",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/nl-sql",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/pest-escalation",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/escalation",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/policy-learning",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/postharvest",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/propagation",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/salinity",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/sampling",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/scenario",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/seasonal-risk",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/seed",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/soil-sampling",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/temporal",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/water-balance",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/water-harvesting",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/water-sensitivity",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/wofost",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/simulate",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/replay",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/gis",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/field-intelligence",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/indicators",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/indices",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/analysis",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/trials",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/nutrients",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/observations",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/chemical-safety",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/practices",
-      "audience": "agronomist"
-    },
-    {
-      "prefix": "/api/v1/aromatic-crops",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/high-value-crops",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/niche-crops",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/fodder-alternatives",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/orchard",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/cultural-calendar",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/introduction",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/onboarding",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/notifications",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/me",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/geo-locate",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/geo",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/drawing-features",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/field-portfolio",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/portfolio",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/field",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/market",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/work-orders",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/operations",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/execution",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/failures",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/cameras",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/master-data",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/settings",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/sharing",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/rbac",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/tenant",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/data-readiness",
-      "audience": "manager"
-    },
-    {
-      "prefix": "/api/v1/sync",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/edge",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/commands",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/capabilities",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/lifecycle",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/confidence-gate",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/ai",
-      "audience": "internal"
-    },
-    {
-      "prefix": "/api/v1/districts",
-      "audience": "farmer"
-    },
-    {
-      "prefix": "/api/v1/features",
-      "audience": "farmer"
-    }
-  ],
-  "core_endpoints": [
-    {
-      "endpoint": "/api/v1/admin/events/dead-letter",
-      "audience": "admin",
-      "evidence": "/api/v1/admin/events/dead-letter"
-    },
-    {
-      "endpoint": "/api/v1/admin/events/dead-letter/{outbox_id}/requeue",
-      "audience": "admin",
-      "evidence": "/api/v1/admin/events/dead-letter"
-    },
-    {
-      "endpoint": "/api/v1/admin/outbox/dead-letter",
-      "audience": "admin",
-      "evidence": "/api/v1/admin/outbox/dead-letter"
-    },
-    {
-      "endpoint": "/api/v1/admin/readiness",
-      "audience": "admin",
-      "evidence": "/api/v1/admin/readiness"
-    },
-    {
-      "endpoint": "/api/v1/admin/security/denials",
-      "audience": "admin",
-      "evidence": "/api/v1/admin/security/denials"
-    },
-    {
-      "endpoint": "/api/v1/agricultural-proverbs",
-      "audience": "farmer",
-      "evidence": "/api/v1/agricultural-proverbs"
-    },
-    {
-      "endpoint": "/api/v1/agricultural-proverbs/for-date",
-      "audience": "farmer",
-      "evidence": "/api/v1/agricultural-proverbs/for-date"
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/by-elevation",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro-zones/by-elevation"
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/identify",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro-zones/identify"
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/identify-smart",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro-zones/identify-smart"
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/list",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro-zones/list"
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/profile",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro-zones/profile"
-    },
-    {
-      "endpoint": "/api/v1/agro-zones/suited-crops",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro-zones/suited-crops"
-    },
-    {
-      "endpoint": "/api/v1/agro/crop-risk",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/crop-risk"
-    },
-    {
-      "endpoint": "/api/v1/agro/crop-rotation",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/crop-rotation"
-    },
-    {
-      "endpoint": "/api/v1/agro/decision-playbook",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/decision-playbook"
-    },
-    {
-      "endpoint": "/api/v1/agro/kc-timeseries",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/kc-timeseries"
-    },
-    {
-      "endpoint": "/api/v1/agro/kc-timeseries/{field_id}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/kc-timeseries/{field_id}"
-    },
-    {
-      "endpoint": "/api/v1/agro/kc-timeseries/{field_id}/compare",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/kc-timeseries/{field_id}/compare"
-    },
-    {
-      "endpoint": "/api/v1/agro/plant-soil-feedback",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/plant-soil-feedback"
-    },
-    {
-      "endpoint": "/api/v1/agro/plant-soil-feedback/trend",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/plant-soil-feedback/trend"
-    },
-    {
-      "endpoint": "/api/v1/agro/season-comparison",
-      "audience": "agronomist",
-      "evidence": "/api/v1/agro/season-comparison"
-    },
-    {
-      "endpoint": "/api/v1/alerts",
-      "audience": "farmer",
-      "evidence": "/api/v1/alerts"
-    },
-    {
-      "endpoint": "/api/v1/alerts/{alert_id}/acknowledge",
-      "audience": "farmer",
-      "evidence": "/api/v1/alerts"
-    },
-    {
-      "endpoint": "/api/v1/analysis/yield",
-      "audience": "agronomist",
-      "evidence": "/api/v1/analysis/yield"
-    },
-    {
-      "endpoint": "/api/v1/analytics/costs",
-      "audience": "manager",
-      "evidence": "/api/v1/analytics/costs"
-    },
-    {
-      "endpoint": "/api/v1/analytics/costs/by-field",
-      "audience": "manager",
-      "evidence": "/api/v1/analytics/costs/by-field"
-    },
-    {
-      "endpoint": "/api/v1/aromatic-crops/list",
-      "audience": "farmer",
-      "evidence": "/api/v1/aromatic-crops/list"
-    },
-    {
-      "endpoint": "/api/v1/astronomical-timing/cross-check",
-      "audience": "farmer",
-      "evidence": "/api/v1/astronomical-timing/cross-check"
-    },
-    {
-      "endpoint": "/api/v1/astronomical-timing/stars",
-      "audience": "farmer",
-      "evidence": "/api/v1/astronomical-timing/stars"
-    },
-    {
-      "endpoint": "/api/v1/auth/login",
-      "audience": "farmer",
-      "evidence": "/auth/login"
-    },
-    {
-      "endpoint": "/api/v1/auth/logout",
-      "audience": "farmer",
-      "evidence": "/auth/logout"
-    },
-    {
-      "endpoint": "/api/v1/automation/alerts/run",
-      "audience": "admin",
-      "evidence": "/api/v1/automation/alerts/run"
-    },
-    {
-      "endpoint": "/api/v1/automation/runs",
-      "audience": "admin",
-      "evidence": "/api/v1/automation/runs"
-    },
-    {
-      "endpoint": "/api/v1/automation/scheduler-status",
-      "audience": "admin",
-      "evidence": "/api/v1/automation/scheduler-status"
-    },
-    {
-      "endpoint": "/api/v1/calendars/context",
-      "audience": "farmer",
-      "evidence": "/api/v1/calendars/context"
-    },
-    {
-      "endpoint": "/api/v1/calendars/himyarite-months",
-      "audience": "farmer",
-      "evidence": "/api/v1/calendars/himyarite-months"
-    },
-    {
-      "endpoint": "/api/v1/calendars/lunar-mansions",
-      "audience": "farmer",
-      "evidence": "/api/v1/calendars/lunar-mansions"
-    },
-    {
-      "endpoint": "/api/v1/calendars/regional-profiles",
-      "audience": "farmer",
-      "evidence": "/api/v1/calendars/regional-profiles"
-    },
-    {
-      "endpoint": "/api/v1/calendars/today",
-      "audience": "farmer",
-      "evidence": "/api/v1/calendars/today"
-    },
-    {
-      "endpoint": "/api/v1/calibration",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/feedback",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration/feedback"
-    },
-    {
-      "endpoint": "/api/v1/calibration/overrides/all",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration/overrides/all"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/adapt",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/adapt-from-evidence",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/audit",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/evidence",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/evidence/persisted",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/override",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/propose-values",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/calibration/{region}/resolved",
-      "audience": "agronomist",
-      "evidence": "/api/v1/calibration"
-    },
-    {
-      "endpoint": "/api/v1/cameras/snapshot-evidence",
-      "audience": "manager",
-      "evidence": "/api/v1/cameras/snapshot-evidence"
-    },
-    {
-      "endpoint": "/api/v1/chemical-safety/banned",
-      "audience": "agronomist",
-      "evidence": "/api/v1/chemical-safety/banned"
-    },
-    {
-      "endpoint": "/api/v1/chemical-safety/check",
-      "audience": "agronomist",
-      "evidence": "/api/v1/chemical-safety/check"
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/desert-crops",
-      "audience": "agronomist",
-      "evidence": "/api/v1/climate-analogs/desert-crops"
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/detail",
-      "audience": "agronomist",
-      "evidence": "/api/v1/climate-analogs/detail"
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/list",
-      "audience": "agronomist",
-      "evidence": "/api/v1/climate-analogs/list"
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/strategic-tiers",
-      "audience": "agronomist",
-      "evidence": "/api/v1/climate-analogs/strategic-tiers"
-    },
-    {
-      "endpoint": "/api/v1/climate-analogs/strategy",
-      "audience": "agronomist",
-      "evidence": "/api/v1/climate-analogs/strategy"
-    },
-    {
-      "endpoint": "/api/v1/coffee/guide",
-      "audience": "agronomist",
-      "evidence": "/api/v1/coffee/guide"
-    },
-    {
-      "endpoint": "/api/v1/coffee/pests",
-      "audience": "agronomist",
-      "evidence": "/api/v1/coffee/pests"
-    },
-    {
-      "endpoint": "/api/v1/coffee/site-suitability",
-      "audience": "agronomist",
-      "evidence": "/api/v1/coffee/site-suitability"
-    },
-    {
-      "endpoint": "/api/v1/coffee/varieties",
-      "audience": "agronomist",
-      "evidence": "/api/v1/coffee/varieties"
-    },
-    {
-      "endpoint": "/api/v1/confidence-gate",
-      "audience": "agronomist",
-      "evidence": "/api/v1/confidence-gate"
-    },
-    {
-      "endpoint": "/api/v1/confidence/irrigation",
-      "audience": "agronomist",
-      "evidence": "/api/v1/confidence/irrigation"
-    },
-    {
-      "endpoint": "/api/v1/confidence/ndvi",
-      "audience": "agronomist",
-      "evidence": "/api/v1/confidence/ndvi"
-    },
-    {
-      "endpoint": "/api/v1/consistency/freshness",
-      "audience": "agronomist",
-      "evidence": "/api/v1/consistency/freshness"
-    },
-    {
-      "endpoint": "/api/v1/consistency/irrigation",
-      "audience": "agronomist",
-      "evidence": "/api/v1/consistency/irrigation"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-cards"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/crop/{crop_id}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-cards/crop/"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/variety/{id}/disease-watch",
-      "audience": "agronomist",
-      "evidence": "/disease-watch"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/variety/{id}/expected-harvest",
-      "audience": "agronomist",
-      "evidence": "/expected-harvest"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/variety/{id}/salinity-suitability",
-      "audience": "agronomist",
-      "evidence": "/salinity-suitability"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/variety/{variety_id}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-cards/variety"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/variety/{variety_id}/disease-watch",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-cards/variety"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/variety/{variety_id}/expected-harvest",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-cards/variety"
-    },
-    {
-      "endpoint": "/api/v1/crop-cards/variety/{variety_id}/salinity-suitability",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-cards/variety"
-    },
-    {
-      "endpoint": "/api/v1/crop-suitability",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-suitability"
-    },
-    {
-      "endpoint": "/api/v1/crop-twin/compose",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-twin/compose"
-    },
-    {
-      "endpoint": "/api/v1/crop-twin/decision",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-twin/decision"
-    },
-    {
-      "endpoint": "/api/v1/crop-twin/decision/profit-aware",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crop-twin/decision/profit-aware"
-    },
-    {
-      "endpoint": "/api/v1/crops/compare-drought-resilience",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crops/compare-drought-resilience"
-    },
-    {
-      "endpoint": "/api/v1/crops/drought-resilience",
-      "audience": "agronomist",
-      "evidence": "/api/v1/crops/drought-resilience"
-    },
-    {
-      "endpoint": "/api/v1/crops/{crop_id}/operations-calendar",
-      "audience": "agronomist",
-      "evidence": "/operations-calendar"
-    },
-    {
-      "endpoint": "/api/v1/cultural-calendar",
-      "audience": "farmer",
-      "evidence": "/api/v1/cultural-calendar"
-    },
-    {
-      "endpoint": "/api/v1/data-readiness",
-      "audience": "manager",
-      "evidence": "/api/v1/data-readiness"
-    },
-    {
-      "endpoint": "/api/v1/decision/dispatch/decisions",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/dispatch/decisions"
-    },
-    {
-      "endpoint": "/api/v1/decision/dispatch/evaluate",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/dispatch/evaluate"
-    },
-    {
-      "endpoint": "/api/v1/decision/dispatch/execute",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/dispatch/execute"
-    },
-    {
-      "endpoint": "/api/v1/decision/dispatch/queue",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/dispatch/queue"
-    },
-    {
-      "endpoint": "/api/v1/decision/economics",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/economics"
-    },
-    {
-      "endpoint": "/api/v1/decision/explain",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/explain"
-    },
-    {
-      "endpoint": "/api/v1/decision/for-location",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/for-location"
-    },
-    {
-      "endpoint": "/api/v1/decision/impact",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/impact"
-    },
-    {
-      "endpoint": "/api/v1/decision/learning",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/learning"
-    },
-    {
-      "endpoint": "/api/v1/decision/ledger",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/ledger"
-    },
-    {
-      "endpoint": "/api/v1/decision/policies",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/policies"
-    },
-    {
-      "endpoint": "/api/v1/decision/policies/resolve",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/policies/resolve"
-    },
-    {
-      "endpoint": "/api/v1/decision/record",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/record"
-    },
-    {
-      "endpoint": "/api/v1/decision/records",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/records"
-    },
-    {
-      "endpoint": "/api/v1/decision/unified",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision/unified"
-    },
-    {
-      "endpoint": "/api/v1/decision/{decision_id}/explain",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision"
-    },
-    {
-      "endpoint": "/api/v1/decision/{decision_id}/lineage",
-      "audience": "agronomist",
-      "evidence": "/api/v1/decision"
-    },
-    {
-      "endpoint": "/api/v1/decision/{id}/explain",
-      "audience": "agronomist",
-      "evidence": "/explain"
-    },
-    {
-      "endpoint": "/api/v1/devices",
-      "audience": "manager",
-      "evidence": "/api/v1/devices"
-    },
-    {
-      "endpoint": "/api/v1/devices/twin",
-      "audience": "manager",
-      "evidence": "/api/v1/devices/twin"
-    },
-    {
-      "endpoint": "/api/v1/devices/{device_id}/telemetry",
-      "audience": "manager",
-      "evidence": "/api/v1/devices"
-    },
-    {
-      "endpoint": "/api/v1/diagnose",
-      "audience": "agronomist",
-      "evidence": "/api/v1/diagnose"
-    },
-    {
-      "endpoint": "/api/v1/diagnose (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/diagnose"
-    },
-    {
-      "endpoint": "/api/v1/diagnose/symptoms",
-      "audience": "agronomist",
-      "evidence": "/api/v1/diagnose/symptoms"
-    },
-    {
-      "endpoint": "/api/v1/districts",
-      "audience": "farmer",
-      "evidence": "/api/v1/districts"
-    },
-    {
-      "endpoint": "/api/v1/districts/{district_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/districts/$"
-    },
-    {
-      "endpoint": "/api/v1/districts/{district_id}/active-pests",
-      "audience": "farmer",
-      "evidence": "/active-pests"
-    },
-    {
-      "endpoint": "/api/v1/documents",
-      "audience": "manager",
-      "evidence": "/api/v1/documents"
-    },
-    {
-      "endpoint": "/api/v1/documents/{doc_id}",
-      "audience": "manager",
-      "evidence": "/api/v1/documents"
-    },
-    {
-      "endpoint": "/api/v1/drawing-features",
-      "audience": "farmer",
-      "evidence": "/api/v1/drawing-features"
-    },
-    {
-      "endpoint": "/api/v1/drawing-features/validate",
-      "audience": "farmer",
-      "evidence": "/api/v1/drawing-features/validate"
-    },
-    {
-      "endpoint": "/api/v1/drawing-features/{feature_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/drawing-features"
-    },
-    {
-      "endpoint": "/api/v1/economics/break-even",
-      "audience": "manager",
-      "evidence": "/api/v1/economics/break-even"
-    },
-    {
-      "endpoint": "/api/v1/economics/cost-categories",
-      "audience": "manager",
-      "evidence": "/api/v1/economics/cost-categories"
-    },
-    {
-      "endpoint": "/api/v1/economics/feasibility",
-      "audience": "manager",
-      "evidence": "/api/v1/economics/feasibility"
-    },
-    {
-      "endpoint": "/api/v1/equipment",
-      "audience": "manager",
-      "evidence": "/api/v1/equipment"
-    },
-    {
-      "endpoint": "/api/v1/equipment/{equipment_id}/maintenance",
-      "audience": "manager",
-      "evidence": "/api/v1/equipment"
-    },
-    {
-      "endpoint": "/api/v1/escalation/assess",
-      "audience": "agronomist",
-      "evidence": "/api/v1/escalation/assess"
-    },
-    {
-      "endpoint": "/api/v1/evidence-graph/analytics",
-      "audience": "agronomist",
-      "evidence": "/api/v1/evidence-graph/analytics"
-    },
-    {
-      "endpoint": "/api/v1/evidence/corroborate",
-      "audience": "agronomist",
-      "evidence": "/api/v1/evidence/corroborate"
-    },
-    {
-      "endpoint": "/api/v1/evidence/map",
-      "audience": "agronomist",
-      "evidence": "/api/v1/evidence/map"
-    },
-    {
-      "endpoint": "/api/v1/execution/feedback",
-      "audience": "manager",
-      "evidence": "/api/v1/execution/feedback"
-    },
-    {
-      "endpoint": "/api/v1/failures/check",
-      "audience": "manager",
-      "evidence": "/api/v1/failures/check"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/autowrite-preview",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/autowrite-preview"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/budgets",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/budgets"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/budgets (POST)",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/budgets"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/budgets/{season_id}",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/budgets"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/economic-state/{season_id}",
-      "audience": "manager",
-      "evidence": "/farm-ledger/economic-state"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/erp-projection/{season_id}",
-      "audience": "manager",
-      "evidence": "/erp-projection/"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/inventory-projection/{season_id}",
-      "audience": "manager",
-      "evidence": "/inventory-projection/"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/operations",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/operations"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/operations (POST)",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/operations"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/profitability/{season_id}",
-      "audience": "manager",
-      "evidence": "/farm-ledger/profitability"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/revenues",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/revenues"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/revenues (POST)",
-      "audience": "manager",
-      "evidence": "/api/v1/farm-ledger/revenues"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/summary",
-      "audience": "manager",
-      "evidence": "/farm-ledger/summary"
-    },
-    {
-      "endpoint": "/api/v1/farm-ledger/variance/{season_id}",
-      "audience": "manager",
-      "evidence": "/farm-ledger/variance"
-    },
-    {
-      "endpoint": "/api/v1/farms",
-      "audience": "farmer",
-      "evidence": "/api/v1/farms"
-    },
-    {
-      "endpoint": "/api/v1/farms/{farm_id}/fields",
-      "audience": "farmer",
-      "evidence": "/api/v1/farms"
-    },
-    {
-      "endpoint": "/api/v1/field-intelligence/analyze",
-      "audience": "agronomist",
-      "evidence": "/api/v1/field-intelligence/analyze"
-    },
-    {
-      "endpoint": "/api/v1/field-portfolio/allocate",
-      "audience": "farmer",
-      "evidence": "/api/v1/field-portfolio/allocate"
-    },
-    {
-      "endpoint": "/api/v1/field-portfolio/optimize",
-      "audience": "farmer",
-      "evidence": "/api/v1/field-portfolio/optimize"
-    },
-    {
-      "endpoint": "/api/v1/field/operational-state",
-      "audience": "farmer",
-      "evidence": "/api/v1/field/operational-state"
-    },
-    {
-      "endpoint": "/api/v1/field/{field_id}/lineage",
-      "audience": "farmer",
-      "evidence": "/api/v1/field/{field_id}/lineage"
-    },
-    {
-      "endpoint": "/api/v1/fields",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/boundary-graph/rebuild",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/boundary-graph/rebuild"
-    },
-    {
-      "endpoint": "/api/v1/fields/boundary-graph/rebuild (POST)",
-      "audience": "admin",
-      "evidence": "/boundary-graph/rebuild"
-    },
-    {
-      "endpoint": "/api/v1/fields/import",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/import"
-    },
-    {
-      "endpoint": "/api/v1/fields/merge",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/merge"
-    },
-    {
-      "endpoint": "/api/v1/fields/split",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/split"
-    },
-    {
-      "endpoint": "/api/v1/fields/validate-geometry",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields/validate-geometry"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/activities",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/agronomic-replay",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/ai-context-pack",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/alerts/derived",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/alerts/evaluate",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/available-dates",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/boundary-graph",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/boundary/clean",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/boundary/review",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/boundary/score",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/daily-ai-brief",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/data-completeness",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/decision-confidence",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/drawing-features",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/etc-dual",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/geometry/history",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/growth-narrative",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/history",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/imagery/backfill",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/imagery/refresh",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/imagery/timeline",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/input-traceability",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/lab-context",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/ndvi-analysis",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/phenology",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/pins",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/prescriptions",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/productivity-zones",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/recommendations",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/rotations",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/season-workspace",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/seasons",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/seasons/{season_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/soil-lab-tests",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/soil-moisture",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/stage-actions",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/state",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/state/full",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/sustainability",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/terrain",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/timeline",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/trueup",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/twin",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/unified-timeline",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/walk-plan",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/walk-plan/pdf",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/water-efficiency",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/water-ledger",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/water-stress-spectral",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/water-twin",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/weather/disease-risk",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/weather/irrigation-advice",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/wind/drift-risk",
-      "audience": "farmer",
-      "evidence": "/wind/drift-risk"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
-      "audience": "farmer",
-      "evidence": "/wind/prevailing"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/workspace",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/yield-estimate",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/yield-interval",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/zone-sampling-plan",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/zones",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/ai-context-pack",
-      "audience": "agronomist",
-      "evidence": "/ai-context-pack"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/available-dates",
-      "audience": "farmer",
-      "evidence": "/available-dates"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/boundary-graph",
-      "audience": "agronomist",
-      "evidence": "/boundary-graph"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/boundary/clean (POST)",
-      "audience": "agronomist",
-      "evidence": "/boundary/clean"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/boundary/review (PATCH)",
-      "audience": "agronomist",
-      "evidence": "/boundary/review"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/boundary/score",
-      "audience": "agronomist",
-      "evidence": "/boundary/score"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/daily-ai-brief",
-      "audience": "farmer",
-      "evidence": "/daily-ai-brief"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/input-traceability",
-      "audience": "manager",
-      "evidence": "/input-traceability"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/phenology",
-      "audience": "farmer",
-      "evidence": "/phenology"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/prescriptions",
-      "audience": "agronomist",
-      "evidence": "/prescriptions"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/productivity-zones",
-      "audience": "agronomist",
-      "evidence": "/productivity-zones"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/soil-moisture",
-      "audience": "farmer",
-      "evidence": "/soil-moisture"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/stage-actions",
-      "audience": "farmer",
-      "evidence": "/stage-actions"
-    },
-    {
-      "endpoint": "/api/v1/fields/{id}/water-efficiency",
-      "audience": "farmer",
-      "evidence": "/water-efficiency"
-    },
-    {
-      "endpoint": "/api/v1/fodder-alternatives/list",
-      "audience": "farmer",
-      "evidence": "/api/v1/fodder-alternatives/list"
-    },
-    {
-      "endpoint": "/api/v1/gdd/track",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gdd/track"
-    },
-    {
-      "endpoint": "/api/v1/gdd/track (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gdd/track"
-    },
-    {
-      "endpoint": "/api/v1/geo-locate/field",
-      "audience": "farmer",
-      "evidence": "/api/v1/geo-locate/field"
-    },
-    {
-      "endpoint": "/api/v1/geo-locate/recommend",
-      "audience": "farmer",
-      "evidence": "/api/v1/geo-locate/recommend"
-    },
-    {
-      "endpoint": "/api/v1/geo/reverse",
-      "audience": "farmer",
-      "evidence": "/api/v1/geo/reverse"
-    },
-    {
-      "endpoint": "/api/v1/gis/buffer",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/buffer"
-    },
-    {
-      "endpoint": "/api/v1/gis/cloud-native/ogc/collections",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/cloud-native/ogc/collections"
-    },
-    {
-      "endpoint": "/api/v1/gis/cloud-native/ogc/conformance",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/cloud-native/ogc/conformance"
-    },
-    {
-      "endpoint": "/api/v1/gis/cloud-native/stac",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/cloud-native/stac"
-    },
-    {
-      "endpoint": "/api/v1/gis/cloud-native/stac/collections",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/cloud-native/stac/collections"
-    },
-    {
-      "endpoint": "/api/v1/gis/cloud-native/stac/search",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/cloud-native/stac/search"
-    },
-    {
-      "endpoint": "/api/v1/gis/cloud-native/tile-cache-plan",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/cloud-native/tile-cache-plan"
-    },
-    {
-      "endpoint": "/api/v1/gis/split",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/split"
-    },
-    {
-      "endpoint": "/api/v1/gis/union",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/union"
-    },
-    {
-      "endpoint": "/api/v1/gis/validate",
-      "audience": "agronomist",
-      "evidence": "/api/v1/gis/validate"
-    },
-    {
-      "endpoint": "/api/v1/harvest-lots",
-      "audience": "manager",
-      "evidence": "/api/v1/harvest-lots"
-    },
-    {
-      "endpoint": "/api/v1/harvest-lots/{harvest_lot_id}",
-      "audience": "manager",
-      "evidence": "/api/v1/harvest-lots"
-    },
-    {
-      "endpoint": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
-      "audience": "manager",
-      "evidence": "/api/v1/harvest-lots"
-    },
-    {
-      "endpoint": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
-      "audience": "manager",
-      "evidence": "/api/v1/harvest-lots"
-    },
-    {
-      "endpoint": "/api/v1/harvest-lots/{id}/traceability",
-      "audience": "manager",
-      "evidence": "/traceability"
-    },
-    {
-      "endpoint": "/api/v1/high-value-crops/detail",
-      "audience": "farmer",
-      "evidence": "/api/v1/high-value-crops/detail"
-    },
-    {
-      "endpoint": "/api/v1/high-value-crops/list",
-      "audience": "farmer",
-      "evidence": "/api/v1/high-value-crops/list"
-    },
-    {
-      "endpoint": "/api/v1/indicators/catalog",
-      "audience": "agronomist",
-      "evidence": "/api/v1/indicators/catalog"
-    },
-    {
-      "endpoint": "/api/v1/indicators/dashboard",
-      "audience": "agronomist",
-      "evidence": "/api/v1/indicators/dashboard"
-    },
-    {
-      "endpoint": "/api/v1/indicators/map-layers",
-      "audience": "agronomist",
-      "evidence": "/api/v1/indicators/map-layers"
-    },
-    {
-      "endpoint": "/api/v1/indices/coverage-report",
-      "audience": "agronomist",
-      "evidence": "/api/v1/indices/coverage-report"
-    },
-    {
-      "endpoint": "/api/v1/introduction/candidates",
-      "audience": "farmer",
-      "evidence": "/api/v1/introduction/candidates"
-    },
-    {
-      "endpoint": "/api/v1/introduction/card",
-      "audience": "farmer",
-      "evidence": "/api/v1/introduction/card"
-    },
-    {
-      "endpoint": "/api/v1/introduction/field-fit",
-      "audience": "farmer",
-      "evidence": "/api/v1/introduction/field-fit"
-    },
-    {
-      "endpoint": "/api/v1/inventory",
-      "audience": "manager",
-      "evidence": "/api/v1/inventory"
-    },
-    {
-      "endpoint": "/api/v1/inventory/expiring",
-      "audience": "manager",
-      "evidence": "/api/v1/inventory/expiring"
-    },
-    {
-      "endpoint": "/api/v1/inventory/items",
-      "audience": "manager",
-      "evidence": "/api/v1/inventory/items"
-    },
-    {
-      "endpoint": "/api/v1/inventory/items/{item_id}/batches",
-      "audience": "manager",
-      "evidence": "/api/v1/inventory/items"
-    },
-    {
-      "endpoint": "/api/v1/ipm/crop-pests",
-      "audience": "agronomist",
-      "evidence": "/api/v1/ipm/crop-pests"
-    },
-    {
-      "endpoint": "/api/v1/ipm/pests",
-      "audience": "agronomist",
-      "evidence": "/api/v1/ipm/pests"
-    },
-    {
-      "endpoint": "/api/v1/ipm/plan",
-      "audience": "agronomist",
-      "evidence": "/api/v1/ipm/plan"
-    },
-    {
-      "endpoint": "/api/v1/irrigation-method",
-      "audience": "agronomist",
-      "evidence": "/api/v1/irrigation-method"
-    },
-    {
-      "endpoint": "/api/v1/irrigation-method/gross",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation-method/gross"
-    },
-    {
-      "endpoint": "/api/v1/irrigation-method/{method}",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation-method"
-    },
-    {
-      "endpoint": "/api/v1/irrigation-plan",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation-plan"
-    },
-    {
-      "endpoint": "/api/v1/irrigation-recommendation",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation-recommendation"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/moisture-decision",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/moisture-decision"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/network/feasibility",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/network/feasibility"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/schedules",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/schedules"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/schedules/{schedule_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/schedules"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/soil-types",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/soil-types"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/valves",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/valves"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/valves/{valve_id}/state",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/valves"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/water-analysis",
-      "audience": "farmer",
-      "evidence": "/api/v1/irrigation/water-analysis"
-    },
-    {
-      "endpoint": "/api/v1/lab/samples",
-      "audience": "agronomist",
-      "evidence": "/api/v1/lab/samples"
-    },
-    {
-      "endpoint": "/api/v1/lab/soil-results",
-      "audience": "agronomist",
-      "evidence": "/api/v1/lab/soil-results"
-    },
-    {
-      "endpoint": "/api/v1/lab/water-results",
-      "audience": "agronomist",
-      "evidence": "/api/v1/lab/water-results"
-    },
-    {
-      "endpoint": "/api/v1/learning/activation-status",
-      "audience": "agronomist",
-      "evidence": "/api/v1/learning/activation-status"
-    },
-    {
-      "endpoint": "/api/v1/learning/external-prior-blend",
-      "audience": "agronomist",
-      "evidence": "/api/v1/learning/external-prior-blend"
-    },
-    {
-      "endpoint": "/api/v1/learning/prediction-calibration",
-      "audience": "agronomist",
-      "evidence": "/api/v1/learning/prediction-calibration"
-    },
-    {
-      "endpoint": "/api/v1/learning/summary",
-      "audience": "agronomist",
-      "evidence": "/api/v1/learning/summary"
-    },
-    {
-      "endpoint": "/api/v1/lineage/link",
-      "audience": "agronomist",
-      "evidence": "/api/v1/lineage/link"
-    },
-    {
-      "endpoint": "/api/v1/lineage/{entity_type}/{entity_id}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/lineage"
-    },
-    {
-      "endpoint": "/api/v1/lineage/{lineage_id}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/lineage"
-    },
-    {
-      "endpoint": "/api/v1/market/crop-classification-readiness",
-      "audience": "manager",
-      "evidence": "/api/v1/market/crop-classification-readiness"
-    },
-    {
-      "endpoint": "/api/v1/market/crop-gap",
-      "audience": "manager",
-      "evidence": "/api/v1/market/crop-gap"
-    },
-    {
-      "endpoint": "/api/v1/master-data",
-      "audience": "manager",
-      "evidence": "/api/v1/master-data"
-    },
-    {
-      "endpoint": "/api/v1/me",
-      "audience": "farmer",
-      "evidence": "/api/v1/me"
-    },
-    {
-      "endpoint": "/api/v1/niche-crops/detail",
-      "audience": "farmer",
-      "evidence": "/api/v1/niche-crops/detail"
-    },
-    {
-      "endpoint": "/api/v1/niche-crops/list",
-      "audience": "farmer",
-      "evidence": "/api/v1/niche-crops/list"
-    },
-    {
-      "endpoint": "/api/v1/nl-gis/query",
-      "audience": "agronomist",
-      "evidence": "/api/v1/nl-gis/query"
-    },
-    {
-      "endpoint": "/api/v1/nl-sql",
-      "audience": "agronomist",
-      "evidence": "/api/v1/nl-sql"
-    },
-    {
-      "endpoint": "/api/v1/notifications/preferences",
-      "audience": "farmer",
-      "evidence": "/api/v1/notifications/preferences"
-    },
-    {
-      "endpoint": "/api/v1/nutrients/4r-plan",
-      "audience": "agronomist",
-      "evidence": "/api/v1/nutrients/4r-plan"
-    },
-    {
-      "endpoint": "/api/v1/observations",
-      "audience": "agronomist",
-      "evidence": "/api/v1/observations"
-    },
-    {
-      "endpoint": "/api/v1/onboarding/questionnaire",
-      "audience": "farmer",
-      "evidence": "/api/v1/onboarding/questionnaire"
-    },
-    {
-      "endpoint": "/api/v1/onboarding/responses",
-      "audience": "farmer",
-      "evidence": "/api/v1/onboarding/responses"
-    },
-    {
-      "endpoint": "/api/v1/operations/summary",
-      "audience": "manager",
-      "evidence": "/api/v1/operations/summary"
-    },
-    {
-      "endpoint": "/api/v1/orchard/economics",
-      "audience": "farmer",
-      "evidence": "/api/v1/orchard/economics"
-    },
-    {
-      "endpoint": "/api/v1/orchard/plan",
-      "audience": "farmer",
-      "evidence": "/api/v1/orchard/plan"
-    },
-    {
-      "endpoint": "/api/v1/outcome/measure",
-      "audience": "agronomist",
-      "evidence": "/api/v1/outcome/measure"
-    },
-    {
-      "endpoint": "/api/v1/outcome/measure (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/outcome/measure"
-    },
-    {
-      "endpoint": "/api/v1/outcome/record",
-      "audience": "agronomist",
-      "evidence": "/api/v1/outcome/record"
-    },
-    {
-      "endpoint": "/api/v1/pest-escalation/run",
-      "audience": "agronomist",
-      "evidence": "/api/v1/pest-escalation/run"
-    },
-    {
-      "endpoint": "/api/v1/planting/check",
-      "audience": "agronomist",
-      "evidence": "/api/v1/planting/check"
-    },
-    {
-      "endpoint": "/api/v1/planting/crops",
-      "audience": "agronomist",
-      "evidence": "/api/v1/planting/crops"
-    },
-    {
-      "endpoint": "/api/v1/planting/window",
-      "audience": "agronomist",
-      "evidence": "/api/v1/planting/window"
-    },
-    {
-      "endpoint": "/api/v1/policy-learning/threshold-suggestions",
-      "audience": "agronomist",
-      "evidence": "/api/v1/policy-learning/threshold-suggestions"
-    },
-    {
-      "endpoint": "/api/v1/portfolio/command",
-      "audience": "farmer",
-      "evidence": "/api/v1/portfolio/command"
-    },
-    {
-      "endpoint": "/api/v1/postharvest/best-practices",
-      "audience": "agronomist",
-      "evidence": "/api/v1/postharvest/best-practices"
-    },
-    {
-      "endpoint": "/api/v1/postharvest/moisture-check",
-      "audience": "agronomist",
-      "evidence": "/api/v1/postharvest/moisture-check"
-    },
-    {
-      "endpoint": "/api/v1/postharvest/pests",
-      "audience": "agronomist",
-      "evidence": "/api/v1/postharvest/pests"
-    },
-    {
-      "endpoint": "/api/v1/practices/guide",
-      "audience": "agronomist",
-      "evidence": "/api/v1/practices/guide"
-    },
-    {
-      "endpoint": "/api/v1/practices/list",
-      "audience": "agronomist",
-      "evidence": "/api/v1/practices/list"
-    },
-    {
-      "endpoint": "/api/v1/propagation/crop",
-      "audience": "agronomist",
-      "evidence": "/api/v1/propagation/crop"
-    },
-    {
-      "endpoint": "/api/v1/propagation/method-guide",
-      "audience": "agronomist",
-      "evidence": "/api/v1/propagation/method-guide"
-    },
-    {
-      "endpoint": "/api/v1/propagation/methods",
-      "audience": "agronomist",
-      "evidence": "/api/v1/propagation/methods"
-    },
-    {
-      "endpoint": "/api/v1/propagation/rootstock",
-      "audience": "agronomist",
-      "evidence": "/api/v1/propagation/rootstock"
-    },
-    {
-      "endpoint": "/api/v1/queue/status",
-      "audience": "admin",
-      "evidence": "/api/v1/queue/status"
-    },
-    {
-      "endpoint": "/api/v1/rbac/permission-matrix",
-      "audience": "manager",
-      "evidence": "/api/v1/rbac/permission-matrix"
-    },
-    {
-      "endpoint": "/api/v1/rbac/preview-role-change",
-      "audience": "manager",
-      "evidence": "/api/v1/rbac/preview-role-change"
-    },
-    {
-      "endpoint": "/api/v1/rbac/who-can",
-      "audience": "manager",
-      "evidence": "/api/v1/rbac/who-can"
-    },
-    {
-      "endpoint": "/api/v1/recommendations",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/candidates",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations/candidates"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/capacity-profiles",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations/capacity-profiles"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/economic-adaptation",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations/economic-adaptation"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/engines",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations/engines"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/for-field",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations/for-field"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/outcomes",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations/outcomes"
-    },
-    {
-      "endpoint": "/api/v1/recommendations/{rec_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/recommendations"
-    },
-    {
-      "endpoint": "/api/v1/regional-calendar",
-      "audience": "farmer",
-      "evidence": "/api/v1/regional-calendar"
-    },
-    {
-      "endpoint": "/api/v1/replay/reconstruct",
-      "audience": "agronomist",
-      "evidence": "/api/v1/replay/reconstruct"
-    },
-    {
-      "endpoint": "/api/v1/reports",
-      "audience": "manager",
-      "evidence": "/api/v1/reports"
-    },
-    {
-      "endpoint": "/api/v1/reports/build",
-      "audience": "manager",
-      "evidence": "/api/v1/reports/build"
-    },
-    {
-      "endpoint": "/api/v1/reports/farm-summary",
-      "audience": "manager",
-      "evidence": "/api/v1/reports/farm-summary"
-    },
-    {
-      "endpoint": "/api/v1/reports/field/{field_id}/summary",
-      "audience": "manager",
-      "evidence": "/api/v1/reports/field"
-    },
-    {
-      "endpoint": "/api/v1/reports/operation",
-      "audience": "manager",
-      "evidence": "/api/v1/reports/operation"
-    },
-    {
-      "endpoint": "/api/v1/reports/season/{season_id}/summary",
-      "audience": "manager",
-      "evidence": "/api/v1/reports/season"
-    },
-    {
-      "endpoint": "/api/v1/rotation/evaluate",
-      "audience": "agronomist",
-      "evidence": "/api/v1/rotation/evaluate"
-    },
-    {
-      "endpoint": "/api/v1/rotation/principles",
-      "audience": "agronomist",
-      "evidence": "/api/v1/rotation/principles"
-    },
-    {
-      "endpoint": "/api/v1/rotation/suggest",
-      "audience": "agronomist",
-      "evidence": "/api/v1/rotation/suggest"
-    },
-    {
-      "endpoint": "/api/v1/salinity/assess",
-      "audience": "agronomist",
-      "evidence": "/api/v1/salinity/assess"
-    },
-    {
-      "endpoint": "/api/v1/salinity/assess (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/salinity/assess"
-    },
-    {
-      "endpoint": "/api/v1/sampling/strategy",
-      "audience": "agronomist",
-      "evidence": "/api/v1/sampling/strategy"
-    },
-    {
-      "endpoint": "/api/v1/scenario/planting-date",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/planting-date"
-    },
-    {
-      "endpoint": "/api/v1/scenario/planting-date (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/planting-date"
-    },
-    {
-      "endpoint": "/api/v1/scenario/rainfall",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/rainfall"
-    },
-    {
-      "endpoint": "/api/v1/scenario/rainfall (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/rainfall"
-    },
-    {
-      "endpoint": "/api/v1/scenario/temperature",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/temperature"
-    },
-    {
-      "endpoint": "/api/v1/scenario/temperature (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/temperature"
-    },
-    {
-      "endpoint": "/api/v1/scenario/water-twin",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/water-twin"
-    },
-    {
-      "endpoint": "/api/v1/scenario/water-twin (POST)",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scenario/water-twin"
-    },
-    {
-      "endpoint": "/api/v1/scouting/pins",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scouting/pins"
-    },
-    {
-      "endpoint": "/api/v1/scouting/taxonomy",
-      "audience": "agronomist",
-      "evidence": "/api/v1/scouting/taxonomy"
-    },
-    {
-      "endpoint": "/api/v1/seasonal-risk/calendar",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seasonal-risk/calendar"
-    },
-    {
-      "endpoint": "/api/v1/seasonal-risk/chill-hours",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seasonal-risk/chill-hours"
-    },
-    {
-      "endpoint": "/api/v1/seasonal-risk/stage-check",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seasonal-risk/stage-check"
-    },
-    {
-      "endpoint": "/api/v1/seasons",
-      "audience": "farmer",
-      "evidence": "/api/v1/seasons"
-    },
-    {
-      "endpoint": "/api/v1/seasons/{season_id}/simulate",
-      "audience": "farmer",
-      "evidence": "/api/v1/seasons"
-    },
-    {
-      "endpoint": "/api/v1/seed/criteria",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seed/criteria"
-    },
-    {
-      "endpoint": "/api/v1/seed/evaluate-source",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seed/evaluate-source"
-    },
-    {
-      "endpoint": "/api/v1/seed/germination-rate",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seed/germination-rate"
-    },
-    {
-      "endpoint": "/api/v1/seed/sowing-depth",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seed/sowing-depth"
-    },
-    {
-      "endpoint": "/api/v1/seed/storage-check",
-      "audience": "agronomist",
-      "evidence": "/api/v1/seed/storage-check"
-    },
-    {
-      "endpoint": "/api/v1/settings",
-      "audience": "manager",
-      "evidence": "/api/v1/settings"
-    },
-    {
-      "endpoint": "/api/v1/sharing/generate-key",
-      "audience": "manager",
-      "evidence": "/api/v1/sharing/generate-key"
-    },
-    {
-      "endpoint": "/api/v1/sharing/keys",
-      "audience": "manager",
-      "evidence": "/api/v1/sharing/keys"
-    },
-    {
-      "endpoint": "/api/v1/simulate/what-if",
-      "audience": "agronomist",
-      "evidence": "/api/v1/simulate/what-if"
-    },
-    {
-      "endpoint": "/api/v1/soil-sampling/depth",
-      "audience": "agronomist",
-      "evidence": "/api/v1/soil-sampling/depth"
-    },
-    {
-      "endpoint": "/api/v1/soil-sampling/protocol",
-      "audience": "agronomist",
-      "evidence": "/api/v1/soil-sampling/protocol"
-    },
-    {
-      "endpoint": "/api/v1/soil-sampling/subsamples",
-      "audience": "agronomist",
-      "evidence": "/api/v1/soil-sampling/subsamples"
-    },
-    {
-      "endpoint": "/api/v1/tasks",
-      "audience": "farmer",
-      "evidence": "/api/v1/tasks"
-    },
-    {
-      "endpoint": "/api/v1/tasks/{task_id}",
-      "audience": "farmer",
-      "evidence": "/api/v1/tasks"
-    },
-    {
-      "endpoint": "/api/v1/temporal/check",
-      "audience": "agronomist",
-      "evidence": "/api/v1/temporal/check"
-    },
-    {
-      "endpoint": "/api/v1/temporal/coherence",
-      "audience": "agronomist",
-      "evidence": "/api/v1/temporal/coherence"
-    },
-    {
-      "endpoint": "/api/v1/tenant/config",
-      "audience": "manager",
-      "evidence": "/api/v1/tenant/config"
-    },
-    {
-      "endpoint": "/api/v1/trials/analyze",
-      "audience": "agronomist",
-      "evidence": "/api/v1/trials/analyze"
-    },
-    {
-      "endpoint": "/api/v1/water-balance",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-balance"
-    },
-    {
-      "endpoint": "/api/v1/water-harvesting/method-guide",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-harvesting/method-guide"
-    },
-    {
-      "endpoint": "/api/v1/water-harvesting/methods",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-harvesting/methods"
-    },
-    {
-      "endpoint": "/api/v1/water-harvesting/potential",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-harvesting/potential"
-    },
-    {
-      "endpoint": "/api/v1/water-harvesting/upstream-flood",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-harvesting/upstream-flood"
-    },
-    {
-      "endpoint": "/api/v1/water-sensitivity/calendar",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-sensitivity/calendar"
-    },
-    {
-      "endpoint": "/api/v1/water-sensitivity/crops",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-sensitivity/crops"
-    },
-    {
-      "endpoint": "/api/v1/water-sensitivity/integrated-advice",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-sensitivity/integrated-advice"
-    },
-    {
-      "endpoint": "/api/v1/water-sensitivity/stress-risk",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-sensitivity/stress-risk"
-    },
-    {
-      "endpoint": "/api/v1/water-sensitivity/wheat-calendar",
-      "audience": "agronomist",
-      "evidence": "/api/v1/water-sensitivity/wheat-calendar"
-    },
-    {
-      "endpoint": "/api/v1/weather-analytics/analyze",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather-analytics/analyze"
-    },
-    {
-      "endpoint": "/api/v1/weather-analytics/planting-guide",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather-analytics/planting-guide"
-    },
-    {
-      "endpoint": "/api/v1/weather/action-recommendation",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/action-recommendation"
-    },
-    {
-      "endpoint": "/api/v1/weather/alerts",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/alerts"
-    },
-    {
-      "endpoint": "/api/v1/weather/current",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/current"
-    },
-    {
-      "endpoint": "/api/v1/weather/field-weather-summary",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/field-weather-summary"
-    },
-    {
-      "endpoint": "/api/v1/weather/forecast",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/forecast"
-    },
-    {
-      "endpoint": "/api/v1/weather/historical",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/historical"
-    },
-    {
-      "endpoint": "/api/v1/weather/layers",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/layers"
-    },
-    {
-      "endpoint": "/api/v1/weather/operation-plan",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/operation-plan"
-    },
-    {
-      "endpoint": "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/operation-tile-data"
-    },
-    {
-      "endpoint": "/api/v1/weather/operation-window",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/operation-window"
-    },
-    {
-      "endpoint": "/api/v1/weather/probe",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/probe"
-    },
-    {
-      "endpoint": "/api/v1/weather/recommendations/from-operation-plan",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/recommendations/from-operation-plan"
-    },
-    {
-      "endpoint": "/api/v1/weather/tasks/from-operation-plan",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/tasks/from-operation-plan"
-    },
-    {
-      "endpoint": "/api/v1/weather/tile-data/{z}/{x}/{y}",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/tile-data"
-    },
-    {
-      "endpoint": "/api/v1/weather/tile-series/{z}/{x}/{y}",
-      "audience": "farmer",
-      "evidence": "/api/v1/weather/tile-series/"
-    },
-    {
-      "endpoint": "/api/v1/wofost/adaptation-guidance",
-      "audience": "agronomist",
-      "evidence": "/api/v1/wofost/adaptation-guidance"
-    },
-    {
-      "endpoint": "/api/v1/wofost/crop-types",
-      "audience": "agronomist",
-      "evidence": "/api/v1/wofost/crop-types"
-    },
-    {
-      "endpoint": "/api/v1/work-orders/from-recommendation",
-      "audience": "manager",
-      "evidence": "/api/v1/work-orders/from-recommendation"
-    },
-    {
-      "endpoint": "/approvals/approve|deny (ai-agronomist POST)",
-      "audience": "manager",
-      "evidence": "/api/ai-agronomist/approvals/"
-    },
-    {
-      "endpoint": "/approvals/pending (ai-agronomist GET)",
-      "audience": "manager",
-      "evidence": "/api/ai-agronomist/approvals/pending"
-    },
-    {
-      "endpoint": "/auth/change-password",
-      "audience": "farmer",
-      "evidence": "/auth/change-password"
-    },
-    {
-      "endpoint": "/auth/invitations",
-      "audience": "farmer",
-      "evidence": "/auth/invitations"
-    },
-    {
-      "endpoint": "/auth/invitations/accept",
-      "audience": "farmer",
-      "evidence": "/auth/invitations/accept"
-    },
-    {
-      "endpoint": "/auth/invitations/{invitation_id}",
-      "audience": "farmer",
-      "evidence": "/auth/invitations"
-    },
-    {
-      "endpoint": "/auth/login",
-      "audience": "farmer",
-      "evidence": "/auth/login"
-    },
-    {
-      "endpoint": "/auth/logout",
-      "audience": "farmer",
-      "evidence": "/auth/logout"
-    },
-    {
-      "endpoint": "/auth/mfa/activate",
-      "audience": "farmer",
-      "evidence": "/auth/mfa/activate"
-    },
-    {
-      "endpoint": "/auth/mfa/disable",
-      "audience": "farmer",
-      "evidence": "/auth/mfa/disable"
-    },
-    {
-      "endpoint": "/auth/mfa/setup",
-      "audience": "farmer",
-      "evidence": "/auth/mfa/setup"
-    },
-    {
-      "endpoint": "/auth/password-reset/confirm",
-      "audience": "farmer",
-      "evidence": "/auth/password-reset/confirm"
-    },
-    {
-      "endpoint": "/auth/password-reset/request",
-      "audience": "farmer",
-      "evidence": "/auth/password-reset/request"
-    },
-    {
-      "endpoint": "/auth/refresh",
-      "audience": "farmer",
-      "evidence": "/auth/refresh"
-    },
-    {
-      "endpoint": "/auth/register",
-      "audience": "farmer",
-      "evidence": "/auth/register"
-    },
-    {
-      "endpoint": "/auth/tenants",
-      "audience": "admin",
-      "evidence": "/auth/tenants"
-    },
-    {
-      "endpoint": "/auth/users",
-      "audience": "admin",
-      "evidence": "/auth/users"
-    },
-    {
-      "endpoint": "/auth/users/{user_id}/deactivate",
-      "audience": "admin",
-      "evidence": "/auth/users"
-    },
-    {
-      "endpoint": "/auth/users/{user_id}/role",
-      "audience": "admin",
-      "evidence": "/auth/users"
-    },
-    {
-      "endpoint": "/auth/verify",
-      "audience": "farmer",
-      "evidence": "/auth/verify"
-    },
-    {
-      "endpoint": "/auth/verify/confirm",
-      "audience": "farmer",
-      "evidence": "/auth/verify/confirm"
-    },
-    {
-      "endpoint": "/auth/verify/request",
-      "audience": "farmer",
-      "evidence": "/auth/verify/request"
-    },
-    {
-      "endpoint": "/auth/verify/status",
-      "audience": "farmer",
-      "evidence": "/auth/verify/status"
-    },
-    {
-      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/field-intelligence/analyze"
-    },
-    {
-      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
-      "audience": "agronomist",
-      "evidence": "/api/v1/field-intelligence/analyze"
-    },
-    {
-      "endpoint": "/api/v1/features",
-      "audience": "farmer",
-      "evidence": "/api/v1/features"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/readiness",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/priority-queue",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/farms/{farm_id}/priority-queue",
-      "audience": "farmer",
-      "evidence": "/api/v1/farms"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/weather/operation-windows",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    }
-  ]
+ "$comment": "عقد تغطية backend⇒واجهة. core_endpoints: مسارات جوهريّة يجب أن يبقى لها دليل نصّيّ في frontend/src أو mobile/lib (تحرسها scripts/ci/endpoint_ui_coverage_gate.py + tests_v9/test_endpoint_ui_coverage_gate.py). classifications: تصنيف جمهور بالبادئة (الأوّل يفوز) لمصفوفة docs/api/BACKEND_FRONTEND_COVERAGE.md — internal/admin لا تُطالَب بواجهة مستخدم عاديّ.",
+ "classifications": [
+  {
+   "prefix": "/api/v1/admin/",
+   "audience": "admin"
+  },
+  {
+   "prefix": "/api/v1/automation/",
+   "audience": "admin"
+  },
+  {
+   "prefix": "/api/v1/queue/",
+   "audience": "admin"
+  },
+  {
+   "prefix": "/api/v1/registry/",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/events/",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/outbox",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/internal/",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/decision/",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/outcome/",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/farm-ledger/",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/economics/",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/analytics/",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/harvest-lots",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/crop-cards",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/crop-suitability",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/planting/",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/rotation/",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/gdd/",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/calendars",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/astronomical-timing",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/agricultural-proverbs",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/regional-calendar",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/regional/bulletin",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/fields/{field_id}/evidence-graph",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/fields",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/farms",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/seasons",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/weather",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/alerts",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/tasks",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/activities",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/equipment",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/inventory",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/devices",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/irrigation",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/documents",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/reports",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/recommendations",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/scouting",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/prescriptions",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/auth",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/auth/",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/agro",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/agro-zones",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/calibration",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/climate-analogs",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/coffee",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/crop-twin",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/crops",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/diagnose",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/evidence",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/confidence",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/consistency",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/ipm",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/lab",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/learning",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/lineage",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/nl-gis",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/nl-sql",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/pest-escalation",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/escalation",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/policy-learning",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/postharvest",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/propagation",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/salinity",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/sampling",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/scenario",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/seasonal-risk",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/seed",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/soil-sampling",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/temporal",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/water-balance",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/water-harvesting",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/water-sensitivity",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/wofost",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/simulate",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/replay",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/gis",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/field-intelligence",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/indicators",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/indices",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/analysis",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/trials",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/nutrients",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/observations",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/chemical-safety",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/practices",
+   "audience": "agronomist"
+  },
+  {
+   "prefix": "/api/v1/aromatic-crops",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/high-value-crops",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/niche-crops",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/fodder-alternatives",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/orchard",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/cultural-calendar",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/introduction",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/onboarding",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/notifications",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/me",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/geo-locate",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/geo",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/drawing-features",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/field-portfolio",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/portfolio",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/field",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/market",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/work-orders",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/operations",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/execution",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/failures",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/cameras",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/master-data",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/settings",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/sharing",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/rbac",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/tenant",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/data-readiness",
+   "audience": "manager"
+  },
+  {
+   "prefix": "/api/v1/sync",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/edge",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/commands",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/capabilities",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/lifecycle",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/confidence-gate",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/ai",
+   "audience": "internal"
+  },
+  {
+   "prefix": "/api/v1/districts",
+   "audience": "farmer"
+  },
+  {
+   "prefix": "/api/v1/features",
+   "audience": "farmer"
+  }
+ ],
+ "core_endpoints": [
+  {
+   "endpoint": "/api/v1/admin/events/dead-letter",
+   "audience": "admin",
+   "evidence": "/api/v1/admin/events/dead-letter"
+  },
+  {
+   "endpoint": "/api/v1/admin/events/dead-letter/{outbox_id}/requeue",
+   "audience": "admin",
+   "evidence": "/api/v1/admin/events/dead-letter"
+  },
+  {
+   "endpoint": "/api/v1/admin/outbox/dead-letter",
+   "audience": "admin",
+   "evidence": "/api/v1/admin/outbox/dead-letter"
+  },
+  {
+   "endpoint": "/api/v1/admin/readiness",
+   "audience": "admin",
+   "evidence": "/api/v1/admin/readiness"
+  },
+  {
+   "endpoint": "/api/v1/admin/security/denials",
+   "audience": "admin",
+   "evidence": "/api/v1/admin/security/denials"
+  },
+  {
+   "endpoint": "/api/v1/agricultural-proverbs",
+   "audience": "farmer",
+   "evidence": "/api/v1/agricultural-proverbs"
+  },
+  {
+   "endpoint": "/api/v1/agricultural-proverbs/for-date",
+   "audience": "farmer",
+   "evidence": "/api/v1/agricultural-proverbs/for-date"
+  },
+  {
+   "endpoint": "/api/v1/agro-zones/by-elevation",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro-zones/by-elevation"
+  },
+  {
+   "endpoint": "/api/v1/agro-zones/identify",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro-zones/identify"
+  },
+  {
+   "endpoint": "/api/v1/agro-zones/identify-smart",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro-zones/identify-smart"
+  },
+  {
+   "endpoint": "/api/v1/agro-zones/list",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro-zones/list"
+  },
+  {
+   "endpoint": "/api/v1/agro-zones/profile",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro-zones/profile"
+  },
+  {
+   "endpoint": "/api/v1/agro-zones/suited-crops",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro-zones/suited-crops"
+  },
+  {
+   "endpoint": "/api/v1/agro/crop-risk",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/crop-risk"
+  },
+  {
+   "endpoint": "/api/v1/agro/crop-rotation",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/crop-rotation"
+  },
+  {
+   "endpoint": "/api/v1/agro/decision-playbook",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/decision-playbook"
+  },
+  {
+   "endpoint": "/api/v1/agro/kc-timeseries",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/kc-timeseries"
+  },
+  {
+   "endpoint": "/api/v1/agro/kc-timeseries/{field_id}",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/kc-timeseries/{field_id}"
+  },
+  {
+   "endpoint": "/api/v1/agro/kc-timeseries/{field_id}/compare",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/kc-timeseries/{field_id}/compare"
+  },
+  {
+   "endpoint": "/api/v1/agro/plant-soil-feedback",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/plant-soil-feedback"
+  },
+  {
+   "endpoint": "/api/v1/agro/plant-soil-feedback/trend",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/plant-soil-feedback/trend"
+  },
+  {
+   "endpoint": "/api/v1/agro/season-comparison",
+   "audience": "agronomist",
+   "evidence": "/api/v1/agro/season-comparison"
+  },
+  {
+   "endpoint": "/api/v1/alerts",
+   "audience": "farmer",
+   "evidence": "/api/v1/alerts"
+  },
+  {
+   "endpoint": "/api/v1/alerts/{alert_id}/acknowledge",
+   "audience": "farmer",
+   "evidence": "/api/v1/alerts"
+  },
+  {
+   "endpoint": "/api/v1/analysis/yield",
+   "audience": "agronomist",
+   "evidence": "/api/v1/analysis/yield"
+  },
+  {
+   "endpoint": "/api/v1/analytics/costs",
+   "audience": "manager",
+   "evidence": "/api/v1/analytics/costs"
+  },
+  {
+   "endpoint": "/api/v1/analytics/costs/by-field",
+   "audience": "manager",
+   "evidence": "/api/v1/analytics/costs/by-field"
+  },
+  {
+   "endpoint": "/api/v1/aromatic-crops/list",
+   "audience": "farmer",
+   "evidence": "/api/v1/aromatic-crops/list"
+  },
+  {
+   "endpoint": "/api/v1/astronomical-timing/cross-check",
+   "audience": "farmer",
+   "evidence": "/api/v1/astronomical-timing/cross-check"
+  },
+  {
+   "endpoint": "/api/v1/astronomical-timing/stars",
+   "audience": "farmer",
+   "evidence": "/api/v1/astronomical-timing/stars"
+  },
+  {
+   "endpoint": "/api/v1/auth/login",
+   "audience": "farmer",
+   "evidence": "/auth/login"
+  },
+  {
+   "endpoint": "/api/v1/auth/logout",
+   "audience": "farmer",
+   "evidence": "/auth/logout"
+  },
+  {
+   "endpoint": "/api/v1/automation/alerts/run",
+   "audience": "admin",
+   "evidence": "/api/v1/automation/alerts/run"
+  },
+  {
+   "endpoint": "/api/v1/automation/runs",
+   "audience": "admin",
+   "evidence": "/api/v1/automation/runs"
+  },
+  {
+   "endpoint": "/api/v1/automation/scheduler-status",
+   "audience": "admin",
+   "evidence": "/api/v1/automation/scheduler-status"
+  },
+  {
+   "endpoint": "/api/v1/calendars/context",
+   "audience": "farmer",
+   "evidence": "/api/v1/calendars/context"
+  },
+  {
+   "endpoint": "/api/v1/calendars/himyarite-months",
+   "audience": "farmer",
+   "evidence": "/api/v1/calendars/himyarite-months"
+  },
+  {
+   "endpoint": "/api/v1/calendars/lunar-mansions",
+   "audience": "farmer",
+   "evidence": "/api/v1/calendars/lunar-mansions"
+  },
+  {
+   "endpoint": "/api/v1/calendars/regional-profiles",
+   "audience": "farmer",
+   "evidence": "/api/v1/calendars/regional-profiles"
+  },
+  {
+   "endpoint": "/api/v1/calendars/today",
+   "audience": "farmer",
+   "evidence": "/api/v1/calendars/today"
+  },
+  {
+   "endpoint": "/api/v1/calibration",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/feedback",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration/feedback"
+  },
+  {
+   "endpoint": "/api/v1/calibration/overrides/all",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration/overrides/all"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/adapt",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/adapt-from-evidence",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/adapt-from-evidence/apply",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/audit",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/evidence",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/evidence/persisted",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/override",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/propose-values",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/calibration/{region}/resolved",
+   "audience": "agronomist",
+   "evidence": "/api/v1/calibration"
+  },
+  {
+   "endpoint": "/api/v1/cameras/snapshot-evidence",
+   "audience": "manager",
+   "evidence": "/api/v1/cameras/snapshot-evidence"
+  },
+  {
+   "endpoint": "/api/v1/chemical-safety/banned",
+   "audience": "agronomist",
+   "evidence": "/api/v1/chemical-safety/banned"
+  },
+  {
+   "endpoint": "/api/v1/chemical-safety/check",
+   "audience": "agronomist",
+   "evidence": "/api/v1/chemical-safety/check"
+  },
+  {
+   "endpoint": "/api/v1/climate-analogs/desert-crops",
+   "audience": "agronomist",
+   "evidence": "/api/v1/climate-analogs/desert-crops"
+  },
+  {
+   "endpoint": "/api/v1/climate-analogs/detail",
+   "audience": "agronomist",
+   "evidence": "/api/v1/climate-analogs/detail"
+  },
+  {
+   "endpoint": "/api/v1/climate-analogs/list",
+   "audience": "agronomist",
+   "evidence": "/api/v1/climate-analogs/list"
+  },
+  {
+   "endpoint": "/api/v1/climate-analogs/strategic-tiers",
+   "audience": "agronomist",
+   "evidence": "/api/v1/climate-analogs/strategic-tiers"
+  },
+  {
+   "endpoint": "/api/v1/climate-analogs/strategy",
+   "audience": "agronomist",
+   "evidence": "/api/v1/climate-analogs/strategy"
+  },
+  {
+   "endpoint": "/api/v1/coffee/guide",
+   "audience": "agronomist",
+   "evidence": "/api/v1/coffee/guide"
+  },
+  {
+   "endpoint": "/api/v1/coffee/pests",
+   "audience": "agronomist",
+   "evidence": "/api/v1/coffee/pests"
+  },
+  {
+   "endpoint": "/api/v1/coffee/site-suitability",
+   "audience": "agronomist",
+   "evidence": "/api/v1/coffee/site-suitability"
+  },
+  {
+   "endpoint": "/api/v1/coffee/varieties",
+   "audience": "agronomist",
+   "evidence": "/api/v1/coffee/varieties"
+  },
+  {
+   "endpoint": "/api/v1/confidence-gate",
+   "audience": "agronomist",
+   "evidence": "/api/v1/confidence-gate"
+  },
+  {
+   "endpoint": "/api/v1/confidence/irrigation",
+   "audience": "agronomist",
+   "evidence": "/api/v1/confidence/irrigation"
+  },
+  {
+   "endpoint": "/api/v1/confidence/ndvi",
+   "audience": "agronomist",
+   "evidence": "/api/v1/confidence/ndvi"
+  },
+  {
+   "endpoint": "/api/v1/consistency/freshness",
+   "audience": "agronomist",
+   "evidence": "/api/v1/consistency/freshness"
+  },
+  {
+   "endpoint": "/api/v1/consistency/irrigation",
+   "audience": "agronomist",
+   "evidence": "/api/v1/consistency/irrigation"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-cards"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/crop/{crop_id}",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-cards/crop/"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/variety/{id}/disease-watch",
+   "audience": "agronomist",
+   "evidence": "/disease-watch"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/variety/{id}/expected-harvest",
+   "audience": "agronomist",
+   "evidence": "/expected-harvest"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/variety/{id}/salinity-suitability",
+   "audience": "agronomist",
+   "evidence": "/salinity-suitability"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/variety/{variety_id}",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-cards/variety"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/variety/{variety_id}/disease-watch",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-cards/variety"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/variety/{variety_id}/expected-harvest",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-cards/variety"
+  },
+  {
+   "endpoint": "/api/v1/crop-cards/variety/{variety_id}/salinity-suitability",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-cards/variety"
+  },
+  {
+   "endpoint": "/api/v1/crop-suitability",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-suitability"
+  },
+  {
+   "endpoint": "/api/v1/crop-twin/compose",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-twin/compose"
+  },
+  {
+   "endpoint": "/api/v1/crop-twin/decision",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-twin/decision"
+  },
+  {
+   "endpoint": "/api/v1/crop-twin/decision/profit-aware",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crop-twin/decision/profit-aware"
+  },
+  {
+   "endpoint": "/api/v1/crops/compare-drought-resilience",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crops/compare-drought-resilience"
+  },
+  {
+   "endpoint": "/api/v1/crops/drought-resilience",
+   "audience": "agronomist",
+   "evidence": "/api/v1/crops/drought-resilience"
+  },
+  {
+   "endpoint": "/api/v1/crops/{crop_id}/operations-calendar",
+   "audience": "agronomist",
+   "evidence": "/operations-calendar"
+  },
+  {
+   "endpoint": "/api/v1/cultural-calendar",
+   "audience": "farmer",
+   "evidence": "/api/v1/cultural-calendar"
+  },
+  {
+   "endpoint": "/api/v1/data-readiness",
+   "audience": "manager",
+   "evidence": "/api/v1/data-readiness"
+  },
+  {
+   "endpoint": "/api/v1/decision/dispatch/decisions",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/dispatch/decisions"
+  },
+  {
+   "endpoint": "/api/v1/decision/dispatch/evaluate",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/dispatch/evaluate"
+  },
+  {
+   "endpoint": "/api/v1/decision/dispatch/execute",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/dispatch/execute"
+  },
+  {
+   "endpoint": "/api/v1/decision/dispatch/queue",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/dispatch/queue"
+  },
+  {
+   "endpoint": "/api/v1/decision/economics",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/economics"
+  },
+  {
+   "endpoint": "/api/v1/decision/explain",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/explain"
+  },
+  {
+   "endpoint": "/api/v1/decision/for-location",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/for-location"
+  },
+  {
+   "endpoint": "/api/v1/decision/impact",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/impact"
+  },
+  {
+   "endpoint": "/api/v1/decision/learning",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/learning"
+  },
+  {
+   "endpoint": "/api/v1/decision/ledger",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/ledger"
+  },
+  {
+   "endpoint": "/api/v1/decision/policies",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/policies"
+  },
+  {
+   "endpoint": "/api/v1/decision/policies/resolve",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/policies/resolve"
+  },
+  {
+   "endpoint": "/api/v1/decision/record",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/record"
+  },
+  {
+   "endpoint": "/api/v1/decision/records",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/records"
+  },
+  {
+   "endpoint": "/api/v1/decision/unified",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision/unified"
+  },
+  {
+   "endpoint": "/api/v1/decision/{decision_id}/explain",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision"
+  },
+  {
+   "endpoint": "/api/v1/decision/{decision_id}/lineage",
+   "audience": "agronomist",
+   "evidence": "/api/v1/decision"
+  },
+  {
+   "endpoint": "/api/v1/decision/{id}/explain",
+   "audience": "agronomist",
+   "evidence": "/explain"
+  },
+  {
+   "endpoint": "/api/v1/devices",
+   "audience": "manager",
+   "evidence": "/api/v1/devices"
+  },
+  {
+   "endpoint": "/api/v1/devices/twin",
+   "audience": "manager",
+   "evidence": "/api/v1/devices/twin"
+  },
+  {
+   "endpoint": "/api/v1/devices/{device_id}/telemetry",
+   "audience": "manager",
+   "evidence": "/api/v1/devices"
+  },
+  {
+   "endpoint": "/api/v1/diagnose",
+   "audience": "agronomist",
+   "evidence": "/api/v1/diagnose"
+  },
+  {
+   "endpoint": "/api/v1/diagnose (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/diagnose"
+  },
+  {
+   "endpoint": "/api/v1/diagnose/symptoms",
+   "audience": "agronomist",
+   "evidence": "/api/v1/diagnose/symptoms"
+  },
+  {
+   "endpoint": "/api/v1/districts",
+   "audience": "farmer",
+   "evidence": "/api/v1/districts"
+  },
+  {
+   "endpoint": "/api/v1/districts/{district_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/districts/$"
+  },
+  {
+   "endpoint": "/api/v1/districts/{district_id}/active-pests",
+   "audience": "farmer",
+   "evidence": "/active-pests"
+  },
+  {
+   "endpoint": "/api/v1/documents",
+   "audience": "manager",
+   "evidence": "/api/v1/documents"
+  },
+  {
+   "endpoint": "/api/v1/documents/{doc_id}",
+   "audience": "manager",
+   "evidence": "/api/v1/documents"
+  },
+  {
+   "endpoint": "/api/v1/drawing-features",
+   "audience": "farmer",
+   "evidence": "/api/v1/drawing-features"
+  },
+  {
+   "endpoint": "/api/v1/drawing-features/validate",
+   "audience": "farmer",
+   "evidence": "/api/v1/drawing-features/validate"
+  },
+  {
+   "endpoint": "/api/v1/drawing-features/{feature_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/drawing-features"
+  },
+  {
+   "endpoint": "/api/v1/economics/break-even",
+   "audience": "manager",
+   "evidence": "/api/v1/economics/break-even"
+  },
+  {
+   "endpoint": "/api/v1/economics/cost-categories",
+   "audience": "manager",
+   "evidence": "/api/v1/economics/cost-categories"
+  },
+  {
+   "endpoint": "/api/v1/economics/feasibility",
+   "audience": "manager",
+   "evidence": "/api/v1/economics/feasibility"
+  },
+  {
+   "endpoint": "/api/v1/equipment",
+   "audience": "manager",
+   "evidence": "/api/v1/equipment"
+  },
+  {
+   "endpoint": "/api/v1/equipment/{equipment_id}/maintenance",
+   "audience": "manager",
+   "evidence": "/api/v1/equipment"
+  },
+  {
+   "endpoint": "/api/v1/escalation/assess",
+   "audience": "agronomist",
+   "evidence": "/api/v1/escalation/assess"
+  },
+  {
+   "endpoint": "/api/v1/evidence-graph/analytics",
+   "audience": "agronomist",
+   "evidence": "/api/v1/evidence-graph/analytics"
+  },
+  {
+   "endpoint": "/api/v1/evidence/corroborate",
+   "audience": "agronomist",
+   "evidence": "/api/v1/evidence/corroborate"
+  },
+  {
+   "endpoint": "/api/v1/evidence/map",
+   "audience": "agronomist",
+   "evidence": "/api/v1/evidence/map"
+  },
+  {
+   "endpoint": "/api/v1/execution/feedback",
+   "audience": "manager",
+   "evidence": "/api/v1/execution/feedback"
+  },
+  {
+   "endpoint": "/api/v1/failures/check",
+   "audience": "manager",
+   "evidence": "/api/v1/failures/check"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/autowrite-preview",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/autowrite-preview"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/budgets",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/budgets"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/budgets (POST)",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/budgets"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/budgets/{season_id}",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/budgets"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/economic-state/{season_id}",
+   "audience": "manager",
+   "evidence": "/farm-ledger/economic-state"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/erp-projection/{season_id}",
+   "audience": "manager",
+   "evidence": "/erp-projection/"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/inventory-projection/{season_id}",
+   "audience": "manager",
+   "evidence": "/inventory-projection/"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/operations",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/operations"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/operations (POST)",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/operations"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/profitability/{season_id}",
+   "audience": "manager",
+   "evidence": "/farm-ledger/profitability"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/revenues",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/revenues"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/revenues (POST)",
+   "audience": "manager",
+   "evidence": "/api/v1/farm-ledger/revenues"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/summary",
+   "audience": "manager",
+   "evidence": "/farm-ledger/summary"
+  },
+  {
+   "endpoint": "/api/v1/farm-ledger/variance/{season_id}",
+   "audience": "manager",
+   "evidence": "/farm-ledger/variance"
+  },
+  {
+   "endpoint": "/api/v1/farms",
+   "audience": "farmer",
+   "evidence": "/api/v1/farms"
+  },
+  {
+   "endpoint": "/api/v1/farms/{farm_id}/fields",
+   "audience": "farmer",
+   "evidence": "/api/v1/farms"
+  },
+  {
+   "endpoint": "/api/v1/field-intelligence/analyze",
+   "audience": "agronomist",
+   "evidence": "/api/v1/field-intelligence/analyze"
+  },
+  {
+   "endpoint": "/api/v1/field-portfolio/allocate",
+   "audience": "farmer",
+   "evidence": "/api/v1/field-portfolio/allocate"
+  },
+  {
+   "endpoint": "/api/v1/field-portfolio/optimize",
+   "audience": "farmer",
+   "evidence": "/api/v1/field-portfolio/optimize"
+  },
+  {
+   "endpoint": "/api/v1/field/operational-state",
+   "audience": "farmer",
+   "evidence": "/api/v1/field/operational-state"
+  },
+  {
+   "endpoint": "/api/v1/field/{field_id}/lineage",
+   "audience": "farmer",
+   "evidence": "/api/v1/field/{field_id}/lineage"
+  },
+  {
+   "endpoint": "/api/v1/fields",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/boundary-graph/rebuild",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields/boundary-graph/rebuild"
+  },
+  {
+   "endpoint": "/api/v1/fields/boundary-graph/rebuild (POST)",
+   "audience": "admin",
+   "evidence": "/boundary-graph/rebuild"
+  },
+  {
+   "endpoint": "/api/v1/fields/import",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields/import"
+  },
+  {
+   "endpoint": "/api/v1/fields/merge",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields/merge"
+  },
+  {
+   "endpoint": "/api/v1/fields/split",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields/split"
+  },
+  {
+   "endpoint": "/api/v1/fields/validate-geometry",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields/validate-geometry"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/activities",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/agronomic-replay",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/ai-context-pack",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/alerts/derived",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/alerts/evaluate",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/available-dates",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/boundary-graph",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/boundary/clean",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/boundary/review",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/boundary/score",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/daily-ai-brief",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/data-completeness",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/decision-confidence",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/drawing-features",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/etc-dual",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/geometry/history",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/geometry/revert/{revision}",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/growth-narrative",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/history",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/imagery/backfill",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/imagery/backfill/{run_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/imagery/refresh",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/imagery/timeline",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/input-traceability",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/lab-context",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/ndvi-analysis",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/phenology",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/pins",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/prescriptions",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/prescriptions/nitrogen",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/prescriptions/{prescription_id}/export",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/productivity-zones",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/recommendations",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/rotations",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/season-workspace",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/seasons",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/seasons/{season_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/soil-lab-tests",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/soil-lab-tests/{test_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/soil-moisture",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/stage-actions",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/state",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/state/full",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/sustainability",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/terrain",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/timeline",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/trueup",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/twin",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/unified-timeline",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/walk-plan",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/walk-plan/pdf",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/water-efficiency",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/water-ledger",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/water-stress-spectral",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/water-twin",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/weather/disease-risk",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/weather/thermal-stress",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/weather/irrigation-advice",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/wind/drift-risk",
+   "audience": "farmer",
+   "evidence": "/wind/drift-risk"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/wind/prevailing",
+   "audience": "farmer",
+   "evidence": "/wind/prevailing"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/workspace",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/yield-estimate",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/yield-interval",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/zone-sampling-plan",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/zones",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/ai-context-pack",
+   "audience": "agronomist",
+   "evidence": "/ai-context-pack"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/available-dates",
+   "audience": "farmer",
+   "evidence": "/available-dates"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/boundary-graph",
+   "audience": "agronomist",
+   "evidence": "/boundary-graph"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/boundary/clean (POST)",
+   "audience": "agronomist",
+   "evidence": "/boundary/clean"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/boundary/review (PATCH)",
+   "audience": "agronomist",
+   "evidence": "/boundary/review"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/boundary/score",
+   "audience": "agronomist",
+   "evidence": "/boundary/score"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/daily-ai-brief",
+   "audience": "farmer",
+   "evidence": "/daily-ai-brief"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/input-traceability",
+   "audience": "manager",
+   "evidence": "/input-traceability"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/phenology",
+   "audience": "farmer",
+   "evidence": "/phenology"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/prescriptions",
+   "audience": "agronomist",
+   "evidence": "/prescriptions"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/productivity-zones",
+   "audience": "agronomist",
+   "evidence": "/productivity-zones"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/soil-moisture",
+   "audience": "farmer",
+   "evidence": "/soil-moisture"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/stage-actions",
+   "audience": "farmer",
+   "evidence": "/stage-actions"
+  },
+  {
+   "endpoint": "/api/v1/fields/{id}/water-efficiency",
+   "audience": "farmer",
+   "evidence": "/water-efficiency"
+  },
+  {
+   "endpoint": "/api/v1/fodder-alternatives/list",
+   "audience": "farmer",
+   "evidence": "/api/v1/fodder-alternatives/list"
+  },
+  {
+   "endpoint": "/api/v1/gdd/track",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gdd/track"
+  },
+  {
+   "endpoint": "/api/v1/gdd/track (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gdd/track"
+  },
+  {
+   "endpoint": "/api/v1/geo-locate/field",
+   "audience": "farmer",
+   "evidence": "/api/v1/geo-locate/field"
+  },
+  {
+   "endpoint": "/api/v1/geo-locate/recommend",
+   "audience": "farmer",
+   "evidence": "/api/v1/geo-locate/recommend"
+  },
+  {
+   "endpoint": "/api/v1/geo/reverse",
+   "audience": "farmer",
+   "evidence": "/api/v1/geo/reverse"
+  },
+  {
+   "endpoint": "/api/v1/gis/buffer",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/buffer"
+  },
+  {
+   "endpoint": "/api/v1/gis/cloud-native/ogc/collections",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/cloud-native/ogc/collections"
+  },
+  {
+   "endpoint": "/api/v1/gis/cloud-native/ogc/conformance",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/cloud-native/ogc/conformance"
+  },
+  {
+   "endpoint": "/api/v1/gis/cloud-native/stac",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/cloud-native/stac"
+  },
+  {
+   "endpoint": "/api/v1/gis/cloud-native/stac/collections",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/cloud-native/stac/collections"
+  },
+  {
+   "endpoint": "/api/v1/gis/cloud-native/stac/search",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/cloud-native/stac/search"
+  },
+  {
+   "endpoint": "/api/v1/gis/cloud-native/tile-cache-plan",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/cloud-native/tile-cache-plan"
+  },
+  {
+   "endpoint": "/api/v1/gis/split",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/split"
+  },
+  {
+   "endpoint": "/api/v1/gis/union",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/union"
+  },
+  {
+   "endpoint": "/api/v1/gis/validate",
+   "audience": "agronomist",
+   "evidence": "/api/v1/gis/validate"
+  },
+  {
+   "endpoint": "/api/v1/harvest-lots",
+   "audience": "manager",
+   "evidence": "/api/v1/harvest-lots"
+  },
+  {
+   "endpoint": "/api/v1/harvest-lots/{harvest_lot_id}",
+   "audience": "manager",
+   "evidence": "/api/v1/harvest-lots"
+  },
+  {
+   "endpoint": "/api/v1/harvest-lots/{harvest_lot_id}/custody-events",
+   "audience": "manager",
+   "evidence": "/api/v1/harvest-lots"
+  },
+  {
+   "endpoint": "/api/v1/harvest-lots/{harvest_lot_id}/traceability",
+   "audience": "manager",
+   "evidence": "/api/v1/harvest-lots"
+  },
+  {
+   "endpoint": "/api/v1/harvest-lots/{id}/traceability",
+   "audience": "manager",
+   "evidence": "/traceability"
+  },
+  {
+   "endpoint": "/api/v1/high-value-crops/detail",
+   "audience": "farmer",
+   "evidence": "/api/v1/high-value-crops/detail"
+  },
+  {
+   "endpoint": "/api/v1/high-value-crops/list",
+   "audience": "farmer",
+   "evidence": "/api/v1/high-value-crops/list"
+  },
+  {
+   "endpoint": "/api/v1/indicators/catalog",
+   "audience": "agronomist",
+   "evidence": "/api/v1/indicators/catalog"
+  },
+  {
+   "endpoint": "/api/v1/indicators/dashboard",
+   "audience": "agronomist",
+   "evidence": "/api/v1/indicators/dashboard"
+  },
+  {
+   "endpoint": "/api/v1/indicators/map-layers",
+   "audience": "agronomist",
+   "evidence": "/api/v1/indicators/map-layers"
+  },
+  {
+   "endpoint": "/api/v1/indices/coverage-report",
+   "audience": "agronomist",
+   "evidence": "/api/v1/indices/coverage-report"
+  },
+  {
+   "endpoint": "/api/v1/introduction/candidates",
+   "audience": "farmer",
+   "evidence": "/api/v1/introduction/candidates"
+  },
+  {
+   "endpoint": "/api/v1/introduction/card",
+   "audience": "farmer",
+   "evidence": "/api/v1/introduction/card"
+  },
+  {
+   "endpoint": "/api/v1/introduction/field-fit",
+   "audience": "farmer",
+   "evidence": "/api/v1/introduction/field-fit"
+  },
+  {
+   "endpoint": "/api/v1/inventory",
+   "audience": "manager",
+   "evidence": "/api/v1/inventory"
+  },
+  {
+   "endpoint": "/api/v1/inventory/expiring",
+   "audience": "manager",
+   "evidence": "/api/v1/inventory/expiring"
+  },
+  {
+   "endpoint": "/api/v1/inventory/items",
+   "audience": "manager",
+   "evidence": "/api/v1/inventory/items"
+  },
+  {
+   "endpoint": "/api/v1/inventory/items/{item_id}/batches",
+   "audience": "manager",
+   "evidence": "/api/v1/inventory/items"
+  },
+  {
+   "endpoint": "/api/v1/ipm/crop-pests",
+   "audience": "agronomist",
+   "evidence": "/api/v1/ipm/crop-pests"
+  },
+  {
+   "endpoint": "/api/v1/ipm/pests",
+   "audience": "agronomist",
+   "evidence": "/api/v1/ipm/pests"
+  },
+  {
+   "endpoint": "/api/v1/ipm/plan",
+   "audience": "agronomist",
+   "evidence": "/api/v1/ipm/plan"
+  },
+  {
+   "endpoint": "/api/v1/irrigation-method",
+   "audience": "agronomist",
+   "evidence": "/api/v1/irrigation-method"
+  },
+  {
+   "endpoint": "/api/v1/irrigation-method/gross",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation-method/gross"
+  },
+  {
+   "endpoint": "/api/v1/irrigation-method/{method}",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation-method"
+  },
+  {
+   "endpoint": "/api/v1/irrigation-plan",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation-plan"
+  },
+  {
+   "endpoint": "/api/v1/irrigation-recommendation",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation-recommendation"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/moisture-decision",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/moisture-decision"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/network/feasibility",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/network/feasibility"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/schedules",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/schedules"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/schedules/{schedule_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/schedules"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/soil-types",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/soil-types"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/valves",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/valves"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/valves/{valve_id}/state",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/valves"
+  },
+  {
+   "endpoint": "/api/v1/irrigation/water-analysis",
+   "audience": "farmer",
+   "evidence": "/api/v1/irrigation/water-analysis"
+  },
+  {
+   "endpoint": "/api/v1/lab/samples",
+   "audience": "agronomist",
+   "evidence": "/api/v1/lab/samples"
+  },
+  {
+   "endpoint": "/api/v1/lab/soil-results",
+   "audience": "agronomist",
+   "evidence": "/api/v1/lab/soil-results"
+  },
+  {
+   "endpoint": "/api/v1/lab/water-results",
+   "audience": "agronomist",
+   "evidence": "/api/v1/lab/water-results"
+  },
+  {
+   "endpoint": "/api/v1/learning/activation-status",
+   "audience": "agronomist",
+   "evidence": "/api/v1/learning/activation-status"
+  },
+  {
+   "endpoint": "/api/v1/learning/external-prior-blend",
+   "audience": "agronomist",
+   "evidence": "/api/v1/learning/external-prior-blend"
+  },
+  {
+   "endpoint": "/api/v1/learning/prediction-calibration",
+   "audience": "agronomist",
+   "evidence": "/api/v1/learning/prediction-calibration"
+  },
+  {
+   "endpoint": "/api/v1/learning/summary",
+   "audience": "agronomist",
+   "evidence": "/api/v1/learning/summary"
+  },
+  {
+   "endpoint": "/api/v1/lineage/link",
+   "audience": "agronomist",
+   "evidence": "/api/v1/lineage/link"
+  },
+  {
+   "endpoint": "/api/v1/lineage/{entity_type}/{entity_id}",
+   "audience": "agronomist",
+   "evidence": "/api/v1/lineage"
+  },
+  {
+   "endpoint": "/api/v1/lineage/{lineage_id}",
+   "audience": "agronomist",
+   "evidence": "/api/v1/lineage"
+  },
+  {
+   "endpoint": "/api/v1/market/crop-classification-readiness",
+   "audience": "manager",
+   "evidence": "/api/v1/market/crop-classification-readiness"
+  },
+  {
+   "endpoint": "/api/v1/market/crop-gap",
+   "audience": "manager",
+   "evidence": "/api/v1/market/crop-gap"
+  },
+  {
+   "endpoint": "/api/v1/master-data",
+   "audience": "manager",
+   "evidence": "/api/v1/master-data"
+  },
+  {
+   "endpoint": "/api/v1/me",
+   "audience": "farmer",
+   "evidence": "/api/v1/me"
+  },
+  {
+   "endpoint": "/api/v1/niche-crops/detail",
+   "audience": "farmer",
+   "evidence": "/api/v1/niche-crops/detail"
+  },
+  {
+   "endpoint": "/api/v1/niche-crops/list",
+   "audience": "farmer",
+   "evidence": "/api/v1/niche-crops/list"
+  },
+  {
+   "endpoint": "/api/v1/nl-gis/query",
+   "audience": "agronomist",
+   "evidence": "/api/v1/nl-gis/query"
+  },
+  {
+   "endpoint": "/api/v1/nl-sql",
+   "audience": "agronomist",
+   "evidence": "/api/v1/nl-sql"
+  },
+  {
+   "endpoint": "/api/v1/notifications/preferences",
+   "audience": "farmer",
+   "evidence": "/api/v1/notifications/preferences"
+  },
+  {
+   "endpoint": "/api/v1/nutrients/4r-plan",
+   "audience": "agronomist",
+   "evidence": "/api/v1/nutrients/4r-plan"
+  },
+  {
+   "endpoint": "/api/v1/observations",
+   "audience": "agronomist",
+   "evidence": "/api/v1/observations"
+  },
+  {
+   "endpoint": "/api/v1/onboarding/questionnaire",
+   "audience": "farmer",
+   "evidence": "/api/v1/onboarding/questionnaire"
+  },
+  {
+   "endpoint": "/api/v1/onboarding/responses",
+   "audience": "farmer",
+   "evidence": "/api/v1/onboarding/responses"
+  },
+  {
+   "endpoint": "/api/v1/operations/summary",
+   "audience": "manager",
+   "evidence": "/api/v1/operations/summary"
+  },
+  {
+   "endpoint": "/api/v1/orchard/economics",
+   "audience": "farmer",
+   "evidence": "/api/v1/orchard/economics"
+  },
+  {
+   "endpoint": "/api/v1/orchard/plan",
+   "audience": "farmer",
+   "evidence": "/api/v1/orchard/plan"
+  },
+  {
+   "endpoint": "/api/v1/outcome/measure",
+   "audience": "agronomist",
+   "evidence": "/api/v1/outcome/measure"
+  },
+  {
+   "endpoint": "/api/v1/outcome/measure (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/outcome/measure"
+  },
+  {
+   "endpoint": "/api/v1/outcome/record",
+   "audience": "agronomist",
+   "evidence": "/api/v1/outcome/record"
+  },
+  {
+   "endpoint": "/api/v1/pest-escalation/run",
+   "audience": "agronomist",
+   "evidence": "/api/v1/pest-escalation/run"
+  },
+  {
+   "endpoint": "/api/v1/planting/check",
+   "audience": "agronomist",
+   "evidence": "/api/v1/planting/check"
+  },
+  {
+   "endpoint": "/api/v1/planting/crops",
+   "audience": "agronomist",
+   "evidence": "/api/v1/planting/crops"
+  },
+  {
+   "endpoint": "/api/v1/planting/window",
+   "audience": "agronomist",
+   "evidence": "/api/v1/planting/window"
+  },
+  {
+   "endpoint": "/api/v1/policy-learning/threshold-suggestions",
+   "audience": "agronomist",
+   "evidence": "/api/v1/policy-learning/threshold-suggestions"
+  },
+  {
+   "endpoint": "/api/v1/portfolio/command",
+   "audience": "farmer",
+   "evidence": "/api/v1/portfolio/command"
+  },
+  {
+   "endpoint": "/api/v1/postharvest/best-practices",
+   "audience": "agronomist",
+   "evidence": "/api/v1/postharvest/best-practices"
+  },
+  {
+   "endpoint": "/api/v1/postharvest/moisture-check",
+   "audience": "agronomist",
+   "evidence": "/api/v1/postharvest/moisture-check"
+  },
+  {
+   "endpoint": "/api/v1/postharvest/pests",
+   "audience": "agronomist",
+   "evidence": "/api/v1/postharvest/pests"
+  },
+  {
+   "endpoint": "/api/v1/practices/guide",
+   "audience": "agronomist",
+   "evidence": "/api/v1/practices/guide"
+  },
+  {
+   "endpoint": "/api/v1/practices/list",
+   "audience": "agronomist",
+   "evidence": "/api/v1/practices/list"
+  },
+  {
+   "endpoint": "/api/v1/propagation/crop",
+   "audience": "agronomist",
+   "evidence": "/api/v1/propagation/crop"
+  },
+  {
+   "endpoint": "/api/v1/propagation/method-guide",
+   "audience": "agronomist",
+   "evidence": "/api/v1/propagation/method-guide"
+  },
+  {
+   "endpoint": "/api/v1/propagation/methods",
+   "audience": "agronomist",
+   "evidence": "/api/v1/propagation/methods"
+  },
+  {
+   "endpoint": "/api/v1/propagation/rootstock",
+   "audience": "agronomist",
+   "evidence": "/api/v1/propagation/rootstock"
+  },
+  {
+   "endpoint": "/api/v1/queue/status",
+   "audience": "admin",
+   "evidence": "/api/v1/queue/status"
+  },
+  {
+   "endpoint": "/api/v1/rbac/permission-matrix",
+   "audience": "manager",
+   "evidence": "/api/v1/rbac/permission-matrix"
+  },
+  {
+   "endpoint": "/api/v1/rbac/preview-role-change",
+   "audience": "manager",
+   "evidence": "/api/v1/rbac/preview-role-change"
+  },
+  {
+   "endpoint": "/api/v1/rbac/who-can",
+   "audience": "manager",
+   "evidence": "/api/v1/rbac/who-can"
+  },
+  {
+   "endpoint": "/api/v1/recommendations",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations"
+  },
+  {
+   "endpoint": "/api/v1/recommendations/candidates",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations/candidates"
+  },
+  {
+   "endpoint": "/api/v1/recommendations/capacity-profiles",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations/capacity-profiles"
+  },
+  {
+   "endpoint": "/api/v1/recommendations/economic-adaptation",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations/economic-adaptation"
+  },
+  {
+   "endpoint": "/api/v1/recommendations/engines",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations/engines"
+  },
+  {
+   "endpoint": "/api/v1/recommendations/for-field",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations/for-field"
+  },
+  {
+   "endpoint": "/api/v1/recommendations/outcomes",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations/outcomes"
+  },
+  {
+   "endpoint": "/api/v1/recommendations/{rec_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/recommendations"
+  },
+  {
+   "endpoint": "/api/v1/regional-calendar",
+   "audience": "farmer",
+   "evidence": "/api/v1/regional-calendar"
+  },
+  {
+   "endpoint": "/api/v1/replay/reconstruct",
+   "audience": "agronomist",
+   "evidence": "/api/v1/replay/reconstruct"
+  },
+  {
+   "endpoint": "/api/v1/reports",
+   "audience": "manager",
+   "evidence": "/api/v1/reports"
+  },
+  {
+   "endpoint": "/api/v1/reports/build",
+   "audience": "manager",
+   "evidence": "/api/v1/reports/build"
+  },
+  {
+   "endpoint": "/api/v1/reports/farm-summary",
+   "audience": "manager",
+   "evidence": "/api/v1/reports/farm-summary"
+  },
+  {
+   "endpoint": "/api/v1/reports/field/{field_id}/summary",
+   "audience": "manager",
+   "evidence": "/api/v1/reports/field"
+  },
+  {
+   "endpoint": "/api/v1/reports/operation",
+   "audience": "manager",
+   "evidence": "/api/v1/reports/operation"
+  },
+  {
+   "endpoint": "/api/v1/reports/season/{season_id}/summary",
+   "audience": "manager",
+   "evidence": "/api/v1/reports/season"
+  },
+  {
+   "endpoint": "/api/v1/rotation/evaluate",
+   "audience": "agronomist",
+   "evidence": "/api/v1/rotation/evaluate"
+  },
+  {
+   "endpoint": "/api/v1/rotation/principles",
+   "audience": "agronomist",
+   "evidence": "/api/v1/rotation/principles"
+  },
+  {
+   "endpoint": "/api/v1/rotation/suggest",
+   "audience": "agronomist",
+   "evidence": "/api/v1/rotation/suggest"
+  },
+  {
+   "endpoint": "/api/v1/salinity/assess",
+   "audience": "agronomist",
+   "evidence": "/api/v1/salinity/assess"
+  },
+  {
+   "endpoint": "/api/v1/salinity/assess (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/salinity/assess"
+  },
+  {
+   "endpoint": "/api/v1/sampling/strategy",
+   "audience": "agronomist",
+   "evidence": "/api/v1/sampling/strategy"
+  },
+  {
+   "endpoint": "/api/v1/scenario/planting-date",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/planting-date"
+  },
+  {
+   "endpoint": "/api/v1/scenario/planting-date (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/planting-date"
+  },
+  {
+   "endpoint": "/api/v1/scenario/rainfall",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/rainfall"
+  },
+  {
+   "endpoint": "/api/v1/scenario/rainfall (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/rainfall"
+  },
+  {
+   "endpoint": "/api/v1/scenario/temperature",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/temperature"
+  },
+  {
+   "endpoint": "/api/v1/scenario/temperature (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/temperature"
+  },
+  {
+   "endpoint": "/api/v1/scenario/water-twin",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/water-twin"
+  },
+  {
+   "endpoint": "/api/v1/scenario/water-twin (POST)",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scenario/water-twin"
+  },
+  {
+   "endpoint": "/api/v1/scouting/pins",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scouting/pins"
+  },
+  {
+   "endpoint": "/api/v1/scouting/taxonomy",
+   "audience": "agronomist",
+   "evidence": "/api/v1/scouting/taxonomy"
+  },
+  {
+   "endpoint": "/api/v1/seasonal-risk/calendar",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seasonal-risk/calendar"
+  },
+  {
+   "endpoint": "/api/v1/seasonal-risk/chill-hours",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seasonal-risk/chill-hours"
+  },
+  {
+   "endpoint": "/api/v1/seasonal-risk/stage-check",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seasonal-risk/stage-check"
+  },
+  {
+   "endpoint": "/api/v1/seasons",
+   "audience": "farmer",
+   "evidence": "/api/v1/seasons"
+  },
+  {
+   "endpoint": "/api/v1/seasons/{season_id}/simulate",
+   "audience": "farmer",
+   "evidence": "/api/v1/seasons"
+  },
+  {
+   "endpoint": "/api/v1/seed/criteria",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seed/criteria"
+  },
+  {
+   "endpoint": "/api/v1/seed/evaluate-source",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seed/evaluate-source"
+  },
+  {
+   "endpoint": "/api/v1/seed/germination-rate",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seed/germination-rate"
+  },
+  {
+   "endpoint": "/api/v1/seed/sowing-depth",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seed/sowing-depth"
+  },
+  {
+   "endpoint": "/api/v1/seed/storage-check",
+   "audience": "agronomist",
+   "evidence": "/api/v1/seed/storage-check"
+  },
+  {
+   "endpoint": "/api/v1/settings",
+   "audience": "manager",
+   "evidence": "/api/v1/settings"
+  },
+  {
+   "endpoint": "/api/v1/sharing/generate-key",
+   "audience": "manager",
+   "evidence": "/api/v1/sharing/generate-key"
+  },
+  {
+   "endpoint": "/api/v1/sharing/keys",
+   "audience": "manager",
+   "evidence": "/api/v1/sharing/keys"
+  },
+  {
+   "endpoint": "/api/v1/simulate/what-if",
+   "audience": "agronomist",
+   "evidence": "/api/v1/simulate/what-if"
+  },
+  {
+   "endpoint": "/api/v1/soil-sampling/depth",
+   "audience": "agronomist",
+   "evidence": "/api/v1/soil-sampling/depth"
+  },
+  {
+   "endpoint": "/api/v1/soil-sampling/protocol",
+   "audience": "agronomist",
+   "evidence": "/api/v1/soil-sampling/protocol"
+  },
+  {
+   "endpoint": "/api/v1/soil-sampling/subsamples",
+   "audience": "agronomist",
+   "evidence": "/api/v1/soil-sampling/subsamples"
+  },
+  {
+   "endpoint": "/api/v1/tasks",
+   "audience": "farmer",
+   "evidence": "/api/v1/tasks"
+  },
+  {
+   "endpoint": "/api/v1/tasks/{task_id}",
+   "audience": "farmer",
+   "evidence": "/api/v1/tasks"
+  },
+  {
+   "endpoint": "/api/v1/temporal/check",
+   "audience": "agronomist",
+   "evidence": "/api/v1/temporal/check"
+  },
+  {
+   "endpoint": "/api/v1/temporal/coherence",
+   "audience": "agronomist",
+   "evidence": "/api/v1/temporal/coherence"
+  },
+  {
+   "endpoint": "/api/v1/tenant/config",
+   "audience": "manager",
+   "evidence": "/api/v1/tenant/config"
+  },
+  {
+   "endpoint": "/api/v1/trials/analyze",
+   "audience": "agronomist",
+   "evidence": "/api/v1/trials/analyze"
+  },
+  {
+   "endpoint": "/api/v1/water-balance",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-balance"
+  },
+  {
+   "endpoint": "/api/v1/water-harvesting/method-guide",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-harvesting/method-guide"
+  },
+  {
+   "endpoint": "/api/v1/water-harvesting/methods",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-harvesting/methods"
+  },
+  {
+   "endpoint": "/api/v1/water-harvesting/potential",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-harvesting/potential"
+  },
+  {
+   "endpoint": "/api/v1/water-harvesting/upstream-flood",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-harvesting/upstream-flood"
+  },
+  {
+   "endpoint": "/api/v1/water-sensitivity/calendar",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-sensitivity/calendar"
+  },
+  {
+   "endpoint": "/api/v1/water-sensitivity/crops",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-sensitivity/crops"
+  },
+  {
+   "endpoint": "/api/v1/water-sensitivity/integrated-advice",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-sensitivity/integrated-advice"
+  },
+  {
+   "endpoint": "/api/v1/water-sensitivity/stress-risk",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-sensitivity/stress-risk"
+  },
+  {
+   "endpoint": "/api/v1/water-sensitivity/wheat-calendar",
+   "audience": "agronomist",
+   "evidence": "/api/v1/water-sensitivity/wheat-calendar"
+  },
+  {
+   "endpoint": "/api/v1/weather-analytics/analyze",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather-analytics/analyze"
+  },
+  {
+   "endpoint": "/api/v1/weather-analytics/planting-guide",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather-analytics/planting-guide"
+  },
+  {
+   "endpoint": "/api/v1/weather/action-recommendation",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/action-recommendation"
+  },
+  {
+   "endpoint": "/api/v1/weather/alerts",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/alerts"
+  },
+  {
+   "endpoint": "/api/v1/weather/current",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/current"
+  },
+  {
+   "endpoint": "/api/v1/weather/field-weather-summary",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/field-weather-summary"
+  },
+  {
+   "endpoint": "/api/v1/weather/forecast",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/forecast"
+  },
+  {
+   "endpoint": "/api/v1/weather/historical",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/historical"
+  },
+  {
+   "endpoint": "/api/v1/weather/layers",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/layers"
+  },
+  {
+   "endpoint": "/api/v1/weather/operation-plan",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/operation-plan"
+  },
+  {
+   "endpoint": "/api/v1/weather/operation-tile-data/{z}/{x}/{y}",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/operation-tile-data"
+  },
+  {
+   "endpoint": "/api/v1/weather/operation-window",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/operation-window"
+  },
+  {
+   "endpoint": "/api/v1/weather/probe",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/probe"
+  },
+  {
+   "endpoint": "/api/v1/weather/recommendations/from-operation-plan",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/recommendations/from-operation-plan"
+  },
+  {
+   "endpoint": "/api/v1/weather/tasks/from-operation-plan",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/tasks/from-operation-plan"
+  },
+  {
+   "endpoint": "/api/v1/weather/tile-data/{z}/{x}/{y}",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/tile-data"
+  },
+  {
+   "endpoint": "/api/v1/weather/tile-series/{z}/{x}/{y}",
+   "audience": "farmer",
+   "evidence": "/api/v1/weather/tile-series/"
+  },
+  {
+   "endpoint": "/api/v1/wofost/adaptation-guidance",
+   "audience": "agronomist",
+   "evidence": "/api/v1/wofost/adaptation-guidance"
+  },
+  {
+   "endpoint": "/api/v1/wofost/crop-types",
+   "audience": "agronomist",
+   "evidence": "/api/v1/wofost/crop-types"
+  },
+  {
+   "endpoint": "/api/v1/work-orders/from-recommendation",
+   "audience": "manager",
+   "evidence": "/api/v1/work-orders/from-recommendation"
+  },
+  {
+   "endpoint": "/approvals/approve|deny (ai-agronomist POST)",
+   "audience": "manager",
+   "evidence": "/api/ai-agronomist/approvals/"
+  },
+  {
+   "endpoint": "/approvals/pending (ai-agronomist GET)",
+   "audience": "manager",
+   "evidence": "/api/ai-agronomist/approvals/pending"
+  },
+  {
+   "endpoint": "/auth/change-password",
+   "audience": "farmer",
+   "evidence": "/auth/change-password"
+  },
+  {
+   "endpoint": "/auth/invitations",
+   "audience": "farmer",
+   "evidence": "/auth/invitations"
+  },
+  {
+   "endpoint": "/auth/invitations/accept",
+   "audience": "farmer",
+   "evidence": "/auth/invitations/accept"
+  },
+  {
+   "endpoint": "/auth/invitations/{invitation_id}",
+   "audience": "farmer",
+   "evidence": "/auth/invitations"
+  },
+  {
+   "endpoint": "/auth/login",
+   "audience": "farmer",
+   "evidence": "/auth/login"
+  },
+  {
+   "endpoint": "/auth/logout",
+   "audience": "farmer",
+   "evidence": "/auth/logout"
+  },
+  {
+   "endpoint": "/auth/mfa/activate",
+   "audience": "farmer",
+   "evidence": "/auth/mfa/activate"
+  },
+  {
+   "endpoint": "/auth/mfa/disable",
+   "audience": "farmer",
+   "evidence": "/auth/mfa/disable"
+  },
+  {
+   "endpoint": "/auth/mfa/setup",
+   "audience": "farmer",
+   "evidence": "/auth/mfa/setup"
+  },
+  {
+   "endpoint": "/auth/password-reset/confirm",
+   "audience": "farmer",
+   "evidence": "/auth/password-reset/confirm"
+  },
+  {
+   "endpoint": "/auth/password-reset/request",
+   "audience": "farmer",
+   "evidence": "/auth/password-reset/request"
+  },
+  {
+   "endpoint": "/auth/refresh",
+   "audience": "farmer",
+   "evidence": "/auth/refresh"
+  },
+  {
+   "endpoint": "/auth/register",
+   "audience": "farmer",
+   "evidence": "/auth/register"
+  },
+  {
+   "endpoint": "/auth/tenants",
+   "audience": "admin",
+   "evidence": "/auth/tenants"
+  },
+  {
+   "endpoint": "/auth/users",
+   "audience": "admin",
+   "evidence": "/auth/users"
+  },
+  {
+   "endpoint": "/auth/users/{user_id}/deactivate",
+   "audience": "admin",
+   "evidence": "/auth/users"
+  },
+  {
+   "endpoint": "/auth/users/{user_id}/role",
+   "audience": "admin",
+   "evidence": "/auth/users"
+  },
+  {
+   "endpoint": "/auth/verify",
+   "audience": "farmer",
+   "evidence": "/auth/verify"
+  },
+  {
+   "endpoint": "/auth/verify/confirm",
+   "audience": "farmer",
+   "evidence": "/auth/verify/confirm"
+  },
+  {
+   "endpoint": "/auth/verify/request",
+   "audience": "farmer",
+   "evidence": "/auth/verify/request"
+  },
+  {
+   "endpoint": "/auth/verify/status",
+   "audience": "farmer",
+   "evidence": "/auth/verify/status"
+  },
+  {
+   "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
+   "audience": "agronomist",
+   "evidence": "/api/v1/field-intelligence/analyze"
+  },
+  {
+   "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
+   "audience": "agronomist",
+   "evidence": "/api/v1/field-intelligence/analyze"
+  },
+  {
+   "endpoint": "/api/v1/features",
+   "audience": "farmer",
+   "evidence": "/api/v1/features"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/readiness",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/priority-queue",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
+   "endpoint": "/api/v1/farms/{farm_id}/priority-queue",
+   "audience": "farmer",
+   "evidence": "/api/v1/farms"
+  },
+  {
+   "endpoint": "/api/v1/fields/{field_id}/weather/operation-windows",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  }
+ ]
 }

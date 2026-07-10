@@ -20,7 +20,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.weather_service_client import get_operation_plan
+from api.weather_service_client import get_operation_plan, get_thermal_stress
 
 router = APIRouter()
 
@@ -57,6 +57,41 @@ def _window_from_operation(item: dict[str, Any]) -> dict[str, Any]:
         "advice_ar": item.get("advice_ar"),
         "recommended": bool(item.get("recommended")),
     }
+
+
+@router.get("/api/v1/fields/{field_id}/weather/thermal-stress")
+async def field_weather_thermal_stress(
+    field_id: str,
+    days: int = Query(3, ge=1, le=16),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """الإجهاد الحراريّ المركّب (حرّ نهار × برد ليل) للحقل مشروطاً بالمحصول/المرحلة.
+
+    الخادم يستنتج lat/lon والمحصول/المرحلة من سياق الحقل ثم يطلب منتج الطقس الحتميّ
+    من weather-service (منطق الطقس لا يُحسب في المتصفّح). صدق: غياب المحصول/المرحلة
+    ⇒ الخدمة تُرجِع insufficient_context (دور supporting، لا حجب قرار).
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("قراءة سياق طقس الحقل", exc) from exc
+
+    try:
+        product = await get_thermal_stress(
+            lat, lon, crop=crop, stage=stage, days=days, model="best_match"
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=503,
+            detail="تعذّر جلب منتج الإجهاد الحراريّ من خدمة الطقس. حاول لاحقاً.",
+        ) from exc
+
+    return {"field_id": field_id, "crop": crop, "growth_stage": stage, **product}
 
 
 @router.get("/api/v1/fields/{field_id}/weather/operation-windows")

@@ -168,6 +168,7 @@
     "GET /api/v1/fields/{field_id}/weather/disease-risk",
     "GET /api/v1/fields/{field_id}/weather/irrigation-advice",
     "GET /api/v1/fields/{field_id}/weather/operation-windows",
+    "GET /api/v1/fields/{field_id}/weather/thermal-stress",
     "GET /api/v1/fields/{field_id}/wind/prevailing",
     "GET /api/v1/fields/{field_id}/workspace",
     "GET /api/v1/fodder-alternatives/list",

@@ -12,11 +12,13 @@ from open_meteo import (
     fetch_current,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     fetch_forecast,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     fetch_historical,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+    fetch_thermal_series,
     fetch_tile_sample,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     readiness_probe,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
 from operations import advice_ar, best_operation_frame, operation_suitability
 from raw_weather_processing import RawWeatherProcessRequest, build_raw_weather_response
+from thermal_stress import compute_compound_thermal_stress
 from tiles import (
     ALLOWED_LAYERS,
     derived_layer_value,
@@ -273,6 +275,41 @@ async def operation_plan(
         "partial": bool(errors),
         "upstream_errors": errors[:10],
     }
+
+
+async def thermal_stress(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    crop: str | None = Query(default=None, max_length=64),
+    stage: str | None = Query(default=None, max_length=64),
+    days: int = Query(default=3, ge=1, le=16),
+    model: str = "best_match",
+):
+    """منتج الإجهاد الحراريّ المركّب (حرّ نهار × برد ليل) مشروطاً بالمحصول والمرحلة.
+
+    منطق الطقس الحتميّ يعيش هنا (عقد الخدمة الحقيقيّ)؛ المستهلِك يوفّر المحصول/المرحلة.
+    fail-closed: غياب سياق المحصول/المرحلة ⇒ insufficient_context (لا مخاطرة مُختلَقة).
+    """
+    cache_key = f"thermal:{lat:.4f}:{lon:.4f}:{days}:{model}"
+    series = cache_get(cache_key)
+    if series is None:
+        try:
+            series = await fetch_thermal_series(lat, lon, days=days, model=model)
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(
+                status_code=503, detail=f"تعذّر جلب سلسلة الطقس الحراريّة: {exc}"
+            ) from exc
+        cache_set(cache_key, series)
+    result = compute_compound_thermal_stress(
+        crop=crop,
+        stage=stage,
+        daily_max_c=series.get("daily_max_c", []),
+        daily_min_c=series.get("daily_min_c", []),
+        hourly_temp_c=series.get("hourly_temp_c") or None,
+        hourly_is_daytime=series.get("hourly_is_daytime") or None,
+        hourly_rh_pct=series.get("hourly_rh_pct") or None,
+    )
+    return {"location": {"lat": lat, "lon": lon}, "model": model, **result}
 
 
 async def tile_data(

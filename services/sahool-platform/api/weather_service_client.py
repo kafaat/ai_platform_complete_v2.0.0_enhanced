@@ -182,6 +182,24 @@ async def get_operation_plan(
     )
 
 
+async def get_thermal_stress(
+    lat: float,
+    lon: float,
+    *,
+    crop: str | None = None,
+    stage: str | None = None,
+    days: int = 3,
+    model: str = "best_match",
+) -> dict[str, Any]:
+    """منتج الإجهاد الحراريّ المركّب من weather-service (منطق الطقس يعيش هناك)."""
+    params: dict[str, Any] = {"lat": lat, "lon": lon, "days": days, "model": model}
+    if crop:
+        params["crop"] = crop
+    if stage:
+        params["stage"] = stage
+    return await weather_get_json("/v1/weather/thermal-stress", params=params)
+
+
 async def get_weather_tile_series(
     z: int, x: int, y: int, *, layer: str, hours: str, model: str = "best_match"
 ) -> dict[str, Any]:

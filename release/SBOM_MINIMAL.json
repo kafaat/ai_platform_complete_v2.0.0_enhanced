@@ -13675,7 +13675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "673ea1716618f6017a00ae4536a9b5cf71778f93173e1c5740c53a4ff091036f"
+          "content": "bd415bf6c85ab0612c8fcc97c734a675162bd2dd32b4af3f7434b2c63a6b4420"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
@@ -14995,7 +14995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8bf67f478df5bef491e66e871e3d486497db01aa74272bc7db5c2357d22dbe4a"
+          "content": "d830de993fc611bcffc26a49820686073989543d9a05ff4742ee25e41844bde9"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -21715,6 +21715,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "15dd7c8e6b81f91eaf46a1f9eb846a07831b1009d2e6862cc84ca5fd543dd543"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "82be485bff3d2703d006b0612d6ef685fef43c046151017c4208095f1a966507"
         }
       ],
@@ -23235,7 +23245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "893bb20de3c713a3591b5b65a5d8c4cf1f8d84e9109fa9138977236fd078d116"
+          "content": "9784b83e9baa7fe7a6fa3c0f3ff1e078efee6cb9f4263cc849d7670bfa9cfb83"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -23245,7 +23255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3cc0590bfbdbb751bf64077cc38646559c91b141c8a379025340c3f42c188800"
+          "content": "0f7bca6c384cda221d307a9b9161de6faba8ee819e6f22e9fd40623f9e56c93c"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -23325,6 +23335,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "202b9409866b7c2fb097c7fafc4ac4acd4cd7015dd20f73b445c681e97b7dd75"
+        }
+      ],
+      "name": "services/weather-service/tests/test_thermal_stress.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "713e01f0e6d2f15944b2c0c3a5e01e4eda4bc428aea3cd18701fbafd63913c93"
         }
       ],
@@ -23345,6 +23365,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2f970c7c5479f2db4b35e89c7a7adb6d4db770ed7fc5505070bac581ee5ce56e"
+        }
+      ],
+      "name": "services/weather-service/thermal_stress.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8b6257abf70fb5c6e2447745660253feae26b2c89df83f7d3ae02a58949deb8a"
         }
       ],
@@ -23355,7 +23385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3af08d8d29b2dd7c100fca5e2b9d34d6d26d44ba018653025a44e9cec823aef6"
+          "content": "e6aaf2778672078f55adbe670a3ab57ee5446690caa80516cc810c65b75eb397"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

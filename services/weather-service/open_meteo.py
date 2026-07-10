@@ -56,6 +56,37 @@ def _at(values: list[Any], idx: int, default: Any = None) -> Any:
     return default if value is None else value
 
 
+async def fetch_thermal_series(
+    lat: float, lon: float, *, days: int = 3, model: str = "best_match"
+) -> dict[str, Any]:
+    """سلسلة خام لمنتج الإجهاد الحراريّ: Tmax/Tmin يوميّة + حرارة/رطوبة/نهار ساعيّة.
+
+    تُعيد المصفوفات الخام (لا تطبيع) كي يحسب ``thermal_stress`` بصدق كامل التحكّم.
+    """
+    days = max(1, min(int(days or 3), 16))
+    params: dict[str, Any] = {
+        "latitude": lat,
+        "longitude": lon,
+        "daily": "temperature_2m_max,temperature_2m_min,sunrise,sunset",
+        "hourly": "temperature_2m,relative_humidity_2m,is_day",
+        "forecast_days": days,
+        "timezone": "auto",
+    }
+    if model and model not in {"best_match", "auto"}:
+        params["models"] = model
+    data = await _fetch_json(FORECAST_URL, params)
+    daily = data.get("daily") or {}
+    hourly = data.get("hourly") or {}
+    return {
+        "daily_max_c": daily.get("temperature_2m_max") or [],
+        "daily_min_c": daily.get("temperature_2m_min") or [],
+        "daily_time": daily.get("time") or [],
+        "hourly_temp_c": hourly.get("temperature_2m") or [],
+        "hourly_rh_pct": hourly.get("relative_humidity_2m") or [],
+        "hourly_is_daytime": hourly.get("is_day") or [],
+    }
+
+
 async def _fetch_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
     if _BREAKER_OPEN_UNTIL > time.monotonic():
         raise RuntimeError("Open-Meteo circuit breaker is open")

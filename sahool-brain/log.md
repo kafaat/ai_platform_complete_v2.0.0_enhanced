@@ -166,6 +166,22 @@ ERROR: No matching distribution found for pydantic-core==2.46.4
 **التحقّق المستقلّ الكامل:** `pytest -m unit` **2844 نجاح / 5 تخطٍّ** (0 فشل — كان فشلان قبل الإصلاح) · حُرّاس منصّة (بـCWD الصحيح `services/sahool-platform/`) **3576 نجاح** · tsc **0** · vitest **1100/155** · ruff format+check نظيف بالكامل (`services/ bots/ agents/ tests_v9/`) · `docker compose -f docker-compose.v9.yml config --no-interpolate` صالح بنيويّاً · release مُعاد بناؤه والتحقّق منه (**3619** checksum).
 
 ---
+## 2026-07-10 — منتج «الإجهاد الحراريّ المركّب» (فجوة تغطية زراعيّة) مع مستهلك حقيقيّ
+
+استجابةً لـ«اعمل ما تراه مناسباً وحقيقيّاً وله مستهلك»: بعد تحليل تغطية زراعيّة أمين (مسح `core/engines/` ~30 محرّكاً ⇒ النواة عميقة: مياه/تربة/حماية/فينولوجيا/اقتصاد؛ البياض الحقيقيّ **ضيّق**: DTR/إجهاد مركّب=3 ملفّات · رقود/تلقيح=0 · نماذج برودة=5)، بُني أوّل منتج للبياض: **`compound_thermal_stress`** (حرّ النهار × برد الليل — موضوع المستخدم).
+
+**التصميم (يحترم حدود المحرّكات المُرسَّخة):**
+- **المنتِج في weather-service** (المنطق حيث يفرضه عقد الخدمة): `thermal_stress.py` دالّة نقيّة `compute_compound_thermal_stress` تحسب DTR · heat_stress_days · cold_stress_nights · frost_nights · consecutive_cold_nights · compound_index · risk، وعند توفّر سلسلة ساعيّة: day/night_stress_hours + تقدير رطوبة أوراق. `fetch_thermal_series` (Tmax/Tmin يوميّة + حرارة/رطوبة/نهار ساعيّة). endpoint `GET /v1/weather/thermal-stress?lat&lon&crop&stage`.
+- **مشروط بـ(محصول×مرحلة):** جدول `THERMAL_THRESHOLDS_V1` (قمح/ذرة/طماطم/فلفل/خيار/بطاطا/عنب/لوز/نخيل/بنّ) بعتبات تُشدَّد في المراحل التكاثريّة.
+- **صدق صارم:** محصول/مرحلة مجهولان ⇒ `insufficient_context` بلا مخاطرة مُختلَقة (fail-closed) · **دور `supporting` لا decision_blocking** (عتبات أدبيّة تحتاج معايرة ميدانيّة كـH5/C5) · رطوبة الأوراق `estimated_not_measured` · لا «ساعات» بلا سلسلة ساعيّة (`requires_hourly`).
+- **مستهلك حقيقيّ (لا نقطة يتيمة):** عميل منصّة `weather_service_client.get_thermal_stress` + façade جديد `GET /api/v1/fields/{id}/weather/thermal-stress` في `field_workspace_weather.py` (يستنتج lat/lon+محصول+مرحلة من سياق الحقل ويستهلك المنتِج) — نفس نمط façade الريّ/الأمراض الذي يستهلكه تبويب طقس Field Workspace.
+
+**bug التقطه ruff:** `confidence` كانت تُحسَب ولا تُدرَج في العقد (F841) ⇒ أُضيفت. + zip strict=False + ترتيب استيراد.
+
+**التحقّق:** weather-service **28 passed** (10 thermal بمشاهد حدّيّة: 39°/7° مُزهِر=high، 34°/19°=low، صقيع=high، تتابع ليلتين، ساعات ساعيّة صادقة، daily-only=requires_hourly، fail-closed) · منصّة façade guard (4) + workspace guards (15، لم تنكسر بالإضافة) · unit · ruff نظيف · عقد weather الحقيقيّ ✓ · inventories (service/route/mount/api-versioning) مُعاد توليدها. **بوّابة تغطية الواجهة (unit) التقطت الحوكمة:** المسار المواجِه الجديد صُنِّف في `config/endpoint_ui_coverage.json` **core** (نفس تصنيف façades الريّ/الأمراض الشقيقة، دليل `/api/v1/fields`) لا waiver (البوّابة تفرض ذلك للمسارات الحقليّة). **صدق:** بطاقة تبويب الطقس في الواجهة **دَين مقصود تالٍ** — الـfaçade مُنجَز ومُستهلِك للمنتِج، والكرت الأماميّ لم يُبنَ بعد. **الفجوات المتبقّية للعائلة** (`lodging`/`pollination`/`chill_models`) تبقى `open` في السجلّ.
+
+---
+
 
 ## 2026-07-09 — إصلاح تكرار OpenAPI operation_id في proxy الخدمات الداخليّة
 
