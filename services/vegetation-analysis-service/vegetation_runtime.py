@@ -722,9 +722,7 @@ def _recommendations_ar(indices: dict, health: dict, crop: str) -> list[str]:
             f"🌱 فرضيّة: نقص كلوروفيل محتمل (RECl≈{recl:.2f}، تقديريّ) — يوصى بفحص النيتروجين."
         )
     if ndvi < 0.40:
-        recs.append(
-            f"📉 فرضيّة: انخفاض NDVI ({ndvi}) — احتمال آفة أو مرض؛ يوصى بالفحص الميدانيّ."
-        )
+        recs.append(f"📉 فرضيّة: انخفاض NDVI ({ndvi}) — احتمال آفة أو مرض؛ يوصى بالفحص الميدانيّ.")
     if ndwi < -0.1:
         recs.append(f"🏜️ فرضيّة: جفاف محتمل (NDWI≈{ndwi:.2f}، تقديريّ) — يوصى بالتحقّق قبل قرار الريّ.")
     if not recs:
@@ -793,7 +791,9 @@ async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi"
         return None
 
 
-async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: str) -> dict:
+async def run_analysis(
+    field_id: str, tenant_id: str, date_from: str, date_to: str, season_id: str | None = None
+) -> dict:
     field = await load_field(field_id, tenant_id)
     if not field:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
@@ -841,6 +841,9 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
         "crop": field.get("crop"),
         "area_ha": field.get("area_ha"),
         "tenant_id": tenant_id,
+        # V5: سياق الموسم يُمرَّر ويُصدَّر للنَّسَب (تفسير المؤشّر حسب المرحلة/الموسم
+        # يتمّ في المنصّة؛ هنا نحمله كي لا يُفقَد ويربط النتيجة بالموسم الصحيح).
+        "season_id": season_id,
         "acquisition_date": acq_date,
         "cloud_coverage_pct": cloud_pct,
         # data_source يعكس مصدر NDVI (الرقم الرئيسيّ): raster الحقيقيّ أو التقدير.

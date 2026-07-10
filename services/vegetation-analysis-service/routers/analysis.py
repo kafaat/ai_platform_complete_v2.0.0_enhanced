@@ -25,6 +25,8 @@ async def analyze(
     # "اليوم" مُجمّد حتّى إعادة التشغيل). نستخدم None ونحسب النافذة لكلّ طلب.
     date_from: str | None = Query(default=None),
     date_to: str | None = Query(default=None),
+    # V5: سياق الموسم اختياريّ (متوافق للخلف) — يُمرَّر ويُصدَّر للنَّسَب.
+    season_id: str | None = Query(default=None, max_length=128),
     token: str = Depends(main.security),
 ):
     claims = main._verify_claims(token)
@@ -36,7 +38,7 @@ async def analyze(
         if date_from
         else (date.today() - timedelta(days=30)).isoformat()
     )
-    return await main.run_analysis(field_id, tenant_id, date_from, date_to)
+    return await main.run_analysis(field_id, tenant_id, date_from, date_to, season_id=season_id)
 
 
 @router.get("/v1/timeseries/{field_id}")

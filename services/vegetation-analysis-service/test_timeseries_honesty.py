@@ -55,3 +55,16 @@ def test_analyze_response_flags_estimated_and_advisory_role():
     src = (Path(__file__).resolve().parent / "vegetation_runtime.py").read_text(encoding="utf-8")
     assert '"estimated": index_sources.get(k, "estimate") != "raster-service"' in src  # V3
     assert '"advisory_role": "hypothesis"' in src  # V4
+
+
+def test_analyze_accepts_and_echoes_season_id():
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent
+    route = (root / "routers" / "analysis.py").read_text(encoding="utf-8")
+    rt = (root / "vegetation_runtime.py").read_text(encoding="utf-8")
+    # V5: المسار يقبل season_id ويمرّره؛ run_analysis يقبله ويُصدّره في الرد.
+    assert "season_id: str | None = Query(default=None" in route
+    assert "season_id=season_id" in route
+    assert "season_id: str | None = None" in rt
+    assert '"season_id": season_id' in rt

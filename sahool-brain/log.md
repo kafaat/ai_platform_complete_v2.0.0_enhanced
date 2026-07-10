@@ -325,6 +325,18 @@ Duplicate Operation ID proxy_segmentation_api_segmentation__path__patch
 **التحقّق:** unified `tsc --noEmit` 0 · `typecheck:field-workspace-contract` 0 · `npm run build` 0 · بوّابة الإغلاق 0 (6 فحوص) · 5 حُرّاس (21 اختبار) · YAML صالح (workflow + ci.yml) · ruff نظيف · release مُعاد بناؤه.
 
 ---
+## 2026-07-10 — P0 Vegetation V5: تمرير season_id + توثيق حالة المصادر الحقيقيّة
+
+- **V5:** `/v1/analyze` كسب `season_id` اختياريّاً (متوافق للخلف، max_length)؛ يُمرَّر إلى `run_analysis(..., season_id=None)` ويُصدَّر في الرد (`"season_id"`) — يربط النتيجة بالموسم الصحيح للنَّسَب (تفسير المؤشّر حسب المرحلة يبقى في المنصّة). حارس ساكن يؤكّد القبول+التمرير+الإصدار.
+
+**اكتشاف يخفّف قلق المراجعة (يُسجَّل بصدق):** الخدمة **تُفضّل Raster الحقيقيّ أصلاً** — `VEGETATION_PREFER_RASTER=1` افتراضيّاً + `_RASTER_REAL_INDEX={evi,savi→msavi,ndmi→moisture}` + محاولة NDVI الحقيقيّ، مع ارتداد **fail-safe مُعلَّم** للتقدير. فمنتَج `analyze` ليس تركيبيّاً بالكامل — NDVI/EVI/SAVI/NDMI حقيقيّة عند توفّر Raster، والباقي (lai/cwsi/ndwi/gndvi/recl) تقديريّ مُعلَّم صراحةً (V3 أضاف `estimated:bool`). الفجوة المتبقّية الحقيقيّة: **`/v1/timeseries` تركيبيّ بالكامل** (عولِج بالوسم V2) والمصدر الحقيقيّ Raster؛ ووصله + تفعيل `FEATURE_SENTINEL_DB_FIELDS` (حقول القاعدة) **قرارا تهيئة/نشر** (يتطلّبان Raster/platform حيّاً) لا كوداً قابلاً للتحقّق هنا.
+
+**التحقّق:** vegetation-service 31 (5 honesty + 19 logic + 7 decomposition) · ruff · إضافيّ متوافق للخلف.
+
+**خلاصة P0-Vegetation:** V2 (وسم timeseries) · V3 (estimated per index) · V4 (فرضيّات لا أوامر) · V5 (season_id) **مُنجَزة وقابلة للتحقّق**. المتبقّي (وصل Raster timeseries · تفعيل حقول القاعدة) **deployment-gated بصدق** — لا يُزيَّف.
+
+---
+
 
 ## 2026-07-08 — دمج أرشيف UI5–UI35 (تفكيك MapHub + مساحة عمل الحقل الكاملة + واجهات BFF خلفيّة)
 
