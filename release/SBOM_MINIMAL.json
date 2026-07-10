@@ -10365,6 +10365,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c4096fbeff10bbc187f109a8962faffd3fae576de7dc2cf7c13bea126d65ec67"
+        }
+      ],
+      "name": "services/raster-service/raster_indicator_product.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e953fd3377354efe44d5c567e918bc18f9f532c3fc36ee50310da3f73615fb95"
         }
       ],
@@ -11099,6 +11109,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_import_graph_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "17f7701655ea61b8d9e1f4a9351132f95735e4055817262dbe8a7da4950dade5"
+        }
+      ],
+      "name": "services/raster-service/test_raster_indicator_product.py",
       "type": "file"
     },
     {
