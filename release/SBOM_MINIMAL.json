@@ -12455,6 +12455,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b05186d7bbbfcfd74499178ea72cfcc97b96bd5c0bef350486a60ad930650beb"
+        }
+      ],
+      "name": "services/sahool-platform/api/gdd_shadow.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a5577a85d018d5bc2501f69383b4af155c800526adb1a025ad9288c18d4eeabe"
         }
       ],
@@ -14435,7 +14445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8eee6596ae5a786fe3feea8ef74bbb147553097bcbcc200677d49901c0525c39"
+          "content": "136109b2da566941aa4c7ac9f583f32f49e723ee9f26aada081d9d533fe768db"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -14735,7 +14745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aadc9c5207e667dcd870070012d6918d274016d4f7e49ae30a0d78e83f6f21be"
+          "content": "82232c578abe05e9f6be6b36abbd5b6476d10692c485c9d3f76fa4a46efac646"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",
@@ -14745,7 +14755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc2e3a09d778cc950548e9284e74b25b6104178845c49528658541414312e09b"
+          "content": "66f8752a02fcaf214205fd98cd39d1d50aee762a74b4e4c149f2c8c4e8c3577c"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",
@@ -20209,6 +20219,26 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_gdd_phenology.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "412c132704b8bf8add74023376c26ad1903dc179da93fd234ee6e8c62197d01c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_gdd_shadow.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8585474a2bf0f502ad91823ed2cb1244df7e0ec57d58c0cc1fd5bec50888837"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_gdd_track_delegation.py",
       "type": "file"
     },
     {

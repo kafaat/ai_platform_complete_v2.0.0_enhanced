@@ -164,6 +164,10 @@ class SimContext:
     # يوميّة (list بطول أيّام الموسم). حين يتوفّر ويكون صالحاً يحلّ محلّ fAPAR
     # المُنمذَج من LAI (نموذج كفاءة الإنتاج RS). غيابه/بطلانه ⇒ السلوك الحالي.
     observed_fapar: float | list[float] | None = None
+    # WS-C.1c: سلسلة GDD يوميّة محقونة من **محرّك الطقس** (المصدر الكنسيّ). حين تتوفّر
+    # تُستخدم بدل نواة gdd_day المحلّيّة (المصفوفة يوماً بيوم). قيمة None ليوم ⇒ عودة
+    # لـgdd_day لذلك اليوم. غياب السلسلة كلّها ⇒ السلوك المحلّيّ الحاليّ تماماً.
+    gdd_daily_override: list[float | None] | None = None
 
 
 @dataclass
@@ -193,6 +197,17 @@ class SimResult:
 
 
 # ─── دوالّ النموذج النقيّة ────────────────────────────────────────
+
+
+def crop_gdd_policy(crop: str | None) -> tuple[float, float]:
+    """سياسة GDD للمحصول (الأساس، السقف) — °م. لغير المُعرَّف: معاملات وسطيّة.
+
+    يُصدّرها الراوتر ليطلب نواة GDD من محرّك الطقس بنفس عتبات هذا النموذج
+    (method="modified") — فيبقى التفويض مُحافِظاً على الطريقة والسياسة.
+    """
+    crop_key, _ = normalize_crop(crop)
+    p = _params_for(crop_key)
+    return p.t_base_c, p.t_cap_c
 
 
 def gdd_day(t_min: float, t_max: float, t_base: float, t_cap: float) -> float:
@@ -391,8 +406,13 @@ def simulate_season(ctx: SimContext) -> SimResult:
     estimated_solar_days = 0
     estimated_et0_days = 0
 
+    override = ctx.gdd_daily_override
     for day_idx, day in enumerate(weather):
-        gdd_cum += gdd_day(day.t_min_c, day.t_max_c, p.t_base_c, p.t_cap_c)
+        # نواة GDD من المحرّك إن حُقِنت لهذا اليوم؛ وإلّا gdd_day المحلّيّة (إرث/احتياط).
+        if override is not None and day_idx < len(override) and override[day_idx] is not None:
+            gdd_cum += float(override[day_idx])
+        else:
+            gdd_cum += gdd_day(day.t_min_c, day.t_max_c, p.t_base_c, p.t_cap_c)
         lai = _lai_at(gdd_cum, p.gdd_to_maturity, p.lai_max)
         lai_peak = max(lai_peak, lai)
 

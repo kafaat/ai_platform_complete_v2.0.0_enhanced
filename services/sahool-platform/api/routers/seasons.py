@@ -128,9 +128,66 @@ async def simulate_season_endpoint(
         for d in days
     ]
 
-    # ٤) المحاكاة النقيّة.
+    # ٣-ب) نواة GDD من محرّك الطقس (WS-C.1c) — المصدر الكنسيّ، لا تُحسب محلّيّاً.
+    # سياسة المحصول (الأساس/السقف، method="modified") من نموذج الموسم وتُمرَّر للمحرّك؛
+    # تعذّر المحرّك ⇒ 503 (لا GDD محلّيّ). مقارنة ظلّيّة (modified↔modified ⇒ match).
+    import logging as _logging
+
+    from api.gdd_shadow import compare_gdd_shadow
+    from api.season_simulation import crop_gdd_policy, gdd_day
+    from api.weather_service_client import get_gdd_product
+
+    gdd_base, gdd_cutoff = crop_gdd_policy(crop)
+    gdd_override: list[float | None] | None = None
+    gdd_provenance: dict | None = None
+    if weather:
+        try:
+            gdd_engine = await get_gdd_product(
+                daily_t_min=[w.t_min_c for w in weather],
+                daily_t_max=[w.t_max_c for w in weather],
+                base_c=gdd_base,
+                upper_cutoff_c=gdd_cutoff,
+                method="modified",
+            )
+        except HTTPException as exc:
+            if exc.status_code in (502, 503, 504):
+                raise HTTPException(
+                    status_code=503,
+                    detail="weather-engine GDD unavailable — fail-closed (no local GDD fallback)",
+                ) from exc
+            raise
+        gdd_override = gdd_engine.get("daily_gdd")
+        legacy_daily = [gdd_day(w.t_min_c, w.t_max_c, gdd_base, gdd_cutoff) for w in weather]
+        shadow = compare_gdd_shadow(
+            legacy_daily=legacy_daily,
+            legacy_accumulated=round(sum(legacy_daily), 3),
+            legacy_method="modified",
+            legacy_base_c=gdd_base,
+            legacy_upper_cutoff_c=gdd_cutoff,
+            engine_product=gdd_engine,
+        )
+        _logging.getLogger("sahool.gdd.shadow").info(
+            "gdd_shadow consumer=season_simulation season=%s status=%s acc_diff=%s",
+            season_id,
+            shadow["shadow_status"],
+            shadow["accumulated_diff"],
+        )
+        gdd_provenance = {
+            "source": "weather-engine",
+            "calculation_version": gdd_engine.get("calculation_version"),
+            "thresholds_used": gdd_engine.get("thresholds_used"),
+            "shadow": shadow,
+        }
+
+    # ٤) المحاكاة النقيّة (نواة GDD محقونة من المحرّك حين توفّرت).
     result = simulate_season(
-        SimContext(crop=crop, sowing_date=sow, season_end=end, weather=weather)
+        SimContext(
+            crop=crop,
+            sowing_date=sow,
+            season_end=end,
+            weather=weather,
+            gdd_daily_override=gdd_override,
+        )
     )
 
     # ٥) حفظ النتائج على صفّ الموسم (+ وقت التشغيل).
@@ -175,6 +232,7 @@ async def simulate_season_endpoint(
             [multi_crop_warning, *result.warnings_ar] if multi_crop_warning else result.warnings_ar
         ),
         sim_ran_at=ran_at.isoformat(),
+        gdd_provenance=gdd_provenance,
     )
 
 
