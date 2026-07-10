@@ -48,3 +48,7 @@ else
 fi
 
 echo "runtime_real_smoke_ok"
+
+python scripts/ci/raster_pixel_qa_indicator_guard.py
+python scripts/ci/raster_topographic_qa_guard.py
+python scripts/ci/raster_validated_product_guard.py

@@ -76,6 +76,162 @@ def _normalize_band_names(count: int, requested: list[int] | None) -> list[RawBa
         out.append(RawBandSpec(index=idx, name=f"band_{idx}"))
     return out
 
+def compute_quality_score(
+    *,
+    valid_pixel_ratio: float | None,
+    cloud_pct: float | None,
+    cloud_mask_applied: bool,
+    qa_layer_present: bool = False,
+    shadow_pct: float | None = None,
+    snow_pct: float | None = None,
+    aerosol_pct: float | None = None,
+    saturation_pct: float | None = None,
+    terrain_shadow_risk_pct: float | None = None,
+    cast_shadow_risk_pct: float | None = None,
+    slope_risk_pct: float | None = None,
+    topographic_qa_applied: bool = False,
+    cloud_shadow_mask_applied: bool = False,
+    snow_mask_applied: bool = False,
+    aerosol_mask_applied: bool = False,
+    saturation_mask_applied: bool = False,
+) -> dict[str, Any]:
+    """Return a conservative pixel-level QA score for raw/indicator preprocessing.
+
+    The score is deterministic and intentionally conservative.  Coverage is the
+    base, then known contamination fractions subtract trust.  Missing masks are
+    surfaced as warnings, not hidden.  This is a QA/provenance gate, not an
+    agronomic indicator and not a replacement for source-native QA bands.
+    """
+
+    def _fraction(value: float | None) -> float:
+        if value is None:
+            return 0.0
+        return max(0.0, min(1.0, float(value) / 100.0))
+
+    coverage = 0.0 if valid_pixel_ratio is None else max(0.0, min(1.0, float(valid_pixel_ratio)))
+    cloud_penalty = _fraction(cloud_pct) * 0.35
+    shadow_penalty = _fraction(shadow_pct) * 0.20
+    snow_penalty = _fraction(snow_pct) * 0.20
+    aerosol_penalty = _fraction(aerosol_pct) * 0.15
+    saturation_penalty = _fraction(saturation_pct) * 0.20
+    terrain_shadow_penalty = _fraction(terrain_shadow_risk_pct) * 0.12
+    slope_risk_penalty = _fraction(slope_risk_pct) * 0.08
+    mask_penalty = 0.0 if cloud_mask_applied else 0.10
+    qa_bonus = 0.03 if qa_layer_present else 0.0
+    score = max(
+        0.0,
+        min(
+            1.0,
+            coverage
+            - cloud_penalty
+            - shadow_penalty
+            - snow_penalty
+            - aerosol_penalty
+            - saturation_penalty
+            - terrain_shadow_penalty
+            - slope_risk_penalty
+            - mask_penalty
+            + qa_bonus,
+        ),
+    )
+    warnings: list[str] = []
+    if not cloud_mask_applied:
+        warnings.append("cloud_mask_not_applied_or_unavailable")
+    if shadow_pct is not None and not cloud_shadow_mask_applied:
+        warnings.append("cloud_shadow_mask_detected_but_not_applied")
+    if snow_pct is not None and not snow_mask_applied:
+        warnings.append("snow_mask_detected_but_not_applied")
+    if aerosol_pct is not None and not aerosol_mask_applied:
+        warnings.append("aerosol_mask_detected_but_not_applied")
+    if saturation_pct is not None and not saturation_mask_applied:
+        warnings.append("saturation_mask_detected_but_not_applied")
+    if terrain_shadow_risk_pct is not None and not topographic_qa_applied:
+        warnings.append("terrain_shadow_risk_detected_but_not_applied")
+    if slope_risk_pct is not None and not topographic_qa_applied:
+        warnings.append("slope_risk_detected_but_not_applied")
+    if terrain_shadow_risk_pct is not None and terrain_shadow_risk_pct >= 20.0:
+        warnings.append("high_terrain_shadow_risk")
+    if slope_risk_pct is not None and slope_risk_pct >= 30.0:
+        warnings.append("high_slope_risk")
+    if coverage < 0.50:
+        warnings.append("low_valid_pixel_ratio")
+    if cloud_pct is not None and cloud_pct >= 50.0:
+        warnings.append("high_cloud_fraction")
+    if shadow_pct is not None and shadow_pct >= 20.0:
+        warnings.append("high_shadow_fraction")
+    if saturation_pct is not None and saturation_pct >= 5.0:
+        warnings.append("high_saturation_fraction")
+    return {
+        "schema": "sahool.raster_pixel_qa/1",
+        "raw_qa_required": True,
+        "quality_score": round(float(score), 4),
+        "valid_pixel_ratio": round(float(coverage), 4),
+        "cloud_pct": cloud_pct,
+        "shadow_pct": shadow_pct,
+        "snow_pct": snow_pct,
+        "aerosol_pct": aerosol_pct,
+        "saturation_pct": saturation_pct,
+        "terrain_shadow_risk_pct": terrain_shadow_risk_pct,
+        "cast_shadow_risk_pct": cast_shadow_risk_pct,
+        "slope_risk_pct": slope_risk_pct,
+        "topographic_qa_applied": bool(topographic_qa_applied),
+        "cloud_mask_applied": bool(cloud_mask_applied),
+        "cloud_shadow_mask_applied": bool(cloud_shadow_mask_applied),
+        "snow_mask_applied": bool(snow_mask_applied),
+        "aerosol_mask_applied": bool(aerosol_mask_applied),
+        "saturation_mask_applied": bool(saturation_mask_applied),
+        "qa_layer_present": bool(qa_layer_present),
+        "warnings": warnings,
+        "indicator_computed": False,
+        "fabricated_indicator": False,
+    }
+
+
+def build_quality_flags(
+    *,
+    nodata_mask_applied: bool,
+    qa_layer_present: bool,
+    cloud_mask_applied: bool,
+    cloud_shadow_mask_applied: bool = False,
+    snow_mask_applied: bool = False,
+    aerosol_mask_applied: bool = False,
+    saturation_mask_applied: bool = False,
+    topographic_qa_applied: bool = False,
+    terrain_shadow_risk_applied: bool = False,
+    cast_shadow_risk_applied: bool = False,
+    slope_risk_applied: bool = False,
+    cloud_mask_sources: list[str] | None = None,
+    cloud_shadow_mask_sources: list[str] | None = None,
+    snow_mask_sources: list[str] | None = None,
+    aerosol_mask_sources: list[str] | None = None,
+    saturation_mask_sources: list[str] | None = None,
+    topographic_qa_sources: list[str] | None = None,
+    source_native_qa_policy: str = "source_native_first_when_available",
+) -> dict[str, Any]:
+    """Canonical raw raster QA flags shared by raw QA and indicator paths."""
+
+    return {
+        "schema": "sahool.raster_quality_flags/1",
+        "nodata_mask_applied": bool(nodata_mask_applied),
+        "qa_layer_present": bool(qa_layer_present),
+        "cloud_mask_applied": bool(cloud_mask_applied),
+        "cloud_shadow_mask_applied": bool(cloud_shadow_mask_applied),
+        "snow_mask_applied": bool(snow_mask_applied),
+        "aerosol_mask_applied": bool(aerosol_mask_applied),
+        "saturation_mask_applied": bool(saturation_mask_applied),
+        "topographic_qa_applied": bool(topographic_qa_applied),
+        "terrain_shadow_risk_applied": bool(terrain_shadow_risk_applied),
+        "cast_shadow_risk_applied": bool(cast_shadow_risk_applied),
+        "slope_risk_applied": bool(slope_risk_applied),
+        "cloud_mask_sources": list(cloud_mask_sources or []),
+        "cloud_shadow_mask_sources": list(cloud_shadow_mask_sources or []),
+        "snow_mask_sources": list(snow_mask_sources or []),
+        "aerosol_mask_sources": list(aerosol_mask_sources or []),
+        "saturation_mask_sources": list(saturation_mask_sources or []),
+        "topographic_qa_sources": list(topographic_qa_sources or []),
+        "source_native_qa_policy": source_native_qa_policy,
+    }
+
 
 def process_raw_raster(ctx, req) -> dict[str, Any]:
     """Inspect a raw raster and return metadata + per-band QA statistics.
@@ -178,9 +334,72 @@ def process_raw_raster(ctx, req) -> dict[str, Any]:
             "raw_bands": raw_bands,
             "normalized_bands": normalized_bands,
             "tags": tags,
+            "source_kind": "satellite_raster",
+            "product_level": "raw_or_provider_processed_raster",
+            "quality_flags": build_quality_flags(
+                nodata_mask_applied=True,
+                qa_layer_present=any(
+                    str(k).lower() in {"scl", "clm", "clp", "qa", "quality"} for k in tags
+                ),
+                cloud_mask_applied=False,
+                cloud_shadow_mask_applied=False,
+                snow_mask_applied=False,
+                aerosol_mask_applied=False,
+                saturation_mask_applied=False,
+                topographic_qa_applied=False,
+                terrain_shadow_risk_applied=False,
+                slope_risk_applied=False,
+            ),
+            "quality_score": compute_quality_score(
+                valid_pixel_ratio=(
+                    sum(b["raw_stats"]["valid_pixels"] for b in raw_bands)
+                    / max(
+                        1,
+                        sum(
+                            b["raw_stats"]["valid_pixels"] + b["raw_stats"]["nodata_pixels"]
+                            for b in raw_bands
+                        ),
+                    )
+                ),
+                cloud_pct=None,
+                shadow_pct=None,
+                snow_pct=None,
+                aerosol_pct=None,
+                saturation_pct=None,
+                cloud_mask_applied=False,
+                cloud_shadow_mask_applied=False,
+                snow_mask_applied=False,
+                aerosol_mask_applied=False,
+                saturation_mask_applied=False,
+                topographic_qa_applied=False,
+                qa_layer_present=any(
+                    str(k).lower() in {"scl", "clm", "clp", "qa", "quality"} for k in tags
+                ),
+            ),
+            "topographic_qa": {
+                "schema": "sahool.raster_topographic_qa/1",
+                "available": False,
+                "topographic_qa_applied": False,
+                "terrain_shadow_risk_pct": None,
+                "slope_risk_pct": None,
+                "fabricated_topographic_mask": False,
+                "warnings": ["raw_process_does_not_coregister_dem"],
+            },
+            "spatial_alignment": {
+                "source_crs": str(src_crs or ""),
+                "target_crs": "EPSG:4326",
+                "resampling_method": "none_raw_inspection",
+                "reprojected_for_processing": False,
+            },
+            "temporal_alignment": {
+                "acquisition_time": getattr(req, "capture_datetime", None),
+                "aggregation": "none_raw_scene",
+            },
             "provenance": {
                 "operation": "raw_data_processing",
+                "schema": "sahool.raw_processing/1",
                 "fabricated_indicator": False,
                 "indicator_computed": False,
+                "derived_product_computed": False,
             },
         }

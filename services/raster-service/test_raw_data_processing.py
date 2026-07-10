@@ -87,3 +87,43 @@ def test_raw_data_processing_rejects_out_of_range_band(tmp_path):
 
     with pytest.raises(ValueError, match="band index 2"):
         raw_data_processing.process_raw_raster(ctx, req)
+
+
+def test_quality_score_penalizes_advanced_masks():
+    qa = raw_data_processing.compute_quality_score(
+        valid_pixel_ratio=0.90,
+        cloud_pct=10.0,
+        shadow_pct=20.0,
+        snow_pct=0.0,
+        aerosol_pct=5.0,
+        saturation_pct=3.0,
+        cloud_mask_applied=True,
+        cloud_shadow_mask_applied=True,
+        snow_mask_applied=True,
+        aerosol_mask_applied=False,
+        saturation_mask_applied=True,
+        qa_layer_present=True,
+    )
+    assert qa["schema"] == "sahool.raster_pixel_qa/1"
+    assert qa["cloud_shadow_mask_applied"] is True
+    assert qa["saturation_pct"] == 3.0
+    assert qa["quality_score"] < 0.90
+    assert "aerosol_mask_detected_but_not_applied" in qa["warnings"]
+
+
+def test_build_quality_flags_has_canonical_advanced_schema():
+    flags = raw_data_processing.build_quality_flags(
+        nodata_mask_applied=True,
+        qa_layer_present=True,
+        cloud_mask_applied=True,
+        cloud_shadow_mask_applied=True,
+        snow_mask_applied=False,
+        aerosol_mask_applied=False,
+        saturation_mask_applied=True,
+        cloud_mask_sources=["SCL", "CLP"],
+        cloud_shadow_mask_sources=["SCL"],
+        saturation_mask_sources=["reflectance_range_proxy"],
+    )
+    assert flags["schema"] == "sahool.raster_quality_flags/1"
+    assert flags["cloud_shadow_mask_sources"] == ["SCL"]
+    assert flags["saturation_mask_sources"] == ["reflectance_range_proxy"]
