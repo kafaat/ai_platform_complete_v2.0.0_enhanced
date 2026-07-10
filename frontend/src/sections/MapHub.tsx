@@ -69,6 +69,7 @@ import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
 import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
 import IrrigationDecisionAidsCard from '../components/fieldview/IrrigationDecisionAidsCard';
+import IrrigationDecisionCard from '../components/fieldview/IrrigationDecisionCard';
 import CropSafetyKnowledgeCard from '../components/fieldview/CropSafetyKnowledgeCard';
 import AgroAnalyticsCard from '../components/fieldview/AgroAnalyticsCard';
 import WaterFieldOpsCard from '../components/fieldview/WaterFieldOpsCard';
@@ -1888,6 +1889,13 @@ function MapHubCore() {
           الإجمالي المسحوب + مراجع العيّنة — نقاط P0/P1 كانت بلا قارئ واجهة. */}
       {selected && fieldMode === 'expert' && (
         <IrrigationDecisionAidsCard cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* مرشَّح توصية الريّ الواعي بالاستنزاف (WS-D.2): POST
+          /api/v1/fields/{id}/irrigation-recommendation — توصية مرشَّحة لا مُنفَّذة
+          (الملكيّة لخدمة القرار)؛ يعالج insufficient_data/inconsistent_state بصدق. */}
+      {selected && fieldMode === 'expert' && (
+        <IrrigationDecisionCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
       )}
 
       {/* سلامة المدخلات ومعرفة المحاصيل: فحص كيميائيّ (حكم الخادم حرفيّاً) + تقويم

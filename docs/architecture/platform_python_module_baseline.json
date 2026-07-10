@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 592,
+  "baseline_python_module_count": 593,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -121,6 +121,7 @@
     "api/irrigation_network.py",
     "api/irrigation_policy.py",
     "api/irrigation_recommendation_policy.py",
+    "api/irrigation_state_guard.py",
     "api/learning_feedback.py",
     "api/learning_summary.py",
     "api/main.py",
@@ -597,5 +598,6 @@
   "p3_4_note": "Deliberate one-file BFF facade for weather-service transport; prevents provider/runtime logic from spreading in sahool-platform.",
   "p4_note": "INTERIM bridge: sahool-platform is the temporary Source of Record for loop tables (authoritative DB write) and best-effort mirrors to decision-service via the one-file transport facade api/decision_service_client.py; decision-service is a non-authoritative mirror, not yet the system-of-record. See docs/architecture/DECISION_SERVICE_BOUNDARY_CONTRACT.md.",
   "ui3b_ui4_note": "UI3b/UI4 continuation: api/routers/features.py (runtime feature registry for UI/navigation alignment — env-flag topology only, DB-free) and api/routers/field_readiness.py (thin UI facade re-shaping the existing data-completeness contract; no new domain logic). Both are BFF/UI-alignment surfaces owned by sahool-platform, not extractable domain code.",
-  "ui27_ui35_note": "UI27-UI35 Field Workspace: BFF facade routers (imagery/weather/timeline/priority) delegate to raster-service/weather-service via the P1/P2/P3 facades; route+completion contract manifests. UI-alignment/BFF surfaces owned by sahool-platform, not extractable domain code."
+  "ui27_ui35_note": "UI27-UI35 Field Workspace: BFF facade routers (imagery/weather/timeline/priority) delegate to raster-service/weather-service via the P1/P2/P3 facades; route+completion contract manifests. UI-alignment/BFF surfaces owned by sahool-platform, not extractable domain code.",
+  "ws_d2_note": "WS-D.2: api/irrigation_state_guard.py — pure consistency/freshness guard for the auto-enriched field irrigation-recommendation endpoint (0<=Dr<=TAW, no silent clamp, missing != zero). Platform-owned decision helper alongside recommend_irrigation/canonical_water_stress; not extractable transport."
 }

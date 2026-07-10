@@ -4975,7 +4975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7e2798daa148104c1854b9e36640764ff9e586c6830a86efcbd88567666cc9e"
+          "content": "0c0fc0770057384bee2101eb9398bbbadabbcb9226e2bd7c49297f1a06d99503"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -13895,7 +13895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d2f7cbeae854d403e2e6cc48f192ac4540d966094d50981440bd051e5c2504c"
+          "content": "c3c42a948c02410fc1125feea50682299e2ffaa05fb95f9ac9b50334d6651eb8"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
