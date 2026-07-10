@@ -14445,7 +14445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "136109b2da566941aa4c7ac9f583f32f49e723ee9f26aada081d9d533fe768db"
+          "content": "cac690f77bc1d2dc74dac5d5bb365f0a286fca226968a3837d3e441461857f9c"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -14745,7 +14745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "82232c578abe05e9f6be6b36abbd5b6476d10692c485c9d3f76fa4a46efac646"
+          "content": "e19e6be77e0ce8d21a01ca837e37a8eeab38fee5a122583ee74988a81e5f295b"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",
@@ -14755,7 +14755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66f8752a02fcaf214205fd98cd39d1d50aee762a74b4e4c149f2c8c4e8c3577c"
+          "content": "638ddef62162ac05db809b20c787c8b177b0225fd8f84a26c6d92525dc21655a"
         }
       ],
       "name": "services/sahool-platform/api/season_simulation.py",
@@ -15105,7 +15105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5088427dffc0319f5e3a94c352a925529c3b598afebe0bdc67bb5be7e028df40"
+          "content": "fca13a2c4bda5b62272b96f338f6e5a339e381a1f70507afdb0746f4008b94c3"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -23599,6 +23599,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_et0_agro_product.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74a2007c32e7fcaff3aa5d61391c6b7fd73e62735ef4290476588516bf24feda"
+        }
+      ],
+      "name": "services/weather-service/tests/test_et0_series.py",
       "type": "file"
     },
     {

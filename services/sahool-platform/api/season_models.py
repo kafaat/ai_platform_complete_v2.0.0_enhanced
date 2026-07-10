@@ -216,3 +216,5 @@ class SeasonSimResponse(BaseModel):
     )
     # WS-C.1c: نَسَب نواة GDD (مصدر/إصدار/عتبات + مقارنة ظلّيّة) حين تُجلَب من المحرّك.
     gdd_provenance: dict | None = None
+    # WS-C.1b: نَسَب سلسلة ET0 (مصدر=weather-engine/إصدار الصيغة/أيّام محسوبة) — لا Hargreaves محلّيّ.
+    et0_provenance: dict | None = None

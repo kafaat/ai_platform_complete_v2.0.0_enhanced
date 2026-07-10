@@ -135,12 +135,37 @@ async def simulate_season_endpoint(
 
     from api.gdd_shadow import compare_gdd_shadow
     from api.season_simulation import crop_gdd_policy, gdd_day
-    from api.weather_service_client import get_gdd_product
+    from api.weather_service_client import get_et0_series, get_gdd_product
 
     gdd_base, gdd_cutoff = crop_gdd_policy(crop)
     gdd_override: list[float | None] | None = None
     gdd_provenance: dict | None = None
+    et0_override: list[float | None] | None = None
+    et0_provenance: dict | None = None
     if weather:
+        # WS-C.1b: سلسلة ET0 من محرّك الطقس (المصدر الكنسيّ) — لا Hargreaves محلّيّ في
+        # المحاكاة. تعذّر المحرّك ⇒ 503 (fail-closed). خطّ عرض الحقل + يوم البدء.
+        try:
+            et0_series = await get_et0_series(
+                daily_t_min=[w.t_min_c for w in weather],
+                daily_t_max=[w.t_max_c for w in weather],
+                lat_deg=float(srow["lat"]),
+                day_of_year_start=start.timetuple().tm_yday,
+            )
+        except HTTPException as exc:
+            if exc.status_code in (502, 503, 504):
+                raise HTTPException(
+                    status_code=503,
+                    detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+                ) from exc
+            raise
+        et0_override = et0_series.get("daily_et0_mm")
+        et0_provenance = {
+            "source": "weather-engine",
+            "formula_version": et0_series.get("formula_version"),
+            "days_computed": et0_series.get("days_computed"),
+            "accumulated_et0_mm": et0_series.get("accumulated_et0_mm"),
+        }
         try:
             gdd_engine = await get_gdd_product(
                 daily_t_min=[w.t_min_c for w in weather],
@@ -187,6 +212,7 @@ async def simulate_season_endpoint(
             season_end=end,
             weather=weather,
             gdd_daily_override=gdd_override,
+            et0_daily_override=et0_override,
         )
     )
 
@@ -233,6 +259,7 @@ async def simulate_season_endpoint(
         ),
         sim_ran_at=ran_at.isoformat(),
         gdd_provenance=gdd_provenance,
+        et0_provenance=et0_provenance,
     )
 
 

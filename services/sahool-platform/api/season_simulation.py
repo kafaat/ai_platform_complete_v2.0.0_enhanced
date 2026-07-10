@@ -29,8 +29,6 @@ import math
 from dataclasses import dataclass, field
 from datetime import date, timedelta
 
-from core.engines.et0 import DEFAULT_RA_MM, hargreaves_et0
-
 from api.water_balance import KC_BY_CROP_STAGE
 
 # ─── معرفة المحاصيل (معاملات نموذجيّة إرشاديّة) ───────────────────
@@ -168,6 +166,9 @@ class SimContext:
     # تُستخدم بدل نواة gdd_day المحلّيّة (المصفوفة يوماً بيوم). قيمة None ليوم ⇒ عودة
     # لـgdd_day لذلك اليوم. غياب السلسلة كلّها ⇒ السلوك المحلّيّ الحاليّ تماماً.
     gdd_daily_override: list[float | None] | None = None
+    # WS-C.1b: سلسلة ET0 يوميّة محقونة من محرّك الطقس (المصدر الكنسيّ). None لكامل
+    # السلسلة ⇒ يُستعمَل et0 المُمرَّر مع اليوم؛ لا Hargreaves محلّيّ في أيّ حال.
+    et0_daily_override: list[float | None] | None = None
 
 
 @dataclass
@@ -275,10 +276,12 @@ def fapar_from_ndvi(ndvi: float) -> float:
     return min(1.0, max(0.0, 1.24 * ndvi - 0.168))
 
 
-def _seasonal_water_need(crop_key: str, et0_series: list[float]) -> float:
+def _seasonal_water_need(crop_key: str, et0_series: list[float | None]) -> float:
     """ETc الموسمي = Σ(ET₀_يوم × Kc_للمرحلة) موزّعاً على مراحل FAO-56.
 
     يوزّع أيّام الموسم على المراحل بالنِّسب القياسيّة ويضرب ET₀ بـKc المرحلة.
+    WS-C.1b: يوم بلا ET0 (None — لا تقدير محلّيّ) يُتجاهَل في المجموع (لا يُلفَّق صفراً
+    مُضلِّلاً ولا ET0 محلّيّاً)؛ النتيجة تقدير أدنى مع أيّام محسوبة أقلّ.
     """
     n = len(et0_series)
     if n == 0:
@@ -294,11 +297,13 @@ def _seasonal_water_need(crop_key: str, et0_series: list[float]) -> float:
         for _ in range(count):
             if idx >= n:
                 break
-            total += et0_series[idx] * kc
+            if et0_series[idx] is not None:
+                total += et0_series[idx] * kc
             idx += 1
-    # أي بقايا (تقريب) بمعامل المرحلة الأخيرة
+    # أي بقايا (تقريب) بمعامل المرحلة الأخيرة (تجاهُل None — لا اختلاق)
     while idx < n:
-        total += et0_series[idx] * kc_map.get("late", 0.6)
+        if et0_series[idx] is not None:
+            total += et0_series[idx] * kc_map.get("late", 0.6)
         idx += 1
     return total
 
@@ -401,12 +406,13 @@ def simulate_season(ctx: SimContext) -> SimResult:
     gdd_cum = 0.0
     biomass_g_m2 = 0.0
     lai_peak = 0.0
-    et0_series: list[float] = []
+    et0_series: list[float | None] = []
     rain_total = 0.0
     estimated_solar_days = 0
-    estimated_et0_days = 0
+    missing_et0_days = 0
 
     override = ctx.gdd_daily_override
+    et0_override = ctx.et0_daily_override
     for day_idx, day in enumerate(weather):
         # نواة GDD من المحرّك إن حُقِنت لهذا اليوم؛ وإلّا gdd_day المحلّيّة (إرث/احتياط).
         if override is not None and day_idx < len(override) and override[day_idx] is not None:
@@ -434,12 +440,19 @@ def simulate_season(ctx: SimContext) -> SimResult:
         # RUE: g/MJ × MJ/m² ⇒ g/m² من الكتلة الحيويّة اليوميّة (نفس RUE في الحالتين).
         biomass_g_m2 += p.rue_g_per_mj * apar
 
-        et0 = day.et0_mm
+        # WS-C.1b: ET0 من محرّك الطقس (سلسلة محقونة) — المصدر الوحيد؛ **لا Hargreaves
+        # محلّيّ**. أولويّة: السلسلة المحقونة الكنسيّة، ثمّ et0 المُمرَّر مع اليوم. غياب
+        # كليهما ⇒ None (يوم بلا ET0 — يُتجاهَل في احتياج الماء، لا يُلفَّق).
+        if (
+            et0_override is not None
+            and day_idx < len(et0_override)
+            and et0_override[day_idx] is not None
+        ):
+            et0 = float(et0_override[day_idx])
+        else:
+            et0 = day.et0_mm
         if et0 is None:
-            # تقدير ET₀ خشن من المدى الحراري (Hargreaves) حين يغيب القياس — عبر المصدر
-            # الموحّد بثابت Ra الافتراضيّ (لا جغرافيا هنا). سلوك محفوظ (15.0=DEFAULT_RA_MM).
-            et0 = hargreaves_et0(day.t_max_c, day.t_min_c, DEFAULT_RA_MM)
-            estimated_et0_days += 1
+            missing_et0_days += 1  # يوم بلا ET0 (لا تقدير محلّيّ) — يُعلَن كقيد
         et0_series.append(et0)
         rain_total += max(0.0, day.rain_mm)
 
@@ -484,9 +497,10 @@ def simulate_season(ctx: SimContext) -> SimResult:
             f"الإشعاع الشمسي غير متوفّر لـ{estimated_solar_days} يوم — استُخدم تقدير "
             f"{_DEFAULT_SOLAR_MJ:.0f} MJ/m²/يوم (الهضبة اليمنيّة)."
         )
-    if estimated_et0_days > 0:
+    if missing_et0_days > 0:
         assumptions.append(
-            f"ET₀ مُقدَّر (Hargreaves) لـ{estimated_et0_days} يوم لغياب القياس المباشر."
+            f"ET₀ غير متوفّر من محرّك الطقس لـ{missing_et0_days} يوم — استُبعِدت تلك الأيّام "
+            "من احتياج الماء (لا تقدير Hargreaves محلّيّ داخل المنصّة)."
         )
     if not maturity_reached:
         warnings.append(
@@ -506,7 +520,7 @@ def simulate_season(ctx: SimContext) -> SimResult:
         confidence += 0.20
     if estimated_solar_days == 0:
         confidence += 0.10
-    if estimated_et0_days == 0:
+    if missing_et0_days == 0:
         confidence += 0.10
     if maturity_reached:
         confidence += 0.10

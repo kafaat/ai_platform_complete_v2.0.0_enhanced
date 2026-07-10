@@ -138,6 +138,40 @@ async def get_et0_product(
     return await weather_post_json("/v1/weather/agro/et0", json_body=body, tenant_id=tenant_id)
 
 
+async def get_et0_series(
+    *,
+    daily_t_min: list,
+    daily_t_max: list,
+    lat_deg: float | None,
+    elevation_m: float | None = None,
+    day_of_year_start: int | None = None,
+    daily_solar_rad_mj_m2: list | None = None,
+    daily_rh_mean_pct: list | None = None,
+    daily_wind_2m_ms: list | None = None,
+    valid_period: dict | None = None,
+    tenant_id: str | None = None,
+) -> dict[str, Any]:
+    """سلسلة ET0 اليوميّة المرجعيّة من محرّك الطقس — **مصدر ET0 الوحيد للمحاكاة**.
+
+    النواة تُنفَّذ في المحرّك (لا نواة محلّيّة). يعيد daily_et0_mm (قد يحوي None ليوم
+    ناقص) + methods + accumulated. تعذّر المحرّك ⇒ HTTPException(502) (لا Hargreaves محلّيّ).
+    """
+    body = {
+        "daily_t_min": list(daily_t_min),
+        "daily_t_max": list(daily_t_max),
+        "lat_deg": lat_deg,
+        "elevation_m": elevation_m,
+        "day_of_year_start": day_of_year_start,
+        "daily_solar_rad_mj_m2": daily_solar_rad_mj_m2,
+        "daily_rh_mean_pct": daily_rh_mean_pct,
+        "daily_wind_2m_ms": daily_wind_2m_ms,
+        "valid_period": valid_period,
+    }
+    return await weather_post_json(
+        "/v1/weather/agro/et0/series", json_body=body, tenant_id=tenant_id
+    )
+
+
 async def get_gdd_product(
     *,
     daily_t_min: list,
