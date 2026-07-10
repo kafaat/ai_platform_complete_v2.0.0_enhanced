@@ -19,6 +19,9 @@ jobs:
       - name: indicators-registry-gate
         run: python scripts/ci/indicators_registry_gate.py
 
+      - name: indicators-frontend-manifest-sync
+        run: python scripts/ci/generate_indicators_frontend_manifest.py --check
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 

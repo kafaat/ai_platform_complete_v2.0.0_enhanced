@@ -11,7 +11,7 @@ Checks:
   (b) every registry entry with source="real" + kind="raster_formula" is a raster
       formula key OR is bridged via raster_alias / _RASTER_REAL_INDEX.
   (c) every id in analytics_shapers.py _INDICATOR_CATALOG is present in the registry.
-  (d) every id in HybridIndexPage.tsx INDICATOR_CATALOG is present in the registry.
+  (d) every id in the generated frontend manifest (indicatorsRegistry.generated.ts) is in the registry.
   (e) every renderable=true registry id appears in layerRegistry.ts as a kind='index'.
   (f) HONESTY: an id that vegetation-analysis computes only as a synthetic estimate
       (no raster formula key) must NOT be labelled source="real"/status="implemented".
@@ -29,6 +29,10 @@ RASTER_QUALITY = ROOT / "services/raster-service/raster_quality.py"
 VEGETATION = ROOT / "services/vegetation-analysis-service/vegetation_runtime.py"
 ANALYTICS = ROOT / "services/sahool-platform/api/analytics_shapers.py"
 HYBRID = ROOT / "frontend/src/sections/HybridIndexPage.tsx"
+# WS-B.2: HybridIndexPage لم يعد يحمل قائمة INDICATOR_CATALOG ثابتة — يستهلك المانيفست
+# المُولَّد وقت البناء من نفس المصدر الأوحد. نقرأ ids المانيفست (يُثبت أنّ الواجهة
+# مقودة بالسجلّ لا بقائمة ثابتة تنحرف). المزامنة يحرسها المولّد --check.
+FRONTEND_MANIFEST = ROOT / "frontend/src/lib/indicatorsRegistry.generated.ts"
 LAYER_REGISTRY = ROOT / "frontend/src/lib/layerRegistry.ts"
 
 
@@ -68,8 +72,10 @@ def _backend_catalog_ids() -> set[str]:
 
 
 def _frontend_catalog_ids() -> set[str]:
-    block = _slice(_read(HYBRID), "const INDICATOR_CATALOG", "] as const;")
-    return set(re.findall(r"id:\s*'([a-z0-9_]+)'", block))
+    # ids المانيفست المُولَّد (build-time) — بديل قائمة HybridIndexPage الثابتة المُزالة.
+    if not FRONTEND_MANIFEST.exists():
+        return set()
+    return set(re.findall(r'"id":\s*"([a-z0-9_]+)"', FRONTEND_MANIFEST.read_text(encoding="utf-8")))
 
 
 def _layer_index_ids() -> set[str]:

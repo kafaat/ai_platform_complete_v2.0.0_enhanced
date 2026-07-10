@@ -13,6 +13,7 @@ import {
   RefreshCw, Filter, ChevronDown, FileText, BarChart3,
   Sprout, Timer, Leaf, Droplets, Thermometer,
   FlaskConical, Wind, CheckCircle2, Info, Activity, Zap,
+  type LucideIcon,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -20,36 +21,49 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDashboardKPIs } from '@/hooks/useIndicators';
+import { useIndicatorRegistry, type RegistryIndicator } from '@/hooks/useIndicatorRegistry';
 import { useSeasons } from '@/hooks/useApi';
 import type { SeasonSummary } from '@/services/api';
 import { KPICard } from '@/components/KPICard';
 import { AlertBanner } from '@/components/AlertBanner';
 import { NDVIGauge } from '@/components/NDVIGauge';
 
-// ── Indicator catalog (وصف/أيقونات فقط — للدليل المرجعيّ، لا أرقام مُلفَّقة) ──
-const INDICATOR_CATALOG = [
+// ── خصائص العرض الثابتة (أيقونة/لون/وصف) مفتاحها id — تلميع فقط. ──
+// ملاحظة صدق (WS-B.2): هذه *ليست* مصدر الحقيقة لمجموعة المؤشّرات. مجموعة
+// المؤشّرات وحالة توفّرها (availability) وتصنيف مصدرها (source_class) وقابليّة
+// عرضها (renderable) تأتي حصراً من سجلّ `/api/v1/indicators/registry` الحيّ عبر
+// `useIndicatorRegistry`. معرّف لا يعرفه هذا الجدول ⇒ عرض افتراضيّ محايد، لا
+// حذف. لا يجوز تقديم هذه القائمة كأنّها السجلّ.
+interface Presentation { icon: LucideIcon; color: string; desc_ar: string; cat: string }
+
+const PRESENTATION: Record<string, Presentation> = {
   // نباتية
-  { id:'ndvi',  cat:'vegetation', name_ar:'NDVI',   desc_ar:'مؤشر الغطاء النباتي الطبيعي',   unit:'',       icon:Leaf,        color:'#16a34a' },
-  { id:'evi',   cat:'vegetation', name_ar:'EVI',    desc_ar:'مؤشر النباتات المحسّن',          unit:'',       icon:Sprout,      color:'#15803d' },
-  { id:'gndvi', cat:'vegetation', name_ar:'GNDVI',  desc_ar:'مؤشر الكلوروفيل الأخضر',        unit:'',       icon:Leaf,        color:'#4ade80' },
-  { id:'ndre',  cat:'vegetation', name_ar:'NDRE',   desc_ar:'مؤشر الحافة الحمراء',           unit:'',       icon:Activity,    color:'#0891b2' },
-  { id:'savi',  cat:'vegetation', name_ar:'SAVI',   desc_ar:'مؤشر النباتات المعدّل',         unit:'',       icon:Sprout,      color:'#65a30d' },
-  { id:'lai',   cat:'vegetation', name_ar:'LAI',    desc_ar:'مؤشر مساحة الورقة',             unit:'m²/m²',  icon:Leaf,        color:'#22c55e' },
-  { id:'ndwi',  cat:'vegetation', name_ar:'NDWI',   desc_ar:'محتوى المياه في النبات',         unit:'',       icon:Droplets,    color:'#38bdf8' },
+  ndvi:  { cat:'vegetation', desc_ar:'مؤشر الغطاء النباتي الطبيعي', icon:Leaf,        color:'#16a34a' },
+  evi:   { cat:'vegetation', desc_ar:'مؤشر النباتات المحسّن',        icon:Sprout,      color:'#15803d' },
+  gndvi: { cat:'vegetation', desc_ar:'مؤشر الكلوروفيل الأخضر',       icon:Leaf,        color:'#4ade80' },
+  ndre:  { cat:'vegetation', desc_ar:'مؤشر الحافة الحمراء',          icon:Activity,    color:'#0891b2' },
+  savi:  { cat:'vegetation', desc_ar:'مؤشر النباتات المعدّل',        icon:Sprout,      color:'#65a30d' },
+  lai:   { cat:'vegetation', desc_ar:'مؤشر مساحة الورقة',            icon:Leaf,        color:'#22c55e' },
+  ndwi:  { cat:'vegetation', desc_ar:'محتوى المياه في النبات',        icon:Droplets,    color:'#38bdf8' },
   // مائية
-  { id:'soil_moisture', cat:'water', name_ar:'رطوبة التربة',  desc_ar:'محتوى الرطوبة في التربة',  unit:'%',     icon:Droplets,    color:'#0ea5e9' },
-  { id:'wue',           cat:'water', name_ar:'كفاءة الري',    desc_ar:'كيلوجرام إنتاج/متر مكعب', unit:'kg/m³', icon:Zap,         color:'#38bdf8' },
-  { id:'et0',           cat:'water', name_ar:'ET₀',           desc_ar:'البخر-نتح المرجعي',       unit:'mm/d',  icon:Droplets,    color:'#7dd3fc' },
-  { id:'water_deficit', cat:'water', name_ar:'عجز المياه',    desc_ar:'الفجوة بين ET0 والأمطار', unit:'mm',    icon:AlertTriangle, color:'#fb923c' },
+  soil_moisture: { cat:'water', desc_ar:'محتوى الرطوبة في التربة', icon:Droplets,      color:'#0ea5e9' },
+  wue:           { cat:'water', desc_ar:'كيلوجرام إنتاج/متر مكعب', icon:Zap,           color:'#38bdf8' },
+  et0:           { cat:'water', desc_ar:'البخر-نتح المرجعي',       icon:Droplets,      color:'#7dd3fc' },
+  water_deficit: { cat:'water', desc_ar:'الفجوة بين ET0 والأمطار', icon:AlertTriangle, color:'#fb923c' },
   // تربة
-  { id:'soil_ph', cat:'soil', name_ar:'pH التربة',     desc_ar:'درجة حموضة التربة',      unit:'',      icon:FlaskConical, color:'#92400e' },
-  { id:'soil_ec', cat:'soil', name_ar:'EC التربة',     desc_ar:'التوصيل الكهربائي',       unit:'dS/m',  icon:Zap,          color:'#b45309' },
-  { id:'nitrogen', cat:'soil', name_ar:'النيتروجين',   desc_ar:'النيتروجين المتاح',       unit:'mg/kg', icon:FlaskConical, color:'#65a30d' },
+  soil_ph:  { cat:'soil', desc_ar:'درجة حموضة التربة', icon:FlaskConical, color:'#92400e' },
+  soil_ec:  { cat:'soil', desc_ar:'التوصيل الكهربائي',  icon:Zap,          color:'#b45309' },
+  nitrogen: { cat:'soil', desc_ar:'النيتروجين المتاح',  icon:FlaskConical, color:'#65a30d' },
   // طقس
-  { id:'temperature', cat:'weather', name_ar:'الحرارة',  desc_ar:'درجة الحرارة المتوسطة', unit:'°C',   icon:Thermometer,  color:'#f97316' },
-  { id:'humidity',    cat:'weather', name_ar:'الرطوبة',  desc_ar:'الرطوبة النسبية',        unit:'%',    icon:Droplets,     color:'#60a5fa' },
-  { id:'wind_speed',  cat:'weather', name_ar:'الرياح',   desc_ar:'سرعة الرياح',            unit:'km/h', icon:Wind,         color:'#93c5fd' },
-] as const;
+  temperature: { cat:'weather', desc_ar:'درجة الحرارة المتوسطة', icon:Thermometer, color:'#f97316' },
+  humidity:    { cat:'weather', desc_ar:'الرطوبة النسبية',        icon:Droplets,    color:'#60a5fa' },
+  wind_speed:  { cat:'weather', desc_ar:'سرعة الرياح',            icon:Wind,        color:'#93c5fd' },
+};
+
+const DEFAULT_PRESENTATION: Presentation = { icon: Activity, color: '#64748b', desc_ar: '', cat: 'operations' };
+
+// معرّف لا يعرفه جدول العرض ⇒ عرض افتراضيّ محايد بدل الإخفاء.
+const presentationFor = (id: string): Presentation => PRESENTATION[id] ?? DEFAULT_PRESENTATION;
 
 const CATEGORIES = [
   { id:'all',         label:'الكل',         color:'#6b7280' },
@@ -60,9 +74,31 @@ const CATEGORIES = [
   { id:'weather',     label:'طقس 🌤',       color:'#f97316' },
 ] as const;
 
-const CATALOG_BY_ID = new Map<string, (typeof INDICATOR_CATALOG)[number]>(
-  INDICATOR_CATALOG.map(c => [c.id, c]),
-);
+// وسم توفّر المؤشّر — عرض صادق لحالة السجلّ: غير متاح بعد لا يُعرض كطبقة عاملة.
+function AvailabilityBadge({ indicator }: { indicator: RegistryIndicator }) {
+  if (indicator.availability === 'unavailable') {
+    return (
+      <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-slate-200 text-slate-500 font-medium whitespace-nowrap">
+        غير متاح بعد
+      </span>
+    );
+  }
+  if (indicator.availability === 'estimated' || indicator.source_class === 'estimated') {
+    return (
+      <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-amber-100 text-amber-700 font-medium whitespace-nowrap">
+        تقديريّ
+      </span>
+    );
+  }
+  if (indicator.source_class === 'derived') {
+    return (
+      <span className="px-1.5 py-0.5 text-[9px] rounded-full bg-sky-100 text-sky-700 font-medium whitespace-nowrap">
+        مُشتقّ
+      </span>
+    );
+  }
+  return null;
+}
 
 // sim_* مُخزَّنة كغ/هكتار → طنّ/هكتار للعرض، أو null إن غابت المحاكاة.
 const kgHaToTHa = (v: number | null | undefined): number | null =>
@@ -171,6 +207,8 @@ export function HybridIndexPage() {
   const [activeCategory, setCategory] = useState<string>('all');
   const [showExportMenu, setExport]   = useState(false);
   const { data, isLoading, error, refetch } = useDashboardKPIs();
+  // مصدر الحقيقة لمجموعة المؤشّرات + حالتها (WS-B.2) — لا قائمة ثابتة.
+  const registry = useIndicatorRegistry();
 
   const kpis    = (data?.kpis    || []) as Record<string, unknown>[];
   const alerts  = (data?.alerts  || []) as Record<string, unknown>[];
@@ -180,12 +218,12 @@ export function HybridIndexPage() {
   // فئة الـKPI تُؤخذ من الخادم إن وُجدت، وإلّا من الكتالوج المرجعيّ.
   const enriched = useMemo(() =>
     kpis.map((kpi: Record<string, unknown>) => {
-      const meta = CATALOG_BY_ID.get(kpi.id as string);
+      const meta = presentationFor(kpi.id as string);
       return {
         ...kpi,
-        category: (kpi.category as string) || meta?.cat || 'operations',
-        desc_ar:  (kpi.desc_ar as string)  || meta?.desc_ar || '',
-        color:    (kpi.color as string)    || meta?.color || '#16a34a',
+        category: (kpi.category as string) || meta.cat,
+        desc_ar:  (kpi.desc_ar as string)  || meta.desc_ar,
+        color:    (kpi.color as string)    || meta.color,
       };
     }), [kpis]);
 
@@ -421,26 +459,59 @@ export function HybridIndexPage() {
         )}
       </div>
 
-      {/* ── Indicator Legend (دليل مرجعيّ — لا أرقام) ── */}
+      {/* ── Indicator Registry Legend (السجلّ الحيّ WS-B.2 — لا قائمة ثابتة) ── */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-        <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-          <Info className="w-4 h-4 text-slate-500" /> دليل المؤشرات
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
-          {INDICATOR_CATALOG.map(ind => {
-            const Icon = ind.icon;
-            return (
-              <div key={ind.id} className="flex items-start gap-2 p-2.5 bg-slate-50 rounded-lg">
-                <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color:ind.color }} />
-                <div>
-                  <span className="font-semibold text-slate-700 text-xs">{ind.name_ar}</span>
-                  <p className="text-[11px] text-slate-400 leading-tight">{ind.desc_ar}</p>
-                  {ind.unit && <span className="text-[10px] text-slate-300">وحدة: {ind.unit}</span>}
-                </div>
-              </div>
-            );
-          })}
+        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
+          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <Info className="w-4 h-4 text-slate-500" /> دليل المؤشرات
+          </h3>
+          {registry.data && (
+            <span
+              className="text-[10px] text-slate-400 bg-slate-100 px-2 py-1 rounded-full font-mono"
+              title="علامة حداثة الـmanifest — بادئة digest بطول 12">
+              نسخة السجلّ: {registry.data.registry_version || '—'}
+            </span>
+          )}
         </div>
+
+        {registry.loading ? (
+          // تحميل: مؤشّر صادق، لا نعرض قائمة ثابتة كأنّها السجلّ.
+          <div className="py-8 text-center text-sm text-slate-400">
+            <RefreshCw className="inline w-4 h-4 animate-spin ml-1" /> جارٍ تحميل سجلّ المؤشّرات…
+          </div>
+        ) : registry.error || !registry.data ? (
+          // تدهور صادق: تعذّر السجلّ ⇒ لا اختلاق قائمة، تحذير واضح فقط.
+          <div className="flex items-start gap-2 py-4 px-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+            <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <span>
+              تعذّر تحميل سجلّ المؤشّرات — القائمة قد تكون غير محدّثة، لذا أُخفيت
+              لتفادي عرض بيانات غير موثوقة كأنّها الحقيقة.
+            </span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+            {registry.data.indicators.map(ind => {
+              const p = presentationFor(ind.id);
+              const Icon = p.icon;
+              const unavailable = ind.availability === 'unavailable';
+              return (
+                <div
+                  key={ind.id}
+                  className={`flex items-start gap-2 p-2.5 rounded-lg ${unavailable ? 'bg-slate-100 opacity-60' : 'bg-slate-50'}`}>
+                  <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: p.color }} />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-semibold text-slate-700 text-xs">{ind.name_ar}</span>
+                      <AvailabilityBadge indicator={ind} />
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-tight">{p.desc_ar || ind.name_en}</p>
+                    {ind.unit && <span className="text-[10px] text-slate-300">وحدة: {ind.unit}</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

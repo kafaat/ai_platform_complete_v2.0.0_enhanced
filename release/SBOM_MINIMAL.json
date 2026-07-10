@@ -1195,6 +1195,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eea368541afd7c632b707efe3fa9f64cab00ffe1cf34eeac5ed0f4fb9274826a"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/IrrigationDecisionCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "58de5535102d524b4f318462e5b7bc6c8c340606b6ff52c04dcb46ccd4f43748"
         }
       ],
@@ -2399,6 +2409,26 @@
         }
       ],
       "name": "frontend/src/hooks/useFieldIntelligenceCard.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "216eb047ebae7cdb25ea353c9deca4718148feb7491cbe3299803acc54bdde6e"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldIrrigationRecommendation.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "312bcb3f6b3b9bf4dbf9a828444933787dd63824584fd3c5349d5242203c6973"
+        }
+      ],
+      "name": "frontend/src/hooks/useFieldIrrigationRecommendation.ts",
       "type": "file"
     },
     {
@@ -4855,7 +4885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17f9f4d370c77dab92707b20eb28dc5533400ab1f26a7998f2bd878170235186"
+          "content": "6e0ffe54f9b3d1d4d1c038ef0f7baf7b711e769ede50894bed539344bac36600"
         }
       ],
       "name": "frontend/src/sections/HybridIndexPage.tsx",
@@ -12615,6 +12645,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f7389fca1d083f9e2194d597cc63e0f2b3b6ae19d0ee4adfd3f341599e899f71"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_state_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6c197999841b2c30de797a630437031f7f024c759b9adf9eb36d353371139211"
         }
       ],
@@ -19975,6 +20015,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f2244dba9a2f4e05fb6286c1ddde857dc8067a979429489b8690f4f7cae4f285"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1a8146d38e720818a92de8dab473c5a25cc52b69f3db4a56ece4cbb57a9a38a1"
         }
       ],
@@ -20359,6 +20409,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_plan_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "80f8ae8ee1e36a9c0e27434cf8411af8696aaef4dd9b8aeeeb711ab5484469d9"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_state_guard.py",
       "type": "file"
     },
     {
