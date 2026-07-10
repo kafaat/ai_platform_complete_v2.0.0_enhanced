@@ -50,6 +50,13 @@ export interface IrrigationRecommendationCandidate {
   policy_knobs: Record<string, unknown>;
 }
 
+/** نَسَب الطقس (WS-D.2c) — مصدر اللقطة ووقت صلاحيّتها. */
+export interface IrrigationWeatherProvenance {
+  source: string; // 'weather-engine-forecast' | 'manual_override'
+  valid_time: string | null;
+  day_of_year: number | null;
+}
+
 /** الحقول المشتركة عبر كلّ الحالات (الملكيّة/الحدود/الأدلّة دائماً حاضرة). */
 interface IrrigationRecommendationBase {
   field_id: string;
@@ -62,11 +69,36 @@ interface IrrigationRecommendationBase {
   calibrated: false;
 }
 
+/** حالة الاعتماد (WS-D.2d) — «اروِ» ليس قراراً نهائيّاً قبل approved. */
+export type ApprovalState =
+  | 'not_submitted'
+  | 'pending_approval'
+  | 'submit_unavailable'
+  | 'approved'
+  | 'rejected';
+
 /** توصية جاهزة — recommendation كائن غير فارغ + generated_on حاضر. */
 export interface IrrigationRecommendationReady extends IrrigationRecommendationBase {
   status: 'recommendation_ready';
   generated_on: string; // YYYY-MM-DD
   recommendation: IrrigationRecommendationCandidate;
+  // WS-D.2c/d: نَسَب الطقس + حالة الاعتماد (اختياريّة للتوافق الخلفيّ).
+  weather?: IrrigationWeatherProvenance;
+  approval_state?: ApprovalState;
+  decision_id?: string | null;
+  et0?: {
+    et0_mm: number | null;
+    method?: string;
+    quality_status?: string;
+    source?: string;
+  };
+}
+
+/** تبعيّة غير متاحة (WS-D.2c/d): طقس مفقود/محرّك متعذّر ⇒ لا توصية (fail-closed). */
+export interface IrrigationRecommendationDependencyUnavailable extends IrrigationRecommendationBase {
+  status: 'dependency_unavailable';
+  generated_on?: undefined;
+  recommendation: null;
 }
 
 /** استنزاف/بيانات ناقصة — لا توصية (recommendation=null)، الحدود تفسّر السبب. */
@@ -87,7 +119,8 @@ export interface IrrigationRecommendationInconsistent extends IrrigationRecommen
 export type IrrigationRecommendationResponse =
   | IrrigationRecommendationReady
   | IrrigationRecommendationInsufficient
-  | IrrigationRecommendationInconsistent;
+  | IrrigationRecommendationInconsistent
+  | IrrigationRecommendationDependencyUnavailable;
 
 /** حارس نوع: هل الاستجابة توصية جاهزة فعلاً؟ (recommendation غير null). */
 export function isRecommendationReady(
@@ -108,15 +141,17 @@ export interface UseFieldIrrigationRecommendationResult {
  *  الخطأ يُرفَع (retry:false) لتعرض الواجهة حالة صادقة — لا مرشَّح مُلفّق. */
 export function useFieldIrrigationRecommendation(
   fieldId: string | null | undefined,
-  weather: IrrigationRecommendationWeatherInput | null,
+  weather: IrrigationRecommendationWeatherInput | null = null,
   enabled = true,
 ): UseFieldIrrigationRecommendationResult {
+  // WS-D.2c: الطقس اختياريّ — عند غيابه يجلبه الخادم آليّاً (المسار الأساسيّ). لا نشترط
+  // طقساً يدويّاً لتفعيل الطلب (كان `!!weather` يمنع مسار الجلب التلقائيّ).
   const q = useQuery<IrrigationRecommendationResponse>({
     queryKey: [
       'field-irrigation-recommendation',
       fieldId ?? 'none',
-      weather?.t_min_c ?? 'none',
-      weather?.t_max_c ?? 'none',
+      weather?.t_min_c ?? 'auto',
+      weather?.t_max_c ?? 'auto',
       weather?.solar_rad_mj_m2 ?? 'none',
       weather?.rh_mean_pct ?? 'none',
       weather?.wind_2m_ms ?? 'none',
@@ -124,14 +159,14 @@ export function useFieldIrrigationRecommendation(
       weather?.root_depth_m ?? 'none',
       weather?.policy ?? 'none',
     ],
-    enabled: enabled && !!fieldId && !!weather,
+    enabled: enabled && !!fieldId,
     retry: false,
     staleTime: 10 * 60_000,
     queryFn: () =>
       kongApi
         .post(
           `/api/v1/fields/${encodeURIComponent(fieldId as string)}/irrigation-recommendation`,
-          weather,
+          weather ?? {},
         )
         .then((r) => r.data as IrrigationRecommendationResponse),
   });

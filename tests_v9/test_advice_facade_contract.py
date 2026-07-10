@@ -33,11 +33,18 @@ def test_backend_advice_consumes_et0_does_not_compute_it():
     assert "et0_mm" in src, "advice facade must take et0 as an input parameter"
 
 
-def test_frontend_advice_page_is_render_only():
+def test_frontend_advice_page_consumes_canonical_path_render_only():
     src = _ADVICE_TSX.read_text(encoding="utf-8")
-    # يستهلك عبر hook/جلب — لا يحسب توصية محلّيّاً.
-    assert "useIrrigationAdvice" in src, "page must consume the advice via the hook (server value)"
-    # لا حساب ETc/ET0 محلّيّ في الواجهة (يعرض a.et0 كما يأتي من الخادم).
+    # WS-D.2e: يستهلك المسار الكنسيّ الوحيد (irrigation-recommendation)، لا endpoint الريّ القديم.
+    assert "useFieldIrrigationRecommendation" in src, (
+        "advice page must consume the canonical irrigation-recommendation path"
+    )
+    assert "useIrrigationAdvice" not in src, (
+        "advice page must NOT consume the legacy weather/irrigation-advice endpoint (dedup)"
+    )
+    # يعرض حالة الاعتماد (candidate ليس قراراً نهائيّاً).
+    assert "approval_state" in src, "advice page must surface approval_state (candidate, not final)"
+    # لا حساب ETc/ET0 محلّيّ في الواجهة (يعرض قيَم الخادم كما تأتي).
     forbidden = [r"et0\s*\*", r"\*\s*kc\b", r"\bpenman", r"\bhargreaves", r"gdd\s*\+="]
     for pat in forbidden:
         assert not re.search(pat, src, re.IGNORECASE), (

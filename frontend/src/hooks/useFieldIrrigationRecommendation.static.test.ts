@@ -32,9 +32,16 @@ describe('useFieldIrrigationRecommendation — targets the WS-D.2 endpoint', () 
     expect(hookSrc).toContain('calibrated: false');
   });
 
-  it('does not fire without a fieldId and real min/max temperature (enabled guard)', () => {
-    expect(hookSrc).toContain('enabled: enabled && !!fieldId && !!weather');
+  it('fires with a fieldId; weather is optional (auto-fetched by the server, WS-D.2c)', () => {
+    // بعد D.2c الطقس اختياريّ — الخادم يجلبه آليّاً؛ التفعيل يحتاج fieldId فقط.
+    expect(hookSrc).toContain('enabled: enabled && !!fieldId');
+    expect(hookSrc).not.toContain('enabled: enabled && !!fieldId && !!weather');
     expect(hookSrc).toContain('retry: false');
+  });
+
+  it('models the D.2c/d contract (dependency_unavailable + approval_state)', () => {
+    expect(hookSrc).toContain("status: 'dependency_unavailable'");
+    expect(hookSrc).toContain('approval_state');
   });
 });
 

@@ -1,15 +1,21 @@
 // ═══════════════════════════════════════════════════════════════
-// SAHOOL — WeatherAdvicePage (الطقس والريّ)
-// توصية ريّ (FAO-56) + مخاطر أمراض لكلّ حقل، بيانات حيّة عبر البوابة:
-//   GET /api/v1/fields/{id}/weather/irrigation-advice  (field:view)
-//   GET /api/v1/fields/{id}/weather/disease-risk       (field:view)
-// تُحسبان من الطقس الحيّ (Open-Meteo) ومحصول الموسم النشط. لا بيانات مُلفَّقة —
-// عند الخطأ/الفراغ تُعرض حالة صادقة (StateViews). 503 = الطقس/القاعدة معطّلة.
+// SAHOOL — WeatherAdvicePage (الطقس والريّ) — واجهة رفيعة (WS-D.2e)
+// توصية الريّ تستهلك المسار الكنسيّ الوحيد (مرشَّح → قرار → اعتماد):
+//   POST /api/v1/fields/{id}/irrigation-recommendation  (candidate + approval_state)
+//   GET  /api/v1/fields/{id}/weather/disease-risk       (منتج طقس مستقلّ — يبقى)
+// لا حساب محلّيّ (ET0/Kc/Water-Balance): تُعرَض قيَم الخادم كما تأتي. لا بيانات مُلفَّقة —
+// حالة متدهورة (طقس مفقود/استنزاف ناقص) ⇒ حالة صادقة بلا توصية. لا endpoint ريّ قديم.
+// خطوات لاحقة (تدريجيّة): إعادة التسمية إلى Field Advisory ثمّ إزالة weather/irrigation-advice.
 // ═══════════════════════════════════════════════════════════════
 import { useSelectedField } from '../hooks/useSelectedField';
 import { CloudRain, Droplets, Bug, Map, Clock, Thermometer, Wind } from 'lucide-react';
-import { useIrrigationAdvice, useDiseaseRisk } from '../hooks/useApi';
-import type { IrrigationAdvice, DiseaseRisk } from '../services/api';
+import { useDiseaseRisk } from '../hooks/useApi';
+import {
+  useFieldIrrigationRecommendation,
+  isRecommendationReady,
+  type IrrigationRecommendationReady,
+} from '../hooks/useFieldIrrigationRecommendation';
+import type { DiseaseRisk } from '../services/api';
 import { asApiError } from '../services/api';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 import { SegmentedScale, type ScaleBand } from '../components/insights/ScaleLegend';
@@ -67,9 +73,20 @@ function Badge({ s }: { s: { label: string; bg: string; fg: string } }) {
 
 const cropLabel = (c: string | null) => (c && c !== '—' ? c : 'غير محدّد');
 
-// ── بطاقة توصية الريّ ─────────────────────────────────────────────
+// حالة الاعتماد (WS-D.2d) — «اروِ» ليس قراراً نهائيّاً قبل approved.
+const APPROVAL_STYLE: Record<string, { label: string; bg: string; fg: string }> = {
+  not_submitted: { label: 'مرشَّح — غير مُقدَّم', bg: '#33415544', fg: '#cbd5e1' },
+  pending_approval: { label: 'بانتظار الاعتماد', bg: '#f59e0b22', fg: '#fbbf24' },
+  submit_unavailable: { label: 'تعذّر التقديم', bg: '#dc262622', fg: '#f87171' },
+  approved: { label: 'مُعتمَد', bg: '#16a34a22', fg: '#4ade80' },
+  rejected: { label: 'مرفوض', bg: '#dc262622', fg: '#f87171' },
+};
+
+// ── بطاقة توصية الريّ (WS-D.2e: واجهة رفيعة على المسار الكنسيّ irrigation-recommendation) ──
+// لا تحسب شيئاً محلّيّاً؛ تستهلك المرشَّح الواعي بالاستنزاف (candidate → decision) بجلب
+// طقس تلقائيّ من الخادم (WS-D.2c). مصدر الحقيقة واحد — لا endpoint ريّ قديم.
 function IrrigationCard({ fieldId }: { fieldId: string }) {
-  const { data, isLoading, isError, error, refetch } = useIrrigationAdvice(fieldId);
+  const { data, loading, error, refetch } = useFieldIrrigationRecommendation(fieldId, null);
 
   return (
     <div className="rounded-xl p-4 border" style={{ background: '#0f1117', borderColor: '#334155' }} dir="rtl">
@@ -77,43 +94,67 @@ function IrrigationCard({ fieldId }: { fieldId: string }) {
         <Droplets className="w-4 h-4 text-emerald-400" />
         <span className="text-sm font-semibold text-slate-200">توصية الريّ (FAO-56)</span>
       </div>
-      {isLoading ? (
+      {loading ? (
         <LoadingState message="جارٍ حساب توصية الريّ…" />
-      ) : isError ? (
+      ) : error ? (
         <ErrorState title="تعذّر حساب توصية الريّ" detail={errorDetail(error)} onRetry={() => refetch()} />
+      ) : isRecommendationReady(data) ? (
+        <IrrigationBody a={data} />
       ) : (
-        <IrrigationBody a={data as IrrigationAdvice} />
+        // صدق: حالة متدهورة (استنزاف ناقص/غير متّسق/طقس مفقود) ⇒ لا توصية مُلفَّقة.
+        <EmptyState
+          icon={<Droplets className="w-8 h-8" />}
+          title={
+            data?.status === 'dependency_unavailable'
+              ? 'الطقس غير متاح — لا توصية'
+              : data?.status === 'insufficient_data'
+                ? 'بيانات الاستنزاف ناقصة'
+                : data?.status === 'inconsistent_state'
+                  ? 'حالة رطوبة غير متّسقة'
+                  : 'لا توصية متاحة'
+          }
+          hint={(data?.limitations ?? []).join(' · ') || 'تحتاج بيانات حقل أحدث لإصدار توصية.'}
+        />
       )}
     </div>
   );
 }
 
-function IrrigationBody({ a }: { a: IrrigationAdvice }) {
-  const u = URGENCY_STYLE[a.urgency] ?? { label: a.urgency, bg: '#33415544', fg: '#cbd5e1' };
+function IrrigationBody({ a }: { a: IrrigationRecommendationReady }) {
+  const rec = a.recommendation;
+  const u = URGENCY_STYLE[rec.urgency] ?? { label: rec.urgency, bg: '#33415544', fg: '#cbd5e1' };
+  const approval = APPROVAL_STYLE[a.approval_state ?? 'not_submitted'] ?? APPROVAL_STYLE.not_submitted;
   return (
     <div className="space-y-3">
       <div className="flex items-end justify-between gap-2">
         <div>
-          <div className="text-3xl font-bold text-slate-100">{a.recommended_mm}<span className="text-base text-slate-400"> مم</span></div>
-          <div className="text-[11px] text-slate-500 mt-0.5">العمق الموصى به</div>
+          <div className="text-3xl font-bold text-slate-100">
+            {rec.net_irrigation_mm}
+            <span className="text-base text-slate-400"> مم</span>
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">العمق الصافي الموصى به (مرشَّح)</div>
         </div>
         <Badge s={u} />
       </div>
       <SegmentedScale
         title="إلحاح الريّ"
         bands={IRRIGATION_URGENCY_SCALE}
-        activeIndex={Math.max(0, IRRIGATION_URGENCY_ORDER.indexOf(a.urgency))}
+        activeIndex={Math.max(0, IRRIGATION_URGENCY_ORDER.indexOf(rec.urgency))}
       />
-      <div className="flex items-center gap-1.5 text-xs text-slate-300">
-        <Clock className="w-3.5 h-3.5 text-slate-500" /> التوقيت: {a.timing_ar}
+      {/* WS-D.2d: حالة الاعتماد — «اروِ» ليس قراراً نهائيّاً قبل approved. */}
+      <div className="flex items-center justify-between gap-2 text-xs">
+        <span className="text-slate-400">حالة القرار</span>
+        <Badge s={approval} />
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-400">
-        <span>المحصول: {cropLabel(a.crop)}</span>
-        <span>المرحلة: {a.stage}</span>
-        <span>ET₀: {a.et0} مم</span>
-        <span>Kc: {a.kc}</span>
+        <span>المحصول: {cropLabel(a.inputs.crop)}</span>
+        <span>المرحلة: {a.inputs.stage}</span>
+        {a.et0?.et0_mm != null && <span>ET₀: {a.et0.et0_mm} مم</span>}
+        {a.weather?.source && <span>الطقس: {a.weather.source === 'weather-engine-forecast' ? 'تلقائيّ' : a.weather.source}</span>}
       </div>
-      <p className="text-xs text-slate-300 leading-relaxed">{a.rationale_ar}</p>
+      <p className="text-xs text-slate-500 leading-relaxed">
+        {rec.trigger_reason} — مرشَّح لخدمة القرار (لا تنفيذ قبل الاعتماد).
+      </p>
     </div>
   );
 }

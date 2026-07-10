@@ -2415,7 +2415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "216eb047ebae7cdb25ea353c9deca4718148feb7491cbe3299803acc54bdde6e"
+          "content": "f22c2dcc4214e7add87f85b1eb328a8677a55f5739354ed1f7165414a9acdea7"
         }
       ],
       "name": "frontend/src/hooks/useFieldIrrigationRecommendation.static.test.ts",
@@ -2425,7 +2425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "312bcb3f6b3b9bf4dbf9a828444933787dd63824584fd3c5349d5242203c6973"
+          "content": "ed2b3dca91ba81c5981d3f1d408fe98fd23d0183ca2d2c0c91c5e1acbef8b9b1"
         }
       ],
       "name": "frontend/src/hooks/useFieldIrrigationRecommendation.ts",
@@ -5455,7 +5455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8350e49b550229ed68c4af041c9636b9e0db0e26f2eb6eaee400d0ad7b2057f6"
+          "content": "4e8eb45771941584cb8847c2936711d991abf10e0ece9be41283cc3cdff6080e"
         }
       ],
       "name": "frontend/src/sections/WeatherAdvicePage.tsx",
