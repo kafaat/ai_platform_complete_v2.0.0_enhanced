@@ -75,6 +75,7 @@ class BandMapping(BaseModel):
     scl: int | None = None
     clp: int | None = None
     clm: int | None = None
+    qa_pixel: int | None = None
 
 
 class ProcessRequest(BaseModel):
@@ -96,6 +97,10 @@ class ProcessRequest(BaseModel):
     precomputed_index: bool = False
     provider: str | None = None
     geometry_revision: int | None = None
+    raw_qa_required: bool = True
+    min_raw_quality_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    sun_azimuth_deg: float | None = Field(default=None, ge=0.0, le=360.0)
+    sun_altitude_deg: float | None = Field(default=None, ge=-90.0, le=90.0)
 
 
 
@@ -108,6 +113,9 @@ class RawDataProcessRequest(BaseModel):
     normalize_reflectance: bool = False
     include_tags: bool = False
     max_pixels: int = Field(default=2_000_000, ge=10_000, le=25_000_000)
+    source_kind: str = "satellite_raster"
+    product_level: str = "raw_or_provider_processed_raster"
+    capture_datetime: str | None = None
 
 
 class RawDataProcessResponse(BaseModel):
@@ -119,6 +127,12 @@ class RawDataProcessResponse(BaseModel):
     raw_bands: list[dict]
     normalized_bands: list[dict] = Field(default_factory=list)
     tags: dict = Field(default_factory=dict)
+    source_kind: str = "satellite_raster"
+    product_level: str = "raw_or_provider_processed_raster"
+    quality_flags: dict = Field(default_factory=dict)
+    quality_score: dict = Field(default_factory=dict)
+    spatial_alignment: dict = Field(default_factory=dict)
+    temporal_alignment: dict = Field(default_factory=dict)
     provenance: dict
 
 
@@ -134,6 +148,10 @@ class BatchProcessRequest(BaseModel):
     scene_id: str | None = None
     capture_datetime: str | None = None
     geometry_revision: int | None = None
+    raw_qa_required: bool = True
+    min_raw_quality_score: float = Field(default=0.0, ge=0.0, le=1.0)
+    sun_azimuth_deg: float | None = Field(default=None, ge=0.0, le=360.0)
+    sun_altitude_deg: float | None = Field(default=None, ge=-90.0, le=90.0)
 
 
 class SearchRequest(BaseModel):

@@ -78,6 +78,15 @@ def run_processing(ctx, job_id: str, req):
             band_mapping=req.bands.model_dump() if hasattr(req.bands, "model_dump") else None,
             clip_polygon=req.clip_polygon_geojson,
         )
+        provenance["raw_processing"] = {
+            "schema": "sahool.raw_processing/1",
+            "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
+            "quality_score": stats.get("raw_quality_score"),
+            "pixel_qa": stats.get("pixel_qa"),
+            "derived_product_computed": True,
+            "indicator_computed": True,
+            "fabricated_indicator": False,
+        }
         cog_url = meta.get("cog_url")
         # v131 (v62.3-B): مقاييس جودة الصور للطبقة في الذاكرة كي تسطّحها شبكة
         # المؤشّر مباشرةً دون دورة قاعدة (نفس منطق الكاتب: عدّادات البكسلات من stats).
@@ -194,6 +203,10 @@ def run_batch_processing(ctx, job_id: str, req):
             scene_id=req.scene_id,
             capture_datetime=req.capture_datetime,
             geometry_revision=req.geometry_revision,  # v143: نَسَب الهندسة عبر المؤشّرات
+            raw_qa_required=req.raw_qa_required,
+            min_raw_quality_score=req.min_raw_quality_score,
+            sun_azimuth_deg=getattr(req, "sun_azimuth_deg", None),
+            sun_altitude_deg=getattr(req, "sun_altitude_deg", None),
         )
         sub_job_id = f"{job_id}_{ind.value}"
         ctx._jobs.set(

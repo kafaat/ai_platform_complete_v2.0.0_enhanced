@@ -1,0 +1,29 @@
+name: raster-pixel-qa-indicator
+
+on:
+  pull_request:
+    paths:
+      - 'services/raster-service/**'
+      - 'scripts/ci/raster_pixel_qa_indicator_guard.py'
+      - 'tests_v9/test_raster_pixel_qa_indicator_guard.py'
+      - '.github/workflows/raster-pixel-qa-indicator.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'services/raster-service/**'
+      - 'scripts/ci/raster_pixel_qa_indicator_guard.py'
+      - 'tests_v9/test_raster_pixel_qa_indicator_guard.py'
+      - '.github/workflows/raster-pixel-qa-indicator.yml'
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run raster pixel QA indicator guard
+        run: |
+          python scripts/ci/raster_pixel_qa_indicator_guard.py
+          python -m pytest -q tests_v9/test_raster_pixel_qa_indicator_guard.py

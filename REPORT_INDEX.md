@@ -44,6 +44,7 @@ This index identifies the current release-candidate evidence and separates it fr
 
 - `AI_FIELD_MEMORY_EVIDENCE_TRANSPARENCY_V49_REPORT_20260701.md`
 - `CDSE_RASTER_RUNTIME_HARDENING_REPORT_20260626.md`
+- `CLP_ALL_NAN_TEST_COMPAT_FIX_REPORT_20260710.md`
 - `CONTRACT_CAPABILITIES_CONTINUATION_REPORT_20260709.md`
 - `DRAWING_TOOLS_REVIEW_REPORT_20260630.md`
 - `DRAWING_TOOLS_V33_V35_COMPLETION_REPORT_20260630.md`
@@ -121,5 +122,4 @@ This index identifies the current release-candidate evidence and separates it fr
 - `PHASE21_PRODUCTION_CERTIFICATION_READINESS_REPORT_20260626.md`
 - `PHASE22_RLS_WITH_CHECK_TENANT_SESSION_HARDENING_REPORT_20260626.md`
 - `PHASE2_AI_RUNTIME_E2E_WEB_BINDING_REPORT_20260626.md`
-- `PHASE3_EXECUTION_REPORT.md`
-- ... 55 additional historical reports omitted from this index view
+- ... 64 additional historical reports omitted from this index view

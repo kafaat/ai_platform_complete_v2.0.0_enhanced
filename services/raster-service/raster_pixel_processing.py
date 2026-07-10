@@ -8,8 +8,95 @@ runtime state and private helpers.
 
 from __future__ import annotations
 
+import raw_data_processing
+import raster_topographic_qa
+import raster_validated_product
+import raster_cloud_mask_strategies
+
 import os
 import uuid
+
+
+def _topographic_qa_for_indicator(
+    ctx,
+    *,
+    req=None,
+    raster_crs=None,
+    raster_transform=None,
+    raster_shape: tuple[int, int] | None = None,
+) -> dict:
+    """DEM-derived topographic QA envelope for indicator provenance.
+
+    If ``FIELD_DEM_PATH`` plus raster grid metadata are available, this helper
+    aligns the DEM to the current indicator array and computes slope risk. If
+    request sun geometry is also supplied, it computes a conservative
+    hillshade-based terrain shade risk. If anything is missing, it fails closed
+    with ``available=false`` and never fabricates a topographic mask.
+    """
+
+    dem_path = os.getenv("FIELD_DEM_PATH") or None
+    dem_configured = bool(dem_path and os.path.isfile(dem_path))
+    sources = ["FIELD_DEM_PATH"] if dem_configured else []
+    sun_azimuth_deg = getattr(req, "sun_azimuth_deg", None) if req is not None else None
+    sun_altitude_deg = getattr(req, "sun_altitude_deg", None) if req is not None else None
+    if not dem_configured:
+        return raster_topographic_qa.build_topographic_qa(
+            dem_configured=False,
+            dem_aligned=False,
+            hillshade_available=False,
+            sun_geometry_available=bool(sun_azimuth_deg is not None and sun_altitude_deg is not None),
+            sources=[],
+        )
+    if raster_crs is None or raster_transform is None or not raster_shape:
+        return raster_topographic_qa.build_topographic_qa(
+            dem_configured=True,
+            dem_aligned=False,
+            hillshade_available=False,
+            sun_geometry_available=bool(sun_azimuth_deg is not None and sun_altitude_deg is not None),
+            sources=sources,
+            extra_warnings=["indicator_grid_unavailable_for_dem_alignment"],
+        )
+    try:
+        import numpy as np
+        import rasterio
+        from rasterio.warp import Resampling, reproject
+
+        dst = np.full(tuple(raster_shape), np.nan, dtype="float32")
+        with rasterio.open(dem_path) as dem_src:
+            reproject(
+                source=rasterio.band(dem_src, 1),
+                destination=dst,
+                src_transform=dem_src.transform,
+                src_crs=dem_src.crs,
+                dst_transform=raster_transform,
+                dst_crs=raster_crs,
+                src_nodata=dem_src.nodata,
+                dst_nodata=np.nan,
+                resampling=Resampling.bilinear,
+            )
+        # Use approximate x pixel size in raster CRS units. For UTM/metre CRS this
+        # is direct; for degree CRS this remains conservative provenance, and the
+        # QA warnings make DEM/grid alignment explicit.
+        pixel_size_m = abs(float(getattr(raster_transform, "a", 0.0) or 0.0)) or 1.0
+        out = raster_topographic_qa.build_topographic_qa_from_dem_array(
+            dst,
+            pixel_size_m=pixel_size_m,
+            sun_azimuth_deg=sun_azimuth_deg,
+            sun_altitude_deg=sun_altitude_deg,
+            sources=sources + ["indicator_grid_dem_alignment"],
+        )
+        if not bool(out.get("available")):
+            out.setdefault("warnings", []).append("dem_aligned_but_topographic_risk_incomplete")
+        return out
+    except Exception as _e:  # noqa: BLE001 — topographic QA must not fabricate or break indicator path
+        return raster_topographic_qa.build_topographic_qa(
+            dem_configured=True,
+            dem_aligned=False,
+            hillshade_available=False,
+            sun_geometry_available=bool(sun_azimuth_deg is not None and sun_altitude_deg is not None),
+            sources=sources,
+            extra_warnings=["dem_topographic_qa_failed", str(_e)[:160]],
+        )
 
 
 def process_precomputed_pixels(ctx, req, layer_id: str):
@@ -43,6 +130,30 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
 
     valid = np.isfinite(arr)
     vals = arr[valid]
+    total_px = int(valid.size) if hasattr(valid, "size") else 0
+    valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
+    topographic_qa = _topographic_qa_for_indicator(ctx, req=req, raster_crs=src_crs, raster_transform=transform, raster_shape=arr.shape)
+    pixel_qa = raw_data_processing.compute_quality_score(
+        valid_pixel_ratio=valid_ratio,
+        cloud_pct=None,
+        cloud_mask_applied=False,
+        terrain_shadow_risk_pct=topographic_qa.get("terrain_shadow_risk_pct"),
+        cast_shadow_risk_pct=topographic_qa.get("cast_shadow_risk_pct"),
+        slope_risk_pct=topographic_qa.get("slope_risk_pct"),
+        topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
+        qa_layer_present=False,
+    )
+    min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
+    if bool(getattr(req, "raw_qa_required", True)) and pixel_qa["quality_score"] < min_raw_quality_score:
+        raise ctx.HTTPException(
+            422,
+            {
+                "code": "raw_raster_quality_below_threshold",
+                "quality_score": pixel_qa["quality_score"],
+                "min_raw_quality_score": min_raw_quality_score,
+                "warnings": pixel_qa.get("warnings", []),
+            },
+        )
     stats = {
         "min": float(np.min(vals)) if vals.size else 0.0,
         "max": float(np.max(vals)) if vals.size else 0.0,
@@ -50,9 +161,38 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         "std": float(np.std(vals)) if vals.size else 0.0,
         "valid_pixels": int(valid.sum()),
         "nodata_pixels": int((~valid).sum()),
+        "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
+        "raw_quality_score": pixel_qa["quality_score"],
+        "pixel_qa": pixel_qa,
+        "topographic_qa": topographic_qa,
+        "quality_flags": raw_data_processing.build_quality_flags(
+            nodata_mask_applied=True,
+            qa_layer_present=False,
+            cloud_mask_applied=False,
+            topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
+            terrain_shadow_risk_applied=topographic_qa.get("terrain_shadow_risk_pct") is not None,
+            cast_shadow_risk_applied=topographic_qa.get("cast_shadow_risk_pct") is not None,
+            slope_risk_applied=topographic_qa.get("slope_risk_pct") is not None,
+            topographic_qa_sources=topographic_qa.get("sources", []),
+            source_native_qa_policy="precomputed_index_provider_mask_expected",
+        ),
     }
     cog_url = None
     cog_crs = str(src_crs or "EPSG:4326")
+
+    validated_product = raster_validated_product.build_validated_raster_product(
+        req=req,
+        pixel_qa=pixel_qa,
+        quality_flags=stats["quality_flags"],
+        spatial_crs=cog_crs,
+        bounds_4326=bounds,
+        topographic_qa=topographic_qa,
+        cloud_mask_strategy="provider_precomputed_expected",
+        reflectance_normalized=False,
+        source_uri=getattr(req, "raster_url", None),
+    )
+    raster_validated_product.assert_indicator_accepts_validated_product(validated_product)
+    stats["validated_raster_product"] = validated_product.model_dump(mode="json")
     RASTER_NODATA = ctx.RASTER_NODATA
     try:
         import cog_writer
@@ -72,6 +212,9 @@ def process_precomputed_pixels(ctx, req, layer_id: str):
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
         "nodata": RASTER_NODATA,
+        "pixel_qa": pixel_qa,
+        "topographic_qa": topographic_qa,
+        "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
     }
     return stats, bounds, res_m, meta
 
@@ -101,6 +244,19 @@ def process_precomputed_truecolor(ctx, req):
         valid = arr[3] > 0
     else:
         valid = np.ones(arr.shape[1:], dtype=bool)
+    total_px = int(valid.size) if hasattr(valid, "size") else 0
+    valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
+    topographic_qa = _topographic_qa_for_indicator(ctx, req=req, raster_crs=src_crs, raster_transform=transform, raster_shape=valid.shape)
+    pixel_qa = raw_data_processing.compute_quality_score(
+        valid_pixel_ratio=valid_ratio,
+        cloud_pct=None,
+        cloud_mask_applied=False,
+        terrain_shadow_risk_pct=topographic_qa.get("terrain_shadow_risk_pct"),
+        cast_shadow_risk_pct=topographic_qa.get("cast_shadow_risk_pct"),
+        slope_risk_pct=topographic_qa.get("slope_risk_pct"),
+        topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
+        qa_layer_present=arr.shape[0] >= 4,
+    )
     stats = {
         "min": 0.0,
         "max": 255.0,
@@ -108,9 +264,40 @@ def process_precomputed_truecolor(ctx, req):
         "std": 0.0,
         "valid_pixels": int(valid.sum()),
         "nodata_pixels": int((~valid).sum()),
+        "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
+        "raw_quality_score": pixel_qa["quality_score"],
+        "pixel_qa": pixel_qa,
+        "topographic_qa": topographic_qa,
+        "quality_flags": raw_data_processing.build_quality_flags(
+            nodata_mask_applied=True,
+            qa_layer_present=arr.shape[0] >= 4,
+            cloud_mask_applied=False,
+            saturation_mask_applied=False,
+            topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
+            terrain_shadow_risk_applied=topographic_qa.get("terrain_shadow_risk_pct") is not None,
+            cast_shadow_risk_applied=topographic_qa.get("cast_shadow_risk_pct") is not None,
+            slope_risk_applied=topographic_qa.get("slope_risk_pct") is not None,
+            topographic_qa_sources=topographic_qa.get("sources", []),
+            cloud_mask_sources=["alpha"] if arr.shape[0] >= 4 else [],
+            source_native_qa_policy="rgba_alpha_mask",
+        ),
     }
     cog_url = None
     cog_crs = str(src_crs or "EPSG:4326")
+
+    validated_product = raster_validated_product.build_validated_raster_product(
+        req=req,
+        pixel_qa=pixel_qa,
+        quality_flags=stats["quality_flags"],
+        spatial_crs=cog_crs,
+        bounds_4326=bounds,
+        topographic_qa=topographic_qa,
+        cloud_mask_strategy="rgba_alpha_mask",
+        reflectance_normalized=False,
+        source_uri=getattr(req, "raster_url", None),
+    )
+    raster_validated_product.assert_indicator_accepts_validated_product(validated_product)
+    stats["validated_raster_product"] = validated_product.model_dump(mode="json")
     try:
         import cog_writer
 
@@ -129,6 +316,9 @@ def process_precomputed_truecolor(ctx, req):
         "cog_crs": cog_crs,
         "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
         "nodata": None,  # RGBA يستخدم قناة ألفا لا قيمة nodata
+        "pixel_qa": pixel_qa,
+        "topographic_qa": topographic_qa,
+        "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
     }
     return stats, bounds, res_m, meta
 
@@ -301,7 +491,8 @@ def process_pixels(ctx, req, layer_id: str):
             _d = nir + swir1
             arr = (nir - swir1) / np.where(_d == 0, 1e-10, _d)
         elif ind == "savi":
-            arr = 1.5 * (nir - red) / (nir + red + 0.5)
+            _denom = nir + red + 0.5
+            arr = 1.5 * (nir - red) / np.where(_denom == 0, 1e-10, _denom)
         elif ind == "vari":
             # حماية القسمة: المقام قد يبلغ صفراً (green+red=blue) → epsilon
             _denom = green + red - blue
@@ -341,60 +532,121 @@ def process_pixels(ctx, req, layer_id: str):
             ndvi = (nir - red) / np.where(_d == 0, 1e-10, _d)
             arr = np.clip(1.24 * ndvi - 0.168, 0, 1)
 
-        # ── (٢) قناع الغيوم (SCL + CLM/CLP s2cloudless) ────────────────
-        # أفضل الممارسات: لا نعتمد SCL وحده عندما تتوفر CLM/CLP؛ ندمج SCL
-        # مع قناع/احتمالية s2cloudless. SCL أصناف الغيوم/الظلال = {3,8,9,10,11}.
+        # ── (٢) أقنعة جودة البكسل: source-native strategy + saturation proxy ─────────
+        # لا نُعامل cloud mask كـboolean هش. نختار استراتيجية حسب source_format
+        # (Sentinel-2 SCL/CLM/CLP، Landsat QA_PIXEL، أو NoOp صريح للدرون/المخصص).
+        # يبقى saturation proxy منفصلاً لأنه ليس cloud mask حسياً بل فحص reflectance.
         cloud_pct = None
+        shadow_pct = None
+        snow_pct = None
+        aerosol_pct = None
+        saturation_pct = None
         cloud_mask_sources: list[str] = []
+        cloud_shadow_mask_sources: list[str] = []
+        snow_mask_sources: list[str] = []
+        aerosol_mask_sources: list[str] = []
+        saturation_mask_sources: list[str] = []
+        cloud_mask = None
+        shadow_mask = None
+        snow_mask = None
+        saturation_mask = None
+        cloud_strategy_name = "not_requested"
+        cloud_strategy_warnings: list[str] = []
         if req.apply_cloud_mask:
-            masks = []
-            if b.scl is not None:
-                scl = band_raw(b.scl)
-                if scl is not None and scl.shape == arr.shape:
-                    masks.append(np.isin(scl, [3, 8, 9, 10, 11]))
-                    cloud_mask_sources.append("SCL")
-                else:
-                    ctx.logger.warning(
-                        "cloud mask requested but SCL band could not be read or shape mismatched for layer %s",
-                        layer_id,
-                    )
-            if b.clm is not None:
-                clm = band_raw(b.clm)
-                if clm is not None and clm.shape == arr.shape:
-                    masks.append(clm.astype("float32") > 0)
-                    cloud_mask_sources.append("CLM")
-                else:
-                    ctx.logger.warning(
-                        "cloud mask requested but CLM band could not be read or shape mismatched for layer %s",
-                        layer_id,
-                    )
-            if b.clp is not None:
-                clp = band_raw(b.clp)
-                if clp is not None and clp.shape == arr.shape:
-                    clp_f = clp.astype("float32")
-                    # Accept both 0..1 and 0..100 probability encodings.
-                    threshold = 0.40 if float(np.nanmax(clp_f)) <= 1.0 else 40.0
-                    masks.append(clp_f >= threshold)
-                    cloud_mask_sources.append("CLP")
-                else:
-                    ctx.logger.warning(
-                        "cloud mask requested but CLP band could not be read or shape mismatched for layer %s",
-                        layer_id,
-                    )
-            if masks:
-                cloud_classes = masks[0]
-                for m in masks[1:]:
-                    cloud_classes = np.logical_or(cloud_classes, m)
-                cloud_pct = float(np.mean(cloud_classes) * 100.0) if cloud_classes.size else None
-                arr = np.where(cloud_classes, np.nan, arr)
+            strategy = raster_cloud_mask_strategies.strategy_for_source_format(
+                str(getattr(req, "source_format", "") or "")
+            )
+            cloud_strategy_name = strategy.name
+            mask_result = strategy.apply(
+                np=np,
+                band_reader=band_raw,
+                band_mapping=b,
+                target_shape=arr.shape,
+            )
+            cloud_strategy_warnings = list(mask_result.warnings or [])
+            cloud_mask = mask_result.mask
+            cloud_pct = mask_result.cloud_pct
+            shadow_mask = mask_result.shadow_mask
+            shadow_pct = mask_result.shadow_pct
+            snow_mask = mask_result.snow_mask
+            snow_pct = mask_result.snow_pct
+            cloud_mask_sources = list(mask_result.sources or [])
+            if shadow_mask is not None:
+                cloud_shadow_mask_sources = [s for s in cloud_mask_sources if s in {"SCL", "QA_PIXEL"}]
+            if snow_mask is not None:
+                snow_mask_sources = [s for s in cloud_mask_sources if s in {"SCL", "QA_PIXEL"}]
+
+            # Saturation proxy: بعد التحويل إلى reflectance، القيم غير المنطقية أو ذات الحافة
+            # العليا جداً تفقد الثقة. هذه ليست طبقة sensor-QA؛ لذلك نُسميها reflectance_proxy.
+            finite_bands = [x for x in [red, nir, green, blue, swir1, rededge, swir2] if x is not None]
+            if finite_bands:
+                saturation_mask = np.zeros_like(arr, dtype=bool)
+                for _band_arr in finite_bands:
+                    if getattr(_band_arr, "shape", None) == arr.shape:
+                        saturation_mask = np.logical_or(
+                            saturation_mask,
+                            np.logical_or(_band_arr < -0.05, _band_arr > 1.20),
+                        )
+                if bool(np.any(saturation_mask)):
+                    saturation_mask_sources.append("reflectance_range_proxy")
+
+            combined_mask = None
+            for _mask in [cloud_mask, shadow_mask, snow_mask, saturation_mask]:
+                if _mask is not None:
+                    combined_mask = _mask if combined_mask is None else np.logical_or(combined_mask, _mask)
+            if combined_mask is not None:
+                saturation_pct = (
+                    float(np.mean(saturation_mask) * 100.0) if saturation_mask is not None else None
+                )
+                arr = np.where(combined_mask, np.nan, arr)
             else:
                 ctx.logger.warning(
-                    "cloud mask requested but no SCL/CLM/CLP quality band is available for layer %s; proceeding unmasked",
+                    "cloud/quality mask requested but strategy %s produced no mask for layer %s; proceeding unmasked warnings=%s",
+                    cloud_strategy_name,
                     layer_id,
+                    cloud_strategy_warnings,
                 )
 
         valid = np.isfinite(arr)
         vals = arr[valid]
+        total_px = int(valid.size) if hasattr(valid, "size") else 0
+        valid_ratio = (float(valid.sum()) / float(total_px)) if total_px else 0.0
+        qa_layer_present = bool(
+            cloud_mask_sources
+            or cloud_shadow_mask_sources
+            or snow_mask_sources
+            or aerosol_mask_sources
+            or saturation_mask_sources
+        )
+        topographic_qa = _topographic_qa_for_indicator(ctx, req=req, raster_crs=src_crs, raster_transform=_out["transform"], raster_shape=arr.shape)
+        pixel_qa = raw_data_processing.compute_quality_score(
+            valid_pixel_ratio=valid_ratio,
+            cloud_pct=cloud_pct,
+            shadow_pct=shadow_pct,
+            snow_pct=snow_pct,
+            aerosol_pct=aerosol_pct,
+            saturation_pct=saturation_pct,
+            terrain_shadow_risk_pct=topographic_qa.get("terrain_shadow_risk_pct"),
+            slope_risk_pct=topographic_qa.get("slope_risk_pct"),
+            topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
+            cloud_mask_applied=bool(cloud_pct is not None),
+            cloud_shadow_mask_applied=bool(shadow_pct is not None),
+            snow_mask_applied=bool(snow_pct is not None),
+            aerosol_mask_applied=bool(aerosol_pct is not None),
+            saturation_mask_applied=bool(saturation_pct is not None),
+            qa_layer_present=qa_layer_present,
+        )
+        min_raw_quality_score = float(getattr(req, "min_raw_quality_score", 0.0) or 0.0)
+        if bool(getattr(req, "raw_qa_required", True)) and pixel_qa["quality_score"] < min_raw_quality_score:
+            raise ctx.HTTPException(
+                422,
+                {
+                    "code": "raw_raster_quality_below_threshold",
+                    "quality_score": pixel_qa["quality_score"],
+                    "min_raw_quality_score": min_raw_quality_score,
+                    "warnings": pixel_qa.get("warnings", []),
+                },
+            )
         quality = ctx._quality_from_cloud_pct(cloud_pct, masked=bool(cloud_pct is not None))
         stats = {
             "min": float(np.min(vals)) if vals.size else 0.0,
@@ -406,10 +658,54 @@ def process_pixels(ctx, req, layer_id: str):
             "cloud_pct": cloud_pct,
             "cloud_mask_applied": bool(cloud_pct is not None),
             "cloud_mask_sources": cloud_mask_sources,
+            "cloud_mask_strategy": cloud_strategy_name,
+            "cloud_mask_strategy_warnings": cloud_strategy_warnings,
+            "shadow_pct": shadow_pct,
+            "snow_pct": snow_pct,
+            "aerosol_pct": aerosol_pct,
+            "saturation_pct": saturation_pct,
             "confidence": quality["confidence"],
             "quality": quality["quality"],
             "quality_reason": quality["reason"],
+            "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
+            "raw_quality_score": pixel_qa["quality_score"],
+            "pixel_qa": pixel_qa,
+            "topographic_qa": topographic_qa,
+            "quality_flags": raw_data_processing.build_quality_flags(
+                nodata_mask_applied=True,
+                qa_layer_present=qa_layer_present,
+                cloud_mask_applied=bool(cloud_pct is not None),
+                cloud_shadow_mask_applied=bool(shadow_pct is not None),
+                snow_mask_applied=bool(snow_pct is not None),
+                aerosol_mask_applied=bool(aerosol_pct is not None),
+                saturation_mask_applied=bool(saturation_pct is not None),
+                topographic_qa_applied=bool(topographic_qa.get("topographic_qa_applied")),
+                terrain_shadow_risk_applied=topographic_qa.get("terrain_shadow_risk_pct") is not None,
+                slope_risk_applied=topographic_qa.get("slope_risk_pct") is not None,
+                cloud_mask_sources=cloud_mask_sources,
+                cloud_shadow_mask_sources=cloud_shadow_mask_sources,
+                snow_mask_sources=snow_mask_sources,
+                aerosol_mask_sources=aerosol_mask_sources,
+                saturation_mask_sources=saturation_mask_sources,
+                topographic_qa_sources=topographic_qa.get("sources", []),
+            ),
         }
+        cog_crs = str(src_crs or "EPSG:4326")
+
+        _cloud_strategy = cloud_strategy_name
+        validated_product = raster_validated_product.build_validated_raster_product(
+            req=req,
+            pixel_qa=pixel_qa,
+            quality_flags=stats["quality_flags"],
+            spatial_crs=cog_crs,
+            bounds_4326=bounds,
+            topographic_qa=topographic_qa,
+            cloud_mask_strategy=_cloud_strategy,
+            reflectance_normalized=True,
+            source_uri=getattr(req, "raster_url", None),
+        )
+        raster_validated_product.assert_indicator_accepts_validated_product(validated_product)
+        stats["validated_raster_product"] = validated_product.model_dump(mode="json")
         # احفظ المؤشّر المحسوب كـCOG محسّن (ضغط + بلاطات + أهرامات) — تحسين
         # التخزين: حجم أصغر + قراءة جزئيّة أسرع (TiTiler/MapLibre). نحفظ المؤشّر
         # المقصوص بـtransform المقصوص (out) وبـCRS المصدر الأصلي (UTM غالباً).
@@ -440,5 +736,7 @@ def process_pixels(ctx, req, layer_id: str):
             "cog_crs": cog_crs,
             "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
             "nodata": RASTER_NODATA,
+            "pixel_qa": pixel_qa,
+            "raw_qa_required": bool(getattr(req, "raw_qa_required", True)),
         }
         return stats, bounds, res_m, meta

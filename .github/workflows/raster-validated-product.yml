@@ -1,0 +1,19 @@
+name: Raster Validated Product Contract
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  raster-validated-product:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run raster validated product guard
+        run: python scripts/ci/raster_validated_product_guard.py
+      - name: Run raster validated product tests
+        run: PYTHONPATH=services/raster-service pytest -q services/raster-service/test_raster_validated_product.py tests_v9/test_raster_validated_product_guard.py
