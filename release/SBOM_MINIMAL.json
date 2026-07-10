@@ -2475,6 +2475,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3a3ecf406497c0e16b99854baa97c35ab2ab3791b3821fc3d6b1107a2cbc5446"
+        }
+      ],
+      "name": "frontend/src/hooks/useIndicatorRegistry.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03bfd9929bfe94f20f54c55166ef16b10e09a05895e98379e866ed87cc1c01bb"
+        }
+      ],
+      "name": "frontend/src/hooks/useIndicatorRegistry.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7c41f2859535a10af1db006535593cffae1f37afb7b035b7be04bdfa73924bf4"
         }
       ],
@@ -3679,6 +3699,16 @@
         }
       ],
       "name": "frontend/src/lib/globalScaleRuntime.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fa47c2b782948f12c4f70fc4e4d6041f02b1f79fb6134cf41d2ce08d364f34bf"
+        }
+      ],
+      "name": "frontend/src/lib/indicatorsRegistry.generated.ts",
       "type": "file"
     },
     {
