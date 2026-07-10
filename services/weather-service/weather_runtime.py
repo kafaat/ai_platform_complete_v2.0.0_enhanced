@@ -9,6 +9,7 @@ from cache import stats as cache_stats
 from chill_accumulation import compute_chill_accumulation
 from et0 import et0_agro_product
 from fastapi import Body, HTTPException, Query
+from gdd import gdd_agro_product
 from lodging_risk import compute_lodging_risk
 from open_meteo import (
     circuit_breaker_state,
@@ -482,6 +483,40 @@ async def agro_et0(req: Et0ProductRequest = Body(...)):
         day_of_year=req.day_of_year,
         valid_time=req.valid_time,
         weather_snapshot_id_override=req.weather_snapshot_id,
+    )
+
+
+class GddProductRequest(BaseModel):
+    """مدخلات GDD — سلسلة حرارة يوميّة + **سياسة الموسم** (الأساس/السقف/الطريقة).
+
+    النواة في المحرّك؛ السياسة (base_c/upper_cutoff_c/method/الفترة) يحدّدها Season
+    Service ويمرّرها. مفقود base_c ⇒ insufficient (لا افتراض).
+    """
+
+    daily_t_min: list[float | None] = []
+    daily_t_max: list[float | None] = []
+    base_c: float | None = None
+    upper_cutoff_c: float | None = None
+    method: str = "modified"  # modified | simple
+    start_date: str | None = None
+    end_date: str | None = None
+
+
+async def agro_gdd(req: GddProductRequest = Body(...)):
+    """منتج GDD الموحَّد (درجات النموّ) لعقد محرّك الطقس — **كلّ GDD اليوميّ من هنا**.
+
+    يُنفِّذ النواة في المحرّك (لا في المنصّة/الواجهة) ويعيد العقد الموحَّد:
+    ``daily_gdd`` · ``accumulated_gdd`` · ``thresholds_used`` (base/cutoff/method) ·
+    ``calculation_version`` · ``valid_period``. نقيّ حتميّ بلا شبكة ⇒ لا 5xx.
+    """
+    return gdd_agro_product(
+        daily_t_min=req.daily_t_min,
+        daily_t_max=req.daily_t_max,
+        base_c=req.base_c,
+        upper_cutoff_c=req.upper_cutoff_c,
+        method=req.method,
+        start_date=req.start_date,
+        end_date=req.end_date,
     )
 
 

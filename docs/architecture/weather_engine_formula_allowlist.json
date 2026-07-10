@@ -22,7 +22,28 @@
       "owner": "weather-migration",
       "expires": "2026-07-31",
       "purpose": "active-legacy-pending-delegation",
-      "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0). Retire alongside the et0.py core migration."
+      "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0; also holds gdd_daily/gdd_accumulate). Retire alongside the et0.py core migration."
+    },
+    {
+      "path": "services/sahool-platform/core/gdd_phenology.py",
+      "owner": "weather-migration",
+      "expires": "2026-07-31",
+      "purpose": "active-legacy-pending-delegation",
+      "note": "Platform GDD daily kernel (daily_gdd, simple cap-tmax) + phenology stage policy. Migrate the kernel to the Weather Engine gdd.py (C.1c delegation); the stage-threshold policy stays in Season."
+    },
+    {
+      "path": "services/sahool-platform/api/gdd_tracker.py",
+      "owner": "weather-migration",
+      "expires": "2026-07-31",
+      "purpose": "active-legacy-pending-delegation",
+      "note": "Platform GDD tracker (daily_gdd + hardcoded GDD_CROP_PARAMS). Kernel → Weather Engine; crop base/cutoff tables → Season policy."
+    },
+    {
+      "path": "services/sahool-platform/api/season_simulation.py",
+      "owner": "weather-migration",
+      "expires": "2026-07-31",
+      "purpose": "active-legacy-pending-delegation",
+      "note": "Platform GDD daily kernel variant (gdd_day, Baskerville-Emin modified method) inside the RUE season sim. Migrate the daily kernel to the Weather Engine gdd.py (method='modified'); _CROP_PARAMS stays as Season policy."
     }
   ]
 }

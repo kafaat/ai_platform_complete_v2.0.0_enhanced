@@ -28,6 +28,9 @@ _ALLOWLIST = _ROOT / "docs" / "architecture" / "weather_engine_formula_allowlist
 
 _WEATHER_ENGINE_PREFIX = "services/weather-service/"
 _SVP_MARKERS = ("0.6108", "17.27")
+# نوى GDD اليوميّة (WS-C.1c): تعريف دالّة بأحد هذه الأسماء = نواة حساب GDD مستقلّة.
+# السياسة (عتبات/جداول محاصيل بلا دالّة نواة) لا تُكتشَف — مسموحة داخل Season.
+_GDD_KERNEL_NAMES = ("gdd_daily", "daily_gdd", "gdd_day")
 
 
 def _load_allowlist() -> tuple[str, set[str]]:
@@ -41,8 +44,13 @@ def _has_svp_fingerprint(text: str) -> bool:
     return all(m in text for m in _SVP_MARKERS)
 
 
-def _defines_et0_formula(text: str) -> bool:
-    """AST: تعريف دالّة تُطبِّق صيغة ET0/SVP (بالاسم) — أمتن من Regex."""
+def _defines_weather_formula(text: str) -> bool:
+    """AST: تعريف دالّة تُطبِّق صيغة ضغط بخار/ET0/GDD (بالاسم) — أمتن من Regex.
+
+    يكشف نواة الحساب لا السياسة: ``_svp``/``penman_monteith``/``hargreaves`` (C.1a/b) و
+    ``gdd_daily``/``daily_gdd``/``gdd_day`` (C.1c). جداول العتبات/سياسة المحصول (بلا
+    دالّة نواة) لا تُكتشَف — مسموحة داخل Season.
+    """
     try:
         tree = ast.parse(text)
     except SyntaxError:
@@ -51,6 +59,8 @@ def _defines_et0_formula(text: str) -> bool:
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             name = node.name.lower()
             if name == "_svp" or "penman_monteith" in name or name.startswith("hargreaves"):
+                return True
+            if name in _GDD_KERNEL_NAMES:
                 return True
     return False
 
@@ -75,7 +85,7 @@ def scan() -> tuple[list[str], bool]:
             if rel == canonical and _has_svp_fingerprint(text):
                 canonical_ok = True
             continue
-        hit = _has_svp_fingerprint(text) or _defines_et0_formula(text)
+        hit = _has_svp_fingerprint(text) or _defines_weather_formula(text)
         if hit and rel not in allowed:
             violations.append(rel)
     return violations, canonical_ok
@@ -91,9 +101,10 @@ def main() -> int:
         return 1
     if violations:
         print(
-            "weather-engine-formula-guard: SVP/ET0 formula outside the Weather Engine and not on "
-            "the temporary allowlist (add ET0 via weather-service; do NOT re-implement):\n  "
-            + "\n  ".join(sorted(violations)),
+            "weather-engine-formula-guard: SVP/ET0/GDD kernel outside the Weather Engine and not "
+            "on the temporary allowlist (add it via services/weather-service; do NOT re-implement "
+            "— crop base/cutoff/stage policy belongs in Season, the daily kernel in the engine):"
+            "\n  " + "\n  ".join(sorted(violations)),
             file=sys.stderr,
         )
         return 1

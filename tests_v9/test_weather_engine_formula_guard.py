@@ -26,12 +26,19 @@ def test_guard_passes_current_tree():
     assert not violations, f"formula outside Weather Engine / allowlist: {violations}"
 
 
-def test_ast_detects_penman_and_svp_defs():
+def test_ast_detects_svp_et0_and_gdd_kernels():
     mod = _load()
-    assert mod._defines_et0_formula("def penman_monteith_et0(): pass")
-    assert mod._defines_et0_formula("def _svp(t): return 0")
-    assert mod._defines_et0_formula("def hargreaves_x(): pass")
-    assert not mod._defines_et0_formula("def compute_something(): pass")
+    # ET0/SVP (C.1a/b)
+    assert mod._defines_weather_formula("def penman_monteith_et0(): pass")
+    assert mod._defines_weather_formula("def _svp(t): return 0")
+    assert mod._defines_weather_formula("def hargreaves_x(): pass")
+    # GDD kernels (C.1c) — النواة لا السياسة
+    assert mod._defines_weather_formula("def gdd_daily(): pass")
+    assert mod._defines_weather_formula("def daily_gdd(): pass")
+    assert mod._defines_weather_formula("def gdd_day(): pass")
+    # سياسة/دوالّ عامّة لا تُكتشَف (عتبات محصول = سياسة Season مسموحة)
+    assert not mod._defines_weather_formula("def compute_something(): pass")
+    assert not mod._defines_weather_formula("def gdd_stage_thresholds(): pass")
 
 
 def test_allowlist_entries_have_owner_and_expiry():

@@ -22265,6 +22265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "30e1f334b32155dcce34a7094056ce5f5ee232092e38b3efbf61a9b5ca9f1f03"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_weather_et0_client.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d18644f8fe554ba705b28d4d6da58dcf48b005ffd1657ea9e308a563c5c889ee"
         }
       ],
@@ -23425,7 +23435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9ad219a14ca206901dcbd2cf98880b2ee63adfeb769309352fac865f55f05de"
+          "content": "965290930f5a05bc28a2af6070b8b03626e619eff8a48b3c7bfc4b43a74d96f1"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -23645,7 +23655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f5bbcb450d48c3950b8076322d687a2ee22db8a0c7eaa9d1fecc7f412d6be80"
+          "content": "4b1c4073d7215b5af09e5f43c36b178d7bda8cda626bad34e97d2795b47b6bb5"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",
