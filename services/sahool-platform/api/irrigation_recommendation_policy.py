@@ -25,6 +25,7 @@ import os
 from core.engines.fao56 import leaching_requirement
 from core.thresholds import SALINITY_CRITICAL_ECE, SALINITY_MODERATE_ECE
 
+from .irrigation_policy import IrrigationPolicy, policy_params
 from .weather_advice import irrigation_advice
 
 # كفاءة ريّ افتراضيّة (تنقيط/رشّ نموذجيّ) حين لا تُمرَّر — مُعلَنة في المخرَج.
@@ -63,6 +64,15 @@ def recommend_irrigation(
     water_ec: float | None = None,
     drainage: str | None = None,
     irrigation_efficiency: float | None = None,
+    # ── مدخلات الإجهاد المائيّ / استنزاف منطقة الجذور (FAO-56) — تقود قرار الإطلاق ──
+    depletion_mm: float | None = None,
+    taw_mm: float | None = None,
+    raw_fraction: float = 0.5,
+    water_stress_class: str | None = None,
+    # ── سياسة الريّ (مقابض الإطلاق/الملء) ──
+    policy: IrrigationPolicy | str | None = None,
+    water_price_per_m3: float | None = None,
+    yield_value_per_ha: float | None = None,
     # ── ضبط ──
     force_net_only: bool | None = None,
     ec_max_age_days: int = DEFAULT_EC_MAX_AGE_DAYS,
@@ -79,13 +89,32 @@ def recommend_irrigation(
         water_ec: ECw ماء الريّ (dS/m) — مطلوب لحساب الغسل.
         drainage: ``fast``/``medium``/``slow`` — الغسل يحتاج صرفاً غير بطيء.
         irrigation_efficiency: كفاءة الريّ (0..1). None ⇒ افتراضيّ معلَن 0.85.
+        depletion_mm: استنزاف منطقة الجذور Dr (من ``water_ledger`` عبر الحالة الكنسيّة).
+            None ⇒ لا قرار إطلاق (``no_depletion_data``، لا اختلاق).
+        taw_mm: الماء المتاح الكلّيّ TAW (من ``soil_water_params``). ≤0/None ⇒ لا إطلاق.
+        raw_fraction: p (نسبة الاستنزاف المسموح قبل الإجهاد، FAO-56، افتراضيّ 0.5).
+        water_stress_class: ``normal``/``watch``/``critical`` من ``canonical_water_stress``
+            (اختياريّ، يرفع الإلحاح فقط — لا يختلق قراراً).
+        policy: سياسة الريّ (enum/نصّ). None ⇒ الأحوط WATER_SAVING. تحدّد مقبضَي
+            ``trigger_fraction`` (× RAW) و``refill_fraction`` (× Dr).
+        water_price_per_m3/yield_value_per_ha: لـ PROFIT_MAX (غيابها ⇒ تراجع موسوم).
         force_net_only: تجاوز يدويّ (None ⇒ يُقرأ من علم البيئة).
 
     Returns dict:
         ``net_irrigation_mm`` · ``salinity_leaching_mm`` · ``gross_irrigation_mm`` ·
         ``salinity_ks`` · ``policy`` · ``requires_expert_review`` · ``urgency`` ·
-        ``timing_ar`` · ``rationale_ar`` · ``evidence`` (قائمة {source, value, note_ar}).
+        ``timing_ar`` · ``rationale_ar`` · ``evidence`` (قائمة {source, value, note_ar}) ·
+        **(الإجهاد المائيّ)** ``should_irrigate`` (bool|None) · ``trigger_reason`` ·
+        ``target_refill_mm`` (= refill_fraction × Dr) · ``raw_mm`` · ``depletion_mm`` ·
+        ``water_stress_class`` · ``policy_knobs`` · ``calibrated`` (=False، غير معايَر يمنيّاً).
+
+    صدق: قرار الإطلاق يحتاج Dr+TAW فعليَّين؛ غيابهما ⇒ ``should_irrigate=None`` و
+    ``trigger_reason="no_depletion_data"`` (يبقى الصافي معروضاً، لا قرار على غياب).
     """
+    # سياسة الإطلاق/الملء تُلتقَط الآن: المتغيّر ``policy`` يُعاد استخدامه لاحقاً لتصنيف
+    # سياسة الملوحة (net_only/…)، فلا نقرأ منه بعد ذلك لمقابض الإطلاق.
+    irrigation_strategy = policy
+
     if force_net_only is None:
         force_net_only = salinity_policy_forced_off(os.getenv("SAHOOL_IRRIGATION_SALINITY_POLICY"))
 
@@ -186,7 +215,64 @@ def recommend_irrigation(
             }
         )
 
+    # ── قرار الإطلاق المُشتقّ من استنزاف منطقة الجذور (FAO-56) ──
+    # الفجوة المُغلَقة: منتِج التوصية كان يحسب الصافي (ETc − مطر) فقط ويتجاهل Dr
+    # المخزَّن رغم توفّره؛ هنا نُدخِل مقبضَي السياسة: نُطلق حين Dr ≥ trigger×RAW،
+    # ونملأ refill×Dr. غياب Dr/TAW ⇒ لا قرار (fail-safe، لا اختلاق).
+    pp = policy_params(
+        irrigation_strategy if irrigation_strategy is not None else IrrigationPolicy.WATER_SAVING,
+        water_price_per_m3=water_price_per_m3,
+        yield_value_per_ha=yield_value_per_ha,
+    )
+    should_irrigate: bool | None = None
+    trigger_reason = "no_depletion_data"
+    target_refill_mm: float | None = None
+    raw_mm: float | None = None
+    dr_out: float | None = None
+    taw_v = float(taw_mm) if taw_mm is not None else None
+    if depletion_mm is not None and taw_v is not None and taw_v > 0:
+        dr_out = max(0.0, float(depletion_mm))
+        p_frac = max(0.0, min(1.0, float(raw_fraction)))
+        raw_mm = round(p_frac * taw_v, 1)
+        trigger_mm = pp.trigger_fraction * raw_mm
+        should_irrigate = dr_out >= trigger_mm
+        trigger_reason = (
+            "depletion_at_or_above_trigger" if should_irrigate else "defer_below_trigger"
+        )
+        target_refill_mm = round(pp.refill_fraction * dr_out, 1)
+        evidence.append(
+            {
+                "source": "fao56.root_zone_depletion",
+                "value": dr_out,
+                "note_ar": (
+                    f"Dr={dr_out:.1f} مم مقابل عتبة الإطلاق {trigger_mm:.1f} مم "
+                    f"(RAW={raw_mm} مم × trigger {pp.trigger_fraction}) — "
+                    f"{'إطلاق' if should_irrigate else 'تأجيل'}؛ ملء الهدف "
+                    f"{target_refill_mm} مم (refill {pp.refill_fraction}×Dr)."
+                ),
+            }
+        )
+
+    # الإلحاح (مفردات irrigation_advice: none|low|moderate|high): الإجهاد الحرج يرفعه
+    # صراحةً؛ لا يختلق قراراً (يبقى should_irrigate كما هو).
+    urgency = base.get("urgency")
+    if water_stress_class == "critical":
+        urgency = "high"
+    elif water_stress_class == "watch" and urgency in (None, "none", "low"):
+        urgency = "moderate"
+
     rationale_ar = str(base.get("rationale_ar", ""))
+    if should_irrigate is None:
+        rationale_ar += " (قرار الإطلاق غير محسوب — لا استنزاف Dr/TAW موثوق للحقل.)"
+    elif should_irrigate:
+        rationale_ar += (
+            f" الاستنزاف بلغ عتبة الإطلاق ({pp.policy.value}) — يُوصى بريّ ملء "
+            f"≈{target_refill_mm} مم (غير معايَر يمنيّاً)."
+        )
+    else:
+        rationale_ar += (
+            f" الاستنزاف دون عتبة الإطلاق ({pp.policy.value}) — يُفضَّل التأجيل ومراقبة Dr."
+        )
     if policy == "blocked_for_review":
         rationale_ar += (
             f" ⚠ ملوحة حرجة (ECe={ece:.1f}) ونقص بيانات الغسل (ECw/صرف/كفاءة) — "
@@ -205,8 +291,17 @@ def recommend_irrigation(
         "salinity_ks": salinity_ks,
         "policy": policy,
         "requires_expert_review": requires_expert_review,
-        "urgency": base.get("urgency"),
+        "urgency": urgency,
         "timing_ar": base.get("timing_ar"),
         "rationale_ar": rationale_ar,
         "evidence": evidence,
+        # ── قرار الإطلاق المُشتقّ من الاستنزاف (FAO-56) ──
+        "should_irrigate": should_irrigate,
+        "trigger_reason": trigger_reason,
+        "target_refill_mm": target_refill_mm,
+        "raw_mm": raw_mm,
+        "depletion_mm": round(dr_out, 1) if dr_out is not None else None,
+        "water_stress_class": water_stress_class,
+        "policy_knobs": pp.to_dict(),
+        "calibrated": False,
     }

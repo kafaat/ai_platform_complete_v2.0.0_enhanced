@@ -48,6 +48,14 @@ class IrrigationRecommendationRequest(BaseModel):
     water_ec: float | None = None  # ECw ماء الريّ
     drainage: str | None = None  # fast|medium|slow
     irrigation_efficiency: float | None = None
+    # ── مدخلات الإجهاد المائيّ (استنزاف منطقة الجذور) — تقود قرار الإطلاق ──
+    depletion_mm: float | None = None  # Dr من water_ledger عبر الحالة الكنسيّة
+    taw_mm: float | None = None  # TAW من soil_water_params
+    raw_fraction: float = 0.5  # p (FAO-56)
+    water_stress_class: str | None = None  # normal|watch|critical (canonical)
+    policy: str | None = None  # water_saving|yield_max|profit_max|sustainability|risk_averse
+    water_price_per_m3: float | None = None  # لـ profit_max
+    yield_value_per_ha: float | None = None  # لـ profit_max
 
 
 @router.post("/api/v1/irrigation-recommendation")
@@ -87,4 +95,11 @@ def irrigation_recommendation(
         water_ec=req.water_ec,
         drainage=req.drainage,
         irrigation_efficiency=req.irrigation_efficiency,
+        depletion_mm=req.depletion_mm,
+        taw_mm=req.taw_mm,
+        raw_fraction=req.raw_fraction,
+        water_stress_class=req.water_stress_class,
+        policy=req.policy,
+        water_price_per_m3=req.water_price_per_m3,
+        yield_value_per_ha=req.yield_value_per_ha,
     )
