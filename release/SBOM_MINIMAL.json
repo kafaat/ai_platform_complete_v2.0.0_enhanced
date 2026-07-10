@@ -23475,7 +23475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6ea5abd3d6d08bdbb779540a247a67cb0b485d468704a8cbd2906db52191325a"
+          "content": "565da76c293cdae849fc789a8d1edce1542ea678b67ab5a53701e5f8ce8a66df"
         }
       ],
       "name": "services/weather-service/et0.py",
@@ -23515,7 +23515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "965290930f5a05bc28a2af6070b8b03626e619eff8a48b3c7bfc4b43a74d96f1"
+          "content": "8ca94ba05548e4305f900d3a1540ab837a93666f6d2aeae020a68c99f57baa1f"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -23745,7 +23745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b1c4073d7215b5af09e5f43c36b178d7bda8cda626bad34e97d2795b47b6bb5"
+          "content": "1c388238a2d7de282bef5044e501850b303d43755e7b0cf52d3fd2bc5afec179"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

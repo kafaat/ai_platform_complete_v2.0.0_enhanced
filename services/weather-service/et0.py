@@ -206,6 +206,64 @@ def compute_et0(
     }
 
 
+def et0_series_product(
+    *,
+    daily_t_min: list,
+    daily_t_max: list,
+    lat_deg: float | None,
+    elevation_m: float | None = None,
+    daily_solar_rad_mj_m2: list | None = None,
+    daily_rh_mean_pct: list | None = None,
+    daily_wind_2m_ms: list | None = None,
+    day_of_year_start: int | None = None,
+    valid_period: dict | None = None,
+) -> dict:
+    """سلسلة ET0 يوميّة مرجعيّة (FAO-56) — نواة المحرّك لسلاسل الموسم/المحاكاة.
+
+    يجنّب N نداءات مفردة: يحسب ET0 لكلّ يوم بنفس ``compute_et0`` (fao56-pm عند اكتمال
+    المدخلات وإلّا Hargreaves degraded). day-of-year يتزايد من ``day_of_year_start``.
+    نقيّ حتميّ. يعيد ``daily_et0_mm`` (قد يحوي None ليوم ناقص) + ``methods`` +
+    ``accumulated_et0_mm`` + عقد الخدمة (formula_version/valid_period).
+    """
+    n = min(len(daily_t_min), len(daily_t_max))
+    solar = daily_solar_rad_mj_m2 or []
+    rh = daily_rh_mean_pct or []
+    wind = daily_wind_2m_ms or []
+    daily_et0: list[float | None] = []
+    methods: list[str] = []
+    total = 0.0
+    counted = 0
+    for i in range(n):
+        doy = (day_of_year_start + i) if day_of_year_start is not None else None
+        res = compute_et0(
+            t_max_c=daily_t_max[i],
+            t_min_c=daily_t_min[i],
+            solar_rad_mj_m2=solar[i] if i < len(solar) else None,
+            rh_mean_pct=rh[i] if i < len(rh) else None,
+            wind_2m_ms=wind[i] if i < len(wind) else None,
+            lat_deg=lat_deg,
+            elevation_m=elevation_m,
+            day_of_year=doy,
+        )
+        val = res.get("et0_mm")
+        daily_et0.append(val)
+        methods.append(res.get("method"))
+        if val is not None:
+            total += val
+            counted += 1
+    return {
+        "product": "et0_series",
+        "formula_version": FORMULA_VERSION,
+        "unit": "mm/day",
+        "daily_et0_mm": daily_et0,
+        "methods": methods,
+        "accumulated_et0_mm": round(total, 3),
+        "days": n,
+        "days_computed": counted,
+        "valid_period": valid_period,
+    }
+
+
 def weather_snapshot_id(inputs: dict) -> str:
     """بصمة حتميّة لمتّجه الطقس المُستخدَم — هويّة اللقطة (لا زمن/عشوائيّة).
 

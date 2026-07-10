@@ -7,7 +7,7 @@ from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
 from chill_accumulation import compute_chill_accumulation
-from et0 import et0_agro_product
+from et0 import et0_agro_product, et0_series_product
 from fastapi import Body, HTTPException, Query
 from gdd import gdd_agro_product
 from lodging_risk import compute_lodging_risk
@@ -483,6 +483,39 @@ async def agro_et0(req: Et0ProductRequest = Body(...)):
         day_of_year=req.day_of_year,
         valid_time=req.valid_time,
         weather_snapshot_id_override=req.weather_snapshot_id,
+    )
+
+
+class Et0SeriesRequest(BaseModel):
+    """سلسلة ET0 يوميّة — للمحاكاة/الموسم (تفويض ET0 عن النواة المحلّيّة، WS-C.1b)."""
+
+    daily_t_min: list[float | None] = []
+    daily_t_max: list[float | None] = []
+    lat_deg: float | None = None
+    elevation_m: float | None = None
+    daily_solar_rad_mj_m2: list[float | None] | None = None
+    daily_rh_mean_pct: list[float | None] | None = None
+    daily_wind_2m_ms: list[float | None] | None = None
+    day_of_year_start: int | None = None
+    valid_period: dict | None = None
+
+
+async def agro_et0_series(req: Et0SeriesRequest = Body(...)):
+    """منتج سلسلة ET0 المرجعيّة (FAO-56) — نواة المحرّك لسلاسل الموسم/المحاكاة.
+
+    يفوّض حساب ET0 لسلسلة أيّام دفعةً واحدة (بدل N نداءات) — أساس ترحيل
+    season_simulation عن نواة ET0 المحلّيّة. نقيّ بلا شبكة ⇒ لا 5xx.
+    """
+    return et0_series_product(
+        daily_t_min=req.daily_t_min,
+        daily_t_max=req.daily_t_max,
+        lat_deg=req.lat_deg,
+        elevation_m=req.elevation_m,
+        daily_solar_rad_mj_m2=req.daily_solar_rad_mj_m2,
+        daily_rh_mean_pct=req.daily_rh_mean_pct,
+        daily_wind_2m_ms=req.daily_wind_2m_ms,
+        day_of_year_start=req.day_of_year_start,
+        valid_period=req.valid_period,
     )
 
 
