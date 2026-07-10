@@ -158,6 +158,59 @@ async def test_engine_down_fails_closed_no_local_et0(monkeypatch):
     assert any("fail-closed" in lim for lim in out["limitations"])
 
 
+_REQ_AUTO = FieldIrrigationRequest(policy="water_saving")  # لا حرارة ⇒ جلب تلقائيّ
+
+
+@pytest.mark.asyncio
+async def test_auto_fetch_weather_is_primary_path(monkeypatch):
+    # بلا حرارة في الطلب ⇒ الطقس يُجلَب آليّاً من المحرّك (المسار الأساسيّ D.2c).
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+
+    async def _snap(_lat, _lon):
+        return {
+            "t_min_c": 17.0,
+            "t_max_c": 33.0,
+            "wind_2m_ms": 2.0,
+            "solar_rad_mj_m2": 22.0,
+            "rh_mean_pct": None,
+            "day_of_year": 191,
+            "valid_time": "2026-07-10",
+            "source": "weather-engine-forecast",
+        }
+
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap)
+    out = await field_irrigation_recommendation("fld_1", _REQ_AUTO, user=object())
+    assert out["status"] == "recommendation_ready"
+    assert out["weather"]["source"] == "weather-engine-forecast"
+    assert out["weather"]["valid_time"] == "2026-07-10"
+    assert out["weather"]["day_of_year"] == 191
+
+
+@pytest.mark.asyncio
+async def test_manual_weather_is_flagged_override(monkeypatch):
+    # تمرير حرارة يدويّاً ⇒ يُعلَن كتجاوز (ليس المسار الأساسيّ).
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["weather"]["source"] == "manual_override"
+    assert any("manual weather override" in lim for lim in out["limitations"])
+
+
+@pytest.mark.asyncio
+async def test_weather_engine_down_fails_closed(monkeypatch):
+    from fastapi import HTTPException
+
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+
+    async def _down(_lat, _lon):
+        raise HTTPException(status_code=503, detail="forecast down")
+
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _down)
+    out = await field_irrigation_recommendation("fld_1", _REQ_AUTO, user=object())
+    assert out["status"] == "dependency_unavailable"
+    assert out["recommendation"] is None
+    assert any("fail-closed" in lim for lim in out["limitations"])
+
+
 @pytest.mark.asyncio
 async def test_shadow_diff_is_near_zero_faithful_reproduction(monkeypatch):
     # المحرّك (المُثبَّت) يُعيد قيمة الإرث نفسها ⇒ diff = 0 (إثبات أمانة إعادة الإنتاج).

@@ -32,7 +32,7 @@ from api.main import (
 from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
 from api.water_balance import WeatherInput, compute_et0
-from api.weather_service_client import get_et0_product
+from api.weather_service_client import get_et0_product, get_weather_forecast
 
 router = APIRouter()
 
@@ -90,6 +90,41 @@ def _shadow_et0_diff(engine_et0_mm: float | None, w: WeatherInput) -> dict | Non
         "legacy_method": legacy_method,
         "diff_mm": diff,
         "diff_pct": round(100.0 * diff / legacy_mm, 1) if legacy_mm else None,
+    }
+
+
+async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> dict:
+    """لقطة طقس اليوم من محرّك الطقس (المصدر الوحيد) — المسار الأساسيّ لـD.2c.
+
+    يجلب توقّع اليوم لموقع الحقل ويشتقّ day-of-year من ``valid_time``. تعذّر المحرّك
+    أو غياب أيّام ⇒ HTTPException (fail-closed؛ لا توصية على طقس مفقود). RH غير متوفّر
+    في التوقّع اليوميّ (ساعيّ فقط) ⇒ None (ET0 يسقط لـHargreaves صراحةً). نقطة وصل
+    قابلة للـmonkeypatch.
+    """
+    from datetime import date as _date
+
+    fc = await get_weather_forecast(latitude_deg, longitude_deg, days=1)
+    days = fc.get("days") or []
+    if not days:
+        raise HTTPException(
+            status_code=503,
+            detail="weather-engine forecast returned no days — fail-closed (no recommendation)",
+        )
+    d0 = days[0]
+    valid_time = d0.get("date")
+    try:
+        doy = _date.fromisoformat(valid_time).timetuple().tm_yday if valid_time else None
+    except (TypeError, ValueError):
+        doy = None
+    return {
+        "t_min_c": d0.get("temp_min_c"),
+        "t_max_c": d0.get("temp_max_c"),
+        "wind_2m_ms": d0.get("wind_max_ms"),
+        "solar_rad_mj_m2": d0.get("solar_radiation_mj_m2"),
+        "rh_mean_pct": None,  # غير متوفّر في التوقّع اليوميّ
+        "day_of_year": doy,
+        "valid_time": valid_time,
+        "source": "weather-engine-forecast",
     }
 
 
@@ -202,14 +237,16 @@ async def irrigation_recommendation(
 
 
 class FieldIrrigationRequest(BaseModel):
-    """طقس Penman-Monteith فقط — الاستنزاف/TAW/الإجهاد تُقرأ آليّاً من حالة الحقل."""
+    """المسار الأساسيّ: الطقس يُجلَب آليّاً من محرّك الطقس (WS-D.2c). الحرارة اختياريّة
+    كتجاوز يدويّ فقط — لا كمسار أساسيّ. الاستنزاف/TAW/التربة تُقرأ آليّاً من حالة الحقل."""
 
-    t_min_c: float
-    t_max_c: float
+    # تجاوز يدويّ اختياريّ (ليس المسار الأساسيّ) — None ⇒ جلب تلقائيّ من المحرّك.
+    t_min_c: float | None = None
+    t_max_c: float | None = None
     solar_rad_mj_m2: float | None = None
     rh_mean_pct: float | None = None
     wind_2m_ms: float | None = None
-    day_of_year: int = 100
+    day_of_year: int | None = None
     root_depth_m: float | None = None  # عمق الجذور (لاشتقاق TAW)؛ None ⇒ افتراضيّ موسوم
     policy: str | None = None  # سياسة الريّ (water_saving افتراضاً)
     water_price_per_m3: float | None = None
@@ -236,7 +273,7 @@ async def field_irrigation_recommendation(
 
     async with tenant_connection(user) as conn:
         # سياق الحقل + الموسم النشط (يرفع 404 إن غاب الحقل).
-        field_lat, _lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+        field_lat, field_lon, crop, stage, _days = await _field_weather_context(conn, field_id)
         season = await conn.fetchrow(
             "SELECT season_id FROM seasons WHERE field_id = $1 AND status = 'active' "
             "ORDER BY created_at DESC LIMIT 1",
@@ -330,20 +367,73 @@ async def field_irrigation_recommendation(
     )
     water_stress_class = stress["water_stress_class"] if stress else None
 
-    # ET0 من محرّك الطقس (المصدر الوحيد). خطّ العرض الحقيقيّ للحقل؛ الارتفاع افتراض
-    # الهضبة اليمنيّة (2000م) حتّى إثراء التربة/الحقل (WS-D.2b/c). elevation مطابق للإرث
-    # ليكون فرق الظلّ ≈ 0 (إثبات أمانة إعادة الإنتاج).
     _elev_default_m = 2000.0
+
+    # WS-D.2c: الطقس يُجلَب آليّاً من محرّك الطقس (المسار الأساسيّ). حرارة الطلب تجاوز
+    # يدويّ فقط. تعذّر جلب الطقس ⇒ dependency_unavailable (لا توصية على طقس مفقود).
+    manual_weather = req.t_min_c is not None and req.t_max_c is not None
+    weather_limitation: str | None = None
+    try:
+        if manual_weather:
+            wx = {
+                "t_min_c": req.t_min_c,
+                "t_max_c": req.t_max_c,
+                "solar_rad_mj_m2": req.solar_rad_mj_m2,
+                "rh_mean_pct": req.rh_mean_pct,
+                "wind_2m_ms": req.wind_2m_ms,
+                "day_of_year": req.day_of_year if req.day_of_year is not None else 100,
+                "valid_time": None,
+                "source": "manual_override",
+            }
+            weather_limitation = "manual weather override (not auto-fetched from weather-engine)"
+        else:
+            wx = await _field_weather_snapshot(field_lat, field_lon)
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            return {
+                "status": "dependency_unavailable",
+                "field_id": field_id,
+                "season_id": season_id,
+                "inputs": inputs,
+                "recommendation": None,
+                "ownership": "recommendation_candidate → decision-service",
+                "confidence": None,
+                "evidence_ids": evidence_ids,
+                "limitations": [
+                    *state["limitations"],
+                    "weather-engine forecast unavailable — fail-closed (no recommendation)",
+                ],
+                "calibrated": False,
+            }
+        raise
+
+    # طقس ناقص (لا حرارة) ⇒ لا توصية (لا اختلاق).
+    if wx.get("t_min_c") is None or wx.get("t_max_c") is None:
+        return {
+            "status": "dependency_unavailable",
+            "field_id": field_id,
+            "season_id": season_id,
+            "inputs": inputs,
+            "recommendation": None,
+            "ownership": "recommendation_candidate → decision-service",
+            "confidence": None,
+            "evidence_ids": evidence_ids,
+            "limitations": [*state["limitations"], "weather snapshot missing temperature"],
+            "calibrated": False,
+        }
+
+    # ET0 من محرّك الطقس (المصدر الوحيد) بلقطة الحقل. الارتفاع افتراض الهضبة (2000م).
     try:
         et0_prod = await _engine_et0(
-            t_min_c=req.t_min_c,
-            t_max_c=req.t_max_c,
-            solar_rad_mj_m2=req.solar_rad_mj_m2,
-            rh_mean_pct=req.rh_mean_pct,
-            wind_2m_ms=req.wind_2m_ms,
-            day_of_year=req.day_of_year,
+            t_min_c=wx["t_min_c"],
+            t_max_c=wx["t_max_c"],
+            solar_rad_mj_m2=wx.get("solar_rad_mj_m2"),
+            rh_mean_pct=wx.get("rh_mean_pct"),
+            wind_2m_ms=wx.get("wind_2m_ms"),
+            day_of_year=wx.get("day_of_year") or 100,
             latitude_deg=field_lat,
             elevation_m=_elev_default_m,
+            valid_time=wx.get("valid_time"),
         )
     except HTTPException as exc:
         # فشل مُغلَق: تعذّر المحرّك ⇒ لا حساب ET0 محلّيّ بديل (dependency_unavailable).
@@ -370,14 +460,14 @@ async def field_irrigation_recommendation(
     shadow = _shadow_et0_diff(
         et0_mm,
         WeatherInput(
-            t_min_c=req.t_min_c,
-            t_max_c=req.t_max_c,
-            solar_rad_mj_m2=req.solar_rad_mj_m2,
-            rh_mean_pct=req.rh_mean_pct,
-            wind_2m_ms=req.wind_2m_ms,
+            t_min_c=wx["t_min_c"],
+            t_max_c=wx["t_max_c"],
+            solar_rad_mj_m2=wx.get("solar_rad_mj_m2"),
+            rh_mean_pct=wx.get("rh_mean_pct"),
+            wind_2m_ms=wx.get("wind_2m_ms"),
             latitude_deg=field_lat,
             elevation_m=_elev_default_m,
-            day_of_year=req.day_of_year,
+            day_of_year=wx.get("day_of_year") or 100,
         ),
     )
     if shadow and shadow.get("diff_mm") is not None:
@@ -431,9 +521,18 @@ async def field_irrigation_recommendation(
             "policy_knobs": rec["policy_knobs"],
         },
         "et0": _et0_provenance(et0_prod, shadow),
+        "weather": {
+            "source": wx["source"],
+            "valid_time": wx.get("valid_time"),
+            "day_of_year": wx.get("day_of_year"),
+        },
         "ownership": "recommendation_candidate → decision-service",
         "confidence": confidence,
         "evidence_ids": evidence_ids,
-        "limitations": [*state["limitations"], *soil_prov["limitations"]],
+        "limitations": [
+            *state["limitations"],
+            *soil_prov["limitations"],
+            *([weather_limitation] if weather_limitation else []),
+        ],
         "calibrated": False,
     }
