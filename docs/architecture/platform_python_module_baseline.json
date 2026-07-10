@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 594,
+  "baseline_python_module_count": 595,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -335,6 +335,7 @@
     "api/service_token_auth.py",
     "api/setting_models.py",
     "api/sharing.py",
+    "api/soil_enrichment.py",
     "api/soil_moisture_advisor.py",
     "api/soil_sampling_protocol.py",
     "api/soil_telemetry.py",

@@ -13975,7 +13975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "647f7aa5ad93993c8e1a2b77ef1c24c8f9824cb5141131e570e7acd06360475e"
+          "content": "29fbe09cd184ca52ad5450cf67ac79e354fd45bf920b87d2e185fc5a96b6701e"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -20055,7 +20055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91f56e0fdbde91d0d020e0d505f0283c74e183fad5b6740f2d0ba7d5b3060bd6"
+          "content": "0952597d92ce4e5887a4a2c44b81ffa3eeebb15a742dd45c38cc49edbcc1dbcb"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
@@ -21619,6 +21619,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_season_comparison.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0ddfebadb10a3ceff6f135ce04128a8b83856e2ce961f46e445e72e9cfb04c88"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_season_gdd_injection.py",
       "type": "file"
     },
     {

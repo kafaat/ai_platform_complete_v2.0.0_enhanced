@@ -29,6 +29,7 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
+from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
 from api.water_balance import WeatherInput, compute_et0
 from api.weather_service_client import get_et0_product
@@ -249,6 +250,16 @@ async def field_irrigation_recommendation(
             "FROM water_ledger WHERE field_id = $1 ORDER BY ledger_date DESC LIMIT 1",
             field_id,
         )
+        # WS-D.2b: أحدث فحص تربة معتمَد ⇒ نسيج مقيس مخبريّاً (+ عمره) لتحسين TAW.
+        # النسيج لا عمود مُصنَّف له اليوم (جرد المصادر) — من JSONB. غيابه ⇒ fallback عامّ.
+        soil_row = await conn.fetchrow(
+            "SELECT sampled_on, result, "
+            "EXTRACT(EPOCH FROM (now() - sampled_on)) / 86400.0 AS age_days "
+            "FROM soil_lab_tests "
+            "WHERE field_id = $1 AND status IN ('approved', 'published') "
+            "AND sampled_on IS NOT NULL ORDER BY sampled_on DESC LIMIT 1",
+            field_id,
+        )
 
     depletion_mm = lrow["depletion_mm"] if lrow else None
     dep_conf = lrow["confidence"] if lrow else None
@@ -257,10 +268,22 @@ async def field_irrigation_recommendation(
         float(lrow["age_hours"]) if (lrow and lrow["age_hours"] is not None) else None
     )
 
-    # TAW من بارامترات التربة (النسيج غير مقروء بعد ⇒ احتياطيّ موسوم صدقاً).
-    sw = soil_water_params(texture=None, root_depth_m=req.root_depth_m)
+    # WS-D.2b: نسيج مخبريّ حقيقيّ ⇒ TAW أدقّ + نَسَب مصدر صريح + خفض ثقة عند fallback.
+    texture_lab = extract_texture(soil_row["result"]) if soil_row else None
+    texture_sampled_on = str(soil_row["sampled_on"]) if soil_row else None
+    texture_age_days = (
+        float(soil_row["age_days"]) if (soil_row and soil_row["age_days"] is not None) else None
+    )
+    sw = soil_water_params(texture=texture_lab, root_depth_m=req.root_depth_m)
     taw_mm = sw["taw_mm"]
-    taw_source = "soil_lab" if sw.get("texture_known") else "texture_fallback"
+    soil_prov = soil_water_provenance(
+        texture_known=bool(sw.get("texture_known")),
+        texture_value=sw.get("texture"),
+        texture_sampled_on=texture_sampled_on,
+        texture_age_days=texture_age_days,
+        root_depth_supplied=req.root_depth_m is not None and req.root_depth_m > 0,
+    )
+    taw_source = soil_prov["taw"]["source"]
 
     state = assess_irrigation_state(
         depletion_mm=depletion_mm,
@@ -275,11 +298,14 @@ async def field_irrigation_recommendation(
         "raw_fraction": sw["raw_fraction"],
         "depletion_fraction": state["depletion_fraction"],
         "taw_source": taw_source,
+        "soil_provenance": soil_prov,
         "ledger_age_hours": round(ledger_age_hours, 1) if ledger_age_hours is not None else None,
         "crop": crop,
         "stage": stage,
     }
     evidence_ids = [f"field-context:{field_id}", f"soil-water-params:{taw_source}"]
+    if soil_prov["texture"]["source"] == "lab_measured" and texture_sampled_on is not None:
+        evidence_ids.append(f"soil-lab-texture:{field_id}:{texture_sampled_on}")
     if ledger_date is not None:
         evidence_ids.append(f"water-ledger:{field_id}:{ledger_date}")
 
@@ -378,9 +404,16 @@ async def field_irrigation_recommendation(
         yield_value_per_ha=req.yield_value_per_ha,
     )
 
-    # ثقة: تبدأ من ثقة الاستنزاف المخزَّنة، وتُخفَّض بكلّ قيد مُعلَن (شفّاف، غير معايَر).
+    # ثقة: تبدأ من ثقة الاستنزاف المخزَّنة، وتُخفَّض بكلّ قيد مُعلَن (حالة + تربة)
+    # وبعقوبة نَسَب التربة (fallback عامّ) — شفّاف، غير معايَر (WS-D.2b).
     base_conf = float(dep_conf) if dep_conf is not None else 0.5
-    confidence = round(max(0.0, base_conf - 0.15 * len(state["limitations"])), 2)
+    confidence = round(
+        max(
+            0.0,
+            base_conf - 0.15 * len(state["limitations"]) - soil_prov["confidence_penalty"],
+        ),
+        2,
+    )
 
     return {
         "status": "recommendation_ready",
@@ -401,6 +434,6 @@ async def field_irrigation_recommendation(
         "ownership": "recommendation_candidate → decision-service",
         "confidence": confidence,
         "evidence_ids": evidence_ids,
-        "limitations": state["limitations"],
+        "limitations": [*state["limitations"], *soil_prov["limitations"]],
         "calibrated": False,
     }

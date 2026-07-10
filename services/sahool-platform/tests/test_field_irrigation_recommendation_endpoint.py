@@ -21,10 +21,11 @@ from api.routers.irrigation_recommendation import (
 
 
 class _FakeConn:
-    def __init__(self, *, depletion_mm, age_hours=5.0, confidence=0.9):
+    def __init__(self, *, depletion_mm, age_hours=5.0, confidence=0.9, soil_texture=None):
         self._depletion = depletion_mm
         self._age = age_hours
         self._conf = confidence
+        self._soil_texture = soil_texture
 
     async def fetchrow(self, sql, *a):
         if "FROM seasons" in sql:
@@ -38,6 +39,14 @@ class _FakeConn:
                 "soil_moisture_pct": None,
                 "ledger_date": date(2026, 7, 9),
                 "age_hours": self._age,
+            }
+        if "FROM soil_lab_tests" in sql:
+            if self._soil_texture is None:
+                return None
+            return {
+                "sampled_on": date(2026, 5, 1),
+                "result": {"texture": self._soil_texture},
+                "age_days": 40.0,
             }
         return None
 
@@ -108,6 +117,29 @@ async def test_et0_provenance_from_weather_engine(monkeypatch):
     # مقارنة ظلّيّة مؤقّتة موجودة (الإرث لا يدخل القرار).
     assert "shadow" in et0
     assert et0["shadow"]["diff_mm"] is not None
+
+
+@pytest.mark.asyncio
+async def test_lab_texture_is_measured_provenance(monkeypatch):
+    # فحص تربة معتمَد بنسيج ⇒ TAW من نسيج مقيس، لا fallback.
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0, soil_texture="sandy_loam"))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    prov = out["inputs"]["soil_provenance"]
+    assert prov["texture"]["source"] == "lab_measured"
+    assert prov["texture"]["value"] == "sandy_loam"
+    assert prov["taw"]["source"] == "modelled_from_lab_texture"
+    assert any(e.startswith("soil-lab-texture:") for e in out["evidence_ids"])
+
+
+@pytest.mark.asyncio
+async def test_missing_lab_texture_fallback_lowers_confidence(monkeypatch):
+    # لا فحص تربة ⇒ نسيج fallback عامّ ⇒ قيد مُعلَن + ثقة أخفض (لا اختلاق دقّة).
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0, soil_texture=None))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    prov = out["inputs"]["soil_provenance"]
+    assert prov["texture"]["source"] == "unavailable_fallback"
+    assert prov["confidence_penalty"] >= 0.15
+    assert any("not lab-measured" in lim for lim in out["limitations"])
 
 
 @pytest.mark.asyncio

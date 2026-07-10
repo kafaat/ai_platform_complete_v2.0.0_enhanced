@@ -622,8 +622,8 @@ sahool-platform,services/sahool-platform/api/routers/irrigation_method.py,31,GET
 sahool-platform,services/sahool-platform/api/routers/irrigation_method.py,43,POST,/api/v1/irrigation-method/gross,compute_gross
 sahool-platform,services/sahool-platform/api/routers/irrigation_network.py,55,POST,/api/v1/irrigation/network/feasibility,network_feasibility_endpoint
 sahool-platform,services/sahool-platform/api/routers/irrigation_plan.py,111,POST,/api/v1/irrigation-plan,irrigation_plan_endpoint
-sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,147,POST,/api/v1/irrigation-recommendation,irrigation_recommendation
-sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,219,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation
+sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,148,POST,/api/v1/irrigation-recommendation,irrigation_recommendation
+sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,220,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,87,POST,/api/v1/agro/kc-timeseries,persist_kc
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,140,GET,/api/v1/agro/kc-timeseries/{field_id},list_kc
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,156,GET,/api/v1/agro/kc-timeseries/{field_id}/compare,compare_kc
