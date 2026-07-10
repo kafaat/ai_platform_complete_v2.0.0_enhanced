@@ -109,6 +109,7 @@
 | v52 | سياسة AI للمستأجِر | **fixed** (`90b0803`؛ platform سلطة، ai_agronomist مستهلِك؛ derived: tools/data_classes/max_bytes بلا أعمدة — موثَّق) |
 | SUPERSET | توحيد main↔certification | **no-op** (main يحتوي cert؛ `a9f7314` سلف خطّيّ، 0 commit متقدّم) |
 | VALIDATE-NV | قيود NOT VALID (v127/v130/v132) | **prep** (`6ad1872`: تقرير+حارس+runbook؛ VALIDATE الفعليّ للمشغّل بعد تنظيف) |
+| WS-C.1b-CLOSE | توحيد ET0 في محرّك الطقس (صفر نواة حيّة خارجه) | **partial** (`d2d2183`؛ season_simulation مُرحَّل بالكامل. باقٍ **5 نوى حيّة**: et0.py الجذر · water_balance⇒`/water-balance` · fao56⇒etc-dual · weather_analytics · field_state_projection. ثغرة: الأخيرتان تُفلتان من الحارس بالتسمية) |
 
 ## ماذا بعد؟
 
@@ -116,4 +117,5 @@
   `docker compose -f docker-compose.v9.yml up -d --build sahool-vegetation-analysis`. + ضبط `MFA_SECRET_ENCRYPTION_KEY` في `.env` لتفعيل مسار MFA الإنتاجيّ.
 - **SPATIAL-401:** أرسل status+body لطلب `/v1/fields/{id}/indicator-grid` من Network (أو سجلّ raster) لأشخّصه — لا اختلاق إصلاح.
 - **تصلّب الأساس (v57.5-DB):** أعلى أثراً v54 imagery quality ثمّ v50 soil_lab (لـVRA)؛ **أعيد التحقّق** أنّ كلّ بند لم يُغلَق downstream قبل التنفيذ.
+- **WS-C.1b-CLOSE:** لإعلان الإغلاق الكامل يلزم ترحيل **خمس** نوى ET0 حيّة (5 مسارات endpoint: water-balance · scenario-whatif · etc-dual · weather-analytics · field-state) إلى منتج ET0 الكنسيّ، ثمّ سدّ ثغرة الحارس (كشف `_hargreaves_et0`/`_et0_from_weather_payload`)، ثمّ حذف مدخلات allowlist. **ليست خطوة صغيرة** — تسلسُل مطلوب. season_simulation وحده مُرحَّل (نواة-صفر).
 - **انضباط:** هذا المدخل يغلق دَين تحديث الدماغ لهذه الجلسة.
