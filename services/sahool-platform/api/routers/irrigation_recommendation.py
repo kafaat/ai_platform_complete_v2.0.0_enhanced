@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from api.canonical_water_stress import canonical_water_stress
+from api.decision_service_client import record_decision
 from api.field_context import _field_weather_context
 from api.irrigation_recommendation_policy import recommend_irrigation
 from api.irrigation_state_guard import assess_irrigation_state
@@ -126,6 +127,15 @@ async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> 
         "valid_time": valid_time,
         "source": "weather-engine-forecast",
     }
+
+
+async def _submit_candidate_to_decision(payload: dict, tenant_id: str | None) -> dict:
+    """يقدّم المرشَّح إلى خدمة القرار (تسجيل معلَّق للموافقة) — نقطة وصل قابلة للـmonkeypatch.
+
+    **لا ينفّذ**: يُسجّل قراراً معلَّقاً (pending_approval) فقط؛ التنفيذ المحروس (حواجز +
+    human-in-loop + طابور) يبقى في مسار decision_dispatch. تعذّر الخدمة ⇒ HTTPException.
+    """
+    return await record_decision(payload, tenant_id=tenant_id)
 
 
 def _et0_provenance(prod: dict, shadow: dict | None) -> dict:
@@ -250,6 +260,8 @@ class FieldIrrigationRequest(BaseModel):
     root_depth_m: float | None = None  # عمق الجذور (لاشتقاق TAW)؛ None ⇒ افتراضيّ موسوم
     policy: str | None = None  # سياسة الريّ (water_saving افتراضاً)
     water_price_per_m3: float | None = None
+    # WS-D.2d: تقديم صريح للمرشَّح إلى خدمة القرار (لا تلقائيّ — احترام حوكمة الموافقة).
+    submit_to_decision: bool = False
     yield_value_per_ha: float | None = None
 
 
@@ -505,6 +517,47 @@ async def field_irrigation_recommendation(
         2,
     )
 
+    # WS-D.2d: المرشَّح ليس قراراً. approval_state يمنع عرض «اروِ» كقرار نهائيّ قبل
+    # الاعتماد. التقديم صريح فقط (submit_to_decision) — لا تلقائيّ (حوكمة الموافقة).
+    approval_state = "not_submitted"
+    decision_id = None
+    submit_limitation: str | None = None
+    if req.submit_to_decision:
+        candidate_payload = {
+            "decision_type": "irrigation",
+            "field_id": field_id,
+            "season_id": season_id,
+            "recommendation": {
+                "should_irrigate": rec["should_irrigate"],
+                "trigger_reason": rec["trigger_reason"],
+                "net_irrigation_mm": rec["net_irrigation_mm"],
+                "target_refill_mm": rec["target_refill_mm"],
+                "urgency": rec["urgency"],
+            },
+            "confidence": confidence,
+            "evidence_ids": evidence_ids,
+            "provenance": {
+                "et0": et0_prod.get("weather_snapshot_id"),
+                "weather": wx.get("valid_time"),
+                "taw_source": taw_source,
+            },
+            "status": "pending_approval",
+            "calibrated": False,
+        }
+        try:
+            res = await _submit_candidate_to_decision(
+                candidate_payload, getattr(user, "tenant_id", None)
+            )
+            decision_id = res.get("decision_id") or res.get("id")
+            approval_state = "pending_approval"
+        except HTTPException as exc:
+            # فشل مُغلَق: تعذّر خدمة القرار ⇒ لم يُقدَّم (لا اختلاق تقديم ناجح).
+            if exc.status_code in _ENGINE_DOWN_CODES:
+                approval_state = "submit_unavailable"
+                submit_limitation = "decision-service unavailable — candidate not submitted"
+            else:
+                raise
+
     return {
         "status": "recommendation_ready",
         "field_id": field_id,
@@ -527,12 +580,16 @@ async def field_irrigation_recommendation(
             "day_of_year": wx.get("day_of_year"),
         },
         "ownership": "recommendation_candidate → decision-service",
+        # WS-D.2d: حالة الاعتماد صريحة — «اروِ» ليس قراراً نهائيّاً قبل approved.
+        "approval_state": approval_state,
+        "decision_id": decision_id,
         "confidence": confidence,
         "evidence_ids": evidence_ids,
         "limitations": [
             *state["limitations"],
             *soil_prov["limitations"],
             *([weather_limitation] if weather_limitation else []),
+            *([submit_limitation] if submit_limitation else []),
         ],
         "calibrated": False,
     }

@@ -212,6 +212,76 @@ async def test_weather_engine_down_fails_closed(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_default_is_not_submitted(monkeypatch):
+    # لا submit ⇒ المرشَّح غير مُقدَّم (approval_state=not_submitted) — «اروِ» ليس نهائيّاً.
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["approval_state"] == "not_submitted"
+    assert out["decision_id"] is None
+
+
+@pytest.mark.asyncio
+async def test_submit_to_decision_is_pending_approval(monkeypatch):
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+
+    async def _submit(payload, _tenant):
+        assert payload["decision_type"] == "irrigation"
+        assert payload["status"] == "pending_approval"
+        return {"decision_id": "dec_123"}
+
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", _submit)
+    req = FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
+
+    async def _snap(_lat, _lon):
+        return {
+            "t_min_c": 17.0,
+            "t_max_c": 33.0,
+            "wind_2m_ms": 2.0,
+            "solar_rad_mj_m2": 22.0,
+            "rh_mean_pct": None,
+            "day_of_year": 191,
+            "valid_time": "2026-07-10",
+            "source": "weather-engine-forecast",
+        }
+
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap)
+    out = await field_irrigation_recommendation("fld_1", req, user=object())
+    assert out["approval_state"] == "pending_approval"
+    assert out["decision_id"] == "dec_123"
+
+
+@pytest.mark.asyncio
+async def test_submit_decision_service_down_is_flagged(monkeypatch):
+    from fastapi import HTTPException
+
+    _patch(monkeypatch, _FakeConn(depletion_mm=60.0))
+
+    async def _down(_payload, _tenant):
+        raise HTTPException(status_code=502, detail="decision-service down")
+
+    async def _snap(_lat, _lon):
+        return {
+            "t_min_c": 17.0,
+            "t_max_c": 33.0,
+            "wind_2m_ms": 2.0,
+            "solar_rad_mj_m2": 22.0,
+            "rh_mean_pct": None,
+            "day_of_year": 191,
+            "valid_time": "2026-07-10",
+            "source": "weather-engine-forecast",
+        }
+
+    monkeypatch.setattr(mod, "_submit_candidate_to_decision", _down)
+    monkeypatch.setattr(mod, "_field_weather_snapshot", _snap)
+    req = FieldIrrigationRequest(policy="water_saving", submit_to_decision=True)
+    out = await field_irrigation_recommendation("fld_1", req, user=object())
+    # فشل التقديم لا يُلفَّق نجاحاً — يُعلَن submit_unavailable، والمرشَّح ما زال يُعرَض.
+    assert out["approval_state"] == "submit_unavailable"
+    assert out["decision_id"] is None
+    assert any("not submitted" in lim for lim in out["limitations"])
+
+
+@pytest.mark.asyncio
 async def test_shadow_diff_is_near_zero_faithful_reproduction(monkeypatch):
     # المحرّك (المُثبَّت) يُعيد قيمة الإرث نفسها ⇒ diff = 0 (إثبات أمانة إعادة الإنتاج).
     # نحسب الإرث فعليّاً لنُطابق قيمة المحرّك المُثبَّتة معه.

@@ -13975,7 +13975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "744fd4eedcb7df680940e4045352446304af00a3f4a1738141661addba1dddd8"
+          "content": "7b991ede7fae473e014d2b70e6e23a4f54f83e416f43b18d8edb1cc6370a3481"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_recommendation.py",
@@ -20065,7 +20065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "deac20410bd49316afe442da7cd71e8662b91244e6e320e685348cca110c5824"
+          "content": "271c250b543eb50b53cdbab8b6d5373788118a3eb5967de2e8eb3c4cb65d195a"
         }
       ],
       "name": "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
