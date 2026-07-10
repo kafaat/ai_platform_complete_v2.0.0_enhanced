@@ -36,3 +36,22 @@ def test_timeseries_route_wraps_with_honest_flags():
     assert '"real_data": False' in src
     assert '"synthetic": True' in src
     assert "raster-service:/imagery/timeseries" in src  # المصدر الحقيقيّ مُعلَن
+
+
+def test_recommendations_are_hypotheses_not_executive_commands():
+    import vegetation_runtime as vr
+
+    # إجهاد مائي تقديريّ ⇒ فرضيّة + تحقّق، لا أمر «اروِ الآن».
+    recs = vr._recommendations_ar({"ndvi": 0.6, "cwsi": 0.7, "ndwi": 0.1, "recl": 2.0}, {}, "wheat")
+    joined = " ".join(recs)
+    assert "فرضيّة" in joined  # إطار الفرضيّة
+    assert "الفوري" not in joined  # لا أمر تنفيذيّ مباشر
+    assert "خدمة القرار" in joined  # القرار التنفيذيّ يُحال صراحةً
+
+
+def test_analyze_response_flags_estimated_and_advisory_role():
+    from pathlib import Path
+
+    src = (Path(__file__).resolve().parent / "vegetation_runtime.py").read_text(encoding="utf-8")
+    assert '"estimated": index_sources.get(k, "estimate") != "raster-service"' in src  # V3
+    assert '"advisory_role": "hypothesis"' in src  # V4

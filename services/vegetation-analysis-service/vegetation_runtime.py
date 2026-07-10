@@ -696,23 +696,39 @@ def _health_classification(ndvi: float, cwsi: float) -> dict:
 
 
 def _recommendations_ar(indices: dict, health: dict, crop: str) -> list[str]:
+    """فرضيّات واقتراحات فحص (V4) — لا توصيات تنفيذيّة.
+
+    صدق حدود المحرّكات: Vegetation يُنتج **فرضيّات/اقتراحات فحص** مبنيّة على مؤشّرات
+    تقديريّة، لا أوامر تنفيذيّة («اروِ 30مم»/«رشّ X») — تلك لخدمة القرار (Decision).
+    كانت سابقاً تقول «يُنصح بالري الفوري» مبنيّةً على CWSI **تقديريّ** ⇒ خطر مضاعف.
+    نُبقي الكلمات المفتاحيّة (ريّ/آفة/مرض) كي لا نكسر مستهلكاً، لكن بصيغة فرضيّة.
+    """
     recs = []
     ndvi = indices["ndvi"]
     cwsi = indices["cwsi"]
     ndwi = indices["ndwi"]
     recl = indices["recl"]
     if cwsi > 0.6:
-        recs.append(f"⚠️ إجهاد مائي حاد (CWSI={cwsi:.2f}) — يُنصح بالري الفوري")
+        recs.append(
+            f"⚠️ فرضيّة: إجهاد مائي حاد محتمل (CWSI≈{cwsi:.2f}، تقديريّ) — "
+            "يوصى بالتحقّق الميدانيّ؛ قرار الريّ لخدمة القرار."
+        )
     elif cwsi > 0.35:
-        recs.append(f"💧 إجهاد مائي متوسط (CWSI={cwsi:.2f}) — راقب الرطوبة")
+        recs.append(
+            f"💧 فرضيّة: إجهاد مائي متوسّط محتمل (CWSI≈{cwsi:.2f}، تقديريّ) — راقب واطلب تقييماً."
+        )
     if recl < 1.5:
-        recs.append(f"🌱 نقص كلوروفيل (RECl={recl:.2f}) — تحقق من مستوى النيتروجين")
+        recs.append(
+            f"🌱 فرضيّة: نقص كلوروفيل محتمل (RECl≈{recl:.2f}، تقديريّ) — يوصى بفحص النيتروجين."
+        )
     if ndvi < 0.40:
-        recs.append(f"📉 NDVI منخفض ({ndvi}) — احتمال وجود آفة أو مرض")
+        recs.append(
+            f"📉 فرضيّة: انخفاض NDVI ({ndvi}) — احتمال آفة أو مرض؛ يوصى بالفحص الميدانيّ."
+        )
     if ndwi < -0.1:
-        recs.append(f"🏜️ جفاف حاد (NDWI={ndwi:.2f}) — زيادة تكرار الري")
+        recs.append(f"🏜️ فرضيّة: جفاف محتمل (NDWI≈{ndwi:.2f}، تقديريّ) — يوصى بالتحقّق قبل قرار الريّ.")
     if not recs:
-        recs.append("✅ المحصول بصحة جيدة — استمر في نظام الري الحالي")
+        recs.append("✅ لا إشارات إجهاد واضحة في التقديرات الحاليّة — يوصى بالمتابعة الاعتياديّة.")
     return recs
 
 
@@ -847,12 +863,20 @@ async def run_analysis(field_id: str, tenant_id: str, date_from: str, date_to: s
                 "value": v,
                 "unit": "dimensionless",
                 "source": index_sources.get(k, "estimate"),
+                # V3: علم صريح لا نصّ فقط — تقديريّ ما لم يكن من raster-service.
+                "estimated": index_sources.get(k, "estimate") != "raster-service",
             }
             for k, v in indices.items()
         },
         "raw_bands": bands,
         "health": health,
         "recommendations_ar": recs,
+        # V4: هذه فرضيّات/اقتراحات فحص لا أوامر تنفيذيّة — القرارات (ريّ/رشّ/تسميد)
+        # لخدمة القرار. مبنيّة على مؤشّرات تقديريّة ما لم يُوسَم مصدرها raster-service.
+        "advisory_role": "hypothesis",
+        "advisory_note_ar": (
+            "فرضيّات واقتراحات فحص مبنيّة على مؤشّرات تقديريّة؛ القرارات التنفيذيّة لخدمة القرار."
+        ),
         "analyzed_at": datetime.now(UTC).isoformat(),
         "satellite": "Sentinel-2 L2A",
         "resolution_m": 10,
