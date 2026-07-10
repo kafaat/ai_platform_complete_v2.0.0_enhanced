@@ -204,6 +204,22 @@ Duplicate Operation ID proxy_segmentation_api_segmentation__path__patch
 **التحقّق المستقلّ الكامل:** `field_workspace_production_closure_gate.py` + 4 بوّابات SoR (final-certification/cutover-readiness/shadow-promotion/staging-probe) كلّها exit 0 · حُرّاس منصّة **63** (11 ملفّ، P0-5 الآن 7 اختبارات) · tests_v9 unit **2806 نجاح / 5 تخطٍّ** · ruff format+check نظيف · py_compile نظيف · لا تغييرات frontend (tsc/vitest غير مُعاد تشغيلهما) · release مُعاد بناؤه والتحقّق منه (**3618** checksum).
 
 ---
+## 2026-07-10 — إكمال عائلة إجهاد المحصول (lodging + pollination + chill) بمنتِجات حتميّة ومستهلك مُجمَّع
+
+«نفّذ الكل» ⇒ بُنيت الفجوات الزراعيّة الثلاث المتبقّية (`open` في السجلّ) كمنتِجات weather-service حتميّة، بنفس نمط `compound_thermal_stress` المُتحقَّق:
+- **`lodging_risk.py`** — خطر الرقود: شدّة هبّات الرياح × قابليّة (محصول×مرحلة، الحبوب الطويلة عالية عند الطرد/الامتلاء) × مُعامِل تضخيم (تربة مُشبَّعة/مطر ≥20مم، ارتفاع ≥80سم). ارتفاع/رطوبة **اختياريّان** (ثقة أعلى، وإلّا مُعلَن الافتقاد لا مُختلَق).
+- **`pollination_risk.py`** — خطر الطقس على التلقيح **أثناء الإزهار فقط**: حرارة تعقيم لقاح/برد/صقيع/رياح/مطر. **صدق صارم: خارج مرحلة الإزهار ⇒ `not_applicable`** (لا خطر على تلقيح غير جارٍ — لا اختلاق).
+- **`chill_accumulation.py`** — تراكم البرودة للمتساقطات: **Chilling Hours** (0–7.2°م) + **Utah Chill Units** (أوزان بالنطاق، لا رصيد سالب مُبلَّغ) + %المتطلّب. **النموذج الديناميكيّ (Chill Portions) مُعلَن `not_implemented` — لا نُزيّفه بتقريب خاطئ.**
+- الثلاثة: fail-closed (محصول مجهول ⇒ insufficient_context) · دور `supporting` · provenance مُنسَّخ. 3 endpoints منتِجة + 3 fetch (`fetch_daily_wind_temp_rain` · `fetch_archive_hourly_temps`).
+
+**المستهلك — مُجمَّع عمداً:** façade واحد `GET /api/v1/fields/{id}/weather/crop-stress` يستهلك الثلاثة best-effort (تعذّر منتج يُسجَّل خطأً مُعلَناً `partial:true` لا يُسقِط الباقي). **السبب:** بوّابة `test_p2_6_platform_route_budget_reduction` تفرض سقفاً صارماً 575 لراوترات المنصّة (فلسفة التفكيك: لا نموّ)؛ 3 راوترات منفصلة تجاوزته (576>575). التجميع في راوتر واحد = 574≤575 **وUX أفضل** (كرت إجهاد واحد بنداء واحد). 3 عملاء منصّة يبقون منفصلين (لا يُحسبون على المنصّة).
+
+**درس (مُعزَّز):** إضافة راوترات منصّة تصطدم بسقفَين: `baseline_route_count` (ownership guard) **و** `p2_6.new_max_platform_routes` الصارم ≤575. عند بناء عدّة منتجات ذات مستهلك منصّة ⇒ **façade مُجمَّع** لا راوتر-لكلّ-منتج.
+
+**التحقّق:** weather-service **41 passed** (13 crop-stress بمشاهد حدّيّة: رقود عالٍ عند هبّة 22+تربة مُشبَّعة · تلقيح not_applicable خارج الإزهار · تلقيح عالٍ عند حرّ 42 في silking · chill 400ساعة=100% · dynamic not_implemented) · منصّة **3587** · unit · **19 حارس حوكمة** (P0 ownership + p1 weather-boundary + p2_6 budget + coverage gate + facades) · ruff · release. الفجوات LODGING/POLLINATION-WX/CHILL-MODELS تُنقَل إلى `fixed`.
+
+---
+
 
 ## 2026-07-09 — Decision SoR final certification (P0-5) + رفض إصلاح CI مُكرَّر أضيق
 

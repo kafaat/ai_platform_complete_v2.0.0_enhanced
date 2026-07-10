@@ -6,10 +6,14 @@ from typing import Literal
 from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
+from chill_accumulation import compute_chill_accumulation
 from fastapi import Body, HTTPException, Query
+from lodging_risk import compute_lodging_risk
 from open_meteo import (
     circuit_breaker_state,
+    fetch_archive_hourly_temps,
     fetch_current,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+    fetch_daily_wind_temp_rain,
     fetch_forecast,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     fetch_historical,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     fetch_thermal_series,
@@ -17,6 +21,7 @@ from open_meteo import (
     readiness_probe,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
 from operations import advice_ar, best_operation_frame, operation_suitability
+from pollination_risk import compute_pollination_risk
 from raw_weather_processing import RawWeatherProcessRequest, build_raw_weather_response
 from thermal_stress import compute_compound_thermal_stress
 from tiles import (
@@ -310,6 +315,129 @@ async def thermal_stress(
         hourly_rh_pct=series.get("hourly_rh_pct") or None,
     )
     return {"location": {"lat": lat, "lon": lon}, "model": model, **result}
+
+
+def _finite_max(values, default=None):
+    out = []
+    for v in values or []:
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            continue
+        if f == f:
+            out.append(f)
+    return max(out) if out else default
+
+
+def _finite_min(values, default=None):
+    out = []
+    for v in values or []:
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            continue
+        if f == f:
+            out.append(f)
+    return min(out) if out else default
+
+
+def _finite_sum(values):
+    total = 0.0
+    for v in values or []:
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            continue
+        if f == f:
+            total += f
+    return total
+
+
+async def lodging_risk(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    crop: str | None = Query(default=None, max_length=64),
+    stage: str | None = Query(default=None, max_length=64),
+    plant_height_cm: float | None = Query(default=None, ge=0, le=1000),
+    days: int = Query(default=3, ge=1, le=16),
+    model: str = "best_match",
+):
+    """خطر الرقود (انبطاح النبات) من رياح الأفق مشروطاً بقابليّة المحصول×المرحلة."""
+    key = f"lwr:{lat:.4f}:{lon:.4f}:{days}:{model}"
+    series = cache_get(key)
+    if series is None:
+        try:
+            series = await fetch_daily_wind_temp_rain(lat, lon, days=days, model=model)
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(
+                status_code=503, detail=f"تعذّر جلب سلسلة الرياح/المطر: {exc}"
+            ) from exc
+        cache_set(key, series)
+    result = compute_lodging_risk(
+        crop=crop,
+        stage=stage,
+        max_wind_gust_mps=_finite_max(series.get("wind_gust_max_mps")),
+        max_wind_speed_mps=_finite_max(series.get("wind_speed_max_mps")),
+        forecast_rain_mm=_finite_sum(series.get("precip_sum_mm")),
+        plant_height_cm=plant_height_cm,
+    )
+    return {"location": {"lat": lat, "lon": lon}, "model": model, **result}
+
+
+async def pollination_risk(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    crop: str | None = Query(default=None, max_length=64),
+    stage: str | None = Query(default=None, max_length=64),
+    days: int = Query(default=3, ge=1, le=16),
+    model: str = "best_match",
+):
+    """خطر الطقس على التلقيح أثناء الإزهار (fail-closed خارج مرحلة الإزهار)."""
+    key = f"pwr:{lat:.4f}:{lon:.4f}:{days}:{model}"
+    series = cache_get(key)
+    if series is None:
+        try:
+            series = await fetch_daily_wind_temp_rain(lat, lon, days=days, model=model)
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(status_code=503, detail=f"تعذّر جلب سلسلة الطقس: {exc}") from exc
+        cache_set(key, series)
+    result = compute_pollination_risk(
+        crop=crop,
+        stage=stage,
+        day_max_c=_finite_max(series.get("daily_max_c")),
+        night_min_c=_finite_min(series.get("daily_min_c")),
+        max_wind_mps=_finite_max(series.get("wind_speed_max_mps")),
+        rain_mm=_finite_sum(series.get("precip_sum_mm")),
+    )
+    return {"location": {"lat": lat, "lon": lon}, "model": model, **result}
+
+
+async def chill_accumulation(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+    crop: str | None = Query(default=None, max_length=64),
+    start_date: str = Query(..., min_length=10, max_length=10),
+    end_date: str = Query(..., min_length=10, max_length=10),
+):
+    """تراكم البرودة الموسميّ (Chilling Hours + Utah) للأشجار المتساقطة من سلسلة تاريخيّة."""
+    key = f"chill:{lat:.4f}:{lon:.4f}:{start_date}:{end_date}"
+    series = cache_get(key)
+    if series is None:
+        try:
+            series = await fetch_archive_hourly_temps(
+                lat, lon, start_date=start_date, end_date=end_date
+            )
+        except Exception as exc:  # noqa: BLE001
+            raise HTTPException(
+                status_code=503, detail=f"تعذّر جلب السلسلة التاريخيّة الساعيّة: {exc}"
+            ) from exc
+        cache_set(key, series)
+    result = compute_chill_accumulation(crop=crop, hourly_temp_c=series.get("hourly_temp_c"))
+    return {
+        "location": {"lat": lat, "lon": lon},
+        "window": {"start_date": start_date, "end_date": end_date},
+        **result,
+    }
 
 
 async def tile_data(

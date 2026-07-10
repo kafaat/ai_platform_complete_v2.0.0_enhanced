@@ -200,6 +200,65 @@ async def get_thermal_stress(
     return await weather_get_json("/v1/weather/thermal-stress", params=params)
 
 
+async def get_lodging_risk(
+    lat: float,
+    lon: float,
+    *,
+    crop: str | None = None,
+    stage: str | None = None,
+    plant_height_cm: float | None = None,
+    days: int = 3,
+    model: str = "best_match",
+) -> dict[str, Any]:
+    """خطر الرقود من weather-service (منطق الطقس يعيش هناك)."""
+    params: dict[str, Any] = {"lat": lat, "lon": lon, "days": days, "model": model}
+    if crop:
+        params["crop"] = crop
+    if stage:
+        params["stage"] = stage
+    if plant_height_cm is not None:
+        params["plant_height_cm"] = plant_height_cm
+    return await weather_get_json("/v1/weather/lodging-risk", params=params)
+
+
+async def get_pollination_risk(
+    lat: float,
+    lon: float,
+    *,
+    crop: str | None = None,
+    stage: str | None = None,
+    days: int = 3,
+    model: str = "best_match",
+) -> dict[str, Any]:
+    """خطر الطقس على التلقيح من weather-service."""
+    params: dict[str, Any] = {"lat": lat, "lon": lon, "days": days, "model": model}
+    if crop:
+        params["crop"] = crop
+    if stage:
+        params["stage"] = stage
+    return await weather_get_json("/v1/weather/pollination-risk", params=params)
+
+
+async def get_chill_accumulation(
+    lat: float,
+    lon: float,
+    *,
+    crop: str | None = None,
+    start_date: str,
+    end_date: str,
+) -> dict[str, Any]:
+    """تراكم البرودة الموسميّ من weather-service (نافذة تاريخيّة)."""
+    params: dict[str, Any] = {
+        "lat": lat,
+        "lon": lon,
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+    if crop:
+        params["crop"] = crop
+    return await weather_get_json("/v1/weather/chill-accumulation", params=params)
+
+
 async def get_weather_tile_series(
     z: int, x: int, y: int, *, layer: str, hours: str, model: str = "best_match"
 ) -> dict[str, Any]:

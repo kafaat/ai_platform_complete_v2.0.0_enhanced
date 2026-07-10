@@ -3962,7 +3962,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 63,
+    "line": 69,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/thermal-stress",
     "function": "field_weather_thermal_stress"
@@ -3970,7 +3970,15 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 98,
+    "line": 104,
+    "method": "GET",
+    "path": "/api/v1/fields/{field_id}/weather/crop-stress",
+    "function": "field_weather_crop_stress"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
+    "line": 171,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/operation-windows",
     "function": "field_weather_operation_windows"
@@ -3978,7 +3986,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 151,
+    "line": 224,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/irrigation-advice",
     "function": "field_irrigation_advice_facade"
@@ -3986,7 +3994,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_weather.py",
-    "line": 206,
+    "line": 279,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/weather/disease-risk",
     "function": "field_disease_risk_facade"
@@ -6972,13 +6980,37 @@
     "file": "services/weather-service/main.py",
     "line": 35,
     "method": "GET",
+    "path": "/v1/weather/lodging-risk",
+    "function": "lodging_risk"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 36,
+    "method": "GET",
+    "path": "/v1/weather/pollination-risk",
+    "function": "pollination_risk"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 37,
+    "method": "GET",
+    "path": "/v1/weather/chill-accumulation",
+    "function": "chill_accumulation"
+  },
+  {
+    "service": "weather-service",
+    "file": "services/weather-service/main.py",
+    "line": 38,
+    "method": "GET",
     "path": "/v1/weather/tile-data/{z}/{x}/{y}",
     "function": "tile_data"
   },
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 36,
+    "line": 39,
     "method": "GET",
     "path": "/v1/weather/operation-tile-data/{z}/{x}/{y}",
     "function": "operation_tile_data"
@@ -6986,7 +7018,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 37,
+    "line": 40,
     "method": "GET",
     "path": "/v1/weather/tile-series/{z}/{x}/{y}",
     "function": "tile_series"
@@ -6994,7 +7026,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 38,
+    "line": 41,
     "method": "GET",
     "path": "/v1/weather/wind-grid/{z}/{x}/{y}",
     "function": "wind_grid"
@@ -7002,7 +7034,7 @@
   {
     "service": "weather-service",
     "file": "services/weather-service/main.py",
-    "line": 39,
+    "line": 42,
     "method": "GET",
     "path": "/v1/weather/cache-stats",
     "function": "tile_cache_stats"

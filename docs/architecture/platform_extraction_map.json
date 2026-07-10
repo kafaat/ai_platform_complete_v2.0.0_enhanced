@@ -1,5 +1,5 @@
 {
- "baseline_route_count": 576,
+ "baseline_route_count": 577,
  "routes": [
   {
    "file": "api/chat_proxy_reference.py",
@@ -5760,6 +5760,16 @@
    "target_owner": "weather-service",
    "owner_type": "bff-facade-to-weather",
    "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/thermal-stress::field_weather_thermal_stress"
+  },
+  {
+   "file": "api/routers/field_workspace_weather.py",
+   "function": "field_weather_crop_stress",
+   "method": "GET",
+   "path": "/api/v1/fields/{field_id}/weather/crop-stress",
+   "line": 104,
+   "target_owner": "weather-service",
+   "owner_type": "bff-facade-to-weather",
+   "route_key": "api/routers/field_workspace_weather.py::GET /api/v1/fields/{field_id}/weather/crop-stress::field_weather_crop_stress"
   }
  ],
  "p2_6_route_budget_reduction": {

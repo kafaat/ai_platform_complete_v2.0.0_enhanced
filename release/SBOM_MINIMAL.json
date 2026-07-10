@@ -13675,7 +13675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd415bf6c85ab0612c8fcc97c734a675162bd2dd32b4af3f7434b2c63a6b4420"
+          "content": "976240545ade9a3cdd05cd2c1c23b0482aed46413dde3c2e3bd8ddbb51a43fef"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_weather.py",
@@ -14995,7 +14995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d830de993fc611bcffc26a49820686073989543d9a05ff4742ee25e41844bde9"
+          "content": "44d1cdb3782ca58bfe3b32296e06149f43129910a5bb6e8ec932099cbd5568ab"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -23245,7 +23245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9784b83e9baa7fe7a6fa3c0f3ff1e078efee6cb9f4263cc849d7670bfa9cfb83"
+          "content": "c811b24023086897aec5e942c8bb109227fc8ef7278932309cb40cb1656ff7d7"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -23255,7 +23255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f7bca6c384cda221d307a9b9161de6faba8ee819e6f22e9fd40623f9e56c93c"
+          "content": "ad2c5cc8e8ded7abeffcd2ca81a3937b4716993a50d059a018a4ea8af097c6d6"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -23385,7 +23385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e6aaf2778672078f55adbe670a3ab57ee5446690caa80516cc810c65b75eb397"
+          "content": "36bff2385f3fe5407b5f9a2f9dd41675bff8261ca8cd36d4effb3ed00e0c9bb8"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

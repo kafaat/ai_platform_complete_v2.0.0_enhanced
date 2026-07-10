@@ -87,6 +87,52 @@ async def fetch_thermal_series(
     }
 
 
+async def fetch_daily_wind_temp_rain(
+    lat: float, lon: float, *, days: int = 3, model: str = "best_match"
+) -> dict[str, Any]:
+    """سلسلة يوميّة خام (رياح/هبّات/حرارة/مطر) لمنتجَي الرقود والتلقيح."""
+    days = max(1, min(int(days or 3), 16))
+    params: dict[str, Any] = {
+        "latitude": lat,
+        "longitude": lon,
+        "daily": (
+            "temperature_2m_max,temperature_2m_min,wind_speed_10m_max,"
+            "wind_gusts_10m_max,precipitation_sum"
+        ),
+        "forecast_days": days,
+        "timezone": "auto",
+        "wind_speed_unit": "ms",
+    }
+    if model and model not in {"best_match", "auto"}:
+        params["models"] = model
+    data = await _fetch_json(FORECAST_URL, params)
+    d = data.get("daily") or {}
+    return {
+        "daily_max_c": d.get("temperature_2m_max") or [],
+        "daily_min_c": d.get("temperature_2m_min") or [],
+        "wind_speed_max_mps": d.get("wind_speed_10m_max") or [],
+        "wind_gust_max_mps": d.get("wind_gusts_10m_max") or [],
+        "precip_sum_mm": d.get("precipitation_sum") or [],
+    }
+
+
+async def fetch_archive_hourly_temps(
+    lat: float, lon: float, *, start_date: str, end_date: str
+) -> dict[str, Any]:
+    """سلسلة حرارة ساعيّة تاريخيّة (ERA5 archive) لحساب تراكم البرودة الموسميّ."""
+    params: dict[str, Any] = {
+        "latitude": lat,
+        "longitude": lon,
+        "start_date": start_date,
+        "end_date": end_date,
+        "hourly": "temperature_2m",
+        "timezone": "auto",
+    }
+    data = await _fetch_json(ARCHIVE_URL, params)
+    h = data.get("hourly") or {}
+    return {"hourly_temp_c": h.get("temperature_2m") or [], "hourly_time": h.get("time") or []}
+
+
 async def _fetch_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
     if _BREAKER_OPEN_UNTIL > time.monotonic():
         raise RuntimeError("Open-Meteo circuit breaker is open")

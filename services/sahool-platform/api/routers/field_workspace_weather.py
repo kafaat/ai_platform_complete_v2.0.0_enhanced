@@ -20,7 +20,13 @@ from api.main import (
     require_permission,
     tenant_connection,
 )
-from api.weather_service_client import get_operation_plan, get_thermal_stress
+from api.weather_service_client import (
+    get_chill_accumulation,
+    get_lodging_risk,
+    get_operation_plan,
+    get_pollination_risk,
+    get_thermal_stress,
+)
 
 router = APIRouter()
 
@@ -92,6 +98,73 @@ async def field_weather_thermal_stress(
         ) from exc
 
     return {"field_id": field_id, "crop": crop, "growth_stage": stage, **product}
+
+
+@router.get("/api/v1/fields/{field_id}/weather/crop-stress")
+async def field_weather_crop_stress(
+    field_id: str,
+    plant_height_cm: float | None = Query(None, ge=0, le=1000),
+    chill_start_date: str | None = Query(None, min_length=10, max_length=10),
+    chill_end_date: str | None = Query(None, min_length=10, max_length=10),
+    user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
+):
+    """عائلة إجهاد المحصول للحقل في نداء واحد: الرقود + التلقيح + تراكم البرودة.
+
+    مُجمَّع كي لا يُنمّي عدد راوترات المنصّة (فلسفة التفكيك)؛ منطق الطقس كلّه في
+    weather-service. كلّ منتج **best-effort**: تعذّر أحدها يُسجَّل خطأً مُعلَناً لا يُسقِط
+    الباقي. المحصول/المرحلة يُمرَّران من سياق الحقل (شرط التصنيف؛ fail-closed عند الغياب).
+    """
+    from datetime import UTC, datetime, timedelta
+
+    try:
+        async with tenant_connection(user) as conn:
+            lat, lon, crop, stage, _days = await _field_weather_context(conn, field_id)
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_unavailable("قراءة سياق طقس الحقل", exc) from exc
+
+    if not (chill_start_date and chill_end_date):
+        today = datetime.now(UTC).date()
+        chill_end_date = (today - timedelta(days=1)).isoformat()
+        chill_start_date = (today - timedelta(days=121)).isoformat()
+
+    products: dict[str, Any] = {}
+    errors: dict[str, str] = {}
+
+    async def _collect(name: str, coro):
+        try:
+            products[name] = await coro
+        except Exception as exc:  # noqa: BLE001 — best-effort: خطأ منتج لا يُسقِط الباقي
+            errors[name] = str(exc)[:200]
+
+    await _collect(
+        "lodging_risk",
+        get_lodging_risk(
+            lat, lon, crop=crop, stage=stage, plant_height_cm=plant_height_cm, model="best_match"
+        ),
+    )
+    await _collect(
+        "pollination_weather_risk",
+        get_pollination_risk(lat, lon, crop=crop, stage=stage, model="best_match"),
+    )
+    await _collect(
+        "chill_accumulation",
+        get_chill_accumulation(
+            lat, lon, crop=crop, start_date=chill_start_date, end_date=chill_end_date
+        ),
+    )
+
+    if not products:
+        raise HTTPException(status_code=503, detail="تعذّر جلب منتجات إجهاد المحصول من خدمة الطقس.")
+    return {
+        "field_id": field_id,
+        "crop": crop,
+        "growth_stage": stage,
+        "products": products,
+        "partial": bool(errors),
+        "errors": errors,
+    }
 
 
 @router.get("/api/v1/fields/{field_id}/weather/operation-windows")

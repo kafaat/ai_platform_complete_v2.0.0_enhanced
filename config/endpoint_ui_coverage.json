@@ -1590,6 +1590,11 @@
    "evidence": "/api/v1/fields"
   },
   {
+   "endpoint": "/api/v1/fields/{field_id}/weather/crop-stress",
+   "audience": "farmer",
+   "evidence": "/api/v1/fields"
+  },
+  {
    "endpoint": "/api/v1/fields/{field_id}/weather/irrigation-advice",
    "audience": "farmer",
    "evidence": "/api/v1/fields"

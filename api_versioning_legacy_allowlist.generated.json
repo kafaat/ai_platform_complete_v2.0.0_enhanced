@@ -165,6 +165,7 @@
     "GET /api/v1/fields/{field_id}/water-efficiency",
     "GET /api/v1/fields/{field_id}/water-ledger",
     "GET /api/v1/fields/{field_id}/water-stress-spectral",
+    "GET /api/v1/fields/{field_id}/weather/crop-stress",
     "GET /api/v1/fields/{field_id}/weather/disease-risk",
     "GET /api/v1/fields/{field_id}/weather/irrigation-advice",
     "GET /api/v1/fields/{field_id}/weather/operation-windows",
