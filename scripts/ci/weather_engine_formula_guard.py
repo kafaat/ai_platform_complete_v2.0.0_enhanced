@@ -28,6 +28,10 @@ _ALLOWLIST = _ROOT / "docs" / "architecture" / "weather_engine_formula_allowlist
 
 _WEATHER_ENGINE_PREFIX = "services/weather-service/"
 _SVP_MARKERS = ("0.6108", "17.27")
+# بصمة Hargreaves-Samani الرياضيّة (WS-C.1b): المعامل 0.0023 + إزاحة الحرارة 17.8 معاً
+# = تنفيذ Hargreaves مضمّن (سطريّ) بصرف النظر عن اسم الدالّة — يمسك الانجراف الذي
+# يفلت من مطابقة الاسم (مثل نواة ET0 مضمّنة داخل خادم MCP).
+_HARGREAVES_MARKERS = ("0.0023", "17.8")
 # نوى GDD اليوميّة (WS-C.1c): تعريف دالّة بأحد هذه الأسماء = نواة حساب GDD مستقلّة.
 # السياسة (عتبات/جداول محاصيل بلا دالّة نواة) لا تُكتشَف — مسموحة داخل Season.
 _GDD_KERNEL_NAMES = ("gdd_daily", "daily_gdd", "gdd_day")
@@ -44,6 +48,10 @@ def _has_svp_fingerprint(text: str) -> bool:
     return all(m in text for m in _SVP_MARKERS)
 
 
+def _has_hargreaves_fingerprint(text: str) -> bool:
+    return all(m in text for m in _HARGREAVES_MARKERS)
+
+
 def _defines_weather_formula(text: str) -> bool:
     """AST: تعريف دالّة تُطبِّق صيغة ضغط بخار/ET0/GDD (بالاسم) — أمتن من Regex.
 
@@ -58,7 +66,13 @@ def _defines_weather_formula(text: str) -> bool:
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
             name = node.name.lower()
-            if name == "_svp" or "penman_monteith" in name or name.startswith("hargreaves"):
+            # ``hargreaves`` كسلسلة فرعيّة (لا startswith) ⇒ يمسك الأغلفة المفوِّضة أيضاً
+            # (``_hargreaves_et0``/``et0_hargreaves``) فلا يفلت مسار ET0 من الرصد.
+            if name == "_svp" or "penman_monteith" in name or "hargreaves" in name:
+                return True
+            # مُنتِج ET0 محلّيّ يُغذّي المخرجات (``_et0_from_weather_payload``) — يُرصَد ويُوثَّق
+            # في allowlist المؤقّتة حتى يُفوَّض لمحرّك الطقس (لا مسار ET0 خفيّ).
+            if name.startswith("_et0_from"):
                 return True
             if name in _GDD_KERNEL_NAMES:
                 return True
@@ -85,7 +99,11 @@ def scan() -> tuple[list[str], bool]:
             if rel == canonical and _has_svp_fingerprint(text):
                 canonical_ok = True
             continue
-        hit = _has_svp_fingerprint(text) or _defines_weather_formula(text)
+        hit = (
+            _has_svp_fingerprint(text)
+            or _has_hargreaves_fingerprint(text)
+            or _defines_weather_formula(text)
+        )
         if hit and rel not in allowed:
             violations.append(rel)
     return violations, canonical_ok

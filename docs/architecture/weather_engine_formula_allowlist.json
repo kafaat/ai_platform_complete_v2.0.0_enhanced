@@ -43,7 +43,28 @@
       "owner": "weather-migration",
       "expires": "2026-07-31",
       "purpose": "active-legacy-pending-delegation",
-      "note": "Platform GDD daily kernel variant (gdd_day, Baskerville-Emin modified method) inside the RUE season sim. Migrate the daily kernel to the Weather Engine gdd.py (method='modified'); _CROP_PARAMS stays as Season policy."
+      "note": "Platform GDD daily kernel variant (gdd_day, Baskerville-Emin modified method) inside the RUE season sim. Migrate the daily kernel to the Weather Engine gdd.py (method='modified'); _CROP_PARAMS stays as Season policy. NOTE: this is a GDD (C.1c) entry, NOT ET0 — season ET0 is already fully delegated to the engine ET0 series."
+    },
+    {
+      "path": "services/mcp_servers/weather_server.py",
+      "owner": "weather-migration",
+      "expires": "2026-07-31",
+      "purpose": "active-legacy-inline-duplicate",
+      "note": "WS-C.1b audit found an INLINE Hargreaves-Samani ET0 re-implementation (Ra + 0.0023*(Tmean+17.8)*sqrt(dT)*Ra*0.408) in the MCP weather tool server — a genuine second ET0 kernel outside the engine that previously ESCAPED this guard (neither the SVP fingerprint nor a name-matched function). Now caught via the Hargreaves math fingerprint. Migrate the MCP tool to call the Weather Engine ET0 product, then delete the inline formula and this entry."
+    },
+    {
+      "path": "services/sahool-platform/api/weather_analytics.py",
+      "owner": "weather-migration",
+      "expires": "2026-07-31",
+      "purpose": "active-legacy-delegating-wrapper",
+      "note": "`_hargreaves_et0` is a thin wrapper delegating to core.engines.et0.hargreaves_et0 (no inline math). Caught now via the broadened `hargreaves`-substring name match so the ET0 path is monitored, not invisible. Migrate the weather-analytics endpoint to the Weather Engine ET0 product, then remove the wrapper + this entry."
+    },
+    {
+      "path": "services/sahool-platform/api/field_state_projection.py",
+      "owner": "weather-migration",
+      "expires": "2026-07-31",
+      "purpose": "active-legacy-consumer",
+      "note": "`_et0_from_weather_payload` produces a LOCAL ET0 by calling api.water_balance.compute_et0 (which delegates to core.engines.et0) and drives the field-state ETc block. No inline formula, but a live local-ET0 producer — caught now via the `_et0_from` name so it is tracked. Migrate to the Weather Engine ET0 product, then remove this entry."
     }
   ]
 }
