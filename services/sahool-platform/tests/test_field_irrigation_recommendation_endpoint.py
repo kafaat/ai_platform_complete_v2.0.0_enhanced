@@ -20,12 +20,26 @@ from api.routers.irrigation_recommendation import (
 )
 
 
+class _Tx:
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *a):
+        return False
+
+
 class _FakeConn:
-    def __init__(self, *, depletion_mm, age_hours=5.0, confidence=0.9, soil_texture=None):
+    def __init__(
+        self, *, depletion_mm, age_hours=5.0, confidence=0.9, soil_texture=None, spectral=None
+    ):
         self._depletion = depletion_mm
         self._age = age_hours
         self._conf = confidence
         self._soil_texture = soil_texture
+        self._spectral = spectral  # dict: ndmi/msi/ndmi_date/msi_date
+
+    def transaction(self):
+        return _Tx()
 
     async def fetchrow(self, sql, *a):
         if "FROM seasons" in sql:
@@ -47,6 +61,15 @@ class _FakeConn:
                 "sampled_on": date(2026, 5, 1),
                 "result": {"texture": self._soil_texture},
                 "age_days": 40.0,
+            }
+        if "FROM imagery_automation_fields" in sql:
+            if self._spectral is None:
+                return None
+            return {
+                "last_ndmi_mean": self._spectral.get("ndmi"),
+                "last_msi_mean": self._spectral.get("msi"),
+                "last_ndmi_date": self._spectral.get("ndmi_date"),
+                "last_msi_date": self._spectral.get("msi_date"),
             }
         return None
 
@@ -117,6 +140,41 @@ async def test_et0_provenance_from_weather_engine(monkeypatch):
     # مقارنة ظلّيّة مؤقّتة موجودة (الإرث لا يدخل القرار).
     assert "shadow" in et0
     assert et0["shadow"]["diff_mm"] is not None
+
+
+@pytest.mark.asyncio
+async def test_msi_reaches_irrigation_candidate(monkeypatch):
+    # WS-D.3: NDMI+MSI بتاريخين متوافقين ⇒ التأكيد الطيفيّ يصل المرشَّح (لم يعد ميتاً).
+    _patch(
+        monkeypatch,
+        _FakeConn(
+            depletion_mm=60.0,
+            spectral={
+                "ndmi": 0.05,
+                "msi": 1.6,
+                "ndmi_date": date(2026, 7, 8),
+                "msi_date": date(2026, 7, 8),
+            },
+        ),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["spectral_confirmation"]["available"] is True
+    assert any(e.startswith("spectral-confirmation:ndmi+msi") for e in out["evidence_ids"])
+
+
+@pytest.mark.asyncio
+async def test_no_spectral_escalation_when_msi_missing(monkeypatch):
+    # قرار المستخدم: غياب أحد الدليلين ⇒ لا تأكيد ولا تصعيد (صدق: NDMI وحده لا يكفي).
+    _patch(
+        monkeypatch,
+        _FakeConn(
+            depletion_mm=60.0,
+            spectral={"ndmi": 0.05, "msi": None, "ndmi_date": date(2026, 7, 8), "msi_date": None},
+        ),
+    )
+    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
+    assert out["spectral_confirmation"]["available"] is False
+    assert out["spectral_confirmation"]["escalation_eligible"] is False
 
 
 @pytest.mark.asyncio

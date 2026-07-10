@@ -309,6 +309,19 @@ async def field_irrigation_recommendation(
             "AND sampled_on IS NOT NULL ORDER BY sampled_on DESC LIMIT 1",
             field_id,
         )
+        # WS-D.3: التأكيد الطيفيّ (NDMI+MSI) — يصل فعلاً إلى مرشَّح الريّ. قرار المستخدم:
+        # كلا المؤشّرين مطلوبان بتوافق زمنيّ، وإلّا لا تصعيد. v99 قد لا تكون مطبّقة ⇒
+        # تخطٍّ آمن (لا يحجب التوصية — التأكيد best-effort).
+        spectral_row = None
+        try:
+            async with conn.transaction():  # SAVEPOINT — v99 غير مطبّقة ⇒ لا يُفسِد الاتّصال
+                spectral_row = await conn.fetchrow(
+                    "SELECT last_ndmi_mean, last_msi_mean, last_ndmi_date, last_msi_date "
+                    "FROM imagery_automation_fields WHERE field_id = $1",
+                    field_id,
+                )
+        except Exception:  # noqa: BLE001 — جدول الأتمتة غير مطبّق ⇒ لا تأكيد طيفيّ
+            spectral_row = None
 
     depletion_mm = lrow["depletion_mm"] if lrow else None
     dep_conf = lrow["confidence"] if lrow else None
@@ -373,11 +386,26 @@ async def field_irrigation_recommendation(
             "calibrated": False,
         }
 
-    # الإجهاد المائيّ الكنسيّ (للطبقة/الإلحاح) — best-effort، لا يحجب.
+    # الإجهاد المائيّ الكنسيّ (للطبقة/الإلحاح) — best-effort، لا يحجب. WS-D.3: يُمرَّر
+    # التأكيد الطيفيّ (NDMI+MSI + تاريخاهما) فيصل MSI فعلاً إلى المرشَّح؛ التوافق الزمنيّ
+    # وغياب أحد الدليلين يُقرّران التصعيد داخل canonical_water_stress (لا هنا).
     stress = canonical_water_stress(
-        {"depletion_mm": depletion_mm, "taw_mm": taw_mm, "raw_fraction": sw["raw_fraction"]}
+        {
+            "depletion_mm": depletion_mm,
+            "taw_mm": taw_mm,
+            "raw_fraction": sw["raw_fraction"],
+            "ndmi": spectral_row["last_ndmi_mean"] if spectral_row else None,
+            "msi": spectral_row["last_msi_mean"] if spectral_row else None,
+            "ndmi_date": spectral_row["last_ndmi_date"] if spectral_row else None,
+            "msi_date": spectral_row["last_msi_date"] if spectral_row else None,
+        }
     )
     water_stress_class = stress["water_stress_class"] if stress else None
+    # WS-D.3: نَسَب التأكيد الطيفيّ في الأدلّة (يُثبِت أنّ MSI وصل المرشَّح).
+    if stress and stress.get("spectral_confirmation_available"):
+        evidence_ids.append(
+            f"spectral-confirmation:ndmi+msi:{'detected' if stress.get('spectral_stress_detected') else 'no-stress'}"
+        )
 
     _elev_default_m = 2000.0
 
@@ -578,6 +606,14 @@ async def field_irrigation_recommendation(
             "source": wx["source"],
             "valid_time": wx.get("valid_time"),
             "day_of_year": wx.get("day_of_year"),
+        },
+        # WS-D.3: تأكيد طيفيّ (NDMI+MSI) — يُثبِت أنّ MSI وصل المرشَّح؛ غياب أحد الدليلين
+        # أو تباعد تاريخيهما ⇒ available=False و detected=None (لا تصعيد مُختلَق).
+        "spectral_confirmation": {
+            "available": bool(stress and stress.get("spectral_confirmation_available")),
+            "stress_detected": stress.get("spectral_stress_detected") if stress else None,
+            "confidence": stress.get("spectral_confidence") if stress else None,
+            "escalation_eligible": bool(stress and stress.get("escalation_eligible")),
         },
         "ownership": "recommendation_candidate → decision-service",
         # WS-D.2d: حالة الاعتماد صريحة — «اروِ» ليس قراراً نهائيّاً قبل approved.
