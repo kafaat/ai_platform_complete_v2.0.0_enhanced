@@ -11025,7 +11025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "19870e5a0b6b8d0c907b1bbb4c8373d2303fc2e059fc1c7e0db5f62b0d5d002b"
+          "content": "c0494c2e32a1790b4535960fd2a9b5d67768233c1e52aee1ab4db6f7a0b98b40"
         }
       ],
       "name": "services/raster-service/test_p2_tile_observability_static.py",

@@ -119,6 +119,17 @@
 **التحقّق الكامل:** tests_v9 unit **2846 نجاح / 5 تخطٍّ (0 فشل)** · منصّة **3579** · بروفايل smoke كاملاً `runtime_real_smoke_ok` · **45/47** بوّابة scripts/ci (الاستثناء الوحيد الفعليّ: `gen_route_auth_matrix.py` مولّد يدويّ قديم خارج CI، فشله سابق للدمج) · ruff format+check نظيف على النطاق الكامل + scripts/ · 27 workflow YAML صالحة · compose config صالح · pip-audit نظيف على weather requirements · release مُعاد بناؤه (**3766** checksum، +148 ملفّاً).
 
 ---
+## 2026-07-10 — إصلاح كاشِفَين على main بعد تسريع مراجعة الراستر (203cabe)
+
+تسريع main إلى `203cabe` أطلق وظيفتين لأوّل مرّة منذ فترة (مُطلَقتان بمسار `services/raster-service/**`، ولم يمسّه db6a9ba) فكشفتا فشلَين — لا أحدهما من منطق مراجعتي، بل أحدهما بائت والآخر أثر جانبيّ متوقَّع:
+
+- **Service Inventory Drift (أثر جانبيّ منّي):** إصلاحات المراجعة أضافت 69 سطراً إلى raster-service (`python_loc` 18356→18425)؛ الجرد يتتبّع LOC/خدمة. **الإصلاح:** إعادة توليد `service_inventory.*`/`SERVICE_REGISTRY.md` (كان يجب توليدها ضمن 203cabe — درس: أيّ تغيير LOC في خدمة يتطلّب `generate_service_inventory --write-registry`).
+- **Raster Service Gates (اختبار بائت مكشوف):** `test_p2_tile_observability_static.py::test_soil_service_is_enabled_in_compose_for_readyz` يؤكّد `localhost:8000/readyz` في compose، لكنّ توحيد الأسطول نقل كلّ HEALTHCHECK إلى `/healthz` (22 healthz · 0 readyz في compose — سياسة «HEALTHCHECK يستخدم healthz» التي أرساها checklist المستخدم). الاختبار لم يُحدَّث وبقي خامداً لأنّ بوّابة الراستر لم تُطلَق منذ التوحيد. **الإصلاح:** تحديث التأكيد إلى `/healthz` + إعادة تسمية الاختبار `..._with_healthz_liveness` (صدق). مؤكَّد بائتاً: يفشل على db6a9ba أيضاً (ليس انحداراً منّي).
+
+**درس مُعزَّز:** الوظائف المُطلَقة بمسار خدمة معيّن (`pull_request:paths`/`push:main:paths`) تبقى خامدة حتّى يمسّ commit ذلك المسار — أوّل تشغيلها قد يكشف أعطالاً بائتة متراكمة (كاختبار readyز). التحقّق المحلّيّ لكامل مجموعة الخدمة قبل تسريع commit يمسّها = وقاية. التحقّق: raster-service **207 passed** (كان 206+1) · inventory --check نظيف · ruff · release 3847.
+
+---
+
 
 ## 2026-07-09 — مزامنة main + إصلاح فشل بناء ai_agronomist + إصلاح حارسَين فاشلَين على main
 

@@ -52,9 +52,12 @@ def test_tile_endpoint_counts_cache_and_transparent_fallback():
     assert '_obs_inc("tile_render_errors_total", index)' in src
 
 
-def test_soil_service_is_enabled_in_compose_for_readyz():
+def test_soil_service_is_enabled_in_compose_with_healthz_liveness():
+    # سياسة الأسطول: Docker HEALTHCHECK يستخدم /healthz (liveness) لا /readyz —
+    # وُحِّد عبر خدمات compose. كان هذا الاختبار يؤكّد /readyz (بائت قبل توحيد
+    # healthz)، فكسر عند أوّل إطلاق لبوّابة الراستر بعد التوحيد.
     src = COMPOSE.read_text(encoding="utf-8")
     assert "sahool-soil-service:" in src
     assert "services/soil-service/Dockerfile" in src
     assert "SAHOOL_AGENT_TOKEN" in src
-    assert "http://localhost:8000/readyz" in src
+    assert "http://localhost:8000/healthz" in src
