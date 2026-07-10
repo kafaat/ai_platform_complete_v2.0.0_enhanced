@@ -46,3 +46,13 @@ def actual_vapor_pressure_from_rh_kpa(es_kpa: float, rh_pct: float) -> float:
 def actual_vapor_pressure_from_dewpoint_kpa(dew_point_c: float) -> float:
     """ضغط البخار الفعليّ ea من نقطة النَّدى (FAO-56 Eq. 14): ea = e°(Tdew)."""
     return saturation_vapor_pressure_kpa(dew_point_c)
+
+
+def svp_slope_kpa_per_c(t_c: float) -> float:
+    """ميل منحنى ضغط البخار المشبع Δ (kPa/°C) عند T — FAO-56 Eq. 13.
+
+        Δ = 4098 · e°(T) / (T + 237.3)²
+
+    بدائيّة مشتركة يستهلكها Penman-Monteith في ET0 (C.1b) — نفس مصدر e°.
+    """
+    return 4098.0 * saturation_vapor_pressure_kpa(t_c) / (t_c + 237.3) ** 2

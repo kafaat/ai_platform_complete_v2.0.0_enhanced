@@ -314,9 +314,9 @@
   {
     "service": "weather-service",
     "domain": "Weather Intelligence",
-    "python_files": 24,
-    "python_loc": 3068,
-    "tests": 10,
+    "python_files": 26,
+    "python_loc": 3347,
+    "tests": 11,
     "routes": 20,
     "main": "services/weather-service/main.py",
     "dockerfile": "services/weather-service/Dockerfile",
