@@ -60,14 +60,18 @@ def test_pip_dockerfiles_default_to_pypi_with_alibaba_override_and_bounded_insta
         if m is None:
             offenders.append(f"{rel}: runs pip install but declares no ARG PIP_INDEX_URL")
         elif m.group(1) != _PYPI:
-            offenders.append(f"{rel}: PIP_INDEX_URL default is {m.group(1)!r}, not official PyPI {_PYPI!r}")
+            offenders.append(
+                f"{rel}: PIP_INDEX_URL default is {m.group(1)!r}, not official PyPI {_PYPI!r}"
+            )
         if _TENCENT in text:
             offenders.append(f"{rel}: stale Tencent mirror reference remains")
         if _ALIBABA not in text:
             offenders.append(f"{rel}: Alibaba mirror override is not documented in the Dockerfile")
         for line in _PIP_INSTALL_LINE.findall(text):
             if "--timeout" not in line or "--retries" not in line:
-                offenders.append(f"{rel}: pip install line lacks --timeout/--retries: {line.strip()}")
+                offenders.append(
+                    f"{rel}: pip install line lacks --timeout/--retries: {line.strip()}"
+                )
 
     assert not offenders, (
         "Dockerfiles must default PIP_INDEX_URL to official PyPI, document Alibaba override, "

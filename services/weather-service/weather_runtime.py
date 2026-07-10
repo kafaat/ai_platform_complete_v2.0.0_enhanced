@@ -101,7 +101,9 @@ async def raw_weather_process(request: RawWeatherProcessRequest = Body(...)):
     """
     try:
         if request.source_kind == "current":
-            payload = await _facade_attr("fetch_current")(request.lat, request.lon, model=request.model)
+            payload = await _facade_attr("fetch_current")(
+                request.lat, request.lon, model=request.model
+            )
         elif request.source_kind == "forecast":
             payload = await _facade_attr("fetch_forecast")(
                 request.lat, request.lon, days=request.days, model=request.model

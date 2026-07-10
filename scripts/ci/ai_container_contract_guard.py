@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Guard AI-oriented containers for liveness/readiness and post-decomposition copy contracts."""
+
 from __future__ import annotations
 
 import csv
@@ -27,7 +28,11 @@ GENERATED_CSV = ROOT / "ai_container_audit.csv"
 
 
 def _read(path: str | Path) -> str:
-    return (ROOT / path).read_text(encoding="utf-8") if not isinstance(path, Path) else path.read_text(encoding="utf-8")
+    return (
+        (ROOT / path).read_text(encoding="utf-8")
+        if not isinstance(path, Path)
+        else path.read_text(encoding="utf-8")
+    )
 
 
 def _compose_block(service: str) -> str:
@@ -98,7 +103,9 @@ def check(write: bool = False) -> list[dict[str, object]]:
         if not row["compose_health_uses_healthz"]:
             failures.append(f"{service}: compose healthcheck must use /healthz for liveness")
         if row["compose_health_uses_readyz"]:
-            failures.append(f"{service}: compose healthcheck must not use /readyz as Docker liveness")
+            failures.append(
+                f"{service}: compose healthcheck must not use /readyz as Docker liveness"
+            )
         if not row["docker_health_uses_healthz"]:
             failures.append(f"{service}: Dockerfile HEALTHCHECK must use /healthz")
         if row["docker_health_uses_readyz"]:
@@ -108,7 +115,10 @@ def check(write: bool = False) -> list[dict[str, object]]:
 
     # Post-decomposition/import-copy contracts.
     ai_docker = _read("services/ai_agronomist/Dockerfile")
-    if "COPY services/ai_agronomist /app/ai_agronomist" not in ai_docker or "COPY shared /app/shared" not in ai_docker:
+    if (
+        "COPY services/ai_agronomist /app/ai_agronomist" not in ai_docker
+        or "COPY shared /app/shared" not in ai_docker
+    ):
         failures.append("ai_agronomist Dockerfile must copy service package and shared/")
     edge_docker = _read("services/edge-inference/Dockerfile.arm64")
     if "COPY services/edge-inference/ /app/" not in edge_docker:
@@ -117,17 +127,28 @@ def check(write: bool = False) -> list[dict[str, object]]:
     if "COPY services/sam2-inference/ /app/" not in sam2_docker:
         failures.append("sam2-inference Dockerfile must copy whole service directory")
     rag_docker = _read("services/rag-retrieval/Dockerfile")
-    if "COPY shared /app/shared" not in rag_docker or "COPY services/rag-retrieval/main.py /app/main.py" not in rag_docker:
+    if (
+        "COPY shared /app/shared" not in rag_docker
+        or "COPY services/rag-retrieval/main.py /app/main.py" not in rag_docker
+    ):
         failures.append("rag-retrieval Dockerfile must copy shared/ and main.py")
     kg_docker = _read("services/knowledge-graph/Dockerfile")
-    if "COPY shared /app/shared" not in kg_docker or "COPY services/knowledge-graph/main.py /app/main.py" not in kg_docker:
+    if (
+        "COPY shared /app/shared" not in kg_docker
+        or "COPY services/knowledge-graph/main.py /app/main.py" not in kg_docker
+    ):
         failures.append("knowledge-graph Dockerfile must copy shared/ and main.py")
 
-    for req in [ROOT / "services/auth/requirements.txt", ROOT / "services/local-ai-rag/requirements.txt"]:
+    for req in [
+        ROOT / "services/auth/requirements.txt",
+        ROOT / "services/local-ai-rag/requirements.txt",
+    ]:
         failures.extend(_has_bad_inline_comment(req))
 
     if write:
-        GENERATED_JSON.write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        GENERATED_JSON.write_text(
+            json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
         with GENERATED_CSV.open("w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
             writer.writeheader()

@@ -87,11 +87,6 @@ PyJWT>=2.13.0
 # --- services/indicators-service/requirements.txt ---
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
-asyncpg>=0.30.0,<0.32.0
-nats-py>=2.3.0
-redis>=5.0.0
-pydantic==2.13.4
-prometheus-client>=0.19.0
 
 # --- services/knowledge-graph/requirements.txt ---
 fastapi==0.136.3
@@ -233,6 +228,7 @@ nats-py>=2.3.0
 fastapi==0.136.3
 uvicorn[standard]==0.30.6
 httpx==0.28.1
+pydantic==2.13.4
 redis==5.3.1
 
 # --- services/weather-signal-engine/requirements.txt ---

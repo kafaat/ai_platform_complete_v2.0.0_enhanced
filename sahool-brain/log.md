@@ -4,6 +4,22 @@
 
 ---
 
+## 2026-07-09 — دمج raw-processing + container-fleet (أساس موازٍ 15398bd) بدمج ثلاثيّ ثانٍ
+
+أرشيف `57cf56e_weather_raw_processing_fixed` — البصمات كشفت أساسه الحقيقيّ `15398bd` (نسل الأرشيف الخام؛ بلا sorted-rglob/EDGE_SYNC_DIR/إصلاح expert-mode). استيراد verbatim على أساسه (مستثنياً المرفوضَين السابقَين: legacy/compose + workflows التثبيت الصارم) ثمّ merge — 38 تعارضاً حُسم أغلبها «لنا» (requirements بالمدى، اختبارات المصالحة، الدماغ) و3 يدويّاً (auth Dockerfile، vegetation main إعادة-تصدير موسّعة، weather_runtime: استيراد Body الجديد + إبقاء noqa).
+
+**قيمة مقبولة:** raw_weather_processing (نقطة `/v1/weather/raw/process` بنماذج pydantic مُتحقَّقة) · raw_data_processing للراستر (`/raw/process` بـ`require_service_token`) · 5 حُرّاس عقود حاويات + audits + workflows · تحسينات compose (liveness=healthz، NATS best_effort غير حاجب لـvegetation، قصّ env عن indicators) · معيار مرايا أصرم (صفر أثر Tencent) · تنظيف indicators-service الحقيقيّ (أكّدتُه: main يستورد fastapi+os فقط) · pip_audit_resolution_guard.
+
+**ارتدادات الدمج الآليّ المُستدرَكة (فئة يجب تفقّدها في كلّ دمج موازٍ):** ملفّات لم نلمسها بعد نقطة الأساس يأخذها git من الطرف الآخر بصمت — 7 ملفّات واجهة/موبايل (عمل المطوّر: AddSeasonWithStages −171، expert-mode، wizard) + `raster_pixel_processing.py` (إصلاح truecolor KeyError) + اختباره. استُعيدت جميعاً من `57cf56e` وتأكّد صفر فرق.
+
+**حارسانا اصطادا عيوبهم:** `test_requirements_completeness` كشف pydantic غير مُعلَنة في weather (يستوردها ملفّهم الجديد) — الحاوية كانت ستتعطّل؛ و`test_raster_endpoint_auth_coverage` أجبر تصنيف `/raw/process` صراحةً.
+
+**تكييف مبدئيّ مُوثَّق:** حارسهم `pip_audit_resolution_guard` كان يفرض `redis==5.3.1` نصّاً في 20 ملفّاً (إعادة التثبيت الصارم من الخلف). حُوِّل لدلالة **التوافق**: كلّ مواصفة يجب أن تقبل المرجع 5.3.1 (المدى `>=5.0.0` يمرّ؛ `<5.3.0` يفشل — اختبار سلبيّ نفّذتُه فعليّاً). هذا يحفظ غرض الحارس (منع ResolutionImpossible المُوحَّد) دون نقض اتّفاقيّة CLAUDE.md.
+
+**التحقّق:** unit **2851/5** · منصّة **3579** · smoke كامل (شاملاً حُرّاسهم الجدد) · كلّ بوّابات scripts/ci (الاستثناء الموثَّق: gen_route_auth_matrix اليدويّ) · pip-audit نظيف · ruff نظيف · release **3813** checksum.
+
+---
+
 ## 2026-07-09 — تثبيت أسطول workflows الحوكمة على main (a86f229→949074f→الحاليّ)
 
 أوّل تشغيل حيّ كامل لأسطول الحوكمة (~20 workflow جديداً تعمل على push:main فقط) كشف سلسلة أعطال أصلحناها تباعاً commit-بعد-commit مع مزامنة main/develop عند كلّ اخضرار:

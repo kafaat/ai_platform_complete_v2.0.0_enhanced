@@ -6,10 +6,11 @@ truthful and lightweight: no database/queue/cache runtime dependencies, no
 Docker liveness check against degraded /readyz, and no compute implementation
 that fabricates indicator results.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
 import re
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVICE = ROOT / "services" / "indicators-service"
@@ -46,9 +47,9 @@ def compose_service_block(service_name: str) -> str:
     if not match:
         fail(f"{service_name} missing from docker-compose.v9.yml")
     start = match.start()
-    next_match = re.search(r"(?m)^  [a-zA-Z0-9_.-]+:\n", text[match.end():])
+    next_match = re.search(r"(?m)^  [a-zA-Z0-9_.-]+:\n", text[match.end() :])
     if next_match:
-        return text[start:match.end() + next_match.start()]
+        return text[start : match.end() + next_match.start()]
     return text[start:]
 
 
@@ -56,17 +57,25 @@ def check_requirements_are_health_only() -> None:
     names = {name for line in read(REQ).splitlines() if (name := requirement_name(line))}
     forbidden = sorted(names & FORBIDDEN_RUNTIME_DEPS)
     if forbidden:
-        fail("indicators-service health-only requirements include unused runtime dependencies: " + repr(forbidden))
+        fail(
+            "indicators-service health-only requirements include unused runtime dependencies: "
+            + repr(forbidden)
+        )
     unexpected = sorted(names - ALLOWED_REQUIREMENTS)
     if unexpected:
-        fail("indicators-service health-only requirements include unexpected dependencies: " + repr(unexpected))
+        fail(
+            "indicators-service health-only requirements include unexpected dependencies: "
+            + repr(unexpected)
+        )
 
 
 def check_dockerfile_healthcheck_is_liveness() -> None:
     text = read(DOCKERFILE)
     if "http://localhost:8000/healthz" not in text:
         fail("indicators-service Dockerfile HEALTHCHECK must use /healthz for liveness")
-    healthcheck_lines = "\n".join(line for line in text.splitlines() if "HEALTHCHECK" in line or "localhost:8000" in line)
+    healthcheck_lines = "\n".join(
+        line for line in text.splitlines() if "HEALTHCHECK" in line or "localhost:8000" in line
+    )
     if "/readyz" in healthcheck_lines:
         fail("indicators-service Dockerfile must not use degraded /readyz as Docker liveness")
     for token in ["--timeout 300", "--retries 10", "https://pypi.org/simple"]:
@@ -78,10 +87,16 @@ def check_compose_is_not_blocked_on_unused_infra() -> None:
     block = compose_service_block("sahool-indicators-service")
     leaked_env = sorted(item for item in FORBIDDEN_COMPOSE_ENV if f"{item}:" in block)
     if leaked_env:
-        fail("indicators-service compose env exposes unused external dependencies: " + repr(leaked_env))
+        fail(
+            "indicators-service compose env exposes unused external dependencies: "
+            + repr(leaked_env)
+        )
     leaked_deps = sorted(item for item in FORBIDDEN_COMPOSE_DEPS if f"{item}:" in block)
     if leaked_deps:
-        fail("indicators-service health-only compose must not depend_on unused infra: " + repr(leaked_deps))
+        fail(
+            "indicators-service health-only compose must not depend_on unused infra: "
+            + repr(leaked_deps)
+        )
     if "INDICATORS_RUNTIME_MODE: health-only" not in block:
         fail("indicators-service compose must declare INDICATORS_RUNTIME_MODE=health-only")
     if "http://localhost:8000/healthz" not in block:
@@ -94,7 +109,7 @@ def check_main_is_honest_health_only() -> None:
         '"status": "degraded"',
         '"implemented_runtime": False',
         '"health_only": True',
-        'status_code=501',
+        "status_code=501",
         '"indicator_compute": False',
     ]
     missing = [item for item in required if item not in text]

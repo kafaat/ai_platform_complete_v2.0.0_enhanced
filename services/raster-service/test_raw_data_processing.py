@@ -5,9 +5,8 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 import rasterio
-from rasterio.transform import from_origin
-
 import raw_data_processing
+from rasterio.transform import from_origin
 
 pytestmark = pytest.mark.unit
 

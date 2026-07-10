@@ -6,6 +6,7 @@ It must ship the P1 runtime module, keep Docker liveness on /healthz, expose a
 truthful /readyz schema, and avoid hard startup coupling to NATS because publish
 is best-effort/fail-soft inside the runtime.
 """
+
 from __future__ import annotations
 
 import ast
@@ -53,7 +54,10 @@ def _return_dict_for_handler(path: Path, fn_name: str) -> set[str]:
 
 def main() -> int:
     dockerfile = _text(DOCKERFILE)
-    if "COPY services/vegetation-analysis-service/vegetation_runtime.py /app/vegetation_runtime.py" not in dockerfile:
+    if (
+        "COPY services/vegetation-analysis-service/vegetation_runtime.py /app/vegetation_runtime.py"
+        not in dockerfile
+    ):
         raise SystemExit("vegetation Dockerfile does not copy vegetation_runtime.py")
     if "http://localhost:8000/healthz" not in dockerfile or "/readyz" in dockerfile:
         raise SystemExit("vegetation Docker HEALTHCHECK must use /healthz, not /readyz")
@@ -76,7 +80,9 @@ def main() -> int:
 
     block = _compose_service_block("sahool-vegetation-analysis")
     if "depends_on:" in block and "sahool-nats" in block:
-        raise SystemExit("vegetation compose must not hard-block startup on NATS; publish is best-effort")
+        raise SystemExit(
+            "vegetation compose must not hard-block startup on NATS; publish is best-effort"
+        )
     if "VEGETATION_NATS_PUBLISH_MODE" not in block:
         raise SystemExit("vegetation compose should document best-effort NATS publish mode")
 

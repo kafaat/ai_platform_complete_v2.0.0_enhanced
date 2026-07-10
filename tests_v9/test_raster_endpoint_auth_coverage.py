@@ -92,6 +92,7 @@ FIELD_SCOPED_SERVICE_ONLY: set[str] = {
 # ─────────────────────────────────────────────────────────────────────────────
 SERVICE_ONLY: set[str] = {
     "/imagery/search",  # بحث متقدّم (POST) — توكن خدمة.
+    "/raw/process",  # فحص راستر خام: metadata+إحصاءات نطاقات (require_service_token في processing.py).
     "/imagery/timeseries/analyze",  # تحليل سلسلة زمنيّة من قيم محسوبة.
     "/imagery/timeseries/parallel",  # تحليل سلسلة زمنيّة متوازٍ.
     "/zones/classify",  # تصنيف مناطق الإدارة من بكسلات.

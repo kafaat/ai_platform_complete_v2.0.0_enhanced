@@ -19,8 +19,8 @@ import raster_pixel_processing
 import raster_quality
 import raster_runtime_state
 import raster_security_context
-import raw_data_processing
 import raster_settings
+import raw_data_processing
 from fastapi import HTTPException
 
 logger = logging.getLogger("raster-service")

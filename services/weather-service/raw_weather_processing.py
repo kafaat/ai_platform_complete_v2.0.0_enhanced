@@ -15,7 +15,6 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-
 RawWeatherSource = Literal["current", "forecast", "historical", "tile_sample"]
 
 
@@ -42,7 +41,7 @@ class RawWeatherProcessRequest(BaseModel):
         return cleaned
 
     @model_validator(mode="after")
-    def _historical_dates_required(self) -> "RawWeatherProcessRequest":
+    def _historical_dates_required(self) -> RawWeatherProcessRequest:
         if self.source_kind == "historical" and (not self.start_date or not self.end_date):
             raise ValueError("start_date and end_date are required for historical raw weather")
         # Fail early on malformed ISO dates while keeping response logic simple.
@@ -70,7 +69,11 @@ class RawWeatherProcessResponse(BaseModel):
 
 
 def _is_number(value: Any) -> bool:
-    return isinstance(value, int | float) and not isinstance(value, bool) and math.isfinite(float(value))
+    return (
+        isinstance(value, int | float)
+        and not isinstance(value, bool)
+        and math.isfinite(float(value))
+    )
 
 
 def _walk_numeric(payload: Any, prefix: str = "", *, limit: int = 2000) -> dict[str, list[float]]:
@@ -110,7 +113,9 @@ def _percentile(sorted_values: list[float], pct: float) -> float | None:
     return sorted_values[lo] * (1 - frac) + sorted_values[hi] * frac
 
 
-def summarize_numeric_fields(payload: dict[str, Any], *, max_items: int = 240) -> dict[str, dict[str, float | int | None]]:
+def summarize_numeric_fields(
+    payload: dict[str, Any], *, max_items: int = 240
+) -> dict[str, dict[str, float | int | None]]:
     numeric = _walk_numeric(payload, limit=max_items)
     summary: dict[str, dict[str, float | int | None]] = {}
     for name, values in sorted(numeric.items()):

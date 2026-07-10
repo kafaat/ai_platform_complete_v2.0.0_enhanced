@@ -97,3 +97,51 @@ def test_process_request_has_reflectance_override():
     assert "reflectance_scale" in src and "reflectance_offset" in src, (
         "ProcessRequest لا يقبل تجاوز المقياس اليدويّ"
     )
+
+
+# ── (C) حارس truecolor: لا يجب أن يصل إلى _INDICATOR_FORMULAS ──
+def test_process_pixels_truecolor_guard_exists():
+    """يتحقّق أن process_pixels يعيد توجيه truecolor قبل الوصول إلى _INDICATOR_FORMULAS.
+
+    الانحدار المُصلَح: كانت العملية تتعطّل بـ KeyError: 'truecolor' عند طلب
+    backfill تاريخيّ من Element84 لأنّ truecolor ليس مؤشّراً طيفيّاً وغير موجود
+    في القاموس. يكفي فحص المصدر لأنّ الدالّة تعتمد على rasterio غير متاح في بيئة unit.
+    """
+    src = _src("raster_pixel_processing.py")
+    # يجب أن يوجد الحارس قبل سطر الجلب من القاموس
+    guard_pos = src.find('req.indicator.value == "truecolor"')
+    formula_pos = src.find("_INDICATOR_FORMULAS[req.indicator.value]")
+    assert guard_pos != -1, "حارس truecolor مفقود من process_pixels"
+    assert formula_pos != -1, "_INDICATOR_FORMULAS lookup مفقود"
+    # الحارس يجب أن يظهر قبل سطر جلب القاموس (في دالّة process_pixels على الأقل)
+    assert guard_pos < formula_pos, (
+        "حارس truecolor يجب أن يسبق _INDICATOR_FORMULAS lookup في process_pixels"
+    )
+
+
+def test_process_pixels_truecolor_helper_exists():
+    """يتحقّق من وجود _process_pixels_truecolor وأنّها تكتب COG RGBA."""
+    src = _src("raster_pixel_processing.py")
+    assert "_process_pixels_truecolor" in src, "دالّة _process_pixels_truecolor مفقودة"
+    assert "write_rgba_cog" in src, "_process_pixels_truecolor لا تستدعي write_rgba_cog"
+    assert "np.stack" in src, "_process_pixels_truecolor لا تُكوّن مصفوفة RGBA"
+
+
+def test_truecolor_sentinel2_fallback_scale_exists():
+    """_process_pixels_truecolor تُطبِّق مقياس 0.0001 احتياطيّاً حين VRT لا يحمل
+    بيانات المقياس (GDAL يُعيد 1.0 الافتراضيّ → هويّة → صورة بيضاء).
+
+    الانحدار المُصلَح: build_band_vrt لا يورِّث scale_factor من COGs المصدر؛
+    فعند Sentinel-2 L2A تُمرَّر قيم DN الخام (0–10000) لـclip(0,1) → كلّها 1.0 → أبيض.
+    """
+    src = _src("raster_pixel_processing.py")
+    assert "SourceFormat.sentinel2_l2a" in src, (
+        "_process_pixels_truecolor لا يتحقّق من source_format=sentinel2_l2a للمقياس الاحتياطي"
+    )
+    # المقياس 0.0001 (÷10000) يجب أن يُطبَّق كارتداد في _process_pixels_truecolor
+    truecolor_section = src[
+        src.find("def _process_pixels_truecolor") : src.find("def process_pixels")
+    ]
+    assert "0.0001" in truecolor_section, (
+        "_process_pixels_truecolor لا تطبّق مقياس Sentinel-2 L2A الاحتياطي (0.0001)"
+    )

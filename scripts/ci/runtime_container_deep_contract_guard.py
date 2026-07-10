@@ -8,6 +8,7 @@ This guards follow-up fixes discovered after container fleet review:
 - notification-agent must expose /healthz if compose/docker probe it.
 - platform requirements must not contain malformed inline comments that confuse tooling.
 """
+
 from __future__ import annotations
 
 import csv
@@ -110,14 +111,18 @@ def check(write: bool = False) -> None:
     if "http://localhost:8123/healthz" not in notification_docker:
         failures.append("notification-agent Dockerfile must probe /healthz")
     if "/readyz" in "\n".join(
-        line for line in notification_docker.splitlines() if line.lstrip().startswith("CMD") or "HEALTHCHECK" in line
+        line
+        for line in notification_docker.splitlines()
+        if line.lstrip().startswith("CMD") or "HEALTHCHECK" in line
     ):
         failures.append("notification-agent Docker HEALTHCHECK must not probe /readyz")
 
     raster_docker = _read("services/raster-service/Dockerfile")
     raster_req = _read("services/raster-service/requirements.txt")
     if not raster_docker.startswith("FROM python:3.11-slim-bookworm"):
-        failures.append("raster-service Dockerfile must use python:3.11-slim-bookworm with rasterio==1.3.0")
+        failures.append(
+            "raster-service Dockerfile must use python:3.11-slim-bookworm with rasterio==1.3.0"
+        )
     dups = _duplicate_pins(raster_req)
     if dups:
         failures.append(f"raster-service requirements contain duplicate exact pins: {dups}")
@@ -126,7 +131,9 @@ def check(write: bool = False) -> None:
         failures.extend(_bad_inline_comments(req))
 
     if write:
-        GENERATED_JSON.write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        GENERATED_JSON.write_text(
+            json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
         with GENERATED_CSV.open("w", encoding="utf-8", newline="") as f:
             writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
             writer.writeheader()

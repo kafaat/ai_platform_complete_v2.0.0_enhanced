@@ -98,8 +98,6 @@ class ProcessRequest(BaseModel):
     geometry_revision: int | None = None
 
 
-
-
 class RawDataProcessRequest(BaseModel):
     tenant_id: str
     field_id: str | None = None

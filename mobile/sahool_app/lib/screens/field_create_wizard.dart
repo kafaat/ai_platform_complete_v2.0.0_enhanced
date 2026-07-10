@@ -88,6 +88,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   // خطوة الموسم: محصول + ريّ (يُعاد استخدام مفردات الإنشاء) + تاريخ بذر + هدف.
   String? _seasonCrop;
   String? _seasonIrrigation;
+  DateTime? _landLevelingDate; // تسوية الأرض
+  DateTime? _plowingDate;      // حراثة الأرض
   DateTime? _sowingDate;
   DateTime? _seasonEnd; // تاريخ نهاية الموسم/الحصاد
   String? _tillageType; // نوع الحراثة
@@ -95,6 +97,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
   final _cultivar = TextEditingController();
   final _targetYield = TextEditingController(); // كغ/هـ
   final _seedRate = TextEditingController(); // كمية البذور كغ/هـ
+  final _plantDensity = TextEditingController(); // كثافة النبات نبات/م² (v42)
+  final _rowSpacing = TextEditingController(); // تباعد الصفوف سم (v42)
+  final _seedVarietySource = TextEditingController(); // مصدر البذور (v42)
   final _actualYield = TextEditingController(); // الغلّة الفعليّة كغ/هـ
   final _seasonNotes = TextEditingController(); // ملاحظات الموسم
 
@@ -168,6 +173,9 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
     _cultivar.dispose();
     _targetYield.dispose();
     _seedRate.dispose();
+    _plantDensity.dispose();
+    _rowSpacing.dispose();
+    _seedVarietySource.dispose();
     _actualYield.dispose();
     _seasonNotes.dispose();
     _soilPh.dispose();
@@ -600,10 +608,15 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
       crop: crop,
       cultivar: _cultivar.text.trim().isEmpty ? null : _cultivar.text.trim(),
       irrigationType: _seasonIrrigation,
+      landLevelingDate: _landLevelingDate != null ? _ymd(_landLevelingDate!) : null,
+      plowingDate: _plowingDate != null ? _ymd(_plowingDate!) : null,
       sowingDate: _sowingDate != null ? _ymd(_sowingDate!) : null,
       seasonEnd: _seasonEnd != null ? _ymd(_seasonEnd!) : null,
       targetYieldKgHa: _parseNonNegNum(_targetYield.text),
       seedRateKgHa: _parseNonNegNum(_seedRate.text),
+      plantDensity: _parseNonNegNum(_plantDensity.text),
+      rowSpacingCm: _parseNonNegNum(_rowSpacing.text),
+      seedVarietySource: _seedVarietySource.text.trim().isEmpty ? null : _seedVarietySource.text.trim(),
       tillageType: _tillageType,
       maturity: _maturity,
       actualYieldKgHa: _parseNonNegNum(_actualYield.text),
@@ -1387,6 +1400,11 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
             (v) => setState(() => _seasonIrrigation = v)),
         kField(_cultivar, 'الصنف/الهجين (اختياريّ)'),
         kField(_seedRate, 'كمية البذور (كجم/هـ)', number: true),
+        kField(_seedVarietySource, 'مصدر البذور / الصنف (اختياريّ)'),
+        _dateField('تسوية الأرض (اختياريّ)', _landLevelingDate,
+            (d) => setState(() => _landLevelingDate = d)),
+        _dateField('حراثة الأرض (اختياريّ)', _plowingDate,
+            (d) => setState(() => _plowingDate = d)),
         _dateField('تاريخ البذر (اختياريّ)', _sowingDate,
             (d) => setState(() => _sowingDate = d)),
         _dateField('تاريخ نهاية الموسم/الحصاد (اختياريّ)', _seasonEnd,
@@ -1397,6 +1415,8 @@ class _FieldCreateWizardState extends State<FieldCreateWizard> {
             (v) => setState(() => _maturity = v)),
         kField(_targetYield, 'الإنتاجيّة المستهدفة كغ/هـ (اختياريّ)',
             number: true),
+        kField(_plantDensity, 'كثافة النبات نبات/م² (اختياريّ)', number: true),
+        kField(_rowSpacing, 'تباعد الصفوف سم (اختياريّ)', number: true),
         const SizedBox(height: 16),
         const SectionTitle('بعد الحصاد (اختياريّ)'),
         const Text('تُملأ لاحقاً بعد جني المحصول — اتركها فارغة الآن إن لم تتوفّر.',

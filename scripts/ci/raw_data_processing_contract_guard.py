@@ -5,6 +5,7 @@ The raw-data path must remain an explicit QA/provenance endpoint in
 raster-service, not hidden in main.py and not confused with fabricated indicator
 computation.
 """
+
 from __future__ import annotations
 
 import json

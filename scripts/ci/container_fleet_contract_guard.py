@@ -6,11 +6,12 @@ Guards the post-P0/P1/P2 container consistency fixes:
 - Dockerfiles must copy runtime helper modules they import at container startup.
 - One-shot seed containers must copy their optional-but-real data modules.
 """
+
 from __future__ import annotations
 
-from pathlib import Path
 import re
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -79,7 +80,9 @@ def main() -> int:
         text = path.read_text(encoding="utf-8")
         for block in _healthcheck_lines(text):
             if "/readyz" in block:
-                errors.append(f"{rel}: Docker HEALTHCHECK must use /healthz liveness, not /readyz readiness")
+                errors.append(
+                    f"{rel}: Docker HEALTHCHECK must use /healthz liveness, not /readyz readiness"
+                )
             if "/healthz" not in block:
                 errors.append(f"{rel}: Docker HEALTHCHECK must include /healthz")
 
@@ -91,8 +94,13 @@ def main() -> int:
 
     market_server = (ROOT / "services/mcp_servers/market_server.py").read_text(encoding="utf-8")
     mcp_docker = (ROOT / "services/mcp_servers/Dockerfile").read_text(encoding="utf-8")
-    if re.search(r"^import\s+market_db_authz\b", market_server, flags=re.M) and "market_db_authz.py" not in mcp_docker:
-        errors.append("mcp_servers Dockerfile does not copy market_db_authz.py imported by market_server.py")
+    if (
+        re.search(r"^import\s+market_db_authz\b", market_server, flags=re.M)
+        and "market_db_authz.py" not in mcp_docker
+    ):
+        errors.append(
+            "mcp_servers Dockerfile does not copy market_db_authz.py imported by market_server.py"
+        )
 
     seed = (ROOT / "services/qdrant-seed/seed.py").read_text(encoding="utf-8")
     qdrant_docker = (ROOT / "services/qdrant-seed/Dockerfile").read_text(encoding="utf-8")

@@ -112,9 +112,9 @@ def process_raw_raster(ctx, req) -> dict[str, Any]:
         raw_bands: list[dict[str, Any]] = []
         normalized_bands: list[dict[str, Any]] = []
         for spec in band_specs:
-            arr = src.read(spec.index, out_shape=(src.height // stride, src.width // stride)).astype(
-                "float32"
-            )
+            arr = src.read(
+                spec.index, out_shape=(src.height // stride, src.width // stride)
+            ).astype("float32")
             nodata = src.nodata
             if nodata is not None:
                 arr = np.where(arr == nodata, np.nan, arr)

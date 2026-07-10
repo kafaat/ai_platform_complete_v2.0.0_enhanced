@@ -133,12 +133,98 @@ def process_precomputed_truecolor(ctx, req):
     return stats, bounds, res_m, meta
 
 
+def _process_pixels_truecolor(ctx, req, layer_id: str):
+    """مسار Element84 للصورة الخام (truecolor): يقرأ نطاقات RGB من VRT،
+    يحوّلها إلى RGBA uint8، ويكتب COG ويرجع (stats, bounds_4326, res_m, meta)."""
+    import numpy as np
+    import rasterio
+    from rasterio.warp import transform_bounds
+
+    with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
+        res_m = abs(src.res[0])
+        src_crs = src.crs
+        bounds = (
+            list(transform_bounds(src_crs, "EPSG:4326", *src.bounds))
+            if src_crs is not None
+            else list(src.bounds)
+        )
+        b = req.bands
+
+        def _read_uint8(idx):
+            if not idx:
+                return np.zeros(src.shape, dtype=np.uint8)
+            raw = src.read(idx).astype("float32")
+            if src.nodata is not None:
+                raw = np.where(raw == src.nodata, np.nan, raw)
+            _sc = req.reflectance_scale
+            _of = req.reflectance_offset
+            if _sc is None and src.scales:
+                _sc = src.scales[idx - 1]
+            if _of is None and src.offsets:
+                _of = src.offsets[idx - 1]
+            # VRTs built by stac_vrt.build_band_vrt don't carry scale metadata from
+            # source COGs — GDAL fills the field with the default 1.0 (identity).
+            # Without this fallback, Sentinel-2 L2A DN values (0-10000) pass through
+            # to_reflectance unchanged and clip(raw, 0, 1) → all-white image.
+            if (
+                _sc is None or float(_sc) == 1.0
+            ) and req.source_format == ctx.SourceFormat.sentinel2_l2a:
+                _sc = 0.0001
+            raw = ctx.band_math.to_reflectance(raw, _sc, _of, np)
+            raw = np.nan_to_num(np.clip(raw, 0.0, 1.0), nan=0.0)
+            return (raw * 255).astype(np.uint8)
+
+        r = _read_uint8(b.red)
+        g = _read_uint8(b.green)
+        bl = _read_uint8(b.blue)
+        transform = src.transform
+
+    alpha = np.where((r > 0) | (g > 0) | (bl > 0), np.uint8(255), np.uint8(0))
+    rgba = np.stack([r, g, bl, alpha], axis=0)  # (4, H, W) uint8
+    valid_count = int((alpha > 0).sum())
+    total = int(alpha.size)
+    stats = {
+        "min": 0.0,
+        "max": 255.0,
+        "mean": 0.0,
+        "std": 0.0,
+        "valid_pixels": valid_count,
+        "nodata_pixels": total - valid_count,
+    }
+    cog_url = None
+    cog_crs = str(src_crs or "EPSG:4326")
+    try:
+        import cog_writer
+
+        cog_uid = uuid.uuid4().hex[:8]
+        cog_path = os.path.join(ctx.UPLOAD_DIR, f"truecolor_{cog_uid}.tif")
+        cog_info = cog_writer.write_rgba_cog(rgba, cog_path, transform, crs=cog_crs)
+        stats["cog"] = cog_info
+        if cog_info.get("written"):
+            cog_url = ctx.object_store.upload_cog(
+                cog_path, f"{req.field_id or 'nofield'}/truecolor_{cog_uid}.tif"
+            )
+    except Exception as _e:  # noqa: BLE001
+        stats["cog"] = {"written": False, "reason": str(_e)}
+    meta = {
+        "cog_url": cog_url,
+        "cog_crs": cog_crs,
+        "srid": (src_crs.to_epsg() if src_crs is not None else 4326),
+        "nodata": None,
+    }
+    return stats, bounds, res_m, meta
+
+
 def process_pixels(ctx, req, layer_id: str):
     """المعالجة الفعليّة للبكسلات (تعمل عند توفّر rasterio). تُرجع
     (stats, bounds_4326, resolution_m, meta) حيث meta يحوي cog_url/cog_crs/
     srid/nodata. تطبّق القصّ على الحقل + قناع الغيوم + إعادة إسقاط الحدود."""
     import numpy as np
     import rasterio
+
+    # truecolor ليس مؤشّراً طيفيّاً — لا صيغة في _INDICATOR_FORMULAS؛ مسار خاصّ.
+    if req.indicator.value == "truecolor":
+        return _process_pixels_truecolor(ctx, req, layer_id)
 
     formula = ctx._INDICATOR_FORMULAS[req.indicator.value]
     with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
@@ -200,16 +286,17 @@ def process_pixels(ctx, req, layer_id: str):
             if not idx:
                 return None
             if clip_geom_src is not None:
+                # filled=False → masked array؛ يُجنِّب OverflowError حين dtype=uint16
+                # و nodata_val=-9999.0 خارج النطاق. نملأ القناع بـNaN بعد التحويل.
                 arr_b, t = _rio_mask(
                     src,
                     [clip_geom_src],
                     crop=True,
-                    filled=True,
-                    nodata=nodata_val,
+                    filled=False,
                     indexes=[idx],
                 )
                 _out["transform"] = t
-                a = arr_b[0].astype("float32")
+                a = np.ma.filled(arr_b[0].astype("float32"), fill_value=np.nan)
             else:
                 a = src.read(idx).astype("float32")
             # حوّل nodata إلى NaN كي لا يلوّث حساب المؤشّر (قبل المقياس كي لا يُزاح الحارس)
