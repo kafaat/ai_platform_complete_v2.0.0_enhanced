@@ -11625,7 +11625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "76c73ace8ba004a314a5548294fc48e44577126db69d06b75f1a288d7438a87c"
+          "content": "6717c65acca1360671d236ab704e08e922ca5566eb9b38de58e1451239f4888a"
         }
       ],
       "name": "services/sahool-platform/api/canonical_water_stress.py",
@@ -12325,7 +12325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac822e65671d235beb00e57ce4ce3ba13a552ce47b702b9249d43d0abd102379"
+          "content": "ddde1856f750ddd859ec41cc9e5d64e05f1db6120d267cf8df6fbc50c12db8c9"
         }
       ],
       "name": "services/sahool-platform/api/field_state_projection.py",

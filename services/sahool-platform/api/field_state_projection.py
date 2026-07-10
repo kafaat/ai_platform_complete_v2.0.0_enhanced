@@ -137,19 +137,27 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
     # متدرّج) قيمةَ NDVI أيضاً. تراجع رشيق إلى None (صدق: NULL لا رقم مُلفَّق).
     ndmi_mean = None
     msi_mean = None
+    ndmi_date = None
+    msi_date = None
     try:
         async with conn.transaction():  # SAVEPOINT
             srow = await conn.fetchrow(
-                "SELECT last_ndmi_mean, last_msi_mean "
+                "SELECT last_ndmi_mean, last_msi_mean, last_ndmi_date, last_msi_date "
                 "FROM imagery_automation_fields WHERE field_id = $1",
                 field_id,
             )
             if srow:
                 ndmi_mean = srow["last_ndmi_mean"]
                 msi_mean = srow["last_msi_mean"]
+                # تاريخا الاكتساب — لسياسة التوافق الزمنيّ في canonical_water_stress
+                # (لا يُدمَج NDMI+MSI من تاريخَين متباعدَين).
+                ndmi_date = srow["last_ndmi_date"]
+                msi_date = srow["last_msi_date"]
     except Exception:  # noqa: BLE001 — v99 غير مطبّقة بعد ⇒ تخطٍّ آمن
         ndmi_mean = None
         msi_mean = None
+        ndmi_date = None
+        msi_date = None
     # آخر فحص تربة معتمَد/منشور — صفّ واحد يعطي النضارة (sampled_on) + EC (من result)،
     # فنتفادى استعلامين ونربط EC بأحدث عيّنة فعلاً (مراجعة Copilot).
     soil_row = await conn.fetchrow(
@@ -175,6 +183,8 @@ async def gather_field_freshness(conn, field_id: str) -> dict:
         "ndvi_date": ndvi_date,
         "ndmi_mean": float(ndmi_mean) if ndmi_mean is not None else None,
         "msi_mean": float(msi_mean) if msi_mean is not None else None,
+        "ndmi_date": ndmi_date,
+        "msi_date": msi_date,
         "soil_ec": soil_ec,
     }
 
@@ -717,9 +727,12 @@ async def recompute_field_state(conn, field_id: str) -> dict:
                     "raw_fraction": sw["raw_fraction"],
                     "depletion_confidence": lrow["confidence"],
                     "soil_moisture_pct": lrow["soil_moisture_pct"],
-                    # D2b: تأكيد طيفيّ (NDMI+MSI) من imagery_automation_fields (v99).
+                    # D2b: تأكيد طيفيّ (NDMI+MSI) من imagery_automation_fields (v99)
+                    # + تاريخاهما لسياسة التوافق الزمنيّ (لا دمج مؤشّرَين متباعدَي التاريخ).
                     "ndmi": fresh.get("ndmi_mean"),
                     "msi": fresh.get("msi_mean"),
+                    "ndmi_date": fresh.get("ndmi_date"),
+                    "msi_date": fresh.get("msi_date"),
                 }
             )
             if stress is not None:

@@ -80,13 +80,17 @@ def test_none_when_basis_missing_or_invalid():
 # ── D2b: التأكيد الطيفيّ + أهليّة التصعيد ──
 # إجهاد طيفيّ شديد: NDMI=-0.1 (severe) + MSI=2.5 (severe) ⇒ fused severe ⇒ detected.
 _CRIT = {"depletion_mm": 85.0, "taw_mm": 100.0, "depletion_confidence": 0.9}  # AWF=0.15 critical
+# تاريخا اكتساب متوافقان (نفس اليوم) — سياسة التوافق الزمنيّ تسمح بالدمج.
+_SAME_DATE = {"ndmi_date": "2026-07-05", "msi_date": "2026-07-05"}
 
 
 def test_escalation_eligible_when_all_conditions_met():
-    """critical ∧ conf≥0.8 ∧ مؤشّران ∧ إجهاد طيفيّ ⇒ escalation_eligible=True."""
-    w = canonical_water_stress({**_CRIT, "ndmi": -0.1, "msi": 2.5})
+    """critical ∧ conf≥0.8 ∧ مؤشّران متوافقان زمنيّاً ∧ إجهاد طيفيّ ⇒ eligible=True."""
+    w = canonical_water_stress({**_CRIT, "ndmi": -0.1, "msi": 2.5, **_SAME_DATE})
     assert w["water_stress_class"] == "critical"
     assert w["spectral_confirmation_available"] is True
+    assert w["spectral_temporal_compatible"] is True
+    assert w["spectral_date_gap_days"] == 0
     assert w["spectral_stress_detected"] is True
     assert w["spectral_confidence"] == "high"  # كلاهما severe ⇒ اتّفاق
     assert w["escalation_eligible"] is True
@@ -94,7 +98,7 @@ def test_escalation_eligible_when_all_conditions_met():
 
 def test_not_eligible_when_a_spectral_index_missing():
     """غياب أيّ مؤشّر ⇒ confirmation_available=False, detected=None, eligible=False (صدق)."""
-    w = canonical_water_stress({**_CRIT, "ndmi": -0.1})  # لا msi
+    w = canonical_water_stress({**_CRIT, "ndmi": -0.1, **_SAME_DATE})  # لا msi
     assert w["spectral_confirmation_available"] is False
     assert w["spectral_stress_detected"] is None
     assert w["spectral_confidence"] is None
@@ -103,7 +107,7 @@ def test_not_eligible_when_a_spectral_index_missing():
 
 def test_not_eligible_when_spectral_healthy():
     """مؤشّران لكن لا إجهاد طيفيّ (صحّيّ) ⇒ detected=False ⇒ eligible=False."""
-    w = canonical_water_stress({**_CRIT, "ndmi": 0.5, "msi": 0.5})  # كلاهما healthy
+    w = canonical_water_stress({**_CRIT, "ndmi": 0.5, "msi": 0.5, **_SAME_DATE})  # healthy
     assert w["spectral_confirmation_available"] is True
     assert w["spectral_stress_detected"] is False
     assert w["escalation_eligible"] is False
@@ -111,7 +115,9 @@ def test_not_eligible_when_spectral_healthy():
 
 def test_not_eligible_when_low_depletion_confidence():
     """ثقة استنزاف < 0.8 ⇒ eligible=False (فيزياء غير موثوقة)."""
-    w = canonical_water_stress({**_CRIT, "depletion_confidence": 0.7, "ndmi": -0.1, "msi": 2.5})
+    w = canonical_water_stress(
+        {**_CRIT, "depletion_confidence": 0.7, "ndmi": -0.1, "msi": 2.5, **_SAME_DATE}
+    )
     assert w["escalation_eligible"] is False
 
 
@@ -125,7 +131,43 @@ def test_not_eligible_when_watch_not_critical():
             "depletion_confidence": 0.9,
             "ndmi": -0.1,
             "msi": 2.5,
+            **_SAME_DATE,
         }
     )
     assert w["water_stress_class"] == "watch"
     assert w["escalation_eligible"] is False
+
+
+# ── سياسة التوافق الزمنيّ لدمج NDMI+MSI (WS-D.3b) ──
+
+
+def test_no_confirmation_when_dates_incompatible():
+    """NDMI (5 يوليو) + MSI (20 يونيو) فجوة 15 يوماً > 12 ⇒ لا تأكيد (لا دمج زمنيّ خاطئ)."""
+    w = canonical_water_stress(
+        {**_CRIT, "ndmi": -0.1, "msi": 2.5, "ndmi_date": "2026-07-05", "msi_date": "2026-06-20"}
+    )
+    assert w["spectral_date_gap_days"] == 15
+    assert w["spectral_temporal_compatible"] is False
+    assert w["spectral_confirmation_available"] is False
+    assert w["spectral_stress_detected"] is None
+    assert w["escalation_eligible"] is False  # fail-closed رغم الإجهاد الشديد
+
+
+def test_no_confirmation_when_a_date_missing():
+    """غياب أحد التاريخين ⇒ لا يمكن التحقّق من التوافق ⇒ لا تأكيد (fail-closed)."""
+    w = canonical_water_stress({**_CRIT, "ndmi": -0.1, "msi": 2.5, "ndmi_date": "2026-07-05"})
+    assert w["spectral_date_gap_days"] is None
+    assert w["spectral_temporal_compatible"] is False
+    assert w["spectral_confirmation_available"] is False
+    assert w["escalation_eligible"] is False
+
+
+def test_confirmation_within_revisit_window():
+    """فجوة ضمن النافذة (≤ 12 يوماً، مثلاً 3 أيّام) ⇒ دمج مسموح ⇒ تأكيد فعّال."""
+    w = canonical_water_stress(
+        {**_CRIT, "ndmi": -0.1, "msi": 2.5, "ndmi_date": "2026-07-05", "msi_date": "2026-07-08"}
+    )
+    assert w["spectral_date_gap_days"] == 3
+    assert w["spectral_temporal_compatible"] is True
+    assert w["spectral_confirmation_available"] is True
+    assert w["escalation_eligible"] is True

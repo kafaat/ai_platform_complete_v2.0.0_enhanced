@@ -63,8 +63,14 @@ class _Conn:
         return _Tx()
 
     async def fetchrow(self, sql, *a):
-        if "last_ndmi_mean" in sql:  # D2b: المؤشّرات الطيفيّة (v99)
-            return {"last_ndmi_mean": self._ndmi, "last_msi_mean": self._msi}
+        if "last_ndmi_mean" in sql:  # D2b: المؤشّرات الطيفيّة (v99) + تاريخاهما (WS-D.3b)
+            # نفس المشهد ⇒ نفس تاريخ الاكتساب ⇒ متوافقان زمنيّاً (سياسة الدمج).
+            return {
+                "last_ndmi_mean": self._ndmi,
+                "last_msi_mean": self._msi,
+                "last_ndmi_date": self._today,
+                "last_msi_date": self._today,
+            }
         if "imagery_automation_fields" in sql:
             return {"last_ndvi_mean": self._ndvi, "last_ndvi_date": self._today}
         if "FROM soil_lab_tests" in sql:  # صفّ واحد: sampled_on + result (EC)

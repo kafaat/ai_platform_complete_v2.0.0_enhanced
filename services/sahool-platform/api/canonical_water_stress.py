@@ -27,6 +27,8 @@
 
 from __future__ import annotations
 
+from datetime import date, datetime
+
 from core.engines.spectral_stress_bridge import fuse_water_stress
 
 from api.soil_water import available_water_fraction
@@ -39,6 +41,32 @@ ESCALATION_CONFIDENCE_MIN = 0.8
 
 # إشارات الجسر الطيفيّ التي تُعدّ «إجهاداً مؤكَّداً» (moderate/severe).
 _SPECTRAL_STRESS_SIGNALS = frozenset({"moderate", "severe"})
+
+# نافذة التوافق الزمنيّ لدمج NDMI+MSI (≈ دورة إعادة زيارة Sentinel-2). قرار المستخدم:
+# لا يُدمَج مؤشّران من تاريخَي اكتساب متباعدَين (مثلاً NDMI 5 يوليو + MSI 20 يونيو).
+SPECTRAL_MAX_DATE_GAP_DAYS = 12
+
+
+def _to_date(value) -> date | None:
+    """تحويل آمن لتاريخ (ISO str/date/datetime) ⇒ date، أو None عند التعذّر (لا رمي)."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    try:
+        return date.fromisoformat(str(value)[:10])
+    except (ValueError, TypeError):
+        return None
+
+
+def _date_gap_days(d1, d2) -> int | None:
+    """|فرق الأيّام| بين تاريخَي اكتساب، أو None إن غاب/تعذّر أحدهما."""
+    p1, p2 = _to_date(d1), _to_date(d2)
+    if p1 is None or p2 is None:
+        return None
+    return abs((p1 - p2).days)
 
 
 def _coerce_float(value) -> float | None:
@@ -59,7 +87,8 @@ def canonical_water_stress(row: dict | None) -> dict | None:
         (p، افتراضيّ 0.5) · ``depletion_confidence`` (اختياريّ) · ``soil_moisture_pct``
         (اختياريّ، معلوماتيّ).
 
-    المُدخل (D2b، اختياريّ): ``ndmi`` · ``msi`` (للتأكيد الطيفيّ).
+    المُدخل (D2b، اختياريّ): ``ndmi`` · ``msi`` (للتأكيد الطيفيّ) · ``ndmi_date`` ·
+        ``msi_date`` (تاريخا الاكتساب — التأكيد يحتاج توافقاً زمنيّاً صريحاً).
 
     المُخرَج — dict أو None:
         ``water_stress_awf`` · ``water_stress_class`` (normal|watch|critical) ·
@@ -95,9 +124,18 @@ def canonical_water_stress(row: dict | None) -> dict | None:
     # D2b: تأكيد طيفيّ (NDMI + MSI) — قرار المستخدم: كلا المؤشّرين مطلوبان للتأكيد؛
     # غياب أيّهما ⇒ confirmation_available=False و detected=None ⇒ لا تصعيد (صدق:
     # «فيزياء + رصد»، لا تصعيد بلا رصد). الجسر fuse_water_stress جاهز (None ⇒ unknown).
+    #
+    # سياسة التوافق الزمنيّ الصريحة (قرار المستخدم): لا يُدمَج NDMI وMSI إلّا إذا كانا
+    # من نافذة اكتساب متوافقة (فجوة ≤ SPECTRAL_MAX_DATE_GAP_DAYS). غياب أحد التاريخين
+    # أو فجوة أكبر ⇒ لا تأكيد طيفيّ (fail-closed، لا تصعيد على دمج زمنيّ غير متحقَّق).
     ndmi = _coerce_float(row.get("ndmi"))
     msi = _coerce_float(row.get("msi"))
-    spectral_available = ndmi is not None and msi is not None
+    both_present = ndmi is not None and msi is not None
+    spectral_date_gap_days = _date_gap_days(row.get("ndmi_date"), row.get("msi_date"))
+    spectral_temporal_ok = (
+        spectral_date_gap_days is not None and spectral_date_gap_days <= SPECTRAL_MAX_DATE_GAP_DAYS
+    )
+    spectral_available = both_present and spectral_temporal_ok
     spectral_detected: bool | None = None
     spectral_confidence: str | None = None
     if spectral_available:
@@ -128,6 +166,9 @@ def canonical_water_stress(row: dict | None) -> dict | None:
         "spectral_confirmation_available": spectral_available,
         "spectral_stress_detected": spectral_detected,
         "spectral_confidence": spectral_confidence,
+        # سياسة التوافق الزمنيّ (شفافيّة): الفجوة بين تاريخَي NDMI/MSI + هل هي مقبولة.
+        "spectral_date_gap_days": spectral_date_gap_days,
+        "spectral_temporal_compatible": (spectral_temporal_ok if both_present else None),
         "escalation_eligible": escalation_eligible,
         "calibrated": False,  # TAW/p غير معايَرين يمنيّاً (صدق)
         "source": "field_state.canonical",
