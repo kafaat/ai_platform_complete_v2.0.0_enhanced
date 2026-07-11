@@ -438,7 +438,7 @@ jobs:
           done
           pg_isready -h localhost -p 5434 -U decision_test
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
-      - name: Apply decision-service migrations (custom runner — 001 through 015)
+      - name: Apply decision-service migrations (custom runner — 001 through 016)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"

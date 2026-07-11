@@ -94,19 +94,23 @@ def main() -> None:
     signal.signal(signal.SIGINT, _signal)
     validate_runtime()
     runtime = LifecycleRuntime()
-    serve_health()
-    STATE["ready"] = True
+    serve_health()  # /healthz answers during startup; /readyz stays 503 until a dependency probe
     backoff = Backoff(minimum=1, maximum=60)
     interval = float(os.getenv("RUNTIME_POLL_INTERVAL_SECONDS", "5"))
     while not STOP:
         try:
             count = run_once(runtime)
+            # Dependency-aware readiness: a successful run_once means decision-service was reached
+            # and answered. We only advertise ready AFTER proving that reachability, never on config
+            # validation alone. A later failure flips readiness back to 503.
+            STATE["ready"] = True
             STATE["iterations"] += 1
             STATE["last_error"] = None
             STATE["last_success_at"] = time.time()
             backoff.reset()
             time.sleep(0 if count else interval)
         except Exception as exc:
+            STATE["ready"] = False
             STATE["last_error"] = str(exc)[:500]
             LOG.exception("runtime iteration failed")
             time.sleep(backoff.next())

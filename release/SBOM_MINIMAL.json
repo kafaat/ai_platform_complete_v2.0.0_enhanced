@@ -8935,7 +8935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e6193d79a9b9798f23381bc7af892c46ff8a4491ef7b216d750b8dd5edd8e9e9"
+          "content": "60ff1d401c8cd180b3cabf94c08600cfa5a92a6a5b5092923f1e2022094bb89e"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9105,7 +9105,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb3cc90223c1fdb9c49c507d21f8ee7c641b445c6a8f3d9f5c2e8bbe099c92b9"
+          "content": "9aaab74821fb6a53dc868f80145b396e6a6372236d09c81be26542ba1153e53c"
+        }
+      ],
+      "name": "services/decision-service/migrations/016_wx12_runtime_work_claims.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8c11268476470930d98ec8d3591c231d1555117e56bd74e279f9e7aea239f4a3"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9325,7 +9335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6f44db29bb2cf4c082b90b74533d93fd962e57339c5035eea7f56ad0d174e6d"
+          "content": "c3635d1faa70b73c21661b69f5fc55588c9f21acaa4b96f386b540d3ac13f637"
         }
       ],
       "name": "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
@@ -10225,7 +10235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01b1d809de83873aa37146fce5fac2b5be7f19d668cea0ee0010eaadb0cc6593"
+          "content": "d1c166e1292763ef22a6536bcdd36ce82142ede1789dc982532f69ac9f27884c"
         }
       ],
       "name": "services/model-registry-adapter/service.py",
@@ -10245,7 +10255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "290e8d7232ff69e3eff3ffaf1dbfa09cbd08f3135e16425eb0e2bda18391aec1"
+          "content": "9025fb71a2c7d05470f3897a7e5842207783da1c04e9d8fb5f499bcbe327db0a"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",

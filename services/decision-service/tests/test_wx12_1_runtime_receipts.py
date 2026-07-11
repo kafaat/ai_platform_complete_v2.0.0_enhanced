@@ -128,7 +128,7 @@ def test_runtime_work_feed_surfaces_retraining_dispatch_with_full_payload():
     assert not any(i["payload"].get("retraining_request_id") == rid for i in feed2["items"])
 
 
-def test_dispatch_receipt_is_append_only_and_guards_missing_request():
+def test_dispatch_receipt_replay_vs_conflict_and_guards_missing_request():
     from persistence import record_retraining_dispatch_receipt
 
     rid = _run(_seed_retraining())
@@ -141,8 +141,9 @@ def test_dispatch_receipt_is_append_only_and_guards_missing_request():
             payload=_dispatch_payload(key),
         )
     )
-    assert first["status"] == "ok"
-    dup = _run(
+    assert first["status"] == "ok" and not first.get("replay")
+    # identical retry (same request) is a safe replay, not a 409.
+    replay = _run(
         record_retraining_dispatch_receipt(
             tenant_id=TENANT,
             recorded_by="a",
@@ -150,7 +151,18 @@ def test_dispatch_receipt_is_append_only_and_guards_missing_request():
             payload=_dispatch_payload(key),
         )
     )
-    assert dup["status"] == "conflict"
+    assert replay["status"] == "ok" and replay["replay"] is True
+    assert replay["dispatch_receipt_id"] == first["dispatch_receipt_id"]
+    # a genuinely different payload for the same request is a real conflict.
+    conflict = _run(
+        record_retraining_dispatch_receipt(
+            tenant_id=TENANT,
+            recorded_by="a",
+            retraining_request_id=rid,
+            payload=_dispatch_payload("k_" + uuid4().hex, state="dispatch_failed"),
+        )
+    )
+    assert conflict["status"] == "conflict"
     missing = _run(
         record_retraining_dispatch_receipt(
             tenant_id=TENANT,
@@ -160,6 +172,32 @@ def test_dispatch_receipt_is_append_only_and_guards_missing_request():
         )
     )
     assert missing["status"] == "not_found"
+
+
+async def _expire_claim(work_key: str) -> None:
+    c = await _connect()
+    try:
+        await c.execute(
+            "UPDATE decision_model_runtime_work_claims SET lease_expires_at=now()-interval '1 hour' WHERE work_key=$1 AND work_type='retraining_dispatch'",
+            work_key,
+        )
+    finally:
+        await c.close()
+
+
+def test_runtime_work_claim_is_single_owner_and_reclaimable_on_expiry():
+    from persistence import list_runtime_work
+
+    rid = _run(_seed_retraining())
+    f1 = _run(list_runtime_work(tenant_id=TENANT, worker_id="w1", limit=100))
+    assert any(i["payload"].get("retraining_request_id") == rid for i in f1["items"])
+    # a second replica must NOT receive the same item while w1 holds a live lease.
+    f2 = _run(list_runtime_work(tenant_id=TENANT, worker_id="w2", limit=100))
+    assert not any(i["payload"].get("retraining_request_id") == rid for i in f2["items"])
+    # once the lease expires, the item is reclaimable by another replica.
+    _run(_expire_claim(rid))
+    f3 = _run(list_runtime_work(tenant_id=TENANT, worker_id="w2", limit=100))
+    assert any(i["payload"].get("retraining_request_id") == rid for i in f3["items"])
 
 
 def test_rollout_receipt_persists_append_only_and_guards_missing_plan():
@@ -187,7 +225,7 @@ def test_rollout_receipt_persists_append_only_and_guards_missing_plan():
             await c.close()
 
     assert _run(count()) == 1
-    dup = _run(
+    replay = _run(
         record_rollout_receipt(
             tenant_id=TENANT,
             recorded_by="adapter-1",
@@ -195,7 +233,8 @@ def test_rollout_receipt_persists_append_only_and_guards_missing_plan():
             payload=_rollout_payload(key),
         )
     )
-    assert dup["status"] == "conflict"
+    assert replay["status"] == "ok" and replay["replay"] is True
+    assert _run(count()) == 1  # replay did not write a second row
     missing = _run(
         record_rollout_receipt(
             tenant_id=TENANT,

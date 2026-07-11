@@ -243,3 +243,25 @@ def test_worker_activation_and_rollback_receipts_satisfy_contract(monkeypatch):
         assert (r["extra"] or {}).get("X-Recorded-By"), (
             f"receipt missing X-Recorded-By: {r['path']}"
         )
+
+
+def test_service_token_guard_enforced_when_configured(monkeypatch):
+    # opt-in: with the shared token configured, non-probe requests without a valid bearer are 401.
+    monkeypatch.setenv("DECISION_SERVICE_AUTH_TOKEN", "secret-xyz")
+    no_bearer = CLIENT.post(
+        "/v1/learning/monitoring-snapshots",
+        headers={"X-Tenant-Id": "00000000-0000-0000-0000-000000001111", "X-Captured-By": "a"},
+        json={},
+    )
+    assert no_bearer.status_code == 401
+    with_bearer = CLIENT.post(
+        "/v1/learning/monitoring-snapshots",
+        headers={
+            "X-Tenant-Id": "00000000-0000-0000-0000-000000001111",
+            "X-Captured-By": "a",
+            "Authorization": "Bearer secret-xyz",
+        },
+        json={},
+    )
+    assert with_bearer.status_code != 401  # passes auth (then 422/503 downstream)
+    assert CLIENT.get("/healthz").status_code != 401  # probes are exempt

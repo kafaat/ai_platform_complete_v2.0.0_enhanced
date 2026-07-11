@@ -22,6 +22,7 @@ Migration path to a real decision-service SoR is documented in
 
 from __future__ import annotations
 
+import hmac
 import logging
 import os
 from datetime import UTC, datetime
@@ -71,6 +72,27 @@ from pydantic import BaseModel, Field
 
 app = FastAPI(title="Sahool Decision Service", version="p0-sor-strangler")
 
+# Critical: do not trust identity headers (X-Tenant-Id / X-*-By) on the raw internal port.
+# When DECISION_SERVICE_AUTH_TOKEN is configured, every non-probe request must present the shared
+# service bearer token (the runtime/worker already send it). Unset (dev/mirror) → no-op, so the
+# existing gateway-trusted flow is unchanged. This is defense-in-depth for the future SoR mode:
+# a service reachable directly inside the cluster can no longer spoof tenant/actor identities.
+_AUTH_EXEMPT = {"/healthz", "/readyz", "/livez", "/", "/docs", "/openapi.json", "/redoc"}
+
+
+@app.middleware("http")
+async def _service_token_guard(request, call_next):
+    required = os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()
+    if required and request.url.path not in _AUTH_EXEMPT:
+        header = request.headers.get("authorization", "")
+        presented = header[7:].strip() if header[:7].lower() == "bearer " else ""
+        if not presented or not hmac.compare_digest(presented, required):
+            from fastapi.responses import JSONResponse
+
+            return JSONResponse({"detail": "unauthorized: service token required"}, status_code=401)
+    return await call_next(request)
+
+
 LOOP_TABLES = [
     "decision_record",
     "dispatch_decisions",
@@ -97,6 +119,9 @@ LOOP_TABLES = [
     "decision_model_rollout_plans",
     "decision_model_monitoring_snapshots",
     "decision_model_retraining_requests",
+    "decision_model_rollout_receipts",
+    "decision_model_retraining_dispatch_receipts",
+    "decision_model_runtime_work_claims",
 ]
 
 # Honest mirror-sink contract: this service is NOT the system-of-record yet. Write

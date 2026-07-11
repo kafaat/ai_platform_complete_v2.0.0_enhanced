@@ -2959,7 +2959,10 @@ async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) 
                          'rollout_mode', rp.mode,
                          'traffic_percent', rp.traffic_percent,
                          'candidate_artifact_digest', ac.candidate_artifact_digest,
-                         'expected_active_artifact_digest', ac.previous_artifact_digest)
+                         -- CAS invariant is derived from the activation *receipt* (what is actually
+                         -- live now), not the pre-activation pointer: the controller confirms the
+                         -- active artifact matches what activation recorded before shifting traffic.
+                         'expected_active_artifact_digest', ar.active_artifact_digest)
                 FROM decision_model_rollout_plans rp
                 JOIN decision_model_registry_activation_receipts ar
                   ON ar.tenant_id=rp.tenant_id AND ar.activation_receipt_id=rp.activation_receipt_id
@@ -2988,15 +2991,48 @@ async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) 
             tenant_id,
             lim,
         )
-        items = [
-            {
-                "work_type": r["work_type"],
-                "payload": r["payload"]
-                if isinstance(r["payload"], dict)
-                else json.loads(r["payload"]),
-            }
-            for r in rows
-        ]
+        # Multi-replica safety: activation/rollback already have claim tables (the worker claims
+        # atomically). For the side-effecting types below, take a durable lease here so at most one
+        # replica receives each item; an expired lease is reclaimable (attempt++). The lease insert
+        # is the real guard — even if two workers saw the same candidate, only one wins.
+        lease_seconds = max(30, int(os.getenv("RUNTIME_WORK_LEASE_SECONDS", "120")))
+        claimed_types = {
+            "post_activation_verification": "activation_receipt_id",
+            "rollout_apply": "rollout_plan_id",
+            "retraining_dispatch": "retraining_request_id",
+        }
+        items: list[dict[str, Any]] = []
+        for r in rows:
+            wt = r["work_type"]
+            payload = r["payload"] if isinstance(r["payload"], dict) else json.loads(r["payload"])
+            key_field = claimed_types.get(wt)
+            if key_field is not None:
+                work_key = payload[key_field]
+                claim_id = (
+                    "wkclaim_"
+                    + hashlib.sha256(f"{tenant_id}:{wt}:{work_key}".encode()).hexdigest()[:20]
+                )
+                won = await conn.fetchval(
+                    """INSERT INTO decision_model_runtime_work_claims
+                         (work_claim_id,tenant_id,work_type,work_key,worker_id,lease_expires_at)
+                       VALUES($1,$2::uuid,$3,$4,$5, now() + make_interval(secs => $6))
+                       ON CONFLICT (tenant_id,work_type,work_key) DO UPDATE
+                         SET worker_id=EXCLUDED.worker_id, lease_expires_at=EXCLUDED.lease_expires_at,
+                             attempt=decision_model_runtime_work_claims.attempt+1,
+                             claimed_at=now(), heartbeat_at=now()
+                         WHERE decision_model_runtime_work_claims.lease_expires_at < now()
+                       RETURNING work_claim_id""",
+                    claim_id,
+                    tenant_id,
+                    wt,
+                    work_key,
+                    worker_id,
+                    lease_seconds,
+                )
+                if not won:
+                    continue  # another replica holds a live lease on this item
+                payload["work_claim_id"] = claim_id
+            items.append({"work_type": wt, "payload": payload})
         return {"status": "ok", "authoritative": True, "worker_id": worker_id, "items": items}
     finally:
         await conn.close()
@@ -3037,7 +3073,24 @@ async def record_rollout_receipt(
                 req_hash,
             )
             if not row:
-                return {"status": "conflict", "reason": "rollout_receipt_already_exists"}
+                # idempotent replay: an identical retry (same request_hash) after a lost response
+                # must return the original receipt, not a spurious 409. Only a genuinely different
+                # payload for the same plan is a conflict.
+                existing = await conn.fetchrow(
+                    "SELECT rollout_receipt_id, request_hash, receipt_state FROM decision_model_rollout_receipts WHERE tenant_id=$1::uuid AND rollout_plan_id=$2",
+                    tenant_id,
+                    rollout_plan_id,
+                )
+                if existing and existing["request_hash"] == req_hash:
+                    return {
+                        "status": "ok",
+                        "replay": True,
+                        "authoritative": True,
+                        "persisted": True,
+                        "rollout_receipt_id": existing["rollout_receipt_id"],
+                        "receipt_state": existing["receipt_state"],
+                    }
+                return {"status": "conflict", "reason": "rollout_receipt_conflict"}
             await emit_outbox_event(
                 conn,
                 tenant_id=tenant_id,
@@ -3094,7 +3147,22 @@ async def record_retraining_dispatch_receipt(
                 req_hash,
             )
             if not row:
-                return {"status": "conflict", "reason": "dispatch_receipt_already_exists"}
+                # idempotent replay: identical retry returns the original receipt (not a 409).
+                existing = await conn.fetchrow(
+                    "SELECT dispatch_receipt_id, request_hash, dispatch_state FROM decision_model_retraining_dispatch_receipts WHERE tenant_id=$1::uuid AND retraining_request_id=$2",
+                    tenant_id,
+                    retraining_request_id,
+                )
+                if existing and existing["request_hash"] == req_hash:
+                    return {
+                        "status": "ok",
+                        "replay": True,
+                        "authoritative": True,
+                        "persisted": True,
+                        "dispatch_receipt_id": existing["dispatch_receipt_id"],
+                        "dispatch_state": existing["dispatch_state"],
+                    }
+                return {"status": "conflict", "reason": "dispatch_receipt_conflict"}
             await emit_outbox_event(
                 conn,
                 tenant_id=tenant_id,
