@@ -6,6 +6,7 @@ from typing import Literal
 from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
+from canonical_daily_weather_series import build_canonical_daily_series, gdd_view
 from canonical_weather_state import (
     build_canonical_weather_state,
     et0_view,
@@ -15,7 +16,6 @@ from canonical_weather_state import (
 from chill_accumulation import compute_chill_accumulation
 from et0 import et0_series_product
 from fastapi import Body, HTTPException, Query
-from gdd import gdd_agro_product
 from lodging_risk import compute_lodging_risk
 from open_meteo import (
     circuit_breaker_state,
@@ -572,6 +572,11 @@ class GddProductRequest(BaseModel):
 
     النواة في المحرّك؛ السياسة (base_c/upper_cutoff_c/method/الفترة) يحدّدها Season
     Service ويمرّرها. مفقود base_c ⇒ insufficient (لا افتراض).
+
+    WX-10.4: حقول نَسَب/سلسلة اختياريّة (توافقيّة للخلف): ``daily_dates`` (تاريخ لكلّ يوم؛
+    يُفعّل الترتيب القانونيّ + إزالة التكرار + التغطية) · ``daily_snapshot_ids`` (هويّة لقطة
+    لكلّ يوم) · ``timezone`` · ``reset_policy``. غيابها ⇒ سلوك قديم محفوظ (تواريخ تسلسليّة
+    من start_date، بلا فجوات).
     """
 
     daily_t_min: list[float | None] = []
@@ -581,23 +586,71 @@ class GddProductRequest(BaseModel):
     method: str = "modified"  # modified | simple
     start_date: str | None = None
     end_date: str | None = None
+    daily_dates: list[str | None] | None = None
+    daily_snapshot_ids: list[str | None] | None = None
+    timezone: str | None = None
+    reset_policy: str | None = None
+
+
+def _gdd_daily_records(req: GddProductRequest) -> list[dict]:
+    """يبني سجلّات يوميّة مؤرَّخة من الطلب (توافقيّة للخلف): daily_dates إن وُجدت، وإلّا
+    تواريخ تسلسليّة من start_date (سلوك قديم)، وإلّا تواريخ ترتيبيّة من حقبة ثابتة للترتيب
+    فقط (لا تلمس valid_period — يُمرَّر start/end الأصليّان للنواة كما هما).
+    """
+    from datetime import date as _d
+    from datetime import timedelta as _td
+
+    n = min(len(req.daily_t_min), len(req.daily_t_max))
+    base_dt = None
+    if not req.daily_dates and req.start_date:
+        try:
+            base_dt = _d.fromisoformat(req.start_date)
+        except ValueError:
+            base_dt = None
+    if not req.daily_dates and base_dt is None:
+        base_dt = _d(1970, 1, 1)  # ترتيب فقط؛ valid_period يبقى من start/end الأصليّين
+
+    records: list[dict] = []
+    for i in range(n):
+        if req.daily_dates and i < len(req.daily_dates) and req.daily_dates[i]:
+            date_s = req.daily_dates[i]
+        elif base_dt is not None:
+            date_s = (base_dt + _td(days=i)).isoformat()
+        else:
+            continue
+        snap = None
+        if req.daily_snapshot_ids and i < len(req.daily_snapshot_ids):
+            snap = req.daily_snapshot_ids[i]
+        records.append(
+            {
+                "date": date_s,
+                "t_min_c": req.daily_t_min[i],
+                "t_max_c": req.daily_t_max[i],
+                "weather_snapshot_id": snap,
+            }
+        )
+    return records
 
 
 async def agro_gdd(req: GddProductRequest = Body(...)):
-    """منتج GDD الموحَّد (درجات النموّ) لعقد محرّك الطقس — **كلّ GDD اليوميّ من هنا**.
+    """منتج GDD — **View تراكميّ مُشتقّ من سلسلة طقس يوميّة canonical** (WX-10.4).
 
-    يُنفِّذ النواة في المحرّك (لا في المنصّة/الواجهة) ويعيد العقد الموحَّد:
-    ``daily_gdd`` · ``accumulated_gdd`` · ``thresholds_used`` (base/cutoff/method) ·
-    ``calculation_version`` · ``valid_period``. نقيّ حتميّ بلا شبكة ⇒ لا 5xx.
+    الانعكاس المعماريّ: GDD تراكم فوق سلسلة أيّام canonical (لا لقطة واحدة). النواة
+    (`gdd_agro_product`) تبقى سلطة التراكم حرفيّاً ⇒ عقد GDD القديم byte-compatible
+    (``daily_gdd``/``accumulated_gdd``/``thresholds_used``/``valid_period``/``quality_status``).
+    يُضاف نَسَب تراكميّ (``gdd_lineage_id`` مستقلّ عن آخر يوم · ``contributing_state_ids``) +
+    **تغطية مفصولة عن جودة البيانات** (``coverage``: expected/observed/missing/ratio) +
+    ``series_quality_status`` (سلسلة ناقصة لا تُعطى validated). نقيّ حتميّ ⇒ لا 5xx.
     """
-    return gdd_agro_product(
-        daily_t_min=req.daily_t_min,
-        daily_t_max=req.daily_t_max,
+    series = build_canonical_daily_series(_gdd_daily_records(req), timezone=req.timezone)
+    return gdd_view(
+        series,
         base_c=req.base_c,
         upper_cutoff_c=req.upper_cutoff_c,
         method=req.method,
-        start_date=req.start_date,
-        end_date=req.end_date,
+        period_start=req.start_date,
+        period_end=req.end_date,
+        reset_policy=req.reset_policy,
     )
 
 

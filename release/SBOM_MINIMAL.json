@@ -23945,6 +23945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8fe5bb62ffd6e457c7a0dc3e8462c96c51bc5c6e4d98de23c41fdaaba250ee86"
+        }
+      ],
+      "name": "services/weather-service/tests/test_vpd_agro_product.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "713e01f0e6d2f15944b2c0c3a5e01e4eda4bc428aea3cd18701fbafd63913c93"
         }
       ],
@@ -24005,7 +24015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fabe12d17d6d4edb9755c0293227658124849f62d17b579f98700bd292bf6a35"
+          "content": "64e0d5bf55b8f1ea0a48dedc8e758589cc81966c427afedf04f26badc7db65d6"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

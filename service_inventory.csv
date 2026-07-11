@@ -25,5 +25,5 @@ tts-service,Voice & Notifications,8,784,1,8,services/tts-service/main.py,service
 vegetation-analysis-service,Vegetation Analytics,10,1451,3,8,services/vegetation-analysis-service/main.py,services/vegetation-analysis-service/Dockerfile,services/vegetation-analysis-service/requirements.txt,normal
 video-processor,Video Processing,9,1015,1,11,services/video-processor/main.py,services/video-processor/Dockerfile,services/video-processor/requirements.txt,normal
 weather-polygon-worker,Weather Intelligence,2,177,0,0,services/weather-polygon-worker/src/main.py,services/weather-polygon-worker/Dockerfile,services/weather-polygon-worker/requirements.txt,medium-runtime-contract-gap
-weather-service,Weather Intelligence,33,4877,16,26,services/weather-service/main.py,services/weather-service/Dockerfile,services/weather-service/requirements.txt,normal
+weather-service,Weather Intelligence,36,5414,18,26,services/weather-service/main.py,services/weather-service/Dockerfile,services/weather-service/requirements.txt,normal
 weather-signal-engine,Weather Intelligence,2,115,0,0,services/weather-signal-engine/src/main.py,services/weather-signal-engine/Dockerfile,services/weather-signal-engine/requirements.txt,medium-runtime-contract-gap
