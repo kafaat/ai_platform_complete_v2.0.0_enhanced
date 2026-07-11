@@ -16,8 +16,8 @@ def test_platform_route_budget_reduced_after_extractions():
         if not str(p.relative_to(ROOT)).startswith("tests/")
     )
     assert (
-        budget <= 576
-    )  # deliberately raised 567->570 (JSON-metrics hotfix); 575->576 for WX-10.6 crop→decision candidate (owned+documented)
+        budget <= 577
+    )  # deliberately raised 567->570 (JSON-metrics hotfix); 575->576 WX-10.6 candidate; 576->577 WX-10.7 decision review (owned+documented)
     assert current <= budget
     assert data["p2_6_route_budget_reduction"]["previous_baseline_route_count"] == 567
 

@@ -35,6 +35,7 @@ from persistence import (
     persist_learning_update,
     persist_outcome_record,
     persist_recommendation_outcome,
+    review_decision,
     sor_enabled,
     sor_requested_without_db,
 )
@@ -232,6 +233,84 @@ async def record_decision(
         stage=payload.stage,
         received_at=datetime.now(UTC).isoformat(),
     )
+
+
+class DecisionReviewIn(BaseModel):
+    """WX-10.7 reviewer/policy action on a pending_approval candidate."""
+
+    action: str  # "approve" | "reject"
+    reason: str = ""
+    expected_state: str = "pending_approval"
+    candidate_lineage_id: str
+    idempotency_key: str
+    policy_version: str | None = None
+
+
+@app.post("/v1/decisions/{decision_id}/review")
+async def review_candidate(
+    decision_id: str,
+    payload: DecisionReviewIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_reviewed_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.7 — authoritative, concurrency-safe ``pending_approval -> approved|rejected``
+    transition owned by decision-service. Evidence is never mutated; the review is recorded in
+    the append-only ``decision_reviews`` audit + an outbox event, all in one transaction.
+
+    Fail-closed: unknown action (422), reject with empty reason (422), stale ``expected_state``
+    (409), missing reviewer (400). Under SoR the transition is authoritative; otherwise the
+    service stays an honest mirror sink (``persisted: false``) and the caller must fail closed.
+    """
+    tenant = _tenant(x_tenant_id)
+    reviewed_by = (x_reviewed_by or "").strip()
+    if not reviewed_by:
+        raise HTTPException(status_code=400, detail="X-Reviewed-By is required")
+    if payload.action not in ("approve", "reject"):
+        raise HTTPException(status_code=422, detail="action must be 'approve' or 'reject'")
+    if not payload.candidate_lineage_id:
+        raise HTTPException(status_code=422, detail="candidate_lineage_id is required")
+    if not payload.idempotency_key:
+        raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if payload.action == "reject" and not payload.reason.strip():
+        raise HTTPException(status_code=422, detail="reason is required to reject")
+    # Optimistic concurrency: the caller asserts the state it saw. Anything other than
+    # pending_approval is stale by definition (the only reviewable state).
+    if payload.expected_state != "pending_approval":
+        raise HTTPException(status_code=409, detail="expected_state must be pending_approval")
+
+    if not sor_enabled():
+        # A review is a state TRANSITION — unlike the mirror-able write endpoints, there is no
+        # authoritative write to honestly mirror. Under the current interim-bridge/mirror
+        # deployment (ownership still platform-owned, no DATABASE_URL), the transition cannot be
+        # made, so we FAIL CLOSED (503) and never return a mirror ack. The endpoint becomes
+        # authoritative only once SoR is deployed (DECISION_SERVICE_SOR_ENABLED + DATABASE_URL +
+        # promoted ownership).
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record (mirror mode) — review "
+            "unavailable until SoR cutover",
+        )
+
+    new_state = "approved" if payload.action == "approve" else "rejected"
+    result = await review_decision(
+        tenant_id=tenant,
+        decision_id=decision_id,
+        action=payload.action,
+        new_state=new_state,
+        reason=payload.reason,
+        reviewed_by=reviewed_by,
+        candidate_lineage_id=payload.candidate_lineage_id,
+        idempotency_key=payload.idempotency_key,
+        policy_version=payload.policy_version,
+    )
+    status = result.get("status")
+    if status == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if status == "not_found":
+        raise HTTPException(status_code=404, detail="decision candidate not found")
+    # conflict: not_pending_approval / candidate_lineage_mismatch / already_reviewed /
+    # idempotency_key_payload_mismatch — all 409 (concurrency/terminal-state).
+    raise HTTPException(status_code=409, detail=result.get("reason", "review conflict"))
 
 
 @app.post("/v1/dispatch/decisions")

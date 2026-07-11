@@ -36,6 +36,14 @@ jobs:
       - name: waiver-expiry-guard
         run: python scripts/ci/waiver_expiry_guard.py
 
+      # WX-10.7: reviewer/decision path stays a state transition, never execution
+      - name: decision-review-boundary-gate
+        run: python scripts/ci/decision_review_boundary_gate.py
+
+      # WX-10.7: while decision_record is interim-bridge (mirror), the review must fail closed
+      - name: decision-review-ownership-consistency-gate
+        run: python scripts/ci/decision_review_ownership_consistency_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
@@ -346,6 +354,66 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
         run: pytest -v -m integration --tb=short
+
+  decision-service-tests:
+    name: Decision Service Tests
+    runs-on: ubuntu-24.04
+    # WX-10.7: decision-service owns the authoritative review transition (state machine + append
+    # -only audit + concurrency). Its tests need a real Postgres (the concurrency race + DB-level
+    # append-only cannot be faked) — this job is their CI home. Same resilient-pull pattern as
+    # Integration Tests (manual docker run + backoff instead of `services:`).
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - name: Configure Docker registry mirror (avoid Docker Hub flakes)
+        run: |
+          echo '{"registry-mirrors":["https://mirror.gcr.io"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+      - name: Start Postgres (resilient pull)
+        run: |
+          set -e
+          pull() {
+            for i in 1 2 3 4 5 6; do
+              docker pull "$1" && return 0
+              echo "pull $1 فشل (محاولة $i) — backoff"; sleep $((i * 10))
+            done
+            echo "::error::تعذّر سحب $1 بعد ٦ محاولات"; return 1
+          }
+          pull postgres:15
+          docker run -d --name ds-pg \
+            -e POSTGRES_DB=decision_test -e POSTGRES_USER=decision_test \
+            -e POSTGRES_PASSWORD=test_password -p 5434:5432 postgres:15
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client
+          for i in $(seq 1 30); do
+            pg_isready -h localhost -p 5434 -U decision_test && break
+            echo "بانتظار Postgres ($i)"; sleep 2
+          done
+          pg_isready -h localhost -p 5434 -U decision_test
+      - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
+      - name: Apply decision-service migrations (custom runner — 001 + 002)
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
+        run: python services/decision-service/migration_runner.py --apply
+      - name: Migration idempotency (re-apply is a no-op / --check clean)
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
+        run: python services/decision-service/migration_runner.py --check
+      # Mirror-mode contract (SoR OFF): the interim mirror sink must never claim persistence.
+      # No DATABASE_URL / flag on this step ⇒ sor_enabled() is false ⇒ honest mirror behaviour.
+      - name: Decision-service mirror-mode contract (SoR off)
+        working-directory: services/decision-service
+        run: pytest tests/test_p4_decision_service_runtime.py -q -p no:cacheprovider
+      # WX-10.7 review transition (SoR ON + real Postgres): state machine + concurrency race +
+      # append-only + idempotency. Separate step so SoR env never leaks into the mirror contract.
+      - name: WX-10.7 review tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_7_decision_review.py -q -p no:cacheprovider
 
   security-scan:
     name: Security Scan

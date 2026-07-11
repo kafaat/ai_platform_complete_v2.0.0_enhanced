@@ -216,7 +216,7 @@ classification: `ui`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
   - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
-- platform-proxy: 80 match(es)
+- platform-proxy: 81 match(es)
   - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_workers.py` ← `dispatch`
   - `services/sahool-platform/api/command_store.py` ← `dispatch`

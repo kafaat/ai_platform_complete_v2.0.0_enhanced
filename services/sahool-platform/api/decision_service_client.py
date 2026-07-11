@@ -21,13 +21,18 @@ def decision_service_url() -> str:
 
 
 def decision_service_headers(
-    *, tenant_id: str | None = None, authorization: str | None = None
+    *,
+    tenant_id: str | None = None,
+    authorization: str | None = None,
+    reviewed_by: str | None = None,
 ) -> dict[str, str]:
     headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
     if authorization:
         headers["Authorization"] = authorization
+    if reviewed_by:
+        headers["X-Reviewed-By"] = str(reviewed_by)
     return headers
 
 
@@ -71,6 +76,7 @@ async def decision_post_json(
     *,
     tenant_id: str | None = None,
     authorization: str | None = None,
+    reviewed_by: str | None = None,
     timeout_s: float = 20.0,
 ) -> dict[str, Any]:
     import httpx
@@ -82,7 +88,9 @@ async def decision_post_json(
             resp = await client.post(
                 url,
                 json=payload,
-                headers=decision_service_headers(tenant_id=tenant_id, authorization=authorization),
+                headers=decision_service_headers(
+                    tenant_id=tenant_id, authorization=authorization, reviewed_by=reviewed_by
+                ),
             )
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"decision-service غير متاح: {exc}") from exc
@@ -96,6 +104,24 @@ async def record_decision(
     payload: dict[str, Any], *, tenant_id: str | None = None
 ) -> dict[str, Any]:
     return await decision_post_json("/v1/decisions/record", payload, tenant_id=tenant_id)
+
+
+async def review_decision(
+    decision_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    reviewed_by: str | None = None,
+) -> dict[str, Any]:
+    """WX-10.7 — reviewer/policy action on a pending_approval candidate. decision-service owns
+    the authoritative transition; this facade only transports (it must NOT synthesize
+    authoritative/persisted — those are proven by the service response)."""
+    return await decision_post_json(
+        f"/v1/decisions/{decision_id}/review",
+        payload,
+        tenant_id=tenant_id,
+        reviewed_by=reviewed_by,
+    )
 
 
 async def record_dispatch_decision(

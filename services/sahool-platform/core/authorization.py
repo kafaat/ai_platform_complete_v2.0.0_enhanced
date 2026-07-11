@@ -54,6 +54,7 @@ class Permission(str, Enum):
     RECOMMENDATION_REQUEST = "recommendation:request"
     RECOMMENDATION_VIEW = "recommendation:view"
     RECOMMENDATION_OVERRIDE = "recommendation:override"  # حرج
+    DECISION_APPROVE = "decision:approve"  # WX-10.7: مراجعة/موافقة مرشّح القرار (حرج)
     # الأنشطة
     ACTIVITY_PLAN = "activity:plan"
     ACTIVITY_EXECUTE = "activity:execute"  # mark_completed
@@ -116,6 +117,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.RECOMMENDATION_REQUEST,
         Permission.RECOMMENDATION_VIEW,
         Permission.RECOMMENDATION_OVERRIDE,
+        Permission.DECISION_APPROVE,
         Permission.ACTIVITY_PLAN,
         Permission.ACTIVITY_EXECUTE,
         Permission.ACTIVITY_SKIP,
@@ -156,6 +158,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.FIELD_VIEW,
         Permission.RECOMMENDATION_REQUEST,
         Permission.RECOMMENDATION_VIEW,
+        Permission.DECISION_APPROVE,
         Permission.ACTIVITY_PLAN,
         Permission.ACTIVITY_EXECUTE,
         Permission.ACTIVITY_SKIP,
@@ -189,6 +192,7 @@ _ROLE_PERMISSIONS: dict[UserRole, set[Permission]] = {
         Permission.FIELD_VIEW,
         Permission.RECOMMENDATION_REQUEST,
         Permission.RECOMMENDATION_VIEW,
+        Permission.DECISION_APPROVE,
         Permission.ACTIVITY_PLAN,
         Permission.ACTIVITY_VIEW,
         Permission.OBSERVATION_RECORD,

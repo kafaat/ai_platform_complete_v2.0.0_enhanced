@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 608,
+  "baseline_python_module_count": 609,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -204,6 +204,7 @@
     "api/routers/decision_impact.py",
     "api/routers/decision_policies.py",
     "api/routers/decision_record.py",
+    "api/routers/decision_review.py",
     "api/routers/device_twin.py",
     "api/routers/devices.py",
     "api/routers/diagnose.py",

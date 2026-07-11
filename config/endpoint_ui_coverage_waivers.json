@@ -468,6 +468,26 @@
       "tracking": "WX-10.7",
       "expiry": "2026-10-11",
       "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/decisions/{decision_id}/review",
+      "audience": "agronomist",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.7 حدّ مراجعة القرار: BFF proxy لمراجع مُصرَّح؛ decision-service يملك الانتقال الآمِر. reviewer/approvals console دَين واجهة مقصود.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.8-reviewer-ui",
+      "expiry": "2026-10-11",
+      "temporary": true
     }
   ]
 }
