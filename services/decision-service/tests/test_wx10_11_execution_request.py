@@ -1,10 +1,15 @@
 """WX-10.11a execution-request boundary against real Postgres."""
 
 from __future__ import annotations
-import asyncio, json, os, sys
+
+import asyncio
+import json
+import os
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from uuid import uuid4
+
 import pytest
 
 SERVICE_DIR = Path(__file__).resolve().parents[1]
@@ -60,7 +65,7 @@ async def _seed():
             uuid4().hex,
         )
         await c.execute(
-            "INSERT INTO decision_dispatch_authorizations(dispatch_authorization_id,tenant_id,execution_plan_id,decision_id,review_id,candidate_lineage_id,status,policy_version,weather_snapshot_id,resource_snapshot_id,authorization_reason,idempotency_key,request_hash,authorized_by) VALUES($1,$2::uuid,$3,$4,$5,$6,'authorized','p1','w1','r1','ok',$7,$8,'m')",
+            "INSERT INTO decision_dispatch_authorizations(dispatch_authorization_id,tenant_id,execution_plan_id,decision_id,review_id,candidate_lineage_id,expected_plan_state,status,policy_version,weather_snapshot_id,resource_snapshot_id,authorization_reason,idempotency_key,request_hash,authorized_by) VALUES($1,$2::uuid,$3,$4,$5,$6,'planned','authorized','p1','w1','r1','ok',$7,$8,'m')",
             aid,
             TENANT,
             pid,

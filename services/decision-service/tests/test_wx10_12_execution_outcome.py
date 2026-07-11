@@ -1,10 +1,14 @@
 """WX-10.12 structural contract plus real-Postgres behavior tests."""
 
 from __future__ import annotations
-import asyncio, os, sys
+
+import asyncio
+import os
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 from uuid import uuid4
+
 import pytest
 
 SERVICE_DIR = Path(__file__).resolve().parents[1]
@@ -25,7 +29,6 @@ async def _connect():
 
 
 def test_contract_is_canonical_and_learning_free():
-    root = SERVICE_DIR.parents[1]
     migration = (SERVICE_DIR / "migrations/007_execution_outcome_verification.sql").read_text()
     persistence = (SERVICE_DIR / "persistence.py").read_text()
     assert "ALTER TABLE outcome_record" in migration

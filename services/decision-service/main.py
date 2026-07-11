@@ -31,6 +31,10 @@ from uuid import uuid4
 from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
 from persistence import (
+    authorize_dispatch,
+    claim_execution_request,
+    create_execution_plan,
+    create_execution_request,
     list_decision_records,
     list_review_queue,
     persist_decision_record,
@@ -38,15 +42,11 @@ from persistence import (
     persist_learning_update,
     persist_outcome_record,
     persist_recommendation_outcome,
-    review_decision,
-    create_execution_plan,
-    authorize_dispatch,
-    create_execution_request,
-    claim_execution_request,
     record_execution_receipt,
-    verify_execution_outcome,
+    review_decision,
     sor_enabled,
     sor_requested_without_db,
+    verify_execution_outcome,
 )
 from pydantic import BaseModel, Field
 
