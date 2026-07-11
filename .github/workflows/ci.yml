@@ -93,6 +93,16 @@ jobs:
       # WX-12.3: monitoring/reconcile scheduling must stay durable + actually emitted by the feed
       - name: WX-12.3 runtime scheduler guard
         run: python scripts/ci/wx12_runtime_scheduler_gate.py
+      # AC-1: agronomic context contracts stay canonical + point-in-time fail-closed
+      - name: AC-1 agronomic context gate
+        run: python scripts/ci/agronomic_context_gate.py
+      # VEG-AGRIAI completion: vegetation stays real-source-honest and agriai-engine stays
+      # context-bound (delivered increment; its dedicated workflow only runs on main/PR paths,
+      # so enforce the structural contract on every push here too).
+      - name: vegetation-agriai completion gate
+        run: python scripts/ci/vegetation_agriai_completion_gate.py
+      - name: vegetation-agriai production gate
+        run: python scripts/ci/vegetation_agriai_production_gate.py
 
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
@@ -441,7 +451,7 @@ jobs:
           done
           pg_isready -h localhost -p 5434 -U decision_test
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
-      - name: Apply decision-service migrations (custom runner — 001 through 017)
+      - name: Apply decision-service migrations (custom runner — 001 through 018)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -558,6 +568,17 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx12_3_runtime_schedules.py -q -p no:cacheprovider
+      # AC-1 agronomic context (real Postgres, SoR on): composer determinism + PIT rejection +
+      # mandatory decision binding + append-only.
+      - name: AC-1 agronomic context tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_ac1_agronomic_context.py -q -p no:cacheprovider
+      # VEG-AGRIAI delivered contracts are pure-logic (no DB): run them here where pytest exists.
+      - name: vegetation-agriai contract tests (pure logic)
+        run: pytest ../agriai-engine/tests/test_agronomic_context_contract.py ../vegetation-analysis-service/test_vegetation_production_contract.py ../vegetation-analysis-service/test_timeseries_honesty.py -q -p no:cacheprovider
       # WX-12 model-registry-adapter runtime is stdlib-only pure logic (drift classification,
       # bounded backoff, compare-and-swap decision). The contract test additionally imports the
       # decision-service app (fastapi is installed in this job) and replays every request the

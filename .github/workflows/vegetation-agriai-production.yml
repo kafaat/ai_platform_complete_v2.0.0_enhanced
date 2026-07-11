@@ -1,0 +1,20 @@
+name: vegetation-agriai-production
+on:
+  pull_request:
+    paths:
+      - 'services/vegetation-analysis-service/**'
+      - 'services/agriai-engine/**'
+      - 'scripts/ci/vegetation_agriai_production_gate.py'
+  push:
+    branches: [main, develop]
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python scripts/ci/vegetation_agriai_production_gate.py
+      - run: python -m compileall -q services/vegetation-analysis-service services/agriai-engine
+      - run: pip install pytest
+      - run: pytest -q services/vegetation-analysis-service/test_vegetation_production_contract.py services/agriai-engine/tests/test_agronomic_context_contract.py

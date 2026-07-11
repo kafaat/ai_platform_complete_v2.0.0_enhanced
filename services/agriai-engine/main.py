@@ -22,6 +22,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 if _HERE not in sys.path:
     sys.path.insert(0, _HERE)
 
+import agronomic_context as ac  # noqa: E402
 import evidence_bundle as eb  # noqa: E402
 import profit_planner as pp  # noqa: E402
 import replay as rp  # noqa: E402
@@ -33,7 +34,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger("agriai-engine")
 
-VERSION = "9.1.0"
+VERSION = "10.0.0"
+STRICT_AGRONOMIC_CONTEXT = os.getenv(
+    "AGRIAI_STRICT_CONTEXT",
+    "1" if os.getenv("SAHOOL_ENV", "development").lower() == "production" else "0",
+) not in ("0", "false", "False", "")
 
 
 @asynccontextmanager
@@ -103,6 +108,7 @@ class RecommendRequest(BaseModel):
     weather: dict[str, Any] = Field(default_factory=dict)
     soil: dict[str, Any] = Field(default_factory=dict)
     agromanagement: dict[str, Any] = Field(default_factory=dict)
+    agronomic_context: dict[str, Any] = Field(default_factory=dict)
 
 
 class SimulateRequest(BaseModel):
@@ -110,6 +116,7 @@ class SimulateRequest(BaseModel):
     weather: dict[str, Any] = Field(default_factory=dict)
     soil: dict[str, Any] = Field(default_factory=dict)
     agromanagement: dict[str, Any] = Field(default_factory=dict)
+    agronomic_context: dict[str, Any] = Field(default_factory=dict)
 
 
 class PlanRequest(BaseModel):
@@ -118,6 +125,7 @@ class PlanRequest(BaseModel):
     soil: dict[str, Any] = Field(default_factory=dict)
     agromanagement: dict[str, Any] = Field(default_factory=dict)
     evidence: list[EvidenceItemIn] = Field(default_factory=list)
+    agronomic_context: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReplayVerifyRequest(BaseModel):
@@ -137,6 +145,22 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
 
 
 # ── مساعدات رفيعة تربط النماذج بالوحدات الصرفة ──
+
+
+def _validated_context(context: dict[str, Any]) -> dict[str, Any]:
+    result = ac.validate_context(context, strict=STRICT_AGRONOMIC_CONTEXT)
+    if STRICT_AGRONOMIC_CONTEXT and not result["complete"]:
+        raise HTTPException(422, {"error": "agronomic_context_incomplete", **result})
+    return result
+
+
+def _context_inputs(
+    context: dict[str, Any], crop: dict, weather: dict, soil: dict, management: dict
+):
+    if not context:
+        return crop, weather, soil, management
+    ccrop, cweather, csoil, cmanagement = ac.normalized_engine_inputs(context)
+    return ccrop or crop, cweather or weather, csoil or soil, cmanagement or management
 
 
 def _build_bundle(
@@ -197,13 +221,23 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
     """توصية مُدقَّقة: أدلّة ⇒ محاكاة ⇒ تخطيط ربح، مع بصمتَي evidence_hash + replay_hash."""
     _require_service_token(x_agent_token)
 
-    bundle = _build_bundle(req.evidence, ndvi=req.ndvi, soil_ph=req.soil_ph)
+    context_validation = _validated_context(req.agronomic_context)
+    crop_input, weather_input, soil_input, management_input = _context_inputs(
+        req.agronomic_context, {}, req.weather, req.soil, req.agromanagement
+    )
+    veg = (req.agronomic_context.get("vegetation_snapshot") or {}) if req.agronomic_context else {}
+    ndvi_item = (veg.get("indices") or {}).get("ndvi") or {}
+    ndvi_value = ndvi_item.get("value", req.ndvi)
+    soil_ph_value = (
+        soil_input.get("ph", req.soil_ph) if isinstance(soil_input, dict) else req.soil_ph
+    )
+    bundle = _build_bundle(req.evidence, ndvi=ndvi_value, soil_ph=soil_ph_value)
     evidence_hash = eb.bundle_hash(bundle)
     confidence = eb.compose_confidence(bundle["items"])
 
     # مرشّحون صريحون أو مرشّح واحد افتراضيّ من req.crop (fail-closed: نُصرّح بالكفاية).
     candidates = req.candidates or [CandidateIn(name=req.crop, crop={}, price_per_kg=0.0, costs={})]
-    plan_inputs = _candidates_to_plan(candidates, req.weather, req.soil, req.agromanagement)
+    plan_inputs = _candidates_to_plan(candidates, weather_input, soil_input, management_input)
     plan = pp.plan_profit(plan_inputs, evidence_hash=evidence_hash)
 
     # مدخلات إعادة التشغيل: قانونيّة وخالية من الطوابع الحيّة.
@@ -211,9 +245,11 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
         "field_id": req.field_id,
         "evidence_bundle": bundle,
         "candidates": plan_inputs,
-        "weather": req.weather,
-        "soil": req.soil,
-        "agromanagement": req.agromanagement,
+        "weather": weather_input,
+        "soil": soil_input,
+        "agromanagement": management_input,
+        "agronomic_context": req.agronomic_context,
+        "agronomic_context_hash": context_validation["context_hash"],
     }
     envelope = rp.build_envelope(replay_inputs, {"plan": plan}, evidence_hash=evidence_hash)
 
@@ -229,6 +265,8 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
         "engine_version": envelope["engine_version"],
         "evidence_sufficient": evidence_sufficient,
         "confidence": confidence,
+        "agronomic_context_validation": context_validation,
+        "vegetation_snapshot_hash": veg.get("snapshot_hash"),
         "plan": plan,
         "recommendation": {
             "crop": plan["best"],
@@ -242,19 +280,29 @@ async def recommend(req: RecommendRequest, x_agent_token: str = Header(None)):
 async def simulate(req: SimulateRequest, x_agent_token: str = Header(None)):
     """محاكاة غلّة/كتلة حيويّة/ماء عبر مُحوِّل PCSE/WOFOST (أو البديل الحتميّ)."""
     _require_service_token(x_agent_token)
-    return wa.simulate(
-        crop=req.crop, weather=req.weather, soil=req.soil, agromanagement=req.agromanagement
+    context_validation = _validated_context(req.agronomic_context)
+    crop, weather, soil, management = _context_inputs(
+        req.agronomic_context, req.crop, req.weather, req.soil, req.agromanagement
     )
+    result = wa.simulate(crop=crop, weather=weather, soil=soil, agromanagement=management)
+    result["agronomic_context_validation"] = context_validation
+    return result
 
 
 @app.post("/plan")
 async def plan(req: PlanRequest, x_agent_token: str = Header(None)):
     """خطّة ربح مرتّبة من مرشّحين، مع بصمة حزمة الأدلّة الحاكمة."""
     _require_service_token(x_agent_token)
+    context_validation = _validated_context(req.agronomic_context)
+    crop, weather, soil, management = _context_inputs(
+        req.agronomic_context, {}, req.weather, req.soil, req.agromanagement
+    )
     bundle = _build_bundle(req.evidence, ndvi=None, soil_ph=None)
     evidence_hash = eb.bundle_hash(bundle)
-    plan_inputs = _candidates_to_plan(req.candidates, req.weather, req.soil, req.agromanagement)
-    return pp.plan_profit(plan_inputs, evidence_hash=evidence_hash)
+    plan_inputs = _candidates_to_plan(req.candidates, weather, soil, management)
+    result = pp.plan_profit(plan_inputs, evidence_hash=evidence_hash)
+    result["agronomic_context_validation"] = context_validation
+    return result
 
 
 @app.post("/replay/verify")

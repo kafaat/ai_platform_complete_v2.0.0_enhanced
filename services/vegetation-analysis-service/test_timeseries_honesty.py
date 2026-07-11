@@ -31,11 +31,11 @@ def test_timeseries_route_wraps_with_honest_flags():
     from pathlib import Path
 
     src = (Path(__file__).resolve().parent / "routers" / "analysis.py").read_text(encoding="utf-8")
-    # الرد يحمل أعلام الصدق التي تمنع «تركيبيّ يُعرَض كحقيقيّ».
-    assert '"data_source": "synthetic_estimate"' in src
-    assert '"real_data": False' in src
-    assert '"synthetic": True' in src
-    assert "raster-service:/imagery/timeseries" in src  # المصدر الحقيقيّ مُعلَن
+    # المسار الإنتاجي يقرأ المصدر الحقيقي ولا يولّد نقاطاً تركيبية عند الغياب.
+    assert "_real_timeseries_from_raster" in src
+    assert '"data_source": "raster-service"' in src
+    assert '"timeseries": []' in src
+    assert '"synthetic": False' in src
 
 
 def test_recommendations_are_hypotheses_not_executive_commands():

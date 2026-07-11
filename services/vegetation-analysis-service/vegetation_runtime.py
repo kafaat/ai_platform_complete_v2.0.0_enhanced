@@ -27,6 +27,7 @@ from prometheus_client import (
     Histogram,
     generate_latest,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
+from vegetation_contracts import build_snapshot, derive_lai_from_ndvi, quality_gate
 
 try:
     from shared.logging_config import setup_logging
@@ -54,6 +55,11 @@ VEGETATION_PREFER_RASTER = os.getenv("VEGETATION_PREFER_RASTER", "1") not in (
     "False",
     "",
 )
+VEGETATION_REAL_ONLY = os.getenv(
+    "VEGETATION_REAL_ONLY",
+    "1" if os.getenv("SAHOOL_ENV", "development").lower() == "production" else "0",
+) not in ("0", "false", "False", "")
+VEGETATION_MIN_QUALITY = float(os.getenv("VEGETATION_MIN_QUALITY", "0.55"))
 
 # خريطة مؤشّر vegetation → اسم المؤشّر الحقيقيّ في raster band_math (يُحسب per-pixel
 # من Sentinel-2 الحقيقيّ عبر STAC العامّ المجّانيّ — بلا اعتمادات). ما ليس هنا يبقى
@@ -798,6 +804,7 @@ async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi"
             "quality_score": product.get("quality_score"),
             "valid_pixel_ratio": product.get("valid_pixel_ratio"),
             "provenance": product.get("provenance"),
+            "data_available_at": product.get("data_available_at") or product.get("created_at"),
             "estimated": bool(product.get("estimated", False)),
         }
     except Exception as e:  # noqa: BLE001 — fail-safe: ارتداد للتقدير، لا كسر
@@ -849,14 +856,60 @@ async def run_analysis(
                     "quality_score": _rv.get("quality_score"),
                     "valid_pixel_ratio": _rv.get("valid_pixel_ratio"),
                     "provenance": _rv.get("provenance"),
+                    "data_available_at": _rv.get("data_available_at"),
                 }
         ndvi_is_real = index_sources["ndvi"] == "raster-service"
+        if ndvi_is_real:
+            lai = derive_lai_from_ndvi(indices["ndvi"])
+            indices["lai"] = lai["value"]
+            index_sources["lai"] = "vegetation-model"
+            index_quality["lai"] = {
+                "quality_score": index_quality.get("ndvi", {}).get("quality_score"),
+                "provenance": {"algorithm": lai["algorithm"], "input": "ndvi"},
+                "uncertainty": lai["uncertainty"],
+            }
         health = _health_classification(indices["ndvi"], indices["cwsi"])
         recs = _recommendations_ar(indices, health, field.get("crop") or "wheat")
     await _publish_analysis(field_id, tenant_id, indices, source)
     ANALYSIS_COUNT.labels(source=source, status="success").inc()
     # وسم مصدر كلّ مؤشّر بصدق من index_sources: الحقيقيّ (raster) عند توفّره، وإلّا تقدير.
     _real_keys = [k for k, s in index_sources.items() if s == "raster-service"]
+    index_contract = {
+        k: {
+            "value": v,
+            "unit": "dimensionless" if k != "lai" else "m2/m2",
+            "source": index_sources.get(k, "estimate"),
+            "estimated": index_sources.get(k, "estimate") != "raster-service",
+            **(
+                {
+                    "quality_score": index_quality[k].get("quality_score"),
+                    "provenance": index_quality[k].get("provenance"),
+                    "data_available_at": index_quality[k].get("data_available_at"),
+                    **(
+                        {"uncertainty": index_quality[k].get("uncertainty")}
+                        if index_quality[k].get("uncertainty") is not None
+                        else {}
+                    ),
+                }
+                if k in index_quality
+                else {}
+            ),
+        }
+        for k, v in indices.items()
+    }
+    gate = quality_gate(index_contract, min_quality=VEGETATION_MIN_QUALITY)
+    if VEGETATION_REAL_ONLY and not gate["executable"]:
+        raise HTTPException(424, "validated real NDVI is required in production vegetation mode")
+    snapshot = build_snapshot(
+        field_id=field_id,
+        tenant_id=tenant_id,
+        season_id=season_id,
+        acquisition_date=acq_date,
+        indices=index_contract,
+        source="raster-service" if ndvi_is_real else source,
+        quality=gate,
+        data_available_at=(index_quality.get("ndvi") or {}).get("data_available_at"),
+    )
     return {
         "field_id": field_id,
         "field_name": field.get("name") or field_id,
@@ -883,27 +936,10 @@ async def run_analysis(
             else "Indices are field-mean estimates from deterministic synthetic bands; "
             "no satellite pixels were decoded. Real per-pixel processing lives in raster-service."
         ),
-        "indices": {
-            k: {
-                "value": v,
-                "unit": "dimensionless",
-                "source": index_sources.get(k, "estimate"),
-                # V3: علم صريح لا نصّ فقط — تقديريّ ما لم يكن من raster-service.
-                "estimated": index_sources.get(k, "estimate") != "raster-service",
-                # الغلاف النوعيّ/المصدريّ من ValidatedIndicatorProduct — يُرفَق فقط
-                # للمؤشّرات الحقيقيّة من raster-service (غيابه ⇒ لا مفاتيح إضافيّة، لا اختلاق).
-                **(
-                    {
-                        "quality_score": index_quality[k].get("quality_score"),
-                        "provenance": index_quality[k].get("provenance"),
-                    }
-                    if k in index_quality
-                    else {}
-                ),
-            }
-            for k, v in indices.items()
-        },
-        "raw_bands": bands,
+        "indices": index_contract,
+        "quality_gate": gate,
+        "vegetation_snapshot": snapshot,
+        "raw_bands": None if VEGETATION_REAL_ONLY else bands,
         "health": health,
         "recommendations_ar": recs,
         # V4: هذه فرضيّات/اقتراحات فحص لا أوامر تنفيذيّة — القرارات (ريّ/رشّ/تسميد)
@@ -916,6 +952,27 @@ async def run_analysis(
         "satellite": "Sentinel-2 L2A",
         "resolution_m": 10,
     }
+
+
+async def _real_timeseries_from_raster(field_id: str, index: str, days: int) -> dict | None:
+    """Read the authoritative per-field series from raster-service; never invent points."""
+    try:
+        async with httpx.AsyncClient(timeout=15) as c:
+            r = await c.get(
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/timeseries", params={"index": index}
+            )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+        if not data.get("available") or not data.get("real_data"):
+            return None
+        points = list(data.get("points") or [])
+        cutoff = date.today() - timedelta(days=days)
+        points = [p for p in points if str(p.get("datetime", ""))[:10] >= cutoff.isoformat()]
+        return {**data, "points": points}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("real vegetation timeseries unavailable for %s: %s", field_id, exc)
+        return None
 
 
 def _generate_timeseries(field_id: str, days: int) -> list[dict]:

@@ -1,10 +1,10 @@
 file,function,path,line,has_status,has_service,has_ready_or_implemented,verdict
-services/agriai-engine/main.py,healthz,/healthz,50,True,True,True,ok
-services/agriai-engine/main.py,readyz,/readyz,60,True,True,True,ok
+services/agriai-engine/main.py,healthz,/healthz,55,True,True,True,ok
+services/agriai-engine/main.py,readyz,/readyz,65,True,True,True,ok
 services/ai_agronomist/main.py,healthz,/healthz,113,True,True,True,ok
 services/ai_agronomist/main.py,readyz,/readyz,323,True,True,True,ok
-services/decision-service/main.py,healthz,/healthz,290,True,True,True,ok
-services/decision-service/main.py,readyz,/readyz,295,True,True,True,ok
+services/decision-service/main.py,healthz,/healthz,301,True,True,True,ok
+services/decision-service/main.py,readyz,/readyz,306,True,True,True,ok
 services/edge-inference/main.py,health_check,/healthz,168,True,True,True,ok
 services/edge-inference/main.py,readyz,/readyz,365,True,True,True,ok
 services/field-segmentation/main.py,healthz,/healthz,370,True,True,True,ok

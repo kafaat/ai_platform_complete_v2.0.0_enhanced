@@ -130,8 +130,9 @@ async def test_real_indices_used_and_labeled(veg):
     for real_idx in ("ndvi", "evi", "savi", "ndmi"):
         assert res["indices"][real_idx]["value"] == 0.77
         assert res["indices"][real_idx]["source"] == "raster-service"
-    # lai/cwsi تبقيان تقديراً بصدق
-    assert res["indices"]["lai"]["source"] == "estimate"
+    # الزيادة المُسلَّمة (VEG-AGRIAI): عند توفّر NDVI حقيقيّ يُشتقّ LAI منه بنموذج موثَّق
+    # (خوارزميّة + uncertainty) فيُوسم "vegetation-model" — أصدق من "estimate"؛ CWSI يبقى تقديراً.
+    assert res["indices"]["lai"]["source"] == "vegetation-model"
     assert res["indices"]["cwsi"]["source"] == "estimate"
     assert res["real_data"] is True
     assert res["data_source"] == "raster-service"

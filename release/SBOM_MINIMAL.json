@@ -8135,6 +8135,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "fedc160d9d4aa2ff972ae3a9bc5f39b081ec0f3e8a356f6bf591df0d4ece45a3"
+        }
+      ],
+      "name": "services/agriai-engine/agronomic_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ea61282ef14c20dddca2802ea5550218cd2fc7e02d47264acc0dd01ba28f3c9c"
         }
       ],
@@ -8145,7 +8155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "841a299a630a099418f8d45569337475a746d9a8364cb236c9b611b2fdd67149"
+          "content": "18c42496774627daa465ca68c4919442063543ca47cc919d563de0be5bac9196"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -8189,6 +8199,16 @@
         }
       ],
       "name": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "88fb08a069eb6971268c27bb049664b4bbb439ec0be25d644aa68c15e10674cd"
+        }
+      ],
+      "name": "services/agriai-engine/tests/test_agronomic_context_contract.py",
       "type": "file"
     },
     {
@@ -8915,6 +8935,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d8bd3cd973da0b232acfd1d0028939616836638eb8e6b9f98e46486838da3601"
+        }
+      ],
+      "name": "services/decision-service/agronomic_context/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "abd6953e4bec442aea11f632fe871094af9a3200b6076afd2d2a4060c4183656"
+        }
+      ],
+      "name": "services/decision-service/agronomic_context/contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f957aef6e3d0a09827976f5f8125b190682c9e40d3aed98d8b23d86ce9a618d7"
+        }
+      ],
+      "name": "services/decision-service/agronomic_context/point_in_time.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "77c4c1da660e3ee063feca74beb31b42f2504e0124d205b2f278fef0b491110b"
         }
       ],
@@ -8935,7 +8985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "630b20bada414b9a81db442c7481309bc926392a72efbe8eb6c361c060ee9b40"
+          "content": "08df8c7c119d004a4da5ca9ae25ce0fb7da6589d3187ca137632082a895aba57"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9125,7 +9175,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f747748e3f2d1a8945444722ee917ce8b46ad95410c3d307885118920a2c590"
+          "content": "d3b29dfdbf7b555a1e982f74bbfac02cd39289c3a90458105d37116d501f36a7"
+        }
+      ],
+      "name": "services/decision-service/migrations/018_ac1_agronomic_context.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4961408d769452b95370a8543d0257a66736764d7095f7ee3ec41fc246cdfb51"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9189,6 +9249,16 @@
         }
       ],
       "name": "services/decision-service/tests/conftest.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3394011a4fd78261e31fb1350021088ad4f179fdabb70f20e07256e05a06eb12"
+        }
+      ],
+      "name": "services/decision-service/tests/test_ac1_agronomic_context.py",
       "type": "file"
     },
     {
@@ -23835,7 +23905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb70374e18c655fc583329b6db2fe0f06e973421c44d24f14bf6631d42e9cda8"
+          "content": "00265471b7bb91f5688cd88ca7575624b3cbabb37fb052d515a7f9975b1f51b6"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -23895,7 +23965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d8764f6e530c6eee0ef00761125c720a06d41aec1080c5e6ad1ee3ad3e7073db"
+          "content": "fa369c3accbb5f5ea99dcb6e54a05e7079aebe9df4c2d8e028e8dc5827704359"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -23915,7 +23985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78622bb8ec1ca97b834c5b45101d0ceb8a79fd1dc11570e9b15df2fe1956e6ce"
+          "content": "d92dac574362db4ccd0639bd663fc5f283bb1c5c1d76b5c9226e955d41d027a4"
         }
       ],
       "name": "services/vegetation-analysis-service/test_timeseries_honesty.py",
@@ -23935,6 +24005,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e1a2a85a2952188b851f564dc1ad088dd06b68c99326f74e058956f49643e1de"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_vegetation_production_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "47feb7c78e83b5935f30337ad3690a726623ba9ad9f96e8ae0de545bedda76a7"
         }
       ],
@@ -23945,7 +24025,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29ec3e9f59fb4e662a4a1d53f9e43ffb1a6b717e8cd07ef5423b2871dc273669"
+          "content": "494039759cafeacb82eeac545f046fee1d0df18cf3b02e5b06d43fbb39b17385"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/vegetation_contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8a4d7a67dbbe597809c0424c79295e33ac7f0dbd3630511343ca744b5552cbf"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

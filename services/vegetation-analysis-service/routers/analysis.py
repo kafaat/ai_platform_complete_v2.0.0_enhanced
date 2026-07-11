@@ -49,17 +49,32 @@ async def timeseries(
     tenant_id = str(claims.get("tenant_id") or "") or None
     if await main.load_field(field_id, tenant_id) is None:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
+    real = await main._real_timeseries_from_raster(field_id, "ndvi", days)
+    if real is None:
+        if main.VEGETATION_REAL_ONLY:
+            raise HTTPException(424, "authoritative raster timeseries is required in production")
+        return {
+            "field_id": field_id,
+            "days": days,
+            "timeseries": [],
+            "data_source": "raster-service",
+            "real_data": False,
+            "available": False,
+            "synthetic": False,
+            "warning_ar": "لا توجد سلسلة رصد فعلية؛ لم يتم إنشاء قيم تركيبية.",
+            "generated_at": main.datetime.now(main.UTC).isoformat(),
+        }
     return {
         "field_id": field_id,
         "days": days,
-        "timeseries": main._generate_timeseries(field_id, days),
-        # صدق (V2): هذه سلسلة تقديريّة تركيبيّة، لا رصد حقيقيّ — كي لا تُعرَض كأنّها
-        # بيانات فعليّة. المصدر الحقيقيّ raster-service (`/imagery/timeseries`).
-        "data_source": "synthetic_estimate",
-        "real_data": False,
-        "synthetic": True,
-        "authoritative_source": "raster-service:/imagery/timeseries",
-        "warning_ar": "سلسلة زمنيّة تقديريّة (تركيبيّة) لا رصد فعليّ — المصدر الحقيقيّ خدمة الراستر.",
+        "timeseries": real.get("points", []),
+        "monthly_composite": real.get("monthly_composite", []),
+        "trend": real.get("trend"),
+        "anomalies": real.get("anomalies", []),
+        "data_source": "raster-service",
+        "real_data": True,
+        "available": True,
+        "synthetic": False,
         "generated_at": main.datetime.now(main.UTC).isoformat(),
     }
 
