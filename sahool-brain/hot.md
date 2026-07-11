@@ -109,7 +109,8 @@
 | v52 | سياسة AI للمستأجِر | **fixed** (`90b0803`؛ platform سلطة، ai_agronomist مستهلِك؛ derived: tools/data_classes/max_bytes بلا أعمدة — موثَّق) |
 | SUPERSET | توحيد main↔certification | **no-op** (main يحتوي cert؛ `a9f7314` سلف خطّيّ، 0 commit متقدّم) |
 | VALIDATE-NV | قيود NOT VALID (v127/v130/v132) | **prep** (`6ad1872`: تقرير+حارس+runbook؛ VALIDATE الفعليّ للمشغّل بعد تنظيف) |
-| WS-C.1b-CLOSE | توحيد ET0 في محرّك الطقس (صفر نواة حيّة خارجه) | **partial، الحارس محكَم** (`67b4bd3`؛ season مُرحَّل · **ثغرة الحارس مسدودة** ببصمة Hargreaves + allowlist موثّقة/9. الصورة الحقيقيّة: **نواة جذر واحدة** `core/engines/et0.py` تفوّض إليها كلّ المسارات + نسخة MCP مضمّنة موثّقة. باقٍ: ترحيل المستهلكين (weather_analytics→field_state→water_balance/fao56→حذف الجذر) لكلٍّ تحويل endpoint حيّ فيه-closed) |
+| WS-C.1b-CLOSE | توحيد ET0 في محرّك الطقس (صفر نواة حيّة خارجه) | **partial، الحارس محكَم** (`67b4bd3`؛ ثغرة الحارس مسدودة ببصمة Hargreaves + allowlist موثّقة) |
+| WS-C.1c Zero-Legacy | راتشِت إفراغ allowlist (`assert len==0`) | **GDD مكتمل** (`b3eaa4a`؛ allowlist 9→6: #1 gdd_phenology dead · #2 gdd_tracker→محرّك · #3 season.gdd_day+crop_twin→محرّك async. **كلّ نوى GDD مُزالة**. باقٍ 6 ET0: et0.py الجذر·water_balance·fao56·weather_analytics·field_state·MCP) |
 
 ## ماذا بعد؟
 
