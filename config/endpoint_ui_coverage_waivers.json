@@ -468,6 +468,86 @@
       "tracking": "WX-10.7",
       "expiry": "2026-10-11",
       "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
+      "audience": "agronomist",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.9 approved-decision to planned execution-plan boundary; machine-consumed and explicitly non-executing. Planner UI is deferred to WX-10.11.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.11",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+      "audience": "operations-manager",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.10 planned execution-plan to dispatch-authorization boundary; records authorization only and performs no dispatch/task/equipment side effect. Execution UI is deferred to WX-10.11.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.11",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
+      "audience": "operations-manager",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.12 machine/operator verification boundary writes one immutable canonical outcome_record with receipt and evidence lineage; dedicated outcome UI is deferred to WX-10.13.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.13",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+      "audience": "operations-manager",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.11a حدّ طلب التنفيذ: BFF proxy لمُصرَّح (DECISION_EXECUTE)؛ decision-service يُنشئ طلب تنفيذ authoritative. machine/BFF بلا واجهة مطلوبة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.11",
+      "expiry": "2026-10-11",
+      "temporary": true
     }
   ]
 }

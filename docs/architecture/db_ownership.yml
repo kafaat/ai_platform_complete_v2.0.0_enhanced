@@ -209,6 +209,21 @@ tables:
     status: interim-bridge
     readers: [decision-service]
     source: "services/decision-service/migrations/002_decision_review.sql"
+  decision_execution_plans:
+    # WX-10.9 append-only planned projection of an approved decision. No dispatch side effect.
+    owner: decision-service
+    writers: [decision-service]
+    status: interim-bridge
+    readers: [decision-service]
+    source: "services/decision-service/migrations/003_execution_plan.sql"
+  decision_dispatch_authorizations:
+    # WX-10.10 append-only authorization record. It authorizes a later dispatch increment but
+    # does not create a task, issue a command, or mutate the execution plan.
+    owner: decision-service
+    writers: [decision-service]
+    status: interim-bridge
+    readers: [decision-service]
+    source: "services/decision-service/migrations/004_dispatch_authorization.sql"
   device_commands_log:
     owner: actuator-service
     writers: [actuator-service]

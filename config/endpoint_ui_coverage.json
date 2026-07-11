@@ -434,6 +434,10 @@
       "audience": "manager"
     },
     {
+      "prefix": "/api/v1/dispatch-authorizations",
+      "audience": "manager"
+    },
+    {
       "prefix": "/api/v1/failures",
       "audience": "manager"
     },

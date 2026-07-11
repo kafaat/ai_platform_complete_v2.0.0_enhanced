@@ -39,6 +39,12 @@ from persistence import (
     persist_outcome_record,
     persist_recommendation_outcome,
     review_decision,
+    create_execution_plan,
+    authorize_dispatch,
+    create_execution_request,
+    claim_execution_request,
+    record_execution_receipt,
+    verify_execution_outcome,
     sor_enabled,
     sor_requested_without_db,
 )
@@ -52,6 +58,11 @@ LOOP_TABLES = [
     "outcome_record",
     "recommendation_outcomes",
     "online_learning_updates",
+    "decision_reviews",
+    "decision_execution_plans",
+    "decision_dispatch_authorizations",
+    "decision_execution_requests",
+    "decision_execution_delivery_attempts",
 ]
 
 # Honest mirror-sink contract: this service is NOT the system-of-record yet. Write
@@ -412,6 +423,72 @@ async def review_candidate(
     raise HTTPException(status_code=409, detail=result.get("reason", "review conflict"))
 
 
+class ExecutionPlanIn(BaseModel):
+    """WX-10.9 non-executing plan derived from one approved decision."""
+
+    review_id: str
+    candidate_lineage_id: str
+    operation_type: str
+    planned_start: datetime | None = None
+    planned_end: datetime | None = None
+    target_zone_ids: list[str] = Field(default_factory=list)
+    required_resources: list[dict[str, Any]] = Field(default_factory=list)
+    constraints: dict[str, Any] = Field(default_factory=dict)
+    safety_conditions: dict[str, Any] = Field(default_factory=dict)
+    weather_window_reference: dict[str, Any] | None = None
+    idempotency_key: str
+
+
+@app.post("/v1/decisions/{decision_id}/execution-plan")
+async def build_execution_plan(
+    decision_id: str,
+    payload: ExecutionPlanIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_created_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.9 approved decision -> persisted planned execution plan.
+
+    This boundary does not authorize dispatch and never creates tasks or equipment commands.
+    """
+    tenant = _tenant(x_tenant_id)
+    created_by = (x_created_by or "").strip()
+    if not created_by:
+        raise HTTPException(status_code=400, detail="X-Created-By is required")
+    if not payload.review_id or not payload.candidate_lineage_id or not payload.idempotency_key:
+        raise HTTPException(
+            status_code=422,
+            detail="review_id, candidate_lineage_id and idempotency_key are required",
+        )
+    if not payload.operation_type.strip():
+        raise HTTPException(status_code=422, detail="operation_type is required")
+    if (
+        payload.planned_start
+        and payload.planned_end
+        and payload.planned_end <= payload.planned_start
+    ):
+        raise HTTPException(status_code=422, detail="planned_end must be after planned_start")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — execution planning unavailable",
+        )
+
+    result = await create_execution_plan(
+        tenant_id=tenant,
+        decision_id=decision_id,
+        review_id=payload.review_id,
+        candidate_lineage_id=payload.candidate_lineage_id,
+        idempotency_key=payload.idempotency_key,
+        created_by=created_by,
+        payload=payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="approved decision not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "execution plan conflict"))
+
+
 @app.post("/v1/dispatch/decisions")
 async def record_dispatch(
     payload: DispatchDecisionIn, x_tenant_id: str | None = Header(default=None)
@@ -624,3 +701,271 @@ def decision_lineage(
         "outcomes": [],
         "stages_present": [],
     }
+
+
+class DispatchAuthorizationIn(BaseModel):
+    """WX-10.10 non-executing authorization for one planned execution plan."""
+
+    decision_id: str
+    review_id: str
+    candidate_lineage_id: str
+    expected_plan_state: str = "planned"
+    policy_version: str
+    weather_snapshot_id: str
+    resource_snapshot_id: str
+    authorization_reason: str | None = None
+    idempotency_key: str
+
+
+@app.post("/v1/execution-plans/{execution_plan_id}/authorize-dispatch")
+async def authorize_execution_plan_dispatch(
+    execution_plan_id: str,
+    payload: DispatchAuthorizationIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_authorized_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.10 planned execution plan -> persisted dispatch authorization.
+
+    This boundary records authorization only. It never dispatches, creates a task, or sends an
+    equipment/actuator command.
+    """
+    tenant = _tenant(x_tenant_id)
+    authorized_by = (x_authorized_by or "").strip()
+    if not authorized_by:
+        raise HTTPException(status_code=400, detail="X-Authorized-By is required")
+    required = {
+        "decision_id": payload.decision_id,
+        "review_id": payload.review_id,
+        "candidate_lineage_id": payload.candidate_lineage_id,
+        "policy_version": payload.policy_version,
+        "weather_snapshot_id": payload.weather_snapshot_id,
+        "resource_snapshot_id": payload.resource_snapshot_id,
+        "idempotency_key": payload.idempotency_key,
+    }
+    missing = [name for name, value in required.items() if not str(value or "").strip()]
+    if missing:
+        raise HTTPException(
+            status_code=422, detail=f"required fields missing: {', '.join(missing)}"
+        )
+    if payload.expected_plan_state != "planned":
+        raise HTTPException(status_code=409, detail="expected_plan_state must be planned")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — dispatch authorization unavailable",
+        )
+
+    result = await authorize_dispatch(
+        tenant_id=tenant,
+        execution_plan_id=execution_plan_id,
+        decision_id=payload.decision_id,
+        review_id=payload.review_id,
+        candidate_lineage_id=payload.candidate_lineage_id,
+        idempotency_key=payload.idempotency_key,
+        authorized_by=authorized_by,
+        payload=payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="execution plan not found")
+    raise HTTPException(
+        status_code=409, detail=result.get("reason", "dispatch authorization conflict")
+    )
+
+
+class ExecutionRequestIn(BaseModel):
+    dispatch_authorization_id: str
+    execution_plan_id: str
+    decision_id: str
+    target_type: str
+    target_id: str
+    operation_type: str
+    command_payload: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+
+
+@app.post("/v1/dispatch-authorizations/{dispatch_authorization_id}/execute")
+async def execute_authorized_dispatch(
+    dispatch_authorization_id: str,
+    payload: ExecutionRequestIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.11a: persist a task/equipment execution request.
+
+    This endpoint does not call MQTT or a task provider directly. It writes one authoritative
+    execution request plus outbox event for a downstream adapter and fails closed outside SoR.
+    """
+    tenant = _tenant(x_tenant_id)
+    requested_by = (x_requested_by or "").strip()
+    if not requested_by:
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    if payload.dispatch_authorization_id != dispatch_authorization_id:
+        raise HTTPException(status_code=409, detail="dispatch_authorization_id mismatch")
+    if payload.target_type not in {"task", "equipment"}:
+        raise HTTPException(status_code=422, detail="target_type must be task or equipment")
+    for name in (
+        "execution_plan_id",
+        "decision_id",
+        "target_id",
+        "operation_type",
+        "idempotency_key",
+    ):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — execution unavailable",
+        )
+    result = await create_execution_request(
+        tenant_id=tenant,
+        dispatch_authorization_id=dispatch_authorization_id,
+        requested_by=requested_by,
+        payload=payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="dispatch authorization not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "execution request conflict"))
+
+
+class ExecutionDeliveryClaimIn(BaseModel):
+    adapter_id: str
+    adapter_kind: str
+    delivery_token: str
+
+
+class ExecutionReceiptIn(BaseModel):
+    adapter_id: str
+    delivery_token: str
+    receipt_id: str
+    receipt_status: str
+    receipt_payload: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/execution-requests/{execution_request_id}/claim")
+async def claim_execution_delivery(
+    execution_request_id: str,
+    payload: ExecutionDeliveryClaimIn,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.11b: atomically claim one queued request for one downstream adapter."""
+    tenant = _tenant(x_tenant_id)
+    if payload.adapter_kind not in {"task", "equipment"}:
+        raise HTTPException(status_code=422, detail="adapter_kind must be task or equipment")
+    for name in ("adapter_id", "delivery_token"):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — delivery unavailable",
+        )
+    result = await claim_execution_request(
+        tenant_id=tenant,
+        execution_request_id=execution_request_id,
+        adapter_id=payload.adapter_id,
+        adapter_kind=payload.adapter_kind,
+        delivery_token=payload.delivery_token,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="execution request not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "delivery claim conflict"))
+
+
+@app.post("/v1/execution-requests/{execution_request_id}/receipt")
+async def ingest_execution_receipt(
+    execution_request_id: str,
+    payload: ExecutionReceiptIn,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.11b: persist one terminal adapter receipt; no outcome/learning write occurs here."""
+    tenant = _tenant(x_tenant_id)
+    if payload.receipt_status not in {"accepted", "failed"}:
+        raise HTTPException(status_code=422, detail="receipt_status must be accepted or failed")
+    for name in ("adapter_id", "delivery_token", "receipt_id"):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — receipt unavailable",
+        )
+    result = await record_execution_receipt(
+        tenant_id=tenant,
+        execution_request_id=execution_request_id,
+        adapter_id=payload.adapter_id,
+        delivery_token=payload.delivery_token,
+        receipt_id=payload.receipt_id,
+        receipt_status=payload.receipt_status,
+        receipt_payload=payload.receipt_payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="execution delivery claim not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "receipt conflict"))
+
+
+class ExecutionOutcomeVerificationIn(BaseModel):
+    execution_plan_id: str
+    dispatch_authorization_id: str
+    decision_id: str
+    receipt_id: str
+    verification_state: str
+    evidence_snapshot_id: str
+    actual: dict[str, Any] = Field(default_factory=dict)
+    metrics: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+
+
+@app.post("/v1/execution-requests/{execution_request_id}/verify-outcome")
+async def verify_terminal_execution_outcome(
+    execution_request_id: str,
+    payload: ExecutionOutcomeVerificationIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_verified_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.12: convert terminal delivery evidence into one immutable canonical outcome."""
+    tenant = _tenant(x_tenant_id)
+    verified_by = (x_verified_by or "").strip()
+    if not verified_by:
+        raise HTTPException(status_code=400, detail="X-Verified-By is required")
+    if payload.verification_state not in {"verified_success", "verified_failure"}:
+        raise HTTPException(
+            status_code=422,
+            detail="verification_state must be verified_success or verified_failure",
+        )
+    for name in (
+        "execution_plan_id",
+        "dispatch_authorization_id",
+        "decision_id",
+        "receipt_id",
+        "evidence_snapshot_id",
+        "idempotency_key",
+    ):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — outcome verification unavailable",
+        )
+    result = await verify_execution_outcome(
+        tenant_id=tenant,
+        execution_request_id=execution_request_id,
+        verified_by=verified_by,
+        payload=payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="terminal execution request not found")
+    raise HTTPException(
+        status_code=409, detail=result.get("reason", "outcome verification conflict")
+    )

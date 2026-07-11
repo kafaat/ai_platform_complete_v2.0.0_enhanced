@@ -2725,7 +2725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0b745c3b450dfd8c740c322d17de18bbba02c6c69d23e5c2161ed6284029068"
+          "content": "aae48fdbae73dcd619ad273fe367c1d6b724b847e45af4b23fbf5f2b7c1bb7ff"
         }
       ],
       "name": "frontend/src/lib/approvalsConsole.ts",
@@ -8935,7 +8935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2265b86517f318b2ad914c6bcbcdb188a6e466b2c6323dff7eacf358d7d2613"
+          "content": "0c3ee5421b8b7dfdb1865fe47854ec88c16ac398448f15b2efa219484178da85"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -8975,7 +8975,57 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "361ef68ac82fd299538f2aa8c9949c597af89093a403fc4666df2ab42791ee91"
+          "content": "dd8b7c36930beed2ee0785fb4b79ce3667b36779827efc2815a7fde9cac28294"
+        }
+      ],
+      "name": "services/decision-service/migrations/003_execution_plan.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc9090de811c782509e29746d564fa1eab7cdb9ece162239df00902242c52546"
+        }
+      ],
+      "name": "services/decision-service/migrations/004_dispatch_authorization.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ffd48aba98f71f0125aa9bfef9d54d3cfc99a9024cf34da829d599a0c8bd8d26"
+        }
+      ],
+      "name": "services/decision-service/migrations/005_execution_request.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "232c3b539c90041151ba16e7aaa9c6523c973753879d6ffec70ebec9ea206d6e"
+        }
+      ],
+      "name": "services/decision-service/migrations/006_execution_delivery_receipt.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "446bc10f46dcbd30fa7bf10f70b5cf52bda55f67aa122df06ab902664f20cf47"
+        }
+      ],
+      "name": "services/decision-service/migrations/007_execution_outcome_verification.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "00ab226eb4805991a7856c4348fd4432ee9162c3587c553b22853e77dea5bc0f"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9055,6 +9105,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2b616adfe51000ba0dcee040f45edbf1af85e56e1d521182e80c4f2d20372ed5"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9deec7fa622cf23de5ee2104e88ccf22696aede8ed1367a5c3148dd7a4fdf8f9"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx10_11_execution_request.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2287acc58a439c6b8168fc3fd10f85c52082607c579e629f56a95f2572f7da1a"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a5ce16f3f2bd4742b37861cfe09f05747a4d244890026bfebeeef38ae3a47980"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx10_12_execution_outcome.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "654f9618fc81fb5a8f6853134547254b4e9363126c342328cabbbbaae95c1183"
         }
       ],
@@ -9069,6 +9159,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_wx10_8_review_queue.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbd81ecc161fd01e2abdc51a948aca93787697d7928731ec77a2ac8cb8137231"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx10_9_execution_plan.py",
       "type": "file"
     },
     {
@@ -12075,7 +12175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d0dfb69d481bec67d8b6e9530590205034ac8b55e0fd18ad8d146b12e5fd340"
+          "content": "e897c03288b09a6f43d62136d12738ef0cf8e9409d9165a8eef3c55a840a991d"
         }
       ],
       "name": "services/sahool-platform/api/decision_service_client.py",
@@ -13555,7 +13655,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7baecdca831b5e0c542fa2d7d9ddc87a267ae2896f4685d1845c8d739eb6565"
+          "content": "e2ffe85b785058bdec3fa78cc9f359e7602a521705db0e6e67968c01b884ad79"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_review.py",
@@ -15465,7 +15565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a9835b3e702620f6b97942e600617c3b2ef011c33a0c68c7a98bfc8f3ae497ca"
+          "content": "68d1f9809ee871a0dba0865a9e6229eee7256936030895503355731d3abd2bb0"
         }
       ],
       "name": "services/sahool-platform/core/authorization.py",
@@ -21335,7 +21435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4feb544f2f1e0f80645bb8e4aa65f135de7fc4a76fc2bc57a878394092ef14e6"
+          "content": "bc1873c91b4b035fba2a9cff251e4b0da4a404e55c805a44f9928387621ea9fa"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",

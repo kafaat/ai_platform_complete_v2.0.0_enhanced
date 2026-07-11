@@ -52,6 +52,16 @@ jobs:
       - name: consumer-contract-gate
         run: python scripts/ci/consumer_contract_gate.py
 
+      # WX-10.9..10.12: the post-approval execution chain stays a state transition, never execution
+      - name: WX-10.10 dispatch authorization boundary guard
+        run: python scripts/ci/dispatch_authorization_boundary_gate.py
+      - name: WX-10.11a execution request boundary guard
+        run: python scripts/ci/execution_request_boundary_gate.py
+      - name: WX-10.11b execution delivery receipt boundary guard
+        run: python scripts/ci/execution_delivery_receipt_boundary_gate.py
+      - name: WX-10.12 execution outcome boundary guard
+        run: python scripts/ci/execution_outcome_boundary_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
@@ -399,7 +409,7 @@ jobs:
           done
           pg_isready -h localhost -p 5434 -U decision_test
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
-      - name: Apply decision-service migrations (custom runner — 001 + 002)
+      - name: Apply decision-service migrations (custom runner — 001 through 007)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -427,6 +437,33 @@ jobs:
       - name: WX-10.8 review-queue endpoint tests
         working-directory: services/decision-service
         run: pytest tests/test_wx10_8_review_queue.py -q -p no:cacheprovider
+      # WX-10.9..10.12 post-approval execution chain (real Postgres, SoR on): each stage is an
+      # authoritative append-only transition (plan -> authorize -> execute request -> delivery
+      # receipt -> outcome verify), concurrency + idempotency proven on real Postgres.
+      - name: WX-10.9 execution-plan tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_9_execution_plan.py -q -p no:cacheprovider
+      - name: WX-10.10 dispatch-authorization tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_10_dispatch_authorization.py -q -p no:cacheprovider
+      - name: WX-10.11 execution-request and delivery-receipt tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_11_execution_request.py tests/test_wx10_11b_execution_delivery_receipt.py -q -p no:cacheprovider
+      - name: WX-10.12 execution outcome tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_12_execution_outcome.py -q -p no:cacheprovider
 
   security-scan:
     name: Security Scan

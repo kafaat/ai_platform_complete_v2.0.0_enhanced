@@ -85,7 +85,7 @@ classification: `ui`
   - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherHoverReadout.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
-- platform-proxy: 284 match(es)
+- platform-proxy: 285 match(es)
   - `services/sahool-platform/api/season_simulation.py` ← `weather-service`
   - `services/sahool-platform/api/season_simulation.py` ← `weather`
   - `services/sahool-platform/api/main.py` ← `weather`
@@ -216,7 +216,7 @@ classification: `ui`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
   - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
-- platform-proxy: 81 match(es)
+- platform-proxy: 82 match(es)
   - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_workers.py` ← `dispatch`
   - `services/sahool-platform/api/command_store.py` ← `dispatch`

@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 76,
+  "total_residual_main_routes": 82,
   "classification_counts": {
-    "business_endpoint": 42,
+    "business_endpoint": 48,
     "capabilities": 2,
     "contract": 2,
     "health": 15,
@@ -11,7 +11,7 @@
     "metrics": 4,
     "readiness": 10
   },
-  "business_endpoint_count": 42,
+  "business_endpoint_count": 48,
   "rows": [
     {
       "service": "agriai-engine",
@@ -205,7 +205,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 216,
+      "line": 227,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -214,7 +214,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 221,
+      "line": 232,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -223,7 +223,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 244,
+      "line": 255,
       "method": "GET",
       "path": "/v1/cutover/readiness",
       "function": "cutover_readiness",
@@ -232,7 +232,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 254,
+      "line": 265,
       "method": "GET",
       "path": "/contract",
       "function": "contract",
@@ -241,7 +241,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 287,
+      "line": 298,
       "method": "POST",
       "path": "/v1/decisions/record",
       "function": "record_decision",
@@ -250,7 +250,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 313,
+      "line": 324,
       "method": "GET",
       "path": "/v1/decisions/review-queue",
       "function": "review_queue",
@@ -259,7 +259,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 349,
+      "line": 360,
       "method": "POST",
       "path": "/v1/decisions/{decision_id}/review",
       "function": "review_candidate",
@@ -268,7 +268,16 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 416,
+      "line": 443,
+      "method": "POST",
+      "path": "/v1/decisions/{decision_id}/execution-plan",
+      "function": "build_execution_plan",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 493,
       "method": "POST",
       "path": "/v1/dispatch/decisions",
       "function": "record_dispatch",
@@ -277,7 +286,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 442,
+      "line": 519,
       "method": "GET",
       "path": "/v1/dispatch/decisions",
       "function": "list_dispatch",
@@ -286,7 +295,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 456,
+      "line": 533,
       "method": "POST",
       "path": "/v1/outcomes/record",
       "function": "record_outcome",
@@ -295,7 +304,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 482,
+      "line": 559,
       "method": "POST",
       "path": "/v1/recommendation-outcomes",
       "function": "record_recommendation_outcome",
@@ -304,7 +313,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 507,
+      "line": 584,
       "method": "POST",
       "path": "/v1/learning/updates",
       "function": "record_learning_update",
@@ -313,7 +322,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 538,
+      "line": 615,
       "method": "GET",
       "path": "/v1/learning/summary",
       "function": "learning_summary",
@@ -322,7 +331,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 552,
+      "line": 629,
       "method": "GET",
       "path": "/v1/decisions",
       "function": "list_decisions",
@@ -331,7 +340,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 581,
+      "line": 658,
       "method": "GET",
       "path": "/v1/fields/{field_id}/lineage",
       "function": "field_lineage",
@@ -340,7 +349,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 597,
+      "line": 674,
       "method": "GET",
       "path": "/v1/outcomes/reconciled",
       "function": "reconciled_outcomes",
@@ -349,10 +358,55 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 617,
+      "line": 694,
       "method": "GET",
       "path": "/v1/decisions/{decision_id}/lineage",
       "function": "decision_lineage",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 721,
+      "method": "POST",
+      "path": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+      "function": "authorize_execution_plan_dispatch",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 789,
+      "method": "POST",
+      "path": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+      "function": "execute_authorized_dispatch",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 850,
+      "method": "POST",
+      "path": "/v1/execution-requests/{execution_request_id}/claim",
+      "function": "claim_execution_delivery",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 882,
+      "method": "POST",
+      "path": "/v1/execution-requests/{execution_request_id}/receipt",
+      "function": "ingest_execution_receipt",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 928,
+      "method": "POST",
+      "path": "/v1/execution-requests/{execution_request_id}/verify-outcome",
+      "function": "verify_terminal_execution_outcome",
       "classification": "business_endpoint"
     },
     {

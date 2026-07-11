@@ -25,6 +25,9 @@ def decision_service_headers(
     tenant_id: str | None = None,
     authorization: str | None = None,
     reviewed_by: str | None = None,
+    created_by: str | None = None,
+    authorized_by: str | None = None,
+    verified_by: str | None = None,
 ) -> dict[str, str]:
     headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
     if tenant_id:
@@ -33,6 +36,12 @@ def decision_service_headers(
         headers["Authorization"] = authorization
     if reviewed_by:
         headers["X-Reviewed-By"] = str(reviewed_by)
+    if created_by:
+        headers["X-Created-By"] = str(created_by)
+    if authorized_by:
+        headers["X-Authorized-By"] = str(authorized_by)
+    if verified_by:
+        headers["X-Verified-By"] = str(verified_by)
     return headers
 
 
@@ -77,6 +86,9 @@ async def decision_post_json(
     tenant_id: str | None = None,
     authorization: str | None = None,
     reviewed_by: str | None = None,
+    created_by: str | None = None,
+    authorized_by: str | None = None,
+    verified_by: str | None = None,
     timeout_s: float = 20.0,
 ) -> dict[str, Any]:
     import httpx
@@ -89,7 +101,12 @@ async def decision_post_json(
                 url,
                 json=payload,
                 headers=decision_service_headers(
-                    tenant_id=tenant_id, authorization=authorization, reviewed_by=reviewed_by
+                    tenant_id=tenant_id,
+                    authorization=authorization,
+                    reviewed_by=reviewed_by,
+                    created_by=created_by,
+                    authorized_by=authorized_by,
+                    verified_by=verified_by,
                 ),
             )
     except httpx.HTTPError as exc:
@@ -130,6 +147,70 @@ async def review_decision(
         payload,
         tenant_id=tenant_id,
         reviewed_by=reviewed_by,
+    )
+
+
+async def create_execution_plan(
+    decision_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    created_by: str | None = None,
+) -> dict[str, Any]:
+    """WX-10.9 thin transport; decision-service owns validation and persistence."""
+    return await decision_post_json(
+        f"/v1/decisions/{decision_id}/execution-plan",
+        payload,
+        tenant_id=tenant_id,
+        created_by=created_by,
+    )
+
+
+async def authorize_dispatch(
+    execution_plan_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    authorized_by: str | None = None,
+) -> dict[str, Any]:
+    """WX-10.10 thin transport; decision-service owns authorization persistence."""
+    return await decision_post_json(
+        f"/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+        payload,
+        tenant_id=tenant_id,
+        authorized_by=authorized_by,
+    )
+
+
+async def create_execution_request(
+    dispatch_authorization_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    requested_by: str | None = None,
+) -> dict[str, Any]:
+    """WX-10.11a thin transport; decision-service owns authoritative persistence."""
+    return await decision_post_json(
+        f"/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+        payload,
+        tenant_id=tenant_id,
+        requested_by=requested_by,
+    )
+
+
+async def verify_execution_outcome(
+    execution_request_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    verified_by: str | None = None,
+) -> dict[str, Any]:
+    """WX-10.12 thin transport; decision-service owns canonical outcome verification."""
+    return await decision_post_json(
+        f"/v1/execution-requests/{execution_request_id}/verify-outcome",
+        payload,
+        tenant_id=tenant_id,
+        verified_by=verified_by,
     )
 
 
