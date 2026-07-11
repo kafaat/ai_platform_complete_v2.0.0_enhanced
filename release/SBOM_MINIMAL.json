@@ -8935,7 +8935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "60ff1d401c8cd180b3cabf94c08600cfa5a92a6a5b5092923f1e2022094bb89e"
+          "content": "630b20bada414b9a81db442c7481309bc926392a72efbe8eb6c361c060ee9b40"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9115,7 +9115,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c11268476470930d98ec8d3591c231d1555117e56bd74e279f9e7aea239f4a3"
+          "content": "a2fc1aa5aa957c82257c8a71935d052ae6ba2e6b27f4d80bf630b8ed49fcd166"
+        }
+      ],
+      "name": "services/decision-service/migrations/017_wx12_runtime_schedules.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0f747748e3f2d1a8945444722ee917ce8b46ad95410c3d307885118920a2c590"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9339,6 +9349,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0fd70cb86291ab456ee97b2aad986a512c782f811edda1d2e9cb1b59b6908a95"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
       "type": "file"
     },
     {
@@ -10225,7 +10245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c020026b7c5181a664270bf61d3930623d16703b73b0f48cbbfa82a0fee9efd4"
+          "content": "496d433f7ca88c693888729c07a94bfaccb18a2133ea0e22c3d03c4995888ae7"
         }
       ],
       "name": "services/model-registry-adapter/runtime.py",
@@ -10235,7 +10255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1c166e1292763ef22a6536bcdd36ce82142ede1789dc982532f69ac9f27884c"
+          "content": "b111fc3cb4419a5f5384a82cff441b0f8b4e5da20e3a80b3a0f53cc2b49a7272"
         }
       ],
       "name": "services/model-registry-adapter/service.py",
@@ -10255,7 +10275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9025fb71a2c7d05470f3897a7e5842207783da1c04e9d8fb5f499bcbe327db0a"
+          "content": "e473aa2646f6d22e081eff1c3dfc6dfe1aeaae69eaae9282830c8e393f2aca3e"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",

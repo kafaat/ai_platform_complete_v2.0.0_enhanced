@@ -90,6 +90,9 @@ jobs:
         run: python scripts/ci/wx12_runtime_completion_gate.py
       - name: WX-12 runtime certification guard
         run: python scripts/ci/wx12_runtime_certification_gate.py
+      # WX-12.3: monitoring/reconcile scheduling must stay durable + actually emitted by the feed
+      - name: WX-12.3 runtime scheduler guard
+        run: python scripts/ci/wx12_runtime_scheduler_gate.py
 
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
@@ -438,7 +441,7 @@ jobs:
           done
           pg_isready -h localhost -p 5434 -U decision_test
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
-      - name: Apply decision-service migrations (custom runner — 001 through 016)
+      - name: Apply decision-service migrations (custom runner — 001 through 017)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -547,6 +550,14 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx12_1_runtime_receipts.py -q -p no:cacheprovider
+      # WX-12.3 durable schedules (real Postgres, SoR on): feed emits due monitoring windows and
+      # reconcile work; append-only evidence closes each item; leases still single-owner.
+      - name: WX-12.3 runtime schedules tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx12_3_runtime_schedules.py -q -p no:cacheprovider
       # WX-12 model-registry-adapter runtime is stdlib-only pure logic (drift classification,
       # bounded backoff, compare-and-swap decision). The contract test additionally imports the
       # decision-service app (fastapi is installed in this job) and replays every request the

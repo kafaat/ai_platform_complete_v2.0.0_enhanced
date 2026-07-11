@@ -71,7 +71,9 @@ class DecisionClient:
     def get(
         self, path: str, tenant_id: str, params: dict[str, Any] | None = None
     ) -> dict[str, Any]:
-        query = "" if not params else "?" + urllib.parse.urlencode(params)
+        # drop None values: urlencode would serialize them as the literal string "None".
+        clean = {k: v for k, v in (params or {}).items() if v is not None}
+        query = "" if not clean else "?" + urllib.parse.urlencode(clean)
         return _json_request(
             "GET",
             self.base + path + query,
@@ -282,6 +284,49 @@ class LifecycleRuntime:
         if drift:
             LOG.error("registry alias drift detected", extra=evidence)
         return evidence
+
+    def reconcile_and_report(
+        self,
+        tenant_id: str,
+        payload: dict[str, Any],
+        registry_get: Callable[..., Any] | None = None,
+    ) -> dict[str, Any]:
+        """Scheduled reconcile: compare projection vs registry, then persist append-only evidence.
+
+        Closes the loop the forensic audit flagged: drift / manual alias changes / missing receipts
+        become durable, auditable evidence rows — not log lines.
+        """
+        if registry_get is None:
+            from adapter import HttpRegistry
+
+            registry_get = HttpRegistry().get
+        evidence = self.reconcile_active_state(
+            tenant_id,
+            payload["model_id"],
+            payload.get("feature_set_id"),
+            payload["target_environment"],
+            registry_get,
+        )
+        schedule_id = payload.get("schedule_id") or "adhoc"
+        period_index = payload.get("period_index", 0)
+        return self.decision.post(
+            "/v1/learning/reconcile-evidence",
+            tenant_id,
+            {
+                "schedule_id": payload.get("schedule_id"),
+                "model_id": payload["model_id"],
+                "feature_set_id": payload.get("feature_set_id"),
+                "target_environment": payload["target_environment"],
+                "expected_artifact_digest": evidence["expected_digest"],
+                "observed_artifact_digest": evidence["observed_digest"],
+                "drift_detected": evidence["drift_detected"],
+                "registry_version": evidence.get("registry_version"),
+                "evidence_payload": evidence,
+                # deterministic per (schedule, period): retry-safe without duplicate evidence.
+                "idempotency_key": f"reconcile:{schedule_id}:{period_index}",
+            },
+            actor_headers={"X-Recorded-By": self.adapter_id},
+        )
 
     def verify_activation(self, tenant_id: str, receipt: dict[str, Any]) -> dict[str, Any]:
         result = HttpInferenceVerifier().verify(receipt)

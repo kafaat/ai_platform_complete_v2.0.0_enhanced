@@ -47,6 +47,7 @@ from persistence import (
     create_post_activation_verification,
     create_retraining_request,
     create_rollout_plan,
+    create_runtime_schedule,
     get_active_model_state,
     list_decision_records,
     list_review_queue,
@@ -60,6 +61,7 @@ from persistence import (
     record_model_registry_activation_receipt,
     record_model_registry_rollback_receipt,
     record_monitoring_snapshot,
+    record_reconcile_evidence,
     record_retraining_dispatch_receipt,
     record_rollout_receipt,
     review_decision,
@@ -122,6 +124,8 @@ LOOP_TABLES = [
     "decision_model_rollout_receipts",
     "decision_model_retraining_dispatch_receipts",
     "decision_model_runtime_work_claims",
+    "decision_model_runtime_schedules",
+    "decision_model_reconcile_evidence",
 ]
 
 # Honest mirror-sink contract: this service is NOT the system-of-record yet. Write
@@ -1758,3 +1762,89 @@ async def retraining_dispatch_receipt_boundary(
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail=result.get("reason"))
     raise HTTPException(status_code=409, detail=result.get("reason", "dispatch receipt conflict"))
+
+
+# --- WX-12.3 durable runtime schedules + reconcile evidence -----------------------------------
+
+
+class RuntimeScheduleIn(BaseModel):
+    kind: str
+    model_id: str
+    feature_set_id: str | None = None
+    target_environment: str
+    period_seconds: int
+    idempotency_key: str
+
+
+@app.post("/v1/learning/runtime-schedules")
+async def runtime_schedule_boundary(
+    payload: RuntimeScheduleIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Register durable schedule CONFIG for monitoring windows / active-state reconciliation.
+
+    No schedule rows => the runtime-work feed emits nothing scheduled (zero behavior change) —
+    creating a row IS the enablement flag. Progression is derived from append-only evidence
+    (monitoring snapshots / reconcile evidence), never from mutable last-run state.
+    """
+    tenant = _tenant(x_tenant_id)
+    actor = (x_requested_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    if payload.kind not in {"monitoring_window", "active_state_reconcile"}:
+        raise HTTPException(
+            status_code=422, detail="kind must be monitoring_window or active_state_reconcile"
+        )
+    if payload.target_environment not in {"staging", "production"}:
+        raise HTTPException(status_code=422, detail="invalid environment")
+    if payload.period_seconds < 60:
+        raise HTTPException(status_code=422, detail="period_seconds must be >= 60")
+    if not payload.idempotency_key.strip() or not payload.model_id.strip():
+        raise HTTPException(status_code=422, detail="model_id and idempotency_key are required")
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    result = await create_runtime_schedule(tenant_id=tenant, created_by=actor, payload=payload)
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    raise HTTPException(status_code=409, detail=result.get("reason", "schedule conflict"))
+
+
+class ReconcileEvidenceIn(BaseModel):
+    schedule_id: str | None = None
+    model_id: str
+    feature_set_id: str | None = None
+    target_environment: str
+    expected_artifact_digest: str
+    observed_artifact_digest: str
+    drift_detected: bool
+    registry_version: str | None = None
+    evidence_payload: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+
+
+@app.post("/v1/learning/reconcile-evidence")
+async def reconcile_evidence_boundary(
+    payload: ReconcileEvidenceIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_recorded_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Append-only projection-vs-registry comparison evidence (drift is auditable, not log-only)."""
+    tenant = _tenant(x_tenant_id)
+    actor = (x_recorded_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Recorded-By is required")
+    for d in (payload.expected_artifact_digest, payload.observed_artifact_digest):
+        h = d.lower()
+        if len(h) != 64 or any(c not in "0123456789abcdef" for c in h):
+            raise HTTPException(status_code=422, detail="artifact digests must be sha256 hex")
+    if payload.target_environment not in {"staging", "production"}:
+        raise HTTPException(status_code=422, detail="invalid environment")
+    if not payload.idempotency_key.strip():
+        raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    result = await record_reconcile_evidence(tenant_id=tenant, recorded_by=actor, payload=payload)
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    raise HTTPException(status_code=409, detail=result.get("reason", "reconcile conflict"))

@@ -44,11 +44,12 @@ class HealthHandler(BaseHTTPRequestHandler):
         return
 
 
-def serve_health() -> None:
+def serve_health() -> ThreadingHTTPServer:
     import threading
 
     server = ThreadingHTTPServer(("0.0.0.0", int(os.getenv("PORT", "8099"))), HealthHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
+    return server
 
 
 def run_once(runtime: LifecycleRuntime) -> int:
@@ -81,8 +82,7 @@ def run_once(runtime: LifecycleRuntime) -> int:
         elif kind == "rollback_command":
             execute_rollback(payload, tenant)
         elif kind == "active_state_reconcile":
-            # Read/evidence path owned by runtime.reconcile_active_state; not fed as pending work.
-            continue
+            runtime.reconcile_and_report(tenant, payload)
         else:
             raise RuntimeContractError(f"unsupported work_type={kind!r}")
         processed += 1
@@ -94,7 +94,7 @@ def main() -> None:
     signal.signal(signal.SIGINT, _signal)
     validate_runtime()
     runtime = LifecycleRuntime()
-    serve_health()  # /healthz answers during startup; /readyz stays 503 until a dependency probe
+    health_server = serve_health()  # /healthz during startup; /readyz 503 until a dependency probe
     backoff = Backoff(minimum=1, maximum=60)
     interval = float(os.getenv("RUNTIME_POLL_INTERVAL_SECONDS", "5"))
     while not STOP:
@@ -114,6 +114,7 @@ def main() -> None:
             STATE["last_error"] = str(exc)[:500]
             LOG.exception("runtime iteration failed")
             time.sleep(backoff.next())
+    health_server.shutdown()
 
 
 if __name__ == "__main__":

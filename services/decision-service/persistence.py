@@ -2985,6 +2985,54 @@ async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) 
                 WHERE tr.tenant_id=$1::uuid
                   AND NOT EXISTS (SELECT 1 FROM decision_model_retraining_dispatch_receipts dr
                                   WHERE dr.tenant_id=tr.tenant_id AND dr.retraining_request_id=tr.retraining_request_id)
+                UNION ALL
+                -- WX-12.3 scheduled monitoring: emit the latest fully-elapsed window that has no
+                -- snapshot yet. Window boundaries tile from a second-truncated anchor so the ISO
+                -- string round-trips exactly through the runtime and back into the snapshot row
+                -- (progression is derived from the append-only snapshot, not mutable state).
+                SELECT 'monitoring_window', mw.we,
+                       jsonb_build_object(
+                         'schedule_id', s.schedule_id,
+                         'work_key', s.schedule_id,
+                         'active_state', jsonb_build_object(
+                           'model_id', s.model_id,
+                           'feature_set_id', s.feature_set_id,
+                           'target_environment', s.target_environment),
+                         'window_start', to_char(mw.ws AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'),
+                         'window_end', to_char(mw.we AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))
+                FROM decision_model_runtime_schedules s
+                CROSS JOIN LATERAL (
+                  SELECT date_trunc('second', s.anchor_at)
+                           + make_interval(secs => floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds) * s.period_seconds)
+                           AS we,
+                         date_trunc('second', s.anchor_at)
+                           + make_interval(secs => (floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds) - 1) * s.period_seconds)
+                           AS ws,
+                         floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds)::bigint AS n
+                ) mw
+                WHERE s.tenant_id=$1::uuid AND s.enabled AND s.kind='monitoring_window' AND mw.n >= 1
+                  AND NOT EXISTS (SELECT 1 FROM decision_model_monitoring_snapshots ms
+                                  WHERE ms.tenant_id=s.tenant_id AND ms.model_id=s.model_id
+                                    AND ms.target_environment=s.target_environment
+                                    AND ms.window_start=mw.ws AND ms.window_end=mw.we)
+                UNION ALL
+                -- WX-12.3 scheduled reconciliation: due when no reconcile evidence exists within the
+                -- last period for this (model, environment). period_index gives the runtime a
+                -- deterministic idempotency bucket.
+                SELECT 'active_state_reconcile', now(),
+                       jsonb_build_object(
+                         'schedule_id', s.schedule_id,
+                         'work_key', s.schedule_id,
+                         'model_id', s.model_id,
+                         'feature_set_id', s.feature_set_id,
+                         'target_environment', s.target_environment,
+                         'period_index', floor(EXTRACT(EPOCH FROM (now() - date_trunc('second', s.anchor_at))) / s.period_seconds)::bigint)
+                FROM decision_model_runtime_schedules s
+                WHERE s.tenant_id=$1::uuid AND s.enabled AND s.kind='active_state_reconcile'
+                  AND NOT EXISTS (SELECT 1 FROM decision_model_reconcile_evidence re
+                                  WHERE re.tenant_id=s.tenant_id AND re.model_id=s.model_id
+                                    AND re.target_environment=s.target_environment
+                                    AND re.checked_at > now() - make_interval(secs => s.period_seconds))
             )
             SELECT work_type, payload FROM work ORDER BY at ASC LIMIT $2
             """,
@@ -3000,6 +3048,10 @@ async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) 
             "post_activation_verification": "activation_receipt_id",
             "rollout_apply": "rollout_plan_id",
             "retraining_dispatch": "retraining_request_id",
+            # scheduled types lease per schedule (bounded: one claim row per schedule; a live
+            # lease from the previous window delays the next by at most lease_seconds).
+            "monitoring_window": "work_key",
+            "active_state_reconcile": "work_key",
         }
         items: list[dict[str, Any]] = []
         for r in rows:
@@ -3180,6 +3232,144 @@ async def record_retraining_dispatch_receipt(
                 "persisted": True,
                 "dispatch_receipt_id": rid,
                 "dispatch_state": payload.dispatch_state,
+            }
+    finally:
+        await conn.close()
+
+
+# --- WX-12.3 durable runtime schedules + reconcile evidence ----------------------------------
+
+
+async def create_runtime_schedule(
+    *, tenant_id: str, created_by: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else vars(payload)
+    req_hash = _stable_hash(data)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            sid = (
+                "sched_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{payload.kind}:{payload.model_id}:{payload.target_environment}".encode()
+                ).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_runtime_schedules(schedule_id,tenant_id,kind,model_id,feature_set_id,target_environment,period_seconds,created_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT DO NOTHING RETURNING *""",
+                sid,
+                tenant_id,
+                payload.kind,
+                payload.model_id,
+                payload.feature_set_id,
+                payload.target_environment,
+                payload.period_seconds,
+                created_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                existing = await conn.fetchrow(
+                    "SELECT schedule_id, request_hash FROM decision_model_runtime_schedules WHERE tenant_id=$1::uuid AND kind=$2 AND model_id=$3 AND target_environment=$4",
+                    tenant_id,
+                    payload.kind,
+                    payload.model_id,
+                    payload.target_environment,
+                )
+                if existing and existing["request_hash"] == req_hash:
+                    return {
+                        "status": "ok",
+                        "replay": True,
+                        "authoritative": True,
+                        "persisted": True,
+                        "schedule_id": existing["schedule_id"],
+                    }
+                return {"status": "conflict", "reason": "runtime_schedule_conflict"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_RUNTIME_SCHEDULE_CREATED",
+                aggregate_type="decision_model_runtime_schedules",
+                aggregate_id=sid,
+                payload={
+                    "kind": payload.kind,
+                    "model_id": payload.model_id,
+                    "target_environment": payload.target_environment,
+                    "period_seconds": payload.period_seconds,
+                },
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "schedule_id": sid,
+            }
+    finally:
+        await conn.close()
+
+
+async def record_reconcile_evidence(
+    *, tenant_id: str, recorded_by: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else vars(payload)
+    req_hash = _stable_hash(data)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            rid = (
+                "reccheck_"
+                + hashlib.sha256(f"{tenant_id}:{payload.idempotency_key}".encode()).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_reconcile_evidence(reconcile_id,tenant_id,schedule_id,model_id,feature_set_id,target_environment,expected_artifact_digest,observed_artifact_digest,drift_detected,registry_version,evidence_payload,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13,$14) ON CONFLICT DO NOTHING RETURNING *""",
+                rid,
+                tenant_id,
+                payload.schedule_id,
+                payload.model_id,
+                payload.feature_set_id,
+                payload.target_environment,
+                payload.expected_artifact_digest,
+                payload.observed_artifact_digest,
+                payload.drift_detected,
+                payload.registry_version,
+                _json(payload.evidence_payload),
+                recorded_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                existing = await conn.fetchrow(
+                    "SELECT reconcile_id, request_hash, drift_detected FROM decision_model_reconcile_evidence WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                    tenant_id,
+                    payload.idempotency_key,
+                )
+                if existing and existing["request_hash"] == req_hash:
+                    return {
+                        "status": "ok",
+                        "replay": True,
+                        "authoritative": True,
+                        "persisted": True,
+                        "reconcile_id": existing["reconcile_id"],
+                        "drift_detected": existing["drift_detected"],
+                    }
+                return {"status": "conflict", "reason": "reconcile_evidence_conflict"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_RECONCILE_EVIDENCE_RECORDED",
+                aggregate_type="decision_model_reconcile_evidence",
+                aggregate_id=rid,
+                payload={
+                    "model_id": payload.model_id,
+                    "target_environment": payload.target_environment,
+                    "drift_detected": payload.drift_detected,
+                },
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "reconcile_id": rid,
+                "drift_detected": payload.drift_detected,
             }
     finally:
         await conn.close()

@@ -72,6 +72,9 @@ def _capturing(method, url, *, token="", body=None, headers=None, timeout=15.0):
     # Registry/controller/metrics/training helpers hit non-decision hosts; stub those, capture DS.
     if "decision.local" in url:
         CAPTURED.append({"method": method, "url": url, "headers": headers or {}, "body": body})
+        if method == "GET" and "active-state" in url:
+            # projection served by the feed's active-state endpoint (reconcile reads it).
+            return {"registry_alias": "a", "active_artifact_digest": "d" * 64}
         return {}
     if "registry.local" in url:
         return {"alias": "a", "artifact_uri": "s3://x", "artifact_digest": "d" * 64, "version": "1"}
@@ -265,3 +268,48 @@ def test_service_token_guard_enforced_when_configured(monkeypatch):
     )
     assert with_bearer.status_code != 401  # passes auth (then 422/503 downstream)
     assert CLIENT.get("/healthz").status_code != 401  # probes are exempt
+
+
+def test_reconcile_and_report_satisfies_contract():
+    r = rt.LifecycleRuntime()
+    tenant = "00000000-0000-0000-0000-000000001111"
+    r.reconcile_and_report(
+        tenant,
+        {
+            "schedule_id": "sched1",
+            "model_id": "m1",
+            "feature_set_id": "f1",
+            "target_environment": "staging",
+            "period_index": 7,
+        },
+        registry_get=lambda *a, **k: type("S", (), {"artifact_digest": "d" * 64, "version": "1"})(),
+    )
+    posts = [c for c in _emitted() if c["method"] == "POST"]
+    assert posts, "reconcile evidence was not posted"
+    call = posts[-1]
+    assert "/v1/learning/reconcile-evidence" in call["url"]
+    assert call["body"]["idempotency_key"] == "reconcile:sched1:7"
+    assert call["headers"].get("X-Recorded-By")
+    _replay(call["method"], call["url"], call["headers"], call["body"])
+
+
+def test_schedule_endpoint_contract_shape():
+    tenant = "00000000-0000-0000-0000-000000001111"
+    body = {
+        "kind": "monitoring_window",
+        "model_id": "m1",
+        "feature_set_id": "f1",
+        "target_environment": "staging",
+        "period_seconds": 300,
+        "idempotency_key": "k1",
+    }
+    no_actor = CLIENT.post(
+        "/v1/learning/runtime-schedules", headers={"X-Tenant-Id": tenant}, json=body
+    )
+    assert no_actor.status_code == 400  # X-Requested-By required
+    ok = CLIENT.post(
+        "/v1/learning/runtime-schedules",
+        headers={"X-Tenant-Id": tenant, "X-Requested-By": "ops"},
+        json=body,
+    )
+    assert ok.status_code == 503  # mirror mode: valid request stops at the SoR gate
