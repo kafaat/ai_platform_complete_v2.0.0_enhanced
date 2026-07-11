@@ -156,6 +156,18 @@
     "risk": "normal"
   },
   {
+    "service": "model-registry-adapter",
+    "domain": "Unclassified / Support",
+    "python_files": 5,
+    "python_loc": 633,
+    "tests": 1,
+    "routes": 0,
+    "main": "-",
+    "dockerfile": "services/model-registry-adapter/Dockerfile",
+    "requirements": "-",
+    "risk": "medium-runtime-contract-gap"
+  },
+  {
     "service": "odoo-bridge",
     "domain": "ERP Integration",
     "python_files": 10,

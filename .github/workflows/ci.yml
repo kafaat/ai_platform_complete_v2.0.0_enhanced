@@ -83,6 +83,14 @@ jobs:
       - name: WX-11.7..11.12 closed-loop completion guard
         run: python scripts/ci/wx11_closed_loop_completion_gate.py
 
+      # WX-12 runtime adapter: the model-registry-adapter is a governed runtime consumer
+      # (compare-and-swap active state, verify, rollout, monitor, dispatch retraining) — it
+      # must never train/actuate/publish; required files + Dockerfile must exist.
+      - name: WX-12 runtime completion guard
+        run: python scripts/ci/wx12_runtime_completion_gate.py
+      - name: WX-12 runtime certification guard
+        run: python scripts/ci/wx12_runtime_certification_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
@@ -531,6 +539,11 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx11_6_registry_activation_boundary.py -q -p no:cacheprovider
+      # WX-12 model-registry-adapter runtime is stdlib-only pure logic (drift classification,
+      # bounded backoff, compare-and-swap decision) — no DB. Run its tests here where pytest
+      # is available so every push proves the governed runtime consumer stays honest.
+      - name: WX-12 model-registry-adapter runtime tests (stdlib, no DB)
+        run: pytest services/model-registry-adapter/tests -q -p no:cacheprovider
 
   security-scan:
     name: Security Scan

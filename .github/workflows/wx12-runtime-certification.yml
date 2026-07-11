@@ -1,0 +1,38 @@
+name: WX-12 Runtime Certification
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'services/decision-service/**'
+      - 'services/model-registry-adapter/**'
+      - 'scripts/wx12/**'
+      - 'scripts/ci/wx12_runtime_certification_gate.py'
+jobs:
+  structural:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python scripts/ci/wx12_runtime_certification_gate.py
+      - run: python -m compileall -q services/model-registry-adapter scripts/wx12
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env: {POSTGRES_USER: sahool, POSTGRES_PASSWORD: sahool, POSTGRES_DB: sahool}
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U sahool" --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      DATABASE_URL: postgresql://sahool:sahool@localhost:5432/sahool
+      DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: pip install asyncpg pytest pytest-asyncio
+      - run: python services/decision-service/migration_runner.py --apply
+      - run: python services/decision-service/migration_runner.py --check
+      - run: pytest -q services/decision-service/tests

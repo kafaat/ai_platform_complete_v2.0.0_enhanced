@@ -10175,6 +10175,66 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9b27d63d2416e6a937bac60aa213c5c514a4542e5a32a2a667f04cd62646dd7c"
+        }
+      ],
+      "name": "services/model-registry-adapter/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63302d246362a38176a55cb39563c7ef6eaa636bf2634b48e60e99496a6e619e"
+        }
+      ],
+      "name": "services/model-registry-adapter/adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5389654defeba7f5a657b01436efe0506c0109084530e339455b0c2c0b9f19a6"
+        }
+      ],
+      "name": "services/model-registry-adapter/runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "df25a0121c272f37d51b587875e62e87698bdaa1a07a6fae45bc536328337a18"
+        }
+      ],
+      "name": "services/model-registry-adapter/service.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "43249133a69fb59132022541dfd641c3927673d6550754ed63cbcf83bb1d7ca6"
+        }
+      ],
+      "name": "services/model-registry-adapter/tests/test_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5cd579b1fd625faf151109e952ae8558d34bdc6677aaa217665e2e874a22a642"
+        }
+      ],
+      "name": "services/model-registry-adapter/worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "535cb036c246ee0a158250f96dd850d37d2d70ffec07b774e74e7e022958f038"
         }
       ],
