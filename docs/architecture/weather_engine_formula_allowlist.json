@@ -1,7 +1,10 @@
 {
   "$comment": "WS-C.1b boundary guard — temporary allowlist of files still holding vapour-pressure/ET0 formulas outside the Weather Engine. Enforced by scripts/ci/weather_engine_formula_guard.py. New occurrences NOT on this list fail CI. Entries are TEMPORARY: removed as consumers migrate to the Weather Engine ET0 product (C.1b delegation + C.2 BFF); once a consumer is migrated, delete its formula and its allowlist entry — the file then failing CI is the intended ratchet.",
   "canonical": "services/weather-service/vapor_pressure.py",
-  "svp_fingerprint": ["0.6108", "17.27"],
+  "svp_fingerprint": [
+    "0.6108",
+    "17.27"
+  ],
   "temporary_legacy_allowlist": [
     {
       "path": "services/sahool-platform/core/engines/et0.py",
@@ -23,13 +26,6 @@
       "expires": "2026-07-31",
       "purpose": "active-legacy-pending-delegation",
       "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0; also holds gdd_daily/gdd_accumulate). Retire alongside the et0.py core migration."
-    },
-    {
-      "path": "services/sahool-platform/core/gdd_phenology.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-pending-delegation",
-      "note": "Platform GDD daily kernel (daily_gdd, simple cap-tmax) + phenology stage policy. Migrate the kernel to the Weather Engine gdd.py (C.1c delegation); the stage-threshold policy stays in Season."
     },
     {
       "path": "services/sahool-platform/api/gdd_tracker.py",

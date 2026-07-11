@@ -21,35 +21,11 @@ from __future__ import annotations
 
 from core.crop_cards.loader import load_crop_card
 
-# سقف علويّ افتراضيّ لحساب GDD (فوقه لا يزيد النموّ خطّيّاً) — يُعطَّل بـNone.
-_DEFAULT_UPPER_CAP_C = 30.0
-
-
-def daily_gdd(
-    t_min_c: float, t_max_c: float, base_c: float, upper_cap_c: float | None = None
-) -> float:
-    """درجات نموّ يوم واحد = max(0, متوسّط الحرارة − الأساس). سقف علويّ اختياريّ.
-
-    الأساس الفيزيائيّ: النموّ يتوقّف تحت حرارة الأساس؛ وفوق سقف علويّ لا يتسارع خطّيّاً
-    (يُقصَّر tmax إلى السقف قبل المتوسّط). لا سالب.
-    """
-    tmax = min(t_max_c, upper_cap_c) if upper_cap_c is not None else t_max_c
-    tmin = t_min_c
-    mean = (tmax + tmin) / 2.0
-    return max(0.0, mean - base_c)
-
-
-def accumulate_gdd(
-    daily_t_min: list[float],
-    daily_t_max: list[float],
-    base_c: float,
-    upper_cap_c: float | None = _DEFAULT_UPPER_CAP_C,
-) -> float:
-    """مجموع GDD عبر سلسلة أيّام (tmin/tmax متوازيتان). يتجاهل الأيّام الزائدة في الأطول."""
-    total = 0.0
-    for tmin, tmax in zip(daily_t_min, daily_t_max, strict=False):
-        total += daily_gdd(tmin, tmax, base_c, upper_cap_c)
-    return round(total, 1)
+# WS-C.1c Zero-Legacy: نواة حساب GDD اليوميّة (daily_gdd/accumulate_gdd) أُزيلت من هنا —
+# مِلكيّتها الوحيدة الآن محرّك الطقس (services/weather-service/gdd.py: gdd_daily/accumulate_gdd،
+# ``POST /v1/weather/agro/gdd``). لم تكن هذه النسخة تُغذّي أيّ مسار إنتاجيّ (لا مستورِد إنتاجيّ
+# لـdaily_gdd/accumulate_gdd من هذا الملفّ) — كانت نواة مكرّرة فحسب. يبقى هنا **سياسة المحصول**
+# فقط (أساس/عتبات المراحل/تعيين المرحلة)، وهي مِلك Season لا نواة حساب.
 
 
 def gdd_base_c(crop_id: str | None) -> float | None:

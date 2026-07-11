@@ -6485,6 +6485,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0b5d20ea9c5617df460f2c78a6179ae6db683aa60e7ee569ea9a22bb06414ff6"
+        }
+      ],
+      "name": "migrations/v153_crop_stress_memory_store.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb0f425d3153fa93f00c48cc9b3fd8c85913f8cff4a953be22c98bf62b74f10c"
         }
       ],
@@ -11855,6 +11865,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1b911602e50d77594277fffc7bdbe47eba2e7b81603ce4417f3a92ea16cb1c14"
+        }
+      ],
+      "name": "services/sahool-platform/api/crop_decision_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3903f4f85631ad3968b020c5f88a20afab91fdea4abf05a0c5f9bf9b24ae80d4"
         }
       ],
@@ -11869,6 +11889,36 @@
         }
       ],
       "name": "services/sahool-platform/api/crop_rotation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "419ad76b7bd2129ac6ea09de2ec2325e24b1cd2fafc87cfe077b89c6af502e35"
+        }
+      ],
+      "name": "services/sahool-platform/api/crop_stress_ingestion.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "da3914d33a471590f10e63f7aa14e4a7c2f8b2a489967b8889ec2b27e81b5bea"
+        }
+      ],
+      "name": "services/sahool-platform/api/crop_stress_memory_service.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d1a63af0228105f04ac954d174e54b17248680b895bfd82b7c4c599a408aae0e"
+        }
+      ],
+      "name": "services/sahool-platform/api/crop_stress_store.py",
       "type": "file"
     },
     {
@@ -16315,6 +16365,96 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "fe470772da1474654df51ae6305839960a175bbccecb684aafbdf0ac0f10e117"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4e88f5c0de3a391b674ef1cd7461f76b168d5b8626b7df096593e30462c08e76"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/crop_water.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "08c31fdda1eef01074f9f02b2b8f5b7c1f0e1ed52446becd7cc03a1c3ca35924"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9d324e9d566f52b67c048f2f6d52bba903500efd8de430d3440bb55a894f3d07"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/models.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f02a94f0d0b926bf1776ed2ba135c29f810cd98c9c807bbe39990329f2035a7"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/phenology.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4c1b8195a2071cd51fcaf86a33ba165873a94c953412bcf29e437076e3a1ad17"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e1ce9d0146430ef1808783a678d64640e6b2f6568763eafe7e17e86c819d7bcf"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/roots.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5ad9e4ed0b9a67e040e29ca923dc7d3cc60de4ff21a8ebe08e0544a0dad5003"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/spectral.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "415baea4aa17865480334e0fd3712054c16651bd18230d175eff26b5e0e4bf8e"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/stress_memory.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e9fea162e4e5859ca93eccc63a67b354973b52bab9241805d07b79241c53d568"
         }
       ],
@@ -17175,7 +17315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0236757204fca3aeddbdc693d6a9ec2ec0ea47b0674a1bcadeb04ac84c1fcc37"
+          "content": "c91609b74250c253e0565902bdfa4fd353728ad431931b602360fcae9374dd8a"
         }
       ],
       "name": "services/sahool-platform/core/gdd_phenology.py",
@@ -19185,6 +19325,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e284e77da2f1348a35b56c7236b5458f8f819db911b94bfe67b9a8acee16b084"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_decision_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5abb12593b188dfcc39d5fd0560c6ad7e81180a442e9b81002a6c9e7a5b53671"
         }
       ],
@@ -19199,6 +19349,56 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_inference.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "64e4f4a9ec5d157975f55c8610519896ba129aa1db964fed1d0c148cab545be0"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_intelligence_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "23a9fd22ff499c4c8306b9bea2023bf1a2dc4a85edb8954f0a78e8320d4ba1b8"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_intelligence_phase3.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fd3a7fc9c5cfd94590955ab3edaacdd6c7a1806dec5c938e50fa674b8865c152"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_intelligence_phase4.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d35f4d2e3c88419ce09ed85b6d54b8c49a1e332ac71c66d23a1f90a6271ce85a"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_intelligence_phase5.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ce1c82f6b3d454397f39ea81dc187e105a9ad9156364ae52e749904843478569"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_intelligence_spectral_state.py",
       "type": "file"
     },
     {
@@ -19279,6 +19479,36 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_stress_facades_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cbb95b05eab5d44ec5af151692456aac5248e5e586c6275c9d577b6cf94b20b1"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_stress_ingestion.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "67ce9e9e7bbce0f3e6f279ba95ab77ebc1d1935bd9e070a432ac54ffd94f377e"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_stress_memory_service.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "165cbe4e3d6cc1f45b45c1b0815dc8a3977364328e9f6f1a03c117630dd56c97"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_stress_store.py",
       "type": "file"
     },
     {
@@ -20225,7 +20455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbb816daee353091f62f842f5399cafaa82aae86ce58a8583530215a790c8302"
+          "content": "a7e2e35b25e6c513e2ff2eec262e1255be738465db89aa0622a8a2815347a261"
         }
       ],
       "name": "services/sahool-platform/tests/test_gdd_phenology.py",

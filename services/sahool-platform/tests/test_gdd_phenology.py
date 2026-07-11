@@ -3,29 +3,14 @@
 from __future__ import annotations
 
 from core.gdd_phenology import (
-    accumulate_gdd,
-    daily_gdd,
     gdd_base_c,
     gdd_stage_thresholds,
     phenology_progress,
     stage_from_gdd,
 )
 
-
-class TestDailyGdd:
-    def test_basic_mean_minus_base(self):
-        assert daily_gdd(10, 20, base_c=0, upper_cap_c=None) == 15.0
-
-    def test_upper_cap_limits_tmax(self):
-        # tmax=40 مقصوص إلى 30 ⇒ mean=(30+20)/2=25، −base10 = 15.
-        assert daily_gdd(20, 40, base_c=10, upper_cap_c=30) == 15.0
-
-    def test_floored_at_zero_below_base(self):
-        assert daily_gdd(0, 5, base_c=10, upper_cap_c=None) == 0.0
-
-    def test_accumulate_sums_series(self):
-        total = accumulate_gdd([10, 12], [20, 22], base_c=0, upper_cap_c=None)
-        assert total == 15.0 + 17.0
+# WS-C.1c Zero-Legacy: نواة daily_gdd/accumulate_gdd أُزيلت من core.gdd_phenology (مِلك المحرّك
+# الآن — services/weather-service/gdd.py، وتُختبَر هناك). يبقى هنا اختبار سياسة المحصول فقط.
 
 
 class TestBaseAndThresholds:
