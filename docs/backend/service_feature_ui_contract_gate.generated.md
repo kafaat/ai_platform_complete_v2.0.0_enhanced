@@ -133,7 +133,7 @@ classification: `internal`
 
 ### `ai_agronomist` — pass
 classification: `ui`
-- ui: 19 match(es)
+- ui: 18 match(es)
   - `frontend/src/App.tsx` ← `ChatbotPage`
   - `frontend/src/hooks/useApi.ts` ← `ai-agronomist`
   - `frontend/src/hooks/fieldViewUiWide.static.test.ts` ← `ChatbotPage`

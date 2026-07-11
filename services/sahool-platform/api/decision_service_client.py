@@ -106,6 +106,15 @@ async def record_decision(
     return await decision_post_json("/v1/decisions/record", payload, tenant_id=tenant_id)
 
 
+async def list_review_queue(*, tenant_id: str | None = None, limit: int = 100) -> dict[str, Any]:
+    """WX-10.8 authoritative pending-candidate queue owned by decision-service."""
+    return await decision_get_json(
+        "/v1/decisions/review-queue",
+        tenant_id=tenant_id,
+        params={"limit": limit},
+    )
+
+
 async def review_decision(
     decision_id: str,
     payload: dict[str, Any],

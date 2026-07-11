@@ -1826,7 +1826,39 @@ export function useScenarioWaterTwin(): ReturnType<typeof useMutation<WaterTwinS
 }
 
 // ── Approvals Console — الموافقات البشريّة المعلّقة (v58 + SEC-3.1) ──
-import type { PendingAgentApproval, PendingApprovalsResponse } from '../lib/approvalsConsole';
+import type {
+  DecisionReviewInput, DecisionReviewQueueResponse, DecisionReviewResult,
+  PendingAgentApproval, PendingApprovalsResponse,
+} from '../lib/approvalsConsole';
+
+
+/** WX-10.8 authoritative queue. A 503 is intentionally surfaced; mirror mode is not an empty queue. */
+export function useDecisionReviewQueue(enabled = true): UseQueryResult<DecisionReviewQueueResponse, Error> {
+  return useQuery<DecisionReviewQueueResponse, Error>({
+    queryKey: ['decision-review-queue'],
+    queryFn: () => kongApi.get('/api/v1/decisions/review-queue')
+      .then(r => r.data as DecisionReviewQueueResponse),
+    staleTime: 15_000,
+    enabled,
+    retry: false,
+  });
+}
+
+/** Approve/reject a pending candidate. The decision-service owns and proves the transition. */
+export function useReviewDecisionCandidate(): ReturnType<typeof useMutation<DecisionReviewResult, Error, DecisionReviewInput>> {
+  return useMutation<DecisionReviewResult, Error, DecisionReviewInput>({
+    mutationFn: ({ decisionId, action, reason, candidateLineageId, idempotencyKey }) => kongApi
+      .post(`/api/v1/decisions/${encodeURIComponent(decisionId)}/review`, {
+        action,
+        reason,
+        expected_state: 'pending_approval',
+        candidate_lineage_id: candidateLineageId,
+        idempotency_key: idempotencyKey,
+        policy_version: 'wx-10.8-reviewer-ui-v1',
+      })
+      .then(r => r.data as DecisionReviewResult),
+  });
+}
 
 /** طلبات موافقة وكيل AI المعلّقة للمستأجِر (كان المخزن بلا نقطة قراءة). */
 export function usePendingAgentApprovals(enabled = true): UseQueryResult<PendingApprovalsResponse> {

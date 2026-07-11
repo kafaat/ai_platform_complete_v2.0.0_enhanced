@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { approvalKey, paramsSummary, pendingDispatchDecisions, riskColor } from './approvalsConsole';
+import {
+  approvalKey, candidateEvidenceSummary, paramsSummary, pendingDispatchDecisions, riskColor,
+} from './approvalsConsole';
 import type { DispatchDecision } from './decisionRuntime';
 
 const dec = (state: string): DispatchDecision => ({
@@ -41,5 +43,21 @@ describe('pendingDispatchDecisions — server state as-is', () => {
   });
   it('is empty for missing input', () => {
     expect(pendingDispatchDecisions(null)).toEqual([]);
+  });
+});
+
+
+describe('candidateEvidenceSummary — concise and non-exhaustive', () => {
+  it('prefers crop-intelligence summary and caps it', () => {
+    expect(candidateEvidenceSummary({ crop_intelligence: { summary: 'ريّ محسوب من GDD' } }))
+      .toBe('ريّ محسوب من GDD');
+  });
+  it('falls back to limitations or keys without serializing values', () => {
+    expect(candidateEvidenceSummary({ limitations: ['غياب حساس', 'جودة متدهورة'] }))
+      .toContain('غياب حساس');
+    expect(candidateEvidenceSummary({ secret: 'do-not-render', gdd_product: { value: 1 } }))
+      .toContain('secret');
+    expect(candidateEvidenceSummary({ secret: 'do-not-render' }))
+      .not.toContain('do-not-render');
   });
 });

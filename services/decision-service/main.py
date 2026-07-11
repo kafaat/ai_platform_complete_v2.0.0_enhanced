@@ -32,6 +32,7 @@ from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
 from persistence import (
     list_decision_records,
+    list_review_queue,
     persist_decision_record,
     persist_dispatch_decision,
     persist_learning_update,
@@ -306,6 +307,31 @@ async def record_decision(
         stage=payload.stage,
         received_at=datetime.now(UTC).isoformat(),
     )
+
+
+@app.get("/v1/decisions/review-queue")
+async def review_queue(
+    x_tenant_id: str | None = Header(default=None),
+    limit: int = Query(default=100, ge=1, le=200),
+) -> dict[str, Any]:
+    """WX-10.8 — authoritative queue of pending decision candidates.
+
+    Mirror mode fails closed instead of returning a misleading empty queue. Tenant isolation is
+    enforced by the persistence query and the tenant comes only from the trusted gateway header.
+    """
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record (mirror mode) — review queue unavailable",
+        )
+    items = await list_review_queue(tenant_id=tenant, limit=limit)
+    return {
+        "authoritative": True,
+        "persisted": True,
+        "items": items,
+        "count": len(items),
+    }
 
 
 class DecisionReviewIn(BaseModel):

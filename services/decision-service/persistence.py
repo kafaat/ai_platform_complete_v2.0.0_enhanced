@@ -466,6 +466,33 @@ async def review_decision(
         await conn.close()
 
 
+async def list_review_queue(*, tenant_id: str, limit: int = 100) -> list[dict[str, Any]]:
+    """Return authoritative pending decision candidates for a tenant.
+
+    The dedicated ``review_state`` column is the only operational state source. Candidate
+    evidence remains immutable inside ``decision_value`` and is returned for reviewer display.
+    """
+    conn = await _connect()
+    try:
+        rows = await conn.fetch(
+            """
+            SELECT decision_id, field_id, decision_type, region, stage, decision_value,
+                   confidence, review_state, candidate_lineage_id, created_at, updated_at
+              FROM decision_record
+             WHERE tenant_id = $1::uuid
+               AND stage = 'candidate'
+               AND review_state = 'pending_approval'
+             ORDER BY created_at ASC, decision_id ASC
+             LIMIT $2
+            """,
+            tenant_id,
+            max(1, min(int(limit), 200)),
+        )
+        return [dict(row) for row in rows]
+    finally:
+        await conn.close()
+
+
 async def list_decision_records(
     *, tenant_id: str, field_id: str | None, decision_type: str | None, limit: int
 ) -> dict[str, Any]:

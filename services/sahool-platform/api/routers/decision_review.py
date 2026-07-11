@@ -18,6 +18,7 @@ from core.authorization import Permission
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from api.decision_service_client import list_review_queue as ds_list_review_queue
 from api.decision_service_client import review_decision as ds_review_decision
 from api.main import UserSchema, require_permission
 
@@ -36,6 +37,32 @@ class DecisionReviewRequest(BaseModel):
     candidate_lineage_id: str
     idempotency_key: str
     policy_version: str | None = None
+
+
+@router.get("/api/v1/decisions/review-queue")
+async def get_decision_review_queue(
+    limit: int = 100,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_APPROVE)),
+):
+    """WX-10.8 — authenticated BFF pass-through for the authoritative review queue."""
+    if limit < 1 or limit > 200:
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 200")
+    try:
+        result = await ds_list_review_queue(
+            tenant_id=str(user.tenant_id) if user.tenant_id else None, limit=limit
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service unavailable — review queue not read"
+            ) from exc
+        raise
+    if result.get("authoritative") is not True or result.get("persisted") is not True:
+        raise HTTPException(status_code=503, detail="non-authoritative review queue rejected")
+    items = result.get("items")
+    if not isinstance(items, list) or result.get("count") != len(items):
+        raise HTTPException(status_code=503, detail="invalid authoritative review queue contract")
+    return result
 
 
 @router.post("/api/v1/decisions/{decision_id}/review")

@@ -1034,6 +1034,16 @@
       "evidence": "/explain"
     },
     {
+      "endpoint": "/api/v1/decisions/review-queue",
+      "audience": "manager",
+      "evidence": "/api/v1/decisions/review-queue"
+    },
+    {
+      "endpoint": "/api/v1/decisions/{decision_id}/review",
+      "audience": "manager",
+      "evidence": "/api/v1/decisions/"
+    },
+    {
       "endpoint": "/api/v1/devices",
       "audience": "manager",
       "evidence": "/api/v1/devices"
@@ -1239,7 +1249,27 @@
       "evidence": "/api/v1/farms"
     },
     {
+      "endpoint": "/api/v1/farms/{farm_id}/priority-queue",
+      "audience": "farmer",
+      "evidence": "/api/v1/farms"
+    },
+    {
+      "endpoint": "/api/v1/features",
+      "audience": "farmer",
+      "evidence": "/api/v1/features"
+    },
+    {
       "endpoint": "/api/v1/field-intelligence/analyze",
+      "audience": "agronomist",
+      "evidence": "/api/v1/field-intelligence/analyze"
+    },
+    {
+      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
+      "audience": "agronomist",
+      "evidence": "/api/v1/field-intelligence/analyze"
+    },
+    {
+      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
       "audience": "agronomist",
       "evidence": "/api/v1/field-intelligence/analyze"
     },
@@ -1424,6 +1454,11 @@
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation-recommendation",
+      "audience": "farmer",
+      "evidence": "/irrigation-recommendation"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/lab-context",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
@@ -1459,7 +1494,17 @@
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/priority-queue",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/productivity-zones",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/readiness",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
@@ -1584,22 +1629,27 @@
       "evidence": "/api/v1/fields"
     },
     {
-      "endpoint": "/api/v1/fields/{field_id}/weather/disease-risk",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/weather/thermal-stress",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
       "endpoint": "/api/v1/fields/{field_id}/weather/crop-stress",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
     {
+      "endpoint": "/api/v1/fields/{field_id}/weather/disease-risk",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
       "endpoint": "/api/v1/fields/{field_id}/weather/irrigation-advice",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/weather/operation-windows",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/weather/thermal-stress",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },
@@ -2737,46 +2787,6 @@
       "endpoint": "/auth/verify/status",
       "audience": "farmer",
       "evidence": "/auth/verify/status"
-    },
-    {
-      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}",
-      "audience": "agronomist",
-      "evidence": "/api/v1/field-intelligence/analyze"
-    },
-    {
-      "endpoint": "/api/v1/field-intelligence/analyze/jobs/{job_id}/cancel",
-      "audience": "agronomist",
-      "evidence": "/api/v1/field-intelligence/analyze"
-    },
-    {
-      "endpoint": "/api/v1/features",
-      "audience": "farmer",
-      "evidence": "/api/v1/features"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/readiness",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/priority-queue",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/farms/{farm_id}/priority-queue",
-      "audience": "farmer",
-      "evidence": "/api/v1/farms"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/weather/operation-windows",
-      "audience": "farmer",
-      "evidence": "/api/v1/fields"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/irrigation-recommendation",
-      "audience": "farmer",
-      "evidence": "/irrigation-recommendation"
     }
   ]
 }

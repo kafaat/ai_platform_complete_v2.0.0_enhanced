@@ -1,10 +1,16 @@
 import { useState } from 'react';
-import { ShieldCheck, Bot, GitBranch, Check, X } from 'lucide-react';
+import { ShieldCheck, Bot, GitBranch, Check, X, ClipboardCheck } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { usePendingAgentApprovals, useDecideAgentApproval, useDispatchDecisions } from '../hooks/useApi';
+import {
+  usePendingAgentApprovals, useDecideAgentApproval, useDispatchDecisions,
+  useDecisionReviewQueue, useReviewDecisionCandidate,
+} from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
 import { canManage } from '../lib/permissions';
-import { approvalKey, paramsSummary, pendingDispatchDecisions, riskColor } from '../lib/approvalsConsole';
+import {
+  approvalKey, candidateEvidenceSummary, newReviewIdempotencyKey, paramsSummary,
+  pendingDispatchDecisions, riskColor,
+} from '../lib/approvalsConsole';
 import { dispatchStateColor, dispatchStateLabel } from '../lib/decisionRuntime';
 import { T } from '../components/ds';
 
@@ -20,7 +26,10 @@ export default function ApprovalsConsolePage() {
   const approvalsQ = usePendingAgentApprovals(allowed);
   const decisionsQ = useDispatchDecisions(allowed);
   const decideM = useDecideAgentApproval();
+  const reviewQueueQ = useDecisionReviewQueue(allowed);
+  const reviewM = useReviewDecisionCandidate();
   const [rowStates, setRowStates] = useState<Record<string, string>>({});
+  const [reviewReasons, setReviewReasons] = useState<Record<string, string>>({});
 
   if (!allowed) {
     return (
@@ -48,11 +57,101 @@ export default function ApprovalsConsolePage() {
     );
   };
 
+
+  const reviewCandidate = (
+    decisionId: string,
+    candidateLineageId: string,
+    action: 'approve' | 'reject',
+  ) => {
+    const reason = (reviewReasons[decisionId] ?? '').trim();
+    if (action === 'reject' && !reason) {
+      setRowStates((state) => ({ ...state, [decisionId]: 'reason_required' }));
+      return;
+    }
+    setRowStates((state) => ({ ...state, [decisionId]: 'sending' }));
+    reviewM.mutate(
+      {
+        decisionId,
+        action,
+        reason,
+        candidateLineageId,
+        idempotencyKey: newReviewIdempotencyKey(decisionId),
+      },
+      {
+        onSuccess: (result) => {
+          setRowStates((state) => ({ ...state, [decisionId]: result.state }));
+          qc.invalidateQueries({ queryKey: ['decision-review-queue'] });
+        },
+        onError: () => setRowStates((state) => ({ ...state, [decisionId]: 'failed' })),
+      },
+    );
+  };
+
   return (
     <div className="p-4 flex flex-col gap-3" data-testid="approvals-console">
       <h1 className="inline-flex items-center gap-2 text-lg font-bold" style={{ color: T.ink }}>
         <ShieldCheck className="w-5 h-5 text-emerald-300" aria-hidden="true" /> كونسول الموافقات
       </h1>
+
+
+      {/* WX-10.8 — authoritative decision candidates */}
+      <section className="rounded-2xl border p-3" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>
+        <div className="inline-flex items-center gap-2 text-sm font-bold mb-2" style={{ color: T.ink }}>
+          <ClipboardCheck className="w-4 h-4 text-violet-300" aria-hidden="true" /> مرشّحات القرار بانتظار المراجعة
+          <span className="text-[11px] font-normal" style={{ color: T.faint }}>· {reviewQueueQ.data?.count ?? '—'}</span>
+        </div>
+        {reviewQueueQ.isLoading ? (
+          <div className="text-[11px]" style={{ color: T.faint }}>جارٍ قراءة الطابور الآمر…</div>
+        ) : reviewQueueQ.isError ? (
+          <div className="text-[11px]" role="alert" style={{ color: '#fdba74' }}>
+            طابور المراجعة غير متاح. في وضع mirror يفشل المسار مغلقاً ولا يعرض قائمة فارغة مضللة.
+          </div>
+        ) : (reviewQueueQ.data?.items ?? []).length === 0 ? (
+          <div className="text-[11px]" style={{ color: T.muted }}>لا توجد مرشّحات قرار معلّقة.</div>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {(reviewQueueQ.data?.items ?? []).map((candidate) => {
+              const state = rowStates[candidate.decision_id];
+              const reason = reviewReasons[candidate.decision_id] ?? '';
+              return (
+                <article key={candidate.decision_id} className="rounded-xl border p-3 text-[11px]" style={{ borderColor: T.line, background: 'rgba(15,23,42,.35)' }}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <strong style={{ color: T.ink }}>{candidate.decision_type ?? 'قرار زراعي'}</strong>
+                    {candidate.field_id && <span style={{ color: T.muted }}>حقل: {candidate.field_id}</span>}
+                    {candidate.confidence != null && <span style={{ color: T.faint }}>الثقة: {Math.round(candidate.confidence * 100)}%</span>}
+                    {candidate.created_at && <time style={{ color: T.faint }}>{new Date(candidate.created_at).toLocaleString('ar')}</time>}
+                  </div>
+                  <p className="mt-1" style={{ color: T.muted }}>{candidateEvidenceSummary(candidate.decision_value)}</p>
+                  <div className="mt-1 break-all" style={{ color: T.faint }}>lineage: {candidate.candidate_lineage_id}</div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <input
+                      value={reason}
+                      onChange={(event) => setReviewReasons((items) => ({ ...items, [candidate.decision_id]: event.target.value }))}
+                      placeholder="سبب المراجعة (إلزامي عند الرفض)"
+                      aria-label={`سبب مراجعة ${candidate.decision_id}`}
+                      className="min-w-[240px] flex-1 rounded-lg border px-2 py-1 bg-transparent"
+                      style={{ borderColor: T.line, color: T.ink }}
+                      disabled={state === 'sending'}
+                    />
+                    <button type="button" onClick={() => reviewCandidate(candidate.decision_id, candidate.candidate_lineage_id, 'approve')} disabled={state === 'sending'} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-semibold disabled:opacity-50" style={{ border: '1px solid #14532d', color: '#86efac' }}>
+                      <Check className="w-3 h-3" aria-hidden="true" /> اعتماد
+                    </button>
+                    <button type="button" onClick={() => reviewCandidate(candidate.decision_id, candidate.candidate_lineage_id, 'reject')} disabled={state === 'sending'} className="inline-flex items-center gap-1 px-2 py-1 rounded-lg font-semibold disabled:opacity-50" style={{ border: '1px solid #7c2d12', color: '#fca5a5' }}>
+                      <X className="w-3 h-3" aria-hidden="true" /> رفض
+                    </button>
+                    {state === 'reason_required' && <span role="alert" style={{ color: '#fca5a5' }}>سبب الرفض إلزامي.</span>}
+                    {state === 'failed' && <span role="alert" style={{ color: '#fdba74' }}>تعذّر حفظ المراجعة؛ أعد تحميل الطابور قبل المحاولة.</span>}
+                    {(state === 'approved' || state === 'rejected') && <span role="status" style={{ color: state === 'approved' ? '#86efac' : '#fca5a5' }}>{state === 'approved' ? 'اعتُمد' : 'رُفض'}</span>}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+        <div className="mt-2 text-[10px]" style={{ color: T.faint }}>
+          الانتقال وحفظ سجل المراجعة مملوكان لـdecision-service؛ هذه الشاشة لا تنشئ مهمة ولا dispatch ولا أمر معدّة.
+        </div>
+      </section>
 
       {/* طلبات أدوات وكيل AI */}
       <section className="rounded-2xl border p-3" style={{ borderColor: T.line, background: 'rgba(2,6,23,.35)' }}>

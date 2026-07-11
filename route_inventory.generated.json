@@ -434,7 +434,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 215,
+    "line": 216,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -442,7 +442,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 220,
+    "line": 221,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -450,7 +450,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 243,
+    "line": 244,
     "method": "GET",
     "path": "/v1/cutover/readiness",
     "function": "cutover_readiness"
@@ -458,7 +458,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 253,
+    "line": 254,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -466,7 +466,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 286,
+    "line": 287,
     "method": "POST",
     "path": "/v1/decisions/record",
     "function": "record_decision"
@@ -474,7 +474,15 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 323,
+    "line": 313,
+    "method": "GET",
+    "path": "/v1/decisions/review-queue",
+    "function": "review_queue"
+  },
+  {
+    "service": "decision-service",
+    "file": "services/decision-service/main.py",
+    "line": 349,
     "method": "POST",
     "path": "/v1/decisions/{decision_id}/review",
     "function": "review_candidate"
@@ -482,7 +490,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 390,
+    "line": 416,
     "method": "POST",
     "path": "/v1/dispatch/decisions",
     "function": "record_dispatch"
@@ -490,7 +498,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 416,
+    "line": 442,
     "method": "GET",
     "path": "/v1/dispatch/decisions",
     "function": "list_dispatch"
@@ -498,7 +506,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 430,
+    "line": 456,
     "method": "POST",
     "path": "/v1/outcomes/record",
     "function": "record_outcome"
@@ -506,7 +514,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 456,
+    "line": 482,
     "method": "POST",
     "path": "/v1/recommendation-outcomes",
     "function": "record_recommendation_outcome"
@@ -514,7 +522,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 481,
+    "line": 507,
     "method": "POST",
     "path": "/v1/learning/updates",
     "function": "record_learning_update"
@@ -522,7 +530,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 512,
+    "line": 538,
     "method": "GET",
     "path": "/v1/learning/summary",
     "function": "learning_summary"
@@ -530,7 +538,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 526,
+    "line": 552,
     "method": "GET",
     "path": "/v1/decisions",
     "function": "list_decisions"
@@ -538,7 +546,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 555,
+    "line": 581,
     "method": "GET",
     "path": "/v1/fields/{field_id}/lineage",
     "function": "field_lineage"
@@ -546,7 +554,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 571,
+    "line": 597,
     "method": "GET",
     "path": "/v1/outcomes/reconciled",
     "function": "reconciled_outcomes"
@@ -554,7 +562,7 @@
   {
     "service": "decision-service",
     "file": "services/decision-service/main.py",
-    "line": 591,
+    "line": 617,
     "method": "GET",
     "path": "/v1/decisions/{decision_id}/lineage",
     "function": "decision_lineage"
@@ -3402,7 +3410,15 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 42,
+    "line": 43,
+    "method": "GET",
+    "path": "/api/v1/decisions/review-queue",
+    "function": "get_decision_review_queue"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/decision_review.py",
+    "line": 69,
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/review",
     "function": "review_decision_candidate"
