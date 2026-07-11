@@ -7435,7 +7435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e62921bc3d217805e32812c41c7ac3f96428b2aa2b4b70753f4e914027491f2"
+          "content": "6c933dfc2df8d07694a705b8673e1223d06b7813c900c6f036f4caab0b2d79f9"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -7649,6 +7649,16 @@
         }
       ],
       "name": "services/sahool-platform/api/planting_calendar.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "51599196847ff934ef3b2510029732fcc62a67fc0d0affef4bc4a3fce69c5c6f"
+        }
+      ],
+      "name": "services/sahool-platform/api/platform_models.py",
       "type": "file"
     },
     {

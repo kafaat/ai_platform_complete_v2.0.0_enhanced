@@ -22,6 +22,8 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 CORE = os.path.join(ROOT, "services/sahool-platform")
 MAIN = os.path.join(CORE, "api", "main.py")
 ROUTERS = os.path.join(CORE, "api", "routers")
+# نماذج Pydantic استُخرِجت من main.py إلى platform_models.py (سلوك محفوظ، إعادة تصدير من main).
+PLATFORM_MODELS = os.path.join(CORE, "api", "platform_models.py")
 
 # أحرف bidi المحظورة (تخريب اتّجاه النصّ) — تُبنى من نقاط الترميز كي لا تظهر
 # حرفيّاً في هذا المصدر (وإلّا أخفقت فحوصها على نفسها).
@@ -93,7 +95,8 @@ def test_critical_salinity_adds_reference_note_only():
 
 def test_diagnose_request_has_optional_field_id():
     """field_id اختياريّ بافتراضيّ None — لا يكسر النداء الحاليّ."""
-    with open(MAIN, encoding="utf-8") as f:
+    # النموذج استُخرِج إلى platform_models.py (يُعاد تصديره من main، سلوك محفوظ).
+    with open(PLATFORM_MODELS, encoding="utf-8") as f:
         src = f.read()
     start = src.index("class DiagnoseRequest(")
     block = src[start : start + 400]
