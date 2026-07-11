@@ -3,7 +3,7 @@ services/actuator-service/main.py,actuator-service,False,0,6,False,False,True,ru
 services/agriai-engine/main.py,agriai-engine,True,8,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/ai_agronomist/main.py,ai_agronomist,True,13,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/auth/main.py,auth,True,0,27,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
-services/decision-service/main.py,decision-service,True,39,0,False,False,False,direct_routes,main.py owns direct route handlers
+services/decision-service/main.py,decision-service,True,42,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/edge-inference/main.py,edge-inference,True,6,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/field-segmentation/main.py,field-segmentation,True,4,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/guardrails-engine/main.py,guardrails-engine,True,0,7,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes

@@ -80,13 +80,19 @@ class DecisionClient:
             timeout=self.timeout,
         )
 
-    def post(self, path: str, tenant_id: str, body: dict[str, Any]) -> dict[str, Any]:
+    def post(
+        self,
+        path: str,
+        tenant_id: str,
+        body: dict[str, Any],
+        actor_headers: dict[str, str] | None = None,
+    ) -> dict[str, Any]:
         return _json_request(
             "POST",
             self.base + path,
             token=self.token,
             body=body,
-            headers={"X-Tenant-Id": tenant_id},
+            headers={"X-Tenant-Id": tenant_id, **(actor_headers or {})},
             timeout=self.timeout,
         )
 
@@ -260,7 +266,7 @@ class LifecycleRuntime:
         projection = self.decision.get(
             f"/v1/learning/models/{model_id}/active-state",
             tenant_id,
-            {"feature_set_id": feature_set_id, "environment": environment},
+            {"feature_set_id": feature_set_id, "target_environment": environment},
         )
         actual = registry_get(model_id, environment, projection["registry_alias"])
         drift = actual.artifact_digest != projection["active_artifact_digest"]
@@ -279,8 +285,9 @@ class LifecycleRuntime:
 
     def verify_activation(self, tenant_id: str, receipt: dict[str, Any]) -> dict[str, Any]:
         result = HttpInferenceVerifier().verify(receipt)
+        receipt_id = receipt["activation_receipt_id"]
         return self.decision.post(
-            f"/v1/learning/activation-receipts/{receipt['activation_receipt_id']}/verification",
+            f"/v1/learning/activation-receipts/{receipt_id}/verification",
             tenant_id,
             {
                 "verification_state": result["verification_state"],
@@ -288,14 +295,17 @@ class LifecycleRuntime:
                 "checks": result["checks"],
                 "latency_ms": result["latency_ms"],
                 "failure_reason": result["failure_reason"],
-                "verified_by": self.adapter_id,
+                # deterministic per receipt: safe to retry without duplicating evidence.
+                "idempotency_key": f"verify:{receipt_id}",
             },
+            actor_headers={"X-Verified-By": self.adapter_id},
         )
 
     def apply_rollout(self, tenant_id: str, plan: dict[str, Any]) -> dict[str, Any]:
         result = HttpTrafficController().apply(plan)
+        plan_id = plan["rollout_plan_id"]
         return self.decision.post(
-            f"/v1/learning/rollout-plans/{plan['rollout_plan_id']}/receipt",
+            f"/v1/learning/rollout-plans/{plan_id}/receipt",
             tenant_id,
             {
                 "receipt_state": "applied",
@@ -303,7 +313,9 @@ class LifecycleRuntime:
                 "observed_traffic_percent": result.get("traffic_percent"),
                 "candidate_artifact_digest": result.get("candidate_artifact_digest"),
                 "routing_version": result.get("version"),
+                "idempotency_key": f"rollout:{plan_id}",
             },
+            actor_headers={"X-Recorded-By": self.adapter_id},
         )
 
     def record_monitoring(
@@ -331,19 +343,27 @@ class LifecycleRuntime:
                 "sample_count": sample_count,
                 "metrics": metrics,
                 "drift_state": state,
-                "recorded_by": self.adapter_id,
+                # deterministic per (model, environment, window): retry-safe.
+                "idempotency_key": (
+                    f"monitor:{active['model_id']}:{active['target_environment']}:{start}:{end}"
+                ),
             },
+            actor_headers={"X-Captured-By": self.adapter_id},
         )
 
     def dispatch_retraining(self, tenant_id: str, request: dict[str, Any]) -> dict[str, Any]:
         result = HttpTrainingBackend().submit(request)
+        request_id = request["retraining_request_id"]
         return self.decision.post(
-            f"/v1/learning/retraining-requests/{request['retraining_request_id']}/dispatch-receipt",
+            f"/v1/learning/retraining-requests/{request_id}/dispatch-receipt",
             tenant_id,
             {
+                "dispatch_state": "dispatched",
                 "dispatcher_id": self.adapter_id,
                 "job_id": result.get("job_id"),
-                "job_state": result.get("state", "submitted"),
-                "backend_version": result.get("backend_version"),
+                "backend": result.get("backend_version"),
+                "receipt_payload": {"job_state": result.get("state", "submitted")},
+                "idempotency_key": f"dispatch:{request_id}",
             },
+            actor_headers={"X-Recorded-By": self.adapter_id},
         )

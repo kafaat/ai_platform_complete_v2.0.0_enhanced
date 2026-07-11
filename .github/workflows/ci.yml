@@ -438,7 +438,7 @@ jobs:
           done
           pg_isready -h localhost -p 5434 -U decision_test
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
-      - name: Apply decision-service migrations (custom runner — 001 through 014)
+      - name: Apply decision-service migrations (custom runner — 001 through 015)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -539,11 +539,23 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx11_6_registry_activation_boundary.py -q -p no:cacheprovider
+      # WX-12.1 runtime work-feed + rollout/retraining dispatch receipts (real Postgres, SoR on):
+      # proves the runtime<->decision-service loop persists append-only and closes.
+      - name: WX-12.1 runtime work-feed + receipts tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx12_1_runtime_receipts.py -q -p no:cacheprovider
       # WX-12 model-registry-adapter runtime is stdlib-only pure logic (drift classification,
-      # bounded backoff, compare-and-swap decision) — no DB. Run its tests here where pytest
-      # is available so every push proves the governed runtime consumer stays honest.
-      - name: WX-12 model-registry-adapter runtime tests (stdlib, no DB)
-        run: pytest services/model-registry-adapter/tests -q -p no:cacheprovider
+      # bounded backoff, compare-and-swap decision). The contract test additionally imports the
+      # decision-service app (fastapi is installed in this job) and replays every request the
+      # runtime/worker emit, so URL/header/body drift fails here every push.
+      - name: WX-12 model-registry-adapter runtime + contract tests
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest ../model-registry-adapter/tests -q -p no:cacheprovider
 
   security-scan:
     name: Security Scan

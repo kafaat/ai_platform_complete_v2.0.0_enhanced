@@ -49,6 +49,7 @@ from persistence import (
     get_active_model_state,
     list_decision_records,
     list_review_queue,
+    list_runtime_work,
     persist_decision_record,
     persist_dispatch_decision,
     persist_learning_update,
@@ -58,6 +59,8 @@ from persistence import (
     record_model_registry_activation_receipt,
     record_model_registry_rollback_receipt,
     record_monitoring_snapshot,
+    record_retraining_dispatch_receipt,
+    record_rollout_receipt,
     review_decision,
     review_model_activation_request,
     sor_enabled,
@@ -1623,3 +1626,110 @@ async def retraining_request_boundary(
     if result.get("status") == "ok":
         return {"accepted": True, "tenant_id": tenant, **result}
     raise HTTPException(status_code=409, detail=result.get("reason", "retraining conflict"))
+
+
+# --- WX-12.1 runtime integration: work feed + rollout/dispatch acknowledgement receipts -------
+
+
+@app.get("/v1/learning/runtime-work")
+async def runtime_work_feed(
+    worker_id: str = Query(default=""),
+    limit: int = Query(default=20),
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Authoritative, lease-free pending-work feed the registry-adapter runtime polls."""
+    tenant = _tenant(x_tenant_id)
+    wid = (worker_id or "").strip()
+    if not wid:
+        raise HTTPException(status_code=400, detail="worker_id is required")
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    return await list_runtime_work(tenant_id=tenant, worker_id=wid, limit=limit)
+
+
+class RolloutReceiptIn(BaseModel):
+    receipt_state: str
+    controller_id: str
+    observed_traffic_percent: float | None = None
+    candidate_artifact_digest: str | None = None
+    routing_version: str | None = None
+    failure_reason: str | None = None
+    receipt_payload: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+
+
+@app.post("/v1/learning/rollout-plans/{rollout_plan_id}/receipt")
+async def rollout_receipt_boundary(
+    rollout_plan_id: str,
+    payload: RolloutReceiptIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_recorded_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    actor = (x_recorded_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Recorded-By is required")
+    if payload.receipt_state not in {"applied", "rollout_failed"}:
+        raise HTTPException(
+            status_code=422, detail="receipt_state must be applied or rollout_failed"
+        )
+    if not payload.idempotency_key.strip():
+        raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if payload.receipt_state == "rollout_failed" and not (payload.failure_reason or "").strip():
+        raise HTTPException(status_code=422, detail="failure_reason is required")
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    result = await record_rollout_receipt(
+        tenant_id=tenant, recorded_by=actor, rollout_plan_id=rollout_plan_id, payload=payload
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail=result.get("reason"))
+    raise HTTPException(status_code=409, detail=result.get("reason", "rollout receipt conflict"))
+
+
+class RetrainingDispatchReceiptIn(BaseModel):
+    dispatch_state: str
+    dispatcher_id: str
+    job_id: str | None = None
+    backend: str | None = None
+    failure_reason: str | None = None
+    receipt_payload: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+
+
+@app.post("/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt")
+async def retraining_dispatch_receipt_boundary(
+    retraining_request_id: str,
+    payload: RetrainingDispatchReceiptIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_recorded_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    actor = (x_recorded_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Recorded-By is required")
+    if payload.dispatch_state not in {"dispatched", "dispatch_failed"}:
+        raise HTTPException(
+            status_code=422, detail="dispatch_state must be dispatched or dispatch_failed"
+        )
+    if not payload.idempotency_key.strip():
+        raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if payload.dispatch_state == "dispatched" and not (payload.job_id or "").strip():
+        raise HTTPException(status_code=422, detail="job_id is required for a dispatched receipt")
+    if payload.dispatch_state == "dispatch_failed" and not (payload.failure_reason or "").strip():
+        raise HTTPException(status_code=422, detail="failure_reason is required")
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    result = await record_retraining_dispatch_receipt(
+        tenant_id=tenant,
+        recorded_by=actor,
+        retraining_request_id=retraining_request_id,
+        payload=payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail=result.get("reason"))
+    raise HTTPException(status_code=409, detail=result.get("reason", "dispatch receipt conflict"))

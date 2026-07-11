@@ -17,8 +17,17 @@ TOKEN = os.getenv("DECISION_SERVICE_TOKEN", "")
 ADAPTER_ID = os.getenv("REGISTRY_ADAPTER_ID", "")
 
 
-def _post(path: str, payload: dict[str, Any], tenant_id: str) -> dict[str, Any]:
-    headers = {"Content-Type": "application/json", "X-Tenant-Id": tenant_id}
+def _post(
+    path: str,
+    payload: dict[str, Any],
+    tenant_id: str,
+    extra_headers: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    headers = {
+        "Content-Type": "application/json",
+        "X-Tenant-Id": tenant_id,
+        **(extra_headers or {}),
+    }
     if TOKEN:
         headers["Authorization"] = f"Bearer {TOKEN}"
     req = urllib.request.Request(
@@ -58,8 +67,10 @@ def execute_activation(command: dict[str, Any], tenant_id: str) -> dict[str, Any
                 "active_artifact_uri": state.artifact_uri,
                 "active_artifact_digest": state.artifact_digest,
                 "registry_version": state.version,
+                "idempotency_key": f"activation-receipt:{cid}",
             },
             tenant_id,
+            {"X-Recorded-By": ADAPTER_ID},
         )
     except Exception as exc:
         _post(
@@ -69,8 +80,10 @@ def execute_activation(command: dict[str, Any], tenant_id: str) -> dict[str, Any
                 "delivery_token": delivery_token,
                 "receipt_state": "failed",
                 "failure_reason": str(exc)[:500],
+                "idempotency_key": f"activation-receipt:{cid}",
             },
             tenant_id,
+            {"X-Recorded-By": ADAPTER_ID},
         )
         raise
 
@@ -105,8 +118,10 @@ def execute_rollback(command: dict[str, Any], tenant_id: str) -> dict[str, Any]:
                 "active_artifact_uri": state.artifact_uri,
                 "active_artifact_digest": state.artifact_digest,
                 "registry_version": state.version,
+                "idempotency_key": f"rollback-receipt:{cid}",
             },
             tenant_id,
+            {"X-Recorded-By": ADAPTER_ID},
         )
     except Exception as exc:
         _post(
@@ -116,7 +131,9 @@ def execute_rollback(command: dict[str, Any], tenant_id: str) -> dict[str, Any]:
                 "delivery_token": delivery_token,
                 "receipt_state": "rollback_failed",
                 "failure_reason": str(exc)[:500],
+                "idempotency_key": f"rollback-receipt:{cid}",
             },
             tenant_id,
+            {"X-Recorded-By": ADAPTER_ID},
         )
         raise

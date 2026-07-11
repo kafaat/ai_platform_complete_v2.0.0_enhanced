@@ -2886,3 +2886,232 @@ async def create_retraining_request(
             }
     finally:
         await conn.close()
+
+
+# --- WX-12.1 runtime integration: work feed + rollout/retraining dispatch receipts -----------
+
+
+async def list_runtime_work(*, tenant_id: str, worker_id: str, limit: int = 20) -> dict[str, Any]:
+    """Authoritative pending-work feed for the model-registry-adapter runtime.
+
+    Aggregates the not-yet-acknowledged items across the WX-11/WX-12 lifecycle: registry
+    activation/rollback commands still needing a receipt, activation receipts awaiting
+    post-activation verification, rollout plans awaiting an application receipt, and retraining
+    requests awaiting a dispatch receipt. Read-only projection over the SoR tables; fail-closed.
+    """
+    lim = max(1, min(int(limit or 20), 100))
+    conn = await _connect()
+    try:
+        rows = await conn.fetch(
+            """
+            WITH work AS (
+                SELECT 'activation_command'::text AS work_type, c.created_at AS at,
+                       jsonb_build_object(
+                         'activation_command_id', c.activation_command_id,
+                         'model_id', c.model_id,
+                         'target_environment', c.target_environment,
+                         'registry_alias', c.registry_alias,
+                         'previous_artifact_digest', c.previous_artifact_digest,
+                         'candidate_artifact_uri', c.candidate_artifact_uri,
+                         'candidate_artifact_digest', c.candidate_artifact_digest) AS payload
+                FROM decision_model_registry_activation_commands c
+                WHERE c.tenant_id=$1::uuid
+                  AND NOT EXISTS (SELECT 1 FROM decision_model_registry_activation_receipts r
+                                  WHERE r.tenant_id=c.tenant_id AND r.activation_command_id=c.activation_command_id)
+                UNION ALL
+                SELECT 'rollback_command', rc.requested_at,
+                       jsonb_build_object(
+                         'rollback_command_id', rc.rollback_command_id,
+                         'model_id', ac.model_id,
+                         'target_environment', rc.target_environment,
+                         'registry_alias', rc.registry_alias,
+                         'replace_artifact_digest', rc.replace_artifact_digest,
+                         'restore_artifact_uri', rc.restore_artifact_uri,
+                         'restore_artifact_digest', rc.restore_artifact_digest)
+                FROM decision_model_registry_rollback_commands rc
+                JOIN decision_model_registry_activation_commands ac
+                  ON ac.tenant_id=rc.tenant_id AND ac.activation_command_id=rc.activation_command_id
+                WHERE rc.tenant_id=$1::uuid
+                  AND NOT EXISTS (SELECT 1 FROM decision_model_registry_rollback_receipts rr
+                                  WHERE rr.tenant_id=rc.tenant_id AND rr.rollback_command_id=rc.rollback_command_id)
+                UNION ALL
+                SELECT 'post_activation_verification', ar.recorded_at,
+                       jsonb_build_object(
+                         'activation_receipt_id', ar.activation_receipt_id,
+                         'model_id', ac.model_id,
+                         'feature_set_id', ac.feature_set_id,
+                         'target_environment', ac.target_environment,
+                         'active_artifact_uri', ar.active_artifact_uri,
+                         'active_artifact_digest', ar.active_artifact_digest)
+                FROM decision_model_registry_activation_receipts ar
+                JOIN decision_model_registry_activation_commands ac
+                  ON ac.tenant_id=ar.tenant_id AND ac.activation_command_id=ar.activation_command_id
+                WHERE ar.tenant_id=$1::uuid AND ar.receipt_state='activated'
+                  AND NOT EXISTS (SELECT 1 FROM decision_model_post_activation_verifications v
+                                  WHERE v.tenant_id=ar.tenant_id AND v.activation_receipt_id=ar.activation_receipt_id)
+                UNION ALL
+                SELECT 'rollout_apply', rp.requested_at,
+                       jsonb_build_object(
+                         'rollout_plan_id', rp.rollout_plan_id,
+                         'model_id', ac.model_id,
+                         'feature_set_id', ac.feature_set_id,
+                         'target_environment', ac.target_environment,
+                         'rollout_mode', rp.mode,
+                         'traffic_percent', rp.traffic_percent,
+                         'candidate_artifact_digest', ac.candidate_artifact_digest,
+                         'expected_active_artifact_digest', ac.previous_artifact_digest)
+                FROM decision_model_rollout_plans rp
+                JOIN decision_model_registry_activation_receipts ar
+                  ON ar.tenant_id=rp.tenant_id AND ar.activation_receipt_id=rp.activation_receipt_id
+                JOIN decision_model_registry_activation_commands ac
+                  ON ac.tenant_id=ar.tenant_id AND ac.activation_command_id=ar.activation_command_id
+                WHERE rp.tenant_id=$1::uuid
+                  AND NOT EXISTS (SELECT 1 FROM decision_model_rollout_receipts rr
+                                  WHERE rr.tenant_id=rp.tenant_id AND rr.rollout_plan_id=rp.rollout_plan_id)
+                UNION ALL
+                SELECT 'retraining_dispatch', tr.requested_at,
+                       jsonb_build_object(
+                         'retraining_request_id', tr.retraining_request_id,
+                         'model_id', tr.model_id,
+                         'feature_set_id', tr.feature_set_id,
+                         'dataset_fingerprint', tr.dataset_fingerprint,
+                         'training_manifest', tr.training_manifest,
+                         'code_version', tr.code_version,
+                         'hyperparameters', tr.hyperparameters)
+                FROM decision_model_retraining_requests tr
+                WHERE tr.tenant_id=$1::uuid
+                  AND NOT EXISTS (SELECT 1 FROM decision_model_retraining_dispatch_receipts dr
+                                  WHERE dr.tenant_id=tr.tenant_id AND dr.retraining_request_id=tr.retraining_request_id)
+            )
+            SELECT work_type, payload FROM work ORDER BY at ASC LIMIT $2
+            """,
+            tenant_id,
+            lim,
+        )
+        items = [
+            {
+                "work_type": r["work_type"],
+                "payload": r["payload"]
+                if isinstance(r["payload"], dict)
+                else json.loads(r["payload"]),
+            }
+            for r in rows
+        ]
+        return {"status": "ok", "authoritative": True, "worker_id": worker_id, "items": items}
+    finally:
+        await conn.close()
+
+
+async def record_rollout_receipt(
+    *, tenant_id: str, recorded_by: str, rollout_plan_id: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else vars(payload)
+    req_hash = _stable_hash({"rollout_plan_id": rollout_plan_id, **data})
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            if not await conn.fetchval(
+                "SELECT 1 FROM decision_model_rollout_plans WHERE tenant_id=$1::uuid AND rollout_plan_id=$2",
+                tenant_id,
+                rollout_plan_id,
+            ):
+                return {"status": "not_found", "reason": "rollout_plan_not_found"}
+            rid = (
+                "rollrcpt_"
+                + hashlib.sha256(f"{tenant_id}:{rollout_plan_id}".encode()).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_rollout_receipts(rollout_receipt_id,tenant_id,rollout_plan_id,receipt_state,controller_id,observed_traffic_percent,candidate_artifact_digest,routing_version,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13) ON CONFLICT DO NOTHING RETURNING *""",
+                rid,
+                tenant_id,
+                rollout_plan_id,
+                payload.receipt_state,
+                payload.controller_id,
+                payload.observed_traffic_percent,
+                payload.candidate_artifact_digest,
+                payload.routing_version,
+                payload.failure_reason,
+                _json(payload.receipt_payload),
+                recorded_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                return {"status": "conflict", "reason": "rollout_receipt_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_ROLLOUT_RECEIPT_RECORDED",
+                aggregate_type="decision_model_rollout_receipts",
+                aggregate_id=rid,
+                payload={
+                    "rollout_plan_id": rollout_plan_id,
+                    "receipt_state": payload.receipt_state,
+                },
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "rollout_receipt_id": rid,
+                "receipt_state": payload.receipt_state,
+            }
+    finally:
+        await conn.close()
+
+
+async def record_retraining_dispatch_receipt(
+    *, tenant_id: str, recorded_by: str, retraining_request_id: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else vars(payload)
+    req_hash = _stable_hash({"retraining_request_id": retraining_request_id, **data})
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            if not await conn.fetchval(
+                "SELECT 1 FROM decision_model_retraining_requests WHERE tenant_id=$1::uuid AND retraining_request_id=$2",
+                tenant_id,
+                retraining_request_id,
+            ):
+                return {"status": "not_found", "reason": "retraining_request_not_found"}
+            rid = (
+                "disprcpt_"
+                + hashlib.sha256(f"{tenant_id}:{retraining_request_id}".encode()).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_retraining_dispatch_receipts(dispatch_receipt_id,tenant_id,retraining_request_id,dispatch_state,dispatcher_id,job_id,backend,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12) ON CONFLICT DO NOTHING RETURNING *""",
+                rid,
+                tenant_id,
+                retraining_request_id,
+                payload.dispatch_state,
+                payload.dispatcher_id,
+                payload.job_id,
+                payload.backend,
+                payload.failure_reason,
+                _json(payload.receipt_payload),
+                recorded_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                return {"status": "conflict", "reason": "dispatch_receipt_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_RETRAINING_DISPATCH_RECEIPT_RECORDED",
+                aggregate_type="decision_model_retraining_dispatch_receipts",
+                aggregate_id=rid,
+                payload={
+                    "retraining_request_id": retraining_request_id,
+                    "dispatch_state": payload.dispatch_state,
+                },
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "dispatch_receipt_id": rid,
+                "dispatch_state": payload.dispatch_state,
+            }
+    finally:
+        await conn.close()

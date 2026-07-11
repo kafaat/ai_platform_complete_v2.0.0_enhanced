@@ -1,0 +1,214 @@
+"""WX-12.1 runtime work-feed + rollout/retraining dispatch receipts against real Postgres."""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import sys
+from pathlib import Path
+from types import SimpleNamespace
+from uuid import uuid4
+
+import pytest
+
+SERVICE_DIR = Path(__file__).resolve().parents[1]
+if str(SERVICE_DIR) not in sys.path:
+    sys.path.insert(0, str(SERVICE_DIR))
+DB = os.getenv("DATABASE_URL", "").strip()
+pytestmark = pytest.mark.skipif(not DB, reason="requires real Postgres")
+TENANT = "00000000-0000-0000-0000-000000009121"
+
+
+def _run(c):
+    return asyncio.run(c)
+
+
+async def _connect():
+    import asyncpg
+
+    return await asyncpg.connect(DB, statement_cache_size=0)
+
+
+async def _seed_retraining() -> str:
+    rid = "retrain_" + uuid4().hex
+    c = await _connect()
+    try:
+        await c.execute(
+            """INSERT INTO decision_model_retraining_requests(retraining_request_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,training_manifest,code_version,hyperparameters,requested_by,idempotency_key,request_hash)
+               VALUES($1,$2::uuid,'m1','f1',$3,'{"a":1}'::jsonb,'v1','{"lr":0.1}'::jsonb,'planner',$4,'h')""",
+            rid,
+            TENANT,
+            "a" * 64,
+            "idem_" + uuid4().hex,
+        )
+        return rid
+    finally:
+        await c.close()
+
+
+async def _seed_rollout_plan() -> str:
+    pid = "rollout_" + uuid4().hex
+    c = await _connect()
+    try:
+        await c.execute(
+            """INSERT INTO decision_model_rollout_plans(rollout_plan_id,tenant_id,activation_receipt_id,mode,traffic_percent,policy,requested_by,idempotency_key,request_hash)
+               VALUES($1,$2::uuid,$3,'canary',10,'{}'::jsonb,'planner',$4,'h')""",
+            pid,
+            TENANT,
+            "arc_" + uuid4().hex,
+            "idem_" + uuid4().hex,
+        )
+        return pid
+    finally:
+        await c.close()
+
+
+def _rollout_payload(key: str, state: str = "applied") -> SimpleNamespace:
+    return SimpleNamespace(
+        receipt_state=state,
+        controller_id="adapter-1",
+        observed_traffic_percent=10.0,
+        candidate_artifact_digest="d" * 64,
+        routing_version="v1",
+        failure_reason=None if state == "applied" else "boom",
+        receipt_payload={},
+        idempotency_key=key,
+    )
+
+
+def _dispatch_payload(key: str, state: str = "dispatched") -> SimpleNamespace:
+    return SimpleNamespace(
+        dispatch_state=state,
+        dispatcher_id="adapter-1",
+        job_id="job-1" if state == "dispatched" else None,
+        backend="b1",
+        failure_reason=None if state == "dispatched" else "boom",
+        receipt_payload={},
+        idempotency_key=key,
+    )
+
+
+def test_runtime_work_feed_surfaces_retraining_dispatch_with_full_payload():
+    from persistence import list_runtime_work, record_retraining_dispatch_receipt
+
+    rid = _run(_seed_retraining())
+    feed = _run(list_runtime_work(tenant_id=TENANT, worker_id="w1", limit=50))
+    item = next(
+        (
+            i
+            for i in feed["items"]
+            if i["work_type"] == "retraining_dispatch"
+            and i["payload"]["retraining_request_id"] == rid
+        ),
+        None,
+    )
+    assert item is not None
+    # the feed must carry every key the training-backend helper consumes.
+    for k in (
+        "model_id",
+        "feature_set_id",
+        "dataset_fingerprint",
+        "training_manifest",
+        "code_version",
+        "hyperparameters",
+    ):
+        assert k in item["payload"], k
+
+    res = _run(
+        record_retraining_dispatch_receipt(
+            tenant_id=TENANT,
+            recorded_by="adapter-1",
+            retraining_request_id=rid,
+            payload=_dispatch_payload("disp_" + rid),
+        )
+    )
+    assert res["status"] == "ok"
+    # once acknowledged, the item leaves the feed.
+    feed2 = _run(list_runtime_work(tenant_id=TENANT, worker_id="w1", limit=50))
+    assert not any(i["payload"].get("retraining_request_id") == rid for i in feed2["items"])
+
+
+def test_dispatch_receipt_is_append_only_and_guards_missing_request():
+    from persistence import record_retraining_dispatch_receipt
+
+    rid = _run(_seed_retraining())
+    key = "disp_" + rid
+    first = _run(
+        record_retraining_dispatch_receipt(
+            tenant_id=TENANT,
+            recorded_by="a",
+            retraining_request_id=rid,
+            payload=_dispatch_payload(key),
+        )
+    )
+    assert first["status"] == "ok"
+    dup = _run(
+        record_retraining_dispatch_receipt(
+            tenant_id=TENANT,
+            recorded_by="a",
+            retraining_request_id=rid,
+            payload=_dispatch_payload(key),
+        )
+    )
+    assert dup["status"] == "conflict"
+    missing = _run(
+        record_retraining_dispatch_receipt(
+            tenant_id=TENANT,
+            recorded_by="a",
+            retraining_request_id="retrain_" + uuid4().hex,
+            payload=_dispatch_payload("k_" + uuid4().hex),
+        )
+    )
+    assert missing["status"] == "not_found"
+
+
+def test_rollout_receipt_persists_append_only_and_guards_missing_plan():
+    from persistence import record_rollout_receipt
+
+    pid = _run(_seed_rollout_plan())
+    key = "roll_" + pid
+    first = _run(
+        record_rollout_receipt(
+            tenant_id=TENANT,
+            recorded_by="adapter-1",
+            rollout_plan_id=pid,
+            payload=_rollout_payload(key),
+        )
+    )
+    assert first["status"] == "ok" and first["receipt_state"] == "applied"
+
+    async def count():
+        c = await _connect()
+        try:
+            return await c.fetchval(
+                "SELECT count(*) FROM decision_model_rollout_receipts WHERE rollout_plan_id=$1", pid
+            )
+        finally:
+            await c.close()
+
+    assert _run(count()) == 1
+    dup = _run(
+        record_rollout_receipt(
+            tenant_id=TENANT,
+            recorded_by="adapter-1",
+            rollout_plan_id=pid,
+            payload=_rollout_payload(key),
+        )
+    )
+    assert dup["status"] == "conflict"
+    missing = _run(
+        record_rollout_receipt(
+            tenant_id=TENANT,
+            recorded_by="adapter-1",
+            rollout_plan_id="rollout_" + uuid4().hex,
+            payload=_rollout_payload("k_" + uuid4().hex),
+        )
+    )
+    assert missing["status"] == "not_found"
+
+
+def test_work_feed_empty_is_valid_sql():
+    from persistence import list_runtime_work
+
+    feed = _run(list_runtime_work(tenant_id="00000000-0000-0000-0000-0000000099ff", worker_id="w1"))
+    assert feed["status"] == "ok" and feed["items"] == []

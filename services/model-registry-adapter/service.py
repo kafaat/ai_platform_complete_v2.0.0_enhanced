@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from adapter import validate_runtime
 from runtime import Backoff, LifecycleRuntime, RuntimeContractError
+from worker import execute_activation, execute_rollback
 
 logging.basicConfig(
     level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s %(message)s"
@@ -75,8 +76,12 @@ def run_once(runtime: LifecycleRuntime) -> int:
             )
         elif kind == "retraining_dispatch":
             runtime.dispatch_retraining(tenant, payload)
-        elif kind in {"activation_command", "rollback_command", "active_state_reconcile"}:
-            # Existing worker.py and registry adapter own these work types.
+        elif kind == "activation_command":
+            execute_activation(payload, tenant)
+        elif kind == "rollback_command":
+            execute_rollback(payload, tenant)
+        elif kind == "active_state_reconcile":
+            # Read/evidence path owned by runtime.reconcile_active_state; not fed as pending work.
             continue
         else:
             raise RuntimeContractError(f"unsupported work_type={kind!r}")
