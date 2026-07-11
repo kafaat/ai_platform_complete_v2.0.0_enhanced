@@ -8965,6 +8965,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "30efa4c35646aa639d611e7755c7aa4a0026218d83be74f0a64b26ba1e213d03"
+        }
+      ],
+      "name": "services/decision-service/migrations/002_decision_review.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2ea21dcbd27d2d94f65b6e45d05a3ac987fe476ccff79e1a334242be0aa2924d"
         }
       ],
@@ -9039,6 +9049,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_p4_decision_service_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "654f9618fc81fb5a8f6853134547254b4e9363126c342328cabbbbaae95c1183"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx10_7_decision_review.py",
       "type": "file"
     },
     {
@@ -13519,6 +13539,16 @@
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_record.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fab996819ec64ea2e55562a473864f3014c594adf5db93d23761bef30c7ace08"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/decision_review.py",
       "type": "file"
     },
     {
@@ -19625,6 +19655,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4729562fbb5a820ff40f68742ef39dc0e2e9835c838bb39e3f83af26859d17ed"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_decision_approve_permission.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "76aefd8df8a48aefa2474852ab4998e844052ef737cacd722ade6e4678a22add"
         }
       ],
@@ -19749,6 +19789,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_decision_record_persistence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "040c439b179e847fb8cfe875b2fceb08ea5ecddf20d51fa2b8584e37d112135a"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_decision_review_endpoint.py",
       "type": "file"
     },
     {
