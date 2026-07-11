@@ -74,3 +74,13 @@
   [`../../SAHOOL_PRODUCTION_GAP_REPORT_v1.md`](../../SAHOOL_PRODUCTION_GAP_REPORT_v1.md):44-74.
 - **الأداة القابلة للتشغيل:** [`../../tools/sahool_inspector.py`](../../tools/sahool_inspector.py)
   (RLS coverage / router wiring / NATS subjects / endpoint authz / migration manifest).
+
+## WX-12-RUNTIME-SCHEDULERS — OPEN (High) — من التدقيق الجنائيّ 2026-07-12
+- **المصدر:** `services/model-registry-adapter/service.py` يعالج `monitoring_window` و`active_state_reconcile` لكنّ `persistence.list_runtime_work` لا يُنتج هذين النوعين ⇒ المراقبة والمصالحة الدوريّة كود خامل بلا مُطلِق.
+- **لماذا مؤجَّل (لا نصف حلّ):** يلزم قرار بنية مجدول دائم (cron/NATS/جدول schedule دائم) + حالة جدولة + اختبارات إنشاء عمل دوريّ. نصف الحلّ (إنتاج نوع بلا جدولة حقيقيّة) يخالف "لا نصف حلّ".
+- **التصميم المُوصى:** جدول `decision_model_monitoring_schedules` (نافذة + دوريّة + آخر تشغيل) يُنتج منه list_runtime_work عناصر `monitoring_window` مستحقّة؛ ومثله جدول reconcile دوريّ لكلّ (model, environment) نشط. كلاهما خلف راية تفعيل حتّى التحقّق التكامليّ.
+
+## WX-12-RUNTIME-MULTITENANCY — OPEN (High) — من التدقيق الجنائيّ 2026-07-12
+- **المصدر:** `service.py` يعتمد `RUNTIME_TENANT_ID` واحداً لكلّ process؛ غير قابل للتوسّع لمنصّة SaaS متعدّدة المستأجرين (instance لكلّ tenant هشّ).
+- **لماذا مؤجَّل:** قرار بنية (NATS partition by tenant أو worker مُخوَّل بتعداد مستأجرين من الخادم) + عدم السماح للـworker باختيار tenant من header بحرّية — يتقاطع مع مصادقة الخدمة (Critical 1 المُغلَق يمنع الانتحال؛ التقسيم المُخوَّل خطوة تالية).
+- **التصميم المُوصى:** feed مُخوَّل يُرجِع عمل المستأجرين المسموح بهم للـworker المُصادَق فقط (لا header حرّ)، أو استهلاك NATS مُقسَّم.

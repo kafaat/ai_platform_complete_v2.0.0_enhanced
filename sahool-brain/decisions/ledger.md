@@ -559,3 +559,8 @@ SHAs من `git log --oneline origin/main`.
 | SHA | القرار + السبب |
 |---|---|
 | `1f53f63` | **إصلاح فجوات عقد WX-12 التي كشفها تدقيق خارجيّ لـ`c7913fd` (بعد التحقّق منها في الكود).** migration 015 (جدولا إيصال append-only) + 3 نقاط decision-service (runtime-work feed بحمولة كاملة عبر JOIN، rollout receipt، retraining dispatch receipt) + إصلاح adapter (target_environment، ترويسات فاعِلة، idempotency حتميّة، مستهلك activation/rollback في supervisor). **درس منهجيّ: الحُرّاس البنيويّة (وجود ملفّ/رمز) لا تُثبت تكامل عقد HTTP حيّ — تلزم اختبارات contract تُعيد تشغيل طلبات الـclient الحقيقيّة ضدّ التطبيق، وقد كشفت خللاً أعمق (حمولات feed رقيقة).** لا BFF/ميزانيّة. بوّابات كاملة + main-only. fail-closed حتّى operator flip. |
+
+## 2026-07-12 — WX-12.2: تصلّب ما بعد التدقيق الجنائيّ الثاني
+| SHA | القرار + السبب |
+|---|---|
+| `ad8156d` | **إغلاق فجوات الصحّة/الأمان المُحتواة من التدقيق الجنائيّ الثاني، وتأجيل البنية بصدق.** migration 016 (claim/lease دائم لأنواع العمل ذات الأثر الجانبيّ — أمان متعدّد-النُسخ) · middleware توكن-خدمة opt-in (لا يُوثَق header على المنفذ الداخليّ) · replay semantics للإيصالات (request_hash) · CAS digest من الإيصال · LOOP_TABLES · readiness مُدرِكة-التبعيّة. **درس: الحُرّاس + عقد API لا يُثبتان سلامة متعدّد-النُسخ ولا أمان حدود-الخدمة — يلزم claim/lease + مصادقة خدمة.** أُجّل (لا نصف حلّ): مجدولات monitoring/reconciliation (High 1) + تقسيم متعدّد-المستأجرين (High 5) كفجوات OPEN بتصميم مُوصى. fail-closed حتّى operator flip. |
