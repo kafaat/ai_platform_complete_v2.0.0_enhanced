@@ -554,3 +554,8 @@ SHAs من `git log --oneline origin/main`.
 |---|---|
 | `81b1351` | **دمج WX-12 كـincrement إضافيّ بحت على tip `d3e44b0`؛ اللقطة المُسلَّمة تسبق WX-10.13→11.12 فأخذتُ دلتا WX-12 فقط (خدمة+scripts+gates+workflow+docs) وتجاهلتُ فروق الملفّات المتباعدة.** خدمة stdlib صرف تقرأ نقاط حوكمة decision-service وتنفّذها (compare-and-swap/verify/rollout/monitor/retrain) بلا تدريب/actuate ذاتيّ (DRY_RUN + حارس token). بوّابتان في structural-lint + اختبارات في وظيفة decision-service (بلا DB). لا compose (نشر مُشغَّل-مُوجَّه). لا BFF/migration/ميزانيّة. تغطية بلا تغيير (٤٧٪). |
 | `d3e44b0` (FF) | **FF main+develop `6c8cf8d`→`d3e44b0` بعد CI 13/13 أخضر** (WX-10.13→11.6 + closed-loop WX-11.7→11.12 + coverage-scope fix). بوّابة التغطية (كانت تفشل على f47b810) خضراء بعد استثناء decision-service. main-only (runtime-smoke·inventory-drift) مُتحقَّق بلا drift. |
+
+## 2026-07-12 — WX-12.1: إغلاق عقد runtime<->decision-service (تدقيق دمج خارجيّ)
+| SHA | القرار + السبب |
+|---|---|
+| `1f53f63` | **إصلاح فجوات عقد WX-12 التي كشفها تدقيق خارجيّ لـ`c7913fd` (بعد التحقّق منها في الكود).** migration 015 (جدولا إيصال append-only) + 3 نقاط decision-service (runtime-work feed بحمولة كاملة عبر JOIN، rollout receipt، retraining dispatch receipt) + إصلاح adapter (target_environment، ترويسات فاعِلة، idempotency حتميّة، مستهلك activation/rollback في supervisor). **درس منهجيّ: الحُرّاس البنيويّة (وجود ملفّ/رمز) لا تُثبت تكامل عقد HTTP حيّ — تلزم اختبارات contract تُعيد تشغيل طلبات الـclient الحقيقيّة ضدّ التطبيق، وقد كشفت خللاً أعمق (حمولات feed رقيقة).** لا BFF/ميزانيّة. بوّابات كاملة + main-only. fail-closed حتّى operator flip. |
