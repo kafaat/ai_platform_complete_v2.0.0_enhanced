@@ -23815,7 +23815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46569251f0c69fb26bd8b7c6d02fa2068ec06f037c1b067b6aeb263957353261"
+          "content": "1909ca705e9081026a1fb7c955065f3ac248377817c5deb5830b1d34ed8d2399"
         }
       ],
       "name": "services/weather-service/tests/test_canonical_weather_state.py",

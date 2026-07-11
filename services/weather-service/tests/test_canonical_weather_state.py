@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -224,3 +225,40 @@ def test_et0_view_fail_closed_when_insufficient():
     assert view["et0_mm"] is None
     assert view["quality_status"] == "insufficient"
     assert view["derived_from"] == "canonical_weather_state"
+
+
+# ── WX-10.2 بوّابة الإغلاق: لا مسار حساب ET0 خارج المُجمِّع + لا رفع جودة ──────
+def test_agro_et0_has_no_direct_computation_path_outside_composer():
+    # الانعكاس المعماريّ (حارس ساكن): agro_et0 يشتقّ من الحالة فقط — لا يستدعي النواة
+    # (compute_et0) ولا المنتَج الكنسيّ (et0_agro_product) مباشرةً؛ كلّ ET0 عبر المُجمِّع.
+    src = (Path(__file__).resolve().parent.parent / "weather_runtime.py").read_text(
+        encoding="utf-8"
+    )
+    assert "et0_agro_product" not in src, "agro_et0 يجب ألّا يستدعي المنتَج الكنسيّ مباشرةً"
+    assert "compute_et0" not in src, "agro_et0 يجب ألّا يستدعي النواة مباشرةً"
+    assert "build_canonical_weather_state" in src and "et0_view" in src
+
+
+def test_et0_view_does_not_recompute_reads_state_only():
+    import inspect
+
+    src = inspect.getsource(et0_view)
+    # لا إعادة حساب: الـView لا يستدعي النواة/المنتَج/المُجمِّع — يقرأ الحالة فقط.
+    assert "et0_agro_product" not in src
+    assert "compute_et0" not in src
+    assert "build_canonical_weather_state" not in src
+    assert 'state.get("products"' in src
+
+
+def test_et0_view_preserves_degraded_and_does_not_elevate_partial():
+    # مدخلات جزئيّة (بلا solar/rh/wind) ⇒ hargreaves_fallback = degraded؛
+    # الـView لا يرفعها إلى validated ولا يحوّل الحالة الجزئيّة إلى نجاح كامل.
+    inp = dict(t_max_c=30.0, t_min_c=18.0, lat_deg=15.5, day_of_year=100)
+    state = build_canonical_weather_state(**inp)
+    view = et0_view(state)
+    direct = et0_agro_product(**inp)
+    assert view["method"] == "hargreaves_fallback"
+    assert view["quality_status"] == "degraded" == direct["quality_status"]
+    assert view["et0_mm"] is not None and view["et0_mm"] == direct["et0_mm"]
+    assert state["availability"]["et0"] is True  # degraded مُتاح لكنّه ليس validated
+    assert state["quality"] != "validated"  # الحالة الكلّيّة لم تُرفَع زوراً
