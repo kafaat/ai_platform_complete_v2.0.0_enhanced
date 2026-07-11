@@ -1,0 +1,13 @@
+# تغطية الوحدة (Unit-coverage) لبوّابة `pytest -m unit --cov=services` في CI.
+#
+# decision-service مُستثنى عمداً من *مقياس تغطية الوحدة* لأنّه يُختبَر باختبارات
+# Postgres حقيقيّة في وظيفة CI مخصّصة ("Decision Service Tests": 15 ملفّ اختبار،
+# migrations 001-014، mirror SoR-off + كامل السلسلة الآمِرة SoR-on). كوده غير قابل
+# للتغطية بـ`-m unit` (يحتاج DB حيّ + fail-closed mirror)، فإدراج أسطره الصفريّة في
+# مقام تغطية الوحدة عقوبة مزدوجة تنحدر مع كلّ زيادة decision-service. الاستثناء يصون
+# دلالة الأرضيّة (منطق صرف) دون إخفاء أيّ كود غير مُختبَر — decision-service مُغطّى
+# بالكامل في وظيفته الخاصّة. لا يمسّ هذا الملفّ بوّابة تغطية المنصّة (تستخدم
+# services/sahool-platform/.coveragerc عبر --cov-config صريح).
+[run]
+omit =
+    services/decision-service/*
