@@ -8935,7 +8935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdfefe0230837db4c1c1479a5b3713cb895954e18e2632b0bacbb195d002ba21"
+          "content": "1470e510a45ab79dfc523043d2cd6ca6bcc0f1467ae2c86393f893da38822b30"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9085,7 +9085,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1f0c82301ec32cec95387d81bedeaf0c84279bcf87f528d5bfef131bbd9c243d"
+          "content": "4e0e64f321697ee1bb8c523d6b8e5ec92ab473332b265c4980850101ec72bbbb"
+        }
+      ],
+      "name": "services/decision-service/migrations/014_wx11_closed_loop_completion.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ba8c7c81420bd0433f86f380854ea6fb59cd9d6c9c21f1d48ed5a780531584aa"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9265,7 +9275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "212d75f50cb745fbd5dede47c59540b246eac7083972fc53c05da0f6cae94248"
+          "content": "f2b3c0b4b89fc0973b9ff206f8ff758416c3d13115d6ab265ea41ddefb335e0f"
         }
       ],
       "name": "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",

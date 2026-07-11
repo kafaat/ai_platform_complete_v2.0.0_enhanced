@@ -7,8 +7,8 @@
       "migrations": 167,
       "mobile": 47,
       "prometheus": 2,
-      "scripts": 143,
-      "services": 1642,
+      "scripts": 144,
+      "services": 1643,
       "shared": 65,
       "tests": 37
     }
@@ -29,8 +29,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 3996,
-  "generated_at": "2026-07-11T19:49:00.714244+00:00",
+  "file_count": 4000,
+  "generated_at": "2026-07-11T20:12:22.636022+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -93,5 +93,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 27157897
+  "total_size_bytes": 27206263
 }

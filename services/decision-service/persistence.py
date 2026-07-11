@@ -2460,3 +2460,429 @@ async def create_model_registry_rollback_command(
             }
     finally:
         await conn.close()
+
+
+# WX-11.7..WX-11.12 closed-loop completion ---------------------------------------
+def _stable_hash(value: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode()
+    ).hexdigest()
+
+
+async def claim_model_registry_rollback_command(
+    *, tenant_id: str, command_id: str, adapter_id: str, delivery_token: str
+) -> dict[str, Any]:
+    conn = await _connect()
+    token_hash = hashlib.sha256(delivery_token.encode()).hexdigest()
+    try:
+        async with conn.transaction():
+            command = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_rollback_commands WHERE tenant_id=$1::uuid AND rollback_command_id=$2 FOR SHARE",
+                tenant_id,
+                command_id,
+            )
+            if not command:
+                return {"status": "not_found"}
+            if await conn.fetchval(
+                "SELECT 1 FROM decision_model_registry_rollback_receipts WHERE tenant_id=$1::uuid AND rollback_command_id=$2",
+                tenant_id,
+                command_id,
+            ):
+                return {"status": "conflict", "reason": "rollback_command_already_terminal"}
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_rollback_claims WHERE tenant_id=$1::uuid AND rollback_command_id=$2",
+                tenant_id,
+                command_id,
+            )
+            if prior:
+                if prior["adapter_id"] == adapter_id and prior["delivery_token_hash"] == token_hash:
+                    return {
+                        "status": "ok",
+                        "replay": True,
+                        "authoritative": True,
+                        "persisted": True,
+                        "rollback_claim_id": prior["rollback_claim_id"],
+                        "rollback_command_id": command_id,
+                        "claim_state": "claimed",
+                    }
+                return {
+                    "status": "conflict",
+                    "reason": "rollback_command_claimed_by_another_adapter",
+                }
+            cid = (
+                "rbclaim_"
+                + hashlib.sha256(f"{tenant_id}:{command_id}:{adapter_id}".encode()).hexdigest()[:20]
+            )
+            await conn.execute(
+                "INSERT INTO decision_model_registry_rollback_claims VALUES($1,$2::uuid,$3,$4,$5,now())",
+                cid,
+                tenant_id,
+                command_id,
+                adapter_id,
+                token_hash,
+            )
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_REGISTRY_ROLLBACK_COMMAND_CLAIMED",
+                aggregate_type="decision_model_registry_rollback_claims",
+                aggregate_id=cid,
+                payload={"rollback_command_id": command_id, "adapter_id": adapter_id},
+            )
+            return {
+                "status": "ok",
+                "replay": False,
+                "authoritative": True,
+                "persisted": True,
+                "rollback_claim_id": cid,
+                "rollback_command_id": command_id,
+                "claim_state": "claimed",
+            }
+    finally:
+        await conn.close()
+
+
+async def record_model_registry_rollback_receipt(
+    *, tenant_id: str, command_id: str, recorded_by: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else payload
+    req_hash = _stable_hash(data)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_rollback_receipts WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != req_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return {
+                    "status": "ok",
+                    "replay": True,
+                    "authoritative": True,
+                    "persisted": True,
+                    "rollback_receipt_id": prior["rollback_receipt_id"],
+                    "rollback_command_id": command_id,
+                    "receipt_state": prior["receipt_state"],
+                }
+            command = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_rollback_commands WHERE tenant_id=$1::uuid AND rollback_command_id=$2 FOR SHARE",
+                tenant_id,
+                command_id,
+            )
+            claim = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_rollback_claims WHERE tenant_id=$1::uuid AND rollback_command_id=$2",
+                tenant_id,
+                command_id,
+            )
+            if not command or not claim:
+                return {"status": "not_found"}
+            if (
+                claim["adapter_id"] != payload.adapter_id
+                or claim["delivery_token_hash"]
+                != hashlib.sha256(payload.delivery_token.encode()).hexdigest()
+            ):
+                return {"status": "conflict", "reason": "claim_proof_mismatch"}
+            if (
+                payload.receipt_state == "rolled_back"
+                and payload.active_artifact_digest.lower()
+                != command["restore_artifact_digest"].lower()
+            ):
+                return {"status": "conflict", "reason": "restored_artifact_digest_mismatch"}
+            rid = (
+                "rbreceipt_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{command_id}:{payload.idempotency_key}".encode()
+                ).hexdigest()[:20]
+            )
+            await conn.execute(
+                """INSERT INTO decision_model_registry_rollback_receipts(rollback_receipt_id,tenant_id,rollback_command_id,rollback_claim_id,receipt_state,active_artifact_uri,active_artifact_digest,registry_version,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13)""",
+                rid,
+                tenant_id,
+                command_id,
+                claim["rollback_claim_id"],
+                payload.receipt_state,
+                payload.active_artifact_uri,
+                payload.active_artifact_digest.lower() if payload.active_artifact_digest else None,
+                payload.registry_version,
+                payload.failure_reason,
+                _json(payload.receipt_payload),
+                recorded_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_REGISTRY_ROLLBACK_RECEIPT_RECORDED",
+                aggregate_type="decision_model_registry_rollback_receipts",
+                aggregate_id=rid,
+                payload={"rollback_command_id": command_id, "receipt_state": payload.receipt_state},
+            )
+            return {
+                "status": "ok",
+                "replay": False,
+                "authoritative": True,
+                "persisted": True,
+                "rollback_receipt_id": rid,
+                "rollback_command_id": command_id,
+                "receipt_state": payload.receipt_state,
+                "active_artifact_digest": payload.active_artifact_digest.lower()
+                if payload.active_artifact_digest
+                else None,
+            }
+    finally:
+        await conn.close()
+
+
+async def get_active_model_state(
+    *, tenant_id: str, model_id: str, feature_set_id: str | None, target_environment: str
+) -> dict[str, Any]:
+    conn = await _connect()
+    try:
+        row = await conn.fetchrow(
+            """WITH activations AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'activated'::text transition_state,r.activation_receipt_id source_receipt_id FROM decision_model_registry_activation_receipts r JOIN decision_model_registry_activation_commands c USING(activation_command_id) WHERE r.tenant_id=$1::uuid AND r.receipt_state='activated'), rollbacks AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'rolled_back'::text transition_state,r.rollback_receipt_id source_receipt_id FROM decision_model_registry_rollback_receipts r JOIN decision_model_registry_rollback_commands rb USING(rollback_command_id) JOIN decision_model_registry_activation_commands c ON c.activation_command_id=rb.activation_command_id WHERE r.tenant_id=$1::uuid AND r.receipt_state='rolled_back') SELECT * FROM (SELECT * FROM activations UNION ALL SELECT * FROM rollbacks) s WHERE model_id=$2 AND feature_set_id IS NOT DISTINCT FROM $3 AND target_environment=$4 ORDER BY recorded_at DESC LIMIT 1""",
+            tenant_id,
+            model_id,
+            feature_set_id,
+            target_environment,
+        )
+        if not row:
+            return {"status": "not_found"}
+        return {
+            "status": "ok",
+            "authoritative": True,
+            "persisted": True,
+            "read_only": True,
+            **dict(row),
+        }
+    finally:
+        await conn.close()
+
+
+async def create_post_activation_verification(
+    *, tenant_id: str, receipt_id: str, verified_by: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else payload
+    req_hash = _stable_hash(data)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_post_activation_verifications WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != req_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return {
+                    "status": "ok",
+                    "replay": True,
+                    "authoritative": True,
+                    "persisted": True,
+                    "verification_id": prior["verification_id"],
+                    "verification_state": prior["verification_state"],
+                }
+            receipt = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_activation_receipts WHERE tenant_id=$1::uuid AND activation_receipt_id=$2 AND receipt_state='activated'",
+                tenant_id,
+                receipt_id,
+            )
+            if not receipt:
+                return {"status": "not_found"}
+            if payload.artifact_digest.lower() != receipt["active_artifact_digest"].lower():
+                return {"status": "conflict", "reason": "artifact_digest_mismatch"}
+            vid = "verify_" + hashlib.sha256(f"{tenant_id}:{receipt_id}".encode()).hexdigest()[:20]
+            await conn.execute(
+                "INSERT INTO decision_model_post_activation_verifications VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8,$9,now(),$10,$11)",
+                vid,
+                tenant_id,
+                receipt_id,
+                payload.verification_state,
+                payload.artifact_digest.lower(),
+                _json(payload.checks),
+                payload.latency_ms,
+                payload.error_rate,
+                verified_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_POST_ACTIVATION_VERIFIED",
+                aggregate_type="decision_model_post_activation_verifications",
+                aggregate_id=vid,
+                payload={
+                    "activation_receipt_id": receipt_id,
+                    "verification_state": payload.verification_state,
+                },
+            )
+            return {
+                "status": "ok",
+                "replay": False,
+                "authoritative": True,
+                "persisted": True,
+                "verification_id": vid,
+                "verification_state": payload.verification_state,
+            }
+    finally:
+        await conn.close()
+
+
+async def create_rollout_plan(
+    *, tenant_id: str, receipt_id: str, requested_by: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else payload
+    req_hash = _stable_hash(data)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            if not await conn.fetchval(
+                "SELECT 1 FROM decision_model_post_activation_verifications WHERE tenant_id=$1::uuid AND activation_receipt_id=$2 AND verification_state IN ('verified_healthy','verified_degraded')",
+                tenant_id,
+                receipt_id,
+            ):
+                return {"status": "conflict", "reason": "post_activation_verification_required"}
+            rid = "rollout_" + hashlib.sha256(f"{tenant_id}:{receipt_id}".encode()).hexdigest()[:20]
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_rollout_plans(rollout_plan_id,tenant_id,activation_receipt_id,mode,traffic_percent,policy,requested_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8,$9) ON CONFLICT DO NOTHING RETURNING *""",
+                rid,
+                tenant_id,
+                receipt_id,
+                payload.mode,
+                payload.traffic_percent,
+                _json(payload.policy),
+                requested_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                return {"status": "conflict", "reason": "rollout_plan_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_ROLLOUT_PLAN_CREATED",
+                aggregate_type="decision_model_rollout_plans",
+                aggregate_id=rid,
+                payload={
+                    "activation_receipt_id": receipt_id,
+                    "mode": payload.mode,
+                    "traffic_percent": payload.traffic_percent,
+                },
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "rollout_plan_id": rid,
+                "rollout_state": "planned",
+            }
+    finally:
+        await conn.close()
+
+
+async def record_monitoring_snapshot(
+    *, tenant_id: str, captured_by: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else payload
+    req_hash = _stable_hash(data)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            sid = (
+                "monitor_"
+                + hashlib.sha256(f"{tenant_id}:{payload.idempotency_key}".encode()).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_monitoring_snapshots(monitoring_snapshot_id,tenant_id,model_id,feature_set_id,target_environment,window_start,window_end,sample_count,metrics,drift_state,captured_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13) ON CONFLICT DO NOTHING RETURNING *""",
+                sid,
+                tenant_id,
+                payload.model_id,
+                payload.feature_set_id,
+                payload.target_environment,
+                payload.window_start,
+                payload.window_end,
+                payload.sample_count,
+                _json(payload.metrics),
+                payload.drift_state,
+                captured_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                return {"status": "conflict", "reason": "monitoring_snapshot_idempotency_conflict"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_MONITORING_SNAPSHOT_RECORDED",
+                aggregate_type="decision_model_monitoring_snapshots",
+                aggregate_id=sid,
+                payload={
+                    "model_id": payload.model_id,
+                    "drift_state": payload.drift_state,
+                    "sample_count": payload.sample_count,
+                },
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "monitoring_snapshot_id": sid,
+                "drift_state": payload.drift_state,
+            }
+    finally:
+        await conn.close()
+
+
+async def create_retraining_request(
+    *, tenant_id: str, requested_by: str, payload: Any
+) -> dict[str, Any]:
+    data = payload.model_dump() if hasattr(payload, "model_dump") else payload
+    req_hash = _stable_hash(data)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            rid = (
+                "retrain_"
+                + hashlib.sha256(f"{tenant_id}:{payload.idempotency_key}".encode()).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_retraining_requests(retraining_request_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,training_manifest,code_version,hyperparameters,requested_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8::jsonb,$9,$10,$11) ON CONFLICT DO NOTHING RETURNING *""",
+                rid,
+                tenant_id,
+                payload.model_id,
+                payload.feature_set_id,
+                payload.dataset_fingerprint.lower(),
+                _json(payload.training_manifest),
+                payload.code_version,
+                _json(payload.hyperparameters),
+                requested_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                return {"status": "conflict", "reason": "retraining_request_idempotency_conflict"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_RETRAINING_REQUEST_CREATED",
+                aggregate_type="decision_model_retraining_requests",
+                aggregate_id=rid,
+                payload={
+                    "model_id": payload.model_id,
+                    "dataset_fingerprint": payload.dataset_fingerprint.lower(),
+                },
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "retraining_request_id": rid,
+                "request_state": "queued",
+            }
+    finally:
+        await conn.close()

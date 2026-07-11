@@ -78,6 +78,11 @@ jobs:
       - name: WX-11.6 model registry activation boundary guard
         run: python scripts/ci/model_registry_activation_boundary_gate.py
 
+      # WX-11.7..11.12 closed-loop completion: rollback receipt/verify/rollout/monitor/retrain stay
+      # append-only evidence transitions — never train/activate/actuate.
+      - name: WX-11.7..11.12 closed-loop completion guard
+        run: python scripts/ci/wx11_closed_loop_completion_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
@@ -425,7 +430,7 @@ jobs:
           done
           pg_isready -h localhost -p 5434 -U decision_test
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
-      - name: Apply decision-service migrations (custom runner — 001 through 013)
+      - name: Apply decision-service migrations (custom runner — 001 through 014)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"

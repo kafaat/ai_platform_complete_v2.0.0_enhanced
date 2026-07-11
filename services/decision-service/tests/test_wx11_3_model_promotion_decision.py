@@ -15,7 +15,13 @@ def test_wx11_3_contract_present():
 
 
 def test_wx11_3_is_decision_only():
-    segment = MAIN[MAIN.index("class ModelPromotionDecisionIn") :]
+    # Bound to the promotion-decision block only (class + handler), up to the next input model.
+    # Slicing to EOF would false-trip on the WX-11.7..11.12 closed-loop active-state code that
+    # legitimately reads `active_model` — the contract is that the PROMOTION DECISION never trains
+    # or activates.
+    start = MAIN.index("class ModelPromotionDecisionIn")
+    end = MAIN.index("class ModelActivationRequestIn")
+    segment = MAIN[start:end]
     for token in ("model.fit(", "optimizer.step(", "active_model", "mqtt.publish("):
         assert token not in segment
 
