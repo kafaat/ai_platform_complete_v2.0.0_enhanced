@@ -578,6 +578,7 @@ jobs:
         run: pytest tests/test_ac1_agronomic_context.py -q -p no:cacheprovider
       # VEG-AGRIAI delivered contracts are pure-logic (no DB): run them here where pytest exists.
       - name: vegetation-agriai contract tests (pure logic)
+        working-directory: services/decision-service
         run: pytest ../agriai-engine/tests/test_agronomic_context_contract.py ../vegetation-analysis-service/test_vegetation_production_contract.py ../vegetation-analysis-service/test_timeseries_honesty.py -q -p no:cacheprovider
       # WX-12 model-registry-adapter runtime is stdlib-only pure logic (drift classification,
       # bounded backoff, compare-and-swap decision). The contract test additionally imports the
