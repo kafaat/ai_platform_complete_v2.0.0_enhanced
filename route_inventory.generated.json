@@ -4986,7 +4986,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 193,
+    "line": 169,
     "method": "POST",
     "path": "/api/v1/irrigation-recommendation",
     "function": "irrigation_recommendation"
@@ -4994,7 +4994,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-    "line": 269,
+    "line": 245,
     "method": "POST",
     "path": "/api/v1/fields/{field_id}/irrigation-recommendation",
     "function": "field_irrigation_recommendation"
@@ -5738,7 +5738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 80,
+    "line": 114,
     "method": "POST",
     "path": "/api/v1/scenario/water-twin",
     "function": "scenario_water_twin"
@@ -5746,7 +5746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 109,
+    "line": 143,
     "method": "POST",
     "path": "/api/v1/scenario/temperature",
     "function": "scenario_temperature"
@@ -5754,7 +5754,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 125,
+    "line": 186,
     "method": "POST",
     "path": "/api/v1/scenario/planting-date",
     "function": "scenario_planting_date"
@@ -5762,7 +5762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/scenario.py",
-    "line": 175,
+    "line": 236,
     "method": "POST",
     "path": "/api/v1/scenario/rainfall",
     "function": "scenario_rainfall"
@@ -6090,7 +6090,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_balance.py",
-    "line": 30,
+    "line": 66,
     "method": "POST",
     "path": "/api/v1/water-balance",
     "function": "compute_water_balance"

@@ -622,8 +622,8 @@ sahool-platform,services/sahool-platform/api/routers/irrigation_method.py,31,GET
 sahool-platform,services/sahool-platform/api/routers/irrigation_method.py,43,POST,/api/v1/irrigation-method/gross,compute_gross
 sahool-platform,services/sahool-platform/api/routers/irrigation_network.py,55,POST,/api/v1/irrigation/network/feasibility,network_feasibility_endpoint
 sahool-platform,services/sahool-platform/api/routers/irrigation_plan.py,111,POST,/api/v1/irrigation-plan,irrigation_plan_endpoint
-sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,193,POST,/api/v1/irrigation-recommendation,irrigation_recommendation
-sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,269,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation
+sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,169,POST,/api/v1/irrigation-recommendation,irrigation_recommendation
+sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,245,POST,/api/v1/fields/{field_id}/irrigation-recommendation,field_irrigation_recommendation
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,87,POST,/api/v1/agro/kc-timeseries,persist_kc
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,140,GET,/api/v1/agro/kc-timeseries/{field_id},list_kc
 sahool-platform,services/sahool-platform/api/routers/kc_timeseries.py,156,GET,/api/v1/agro/kc-timeseries/{field_id}/compare,compare_kc
@@ -716,10 +716,10 @@ sahool-platform,services/sahool-platform/api/routers/rotation.py,34,GET,/api/v1/
 sahool-platform,services/sahool-platform/api/routers/rotation.py,40,GET,/api/v1/rotation/suggest,rotation_suggest
 sahool-platform,services/sahool-platform/api/routers/salinity.py,30,POST,/api/v1/salinity/assess,salinity_assess_endpoint
 sahool-platform,services/sahool-platform/api/routers/sampling.py,31,GET,/api/v1/sampling/strategy,sampling_strategy
-sahool-platform,services/sahool-platform/api/routers/scenario.py,80,POST,/api/v1/scenario/water-twin,scenario_water_twin
-sahool-platform,services/sahool-platform/api/routers/scenario.py,109,POST,/api/v1/scenario/temperature,scenario_temperature
-sahool-platform,services/sahool-platform/api/routers/scenario.py,125,POST,/api/v1/scenario/planting-date,scenario_planting_date
-sahool-platform,services/sahool-platform/api/routers/scenario.py,175,POST,/api/v1/scenario/rainfall,scenario_rainfall
+sahool-platform,services/sahool-platform/api/routers/scenario.py,114,POST,/api/v1/scenario/water-twin,scenario_water_twin
+sahool-platform,services/sahool-platform/api/routers/scenario.py,143,POST,/api/v1/scenario/temperature,scenario_temperature
+sahool-platform,services/sahool-platform/api/routers/scenario.py,186,POST,/api/v1/scenario/planting-date,scenario_planting_date
+sahool-platform,services/sahool-platform/api/routers/scenario.py,236,POST,/api/v1/scenario/rainfall,scenario_rainfall
 sahool-platform,services/sahool-platform/api/routers/scouting.py,78,GET,/api/v1/scouting/pins,list_scouting_pins
 sahool-platform,services/sahool-platform/api/routers/scouting.py,114,GET,/api/v1/scouting/taxonomy,scouting_taxonomy
 sahool-platform,services/sahool-platform/api/routers/season_workspace.py,219,GET,/api/v1/fields/{field_id}/season-workspace,season_workspace
@@ -760,7 +760,7 @@ sahool-platform,services/sahool-platform/api/routers/temporal.py,34,POST,/api/v1
 sahool-platform,services/sahool-platform/api/routers/temporal.py,60,POST,/api/v1/temporal/coherence,temporal_coherence
 sahool-platform,services/sahool-platform/api/routers/tenant.py,29,GET,/api/v1/tenant/config,get_tenant_config
 sahool-platform,services/sahool-platform/api/routers/trials.py,30,POST,/api/v1/trials/analyze,analyze_trial
-sahool-platform,services/sahool-platform/api/routers/water_balance.py,30,POST,/api/v1/water-balance,compute_water_balance
+sahool-platform,services/sahool-platform/api/routers/water_balance.py,66,POST,/api/v1/water-balance,compute_water_balance
 sahool-platform,services/sahool-platform/api/routers/water_harvesting.py,28,GET,/api/v1/water-harvesting/potential,water_potential_endpoint
 sahool-platform,services/sahool-platform/api/routers/water_harvesting.py,36,GET,/api/v1/water-harvesting/methods,water_methods_endpoint
 sahool-platform,services/sahool-platform/api/routers/water_harvesting.py,42,GET,/api/v1/water-harvesting/method-guide,water_method_guide_endpoint

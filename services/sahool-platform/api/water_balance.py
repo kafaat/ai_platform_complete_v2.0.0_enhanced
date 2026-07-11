@@ -21,17 +21,9 @@ api/water_balance.py — توصية ميزان الماء (ET0 + المطر)
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import StrEnum
 
-# مصدر ET0 الموحّد (H4): نواة Hargreaves + Ra. لا نُعيد كتابة الصيغة هنا.
-from core.engines.et0 import (
-    extraterrestrial_radiation_mj,
-    hargreaves_et0_geo,
-)
-from core.engines.et0 import (
-    penman_monteith_et0 as et0_penman_monteith_core,
-)
-
+# WS-C.1b Zero-Legacy: لا نواة ET0 محلّيّة هنا. ET0 يُحقَن من **منتج محرّك الطقس**
+# (get_et0_product) عبر المُوجِّهات async — المحرّك مصدر ET0 الوحيد للمنصّة.
 # مصدر الحقيقة الوحيد لصيغ الملوحة (H5): Ks (Eq.81) + احتياج الغسيل (Eq.82).
 # لا نُعيد كتابة الصيغة هنا — نفوّض إلى المحرّك مباشرةً (لا تكرار).
 from core.engines.fao56 import (
@@ -41,12 +33,6 @@ from core.engines.fao56 import (
     salinity_stress_ks as _fao56_salinity_stress_ks,
 )
 from core.season_phenology import crop_kc_profile, resolve_crop_id
-
-
-class ET0Method(StrEnum):
-    PENMAN_MONTEITH = "penman_monteith"
-    HARGREAVES = "hargreaves_samani"
-
 
 # معاملات Kc حسب مرحلة النموّ (FAO-56 Irrigation & Drainage Paper 56)
 # ⚠ FAO reference values — تحتاج معايرة محلّيّة يمنيّة
@@ -90,7 +76,7 @@ class WeatherInput:
 @dataclass
 class WaterBalanceResult:
     et0_mm: float
-    method: ET0Method
+    method: str  # طريقة المحرّك: fao56_penman_monteith|hargreaves_fallback|insufficient
     kc: float
     etc_mm: float  # الاحتياج الكلّي
     effective_rain_mm: float
@@ -102,7 +88,7 @@ class WaterBalanceResult:
     def to_dict(self) -> dict:
         d = {
             "et0_mm": round(self.et0_mm, 2),
-            "method": self.method.value,
+            "method": self.method,
             "kc": self.kc,
             "kc_source_ar": self.kc_source_ar,
             "etc_mm": round(self.etc_mm, 2),
@@ -115,52 +101,6 @@ class WaterBalanceResult:
         if self.salinity_applied:
             d["salinity_applied"] = self.salinity_applied
         return d
-
-
-def _extraterrestrial_radiation(lat_deg: float, doy: int) -> float:
-    """الإشعاع خارج الغلاف الجوّي Ra (MJ/m²/يوم) — FAO-56 eq. 21.
-
-    يفوّض للمصدر الموحّد (core.engines.et0). يبقى الاسم لاستعمال Penman-Monteith أدناه.
-    """
-    return extraterrestrial_radiation_mj(lat_deg, doy)
-
-
-def et0_hargreaves(w: WeatherInput) -> float:
-    """Hargreaves-Samani ET0 (حرارة فقط) — FAO-56 eq. 52، عبر المصدر الموحّد.
-
-    Ra محسوب من (خطّ العرض، اليوم). سلوك محفوظ تماماً (نفس الصيغة والثوابت).
-    """
-    return hargreaves_et0_geo(w.t_max_c, w.t_min_c, w.latitude_deg, w.day_of_year, w.t_mean)
-
-
-def et0_penman_monteith(w: WeatherInput) -> float:
-    """FAO-56 Penman-Monteith ET0 (mm/يوم) — eq. 6.
-
-    يحتاج الإشعاع + الرطوبة + الرياح. لو غابت → استخدم Hargreaves.
-    """
-    if w.solar_rad_mj_m2 is None or w.rh_mean_pct is None or w.wind_2m_ms is None:
-        raise ValueError("Penman-Monteith يحتاج solar_rad + rh + wind")
-
-    # المصدر الموحّد (H4): نواة PM واحدة. نمرّر w.t_mean (يحترم t_mean_c الصريح).
-    return et0_penman_monteith_core(
-        w.t_max_c,
-        w.t_min_c,
-        w.t_mean,
-        w.solar_rad_mj_m2,
-        w.rh_mean_pct,
-        w.wind_2m_ms,
-        w.latitude_deg,
-        w.elevation_m,
-        w.day_of_year,
-    )
-
-
-def compute_et0(w: WeatherInput) -> tuple:
-    """يحسب ET0 بأفضل طريقة متاحة. يعيد (et0, method)."""
-    try:
-        return et0_penman_monteith(w), ET0Method.PENMAN_MONTEITH
-    except ValueError:
-        return et0_hargreaves(w), ET0Method.HARGREAVES
 
 
 def _effective_rain(rain_mm: float) -> float:
@@ -284,19 +224,27 @@ def water_balance(
     soil_ece: float | None = None,
     water_ec: float | None = None,
     apply_salinity: bool = False,
+    *,
+    et0_mm: float,
+    et0_method: str = "weather-engine",
 ) -> WaterBalanceResult:
-    """يحسب توصية الريّ ليوم/فترة.
+    """يحسب توصية الريّ ليوم/فترة — **ET0 محقون من محرّك الطقس** (WS-C.1b Zero-Legacy).
 
     Args:
-        w: الطقس. crop: المحصول. stage: initial|development|mid|late.
+        w: الطقس (نَسَب/سياق فقط — ET0 لم يعد يُحسب هنا محلّيّاً).
+        crop: المحصول. stage: initial|development|mid|late.
         rain_mm: المطر في الفترة. ndvi: إن توفّر ⇒ Kc ديناميكيّ (وإلّا ثابت بالمرحلة).
         soil_ece: ملوحة التربة ECe (dS/m) — تُستخدم فقط مع ``apply_salinity=True``.
         water_ec: ملوحة ماء الريّ ECw (dS/m) — تُفعّل احتياج الغسيل مع الملوحة.
         apply_salinity: خطّاف الملوحة (H5). **افتراضيّاً off**: السلوك القائم تماماً
             (net = ETc − مطر فعّال، بلا Ks ولا غسيل). on ⇒ يطبّق Ks على ETc و(اختياريّاً)
             غسيلاً، بنفس صيغ المحرّك (``fao56``). الملوحة opt-in بقرار المستخدم.
+        et0_mm: **مطلوب** — قيمة ET0 المرجعيّة من منتج محرّك الطقس (المصدر الوحيد؛ لا
+            نواة محلّيّة). يجلبها المُوجِّه async ويحقنها؛ تعذّر المحرّك ⇒ 503 عند المُوجِّه.
+        et0_method: طريقة المحرّك (fao56_penman_monteith|hargreaves_fallback) — للنَّسَب.
     """
-    et0, method = compute_et0(w)
+    et0 = float(et0_mm)
+    method = et0_method
     crop_known = crop in KC_BY_CROP_STAGE
     kc_map = KC_BY_CROP_STAGE.get(
         crop, {"initial": 0.4, "development": 0.8, "mid": 1.1, "late": 0.6}
@@ -328,7 +276,7 @@ def water_balance(
     else:
         advice = (
             f"الاحتياج الصافي {net:.1f} مم (ETc {etc:.1f} − مطر فعّال {eff_rain:.1f}). "
-            f"رُيّ بهذا العمق. الطريقة: {method.value}."
+            f"رُيّ بهذا العمق. الطريقة: {method}."
         )
 
     # ريّ تنبّؤيّ: المطر المتوقّع يُقدَّم كتأجيل (لا يُخصَم من net) — التوقيت لا الكمّيّة.
@@ -372,6 +320,8 @@ def water_balance_auto(
     confidence: float | None = None,
     crop_sensitive: bool = False,
     saline_region: bool = False,
+    et0_mm: float,
+    et0_method: str = "weather-engine",
 ) -> tuple[WaterBalanceResult, object]:
     """ميزان الماء مع **تفعيل الملوحة تلقائيّاً** من جودة التحليل المخبريّ (قرار المستخدم).
 
@@ -379,6 +329,7 @@ def water_balance_auto(
     (ECe/ECw + العمر + الثقة + حساسيّة المحصول + منطقة مالحة)، ثمّ ``water_balance`` بالقرار.
     صدق: لا بيانات/قديمة/منخفضة الثقة ⇒ off (لا تفعيل على افتراض)؛ كلّ قرار بسبب مُعلَن.
     يُرجِع ``(result, decision)`` — والقرار (``SalinityDecision``) يُعرَض شفّافاً في الردّ.
+    ET0 محقون من محرّك الطقس (المصدر الوحيد) — يُمرَّر إلى ``water_balance``.
     """
     from core.salinity_policy import salinity_decision
 
@@ -403,5 +354,7 @@ def water_balance_auto(
         soil_ece=soil_ece,
         water_ec=water_ecw,
         apply_salinity=decision.enabled,
+        et0_mm=et0_mm,
+        et0_method=et0_method,
     )
     return result, decision

@@ -58,7 +58,7 @@ def run_e2e_flow():
     w = WeatherInput(
         t_min_c=8, t_max_c=22, latitude_deg=16.0, elevation_m=1000, day_of_year=ctx.day_of_year
     )
-    wb = water_balance(w, "wheat", "mid", rain_mm=5)
+    wb = water_balance(w, "wheat", "mid", rain_mm=5, et0_mm=6.0)
     if wb.net_irrigation_mm >= 0:
         results.append(("✓", f"٣. ميزان الماء: احتياج صافٍ {wb.net_irrigation_mm:.1f} مم"))
     else:

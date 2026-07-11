@@ -24,7 +24,6 @@ from core.engines.et0 import (  # noqa: E402
     extraterrestrial_radiation_mj,
     extraterrestrial_radiation_mm,
     hargreaves_et0,
-    hargreaves_et0_geo,
 )
 
 
@@ -86,20 +85,6 @@ def test_hargreaves_kernel_matches_explicit_formula():
 def test_hargreaves_clamps_negative_temp_diff():
     # Tmax < Tmin ⇒ المدى الحراريّ مقصوص لصفر ⇒ ET0 = 0 (لا جذر سالب).
     assert hargreaves_et0(10.0, 20.0, 15.0) == 0.0
-
-
-def test_water_balance_et0_hargreaves_behaviour_preserved():
-    # السلوك المحفوظ: نفس صيغة water_balance القديمة (Ra محسوب × 0.408).
-    from api.water_balance import WeatherInput, et0_hargreaves
-
-    w = WeatherInput(t_min_c=18.0, t_max_c=34.0, latitude_deg=15.5, day_of_year=100)
-    ra_mj = extraterrestrial_radiation_mj(15.5, 100)
-    expected = 0.0023 * (w.t_mean + 17.8) * math.sqrt(34.0 - 18.0) * ra_mj * 0.408
-    assert math.isclose(et0_hargreaves(w), expected, rel_tol=1e-12)
-    # ومطابقٌ للدالّة الجغرافيّة الموحّدة.
-    assert math.isclose(
-        et0_hargreaves(w), hargreaves_et0_geo(34.0, 18.0, 15.5, 100, w.t_mean), rel_tol=1e-12
-    )
 
 
 def test_season_simulation_fallback_behaviour_preserved():

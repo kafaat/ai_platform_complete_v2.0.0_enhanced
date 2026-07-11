@@ -53,9 +53,9 @@ def _weather() -> WeatherInput:
 def test_salinity_off_is_default_and_unchanged():
     """الافتراضيّ off ⇒ نفس net/etc القديم + salinity_applied=False."""
     w = _weather()
-    base = water_balance(w, "wheat", "mid", rain_mm=0)
+    base = water_balance(w, "wheat", "mid", rain_mm=0, et0_mm=6.0)
     # تمرير ECe/ECw مع البقاء off ⇒ يُتجاهلان تماماً (لا أثر).
-    off = water_balance(w, "wheat", "mid", rain_mm=0, soil_ece=10.0, water_ec=3.0)
+    off = water_balance(w, "wheat", "mid", rain_mm=0, soil_ece=10.0, water_ec=3.0, et0_mm=6.0)
 
     assert base.salinity_applied is False
     assert off.salinity_applied is False
@@ -83,8 +83,8 @@ def test_salinity_off_is_default_and_unchanged():
 def test_salinity_on_applies_engine_ks_to_etc():
     """on مع ECe فوق العتبة ⇒ ETc يُضرب في Ks (نفس قيمة المحرّك) + الاحتياج ينخفض."""
     w = _weather()
-    off = water_balance(w, "wheat", "mid", rain_mm=0)
-    on = water_balance(w, "wheat", "mid", rain_mm=0, soil_ece=10.0, apply_salinity=True)
+    off = water_balance(w, "wheat", "mid", rain_mm=0, et0_mm=6.0)
+    on = water_balance(w, "wheat", "mid", rain_mm=0, soil_ece=10.0, apply_salinity=True, et0_mm=6.0)
 
     profile = crop_kc_profile(resolve_crop_id("wheat"))
     assert profile is not None
@@ -102,8 +102,8 @@ def test_salinity_on_applies_engine_ks_to_etc():
 def test_salinity_on_below_threshold_keeps_ks_one():
     """ECe دون العتبة ⇒ Ks=1 ⇒ ETc بلا تغيير رغم تفعيل الخطّاف (salinity_applied=True)."""
     w = _weather()
-    off = water_balance(w, "wheat", "mid", rain_mm=0)
-    on = water_balance(w, "wheat", "mid", rain_mm=0, soil_ece=2.0, apply_salinity=True)
+    off = water_balance(w, "wheat", "mid", rain_mm=0, et0_mm=6.0)
+    on = water_balance(w, "wheat", "mid", rain_mm=0, soil_ece=2.0, apply_salinity=True, et0_mm=6.0)
     assert on.salinity_applied is True
     assert math.isclose(on.etc_mm, off.etc_mm, rel_tol=1e-12)
 
@@ -111,7 +111,9 @@ def test_salinity_on_below_threshold_keeps_ks_one():
 def test_salinity_on_unknown_crop_degrades_to_off_honestly():
     """محصول بلا بطاقة ⇒ تعذّر بناء البروفايل ⇒ off بصدق (لا ملوحة مُلفَّقة)."""
     w = _weather()
-    on = water_balance(w, "__no_such_crop__", "mid", rain_mm=0, soil_ece=10.0, apply_salinity=True)
+    on = water_balance(
+        w, "__no_such_crop__", "mid", rain_mm=0, soil_ece=10.0, apply_salinity=True, et0_mm=6.0
+    )
     assert on.salinity_applied is False
 
 
@@ -121,9 +123,11 @@ def test_salinity_on_adds_leaching_above_net():
     profile = crop_kc_profile(resolve_crop_id("wheat"))
     assert profile is not None
     # بلا ملوحة تربة (ECe دون العتبة) ⇒ Ks=1، فالفرق كلّه من الغسيل.
-    no_leach = water_balance(w, "wheat", "mid", rain_mm=0, soil_ece=0.0, apply_salinity=True)
+    no_leach = water_balance(
+        w, "wheat", "mid", rain_mm=0, soil_ece=0.0, apply_salinity=True, et0_mm=6.0
+    )
     with_leach = water_balance(
-        w, "wheat", "mid", rain_mm=0, soil_ece=0.0, water_ec=3.0, apply_salinity=True
+        w, "wheat", "mid", rain_mm=0, soil_ece=0.0, water_ec=3.0, apply_salinity=True, et0_mm=6.0
     )
     lr = fao56_leaching_requirement(3.0, profile.salt_tolerance_ece)
     assert lr > 0.0

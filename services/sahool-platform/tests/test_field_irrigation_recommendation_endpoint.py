@@ -137,9 +137,8 @@ async def test_et0_provenance_from_weather_engine(monkeypatch):
     assert et0["weather_snapshot_id"] == "wsnap/sha1/1:deadbeefcafef00d"
     # نَسَب المحرّك في أدلّة القرار.
     assert any(e.startswith("weather-engine-et0:") for e in out["evidence_ids"])
-    # مقارنة ظلّيّة مؤقّتة موجودة (الإرث لا يدخل القرار).
-    assert "shadow" in et0
-    assert et0["shadow"]["diff_mm"] is not None
+    # WS-C.1b Zero-Legacy: لا مقارنة ظلّيّة إرثيّة بعد الآن (المحرّك مصدر ET0 الوحيد).
+    assert "shadow" not in et0
 
 
 @pytest.mark.asyncio
@@ -337,26 +336,6 @@ async def test_submit_decision_service_down_is_flagged(monkeypatch):
     assert out["approval_state"] == "submit_unavailable"
     assert out["decision_id"] is None
     assert any("not submitted" in lim for lim in out["limitations"])
-
-
-@pytest.mark.asyncio
-async def test_shadow_diff_is_near_zero_faithful_reproduction(monkeypatch):
-    # المحرّك (المُثبَّت) يُعيد قيمة الإرث نفسها ⇒ diff = 0 (إثبات أمانة إعادة الإنتاج).
-    # نحسب الإرث فعليّاً لنُطابق قيمة المحرّك المُثبَّتة معه.
-    from api.water_balance import WeatherInput, compute_et0
-
-    legacy_mm, _ = compute_et0(
-        WeatherInput(
-            t_min_c=18.0, t_max_c=34.0, latitude_deg=16.0, elevation_m=2000.0, day_of_year=100
-        )
-    )
-    _patch(
-        monkeypatch,
-        _FakeConn(depletion_mm=60.0),
-        engine=_fake_et0_product(et0_mm=round(legacy_mm, 3), method="fao56_penman_monteith"),
-    )
-    out = await field_irrigation_recommendation("fld_1", _REQ, user=object())
-    assert out["et0"]["shadow"]["diff_mm"] == 0.0
 
 
 @pytest.mark.asyncio

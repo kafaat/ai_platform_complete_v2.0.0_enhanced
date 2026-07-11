@@ -4,8 +4,8 @@
 ``api.irrigation_recommendation_policy.recommend_irrigation`` — تختار صيغة الريّ
 بحسب توفّر فحص EC المخبريّ (Ks دائماً عند توفّره + غسل مشروط)، وتتدهور بصدق.
 
-لا تكسر ``/api/v1/water-balance`` (تبقى كما هي). تُحسب ET0 بنفس مسار FAO-56 المُعاد
-استخدامه (``api.water_balance.compute_et0``) ضماناً لتطابق الأساس.
+ET0 يُجلَب من **منتج محرّك الطقس** (``get_et0_product``) — المصدر الوحيد للمنصّة؛
+تعذّره ⇒ 503 fail-closed (لا نواة ET0 محلّيّة، WS-C.1b Zero-Legacy).
 
 **صدق:** مدخلات الملوحة (ECe/ECw/الصرف/الكفاءة) تُمرَّر صراحةً في الطلب — لا تُختلق.
 إثراؤها من حالة الحقل (soil_lab_tests) متابعةٌ لاحقة موثَّقة. القيم تحتاج معايرة ميدانيّة.
@@ -32,7 +32,6 @@ from api.main import (
 )
 from api.soil_enrichment import extract_texture, soil_water_provenance
 from api.soil_water import soil_water_params
-from api.water_balance import WeatherInput, compute_et0
 from api.weather_service_client import get_et0_product, get_weather_forecast
 
 router = APIRouter()
@@ -72,26 +71,6 @@ async def _engine_et0(
         valid_time=valid_time,
         tenant_id=tenant_id,
     )
-
-
-def _shadow_et0_diff(engine_et0_mm: float | None, w: WeatherInput) -> dict | None:
-    """مقارنة ظلّيّة مؤقّتة: الإرث المحلّيّ (allowlisted) يُحسب للمقارنة فقط — **لا يدخل
-    القرار قطّ**. الفرق ≈ 0 يُثبِت أنّ المحرّك يُعيد إنتاج الصيغة بأمانة قبل حذف الإرث.
-    تُحذَف هذه الدالّة عند retire الإرث (C.1b النهائيّة).
-    """
-    try:
-        legacy_mm, legacy_method = compute_et0(w)
-    except Exception:  # noqa: BLE001 — الظلّ لا يجب أن يُعطّل المسار الحقيقيّ أبداً
-        return None
-    if engine_et0_mm is None or legacy_mm is None:
-        return {"legacy_et0_mm": legacy_mm, "legacy_method": legacy_method, "diff_mm": None}
-    diff = round(float(engine_et0_mm) - float(legacy_mm), 3)
-    return {
-        "legacy_et0_mm": round(float(legacy_mm), 3),
-        "legacy_method": legacy_method,
-        "diff_mm": diff,
-        "diff_pct": round(100.0 * diff / legacy_mm, 1) if legacy_mm else None,
-    }
 
 
 async def _field_weather_snapshot(latitude_deg: float, longitude_deg: float) -> dict:
@@ -138,9 +117,9 @@ async def _submit_candidate_to_decision(payload: dict, tenant_id: str | None) ->
     return await record_decision(payload, tenant_id=tenant_id)
 
 
-def _et0_provenance(prod: dict, shadow: dict | None) -> dict:
-    """كتلة نَسَب ET0 للمخرَج — المصدر والعقد والمقارنة الظلّيّة المؤقّتة."""
-    block = {
+def _et0_provenance(prod: dict) -> dict:
+    """كتلة نَسَب ET0 للمخرَج — المصدر والعقد (المحرّك مصدر ET0 الوحيد؛ لا إرث محلّيّ)."""
+    return {
         "et0_mm": prod.get("et0_mm"),
         "method": prod.get("method"),
         "quality_status": prod.get("quality_status"),
@@ -149,9 +128,6 @@ def _et0_provenance(prod: dict, shadow: dict | None) -> dict:
         "weather_snapshot_id": prod.get("weather_snapshot_id"),
         "source": "weather-engine",
     }
-    if shadow is not None:
-        block["shadow"] = shadow  # مؤقّت — يُحذَف مع الإرث
-    return block
 
 
 class IrrigationRecommendationRequest(BaseModel):
@@ -496,29 +472,6 @@ async def field_irrigation_recommendation(
         raise
 
     et0_mm = et0_prod.get("et0_mm")
-    # مقارنة ظلّيّة مؤقّتة (الإرث لا يدخل القرار) — نفس مدخلات المحرّك ⇒ فرق ≈ 0.
-    shadow = _shadow_et0_diff(
-        et0_mm,
-        WeatherInput(
-            t_min_c=wx["t_min_c"],
-            t_max_c=wx["t_max_c"],
-            solar_rad_mj_m2=wx.get("solar_rad_mj_m2"),
-            rh_mean_pct=wx.get("rh_mean_pct"),
-            wind_2m_ms=wx.get("wind_2m_ms"),
-            latitude_deg=field_lat,
-            elevation_m=_elev_default_m,
-            day_of_year=wx.get("day_of_year") or 100,
-        ),
-    )
-    if shadow and shadow.get("diff_mm") is not None:
-        _LOG.info(
-            "et0_shadow_diff field=%s snapshot=%s engine_mm=%s legacy_mm=%s diff_mm=%s",
-            field_id,
-            et0_prod.get("weather_snapshot_id"),
-            et0_mm,
-            shadow["legacy_et0_mm"],
-            shadow["diff_mm"],
-        )
     evidence_ids.append(f"weather-engine-et0:{et0_prod.get('weather_snapshot_id')}")
 
     rec = recommend_irrigation(
@@ -601,7 +554,7 @@ async def field_irrigation_recommendation(
             "urgency": rec["urgency"],
             "policy_knobs": rec["policy_knobs"],
         },
-        "et0": _et0_provenance(et0_prod, shadow),
+        "et0": _et0_provenance(et0_prod),
         "weather": {
             "source": wx["source"],
             "valid_time": wx.get("valid_time"),

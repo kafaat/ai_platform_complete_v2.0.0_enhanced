@@ -14,13 +14,6 @@
       "note": "Platform's ET0 core (penman_monteith_et0/hargreaves_et0/_svp) — still the operational ET0 for the irrigation recommendation path. Retire after platform delegates to the Weather Engine ET0 product (shadow-compare first, then remove). NOT shadow-only yet."
     },
     {
-      "path": "services/sahool-platform/api/water_balance.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-pending-delegation",
-      "note": "Platform ET0 Penman-Monteith over WeatherInput — consumed by the irrigation recommendation. Migrate to the Weather Engine ET0 product, then remove."
-    },
-    {
       "path": "services/sahool-platform/core/engines/fao56.py",
       "owner": "weather-migration",
       "expires": "2026-07-31",

@@ -41,9 +41,43 @@ from api.water_twin import (
     delay_irrigation,
     scale_irrigation,
 )
-from api.weather_service_client import get_gdd_product
+from api.weather_service_client import get_et0_product, get_gdd_product
 
 router = APIRouter()
+
+# رموز تعذّر المحرّك ⇒ فشل مُغلَق (لا حساب ET0 محلّيّ بديل).
+_ENGINE_DOWN_CODES = (502, 503, 504)
+
+
+async def _engine_et0(
+    *, t_min_c: float, t_max_c: float, lat_deg: float, elevation_m: float, day_of_year: int
+) -> tuple[float, str]:
+    """ET0 المرجعيّ (temp-only ⇒ Hargreaves) من منتج محرّك الطقس — المصدر الوحيد.
+
+    تعذّر المحرّك/نقص ⇒ HTTPException(503) fail-closed (لا نواة ET0 محلّيّة).
+    """
+    try:
+        prod = await get_et0_product(
+            t_max_c=t_max_c,
+            t_min_c=t_min_c,
+            lat_deg=lat_deg,
+            elevation_m=elevation_m,
+            day_of_year=day_of_year,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503,
+                detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+            ) from exc
+        raise
+    et0 = prod.get("et0_mm")
+    if et0 is None:
+        raise HTTPException(
+            status_code=503,
+            detail="weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
+        )
+    return float(et0), str(prod.get("method") or "weather-engine")
 
 
 # ─── Water Twin: مسار رطوبة التربة الأماميّ (ماذا لو أخّرتُ/خفّضتُ الريّ؟) ───────
@@ -106,11 +140,15 @@ def scenario_water_twin(
 
 
 @router.post("/api/v1/scenario/temperature")
-def scenario_temperature(
+async def scenario_temperature(
     req: WhatIfTempRequest,
     user: UserSchema = Depends(get_current_user),
 ):
-    """ماذا لو تغيّرت الحرارة؟ أثر فيزيائي على ET0 والاحتياج المائي."""
+    """ماذا لو تغيّرت الحرارة؟ أثر فيزيائي على ET0 والاحتياج المائي.
+
+    WS-C.1b Zero-Legacy: ET0 للأساس وللحرارة المُزاحة محقونان من محرّك الطقس (المصدر
+    الوحيد؛ temp-only ⇒ Hargreaves). تعذّر المحرّك ⇒ 503 fail-closed (لا نواة محلّيّة).
+    """
     w = _WInput(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
@@ -118,7 +156,30 @@ def scenario_temperature(
         elevation_m=req.elevation_m,
         day_of_year=req.day_of_year,
     )
-    return whatif_temperature_shift(w, req.crop, req.stage, req.temp_shift_c, rain_mm=req.rain_mm)
+    base_et0, method = await _engine_et0(
+        t_min_c=req.t_min_c,
+        t_max_c=req.t_max_c,
+        lat_deg=req.latitude_deg,
+        elevation_m=req.elevation_m,
+        day_of_year=req.day_of_year,
+    )
+    scen_et0, _ = await _engine_et0(
+        t_min_c=req.t_min_c + req.temp_shift_c,
+        t_max_c=req.t_max_c + req.temp_shift_c,
+        lat_deg=req.latitude_deg,
+        elevation_m=req.elevation_m,
+        day_of_year=req.day_of_year,
+    )
+    return whatif_temperature_shift(
+        w,
+        req.crop,
+        req.stage,
+        req.temp_shift_c,
+        rain_mm=req.rain_mm,
+        base_et0_mm=base_et0,
+        scen_et0_mm=scen_et0,
+        et0_method=method,
+    )
 
 
 @router.post("/api/v1/scenario/planting-date")
@@ -172,11 +233,15 @@ async def scenario_planting_date(
 
 
 @router.post("/api/v1/scenario/rainfall")
-def scenario_rainfall(
+async def scenario_rainfall(
     req: WhatIfRainRequest,
     user: UserSchema = Depends(get_current_user),
 ):
-    """ماذا لو تغيّر المطر الموسمي؟ أثر على صافي الريّ المطلوب."""
+    """ماذا لو تغيّر المطر الموسمي؟ أثر على صافي الريّ المطلوب.
+
+    WS-C.1b Zero-Legacy: ET0 واحد محقون من محرّك الطقس (نفس الطقس للأساس والبديل) —
+    تعذّر المحرّك ⇒ 503 fail-closed (لا نواة ET0 محلّيّة).
+    """
     w = _WInput(
         t_min_c=req.t_min_c,
         t_max_c=req.t_max_c,
@@ -184,6 +249,19 @@ def scenario_rainfall(
         elevation_m=req.elevation_m,
         day_of_year=req.day_of_year,
     )
+    et0_mm, method = await _engine_et0(
+        t_min_c=req.t_min_c,
+        t_max_c=req.t_max_c,
+        lat_deg=req.latitude_deg,
+        elevation_m=req.elevation_m,
+        day_of_year=req.day_of_year,
+    )
     return whatif_rainfall_change(
-        w, req.crop, req.stage, req.rain_baseline_mm, req.rain_scenario_mm
+        w,
+        req.crop,
+        req.stage,
+        req.rain_baseline_mm,
+        req.rain_scenario_mm,
+        et0_mm=et0_mm,
+        et0_method=method,
     )

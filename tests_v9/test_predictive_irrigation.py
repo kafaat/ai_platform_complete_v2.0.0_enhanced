@@ -22,8 +22,8 @@ from api.water_balance import WeatherInput, _forecast_defer, water_balance  # no
 
 def test_no_forecast_preserves_threshold_behavior():
     w = WeatherInput(t_min_c=18.0, t_max_c=34.0)
-    base = water_balance(w, "wheat", "mid", rain_mm=0.0)
-    same = water_balance(w, "wheat", "mid", rain_mm=0.0, forecast_rain_mm=None)
+    base = water_balance(w, "wheat", "mid", rain_mm=0.0, et0_mm=6.0)
+    same = water_balance(w, "wheat", "mid", rain_mm=0.0, forecast_rain_mm=None, et0_mm=6.0)
     # السلوك المحفوظ: نفس التوصية والكمّيّة تماماً.
     assert same.advice_ar == base.advice_ar
     assert same.net_irrigation_mm == base.net_irrigation_mm
@@ -32,8 +32,8 @@ def test_no_forecast_preserves_threshold_behavior():
 
 def test_sufficient_forecast_defers_without_touching_amount():
     w = WeatherInput(t_min_c=18.0, t_max_c=34.0)
-    base = water_balance(w, "wheat", "mid", rain_mm=0.0)
-    r = water_balance(w, "wheat", "mid", rain_mm=0.0, forecast_rain_mm=60.0)
+    base = water_balance(w, "wheat", "mid", rain_mm=0.0, et0_mm=6.0)
+    r = water_balance(w, "wheat", "mid", rain_mm=0.0, forecast_rain_mm=60.0, et0_mm=6.0)
     assert "أجّل" in r.advice_ar
     assert "مطر متوقّع" in r.advice_ar
     # الكمّيّة لم تُمَسّ بالمطر المتوقّع (لا فقد صدق).
@@ -42,13 +42,13 @@ def test_sufficient_forecast_defers_without_touching_amount():
 
 def test_insufficient_forecast_does_not_defer():
     w = WeatherInput(t_min_c=18.0, t_max_c=34.0)
-    r = water_balance(w, "wheat", "mid", rain_mm=0.0, forecast_rain_mm=1.0)
+    r = water_balance(w, "wheat", "mid", rain_mm=0.0, forecast_rain_mm=1.0, et0_mm=6.0)
     assert "أجّل" not in r.advice_ar
 
 
 def test_no_need_ignores_forecast():
     w = WeatherInput(t_min_c=18.0, t_max_c=34.0)
-    r = water_balance(w, "wheat", "mid", rain_mm=200.0, forecast_rain_mm=60.0)
+    r = water_balance(w, "wheat", "mid", rain_mm=200.0, forecast_rain_mm=60.0, et0_mm=6.0)
     assert r.net_irrigation_mm == 0.0
     assert "لا حاجة للريّ" in r.advice_ar
     assert "أجّل" not in r.advice_ar

@@ -40,23 +40,6 @@ def test_fao56_wrapper_equals_core_and_golden():
     assert math.isclose(penman_monteith_et0(wd), 8.720097532111124, rel_tol=1e-12)
 
 
-def test_water_balance_wrapper_equals_core():
-    from api.water_balance import WeatherInput, et0_penman_monteith
-
-    wi = WeatherInput(
-        t_min_c=18.0,
-        t_max_c=34.0,
-        solar_rad_mj_m2=22.0,
-        rh_mean_pct=45.0,
-        wind_2m_ms=2.0,
-        latitude_deg=15.5,
-        elevation_m=2000.0,
-        day_of_year=100,
-    )
-    core = E.penman_monteith_et0(34.0, 18.0, wi.t_mean, 22.0, 45.0, 2.0, 15.5, 2000.0, 100)
-    assert et0_penman_monteith(wi) == core
-
-
 def test_core_explicit_t_mean_is_used():
     # t_mean_c الصريح يُحترَم (دلالة water_balance) ويُغيّر النتيجة عن (max+min)/2.
     a = E.penman_monteith_et0(34.0, 18.0, 26.0, 22.0, 45.0, 2.0, 15.5, 2000.0, 100)

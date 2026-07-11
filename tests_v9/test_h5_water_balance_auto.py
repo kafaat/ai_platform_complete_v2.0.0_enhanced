@@ -47,6 +47,7 @@ def test_auto_enables_on_trusted_strong_soil():
         soil_ece=3.0,
         analysis_age_days=100,
         confidence=0.9,
+        et0_mm=6.0,
     )
     assert decision.enabled is True
     assert result.salinity_applied is True
@@ -56,10 +57,10 @@ def test_auto_enables_on_trusted_strong_soil():
 def test_auto_disabled_without_analysis_matches_plain():
     """بلا أيّ تحليل ⇒ off، والنتيجة مطابِقة لـwater_balance المباشر (سلوك محفوظ)."""
     w = _weather()
-    result, decision = water_balance_auto(w, "قمح", "mid")
+    result, decision = water_balance_auto(w, "قمح", "mid", et0_mm=6.0)
     assert decision.enabled is False
     assert result.salinity_applied is False
-    plain = water_balance(w, "قمح", "mid")
+    plain = water_balance(w, "قمح", "mid", et0_mm=6.0)
     assert result.net_irrigation_mm == pytest.approx(plain.net_irrigation_mm)
     assert "salinity_applied" not in result.to_dict()  # شكل off مطابق للقائم
 
@@ -73,6 +74,7 @@ def test_auto_disabled_on_stale_analysis():
         soil_ece=3.0,
         analysis_age_days=400,
         confidence=0.9,
+        et0_mm=6.0,
     )
     assert decision.enabled is False
 
@@ -87,6 +89,7 @@ def test_auto_warns_saline_region_stale():
         analysis_age_days=500,
         confidence=0.6,
         saline_region=True,
+        et0_mm=6.0,
     )
     assert decision.enabled is False
     assert decision.warn is True

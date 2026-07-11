@@ -18,20 +18,21 @@ from __future__ import annotations
 import math
 
 import pytest
+
+# WS-C.1b Zero-Legacy: ET0 يُنفَّذ في محرّك الطقس؛ نختبر النواة الكنسيّة الباقية
+# ``core.engines.et0`` مباشرةً (لا أغلفة water_balance المحذوفة). اختيار الطريقة
+# (PM إن توفّرت المدخلات، وإلّا Hargreaves) يعيش في المحرّك ويُختبَر في خدمة الطقس.
 from api.water_balance import (
     KC_BY_CROP_STAGE,
-    ET0Method,
     WeatherInput,
     _effective_rain,
-    compute_et0,
-    et0_hargreaves,
-    et0_penman_monteith,
     kc_from_ndvi,
 )
 from core.engines.et0 import (
     extraterrestrial_radiation_mj,
     extraterrestrial_radiation_mm,
     hargreaves_et0,
+    penman_monteith_et0,
 )
 
 
@@ -106,45 +107,20 @@ def test_saturation_vapour_pressure_matches_fao56_table():
 )
 def test_penman_monteith_matches_independent_fao56(tmax, tmin, rs, rh, u2):
     tmean = (tmax + tmin) / 2
-    w = WeatherInput(
-        t_min_c=tmin,
-        t_max_c=tmax,
-        solar_rad_mj_m2=rs,
-        rh_mean_pct=rh,
-        wind_2m_ms=u2,
-        latitude_deg=15.5,
-        elevation_m=2000,
-        day_of_year=100,
-    )
-    engine = et0_penman_monteith(w)
+    # النواة الكنسيّة الباقية: penman_monteith_et0(tmax,tmin,tmean,rs,rh,u2,lat,elev,doy).
+    engine = penman_monteith_et0(tmax, tmin, tmean, rs, rh, u2, 15.5, 2000, 100)
     ref = _fao56_pm_reference(tmax, tmin, tmean, rs, rh, u2, 15.5, 2000, 100)
     assert abs(engine - ref) < 0.05, f"PM engine={engine:.3f} ≠ FAO-56 ref={ref:.3f}"
 
 
 def test_penman_monteith_is_physically_bounded_and_monotonic():
     def pm(tmax, tmin, rs, rh, u2):
-        return et0_penman_monteith(
-            WeatherInput(
-                t_min_c=tmin,
-                t_max_c=tmax,
-                solar_rad_mj_m2=rs,
-                rh_mean_pct=rh,
-                wind_2m_ms=u2,
-                latitude_deg=15.5,
-                elevation_m=2000,
-                day_of_year=100,
-            )
-        )
+        return penman_monteith_et0(tmax, tmin, (tmax + tmin) / 2, rs, rh, u2, 15.5, 2000, 100)
 
     cool_humid = pm(24, 14, 16.0, 70, 1.0)
     hot_dry = pm(40, 24, 28.0, 20, 3.5)
     assert 0.0 < cool_humid < 15.0 and 0.0 < hot_dry < 15.0
     assert hot_dry > cool_humid, "ET0 يجب أن يرتفع مع الحرّ والجفاف والرياح"
-
-
-def test_penman_monteith_requires_full_inputs():
-    with pytest.raises(ValueError):
-        et0_penman_monteith(WeatherInput(t_min_c=15, t_max_c=30))  # بلا إشعاع/رطوبة/رياح
 
 
 # ── Hargreaves (FAO-56 eq. 52): أمانة الصيغة ────────────────────────────────
@@ -155,20 +131,12 @@ def test_hargreaves_formula_fidelity():
     assert abs(hargreaves_et0(tmax, tmin, ra_mm, tmean) - expected) < 1e-6
 
 
-def test_compute_et0_falls_back_to_hargreaves_without_radiation():
-    et0, method = compute_et0(
-        WeatherInput(t_min_c=15, t_max_c=30, latitude_deg=15.5, day_of_year=100)
-    )
-    assert method == ET0Method.HARGREAVES
-    assert et0 > 0
-
-
 def test_pm_and_hargreaves_agree_in_ballpark():
-    common = dict(t_min_c=15, t_max_c=30, latitude_deg=15.5, day_of_year=100)
-    pm = et0_penman_monteith(
-        WeatherInput(solar_rad_mj_m2=22.0, rh_mean_pct=45, wind_2m_ms=2.0, **common)
-    )
-    hg = et0_hargreaves(WeatherInput(**common))
+    # النواتان الكنسيّتان (core.engines.et0) متقاربتان فيزيائيّاً لنفس المدخلات.
+    tmax, tmin, tmean = 30.0, 15.0, 22.5
+    pm = penman_monteith_et0(tmax, tmin, tmean, 22.0, 45, 2.0, 15.5, 2000, 100)
+    ra_mm = extraterrestrial_radiation_mm(15.5, 100)
+    hg = hargreaves_et0(tmax, tmin, ra_mm, tmean)
     assert 0.6 < pm / hg < 1.6, f"PM({pm:.2f}) وHargreaves({hg:.2f}) متباعدان لا فيزيائيّاً"
 
 

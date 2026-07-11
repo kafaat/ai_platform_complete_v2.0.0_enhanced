@@ -58,9 +58,9 @@ def test_fapar_edges():
 
 def test_water_balance_none_ndvi_matches_static():
     w = WeatherInput(t_min_c=18.0, t_max_c=34.0)
-    r_static = water_balance(w, "wheat", "mid", rain_mm=0.0)
+    r_static = water_balance(w, "wheat", "mid", rain_mm=0.0, et0_mm=6.0)
     assert r_static.kc == _WHEAT["mid"]  # 1.15
     # مع NDVI ⇒ Kc يختلف + المصدر يذكر «ديناميكيّ».
-    r_dyn = water_balance(w, "wheat", "mid", rain_mm=0.0, ndvi=0.7)
+    r_dyn = water_balance(w, "wheat", "mid", rain_mm=0.0, ndvi=0.7, et0_mm=6.0)
     assert r_dyn.kc != _WHEAT["mid"]
     assert "ديناميكيّ" in r_dyn.kc_source_ar

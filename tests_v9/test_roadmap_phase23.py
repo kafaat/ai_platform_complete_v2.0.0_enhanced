@@ -34,18 +34,16 @@ def test_trial_engine():
 
 
 def test_water_balance():
-    from api.water_balance import ET0Method, WeatherInput, compute_et0, water_balance
+    from api.water_balance import WeatherInput, water_balance
 
     r = []
     w = WeatherInput(t_min_c=12, t_max_c=30, latitude_deg=15.5, elevation_m=2000, day_of_year=150)
-    et0, m = compute_et0(w)
-    if m == ET0Method.HARGREAVES and 3 < et0 < 12:
-        r.append(("✓", f"Hargreaves ET0={et0:.1f}"))
-    w2 = WeatherInput(t_min_c=12, t_max_c=30, solar_rad_mj_m2=22, rh_mean_pct=45, wind_2m_ms=2.0)
-    _, m2 = compute_et0(w2)
-    if m2 == ET0Method.PENMAN_MONTEITH:
-        r.append(("✓", "Penman-Monteith عند توفّر البيانات"))
-    res = water_balance(w, "wheat", "initial", rain_mm=50)
+    # ET0 يُقحَم من محرّك الطقس (لم يعُد يُحسب داخليّاً).
+    res = water_balance(w, "wheat", "initial", rain_mm=50, et0_mm=6.0)
+    if res.et0_mm == 6.0:
+        r.append(("✓", "ET0 المُقحَم محفوظ في النتيجة (6.0)"))
+    if abs(res.etc_mm - 6.0 * 0.40) < 1e-9:  # Kc قمح ابتدائيّ = 0.40
+        r.append(("✓", "ETc = ET0 × Kc"))
     if res.net_irrigation_mm == 0:
         r.append(("✓", "المطر يغطّي الاحتياج → لا ريّ"))
     return r
@@ -200,14 +198,16 @@ def test_scenario_whatif():
 
     r = []
     w = WeatherInput(t_min_c=12, t_max_c=30, latitude_deg=15.5, elevation_m=2000, day_of_year=150)
-    rt = whatif_temperature_shift(w, "wheat", "mid", temp_shift_c=2.0)
+    rt = whatif_temperature_shift(
+        w, "wheat", "mid", temp_shift_c=2.0, base_et0_mm=6.0, scen_et0_mm=6.5
+    )
     et0 = [c for c in rt["comparisons"] if "ET0" in c["metric_ar"]][0]
     if et0["delta"] > 0:
         r.append(("✓", "ارتفاع الحرارة يرفع ET0 (فيزيائي)"))
     rp = whatif_planting_date("wheat", [DailyTemp(8, 20)] * 40, [DailyTemp(14, 28)] * 40)
     if rp["comparisons"][0]["scenario"] > rp["comparisons"][0]["baseline"]:
         r.append(("✓", "الموعد الأدفأ يتراكم GDD أسرع"))
-    rr = whatif_rainfall_change(w, "wheat", "mid", 0, 40)
+    rr = whatif_rainfall_change(w, "wheat", "mid", 0, 40, et0_mm=6.0)
     net = [c for c in rr["comparisons"] if "الصافي" in c["metric_ar"]][0]
     if net["scenario"] < net["baseline"]:
         r.append(("✓", "زيادة المطر تقلّل الريّ"))
@@ -1231,8 +1231,8 @@ def test_multicrop_honesty():
     from api.water_balance import WeatherInput, water_balance
 
     w = WeatherInput(t_min_c=18, t_max_c=32, t_mean_c=25)
-    known = water_balance(w, crop="wheat", stage="mid", rain_mm=0).to_dict()
-    unk = water_balance(w, crop="dragonfruit", stage="mid", rain_mm=0).to_dict()
+    known = water_balance(w, crop="wheat", stage="mid", rain_mm=0, et0_mm=6.0).to_dict()
+    unk = water_balance(w, crop="dragonfruit", stage="mid", rain_mm=0, et0_mm=6.0).to_dict()
     if "wheat" in known["kc_source_ar"] and "غير مُعرّف" in unk["kc_source_ar"]:
         r.append(("✓", "water_balance: يوسم Kc العامّ للمحصول المجهول (لا قيمة صامتة)"))
     # yield_heuristics: لا يطبّق فحص المدّة بـ90 يوم افتراضي مضلّل

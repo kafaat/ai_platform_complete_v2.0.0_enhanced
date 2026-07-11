@@ -50,12 +50,18 @@ def whatif_temperature_shift(
     stage: str,
     temp_shift_c: float,
     rain_mm: float = 0.0,
+    *,
+    base_et0_mm: float,
+    scen_et0_mm: float,
+    et0_method: str = "weather-engine",
 ) -> dict:
     """ماذا لو ارتفعت/انخفضت الحرارة بمقدار temp_shift_c؟
 
-    يحسب أثر التغيّر على ET0 والاحتياج المائي الصافي (حساب فيزيائي بحت).
+    يحسب أثر التغيّر على ET0 والاحتياج المائي الصافي (حساب فيزيائي بحت). WS-C.1b
+    Zero-Legacy: ET0 للأساس والبديل (بالحرارة المُزاحة) محقونان من **محرّك الطقس**
+    (المصدر الوحيد؛ لا نواة محلّيّة) — يجلبهما المُوجِّه async fail-closed.
     """
-    base = water_balance(w, crop, stage, rain_mm=rain_mm)
+    base = water_balance(w, crop, stage, rain_mm=rain_mm, et0_mm=base_et0_mm, et0_method=et0_method)
 
     w2 = WeatherInput(
         t_min_c=w.t_min_c + temp_shift_c,
@@ -67,7 +73,9 @@ def whatif_temperature_shift(
         elevation_m=w.elevation_m,
         day_of_year=w.day_of_year,
     )
-    scen = water_balance(w2, crop, stage, rain_mm=rain_mm)
+    scen = water_balance(
+        w2, crop, stage, rain_mm=rain_mm, et0_mm=scen_et0_mm, et0_method=et0_method
+    )
 
     comparisons = [
         ScenarioComparison(
@@ -143,10 +151,21 @@ def whatif_rainfall_change(
     stage: str,
     rain_baseline_mm: float,
     rain_scenario_mm: float,
+    *,
+    et0_mm: float,
+    et0_method: str = "weather-engine",
 ) -> dict:
-    """ماذا لو تغيّر المطر الموسمي؟ أثر على صافي الريّ المطلوب."""
-    base = water_balance(w, crop, stage, rain_mm=rain_baseline_mm)
-    scen = water_balance(w, crop, stage, rain_mm=rain_scenario_mm)
+    """ماذا لو تغيّر المطر الموسمي؟ أثر على صافي الريّ المطلوب.
+
+    WS-C.1b Zero-Legacy: نفس الطقس للأساس والبديل (يتغيّر المطر فقط) ⇒ ET0 واحد محقون
+    من **محرّك الطقس** (المصدر الوحيد) يُمرَّر لكليهما — يجلبه المُوجِّه async fail-closed.
+    """
+    base = water_balance(
+        w, crop, stage, rain_mm=rain_baseline_mm, et0_mm=et0_mm, et0_method=et0_method
+    )
+    scen = water_balance(
+        w, crop, stage, rain_mm=rain_scenario_mm, et0_mm=et0_mm, et0_method=et0_method
+    )
 
     comparisons = [
         ScenarioComparison(

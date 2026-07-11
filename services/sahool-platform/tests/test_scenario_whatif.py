@@ -2,8 +2,12 @@
 
 يتحقّق من `api/scenario_whatif.py`: تحويل الحرارة (أثر على ET0 والاحتياج)،
 تغيير تاريخ الزراعة (أثر على GDD وبلوغ المرحلة)، وتغيّر المطر (أثر على صافي
-الريّ). يعيد استخدام water_balance وtrack_gdd. القيم مشتقّة من الكود.
-بلا قاعدة بيانات ولا شبكة ولا قراءة ملفّات.
+الريّ). القيم مشتقّة من الكود. بلا قاعدة بيانات ولا شبكة ولا قراءة ملفّات.
+
+WS-C.1b Zero-Legacy: **لا نواة ET0 محلّيّة** — ET0 يُحقَن (يُحاكي منتج المحرّك). لتحويل
+الحرارة نُمرّر ``base_et0_mm``/``scen_et0_mm`` (البديل الأدفأ ⇒ ET0 أعلى)؛ ولتغيّر المطر
+``et0_mm`` واحد (نفس الطقس). حيث يقارن الاختبار whatif بـ``water_balance`` مباشرةً
+نُمرّر القيمة نفسها للطرفين ليبقى التطابق صحيحاً.
 """
 
 import pytest
@@ -17,6 +21,10 @@ from api.scenario_whatif import (
 from api.water_balance import WeatherInput, water_balance
 
 pytestmark = pytest.mark.unit
+
+# قيم ET0 مرجعيّة محقونة (تحاكي منتج المحرّك): البديل الأدفأ ⇒ ET0 أعلى.
+_ET0_BASE = 6.0
+_ET0_WARM = 7.0
 
 
 # ─── ScenarioComparison.to_dict ────────────────────────────────────────────
@@ -39,11 +47,13 @@ def test_scenario_comparison_to_dict_rounding():
 
 def test_temperature_shift_warmer_increases_water_need():
     w = WeatherInput(t_min_c=15, t_max_c=30)
-    r = whatif_temperature_shift(w, "wheat", "mid", 2.0, rain_mm=0)
+    r = whatif_temperature_shift(
+        w, "wheat", "mid", 2.0, rain_mm=0, base_et0_mm=_ET0_BASE, scen_et0_mm=_ET0_WARM
+    )
     assert r["scenario_type"] == "temperature_shift"
     et0_cmp, net_cmp = r["comparisons"]
     assert et0_cmp["metric_ar"] == "ET0 المرجعي"
-    # ارتفاع الحرارة يرفع ET0 ومن ثمّ الاحتياج (delta موجبة)
+    # ارتفاع الحرارة يرفع ET0 المحقون ومن ثمّ الاحتياج (delta موجبة)
     assert et0_cmp["delta"] > 0
     assert net_cmp["delta"] > 0
     assert "ارتفاع" in r["summary_ar"]
@@ -51,8 +61,10 @@ def test_temperature_shift_warmer_increases_water_need():
 
 def test_temperature_shift_baseline_matches_water_balance():
     w = WeatherInput(t_min_c=15, t_max_c=30)
-    r = whatif_temperature_shift(w, "wheat", "mid", 2.0, rain_mm=0)
-    base = water_balance(w, "wheat", "mid", rain_mm=0)
+    r = whatif_temperature_shift(
+        w, "wheat", "mid", 2.0, rain_mm=0, base_et0_mm=_ET0_BASE, scen_et0_mm=_ET0_WARM
+    )
+    base = water_balance(w, "wheat", "mid", rain_mm=0, et0_mm=_ET0_BASE)
     assert r["comparisons"][0]["baseline"] == round(base.et0_mm, 2)
     assert r["comparisons"][1]["baseline"] == round(base.net_irrigation_mm, 2)
 
@@ -60,22 +72,27 @@ def test_temperature_shift_baseline_matches_water_balance():
 def test_temperature_shift_scenario_applies_shift_to_both_temps():
     w = WeatherInput(t_min_c=15, t_max_c=30)
     shift = 3.0
-    r = whatif_temperature_shift(w, "wheat", "mid", shift, rain_mm=0)
+    r = whatif_temperature_shift(
+        w, "wheat", "mid", shift, rain_mm=0, base_et0_mm=_ET0_BASE, scen_et0_mm=_ET0_WARM
+    )
     w2 = WeatherInput(t_min_c=15 + shift, t_max_c=30 + shift)
-    scen = water_balance(w2, "wheat", "mid", rain_mm=0)
+    scen = water_balance(w2, "wheat", "mid", rain_mm=0, et0_mm=_ET0_WARM)
     assert r["comparisons"][0]["scenario"] == round(scen.et0_mm, 2)
 
 
 def test_temperature_shift_cooler_uses_decrease_direction():
     w = WeatherInput(t_min_c=15, t_max_c=30)
-    r = whatif_temperature_shift(w, "wheat", "mid", -2.0)
+    # البديل الأبرد ⇒ ET0 أدنى؛ الاتّجاه من إشارة temp_shift_c لا من ET0.
+    r = whatif_temperature_shift(w, "wheat", "mid", -2.0, base_et0_mm=_ET0_BASE, scen_et0_mm=5.0)
     assert "انخفاض" in r["summary_ar"]
 
 
 def test_temperature_shift_zero_baseline_need_avoids_div_by_zero():
     # مطر كثيف → الاحتياج الأساس = 0، لا قسمة على صفر، النسبة 0٪
     w = WeatherInput(t_min_c=15, t_max_c=30)
-    r = whatif_temperature_shift(w, "wheat", "mid", 2.0, rain_mm=300)
+    r = whatif_temperature_shift(
+        w, "wheat", "mid", 2.0, rain_mm=300, base_et0_mm=_ET0_BASE, scen_et0_mm=_ET0_WARM
+    )
     assert r["comparisons"][1]["baseline"] == 0.0
     assert "+0٪" in r["summary_ar"]
 
@@ -123,7 +140,7 @@ def test_planting_date_empty_baseline_series():
 
 def test_rainfall_change_more_rain_saves_irrigation():
     w = WeatherInput(t_min_c=15, t_max_c=30)
-    r = whatif_rainfall_change(w, "wheat", "mid", 0, 100)
+    r = whatif_rainfall_change(w, "wheat", "mid", 0, 100, et0_mm=_ET0_BASE)
     assert r["scenario_type"] == "rainfall_change"
     rain_cmp, net_cmp = r["comparisons"]
     assert rain_cmp["metric_ar"] == "المطر الفعّال"
@@ -135,9 +152,9 @@ def test_rainfall_change_more_rain_saves_irrigation():
 
 def test_rainfall_change_baseline_matches_water_balance():
     w = WeatherInput(t_min_c=15, t_max_c=30)
-    r = whatif_rainfall_change(w, "wheat", "mid", 0, 100)
-    base = water_balance(w, "wheat", "mid", rain_mm=0)
-    scen = water_balance(w, "wheat", "mid", rain_mm=100)
+    r = whatif_rainfall_change(w, "wheat", "mid", 0, 100, et0_mm=_ET0_BASE)
+    base = water_balance(w, "wheat", "mid", rain_mm=0, et0_mm=_ET0_BASE)
+    scen = water_balance(w, "wheat", "mid", rain_mm=100, et0_mm=_ET0_BASE)
     assert r["comparisons"][0]["baseline"] == round(base.effective_rain_mm, 2)
     assert r["comparisons"][0]["scenario"] == round(scen.effective_rain_mm, 2)
     assert r["comparisons"][1]["scenario"] == round(scen.net_irrigation_mm, 2)
@@ -146,7 +163,7 @@ def test_rainfall_change_baseline_matches_water_balance():
 def test_rainfall_change_less_rain_increases_irrigation():
     w = WeatherInput(t_min_c=15, t_max_c=30)
     # الأساس مطر وفير، البديل جفاف → الاحتياج يزيد (saved سالب)
-    r = whatif_rainfall_change(w, "wheat", "mid", 100, 0)
+    r = whatif_rainfall_change(w, "wheat", "mid", 100, 0, et0_mm=_ET0_BASE)
     net_cmp = r["comparisons"][1]
     assert net_cmp["delta"] > 0
     assert "يزيد" in r["summary_ar"]
