@@ -422,6 +422,11 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx10_7_decision_review.py -q -p no:cacheprovider
+      # WX-10.8 review-queue endpoint (monkeypatched: authoritative + tenant-scoped + fail-closed
+      # 503 in mirror). No DB needed — runs here because this job has fastapi + pytest-asyncio.
+      - name: WX-10.8 review-queue endpoint tests
+        working-directory: services/decision-service
+        run: pytest tests/test_wx10_8_review_queue.py -q -p no:cacheprovider
 
   security-scan:
     name: Security Scan

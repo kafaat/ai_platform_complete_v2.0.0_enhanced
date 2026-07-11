@@ -5802,6 +5802,17 @@
       "owner_type": "bff-orchestrator",
       "route_key": "api/routers/decision_review.py::POST /api/v1/decisions/{decision_id}/review::review_decision_candidate",
       "note": "WX-10.7 reviewer/policy action BFF proxy: authz(who) + forward; decision-service owns the authoritative transition. Deliberate owned +1."
+    },
+    {
+      "file": "api/routers/decision_review.py",
+      "function": "get_decision_review_queue",
+      "method": "GET",
+      "path": "/api/v1/decisions/review-queue",
+      "line": 42,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/decision_review.py::GET /api/v1/decisions/review-queue::get_decision_review_queue",
+      "note": "WX-10.8 reviewer UI BFF proxy: authz(DECISION_APPROVE) + fail-closed pass-through of the authoritative pending-candidate queue owned by decision-service. Deliberate owned +1."
     }
   ],
   "p2_6_route_budget_reduction": {

@@ -7,10 +7,10 @@ from pathlib import Path
 import pytest
 from fastapi import HTTPException
 
-pytestmark = pytest.mark.unit
-
-ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = ROOT / "services" / "decision-service" / "main.py"
+# decision-service main.py lives one level up from this tests/ dir. This runs in the
+# Decision Service Tests CI job (which installs fastapi + pytest-asyncio); it monkeypatches
+# sor_enabled/list_review_queue so it needs no database.
+MODULE_PATH = Path(__file__).resolve().parents[1] / "main.py"
 
 
 def _load_module():
