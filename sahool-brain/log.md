@@ -2409,3 +2409,15 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   - اختباران في `test_fieldstate_water_canon` أُعيدا (async + mock `get_et0_product` + حالة تعذّر المحرّك ⇒ None). حُذف الملفّ من allowlist (6→5).
 - **تحقّق (CI أخضر 12/12 job):** weather-engine-formula-guard (canonical + 5) · Platform Unit 3678 · Unit 2870 · Integration · Security Scan · Frontend/Flutter · inventory 884 route · bundle 3921 checksum. main/develop = `50b21b5`. أرشيف مُرسَل.
 - **المتبقّي = 5 نوى ET0:** et0.py الجذر (يُحذَف آخِراً) · water_balance (مسار الريّ) · fao56 (etc-dual) · weather_analytics (عقد lat) · weather_server (MCP، core→shared). ثمّ `assert len(temporary_legacy_allowlist) == 0`.
+
+## WS-C.1b Zero-Legacy — راتشِت ET0 #2: water_balance → منتج المحرّك (allowlist 5→4)
+
+- **`api/water_balance.py` نواة ET0 التشغيليّة (`0b354d7`):** أكبر راتشِت ET0 — النوى المحلّيّة (`compute_et0`/`et0_penman_monteith`/`et0_hargreaves`/`_extraterrestrial_radiation`) + enum `ET0Method` **حُذفت**. صيغة FAO-56 PM/Hargreaves لمسار الريّ/ميزان الماء تُنفَّذ الآن في المحرّك فقط.
+  - `water_balance()`/`water_balance_auto()`: تأخذان `et0_mm` (keyword مطلوب) + `et0_method` (نصّ) — لا حساب ET0 داخليّ. `WaterBalanceResult.method` صار نصّ المحرّك.
+  - `routers/water_balance.py`: `/api/v1/water-balance` صار **async** يجلب `get_et0_product` ويحقن؛ **تغيير سلوكيّ:** fail-closed 503 عند تعذّر المحرّك (لا احتياط محلّيّ).
+  - `routers/scenario.py`: `/scenario/temperature` (أساس + حرارة مُزاحة) و`/scenario/rainfall` صارتا async تجلبان ET0 المحرّك (temp-only ⇒ Hargreaves)، fail-closed 503.
+  - `scenario_whatif.py`: `whatif_temperature_shift` يأخذ base/scen et0؛ `whatif_rainfall_change` يأخذ et0 واحد — نقيّتان محقونتان.
+  - `routers/irrigation_recommendation.py`: **حُذف ظلّ ET0 الإرثيّ** (`_shadow_et0_diff` + استيراد compute_et0 + تسجيل + حقل shadow) — غرضه (إثبات إعادة المحرّك للصيغة) تحقّق؛ المحرّك المصدر الوحيد.
+  - اختبارات: أُعيد `test_water_balance`/`test_fao56_agronomic_validation`/`test_scenario_whatif` بحقن et0 (اختبارات النوى المحذوفة أُزيلت؛ تحقّق FAO-56 الزراعيّ أُعيد توجيهه لنواة `core.engines.et0` الباقية)؛ حُذف اختبار shadow-diff + تأكيداته؛ حُقنت قيمة et0 مرجعيّة في مستهلكي tests_v9؛ حُذف اختبارا التوحيد للأغلفة المحذوفة (اختبارات النواة الكنسيّة بقيت). subagent نفّذ حقن tests_v9 والمنسّق تحقّق مستقلّاً بالبوّابة الكاملة.
+- **تحقّق (CI معلَّق، البوّابات محليّاً خضراء):** weather-engine-formula-guard (canonical + 4) · pytest -m unit 2868 · platform tests 3666 · inventory 884 route · bundle 3921 checksum · ruff نظيف.
+- **المتبقّي = 4 نوى ET0:** et0.py الجذر (يُحذَف آخِراً) · fao56 (etc-dual + بقايا gdd_daily) · weather_analytics (batch monthly-Ra) · weather_server (MCP، core→shared). ثمّ `assert len==0`.
