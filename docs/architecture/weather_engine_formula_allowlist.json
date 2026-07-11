@@ -28,13 +28,6 @@
       "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0; also holds gdd_daily/gdd_accumulate). Retire alongside the et0.py core migration."
     },
     {
-      "path": "services/sahool-platform/api/season_simulation.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-pending-delegation",
-      "note": "Platform GDD daily kernel variant (gdd_day, Baskerville-Emin modified method) inside the RUE season sim. Migrate the daily kernel to the Weather Engine gdd.py (method='modified'); _CROP_PARAMS stays as Season policy. NOTE: this is a GDD (C.1c) entry, NOT ET0 — season ET0 is already fully delegated to the engine ET0 series."
-    },
-    {
       "path": "services/mcp_servers/weather_server.py",
       "owner": "weather-migration",
       "expires": "2026-07-31",

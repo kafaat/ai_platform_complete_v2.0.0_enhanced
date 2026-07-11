@@ -26,6 +26,36 @@ from core.canonical_schemas import UserRole, UserSchema
 
 pytestmark = pytest.mark.unit
 
+
+@pytest.fixture(autouse=True)
+def _patch_engine_gdd(monkeypatch):
+    """WS-C.1c Zero-Legacy: مسار compose يجلب GDD من المحرّك (async) — نُبدِّله بمزيّف في الوحدة."""
+
+    async def _fake_gdd(*, daily_t_min, daily_t_max, base_c, upper_cutoff_c, method, **_kw):
+        daily = []
+        for mn, mx in zip(daily_t_min, daily_t_max, strict=False):
+            tmax = max(min(mx, upper_cutoff_c) if upper_cutoff_c is not None else mx, base_c)
+            tmin = max(mn, base_c)
+            daily.append(round(max(0.0, (tmax + tmin) / 2.0 - base_c), 3))
+        return {
+            "product": "gdd",
+            "calculation_version": "gdd/daily/1.0.0",
+            "daily_gdd": daily,
+            "accumulated_gdd": round(sum(daily), 3),
+            "thresholds_used": {
+                "base_c": base_c,
+                "upper_cutoff_c": upper_cutoff_c,
+                "method": method,
+            },
+            "valid_period": {"days": len(daily)},
+            "limitations": [],
+        }
+
+    import api.routers.crop_twin as mod
+
+    monkeypatch.setattr(mod, "get_gdd_product", _fake_gdd)
+
+
 _USER = UserSchema(
     user_id="u-lin",
     tenant_id="00000000-0000-0000-0000-000000000002",
@@ -48,8 +78,8 @@ def _decision_req(**kw):
     return CropDecisionRequest(**base)
 
 
-def test_decision_mints_id_and_lineage():
-    out = compose_crop_decision(req=_decision_req(), user=_USER)
+async def test_decision_mints_id_and_lineage():
+    out = await compose_crop_decision(req=_decision_req(), user=_USER)
     assert out["decision_id"].startswith("dec_")
     lin = out["lineage"]
     assert lin["decision_id"] == out["decision_id"]
@@ -58,13 +88,13 @@ def test_decision_mints_id_and_lineage():
     assert lin["position"] == 1
 
 
-def test_decision_reuses_passed_id():
-    out = compose_crop_decision(req=_decision_req(decision_id="dec_fixed123"), user=_USER)
+async def test_decision_reuses_passed_id():
+    out = await compose_crop_decision(req=_decision_req(decision_id="dec_fixed123"), user=_USER)
     assert out["decision_id"] == "dec_fixed123"
     assert out["lineage"]["decision_id"] == "dec_fixed123"
 
 
-def test_outcome_links_to_decision():
+async def test_outcome_links_to_decision():
     out = measure_decision_outcome(
         req=OutcomeRequest(
             field_id="f1",
@@ -82,7 +112,7 @@ def test_outcome_links_to_decision():
     assert "metrics" in out
 
 
-def test_adaptation_links_lineage():
+async def test_adaptation_links_lineage():
     req = AdaptRequest(
         evidence=EvidenceRecord(region="jawf", evidence_level="field_verified", sample_count=40),
         mean_stress_delta=2.0,
@@ -95,9 +125,9 @@ def test_adaptation_links_lineage():
     assert out["lineage"]["region"] == "jawf"
 
 
-def test_full_chain_shares_one_id():
+async def test_full_chain_shares_one_id():
     # سلسلة كاملة بمعرّف واحد: قرار ⇒ قياس ⇒ تكيّف.
-    dec = compose_crop_decision(req=_decision_req(), user=_USER)
+    dec = await compose_crop_decision(req=_decision_req(), user=_USER)
     did = dec["decision_id"]
     oc = measure_decision_outcome(
         req=OutcomeRequest(

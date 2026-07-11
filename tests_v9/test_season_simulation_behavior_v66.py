@@ -39,7 +39,6 @@ from api.season_simulation import (  # noqa: E402
     _resolve_observed_fapar,
     _seasonal_water_need,
     _solar_estimate,
-    gdd_day,
     simulate_season,
 )
 
@@ -49,33 +48,25 @@ def _warm_days(n, t_min=14.0, t_max=30.0, et0=5.0, rain=0.0):
     return [DayWeather(t_min_c=t_min, t_max_c=t_max, et0_mm=et0, rain_mm=rain) for _ in range(n)]
 
 
-# ─── GDD: القصّ غير المتماثل (Baskerville–Emin المبسّط) ──────────────
+def _gdd_series(crop, weather):
+    """WS-C.1c Zero-Legacy: سلسلة GDD المحقونة (نمط الراوتر، صيغة modified) — الاختبارات
+    مُستثناة من حارس الصيغ. المحاكاة لم تعد تحسب GDD محلّيّاً."""
+    p = _params_for(crop if crop else "")
+    base, cap = p.t_base_c, p.t_cap_c
+    out = []
+    for d in weather:
+        tmax = max(min(d.t_max_c, cap), base)
+        tmin = max(d.t_min_c, base)
+        out.append(max(0.0, (tmax + tmin) / 2.0 - base))
+    return out
 
 
-class TestGddAsymmetricClamp:
-    def test_tmin_raised_to_base_before_mean(self):
-        # tmin(2)→base(8)، tmax 20، mean=(20+8)/2=14، −8 ⇒ 6
-        assert gdd_day(2.0, 20.0, t_base=8.0, t_cap=30.0) == 6.0
+def _sim(crop, weather, **kw):
+    kw.setdefault("gdd_daily_override", _gdd_series(crop, weather))
+    return simulate_season(SimContext(crop=crop, weather=weather, **kw))
 
-    def test_tmax_capped_then_averaged_with_high_tmin(self):
-        # tmin=max(35,8)=35، tmax=min(40,30)=30، mean=32.5، −8 ⇒ 24.5
-        assert gdd_day(35.0, 40.0, t_base=8.0, t_cap=30.0) == 24.5
 
-    def test_whole_day_below_base_is_zero(self):
-        # كلا الحدّين تحت الأساس ⇒ صفر (لا قيمة سالبة)
-        assert gdd_day(-2.0, 5.0, t_base=10.0, t_cap=30.0) == 0.0
-
-    def test_monotonic_non_decreasing_in_tmax(self):
-        # رفع tmax (دون السقف) لا يُنقص GDD أبداً
-        base = gdd_day(10.0, 20.0, t_base=5.0, t_cap=35.0)
-        hotter = gdd_day(10.0, 28.0, t_base=5.0, t_cap=35.0)
-        assert hotter >= base
-
-    def test_cap_makes_extra_heat_useless(self):
-        # فوق السقف لا فائدة حراريّة إضافيّة ⇒ نفس الناتج
-        a = gdd_day(15.0, 30.0, t_base=0.0, t_cap=30.0)
-        b = gdd_day(15.0, 50.0, t_base=0.0, t_cap=30.0)
-        assert a == b
+# WS-C.1c Zero-Legacy: نواة gdd_day أُزيلت من المنصّة (مِلك المحرّك، وتُختبَر هناك).
 
 
 # ─── LAI: شكل منحنى النموّ (صعود/قمّة/شيخوخة) ────────────────────────
@@ -225,13 +216,13 @@ class TestSolarEstimate:
 class TestSimulateConsistency:
     def test_deterministic_same_input_same_output(self):
         weather = _warm_days(90)
-        a = simulate_season(SimContext(crop="wheat", weather=weather))
-        b = simulate_season(SimContext(crop="wheat", weather=weather))
+        a = _sim("wheat", weather)
+        b = _sim("wheat", weather)
         assert asdict(a) == asdict(b)
 
     def test_yield_equals_biomass_times_hi_under_no_stress(self):
         # بلا عرض مائي ⇒ لا إجهاد (stress=1) ⇒ الإنتاج = الكتلة × HI
-        r = simulate_season(SimContext(crop="wheat", weather=_warm_days(120)))
+        r = _sim("wheat", _warm_days(120))
         p = _params_for("wheat")
         assert r.water_stress_factor == 1.0
         assert r.yield_kg_ha == pytest.approx(r.biomass_kg_ha * p.harvest_index, rel=1e-6)
@@ -239,7 +230,7 @@ class TestSimulateConsistency:
     def test_uncertainty_band_is_plus_minus_twenty_percent(self):
         # الحدّان يُحسبان من الإنتاج المركزي ثمّ يُقرَّبان لخانة عشريّة واحدة،
         # فنسمح بهامش التقريب (±0.05) حول ±20٪.
-        r = simulate_season(SimContext(crop="wheat", weather=_warm_days(120)))
+        r = _sim("wheat", _warm_days(120))
         assert r.yield_low_kg_ha == pytest.approx(r.yield_kg_ha * 0.8, abs=0.05)
         assert r.yield_high_kg_ha == pytest.approx(r.yield_kg_ha * 1.2, abs=0.05)
         assert r.yield_low_kg_ha < r.yield_kg_ha < r.yield_high_kg_ha
@@ -255,12 +246,12 @@ class TestSimulateConsistency:
 
     def test_longer_season_no_less_biomass(self):
         # موسم أطول (بنفس الطقس اليوميّ) لا يُنقص الكتلة المتراكمة
-        short = simulate_season(SimContext(crop="wheat", weather=_warm_days(40)))
-        long = simulate_season(SimContext(crop="wheat", weather=_warm_days(140)))
+        short = _sim("wheat", _warm_days(40))
+        long = _sim("wheat", _warm_days(140))
         assert long.biomass_kg_ha >= short.biomass_kg_ha
 
     def test_all_outputs_non_negative(self):
-        r = simulate_season(SimContext(crop="wheat", weather=_warm_days(110)))
+        r = _sim("wheat", _warm_days(110))
         for value in (
             r.gdd_total,
             r.lai_max,
@@ -277,17 +268,15 @@ class TestSimulateConsistency:
     def test_sowing_date_selects_monthly_solar(self):
         # تاريخ بذر ⇒ تقدير إشعاع حسب الشهر بدل المتوسّط السنويّ ⇒ كتلة مختلفة
         weather = _warm_days(60)
-        no_date = simulate_season(SimContext(crop="wheat", weather=weather))
+        no_date = _sim("wheat", weather)
         # مايو (شهر 5) إشعاعه 25 > الافتراضي 21 ⇒ كتلة أعلى
-        may = simulate_season(
-            SimContext(crop="wheat", sowing_date=date(2026, 5, 1), weather=weather)
-        )
+        may = _sim("wheat", weather, sowing_date=date(2026, 5, 1))
         assert may.biomass_kg_ha != no_date.biomass_kg_ha
         assert may.biomass_kg_ha > no_date.biomass_kg_ha
 
     def test_rain_supply_enables_water_balance(self):
         # مطر موسمي ⇒ يظهر عرض مائي وعامل إجهاد محسوب (لا افتراض "ريّ كافٍ")
         weather = _warm_days(120, rain=8.0)
-        r = simulate_season(SimContext(crop="wheat", weather=weather))
+        r = _sim("wheat", weather)
         assert r.water_supply_mm is not None
         assert r.water_supply_mm == pytest.approx(120 * 8.0, rel=1e-6)

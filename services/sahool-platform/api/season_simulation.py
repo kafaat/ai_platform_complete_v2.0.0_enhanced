@@ -211,17 +211,10 @@ def crop_gdd_policy(crop: str | None) -> tuple[float, float]:
     return p.t_base_c, p.t_cap_c
 
 
-def gdd_day(t_min: float, t_max: float, t_base: float, t_cap: float) -> float:
-    """GDD ليوم واحد (طريقة المتوسّط مع قصّ): max(0, mean(clamp) − t_base).
-
-    تُقصّ الحرارة العظمى عند t_cap (لا فائدة حراريّة فوقه) والصغرى لا تنزل تحت
-    t_base قبل المتوسّط (FAO/طريقة Baskerville–Emin المبسّطة).
-    """
-    tmax = min(t_max, t_cap)
-    tmin = max(t_min, t_base)
-    tmax = max(tmax, t_base)  # لو اليوم كلّه تحت الأساس ⇒ صفر
-    mean = (tmax + tmin) / 2.0
-    return max(0.0, mean - t_base)
+# WS-C.1c Zero-Legacy: نواة GDD اليوميّة (gdd_day، طريقة Baskerville–Emin المبسّطة =
+# method="modified") أُزيلت — مِلك محرّك الطقس (services/weather-service/gdd.py). المحاكاة
+# تستهلك السلسلة المحقونة (SimContext.gdd_daily_override)؛ crop_gdd_policy أدناه يبقى (سياسة
+# العتبات) ليطلب الراوتر نواة المحرّك بنفس الأساس/السقف.
 
 
 def _lai_at(gdd_cum: float, gdd_mat: float, lai_max: float) -> float:
@@ -410,15 +403,17 @@ def simulate_season(ctx: SimContext) -> SimResult:
     rain_total = 0.0
     estimated_solar_days = 0
     missing_et0_days = 0
+    missing_gdd_days = 0
 
     override = ctx.gdd_daily_override
     et0_override = ctx.et0_daily_override
     for day_idx, day in enumerate(weather):
-        # نواة GDD من المحرّك إن حُقِنت لهذا اليوم؛ وإلّا gdd_day المحلّيّة (إرث/احتياط).
+        # WS-C.1c Zero-Legacy: نواة GDD من **محرّك الطقس** فقط (سلسلة محقونة) — لا gdd_day
+        # محلّيّ. يوم بلا GDD محرّك ⇒ يُتجاهَل (fail-closed، لا يُلفَّق)؛ يُعلَن كقيد.
         if override is not None and day_idx < len(override) and override[day_idx] is not None:
             gdd_cum += float(override[day_idx])
         else:
-            gdd_cum += gdd_day(day.t_min_c, day.t_max_c, p.t_base_c, p.t_cap_c)
+            missing_gdd_days += 1
         lai = _lai_at(gdd_cum, p.gdd_to_maturity, p.lai_max)
         lai_peak = max(lai_peak, lai)
 
@@ -501,6 +496,11 @@ def simulate_season(ctx: SimContext) -> SimResult:
         assumptions.append(
             f"ET₀ غير متوفّر من محرّك الطقس لـ{missing_et0_days} يوم — استُبعِدت تلك الأيّام "
             "من احتياج الماء (لا تقدير Hargreaves محلّيّ داخل المنصّة)."
+        )
+    if missing_gdd_days > 0:
+        assumptions.append(
+            f"GDD غير متوفّر من محرّك الطقس لـ{missing_gdd_days} يوم — لم تُضَف تلك الأيّام "
+            "للتراكم الحراريّ (لا نواة GDD محلّيّة داخل المنصّة)."
         )
     if not maturity_reached:
         warnings.append(

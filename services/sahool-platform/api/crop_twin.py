@@ -23,7 +23,6 @@ from api.root_zone_balance import DayInput, root_zone_balance
 from api.season_simulation import (
     _STAGE_FRACTIONS,
     _params_for,
-    gdd_day,
     normalize_crop,
 )
 
@@ -71,6 +70,7 @@ def crop_twin_state(
     prior_stress_memory: dict | None = None,
     crop_water_policy: dict | None = None,
     weather_state: dict | None = None,
+    gdd_daily_override: list[float | None] | None = None,
 ) -> dict:
     """يبني الحالة الرقميّة الموحّدة للمحصول من سلسلة أيّام — نقيّ حتميّ.
 
@@ -81,10 +81,17 @@ def crop_twin_state(
     crop_key, known = normalize_crop(crop)
     params = _params_for(crop_key)
 
-    # ١) الفينولوجيا: تراكم GDD ⇒ تقدّم الموسم ⇒ المرحلة.
+    # ١) الفينولوجيا: تراكم GDD من **محرّك الطقس** (سلسلة محقونة، method="modified") —
+    # WS-C.1c Zero-Legacy: لا نواة gdd_day محلّيّة. يوم بلا GDD محرّك ⇒ يُتجاهَل (fail-closed،
+    # لا يُلفَّق). غياب السلسلة كلّها ⇒ تراكم صفر (المحرّك مصدر GDD الوحيد).
     gdd_cum = 0.0
-    for d in days:
-        gdd_cum += gdd_day(d.t_min_c, d.t_max_c, params.t_base_c, params.t_cap_c)
+    for day_idx in range(len(days)):
+        if (
+            gdd_daily_override is not None
+            and day_idx < len(gdd_daily_override)
+            and gdd_daily_override[day_idx] is not None
+        ):
+            gdd_cum += float(gdd_daily_override[day_idx])
     gdd_mat = params.gdd_to_maturity
     progress = min(1.0, gdd_cum / gdd_mat) if gdd_mat > 0 else 0.0
     past_maturity = gdd_mat > 0 and gdd_cum >= gdd_mat

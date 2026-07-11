@@ -19,7 +19,7 @@
 from __future__ import annotations
 
 from core.crop_intelligence import build_canonical_spectral_state
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from api.crop_twin import TwinDay, crop_twin_state
@@ -31,9 +31,11 @@ from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.irrigation_policy import PolicyContext, resolve_policy
 from api.main import UserSchema, get_current_user
 from api.routers.decision_record import persist_decision_if_enabled
+from api.season_simulation import crop_gdd_policy
 from api.soil_water import soil_water_params
 from api.unified_decision import unified_decision
 from api.water_balance import KC_BY_CROP_STAGE, kc_from_ndvi
+from api.weather_service_client import get_gdd_product
 
 router = APIRouter()
 
@@ -82,10 +84,12 @@ class CropTwinComposeRequest(BaseModel):
     management: ComposeManagement = Field(default_factory=ComposeManagement)
 
 
-def _compose_state(req: CropTwinComposeRequest) -> dict:
-    """تركيب مشترك (نقيّ في جوهره): soil_water ⇒ Kc ديناميكيّ ⇒ crop_twin ⇒ quality.
+async def _compose_state(req: CropTwinComposeRequest) -> dict:
+    """تركيب مشترك: soil_water ⇒ Kc ديناميكيّ ⇒ نواة GDD من المحرّك ⇒ crop_twin ⇒ quality.
 
-    يعيد القطع التي تحتاجها نقطتا compose وdecision (تفادي تكرار الغراء).
+    WS-C.1c Zero-Legacy: نواة GDD تُجلَب من محرّك الطقس (method="modified"، نفس عتبات النموذج
+    عبر ``crop_gdd_policy``) وتُحقَن في ``crop_twin_state`` — لا ``gdd_day`` محلّيّ. تعذّر المحرّك
+    ⇒ 503 fail-closed. يعيد القطع التي تحتاجها نقطتا compose وdecision (تفادي تكرار الغراء).
     """
     soil_in = req.soil
     sp = soil_water_params(
@@ -124,6 +128,26 @@ def _compose_state(req: CropTwinComposeRequest) -> dict:
         temporal_compatible=req.spectral_temporal_compatible,
     )
 
+    # نواة GDD من محرّك الطقس (method="modified"، نفس عتبات النموذج) — لا gdd_day محلّيّ.
+    # تعذّر المحرّك ⇒ 503 fail-closed. عتبات المحصول من crop_gdd_policy (سياسة Season).
+    gdd_base, gdd_cutoff = crop_gdd_policy(req.crop)
+    try:
+        gdd_engine = await get_gdd_product(
+            daily_t_min=[d.t_min_c for d in days],
+            daily_t_max=[d.t_max_c for d in days],
+            base_c=gdd_base,
+            upper_cutoff_c=gdd_cutoff,
+            method="modified",
+        )
+    except HTTPException as exc:
+        if exc.status_code in (502, 503, 504):
+            raise HTTPException(
+                status_code=503,
+                detail="weather-engine GDD unavailable — fail-closed (no local GDD fallback)",
+            ) from exc
+        raise
+    gdd_override = gdd_engine.get("daily_gdd")
+
     twin = crop_twin_state(
         req.crop,
         days,
@@ -136,6 +160,7 @@ def _compose_state(req: CropTwinComposeRequest) -> dict:
         season_id=req.season_id,
         spectral_state=spectral_state,
         source_ids=req.spectral_product_ids,
+        gdd_daily_override=gdd_override,
     )
 
     # جودة المدخلات (نفس صدق irrigation-plan): افتراضات متحقَّقة خادميّاً.
@@ -159,7 +184,7 @@ def _compose_state(req: CropTwinComposeRequest) -> dict:
 
 
 @router.post("/api/v1/crop-twin/compose")
-def compose_crop_twin(
+async def compose_crop_twin(
     req: CropTwinComposeRequest,
     user: UserSchema = Depends(get_current_user),
 ):
@@ -168,7 +193,7 @@ def compose_crop_twin(
     صدق: Kc ديناميكيّ من NDVI إن توفّر وإلّا ثابت للمرحلة؛ كلّ القيم موسومة
     calibrated=False مع quality/assumptions صريحة (لا لقطة حيّة مُدّعاة).
     """
-    st = _compose_state(req)
+    st = await _compose_state(req)
     twin = st["twin"]
 
     stress_flags: list[dict] = []
@@ -211,7 +236,7 @@ class CropDecisionRequest(CropTwinComposeRequest):
     decision_id: str | None = None  # نَسَب: يُمرَّر لإعادة استخدام السلسلة، أو يُسَكّ جديداً
 
 
-def compose_crop_decision(
+async def compose_crop_decision(
     req: CropDecisionRequest,
     user: UserSchema = Depends(get_current_user),
 ):
@@ -221,7 +246,7 @@ def compose_crop_decision(
     الاقتصاد مؤجَّل (economic_state=not_configured محجوز، لا مُختلق). نقيّ بلا قاعدة؛
     الإدامة في الغلاف async (crop_decision_endpoint) خلف علم تشغيليّ.
     """
-    st = _compose_state(req)
+    st = await _compose_state(req)
     kc_of = st["kc_of"]
 
     plan = plan_irrigation(
@@ -260,7 +285,7 @@ async def crop_decision_endpoint(
     — فيُلتقَط كلّ قرار في سلسلة النَّسَب بلا نداء /decision/record منفصل. الصدق: الإدامة أثر
     جانبيّ best-effort؛ persisted=false عند الإطفاء أو تعذّر القاعدة (لا يكسر القرار).
     """
-    decision = compose_crop_decision(req=req, user=user)
+    decision = await compose_crop_decision(req=req, user=user)
     decision["persisted"] = await persist_decision_if_enabled(
         user,
         decision_id=decision["decision_id"],
@@ -291,7 +316,7 @@ class ProfitAwareDecisionRequest(CropDecisionRequest):
     irrigation_method: str | None = None  # flood|furrow|sprinkler|pivot|drip — يصحّح الماء الإجماليّ
 
 
-def compose_profit_aware_decision(
+async def compose_profit_aware_decision(
     req: ProfitAwareDecisionRequest,
     user: UserSchema = Depends(get_current_user),
 ):
@@ -301,7 +326,7 @@ def compose_profit_aware_decision(
     غالٍ ⇒ profit_max...). يحسب economic_state من ماء الخطّة (م³/ها) والتسميد المتبقّي
     والأسعار المُمرَّرة. صدق: لا أسعار مُختلقة — الغائب يظهر missing_inputs/partial.
     """
-    st = _compose_state(req)
+    st = await _compose_state(req)
     kc_of = st["kc_of"]
 
     # ١) السياسة: آليّة من سياق التكلفة، أو المُمرَّرة.
@@ -387,7 +412,7 @@ async def profit_aware_decision_endpoint(
     التلقائيّة — مع المنطقة (req.region) للمعايرة. الصدق: أثر جانبيّ best-effort؛
     persisted=false عند الإطفاء/تعذّر القاعدة (لا يكسر القرار).
     """
-    decision = compose_profit_aware_decision(req=req, user=user)
+    decision = await compose_profit_aware_decision(req=req, user=user)
     decision["persisted"] = await persist_decision_if_enabled(
         user,
         decision_id=decision["decision_id"],

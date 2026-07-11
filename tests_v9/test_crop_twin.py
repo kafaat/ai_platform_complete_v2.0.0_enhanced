@@ -30,9 +30,26 @@ def _wheat_days(n, et0=20.0, kc=0.5):
     return [TwinDay(t_min_c=10.0, t_max_c=30.0, et0_mm=et0, kc=kc) for _ in range(n)]
 
 
+def _gdd(crop, days):
+    """WS-C.1c Zero-Legacy: سلسلة GDD المحقونة (نمط الراوتر، صيغة modified) — الاختبارات
+    مُستثناة من حارس الصيغ. crop_twin_state لم يعد يحسب GDD محلّيّاً."""
+    from api.season_simulation import crop_gdd_policy
+
+    base, cap = crop_gdd_policy(crop)
+    out = []
+    for d in days:
+        tmax = max(min(d.t_max_c, cap), base)
+        tmin = max(d.t_min_c, base)
+        out.append(max(0.0, (tmax + tmin) / 2.0 - base))
+    return out
+
+
 def test_phenology_progress_and_stage():
     # 10 أيّام × GDD 20 = 200؛ wheat نضج 1800 ⇒ تقدّم ≈ 0.111 ⇒ مرحلة initial.
-    st = crop_twin_state("wheat", _wheat_days(10), taw_mm=100.0, raw_fraction=0.5)
+    days = _wheat_days(10)
+    st = crop_twin_state(
+        "wheat", days, taw_mm=100.0, raw_fraction=0.5, gdd_daily_override=_gdd("wheat", days)
+    )
     assert st["phenology"]["gdd_cumulative"] == pytest.approx(200.0)
     assert st["phenology"]["progress"] == pytest.approx(200.0 / 1800.0, rel=1e-3)
     assert st["phenology"]["stage"] == "initial"
@@ -41,7 +58,10 @@ def test_phenology_progress_and_stage():
 
 def test_past_maturity_flagged():
     # 100 يوم × 20 = 2000 > 1800 ⇒ past_maturity، تقدّم مقصوص عند 1.0، مرحلة late.
-    st = crop_twin_state("wheat", _wheat_days(100), taw_mm=100.0, raw_fraction=0.5)
+    days = _wheat_days(100)
+    st = crop_twin_state(
+        "wheat", days, taw_mm=100.0, raw_fraction=0.5, gdd_daily_override=_gdd("wheat", days)
+    )
     assert st["phenology"]["past_maturity"] is True
     assert st["phenology"]["progress"] == pytest.approx(1.0)
     assert st["phenology"]["stage"] == "late"
@@ -71,7 +91,14 @@ def test_nutrient_block_mirrors_uptake_at_progress():
 
 
 def test_unknown_crop_flagged_and_generic_params():
-    st = crop_twin_state("zucchini_x", _wheat_days(5), taw_mm=100.0, raw_fraction=0.5)
+    days = _wheat_days(5)
+    st = crop_twin_state(
+        "zucchini_x",
+        days,
+        taw_mm=100.0,
+        raw_fraction=0.5,
+        gdd_daily_override=_gdd("zucchini_x", days),
+    )
     assert st["crop_known"] is False
     assert any("غير مُعرّف" in w for w in st["warnings_ar"])
     # معاملات عامّة (t_base=5) ⇒ GDD/يوم = mean(10,30)/.. = 20-5 = 15 ⇒ 5 أيّام = 75.

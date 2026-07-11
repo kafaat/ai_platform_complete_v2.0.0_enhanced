@@ -128,13 +128,11 @@ async def simulate_season_endpoint(
         for d in days
     ]
 
-    # ٣-ب) نواة GDD من محرّك الطقس (WS-C.1c) — المصدر الكنسيّ، لا تُحسب محلّيّاً.
+    # ٣-ب) نواة GDD من محرّك الطقس (WS-C.1c Zero-Legacy) — المصدر الوحيد، لا تُحسب محلّيّاً.
     # سياسة المحصول (الأساس/السقف، method="modified") من نموذج الموسم وتُمرَّر للمحرّك؛
-    # تعذّر المحرّك ⇒ 503 (لا GDD محلّيّ). مقارنة ظلّيّة (modified↔modified ⇒ match).
-    import logging as _logging
+    # تعذّر المحرّك ⇒ 503 (لا GDD محلّيّ، لا مقارنة ظلّيّة).
 
-    from api.gdd_shadow import compare_gdd_shadow
-    from api.season_simulation import crop_gdd_policy, gdd_day
+    from api.season_simulation import crop_gdd_policy
     from api.weather_service_client import get_et0_series, get_gdd_product
 
     gdd_base, gdd_cutoff = crop_gdd_policy(crop)
@@ -182,26 +180,12 @@ async def simulate_season_endpoint(
                 ) from exc
             raise
         gdd_override = gdd_engine.get("daily_gdd")
-        legacy_daily = [gdd_day(w.t_min_c, w.t_max_c, gdd_base, gdd_cutoff) for w in weather]
-        shadow = compare_gdd_shadow(
-            legacy_daily=legacy_daily,
-            legacy_accumulated=round(sum(legacy_daily), 3),
-            legacy_method="modified",
-            legacy_base_c=gdd_base,
-            legacy_upper_cutoff_c=gdd_cutoff,
-            engine_product=gdd_engine,
-        )
-        _logging.getLogger("sahool.gdd.shadow").info(
-            "gdd_shadow consumer=season_simulation season=%s status=%s acc_diff=%s",
-            season_id,
-            shadow["shadow_status"],
-            shadow["accumulated_diff"],
-        )
+        # WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة ونواة gdd_day المحلّيّة (المحرّك مصدر
+        # GDD الوحيد). النَّسَب من المحرّك مباشرة.
         gdd_provenance = {
             "source": "weather-engine",
             "calculation_version": gdd_engine.get("calculation_version"),
             "thresholds_used": gdd_engine.get("thresholds_used"),
-            "shadow": shadow,
         }
 
     # ٤) المحاكاة النقيّة (نواة GDD محقونة من المحرّك حين توفّرت).
