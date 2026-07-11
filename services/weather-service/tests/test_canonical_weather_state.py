@@ -23,9 +23,11 @@ from canonical_weather_state import (  # noqa: E402
     STATE_VERSION,
     build_canonical_weather_state,
     et0_view,
+    vpd_view,
     weather_state_report,
 )
 from et0 import et0_agro_product  # noqa: E402
+from vpd import compute_vpd  # noqa: E402
 
 pytestmark = pytest.mark.unit
 
@@ -297,3 +299,118 @@ def test_et0_view_preserves_degraded_and_does_not_elevate_partial():
     assert view["et0_mm"] is not None and view["et0_mm"] == direct["et0_mm"]
     assert state["availability"]["et0"] is True  # degraded مُتاح لكنّه ليس validated
     assert state["quality"] != "validated"  # الحالة الكلّيّة لم تُرفَع زوراً
+
+
+# ── WX-10.3: VPD كـView مُشتقّ من الحالة (حفظ حرفيّ + إثبات الانعكاس) ──────────
+_VPD_VALIDATED = dict(
+    t_max_c=34.0, t_min_c=18.0, rh_mean_pct=45.0, valid_time="2026-07-11T09:00:00Z"
+)
+_VPD_DEGRADED = dict(t_max_c=20.0, dew_point_c=20.02)  # نقطة ندى فوق الحرارة بقليل ⇒ قصّ سالب
+_VPD_INSUFFICIENT = dict(t_max_c=30.0)  # لا مصدر رطوبة
+
+
+def test_vpd_view_preserves_full_contract_verbatim():
+    # كامل عقد VPD == نداء النواة المباشر (حفظ حرفيّ، لا رفع/تبسيط).
+    direct = compute_vpd(t_max_c=34.0, t_min_c=18.0, rh_mean_pct=45.0, dew_point_c=None)
+    view = vpd_view(build_canonical_weather_state(**_VPD_VALIDATED))
+    for k in (
+        "vpd_kpa",
+        "raw_vpd_kpa",
+        "es_kpa",
+        "ea_kpa",
+        "method",
+        "input_completeness",
+        "input_consistency",
+        "quality_status",
+        "quality_flags",
+        "limitations",
+        "cross_check",
+        "units",
+        "formula_version",
+    ):
+        assert view[k] == direct[k], k
+
+
+def test_vpd_view_preserves_consistency_crosscheck_flags_when_dual_source():
+    # RH + نقطة ندى ⇒ cross_check + input_consistency محفوظان حرفيّاً (لا يُبسَّطان).
+    inp = dict(t_max_c=34.0, t_min_c=18.0, rh_mean_pct=45.0, dew_point_c=10.0)
+    direct = compute_vpd(**inp)
+    view = vpd_view(build_canonical_weather_state(**inp))
+    assert view["cross_check"] == direct["cross_check"]
+    assert view["input_consistency"] == direct["input_consistency"]
+    assert view["quality_flags"] == direct["quality_flags"]
+
+
+def test_vpd_view_adds_canonical_lineage():
+    state = build_canonical_weather_state(**_VPD_VALIDATED)
+    view = vpd_view(state)
+    assert view["derived_from"] == "canonical_weather_state"
+    assert view["canonical_state_id"] == state["state_id"]
+    assert view["canonical_state_version"] == state["state_version"]
+    assert view["source_snapshot_id"] == state["source_snapshot_id"]
+    # VPD لا يحمل weather_snapshot_id في نواته ⇒ يُضاف من لقطة الحالة (نَسَب موحَّد).
+    assert view["weather_snapshot_id"] == state["source_snapshot_id"]
+
+
+def test_vpd_view_quality_propagates_validated_degraded_insufficient():
+    v = vpd_view(build_canonical_weather_state(**_VPD_VALIDATED))
+    assert v["quality_status"] == "validated" and v["vpd_kpa"] is not None
+    d = vpd_view(build_canonical_weather_state(**_VPD_DEGRADED))
+    assert d["quality_status"] == "degraded"  # قصّ سالب — لا يُرفَع لvalidated
+    assert "negative_vpd_clamped" in d["quality_flags"]
+    i = vpd_view(build_canonical_weather_state(**_VPD_INSUFFICIENT))
+    assert i["quality_status"] == "insufficient" and i["vpd_kpa"] is None
+
+
+def test_vpd_view_matches_direct_kernel_for_each_quality_tier():
+    for inp in (_VPD_VALIDATED, _VPD_DEGRADED, _VPD_INSUFFICIENT):
+        clean = {k: v for k, v in inp.items() if k != "valid_time"}
+        direct = compute_vpd(
+            t_max_c=clean.get("t_max_c"),
+            t_min_c=clean.get("t_min_c"),
+            rh_mean_pct=clean.get("rh_mean_pct"),
+            dew_point_c=clean.get("dew_point_c"),
+        )
+        view = vpd_view(build_canonical_weather_state(**inp))
+        assert view["quality_status"] == direct["quality_status"]
+        assert view["vpd_kpa"] == direct["vpd_kpa"]
+
+
+def test_vpd_snapshot_override_is_coherent():
+    # override = state.source_snapshot_id = vpd.weather_snapshot_id.
+    state = build_canonical_weather_state(
+        **_VPD_VALIDATED, weather_snapshot_id_override="snap-vpd-1"
+    )
+    view = vpd_view(state)
+    assert state["source_snapshot_id"] == "snap-vpd-1"
+    assert view["source_snapshot_id"] == "snap-vpd-1"
+    assert view["weather_snapshot_id"] == "snap-vpd-1"
+
+
+def test_vpd_view_deterministic_and_distinct_state_id_per_snapshot():
+    a = build_canonical_weather_state(**_VPD_VALIDATED, weather_snapshot_id_override="snap-A")
+    b = build_canonical_weather_state(**_VPD_VALIDATED, weather_snapshot_id_override="snap-B")
+    # نفس الحالة الكنسيّة ⇒ مخرَج View متطابق (حتميّة).
+    assert vpd_view(a) == vpd_view(
+        build_canonical_weather_state(**_VPD_VALIDATED, weather_snapshot_id_override="snap-A")
+    )
+    # لقطتان مختلفتان بنفس القيم ⇒ state_id مختلف.
+    assert a["state_id"] != b["state_id"]
+
+
+def test_vpd_view_does_not_recompute_reads_state_only():
+    import inspect
+
+    src = inspect.getsource(vpd_view)
+    assert "compute_vpd" not in src
+    assert "build_canonical_weather_state" not in src
+    assert 'state.get("products"' in src
+
+
+def test_agro_vpd_body_has_no_direct_computation_path_outside_composer():
+    src = (Path(__file__).resolve().parent.parent / "weather_runtime.py").read_text(
+        encoding="utf-8"
+    )
+    body = _top_level_func_body(src, "agro_vpd")
+    assert "compute_vpd" not in body, "agro_vpd يجب ألّا يستدعي نواة VPD مباشرةً"
+    assert "build_canonical_weather_state" in body and "vpd_view" in body

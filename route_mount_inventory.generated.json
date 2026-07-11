@@ -243,7 +243,7 @@
     "path": "services/weather-service/main.py",
     "service": "weather-service",
     "has_fastapi": true,
-    "direct_routes": 25,
+    "direct_routes": 26,
     "router_routes": 0,
     "delegates_to_router_registry": false,
     "delegates_to_app_factory": false,

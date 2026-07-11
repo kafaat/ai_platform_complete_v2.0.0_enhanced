@@ -9,6 +9,7 @@ from cache import stats as cache_stats
 from canonical_weather_state import (
     build_canonical_weather_state,
     et0_view,
+    vpd_view,
     weather_state_report,
 )
 from chill_accumulation import compute_chill_accumulation
@@ -491,6 +492,42 @@ async def agro_et0(req: Et0ProductRequest = Body(...)):
         weather_snapshot_id_override=req.weather_snapshot_id,
     )
     return et0_view(state)
+
+
+class VpdProductRequest(BaseModel):
+    """مدخلات VPD — الحرارة (Tmax إلزاميّ) + مصدر رطوبة (RH أو نقطة النَّدى).
+
+    اللقطة يُوفّرها المُستهلِك (valid_time/weather_snapshot_id override اختياريّان).
+    نقص الحرارة أو مصدر الرطوبة ⇒ insufficient (لا افتراض).
+    """
+
+    t_max_c: float | None = None
+    t_min_c: float | None = None
+    rh_mean_pct: float | None = None
+    dew_point_c: float | None = None
+    valid_time: str | None = None
+    weather_snapshot_id: str | None = None
+
+
+async def agro_vpd(req: VpdProductRequest = Body(...)):
+    """منتج VPD (نقص ضغط البخار) — **View مُشتقّ من CanonicalWeatherState** (WX-10.3).
+
+    الانعكاس المعماريّ: VPD يُشتقّ من خانة ``vpd`` في الحالة الكنسيّة (المصدر الواحد) لا من
+    حساب مباشر. كامل عقد VPD محفوظ حرفيّاً (``vpd_kpa``·``raw_vpd_kpa``·``es_kpa``·``ea_kpa``·
+    ``method``·``input_completeness``·``input_consistency``·``quality_status``·``quality_flags``·
+    ``limitations``·``cross_check``·``units``·``formula_version``) — **مضافاً** نَسَب الحالة
+    (``derived_from``·``canonical_state_id``·``canonical_state_version``·``source_snapshot_id``·
+    ``weather_snapshot_id``). نقيّ حتميّ لا شبكة ⇒ لا 5xx.
+    """
+    state = build_canonical_weather_state(
+        t_max_c=req.t_max_c,
+        t_min_c=req.t_min_c,
+        rh_mean_pct=req.rh_mean_pct,
+        dew_point_c=req.dew_point_c,
+        valid_time=req.valid_time,
+        weather_snapshot_id_override=req.weather_snapshot_id,
+    )
+    return vpd_view(state)
 
 
 class Et0SeriesRequest(BaseModel):

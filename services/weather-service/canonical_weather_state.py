@@ -360,3 +360,25 @@ def et0_view(state: dict) -> dict:
     # حين يُمرّر المُستهلِك override؛ كلاهما صريح.
     et0["source_snapshot_id"] = state.get("source_snapshot_id")
     return et0
+
+
+def vpd_view(state: dict) -> dict:
+    """WX-10.3 — منتَج VPD كـ**View مُشتقّ من CanonicalWeatherState** (لا حساب مباشر).
+
+    الانعكاس المعماريّ مُطبَّقاً على VPD: يُشتقّ من خانة `vpd` في الحالة الكنسيّة **بحفظ
+    حرفيّ لكامل عقد VPD** (`vpd_kpa`/`raw_vpd_kpa`/`es_kpa`/`ea_kpa`/`method`/
+    `input_completeness`/`input_consistency`/`quality_status`/`quality_flags`/`limitations`/
+    `cross_check`/`units`/`formula_version`) — لا إعادة حساب ولا رفع جودة. يُضاف فقط نَسَب
+    الحالة: `derived_from`/`canonical_state_id`/`canonical_state_version`/`source_snapshot_id`
+    و`weather_snapshot_id` (= بصمة لقطة الحالة؛ VPD لا يحملها أصلاً) — فيتماسك مع ET0 وسائر
+    الـViews تحت لقطة واحدة. توافقيّ للخلف: مجموعة فائقة (يُضيف لا يحذف).
+    """
+    vpd = dict(state.get("products", {}).get("vpd", {}))
+    snap = state.get("source_snapshot_id")
+    vpd["derived_from"] = "canonical_weather_state"
+    vpd["canonical_state_id"] = state.get("state_id")
+    vpd["canonical_state_version"] = state.get("state_version")
+    vpd["source_snapshot_id"] = snap
+    # VPD لا يُنتِج weather_snapshot_id في نواته — نضيفه من لقطة الحالة (نَسَب موحَّد عبر Views).
+    vpd["weather_snapshot_id"] = snap
+    return vpd
