@@ -1,17 +1,9 @@
 {
-  "$comment": "WS-C.1b boundary guard — temporary allowlist of files still holding vapour-pressure/ET0 formulas outside the Weather Engine. Enforced by scripts/ci/weather_engine_formula_guard.py. New occurrences NOT on this list fail CI. Entries are TEMPORARY: removed as consumers migrate to the Weather Engine ET0 product (C.1b delegation + C.2 BFF); once a consumer is migrated, delete its formula and its allowlist entry — the file then failing CI is the intended ratchet.",
+  "$comment": "WS-C.1b/c boundary guard — vapour-pressure/ET0/GDD formula kernels live ONLY in the Weather Engine (services/weather-service/*). Enforced by scripts/ci/weather_engine_formula_guard.py. Zero-Legacy is now LOCKED: temporary_legacy_allowlist is empty and must STAY empty — every platform ET0 kernel has been migrated to consume the Weather Engine product (C.1b delegation + C.2 BFF). Re-adding an entry here fails CI by design; implement any new formula in services/weather-service and consume its product.",
   "canonical": "services/weather-service/vapor_pressure.py",
   "svp_fingerprint": [
     "0.6108",
     "17.27"
   ],
-  "temporary_legacy_allowlist": [
-    {
-      "path": "services/sahool-platform/core/engines/et0.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-root-kernel",
-      "note": "Platform's ET0 root core (penman_monteith_et0/hargreaves_et0/_svp). All platform consumers now inject ET0 from the Weather Engine product; this file is the LAST local kernel. Retire (or relocate to a shared canonical home) once no importer remains — the final Zero-Legacy ratchet, after which assert len(temporary_legacy_allowlist) == 0 locks it."
-    }
-  ]
+  "temporary_legacy_allowlist": []
 }

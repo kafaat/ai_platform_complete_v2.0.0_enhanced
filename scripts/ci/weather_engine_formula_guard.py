@@ -3,8 +3,9 @@
 
 قرار المستخدم: بعد توحيد VPD/ET0 على البدائيّات المشتركة، يُمنع أيّ **تنفيذ جديد** لصيغة
 ضغط البخار المشبع (Tetens/FAO-56 Eq.11) أو نواة Penman-Monteith/Hargreaves خارج محرّك
-الطقس — فلا تنتشر الصيغة وتنجرف بصمت. الحارس يمنع الانتشار الآن؛ **الإغلاق الكامل** لـ
-C.1b (تفويض المنصّة + shadow + حذف الإرث) خطوات تالية.
+الطقس — فلا تنتشر الصيغة وتنجرف بصمت. **الإغلاق الكامل تحقّق (Zero-Legacy LOCKED):** كلّ
+نوى ET0 في المنصّة رُحِّلت لاستهلاك منتج المحرّك، و``temporary_legacy_allowlist`` فُرِّغت
+وأُقفِلت — إعادة إضافة أيّ مدخل إرثيّ = فشل CI بالتصميم (الرَّاتشِت النهائيّ).
 
 يمزج فحصاً نصّيّاً للبصمة الرياضيّة مع فحص AST لتعريفات الدوالّ (لا Regex فقط):
   • بصمة SVP النصّيّة: ملفّ يحوي كلا الثابتين ``0.6108`` و``17.27``.
@@ -123,9 +124,19 @@ def main() -> int:
         )
         return 1
     _, legacy = _load_allowlist()
-    print(
-        f"weather_engine_formula_guard_ok (canonical + {len(legacy)} temporary-legacy allowlisted)"
-    )
+    # WS-C.1c Zero-Legacy LOCK: بعد ترحيل كلّ نوى ET0 للمحرّك وإفراغ allowlist، يُقفَل بابها.
+    # أيّ إعادة إضافة مدخل إرثيّ = فشل (لا نواة صيغة جديدة خارج المحرّك، ولا استثناء «مؤقّت»).
+    if legacy:
+        print(
+            "weather-engine-formula-guard: Zero-Legacy is LOCKED — the temporary allowlist must "
+            "stay empty. A new legacy SVP/ET0/GDD kernel outside the Weather Engine is not "
+            f"permitted (offending entries: {sorted(legacy)}). Implement it in "
+            "services/weather-service and consume the product; do NOT re-add an allowlist entry.",
+            file=sys.stderr,
+        )
+        return 1
+    assert len(legacy) == 0, "Zero-Legacy invariant violated (temporary_legacy_allowlist non-empty)"
+    print("weather_engine_formula_guard_ok (canonical + 0 temporary-legacy — Zero-Legacy LOCKED)")
     return 0
 
 

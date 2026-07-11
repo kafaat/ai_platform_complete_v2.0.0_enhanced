@@ -68,3 +68,22 @@ def test_allowlist_entries_have_owner_and_expiry():
     cfg = json.loads(mod._ALLOWLIST.read_text(encoding="utf-8"))
     for e in cfg["temporary_legacy_allowlist"]:
         assert e.get("owner") and e.get("expires") and e.get("purpose"), e
+
+
+def test_zero_legacy_allowlist_is_empty_and_locked():
+    """WS-C.1c Zero-Legacy LOCK: كلّ نوى ET0 رُحِّلت للمحرّك ⇒ allowlist فارغة أبداً.
+
+    الرَّاتشِت النهائيّ: ``assert len(temporary_legacy_allowlist) == 0``. إعادة إضافة أيّ
+    مدخل (حتّى «مؤقّت») تُفشِل هذا الاختبار والحارس معاً — لا نواة صيغة جديدة خارج المحرّك.
+    """
+    mod = _load()
+    import json
+
+    cfg = json.loads(mod._ALLOWLIST.read_text(encoding="utf-8"))
+    assert len(cfg["temporary_legacy_allowlist"]) == 0, (
+        "Zero-Legacy locked: temporary_legacy_allowlist must stay empty — implement any new "
+        "formula in services/weather-service, do not re-add a platform-local ET0/SVP/GDD kernel."
+    )
+    # الحارس نفسه يفرض القفل ويبقى أخضر على الشجرة الحاليّة.
+    violations, canonical_ok = mod.scan()
+    assert canonical_ok and not violations
