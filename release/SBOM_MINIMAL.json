@@ -19325,6 +19325,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c2064ed4a1d8cbd36c256c6d1f98934a4a09b0b2cb073084ca04da1108ab4b9f"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "24f8a70bb847bae7aeff3c75d5f6502a5f4319178065964523b4a333ccc27c7b"
         }
       ],
@@ -21255,7 +21265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6bc1903e30df8af88e7a7b5b71eca99ed289782f80c9c87e70a792a4405bf4a7"
+          "content": "422db310fa5237045987395763f65f1070932b54db571aee9e59b5cd6cfc1a46"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
