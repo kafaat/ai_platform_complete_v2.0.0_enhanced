@@ -1,17 +1,12 @@
 """Unit tests for SAHOOL Core Phase 0a."""
 
-import math
-
 import pytest
 from core.engines.fao56 import (
     CropKcProfile,
     GrowthStage,
-    SoilZone,
     WeatherDay,
-    compute_irrigation,
     kc_for_age,
     leaching_requirement,
-    penman_monteith_et0,
     salinity_stress_ks,
 )
 from core.engines.fusion import (
@@ -43,11 +38,6 @@ class TestFAO56:
     def _crop(self):
         return CropKcProfile("sorghum", 0.30, 1.05, 0.55, [20, 35, 40, 30], 6.8, 16.0)
 
-    def test_et0_positive_and_reasonable(self):
-        et0 = penman_monteith_et0(self._weather())
-        # Hot arid summer day -> ET0 typically 8-12 mm
-        assert 5.0 < et0 < 15.0
-
     def test_kc_stages(self):
         crop = self._crop()
         assert kc_for_age(crop, 10)[1] == GrowthStage.INITIAL
@@ -76,39 +66,9 @@ class TestFAO56:
         lr = leaching_requirement(water_ec=2.0, crop_threshold_ece=6.8)
         assert 0.0 < lr < 0.5
 
-    def test_sandy_needs_more_frequent_irrigation(self):
-        w, crop = self._weather(), self._crop()
-        sandy = SoilZone("s", "sandy", 80, 0.5, 1.15, "fast", 60)
-        loam = SoilZone("l", "loam", 180, 0.55, 0.95, "medium", 80)
-        # apply_salinity=True يحفظ السلوك القديم بالضبط (الملوحة صارت opt-in بعد H5)
-        r_sandy = compute_irrigation(w, crop, sandy, 50, 5.5, 2.0, apply_salinity=True)
-        r_loam = compute_irrigation(w, crop, loam, 50, 5.5, 2.0, apply_salinity=True)
-        # sandy has lower TAW -> shorter interval
-        assert r_sandy.irrigation_interval_days < r_loam.irrigation_interval_days
-
-    def test_salinity_opt_in_changes_ks_and_leaching(self):
-        """H5: حقل مالح (soil_ece>العتبة) + ماء ريّ مالح. on ⇒ خفض ملوحة + غسيل."""
-        w, crop = self._weather(), self._crop()
-        sandy = SoilZone("s", "sandy", 80, 0.5, 1.15, "fast", 60)
-        r_on = compute_irrigation(
-            w, crop, sandy, 50, soil_ece=8.8, water_ec=2.0, apply_salinity=True
-        )
-        # المسار القائم تماماً (Eq.81/Eq.82) — مفوَّض لمصدر الحقيقة الوحيد
-        assert r_on.ks_salinity == round(salinity_stress_ks(crop, 8.8), 3)
-        assert r_on.ks_salinity < 1.0
-        assert r_on.leaching_fraction == round(leaching_requirement(2.0, 6.8), 3)
-        assert r_on.leaching_fraction > 0.0
-        assert r_on.salinity_applied is True
-
-    def test_salinity_off_by_default(self):
-        """H5: الافتراضيّ (off) ⇒ لا خفض ملوحة ولا غسيل، حتى مع حقل/ماء مالح."""
-        w, crop = self._weather(), self._crop()
-        sandy = SoilZone("s", "sandy", 80, 0.5, 1.15, "fast", 60)
-        # نفس المدخلات المالحة لكن بلا تمرير apply_salinity (افتراضيّ off)
-        r_off = compute_irrigation(w, crop, sandy, 50, soil_ece=8.8, water_ec=2.0)
-        assert r_off.ks_salinity == 1.0
-        assert r_off.leaching_fraction == 0.0
-        assert r_off.salinity_applied is False
+    # WS-C.1b Zero-Legacy: compute_irrigation (نواة ملكيّة-صفر، ميّتة إنتاجيّاً) حُذفت؛
+    # صيغتا الملوحة/الغسيل (salinity_stress_ks/leaching_requirement) تبقيان مُختبَرتَين أعلاه
+    # مباشرةً + في مسار water_balance (test_h5_api_salinity).
 
 
 # ── Fuzzy ────────────────────────────────────────────────────

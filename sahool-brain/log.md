@@ -2442,3 +2442,12 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   - **ملاحظة المستخدم (مؤجَّلة):** تعميم مفهوم `availability` (heat/rain/wind/et0/vpd/gdd true/false) على **كلّ** منتجات المحرّك — طُبِّق هنا على هذا الـendpoint؛ التعميم عبر المنصّة متابعة لاحقة (يخدم Crop Intelligence/Decision/UI بلا تخمين null).
 - **تحقّق (CI معلَّق، البوّابات محليّاً خضراء):** guard (canonical + 2) · unit 2880 · platform 3666 · weather-service 82 · inventory 884 route · bundle 3922 checksum · ruff · 3 YAML.
 - **المتبقّي = 2 نواة ET0:** et0.py الجذر (يُحذَف آخِراً) · fao56 (penman في compute_etc_dual/compute_irrigation عبر et0_override؛ gdd_daily/accumulate). ثمّ `assert len==0`.
+
+## WS-C.1b Zero-Legacy — راتشِت ET0 #5: fao56 → ET0 محقون + حذف الميّت (allowlist 2→1)
+
+- **`core/engines/fao56.py`:** حُذفت **نواة `penman_monteith_et0`** (غلاف يفوّض لـcore.engines.et0) + نوى **`gdd_daily`/`gdd_accumulate`** (ميّتة إنتاجيّاً؛ GDD في weather-service/gdd.py) + **`compute_irrigation` كاملةً + `SoilZone` + `IrrigationResult`** (قرار المستخدم: احذفها لا تُرحّلها — لا مستهلك إنتاجيّ؛ تحقّقتُ من صفر dynamic dispatch: لا getattr/registry/string-map). `compute_etc_dual` صار يتطلّب `et0_override` **مطلوباً** (يرفع ValueError عند غيابه؛ لا استدعاء penman داخليّ).
+  - **المستهلكون الأحياء:** `routers/etc_dual.py` (`/fields/{id}/etc-dual`) يجلب ET0 من `get_et0_product` بطقس اللقطة ويحقن et0_override، **fail-closed 503**، ويعرض **نَسَب ET0** (method/quality_status/formula_version/valid_time/weather_snapshot_id) في المخرَج. `field_state_projection` يحقن et0_override أصلاً. **القاعدة الحاسمة (قرار المستخدم):** الدالّة العلميّة نقيّة تستهلك ET0 محقوناً — الاستدعاء الخارجي للمحرّك في طبقة router/service فقط.
+  - **الحارس:** بعد حذف penman/gdd_daily لم يعد fao56 يُرصَد. حُذف من allowlist (2→1؛ باقٍ **et0.py الجذر فقط**).
+  - **اختبارات:** subagent حقن et0_override في مستهلكي compute_etc_dual؛ ثمّ المنسّق حذف اختبارات compute_irrigation (test_h5_irrigation_unify كاملاً — صيغتا الملوحة تبقيان في test_engines/test_h5_api_salinity؛ 3 اختبارات test_engines؛ test_compute_irrigation_still_works؛ استعمال forensic أُعيد بـkc_for_age×ET0 محقون) + اختبارات النوى المحذوفة (test_gaps_v91 gdd، test_pm_unified غلاف fao56.penman) + تعليقات بائتة.
+- **تحقّق (CI معلَّق، البوّابات محليّاً خضراء):** guard (canonical + **1**) · unit 2875 · platform 3660 · inventory 884 · bundle 3922 · ruff.
+- **المتبقّي = نواة ET0 واحدة:** `core/engines/et0.py` الجذر (راتشِت #6 الأخير) ⇒ allowlist=0 ⇒ `assert len==0` ⇒ ملكيّة المحرّك الكاملة ⇒ WX-10 CanonicalWeatherState.

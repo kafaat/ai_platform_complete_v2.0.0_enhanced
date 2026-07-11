@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 
-from core.engines.fao56 import SoilZone, WeatherDay, compute_irrigation
+from core.engines.fao56 import WeatherDay, kc_for_age
 from core.farm_closed_loop import (
     OperationEvent,
     ResourceUse,
@@ -183,31 +183,18 @@ def test_full_platform_agri_lifecycle_forensic_trace_from_field_to_harvest_and_c
         70: WeatherDay(34, 18, 42, 3.1, 22.0, 15.37, 1100, 10),
         105: WeatherDay(33, 17, 45, 2.8, 21.0, 15.37, 1100, 45),
     }
-    zone = SoilZone(
-        "zone-pivot",
-        "loam",
-        taw_mm_per_m=160,
-        raw_fraction=0.5,
-        ke_factor=1.0,
-        drainage="medium",
-        area_ha=area_ha,
-    )
-    irrigation_by_stage = {
-        das: compute_irrigation(
-            wd,
-            crop_profile,
-            zone,
-            das,
-            soil_ece=soil_water_profile["soil_ece_ds_m"],
-            water_ec=soil_water_profile["water_ec_ds_m"],
-            effective_rainfall_mm=1.0 if das == 35 else 0.0,
-            apply_salinity=False,
-        )
-        for das, wd in weather_days.items()
-    }
-    assert irrigation_by_stage[70].kc >= irrigation_by_stage[10].kc
-    assert irrigation_by_stage[70].salinity_applied is False
-    assert irrigation_by_stage[70].m3_per_ha > irrigation_by_stage[10].m3_per_ha
+    # WS-C.1b Zero-Legacy: compute_irrigation (نواة ملكيّة-صفر ميّتة إنتاجيّاً) حُذفت؛ ET0
+    # يُنفَّذ في المحرّك ويُحقَن (هنا ثابت مرجعيّ للاختبار). نُبقي تحقّق «الاحتياج الريّي
+    # يرتفع منتصف الموسم» عبر البدائيّات الباقية: kc_for_age × ET0 محقون (1مم=10م³/هـ).
+    _ET0_MM = 6.0
+
+    def _stage_m3_ha(das: int) -> float:
+        kc, _ = kc_for_age(crop_profile, das)
+        return round(_ET0_MM * kc * 10.0, 1)
+
+    irrigation_m3_by_stage = {das: _stage_m3_ha(das) for das in weather_days}
+    assert kc_for_age(crop_profile, 70)[0] >= kc_for_age(crop_profile, 10)[0]
+    assert irrigation_m3_by_stage[70] > irrigation_m3_by_stage[10]
 
     # 6) تخطيط الموسم: موازنة حسب المراحل والمدخلات المتوقعة.
     budget = [
@@ -550,7 +537,7 @@ def test_full_platform_agri_lifecycle_forensic_trace_from_field_to_harvest_and_c
         "current_growth_stage": current_stage(crop_id, 70)["name_ar"],
         "selected_satellite_layers": [ndvi_mid.tile_url, msi_mid.tile_url],
         "sensor_observations": sensor_batch["accepted_count"],
-        "irrigation_recommendation_m3_ha_mid": irrigation_by_stage[70].m3_per_ha,
+        "irrigation_recommendation_m3_ha_mid": irrigation_m3_by_stage[70],
         "season_budget_lines": len(budget),
         "operation_records": summary.record_count,
         "variance_items": len(variances),

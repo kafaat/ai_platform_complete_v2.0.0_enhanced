@@ -451,7 +451,7 @@ sahool-platform,services/sahool-platform/api/routers/equipment.py,93,GET,/api/v1
 sahool-platform,services/sahool-platform/api/routers/equipment.py,113,POST,/api/v1/equipment/{equipment_id}/maintenance,log_maintenance
 sahool-platform,services/sahool-platform/api/routers/equipment.py,179,GET,/api/v1/equipment/{equipment_id}/maintenance,list_maintenance
 sahool-platform,services/sahool-platform/api/routers/escalation.py,23,POST,/api/v1/escalation/assess,escalation_assess
-sahool-platform,services/sahool-platform/api/routers/etc_dual.py,227,POST,/api/v1/fields/{field_id}/etc-dual,field_etc_dual
+sahool-platform,services/sahool-platform/api/routers/etc_dual.py,228,POST,/api/v1/fields/{field_id}/etc-dual,field_etc_dual
 sahool-platform,services/sahool-platform/api/routers/events.py,32,GET,/api/v1/events/{entity_type}/{entity_id},entity_events
 sahool-platform,services/sahool-platform/api/routers/evidence.py,26,POST,/api/v1/evidence/corroborate,evidence_corroborate
 sahool-platform,services/sahool-platform/api/routers/evidence_map.py,87,GET,/api/v1/evidence/map,evidence_map_endpoint

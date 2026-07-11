@@ -60,9 +60,11 @@ def test_endpoint_core_wiring_ndvi_vs_age():
     """جوهر النقطة: NDVI الحيّ يشتقّ Kcb رصداً (يختلف عن العمريّ) ويُسجَّل في الافتراضات."""
     profile = crop_kc_profile(resolve_crop_id("قمح"))
     w, das = _weather(), 70
-    age_based = compute_etc_dual(w, profile, das)  # ndvi=None ⇒ العمر
-    low_ndvi = compute_etc_dual(w, profile, das, ndvi=0.35)  # غطاء جزئيّ ⇒ Kcb أدنى
-    high_ndvi = compute_etc_dual(w, profile, das, ndvi=0.82)
+    age_based = compute_etc_dual(w, profile, das, et0_override=6.0)  # ndvi=None ⇒ العمر
+    low_ndvi = compute_etc_dual(
+        w, profile, das, ndvi=0.35, et0_override=6.0
+    )  # غطاء جزئيّ ⇒ Kcb أدنى
+    high_ndvi = compute_etc_dual(w, profile, das, ndvi=0.82, et0_override=6.0)
     assert any("NDVI" in a for a in low_ndvi.assumptions)
     assert not any("NDVI" in a for a in age_based.assumptions)
     assert low_ndvi.kcb < age_based.kcb  # حقل مُجهَد/متأخّر ⇒ احتياج أدنى

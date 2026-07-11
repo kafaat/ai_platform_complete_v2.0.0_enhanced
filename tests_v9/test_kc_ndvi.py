@@ -73,7 +73,7 @@ def test_kcb_from_ndvi_scales_full():
 
 def test_compute_etc_dual_without_ndvi_unchanged():
     """حفظ السلوك: غياب NDVI ⇒ Kcb من العمر (لا انحدار)، والافتراضات تذكر الإزاحة لا NDVI."""
-    r = compute_etc_dual(_weather(), _crop(), days_after_planting=60)
+    r = compute_etc_dual(_weather(), _crop(), days_after_planting=60, et0_override=6.0)
     assert any("بإزاحة" in a for a in r.assumptions)
     assert not any("NDVI" in a for a in r.assumptions)
 
@@ -81,11 +81,13 @@ def test_compute_etc_dual_without_ndvi_unchanged():
 def test_compute_etc_dual_with_ndvi_observed_kcb():
     """مع NDVI: Kcb وfc مرصودان؛ NDVI منخفض ⇒ Kcb أدنى من مسار العمر (حقل مُجهَد/متأخّر)."""
     crop, w = _crop(), _weather()
-    base = compute_etc_dual(w, crop, days_after_planting=70)  # منتصف الموسم تقريباً
-    low_ndvi = compute_etc_dual(w, crop, days_after_planting=70, ndvi=0.35)
+    base = compute_etc_dual(
+        w, crop, days_after_planting=70, et0_override=6.0
+    )  # منتصف الموسم تقريباً
+    low_ndvi = compute_etc_dual(w, crop, days_after_planting=70, ndvi=0.35, et0_override=6.0)
     assert any("NDVI" in a for a in low_ndvi.assumptions)
     # NDVI=0.35 (غطاء جزئيّ) ⇒ Kcb أدنى من Kcb منتصف الموسم الكامل.
     assert low_ndvi.kcb < base.kcb
     # NDVI عالٍ (غطاء شبه كامل) ⇒ Kcb مرتفع قريب من الذروة.
-    high_ndvi = compute_etc_dual(w, crop, days_after_planting=70, ndvi=0.82)
+    high_ndvi = compute_etc_dual(w, crop, days_after_planting=70, ndvi=0.82, et0_override=6.0)
     assert high_ndvi.kcb > low_ndvi.kcb

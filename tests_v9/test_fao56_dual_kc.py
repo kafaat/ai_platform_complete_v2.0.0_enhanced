@@ -25,13 +25,11 @@ from core.engines.fao56 import (  # noqa: E402
     CropKcProfile,
     WeatherDay,
     compute_etc_dual,
-    compute_irrigation,
     evaporation_reduction_kr,
     few_exposed_wetted,
     kc_for_age,
     kc_max,
     kcb_for_age,
-    penman_monteith_et0,
     salinity_stress_ks,
     tew_rew_for_texture,
 )
@@ -94,7 +92,7 @@ class TestDualKc:
         ما يعطيه Kcb وحده."""
         w, crop = _weather(), _crop()
         # مرحلة أوليّة (يوم 5)، De=0 (سطح مبلّل)، fw=1 (رّيّ سطحيّ)
-        r = compute_etc_dual(w, crop, days_after_planting=5, de_mm=0.0, fw=1.0)
+        r = compute_etc_dual(w, crop, days_after_planting=5, de_mm=0.0, fw=1.0, et0_override=6.0)
         assert r.ke > 0.0
         # ETc المزدوج أكبر من مساهمة الأساس وحدها (Kcb·Ks·ET0)
         basal_only = r.kcb * r.ks * r.et0_mm
@@ -105,7 +103,7 @@ class TestDualKc:
         المبنيّ على Kcb (لا Kc المدمج)."""
         w, crop = _weather(), _crop()
         tew, _ = tew_rew_for_texture("loam")
-        r = compute_etc_dual(w, crop, days_after_planting=70, de_mm=tew + 5.0)
+        r = compute_etc_dual(w, crop, days_after_planting=70, de_mm=tew + 5.0, et0_override=6.0)
         assert r.ke == 0.0
         # مع Ke=0 وKs=1: kc_dual = Kcb فقط
         assert abs(r.kc_dual - r.kcb) < 1e-9
@@ -116,7 +114,13 @@ class TestDualKc:
         tew, _ = tew_rew_for_texture("loam")
         # kcb_offset=0 ⇒ Kcb=Kc؛ De كبير ⇒ Ke=0؛ soil_ece=0 ⇒ Ks=1
         r = compute_etc_dual(
-            w, crop, days_after_planting=70, de_mm=tew + 10.0, kcb_offset=0.0, soil_ece=0.0
+            w,
+            crop,
+            days_after_planting=70,
+            de_mm=tew + 10.0,
+            kcb_offset=0.0,
+            soil_ece=0.0,
+            et0_override=6.0,
         )
         assert r.ks == 1.0
         assert r.ke == 0.0
@@ -128,9 +132,11 @@ class TestDualKc:
         # سطح جافّ لعزل أثر Ks على الأساس (Ke=0)
         tew, _ = tew_rew_for_texture("loam")
         r_no_stress = compute_etc_dual(
-            w, crop, days_after_planting=70, de_mm=tew + 5.0, soil_ece=5.0
+            w, crop, days_after_planting=70, de_mm=tew + 5.0, soil_ece=5.0, et0_override=6.0
         )
-        r_stress = compute_etc_dual(w, crop, days_after_planting=70, de_mm=tew + 5.0, soil_ece=10.0)
+        r_stress = compute_etc_dual(
+            w, crop, days_after_planting=70, de_mm=tew + 5.0, soil_ece=10.0, et0_override=6.0
+        )
         assert r_no_stress.ks == 1.0  # تحت العتبة 6.8
         assert r_stress.ks < 1.0
         assert r_stress.etc_dual_mm < r_no_stress.etc_dual_mm
@@ -138,22 +144,30 @@ class TestDualKc:
     def test_drip_reduces_ke_vs_flood(self):
         """رّيّ بالتنقيط (fw صغير) يبلّل سطحاً أقلّ ⇒ Ke أصغر من الرّيّ السطحيّ."""
         w, crop = _weather(), _crop()
-        r_flood = compute_etc_dual(w, crop, days_after_planting=5, de_mm=0.0, fw=1.0)
-        r_drip = compute_etc_dual(w, crop, days_after_planting=5, de_mm=0.0, fw=0.3)
+        r_flood = compute_etc_dual(
+            w, crop, days_after_planting=5, de_mm=0.0, fw=1.0, et0_override=6.0
+        )
+        r_drip = compute_etc_dual(
+            w, crop, days_after_planting=5, de_mm=0.0, fw=0.3, et0_override=6.0
+        )
         assert r_drip.ke < r_flood.ke
 
     def test_sandy_soil_dries_faster(self):
         """الرمل (TEW أصغر) يصل للمرحلة الثانية أسرع ⇒ Kr أقلّ عند نفس De."""
         w, crop = _weather(), _crop()
         # De بين REW الرملي (3) وREW الطميّ (8) ⇒ الرمل في المرحلة 2، الطميّ في 1
-        r_sand = compute_etc_dual(w, crop, days_after_planting=5, de_mm=6.0, texture="sand")
-        r_loam = compute_etc_dual(w, crop, days_after_planting=5, de_mm=6.0, texture="loam")
+        r_sand = compute_etc_dual(
+            w, crop, days_after_planting=5, de_mm=6.0, texture="sand", et0_override=6.0
+        )
+        r_loam = compute_etc_dual(
+            w, crop, days_after_planting=5, de_mm=6.0, texture="loam", et0_override=6.0
+        )
         assert r_sand.kr < r_loam.kr
 
     def test_assumptions_documented(self):
         """الافتراضات تُصرَّح (صدق منهجيّ) حين تغيب المُدخلات."""
         w, crop = _weather(), _crop()
-        r = compute_etc_dual(w, crop, days_after_planting=30)
+        r = compute_etc_dual(w, crop, days_after_planting=30, et0_override=6.0)
         # على الأقلّ: Kcb مُشتقّ + TEW/REW جدوليّة + RHmin مُقدَّر + fc مُقدَّر
         joined = " ".join(r.assumptions)
         assert "Kcb" in joined
@@ -164,7 +178,13 @@ class TestDualKc:
         و~1.2 حسب المرحلة. نتحقّق أنّ المسار يقع في هذا النطاق الفيزيائيّ."""
         w, crop = _weather(), _crop()
         r = compute_etc_dual(
-            w, crop, days_after_planting=8, de_mm=0.0, fw=1.0, texture="sandy loam"
+            w,
+            crop,
+            days_after_planting=8,
+            de_mm=0.0,
+            fw=1.0,
+            texture="sandy loam",
+            et0_override=6.0,
         )
         assert 0.15 <= r.ke <= 1.3
         # المعامل المركّب لا يتجاوز Kc_max الفيزيائيّ
@@ -173,25 +193,12 @@ class TestDualKc:
 
 # ── حارس الإضافيّة: المسار المفرد لم يتغيّر ────────────────────────────
 class TestSinglePathUnchanged:
-    def test_compute_irrigation_still_works(self):
-        from core.engines.fao56 import SoilZone
-
-        w, crop = _weather(), _crop()
-        zone = SoilZone("z", "loam", 180, 0.55, 0.95, "medium", 80)
-        r = compute_irrigation(w, crop, zone, 50, 5.5, 2.0)
-        # القيم الأساسيّة كما كانت (لا انحدار)
-        assert r.et0_mm > 0
-        assert r.kc > 0
-        assert r.etc_mm > 0
-
     def test_single_kc_curve_unchanged(self):
         crop = _crop()
         kc, _ = kc_for_age(crop, 70)
         assert kc == 1.05  # قيمة البطاقة، لم تتغيّر
         # salinity_ks القائم لم يتغيّر
         assert salinity_stress_ks(crop, 5.0) == 1.0
-        # ET0 القائم لم يتغيّر
-        assert 5.0 < penman_monteith_et0(_weather()) < 15.0
 
 
 # ── ETc-dual canonical: et0_override + soil_ece=None (إغلاق SSOT/H5) ──
@@ -206,16 +213,16 @@ class TestEtcDualCanonicalParams:
         assert abs(r.etc_dual_mm - round(r.kc_dual * forced, 2)) < 0.02
         assert any("et0_override" in a.lower() or "الكنسيّ" in a for a in r.assumptions)
 
-    def test_no_override_matches_internal_et0(self):
-        """بلا override ⇒ السلوك مطابق للسابق (انحدار): ET0 = penman الداخليّ."""
+    def test_missing_override_raises(self):
+        """بلا et0_override ⇒ خطأ صريح (fail-closed): ET0 يُنفَّذ في محرّك الطقس لا محلّيّاً."""
         w, crop = _weather(), _crop()
-        r = compute_etc_dual(w, crop, days_after_planting=40)
-        assert abs(r.et0_mm - round(penman_monteith_et0(w), 2)) < 0.01
+        with pytest.raises(ValueError):
+            compute_etc_dual(w, crop, days_after_planting=40)
 
     def test_soil_ece_none_disables_salinity(self):
         """soil_ece=None ⇒ Ks=1 (الملوحة غير مطبّقة) + assumption — لا تُدخَل ضمنيّاً."""
         w, crop = _weather(), _crop()
-        r = compute_etc_dual(w, crop, days_after_planting=40, soil_ece=None)
+        r = compute_etc_dual(w, crop, days_after_planting=40, soil_ece=None, et0_override=6.0)
         assert r.ks == 1.0
         assert any("الملوحة غير مطبّقة" in a for a in r.assumptions)
 
@@ -224,5 +231,5 @@ class TestEtcDualCanonicalParams:
         w = _weather()
         # محصول حسّاس: عتبة 2.0، ميل 10%/dS·m⁻¹ ⇒ EC=7 ⇒ خسارة كبيرة
         crop = CropKcProfile("sensitive", 0.30, 1.05, 0.55, [20, 35, 40, 30], 2.0, 10.0)
-        r = compute_etc_dual(w, crop, days_after_planting=40, soil_ece=7.0)
+        r = compute_etc_dual(w, crop, days_after_planting=40, soil_ece=7.0, et0_override=6.0)
         assert r.ks < 1.0

@@ -10,15 +10,8 @@
       "path": "services/sahool-platform/core/engines/et0.py",
       "owner": "weather-migration",
       "expires": "2026-07-31",
-      "purpose": "active-legacy-pending-delegation",
-      "note": "Platform's ET0 core (penman_monteith_et0/hargreaves_et0/_svp) — still the operational ET0 for the irrigation recommendation path. Retire after platform delegates to the Weather Engine ET0 product (shadow-compare first, then remove). NOT shadow-only yet."
-    },
-    {
-      "path": "services/sahool-platform/core/engines/fao56.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-pending-delegation",
-      "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0; also holds gdd_daily/gdd_accumulate). Retire alongside the et0.py core migration."
+      "purpose": "active-legacy-root-kernel",
+      "note": "Platform's ET0 root core (penman_monteith_et0/hargreaves_et0/_svp). All platform consumers now inject ET0 from the Weather Engine product; this file is the LAST local kernel. Retire (or relocate to a shared canonical home) once no importer remains — the final Zero-Legacy ratchet, after which assert len(temporary_legacy_allowlist) == 0 locks it."
     }
   ]
 }

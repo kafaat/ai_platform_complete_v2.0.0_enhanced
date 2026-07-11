@@ -4,7 +4,6 @@ import os
 import tempfile
 from pathlib import Path
 
-from core.engines.fao56 import gdd_accumulate, gdd_daily
 from core.spatial.pipeline import polygon_area_ha
 from storage import lite_store
 
@@ -17,14 +16,6 @@ def _db():
 
 
 class TestGapsV91:
-    def test_gdd_daily(self):
-        assert gdd_daily(30, 15, tbase=10) == 12.5
-        assert gdd_daily(8, 4, tbase=10) == 0.0  # below base → 0
-
-    def test_gdd_accumulate(self):
-        days = [{"tmax": 30, "tmin": 15}, {"tmax": 32, "tmin": 18}]
-        assert gdd_accumulate(days) == 27.5
-
     def test_polygon_area_reasonable(self):
         sq = [(44.94, 16.08), (44.9465, 16.08), (44.9465, 16.0863), (44.94, 16.0863)]
         area = polygon_area_ha(sq)

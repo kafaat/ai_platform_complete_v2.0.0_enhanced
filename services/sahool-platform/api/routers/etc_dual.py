@@ -42,6 +42,7 @@ from api.main import (
     tenant_connection,
 )
 from api.raster_service_client import get_indicator_grid
+from api.weather_service_client import get_et0_product
 
 logger = logging.getLogger(__name__)
 
@@ -296,6 +297,34 @@ async def field_etc_dual(
     field_lon = field_row["lon"] if field_row else None
     weather, weather_source = await _resolve_weather(req, field_lat, field_lon)
 
+    # 6. ET0 من **منتج محرّك الطقس** (المصدر الوحيد؛ لا نواة محلّيّة) بطقس اللقطة. تعذّر
+    #    المحرّك ⇒ 503 fail-closed (لا حساب ET0 محلّيّ بديل). WS-C.1b Zero-Legacy.
+    try:
+        et0_prod = await get_et0_product(
+            t_max_c=weather.temp_max_c,
+            t_min_c=weather.temp_min_c,
+            solar_rad_mj_m2=weather.solar_radiation_mj_m2,
+            rh_mean_pct=weather.humidity_pct,
+            wind_2m_ms=weather.wind_speed_m_s,
+            lat_deg=weather.latitude_deg,
+            elevation_m=weather.elevation_m,
+            day_of_year=weather.day_of_year,
+            tenant_id=getattr(user, "tenant_id", None),
+        )
+    except HTTPException as exc:
+        if exc.status_code in (502, 503, 504):
+            raise HTTPException(
+                status_code=503,
+                detail="weather-engine ET0 unavailable — fail-closed (no local ET0 fallback)",
+            ) from exc
+        raise
+    et0_mm = et0_prod.get("et0_mm")
+    if et0_mm is None:
+        raise HTTPException(
+            status_code=503,
+            detail="weather-engine returned no ET0 — fail-closed (no local ET0 fallback)",
+        )
+
     try:
         result = compute_etc_dual(
             weather,
@@ -309,6 +338,7 @@ async def field_etc_dual(
             ndvi=ndvi_used,
             ndvi_bare=req.ndvi_bare,
             ndvi_full=req.ndvi_full,
+            et0_override=float(et0_mm),
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=f"تعذّر حساب ETc المزدوج: {e}") from e
@@ -319,6 +349,16 @@ async def field_etc_dual(
     payload = asdict(result)
     payload["field_id"] = field_id
     payload["weather_source"] = weather_source
+    # نَسَب ET0 من منتج محرّك الطقس المرجعيّ (المصدر الوحيد) — يُعرَض في مخرَج etc-dual.
+    payload["et0"] = {
+        "et0_mm": et0_prod.get("et0_mm"),
+        "method": et0_prod.get("method"),
+        "quality_status": et0_prod.get("quality_status"),
+        "formula_version": et0_prod.get("formula_version"),
+        "valid_time": et0_prod.get("valid_time"),
+        "weather_snapshot_id": et0_prod.get("weather_snapshot_id"),
+        "source": "weather-engine",
+    }
     payload["ndvi"] = {
         "used": ndvi_used,
         "source": ndvi_source,

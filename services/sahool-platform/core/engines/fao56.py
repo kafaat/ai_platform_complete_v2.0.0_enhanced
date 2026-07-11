@@ -36,8 +36,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
-# المصدر الموحّد لـET0 (H4): نواة Penman-Monteith واحدة (لا نُعيد كتابة الصيغة هنا).
-from core.engines.et0 import penman_monteith_et0 as _pm_core
+# WS-C.1b Zero-Legacy: لا نواة ET0 محلّيّة هنا. ET0 يُحقَن (et0_override) من منتج
+# محرّك الطقس عبر المُوجِّهات — المحرّك مصدر ET0 الوحيد ومالك حساب Penman-Monteith.
 
 
 # ── Growth stages (FAO-56 Ch.6) ──────────────────────────────────────
@@ -93,24 +93,7 @@ class CropKcProfile:
         return sum(self.stage_days)
 
 
-# ── ET0: Penman-Monteith (FAO-56 Eq. 6) ──────────────────────────────
-def penman_monteith_et0(w: WeatherDay) -> float:
-    """Reference evapotranspiration (mm/day) via FAO-56 Penman-Monteith.
-
-    Delegates to the unified core (`core.engines.et0`) — behaviour preserved.
-    `WeatherDay.temp_mean_c` = (max+min)/2, passed explicitly.
-    """
-    return _pm_core(
-        w.temp_max_c,
-        w.temp_min_c,
-        w.temp_mean_c,
-        w.solar_radiation_mj_m2,
-        w.humidity_pct,
-        w.wind_speed_m_s,
-        w.latitude_deg,
-        w.elevation_m,
-        w.day_of_year,
-    )
+# ── ET0: مُنفَّذ في محرّك الطقس (لا نواة محلّيّة) — يُحقَن عبر et0_override ─────────
 
 
 # ── Kc by age (FAO-56 Ch.6) ──────────────────────────────────────────
@@ -165,8 +148,8 @@ def salinity_stress_ks(profile: CropKcProfile, soil_ece: float) -> float:
 #   Ke  = معامل تبخّر التربة (يرتفع بعد الرّيّ/المطر، ينهار مع جفاف السطح)
 #   Ks  = إجهاد مائيّ/ملحيّ يُخفّض الأساس (لا يُخفّض Ke — التبخّر فيزيائيّ)
 #
-# هذا المسار **إضافيّ واختياريّ**: المسار المفرد (compute_irrigation) يبقى
-# الافتراضيّ وغير متغيّر. استخدم compute_etc_dual عند توفّر بيانات التربة السطحيّة.
+# استخدم compute_etc_dual عند توفّر بيانات التربة السطحيّة (De/Ke). ET0 يُحقَن من
+# محرّك الطقس (et0_override) — لا نواة ET0 محلّيّة (WS-C.1b Zero-Legacy).
 #
 # مراجع المعادلات (Allen et al. 1998, Ch.7):
 #   Eq. 71  Ke = min( Kr·(Kc_max − Kcb) , few·Kc_max )
@@ -330,9 +313,8 @@ def kcb_from_ndvi(
 # سَعَة الخزّان: TAW = 1000·(θFC − θWP)·Zr (FAO-56 Eq. 82). جذور أعمق ⇒ خزّان
 # أكبر ⇒ فترات ريّ أطول.
 #
-# الدوالّ هنا **نقيّة وإضافيّة**: لا تمسّ المسار المفرد (compute_irrigation) ولا
-# المزدوج (compute_etc_dual). تُستخدَم لاحقاً في توأم/دفتر المياه عند الحاجة لـTAW
-# ديناميكيّ بدل ثابت SoilZone.taw_mm_per_m.
+# الدوالّ هنا **نقيّة وإضافيّة**: لا تمسّ المسار المزدوج (compute_etc_dual). تُستخدَم
+# لاحقاً في توأم/دفتر المياه عند الحاجة لـTAW ديناميكيّ بدل ثابت جدوليّ.
 #
 # ⚠️ صدق صارم — تحتاج معايرة محلّيّة:
 #   • Zr_min/Zr_max تقديريّة لكلّ محصول (FAO-56 Table 22 يعطي مدًى نوعيّاً،
@@ -490,8 +472,7 @@ def compute_etc_dual(
         ETc = (Kcb · Ks + Ke) · ET0
 
     Ke يفصل التبخّر السطحيّ ويرفع ETc على التربة العارية/المبكّرة؛ Ks يُخفّض
-    الأساس تحت الإجهاد الملحيّ/المائيّ. هذا المسار **لا يكسر** المسار المفرد
-    (compute_irrigation) الذي يبقى الافتراضيّ.
+    الأساس تحت الإجهاد الملحيّ/المائيّ. ET0 يُحقَن من محرّك الطقس (et0_override).
 
     المُدخلات (مع افتراضات صريحة حين تغيب):
       de_mm     استنزاف الطبقة السطحيّة (mm). الافتراضيّ 0 = سطح مبلّل حديثاً
@@ -515,13 +496,14 @@ def compute_etc_dual(
     """
     assumptions: list[str] = []
 
-    # 1. ET0 — المتغيّر (طقس). et0_override يُمرَّر ET0 الكنسيّ الموحّد (H4/SSOT) فيستعمله
-    # النهج المزدوج بدل إعادة حسابه داخليّاً — كي يبقى ET0 مصدراً واحداً متّسقاً مع الحالة.
-    if et0_override is not None:
-        et0 = float(et0_override)
-        assumptions.append("ET0 من المصدر الكنسيّ الموحّد (et0_override) لا إعادة حساب داخليّ")
-    else:
-        et0 = penman_monteith_et0(weather)
+    # 1. ET0 — يُحقَن من منتج محرّك الطقس (et0_override؛ WS-C.1b Zero-Legacy). لا نواة
+    # محلّيّة: غياب الحقن ⇒ خطأ صريح (المُوجِّه يجلب ET0 من المحرّك ويحقنه، fail-closed).
+    if et0_override is None:
+        raise ValueError(
+            "et0_override required — ET0 is computed by the Weather Engine (no local kernel)"
+        )
+    et0 = float(et0_override)
+    assumptions.append("ET0 من منتج محرّك الطقس (et0_override) — لا نواة محلّيّة")
 
     # 2. Kcb — الأساس (نتح). مرصود من NDVI (FAO-56 Eq. 76) إن توفّر، وإلّا من عمر المحصول.
     _, stage = kcb_for_age(crop, days_after_planting, kcb_offset=kcb_offset)
@@ -615,148 +597,5 @@ def leaching_requirement(water_ec: float, crop_threshold_ece: float) -> float:
     return max(0.0, min(0.5, water_ec / denom))
 
 
-# ── Soil zone (the SPATIAL constant — varies WITHIN a field) ─────────
-@dataclass
-class SoilZone:
-    """A management zone. A field is NOT one soil — sandy/loam/mixed.
-    Discussed: same weather, same Kc, but soil differs per zone.
-    """
-
-    zone_id: str
-    texture: str  # sandy | loam | clay | mixed
-    taw_mm_per_m: float  # total available water
-    raw_fraction: float  # readily available fraction (p)
-    ke_factor: float  # surface evaporation multiplier
-    drainage: str  # fast | medium | slow
-    area_ha: float
-    source: str = "FAO-56 Table 19 (TAW by texture)"
-
-
-# ── Main computation ─────────────────────────────────────────────────
-@dataclass
-class IrrigationResult:
-    zone_id: str
-    texture: str
-    et0_mm: float
-    kc: float
-    stage: str
-    etc_mm: float
-    ks_salinity: float
-    etc_adjusted_mm: float
-    effective_rainfall_mm: float
-    leaching_fraction: float
-    net_irrigation_mm: float
-    gross_irrigation_mm: float
-    m3_per_ha: float
-    total_m3_zone: float
-    irrigation_interval_days: float
-    night_irrigation_recommended: bool
-    dtr_c: float
-    salinity_applied: bool = False
-    notes: list[str] = field(default_factory=list)
-
-
-def compute_irrigation(
-    weather: WeatherDay,
-    crop: CropKcProfile,
-    zone: SoilZone,
-    days_after_planting: int,
-    soil_ece: float,
-    water_ec: float,
-    effective_rainfall_mm: float = 0.0,
-    irrigation_efficiency: float = 0.85,
-    apply_salinity: bool = False,
-) -> IrrigationResult:
-    """Full FAO-56 chain for ONE zone on ONE day.
-
-    Run this per-zone to produce a Variable-Rate Irrigation (VRA) map.
-
-    قرار المستخدم (H5): الملوحة مفتاح صريح مُطفأ افتراضيّاً — «بلا ملوحة افتراضيّاً،
-    قابلة للإدخال في أيّ مرحلة». لا يعتمد المفتاح على وجود ECe.
-      - apply_salinity=False (افتراضيّ): Ks=1.0 وLR=0.0 ⇒ لا خفض ملوحة ولا غسيل.
-      - apply_salinity=True: المسار القائم تماماً — salinity_stress_ks (Eq.81) +
-        leaching_requirement (Eq.82). الصيغ الرياضيّة لم تتغيّر؛ صارت opt-in فقط.
-    """
-    notes: list[str] = []
-
-    # 1. ET0 — the variable (weather)
-    et0 = penman_monteith_et0(weather)
-
-    # 2. Kc — the constant (crop + age)
-    kc, stage = kc_for_age(crop, days_after_planting)
-
-    # 3. ETc standard
-    etc = et0 * kc
-
-    # 4. soil-texture surface evap adjustment (sandy loses more)
-    etc_zone = etc * zone.ke_factor
-
-    # 5. salinity stress — opt-in (off by default per H5; Ks=1.0 when off)
-    if apply_salinity:
-        ks = salinity_stress_ks(crop, soil_ece)
-    else:
-        ks = 1.0
-    etc_adj = etc_zone * ks
-    if ks < 1.0:
-        notes.append(
-            f"إجهاد ملحي: EC={soil_ece} يتجاوز عتبة {crop.salt_tolerance_ece} (Ks={ks:.2f})"
-        )
-
-    # 6. net irrigation (minus effective rainfall)
-    net = max(0.0, etc_adj - effective_rainfall_mm)
-
-    # 7. leaching + efficiency -> gross — leaching only when salinity opt-in (else LR=0.0)
-    if apply_salinity:
-        lr = leaching_requirement(water_ec, crop.salt_tolerance_ece)
-    else:
-        lr = 0.0
-    gross = (net * (1.0 + lr)) / irrigation_efficiency
-
-    # irrigation interval from RAW (FAO-56 Ch.8)
-    raw_mm = zone.taw_mm_per_m * zone.raw_fraction
-    interval = raw_mm / etc_adj if etc_adj > 0 else 999.0
-
-    # DTR + night irrigation (design decision: night irr saves 20-30% evap)
-    dtr = weather.diurnal_range_c
-    night = weather.temp_max_c >= 35.0  # hot day -> irrigate at night/dawn
-    if night:
-        notes.append("اسقِ فجراً أو ليلاً — تبخّر أقل في الجوّ البارد")
-    if dtr > 15.0:
-        notes.append(f"تباين حراري كبير (DTR={dtr:.0f}°م) — ميزة لجودة المحصول")
-
-    m3_ha = gross * 10.0  # 1 mm = 10 m3/ha
-    return IrrigationResult(
-        zone_id=zone.zone_id,
-        texture=zone.texture,
-        et0_mm=round(et0, 2),
-        kc=round(kc, 3),
-        stage=stage.value,
-        etc_mm=round(etc, 2),
-        ks_salinity=round(ks, 3),
-        etc_adjusted_mm=round(etc_adj, 2),
-        effective_rainfall_mm=round(effective_rainfall_mm, 2),
-        leaching_fraction=round(lr, 3),
-        net_irrigation_mm=round(net, 2),
-        gross_irrigation_mm=round(gross, 2),
-        m3_per_ha=round(m3_ha, 1),
-        total_m3_zone=round(m3_ha * zone.area_ha, 0),
-        irrigation_interval_days=round(interval, 1),
-        night_irrigation_recommended=night,
-        dtr_c=round(dtr, 1),
-        salinity_applied=apply_salinity,
-        notes=notes,
-    )
-
-
-# ── مراجعة #3: GDD تراكمي من الطقس (ربط Open-Meteo) ──
-def gdd_daily(tmax: float, tmin: float, tbase: float = 10.0) -> float:
-    """درجات النمو اليومية (Growing Degree Days).
-    tbase افتراضي 10°م (قمح/ذرة). يُجمع تراكمياً عبر الموسم."""
-    tmean = (tmax + tmin) / 2.0
-    return max(0.0, tmean - tbase)
-
-
-def gdd_accumulate(weather_days: list[dict], tbase: float = 10.0) -> float:
-    """يجمع GDD التراكمي من أيام طقس (كل يوم: {'tmax':.., 'tmin':..}).
-    يربط مخرجات weather_openmeteo بحساب مرحلة النمو — بدل GDD اليدوي."""
-    return round(sum(gdd_daily(d["tmax"], d["tmin"], tbase) for d in weather_days), 1)
+# ── GDD: مُنفَّذ في محرّك الطقس (services/weather-service/gdd.py) — لا نواة محلّيّة هنا.
+# نوى gdd_daily/gdd_accumulate القديمة (ميّتة إنتاجيّاً) حُذفت ضمن WS-C.1c/WS-C.1b Zero-Legacy.
