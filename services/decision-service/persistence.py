@@ -60,15 +60,34 @@ async def persist_decision_record(
     candidate_lineage_id = (
         (payload.decision_value or {}).get("candidate_lineage_id") if is_candidate else None
     )
+    # AC-1: optional-but-validated context lineage. When the three context IDs are supplied they
+    # must exist for this tenant and match the field; when supplied the row is bound as 'ac-1'.
+    ctx_ids = (
+        getattr(payload, "agronomic_context_snapshot_id", None),
+        getattr(payload, "field_historical_context_snapshot_id", None),
+        getattr(payload, "feature_manifest_id", None),
+    )
+    has_context = all(ctx_ids)
+    if any(ctx_ids) and not has_context:
+        return {"status": "rejected", "reason": "partial_context_binding"}
     conn = await _connect()
     try:
         async with conn.transaction():
+            if has_context:
+                reason = await _validate_decision_context(
+                    conn, tenant_id=tenant_id, field_id=payload.field_id, payload=payload
+                )
+                if reason:
+                    return {"status": "rejected", "reason": reason}
             await conn.execute(
                 """
                 INSERT INTO decision_record
                   (decision_id, tenant_id, field_id, decision_type, region, stage,
-                   decision_value, confidence, created_by, review_state, candidate_lineage_id)
-                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11)
+                   decision_value, confidence, created_by, review_state, candidate_lineage_id,
+                   agronomic_context_snapshot_id, field_historical_context_snapshot_id,
+                   feature_manifest_id, context_contract_version)
+                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11,
+                        $12, $13, $14, $15)
                 ON CONFLICT (decision_id) DO UPDATE SET
                   stage = EXCLUDED.stage,
                   decision_value = EXCLUDED.decision_value,
@@ -88,6 +107,10 @@ async def persist_decision_record(
                 payload.created_by,
                 review_state,
                 candidate_lineage_id,
+                ctx_ids[0],
+                ctx_ids[1],
+                ctx_ids[2],
+                "ac-1" if has_context else "legacy_unbound",
             )
             await emit_outbox_event(
                 conn,
@@ -3373,3 +3396,215 @@ async def record_reconcile_evidence(
             }
     finally:
         await conn.close()
+
+
+# --- AC-1 agronomic context: composer persistence + decision binding validation ---------------
+
+
+async def compose_agronomic_context(
+    *, tenant_id: str, created_by: str, payload: Any
+) -> dict[str, Any]:
+    """Persist the three immutable context contracts in ONE transaction, fail-closed.
+
+    Point-in-time policy runs BEFORE any write (typed violations, never silent synthesis).
+    Content hashes make replay deterministic: identical content => the same snapshot is reused.
+    """
+    from agronomic_context.point_in_time import validate_composition
+
+    violations = validate_composition(payload)
+    if violations:
+        return {"status": "rejected", "reason": "point_in_time_policy", "violations": violations}
+
+    ctx_content = {
+        "field_id": payload.field_id,
+        "season_id": payload.season_id,
+        "as_of_time": payload.as_of_time.isoformat(),
+        "schema_version": payload.schema_version,
+        "composer_version": payload.composer_version,
+        "context": payload.context,
+    }
+    ctx_hash = _stable_hash(ctx_content)
+    hist_content = {
+        "field_id": payload.field_id,
+        "season_id": payload.season_id,
+        "as_of_time": payload.as_of_time.isoformat(),
+        "history_from": payload.historical.history_from.isoformat(),
+        "history_to": payload.historical.history_to.isoformat(),
+        "manifest_version": payload.historical.manifest_version,
+        "history": payload.historical.history,
+    }
+    hist_hash = _stable_hash(hist_content)
+    feats = [f.model_dump(mode="json") for f in payload.features]
+    manifest_hash = _stable_hash({"field_id": payload.field_id, "features": feats})
+    req_hash = _stable_hash({"ctx": ctx_hash, "hist": hist_hash, "manifest": manifest_hash})
+
+    sid = "agctx_" + ctx_hash[:20]
+    hid = "fhist_" + hist_hash[:20]
+    mid = "fmanif_" + manifest_hash[:20]
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            existing = await conn.fetchrow(
+                "SELECT snapshot_id, request_hash FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if existing:
+                if existing["request_hash"] == req_hash:
+                    return {
+                        "status": "ok",
+                        "replay": True,
+                        "authoritative": True,
+                        "persisted": True,
+                        "snapshot_id": existing["snapshot_id"],
+                        "historical_snapshot_id": hid,
+                        "feature_manifest_id": mid,
+                        "content_hash": ctx_hash,
+                    }
+                return {"status": "conflict", "reason": "context_idempotency_conflict"}
+            reused = await conn.fetchval(
+                "SELECT snapshot_id FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND content_hash=$2",
+                tenant_id,
+                ctx_hash,
+            )
+            if not reused:
+                await conn.execute(
+                    """INSERT INTO decision_agronomic_context_snapshots(snapshot_id,tenant_id,field_id,season_id,as_of_time,schema_version,composer_version,context,content_hash,created_by,idempotency_key,request_hash)
+                       VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11,$12)""",
+                    sid,
+                    tenant_id,
+                    payload.field_id,
+                    payload.season_id,
+                    payload.as_of_time,
+                    payload.schema_version,
+                    payload.composer_version,
+                    _json(payload.context),
+                    ctx_hash,
+                    created_by,
+                    payload.idempotency_key,
+                    req_hash,
+                )
+            else:
+                sid = reused
+            await conn.execute(
+                """INSERT INTO decision_field_historical_context_snapshots(historical_snapshot_id,tenant_id,field_id,season_id,as_of_time,history_from,history_to,manifest_version,history,content_hash,created_by,idempotency_key,request_hash)
+                   VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13)
+                   ON CONFLICT (historical_snapshot_id) DO NOTHING""",
+                hid,
+                tenant_id,
+                payload.field_id,
+                payload.season_id,
+                payload.as_of_time,
+                payload.historical.history_from,
+                payload.historical.history_to,
+                payload.historical.manifest_version,
+                _json(payload.historical.history),
+                hist_hash,
+                created_by,
+                "hist:" + payload.idempotency_key,
+                req_hash,
+            )
+            inserted_manifest = await conn.fetchval(
+                """INSERT INTO decision_feature_manifests(feature_manifest_id,tenant_id,field_id,as_of_time,decision_cutoff_time,content_hash,created_by,idempotency_key,request_hash)
+                   VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9)
+                   ON CONFLICT (feature_manifest_id) DO NOTHING RETURNING feature_manifest_id""",
+                mid,
+                tenant_id,
+                payload.field_id,
+                payload.as_of_time,
+                payload.decision_cutoff_time,
+                manifest_hash,
+                created_by,
+                "manif:" + payload.idempotency_key,
+                req_hash,
+            )
+            if inserted_manifest:
+                for f in payload.features:
+                    await conn.execute(
+                        """INSERT INTO decision_feature_manifest_entries(entry_id,tenant_id,feature_manifest_id,name,value,unit,source_service,source_snapshot_id,observed_at,available_at,quality_status,formula_version,spatial_scope,temporal_scope)
+                           VALUES($1,$2::uuid,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13,$14)""",
+                        "fme_" + hashlib.sha256(f"{mid}:{f.name}".encode()).hexdigest()[:20],
+                        tenant_id,
+                        mid,
+                        f.name,
+                        _json(f.value),
+                        f.unit,
+                        f.source_service,
+                        f.source_snapshot_id,
+                        f.observed_at,
+                        f.available_at,
+                        f.quality_status,
+                        f.formula_version,
+                        f.spatial_scope,
+                        f.temporal_scope,
+                    )
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="AGRONOMIC_CONTEXT_COMPOSED",
+                aggregate_type="decision_agronomic_context_snapshots",
+                aggregate_id=sid,
+                payload={"field_id": payload.field_id, "content_hash": ctx_hash},
+            )
+            return {
+                "status": "ok",
+                "authoritative": True,
+                "persisted": True,
+                "snapshot_id": sid,
+                "historical_snapshot_id": hid,
+                "feature_manifest_id": mid,
+                "content_hash": ctx_hash,
+                "feature_count": len(payload.features),
+            }
+    finally:
+        await conn.close()
+
+
+async def get_context_snapshot(*, tenant_id: str, snapshot_id: str) -> dict[str, Any]:
+    conn = await _connect()
+    try:
+        row = await conn.fetchrow(
+            "SELECT snapshot_id, field_id, season_id, as_of_time, schema_version, composer_version, context, content_hash, created_by, created_at FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
+            tenant_id,
+            snapshot_id,
+        )
+        if not row:
+            return {"status": "not_found"}
+        out = dict(row)
+        if not isinstance(out.get("context"), dict):
+            out["context"] = json.loads(out["context"])
+        for k in ("as_of_time", "created_at"):
+            out[k] = out[k].isoformat()
+        return {"status": "ok", "snapshot": out}
+    finally:
+        await conn.close()
+
+
+async def _validate_decision_context(
+    conn: Any, *, tenant_id: str, field_id: str | None, payload: Any
+) -> str | None:
+    """Return a typed rejection reason, or None when the referenced context is valid."""
+    snap = await conn.fetchrow(
+        "SELECT field_id FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
+        tenant_id,
+        payload.agronomic_context_snapshot_id,
+    )
+    if not snap:
+        return "unknown_agronomic_context_snapshot"
+    if field_id and snap["field_id"] != field_id:
+        return "context_field_mismatch"
+    hist = await conn.fetchval(
+        "SELECT 1 FROM decision_field_historical_context_snapshots WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2",
+        tenant_id,
+        payload.field_historical_context_snapshot_id,
+    )
+    if not hist:
+        return "unknown_historical_context_snapshot"
+    manif = await conn.fetchval(
+        "SELECT 1 FROM decision_feature_manifests WHERE tenant_id=$1::uuid AND feature_manifest_id=$2",
+        tenant_id,
+        payload.feature_manifest_id,
+    )
+    if not manif:
+        return "unknown_feature_manifest"
+    return None

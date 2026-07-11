@@ -29,6 +29,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
+from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
 from persistence import (
@@ -37,6 +38,7 @@ from persistence import (
     claim_execution_request,
     claim_model_registry_activation_command,
     claim_model_registry_rollback_command,
+    compose_agronomic_context,
     create_execution_plan,
     create_execution_request,
     create_learning_attribution,
@@ -49,6 +51,7 @@ from persistence import (
     create_rollout_plan,
     create_runtime_schedule,
     get_active_model_state,
+    get_context_snapshot,
     list_decision_records,
     list_review_queue,
     list_runtime_work,
@@ -126,6 +129,10 @@ LOOP_TABLES = [
     "decision_model_runtime_work_claims",
     "decision_model_runtime_schedules",
     "decision_model_reconcile_evidence",
+    "decision_agronomic_context_snapshots",
+    "decision_field_historical_context_snapshots",
+    "decision_feature_manifests",
+    "decision_feature_manifest_entries",
 ]
 
 # Honest mirror-sink contract: this service is NOT the system-of-record yet. Write
@@ -163,6 +170,10 @@ class DecisionRecordIn(BaseModel):
     decision_value: dict[str, Any] = Field(default_factory=dict)
     confidence: float | None = None
     created_by: str | None = None
+    # AC-1 context lineage: optional until enforcement is enabled, always validated when present.
+    agronomic_context_snapshot_id: str | None = None
+    field_historical_context_snapshot_id: str | None = None
+    feature_manifest_id: str | None = None
 
 
 class DispatchDecisionIn(BaseModel):
@@ -364,7 +375,27 @@ async def record_decision(
     tenant = _tenant(x_tenant_id)
     did = payload.decision_id or "dec_" + uuid4().hex[:16]
     if sor_enabled():
-        await persist_decision_record(tenant_id=tenant, payload=payload, decision_id=did)
+        # AC-1 mandatory binding: when enforcement is on, no new governed decision may enter
+        # without the three immutable context references (master plan Phase A exit criterion).
+        require_ctx = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+        if require_ctx and not (
+            payload.agronomic_context_snapshot_id
+            and payload.field_historical_context_snapshot_id
+            and payload.feature_manifest_id
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail="agronomic context is required: agronomic_context_snapshot_id, "
+                "field_historical_context_snapshot_id and feature_manifest_id must be provided",
+            )
+        result = await persist_decision_record(tenant_id=tenant, payload=payload, decision_id=did)
+        if isinstance(result, dict) and result.get("status") == "rejected":
+            raise HTTPException(status_code=422, detail=result.get("reason", "context rejected"))
         return {
             "accepted": True,
             "authoritative": True,
@@ -1848,3 +1879,52 @@ async def reconcile_evidence_boundary(
     if result.get("status") == "ok":
         return {"accepted": True, "tenant_id": tenant, **result}
     raise HTTPException(status_code=409, detail=result.get("reason", "reconcile conflict"))
+
+
+# --- AC-1 agronomic context composer (skeleton): immutable snapshots + PIT enforcement --------
+
+
+@app.post("/v1/context-snapshots")
+async def compose_context_snapshot(
+    payload: ContextComposeIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Compose the three immutable context contracts from source-attributed evidence.
+
+    Fail-closed: any point-in-time violation (available_at after the decision cutoff), missing
+    context group, or inconsistent quality state rejects the whole composition with TYPED reasons
+    — no value is ever silently synthesized. Content hashes make replay deterministic and enable
+    snapshot reuse.
+    """
+    tenant = _tenant(x_tenant_id)
+    actor = (x_requested_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    if not payload.idempotency_key.strip():
+        raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    result = await compose_agronomic_context(tenant_id=tenant, created_by=actor, payload=payload)
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "rejected":
+        raise HTTPException(
+            status_code=422,
+            detail={"reason": result.get("reason"), "violations": result.get("violations", [])},
+        )
+    raise HTTPException(status_code=409, detail=result.get("reason", "context conflict"))
+
+
+@app.get("/v1/context-snapshots/{snapshot_id}")
+async def read_context_snapshot(
+    snapshot_id: str,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    result = await get_context_snapshot(tenant_id=tenant, snapshot_id=snapshot_id)
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="context snapshot not found")
+    return {"tenant_id": tenant, **result}
