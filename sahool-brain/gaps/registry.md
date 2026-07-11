@@ -52,6 +52,8 @@
 | LODGING | ✅ خطر الرقود (رياح×طول×مرحلة×رطوبة تربة) | weather-service | لا مُنتِج بعد (0 ملفّات في المسح) | **fixed** (`lodging_risk.py` منتِج حتميّ + façade مُجمَّع crop-stress؛ supporting يحتاج معايرة) |
 | POLLINATION-WX | خطر التلقيح الجوّيّ (حرّ/برد/رياح/مطر أثناء الإزهار) | weather-service | لا مُنتِج بعد (0 ملفّات) | **fixed** (`pollination_risk.py`؛ not_applicable خارج الإزهار — صدق) |
 | CHILL-MODELS | نماذج ساعات البرودة المتقدّمة (Utah/Dynamic/Chill Portions) للأشجار المعمرة | weather-service | تغطية بسيطة فقط (5 ملفّات) | **fixed** (`chill_accumulation.py`: Chilling Hours + Utah؛ Dynamic معلَن not_implemented) |
+| WAIVER-WX10.6-001 | إعفاء تغطية-واجهة لنقطة مرشّح القرار (machine-consumed) حتّى وصول شاشة المراجعة | platform/crop→decision | endpoint `POST /api/v1/crop-twin/decision-candidate`؛ [`config/endpoint_ui_coverage_waivers.json`](../../config/endpoint_ui_coverage_waivers.json) (owner=crop-intelligence · tracking=WX-10.7 · expiry=2026-10-11 · temporary=true) | **open** — يُزال بوصول reviewer UI في WX-10.7؛ مالك crop-intelligence؛ ينتهي 2026-10-11 |
+| WAIVER-EXPIRY-GUARD | حارس CI يرفض أيّ waiver منتهٍ (expiry < today) — وجود expiry في JSON لا يكفي دون إنفاذ | ci/governance | مطلوب: فحص `expiry` في بوّابة تغطية-الواجهة (أو حارس مستقلّ) يفشل عند `expiry < current_date` | **open** — increment تالٍ صغير؛ يجعل انتهاء WAIVER-WX10.6-001 ذاتيّ-الإنفاذ لا زخرفيّاً |
 
 ## ملاحظات
 
