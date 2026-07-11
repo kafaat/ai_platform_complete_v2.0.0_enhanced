@@ -2386,3 +2386,15 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   - أُعيدت كتابة 3 اختبارات (سياسة/حقن). حُذف الملفّ من allowlist (8→7).
 - **تحقّق (CI أخضر):** guard (canonical + 7) · platform 3683 · unit 2874 · inventory --check · bundle · 884 route. main/develop = `6b0bcb0`. أرشيف مُرسَل.
 - **الباقي (7):** GDD: season_simulation.gdd_day (sim fallback + seasons shadow + crop_twin). ET0: et0.py الجذر · water_balance · fao56 · weather_analytics · field_state_projection · weather_server (MCP).
+
+## WS-C.1c Zero-Legacy — الكورشة #3 + إغلاق نوى GDD (allowlist 7→6)
+
+- **`season_simulation.gdd_day` (`b403f21`+`b3eaa4a`):** أكبر كورشة GDD — 3 مستهلكين رُحِّلوا للمحرّك:
+  - crop_twin.crop_twin_state: `gdd_daily_override` محقون؛ لا gdd_day محلّيّ (يوم ناقص مُستبعَد fail-closed).
+  - routers/crop_twin: `_compose_state` + compose/decision/profit-aware أصبحت **async**، تجلب GDD المحرّك (crop_gdd_policy، method="modified")، fail-closed 503. **تغيير سلوكيّ:** `/crop-twin/compose` (+ القرار) صارت fail-closed.
+  - season_simulation: حُذف احتياط gdd_day في الحلقة (يوم ناقص مُستبعَد + مُعلَن) + حُذفت نواة gdd_day. crop_gdd_policy (العتبات) بقيت سياسة Season.
+  - routers/seasons: حُذف ظلّ GDD.
+  - 8 ملفّات اختبار أُعيدت (حقن سلسلة GDD + async + mock محرّك). النواة تُختبَر في المحرّك.
+- **صدق فجوة CI:** فحص checksum الحزمة أمسك ملفَّي tests_v9 عُدِّلا بعد إعادة بناء الحزمة — إصلاح `b3eaa4a` (إعادة بناء آخر خطوة). **درس:** إعادة بناء الحزمة آخِر خطوة بعد كلّ التعديلات (توأم فخّ inventory-drift).
+- **تحقّق (CI أخضر):** guard (canonical + 6) · platform 3678 · unit 2869 · crop-boundary · inventory · bundle · 884 route. main/develop = `b3eaa4a`. أرشيف مُرسَل.
+- **كلّ نوى GDD مُزالة الآن** (gdd_phenology + gdd_tracker + season_simulation). **المتبقّي = 6 نوى ET0:** et0.py الجذر · water_balance · fao56 · weather_analytics · field_state_projection · weather_server (MCP، core→shared). ثمّ `assert len==0`.
