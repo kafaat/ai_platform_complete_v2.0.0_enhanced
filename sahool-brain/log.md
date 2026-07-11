@@ -2376,3 +2376,13 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الكورشة #1 (`91241c1`):** `core/gdd_phenology.py` كانت تحوي نواة GDD مكرّرة (`daily_gdd`/`accumulate_gdd`) **بلا مستهلك إنتاجيّ** (المستورِد الوحيد للوحدة يستورد سياسة `phenology_progress` فقط، وهي تأخذ accumulated_gdd مُدخَلاً). المحرّك يملك الرياضيّات (weather-service/gdd.py). أُزيلت النواة + اختباراتها المباشرة (TestDailyGdd)؛ بقيت سياسة المحصول. حُذِف الملفّ من allowlist (9→8) — الراتشِت.
 - **تحقّق (12/12 CI أخضر):** guard (canonical + 8) · ruff · platform 3693 · unit 2874 · bundle. main/develop = `91241c1`. أرشيف مُرسَل.
 - **الباقي (8 مدخلات) كلّها نوى حيّة** (لا مكاسب dead-code أخرى): GDD: gdd_tracker (track_gdd حيّ في scenario_whatif) · season_simulation.gdd_day (sim + crop_twin). ET0: et0.py الجذر · water_balance · fao56 · weather_analytics · field_state_projection · weather_server (MCP). كلّ حذف = ترحيل endpoint حيّ إلى تفويض المحرّك fail-closed.
+
+## WS-C.1c Zero-Legacy — الكورشة #2 (allowlist 8→7)
+
+- **`gdd_tracker` (`6b0bcb0`):** نواة GDD حيّة (`daily_gdd`+`track_gdd`) لها مستهلكان: ظلّ `routers/gdd` (المسار يفوّض أصلاً) + `scenario/planting-date` (كان sync يحسب محلّيّاً). كلاهما رُحِّل للمحرّك (`get_gdd_product`, method="simple" = نفس الأرقام)، fail-closed 503.
+  - routers/gdd: حُذف الظلّ (النَّسَب من المحرّك مباشرة، لا "shadow").
+  - scenario/planting-date: أصبح **async** يجلب GDD للأساس+البديل ويحقن التراكميَّين؛ `whatif_planting_date` نقيّة. **تغيير سلوكيّ:** الـwhat-if صار fail-closed (503 عند تعطّل المحرّك) — متّسق مع فلسفة fail-closed.
+  - gdd_tracker: حُذفت `daily_gdd`+`track_gdd`؛ بقيت `stage_result_from_cumulative` + GDD_CROP_PARAMS (سياسة Season).
+  - أُعيدت كتابة 3 اختبارات (سياسة/حقن). حُذف الملفّ من allowlist (8→7).
+- **تحقّق (CI أخضر):** guard (canonical + 7) · platform 3683 · unit 2874 · inventory --check · bundle · 884 route. main/develop = `6b0bcb0`. أرشيف مُرسَل.
+- **الباقي (7):** GDD: season_simulation.gdd_day (sim fallback + seasons shadow + crop_twin). ET0: et0.py الجذر · water_balance · fao56 · weather_analytics · field_state_projection · weather_server (MCP).
