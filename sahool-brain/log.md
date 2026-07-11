@@ -2361,3 +2361,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **تصحيح صورة الجرد:** ليست 5 نوى مستقلّة — **نواة جذر واحدة** (`core/engines/et0.py`) وكلّ مسارات HTTP تفوّض إليها (water_balance·fao56·weather_analytics·field_state_projection مُفوِّضات) + نسخة MCP مضمّنة واحدة (موثّقة عمداً، معزولة عن core لأنّ MCP يستورد shared/ فقط؛ توحيدها يحتاج نقل core→shared، مؤجَّل بقرار سابق).
 - **main/develop = `67b4bd3`** (12/12 CI أخضر · فحص main-only inventory مُتحقَّق exit 0). أرشيف مُرسَل.
 - **باقي إغلاق WS-C.1b (ترحيل المستهلكين):** weather_analytics → field_state_projection → water_balance/fao56 → حذف النواة الجذر ⇒ صفر نوى ET0 خارج المحرّك. كلّ منها تحويل endpoint حيّ لتفويض المحرّك (fail-closed) — تغيير سلوكيّ يستحقّ تحقّقاً منفصلاً.
+
+## Crop Intelligence Engine — دمج Phases 2–6D (أساس Crop Learning)
+
+- **المصدر:** أرشيف المستخدم `sahool_3ec7f50_crop_intelligence_engine_phase6b_6d` (مبنيّ على 3ec7f50، متحقَّق محلّيّاً فقط). دُمِج على القمّة المتحقَّقة `67b4bd3` (لا القاعدة القديمة).
+- **المضاف (`1ee913f`):** حزمة `core/crop_intelligence/` (models/engine/spectral/phenology/roots/stress_memory/crop_water/recommendation_context) — تُفسِّر ولا تحسب فيزياء (لا ET0/VPD/GDD/مؤشّرات raster/ماء تربة)، fail-closed، biomass/yield تبقى غير متاحة. + مخزن دائم `v153` (crop_stress_events append-only + crop_stress_memory_snapshots versioned، RLS+FORCE، dedup) + crop_stress_store/ingestion/memory_service + crop_decision_bridge (submit اختياريّ، not_submitted افتراضاً، لا مسار تنفيذ ثانٍ).
+- **فجوات أصلحها الدمج (التشغيل المحلّيّ لم يمسكها):** v153 لم تُوصَل بـrun_migrations.sql (حارس تزامن المُشغّلَين) ⇒ خطوة 159 · db_ownership.yml (كاتب واحد للجدولين) · module baseline 595→608 (+13) · توصيل crop-intelligence-boundary-gate في CI · ruff import-sort/format (بيئة المستخدم بلا ruff).
+- **التحقّق (12/12 CI أخضر):** أهمّها **Integration Tests طبّقت v153 فعليّاً على Postgres+PostGIS حيّ** + crop-intelligence-boundary-gate أخضر في CI + RLS write-policy. platform 3697 · unit 2874 · bundle. main/develop = `1ee913f`. أرشيف مُرسَل.
+- **قرار المستخدم (توجيه استراتيجيّ):** الأولويّة الآن (1) إنهاء ترحيل ET0/GDD وإفراغ allowlist بالكامل (Zero-Legacy ratchet: `assert len==0`) (2) تثبيت الحارس (3) **Crop Learning Engine** يُغلق الحلقة (Recommendation→Decision→Execution→Outcome→Learning→Policy/Confidence). CIE = الأساس لـ(3).
