@@ -21,8 +21,10 @@ from canonical_weather_state import (  # noqa: E402
     STATE_SLOTS,
     STATE_VERSION,
     build_canonical_weather_state,
+    et0_view,
     weather_state_report,
 )
+from et0 import et0_agro_product  # noqa: E402
 
 pytestmark = pytest.mark.unit
 
@@ -163,3 +165,62 @@ def test_report_headline_empty_when_nothing_available():
     assert r["headline"] == {}
     assert r["available_products"] == []
     assert r["overall_quality"] == "insufficient"
+
+
+# ── WX-10.2: ET0 كـView مُشتقّ من الحالة (حفظ سلوك + إثبات الانعكاس) ──────────
+_ET0_INPUTS = dict(
+    t_max_c=34.0,
+    t_min_c=18.0,
+    solar_rad_mj_m2=22.0,
+    rh_mean_pct=45.0,
+    wind_2m_ms=2.0,
+    t_mean_c=None,
+    lat_deg=15.5,
+    elevation_m=2000.0,
+    day_of_year=100,
+    valid_time="2026-07-11T09:00:00Z",
+)
+
+
+def test_et0_view_preserves_kernel_contract_fields():
+    # الحقول الجوهريّة للـView == نداء النواة المباشر (حفظ سلوك تامّ).
+    direct = et0_agro_product(**_ET0_INPUTS)
+    state = build_canonical_weather_state(**_ET0_INPUTS)
+    view = et0_view(state)
+    for k in (
+        "et0_mm",
+        "method",
+        "quality_status",
+        "formula_version",
+        "valid_time",
+        "weather_snapshot_id",
+        "limitations",
+        "snapshot_source",
+    ):
+        assert view[k] == direct[k], k
+
+
+def test_et0_view_adds_canonical_lineage():
+    state = build_canonical_weather_state(**_ET0_INPUTS)
+    view = et0_view(state)
+    assert view["derived_from"] == "canonical_weather_state"
+    assert view["canonical_state_id"] == state["state_id"]
+    assert view["canonical_state_version"] == state["state_version"]
+    assert view["source_snapshot_id"] == state["source_snapshot_id"]
+
+
+def test_et0_view_honours_snapshot_id_override():
+    # عقد ET0 يقبل weather_snapshot_id مُمرَّراً من المُستهلِك — يبقى محفوظاً عبر الحالة.
+    state = build_canonical_weather_state(
+        **_ET0_INPUTS, weather_snapshot_id_override="consumer-snap-123"
+    )
+    view = et0_view(state)
+    assert view["weather_snapshot_id"] == "consumer-snap-123"
+
+
+def test_et0_view_fail_closed_when_insufficient():
+    # مدخلات ناقصة ⇒ الـView يعكس insufficient بلا اختلاق (نفس عقد النواة).
+    view = et0_view(build_canonical_weather_state(t_max_c=30.0))  # لا جغرافيا/رطوبة
+    assert view["et0_mm"] is None
+    assert view["quality_status"] == "insufficient"
+    assert view["derived_from"] == "canonical_weather_state"

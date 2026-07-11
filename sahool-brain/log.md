@@ -2472,3 +2472,12 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **حارس العقد:** `tests/test_canonical_weather_state.py` (11 يمرّ): اكتمال الغلاف · schema/owner/version · availability كامل · متوفّر مع مدخلات كاملة + provenance · مؤجَّل مُصرَّح · fail-closed بلا اختلاق · جزئيّ صادق · DTR غير متّسق→invalid · حتميّة state_id + حسّاسيّتها · evidence لا يختلق · المستهلك يقرأ الحالة فقط.
 - **تحقّق (البوّابات محليّاً خضراء):** weather-service tests **111** (+11) · guard Zero-Legacy LOCKED · unit 2866 · ruff · inventory 886 route (weather 30→32) · bundle. CI معلَّق قبل التقديم السريع.
 - **التالي (إنكرمنتات مستقلّة):** تحويل ET0 View → VPD View → GDD View → Crop Intelligence → Decision لتقرأ CanonicalWeatherState بدل المحرّك مباشرةً (بنفس منهجيّة الراتشِت).
+
+## WX-10.2 — ET0 كـView مُشتقّ من CanonicalWeatherState (أوّل تحويل مشتقّ)
+
+- **قرار المستخدم:** بعد WX-10.1، تحويل المشتقّات إلى Views فوق الحالة إنكرمنتاً إنكرمنتاً. WX-10.2 = **ET0 View** (الأوّل).
+- **`canonical_weather_state.py`:** أُضيفت `et0_view(state)` — إسقاط نقيّ يقرأ خانة `et0` من الحالة ويُضيف نَسَب الحالة (`derived_from`/`canonical_state_id`/`canonical_state_version`/`source_snapshot_id`). المُجمِّع اكتسب `weather_snapshot_id_override` (يُمرَّر لـ`et0_agro_product`) لحفظ عقد الـsnapshot override.
+- **`weather_runtime.py`:** `agro_et0` **رُحِّل** ليشتقّ من الحالة: `build_canonical_weather_state(...) → et0_view(state)` بدل نداء `et0_agro_product` مباشرةً. **توافقيّ للخلف تامّ:** حقول العقد (et0_mm/method/quality_status/formula_version/valid_time/weather_snapshot_id/limitations/snapshot_source) مطابقة بايتاً؛ يُضاف فقط نَسَب الحالة (مجموعة فائقة). حُذف استيراد `et0_agro_product` غير المُستعمَل.
+- **اختبارات (4 جديدة، مجموع 15):** الـView == النواة المباشرة في الحقول الجوهريّة (حفظ سلوك) · يُضيف نَسَب الحالة · يحترم snapshot override · fail-closed عند النقص (insufficient بلا اختلاق).
+- **تحقّق (خضراء محليّاً):** weather-service **115** (+4) · guard Zero-Legacy LOCKED · bandit High=0 · unit 2866 · ruff · inventory 886 (بلا مسارات جديدة) · bundle. CI معلَّق قبل التقديم السريع.
+- **التالي:** VPD View → GDD View → Crop Intelligence → Decision (كلٌّ إنكرمنت مستقلّ).

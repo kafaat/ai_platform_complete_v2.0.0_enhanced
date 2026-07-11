@@ -23695,6 +23695,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d043b81e9fd5d9a4d977f88d19488258ac1575dfb274d10c4d48dc8a8ad274f1"
+        }
+      ],
+      "name": "services/weather-service/canonical_weather_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ca5e4204c4c4bfd35bbb76bfcb8a8de889c3df01fbf6bbafa00e3717a1e11e34"
         }
       ],
@@ -23799,6 +23809,16 @@
         }
       ],
       "name": "services/weather-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "46569251f0c69fb26bd8b7c6d02fa2068ec06f037c1b067b6aeb263957353261"
+        }
+      ],
+      "name": "services/weather-service/tests/test_canonical_weather_state.py",
       "type": "file"
     },
     {
@@ -23985,7 +24005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a7a0413f3e1f5a3489c59460d9f1ec58dc76034d8ab4c2f727591d742972d41"
+          "content": "48848f4c0cfa837255c0b6883c1ac63f0879b7ddc22842a69e03a97299309a5f"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

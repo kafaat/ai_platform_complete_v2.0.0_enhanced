@@ -178,6 +178,7 @@ def build_canonical_weather_state(
     gdd_start_date: str | None = None,
     gdd_end_date: str | None = None,
     valid_time: str | None = None,
+    weather_snapshot_id_override: str | None = None,
 ) -> dict:
     """يبني CanonicalWeatherState بجمع منتجات المحرّك القائمة (بلا إعادة حساب).
 
@@ -197,6 +198,7 @@ def build_canonical_weather_state(
         elevation_m=elevation_m,
         day_of_year=day_of_year,
         valid_time=valid_time,
+        weather_snapshot_id_override=weather_snapshot_id_override,
     )
     vpd = compute_vpd(
         t_max_c=t_max_c,
@@ -337,3 +339,21 @@ def weather_state_report(state: dict) -> dict:
         "headline": headline,
         "limitations": list(state.get("limitations", [])),
     }
+
+
+def et0_view(state: dict) -> dict:
+    """WX-10.2 — منتَج ET0 كـ**View مُشتقّ من CanonicalWeatherState** (لا نواة مباشرة).
+
+    الانعكاس المعماريّ مُطبَّقاً على ET0: بدل حساب ET0 من المحرّك مباشرةً، يُشتقّ من خانة
+    `et0` في الحالة الكنسيّة (نفس حقول العقد بدقّة — حفظ سلوك) **مضافاً إليها نَسَب الحالة**
+    (`canonical_state_id`/`source_snapshot_id`/`canonical_state_version`) فيربط أيّ مستهلك
+    ET0 بنسخة حالة الطقس التي اشتُقّ منها. توافقيّ للخلف: مجموعة فائقة (يُضيف لا يحذف).
+    """
+    et0 = dict(state.get("products", {}).get("et0", {}))
+    et0["derived_from"] = "canonical_weather_state"
+    et0["canonical_state_id"] = state.get("state_id")
+    et0["canonical_state_version"] = state.get("state_version")
+    # بصمة اللقطة المصدر للحالة (نَسَب) — قد تساوي weather_snapshot_id للمنتَج أو تتمايز
+    # حين يُمرّر المُستهلِك override؛ كلاهما صريح.
+    et0["source_snapshot_id"] = state.get("source_snapshot_id")
+    return et0

@@ -6,9 +6,13 @@ from typing import Literal
 from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
-from canonical_weather_state import build_canonical_weather_state, weather_state_report
+from canonical_weather_state import (
+    build_canonical_weather_state,
+    et0_view,
+    weather_state_report,
+)
 from chill_accumulation import compute_chill_accumulation
-from et0 import et0_agro_product, et0_series_product
+from et0 import et0_series_product
 from fastapi import Body, HTTPException, Query
 from gdd import gdd_agro_product
 from lodging_risk import compute_lodging_risk
@@ -465,14 +469,15 @@ class Et0ProductRequest(BaseModel):
 
 
 async def agro_et0(req: Et0ProductRequest = Body(...)):
-    """منتج ET0 المرجعيّ (FAO-56) لعقد محرّك الطقس — **كلّ ET0 من هنا**.
+    """منتج ET0 المرجعيّ (FAO-56) — **View مُشتقّ من CanonicalWeatherState** (WX-10.2).
 
-    يُنفِّذ الصيغة في المحرّك (لا في المنصّة) ويعيد عقد الجودة + نَسَب الخدمة:
-    ``et0_mm`` · ``method`` (fao56_penman_monteith|hargreaves_fallback|insufficient) ·
-    ``quality_status`` · ``formula_version`` · ``valid_time`` · ``weather_snapshot_id``.
-    نقيّ حتميّ لا يجلب شبكة (اللقطة من المُستهلِك)؛ لذا لا 5xx على تعذّر مزوّد.
+    الانعكاس المعماريّ: ET0 لم يعد يُحسب من نداء نواة مباشر بل يُشتقّ من خانة ``et0`` في
+    الحالة الكنسيّة (المصدر الواحد). حقول العقد محفوظة بدقّة (``et0_mm`` · ``method`` ·
+    ``quality_status`` · ``formula_version`` · ``valid_time`` · ``weather_snapshot_id``) —
+    توافقيّ للخلف — **مضافاً إليها نَسَب الحالة** (``canonical_state_id``/``source_snapshot_id``/
+    ``derived_from``). نقيّ حتميّ لا شبكة ⇒ لا 5xx.
     """
-    return et0_agro_product(
+    state = build_canonical_weather_state(
         t_max_c=req.t_max_c,
         t_min_c=req.t_min_c,
         solar_rad_mj_m2=req.solar_rad_mj_m2,
@@ -485,6 +490,7 @@ async def agro_et0(req: Et0ProductRequest = Body(...)):
         valid_time=req.valid_time,
         weather_snapshot_id_override=req.weather_snapshot_id,
     )
+    return et0_view(state)
 
 
 class Et0SeriesRequest(BaseModel):
