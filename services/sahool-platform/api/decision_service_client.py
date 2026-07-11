@@ -28,6 +28,11 @@ def decision_service_headers(
     created_by: str | None = None,
     authorized_by: str | None = None,
     verified_by: str | None = None,
+    attributed_by: str | None = None,
+    evaluated_by: str | None = None,
+    decided_by: str | None = None,
+    requested_by: str | None = None,
+    recorded_by: str | None = None,
 ) -> dict[str, str]:
     headers = {"X-Agent-Token": os.getenv("SAHOOL_AGENT_TOKEN", "")}
     if tenant_id:
@@ -42,6 +47,16 @@ def decision_service_headers(
         headers["X-Authorized-By"] = str(authorized_by)
     if verified_by:
         headers["X-Verified-By"] = str(verified_by)
+    if attributed_by:
+        headers["X-Attributed-By"] = str(attributed_by)
+    if evaluated_by:
+        headers["X-Evaluated-By"] = str(evaluated_by)
+    if decided_by:
+        headers["X-Decided-By"] = str(decided_by)
+    if requested_by:
+        headers["X-Requested-By"] = str(requested_by)
+    if recorded_by:
+        headers["X-Recorded-By"] = str(recorded_by)
     return headers
 
 
@@ -89,6 +104,11 @@ async def decision_post_json(
     created_by: str | None = None,
     authorized_by: str | None = None,
     verified_by: str | None = None,
+    attributed_by: str | None = None,
+    evaluated_by: str | None = None,
+    decided_by: str | None = None,
+    requested_by: str | None = None,
+    recorded_by: str | None = None,
     timeout_s: float = 20.0,
 ) -> dict[str, Any]:
     import httpx
@@ -107,6 +127,11 @@ async def decision_post_json(
                     created_by=created_by,
                     authorized_by=authorized_by,
                     verified_by=verified_by,
+                    attributed_by=attributed_by,
+                    evaluated_by=evaluated_by,
+                    decided_by=decided_by,
+                    requested_by=requested_by,
+                    recorded_by=recorded_by,
                 ),
             )
     except httpx.HTTPError as exc:
@@ -214,6 +239,22 @@ async def verify_execution_outcome(
     )
 
 
+async def create_learning_attribution(
+    outcome_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    attributed_by: str | None = None,
+) -> dict[str, Any]:
+    """WX-10.13 thin transport; decision-service owns immutable attribution lineage."""
+    return await decision_post_json(
+        f"/v1/outcomes/{outcome_id}/learning-attribution",
+        payload,
+        tenant_id=tenant_id,
+        attributed_by=attributed_by,
+    )
+
+
 async def record_dispatch_decision(
     payload: dict[str, Any], *, tenant_id: str | None = None
 ) -> dict[str, Any]:
@@ -283,4 +324,100 @@ async def get_reconciled_outcomes(
         "/v1/outcomes/reconciled",
         tenant_id=tenant_id,
         params={"field_id": field_id, "season_id": season_id},
+    )
+
+
+async def get_calibration_dataset(
+    *,
+    model_id: str,
+    feature_set_id: str | None = None,
+    limit: int = 500,
+    tenant_id: str | None = None,
+) -> dict[str, Any]:
+    """WX-11.1 thin transport for the authoritative read-only calibration dataset."""
+    return await decision_get_json(
+        "/v1/learning/calibration-dataset",
+        tenant_id=tenant_id,
+        params={"model_id": model_id, "feature_set_id": feature_set_id, "limit": limit},
+    )
+
+
+async def create_model_evaluation_run(
+    payload: dict[str, Any], *, tenant_id: str | None = None, evaluated_by: str | None = None
+) -> dict[str, Any]:
+    """WX-11.2 thin transport for immutable evaluation-run registration."""
+    return await decision_post_json(
+        "/v1/learning/evaluation-runs", payload, tenant_id=tenant_id, evaluated_by=evaluated_by
+    )
+
+
+async def create_model_promotion_decision(
+    payload: dict[str, Any], *, tenant_id: str | None = None, decided_by: str | None = None
+) -> dict[str, Any]:
+    """WX-11.3 thin transport for immutable governed promotion decisions."""
+    return await decision_post_json(
+        "/v1/learning/promotion-decisions", payload, tenant_id=tenant_id, decided_by=decided_by
+    )
+
+
+async def create_model_activation_request(
+    payload: dict[str, Any], *, tenant_id: str | None = None, requested_by: str | None = None
+) -> dict[str, Any]:
+    """WX-11.4 thin transport for immutable pending activation requests."""
+    return await decision_post_json(
+        "/v1/learning/activation-requests", payload, tenant_id=tenant_id, requested_by=requested_by
+    )
+
+
+async def review_model_activation_request(
+    activation_request_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    reviewed_by: str | None = None,
+) -> dict[str, Any]:
+    """WX-11.5 thin transport for governed activation approval/rejection."""
+    return await decision_post_json(
+        f"/v1/learning/activation-requests/{activation_request_id}/review",
+        payload,
+        tenant_id=tenant_id,
+        reviewed_by=reviewed_by,
+    )
+
+
+async def claim_model_registry_activation_command(
+    command_id: str, payload: dict[str, Any], *, tenant_id: str | None = None
+) -> dict[str, Any]:
+    return await decision_post_json(
+        f"/v1/learning/activation-commands/{command_id}/claim", payload, tenant_id=tenant_id
+    )
+
+
+async def record_model_registry_activation_receipt(
+    command_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    recorded_by: str | None = None,
+) -> dict[str, Any]:
+    return await decision_post_json(
+        f"/v1/learning/activation-commands/{command_id}/receipt",
+        payload,
+        tenant_id=tenant_id,
+        recorded_by=recorded_by,
+    )
+
+
+async def create_model_registry_rollback_command(
+    receipt_id: str,
+    payload: dict[str, Any],
+    *,
+    tenant_id: str | None = None,
+    requested_by: str | None = None,
+) -> dict[str, Any]:
+    return await decision_post_json(
+        f"/v1/learning/activation-receipts/{receipt_id}/rollback-command",
+        payload,
+        tenant_id=tenant_id,
+        requested_by=requested_by,
     )

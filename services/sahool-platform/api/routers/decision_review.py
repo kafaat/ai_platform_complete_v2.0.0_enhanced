@@ -388,3 +388,418 @@ async def verify_execution_outcome_boundary(
         "replay": bool(result.get("replay", False)),
         "verified_at": result["verified_at"],
     }
+
+
+class LearningAttributionRequest(BaseModel):
+    model_id: str
+    feature_set_id: str | None = None
+    attribution_method: str = "verified_outcome"
+    label: str
+    weight: float = 1.0
+    evidence_snapshot_id: str
+    idempotency_key: str
+    metadata: dict = {}
+
+
+@router.post("/api/v1/outcomes/{outcome_id}/learning-attribution")
+async def create_learning_attribution_boundary(
+    outcome_id: str,
+    req: LearningAttributionRequest,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_LEARNING_ATTRIBUTE)),
+):
+    """WX-10.13 thin BFF; attribution only, never a model mutation."""
+    from api.decision_service_client import create_learning_attribution as ds_create_attribution
+
+    try:
+        result = await ds_create_attribution(
+            outcome_id,
+            req.model_dump(),
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            attributed_by=user.user_id,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service learning attribution unavailable"
+            ) from exc
+        raise
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("outcome_id") == outcome_id
+        and result.get("model_id") == req.model_id
+        and result.get("feature_set_id") == req.feature_set_id
+        and result.get("attribution_method") == req.attribution_method
+        and result.get("label") == req.label
+        and result.get("evidence_snapshot_id") == req.evidence_snapshot_id
+        and result.get("learning_state") == "attributed"
+        and bool(result.get("learning_attribution_id"))
+        and bool(result.get("attributed_by"))
+        and bool(result.get("attributed_at"))
+    )
+    if not proven:
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service did not prove an authoritative learning attribution",
+        )
+    return {
+        "learning_attribution_id": result["learning_attribution_id"],
+        "outcome_id": outcome_id,
+        "decision_id": result["decision_id"],
+        "execution_request_id": result["execution_request_id"],
+        "model_id": result["model_id"],
+        "feature_set_id": result["feature_set_id"],
+        "label": result["label"],
+        "weight": result["weight"],
+        "learning_state": "attributed",
+        "replay": bool(result.get("replay", False)),
+        "attributed_at": result["attributed_at"],
+    }
+
+
+@router.get("/api/v1/learning/calibration-dataset")
+async def read_calibration_dataset_boundary(
+    model_id: str,
+    feature_set_id: str | None = None,
+    limit: int = 500,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_LEARNING_ATTRIBUTE)),
+):
+    """WX-11.1 thin BFF; returns immutable calibration evidence only."""
+    from api.decision_service_client import get_calibration_dataset
+
+    try:
+        result = await get_calibration_dataset(
+            model_id=model_id,
+            feature_set_id=feature_set_id,
+            limit=limit,
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service calibration dataset unavailable"
+            ) from exc
+        raise
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("read_only") is True
+        and result.get("model_id") == model_id
+        and result.get("feature_set_id") == feature_set_id
+        and isinstance(result.get("items"), list)
+    )
+    if not proven:
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service did not prove an authoritative calibration dataset",
+        )
+    return result
+
+
+class ModelEvaluationRunRequest(BaseModel):
+    model_id: str
+    feature_set_id: str | None = None
+    dataset_fingerprint: str
+    dataset_count: int = Field(gt=0)
+    evaluator_version: str
+    baseline_metrics: dict
+    candidate_metrics: dict
+    candidate_artifact_uri: str
+    candidate_artifact_digest: str
+    artifact_format: str
+    idempotency_key: str
+    metadata: dict = Field(default_factory=dict)
+
+
+@router.post("/api/v1/learning/evaluation-runs")
+async def register_model_evaluation_boundary(
+    req: ModelEvaluationRunRequest,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_LEARNING_ATTRIBUTE)),
+):
+    """WX-11.2 BFF: register evaluated candidate metadata; no training or promotion."""
+    from api.decision_service_client import create_model_evaluation_run
+
+    try:
+        result = await create_model_evaluation_run(
+            req.model_dump(),
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            evaluated_by=user.user_id,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service evaluation registry unavailable"
+            ) from exc
+        raise
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("model_id") == req.model_id
+        and result.get("feature_set_id") == req.feature_set_id
+        and result.get("dataset_fingerprint") == req.dataset_fingerprint
+        and result.get("dataset_count") == req.dataset_count
+        and result.get("candidate_artifact_digest") == req.candidate_artifact_digest.lower()
+        and result.get("evaluation_state") == "evaluated"
+        and bool(result.get("evaluation_run_id"))
+        and bool(result.get("evaluated_by"))
+    )
+    if not proven:
+        raise HTTPException(
+            status_code=503, detail="decision-service did not prove an authoritative evaluation run"
+        )
+    return result
+
+
+class ModelPromotionDecisionRequest(BaseModel):
+    evaluation_run_id: str
+    policy_version: str
+    primary_metric: str
+    min_improvement: float = 0.0
+    lower_is_better: bool = False
+    max_regression: float = Field(default=0.0, ge=0.0)
+    guardrail_metrics: list[str] = Field(default_factory=list)
+    idempotency_key: str
+    metadata: dict = Field(default_factory=dict)
+
+
+@router.post("/api/v1/learning/promotion-decisions")
+async def register_model_promotion_decision_boundary(
+    req: ModelPromotionDecisionRequest,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_LEARNING_ATTRIBUTE)),
+):
+    """WX-11.3 BFF: record policy eligibility/rejection; never activate a model."""
+    from api.decision_service_client import create_model_promotion_decision
+
+    try:
+        result = await create_model_promotion_decision(
+            req.model_dump(),
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            decided_by=user.user_id,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service promotion decision unavailable"
+            ) from exc
+        raise
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("evaluation_run_id") == req.evaluation_run_id
+        and result.get("policy_version") == req.policy_version
+        and result.get("decision_state") in {"promotion_eligible", "promotion_rejected"}
+        and bool(result.get("promotion_decision_id"))
+        and bool(result.get("candidate_artifact_digest"))
+        and bool(result.get("decided_by"))
+    )
+    if not proven:
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service did not prove an authoritative promotion decision",
+        )
+    return result
+
+
+class ModelActivationRequest(BaseModel):
+    promotion_decision_id: str
+    target_environment: str
+    idempotency_key: str
+    metadata: dict = Field(default_factory=dict)
+
+
+@router.post("/api/v1/learning/activation-requests")
+async def register_model_activation_request_boundary(
+    req: ModelActivationRequest,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_MODEL_ACTIVATION_REQUEST)),
+):
+    """WX-11.4 BFF: create a pending activation request; never mutate registry state."""
+    from api.decision_service_client import create_model_activation_request
+
+    try:
+        result = await create_model_activation_request(
+            req.model_dump(),
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            requested_by=user.user_id,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service activation request unavailable"
+            ) from exc
+        raise
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("promotion_decision_id") == req.promotion_decision_id
+        and result.get("target_environment") == req.target_environment
+        and result.get("requested_state") == "pending_activation_approval"
+        and bool(result.get("activation_request_id"))
+        and bool(result.get("candidate_artifact_digest"))
+        and bool(result.get("requested_by"))
+    )
+    if not proven:
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service did not prove an authoritative activation request",
+        )
+    return result
+
+
+class ModelActivationReview(BaseModel):
+    review_decision: str
+    review_reason: str | None = None
+    registry_alias: str | None = None
+    previous_artifact_uri: str | None = None
+    previous_artifact_digest: str | None = None
+    idempotency_key: str
+    metadata: dict = Field(default_factory=dict)
+
+
+@router.post("/api/v1/learning/activation-requests/{activation_request_id}/review")
+async def review_model_activation_request_boundary(
+    activation_request_id: str,
+    req: ModelActivationReview,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_MODEL_ACTIVATION_APPROVE)),
+):
+    """WX-11.5 BFF: governed review and queued registry command; never mutates an alias directly."""
+    from api.decision_service_client import review_model_activation_request
+
+    try:
+        result = await review_model_activation_request(
+            activation_request_id,
+            req.model_dump(),
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            reviewed_by=user.user_id,
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service activation review unavailable"
+            ) from exc
+        raise
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("activation_request_id") == activation_request_id
+        and result.get("review_decision") == req.review_decision
+        and bool(result.get("activation_review_id"))
+        and bool(result.get("reviewed_by"))
+    )
+    if req.review_decision == "approved":
+        command = result.get("activation_command") or {}
+        proven = (
+            proven
+            and command.get("command_state") == "queued"
+            and command.get("registry_alias") == req.registry_alias
+            and command.get("previous_artifact_digest") == str(req.previous_artifact_digest).lower()
+            and bool(command.get("activation_command_id"))
+        )
+    else:
+        proven = proven and result.get("activation_command") is None
+    if not proven:
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service did not prove an authoritative activation review",
+        )
+    return result
+
+
+class RegistryActivationClaim(BaseModel):
+    adapter_id: str
+    delivery_token: str
+
+
+@router.post("/api/v1/learning/activation-commands/{activation_command_id}/claim")
+async def claim_registry_activation_command_bff(
+    activation_command_id: str,
+    req: RegistryActivationClaim,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_MODEL_REGISTRY_EXECUTE)),
+):
+    from api.decision_service_client import claim_model_registry_activation_command
+
+    result = await claim_model_registry_activation_command(
+        activation_command_id,
+        req.model_dump(),
+        tenant_id=str(user.tenant_id) if user.tenant_id else None,
+    )
+    if not (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("activation_command_id") == activation_command_id
+        and result.get("claim_state") == "claimed"
+    ):
+        raise HTTPException(
+            status_code=503, detail="decision-service did not prove an authoritative registry claim"
+        )
+    return result
+
+
+class RegistryActivationReceipt(BaseModel):
+    adapter_id: str
+    delivery_token: str
+    receipt_state: str
+    active_artifact_uri: str | None = None
+    active_artifact_digest: str | None = None
+    registry_version: str | None = None
+    failure_reason: str | None = None
+    receipt_payload: dict = Field(default_factory=dict)
+    idempotency_key: str
+
+
+@router.post("/api/v1/learning/activation-commands/{activation_command_id}/receipt")
+async def record_registry_activation_receipt_bff(
+    activation_command_id: str,
+    req: RegistryActivationReceipt,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_MODEL_REGISTRY_EXECUTE)),
+):
+    from api.decision_service_client import record_model_registry_activation_receipt
+
+    result = await record_model_registry_activation_receipt(
+        activation_command_id,
+        req.model_dump(),
+        tenant_id=str(user.tenant_id) if user.tenant_id else None,
+        recorded_by=user.user_id,
+    )
+    if not (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("activation_command_id") == activation_command_id
+        and result.get("receipt_state") == req.receipt_state
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service did not prove an authoritative registry receipt",
+        )
+    return result
+
+
+class RegistryRollbackCommand(BaseModel):
+    reason: str
+    idempotency_key: str
+
+
+@router.post("/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command")
+async def create_registry_rollback_command_bff(
+    activation_receipt_id: str,
+    req: RegistryRollbackCommand,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_MODEL_REGISTRY_EXECUTE)),
+):
+    from api.decision_service_client import create_model_registry_rollback_command
+
+    result = await create_model_registry_rollback_command(
+        activation_receipt_id,
+        req.model_dump(),
+        tenant_id=str(user.tenant_id) if user.tenant_id else None,
+        requested_by=user.user_id,
+    )
+    if not (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("activation_receipt_id") == activation_receipt_id
+        and result.get("command_state") == "queued"
+    ):
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service did not prove an authoritative rollback command",
+        )
+    return result

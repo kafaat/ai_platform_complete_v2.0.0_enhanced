@@ -438,6 +438,10 @@
       "audience": "manager"
     },
     {
+      "prefix": "/api/v1/outcomes/",
+      "audience": "agronomist"
+    },
+    {
       "prefix": "/api/v1/failures",
       "audience": "manager"
     },

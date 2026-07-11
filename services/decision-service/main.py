@@ -32,9 +32,16 @@ from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
 from persistence import (
     authorize_dispatch,
+    build_calibration_dataset,
     claim_execution_request,
+    claim_model_registry_activation_command,
     create_execution_plan,
     create_execution_request,
+    create_learning_attribution,
+    create_model_activation_request,
+    create_model_evaluation_run,
+    create_model_promotion_decision,
+    create_model_registry_rollback_command,
     list_decision_records,
     list_review_queue,
     persist_decision_record,
@@ -43,7 +50,9 @@ from persistence import (
     persist_outcome_record,
     persist_recommendation_outcome,
     record_execution_receipt,
+    record_model_registry_activation_receipt,
     review_decision,
+    review_model_activation_request,
     sor_enabled,
     sor_requested_without_db,
     verify_execution_outcome,
@@ -63,6 +72,15 @@ LOOP_TABLES = [
     "decision_dispatch_authorizations",
     "decision_execution_requests",
     "decision_execution_delivery_attempts",
+    "decision_learning_attributions",
+    "decision_model_evaluation_runs",
+    "decision_model_promotion_decisions",
+    "decision_model_activation_requests",
+    "decision_model_activation_reviews",
+    "decision_model_registry_activation_commands",
+    "decision_model_registry_activation_claims",
+    "decision_model_registry_activation_receipts",
+    "decision_model_registry_rollback_commands",
 ]
 
 # Honest mirror-sink contract: this service is NOT the system-of-record yet. Write
@@ -969,3 +987,380 @@ async def verify_terminal_execution_outcome(
     raise HTTPException(
         status_code=409, detail=result.get("reason", "outcome verification conflict")
     )
+
+
+class LearningAttributionIn(BaseModel):
+    model_id: str
+    feature_set_id: str | None = None
+    attribution_method: str = "verified_outcome"
+    label: str
+    weight: float = Field(default=1.0, gt=0, le=1.0)
+    evidence_snapshot_id: str
+    idempotency_key: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/outcomes/{outcome_id}/learning-attribution")
+async def attribute_verified_outcome_to_learning(
+    outcome_id: str,
+    payload: LearningAttributionIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_attributed_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-10.13: create one immutable, traceable learning attribution; no model mutation."""
+    tenant = _tenant(x_tenant_id)
+    attributed_by = (x_attributed_by or "").strip()
+    if not attributed_by:
+        raise HTTPException(status_code=400, detail="X-Attributed-By is required")
+    for name in ("model_id", "label", "evidence_snapshot_id", "idempotency_key"):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    if payload.attribution_method != "verified_outcome":
+        raise HTTPException(status_code=422, detail="attribution_method must be verified_outcome")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — learning attribution unavailable",
+        )
+    result = await create_learning_attribution(
+        tenant_id=tenant, outcome_id=outcome_id, attributed_by=attributed_by, payload=payload
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="verified outcome not found")
+    raise HTTPException(
+        status_code=409, detail=result.get("reason", "learning attribution conflict")
+    )
+
+
+@app.get("/v1/learning/calibration-dataset")
+async def get_calibration_dataset(
+    model_id: str = Query(..., min_length=1),
+    feature_set_id: str | None = Query(default=None),
+    limit: int = Query(default=500, ge=1, le=2000),
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-11.1: authoritative read-only calibration dataset; no fitting or model mutation."""
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — calibration dataset unavailable",
+        )
+    result = await build_calibration_dataset(
+        tenant_id=tenant, model_id=model_id.strip(), feature_set_id=feature_set_id, limit=limit
+    )
+    return {"tenant_id": tenant, **result}
+
+
+class ModelEvaluationRunIn(BaseModel):
+    model_id: str
+    feature_set_id: str | None = None
+    dataset_fingerprint: str
+    dataset_count: int = Field(gt=0)
+    evaluator_version: str
+    baseline_metrics: dict[str, Any]
+    candidate_metrics: dict[str, Any]
+    candidate_artifact_uri: str
+    candidate_artifact_digest: str
+    artifact_format: str
+    idempotency_key: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/learning/evaluation-runs")
+async def register_model_evaluation_run(
+    payload: ModelEvaluationRunIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_evaluated_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-11.2: register immutable evaluation evidence and candidate artifact metadata only."""
+    tenant = _tenant(x_tenant_id)
+    evaluated_by = (x_evaluated_by or "").strip()
+    if not evaluated_by:
+        raise HTTPException(status_code=400, detail="X-Evaluated-By is required")
+    for name in (
+        "model_id",
+        "dataset_fingerprint",
+        "evaluator_version",
+        "candidate_artifact_uri",
+        "candidate_artifact_digest",
+        "artifact_format",
+        "idempotency_key",
+    ):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    digest = payload.candidate_artifact_digest.lower()
+    if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+        raise HTTPException(status_code=422, detail="candidate_artifact_digest must be sha256 hex")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — evaluation registration unavailable",
+        )
+    result = await create_model_evaluation_run(
+        tenant_id=tenant, evaluated_by=evaluated_by, payload=payload
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    raise HTTPException(status_code=409, detail=result.get("reason", "evaluation run conflict"))
+
+
+class ModelPromotionDecisionIn(BaseModel):
+    evaluation_run_id: str
+    policy_version: str
+    primary_metric: str
+    min_improvement: float = 0.0
+    lower_is_better: bool = False
+    max_regression: float = Field(default=0.0, ge=0.0)
+    guardrail_metrics: list[str] = Field(default_factory=list)
+    idempotency_key: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/learning/promotion-decisions")
+async def register_model_promotion_decision(
+    payload: ModelPromotionDecisionIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_decided_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-11.3: evaluate a fixed policy and record eligibility/rejection only."""
+    tenant = _tenant(x_tenant_id)
+    decided_by = (x_decided_by or "").strip()
+    if not decided_by:
+        raise HTTPException(status_code=400, detail="X-Decided-By is required")
+    for name in ("evaluation_run_id", "policy_version", "primary_metric", "idempotency_key"):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — promotion decision unavailable",
+        )
+    result = await create_model_promotion_decision(
+        tenant_id=tenant, decided_by=decided_by, payload=payload
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="evaluation run not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "promotion decision conflict"))
+
+
+class ModelActivationRequestIn(BaseModel):
+    promotion_decision_id: str
+    target_environment: str
+    idempotency_key: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/learning/activation-requests")
+async def register_model_activation_request(
+    payload: ModelActivationRequestIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-11.4: create a pending activation request only; no registry mutation."""
+    tenant = _tenant(x_tenant_id)
+    requested_by = (x_requested_by or "").strip()
+    if not requested_by:
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    if payload.target_environment not in {"staging", "production"}:
+        raise HTTPException(
+            status_code=422, detail="target_environment must be staging or production"
+        )
+    for name in ("promotion_decision_id", "idempotency_key"):
+        if not str(getattr(payload, name, "") or "").strip():
+            raise HTTPException(status_code=422, detail=f"{name} is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — activation request unavailable",
+        )
+    result = await create_model_activation_request(
+        tenant_id=tenant, requested_by=requested_by, payload=payload
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="promotion decision not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "activation request conflict"))
+
+
+class ModelActivationReviewIn(BaseModel):
+    review_decision: str
+    review_reason: str | None = None
+    registry_alias: str | None = None
+    previous_artifact_uri: str | None = None
+    previous_artifact_digest: str | None = None
+    idempotency_key: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/learning/activation-requests/{activation_request_id}/review")
+async def review_activation_request_boundary(
+    activation_request_id: str,
+    payload: ModelActivationReviewIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_reviewed_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """WX-11.5: approve/reject activation; approval queues an immutable registry command only."""
+    tenant = _tenant(x_tenant_id)
+    reviewed_by = (x_reviewed_by or "").strip()
+    if not reviewed_by:
+        raise HTTPException(status_code=400, detail="X-Reviewed-By is required")
+    if payload.review_decision not in {"approved", "rejected"}:
+        raise HTTPException(status_code=422, detail="review_decision must be approved or rejected")
+    if not payload.idempotency_key.strip():
+        raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if payload.review_decision == "rejected" and not (payload.review_reason or "").strip():
+        raise HTTPException(status_code=422, detail="review_reason is required for rejection")
+    if payload.review_decision == "approved":
+        for name in ("registry_alias", "previous_artifact_uri", "previous_artifact_digest"):
+            if not str(getattr(payload, name, "") or "").strip():
+                raise HTTPException(status_code=422, detail=f"{name} is required for approval")
+        digest = str(payload.previous_artifact_digest).lower()
+        if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+            raise HTTPException(
+                status_code=422, detail="previous_artifact_digest must be sha256 hex"
+            )
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — activation review unavailable",
+        )
+    result = await review_model_activation_request(
+        tenant_id=tenant,
+        activation_request_id=activation_request_id,
+        reviewed_by=reviewed_by,
+        payload=payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="activation request not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "activation review conflict"))
+
+
+class ModelRegistryActivationClaimIn(BaseModel):
+    adapter_id: str
+    delivery_token: str
+
+
+@app.post("/v1/learning/activation-commands/{activation_command_id}/claim")
+async def claim_registry_activation_command_boundary(
+    activation_command_id: str,
+    payload: ModelRegistryActivationClaimIn,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    if not payload.adapter_id.strip() or not payload.delivery_token.strip():
+        raise HTTPException(status_code=422, detail="adapter_id and delivery_token are required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — registry claim unavailable",
+        )
+    result = await claim_model_registry_activation_command(
+        tenant_id=tenant,
+        command_id=activation_command_id,
+        adapter_id=payload.adapter_id,
+        delivery_token=payload.delivery_token,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="activation command not found")
+    raise HTTPException(
+        status_code=409, detail=result.get("reason", "activation command claim conflict")
+    )
+
+
+class ModelRegistryActivationReceiptIn(BaseModel):
+    adapter_id: str
+    delivery_token: str
+    receipt_state: str
+    active_artifact_uri: str | None = None
+    active_artifact_digest: str | None = None
+    registry_version: str | None = None
+    failure_reason: str | None = None
+    receipt_payload: dict[str, Any] = Field(default_factory=dict)
+    idempotency_key: str
+
+
+@app.post("/v1/learning/activation-commands/{activation_command_id}/receipt")
+async def record_registry_activation_receipt_boundary(
+    activation_command_id: str,
+    payload: ModelRegistryActivationReceiptIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_recorded_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    recorded_by = (x_recorded_by or "").strip()
+    if not recorded_by:
+        raise HTTPException(status_code=400, detail="X-Recorded-By is required")
+    if payload.receipt_state not in {"activated", "failed"}:
+        raise HTTPException(status_code=422, detail="receipt_state must be activated or failed")
+    if not payload.idempotency_key.strip():
+        raise HTTPException(status_code=422, detail="idempotency_key is required")
+    if payload.receipt_state == "activated":
+        if (
+            not (payload.active_artifact_uri or "").strip()
+            or not (payload.active_artifact_digest or "").strip()
+        ):
+            raise HTTPException(status_code=422, detail="active artifact proof is required")
+        digest = str(payload.active_artifact_digest).lower()
+        if len(digest) != 64 or any(c not in "0123456789abcdef" for c in digest):
+            raise HTTPException(status_code=422, detail="active_artifact_digest must be sha256 hex")
+    if payload.receipt_state == "failed" and not (payload.failure_reason or "").strip():
+        raise HTTPException(status_code=422, detail="failure_reason is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — registry receipt unavailable",
+        )
+    result = await record_model_registry_activation_receipt(
+        tenant_id=tenant, command_id=activation_command_id, recorded_by=recorded_by, payload=payload
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="activation command/claim not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "activation receipt conflict"))
+
+
+class ModelRegistryRollbackIn(BaseModel):
+    reason: str
+    idempotency_key: str
+
+
+@app.post("/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command")
+async def create_registry_rollback_command_boundary(
+    activation_receipt_id: str,
+    payload: ModelRegistryRollbackIn,
+    x_tenant_id: str | None = Header(default=None),
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    tenant = _tenant(x_tenant_id)
+    requested_by = (x_requested_by or "").strip()
+    if not requested_by:
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    if not payload.reason.strip() or not payload.idempotency_key.strip():
+        raise HTTPException(status_code=422, detail="reason and idempotency_key are required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — rollback command unavailable",
+        )
+    result = await create_model_registry_rollback_command(
+        tenant_id=tenant,
+        receipt_id=activation_receipt_id,
+        requested_by=requested_by,
+        payload=payload,
+    )
+    if result.get("status") == "ok":
+        return {"accepted": True, "tenant_id": tenant, **result}
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="activation receipt not found")
+    raise HTTPException(status_code=409, detail=result.get("reason", "rollback command conflict"))

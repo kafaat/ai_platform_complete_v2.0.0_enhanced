@@ -62,6 +62,22 @@ jobs:
       - name: WX-10.12 execution outcome boundary guard
         run: python scripts/ci/execution_outcome_boundary_gate.py
 
+      # WX-10.13..11.6 model/MLOps governance chain stays a state transition, never execution
+      - name: WX-10.13 learning attribution boundary guard
+        run: python scripts/ci/learning_attribution_boundary_gate.py
+      - name: WX-11.1 calibration dataset boundary guard
+        run: python scripts/ci/calibration_dataset_boundary_gate.py
+      - name: WX-11.2 model evaluation boundary guard
+        run: python scripts/ci/model_evaluation_boundary_gate.py
+      - name: WX-11.3 model promotion decision boundary guard
+        run: python scripts/ci/model_promotion_decision_boundary_gate.py
+      - name: WX-11.4 model activation request boundary guard
+        run: python scripts/ci/model_activation_request_boundary_gate.py
+      - name: WX-11.5 model activation approval boundary guard
+        run: python scripts/ci/model_activation_approval_boundary_gate.py
+      - name: WX-11.6 model registry activation boundary guard
+        run: python scripts/ci/model_registry_activation_boundary_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
@@ -409,7 +425,7 @@ jobs:
           done
           pg_isready -h localhost -p 5434 -U decision_test
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx
-      - name: Apply decision-service migrations (custom runner — 001 through 007)
+      - name: Apply decision-service migrations (custom runner — 001 through 013)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -464,6 +480,52 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx10_12_execution_outcome.py -q -p no:cacheprovider
+      # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
+      # authoritative append-only transition (learning-attribution -> calibration-dataset ->
+      # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->
+      # registry-activation/receipt/rollback), concurrency + idempotency proven on real Postgres.
+      - name: WX-10.13 learning-attribution tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_13_learning_attribution.py -q -p no:cacheprovider
+      - name: WX-11.1 calibration-dataset tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx11_1_calibration_dataset.py -q -p no:cacheprovider
+      - name: WX-11.2 model-evaluation tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx11_2_model_evaluation.py -q -p no:cacheprovider
+      - name: WX-11.3 model-promotion-decision tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx11_3_model_promotion_decision.py -q -p no:cacheprovider
+      - name: WX-11.4 model-activation-request tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx11_4_model_activation_request.py -q -p no:cacheprovider
+      - name: WX-11.5 model-activation-approval tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx11_5_model_activation_approval.py -q -p no:cacheprovider
+      - name: WX-11.6 registry-activation/receipt/rollback tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx11_6_registry_activation_boundary.py -q -p no:cacheprovider
 
   security-scan:
     name: Security Scan

@@ -1349,3 +1349,1114 @@ async def verify_execution_outcome(
             return _authoritative_execution_outcome(row, replay=False)
     finally:
         await conn.close()
+
+
+def _learning_attribution_hash(*, outcome_id: str, payload: Any) -> str:
+    blob = json.dumps(
+        {
+            "outcome_id": outcome_id,
+            "model_id": payload.model_id,
+            "feature_set_id": payload.feature_set_id,
+            "attribution_method": payload.attribution_method,
+            "label": payload.label,
+            "weight": payload.weight,
+            "evidence_snapshot_id": payload.evidence_snapshot_id,
+            "metadata": payload.metadata,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def _authoritative_learning_attribution(row: Any, *, replay: bool) -> dict[str, Any]:
+    attributed_at = row["attributed_at"]
+    return {
+        "status": "ok",
+        "replay": replay,
+        "authoritative": True,
+        "persisted": True,
+        "learning_attribution_id": row["learning_attribution_id"],
+        "outcome_id": row["outcome_id"],
+        "decision_id": row["decision_id"],
+        "execution_request_id": row["execution_request_id"],
+        "model_id": row["model_id"],
+        "feature_set_id": row["feature_set_id"],
+        "attribution_method": row["attribution_method"],
+        "label": row["label"],
+        "weight": float(row["weight"]),
+        "evidence_snapshot_id": row["evidence_snapshot_id"],
+        "learning_state": row["learning_state"],
+        "attributed_by": row["attributed_by"],
+        "attributed_at": attributed_at.isoformat()
+        if hasattr(attributed_at, "isoformat")
+        else attributed_at,
+    }
+
+
+async def create_learning_attribution(
+    *, tenant_id: str, outcome_id: str, attributed_by: str, payload: Any
+) -> dict[str, Any]:
+    """WX-10.13: persist attribution lineage only; never fit or mutate a model."""
+    request_hash = _learning_attribution_hash(outcome_id=outcome_id, payload=payload)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_learning_attributions WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != request_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return _authoritative_learning_attribution(prior, replay=True)
+            source = await conn.fetchrow(
+                """SELECT outcome_id,decision_id,execution_request_id,verification_state,
+                          evidence_snapshot_id,success
+                     FROM outcome_record
+                    WHERE tenant_id=$1::uuid AND outcome_id=$2
+                    FOR SHARE""",
+                tenant_id,
+                outcome_id,
+            )
+            if not source:
+                return {"status": "not_found"}
+            if source["verification_state"] not in {"verified_success", "verified_failure"}:
+                return {"status": "conflict", "reason": "outcome_not_verified"}
+            if source["evidence_snapshot_id"] != payload.evidence_snapshot_id:
+                return {"status": "conflict", "reason": "evidence_snapshot_mismatch"}
+            expected_label = "success" if source["success"] else "failure"
+            if payload.label != expected_label:
+                return {"status": "conflict", "reason": "label_outcome_mismatch"}
+            attribution_id = (
+                "lat_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{outcome_id}:{payload.model_id}:{payload.feature_set_id or ''}:{payload.idempotency_key}".encode()
+                ).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_learning_attributions
+                   (learning_attribution_id,tenant_id,outcome_id,decision_id,execution_request_id,
+                    model_id,feature_set_id,attribution_method,label,weight,evidence_snapshot_id,
+                    metadata,learning_state,idempotency_key,request_hash,attributed_by)
+                   VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,'attributed',$13,$14,$15)
+                   ON CONFLICT DO NOTHING RETURNING *""",
+                attribution_id,
+                tenant_id,
+                outcome_id,
+                source["decision_id"],
+                source["execution_request_id"],
+                payload.model_id,
+                payload.feature_set_id,
+                payload.attribution_method,
+                payload.label,
+                payload.weight,
+                payload.evidence_snapshot_id,
+                _json(payload.metadata),
+                payload.idempotency_key,
+                request_hash,
+                attributed_by,
+            )
+            if row is None:
+                concurrent = await conn.fetchrow(
+                    """SELECT * FROM decision_learning_attributions
+                        WHERE tenant_id=$1::uuid AND outcome_id=$2 AND model_id=$3
+                          AND feature_set_id IS NOT DISTINCT FROM $4""",
+                    tenant_id,
+                    outcome_id,
+                    payload.model_id,
+                    payload.feature_set_id,
+                )
+                if concurrent and concurrent["request_hash"] == request_hash:
+                    return _authoritative_learning_attribution(concurrent, replay=True)
+                return {"status": "conflict", "reason": "learning_attribution_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="LEARNING_ATTRIBUTION_CREATED",
+                aggregate_type="decision_learning_attributions",
+                aggregate_id=attribution_id,
+                payload={
+                    "outcome_id": outcome_id,
+                    "decision_id": source["decision_id"],
+                    "execution_request_id": source["execution_request_id"],
+                    "model_id": payload.model_id,
+                    "feature_set_id": payload.feature_set_id,
+                    "label": payload.label,
+                    "learning_state": "attributed",
+                },
+            )
+            return _authoritative_learning_attribution(row, replay=False)
+    finally:
+        await conn.close()
+
+
+def _calibration_fingerprint(items: list[dict[str, Any]]) -> str:
+    canonical = [
+        {
+            "learning_attribution_id": item["learning_attribution_id"],
+            "outcome_id": item["outcome_id"],
+            "decision_id": item["decision_id"],
+            "execution_request_id": item["execution_request_id"],
+            "label": item["label"],
+            "weight": item["weight"],
+            "evidence_snapshot_id": item["evidence_snapshot_id"],
+            "verification_state": item["verification_state"],
+            "success": item["success"],
+        }
+        for item in sorted(items, key=lambda x: x["learning_attribution_id"])
+    ]
+    return hashlib.sha256(
+        json.dumps(canonical, sort_keys=True, separators=(",", ":"), default=str).encode()
+    ).hexdigest()
+
+
+async def build_calibration_dataset(
+    *, tenant_id: str, model_id: str, feature_set_id: str | None, limit: int
+) -> dict[str, Any]:
+    """WX-11.1: read immutable attribution/outcome lineage into a calibration dataset."""
+    conn = await _connect()
+    try:
+        rows = await conn.fetch(
+            """SELECT la.learning_attribution_id,la.outcome_id,la.decision_id,
+                      la.execution_request_id,la.model_id,la.feature_set_id,la.label,
+                      la.weight,la.evidence_snapshot_id,la.attributed_at,
+                      o.verification_state,o.success,o.metrics,o.actual,
+                      d.decision_type,d.field_id,d.confidence,d.created_at AS decision_created_at
+                 FROM decision_learning_attributions la
+                 JOIN outcome_record o
+                   ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id
+                 JOIN decision_record d
+                   ON d.tenant_id=la.tenant_id AND d.decision_id=la.decision_id
+                WHERE la.tenant_id=$1::uuid AND la.model_id=$2
+                  AND la.feature_set_id IS NOT DISTINCT FROM $3
+                  AND la.learning_state='attributed'
+                  AND o.verification_state IN ('verified_success','verified_failure')
+                ORDER BY la.attributed_at DESC,la.learning_attribution_id DESC
+                LIMIT $4""",
+            tenant_id,
+            model_id,
+            feature_set_id,
+            limit,
+        )
+        items = []
+        success_weight = 0.0
+        total_weight = 0.0
+        for row in rows:
+            weight = float(row["weight"])
+            total_weight += weight
+            if row["success"]:
+                success_weight += weight
+            items.append(
+                {
+                    "learning_attribution_id": row["learning_attribution_id"],
+                    "outcome_id": row["outcome_id"],
+                    "decision_id": row["decision_id"],
+                    "execution_request_id": row["execution_request_id"],
+                    "model_id": row["model_id"],
+                    "feature_set_id": row["feature_set_id"],
+                    "label": row["label"],
+                    "weight": weight,
+                    "evidence_snapshot_id": row["evidence_snapshot_id"],
+                    "verification_state": row["verification_state"],
+                    "success": bool(row["success"]),
+                    "metrics": row["metrics"] or {},
+                    "actual": row["actual"] or {},
+                    "decision_type": row["decision_type"],
+                    "field_id": row["field_id"],
+                    "confidence": float(row["confidence"])
+                    if row["confidence"] is not None
+                    else None,
+                    "decision_created_at": row["decision_created_at"].isoformat()
+                    if hasattr(row["decision_created_at"], "isoformat")
+                    else row["decision_created_at"],
+                    "attributed_at": row["attributed_at"].isoformat()
+                    if hasattr(row["attributed_at"], "isoformat")
+                    else row["attributed_at"],
+                }
+            )
+        return {
+            "authoritative": True,
+            "persisted": True,
+            "read_only": True,
+            "model_id": model_id,
+            "feature_set_id": feature_set_id,
+            "count": len(items),
+            "weighted_success_rate": (success_weight / total_weight) if total_weight else None,
+            "dataset_fingerprint": _calibration_fingerprint(items),
+            "items": items,
+        }
+    finally:
+        await conn.close()
+
+
+def _model_evaluation_hash(payload: Any) -> str:
+    blob = json.dumps(
+        {
+            "model_id": payload.model_id,
+            "feature_set_id": payload.feature_set_id,
+            "dataset_fingerprint": payload.dataset_fingerprint,
+            "dataset_count": payload.dataset_count,
+            "evaluator_version": payload.evaluator_version,
+            "baseline_metrics": payload.baseline_metrics,
+            "candidate_metrics": payload.candidate_metrics,
+            "candidate_artifact_uri": payload.candidate_artifact_uri,
+            "candidate_artifact_digest": payload.candidate_artifact_digest.lower(),
+            "artifact_format": payload.artifact_format,
+            "metadata": payload.metadata,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def _authoritative_model_evaluation(row: Any, *, replay: bool) -> dict[str, Any]:
+    ts = row["evaluated_at"]
+    return {
+        "status": "ok",
+        "replay": replay,
+        "authoritative": True,
+        "persisted": True,
+        "evaluation_run_id": row["evaluation_run_id"],
+        "model_id": row["model_id"],
+        "feature_set_id": row["feature_set_id"],
+        "dataset_fingerprint": row["dataset_fingerprint"],
+        "dataset_count": row["dataset_count"],
+        "evaluator_version": row["evaluator_version"],
+        "baseline_metrics": row["baseline_metrics"],
+        "candidate_metrics": row["candidate_metrics"],
+        "candidate_artifact_uri": row["candidate_artifact_uri"],
+        "candidate_artifact_digest": row["candidate_artifact_digest"],
+        "artifact_format": row["artifact_format"],
+        "evaluation_state": row["evaluation_state"],
+        "evaluated_by": row["evaluated_by"],
+        "evaluated_at": ts.isoformat() if hasattr(ts, "isoformat") else ts,
+    }
+
+
+async def create_model_evaluation_run(
+    *, tenant_id: str, evaluated_by: str, payload: Any
+) -> dict[str, Any]:
+    """WX-11.2: persist evaluation evidence; never train or promote a model."""
+    request_hash = _model_evaluation_hash(payload)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_evaluation_runs WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != request_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return _authoritative_model_evaluation(prior, replay=True)
+            rows = await conn.fetch(
+                """SELECT la.learning_attribution_id,la.outcome_id,la.decision_id,la.execution_request_id,la.label,la.weight,la.evidence_snapshot_id,o.verification_state,o.success FROM decision_learning_attributions la JOIN outcome_record o ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id WHERE la.tenant_id=$1::uuid AND la.model_id=$2 AND la.feature_set_id IS NOT DISTINCT FROM $3 AND la.learning_state='attributed' AND o.verification_state IN ('verified_success','verified_failure')""",
+                tenant_id,
+                payload.model_id,
+                payload.feature_set_id,
+            )
+            fingerprint_items = [
+                {
+                    "learning_attribution_id": r["learning_attribution_id"],
+                    "outcome_id": r["outcome_id"],
+                    "decision_id": r["decision_id"],
+                    "execution_request_id": r["execution_request_id"],
+                    "label": r["label"],
+                    "weight": float(r["weight"]),
+                    "evidence_snapshot_id": r["evidence_snapshot_id"],
+                    "verification_state": r["verification_state"],
+                    "success": bool(r["success"]),
+                }
+                for r in rows
+            ]
+            if len(fingerprint_items) != payload.dataset_count:
+                return {"status": "conflict", "reason": "dataset_count_mismatch"}
+            if _calibration_fingerprint(fingerprint_items) != payload.dataset_fingerprint:
+                return {"status": "conflict", "reason": "dataset_fingerprint_mismatch"}
+            run_id = (
+                "eval_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{payload.model_id}:{payload.idempotency_key}".encode()
+                ).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_evaluation_runs (evaluation_run_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,dataset_count,evaluator_version,baseline_metrics,candidate_metrics,candidate_artifact_uri,candidate_artifact_digest,artifact_format,evaluation_state,idempotency_key,request_hash,evaluated_by,metadata) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12,'evaluated',$13,$14,$15,$16::jsonb) ON CONFLICT DO NOTHING RETURNING *""",
+                run_id,
+                tenant_id,
+                payload.model_id,
+                payload.feature_set_id,
+                payload.dataset_fingerprint,
+                payload.dataset_count,
+                payload.evaluator_version,
+                _json(payload.baseline_metrics),
+                _json(payload.candidate_metrics),
+                payload.candidate_artifact_uri,
+                payload.candidate_artifact_digest.lower(),
+                payload.artifact_format,
+                payload.idempotency_key,
+                request_hash,
+                evaluated_by,
+                _json(payload.metadata),
+            )
+            if row is None:
+                return {"status": "conflict", "reason": "evaluation_or_artifact_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_EVALUATION_RUN_CREATED",
+                aggregate_type="decision_model_evaluation_runs",
+                aggregate_id=run_id,
+                payload={
+                    "model_id": payload.model_id,
+                    "feature_set_id": payload.feature_set_id,
+                    "dataset_fingerprint": payload.dataset_fingerprint,
+                    "candidate_artifact_digest": payload.candidate_artifact_digest.lower(),
+                    "evaluation_state": "evaluated",
+                },
+            )
+            return _authoritative_model_evaluation(row, replay=False)
+    finally:
+        await conn.close()
+
+
+def _promotion_decision_hash(payload: Any) -> str:
+    blob = json.dumps(
+        {
+            "evaluation_run_id": payload.evaluation_run_id,
+            "policy_version": payload.policy_version,
+            "primary_metric": payload.primary_metric,
+            "min_improvement": payload.min_improvement,
+            "lower_is_better": payload.lower_is_better,
+            "max_regression": payload.max_regression,
+            "guardrail_metrics": sorted(set(payload.guardrail_metrics)),
+            "metadata": payload.metadata,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def _metric_number(metrics: dict[str, Any], name: str) -> float | None:
+    value = (metrics or {}).get(name)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    value = float(value)
+    return value if value == value and value not in (float("inf"), float("-inf")) else None
+
+
+def _authoritative_promotion_decision(row: Any, *, replay: bool) -> dict[str, Any]:
+    ts = row["decided_at"]
+    return {
+        "status": "ok",
+        "replay": replay,
+        "authoritative": True,
+        "persisted": True,
+        "promotion_decision_id": row["promotion_decision_id"],
+        "evaluation_run_id": row["evaluation_run_id"],
+        "model_id": row["model_id"],
+        "feature_set_id": row["feature_set_id"],
+        "policy_version": row["policy_version"],
+        "policy_snapshot": row["policy_snapshot"],
+        "metric_deltas": row["metric_deltas"],
+        "decision_state": row["decision_state"],
+        "decision_reason": row["decision_reason"],
+        "candidate_artifact_uri": row["candidate_artifact_uri"],
+        "candidate_artifact_digest": row["candidate_artifact_digest"],
+        "decided_by": row["decided_by"],
+        "decided_at": ts.isoformat() if hasattr(ts, "isoformat") else ts,
+    }
+
+
+async def create_model_promotion_decision(
+    *, tenant_id: str, decided_by: str, payload: Any
+) -> dict[str, Any]:
+    """WX-11.3: deterministic policy evaluation; no active-model mutation."""
+    request_hash = _promotion_decision_hash(payload)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_promotion_decisions WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != request_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return _authoritative_promotion_decision(prior, replay=True)
+            evaluation = await conn.fetchrow(
+                "SELECT * FROM decision_model_evaluation_runs WHERE tenant_id=$1::uuid AND evaluation_run_id=$2 AND evaluation_state='evaluated' FOR SHARE",
+                tenant_id,
+                payload.evaluation_run_id,
+            )
+            if not evaluation:
+                return {"status": "not_found"}
+            baseline = dict(evaluation["baseline_metrics"] or {})
+            candidate = dict(evaluation["candidate_metrics"] or {})
+            primary_base = _metric_number(baseline, payload.primary_metric)
+            primary_candidate = _metric_number(candidate, payload.primary_metric)
+            if primary_base is None or primary_candidate is None:
+                return {"status": "conflict", "reason": "primary_metric_missing_or_non_numeric"}
+            signed_delta = (
+                (primary_base - primary_candidate)
+                if payload.lower_is_better
+                else (primary_candidate - primary_base)
+            )
+            deltas: dict[str, float] = {payload.primary_metric: signed_delta}
+            failed_guardrails: list[str] = []
+            for metric in sorted(set(payload.guardrail_metrics)):
+                base = _metric_number(baseline, metric)
+                cand = _metric_number(candidate, metric)
+                if base is None or cand is None:
+                    failed_guardrails.append(f"{metric}:missing")
+                    continue
+                delta = cand - base
+                deltas[metric] = delta
+                if delta < -payload.max_regression:
+                    failed_guardrails.append(metric)
+            eligible = signed_delta >= payload.min_improvement and not failed_guardrails
+            state = "promotion_eligible" if eligible else "promotion_rejected"
+            reason = (
+                "policy_thresholds_satisfied"
+                if eligible
+                else (
+                    "primary_metric_below_threshold"
+                    if signed_delta < payload.min_improvement
+                    else "guardrail_regression"
+                )
+            )
+            policy_snapshot = {
+                "primary_metric": payload.primary_metric,
+                "min_improvement": payload.min_improvement,
+                "lower_is_better": payload.lower_is_better,
+                "max_regression": payload.max_regression,
+                "guardrail_metrics": sorted(set(payload.guardrail_metrics)),
+                "failed_guardrails": failed_guardrails,
+            }
+            decision_id = (
+                "promo_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{payload.evaluation_run_id}:{payload.idempotency_key}".encode()
+                ).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_promotion_decisions
+                (promotion_decision_id,tenant_id,evaluation_run_id,model_id,feature_set_id,policy_version,
+                 policy_snapshot,metric_deltas,decision_state,decision_reason,candidate_artifact_uri,
+                 candidate_artifact_digest,idempotency_key,request_hash,decided_by,metadata)
+                VALUES($1,$2::uuid,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$10,$11,$12,$13,$14,$15,$16::jsonb)
+                ON CONFLICT DO NOTHING RETURNING *""",
+                decision_id,
+                tenant_id,
+                payload.evaluation_run_id,
+                evaluation["model_id"],
+                evaluation["feature_set_id"],
+                payload.policy_version,
+                _json(policy_snapshot),
+                _json(deltas),
+                state,
+                reason,
+                evaluation["candidate_artifact_uri"],
+                evaluation["candidate_artifact_digest"],
+                payload.idempotency_key,
+                request_hash,
+                decided_by,
+                _json(payload.metadata),
+            )
+            if row is None:
+                return {"status": "conflict", "reason": "promotion_decision_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_PROMOTION_DECISION_CREATED",
+                aggregate_type="decision_model_promotion_decisions",
+                aggregate_id=decision_id,
+                payload={
+                    "evaluation_run_id": payload.evaluation_run_id,
+                    "model_id": evaluation["model_id"],
+                    "decision_state": state,
+                    "policy_version": payload.policy_version,
+                    "candidate_artifact_digest": evaluation["candidate_artifact_digest"],
+                },
+            )
+            return _authoritative_promotion_decision(row, replay=False)
+    finally:
+        await conn.close()
+
+
+def _model_activation_request_hash(payload: Any) -> str:
+    blob = json.dumps(
+        {
+            "promotion_decision_id": payload.promotion_decision_id,
+            "target_environment": payload.target_environment,
+            "metadata": payload.metadata,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def _authoritative_activation_request(row: Any, *, replay: bool) -> dict[str, Any]:
+    ts = row["requested_at"]
+    return {
+        "status": "ok",
+        "replay": replay,
+        "authoritative": True,
+        "persisted": True,
+        "activation_request_id": row["activation_request_id"],
+        "promotion_decision_id": row["promotion_decision_id"],
+        "evaluation_run_id": row["evaluation_run_id"],
+        "model_id": row["model_id"],
+        "feature_set_id": row["feature_set_id"],
+        "candidate_artifact_uri": row["candidate_artifact_uri"],
+        "candidate_artifact_digest": row["candidate_artifact_digest"],
+        "target_environment": row["target_environment"],
+        "requested_state": row["requested_state"],
+        "requested_by": row["requested_by"],
+        "requested_at": ts.isoformat() if hasattr(ts, "isoformat") else ts,
+    }
+
+
+async def create_model_activation_request(
+    *, tenant_id: str, requested_by: str, payload: Any
+) -> dict[str, Any]:
+    """WX-11.4: create a reviewable activation request; never mutate registry state."""
+    request_hash = _model_activation_request_hash(payload)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_activation_requests WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != request_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return _authoritative_activation_request(prior, replay=True)
+            promotion = await conn.fetchrow(
+                """SELECT * FROM decision_model_promotion_decisions
+                   WHERE tenant_id=$1::uuid AND promotion_decision_id=$2 FOR SHARE""",
+                tenant_id,
+                payload.promotion_decision_id,
+            )
+            if not promotion:
+                return {"status": "not_found"}
+            if promotion["decision_state"] != "promotion_eligible":
+                return {"status": "conflict", "reason": "promotion_decision_not_eligible"}
+            activation_request_id = (
+                "activate_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{payload.promotion_decision_id}:{payload.target_environment}:{payload.idempotency_key}".encode()
+                ).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_activation_requests
+                (activation_request_id,tenant_id,promotion_decision_id,evaluation_run_id,model_id,feature_set_id,
+                 candidate_artifact_uri,candidate_artifact_digest,target_environment,requested_state,
+                 requested_by,idempotency_key,request_hash,metadata)
+                VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,'pending_activation_approval',$10,$11,$12,$13::jsonb)
+                ON CONFLICT DO NOTHING RETURNING *""",
+                activation_request_id,
+                tenant_id,
+                payload.promotion_decision_id,
+                promotion["evaluation_run_id"],
+                promotion["model_id"],
+                promotion["feature_set_id"],
+                promotion["candidate_artifact_uri"],
+                promotion["candidate_artifact_digest"],
+                payload.target_environment,
+                requested_by,
+                payload.idempotency_key,
+                request_hash,
+                _json(payload.metadata),
+            )
+            if row is None:
+                return {"status": "conflict", "reason": "activation_request_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_ACTIVATION_REQUEST_CREATED",
+                aggregate_type="decision_model_activation_requests",
+                aggregate_id=activation_request_id,
+                payload={
+                    "promotion_decision_id": payload.promotion_decision_id,
+                    "model_id": promotion["model_id"],
+                    "target_environment": payload.target_environment,
+                    "requested_state": "pending_activation_approval",
+                    "candidate_artifact_digest": promotion["candidate_artifact_digest"],
+                },
+            )
+            return _authoritative_activation_request(row, replay=False)
+    finally:
+        await conn.close()
+
+
+def _model_activation_review_hash(payload: Any) -> str:
+    blob = json.dumps(
+        {
+            "review_decision": payload.review_decision,
+            "review_reason": payload.review_reason,
+            "registry_alias": payload.registry_alias,
+            "previous_artifact_uri": payload.previous_artifact_uri,
+            "previous_artifact_digest": payload.previous_artifact_digest.lower()
+            if payload.previous_artifact_digest
+            else None,
+            "metadata": payload.metadata,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def _authoritative_activation_review(
+    review: Any, command: Any | None, *, replay: bool
+) -> dict[str, Any]:
+    reviewed_at = review["reviewed_at"]
+    result = {
+        "status": "ok",
+        "replay": replay,
+        "authoritative": True,
+        "persisted": True,
+        "activation_review_id": review["activation_review_id"],
+        "activation_request_id": review["activation_request_id"],
+        "review_decision": review["review_decision"],
+        "review_reason": review["review_reason"],
+        "registry_alias": review["registry_alias"],
+        "previous_artifact_uri": review["previous_artifact_uri"],
+        "previous_artifact_digest": review["previous_artifact_digest"],
+        "reviewed_by": review["reviewed_by"],
+        "reviewed_at": reviewed_at.isoformat()
+        if hasattr(reviewed_at, "isoformat")
+        else reviewed_at,
+        "activation_command": None,
+    }
+    if command:
+        created_at = command["created_at"]
+        result["activation_command"] = {
+            "activation_command_id": command["activation_command_id"],
+            "command_state": command["command_state"],
+            "model_id": command["model_id"],
+            "feature_set_id": command["feature_set_id"],
+            "target_environment": command["target_environment"],
+            "registry_alias": command["registry_alias"],
+            "candidate_artifact_uri": command["candidate_artifact_uri"],
+            "candidate_artifact_digest": command["candidate_artifact_digest"],
+            "previous_artifact_uri": command["previous_artifact_uri"],
+            "previous_artifact_digest": command["previous_artifact_digest"],
+            "created_at": created_at.isoformat()
+            if hasattr(created_at, "isoformat")
+            else created_at,
+        }
+    return result
+
+
+async def review_model_activation_request(
+    *, tenant_id: str, activation_request_id: str, reviewed_by: str, payload: Any
+) -> dict[str, Any]:
+    """WX-11.5: immutable review; approval queues one registry command with rollback pointer."""
+    request_hash = _model_activation_review_hash(payload)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_activation_reviews WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if (
+                    prior["request_hash"] != request_hash
+                    or prior["activation_request_id"] != activation_request_id
+                ):
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                command = await conn.fetchrow(
+                    "SELECT * FROM decision_model_registry_activation_commands WHERE tenant_id=$1::uuid AND activation_review_id=$2",
+                    tenant_id,
+                    prior["activation_review_id"],
+                )
+                return _authoritative_activation_review(prior, command, replay=True)
+            request = await conn.fetchrow(
+                "SELECT * FROM decision_model_activation_requests WHERE tenant_id=$1::uuid AND activation_request_id=$2 FOR SHARE",
+                tenant_id,
+                activation_request_id,
+            )
+            if not request:
+                return {"status": "not_found"}
+            existing = await conn.fetchrow(
+                "SELECT * FROM decision_model_activation_reviews WHERE tenant_id=$1::uuid AND activation_request_id=$2",
+                tenant_id,
+                activation_request_id,
+            )
+            if existing:
+                return {"status": "conflict", "reason": "activation_request_already_reviewed"}
+            review_id = (
+                "actreview_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{activation_request_id}:{payload.idempotency_key}".encode()
+                ).hexdigest()[:20]
+            )
+            review = await conn.fetchrow(
+                """INSERT INTO decision_model_activation_reviews
+                (activation_review_id,tenant_id,activation_request_id,review_decision,review_reason,registry_alias,
+                 previous_artifact_uri,previous_artifact_digest,reviewed_by,idempotency_key,request_hash,metadata)
+                VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb) RETURNING *""",
+                review_id,
+                tenant_id,
+                activation_request_id,
+                payload.review_decision,
+                payload.review_reason,
+                payload.registry_alias,
+                payload.previous_artifact_uri,
+                payload.previous_artifact_digest.lower()
+                if payload.previous_artifact_digest
+                else None,
+                reviewed_by,
+                payload.idempotency_key,
+                request_hash,
+                _json(payload.metadata),
+            )
+            command = None
+            if payload.review_decision == "approved":
+                command_id = (
+                    "actcmd_" + hashlib.sha256(f"{tenant_id}:{review_id}".encode()).hexdigest()[:20]
+                )
+                command = await conn.fetchrow(
+                    """INSERT INTO decision_model_registry_activation_commands
+                    (activation_command_id,tenant_id,activation_review_id,activation_request_id,model_id,feature_set_id,
+                     target_environment,registry_alias,candidate_artifact_uri,candidate_artifact_digest,
+                     previous_artifact_uri,previous_artifact_digest,created_by,metadata)
+                    VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb) RETURNING *""",
+                    command_id,
+                    tenant_id,
+                    review_id,
+                    activation_request_id,
+                    request["model_id"],
+                    request["feature_set_id"],
+                    request["target_environment"],
+                    payload.registry_alias,
+                    request["candidate_artifact_uri"],
+                    request["candidate_artifact_digest"],
+                    payload.previous_artifact_uri,
+                    payload.previous_artifact_digest.lower(),
+                    reviewed_by,
+                    _json(payload.metadata),
+                )
+                await emit_outbox_event(
+                    conn,
+                    tenant_id=tenant_id,
+                    event_type="MODEL_REGISTRY_ACTIVATION_COMMAND_CREATED",
+                    aggregate_type="decision_model_registry_activation_commands",
+                    aggregate_id=command_id,
+                    payload={
+                        "activation_request_id": activation_request_id,
+                        "model_id": request["model_id"],
+                        "target_environment": request["target_environment"],
+                        "registry_alias": payload.registry_alias,
+                        "candidate_artifact_digest": request["candidate_artifact_digest"],
+                        "previous_artifact_digest": payload.previous_artifact_digest.lower(),
+                    },
+                )
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_ACTIVATION_REQUEST_REVIEWED",
+                aggregate_type="decision_model_activation_reviews",
+                aggregate_id=review_id,
+                payload={
+                    "activation_request_id": activation_request_id,
+                    "review_decision": payload.review_decision,
+                    "activation_command_id": command["activation_command_id"] if command else None,
+                },
+            )
+            return _authoritative_activation_review(review, command, replay=False)
+    finally:
+        await conn.close()
+
+
+# WX-11.6 registry adapter boundary -------------------------------------------------
+def _wx116_hash(value: Any) -> str:
+    return hashlib.sha256(
+        json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode()
+    ).hexdigest()
+
+
+async def claim_model_registry_activation_command(
+    *, tenant_id: str, command_id: str, adapter_id: str, delivery_token: str
+) -> dict[str, Any]:
+    conn = await _connect()
+    token_hash = hashlib.sha256(delivery_token.encode()).hexdigest()
+    try:
+        async with conn.transaction():
+            command = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_activation_commands WHERE tenant_id=$1::uuid AND activation_command_id=$2 FOR SHARE",
+                tenant_id,
+                command_id,
+            )
+            if not command:
+                return {"status": "not_found"}
+            receipt = await conn.fetchrow(
+                "SELECT activation_receipt_id FROM decision_model_registry_activation_receipts WHERE tenant_id=$1::uuid AND activation_command_id=$2",
+                tenant_id,
+                command_id,
+            )
+            if receipt:
+                return {"status": "conflict", "reason": "activation_command_already_terminal"}
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_activation_claims WHERE tenant_id=$1::uuid AND activation_command_id=$2",
+                tenant_id,
+                command_id,
+            )
+            if prior:
+                if prior["adapter_id"] == adapter_id and prior["delivery_token_hash"] == token_hash:
+                    return {
+                        "status": "ok",
+                        "replay": True,
+                        "authoritative": True,
+                        "persisted": True,
+                        "activation_claim_id": prior["activation_claim_id"],
+                        "activation_command_id": command_id,
+                        "adapter_id": adapter_id,
+                        "claim_state": "claimed",
+                    }
+                return {
+                    "status": "conflict",
+                    "reason": "activation_command_claimed_by_another_adapter",
+                }
+            claim_id = (
+                "regclaim_"
+                + hashlib.sha256(f"{tenant_id}:{command_id}:{adapter_id}".encode()).hexdigest()[:20]
+            )
+            await conn.fetchrow(
+                "INSERT INTO decision_model_registry_activation_claims (activation_claim_id,tenant_id,activation_command_id,adapter_id,delivery_token_hash) VALUES($1,$2::uuid,$3,$4,$5) RETURNING *",
+                claim_id,
+                tenant_id,
+                command_id,
+                adapter_id,
+                token_hash,
+            )
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_REGISTRY_ACTIVATION_COMMAND_CLAIMED",
+                aggregate_type="decision_model_registry_activation_claims",
+                aggregate_id=claim_id,
+                payload={"activation_command_id": command_id, "adapter_id": adapter_id},
+            )
+            return {
+                "status": "ok",
+                "replay": False,
+                "authoritative": True,
+                "persisted": True,
+                "activation_claim_id": claim_id,
+                "activation_command_id": command_id,
+                "adapter_id": adapter_id,
+                "claim_state": "claimed",
+            }
+    finally:
+        await conn.close()
+
+
+async def record_model_registry_activation_receipt(
+    *, tenant_id: str, command_id: str, recorded_by: str, payload: Any
+) -> dict[str, Any]:
+    req_hash = _wx116_hash(payload.model_dump() if hasattr(payload, "model_dump") else payload)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_activation_receipts WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != req_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return {
+                    "status": "ok",
+                    "replay": True,
+                    "authoritative": True,
+                    "persisted": True,
+                    "activation_receipt_id": prior["activation_receipt_id"],
+                    "activation_command_id": command_id,
+                    "receipt_state": prior["receipt_state"],
+                }
+            command = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_activation_commands WHERE tenant_id=$1::uuid AND activation_command_id=$2 FOR SHARE",
+                tenant_id,
+                command_id,
+            )
+            claim = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_activation_claims WHERE tenant_id=$1::uuid AND activation_command_id=$2",
+                tenant_id,
+                command_id,
+            )
+            if not command or not claim:
+                return {"status": "not_found"}
+            if (
+                claim["adapter_id"] != payload.adapter_id
+                or claim["delivery_token_hash"]
+                != hashlib.sha256(payload.delivery_token.encode()).hexdigest()
+            ):
+                return {"status": "conflict", "reason": "claim_proof_mismatch"}
+            existing = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_activation_receipts WHERE tenant_id=$1::uuid AND activation_command_id=$2",
+                tenant_id,
+                command_id,
+            )
+            if existing:
+                return {"status": "conflict", "reason": "activation_receipt_already_recorded"}
+            if (
+                payload.receipt_state == "activated"
+                and payload.active_artifact_digest.lower()
+                != command["candidate_artifact_digest"].lower()
+            ):
+                return {"status": "conflict", "reason": "active_artifact_digest_mismatch"}
+            rid = (
+                "regreceipt_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{command_id}:{payload.idempotency_key}".encode()
+                ).hexdigest()[:20]
+            )
+            await conn.fetchrow(
+                """INSERT INTO decision_model_registry_activation_receipts
+              (activation_receipt_id,tenant_id,activation_command_id,activation_claim_id,receipt_state,active_artifact_uri,active_artifact_digest,registry_version,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash)
+              VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13) RETURNING *""",
+                rid,
+                tenant_id,
+                command_id,
+                claim["activation_claim_id"],
+                payload.receipt_state,
+                payload.active_artifact_uri,
+                payload.active_artifact_digest.lower() if payload.active_artifact_digest else None,
+                payload.registry_version,
+                payload.failure_reason,
+                _json(payload.receipt_payload),
+                recorded_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_REGISTRY_ACTIVATION_RECEIPT_RECORDED",
+                aggregate_type="decision_model_registry_activation_receipts",
+                aggregate_id=rid,
+                payload={
+                    "activation_command_id": command_id,
+                    "receipt_state": payload.receipt_state,
+                    "registry_alias": command["registry_alias"],
+                },
+            )
+            return {
+                "status": "ok",
+                "replay": False,
+                "authoritative": True,
+                "persisted": True,
+                "activation_receipt_id": rid,
+                "activation_command_id": command_id,
+                "receipt_state": payload.receipt_state,
+                "registry_alias": command["registry_alias"],
+                "active_artifact_digest": payload.active_artifact_digest.lower()
+                if payload.active_artifact_digest
+                else None,
+            }
+    finally:
+        await conn.close()
+
+
+async def create_model_registry_rollback_command(
+    *, tenant_id: str, receipt_id: str, requested_by: str, payload: Any
+) -> dict[str, Any]:
+    req_hash = _wx116_hash(payload.model_dump() if hasattr(payload, "model_dump") else payload)
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_model_registry_rollback_commands WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                tenant_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != req_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return {
+                    "status": "ok",
+                    "replay": True,
+                    "authoritative": True,
+                    "persisted": True,
+                    "rollback_command_id": prior["rollback_command_id"],
+                    "command_state": "queued",
+                }
+            receipt = await conn.fetchrow(
+                """SELECT r.*, c.registry_alias,c.target_environment,c.previous_artifact_uri,c.previous_artifact_digest,c.candidate_artifact_uri,c.candidate_artifact_digest
+              FROM decision_model_registry_activation_receipts r JOIN decision_model_registry_activation_commands c USING (activation_command_id)
+              WHERE r.tenant_id=$1::uuid AND r.activation_receipt_id=$2 FOR SHARE""",
+                tenant_id,
+                receipt_id,
+            )
+            if not receipt:
+                return {"status": "not_found"}
+            if receipt["receipt_state"] != "activated":
+                return {"status": "conflict", "reason": "only_activated_receipt_can_rollback"}
+            rid = (
+                "rollback_" + hashlib.sha256(f"{tenant_id}:{receipt_id}".encode()).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_model_registry_rollback_commands
+              (rollback_command_id,tenant_id,activation_receipt_id,activation_command_id,registry_alias,target_environment,restore_artifact_uri,restore_artifact_digest,replace_artifact_uri,replace_artifact_digest,requested_by,reason,idempotency_key,request_hash)
+              VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) ON CONFLICT DO NOTHING RETURNING *""",
+                rid,
+                tenant_id,
+                receipt_id,
+                receipt["activation_command_id"],
+                receipt["registry_alias"],
+                receipt["target_environment"],
+                receipt["previous_artifact_uri"],
+                receipt["previous_artifact_digest"],
+                receipt["candidate_artifact_uri"],
+                receipt["candidate_artifact_digest"],
+                requested_by,
+                payload.reason,
+                payload.idempotency_key,
+                req_hash,
+            )
+            if not row:
+                return {"status": "conflict", "reason": "rollback_command_already_exists"}
+            await emit_outbox_event(
+                conn,
+                tenant_id=tenant_id,
+                event_type="MODEL_REGISTRY_ROLLBACK_COMMAND_CREATED",
+                aggregate_type="decision_model_registry_rollback_commands",
+                aggregate_id=rid,
+                payload={
+                    "activation_receipt_id": receipt_id,
+                    "registry_alias": receipt["registry_alias"],
+                    "restore_artifact_digest": receipt["previous_artifact_digest"],
+                },
+            )
+            return {
+                "status": "ok",
+                "replay": False,
+                "authoritative": True,
+                "persisted": True,
+                "rollback_command_id": rid,
+                "activation_receipt_id": receipt_id,
+                "command_state": "queued",
+                "registry_alias": receipt["registry_alias"],
+                "restore_artifact_digest": receipt["previous_artifact_digest"],
+            }
+    finally:
+        await conn.close()
