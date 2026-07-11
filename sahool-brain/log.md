@@ -2528,3 +2528,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **المشغّلات main-only خضراء على main:** `runtime-real-smoke` (success) · `service-inventory-drift` (success) — الجرد جُدِّد `--check` أخضر قبل الـFF فلا انحدار.
 - **الحالة:** WX-10.4 GDD View التراكميّ **مُغلَق** بمنهجيّة الراتشِت كاملةً (byte-compat + length-mismatch parity + cumulative lineage مستقلّ عن آخر يوم + coverage≠quality + diagnostics).
 - **التالي (خارطة الطريق):** WX-10.5 Crop Intelligence consumer لمنتج GDD القانونيّ (لقطة المستخدم `sahool_wx10_5_...` تحمل تطبيقاً مقترحاً — بانتظار قرار المستخدم على شكل WX-10.4 diagnostics: `diagnostics` block المُثبَّت مقابل `coverage` block في اللقطة).
+
+## WX-10.5 — Crop Intelligence مستهلِك منتج GDD القانونيّ — إغلاق مُتحقَّق (main+develop @ `d2d7dc4`)
+- **الانعكاس (consumer-only):** weather-service canonical GDD product → `crop_twin_state` → `crop_intelligence_state.v2`. لا تغيير خوارزميّة/عتبات/كسور-مرحلة/biomass/yield/سياسة قرار.
+- **البناء على الشكل المُثبَّت (قرار المستخدم):** طُبِّق دلتا المستهلِك فقط فوق `1ff0add` المُغلَق؛ **weather-service لم يُمَسّ**؛ عقد WX-10.4 المنتِج ثابت (immutable). `crop_twin_state` يقرأ فقط الحقول المشتركة (`accumulated_gdd`·`thresholds_used.method`·`calculation_version`·`contributing_state_ids`·`gdd_lineage_id`·`limitations`·`series_quality_status`) — لا اعتماد على شكل diagnostics الداخليّ لـWX-10.4.
+- **الملفّات:** `crop_twin.py` (استهلاك آمر لـaccumulated_gdd؛ حذف markers المُعلَّقة؛ `gdd_daily_override` جسر توافق يحمل `canonical_gdd_product_missing`) · `routers/crop_twin.py` (سطر `gdd_product=gdd_engine`) · اختبار جديد (5) + compose lineage · جرد مُجدَّد (انزياح أسطر/LOC، 887 مسار ثابت) + حزمة إصدار.
+- **التحقّق:** focused 15 · crop-intel/crop-twin regression 44 · boundary guard OK · unit 2866 · ruff clean · bundle 3925. CI الفرع **12/12** أخضر (`29156594841`). FF main+develop `1ff0add→d2d7dc4` (يشمل `9fa520c` تحديث دماغ WX-10.4). main-only أخضر على main: `service-inventory-drift` + `runtime-real-smoke`. **لا drift بعد الـFF.**
+- **التالي:** WX-10.6 Crop Intelligence → Decision Candidate Boundary (increment مستقل فوق `d2d7dc4` المُغلَق).
