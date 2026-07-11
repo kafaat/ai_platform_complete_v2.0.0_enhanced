@@ -198,6 +198,17 @@ tables:
     status: interim-bridge
     readers: [decision-service]
     source: "migrations/v78_decision_record.sql"
+  decision_reviews:
+    # WX-10.7 append-only reviewer/policy audit. Materializes ONLY under a deployed SoR
+    # (services/decision-service/migrations/002_decision_review.sql, applied via migration_runner,
+    # never at startup). decision-service is the sole writer (append-only; DB trigger blocks
+    # UPDATE/DELETE); there is no platform mirror for a state transition. In the current
+    # interim-bridge deployment the review endpoint fails closed (503) so nothing is written yet.
+    owner: decision-service
+    writers: [decision-service]
+    status: interim-bridge
+    readers: [decision-service]
+    source: "services/decision-service/migrations/002_decision_review.sql"
   device_commands_log:
     owner: actuator-service
     writers: [actuator-service]

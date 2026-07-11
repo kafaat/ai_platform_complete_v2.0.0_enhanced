@@ -4,6 +4,13 @@
 Rollback must return Sahool to `sahool-platform` as Source of Record first, then
 verify mirrored decision-service data without destructive deletes. This script prints
 an auditable plan and refuses live mode without explicit approval.
+
+WX-10.7 review layer: rollback freezes NEW review traffic (setting
+`DECISION_SERVICE_SOR_ENABLED=false` makes the review endpoint fail closed with 503 — a
+review state transition is never mirrored), while the append-only `decision_reviews` audit
+table and the `review_state`/`candidate_lineage_id` columns on `decision_record` are RETAINED
+untouched for forensics. Rollback deletes no review rows and reverses no completed transition;
+already-written approvals/rejections remain as durable audit.
 """
 
 from __future__ import annotations
@@ -51,10 +58,17 @@ def _plan() -> list[RollbackStep]:
             "keep decision-service tables for forensic comparison",
         ),
         RollbackStep(
-            6, "compare reads", "python services/decision-service/read_side_compare.py --live"
+            6,
+            "preserve WX-10.7 review audit",
+            "retain the append-only decision_reviews table and decision_record review_state/"
+            "candidate_lineage_id columns untouched (delete no review rows; reverse no completed "
+            "transition); new reviews fail closed 503 in mirror mode",
         ),
         RollbackStep(
-            7,
+            7, "compare reads", "python services/decision-service/read_side_compare.py --live"
+        ),
+        RollbackStep(
+            8,
             "resume mirror mode",
             "set SAHOOL_DECISION_WRITE_MODE=shadow only after platform write smoke passes",
         ),

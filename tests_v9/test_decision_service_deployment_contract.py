@@ -14,9 +14,11 @@ honestly production-shippable:
 - both compose files (v9 + fixed) define sahool-decision-service with build + healthcheck;
 - the platform service wires DECISION_SERVICE_URL to the mirror host in both compose files.
 
-Honesty note asserted here too: the service is still an interim stub with NO database, so NO
-DATABASE_URL/JOBS_DATABASE_URL is wired into it (unused DB env would falsely imply
-persistence). That wiring lands with the real-SoR upgrade.
+Honesty note asserted here too: the service is an interim mirror by default. SoR-promotion
+code-prep (DEPLOYED-DECISION-SOR-PROMOTION) makes DATABASE_URL an OPT-IN passthrough that
+DEFAULTS EMPTY (``${DECISION_SERVICE_DATABASE_URL:-}``) — with the operator var unset it is ""
+so sor_enabled() stays false and the service stays an honest mirror. A hardcoded/real DB URL, or
+JOBS_DATABASE_URL, would falsely imply persistence and is still forbidden until the SoR flip.
 """
 
 from __future__ import annotations
@@ -76,15 +78,34 @@ def test_platform_wires_decision_service_url(compose):
 
 @pytest.mark.parametrize("compose", COMPOSE_FILES)
 def test_decision_service_has_no_misleading_db_env(compose):
-    """Honesty: the interim stub has no database — it must NOT carry DATABASE_URL/JOBS_DATABASE_URL,
-    which would falsely imply persistence. DB env lands with the real-SoR upgrade."""
+    """Honesty: the interim mirror must not carry a DB env that IMPLIES persistence.
+
+    SoR-promotion code-prep permits DATABASE_URL ONLY as the opt-in passthrough that DEFAULTS
+    EMPTY (``${DECISION_SERVICE_DATABASE_URL:-}``): with the operator var unset it is "" so
+    sor_enabled() stays false and the service remains an honest mirror. A hardcoded/real DB URL,
+    or any JOBS_DATABASE_URL, would falsely imply persistence and is forbidden until the SoR flip.
+    DECISION_SERVICE_SOR_ENABLED must default false so an unset env keeps the mirror safe."""
     svc = _load(compose)["services"]["sahool-decision-service"]
     env = svc.get("environment") or {}
-    keys = set(env.keys()) if isinstance(env, dict) else {e.split("=", 1)[0] for e in env}
-    leaked = {"DATABASE_URL", "JOBS_DATABASE_URL"} & keys
-    assert not leaked, (
-        f"{compose}: interim mirror must not carry DB env {leaked} (implies persistence it does not have)"
+    if not isinstance(env, dict):
+        env = {e.split("=", 1)[0]: (e.split("=", 1)[1] if "=" in e else "") for e in env}
+
+    assert "JOBS_DATABASE_URL" not in env, (
+        f"{compose}: mirror must not carry JOBS_DATABASE_URL (no jobs/BYPASSRLS role for a mirror)"
     )
+    if "DATABASE_URL" in env:
+        val = str(env["DATABASE_URL"])
+        assert val == "${DECISION_SERVICE_DATABASE_URL:-}", (
+            f"{compose}: DATABASE_URL must be the opt-in default-empty passthrough "
+            f"'${{DECISION_SERVICE_DATABASE_URL:-}}' (never a hardcoded URL that implies "
+            f"persistence), got {val!r}"
+        )
+    if "DECISION_SERVICE_SOR_ENABLED" in env:
+        val = str(env["DECISION_SERVICE_SOR_ENABLED"])
+        assert ":-false}" in val or val.strip().lower() in {"false", "0", "no", "off", ""}, (
+            f"{compose}: DECISION_SERVICE_SOR_ENABLED must default false so an unset env keeps the "
+            f"mirror safe, got {val!r}"
+        )
 
 
 # Internal service-URL vars whose .env.example value must match the docker-compose default —

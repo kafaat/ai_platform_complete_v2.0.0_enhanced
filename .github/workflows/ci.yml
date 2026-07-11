@@ -44,6 +44,10 @@ jobs:
       - name: decision-review-ownership-consistency-gate
         run: python scripts/ci/decision_review_ownership_consistency_gate.py
 
+      # WX-10.7 SoR-promotion cutover-prep: the cutover toolkit/docs must stay review-aware
+      - name: decision-sor-review-cutover-gate
+        run: python scripts/ci/decision_sor_review_cutover_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 

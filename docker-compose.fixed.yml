@@ -669,14 +669,20 @@ services:
   # 14b. Decision Service (INTERIM non-authoritative mirror, dual-path d201527)
   # ═══════════════════════════════════════════════════════════════
   # sahool-platform is the authoritative Source-of-Record and performs the real DB write,
-  # then best-effort mirrors here. NO database yet (honest stub → persisted:false); no
-  # DATABASE_URL/JOBS_DATABASE_URL is wired (unused DB env would falsely imply persistence).
+  # then best-effort mirrors here. SoR-promotion code-prep: DB env is an OPT-IN passthrough that
+  # DEFAULTS EMPTY — unset DECISION_SERVICE_DATABASE_URL ⇒ DATABASE_URL="" ⇒ sor_enabled() false ⇒
+  # honest mirror (persisted:false). Cutover is env-only (supply a restricted DB role + set
+  # DECISION_SERVICE_SOR_ENABLED=true) after the explicit scripts/deploy/decision_service_migrate.sh
+  # step; schema is never auto-applied at startup.
   # Platform does NOT depend on this service's health — a dead mirror never blocks the write.
   sahool-decision-service:
     build:
       context: .
       dockerfile: services/decision-service/Dockerfile
     restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DECISION_SERVICE_DATABASE_URL:-}
+      DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
     networks:
       - sahool-internal
     healthcheck:

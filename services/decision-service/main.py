@@ -22,6 +22,8 @@ Migration path to a real decision-service SoR is documented in
 
 from __future__ import annotations
 
+import logging
+import os
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
@@ -147,22 +149,93 @@ def _traceability(payload: LearningUpdateIn) -> str:
     return "rejected_untraceable"
 
 
+logger = logging.getLogger("decision-service")
+
+
+def _database_configured() -> bool:
+    return bool(os.getenv("DATABASE_URL", "").strip())
+
+
+async def _db_readiness() -> dict[str, Any]:
+    """Read-only DB readiness probe for the SoR-promotion cutover.
+
+    When a DATABASE_URL is configured this proves the DB is reachable and every migration
+    (001 + 002, including the WX-10.7 review layer) is applied and checksum-current. It is
+    defensive by construction: any failure yields a not-ready signal, never a raised exception
+    — a readiness endpoint must not 500. In mirror mode (no DATABASE_URL) DB fields are null.
+    """
+    if not _database_configured():
+        return {
+            "database_configured": False,
+            "db_reachable": None,
+            "migrations_current": None,
+            "pending_migrations": [],
+        }
+    try:
+        from migration_runner import check_migrations
+
+        status = await check_migrations()
+        pending = list(status.get("pending", [])) + list(status.get("checksum_mismatches", []))
+        return {
+            "database_configured": True,
+            "db_reachable": True,
+            "migrations_current": bool(status.get("ok")),
+            "pending_migrations": pending,
+            "known_migrations": list(status.get("known_migrations", [])),
+        }
+    except (Exception, SystemExit) as exc:  # noqa: BLE001 - readiness must never raise
+        return {
+            "database_configured": True,
+            "db_reachable": False,
+            "migrations_current": False,
+            "pending_migrations": [],
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+
+
+def sor_misconfig_message() -> str | None:
+    """Pure helper: the fail-closed warning when SoR is requested without a database, else None."""
+    if sor_requested_without_db():
+        return (
+            "DECISION_SERVICE_SOR_ENABLED=true but DATABASE_URL is missing — refusing to claim "
+            "authoritative persistence. Writes stay in fail-closed mirror mode and /readyz reports "
+            "degraded until DATABASE_URL is supplied and migrations are verified."
+        )
+    return None
+
+
+@app.on_event("startup")
+async def _startup_sor_guard() -> None:
+    message = sor_misconfig_message()
+    if message:
+        logger.error(message)
+
+
 @app.get("/healthz")
 def healthz() -> dict[str, Any]:
     return {"status": "alive", "ok": True, "service": "decision-service"}
 
 
 @app.get("/readyz")
-def readyz() -> dict[str, Any]:
-    ready = not sor_requested_without_db()
+async def readyz() -> dict[str, Any]:
+    db = await _db_readiness()
+    sor_on = sor_enabled()
+    misconfigured = sor_requested_without_db()
+    # Fail-closed readiness: SoR requested without a DB is a misconfiguration; and once SoR is on
+    # the DB must be reachable with migrations current before the service is "ready".
+    ready = (not misconfigured) and (
+        not sor_on or bool(db["db_reachable"] and db["migrations_current"])
+    )
     return {
         "status": "ready" if ready else "degraded",
         "ready": ready,
         "service": "decision-service",
         "implemented_runtime": True,
         "owned_tables": LOOP_TABLES,
-        "sor_enabled": sor_enabled(),
-        "mode": "system-of-record" if sor_enabled() else "interim-mirror",
+        "sor_enabled": sor_on,
+        "sor_requested_without_db": misconfigured,
+        "mode": "system-of-record" if sor_on else "interim-mirror",
+        "db_readiness": db,
     }
 
 

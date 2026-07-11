@@ -13,6 +13,25 @@ Before promotion, collect evidence for:
 5. staging probe success;
 6. read-side comparison success.
 
+## 0.5 WX-10.7 review parity / quarantine
+
+Apply migrations through the explicit, observable pre-deploy step (never at startup):
+
+```bash
+DATABASE_URL=postgres://... \
+DECISION_SERVICE_ALLOW_SCHEMA_CHANGE=true \
+scripts/deploy/decision_service_migrate.sh
+```
+
+This applies `001 + 002`, re-runs `--check` clean, and runs the read-only review parity/quarantine
+verifier. Do not proceed while the quarantine is non-empty — an operator must resolve each ambiguous
+candidate (a NULL `candidate_lineage_id` is fail-closed un-reviewable, never mis-approved), rather
+than the migration guessing:
+
+```bash
+DATABASE_URL=postgres://... python services/decision-service/backfill.py --verify-review
+```
+
 ## 1. read-side comparison
 
 Run dry-run first:
@@ -70,6 +89,18 @@ SAHOOL_DECISION_WRITE_MODE=decision_service_sor
 
 Keep monitoring outbox, decision writes, outcome writes, and learning update lineage.
 
+### 3.1 post-cutover review proof
+
+Immediately after the switch, prove the WX-10.7 review transition against the live SoR:
+
+1. create a candidate → `authoritative=true`, `persisted=true`, `review_state=pending_approval`;
+2. approve it → `approved`, exactly one `decision_reviews` row, one outbox row;
+3. reject a separate candidate → `rejected`;
+4. cross-tenant lookup/review → denied or `not_found` without an oracle;
+5. confirm no dual authoritative write (platform mirror stays best-effort, never authoritative).
+
+Also confirm `/readyz` reports `db_reachable=true` and `migrations_current=true`.
+
 ## 4. rollback plan
 
 Rollback is non-destructive:
@@ -94,6 +125,9 @@ Rollback order:
 3. unset `DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED`;
 4. verify platform decision writes;
 5. do not delete decision-service tables during rollback;
-6. run read-side comparison again;
-7. return to shadow mode only after platform write smoke passes.
+6. retain the append-only `decision_reviews` audit and the `review_state`/`candidate_lineage_id`
+   columns untouched (delete no review rows, reverse no completed transition); new reviews fail
+   closed 503 in mirror mode;
+7. run read-side comparison again;
+8. return to shadow mode only after platform write smoke passes.
 

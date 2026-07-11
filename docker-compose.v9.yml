@@ -1022,14 +1022,18 @@ services:
       retries: 6
       start_period: 30s
   sahool-decision-service:
-    # INTERIM non-authoritative MIRROR (dual-path d201527): sahool-platform is the
-    # authoritative Source-of-Record and performs the real DB write, then best-effort
-    # mirrors here. This service has NO database yet (honest stub → persisted:false), so
-    # NO DATABASE_URL/JOBS_DATABASE_URL is wired — adding unused DB env would falsely imply
-    # persistence. DB env + a postgres dependency land with the real-SoR upgrade
-    # (docs/architecture/DECISION_SERVICE_BOUNDARY_CONTRACT.md). The platform deliberately
-    # does NOT depend on this service's health: a dead/unhealthy mirror never blocks or
-    # fails the authoritative platform write (the facade wraps mirror calls in try/except).
+    # INTERIM non-authoritative MIRROR by default (dual-path d201527): sahool-platform is the
+    # authoritative Source-of-Record and performs the real DB write, then best-effort mirrors
+    # here. SoR-promotion code-prep (DEPLOYED-DECISION-SOR-PROMOTION): DB env is now an OPT-IN
+    # passthrough that DEFAULTS EMPTY — with DECISION_SERVICE_DATABASE_URL unset, DATABASE_URL is
+    # "" so sor_enabled() stays false and the service remains an honest mirror (persisted:false).
+    # The operator cutover is therefore env-only (supply DECISION_SERVICE_DATABASE_URL — a
+    # restricted, non-superuser, non-BYPASSRLS role — AND DECISION_SERVICE_SOR_ENABLED=true) with
+    # NO code change. Schema is NEVER auto-applied at startup: run the explicit, observable
+    # pre-deploy step scripts/deploy/decision_service_migrate.sh (migration_runner.py --apply,
+    # gated by DECISION_SERVICE_ALLOW_SCHEMA_CHANGE) first. The platform deliberately does NOT
+    # depend on this service's health: a dead/unhealthy mirror never blocks or fails the
+    # authoritative platform write (the facade wraps mirror calls in try/except).
     build:
       context: .
       dockerfile: services/decision-service/Dockerfile
@@ -1038,6 +1042,10 @@ services:
     - no-new-privileges:true
     restart: unless-stopped
     logging: *id001
+    environment:
+      # Default empty ⇒ mirror mode (no accidental authoritative write). Set both at cutover.
+      DATABASE_URL: ${DECISION_SERVICE_DATABASE_URL:-}
+      DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
     networks:
     - sahool-internal
     healthcheck:
