@@ -2513,3 +2513,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **بوّابات (قبل الدفع):** ruff · guard LOCKED · bandit High 0 · unit 2866 · weather **152** (+19) · route_mount/service_inventory/route_residual `--check` أخضر (887 مساراً — بلا مسار جديد، agro_gdd مُرحَّل داخليّاً) · bundle. CI معلَّق قبل التقديم السريع.
 - **خارج النطاق (محترَم):** لا تصحيح معادلة/عتبات/يوم-زراعيّ، لا interpolation/gap-fill، لا إعادة تشكيل عقد GDD القديم.
 - **التالي:** WX-10.5 Crop Intelligence consumer → Decision consumer → WX-11.
+
+## WX-10.4-fix — حفظ byte-compat لعدم تطابق الطول + تشخيصات (مراجعة المستخدم)
+
+- **فجوة مانعة وجدها المستخدم:** `_gdd_daily_records` كان يقصّ لـ`min(len)` قبل النواة ⇒ قيد `t_min/t_max length mismatch (N/M)` القديم يختفي لمدخلات غير متساوية الطول ⇒ ادّعاء byte-compatible خاطئ لبعض المدخلات.
+- **الإصلاح المعماريّ (خيار المستخدم الأفضل):** المسار القديم (بلا daily_dates) يُمرّر **المصفوفتين الأصليّتين** للنواة عبر `kernel_daily_t_min`/`kernel_daily_t_max` في `gdd_view` ⇒ النواة ترى الأطوال الأصليّة والقيد محفوظ حرفيّاً؛ المسار المؤرَّخ (canonical) تراها النواة من السلسلة بعد التطبيع/إزالة التكرار. `valid_period`/`limitations` byte-compatible.
+- **تشخيصات صريحة (فجوة أصغر):** أُضيف `diagnostics` للمخرَج (لا يمسّ عقد GDD القديم): `invalid_records` (تاريخ فاسد) · `unmapped_temperature_pairs` (أزواج حرارة لم تُربَط بتاريخ) · `input_t_min_count`/`input_t_max_count`/`input_date_count` — كي لا يُسقَط أيّ سجلّ بصمت.
+- **اختبارات (4 جديدة، مجموع 23):** unit: mismatch parity عبر kernel arrays (limitations + valid_period.days == النواة) · diagnostics تُفصح الأعداد. HTTP: `POST /agro/gdd` بطولين مختلفين == النواة القديمة (limitations + valid_period.days) · تواريخ فاسدة تظهر في invalid_records.
+- **تحقّق:** weather **156** (+4) · guard LOCKED · bandit High 0 · unit 2866 · ruff · inventory 887 `--check` أخضر · bundle. CI معلَّق قبل التقديم السريع.

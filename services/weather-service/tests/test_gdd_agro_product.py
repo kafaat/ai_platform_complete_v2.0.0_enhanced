@@ -106,3 +106,50 @@ def test_route_agro_gdd_missing_base_c_insufficient_no_5xx():
     )
     assert resp.status_code == 200
     assert resp.json()["quality_status"] == "insufficient"
+
+
+def test_route_agro_gdd_length_mismatch_is_byte_compatible():
+    # فجوة مراجعة المستخدم: طلب قديم بطولين مختلفين ⇒ العقد == النواة القديمة تماماً،
+    # incl. limitations + valid_period.days.
+    client = TestClient(main.app)
+    payload = {
+        "daily_t_min": [10.0, 11.0, 12.0],
+        "daily_t_max": [20.0, 21.0],
+        "base_c": 5.0,
+        "start_date": "2026-04-01",
+        "end_date": "2026-04-03",
+    }
+    resp = client.post("/v1/weather/agro/gdd", json=payload)
+    assert resp.status_code == 200
+    body = resp.json()
+    direct = gdd_agro_product(
+        daily_t_min=payload["daily_t_min"],
+        daily_t_max=payload["daily_t_max"],
+        base_c=5.0,
+        start_date="2026-04-01",
+        end_date="2026-04-03",
+    )
+    for k in ("daily_gdd", "accumulated_gdd", "limitations", "valid_period", "quality_status"):
+        assert body[k] == direct[k], k
+    assert any("length mismatch" in lim for lim in body["limitations"])
+    # التشخيصات تُفصح عن الأطوال الأصليّة (3 مقابل 2).
+    assert body["diagnostics"]["input_t_min_count"] == 3
+    assert body["diagnostics"]["input_t_max_count"] == 2
+
+
+def test_route_agro_gdd_invalid_dates_surface_in_diagnostics():
+    client = TestClient(main.app)
+    resp = client.post(
+        "/v1/weather/agro/gdd",
+        json={
+            "daily_t_min": [10.0, 11.0],
+            "daily_t_max": [20.0, 21.0],
+            "daily_dates": ["2026-04-01", "not-a-date"],
+            "base_c": 5.0,
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    # يوم بتاريخ فاسد أُسقِط ⇒ يظهر في invalid_records (لا إخفاء صامت).
+    assert body["diagnostics"]["invalid_records"] == 1
+    assert body["coverage"]["observed_days"] == 1

@@ -23695,6 +23695,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "88f8f413c8170ec3e0e0692a133a6db8cc6aff27a51623f7ada83da4b600d60c"
+        }
+      ],
+      "name": "services/weather-service/canonical_daily_weather_series.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1d335ab9e304a042bb2102762bf2a3ed031bbeb2f8e2fc5f747fcf63e7756bf6"
         }
       ],
@@ -23875,6 +23885,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4c98f052f7df1f8756df35919c20a18d1a00febd5f0480901f187fdfcdbc71ce"
+        }
+      ],
+      "name": "services/weather-service/tests/test_gdd_agro_product.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dc08d7d2a3e40b9ee830150a3c46b53ad06cf79eb51e4aa739fb1103e2e2a0e8"
+        }
+      ],
+      "name": "services/weather-service/tests/test_gdd_view.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fc6bde68b1930a4faca7bf46c3c0a87aa0d9cd23cd927f17108666e57229b60a"
         }
       ],
@@ -24015,7 +24045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "64e0d5bf55b8f1ea0a48dedc8e758589cc81966c427afedf04f26badc7db65d6"
+          "content": "e623f67365459671ff6c6667d36054aa2dcab00368f0a73cbcf4546c55febd06"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

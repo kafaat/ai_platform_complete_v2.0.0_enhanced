@@ -281,3 +281,48 @@ def test_gdd_view_does_not_recompute_reads_kernel_only():
     src = inspect.getsource(gdd_view)
     # gdd_view يفوّض للنواة (gdd_agro_product) ولا يُعيد تنفيذ صيغة GDD (لا gdd_daily).
     assert "gdd_daily(" not in src
+
+
+# ── (ي) حفظ byte-compat لعدم تطابق الطول + تشخيصات (فجوة مراجعة المستخدم) ─────
+def test_legacy_length_mismatch_limitation_preserved_via_kernel_arrays():
+    # المسار القديم: النواة ترى المصفوفتين الأصليّتين (3/2) ⇒ قيد mismatch محفوظ حرفيّاً.
+    tmin = [10.0, 11.0, 12.0]
+    tmax = [20.0, 21.0]  # أقصر
+    # السلسلة تُبنى بالطول المُزدوَج الأدنى (للنَّسَب)، لكنّ النواة تُمرَّر لها الأصليّتان.
+    recs = _records(["2026-04-01", "2026-04-02"], tmin[:2], tmax)
+    view = gdd_view(
+        build_canonical_daily_series(recs),
+        base_c=5.0,
+        period_start="2026-04-01",
+        period_end="2026-04-02",
+        kernel_daily_t_min=tmin,
+        kernel_daily_t_max=tmax,
+    )
+    direct = gdd_agro_product(
+        daily_t_min=tmin,
+        daily_t_max=tmax,
+        base_c=5.0,
+        start_date="2026-04-01",
+        end_date="2026-04-02",
+    )
+    assert view["limitations"] == direct["limitations"]  # قيد mismatch محفوظ
+    assert any("length mismatch" in lim for lim in view["limitations"])
+    assert view["valid_period"]["days"] == direct["valid_period"]["days"]
+    assert view["daily_gdd"] == direct["daily_gdd"]
+
+
+def test_diagnostics_surface_input_counts_and_drops():
+    view = gdd_view(
+        build_canonical_daily_series(_records(_DATES, _TMIN, _TMAX)),
+        diagnostics={
+            "input_t_min_count": 3,
+            "input_t_max_count": 3,
+            "input_date_count": None,
+            "unmapped_temperature_pairs": 0,
+        },
+        **_CFG,
+    )
+    d = view["diagnostics"]
+    assert d["invalid_records"] == 0
+    assert d["input_t_min_count"] == 3 and d["input_t_max_count"] == 3
+    assert d["unmapped_temperature_pairs"] == 0

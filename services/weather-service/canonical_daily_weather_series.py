@@ -128,6 +128,9 @@ def gdd_view(
     period_start: str | None = None,
     period_end: str | None = None,
     reset_policy: str | None = None,
+    kernel_daily_t_min: list | None = None,
+    kernel_daily_t_max: list | None = None,
+    diagnostics: dict | None = None,
 ) -> dict:
     """WX-10.4 — منتَج GDD كـ**View تراكميّ مُشتقّ من سلسلة canonical يوميّة**.
 
@@ -136,18 +139,29 @@ def gdd_view(
     السياسة + الطريقة + نافذة التراكم + المنطقة الزمنيّة + reset_policy — مستقلّ عن آخر يوم)
     + `contributing_state_ids` + **تغطية مفصولة عن جودة البيانات** (period/expected/observed/
     missing/coverage_ratio). لا يُحتسَب يوم مفقود صفراً؛ لا سلسلة ناقصة تُعطى validated.
+
+    **حفظ byte-compat للطول غير المتطابق:** المسار القديم (بلا daily_dates) يمرّر المصفوفتين
+    **الأصليّتين** عبر ``kernel_daily_t_min``/``kernel_daily_t_max`` فترى النواة الأطوال
+    الأصليّة ويظهر قيد ``t_min/t_max length mismatch`` كما في العقد القديم. المسار المؤرَّخ
+    (canonical) تراها النواة من السلسلة بعد التطبيع/إزالة التكرار.
     """
     ordered = series.get("ordered_days", [])
-    daily_t_min = [d.get("t_min_c") for d in ordered]
-    daily_t_max = [d.get("t_max_c") for d in ordered]
     dates = [d.get("date") for d in ordered]
     contributing_state_ids = [d.get("source_snapshot_id") for d in ordered]
 
-    # النواة — سلطة التراكم حرفيّاً (السياسة/العتبات/يوم-مفقود-غير-محدود كما هي). تُمرَّر
+    # مصفوفتا النواة: الأصليّتان إن مُرِّرتا (المسار القديم — حفظ الطول/القيد)، وإلّا من
+    # السلسلة المُطبَّعة (المسار المؤرَّخ).
+    if kernel_daily_t_min is not None and kernel_daily_t_max is not None:
+        k_tmin, k_tmax = kernel_daily_t_min, kernel_daily_t_max
+    else:
+        k_tmin = [d.get("t_min_c") for d in ordered]
+        k_tmax = [d.get("t_max_c") for d in ordered]
+
+    # النواة — سلطة التراكم حرفيّاً (السياسة/العتبات/يوم-مفقود-غير-محدود/عدم-تطابق-الطول كما هي).
     # period_start/period_end **كما هي** (حتّى None) لحفظ ``valid_period`` القديم byte-compatible.
     legacy = gdd_agro_product(
-        daily_t_min=daily_t_min,
-        daily_t_max=daily_t_max,
+        daily_t_min=k_tmin,
+        daily_t_max=k_tmax,
         base_c=base_c,
         upper_cutoff_c=upper_cutoff_c,
         method=method,
@@ -176,6 +190,14 @@ def gdd_view(
         "coverage_ratio": coverage_ratio,
         "duplicates_resolved": series.get("duplicates_resolved", 0),
         "inclusive_dates": True,
+    }
+
+    # تشخيصات صريحة (لا تمسّ عقد GDD القديم): تُفصح عن أعداد المدخل والإسقاطات كي لا يختفي
+    # أيّ سجلّ بصمت — invalid_records (تاريخ فاسد) · unmapped_temperature_pairs (أزواج حرارة
+    # لم تُربَط بتاريخ) · أطوال مصفوفات المدخل الأصليّة · عدد التواريخ المُمرَّرة.
+    diag = {
+        "invalid_records": series.get("invalid_records", 0),
+        **(diagnostics or {}),
     }
 
     # جودة السلسلة = جودة البيانات (النواة) **مُخفَّضة** حين التغطية ناقصة — سلسلة ذات فجوات
@@ -214,6 +236,7 @@ def gdd_view(
         "gdd_lineage_id": gdd_lineage_id,
         "contributing_state_ids": contributing_state_ids,
         "coverage": coverage,
+        "diagnostics": diag,
         "series_quality_status": series_quality,
         "timezone": series.get("timezone"),
         "reset_policy": reset_policy,

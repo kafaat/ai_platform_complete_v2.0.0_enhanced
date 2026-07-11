@@ -592,10 +592,13 @@ class GddProductRequest(BaseModel):
     reset_policy: str | None = None
 
 
-def _gdd_daily_records(req: GddProductRequest) -> list[dict]:
-    """يبني سجلّات يوميّة مؤرَّخة من الطلب (توافقيّة للخلف): daily_dates إن وُجدت، وإلّا
-    تواريخ تسلسليّة من start_date (سلوك قديم)، وإلّا تواريخ ترتيبيّة من حقبة ثابتة للترتيب
-    فقط (لا تلمس valid_period — يُمرَّر start/end الأصليّان للنواة كما هما).
+def _gdd_daily_records(req: GddProductRequest) -> tuple[list[dict], dict]:
+    """يبني سجلّات يوميّة مؤرَّخة من الطلب + تشخيصات صريحة.
+
+    توافقيّة للخلف: daily_dates إن وُجدت، وإلّا تواريخ تسلسليّة من start_date (سلوك قديم)،
+    وإلّا تواريخ ترتيبيّة من حقبة ثابتة للترتيب فقط (لا تلمس valid_period — يُمرَّر start/end
+    الأصليّان للنواة كما هما). التشخيصات تُفصح عن أطوال المدخل والأزواج غير المربوطة كي لا
+    يختفي أيّ سجلّ بصمت.
     """
     from datetime import date as _d
     from datetime import timedelta as _td
@@ -629,20 +632,38 @@ def _gdd_daily_records(req: GddProductRequest) -> list[dict]:
                 "weather_snapshot_id": snap,
             }
         )
-    return records
+    diagnostics = {
+        "input_t_min_count": len(req.daily_t_min),
+        "input_t_max_count": len(req.daily_t_max),
+        "input_date_count": len(req.daily_dates) if req.daily_dates is not None else None,
+        # أزواج حرارة (ضمن n) لم تُربَط بتاريخ صالح ⇒ أُسقِطت من السلسلة (لا إخفاء صامت).
+        "unmapped_temperature_pairs": n - len(records),
+    }
+    return records, diagnostics
 
 
 async def agro_gdd(req: GddProductRequest = Body(...)):
     """منتج GDD — **View تراكميّ مُشتقّ من سلسلة طقس يوميّة canonical** (WX-10.4).
 
     الانعكاس المعماريّ: GDD تراكم فوق سلسلة أيّام canonical (لا لقطة واحدة). النواة
-    (`gdd_agro_product`) تبقى سلطة التراكم حرفيّاً ⇒ عقد GDD القديم byte-compatible
-    (``daily_gdd``/``accumulated_gdd``/``thresholds_used``/``valid_period``/``quality_status``).
-    يُضاف نَسَب تراكميّ (``gdd_lineage_id`` مستقلّ عن آخر يوم · ``contributing_state_ids``) +
-    **تغطية مفصولة عن جودة البيانات** (``coverage``: expected/observed/missing/ratio) +
-    ``series_quality_status`` (سلسلة ناقصة لا تُعطى validated). نقيّ حتميّ ⇒ لا 5xx.
+    (``gdd_agro_product``) تبقى سلطة التراكم حرفيّاً ⇒ عقد GDD القديم byte-compatible
+    (``daily_gdd``/``accumulated_gdd``/``thresholds_used``/``valid_period``/``quality_status``/
+    قيد عدم تطابق الطول). يُضاف نَسَب تراكميّ (``gdd_lineage_id`` مستقلّ عن آخر يوم ·
+    ``contributing_state_ids``) + **تغطية مفصولة عن جودة البيانات** (``coverage``) +
+    ``diagnostics`` + ``series_quality_status``. نقيّ حتميّ ⇒ لا 5xx.
+
+    **حفظ byte-compat:** المسار القديم (بلا daily_dates) يُمرّر المصفوفتين **الأصليّتين**
+    للنواة (تراها بأطوالها الأصليّة ⇒ قيد mismatch محفوظ)؛ المسار المؤرَّخ تراها من السلسلة
+    بعد التطبيع/إزالة التكرار.
     """
-    series = build_canonical_daily_series(_gdd_daily_records(req), timezone=req.timezone)
+    records, diagnostics = _gdd_daily_records(req)
+    series = build_canonical_daily_series(records, timezone=req.timezone)
+    kernel_kwargs: dict = {}
+    if not req.daily_dates:  # المسار القديم: النواة ترى المصفوفتين الأصليّتين (حفظ الطول)
+        kernel_kwargs = {
+            "kernel_daily_t_min": req.daily_t_min,
+            "kernel_daily_t_max": req.daily_t_max,
+        }
     return gdd_view(
         series,
         base_c=req.base_c,
@@ -651,6 +672,8 @@ async def agro_gdd(req: GddProductRequest = Body(...)):
         period_start=req.start_date,
         period_end=req.end_date,
         reset_policy=req.reset_policy,
+        diagnostics=diagnostics,
+        **kernel_kwargs,
     )
 
 
