@@ -956,12 +956,20 @@ def test_climate_analogs():
     return r
 
 
-def test_weather_analytics():
+async def test_weather_analytics(monkeypatch):
+    from api import weather_analytics as _wa
     from api.weather_analytics import (
         analyze_weather_log,
         heat_stress_index,
         seasonal_planting_guide,
     )
+
+    # WS-C.1b Zero-Legacy: ET0 من منتج سلسلة محرّك الطقس (لا نواة محلّيّة) — نُثبّت المحرّك.
+    async def _fake_series(**kwargs):
+        n = len(kwargs.get("daily_t_max") or [])
+        return {"daily_et0_mm": [6.0] * n}  # ~6 مم/يوم ⇒ ET0 سنويّ + عجز مائي ضخم
+
+    monkeypatch.setattr(_wa, "get_et0_series", _fake_series)
 
     r = []
     # سجلّ اصطناعي صحراوي: 365 يوم، صيف حارّ
@@ -978,7 +986,7 @@ def test_weather_analytics():
                     "wind_speed_kmh": 10,
                 }
             )
-    a = analyze_weather_log(recs)
+    a = await analyze_weather_log(recs)
     if a["supported"] and a["heat_stress_days"] >= 80 and "ضروري" in a["irrigation_dependency_ar"]:
         r.append(("✓", "تحليل سجلّ صحراوي: ~90 يوم إجهاد حراري + ريّ ضروري (ET0 محسوب)"))
     if a["annual_et0_mm"] > 1000 and a["annual_water_deficit_mm"] > 500:

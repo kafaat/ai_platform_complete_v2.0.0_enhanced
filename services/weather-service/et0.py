@@ -19,6 +19,7 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+from datetime import datetime
 
 from vapor_pressure import (
     actual_vapor_pressure_from_rh_kpa,
@@ -206,6 +207,20 @@ def compute_et0(
     }
 
 
+def _doy_from_iso_date(value) -> int | None:
+    """day-of-year من تاريخ ISO (YYYY-MM-DD) — المحرّك يملك التقويم/الفلك.
+
+    التاريخ هو الحقيقة وDOY مشتقّ؛ فحين يمرّر المُستهلِك تواريخ فعليّة (سجلّ متفرّق/
+    متعدّد السنوات) يحسب المحرّك DOY لكلّ يوم بلا انجراف. تاريخ تالف ⇒ ``None``.
+    """
+    if not value:
+        return None
+    try:
+        return datetime.strptime(str(value)[:10], "%Y-%m-%d").timetuple().tm_yday
+    except (ValueError, TypeError):
+        return None
+
+
 def et0_series_product(
     *,
     daily_t_min: list,
@@ -216,25 +231,32 @@ def et0_series_product(
     daily_rh_mean_pct: list | None = None,
     daily_wind_2m_ms: list | None = None,
     day_of_year_start: int | None = None,
+    daily_dates: list | None = None,
     valid_period: dict | None = None,
 ) -> dict:
     """سلسلة ET0 يوميّة مرجعيّة (FAO-56) — نواة المحرّك لسلاسل الموسم/المحاكاة.
 
     يجنّب N نداءات مفردة: يحسب ET0 لكلّ يوم بنفس ``compute_et0`` (fao56-pm عند اكتمال
-    المدخلات وإلّا Hargreaves degraded). day-of-year يتزايد من ``day_of_year_start``.
-    نقيّ حتميّ. يعيد ``daily_et0_mm`` (قد يحوي None ليوم ناقص) + ``methods`` +
-    ``accumulated_et0_mm`` + عقد الخدمة (formula_version/valid_period).
+    المدخلات وإلّا Hargreaves degraded). **مصدر day-of-year (بالأولويّة):** ``daily_dates``
+    (تاريخ ISO لكلّ يوم ⇒ المحرّك يحسب DOY الحقيقيّ — يمنع الانجراف الفلكيّ في السجلّات
+    المتفرّقة/متعدّدة السنوات) وإلّا ``day_of_year_start`` متزايداً تسلسليّاً. نقيّ حتميّ.
+    يعيد ``daily_et0_mm`` (قد يحوي None ليوم ناقص) + ``methods`` + ``accumulated_et0_mm`` +
+    عقد الخدمة (formula_version/valid_period).
     """
     n = min(len(daily_t_min), len(daily_t_max))
     solar = daily_solar_rad_mj_m2 or []
     rh = daily_rh_mean_pct or []
     wind = daily_wind_2m_ms or []
+    dates = daily_dates or []
     daily_et0: list[float | None] = []
     methods: list[str] = []
     total = 0.0
     counted = 0
     for i in range(n):
-        doy = (day_of_year_start + i) if day_of_year_start is not None else None
+        # التاريخ الفعليّ (إن مُرِّر) هو الحقيقة؛ وإلّا DOY تسلسليّ (سلسلة متّصلة).
+        doy = _doy_from_iso_date(dates[i]) if i < len(dates) else None
+        if doy is None:
+            doy = (day_of_year_start + i) if day_of_year_start is not None else None
         res = compute_et0(
             t_max_c=daily_t_max[i],
             t_min_c=daily_t_min[i],

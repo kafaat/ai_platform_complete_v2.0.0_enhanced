@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from et0 import (  # noqa: E402
     compute_et0,
+    et0_series_product,
     extraterrestrial_radiation_mj,
     penman_monteith_et0_mm,
 )
@@ -131,3 +132,45 @@ def test_pm_core_matches_compute():
         day_of_year=120,
     )
     assert abs(via["et0_mm"] - round(direct, 3)) < 1e-9
+
+
+# ── سلسلة ET0: التواريخ الفعليّة ⇒ DOY لكلّ يوم (المحرّك مالك الفلك، لا انجراف) ──
+def test_series_uses_per_date_doy_no_drift():
+    # سجلّ متفرّق متعدّد السنوات: DOY يجب أن يُشتقّ من كلّ تاريخ لا من تسلسل.
+    dates = ["2024-01-10", "2025-05-17", "2026-08-20"]
+    out = et0_series_product(
+        daily_t_min=[10.0, 20.0, 24.0],
+        daily_t_max=[24.0, 40.0, 41.0],
+        lat_deg=16.0,
+        daily_dates=dates,
+    )
+    assert out["days"] == 3
+    # ET0 صيفيّ (مايو/أغسطس) أعلى من شتويّ (يناير) — دليل أنّ DOY الصحيح دخل حساب Ra.
+    et0 = out["daily_et0_mm"]
+    assert all(v is not None for v in et0)
+    assert et0[1] > et0[0] and et0[2] > et0[0]
+
+
+def test_series_dates_take_priority_over_sequential_start():
+    # نفس اليوم مكرّراً بتاريخ ثابت ⇒ ET0 متطابق (لا تزايد DOY تسلسليّ مُضلِّل).
+    same = ["2025-07-01", "2025-07-01", "2025-07-01"]
+    out = et0_series_product(
+        daily_t_min=[22.0, 22.0, 22.0],
+        daily_t_max=[38.0, 38.0, 38.0],
+        lat_deg=16.0,
+        day_of_year_start=1,  # يجب أن يُتجاهَل لصالح التواريخ
+        daily_dates=same,
+    )
+    e = out["daily_et0_mm"]
+    assert e[0] == e[1] == e[2]
+
+
+def test_series_falls_back_to_sequential_when_no_dates():
+    # بلا تواريخ ⇒ DOY تسلسليّ من day_of_year_start (توافق خلفيّ لمسار الموسم).
+    out = et0_series_product(
+        daily_t_min=[18.0, 18.0],
+        daily_t_max=[34.0, 34.0],
+        lat_deg=15.5,
+        day_of_year_start=100,
+    )
+    assert out["days"] == 2 and out["days_computed"] == 2

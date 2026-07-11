@@ -145,6 +145,7 @@ async def get_et0_series(
     lat_deg: float | None,
     elevation_m: float | None = None,
     day_of_year_start: int | None = None,
+    daily_dates: list | None = None,
     daily_solar_rad_mj_m2: list | None = None,
     daily_rh_mean_pct: list | None = None,
     daily_wind_2m_ms: list | None = None,
@@ -153,8 +154,10 @@ async def get_et0_series(
 ) -> dict[str, Any]:
     """سلسلة ET0 اليوميّة المرجعيّة من محرّك الطقس — **مصدر ET0 الوحيد للمحاكاة**.
 
-    النواة تُنفَّذ في المحرّك (لا نواة محلّيّة). يعيد daily_et0_mm (قد يحوي None ليوم
-    ناقص) + methods + accumulated. تعذّر المحرّك ⇒ HTTPException(502) (لا Hargreaves محلّيّ).
+    النواة تُنفَّذ في المحرّك (لا نواة محلّيّة). ``daily_dates`` (تواريخ ISO لكلّ يوم،
+    اختياريّ) لها الأولويّة على ``day_of_year_start`` — يحسب المحرّك DOY لكلّ يوم بلا
+    انجراف في السجلّات المتفرّقة. يعيد daily_et0_mm (قد يحوي None ليوم ناقص) + methods +
+    accumulated. تعذّر المحرّك ⇒ HTTPException(502) (لا Hargreaves محلّيّ).
     """
     body = {
         "daily_t_min": list(daily_t_min),
@@ -162,6 +165,7 @@ async def get_et0_series(
         "lat_deg": lat_deg,
         "elevation_m": elevation_m,
         "day_of_year_start": day_of_year_start,
+        "daily_dates": list(daily_dates) if daily_dates is not None else None,
         "daily_solar_rad_mj_m2": daily_solar_rad_mj_m2,
         "daily_rh_mean_pct": daily_rh_mean_pct,
         "daily_wind_2m_ms": daily_wind_2m_ms,

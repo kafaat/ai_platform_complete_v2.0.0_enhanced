@@ -13,7 +13,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from api.main import UserSchema, get_current_user
 from api.weather_analytics import analyze_weather_log, seasonal_planting_guide
@@ -22,9 +22,18 @@ router = APIRouter()
 
 
 @router.post("/api/v1/weather-analytics/analyze")
-def weather_analyze_endpoint(records: list[dict], user: UserSchema = Depends(get_current_user)):
-    """يحلّل سجلّ طقس يومي → إجهاد حراري + ET0 محسوب + عجز مائي + توصية."""
-    return analyze_weather_log(records)
+async def weather_analyze_endpoint(
+    records: list[dict],
+    lat: float = Query(default=16.0, ge=-90, le=90, description="خطّ عرض السجلّ (Ra في المحرّك)"),
+    user: UserSchema = Depends(get_current_user),
+):
+    """يحلّل سجلّ طقس يومي → إجهاد حراري + ET0 (محرّك الطقس) + عجز مائي + توصية.
+
+    ET0 من منتج سلسلة محرّك الطقس (لا نواة محلّيّة). تعذّر المحرّك ⇒ ``analysis_status``
+    = ``partial`` (200): يبقى تحليل الحرارة/الصقيع/الرياح/المطر كاملاً وتُوسَم حقول ET0
+    غير متاحة صراحةً (``availability``/``unavailable_products``) — لا اختلاق.
+    """
+    return await analyze_weather_log(records, lat=lat)
 
 
 @router.post("/api/v1/weather-analytics/planting-guide")

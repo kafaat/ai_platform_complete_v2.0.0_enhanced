@@ -19,13 +19,6 @@
       "expires": "2026-07-31",
       "purpose": "active-legacy-pending-delegation",
       "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0; also holds gdd_daily/gdd_accumulate). Retire alongside the et0.py core migration."
-    },
-    {
-      "path": "services/sahool-platform/api/weather_analytics.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-delegating-wrapper",
-      "note": "`_hargreaves_et0` is a thin wrapper delegating to core.engines.et0.hargreaves_et0 (no inline math). Caught now via the broadened `hargreaves`-substring name match so the ET0 path is monitored, not invisible. Migrate the weather-analytics endpoint to the Weather Engine ET0 product, then remove the wrapper + this entry."
     }
   ]
 }

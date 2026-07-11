@@ -804,7 +804,7 @@ sahool-platform,services/sahool-platform/api/routers/weather.py,2793,POST,/api/v
 sahool-platform,services/sahool-platform/api/routers/weather.py,2894,POST,/api/v1/weather/recommendations/from-operation-plan,weather_recommendation_from_operation_plan
 sahool-platform,services/sahool-platform/api/routers/weather.py,2985,GET,/api/v1/weather/tile-series/{z}/{x}/{y},weather_tile_series
 sahool-platform,services/sahool-platform/api/routers/weather_analytics.py,25,POST,/api/v1/weather-analytics/analyze,weather_analyze_endpoint
-sahool-platform,services/sahool-platform/api/routers/weather_analytics.py,31,POST,/api/v1/weather-analytics/planting-guide,weather_planting_guide_endpoint
+sahool-platform,services/sahool-platform/api/routers/weather_analytics.py,40,POST,/api/v1/weather-analytics/planting-guide,weather_planting_guide_endpoint
 sahool-platform,services/sahool-platform/api/routers/wofost.py,27,GET,/api/v1/wofost/crop-types,wofost_crop_types_endpoint
 sahool-platform,services/sahool-platform/api/routers/wofost.py,33,GET,/api/v1/wofost/adaptation-guidance,wofost_adaptation_endpoint
 sahool-platform,services/sahool-platform/api/routers/yield_analysis.py,39,GET,/api/v1/analysis/yield,yield_analysis_endpoint

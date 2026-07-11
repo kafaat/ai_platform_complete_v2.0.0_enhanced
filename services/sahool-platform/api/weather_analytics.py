@@ -3,7 +3,8 @@ api/weather_analytics.py — تحليل سجلّ الطقس اليومي إلى 
 
 جانب جديد: يحوّل سجلّ طقس خام (يومي) إلى مؤشّرات قرار:
   • مؤشّر الإجهاد الحراري (Heat Stress Index) + عدّ أيّام الخطر
-  • ET0 محسوب بطريقة Hargreaves (موثوق من الحرارة — لا عمود جاهز ضعيف)
+  • ET0 من **منتج سلسلة محرّك الطقس** (WS-C.1b Zero-Legacy — لا نواة محلّيّة؛ المحرّك
+    مالك الفلك date→DOY→Ra→ET0). تعذّر المحرّك ⇒ تدهور جزئيّ صريح (لا اختلاق).
   • العجز المائي (ET0 − مطر) — يحدّد الاحتياج الريّي
   • تصنيف المخاطر اليومي (حرّ/رياح/ملائم)
   • ملخّص موسمي للقرار الزراعي
@@ -13,21 +14,22 @@ api/weather_analytics.py — تحليل سجلّ الطقس اليومي إلى 
 ~1900 مم/سنة (ريّ ضروري كلّيّاً)، نافذة إجهاد حراري ~120 يوماً (ماي-سبت).
 
 ⚠ يعمل على بيانات يُدخلها المستخدم (سجلّ محطّته/مصدره). الجودة تتبع جودة
-المُدخل. ET0 المحسوب أصدق من أعمدة ET0 الجاهزة ضعيفة المعايرة الموسميّة.
-لا يستبدل نشرات الأرصاد الرسميّة للتنبّؤ.
+المُدخل. ET0 يُنفَّذ في المحرّك المرجعيّ لا هنا. لا يستبدل نشرات الأرصاد الرسميّة للتنبّؤ.
 """
 
 from __future__ import annotations
 
 import logging
 
-# مصدر ET0 الموحّد (H4): نواة Hargreaves + ثابت Ra الافتراضيّ. لا نُعيد كتابة الصيغة.
-from core.engines.et0 import DEFAULT_RA_MM, hargreaves_et0
 from core.thresholds import (
     CLIMATE_HOT_DAY_TMAX_C,
     CLIMATE_SEVERE_HEAT_TMAX_C,
     FROST_RISK_C,
 )
+
+# WS-C.1b Zero-Legacy: لا نواة ET0 محلّيّة. ET0 يُجلَب من **منتج سلسلة محرّك الطقس**
+# (get_et0_series) — المحرّك مصدر ET0 الوحيد ومالك الفلك (date→DOY→Ra→ET0).
+from api.weather_service_client import get_et0_series
 
 _log = logging.getLogger("weather_analytics")
 
@@ -38,13 +40,14 @@ _SEVERE_HEAT_C = CLIMATE_SEVERE_HEAT_TMAX_C  # «حرّ شديد»
 _FROST_C = FROST_RISK_C  # تحتها خطر صقيع
 _HIGH_WIND_KMH = 30  # فوقها إجهاد رياح/تعرية
 
+# خطّ عرض افتراضيّ للإحصاء المناخيّ حين لا يُمرَّر (اليمن الداخليّ ~16°N) — يُمرَّر للمحرّك
+# ليحسب Ra؛ ليس نواة ET0 (المحرّك يملك الحساب). المُوجِّه يقبل lat صريحاً كتجاوز.
+_DEFAULT_LAT_DEG = 16.0
 
-def _hargreaves_et0(tmax: float, tmin: float, ra_mm: float) -> float:
-    """ET0 بطريقة Hargreaves-Samani — يفوّض للمصدر الموحّد (سلوك محفوظ تماماً).
-
-    ra_mm: الإشعاع خارج الغلاف الجوّي معبَّراً عنه بمكافئ التبخّر (مم/يوم).
-    """
-    return hargreaves_et0(tmax, tmin, ra_mm)
+# منتجات التحليل المستقلّة عن ET0 (تبقى صحيحة عند تعذّر المحرّك).
+_ET0_INDEPENDENT_PRODUCTS = ["heat", "frost", "wind", "rain"]
+# منتجات تعتمد على ET0 (تُوسَم unavailable عند تعذّر المحرّك، بلا اختلاق).
+_ET0_DEPENDENT_PRODUCTS = ["et0", "annual_water_deficit", "irrigation_dependence"]
 
 
 def heat_stress_index(temp_max_c: float) -> dict:
@@ -60,39 +63,35 @@ def heat_stress_index(temp_max_c: float) -> dict:
     return {"temp_max_c": temp_max_c, "level": level, "level_ar": ar}
 
 
-def analyze_weather_log(
-    records: list[dict], ra_mm_by_month: dict[int, float] | None = None
-) -> dict:
+def _irrigation_dependency_ar(annual_water_deficit_mm: float) -> str:
+    if annual_water_deficit_mm > 500:
+        return "ريّ ضروري بالكامل — العجز المائي ضخم (الأمطار لا تغطّي التبخّر)."
+    if annual_water_deficit_mm > 0:
+        return "ريّ تكميلي — الأمطار تغطّي جزءاً من الاحتياج."
+    return "بعليّ ممكن — الأمطار تكفي أو تفوق التبخّر."
+
+
+async def analyze_weather_log(records: list[dict], lat: float = _DEFAULT_LAT_DEG) -> dict:
     """يحلّل سجلّ طقس يومي إلى مؤشّرات قرار زراعي.
 
     كلّ record: {date, temp_max_c, temp_min_c, [precipitation_mm], [wind_speed_kmh]}.
-    ra_mm_by_month: الإشعاع خارج الغلاف (مم/يوم) لكلّ شهر — لحساب ET0.
-                    إن غاب، نستخدم تقديراً افتراضيّاً لخطوط عرض اليمن (~16°N).
+    ET0 من **منتج سلسلة محرّك الطقس** (المحرّك مالك الفلك date→DOY→Ra→ET0؛ لا نواة محلّيّة).
+    ``lat`` خطّ عرض السجلّ (افتراض اليمن الداخليّ ~16°N) يُمرَّر للمحرّك لحساب Ra. التواريخ
+    الفعليّة لكلّ يوم تُمرَّر للمحرّك فيحسب DOY بلا انجراف في السجلّات المتفرّقة/متعدّدة السنوات.
+
+    **fail-closed تدريجيّ (قرار المستخدم):** تعذّر المحرّك ⇒ التحليل المستقلّ عن ET0
+    (حرارة/صقيع/رياح/مطر) يبقى صحيحاً كاملاً، وحقول ET0 تُوسَم ``null`` مع
+    ``analysis_status="partial"`` + ``availability`` + ``unavailable_products`` — لا اختلاق.
     """
     if not records:
         return {"supported": False, "message_ar": "سجلّ فارغ — أدخل بيانات يوميّة."}
 
-    # إشعاع افتراضي لليمن الداخلي (~16°N) بمكافئ التبخّر مم/يوم
-    default_ra = {
-        1: 10.4,
-        2: 12.0,
-        3: 14.1,
-        4: 15.7,
-        5: 16.5,
-        6: 16.7,
-        7: 16.5,
-        8: 15.7,
-        9: 14.3,
-        10: 12.2,
-        11: 10.6,
-        12: 9.8,
-    }
-    ra = ra_mm_by_month or default_ra
-
     n = len(records)
     heat_days = severe_days = frost_days = wind_days = 0
-    total_rain = total_et0 = 0.0
-    valid_et0 = 0
+    total_rain = 0.0
+    daily_t_min: list[float] = []
+    daily_t_max: list[float] = []
+    daily_dates: list[str | None] = []
 
     for r in records:
         try:
@@ -100,11 +99,6 @@ def analyze_weather_log(
             tmin = float(r["temp_min_c"])
         except (KeyError, ValueError, TypeError):
             continue
-        # شهر السجلّ (من التاريخ YYYY-MM-DD)
-        mon = 6
-        d = str(r.get("date", ""))
-        if len(d) >= 7 and d[5:7].isdigit():
-            mon = int(d[5:7])
         # الإجهاد الحراري
         if tmax >= _SEVERE_HEAT_C:
             severe_days += 1
@@ -128,15 +122,15 @@ def analyze_weather_log(
                 total_rain += float(p)
             except (ValueError, TypeError):
                 _log.debug("تخطّي قيمة مطر غير رقميّة: %r", p)
-        # ET0 محسوب — Ra من الجدول الشهريّ، وعند غياب الشهر يُستعمل الثابت الموحّد
-        # (DEFAULT_RA_MM=15.0 بدل 14.0 سابقاً — توحيد H4؛ مسار نادر للأشهر الغائبة).
-        total_et0 += _hargreaves_et0(tmax, tmin, ra.get(mon, DEFAULT_RA_MM))
-        valid_et0 += 1
+        # سلسلة ET0 (تُحسب في المحرّك): نجمع الحرارة + التاريخ الفعليّ لكلّ يوم صالح.
+        daily_t_min.append(tmin)
+        daily_t_max.append(tmax)
+        _d = str(r.get("date", "") or "")
+        daily_dates.append(_d if len(_d) >= 10 else None)
 
-    water_deficit = total_et0 - total_rain
     years = max(n / 365.0, 0.01)
 
-    return {
+    base = {
         "supported": True,
         "days_analyzed": n,
         "heat_stress_days": heat_days,
@@ -145,16 +139,6 @@ def analyze_weather_log(
         "high_wind_days": wind_days,
         "total_rainfall_mm": round(total_rain, 1),
         "annual_rainfall_mm": round(total_rain / years, 1),
-        "computed_et0_total_mm": round(total_et0, 1),
-        "annual_et0_mm": round(total_et0 / years, 1),
-        "annual_water_deficit_mm": round(water_deficit / years, 1),
-        "irrigation_dependency_ar": (
-            "ريّ ضروري بالكامل — العجز المائي ضخم (الأمطار لا تغطّي التبخّر)."
-            if water_deficit / years > 500
-            else "ريّ تكميلي — الأمطار تغطّي جزءاً من الاحتياج."
-            if water_deficit / years > 0
-            else "بعليّ ممكن — الأمطار تكفي أو تفوق التبخّر."
-        ),
         "heat_window_ar": (
             f"~{heat_days} يوم إجهاد حراري ({round(heat_days / years)} يوم/سنة) — "
             "تجنّب المراحل الحسّاسة (إزهار/عقد) في هذه النافذة."
@@ -165,13 +149,59 @@ def analyze_weather_log(
             if heat_days / years > 60
             else "مناخ معتدل نسبيّاً — مرونة أوسع في اختيار المحاصيل والمواعيد."
         ),
-        "note_ar": (
-            "ET0 محسوب بـHargreaves من الحرارة (موثوق موسميّاً). العجز المائي "
-            "= ET0 − المطر يحدّد الاحتياج الريّي الفعلي."
-        ),
         "disclaimer_ar": (
             "تحليل لبيانات أُدخلت؛ الجودة تتبع المصدر. لا يستبدل نشرات الأرصاد "
             "الرسميّة. عايِر بمحطّتك المحلّيّة إن أمكن."
+        ),
+    }
+
+    # ET0 من منتج سلسلة محرّك الطقس (بتواريخ فعليّة). تعذّره ⇒ تدهور جزئيّ صريح (لا اختلاق).
+    try:
+        et0_series = await get_et0_series(
+            daily_t_min=daily_t_min,
+            daily_t_max=daily_t_max,
+            lat_deg=lat,
+            daily_dates=daily_dates,
+        )
+    except Exception as exc:  # noqa: BLE001 — تعذّر المحرّك ⇒ تدهور جزئيّ (fail-closed، لا محلّيّ)
+        _log.warning("weather-engine ET0 series unavailable — partial analysis: %s", exc)
+        return {
+            **base,
+            "analysis_status": "partial",
+            "availability": {**{p: True for p in _ET0_INDEPENDENT_PRODUCTS}, "et0": False},
+            "computed_products": list(_ET0_INDEPENDENT_PRODUCTS),
+            "unavailable_products": list(_ET0_DEPENDENT_PRODUCTS),
+            "computed_et0_total_mm": None,
+            "annual_et0_mm": None,
+            "annual_water_deficit_mm": None,
+            "irrigation_dependency_ar": None,
+            "limitations": [
+                "Canonical ET0 product unavailable — heat/frost/wind/rain analysis unaffected."
+            ],
+            "note_ar": (
+                "تعذّر منتج ET0 المرجعيّ (محرّك الطقس)؛ التحليل الحراري/المطريّ مكتمل "
+                "والتحليل المائيّ مؤجَّل (لا حساب ET0 محلّيّ)."
+            ),
+        }
+
+    daily_et0 = et0_series.get("daily_et0_mm") or []
+    total_et0 = sum(float(v) for v in daily_et0 if v is not None)
+    annual_water_deficit = (total_et0 - total_rain) / years
+
+    return {
+        **base,
+        "analysis_status": "complete",
+        "availability": {**{p: True for p in _ET0_INDEPENDENT_PRODUCTS}, "et0": True},
+        "computed_products": [*_ET0_INDEPENDENT_PRODUCTS, "et0"],
+        "unavailable_products": [],
+        "computed_et0_total_mm": round(total_et0, 1),
+        "annual_et0_mm": round(total_et0 / years, 1),
+        "annual_water_deficit_mm": round(annual_water_deficit, 1),
+        "irrigation_dependency_ar": _irrigation_dependency_ar(annual_water_deficit),
+        "et0_method": "weather-engine",
+        "note_ar": (
+            "ET0 من منتج محرّك الطقس المرجعيّ (FAO-56؛ المحرّك مالك الحساب الفلكيّ). "
+            "العجز المائي = ET0 − المطر يحدّد الاحتياج الريّي الفعلي."
         ),
     }
 

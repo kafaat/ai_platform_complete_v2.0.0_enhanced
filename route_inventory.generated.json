@@ -6442,7 +6442,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/weather_analytics.py",
-    "line": 31,
+    "line": 40,
     "method": "POST",
     "path": "/api/v1/weather-analytics/planting-guide",
     "function": "weather_planting_guide_endpoint"

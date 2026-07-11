@@ -497,6 +497,9 @@ class Et0SeriesRequest(BaseModel):
     daily_rh_mean_pct: list[float | None] | None = None
     daily_wind_2m_ms: list[float | None] | None = None
     day_of_year_start: int | None = None
+    # تواريخ ISO لكلّ يوم (اختياريّ، بالأولويّة على day_of_year_start) — يمنع الانجراف
+    # الفلكيّ في السجلّات المتفرّقة/متعدّدة السنوات (المحرّك يملك date→DOY).
+    daily_dates: list[str | None] | None = None
     valid_period: dict | None = None
 
 
@@ -515,6 +518,7 @@ async def agro_et0_series(req: Et0SeriesRequest = Body(...)):
         daily_rh_mean_pct=req.daily_rh_mean_pct,
         daily_wind_2m_ms=req.daily_wind_2m_ms,
         day_of_year_start=req.day_of_year_start,
+        daily_dates=req.daily_dates,
         valid_period=req.valid_period,
     )
 

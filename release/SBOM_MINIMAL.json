@@ -14685,7 +14685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d706797711fb2b6def370d55ee545fa643fa1d1f98b3a65c536a582c25fb1234"
+          "content": "e4cc615f23374fc880d2a291932f46aa91659e435117e6469ac6b902425b68bc"
         }
       ],
       "name": "services/sahool-platform/api/routers/weather_analytics.py",
@@ -15135,7 +15135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2470a68f3c5db1c9232deb05c28e0692a7227f8b3312fa792569b057f3604820"
+          "content": "7df90b031c25af00dc41e0277f8a002c9f6d62efd7b09bc0ea7f6f5d5afdf50c"
         }
       ],
       "name": "services/sahool-platform/api/weather_analytics.py",
@@ -15155,7 +15155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fca13a2c4bda5b62272b96f338f6e5a339e381a1f70507afdb0746f4008b94c3"
+          "content": "442fe40fbe1b74e199f73cb4db9c6fec3a33f6a2abca32b76d912195826a6bfe"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -23715,7 +23715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "565da76c293cdae849fc789a8d1edce1542ea678b67ab5a53701e5f8ce8a66df"
+          "content": "9a8142d0941433a1e7e445d36e731eacf793a8d9433ecf4434d8c046390070a1"
         }
       ],
       "name": "services/weather-service/et0.py",
@@ -23825,7 +23825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "deb4fa482e7cf2b3171f84c2d13bc83029f7d3a1e5638f916d943c1dd38ca141"
+          "content": "1a25e56dff27a5840ac2c1250afaef7b97828b0c93c21b6956ea8acf761f49e5"
         }
       ],
       "name": "services/weather-service/tests/test_et0.py",
@@ -23995,7 +23995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c388238a2d7de282bef5044e501850b303d43755e7b0cf52d3fd2bc5afec179"
+          "content": "62c579fa4a869e758106a684207a0e340bf9195d9aa13742a86ad77ed651ee37"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",
