@@ -2488,3 +2488,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الإصلاح (في `build_canonical_weather_state`):** `source_snapshot_id = weather_snapshot_id_override or weather_snapshot_id(snapshot_inputs)` — المعرّف الخارجي يدخل source_snapshot_id **و**state_id (لأنّ state_id يهشّ source_snapshot_id). الآن ET0.weather_snapshot_id == state.source_snapshot_id == override؛ ولقطتان مختلفتان ⇒ state_id مختلف.
 - **تحسينا اختبار (ملاحظتا المستخدم):** (١) الحارس الساكن نُطِّق على **جسم `agro_et0` وحده** (helper `_top_level_func_body`) بدل فحص كامل الملفّ نصّيّاً (لا إيجابيّات/سلبيّات كاذبة مستقبلاً). (٢) أُضيف اختبارا HTTP في `test_et0_agro_product.py` يثبتان حقول النَّسَب عبر العقد الفعليّ (`derived_from`/`canonical_state_id`/`canonical_state_version`/`source_snapshot_id`) + تماسك override عبر HTTP.
 - **تحقّق:** weather-service **121** (+3) · canonical+et0 27 · guard LOCKED · bandit High 0 · unit 2866 · ruff. CI معلَّق قبل التقديم السريع.
+
+## WX-10.x صيانة — تحديث سجلّات المسارات بعد إضافة نقطتَي weather (تعلّم)
+
+- **درس:** إضافة مسارات لخدمة تتطلّب تجديد **عدّة** سجلّات CI مُولَّدة، لا service_inventory وحده: (١) `generate_service_inventory.py --write-registry` (SERVICE_REGISTRY.md — أُصلِح `5e9bae4`)؛ (٢) `route_mount_contract_guard.py` (route_mount_inventory — يفحصه `runtime_real_smoke.sh` سطر 15؛ فشل على main بعد FF، أُصلِح هنا: weather-service 23→25 مساراً مباشراً).
+- **`route_mount_inventory.{csv,generated.json}`:** جُدِّدا؛ `--check` أخضر. كامل حرّاس `runtime_real_smoke.sh` (route_residual/evidence_pack/cert_checklist/health/capabilities/ai_container) أخضر بأكواد خروج حقيقيّة.
+- **خارج النطاق (موثَّق):** `api_versioning_policy_guard.py` يُظهِر drift لكن **لا workflow يشغّله** (غير مُبوَّب) وكان قديماً قبل WX-10 (churn أرقام أسطر عبر رواتشِت سابقة + إدخال allowlist لمسار `irrigation-recommendation` قائم). لم يُجدَّد لتجنّب diff كبير غير متعلّق؛ متابعة صيانة منفصلة.
