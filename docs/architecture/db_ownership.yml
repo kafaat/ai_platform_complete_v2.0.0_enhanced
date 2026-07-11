@@ -171,6 +171,16 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/init_v8.sql"
+  crop_stress_events:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v153_crop_stress_memory_store.sql"
+  crop_stress_memory_snapshots:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v153_crop_stress_memory_store.sql"
   custody_chain_events:
     owner: sahool-platform
     writers: [sahool-platform]

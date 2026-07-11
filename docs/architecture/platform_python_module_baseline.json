@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 595,
+  "baseline_python_module_count": 608,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -39,8 +39,12 @@
     "api/correlation_middleware.py",
     "api/cost_governance.py",
     "api/crop_cycle.py",
+    "api/crop_decision_bridge.py",
     "api/crop_introduction.py",
     "api/crop_rotation.py",
+    "api/crop_stress_ingestion.py",
+    "api/crop_stress_memory_service.py",
+    "api/crop_stress_store.py",
     "api/crop_suitability.py",
     "api/crop_twin.py",
     "api/crop_water_sensitivity.py",
@@ -405,6 +409,15 @@
     "core/correlation.py",
     "core/crop_cards/loader.py",
     "core/crop_inference.py",
+    "core/crop_intelligence/__init__.py",
+    "core/crop_intelligence/crop_water.py",
+    "core/crop_intelligence/engine.py",
+    "core/crop_intelligence/models.py",
+    "core/crop_intelligence/phenology.py",
+    "core/crop_intelligence/recommendation_context.py",
+    "core/crop_intelligence/roots.py",
+    "core/crop_intelligence/spectral.py",
+    "core/crop_intelligence/stress_memory.py",
     "core/crop_operations.py",
     "core/crop_portfolio.py",
     "core/crop_risk.py",
@@ -601,5 +614,6 @@
   "p4_note": "INTERIM bridge: sahool-platform is the temporary Source of Record for loop tables (authoritative DB write) and best-effort mirrors to decision-service via the one-file transport facade api/decision_service_client.py; decision-service is a non-authoritative mirror, not yet the system-of-record. See docs/architecture/DECISION_SERVICE_BOUNDARY_CONTRACT.md.",
   "ui3b_ui4_note": "UI3b/UI4 continuation: api/routers/features.py (runtime feature registry for UI/navigation alignment — env-flag topology only, DB-free) and api/routers/field_readiness.py (thin UI facade re-shaping the existing data-completeness contract; no new domain logic). Both are BFF/UI-alignment surfaces owned by sahool-platform, not extractable domain code.",
   "ui27_ui35_note": "UI27-UI35 Field Workspace: BFF facade routers (imagery/weather/timeline/priority) delegate to raster-service/weather-service via the P1/P2/P3 facades; route+completion contract manifests. UI-alignment/BFF surfaces owned by sahool-platform, not extractable domain code.",
-  "ws_d2_note": "WS-D.2: api/irrigation_state_guard.py — pure consistency/freshness guard for the auto-enriched field irrigation-recommendation endpoint (0<=Dr<=TAW, no silent clamp, missing != zero). Platform-owned decision helper alongside recommend_irrigation/canonical_water_stress; not extractable transport."
+  "ws_d2_note": "WS-D.2: api/irrigation_state_guard.py — pure consistency/freshness guard for the auto-enriched field irrigation-recommendation endpoint (0<=Dr<=TAW, no silent clamp, missing != zero). Platform-owned decision helper alongside recommend_irrigation/canonical_water_stress; not extractable transport.",
+  "crop_intelligence_phase2_6d_note": "Crop Intelligence Engine Phases 2-6D: additive core/crop_intelligence package (models/engine/spectral/phenology/roots/stress_memory/crop_water/recommendation_context) + api crop_stress_store/ingestion/memory_service and crop_decision_bridge. Boundary-respecting (no ET0/GDD/raster/soil-water compute in Crop Intelligence); enforced by scripts/ci/crop_intelligence_boundary_gate.py. No new route (p2_6 budget unchanged)."
 }

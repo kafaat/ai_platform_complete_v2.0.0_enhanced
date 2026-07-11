@@ -102,3 +102,32 @@ def test_empty_forecast_does_not_crash():
     out = compose_crop_twin(req=_req(forecast=[]), user=_USER)
     assert out["phenology"]["gdd_cumulative"] == 0.0
     assert out["crop_twin"]["water_state"] if False else True  # لا انهيار
+
+
+def test_crop_twin_exposes_canonical_crop_intelligence_projection():
+    out = compose_crop_twin(req=_req(), user=_USER)
+    ci = out["crop_twin"]["crop_intelligence"]
+    assert ci["schema"] == "crop_intelligence_state.v2"
+    assert ci["ownership"]["crop_interpretation"] == "crop-intelligence-engine"
+    assert ci["biomass"]["status"] == "unavailable"
+    assert ci["yield_projection"]["status"] == "unavailable"
+
+
+def test_compose_projects_msi_ndmi_into_crop_intelligence():
+    out = compose_crop_twin(
+        req=_req(
+            field_id="fld-1",
+            season_id="season-1",
+            ndmi=-0.1,
+            msi=2.2,
+            spectral_temporal_compatible=True,
+            spectral_product_ids=["ndmi-1", "msi-1"],
+            spectral_quality_status="validated",
+        ),
+        user=_USER,
+    )
+    ci = out["crop_intelligence"]
+    assert ci["field_id"] == "fld-1"
+    assert ci["season_id"] == "season-1"
+    assert ci["spectral"]["water_stress"]["confirmed"] is True
+    assert "spectral_water_stress" in {x["code"] for x in ci["stress_flags"]}

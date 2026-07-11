@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from core.crop_intelligence import CropIntelligenceInput, build_crop_intelligence_state
+
 from api.nutrient_4r import nutrient_uptake
 from api.root_zone_balance import DayInput, root_zone_balance
 from api.season_simulation import (
@@ -58,6 +60,17 @@ def crop_twin_state(
     target_uptake_kg_ha: float = 0.0,
     initial_depletion_mm: float = 0.0,
     auto_irrigate: bool = False,
+    field_id: str | None = None,
+    season_id: str | None = None,
+    spectral_state: dict | None = None,
+    source_ids: list[str] | None = None,
+    root_policy: dict | None = None,
+    stress_history: list[dict] | None = None,
+    stress_memory_as_of: str | None = None,
+    stress_memory_policy: dict | None = None,
+    prior_stress_memory: dict | None = None,
+    crop_water_policy: dict | None = None,
+    weather_state: dict | None = None,
 ) -> dict:
     """يبني الحالة الرقميّة الموحّدة للمحصول من سلسلة أيّام — نقيّ حتميّ.
 
@@ -108,6 +121,42 @@ def crop_twin_state(
         warnings_ar.append("تجاوز GDD النضج المتوقّع — قد يكون الموسم منتهياً")
     warnings_ar.extend(nut["warnings_ar"])
 
+    crop_intelligence = build_crop_intelligence_state(
+        CropIntelligenceInput(
+            crop=crop_key or crop,
+            gdd_cumulative=gdd_cum,
+            gdd_to_maturity=gdd_mat,
+            phenology_method="legacy_local_gdd_pending_weather_delegation",
+            phenology_formula_version="legacy/season-simulation",
+            water_state={
+                "status": "available",
+                "taw_mm": round(rz.taw_mm, 2),
+                "raw_mm": round(rz.raw_mm, 2),
+                "depletion_mm": round(rz.final_depletion_mm, 2),
+                "needs_irrigation": needs_irrigation,
+            },
+            nutrient_state={
+                "status": "estimated",
+                "target_uptake_kg_ha": nut["target_uptake_kg_ha"],
+                "stage": nut["matched_stage"],
+                "cumulative_fraction_to_date": nut["cumulative_fraction_to_date"],
+                "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"],
+            },
+            spectral_state=spectral_state,
+            field_id=field_id,
+            season_id=season_id,
+            source_ids=list(source_ids or []),
+            root_policy=root_policy,
+            stress_history=stress_history,
+            stress_memory_as_of=stress_memory_as_of,
+            stress_memory_policy=stress_memory_policy,
+            prior_stress_memory=prior_stress_memory,
+            crop_water_policy=crop_water_policy,
+            weather_state=weather_state,
+            limitations=["gdd_pending_weather_engine_delegation"],
+        )
+    )
+
     return {
         "crop": crop_key or (crop or None),
         "crop_known": known,
@@ -136,6 +185,7 @@ def crop_twin_state(
             "cumulative_fraction_to_date": nut["cumulative_fraction_to_date"],
             "uptake_to_date_kg_ha": nut["uptake_to_date_kg_ha"],
         },
+        "crop_intelligence": crop_intelligence,
         "calibrated": False,
         "warnings_ar": warnings_ar,
     }

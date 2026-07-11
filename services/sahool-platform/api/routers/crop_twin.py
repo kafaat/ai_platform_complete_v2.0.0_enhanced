@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+from core.crop_intelligence import build_canonical_spectral_state
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
@@ -65,10 +66,18 @@ class ComposeManagement(BaseModel):
 
 class CropTwinComposeRequest(BaseModel):
     field_id: str | None = None
+    season_id: str | None = None
     crop: str | None = None
     stage: str = "mid"
     forecast: list[ComposeForecastDay] = Field(default_factory=list)
     ndvi: float | None = None
+    ndre: float | None = None
+    ndmi: float | None = None
+    msi: float | None = None
+    spectral_acquisition_date: str | None = None
+    spectral_temporal_compatible: bool | None = None
+    spectral_product_ids: list[str] = Field(default_factory=list)
+    spectral_quality_status: str | None = None
     soil: ComposeSoil = Field(default_factory=ComposeSoil)
     management: ComposeManagement = Field(default_factory=ComposeManagement)
 
@@ -104,6 +113,17 @@ def _compose_state(req: CropTwinComposeRequest) -> dict:
         for d in req.forecast
     ]
 
+    spectral_state = build_canonical_spectral_state(
+        ndvi=req.ndvi,
+        ndre=req.ndre,
+        ndmi=req.ndmi,
+        msi=req.msi,
+        acquisition_date=req.spectral_acquisition_date,
+        product_ids=req.spectral_product_ids,
+        quality_status=req.spectral_quality_status,
+        temporal_compatible=req.spectral_temporal_compatible,
+    )
+
     twin = crop_twin_state(
         req.crop,
         days,
@@ -112,6 +132,10 @@ def _compose_state(req: CropTwinComposeRequest) -> dict:
         target_uptake_kg_ha=req.management.target_uptake_kg_ha,
         initial_depletion_mm=req.management.initial_depletion_mm,
         auto_irrigate=req.management.auto_irrigate,
+        field_id=req.field_id,
+        season_id=req.season_id,
+        spectral_state=spectral_state,
+        source_ids=req.spectral_product_ids,
     )
 
     # جودة المدخلات (نفس صدق irrigation-plan): افتراضات متحقَّقة خادميّاً.
@@ -163,6 +187,8 @@ def compose_crop_twin(
         if req.ndvi is not None
         else f"ثابت للمرحلة ({req.stage})",
         "crop_twin": twin,
+        "crop_intelligence": twin.get("crop_intelligence"),
+        "spectral_state": twin.get("crop_intelligence", {}).get("spectral"),
         "phenology": twin["phenology"],
         "water_state": twin["water"],
         "nutrient_state": twin["nutrient"],

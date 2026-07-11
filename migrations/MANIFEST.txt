@@ -597,3 +597,7 @@ v151_learning_source_lineage.sql
 #   (recommendation_outcomes/farm_operations_ledger/water_ledger). لا كاتب (يُعيد التجزئة)، لا DROP.
 #   idempotent (COMMENT). بعد v151.
 v152_deprecate_recommendation_feedback.sql
+
+# v153: مخزن دائم لذاكرة إجهاد المحصول — أحداث خام append-only + لقطات مشتقة versioned،
+# مع dedup وRLS+FORCE حسب المستأجر. الأحداث الخام هي مصدر الحقيقة لإعادة الحساب. بعد v152.
+v153_crop_stress_memory_store.sql

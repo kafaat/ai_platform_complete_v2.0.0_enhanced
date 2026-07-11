@@ -25,6 +25,9 @@ jobs:
       - name: weather-engine-formula-guard
         run: python scripts/ci/weather_engine_formula_guard.py
 
+      - name: crop-intelligence-boundary-gate
+        run: python scripts/ci/crop_intelligence_boundary_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
