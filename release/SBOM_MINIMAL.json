@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "416e67d9a84cf87e7df702ecd4c60b08f2ef0bd68419c1d6ee78757f5d606117"
+          "content": "c31f77739e923ee7e1c157871d1db52ff052ee063af628864be7241aef40dd9d"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c444c1714205d41b1c61d5d68fe6ac24c208049e21a41c79aab9107aceb18ca8"
+          "content": "acd5482abf8c73644326824b774021c637c4ed7f16aa7f0ceebe2406e7dff332"
         }
       ],
       "name": "docker-compose.light.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7ca987a8c5cc30a2d86e0863d23920c10d3c92c1f4e8347f90cbafcf7245af8"
+          "content": "ac1b858dbf8d07cc26aae5001cb309a28d125386a24d74f490e2f4c46c1dc957"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9885,7 +9885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "df23a05a604f0b713fea96993746d3097dbabc17663fd843fb6efe82c3ef410a"
+          "content": "f050a51ea7fecf485591c168d97273f4b79b683c4612d60bdbc8baac322cd166"
         }
       ],
       "name": "services/mcp_servers/weather_server.py",

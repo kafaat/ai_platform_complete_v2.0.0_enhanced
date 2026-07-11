@@ -127,11 +127,11 @@ mcp_servers,services/mcp_servers/sentinel_hub_server.py,384,GET,/healthz,healthz
 mcp_servers,services/mcp_servers/sentinel_hub_server.py,384,GET,/health,healthz
 mcp_servers,services/mcp_servers/sentinel_hub_server.py,389,GET,/readyz,readyz
 mcp_servers,services/mcp_servers/shared/streamable_http.py,33,POST,<dynamic>,stream_endpoint
-mcp_servers,services/mcp_servers/weather_server.py,62,GET,/mcp/v1/tools,list_tools
-mcp_servers,services/mcp_servers/weather_server.py,125,POST,/mcp/v1/tools/call,call_tool
-mcp_servers,services/mcp_servers/weather_server.py,292,GET,/healthz,healthz
-mcp_servers,services/mcp_servers/weather_server.py,292,GET,/health,healthz
-mcp_servers,services/mcp_servers/weather_server.py,297,GET,/readyz,readyz
+mcp_servers,services/mcp_servers/weather_server.py,70,GET,/mcp/v1/tools,list_tools
+mcp_servers,services/mcp_servers/weather_server.py,133,POST,/mcp/v1/tools/call,call_tool
+mcp_servers,services/mcp_servers/weather_server.py,306,GET,/healthz,healthz
+mcp_servers,services/mcp_servers/weather_server.py,306,GET,/health,healthz
+mcp_servers,services/mcp_servers/weather_server.py,311,GET,/readyz,readyz
 mcp_servers,services/mcp_servers/wofost_server.py,51,GET,/mcp/v1/tools,list_tools
 mcp_servers,services/mcp_servers/wofost_server.py,114,POST,/mcp/v1/tools/call,call_tool
 mcp_servers,services/mcp_servers/wofost_server.py,283,GET,/healthz,healthz

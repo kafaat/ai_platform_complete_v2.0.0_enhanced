@@ -21,13 +21,6 @@
       "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0; also holds gdd_daily/gdd_accumulate). Retire alongside the et0.py core migration."
     },
     {
-      "path": "services/mcp_servers/weather_server.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-inline-duplicate",
-      "note": "WS-C.1b audit found an INLINE Hargreaves-Samani ET0 re-implementation (Ra + 0.0023*(Tmean+17.8)*sqrt(dT)*Ra*0.408) in the MCP weather tool server — a genuine second ET0 kernel outside the engine that previously ESCAPED this guard (neither the SVP fingerprint nor a name-matched function). Now caught via the Hargreaves math fingerprint. Migrate the MCP tool to call the Weather Engine ET0 product, then delete the inline formula and this entry."
-    },
-    {
       "path": "services/sahool-platform/api/weather_analytics.py",
       "owner": "weather-migration",
       "expires": "2026-07-31",

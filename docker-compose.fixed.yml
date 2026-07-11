@@ -491,6 +491,7 @@ services:
     restart: unless-stopped
     environment:
       JWT_SECRET: ${JWT_SECRET}
+      WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
     networks:
       - sahool-internal
     healthcheck:

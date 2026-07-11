@@ -135,6 +135,7 @@ services:
     ports: ["127.0.0.1:8092:8000"]  # HIGH-DOCKER-01: localhost only (internal app)
     environment:
       JWT_SECRET: "${JWT_SECRET}"
+      WEATHER_SERVICE_URL: "${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}"
     networks: [sahool-net]
     <<: *logging
     healthcheck:

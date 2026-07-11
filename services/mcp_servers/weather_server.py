@@ -6,6 +6,7 @@ Open-Meteo + NOAA APIs with caching and idempotency
 
 import json
 import logging
+import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -29,6 +30,13 @@ IDEMPOTENCY_CACHE: dict[str, Any] = {}
 CACHE_TTL = 300
 
 OPEN_METEO_URL = "https://api.open-meteo.com/v1"
+
+# محرّك الطقس الكنسيّ (services/weather-service) — مصدر ET0 المرجعيّ الوحيد.
+_DEFAULT_WEATHER_SERVICE_URL = "http://sahool-weather-service:8000"
+
+
+def _weather_service_url() -> str:
+    return os.getenv("WEATHER_SERVICE_URL", _DEFAULT_WEATHER_SERVICE_URL).rstrip("/")
 
 
 class ForecastRequest(BaseModel):
@@ -184,56 +192,62 @@ async def _execute(name: str, args: dict) -> dict:
 
     elif name == "calculate_hargreaves_et0":
         req = ET0Request(**args)
-        import math
 
-        # ── مصدر الحقيقة الكنسيّ لـET0/Hargreaves (FAO-56) ──────────────────
-        # المصدر الموحّد: services/sahool-platform/core/engines/et0.py
-        #   (hargreaves_et0, hargreaves_et0_geo, extraterrestrial_radiation_*,
-        #    DEFAULT_RA_MM=15.0).
-        # ما يلي نسخة حرفيّة مُتطابقة عمداً، وليست تباعداً. سبب عدم الاستيراد
-        # من المصدر الكنسيّ: عزل الخدمة المقصود — هذا الـMCP server بوّابة
-        # FastAPI مستقلّة تستورد من shared/ فقط ولا تصل إلى core/. التوحيد
-        # الكامل يتطلّب نقل core→shared (مؤجَّل بقرار، خارج النطاق).
-        # ⚠ أيّ تعديل على صيغة Ra أو Hargreaves أدناه يجب أن يُزامَن مع
-        #   المصدر الكنسيّ (H4) للحفاظ على تطابق الناتج.
+        # ── WS-C.1b Zero-Legacy: لا نواة ET0 محلّيّة في هذا الخادم ──────────────
+        # كان هنا تنفيذ Hargreaves-Samani سطريّ (نسخة ثانية من الصيغة خارج المحرّك).
+        # الآن نستهلك **منتج ET0 المرجعيّ من محرّك الطقس** (services/weather-service:
+        # POST /v1/weather/agro/et0) — المحرّك مصدر ET0 الوحيد للمنصّة. حرارة فقط ⇒
+        # المحرّك يتدرّج إلى Hargreaves داخليّاً. تعذّر المحرّك ⇒ 503 fail-closed
+        # (لا حساب ET0 محلّيّ بديل). t_mean/t_range حسابٌ حسابيّ بسيط (ليس نواة ET0).
         # ────────────────────────────────────────────────────────────────────
-        # حارس: t_min>t_max ⇒ t_range سالب ⇒ sqrt يرمي ValueError/500. نرفض بـ400.
+        # حارس: t_min>t_max ⇒ مدخل غير صالح. نرفض بـ400 (قبل استدعاء المحرّك).
         if req.t_min > req.t_max:
             raise HTTPException(status_code=400, detail="t_min يجب ألّا يتجاوز t_max")
-        t_mean = (req.t_max + req.t_min) / 2
-        t_range = req.t_max - req.t_min
-
         lat = req.latitude if req.latitude is not None else req.lat
         j_day = datetime.strptime(req.date, "%Y-%m-%d").timetuple().tm_yday
-        phi = math.radians(lat)
-        dr = 1 + 0.033 * math.cos(2 * math.pi * j_day / 365)
-        delta = 0.409 * math.sin(2 * math.pi * j_day / 365 - 1.39)
-        # قصّ معامل acos إلى [-1,1]: عند خطوط العرض العالية يتجاوز المدى فيرمي
-        # domain error (شمس دائمة/ليل قطبيّ) — القصّ يعطي ws=0 أو π بثبات.
-        _ws_arg = max(-1.0, min(1.0, -math.tan(phi) * math.tan(delta)))
-        ws = math.acos(_ws_arg)
-        ra = (
-            (24 * 60 / math.pi)
-            * 0.082
-            * dr
-            * (
-                ws * math.sin(phi) * math.sin(delta)
-                + math.cos(phi) * math.cos(delta) * math.sin(ws)
+        body = {
+            "t_max_c": req.t_max,
+            "t_min_c": req.t_min,
+            "lat_deg": lat,
+            "elevation_m": req.altitude,
+            "day_of_year": j_day,
+            "valid_time": req.date,
+        }
+        try:
+            async with httpx.AsyncClient(timeout=20.0) as client:
+                resp = await client.post(f"{_weather_service_url()}/v1/weather/agro/et0", json=body)
+        except httpx.HTTPError as exc:
+            raise HTTPException(
+                status_code=503,
+                detail=f"weather-engine ET0 unavailable — fail-closed (no local ET0): {exc}",
+            ) from exc
+        if resp.status_code >= 400:
+            raise HTTPException(
+                status_code=503,
+                detail="weather-engine ET0 unavailable — fail-closed (no local ET0)",
             )
-        )
-        et0 = 0.0023 * (t_mean + 17.8) * math.sqrt(t_range) * ra * 0.408
-
+        product = resp.json()
+        et0 = product.get("et0_mm")
+        if et0 is None:
+            raise HTTPException(
+                status_code=503,
+                detail="weather-engine returned no ET0 — fail-closed (no local ET0)",
+            )
+        t_mean = (req.t_max + req.t_min) / 2
+        t_range = req.t_max - req.t_min
         return {
             "content": [
                 {
                     "type": "text",
                     "text": json.dumps(
                         {
-                            "method": "Hargreaves-Samani",
-                            "et0_mm_day": round(et0, 2),
+                            "method": product.get("method", "weather-engine"),
+                            "et0_mm_day": round(float(et0), 2),
                             "t_mean_c": round(t_mean, 2),
                             "t_range_c": round(t_range, 2),
-                            "ra_mj_m2_day": round(ra, 2),
+                            "quality_status": product.get("quality_status"),
+                            "formula_version": product.get("formula_version"),
+                            "source": "weather-engine",
                             "date": req.date,
                             "location": {
                                 "lat": req.lat,
