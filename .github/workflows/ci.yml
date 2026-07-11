@@ -32,6 +32,10 @@ jobs:
       - name: decision-candidate-boundary-gate
         run: python scripts/ci/decision_candidate_boundary_gate.py
 
+      # WAIVER-EXPIRY-GUARD: fail once any time-boxed governance waiver has expired
+      - name: waiver-expiry-guard
+        run: python scripts/ci/waiver_expiry_guard.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
