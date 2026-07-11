@@ -10185,7 +10185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "63302d246362a38176a55cb39563c7ef6eaa636bf2634b48e60e99496a6e619e"
+          "content": "b4d550a48997d8fd3417b234ef3b4d466ac2a5008b1b03d555d488f52205f38e"
         }
       ],
       "name": "services/model-registry-adapter/adapter.py",

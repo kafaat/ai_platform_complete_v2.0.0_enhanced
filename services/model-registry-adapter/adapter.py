@@ -1,8 +1,8 @@
 """WX-12 registry adapter.
 
 Consumes authoritative activation/rollback commands from decision-service and performs a
-compare-and-swap against a configured registry HTTP API. Production is fail-closed: no local or
-in-memory backend is permitted when SAHOOL_ENV=production.
+compare-and-swap against a configured registry HTTP API. Production is fail-closed: only the
+certified HTTP backend is accepted when SAHOOL_ENV=production (no local/offline substitute).
 """
 
 from __future__ import annotations
