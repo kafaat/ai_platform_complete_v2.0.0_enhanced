@@ -110,7 +110,7 @@
 | SUPERSET | توحيد main↔certification | **no-op** (main يحتوي cert؛ `a9f7314` سلف خطّيّ، 0 commit متقدّم) |
 | VALIDATE-NV | قيود NOT VALID (v127/v130/v132) | **prep** (`6ad1872`: تقرير+حارس+runbook؛ VALIDATE الفعليّ للمشغّل بعد تنظيف) |
 | WS-C.1b-CLOSE | توحيد ET0 في محرّك الطقس (صفر نواة حيّة خارجه) | **partial، الحارس محكَم** (`67b4bd3`؛ ثغرة الحارس مسدودة ببصمة Hargreaves + allowlist موثّقة) |
-| WS-C.1c Zero-Legacy | راتشِت إفراغ allowlist (`assert len==0`) | **GDD مكتمل** (`b3eaa4a`؛ allowlist 9→6: #1 gdd_phenology dead · #2 gdd_tracker→محرّك · #3 season.gdd_day+crop_twin→محرّك async. **كلّ نوى GDD مُزالة**. باقٍ 6 ET0: et0.py الجذر·water_balance·fao56·weather_analytics·field_state·MCP) |
+| WS-C.1c Zero-Legacy | راتشِت إفراغ allowlist (`assert len==0`) | **GDD مكتمل + ET0 #1** (`50b21b5`؛ allowlist 9→5: GDD #1-3 (gdd_phenology/gdd_tracker/season+crop_twin) · **ET0 #1 field_state_projection→منتج المحرّك async fail-closed→None** (حُذفت heuristic `_et0_from`). باقٍ 5 ET0: et0.py الجذر·water_balance·fao56·weather_analytics·weather_server MCP) |
 
 ## ماذا بعد؟
 
@@ -118,5 +118,5 @@
   `docker compose -f docker-compose.v9.yml up -d --build sahool-vegetation-analysis`. + ضبط `MFA_SECRET_ENCRYPTION_KEY` في `.env` لتفعيل مسار MFA الإنتاجيّ.
 - **SPATIAL-401:** أرسل status+body لطلب `/v1/fields/{id}/indicator-grid` من Network (أو سجلّ raster) لأشخّصه — لا اختلاق إصلاح.
 - **تصلّب الأساس (v57.5-DB):** أعلى أثراً v54 imagery quality ثمّ v50 soil_lab (لـVRA)؛ **أعيد التحقّق** أنّ كلّ بند لم يُغلَق downstream قبل التنفيذ.
-- **WS-C.1b-CLOSE:** لإعلان الإغلاق الكامل يلزم ترحيل **خمس** نوى ET0 حيّة (5 مسارات endpoint: water-balance · scenario-whatif · etc-dual · weather-analytics · field-state) إلى منتج ET0 الكنسيّ، ثمّ سدّ ثغرة الحارس (كشف `_hargreaves_et0`/`_et0_from_weather_payload`)، ثمّ حذف مدخلات allowlist. **ليست خطوة صغيرة** — تسلسُل مطلوب. season_simulation وحده مُرحَّل (نواة-صفر).
+- **WS-C.1b-CLOSE (راتشِت ET0):** بقيت **5** نوى ET0 حيّة بعد راتشِت #1 (`50b21b5`: field_state_projection مُرحَّل → منتج المحرّك async، fail-closed→None، حُذفت heuristic `_et0_from`، allowlist 6→5). التالي بالترتيب: **weather_server MCP** (نواة Hargreaves سطريّة مستقلّة، core→shared أو استدعاء HTTP للمحرّك) · **weather_analytics** (`_hargreaves_et0` غلاف؛ `analyze_weather_log` batch نقيّ يحتاج قرار عقد lat/doy — حاليّاً جدول Ra شهريّ) · **water_balance.compute_et0** (مسار توصية الريّ) · **fao56** (etc-dual) · **core/engines/et0.py الجذر** (يُحذَف آخِراً بعد توقّف كلّ المستوردين). ثمّ `assert len(temporary_legacy_allowlist) == 0` يقفل Zero-Legacy. ثمّ **Crop Learning Engine**.
 - **انضباط:** هذا المدخل يغلق دَين تحديث الدماغ لهذه الجلسة.

@@ -2398,3 +2398,14 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **صدق فجوة CI:** فحص checksum الحزمة أمسك ملفَّي tests_v9 عُدِّلا بعد إعادة بناء الحزمة — إصلاح `b3eaa4a` (إعادة بناء آخر خطوة). **درس:** إعادة بناء الحزمة آخِر خطوة بعد كلّ التعديلات (توأم فخّ inventory-drift).
 - **تحقّق (CI أخضر):** guard (canonical + 6) · platform 3678 · unit 2869 · crop-boundary · inventory · bundle · 884 route. main/develop = `b3eaa4a`. أرشيف مُرسَل.
 - **كلّ نوى GDD مُزالة الآن** (gdd_phenology + gdd_tracker + season_simulation). **المتبقّي = 6 نوى ET0:** et0.py الجذر · water_balance · fao56 · weather_analytics · field_state_projection · weather_server (MCP، core→shared). ثمّ `assert len==0`.
+
+## WS-C.1b Zero-Legacy — راتشِت ET0 #1: field_state_projection → منتج المحرّك (allowlist 6→5)
+
+- **`field_state_projection._et0_from_weather_payload` (`50b21b5`):** أوّل راتشِت ET0 حقيقيّ — النواة المحلّيّة (كانت تستدعي `api.water_balance.compute_et0` ⇒ `core.engines.et0`) رُحِّلت إلى **مستهلِك لمنتج محرّك الطقس** (`get_et0_product`). صيغة FAO-56 Penman-Monteith/Hargreaves تُنفَّذ الآن في المحرّك فقط، لا في المنصّة.
+  - الدالّة أصبحت **async**، تُنتظَر (`await`) عند `recompute_field_state` مع تمرير `tenant_id`.
+  - **fail-closed محفوظ (عقد best-effort للحالة القانونيّة):** تعذّر المحرّك/نقص بيانات ⇒ `None` (يغيب `etc_mm`، لا احتياط محلّيّ، لا تلفيق) — **ليس 503** (متّسق مع دلالة القراءة التكميليّة للحالة، لا كسر التحكيم).
+  - **الحارس:** حُذفت heuristic الاسم `_et0_from*` (كانت لتتبّع هذا المُنتِج المحلّيّ فقط؛ الآن مستهلِك لا نواة). اختبار الحارس يؤكّد عدم رصده بعد الآن.
+  - `indicators_registry.json`: مُلاحظة et0 حُدِّثت (مستهلِك محرّك، لا FAO-56 محلّيّ).
+  - اختباران في `test_fieldstate_water_canon` أُعيدا (async + mock `get_et0_product` + حالة تعذّر المحرّك ⇒ None). حُذف الملفّ من allowlist (6→5).
+- **تحقّق (CI أخضر 12/12 job):** weather-engine-formula-guard (canonical + 5) · Platform Unit 3678 · Unit 2870 · Integration · Security Scan · Frontend/Flutter · inventory 884 route · bundle 3921 checksum. main/develop = `50b21b5`. أرشيف مُرسَل.
+- **المتبقّي = 5 نوى ET0:** et0.py الجذر (يُحذَف آخِراً) · water_balance (مسار الريّ) · fao56 (etc-dual) · weather_analytics (عقد lat) · weather_server (MCP، core→shared). ثمّ `assert len(temporary_legacy_allowlist) == 0`.
