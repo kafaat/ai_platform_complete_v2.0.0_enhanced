@@ -2521,3 +2521,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **تشخيصات صريحة (فجوة أصغر):** أُضيف `diagnostics` للمخرَج (لا يمسّ عقد GDD القديم): `invalid_records` (تاريخ فاسد) · `unmapped_temperature_pairs` (أزواج حرارة لم تُربَط بتاريخ) · `input_t_min_count`/`input_t_max_count`/`input_date_count` — كي لا يُسقَط أيّ سجلّ بصمت.
 - **اختبارات (4 جديدة، مجموع 23):** unit: mismatch parity عبر kernel arrays (limitations + valid_period.days == النواة) · diagnostics تُفصح الأعداد. HTTP: `POST /agro/gdd` بطولين مختلفين == النواة القديمة (limitations + valid_period.days) · تواريخ فاسدة تظهر في invalid_records.
 - **تحقّق:** weather **156** (+4) · guard LOCKED · bandit High 0 · unit 2866 · ruff · inventory 887 `--check` أخضر · bundle. CI معلَّق قبل التقديم السريع.
+
+## WX-10.4 — إغلاق مُتحقَّق (main+develop @ `1ff0add`)
+- **CI الفرع:** 12/12 أخضر على `1ff0add` (run 29155918013).
+- **FF:** main + develop تقدّما خطّيّاً `b8a98e5..1ff0add` (لا تباعُد، commit واحد = إصلاح parity).
+- **المشغّلات main-only خضراء على main:** `runtime-real-smoke` (success) · `service-inventory-drift` (success) — الجرد جُدِّد `--check` أخضر قبل الـFF فلا انحدار.
+- **الحالة:** WX-10.4 GDD View التراكميّ **مُغلَق** بمنهجيّة الراتشِت كاملةً (byte-compat + length-mismatch parity + cumulative lineage مستقلّ عن آخر يوم + coverage≠quality + diagnostics).
+- **التالي (خارطة الطريق):** WX-10.5 Crop Intelligence consumer لمنتج GDD القانونيّ (لقطة المستخدم `sahool_wx10_5_...` تحمل تطبيقاً مقترحاً — بانتظار قرار المستخدم على شكل WX-10.4 diagnostics: `diagnostics` block المُثبَّت مقابل `coverage` block في اللقطة).
