@@ -118,13 +118,11 @@ class GDDResult:
         }
 
 
-def daily_gdd(t_min: float, t_max: float, t_base: float, t_upper: float | None = None) -> float:
-    """GDD ليوم واحد = max(0, (Tmax+Tmin)/2 − T_base) مع سقف اختياري."""
-    tmax = min(t_max, t_upper) if t_upper is not None else t_max
-    tmin = t_min
-    # بعض المراجع تقصّ Tmin أيضاً عند T_base
-    mean = (tmax + tmin) / 2
-    return max(0.0, mean - t_base)
+# WS-C.1c Zero-Legacy: نواة GDD اليوميّة (daily_gdd) وحلقة التراكم (track_gdd) أُزيلتا —
+# مِلكيّتها الوحيدة الآن محرّك الطقس (services/weather-service/gdd.py: gdd_daily method="simple"،
+# ``POST /v1/weather/agro/gdd``). المستهلكون (routers/gdd · scenario/planting-date) يجلبون
+# التراكميّ من المحرّك (fail-closed) ثمّ يطبّقون ``stage_result_from_cumulative`` أدناه. يبقى هنا
+# **سياسة الموسم** فقط (GDD_CROP_PARAMS + تعيين المرحلة)، وهي مِلك Season لا نواة حساب.
 
 
 def stage_result_from_cumulative(crop: str, cumulative: float, days_counted: int) -> GDDResult:
@@ -182,16 +180,5 @@ def stage_result_from_cumulative(crop: str, cumulative: float, days_counted: int
     )
 
 
-def track_gdd(crop: str, temps: list[DailyTemp]) -> GDDResult:
-    """يتراكم GDD (نواة محلّيّة) عبر سلسلة أيّام ثمّ يطبّق سياسة المراحل.
-
-    الإرث: النواة هنا (``daily_gdd``, طريقة ``simple``). التفويض للمحرّك في الراوتر؛
-    تبقى هذه للمقارنة الظلّيّة والمستهلكين غير المُرحَّلين. يرفع ValueError لمحصول مجهول.
-    """
-    params = GDD_CROP_PARAMS.get(crop)
-    if params is None:
-        raise ValueError(f"محصول غير معروف لـGDD: {crop}. المتاح: {list(GDD_CROP_PARAMS)}")
-    t_base = params["t_base"]
-    t_upper = params["t_upper"]
-    cumulative = sum(daily_gdd(d.t_min_c, d.t_max_c, t_base, t_upper) for d in temps)
-    return stage_result_from_cumulative(crop, cumulative, len(temps))
+# WS-C.1c Zero-Legacy: ``track_gdd`` (حلقة التراكم المحلّيّة) أُزيلت — التراكميّ يأتي من محرّك
+# الطقس (``get_gdd_product``) في الراوترات، ثمّ ``stage_result_from_cumulative`` يطبّق سياسة المرحلة.

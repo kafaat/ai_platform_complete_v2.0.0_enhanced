@@ -5,22 +5,16 @@
 WS-C.1c: نواة GDD اليوميّة من **محرّك الطقس** (المصدر الوحيد)، لا تُحسب محلّيّاً.
 سياسة المراحل (عتبات ``GDD_CROP_PARAMS``) تبقى هنا (Season) وتُطبَّق على تراكميّ
 المحرّك عبر ``stage_result_from_cumulative``. تعذّر المحرّك ⇒ 503 (لا GDD محلّيّ بديل).
-مقارنة ظلّيّة مؤقّتة لكلّ مستهلك (``gdd_shadow``): الإرث لا يدخل القرار — للمقارنة فقط.
+WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة ونواة GDD المحلّيّة (المحرّك مصدر وحيد).
 """
 
 from __future__ import annotations
 
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException
 
-from api.gdd_shadow import compare_gdd_shadow
 from api.gdd_tracker import (
     GDD_CROP_PARAMS,
-    DailyTemp,
-    daily_gdd,
     stage_result_from_cumulative,
-    track_gdd,
 )
 from api.main import (
     GDDRequest,
@@ -31,7 +25,6 @@ from api.weather_service_client import get_gdd_product
 
 router = APIRouter()
 
-_LOG = logging.getLogger("sahool.gdd.shadow")
 _ENGINE_DOWN_CODES = (502, 503, 504)
 # gdd_tracker يستخدم طريقة المتوسّط بقصّ tmax فقط = الطريقة الكنسيّة "simple".
 _TRACKER_METHOD = "simple"
@@ -92,31 +85,12 @@ async def gdd_track(
     # سياسة المراحل تُطبَّق على تراكميّ المحرّك (العتبات تبقى في المنصّة/الموسم).
     result = stage_result_from_cumulative(req.crop, float(engine_cum), len(req.temps)).to_dict()
 
-    # مقارنة ظلّيّة مؤقّتة لهذا المستهلك (الإرث لا يدخل القرار) — نفس الطريقة ⇒ match.
-    legacy = track_gdd(req.crop, [DailyTemp(t.t_min_c, t.t_max_c) for t in req.temps])
-    legacy_daily = [daily_gdd(t.t_min_c, t.t_max_c, t_base, t_upper) for t in req.temps]
-    shadow = compare_gdd_shadow(
-        legacy_daily=legacy_daily,
-        legacy_accumulated=legacy.cumulative_gdd,
-        legacy_method=_TRACKER_METHOD,
-        legacy_base_c=t_base,
-        legacy_upper_cutoff_c=t_upper,
-        engine_product=engine,
-    )
-    _LOG.info(
-        "gdd_shadow consumer=gdd_track crop=%s status=%s acc_diff=%s method=%s/%s",
-        req.crop,
-        shadow["shadow_status"],
-        shadow["accumulated_diff"],
-        shadow["legacy_method"],
-        shadow["engine_method"],
-    )
-
+    # WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة (المحرّك هو مصدر GDD الوحيد الآن — لا
+    # ``track_gdd``/``daily_gdd`` محلّيّ يُقارَن به). النَّسَب من المحرّك مباشرة.
     result["gdd_provenance"] = {
         "source": "weather-engine",
         "calculation_version": engine.get("calculation_version"),
         "thresholds_used": engine.get("thresholds_used"),
         "valid_period": engine.get("valid_period"),
-        "shadow": shadow,
     }
     return result

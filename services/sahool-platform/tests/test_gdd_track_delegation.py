@@ -1,7 +1,7 @@
-"""راوتر /api/v1/gdd/track يستهلك نواة GDD من محرّك الطقس (WS-C.1c) —
+"""راوتر /api/v1/gdd/track يستهلك نواة GDD من محرّك الطقس (WS-C.1c Zero-Legacy) —
 
 يُثبِت: المسار يفوّض النواة للمحرّك فعلاً · سياسة المراحل تُطبَّق على تراكميّ المحرّك ·
-مقارنة ظلّيّة (نفس الطريقة ⇒ match) · تعذّر المحرّك ⇒ 503 بلا GDD محلّيّ.
+تعذّر المحرّك ⇒ 503 بلا GDD محلّيّ. (أُزيلت المقارنة الظلّيّة ونواة daily_gdd المحلّيّة.)
 """
 
 from __future__ import annotations
@@ -9,8 +9,15 @@ from __future__ import annotations
 import api.routers.gdd as mod
 import pytest
 from api.api_models import DailyTempInput, GDDRequest
-from api.gdd_tracker import GDD_CROP_PARAMS, DailyTemp, daily_gdd
+from api.gdd_tracker import GDD_CROP_PARAMS
 from fastapi import HTTPException
+
+
+def _simple_gdd(t_min: float, t_max: float, t_base: float, t_upper: float | None) -> float:
+    """نسخة اختبار محلّيّة لصيغة GDD method="simple" (لتوليد ردّ محرّك وهميّ فقط —
+    ليست نواة إنتاجيّة؛ الاختبارات مُستثناة من حارس الصيغ)."""
+    tmax = min(t_max, t_upper) if t_upper is not None else t_max
+    return max(0.0, (tmax + t_min) / 2.0 - t_base)
 
 
 def _req(crop="wheat", n=5):
@@ -20,7 +27,7 @@ def _req(crop="wheat", n=5):
 
 def _engine_cumulative(crop, req):
     p = GDD_CROP_PARAMS[crop]
-    return sum(daily_gdd(t.t_min_c, t.t_max_c, p["t_base"], p["t_upper"]) for t in req.temps)
+    return sum(_simple_gdd(t.t_min_c, t.t_max_c, p["t_base"], p["t_upper"]) for t in req.temps)
 
 
 def _patch_engine(monkeypatch, *, raises=None):
@@ -29,7 +36,7 @@ def _patch_engine(monkeypatch, *, raises=None):
             raise raises
         # المحرّك الكنسيّ بنفس الطريقة ⇒ يعيد قيمة الإرث نفسها (round 3).
         daily = [
-            round(daily_gdd(mn, mx, base_c, upper_cutoff_c), 3)
+            round(_simple_gdd(mn, mx, base_c, upper_cutoff_c), 3)
             for mn, mx in zip(daily_t_min, daily_t_max, strict=False)
         ]
         return {
@@ -65,14 +72,12 @@ async def test_route_consumes_engine_and_carries_provenance(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_shadow_status_match_when_method_preserved(monkeypatch):
+async def test_provenance_has_no_shadow_block(monkeypatch):
+    # WS-C.1c Zero-Legacy: أُزيلت المقارنة الظلّيّة — النَّسَب من المحرّك مباشرة بلا "shadow".
     _patch_engine(monkeypatch)
     out = await mod.gdd_track(_req(), user=object())
-    shadow = out["gdd_provenance"]["shadow"]
-    assert shadow["method_mismatch"] is False
-    assert shadow["policy_mismatch"] is False
-    assert shadow["shadow_status"] == "match"
-    assert shadow["accumulated_diff"] == 0.0
+    assert "shadow" not in out["gdd_provenance"]
+    assert out["gdd_provenance"]["thresholds_used"] is not None
 
 
 @pytest.mark.asyncio
@@ -98,8 +103,3 @@ async def test_unknown_crop_422_before_engine(monkeypatch):
         await mod.gdd_track(_req(crop="banana_unknown"), user=object())
     assert ei.value.status_code == 422
     assert called["n"] == 0
-
-
-def test_daily_temp_reexport_present():
-    # DailyTemp ما زال مُصدَّراً للاستعمال الداخليّ (لا كسر استيراد).
-    assert DailyTemp(1.0, 2.0).t_max_c == 2.0

@@ -28,13 +28,6 @@
       "note": "Platform FAO-56 helpers (penman_monteith_et0 delegating to core.engines.et0; also holds gdd_daily/gdd_accumulate). Retire alongside the et0.py core migration."
     },
     {
-      "path": "services/sahool-platform/api/gdd_tracker.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-pending-delegation",
-      "note": "Platform GDD tracker (daily_gdd + hardcoded GDD_CROP_PARAMS). Kernel → Weather Engine; crop base/cutoff tables → Season policy."
-    },
-    {
       "path": "services/sahool-platform/api/season_simulation.py",
       "owner": "weather-migration",
       "expires": "2026-07-31",

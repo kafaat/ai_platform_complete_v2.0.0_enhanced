@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from api.gdd_tracker import GDD_CROP_PARAMS, DailyTemp, track_gdd
+from api.gdd_tracker import GDDResult
 from api.water_balance import WeatherInput, water_balance
 
 
@@ -99,21 +99,13 @@ def whatif_temperature_shift(
     }
 
 
-def whatif_planting_date(
-    crop: str,
-    temps_baseline: list[DailyTemp],
-    temps_scenario: list[DailyTemp],
-) -> dict:
+def whatif_planting_date(crop: str, base: GDDResult, scen: GDDResult) -> dict:
     """ماذا لو غيّرتُ تاريخ الزراعة؟ (سلسلة حرارة مختلفة من تاريخ مختلف).
 
-    يقارن تراكم GDD وبلوغ المرحلة بين موعدَي زراعة.
+    WS-C.1c Zero-Legacy: نواة GDD تُحسب في محرّك الطقس (لا ``track_gdd`` محلّيّ). يستقبل
+    نتيجتَي GDD مُحقونتَين (``base``/``scen`` من تراكميّ المحرّك عبر ``stage_result_from_cumulative``)
+    ويقارن التراكم وبلوغ المرحلة بين موعدَي زراعة — دالّة نقيّة (سياسة، لا حساب).
     """
-    if crop not in GDD_CROP_PARAMS:
-        raise ValueError(f"محصول غير معروف لـGDD: {crop}")
-
-    base = track_gdd(crop, temps_baseline)
-    scen = track_gdd(crop, temps_scenario)
-
     comparisons = [
         ScenarioComparison(
             "GDD المتراكم",
@@ -126,7 +118,7 @@ def whatif_planting_date(
     if base.current_stage != scen.current_stage:
         stage_note = (
             f"اختلاف المرحلة: الأساس بلغ '{base.current_stage}'، "
-            f"البديل بلغ '{scen.current_stage}' بعد {len(temps_scenario)} يوم."
+            f"البديل بلغ '{scen.current_stage}' بعد {scen.days_counted} يوم."
         )
     else:
         stage_note = f"كلا الموعدَين عند مرحلة '{base.current_stage}'."

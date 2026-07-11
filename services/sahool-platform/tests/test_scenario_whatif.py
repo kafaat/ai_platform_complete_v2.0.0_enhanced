@@ -7,7 +7,7 @@
 """
 
 import pytest
-from api.gdd_tracker import DailyTemp
+from api.gdd_tracker import stage_result_from_cumulative
 from api.scenario_whatif import (
     ScenarioComparison,
     whatif_planting_date,
@@ -83,14 +83,17 @@ def test_temperature_shift_zero_baseline_need_avoids_div_by_zero():
 # ─── whatif_planting_date ──────────────────────────────────────────────────
 
 
+# WS-C.1c Zero-Legacy: whatif_planting_date دالّة نقيّة تستقبل نتيجتَي GDD مُحقونتَين
+# (من تراكميّ محرّك الطقس عبر stage_result_from_cumulative) — لا track_gdd محلّيّ.
+
+
 def test_planting_date_same_stage_note():
-    base = [DailyTemp(10, 20)] * 10
-    scen = [DailyTemp(15, 25)] * 10
+    # base=150 (emergence)، scen=200 (emergence) — تراكميّ المحرّك مُحقون.
+    base = stage_result_from_cumulative("wheat", 150.0, 10)
+    scen = stage_result_from_cumulative("wheat", 200.0, 10)
     r = whatif_planting_date("wheat", base, scen)
     assert r["scenario_type"] == "planting_date"
-    # كلاهما يبقى في 'emergence'
     assert r["baseline_stage"] == r["scenario_stage"] == "emergence"
-    # GDD: base = 10×15 = 150، scen = 10×20 = 200
     gdd_cmp = r["comparisons"][0]
     assert gdd_cmp["baseline"] == 150.0
     assert gdd_cmp["scenario"] == 200.0
@@ -99,23 +102,17 @@ def test_planting_date_same_stage_note():
 
 
 def test_planting_date_different_stage_note():
-    base = [DailyTemp(0, 0)] * 5  # 0 GDD → planting
-    scen = [DailyTemp(20, 40)] * 10  # GDD مرتفع → تجاوز emergence
+    base = stage_result_from_cumulative("wheat", 0.0, 5)  # planting
+    scen = stage_result_from_cumulative("wheat", 250.0, 10)  # emergence
     r = whatif_planting_date("wheat", base, scen)
     assert r["baseline_stage"] == "planting"
     assert r["scenario_stage"] != "planting"
     assert "اختلاف المرحلة" in r["summary_ar"]
 
 
-def test_planting_date_unknown_crop_raises():
-    base = [DailyTemp(10, 20)] * 5
-    with pytest.raises(ValueError, match="محصول غير معروف"):
-        whatif_planting_date("qat", base, base)
-
-
 def test_planting_date_empty_baseline_series():
-    base: list[DailyTemp] = []
-    scen = [DailyTemp(15, 25)] * 10
+    base = stage_result_from_cumulative("wheat", 0.0, 0)
+    scen = stage_result_from_cumulative("wheat", 200.0, 10)
     r = whatif_planting_date("wheat", base, scen)
     assert r["comparisons"][0]["baseline"] == 0.0
     assert r["baseline_stage"] == "planting"

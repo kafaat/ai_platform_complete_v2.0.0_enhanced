@@ -21,7 +21,7 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from api.gdd_tracker import DailyTemp as _DTemp
+from api.gdd_tracker import GDD_CROP_PARAMS, stage_result_from_cumulative
 from api.main import (
     UserSchema,
     WhatIfPlantingRequest,
@@ -41,6 +41,7 @@ from api.water_twin import (
     delay_irrigation,
     scale_irrigation,
 )
+from api.weather_service_client import get_gdd_product
 
 router = APIRouter()
 
@@ -121,17 +122,53 @@ def scenario_temperature(
 
 
 @router.post("/api/v1/scenario/planting-date")
-def scenario_planting_date(
+async def scenario_planting_date(
     req: WhatIfPlantingRequest,
     user: UserSchema = Depends(get_current_user),
 ):
-    """ماذا لو غيّرتُ تاريخ الزراعة؟ أثر على تراكم GDD وبلوغ المراحل."""
-    base = [_DTemp(t["t_min_c"], t["t_max_c"]) for t in req.temps_baseline]
-    scen = [_DTemp(t["t_min_c"], t["t_max_c"]) for t in req.temps_scenario]
-    try:
-        return whatif_planting_date(req.crop, base, scen)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+    """ماذا لو غيّرتُ تاريخ الزراعة؟ أثر على تراكم GDD وبلوغ المراحل.
+
+    WS-C.1c Zero-Legacy: نواة GDD تُحسب في محرّك الطقس (method=simple، نفس الإرث)؛ لا
+    ``track_gdd`` محلّيّ. تعذّر المحرّك ⇒ 503 fail-closed. سياسة المراحل تبقى في المنصّة.
+    """
+    params = GDD_CROP_PARAMS.get(req.crop)
+    if params is None:
+        raise HTTPException(
+            status_code=422,
+            detail=f"محصول غير معروف لـGDD: {req.crop}. المتاح: {list(GDD_CROP_PARAMS)}",
+        )
+    t_base = params["t_base"]
+    t_upper = params["t_upper"]
+
+    async def _cumulative(temps: list[dict]) -> float:
+        try:
+            engine = await get_gdd_product(
+                daily_t_min=[t["t_min_c"] for t in temps],
+                daily_t_max=[t["t_max_c"] for t in temps],
+                base_c=t_base,
+                upper_cutoff_c=t_upper,
+                method="simple",
+            )
+        except HTTPException as exc:
+            if exc.status_code in (502, 503, 504):
+                raise HTTPException(
+                    status_code=503,
+                    detail="weather-engine GDD unavailable — fail-closed (no local GDD fallback)",
+                ) from exc
+            raise
+        cum = engine.get("accumulated_gdd")
+        if cum is None:
+            raise HTTPException(
+                status_code=422,
+                detail={"reason": "gdd_insufficient", "limitations": engine.get("limitations")},
+            )
+        return float(cum)
+
+    base_cum = await _cumulative(req.temps_baseline)
+    scen_cum = await _cumulative(req.temps_scenario)
+    base = stage_result_from_cumulative(req.crop, base_cum, len(req.temps_baseline))
+    scen = stage_result_from_cumulative(req.crop, scen_cum, len(req.temps_scenario))
+    return whatif_planting_date(req.crop, base, scen)
 
 
 @router.post("/api/v1/scenario/rainfall")
