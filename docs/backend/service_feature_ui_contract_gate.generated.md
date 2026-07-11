@@ -23,7 +23,7 @@ classification: `ui`
 
 ### `sahool-platform` — pass
 classification: `ui`
-- ui: 187 match(es)
+- ui: 190 match(es)
   - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
@@ -51,7 +51,7 @@ classification: `ui`
 
 ### `vegetation-analysis-service` — pass
 classification: `ui`
-- ui: 94 match(es)
+- ui: 96 match(es)
   - `frontend/src/App.tsx` ← `FieldRanking`
   - `frontend/src/components/NDVIGauge.tsx` ← `NDVI`
   - `frontend/src/components/sql/SQLEditor.tsx` ← `NDVI`
@@ -65,7 +65,7 @@ classification: `ui`
 
 ### `indicators-service` — pass
 classification: `ui`
-- ui: 25 match(es)
+- ui: 29 match(es)
   - `frontend/src/App.tsx` ← `HybridIndexPage`
   - `frontend/src/App.tsx` ← `indicators`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `indicators`
@@ -85,22 +85,22 @@ classification: `ui`
   - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherHoverReadout.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
-- platform-proxy: 230 match(es)
+- platform-proxy: 284 match(es)
+  - `services/sahool-platform/api/season_simulation.py` ← `weather-service`
   - `services/sahool-platform/api/season_simulation.py` ← `weather`
   - `services/sahool-platform/api/main.py` ← `weather`
   - `services/sahool-platform/api/event_replay.py` ← `weather`
-  - `services/sahool-platform/api/temporal_arbitration.py` ← `weather`
-  - `services/sahool-platform/api/cost_governance.py` ← `weather-service`
+  - `services/sahool-platform/api/season_models.py` ← `weather`
 
 ### `soil-service` — pass
 classification: `ui`
-- ui: 138 match(es)
+- ui: 142 match(es)
   - `frontend/src/App.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
   - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
-- platform-proxy: 255 match(es)
+- platform-proxy: 262 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/api/main.py` ← `soil`
   - `services/sahool-platform/api/event_replay.py` ← `soil`
@@ -124,7 +124,7 @@ classification: `ui`
 
 ### `sam2-inference` — pass
 classification: `internal`
-- internal-consumer: 32 match(es)
+- internal-consumer: 33 match(es)
   - `services/field-segmentation/main.py` ← `SEGMENTATION_INFERENCE_URL`
   - `services/field-segmentation/main.py` ← `SEGMENTATION_BACKEND`
   - `services/field-segmentation/main.py` ← `sam2`
@@ -178,7 +178,7 @@ classification: `ui`
 
 ### `guardrails-engine` — pass
 classification: `ui`
-- ui: 82 match(es)
+- ui: 85 match(es)
   - `frontend/src/App.tsx` ← `approval`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `validate`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `validate`
@@ -201,7 +201,7 @@ classification: `internal`
 
 ### `mcp_servers` — pass
 classification: `internal`
-- internal-consumer: 90 match(es)
+- internal-consumer: 93 match(es)
   - `services/supervisor-agent/test_graceful_degradation.py` ← `MCP`
   - `services/supervisor-agent/main.py` ← `MCP`
   - `services/supervisor-agent/main.py` ← `sentinel`
@@ -210,13 +210,13 @@ classification: `internal`
 
 ### `actuator-service` — pass
 classification: `ui`
-- ui: 171 match(es)
+- ui: 174 match(es)
   - `frontend/src/App.tsx` ← `irrigation`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
   - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
-- platform-proxy: 77 match(es)
+- platform-proxy: 80 match(es)
   - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_workers.py` ← `dispatch`
   - `services/sahool-platform/api/command_store.py` ← `dispatch`

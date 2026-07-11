@@ -448,6 +448,22 @@
       "importance": 40,
       "importance_tier": "P2-متوسّط",
       "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/crop-twin/decision-candidate",
+      "audience": "agronomist",
+      "methods": [
+        "post@services/sahool-platform/api/routers/crop_twin.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.6 حدّ crop→decision candidate: مسار حوكمة يبني/يرسل مرشّح قرار pending_approval يملكه decision-service (fail-closed، لا تنفيذ تلقائيّ). المستهلِك decision-service؛ شاشة مراجعة/موافقة المرشّح دَين واجهة مقصود في WX-10.7.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     }
   ]
 }

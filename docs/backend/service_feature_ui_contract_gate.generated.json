@@ -222,7 +222,7 @@
               "pattern": "AddFieldWithMap"
             }
           ],
-          "match_count": 187
+          "match_count": 190
         },
         {
           "kind": "gateway",
@@ -454,7 +454,7 @@
               "pattern": "NDVI"
             }
           ],
-          "match_count": 94
+          "match_count": 96
         },
         {
           "kind": "gateway",
@@ -535,6 +535,21 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/hooks/useIndicatorRegistry.static.test.ts",
+              "pattern": "HybridIndexPage"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/useIndicatorRegistry.static.test.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/hooks/useIndicatorRegistry.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/useApi.ts",
               "pattern": "useIndicators"
             },
@@ -552,24 +567,9 @@
               "root": "frontend/src",
               "path": "frontend/src/hooks/useIndicators.ts",
               "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
-              "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/client.ts",
-              "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/SetupCabin.tsx",
-              "pattern": "indicators"
             }
           ],
-          "match_count": 25
+          "match_count": 29
         },
         {
           "kind": "gateway",
@@ -702,6 +702,11 @@
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/season_simulation.py",
+              "pattern": "weather-service"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/season_simulation.py",
               "pattern": "weather"
             },
             {
@@ -712,6 +717,11 @@
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/event_replay.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/season_models.py",
               "pattern": "weather"
             },
             {
@@ -731,6 +741,16 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/crop_twin.py",
+              "pattern": "weather-service"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/crop_twin.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/failure_modes.py",
               "pattern": "weather"
             },
@@ -738,29 +758,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/analytics_shapers.py",
               "pattern": "weather-service"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/analytics_shapers.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/fleet_health.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/confidence_aggregation.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/field_operational_state.py",
-              "pattern": "weather"
             }
           ],
-          "match_count": 230
+          "match_count": 284
         }
       ]
     },
@@ -843,7 +843,7 @@
               "pattern": "Soil"
             }
           ],
-          "match_count": 138
+          "match_count": 142
         },
         {
           "kind": "platform-proxy",
@@ -917,7 +917,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 255
+          "match_count": 262
         }
       ]
     },
@@ -1116,7 +1116,7 @@
               "pattern": "sahool-sam2-inference"
             }
           ],
-          "match_count": 32
+          "match_count": 33
         }
       ]
     },
@@ -1612,7 +1612,7 @@
               "pattern": "validate"
             }
           ],
-          "match_count": 82
+          "match_count": 85
         },
         {
           "kind": "gateway",
@@ -1795,7 +1795,7 @@
               "pattern": "MCP"
             }
           ],
-          "match_count": 90
+          "match_count": 93
         }
       ]
     },
@@ -1879,7 +1879,7 @@
               "pattern": "irrigation"
             }
           ],
-          "match_count": 171
+          "match_count": 174
         },
         {
           "kind": "platform-proxy",
@@ -1924,6 +1924,11 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/crop_decision_bridge.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/learning_summary.py",
               "pattern": "dispatch"
             },
@@ -1946,14 +1951,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/event_catalog.py",
               "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/phase9_autonomous_farm_os.py",
-              "pattern": "dispatch"
             }
           ],
-          "match_count": 77
+          "match_count": 80
         }
       ]
     },

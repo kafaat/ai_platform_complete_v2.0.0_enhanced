@@ -1,11 +1,36 @@
-"""Explicit Crop Intelligence -> Decision Service candidate bridge.
+"""WX-10.6 — Crop Intelligence → Decision Candidate boundary.
 
-The bridge never approves or dispatches.  It only records a reviewable
-candidate when the caller explicitly requests submission.
+Ownership split: **Crop Intelligence interprets evidence; decision-service owns the
+decision and its approval record.** This bridge builds a *reviewable candidate* — never
+a final decision. It never approves, dispatches, executes, creates a task, or issues an
+equipment command.
+
+Two modes:
+- ``submit=False`` → **preview only**, writes nothing (no network call).
+- ``submit=True``  → records a ``pending_approval`` candidate in decision-service and is
+  **fail-closed**: it reports ``pending_approval`` *only* when the service response proves
+  ``persisted=true`` and ``authoritative=true``, and the candidate itself always carries
+  ``status="pending_approval"`` + ``approval_required=True``.
+
+Lineage invariant: the candidate (evidence bundle + ``candidate_lineage_id``) is built
+**once, identically** for preview and submit — the submit path never rebuilds or mutates
+the evidence. ``candidate_lineage_id`` is a deterministic hash of the evidence bundle: it
+is stable for identical inputs and changes when the GDD product (accumulated GDD /
+``gdd_lineage_id`` / contributing state ids) or any evidence changes.
+
+Fail-closed refusals (never a fake success):
+- missing evidence / empty evidence ids,
+- missing ``recommendation_context`` or ``decision_boundary``,
+- boundary that is already a final decision, or whose consumer is not decision-service,
+- boundary that does not require approval,
+- decision-service unavailable, or a response that does not prove authoritative
+  persistence.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Any
 
 from fastapi import HTTPException
@@ -13,75 +38,237 @@ from fastapi import HTTPException
 from api.decision_service_client import record_decision
 
 _ENGINE_DOWN_CODES = {502, 503, 504}
+CANDIDATE_DECISION_TYPE = "crop_decision_candidate"
+CANDIDATE_STAGE = "candidate"
 
 
-def build_crop_decision_candidate(crop_state: dict[str, Any]) -> dict[str, Any]:
-    context = crop_state.get("recommendation_context")
+def _canonical_lineage_id(evidence: dict[str, Any]) -> str:
+    """Deterministic candidate lineage id over the evidence bundle (last-input-stable)."""
+    blob = json.dumps(evidence, sort_keys=True, separators=(",", ":"), default=str)
+    return "cand/" + hashlib.sha1(blob.encode(), usedforsecurity=False).hexdigest()[:16]
+
+
+def build_crop_decision_candidate(
+    crop_intelligence: dict[str, Any],
+    *,
+    gdd_product: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build a reviewable decision candidate from a ``crop_intelligence_state.v2`` block.
+
+    ``crop_intelligence`` is the engine's CI block (interpretation). ``gdd_product`` is the
+    canonical weather GDD product — the authoritative source of accumulated GDD and GDD
+    lineage. This function interprets/relays only; it never decides. Fail-closed on any
+    missing/inconsistent evidence or boundary.
+    """
+    if not isinstance(crop_intelligence, dict):
+        raise ValueError("crop_intelligence state is required")
+
+    context = crop_intelligence.get("recommendation_context")
     if not isinstance(context, dict):
         raise ValueError("crop recommendation context is missing")
-    if context.get("is_decision") is not False:
+    boundary = context.get("decision_boundary")
+    if not isinstance(boundary, dict):
+        raise ValueError("recommendation context has no decision_boundary")
+    if boundary.get("is_decision") is not False:
         raise ValueError("crop recommendation context must not be a final decision")
-    field_id = crop_state.get("field_id")
-    season_id = crop_state.get("season_id")
+    if boundary.get("consumer") != "decision-service":
+        raise ValueError("decision boundary consumer must be decision-service")
+    if boundary.get("approval_required") is not True:
+        raise ValueError("decision boundary must require approval")
+
+    field_id = crop_intelligence.get("field_id")
+    season_id = crop_intelligence.get("season_id")
     if not field_id or not season_id:
         raise ValueError("field_id and season_id are required")
 
-    evidence_ids = list(
-        dict.fromkeys((crop_state.get("evidence_ids") or []) + (context.get("evidence_ids") or []))
+    # gdd_product is the SOLE authoritative source of accumulated GDD + GDD lineage. It is
+    # never re-derived from daily_gdd nor substituted from crop_intelligence. Fail-closed if
+    # the canonical product or any of its three lineage anchors is missing, BEFORE any
+    # candidate is built.
+    if not isinstance(gdd_product, dict):
+        raise ValueError("canonical gdd_product is required (fail-closed)")
+    accumulated_gdd = gdd_product.get("accumulated_gdd")
+    gdd_lineage_id = gdd_product.get("gdd_lineage_id")
+    contributing_state_ids = gdd_product.get("contributing_state_ids")
+    if accumulated_gdd is None:
+        raise ValueError("gdd_product.accumulated_gdd is required (fail-closed)")
+    if not gdd_lineage_id:
+        raise ValueError("gdd_product.gdd_lineage_id is required (fail-closed)")
+    if not contributing_state_ids:
+        raise ValueError("gdd_product.contributing_state_ids is required (fail-closed)")
+    # Preserve canonical order (contributing_state_ids are already canonically ordered).
+    contributing_state_ids = list(contributing_state_ids)
+
+    phenology = crop_intelligence.get("phenology") or {}
+    limitations = list(
+        dict.fromkeys(
+            [
+                *(crop_intelligence.get("limitations") or []),
+                *(gdd_product.get("limitations") or []),
+            ]
+        )
     )
-    return {
-        "decision_type": "crop_management",
+
+    # Evidence ids: crop-intelligence evidence ⊕ context evidence ⊕ GDD lineage — lossless.
+    evidence_ids = list(
+        dict.fromkeys(
+            [
+                *(crop_intelligence.get("evidence_ids") or []),
+                *(context.get("evidence_ids") or []),
+                *contributing_state_ids,
+                gdd_lineage_id,
+            ]
+        )
+    )
+
+    # Candidate lineage material — EXACTLY the fields specified for WX-10.6: stable for
+    # identical inputs, GDD-sensitive (any change to gdd_lineage_id / ordered
+    # contributing_state_ids / accumulated_gdd changes the candidate lineage).
+    lineage_material = {
         "field_id": field_id,
         "season_id": season_id,
-        "recommendation": {
+        "crop_schema": crop_intelligence.get("schema"),
+        "engine_version": crop_intelligence.get("engine_version"),
+        "recommendation_context": context,
+        "gdd_lineage_id": gdd_lineage_id,
+        "contributing_state_ids": contributing_state_ids,  # ordered
+        "accumulated_gdd": accumulated_gdd,
+        "limitations": limitations,
+    }
+    candidate_lineage_id = _canonical_lineage_id(lineage_material)
+
+    # Evidence bundle — the scientific content the human/policy reviews (superset of the
+    # lineage material; GDD anchors sourced only from gdd_product).
+    evidence: dict[str, Any] = {
+        "field_id": field_id,
+        "season_id": season_id,
+        "stage": context.get("stage") or phenology.get("stage") or phenology.get("current_stage"),
+        "phenology": phenology,
+        "accumulated_gdd": accumulated_gdd,
+        "gdd_lineage_id": gdd_lineage_id,
+        "contributing_state_ids": contributing_state_ids,
+        "gdd_series_quality_status": gdd_product.get("series_quality_status"),
+        "stress": {
+            "active_codes": list(context.get("active_stress_codes") or []),
+            "flags": list(crop_intelligence.get("stress_flags") or []),
+            "memory_state": context.get("stress_memory_state"),
             "urgency": context.get("urgency"),
-            "crop_health": context.get("crop_health"),
-            "water_need": context.get("water_need"),
-            "stress_summary": context.get("stress_summary"),
-            "phenology": crop_state.get("phenology"),
+            "urgent_factors": list(context.get("urgent_factors") or []),
         },
-        "confidence": crop_state.get("confidence"),
+        "confidence": crop_intelligence.get("confidence"),
+        "limitations": limitations,
         "evidence_ids": evidence_ids,
-        "provenance": {
-            "crop_engine_version": crop_state.get("engine_version"),
-            "crop_schema": crop_state.get("schema"),
-            "stress_memory_version": (crop_state.get("stress_memory") or {}).get("product_version"),
+        "versions": {
+            "engine_version": crop_intelligence.get("engine_version"),
+            "schema": crop_intelligence.get("schema"),
+            "gdd_calculation_version": gdd_product.get("calculation_version"),
+            "gdd_series_quality_status": gdd_product.get("series_quality_status"),
+            "stress_memory_version": (crop_intelligence.get("stress_memory") or {}).get(
+                "product_version"
+            ),
         },
+    }
+
+    return {
+        "decision_type": CANDIDATE_DECISION_TYPE,
+        "field_id": field_id,
+        "season_id": season_id,
         "status": "pending_approval",
         "approval_required": True,
-        "calibrated": bool(crop_state.get("calibrated", False)),
+        "candidate_lineage_id": candidate_lineage_id,
+        "evidence": evidence,
+        "evidence_ids": evidence_ids,
+        "confidence": crop_intelligence.get("confidence"),
+        "limitations": limitations,
+        "ownership": {
+            "interpretation": "crop-intelligence-engine",
+            "decision": "decision-service",
+        },
+        "calibrated": bool(crop_intelligence.get("calibrated", False)),
+    }
+
+
+def _preview(candidate: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "approval_state": "preview",
+        "submitted": False,
+        "persisted": False,
+        "authoritative": False,
+        "candidate_id": None,
+        "candidate_lineage_id": candidate["candidate_lineage_id"],
+        "candidate": candidate,
+        "limitations": candidate["limitations"],
     }
 
 
 async def submit_crop_decision_candidate(
-    crop_state: dict[str, Any],
+    crop_intelligence: dict[str, Any],
     *,
+    gdd_product: dict[str, Any] | None = None,
     tenant_id: str | None,
     submit: bool = False,
+    created_by: str | None = None,
 ) -> dict[str, Any]:
-    """Return explicit approval state and submit only when ``submit=True``."""
-    candidate = build_crop_decision_candidate(crop_state)
+    """Preview (no write) or submit a ``pending_approval`` candidate — fail-closed.
+
+    The candidate is built **once**; preview and submit share the identical evidence and
+    ``candidate_lineage_id``. Submit records the *same* candidate into decision-service and
+    only returns ``pending_approval`` when the service proves authoritative persistence.
+    """
+    candidate = build_crop_decision_candidate(crop_intelligence, gdd_product=gdd_product)
     if not submit:
-        return {
-            "approval_state": "not_submitted",
-            "decision_id": None,
-            "candidate": candidate,
-            "limitations": [],
-        }
+        return _preview(candidate)
+
+    # DECISION-PATH: submit → record a reviewable candidate ONLY. decision-service owns
+    # persistence + the approval record. No dispatch / execution / task / equipment command.
+    record_payload = {
+        "field_id": candidate["field_id"],
+        "decision_type": candidate["decision_type"],
+        "stage": CANDIDATE_STAGE,
+        "decision_value": candidate,  # full candidate incl. lineage + evidence, unchanged
+        "created_by": created_by,
+    }
     try:
-        result = await record_decision(candidate, tenant_id=tenant_id)
+        result = await record_decision(record_payload, tenant_id=tenant_id)
     except HTTPException as exc:
         if exc.status_code in _ENGINE_DOWN_CODES:
-            return {
-                "approval_state": "submit_unavailable",
-                "decision_id": None,
-                "candidate": candidate,
-                "limitations": ["decision-service unavailable — candidate not submitted"],
-            }
+            # fail-closed: decision-service unavailable → no candidate, no fake success.
+            raise HTTPException(
+                status_code=503,
+                detail="decision-service unavailable — candidate not submitted (fail-closed)",
+            ) from exc
         raise
+
+    # fail-closed proof. The record endpoint does not return a `status` field, so we do NOT
+    # infer pending_approval locally from the response: instead we require the authoritative
+    # response to point to the SAME record we submitted (non-empty decision_id + echoed
+    # `stage == candidate`), while the persisted candidate itself carries
+    # status=pending_approval + approval_required=True inside decision_value.
+    candidate_id = result.get("decision_id") or result.get("id")
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and bool(candidate_id)
+        and result.get("stage") == CANDIDATE_STAGE
+        and candidate["status"] == "pending_approval"
+        and candidate["approval_required"] is True
+    )
+    if not proven:
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                "decision-service did not confirm authoritative persistence of the "
+                "pending_approval candidate — fail-closed"
+            ),
+        )
+
     return {
         "approval_state": "pending_approval",
-        "decision_id": result.get("decision_id") or result.get("id"),
+        "submitted": True,
+        "persisted": True,
+        "authoritative": True,
+        "candidate_id": candidate_id,
+        "candidate_lineage_id": candidate["candidate_lineage_id"],
         "candidate": candidate,
-        "limitations": [],
+        "limitations": candidate["limitations"],
     }

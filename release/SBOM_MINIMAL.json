@@ -11865,7 +11865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b911602e50d77594277fffc7bdbe47eba2e7b81603ce4417f3a92ea16cb1c14"
+          "content": "577bd1ed5d4232a9364f8d5490e93e78e303766d797afe2a64175b546c4e4031"
         }
       ],
       "name": "services/sahool-platform/api/crop_decision_bridge.py",
@@ -13415,7 +13415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9e821d175fc426ef6a15c254d252bf04ec9bdf780a61bba209c04a387d2451f"
+          "content": "cb06fb9eafd663050c95f9806d53380a86427543a3c85377d5ad14f572fbe679"
         }
       ],
       "name": "services/sahool-platform/api/routers/crop_twin.py",
@@ -19315,7 +19315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e284e77da2f1348a35b56c7236b5458f8f819db911b94bfe67b9a8acee16b084"
+          "content": "87f0ae61d1f8bc4478591a4b6ba44416494393e770a6ec2cba9783041b57cbbf"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_decision_bridge.py",
@@ -19339,6 +19339,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_inference.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "84801f0c9a8ae0da1fb23920d39c7064b0646c081a1fa00861baec24e843a0bc"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_intelligence_canonical_gdd_product.py",
       "type": "file"
     },
     {

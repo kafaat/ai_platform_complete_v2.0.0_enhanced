@@ -22,6 +22,7 @@ from core.crop_intelligence import build_canonical_spectral_state
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from api.crop_decision_bridge import submit_crop_decision_candidate
 from api.crop_twin import TwinDay, crop_twin_state
 from api.data_quality import assess_data_quality
 from api.decision_lineage import ensure_decision_id, lineage_stage
@@ -181,6 +182,7 @@ async def _compose_state(req: CropTwinComposeRequest) -> dict:
         "kc_fapar": kc_fapar,
         "quality": quality,
         "kc_of": _kc,  # لإعادة استخدام Kc الفعّال في خطّة الريّ
+        "gdd_product": gdd_engine,  # WX-10.6: منتج GDD القانونيّ (نَسَب صريح لمرشّح القرار)
     }
 
 
@@ -224,6 +226,55 @@ async def compose_crop_twin(
         "assumptions": st["quality"]["assumptions"],
         "warnings_ar": twin["warnings_ar"],
     }
+
+
+class CropDecisionCandidateRequest(CropTwinComposeRequest):
+    """WX-10.6 — طلب مرشّح قرار = طلب التركيب + راية الإرسال.
+
+    ``submit=False`` (افتراضيّ) ⇒ preview فقط لا كتابة. ``submit=True`` ⇒ إنشاء مرشّح
+    ``pending_approval`` في decision-service (fail-closed).
+    """
+
+    submit: bool = False
+
+
+@router.post("/api/v1/crop-twin/decision-candidate")
+async def crop_decision_candidate_endpoint(
+    req: CropDecisionCandidateRequest,
+    user: UserSchema = Depends(get_current_user),
+):
+    """WX-10.6 — يحوّل تفسير Crop Intelligence إلى **مرشّح قرار قابل للمراجعة** يملكه
+    decision-service، لا قراراً نهائيّاً.
+
+    المسار: Canonical GDD → Crop Intelligence → **Decision Candidate** → Human/Policy
+    Approval → Decision-Service SoR. حدود الملكيّة: Crop Intelligence يفسّر الأدلة؛
+    decision-service يملك القرار وسجلّ الموافقة. ``submit=False`` ⇒ preview بلا كتابة؛
+    ``submit=True`` ⇒ مرشّح ``pending_approval`` فقط. **لا تنفيذ تلقائيّ** (لا auto-approve /
+    dispatch / task / أمر معدّات / تحويل مباشر لتوصية نهائيّة). fail-closed عند غياب الأدلة /
+    نَسَب ناقص / مستهلِك غير decision-service / فشل الخدمة أو ردّ لا يُثبت الحفظ الآمِر.
+
+    الثابت الحرجّ: نَسَب المرشّح في preview == نَسَبه في submit لنفس المدخلات (يُبنى مرّة
+    واحدة؛ submit لا يعيد بناءه ولا يُغيّر الأدلة).
+    """
+    st = await _compose_state(req)
+    twin = st["twin"]
+    crop_intelligence = twin.get("crop_intelligence")
+    if not isinstance(crop_intelligence, dict):
+        # fail-closed: بلا تفسير Crop Intelligence لا يُبنى مرشّح.
+        raise HTTPException(
+            status_code=422, detail="crop_intelligence unavailable — no candidate (fail-closed)"
+        )
+    try:
+        return await submit_crop_decision_candidate(
+            crop_intelligence,
+            gdd_product=st.get("gdd_product"),
+            tenant_id=str(user.tenant_id) if user.tenant_id else None,
+            submit=req.submit,
+            created_by=user.user_id,
+        )
+    except ValueError as exc:
+        # fail-closed: أدلة/نَسَب/حدود ناقصة أو غير متسقة ⇒ رفض واضح لا 5xx خام.
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 class CropDecisionRequest(CropTwinComposeRequest):

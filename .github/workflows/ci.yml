@@ -28,6 +28,10 @@ jobs:
       - name: crop-intelligence-boundary-gate
         run: python scripts/ci/crop_intelligence_boundary_gate.py
 
+      # WX-10.6: crop→decision candidate path stays a reviewable candidate, never execution
+      - name: decision-candidate-boundary-gate
+        run: python scripts/ci/decision_candidate_boundary_gate.py
+
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
 
