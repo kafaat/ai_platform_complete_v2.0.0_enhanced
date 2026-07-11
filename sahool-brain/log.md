@@ -2369,3 +2369,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **فجوات أصلحها الدمج (التشغيل المحلّيّ لم يمسكها):** v153 لم تُوصَل بـrun_migrations.sql (حارس تزامن المُشغّلَين) ⇒ خطوة 159 · db_ownership.yml (كاتب واحد للجدولين) · module baseline 595→608 (+13) · توصيل crop-intelligence-boundary-gate في CI · ruff import-sort/format (بيئة المستخدم بلا ruff).
 - **التحقّق (12/12 CI أخضر):** أهمّها **Integration Tests طبّقت v153 فعليّاً على Postgres+PostGIS حيّ** + crop-intelligence-boundary-gate أخضر في CI + RLS write-policy. platform 3697 · unit 2874 · bundle. main/develop = `1ee913f`. أرشيف مُرسَل.
 - **قرار المستخدم (توجيه استراتيجيّ):** الأولويّة الآن (1) إنهاء ترحيل ET0/GDD وإفراغ allowlist بالكامل (Zero-Legacy ratchet: `assert len==0`) (2) تثبيت الحارس (3) **Crop Learning Engine** يُغلق الحلقة (Recommendation→Decision→Execution→Outcome→Learning→Policy/Confidence). CIE = الأساس لـ(3).
+
+## WS-C.1c Zero-Legacy — الكورشة #1 (allowlist 9→8)
+
+- **قرار المستخدم:** الحارس نضج؛ المرحلة التالية Ratchet Strategy لا «إدارة allowlist»: كلّ ترحيل ناجح ⇒ احذف من allowlist ⇒ أيّ رجوع = CI أحمر؛ عند إفراغ القائمة ⇒ `assert len(temporary_legacy_allowlist)==0`. البدء بـGDD-in-engine (اختيار A).
+- **الكورشة #1 (`91241c1`):** `core/gdd_phenology.py` كانت تحوي نواة GDD مكرّرة (`daily_gdd`/`accumulate_gdd`) **بلا مستهلك إنتاجيّ** (المستورِد الوحيد للوحدة يستورد سياسة `phenology_progress` فقط، وهي تأخذ accumulated_gdd مُدخَلاً). المحرّك يملك الرياضيّات (weather-service/gdd.py). أُزيلت النواة + اختباراتها المباشرة (TestDailyGdd)؛ بقيت سياسة المحصول. حُذِف الملفّ من allowlist (9→8) — الراتشِت.
+- **تحقّق (12/12 CI أخضر):** guard (canonical + 8) · ruff · platform 3693 · unit 2874 · bundle. main/develop = `91241c1`. أرشيف مُرسَل.
+- **الباقي (8 مدخلات) كلّها نوى حيّة** (لا مكاسب dead-code أخرى): GDD: gdd_tracker (track_gdd حيّ في scenario_whatif) · season_simulation.gdd_day (sim + crop_twin). ET0: et0.py الجذر · water_balance · fao56 · weather_analytics · field_state_projection · weather_server (MCP). كلّ حذف = ترحيل endpoint حيّ إلى تفويض المحرّك fail-closed.
