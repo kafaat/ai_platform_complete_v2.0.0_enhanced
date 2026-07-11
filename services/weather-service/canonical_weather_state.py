@@ -275,8 +275,10 @@ def build_canonical_weather_state(
     if gdd_base_c is not None:
         evidence["gdd_base_c"] = gdd_base_c
 
+    # بصمة هويّة/نَسَب حتميّة — ليست هاشاً أمنيّاً (لا سلامة/توثيق) ⇒ usedforsecurity=False.
     state_id = hashlib.sha1(
-        f"{source_snapshot_id}:{SCHEMA_VERSION}:{_canonical_inputs(snapshot_inputs)}".encode()
+        f"{source_snapshot_id}:{SCHEMA_VERSION}:{_canonical_inputs(snapshot_inputs)}".encode(),
+        usedforsecurity=False,
     ).hexdigest()[:16]
 
     return {
