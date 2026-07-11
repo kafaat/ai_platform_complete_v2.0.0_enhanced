@@ -113,7 +113,9 @@ def _review(decision_id, **over):
         reason="ok",
         reviewed_by="u-rev",
         candidate_lineage_id="cand/lin-1",
-        idempotency_key="idem-1",
+        # UNIQUE per decision: idempotency_key is a tenant-global token, so tests must not share
+        # it (a reused key with a different payload correctly yields idempotency_key_payload_mismatch).
+        idempotency_key=f"idem-{decision_id}",
         policy_version="rev/1.0.0",
     )
     args.update(over)
