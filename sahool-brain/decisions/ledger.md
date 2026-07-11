@@ -537,3 +537,8 @@ SHAs من `git log --oneline origin/main`.
 | SHA | القرار + السبب |
 |---|---|
 | (WX-10.9..10.12 integrate) | **دمج السلسلة الآمِرة plan→authorize→request→receipt→outcome كـincrement واحد على tip WX-10.8، integrate-on-landed-shape.** **قرارات:** (١) لَحَّم الدلتا من zip تراكميّ مع صون إصلاحات WX-10.8 CI (ci.yml جراحيّ: أبقى خطوة review-queue + أضاف 4 حُرّاس + 5 خطوات اختبار تنفيذ + migrations 001-007)؛ (٢) نقل الاختبارات التعاقديّة الجذر → tests_v9 (unit، ساكنة) كي تُجمَع فعليّاً؛ (٣) إصلاح ثغرتين مُسلَّمتين: اقتطاع اختبار 11b + إعفاء/تصنيف مسار execute المفقود؛ (٤) لا تغيير في منطق WX-10.7؛ (٥) ميزانيّة +4 موثّقة + 4 مدخلات ملكيّة. **واقع النشر:** السلسلة كلّها fail-closed 503 حتّى operator flip. بوّابات: unit 2906 · platform 3702 · 28 structural-lint · runtime_smoke 173 · frontend tsc. |
+
+## 2026-07-11 — WX-10.13→11.6: سلسلة حوكمة النموذج/MLOps (سبع مراحل، increment واحد)
+| SHA | القرار + السبب |
+|---|---|
+| `b2192bd` | **دمج سلسلة learning-attribution→registry activation/receipt/rollback كـincrement واحد على tip `6c8cf8d`، integrate-on-landed-shape.** **قرارات:** (١) طبّقتُ دلتا سلسلة النموذج فقط، صُنتُ إصلاحات WX-10.9..10.12؛ (٢) وصّلتُ 7 حُرّاس + 7 خطوات اختبار بنفسي بدل نسخ ci.yml الناقص من الحزمة (وصّل 5/7 فقط)؛ (٣) أصلحتُ 3 ثغرات مُسلَّمة: حدّ حارس promotion-decision (كان يلتقط `registry_alias` الشرعيّ عبر قطع-حتّى-EOF) + ترقية مخطّط الإعفاءات للتشغيليّ الكامل + حذف `row` غير مستخدَم/ruff؛ (٤) إعادة قاعدة تصنيف dispatch-authorizations التي دهسها نسخ config + قاعدة outcomes/ + إعفاءات machine؛ (٥) ميزانيّة 582→591 (baseline 594) موثّقة. **واقع النشر:** السلسلة كلّها fail-closed 503 حتّى operator flip. بوّابات: unit 2906 · platform 3702 · 24 model + 43 exec real-pg · structural-lint كامل · runtime_smoke · bundle 3996. |
