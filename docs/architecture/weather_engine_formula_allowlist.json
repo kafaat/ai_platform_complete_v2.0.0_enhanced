@@ -40,13 +40,6 @@
       "expires": "2026-07-31",
       "purpose": "active-legacy-delegating-wrapper",
       "note": "`_hargreaves_et0` is a thin wrapper delegating to core.engines.et0.hargreaves_et0 (no inline math). Caught now via the broadened `hargreaves`-substring name match so the ET0 path is monitored, not invisible. Migrate the weather-analytics endpoint to the Weather Engine ET0 product, then remove the wrapper + this entry."
-    },
-    {
-      "path": "services/sahool-platform/api/field_state_projection.py",
-      "owner": "weather-migration",
-      "expires": "2026-07-31",
-      "purpose": "active-legacy-consumer",
-      "note": "`_et0_from_weather_payload` produces a LOCAL ET0 by calling api.water_balance.compute_et0 (which delegates to core.engines.et0) and drives the field-state ETc block. No inline formula, but a live local-ET0 producer — caught now via the `_et0_from` name so it is tracked. Migrate to the Weather Engine ET0 product, then remove this entry."
     }
   ]
 }

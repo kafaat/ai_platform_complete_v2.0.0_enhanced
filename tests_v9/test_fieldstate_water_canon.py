@@ -83,16 +83,37 @@ except Exception:  # noqa: BLE001 — تبعيّات المنصّة غير مت�
 
 
 @pytest.mark.skipif(_et0_from_weather_payload is None, reason="platform/api deps unavailable")
-def test_et0_payload_computes_from_temps():
-    """حمولة بحرارة عظمى/صغرى ⇒ ET0 موجب (Hargreaves عبر المحرّك الموحّد)."""
+async def test_et0_payload_consumes_engine_product(monkeypatch):
+    """حمولة بحرارة ⇒ ET0 من **منتج محرّك الطقس** (مستهلِك لا مُنتِج محلّيّ)."""
+    import api.weather_service_client as wsc
+
+    async def _fake_et0(**kwargs):
+        # يمرّر حرارة اليوم للمحرّك؛ لا نواة محلّيّة.
+        assert kwargs["t_max_c"] == 34.0 and kwargs["t_min_c"] == 18.0
+        return {"et0_mm": 5.5, "method": "hargreaves"}
+
+    monkeypatch.setattr(wsc, "get_et0_product", _fake_et0)
     payload = {"daily": {"temperature_2m_max": [34.0], "temperature_2m_min": [18.0]}}
-    et0 = _et0_from_weather_payload(payload, lat=15.5, elevation_m=1800.0, doy=180)
-    assert et0 is not None and et0 > 0.0
+    et0 = await _et0_from_weather_payload(payload, lat=15.5, elevation_m=1800.0, doy=180)
+    assert et0 == 5.5
 
 
 @pytest.mark.skipif(_et0_from_weather_payload is None, reason="platform/api deps unavailable")
-def test_et0_payload_missing_temps_is_none():
-    """نقص الحرارة/شكل غير متوقَّع ⇒ None (صدق، لا اختلاق)."""
-    assert _et0_from_weather_payload({"daily": {}}, 15.5, None, 180) is None
-    assert _et0_from_weather_payload({}, 15.5, None, 180) is None
-    assert _et0_from_weather_payload(None, 15.5, None, 180) is None
+async def test_et0_payload_missing_temps_is_none():
+    """نقص الحرارة/شكل غير متوقَّع ⇒ None قبل استدعاء المحرّك (صدق، لا اختلاق)."""
+    assert await _et0_from_weather_payload({"daily": {}}, 15.5, None, 180) is None
+    assert await _et0_from_weather_payload({}, 15.5, None, 180) is None
+    assert await _et0_from_weather_payload(None, 15.5, None, 180) is None
+
+
+@pytest.mark.skipif(_et0_from_weather_payload is None, reason="platform/api deps unavailable")
+async def test_et0_payload_engine_down_is_none(monkeypatch):
+    """تعذّر المحرّك ⇒ None (fail-closed، لا حساب ET0 محلّيّ بديل)."""
+    import api.weather_service_client as wsc
+
+    async def _boom(**kwargs):
+        raise RuntimeError("weather-service unreachable")
+
+    monkeypatch.setattr(wsc, "get_et0_product", _boom)
+    payload = {"daily": {"temperature_2m_max": [34.0], "temperature_2m_min": [18.0]}}
+    assert await _et0_from_weather_payload(payload, 15.5, None, 180) is None

@@ -447,7 +447,7 @@
       "computation": {
         "kind": "weather_derived",
         "formula_ref": null,
-        "note": "FAO-56 Penman-Monteith in field_state_projection._et0_from_weather_payload from weather-service inputs."
+        "note": "field_state_projection._et0_from_weather_payload consumes the Weather Engine ET0 product (get_et0_product); the FAO-56 Penman-Monteith/Hargreaves kernel executes in the engine, not the platform (WS-C.1b Zero-Legacy)."
       },
       "unit": "mm/d",
       "range": null,

@@ -70,10 +70,6 @@ def _defines_weather_formula(text: str) -> bool:
             # (``_hargreaves_et0``/``et0_hargreaves``) فلا يفلت مسار ET0 من الرصد.
             if name == "_svp" or "penman_monteith" in name or "hargreaves" in name:
                 return True
-            # مُنتِج ET0 محلّيّ يُغذّي المخرجات (``_et0_from_weather_payload``) — يُرصَد ويُوثَّق
-            # في allowlist المؤقّتة حتى يُفوَّض لمحرّك الطقس (لا مسار ET0 خفيّ).
-            if name.startswith("_et0_from"):
-                return True
             if name in _GDD_KERNEL_NAMES:
                 return True
     return False

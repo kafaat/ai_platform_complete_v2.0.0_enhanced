@@ -35,8 +35,9 @@ def test_ast_detects_svp_et0_and_gdd_kernels():
     # WS-C.1b: ``hargreaves`` كسلسلة فرعيّة ⇒ تُمسَك الأغلفة المفوِّضة أيضاً (لا تفلت بالتسمية)
     assert mod._defines_weather_formula("def _hargreaves_et0(): pass")
     assert mod._defines_weather_formula("def et0_hargreaves(): pass")
-    # مُنتِج ET0 محلّيّ (اسم ``_et0_from*``) ⇒ يُرصَد ويُوثَّق حتى يُفوَّض
-    assert mod._defines_weather_formula("def _et0_from_weather_payload(): pass")
+    # WS-C.1b ratchet: ``_et0_from_weather_payload`` رُحِّل إلى منتج المحرّك (مستهلِك لا
+    # مُنتِج محلّيّ) ⇒ حُذفت heuristic الاسم ``_et0_from*``، فلم يعد يُرصَد كنواة.
+    assert not mod._defines_weather_formula("def _et0_from_weather_payload(): pass")
     # GDD kernels (C.1c) — النواة لا السياسة
     assert mod._defines_weather_formula("def gdd_daily(): pass")
     assert mod._defines_weather_formula("def daily_gdd(): pass")

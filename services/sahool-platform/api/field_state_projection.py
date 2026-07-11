@@ -208,16 +208,20 @@ def _extract_ec(soil_result) -> float | None:
     return None
 
 
-def _et0_from_weather_payload(data_json, lat, elevation_m, doy: int) -> float | None:
-    """يحسب ET0 (مم/يوم) من حمولة طقس Open-Meteo المخزَّنة عبر **المحرّك الموحّد** (H4).
+async def _et0_from_weather_payload(
+    data_json, lat, elevation_m, doy: int, *, tenant_id=None
+) -> float | None:
+    """يجلب ET0 (مم/يوم) لليوم من **منتج محرّك الطقس** (WS-C.1b Zero-Legacy).
 
-    يستخرج temp_min/max لليوم من ``data_json["daily"]`` ويبني ``WeatherInput`` ثمّ
-    ``compute_et0`` (Penman-Monteith إن توفّر إشعاع/رطوبة/رياح، وإلّا Hargreaves — حرارة
-    فقط). **صدق + fail-safe صارم:** أيّ نقص/شكل غير متوقَّع/تعذّر ⇒ ``None`` (لا اختلاق،
-    لا كسر الإسقاط) — فالحقل ``etc_mm`` ببساطة يغيب. لا صيغة ET0 جديدة (إعادة استخدام H4).
+    يستخرج temp_min/max لليوم من ``data_json["daily"]`` ثمّ يستدعي ``get_et0_product``
+    (النواة تُنفَّذ في المحرّك: Penman-Monteith إن توفّر إشعاع/رطوبة/رياح، وإلّا Hargreaves).
+    **لا نواة ET0 محلّيّة** — لم يعد هذا مُنتِجاً محلّيّاً، بل مستهلِكاً للمنتج المرجعيّ.
+    **صدق + fail-safe صارم:** أيّ نقص/شكل غير متوقَّع/تعذّر المحرّك (HTTPException 502) ⇒
+    ``None`` (لا اختلاق، لا حساب محلّيّ بديل) — فالحقل ``etc_mm`` ببساطة يغيب. الحالة
+    القانونيّة إسقاط best-effort: غياب المحرّك لا يكسر التحكيم القائم.
     """
     try:
-        from api.water_balance import WeatherInput, compute_et0
+        from api.weather_service_client import get_et0_product
 
         if isinstance(data_json, str):
             data_json = json.loads(data_json)
@@ -230,23 +234,26 @@ def _et0_from_weather_payload(data_json, lat, elevation_m, doy: int) -> float | 
         tmin = _first(daily.get("temperature_2m_min"))
         if tmax is None or tmin is None:
             return None
-        # اختياريّ لـPenman-Monteith (وإلّا يتدرّج compute_et0 إلى Hargreaves):
+        # اختياريّ لـPenman-Monteith (وإلّا يتدرّج المحرّك إلى Hargreaves — حرارة فقط):
         rh = _first(daily.get("relative_humidity_2m_mean"))
         wind = _first(daily.get("wind_speed_10m_max"))
         srad = _first(daily.get("shortwave_radiation_sum"))
-        w = WeatherInput(
-            t_min_c=float(tmin),
+        product = await get_et0_product(
             t_max_c=float(tmax),
+            t_min_c=float(tmin),
             solar_rad_mj_m2=float(srad) if srad is not None else None,
             rh_mean_pct=float(rh) if rh is not None else None,
             wind_2m_ms=float(wind) if wind is not None else None,
-            latitude_deg=float(lat) if lat is not None else 15.5,
+            lat_deg=float(lat) if lat is not None else 15.5,
             elevation_m=float(elevation_m) if elevation_m is not None else 2000.0,
             day_of_year=doy,
+            tenant_id=tenant_id,
         )
-        et0, _method = compute_et0(w)
+        et0 = (product or {}).get("et0_mm")
+        if et0 is None:
+            return None
         return round(float(et0), 2)
-    except Exception:  # noqa: BLE001 — صدق/fail-safe: تعذّر ⇒ None (لا ET0 مُلفَّق)
+    except Exception:  # noqa: BLE001 — صدق/fail-safe: تعذّر المحرّك/نقص ⇒ None (لا ET0 مُلفَّق)
         return None
 
 
@@ -602,8 +609,12 @@ async def recompute_field_state(conn, field_id: str) -> dict:
             )
             if wrow is not None:
                 weather_payload = wrow["data_json"]
-                et0_mm = _et0_from_weather_payload(
-                    weather_payload, field_lat, None, date.today().timetuple().tm_yday
+                et0_mm = await _et0_from_weather_payload(
+                    weather_payload,
+                    field_lat,
+                    None,
+                    date.today().timetuple().tm_yday,
+                    tenant_id=tenant_id,
                 )
     except Exception:  # noqa: BLE001 — توحيد المياه best-effort، لا يكسر الحالة التشغيليّة
         logger.warning("تعذّر اشتقاق ET0/سياق المحصول للحقل %s — يُتخطّى ETc", field_id, exc_info=True)
