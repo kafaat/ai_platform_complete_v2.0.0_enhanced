@@ -75,10 +75,12 @@
 - **الأداة القابلة للتشغيل:** [`../../tools/sahool_inspector.py`](../../tools/sahool_inspector.py)
   (RLS coverage / router wiring / NATS subjects / endpoint authz / migration manifest).
 
-## WX-12-RUNTIME-SCHEDULERS — OPEN (High) — من التدقيق الجنائيّ 2026-07-12
+## WX-12-RUNTIME-SCHEDULERS — ✅ CLOSED @ `9e308d5` (2026-07-12) — كان OPEN (High) من التدقيق الجنائيّ
 - **المصدر:** `services/model-registry-adapter/service.py` يعالج `monitoring_window` و`active_state_reconcile` لكنّ `persistence.list_runtime_work` لا يُنتج هذين النوعين ⇒ المراقبة والمصالحة الدوريّة كود خامل بلا مُطلِق.
 - **لماذا مؤجَّل (لا نصف حلّ):** يلزم قرار بنية مجدول دائم (cron/NATS/جدول schedule دائم) + حالة جدولة + اختبارات إنشاء عمل دوريّ. نصف الحلّ (إنتاج نوع بلا جدولة حقيقيّة) يخالف "لا نصف حلّ".
 - **التصميم المُوصى:** جدول `decision_model_monitoring_schedules` (نافذة + دوريّة + آخر تشغيل) يُنتج منه list_runtime_work عناصر `monitoring_window` مستحقّة؛ ومثله جدول reconcile دوريّ لكلّ (model, environment) نشط. كلاهما خلف راية تفعيل حتّى التحقّق التكامليّ.
+
+- **الإغلاق (`9e308d5`):** نُفِّذ التصميم المُوصى حرفيّاً — migration 017: جدول `decision_model_runtime_schedules` (config دائم: period + anchor مقطوع-الثواني + enabled؛ إنشاء الصفّ هو راية التفعيل — لا صفوف = صفر انبعاث = صفر تغيير سلوك) + جدول `decision_model_reconcile_evidence` append-only (الانجراف/تغيير alias اليدويّ/split-brain صار أدلّة قابلة للتدقيق لا log — يغلق الشقّ القابل للتدقيق من High 4). التقدّم مُشتقّ من الأدلّة (snapshots/evidence) لا من حالة last-run متغيّرة. الـfeed يبثّ النافذة المكتملة الأخيرة بلا snapshot (ISO يدور بدقّة) وreconcile المستحقّ (period_index حتميّ)؛ الـclaims تغطّي النوعَين (صفّ واحد لكلّ جدولة). endpoints: runtime-schedules + reconcile-evidence (actor + idempotency + replay). الحارس `wx12_runtime_scheduler_gate` يمنع الانحدار لكود خامل. اختبارات pg حقيقيّة + contract.
 
 ## WX-12-RUNTIME-MULTITENANCY — OPEN (High) — من التدقيق الجنائيّ 2026-07-12
 - **المصدر:** `service.py` يعتمد `RUNTIME_TENANT_ID` واحداً لكلّ process؛ غير قابل للتوسّع لمنصّة SaaS متعدّدة المستأجرين (instance لكلّ tenant هشّ).

@@ -2634,3 +2634,14 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **توضيح:** اختبارات pg الأربعة لـ015 تخطّت فقط في بيئة المُدقِّق بلا DB؛ تعمل وتمرّ في وظيفة Decision Service Tests (Postgres حقيقيّ)، وانضمّت لها اختبارات claim لـ016.
 - **مُؤجَّل كفجوات OPEN مُتتبَّعة (بنية حقيقيّة، لا نصف بناء):** High 1 (مجدولات monitoring/reconciliation) · High 5 (تقسيم عمل متعدّد-المستأجرين). راجع gaps/registry.md.
 - **التحقّق:** decision-service ١٥ ملفّ + adapter contract/runtime/auth على Postgres حقيقيّ (001-016) · unit 2912 · platform 3702 · ruff · كامل structural-lint + WX-12 gates · report-index + production-validation · runtime_smoke · bundle.
+
+## WX-12.3 — المجدولات الدائمة (إغلاق فجوة WX-12-RUNTIME-SCHEDULERS) — `9e308d5`
+- **السياق:** تنفيذ مباشر بتفويض المستخدم («قوم بعمل اللازم») للتصميم المُوصى المُسجَّل في gaps/registry.md — أعلى المتبقّي قيمةً بعد إغلاق WX-12.2.
+- **المبدأ:** الجدولة config دائم؛ **التقدّم مُشتقّ من الأدلّة append-only** (snapshots/reconcile evidence) لا من حالة last-run متغيّرة تنجرف أو تضيع. لا صفوف جدولة = صفر انبعاث = صفر تغيير سلوك (إنشاء الصفّ هو راية التفعيل).
+- **migration 017:** `decision_model_runtime_schedules` (period+anchor مقطوع-الثواني+enabled؛ UNIQUE لكلّ (tenant,kind,model,env)) + `decision_model_reconcile_evidence` append-only (الانجراف قابل للتدقيق) + توسيع CHECK للـclaims ليغطّي النوعَين المجدولَين (عقد النسخة-الواحدة يشملهما؛ صفّ claim واحد لكلّ جدولة — محدود).
+- **البثّ:** نوافذ المراقبة تُرصَف من الـanchor (النافذة المكتملة الأخيرة بلا snapshot؛ سلاسل ISO تدور بدقّة إلى صفّ الـsnapshot)؛ reconcile مستحقّ حين لا دليل ضمن الفترة الأخيرة (+period_index حتميّ للـidempotency).
+- **الـruntime:** `reconcile_and_report` (HttpRegistry.get ← مقارنة ← دليل بـX-Recorded-By + idempotency)؛ الـsupervisor يستهلك `active_state_reconcile` (كان تخطّياً صريحاً)؛ `DecisionClient.get` يُسقط None (كان urlencode يرسل "None" حرفيّاً — إصلاح جانبيّ حقيقيّ)؛ إغلاق خادم health بلطف (Medium 2).
+- **endpoints:** `POST /v1/learning/runtime-schedules` + `POST /v1/learning/reconcile-evidence` (actor إلزاميّ + idempotency + replay/conflict عبر request_hash؛ fail-closed 503 في mirror).
+- **الحارس:** `wx12_runtime_scheduler_gate` — يفشل إن عاد الكود خاملاً (بثّ مفقود/استهلاك مفقود/جداول مفقودة).
+- **التحقّق:** fresh-DB CI-order ١٦ ملفّ decision-service + mirror + ٩ adapter · unit 2912 · platform 3702 · ruff · كامل structural-lint · report-index + production-validation · smoke · bundle. 932 route (+2 داخليّتان، لا BFF/ميزانيّة).
+- **المتبقّي بعد هذا:** WX-12-RUNTIME-MULTITENANCY (OPEN) + قلب SoR للمشغّل + مصالحة حالة العمليّات الخارجيّة لـtraining/rollout (شقّ High 4 المتبقّي — يعتمد على عقود الـbackends الخارجيّة).

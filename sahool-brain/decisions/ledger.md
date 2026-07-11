@@ -564,3 +564,8 @@ SHAs من `git log --oneline origin/main`.
 | SHA | القرار + السبب |
 |---|---|
 | `ad8156d` | **إغلاق فجوات الصحّة/الأمان المُحتواة من التدقيق الجنائيّ الثاني، وتأجيل البنية بصدق.** migration 016 (claim/lease دائم لأنواع العمل ذات الأثر الجانبيّ — أمان متعدّد-النُسخ) · middleware توكن-خدمة opt-in (لا يُوثَق header على المنفذ الداخليّ) · replay semantics للإيصالات (request_hash) · CAS digest من الإيصال · LOOP_TABLES · readiness مُدرِكة-التبعيّة. **درس: الحُرّاس + عقد API لا يُثبتان سلامة متعدّد-النُسخ ولا أمان حدود-الخدمة — يلزم claim/lease + مصادقة خدمة.** أُجّل (لا نصف حلّ): مجدولات monitoring/reconciliation (High 1) + تقسيم متعدّد-المستأجرين (High 5) كفجوات OPEN بتصميم مُوصى. fail-closed حتّى operator flip. |
+
+## 2026-07-12 — WX-12.3: المجدولات الدائمة (إغلاق WX-12-RUNTIME-SCHEDULERS)
+| SHA | القرار + السبب |
+|---|---|
+| `9e308d5` | **تنفيذ التصميم المُوصى: config دائم + تقدّم مُشتقّ من أدلّة append-only (لا last-run متغيّر) + انبعاث الـfeed للنوعَين + استهلاك supervisor + دليل reconcile قابل للتدقيق.** قرارات: (١) رصف النوافذ من anchor مقطوع-الثواني كي يدور ISO بدقّة عبر الـruntime إلى صفّ الـsnapshot (وإلّا فرق microseconds يمنع NOT EXISTS للأبد)؛ (٢) work_key = schedule_id (صفّ claim واحد لكلّ جدولة — تخزين محدود؛ تأخير أقصاه lease_seconds بعد الاستحقاق، موثَّق)؛ (٣) لا backfill رجعيّ للنوافذ الفائتة (المراقبة عن الحداثة — صادق وموثَّق)؛ (٤) إصلاح جانبيّ: DecisionClient.get كان يرسل "None" حرفيّاً للمعاملات الفارغة. Medium 2 (إغلاق health server) ضُمّ. المتبقّي OPEN: multitenancy + شقّ High 4 الخارجيّ. |
