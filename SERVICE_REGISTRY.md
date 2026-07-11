@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **28**
-- Python LOC discovered: **185,455**
+- Python LOC discovered: **185,475**
 - Routes discovered: **884**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -27,7 +27,7 @@
 | `indicators-service` | Vegetation Analytics | 4 | 133 | 2 | 7 | `services/indicators-service/main.py` | `services/indicators-service/Dockerfile` | `services/indicators-service/requirements.txt` | `normal` |
 | `knowledge-graph` | Edge Inference | 2 | 153 | 1 | 7 | `services/knowledge-graph/main.py` | `services/knowledge-graph/Dockerfile` | `services/knowledge-graph/requirements.txt` | `normal` |
 | `local-ai-rag` | Knowledge Retrieval | 2 | 445 | 1 | 5 | `services/local-ai-rag/main.py` | `services/local-ai-rag/Dockerfile` | `services/local-ai-rag/requirements.txt` | `normal` |
-| `mcp_servers` | Agent Tools | 11 | 1932 | 1 | 33 | `-` | `services/mcp_servers/Dockerfile` | `services/mcp_servers/requirements.txt` | `normal` |
+| `mcp_servers` | Agent Tools | 11 | 1952 | 1 | 33 | `-` | `services/mcp_servers/Dockerfile` | `services/mcp_servers/requirements.txt` | `normal` |
 | `odoo-bridge` | ERP Integration | 10 | 1538 | 1 | 10 | `services/odoo-bridge/main.py` | `services/odoo-bridge/Dockerfile` | `services/odoo-bridge/requirements.txt` | `normal` |
 | `qdrant-seed` | Unclassified / Support | 4 | 866 | 1 | 0 | `-` | `services/qdrant-seed/Dockerfile` | `services/qdrant-seed/requirements.txt` | `medium-runtime-contract-gap` |
 | `rag-retrieval` | Knowledge Retrieval | 2 | 135 | 1 | 5 | `services/rag-retrieval/main.py` | `services/rag-retrieval/Dockerfile` | `services/rag-retrieval/requirements.txt` | `normal` |

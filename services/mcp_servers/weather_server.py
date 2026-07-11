@@ -39,6 +39,21 @@ def _weather_service_url() -> str:
     return os.getenv("WEATHER_SERVICE_URL", _DEFAULT_WEATHER_SERVICE_URL).rstrip("/")
 
 
+def _weather_service_headers() -> dict[str, str]:
+    """هويّة الخدمة للنداء الداخليّ: توكن الخدمة (defense-in-depth؛ نقطة agro/et0
+    داخليّة بلا مصادقة اليوم) + وسم مصدر للـcorrelation. غياب التوكن ⇒ لا يُرسَل."""
+    headers = {"X-Service-Name": "sahool-weather-mcp"}
+    token = os.getenv("SAHOOL_AGENT_TOKEN")
+    if token:
+        headers["X-Agent-Token"] = token
+    return headers
+
+
+def _mcp_text(payload: dict) -> dict:
+    """يغلّف حمولة JSON في شكل نتيجة أداة MCP النصّيّة."""
+    return {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]}
+
+
 class ForecastRequest(BaseModel):
     lat: float = Field(..., ge=-90, le=90)
     lon: float = Field(..., ge=-180, le=180)
@@ -200,11 +215,29 @@ async def _execute(name: str, args: dict) -> dict:
         # المحرّك يتدرّج إلى Hargreaves داخليّاً. تعذّر المحرّك ⇒ 503 fail-closed
         # (لا حساب ET0 محلّيّ بديل). t_mean/t_range حسابٌ حسابيّ بسيط (ليس نواة ET0).
         # ────────────────────────────────────────────────────────────────────
-        # حارس: t_min>t_max ⇒ مدخل غير صالح. نرفض بـ400 (قبل استدعاء المحرّك).
+        # حارس مدخل: t_min>t_max ⇒ خطأ عميل (400 قبل استدعاء المحرّك) — متمايز عن تعذّر التبعيّة.
         if req.t_min > req.t_max:
             raise HTTPException(status_code=400, detail="t_min يجب ألّا يتجاوز t_max")
         lat = req.latitude if req.latitude is not None else req.lat
         j_day = datetime.strptime(req.date, "%Y-%m-%d").timetuple().tm_yday
+        _loc = {"lat": req.lat, "lon": req.lon, "altitude_m": req.altitude}
+
+        def _unavailable(reason: str, note: str) -> dict:
+            # fail-closed: لا 0 ولا تقدير محلّيّ — نتيجة أداة صريحة أنّ المنتج الكنسيّ تعذّر.
+            return _mcp_text(
+                {
+                    "status": "unavailable",
+                    "reason": reason,
+                    "et0_mm": None,
+                    "method": None,
+                    "quality_status": "insufficient",
+                    "limitations": [note],
+                    "source": "weather-engine",
+                    "date": req.date,
+                    "location": _loc,
+                }
+            )
+
         body = {
             "t_max_c": req.t_max,
             "t_min_c": req.t_min,
@@ -215,51 +248,47 @@ async def _execute(name: str, args: dict) -> dict:
         }
         try:
             async with httpx.AsyncClient(timeout=20.0) as client:
-                resp = await client.post(f"{_weather_service_url()}/v1/weather/agro/et0", json=body)
+                resp = await client.post(
+                    f"{_weather_service_url()}/v1/weather/agro/et0",
+                    json=body,
+                    headers=_weather_service_headers(),
+                )
         except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=503,
-                detail=f"weather-engine ET0 unavailable — fail-closed (no local ET0): {exc}",
-            ) from exc
+            logging.getLogger(__name__).warning("weather-engine ET0 unreachable: %s", exc)
+            return _unavailable(
+                "weather_engine_unavailable",
+                "Canonical ET0 product could not be retrieved (transport error).",
+            )
         if resp.status_code >= 400:
-            raise HTTPException(
-                status_code=503,
-                detail="weather-engine ET0 unavailable — fail-closed (no local ET0)",
+            return _unavailable(
+                "weather_engine_error",
+                f"Canonical ET0 product returned HTTP {resp.status_code}.",
             )
         product = resp.json()
         et0 = product.get("et0_mm")
         if et0 is None:
-            raise HTTPException(
-                status_code=503,
-                detail="weather-engine returned no ET0 — fail-closed (no local ET0)",
+            return _unavailable(
+                "insufficient_inputs",
+                "Canonical ET0 product returned no et0_mm (insufficient inputs).",
             )
+        # محوّل: المنتج الكنسيّ ⇒ شكل أداة MCP. t_mean/t_range حسابٌ حسابيّ بسيط (ليس نواة).
+        # لا ``ra_mj_m2_day``: كان وسيط النواة المحذوفة ولا مستهلك له (تحقّق grep) — أُسقِط صراحةً.
         t_mean = (req.t_max + req.t_min) / 2
         t_range = req.t_max - req.t_min
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": json.dumps(
-                        {
-                            "method": product.get("method", "weather-engine"),
-                            "et0_mm_day": round(float(et0), 2),
-                            "t_mean_c": round(t_mean, 2),
-                            "t_range_c": round(t_range, 2),
-                            "quality_status": product.get("quality_status"),
-                            "formula_version": product.get("formula_version"),
-                            "source": "weather-engine",
-                            "date": req.date,
-                            "location": {
-                                "lat": req.lat,
-                                "lon": req.lon,
-                                "altitude_m": req.altitude,
-                            },
-                        },
-                        ensure_ascii=False,
-                    ),
-                }
-            ]
-        }
+        return _mcp_text(
+            {
+                "status": "ok",
+                "method": product.get("method", "weather-engine"),
+                "et0_mm_day": round(float(et0), 2),
+                "t_mean_c": round(t_mean, 2),
+                "t_range_c": round(t_range, 2),
+                "quality_status": product.get("quality_status"),
+                "formula_version": product.get("formula_version"),
+                "source": "weather-engine",
+                "date": req.date,
+                "location": _loc,
+            }
+        )
 
     elif name == "get_historical_weather":
         params = {

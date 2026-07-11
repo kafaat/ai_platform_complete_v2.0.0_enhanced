@@ -136,6 +136,7 @@ services:
     environment:
       JWT_SECRET: "${JWT_SECRET}"
       WEATHER_SERVICE_URL: "${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}"
+      SAHOOL_AGENT_TOKEN: "${SAHOOL_AGENT_TOKEN:-}"
     networks: [sahool-net]
     <<: *logging
     healthcheck:
