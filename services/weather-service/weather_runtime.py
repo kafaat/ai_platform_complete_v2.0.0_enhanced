@@ -6,6 +6,7 @@ from typing import Literal
 from cache import get as cache_get
 from cache import set as cache_set
 from cache import stats as cache_stats
+from canonical_weather_state import build_canonical_weather_state, weather_state_report
 from chill_accumulation import compute_chill_accumulation
 from et0 import et0_agro_product, et0_series_product
 from fastapi import Body, HTTPException, Query
@@ -555,6 +556,78 @@ async def agro_gdd(req: GddProductRequest = Body(...)):
         start_date=req.start_date,
         end_date=req.end_date,
     )
+
+
+class CanonicalWeatherStateRequest(BaseModel):
+    """مدخلات CanonicalWeatherState (WX-10.1) — متّجه طقس واحد + سياسة GDD اختياريّة.
+
+    الحالة تُجمَّع من منتجات المحرّك القائمة بلا إعادة حساب. الحقول المفقودة ⇒ خانتها
+    غير متوفّرة في `availability` + قيد (لا اختلاق). `valid_time` = وقت صلاحيّة اللقطة كما
+    يصرّح به المُستهلِك (نَسَب، لا ساعة مُختلقة).
+    """
+
+    t_max_c: float | None = None
+    t_min_c: float | None = None
+    t_mean_c: float | None = None
+    rh_mean_pct: float | None = None
+    dew_point_c: float | None = None
+    wind_2m_ms: float | None = None
+    solar_rad_mj_m2: float | None = None
+    lat_deg: float | None = None
+    elevation_m: float | None = None
+    day_of_year: int | None = None
+    gdd_daily_t_min: list[float | None] = []
+    gdd_daily_t_max: list[float | None] = []
+    gdd_base_c: float | None = None
+    gdd_upper_cutoff_c: float | None = None
+    gdd_method: str = "modified"
+    gdd_start_date: str | None = None
+    gdd_end_date: str | None = None
+    valid_time: str | None = None
+
+
+def _build_state(req: CanonicalWeatherStateRequest) -> dict:
+    return build_canonical_weather_state(
+        t_max_c=req.t_max_c,
+        t_min_c=req.t_min_c,
+        t_mean_c=req.t_mean_c,
+        rh_mean_pct=req.rh_mean_pct,
+        dew_point_c=req.dew_point_c,
+        wind_2m_ms=req.wind_2m_ms,
+        solar_rad_mj_m2=req.solar_rad_mj_m2,
+        lat_deg=req.lat_deg,
+        elevation_m=req.elevation_m,
+        day_of_year=req.day_of_year,
+        gdd_daily_t_min=req.gdd_daily_t_min,
+        gdd_daily_t_max=req.gdd_daily_t_max,
+        gdd_base_c=req.gdd_base_c,
+        gdd_upper_cutoff_c=req.gdd_upper_cutoff_c,
+        gdd_method=req.gdd_method,
+        gdd_start_date=req.gdd_start_date,
+        gdd_end_date=req.gdd_end_date,
+        valid_time=req.valid_time,
+    )
+
+
+async def agro_canonical_state(req: CanonicalWeatherStateRequest = Body(...)):
+    """WX-10.1 — نقطة قراءة CanonicalWeatherState (الحقيقة الوحيدة للطقس).
+
+    State Product يجمع منتجات المحرّك (ET0/VPD/GDD/astronomy/DTR) في غلاف موحَّد
+    (state_id/state_version/schema_version/owner/source_snapshot_id/quality/availability/
+    confidence/provenance/evidence/limitations). نقيّ حتميّ fail-closed ⇒ لا 5xx. الخانات
+    غير المجموعة في هذا الإنكرمنت مُصرَّحة غيرَ متوفّرة صراحةً (لا ادّعاء تغطية).
+    """
+    return _build_state(req)
+
+
+async def agro_weather_state_report(req: CanonicalWeatherStateRequest = Body(...)):
+    """WX-10.1 — مستهلك إثبات التصميم: تقرير مُشتقّ **يقرأ الحالة فقط** لا المحرّك.
+
+    يبني CanonicalWeatherState ثمّ يمرّره لـ`weather_state_report` الذي يقرأ الغلاف
+    (availability/quality/النَّسَب) دون استدعاء أيّ نواة — إثبات الانعكاس المعماريّ على View
+    واحد. يحمل `state_id`/`source_snapshot_id` للنَّسَب (lineage).
+    """
+    return weather_state_report(_build_state(req))
 
 
 async def tile_data(
