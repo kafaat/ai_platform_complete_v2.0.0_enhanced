@@ -71,6 +71,7 @@ def crop_twin_state(
     crop_water_policy: dict | None = None,
     weather_state: dict | None = None,
     gdd_daily_override: list[float | None] | None = None,
+    gdd_product: dict | None = None,
 ) -> dict:
     """يبني الحالة الرقميّة الموحّدة للمحصول من سلسلة أيّام — نقيّ حتميّ.
 
@@ -81,17 +82,34 @@ def crop_twin_state(
     crop_key, known = normalize_crop(crop)
     params = _params_for(crop_key)
 
-    # ١) الفينولوجيا: تراكم GDD من **محرّك الطقس** (سلسلة محقونة، method="modified") —
-    # WS-C.1c Zero-Legacy: لا نواة gdd_day محلّيّة. يوم بلا GDD محرّك ⇒ يُتجاهَل (fail-closed،
-    # لا يُلفَّق). غياب السلسلة كلّها ⇒ تراكم صفر (المحرّك مصدر GDD الوحيد).
-    gdd_cum = 0.0
-    for day_idx in range(len(days)):
-        if (
-            gdd_daily_override is not None
-            and day_idx < len(gdd_daily_override)
-            and gdd_daily_override[day_idx] is not None
-        ):
-            gdd_cum += float(gdd_daily_override[day_idx])
+    # ١) الفينولوجيا: استهلاك منتج GDD القانونيّ من weather-service كما هو.
+    # Crop Intelligence لا يجمع daily_gdd ولا يعيد حساب العتبات؛ accumulated_gdd والنَّسَب
+    # ونسخة الصيغة تأتي من مالك المنتج. ``gdd_daily_override`` يبقى توافقاً داخلياً قديماً
+    # فقط للمستدعين غير المهاجرين، ولا يُستخدم عندما يتوفر المنتج القانونيّ.
+    canonical_gdd = dict(gdd_product or {})
+    if canonical_gdd:
+        raw_gdd = canonical_gdd.get("accumulated_gdd")
+        gdd_cum = float(raw_gdd) if isinstance(raw_gdd, (int, float)) else 0.0
+        thresholds = canonical_gdd.get("thresholds_used") or {}
+        phenology_method = thresholds.get("method") or "canonical_weather_gdd"
+        phenology_formula_version = canonical_gdd.get("calculation_version")
+        gdd_evidence_ids = list(canonical_gdd.get("contributing_state_ids") or [])
+        if canonical_gdd.get("gdd_lineage_id"):
+            gdd_evidence_ids.append(str(canonical_gdd["gdd_lineage_id"]))
+        gdd_limitations = list(canonical_gdd.get("limitations") or [])
+        if canonical_gdd.get("series_quality_status") in {"degraded", "insufficient"}:
+            gdd_limitations.append(
+                f"canonical_gdd_series_{canonical_gdd.get('series_quality_status')}"
+            )
+    else:
+        # Backward-compatible bridge only; callers should migrate to ``gdd_product``.
+        gdd_cum = sum(
+            float(value) for value in (gdd_daily_override or [])[: len(days)] if value is not None
+        )
+        phenology_method = "weather_gdd_daily_override_compat"
+        phenology_formula_version = "compat/daily-gdd-override"
+        gdd_evidence_ids = []
+        gdd_limitations = ["canonical_gdd_product_missing"]
     gdd_mat = params.gdd_to_maturity
     progress = min(1.0, gdd_cum / gdd_mat) if gdd_mat > 0 else 0.0
     past_maturity = gdd_mat > 0 and gdd_cum >= gdd_mat
@@ -133,8 +151,8 @@ def crop_twin_state(
             crop=crop_key or crop,
             gdd_cumulative=gdd_cum,
             gdd_to_maturity=gdd_mat,
-            phenology_method="legacy_local_gdd_pending_weather_delegation",
-            phenology_formula_version="legacy/season-simulation",
+            phenology_method=phenology_method,
+            phenology_formula_version=phenology_formula_version,
             water_state={
                 "status": "available",
                 "taw_mm": round(rz.taw_mm, 2),
@@ -152,7 +170,7 @@ def crop_twin_state(
             spectral_state=spectral_state,
             field_id=field_id,
             season_id=season_id,
-            source_ids=list(source_ids or []),
+            source_ids=list(dict.fromkeys([*(source_ids or []), *gdd_evidence_ids])),
             root_policy=root_policy,
             stress_history=stress_history,
             stress_memory_as_of=stress_memory_as_of,
@@ -160,7 +178,7 @@ def crop_twin_state(
             prior_stress_memory=prior_stress_memory,
             crop_water_policy=crop_water_policy,
             weather_state=weather_state,
-            limitations=["gdd_pending_weather_engine_delegation"],
+            limitations=list(dict.fromkeys(gdd_limitations)),
         )
     )
 

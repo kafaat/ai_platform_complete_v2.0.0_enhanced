@@ -161,6 +161,7 @@ async def _compose_state(req: CropTwinComposeRequest) -> dict:
         spectral_state=spectral_state,
         source_ids=req.spectral_product_ids,
         gdd_daily_override=gdd_override,
+        gdd_product=gdd_engine,
     )
 
     # جودة المدخلات (نفس صدق irrigation-plan): افتراضات متحقَّقة خادميّاً.

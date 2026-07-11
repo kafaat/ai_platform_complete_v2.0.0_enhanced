@@ -11935,7 +11935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4f21fcdcd4f1cbe37dc6296036a07cb881492eb5352d17ea588c7ade3abdc677"
+          "content": "3e32106fba9539b4da53baa2ab227fc4e06032d52ae5cfe27e2f753e57edc054"
         }
       ],
       "name": "services/sahool-platform/api/crop_twin.py",
@@ -13415,7 +13415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c6a97ecc6701d2fccb8072a4c0f88eebdc3fa70bebf8383416a76bffb354e536"
+          "content": "b9e821d175fc426ef6a15c254d252bf04ec9bdf780a61bba209c04a387d2451f"
         }
       ],
       "name": "services/sahool-platform/api/routers/crop_twin.py",
@@ -19515,7 +19515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2de3512c8e06076c13a29a144b984c8ba4b293c11747f7f20730db4da11c5a89"
+          "content": "863948fe2007ce79995f7b6a717712deedf7c1fa6e18c4f533b9f9e0c938aac2"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_twin_compose_endpoint.py",

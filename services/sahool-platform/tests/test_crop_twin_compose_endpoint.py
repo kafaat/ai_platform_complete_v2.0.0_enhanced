@@ -43,6 +43,10 @@ def _patch_engine_gdd(monkeypatch):
             },
             "valid_period": {"days": len(daily)},
             "limitations": [],
+            "derived_from": "canonical_daily_weather_series",
+            "gdd_lineage_id": "gddseq/fake-compose",
+            "contributing_state_ids": [f"snap-{i}" for i in range(len(daily))],
+            "series_quality_status": "validated",
         }
 
     import api.routers.crop_twin as mod
@@ -162,3 +166,12 @@ async def test_compose_projects_msi_ndmi_into_crop_intelligence():
     assert ci["season_id"] == "season-1"
     assert ci["spectral"]["water_stress"]["confirmed"] is True
     assert "spectral_water_stress" in {x["code"] for x in ci["stress_flags"]}
+
+
+async def test_compose_propagates_canonical_gdd_lineage():
+    out = await compose_crop_twin(req=_req(forecast=_days(2)), user=_USER)
+    ci = out["crop_intelligence"]
+    assert ci["phenology"]["method"] == "modified"
+    assert ci["phenology"]["formula_version"] == "gdd/daily/1.0.0"
+    assert "gddseq/fake-compose" in ci["evidence_ids"]
+    assert "gdd_pending_weather_engine_delegation" not in ci["limitations"]
