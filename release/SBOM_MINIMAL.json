@@ -23695,7 +23695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d043b81e9fd5d9a4d977f88d19488258ac1575dfb274d10c4d48dc8a8ad274f1"
+          "content": "0efc8d950bc89ae50b657fd47e68dda59eaa1f78d2e3c59b94758e3d8d41005d"
         }
       ],
       "name": "services/weather-service/canonical_weather_state.py",
@@ -23815,7 +23815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1909ca705e9081026a1fb7c955065f3ac248377817c5deb5830b1d34ed8d2399"
+          "content": "3e8f817e4f8d3aa4f09435b17019c36f5f5221cd018d7f920694e8a439cd723f"
         }
       ],
       "name": "services/weather-service/tests/test_canonical_weather_state.py",
@@ -23845,7 +23845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5fd025868b2291b63c3ca8b10c141d086a5011417a442ca06695cea4d593f59"
+          "content": "93bdf52b91174b8ef9337da659b01dafbd4f6f13c7f2f43a05d7df6d4f13eda6"
         }
       ],
       "name": "services/weather-service/tests/test_et0_agro_product.py",

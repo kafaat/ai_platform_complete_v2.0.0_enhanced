@@ -210,13 +210,24 @@ def test_et0_view_adds_canonical_lineage():
     assert view["source_snapshot_id"] == state["source_snapshot_id"]
 
 
-def test_et0_view_honours_snapshot_id_override():
-    # عقد ET0 يقبل weather_snapshot_id مُمرَّراً من المُستهلِك — يبقى محفوظاً عبر الحالة.
+def test_snapshot_override_is_coherent_across_state_and_view():
+    # نَسَب متماسك: override يدخل products.et0.weather_snapshot_id **و**state.source_snapshot_id
+    # **و**state_id — لا تناقض بين إعلان ET0 وغلاف الحالة.
     state = build_canonical_weather_state(
         **_ET0_INPUTS, weather_snapshot_id_override="consumer-snap-123"
     )
     view = et0_view(state)
     assert view["weather_snapshot_id"] == "consumer-snap-123"
+    assert state["source_snapshot_id"] == "consumer-snap-123"  # الغلاف يعلن نفس اللقطة
+    assert view["source_snapshot_id"] == "consumer-snap-123"  # الـView متّسق معهما
+
+
+def test_different_snapshot_override_yields_different_state_id_same_values():
+    # طلبان بنفس القيم العدديّة لكن بلقطتين مختلفتين ⇒ state_id مختلف (dedup/replay سليم).
+    a = build_canonical_weather_state(**_ET0_INPUTS, weather_snapshot_id_override="snap-A")
+    b = build_canonical_weather_state(**_ET0_INPUTS, weather_snapshot_id_override="snap-B")
+    assert a["state_id"] != b["state_id"]
+    assert a["source_snapshot_id"] == "snap-A" and b["source_snapshot_id"] == "snap-B"
 
 
 def test_et0_view_fail_closed_when_insufficient():
@@ -228,15 +239,39 @@ def test_et0_view_fail_closed_when_insufficient():
 
 
 # ── WX-10.2 بوّابة الإغلاق: لا مسار حساب ET0 خارج المُجمِّع + لا رفع جودة ──────
-def test_agro_et0_has_no_direct_computation_path_outside_composer():
-    # الانعكاس المعماريّ (حارس ساكن): agro_et0 يشتقّ من الحالة فقط — لا يستدعي النواة
-    # (compute_et0) ولا المنتَج الكنسيّ (et0_agro_product) مباشرةً؛ كلّ ET0 عبر المُجمِّع.
+def _top_level_func_body(src: str, name: str) -> str:
+    """يستخرج جسم دالّة عُلويّة بالاسم (لا يفحص كامل الملفّ — دقّة أعلى، لا إيجابيّات كاذبة)."""
+    lines = src.splitlines()
+    out: list[str] = []
+    capturing = False
+    for line in lines:
+        if line.startswith((f"async def {name}(", f"def {name}(")):
+            capturing = True
+            out.append(line)
+            continue
+        if capturing:
+            # نهاية الدالّة عند أوّل تعريف عُلويّ تالٍ (عمود صفر).
+            if (
+                line
+                and not line[0].isspace()
+                and line.startswith(("def ", "async def ", "class ", "@"))
+            ):
+                break
+            out.append(line)
+    assert out, f"لم يُعثَر على الدالّة {name}"
+    return "\n".join(out)
+
+
+def test_agro_et0_body_has_no_direct_computation_path_outside_composer():
+    # حارس ساكن مُنطاق على **جسم agro_et0 وحده** (لا كامل الملفّ): يشتقّ من الحالة فقط ولا
+    # يستدعي النواة (compute_et0) ولا المنتَج الكنسيّ (et0_agro_product) مباشرةً.
     src = (Path(__file__).resolve().parent.parent / "weather_runtime.py").read_text(
         encoding="utf-8"
     )
-    assert "et0_agro_product" not in src, "agro_et0 يجب ألّا يستدعي المنتَج الكنسيّ مباشرةً"
-    assert "compute_et0" not in src, "agro_et0 يجب ألّا يستدعي النواة مباشرةً"
-    assert "build_canonical_weather_state" in src and "et0_view" in src
+    body = _top_level_func_body(src, "agro_et0")
+    assert "et0_agro_product" not in body, "agro_et0 يجب ألّا يستدعي المنتَج الكنسيّ مباشرةً"
+    assert "compute_et0" not in body, "agro_et0 يجب ألّا يستدعي النواة مباشرةً"
+    assert "build_canonical_weather_state" in body and "et0_view" in body
 
 
 def test_et0_view_does_not_recompute_reads_state_only():

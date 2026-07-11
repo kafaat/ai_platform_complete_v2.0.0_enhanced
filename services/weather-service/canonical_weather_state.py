@@ -233,7 +233,10 @@ def build_canonical_weather_state(
         "elevation_m": elevation_m,
         "day_of_year": day_of_year,
     }
-    source_snapshot_id = weather_snapshot_id(snapshot_inputs)
+    # لقطة المصدر للحالة: إن صرّح المُستهلِك بمعرِّف لقطة (override) فهو الحقيقة —
+    # يدخل source_snapshot_id (فيتماسك مع products.et0.weather_snapshot_id) **و**state_id
+    # (فيتمايز طلبان بنفس القيم لكن بلقطتين مختلفتين — traceability/replay/dedup سليمة).
+    source_snapshot_id = weather_snapshot_id_override or weather_snapshot_id(snapshot_inputs)
 
     availability: dict[str, bool] = {}
     provenance: dict[str, dict] = {}

@@ -101,6 +101,56 @@ def test_route_agro_et0_returns_contract():
     assert body["valid_time"] == "2026-07-10T00:00:00Z"
 
 
+def test_route_agro_et0_carries_canonical_state_lineage_over_http():
+    # WX-10.2: ET0 صار View مُشتقّاً من CanonicalWeatherState — العقد HTTP يحمل نَسَب الحالة.
+    client = TestClient(main.app)
+    resp = client.post(
+        "/v1/weather/agro/et0",
+        json={
+            "t_max_c": 30.0,
+            "t_min_c": 18.0,
+            "solar_rad_mj_m2": 22.0,
+            "rh_mean_pct": 55.0,
+            "wind_2m_ms": 2.0,
+            "lat_deg": 15.5,
+            "elevation_m": 2000.0,
+            "day_of_year": 100,
+            "valid_time": "2026-07-10T00:00:00Z",
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["derived_from"] == "canonical_weather_state"
+    assert isinstance(body["canonical_state_id"], str) and body["canonical_state_id"]
+    assert body["canonical_state_version"]
+    # بلا override: نَسَب الحالة = بصمة اللقطة المحسوبة = weather_snapshot_id للمنتَج.
+    assert body["source_snapshot_id"] == body["weather_snapshot_id"]
+
+
+def test_route_agro_et0_snapshot_override_is_coherent_over_http():
+    # override يدخل products.et0.weather_snapshot_id **و**source_snapshot_id للحالة (تماسك).
+    client = TestClient(main.app)
+    resp = client.post(
+        "/v1/weather/agro/et0",
+        json={
+            "t_max_c": 30.0,
+            "t_min_c": 18.0,
+            "solar_rad_mj_m2": 22.0,
+            "rh_mean_pct": 55.0,
+            "wind_2m_ms": 2.0,
+            "lat_deg": 15.5,
+            "elevation_m": 2000.0,
+            "day_of_year": 100,
+            "valid_time": "2026-07-10T00:00:00Z",
+            "weather_snapshot_id": "consumer-snap-xyz",
+        },
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["weather_snapshot_id"] == "consumer-snap-xyz"
+    assert body["source_snapshot_id"] == "consumer-snap-xyz"
+
+
 def test_route_insufficient_when_geography_missing_no_5xx():
     # لا شبكة ⇒ لا 5xx؛ نقص الجغرافيا ⇒ insufficient صريح (200، et0_mm=None).
     client = TestClient(main.app)

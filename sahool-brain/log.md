@@ -2481,3 +2481,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **اختبارات (4 جديدة، مجموع 15):** الـView == النواة المباشرة في الحقول الجوهريّة (حفظ سلوك) · يُضيف نَسَب الحالة · يحترم snapshot override · fail-closed عند النقص (insufficient بلا اختلاق).
 - **تحقّق (خضراء محليّاً):** weather-service **115** (+4) · guard Zero-Legacy LOCKED · bandit High=0 · unit 2866 · ruff · inventory 886 (بلا مسارات جديدة) · bundle. CI معلَّق قبل التقديم السريع.
 - **التالي:** VPD View → GDD View → Crop Intelligence → Decision (كلٌّ إنكرمنت مستقلّ).
+
+## WX-10.2-fix — تماسك source_snapshot_id مع snapshot override (مراجعة المستخدم)
+
+- **فجوة نَسَب وجدها المستخدم:** عند تمرير `weather_snapshot_id_override`، كان `products.et0.weather_snapshot_id`=override لكن `state.source_snapshot_id` يبقى البصمة المحسوبة ⇒ تناقض (ET0 يعلن لقطة، الغلاف يعلن أخرى)؛ وطلبان بنفس القيم بلقطتين مختلفتين يُنتجان نفس `state_id` (يضعف traceability/replay/dedup/«الحقيقة الواحدة»).
+- **الإصلاح (في `build_canonical_weather_state`):** `source_snapshot_id = weather_snapshot_id_override or weather_snapshot_id(snapshot_inputs)` — المعرّف الخارجي يدخل source_snapshot_id **و**state_id (لأنّ state_id يهشّ source_snapshot_id). الآن ET0.weather_snapshot_id == state.source_snapshot_id == override؛ ولقطتان مختلفتان ⇒ state_id مختلف.
+- **تحسينا اختبار (ملاحظتا المستخدم):** (١) الحارس الساكن نُطِّق على **جسم `agro_et0` وحده** (helper `_top_level_func_body`) بدل فحص كامل الملفّ نصّيّاً (لا إيجابيّات/سلبيّات كاذبة مستقبلاً). (٢) أُضيف اختبارا HTTP في `test_et0_agro_product.py` يثبتان حقول النَّسَب عبر العقد الفعليّ (`derived_from`/`canonical_state_id`/`canonical_state_version`/`source_snapshot_id`) + تماسك override عبر HTTP.
+- **تحقّق:** weather-service **121** (+3) · canonical+et0 27 · guard LOCKED · bandit High 0 · unit 2866 · ruff. CI معلَّق قبل التقديم السريع.
