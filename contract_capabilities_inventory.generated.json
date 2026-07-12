@@ -68,6 +68,7 @@
       "implemented_runtime",
       "owners",
       "runtime_role",
+      "schema_version",
       "service"
     ],
     "required_keys": [
@@ -75,10 +76,8 @@
       "schema_version",
       "service"
     ],
-    "missing_keys": [
-      "schema_version"
-    ],
-    "status": "missing_keys"
+    "missing_keys": [],
+    "status": "ok"
   },
   {
     "file": "services/indicators-service/main.py",

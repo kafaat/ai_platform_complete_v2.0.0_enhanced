@@ -10295,7 +10295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "becf4fee358e2b3c1303098e40617ced314468022c3945ea2829ebd5eac18704"
+          "content": "1434becbdd1f55d823c922e0cfd2c5857c6e7cccda66300f33a31273f3bc06b4"
         }
       ],
       "name": "services/indicators-service/main.py",

@@ -557,7 +557,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 118,
+      "line": 119,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator"

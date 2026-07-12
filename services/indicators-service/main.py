@@ -76,6 +76,7 @@ async def catalog():
 @app.get("/capabilities")
 async def capabilities():
     return {
+        "schema_version": _manifest()["schema_version"],
         "service": "indicators-service",
         "implemented_runtime": True,
         "runtime_role": "contract-only",

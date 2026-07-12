@@ -817,7 +817,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 98,
+      "line": 99,
       "method": "GET",
       "path": "/contract",
       "function": "contract",
@@ -826,7 +826,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 118,
+      "line": 119,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator",
@@ -835,7 +835,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 126,
+      "line": 127,
       "method": "GET",
       "path": "/",
       "function": "root",
