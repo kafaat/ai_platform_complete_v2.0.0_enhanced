@@ -5055,7 +5055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d446790c7aef691aaebb1221308dc711d525f16e486e7792f46a95d507e1bc8"
+          "content": "15c3dfd325edd6bc86a0cbd5944cbf834d67b9eee5fe27b1a403ddc84b48ea60"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5095,7 +5095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c654fe339d345061a640e63105f40f84a6ac0fe81c367bd5bba3829a9f50327"
+          "content": "483ad741ff4fb429ac1b3fd67cad428fe9c67ed38b8b5b6beef48b54f04c9d49"
         }
       ],
       "name": "frontend/src/sections/MapHubTwoYearBackfill.static.test.ts",
@@ -11425,7 +11425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d532f05b773f33e573b6454ff091658a048eefc2520b2e52fb4924221af60a38"
+          "content": "8ec168aae041c03127d47d89cd233316528ccc718543f1865b094345adb2e74e"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -11975,6 +11975,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2bdf41d960e9a2054163c48621d9e5a80aac44ce7cf2a33e49ac237dacb14c13"
+        }
+      ],
+      "name": "services/raster-service/test_raster_batch_postgres_integration.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8a44bbc6bcbfdd7d0633be878b69d589d84ed4d77f7991b5d04843d744fecb5c"
         }
       ],
@@ -12059,6 +12069,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea0bb2c00b1c9122bd220335cb5980d4df8434999ef857ca5f01ff87edde9e9b"
+        }
+      ],
+      "name": "services/raster-service/test_raster_runtime_certification.py",
       "type": "file"
     },
     {

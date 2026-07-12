@@ -1237,7 +1237,10 @@ async def field_available_dates(
             if bbox is None:
                 provider_error = "field_geometry_unavailable"
             else:
-                end = _dt.date.today()
+                # _month_windows يقارن cursor (datetime بـUTC) بـend، فيجب أن يكونا
+                # datetime بمنطقة زمنيّة — تمرير date خام يرفع
+                # "can't compare datetime.datetime to datetime.date" ويُسقِط دمج المزوّد.
+                end = _dt.datetime.now(_dt.UTC)
                 start = end - _dt.timedelta(days=months * 31)
                 for w_start, w_end in _month_windows(start, end):
                     search = await _stac_search(

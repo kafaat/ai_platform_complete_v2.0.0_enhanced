@@ -836,7 +836,12 @@ function MapHubCore() {
       // اكتمال العامل، حتى يرى المستخدم تواريخ الـbackfill دون refresh يدوي.
       const isAsync = (result as { mode?: string })?.mode === 'async';
       const runId = Number((result as { run_id?: number })?.run_id ?? 0);
-      const refreshIndex = activeIndicator ?? indices[0];
+      // يجب أن يطابق منطق التحميل الأوّليّ (سطر ~486): طبقة الصورة الخام (truecolor)
+      // لا تملك COG مخزّناً، فتمرير معرّفها يُصفّي التواريخ على مؤشّر غير موجود ⇒
+      // شريط زمنيّ فارغ بعد الـbackfill. نُحوّله إلى undefined فيُجلَب كامل المحور.
+      const baseRefreshIndex = activeIndicator ?? indices[0];
+      const refreshIndex =
+        baseRefreshIndex && baseRefreshIndex !== RAW_IMAGERY_INDEX_ID ? baseRefreshIndex : undefined;
       const refreshImageryTimeline = async () => {
         const [dates, allDates] = await Promise.all([
           fetchFieldImageryAvailableDates(pollFieldId, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
