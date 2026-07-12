@@ -78,6 +78,28 @@ def main() -> int:
     if not {"status", "service", "ready", "implemented_runtime", "dependencies"} <= ready_keys:
         raise SystemExit("vegetation /readyz schema missing required truth keys")
 
+    # Container startup completeness: every module the Dockerfile copies into /app that reads a
+    # sibling data file at import (Path(__file__).with_name("X")) must have that file COPY'd too,
+    # otherwise the container dies with FileNotFoundError before serving (regression 20260712:
+    # indicator_registry.py read indicator_capabilities.generated.json that was never copied).
+    import re as _re
+
+    copied_modules = _re.findall(
+        r"COPY services/vegetation-analysis-service/(\S+\.py) /app/", dockerfile
+    )
+    for rel in copied_modules:
+        mod = SERVICE_DIR / rel
+        if not mod.exists():
+            continue
+        for data_file in _re.findall(r'\.with_name\(\s*"([^"]+)"\s*\)', _text(mod)):
+            if data_file.endswith(".py"):
+                continue  # sibling python modules are handled by their own COPY lines
+            if f"/app/{data_file}" not in dockerfile:
+                raise SystemExit(
+                    f"vegetation Dockerfile copies {rel} which reads {data_file!r} at import "
+                    f"but does not COPY {data_file} — container will FileNotFoundError on startup"
+                )
+
     block = _compose_service_block("sahool-vegetation-analysis")
     if "depends_on:" in block and "sahool-nats" in block:
         raise SystemExit(
