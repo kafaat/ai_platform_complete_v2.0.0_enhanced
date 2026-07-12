@@ -7,10 +7,89 @@ unchanged while the long main.py is split into testable pieces.
 
 from __future__ import annotations
 
+import os
+import threading
 import uuid
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
+
+
+class _LeaseHeartbeat:
+    """Keep a PostgreSQL batch lease alive while a long indicator is running.
+
+    A failed heartbeat is a fencing signal: the worker stops scheduling more
+    indicators and must not write the durable terminal state. This prevents a
+    healthy long-running operation from being reclaimed merely because one
+    indicator exceeded the lease duration.
+    """
+
+    def __init__(self, *, claim_key: str, tenant_id: str, lease_token: str, logger):
+        self.claim_key = claim_key
+        self.tenant_id = tenant_id
+        self.lease_token = lease_token
+        self.logger = logger
+        self.stop_event = threading.Event()
+        self.lost_event = threading.Event()
+        lease_seconds = max(30, int(os.getenv("RASTER_BATCH_LEASE_SECONDS", "300")))
+        configured = int(os.getenv("RASTER_BATCH_HEARTBEAT_SECONDS", "0") or 0)
+        self.interval = max(5, configured or max(5, lease_seconds // 3))
+        self.thread: threading.Thread | None = None
+
+    def _beat(self) -> bool:
+        try:
+            import raster_batch_job_store
+
+            ok = bool(
+                raster_batch_job_store.heartbeat_sync(
+                    claim_key=self.claim_key,
+                    tenant_id=self.tenant_id,
+                    lease_token=self.lease_token,
+                )
+            )
+            try:
+                import raster_batch_observability
+
+                raster_batch_observability.inc(
+                    "lease_heartbeat_success_total" if ok else "lease_heartbeat_failure_total"
+                )
+            except Exception:
+                pass
+            return ok
+        except Exception:
+            try:
+                import raster_batch_observability
+
+                raster_batch_observability.inc("lease_heartbeat_exception_total")
+            except Exception:
+                pass
+            self.logger.warning("durable lease heartbeat raised", exc_info=True)
+            return False
+
+    def start(self) -> bool:
+        if not self._beat():
+            self.lost_event.set()
+            return False
+        self.thread = threading.Thread(
+            target=self._run, name="raster-batch-lease-heartbeat", daemon=True
+        )
+        self.thread.start()
+        return True
+
+    def _run(self) -> None:
+        while not self.stop_event.wait(self.interval):
+            if not self._beat():
+                self.lost_event.set()
+                return
+
+    @property
+    def lost(self) -> bool:
+        return self.lost_event.is_set()
+
+    def stop(self) -> None:
+        self.stop_event.set()
+        if self.thread is not None:
+            self.thread.join(timeout=max(1, min(self.interval, 5)))
 
 
 def run_processing(ctx, job_id: str, req):
@@ -211,6 +290,31 @@ def run_batch_processing(ctx, job_id: str, req):
     except Exception:
         durable_lease_token = None
     durable_tenant_id = str(getattr(req, "tenant_id", "") or "")
+    lease_heartbeat = None
+    if (
+        durable_claim_key
+        and durable_lease_token
+        and durable_tenant_id
+        and job.get("claim_backend") == "postgres"
+    ):
+        lease_heartbeat = _LeaseHeartbeat(
+            claim_key=durable_claim_key,
+            tenant_id=durable_tenant_id,
+            lease_token=durable_lease_token,
+            logger=ctx.logger,
+        )
+        if not lease_heartbeat.start():
+            job["status"] = ctx.JobStatus.failed
+            job["error_message"] = "durable_lease_not_owned"
+            job["finished_at"] = datetime.now(UTC).isoformat()
+            ctx._jobs.set(job_id, job)
+            try:
+                import raster_batch_runtime_leases
+
+                raster_batch_runtime_leases.pop_token(job_id)
+            except Exception:
+                pass
+            return
     try:
         import raster_batch_observability
 
@@ -280,12 +384,23 @@ def run_batch_processing(ctx, job_id: str, req):
                     raster_batch_runtime_leases.pop_token(job_id)
                 except Exception:
                     pass
+        if lease_heartbeat is not None:
+            lease_heartbeat.stop()
         ctx.logger.error(
             "batch %s shared reader open failed: %s", job_id, type(exc).__name__, exc_info=True
         )
         return
 
     for i, ind in enumerate(unique_indicators):
+        if lease_heartbeat is not None and lease_heartbeat.lost:
+            failed["__batch__"] = "durable_lease_lost"
+            try:
+                import raster_batch_observability
+
+                raster_batch_observability.inc("lease_lost_total")
+            except Exception:
+                pass
+            break
         # ابنِ ctx.ProcessRequest فرديّاً لكلّ مؤشّر (يعيد استخدام المنطق المُختبَر)
         single = ctx.ProcessRequest(
             tenant_id=req.tenant_id,
@@ -328,29 +443,23 @@ def run_batch_processing(ctx, job_id: str, req):
             ctx.logger.warning("مهمّة فرعيّة %s فشلت: %s%s", ind.value, type(e).__name__, _http)
             failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
-        if (
-            durable_claim_key
-            and durable_lease_token
-            and durable_tenant_id
-            and job.get("claim_backend") == "postgres"
-        ):
-            try:
-                import raster_batch_job_store
+        if lease_heartbeat is not None and lease_heartbeat.lost:
+            failed["__batch__"] = "durable_lease_lost"
+            break
 
-                raster_batch_job_store.heartbeat_sync(
-                    claim_key=durable_claim_key,
-                    tenant_id=durable_tenant_id,
-                    lease_token=durable_lease_token,
-                )
-            except Exception:
-                ctx.logger.warning("batch %s durable lease heartbeat failed", job_id)
-
+    if lease_heartbeat is not None:
+        lease_heartbeat.stop()
     if original_process_pixels is not None:
         ctx._process_pixels = original_process_pixels
     if shared_src is not None:
         shared_src.close()
     job["shared_band_cache_entries"] = len(shared_cache)
-    job["status"] = ctx.JobStatus.completed if results else ctx.JobStatus.failed
+    lease_lost = bool(lease_heartbeat is not None and lease_heartbeat.lost)
+    if lease_lost:
+        job["error_message"] = "durable_lease_lost"
+        job["status"] = ctx.JobStatus.failed
+    else:
+        job["status"] = ctx.JobStatus.completed if results else ctx.JobStatus.failed
     job["finished_at"] = datetime.now(UTC).isoformat()
     job["batch_results"] = results
     job["batch_failed"] = failed
@@ -367,7 +476,8 @@ def run_batch_processing(ctx, job_id: str, req):
     except Exception:
         pass
     if (
-        durable_claim_key
+        (not lease_lost)
+        and durable_claim_key
         and durable_lease_token
         and durable_tenant_id
         and job.get("claim_backend") == "postgres"

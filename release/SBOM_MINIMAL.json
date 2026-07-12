@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9b59c56a7bfd9ab12ba0b6353e29c78993535e4e0d655ffb39933f51cf907bd"
+          "content": "924532c4158fd7937500316d5df6a595e9f1d9e6716fda4fcc3feeb14ffe1854"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3be3f1b58a3b7ab4d59754e85ca39f6d14c5ab872c2747659bde23f7457683e"
+          "content": "704f0d585f874c308ac4c9a54bf4d16d0e762b4ca00f7f5f50ca6886672ba200"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -6515,6 +6515,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "10a3bec5cea858f29fe0b9a230ecc0651b5c3a13a1ab39799b5af83d5bb996ad"
+        }
+      ],
+      "name": "migrations/v154_raster_product_identity_batch_leases.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb0f425d3153fa93f00c48cc9b3fd8c85913f8cff4a953be22c98bf62b74f10c"
         }
       ],
@@ -11115,10 +11125,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bdb62319c990eb6aa64fcd36d9626f76ec4878dd8bc2cdd7b0273d4a1a1b8bc6"
+        }
+      ],
+      "name": "services/raster-service/raster_batch_job_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "70052d817c3a100c0ed1d674df1ee0dcfc745d05bc888c5e11c2ba9d25725f43"
         }
       ],
       "name": "services/raster-service/raster_batch_observability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93573bd2ffc54e3aa22ad0fb86338ca3221b59bff94619f9ffeed6cbd89d5125"
+        }
+      ],
+      "name": "services/raster-service/raster_batch_runtime_leases.py",
       "type": "file"
     },
     {
@@ -11185,7 +11215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd8b8e66ad40fe74955821bead141c7bb7a6d714b34fca376f769b42227be197"
+          "content": "b2c5d65b9ae18ff9488d875c51d50b8bd42020fc48d8d00193c55a0fa4b588a6"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -11445,7 +11475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a077cf92209a9dc711c10f90d46cf0408f54975cb80782f843cfed546be95195"
+          "content": "86281db485a849e4c9925f34c689b6324f2cdc1a0a095e8e6aad0a5316ffd379"
         }
       ],
       "name": "services/raster-service/routers/processing.py",
@@ -11949,6 +11979,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_crs_window.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "13d1aedb54e538a78ff392858299e75cb6ffef4d55c9ba448f62da63eb7bba71"
+        }
+      ],
+      "name": "services/raster-service/test_raster_durable_identity.py",
       "type": "file"
     },
     {

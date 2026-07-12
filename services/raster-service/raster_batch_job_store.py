@@ -13,6 +13,19 @@ import uuid
 from dataclasses import dataclass
 from typing import Any
 
+
+def _as_obj(value: Any) -> dict | None:
+    """asyncpg returns jsonb as a raw JSON string (no codec registered) — decode it.
+
+    Accepts already-decoded dicts too, so the helper is safe across drivers.
+    """
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return json.loads(value)
+    return dict(value)
+
+
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 LEASE_SECONDS = max(30, int(os.getenv("RASTER_BATCH_LEASE_SECONDS", "300")))
 WORKER_ID = os.getenv("RASTER_WORKER_ID", os.getenv("HOSTNAME", "raster-worker"))
@@ -27,6 +40,8 @@ class DurableClaim:
     lease_owner: str | None = None
     lease_token: str | None = None
     recovered: bool = False
+    result_payload: dict | None = None
+    error_code: str | None = None
 
 
 async def _connect():
@@ -97,7 +112,7 @@ async def claim_or_recover(
                           OR (raster_batch_jobs.status='processing' AND raster_batch_jobs.lease_expires_at < now())
                         THEN raster_batch_jobs.attempt_count + 1 ELSE raster_batch_jobs.attempt_count END,
                     updated_at = now()
-                RETURNING job_id, status, lease_owner, lease_token,
+                RETURNING job_id, status, lease_owner, lease_token, result_payload, error_code,
                           (lease_token=$8 AND status='processing') AS acquired,
                           (job_id<>$2 OR attempt_count>1) AS recovered
                 """,
@@ -106,7 +121,7 @@ async def claim_or_recover(
                 tenant_id,
                 field_id,
                 owner,
-                LEASE_SECONDS,
+                str(LEASE_SECONDS),
                 json.dumps(_payload(req), sort_keys=True),
                 lease_token,
             )
@@ -118,6 +133,8 @@ async def claim_or_recover(
             row["lease_owner"],
             row["lease_token"],
             bool(row["recovered"]),
+            _as_obj(row.get("result_payload")),
+            row.get("error_code"),
         )
     finally:
         await conn.close()
@@ -138,7 +155,7 @@ async def heartbeat(
                WHERE claim_key=$1 AND lease_owner=$2 AND lease_token=$4 AND status='processing'""",
             claim_key,
             owner,
-            LEASE_SECONDS,
+            str(LEASE_SECONDS),
             lease_token,
         )
         return result.endswith(" 1")

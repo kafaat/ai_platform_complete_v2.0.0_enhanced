@@ -206,9 +206,9 @@
   {
     "service": "raster-service",
     "domain": "Imagery & Raster",
-    "python_files": 140,
-    "python_loc": 19811,
-    "tests": 56,
+    "python_files": 142,
+    "python_loc": 20126,
+    "tests": 58,
     "routes": 78,
     "main": "services/raster-service/main.py",
     "dockerfile": "services/raster-service/Dockerfile",

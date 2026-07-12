@@ -106,6 +106,8 @@ async def process_batch(
         recovered = durable.recovered
         durable_status = durable.status
         lease_token = durable.lease_token
+        durable_result = durable.result_payload
+        durable_error = durable.error_code
     else:
         claim = indicator_batch_claim.BATCH_CLAIMS.claim(claim_key, proposed_job_id)
         job_id = claim.job_id
@@ -114,18 +116,26 @@ async def process_batch(
         recovered = False
         durable_status = "unavailable"
         lease_token = None
+        durable_result = None
+        durable_error = None
     if not claim_acquired:
         raster_batch_observability.inc("claims_deduplicated_total")
         existing = raster_runtime_state.JOBS.get(job_id) or {}
-        return {
+        response_status = existing.get("status") or durable_status or api_models.JobStatus.pending
+        response = {
             "job_id": job_id,
-            "status": existing.get("status", api_models.JobStatus.pending),
+            "status": response_status,
             "indicators": [i.value for i in req.indicators],
             "deduplicated": True,
             "claim_backend": claim_backend,
             "durable_status": durable_status,
             "note": "طلب مطابق قيد المعالجة أو مكتمل؛ أُعيد job_id السلطوي نفسه",
         }
+        if durable_result is not None:
+            response["result"] = durable_result
+        if durable_error:
+            response["error_code"] = durable_error
+        return response
     raster_batch_observability.inc("claims_acquired_total")
     raster_batch_runtime_leases.set_token(job_id, lease_token)
     raster_runtime_state.JOBS.set(
