@@ -65,10 +65,9 @@
     "mode": "inline-dict",
     "keys": [
       "capabilities",
-      "handoff_owner",
-      "health_only",
       "implemented_runtime",
-      "schema_version",
+      "owners",
+      "runtime_role",
       "service"
     ],
     "required_keys": [
@@ -76,8 +75,10 @@
       "schema_version",
       "service"
     ],
-    "missing_keys": [],
-    "status": "ok"
+    "missing_keys": [
+      "schema_version"
+    ],
+    "status": "missing_keys"
   },
   {
     "file": "services/indicators-service/main.py",
@@ -87,8 +88,8 @@
     "keys": [
       "allowed_routes",
       "contract_version",
-      "handoff_owner",
       "implemented_runtime",
+      "runtime_role",
       "service",
       "truth_policy"
     ],
