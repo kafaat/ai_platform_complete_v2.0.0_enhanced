@@ -23,6 +23,10 @@ COPY services/vegetation-analysis-service/routers/ /app/routers/
 COPY services/vegetation-analysis-service/vegetation_runtime.py /app/vegetation_runtime.py
 COPY services/vegetation-analysis-service/vegetation_contracts.py /app/vegetation_contracts.py
 COPY services/vegetation-analysis-service/indicator_registry.py /app/indicator_registry.py
+# indicator_registry.py يقرأ ملفّ القدرات المُولَّد عند الاستيراد
+# (Path(__file__).with_name("indicator_capabilities.generated.json")). غير منسوخ ⇒
+# FileNotFoundError عند الإقلاع ⇒ تعطّل الخدمة. نسخه إلزاميّ.
+COPY services/vegetation-analysis-service/indicator_capabilities.generated.json /app/indicator_capabilities.generated.json
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1

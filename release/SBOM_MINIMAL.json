@@ -24375,7 +24375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f139dbdf230d43f5f79d11da8ee135b24ae63a64b8784b6c88c88a92ddb59235"
+          "content": "21a9d94d053ec483b09eac739154fb87b3979f468772f9a5f7425667db383abc"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
