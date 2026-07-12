@@ -11895,6 +11895,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1838700af8f667af8b7c556a877c7104b08b458001b2e9746e5103c39fea5a1b"
+        }
+      ],
+      "name": "services/raster-service/test_indicator_observation_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "58a91aa39d089c411a895b837cf7fa1533973556f745336a99203e7e1273afe3"
         }
       ],
@@ -24405,7 +24415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6343ce6c1fb8af270dbcfcf3b4f7de0dfe7896bc3b355d63a8d2bc98f28f0ff"
+          "content": "935e57aa00f18d530fdc7cd68dd7c9a2bf3071ac4a347beb02a348728ea657df"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -24485,10 +24495,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "085fc0b6735a8f9f602679c41447ca354f900640cf8499930a13399bfa23aad4"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "98a5ac4746a71b31e8c92d29fc1f038584d0cde80fb685283d27babdb5a1e8b2"
         }
       ],
       "name": "services/vegetation-analysis-service/test_production_truth_closure.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "296d1a818e552eed3b53fcfcaa0c674391650ea711fd836b7ac886438705262f"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
       "type": "file"
     },
     {

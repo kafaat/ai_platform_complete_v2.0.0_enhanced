@@ -90,6 +90,7 @@ from vegetation_runtime import (  # noqa: E402,F401
     RASTER_SERVICE_TOKEN,
     RASTER_SERVICE_URL,
     VEGETATION_PREFER_RASTER,
+    VEGETATION_REAL_ONLY,
     _current_ndvi_from_raster,
     _current_ndvi_payload,
     _flag_enabled,
