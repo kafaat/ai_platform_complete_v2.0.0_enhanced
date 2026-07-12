@@ -763,7 +763,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 38,
+      "line": 55,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -772,7 +772,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 43,
+      "line": 60,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -781,7 +781,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 48,
+      "line": 65,
       "method": "GET",
       "path": "/readyz",
       "function": "ready",
@@ -790,7 +790,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 62,
+      "line": 79,
       "method": "GET",
       "path": "/v1/indicators/ownership",
       "function": "ownership",
@@ -799,7 +799,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 67,
+      "line": 84,
       "method": "GET",
       "path": "/v1/indicators/catalog",
       "function": "catalog",
@@ -808,7 +808,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 77,
+      "line": 94,
       "method": "GET",
       "path": "/capabilities",
       "function": "capabilities",
@@ -817,7 +817,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 99,
+      "line": 116,
       "method": "GET",
       "path": "/contract",
       "function": "contract",
@@ -826,7 +826,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 119,
+      "line": 136,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator",
@@ -835,7 +835,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 127,
+      "line": 144,
       "method": "GET",
       "path": "/",
       "function": "root",

@@ -111,7 +111,7 @@
     "service": "indicators-service",
     "domain": "Vegetation Analytics",
     "python_files": 4,
-    "python_loc": 167,
+    "python_loc": 179,
     "tests": 2,
     "routes": 9,
     "main": "services/indicators-service/main.py",

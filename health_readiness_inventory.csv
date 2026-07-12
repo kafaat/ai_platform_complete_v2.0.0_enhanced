@@ -9,8 +9,8 @@ services/edge-inference/main.py,health_check,/healthz,168,True,True,True,ok
 services/edge-inference/main.py,readyz,/readyz,365,True,True,True,ok
 services/field-segmentation/main.py,healthz,/healthz,370,True,True,True,ok
 services/field-segmentation/main.py,readyz,/readyz,380,True,True,True,ok
-services/indicators-service/main.py,healthz,/healthz,38,True,True,True,ok
-services/indicators-service/main.py,ready,/readyz,48,True,True,True,ok
+services/indicators-service/main.py,healthz,/healthz,55,True,True,True,ok
+services/indicators-service/main.py,ready,/readyz,65,True,True,True,ok
 services/knowledge-graph/main.py,healthz,/healthz,89,True,True,True,ok
 services/knowledge-graph/main.py,readyz,/readyz,111,True,True,True,ok
 services/local-ai-rag/main.py,healthz,/healthz,482,True,True,True,ok

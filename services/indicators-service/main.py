@@ -16,8 +16,25 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-contract-boundary")
-_ROOT = Path(__file__).resolve().parents[2]
-_MANIFEST = _ROOT / "shared" / "contracts" / "indicator_ownership.json"
+
+
+def _resolve_manifest() -> Path:
+    """Locate shared/contracts/indicator_ownership.json in both repo and container layouts.
+
+    In the repo the file lives at <root>/shared/contracts/...; the container Dockerfile
+    flattens it to /app/shared/contracts/... alongside main.py. Walking up from this file
+    (parent first) finds it in either layout — a hardcoded parent-index into the repo tree
+    raised IndexError at /app/main.py and took the whole service down on startup.
+    """
+    here = Path(__file__).resolve()
+    for base in (here.parent, *here.parents):
+        candidate = base / "shared" / "contracts" / "indicator_ownership.json"
+        if candidate.exists():
+            return candidate
+    return here.parent / "shared" / "contracts" / "indicator_ownership.json"
+
+
+_MANIFEST = _resolve_manifest()
 
 app = FastAPI(title="SAHOOL Indicators Contract Service", version=VERSION)
 
