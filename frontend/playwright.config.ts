@@ -65,6 +65,6 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
-    env: { VITE_MAP_ENGINE: 'maplibre' },
+    env: { VITE_MAP_ENGINE: 'maplibre', VITE_E2E_HOOKS: '1' },
   },
 });

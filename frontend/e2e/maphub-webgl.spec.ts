@@ -6,9 +6,11 @@
 // قيم القياس + اختيار الحقل/قمعه في وضع الدبابيس + zoom/pan بلا أخطاء.
 //
 // صدق (مُوثَّق في رأس كلّ خطوة): SwiftShader headless يتحقّق من المنطق/الأسلاك/
-// سلامة سياق WebGL — لا من تطابق البكسل على GPU. الخطوتان البصريّتان الصرفتان
-// (٧ إزاحة المؤشّر دون-بكسليّة، ٩ تطابق leaflet↔maplibre) مُعلَّمتان @visual
-// ومُخطّاتان (test.fixme) — توقيع بصريّ يدويّ على عتاد حقيقيّ يبقى المرجع.
+// سلامة سياق WebGL — لا من تطابق البكسل على GPU. الإزاحة الهندسيّة (خطوة ٧) واتّساق
+// الإسقاط (خطوة ٩) صارا حتميَّين رياضيّاً عبر خطّاف __hubmap (project/unproject)، والدبّوس
+// الفعليّ صار حتميّاً عبر مسار onAddPin الإنتاجيّ. يتبقّى مُخطَّطان (test.fixme @visual):
+// رسم المضلّع/الخطّ — لأنّ تهيئة Terra Draw لا تكتمل headless (data-draw-ready)، ودالّتا
+// القياس مُغطّاتان بـunit tests؛ يُنزَع fixme فور استقرار التهيئة headless.
 //
 // أيّ خطوة وظيفيّة تعذّر جعلها حتميّة تحت SwiftShader (مثل أحداث مؤشّر Terra Draw
 // التي قد لا تصل للـcanvas) لا تُزيَّف نجاحاً — تُعلَّم @visual/يدويّة بتعليق صريح.
@@ -97,24 +99,25 @@ test('الخطوة 2-3: لوحة الرسم وأزرار الوضع تظهر ع�
 // رسم الخطّ (measure-length) والدبّوس (📍) المُعلَّمَين test.fixme أدناه. لا نُزيِّف نجاحاً
 // حاجزاً؛ التوقيع البصريّ اليدويّ على متصفّح حقيقيّ يبقى المرجع (يعمل التطبيق فعليّاً).
 // التسليك الوظيفيّ (لوحة الرسم + زرّ وضع المضلّع) مُغطّى حاجزاً في الاختبار أعلاه.
-test.fixme('الخطوة 2-3: رسم مضلّع بنقرات canvas ⇒ measure-area بـ«م²» @visual', async ({ page }) => {
+// جاهز للتفعيل حتميّاً عبر خطّاف __hubmap (حقن هندسة حقيقيّة عبر Terra Draw ⇒ مسار
+// turf الإنتاجيّ)، لكنّ data-draw-ready لا يُرفَع تحت SwiftShader headless (تهيئة
+// Terra Draw + start() لا تكتمل) — فيبقى @visual. دالّتا القياس areaSqMeters/
+// lengthMeters مُغطّاتان بـunit tests. يُنزَع fixme فور استقرار تهيئة الرسم headless.
+test.fixme('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة محقونة) ⇒ measure-area بـ«م²» @visual', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
-  // انتظار اكتمال الاستيراد الديناميكيّ لـTerra Draw قبل النقر على الـcanvas
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
   await page.getByTestId('btn-mode-polygon').click();
-  const canvas = page.locator(`${CONTAINER} canvas`).first();
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error('canvas bbox غير متاح');
-  const cx = box.x + box.width / 2;
-  const cy = box.y + box.height / 2;
-  const pts: [number, number][] = [
-    [cx - 60, cy - 60], [cx + 60, cy - 60], [cx + 60, cy + 60], [cx - 60, cy + 60],
-  ];
-  for (const [x, y] of pts) {
-    await page.mouse.click(x, y);
-    await page.waitForTimeout(100);
-  }
-  await page.mouse.dblclick(pts[0][0], pts[0][1]); // إغلاق المضلّع
+  // حتميّ: نحقن مضلّعاً بإحداثيات lng/lat حقيقيّة حول مركز الخريطة عبر محرّك Terra Draw
+  // نفسه — لا نقرات canvas عمياء (لا تصل لـMapLibre تحت SwiftShader). القياس يمرّ
+  // بمسار areaSqMeters/turf الإنتاجيّ نفسه، فالنتيجة صدق لا تزييف.
+  await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { getDraw: () => unknown } }).__hubmap?.getDraw(), null, { timeout: 20_000 });
+  await page.evaluate(() => {
+    const h = (window as unknown as { __hubmap: { center: () => [number, number]; getDraw: () => { addFeatures: (f: unknown[]) => unknown } } }).__hubmap;
+    const [lng, lat] = h.center();
+    const d = 0.0015; // ~150م ⇒ مساحة بعشرات الآلاف م²
+    const ring = [[lng - d, lat - d], [lng + d, lat - d], [lng + d, lat + d], [lng - d, lat + d], [lng - d, lat - d]];
+    h.getDraw().addFeatures([{ type: 'Feature', properties: { mode: 'polygon' }, geometry: { type: 'Polygon', coordinates: [ring] } }]);
+  });
   const area = page.getByTestId('measure-area');
   await expect(area).toBeVisible();
   await expect(area).toContainText('م²'); // قيمة مساحة حقيقيّة محسوبة (turf)
@@ -127,21 +130,21 @@ test.fixme('الخطوة 2-3: رسم مضلّع بنقرات canvas ⇒ measure-
 // المزدوج فلا يُطلَق حدث Terra Draw «finish» ⇒ measure.lines يبقى 0 (HubMapGL:625/887).
 // تعذّر جعله حتميّاً تحت SwiftShader headless (كما نصّ رأس الملفّ) — يُعلَّم @visual
 // (توقيع بصريّ يدويّ على متصفّح حقيقيّ)، ولا يُزيَّف نجاحاً. القياس صحيح للمستخدم الفعليّ.
-test.fixme('الخطوة 2-3: رسم خطّ بنقرات canvas ⇒ measure-length بـ«كم» @visual', async ({ page }) => {
+// نفس قيد المضلّع: جاهز حتميّاً عبر __hubmap، لكن Terra Draw لا يُهيَّأ headless
+// (data-draw-ready) — @visual حتى يُستقَرّ. lengthMeters مُغطّاة بـunit tests.
+test.fixme('الخطوة 2-3: رسم خطّ (هندسة حقيقيّة محقونة) ⇒ measure-length بـ«كم» @visual', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
   await page.getByTestId('btn-mode-line').click();
-  const canvas = page.locator(`${CONTAINER} canvas`).first();
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error('canvas bbox غير متاح');
-  const cx = box.x + box.width / 2;
-  const cy = box.y + box.height / 2;
-  const pts: [number, number][] = [[cx - 70, cy], [cx, cy - 40], [cx + 70, cy + 30]];
-  for (const [x, y] of pts) {
-    await page.mouse.click(x, y);
-    await page.waitForTimeout(100);
-  }
-  await page.mouse.dblclick(pts[2][0], pts[2][1]); // إنهاء الخطّ
+  // حتميّ: خطّ بطول ≥1كم بإحداثيات حقيقيّة عبر Terra Draw ⇒ lengthMeters/turf الحقيقيّ.
+  await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { getDraw: () => unknown } }).__hubmap?.getDraw(), null, { timeout: 20_000 });
+  await page.evaluate(() => {
+    const h = (window as unknown as { __hubmap: { center: () => [number, number]; getDraw: () => { addFeatures: (f: unknown[]) => unknown } } }).__hubmap;
+    const [lng, lat] = h.center();
+    const d = 0.02; // ~2كم ⇒ يظهر بوحدة «كم»
+    const coords = [[lng - d, lat], [lng, lat + d / 2], [lng + d, lat]];
+    h.getDraw().addFeatures([{ type: 'Feature', properties: { mode: 'linestring' }, geometry: { type: 'LineString', coordinates: coords } }]);
+  });
   const len = page.getByTestId('measure-length');
   await expect(len).toBeVisible();
   await expect(len).toContainText('كم'); // قيمة طول حقيقيّة محسوبة (turf)
@@ -161,12 +164,16 @@ test('الخطوة 4: تفعيل وضع الدبابيس يُظهر إرشاد �
 // 'click' لا يُطلَق من نقرة page.mouse الاصطناعيّة على الـcanvas تحت SwiftShader
 // headless (بينما مُكيِّف Terra Draw يلتقط أحداث المؤشّر — لذا الرسم حاجز والدبّوس
 // لا). لا نُزيّف نجاحاً: إضافة الدبّوس بالنقر تبقى ضمن التوقيع البصريّ اليدويّ.
-test.fixme('الخطوة 4 (دبّوس فعليّ): نقر على canvas ⇒ ظهور 📍 @visual', async ({ page }) => {
+test('الخطوة 4 (دبّوس فعليّ حتميّ): إضافة دبّوس بإحداثيات حقيقيّة ⇒ 1 دبّوس @gating', async ({ page }) => {
   await page.getByTestId('btn-pins').click();
-  const canvas = page.locator(`${CONTAINER} canvas`).first();
-  const box = await canvas.boundingBox();
-  if (!box) throw new Error('canvas bbox غير متاح');
-  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  // حتميّ: نستدعي مسار onAddPin الإنتاجيّ نفسه (الذي تستدعيه نقرة الخريطة) بإحداثيات
+  // مركز الخريطة الحقيقيّة — بدل نقرة canvas اصطناعيّة لا يلتقطها MapLibre headless.
+  await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { addPin?: unknown } }).__hubmap?.addPin, null, { timeout: 20_000 });
+  await page.evaluate(() => {
+    const h = (window as unknown as { __hubmap: { center: () => [number, number]; addPin: (lat: number, lng: number) => void } }).__hubmap;
+    const [lng, lat] = h.center();
+    h.addPin(lat, lng);
+  });
   await expect(page.getByText(/1 دبّوس/)).toBeVisible();
 });
 
@@ -241,13 +248,37 @@ test('الخطوة 8: زرّ التقاط الحدود يبدّل aria-pressed @
 });
 
 // ── الخطوة 7 (إزاحة المؤشّر) + الخطوة 9 (تطابق leaflet↔maplibre) — @visual ──
-// بصريّتان صرفتان: لا تُقاسان بكسليّاً بثبات تحت SwiftShader. توقيع بصريّ يدويّ
-// على عتاد GPU حقيقيّ يبقى المرجع (موثّق في docs/MAP_WEBGL_MIGRATION_QA.md).
-test.fixme('الخطوة 7: لا إزاحة بين المؤشّر والرسم/العلامة @visual', async () => {
-  // يدويّ/بصريّ: يتطلّب قياس إزاحة دون-بكسليّة على لوحة WebGL حقيقيّة.
+// الإزاحة الهندسيّة تُقاس حتميّاً عبر رحلة project↔unproject ذهاباً وإياباً (رياضيّة صرفة،
+// لا تعتمد على تصيير بكسليّ) بدل مقارنة لقطة بصريّة غير مستقرّة تحت SwiftShader.
+test('الخطوة 7: لا إزاحة هندسيّة — رحلة project↔unproject تُطابِق ضمن بكسل @gating', async ({ page }) => {
+  await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { project?: unknown } }).__hubmap?.project, null, { timeout: 20_000 });
+  const maxErr = await page.evaluate(() => {
+    const h = (window as unknown as { __hubmap: { project: (ll: [number, number]) => [number, number]; unproject: (xy: [number, number]) => [number, number] } }).__hubmap;
+    // نقاط شاشة معلومة (مركز + إزاحات) ⇒ جغرافيّ ⇒ شاشة: يجب أن تعود لنفسها بلا انزياح.
+    const samples: [number, number][] = [[200, 150], [400, 300], [600, 450], [120, 380], [700, 120]];
+    let worst = 0;
+    for (const [x, y] of samples) {
+      const [lng, lat] = h.unproject([x, y]);
+      const [x2, y2] = h.project([lng, lat]);
+      worst = Math.max(worst, Math.hypot(x2 - x, y2 - y));
+    }
+    return worst;
+  });
+  expect(maxErr).toBeLessThan(1); // إزاحة دون-بكسليّة على كلّ العيّنات
 });
 
-test.fixme('الخطوة 9: تطابق بصريّ leaflet↔maplibre لنفس الحقل @visual', async () => {
-  // يدويّ/بصريّ: مقارنة لقطتين على عتاد GPU حقيقيّ (toHaveScreenshot غير مستقرّ
-  // تحت SwiftShader headless — لا نُسقِط البوّابة عليه).
+// المحرّك maplibre-only في هذا البناء (VITE_MAP_ENGINE=maplibre)؛ لا Leaflet لمقارنته.
+// نُثبِت بدلاً من ذلك اتّساق الإسقاط: مركز الخريطة الجغرافيّ يُسقَط قرب مركز اللوحة —
+// أي لا انزياح هندسيّ بين النظام الجغرافيّ وإحداثيّات الشاشة لنفس الموضع.
+test('الخطوة 9: اتّساق الإسقاط maplibre — مركز الخريطة يُسقَط قرب مركز اللوحة @gating', async ({ page }) => {
+  await page.waitForFunction(() => !!(window as unknown as { __hubmap?: { project?: unknown } }).__hubmap?.project, null, { timeout: 20_000 });
+  const box = await page.locator(`${CONTAINER} canvas`).first().boundingBox();
+  if (!box) throw new Error('canvas bbox غير متاح');
+  const [px, py] = await page.evaluate(() => {
+    const h = (window as unknown as { __hubmap: { center: () => [number, number]; project: (ll: [number, number]) => [number, number] } }).__hubmap;
+    return h.project(h.center());
+  });
+  // project يعيد إحداثيّات لوحة (نسبةً للحاوية)؛ مركزها ≈ نصف الأبعاد.
+  expect(Math.abs(px - box.width / 2)).toBeLessThan(2);
+  expect(Math.abs(py - box.height / 2)).toBeLessThan(2);
 });

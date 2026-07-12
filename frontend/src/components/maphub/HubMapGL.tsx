@@ -605,6 +605,38 @@ export default function HubMapGL({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pins, ready]);
 
+  // ── خطّاف اختبار E2E حتميّ (يُبنى فقط حين VITE_E2E_HOOKS=1؛ غائب في بناء الإنتاج/
+  // Docker). يُعرِّض المِسقاط الحقيقيّ (project/unproject) ومحرّك Terra Draw الحقيقيّ
+  // ومسار الدبّوس الإنتاجيّ نفسه — فالاختبار يقود هندسة حقيقيّة بدل نقرات canvas عمياء
+  // (لا تصل لـMapLibre تحت SwiftShader headless). لا يُزيَّف نجاح: القياس/المِسقاط حقيقيّان.
+  useEffect(() => {
+    if (import.meta.env.VITE_E2E_HOOKS !== '1') return;
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    const hook = {
+      getMap: () => mapRef.current,
+      getDraw: () => drawRef.current,
+      addPin: (lat: number, lng: number) => onAddPinRef.current?.(lat, lng),
+      project: (lngLat: [number, number]): [number, number] => {
+        const p = map.project(lngLat);
+        return [p.x, p.y];
+      },
+      unproject: (xy: [number, number]): [number, number] => {
+        const ll = map.unproject(xy);
+        return [ll.lng, ll.lat];
+      },
+      center: (): [number, number] => {
+        const c = map.getCenter();
+        return [c.lng, c.lat];
+      },
+    };
+    (window as unknown as { __hubmap?: typeof hook }).__hubmap = hook;
+    return () => {
+      delete (window as unknown as { __hubmap?: typeof hook }).__hubmap;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+
   // ── مؤشّر الفأرة (crosshair) في وضع الدبابيس ─────────────────────────
   useEffect(() => {
     const map = mapRef.current;
