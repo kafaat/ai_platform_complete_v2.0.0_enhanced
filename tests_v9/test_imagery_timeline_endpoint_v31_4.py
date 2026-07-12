@@ -46,7 +46,13 @@ def test_route_exists_and_is_month_bounded():
 def test_items_carry_truecolor_thumbnail_and_real_cog():
     b = _block()
     assert "cdse-thumbnail.png" in b
-    assert "index=truecolor" in b
+    # سياسة المصغّرة (raw historical trace revalidation 2026-07-12): المؤشّر ليس
+    # truecolor مثبَّتاً بل thumbnail_index المُشتقّ (truecolor إن كان محفوظاً لهذا
+    # التاريخ، وإلّا أوّل مؤشّر محفوظ) — فلا مصغّرة truecolor فارغة لتاريخ تحليليّ.
+    assert "index={thumbnail_index}" in b
+    assert '"truecolor" if "truecolor" in indices else' in b
+    # تاريخ المزوّد المعلّق (has_cog=false / بلا مؤشّرات) لا يعرض مصغّرة إطلاقاً.
+    assert "if has_cog and thumbnail_index" in b
     assert '"thumbnail_url"' in b
     assert '"has_cog"' in b
     # P2 raster facade: the available-dates read + tenant forwarding moved into
