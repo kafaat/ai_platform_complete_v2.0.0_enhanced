@@ -30,9 +30,11 @@ export interface AgroZoneProfile {
 
 export interface SuitedCropsResult {
   zone: string;
-  irrigated: boolean;
-  suited?: string[];
-  avoid?: string[];
+  supported?: boolean;
+  // أسماء الخادم الفعليّة (agro_climate_zones.suited_for_zone).
+  suited_crops_ar?: string[];
+  avoid_ar?: string[];
+  rainfed_possible?: boolean;
   water_note_ar?: string;
   [k: string]: unknown;
 }
@@ -49,11 +51,16 @@ const QK = {
 
 const STALE = 30 * 60_000; // الأقاليم مرجع شبه ثابت — تخبئة طويلة.
 
-/** GET /api/v1/agro-zones/list — الأقاليم الستّة مع ملخّصها. */
+/** GET /api/v1/agro-zones/list — الأقاليم الستّة مع ملخّصها.
+ *  الخادم يغلّف القائمة: `{zones: [...], count, principle_ar}` — يجب فكّ `zones`
+ *  وإلّا انهارت الواجهة بـ`.map is not a function` (علّة مُبلَّغة 2026-07-11). */
 export function useAgroZonesList(enabled = true): UseQueryResult<AgroZoneSummary[]> {
   return useQuery<AgroZoneSummary[]>({
     queryKey: QK.list,
-    queryFn: () => kongApi.get('/api/v1/agro-zones/list').then((r) => r.data),
+    queryFn: () =>
+      kongApi.get('/api/v1/agro-zones/list').then((r) =>
+        Array.isArray(r.data) ? r.data : ((r.data?.zones ?? []) as AgroZoneSummary[]),
+      ),
     staleTime: STALE,
     enabled,
     retry: false,

@@ -34,12 +34,31 @@ function errDetail(error: unknown, fallback: string): string {
   return fallback;
 }
 
+// فئات المدخلات الزراعيّة القياسيّة — تُدمَج مع فئات المستأجِر القائمة (لا تحلّ محلّها).
+const STANDARD_CATEGORIES = [
+  'أسمدة', 'بذور', 'مبيدات حشريّة', 'مبيدات فطريّة', 'مبيدات أعشاب',
+  'مستلزمات ريّ', 'وقود وزيوت', 'قطع غيار', 'أدوات ومعدّات', 'أعلاف',
+];
+const OTHER_CATEGORY = '__other__';
+
 // ── نموذج إضافة صنف (داخل Modal) ─────────────────────────────────
-function AddItemForm({ onClose }: { onClose: () => void }) {
+function AddItemForm({ onClose, existingItems }: { onClose: () => void; existingItems: InventoryItem[] }) {
   const mut = useCreateInventoryItem();
   const [f, setF] = useState<{ category: string; name: string; unit: string; reorder_level: string; notes: string }>({
     category: '', name: '', unit: '', reorder_level: '', notes: '',
   });
+  // «أخرى» تفتح إدخالاً حرّاً — القائمة تُرشد ولا تُقيّد (علّة مُبلَّغة 2026-07-11).
+  const [customCategory, setCustomCategory] = useState(false);
+  const categories = Array.from(new Set([
+    ...STANDARD_CATEGORIES,
+    ...existingItems.map((it) => it.category).filter(Boolean),
+  ]));
+  // اقتراحات الاسم من أصناف الفئة المختارة (datalist: اقتراح لا قيد).
+  const nameSuggestions = Array.from(new Set(
+    existingItems
+      .filter((it) => !f.category || it.category === f.category)
+      .map((it) => it.name),
+  )).slice(0, 30);
 
   const onSubmit = () => {
     if (!f.category.trim() || !f.name.trim()) return;
@@ -72,8 +91,36 @@ function AddItemForm({ onClose }: { onClose: () => void }) {
       }
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Input label="الفئة" required value={f.category} onChange={val => setF(v => ({ ...v, category: val }))} placeholder="مثال: أسمدة" />
-        <Input label="الاسم" required value={f.name} onChange={val => setF(v => ({ ...v, name: val }))} placeholder="مثال: يوريا 46%" />
+        <label className="flex flex-col gap-1 text-sm">
+          <span style={{ color: T.muted }}>الفئة <span style={{ color: T.warn }}>*</span></span>
+          <select
+            value={customCategory ? OTHER_CATEGORY : f.category}
+            onChange={(e) => {
+              if (e.target.value === OTHER_CATEGORY) {
+                setCustomCategory(true);
+                setF(v => ({ ...v, category: '' }));
+              } else {
+                setCustomCategory(false);
+                setF(v => ({ ...v, category: e.target.value }));
+              }
+            }}
+            className="px-3 py-2 rounded-lg"
+            style={{ background: T.card2, border: `1px solid ${T.line}`, color: T.ink }}
+          >
+            <option value="">— اختر فئة —</option>
+            {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+            <option value={OTHER_CATEGORY}>فئة أخرى…</option>
+          </select>
+        </label>
+        {customCategory ? (
+          <Input label="اسم الفئة الجديدة" required value={f.category}
+            onChange={val => setF(v => ({ ...v, category: val }))} placeholder="مثال: مواد تعبئة" />
+        ) : <span className="hidden sm:block" />}
+        <Input label="الاسم" required value={f.name} list="inventory-item-name-suggestions"
+          onChange={val => setF(v => ({ ...v, name: val }))} placeholder="مثال: يوريا 46%" />
+        <datalist id="inventory-item-name-suggestions">
+          {nameSuggestions.map((n) => <option key={n} value={n} />)}
+        </datalist>
         <Input label="الوحدة" value={f.unit} onChange={val => setF(v => ({ ...v, unit: val }))} placeholder="مثال: كيس" />
         <Input label="حدّ إعادة الطلب" type="number" inputMode="decimal"
           value={f.reorder_level} onChange={val => setF(v => ({ ...v, reorder_level: val }))} />
@@ -234,7 +281,9 @@ export default function InventoryPage() {
       </div>
 
       {/* نموذج إضافة صنف (للمخوّلين فقط) — داخل Modal */}
-      {mayMutate && showAddItem && <AddItemForm onClose={() => setShowAddItem(false)} />}
+      {mayMutate && showAddItem && (
+        <AddItemForm onClose={() => setShowAddItem(false)} existingItems={items} />
+      )}
 
       {/* نموذج إضافة دفعة — داخل Modal مدفوع بـbatchFor */}
       {mayMutate && batchItem && (

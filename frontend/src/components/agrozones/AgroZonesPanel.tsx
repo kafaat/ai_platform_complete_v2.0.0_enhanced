@@ -88,7 +88,7 @@ export default function AgroZonesPanel() {
                   <div>
                     <div className="mb-1 text-xs text-slate-400">محاصيل ملائمة</div>
                     <ul className="list-inside list-disc text-sm text-slate-200">
-                      {(suitedQuery.data.suited ?? []).map((c) => (
+                      {(suitedQuery.data.suited_crops_ar ?? []).map((c) => (
                         <li key={c}>{c}</li>
                       ))}
                     </ul>
@@ -96,7 +96,7 @@ export default function AgroZonesPanel() {
                   <div>
                     <div className="mb-1 text-xs text-slate-400">يُتجنّب</div>
                     <ul className="list-inside list-disc text-sm text-slate-400">
-                      {(suitedQuery.data.avoid ?? []).map((c) => (
+                      {(suitedQuery.data.avoid_ar ?? []).map((c) => (
                         <li key={c}>{c}</li>
                       ))}
                     </ul>

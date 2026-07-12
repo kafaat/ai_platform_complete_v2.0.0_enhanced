@@ -85,6 +85,7 @@ export function Input({
   disabled,
   name,
   inputMode,
+  list,
   style,
 }: {
   value: string;
@@ -98,6 +99,8 @@ export function Input({
   disabled?: boolean;
   name?: string;
   inputMode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email' | 'search';
+  /** معرّف <datalist> لاقتراحات لا تُقيّد الإدخال. */
+  list?: string;
   style?: CSSProperties;
 }) {
   return (
@@ -112,6 +115,7 @@ export function Input({
           disabled={disabled}
           required={required}
           inputMode={inputMode}
+          list={list}
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}
           onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}

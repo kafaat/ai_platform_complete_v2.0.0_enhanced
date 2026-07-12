@@ -3,13 +3,22 @@
 // قرار واحد من حالة محصول واحدة: حالة + ريّ + تسميد + مخاطر + ثقة + اقتصاد محجوز.
 // صدق: calibrated/assumptions ظاهرة؛ ما لا يحمله الخادم (حرارة/ملوحة/اقتصاد) معلَن لا مُفبرَك.
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Sprout, Droplets, FlaskConical, Scale, Info, AlertTriangle, Coins,
+  Sprout, Droplets, FlaskConical, Scale, Info, AlertTriangle, Coins, MapPin,
 } from 'lucide-react';
-import { useCropDecision } from '../hooks/useApi';
+import { useCropDecision, useFields } from '../hooks/useApi';
+import { useSelectedField } from '../hooks/useSelectedField';
 import type { CropDecisionInput, CropDecisionForecastDay } from '../services/api';
 import { ErrorState } from '../components/StateViews';
+
+// الحقل الخام كما يصل من useFields — نقرأ منه فقط ما نعبّئ به النموذج بصدق.
+interface PrefillField {
+  field_id?: string | number;
+  id?: string | number;
+  crop?: string | null;
+  ndvi?: string | number | null;
+}
 
 const POLICIES: { key: string; label: string }[] = [
   { key: 'water_saving',   label: 'توفير الماء' },
@@ -34,6 +43,10 @@ const riskColor = (s: string): string =>
 
 export default function CropStatePage() {
   const mut = useCropDecision();
+  // اختيار الحقل المشترك عبر الشاشات (علّة مُبلَّغة 2026-07-11: لا اختيار حقل هنا).
+  // التعبئة المسبقة صادقة: المحصول وNDVI فقط — ما يحمله سجلّ الحقل فعلاً، والباقي يدويّ.
+  const { fieldId, setFieldId, options: fieldOptions } = useSelectedField();
+  const fieldsQ = useFields();
   const [crop, setCrop] = useState('wheat');
   const [stage, setStage] = useState('mid');
   const [ndvi, setNdvi] = useState('0.72');
@@ -45,6 +58,17 @@ export default function CropStatePage() {
   const [rain, setRain] = useState('0');
   const [target, setTarget] = useState('120');
   const [initDepletion, setInitDepletion] = useState('30');
+
+  useEffect(() => {
+    if (!fieldId) return;
+    const raw = ((fieldsQ.data?.fields ?? []) as PrefillField[]).find(
+      (f) => String(f.field_id ?? f.id) === fieldId,
+    );
+    if (!raw) return;
+    if (raw.crop) setCrop(String(raw.crop));
+    const n = Number(raw.ndvi);
+    if (Number.isFinite(n) && n > 0) setNdvi(String(n));
+  }, [fieldId, fieldsQ.data]);
 
   const numOr = (s: string, d: number): number => {
     const n = Number(s);
@@ -80,6 +104,24 @@ export default function CropStatePage() {
 
       {/* Form */}
       <div className="rounded-xl border p-4 space-y-3" style={{ background: '#1e293b', borderColor: '#334155' }}>
+        <label className="flex flex-col gap-1">
+          <span className="flex items-center gap-1 text-xs text-slate-400">
+            <MapPin className="w-3.5 h-3.5" aria-hidden="true" /> اختر الحقل (يعبّئ المحصول وNDVI من سجلّه)
+          </span>
+          <select
+            value={fieldId ?? ''}
+            onChange={(e) => setFieldId(e.target.value || null)}
+            className="px-3 py-2 rounded-lg text-sm"
+            style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }}
+          >
+            <option value="">بدون حقل — إدخال يدويّ</option>
+            {fieldOptions.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.name}{o.crop && o.crop !== '—' ? ` · ${o.crop}` : ''}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <label className="flex flex-col gap-1"><span className="text-xs text-slate-400">المحصول</span>
             <input value={crop} onChange={e => setCrop(e.target.value)} className="px-3 py-2 rounded-lg text-sm"

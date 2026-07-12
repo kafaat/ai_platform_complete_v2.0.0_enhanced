@@ -5,7 +5,8 @@ import { fileURLToPath } from 'url';
 
 const root = dirname(fileURLToPath(import.meta.url));
 const chatbot = readFileSync(join(root, 'ChatbotPage.tsx'), 'utf8');
-const runtime = readFileSync(join(root, '../../../services/ai_agronomist/main.py'), 'utf8');
+// بعد تفكيك ai_agronomist، منطق الأدلّة يعيش في ai_evidence_runtime.py (main.py يعيد التصدير).
+const runtime = readFileSync(join(root, '../../../services/ai_agronomist/ai_evidence_runtime.py'), 'utf8');
 
 describe('Chatbot AI evidence transparency v49', () => {
   it('renders evidence sources separately from generated answer text', () => {
