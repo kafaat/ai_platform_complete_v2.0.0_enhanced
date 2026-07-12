@@ -86,3 +86,13 @@
 - **المصدر:** `service.py` يعتمد `RUNTIME_TENANT_ID` واحداً لكلّ process؛ غير قابل للتوسّع لمنصّة SaaS متعدّدة المستأجرين (instance لكلّ tenant هشّ).
 - **لماذا مؤجَّل:** قرار بنية (NATS partition by tenant أو worker مُخوَّل بتعداد مستأجرين من الخادم) + عدم السماح للـworker باختيار tenant من header بحرّية — يتقاطع مع مصادقة الخدمة (Critical 1 المُغلَق يمنع الانتحال؛ التقسيم المُخوَّل خطوة تالية).
 - **التصميم المُوصى:** feed مُخوَّل يُرجِع عمل المستأجرين المسموح بهم للـworker المُصادَق فقط (لا header حرّ)، أو استهلاك NATS مُقسَّم.
+
+## VEG-EVIDENCE-STORE — OPEN (Medium) — من تسوية `full_plan_closed` 2026-07-12
+- **المصدر:** هجرة الحزمة المُسلَّمة أنشأت `decision_vegetation_snapshots` + `decision_field_history_snapshots` في decision-service **بلا أيّ كاتب/قارئ** — لم تُنزَل (`41211c6`؛ الملحق في `docs/audits/VEGETATION_AGRIAI_FULL_PLAN_CLOSURE_20260712.md`).
+- **لماذا مؤجَّل:** مخزن أدلّة نباتيّ أوّل-الدرجة في decision-service يتطلّب كاتبه (ربط vegetation→decision عند الالتقاط) وقارئه (تحقّق الربط) — نصف حلّ يخالف الانضباط.
+- **التصميم المُوصى:** ضمن Phase B/C من الخطّة الرئيسيّة — كاتب في مسار compose (السياق يحمل vegetation_snapshot_id مرجعاً لمخزن ثابت content-addressed بنمط 018_ac1: idempotency+request_hash+append-only+CHECK data_available_at>=acquisition_at) + تحقّق `_validate_decision_context` يقبل المرجع.
+
+## RASTER-PROVENANCE-ENRICHMENT — OPEN (Medium) — من بوّابة سلطة NDVI 2026-07-12
+- **المصدر:** `raster_validated_product.ProvenanceRecord` يمدّ `capture_datetime`/`processing_version` **بلا** `qa_mask_version`، و`ValidatedIndicatorProduct` يمدّ `valid_pixel_ratio` (0..1) — بينما `indicator_registry.validate_observation` (سلطة NDVI الإنتاجيّة) يطلب `acquisition_datetime`/`algorithm_version`/`qa_mask_version`/`valid_pixel_pct` (`41211c6`).
+- **الأثر الصادق:** في `VEGETATION_REAL_ONLY` الإنتاجيّ يفشل التحليل مُغلَقاً (424) حتى مع NDVI حقيقيّ — مقصود: لا تنفيذ بلا بروفينانس كامل. vegetation حوّل النسبة→نسبة مئويّة (وحدة فقط)؛ الأسماء الزمنيّة/الإصداريّة لم تُؤَلَّس.
+- **التصميم المُوصى:** إثراء raster: ينشر `acquisition_datetime` (alias صادق لـcapture_datetime) + `algorithm_version` (من formula/processing) + `qa_mask_version` (من مسار SCL/cloud-mask الفعليّ) + `valid_pixel_pct` في provenance — ثمّ بوّابة السلطة تمرّ على بيانات حقيقيّة بلا تليين.
