@@ -191,10 +191,20 @@ async def process_water_deficit(
             "target_id": target_id,
             "operation_type": "irrigation",
             "command_payload": {
-                "operation": "irrigate",
-                "field_id": field_id,
-                "season_id": season_id,
-                "amount_mm": float(deficit),
+                # عقد المُشغّل (P0 من شهادة الإنتاج): _parse_dispatch_command يتطلّب
+                # device_id + command؛ الشكل القديم (operation/amount فقط) كان سيُرفض
+                # invalid_command عند كلّ تسليم. المفتاح الثابت يمنع التنفيذ المزدوج
+                # عبر النقل at-least-once (MQTT QoS 1).
+                "device_id": target_id,
+                "command": "irrigate",
+                "payload": {
+                    "field_id": field_id,
+                    "season_id": season_id,
+                    "amount_mm": float(deficit),
+                    "risk_level": "low",
+                    "idempotency_key": _stable("wtrcmd_", decision_id),
+                },
+                "risk_level": "low",
                 "idempotency_key": _stable("wtrcmd_", decision_id),
             },
             "idempotency_key": _stable("wtrreq_", auth_id),

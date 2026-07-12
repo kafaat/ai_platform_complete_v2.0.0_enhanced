@@ -8,6 +8,8 @@ Supports: valves, pumps, fans, lights, motors via FastBee MQTT Broker
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import hmac
 import json
 import logging
 import os
@@ -143,12 +145,34 @@ ACTUATOR_DISPATCH_TENANT_IDS = os.getenv("ACTUATOR_DISPATCH_TENANT_IDS", "")
 ACTUATOR_DISPATCH_POLL_SECONDS = float(os.getenv("ACTUATOR_DISPATCH_POLL_SECONDS", "10"))
 ACTUATOR_DISPATCH_RISK_ALLOWLIST = os.getenv("ACTUATOR_DISPATCH_RISK_ALLOWLIST")
 _DISPATCH_ADAPTER_ID = os.getenv("ACTUATOR_DISPATCH_ADAPTER_ID", "actuator-service")
+ACTUATOR_DELIVERY_TOKEN_KEY = os.getenv("ACTUATOR_DELIVERY_TOKEN_KEY", "")
+ACTUATOR_DEVICE_STALE_SECONDS = float(os.getenv("ACTUATOR_DEVICE_STALE_SECONDS", "900"))
+
+
+def _delivery_token(tenant_id: str, execution_request_id: str) -> str:
+    """Deterministic secret-bound token so an in-flight claim can be recovered after restart."""
+    key = ACTUATOR_DELIVERY_TOKEN_KEY.strip()
+    if not key:
+        # Development/simulation compatibility only. Production readiness rejects this below.
+        key = DECISION_SERVICE_TOKEN.strip()
+    if not key:
+        return ""
+    msg = f"{tenant_id}|{execution_request_id}|{_DISPATCH_ADAPTER_ID}".encode()
+    return hmac.new(key.encode(), msg, hashlib.sha256).hexdigest()
+
+
+def _receipt_id(execution_request_id: str) -> str:
+    return (
+        "rcpt_"
+        + hashlib.sha256(f"{_DISPATCH_ADAPTER_ID}|{execution_request_id}".encode()).hexdigest()[:20]
+    )
 
 
 def _plan_dispatch_execution(item: dict, *, allowlist: set[str]):
     """دالّة نقيّة: خطّة معالجة طلب تنفيذ واحد — قابلة للاختبار بلا شبكة/قاعدة.
 
     تُرجِع أحد: ``("invalid_command",)`` أمر فاسد ⇒ إيصال failed؛
+    ``("target_mismatch", expected, actual)`` الهدف السلطوي لا يطابق جهاز الحمولة؛
     ``("refused_risk", level)`` مخاطرة مُعلَنة خارج المسموح ⇒ إيصال failed؛
     ``("send", device_id, cmd, payload)`` جاهز للإرسال.
     """
@@ -156,6 +180,9 @@ def _plan_dispatch_execution(item: dict, *, allowlist: set[str]):
     if parsed is None:
         return ("invalid_command",)
     device_id, cmd, payload = parsed
+    target_id = str(item.get("target_id") or "").strip()
+    if target_id and target_id != device_id:
+        return ("target_mismatch", target_id, device_id)
     raw = item.get("command_payload")
     declared_risk = None
     if isinstance(raw, dict):
@@ -165,6 +192,65 @@ def _plan_dispatch_execution(item: dict, *, allowlist: set[str]):
     if declared_risk is not None and not _is_risk_allowed(declared_risk, allowlist):
         return ("refused_risk", str(declared_risk))
     return ("send", device_id, cmd, payload)
+
+
+def _device_dispatch_gate(
+    record: dict | None,
+    *,
+    tenant_id: str,
+    field_id: str | None,
+    now: datetime,
+    stale_seconds: float,
+) -> tuple[bool, str]:
+    """Pure fail-closed device gate for governed physical dispatch."""
+    if not record:
+        return False, "device_not_found"
+    if str(record.get("tenant_id") or "") != str(tenant_id):
+        return False, "device_tenant_mismatch"
+    if str(record.get("type") or "").lower() != "actuator":
+        return False, "device_not_actuator"
+    if field_id and str(record.get("field_id") or "") != str(field_id):
+        return False, "device_field_mismatch"
+    if str(record.get("status") or "").lower() != "online":
+        return False, "device_not_online"
+    last_seen = record.get("last_seen_at")
+    if last_seen is None:
+        return False, "device_last_seen_missing"
+    if getattr(last_seen, "tzinfo", None) is None:
+        last_seen = last_seen.replace(tzinfo=UTC)
+    age = (now - last_seen).total_seconds()
+    if age < 0 or age > max(0.0, stale_seconds):
+        return False, "device_telemetry_stale"
+    return True, "ok"
+
+
+async def _validate_dispatch_device(
+    tenant_id: str, device_id: str, field_id: str | None
+) -> tuple[bool, str]:
+    """Read the canonical device registry under tenant RLS and apply the pure safety gate."""
+    if _pool is None:
+        return False, "device_registry_unavailable"
+    try:
+        async with _pool.acquire() as conn:
+            async with conn.transaction():
+                await conn.execute(
+                    "SELECT set_config('app.current_tenant', $1, true)", str(tenant_id)
+                )
+                row = await conn.fetchrow(
+                    """SELECT device_id, tenant_id::text AS tenant_id, type, field_id, status, last_seen_at
+                       FROM iot_devices WHERE device_id=$1""",
+                    device_id,
+                )
+        return _device_dispatch_gate(
+            dict(row) if row else None,
+            tenant_id=tenant_id,
+            field_id=field_id,
+            now=datetime.now(UTC),
+            stale_seconds=ACTUATOR_DEVICE_STALE_SECONDS,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.error("dispatch device validation failed for %s: %s", device_id, exc)
+        return False, "device_registry_error"
 
 
 def _dispatch_tenants(env_value: str | None) -> list[str]:
@@ -183,8 +269,15 @@ async def _decision_request(client, method: str, path: str, tenant_id: str, json
 
 async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[str]) -> int:
     """دورة استهلاك واحدة لمستأجر واحد: feed ⇒ (kill-switch) ⇒ claim ⇒ MQTT ⇒ receipt."""
-    from uuid import uuid4 as _uuid4
-
+    recovery = await _decision_request(
+        client,
+        "GET",
+        f"/v1/execution-requests/recovery?adapter_id={_DISPATCH_ADAPTER_ID}&target_type=equipment&limit=10",
+        tenant_id,
+    )
+    if recovery.status_code != 200:
+        logger.debug(f"dispatch recovery {tenant_id}: HTTP {recovery.status_code} — skip cycle")
+        return 0
     feed = await _decision_request(
         client,
         "GET",
@@ -195,7 +288,12 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
         # mirror/SoR-off ⇒ 503 صادق من الخدمة — لا عمل يُستهلك، ولا يُخترع.
         logger.debug(f"dispatch feed {tenant_id}: HTTP {feed.status_code} — skip cycle")
         return 0
-    items = (feed.json() or {}).get("items") or []
+    recovery_items = (recovery.json() or {}).get("items") or []
+    queued_items = (feed.json() or {}).get("items") or []
+    # Recovery first: deterministic token + receipt id make replay safe. The downstream
+    # command must also carry its stable idempotency_key, so republish is at-least-once
+    # without becoming duplicate physical work on a conforming adapter/device.
+    items = recovery_items + queued_items
     processed = 0
     for item in items:
         req_id = item.get("execution_request_id")
@@ -215,7 +313,12 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
                 f"dispatch consumer: kill-switch مُشتبَك ({halt_reason}) — الطلبات تبقى مصفوفة"
             )
             return processed
-        delivery_token = _uuid4().hex
+        delivery_token = _delivery_token(tenant_id, req_id)
+        if not delivery_token:
+            logger.error(
+                "dispatch consumer: no ACTUATOR_DELIVERY_TOKEN_KEY/DECISION_SERVICE_TOKEN — fail closed"
+            )
+            return processed
         claim = await _decision_request(
             client,
             "POST",
@@ -232,9 +335,28 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
         plan = _plan_dispatch_execution(item, allowlist=allowlist)
         if plan[0] == "send":
             _, device_id, cmd, payload = plan
-            sent = await send_mqtt_command(device_id, cmd, payload)
-            receipt_status = "accepted" if sent else "failed"
+            field_id = str(payload.get("field_id") or "").strip() or None
+            device_ok, device_reason = await _validate_dispatch_device(
+                tenant_id, device_id, field_id
+            )
+            if device_ok:
+                # Re-check the scoped kill-switch after the command has been parsed: tenant + field + device.
+                async with _pool.acquire() as ks_conn:
+                    scoped_halted, scoped_reason = await is_actuation_halted(
+                        ks_conn, tenant_id, field_id=field_id, valve_id=device_id
+                    )
+                if scoped_halted:
+                    sent = False
+                    receipt_status = "failed"
+                    device_reason = f"killswitch:{scoped_reason}"
+                else:
+                    sent = await send_mqtt_command(device_id, cmd, payload)
+                    receipt_status = "accepted" if sent else "failed"
+            else:
+                sent = False
+                receipt_status = "failed"
             receipt_payload = {
+                "device_validation": device_reason,
                 "adapter": _DISPATCH_ADAPTER_ID,
                 "actuator_mode": ACTUATOR_MODE,
                 "device_id": device_id,
@@ -246,7 +368,13 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
             receipt_status = "failed"
             receipt_payload = {
                 "adapter": _DISPATCH_ADAPTER_ID,
-                "reason": plan[0] if plan[0] != "refused_risk" else f"refused_risk:{plan[1]}",
+                "reason": (
+                    f"refused_risk:{plan[1]}"
+                    if plan[0] == "refused_risk"
+                    else f"target_mismatch:{plan[1]}:{plan[2]}"
+                    if plan[0] == "target_mismatch"
+                    else plan[0]
+                ),
             }
         receipt = await _decision_request(
             client,
@@ -256,7 +384,7 @@ async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[s
             json_body={
                 "adapter_id": _DISPATCH_ADAPTER_ID,
                 "delivery_token": delivery_token,
-                "receipt_id": "rcpt_" + _uuid4().hex[:16],
+                "receipt_id": _receipt_id(req_id),
                 "receipt_status": receipt_status,
                 "receipt_payload": receipt_payload,
             },

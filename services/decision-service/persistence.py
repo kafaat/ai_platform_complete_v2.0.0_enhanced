@@ -1129,6 +1129,48 @@ async def list_queued_execution_requests(
         await conn.close()
 
 
+async def list_inflight_execution_requests(
+    *, tenant_id: str, adapter_id: str, target_type: str | None = None, limit: int = 20
+) -> dict[str, Any]:
+    """Recovery feed for requests claimed by this adapter but missing a terminal receipt."""
+    conn = await _connect()
+    try:
+        rows = await conn.fetch(
+            """SELECT r.execution_request_id, r.decision_id, r.execution_plan_id,
+                      r.dispatch_authorization_id, r.target_type, r.target_id,
+                      r.operation_type, r.command_payload, r.requested_at, a.claimed_at
+               FROM decision_execution_requests r
+               JOIN decision_execution_delivery_attempts a
+                 ON a.tenant_id=r.tenant_id
+                AND a.execution_request_id=r.execution_request_id
+               WHERE r.tenant_id=$1::uuid AND r.status='delivering'
+                 AND a.adapter_id=$2 AND a.receipt_id IS NULL
+                 AND ($3::text IS NULL OR r.target_type=$3)
+               ORDER BY a.claimed_at
+               LIMIT $4""",
+            tenant_id,
+            adapter_id,
+            target_type,
+            limit,
+        )
+        items = []
+        for r in rows:
+            item = dict(r)
+            item["command_payload"] = _jsonish(item.get("command_payload"))
+            item["requested_at"] = _iso(item.get("requested_at"))
+            item["claimed_at"] = _iso(item.get("claimed_at"))
+            items.append(item)
+        return {
+            "authoritative": True,
+            "persisted": True,
+            "read_only": True,
+            "items": items,
+            "count": len(items),
+        }
+    finally:
+        await conn.close()
+
+
 async def claim_execution_request(
     *,
     tenant_id: str,

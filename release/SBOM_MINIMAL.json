@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e48a6fc6264edd566d53dcee93815ef7e0e4127389c670a5d2c3e1c51a8d1b49"
+          "content": "8744b34e7c1f478f471cd2b10b7999b67696e0aecb7001a9394ca43b1886727d"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -8025,7 +8025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52f304d35bc976b2d62676596e8875adad7771076a8051c11abb73361e41d709"
+          "content": "96d0b1d8b134992a27b39ce6f37666e07e84dc1578a81cf2a2259b96073d0847"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -8135,7 +8135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b591aaa6cd16d6c47f0f6e6e08b82b0512ae26a6f72fe29b64b35b0a52eaaf6"
+          "content": "5a91ef4420da50677c212340beb673dd89e9092d2f9c8ec55b8b795dc52de0cc"
         }
       ],
       "name": "services/actuator-service/test_dispatch_bridge.py",
@@ -9055,7 +9055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec3b206b5b3434bc96d977ccf713be0001a8acb680863d45addfdccaea516238"
+          "content": "3632adf18e98a89f44dea923a986751713c66efedb0485e29f33f20cebb585fa"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9325,7 +9325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09511d592182a086faad4ccf62e1ab5b0019c83d82db8e14bf6be6b2c26f4c3d"
+          "content": "1a51616366c7ca5c12a3f78859801e62e9bf87fdea78c1faadc001d5a570acb5"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9485,7 +9485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a051d79e6b3befe4e650a576f174c8c16dcb63d4ddd9948ac787c1b58ebe659"
+          "content": "585bfe6dcf09829832bc612bc0fe48f46e3bcfcc6e5e01e54db6e1f6d18fde76"
         }
       ],
       "name": "services/decision-service/tests/test_execution_request_feed.py",
@@ -15779,6 +15779,16 @@
         }
       ],
       "name": "services/sahool-platform/api/water_balance_models.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "831b33f15ad0fe02cc0cd10f4393b4f409703c2ab935d1857d11b8c0fac61136"
+        }
+      ],
+      "name": "services/sahool-platform/api/water_decision_bridge.py",
       "type": "file"
     },
     {
@@ -23169,6 +23179,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_water_balance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7cd413b81e8c75820182b709a416b5f69f42921ff2cf9cefd6785960b21bb146"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_water_decision_bridge.py",
       "type": "file"
     },
     {

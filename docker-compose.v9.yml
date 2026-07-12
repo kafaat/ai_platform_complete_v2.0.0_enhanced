@@ -1131,6 +1131,10 @@ services:
       ACTUATOR_DISPATCH_TENANT_IDS: ${ACTUATOR_DISPATCH_TENANT_IDS:-}
       ACTUATOR_DISPATCH_POLL_SECONDS: ${ACTUATOR_DISPATCH_POLL_SECONDS:-10}
       ACTUATOR_DISPATCH_RISK_ALLOWLIST: ${ACTUATOR_DISPATCH_RISK_ALLOWLIST:-}
+      # تصلّب سلامة الجهاز + استرداد الإيصال (حزمة 20260712): نضارة سجلّ الجهاز
+      # وتوكن تسليم حتميّ (HMAC) يتيح إعادة إيصالٍ ضاع بعد إعادة تشغيل المستهلك.
+      ACTUATOR_DEVICE_STALE_SECONDS: ${ACTUATOR_DEVICE_STALE_SECONDS:-900}
+      ACTUATOR_DELIVERY_TOKEN_KEY: ${ACTUATOR_DELIVERY_TOKEN_KEY:-}
     depends_on:
       sahool-postgres:
         condition: service_healthy

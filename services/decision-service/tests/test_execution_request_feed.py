@@ -215,3 +215,48 @@ def test_http_feed_contract_queued_only_and_mirror_503(monkeypatch):
     monkeypatch.setenv("DECISION_SERVICE_SOR_ENABLED", "false")
     mirror = client.get("/v1/execution-requests", headers={"X-Tenant-Id": TENANT})
     assert mirror.status_code == 503
+
+
+def test_recovery_feed_lists_inflight_claims_for_the_same_adapter_only():
+    """استرداد فقدان الإيصال: المطالبة بلا إيصال تظهر على feed الاسترداد للـadapter
+    نفسه فقط، وتختفي بعد الإيصال — برهان حقيقيّ على Postgres للمسار المُسلَّم."""
+    from persistence import (
+        claim_execution_request,
+        list_inflight_execution_requests,
+        record_execution_receipt,
+    )
+
+    aid, pid, did = _run(_seed_authorized_chain())
+    req_id = _queue_equipment_request(aid, pid, did)
+    token = uuid4().hex
+    claim = _run(
+        claim_execution_request(
+            tenant_id=TENANT,
+            execution_request_id=req_id,
+            adapter_id="actuator-service",
+            adapter_kind="equipment",
+            delivery_token=token,
+        )
+    )
+    assert claim["status"] == "ok", claim
+
+    mine = _run(list_inflight_execution_requests(tenant_id=TENANT, adapter_id="actuator-service"))
+    assert [i for i in mine["items"] if i["execution_request_id"] == req_id]
+
+    other = _run(list_inflight_execution_requests(tenant_id=TENANT, adapter_id="another-adapter"))
+    assert not [i for i in other["items"] if i["execution_request_id"] == req_id]
+
+    receipt = _run(
+        record_execution_receipt(
+            tenant_id=TENANT,
+            execution_request_id=req_id,
+            adapter_id="actuator-service",
+            delivery_token=token,
+            receipt_id="rcpt_" + uuid4().hex[:12],
+            receipt_status="accepted",
+            receipt_payload={"published": True},
+        )
+    )
+    assert receipt["status"] == "ok", receipt
+    after = _run(list_inflight_execution_requests(tenant_id=TENANT, adapter_id="actuator-service"))
+    assert not [i for i in after["items"] if i["execution_request_id"] == req_id]

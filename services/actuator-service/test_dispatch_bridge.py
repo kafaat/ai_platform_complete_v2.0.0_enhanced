@@ -158,3 +158,84 @@ if __name__ == "__main__":
     import pytest
 
     raise SystemExit(pytest.main([__file__, "-v"]))
+
+
+def test_delivery_token_and_receipt_are_deterministic(monkeypatch):
+    monkeypatch.setattr(main, "ACTUATOR_DELIVERY_TOKEN_KEY", "test-secret")
+    t1 = main._delivery_token("tenant-1", "req-1")
+    t2 = main._delivery_token("tenant-1", "req-1")
+    assert t1 == t2 and len(t1) == 64
+    assert main._delivery_token("tenant-1", "req-2") != t1
+    assert main._receipt_id("req-1") == main._receipt_id("req-1")
+
+
+def test_recovery_feed_is_polled_before_queued_feed():
+    src = (Path(__file__).resolve().parent / "actuator_runtime.py").read_text()
+    assert "/v1/execution-requests/recovery" in src
+    assert src.index("/v1/execution-requests/recovery") < src.index(
+        "/v1/execution-requests?state=queued"
+    )
+    assert "_delivery_token(tenant_id, req_id)" in src
+    assert "_receipt_id(req_id)" in src
+
+
+def test_plan_dispatch_rejects_target_device_mismatch():
+    item = {
+        "target_id": "pivot-expected",
+        "command_payload": {"device_id": "pivot-other", "command": "irrigate", "risk_level": "low"},
+    }
+    assert main._plan_dispatch_execution(item, allowlist={"low"}) == (
+        "target_mismatch",
+        "pivot-expected",
+        "pivot-other",
+    )
+
+
+def test_device_gate_accepts_only_fresh_online_actuator_for_same_tenant_and_field():
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
+    record = {
+        "tenant_id": "tenant-1",
+        "type": "actuator",
+        "field_id": "field-1",
+        "status": "online",
+        "last_seen_at": now - timedelta(seconds=30),
+    }
+    assert main._device_dispatch_gate(
+        record,
+        tenant_id="tenant-1",
+        field_id="field-1",
+        now=now,
+        stale_seconds=900,
+    ) == (True, "ok")
+
+
+def test_device_gate_fails_closed_for_wrong_tenant_field_type_status_or_stale():
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
+    base = {
+        "tenant_id": "tenant-1",
+        "type": "actuator",
+        "field_id": "field-1",
+        "status": "online",
+        "last_seen_at": now - timedelta(seconds=30),
+    }
+    cases = [
+        (None, "device_not_found"),
+        ({**base, "tenant_id": "tenant-2"}, "device_tenant_mismatch"),
+        ({**base, "field_id": "field-2"}, "device_field_mismatch"),
+        ({**base, "type": "water_meter"}, "device_not_actuator"),
+        ({**base, "status": "offline"}, "device_not_online"),
+        ({**base, "last_seen_at": None}, "device_last_seen_missing"),
+        ({**base, "last_seen_at": now - timedelta(seconds=901)}, "device_telemetry_stale"),
+    ]
+    for record, reason in cases:
+        assert main._device_dispatch_gate(
+            record,
+            tenant_id="tenant-1",
+            field_id="field-1",
+            now=now,
+            stale_seconds=900,
+        ) == (False, reason)

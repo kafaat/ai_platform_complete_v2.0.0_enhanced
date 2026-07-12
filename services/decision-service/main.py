@@ -54,6 +54,7 @@ from persistence import (
     get_context_snapshot,
     get_decision_agronomic_evidence,
     list_decision_records,
+    list_inflight_execution_requests,
     list_queued_execution_requests,
     list_review_queue,
     list_runtime_work,
@@ -1070,6 +1071,28 @@ async def list_execution_requests(
         tenant_id=tenant, target_type=target_type, limit=limit
     )
     return {"tenant_id": tenant, "state": "queued", "target_type": target_type, **result}
+
+
+@app.get("/v1/execution-requests/recovery")
+async def list_execution_request_recovery(
+    adapter_id: str = Query(..., min_length=1),
+    target_type: str | None = Query(default=None),
+    limit: int = Query(20, ge=1, le=100),
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Return this adapter's in-flight requests lacking a receipt, for restart recovery."""
+    tenant = _tenant(x_tenant_id)
+    if target_type is not None and target_type not in {"task", "equipment"}:
+        raise HTTPException(status_code=422, detail="target_type must be task or equipment")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — recovery unavailable",
+        )
+    result = await list_inflight_execution_requests(
+        tenant_id=tenant, adapter_id=adapter_id, target_type=target_type, limit=limit
+    )
+    return {"tenant_id": tenant, "adapter_id": adapter_id, "target_type": target_type, **result}
 
 
 @app.post("/v1/execution-requests/{execution_request_id}/claim")

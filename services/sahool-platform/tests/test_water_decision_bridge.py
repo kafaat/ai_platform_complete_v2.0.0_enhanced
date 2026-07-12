@@ -69,3 +69,57 @@ async def test_full_auto_chain(monkeypatch):
             entry={"deficit_mm": 20, "confidence": 0.8},
         )
     assert out["status"] == "execution_queued" and out["execution_request_id"] == "req1"
+
+
+def test_auto_execution_payload_matches_actuator_contract(monkeypatch):
+    import asyncio
+    import sys
+    import types
+    from datetime import date
+
+    monkeypatch.setenv("WATER_DEFICIT_DECISION_BRIDGE_ENABLED", "true")
+    monkeypatch.setenv("WATER_DEFICIT_AUTO_EXECUTION_ENABLED", "true")
+    monkeypatch.setenv("WATER_DEFICIT_EXECUTION_TARGET_ID", "pivot-17")
+    monkeypatch.setenv("WATER_DEFICIT_EXECUTION_TARGET_TYPE", "equipment")
+
+    captured = {}
+    fake = types.ModuleType("api.decision_service_client")
+
+    async def record_decision(payload, **kwargs):
+        return {"persisted": True, "authoritative": True}
+
+    async def review_decision(*args, **kwargs):
+        return {"review_id": "rev-1"}
+
+    async def create_execution_plan(*args, **kwargs):
+        return {"execution_plan_id": "plan-1"}
+
+    async def authorize_dispatch(*args, **kwargs):
+        return {"dispatch_authorization_id": "auth-1"}
+
+    async def create_execution_request(*args, **kwargs):
+        captured.update(args[1])
+        return {"execution_request_id": "req-1"}
+
+    fake.record_decision = record_decision
+    fake.review_decision = review_decision
+    fake.create_execution_plan = create_execution_plan
+    fake.authorize_dispatch = authorize_dispatch
+    fake.create_execution_request = create_execution_request
+    monkeypatch.setitem(sys.modules, "api.decision_service_client", fake)
+
+    result = asyncio.run(
+        process_water_deficit(
+            tenant_id="tenant-1",
+            field_id="field-1",
+            season_id="season-1",
+            ledger_date=date(2026, 7, 12),
+            entry={"deficit_mm": 25.0, "confidence": 0.9},
+        )
+    )
+    assert result["status"] == "execution_queued"
+    command = captured["command_payload"]
+    assert command["device_id"] == "pivot-17"
+    assert command["command"] == "irrigate"
+    assert command["payload"]["amount_mm"] == 25.0
+    assert command["payload"]["idempotency_key"]
