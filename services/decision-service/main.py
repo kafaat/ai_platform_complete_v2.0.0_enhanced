@@ -27,7 +27,7 @@ import logging
 import os
 from datetime import UTC, datetime
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
@@ -55,6 +55,7 @@ from persistence import (
     list_decision_records,
     list_review_queue,
     list_runtime_work,
+    list_worker_tenants,
     persist_decision_record,
     persist_dispatch_decision,
     persist_learning_update,
@@ -68,11 +69,13 @@ from persistence import (
     record_reconcile_evidence,
     record_retraining_dispatch_receipt,
     record_rollout_receipt,
+    register_runtime_worker_tenant,
     review_decision,
     review_model_activation_request,
     sor_enabled,
     sor_requested_without_db,
     verify_execution_outcome,
+    worker_tenant_authorized,
 )
 from pydantic import BaseModel, Field
 
@@ -1761,7 +1764,53 @@ async def runtime_work_feed(
         raise HTTPException(status_code=400, detail="worker_id is required")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    # WX-12 multitenancy: once a worker is registered, it may only pull work for its
+    # operator-authorized tenants — the header stops being a free pick (migration 024).
+    if not await worker_tenant_authorized(worker_id=wid, tenant_id=tenant):
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "worker_tenant_unauthorized", "worker_id": wid},
+        )
     return await list_runtime_work(tenant_id=tenant, worker_id=wid, limit=limit)
+
+
+class RuntimeWorkerTenantIn(BaseModel):
+    tenant_id: str
+    enabled: bool = True
+    idempotency_key: str
+
+
+@app.post("/v1/learning/runtime-workers/{worker_id}/tenants")
+async def register_worker_tenant(
+    worker_id: str,
+    payload: RuntimeWorkerTenantIn,
+    x_registered_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Operator registration of a worker→tenant authorization (idempotent upsert)."""
+    actor = (x_registered_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Registered-By is required")
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    try:
+        UUID(payload.tenant_id)
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=422, detail="tenant_id must be a uuid") from None
+    result = await register_runtime_worker_tenant(
+        worker_id=worker_id.strip(), created_by=actor, payload=payload
+    )
+    if result.get("status") == "conflict":
+        raise HTTPException(status_code=409, detail=result.get("reason"))
+    return result
+
+
+@app.get("/v1/learning/runtime-workers/{worker_id}/tenants")
+async def worker_tenants(worker_id: str) -> dict[str, Any]:
+    """Server-side tenant discovery for a worker (the adapter enumerates its partition
+    from here instead of free-picking tenants; empty when unregistered)."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    return await list_worker_tenants(worker_id=worker_id.strip())
 
 
 class RolloutReceiptIn(BaseModel):

@@ -4012,3 +4012,113 @@ async def persist_vegetation_snapshot(
         return {"snapshot_id": canonical, "created": canonical == snapshot_id}
     finally:
         await conn.close()
+
+
+async def register_runtime_worker_tenant(
+    *, worker_id: str, created_by: str, payload: Any
+) -> dict[str, Any]:
+    """WX-12 multitenancy: operator registration of a worker→tenant authorization.
+
+    Idempotent upsert: the (worker, tenant) pair is unique; re-registering updates the
+    enabled flag. Identical idempotent retries replay; a different payload under the same
+    idempotency key is a typed conflict.
+    """
+    data = payload.model_dump() if hasattr(payload, "model_dump") else vars(payload)
+    req_hash = _stable_hash({"worker_id": worker_id, **data})
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_runtime_worker_tenants WHERE worker_id=$1 AND idempotency_key=$2",
+                worker_id,
+                payload.idempotency_key,
+            )
+            if prior:
+                if prior["request_hash"] != req_hash:
+                    return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                return {
+                    "status": "ok",
+                    "replay": True,
+                    "registration_id": prior["registration_id"],
+                    "enabled": prior["enabled"],
+                }
+            rid = "wt_" + _stable_hash({"w": worker_id, "t": payload.tenant_id})[:20]
+            row = await conn.fetchrow(
+                """INSERT INTO decision_runtime_worker_tenants
+                   (registration_id, worker_id, tenant_id, enabled, created_by,
+                    idempotency_key, request_hash)
+                   VALUES ($1, $2, $3::uuid, $4, $5, $6, $7)
+                   ON CONFLICT (worker_id, tenant_id) DO UPDATE SET
+                     enabled = EXCLUDED.enabled,
+                     created_by = EXCLUDED.created_by,
+                     idempotency_key = EXCLUDED.idempotency_key,
+                     request_hash = EXCLUDED.request_hash,
+                     updated_at = now()
+                   RETURNING *""",
+                rid,
+                worker_id,
+                payload.tenant_id,
+                bool(payload.enabled),
+                created_by,
+                payload.idempotency_key,
+                req_hash,
+            )
+            await emit_outbox_event(
+                conn,
+                tenant_id=payload.tenant_id,
+                event_type="RUNTIME_WORKER_TENANT_REGISTERED",
+                aggregate_type="decision_runtime_worker_tenants",
+                aggregate_id=row["registration_id"],
+                payload={
+                    "worker_id": worker_id,
+                    "enabled": bool(payload.enabled),
+                    "created_by": created_by,
+                },
+            )
+            return {
+                "status": "ok",
+                "replay": False,
+                "registration_id": row["registration_id"],
+                "enabled": row["enabled"],
+            }
+    finally:
+        await conn.close()
+
+
+async def list_worker_tenants(*, worker_id: str) -> dict[str, Any]:
+    """Server-side tenant discovery for an authenticated worker (no free header picking)."""
+    conn = await _connect()
+    try:
+        rows = await conn.fetch(
+            "SELECT tenant_id, enabled FROM decision_runtime_worker_tenants WHERE worker_id=$1 ORDER BY tenant_id",
+            worker_id,
+        )
+        return {
+            "worker_id": worker_id,
+            "registered": bool(rows),
+            "tenants": [str(r["tenant_id"]) for r in rows if r["enabled"]],
+        }
+    finally:
+        await conn.close()
+
+
+async def worker_tenant_authorized(*, worker_id: str, tenant_id: str) -> bool:
+    """Partitioning rule: an UNREGISTERED worker keeps legacy behavior (deployment pins
+    the tenant via env); once ANY registration exists for the worker, only its enabled
+    tenants pass — a guessed/free-picked X-Tenant-Id is refused."""
+    conn = await _connect()
+    try:
+        registered = await conn.fetchval(
+            "SELECT 1 FROM decision_runtime_worker_tenants WHERE worker_id=$1 LIMIT 1",
+            worker_id,
+        )
+        if not registered:
+            return True
+        allowed = await conn.fetchval(
+            "SELECT 1 FROM decision_runtime_worker_tenants WHERE worker_id=$1 AND tenant_id=$2::uuid AND enabled",
+            worker_id,
+            tenant_id,
+        )
+        return bool(allowed)
+    finally:
+        await conn.close()

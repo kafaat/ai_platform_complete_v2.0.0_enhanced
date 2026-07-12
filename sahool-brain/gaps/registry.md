@@ -82,7 +82,10 @@
 
 - **الإغلاق (`9e308d5`):** نُفِّذ التصميم المُوصى حرفيّاً — migration 017: جدول `decision_model_runtime_schedules` (config دائم: period + anchor مقطوع-الثواني + enabled؛ إنشاء الصفّ هو راية التفعيل — لا صفوف = صفر انبعاث = صفر تغيير سلوك) + جدول `decision_model_reconcile_evidence` append-only (الانجراف/تغيير alias اليدويّ/split-brain صار أدلّة قابلة للتدقيق لا log — يغلق الشقّ القابل للتدقيق من High 4). التقدّم مُشتقّ من الأدلّة (snapshots/evidence) لا من حالة last-run متغيّرة. الـfeed يبثّ النافذة المكتملة الأخيرة بلا snapshot (ISO يدور بدقّة) وreconcile المستحقّ (period_index حتميّ)؛ الـclaims تغطّي النوعَين (صفّ واحد لكلّ جدولة). endpoints: runtime-schedules + reconcile-evidence (actor + idempotency + replay). الحارس `wx12_runtime_scheduler_gate` يمنع الانحدار لكود خامل. اختبارات pg حقيقيّة + contract.
 
-## WX-12-RUNTIME-MULTITENANCY — OPEN (High) — من التدقيق الجنائيّ 2026-07-12
+## WX-12-RUNTIME-MULTITENANCY — CLOSED (كان OPEN/High من التدقيق الجنائيّ 2026-07-12)
+- **الإغلاق (التصميم المُوصى نفسه — feed مُخوَّل، لا header حرّ):** migration 024 `decision_runtime_worker_tenants` (سجلّ تفويض worker→tenant تشغيليّ، upsert idempotent مع replay/conflict، تعطيل بلا حذف) · الـfeed يرفض 403 `worker_tenant_unauthorized` أيّ مستأجر غير مُفوَّض لعامل مُسجَّل (العامل غير المُسجَّل يبقى على السلوك القديم — لا كسر للتنصيبات القائمة) · نقطة اكتشاف `GET /v1/learning/runtime-workers/{id}/tenants` يُعدّد منها العامل قسمته من الخادم · الـadapter يحلّ مستأجريه بأولويّة صريحة (RUNTIME_TENANT_IDS ← RUNTIME_TENANT_ID ← اكتشاف خادميّ) ويلفّ run_once عليهم؛ غياب أيّ تعيين = خطأ عقد صريح. برهان HTTP كامل على PG حقيقيّ (403/200/اكتشاف) + بوّابة wx12_runtime_multitenancy_gate.
+
+## WX-12-RUNTIME-MULTITENANCY (المدخل الأصليّ) — من التدقيق الجنائيّ 2026-07-12
 - **المصدر:** `service.py` يعتمد `RUNTIME_TENANT_ID` واحداً لكلّ process؛ غير قابل للتوسّع لمنصّة SaaS متعدّدة المستأجرين (instance لكلّ tenant هشّ).
 - **لماذا مؤجَّل:** قرار بنية (NATS partition by tenant أو worker مُخوَّل بتعداد مستأجرين من الخادم) + عدم السماح للـworker باختيار tenant من header بحرّية — يتقاطع مع مصادقة الخدمة (Critical 1 المُغلَق يمنع الانتحال؛ التقسيم المُخوَّل خطوة تالية).
 - **التصميم المُوصى:** feed مُخوَّل يُرجِع عمل المستأجرين المسموح بهم للـworker المُصادَق فقط (لا header حرّ)، أو استهلاك NATS مُقسَّم.

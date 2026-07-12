@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "72b77cb17a11cbe21d85a4e7aea28c2d837b75d8bad6868e7d6f72f4546b959b"
+          "content": "a475c1b335b63668b87e8d87628f865aac59c9121473f184ce543875084d6619"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9285,7 +9285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cb11089b200e67b80ee43d4c38e8d1b1db534344f0176cf2a7493b72e98cd3c"
+          "content": "071ed4e905c8a2490e469d126bcf06f94a8adb23523c18f2fb3f9bc714c32209"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -10485,7 +10485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "496d433f7ca88c693888729c07a94bfaccb18a2133ea0e22c3d03c4995888ae7"
+          "content": "7d93240eb0e2ef6338cbd53ff62ef4eac5bf53d50dd03578b679cedce4838874"
         }
       ],
       "name": "services/model-registry-adapter/runtime.py",
@@ -10495,7 +10495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b111fc3cb4419a5f5384a82cff441b0f8b4e5da20e3a80b3a0f53cc2b49a7272"
+          "content": "fe0feb22d2563dde46f7a69f99177b736f23d5b7feb35f7b0c8fb708bc662268"
         }
       ],
       "name": "services/model-registry-adapter/service.py",
@@ -10515,7 +10515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e473aa2646f6d22e081eff1c3dfc6dfe1aeaae69eaae9282830c8e393f2aca3e"
+          "content": "ba6390ac977f9026adcb597464a52bc5e52cba9a7dc18cdccd48a231ea63f4f4"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -24159,6 +24159,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3df6529e6821bd51bde6b235b51c67fd3638d6fce5461bbd827a3074d8230d77"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
       "type": "file"
     },
     {

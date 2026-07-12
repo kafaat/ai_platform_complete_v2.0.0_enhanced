@@ -313,3 +313,49 @@ def test_schedule_endpoint_contract_shape():
         json=body,
     )
     assert ok.status_code == 503  # mirror mode: valid request stops at the SoR gate
+
+
+def test_resolve_tenants_priority_and_server_discovery(monkeypatch):
+    """WX-12 multitenancy: explicit env wins; otherwise the worker enumerates its
+    operator-authorized partition from the server; empty assignment is a contract error."""
+    import service as svc
+
+    class _Decision:
+        def __init__(self, tenants):
+            self._tenants = tenants
+            self.calls = []
+
+        def get(self, path, tenant_id, params=None):
+            self.calls.append((path, tenant_id))
+            return {"worker_id": "w1", "registered": bool(self._tenants), "tenants": self._tenants}
+
+    class _Runtime:
+        adapter_id = "w1"
+
+        def __init__(self, tenants):
+            self.decision = _Decision(tenants)
+
+    # 1) explicit multi-tenant partition wins outright (no server call).
+    monkeypatch.setenv("RUNTIME_TENANT_IDS", "t-a, t-b")
+    monkeypatch.delenv("RUNTIME_TENANT_ID", raising=False)
+    rt = _Runtime(["ignored"])
+    assert svc.resolve_tenants(rt) == ["t-a", "t-b"]
+    assert rt.decision.calls == []
+
+    # 2) legacy single-tenant pin stays backward compatible.
+    monkeypatch.delenv("RUNTIME_TENANT_IDS", raising=False)
+    monkeypatch.setenv("RUNTIME_TENANT_ID", "t-solo")
+    assert svc.resolve_tenants(_Runtime([])) == ["t-solo"]
+
+    # 3) server discovery: the authorized partition, never a free pick.
+    monkeypatch.delenv("RUNTIME_TENANT_ID", raising=False)
+    rt = _Runtime(["t-1", "t-2"])
+    assert svc.resolve_tenants(rt) == ["t-1", "t-2"]
+    assert rt.decision.calls == [("/v1/learning/runtime-workers/w1/tenants", None)]
+
+    # 4) no assignment anywhere = misconfiguration, fail closed.
+    import pytest as _pytest
+    from runtime import RuntimeContractError
+
+    with _pytest.raises(RuntimeContractError):
+        svc.resolve_tenants(_Runtime([]))

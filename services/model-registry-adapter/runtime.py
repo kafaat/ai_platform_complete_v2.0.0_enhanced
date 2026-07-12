@@ -69,16 +69,18 @@ class DecisionClient:
         self.timeout = float(_env("DECISION_SERVICE_TIMEOUT_SECONDS", "15"))
 
     def get(
-        self, path: str, tenant_id: str, params: dict[str, Any] | None = None
+        self, path: str, tenant_id: str | None, params: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         # drop None values: urlencode would serialize them as the literal string "None".
         clean = {k: v for k, v in (params or {}).items() if v is not None}
         query = "" if not clean else "?" + urllib.parse.urlencode(clean)
+        # tenant-less GETs (e.g. worker tenant discovery) must not send a literal "None".
+        headers = {"X-Tenant-Id": tenant_id} if tenant_id else {}
         return _json_request(
             "GET",
             self.base + path + query,
             token=self.token,
-            headers={"X-Tenant-Id": tenant_id},
+            headers=headers,
             timeout=self.timeout,
         )
 

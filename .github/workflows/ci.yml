@@ -93,6 +93,9 @@ jobs:
       # WX-12.3: monitoring/reconcile scheduling must stay durable + actually emitted by the feed
       - name: WX-12.3 runtime scheduler guard
         run: python scripts/ci/wx12_runtime_scheduler_gate.py
+      # WX-12 multitenancy: worker→tenant partitioning stays server-authorized (no free header)
+      - name: WX-12 runtime multitenancy guard
+        run: python scripts/ci/wx12_runtime_multitenancy_gate.py
       # AC-1: agronomic context contracts stay canonical + point-in-time fail-closed
       - name: AC-1 agronomic context gate
         run: python scripts/ci/agronomic_context_gate.py
@@ -473,7 +476,7 @@ jobs:
       # PyJWT + prometheus-client: required by vegetation_runtime, imported by the
       # vegetation-agriai contract step below (pure logic, but module-level imports).
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx PyJWT prometheus-client
-      - name: Apply decision-service migrations (custom runner — 001 through 023)
+      - name: Apply decision-service migrations (custom runner — 001 through 024)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -606,6 +609,14 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_agronomic_lineage_integrity.py -q -p no:cacheprovider
+      # WX-12 multitenancy: registry replay/conflict + partition authorization + the
+      # end-to-end 403 for a non-authorized tenant (real Postgres, SoR on).
+      - name: WX-12 runtime worker-tenant partitioning tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_runtime_worker_tenants.py -q -p no:cacheprovider
       # AC-6: HTTP contract for strict lineage + evidence writer (pure logic, no DB,
       # mirror-mode fail-closed) — deliberately run WITHOUT DATABASE_URL/SoR env.
       - name: AC-6 evidence/lineage contract tests (no DB, mirror fail-closed)

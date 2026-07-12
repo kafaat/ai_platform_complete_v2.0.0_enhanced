@@ -52,14 +52,47 @@ def serve_health() -> ThreadingHTTPServer:
     return server
 
 
+def resolve_tenants(runtime: LifecycleRuntime) -> list[str]:
+    """WX-12 multitenancy: which tenants does THIS worker serve?
+
+    Priority (explicit config wins, server-side discovery is the SaaS path):
+      1. RUNTIME_TENANT_IDS — comma-separated explicit partition.
+      2. RUNTIME_TENANT_ID  — legacy single-tenant pin (backward compatible).
+      3. Server discovery   — GET /v1/learning/runtime-workers/{id}/tenants: the
+         operator-registered, decision-service-authorized partition (no free picking).
+    An empty result is a contract error: a worker with no tenant assignment must not
+    silently idle — it is misconfigured.
+    """
+    explicit = [t.strip() for t in os.getenv("RUNTIME_TENANT_IDS", "").split(",") if t.strip()]
+    if explicit:
+        return explicit
+    single = os.getenv("RUNTIME_TENANT_ID", "").strip()
+    if single:
+        return [single]
+    discovered = runtime.decision.get(
+        f"/v1/learning/runtime-workers/{runtime.adapter_id}/tenants", None, None
+    )
+    tenants = [t for t in (discovered or {}).get("tenants", []) if t]
+    if not tenants:
+        raise RuntimeContractError(
+            "no tenant assignment: set RUNTIME_TENANT_ID(S) or register the worker via "
+            "/v1/learning/runtime-workers/{worker_id}/tenants"
+        )
+    return tenants
+
+
 def run_once(runtime: LifecycleRuntime) -> int:
-    """Consume one batch from decision-service runtime work feed.
+    """Consume one batch per assigned tenant from the decision-service work feed.
 
     The feed is intentionally authoritative and lease-based. Unknown work types fail closed.
     """
-    tenant = os.getenv("RUNTIME_TENANT_ID", "").strip()
-    if not tenant:
-        raise RuntimeContractError("RUNTIME_TENANT_ID is required")
+    processed = 0
+    for tenant in resolve_tenants(runtime):
+        processed += _run_once_for_tenant(runtime, tenant)
+    return processed
+
+
+def _run_once_for_tenant(runtime: LifecycleRuntime, tenant: str) -> int:
     batch = runtime.decision.get(
         "/v1/learning/runtime-work", tenant, {"worker_id": runtime.adapter_id, "limit": 20}
     )
