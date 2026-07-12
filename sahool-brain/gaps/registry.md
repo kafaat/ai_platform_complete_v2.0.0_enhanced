@@ -87,7 +87,10 @@
 - **لماذا مؤجَّل:** قرار بنية (NATS partition by tenant أو worker مُخوَّل بتعداد مستأجرين من الخادم) + عدم السماح للـworker باختيار tenant من header بحرّية — يتقاطع مع مصادقة الخدمة (Critical 1 المُغلَق يمنع الانتحال؛ التقسيم المُخوَّل خطوة تالية).
 - **التصميم المُوصى:** feed مُخوَّل يُرجِع عمل المستأجرين المسموح بهم للـworker المُصادَق فقط (لا header حرّ)، أو استهلاك NATS مُقسَّم.
 
-## VEG-EVIDENCE-STORE — OPEN (Medium) — من تسوية `full_plan_closed` 2026-07-12
+## VEG-EVIDENCE-STORE — CLOSED @ `4b35809` (كان OPEN من تسوية `full_plan_closed`)
+- **الإغلاق:** migration 019 أنزلت `decision_vegetation_snapshots` (content-addressed + CHECK availability>=acquisition + append-only + RLS) **مع كاتبها** `POST /v1/evidence/vegetation-snapshots` (canonical replay) وتحقّق الربط المُصنَّف + FK مركّبة بالمستأجر + الـtrigger الدلاليّ — بالضبط شرط الإغلاق المُدوَّن (المخزن مع كاتبه). المتبقّي منفصلاً: توصيل المنتِج (vegetation-service يدفع لقطاته) — ضمن Phase B/C.
+
+## VEG-EVIDENCE-STORE (المدخل الأصليّ) — من تسوية `full_plan_closed` 2026-07-12
 - **المصدر:** هجرة الحزمة المُسلَّمة أنشأت `decision_vegetation_snapshots` + `decision_field_history_snapshots` في decision-service **بلا أيّ كاتب/قارئ** — لم تُنزَل (`41211c6`؛ الملحق في `docs/audits/VEGETATION_AGRIAI_FULL_PLAN_CLOSURE_20260712.md`).
 - **لماذا مؤجَّل:** مخزن أدلّة نباتيّ أوّل-الدرجة في decision-service يتطلّب كاتبه (ربط vegetation→decision عند الالتقاط) وقارئه (تحقّق الربط) — نصف حلّ يخالف الانضباط.
 - **التصميم المُوصى:** ضمن Phase B/C من الخطّة الرئيسيّة — كاتب في مسار compose (السياق يحمل vegetation_snapshot_id مرجعاً لمخزن ثابت content-addressed بنمط 018_ac1: idempotency+request_hash+append-only+CHECK data_available_at>=acquisition_at) + تحقّق `_validate_decision_context` يقبل المرجع.

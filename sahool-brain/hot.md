@@ -1,5 +1,7 @@
 # 🔥 التركيز الحاليّ (Hot)
 
+> **AC-6/AC-6.1 @ `4b35809`:** نَسَب زراعيّ مباشر على decision_record (موسم/محصول/صنف + أدلّة نباتيّة + hash مانيفست) + **مخزن الأدلّة النباتيّ بكاتبه (فجوة VEG-EVIDENCE-STORE = CLOSED)** + سلامة DB (FKs مركّبة بالمستأجر + trigger دلاليّ + RLS ببند app.current_tenant) + الوضع الصارم يطلب النَّسَب الكامل + شهادة staging fail-closed. هجرتا الحزمة (019+020 على جداولها غير المُنزَلة) سُوِّيتا هجرةً واحدة 019 على عقود AC-1 — القرارات في decisions/ledger. CI الفرع قيد التشغيل → FF + مسح عند الاخضرار.
+
 > **إغلاق الخطّة الكاملة veg-agriai @ `41211c6` (فوق قاعدة خضراء `4b1bafd` = main = develop، مسح 28/28):** سجلّ مؤشّرات قانونيّ `indicator-registry.v1` (سلطة NDVI تطلب الآن qa_mask_version+valid_pixel_pct) + محوّلات صارمة (بطاقة محصول/تربة/طقس/ريّ) + مؤلّف تاريخ PIT + `AGRIAI_PRODUCTION_MODE` (PCSE إلزاميّ، فشل مُغلَق مُصنَّف) + `ALLOW_LEGACY_FIELD_REGISTRY` معطَّل إنتاجيّاً + نقطتا registry + بوّابة إغلاق كاملة. **هجرة الحزمة المتصادمة (018 مكرَّرة) لم تُنزَل** — قرار موثَّق في decisions/ledger + فجوتان جديدتان: VEG-EVIDENCE-STORE وRASTER-PROVENANCE-ENRICHMENT (gaps/registry). قبلها: إصلاحا CI (`a53c206` working-directory، `4b1bafd` PyJWT+prometheus-client+manifest). أُغلق نهائيّاً: بعد إصلاح انجراف الجرود (`bc84755` — 936 مساراً) main = develop = `bc84755` بمسح 28/28 أخضر. **درس مُرقّى:** قائمة قبل-FF تشمل الآن generate_service_inventory --check + route_mount_contract_guard --check. التالي بتفويض: Master-Plan Phases B–E.
 
 
