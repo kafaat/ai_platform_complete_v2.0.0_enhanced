@@ -111,7 +111,9 @@ def main() -> int:
         raise SystemExit(f"vegetation main.py regression: LOC {_loc(veg_main)} > 180")
     veg_heavy = {
         "load_field",
-        "fetch_from_sentinel_hub",
+        # RIV consolidation (20260712) deleted fetch_from_sentinel_hub entirely —
+        # vegetation reads validated raster products only. Its return anywhere in the
+        # service is asserted below; fetch_from_cdse remains a quarantined runtime shim.
         "fetch_from_cdse",
         "run_analysis",
         # production-truth closure removed the synthetic _generate_timeseries entirely;
@@ -127,6 +129,13 @@ def main() -> int:
         raise SystemExit(
             f"vegetation runtime missing heavy functions: {sorted(veg_heavy - _function_names(veg_runtime))}"
         )
+    banned = {"fetch_from_sentinel_hub"}
+    for path in (veg_main, veg_runtime):
+        returned = banned & _function_names(path)
+        if returned:
+            raise SystemExit(
+                f"vegetation direct provider fetch returned ({path}): {sorted(returned)} — RIV forbids it"
+            )
 
     print("p1_main_decomposition_guard_ok")
     return 0
