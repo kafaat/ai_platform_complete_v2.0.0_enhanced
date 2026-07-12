@@ -7138,10 +7138,26 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 102,
+    "line": 107,
     "method": "GET",
     "path": "/v1/all_fields",
     "function": "all_fields"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/analysis.py",
+    "line": 153,
+    "method": "GET",
+    "path": "/v1/indicators/registry",
+    "function": "indicators_registry"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/analysis.py",
+    "line": 160,
+    "method": "GET",
+    "path": "/v1/indicators/registry/{name}",
+    "function": "indicator_registry_item"
   },
   {
     "service": "vegetation-analysis-service",

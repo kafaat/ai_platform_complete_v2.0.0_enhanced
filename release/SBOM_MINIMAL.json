@@ -8135,6 +8135,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a0a32afaa7a3d89d939ce12e0737d669abc0f4d10ee1ffe4db922bb0e72016b7"
+        }
+      ],
+      "name": "services/agriai-engine/agronomic_adapters.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "976bf2092481ea8cccc29d1c6222f54daee63df0a6b192f38e5b31e54e6f9462"
         }
       ],
@@ -8149,6 +8159,16 @@
         }
       ],
       "name": "services/agriai-engine/evidence_bundle.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9d7b30ca0b936dd2de9dd9657080dd98b1b2b67c01121b126a6f0710e61b6b0a"
+        }
+      ],
+      "name": "services/agriai-engine/field_history.py",
       "type": "file"
     },
     {
@@ -8199,6 +8219,16 @@
         }
       ],
       "name": "services/agriai-engine/tests/test_agriai_engine_static_route_smoke.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29735d8aa73f63a30d8ffc657bce7382e4164117be1e21ce31f8eefc5dd63335"
+        }
+      ],
+      "name": "services/agriai-engine/tests/test_agronomic_adapters.py",
       "type": "file"
     },
     {
@@ -23925,6 +23955,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "62f1fe60850b66887b095192f7c6877ccab31750272c5101f0e5c14f8afd2633"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/indicator_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "06e6863c7630f041efb39008f788593038fe51b9457e6afb7ea7e74aa1beef4e"
         }
       ],
@@ -23979,6 +24019,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ea2cffab1ae557abe03fc3f7b95f6adec4f2a69bbfd7736fd6811564d509f92"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_indicator_registry.py",
       "type": "file"
     },
     {
