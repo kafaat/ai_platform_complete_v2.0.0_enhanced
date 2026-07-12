@@ -1080,6 +1080,11 @@ async def field_available_dates(
     field_id: str,
     index: str | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
+    include_provider: bool = Query(
+        False,
+        description="ادمج تواريخ التقاط المزوّد (STAC) للنافذة — غير المعالَج يظهر has_cog=false",
+    ),
+    months: int = Query(24, ge=1, le=24),
 ):
     """Return real imagery acquisition dates with ready/COG status for a field.
 
@@ -1180,12 +1185,53 @@ async def field_available_dates(
     except Exception as e:  # noqa: BLE001
         logger.warning("available dates DB lookup skipped (%s): %s", field_id, e)
 
+    # TIMELINE-PROVIDER-DATES: محور الزمن الحقيقيّ هو تواريخ التقاط المزوّد لا ما
+    # عولج فقط — الشريط التاريخيّ يعرض كلّ مشاهد الكتالوج للنافذة، والجاهز منها
+    # (COG موجود أعلاه) يحمل صورته بينما الباقي «ينتظر COG». فشل الكتالوج لا يُفشل
+    # الردّ: تبقى التواريخ المعالَجة وتُعلَن العلّة في provider_dates_error (لا اختلاق).
+    provider_error: str | None = None
+    if include_provider:
+        try:
+            import datetime as _dt
+
+            import db_persist
+
+            geometry = await db_persist.fetch_field_geometry(field_id, _REQ_TENANT.get())
+            bbox = _bbox_from_geojson(geometry) if geometry else None
+            if bbox is None:
+                provider_error = "field_geometry_unavailable"
+            else:
+                end = _dt.date.today()
+                start = end - _dt.timedelta(days=months * 31)
+                for w_start, w_end in _month_windows(start, end):
+                    search = await _stac_search(
+                        bbox,
+                        w_start.strftime("%Y-%m-%dT00:00:00Z"),
+                        w_end.strftime("%Y-%m-%dT23:59:59Z"),
+                        100,
+                        limit=100,
+                    )
+                    for item in search.get("items", []):
+                        _add(
+                            (item.get("datetime") or "")[:10],
+                            has_cog=False,
+                            cloud_pct=item.get("cloud_cover_pct"),
+                            scene_id=item.get("item_id"),
+                            acquisition_datetime=item.get("datetime"),
+                        )
+        except Exception as e:  # noqa: BLE001 — الكتالوج best-effort للشريط، المعالَج يبقى
+            provider_error = str(e)[:200]
+            logger.warning("provider dates merge skipped (%s): %s", field_id, e)
+
     dates = []
     for rec in by_date.values():
         rec["indices"] = sorted(rec["indices"])
         dates.append(rec)
     dates.sort(key=lambda r: r["date"], reverse=True)
-    return {"field_id": field_id, "dates": dates[:limit]}
+    out = {"field_id": field_id, "dates": dates[:limit], "provider_included": include_provider}
+    if provider_error:
+        out["provider_dates_error"] = provider_error
+    return out
 
 
 @router.get("/v1/fields/{field_id}/terrain")

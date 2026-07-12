@@ -486,9 +486,10 @@ function MapHubCore() {
     const idx = activeIndicator && activeIndicator !== RAW_IMAGERY_INDEX_ID ? activeIndicator : undefined;
     Promise.all([
       fetchFieldImageryAvailableDates(fieldId, idx, 240),
-      // شريط thumbnails لا يجب أن يقتصر على المؤشر النشط؛ يعرض كل تواريخ COG الجاهزة
-      // التي تم سحبها خلال الفترة التاريخية، ثم عند الضغط يختار أفضل مؤشر متاح لذلك التاريخ.
-      fetchFieldImageryAvailableDates(fieldId, undefined, 240),
+      // TIMELINE-PROVIDER-DATES (طلب المستخدم 2026-07-12): شريط الصور التاريخيّ يعرض
+      // محور الالتقاط الحقيقيّ كاملاً حسب الطبقة المختارة — الجاهز لهذا المؤشّر يحمل
+      // صورته، وتواريخ المزوّد غير المعالَجة تظهر بتاريخها «ينتظر COG» بلا صورة.
+      fetchFieldImageryAvailableDates(fieldId, idx, 240, { includeProvider: true, months: 24 }),
     ])
       .then(([dates, allDates]) => {
         if (cancelled) return;
@@ -839,7 +840,7 @@ function MapHubCore() {
       const refreshImageryTimeline = async () => {
         const [dates, allDates] = await Promise.all([
           fetchFieldImageryAvailableDates(pollFieldId, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
-          fetchFieldImageryAvailableDates(pollFieldId, undefined, 240).catch(() => [] as FieldImageryDateOption[]),
+          fetchFieldImageryAvailableDates(pollFieldId, refreshIndex, 240, { includeProvider: true, months: 24 }).catch(() => [] as FieldImageryDateOption[]),
         ]);
         if (Array.isArray(dates) && dates.length > 0) {
           setAvailableImageryDates([...dates].sort((a, b) => b.date.localeCompare(a.date)));

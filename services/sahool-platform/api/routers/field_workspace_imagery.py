@@ -42,6 +42,8 @@ async def field_imagery_available_dates_facade(
     field_id: str,
     index: str | None = Query(None),
     limit: int = Query(240, ge=1, le=500),
+    include_provider: bool = Query(False),
+    months: int = Query(24, ge=1, le=24),
     user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
 ):
     """تواريخ صور الأقمار المتاحة للحقل من raster-service فقط.
@@ -62,6 +64,8 @@ async def field_imagery_available_dates_facade(
             tenant_id=str(user.tenant_id),
             index=index,
             limit=limit,
+            include_provider=include_provider,
+            months=months,
         )
     except HTTPException:
         raise

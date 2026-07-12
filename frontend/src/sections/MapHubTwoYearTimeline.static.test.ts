@@ -26,3 +26,32 @@ describe('MapHub two-year imagery timeline', () => {
     expect(source).toContain('متوسط غيوم');
   });
 });
+
+
+describe('TIMELINE-PROVIDER-DATES — محور الالتقاط الحقيقيّ من المزوّد (طلب 2026-07-12)', () => {
+  const maphub = source;
+  const api = readFileSync(join(process.cwd(), 'src/services/api.ts'), 'utf8');
+  const rasterRouter = readFileSync(
+    join(process.cwd(), '../services/raster-service/routers/fields.py'),
+    'utf8',
+  );
+
+  it('timeline fetch merges provider capture dates for the SELECTED indicator', () => {
+    expect(maphub).toContain('{ includeProvider: true, months: 24 }');
+    // كلا موضعَي الجلب (الأوّليّ + تحديث ما-بعد-backfill) يطلبان تواريخ المزوّد.
+    expect(maphub.split('includeProvider: true').length - 1).toBeGreaterThanOrEqual(2);
+    expect(api).toContain('include_provider: true');
+  });
+
+  it('raster endpoint merges STAC capture dates honestly (has_cog=false, declared errors)', () => {
+    expect(rasterRouter).toContain('include_provider: bool = Query(');
+    expect(rasterRouter).toContain('fetch_field_geometry');
+    expect(rasterRouter).toContain('provider_dates_error');
+    // غير المعالَج يُضاف has_cog=False — لا ادّعاء جاهزيّة.
+    expect(rasterRouter).toContain('has_cog=False');
+  });
+
+  it('pending provider dates render with their capture date and no fake readiness', () => {
+    expect(maphub).toContain("d.has_cog ? 'جاهز' : 'ينتظر COG'");
+  });
+});

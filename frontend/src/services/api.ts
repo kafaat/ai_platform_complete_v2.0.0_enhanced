@@ -3583,9 +3583,16 @@ export const fetchFieldImageryAvailableDates = (
   fieldId: string,
   index?: string,
   limit = 240,
+  opts?: { includeProvider?: boolean; months?: number },
 ): Promise<FieldImageryDateOption[]> =>
   kongApi.get(`/api/v1/fields/${fieldId}/available-dates`, {
-    params: { ...(index ? { index } : {}), limit },
+    params: {
+      ...(index ? { index } : {}),
+      limit,
+      // TIMELINE-PROVIDER-DATES: يدمج الخادم تواريخ التقاط المزوّد (STAC) — غير
+      // المعالَج يصل has_cog=false فيظهر «ينتظر COG» بتاريخه الحقيقيّ بلا صورة.
+      ...(opts?.includeProvider ? { include_provider: true, months: opts?.months ?? 24 } : {}),
+    },
   }).then((r) => {
     const raw = r.data?.dates ?? r.data?.items ?? r.data ?? [];
     if (!Array.isArray(raw)) return [];

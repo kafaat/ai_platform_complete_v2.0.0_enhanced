@@ -199,10 +199,15 @@ async def get_available_dates(
     tenant_id: str,
     index: str | None = None,
     limit: int = 240,
+    include_provider: bool = False,
+    months: int = 24,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"limit": limit}
     if index:
         params["index"] = index
+    if include_provider:
+        params["include_provider"] = "true"
+        params["months"] = months
     return await raster_get_json(
         f"/v1/fields/{field_id}/available-dates",
         tenant_id=tenant_id,

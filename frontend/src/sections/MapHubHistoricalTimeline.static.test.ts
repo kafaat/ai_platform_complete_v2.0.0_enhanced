@@ -8,9 +8,13 @@ const platformFields = readFileSync(join(process.cwd(), '../services/sahool-plat
 const rasterClient = readFileSync(join(process.cwd(), '../services/sahool-platform/api/raster_service_client.py'), 'utf8');
 
 describe('MapHub historical imagery timeline thumbnails', () => {
-  it('keeps a separate all-index timeline so thumbnails are not limited to the active index/month', () => {
+  it('timeline follows the SELECTED layer and carries the full provider capture axis', () => {
+    // طلب المستخدم 2026-07-12: الشريط حسب الطبقة المختارة، وكلّ تواريخ التقاط المزوّد
+    // تظهر (الجاهز بصورة، والباقي «ينتظر COG» بتاريخه) — لا الاقتصار على المعالَج.
     expect(source).toContain('timelineImageryDates');
-    expect(source).toContain('fetchFieldImageryAvailableDates(fieldId, undefined, 240)');
+    expect(source).toContain(
+      'fetchFieldImageryAvailableDates(fieldId, idx, 240, { includeProvider: true, months: 24 })',
+    );
     expect(source).toContain('summarizeTwoYearTimeline(timelineImageryDates)');
     expect(source).toContain('dateSelectorDates');
   });
@@ -42,7 +46,7 @@ describe('MapHub historical imagery timeline thumbnails', () => {
 
   it('requests enough available dates through the platform proxy', () => {
     expect(api).toContain('limit = 240');
-    expect(api).toContain('params: { ...(index ? { index } : {}), limit }');
+    expect(api).toContain('...(index ? { index } : {}),');
     expect(platformFields).toContain('limit: int = Query(240, ge=1, le=500)');
     // P2 raster facade: بناء limit/index في raster_service_client.get_available_dates
     expect(rasterClient).toContain('limit: int = 240,');
