@@ -25,6 +25,7 @@ from __future__ import annotations
 import hmac
 import logging
 import os
+from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
@@ -83,7 +84,18 @@ from persistence import (
 )
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="Sahool Decision Service", version="p0-sor-strangler")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Modern FastAPI lifespan startup (replaces the deprecated startup event handler).
+    # sor_misconfig_message()/logger are module globals resolved at startup time.
+    message = sor_misconfig_message()
+    if message:
+        logger.error(message)
+    yield
+
+
+app = FastAPI(title="Sahool Decision Service", version="p0-sor-strangler", lifespan=lifespan)
 
 # Critical: do not trust identity headers (X-Tenant-Id / X-*-By) on the raw internal port.
 # When DECISION_SERVICE_AUTH_TOKEN is configured, every non-probe request must present the shared
@@ -337,13 +349,6 @@ def sor_misconfig_message() -> str | None:
             "degraded until DATABASE_URL is supplied and migrations are verified."
         )
     return None
-
-
-@app.on_event("startup")
-async def _startup_sor_guard() -> None:
-    message = sor_misconfig_message()
-    if message:
-        logger.error(message)
 
 
 @app.get("/healthz")
