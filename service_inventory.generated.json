@@ -290,9 +290,9 @@
   {
     "service": "vegetation-analysis-service",
     "domain": "Vegetation Analytics",
-    "python_files": 17,
-    "python_loc": 1669,
-    "tests": 8,
+    "python_files": 18,
+    "python_loc": 1675,
+    "tests": 9,
     "routes": 10,
     "main": "services/vegetation-analysis-service/main.py",
     "dockerfile": "services/vegetation-analysis-service/Dockerfile",
