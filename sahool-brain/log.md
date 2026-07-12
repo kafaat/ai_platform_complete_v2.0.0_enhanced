@@ -2766,3 +2766,7 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - المسح: 29 أخضر، وفشل واحد في **Sahool Production Gates / pytest-contracts**: `test_jobs_database_url_is_limited_to_background_channels` — allowlist **ثانٍ** لقناة JOBS في `tests/security/test_phase12_final_production_gates.py` لم يكن ضمن بطاريّة ما-قبل-FF (سجّلتُ العامل في `rls_runtime_gate.py` فقط). سُجِّل `sahool-water-ledger-worker` فيه بالتبرير نفسه — 4/4 محلّيّاً.
 - **درس مُرسَّخ:** إضافة أيّ خدمة بقناة JOBS تتطلّب تسجيلاً في **موضعين**: `scripts/security/rls_runtime_gate.py` و`tests/security/test_phase12_final_production_gates.py` — ويُضاف الأخير إلى بطاريّة ما-قبل-FF من الآن.
 - إصلاح mypy مرافق على القمّة نفسها (`3332b51`): `logging_config` سلسلة LOG_LEVEL تنتهي بحرفيّ.
+
+## 2026-07-12 — دمج حزمة المراجعة review_fixed (على 3b20e07)
+- **دلتاها:** إصلاح واحد + تقرير. الإصلاح صحيح ومُتبنّى: `actuator-service/main.py` يعيد تصدير كامل سطح actuator_runtime (شاملاً المساعدات الخاصّة التي يُسقطها `import *`) بهويّة محفوظة + إعادة تسجيل idempotent للراوترات — يصلح 6 اختبارات سلامة كانت فاشلة كامنة (المشكلة نفسها التي عالجتُها ضيّقاً في اختبار الجسر). تعديل وحيد على المُسلَّم: استدعاء صريح `_runtime.register_routers(_runtime.app)` (حقن globals يفشل ruff F821 — النمط المتكرّر). سلامة+جسر 22/22.
+- **فجوة الحلقة المشخَّصة (لا جسر آليّاً من عجز الماء إلى قرار):** صحيحة ومقصودة — الأتمتة منتِج بيانات؛ سُجِّل الجسر المحكوم زيادةً تاليةً (#171) باشتراطات التقرير (default-off، idempotent، محاكاة حتى الشهادة). التقرير مُنزَل بملحق تكامل.
