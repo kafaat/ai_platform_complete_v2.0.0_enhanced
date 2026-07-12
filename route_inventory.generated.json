@@ -1730,7 +1730,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1274,
+    "line": 1277,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "function": "field_terrain"
@@ -1738,7 +1738,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1323,
+    "line": 1326,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"
