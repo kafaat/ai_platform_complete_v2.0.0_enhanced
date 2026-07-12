@@ -984,24 +984,43 @@ async def _real_timeseries_from_raster(field_id: str, index: str, days: int) -> 
         return None
 
 
-def _generate_timeseries(field_id: str, days: int) -> list[dict]:
-    """سلسلة زمنيّة **تقديريّة تركيبيّة** (لا بكسلات حقيقيّة).
+async def _current_ndvi_from_raster(field_id: str, days: int = 45) -> dict | None:
+    """أحدث مشاهدة NDVI موثّقة من raster-service — أو None بصدق.
 
-    صدق (إصلاح V2): كلّ نقطة تُوسَم `source="synthetic_estimate"` + `estimated=True`
-    كي لا يعرضها المستهلك (رسوم NDVI في الويب/الموبايل) كأنّها رصد حقيقيّ. المصدر
-    الحقيقيّ للسلسلة الزمنيّة هو raster-service (`/imagery/timeseries`)؛ وصلُه هنا
-    خطوة تالية تتطلّب تشغيل Raster حيّاً — حتّى ذلك، تبقى هذه مُعلَّمة تركيبيّة صراحةً.
+    المشاهدة يجب أن تحمل نَسَب بيانات حقيقيّة (مشهد + زمن). لا تُبنى أيّ قيمة
+    تركيبيّة/تقديريّة عند غياب بيانات raster (استُبدل بها المولِّد التركيبيّ المحذوف).
     """
-    result = []
-    today = date.today()
-    for i in range(0, days, 5):
-        acq = (today - timedelta(days=days - i)).isoformat()
-        bands = _realistic_bands(field_id, acq)
-        indices = _compute_indices(bands)
-        result.append(
-            {"date": acq, "source": "synthetic_estimate", "estimated": True, **dict(indices)}
-        )
-    return result
+    data = await _real_timeseries_from_raster(field_id, "ndvi", days)
+    if not data:
+        return None
+    points = [p for p in (data.get("points") or []) if isinstance(p, dict)]
+    if not points:
+        return None
+    points.sort(key=lambda p: str(p.get("datetime") or p.get("date") or ""))
+    point = points[-1]
+    value = point.get("value", point.get("ndvi"))
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(value):
+        return None
+    observed_at = point.get("datetime") or point.get("date")
+    scene_id = point.get("scene_id") or point.get("asset_id")
+    if not observed_at or not scene_id:
+        return None
+    return {
+        "value": value,
+        "observed_at": observed_at,
+        "scene_id": scene_id,
+        "data_available_at": point.get("data_available_at") or data.get("generated_at"),
+        "quality_score": point.get("quality_score"),
+        "valid_pixel_pct": point.get("valid_pixel_pct"),
+        "algorithm_version": point.get("algorithm_version") or data.get("algorithm_version"),
+        "qa_mask_version": point.get("qa_mask_version") or data.get("qa_mask_version"),
+        "source": "raster-service",
+        "real_data": True,
+    }
 
 
 def _current_ndvi_payload(field_id: str, field: dict, analysis: dict) -> dict:

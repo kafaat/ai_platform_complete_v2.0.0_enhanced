@@ -1440,15 +1440,6 @@ def _authoritative_learning_attribution(row: Any, *, replay: bool) -> dict[str, 
         "execution_request_id": row["execution_request_id"],
         "model_id": row["model_id"],
         "feature_set_id": row["feature_set_id"],
-        "field_id": row["field_id"],
-        "season_id": row["season_id"],
-        "crop_id": row["crop_id"],
-        "cultivar_id": row["cultivar_id"],
-        "agronomic_context_snapshot_id": row["agronomic_context_snapshot_id"],
-        "vegetation_snapshot_id": row["vegetation_snapshot_id"],
-        "field_historical_context_snapshot_id": row["field_historical_context_snapshot_id"],
-        "feature_manifest_id": row["feature_manifest_id"],
-        "feature_manifest_hash": row["feature_manifest_hash"],
         "attribution_method": row["attribution_method"],
         "label": row["label"],
         "weight": float(row["weight"]),
@@ -1479,16 +1470,11 @@ async def create_learning_attribution(
                     return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
                 return _authoritative_learning_attribution(prior, replay=True)
             source = await conn.fetchrow(
-                """SELECT o.outcome_id,o.decision_id,o.execution_request_id,o.verification_state,
-                          o.evidence_snapshot_id,o.success,
-                          d.field_id,d.season_id,d.crop_id,d.cultivar_id,
-                          d.agronomic_context_snapshot_id,d.vegetation_snapshot_id,
-                          d.field_historical_context_snapshot_id,d.feature_manifest_id,d.feature_manifest_hash
-                     FROM outcome_record o
-                     JOIN decision_record d
-                       ON d.tenant_id=o.tenant_id AND d.decision_id=o.decision_id
-                    WHERE o.tenant_id=$1::uuid AND o.outcome_id=$2
-                    FOR SHARE OF o,d""",
+                """SELECT outcome_id,decision_id,execution_request_id,verification_state,
+                          evidence_snapshot_id,success
+                     FROM outcome_record
+                    WHERE tenant_id=$1::uuid AND outcome_id=$2
+                    FOR SHARE""",
                 tenant_id,
                 outcome_id,
             )
@@ -1510,13 +1496,9 @@ async def create_learning_attribution(
             row = await conn.fetchrow(
                 """INSERT INTO decision_learning_attributions
                    (learning_attribution_id,tenant_id,outcome_id,decision_id,execution_request_id,
-                    model_id,feature_set_id,field_id,season_id,crop_id,cultivar_id,
-                    agronomic_context_snapshot_id,vegetation_snapshot_id,field_historical_context_snapshot_id,
-                    feature_manifest_id,feature_manifest_hash,
-                    attribution_method,label,weight,evidence_snapshot_id,
+                    model_id,feature_set_id,attribution_method,label,weight,evidence_snapshot_id,
                     metadata,learning_state,idempotency_key,request_hash,attributed_by)
-                   VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,
-                          $17,$18,$19,$20,$21::jsonb,'attributed',$22,$23,$24)
+                   VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb,'attributed',$13,$14,$15)
                    ON CONFLICT DO NOTHING RETURNING *""",
                 attribution_id,
                 tenant_id,
@@ -1525,15 +1507,6 @@ async def create_learning_attribution(
                 source["execution_request_id"],
                 payload.model_id,
                 payload.feature_set_id,
-                source["field_id"],
-                source["season_id"],
-                source["crop_id"],
-                source["cultivar_id"],
-                source["agronomic_context_snapshot_id"],
-                source["vegetation_snapshot_id"],
-                source["field_historical_context_snapshot_id"],
-                source["feature_manifest_id"],
-                source["feature_manifest_hash"],
                 payload.attribution_method,
                 payload.label,
                 payload.weight,
@@ -1568,17 +1541,6 @@ async def create_learning_attribution(
                     "execution_request_id": source["execution_request_id"],
                     "model_id": payload.model_id,
                     "feature_set_id": payload.feature_set_id,
-                    "field_id": source["field_id"],
-                    "season_id": source["season_id"],
-                    "crop_id": source["crop_id"],
-                    "cultivar_id": source["cultivar_id"],
-                    "agronomic_context_snapshot_id": source["agronomic_context_snapshot_id"],
-                    "vegetation_snapshot_id": source["vegetation_snapshot_id"],
-                    "field_historical_context_snapshot_id": source[
-                        "field_historical_context_snapshot_id"
-                    ],
-                    "feature_manifest_id": source["feature_manifest_id"],
-                    "feature_manifest_hash": source["feature_manifest_hash"],
                     "label": payload.label,
                     "learning_state": "attributed",
                 },
@@ -1598,16 +1560,6 @@ def _calibration_fingerprint(items: list[dict[str, Any]]) -> str:
             "label": item["label"],
             "weight": item["weight"],
             "evidence_snapshot_id": item["evidence_snapshot_id"],
-            "agronomic_context_snapshot_id": item.get("agronomic_context_snapshot_id"),
-            "vegetation_snapshot_id": item.get("vegetation_snapshot_id"),
-            "field_historical_context_snapshot_id": item.get(
-                "field_historical_context_snapshot_id"
-            ),
-            "feature_manifest_id": item.get("feature_manifest_id"),
-            "feature_manifest_hash": item.get("feature_manifest_hash"),
-            "crop_id": item.get("crop_id"),
-            "cultivar_id": item.get("cultivar_id"),
-            "season_id": item.get("season_id"),
             "verification_state": item["verification_state"],
             "success": item["success"],
         }
@@ -1616,36 +1568,6 @@ def _calibration_fingerprint(items: list[dict[str, Any]]) -> str:
     return hashlib.sha256(
         json.dumps(canonical, sort_keys=True, separators=(",", ":"), default=str).encode()
     ).hexdigest()
-
-
-def _agronomic_cohort_manifest(items: list[dict[str, Any]]) -> dict[str, int]:
-    counts: dict[str, int] = {}
-    for item in items:
-        key = "|".join(
-            str(item.get(name) or "unknown") for name in ("crop_id", "cultivar_id", "season_id")
-        )
-        counts[key] = counts.get(key, 0) + 1
-    return dict(sorted(counts.items()))
-
-
-def _agronomic_cohort_fingerprint(cohorts: dict[str, int]) -> str:
-    return hashlib.sha256(
-        json.dumps(cohorts, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
-
-
-def _cohorts_passthrough(value: Any) -> str:
-    """Re-serialize an inherited jsonb cohorts value for the next INSERT.
-
-    asyncpg returns jsonb columns as JSON TEXT; wrapping that text in _json() would
-    double-encode it into a JSON *string* ("{}"), which the lineage triggers would
-    rightly reject as a cohort substitution. Pass text through, encode objects once.
-    """
-    if value is None:
-        return "{}"
-    if isinstance(value, str):
-        return value
-    return _json(value)
 
 
 async def build_calibration_dataset(
@@ -1659,10 +1581,7 @@ async def build_calibration_dataset(
                       la.execution_request_id,la.model_id,la.feature_set_id,la.label,
                       la.weight,la.evidence_snapshot_id,la.attributed_at,
                       o.verification_state,o.success,o.metrics,o.actual,
-                      d.decision_type,d.field_id,d.season_id,d.crop_id,d.cultivar_id,
-                      d.agronomic_context_snapshot_id,d.vegetation_snapshot_id,
-                      d.field_historical_context_snapshot_id,d.feature_manifest_id,d.feature_manifest_hash,
-                      d.confidence,d.created_at AS decision_created_at
+                      d.decision_type,d.field_id,d.confidence,d.created_at AS decision_created_at
                  FROM decision_learning_attributions la
                  JOIN outcome_record o
                    ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id
@@ -1672,14 +1591,6 @@ async def build_calibration_dataset(
                   AND la.feature_set_id IS NOT DISTINCT FROM $3
                   AND la.learning_state='attributed'
                   AND o.verification_state IN ('verified_success','verified_failure')
-                  AND d.agronomic_context_snapshot_id IS NOT NULL
-                  AND d.vegetation_snapshot_id IS NOT NULL
-                  AND d.field_historical_context_snapshot_id IS NOT NULL
-                  AND d.feature_manifest_id IS NOT NULL
-                  AND d.feature_manifest_hash IS NOT NULL
-                  AND d.season_id IS NOT NULL
-                  AND d.crop_id IS NOT NULL
-                  AND d.cultivar_id IS NOT NULL
                 ORDER BY la.attributed_at DESC,la.learning_attribution_id DESC
                 LIMIT $4""",
             tenant_id,
@@ -1712,16 +1623,6 @@ async def build_calibration_dataset(
                     "actual": row["actual"] or {},
                     "decision_type": row["decision_type"],
                     "field_id": row["field_id"],
-                    "season_id": row["season_id"],
-                    "crop_id": row["crop_id"],
-                    "cultivar_id": row["cultivar_id"],
-                    "agronomic_context_snapshot_id": row["agronomic_context_snapshot_id"],
-                    "vegetation_snapshot_id": row["vegetation_snapshot_id"],
-                    "field_historical_context_snapshot_id": row[
-                        "field_historical_context_snapshot_id"
-                    ],
-                    "feature_manifest_id": row["feature_manifest_id"],
-                    "feature_manifest_hash": row["feature_manifest_hash"],
                     "confidence": float(row["confidence"])
                     if row["confidence"] is not None
                     else None,
@@ -1733,7 +1634,6 @@ async def build_calibration_dataset(
                     else row["attributed_at"],
                 }
             )
-        cohort_counts = _agronomic_cohort_manifest(items)
         return {
             "authoritative": True,
             "persisted": True,
@@ -1743,8 +1643,6 @@ async def build_calibration_dataset(
             "count": len(items),
             "weighted_success_rate": (success_weight / total_weight) if total_weight else None,
             "dataset_fingerprint": _calibration_fingerprint(items),
-            "agronomic_cohorts": cohort_counts,
-            "agronomic_cohort_fingerprint": _agronomic_cohort_fingerprint(cohort_counts),
             "items": items,
         }
     finally:
@@ -1792,8 +1690,6 @@ def _authoritative_model_evaluation(row: Any, *, replay: bool) -> dict[str, Any]
         "candidate_artifact_digest": row["candidate_artifact_digest"],
         "artifact_format": row["artifact_format"],
         "evaluation_state": row["evaluation_state"],
-        "agronomic_cohorts": row["agronomic_cohorts"],
-        "agronomic_cohort_fingerprint": row["agronomic_cohort_fingerprint"],
         "evaluated_by": row["evaluated_by"],
         "evaluated_at": ts.isoformat() if hasattr(ts, "isoformat") else ts,
     }
@@ -1817,24 +1713,7 @@ async def create_model_evaluation_run(
                     return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
                 return _authoritative_model_evaluation(prior, replay=True)
             rows = await conn.fetch(
-                """SELECT la.learning_attribution_id,la.outcome_id,la.decision_id,la.execution_request_id,
-                          la.label,la.weight,la.evidence_snapshot_id,o.verification_state,o.success,
-                          d.agronomic_context_snapshot_id,d.vegetation_snapshot_id,
-                          d.field_historical_context_snapshot_id,d.feature_manifest_id,d.feature_manifest_hash,
-                          d.crop_id,d.cultivar_id,d.season_id
-                     FROM decision_learning_attributions la
-                     JOIN outcome_record o ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id
-                     JOIN decision_record d ON d.tenant_id=la.tenant_id AND d.decision_id=la.decision_id
-                    WHERE la.tenant_id=$1::uuid AND la.model_id=$2
-                      AND la.feature_set_id IS NOT DISTINCT FROM $3
-                      AND la.learning_state='attributed'
-                      AND o.verification_state IN ('verified_success','verified_failure')
-                      AND d.agronomic_context_snapshot_id IS NOT NULL
-                      AND d.vegetation_snapshot_id IS NOT NULL
-                      AND d.field_historical_context_snapshot_id IS NOT NULL
-                      AND d.feature_manifest_id IS NOT NULL
-                      AND d.feature_manifest_hash IS NOT NULL
-                      AND d.crop_id IS NOT NULL AND d.cultivar_id IS NOT NULL AND d.season_id IS NOT NULL""",
+                """SELECT la.learning_attribution_id,la.outcome_id,la.decision_id,la.execution_request_id,la.label,la.weight,la.evidence_snapshot_id,o.verification_state,o.success FROM decision_learning_attributions la JOIN outcome_record o ON o.tenant_id=la.tenant_id AND o.outcome_id=la.outcome_id WHERE la.tenant_id=$1::uuid AND la.model_id=$2 AND la.feature_set_id IS NOT DISTINCT FROM $3 AND la.learning_state='attributed' AND o.verification_state IN ('verified_success','verified_failure')""",
                 tenant_id,
                 payload.model_id,
                 payload.feature_set_id,
@@ -1848,16 +1727,6 @@ async def create_model_evaluation_run(
                     "label": r["label"],
                     "weight": float(r["weight"]),
                     "evidence_snapshot_id": r["evidence_snapshot_id"],
-                    "agronomic_context_snapshot_id": r["agronomic_context_snapshot_id"],
-                    "vegetation_snapshot_id": r["vegetation_snapshot_id"],
-                    "field_historical_context_snapshot_id": r[
-                        "field_historical_context_snapshot_id"
-                    ],
-                    "feature_manifest_id": r["feature_manifest_id"],
-                    "feature_manifest_hash": r["feature_manifest_hash"],
-                    "crop_id": r["crop_id"],
-                    "cultivar_id": r["cultivar_id"],
-                    "season_id": r["season_id"],
                     "verification_state": r["verification_state"],
                     "success": bool(r["success"]),
                 }
@@ -1867,8 +1736,6 @@ async def create_model_evaluation_run(
                 return {"status": "conflict", "reason": "dataset_count_mismatch"}
             if _calibration_fingerprint(fingerprint_items) != payload.dataset_fingerprint:
                 return {"status": "conflict", "reason": "dataset_fingerprint_mismatch"}
-            agronomic_cohorts = _agronomic_cohort_manifest(fingerprint_items)
-            agronomic_cohort_fingerprint = _agronomic_cohort_fingerprint(agronomic_cohorts)
             run_id = (
                 "eval_"
                 + hashlib.sha256(
@@ -1876,7 +1743,7 @@ async def create_model_evaluation_run(
                 ).hexdigest()[:20]
             )
             row = await conn.fetchrow(
-                """INSERT INTO decision_model_evaluation_runs (evaluation_run_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,dataset_count,evaluator_version,baseline_metrics,candidate_metrics,candidate_artifact_uri,candidate_artifact_digest,artifact_format,evaluation_state,agronomic_cohorts,agronomic_cohort_fingerprint,idempotency_key,request_hash,evaluated_by,metadata) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12,'evaluated',$13::jsonb,$14,$15,$16,$17,$18::jsonb) ON CONFLICT DO NOTHING RETURNING *""",
+                """INSERT INTO decision_model_evaluation_runs (evaluation_run_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,dataset_count,evaluator_version,baseline_metrics,candidate_metrics,candidate_artifact_uri,candidate_artifact_digest,artifact_format,evaluation_state,idempotency_key,request_hash,evaluated_by,metadata) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb,$10,$11,$12,'evaluated',$13,$14,$15,$16::jsonb) ON CONFLICT DO NOTHING RETURNING *""",
                 run_id,
                 tenant_id,
                 payload.model_id,
@@ -1889,8 +1756,6 @@ async def create_model_evaluation_run(
                 payload.candidate_artifact_uri,
                 payload.candidate_artifact_digest.lower(),
                 payload.artifact_format,
-                _json(agronomic_cohorts),
-                agronomic_cohort_fingerprint,
                 payload.idempotency_key,
                 request_hash,
                 evaluated_by,
@@ -1910,8 +1775,6 @@ async def create_model_evaluation_run(
                     "dataset_fingerprint": payload.dataset_fingerprint,
                     "candidate_artifact_digest": payload.candidate_artifact_digest.lower(),
                     "evaluation_state": "evaluated",
-                    "agronomic_cohorts": agronomic_cohorts,
-                    "agronomic_cohort_fingerprint": agronomic_cohort_fingerprint,
                 },
             )
             return _authoritative_model_evaluation(row, replay=False)
@@ -1964,8 +1827,6 @@ def _authoritative_promotion_decision(row: Any, *, replay: bool) -> dict[str, An
         "decision_reason": row["decision_reason"],
         "candidate_artifact_uri": row["candidate_artifact_uri"],
         "candidate_artifact_digest": row["candidate_artifact_digest"],
-        "agronomic_cohorts": row["agronomic_cohorts"],
-        "agronomic_cohort_fingerprint": row["agronomic_cohort_fingerprint"],
         "decided_by": row["decided_by"],
         "decided_at": ts.isoformat() if hasattr(ts, "isoformat") else ts,
     }
@@ -2047,9 +1908,8 @@ async def create_model_promotion_decision(
                 """INSERT INTO decision_model_promotion_decisions
                 (promotion_decision_id,tenant_id,evaluation_run_id,model_id,feature_set_id,policy_version,
                  policy_snapshot,metric_deltas,decision_state,decision_reason,candidate_artifact_uri,
-                 candidate_artifact_digest,agronomic_cohorts,agronomic_cohort_fingerprint,
-                 idempotency_key,request_hash,decided_by,metadata)
-                VALUES($1,$2::uuid,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$10,$11,$12,$13::jsonb,$14,$15,$16,$17,$18::jsonb)
+                 candidate_artifact_digest,idempotency_key,request_hash,decided_by,metadata)
+                VALUES($1,$2::uuid,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$10,$11,$12,$13,$14,$15,$16::jsonb)
                 ON CONFLICT DO NOTHING RETURNING *""",
                 decision_id,
                 tenant_id,
@@ -2063,8 +1923,6 @@ async def create_model_promotion_decision(
                 reason,
                 evaluation["candidate_artifact_uri"],
                 evaluation["candidate_artifact_digest"],
-                _cohorts_passthrough(evaluation["agronomic_cohorts"]),
-                evaluation["agronomic_cohort_fingerprint"],
                 payload.idempotency_key,
                 request_hash,
                 decided_by,
@@ -2084,7 +1942,6 @@ async def create_model_promotion_decision(
                     "decision_state": state,
                     "policy_version": payload.policy_version,
                     "candidate_artifact_digest": evaluation["candidate_artifact_digest"],
-                    "agronomic_cohort_fingerprint": evaluation["agronomic_cohort_fingerprint"],
                 },
             )
             return _authoritative_promotion_decision(row, replay=False)
@@ -2122,8 +1979,6 @@ def _authoritative_activation_request(row: Any, *, replay: bool) -> dict[str, An
         "candidate_artifact_digest": row["candidate_artifact_digest"],
         "target_environment": row["target_environment"],
         "requested_state": row["requested_state"],
-        "agronomic_cohorts": row["agronomic_cohorts"],
-        "agronomic_cohort_fingerprint": row["agronomic_cohort_fingerprint"],
         "requested_by": row["requested_by"],
         "requested_at": ts.isoformat() if hasattr(ts, "isoformat") else ts,
     }
@@ -2166,8 +2021,8 @@ async def create_model_activation_request(
                 """INSERT INTO decision_model_activation_requests
                 (activation_request_id,tenant_id,promotion_decision_id,evaluation_run_id,model_id,feature_set_id,
                  candidate_artifact_uri,candidate_artifact_digest,target_environment,requested_state,
-                 agronomic_cohorts,agronomic_cohort_fingerprint,requested_by,idempotency_key,request_hash,metadata)
-                VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,'pending_activation_approval',$10::jsonb,$11,$12,$13,$14,$15::jsonb)
+                 requested_by,idempotency_key,request_hash,metadata)
+                VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,'pending_activation_approval',$10,$11,$12,$13::jsonb)
                 ON CONFLICT DO NOTHING RETURNING *""",
                 activation_request_id,
                 tenant_id,
@@ -2178,8 +2033,6 @@ async def create_model_activation_request(
                 promotion["candidate_artifact_uri"],
                 promotion["candidate_artifact_digest"],
                 payload.target_environment,
-                _cohorts_passthrough(promotion["agronomic_cohorts"]),
-                promotion["agronomic_cohort_fingerprint"],
                 requested_by,
                 payload.idempotency_key,
                 request_hash,
@@ -2199,7 +2052,6 @@ async def create_model_activation_request(
                     "target_environment": payload.target_environment,
                     "requested_state": "pending_activation_approval",
                     "candidate_artifact_digest": promotion["candidate_artifact_digest"],
-                    "agronomic_cohort_fingerprint": promotion["agronomic_cohort_fingerprint"],
                 },
             )
             return _authoritative_activation_request(row, replay=False)
@@ -2316,9 +2168,8 @@ async def review_model_activation_request(
             review = await conn.fetchrow(
                 """INSERT INTO decision_model_activation_reviews
                 (activation_review_id,tenant_id,activation_request_id,review_decision,review_reason,registry_alias,
-                 previous_artifact_uri,previous_artifact_digest,agronomic_cohorts,agronomic_cohort_fingerprint,
-                 reviewed_by,idempotency_key,request_hash,metadata)
-                VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14::jsonb) RETURNING *""",
+                 previous_artifact_uri,previous_artifact_digest,reviewed_by,idempotency_key,request_hash,metadata)
+                VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12::jsonb) RETURNING *""",
                 review_id,
                 tenant_id,
                 activation_request_id,
@@ -2329,8 +2180,6 @@ async def review_model_activation_request(
                 payload.previous_artifact_digest.lower()
                 if payload.previous_artifact_digest
                 else None,
-                _cohorts_passthrough(request["agronomic_cohorts"]),
-                request["agronomic_cohort_fingerprint"],
                 reviewed_by,
                 payload.idempotency_key,
                 request_hash,
@@ -2345,8 +2194,8 @@ async def review_model_activation_request(
                     """INSERT INTO decision_model_registry_activation_commands
                     (activation_command_id,tenant_id,activation_review_id,activation_request_id,model_id,feature_set_id,
                      target_environment,registry_alias,candidate_artifact_uri,candidate_artifact_digest,
-                     previous_artifact_uri,previous_artifact_digest,agronomic_cohorts,agronomic_cohort_fingerprint,created_by,metadata)
-                    VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13::jsonb,$14,$15,$16::jsonb) RETURNING *""",
+                     previous_artifact_uri,previous_artifact_digest,created_by,metadata)
+                    VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14::jsonb) RETURNING *""",
                     command_id,
                     tenant_id,
                     review_id,
@@ -2359,8 +2208,6 @@ async def review_model_activation_request(
                     request["candidate_artifact_digest"],
                     payload.previous_artifact_uri,
                     payload.previous_artifact_digest.lower(),
-                    _cohorts_passthrough(request["agronomic_cohorts"]),
-                    request["agronomic_cohort_fingerprint"],
                     reviewed_by,
                     _json(payload.metadata),
                 )
@@ -2542,8 +2389,8 @@ async def record_model_registry_activation_receipt(
             )
             await conn.fetchrow(
                 """INSERT INTO decision_model_registry_activation_receipts
-              (activation_receipt_id,tenant_id,activation_command_id,activation_claim_id,receipt_state,active_artifact_uri,active_artifact_digest,registry_version,failure_reason,receipt_payload,agronomic_cohorts,agronomic_cohort_fingerprint,recorded_by,idempotency_key,request_hash)
-              VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11::jsonb,$12,$13,$14,$15) RETURNING *""",
+              (activation_receipt_id,tenant_id,activation_command_id,activation_claim_id,receipt_state,active_artifact_uri,active_artifact_digest,registry_version,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash)
+              VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13) RETURNING *""",
                 rid,
                 tenant_id,
                 command_id,
@@ -2554,8 +2401,6 @@ async def record_model_registry_activation_receipt(
                 payload.registry_version,
                 payload.failure_reason,
                 _json(payload.receipt_payload),
-                _cohorts_passthrough(command["agronomic_cohorts"]),
-                command["agronomic_cohort_fingerprint"],
                 recorded_by,
                 payload.idempotency_key,
                 req_hash,
@@ -2628,8 +2473,8 @@ async def create_model_registry_rollback_command(
             )
             row = await conn.fetchrow(
                 """INSERT INTO decision_model_registry_rollback_commands
-              (rollback_command_id,tenant_id,activation_receipt_id,activation_command_id,registry_alias,target_environment,restore_artifact_uri,restore_artifact_digest,replace_artifact_uri,replace_artifact_digest,agronomic_cohorts,agronomic_cohort_fingerprint,requested_by,reason,idempotency_key,request_hash)
-              VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11::jsonb,$12,$13,$14,$15,$16) ON CONFLICT DO NOTHING RETURNING *""",
+              (rollback_command_id,tenant_id,activation_receipt_id,activation_command_id,registry_alias,target_environment,restore_artifact_uri,restore_artifact_digest,replace_artifact_uri,replace_artifact_digest,requested_by,reason,idempotency_key,request_hash)
+              VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) ON CONFLICT DO NOTHING RETURNING *""",
                 rid,
                 tenant_id,
                 receipt_id,
@@ -2640,8 +2485,6 @@ async def create_model_registry_rollback_command(
                 receipt["previous_artifact_digest"],
                 receipt["candidate_artifact_uri"],
                 receipt["candidate_artifact_digest"],
-                _cohorts_passthrough(receipt["agronomic_cohorts"]),
-                receipt["agronomic_cohort_fingerprint"],
                 requested_by,
                 payload.reason,
                 payload.idempotency_key,
@@ -2812,7 +2655,7 @@ async def record_model_registry_rollback_receipt(
                 ).hexdigest()[:20]
             )
             await conn.execute(
-                """INSERT INTO decision_model_registry_rollback_receipts(rollback_receipt_id,tenant_id,rollback_command_id,rollback_claim_id,receipt_state,active_artifact_uri,active_artifact_digest,registry_version,failure_reason,receipt_payload,agronomic_cohorts,agronomic_cohort_fingerprint,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11::jsonb,$12,$13,$14,$15)""",
+                """INSERT INTO decision_model_registry_rollback_receipts(rollback_receipt_id,tenant_id,rollback_command_id,rollback_claim_id,receipt_state,active_artifact_uri,active_artifact_digest,registry_version,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13)""",
                 rid,
                 tenant_id,
                 command_id,
@@ -2823,8 +2666,6 @@ async def record_model_registry_rollback_receipt(
                 payload.registry_version,
                 payload.failure_reason,
                 _json(payload.receipt_payload),
-                _cohorts_passthrough(command["agronomic_cohorts"]),
-                command["agronomic_cohort_fingerprint"],
                 recorded_by,
                 payload.idempotency_key,
                 req_hash,
@@ -2859,7 +2700,7 @@ async def get_active_model_state(
     conn = await _connect()
     try:
         row = await conn.fetchrow(
-            """WITH activations AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'activated'::text transition_state,'activation'::text source_transition_type,r.activation_receipt_id source_receipt_id,r.agronomic_cohorts,r.agronomic_cohort_fingerprint FROM decision_model_registry_activation_receipts r JOIN decision_model_registry_activation_commands c USING(activation_command_id) WHERE r.tenant_id=$1::uuid AND r.receipt_state='activated'), rollbacks AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'rolled_back'::text transition_state,'rollback'::text source_transition_type,r.rollback_receipt_id source_receipt_id,r.agronomic_cohorts,r.agronomic_cohort_fingerprint FROM decision_model_registry_rollback_receipts r JOIN decision_model_registry_rollback_commands rb USING(rollback_command_id) JOIN decision_model_registry_activation_commands c ON c.activation_command_id=rb.activation_command_id WHERE r.tenant_id=$1::uuid AND r.receipt_state='rolled_back') SELECT * FROM (SELECT * FROM activations UNION ALL SELECT * FROM rollbacks) s WHERE model_id=$2 AND feature_set_id IS NOT DISTINCT FROM $3 AND target_environment=$4 ORDER BY recorded_at DESC LIMIT 1""",
+            """WITH activations AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'activated'::text transition_state,r.activation_receipt_id source_receipt_id FROM decision_model_registry_activation_receipts r JOIN decision_model_registry_activation_commands c USING(activation_command_id) WHERE r.tenant_id=$1::uuid AND r.receipt_state='activated'), rollbacks AS (SELECT c.model_id,c.feature_set_id,c.target_environment,c.registry_alias,r.active_artifact_uri,r.active_artifact_digest,r.registry_version,r.recorded_at,'rolled_back'::text transition_state,r.rollback_receipt_id source_receipt_id FROM decision_model_registry_rollback_receipts r JOIN decision_model_registry_rollback_commands rb USING(rollback_command_id) JOIN decision_model_registry_activation_commands c ON c.activation_command_id=rb.activation_command_id WHERE r.tenant_id=$1::uuid AND r.receipt_state='rolled_back') SELECT * FROM (SELECT * FROM activations UNION ALL SELECT * FROM rollbacks) s WHERE model_id=$2 AND feature_set_id IS NOT DISTINCT FROM $3 AND target_environment=$4 ORDER BY recorded_at DESC LIMIT 1""",
             tenant_id,
             model_id,
             feature_set_id,
@@ -2913,11 +2754,7 @@ async def create_post_activation_verification(
                 return {"status": "conflict", "reason": "artifact_digest_mismatch"}
             vid = "verify_" + hashlib.sha256(f"{tenant_id}:{receipt_id}".encode()).hexdigest()[:20]
             await conn.execute(
-                """INSERT INTO decision_model_post_activation_verifications
-                (verification_id,tenant_id,activation_receipt_id,verification_state,artifact_digest,checks,
-                 latency_ms,error_rate,verified_by,verified_at,idempotency_key,request_hash,
-                 agronomic_cohorts,agronomic_cohort_fingerprint)
-                VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8,$9,now(),$10,$11,$12::jsonb,$13)""",
+                "INSERT INTO decision_model_post_activation_verifications VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8,$9,now(),$10,$11)",
                 vid,
                 tenant_id,
                 receipt_id,
@@ -2929,8 +2766,6 @@ async def create_post_activation_verification(
                 verified_by,
                 payload.idempotency_key,
                 req_hash,
-                _cohorts_passthrough(receipt["agronomic_cohorts"]),
-                receipt["agronomic_cohort_fingerprint"],
             )
             await emit_outbox_event(
                 conn,
@@ -2963,31 +2798,21 @@ async def create_rollout_plan(
     conn = await _connect()
     try:
         async with conn.transaction():
-            verification = await conn.fetchrow(
-                "SELECT * FROM decision_model_post_activation_verifications WHERE tenant_id=$1::uuid AND activation_receipt_id=$2 AND verification_state IN ('verified_healthy','verified_degraded')",
+            if not await conn.fetchval(
+                "SELECT 1 FROM decision_model_post_activation_verifications WHERE tenant_id=$1::uuid AND activation_receipt_id=$2 AND verification_state IN ('verified_healthy','verified_degraded')",
                 tenant_id,
                 receipt_id,
-            )
-            if not verification:
+            ):
                 return {"status": "conflict", "reason": "post_activation_verification_required"}
-            receipt = await conn.fetchrow(
-                "SELECT * FROM decision_model_registry_activation_receipts WHERE tenant_id=$1::uuid AND activation_receipt_id=$2 AND receipt_state='activated'",
-                tenant_id,
-                receipt_id,
-            )
-            if not receipt:
-                return {"status": "not_found", "reason": "activation_receipt_not_found"}
             rid = "rollout_" + hashlib.sha256(f"{tenant_id}:{receipt_id}".encode()).hexdigest()[:20]
             row = await conn.fetchrow(
-                """INSERT INTO decision_model_rollout_plans(rollout_plan_id,tenant_id,activation_receipt_id,mode,traffic_percent,policy,agronomic_cohorts,agronomic_cohort_fingerprint,requested_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7::jsonb,$8,$9,$10,$11) ON CONFLICT DO NOTHING RETURNING *""",
+                """INSERT INTO decision_model_rollout_plans(rollout_plan_id,tenant_id,activation_receipt_id,mode,traffic_percent,policy,requested_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8,$9) ON CONFLICT DO NOTHING RETURNING *""",
                 rid,
                 tenant_id,
                 receipt_id,
                 payload.mode,
                 payload.traffic_percent,
                 _json(payload.policy),
-                _cohorts_passthrough(receipt["agronomic_cohorts"]),
-                receipt["agronomic_cohort_fingerprint"],
                 requested_by,
                 payload.idempotency_key,
                 req_hash,
@@ -3025,43 +2850,12 @@ async def record_monitoring_snapshot(
     conn = await _connect()
     try:
         async with conn.transaction():
-            active = await conn.fetchrow(
-                """WITH activations AS (
-                     SELECT c.model_id,c.feature_set_id,c.target_environment,r.recorded_at,
-                            'activation'::text source_transition_type,r.activation_receipt_id source_receipt_id,
-                            r.agronomic_cohorts,r.agronomic_cohort_fingerprint
-                     FROM decision_model_registry_activation_receipts r
-                     JOIN decision_model_registry_activation_commands c USING(activation_command_id)
-                     WHERE r.tenant_id=$1::uuid AND r.receipt_state='activated'
-                   ), rollbacks AS (
-                     SELECT c.model_id,c.feature_set_id,c.target_environment,r.recorded_at,
-                            'rollback'::text source_transition_type,r.rollback_receipt_id source_receipt_id,
-                            r.agronomic_cohorts,r.agronomic_cohort_fingerprint
-                     FROM decision_model_registry_rollback_receipts r
-                     JOIN decision_model_registry_rollback_commands rb USING(rollback_command_id)
-                     JOIN decision_model_registry_activation_commands c ON c.activation_command_id=rb.activation_command_id
-                     WHERE r.tenant_id=$1::uuid AND r.receipt_state='rolled_back'
-                   ) SELECT * FROM (SELECT * FROM activations UNION ALL SELECT * FROM rollbacks) s
-                   WHERE model_id=$2 AND feature_set_id IS NOT DISTINCT FROM $3 AND target_environment=$4
-                   ORDER BY recorded_at DESC LIMIT 1""",
-                tenant_id,
-                payload.model_id,
-                payload.feature_set_id,
-                payload.target_environment,
-            )
-            if not active:
-                return {"status": "conflict", "reason": "active_model_receipt_required"}
             sid = (
                 "monitor_"
                 + hashlib.sha256(f"{tenant_id}:{payload.idempotency_key}".encode()).hexdigest()[:20]
             )
             row = await conn.fetchrow(
-                """INSERT INTO decision_model_monitoring_snapshots
-                (monitoring_snapshot_id,tenant_id,model_id,feature_set_id,target_environment,window_start,window_end,
-                 sample_count,metrics,drift_state,source_receipt_id,source_transition_type,agronomic_cohorts,agronomic_cohort_fingerprint,
-                 captured_by,idempotency_key,request_hash)
-                VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13::jsonb,$14,$15,$16,$17)
-                ON CONFLICT DO NOTHING RETURNING *""",
+                """INSERT INTO decision_model_monitoring_snapshots(monitoring_snapshot_id,tenant_id,model_id,feature_set_id,target_environment,window_start,window_end,sample_count,metrics,drift_state,captured_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13) ON CONFLICT DO NOTHING RETURNING *""",
                 sid,
                 tenant_id,
                 payload.model_id,
@@ -3072,30 +2866,11 @@ async def record_monitoring_snapshot(
                 payload.sample_count,
                 _json(payload.metrics),
                 payload.drift_state,
-                active["source_receipt_id"],
-                active["source_transition_type"],
-                _cohorts_passthrough(active["agronomic_cohorts"]),
-                active["agronomic_cohort_fingerprint"],
                 captured_by,
                 payload.idempotency_key,
                 req_hash,
             )
             if not row:
-                prior = await conn.fetchrow(
-                    "SELECT * FROM decision_model_monitoring_snapshots WHERE tenant_id=$1::uuid AND idempotency_key=$2",
-                    tenant_id,
-                    payload.idempotency_key,
-                )
-                if prior and prior["request_hash"] == req_hash:
-                    return {
-                        "status": "ok",
-                        "replay": True,
-                        "authoritative": True,
-                        "persisted": True,
-                        "monitoring_snapshot_id": prior["monitoring_snapshot_id"],
-                        "drift_state": prior["drift_state"],
-                        "agronomic_cohort_fingerprint": prior["agronomic_cohort_fingerprint"],
-                    }
                 return {"status": "conflict", "reason": "monitoring_snapshot_idempotency_conflict"}
             await emit_outbox_event(
                 conn,
@@ -3128,40 +2903,12 @@ async def create_retraining_request(
     conn = await _connect()
     try:
         async with conn.transaction():
-            target_environment = getattr(payload, "target_environment", "production")
-            source_monitoring_snapshot_id = getattr(payload, "source_monitoring_snapshot_id", None)
-            if source_monitoring_snapshot_id:
-                monitoring = await conn.fetchrow(
-                    "SELECT * FROM decision_model_monitoring_snapshots WHERE tenant_id=$1::uuid AND monitoring_snapshot_id=$2",
-                    tenant_id,
-                    source_monitoring_snapshot_id,
-                )
-            else:
-                monitoring = await conn.fetchrow(
-                    """SELECT * FROM decision_model_monitoring_snapshots
-                       WHERE tenant_id=$1::uuid AND model_id=$2 AND feature_set_id IS NOT DISTINCT FROM $3
-                         AND target_environment=$4
-                       ORDER BY captured_at DESC LIMIT 1""",
-                    tenant_id,
-                    payload.model_id,
-                    payload.feature_set_id,
-                    target_environment,
-                )
-            if not monitoring:
-                return {"status": "conflict", "reason": "monitoring_snapshot_required"}
-            if monitoring["drift_state"] not in {"warning", "critical"}:
-                return {"status": "conflict", "reason": "retraining_requires_drift_signal"}
             rid = (
                 "retrain_"
                 + hashlib.sha256(f"{tenant_id}:{payload.idempotency_key}".encode()).hexdigest()[:20]
             )
             row = await conn.fetchrow(
-                """INSERT INTO decision_model_retraining_requests
-                (retraining_request_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,training_manifest,
-                 code_version,hyperparameters,source_monitoring_snapshot_id,target_environment,
-                 agronomic_cohorts,agronomic_cohort_fingerprint,requested_by,idempotency_key,request_hash)
-                VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8::jsonb,$9,$10,$11::jsonb,$12,$13,$14,$15)
-                ON CONFLICT DO NOTHING RETURNING *""",
+                """INSERT INTO decision_model_retraining_requests(retraining_request_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,training_manifest,code_version,hyperparameters,requested_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8::jsonb,$9,$10,$11) ON CONFLICT DO NOTHING RETURNING *""",
                 rid,
                 tenant_id,
                 payload.model_id,
@@ -3170,30 +2917,11 @@ async def create_retraining_request(
                 _json(payload.training_manifest),
                 payload.code_version,
                 _json(payload.hyperparameters),
-                monitoring["monitoring_snapshot_id"],
-                target_environment,
-                _cohorts_passthrough(monitoring["agronomic_cohorts"]),
-                monitoring["agronomic_cohort_fingerprint"],
                 requested_by,
                 payload.idempotency_key,
                 req_hash,
             )
             if not row:
-                prior = await conn.fetchrow(
-                    "SELECT * FROM decision_model_retraining_requests WHERE tenant_id=$1::uuid AND idempotency_key=$2",
-                    tenant_id,
-                    payload.idempotency_key,
-                )
-                if prior and prior["request_hash"] == req_hash:
-                    return {
-                        "status": "ok",
-                        "replay": True,
-                        "authoritative": True,
-                        "persisted": True,
-                        "retraining_request_id": prior["retraining_request_id"],
-                        "request_state": prior["request_state"],
-                        "agronomic_cohort_fingerprint": prior["agronomic_cohort_fingerprint"],
-                    }
                 return {"status": "conflict", "reason": "retraining_request_idempotency_conflict"}
             await emit_outbox_event(
                 conn,
@@ -3427,19 +3155,18 @@ async def record_rollout_receipt(
     conn = await _connect()
     try:
         async with conn.transaction():
-            plan = await conn.fetchrow(
-                "SELECT * FROM decision_model_rollout_plans WHERE tenant_id=$1::uuid AND rollout_plan_id=$2",
+            if not await conn.fetchval(
+                "SELECT 1 FROM decision_model_rollout_plans WHERE tenant_id=$1::uuid AND rollout_plan_id=$2",
                 tenant_id,
                 rollout_plan_id,
-            )
-            if not plan:
+            ):
                 return {"status": "not_found", "reason": "rollout_plan_not_found"}
             rid = (
                 "rollrcpt_"
                 + hashlib.sha256(f"{tenant_id}:{rollout_plan_id}".encode()).hexdigest()[:20]
             )
             row = await conn.fetchrow(
-                """INSERT INTO decision_model_rollout_receipts(rollout_receipt_id,tenant_id,rollout_plan_id,receipt_state,controller_id,observed_traffic_percent,candidate_artifact_digest,routing_version,failure_reason,receipt_payload,agronomic_cohorts,agronomic_cohort_fingerprint,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11::jsonb,$12,$13,$14,$15) ON CONFLICT DO NOTHING RETURNING *""",
+                """INSERT INTO decision_model_rollout_receipts(rollout_receipt_id,tenant_id,rollout_plan_id,receipt_state,controller_id,observed_traffic_percent,candidate_artifact_digest,routing_version,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13) ON CONFLICT DO NOTHING RETURNING *""",
                 rid,
                 tenant_id,
                 rollout_plan_id,
@@ -3450,8 +3177,6 @@ async def record_rollout_receipt(
                 payload.routing_version,
                 payload.failure_reason,
                 _json(payload.receipt_payload),
-                _cohorts_passthrough(plan["agronomic_cohorts"]),
-                plan["agronomic_cohort_fingerprint"],
                 recorded_by,
                 payload.idempotency_key,
                 req_hash,
@@ -3505,19 +3230,18 @@ async def record_retraining_dispatch_receipt(
     conn = await _connect()
     try:
         async with conn.transaction():
-            request = await conn.fetchrow(
-                "SELECT * FROM decision_model_retraining_requests WHERE tenant_id=$1::uuid AND retraining_request_id=$2",
+            if not await conn.fetchval(
+                "SELECT 1 FROM decision_model_retraining_requests WHERE tenant_id=$1::uuid AND retraining_request_id=$2",
                 tenant_id,
                 retraining_request_id,
-            )
-            if not request:
+            ):
                 return {"status": "not_found", "reason": "retraining_request_not_found"}
             rid = (
                 "disprcpt_"
                 + hashlib.sha256(f"{tenant_id}:{retraining_request_id}".encode()).hexdigest()[:20]
             )
             row = await conn.fetchrow(
-                """INSERT INTO decision_model_retraining_dispatch_receipts(dispatch_receipt_id,tenant_id,retraining_request_id,dispatch_state,dispatcher_id,job_id,backend,failure_reason,receipt_payload,agronomic_cohorts,agronomic_cohort_fingerprint,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11,$12,$13,$14) ON CONFLICT DO NOTHING RETURNING *""",
+                """INSERT INTO decision_model_retraining_dispatch_receipts(dispatch_receipt_id,tenant_id,retraining_request_id,dispatch_state,dispatcher_id,job_id,backend,failure_reason,receipt_payload,recorded_by,idempotency_key,request_hash) VALUES($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12) ON CONFLICT DO NOTHING RETURNING *""",
                 rid,
                 tenant_id,
                 retraining_request_id,
@@ -3527,8 +3251,6 @@ async def record_retraining_dispatch_receipt(
                 payload.backend,
                 payload.failure_reason,
                 _json(payload.receipt_payload),
-                _cohorts_passthrough(request["agronomic_cohorts"]),
-                request["agronomic_cohort_fingerprint"],
                 recorded_by,
                 payload.idempotency_key,
                 req_hash,

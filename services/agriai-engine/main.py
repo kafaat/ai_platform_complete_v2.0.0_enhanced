@@ -63,9 +63,22 @@ async def legacy_health():
 
 @app.get("/readyz")
 async def readyz():
-    # بلا تبعيّات خارجيّة قصداً: حوسبة صرفة (توصيات/تحسين غلّة بلا قاعدة/Redis/NATS).
-    # لا شيء ننتظره ⇒ جاهز دائماً بصدق.
-    return {"status": "ready", "service": "agriai-engine", "implemented_runtime": True}
+    # في وضع الإنتاج تصبح pcse شرطاً صلباً (المحاكاة العلميّة إلزاميّة)؛ خارجه تبقى
+    # الخدمة حوسبة صرفة جاهزة دائماً بصدق مع وسم التبعيّة الاختياريّة.
+    production_mode = os.getenv("AGRIAI_PRODUCTION_MODE", "0").lower() in {"1", "true", "yes", "on"}
+    scientific_runtime_ready = wa.pcse_available() or not production_mode
+    return {
+        "status": "ready" if scientific_runtime_ready else "not_ready",
+        "service": "agriai-engine",
+        "ready": scientific_runtime_ready,
+        "implemented_runtime": True,
+        "runtime_mode": "pcse-required" if production_mode else "development-compatible",
+        "dependencies": {
+            "pcse": "ready"
+            if wa.pcse_available()
+            else ("required_missing" if production_mode else "optional_missing")
+        },
+    }
 
 
 @app.get("/metrics")

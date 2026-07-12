@@ -56,9 +56,21 @@ def _iso(s: str) -> datetime:
 
 
 def test_monitoring_schedule_emits_due_window_and_snapshot_closes_it():
+    from _model_chain import seed_activated_model
     from persistence import list_runtime_work, record_monitoring_snapshot
 
     model = "m_" + uuid4().hex[:8]
+
+    async def _chain():
+        c = await _connect()
+        try:
+            await seed_activated_model(c, tenant=TENANT, model_id=model)
+        finally:
+            await c.close()
+
+    # runtime cohort lineage: a monitoring snapshot must bind to the latest 'activated'
+    # receipt for (model, feature_set, environment) — seed the honest chain first.
+    _run(_chain())
     sid = _run(_seed_schedule("monitoring_window", model))
     feed = _run(list_runtime_work(tenant_id=TENANT, worker_id="w1", limit=100))
     item = next(

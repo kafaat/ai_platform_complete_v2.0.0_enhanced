@@ -16,15 +16,12 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 pytestmark = pytest.mark.unit
 
 
-def test_generated_timeseries_points_are_labeled_synthetic():
-    import vegetation_runtime as vr
+def test_synthetic_timeseries_generator_is_removed():
+    from pathlib import Path
 
-    points = vr._generate_timeseries("fld_test", 30)
-    assert points, "expected at least one point"
-    for p in points:
-        assert p.get("source") == "synthetic_estimate", p
-        assert p.get("estimated") is True, p
-        assert "date" in p
+    src = (Path(__file__).resolve().parent / "vegetation_runtime.py").read_text(encoding="utf-8")
+    assert "def _generate_timeseries" not in src
+    assert "synthetic_estimate" not in src
 
 
 def test_timeseries_route_wraps_with_honest_flags():

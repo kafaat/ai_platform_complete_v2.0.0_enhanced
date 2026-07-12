@@ -28,4 +28,14 @@ jobs:
       # static assertions and honestly skips the real-Postgres proof (covered in the main CI
       # decision-service job and by scripts/certification/certify_agronomic_lineage.py).
       - name: Decision-service lineage contract tests
-        run: pytest -q services/decision-service/tests/test_agronomic_evidence_contract.py services/decision-service/tests/test_agronomic_lineage_integrity.py
+        run: pytest -q services/decision-service/tests/test_agronomic_evidence_contract.py services/decision-service/tests/test_agronomic_lineage_integrity.py services/decision-service/tests/test_agronomic_learning_lineage.py services/decision-service/tests/test_agronomic_model_lifecycle_lineage.py services/decision-service/tests/test_agronomic_runtime_lineage.py services/decision-service/tests/test_agronomic_runtime_terminal_lineage.py
+      - name: AC-9 agronomic learning lineage gate
+        run: python scripts/ci/agronomic_learning_lineage_gate.py
+      - name: agronomic model lifecycle lineage gate
+        run: python scripts/ci/agronomic_model_lifecycle_lineage_gate.py
+      - name: agronomic runtime lineage gate
+        run: python scripts/ci/agronomic_runtime_lineage_gate.py
+      - name: agronomic runtime terminal lineage gate
+        run: python scripts/ci/agronomic_runtime_terminal_lineage_gate.py
+      - name: production truth readiness gate
+        run: python scripts/ci/production_truth_readiness_gate.py

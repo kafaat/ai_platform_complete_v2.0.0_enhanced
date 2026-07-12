@@ -83,24 +83,49 @@ async def timeseries(
 async def current_ndvi(field_id: str, token: str = Depends(main.security)):
     """NDVI الحالي + تصنيف الصحّة لحقل واحد (يستهلكه useCurrentNDVI في الواجهة).
 
-    يُعيد استخدام run_analysis (نافذة آخر ٣٠ يوماً) ثمّ يستخرج NDVI الحالي عبر
-    _current_ndvi_payload. صدق المصدر: تقدير من نطاقات تركيبيّة (real_data=False)
-    — لا بكسلات حقيقيّة (تلك في raster-service).
+    يقرأ أحدث مشاهدة NDVI موثّقة من raster-service. عند غيابها لا تُنشأ قيمة
+    تركيبيّة إطلاقاً: في الإنتاج (real-only) يفشل مُغلَقاً 424، وفي التطوير يعيد
+    available=false بوسم صريح.
     """
     claims = main._verify_claims(token)
     tenant_id = main._tenant_from_claims(claims)
     field = await main.load_field(field_id, tenant_id)
     if field is None:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
-    date_to = date.today().isoformat()
-    date_from = (date.today() - timedelta(days=30)).isoformat()
-    analysis = await main.run_analysis(field_id, tenant_id, date_from, date_to)
-    payload = main._current_ndvi_payload(field_id, field, analysis)
-    # production real-only mode: an estimated "current NDVI" must not masquerade
-    # as an operational reading — fail closed instead of serving a simulation.
-    if main.VEGETATION_REAL_ONLY and not payload.get("real_data"):
-        raise HTTPException(424, "authoritative current NDVI is required in production")
-    return payload
+    observed = await main._current_ndvi_from_raster(field_id)
+    if observed is None:
+        if main.VEGETATION_REAL_ONLY:
+            raise HTTPException(424, "authoritative current NDVI is required in production")
+        return {
+            "field_id": field_id,
+            "field_name": field.get("name"),
+            "crop": field.get("crop"),
+            "ndvi": {"current": None},
+            "classification": None,
+            "acquisition_date": None,
+            "data_source": "raster-service",
+            "real_data": False,
+            "available": False,
+            "warning_ar": "لا توجد مشاهدة NDVI فعليّة متاحة؛ لم يتم إنشاء قيمة تركيبيّة.",
+        }
+    value = observed["value"]
+    return {
+        "field_id": field_id,
+        "field_name": field.get("name"),
+        "crop": field.get("crop"),
+        "ndvi": {"current": value},
+        "classification": main._health_classification(value),
+        "acquisition_date": observed["observed_at"],
+        "scene_id": observed["scene_id"],
+        "data_available_at": observed.get("data_available_at"),
+        "quality_score": observed.get("quality_score"),
+        "valid_pixel_pct": observed.get("valid_pixel_pct"),
+        "algorithm_version": observed.get("algorithm_version"),
+        "qa_mask_version": observed.get("qa_mask_version"),
+        "data_source": "raster-service",
+        "real_data": True,
+        "available": True,
+    }
 
 
 @router.get("/v1/all_fields")

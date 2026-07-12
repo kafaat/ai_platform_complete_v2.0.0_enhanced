@@ -1709,6 +1709,8 @@ async def monitoring_snapshot_boundary(
 class RetrainingRequestIn(BaseModel):
     model_id: str
     feature_set_id: str | None = None
+    target_environment: str = "production"
+    source_monitoring_snapshot_id: str | None = None
     dataset_fingerprint: str
     training_manifest: dict[str, Any]
     code_version: str
@@ -1729,6 +1731,8 @@ async def retraining_request_boundary(
         raise HTTPException(status_code=400, detail="X-Requested-By is required")
     if len(d) != 64 or any(c not in "0123456789abcdef" for c in d):
         raise HTTPException(status_code=422, detail="dataset_fingerprint must be sha256")
+    if payload.target_environment not in {"staging", "production"}:
+        raise HTTPException(status_code=422, detail="invalid target_environment")
     if not payload.code_version.strip() or not payload.training_manifest:
         raise HTTPException(
             status_code=422, detail="immutable training manifest and code_version are required"
@@ -1750,7 +1754,7 @@ async def runtime_work_feed(
     limit: int = Query(default=20),
     x_tenant_id: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    """Authoritative, lease-free pending-work feed the registry-adapter runtime polls."""
+    """Authoritative pending-work feed; side-effecting work rides durable leases (migration 016)."""
     tenant = _tenant(x_tenant_id)
     wid = (worker_id or "").strip()
     if not wid:

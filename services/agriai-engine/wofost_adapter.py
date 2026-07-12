@@ -5,7 +5,9 @@
 
 - ``pcse`` تبعيّة ثقيلة اختياريّة، مُحاطة بحارس استيراد. عند توفّرها وكفاية المدخلات
   نُشغّل تشغيل PCSE/WOFOST حقيقيّاً؛ عند غيابها نلجأ إلى بديل حتميّ (heuristic) موثّق
-  يُرجع نفس المخطّط بـ ``provenance="deterministic_fallback"``. لا ننهار أبداً على غياب pcse.
+  يُرجع نفس المخطّط بـ ``provenance="deterministic_fallback"``. في وضع الإنتاج
+  (`AGRIAI_PRODUCTION_MODE`) تصبح pcse مطلوبة: الغياب/النقص = فشل مُغلَق مُصنَّف
+  (`agriai_production_simulation_unavailable`)، والبديل الحتميّ تطويريّ/اختباريّ فقط.
 
 بديل الغلّة الحتميّ (قانون الحدّ الأدنى — Liebig): الغلّة = أدنى قيد بين
     (١) سقف حراريّ: max_yield * min(1, GDD/GDD_to_maturity)

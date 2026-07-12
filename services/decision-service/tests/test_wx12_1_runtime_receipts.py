@@ -30,14 +30,36 @@ async def _connect():
 
 
 async def _seed_retraining() -> str:
+    """Runtime cohort lineage: a retraining request must inherit from a monitoring snapshot,
+    which itself must reference the latest 'activated' receipt — seed the honest chain."""
+    from _model_chain import seed_activated_model
+
     rid = "retrain_" + uuid4().hex
+    model = "m_" + uuid4().hex[:8]
     c = await _connect()
     try:
+        ids = await seed_activated_model(c, tenant=TENANT, model_id=model)
+        mid = "monitor_" + uuid4().hex[:20]
         await c.execute(
-            """INSERT INTO decision_model_retraining_requests(retraining_request_id,tenant_id,model_id,feature_set_id,dataset_fingerprint,training_manifest,code_version,hyperparameters,requested_by,idempotency_key,request_hash)
-               VALUES($1,$2::uuid,'m1','f1',$3,'{"a":1}'::jsonb,'v1','{"lr":0.1}'::jsonb,'planner',$4,'h')""",
+            """INSERT INTO decision_model_monitoring_snapshots
+               (monitoring_snapshot_id,tenant_id,model_id,feature_set_id,target_environment,
+                window_start,window_end,sample_count,metrics,drift_state,source_receipt_id,
+                captured_by,idempotency_key,request_hash)
+               VALUES($1,$2::uuid,$3,'f1','staging',now()-interval '1 hour',now(),10,
+                      '{}'::jsonb,'warning',$4,'adapter-test',$5,'h')""",
+            mid,
+            TENANT,
+            model,
+            ids["activation_receipt_id"],
+            "idem_" + uuid4().hex,
+        )
+        await c.execute(
+            """INSERT INTO decision_model_retraining_requests(retraining_request_id,tenant_id,model_id,feature_set_id,target_environment,source_monitoring_snapshot_id,dataset_fingerprint,training_manifest,code_version,hyperparameters,requested_by,idempotency_key,request_hash)
+               VALUES($1,$2::uuid,$3,'f1','staging',$4,$5,'{"a":1}'::jsonb,'v1','{"lr":0.1}'::jsonb,'planner',$6,'h')""",
             rid,
             TENANT,
+            model,
+            mid,
             "a" * 64,
             "idem_" + uuid4().hex,
         )
@@ -47,15 +69,19 @@ async def _seed_retraining() -> str:
 
 
 async def _seed_rollout_plan() -> str:
+    """A rollout plan must reference a real 'activated' receipt (cohort lineage trigger)."""
+    from _model_chain import seed_activated_model
+
     pid = "rollout_" + uuid4().hex
     c = await _connect()
     try:
+        ids = await seed_activated_model(c, tenant=TENANT, model_id="m_" + uuid4().hex[:8])
         await c.execute(
             """INSERT INTO decision_model_rollout_plans(rollout_plan_id,tenant_id,activation_receipt_id,mode,traffic_percent,policy,requested_by,idempotency_key,request_hash)
                VALUES($1,$2::uuid,$3,'canary',10,'{}'::jsonb,'planner',$4,'h')""",
             pid,
             TENANT,
-            "arc_" + uuid4().hex,
+            ids["activation_receipt_id"],
             "idem_" + uuid4().hex,
         )
         return pid

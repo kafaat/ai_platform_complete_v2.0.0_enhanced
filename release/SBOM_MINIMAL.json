@@ -8175,7 +8175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18c42496774627daa465ca68c4919442063543ca47cc919d563de0be5bac9196"
+          "content": "29cc711558f59ef81db78288aa9d840764dd11322f4d5263e24b6091a3bdb178"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -8215,6 +8215,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4df5b46b03e1b90130eff9c041ea7b7ee836b7774b2e7524ca40f429607c8860"
+        }
+      ],
+      "name": "services/agriai-engine/tests/conftest.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2d6fa16fc03954763708272c812d725aea0717092ae4f6cddc57abfc2199bdba"
         }
       ],
@@ -8245,7 +8255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11c897df1f94c2f94cbbf7f30cdb87b36c5b83da3beb6208e060cce79dfec6ff"
+          "content": "68b97b631226122d9aa94c95059d432f9b286b5ed569a437cb51b8f220060dc6"
         }
       ],
       "name": "services/agriai-engine/wofost_adapter.py",
@@ -9015,7 +9025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3c94dfb3636e3fc21883fc79193d0815e04995320dcf090e590ddddecad7e0ab"
+          "content": "72b77cb17a11cbe21d85a4e7aea28c2d837b75d8bad6868e7d6f72f4546b959b"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9215,7 +9225,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa10f95546f56eaed9b98ba14c1bdd3b04cd945cd4945c46afac44e92cbd6824"
+          "content": "bf8d8457fe3ff669f67258ad813dd7e33a66e48ee165c777d41c88556f6b1899"
+        }
+      ],
+      "name": "services/decision-service/migrations/019_agronomic_lineage_integrity.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8cb11089b200e67b80ee43d4c38e8d1b1db534344f0176cf2a7493b72e98cd3c"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9289,6 +9309,26 @@
         }
       ],
       "name": "services/decision-service/tests/test_ac1_agronomic_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b46de83aeab10f9c06ebde18e4646d1e33dd6099ce7b8a7a28b380fcec1235ee"
+        }
+      ],
+      "name": "services/decision-service/tests/test_agronomic_evidence_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c9383702c19f656a552f939d063f96bb3e229fafdf9e567b9fb8e25d7fbe6285"
+        }
+      ],
+      "name": "services/decision-service/tests/test_agronomic_lineage_integrity.py",
       "type": "file"
     },
     {
@@ -9445,7 +9485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c3635d1faa70b73c21661b69f5fc55588c9f21acaa4b96f386b540d3ac13f637"
+          "content": "c432bb33b3ae1c2a866adb7eecd75c81b5de8b039972f7c25732d8a5a44afa08"
         }
       ],
       "name": "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
@@ -9455,7 +9495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fd70cb86291ab456ee97b2aad986a512c782f811edda1d2e9cb1b59b6908a95"
+          "content": "003eb82938deca36fdb94c7a2621e46eb816732f1341a07616f4cdbcfac2f035"
         }
       ],
       "name": "services/decision-service/tests/test_wx12_3_runtime_schedules.py",
@@ -23965,7 +24005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06e6863c7630f041efb39008f788593038fe51b9457e6afb7ea7e74aa1beef4e"
+          "content": "771ff4086f38d14dbf696e6adbe58dff7847d1d421b55cbef6cd9f5b5cb91b89"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -24005,7 +24045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "70e85b4d4122d3abafefc5cb32b38072acc9752b76af535f6ab54712e250dcd3"
+          "content": "42d33422876c642dfce2211bbdb8201432da1824039eadd04052fea16a218cf3"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -24015,7 +24055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ef52aebc68b612007e6079e18fdbada0c24303d9ba2f46321c0cfe04771d947"
+          "content": "1da84d82db5d299931f7c4b10f43d1aa859289b8b93eb6cd05dad74b3f64e061"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",
@@ -24035,7 +24075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d92dac574362db4ccd0639bd663fc5f283bb1c5c1d76b5c9226e955d41d027a4"
+          "content": "8514cecae96ab3bc7d8e77e8cf7545fce8724a6ac5e9821929dea684264b50c5"
         }
       ],
       "name": "services/vegetation-analysis-service/test_timeseries_honesty.py",
@@ -24085,7 +24125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8379883a542b8cf4e5abb358f388f7d62da93b4edffa0235abddbc1a49cebe60"
+          "content": "430cc9b56bdea0b32ba2aec36fc9f6b6a1c80a80396a91bd616a7e37dc145759"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

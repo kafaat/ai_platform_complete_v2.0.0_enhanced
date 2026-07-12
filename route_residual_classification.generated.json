@@ -43,7 +43,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 72,
+      "line": 85,
       "method": "GET",
       "path": "/metrics",
       "function": "metrics",
@@ -52,7 +52,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 220,
+      "line": 233,
       "method": "POST",
       "path": "/recommend",
       "function": "recommend",
@@ -61,7 +61,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 280,
+      "line": 293,
       "method": "POST",
       "path": "/simulate",
       "function": "simulate",
@@ -70,7 +70,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 293,
+      "line": 306,
       "method": "POST",
       "path": "/plan",
       "function": "plan",
@@ -79,7 +79,7 @@
     {
       "service": "agriai-engine",
       "file": "services/agriai-engine/main.py",
-      "line": 309,
+      "line": 322,
       "method": "POST",
       "path": "/replay/verify",
       "function": "replay_verify",
@@ -556,7 +556,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1720,
+      "line": 1722,
       "method": "POST",
       "path": "/v1/learning/retraining-requests",
       "function": "retraining_request_boundary",
@@ -565,7 +565,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1748,
+      "line": 1752,
       "method": "GET",
       "path": "/v1/learning/runtime-work",
       "function": "runtime_work_feed",
@@ -574,7 +574,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1775,
+      "line": 1779,
       "method": "POST",
       "path": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt",
       "function": "rollout_receipt_boundary",
@@ -583,7 +583,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1816,
+      "line": 1820,
       "method": "POST",
       "path": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt",
       "function": "retraining_dispatch_receipt_boundary",
@@ -592,7 +592,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1864,
+      "line": 1868,
       "method": "POST",
       "path": "/v1/learning/runtime-schedules",
       "function": "runtime_schedule_boundary",
@@ -601,7 +601,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1911,
+      "line": 1915,
       "method": "POST",
       "path": "/v1/learning/reconcile-evidence",
       "function": "reconcile_evidence_boundary",
@@ -610,7 +610,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1941,
+      "line": 1945,
       "method": "POST",
       "path": "/v1/context-snapshots",
       "function": "compose_context_snapshot",
@@ -619,7 +619,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1973,
+      "line": 1977,
       "method": "GET",
       "path": "/v1/context-snapshots/{snapshot_id}",
       "function": "read_context_snapshot",

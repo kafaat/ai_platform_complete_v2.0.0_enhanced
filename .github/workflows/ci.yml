@@ -110,6 +110,19 @@ jobs:
         run: python scripts/ci/agronomic_decision_lineage_gate.py
       - name: AC-6.1 agronomic lineage integrity gate
         run: python scripts/ci/agronomic_lineage_integrity_gate.py
+      # AC-9→terminal: the agronomic evidence/cohort lineage must keep propagating through
+      # learning → calibration → evaluation → promotion → activation → runtime → terminal
+      # receipts, and no synthetic vegetation value may reach a serving path.
+      - name: AC-9 agronomic learning lineage gate
+        run: python scripts/ci/agronomic_learning_lineage_gate.py
+      - name: agronomic model lifecycle lineage gate
+        run: python scripts/ci/agronomic_model_lifecycle_lineage_gate.py
+      - name: agronomic runtime lineage gate
+        run: python scripts/ci/agronomic_runtime_lineage_gate.py
+      - name: agronomic runtime terminal lineage gate
+        run: python scripts/ci/agronomic_runtime_terminal_lineage_gate.py
+      - name: production truth readiness gate
+        run: python scripts/ci/production_truth_readiness_gate.py
 
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
@@ -460,7 +473,7 @@ jobs:
       # PyJWT + prometheus-client: required by vegetation_runtime, imported by the
       # vegetation-agriai contract step below (pure logic, but module-level imports).
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx PyJWT prometheus-client
-      - name: Apply decision-service migrations (custom runner — 001 through 019)
+      - name: Apply decision-service migrations (custom runner — 001 through 023)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -598,10 +611,14 @@ jobs:
       - name: AC-6 evidence/lineage contract tests (no DB, mirror fail-closed)
         working-directory: services/decision-service
         run: pytest tests/test_agronomic_evidence_contract.py -q -p no:cacheprovider
+      # AC-9→terminal lineage static contracts (pure token checks, no DB).
+      - name: agronomic lineage chain static tests
+        working-directory: services/decision-service
+        run: pytest tests/test_agronomic_learning_lineage.py tests/test_agronomic_model_lifecycle_lineage.py tests/test_agronomic_runtime_lineage.py tests/test_agronomic_runtime_terminal_lineage.py -q -p no:cacheprovider
       # VEG-AGRIAI delivered contracts are pure-logic (no DB): run them here where pytest exists.
       - name: vegetation-agriai contract tests (pure logic)
         working-directory: services/decision-service
-        run: pytest ../agriai-engine/tests/test_agronomic_context_contract.py ../agriai-engine/tests/test_agronomic_adapters.py ../vegetation-analysis-service/test_vegetation_production_contract.py ../vegetation-analysis-service/test_timeseries_honesty.py ../vegetation-analysis-service/test_indicator_registry.py -q -p no:cacheprovider
+        run: pytest ../agriai-engine/tests/test_agronomic_context_contract.py ../agriai-engine/tests/test_agronomic_adapters.py ../agriai-engine/tests/test_production_readiness_truth.py ../vegetation-analysis-service/test_vegetation_production_contract.py ../vegetation-analysis-service/test_timeseries_honesty.py ../vegetation-analysis-service/test_indicator_registry.py ../vegetation-analysis-service/test_production_truth_closure.py -q -p no:cacheprovider
       # WX-12 model-registry-adapter runtime is stdlib-only pure logic (drift classification,
       # bounded backoff, compare-and-swap decision). The contract test additionally imports the
       # decision-service app (fastapi is installed in this job) and replays every request the
