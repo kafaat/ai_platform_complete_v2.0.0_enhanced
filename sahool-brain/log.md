@@ -2669,3 +2669,7 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **تسوية الهجرة المتصادمة (قرار):** `018_agronomic_context_snapshots.sql` المُسلَّمة تُكرّر جدول AC-1 المُنزَل بمخطّط أضعف (بلا idempotency/replay) وجداولها الجديدة (vegetation/field-history snapshots) **بلا كاتب/قارئ** في الحزمة ⇒ لم تُنزَل؛ بوّابة الإغلاق تؤكّد `018_ac1` المُنزَلة؛ فجوة تصميم مفتوحة VEG-EVIDENCE-STORE (تُبنى مع كاتبها في Phase B/C). ملحق تكامل كامل في `docs/audits/VEGETATION_AGRIAI_FULL_PLAN_CLOSURE_20260712.md`.
 - **فجوة جديدة RASTER-PROVENANCE-ENRICHMENT (OPEN):** بروفينانس raster الحقيقيّ = capture_datetime/processing_version بلا qa_mask_version؛ بوّابة السلطة تطلب acquisition_datetime/algorithm_version/qa_mask_version ⇒ real-only الإنتاجيّ يفشل مُغلَقاً بصدق حتى الإثراء.
 - **التحقّق:** veg+agriai 55 اختباراً · unit 2912 · ruff · كامل structural-lint + بوّابة الإغلاق الجديدة · report-index/bundle/production-validation/security محليّاً.
+
+## 2026-07-12 (تكملة) — تجديد الجرود + الإغلاق النهائيّ على `bc84755`
+- مسح main-only على `c036748` أظهر الفشلَين المعروفَين (Service Inventory Drift + Runtime Real Smoke) — الدرس المُسجَّل طُبّق متأخّراً: نقطتا `/v1/indicators/registry*` غيّرتا الجرود. جُدِّدت (936 مساراً/29 خدمة) + كلّ حُرّاس smoke الساكنة `--check` محليّاً + إعادة بناء الحزمة (4044) — `bc84755`.
+- CI الفرع أخضر ⇒ بوّابات main-only محليّاً (وأُضيف فحصا الجرد إلى القائمة قبل-FF) ⇒ FF main+develop ⇒ **مسح 28/28 أخضر**. main = develop = `bc84755`. إغلاق الخطّة الكاملة veg-agriai مُثبَت نهائيّاً.
