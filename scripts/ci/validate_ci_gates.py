@@ -145,10 +145,10 @@ def validate(root: Path) -> list[str]:
         errors,
     )
     require(
-        "actions/checkout@v4" in workflow, "workflow must use pinned checkout major version", errors
+        "actions/checkout@v5" in workflow, "workflow must use pinned checkout major version", errors
     )
     require(
-        "actions/setup-python@v5" in workflow,
+        "actions/setup-python@v6" in workflow,
         "workflow must use pinned setup-python major version",
         errors,
     )

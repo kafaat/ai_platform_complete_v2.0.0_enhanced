@@ -5,11 +5,11 @@
     "has_fastapi": false,
     "direct_routes": 0,
     "router_routes": 6,
-    "delegates_to_router_registry": false,
+    "delegates_to_router_registry": true,
     "delegates_to_app_factory": false,
     "delegates_to_runtime_module": true,
-    "status": "runtime_delegated_routes",
-    "reason": "main.py delegates to a runtime module that owns app construction/routes"
+    "status": "delegated_routes",
+    "reason": "main.py delegates to router_registry and routers contain routes"
   },
   {
     "path": "services/agriai-engine/main.py",
@@ -51,7 +51,7 @@
     "path": "services/decision-service/main.py",
     "service": "decision-service",
     "has_fastapi": true,
-    "direct_routes": 51,
+    "direct_routes": 52,
     "router_routes": 0,
     "delegates_to_router_registry": false,
     "delegates_to_app_factory": false,

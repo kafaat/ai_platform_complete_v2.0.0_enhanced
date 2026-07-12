@@ -4,7 +4,7 @@ jobs:
   no-bash-artifacts:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Detect bash glob artifacts
         run: |
           # يمنع تكرار مجلّدات مثل {src أو {a,b} من mkdir بلا quoting
