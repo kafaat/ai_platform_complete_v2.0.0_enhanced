@@ -70,48 +70,82 @@ async def persist_decision_record(
     has_context = all(ctx_ids)
     if any(ctx_ids) and not has_context:
         return {"status": "rejected", "reason": "partial_context_binding"}
+    # AC-6: direct agronomic lineage — optional identity columns plus an optional immutable
+    # vegetation-evidence reference and a client-claimed feature-manifest hash, all validated.
+    vegetation_snapshot_id = getattr(payload, "vegetation_snapshot_id", None)
+    feature_manifest_hash = getattr(payload, "feature_manifest_hash", None)
+    season_id = getattr(payload, "season_id", None)
     conn = await _connect()
+    import asyncpg  # lazy like _connect(): only reachable when SoR/asyncpg is available
+
     try:
         async with conn.transaction():
+            # Bind the tenant before touching RLS-protected authoritative tables.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             if has_context:
                 reason = await _validate_decision_context(
                     conn, tenant_id=tenant_id, field_id=payload.field_id, payload=payload
                 )
                 if reason:
                     return {"status": "rejected", "reason": reason}
-            await conn.execute(
-                """
-                INSERT INTO decision_record
-                  (decision_id, tenant_id, field_id, decision_type, region, stage,
-                   decision_value, confidence, created_by, review_state, candidate_lineage_id,
-                   agronomic_context_snapshot_id, field_historical_context_snapshot_id,
-                   feature_manifest_id, context_contract_version)
-                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11,
-                        $12, $13, $14, $15)
-                ON CONFLICT (decision_id) DO UPDATE SET
-                  stage = EXCLUDED.stage,
-                  decision_value = EXCLUDED.decision_value,
-                  confidence = EXCLUDED.confidence,
-                  review_state = EXCLUDED.review_state,
-                  candidate_lineage_id = EXCLUDED.candidate_lineage_id,
-                  updated_at = now()
-                """,
-                decision_id,
-                tenant_id,
-                payload.field_id,
-                payload.decision_type,
-                payload.region,
-                payload.stage,
-                _json(payload.decision_value),
-                payload.confidence,
-                payload.created_by,
-                review_state,
-                candidate_lineage_id,
-                ctx_ids[0],
-                ctx_ids[1],
-                ctx_ids[2],
-                "ac-1" if has_context else "legacy_unbound",
-            )
+            if vegetation_snapshot_id:
+                reason = await _validate_vegetation_reference(
+                    conn,
+                    tenant_id=tenant_id,
+                    field_id=payload.field_id,
+                    season_id=season_id,
+                    snapshot_id=vegetation_snapshot_id,
+                )
+                if reason:
+                    return {"status": "rejected", "reason": reason}
+            try:
+                await conn.execute(
+                    """
+                    INSERT INTO decision_record
+                      (decision_id, tenant_id, field_id, decision_type, region, stage,
+                       decision_value, confidence, created_by, review_state, candidate_lineage_id,
+                       agronomic_context_snapshot_id, field_historical_context_snapshot_id,
+                       feature_manifest_id, context_contract_version,
+                       season_id, crop_id, cultivar_id, vegetation_snapshot_id, feature_manifest_hash)
+                    VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11,
+                            $12, $13, $14, $15, $16, $17, $18, $19, $20)
+                    ON CONFLICT (decision_id) DO UPDATE SET
+                      stage = EXCLUDED.stage,
+                      decision_value = EXCLUDED.decision_value,
+                      confidence = EXCLUDED.confidence,
+                      review_state = EXCLUDED.review_state,
+                      candidate_lineage_id = EXCLUDED.candidate_lineage_id,
+                      updated_at = now()
+                    """,
+                    decision_id,
+                    tenant_id,
+                    payload.field_id,
+                    payload.decision_type,
+                    payload.region,
+                    payload.stage,
+                    _json(payload.decision_value),
+                    payload.confidence,
+                    payload.created_by,
+                    review_state,
+                    candidate_lineage_id,
+                    ctx_ids[0],
+                    ctx_ids[1],
+                    ctx_ids[2],
+                    "ac-1" if has_context else "legacy_unbound",
+                    season_id,
+                    getattr(payload, "crop_id", None),
+                    getattr(payload, "cultivar_id", None),
+                    vegetation_snapshot_id,
+                    feature_manifest_hash,
+                )
+            except (
+                asyncpg.exceptions.RaiseError,
+                asyncpg.exceptions.CheckViolationError,
+                asyncpg.exceptions.ForeignKeyViolationError,
+            ) as exc:
+                # DB-level semantic backstop (migration 019 trigger/constraints): anything the
+                # typed pre-validation did not catch is still a fail-closed rejection, not a 500.
+                return {"status": "rejected", "reason": "lineage_integrity_violation:" + str(exc)}
             await emit_outbox_event(
                 conn,
                 tenant_id=tenant_id,
@@ -3444,6 +3478,8 @@ async def compose_agronomic_context(
     conn = await _connect()
     try:
         async with conn.transaction():
+            # Bind the tenant before touching RLS-protected evidence tables (AC-6.1).
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
             existing = await conn.fetchrow(
                 "SELECT snapshot_id, request_hash FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND idempotency_key=$2",
                 tenant_id,
@@ -3584,8 +3620,9 @@ async def _validate_decision_context(
     conn: Any, *, tenant_id: str, field_id: str | None, payload: Any
 ) -> str | None:
     """Return a typed rejection reason, or None when the referenced context is valid."""
+    season_id = getattr(payload, "season_id", None)
     snap = await conn.fetchrow(
-        "SELECT field_id FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
+        "SELECT field_id, season_id FROM decision_agronomic_context_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
         tenant_id,
         payload.agronomic_context_snapshot_id,
     )
@@ -3593,18 +3630,107 @@ async def _validate_decision_context(
         return "unknown_agronomic_context_snapshot"
     if field_id and snap["field_id"] != field_id:
         return "context_field_mismatch"
-    hist = await conn.fetchval(
-        "SELECT 1 FROM decision_field_historical_context_snapshots WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2",
+    if season_id and snap["season_id"] and season_id != snap["season_id"]:
+        return "context_season_mismatch"
+    hist = await conn.fetchrow(
+        "SELECT field_id, season_id FROM decision_field_historical_context_snapshots WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2",
         tenant_id,
         payload.field_historical_context_snapshot_id,
     )
     if not hist:
         return "unknown_historical_context_snapshot"
-    manif = await conn.fetchval(
-        "SELECT 1 FROM decision_feature_manifests WHERE tenant_id=$1::uuid AND feature_manifest_id=$2",
+    if field_id and hist["field_id"] != field_id:
+        return "history_field_mismatch"
+    if season_id and hist["season_id"] and season_id != hist["season_id"]:
+        return "history_season_mismatch"
+    manif = await conn.fetchrow(
+        "SELECT content_hash FROM decision_feature_manifests WHERE tenant_id=$1::uuid AND feature_manifest_id=$2",
         tenant_id,
         payload.feature_manifest_id,
     )
     if not manif:
         return "unknown_feature_manifest"
+    claimed_hash = getattr(payload, "feature_manifest_hash", None)
+    if claimed_hash and claimed_hash.lower() != str(manif["content_hash"]).lower():
+        return "feature_manifest_hash_mismatch"
     return None
+
+
+async def _validate_vegetation_reference(
+    conn: Any, *, tenant_id: str, field_id: str | None, season_id: str | None, snapshot_id: str
+) -> str | None:
+    """Typed check for the optional immutable vegetation-evidence reference (AC-6)."""
+    row = await conn.fetchrow(
+        "SELECT field_id, season_id FROM decision_vegetation_snapshots WHERE tenant_id=$1::uuid AND snapshot_id=$2",
+        tenant_id,
+        snapshot_id,
+    )
+    if not row:
+        return "unknown_vegetation_snapshot"
+    if field_id and row["field_id"] != field_id:
+        return "vegetation_field_mismatch"
+    if season_id and row["season_id"] and season_id != row["season_id"]:
+        return "vegetation_season_mismatch"
+    return None
+
+
+async def _canonical_snapshot_id(
+    conn: Any, *, table: str, hash_column: str, tenant_id: str, digest: str
+) -> str:
+    """Resolve the canonical (existing) snapshot for a content hash after an idempotent replay."""
+    row = await conn.fetchrow(
+        f"SELECT snapshot_id FROM {table} WHERE tenant_id=$1::uuid AND {hash_column}=$2",  # noqa: S608 — table/column are internal constants
+        tenant_id,
+        digest,
+    )
+    if not row:
+        raise RuntimeError(f"snapshot persistence failed for {table}")
+    return str(row["snapshot_id"])
+
+
+async def persist_vegetation_snapshot(
+    *, tenant_id: str, payload: Any, snapshot_id: str
+) -> dict[str, Any]:
+    """AC-6: immutable, content-addressed vegetation evidence. Hash replay returns the
+    canonical existing snapshot (created=False) — truly idempotent, never a duplicate row."""
+    if payload.data_available_at < payload.acquisition_at:
+        raise ValueError("data_available_at must be >= acquisition_at")
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            row = await conn.fetchrow(
+                """
+                INSERT INTO decision_vegetation_snapshots
+                  (snapshot_id, tenant_id, field_id, season_id, contract_version, snapshot_hash,
+                   acquisition_at, data_available_at, quality_gate, feature_manifest, payload)
+                VALUES ($1,$2::uuid,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb)
+                ON CONFLICT (tenant_id, snapshot_hash) DO NOTHING
+                RETURNING snapshot_id
+                """,
+                snapshot_id,
+                tenant_id,
+                payload.field_id,
+                payload.season_id,
+                payload.contract_version,
+                payload.snapshot_hash,
+                payload.acquisition_at,
+                payload.data_available_at,
+                _json(payload.quality_gate),
+                _json(payload.feature_manifest),
+                _json(payload.payload),
+            )
+            canonical = (
+                str(row["snapshot_id"])
+                if row
+                else await _canonical_snapshot_id(
+                    conn,
+                    table="decision_vegetation_snapshots",
+                    hash_column="snapshot_hash",
+                    tenant_id=tenant_id,
+                    digest=payload.snapshot_hash,
+                )
+            )
+        return {"snapshot_id": canonical, "created": canonical == snapshot_id}
+    finally:
+        await conn.close()

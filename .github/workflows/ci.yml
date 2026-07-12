@@ -105,6 +105,11 @@ jobs:
         run: python scripts/ci/vegetation_agriai_production_gate.py
       - name: vegetation-agriai full closure gate
         run: python scripts/ci/vegetation_agriai_full_closure_gate.py
+      # AC-6/AC-6.1: direct agronomic lineage + tenant-safe DB-level evidence integrity
+      - name: AC-6 agronomic decision lineage gate
+        run: python scripts/ci/agronomic_decision_lineage_gate.py
+      - name: AC-6.1 agronomic lineage integrity gate
+        run: python scripts/ci/agronomic_lineage_integrity_gate.py
 
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
@@ -455,7 +460,7 @@ jobs:
       # PyJWT + prometheus-client: required by vegetation_runtime, imported by the
       # vegetation-agriai contract step below (pure logic, but module-level imports).
       - run: pip install -r services/decision-service/requirements.txt asyncpg pytest pytest-asyncio httpx PyJWT prometheus-client
-      - name: Apply decision-service migrations (custom runner — 001 through 018)
+      - name: Apply decision-service migrations (custom runner — 001 through 019)
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: "true"
@@ -580,6 +585,19 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_ac1_agronomic_context.py -q -p no:cacheprovider
+      # AC-6.1: tenant-safe lineage integrity — full-lineage binding, semantic rejections,
+      # content-addressed vegetation evidence, DB trigger backstop (real Postgres).
+      - name: AC-6.1 agronomic lineage integrity tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_agronomic_lineage_integrity.py -q -p no:cacheprovider
+      # AC-6: HTTP contract for strict lineage + evidence writer (pure logic, no DB,
+      # mirror-mode fail-closed) — deliberately run WITHOUT DATABASE_URL/SoR env.
+      - name: AC-6 evidence/lineage contract tests (no DB, mirror fail-closed)
+        working-directory: services/decision-service
+        run: pytest tests/test_agronomic_evidence_contract.py -q -p no:cacheprovider
       # VEG-AGRIAI delivered contracts are pure-logic (no DB): run them here where pytest exists.
       - name: vegetation-agriai contract tests (pure logic)
         working-directory: services/decision-service

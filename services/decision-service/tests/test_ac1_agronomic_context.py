@@ -34,10 +34,12 @@ def _now():
     return datetime.now(UTC).replace(microsecond=0)
 
 
-def _compose_payload(field_id: str, key: str, leak: bool = False):
+def _compose_payload(field_id: str, key: str, leak: bool = False, now: datetime | None = None):
     from agronomic_context.contracts import ContextComposeIn, FeatureEntryIn, HistoricalContextIn
 
-    now = _now()
+    # `now` must be pinned by tests that assert content-addressed reuse across calls —
+    # a second-boundary crossing between two composes would change the content hash.
+    now = now or _now()
     return ContextComposeIn(
         field_id=field_id,
         season_id="s2026",
@@ -89,16 +91,17 @@ def test_compose_is_deterministic_reusable_and_replayable():
 
     field = "f_" + uuid4().hex[:8]
     key = "ctx_" + uuid4().hex
+    now = _now()
     first = _run(
         compose_agronomic_context(
-            tenant_id=TENANT, created_by="composer", payload=_compose_payload(field, key)
+            tenant_id=TENANT, created_by="composer", payload=_compose_payload(field, key, now=now)
         )
     )
     assert first["status"] == "ok" and first["feature_count"] == 2
     # identical retry => replay of the same snapshot.
     replay = _run(
         compose_agronomic_context(
-            tenant_id=TENANT, created_by="composer", payload=_compose_payload(field, key)
+            tenant_id=TENANT, created_by="composer", payload=_compose_payload(field, key, now=now)
         )
     )
     assert replay["status"] == "ok" and replay.get("replay") is True
@@ -108,7 +111,7 @@ def test_compose_is_deterministic_reusable_and_replayable():
         compose_agronomic_context(
             tenant_id=TENANT,
             created_by="composer",
-            payload=_compose_payload(field, "ctx_" + uuid4().hex),
+            payload=_compose_payload(field, "ctx_" + uuid4().hex, now=now),
         )
     )
     assert again["status"] == "ok" and again["snapshot_id"] == first["snapshot_id"]

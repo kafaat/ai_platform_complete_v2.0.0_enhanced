@@ -4,7 +4,9 @@ on:
     paths:
       - 'services/vegetation-analysis-service/**'
       - 'services/agriai-engine/**'
+      - 'services/decision-service/**'
       - 'scripts/ci/vegetation_agriai_production_gate.py'
+      - 'scripts/ci/agronomic_*'
   push:
     branches: [main, develop]
 jobs:
@@ -16,5 +18,14 @@ jobs:
         with: {python-version: '3.12'}
       - run: python scripts/ci/vegetation_agriai_production_gate.py
       - run: python -m compileall -q services/vegetation-analysis-service services/agriai-engine
-      - run: pip install pytest
+      - run: pip install -r services/decision-service/requirements.txt pytest pytest-asyncio
       - run: pytest -q services/vegetation-analysis-service/test_vegetation_production_contract.py services/agriai-engine/tests/test_agronomic_context_contract.py
+      - name: AC-6 agronomic decision lineage gate
+        run: python scripts/ci/agronomic_decision_lineage_gate.py
+      - name: AC-6.1 agronomic lineage integrity gate
+        run: python scripts/ci/agronomic_lineage_integrity_gate.py
+      # No DATABASE_URL here: the evidence contract runs fully; the integrity file runs its
+      # static assertions and honestly skips the real-Postgres proof (covered in the main CI
+      # decision-service job and by scripts/certification/certify_agronomic_lineage.py).
+      - name: Decision-service lineage contract tests
+        run: pytest -q services/decision-service/tests/test_agronomic_evidence_contract.py services/decision-service/tests/test_agronomic_lineage_integrity.py

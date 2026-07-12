@@ -60,6 +60,7 @@ from persistence import (
     persist_learning_update,
     persist_outcome_record,
     persist_recommendation_outcome,
+    persist_vegetation_snapshot,
     record_execution_receipt,
     record_model_registry_activation_receipt,
     record_model_registry_rollback_receipt,
@@ -133,6 +134,7 @@ LOOP_TABLES = [
     "decision_field_historical_context_snapshots",
     "decision_feature_manifests",
     "decision_feature_manifest_entries",
+    "decision_vegetation_snapshots",
 ]
 
 # Honest mirror-sink contract: this service is NOT the system-of-record yet. Write
@@ -174,6 +176,29 @@ class DecisionRecordIn(BaseModel):
     agronomic_context_snapshot_id: str | None = None
     field_historical_context_snapshot_id: str | None = None
     feature_manifest_id: str | None = None
+    # AC-6 direct agronomic lineage: identity columns + immutable vegetation evidence +
+    # the client-claimed manifest hash (checked against the stored manifest content hash).
+    season_id: str | None = None
+    crop_id: str | None = None
+    cultivar_id: str | None = None
+    vegetation_snapshot_id: str | None = None
+    feature_manifest_hash: str | None = None
+
+
+class VegetationSnapshotIn(BaseModel):
+    """AC-6 immutable vegetation evidence: content-addressed by snapshot_hash (the hash IS the
+    idempotency key — a replay returns the canonical existing snapshot, never a duplicate)."""
+
+    snapshot_id: str | None = None
+    field_id: str
+    season_id: str | None = None
+    contract_version: str = "vegetation-snapshot.v2"
+    snapshot_hash: str = Field(min_length=64, max_length=64, pattern=r"^[a-fA-F0-9]{64}$")
+    acquisition_at: datetime
+    data_available_at: datetime
+    quality_gate: dict[str, Any]
+    feature_manifest: dict[str, Any]
+    payload: dict[str, Any]
 
 
 class DispatchDecisionIn(BaseModel):
@@ -368,31 +393,59 @@ def contract() -> dict[str, Any]:
     }
 
 
+@app.post("/v1/evidence/vegetation-snapshots")
+async def create_vegetation_snapshot(
+    payload: VegetationSnapshotIn, x_tenant_id: str | None = Header(default=None)
+) -> dict[str, Any]:
+    """AC-6: authoritative immutable vegetation-evidence writer (fail-closed in mirror mode)."""
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not authoritative")
+    sid = payload.snapshot_id or "veg_" + uuid4().hex[:20]
+    result = await persist_vegetation_snapshot(tenant_id=tenant, payload=payload, snapshot_id=sid)
+    return {
+        "persisted": True,
+        "snapshot_id": result["snapshot_id"],
+        "created": result["created"],
+        "snapshot_hash": payload.snapshot_hash,
+    }
+
+
 @app.post("/v1/decisions/record")
 async def record_decision(
     payload: DecisionRecordIn, x_tenant_id: str | None = Header(default=None)
 ) -> dict[str, Any]:
     tenant = _tenant(x_tenant_id)
     did = payload.decision_id or "dec_" + uuid4().hex[:16]
-    if sor_enabled():
-        # AC-1 mandatory binding: when enforcement is on, no new governed decision may enter
-        # without the three immutable context references (master plan Phase A exit criterion).
-        require_ctx = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower() in {
-            "1",
-            "true",
-            "yes",
-            "on",
+    # AC-1/AC-6 mandatory binding: when enforcement is on, no new governed decision may enter
+    # without the full agronomic lineage (identity + three immutable context references +
+    # vegetation evidence + manifest hash). Checked before the SoR branch: strict mode is a
+    # contract violation regardless of mirror/authoritative state.
+    require_ctx = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if require_ctx:
+        required = {
+            "field_id": payload.field_id,
+            "season_id": payload.season_id,
+            "crop_id": payload.crop_id,
+            "cultivar_id": payload.cultivar_id,
+            "agronomic_context_snapshot_id": payload.agronomic_context_snapshot_id,
+            "field_historical_context_snapshot_id": payload.field_historical_context_snapshot_id,
+            "feature_manifest_id": payload.feature_manifest_id,
+            "feature_manifest_hash": payload.feature_manifest_hash,
+            "vegetation_snapshot_id": payload.vegetation_snapshot_id,
         }
-        if require_ctx and not (
-            payload.agronomic_context_snapshot_id
-            and payload.field_historical_context_snapshot_id
-            and payload.feature_manifest_id
-        ):
+        missing = sorted(k for k, v in required.items() if not v)
+        if missing:
             raise HTTPException(
                 status_code=422,
-                detail="agronomic context is required: agronomic_context_snapshot_id, "
-                "field_historical_context_snapshot_id and feature_manifest_id must be provided",
+                detail={"code": "agronomic_context_required", "missing": missing},
             )
+    if sor_enabled():
         result = await persist_decision_record(tenant_id=tenant, payload=payload, decision_id=did)
         if isinstance(result, dict) and result.get("status") == "rejected":
             raise HTTPException(status_code=422, detail=result.get("reason", "context rejected"))
