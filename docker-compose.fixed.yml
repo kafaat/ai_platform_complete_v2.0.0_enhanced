@@ -563,6 +563,9 @@ services:
       # runtime-truth: real fields come from the tenant-scoped platform catalog
       # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
       PLATFORM_API_URL: http://sahool-platform:8000
+      FEATURE_SENTINEL_DB_FIELDS: "1"
+      ALLOW_LEGACY_FIELD_REGISTRY: "0"
+      VEGETATION_REAL_ONLY: "1"
     depends_on:
       sahool-nats:
         condition: service_healthy
@@ -698,6 +701,9 @@ services:
     environment:
       DATABASE_URL: ${DECISION_SERVICE_DATABASE_URL:-}
       DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
+      # Soil evidence gate — declared but default OFF (non-breaking until soil profiles exist).
+      DECISION_REQUIRE_SOIL_EVIDENCE_GATE: ${DECISION_REQUIRE_SOIL_EVIDENCE_GATE:-false}
+      DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-false}
     networks:
       - sahool-internal
     healthcheck:

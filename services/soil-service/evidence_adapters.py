@@ -1,0 +1,91 @@
+"""Typed adapters turning external soil evidence into canonical SoilObservation records."""
+
+from __future__ import annotations
+
+from datetime import UTC, datetime
+from typing import Any
+
+from shared.contracts.soil import SoilObservation, SoilObservationQuality, SoilObservationSource
+
+UNITS = {
+    "ph": "pH",
+    "ec": "dS/m",
+    "organic_matter": "%",
+    "nitrogen": "mg/kg",
+    "phosphorus": "mg/kg",
+    "potassium": "mg/kg",
+    "cec": "cmol/kg",
+    "calcium_carbonate": "%",
+    "clay": "%",
+    "sand": "%",
+    "silt": "%",
+    "texture": None,
+    "soil_moisture": "%",
+    "soil_temperature": "degC",
+}
+
+
+def observations_from_properties(
+    *,
+    tenant_id: str,
+    field_id: str,
+    source_type: SoilObservationSource,
+    source_id: str,
+    properties: dict[str, Any],
+    observed_at: datetime | None = None,
+    depth_from_cm: float = 0,
+    depth_to_cm: float = 30,
+    approved: bool = False,
+    procedure_id: str | None = None,
+    provenance: dict[str, Any] | None = None,
+) -> list[SoilObservation]:
+    observed_at = observed_at or datetime.now(UTC)
+    quality = (
+        SoilObservationQuality.ACCEPTED
+        if approved
+        or source_type not in {SoilObservationSource.LABORATORY, SoilObservationSource.SENSOR}
+        else SoilObservationQuality.UNCALIBRATED
+    )
+    confidence_default = {
+        SoilObservationSource.LABORATORY: 0.98 if approved else 0.55,
+        SoilObservationSource.FIELD: 0.85,
+        SoilObservationSource.SENSOR: 0.9 if approved else 0.6,
+        SoilObservationSource.ANALOG_FIELDS: 0.6,
+        SoilObservationSource.SOILGRIDS: 0.45,
+        SoilObservationSource.SMARTPHONE: 0.4,
+        SoilObservationSource.REMOTE_SENSING: 0.45,
+        SoilObservationSource.MODEL: 0.5,
+    }[source_type]
+    out: list[SoilObservation] = []
+    for prop, value in properties.items():
+        if value is None:
+            continue
+        canonical = {
+            "ec_dsm": "ec",
+            "organic_matter_pct": "organic_matter",
+            "nitrogen_mg_kg": "nitrogen",
+            "phosphorus_mg_kg": "phosphorus",
+            "potassium_mg_kg": "potassium",
+            "cec_cmol_kg": "cec",
+            "calcium_carbonate_pct": "calcium_carbonate",
+        }.get(prop, prop)
+        out.append(
+            SoilObservation(
+                tenant_id=tenant_id,
+                field_id=field_id,
+                property=canonical,
+                value=value,
+                unit=UNITS.get(canonical),
+                depth_from_cm=depth_from_cm,
+                depth_to_cm=depth_to_cm,
+                observed_at=observed_at,
+                source_type=source_type,
+                source_id=source_id,
+                procedure_id=procedure_id,
+                quality_status=quality,
+                confidence=confidence_default,
+                idempotency_key=f"{source_type.value}:{source_id}:{canonical}:{depth_from_cm}:{depth_to_cm}",
+                provenance={**(provenance or {}), "adapter_version": "soil-evidence-adapters.v1"},
+            )
+        )
+    return out

@@ -144,6 +144,9 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       JWT_SECRET: ${JWT_SECRET}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # Agronomic-context strictness (soil P0). Set AGRIAI_STRICT_CONTEXT=false in .env if the
+      # stack runs before agronomic context/soil profiles are populated.
+      AGRIAI_STRICT_CONTEXT: ${AGRIAI_STRICT_CONTEXT:-true}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SENTINEL_HUB_MCP_URL: http://sahool-sentinel-hub-mcp:8000
@@ -753,6 +756,9 @@ services:
       # runtime-truth: real fields come from the tenant-scoped platform catalog
       # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
       PLATFORM_API_URL: http://sahool-platform:8000
+      FEATURE_SENTINEL_DB_FIELDS: "1"
+      ALLOW_LEGACY_FIELD_REGISTRY: "0"
+      VEGETATION_REAL_ONLY: "1"
       # vegetation publishes events best-effort; NATS is not a startup/readiness blocker.
       VEGETATION_NATS_PUBLISH_MODE: ${VEGETATION_NATS_PUBLISH_MODE:-best_effort}
     networks:
@@ -1055,6 +1061,14 @@ services:
       DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       DECISION_STRICT_WORKER_TENANTS: ${DECISION_STRICT_WORKER_TENANTS:-false}
+      # Soil/agronomic evidence gates. Contract guards mandate production-safe defaults here;
+      # the DISPATCH-blocking gate stays OFF by default so the live stack is not fail-closed
+      # until soil profiles exist. On a stack without populated agronomic context/soil profiles,
+      # set DECISION_REQUIRE_AGRONOMIC_CONTEXT=false and DECISION_REQUIRE_SOIL_PROFILE=false in
+      # .env to avoid fail-closed decisions until the data is populated.
+      DECISION_REQUIRE_SOIL_EVIDENCE_GATE: ${DECISION_REQUIRE_SOIL_EVIDENCE_GATE:-false}
+      DECISION_REQUIRE_AGRONOMIC_CONTEXT: ${DECISION_REQUIRE_AGRONOMIC_CONTEXT:-true}
+      DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-true}
     networks:
     - sahool-internal
     healthcheck:

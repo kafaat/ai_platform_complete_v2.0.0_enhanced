@@ -606,3 +606,9 @@ v153_crop_stress_memory_store.sql
 # نسخة خوارزميّة+نسخة قناع) بديلاً لفهرس v145 الأضيق، + جدول raster_batch_jobs بمطالبة
 # ذرّيّة PostgreSQL وإيجارات قابلة للاسترداد بعد تعطُّل العامل (RLS+FORCE حسب المستأجر). بعد v153.
 v154_raster_product_identity_batch_leases.sql
+
+# v155: Canonical SoilObservation evidence + immutable SoilProfileSnapshot projection.
+v155_soil_observations_profiles.sql
+
+# v156: Durable lab samples, chain of custody, immutable analyte results and water result sets.
+v156_durable_soil_lab_workflow.sql

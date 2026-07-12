@@ -29,6 +29,7 @@ jobs:
       - name: raster-indicators-vegetation-boundary-gate
         run: |
           python scripts/ci/riv_boundary_gate.py
+          python scripts/ci/vegetation_runtime_truth_guard.py
           python scripts/ci/raster_production_truth_guard.py
 
       # الدماغ لا يحسب طيفيّاً ولا يجلب من المزوّد مباشرة ولا يصل فيزيائيّاً إلا عبر Decision-Service
@@ -112,6 +113,10 @@ jobs:
       # AC-1: agronomic context contracts stay canonical + point-in-time fail-closed
       - name: AC-1 agronomic context gate
         run: python scripts/ci/agronomic_context_gate.py
+      - name: canonical soil profile contract gate
+        run: python scripts/ci/soil_profile_contract_guard.py
+      - name: canonical soil evidence store gate
+        run: python scripts/ci/soil_canonical_store_guard.py
       # VEG-AGRIAI completion: vegetation stays real-source-honest and agriai-engine stays
       # context-bound (delivered increment; its dedicated workflow only runs on main/PR paths,
       # so enforce the structural contract on every push here too).
@@ -668,6 +673,9 @@ jobs:
         working-directory: services/decision-service
         run: pytest tests/test_agronomic_learning_lineage.py tests/test_agronomic_model_lifecycle_lineage.py tests/test_agronomic_runtime_lineage.py tests/test_agronomic_runtime_terminal_lineage.py -q -p no:cacheprovider
       # VEG-AGRIAI delivered contracts are pure-logic (no DB): run them here where pytest exists.
+      - name: canonical soil profile decision-context tests
+        working-directory: services/decision-service
+        run: pytest tests/test_soil_profile_context_gate.py -q -p no:cacheprovider
       - name: vegetation-agriai contract tests (pure logic)
         working-directory: services/decision-service
         run: pytest ../agriai-engine/tests/test_agronomic_context_contract.py ../agriai-engine/tests/test_agronomic_adapters.py ../agriai-engine/tests/test_production_readiness_truth.py ../vegetation-analysis-service/test_vegetation_production_contract.py ../vegetation-analysis-service/test_timeseries_honesty.py ../vegetation-analysis-service/test_indicator_registry.py ../vegetation-analysis-service/test_production_truth_closure.py ../vegetation-analysis-service/test_evidence_producer_contract.py -q -p no:cacheprovider
@@ -779,3 +787,6 @@ jobs:
         working-directory: mobile/sahool_app
       - run: flutter test
         working-directory: mobile/sahool_app
+
+# soil full chain: python scripts/ci/soil_full_chain_guard.py
+# soil full chain: python scripts/ci/soil_lab_projection_guard.py

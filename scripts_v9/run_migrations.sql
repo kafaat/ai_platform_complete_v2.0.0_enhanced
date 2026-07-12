@@ -463,3 +463,7 @@
 \i migrations/v153_crop_stress_memory_store.sql
 \echo '═══ 160. v154_raster_product_identity_batch_leases.sql ═══'
 \i migrations/v154_raster_product_identity_batch_leases.sql
+\echo '═══ 161. v155_soil_observations_profiles.sql ═══'
+\i migrations/v155_soil_observations_profiles.sql
+\echo '═══ 162. v156_durable_soil_lab_workflow.sql ═══'
+\i migrations/v156_durable_soil_lab_workflow.sql

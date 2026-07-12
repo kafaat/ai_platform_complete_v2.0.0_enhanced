@@ -1,0 +1,380 @@
+{
+  "$defs": {
+    "SoilEvidenceClass": {
+      "enum": [
+        "measured",
+        "modelled",
+        "proxy",
+        "analog_estimate",
+        "derived"
+      ],
+      "title": "SoilEvidenceClass",
+      "type": "string"
+    },
+    "SoilEvidenceLevel": {
+      "enum": [
+        "baseline_only",
+        "modelled",
+        "analog_guided",
+        "field_observed",
+        "lab_verified",
+        "operational_verified"
+      ],
+      "title": "SoilEvidenceLevel",
+      "type": "string"
+    },
+    "SoilLayer": {
+      "additionalProperties": false,
+      "properties": {
+        "depth_from_cm": {
+          "minimum": 0,
+          "title": "Depth From Cm",
+          "type": "number"
+        },
+        "depth_to_cm": {
+          "exclusiveMinimum": 0,
+          "title": "Depth To Cm",
+          "type": "number"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/SoilPropertyValue"
+          },
+          "title": "Properties"
+        }
+      },
+      "required": [
+        "depth_from_cm",
+        "depth_to_cm"
+      ],
+      "title": "SoilLayer",
+      "type": "object"
+    },
+    "SoilModelInputs": {
+      "additionalProperties": false,
+      "description": "Strict hydraulics supplied to crop/water models when scientifically available.",
+      "properties": {
+        "field_capacity": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Field Capacity"
+        },
+        "wilting_point": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wilting Point"
+        },
+        "rootable_depth_cm": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rootable Depth Cm"
+        },
+        "bulk_density": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bulk Density"
+        }
+      },
+      "title": "SoilModelInputs",
+      "type": "object"
+    },
+    "SoilProfileStatus": {
+      "enum": [
+        "baseline",
+        "enhanced_baseline",
+        "regional_guided",
+        "field_guided",
+        "verified",
+        "operational_verified"
+      ],
+      "title": "SoilProfileStatus",
+      "type": "string"
+    },
+    "SoilPropertyValue": {
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "default": null,
+          "title": "Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "evidence_class": {
+          "$ref": "#/$defs/SoilEvidenceClass"
+        },
+        "selected_source": {
+          "title": "Selected Source",
+          "type": "string"
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Id"
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed At"
+        },
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "verification_required": {
+          "default": false,
+          "title": "Verification Required",
+          "type": "boolean"
+        },
+        "uncertainty": {
+          "additionalProperties": true,
+          "title": "Uncertainty",
+          "type": "object"
+        },
+        "alternatives": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "evidence_class",
+        "selected_source",
+        "confidence"
+      ],
+      "title": "SoilPropertyValue",
+      "type": "object"
+    },
+    "SoilQualityGate": {
+      "additionalProperties": false,
+      "properties": {
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "executable": {
+          "default": false,
+          "title": "Executable",
+          "type": "boolean"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "passed"
+      ],
+      "title": "SoilQualityGate",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "default": "soil-profile.v1",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "profile_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Profile Id",
+      "type": "string"
+    },
+    "profile_hash": {
+      "title": "Profile Hash",
+      "type": "string"
+    },
+    "tenant_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tenant Id"
+    },
+    "field_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Field Id",
+      "type": "string"
+    },
+    "zone_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Zone Id"
+    },
+    "effective_at": {
+      "format": "date-time",
+      "title": "Effective At",
+      "type": "string"
+    },
+    "data_available_at": {
+      "format": "date-time",
+      "title": "Data Available At",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/SoilProfileStatus"
+    },
+    "evidence_level": {
+      "$ref": "#/$defs/SoilEvidenceLevel"
+    },
+    "layers": {
+      "items": {
+        "$ref": "#/$defs/SoilLayer"
+      },
+      "minItems": 1,
+      "title": "Layers",
+      "type": "array"
+    },
+    "completeness_score": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Completeness Score",
+      "type": "number"
+    },
+    "quality_gate": {
+      "$ref": "#/$defs/SoilQualityGate"
+    },
+    "conflicts": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Conflicts",
+      "type": "array"
+    },
+    "allowed_use": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Allowed Use",
+      "type": "array"
+    },
+    "blocked_use": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Blocked Use",
+      "type": "array"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "selection_policy_version": {
+      "minLength": 1,
+      "title": "Selection Policy Version",
+      "type": "string"
+    },
+    "model_inputs": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SoilModelInputs"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "profile_id",
+    "profile_hash",
+    "field_id",
+    "effective_at",
+    "data_available_at",
+    "status",
+    "evidence_level",
+    "layers",
+    "completeness_score",
+    "quality_gate",
+    "selection_policy_version"
+  ],
+  "title": "SoilProfileSnapshot",
+  "type": "object"
+}

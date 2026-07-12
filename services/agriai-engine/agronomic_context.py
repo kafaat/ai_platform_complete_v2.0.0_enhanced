@@ -10,6 +10,8 @@ from typing import Any
 
 import agronomic_adapters as adapters
 
+from shared.contracts.soil import validate_soil_profile_snapshot
+
 CONTRACT_VERSION = "agronomic-context.v2"
 REQUIRED_CONTEXT = (
     "field_id",
@@ -132,7 +134,19 @@ def validate_context(context: dict[str, Any], *, strict: bool) -> dict[str, Any]
     vegetation_executable = bool(gate.get("executable"))
     temporal_ok, temporal_issues = _temporal_integrity(context)
     lineage_ok, lineage_issues = _lineage_integrity(context)
-    complete = not missing and vegetation_executable and temporal_ok and lineage_ok
+    soil_profile_ok = True
+    soil_profile_issues: list[str] = []
+    if strict:
+        soil_snapshot, soil_profile_issues = validate_soil_profile_snapshot(
+            context.get("soil_profile")
+        )
+        soil_profile_ok = soil_snapshot is not None
+        if soil_snapshot is not None and not soil_snapshot.quality_gate.passed:
+            soil_profile_ok = False
+            soil_profile_issues.append("quality_gate:not_passed")
+    complete = (
+        not missing and vegetation_executable and temporal_ok and lineage_ok and soil_profile_ok
+    )
     return {
         "contract_version": CONTRACT_VERSION,
         "complete": complete,
@@ -142,6 +156,8 @@ def validate_context(context: dict[str, Any], *, strict: bool) -> dict[str, Any]
         "temporal_issues": temporal_issues,
         "lineage_integrity": lineage_ok,
         "lineage_issues": lineage_issues,
+        "soil_profile_integrity": soil_profile_ok,
+        "soil_profile_issues": soil_profile_issues,
         "strict": strict,
         "context_hash": canonical_hash(context),
         "reason": None if complete else "agronomic_context_incomplete",
@@ -175,11 +191,34 @@ def normalized_engine_inputs(context: dict[str, Any]) -> tuple[dict, dict, dict,
     weather.setdefault("climate_profile", context.get("climate_profile") or {})
 
     soil_raw = dict(context.get("soil_profile") or {})
-    soil = (
-        adapters.soil_profile_to_model(soil_raw)
-        if soil_raw.get("field_capacity") is not None
-        else soil_raw
-    )
+    strict_soil = os.getenv(
+        "AGRIAI_STRICT_CONTEXT",
+        "1" if os.getenv("SAHOOL_ENV", "development").lower() == "production" else "0",
+    ).lower() in {"1", "true", "yes", "on"}
+    canonical_soil, soil_issues = validate_soil_profile_snapshot(soil_raw)
+    if canonical_soil is not None:
+        model_inputs = canonical_soil.model_inputs
+        if model_inputs is None:
+            if strict_soil:
+                raise ValueError("soil_profile_model_inputs_missing")
+            soil = canonical_soil.model_dump(mode="json")
+        else:
+            model_payload = model_inputs.model_dump(exclude_none=True)
+            model_payload["soil_profile_id"] = canonical_soil.profile_id
+            model_payload["soil_profile_hash"] = canonical_soil.profile_hash
+            model_payload["evidence_level"] = canonical_soil.evidence_level.value
+            model_payload["allowed_use"] = list(canonical_soil.allowed_use)
+            model_payload["blocked_use"] = list(canonical_soil.blocked_use)
+            soil = adapters.soil_profile_to_model(model_payload)
+    elif strict_soil:
+        raise ValueError("canonical_soil_profile_required:" + "|".join(soil_issues))
+    else:
+        # Development-only compatibility path. Production never accepts an untyped soil dict.
+        soil = (
+            adapters.soil_profile_to_model(soil_raw)
+            if soil_raw.get("field_capacity") is not None
+            else soil_raw
+        )
     soil.setdefault("water_quality", context.get("water_quality_snapshot") or {})
 
     irrigation = dict(context.get("irrigation_profile") or {})

@@ -3,8 +3,11 @@ Violations are TYPED reasons (fail-closed), never silently dropped or synthesize
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 from typing import Any
+
+from shared.contracts.soil import validate_soil_profile_snapshot
 
 from .contracts import CONTEXT_GROUPS, QUALITY_STATES, ContextComposeIn
 
@@ -20,6 +23,22 @@ def validate_composition(payload: ContextComposeIn) -> list[dict[str, Any]]:
     missing_groups = [g for g in CONTEXT_GROUPS if g not in payload.context]
     if missing_groups:
         violations.append({"code": "missing_context_groups", "groups": missing_groups})
+
+    require_soil_profile = (
+        os.getenv("DECISION_REQUIRE_SOIL_PROFILE", "").strip().lower() in {"1", "true", "yes", "on"}
+        or os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+    )
+    if require_soil_profile:
+        soil_snapshot, soil_issues = validate_soil_profile_snapshot(payload.context.get("soil"))
+        if soil_snapshot is None:
+            violations.append(
+                {
+                    "code": "canonical_soil_profile_required",
+                    "issues": soil_issues,
+                }
+            )
+        elif not soil_snapshot.quality_gate.passed:
+            violations.append({"code": "soil_profile_quality_gate_failed"})
     for f in payload.features:
         if f.quality_status not in QUALITY_STATES:
             violations.append({"code": "invalid_quality_status", "feature": f.name})

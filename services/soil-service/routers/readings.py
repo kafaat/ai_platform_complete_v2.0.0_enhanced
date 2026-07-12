@@ -11,52 +11,27 @@
 from __future__ import annotations
 
 import main
+import soil_store
 from fastapi import APIRouter, Header, HTTPException
+
+from shared.contracts.soil import SoilObservation, SoilObservationQuality, SoilObservationSource
 
 router = APIRouter()
 
 
 @router.get("/soil/readings/{field_id}")
 async def get_readings(field_id: str, limit: int = 100, x_agent_token: str = Header(None)):
-    """Get soil sensor readings for a field.
-
-    أمان (طبقتان):
-    ١) توكن الخدمة (يمنع المجهول).
-    ٢) تفويض ملكيّة الحقل للمستأجِر عبر المصدر الموثوق (جدول fields، دالّة SECURITY
-       DEFINER): مالكٌ معروف ≠ مستأجِر الطلب (X-Tenant-Id الموثوق) ⇒ 403 (إغلاق
-       IDOR / تسريب عبر المستأجرين بمعرفة field_id). fail-closed: قاعدة مُهيّأة لكن
-       تعذّر إثبات الملكيّة ⇒ 503. بلا قاعدة (DB-less مقصود) أو الحقل غير موجود ⇒
-       لا حجب من القاعدة (يبقى توكن الخدمة، لا تُسرَّب بيانات حقل مجهول).
-    """
+    """Compatibility view over canonical soil_observations; soil_readings is no longer read SoR."""
     main._require_service_token(x_agent_token)
-    # تفويض ملكيّة الحقل (قبل أيّ استعلام قراءة) — fail-closed عند تعذّر الإثبات.
     await main._require_field_tenant(field_id)
+    tenant_id = main._REQ_TENANT.get()
+    if not tenant_id:
+        raise HTTPException(400, "X-Tenant-Id required")
     if not main._pool:
-        # fail-closed: قاعدة البيانات غير موصولة ⇒ 503 (لا 200 بجسم خطأ يخدع
-        # المستدعي ويُمرَّر للمكوّنات كأنّه نجاح). متّسق مع بقيّة الخدمات.
         raise HTTPException(503, "قاعدة البيانات غير متاحة — حاول لاحقاً")
-    async with main._pool.acquire() as conn:
-        # H5 FIX: أعمدة soil_readings الفعليّة (init_v8.sql) هي
-        # temperature_c/ph/ec_ds_m/nitrogen_mg_kg/... — نُسمّيها بأسماء الـAPI
-        # عبر alias. السابق كان يقرأ أعمدة غير موجودة (temperature/humidity/
-        # ph_level/ec_level/n_ppm...) ⇒ UndefinedColumnError على كلّ قراءة.
-        rows = await conn.fetch(
-            """SELECT sensor_id,
-                      temperature_c     AS temperature,
-                      moisture_pct,
-                      ph                AS ph_level,
-                      ec_ds_m           AS ec_level,
-                      nitrogen_mg_kg    AS n_ppm,
-                      phosphorus_mg_kg  AS p_ppm,
-                      potassium_mg_kg   AS k_ppm,
-                      recorded_at
-               FROM soil_readings
-               WHERE field_id = $1
-               ORDER BY recorded_at DESC LIMIT $2""",
-            field_id,
-            limit,
-        )
-    return [dict(r) for r in rows]
+    return await soil_store.canonical_sensor_readings(
+        main._pool, tenant_id=tenant_id, field_id=field_id, limit=limit
+    )
 
 
 @router.post("/soil/ingest")
@@ -76,6 +51,8 @@ async def ingest_reading(reading: main.SoilReading, x_agent_token: str = Header(
     # لا يُؤخَذ tenant_id من الجسم إطلاقاً (يُتجاهَل، ويُرفَض إن خالف المالك المُثبَت).
     resolved_tenant = owner or main._REQ_TENANT.get()
     body_tenant = (reading.tenant_id or "").strip() or None
+    if not resolved_tenant:
+        raise HTTPException(400, "X-Tenant-Id required for soil ingestion")
     if owner and body_tenant and body_tenant != owner:
         # الجسم يحمل tenant_id يخالف المالك الحقيقيّ للحقل ⇒ محاولة انتحال ⇒ رفض.
         raise HTTPException(409, "tenant_id في الجسم يخالف مالك الحقل — مرفوض")
@@ -92,8 +69,8 @@ async def ingest_reading(reading: main.SoilReading, x_agent_token: str = Header(
             INSERT INTO soil_readings
             (field_id, sensor_id, temperature_c, moisture_pct,
              ph, ec_ds_m, nitrogen_mg_kg, phosphorus_mg_kg, potassium_mg_kg,
-             recorded_at, tenant_id)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,NOW(),$10)
+             recorded_at, tenant_id, depth_cm)
+            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
             ON CONFLICT DO NOTHING
         """,
             reading.field_id,
@@ -105,6 +82,54 @@ async def ingest_reading(reading: main.SoilReading, x_agent_token: str = Header(
             reading.n_ppm,
             reading.p_ppm,
             reading.k_ppm,
-            resolved_tenant,  # مالك الحقل المُثبَت/الترويسة الموثوقة — لا قيمة الجسم
+            reading.observed_at,
+            resolved_tenant,
+            reading.depth_cm,
         )
-    return {"status": "ingested"}
+
+    # Canonical dual-write: one immutable observation per property. Legacy wide row remains
+    # compatibility-only during migration; soil_observations is the governed evidence store.
+    property_values = {
+        "soil_temperature": (reading.temperature, "degC"),
+        "soil_moisture": (reading.moisture_pct, "%"),
+        "ph": (reading.ph_level, "pH"),
+        "ec": (reading.ec_level, "dS/m"),
+        "nitrogen": (reading.n_ppm, "mg/kg"),
+        "phosphorus": (reading.p_ppm, "mg/kg"),
+        "potassium": (reading.k_ppm, "mg/kg"),
+    }
+    canonical_ids = []
+    base_key = (
+        reading.idempotency_key or f"legacy:{reading.sensor_id}:{reading.observed_at.isoformat()}"
+    )
+    for property_name, (value, unit) in property_values.items():
+        if value is None:
+            continue
+        observation = SoilObservation(
+            tenant_id=str(resolved_tenant),
+            field_id=reading.field_id,
+            property=property_name,
+            value=float(value),
+            unit=unit,
+            depth_from_cm=0,
+            depth_to_cm=reading.depth_cm,
+            observed_at=reading.observed_at,
+            source_type=SoilObservationSource.SENSOR,
+            source_id=reading.sensor_id,
+            quality_status=SoilObservationQuality.UNCALIBRATED,
+            quality_flags=["legacy_wide_ingest", "calibration_not_provided"],
+            confidence=0.65,
+            idempotency_key=f"{base_key}:{property_name}",
+            provenance={"legacy_contract": "SoilReading.v9.1"},
+        )
+        await soil_store.persist_observation(main._pool, observation)
+        canonical_ids.append(observation.observation_id)
+    snapshot = await soil_store.rebuild_snapshot_locked(
+        main._pool, tenant_id=str(resolved_tenant), field_id=reading.field_id
+    )
+    return {
+        "status": "ingested",
+        "canonical_observation_ids": canonical_ids,
+        "profile_id": snapshot.profile_id,
+        "profile_hash": snapshot.profile_hash,
+    }

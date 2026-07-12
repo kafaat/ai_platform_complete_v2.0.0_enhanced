@@ -1,0 +1,52 @@
+"""Canonical soil contracts shared by producers and governed consumers."""
+
+from .observation import (
+    SOIL_OBSERVATION_CONTRACT_VERSION,
+    SoilObservation,
+    SoilObservationQuality,
+    SoilObservationSource,
+)
+from .profile import (
+    SOIL_PROFILE_CONTRACT_VERSION,
+    SoilEvidenceClass,
+    SoilEvidenceLevel,
+    SoilLayer,
+    SoilModelInputs,
+    SoilProfileSnapshot,
+    SoilProfileStatus,
+    SoilPropertyValue,
+    SoilQualityGate,
+    canonical_soil_profile_hash,
+    validate_soil_profile_snapshot,
+)
+
+__all__ = [
+    "SOIL_OBSERVATION_CONTRACT_VERSION",
+    "SoilObservation",
+    "SoilObservationQuality",
+    "SoilObservationSource",
+    "SOIL_PROFILE_CONTRACT_VERSION",
+    "SoilEvidenceClass",
+    "SoilEvidenceLevel",
+    "SoilLayer",
+    "SoilModelInputs",
+    "SoilProfileSnapshot",
+    "SoilProfileStatus",
+    "SoilPropertyValue",
+    "SoilQualityGate",
+    "canonical_soil_profile_hash",
+    "validate_soil_profile_snapshot",
+    "SoilUseDecision",
+    "validate_soil_use",
+    "LOW_RISK_USES",
+    "MEDIUM_RISK_USES",
+    "HIGH_RISK_USES",
+]
+
+from .use_policy import (
+    HIGH_RISK_USES,
+    LOW_RISK_USES,
+    MEDIUM_RISK_USES,
+    SoilUseDecision,
+    validate_soil_use,
+)

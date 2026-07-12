@@ -10,6 +10,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
+from datetime import UTC, datetime
 
 import asyncpg
 from fastapi import FastAPI, Header, HTTPException
@@ -146,6 +147,10 @@ class SoilReading(BaseModel):
     n_ppm: float | None = Field(None, ge=0)
     p_ppm: float | None = Field(None, ge=0)
     k_ppm: float | None = Field(None, ge=0)
+    depth_cm: float = Field(30, gt=0, le=500)
+    observed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    idempotency_key: str | None = Field(default=None, min_length=1, max_length=256)
+    # deprecated compatibility only; authoritative tenant comes from X-Tenant-Id/field owner.
     tenant_id: str = ""
 
 

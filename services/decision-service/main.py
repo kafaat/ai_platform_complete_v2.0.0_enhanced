@@ -84,6 +84,8 @@ from persistence import (
 )
 from pydantic import BaseModel, Field
 
+from shared.contracts.soil import validate_soil_use
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -382,6 +384,11 @@ async def readyz() -> dict[str, Any]:
         "enforcement": {
             "auth_token_configured": bool(os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()),
             "strict_worker_tenants": strict_worker_tenants_enabled(),
+            "canonical_soil_profile_required": (
+                os.getenv("DECISION_REQUIRE_SOIL_PROFILE", "").strip().lower()
+                in {"1", "true", "yes", "on"}
+                or os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+            ),
         },
         "mode": "system-of-record" if sor_on else "interim-mirror",
         "db_readiness": db,
@@ -679,6 +686,39 @@ async def record_dispatch(
     payload: DispatchDecisionIn, x_tenant_id: str | None = Header(default=None)
 ) -> dict[str, Any]:
     tenant = _tenant(x_tenant_id)
+    # Soil evidence gate: soil-sensitive dispatches require a sufficient canonical soil
+    # profile (default-off in dev; always on in production). Fail-closed 422 when insufficient.
+    command = payload.command or {}
+    soil_sensitive_use = str(command.get("soil_use") or payload.action_type or "").strip().lower()
+    soil_profile = command.get("soil_profile")
+    require_soil_dispatch = (
+        os.getenv("DECISION_REQUIRE_SOIL_EVIDENCE_GATE", "").strip().lower()
+        in {"1", "true", "yes", "on"}
+        or os.getenv("SAHOOL_ENV", "development").strip().lower() == "production"
+    )
+    soil_actions = {
+        "fertilizer_rate",
+        "gypsum_rate",
+        "leaching_requirement",
+        "subsurface_drainage_design",
+        "high_risk_reclamation",
+        "automatic_irrigation_execution",
+        "irrigation_schedule",
+        "crop_selection",
+        "salinity_management_guidance",
+    }
+    if require_soil_dispatch and soil_sensitive_use in soil_actions:
+        gate = validate_soil_use(soil_profile, soil_sensitive_use)
+        if not gate.allowed:
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "code": gate.code,
+                    "reasons": list(gate.reasons),
+                    "required_rank": gate.required_rank,
+                    "actual_rank": gate.actual_rank,
+                },
+            )
     did = "disp_" + uuid4().hex[:16]
     if sor_enabled():
         await persist_dispatch_decision(tenant_id=tenant, payload=payload, decision_id=did)

@@ -13,6 +13,7 @@ ARG PIP_TRUSTED_HOST=
 ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
     PIP_TRUSTED_HOST=${PIP_TRUSTED_HOST}
 RUN pip install --no-cache-dir --timeout 300 --retries 10 -r /tmp/requirements.txt
+COPY shared/ /app/shared/
 COPY services/decision-service/ /app/
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool

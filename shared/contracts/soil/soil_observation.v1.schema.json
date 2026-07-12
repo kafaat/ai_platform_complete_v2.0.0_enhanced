@@ -1,0 +1,199 @@
+{
+  "$defs": {
+    "SoilObservationQuality": {
+      "enum": [
+        "accepted",
+        "suspect",
+        "rejected",
+        "uncalibrated"
+      ],
+      "title": "SoilObservationQuality",
+      "type": "string"
+    },
+    "SoilObservationSource": {
+      "enum": [
+        "sensor",
+        "laboratory",
+        "field",
+        "smartphone",
+        "soilgrids",
+        "remote_sensing",
+        "analog_fields",
+        "model"
+      ],
+      "title": "SoilObservationSource",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contract_version": {
+      "default": "soil-observation.v1",
+      "title": "Contract Version",
+      "type": "string"
+    },
+    "observation_id": {
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "tenant_id": {
+      "minLength": 1,
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "field_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Field Id",
+      "type": "string"
+    },
+    "zone_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Zone Id"
+    },
+    "property": {
+      "maxLength": 96,
+      "minLength": 1,
+      "title": "Property",
+      "type": "string"
+    },
+    "value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Value"
+    },
+    "unit": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Unit"
+    },
+    "depth_from_cm": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Depth From Cm",
+      "type": "number"
+    },
+    "depth_to_cm": {
+      "default": 30,
+      "exclusiveMinimum": 0,
+      "title": "Depth To Cm",
+      "type": "number"
+    },
+    "observed_at": {
+      "format": "date-time",
+      "title": "Observed At",
+      "type": "string"
+    },
+    "received_at": {
+      "format": "date-time",
+      "title": "Received At",
+      "type": "string"
+    },
+    "source_type": {
+      "$ref": "#/$defs/SoilObservationSource"
+    },
+    "source_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Id"
+    },
+    "procedure_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Procedure Id"
+    },
+    "calibration_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Calibration Id"
+    },
+    "quality_status": {
+      "$ref": "#/$defs/SoilObservationQuality",
+      "default": "accepted"
+    },
+    "quality_flags": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Quality Flags",
+      "type": "array"
+    },
+    "confidence": {
+      "default": 1.0,
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "idempotency_key": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "title": "Provenance",
+      "type": "object"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "field_id",
+    "property",
+    "value",
+    "observed_at",
+    "source_type",
+    "idempotency_key"
+  ],
+  "title": "SoilObservation",
+  "type": "object"
+}

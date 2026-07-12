@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e35b81a5b898eb5f202309e3ab981916f9b82800b9f220a33900e21eea9833c"
+          "content": "90514c21466e3213171321a9eb551b5fe02089edaa1b40963bbbb1159a7b924a"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f44d941d78dc8106ad1e9c1643a7f0ab808146ae22f0dc685c76c03779efaaa3"
+          "content": "3f3d31027497cdae36c5416c46b72decbaab7a75e5d1ad459d83be6bdc500062"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5885,7 +5885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09ae4877623f01de2d3e2f1922ad563526b7abac2ef945effab247ad7ccaabf5"
+          "content": "cc41524d89e81e8b03bf688bbf196faa10b02df953261af4cb31afb54939dfdb"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -8175,7 +8175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "976bf2092481ea8cccc29d1c6222f54daee63df0a6b192f38e5b31e54e6f9462"
+          "content": "cb9609083b64080e4d7246dfb1e02cb251ea65a837fd4e86604781f7c8f2748d"
         }
       ],
       "name": "services/agriai-engine/agronomic_context.py",
@@ -8275,7 +8275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88fb08a069eb6971268c27bb049664b4bbb439ec0be25d644aa68c15e10674cd"
+          "content": "bd93fc3801a71636c27663abb1f57586c979c4642ba5dbdbcdfc9c402da060a0"
         }
       ],
       "name": "services/agriai-engine/tests/test_agronomic_context_contract.py",
@@ -8995,7 +8995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57a00954d2487f2a7679fd2760e7acb8f2f898ae301f21123c8e8e4f9adeca4c"
+          "content": "968e9b6f382a03319229d389728c72a47dd4d2ae40caec91c76bd98023c276a4"
         }
       ],
       "name": "services/decision-service/Dockerfile",
@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f957aef6e3d0a09827976f5f8125b190682c9e40d3aed98d8b23d86ce9a618d7"
+          "content": "2a34e7a27279f7207469975487824523b44b87cd6b9fabcf90c324c9d0fc015a"
         }
       ],
       "name": "services/decision-service/agronomic_context/point_in_time.py",
@@ -9065,7 +9065,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4200d6b1a0c77e1803aa6d213636cf232a332758013fbcc129a3be30f75a8b09"
+          "content": "1e970c14fd47458402e2fa73ad727bbaf89cb54bbbc0614e0278bee6ad904432"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -15465,7 +15465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f61b4ce7226c475b089a39cbc7ef3f60f54b560acf82c90cecf22f618bd0c73f"
+          "content": "ba84b47cae86f2f48b0f20d9655a23dd9a9db090ccbfc904420110c3bc5b0852"
         }
       ],
       "name": "services/sahool-platform/api/routers/soil_sampling.py",
@@ -21765,7 +21765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "617c44c54f730f2aad87967a002ffe6f933ecbc0bcdd7e4b2f5ba6c0cf47bb02"
+          "content": "01f821e9c1d9f0ed267cb8cfac6fc364294a0a660530a86c15946309188f1267"
         }
       ],
       "name": "services/sahool-platform/tests/test_lab_sampling_router.py",
@@ -23835,7 +23835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53462443b00ccfe1b714c1ed0c2ece57fd6791dbea1bf3a231ffaa5d7279b891"
+          "content": "aab185a436714888d039317728ea7f293c74f1b6c91899b60d4041b1ca9c8f34"
         }
       ],
       "name": "services/soil-service/main.py",
@@ -23905,7 +23905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a3a384becbd7e7e88add62c6f95840cf015ddb3ea50b889fca95608ebae7e46"
+          "content": "84391646cbd2f572d1bc1360c788896b21688bb6f4aa09c322fc9b01b2e4e52e"
         }
       ],
       "name": "services/soil-service/routers/readings.py",
