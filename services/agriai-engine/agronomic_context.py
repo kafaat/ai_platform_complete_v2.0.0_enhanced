@@ -8,6 +8,8 @@ import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import agronomic_adapters as adapters
+
 CONTRACT_VERSION = "agronomic-context.v2"
 REQUIRED_CONTEXT = (
     "field_id",
@@ -102,7 +104,7 @@ def _lineage_integrity(context: dict[str, Any]) -> tuple[bool, list[str]]:
         issues.append("vegetation_snapshot.snapshot_hash_missing")
     manifest = context.get("feature_manifest") or {}
     if (
-        not manifest.get("manifest_id")
+        not (manifest.get("manifest_id") or manifest.get("id"))
         or not manifest.get("version")
         or not manifest.get("features")
     ):
@@ -147,19 +149,47 @@ def validate_context(context: dict[str, Any], *, strict: bool) -> dict[str, Any]
 
 
 def normalized_engine_inputs(context: dict[str, Any]) -> tuple[dict, dict, dict, dict]:
-    crop = dict(context.get("crop_parameters") or {})
-    crop.setdefault("crop_id", context.get("crop_id"))
-    crop.setdefault("cultivar_id", context.get("cultivar_id"))
-    crop.setdefault("growth_stage", context.get("growth_stage"))
-    weather = dict(context.get("weather_snapshot") or {})
+    """Translate governed domain snapshots into model inputs.
+
+    Where a snapshot carries scientific parameters, the strict adapters
+    validate them and fail closed on missing/invalid values (crop card,
+    soil hydraulics, daily weather series, irrigation efficiency). Sparse
+    contexts without those parameters keep the legacy pass-through shape.
+    """
+    crop_card = dict(context.get("crop_card") or context.get("crop_parameters") or {})
+    if crop_card.get("version") is not None:
+        crop_card.setdefault("crop_id", context.get("crop_id"))
+        crop_card.setdefault("cultivar_id", context.get("cultivar_id"))
+        crop = adapters.crop_card_to_model(crop_card)
+        crop.setdefault("growth_stage", context.get("growth_stage"))
+    else:
+        crop = crop_card
+        crop.setdefault("crop_id", context.get("crop_id"))
+        crop.setdefault("cultivar_id", context.get("cultivar_id"))
+        crop.setdefault("growth_stage", context.get("growth_stage"))
+
+    weather_raw = dict(context.get("weather_snapshot") or {})
+    weather = (
+        adapters.weather_series_to_model(weather_raw) if weather_raw.get("daily") else weather_raw
+    )
     weather.setdefault("climate_profile", context.get("climate_profile") or {})
-    soil = dict(context.get("soil_profile") or {})
+
+    soil_raw = dict(context.get("soil_profile") or {})
+    soil = (
+        adapters.soil_profile_to_model(soil_raw)
+        if soil_raw.get("field_capacity") is not None
+        else soil_raw
+    )
     soil.setdefault("water_quality", context.get("water_quality_snapshot") or {})
+
     irrigation = dict(context.get("irrigation_profile") or {})
+    history = dict(context.get("history_snapshot") or {})
     management = dict(context.get("agromanagement") or {})
-    if irrigation.get("season_applied_mm") is not None:
+    if irrigation.get("application_efficiency") is not None:
+        management.update(adapters.irrigation_to_model(irrigation, history))
+    elif irrigation.get("season_applied_mm") is not None:
         management.setdefault("irrigation_mm", irrigation["season_applied_mm"])
     management.setdefault("irrigation_profile", irrigation)
-    management.setdefault("history_snapshot", context.get("history_snapshot") or {})
+    management.setdefault("history_snapshot", history)
     management.setdefault("feature_manifest", context.get("feature_manifest") or {})
     return crop, weather, soil, management

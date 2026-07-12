@@ -101,7 +101,12 @@ def _flag_enabled(value: str | None, *, default: bool) -> bool:
 
 
 FEATURE_SENTINEL_DB_FIELDS = _flag_enabled(os.getenv("FEATURE_SENTINEL_DB_FIELDS"), default=False)
-ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(os.getenv("ALLOW_LEGACY_FIELD_REGISTRY"), default=True)
+# production-safe default: the synthetic legacy field registry is disabled in production
+# unless explicitly re-enabled (real fields must come from platform/DB sources).
+ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(
+    os.getenv("ALLOW_LEGACY_FIELD_REGISTRY"),
+    default=os.getenv("SAHOOL_ENV", "development").lower() != "production",
+)
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", "").rstrip("/")
 
 security = HTTPBearer(auto_error=False)
@@ -852,9 +857,12 @@ async def run_analysis(
             if _rv is not None:
                 indices[_vk] = round(_rv["mean"], 3)
                 index_sources[_vk] = "raster-service"
+                _vpr = _rv.get("valid_pixel_ratio")
                 index_quality[_vk] = {
                     "quality_score": _rv.get("quality_score"),
-                    "valid_pixel_ratio": _rv.get("valid_pixel_ratio"),
+                    "valid_pixel_ratio": _vpr,
+                    # honest unit conversion only (ratio 0..1 -> percent 0..100); never invented.
+                    "valid_pixel_pct": round(float(_vpr) * 100.0, 3) if _vpr is not None else None,
                     "provenance": _rv.get("provenance"),
                     "data_available_at": _rv.get("data_available_at"),
                 }
@@ -883,6 +891,7 @@ async def run_analysis(
             **(
                 {
                     "quality_score": index_quality[k].get("quality_score"),
+                    "valid_pixel_pct": index_quality[k].get("valid_pixel_pct"),
                     "provenance": index_quality[k].get("provenance"),
                     "data_available_at": index_quality[k].get("data_available_at"),
                     **(

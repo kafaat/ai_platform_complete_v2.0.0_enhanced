@@ -8135,7 +8135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fedc160d9d4aa2ff972ae3a9bc5f39b081ec0f3e8a356f6bf591df0d4ece45a3"
+          "content": "976bf2092481ea8cccc29d1c6222f54daee63df0a6b192f38e5b31e54e6f9462"
         }
       ],
       "name": "services/agriai-engine/agronomic_context.py",
@@ -8215,7 +8215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "049c94904d512e471f2f449a5117183d8e92a4a15bb91e767512f82ea5d2bf00"
+          "content": "11c897df1f94c2f94cbbf7f30cdb87b36c5b83da3beb6208e060cce79dfec6ff"
         }
       ],
       "name": "services/agriai-engine/wofost_adapter.py",
@@ -23905,7 +23905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00265471b7bb91f5688cd88ca7575624b3cbabb37fb052d515a7f9975b1f51b6"
+          "content": "f139dbdf230d43f5f79d11da8ee135b24ae63a64b8784b6c88c88a92ddb59235"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -23925,7 +23925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96e3a8d175ae906fd42a9d291c9341084fd6fcad80b1bafddab5cfcce574b6ad"
+          "content": "06e6863c7630f041efb39008f788593038fe51b9457e6afb7ea7e74aa1beef4e"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -23965,7 +23965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa369c3accbb5f5ea99dcb6e54a05e7079aebe9df4c2d8e028e8dc5827704359"
+          "content": "70e85b4d4122d3abafefc5cb32b38072acc9752b76af535f6ab54712e250dcd3"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -24005,7 +24005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1a2a85a2952188b851f564dc1ad088dd06b68c99326f74e058956f49643e1de"
+          "content": "2802c9a318c1b1afa531e0149b1b2c6d731a90d14c3954ea83a9660b5f840b51"
         }
       ],
       "name": "services/vegetation-analysis-service/test_vegetation_production_contract.py",
@@ -24025,7 +24025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "494039759cafeacb82eeac545f046fee1d0df18cf3b02e5b06d43fbb39b17385"
+          "content": "d1fd794b158d19b5532af6f2d177dc1527bd9cee981a9322dd424220979c0066"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_contracts.py",
@@ -24035,7 +24035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8a4d7a67dbbe597809c0424c79295e33ac7f0dbd3630511343ca744b5552cbf"
+          "content": "8379883a542b8cf4e5abb358f388f7d62da93b4edffa0235abddbc1a49cebe60"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

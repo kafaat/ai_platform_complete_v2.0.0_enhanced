@@ -22,6 +22,7 @@ COPY services/vegetation-analysis-service/routers/ /app/routers/
 # عند الإقلاع ⇒ تعطّل الخدمة. نسخها إلزاميّ (نفس درس router_registry).
 COPY services/vegetation-analysis-service/vegetation_runtime.py /app/vegetation_runtime.py
 COPY services/vegetation-analysis-service/vegetation_contracts.py /app/vegetation_contracts.py
+COPY services/vegetation-analysis-service/indicator_registry.py /app/indicator_registry.py
 RUN useradd -m sahool && chown -R sahool:sahool /app
 USER sahool
 HEALTHCHECK --interval=20s --timeout=5s CMD curl -sf http://localhost:8000/healthz || exit 1

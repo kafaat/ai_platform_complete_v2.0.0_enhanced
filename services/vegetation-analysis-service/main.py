@@ -71,6 +71,11 @@ except ImportError:
 
 # ── Vegetation runtime (P1 decomposition) ───────────────────────
 import vegetation_runtime as _vegetation_runtime  # noqa: E402
+
+# كتالوج المؤشّرات القانونيّ — يُعاد تصديره هنا لأنّ راوترات التفكيك تصل عبر main.X
+# (routers/analysis.py: /v1/indicators/registry*). النمط نفسه المتّبع أعلاه.
+from indicator_registry import INDICATORS, REGISTRY_VERSION  # noqa: E402,F401
+from indicator_registry import definition as indicator_definition  # noqa: E402,F401
 from vegetation_runtime import (  # noqa: E402,F401
     _RASTER_REAL_INDEX,
     ALLOW_LEGACY_FIELD_REGISTRY,

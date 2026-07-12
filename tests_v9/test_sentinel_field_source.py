@@ -59,10 +59,15 @@ def test_feature_flag_off_by_default():
         r"FEATURE_SENTINEL_DB_FIELDS\s*=\s*_flag_enabled\(.*default=False",
         src,
     ), "FEATURE_SENTINEL_DB_FIELDS يجب أن يكون off افتراضيّاً"
+    # منذ إغلاق veg-agriai: الارتداد التركيبيّ مسموح افتراضيّاً في التطوير فقط —
+    # وفي الإنتاج (SAHOOL_ENV=production) يُعطَّل ما لم يُفعَّل صراحةً.
     assert re.search(
-        r"ALLOW_LEGACY_FIELD_REGISTRY\s*=\s*_flag_enabled\(.*default=True",
+        r"ALLOW_LEGACY_FIELD_REGISTRY\s*=\s*_flag_enabled\(",
         src,
-    ), "ALLOW_LEGACY_FIELD_REGISTRY يجب أن يسمح بالارتداد افتراضيّاً"
+    ), "ALLOW_LEGACY_FIELD_REGISTRY يجب أن يمرّ عبر _flag_enabled"
+    assert 'default=os.getenv("SAHOOL_ENV", "development").lower() != "production"' in src, (
+        "ALLOW_LEGACY_FIELD_REGISTRY يجب أن يكون production-safe (off في الإنتاج افتراضيّاً)"
+    )
 
 
 def test_db_loader_is_failsoft_via_platform_api():

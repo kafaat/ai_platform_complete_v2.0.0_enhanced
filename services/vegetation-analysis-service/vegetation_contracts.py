@@ -7,6 +7,8 @@ import json
 from datetime import UTC, datetime
 from typing import Any
 
+from indicator_registry import build_feature_manifest, validate_observation
+
 CONTRACT_VERSION = "vegetation-snapshot.v2"
 
 
@@ -33,21 +35,12 @@ def quality_gate(
     indices: dict[str, dict[str, Any]], *, min_quality: float = 0.60
 ) -> dict[str, Any]:
     ndvi = indices.get("ndvi") or {}
-    reasons: list[str] = []
-    if ndvi.get("estimated") is not False or ndvi.get("source") != "raster-service":
-        reasons.append("ndvi_not_authoritative")
-    value = ndvi.get("value")
-    if not isinstance(value, (int, float)) or not -1.0 <= float(value) <= 1.0:
-        reasons.append("ndvi_value_invalid")
+    # single authority check: registry validation (source/estimated/range/provenance
+    # incl. qa_mask_version + data availability + valid-pixel threshold).
+    reasons: list[str] = validate_observation("ndvi", ndvi)
     quality = ndvi.get("quality_score")
     if not isinstance(quality, (int, float)) or float(quality) < min_quality:
         reasons.append("ndvi_quality_below_threshold")
-    provenance = ndvi.get("provenance") or {}
-    for key in ("scene_id", "acquisition_datetime", "algorithm_version"):
-        if not provenance.get(key):
-            reasons.append(f"ndvi_provenance_{key}_missing")
-    if ndvi.get("data_available_at") is None and provenance.get("data_available_at") is None:
-        reasons.append("ndvi_data_available_at_missing")
     return {
         "executable": not reasons,
         "reasons": reasons,
@@ -83,5 +76,6 @@ def build_snapshot(
         "source": source,
         "indices": indices,
         "quality_gate": quality,
+        "feature_manifest": build_feature_manifest(indices),
     }
     return {**body, "snapshot_hash": canonical_hash(body), "created_at": now}

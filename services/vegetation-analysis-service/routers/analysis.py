@@ -95,7 +95,12 @@ async def current_ndvi(field_id: str, token: str = Depends(main.security)):
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
     analysis = await main.run_analysis(field_id, tenant_id, date_from, date_to)
-    return main._current_ndvi_payload(field_id, field, analysis)
+    payload = main._current_ndvi_payload(field_id, field, analysis)
+    # production real-only mode: an estimated "current NDVI" must not masquerade
+    # as an operational reading — fail closed instead of serving a simulation.
+    if main.VEGETATION_REAL_ONLY and not payload.get("real_data"):
+        raise HTTPException(424, "authoritative current NDVI is required in production")
+    return payload
 
 
 @router.get("/v1/all_fields")
@@ -111,6 +116,12 @@ async def all_fields(token: str = Depends(main.security)):
     tenant_id = main._tenant_from_claims(claims)
     date_to = date.today().isoformat()
     date_from = (date.today() - timedelta(days=30)).isoformat()
+    # production real-only mode: FIELD_REGISTRY is a synthetic enumeration catalog;
+    # a tenant-scoped platform listing does not exist here yet — honest 501.
+    if main.VEGETATION_REAL_ONLY:
+        raise HTTPException(
+            501, "all_fields requires a tenant-scoped platform field listing in production"
+        )
     fields_out = []
     for fid in main.FIELD_REGISTRY:
         field = await main.load_field(fid, tenant_id) or {}
@@ -136,3 +147,19 @@ async def all_fields(token: str = Depends(main.security)):
         "real_data": False,
         "generated_at": main.datetime.now(main.UTC).isoformat(),
     }
+
+
+@router.get("/v1/indicators/registry")
+async def indicators_registry(token: str = Depends(main.security)):
+    """كتالوج المؤشّرات القانونيّ (observed/derived + الأهليّة + النطاقات) للمستهلكين."""
+    main._verify_claims(token)
+    return {"version": main.REGISTRY_VERSION, "indicators": main.INDICATORS}
+
+
+@router.get("/v1/indicators/registry/{name}")
+async def indicator_registry_item(name: str, token: str = Depends(main.security)):
+    main._verify_claims(token)
+    try:
+        return main.indicator_definition(name)
+    except KeyError:
+        raise HTTPException(404, "unknown indicator") from None

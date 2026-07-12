@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 # ── حارس استيراد pcse (تبعيّة ثقيلة اختياريّة — ليست تبعيّة صلبة) ──
@@ -284,11 +285,25 @@ def simulate(
     soil = soil or {}
     agromanagement = agromanagement or {}
 
+    # وضع الإنتاج: المحاكاة العلميّة (PCSE/WOFOST) بمدخلات كاملة إلزاميّة — البديل
+    # الحتميّ تطويريّ فقط. الفشل هنا مُغلَق وصريح، لا استبدال صامت.
+    production_mode = os.getenv("AGRIAI_PRODUCTION_MODE", "0").lower() in {"1", "true", "yes", "on"}
+    sufficient = _inputs_sufficient_for_pcse(crop, weather, soil, agromanagement)
+    if production_mode and (not _PCSE_AVAILABLE or not sufficient):
+        reasons = []
+        if not _PCSE_AVAILABLE:
+            reasons.append("pcse_unavailable")
+        if not sufficient:
+            reasons.append("scientific_inputs_incomplete")
+        raise RuntimeError("agriai_production_simulation_unavailable:" + ",".join(reasons))
+
     result: dict[str, Any] | None = None
-    if _PCSE_AVAILABLE and _inputs_sufficient_for_pcse(crop, weather, soil, agromanagement):
+    if _PCSE_AVAILABLE and sufficient:
         try:  # pragma: no cover - يتطلّب pcse
             result = _pcse_simulate(crop, weather, soil, agromanagement)
-        except Exception:  # noqa: BLE001 - fail-safe: البديل الحتميّ يضمن استجابة موحّدة
+        except Exception as exc:  # noqa: BLE001 - fail-safe في التطوير فقط
+            if production_mode:
+                raise RuntimeError("pcse_simulation_failed") from exc
             result = None
     if result is None:
         result = _fallback_simulate(crop, weather, soil, agromanagement)

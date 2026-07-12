@@ -4,6 +4,8 @@ PROV = {
     "scene_id": "S2_X",
     "acquisition_datetime": "2026-07-01T00:00:00Z",
     "algorithm_version": "bandmath-v3",
+    "qa_mask_version": "scl-v1",
+    "valid_pixel_pct": 85.0,
     "data_available_at": "2026-07-01T01:00:00Z",
 }
 
@@ -18,6 +20,7 @@ def test_authoritative_ndvi_requires_full_provenance():
         "estimated": False,
         "value": 0.7,
         "quality_score": 0.9,
+        "valid_pixel_pct": 85.0,
         "provenance": PROV,
     }
     assert quality_gate({"ndvi": ndvi})["executable"] is True
@@ -31,9 +34,22 @@ def test_missing_scene_blocks_execution():
         "estimated": False,
         "value": 0.7,
         "quality_score": 0.9,
+        "valid_pixel_pct": 85.0,
         "provenance": p,
     }
     assert "ndvi_provenance_scene_id_missing" in quality_gate({"ndvi": ndvi})["reasons"]
+
+
+def test_low_valid_pixel_share_blocks_execution():
+    ndvi = {
+        "source": "raster-service",
+        "estimated": False,
+        "value": 0.7,
+        "quality_score": 0.9,
+        "valid_pixel_pct": 30.0,
+        "provenance": PROV,
+    }
+    assert "ndvi_valid_pixel_pct_below_threshold" in quality_gate({"ndvi": ndvi})["reasons"]
 
 
 def test_lai_is_explicitly_derived():

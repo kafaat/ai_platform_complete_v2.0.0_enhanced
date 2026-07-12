@@ -7,9 +7,11 @@ checks = {
         ROOT / "services/vegetation-analysis-service/vegetation_contracts.py",
         "vegetation-snapshot.v2",
     ),
+    # the authority check moved to the canonical registry (validate_observation);
+    # the gate asserts the contracts module delegates to it.
     "full provenance gate": (
         ROOT / "services/vegetation-analysis-service/vegetation_contracts.py",
-        "provenance_{key}_missing",
+        "validate_observation",
     ),
     "real-only raw-band suppression": (
         ROOT / "services/vegetation-analysis-service/vegetation_runtime.py",
