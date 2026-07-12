@@ -1706,7 +1706,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1192,
+    "line": 1238,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "function": "field_terrain"
@@ -1714,7 +1714,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1241,
+    "line": 1287,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"
@@ -4370,7 +4370,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/field_workspace_imagery.py",
-    "line": 73,
+    "line": 77,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/imagery/timeline",
     "function": "field_imagery_timeline_facade"
