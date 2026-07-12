@@ -63,6 +63,97 @@ export interface DecisionReviewResult {
   replay?: boolean;
 }
 
+// ── Phase E: الدليل الزراعيّ الكامل خلف قرار (قراءة آمِرة من decision-service) ──
+
+export interface EvidenceManifestEntry {
+  name: string;
+  value: unknown;
+  unit?: string | null;
+  source_service: string;
+  source_snapshot_id?: string | null;
+  observed_at: string;
+  available_at: string;
+  quality_status: string;
+  formula_version?: string | null;
+}
+
+export interface DecisionAgronomicEvidence {
+  authoritative: true;
+  persisted: true;
+  read_only: true;
+  decision_id: string;
+  decision: {
+    decision_id: string;
+    field_id?: string | null;
+    season_id?: string | null;
+    crop_id?: string | null;
+    cultivar_id?: string | null;
+    decision_type?: string | null;
+    review_state?: string | null;
+    context_contract_version?: string | null;
+    created_at?: string | null;
+    agronomic_context_snapshot_id?: string | null;
+    field_historical_context_snapshot_id?: string | null;
+    feature_manifest_id?: string | null;
+    feature_manifest_hash?: string | null;
+    vegetation_snapshot_id?: string | null;
+  };
+  context_snapshot?: {
+    snapshot_id: string;
+    as_of_time: string;
+    schema_version: string;
+    composer_version: string;
+    context: Record<string, unknown>;
+    content_hash: string;
+  } | null;
+  historical_snapshot?: {
+    historical_snapshot_id: string;
+    history_from: string;
+    history_to: string;
+    as_of_time: string;
+    history: Record<string, unknown>;
+    content_hash: string;
+  } | null;
+  feature_manifest?: {
+    feature_manifest_id: string;
+    as_of_time: string;
+    decision_cutoff_time: string;
+    content_hash: string;
+    hash_matches_decision: boolean;
+    entries: EvidenceManifestEntry[];
+  } | null;
+  vegetation_snapshot?: {
+    snapshot_id: string;
+    contract_version: string;
+    snapshot_hash: string;
+    acquisition_at: string;
+    data_available_at: string;
+    quality_gate: Record<string, unknown>;
+  } | null;
+  evidence_complete: boolean;
+}
+
+const QUALITY_COLOR: Record<string, string> = {
+  verified: '#86efac',
+  accepted_with_warning: '#fde68a',
+  stale: '#fdba74',
+  missing: '#fca5a5',
+  rejected: '#fca5a5',
+};
+
+export function qualityColor(status: string | null | undefined): string {
+  return status ? (QUALITY_COLOR[status] ?? '#64748b') : '#64748b';
+}
+
+/** Point-in-time honesty at a glance: an entry is safe when it was AVAILABLE at/before the cutoff. */
+export function entryWithinCutoff(entry: EvidenceManifestEntry, cutoff: string): boolean {
+  return Date.parse(entry.available_at) <= Date.parse(cutoff);
+}
+
+export function shortHash(hash: string | null | undefined, length = 12): string {
+  return hash ? `${hash.slice(0, length)}…` : '—';
+}
+
 const RISK_COLOR: Record<string, string> = {
   low: '#86efac',
   medium: '#fde68a',

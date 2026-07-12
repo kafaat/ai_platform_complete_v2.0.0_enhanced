@@ -52,6 +52,7 @@ from persistence import (
     create_runtime_schedule,
     get_active_model_state,
     get_context_snapshot,
+    get_decision_agronomic_evidence,
     list_decision_records,
     list_review_queue,
     list_runtime_work,
@@ -865,6 +866,24 @@ def reconciled_outcomes(
             "by_kind": {},
         },
     }
+
+
+@app.get("/v1/decisions/{decision_id}/agronomic-evidence")
+async def decision_agronomic_evidence(
+    decision_id: str, x_tenant_id: str | None = Header(default=None)
+) -> dict[str, Any]:
+    """Phase E: authoritative read of the decision's full agronomic evidence chain.
+
+    Fail-closed: evidence is only meaningful from the system of record — mirror mode
+    returns 503 instead of an empty payload that could be mistaken for "no evidence".
+    """
+    tenant = _tenant(x_tenant_id)
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    result = await get_decision_agronomic_evidence(tenant_id=tenant, decision_id=decision_id)
+    if result.get("status") == "not_found":
+        raise HTTPException(status_code=404, detail="decision not found")
+    return {"tenant_id": tenant, "decision_id": decision_id, **result}
 
 
 @app.get("/v1/decisions/{decision_id}/lineage")

@@ -1047,6 +1047,11 @@
       "evidence": "/api/v1/decisions/review-queue"
     },
     {
+      "endpoint": "/api/v1/decisions/{decision_id}/agronomic-evidence",
+      "audience": "manager",
+      "evidence": "/agronomic-evidence"
+    },
+    {
       "endpoint": "/api/v1/decisions/{decision_id}/review",
       "audience": "manager",
       "evidence": "/api/v1/decisions/"

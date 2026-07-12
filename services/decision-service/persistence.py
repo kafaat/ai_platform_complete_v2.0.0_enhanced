@@ -3894,6 +3894,155 @@ async def get_context_snapshot(*, tenant_id: str, snapshot_id: str) -> dict[str,
         await conn.close()
 
 
+def _iso(value: Any) -> Any:
+    return value.isoformat() if hasattr(value, "isoformat") else value
+
+
+def _jsonish(value: Any) -> Any:
+    if isinstance(value, str):
+        try:
+            return json.loads(value)
+        except (ValueError, TypeError):
+            return value
+    return value
+
+
+async def get_decision_agronomic_evidence(*, tenant_id: str, decision_id: str) -> dict[str, Any]:
+    """Phase E: the full agronomic evidence chain behind one governed decision.
+
+    Read-only join of the decision's AC-1/AC-6 lineage: the composed context snapshot,
+    the bounded historical projection, the feature manifest with every PIT-stamped entry,
+    and the vegetation evidence snapshot when linked. Nothing is synthesized — absent
+    references are returned as null so the UI shows honest gaps (legacy_unbound decisions
+    have no context by design).
+    """
+    conn = await _connect()
+    try:
+        decision = await conn.fetchrow(
+            """SELECT decision_id, field_id, season_id, crop_id, cultivar_id, decision_type,
+                      stage, review_state, candidate_lineage_id, confidence, decision_value,
+                      created_by, created_at, context_contract_version,
+                      agronomic_context_snapshot_id, field_historical_context_snapshot_id,
+                      feature_manifest_id, feature_manifest_hash, vegetation_snapshot_id
+               FROM decision_record WHERE tenant_id=$1::uuid AND decision_id=$2""",
+            tenant_id,
+            decision_id,
+        )
+        if not decision:
+            return {"status": "not_found"}
+        d = dict(decision)
+        d["decision_value"] = _jsonish(d.get("decision_value"))
+        d["created_at"] = _iso(d["created_at"])
+
+        context = None
+        if d["agronomic_context_snapshot_id"]:
+            row = await conn.fetchrow(
+                """SELECT snapshot_id, field_id, season_id, as_of_time, schema_version,
+                          composer_version, context, content_hash, created_by, created_at
+                   FROM decision_agronomic_context_snapshots
+                   WHERE tenant_id=$1::uuid AND snapshot_id=$2""",
+                tenant_id,
+                d["agronomic_context_snapshot_id"],
+            )
+            if row:
+                context = dict(row)
+                context["context"] = _jsonish(context["context"])
+                context["as_of_time"] = _iso(context["as_of_time"])
+                context["created_at"] = _iso(context["created_at"])
+
+        historical = None
+        if d["field_historical_context_snapshot_id"]:
+            row = await conn.fetchrow(
+                """SELECT historical_snapshot_id, field_id, season_id, as_of_time, history_from,
+                          history_to, manifest_version, history, content_hash, created_at
+                   FROM decision_field_historical_context_snapshots
+                   WHERE tenant_id=$1::uuid AND historical_snapshot_id=$2""",
+                tenant_id,
+                d["field_historical_context_snapshot_id"],
+            )
+            if row:
+                historical = dict(row)
+                historical["history"] = _jsonish(historical["history"])
+                for k in ("as_of_time", "history_from", "history_to", "created_at"):
+                    historical[k] = _iso(historical[k])
+
+        manifest = None
+        if d["feature_manifest_id"]:
+            head = await conn.fetchrow(
+                """SELECT feature_manifest_id, field_id, as_of_time, decision_cutoff_time,
+                          content_hash, created_at
+                   FROM decision_feature_manifests
+                   WHERE tenant_id=$1::uuid AND feature_manifest_id=$2""",
+                tenant_id,
+                d["feature_manifest_id"],
+            )
+            if head:
+                manifest = dict(head)
+                for k in ("as_of_time", "decision_cutoff_time", "created_at"):
+                    manifest[k] = _iso(manifest[k])
+                entries = await conn.fetch(
+                    """SELECT name, value, unit, source_service, source_snapshot_id,
+                              observed_at, available_at, quality_status, formula_version
+                       FROM decision_feature_manifest_entries
+                       WHERE tenant_id=$1::uuid AND feature_manifest_id=$2 ORDER BY name""",
+                    tenant_id,
+                    d["feature_manifest_id"],
+                )
+                manifest["entries"] = [
+                    {
+                        **dict(e),
+                        "value": _jsonish(e["value"]),
+                        "observed_at": _iso(e["observed_at"]),
+                        "available_at": _iso(e["available_at"]),
+                    }
+                    for e in entries
+                ]
+                # the hash pinned ON the decision must match the manifest it points to —
+                # surface the comparison so tampering shows up in the UI, not just in triggers.
+                manifest["hash_matches_decision"] = (
+                    d["feature_manifest_hash"] is None
+                    or d["feature_manifest_hash"] == manifest["content_hash"]
+                )
+
+        vegetation = None
+        if d["vegetation_snapshot_id"]:
+            row = await conn.fetchrow(
+                """SELECT snapshot_id, field_id, season_id, contract_version, snapshot_hash,
+                          acquisition_at, data_available_at, quality_gate, created_at
+                   FROM decision_vegetation_snapshots
+                   WHERE tenant_id=$1::uuid AND snapshot_id=$2""",
+                tenant_id,
+                d["vegetation_snapshot_id"],
+            )
+            if row:
+                vegetation = dict(row)
+                vegetation["quality_gate"] = _jsonish(vegetation["quality_gate"])
+                for k in ("acquisition_at", "data_available_at", "created_at"):
+                    vegetation[k] = _iso(vegetation[k])
+
+        bound = d["context_contract_version"] not in (None, "", "legacy_unbound")
+        return {
+            "status": "ok",
+            "authoritative": True,
+            "persisted": True,
+            "read_only": True,
+            "decision": d,
+            "context_snapshot": context,
+            "historical_snapshot": historical,
+            "feature_manifest": manifest,
+            "vegetation_snapshot": vegetation,
+            "evidence_complete": bool(
+                bound
+                and context
+                and historical
+                and manifest
+                and manifest.get("entries") is not None
+            ),
+        }
+    finally:
+        await conn.close()
+
+
 async def _validate_decision_context(
     conn: Any, *, tenant_id: str, field_id: str | None, payload: Any
 ) -> str | None:

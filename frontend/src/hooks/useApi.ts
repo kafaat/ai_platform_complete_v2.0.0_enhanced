@@ -1827,6 +1827,7 @@ export function useScenarioWaterTwin(): ReturnType<typeof useMutation<WaterTwinS
 
 // ── Approvals Console — الموافقات البشريّة المعلّقة (v58 + SEC-3.1) ──
 import type {
+  DecisionAgronomicEvidence,
   DecisionReviewInput, DecisionReviewQueueResponse, DecisionReviewResult,
   PendingAgentApproval, PendingApprovalsResponse,
 } from '../lib/approvalsConsole';
@@ -1840,6 +1841,21 @@ export function useDecisionReviewQueue(enabled = true): UseQueryResult<DecisionR
       .then(r => r.data as DecisionReviewQueueResponse),
     staleTime: 15_000,
     enabled,
+    retry: false,
+  });
+}
+
+/** Phase E — الدليل الزراعيّ الكامل خلف قرار واحد. قراءة آمِرة: mirror ⇒ 503 يُعرَض بصدق
+ *  (لا "لا يوجد دليل" زائف)، وقرارات legacy_unbound تعود بمراجع فارغة كما هي. */
+export function useDecisionAgronomicEvidence(
+  decisionId: string | null,
+): UseQueryResult<DecisionAgronomicEvidence, Error> {
+  return useQuery<DecisionAgronomicEvidence, Error>({
+    queryKey: ['decision-agronomic-evidence', decisionId],
+    queryFn: () => kongApi.get(`/api/v1/decisions/${decisionId}/agronomic-evidence`)
+      .then(r => r.data as DecisionAgronomicEvidence),
+    staleTime: 60_000,
+    enabled: Boolean(decisionId),
     retry: false,
   });
 }

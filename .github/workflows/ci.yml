@@ -629,6 +629,14 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_runtime_worker_tenants.py -q -p no:cacheprovider
+      # Phase E: the decision's full agronomic evidence chain is readable authoritatively
+      # (context/historical/manifest/vegetation + PIT stamps), 404 honest, mirror 503.
+      - name: Phase E decision evidence read tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_decision_evidence_read.py -q -p no:cacheprovider
       # AC-6: HTTP contract for strict lineage + evidence writer (pure logic, no DB,
       # mirror-mode fail-closed) — deliberately run WITHOUT DATABASE_URL/SoR env.
       - name: AC-6 evidence/lineage contract tests (no DB, mirror fail-closed)

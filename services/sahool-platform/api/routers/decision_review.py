@@ -65,6 +65,42 @@ async def get_decision_review_queue(
     return result
 
 
+@router.get("/api/v1/decisions/{decision_id}/agronomic-evidence")
+async def get_decision_agronomic_evidence_boundary(
+    decision_id: str,
+    user: UserSchema = Depends(require_permission(Permission.DECISION_APPROVE)),
+):
+    """Phase E — الدليل الزراعيّ الكامل خلف قرار واحد (سياق/تاريخ/manifest/نباتيّ).
+
+    قراءة آمِرة فقط: decision-service يملك الحقيقة؛ mirror/SoR-off ⇒ 503 هناك ويُمرَّر
+    هنا (fail-closed — لا "لا يوجد دليل" زائف). المراجِع يرى الدليل قبل approve/reject،
+    لذلك الصلاحيّة نفسها ``DECISION_APPROVE``. لا تحويل ولا تخليق للحمولة."""
+    from api.decision_service_client import (
+        get_decision_agronomic_evidence as ds_get_decision_evidence,
+    )
+
+    try:
+        result = await ds_get_decision_evidence(
+            decision_id, tenant_id=str(user.tenant_id) if user.tenant_id else None
+        )
+    except HTTPException as exc:
+        if exc.status_code in _ENGINE_DOWN_CODES:
+            raise HTTPException(
+                status_code=503, detail="decision-service unavailable — evidence not read"
+            ) from exc
+        raise
+    proven = (
+        result.get("authoritative") is True
+        and result.get("persisted") is True
+        and result.get("read_only") is True
+        and result.get("decision_id") == decision_id
+        and isinstance(result.get("decision"), dict)
+    )
+    if not proven:
+        raise HTTPException(status_code=503, detail="non-authoritative evidence rejected")
+    return result
+
+
 @router.post("/api/v1/decisions/{decision_id}/review")
 async def review_decision_candidate(
     decision_id: str,

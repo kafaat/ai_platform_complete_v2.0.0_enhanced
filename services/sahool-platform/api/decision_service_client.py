@@ -157,6 +157,18 @@ async def list_review_queue(*, tenant_id: str | None = None, limit: int = 100) -
     )
 
 
+async def get_decision_agronomic_evidence(
+    decision_id: str, *, tenant_id: str | None = None
+) -> dict[str, Any]:
+    """Phase E — authoritative read of one decision's agronomic evidence chain
+    (context/historical/manifest/vegetation). decision-service owns the truth;
+    mirror mode is a 503 there and propagates here untouched."""
+    return await decision_get_json(
+        f"/v1/decisions/{decision_id}/agronomic-evidence",
+        tenant_id=tenant_id,
+    )
+
+
 async def review_decision(
     decision_id: str,
     payload: dict[str, Any],

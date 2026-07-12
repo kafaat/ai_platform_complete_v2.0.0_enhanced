@@ -51,7 +51,7 @@ classification: `ui`
 
 ### `vegetation-analysis-service` — pass
 classification: `ui`
-- ui: 96 match(es)
+- ui: 98 match(es)
   - `frontend/src/App.tsx` ← `FieldRanking`
   - `frontend/src/components/NDVIGauge.tsx` ← `NDVI`
   - `frontend/src/components/sql/SQLEditor.tsx` ← `NDVI`
@@ -178,7 +178,7 @@ classification: `ui`
 
 ### `guardrails-engine` — pass
 classification: `ui`
-- ui: 85 match(es)
+- ui: 87 match(es)
   - `frontend/src/App.tsx` ← `approval`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `validate`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `validate`
@@ -238,12 +238,12 @@ classification: `ui`
 
 ### `video-processor` — pass
 classification: `ui`
-- ui: 23 match(es)
+- ui: 25 match(es)
   - `frontend/src/App.tsx` ← `DevicesPage`
   - `frontend/src/components/maphub/weather/weatherLayerDefinitions.ts` ← `stream`
+  - `frontend/src/components/approvals/DecisionEvidencePanel.tsx` ← `snapshot`
   - `frontend/src/components/fieldview/WaterFieldOpsCard.tsx` ← `stream`
   - `frontend/src/components/fieldview/EvidenceHistoryCard.tsx` ← `snapshot`
-  - `frontend/src/components/fieldview/DistrictsWeatherCard.tsx` ← `stream`
 - platform-proxy: 4 match(es)
   - `services/sahool-platform/api/device_registry.py` ← `field_cameras`
   - `services/sahool-platform/api/field_cameras.py` ← `field_cameras`

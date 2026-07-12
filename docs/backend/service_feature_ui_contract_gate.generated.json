@@ -430,6 +430,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/approvals/DecisionEvidencePanel.tsx",
+              "pattern": "vegetation"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
               "pattern": "NDVI"
             },
@@ -447,14 +452,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/fieldview/CropPropagationCard.tsx",
               "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/IrrigationDecisionAidsCard.tsx",
-              "pattern": "NDVI"
             }
           ],
-          "match_count": 96
+          "match_count": 98
         },
         {
           "kind": "gateway",
@@ -1612,7 +1612,7 @@
               "pattern": "validate"
             }
           ],
-          "match_count": 85
+          "match_count": 87
         },
         {
           "kind": "gateway",
@@ -2100,6 +2100,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/approvals/DecisionEvidencePanel.tsx",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
               "pattern": "stream"
             },
@@ -2142,14 +2147,9 @@
               "root": "frontend/src",
               "path": "frontend/src/sections/ManagerConsolePage.tsx",
               "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/DevicesPage.tsx",
-              "pattern": "camera"
             }
           ],
-          "match_count": 23
+          "match_count": 25
         },
         {
           "kind": "platform-proxy",

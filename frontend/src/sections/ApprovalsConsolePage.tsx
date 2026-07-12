@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ShieldCheck, Bot, GitBranch, Check, X, ClipboardCheck } from 'lucide-react';
+import { ShieldCheck, Bot, GitBranch, Check, X, ClipboardCheck, FileSearch } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   usePendingAgentApprovals, useDecideAgentApproval, useDispatchDecisions,
@@ -13,6 +13,7 @@ import {
 } from '../lib/approvalsConsole';
 import { dispatchStateColor, dispatchStateLabel } from '../lib/decisionRuntime';
 import { T } from '../components/ds';
+import DecisionEvidencePanel from '../components/approvals/DecisionEvidencePanel';
 
 /** كونسول الموافقات الموحَّد (آخر طبقة partial في سجلّ التغطية): طلبات أدوات وكيل
  *  AI المعلّقة (v58: لا mutating بلا موافقة بشريّة) + قرارات التوزيع المنتظِرة موافقة.
@@ -30,6 +31,8 @@ export default function ApprovalsConsolePage() {
   const reviewM = useReviewDecisionCandidate();
   const [rowStates, setRowStates] = useState<Record<string, string>>({});
   const [reviewReasons, setReviewReasons] = useState<Record<string, string>>({});
+  // Phase E: which candidate's agronomic evidence chain is expanded (lazy authoritative read).
+  const [evidenceOpenFor, setEvidenceOpenFor] = useState<string | null>(null);
 
   if (!allowed) {
     return (
@@ -123,6 +126,19 @@ export default function ApprovalsConsolePage() {
                   </div>
                   <p className="mt-1" style={{ color: T.muted }}>{candidateEvidenceSummary(candidate.decision_value)}</p>
                   <div className="mt-1 break-all" style={{ color: T.faint }}>lineage: {candidate.candidate_lineage_id}</div>
+                  <button
+                    type="button"
+                    onClick={() => setEvidenceOpenFor((open) => (open === candidate.decision_id ? null : candidate.decision_id))}
+                    aria-expanded={evidenceOpenFor === candidate.decision_id}
+                    className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg font-semibold"
+                    style={{ border: `1px solid ${T.line}`, color: '#7dd3fc' }}
+                  >
+                    <FileSearch className="w-3 h-3" aria-hidden="true" />
+                    {evidenceOpenFor === candidate.decision_id ? 'إخفاء الدليل الزراعيّ' : 'الدليل الزراعيّ الكامل'}
+                  </button>
+                  {evidenceOpenFor === candidate.decision_id && (
+                    <DecisionEvidencePanel decisionId={candidate.decision_id} />
+                  )}
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <input
                       value={reason}

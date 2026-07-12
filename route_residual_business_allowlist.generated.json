@@ -117,7 +117,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 384,
+      "line": 385,
       "method": "GET",
       "path": "/v1/cutover/readiness",
       "function": "cutover_readiness"
@@ -125,7 +125,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 427,
+      "line": 428,
       "method": "POST",
       "path": "/v1/evidence/vegetation-snapshots",
       "function": "create_vegetation_snapshot"
@@ -133,7 +133,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 445,
+      "line": 446,
       "method": "POST",
       "path": "/v1/decisions/record",
       "function": "record_decision"
@@ -141,7 +141,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 501,
+      "line": 502,
       "method": "GET",
       "path": "/v1/decisions/review-queue",
       "function": "review_queue"
@@ -149,7 +149,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 537,
+      "line": 538,
       "method": "POST",
       "path": "/v1/decisions/{decision_id}/review",
       "function": "review_candidate"
@@ -157,7 +157,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 620,
+      "line": 621,
       "method": "POST",
       "path": "/v1/decisions/{decision_id}/execution-plan",
       "function": "build_execution_plan"
@@ -165,7 +165,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 670,
+      "line": 671,
       "method": "POST",
       "path": "/v1/dispatch/decisions",
       "function": "record_dispatch"
@@ -173,7 +173,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 696,
+      "line": 697,
       "method": "GET",
       "path": "/v1/dispatch/decisions",
       "function": "list_dispatch"
@@ -181,7 +181,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 710,
+      "line": 711,
       "method": "POST",
       "path": "/v1/outcomes/record",
       "function": "record_outcome"
@@ -189,7 +189,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 736,
+      "line": 737,
       "method": "POST",
       "path": "/v1/recommendation-outcomes",
       "function": "record_recommendation_outcome"
@@ -197,7 +197,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 761,
+      "line": 762,
       "method": "POST",
       "path": "/v1/learning/updates",
       "function": "record_learning_update"
@@ -205,7 +205,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 792,
+      "line": 793,
       "method": "GET",
       "path": "/v1/learning/summary",
       "function": "learning_summary"
@@ -213,7 +213,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 806,
+      "line": 807,
       "method": "GET",
       "path": "/v1/decisions",
       "function": "list_decisions"
@@ -221,7 +221,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 835,
+      "line": 836,
       "method": "GET",
       "path": "/v1/fields/{field_id}/lineage",
       "function": "field_lineage"
@@ -229,7 +229,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 851,
+      "line": 852,
       "method": "GET",
       "path": "/v1/outcomes/reconciled",
       "function": "reconciled_outcomes"
@@ -237,7 +237,15 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 871,
+      "line": 872,
+      "method": "GET",
+      "path": "/v1/decisions/{decision_id}/agronomic-evidence",
+      "function": "decision_agronomic_evidence"
+    },
+    {
+      "service": "decision-service",
+      "file": "services/decision-service/main.py",
+      "line": 890,
       "method": "GET",
       "path": "/v1/decisions/{decision_id}/lineage",
       "function": "decision_lineage"
@@ -245,7 +253,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 898,
+      "line": 917,
       "method": "POST",
       "path": "/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
       "function": "authorize_execution_plan_dispatch"
@@ -253,7 +261,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 966,
+      "line": 985,
       "method": "POST",
       "path": "/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
       "function": "execute_authorized_dispatch"
@@ -261,7 +269,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1027,
+      "line": 1046,
       "method": "POST",
       "path": "/v1/execution-requests/{execution_request_id}/claim",
       "function": "claim_execution_delivery"
@@ -269,7 +277,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1059,
+      "line": 1078,
       "method": "POST",
       "path": "/v1/execution-requests/{execution_request_id}/receipt",
       "function": "ingest_execution_receipt"
@@ -277,7 +285,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1105,
+      "line": 1124,
       "method": "POST",
       "path": "/v1/execution-requests/{execution_request_id}/verify-outcome",
       "function": "verify_terminal_execution_outcome"
@@ -285,7 +293,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1163,
+      "line": 1182,
       "method": "POST",
       "path": "/v1/outcomes/{outcome_id}/learning-attribution",
       "function": "attribute_verified_outcome_to_learning"
@@ -293,7 +301,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1197,
+      "line": 1216,
       "method": "GET",
       "path": "/v1/learning/calibration-dataset",
       "function": "get_calibration_dataset"
@@ -301,7 +309,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1232,
+      "line": 1251,
       "method": "POST",
       "path": "/v1/learning/evaluation-runs",
       "function": "register_model_evaluation_run"
@@ -309,7 +317,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1282,
+      "line": 1301,
       "method": "POST",
       "path": "/v1/learning/promotion-decisions",
       "function": "register_model_promotion_decision"
@@ -317,7 +325,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1318,
+      "line": 1337,
       "method": "POST",
       "path": "/v1/learning/activation-requests",
       "function": "register_model_activation_request"
@@ -325,7 +333,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1361,
+      "line": 1380,
       "method": "POST",
       "path": "/v1/learning/activation-requests/{activation_request_id}/review",
       "function": "review_activation_request_boundary"
@@ -333,7 +341,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1411,
+      "line": 1430,
       "method": "POST",
       "path": "/v1/learning/activation-commands/{activation_command_id}/claim",
       "function": "claim_registry_activation_command_boundary"
@@ -341,7 +349,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1452,
+      "line": 1471,
       "method": "POST",
       "path": "/v1/learning/activation-commands/{activation_command_id}/receipt",
       "function": "record_registry_activation_receipt_boundary"
@@ -349,7 +357,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1498,
+      "line": 1517,
       "method": "POST",
       "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
       "function": "create_registry_rollback_command_boundary"
@@ -357,7 +365,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1535,
+      "line": 1554,
       "method": "POST",
       "path": "/v1/learning/rollback-commands/{rollback_command_id}/claim",
       "function": "claim_registry_rollback_command_boundary"
@@ -365,7 +373,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1571,
+      "line": 1590,
       "method": "POST",
       "path": "/v1/learning/rollback-commands/{rollback_command_id}/receipt",
       "function": "record_registry_rollback_receipt_boundary"
@@ -373,7 +381,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1608,
+      "line": 1627,
       "method": "GET",
       "path": "/v1/learning/models/{model_id}/active-state",
       "function": "active_model_state_boundary"
@@ -381,7 +389,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1640,
+      "line": 1659,
       "method": "POST",
       "path": "/v1/learning/activation-receipts/{activation_receipt_id}/verification",
       "function": "post_activation_verification_boundary"
@@ -389,7 +397,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1679,
+      "line": 1698,
       "method": "POST",
       "path": "/v1/learning/activation-receipts/{activation_receipt_id}/rollout-plan",
       "function": "rollout_plan_boundary"
@@ -397,7 +405,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1716,
+      "line": 1735,
       "method": "POST",
       "path": "/v1/learning/monitoring-snapshots",
       "function": "monitoring_snapshot_boundary"
@@ -405,7 +413,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1752,
+      "line": 1771,
       "method": "POST",
       "path": "/v1/learning/retraining-requests",
       "function": "retraining_request_boundary"
@@ -413,7 +421,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1782,
+      "line": 1801,
       "method": "GET",
       "path": "/v1/learning/runtime-work",
       "function": "runtime_work_feed"
@@ -421,7 +429,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1811,
+      "line": 1830,
       "method": "POST",
       "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
       "function": "register_worker_tenant"
@@ -429,7 +437,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1835,
+      "line": 1854,
       "method": "GET",
       "path": "/v1/learning/runtime-workers/{worker_id}/tenants",
       "function": "worker_tenants"
@@ -437,7 +445,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1855,
+      "line": 1874,
       "method": "POST",
       "path": "/v1/learning/rollout-plans/{rollout_plan_id}/receipt",
       "function": "rollout_receipt_boundary"
@@ -445,7 +453,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1896,
+      "line": 1915,
       "method": "POST",
       "path": "/v1/learning/retraining-requests/{retraining_request_id}/dispatch-receipt",
       "function": "retraining_dispatch_receipt_boundary"
@@ -453,7 +461,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1944,
+      "line": 1963,
       "method": "POST",
       "path": "/v1/learning/runtime-schedules",
       "function": "runtime_schedule_boundary"
@@ -461,7 +469,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 1991,
+      "line": 2010,
       "method": "POST",
       "path": "/v1/learning/reconcile-evidence",
       "function": "reconcile_evidence_boundary"
@@ -469,7 +477,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2021,
+      "line": 2040,
       "method": "POST",
       "path": "/v1/context-snapshots",
       "function": "compose_context_snapshot"
@@ -477,7 +485,7 @@
     {
       "service": "decision-service",
       "file": "services/decision-service/main.py",
-      "line": 2053,
+      "line": 2072,
       "method": "GET",
       "path": "/v1/context-snapshots/{snapshot_id}",
       "function": "read_context_snapshot"
