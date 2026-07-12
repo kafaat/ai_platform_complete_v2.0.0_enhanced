@@ -20,7 +20,10 @@ Contracts enforced (all currently landed by WS-A..D; this locks them):
           (et0_agro_product/compute_vpd/gdd_agro_product) directly — the engine is reached only
           through build_canonical_weather_state/build_canonical_daily_series.
   WS-A    the vegetation consumer reads the ValidatedIndicatorProduct envelope
-          (indicator_product + quality_score + provenance), not bare stats.mean alone.
+          (indicator_product + quality_score + provenance), not bare stats.mean alone. The
+          three-container boundary (20260712) routes this through a single validated
+          observation-bundle: run_analysis consumes _real_observation_bundle_from_raster and
+          still unwraps the ValidatedIndicatorProduct envelope per index.
   WS-D    the irrigation consumer routes depletion through the canonical water-stress guard
           (missing != zero), never treating a missing depletion as 0.
 """
@@ -158,12 +161,19 @@ def collect_violations() -> list[str]:
     )
 
     # WS-A — vegetation consumer reads the ValidatedIndicatorProduct envelope, not bare stats.mean.
+    # Three-container boundary: the consumer path is run_analysis over a single validated
+    # observation-bundle (_real_observation_bundle_from_raster), still unwrapping the envelope.
     _check_func(
         violations,
         VEG,
         veg,
-        "_real_index_mean_from_raster",
-        required=("indicator_product", "quality_score", "provenance"),
+        "run_analysis",
+        required=(
+            "_real_observation_bundle_from_raster",
+            "indicator_product",
+            "quality_score",
+            "provenance",
+        ),
     )
 
     # WS-D — irrigation consumer routes depletion through the canonical water-stress guard.

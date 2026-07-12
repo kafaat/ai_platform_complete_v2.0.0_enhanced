@@ -7,7 +7,6 @@ refer to ``main.X`` keep working while computation/provider logic lives here.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import math
@@ -67,13 +66,7 @@ VEGETATION_MIN_QUALITY = float(os.getenv("VEGETATION_MIN_QUALITY", "0.55"))
 # recl (نطاقات/صيَغ خارج band_math). SAVI ⇐ MSAVI2 (نسخة محسّنة، تصحيح تربة ذاتيّ).
 _RASTER_REAL_INDEX = {"evi": "evi", "savi": "msavi", "ndmi": "moisture"}
 
-SH_CLIENT_ID = os.getenv("SH_CLIENT_ID", "")
-SH_CLIENT_SECRET = os.getenv("SH_CLIENT_SECRET", "")
-SH_TOKEN_URL = "https://services.sentinel-hub.com/auth/realms/main/protocol/openid-connect/token"
-SH_PROCESS_URL = "https://services.sentinel-hub.com/api/v1/process"
-
-CDSE_USER = os.getenv("COPERNICUS_USER", "")
-CDSE_PASSWORD = os.getenv("COPERNICUS_PASSWORD", "")
+RASTER_SERVICE_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
 
 
 # ── مصدر الحقول (Field source) — إغلاق مرن نحو القاعدة ──────────────
@@ -100,14 +93,13 @@ def _flag_enabled(value: str | None, *, default: bool) -> bool:
     return value not in ("0", "false", "False", "")
 
 
-FEATURE_SENTINEL_DB_FIELDS = _flag_enabled(os.getenv("FEATURE_SENTINEL_DB_FIELDS"), default=False)
-# production-safe default: the synthetic legacy field registry is disabled in production
-# unless explicitly re-enabled (real fields must come from platform/DB sources).
-ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(
-    os.getenv("ALLOW_LEGACY_FIELD_REGISTRY"),
-    default=os.getenv("SAHOOL_ENV", "development").lower() != "production",
-)
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", "").rstrip("/")
+# Runtime field truth is platform-owned. Legacy synthetic field fixtures are disabled
+# in every environment; tests must inject fixtures explicitly.
+FEATURE_SENTINEL_DB_FIELDS = _flag_enabled(
+    os.getenv("FEATURE_SENTINEL_DB_FIELDS"), default=bool(PLATFORM_API_URL)
+)
+ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(os.getenv("ALLOW_LEGACY_FIELD_REGISTRY"), default=False)
 # AC-6 evidence producer: push content-addressed vegetation snapshots to the
 # decision-service immutable evidence store. Opt-in (default off) and fail-soft:
 # the analysis response always reports the push outcome honestly, never hides it.
@@ -202,64 +194,7 @@ ANALYSIS_LATENCY = _safe_metric(
 )
 
 # ── Field geometry registry ────────────────────────────────────
-FIELD_REGISTRY: dict[str, dict] = {
-    "field_01": {
-        "name": "حقل وادي سبأ",
-        "bbox": [45.50, 15.00, 45.60, 15.10],
-        "area_ha": 23.5,
-        "crop": "wheat",
-        "soil": "loam",
-    },
-    "field_02": {
-        "name": "حقل البيضاء الشمالي",
-        "bbox": [45.53, 14.97, 45.63, 15.07],
-        "area_ha": 32.0,
-        "crop": "barley",
-        "soil": "clay_loam",
-    },
-    "field_03": {
-        "name": "حقل البيضاء الجنوبي",
-        "bbox": [45.47, 14.93, 45.57, 15.03],
-        "area_ha": 18.7,
-        "crop": "maize",
-        "soil": "sandy_loam",
-    },
-    "field_04": {
-        "name": "حقل رداع الغربي",
-        "bbox": [45.43, 14.87, 45.53, 14.97],
-        "area_ha": 41.3,
-        "crop": "tomato",
-        "soil": "loam",
-    },
-    "field_05": {
-        "name": "حقل ذي السفال",
-        "bbox": [45.55, 14.83, 45.65, 14.93],
-        "area_ha": 28.9,
-        "crop": "wheat",
-        "soil": "silt_loam",
-    },
-    "field_06": {
-        "name": "حقل عتمة الشرقي",
-        "bbox": [45.57, 15.05, 45.67, 15.15],
-        "area_ha": 37.5,
-        "crop": "barley",
-        "soil": "clay_loam",
-    },
-    "field_07": {
-        "name": "حقل الرياشية",
-        "bbox": [45.40, 14.95, 45.50, 15.05],
-        "area_ha": 22.1,
-        "crop": "vegetables",
-        "soil": "loam",
-    },
-    "field_08": {
-        "name": "حقل ذي ناعم",
-        "bbox": [45.60, 14.80, 45.70, 14.90],
-        "area_ha": 45.0,
-        "crop": "potato",
-        "soil": "sandy_loam",
-    },
-}
+FIELD_REGISTRY: dict[str, dict] = {}
 
 
 # ── مُحمِّل الحقول المرن (graceful field loader) ─────────────────────
@@ -330,9 +265,12 @@ async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> di
 
     fail-soft مطلق: أيّ تعذّر/مهلة/هندسة غير صالحة ⇒ None (يقرّر المتّصِل الارتداد).
     """
-    if not PLATFORM_API_URL:
+    if not PLATFORM_API_URL or not RASTER_SERVICE_TOKEN:
         return None
-    headers = {"Accept": "application/json"}
+    headers = {
+        "Accept": "application/json",
+        "X-Agent-Token": RASTER_SERVICE_TOKEN,
+    }
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
     try:
@@ -355,6 +293,37 @@ async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> di
         "soil": data.get("soil") or data.get("soil_type"),
         "source": "platform-db",
     }
+
+
+async def list_fields_from_platform(tenant_id: str) -> list[dict]:
+    """Return the tenant-scoped field catalog from sahool-platform.
+
+    No local enumeration fallback is permitted. The service token authenticates
+    the internal caller while X-Tenant-Id scopes the platform query.
+    """
+    if not PLATFORM_API_URL or not RASTER_SERVICE_TOKEN:
+        raise HTTPException(503, "platform field catalog is not configured")
+    headers = {
+        "Accept": "application/json",
+        "X-Agent-Token": RASTER_SERVICE_TOKEN,
+        "X-Tenant-Id": str(tenant_id),
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.get(f"{PLATFORM_API_URL}/api/v1/fields", headers=headers)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("platform field list unavailable tenant=%s: %s", tenant_id, exc)
+        raise HTTPException(503, "platform field catalog unavailable") from None
+    if response.status_code != 200:
+        raise HTTPException(503, f"platform field catalog returned {response.status_code}")
+    payload = response.json()
+    if isinstance(payload, dict):
+        items = payload.get("fields") or payload.get("items") or payload.get("data") or []
+    elif isinstance(payload, list):
+        items = payload
+    else:
+        items = []
+    return [item for item in items if isinstance(item, dict)]
 
 
 async def load_field(field_id: str, tenant_id: str | None = None) -> dict | None:
@@ -385,110 +354,14 @@ async def load_field(field_id: str, tenant_id: str | None = None) -> dict | None
         # العلم يمنع السجلّ القديم وفشلت القاعدة ⇒ لا مصدر (لا ارتداد تركيبيّ).
         logger.warning("field_source_unavailable field_id=%s (legacy disabled)", field_id)
         return None
-    # ارتداد صريح موسوم للسجلّ التركيبيّ القديم.
-    logger.warning("legacy_field_registry_used field_id=%s", field_id)
-    return FIELD_REGISTRY.get(field_id)
-
-
-# ── Sentinel Hub token cache ───────────────────────────────────
-_sh_token: str | None = None
-_sh_token_exp: datetime | None = None
-
-
-async def _get_sh_token() -> str | None:
-    global _sh_token, _sh_token_exp
-    if not SH_CLIENT_ID or not SH_CLIENT_SECRET:
-        return None
-    if _sh_token and _sh_token_exp and datetime.now(UTC) < _sh_token_exp:
-        return _sh_token
-    try:
-        async with httpx.AsyncClient(timeout=15) as c:
-            r = await c.post(
-                SH_TOKEN_URL,
-                data={
-                    "grant_type": "client_credentials",
-                    "client_id": SH_CLIENT_ID,
-                    "client_secret": SH_CLIENT_SECRET,
-                },
-            )
-            r.raise_for_status()
-            data = r.json()
-            _sh_token = data["access_token"]
-            _sh_token_exp = datetime.now(UTC) + timedelta(
-                seconds=data.get("expires_in", 3600) - 300
-            )
-            logger.info("✅ Sentinel Hub token refreshed")
-            return _sh_token
-    except Exception as e:
-        logger.warning(f"SH token failed: {e}")
-        return None
-
-
-# Direct provider band-math was removed by RIV consolidation.
-# Raster-service is the only Sentinel/CDSE pixel-computation owner.
-
-
-async def fetch_from_cdse(
-    field_id: str, date_from: str, date_to: str, tenant_id: str | None = None
-) -> dict | None:
-    if not CDSE_USER or not CDSE_PASSWORD:
-        return None
-    field = await load_field(field_id, tenant_id)
-    if not field or not field.get("bbox"):
-        return None
-    bbox = field["bbox"]
-    query_url = (
-        f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products"
-        f"?$filter=Collection/Name eq 'SENTINEL-2' "
-        f"and Attributes/OData.CSC.StringAttribute/any(att:att/Name eq 'productType' "
-        f"and att/OData.CSC.StringAttribute/Value eq 'S2MSI2A') "
-        f"and ContentDate/Start gt {date_from}T00:00:00.000Z "
-        f"and ContentDate/Start lt {date_to}T23:59:59.999Z "
-        f"and OData.CSC.Intersects(area=geography'SRID=4326;POLYGON(("
-        f"{bbox[0]} {bbox[1]},{bbox[2]} {bbox[1]},"
-        f"{bbox[2]} {bbox[3]},{bbox[0]} {bbox[3]},"
-        f"{bbox[0]} {bbox[1]}))')"
-        f"&$orderby=ContentDate/Start desc"
-        f"&$top=1&$expand=Attributes"
-    )
-    try:
-        async with httpx.AsyncClient(timeout=20) as c:
-            r = await c.get(
-                query_url, auth=(CDSE_USER, CDSE_PASSWORD), headers={"Accept": "application/json"}
-            )
-            if r.status_code == 200:
-                data = r.json()
-                products = data.get("value", [])
-                if products:
-                    prod = products[0]
-                    cloud_pct = next(
-                        (
-                            a["Value"]
-                            for a in prod.get("Attributes", [])
-                            if a["Name"] == "cloudCover"
-                        ),
-                        50.0,
-                    )
-                    # HONESTY FIX: the catalogue gives us REAL acquisition
-                    # metadata (product id, date, cloud cover), but we do NOT
-                    # download/decode the product raster here, so the indices
-                    # remain simulated. `real_data` stays False;
-                    # `provider_reachable` records the live catalogue hit.
-                    return {
-                        "source": "cdse-metadata-only",
-                        "product_id": prod.get("Id"),
-                        "product_name": prod.get("Name"),
-                        "acquisition_date": prod.get("ContentDate", {}).get("Start", date_from)[
-                            :10
-                        ],
-                        "cloud_pct": float(cloud_pct),
-                        "provider_reachable": True,
-                        "real_data": False,
-                        "download_url": f"https://catalogue.dataspace.copernicus.eu/odata/v1/Products({prod.get('Id')})/$value",
-                    }
-    except Exception as e:
-        logger.warning(f"CDSE query failed: {e}")
+    # Runtime paths never return synthetic field metadata. Compatibility flag is
+    # retained only so stale deployments fail visibly instead of fabricating data.
+    logger.error("legacy_field_registry_forbidden field_id=%s", field_id)
     return None
+
+
+# Provider credentials and direct provider access were removed by RIV ownership consolidation.
+# vegetation-analysis-service consumes only validated raster-service products.
 
 
 def _derive_water_stress_from_observed(indices: dict[str, float]) -> float:
@@ -571,7 +444,7 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
                 "event_type": "satellite",
                 # عنوان عرضيّ فقط — يبقى على اسم السجلّ التركيبيّ (لا حِمل قراءة
                 # قاعدة إضافيّ على مسار النشر؛ غير حسّاس وموثَّق).
-                "title": f"🛰️ صورة جديدة — {FIELD_REGISTRY.get(field_id, {}).get('name', field_id)}",
+                "title": f"🛰️ صورة جديدة — {field_id}",
                 "message": f"NDVI={indices.get('ndvi')} | EVI={indices.get('evi')}",
                 **indices,
             },
@@ -584,46 +457,34 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
-async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi") -> dict | None:
-    """المؤشّر الحقيقيّ (بكسليّ) من raster-service (band_math، Sentinel-2) إن توفّر — وإلّا None.
-
-    يُرجِع dict فيه المتوسّط والغلاف النوعيّ/المصدريّ (quality_score/provenance) المقروء
-    من `indicator_product` الجديد (ValidatedIndicatorProduct) إن وُجد، إضافةً إلى
-    stats.mean + real_data. الحقول النوعيّة اختياريّة: غيابها ⇒ None (لا اختلاق).
-
-    `raster_index`: اسم المؤشّر في raster band_math (ndvi|evi|msavi|moisture|ndre).
-    fail-safe مطلق: أيّ خطأ/مهلة/غياب طبقة/real_data=false ⇒ None (لا استثناء يصعد)،
-    فيُبقي المتّصِل على التقدير المُعلَّم. لا يغيّر صيَغ المؤشّرات — يستبدل القيمة فقط.
-    """
-    if not VEGETATION_PREFER_RASTER:
+async def _real_observation_bundle_from_raster(
+    field_id: str, tenant_id: str, raster_indices: list[str]
+) -> dict | None:
+    """Read one validated, tenant-scoped observation bundle from raster-service."""
+    if not VEGETATION_PREFER_RASTER or not RASTER_SERVICE_TOKEN:
         return None
     try:
-        async with httpx.AsyncClient(timeout=8) as c:
+        async with httpx.AsyncClient(timeout=12) as c:
             r = await c.get(
-                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-grid",
-                params={"index": raster_index, "date": "latest", "grid": 16},
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-observation-bundle",
+                params={"indices": ",".join(raster_indices), "date": "latest", "grid": 16},
+                headers={
+                    "X-Tenant-Id": str(tenant_id),
+                    "X-Agent-Token": RASTER_SERVICE_TOKEN,
+                },
             )
         if r.status_code != 200:
             return None
         data = r.json()
-        if not data.get("real_data"):
+        if (
+            not data.get("real_data")
+            or data.get("mixed_scene")
+            or not data.get("bundle_consistency")
+        ):
             return None
-        mean = (data.get("stats") or {}).get("mean")
-        if not isinstance(mean, (int, float)):
-            return None
-        # الغلاف الأغنى (ValidatedIndicatorProduct) إن نشره raster-service؛ متوافق
-        # رجعيّاً مع خدمة أقدم لا تحمله (product = {} ⇒ الحقول None، estimated=False).
-        product = data.get("indicator_product") or {}
-        return {
-            "mean": float(mean),
-            "quality_score": product.get("quality_score"),
-            "valid_pixel_ratio": product.get("valid_pixel_ratio"),
-            "provenance": product.get("provenance"),
-            "data_available_at": product.get("data_available_at") or product.get("created_at"),
-            "estimated": bool(product.get("estimated", False)),
-        }
-    except Exception as e:  # noqa: BLE001 — fail-safe: ارتداد للتقدير، لا كسر
-        logger.debug("raster %s الحقيقيّ غير متاح لـ%s: %s", raster_index, field_id, e)
+        return data
+    except Exception as exc:  # noqa: BLE001 - fail closed to unavailable observation
+        logger.debug("raster observation bundle unavailable field=%s: %s", field_id, exc)
         return None
 
 
@@ -691,26 +552,29 @@ async def run_analysis(
         index_quality: dict[str, dict] = {}
         requested = ["ndvi", "evi", "savi", "ndmi", "msi", "ndwi", "gndvi"]
         raster_names = ["ndvi", "evi", "msavi", "moisture", "msi", "ndwi", "gndvi"]
-        real_products = await asyncio.gather(
-            *(_real_index_mean_from_raster(field_id, ri) for ri in raster_names)
-        )
-        acquisition_dates: list[str] = []
-        for public_name, product in zip(requested, real_products, strict=True):
-            if product is None:
+        bundle = await _real_observation_bundle_from_raster(field_id, tenant_id, raster_names)
+        if bundle is None:
+            raise HTTPException(424, "consistent validated raster observation bundle is required")
+        acquisition_dates: list[str] = list(bundle.get("acquisition_dates") or [])
+        bundle_observations = bundle.get("observations") or {}
+        for public_name, raster_name in zip(requested, raster_names, strict=True):
+            raw = bundle_observations.get(raster_name)
+            if not raw:
                 continue
-            indices[public_name] = round(float(product["mean"]), 3)
+            product = raw.get("indicator_product") or {}
+            mean = (raw.get("stats") or {}).get("mean")
+            if not isinstance(mean, (int, float)):
+                continue
+            indices[public_name] = round(float(mean), 3)
             index_sources[public_name] = "raster-service"
             valid = product.get("valid_pixel_ratio")
             provenance = product.get("provenance") or {}
-            acq = provenance.get("acquisition_datetime") or product.get("acquisition_date")
-            if acq:
-                acquisition_dates.append(str(acq))
             index_quality[public_name] = {
                 "quality_score": product.get("quality_score"),
                 "valid_pixel_ratio": valid,
                 "valid_pixel_pct": round(float(valid) * 100.0, 3) if valid is not None else None,
                 "provenance": provenance,
-                "data_available_at": product.get("data_available_at"),
+                "data_available_at": product.get("data_available_at") or product.get("created_at"),
             }
         if "ndvi" not in indices:
             raise HTTPException(424, "validated real NDVI is required from raster-service")

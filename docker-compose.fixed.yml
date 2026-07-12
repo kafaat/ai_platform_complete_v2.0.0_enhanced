@@ -558,10 +558,11 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      SH_CLIENT_ID: ${SH_CLIENT_ID}
-      SH_CLIENT_SECRET: ${SH_CLIENT_SECRET}
-      COPERNICUS_USER: ${COPERNICUS_USER:-}
-      COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD:-}
+      RASTER_SERVICE_URL: http://sahool-raster-service:8001
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # runtime-truth: real fields come from the tenant-scoped platform catalog
+      # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
+      PLATFORM_API_URL: http://sahool-platform:8000
     depends_on:
       sahool-nats:
         condition: service_healthy

@@ -140,3 +140,9 @@
 - الجلب المباشر من مزود الأقمار محجور افتراضياً خلف `BRAIN_DIRECT_SATELLITE_FETCH_ENABLED=false`.
 - كل أثر فيزيائي يمر عبر `decision-service` وطلب تنفيذ معتمد.
 - الحارس: `scripts/ci/intelligence_governance_gate.py`.
+
+## 2026-07-12 — RIV Three-Containers + Runtime-Truth (مُغلَق على الفرع)
+- **حدود الحاويات الثلاث:** Vegetation تستهلك **حزمة مشاهدة واحدة** tenant-scoped من Raster (`_real_observation_bundle_from_raster`، بدل 7 طلبات) وترفض الحزم مختلطة المشاهد وتفشل 424 مُغلَقاً؛ لا اعتمادات مزوّد ولا جلب مباشر في vegetation (الحارس p1: fetch_from_sentinel_hub + fetch_from_cdse محظوران).
+- **حقيقة تشغيليّة لمصدر الحقل:** `FIELD_REGISTRY` فارغ؛ `load_field` لا يُلفّق أبداً — يقرأ كتالوج المنصّة المستأجَر خلف `FEATURE_SENTINEL_DB_FIELDS` (auto مع `PLATFORM_API_URL`)، ومسار legacy ميْت (`legacy_field_registry_forbidden`⇒None). `ALLOW_LEGACY_FIELD_REGISTRY` off في كلّ بيئة. راوتر all-fields يكرّر على كتالوج المنصّة. compose (v9+fixed) يمرّر `PLATFORM_API_URL`.
+- **درس تكامل:** حزم runtime_truth المُسلَّمة كانت بواباتها/اختباراتها بائتة على شجرتها (برهانها SKIPPED) — أصلحت p1_guard + consumer_contract_gate + 3 اختبارات/بوّابات على العقد الجديد. **عاجل (المشغّل):** إعادة بناء خدمة النبات + التأكّد من بلوغ `sahool-platform:8000` وإلّا كلّ تحليل حقل = 503/404 (لا سجلّ تركيبيّ يرتدّ إليه).
+- مؤجَّل بصدق: تصنيف السجلّ v2 (البدائل الدلاليّة الحاملة) + `geospatial_contract_index_guard` (غير موجود بالشجرة) + شهادة PostgreSQL/CDSE/MinIO الحيّة.

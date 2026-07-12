@@ -25,8 +25,17 @@ missing = [p for p in required if not (ROOT / p).exists()]
 assert not missing, missing
 
 rt = (ROOT / "services/vegetation-analysis-service/vegetation_runtime.py").read_text()
-assert 'default=os.getenv("SAHOOL_ENV", "development").lower() != "production"' in rt, (
-    "legacy field registry must default OFF in production"
+# runtime-truth (20260712): stronger than the old production-only guard — the synthetic
+# FIELD_REGISTRY is empty, legacy fallback defaults OFF in EVERY environment, and load_field
+# never fabricates (legacy path dead-ends to None). Real fields come from the platform catalog.
+assert "FIELD_REGISTRY: dict[str, dict] = {}" in rt, (
+    "synthetic FIELD_REGISTRY must be empty (real fields come from the platform catalog)"
+)
+assert 'os.getenv("ALLOW_LEGACY_FIELD_REGISTRY"), default=False' in rt, (
+    "legacy field registry must default OFF in every environment"
+)
+assert "legacy_field_registry_forbidden" in rt, (
+    "load_field must never fabricate synthetic field metadata (legacy path dead-ends to None)"
 )
 
 wo = (ROOT / "services/agriai-engine/wofost_adapter.py").read_text()

@@ -130,46 +130,39 @@ async def current_ndvi(field_id: str, token: str = Depends(main.security)):
 
 @router.get("/v1/all_fields")
 async def all_fields(token: str = Depends(main.security)):
-    """NDVI الحالي لكلّ الحقول المعروفة (يستهلكه useAllFieldsNdvi/لوحة المؤشّرات).
-
-    يكرّر على فهرس الحقول (FIELD_REGISTRY هو كتالوج التعداد التركيبيّ — لا توجد
-    نقطة «list fields» مستأجَرة هنا) ويُحمّل ميتاداتا كلّ حقل عبر load_field (قد
-    تأتي من القاعدة/المنصّة عند تفعيل العلم). الردّ {fields:[...]} لكلّ منه
-    field_id/name/crop/ndvi/health — تقدير صادق (real_data=False افتراضيّاً).
-    """
+    """Return current NDVI for the authenticated tenant's real platform fields."""
     claims = main._verify_claims(token)
     tenant_id = main._tenant_from_claims(claims)
-    date_to = date.today().isoformat()
-    date_from = (date.today() - timedelta(days=30)).isoformat()
-    # production real-only mode: FIELD_REGISTRY is a synthetic enumeration catalog;
-    # a tenant-scoped platform listing does not exist here yet — honest 501.
-    if main.VEGETATION_REAL_ONLY:
-        raise HTTPException(
-            501, "all_fields requires a tenant-scoped platform field listing in production"
-        )
+    catalog = await main.list_fields_from_platform(tenant_id)
     fields_out = []
-    for fid in main.FIELD_REGISTRY:
-        field = await main.load_field(fid, tenant_id) or {}
-        analysis = await main.run_analysis(fid, tenant_id, date_from, date_to)
-        payload = main._current_ndvi_payload(fid, field, analysis)
+    for item in catalog:
+        fid = str(item.get("id") or item.get("field_id") or "").strip()
+        if not fid:
+            continue
+        observed = await main._current_ndvi_from_raster(fid)
+        value = observed.get("value") if observed else None
+        health = main._health_classification(value, 0.5) if value is not None else None
         fields_out.append(
             {
                 "field_id": fid,
-                "field_name": field.get("name") or fid,
-                "name": field.get("name") or fid,
-                "crop": field.get("crop"),
-                "area_ha": field.get("area_ha"),
-                "ndvi": payload["ndvi"]["current"],
-                "status": payload["classification"].get("status"),
-                "health": payload["classification"],
-                "real_data": payload["real_data"],
+                "field_name": item.get("name") or fid,
+                "name": item.get("name") or fid,
+                "crop": item.get("crop") or item.get("crop_type"),
+                "area_ha": item.get("area_ha"),
+                "ndvi": value,
+                "status": health.get("status") if health else None,
+                "health": health,
+                "acquisition_date": observed.get("observed_at") if observed else None,
+                "scene_id": observed.get("scene_id") if observed else None,
+                "real_data": observed is not None,
+                "available": observed is not None,
             }
         )
     return {
         "fields": fields_out,
         "count": len(fields_out),
         "tenant_id": tenant_id,
-        "real_data": False,
+        "real_data": all(item["real_data"] for item in fields_out) if fields_out else True,
         "generated_at": main.datetime.now(main.UTC).isoformat(),
     }
 

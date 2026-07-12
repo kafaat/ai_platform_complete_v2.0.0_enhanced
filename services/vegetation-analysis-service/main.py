@@ -81,19 +81,14 @@ from vegetation_runtime import (  # noqa: E402,F401
     ALLOW_LEGACY_FIELD_REGISTRY,
     ANALYSIS_COUNT,
     ANALYSIS_LATENCY,
-    CDSE_PASSWORD,
-    CDSE_USER,
     CONTENT_TYPE_LATEST,
     CORS_ORIGINS,
     FEATURE_SENTINEL_DB_FIELDS,
     FIELD_REGISTRY,
     NATS_URL,
     PLATFORM_API_URL,
+    RASTER_SERVICE_TOKEN,
     RASTER_SERVICE_URL,
-    SH_CLIENT_ID,
-    SH_CLIENT_SECRET,
-    SH_PROCESS_URL,
-    SH_TOKEN_URL,
     VEGETATION_PREFER_RASTER,
     _current_ndvi_from_raster,
     _current_ndvi_payload,
@@ -101,13 +96,12 @@ from vegetation_runtime import (  # noqa: E402,F401
     _geometry_to_bbox,
     _health_classification,
     _load_field_from_db,
-    _real_index_mean_from_raster,
     _recommendations_ar,
     _tenant_from_claims,
     _valid_date,
     _verify_claims,
-    fetch_from_cdse,
     generate_latest,
+    list_fields_from_platform,
     load_field,
     run_analysis,
     security,
@@ -118,10 +112,10 @@ from vegetation_runtime import (  # noqa: E402,F401
 # ── Lifespan ───────────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    sh_configured = bool(SH_CLIENT_ID and SH_CLIENT_SECRET)
-    cdse_configured = bool(CDSE_USER and CDSE_PASSWORD)
+    raster_configured = bool(RASTER_SERVICE_URL and RASTER_SERVICE_TOKEN)
     logger.info(
-        f"✅ vegetation-service v9.1 starting — SH={'✅' if sh_configured else '❌ fallback'} | CDSE={'✅' if cdse_configured else '❌ fallback'}"
+        "vegetation-service v9.2 starting — raster_contract=%s direct_provider_access=disabled",
+        "ready" if raster_configured else "fail-closed",
     )
     yield
     if _vegetation_runtime._nc:
@@ -130,7 +124,7 @@ async def lifespan(app: FastAPI):
         logger.info("NATS connection closed")
 
 
-app = FastAPI(title="SAHOOL Vegetation Analysis", version="9.1.0", lifespan=lifespan)
+app = FastAPI(title="SAHOOL Vegetation Analysis", version="9.2.0", lifespan=lifespan)
 # ✅ OTEL
 try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor

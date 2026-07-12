@@ -1,10 +1,12 @@
-"""مصدر حقول Sentinel/Vegetation — إغلاق مرن نحو القاعدة (PR #395).
+"""مصدر حقول Sentinel/Vegetation — حقيقة تشغيليّة: لا تلفيق تركيبيّ (20260712).
 
-استبدال القراءة الصلبة من FIELD_REGISTRY بمُحمِّل حقول مرن load_field خلف علم
-FEATURE_SENTINEL_DB_FIELDS (مُطفأ افتراضيّاً ⇒ السلوك الحاليّ تماماً). هذه الخدمة
-بلا pool قاعدة؛ «القاعدة» تُقرأ عبر platform API (hndسة GeoJSON ⇒ bbox، مكافئ
-ST_Envelope محليّاً). كلّ المسار fail-soft؛ الارتداد للسجلّ القديم موسوم بصدق
-`legacy_field_registry_used`.
+بعد اكتمال حقيقة التشغيل (runtime-truth): `FIELD_REGISTRY` فارغ، ومُحمِّل الحقول
+`load_field` يقرأ الحقل من المنصّة المستأجَرة (platform API؛ هندسة GeoJSON ⇒ bbox،
+مكافئ ST_Envelope محليّاً) خلف علم FEATURE_SENTINEL_DB_FIELDS (يُفعَّل تلقائيّاً عند
+توفّر PLATFORM_API_URL). المسار fail-soft، لكنّه **لا يرتدّ للسجلّ التركيبيّ إطلاقاً**:
+مسار «legacy» ميْت بصدق ⇒ يُسجَّل `legacy_field_registry_forbidden` ويعيد None حتّى
+تفشل النشرات القديمة بوضوح بدل تلفيق بيانات. `ALLOW_LEGACY_FIELD_REGISTRY` يبقى مِفتاح
+تهيئة (off افتراضيّاً) لكنّه لم يعُد يسبّب تلفيقاً.
 
 طبقتان (كنمط test_vegetation_raster_ndvi):
   (A) تعاقُد على المصدر — يُنفَّذ في CI دائماً (تفتيش نصّيّ، لا استيراد).
@@ -44,30 +46,29 @@ def _func_src(name: str) -> str:
 
 
 # ── (A) تعاقُد على المصدر — يُنفَّذ في CI دائماً (لا يستورد الوحدة) ──
-def test_load_field_exists_and_is_graceful():
+def test_load_field_exists_and_never_fabricates():
     body = _func_src("load_field")
     assert "FEATURE_SENTINEL_DB_FIELDS" in body, "load_field لا يفحص علم تفعيل القاعدة"
-    assert "_load_field_from_db" in body, "load_field لا يستدعي مُحمِّل القاعدة"
-    assert "legacy_field_registry_used" in body, "لا يَسِم الارتداد للسجلّ القديم بصدق"
-    assert "FIELD_REGISTRY.get(field_id)" in body, "لا يرتدّ للسجلّ التركيبيّ القديم"
+    assert "_load_field_from_db" in body, "load_field لا يستدعي مُحمِّل القاعدة/المنصّة"
+    # حقيقة تشغيليّة: مسار legacy ميْت بصدق — لا ارتداد للسجلّ التركيبيّ إطلاقاً.
+    assert "legacy_field_registry_forbidden" in body, "لا يَسِم منع السجلّ التركيبيّ بصدق"
+    assert "FIELD_REGISTRY.get(field_id)" not in body, "ما زال يرتدّ للسجلّ التركيبيّ (تلفيق)"
 
 
-def test_feature_flag_off_by_default():
+def test_feature_flag_and_legacy_defaults_are_production_safe():
     src = _src()
-    # العلم يُطبَّع عبر _flag_enabled بافتراض False (off) — السلوك الحاليّ تماماً.
+    # FEATURE_SENTINEL_DB_FIELDS يُفعَّل تلقائيّاً عند توفّر PLATFORM_API_URL (منفذ القاعدة).
     assert re.search(
-        r"FEATURE_SENTINEL_DB_FIELDS\s*=\s*_flag_enabled\(.*default=False",
+        r"FEATURE_SENTINEL_DB_FIELDS\s*=\s*_flag_enabled\(\s*os\.getenv\("
+        r"\"FEATURE_SENTINEL_DB_FIELDS\"\),\s*default=bool\(PLATFORM_API_URL\)",
         src,
-    ), "FEATURE_SENTINEL_DB_FIELDS يجب أن يكون off افتراضيّاً"
-    # منذ إغلاق veg-agriai: الارتداد التركيبيّ مسموح افتراضيّاً في التطوير فقط —
-    # وفي الإنتاج (SAHOOL_ENV=production) يُعطَّل ما لم يُفعَّل صراحةً.
+    ), "FEATURE_SENTINEL_DB_FIELDS يجب أن يُفعَّل تلقائيّاً عند توفّر PLATFORM_API_URL"
+    # الارتداد التركيبيّ مُعطَّل افتراضيّاً في كلّ بيئة (production-safe، لا تلفيق).
     assert re.search(
-        r"ALLOW_LEGACY_FIELD_REGISTRY\s*=\s*_flag_enabled\(",
+        r"ALLOW_LEGACY_FIELD_REGISTRY\s*=\s*_flag_enabled\(\s*"
+        r"os\.getenv\(\"ALLOW_LEGACY_FIELD_REGISTRY\"\),\s*default=False",
         src,
-    ), "ALLOW_LEGACY_FIELD_REGISTRY يجب أن يمرّ عبر _flag_enabled"
-    assert 'default=os.getenv("SAHOOL_ENV", "development").lower() != "production"' in src, (
-        "ALLOW_LEGACY_FIELD_REGISTRY يجب أن يكون production-safe (off في الإنتاج افتراضيّاً)"
-    )
+    ), "ALLOW_LEGACY_FIELD_REGISTRY يجب أن يكون off افتراضيّاً في كلّ بيئة"
 
 
 def test_db_loader_is_failsoft_via_platform_api():
@@ -152,16 +153,15 @@ def test_geometry_to_bbox(veg):
     assert g2b({"type": "Polygon", "coordinates": []}) is None
 
 
-async def test_load_field_off_by_default_returns_registry(veg, monkeypatch):
-    # العلم مُطفأ (الافتراض): يرتدّ للسجلّ التركيبيّ ولا يلمس القاعدة إطلاقاً.
+async def test_load_field_off_by_default_returns_none_no_fabrication(veg, monkeypatch):
+    # العلم مُطفأ: لا يلمس القاعدة، ولا يرتدّ للسجلّ التركيبيّ ⇒ None (لا تلفيق).
     monkeypatch.setattr(veg, "FEATURE_SENTINEL_DB_FIELDS", False)
 
     async def _boom(*a, **k):
         raise AssertionError("يجب ألّا يُستدعى مُحمِّل القاعدة والعلم مُطفأ")
 
     monkeypatch.setattr(veg, "_load_field_from_db", _boom)
-    field = await veg.load_field("field_01", "t1")
-    assert field == veg.FIELD_REGISTRY["field_01"]
+    assert await veg.load_field("field_01", "t1") is None
 
 
 async def test_load_field_db_used_when_flag_on(veg, monkeypatch):
@@ -175,7 +175,8 @@ async def test_load_field_db_used_when_flag_on(veg, monkeypatch):
     assert await veg.load_field("field_01", "t1") is sentinel
 
 
-async def test_load_field_failsoft_falls_back_to_registry(veg, monkeypatch):
+async def test_load_field_failsoft_never_fabricates_even_when_legacy_allowed(veg, monkeypatch):
+    # فشل القاعدة fail-soft (لا يرفع) لكنّه لا يرتدّ للسجلّ التركيبيّ حتّى مع السماح ⇒ None.
     monkeypatch.setattr(veg, "FEATURE_SENTINEL_DB_FIELDS", True)
     monkeypatch.setattr(veg, "ALLOW_LEGACY_FIELD_REGISTRY", True)
 
@@ -183,8 +184,7 @@ async def test_load_field_failsoft_falls_back_to_registry(veg, monkeypatch):
         raise RuntimeError("platform down")
 
     monkeypatch.setattr(veg, "_load_field_from_db", _db)
-    field = await veg.load_field("field_01", "t1")
-    assert field == veg.FIELD_REGISTRY["field_01"], "يجب الارتداد للسجلّ عند فشل القاعدة"
+    assert await veg.load_field("field_01", "t1") is None, "لا تلفيق: فشل القاعدة ⇒ None لا سجلّ"
 
 
 async def test_load_field_no_legacy_returns_none(veg, monkeypatch):

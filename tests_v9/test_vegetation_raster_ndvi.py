@@ -1,11 +1,11 @@
-"""vegetation /v1/analyze مستهلك RIV صارم: منتجات raster-service الموثَّقة حصراً.
+"""vegetation /v1/analyze مستهلك RIV صارم عبر Observation Bundle واحد من raster-service.
 
-بعد توحيد RIV (حوكمة الدماغ 20260712): لا جلب مزوّد ولا نطاقات تركيبيّة ولا صيغ
-طيفيّة داخل vegetation. `run_analysis` يقرأ المتوسّطات البكسليّة الموثَّقة من
-raster-service فقط، يشتقّ LAI (نموذج موثَّق) وwater_stress (تفسير من ndmi/msi)،
-ويفشل مُغلَقاً 424 عند غياب NDVI حقيقيّ — لا ارتداد تقديريّاً بعد الآن.
+حدود الحاويات الثلاث (20260712): vegetation لا تحمل اعتمادات مزوّد ولا تجلب مباشرة،
+وتستهلك **حزمة مشاهدة واحدة** tenant-scoped من raster-service (بدل 7 طلبات مفردة) عبر
+`_real_observation_bundle_from_raster` (X-Agent-Token + X-Tenant-Id)، وترفض الحزم مختلطة
+المشاهد وتفشل مُغلَقاً 424 عند غياب NDVI موثَّق — لا جلب مزوّد ولا تقدير تركيبيّ.
 
-اختباران: (A) تعاقُد على المصدر (يُنفَّذ في CI بلا fastapi)، (B) سلوكيّ يثبّت
+اختباران: (A) تعاقُد ساكن على المصدر (يُنفَّذ في CI بلا fastapi)، (B) سلوكيّ يثبّت
 الوسم الصادق للمصادر والفشل المُغلَق (يتخطّى إن غاب fastapi في بيئة CI الخفيفة).
 """
 
@@ -41,37 +41,55 @@ def _func_src(name: str) -> str:
     return src[start:end]
 
 
-# ── (A) تعاقُد على المصدر — يُنفَّذ في CI دائماً (لا يستورد الوحدة) ──
-def test_run_analysis_prefers_real_indices():
+# ── (A) تعاقُد ساكن على المصدر — يُنفَّذ في CI دائماً (لا يستورد الوحدة) ──
+def test_run_analysis_consumes_single_observation_bundle():
     body = _func_src("run_analysis")
-    assert "_real_index_mean_from_raster" in body, "لا يستدعي مصدر المؤشّر الحقيقيّ من raster"
-    assert "asyncio.gather" in body, "لا يجلب القيم الحقيقيّة بالتوازي"
+    # حزمة واحدة بدل 7 طلبات: لا asyncio.gather على مؤشّرات مفردة.
+    assert "_real_observation_bundle_from_raster" in body, "لا يستهلك حزمة المشاهدة الواحدة"
+    assert "asyncio.gather" not in body, "لا يزال يجلب المؤشّرات بطلبات متوازية مفردة"
     assert 'index_sources[public_name] = "raster-service"' in body, "لا يَسِم المصدر الحقيقيّ"
-    # RIV: فشل مُغلَق بلا NDVI حقيقيّ — لا ارتداد تقديريّاً ولا جلب مزوّد.
-    assert "validated real NDVI is required" in body, "لا يفشل مُغلَقاً عند غياب NDVI موثَّق"
-    assert "fetch_from_sentinel_hub" not in body, "جلب مزوّد مباشر داخل vegetation (خرق RIV)"
+    # فشل مُغلَق: حزمة غير متّسقة/غائبة ⇒ 424، وغياب NDVI ⇒ 424.
+    assert "consistent validated raster observation bundle is required" in body
+    assert "validated real NDVI is required from raster-service" in body
+    # لا جلب مزوّد مباشر داخل vegetation (خرق حدود الحاويات).
+    assert "fetch_from_sentinel_hub" not in body and "fetch_from_cdse" not in body
     assert '"source": index_sources.get(k' in body, "لا يَسِم مصدر كلّ مؤشّر من index_sources"
 
 
 def test_raster_real_index_map_excludes_lai_cwsi():
     src = _src()
-    # الخريطة تشمل EVI/SAVI/NDMI الحقيقيّة، وتستثني lai/cwsi (تبقيان تقديراً بصدق).
+    # الأسماء الدلاليّة الحاملة محفوظة (EVI/SAVI⇐MSAVI/NDMI⇐moisture)، وlai/cwsi مستثناة.
     m = re.search(r"_RASTER_REAL_INDEX\s*=\s*\{([^}]*)\}", src)
     assert m, "خريطة _RASTER_REAL_INDEX غير موجودة"
     mapping = m.group(1)
     for real_idx in ("evi", "savi", "ndmi"):
         assert f'"{real_idx}"' in mapping, f"{real_idx} يجب أن يكون مؤشّراً حقيقيّاً"
     for est_idx in ("lai", "cwsi"):
-        assert f'"{est_idx}"' not in mapping, f"{est_idx} يجب أن يبقى تقديراً (نموذج/LST)"
+        assert f'"{est_idx}"' not in mapping, f"{est_idx} يجب أن يبقى تفسيراً لا رصداً"
 
 
-def test_helper_is_failsafe():
-    body = _func_src("_real_index_mean_from_raster")
-    assert "VEGETATION_PREFER_RASTER" in body, "لا يحترم مفتاح التفعيل/الإيقاف"
-    assert 'data.get("real_data")' in body, "لا يتحقّق من real_data من raster"
-    # الارتداد الآمن: يلتقط Exception ويُنهي بـreturn None (لا يصعد فيكسر التحليل)
-    assert "except Exception" in body, "لا يلتقط الاستثناء (ليس fail-safe)"
-    assert body.rstrip().endswith("return None"), "لا يرتدّ None عند التعذّر"
+def test_bundle_consumer_is_token_scoped_and_failsafe():
+    body = _func_src("_real_observation_bundle_from_raster")
+    assert "RASTER_SERVICE_TOKEN" in body, "لا يشترط توكن الخدمة الداخليّ (fail-closed بدونه)"
+    assert "X-Agent-Token" in body and "X-Tenant-Id" in body, "لا يمرّر هويّة/مستأجراً موثَّقاً"
+    assert "indicator-observation-bundle" in body, "لا يطلب نقطة الحزمة الموحّدة"
+    # ترفض الحزم مختلطة المشاهد / غير المتّسقة / غير الحقيقيّة.
+    assert 'data.get("mixed_scene")' in body and 'data.get("bundle_consistency")' in body
+    # fail-safe: يلتقط الاستثناء ويرتدّ None بلا رفع.
+    assert "except Exception" in body
+    assert body.rstrip().endswith("return None")
+
+
+def test_no_provider_credentials_in_runtime():
+    src = _src()
+    # حدود الأسرار: لا اعتمادات Sentinel Hub/CDSE/Copernicus في runtime vegetation.
+    for secret in (
+        "SH_CLIENT_SECRET",
+        "CDSE_CLIENT_SECRET",
+        "COPERNICUS_PASSWORD",
+        "_get_sh_token",
+    ):
+        assert secret not in src, f"سرّ/دالّة مزوّد مسرّبة في vegetation: {secret}"
 
 
 # ── (B) سلوكيّ — يتخطّى إن غاب fastapi (بيئة CI الخفيفة لا تثبّته) ──
@@ -81,55 +99,75 @@ def veg():
     pytest.importorskip("jwt")
     pytest.importorskip("httpx")
     pytest.importorskip("prometheus_client")
-    # P1 decomposition: main.py يستورد وحدة شقيقة (*_runtime) — يجب أن يكون
-    # مجلّد الخدمة على sys.path قبل exec_module.
     import sys as _sys
 
     _svc_dir = os.path.dirname(VEG)
     if _svc_dir not in _sys.path:
         _sys.path.insert(0, _svc_dir)
-    # عزل: نسخة شقيقة قديمة (خدمة أخرى/بيئة سابقة) في sys.modules تُفسد الاستيراد.
     _stale = _sys.modules.get("vegetation_runtime")
     if _stale is not None and os.path.dirname(getattr(_stale, "__file__", "") or "") != _svc_dir:
         _sys.modules.pop("vegetation_runtime", None)
     spec = importlib.util.spec_from_file_location("veg_main_test", VEG)
     m = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(m)
-    # P1 decomposition: run_analysis وخطافات الجلب تعيش في vegetation_runtime — الحقن
-    # على وحدة الواجهة لا يصل globals المنطق؛ نحقن ونُرجِع وحدة الـruntime نفسها.
     m = _sys.modules["vegetation_runtime"]
-
-    async def _noop_meta(*a, **k):
-        return {}
 
     async def _noop_pub(*a, **k):
         return None
 
-    m.fetch_from_sentinel_hub = _noop_meta
-    m.fetch_from_cdse = _noop_meta
     m._publish_analysis = _noop_pub
     return m
 
 
-async def test_real_indices_used_and_labeled(veg):
-    # المنفذ الحقيقيّ يُرجِع غلافاً (ValidatedIndicatorProduct) — القيمة تحت "mean".
-    async def _r(field_id, raster_index="ndvi"):
-        return {
-            "mean": 0.77,
-            "quality_score": 0.9,
-            "valid_pixel_ratio": 0.95,
-            "provenance": None,
-            "estimated": False,
-        }
+# runtime-truth (20260712): FIELD_REGISTRY is empty and load_field returns None unless the
+# tenant-scoped platform catalog is reachable — the behavioral tests inject the field fixture
+# explicitly via monkeypatch (function-scoped, so it never leaks to other test modules that
+# exercise the real load_field).
+async def _fixture_field(field_id, tenant_id=None):
+    return {
+        "name": "حقل اختبار",
+        "bbox": [45.5, 15.0, 45.6, 15.1],
+        "area_ha": 20.0,
+        "crop": "wheat",
+    }
 
-    veg._real_index_mean_from_raster = _r
+
+def _bundle(mean: float = 0.77) -> dict:
+    """حزمة مشاهدة متّسقة (مشهد واحد) بأسماء المؤشّرات الراستريّة."""
+    obs = {}
+    for raster_name in ("ndvi", "evi", "msavi", "moisture", "msi", "ndwi", "gndvi"):
+        obs[raster_name] = {
+            "stats": {"mean": mean},
+            "indicator_product": {
+                "quality_score": 0.9,
+                "valid_pixel_ratio": 0.95,
+                "provenance": {
+                    "scene_id": "S2_ABC",
+                    "acquisition_datetime": "2026-06-05T10:00:00Z",
+                },
+            },
+        }
+    return {
+        "source": "raster-service",
+        "real_data": True,
+        "mixed_scene": False,
+        "bundle_consistency": True,
+        "acquisition_dates": ["2026-06-05"],
+        "observations": obs,
+    }
+
+
+async def test_indices_labeled_raster_source_from_bundle(veg, monkeypatch):
+    monkeypatch.setattr(veg, "load_field", _fixture_field)
+
+    async def _b(field_id, tenant_id, raster_indices):
+        return _bundle(0.77)
+
+    monkeypatch.setattr(veg, "_real_observation_bundle_from_raster", _b)
     res = await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
-    # المؤشّرات المرصودة كلّها من raster-service (المستهلك الصارم لا يقدّر)
-    for real_idx in ("ndvi", "evi", "savi", "ndmi"):
-        assert res["indices"][real_idx]["value"] == 0.77
-        assert res["indices"][real_idx]["source"] == "raster-service"
-    # منتجات التفسير الموثَّقة: LAI نموذج مشتقّ من NDVI، water_stress تفسير من ndmi/msi
-    # — لا cwsi تقديريّاً بعد توحيد RIV (التقدير أُزيل من الخدمة كلّيّاً).
+    for public_idx in ("ndvi", "evi", "savi", "ndmi"):
+        assert res["indices"][public_idx]["value"] == 0.77
+        assert res["indices"][public_idx]["source"] == "raster-service"
     assert res["indices"]["lai"]["source"] == "vegetation-model"
     assert res["indices"]["water_stress"]["source"] == "vegetation-interpretation"
     assert "cwsi" not in res["indices"]
@@ -137,14 +175,16 @@ async def test_real_indices_used_and_labeled(veg):
     assert res["data_source"] == "raster-service"
 
 
-async def test_fails_closed_424_when_raster_absent(veg):
-    """RIV: غياب المنتج الموثَّق ⇒ 424 فشلاً مُغلَقاً — لا ارتداد تقديريّاً مُفبرَكاً."""
+async def test_fails_closed_424_when_bundle_absent(veg, monkeypatch):
+    """غياب/عدم اتّساق الحزمة ⇒ 424 فشلاً مُغلَقاً — لا ارتداد تقديريّاً."""
     from fastapi import HTTPException
 
-    async def _none(field_id, raster_index="ndvi"):
+    monkeypatch.setattr(veg, "load_field", _fixture_field)
+
+    async def _none(field_id, tenant_id, raster_indices):
         return None
 
-    veg._real_index_mean_from_raster = _none
+    monkeypatch.setattr(veg, "_real_observation_bundle_from_raster", _none)
     with pytest.raises(HTTPException) as exc:
         await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
     assert exc.value.status_code == 424

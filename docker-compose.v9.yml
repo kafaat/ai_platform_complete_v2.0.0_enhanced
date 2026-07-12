@@ -748,14 +748,11 @@ services:
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      SH_CLIENT_ID: ${SH_CLIENT_ID}
-      SH_CLIENT_SECRET: ${SH_CLIENT_SECRET}
-      CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
-      CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
-      SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
-      SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
-      COPERNICUS_USER: ${COPERNICUS_USER:-}
-      COPERNICUS_PASSWORD: ${COPERNICUS_PASSWORD:-}
+      RASTER_SERVICE_URL: http://sahool-raster-service:8001
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # runtime-truth: real fields come from the tenant-scoped platform catalog
+      # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
+      PLATFORM_API_URL: http://sahool-platform:8000
       # vegetation publishes events best-effort; NATS is not a startup/readiness blocker.
       VEGETATION_NATS_PUBLISH_MODE: ${VEGETATION_NATS_PUBLISH_MODE:-best_effort}
     networks:

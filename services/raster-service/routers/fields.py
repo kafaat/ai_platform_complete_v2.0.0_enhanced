@@ -738,6 +738,75 @@ async def field_indicator_grid(
     )
 
 
+@router.get("/v1/fields/{field_id}/indicator-observation-bundle")
+async def field_indicator_observation_bundle(
+    field_id: str,
+    indices: str = Query("ndvi,evi,msavi,moisture,msi,ndwi,gndvi"),
+    date: str = Query("latest"),
+    grid: int = Query(16, ge=2, le=64),
+    x_agent_token: str | None = Header(None),
+):
+    """Return multiple validated indicator observations in one tenant-scoped call.
+
+    The bundle never fabricates products.  Every observation is read from a real COG.
+    A mixed-scene bundle is reported explicitly so interpretation consumers can fail
+    closed instead of combining observations from different acquisitions.
+    """
+    _require_service_token(x_agent_token)
+    await _require_field_tenant(field_id)
+    requested: list[str] = []
+    for raw in indices.split(","):
+        name = raw.strip().lower()
+        if name and name not in requested:
+            requested.append(name)
+    if not requested:
+        raise HTTPException(422, "at least one indicator is required")
+
+    observations: dict[str, dict] = {}
+    unavailable: dict[str, str] = {}
+    scene_ids: set[str] = set()
+    acquisition_dates: set[str] = set()
+    for public_name in requested:
+        internal = _normalize_index(public_name)
+        layer = await _resolve_field_layer(field_id, internal, date)
+        if layer is None:
+            unavailable[public_name] = "product_unavailable"
+            continue
+        result = _grid_from_cog(layer, _display_index(public_name), date, grid)
+        if result is None or not result.get("real_data"):
+            unavailable[public_name] = "product_unreadable"
+            continue
+        observations[public_name] = result
+        product = result.get("indicator_product") or {}
+        provenance = product.get("provenance") or {}
+        scene_id = provenance.get("scene_id") or layer.get("scene_id")
+        acquisition = (
+            provenance.get("acquisition_datetime")
+            or provenance.get("capture_datetime")
+            or result.get("date")
+        )
+        if scene_id:
+            scene_ids.add(str(scene_id))
+        if acquisition:
+            acquisition_dates.add(str(acquisition))
+
+    mixed_scene = len(scene_ids) > 1 or len(acquisition_dates) > 1
+    return {
+        "field_id": field_id,
+        "requested": requested,
+        "observations": observations,
+        "unavailable": unavailable,
+        "complete": not unavailable,
+        "bundle_consistency": not mixed_scene,
+        "mixed_scene": mixed_scene,
+        "scene_ids": sorted(scene_ids),
+        "acquisition_dates": sorted(acquisition_dates),
+        "source": "raster-service",
+        "real_data": bool(observations),
+        "estimated": False,
+    }
+
+
 @router.get("/v1/fields/{field_id}/pixel")
 async def field_pixel_value(
     field_id: str,

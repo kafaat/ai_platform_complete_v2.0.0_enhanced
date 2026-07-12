@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "924532c4158fd7937500316d5df6a595e9f1d9e6716fda4fcc3feeb14ffe1854"
+          "content": "0e35b81a5b898eb5f202309e3ab981916f9b82800b9f220a33900e21eea9833c"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "704f0d585f874c308ac4c9a54bf4d16d0e762b4ca00f7f5f50ca6886672ba200"
+          "content": "f44d941d78dc8106ad1e9c1643a7f0ab808146ae22f0dc685c76c03779efaaa3"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -11425,7 +11425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ec168aae041c03127d47d89cd233316528ccc718543f1865b094345adb2e74e"
+          "content": "5fd2fdc3fac4ba115ff45857d175e1e183156d5f1652a0e098578da9dea24cfe"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -24405,7 +24405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb6e1af5241dadeba3146d834a3da705f5fe97b9bbf6f7ee87c4c2c73a959766"
+          "content": "b6343ce6c1fb8af270dbcfcf3b4f7de0dfe7896bc3b355d63a8d2bc98f28f0ff"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -24445,7 +24445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "42d33422876c642dfce2211bbdb8201432da1824039eadd04052fea16a218cf3"
+          "content": "90776fc57dcfb489eb3269b90cad92cf93181b865e54dc1afbfa037236239084"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -24545,7 +24545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e09cf4a46978dacd0d6a268d3afa31466415db186c3962617aa97718f11cdd13"
+          "content": "ac62ce1996f9eb731a51d739932dfdbb9288e47c8e772fceab01d96638c6b989"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",
