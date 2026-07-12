@@ -2702,3 +2702,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الـadapter**: `resolve_tenants` بأولويّة صريحة (RUNTIME_TENANT_IDS csv ← RUNTIME_TENANT_ID ← اكتشاف خادميّ من نقطة الاكتشاف) + `run_once` يلفّ القسمة كلّها؛ غياب التعيين = RuntimeContractError صريح لا خمول صامت؛ client.get صار يتجنّب ترويسة "None" الحرفيّة للنداءات بلا مستأجر.
 - **التحقّق:** برهان HTTP على PG حقيقيّ (تسجيل→200 لمستأجره→403 لغيره→اكتشاف) + replay/conflict/تعطيل · adapter 10 (منها حلّ المستأجرين بأربع حالات) · البطاريّة الكاملة 001–024 عذراء · unit 2912 · بوّابة جديدة + الجرود (نقطتان جديدتان) والحزمة.
 - **المتبقّي المفتوح الآن تشغيليّ فقط:** قلب SoR + دور غير-مالك (RLS/FORCE) — كلاهما للمشغّل.
+
+## 2026-07-12 (خاتمة) — إقفال multitenancy على `73666ee` + لقطة zip
+- مسح main-only: **28/28 أخضر**. main = develop = `73666ee`. فجوة WX-12-RUNTIME-MULTITENANCY = CLOSED (سجّلها gaps/registry).
+- **حالة السجلّ المفتوح الآن: خطوتا المشغّل فقط** — قلب SoR (DEPLOYED-DECISION-SOR-PROMOTION) + دور runtime غير-مالك يُفعّل RLS (وFORCE لاحقاً). لا فجوات كوديّة مفتوحة.
+- أُرسلت لقطة `sahool_73666ee_multitenancy_verified.zip` (git-archive، 4378 ملفّاً) للمستخدم.
