@@ -2761,3 +2761,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الحلّ:** توسعة `GET /v1/fields/{id}/available-dates` بـ`include_provider`+`months` — يجلب هندسة الحقل (fetch_field_geometry) ⇒ bbox ⇒ مسح STAC بنوافذ شهريّة ويُدمج كلّ تواريخ التقاط المزوّد بـ`has_cog=false` (لا ادّعاء جاهزيّة؛ فشل الكتالوج يُعلَن في `provider_dates_error` ولا يُفشل المعالَج) · تمريرها عبر raster_service_client وواجهة المنصّة · `fetchFieldImageryAvailableDates(opts)` · الشريط في MapHub صار **حسب الطبقة المختارة** (idx) + كامل محور المزوّد — الجاهز لهذا المؤشّر بصورته، والباقي «ينتظر COG» بتاريخه الحقيقيّ بلا صورة (العرض القائم كان يدعم الحالتين أصلاً).
 - **تصويب عقود اختبارات قديمة بوعي:** حارس «all-index timeline» عُدِّل إلى العقد الجديد (طلب المستخدم صريح: حسب الطبقة) وحارس شكل params حُرِّر من الصيغة الحرفيّة.
 - **تحقّق:** vitest كامل 158/158 (1124) · tsc نظيف · ruff · unit 2912 · bundle rebuilt. حارس ساكن جديد يثبت الموضعين (الجلب الأوّليّ + تحديث ما-بعد-backfill) وأمانة has_cog=False.
+
+## 2026-07-12 — مسح main على 3b20e07: 29/30 + إصلاح فوريّ
+- المسح: 29 أخضر، وفشل واحد في **Sahool Production Gates / pytest-contracts**: `test_jobs_database_url_is_limited_to_background_channels` — allowlist **ثانٍ** لقناة JOBS في `tests/security/test_phase12_final_production_gates.py` لم يكن ضمن بطاريّة ما-قبل-FF (سجّلتُ العامل في `rls_runtime_gate.py` فقط). سُجِّل `sahool-water-ledger-worker` فيه بالتبرير نفسه — 4/4 محلّيّاً.
+- **درس مُرسَّخ:** إضافة أيّ خدمة بقناة JOBS تتطلّب تسجيلاً في **موضعين**: `scripts/security/rls_runtime_gate.py` و`tests/security/test_phase12_final_production_gates.py` — ويُضاف الأخير إلى بطاريّة ما-قبل-FF من الآن.
+- إصلاح mypy مرافق على القمّة نفسها (`3332b51`): `logging_config` سلسلة LOG_LEVEL تنتهي بحرفيّ.

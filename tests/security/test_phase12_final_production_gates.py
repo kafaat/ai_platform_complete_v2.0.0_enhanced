@@ -37,6 +37,10 @@ def test_jobs_database_url_is_limited_to_background_channels() -> None:
         "sahool-raster-cache-invalidation-worker",
         # عامل فحص backfill (v5/v6): يطالب backfill_runs العابر بدور JOBS ويجدول المعالجة.
         "sahool-raster-backfill-scan-worker",
+        # عامل ميزان الماء اليوميّ (WATER-LEDGER-AUTO): يمسح حقول المواسم النشطة بدور
+        # JOBS ثمّ يضبط app.current_tenant لكلّ حقل قبل قراءة/upsert water_ledger
+        # (RLS-scoped)؛ لا كتابة إلّا خلف WATER_LEDGER_AUTO_ENABLED والقيد اليدويّ سيّد.
+        "sahool-water-ledger-worker",
     }
     offenders: list[str] = []
     for name, svc in compose["services"].items():
