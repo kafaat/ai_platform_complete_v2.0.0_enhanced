@@ -605,10 +605,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8676c29ac39566dcd249b2124c907dd5bf16c312bb37dde26974bb52f3cd50f5"
+          "content": "a8796b91fea0e7d4539bf7d975c70f661574132fed43f9beebc68155516c79d2"
         }
       ],
       "name": "frontend/src/components/agrozones/AgroZonesPanel.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1b468deaf7f76d22cdf4a13e41e4a3f26801b5525899411225c80742051bd54f"
+        }
+      ],
+      "name": "frontend/src/components/approvals/DecisionEvidencePanel.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "335b3867f4a0fa3ff84df60937a513a1a2712317ec5c00494ae9a99d5e05a247"
+        }
+      ],
+      "name": "frontend/src/components/approvals/DecisionEvidencePanel.tsx",
       "type": "file"
     },
     {
@@ -725,7 +745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "851a8ea8f632e7d5521c2262b34d297b53f6bad9dd6415d700ec5ae66b7873dc"
+          "content": "56a3cebfa8efa8bd5e33c72fc17bbde1c9cef774b5d40f6f8a74f995a032b188"
         }
       ],
       "name": "frontend/src/components/ds/forms.tsx",
@@ -2255,7 +2275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2e2ffde2adb1f1e8d7cde873e0111957a32af2faa055a3edbb6fa04f7d12502c"
+          "content": "3b9362b0660ef41b4fc8e07cd9f72f61115d9c708f8dde23758abcbe004f9bc7"
         }
       ],
       "name": "frontend/src/hooks/useAgroZones.ts",
@@ -4385,7 +4405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "512faad4f1359dc50ac69a36fea6a93dd32d6b170bfa74e674cebda382c63143"
+          "content": "c0e36d174eee9b0d80b21d1fdd704b34de7095869d22f1192d512b2f38f2af2a"
         }
       ],
       "name": "frontend/src/sections/ChatbotAiEvidenceTransparency.static.test.ts",
@@ -4445,7 +4465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ecf6cbb4f0c72e662da4351d83b560c20060d70f9e034d80aa7b50d29b3488f7"
+          "content": "aef2fee192a0c2c60cb8b345ba3a3cc82944102239030b1d280c107a986cd8f4"
         }
       ],
       "name": "frontend/src/sections/CropStatePage.tsx",
@@ -4935,7 +4955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b018a8517bfcbad1e6445900d1f304a28164f7b79c83907f2b6f1f4eb351e4a7"
+          "content": "e8588821c9915e6511c0bf63968c64f65870d3b65825437c2074f1fd1c317d65"
         }
       ],
       "name": "frontend/src/sections/InventoryPage.tsx",
@@ -9449,6 +9469,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_agronomic_runtime_terminal_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4a8b3f5af38908d52d6e256c80331145266e68c81536cdb6cdb732c595e7c6df"
+        }
+      ],
+      "name": "services/decision-service/tests/test_decision_evidence_read.py",
       "type": "file"
     },
     {
@@ -21975,7 +22005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "923a54eaf7f987bae84506d6f207671ecd187023ff10cfda87df36d9bd567f8e"
+          "content": "bf10f6bc46ae4d1c9cfad6c44752f22e4aa81d2c511d70289fe10ec0fce63613"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
