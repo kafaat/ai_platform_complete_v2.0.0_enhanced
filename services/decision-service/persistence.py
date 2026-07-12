@@ -4019,9 +4019,10 @@ async def register_runtime_worker_tenant(
 ) -> dict[str, Any]:
     """WX-12 multitenancy: operator registration of a worker→tenant authorization.
 
-    Idempotent upsert: the (worker, tenant) pair is unique; re-registering updates the
-    enabled flag. Identical idempotent retries replay; a different payload under the same
-    idempotency key is a typed conflict.
+    Forensic hardening (audit F-02): commands land in an APPEND-ONLY ledger keyed by
+    (worker, idempotency_key); the mapping row is a derived projection with a monotonic
+    revision. A delayed retry of an OLD command replays its original outcome WITHOUT
+    mutating the projection — a stale "enable" can never resurrect a later revocation.
     """
     data = payload.model_dump() if hasattr(payload, "model_dump") else vars(payload)
     req_hash = _stable_hash({"worker_id": worker_id, **data})
@@ -4029,32 +4030,44 @@ async def register_runtime_worker_tenant(
     try:
         async with conn.transaction():
             prior = await conn.fetchrow(
-                "SELECT * FROM decision_runtime_worker_tenants WHERE worker_id=$1 AND idempotency_key=$2",
+                "SELECT * FROM decision_runtime_worker_tenant_commands"
+                " WHERE worker_id=$1 AND idempotency_key=$2",
                 worker_id,
                 payload.idempotency_key,
             )
             if prior:
                 if prior["request_hash"] != req_hash:
                     return {"status": "conflict", "reason": "idempotency_key_payload_mismatch"}
+                # replay of the ORIGINAL command: report what it did back then; the current
+                # projection (which may have moved on) is deliberately untouched.
                 return {
                     "status": "ok",
                     "replay": True,
-                    "registration_id": prior["registration_id"],
-                    "enabled": prior["enabled"],
+                    "command_id": prior["command_id"],
+                    "enabled": prior["requested_enabled"],
+                    "revision": prior["resulting_revision"],
                 }
+            # serialize concurrent commands for the same pair on the projection row.
+            current = await conn.fetchrow(
+                "SELECT registration_id, revision FROM decision_runtime_worker_tenants"
+                " WHERE worker_id=$1 AND tenant_id=$2::uuid FOR UPDATE",
+                worker_id,
+                payload.tenant_id,
+            )
+            next_revision = (current["revision"] + 1) if current else 1
             rid = "wt_" + _stable_hash({"w": worker_id, "t": payload.tenant_id})[:20]
-            row = await conn.fetchrow(
+            await conn.execute(
                 """INSERT INTO decision_runtime_worker_tenants
                    (registration_id, worker_id, tenant_id, enabled, created_by,
-                    idempotency_key, request_hash)
-                   VALUES ($1, $2, $3::uuid, $4, $5, $6, $7)
+                    idempotency_key, request_hash, revision)
+                   VALUES ($1, $2, $3::uuid, $4, $5, $6, $7, $8)
                    ON CONFLICT (worker_id, tenant_id) DO UPDATE SET
                      enabled = EXCLUDED.enabled,
                      created_by = EXCLUDED.created_by,
                      idempotency_key = EXCLUDED.idempotency_key,
                      request_hash = EXCLUDED.request_hash,
-                     updated_at = now()
-                   RETURNING *""",
+                     revision = EXCLUDED.revision,
+                     updated_at = now()""",
                 rid,
                 worker_id,
                 payload.tenant_id,
@@ -4062,24 +4075,43 @@ async def register_runtime_worker_tenant(
                 created_by,
                 payload.idempotency_key,
                 req_hash,
+                next_revision,
+            )
+            cmd_id = "wtc_" + _stable_hash({"w": worker_id, "k": payload.idempotency_key})[:20]
+            await conn.execute(
+                """INSERT INTO decision_runtime_worker_tenant_commands
+                   (command_id, worker_id, tenant_id, requested_enabled, created_by,
+                    idempotency_key, request_hash, resulting_revision)
+                   VALUES ($1, $2, $3::uuid, $4, $5, $6, $7, $8)""",
+                cmd_id,
+                worker_id,
+                payload.tenant_id,
+                bool(payload.enabled),
+                created_by,
+                payload.idempotency_key,
+                req_hash,
+                next_revision,
             )
             await emit_outbox_event(
                 conn,
                 tenant_id=payload.tenant_id,
                 event_type="RUNTIME_WORKER_TENANT_REGISTERED",
-                aggregate_type="decision_runtime_worker_tenants",
-                aggregate_id=row["registration_id"],
+                aggregate_type="decision_runtime_worker_tenant_commands",
+                aggregate_id=cmd_id,
                 payload={
                     "worker_id": worker_id,
                     "enabled": bool(payload.enabled),
                     "created_by": created_by,
+                    "revision": next_revision,
                 },
             )
             return {
                 "status": "ok",
                 "replay": False,
-                "registration_id": row["registration_id"],
-                "enabled": row["enabled"],
+                "command_id": cmd_id,
+                "registration_id": rid,
+                "enabled": bool(payload.enabled),
+                "revision": next_revision,
             }
     finally:
         await conn.close()
@@ -4102,10 +4134,27 @@ async def list_worker_tenants(*, worker_id: str) -> dict[str, Any]:
         await conn.close()
 
 
+def strict_worker_tenants_enabled() -> bool:
+    """Forensic F-01: production must be fail-closed — an UNKNOWN worker gets NOTHING.
+
+    Staged enforcement flag (same idiom as the SoR flip and
+    DECISION_REQUIRE_AGRONOMIC_CONTEXT): default off preserves the legacy env-pinned
+    single-worker installs; the operator production checklist turns it on, after which
+    an unregistered worker_id is denied every tenant instead of allowed all of them.
+    """
+    return os.getenv("DECISION_STRICT_WORKER_TENANTS", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 async def worker_tenant_authorized(*, worker_id: str, tenant_id: str) -> bool:
-    """Partitioning rule: an UNREGISTERED worker keeps legacy behavior (deployment pins
-    the tenant via env); once ANY registration exists for the worker, only its enabled
-    tenants pass — a guessed/free-picked X-Tenant-Id is refused."""
+    """Partitioning rule. Strict mode (production): only a registered+enabled mapping
+    passes — unknown workers are DENIED (fail-closed). Legacy mode (default, staged):
+    an unregistered worker keeps the env-pinned behavior; once ANY registration exists
+    for the worker, only its enabled tenants pass."""
     conn = await _connect()
     try:
         registered = await conn.fetchval(
@@ -4113,7 +4162,7 @@ async def worker_tenant_authorized(*, worker_id: str, tenant_id: str) -> bool:
             worker_id,
         )
         if not registered:
-            return True
+            return not strict_worker_tenants_enabled()
         allowed = await conn.fetchval(
             "SELECT 1 FROM decision_runtime_worker_tenants WHERE worker_id=$1 AND tenant_id=$2::uuid AND enabled",
             worker_id,

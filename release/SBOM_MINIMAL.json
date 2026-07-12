@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6392574cb910b4daebe3b9066a38943adcf891b9e273f36c65857a896fbc0e62"
+          "content": "f41063fdb09ebf1362c438d2052f1b89f1b2afc408e6a090fc0e39ef731290e8"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9035,7 +9035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a475c1b335b63668b87e8d87628f865aac59c9121473f184ce543875084d6619"
+          "content": "1931230933052e33c4be66dec9c7bbe15b16bdd6a7290be2998e38d9f08c0dbd"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9295,7 +9295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "071ed4e905c8a2490e469d126bcf06f94a8adb23523c18f2fb3f9bc714c32209"
+          "content": "f409796e8112b94ec6674e1e456dffd93c87b61aa592c98b79d25f5066e72c50"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -9445,6 +9445,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1d8df15b5d4f6567bdbf555e67aa51a56eda85cc2502d130edd20f11c9b75d8e"
+        }
+      ],
+      "name": "services/decision-service/tests/test_no_leakage_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e59bbffd168f7371bb243d5d359ce0f6a2ecec27145411bfe40ac40a92dc4f07"
         }
       ],
@@ -9455,7 +9465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb129b77302a33e9a2f3a70724d415be387a79e8011f9d2aab156970cc99cd85"
+          "content": "d21d30d44ef96db2609c59cf0df4975efd353f197810439a157958d1b54fc49f"
         }
       ],
       "name": "services/decision-service/tests/test_runtime_worker_tenants.py",

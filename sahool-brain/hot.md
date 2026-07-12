@@ -123,6 +123,9 @@
 
 ## ماذا بعد؟
 
+- **تصلّب multitenancy (تدقيق 73666ee) مُنزَل:** migration 025 سجلّ أوامر append-only يقتل stale-replay + راية `DECISION_STRICT_WORKER_TENANTS` (fail-closed للعمّال المجهولين) + قاعدة جاهزيّة `DECISION_REQUIRE_AUTH_TOKEN` (F-09). **قائمة تفعيل الإنتاج للمشغّل:** ضبط `DECISION_SERVICE_AUTH_TOKEN` + قلب الرايتين المرحليّتين مع قلب SoR. فجوة معماريّة مفتوحة: WORKER-IDENTITY-BINDING (هويّة لكلّ عامل — mTLS/SPIFFE).
+
+
 - **عاجل (المشغّل):** إعادة بناء/تشغيل خدمة النبات لتطبيق `JWT_SECRET`:
   `docker compose -f docker-compose.v9.yml up -d --build sahool-vegetation-analysis`. + ضبط `MFA_SECRET_ENCRYPTION_KEY` في `.env` لتفعيل مسار MFA الإنتاجيّ.
 - **SPATIAL-401:** أرسل status+body لطلب `/v1/fields/{id}/indicator-grid` من Network (أو سجلّ raster) لأشخّصه — لا اختلاق إصلاح.

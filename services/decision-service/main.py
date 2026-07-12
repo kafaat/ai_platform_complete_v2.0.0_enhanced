@@ -74,6 +74,7 @@ from persistence import (
     review_model_activation_request,
     sor_enabled,
     sor_requested_without_db,
+    strict_worker_tenants_enabled,
     verify_execution_outcome,
     worker_tenant_authorized,
 )
@@ -307,6 +308,23 @@ async def _db_readiness() -> dict[str, Any]:
         }
 
 
+def auth_token_missing_in_sor() -> bool:
+    """Forensic F-09: authoritative mode must not run open on the internal port.
+
+    Staged flag DECISION_REQUIRE_AUTH_TOKEN (the operator production checklist turns it
+    on): when set, SoR mode with no DECISION_SERVICE_AUTH_TOKEN configured makes /readyz
+    report degraded — orchestrators withhold traffic instead of serving an unauthenticated
+    system of record.
+    """
+    require = os.getenv("DECISION_REQUIRE_AUTH_TOKEN", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    return require and sor_enabled() and not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()
+
+
 def sor_misconfig_message() -> str | None:
     """Pure helper: the fail-closed warning when SoR is requested without a database, else None."""
     if sor_requested_without_db():
@@ -335,10 +353,14 @@ async def readyz() -> dict[str, Any]:
     db = await _db_readiness()
     sor_on = sor_enabled()
     misconfigured = sor_requested_without_db()
-    # Fail-closed readiness: SoR requested without a DB is a misconfiguration; and once SoR is on
-    # the DB must be reachable with migrations current before the service is "ready".
-    ready = (not misconfigured) and (
-        not sor_on or bool(db["db_reachable"] and db["migrations_current"])
+    auth_missing = auth_token_missing_in_sor()
+    # Fail-closed readiness: SoR requested without a DB is a misconfiguration; once SoR is on
+    # the DB must be reachable with migrations current; and (F-09, staged) an authoritative
+    # service without its bearer token configured is NOT ready.
+    ready = (
+        (not misconfigured)
+        and (not auth_missing)
+        and (not sor_on or bool(db["db_reachable"] and db["migrations_current"]))
     )
     return {
         "status": "ready" if ready else "degraded",
@@ -348,6 +370,11 @@ async def readyz() -> dict[str, Any]:
         "owned_tables": LOOP_TABLES,
         "sor_enabled": sor_on,
         "sor_requested_without_db": misconfigured,
+        "auth_token_missing_in_sor": auth_missing,
+        "enforcement": {
+            "auth_token_configured": bool(os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()),
+            "strict_worker_tenants": strict_worker_tenants_enabled(),
+        },
         "mode": "system-of-record" if sor_on else "interim-mirror",
         "db_readiness": db,
     }

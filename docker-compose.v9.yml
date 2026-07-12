@@ -1046,6 +1046,13 @@ services:
       # Default empty ⇒ mirror mode (no accidental authoritative write). Set both at cutover.
       DATABASE_URL: ${DECISION_SERVICE_DATABASE_URL:-}
       DECISION_SERVICE_SOR_ENABLED: ${DECISION_SERVICE_SOR_ENABLED:-false}
+      # Forensic hardening (73666ee audit) — staged production-checklist flags, default off:
+      # AUTH_TOKEN gates every non-probe request on the internal port; REQUIRE_AUTH_TOKEN
+      # (F-09) makes /readyz degraded when SoR runs without a token; STRICT_WORKER_TENANTS
+      # (F-01) makes UNREGISTERED runtime workers fail-closed on the work feed.
+      DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
+      DECISION_STRICT_WORKER_TENANTS: ${DECISION_STRICT_WORKER_TENANTS:-false}
     networks:
     - sahool-internal
     healthcheck:
