@@ -15795,6 +15795,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "28bf1b073cd317cbc66db3a94c4672fd870e792623e6e34cdb993355d9afe8ba"
+        }
+      ],
+      "name": "services/sahool-platform/api/water_ledger_auto.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b93e931f64a65622bcd08e31aa728b1ef96d3af3a12deba0cec4f8d89bac9d38"
         }
       ],
@@ -23149,6 +23159,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_water_balance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d17bfbf0b007ec05e7f058c5be7cdc02c0735ca415cac67dbf33a3634b5d076f"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_water_ledger_auto.py",
       "type": "file"
     },
     {

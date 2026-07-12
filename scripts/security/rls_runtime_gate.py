@@ -46,6 +46,10 @@ ALLOWED_JOBS_DB_SERVICES = {
     "sahool-raster-cache-invalidation-worker",
     # عامل فحص backfill (v5/v6): يطالب backfill_runs العابر بدور JOBS ويجدول المعالجة.
     "sahool-raster-backfill-scan-worker",
+    # عامل ميزان الماء اليوميّ (WATER-LEDGER-AUTO): يمسح حقول المواسم النشطة بدور JOBS
+    # ثمّ يضبط app.current_tenant لكلّ حقل قبل قراءة/upsert water_ledger (RLS-scoped)؛
+    # القيد اليدويّ سيّد ولا كتابة إلّا خلف WATER_LEDGER_AUTO_ENABLED.
+    "sahool-water-ledger-worker",
 }
 
 TRUTHY = {"1", "true", "yes", "on"}
