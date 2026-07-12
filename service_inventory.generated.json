@@ -51,7 +51,7 @@
     "service": "decision-service",
     "domain": "Decision SoR",
     "python_files": 43,
-    "python_loc": 10504,
+    "python_loc": 10506,
     "tests": 30,
     "routes": 52,
     "main": "services/decision-service/main.py",
