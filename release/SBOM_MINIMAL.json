@@ -9285,6 +9285,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "76ab85b20b3a432b33ac6567dc21dfa5653811d10d1182b7c649934a7d905a2c"
+        }
+      ],
+      "name": "services/decision-service/migrations/024_runtime_worker_tenants.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "071ed4e905c8a2490e469d126bcf06f94a8adb23523c18f2fb3f9bc714c32209"
         }
       ],
@@ -9439,6 +9449,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_p4_decision_service_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb129b77302a33e9a2f3a70724d415be387a79e8011f9d2aab156970cc99cd85"
+        }
+      ],
+      "name": "services/decision-service/tests/test_runtime_worker_tenants.py",
       "type": "file"
     },
     {

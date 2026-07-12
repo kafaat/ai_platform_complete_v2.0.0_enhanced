@@ -126,6 +126,10 @@ jobs:
         run: python scripts/ci/agronomic_runtime_terminal_lineage_gate.py
       - name: production truth readiness gate
         run: python scripts/ci/production_truth_readiness_gate.py
+      # Phase C: the no-leakage certification surface (randomized PIT property sweep +
+      # composer-independent DB row invariants + fail-closed staging runner) stays intact.
+      - name: no-leakage certification gate
+        run: python scripts/ci/no_leakage_certification_gate.py
 
       - name: design-token-contrast-gate
         run: python scripts/ci/design_token_contrast_gate.py
@@ -609,6 +613,14 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_agronomic_lineage_integrity.py -q -p no:cacheprovider
+      # Phase C no-leakage certification: randomized property sweep (leaky compositions
+      # rejected typed with ZERO writes; clean accepted) + DB row invariants (real Postgres).
+      - name: Phase C no-leakage certification tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_no_leakage_certification.py -q -p no:cacheprovider
       # WX-12 multitenancy: registry replay/conflict + partition authorization + the
       # end-to-end 403 for a non-authorized tenant (real Postgres, SoR on).
       - name: WX-12 runtime worker-tenant partitioning tests (real Postgres, SoR on)
