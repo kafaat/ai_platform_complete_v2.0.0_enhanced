@@ -91,7 +91,7 @@ def setup_logging(service: str, level: str | None = None) -> logging.Logger:
     level: يؤخذ من المعامل أو متغيّر البيئة LOG_LEVEL أو INFO افتراضيّاً.
     آمن للاستدعاء المتكرّر (لا يُكرّر المعالِجات).
     """
-    log_level = (level or os.getenv("LOG_LEVEL", "INFO")).upper()
+    log_level = (level or os.getenv("LOG_LEVEL") or "INFO").upper()
     root = logging.getLogger()
     root.setLevel(log_level)
 
