@@ -1861,6 +1861,39 @@ services:
     networks:
     - sahool-internal
     healthcheck: *id002
+  sahool-water-ledger-worker:
+    # WATER-LEDGER-AUTO: يحسب قيد دفتر المياه اليوميّ (FAO-56) آليّاً لكلّ حقل بموسم
+    # نشط — ET0 من محرّك الطقس حصراً، المطر من توقّع اليوم، الريّ من irrigation_runs.
+    # خلف راية WATER_LEDGER_AUTO_ENABLED (افتراضيّاً off): العامل يعمل لكنّه لا يكتب
+    # شيئاً حتى يفعّله المشغّل — القيد اليدويّ يبقى سيّداً في كلّ الأحوال.
+    build: *id003
+    mem_limit: 384m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
+        required}@sahool-postgres:5432/sahool}
+      WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8092}
+      WATER_LEDGER_AUTO_ENABLED: ${WATER_LEDGER_AUTO_ENABLED:-false}
+      WORKER_POLL_SECONDS: ${WATER_LEDGER_POLL_SECONDS:-3600}
+    command:
+    - python
+    - -m
+    - api.phase_runtime_workers
+    - water_ledger
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck: *id002
   sahool-actuator-dispatch-worker:
     build: *id003
     mem_limit: 512m

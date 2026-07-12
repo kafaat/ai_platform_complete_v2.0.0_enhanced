@@ -87,6 +87,18 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
     "services/sahool-platform/api/phase_runtime_workers.py::model_rollback_history_runtime": (
         "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped)"
     ),
+    "services/sahool-platform/api/phase_runtime_workers.py::water_ledger": (
+        "water-ledger auto worker: tenant GUC set tx-locally per field before read/upsert (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::soil_lab_tests,water_ledger": (
+        "water-ledger auto worker: tenant GUC set tx-locally per field before reads (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::irrigation_runs,soil_lab_tests": (
+        "water-ledger auto worker: tenant GUC set tx-locally per field before reads (RLS-scoped)"
+    ),
+    "services/sahool-platform/api/phase_runtime_workers.py::irrigation_runs": (
+        "water-ledger auto worker: tenant GUC set tx-locally per field before read (RLS-scoped)"
+    ),
     "services/sahool-platform/api/phase_runtime_workers.py::iot_command_dispatch": (
         "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped dispatch)"
     ),

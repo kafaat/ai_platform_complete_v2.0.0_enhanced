@@ -342,6 +342,162 @@ async def run_actuator_once(pool: asyncpg.Pool, *, batch_size: int = 25) -> int:
         return len(rows)
 
 
+async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> int:
+    """WATER-LEDGER-AUTO: يحسب قيد دفتر المياه اليوميّ آليّاً لكلّ حقل بموسم نشط.
+
+    الصدق التشغيليّ:
+      • خلف راية ``WATER_LEDGER_AUTO_ENABLED`` (افتراضيّاً off — لا كتابة صامتة).
+      • ET0 من محرّك الطقس حصراً والمطر من توقّع اليوم — تعذّرهما ⇒ تخطّي الحقل
+        (لا صفر مُختلَق)، ويُعاد في الدورة التالية.
+      • الريّ من ``irrigation_runs`` المكتملة لليوم؛ تشغيلات بلا حجم ⇒ علم مُعلَن.
+      • القيد اليدويّ سيّد: لا يُلمَس قيد يومٍ لم يكتبه العامل نفسه.
+      • upsert idempotent على (field_id, ledger_date) — إعادة التشغيل تعيد الحساب
+        بأحدث مدخلات اليوم لا تكرّر.
+    """
+    if not env_bool("WATER_LEDGER_AUTO_ENABLED", False):
+        return 0
+    import datetime as _dt
+
+    from api.soil_enrichment import extract_texture
+    from api.soil_water import soil_water_params
+    from api.water_balance import KC_BY_CROP_STAGE, kc_from_ndvi
+    from api.water_ledger_auto import (
+        AUTO_CREATED_BY,
+        compute_daily_ledger_entry,
+        manual_entry_takes_precedence,
+    )
+    from api.weather_service_client import get_et0_product, get_weather_forecast
+
+    today = _dt.date.today()
+    processed = 0
+    async with pool.acquire() as conn:
+        fields = await conn.fetch(
+            """
+            SELECT DISTINCT f.field_id, f.tenant_id, f.lat, f.lon, f.crop AS field_crop
+            FROM fields f
+            JOIN seasons s ON s.field_id = f.field_id AND s.status = 'active'
+            WHERE f.lat IS NOT NULL AND f.lon IS NOT NULL
+            LIMIT $1
+            """,
+            batch_size,
+        )
+        for row in fields:
+            field_id = row["field_id"]
+            try:
+                await _set_tenant(conn, row["tenant_id"])
+                existing = await conn.fetchrow(
+                    "SELECT created_by FROM water_ledger WHERE field_id=$1 AND ledger_date=$2",
+                    field_id,
+                    today,
+                )
+                if existing and manual_entry_takes_precedence(existing["created_by"]):
+                    continue  # الإنسان سيّد الدفتر — لا كتابة فوق قيد يدويّ.
+                prev = await conn.fetchrow(
+                    "SELECT depletion_mm FROM water_ledger"
+                    " WHERE field_id=$1 AND ledger_date < $2"
+                    " ORDER BY ledger_date DESC LIMIT 1",
+                    field_id,
+                    today,
+                )
+                # نسيج مخبريّ معتمَد إن وُجد ⇒ TAW أدقّ؛ وإلّا fallback مُعلَن المصدر.
+                soil_row = await conn.fetchrow(
+                    "SELECT result FROM soil_lab_tests"
+                    " WHERE field_id=$1 AND status IN ('approved','published')"
+                    " ORDER BY sampled_on DESC NULLS LAST LIMIT 1",
+                    field_id,
+                )
+                texture = extract_texture(soil_row["result"]) if soil_row else None
+                sw = soil_water_params(texture=texture, root_depth_m=None)
+                irr = await conn.fetchrow(
+                    "SELECT COALESCE(SUM(volume_mm), 0) AS mm,"
+                    " COUNT(*) FILTER (WHERE volume_mm IS NULL) AS untracked"
+                    " FROM irrigation_runs"
+                    " WHERE field_id=$1 AND status='completed'"
+                    " AND started_at::date = $2",
+                    field_id,
+                    today,
+                )
+
+                # مدخلات اليوم من خدمة الطقس؛ ET0 يُحسب في المحرّك حصراً (agro/et0) —
+                # لا نستهلك et0 المزوّد الخام. فشل أيّهما ⇒ تخطٍّ صادق لهذا اليوم.
+                forecast = await get_weather_forecast(float(row["lat"]), float(row["lon"]), days=1)
+                day0 = (forecast.get("days") or [{}])[0]
+                t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
+                rain_mm = float(day0.get("precipitation_mm") or 0.0)
+                if t_max is None or t_min is None:
+                    continue
+                et0 = await get_et0_product(
+                    t_max_c=float(t_max),
+                    t_min_c=float(t_min),
+                    solar_rad_mj_m2=day0.get("solar_radiation_mj_m2"),
+                    wind_2m_ms=day0.get("wind_max_ms"),
+                    lat_deg=float(row["lat"]),
+                    day_of_year=today.timetuple().tm_yday,
+                    tenant_id=str(row["tenant_id"]),
+                )
+                et0_mm = et0.get("et0_mm")
+                if et0_mm is None:
+                    continue
+
+                crop = (row["field_crop"] or "").strip().lower() or None
+                kc_map = KC_BY_CROP_STAGE.get(crop or "", KC_BY_CROP_STAGE.get("wheat", {}))
+                kc, _ = kc_from_ndvi(None, kc_map, "mid")
+                entry = compute_daily_ledger_entry(
+                    prev_depletion_mm=(
+                        float(prev["depletion_mm"])
+                        if prev and prev["depletion_mm"] is not None
+                        else None
+                    ),
+                    taw_mm=float(sw["taw_mm"]),
+                    raw_mm=float(sw["taw_mm"]) * float(sw["raw_fraction"]),
+                    et0_mm=float(et0_mm),
+                    kc=kc,
+                    rain_mm=rain_mm,
+                    irrigation_mm=float(irr["mm"] or 0.0),
+                    irrigation_volume_untracked=bool(irr["untracked"]),
+                )
+                await conn.execute(
+                    """
+                    INSERT INTO water_ledger
+                      (tenant_id, field_id, ledger_date, et0_mm, kc, etc_mm, rain_mm,
+                       irrigation_mm, depletion_mm, deficit_mm, stage, decision,
+                       confidence, created_by, created_at, updated_at)
+                    VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                            $13, $14, now(), now())
+                    ON CONFLICT (field_id, ledger_date) DO UPDATE SET
+                      et0_mm = EXCLUDED.et0_mm, kc = EXCLUDED.kc, etc_mm = EXCLUDED.etc_mm,
+                      rain_mm = EXCLUDED.rain_mm, irrigation_mm = EXCLUDED.irrigation_mm,
+                      depletion_mm = EXCLUDED.depletion_mm, deficit_mm = EXCLUDED.deficit_mm,
+                      stage = EXCLUDED.stage, decision = EXCLUDED.decision,
+                      confidence = EXCLUDED.confidence, updated_at = now()
+                    """,
+                    str(row["tenant_id"]),
+                    field_id,
+                    today,
+                    float(et0_mm),
+                    kc,
+                    entry["etc_mm"],
+                    rain_mm,
+                    float(irr["mm"] or 0.0),
+                    entry["depletion_mm"],
+                    entry["deficit_mm"],
+                    "mid",
+                    entry["decision"],
+                    entry["confidence"],
+                    AUTO_CREATED_BY,
+                )
+                processed += 1
+            except Exception as exc:  # noqa: BLE001 — تخطٍّ لكلّ حقل مُعلَّل، لا انهيار الدفعة
+                print(
+                    json.dumps(
+                        {"worker": "water_ledger", "field_id": field_id, "skipped": str(exc)[:200]},
+                        ensure_ascii=False,
+                    ),
+                    flush=True,
+                )
+    return processed
+
+
 async def loop_worker(kind: str) -> None:
     pool = await _connect()
     interval = float(os.getenv("WORKER_POLL_SECONDS", "5"))
@@ -350,6 +506,7 @@ async def loop_worker(kind: str) -> None:
         "plugin": run_plugin_once,
         "model": run_model_registry_once,
         "actuator": run_actuator_once,
+        "water_ledger": run_water_ledger_once,
     }
     if kind not in runners:
         raise SystemExit(f"unknown worker kind {kind}; choose one of {', '.join(runners)}")
@@ -364,7 +521,7 @@ async def loop_worker(kind: str) -> None:
 
 def main(argv: Iterable[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("kind", choices=["outbox", "plugin", "model", "actuator"])
+    parser.add_argument("kind", choices=["outbox", "plugin", "model", "actuator", "water_ledger"])
     args = parser.parse_args(list(argv) if argv is not None else None)
     asyncio.run(loop_worker(args.kind))
     return 0
