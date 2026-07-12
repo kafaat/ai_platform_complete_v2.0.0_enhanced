@@ -2719,3 +2719,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التحقّق محلّيّاً (قاعدة نظيفة):** migrations 25/25 --apply+--check نظيف · بطاريّة decision كاملة 22/22 · adapter+veg-agriai عقود PASS · بوّابات (wx12 ×2 · no-leakage · prod-truth · p1) PASS · `pytest -m unit` 2912 ناجحاً · bundle rebuilt+validated · جرود health/service/residual جُدِّدت (drift متوقَّع من تغيير compose/readyz).
 - **فجوة جديدة صادقة:** WORKER-IDENTITY-BINDING (F-03/F-04) OPEN — اعتماد لكلّ عامل قرار بنية تحتيّة.
 - **درس بيئيّ:** `pytest` العاري قد يلتقط مفسّر uv-tools بلا fastapi/asyncpg — استعمل `python3 -m pytest` في البطاريّات المحلّيّة.
+
+## 2026-07-12 — تقرير التتبّع التشغيليّ OPERATIONAL_TRACE_SAHOOL_73666EE (تدقيق خارجيّ ثانٍ لنفس الحزمة)
+- **التقييم:** معظم بنوده عولجت مسبقاً في `a0f3e24` (التقرير حُلِّل على zip قديم قبل التصلّب). **بند جديد حقيقيّ واحد:** ربط النشر — `services/model-registry-adapter` (runtime دورة الحياة WX-12) لم يكن له خدمة compose؛ الموجود `sahool-model-registry-worker` عامل منصّاتيّ **مكمِّل** (`api.phase_runtime_workers model` يعالج `model_promotion_history_runtime`) لا بديل.
+- **الإغلاق:** خدمة `sahool-model-lifecycle-adapter` خلف profile اختياريّ `model-lifecycle` (الإنتاج يتطلّب URLs/tokens خارجيّة — `_env(required_prod=True)` يفشل مغلقاً بدونها؛ بدء صامت نصف-مُهيّأ في الرصّة الافتراضيّة خطأ) · `DECISION_SERVICE_TOKEN` يُشتقّ من `DECISION_SERVICE_AUTH_TOKEN` المشترك (مصدر واحد) · 11 متغيّراً جديداً في `.env.example` (compose_env_contract_gate أخضر) · بوّابة WX-12 اكتسبت رموز ربط النشر (منع انحدار) · التقرير مُنزَل في `docs/audits/` بملحق تكامل يخرّط كلّ بند إلى تصرّفه.
+- **تحقّق:** compose YAML سليم · بوّابات compose/nginx/service-inventory/report-index خضراء · `pytest -m unit` 2912 · bundle rebuilt+validated.

@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f41063fdb09ebf1362c438d2052f1b89f1b2afc408e6a090fc0e39ef731290e8"
+          "content": "4e4520a0dcc3907cd24ab67b6225b1fc3533a672f6a4c51c7d0715811011c139"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9289,6 +9289,16 @@
         }
       ],
       "name": "services/decision-service/migrations/024_runtime_worker_tenants.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "afe4db5af2da8d20f6112065964c5282effc88107bf9f005840da4be7535645d"
+        }
+      ],
+      "name": "services/decision-service/migrations/025_worker_tenant_command_ledger.sql",
       "type": "file"
     },
     {

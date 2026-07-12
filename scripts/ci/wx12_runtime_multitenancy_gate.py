@@ -50,6 +50,15 @@ checks = {
         "/v1/learning/runtime-workers/",
         "no tenant assignment",
     ],
+    # Deployment binding (operational-trace audit): the WX-12 adapter must stay wired
+    # into compose as its own opt-in service — not just exist as unshipped code next to
+    # the older platform-side model worker.
+    "docker-compose.v9.yml": [
+        "sahool-model-lifecycle-adapter:",
+        "services/model-registry-adapter",
+        "- model-lifecycle",
+        "REGISTRY_ADAPTER_ID",
+    ],
     # Behavior proofs on real Postgres+HTTP (F-08: the static gate alone is not the evidence).
     "services/decision-service/tests/test_runtime_worker_tenants.py": [
         "test_stale_replay_cannot_resurrect_revocation",

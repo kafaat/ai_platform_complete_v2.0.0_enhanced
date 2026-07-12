@@ -1065,6 +1065,50 @@ services:
       timeout: 5s
       retries: 6
       start_period: 20s
+  sahool-model-lifecycle-adapter:
+    # WX-12 lifecycle runtime (services/model-registry-adapter): drives decision-service's
+    # governed runtime-work feed (activation/rollback/verification/rollout/monitoring/
+    # retraining/reconcile) against external side-effect backends. DISTINCT from
+    # sahool-model-registry-worker (api.phase_runtime_workers model), which processes the
+    # platform-owned model_promotion_history_runtime table — the two are complementary.
+    # Opt-in profile: production requires operator-supplied external backend URLs/tokens
+    # (the runtime fails closed without them when SAHOOL_ENV=production), so the adapter
+    # must not silently start half-configured in the default stack.
+    #   docker compose -f docker-compose.v9.yml --profile model-lifecycle up -d
+    build:
+      context: services/model-registry-adapter
+      dockerfile: Dockerfile
+    profiles:
+    - model-lifecycle
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      DECISION_SERVICE_URL: http://sahool-decision-service:8160
+      # Same shared bearer the decision-service token guard validates (single source).
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      REGISTRY_ADAPTER_ID: ${REGISTRY_ADAPTER_ID:-}
+      # Tenant partition: leave empty for server discovery (the authorized SaaS path);
+      # env pins remain for single-tenant installs only.
+      RUNTIME_TENANT_IDS: ${RUNTIME_TENANT_IDS:-}
+      RUNTIME_TENANT_ID: ${RUNTIME_TENANT_ID:-}
+      RUNTIME_POLL_INTERVAL_SECONDS: ${RUNTIME_POLL_INTERVAL_SECONDS:-10}
+      MODEL_TRAFFIC_CONTROLLER_URL: ${MODEL_TRAFFIC_CONTROLLER_URL:-}
+      MODEL_TRAFFIC_CONTROLLER_TOKEN: ${MODEL_TRAFFIC_CONTROLLER_TOKEN:-}
+      MODEL_INFERENCE_VERIFY_URL: ${MODEL_INFERENCE_VERIFY_URL:-}
+      MODEL_INFERENCE_VERIFY_TOKEN: ${MODEL_INFERENCE_VERIFY_TOKEN:-}
+      MODEL_METRICS_SOURCE_URL: ${MODEL_METRICS_SOURCE_URL:-}
+      MODEL_METRICS_SOURCE_TOKEN: ${MODEL_METRICS_SOURCE_TOKEN:-}
+      MODEL_TRAINING_BACKEND_URL: ${MODEL_TRAINING_BACKEND_URL:-}
+      MODEL_TRAINING_BACKEND_TOKEN: ${MODEL_TRAINING_BACKEND_TOKEN:-}
+    depends_on:
+      sahool-decision-service:
+        condition: service_healthy
+    networks:
+    - sahool-internal
   sahool-actuator-service:
     build:
       context: .
