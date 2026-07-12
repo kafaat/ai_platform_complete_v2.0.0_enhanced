@@ -15,8 +15,11 @@ def test_frontend_does_not_present_contract_service_as_compute_owner():
     assert "ownership/catalog contract only" in text
 
 
-def test_legacy_direct_sentinel_path_is_default_off():
+def test_legacy_direct_sentinel_path_is_removed_and_fail_closed():
     text = (ROOT / "sentinel_hub/vegetation_real.py").read_text(encoding="utf-8")
-    assert "LEGACY_DIRECT_SENTINEL_ENABLED" in text
-    assert '"false"' in text
+    assert "LEGACY_DIRECT_SENTINEL_ENABLED = False" in text
     assert "raster-service is the production owner" in text
+    assert "EVALSCRIPT_ALL_INDICES" not in text
+    assert "evaluatePixel" not in text
+    assert "services.sentinel-hub.com" not in text
+    assert "direct Sentinel-Hub computation was removed" in text

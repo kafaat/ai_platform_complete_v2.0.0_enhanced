@@ -975,7 +975,7 @@ services:
     logging: *id001
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      INDICATORS_RUNTIME_MODE: health-only
+      INDICATORS_RUNTIME_MODE: contract-only
     networks:
     - sahool-internal
     healthcheck:

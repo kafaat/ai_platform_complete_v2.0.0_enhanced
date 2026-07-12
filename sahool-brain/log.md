@@ -2782,3 +2782,4 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **مصدود:** نسخة الحزمة من العامل (تعيد `::uuid`) + قاعدة بائتة (workflows/logging/allowlist/actuator-main).
 - **برهاني المضاف:** اختبار PG للاسترداد (مطالبة⇒تظهر للـadapter نفسه فقط⇒تختفي بالإيصال) 4/4؛ mشغّل 27/27؛ منصّة 3715؛ unit 2912. التقريران مُنزَلان بملحق تكامل.
 - 2026-07-12: وحّدت حوكمة RIV مع Sahool Brain؛ نقلت قراءة NDVI للمنتج السلطوي في Raster، حجرت provider fetch المباشر، وأضفت CI gate. (دمج حزمة riv_brain_governance — انظر ملحق التكامل في docs/audits/BRAIN_GOVERNANCE_RIV_HARDENING_REPORT_20260712.md)
+- 2026-07-12: دمج riv_truth_contract — حذف البيانات التركيبيّة من مسار serving الإنتاجيّ (424 مُغلَق)، وصفة حقيقيّة فقط، توحيد indicators-service على contract-only، حارس AST جديد. تحديث اختبارَي المحاكاة القديمَين على العقد الجديد.

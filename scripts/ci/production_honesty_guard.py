@@ -65,25 +65,28 @@ def check_edge_predict_fail_closed_before_simulation() -> None:
         fail("EdgePestDetector.predict must raise ModelNotProvisioned when model is absent")
 
 
-def check_indicators_health_only_boundary_is_honest() -> None:
+def check_indicators_contract_boundary_is_honest() -> None:
     source = text(INDICATORS / "main.py")
-    if '"status": "ready"' in source and "health_only" in source:
-        fail("indicators-service must not report ready while health-only")
     required = [
-        '"status": "degraded"',
-        '"implemented_runtime": False',
-        "status_code=501",
-        "No fabricated",
+        '"status": "ready"',
+        '"implemented_runtime": True',
+        '"runtime_role": "contract-only"',
+        '"spectral_compute": False',
+        "status_code=409",
     ]
     missing = [item for item in required if item not in source]
     if missing:
-        fail("indicators-service health-only boundary missing honesty markers: " + repr(missing))
+        fail("indicators-service contract boundary missing honesty markers: " + repr(missing))
+    forbidden = ['"health_only": True', '"implemented_runtime": False', "status_code=501"]
+    present = [item for item in forbidden if item in source]
+    if present:
+        fail("indicators-service retains stale health-only markers: " + repr(present))
 
 
 def main() -> None:
     check_edge_download_does_not_claim_simulation_fallback()
     check_edge_predict_fail_closed_before_simulation()
-    check_indicators_health_only_boundary_is_honest()
+    check_indicators_contract_boundary_is_honest()
     print("✓ production honesty guard passed")
 
 

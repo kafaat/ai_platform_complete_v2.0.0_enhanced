@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-"""Guard the indicators-service container contract.
+"""Guard the indicators-service contract-only container boundary.
 
-The service is intentionally health-only. Its container must therefore be
-truthful and lightweight: no database/queue/cache runtime dependencies, no
-Docker liveness check against degraded /readyz, and no compute implementation
-that fabricates indicator results.
+The service publishes canonical ownership/catalog contracts and never computes
+observed spectral products. It remains lightweight and infrastructure-free.
 """
 
 from __future__ import annotations
@@ -58,13 +56,13 @@ def check_requirements_are_health_only() -> None:
     forbidden = sorted(names & FORBIDDEN_RUNTIME_DEPS)
     if forbidden:
         fail(
-            "indicators-service health-only requirements include unused runtime dependencies: "
+            "indicators-service contract-only requirements include unused runtime dependencies: "
             + repr(forbidden)
         )
     unexpected = sorted(names - ALLOWED_REQUIREMENTS)
     if unexpected:
         fail(
-            "indicators-service health-only requirements include unexpected dependencies: "
+            "indicators-service contract-only requirements include unexpected dependencies: "
             + repr(unexpected)
         )
 
@@ -94,36 +92,39 @@ def check_compose_is_not_blocked_on_unused_infra() -> None:
     leaked_deps = sorted(item for item in FORBIDDEN_COMPOSE_DEPS if f"{item}:" in block)
     if leaked_deps:
         fail(
-            "indicators-service health-only compose must not depend_on unused infra: "
+            "indicators-service contract-only compose must not depend_on unused infra: "
             + repr(leaked_deps)
         )
-    if "INDICATORS_RUNTIME_MODE: health-only" not in block:
-        fail("indicators-service compose must declare INDICATORS_RUNTIME_MODE=health-only")
+    if "INDICATORS_RUNTIME_MODE: contract-only" not in block:
+        fail("indicators-service compose must declare INDICATORS_RUNTIME_MODE=contract-only")
     if "http://localhost:8000/healthz" not in block:
         fail("indicators-service compose healthcheck must use /healthz")
 
 
-def check_main_is_honest_health_only() -> None:
+def check_main_is_honest_contract_only() -> None:
     text = read(MAIN)
     required = [
-        '"status": "degraded"',
-        '"implemented_runtime": False',
-        '"health_only": True',
-        "status_code=501",
+        '"status": "ready"',
+        '"implemented_runtime": True',
+        '"runtime_role": "contract-only"',
+        '"spectral_compute": False',
+        "status_code=409",
         '"indicator_compute": False',
     ]
     missing = [item for item in required if item not in text]
     if missing:
-        fail("indicators-service main.py missing honest health-only markers: " + repr(missing))
-    if '"status": "ready"' in text:
-        fail("indicators-service must not report ready while health-only")
+        fail("indicators-service main.py missing contract-only markers: " + repr(missing))
+    forbidden = ['"health_only": True', '"implemented_runtime": False', "status_code=501"]
+    present = [item for item in forbidden if item in text]
+    if present:
+        fail("indicators-service retains stale health-only markers: " + repr(present))
 
 
 def main() -> None:
     check_requirements_are_health_only()
     check_dockerfile_healthcheck_is_liveness()
     check_compose_is_not_blocked_on_unused_infra()
-    check_main_is_honest_health_only()
+    check_main_is_honest_contract_only()
     print("indicators_container_contract_guard_ok")
 
 

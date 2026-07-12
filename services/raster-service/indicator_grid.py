@@ -2,9 +2,8 @@
 indicator_grid.py — شبكة المؤشّر لكلّ بكسل (per-pixel indicator grid) للموبايل.
 
 يقرأ COG محسوباً للحقل، يصغّره إلى شبكة grid×grid بمتوسّط الكتل (block-mean)
-متجاهلاً NaN، ويصنّف مناطق الشدّة (low/medium/high). عند غياب راستر حقيقي
-(لا COG / لا rasterio / لا شبكة) يُرجِع شبكة محاكاة مُعلَّمة بصدق
-(real_data=False, source="simulation") — العقد نفسه للواجهة بكلتا الحالتين.
+متجاهلاً NaN، ويصنّف مناطق الشدّة (low/medium/high). لا يحتوي هذا الملف أي
+مولّد تركيبي؛ غياب المنتج الحقيقي يُعالج في الراوتر بفشل مغلق.
 
 العقد المُعاد (يعتمده الـfrontend حرفيّاً):
   {field_id, index, date, bbox:[minlon,minlat,maxlon,maxlat], rows, cols,
@@ -13,9 +12,6 @@ indicator_grid.py — شبكة المؤشّر لكلّ بكسل (per-pixel indic
 """
 
 from __future__ import annotations
-
-import hashlib
-import math
 
 
 def _block_mean_downsample(arr, grid: int):
@@ -143,64 +139,3 @@ def grid_from_array(arr, index: str, grid: int) -> dict:
 
     zones = classify_zones(grid_vals, index, rows, cols)
     return {"rows": rows, "cols": cols, "grid": grid_vals, "stats": stats, "zones": zones}
-
-
-def synthetic_grid(field_id: str, index: str, date: str, bbox: list[float], grid: int) -> dict:
-    """شبكة محاكاة حتميّة (لا راستر حقيقي) — مُعلَّمة بصدق real_data=False.
-
-    تولّد نمطاً ناعماً مكرّراً من بذرة مشتقّة من field_id+index+date (حتميّ،
-    قابل لإعادة الإنتاج)، مع بعض الخلايا null (خارج الحقل) لتطابق شكل العقد.
-    لا تدّعي أبداً real_data=True.
-    """
-    seed = int(hashlib.sha256(f"{field_id}|{index}|{date}".encode()).hexdigest()[:8], 16)
-    rows = cols = max(2, grid)
-    high_severe = index in _HIGH_IS_SEVERE
-
-    grid_vals: list[list] = []
-    for r in range(rows):
-        row_out = []
-        for c in range(cols):
-            # دائرة محاكاة: مركز الحقل قيمته أعلى، الأطراف null (خارج الحقل)
-            dr = (r - rows / 2) / (rows / 2)
-            dc = (c - cols / 2) / (cols / 2)
-            dist = math.sqrt(dr * dr + dc * dc)
-            if dist > 1.05:
-                row_out.append(None)
-                continue
-            wave = 0.5 + 0.35 * math.sin((r + c + (seed % 17)) * 0.6) * (1.0 - dist)
-            if high_severe:
-                wave = 0.3 - 0.25 * (1.0 - dist) + 0.1 * math.sin((r - c + seed) * 0.5)
-            row_out.append(round(float(max(-1.0, min(1.0, wave))), 4))
-        grid_vals.append(row_out)
-
-    flat = [v for row in grid_vals for v in row if v is not None]
-    if flat:
-        stats = {
-            "min": round(min(flat), 4),
-            "max": round(max(flat), 4),
-            "mean": round(sum(flat) / len(flat), 4),
-        }
-    else:
-        stats = {"min": 0.0, "max": 0.0, "mean": 0.0}
-    zones = classify_zones(grid_vals, index, rows, cols)
-
-    result = {
-        "field_id": field_id,
-        "index": index,
-        "date": date,
-        "bbox": bbox,
-        "rows": rows,
-        "cols": cols,
-        "grid": grid_vals,
-        "stats": stats,
-        "zones": zones,
-        "source": "simulation",
-        "real_data": False,
-    }
-    # Same indicator_product contract shape as the real branch (see
-    # layer_lookup.grid_from_cog) — but honestly labelled: source="simulation",
-    # estimated=True, real_data=False, quality gate NOT passed, no provenance.
-    import raster_indicator_product as rip
-
-    result["indicator_product"] = rip.from_grid_response(result)
-    return result

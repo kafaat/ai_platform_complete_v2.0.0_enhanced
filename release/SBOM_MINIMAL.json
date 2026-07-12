@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b99e4c96fd3382675a8a9585e327f9a03b807108094898392008a3170c5ad46"
+          "content": "0005bd9e724a6eeb1b3a5a7967e389420beb14ee3a2f201de755bdda440c6fdf"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -10265,7 +10265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0594cfa61de93ddc96b22f72b5d21616d2bdb42875f83cbbfbe90062a34ec7e6"
+          "content": "79bd0852954a120409600d176cf097031074788c1f63ced55f3f3153f08a402a"
         }
       ],
       "name": "services/indicators-service/Dockerfile",
@@ -10975,7 +10975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dee3ab178282e283750a0fed9c6026f7a7211583dfdcfed7fe1d020dc6c40bbd"
+          "content": "451b8127a4ece750723f2bca93fcd734924d0bad77bafb763efdd6e453ce2701"
         }
       ],
       "name": "services/raster-service/indicator_grid.py",
@@ -11395,7 +11395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "64f49212b5a453bc2df2ea50f8960740700d881ff497fd1da6c094ef0271f2e9"
+          "content": "d532f05b773f33e573b6454ff091658a048eefc2520b2e52fb4924221af60a38"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -11735,7 +11735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "293acd3713f0a868e4120255f56f8fb2988a17cb945adb0b1c5750435d0958fc"
+          "content": "494d355e1e6a207eb5d3ec5030dc67d0fdab070f835612f103346bccc2ff3d29"
         }
       ],
       "name": "services/raster-service/test_clip_grid.py",
@@ -25195,7 +25195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ecfdfc1ec95dfda1ff9cb12c4409df952f8be5405809622381b3b5457b911db"
+          "content": "c03f73b8712495322ef6807be18e52f959b03658ec0c1963a33d8032f51eeddb"
         }
       ],
       "name": "shared/contracts/indicator_ownership.json",

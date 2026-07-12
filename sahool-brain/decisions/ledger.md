@@ -628,3 +628,4 @@ SHAs من `git log --oneline origin/main`.
 - **Evidence:** `shared/contracts/intelligence_governance.json`; `scripts/ci/intelligence_governance_gate.py`; focused tests green.
 - **Status:** verified locally; runtime MCP/Raster integration remains staging-certified only.
 - 2026-07-12 — دمج riv_brain_governance (2a68d16): تبنّي توحيد RIV وحوكمة الدماغ كاملَين؛ رفض عامل ::uuid (الثالث)؛ إصلاح مولِّد manifest الواجهة (كسر useIndicatorRegistry)؛ إضافة فحص الصدق (g) لسدّ ثغرة إعادة وسم المشتقّ real؛ إعادة كتابة الاختبارات القديمة على العقود الجديدة. السبب: integrate-on-landed-shape.
+- 2026-07-12 — دمج riv_truth_contract (فوق ebd4494): إزالة synthetic_grid نهائيّاً + 424 fail-closed + prescription حقيقيّ فقط + contract-only للمؤشّرات + raster_production_truth_guard في CI. السبب: صدق الإنتاج — لا منتج تركيبيّ في أيّ مسار serving. تحديث الاختبارات القديمة المعتمدة على المحاكاة.

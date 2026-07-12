@@ -1,22 +1,90 @@
 {
-  "schema_version": "2026-07-12.riv-p0",
+  "schema_version": "2026-07-12.riv-truth-p1",
   "policy": {
     "observed_spectral_owner": "raster-service",
     "interpretation_owner": "vegetation-analysis-service",
     "aggregation_owner": "sahool-platform",
     "spectral_formula_allowlist": [
-      "services/raster-service",
-      "sentinel_hub/vegetation_real.py"
+      "services/raster-service"
     ]
   },
   "products": [
-    {"id":"ndvi","kind":"observed_spectral","owner":"raster-service","consumers":["vegetation-analysis-service","sahool-platform","frontend","mobile","decision-service"]},
-    {"id":"ndmi","kind":"observed_spectral","owner":"raster-service","consumers":["vegetation-analysis-service","sahool-platform","frontend","decision-service"]},
-    {"id":"msi","kind":"observed_spectral","owner":"raster-service","consumers":["vegetation-analysis-service","decision-service"]},
-    {"id":"evi","kind":"observed_spectral","owner":"raster-service","consumers":["vegetation-analysis-service","frontend"]},
-    {"id":"savi","kind":"observed_spectral","owner":"raster-service","consumers":["vegetation-analysis-service","frontend"]},
-    {"id":"nbr","kind":"observed_spectral","owner":"raster-service","consumers":["vegetation-analysis-service","frontend"]},
-    {"id":"vegetation_health","kind":"interpretation","owner":"vegetation-analysis-service","consumers":["sahool-platform","frontend","decision-service"]},
-    {"id":"field_indicator_dashboard","kind":"aggregation","owner":"sahool-platform","consumers":["frontend"]}
+    {
+      "id": "ndvi",
+      "kind": "observed_spectral",
+      "owner": "raster-service",
+      "consumers": [
+        "vegetation-analysis-service",
+        "sahool-platform",
+        "frontend",
+        "mobile",
+        "decision-service"
+      ]
+    },
+    {
+      "id": "ndmi",
+      "kind": "observed_spectral",
+      "owner": "raster-service",
+      "consumers": [
+        "vegetation-analysis-service",
+        "sahool-platform",
+        "frontend",
+        "decision-service"
+      ]
+    },
+    {
+      "id": "msi",
+      "kind": "observed_spectral",
+      "owner": "raster-service",
+      "consumers": [
+        "vegetation-analysis-service",
+        "decision-service"
+      ]
+    },
+    {
+      "id": "evi",
+      "kind": "observed_spectral",
+      "owner": "raster-service",
+      "consumers": [
+        "vegetation-analysis-service",
+        "frontend"
+      ]
+    },
+    {
+      "id": "savi",
+      "kind": "observed_spectral",
+      "owner": "raster-service",
+      "consumers": [
+        "vegetation-analysis-service",
+        "frontend"
+      ]
+    },
+    {
+      "id": "nbr",
+      "kind": "observed_spectral",
+      "owner": "raster-service",
+      "consumers": [
+        "vegetation-analysis-service",
+        "frontend"
+      ]
+    },
+    {
+      "id": "vegetation_health",
+      "kind": "interpretation",
+      "owner": "vegetation-analysis-service",
+      "consumers": [
+        "sahool-platform",
+        "frontend",
+        "decision-service"
+      ]
+    },
+    {
+      "id": "field_indicator_dashboard",
+      "kind": "aggregation",
+      "owner": "sahool-platform",
+      "consumers": [
+        "frontend"
+      ]
+    }
   ]
 }

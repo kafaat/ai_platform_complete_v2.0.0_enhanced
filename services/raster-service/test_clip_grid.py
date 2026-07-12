@@ -265,26 +265,17 @@ def test_clip_index_bounds_and_grid():
         f"zones={[z['severity'] for z in body['zones']]}"
     )
 
-    # ── (هـ) fallback المحاكاة لحقل بلا COG ──────────────────────────
+    # ── (هـ) حقل بلا COG حقيقيّ ⇒ 424 فشلاً مُغلَقاً (توحيد صدق الإنتاج 20260712:
+    # حُذفت شبكة المحاكاة من مسار الـserving نهائيّاً — لا منتج تركيبيّ أبداً) ──
     resp2 = client.get(
         "/v1/fields/no_such_field/indicator-grid",
         params={"index": "salinity", "date": "latest", "grid": 8},
     )
-    assert resp2.status_code == 200
-    sim = resp2.json()
-    assert sim["real_data"] is False and sim["source"] == "simulation"
-    assert required.issubset(sim.keys())
-
-    # ── ValidatedIndicatorProduct على مسار المحاكاة (simulation, تقديريّ بصدق) ──
-    sim_ip = sim["indicator_product"]
-    assert sim_ip["schema"] == "sahool.validated_indicator_product/1"
-    assert sim_ip["source"] == "simulation"
-    assert sim_ip["estimated"] is True
-    assert sim_ip["real_data"] is False
-    assert sim_ip["quality_gate_passed"] is False
-    assert sim_ip["quality_score"] is None
-    assert sim_ip["provenance"] is None
-    print(f"(هـ) fallback محاكاة صحيح: real_data={sim['real_data']} source={sim['source']}")
+    assert resp2.status_code == 424
+    detail = resp2.json()["detail"]
+    assert detail["code"] == "RASTER_INDICATOR_PRODUCT_UNAVAILABLE"
+    assert detail["real_data"] is False and detail["source"] == "raster-service"
+    print(f"(هـ) فشل مُغلَق صحيح بلا COG: 424 code={detail['code']}")
 
     print("\nALL ASSERTIONS PASSED")
 

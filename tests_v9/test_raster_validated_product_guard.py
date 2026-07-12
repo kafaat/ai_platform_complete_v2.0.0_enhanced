@@ -27,7 +27,9 @@ def test_guard_covers_validated_indicator_product():
         "class ValidatedIndicatorProduct",
         "sahool.validated_indicator_product/1",
         "layer_lookup.grid_from_cog missing indicator_product wiring",
-        "indicator_grid.synthetic_grid missing indicator_product wiring",
+        # صدق الإنتاج (20260712): حُذفت شبكة المحاكاة نهائيّاً — الحارس يمنع عودتها
+        # بدل مطالبة synthetic_grid بحمل indicator_product (لم تعد موجودة أصلاً).
+        "production indicator_grid still contains a synthetic serving path",
     ):
         assert token in guard, f"guard no longer enforces: {token}"
 

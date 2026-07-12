@@ -709,12 +709,10 @@ async def field_indicator_grid(
 ):
     """شبكة المؤشّر لكلّ بكسل (per-pixel) لخريطة الموبايل.
 
-    إن وُجد COG مقصوص للحقل (من /process مع clip_polygon) → يُقرأ ويُصغّر
-    إلى grid×grid مع تصنيف مناطق الشدّة (real_data=True). وإلّا → شبكة محاكاة
-    مُعلَّمة بصدق (real_data=False, source="simulation") — نفس شكل العقد دائماً.
+    يجب وجود COG حقيقي مقصوص للحقل. عند غياب المنتج المرصود أو تعذّر قراءته
+    يفشل المسار مغلقاً بـ424؛ لا تُنشأ شبكة تركيبية في أي مسار serving إنتاجي.
     """
     await _require_field_tenant(field_id)  # تفويض: ملكيّة الحقل (ذاكرة + جدول fields)
-    import indicator_grid as ig
 
     # تطبيع اسم المؤشّر المعروض (salinity/NDVU aliases مقبولة للواجهة)
     out_index = _display_index(index)
@@ -726,12 +724,18 @@ async def field_indicator_grid(
         if real is not None:
             return real
 
-    # fallback: شبكة محاكاة (لا COG حقيقي / لا rasterio / لا شبكة) — مُعلَّمة بصدق
-    # bbox افتراضي حول اليمن (الجوف) إن لم تتوفّر حدود حقيقيّة.
-    bbox = [44.0, 16.0, 44.01, 16.01]
-    if layer is not None and layer.get("bounds_4326"):
-        bbox = [round(float(x), 6) for x in layer["bounds_4326"]]
-    return ig.synthetic_grid(field_id, out_index, date, bbox, grid)
+    raise HTTPException(
+        424,
+        detail={
+            "code": "RASTER_INDICATOR_PRODUCT_UNAVAILABLE",
+            "message": "لا توجد شبكة مؤشر حقيقية موثقة لهذا الحقل/التاريخ",
+            "field_id": field_id,
+            "index": out_index,
+            "date": date,
+            "real_data": False,
+            "source": "raster-service",
+        },
+    )
 
 
 @router.get("/v1/fields/{field_id}/pixel")
@@ -819,27 +823,59 @@ async def field_prescription(
 ):
     """وصفة مناطق الإدارة (VRT) من شبكة المؤشّر — سدّ Sprint 5b.
 
-    يبني شبكة المؤشّر للحقل (نفس مسار indicator-grid: COG حقيقي إن وُجد وإلّا
-    محاكاة صادقة)، يقسّمها بالكوانتايل إلى n_zones مناطق أداء، ويشتقّ معدّلاً
+    يبني شبكة المؤشّر من COG حقيقي موثّق فقط، ثم يقسّمها بالكوانتايل إلى
+    n_zones مناطق أداء، ويشتقّ معدّلاً
     موصى به لكلّ منطقة إن مُرّر base_rate. يُرجِع المناطق + إحصاء كلّ منطقة
     (pixel_count, pct, value_range) + متوسّط/تباين الحقل.
 
-    صدق: real_data ينعكس من مصدر الشبكة؛ المعدّلات إرشاديّة (قرار agronomic
-    يحتاج تحقّقاً ميدانيّاً).
+    يفشل مغلقاً عند غياب المنتج الحقيقي أو فشل بوابة الجودة. المعدّلات إرشاديّة
+    وتمر لاحقاً عبر Decision-Service قبل أي أثر تشغيلي.
     """
     _require_service_token(x_agent_token)  # توكن خدمة إلزاميّ (مطابقة الشقيقات — منع كشف الحقول)
-    import indicator_grid as ig
     import management_zones as mz
 
     layer = await _resolve_field_layer(field_id, req.index, req.date)
-    grid_resp = None
-    if layer is not None:
-        grid_resp = _grid_from_cog(layer, req.index, req.date, req.grid)
+    if layer is None:
+        raise HTTPException(
+            424,
+            detail={
+                "code": "RASTER_INDICATOR_PRODUCT_UNAVAILABLE",
+                "message": "لا يمكن إنشاء وصفة دون منتج مؤشر حقيقي",
+                "field_id": field_id,
+                "index": req.index,
+                "date": req.date,
+            },
+        )
+    grid_resp = _grid_from_cog(layer, req.index, req.date, req.grid)
     if grid_resp is None:
-        bbox = [44.0, 16.0, 44.01, 16.01]
-        if layer is not None and layer.get("bounds_4326"):
-            bbox = [round(float(x), 6) for x in layer["bounds_4326"]]
-        grid_resp = ig.synthetic_grid(field_id, req.index, req.date, bbox, req.grid)
+        raise HTTPException(
+            424,
+            detail={
+                "code": "RASTER_GRID_READ_FAILED",
+                "message": "تعذرت قراءة شبكة المؤشر الحقيقية",
+                "field_id": field_id,
+                "index": req.index,
+                "date": req.date,
+            },
+        )
+    product = grid_resp.get("indicator_product") or {}
+    if not (
+        grid_resp.get("real_data") is True
+        and product.get("source") == "raster-service"
+        and product.get("estimated") is False
+        and product.get("quality_gate_passed") is True
+        and product.get("provenance")
+    ):
+        raise HTTPException(
+            424,
+            detail={
+                "code": "RASTER_PRODUCT_NOT_DECISION_ELIGIBLE",
+                "message": "منتج المؤشر لا يستوفي الحقيقة والجودة والنسب المطلوبة",
+                "field_id": field_id,
+                "index": req.index,
+                "date": req.date,
+            },
+        )
 
     pres = mz.prescription_from_grid(
         grid_resp["grid"],

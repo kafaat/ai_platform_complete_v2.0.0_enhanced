@@ -27,7 +27,9 @@ jobs:
         run: python scripts/ci/generate_indicator_artifacts.py --check
 
       - name: raster-indicators-vegetation-boundary-gate
-        run: python scripts/ci/riv_boundary_gate.py
+        run: |
+          python scripts/ci/riv_boundary_gate.py
+          python scripts/ci/raster_production_truth_guard.py
 
       # الدماغ لا يحسب طيفيّاً ولا يجلب من المزوّد مباشرة ولا يصل فيزيائيّاً إلا عبر Decision-Service
       - name: intelligence-governance-brain-gate

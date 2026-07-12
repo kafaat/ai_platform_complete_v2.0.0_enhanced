@@ -101,14 +101,11 @@ def main() -> int:
     if missing:
         raise SystemExit(f"validated indicator product contract missing: {missing}")
 
-    # Both grid branches must publish the identical indicator_product envelope.
+    # Only the real COG-backed branch may publish a consumer indicator product.
     if "indicator_product" not in layer_lookup or "raster_indicator_product" not in layer_lookup:
         raise SystemExit("layer_lookup.grid_from_cog missing indicator_product wiring")
-    if (
-        "indicator_product" not in indicator_grid
-        or "raster_indicator_product" not in indicator_grid
-    ):
-        raise SystemExit("indicator_grid.synthetic_grid missing indicator_product wiring")
+    if "def synthetic_grid" in indicator_grid or 'source": "simulation"' in indicator_grid:
+        raise SystemExit("production indicator_grid still contains a synthetic serving path")
 
     if "qa_pixel" not in models:
         raise SystemExit("BandMapping missing qa_pixel for Landsat QA_PIXEL strategy")
