@@ -114,7 +114,9 @@ def main() -> int:
         "fetch_from_sentinel_hub",
         "fetch_from_cdse",
         "run_analysis",
-        "_generate_timeseries",
+        # production-truth closure removed the synthetic _generate_timeseries entirely;
+        # the authoritative reader took its place in the runtime module.
+        "_current_ndvi_from_raster",
         "_current_ndvi_payload",
     }
     if veg_heavy & _function_names(veg_main):
