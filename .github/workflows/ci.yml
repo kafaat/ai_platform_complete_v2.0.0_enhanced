@@ -7,7 +7,7 @@ jobs:
     name: Repository Structural Lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: service-feature-ui-contract-gate
         run: python scripts/ci/service_feature_ui_contract_gate.py
@@ -197,8 +197,8 @@ jobs:
     name: Platform Structure Inspector
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       # PyYAML مطلوب لفحص عقد ناشري الأحداث (event_publish_contracts.yaml): H2 publisher
       # coverage + waiver «منشور بلا مشترِك». بدونه يفشل الفحص بـModuleNotFoundError.
@@ -209,7 +209,7 @@ jobs:
     name: Validate Docker Compose
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate all compose files
         run: |
           set -e
@@ -261,8 +261,8 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       # المشروع موحّد على ruff (ruff.toml): يغطّي lint + تنسيق + ترتيب الاستيراد،
       # فاستُبدل black/isort بـ`ruff format --check` لتطابق التنسيق المعتمد.
@@ -288,8 +288,8 @@ jobs:
     name: Frontend Typecheck
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: {node-version: "20"}
       # بوّابة فحص نوعيّ للواجهة: كانت غائبة تماماً، فتراكمت أخطاء TS صامتة (مثل
       # ضياع user_id في login). tsc --noEmit يكشفها قبل الدمج. لا يبني الإنتاج
@@ -303,8 +303,8 @@ jobs:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: {node-version: "20"}
       # بوّابة QA الوظيفيّة لمحرّك MapLibre/WebGL على Chromium حقيقيّ (SwiftShader).
       # هرمسيّة: لا خلفيّة — التركيبات تُعترَض في طبقة Playwright (e2e/support/seed.ts).
@@ -328,8 +328,8 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt
       - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
@@ -348,8 +348,8 @@ jobs:
     name: Platform Unit Tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       # اختبارات منطق المنصّة (services/sahool-platform/tests) كانت خارج نطاق CI
       # كلّيّاً: pytest.ini يحصر testpaths في tests_v9، فلم تُجمَع هذه الاختبارات
@@ -372,8 +372,8 @@ jobs:
     name: Weather Service Unit Tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       # اختبارات محرّك الطقس (services/weather-service/tests) كانت خارج نطاق CI:
       # الوظيفة الجذر «Unit Tests» تحصر testpaths في tests_v9، و«Platform Unit Tests»
@@ -393,8 +393,8 @@ jobs:
     # (registry-1.docker.io: context deadline exceeded). بدلاً منها نُدير الحاويات
     # يدويّاً بإعادة سحب مرنة (٦ محاولات backoff) — نفس الصور والمنافذ تماماً.
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       # مرآة سجلّ Docker Hub (Google mirror.gcr.io تعكس Hub كاملاً بما فيه postgis/postgis):
       # أوثق بكثير من Hub المباشر — تُنهي رفرفة «registry-1.docker.io: timeout» التي تُعطّل السحب.
@@ -450,8 +450,8 @@ jobs:
     # append-only cannot be faked) — this job is their CI home. Same resilient-pull pattern as
     # Integration Tests (manual docker run + backoff instead of `services:`).
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       - name: Configure Docker registry mirror (avoid Docker Hub flakes)
         run: |
@@ -677,8 +677,8 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: {python-version: "3.12"}
       - run: pip install bandit pip-audit pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       # بوّابة أمان: تفشل على HIGH severity (تنفيذ كود/تشفير ضعيف/حقن) — صُحّحت إلى 0.
@@ -750,7 +750,7 @@ jobs:
     name: Flutter Analyze & Test
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: "3.27.4"  # Dart 3.6.2 — تتطلّبه flutter_map_mbtiles ^1.0.4 (≥3.6.0)

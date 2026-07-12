@@ -19,8 +19,8 @@ jobs:
       PYPI_MIRROR_URL: ${{ inputs.pypi_mirror_url }}
       PIP_TRUSTED_HOST: ${{ inputs.pip_trusted_host }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Compile transitive service locks through configured mirror

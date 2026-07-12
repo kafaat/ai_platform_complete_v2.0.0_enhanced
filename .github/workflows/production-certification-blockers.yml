@@ -8,8 +8,8 @@ jobs:
     name: P-CERT-1 Full branch CI evidence
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       # runtime_real_smoke.sh يشغّل عقود weather/edge عبر pytest — تبعيّات الخدمتين
@@ -31,8 +31,8 @@ jobs:
     name: P-CERT-2 Transitive lock evidence
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Compile transitive service locks
@@ -48,8 +48,8 @@ jobs:
     env:
       WEATHER_REDIS_INTEGRATION_URL: ${{ secrets.WEATHER_REDIS_INTEGRATION_URL }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Run weather Redis live integration (or declare missing secret)
@@ -65,8 +65,8 @@ jobs:
     name: P-CERT-4 ONNX/SAM2 model provisioning evidence
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Validate edge model/readiness contracts
