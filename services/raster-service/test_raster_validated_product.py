@@ -103,3 +103,46 @@ def test_validated_product_accepts_honest_unavailable_cloud_strategies():
         )
         assert product.cloud_mask_applied is False
         assert product.cloud_mask_strategy == strat
+
+
+def test_provenance_enrichment_satisfies_vegetation_authority_gate():
+    """RASTER-PROVENANCE-ENRICHMENT closure: the enriched provenance carries the exact
+    fields the vegetation indicator-registry authority check validates against."""
+    import sys
+    from pathlib import Path
+
+    from raster_quality import ALGORITHM_VERSION
+    from raster_validated_product import ProvenanceRecord
+
+    prov = ProvenanceRecord(
+        scene_id="S2_X",
+        capture_datetime="2026-07-01T00:00:00Z",
+        acquisition_datetime="2026-07-01T00:00:00Z",
+        algorithm_version=ALGORITHM_VERSION,
+        qa_mask_version="sentinel2_scl/1",
+        valid_pixel_pct=85.0,
+    )
+    veg_dir = Path(__file__).resolve().parents[1] / "vegetation-analysis-service"
+    sys.path.insert(0, str(veg_dir))
+    from indicator_registry import validate_observation
+
+    errors = validate_observation(
+        "ndvi",
+        {
+            "value": 0.6,
+            "source": "raster-service",
+            "estimated": False,
+            "data_available_at": "2026-07-01T01:00:00Z",
+            "valid_pixel_pct": prov.valid_pixel_pct,
+            "provenance": prov.model_dump(),
+        },
+    )
+    assert errors == []  # real, fully-provenanced NDVI is now authority-eligible
+
+
+def test_qa_mask_version_absent_when_no_mask_applied():
+    """An unmasked scene must stay honestly non-authoritative downstream."""
+    from raster_validated_product import ProvenanceRecord
+
+    prov = ProvenanceRecord(scene_id="S2_X", capture_datetime="2026-07-01T00:00:00Z")
+    assert prov.qa_mask_version is None and prov.acquisition_datetime is None

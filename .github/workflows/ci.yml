@@ -618,7 +618,7 @@ jobs:
       # VEG-AGRIAI delivered contracts are pure-logic (no DB): run them here where pytest exists.
       - name: vegetation-agriai contract tests (pure logic)
         working-directory: services/decision-service
-        run: pytest ../agriai-engine/tests/test_agronomic_context_contract.py ../agriai-engine/tests/test_agronomic_adapters.py ../agriai-engine/tests/test_production_readiness_truth.py ../vegetation-analysis-service/test_vegetation_production_contract.py ../vegetation-analysis-service/test_timeseries_honesty.py ../vegetation-analysis-service/test_indicator_registry.py ../vegetation-analysis-service/test_production_truth_closure.py -q -p no:cacheprovider
+        run: pytest ../agriai-engine/tests/test_agronomic_context_contract.py ../agriai-engine/tests/test_agronomic_adapters.py ../agriai-engine/tests/test_production_readiness_truth.py ../vegetation-analysis-service/test_vegetation_production_contract.py ../vegetation-analysis-service/test_timeseries_honesty.py ../vegetation-analysis-service/test_indicator_registry.py ../vegetation-analysis-service/test_production_truth_closure.py ../vegetation-analysis-service/test_evidence_producer_contract.py -q -p no:cacheprovider
       # WX-12 model-registry-adapter runtime is stdlib-only pure logic (drift classification,
       # bounded backoff, compare-and-swap decision). The contract test additionally imports the
       # decision-service app (fastapi is installed in this job) and replays every request the

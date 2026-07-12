@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+# Versioned identity of THIS band-math implementation (published in indicator
+# provenance so downstream authority gates can pin the computing algorithm).
+ALGORITHM_VERSION = "sahool.band_math/1"
+
 INDICATOR_FORMULAS = {
     "ndvi": "(NIR - RED) / (NIR + RED)",
     "evi": "2.5 * (NIR - RED) / (NIR + 6*RED - 7.5*BLUE + 1)",

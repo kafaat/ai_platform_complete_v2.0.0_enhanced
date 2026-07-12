@@ -2690,3 +2690,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 ## 2026-07-12 (خاتمة) — إقفال نَسَب الكوهورت الشامل على `94bab5e`
 - مسح main-only على `444aa1d`: 27/28 — الفشل الوحيد حارس P1 main-only بتوقُّع بائت لـ`_generate_timeseries` المحذوفة شرعيّاً ⇒ الحارس صار يتتبّع البديل الموثّق `_current_ndvi_from_raster` (`94bab5e`). **درس مُرسَّخ:** حذف دالّة runtime يستلزم مسح توقّعات الحُرّاس main-only عنها (p1_main_decomposition_guard heavy-functions).
 - إعادة الترقية والمسح: **أخضر كامل**. main = develop = `94bab5e`. الهجرات 001–023، السلسلة الزراعيّة مقفلة قرارًا→تعلّمًا→نموذجًا→runtime→إيصالات طرفيّة.
+
+## 2026-07-12 — إغلاق RASTER-PROVENANCE-ENRICHMENT + توصيل مُنتِج الأدلّة النباتيّ (استكمال ذاتيّ للخارطة)
+- **إثراء بروفينانس raster (يفكّ فشل real-only المُغلَق على بيانات حقيقيّة):** ProvenanceRecord + acquisition_datetime (تسمية أمينة لنفس القيمة) + algorithm_version (`sahool.band_math/1` مُصدَّر من موضع الصيَغ) + qa_mask_version (`<strategy>/1` فقط عند تطبيق قناع فعليّ — الصرامة مقصودة) + valid_pixel_pct؛ مملوءة في build_validated_raster_product وlayer_lookup. برهان تقاطعيّ raster→vegetation: بروفينانس مُثرى يجتاز validate_observation بلا أخطاء.
+- **مُنتِج الأدلّة (يُكمل حلقة VEG-EVIDENCE):** `_push_vegetation_evidence` في vegetation_runtime خلف راية `VEGETATION_EVIDENCE_PUSH_ENABLED` (افتراض إيقاف): يدفع الـsnapshot المُعنوَن بالمحتوى إلى `POST /v1/evidence/vegetation-snapshots` (الـhash هو مفتاح الـidempotency)؛ fail-soft بنتيجة `evidence_push` صريحة في ردّ التحليل (pushed/disabled/tenant_not_uuid/http_503/unreachable) — لا صمت؛ المستأجرون غير-UUID يُتخطَّون بصدق. عقد المُنتِج مُختبَر بأربع حالات (URL/ترويسة/جسم + mirror 503 + انقطاع + skip).
+- **التحقّق:** unit 2912 · veg+raster 57+11 · كلّ البوّابات · الجرود ثابتة · الحزمة 4074.

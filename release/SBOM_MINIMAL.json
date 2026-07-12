@@ -10915,7 +10915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73bf8def6ca90a383bcb2d8444a0123b97e00cfa2ed5aa71ee4a2306edcbb61d"
+          "content": "b88acd46dc8c973871a9998ed5a463aea597de15f0e6a308f43ff4bdea17af71"
         }
       ],
       "name": "services/raster-service/layer_lookup.py",
@@ -11145,7 +11145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4857eceaf50882a4b3f7eb7e37f2ebe8408684189dbc35c97e714daa21128d03"
+          "content": "a67f2fdc4cdbf98963c84fd91bb63fdce60ad7569a5c3308bdfbad337f79f27d"
         }
       ],
       "name": "services/raster-service/raster_quality.py",
@@ -11215,7 +11215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "86a7518a27be0ef484b6026873169b8a6cb0ca6a29311a21283237c6096f665d"
+          "content": "f263c4a3728118210b2cc0e1d1adbf1aab65534e27f7ec2063144fb952a35239"
         }
       ],
       "name": "services/raster-service/raster_validated_product.py",
@@ -11865,7 +11865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca995316805fd57e539b9e9521fe1fd63ec02e8ff2a9af15e41cbfe0526a451d"
+          "content": "98625f756f2248f281694b25cb568da1599f6d196ba47a78e7cf45d581178085"
         }
       ],
       "name": "services/raster-service/test_raster_validated_product.py",
@@ -24235,7 +24235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "430cc9b56bdea0b32ba2aec36fc9f6b6a1c80a80396a91bd616a7e37dc145759"
+          "content": "850c518f8e264ce7f436fbbd9d365f8cc762d359da352cb98329cb3e1528832d"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

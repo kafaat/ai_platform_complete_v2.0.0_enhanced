@@ -135,11 +135,20 @@ def grid_from_cog(
 
     provenance = None
     if any(layer.get(k) for k in ("scene_id", "cog_url", "source_format")):
+        from raster_quality import ALGORITHM_VERSION
+
+        _vpr = layer.get("valid_pixel_ratio")
         provenance = ProvenanceRecord(
             source=layer.get("source_format"),
             source_format=layer.get("source_format"),
             scene_id=layer.get("scene_id"),
             capture_datetime=layer.get("acquisition_date"),
+            acquisition_datetime=layer.get("acquisition_date"),
+            # this grid was computed by THIS band-math implementation; the QA-mask
+            # identity is only published when the layer actually recorded one.
+            algorithm_version=ALGORITHM_VERSION,
+            qa_mask_version=layer.get("qa_mask_version"),
+            valid_pixel_pct=round(float(_vpr) * 100.0, 3) if _vpr is not None else None,
             source_uri=layer.get("cog_url"),
         )
     result["indicator_product"] = rip.from_grid_response(

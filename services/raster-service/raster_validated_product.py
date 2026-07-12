@@ -23,6 +23,12 @@ class BoundingBox(BaseModel):
     crs: str = "EPSG:4326"
 
 
+def _algorithm_version() -> str:
+    from raster_quality import ALGORITHM_VERSION
+
+    return ALGORITHM_VERSION
+
+
 class ProvenanceRecord(BaseModel):
     """Minimum provenance needed to trace raw image -> QA -> indicator."""
 
@@ -31,7 +37,16 @@ class ProvenanceRecord(BaseModel):
     source_format: str | None = None
     scene_id: str | None = None
     capture_datetime: str | None = None
+    # Honest alias of capture_datetime under the name downstream authority gates
+    # (vegetation indicator registry) validate against. Same value, never invented.
+    acquisition_datetime: str | None = None
     processing_version: str = "sahool.raster_validated_product/1"
+    # Versioned identity of the computing algorithm (band math) and of the pixel-QA
+    # mask that actually processed the scene. None when honestly unknown/not applied.
+    algorithm_version: str | None = None
+    qa_mask_version: str | None = None
+    # Valid-pixel share as a percentage (0..100) — unit twin of valid_pixel_ratio.
+    valid_pixel_pct: float | None = None
     source_uri: str | None = None
     input_checksum: str | None = None
     output_checksum: str | None = None
@@ -158,6 +173,14 @@ def build_validated_raster_product(
             source_format=str(getattr(req, "source_format", "")) or None,
             scene_id=getattr(req, "scene_id", None),
             capture_datetime=getattr(req, "capture_datetime", None),
+            acquisition_datetime=getattr(req, "capture_datetime", None),
+            algorithm_version=_algorithm_version(),
+            # the mask identity is published only when a cloud mask was actually
+            # applied — an unmasked scene must fail downstream authority honestly.
+            qa_mask_version=(
+                f"{cloud_mask_strategy}/1" if quality_flags.get("cloud_mask_applied") else None
+            ),
+            valid_pixel_pct=round(float(pixel_qa.get("valid_pixel_ratio", 0.0)) * 100.0, 3),
             source_uri=source_uri or getattr(req, "raster_url", None),
         ),
         derived_product_computed=False,

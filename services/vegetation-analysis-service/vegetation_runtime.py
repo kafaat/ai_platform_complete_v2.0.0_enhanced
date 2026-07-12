@@ -15,6 +15,7 @@ import math
 import os
 import re
 from datetime import UTC, date, datetime, timedelta
+from uuid import UUID
 
 import httpx
 import jwt as _jwt
@@ -108,6 +109,13 @@ ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(
     default=os.getenv("SAHOOL_ENV", "development").lower() != "production",
 )
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", "").rstrip("/")
+# AC-6 evidence producer: push content-addressed vegetation snapshots to the
+# decision-service immutable evidence store. Opt-in (default off) and fail-soft:
+# the analysis response always reports the push outcome honestly, never hides it.
+VEGETATION_EVIDENCE_PUSH_ENABLED = _flag_enabled(
+    os.getenv("VEGETATION_EVIDENCE_PUSH_ENABLED"), default=False
+)
+DECISION_SERVICE_URL = os.getenv("DECISION_SERVICE_URL", "http://decision-service:8007").rstrip("/")
 
 security = HTTPBearer(auto_error=False)
 
@@ -817,6 +825,53 @@ async def _real_index_mean_from_raster(field_id: str, raster_index: str = "ndvi"
         return None
 
 
+async def _push_vegetation_evidence(snapshot: dict, tenant_id: str) -> dict:
+    """Push one immutable snapshot to decision-service /v1/evidence/vegetation-snapshots.
+
+    The snapshot_hash IS the idempotency key (content-addressed on the decision side:
+    a replay returns the canonical existing snapshot). Fail-soft by design — an
+    unreachable/mirror-mode (503) decision-service must never break the analysis —
+    but the outcome is always reported, never silent.
+    """
+    tenant = str(tenant_id or "").strip()
+    try:
+        UUID(tenant)
+    except (ValueError, TypeError):
+        # the decision evidence store is tenant-uuid scoped; enumeration/dev tenants
+        # ("default", ...) are honestly skipped rather than coerced.
+        return {"pushed": False, "reason": "tenant_not_uuid"}
+    acq = snapshot.get("acquisition_date")
+    body = {
+        "field_id": snapshot["field_id"],
+        "season_id": snapshot.get("season_id"),
+        "contract_version": snapshot.get("contract_version", "vegetation-snapshot.v2"),
+        "snapshot_hash": snapshot["snapshot_hash"],
+        "acquisition_at": f"{acq}T00:00:00Z" if acq and "T" not in str(acq) else acq,
+        "data_available_at": snapshot["data_available_at"],
+        "quality_gate": snapshot["quality_gate"],
+        "feature_manifest": snapshot.get("feature_manifest", {}),
+        "payload": {"indices": snapshot["indices"], "source": snapshot["source"]},
+    }
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.post(
+                f"{DECISION_SERVICE_URL}/v1/evidence/vegetation-snapshots",
+                json=body,
+                headers={"X-Tenant-Id": tenant},
+            )
+        if r.status_code == 200:
+            data = r.json()
+            return {
+                "pushed": True,
+                "snapshot_id": data.get("snapshot_id"),
+                "created": data.get("created"),
+            }
+        return {"pushed": False, "reason": f"http_{r.status_code}"}
+    except Exception as exc:  # noqa: BLE001 - fail-soft: الدليل يُدفَع لاحقاً، التحليل لا يُكسَر
+        logger.warning("vegetation evidence push failed for %s: %s", snapshot["field_id"], exc)
+        return {"pushed": False, "reason": f"unreachable:{type(exc).__name__}"}
+
+
 async def run_analysis(
     field_id: str, tenant_id: str, date_from: str, date_to: str, season_id: str | None = None
 ) -> dict:
@@ -919,6 +974,11 @@ async def run_analysis(
         quality=gate,
         data_available_at=(index_quality.get("ndvi") or {}).get("data_available_at"),
     )
+    evidence_push = (
+        await _push_vegetation_evidence(snapshot, tenant_id)
+        if VEGETATION_EVIDENCE_PUSH_ENABLED
+        else {"pushed": False, "reason": "disabled"}
+    )
     return {
         "field_id": field_id,
         "field_name": field.get("name") or field_id,
@@ -948,6 +1008,7 @@ async def run_analysis(
         "indices": index_contract,
         "quality_gate": gate,
         "vegetation_snapshot": snapshot,
+        "evidence_push": evidence_push,
         "raw_bands": None if VEGETATION_REAL_ONLY else bands,
         "health": health,
         "recommendations_ar": recs,

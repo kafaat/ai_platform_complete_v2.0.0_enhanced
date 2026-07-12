@@ -95,7 +95,10 @@
 - **لماذا مؤجَّل:** مخزن أدلّة نباتيّ أوّل-الدرجة في decision-service يتطلّب كاتبه (ربط vegetation→decision عند الالتقاط) وقارئه (تحقّق الربط) — نصف حلّ يخالف الانضباط.
 - **التصميم المُوصى:** ضمن Phase B/C من الخطّة الرئيسيّة — كاتب في مسار compose (السياق يحمل vegetation_snapshot_id مرجعاً لمخزن ثابت content-addressed بنمط 018_ac1: idempotency+request_hash+append-only+CHECK data_available_at>=acquisition_at) + تحقّق `_validate_decision_context` يقبل المرجع.
 
-## RASTER-PROVENANCE-ENRICHMENT — OPEN (Medium) — من بوّابة سلطة NDVI 2026-07-12
+## RASTER-PROVENANCE-ENRICHMENT — CLOSED (كان OPEN من بوّابة سلطة NDVI 2026-07-12)
+- **الإغلاق:** `ProvenanceRecord` أُثري بأربعة حقول أمينة: `acquisition_datetime` (نفس قيمة capture_datetime — تسمية بوّابة السلطة)، `algorithm_version` (ثابت `sahool.band_math/1` المُصدَّر من raster_quality حيث تعيش الصيَغ فعلاً)، `qa_mask_version` (هويّة استراتيجيّة القناع المُطبَّقة `<strategy>/1` **فقط عند تطبيق قناع سحابيّ فعليّاً** — المشهد غير المُقنَّع يبقى غير-سلطويّ بصدق)، `valid_pixel_pct` (توأم النسبة ×100). يُملأ في `build_validated_raster_product` و`layer_lookup`. برهان تقاطعيّ: بروفينانس مُثرى يجتاز `indicator_registry.validate_observation` بلا أخطاء (اختبار في raster يستورد بوّابة النبات).
+
+## RASTER-PROVENANCE-ENRICHMENT (المدخل الأصليّ) — من بوّابة سلطة NDVI 2026-07-12
 - **المصدر:** `raster_validated_product.ProvenanceRecord` يمدّ `capture_datetime`/`processing_version` **بلا** `qa_mask_version`، و`ValidatedIndicatorProduct` يمدّ `valid_pixel_ratio` (0..1) — بينما `indicator_registry.validate_observation` (سلطة NDVI الإنتاجيّة) يطلب `acquisition_datetime`/`algorithm_version`/`qa_mask_version`/`valid_pixel_pct` (`41211c6`).
 - **الأثر الصادق:** في `VEGETATION_REAL_ONLY` الإنتاجيّ يفشل التحليل مُغلَقاً (424) حتى مع NDVI حقيقيّ — مقصود: لا تنفيذ بلا بروفينانس كامل. vegetation حوّل النسبة→نسبة مئويّة (وحدة فقط)؛ الأسماء الزمنيّة/الإصداريّة لم تُؤَلَّس.
 - **التصميم المُوصى:** إثراء raster: ينشر `acquisition_datetime` (alias صادق لـcapture_datetime) + `algorithm_version` (من formula/processing) + `qa_mask_version` (من مسار SCL/cloud-mask الفعليّ) + `valid_pixel_pct` في provenance — ثمّ بوّابة السلطة تمرّ على بيانات حقيقيّة بلا تليين.
