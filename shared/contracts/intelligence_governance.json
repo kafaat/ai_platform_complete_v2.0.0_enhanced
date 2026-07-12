@@ -1,0 +1,44 @@
+{
+  "version": "1.0.0",
+  "principles": {
+    "observed_spectral_truth": "raster-service",
+    "vegetation_interpretation": "vegetation-analysis-service",
+    "decision_authority": "decision-service",
+    "brain_role": "orchestrate_and_explain_not_recompute_or_execute"
+  },
+  "brain_read_paths": [
+    {
+      "product": "observed_indicator",
+      "service": "raster-service",
+      "required_lineage": [
+        "field_id",
+        "tenant_id",
+        "scene_id",
+        "acquisition_date",
+        "source",
+        "quality"
+      ]
+    },
+    {
+      "product": "vegetation_interpretation",
+      "service": "vegetation-analysis-service",
+      "required_lineage": [
+        "field_id",
+        "source",
+        "quality_gate",
+        "advisory_role"
+      ]
+    }
+  ],
+  "forbidden_brain_behaviors": [
+    "spectral_band_math",
+    "direct_satellite_provider_fetch_in_default_runtime",
+    "direct_actuator_dispatch",
+    "decision_bypass",
+    "synthetic_observation_as_real"
+  ],
+  "write_policy": {
+    "recommendations": "decision-service candidate only",
+    "physical_effects": "approved execution request only"
+  }
+}

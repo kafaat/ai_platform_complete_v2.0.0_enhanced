@@ -515,12 +515,12 @@ def bootstrap_default_tools(registry: ToolRegistry) -> None:
         implementation=_dummy_pump_impl,
     )
 
-    # 3. NDVI compute (read DB)
+    # 3. NDVI authoritative observation read (no spectral computation)
     registry.register(
         ToolContract(
-            tool_id="ndvi.compute",
+            tool_id="ndvi.read_observation",
             version="1.0.0",
-            description="حساب NDVI من Sentinel-2",
+            description="قراءة أحدث NDVI موثق من raster-service",
             input_schema={
                 "type": "object",
                 "required": ["field_id"],

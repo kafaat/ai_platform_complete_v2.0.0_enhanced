@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sahool.io/contracts/indicator-observation.v1.json",
+  "title": "Canonical Indicator Observation",
+  "type": "object",
+  "required": ["tenant_id","field_id","index","value","acquisition_date","scene_id","source","estimated","quality","algorithm_version","product_version"],
+  "properties": {
+    "tenant_id":{"type":"string","minLength":1}, "field_id":{"type":"string","minLength":1},
+    "season_id":{"type":["string","null"]}, "index":{"type":"string","minLength":1},
+    "value":{"type":["number","null"]}, "statistics":{"type":["object","null"]},
+    "acquisition_date":{"type":"string","minLength":1}, "scene_id":{"type":"string","minLength":1},
+    "raster_asset_id":{"type":["string","null"]}, "source":{"const":"raster-service"},
+    "estimated":{"const":false}, "quality":{"type":"object","required":["valid_pixel_ratio","quality_gate_passed"]},
+    "algorithm_version":{"type":"string","minLength":1}, "product_version":{"type":"string","minLength":1},
+    "qa_mask_version":{"type":["string","null"]}
+  },
+  "additionalProperties": true
+}

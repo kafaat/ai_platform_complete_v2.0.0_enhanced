@@ -1,0 +1,8 @@
+{
+  "schema_version":"2026-07-12.riv-p2",
+  "flows":[
+    {"product":"observed_indicator","producer":"raster-service","consumers":["vegetation-analysis-service","sahool-platform","frontend","mobile","decision-service"],"storage_owner":"raster-service","fallback":"fail_closed"},
+    {"product":"vegetation_interpretation","producer":"vegetation-analysis-service","consumers":["sahool-platform","frontend","decision-service"],"storage_owner":"vegetation-analysis-service","fallback":"fail_closed_real_only"},
+    {"product":"field_indicator_dashboard","producer":"sahool-platform","consumers":["frontend"],"storage_owner":"sahool-platform","fallback":"partial_with_freshness"}
+  ]
+}

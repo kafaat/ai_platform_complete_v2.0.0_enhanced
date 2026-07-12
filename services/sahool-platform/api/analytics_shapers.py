@@ -10,6 +10,9 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from api.alert_models import _row_to_alert
 
 
@@ -78,152 +81,18 @@ def _shape_farm_summary(
 # فتظهر في مبدّل طبقات الخريطة. renderable=False ⇒ قيمة قياسيّة (طقس/تربة) غير
 # مكانيّة (لا تُرسَم كطبقة) — مرجعيّة فقط. الواجهة تقود مبدّل الخريطة بـrenderable
 # لا بقائمة مُبرمَجة (مصدر حقيقة واحد). كلّ renderable مؤكَّد في raster band_math.
-_INDICATOR_CATALOG: list[dict] = [
-    {
-        "id": "ndvi",
-        "category": "vegetation",
-        "name_ar": "NDVI",
-        "unit": "",
-        "source": "raster-service / vegetation-service",
-        "renderable": True,
-    },
-    {
-        "id": "evi",
-        "category": "vegetation",
-        "name_ar": "EVI",
-        "unit": "",
-        "source": "raster-service / vegetation-service",
-        "renderable": True,
-    },
-    {
-        "id": "ndre",
-        "category": "vegetation",
-        "name_ar": "NDRE",
-        "unit": "",
-        "source": "raster-service",
-        "renderable": True,
-    },
-    {
-        "id": "msavi",
-        "category": "vegetation",
-        "name_ar": "MSAVI",
-        "unit": "",
-        "source": "raster-service",
-        "renderable": True,
-    },
-    {
-        "id": "savi",
-        "category": "vegetation",
-        "name_ar": "SAVI",
-        "unit": "",
-        "source": "raster-service",
-        "renderable": True,
-    },
-    {
-        "id": "gndvi",
-        "category": "vegetation",
-        "name_ar": "GNDVI",
-        "unit": "",
-        "source": "raster-service",
-        "renderable": True,
-    },
-    {
-        "id": "ndwi",
-        "category": "water",
-        "name_ar": "NDWI",
-        "unit": "",
-        "source": "raster-service / vegetation-service",
-        "renderable": True,
-    },
-    {
-        "id": "ndmi",
-        "category": "water",
-        "name_ar": "NDMI (الرطوبة)",
-        "unit": "",
-        "source": "raster-service",
-        "renderable": True,
-    },
-    {
-        "id": "msi",
-        "category": "water",
-        "name_ar": "MSI (الإجهاد المائي)",
-        "unit": "",
-        "source": "raster-service",
-        "renderable": True,
-    },
-    {
-        "id": "et0",
-        "category": "water",
-        "name_ar": "ET₀",
-        "unit": "mm/d",
-        "source": "weather-service (FAO-56)",
-        "renderable": False,
-    },
-    {
-        "id": "water_deficit",
-        "category": "water",
-        "name_ar": "عجز المياه",
-        "unit": "mm",
-        "source": "weather-service",
-        "renderable": False,
-    },
-    {
-        "id": "gdd",
-        "category": "weather",
-        "name_ar": "GDD المتراكم",
-        "unit": "°C·يوم",
-        "source": "weather-service",
-        "renderable": False,
-    },
-    {
-        "id": "temperature",
-        "category": "weather",
-        "name_ar": "الحرارة",
-        "unit": "°C",
-        "source": "weather-service",
-        "renderable": False,
-    },
-    {
-        "id": "humidity",
-        "category": "weather",
-        "name_ar": "الرطوبة النسبيّة",
-        "unit": "%",
-        "source": "weather-service",
-        "renderable": False,
-    },
-    {
-        "id": "salinity",
-        "category": "soil",
-        "name_ar": "الملوحة (SI)",
-        "unit": "",
-        "source": "raster-service",
-        "renderable": True,
-    },
-    {
-        "id": "soil_ph",
-        "category": "soil",
-        "name_ar": "pH التربة",
-        "unit": "",
-        "source": "soil-service",
-        "renderable": False,
-    },
-    {
-        "id": "soil_ec",
-        "category": "soil",
-        "name_ar": "EC التربة",
-        "unit": "dS/m",
-        "source": "soil-service",
-        "renderable": False,
-    },
-    {
-        "id": "nitrogen",
-        "category": "soil",
-        "name_ar": "النيتروجين المتاح",
-        "unit": "mg/kg",
-        "source": "soil-service",
-        "renderable": False,
-    },
-]
+_CATALOG_PATH = Path(__file__).with_name("indicator_catalog.generated.json")
+
+
+def _load_indicator_catalog() -> list[dict]:
+    payload = json.loads(_CATALOG_PATH.read_text(encoding="utf-8"))
+    indicators = payload.get("indicators")
+    if not isinstance(indicators, list):
+        raise RuntimeError("invalid generated indicator catalog")
+    return indicators
+
+
+_INDICATOR_CATALOG: list[dict] = _load_indicator_catalog()
 
 
 def _shape_indicator_catalog() -> dict:
@@ -250,16 +119,7 @@ def _shape_indicator_catalog() -> dict:
 # صِيَغ معياريّة معروفة لا مُلفَّقة: NIR=B8, RED=B4, GREEN=B3, REDEDGE=B5, SWIR=B11.
 # المصدر: standard band math (Sentinel-2). المؤشّر renderable بلا تعبير هنا يُدرَج
 # بـband_math=None + ملاحظة صادقة (لا اختلاق صيغة غير قياسيّة).
-_BAND_MATH: dict[str, str] = {
-    "ndvi": "(NIR-RED)/(NIR+RED)",
-    "evi": "2.5*((NIR-RED)/(NIR+6*RED-7.5*BLUE+1))",
-    "ndre": "(NIR-REDEDGE)/(NIR+REDEDGE)",
-    "msavi": "(2*NIR+1-sqrt((2*NIR+1)^2-8*(NIR-RED)))/2",
-    "savi": "((NIR-RED)/(NIR+RED+0.5))*1.5",
-    "gndvi": "(NIR-GREEN)/(NIR+GREEN)",
-    "ndwi": "(GREEN-NIR)/(GREEN+NIR)",
-    "ndmi": "(NIR-SWIR)/(NIR+SWIR)",
-}
+_BAND_MATH: dict[str, str] = {}  # Expressions are owned and served by raster-service.
 
 
 def _shape_map_layers() -> dict:

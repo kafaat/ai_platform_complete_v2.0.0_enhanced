@@ -4,7 +4,9 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_phase_runtime_workers_use_fail_closed_contracts():
-    src = (ROOT / "services/sahool-platform/api/phase_runtime_workers.py").read_text(encoding="utf-8")
+    src = (ROOT / "services/sahool-platform/api/phase_runtime_workers.py").read_text(
+        encoding="utf-8"
+    )
     contracts = (ROOT / "shared/runtime_worker_contracts.py").read_text(encoding="utf-8")
     assert "build_plugin_worker_action" in src
     assert "PLUGIN_EXECUTOR_URL" in src

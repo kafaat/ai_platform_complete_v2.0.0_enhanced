@@ -65,7 +65,7 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
   ];
 
   if (loadDash && kpis.length === 0)
-    return <LoadingState message="جارٍ تحميل البيانات من indicators-service…" />;
+    return <LoadingState message="جارٍ تحميل لوحة المؤشرات المجمعة…" />;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto" dir="rtl">
@@ -285,7 +285,7 @@ export default function DashboardPage({ setPage }: { setPage: (p: PageId) => voi
       {dashboard?.generated_at && (
         <p className="text-center text-[10px] text-slate-600">
           آخر تحديث: {new Date(dashboard.generated_at).toLocaleString('ar-SA')} ·
-          مصدر البيانات: {dashboard.data_freshness?.source || 'indicators-service'}
+          مصدر البيانات: {dashboard.data_freshness?.source || 'sahool-platform aggregation'}
         </p>
       )}
     </div>

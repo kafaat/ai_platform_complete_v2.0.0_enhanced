@@ -28,7 +28,9 @@ def test_feature_store_registers_versions_and_point_in_time_snapshot():
     assert registry["feature_set"]["feature_names"] == ["etc_mm", "ndvi"]
     assert all(d["feature_id"].startswith("featdef_") for d in registry["definitions"])
 
-    offline = write_offline_feature_dataset(records, feature_set_id=registry["feature_set"]["feature_set_id"])
+    offline = write_offline_feature_dataset(
+        records, feature_set_id=registry["feature_set"]["feature_set_id"]
+    )
     assert offline["point_in_time_safe"] is True
     assert offline["row_count"] == 6
     assert len(offline["content_hash"]) == 64
@@ -37,9 +39,14 @@ def test_feature_store_registers_versions_and_point_in_time_snapshot():
     assert snapshot["row_count"] == 2
     assert {r["entity_id"] for r in snapshot["rows"]} == {"field-a", "field-b"}
 
-    online = materialize_online_feature_values(records, feature_set_id=registry["feature_set"]["feature_set_id"])
+    online = materialize_online_feature_values(
+        records, feature_set_id=registry["feature_set"]["feature_set_id"]
+    )
     assert online["write_count"] == 2
-    assert all(w["online_key"].startswith(registry["feature_set"]["feature_set_id"]) for w in online["writes"])
+    assert all(
+        w["online_key"].startswith(registry["feature_set"]["feature_set_id"])
+        for w in online["writes"]
+    )
 
 
 def test_model_registry_promotion_and_rollback_are_fail_closed():
@@ -59,18 +66,44 @@ def test_model_registry_promotion_and_rollback_are_fail_closed():
         metrics={"score": 0.85},
         status="candidate",
     )
-    promotion = apply_model_promotion(alias="agronomic:prod", champion=champion, challenger=challenger)
+    promotion = apply_model_promotion(
+        alias="agronomic:prod", champion=champion, challenger=challenger
+    )
     assert promotion["decision"] == "promote"
     assert promotion["target_model_id"] == challenger["model_id"]
-    rb = rollback_serving_alias(alias="agronomic:prod", current_model_id=challenger["model_id"], target_model_id=champion["model_id"], reason="smoke_failure")
+    rb = rollback_serving_alias(
+        alias="agronomic:prod",
+        current_model_id=challenger["model_id"],
+        target_model_id=champion["model_id"],
+        reason="smoke_failure",
+    )
     assert rb["to_model_id"] == champion["model_id"]
 
 
 def test_phase10_cycle_emits_production_feature_store_and_model_registry_runtime():
     out = run_phase10_learning_cycle(
-        phase9_cycle={"cycle_id": "auto-1", "feature_store_batch": _records(), "canonical_state": {"field_id": "field-a", "state": {}}},
-        champion_model={"model_id": "champion", "name": "yield-risk", "version": "1.0.0", "task": "agronomic_recommendation", "metrics": {"score": 0.8}, "artifacts": {"uri": "minio://models/yield-risk/1.0.0"}},
-        challenger_model={"model_id": "challenger", "name": "yield-risk", "version": "1.1.0", "task": "agronomic_recommendation", "status": "candidate", "metrics": {"score": 0.84}, "artifacts": {"uri": "minio://models/yield-risk/1.1.0"}},
+        phase9_cycle={
+            "cycle_id": "auto-1",
+            "feature_store_batch": _records(),
+            "canonical_state": {"field_id": "field-a", "state": {}},
+        },
+        champion_model={
+            "model_id": "champion",
+            "name": "yield-risk",
+            "version": "1.0.0",
+            "task": "agronomic_recommendation",
+            "metrics": {"score": 0.8},
+            "artifacts": {"uri": "minio://models/yield-risk/1.0.0"},
+        },
+        challenger_model={
+            "model_id": "challenger",
+            "name": "yield-risk",
+            "version": "1.1.0",
+            "task": "agronomic_recommendation",
+            "status": "candidate",
+            "metrics": {"score": 0.84},
+            "artifacts": {"uri": "minio://models/yield-risk/1.1.0"},
+        },
     )
     fs = out["feature_store_runtime"]
     ml = out["model_registry_runtime"]

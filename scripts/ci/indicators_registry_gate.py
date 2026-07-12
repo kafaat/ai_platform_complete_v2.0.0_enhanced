@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = ROOT / "config/indicators_registry.json"
 RASTER_QUALITY = ROOT / "services/raster-service/raster_quality.py"
 VEGETATION = ROOT / "services/vegetation-analysis-service/vegetation_runtime.py"
-ANALYTICS = ROOT / "services/sahool-platform/api/analytics_shapers.py"
+ANALYTICS = ROOT / "services/sahool-platform/api/indicator_catalog.generated.json"
 HYBRID = ROOT / "frontend/src/sections/HybridIndexPage.tsx"
 # WS-B.2: HybridIndexPage لم يعد يحمل قائمة INDICATOR_CATALOG ثابتة — يستهلك المانيفست
 # المُولَّد وقت البناء من نفس المصدر الأوحد. نقرأ ids المانيفست (يُثبت أنّ الواجهة
@@ -67,8 +67,8 @@ def _vegetation_index_ids() -> set[str]:
 
 
 def _backend_catalog_ids() -> set[str]:
-    block = _slice(_read(ANALYTICS), "_INDICATOR_CATALOG", "def _shape_indicator_catalog")
-    return set(re.findall(r'"id":\s*"([a-z0-9_]+)"', block))
+    payload = json.loads(_read(ANALYTICS))
+    return {str(e["id"]) for e in payload.get("indicators", [])}
 
 
 def _frontend_catalog_ids() -> set[str]:
@@ -185,6 +185,22 @@ def main() -> int:
     for e in indicators:
         if e.get("source") == "estimated" and e.get("status") == "implemented":
             errors.append(f"(f) HONESTY: '{e['id']}' has source=estimated but status=implemented")
+
+    # (g) HONESTY (post-RIV): source="real" is a claim of observed truth — it requires a
+    # measurement computation kind (raster formula / sensor / weather observation), never a
+    # model/interpretation kind. Guards against relabelling derived products (lai/water_stress)
+    # as real, which the veg-regex check (f) can no longer see after vegetation stopped
+    # synthesizing estimates inline.
+    _REAL_KINDS = {"raster_formula", "raster_alias", "soil_sensor", "weather_observation"}
+    for e in indicators:
+        if e.get("source") != "real":
+            continue
+        kind = (e.get("computation") or {}).get("kind")
+        if kind not in _REAL_KINDS:
+            errors.append(
+                f"(g) HONESTY: '{e['id']}' claims source=real but computation.kind={kind!r} "
+                f"is not a measurement kind {sorted(_REAL_KINDS)}"
+            )
 
     if errors:
         print("indicators_registry_gate FAILED:")

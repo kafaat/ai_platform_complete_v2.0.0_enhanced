@@ -3,7 +3,7 @@
 // ربط حقيقي مع 6 خدمات خلفية + mock fallback ذكي
 //
 // الخدمات:
-//   indicators-service  → :8091  (33 مؤشر + WOFOST)
+//   indicators-service  → :8091  (ownership/catalog contract only)
 //   vegetation-service  → :8090  (7 مؤشرات Sentinel-2)
 //   weather-service     → :8092  (الطقس + WOFOST format)
 //   soil-service        → :8094  (تربة + N recommendation)

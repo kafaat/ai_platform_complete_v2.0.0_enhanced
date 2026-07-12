@@ -386,11 +386,11 @@
       "name_en": "Leaf Area Index",
       "category": "vegetation",
       "owning_service": "vegetation-analysis-service",
-      "source": "estimated",
+      "source": "derived",
       "computation": {
-        "kind": "vegetation_estimate",
+        "kind": "vegetation_interpretation",
         "formula_ref": null,
-        "note": "Beer-Lambert (Baret & Guyot 1991) -ln(1-NDVI)/k over synthetic bands; needs a canopy model for real LAI."
+        "note": "Derived by vegetation-analysis-service from validated real NDVI with explicit uncertainty."
       },
       "unit": "m²/m²",
       "range": [
@@ -398,7 +398,7 @@
         8
       ],
       "renderable": false,
-      "status": "estimated"
+      "status": "implemented"
     },
     {
       "id": "recl",
@@ -410,12 +410,12 @@
       "computation": {
         "kind": "vegetation_estimate",
         "formula_ref": null,
-        "note": "B05/B04-1 over deterministic synthetic bands (not the raster reci path)."
+        "note": "Not produced by vegetation-analysis-service after RIV consolidation; use raster-service RECI where applicable."
       },
       "unit": "",
       "range": null,
       "renderable": false,
-      "status": "estimated"
+      "status": "not_implemented"
     },
     {
       "id": "cwsi",
@@ -427,7 +427,7 @@
       "computation": {
         "kind": "vegetation_estimate",
         "formula_ref": null,
-        "note": "synthetic proxy (0.55-NDWI)/0.55 only; a true thermal CWSI requires an LST thermal band that is not implemented."
+        "note": "Not produced without a validated thermal/LST product."
       },
       "unit": "",
       "range": [
@@ -628,6 +628,26 @@
       },
       "unit": "kg/m³",
       "range": null,
+      "renderable": false,
+      "status": "implemented"
+    },
+    {
+      "id": "water_stress",
+      "name_ar": "إجهاد مائي تفسيري",
+      "name_en": "Observed Water Stress Interpretation",
+      "category": "water",
+      "owning_service": "vegetation-analysis-service",
+      "source": "derived",
+      "computation": {
+        "kind": "vegetation_interpretation",
+        "formula_ref": null,
+        "note": "Interprets validated NDMI/MSI products; not a spectral kernel."
+      },
+      "unit": "score",
+      "range": [
+        0,
+        1
+      ],
       "renderable": false,
       "status": "implemented"
     }

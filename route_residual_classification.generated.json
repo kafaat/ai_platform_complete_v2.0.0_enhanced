@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 111,
+  "total_residual_main_routes": 113,
   "classification_counts": {
-    "business_endpoint": 77,
+    "business_endpoint": 79,
     "capabilities": 2,
     "contract": 2,
     "health": 15,
@@ -11,7 +11,7 @@
     "metrics": 4,
     "readiness": 10
   },
-  "business_endpoint_count": 77,
+  "business_endpoint_count": 79,
   "rows": [
     {
       "service": "agriai-engine",
@@ -763,7 +763,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 27,
+      "line": 38,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -772,7 +772,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 32,
+      "line": 43,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -781,7 +781,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 37,
+      "line": 48,
       "method": "GET",
       "path": "/readyz",
       "function": "ready",
@@ -790,7 +790,25 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 50,
+      "line": 62,
+      "method": "GET",
+      "path": "/v1/indicators/ownership",
+      "function": "ownership",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 67,
+      "method": "GET",
+      "path": "/v1/indicators/catalog",
+      "function": "catalog",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 77,
       "method": "GET",
       "path": "/capabilities",
       "function": "capabilities",
@@ -799,7 +817,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 67,
+      "line": 98,
       "method": "GET",
       "path": "/contract",
       "function": "contract",
@@ -808,7 +826,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 79,
+      "line": 118,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator",
@@ -817,7 +835,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 90,
+      "line": 126,
       "method": "GET",
       "path": "/",
       "function": "root",

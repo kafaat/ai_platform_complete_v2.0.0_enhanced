@@ -1,5 +1,5 @@
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "services/sahool-platform"))
@@ -34,7 +34,11 @@ def test_field_update_contract_is_conflict_aware_without_direct_overwrite():
         {
             "op_id": "00000000-0000-7000-8000-000000000113",
             "kind": FIELD_UPDATE_KIND,
-            "payload": {"field_id": "11111111-1111-4111-8111-111111111111", "base_version": 7, "name": "A"},
+            "payload": {
+                "field_id": "11111111-1111-4111-8111-111111111111",
+                "base_version": 7,
+                "name": "A",
+            },
         }
     )
     assert op["conflict_policy"] == "optimistic_row_version"

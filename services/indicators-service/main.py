@@ -1,26 +1,37 @@
 #!/usr/bin/env python3
-"""SAHOOL indicators-service — health-only runtime boundary.
+"""SAHOOL indicators-service — contract and aggregation boundary.
 
-This container is intentionally health-only in the current architecture. Real
-indicator computation is still owned by sahool-platform/raster paths. The service
-must not report production readiness for computation until that ownership is
-moved here. It therefore exposes /healthz for process liveness and /readyz as
-``degraded`` rather than pretending that indicator computation is implemented.
+This service does not compute observed spectral indices. Raster-service owns
+band math, scenes, COGs, quality masks, tiles, and observed time series.
+Vegetation-analysis owns interpretation. The current service publishes the
+canonical ownership contract and fails closed for spectral computation.
 """
 
 from __future__ import annotations
 
+import json
 import os
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 
-VERSION = os.getenv("SERVICE_VERSION", "9.0.0-health-only")
+VERSION = os.getenv("SERVICE_VERSION", "9.1.0-contract-boundary")
+_ROOT = Path(__file__).resolve().parents[2]
+_MANIFEST = _ROOT / "shared" / "contracts" / "indicator_ownership.json"
 
-app = FastAPI(
-    title="SAHOOL Indicators Service (health-only)",
-    version=VERSION,
-    description="Health-only boundary; real indicator computation is not owned by this service yet.",
-)
+app = FastAPI(title="SAHOOL Indicators Contract Service", version=VERSION)
+
+
+def _manifest() -> dict:
+    try:
+        data = json.loads(_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise HTTPException(
+            status_code=503, detail=f"indicator ownership manifest unavailable: {exc}"
+        ) from exc
+    if not data.get("products") or not data.get("policy"):
+        raise HTTPException(status_code=503, detail="indicator ownership manifest is incomplete")
+    return data
 
 
 @app.get("/healthz")
@@ -34,15 +45,31 @@ async def legacy_health():
 
 
 @app.get("/readyz")
-async def ready(response=None):
-    # Honest readiness: process is alive, but indicator computation is not implemented here.
+async def ready():
+    manifest = _manifest()
     return {
-        "status": "degraded",
+        "status": "ready",
         "service": "indicators-service",
-        "implemented_runtime": False,
-        "health_only": True,
-        "owner": "sahool-platform/raster-service",
-        "reason": "indicator computation is not yet owned by indicators-service",
+        "implemented_runtime": True,
+        "runtime_role": "contract-only",
+        "spectral_compute": False,
+        "observed_spectral_owner": manifest["policy"]["observed_spectral_owner"],
+        "schema_version": manifest["schema_version"],
+    }
+
+
+@app.get("/v1/indicators/ownership")
+async def ownership():
+    return _manifest()
+
+
+@app.get("/v1/indicators/catalog")
+async def catalog():
+    manifest = _manifest()
+    return {
+        "schema_version": manifest["schema_version"],
+        "indicators": manifest["products"],
+        "source": "canonical-indicator-ownership-manifest",
     }
 
 
@@ -50,16 +77,20 @@ async def ready(response=None):
 async def capabilities():
     return {
         "service": "indicators-service",
-        "schema_version": "2026-07-09.capabilities",
-        "implemented_runtime": False,
-        "health_only": True,
+        "implemented_runtime": True,
+        "runtime_role": "contract-only",
         "capabilities": {
-            "process_liveness": True,
+            "ownership_contract": True,
+            "indicator_catalog": True,
             "indicator_compute": False,
             "tile_generation": False,
             "timeseries": False,
         },
-        "handoff_owner": "sahool-platform/raster-service",
+        "owners": {
+            "observed_spectral": "raster-service",
+            "interpretation": "vegetation-analysis-service",
+            "aggregation": "sahool-platform",
+        },
     }
 
 
@@ -67,22 +98,27 @@ async def capabilities():
 async def contract():
     return {
         "service": "indicators-service",
-        "contract_version": "2026-07-09.health-only",
-        "implemented_runtime": False,
-        "truth_policy": "fail-closed-for-computation",
-        "allowed_routes": ["/healthz", "/readyz", "/capabilities", "/contract", "/"],
-        "handoff_owner": "sahool-platform/raster-service",
+        "contract_version": "2026-07-12.riv-p0",
+        "implemented_runtime": True,
+        "runtime_role": "contract-only",
+        "truth_policy": "single-owner-fail-closed",
+        "allowed_routes": [
+            "/healthz",
+            "/readyz",
+            "/capabilities",
+            "/contract",
+            "/v1/indicators/ownership",
+            "/v1/indicators/catalog",
+            "/",
+        ],
     }
 
 
 @app.post("/v1/indicators/compute")
 async def compute_indicator():
     raise HTTPException(
-        status_code=501,
-        detail=(
-            "indicators-service is health-only in this build; computation is still owned "
-            "by sahool-platform/raster-service. No fabricated indicator result is returned."
-        ),
+        status_code=409,
+        detail="observed spectral computation is exclusively owned by raster-service",
     )
 
 
@@ -90,7 +126,7 @@ async def compute_indicator():
 async def root():
     return {
         "service": "indicators-service",
-        "implemented_runtime": False,
-        "health_only": True,
-        "note": "Indicator computation is not implemented in this service; no fabricated results are returned.",
+        "implemented_runtime": True,
+        "runtime_role": "contract-only",
+        "spectral_compute": False,
     }

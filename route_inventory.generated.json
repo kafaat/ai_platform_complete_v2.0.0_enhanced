@@ -986,7 +986,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 27,
+    "line": 38,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -994,7 +994,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 32,
+    "line": 43,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1002,7 +1002,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 37,
+    "line": 48,
     "method": "GET",
     "path": "/readyz",
     "function": "ready"
@@ -1010,7 +1010,23 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 50,
+    "line": 62,
+    "method": "GET",
+    "path": "/v1/indicators/ownership",
+    "function": "ownership"
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/main.py",
+    "line": 67,
+    "method": "GET",
+    "path": "/v1/indicators/catalog",
+    "function": "catalog"
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/main.py",
+    "line": 77,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1018,7 +1034,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 67,
+    "line": 98,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -1026,7 +1042,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 79,
+    "line": 118,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "function": "compute_indicator"
@@ -1034,7 +1050,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 90,
+    "line": 126,
     "method": "GET",
     "path": "/",
     "function": "root"
@@ -1274,7 +1290,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 176,
+    "line": 178,
     "method": "GET",
     "path": "/mcp/v1/tools",
     "function": "list_tools"
@@ -1282,7 +1298,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 239,
+    "line": 243,
     "method": "POST",
     "path": "/mcp/v1/tools/call",
     "function": "call_tool"
@@ -1290,7 +1306,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 384,
+    "line": 411,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1298,7 +1314,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 384,
+    "line": 411,
     "method": "GET",
     "path": "/health",
     "function": "healthz"
@@ -1306,7 +1322,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 389,
+    "line": 416,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1874,7 +1890,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 117,
+    "line": 130,
     "method": "GET",
     "path": "/v1/tiles/observability",
     "function": "tile_observability"
@@ -1882,7 +1898,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 158,
+    "line": 171,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1890,7 +1906,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 179,
+    "line": 192,
     "method": "GET",
     "path": "/v1/tile-cache/stats",
     "function": "tile_cache_stats"
@@ -1898,7 +1914,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 200,
+    "line": 213,
     "method": "GET",
     "path": "/info/{layer_id}",
     "function": "raster_info"
@@ -1906,7 +1922,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 210,
+    "line": 223,
     "method": "GET",
     "path": "/v1/providers/status",
     "function": "providers_status"
@@ -1914,7 +1930,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/observability.py",
-    "line": 240,
+    "line": 253,
     "method": "GET",
     "path": "/indices",
     "function": "field_indices"
@@ -1922,7 +1938,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
-    "line": 24,
+    "line": 26,
     "method": "POST",
     "path": "/process",
     "function": "process_raster"
@@ -1930,7 +1946,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
-    "line": 55,
+    "line": 57,
     "method": "POST",
     "path": "/raw/process",
     "function": "process_raw_data"
@@ -1938,7 +1954,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
-    "line": 74,
+    "line": 76,
     "method": "POST",
     "path": "/process/batch",
     "function": "process_batch"

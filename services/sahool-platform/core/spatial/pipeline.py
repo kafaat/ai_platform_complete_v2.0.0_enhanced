@@ -108,22 +108,8 @@ class RasterTile:
     max_value: float | None = None
 
 
-def compute_ndvi_from_bands(nir, red):
-    """NDVI = (NIR - Red)/(NIR + Red). يعمل على numpy arrays.
-
-    هذه المعادلة جاهزة؛ تستقبل band arrays من GeoTIFF الحقيقي.
-    """
-    try:
-        import numpy as np
-
-        nir = np.asarray(nir, dtype=float)
-        red = np.asarray(red, dtype=float)
-        denom = nir + red
-        # تجنّب القسمة على صفر
-        ndvi = np.where(denom != 0, (nir - red) / denom, np.nan)
-        return ndvi
-    except ImportError:
-        return None
+# Spectral index computation is owned exclusively by raster-service.
+# This orchestration module intentionally contains no band-math kernel.
 
 
 @dataclass

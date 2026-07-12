@@ -51,10 +51,12 @@ def test_rag_kg_are_annotations_not_recommendation_inputs():
 
 
 def test_confidence_lab_outweighs_unverified_rag():
-    confidence = compose_confidence([
-        EvidenceItem(EvidenceStrength.RAG, 1.0, verified=False),
-        EvidenceItem(EvidenceStrength.LAB, 0.7, verified=True),
-    ])
+    confidence = compose_confidence(
+        [
+            EvidenceItem(EvidenceStrength.RAG, 1.0, verified=False),
+            EvidenceItem(EvidenceStrength.LAB, 0.7, verified=True),
+        ]
+    )
     assert 0.7 <= confidence < 0.9
 
 
@@ -64,11 +66,13 @@ def test_runtime_requires_canonical_field_state():
 
 
 def test_runtime_adapter_outputs_context_not_recommendation():
-    out = guarded_runtime_context({
-        "canonical_field_state": {"field_id": "F-1", "status": "ready"},
-        "signals": {"lab": {"ph": 7.1}, "rag": {"text": "supporting only"}},
-        "tool_outputs": {"weather": {"note": "no recommendation available"}},
-    })
+    out = guarded_runtime_context(
+        {
+            "canonical_field_state": {"field_id": "F-1", "status": "ready"},
+            "signals": {"lab": {"ph": 7.1}, "rag": {"text": "supporting only"}},
+            "tool_outputs": {"weather": {"note": "no recommendation available"}},
+        }
+    )
     assert out["canonical_field_state"]["status"] == "ready"
     assert "recommendation" not in out
     assert "rag" not in out["recommendation_inputs"]

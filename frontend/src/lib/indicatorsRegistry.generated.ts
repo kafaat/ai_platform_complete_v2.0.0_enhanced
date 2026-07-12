@@ -17,8 +17,8 @@ export interface RegistryIndicator {
   availability: IndicatorAvailability;
 }
 
-export const REGISTRY_VERSION = 'd5c07398457b';
-export const REGISTRY_DIGEST = 'sha256:d5c07398457be83abaab6928d48dca6c57d357b134c25c1679db3e8b811ec408';
+export const REGISTRY_VERSION = '162499465aa6';
+export const REGISTRY_DIGEST = 'sha256:162499465aa6beb49334ffdf77f56ded55499830b4afdebb692be55586b67eba';
 
 export const INDICATORS_MANIFEST: RegistryIndicator[] = [
   {
@@ -277,8 +277,8 @@ export const INDICATORS_MANIFEST: RegistryIndicator[] = [
       8
     ],
     "renderable": false,
-    "source_class": "estimated",
-    "availability": "estimated"
+    "source_class": "derived",
+    "availability": "active"
   },
   {
     "id": "recl",
@@ -289,7 +289,7 @@ export const INDICATORS_MANIFEST: RegistryIndicator[] = [
     "range": null,
     "renderable": false,
     "source_class": "estimated",
-    "availability": "estimated"
+    "availability": "unavailable"
   },
   {
     "id": "cwsi",
@@ -431,6 +431,20 @@ export const INDICATORS_MANIFEST: RegistryIndicator[] = [
     "category": "water",
     "unit": "kg/m³",
     "range": null,
+    "renderable": false,
+    "source_class": "derived",
+    "availability": "active"
+  },
+  {
+    "id": "water_stress",
+    "name_ar": "إجهاد مائي تفسيري",
+    "name_en": "Observed Water Stress Interpretation",
+    "category": "water",
+    "unit": "score",
+    "range": [
+      0,
+      1
+    ],
     "renderable": false,
     "source_class": "derived",
     "availability": "active"

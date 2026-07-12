@@ -35,7 +35,9 @@ SH_CLIENT_SECRET = os.getenv("SH_CLIENT_SECRET", "")
 SH_INSTANCE_ID = os.getenv("SH_INSTANCE_ID", "")
 SH_BASE_URL = "https://services.sentinel-hub.com"
 # FIX: اسم الخدمة الفعليّ sahool-vegetation-analysis (كان sahool-vegetation لا يُحلّ).
-VEGETATION_URL = os.getenv("VEGETATION_URL", "http://sahool-vegetation-analysis:8000")
+RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-service:8001").rstrip(
+    "/"
+)
 
 FIELD_REGISTRY = {
     "field_01": {
@@ -220,15 +222,17 @@ async def list_tools() -> dict[str, Any]:
                 },
             },
             {
-                "name": "compute_ndvi",
-                "description": "حساب NDVI من B04 و B08 مع استبعاد السحب باستخدام SCL",
+                "name": "read_indicator_observation",
+                "description": "قراءة أحدث مشاهدة مؤشر موثقة من raster-service؛ لا يعيد الحساب داخل MCP",
                 "inputSchema": {
                     "type": "object",
                     "properties": {
                         "field_id": {"type": "string"},
                         "date": {"type": "string", "format": "date"},
+                        "index": {"type": "string", "default": "ndvi"},
+                        "tenant_id": {"type": "string"},
                     },
-                    "required": ["field_id", "date"],
+                    "required": ["field_id", "tenant_id"],
                 },
             },
         ]
@@ -360,18 +364,41 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
                 }
             ]
         }
-    elif name == "compute_ndvi":
-        req = NDVIRequest(**args)
+    elif name in {"read_indicator_observation", "compute_ndvi"}:
+        # ``compute_ndvi`` is a compatibility alias only. The MCP/brain never performs
+        # spectral computation; it reads the authoritative Raster product.
+        field_id = str(args.get("field_id") or "").strip()
+        tenant_id = str(args.get("tenant_id") or "").strip()
+        index = str(args.get("index") or "ndvi").strip().lower()
+        date = str(args.get("date") or "latest").strip()
+        if not field_id or not tenant_id:
+            raise HTTPException(422, detail="field_id and tenant_id are required")
         async with httpx.AsyncClient(timeout=30.0) as client:
             resp = await retry_request(
-                client.post,
-                f"{VEGETATION_URL}/v1/analyze",
-                json={"field_id": req.field_id, "date": req.date},
+                client.get,
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/indicator-grid",
+                params={"index": index, "date": date, "grid": 16},
+                headers={"X-Tenant-Id": tenant_id},
                 timeout=60.0,
             )
             resp.raise_for_status()
-            ndvi_data = resp.json()
-        return {"content": [{"type": "text", "text": json.dumps(ndvi_data, ensure_ascii=False)}]}
+            data = resp.json()
+        if not data.get("real_data") or data.get("source") == "simulation":
+            raise HTTPException(424, detail="authoritative raster observation unavailable")
+        stats = data.get("stats") if isinstance(data.get("stats"), dict) else {}
+        payload = {
+            "field_id": field_id,
+            "tenant_id": tenant_id,
+            "index": index,
+            "mean": stats.get("mean"),
+            "date": data.get("date"),
+            "scene_id": data.get("scene_id") or data.get("asset_id"),
+            "source": "raster-service",
+            "real_data": True,
+            "quality": data.get("quality") or data.get("quality_gate"),
+            "deprecated_alias_used": name == "compute_ndvi",
+        }
+        return {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]}
     else:
         raise HTTPException(status_code=400, detail=f"Unknown tool: {name}")
 

@@ -10,6 +10,7 @@ SAHOOL v9.0 — tests/test_real_data.py
 
 تشغيل: pytest tests/test_real_data.py -v
 """
+
 import asyncio
 import math
 import os
@@ -27,6 +28,7 @@ pytestmark = pytest.mark.skipif(
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 # ══════════════════════════════════════════════════════════════
 # ١. اختبار Open-Meteo API الحقيقي
 # ══════════════════════════════════════════════════════════════
@@ -36,23 +38,25 @@ async def test_openmeteo_real():
     from wofost_real.wofost_engine import fetch_weather_real
 
     lat, lon = 15.05, 45.55  # حقل وادي سبأ
-    end   = date.today()
+    end = date.today()
     start = end - timedelta(days=7)
 
     weather = await fetch_weather_real(lat, lon, start, end)
 
     assert len(weather) >= 5, f"Expected ≥5 days, got {len(weather)}"
     for d in weather:
-        assert "date"   in d
-        assert "tmax"   in d
+        assert "date" in d
+        assert "tmax" in d
         assert "et0_mm" in d
-        assert 10 <= d["tmax"] <= 55,  f"Unrealistic tmax: {d['tmax']}"
-        assert 0  <= d["tmin"] <= 40,  f"Unrealistic tmin: {d['tmin']}"
-        assert d["et0_mm"] >= 0,       f"Negative ET0: {d['et0_mm']}"
+        assert 10 <= d["tmax"] <= 55, f"Unrealistic tmax: {d['tmax']}"
+        assert 0 <= d["tmin"] <= 40, f"Unrealistic tmin: {d['tmin']}"
+        assert d["et0_mm"] >= 0, f"Negative ET0: {d['et0_mm']}"
 
-    print(f"\n✅ Open-Meteo: {len(weather)} أيام | "
-          f"avg_tmax={sum(d['tmax'] for d in weather)/len(weather):.1f}°C | "
-          f"total_et0={sum(d['et0_mm'] for d in weather):.1f}mm")
+    print(
+        f"\n✅ Open-Meteo: {len(weather)} أيام | "
+        f"avg_tmax={sum(d['tmax'] for d in weather) / len(weather):.1f}°C | "
+        f"total_et0={sum(d['et0_mm'] for d in weather):.1f}mm"
+    )
 
 
 # ══════════════════════════════════════════════════════════════
@@ -87,7 +91,8 @@ async def test_wofost_wheat_real():
         field_id="field_01",
         crop="قمح صلب",
         soil_type="loam",
-        lat=15.05, lon=45.55,
+        lat=15.05,
+        lon=45.55,
         planting_date=date(2026, 1, 15),
         area_ha=23.5,
         irrigation=True,
@@ -98,19 +103,21 @@ async def test_wofost_wheat_real():
     sim = result["simulation"]
 
     # التحقق من النطاق الواقعي
-    assert 100 <= sim["gdd_accumulated"] <= 2000,   f"GDD: {sim['gdd_accumulated']}"
-    assert 0.5 <= sim["lai_max"] <= 8.0,            f"LAI: {sim['lai_max']}"
-    assert 0.5 <= sim["yield_t_ha"] <= 8.0,         f"Yield: {sim['yield_t_ha']}"
-    assert 1000 <= sim["biomass_kg_ha"] <= 15000,   f"Biomass: {sim['biomass_kg_ha']}"
-    assert 0 <= sim["progress_pct"] <= 100,         f"Progress: {sim['progress_pct']}"
+    assert 100 <= sim["gdd_accumulated"] <= 2000, f"GDD: {sim['gdd_accumulated']}"
+    assert 0.5 <= sim["lai_max"] <= 8.0, f"LAI: {sim['lai_max']}"
+    assert 0.5 <= sim["yield_t_ha"] <= 8.0, f"Yield: {sim['yield_t_ha']}"
+    assert 1000 <= sim["biomass_kg_ha"] <= 15000, f"Biomass: {sim['biomass_kg_ha']}"
+    assert 0 <= sim["progress_pct"] <= 100, f"Progress: {sim['progress_pct']}"
 
     wb = result["water_balance"]
     assert wb["total_etc_mm"] > 0
     assert wb["water_productivity_kg_m3"] > 0
 
     print("\n✅ WOFOST القمح (حقيقي):")
-    print(f"   GDD={sim['gdd_accumulated']:.0f} | LAI={sim['lai_max']:.2f} | "
-          f"Yield={sim['yield_t_ha']:.2f} t/ha | Progress={sim['progress_pct']:.0f}%")
+    print(
+        f"   GDD={sim['gdd_accumulated']:.0f} | LAI={sim['lai_max']:.2f} | "
+        f"Yield={sim['yield_t_ha']:.2f} t/ha | Progress={sim['progress_pct']:.0f}%"
+    )
     print(f"   ETc={wb['total_etc_mm']:.0f}mm | WP={wb['water_productivity_kg_m3']:.2f} kg/m³")
     print(f"   مصدر الطقس: {result['data_source']}")
 
@@ -123,13 +130,14 @@ async def test_all_crops():
     from wofost_real.wofost_engine import simulate_wofost
 
     FIELDS_TEST = [
-        ("field_02", "شعير",      "clay_loam", 15.02, 45.58),
-        ("field_03", "ذرة صفراء", "sandy_loam",14.98, 45.52),
-        ("field_04", "طماطم",     "loam",      14.92, 45.48),
+        ("field_02", "شعير", "clay_loam", 15.02, 45.58),
+        ("field_03", "ذرة صفراء", "sandy_loam", 14.98, 45.52),
+        ("field_04", "طماطم", "loam", 14.92, 45.48),
     ]
     for fid, crop, soil, lat, lon in FIELDS_TEST:
-        r = await simulate_wofost(fid, crop, soil, lat, lon,
-                                   date(2026, 2, 1), area_ha=20, irrigation=True)
+        r = await simulate_wofost(
+            fid, crop, soil, lat, lon, date(2026, 2, 1), area_ha=20, irrigation=True
+        )
         assert "error" not in r, f"{crop}: {r}"
         assert r["simulation"]["yield_t_ha"] > 0, f"{crop}: zero yield"
         print(f"✅ {crop}: {r['simulation']['yield_t_ha']:.2f} t/ha")
@@ -145,9 +153,14 @@ def test_agb_model():
 
     # حقل وادي سبأ (قمح صلب، NDVI=0.72)
     feat = AGBFeatures(
-        ndvi=0.72, evi=0.61, gndvi=0.68, savi=0.65,
-        vv_backscatter=-12.5, vh_backscatter=-18.3,
-        area_ha=23.5, crop="قمح صلب"
+        ndvi=0.72,
+        evi=0.61,
+        gndvi=0.68,
+        savi=0.65,
+        vv_backscatter=-12.5,
+        vh_backscatter=-18.3,
+        area_ha=23.5,
+        crop="قمح صلب",
     )
     result = model.predict(feat)
 
@@ -156,8 +169,10 @@ def test_agb_model():
     assert result["agb_t_ha_lower"] < result["agb_t_ha"] < result["agb_t_ha_upper"]
     assert result["confidence_pct"] == 85
 
-    print(f"\n✅ AGB model: {result['agb_t_ha']:.2f} t/ha "
-          f"[{result['agb_t_ha_lower']:.1f}, {result['agb_t_ha_upper']:.1f}]")
+    print(
+        f"\n✅ AGB model: {result['agb_t_ha']:.2f} t/ha "
+        f"[{result['agb_t_ha_lower']:.1f}, {result['agb_t_ha_upper']:.1f}]"
+    )
     print(f"   Yield: {result['yield_t_ha']:.3f} t/ha | Total: {result['total_yield_t']:.1f} t")
     print(f"   Method: {result['method']}")
 
@@ -189,13 +204,14 @@ def test_kc_curve():
 @pytest.mark.asyncio
 @pytest.mark.skipif(
     not os.getenv("SENTINELHUB_CLIENT_ID"),
-    reason="SENTINELHUB_CLIENT_ID not set — skipping real API test"
+    reason="SENTINELHUB_CLIENT_ID not set — skipping real API test",
 )
 async def test_sentinel_hub_real():
     from sentinel_hub.vegetation_real import _fetch_sentinel_hub
 
     result = await _fetch_sentinel_hub(
-        lat=15.05, lon=45.55,
+        lat=15.05,
+        lon=45.55,
         delta=0.05,
         date_from=(date.today() - timedelta(days=30)).isoformat(),
         date_to=date.today().isoformat(),

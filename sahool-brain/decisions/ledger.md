@@ -621,3 +621,10 @@ SHAs من `git log --oneline origin/main`.
 | SHA | القرار + السبب |
 |---|---|
 | (هذا الكوميت) | **kill-switch قبل المطالبة لا بعدها:** مفتاح مُشتبَك يترك الطلبات مصفوفة (تُنفَّذ بعد الفكّ) بدل استهلاكها بإيصالات فاشلة — الإيقاف الطارئ تأجيل لا إلغاء. **مخاطرة غير مُعلَنة لا تحجب:** السلسلة محكومة أصلاً (مراجعة بشريّة + تفويض توزيع)؛ الحجب فقط عند إعلان مخاطرة خارج المسموح — حجب كلّ ما لا يحمل risk_level كان سيشلّ الجسر بلا مكسب أمان. **تعيين المستأجرين صريح:** قائمة فارغة = حلقة خاملة مُعلنة، لا خدمة «كلّ المستأجرين» ضمنيّاً. **الإيصال يصدُق:** published≠executed منصوص في الحمولة — تحقّق النتيجة الفيزيائيّ خطوة منفصلة (WX-10.12). **feed يستثني قيد-التسليم:** NOT EXISTS على إيصال فارغ — والبوّابة الذرّيّة تبقى المطالبة نفسها (سباق adapterين يحسمه 409). |
+
+## 2026-07-12 — Brain consumes governed truth
+- **Decision:** Sahool Brain/Supervisor must consume canonical Raster observations and may not recompute spectral indices or dispatch physical effects.
+- **Rationale:** prevents ownership drift, synthetic evidence, and bypass of Decision-Service governance.
+- **Evidence:** `shared/contracts/intelligence_governance.json`; `scripts/ci/intelligence_governance_gate.py`; focused tests green.
+- **Status:** verified locally; runtime MCP/Raster integration remains staging-certified only.
+- 2026-07-12 — دمج riv_brain_governance (2a68d16): تبنّي توحيد RIV وحوكمة الدماغ كاملَين؛ رفض عامل ::uuid (الثالث)؛ إصلاح مولِّد manifest الواجهة (كسر useIndicatorRegistry)؛ إضافة فحص الصدق (g) لسدّ ثغرة إعادة وسم المشتقّ real؛ إعادة كتابة الاختبارات القديمة على العقود الجديدة. السبب: integrate-on-landed-shape.

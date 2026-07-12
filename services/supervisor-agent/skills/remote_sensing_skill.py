@@ -5,6 +5,7 @@ Handles: NDVI · SAR · Satellite imagery · Change detection
 """
 
 import json
+import os
 from typing import Any
 
 from mcp_client import MCPClient
@@ -38,15 +39,22 @@ class RemoteSensingSkill:
             # Get NDVI from MCP server
             result = await self.mcp.call_tool(
                 self.server,
-                "compute_ndvi",
-                {"field_id": field_id, "date": context.get("date", "2026-05-18")},
+                "read_indicator_observation",
+                {
+                    "field_id": field_id,
+                    "tenant_id": tenant_id,
+                    "index": "ndvi",
+                    "date": (context or {}).get("date", "latest"),
+                },
             )
 
             content = result.get("content", [{}])[0].get("text", "{}")
             ndvi_data = json.loads(content)
 
             # Interpret NDVI values
-            mean_ndvi = ndvi_data.get("mean", 0)
+            mean_ndvi = ndvi_data.get("mean")
+            if mean_ndvi is None:
+                return {"type": "error", "response": "لا توجد مشاهدة NDVI موثقة قابلة للاستخدام."}
             if mean_ndvi < 0.2:
                 health = "تربة عارية أو غطاء نباتي ضعيف جداً"
                 recommendation = "⚠️ الحقل يحتاج إلى زراعة عاجلة أو ري فوري."
@@ -70,11 +78,26 @@ class RemoteSensingSkill:
                 "recommendation": recommendation,
                 "distribution": ndvi_data.get("health_distribution", {}),
                 "cloud_coverage_pct": round(ndvi_data.get("cloud_coverage", 0) * 100, 1),
-                "sources": ["Sentinel-2 L2A", "SAHOOL NDVI Engine"],
+                "scene_id": ndvi_data.get("scene_id"),
+                "acquisition_date": ndvi_data.get("date"),
+                "quality": ndvi_data.get("quality"),
+                "sources": ["raster-service", "Sentinel-2 L2A"],
             }
 
         elif intent == "full_analysis":
-            # Parallel S2 + S1 fetch
+            # Direct provider fetch is quarantined. The default brain reads persisted,
+            # governed Raster products rather than bypassing product ownership.
+            if os.getenv("BRAIN_DIRECT_SATELLITE_FETCH_ENABLED", "false").lower() not in {
+                "1",
+                "true",
+                "yes",
+            }:
+                return {
+                    "type": "governance_block",
+                    "response": "الجلب المباشر من المزود معطل؛ استخدم منتجات raster-service الموثقة.",
+                    "owner": "raster-service",
+                }
+            # Parallel S2 + S1 fetch (legacy opt-in only)
             today = "2026-05-18"
             date_range = f"2026-04-18/{today}"
 

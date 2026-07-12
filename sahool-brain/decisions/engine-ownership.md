@@ -51,3 +51,14 @@ Chill/Heat Units). **ما يبقى:** سلوك النبات أعلاه.
 و(2) **قرار المالك الزراعيّ للطريقة الموحَّدة** (`simple` مقابل `modified` مقابل single-sine).
 
 المصدر: رسالة المستخدم المعماريّة (هذه الجلسة) · `services/weather-service/{et0,vpd,gdd,vapor_pressure}.py` · `scripts/ci/weather_engine_formula_guard.py`.
+
+
+## Raster–Indicators–Vegetation + Brain Governance (RIV, 2026-07-12)
+
+- **Raster-Service** هو المالك الوحيد للمشاهد، COG، QA، band-math، والمؤشرات الطيفية المرصودة.
+- **Vegetation-Analysis** يفسّر منتجات Raster فقط؛ لا يعيد الحساب ولا يخلق مشاهدة بديلة.
+- **Indicators-Service** كتالوج/عقد فقط، وPlatform يجمّع لوحة المؤشرات.
+- **Sahool Brain / Supervisor / AI Agronomist** مستهلك منسّق: يقرأ الحقيقة الموثقة، يشرحها، ويبني مرشح قرار؛ لا يجلب من المزود مباشرة افتراضياً، لا يعيد band-math، ولا يرسل أثراً فيزيائياً.
+- كل توصية تنفيذية تمر عبر **Decision-Service** ثم approval/execution-request؛ لا dispatch مباشر من الدماغ.
+
+العقد الآلي: `shared/contracts/intelligence_governance.json` · حارس CI: `scripts/ci/intelligence_governance_gate.py`.

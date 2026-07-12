@@ -541,7 +541,23 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 79,
+      "line": 62,
+      "method": "GET",
+      "path": "/v1/indicators/ownership",
+      "function": "ownership"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 67,
+      "method": "GET",
+      "path": "/v1/indicators/catalog",
+      "function": "catalog"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 118,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator"

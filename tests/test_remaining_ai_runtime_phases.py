@@ -1,43 +1,63 @@
-
 import pytest
 
-from services.ai_agronomist.feedback_repository import FeedbackRecord, InMemoryFeedbackRepository, new_feedback_id
-from services.ai_agronomist.human_review_repository import InMemoryReviewRepository, ReviewDecisionRecord, ReviewRecord, new_review_id
-from services.ai_agronomist.multi_tenant_runtime_validator import MultiTenantRuntimeValidator, TenantIsolationViolation
-from services.ai_agronomist.recommendation_events import RecommendationEvent, RecommendationEventPublisher
+from services.ai_agronomist.feedback_repository import (
+    FeedbackRecord,
+    InMemoryFeedbackRepository,
+    new_feedback_id,
+)
+from services.ai_agronomist.human_review_repository import (
+    InMemoryReviewRepository,
+    ReviewDecisionRecord,
+    ReviewRecord,
+    new_review_id,
+)
+from services.ai_agronomist.multi_tenant_runtime_validator import (
+    MultiTenantRuntimeValidator,
+    TenantIsolationViolation,
+)
+from services.ai_agronomist.recommendation_events import (
+    RecommendationEvent,
+    RecommendationEventPublisher,
+)
 from services.ai_agronomist.recommendation_runtime_pipeline import RecommendationRuntimePipeline
 
 
 def test_human_review_repository_lifecycle():
     repo = InMemoryReviewRepository()
-    review = repo.create_review(ReviewRecord(
-        review_id=new_review_id(),
-        recommendation_id="rec-1",
-        tenant_id="tenant-1",
-        field_id="field-1",
-        risk_level="high",
-    ))
+    review = repo.create_review(
+        ReviewRecord(
+            review_id=new_review_id(),
+            recommendation_id="rec-1",
+            tenant_id="tenant-1",
+            field_id="field-1",
+            risk_level="high",
+        )
+    )
     assert repo.list_pending("tenant-1")
-    repo.add_decision(ReviewDecisionRecord(
-        decision_id="decision-1",
-        review_id=review.review_id,
-        reviewer_id="u-1",
-        action="approve",
-    ))
+    repo.add_decision(
+        ReviewDecisionRecord(
+            decision_id="decision-1",
+            review_id=review.review_id,
+            reviewer_id="u-1",
+            action="approve",
+        )
+    )
     assert repo.get_review(review.review_id).state == "approved"
 
 
 def test_feedback_metrics():
     repo = InMemoryFeedbackRepository()
-    repo.add(FeedbackRecord(
-        feedback_id=new_feedback_id(),
-        recommendation_id="rec-1",
-        tenant_id="tenant-1",
-        field_id="field-1",
-        accepted=True,
-        predicted_yield=4.0,
-        actual_yield=5.0,
-    ))
+    repo.add(
+        FeedbackRecord(
+            feedback_id=new_feedback_id(),
+            recommendation_id="rec-1",
+            tenant_id="tenant-1",
+            field_id="field-1",
+            accepted=True,
+            predicted_yield=4.0,
+            actual_yield=5.0,
+        )
+    )
     metrics = repo.metrics("tenant-1")
     assert metrics["count"] == 1
     assert metrics["acceptance_rate"] == 1.0

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """WX-10.13 ratchet: outcome attribution must not mutate models or restart execution."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 files = [

@@ -22,6 +22,17 @@ jobs:
       - name: indicators-frontend-manifest-sync
         run: python scripts/ci/generate_indicators_frontend_manifest.py --check
 
+      # RIV: السجلّ القانونيّ ⇒ كتالوج المنصّة + قدرات vegetation المولَّدان
+      - name: indicators-generated-artifacts-sync
+        run: python scripts/ci/generate_indicator_artifacts.py --check
+
+      - name: raster-indicators-vegetation-boundary-gate
+        run: python scripts/ci/riv_boundary_gate.py
+
+      # الدماغ لا يحسب طيفيّاً ولا يجلب من المزوّد مباشرة ولا يصل فيزيائيّاً إلا عبر Decision-Service
+      - name: intelligence-governance-brain-gate
+        run: python scripts/ci/intelligence_governance_gate.py
+
       - name: weather-engine-formula-guard
         run: python scripts/ci/weather_engine_formula_guard.py
 

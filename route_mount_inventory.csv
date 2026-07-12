@@ -7,7 +7,7 @@ services/decision-service/main.py,decision-service,True,52,0,False,False,False,d
 services/edge-inference/main.py,edge-inference,True,6,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/field-segmentation/main.py,field-segmentation,True,4,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/guardrails-engine/main.py,guardrails-engine,True,0,7,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
-services/indicators-service/main.py,indicators-service,True,7,0,False,False,False,direct_routes,main.py owns direct route handlers
+services/indicators-service/main.py,indicators-service,True,9,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/knowledge-graph/main.py,knowledge-graph,True,7,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/local-ai-rag/main.py,local-ai-rag,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/odoo-bridge/main.py,odoo-bridge,True,0,10,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes

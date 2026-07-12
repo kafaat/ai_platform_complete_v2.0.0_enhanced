@@ -23,6 +23,8 @@ def test_source_of_truth_audit_passes():
 
 
 def test_field_twin_is_marked_as_derived_view():
-    text = (ROOT / "services" / "sahool-platform" / "core" / "field_twin.py").read_text(encoding="utf-8")
+    text = (ROOT / "services" / "sahool-platform" / "core" / "field_twin.py").read_text(
+        encoding="utf-8"
+    )
     assert "DERIVED_VIEW" in text
     assert "CanonicalFieldState remains authoritative" in text

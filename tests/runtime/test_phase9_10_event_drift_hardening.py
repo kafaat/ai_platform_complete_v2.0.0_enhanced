@@ -32,7 +32,9 @@ def test_phase9_event_source_replay_reconstructs_dispatch_ready_state():
         _recommendation(),
         mode="supervised_autonomy",
         policy={"max_risk_score": 0.5},
-        actuator_registry={"11111111-1111-1111-1111-111111111111": {"protocol": "mqtt", "target_id": "pivot-1"}},
+        actuator_registry={
+            "11111111-1111-1111-1111-111111111111": {"protocol": "mqtt", "target_id": "pivot-1"}
+        },
     )
     events = event_source_execution_plan(plan)
     replayed = replay_autonomy_events(events)
@@ -47,14 +49,18 @@ def test_phase9_command_verification_loop_closes_with_sensor_evidence():
         _recommendation(),
         mode="full_autonomy",
         policy={"max_risk_score": 0.5, "full_autonomy_enabled": True},
-        actuator_registry={"11111111-1111-1111-1111-111111111111": {"protocol": "mqtt", "target_id": "pivot-1"}},
+        actuator_registry={
+            "11111111-1111-1111-1111-111111111111": {"protocol": "mqtt", "target_id": "pivot-1"}
+        },
     )
     cmd = plan["commands"][0]["command_id"]
     result = run_command_verification_loop(
         plan,
         telemetry_frames=[{"acknowledged_command_ids": [cmd], "flow_rate": 18.5, "pressure": 2.2}],
         before_state={"state": {"operational_truths": {"ndvi": 0.42}}},
-        after_state={"state": {"operational_truths": {"ndvi": 0.45, "effective_status": "improving"}}},
+        after_state={
+            "state": {"operational_truths": {"ndvi": 0.45, "effective_status": "improving"}}
+        },
     )
     assert result["verification"]["closed_loop"] is True
     assert result["verification"]["ack_complete"] is True
@@ -67,7 +73,7 @@ def _records(shift=0.0, n=12):
         {
             "feature_id": f"feat-{i}",
             "entity_type": "field",
-            "entity_id": f"field-{i%3}",
+            "entity_id": f"field-{i % 3}",
             "features": {"ndvi": 0.4 + shift + i * 0.01, "soil_moisture": 0.2 + shift},
             "labels": {"operation_completed": 1},
         }
@@ -80,10 +86,15 @@ def test_phase10_detects_drift_and_plans_retraining():
     spec = infer_feature_schema(records)
     dataset = materialize_training_dataset(records, feature_set_spec=spec)
     drift = detect_feature_drift(
-        baseline_stats={"ndvi": {"mean": 0.4, "std": 0.1}, "soil_moisture": {"mean": 0.2, "std": 0.1}},
+        baseline_stats={
+            "ndvi": {"mean": 0.4, "std": 0.1},
+            "soil_moisture": {"mean": 0.2, "std": 0.1},
+        },
         current_records=records,
     )
-    job = plan_retraining_job(drift=drift, dataset=dataset, model={"model_id": "mdl-1", "version": "v1"})
+    job = plan_retraining_job(
+        drift=drift, dataset=dataset, model={"model_id": "mdl-1", "version": "v1"}
+    )
     assert drift["decision"] in {"retrain", "block_promotion"}
     assert job["action"] == "queue_retraining"
     assert job["reproducibility"]["feature_set_id"] == dataset["feature_set_id"]
@@ -92,7 +103,9 @@ def test_phase10_detects_drift_and_plans_retraining():
 def test_phase10_champion_challenger_blocks_promotion_under_material_drift():
     records = _records(shift=1.0)
     dataset = materialize_training_dataset(records, feature_set_spec=infer_feature_schema(records))
-    drift = detect_feature_drift(baseline_stats={"ndvi": {"mean": 0.4, "std": 0.1}}, current_records=records)
+    drift = detect_feature_drift(
+        baseline_stats={"ndvi": {"mean": 0.4, "std": 0.1}}, current_records=records
+    )
     cycle = run_champion_challenger_cycle(
         task="irrigation",
         champion={"model_id": "champ", "metrics": {"score": 0.8}},
@@ -105,11 +118,26 @@ def test_phase10_champion_challenger_blocks_promotion_under_material_drift():
 
 
 def test_phase10_learning_cycle_emits_drift_lineage_and_retraining_job():
-    phase9_cycle = {"cycle_id": "auto-1", "feature_store_batch": _records(), "canonical_state": {"field_id": "f1", "state": {}}}
+    phase9_cycle = {
+        "cycle_id": "auto-1",
+        "feature_store_batch": _records(),
+        "canonical_state": {"field_id": "f1", "state": {}},
+    }
     result = run_phase10_learning_cycle(
         phase9_cycle=phase9_cycle,
-        champion_model={"model_id": "champ", "task": "irrigation", "version": "v1", "metrics": {"score": 0.8}, "training_stats": {"ndvi": {"mean": 0.4, "std": 1.0}}},
-        challenger_model={"model_id": "chall", "task": "irrigation", "metrics": {"score": 0.83}, "status": "candidate"},
+        champion_model={
+            "model_id": "champ",
+            "task": "irrigation",
+            "version": "v1",
+            "metrics": {"score": 0.8},
+            "training_stats": {"ndvi": {"mean": 0.4, "std": 1.0}},
+        },
+        challenger_model={
+            "model_id": "chall",
+            "task": "irrigation",
+            "metrics": {"score": 0.83},
+            "status": "candidate",
+        },
     )
     assert "drift_report" in result
     assert "feature_lineage" in result

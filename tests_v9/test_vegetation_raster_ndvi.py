@@ -1,12 +1,12 @@
-"""vegetation /v1/analyze يفضّل المؤشّرات الحقيقيّة من raster-service (مع ارتداد آمن).
+"""vegetation /v1/analyze مستهلك RIV صارم: منتجات raster-service الموثَّقة حصراً.
 
-سدّ فجوة Raster→indices من التدقيق المعماريّ: المؤشّرات كانت تقديريّة تركيبيّة؛ الآن
-تُفضَّل القيم الحقيقيّة البكسليّة من raster band_math عند توفّرها — لـNDVI + EVI +
-SAVI(MSAVI2) + NDMI(moisture) — وتُوسَم المصادر بصدق. fail-safe مطلق per-index: أيّ
-تعذّر ⇒ ارتداد للتقدير المُعلَّم (السلوك لا يسوء). lai/cwsi تبقيان تقديراً (نموذج/LST).
+بعد توحيد RIV (حوكمة الدماغ 20260712): لا جلب مزوّد ولا نطاقات تركيبيّة ولا صيغ
+طيفيّة داخل vegetation. `run_analysis` يقرأ المتوسّطات البكسليّة الموثَّقة من
+raster-service فقط، يشتقّ LAI (نموذج موثَّق) وwater_stress (تفسير من ndmi/msi)،
+ويفشل مُغلَقاً 424 عند غياب NDVI حقيقيّ — لا ارتداد تقديريّاً بعد الآن.
 
-اختباران: (A) تعاقُد على المصدر (يُنفَّذ في CI بلا fastapi)، (B) سلوكيّ يثبّت الاستبدال
-والوسم والارتداد (يتخطّى إن غاب fastapi في بيئة CI الخفيفة).
+اختباران: (A) تعاقُد على المصدر (يُنفَّذ في CI بلا fastapi)، (B) سلوكيّ يثبّت
+الوسم الصادق للمصادر والفشل المُغلَق (يتخطّى إن غاب fastapi في بيئة CI الخفيفة).
 """
 
 from __future__ import annotations
@@ -45,12 +45,11 @@ def _func_src(name: str) -> str:
 def test_run_analysis_prefers_real_indices():
     body = _func_src("run_analysis")
     assert "_real_index_mean_from_raster" in body, "لا يستدعي مصدر المؤشّر الحقيقيّ من raster"
-    assert "_RASTER_REAL_INDEX" in body, "لا يستعمل خريطة المؤشّرات الحقيقيّة"
     assert "asyncio.gather" in body, "لا يجلب القيم الحقيقيّة بالتوازي"
-    assert "ndvi_is_real" in body
-    assert "indices[_vk] = round(_rv" in body, "لا يستبدل قيمة المؤشّر بالحقيقيّة"
-    assert 'index_sources[_vk] = "raster-service"' in body, "لا يَسِم المصدر الحقيقيّ"
-    assert '"real_data": ndvi_is_real' in body, "real_data لا يعكس مصدر NDVI"
+    assert 'index_sources[public_name] = "raster-service"' in body, "لا يَسِم المصدر الحقيقيّ"
+    # RIV: فشل مُغلَق بلا NDVI حقيقيّ — لا ارتداد تقديريّاً ولا جلب مزوّد.
+    assert "validated real NDVI is required" in body, "لا يفشل مُغلَقاً عند غياب NDVI موثَّق"
+    assert "fetch_from_sentinel_hub" not in body, "جلب مزوّد مباشر داخل vegetation (خرق RIV)"
     assert '"source": index_sources.get(k' in body, "لا يَسِم مصدر كلّ مؤشّر من index_sources"
 
 
@@ -113,8 +112,7 @@ def veg():
 
 
 async def test_real_indices_used_and_labeled(veg):
-    # المنفذ الحقيقيّ يُرجِع الآن غلافاً (dict) فيه المتوسّط + النوعيّة/المصدر
-    # (ValidatedIndicatorProduct) بدل float مجرّد — WS-A. القيمة تبقى تحت "mean".
+    # المنفذ الحقيقيّ يُرجِع غلافاً (ValidatedIndicatorProduct) — القيمة تحت "mean".
     async def _r(field_id, raster_index="ndvi"):
         return {
             "mean": 0.77,
@@ -126,25 +124,27 @@ async def test_real_indices_used_and_labeled(veg):
 
     veg._real_index_mean_from_raster = _r
     res = await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
-    # المؤشّرات الأربعة صارت حقيقيّة (raster-service)
+    # المؤشّرات المرصودة كلّها من raster-service (المستهلك الصارم لا يقدّر)
     for real_idx in ("ndvi", "evi", "savi", "ndmi"):
         assert res["indices"][real_idx]["value"] == 0.77
         assert res["indices"][real_idx]["source"] == "raster-service"
-    # الزيادة المُسلَّمة (VEG-AGRIAI): عند توفّر NDVI حقيقيّ يُشتقّ LAI منه بنموذج موثَّق
-    # (خوارزميّة + uncertainty) فيُوسم "vegetation-model" — أصدق من "estimate"؛ CWSI يبقى تقديراً.
+    # منتجات التفسير الموثَّقة: LAI نموذج مشتقّ من NDVI، water_stress تفسير من ndmi/msi
+    # — لا cwsi تقديريّاً بعد توحيد RIV (التقدير أُزيل من الخدمة كلّيّاً).
     assert res["indices"]["lai"]["source"] == "vegetation-model"
-    assert res["indices"]["cwsi"]["source"] == "estimate"
+    assert res["indices"]["water_stress"]["source"] == "vegetation-interpretation"
+    assert "cwsi" not in res["indices"]
     assert res["real_data"] is True
     assert res["data_source"] == "raster-service"
 
 
-async def test_fallback_to_estimate_when_raster_absent(veg):
+async def test_fails_closed_424_when_raster_absent(veg):
+    """RIV: غياب المنتج الموثَّق ⇒ 424 فشلاً مُغلَقاً — لا ارتداد تقديريّاً مُفبرَكاً."""
+    from fastapi import HTTPException
+
     async def _none(field_id, raster_index="ndvi"):
         return None
 
     veg._real_index_mean_from_raster = _none
-    res = await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
-    # السلوك الحاليّ محفوظ تماماً: تقدير مُعلَّم، لا حقيقيّ
-    assert res["real_data"] is False
-    assert res["indices"]["ndvi"]["source"] == "estimate"
-    assert res["indices"]["evi"]["source"] == "estimate"
+    with pytest.raises(HTTPException) as exc:
+        await veg.run_analysis("field_01", "t1", "2026-06-01", "2026-06-10")
+    assert exc.value.status_code == 424

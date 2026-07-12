@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """WX-10.12 guard: outcome verification must not perform learning updates."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 main = (ROOT / "services/decision-service/main.py").read_text()

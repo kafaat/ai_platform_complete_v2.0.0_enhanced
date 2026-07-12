@@ -18,7 +18,9 @@ def test_v123_exists_and_is_catalog_driven_idempotent():
     assert "pg_policies" in sql, "v123 must be catalog-driven (reads pg_policies)"
     assert "with_check IS NULL" in sql, "v123 must only touch policies lacking WITH CHECK"
     assert "ALTER POLICY" in sql and "WITH CHECK" in sql
-    assert "RAISE EXCEPTION" in sql, "v123 must fail-closed if any tenant write policy stays unchecked"
+    assert "RAISE EXCEPTION" in sql, (
+        "v123 must fail-closed if any tenant write policy stays unchecked"
+    )
 
 
 def test_v123_preserves_using_qual_and_does_not_construct_replacement():

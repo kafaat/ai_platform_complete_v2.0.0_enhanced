@@ -1,20 +1,44 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
 import tempfile
+from pathlib import Path
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services/sahool-platform"))
 
-from core.daily_agronomist_full import BriefSignal, FieldBriefInput, build_farm_brief, build_field_brief, build_zone_brief  # noqa: E402
-from core.harvest_feedback import HarvestOutcome, RecommendationPrediction, evaluate_harvest_feedback  # noqa: E402
-from core.isoxml_vrt import ISOXMLTask, MachineProfile, ProductProfile, VRTZone, export_taskdata_xml, validate_machine_task  # noqa: E402
-from core.mlops_runtime import JsonModelRegistry, RuntimeModelCard, detect_metric_drift, should_promote  # noqa: E402
+from core.daily_agronomist_full import (  # noqa: E402
+    BriefSignal,
+    FieldBriefInput,
+    build_farm_brief,
+    build_field_brief,
+    build_zone_brief,
+)
+from core.harvest_feedback import (  # noqa: E402
+    HarvestOutcome,
+    RecommendationPrediction,
+    evaluate_harvest_feedback,
+)
+from core.isoxml_vrt import (  # noqa: E402
+    ISOXMLTask,
+    MachineProfile,
+    ProductProfile,
+    VRTZone,
+    export_taskdata_xml,
+    validate_machine_task,
+)
+from core.mlops_runtime import (  # noqa: E402
+    JsonModelRegistry,
+    RuntimeModelCard,
+    detect_metric_drift,
+    should_promote,
+)
 
-
-POLYGON = {"type": "Polygon", "coordinates": [[[44.0, 15.0], [44.1, 15.0], [44.1, 15.1], [44.0, 15.1], [44.0, 15.0]]]}
+POLYGON = {
+    "type": "Polygon",
+    "coordinates": [[[44.0, 15.0], [44.1, 15.0], [44.1, 15.1], [44.0, 15.1], [44.0, 15.0]]],
+}
 
 
 def test_isoxml_export_requires_real_machine_capability_and_approved_recommendation():
@@ -61,7 +85,11 @@ def test_daily_agronomist_builds_farm_field_and_zone_briefs_without_deciding_fro
             field_id="F-1",
             crop="wheat",
             field_state={"lifecycle": "READY", "confidence": "medium"},
-            signals=[BriefSignal("irrigation", "action", "نفّذ ريّة خفيفة خلال 24 ساعة", evidence="weather+soil")],
+            signals=[
+                BriefSignal(
+                    "irrigation", "action", "نفّذ ريّة خفيفة خلال 24 ساعة", evidence="weather+soil"
+                )
+            ],
             rag_annotations=["manual says wheat needs nitrogen"],
         )
     )
@@ -103,8 +131,19 @@ def test_harvest_feedback_enables_calibration_only_after_real_pairs():
 def test_json_mlops_registry_persists_champion_and_challenger_policy():
     with tempfile.TemporaryDirectory() as tmp:
         reg = JsonModelRegistry(Path(tmp) / "models.json")
-        champion = RuntimeModelCard("yield-xgb", "1", "yield", "champion", 80, {"rmse": 1.0}, ("ndvi", "rain"), "2026-06-25")
-        candidate = RuntimeModelCard("yield-xgb", "2", "yield", "challenger", 90, {"rmse": 0.9}, ("ndvi", "rain"), "2026-06-25")
+        champion = RuntimeModelCard(
+            "yield-xgb", "1", "yield", "champion", 80, {"rmse": 1.0}, ("ndvi", "rain"), "2026-06-25"
+        )
+        candidate = RuntimeModelCard(
+            "yield-xgb",
+            "2",
+            "yield",
+            "challenger",
+            90,
+            {"rmse": 0.9},
+            ("ndvi", "rain"),
+            "2026-06-25",
+        )
         reg.register(champion)
         reg.register(candidate)
         assert reg.champion_for("yield").version == "1"
@@ -119,6 +158,8 @@ def test_mlops_rejects_fake_champion_and_detects_drift():
         assert ">=30" in str(exc)
     else:
         raise AssertionError("MLOps accepted fake champion")
-    drift = detect_metric_drift({"rmse": 1.0, "mape": 0.2}, {"rmse": 1.4, "mape": 0.21}, tolerance=0.2)
+    drift = detect_metric_drift(
+        {"rmse": 1.0, "mape": 0.2}, {"rmse": 1.4, "mape": 0.21}, tolerance=0.2
+    )
     assert drift["drifted"] is True
     assert "rmse" in drift["metrics"]

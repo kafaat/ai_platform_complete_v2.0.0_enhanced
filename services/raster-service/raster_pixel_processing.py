@@ -336,14 +336,21 @@ def process_precomputed_truecolor(ctx, req):
     return stats, bounds, res_m, meta
 
 
-def _process_pixels_truecolor(ctx, req, layer_id: str):
+def _process_pixels_truecolor(ctx, req, layer_id: str, *, shared_src=None, shared_cache=None):
     """مسار Element84 للصورة الخام (truecolor): يقرأ نطاقات RGB من VRT،
     يحوّلها إلى RGBA uint8، ويكتب COG ويرجع (stats, bounds_4326, res_m, meta)."""
+    from contextlib import nullcontext
+
     import numpy as np
     import rasterio
     from rasterio.warp import transform_bounds
 
-    with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
+    _src_cm = (
+        nullcontext(shared_src)
+        if shared_src is not None
+        else rasterio.open(ctx._safe_raster_source(req.raster_url))
+    )
+    with _src_cm as src:
         res_m = abs(src.res[0])
         src_crs = src.crs
         bounds = (
@@ -356,6 +363,9 @@ def _process_pixels_truecolor(ctx, req, layer_id: str):
         def _read_uint8(idx):
             if not idx:
                 return np.zeros(src.shape, dtype=np.uint8)
+            cache_key = ("truecolor_uint8", int(idx))
+            if shared_cache is not None and cache_key in shared_cache:
+                return shared_cache[cache_key]
             raw = src.read(idx).astype("float32")
             if src.nodata is not None:
                 raw = np.where(raw == src.nodata, np.nan, raw)
@@ -375,7 +385,10 @@ def _process_pixels_truecolor(ctx, req, layer_id: str):
                 _sc = 0.0001
             raw = ctx.band_math.to_reflectance(raw, _sc, _of, np)
             raw = np.nan_to_num(np.clip(raw, 0.0, 1.0), nan=0.0)
-            return (raw * 255).astype(np.uint8)
+            out = (raw * 255).astype(np.uint8)
+            if shared_cache is not None:
+                shared_cache[cache_key] = out
+            return out
 
         r = _read_uint8(b.red)
         g = _read_uint8(b.green)
@@ -418,19 +431,31 @@ def _process_pixels_truecolor(ctx, req, layer_id: str):
     return stats, bounds, res_m, meta
 
 
-def process_pixels(ctx, req, layer_id: str):
+def process_pixels(ctx, req, layer_id: str, *, shared_src=None, shared_cache=None):
     """المعالجة الفعليّة للبكسلات (تعمل عند توفّر rasterio). تُرجع
     (stats, bounds_4326, resolution_m, meta) حيث meta يحوي cog_url/cog_crs/
     srid/nodata. تطبّق القصّ على الحقل + قناع الغيوم + إعادة إسقاط الحدود."""
+    from contextlib import nullcontext
+
     import numpy as np
     import rasterio
 
+    if shared_cache is None:
+        shared_cache = {}
+
     # truecolor ليس مؤشّراً طيفيّاً — لا صيغة في _INDICATOR_FORMULAS؛ مسار خاصّ.
     if req.indicator.value == "truecolor":
-        return _process_pixels_truecolor(ctx, req, layer_id)
+        return _process_pixels_truecolor(
+            ctx, req, layer_id, shared_src=shared_src, shared_cache=shared_cache
+        )
 
     formula = ctx._INDICATOR_FORMULAS[req.indicator.value]
-    with rasterio.open(ctx._safe_raster_source(req.raster_url)) as src:
+    _src_cm = (
+        nullcontext(shared_src)
+        if shared_src is not None
+        else rasterio.open(ctx._safe_raster_source(req.raster_url))
+    )
+    with _src_cm as src:
         res_m = abs(src.res[0])
         b = req.bands
 
@@ -485,9 +510,19 @@ def process_pixels(ctx, req, layer_id: str):
             return scale, offset
 
         def band(idx):
-            """يقرأ نطاقاً كـfloat32 مع قصّ اختياري + تحويل DN→انعكاس [0,1]."""
+            """يقرأ نطاقاً كـfloat32 مع قصّ اختياري + تحويل DN→انعكاس [0,1].
+
+            في مسار الدفعة، تُخزَّن القراءة المحوّلة لكل نطاق داخل shared_cache،
+            لذلك لا يُعاد I/O ولا القصّ عند حساب مؤشرات أخرى من المشهد نفسه.
+            """
             if not idx:
                 return None
+            cache_key = ("reflectance", int(idx))
+            if cache_key in shared_cache:
+                cached = shared_cache[cache_key]
+                if "clip_transform" in shared_cache:
+                    _out["transform"] = shared_cache["clip_transform"]
+                return cached
             if clip_geom_src is not None:
                 # filled=False → masked array؛ يُجنِّب OverflowError حين dtype=uint16
                 # و nodata_val=-9999.0 خارج النطاق. نملأ القناع بـNaN بعد التحويل.
@@ -499,6 +534,7 @@ def process_pixels(ctx, req, layer_id: str):
                     indexes=[idx],
                 )
                 _out["transform"] = t
+                shared_cache["clip_transform"] = t
                 a = np.ma.filled(arr_b[0].astype("float32"), fill_value=np.nan)
             else:
                 a = src.read(idx).astype("float32")
@@ -509,12 +545,16 @@ def process_pixels(ctx, req, layer_id: str):
             # تحويل DN→انعكاس [0,1] لصحّة المؤشّرات المعتمِدة على المقياس (EVI/SAVI/MSAVI).
             _sc, _of = _refl_params(idx)
             a = ctx.band_math.to_reflectance(a, _sc, _of, np)
+            shared_cache[cache_key] = a
             return a
 
         def band_raw(idx):
             """يقرأ نطاقاً (مثل SCL) دون تحويل nodata→NaN، مع نفس القصّ."""
             if not idx:
                 return None
+            cache_key = ("raw", int(idx))
+            if cache_key in shared_cache:
+                return shared_cache[cache_key]
             if clip_geom_src is not None:
                 arr_b, _t = _rio_mask(
                     src,
@@ -524,8 +564,11 @@ def process_pixels(ctx, req, layer_id: str):
                     nodata=0,
                     indexes=[idx],
                 )
-                return arr_b[0]
-            return src.read(idx)
+                out = arr_b[0]
+            else:
+                out = src.read(idx)
+            shared_cache[cache_key] = out
+            return out
 
         red = band(b.red)
         nir = band(b.nir)

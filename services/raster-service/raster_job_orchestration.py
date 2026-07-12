@@ -175,11 +175,12 @@ def run_processing(ctx, job_id: str, req):
 
 
 def run_batch_processing(ctx, job_id: str, req):
-    """يحسب عدّة مؤشّرات من نفس المشهد في مهمّة واحدة (كفاءة I/O).
+    """Process several indicators with one source dataset open.
 
-    صدق: يعالج كلّ مؤشّر فعليّاً ويسجّل نتيجته. التوفير الحقيقي يأتي من قراءة
-    المشهد مرّة (في الإنتاج مع rasterio)؛ بنيويّاً نتتبّع الكلّ في job واحد مع
-    عزل فشل كلّ مؤشّر (فشل واحد لا يُسقط الباقي).
+    The batch reuses the proven single-indicator persistence/provenance path while
+    injecting one shared rasterio dataset and a per-band cache. Duplicate indicator
+    requests are removed, failures remain isolated per indicator, and the job exposes
+    the certified I/O strategy in its result metadata.
     """
     # نطفّر المهمّة محليّاً ونثبّتها في المخزن (Redis/ذاكرة) عند نقاط الانتقال.
     job = ctx._jobs.get(job_id) or {"job_id": job_id}
@@ -188,8 +189,70 @@ def run_batch_processing(ctx, job_id: str, req):
     ctx._jobs.set(job_id, job)
     results = {}
     failed = {}
-    total = len(req.indicators)
-    for i, ind in enumerate(req.indicators):
+    unique_indicators = []
+    seen_indicators = set()
+    for ind in req.indicators:
+        key = str(getattr(ind, "value", ind)).strip().lower()
+        if not key or key in seen_indicators:
+            continue
+        seen_indicators.add(key)
+        unique_indicators.append(ind)
+    total = len(unique_indicators)
+    job["requested_indicator_count"] = len(req.indicators)
+    job["unique_indicator_count"] = total
+    job["deduplicated_indicator_count"] = len(req.indicators) - total
+    job["batch_io_strategy"] = "single_dataset_open_shared_band_cache"
+    job["single_open_certified"] = False
+    try:
+        import raster_batch_observability
+
+        raster_batch_observability.inc("jobs_started_total")
+        raster_batch_observability.inc("indicators_requested_total", len(req.indicators))
+        raster_batch_observability.inc("indicators_unique_total", total)
+        raster_batch_observability.inc("indicators_deduplicated_total", len(req.indicators) - total)
+    except Exception:  # noqa: BLE001 — عدّادات مراقبة best-effort لا تُسقِط المعالجة
+        pass
+    # افتح مصدر الراستر مرة واحدة للدفعة كاملة، ومرّر dataset + cache إلى
+    # المعالج الفردي المثبت. يحافظ هذا على نفس مسار الحفظ/provenance مع إزالة
+    # إعادة فتح الملف وإعادة قراءة النطاقات المشتركة بين المؤشرات.
+    shared_src = None
+    shared_cache = {}
+    original_process_pixels = getattr(ctx, "_process_pixels", None)
+    try:
+        if req.raster_url:
+            import raster_pixel_processing
+            import rasterio
+
+            shared_src = rasterio.open(ctx._safe_raster_source(req.raster_url))
+            ctx._process_pixels = lambda single_req, layer_id: (
+                raster_pixel_processing.process_pixels(
+                    ctx,
+                    single_req,
+                    layer_id,
+                    shared_src=shared_src,
+                    shared_cache=shared_cache,
+                )
+            )
+            job["single_open_certified"] = True
+            try:
+                import raster_batch_observability
+
+                raster_batch_observability.inc("dataset_open_actual_total", 1)
+            except Exception:  # noqa: BLE001 — عدّاد مراقبة best-effort لا يُسقِط المعالجة
+                pass
+        else:
+            job["batch_io_strategy"] = "no_raster_source"
+    except Exception as exc:  # fail closed: لا نعود بصمت إلى إعادة الفتح لكل مؤشر
+        job["status"] = ctx.JobStatus.failed
+        job["error_message"] = "batch_shared_reader_open_failed"
+        job["finished_at"] = datetime.now(UTC).isoformat()
+        ctx._jobs.set(job_id, job)
+        ctx.logger.error(
+            "batch %s shared reader open failed: %s", job_id, type(exc).__name__, exc_info=True
+        )
+        return
+
+    for i, ind in enumerate(unique_indicators):
         # ابنِ ctx.ProcessRequest فرديّاً لكلّ مؤشّر (يعيد استخدام المنطق المُختبَر)
         single = ctx.ProcessRequest(
             tenant_id=req.tenant_id,
@@ -233,9 +296,31 @@ def run_batch_processing(ctx, job_id: str, req):
             failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
 
+    if original_process_pixels is not None:
+        ctx._process_pixels = original_process_pixels
+    if shared_src is not None:
+        shared_src.close()
+    job["shared_band_cache_entries"] = len(shared_cache)
     job["status"] = ctx.JobStatus.completed if results else ctx.JobStatus.failed
     job["finished_at"] = datetime.now(UTC).isoformat()
     job["batch_results"] = results
     job["batch_failed"] = failed
     ctx._jobs.set(job_id, job)  # تثبيت نتيجة الدفعة (Redis/ذاكرة)
-    ctx.logger.info("batch %s: %d نجح، %d فشل", job_id, len(results), len(failed))
+    try:
+        import raster_batch_observability
+
+        raster_batch_observability.inc("jobs_completed_total" if results else "jobs_failed_total")
+        raster_batch_observability.inc("indicator_success_total", len(results))
+        raster_batch_observability.inc("indicator_failure_total", len(failed))
+        raster_batch_observability.inc(
+            "dataset_open_expected_total", 1 if job.get("single_open_certified") else 0
+        )
+    except Exception:  # noqa: BLE001 — عدّادات مراقبة best-effort لا تُسقِط المعالجة
+        pass
+    ctx.logger.info(
+        "batch %s: %d نجح، %d فشل io_strategy=%s",
+        job_id,
+        len(results),
+        len(failed),
+        job.get("batch_io_strategy"),
+    )

@@ -34,14 +34,16 @@ def test_soak_assertions_fail_on_fake_fallbacks():
 
 def test_soak_assertions_pass_for_clean_metrics():
     mod = load("soak_assertions", "scripts/soak/soak_assertions.py")
-    ok, failures = mod.evaluate({
-        "http_5xx_rate": 0,
-        "outbox_backlog_age_seconds": 0,
-        "dead_letters": 0,
-        "tile_cache_mismatch": 0,
-        "ai_fake_fallbacks": 0,
-        "replay_drift": 0,
-        "worker_recovery_rate": 1,
-    })
+    ok, failures = mod.evaluate(
+        {
+            "http_5xx_rate": 0,
+            "outbox_backlog_age_seconds": 0,
+            "dead_letters": 0,
+            "tile_cache_mismatch": 0,
+            "ai_fake_fallbacks": 0,
+            "replay_drift": 0,
+            "worker_recovery_rate": 1,
+        }
+    )
     assert ok
     assert failures == []

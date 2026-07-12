@@ -90,7 +90,8 @@ def test_map_layers_ndvi_band_math_is_standard_formula():
     """طبقة NDVI تحمل صيغة band-math القياسيّة (NIR-RED)/(NIR+RED)."""
     out = _shape_map_layers()
     by_id = {layer["id"]: layer for layer in out["layers"]}
-    assert by_id["ndvi"]["band_math"] == "(NIR-RED)/(NIR+RED)"
+    assert by_id["ndvi"]["band_math"] is None
+    assert by_id["ndvi"]["source"] == "real"
 
 
 @pytest.mark.unit

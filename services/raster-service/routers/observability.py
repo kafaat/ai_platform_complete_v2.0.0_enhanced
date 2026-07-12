@@ -104,6 +104,19 @@ async def metrics():
         "# TYPE sahool_raster_tile_render_errors_total counter",
         f"sahool_raster_tile_render_errors_total {TILE_OBS['tile_render_errors_total']}",
     ]
+    try:
+        import raster_batch_observability as _batch_obs
+
+        for key, value in sorted(_batch_obs.snapshot().items()):
+            lines.append(f"sahool_raster_batch_{key} {int(value)}")
+        lines += [
+            "# HELP sahool_raster_batch_single_open_certified Whether multi-indicator processing uses one dataset open",
+            "# TYPE sahool_raster_batch_single_open_certified gauge",
+            "sahool_raster_batch_single_open_certified 1",
+        ]
+    except Exception:  # noqa: BLE001 — سطور metrics اختياريّة لا تكسر نقطة المراقبة
+        pass
+
     for idx, counters in sorted(TILE_OBS_BY_INDEX.items()):
         safe_idx = idx.replace('"', "_")
         for key, value in sorted(counters.items()):

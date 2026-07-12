@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from pathlib import Path
 import sys
 import tempfile
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services/sahool-platform"))
@@ -42,7 +42,10 @@ class FakeQdrant:
         for cid, (chunk, stored) in self.points.items():
             if chunk.tenant_id != tenant_id:
                 continue
-            if any(value is not None and chunk.payload.get(key) != value for key, value in filters.items()):
+            if any(
+                value is not None and chunk.payload.get(key) != value
+                for key, value in filters.items()
+            ):
                 continue
             score = sum(a * b for a, b in zip(vector, stored, strict=True))
             rows.append((cid, score, chunk.payload))
@@ -64,12 +67,16 @@ def _chunk(cid, tenant, text, idx=0, crop="wheat"):
 
 def test_hybrid_qdrant_retrieval_enforces_tenant_and_metadata():
     retriever = HybridQdrantRetriever(FakeQdrant(), HashEmbeddingProvider(32))
-    retriever.ingest([
-        _chunk("a", "t1", "wheat irrigation EC pH nitrogen", 0),
-        _chunk("b", "t1", "adjacent wheat salinity management", 1),
-        _chunk("c", "t2", "wheat irrigation secret tenant", 0),
-    ])
-    rows = retriever.retrieve("EC pH irrigation", tenant_id="t1", filters={"crop": "wheat"}, final_k=5)
+    retriever.ingest(
+        [
+            _chunk("a", "t1", "wheat irrigation EC pH nitrogen", 0),
+            _chunk("b", "t1", "adjacent wheat salinity management", 1),
+            _chunk("c", "t2", "wheat irrigation secret tenant", 0),
+        ]
+    )
+    rows = retriever.retrieve(
+        "EC pH irrigation", tenant_id="t1", filters={"crop": "wheat"}, final_k=5
+    )
     ids = [r.chunk.chunk_id for r in rows]
     assert "a" in ids
     assert "c" not in ids
@@ -128,7 +135,14 @@ def test_independent_mcp_server_emits_only_context_objects():
     server = IndependentMCPServer(
         server_name="lab-mcp-server",
         service_name="lab",
-        tools={"get_lab_context": MCPTool("get_lab_context", "lab", "signal", lambda args: {"type": "signal", "name": "lab", "value": args})},
+        tools={
+            "get_lab_context": MCPTool(
+                "get_lab_context",
+                "lab",
+                "signal",
+                lambda args: {"type": "signal", "name": "lab", "value": args},
+            )
+        },
     )
     result = server.call_tool("get_lab_context", {"soil_ec": 2.1})
     assert result["type"] == "signal"
@@ -139,7 +153,11 @@ def test_independent_mcp_server_rejects_recommendations():
     server = IndependentMCPServer(
         server_name="bad-mcp-server",
         service_name="bad",
-        tools={"bad": MCPTool("bad", "bad", "signal", lambda args: {"type": "signal", "recommendation": "apply"})},
+        tools={
+            "bad": MCPTool(
+                "bad", "bad", "signal", lambda args: {"type": "signal", "recommendation": "apply"}
+            )
+        },
     )
     try:
         server.call_tool("bad", {})

@@ -11,7 +11,9 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
+import indicator_batch_claim
 import raster_api_models as api_models
+import raster_batch_observability
 import raster_processing_runtime
 import raster_runtime_state
 import raster_security_context
@@ -86,7 +88,22 @@ async def process_batch(
         raise HTTPException(400, "raster_url مطلوب (ارفع الراستر أوّلاً).")
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
-    job_id = f"batch_{uuid.uuid4().hex[:12]}"
+    claim_key = indicator_batch_claim.batch_claim_key(req)
+    proposed_job_id = f"batch_{claim_key[4:16]}"
+    claim = indicator_batch_claim.BATCH_CLAIMS.claim(claim_key, proposed_job_id)
+    job_id = claim.job_id
+    if not claim.acquired:
+        raster_batch_observability.inc("claims_deduplicated_total")
+        existing = raster_runtime_state.JOBS.get(job_id) or {}
+        return {
+            "job_id": job_id,
+            "status": existing.get("status", api_models.JobStatus.pending),
+            "indicators": [i.value for i in req.indicators],
+            "deduplicated": True,
+            "claim_backend": claim.backend,
+            "note": "طلب مطابق قيد المعالجة أو مكتمل؛ أُعيد job_id السلطوي نفسه",
+        }
+    raster_batch_observability.inc("claims_acquired_total")
     raster_runtime_state.JOBS.set(
         job_id,
         {
@@ -95,6 +112,8 @@ async def process_batch(
             "progress_pct": 0,
             "created_at": datetime.now(UTC).isoformat(),
             "indicators": [i.value for i in req.indicators],
+            "batch_claim_key": claim_key,
+            "claim_backend": claim.backend,
         },
     )
     background_tasks.add_task(raster_processing_runtime.run_batch_processing, job_id, req)
@@ -102,5 +121,7 @@ async def process_batch(
         "job_id": job_id,
         "status": api_models.JobStatus.pending,
         "indicators": [i.value for i in req.indicators],
+        "deduplicated": False,
+        "claim_backend": claim.backend,
         "note": "استعلم /jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
     }

@@ -6,7 +6,9 @@ ROOT = Path(__file__).resolve().parents[2]
 def test_phase6_migration_registered_and_rls_protected():
     manifest = (ROOT / "migrations" / "MANIFEST.txt").read_text()
     assert "v108_phase10_feature_store_model_registry_runtime.sql" in manifest
-    sql = (ROOT / "migrations" / "v108_phase10_feature_store_model_registry_runtime.sql").read_text()
+    sql = (
+        ROOT / "migrations" / "v108_phase10_feature_store_model_registry_runtime.sql"
+    ).read_text()
     for table in [
         "feature_definitions_runtime",
         "feature_set_versions_runtime",
@@ -21,15 +23,17 @@ def test_phase6_migration_registered_and_rls_protected():
 
 
 def test_phase10_api_exposes_feature_store_and_model_registry_runtime_endpoints():
-    api = (ROOT / "services" / "sahool-platform" / "api" / "phase10_continuous_learning.py").read_text()
+    api = (
+        ROOT / "services" / "sahool-platform" / "api" / "phase10_continuous_learning.py"
+    ).read_text()
     for route in [
-        '/feature-store/register',
-        '/feature-store/offline-dataset',
-        '/feature-store/online-materialization',
-        '/feature-store/point-in-time',
-        '/models/register',
-        '/models/serving/promote',
-        '/models/serving/rollback',
+        "/feature-store/register",
+        "/feature-store/offline-dataset",
+        "/feature-store/online-materialization",
+        "/feature-store/point-in-time",
+        "/models/register",
+        "/models/serving/promote",
+        "/models/serving/rollback",
     ]:
         assert route in api
 

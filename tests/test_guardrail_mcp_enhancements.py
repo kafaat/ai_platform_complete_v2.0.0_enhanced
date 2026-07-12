@@ -1,4 +1,3 @@
-
 """Enhanced guardrail/MCP maturity tests.
 
 These tests intentionally import platform-core files by path because the service
@@ -38,7 +37,9 @@ def test_ponytail_policy_blocks_fertilization_without_lab_and_traces():
     out = ponytail.filter(
         guardrails.PonytailIntent("fertilization", "prescription", "F-1"),
         guardrails.FieldStateSnapshot(confidence=0.86),
-        guardrails.EvidenceSummary(has_lab=False, has_weather=True, has_satellite=True, has_rag=True),
+        guardrails.EvidenceSummary(
+            has_lab=False, has_weather=True, has_satellite=True, has_rag=True
+        ),
     )
     assert out.action == guardrails.PonytailAction.INSUFFICIENT_EVIDENCE
     assert out.response is None

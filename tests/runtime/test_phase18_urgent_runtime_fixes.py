@@ -6,9 +6,8 @@ from uuid import uuid4
 
 import pytest
 import yaml
-from fastapi import HTTPException
-
 from api import phase_runtime_store as store
+from fastapi import HTTPException
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -16,7 +15,9 @@ ROOT = Path(__file__).resolve().parents[2]
 class FakeRequest:
     def __init__(self, *, headers: dict[str, str] | None = None, required: bool = False, pool=None):
         self.headers = headers or {}
-        self.app = SimpleNamespace(state=SimpleNamespace(phase_runtime_persistence_required=required, db_pool=pool))
+        self.app = SimpleNamespace(
+            state=SimpleNamespace(phase_runtime_persistence_required=required, db_pool=pool)
+        )
 
 
 def test_phase_runtime_persistence_required_fails_closed_without_pool() -> None:
@@ -62,7 +63,9 @@ def test_v113_worker_policy_migration_registered_and_manifest_md_mirrors_txt() -
     manifest_md = (ROOT / "migrations/MANIFEST.md").read_text(encoding="utf-8")
     assert "v113_phase_runtime_workers_jobs.sql" in manifest_txt
     assert "v113_phase_runtime_workers_jobs.sql" in manifest_md
-    assert "Source of truth: `migrations/MANIFEST.txt`" in manifest_md  # الصياغة الفعليّة (كانت "Canonical source" بائتة)
+    assert (
+        "Source of truth: `migrations/MANIFEST.txt`" in manifest_md
+    )  # الصياغة الفعليّة (كانت "Canonical source" بائتة)
     sql = (ROOT / "migrations/v113_phase_runtime_workers_jobs.sql").read_text(encoding="utf-8")
     assert "TO sahool_jobs" in sql
     assert "BYPASSRLS" not in sql.upper()

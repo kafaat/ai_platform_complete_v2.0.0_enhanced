@@ -229,7 +229,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 {[
                   {n:'auth-service (:8120)'},
-                  {n:'indicators-service (:8091)'},
+                  {n:'indicators-contract (:8091)'},
                   {n:'vegetation-service (:8090)'},
                   {n:'weather-service (:8092)'},
                   {n:'soil-service (:8094)'},

@@ -8,7 +8,6 @@ refer to ``main.X`` keep working while computation/provider logic lives here.
 from __future__ import annotations
 
 import asyncio
-import hashlib
 import json
 import logging
 import math
@@ -425,123 +424,8 @@ async def _get_sh_token() -> str | None:
         return None
 
 
-EVALSCRIPT_ALL_INDICES = """
-//VERSION=3
-function setup() {
-    return {
-        input: [{
-            bands: ["B02","B03","B04","B05","B06","B07","B08","B8A","B11","B12","SCL"],
-            units: "REFLECTANCE"
-        }],
-        output: [
-            { id: "ndvi",   bands: 1, sampleType: "FLOAT32" },
-            { id: "evi",    bands: 1, sampleType: "FLOAT32" },
-            { id: "savi",   bands: 1, sampleType: "FLOAT32" },
-            { id: "ndwi",   bands: 1, sampleType: "FLOAT32" },
-            { id: "ndmi",   bands: 1, sampleType: "FLOAT32" },
-            { id: "gndvi",  bands: 1, sampleType: "FLOAT32" },
-            { id: "recl",   bands: 1, sampleType: "FLOAT32" },
-            { id: "scl",    bands: 1, sampleType: "UINT8"   }
-        ]
-    };
-}
-function evaluatePixel(sample) {
-    if (sample.SCL === 3 || sample.SCL === 8 || sample.SCL === 9 || sample.SCL === 10) {
-        return {
-            ndvi: [NaN], evi: [NaN], savi: [NaN],
-            ndwi: [NaN], ndmi: [NaN], gndvi: [NaN],
-            recl: [NaN], scl: [sample.SCL]
-        };
-    }
-    let B02=sample.B02, B03=sample.B03, B04=sample.B04,
-        B05=sample.B05, B08=sample.B08, B8A=sample.B8A,
-        B11=sample.B11, B12=sample.B12;
-    let ndvi  = (B08-B04)/(B08+B04+1e-10);
-    let evi   = 2.5*(B08-B04)/(B08+6*B04-7.5*B02+1);
-    let savi  = (B08-B04)/(B08+B04+0.5)*1.5;
-    let ndwi  = (B03-B08)/(B03+B08+1e-10);
-    let ndmi  = (B08-B11)/(B08+B11+1e-10);
-    let gndvi = (B08-B03)/(B08+B03+1e-10);
-    let recl  = B05/B04 - 1;
-    return {
-        ndvi: [ndvi], evi: [evi], savi: [savi],
-        ndwi: [ndwi], ndmi: [ndmi], gndvi: [gndvi],
-        recl: [recl], scl: [sample.SCL]
-    };
-}
-"""
-
-
-async def fetch_from_sentinel_hub(
-    field_id: str, date_from: str, date_to: str, tenant_id: str | None = None
-) -> dict | None:
-    token = await _get_sh_token()
-    if not token:
-        return None
-    field = await load_field(field_id, tenant_id)
-    if not field or not field.get("bbox"):
-        return None
-    bbox = field["bbox"]
-    payload = {
-        "input": {
-            "bounds": {
-                "bbox": bbox,
-                "properties": {"crs": "http://www.opengis.net/def/crs/EPSG/0/4326"},
-            },
-            "data": [
-                {
-                    "type": "sentinel-2-l2a",
-                    "dataFilter": {
-                        "timeRange": {
-                            "from": f"{date_from}T00:00:00Z",
-                            "to": f"{date_to}T23:59:59Z",
-                        },
-                        "maxCloudCoverage": 20,
-                        "mosaickingOrder": "leastCC",
-                    },
-                }
-            ],
-        },
-        "output": {
-            "width": 128,
-            "height": 128,
-            "responses": [
-                {"identifier": "ndvi", "format": {"type": "image/tiff"}},
-                {"identifier": "evi", "format": {"type": "image/tiff"}},
-                {"identifier": "savi", "format": {"type": "image/tiff"}},
-                {"identifier": "ndwi", "format": {"type": "image/tiff"}},
-                {"identifier": "gndvi", "format": {"type": "image/tiff"}},
-            ],
-        },
-        "evalscript": EVALSCRIPT_ALL_INDICES,
-    }
-    try:
-        async with httpx.AsyncClient(timeout=60) as c:
-            r = await c.post(
-                SH_PROCESS_URL,
-                headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
-                content=json.dumps(payload),
-            )
-            if r.status_code == 200:
-                # HONESTY FIX: the GeoTIFF bytes are NOT decoded here (no rasterio
-                # in this service). We therefore do NOT derive an NDVI from the
-                # response byte size (that number was meaningless). We only record
-                # that the provider was reachable; indices remain simulated.
-                size_kb = len(r.content) / 1024
-                return {
-                    "source": "sentinel-hub-unavailable",
-                    "acquisition_date": date_from,
-                    "cloud_pct": 0.0,
-                    "response_kb": round(size_kb, 1),
-                    "provider_reachable": True,
-                    "real_data": False,
-                }
-            else:
-                logger.warning(f"SH API error {r.status_code}: {r.text[:200]}")
-                return None
-    except Exception as e:
-        logger.warning(f"SH fetch failed: {e}")
-        return None
+# Direct provider band-math was removed by RIV consolidation.
+# Raster-service is the only Sentinel/CDSE pixel-computation owner.
 
 
 async def fetch_from_cdse(
@@ -607,98 +491,16 @@ async def fetch_from_cdse(
     return None
 
 
-def _deterministic_seed(field_id: str, acquisition_date: str) -> int:
-    key = f"{field_id}:{acquisition_date}"
-    return int(hashlib.md5(key.encode(), usedforsecurity=False).hexdigest()[:8], 16)
-
-
-def _realistic_bands(field_id: str, acquisition_date: str) -> dict[str, float]:
-    seed = _deterministic_seed(field_id, acquisition_date)
-    # سياق متزامن (لا async) داخل توليد النطاقات التركيبيّة؛ يبقى على السجلّ القديم
-    # كرجوع موثَّق لاختيار نطاق NDVI حسب المحصول (طبقة تقدير synthetic أصلاً).
-    field = FIELD_REGISTRY.get(field_id, {})
-    crop = field.get("crop", "wheat")
-    crop_ndvi_range = {
-        "wheat": (0.55, 0.80),
-        "barley": (0.50, 0.75),
-        "maize": (0.60, 0.85),
-        "tomato": (0.45, 0.70),
-        "potato": (0.50, 0.72),
-        "vegetables": (0.40, 0.68),
-    }.get(crop, (0.45, 0.75))
-    month = int(acquisition_date[5:7]) if len(acquisition_date) >= 7 else 4
-    seasonal_factor = {
-        1: 0.70,
-        2: 0.80,
-        3: 0.90,
-        4: 1.00,
-        5: 0.95,
-        6: 0.85,
-        7: 0.80,
-        8: 0.75,
-        9: 0.85,
-        10: 0.90,
-        11: 0.80,
-        12: 0.72,
-    }.get(month, 0.85)
-    rng = (seed % 1000) / 1000
-    ndvi_min, ndvi_max = crop_ndvi_range
-    ndvi = round(ndvi_min + rng * (ndvi_max - ndvi_min) * seasonal_factor, 3)
-    red = round(0.04 + (1 - ndvi) * 0.08, 4)
-    nir = round(min(red * (1 + ndvi) / (1 - ndvi + 1e-9), 0.6), 4)
-    green = round(0.05 + (seed % 20) / 400, 4)
-    blue = round(0.03 + (seed % 15) / 500, 4)
-    re1 = round((red + nir) / 2, 4)
-    re2 = round(re1 + 0.02, 4)
-    swir1 = round(0.15 + (seed % 30) / 400, 4)
-    swir2 = round(swir1 - 0.03, 4)
-    return {
-        "B02": blue,
-        "B03": green,
-        "B04": red,
-        "B05": re1,
-        "B06": re2,
-        "B08": nir,
-        "B11": swir1,
-        "B12": swir2,
-    }
-
-
-def _compute_indices(bands: dict[str, float]) -> dict[str, float]:
-    B02 = bands["B02"]
-    B03 = bands["B03"]
-    B04 = bands["B04"]
-    B05 = bands["B05"]
-    B08 = bands["B08"]
-    B11 = bands["B11"]
-    eps = 1e-10
-    ndvi = (B08 - B04) / (B08 + B04 + eps)
-    # H4 FIX: مقام EVI قد يقترب من الصفر (انعكاس أزرق عالٍ) ⇒ inf/قسمة على صفر؛
-    # نحرسه كبقيّة المؤشّرات. (مقام SAVI ≥ 0.5 دائماً فآمن.)
-    evi_denom = B08 + 6 * B04 - 7.5 * B02 + 1
-    evi = 2.5 * (B08 - B04) / (evi_denom if abs(evi_denom) > eps else eps)
-    savi = (B08 - B04) / (B08 + B04 + 0.5) * 1.5
-    ndwi = (B03 - B08) / (B03 + B08 + eps)
-    ndmi = (B08 - B11) / (B08 + B11 + eps)
-    gndvi = (B08 - B03) / (B08 + B03 + eps)
-    recl = B05 / max(B04, eps) - 1
-    # H3 FIX: LAI عبر Beer-Lambert الصحيح (Baret & Guyot 1991): -ln(1-NDVI)/k
-    # مع تثبيت NDVI∈[0.05,0.95] وسقف 8.0. الصيغة القديمة كانت مقلوبة وتُشبّع
-    # عند ~13.8 لكلّ غطاء سليم (NDVI>0.69) بسبب لوغاريتم وسيط سالب مثبّت.
-    _ndvi_c = max(0.05, min(0.95, ndvi))
-    lai = min(8.0, max(0.0, -math.log(max(0.001, 1 - _ndvi_c)) / 0.55))
-    cwsi = max(0, min(1, (0.55 - ndwi) / 0.55))
-    return {
-        "ndvi": round(ndvi, 3),
-        "evi": round(evi, 3),
-        "savi": round(savi, 3),
-        "ndwi": round(ndwi, 3),
-        "ndmi": round(ndmi, 3),
-        "gndvi": round(gndvi, 3),
-        "recl": round(recl, 3),
-        "lai": round(lai, 2),
-        "cwsi": round(cwsi, 3),
-    }
+def _derive_water_stress_from_observed(indices: dict[str, float]) -> float:
+    """Interpret observed NDMI/MSI without recomputing spectral indices."""
+    ndmi = indices.get("ndmi")
+    msi = indices.get("msi")
+    components: list[float] = []
+    if ndmi is not None:
+        components.append(max(0.0, min(1.0, (0.4 - float(ndmi)) / 0.8)))
+    if msi is not None:
+        components.append(max(0.0, min(1.0, (float(msi) - 0.4) / 1.6)))
+    return round(sum(components) / len(components), 3) if components else 0.5
 
 
 def _health_classification(ndvi: float, cwsi: float) -> dict:
@@ -724,26 +526,26 @@ def _recommendations_ar(indices: dict, health: dict, crop: str) -> list[str]:
     """
     recs = []
     ndvi = indices["ndvi"]
-    cwsi = indices["cwsi"]
-    ndwi = indices["ndwi"]
-    recl = indices["recl"]
+    cwsi = float(indices.get("water_stress", 0.5))
+    ndwi = indices.get("ndwi")
+    recl = indices.get("recl")
     if cwsi > 0.6:
         recs.append(
-            f"⚠️ فرضيّة: إجهاد مائي حاد محتمل (CWSI≈{cwsi:.2f}، تقديريّ) — "
+            f"⚠️ فرضيّة: إجهاد مائي حاد محتمل (water-stress≈{cwsi:.2f}، مشتقّ من NDMI/MSI المرصود) — "
             "يوصى بالتحقّق الميدانيّ؛ قرار الريّ لخدمة القرار."
         )
     elif cwsi > 0.35:
         recs.append(
-            f"💧 فرضيّة: إجهاد مائي متوسّط محتمل (CWSI≈{cwsi:.2f}، تقديريّ) — راقب واطلب تقييماً."
+            f"💧 فرضيّة: إجهاد مائي متوسّط محتمل (water-stress≈{cwsi:.2f}، مشتقّ من NDMI/MSI المرصود) — راقب؛ القرار التنفيذي لخدمة القرار."
         )
-    if recl < 1.5:
+    if recl is not None and recl < 1.5:
         recs.append(
             f"🌱 فرضيّة: نقص كلوروفيل محتمل (RECl≈{recl:.2f}، تقديريّ) — يوصى بفحص النيتروجين."
         )
     if ndvi < 0.40:
         recs.append(f"📉 فرضيّة: انخفاض NDVI ({ndvi}) — احتمال آفة أو مرض؛ يوصى بالفحص الميدانيّ.")
-    if ndwi < -0.1:
-        recs.append(f"🏜️ فرضيّة: جفاف محتمل (NDWI≈{ndwi:.2f}، تقديريّ) — يوصى بالتحقّق قبل قرار الريّ.")
+    if ndwi is not None and ndwi < -0.1:
+        recs.append(f"🏜️ فرضيّة: جفاف محتمل (NDWI≈{ndwi:.2f}، مرصود) — يوصى بالتحقّق قبل قرار الريّ.")
     if not recs:
         recs.append("✅ لا إشارات إجهاد واضحة في التقديرات الحاليّة — يوصى بالمتابعة الاعتياديّة.")
     return recs
@@ -879,64 +681,69 @@ async def run_analysis(
     if not field:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     with ANALYSIS_LATENCY.labels(source="total").time():
-        sh_meta = await fetch_from_sentinel_hub(field_id, date_from, date_to, tenant_id)
-        cdse_meta = None
-        if not sh_meta:
-            cdse_meta = await fetch_from_cdse(field_id, date_from, date_to, tenant_id)
-        meta = sh_meta or cdse_meta or {}
-        # HONESTY FIX: indices below are computed from deterministic synthetic
-        # bands (no GeoTIFF decode here), so the data is ALWAYS a simulation.
-        # `data_source` is taken from the provider metadata when a live API
-        # responded ("sentinel-hub-unavailable" / "cdse-metadata-only"),
-        # otherwise "simulation". `provider_reachable` records whether the live
-        # API actually answered. `real_data` is never True in this service.
-        source = meta.get("source", "simulation")
-        provider_reachable = bool(meta.get("provider_reachable", False))
-        acq_date = meta.get("acquisition_date", date_to)
-        cloud_pct = meta.get("cloud_pct", 0.0)
-        bands = _realistic_bands(field_id, acq_date)
-        indices = _compute_indices(bands)
-        # تفضيل القيم الحقيقيّة (بكسليّ، Sentinel-2 عبر raster band_math) عند توفّرها:
-        # ndvi + evi + savi(msavi) + ndmi(moisture). تُجلب بالتوازي (gather) ويُستبدَل
-        # القيمة فقط (لا تتغيّر الصيَغ). lai/cwsi/ndwi/gndvi/recl تبقى تقديريّة بصدق.
-        index_sources: dict[str, str] = dict.fromkeys(indices, "estimate")
-        # الغلاف النوعيّ/المصدريّ لكلّ مؤشّر حقيقيّ (quality_score/provenance) المقروء
-        # من ValidatedIndicatorProduct — يُرفَق بصدق في العقد لكلّ index من raster فقط.
+        # RIV: Vegetation consumes only validated products from raster-service.
+        # No provider access, synthetic bands, or spectral formulas live here.
+        source = "raster-service"
+        provider_reachable = False
+        cloud_pct = None
+        indices: dict[str, float] = {}
+        index_sources: dict[str, str] = {}
         index_quality: dict[str, dict] = {}
-        _veg_keys = ["ndvi", *_RASTER_REAL_INDEX.keys()]
-        _raster_idxs = ["ndvi", *_RASTER_REAL_INDEX.values()]
-        _real_means = await asyncio.gather(
-            *(_real_index_mean_from_raster(field_id, ri) for ri in _raster_idxs)
+        requested = ["ndvi", "evi", "savi", "ndmi", "msi", "ndwi", "gndvi"]
+        raster_names = ["ndvi", "evi", "msavi", "moisture", "msi", "ndwi", "gndvi"]
+        real_products = await asyncio.gather(
+            *(_real_index_mean_from_raster(field_id, ri) for ri in raster_names)
         )
-        for _vk, _rv in zip(_veg_keys, _real_means, strict=True):
-            if _rv is not None:
-                indices[_vk] = round(_rv["mean"], 3)
-                index_sources[_vk] = "raster-service"
-                _vpr = _rv.get("valid_pixel_ratio")
-                index_quality[_vk] = {
-                    "quality_score": _rv.get("quality_score"),
-                    "valid_pixel_ratio": _vpr,
-                    # honest unit conversion only (ratio 0..1 -> percent 0..100); never invented.
-                    "valid_pixel_pct": round(float(_vpr) * 100.0, 3) if _vpr is not None else None,
-                    "provenance": _rv.get("provenance"),
-                    "data_available_at": _rv.get("data_available_at"),
-                }
-        ndvi_is_real = index_sources["ndvi"] == "raster-service"
-        if ndvi_is_real:
-            lai = derive_lai_from_ndvi(indices["ndvi"])
-            indices["lai"] = lai["value"]
-            index_sources["lai"] = "vegetation-model"
-            index_quality["lai"] = {
-                "quality_score": index_quality.get("ndvi", {}).get("quality_score"),
-                "provenance": {"algorithm": lai["algorithm"], "input": "ndvi"},
-                "uncertainty": lai["uncertainty"],
+        acquisition_dates: list[str] = []
+        for public_name, product in zip(requested, real_products, strict=True):
+            if product is None:
+                continue
+            indices[public_name] = round(float(product["mean"]), 3)
+            index_sources[public_name] = "raster-service"
+            valid = product.get("valid_pixel_ratio")
+            provenance = product.get("provenance") or {}
+            acq = provenance.get("acquisition_datetime") or product.get("acquisition_date")
+            if acq:
+                acquisition_dates.append(str(acq))
+            index_quality[public_name] = {
+                "quality_score": product.get("quality_score"),
+                "valid_pixel_ratio": valid,
+                "valid_pixel_pct": round(float(valid) * 100.0, 3) if valid is not None else None,
+                "provenance": provenance,
+                "data_available_at": product.get("data_available_at"),
             }
-        health = _health_classification(indices["ndvi"], indices["cwsi"])
+        if "ndvi" not in indices:
+            raise HTTPException(424, "validated real NDVI is required from raster-service")
+        acq_date = max(acquisition_dates) if acquisition_dates else date_to
+        lai = derive_lai_from_ndvi(indices["ndvi"])
+        indices["lai"] = lai["value"]
+        index_sources["lai"] = "vegetation-model"
+        index_quality["lai"] = {
+            "quality_score": index_quality.get("ndvi", {}).get("quality_score"),
+            "provenance": {"algorithm": lai["algorithm"], "input": "ndvi"},
+            "uncertainty": lai["uncertainty"],
+        }
+        indices["water_stress"] = _derive_water_stress_from_observed(indices)
+        index_sources["water_stress"] = "vegetation-interpretation"
+        index_quality["water_stress"] = {
+            "quality_score": min(
+                [
+                    q.get("quality_score")
+                    for k, q in index_quality.items()
+                    if k in {"ndmi", "msi"} and q.get("quality_score") is not None
+                ]
+                or [index_quality.get("ndvi", {}).get("quality_score")]
+            ),
+            "provenance": {
+                "algorithm": "observed-water-stress.v1",
+                "inputs": [k for k in ("ndmi", "msi") if k in indices],
+            },
+        }
+        health = _health_classification(indices["ndvi"], indices["water_stress"])
         recs = _recommendations_ar(indices, health, field.get("crop") or "wheat")
     await _publish_analysis(field_id, tenant_id, indices, source)
     ANALYSIS_COUNT.labels(source=source, status="success").inc()
     # وسم مصدر كلّ مؤشّر بصدق من index_sources: الحقيقيّ (raster) عند توفّره، وإلّا تقدير.
-    _real_keys = [k for k, s in index_sources.items() if s == "raster-service"]
     index_contract = {
         k: {
             "value": v,
@@ -970,7 +777,7 @@ async def run_analysis(
         season_id=season_id,
         acquisition_date=acq_date,
         indices=index_contract,
-        source="raster-service" if ndvi_is_real else source,
+        source="raster-service",
         quality=gate,
         data_available_at=(index_quality.get("ndvi") or {}).get("data_available_at"),
     )
@@ -991,25 +798,20 @@ async def run_analysis(
         "acquisition_date": acq_date,
         "cloud_coverage_pct": cloud_pct,
         # data_source يعكس مصدر NDVI (الرقم الرئيسيّ): raster الحقيقيّ أو التقدير.
-        "data_source": "raster-service" if ndvi_is_real else source,
+        "data_source": "raster-service",
         # real_data يعكس NDVI تحديداً (بطاقة الصحّة تُبنى عليه): حقيقيّ من raster؟
-        "real_data": ndvi_is_real,
+        "real_data": True,
         "provider_reachable": provider_reachable,
         # نصّ آليّ موحّد اللغة (إنجليزيّ) في الحالتين — لا تتغيّر لغته بتغيّر المصدر
         # (تفادياً لكسر مستهلكين يطابقون النصّ، كما نبّهت مراجعة Copilot).
         "estimate_note": (
-            "Real per-pixel means from raster-service (Sentinel-2): "
-            + ", ".join(_real_keys)
-            + ". Other indices (incl. lai/cwsi) remain field-mean estimates from synthetic bands."
-            if _real_keys
-            else "Indices are field-mean estimates from deterministic synthetic bands; "
-            "no satellite pixels were decoded. Real per-pixel processing lives in raster-service."
+            "Validated per-pixel means from raster-service. LAI and water_stress are interpretation products with explicit provenance."
         ),
         "indices": index_contract,
         "quality_gate": gate,
         "vegetation_snapshot": snapshot,
         "evidence_push": evidence_push,
-        "raw_bands": None if VEGETATION_REAL_ONLY else bands,
+        "raw_bands": None,
         "health": health,
         "recommendations_ar": recs,
         # V4: هذه فرضيّات/اقتراحات فحص لا أوامر تنفيذيّة — القرارات (ريّ/رشّ/تسميد)

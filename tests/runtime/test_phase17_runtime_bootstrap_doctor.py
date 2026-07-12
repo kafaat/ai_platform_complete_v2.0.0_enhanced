@@ -40,7 +40,18 @@ def test_phase17_assets_exist():
 def test_runtime_doctor_preflight_json_contract(tmp_path):
     out = tmp_path / "doctor.json"
     proc = subprocess.run(
-        [sys.executable, str(DOCTOR), "--root", str(ROOT), "--mode", "preflight", "--format", "json", "--output", str(out)],
+        [
+            sys.executable,
+            str(DOCTOR),
+            "--root",
+            str(ROOT),
+            "--mode",
+            "preflight",
+            "--format",
+            "json",
+            "--output",
+            str(out),
+        ],
         cwd=ROOT,
         env=safe_env(),
         text=True,
@@ -52,7 +63,14 @@ def test_runtime_doctor_preflight_json_contract(tmp_path):
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["summary"]["readiness"] in {"ready", "attention"}
     names = {c["name"] for c in payload["checks"]}
-    assert {"required-files", "environment", "migrations", "compose-static", "docker-compose-config", "local-port-scan"}.issubset(names)
+    assert {
+        "required-files",
+        "environment",
+        "migrations",
+        "compose-static",
+        "docker-compose-config",
+        "local-port-scan",
+    }.issubset(names)
     failed = [c for c in payload["checks"] if c["status"] == "fail"]
     assert failed == []
 
@@ -61,7 +79,16 @@ def test_runtime_doctor_detects_bad_database_role():
     env = safe_env()
     env["DATABASE_URL"] = "postgresql://postgres:bad@sahool-postgres:5432/sahool"
     proc = subprocess.run(
-        [sys.executable, str(DOCTOR), "--root", str(ROOT), "--mode", "preflight", "--format", "json"],
+        [
+            sys.executable,
+            str(DOCTOR),
+            "--root",
+            str(ROOT),
+            "--mode",
+            "preflight",
+            "--format",
+            "json",
+        ],
         cwd=ROOT,
         env=env,
         text=True,

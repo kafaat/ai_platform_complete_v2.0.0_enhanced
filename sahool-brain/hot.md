@@ -133,3 +133,10 @@
 - **✅ Zero-Legacy ET0 مُكتمِل ومُقفَل (راتشِت #1-6، allowlist=0):** محرّك الطقس هو المالك الوحيد لـET0. راتشِت #6 (الأخير، مُنجَز): حُذف `core/engines/et0.py` الجذر (كان يُستورَد من الاختبارات فقط — صفر مستهلك إنتاجيّ؛ صحّته العلميّة FAO-56 مملوكة ومُختبَرة في المحرّك: `test_et0.py` Ra مثال 8 · PM · Hargreaves؛ `test_vpd.py` es table). حُذفت اختباراته (`test_et0_unified`·`test_pm_unified`)؛ `test_fao56_agronomic_validation` قُلِّم إلى Kc/ETc/المطر (يخصّ water_balance الباقي). الحارس اكتسب قفل `assert len(temporary_legacy_allowlist)==0` + رسالة "Zero-Legacy LOCKED" + اختبار وحدة. تعليق `wofost_real` المُشير للملفّ المحذوف حُدِّث للمحرّك.
 - **التالي: WX-10 CanonicalWeatherState** (State Product؛ ET0/VPD/GDD مشتقّات منه) — الشرط المسبق (allowlist=0) تحقّق، جاهز للبدء. ثمّ WX-11..CI-11 → **Crop Learning Engine** → Agricultural OS.
 - **انضباط:** هذا المدخل يغلق دَين تحديث الدماغ لراتشِت ET0 (اكتمل بالكامل).
+
+## 2026-07-12 — RIV + Brain Governance
+- الحقيقة الطيفية المرصودة: `raster-service` فقط.
+- الدماغ/المشرف يقرأ `read_indicator_observation` ولا يستدعي `compute_ndvi`.
+- الجلب المباشر من مزود الأقمار محجور افتراضياً خلف `BRAIN_DIRECT_SATELLITE_FETCH_ENABLED=false`.
+- كل أثر فيزيائي يمر عبر `decision-service` وطلب تنفيذ معتمد.
+- الحارس: `scripts/ci/intelligence_governance_gate.py`.

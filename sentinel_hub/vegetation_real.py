@@ -33,6 +33,7 @@ SH_CLIENT_SECRET = os.getenv("SENTINELHUB_CLIENT_SECRET", "")
 NATS_URL         = os.getenv("NATS_URL", "nats://sahool-nats:4222")
 REDIS_URL        = os.getenv("REDIS_URL", "")
 CORS_ORIGINS     = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+LEGACY_DIRECT_SENTINEL_ENABLED = os.getenv("LEGACY_DIRECT_SENTINEL_ENABLED", "false").strip().lower() in {"1", "true", "yes", "on"}
 
 # الحقول الحقيقية — محافظة البيضاء، اليمن
 FIELDS: dict[str, dict] = {
@@ -162,6 +163,9 @@ async def _fetch_sentinel_hub(
     استدعاء Sentinel Hub Process API الحقيقي.
     يُعيد إحصاءات الـ pixels (mean, median, stdev, percentiles).
     """
+    if not LEGACY_DIRECT_SENTINEL_ENABLED:
+        logger.warning("direct Sentinel-Hub vegetation path is quarantined; raster-service is the production owner")
+        return None
     if not SH_CLIENT_ID:
         return None  # fallback
 

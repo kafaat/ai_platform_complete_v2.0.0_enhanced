@@ -1,0 +1,297 @@
+{
+  "schema_version": "indicator-registry.v1",
+  "capabilities": [
+    {
+      "id": "ndvi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "evi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": "evi",
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "ndre",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "msavi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "savi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": "msavi",
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "gndvi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "ndwi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "ndmi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": "moisture",
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "msi",
+      "kind": "observed",
+      "range": null,
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "reci",
+      "kind": "observed",
+      "range": null,
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "gci",
+      "kind": "observed",
+      "range": null,
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "arvi",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "sipi",
+      "kind": "observed",
+      "range": null,
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "nbr",
+      "kind": "observed",
+      "range": [
+        -1,
+        1
+      ],
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "ccci",
+      "kind": "observed",
+      "range": null,
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "vari",
+      "kind": "observed",
+      "range": null,
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "gli",
+      "kind": "observed",
+      "range": null,
+      "unit": "index",
+      "owner": "raster-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "lai",
+      "kind": "derived",
+      "range": [
+        0,
+        8
+      ],
+      "unit": "m²/m²",
+      "owner": "vegetation-analysis-service",
+      "raster_alias": null,
+      "decision_eligible": false,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "recl",
+      "kind": "estimated",
+      "range": null,
+      "unit": "index",
+      "owner": "vegetation-analysis-service",
+      "raster_alias": null,
+      "decision_eligible": false,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "cwsi",
+      "kind": "estimated",
+      "range": [
+        0,
+        1
+      ],
+      "unit": "index",
+      "owner": "vegetation-analysis-service",
+      "raster_alias": null,
+      "decision_eligible": false,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "et0",
+      "kind": "derived",
+      "range": null,
+      "unit": "mm/d",
+      "owner": "sahool-platform",
+      "raster_alias": null,
+      "decision_eligible": false,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "water_deficit",
+      "kind": "derived",
+      "range": null,
+      "unit": "mm",
+      "owner": "sahool-platform",
+      "raster_alias": null,
+      "decision_eligible": false,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "soil_moisture",
+      "kind": "observed",
+      "range": [
+        0,
+        100
+      ],
+      "unit": "%",
+      "owner": "soil-service",
+      "raster_alias": null,
+      "decision_eligible": true,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "wue",
+      "kind": "derived",
+      "range": null,
+      "unit": "kg/m³",
+      "owner": "sahool-platform",
+      "raster_alias": null,
+      "decision_eligible": false,
+      "min_valid_pixel_pct": 60.0
+    },
+    {
+      "id": "water_stress",
+      "kind": "derived",
+      "range": [
+        0,
+        1
+      ],
+      "unit": "score",
+      "owner": "vegetation-analysis-service",
+      "raster_alias": null,
+      "decision_eligible": false,
+      "min_valid_pixel_pct": 60.0
+    }
+  ]
+}
