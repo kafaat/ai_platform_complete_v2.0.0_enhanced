@@ -53,7 +53,7 @@ class _LeaseHeartbeat:
                 raster_batch_observability.inc(
                     "lease_heartbeat_success_total" if ok else "lease_heartbeat_failure_total"
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 pass
             return ok
         except Exception:
@@ -61,7 +61,7 @@ class _LeaseHeartbeat:
                 import raster_batch_observability
 
                 raster_batch_observability.inc("lease_heartbeat_exception_total")
-            except Exception:
+            except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 pass
             self.logger.warning("durable lease heartbeat raised", exc_info=True)
             return False
@@ -287,7 +287,7 @@ def run_batch_processing(ctx, job_id: str, req):
         import raster_batch_runtime_leases
 
         durable_lease_token = raster_batch_runtime_leases.get_token(job_id)
-    except Exception:
+    except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
         durable_lease_token = None
     durable_tenant_id = str(getattr(req, "tenant_id", "") or "")
     lease_heartbeat = None
@@ -312,7 +312,7 @@ def run_batch_processing(ctx, job_id: str, req):
                 import raster_batch_runtime_leases
 
                 raster_batch_runtime_leases.pop_token(job_id)
-            except Exception:
+            except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 pass
             return
     try:
@@ -322,7 +322,7 @@ def run_batch_processing(ctx, job_id: str, req):
         raster_batch_observability.inc("indicators_requested_total", len(req.indicators))
         raster_batch_observability.inc("indicators_unique_total", total)
         raster_batch_observability.inc("indicators_deduplicated_total", len(req.indicators) - total)
-    except Exception:
+    except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
         pass
     # افتح مصدر الراستر مرة واحدة للدفعة كاملة، ومرّر dataset + cache إلى
     # المعالج الفردي المثبت. يحافظ هذا على نفس مسار الحفظ/provenance مع إزالة
@@ -350,7 +350,7 @@ def run_batch_processing(ctx, job_id: str, req):
                 import raster_batch_observability
 
                 raster_batch_observability.inc("dataset_open_actual_total", 1)
-            except Exception:
+            except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 pass
         else:
             job["batch_io_strategy"] = "no_raster_source"
@@ -375,14 +375,14 @@ def run_batch_processing(ctx, job_id: str, req):
                     status="failed",
                     error_code="batch_shared_reader_open_failed",
                 )
-            except Exception:
+            except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 ctx.logger.warning("batch %s durable failure write failed", job_id)
             finally:
                 try:
                     import raster_batch_runtime_leases
 
                     raster_batch_runtime_leases.pop_token(job_id)
-                except Exception:
+                except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                     pass
         if lease_heartbeat is not None:
             lease_heartbeat.stop()
@@ -398,7 +398,7 @@ def run_batch_processing(ctx, job_id: str, req):
                 import raster_batch_observability
 
                 raster_batch_observability.inc("lease_lost_total")
-            except Exception:
+            except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 pass
             break
         # ابنِ ctx.ProcessRequest فرديّاً لكلّ مؤشّر (يعيد استخدام المنطق المُختبَر)
@@ -473,7 +473,7 @@ def run_batch_processing(ctx, job_id: str, req):
         raster_batch_observability.inc(
             "dataset_open_expected_total", 1 if job.get("single_open_certified") else 0
         )
-    except Exception:
+    except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
         pass
     if (
         (not lease_lost)
@@ -498,14 +498,14 @@ def run_batch_processing(ctx, job_id: str, req):
                 },
                 error_code=None if results else "batch_no_products_completed",
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
             ctx.logger.warning("batch %s durable terminal write failed", job_id)
         finally:
             try:
                 import raster_batch_runtime_leases
 
                 raster_batch_runtime_leases.pop_token(job_id)
-            except Exception:
+            except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
                 pass
     ctx.logger.info(
         "batch %s: %d نجح، %d فشل io_strategy=%s",

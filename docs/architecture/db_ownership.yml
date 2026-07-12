@@ -835,6 +835,11 @@ tables:
     writers: [raster-service]
     readers: [sahool-platform]
     source: "migrations/v14_imagery_storage.sql"
+  raster_batch_jobs:
+    owner: raster-service
+    writers: [raster-service]
+    readers: []
+    source: "migrations/v154_raster_product_identity_batch_leases.sql"
   raster_cache_invalidations:
     owner: raster-service
     writers: [raster-service]

@@ -51,7 +51,7 @@ async def _connect():
         import asyncpg
 
         return await asyncpg.connect(DATABASE_URL, statement_cache_size=0)
-    except Exception:
+    except Exception:  # noqa: BLE001 — DB غير متاح ⇒ يعود None فيرتدّ المسار إلى Redis/memory بصدق
         return None
 
 

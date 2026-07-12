@@ -11125,7 +11125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bdb62319c990eb6aa64fcd36d9626f76ec4878dd8bc2cdd7b0273d4a1a1b8bc6"
+          "content": "8e42b21c59f2a3e4f5eb30a5609db38963d0229458dbec9bc13b8fabefb405c3"
         }
       ],
       "name": "services/raster-service/raster_batch_job_store.py",
@@ -11215,7 +11215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2c5d65b9ae18ff9488d875c51d50b8bd42020fc48d8d00193c55a0fa4b588a6"
+          "content": "8afe44151de10744fe75bc4b819fae57fdb0ab3cb69ac39653c8fae752653ac6"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -11649,6 +11649,16 @@
         }
       ],
       "name": "services/raster-service/terrain_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "15a61da56ab04721a6a01670313ecc9f03bf95c0f0d4f43519084cade0d39f30"
+        }
+      ],
+      "name": "services/raster-service/test_available_dates_provider_datetime.py",
       "type": "file"
     },
     {

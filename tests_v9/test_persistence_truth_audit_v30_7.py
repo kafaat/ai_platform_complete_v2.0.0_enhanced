@@ -72,17 +72,30 @@ def test_backfill_lease_reclaim():
     assert "'searching', 'queued', 'processing'" in src
 
 
-# ── V8-06/V9-08/V10-08: dedupe على مستوى المنتَج (بلا cog_uri في الهويّة) ──
+# ── V8-06/V9-08/V10-08 → v154: dedupe على مستوى المنتَج (بلا cog_uri في الهويّة) ──
 def test_product_level_dedupe_excludes_cog_uri():
     src = _read(_RASTER / "db_persist.py")
-    assert "ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id)\n" in src, (
-        "ON CONFLICT يجب أن يكون على مستوى المنتَج بلا cog_uri"
+    # v154 وسّع هويّة المنتَج إلى مفتاح حتميّ product_identity_key (مستأجر + بصمة
+    # هندسة + مشهد + مؤشّر + نسخة خوارزميّة + نسخة قناع) بديلاً لفهرس v145 الأضيق —
+    # لا يزال يستثني cog_uri (الخاصّيّة الجوهريّة: إعادة كتابة نفس المنتَج بمسار COG
+    # مختلف لا تُنشئ صفّاً جديداً)، ويجعل cog_uri قابلاً للتحديث.
+    assert "ON CONFLICT (product_identity_key)\n" in src, (
+        "ON CONFLICT يجب أن يكون على هويّة المنتَج الحتميّة (v154)"
     )
     assert "cog_uri = EXCLUDED.cog_uri" in src, "cog_uri يجب أن يصير قابلاً للتحديث"
-    # المهاجرتان مُسجَّلتان في كلا المُشغّلَين
+    # cog_uri ليس جزءاً من الهويّة الحتميّة (الحارس الأساسيّ ضدّ تكرار المنتَج).
+    identity = _read(_RASTER / "indicator_product_identity.py")
+    assert "cog_uri" not in identity and "cog_url" not in identity, (
+        "مفتاح هويّة المنتَج يجب ألّا يتضمّن مسار COG"
+    )
+    # المهاجرات مُسجَّلة في كلا المُشغّلَين (v145 الأصليّة + v154 الموسِّعة).
     manifest = _read(_ROOT / "migrations" / "MANIFEST.txt")
     runner = _read(_ROOT / "scripts_v9" / "run_migrations.sql")
-    for mig in ("v145_raster_assets_product_dedup.sql", "v146_backfill_runs_outcome_counters.sql"):
+    for mig in (
+        "v145_raster_assets_product_dedup.sql",
+        "v146_backfill_runs_outcome_counters.sql",
+        "v154_raster_product_identity_batch_leases.sql",
+    ):
         assert mig in manifest, f"{mig} مفقودة من MANIFEST"
         assert mig in runner, f"{mig} مفقودة من run_migrations.sql"
 
