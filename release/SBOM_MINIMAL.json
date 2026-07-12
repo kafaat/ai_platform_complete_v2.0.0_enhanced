@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ec3e8c557234b78169da112c3c7e0ebd01179f09aefbc3a3901d1bfeb09434b6"
+          "content": "832bd2d58dc00ddcc84054de9272b3fea3520d78d59eb0c74a28e85337abff1d"
         }
       ],
       "name": "frontend/.github/workflows/structural-lint.yml",
