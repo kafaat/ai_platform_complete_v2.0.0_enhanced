@@ -13,9 +13,12 @@ checks = {
         ROOT / "services/vegetation-analysis-service/vegetation_contracts.py",
         "validate_observation",
     ),
+    # RIV consolidation (20260712) made raw-band suppression unconditional: the
+    # strict raster-consumer never returns raw bands at all (stronger than the old
+    # `None if VEGETATION_REAL_ONLY else bands`). Assert the absolute form.
     "real-only raw-band suppression": (
         ROOT / "services/vegetation-analysis-service/vegetation_runtime.py",
-        "None if VEGETATION_REAL_ONLY else bands",
+        '"raw_bands": None',
     ),
     "agronomic v2 contract": (
         ROOT / "services/agriai-engine/agronomic_context.py",
