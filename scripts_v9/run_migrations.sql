@@ -461,3 +461,5 @@
 \i migrations/v152_deprecate_recommendation_feedback.sql
 \echo '═══ 159. v153_crop_stress_memory_store.sql ═══'
 \i migrations/v153_crop_stress_memory_store.sql
+\echo '═══ 160. v154_raster_product_identity_batch_leases.sql ═══'
+\i migrations/v154_raster_product_identity_batch_leases.sql

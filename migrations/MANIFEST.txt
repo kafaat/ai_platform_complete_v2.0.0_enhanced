@@ -601,3 +601,8 @@ v152_deprecate_recommendation_feedback.sql
 # v153: مخزن دائم لذاكرة إجهاد المحصول — أحداث خام append-only + لقطات مشتقة versioned،
 # مع dedup وRLS+FORCE حسب المستأجر. الأحداث الخام هي مصدر الحقيقة لإعادة الحساب. بعد v152.
 v153_crop_stress_memory_store.sql
+
+# v154: هويّة منتج راستر دائمة (product_identity_key حتميّ = مستأجر+هندسة+مشهد+مؤشّر+
+# نسخة خوارزميّة+نسخة قناع) بديلاً لفهرس v145 الأضيق، + جدول raster_batch_jobs بمطالبة
+# ذرّيّة PostgreSQL وإيجارات قابلة للاسترداد بعد تعطُّل العامل (RLS+FORCE حسب المستأجر). بعد v153.
+v154_raster_product_identity_batch_leases.sql

@@ -731,6 +731,11 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/phase_runtime_workers.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/cost_governance.py",
               "pattern": "weather-service"
             },
@@ -753,14 +758,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/failure_modes.py",
               "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/analytics_shapers.py",
-              "pattern": "weather-service"
             }
           ],
-          "match_count": 285
+          "match_count": 288
         }
       ]
     },
@@ -888,6 +888,11 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/phase_runtime_workers.py",
+              "pattern": "soil"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/water_ledger_compute.py",
               "pattern": "soil"
             },
@@ -909,15 +914,10 @@
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/analytics_shapers.py",
-              "pattern": "soil-service"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/analytics_shapers.py",
               "pattern": "soil"
             }
           ],
-          "match_count": 262
+          "match_count": 264
         }
       ]
     },
@@ -1939,6 +1939,11 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/water_decision_bridge.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/correlation_middleware.py",
               "pattern": "dispatch"
             },
@@ -1946,14 +1951,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/field_aggregate.py",
               "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/event_catalog.py",
-              "pattern": "dispatch"
             }
           ],
-          "match_count": 82
+          "match_count": 84
         }
       ]
     },

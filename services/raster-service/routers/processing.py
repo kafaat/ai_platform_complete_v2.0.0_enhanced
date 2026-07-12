@@ -13,7 +13,9 @@ from datetime import UTC, datetime
 
 import indicator_batch_claim
 import raster_api_models as api_models
+import raster_batch_job_store
 import raster_batch_observability
+import raster_batch_runtime_leases
 import raster_processing_runtime
 import raster_runtime_state
 import raster_security_context
@@ -90,9 +92,29 @@ async def process_batch(
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
     claim_key = indicator_batch_claim.batch_claim_key(req)
     proposed_job_id = f"batch_{claim_key[4:16]}"
-    claim = indicator_batch_claim.BATCH_CLAIMS.claim(claim_key, proposed_job_id)
-    job_id = claim.job_id
-    if not claim.acquired:
+    durable = await raster_batch_job_store.claim_or_recover(
+        claim_key=claim_key,
+        job_id=proposed_job_id,
+        tenant_id=str(req.tenant_id),
+        field_id=str(req.field_id) if req.field_id else None,
+        req=req,
+    )
+    if durable.available:
+        job_id = durable.job_id
+        claim_acquired = durable.acquired
+        claim_backend = "postgres"
+        recovered = durable.recovered
+        durable_status = durable.status
+        lease_token = durable.lease_token
+    else:
+        claim = indicator_batch_claim.BATCH_CLAIMS.claim(claim_key, proposed_job_id)
+        job_id = claim.job_id
+        claim_acquired = claim.acquired
+        claim_backend = claim.backend
+        recovered = False
+        durable_status = "unavailable"
+        lease_token = None
+    if not claim_acquired:
         raster_batch_observability.inc("claims_deduplicated_total")
         existing = raster_runtime_state.JOBS.get(job_id) or {}
         return {
@@ -100,10 +122,12 @@ async def process_batch(
             "status": existing.get("status", api_models.JobStatus.pending),
             "indicators": [i.value for i in req.indicators],
             "deduplicated": True,
-            "claim_backend": claim.backend,
+            "claim_backend": claim_backend,
+            "durable_status": durable_status,
             "note": "طلب مطابق قيد المعالجة أو مكتمل؛ أُعيد job_id السلطوي نفسه",
         }
     raster_batch_observability.inc("claims_acquired_total")
+    raster_batch_runtime_leases.set_token(job_id, lease_token)
     raster_runtime_state.JOBS.set(
         job_id,
         {
@@ -113,7 +137,8 @@ async def process_batch(
             "created_at": datetime.now(UTC).isoformat(),
             "indicators": [i.value for i in req.indicators],
             "batch_claim_key": claim_key,
-            "claim_backend": claim.backend,
+            "claim_backend": claim_backend,
+            "claim_recovered": recovered,
         },
     )
     background_tasks.add_task(raster_processing_runtime.run_batch_processing, job_id, req)
@@ -122,6 +147,7 @@ async def process_batch(
         "status": api_models.JobStatus.pending,
         "indicators": [i.value for i in req.indicators],
         "deduplicated": False,
-        "claim_backend": claim.backend,
+        "claim_backend": claim_backend,
+        "claim_recovered": recovered,
         "note": "استعلم /jobs/{job_id} — batch_results + batch_failed عند الاكتمال",
     }

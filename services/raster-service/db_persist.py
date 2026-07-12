@@ -106,6 +106,10 @@ async def insert_raster_asset(
     cloud_mask_sources: list | None = None,
     geometry_revision: int | None = None,
     asset_status: str = "ready",
+    product_identity_key: str | None = None,
+    algorithm_version: str | None = None,
+    qa_mask_version: str | None = None,
+    field_geometry_hash: str | None = None,
 ) -> bool:
     """يُدرج صفّاً في raster_assets (best-effort). يُرجِع True عند النجاح.
 
@@ -154,7 +158,8 @@ async def insert_raster_asset(
             footprint, provenance,
             valid_pixel_ratio, coverage_ratio, index_quality_flags,
             processing_job_id, quality_score, aoi_cloud_pct, cloud_mask_sources,
-            geometry_revision, asset_status
+            geometry_revision, asset_status,
+            product_identity_key, algorithm_version, qa_mask_version, field_geometry_hash
         ) VALUES (
             $1, $2, $3, $4, $5,
             $6, $7, $8, $9, $10::jsonb, $11,
@@ -163,11 +168,11 @@ async def insert_raster_asset(
             $13::jsonb,
             $14, $15, COALESCE($16::jsonb, '[]'::jsonb),
             $17, $18, $19, COALESCE($20::jsonb, '[]'::jsonb),
-            $21, $22
+            $21, $22,
+            $23, $24, $25, $26
         )
-        ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id)
-        WHERE tenant_id IS NOT NULL AND acquisition_date IS NOT NULL
-              AND scene_id IS NOT NULL
+        ON CONFLICT (product_identity_key)
+        WHERE product_identity_key IS NOT NULL
         DO UPDATE SET
             cog_uri = EXCLUDED.cog_uri,
             cloud_pct = EXCLUDED.cloud_pct,
@@ -181,7 +186,10 @@ async def insert_raster_asset(
             aoi_cloud_pct = EXCLUDED.aoi_cloud_pct,
             cloud_mask_sources = EXCLUDED.cloud_mask_sources,
             geometry_revision = COALESCE(EXCLUDED.geometry_revision, raster_assets.geometry_revision),
-            asset_status = EXCLUDED.asset_status
+            asset_status = EXCLUDED.asset_status,
+            algorithm_version = EXCLUDED.algorithm_version,
+            qa_mask_version = EXCLUDED.qa_mask_version,
+            field_geometry_hash = EXCLUDED.field_geometry_hash
     """
     try:
         await conn.execute(
@@ -212,6 +220,10 @@ async def insert_raster_asset(
             mask_sources_json,
             geometry_revision,
             asset_status,
+            product_identity_key,
+            algorithm_version,
+            qa_mask_version,
+            field_geometry_hash,
         )
         return True
     except Exception as e:  # noqa: BLE001 — صدق: لا نُفشل المعالجة لغياب القاعدة

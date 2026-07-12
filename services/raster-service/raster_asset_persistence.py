@@ -92,6 +92,26 @@ def persist_raster_asset(
             ],
         }
 
+        # v147: full immutable product identity. This prevents a new algorithm,
+        # QA mask, or geometry revision from being collapsed into an older asset.
+        import raster_quality
+        from indicator_batch_claim import geometry_hash as _geometry_hash
+        from indicator_product_identity import ProductIdentity
+
+        _field_geometry_hash = _geometry_hash(
+            getattr(req, "clip_polygon_geojson", None),
+            getattr(req, "geometry_revision", None),
+        )
+        _qa_mask_version = "cloud-mask/1" if bool(getattr(req, "apply_cloud_mask", False)) else None
+        _product_identity = ProductIdentity(
+            str(req.tenant_id or ""),
+            _field_geometry_hash,
+            str(req.scene_id or ""),
+            req.indicator.value,
+            raster_quality.ALGORITHM_VERSION,
+            _qa_mask_version,
+        )
+
         async def _do():
             ok = await db_persist.insert_raster_asset(
                 field_id=req.field_id,
@@ -117,6 +137,10 @@ def persist_raster_asset(
                 cloud_mask_sources=stats.get("cloud_mask_sources"),
                 # v143 (FINDING-004): مراجعة الهندسة السارية وقت المعالجة (None إن لم تُمرَّر).
                 geometry_revision=getattr(req, "geometry_revision", None),
+                product_identity_key=_product_identity.key(),
+                algorithm_version=raster_quality.ALGORITHM_VERSION,
+                qa_mask_version=_qa_mask_version,
+                field_geometry_hash=_field_geometry_hash,
                 provenance={
                     "stats": {
                         k: stats.get(k)

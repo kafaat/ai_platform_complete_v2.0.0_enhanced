@@ -241,9 +241,9 @@ raster-service,services/raster-service/routers/observability.py,192,GET,/v1/tile
 raster-service,services/raster-service/routers/observability.py,213,GET,/info/{layer_id},raster_info
 raster-service,services/raster-service/routers/observability.py,223,GET,/v1/providers/status,providers_status
 raster-service,services/raster-service/routers/observability.py,253,GET,/indices,field_indices
-raster-service,services/raster-service/routers/processing.py,26,POST,/process,process_raster
-raster-service,services/raster-service/routers/processing.py,57,POST,/raw/process,process_raw_data
-raster-service,services/raster-service/routers/processing.py,76,POST,/process/batch,process_batch
+raster-service,services/raster-service/routers/processing.py,28,POST,/process,process_raster
+raster-service,services/raster-service/routers/processing.py,59,POST,/raw/process,process_raw_data
+raster-service,services/raster-service/routers/processing.py,78,POST,/process/batch,process_batch
 raster-service,services/raster-service/routers/soil_tiles.py,37,GET,/v1/soil/tiles/{prop}/{depth}/{z}/{x}/{y}.png,soil_tile
 raster-service,services/raster-service/routers/soil_tiles.py,52,GET,/v1/soil/tilejson,soil_tilejson
 raster-service,services/raster-service/routers/soil_tiles.py,100,GET,/v1/soil/properties,soil_properties

@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e968ccf2c62a715c008b9dba7ce3b6c190c2e42952027200040e5991fbe1ee38"
+          "content": "d9b59c56a7bfd9ab12ba0b6353e29c78993535e4e0d655ffb39933f51cf907bd"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0005bd9e724a6eeb1b3a5a7967e389420beb14ee3a2f201de755bdda440c6fdf"
+          "content": "f3be3f1b58a3b7ab4d59754e85ca39f6d14c5ab872c2747659bde23f7457683e"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -5885,7 +5885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a500fcd745a0ad8fb37eec714169e52f9497e401bd2f15284d095752cf94079"
+          "content": "09ae4877623f01de2d3e2f1922ad563526b7abac2ef945effab247ad7ccaabf5"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -10935,7 +10935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1583ddcad27a7d983f5e4cec628168613a5a499b056b7a290845802b3595d859"
+          "content": "f57f9016d5304ee83ad2710d40af0215fdffb51152bff359f54168bfb0c2e694"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -11095,7 +11095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd7b620422fb1f1c4a2320b1cac07a2f36cba69169d6635eaafd569e4c315bda"
+          "content": "a02babcfd8f143f7ea20061dd3edd12952c2411a34e6cb4f53864feef908d779"
         }
       ],
       "name": "services/raster-service/raster_asset_persistence.py",
@@ -11185,7 +11185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca1de5a3abecc234ad243bc1bcf49ce9cf063047d2ac83125a3201cfe717ad26"
+          "content": "bd8b8e66ad40fe74955821bead141c7bb7a6d714b34fca376f769b42227be197"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -11445,7 +11445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "092527538cb038e04f261c44fb75a6aee9fe1359dfadeb31822e19a776aa0929"
+          "content": "a077cf92209a9dc711c10f90d46cf0408f54975cb80782f843cfed546be95195"
         }
       ],
       "name": "services/raster-service/routers/processing.py",
@@ -11909,6 +11909,16 @@
         }
       ],
       "name": "services/raster-service/test_processing_context_wiring.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b6b843d46918f717353a25ac15792fd23de5c6aee39a06f825d3f00760650ff1"
+        }
+      ],
+      "name": "services/raster-service/test_production_truth_fail_closed.py",
       "type": "file"
     },
     {

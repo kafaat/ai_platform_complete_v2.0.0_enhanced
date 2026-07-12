@@ -203,6 +203,14 @@ def run_batch_processing(ctx, job_id: str, req):
     job["deduplicated_indicator_count"] = len(req.indicators) - total
     job["batch_io_strategy"] = "single_dataset_open_shared_band_cache"
     job["single_open_certified"] = False
+    durable_claim_key = job.get("batch_claim_key")
+    try:
+        import raster_batch_runtime_leases
+
+        durable_lease_token = raster_batch_runtime_leases.get_token(job_id)
+    except Exception:
+        durable_lease_token = None
+    durable_tenant_id = str(getattr(req, "tenant_id", "") or "")
     try:
         import raster_batch_observability
 
@@ -210,7 +218,7 @@ def run_batch_processing(ctx, job_id: str, req):
         raster_batch_observability.inc("indicators_requested_total", len(req.indicators))
         raster_batch_observability.inc("indicators_unique_total", total)
         raster_batch_observability.inc("indicators_deduplicated_total", len(req.indicators) - total)
-    except Exception:  # noqa: BLE001 — عدّادات مراقبة best-effort لا تُسقِط المعالجة
+    except Exception:
         pass
     # افتح مصدر الراستر مرة واحدة للدفعة كاملة، ومرّر dataset + cache إلى
     # المعالج الفردي المثبت. يحافظ هذا على نفس مسار الحفظ/provenance مع إزالة
@@ -238,7 +246,7 @@ def run_batch_processing(ctx, job_id: str, req):
                 import raster_batch_observability
 
                 raster_batch_observability.inc("dataset_open_actual_total", 1)
-            except Exception:  # noqa: BLE001 — عدّاد مراقبة best-effort لا يُسقِط المعالجة
+            except Exception:
                 pass
         else:
             job["batch_io_strategy"] = "no_raster_source"
@@ -247,6 +255,31 @@ def run_batch_processing(ctx, job_id: str, req):
         job["error_message"] = "batch_shared_reader_open_failed"
         job["finished_at"] = datetime.now(UTC).isoformat()
         ctx._jobs.set(job_id, job)
+        if (
+            durable_claim_key
+            and durable_lease_token
+            and durable_tenant_id
+            and job.get("claim_backend") == "postgres"
+        ):
+            try:
+                import raster_batch_job_store
+
+                raster_batch_job_store.finish_sync(
+                    claim_key=durable_claim_key,
+                    tenant_id=durable_tenant_id,
+                    lease_token=durable_lease_token,
+                    status="failed",
+                    error_code="batch_shared_reader_open_failed",
+                )
+            except Exception:
+                ctx.logger.warning("batch %s durable failure write failed", job_id)
+            finally:
+                try:
+                    import raster_batch_runtime_leases
+
+                    raster_batch_runtime_leases.pop_token(job_id)
+                except Exception:
+                    pass
         ctx.logger.error(
             "batch %s shared reader open failed: %s", job_id, type(exc).__name__, exc_info=True
         )
@@ -295,6 +328,22 @@ def run_batch_processing(ctx, job_id: str, req):
             ctx.logger.warning("مهمّة فرعيّة %s فشلت: %s%s", ind.value, type(e).__name__, _http)
             failed[ind.value] = "processing_failed"
         job["progress_pct"] = int((i + 1) / total * 100)
+        if (
+            durable_claim_key
+            and durable_lease_token
+            and durable_tenant_id
+            and job.get("claim_backend") == "postgres"
+        ):
+            try:
+                import raster_batch_job_store
+
+                raster_batch_job_store.heartbeat_sync(
+                    claim_key=durable_claim_key,
+                    tenant_id=durable_tenant_id,
+                    lease_token=durable_lease_token,
+                )
+            except Exception:
+                ctx.logger.warning("batch %s durable lease heartbeat failed", job_id)
 
     if original_process_pixels is not None:
         ctx._process_pixels = original_process_pixels
@@ -315,8 +364,39 @@ def run_batch_processing(ctx, job_id: str, req):
         raster_batch_observability.inc(
             "dataset_open_expected_total", 1 if job.get("single_open_certified") else 0
         )
-    except Exception:  # noqa: BLE001 — عدّادات مراقبة best-effort لا تُسقِط المعالجة
+    except Exception:
         pass
+    if (
+        durable_claim_key
+        and durable_lease_token
+        and durable_tenant_id
+        and job.get("claim_backend") == "postgres"
+    ):
+        try:
+            import raster_batch_job_store
+
+            raster_batch_job_store.finish_sync(
+                claim_key=durable_claim_key,
+                tenant_id=durable_tenant_id,
+                lease_token=durable_lease_token,
+                status="completed" if results else "failed",
+                result_payload={
+                    "batch_results": results,
+                    "batch_failed": failed,
+                    "single_open_certified": bool(job.get("single_open_certified")),
+                    "shared_band_cache_entries": job.get("shared_band_cache_entries", 0),
+                },
+                error_code=None if results else "batch_no_products_completed",
+            )
+        except Exception:
+            ctx.logger.warning("batch %s durable terminal write failed", job_id)
+        finally:
+            try:
+                import raster_batch_runtime_leases
+
+                raster_batch_runtime_leases.pop_token(job_id)
+            except Exception:
+                pass
     ctx.logger.info(
         "batch %s: %d نجح، %d فشل io_strategy=%s",
         job_id,

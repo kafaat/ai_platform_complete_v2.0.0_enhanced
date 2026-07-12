@@ -1938,7 +1938,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
-    "line": 26,
+    "line": 28,
     "method": "POST",
     "path": "/process",
     "function": "process_raster"
@@ -1946,7 +1946,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
-    "line": 57,
+    "line": 59,
     "method": "POST",
     "path": "/raw/process",
     "function": "process_raw_data"
@@ -1954,7 +1954,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/processing.py",
-    "line": 76,
+    "line": 78,
     "method": "POST",
     "path": "/process/batch",
     "function": "process_batch"
