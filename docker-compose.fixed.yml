@@ -710,6 +710,17 @@ services:
       # 10ث على مضيف وهميّ. للإنتاج بوسيط حقيقيّ اضبط MQTT_BROKER_URL=mqtt://host:1883.
       MQTT_BROKER_URL: disabled
       JWT_SECRET: ${JWT_SECRET}
+      # مستهلك التوزيع المحكوم (default-off): يسحب execution-requests من decision-service
+      # ويسلّمها عبر MQTT. يبقى معطَّلاً هنا (لا وسيط MQTT في هذا الـcompose) — التفعيل
+      # الفعليّ في v9/الإنتاج فقط بعد بوّابات staging.
+      FEATURE_DISPATCH_ACTUATOR: ${FEATURE_DISPATCH_ACTUATOR:-false}
+      DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      ACTUATOR_DISPATCH_TENANT_IDS: ${ACTUATOR_DISPATCH_TENANT_IDS:-}
+      ACTUATOR_DISPATCH_POLL_SECONDS: ${ACTUATOR_DISPATCH_POLL_SECONDS:-30}
+      ACTUATOR_DISPATCH_RISK_ALLOWLIST: ${ACTUATOR_DISPATCH_RISK_ALLOWLIST:-low}
+      ACTUATOR_DEVICE_STALE_SECONDS: ${ACTUATOR_DEVICE_STALE_SECONDS:-900}
+      ACTUATOR_DELIVERY_TOKEN_KEY: ${ACTUATOR_DELIVERY_TOKEN_KEY:-}
     depends_on:
       sahool-postgres:
         condition: service_healthy

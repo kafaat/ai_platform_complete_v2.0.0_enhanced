@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2af08007703567085aa10a2f5961b45f72e3a1130cfaa7521bf461f8e5b9560"
+          "content": "e968ccf2c62a715c008b9dba7ce3b6c190c2e42952027200040e5991fbe1ee38"
         }
       ],
       "name": "docker-compose.fixed.yml",
