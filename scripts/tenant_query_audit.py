@@ -87,6 +87,10 @@ _ALLOWLIST_JUSTIFIED: dict[str, str] = {
     "services/sahool-platform/api/phase_runtime_workers.py::model_rollback_history_runtime": (
         "phase runtime worker: tenant GUC set tx-locally before write (RLS-scoped)"
     ),
+    "services/sahool-platform/api/phase_runtime_workers.py::events": (
+        "water-deficit bridge timeline event: tenant GUC already set tx-locally per field; "
+        "insert carries explicit tenant_id + dedup_key (RLS-scoped canonical events)"
+    ),
     "services/sahool-platform/api/phase_runtime_workers.py::water_ledger": (
         "water-ledger auto worker: tenant GUC set tx-locally per field before read/upsert (RLS-scoped)"
     ),

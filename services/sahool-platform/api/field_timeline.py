@@ -45,6 +45,7 @@ _EVENT_CATEGORY: dict[str, TimelineCategory] = {
     "lifecycle.transitioned": TimelineCategory.LIFECYCLE,
     "field.advance_stage": TimelineCategory.LIFECYCLE,
     "operation.planting.start": TimelineCategory.OPERATION,
+    "decision.water_deficit": TimelineCategory.OPERATION,
     "operation.planting.completed": TimelineCategory.OPERATION,
     "operation.irrigation.start": TimelineCategory.OPERATION,
     "operation.irrigation.completed": TimelineCategory.OPERATION,

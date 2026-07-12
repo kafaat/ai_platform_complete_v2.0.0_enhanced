@@ -1,5 +1,5 @@
 {
- "baseline_python_module_count": 610,
+ "baseline_python_module_count": 611,
  "modules": [
   "api/__init__.py",
   "api/adaptive_calibration.py",
@@ -359,6 +359,7 @@
   "api/walk_plan_pdf.py",
   "api/water_balance.py",
   "api/water_balance_models.py",
+  "api/water_decision_bridge.py",
   "api/water_efficiency.py",
   "api/water_harvesting.py",
   "api/water_ledger_auto.py",
@@ -618,5 +619,6 @@
  "ui27_ui35_note": "UI27-UI35 Field Workspace: BFF facade routers (imagery/weather/timeline/priority) delegate to raster-service/weather-service via the P1/P2/P3 facades; route+completion contract manifests. UI-alignment/BFF surfaces owned by sahool-platform, not extractable domain code.",
  "ws_d2_note": "WS-D.2: api/irrigation_state_guard.py — pure consistency/freshness guard for the auto-enriched field irrigation-recommendation endpoint (0<=Dr<=TAW, no silent clamp, missing != zero). Platform-owned decision helper alongside recommend_irrigation/canonical_water_stress; not extractable transport.",
  "crop_intelligence_phase2_6d_note": "Crop Intelligence Engine Phases 2-6D: additive core/crop_intelligence package (models/engine/spectral/phenology/roots/stress_memory/crop_water/recommendation_context) + api crop_stress_store/ingestion/memory_service and crop_decision_bridge. Boundary-respecting (no ET0/GDD/raster/soil-water compute in Crop Intelligence); enforced by scripts/ci/crop_intelligence_boundary_gate.py. No new route (p2_6 budget unchanged).",
- "water_ledger_auto_note": "api/water_ledger_auto.py: WATER-LEDGER-AUTO pure FAO-56 daily accumulation logic (bootstrap declared, manual-entry precedence) consumed by the water_ledger phase runtime worker — closes the operational gap where FAO-56 recommendations were blocked on missing_depletion_mm because only manual entries wrote water_ledger."
+ "water_ledger_auto_note": "api/water_ledger_auto.py: WATER-LEDGER-AUTO pure FAO-56 daily accumulation logic (bootstrap declared, manual-entry precedence) consumed by the water_ledger phase runtime worker — closes the operational gap where FAO-56 recommendations were blocked on missing_depletion_mm because only manual entries wrote water_ledger.",
+ "water_decision_bridge_note": "api/water_decision_bridge.py: WATER-DEFICIT-BRIDGE governed bridge (delivered bundle, reconciled): deficit>threshold -> deterministic candidate via the existing governance chain; double default-off; auto-execution requires explicit target; integrated with the entity_id::text fix (events.entity_id is TEXT since v18)."
 }

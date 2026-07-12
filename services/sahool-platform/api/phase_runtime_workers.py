@@ -373,7 +373,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
     async with pool.acquire() as conn:
         fields = await conn.fetch(
             """
-            SELECT DISTINCT f.field_id, f.tenant_id, f.lat, f.lon, f.crop AS field_crop
+            SELECT DISTINCT f.field_id, f.tenant_id, f.lat, f.lon, f.crop AS field_crop, s.season_id
             FROM fields f
             JOIN seasons s ON s.field_id = f.field_id AND s.status = 'active'
             WHERE f.lat IS NOT NULL AND f.lon IS NOT NULL
@@ -487,6 +487,43 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     AUTO_CREATED_BY,
                 )
                 processed += 1
+                # Governed bridge: candidate creation is deterministic and default-off.
+                from api.water_decision_bridge import process_water_deficit
+
+                bridge_result = await process_water_deficit(
+                    tenant_id=str(row["tenant_id"]),
+                    field_id=field_id,
+                    season_id=str(row["season_id"]) if row["season_id"] else None,
+                    ledger_date=today,
+                    entry={
+                        **entry,
+                        "taw_mm": float(sw["taw_mm"]),
+                        "raw_mm": float(sw["taw_mm"]) * float(sw["raw_fraction"]),
+                    },
+                )
+                if bridge_result.get("status") not in {"disabled", "below_threshold"}:
+                    await conn.execute(
+                        """INSERT INTO events
+                             (event_type, entity_type, entity_id, tenant_id, actor_id, payload,
+                              dedup_key, source, occurred_at)
+                           VALUES ($1, 'field', $2::text, $3::uuid, $4, $5::jsonb, $6, 'scheduler', now())
+                           ON CONFLICT (dedup_key) WHERE dedup_key IS NOT NULL DO NOTHING""",
+                        "decision.water_deficit",
+                        field_id,
+                        str(row["tenant_id"]),
+                        "water-ledger-governed-bridge",
+                        json.dumps(
+                            {
+                                **bridge_result,
+                                "field_id": field_id,
+                                "season_id": str(row["season_id"]) if row["season_id"] else None,
+                                "ledger_date": today.isoformat(),
+                                "deficit_mm": entry["deficit_mm"],
+                            }
+                        ),
+                        f"water-deficit:{row['tenant_id']}:{field_id}:{today}",
+                    )
+
             except Exception as exc:  # noqa: BLE001 — تخطٍّ لكلّ حقل مُعلَّل، لا انهيار الدفعة
                 print(
                     json.dumps(
