@@ -8255,6 +8255,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bb3188bc4725c65d10e3fbbd78b286ad863ee4f6cdcb96c93704aea2ed728a5b"
+        }
+      ],
+      "name": "services/agriai-engine/tests/test_production_readiness_truth.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "68b97b631226122d9aa94c95059d432f9b286b5ed569a437cb51b8f220060dc6"
         }
       ],
@@ -9235,6 +9245,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c4f3ed5dc9992bfcef305ec7f920be6485f4051c176d7f2d1ccc42b13cf9a7f9"
+        }
+      ],
+      "name": "services/decision-service/migrations/020_learning_agronomic_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "972cc0cb5fd9311d03f42c47f6985592a7a2e2cfe6cc93e6826e8d1c35d231d0"
+        }
+      ],
+      "name": "services/decision-service/migrations/021_model_agronomic_cohort_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1e4fe8c8c8ce42be06302728e9929a37e820b75a6255fdeaa3aef4bcae49c1b6"
+        }
+      ],
+      "name": "services/decision-service/migrations/022_runtime_agronomic_cohort_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "62a595d4a5358c27b75fff5cc08edbc3789894c9e6a6d76856c471511410645a"
+        }
+      ],
+      "name": "services/decision-service/migrations/023_runtime_terminal_agronomic_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8cb11089b200e67b80ee43d4c38e8d1b1db534344f0176cf2a7493b72e98cd3c"
         }
       ],
@@ -9295,6 +9345,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ffee7e2470a625e4d6957d5f783c4516842107bd27a91f8a41c6fd7afc4cfc66"
+        }
+      ],
+      "name": "services/decision-service/tests/_model_chain.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0e3eebbd09ff94857d5496767b28bdacef9de05fca7941fe9f55f6f799c7b34f"
         }
       ],
@@ -9325,10 +9385,50 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0940d1a400ead5327cbee42f3a9c55f9e531cdd1890765c96c31f61b0811b7f7"
+        }
+      ],
+      "name": "services/decision-service/tests/test_agronomic_learning_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c9383702c19f656a552f939d063f96bb3e229fafdf9e567b9fb8e25d7fbe6285"
         }
       ],
       "name": "services/decision-service/tests/test_agronomic_lineage_integrity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "127e2abca66edd9b34cba63028b0c3cfcaf10d589750e80f6368f53dc1d115b8"
+        }
+      ],
+      "name": "services/decision-service/tests/test_agronomic_model_lifecycle_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f26f6c410cb102f53193c951439dfce8c30fac6d442c7bc31848ee9ce90a437"
+        }
+      ],
+      "name": "services/decision-service/tests/test_agronomic_runtime_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ae5e67edb867704add815715c73016b214af722255f4f429596787f70ad0de6"
+        }
+      ],
+      "name": "services/decision-service/tests/test_agronomic_runtime_terminal_lineage.py",
       "type": "file"
     },
     {
@@ -24069,6 +24169,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_indicator_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "98a5ac4746a71b31e8c92d29fc1f038584d0cde80fb685283d27babdb5a1e8b2"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_production_truth_closure.py",
       "type": "file"
     },
     {
