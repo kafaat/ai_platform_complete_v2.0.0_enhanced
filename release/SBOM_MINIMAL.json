@@ -5055,7 +5055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15c3dfd325edd6bc86a0cbd5944cbf834d67b9eee5fe27b1a403ddc84b48ea60"
+          "content": "214e6d2239e251f34c151f900de1635997df7ed990010f99ae9d9dc870690fbd"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -14695,7 +14695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fca2d3094e8e7591da488afa425b966ee88018dd121a05b6cdabdd9bcc7a7d03"
+          "content": "c42f8e047818f3aea089af348813ab9ea6169684c31d428810305bcdab3c51a7"
         }
       ],
       "name": "services/sahool-platform/api/routers/field_workspace_imagery.py",

@@ -2401,12 +2401,16 @@ function MapHubCore() {
                               style={{ background: active ? '#123524' : '#111827', borderColor: active ? '#22c55e99' : T.line, color: T.ink }}
                               title={d.scene_id ?? d.date}
                             >
-                              {selected && (
+                              {/* مصغّرة فقط لتاريخ محفوظ (has_cog): تواريخ المزوّد المعلّقة
+                                  «تنتظر COG» بلا صورة. المؤشّر: truecolor إن كان محفوظاً لهذا
+                                  التاريخ، وإلّا أوّل مؤشّر محفوظ — فلا مصغّرة truecolor فارغة
+                                  لتاريخ له مؤشّر تحليليّ فقط. */}
+                              {selected && d.has_cog && (
                                 <div className="mb-2 h-16 w-full overflow-hidden rounded-lg border" style={{ borderColor: active ? '#22c55e66' : '#334155', background: '#020617' }}>
                                   <img
                                     src={fieldCdseThumbnailUrl(
                                       selected.id,
-                                      'truecolor',
+                                      d.indices?.includes('truecolor') ? 'truecolor' : (d.indices?.[0] ?? activeIndicator ?? 'ndvi'),
                                       d.date,
                                       tenantId ?? null,
                                       selected.geometry ?? null,

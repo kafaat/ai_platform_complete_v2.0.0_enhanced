@@ -104,19 +104,30 @@ async def field_imagery_timeline_facade(
             date_str = str(row.get("date") or "")[:10]
             if len(date_str) != 10 or date_str < cutoff:
                 continue
+            has_cog = bool(row.get("has_cog"))
+            indices = [str(value) for value in (row.get("indices") or []) if value]
+            # سياسة المصغّرة: truecolor فقط إن كان محفوظاً لهذا التاريخ، وإلّا أوّل مؤشّر
+            # محفوظ — فلا مصغّرة truecolor فارغة لتاريخ له مؤشّر تحليليّ فقط. وتاريخ
+            # المزوّد المعلّق (has_cog=false / بلا مؤشّرات) لا يعرض مصغّرة إطلاقاً.
+            thumbnail_index = (
+                "truecolor" if "truecolor" in indices else (indices[0] if indices else None)
+            )
             items.append(
                 {
                     "date": date_str,
-                    "has_cog": bool(row.get("has_cog")),
+                    "has_cog": has_cog,
                     "cloud_pct": row.get("cloud_pct"),
                     "clear_pct": row.get("clear_pct"),
                     "quality_label": row.get("quality_label"),
-                    "indices": row.get("indices") or [],
+                    "indices": indices,
+                    "thumbnail_index": thumbnail_index,
                     "scene_id": row.get("scene_id"),
                     "acquisition_datetime": row.get("acquisition_datetime"),
                     "thumbnail_url": (
                         f"/api/raster/v1/fields/{field_id}/cdse-thumbnail.png"
-                        f"?index=truecolor&date={date_str}&size=160&tid={tenant}"
+                        f"?index={thumbnail_index}&date={date_str}&size=160&tid={tenant}"
+                        if has_cog and thumbnail_index
+                        else None
                     ),
                 }
             )
