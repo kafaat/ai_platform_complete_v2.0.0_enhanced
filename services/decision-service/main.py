@@ -54,6 +54,7 @@ from persistence import (
     get_context_snapshot,
     get_decision_agronomic_evidence,
     list_decision_records,
+    list_queued_execution_requests,
     list_review_queue,
     list_runtime_work,
     list_worker_tenants,
@@ -1040,6 +1041,35 @@ class ExecutionReceiptIn(BaseModel):
     receipt_id: str
     receipt_status: str
     receipt_payload: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.get("/v1/execution-requests")
+async def list_execution_requests(
+    state: str = Query("queued"),
+    target_type: str | None = Query(default=None),
+    limit: int = Query(20, ge=1, le=100),
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """ACTUATOR-DISPATCH-CONSUMER: discovery feed for downstream delivery adapters.
+
+    Read-only enumeration of queued requests (in-flight claims excluded); the
+    atomic gate remains the claim endpoint. Only state=queued is served — this
+    is a work feed, not a general query API. Mirror mode is a fail-closed 503.
+    """
+    tenant = _tenant(x_tenant_id)
+    if state != "queued":
+        raise HTTPException(status_code=422, detail="only state=queued is served by this feed")
+    if target_type is not None and target_type not in {"task", "equipment"}:
+        raise HTTPException(status_code=422, detail="target_type must be task or equipment")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — feed unavailable",
+        )
+    result = await list_queued_execution_requests(
+        tenant_id=tenant, target_type=target_type, limit=limit
+    )
+    return {"tenant_id": tenant, "state": "queued", "target_type": target_type, **result}
 
 
 @app.post("/v1/execution-requests/{execution_request_id}/claim")

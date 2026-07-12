@@ -85,7 +85,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59fdf29e65c7f3110b379726e675de6bc6dc735783676dc5e01d698fc104481f"
+          "content": "98646d6541ea4a6e0cc088ac7861cf2b10af8abfc56f7efcb17c25fb0b1ad142"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -8025,7 +8025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3436d90d7e14bdd73ecfaeb9e655c0806bfbc9b7c386845058e4c82441a32e4c"
+          "content": "52f304d35bc976b2d62676596e8875adad7771076a8051c11abb73361e41d709"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -8135,7 +8135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1806127d38fd178359ea865c37c4aa6026a4f77fc072db5cb23c4cda1f71042e"
+          "content": "8b591aaa6cd16d6c47f0f6e6e08b82b0512ae26a6f72fe29b64b35b0a52eaaf6"
         }
       ],
       "name": "services/actuator-service/test_dispatch_bridge.py",
@@ -9055,7 +9055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14d10ed0ea274e7fb614d2e9a8bda6ed3244e5488020d87b146aa047f4f228d6"
+          "content": "ec3b206b5b3434bc96d977ccf713be0001a8acb680863d45addfdccaea516238"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -9325,7 +9325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4fa04b597294697aff99465f097e9a78f5da608a38b70e671579d439864ef42c"
+          "content": "09511d592182a086faad4ccf62e1ab5b0019c83d82db8e14bf6be6b2c26f4c3d"
         }
       ],
       "name": "services/decision-service/persistence.py",

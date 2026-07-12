@@ -1081,6 +1081,54 @@ def _authoritative_delivery(row: Any, *, replay: bool) -> dict[str, Any]:
     }
 
 
+async def list_queued_execution_requests(
+    *, tenant_id: str, target_type: str | None = None, limit: int = 20
+) -> dict[str, Any]:
+    """ACTUATOR-DISPATCH-CONSUMER: discovery feed for queued execution requests.
+
+    Read-only: the downstream adapter (task provider / physical actuator) enumerates
+    queued work here, then claims each item atomically via the existing WX-10.11b
+    claim endpoint. Rows already claimed for delivery are excluded — two adapters
+    polling concurrently still converge because the claim itself is the atomic gate.
+    """
+    conn = await _connect()
+    try:
+        rows = await conn.fetch(
+            """SELECT r.execution_request_id, r.decision_id, r.execution_plan_id,
+                      r.dispatch_authorization_id, r.target_type, r.target_id,
+                      r.operation_type, r.command_payload, r.requested_at
+               FROM decision_execution_requests r
+               WHERE r.tenant_id = $1::uuid AND r.status = 'queued'
+                 AND ($2::text IS NULL OR r.target_type = $2)
+                 AND NOT EXISTS (
+                   SELECT 1 FROM decision_execution_delivery_attempts a
+                   WHERE a.tenant_id = r.tenant_id
+                     AND a.execution_request_id = r.execution_request_id
+                     AND a.receipt_id IS NULL
+                 )
+               ORDER BY r.requested_at
+               LIMIT $3""",
+            tenant_id,
+            target_type,
+            limit,
+        )
+        items = []
+        for r in rows:
+            item = dict(r)
+            item["command_payload"] = _jsonish(item.get("command_payload"))
+            item["requested_at"] = _iso(item["requested_at"])
+            items.append(item)
+        return {
+            "authoritative": True,
+            "persisted": True,
+            "read_only": True,
+            "items": items,
+            "count": len(items),
+        }
+    finally:
+        await conn.close()
+
+
 async def claim_execution_request(
     *,
     tenant_id: str,

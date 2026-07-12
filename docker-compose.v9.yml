@@ -1123,6 +1123,14 @@ services:
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
       JWT_SECRET: ${JWT_SECRET}
+      # ACTUATOR-DISPATCH-CONSUMER (P0 من تدقيق المستهلكين): حلقة استهلاك طلبات التنفيذ
+      # المحكومة من decision-service — default-OFF، وتخدم فقط المستأجرين المعيَّنين صراحةً.
+      FEATURE_DISPATCH_ACTUATOR: ${FEATURE_DISPATCH_ACTUATOR:-}
+      DECISION_SERVICE_URL: http://sahool-decision-service:8160
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+      ACTUATOR_DISPATCH_TENANT_IDS: ${ACTUATOR_DISPATCH_TENANT_IDS:-}
+      ACTUATOR_DISPATCH_POLL_SECONDS: ${ACTUATOR_DISPATCH_POLL_SECONDS:-10}
+      ACTUATOR_DISPATCH_RISK_ALLOWLIST: ${ACTUATOR_DISPATCH_RISK_ALLOWLIST:-}
     depends_on:
       sahool-postgres:
         condition: service_healthy

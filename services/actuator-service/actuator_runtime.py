@@ -130,6 +130,172 @@ def _dispatch_outcome_status(send_success: bool) -> str:
     return "executed" if send_success else "failed"
 
 
+# ─── جسر القرار (ACTUATOR-DISPATCH-CONSUMER) — مستهلك طلبات التنفيذ المحكومة ───
+# يغلق فجوة P0 من تدقيق المستهلكين 2026-07-12: كانت المساعدات النقيّة موجودة بلا
+# حلقة تشغيليّة. الحلقة تستهلك feed decision-service للطلبات المصفوفة (equipment)،
+# تطالب كلّ طلب ذرّيّاً (delivery_token)، تتحقّق (kill-switch fail-closed + قائمة
+# المخاطر + صحّة الأمر)، ترسل MQTT عبر send_mqtt_command (يحترم ACTUATOR_MODE
+# disabled/simulation/real)، ثمّ تسجّل إيصال accepted/failed — لا نتيجة بلا إيصال.
+DECISION_SERVICE_URL = os.getenv("DECISION_SERVICE_URL", "http://sahool-decision-service:8160")
+DECISION_SERVICE_TOKEN = os.getenv("DECISION_SERVICE_TOKEN", "")
+# المستأجرون الذين يخدمهم هذا المُشغّل — تعيين صريح من المشغّل (لا تخمين مستأجرين).
+ACTUATOR_DISPATCH_TENANT_IDS = os.getenv("ACTUATOR_DISPATCH_TENANT_IDS", "")
+ACTUATOR_DISPATCH_POLL_SECONDS = float(os.getenv("ACTUATOR_DISPATCH_POLL_SECONDS", "10"))
+ACTUATOR_DISPATCH_RISK_ALLOWLIST = os.getenv("ACTUATOR_DISPATCH_RISK_ALLOWLIST")
+_DISPATCH_ADAPTER_ID = os.getenv("ACTUATOR_DISPATCH_ADAPTER_ID", "actuator-service")
+
+
+def _plan_dispatch_execution(item: dict, *, allowlist: set[str]):
+    """دالّة نقيّة: خطّة معالجة طلب تنفيذ واحد — قابلة للاختبار بلا شبكة/قاعدة.
+
+    تُرجِع أحد: ``("invalid_command",)`` أمر فاسد ⇒ إيصال failed؛
+    ``("refused_risk", level)`` مخاطرة مُعلَنة خارج المسموح ⇒ إيصال failed؛
+    ``("send", device_id, cmd, payload)`` جاهز للإرسال.
+    """
+    parsed = _parse_dispatch_command(item.get("command_payload"))
+    if parsed is None:
+        return ("invalid_command",)
+    device_id, cmd, payload = parsed
+    raw = item.get("command_payload")
+    declared_risk = None
+    if isinstance(raw, dict):
+        declared_risk = raw.get("risk_level")
+    if declared_risk is None:
+        declared_risk = payload.get("risk_level")
+    if declared_risk is not None and not _is_risk_allowed(declared_risk, allowlist):
+        return ("refused_risk", str(declared_risk))
+    return ("send", device_id, cmd, payload)
+
+
+def _dispatch_tenants(env_value: str | None) -> list[str]:
+    """دالّة نقيّة: قائمة المستأجرين من CSV — فارغة تعني «لا تشغيل» لا «كلّ المستأجرين»."""
+    return [t.strip() for t in (env_value or "").split(",") if t.strip()]
+
+
+async def _decision_request(client, method: str, path: str, tenant_id: str, json_body=None):
+    headers = {"X-Tenant-Id": tenant_id}
+    if DECISION_SERVICE_TOKEN:
+        headers["Authorization"] = f"Bearer {DECISION_SERVICE_TOKEN}"
+    url = f"{DECISION_SERVICE_URL.rstrip('/')}{path}"
+    resp = await client.request(method, url, headers=headers, json=json_body, timeout=15.0)
+    return resp
+
+
+async def run_dispatch_consumer_once(client, tenant_id: str, *, allowlist: set[str]) -> int:
+    """دورة استهلاك واحدة لمستأجر واحد: feed ⇒ (kill-switch) ⇒ claim ⇒ MQTT ⇒ receipt."""
+    from uuid import uuid4 as _uuid4
+
+    feed = await _decision_request(
+        client,
+        "GET",
+        "/v1/execution-requests?state=queued&target_type=equipment&limit=10",
+        tenant_id,
+    )
+    if feed.status_code != 200:
+        # mirror/SoR-off ⇒ 503 صادق من الخدمة — لا عمل يُستهلك، ولا يُخترع.
+        logger.debug(f"dispatch feed {tenant_id}: HTTP {feed.status_code} — skip cycle")
+        return 0
+    items = (feed.json() or {}).get("items") or []
+    processed = 0
+    for item in items:
+        req_id = item.get("execution_request_id")
+        if not req_id:
+            continue
+        # kill-switch أوّلاً وقبل المطالبة: مُشتبَك ⇒ اترك الطلب مصفوفاً (لا استهلاك،
+        # لا فشل) — يُنفَّذ بعد فكّ الإيقاف. تعذّر القاعدة ⇒ fail-closed (لا مطالبة).
+        if _pool is None:
+            logger.warning(
+                "dispatch consumer: DATABASE_URL غائب — kill-switch غير قابل للفحص ⇒ لا مطالبة"
+            )
+            return processed
+        async with _pool.acquire() as ks_conn:
+            halted, halt_reason = await is_actuation_halted(ks_conn, tenant_id)
+        if halted:
+            logger.warning(
+                f"dispatch consumer: kill-switch مُشتبَك ({halt_reason}) — الطلبات تبقى مصفوفة"
+            )
+            return processed
+        delivery_token = _uuid4().hex
+        claim = await _decision_request(
+            client,
+            "POST",
+            f"/v1/execution-requests/{req_id}/claim",
+            tenant_id,
+            json_body={
+                "adapter_id": _DISPATCH_ADAPTER_ID,
+                "adapter_kind": "equipment",
+                "delivery_token": delivery_token,
+            },
+        )
+        if claim.status_code != 200:
+            continue  # سبقنا adapter آخر (409) أو اختفى الطلب (404) — الادّعاء الذرّيّ حكم.
+        plan = _plan_dispatch_execution(item, allowlist=allowlist)
+        if plan[0] == "send":
+            _, device_id, cmd, payload = plan
+            sent = await send_mqtt_command(device_id, cmd, payload)
+            receipt_status = "accepted" if sent else "failed"
+            receipt_payload = {
+                "adapter": _DISPATCH_ADAPTER_ID,
+                "actuator_mode": ACTUATOR_MODE,
+                "device_id": device_id,
+                "command": cmd,
+                "published": bool(sent),
+                "note": "published != physically executed — outcome verification is a separate step",
+            }
+        else:
+            receipt_status = "failed"
+            receipt_payload = {
+                "adapter": _DISPATCH_ADAPTER_ID,
+                "reason": plan[0] if plan[0] != "refused_risk" else f"refused_risk:{plan[1]}",
+            }
+        receipt = await _decision_request(
+            client,
+            "POST",
+            f"/v1/execution-requests/{req_id}/receipt",
+            tenant_id,
+            json_body={
+                "adapter_id": _DISPATCH_ADAPTER_ID,
+                "delivery_token": delivery_token,
+                "receipt_id": "rcpt_" + _uuid4().hex[:16],
+                "receipt_status": receipt_status,
+                "receipt_payload": receipt_payload,
+            },
+        )
+        if receipt.status_code == 200:
+            processed += 1
+        else:
+            logger.error(
+                f"dispatch consumer: receipt HTTP {receipt.status_code} للطلب {req_id} — "
+                "المطالبة مسجّلة والإيصال سيعاد في دورة لاحقة عبر نفس الـtoken لو أُعيد"
+            )
+    return processed
+
+
+async def dispatch_consumer_loop() -> None:
+    """حلقة جسر القرار — تعمل فقط خلف FEATURE_DISPATCH_ACTUATOR وبتعيين مستأجرين صريح."""
+    import httpx
+
+    tenants = _dispatch_tenants(ACTUATOR_DISPATCH_TENANT_IDS)
+    if not tenants:
+        logger.warning(
+            "FEATURE_DISPATCH_ACTUATOR مفعّل لكن ACTUATOR_DISPATCH_TENANT_IDS فارغ — "
+            "لا مستأجرين للخدمة، الحلقة خاملة (لا تخمين مستأجرين)"
+        )
+        return
+    allowlist = _parse_risk_allowlist(ACTUATOR_DISPATCH_RISK_ALLOWLIST)
+    logger.info(
+        f"🔌 dispatch consumer يعمل — {len(tenants)} مستأجر، كلّ {ACTUATOR_DISPATCH_POLL_SECONDS}s"
+    )
+    async with httpx.AsyncClient() as client:
+        while True:
+            for tenant_id in tenants:
+                try:
+                    await run_dispatch_consumer_once(client, tenant_id, allowlist=allowlist)
+                except Exception as exc:  # noqa: BLE001 — دورة فاشلة لا تقتل الحلقة
+                    logger.error(f"dispatch consumer ({tenant_id}): {exc}")
+            await asyncio.sleep(ACTUATOR_DISPATCH_POLL_SECONDS)
+
+
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "")
 _JWT_PUBLIC = os.getenv("JWT_PUBLIC_KEY", "")
@@ -754,6 +920,9 @@ async def lifespan(app: FastAPI):
 
     # Start background MQTT listener (احتفظ بالمرجع لمنع GC المبكّر)
     app.state.mqtt_task = asyncio.create_task(mqtt_sensor_listener())
+    # جسر القرار: حلقة استهلاك طلبات التنفيذ المحكومة (default-OFF fail-closed).
+    if _dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR):
+        app.state.dispatch_task = asyncio.create_task(dispatch_consumer_loop())
     logger.info("🔧 Actuator Service ready — Scene Linkage active")
     yield
     if _pool:

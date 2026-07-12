@@ -637,6 +637,14 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_decision_evidence_read.py -q -p no:cacheprovider
+      # ACTUATOR-DISPATCH-CONSUMER (P0, consumers audit): queued feed -> claim -> receipt
+      # full chain proven on real Postgres; feed serves queued only; mirror 503.
+      - name: execution-request delivery feed tests (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_execution_request_feed.py -q -p no:cacheprovider
       # AC-6: HTTP contract for strict lineage + evidence writer (pure logic, no DB,
       # mirror-mode fail-closed) — deliberately run WITHOUT DATABASE_URL/SoR env.
       - name: AC-6 evidence/lineage contract tests (no DB, mirror fail-closed)
@@ -654,6 +662,11 @@ jobs:
       # bounded backoff, compare-and-swap decision). The contract test additionally imports the
       # decision-service app (fastapi is installed in this job) and replays every request the
       # runtime/worker emit, so URL/header/body drift fails here every push.
+      # actuator dispatch-consumer pure logic (plan/risk/tenants + wiring guard) — was
+      # previously never exercised by CI (latent break after the P2 decomposition).
+      - name: actuator dispatch-consumer pure tests
+        working-directory: services/actuator-service
+        run: pytest test_dispatch_bridge.py -q -p no:cacheprovider
       - name: WX-12 model-registry-adapter runtime + contract tests
         working-directory: services/decision-service
         env:

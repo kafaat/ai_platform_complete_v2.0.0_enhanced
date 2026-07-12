@@ -27,7 +27,9 @@ if "aiomqtt" not in sys.modules:
 
 os.environ.setdefault("ACTUATOR_DEDUP_WINDOW_SEC", "60")
 
-_MAIN_PATH = Path(__file__).resolve().parent / "main.py"
+# بعد تفكيك P2، المساعدات تعيش في actuator_runtime.py — main.py يعيد التصدير بـ`import *`
+# الذي لا يشمل أسماء الشرطة السفليّة، فكان التحميل عبر main.py فشلاً كامناً لا يراه CI.
+_MAIN_PATH = Path(__file__).resolve().parent / "actuator_runtime.py"
 _spec = importlib.util.spec_from_file_location("actuator_main_dispatch_test", _MAIN_PATH)
 main = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(main)
@@ -105,6 +107,51 @@ def test_outcome_status():
     """نجاح النشر ⇒ executed (نُشِر للوسيط، لا تأكيد فيزيائيّ)؛ فشل ⇒ failed."""
     assert main._dispatch_outcome_status(True) == "executed"
     assert main._dispatch_outcome_status(False) == "failed"
+
+
+# ── مخطّط تنفيذ الطلب (ACTUATOR-DISPATCH-CONSUMER) — نقيّ بلا شبكة ──
+def test_plan_dispatch_send_when_valid_and_risk_allowed():
+    item = {"command_payload": {"device_id": "valve-7", "command": "open", "risk_level": "low"}}
+    plan = main._plan_dispatch_execution(item, allowlist={"low", "medium"})
+    assert plan == ("send", "valve-7", "open", {})
+
+
+def test_plan_dispatch_refuses_declared_high_risk():
+    """مخاطرة مُعلَنة خارج المسموح ⇒ رفض بإيصال failed (لا إرسال أعمى)."""
+    item = {"command_payload": {"device_id": "v1", "command": "open", "risk_level": "high"}}
+    plan = main._plan_dispatch_execution(item, allowlist={"low", "medium"})
+    assert plan == ("refused_risk", "high")
+
+
+def test_plan_dispatch_invalid_command_is_terminal_failed():
+    assert main._plan_dispatch_execution({"command_payload": "not json"}, allowlist={"low"}) == (
+        "invalid_command",
+    )
+    assert main._plan_dispatch_execution({}, allowlist={"low"}) == ("invalid_command",)
+
+
+def test_plan_dispatch_undeclared_risk_is_sendable():
+    """السلسلة محكومة أصلاً (مراجعة + تفويض) — غياب إعلان المخاطرة لا يحجب، إعلانها خارج
+    المسموح هو الذي يحجب."""
+    item = {"command_payload": {"device_id": "v1", "command": "close"}}
+    assert main._plan_dispatch_execution(item, allowlist={"low"})[0] == "send"
+
+
+def test_dispatch_tenants_csv_and_empty_means_idle():
+    assert main._dispatch_tenants("t1, t2 ,,t3") == ["t1", "t2", "t3"]
+    assert main._dispatch_tenants("") == []
+    assert main._dispatch_tenants(None) == []
+
+
+def test_dispatch_consumer_loop_is_wired_in_lifespan():
+    """حارس توصيل ساكن: الحلقة موجودة ومربوطة خلف FEATURE_DISPATCH_ACTUATOR."""
+    src = (Path(__file__).resolve().parent / "actuator_runtime.py").read_text()
+    assert "async def dispatch_consumer_loop" in src
+    assert "async def run_dispatch_consumer_once" in src
+    assert "app.state.dispatch_task" in src
+    assert "_dispatch_consumer_enabled(FEATURE_DISPATCH_ACTUATOR)" in src
+    assert "/v1/execution-requests" in src
+    assert "is_actuation_halted" in src
 
 
 if __name__ == "__main__":
