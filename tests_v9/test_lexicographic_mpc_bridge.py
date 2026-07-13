@@ -13,12 +13,20 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import os
 import sys
 
 import pytest
 
 pytestmark = pytest.mark.unit
+
+# الراوتر يستورد api.main (FastAPI). بيئة اختبارات الوحدة في CI منطق صرف بلا FastAPI،
+# فتخطّى اختبارات الراوتر هناك. اختبارات الجسر/الحلّال نقيّة فتبقى عاملة دائماً.
+_HAS_FASTAPI = importlib.util.find_spec("fastapi") is not None
+_requires_fastapi = pytest.mark.skipif(
+    not _HAS_FASTAPI, reason="fastapi/api.main not importable in the pure-logic unit env"
+)
 
 _PLATFORM = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform")
 if _PLATFORM not in sys.path:
@@ -168,6 +176,7 @@ class _User:
     tenant_id = "tenant-42"
 
 
+@_requires_fastapi
 def test_route_plan_uses_user_tenant_and_declares_degradation(monkeypatch):
     """الدفتر الغائب ⇒ استنزاف 0 + data_degraded مُعلَن (لا اختلاق)، والمستأجِر من المستخدم."""
     import api.routers.irrigation_mpc as route
@@ -189,6 +198,7 @@ def test_route_plan_uses_user_tenant_and_declares_degradation(monkeypatch):
     assert out["decision"]["tenant_id"] == "tenant-42"  # من المستخدم لا الجسم
 
 
+@_requires_fastapi
 def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
     import api.routers.irrigation_mpc as route
 
@@ -206,6 +216,7 @@ def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
     assert out["depletion_source"] == "water_ledger"
 
 
+@_requires_fastapi
 def test_route_plan_submit_without_bridge_is_disabled(monkeypatch):
     import api.routers.irrigation_mpc as route
 
@@ -225,6 +236,7 @@ def test_route_plan_submit_without_bridge_is_disabled(monkeypatch):
     assert out["emit"] == {"status": "disabled"}
 
 
+@_requires_fastapi
 def test_route_capabilities_no_private_leak():
     import api.routers.irrigation_mpc as route
 
