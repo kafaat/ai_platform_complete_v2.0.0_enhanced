@@ -2235,7 +2235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8cbffa63e3e997b59a63e4ed10ab25813d44debc9408b24342a4cb5fc51abad3"
+          "content": "9420c60e3770b9d863d01be0ac6569d0e1a19e8a9f5442f78f42d2dd133277d1"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.ts",
@@ -2305,7 +2305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a1820ae37e57d41d9bae328e3c6410ba27d25ddf794766bfb474ef2046ce1c9"
+          "content": "97fa1f0830277bd3ba0d5694df36c839286597ba990358216884bcc555a3dc03"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4095,7 +4095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ee8dc8211dfa65324c4addac5d32fb8bb615e24afc683491a6b6d05f6117b123"
+          "content": "12ea700dfefa0efcf6311f4e1372c4e3059b45a1bd8639104a437bb5a7511daf"
         }
       ],
       "name": "frontend/src/lib/soilWorkspace.test.ts",
@@ -4105,7 +4105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78c712de4dd9148b4f2b523bddcc2c4ded5be6a81a17f91c9d2dc449a9b5a596"
+          "content": "6bdf0a91020cdd012ab2dd8658b83b0718897a1f8f1a5e803048e9085ff3e74b"
         }
       ],
       "name": "frontend/src/lib/soilWorkspace.ts",
@@ -5085,7 +5085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "214e6d2239e251f34c151f900de1635997df7ed990010f99ae9d9dc870690fbd"
+          "content": "1ed321b40285fd712d0f43889fe2ab02e57ca9e2bf31d43967e7c94a441a96dc"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5785,7 +5785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c40e56fa9a14e66a5c6aec4cf2076f3315086aab99450de5d795d96f22cebca"
+          "content": "c5e64f462d7a8fcd2e898a787f50bf0123a258abd31f4876aa63399f1eed027a"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -6669,6 +6669,16 @@
         }
       ],
       "name": "migrations/v165_soil_p5_validation_calibration_certification.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ef40b03ca2b1d55a0fd9cd5cb109982ae148bafb6c03dffb177120f903504420"
+        }
+      ],
+      "name": "migrations/v166_soil_p6_runtime_certification.sql",
       "type": "file"
     },
     {
@@ -15955,7 +15965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6842a04881827a44b89f456c0c73d190a6450596d7c7abb1a0b616ba15898e05"
+          "content": "adebb0a33442d3693e481ac6cd11fb28fa0d78a7a9e345c7c3e6cf6cb6722891"
         }
       ],
       "name": "services/sahool-platform/api/soil_evidence_bridge.py",
@@ -24135,6 +24145,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2e2ceadf65982d28aaff12e34982ff7a9fde7a98b501d9ef0026655cad052f5b"
+        }
+      ],
+      "name": "services/soil-service/p6_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a4174654f4540e4d61783b03d6bb349555999deb425e882241e17388b620a8b4"
         }
       ],
@@ -24275,6 +24295,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "6d16d0b89f78e47fcc5a7e982e2b514441be377c0ff4d10b286721910e1ff714"
+        }
+      ],
+      "name": "services/soil-service/routers/p6_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "84391646cbd2f572d1bc1360c788896b21688bb6f4aa09c322fc9b01b2e4e52e"
         }
       ],
@@ -24409,6 +24439,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_p5_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5c2af8614301756b0408fb7c31b6ddaadebb833c05d74a7bb323127f872f8f18"
+        }
+      ],
+      "name": "services/soil-service/test_soil_p6_certification.py",
       "type": "file"
     },
     {
@@ -25909,6 +25949,16 @@
         }
       ],
       "name": "shared/contracts/soil/p5.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "416bac11eed7681be1e75520546195ee5e7ef08f462a1b476650de8d3d0405de"
+        }
+      ],
+      "name": "shared/contracts/soil/p6.py",
       "type": "file"
     },
     {

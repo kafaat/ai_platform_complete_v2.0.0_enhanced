@@ -30,7 +30,10 @@ async def publish_soil_lab_evidence(
     result_rows: list[dict[str, Any]] | None = None,
     correction_reason: str | None = None,
 ) -> dict[str, Any]:
-    base = os.getenv("SOIL_SERVICE_URL", "http://soil-service:8134").rstrip("/")
+    # Canonical default must match compose/service_proxy/field_intelligence_adapters
+    # (sahool-soil-service:8000). The old "soil-service:8134" default was only masked
+    # because SOIL_SERVICE_URL is always set in compose; unset, it dialed a dead host.
+    base = os.getenv("SOIL_SERVICE_URL", "http://sahool-soil-service:8000").rstrip("/")
     token = (
         os.getenv("INTERNAL_SERVICE_TOKEN")
         or os.getenv("SOIL_SERVICE_TOKEN")

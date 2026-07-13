@@ -3788,6 +3788,18 @@ export const postSoilReading = (data: { field_id:string; ph?:number; moisture_pc
     () => ({ status:'received', nats_published:false })
   );
 
+// ── حوكمة التربة الكنسيّة (soil-service P4 عبر بوّابة /api/soil) ──
+// قراءة فقط، بلا mock: البوّابة تحقن التوكن+المستأجر، وsoil-service يخدم /v1/...
+// عند غياب لقطة تربة يعيد الخادم 404/503 صادقاً وتُظهِر البطاقة حالة «لا لقطة بعد».
+export const fetchSoilProfileSnapshot = (fieldId: string) =>
+  soilApi.get(`/v1/fields/${fieldId}/soil/profile`).then(r => r.data);
+
+export const fetchSoilClosedLoop = (fieldId: string) =>
+  soilApi.get(`/v1/fields/${fieldId}/soil/closed-loop`).then(r => r.data);
+
+export const fetchSoilProfileHistory = (fieldId: string) =>
+  soilApi.get(`/v1/fields/${fieldId}/soil/profile/history`).then(r => r.data);
+
 // ══════════════════════════════════════════════════════════════════
 // PROBES — فحص صحة كل الخدمات
 // ══════════════════════════════════════════════════════════════════

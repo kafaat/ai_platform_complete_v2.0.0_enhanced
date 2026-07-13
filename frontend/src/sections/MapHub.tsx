@@ -66,6 +66,7 @@ import LedgerEntryCard from '../components/fieldview/LedgerEntryCard';
 import AgroKnowledgeCard from '../components/fieldview/AgroKnowledgeCard';
 import AgroCalculatorsCard from '../components/fieldview/AgroCalculatorsCard';
 import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
+import SoilGovernanceCard from '../components/fieldview/SoilGovernanceCard';
 import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
 import IrrigationDecisionAidsCard from '../components/fieldview/IrrigationDecisionAidsCard';
@@ -1856,6 +1857,12 @@ function MapHubCore() {
           خطط IPM المتدرّجة (الكيميائيّ ملاذ أخير) + تقييم ملوحة FAO من قياسات المستخدم. */}
       {selected && fieldMode === 'expert' && (
         <DiagnosticsCard fieldId={fieldId ?? null} cropLabel={selected.crop} enabled={expertMode} />
+      )}
+
+      {/* حوكمة التربة: الحلقة المغلقة الكنسيّة (soil-service P4) — مستوى الأدلّة وبوّابة
+          الجودة والاستخدامات المحجوبة وعدّادات التنفيذ/التحقّق/التعلّم. قراءة فقط. */}
+      {selected && fieldMode === 'expert' && (
+        <SoilGovernanceCard fieldId={fieldId ?? null} enabled={expertMode} />
       )}
 
       {/* سيناريوهات «ماذا لو؟»: حرارة/مطر/تاريخ زراعة/توأم ماء — محاكاة افتراضات

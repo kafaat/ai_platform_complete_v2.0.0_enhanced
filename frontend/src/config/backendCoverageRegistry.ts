@@ -272,6 +272,23 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
     ],
   },
   {
+    id: 'soil-governance-closed-loop',
+    label: 'Soil governance — canonical closed-loop workspace (soil-service P4)',
+    priority: 'P2',
+    role: 'expert_console',
+    state: 'covered',
+    owner: 'agronomy',
+    endpoints: [
+      '/api/soil/v1/fields/{field_id}/soil/profile',
+      '/api/soil/v1/fields/{field_id}/soil/closed-loop',
+      '/api/soil/v1/fields/{field_id}/soil/profile/history',
+    ],
+    hooks: ['useSoilWorkspace'],
+    surfaces: [
+      { kind: 'fieldview_card', name: 'SoilGovernanceCard', component: 'SoilGovernanceCard' },
+    ],
+  },
+  {
     id: 'simulation-crop-twin-scenarios',
     label: 'Simulation / crop twin / scenario comparison / replay',
     priority: 'P2',

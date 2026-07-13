@@ -6,6 +6,7 @@ import {
 import {
   kongApi, indicatorsApi, vegetationApi,
   weatherApi, soilApi, authApi, rasterApi,
+  fetchSoilProfileSnapshot, fetchSoilClosedLoop, fetchSoilProfileHistory,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
   analyzeFieldIntelligence, startAnalyzeFieldIntelligence, getFieldIntelligenceJob, cancelFieldIntelligenceJob, getCostAnalytics,
   getYieldAnalysis, type YieldAnalysisResult,
@@ -110,6 +111,7 @@ import {
 } from '../services/api';
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
+import { buildSoilWorkspaceSummary, type SoilWorkspaceSummary } from '../lib/soilWorkspace';
 
 // ── Query Keys ─────────────────────────────────────────────────
 export const QK = {
@@ -123,6 +125,9 @@ export const QK = {
   weatherHistory:   (lat: number, lon: number, days: number) => ['weather', 'history', lat, lon, days],
   soilParams:       (fid: string)        => ['soil', 'params', fid],
   soilNRec:         (fid: string)        => ['soil', 'nrec', fid],
+  soilProfileSnap:  (fid: string)        => ['soil', 'profile-snapshot', fid],
+  soilClosedLoop:   (fid: string)        => ['soil', 'closed-loop', fid],
+  soilProfileHist:  (fid: string)        => ['soil', 'profile-history', fid],
   fields:           (tid: string)        => ['fields', tid],
   fieldDetail:      (tid: string, fid: string) => ['field-detail', tid, fid],
   fieldWorkspace:   (tid: string, fid: string) => ['field-workspace', tid, fid],
@@ -702,6 +707,62 @@ export function useSoilNRecommendation(fieldId: string, targetYield = 3.5) {
     enabled:  SOIL_ENABLED && !!fieldId,
     retry:    false,
   });
+}
+
+// ── حوكمة التربة الكنسيّة (soil-service P4 closed-loop عبر بوّابة /api/soil) ──
+// قراءة فقط: لقطة الملف الكنسيّة + سلسلة الحلقة المغلقة + عدّاد التاريخ (التعاقُب).
+// غير محروسة بـSOIL_ENABLED (تلك للمسار القديم /soil/* غير المنشور)؛ هذا المسار /v1/…
+// يخدمه soil-service المنشور عبر بوّابة المنصّة. لا mock — غياب اللقطة يظهر صادقاً في البطاقة.
+export interface SoilWorkspaceResult {
+  summary: SoilWorkspaceSummary | null;
+  hasProfile: boolean;
+  isLoading: boolean;
+  isError: boolean;
+  closedLoopLoading: boolean;
+}
+
+export function useSoilWorkspace(fieldId: string | null | undefined, enabled = true): SoilWorkspaceResult {
+  const fid = fieldId ?? '';
+  const on = enabled && !!fid;
+  const profileQ = useQuery({
+    queryKey: QK.soilProfileSnap(fid),
+    queryFn:  () => fetchSoilProfileSnapshot(fid),
+    staleTime:5 * 60_000,
+    enabled:  on,
+    retry:    false,
+  });
+  const loopQ = useQuery({
+    queryKey: QK.soilClosedLoop(fid),
+    queryFn:  () => fetchSoilClosedLoop(fid),
+    staleTime:5 * 60_000,
+    enabled:  on,
+    retry:    false,
+  });
+  const historyQ = useQuery({
+    queryKey: QK.soilProfileHist(fid),
+    queryFn:  () => fetchSoilProfileHistory(fid),
+    staleTime:5 * 60_000,
+    enabled:  on,
+    retry:    false,
+  });
+
+  const profile = (profileQ.data as unknown) ?? null;
+  const hist = historyQ.data as { history?: unknown[]; snapshots?: unknown[] } | unknown[] | undefined;
+  const historyCount = Array.isArray(hist)
+    ? hist.length
+    : Array.isArray((hist as { history?: unknown[] })?.history)
+      ? (hist as { history: unknown[] }).history.length
+      : Array.isArray((hist as { snapshots?: unknown[] })?.snapshots)
+        ? (hist as { snapshots: unknown[] }).snapshots.length
+        : 0;
+
+  return {
+    summary: profile ? buildSoilWorkspaceSummary(profile, loopQ.data ?? {}, historyCount) : null,
+    hasProfile: !!profile,
+    isLoading: profileQ.isLoading,
+    isError: profileQ.isError,
+    closedLoopLoading: loopQ.isLoading,
+  };
 }
 
 // ── Phenology / Season (ربط حيّ بنقاط المنصّة؛ لا كتابة، اقتراحات فقط) ──

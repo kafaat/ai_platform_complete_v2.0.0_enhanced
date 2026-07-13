@@ -3,6 +3,20 @@
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
+## 2026-07-13 — مراجعة واجهات (بوّابة/backend/عمل أخير) + أوّل مستهلك UI للحوكمة (SOIL-GOVERNANCE-WORKSPACE)
+
+**المراجعة (٣ وكلاء استطلاع متوازية):** (backend) ~50 نقطة soil-service P1–P6 تُخدَم بلا بادئة عبر `router_registry`؛ (بوّابة) `/api/soil/` → `service_proxy` (يجرّد رؤوس العميل، يحقن `X-Agent-Token`+`X-Tenant-Id`) → `SOIL_SERVICE_URL` (`sahool-soil-service:8000`)؛ لا upstream soil مباشر في nginx عمداً؛ (واجهة) المستهلَك فعليّاً: SoilGrids/Terrain (raster) · Irrigation-water · Salinity · Lab CRUD. **الفجوة:** P4–P6 (حلقة مغلقة/تحقّق/تصديق/runtime) بلا مستهلك واجهة، و`frontend/src/lib/soilWorkspace.ts` سقالة يتيمة تُخطئ عقد `soil-profile.v1`.
+
+**البند المعماريّ (أوّل مستهلك قراءة للحلقة المغلقة P4):**
+- **إصلاح `soilWorkspace.ts` لعقد v1 الحقيقيّ:** الاكتمال من `completeness_score` (0..1) لا `completed_properties` المُتوهَّم (كان يعطي 0٪ دائماً)؛ بوّابة الجودة `{passed,executable,reasons}` تُعرَض كما هي؛ `conflicts` (قائمة كائنات) تُلخَّص نصّاً؛ `historyCount` من نقطة `profile/history` لا حقل غير موجود؛ عدّادات حلقة مغلقة صادقة (تنفيذ مكتمل/جارٍ · تحقّق · نتائج · تعلّم مؤهَّل للتدريب).
+- **`useSoilWorkspace(fieldId,enabled)`** (`useApi.ts`): يجمع `fetchSoilProfileSnapshot`+`fetchSoilClosedLoop`+`fetchSoilProfileHistory` عبر `soilApi` (base `/api/soil`، nginx يجرّد البادئة) — قراءة فقط بلا mock، `retry:false`، غياب اللقطة ⇒ 404/503 صادق.
+- **`SoilGovernanceCard`** في FieldView (`MapHub.tsx`، محروسة `selected && fieldMode==='expert'`، بعد DiagnosticsCard): مستوى الأدلّة (وسم مُلوَّن) · بوّابة الجودة + أسباب + تعارُضات · اكتمال · مسموح/محجوب · عدّادات الحلقة · حالة «لا لقطة تربة بعد» صادقة.
+- حارس ساكن `SoilGovernanceWiring.static.test.ts` + مدخل `backendCoverageRegistry` (توثيقيّ) + تحديث `soilWorkspace.test.ts` لعقد v1 (8/8).
+- **علّة كامنة أُصلِحت:** `soil_evidence_bridge.py:33` افتراض `soil-service:8134` → `sahool-soil-service:8000` (مطابقة compose/service_proxy/field_intelligence_adapters).
+
+**التحقّق:** `tsc --noEmit` 0 · `tsc -p tsconfig.field-workspace-contract.json` 0 · vitest التربة **8/8** · `vite build` نجح · `endpoint_ui_coverage_gate.py` PASS (458 core + عكسيّ) · ruff نظيف على backend المُعدَّل · release **4231** checksum. الفرع يُدفَع؛ CI ثمّ FF.
+
+---
 ## 2026-07-13 — دمج soil P6 (التصديق التشغيليّ/الإنتاجيّ v166) + تشخيص أحمر Service Inventory Drift على main
 
 **P6 (`soil_p6_runtime_certification`) — دُمِج على حزمة P5 بتصميم الحزمة القانونيّ:** عقد `shared/contracts/soil/p6.py`
