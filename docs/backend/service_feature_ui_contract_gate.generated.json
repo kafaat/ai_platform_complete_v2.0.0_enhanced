@@ -1598,23 +1598,8 @@
             },
             {
               "root": "frontend/src",
-<<<<<<< HEAD
               "path": "frontend/src/lib/enterpriseGisPhase7.ts",
               "pattern": "approval"
-=======
-              "path": "frontend/src/components/maphub/HubMap.tsx",
-              "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/MapImageryReflow.static.test.ts",
-              "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/FieldSplitMergeTool.test.tsx",
-              "pattern": "validate"
->>>>>>> origin/main
             },
             {
               "root": "frontend/src",
@@ -1623,16 +1608,7 @@
             },
             {
               "root": "frontend/src",
-<<<<<<< HEAD
               "path": "frontend/src/lib/fieldOperatingContract.ts",
-=======
-              "path": "frontend/src/components/maphub/drawing/ZoneDesigner.static.test.ts",
-              "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
->>>>>>> origin/main
               "pattern": "validate"
             }
           ],
@@ -2169,53 +2145,8 @@
             },
             {
               "root": "frontend/src",
-<<<<<<< HEAD
               "path": "frontend/src/components/fieldview/MpcGovernanceCard.tsx",
               "pattern": "snapshot"
-=======
-              "path": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
-              "pattern": "stream"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/EvidenceHistoryCard.tsx",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/MpcGovernanceCard.tsx",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
-              "pattern": "stream"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useManagerConsole.ts",
-              "pattern": "camera"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useManagerConsole.ts",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useWaterFieldOps.ts",
-              "pattern": "stream"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
-              "pattern": "camera"
->>>>>>> origin/main
             }
           ],
           "match_count": 29
