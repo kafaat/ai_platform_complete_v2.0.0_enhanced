@@ -22375,7 +22375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a5f7cc073429b0612297794b07682bf890e626c2a0b4ce710198efc99f2b8584"
+          "content": "5efad83dcdec3e6f4467907ac263dee4bd337eaefb6ee926bf1632be22726a41"
         }
       ],
       "name": "services/sahool-platform/tests/test_jwt_key_validation.py",
