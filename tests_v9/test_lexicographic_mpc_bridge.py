@@ -296,3 +296,130 @@ def test_route_capabilities_no_private_leak():
     assert out["recommendation_only"] is True
     assert "yield_ky_forecast_horizon" in out["modeled_capabilities"]
     assert "predicted_energy_kwh" in out["not_modeled"]
+
+
+# ─────────────────── P1.1c-b: مصدرة الحقائق الخادميّة + فصل المسارات ───────────────────
+
+
+@_requires_fastapi
+def test_route_simulate_never_emits(monkeypatch):
+    """/simulate بحقائق يدويّة ⇒ scenario، لا يُصدِر مرشّحاً محكوماً أبداً."""
+    import api.routers.irrigation_mpc as route
+
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
+    req = route.SimulateRequest(
+        field_id="fld_a",
+        forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
+        taw_mm=100.0,
+        initial_depletion_mm=45.0,
+        crop="maize",
+        growth_stage="flowering",
+    )
+    out = asyncio.run(route.irrigation_mpc_simulate(req, user=_User()))
+    assert out["mode"] == "simulation"
+    assert out["emit"]["status"] == "not_applicable_simulation"
+
+
+@_requires_fastapi
+def test_route_recommendation_blocks_on_missing_sor_facts(monkeypatch):
+    """P1.1c-b: نقص أيّ حقيقة SoR ⇒ blocked مع قائمة الناقص (لا تلفيق)."""
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _state(t, f):
+        return {"depletion_mm": 40.0, "stage": "flowering", "as_of": "2026-07-13"}
+
+    async def _no_soil(t, f):
+        return None  # TAW غير مُصدَّر
+
+    async def _no_forecast(t, f, h):
+        return None  # تنبّؤ غير مُصدَّر
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_source_current_state", _state)
+    monkeypatch.setattr(route, "_source_soil_capacity", _no_soil)
+    monkeypatch.setattr(route, "_source_forecast_horizon", _no_forecast)
+
+    req = route.RecommendationRequest(horizon_days=7)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+    assert out["status"] == "blocked"
+    assert out["reason"] == "insufficient_ground_truth"
+    assert "taw(soil_profile)" in out["missing"]
+    assert "forecast(weather_service)" in out["missing"]
+
+
+@_requires_fastapi
+def test_route_recommendation_blocks_on_unowned_field(monkeypatch):
+    import api.routers.irrigation_mpc as route
+
+    async def _not_owned(t, f):
+        return False
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _not_owned)
+    req = route.RecommendationRequest()
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_x", req, user=_User()))
+    assert out["status"] == "blocked"
+    assert out["reason"] == "field_not_owned"
+
+
+@_requires_fastapi
+def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
+    """كلّ الحقائق مُصدَّرة من SoR ⇒ عمليّ + بصمات لقطات + إصدار محكوم (جسر مموّه)."""
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _state(t, f):
+        return {"depletion_mm": 45.0, "stage": "flowering", "as_of": "2026-07-13"}
+
+    async def _soil(t, f):
+        return {"taw_mm": 100.0, "raw_fraction": 0.5, "crop": "maize"}
+
+    async def _forecast(t, f, h):
+        return [{"et0_mm": 10.0, "kc": 1.0, "rain_mm": 0.0} for _ in range(h)]
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_source_current_state", _state)
+    monkeypatch.setattr(route, "_source_soil_capacity", _soil)
+    monkeypatch.setattr(route, "_source_forecast_horizon", _forecast)
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
+
+    captured = {}
+
+    async def _fake_record(payload, *, tenant_id=None):
+        captured["payload"] = payload
+        return {"persisted": True, "authoritative": True}
+
+    import api.decision_service_client as dsc
+
+    monkeypatch.setattr(dsc, "record_decision", _fake_record)
+
+    req = route.RecommendationRequest(horizon_days=7, submit=True)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+    assert out["mode"] == "operational"
+    prov = out["facts_provenance"]
+    assert prov["depletion_source"] == "water_ledger"
+    assert prov["taw_source"] == "soil_profile"
+    assert prov["forecast_source"] == "weather_service"
+    # بصمات لقطات كاملة (64-hex) — نَسَب لا يُزوَّر.
+    assert len(prov["ledger_snapshot_hash"]) == 64
+    assert len(prov["weather_snapshot_hash"]) == 64
+    assert len(prov["soil_snapshot_hash"]) == 64
+    # الإصدار العمليّ يمرّ للجسر (تنفيذ ممنوع بنيويّاً).
+    assert out["emit"]["status"] == "candidate_created"
+    assert out["emit"]["execution_allowed"] is False
+
+
+@_requires_fastapi
+def test_snapshot_hash_deterministic_and_content_addressed():
+    import api.routers.irrigation_mpc as route
+
+    a = route._facts_snapshot_hash({"x": 1, "y": 2})
+    b = route._facts_snapshot_hash({"y": 2, "x": 1})  # ترتيب مفاتيح مختلف
+    c = route._facts_snapshot_hash({"x": 1, "y": 3})
+    assert a == b  # canonical (sort_keys) ⇒ نفس البصمة
+    assert a != c  # محتوى مختلف ⇒ بصمة مختلفة
+    assert len(a) == 64
