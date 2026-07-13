@@ -762,6 +762,10 @@ services:
       VEGETATION_REAL_ONLY: "1"
       # vegetation publishes events best-effort; NATS is not a startup/readiness blocker.
       VEGETATION_NATS_PUBLISH_MODE: ${VEGETATION_NATS_PUBLISH_MODE:-best_effort}
+      # نبات → decision-service: دفع لقطات النبات المُصانة (opt-in، fail-soft). العنوان يطابق
+      # خدمة compose الفعليّة (sahool-decision-service:8160) بدل الافتراض الوهميّ في الكود.
+      DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
     networks:
     - sahool-internal
     healthcheck:

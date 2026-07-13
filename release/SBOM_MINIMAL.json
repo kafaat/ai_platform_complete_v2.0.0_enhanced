@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6fea0689dbcbb81a32f5703f2443cc8d289142f7850890d3dfa3306764205662"
+          "content": "90bb70364d5acd7addf1edc85861db26eaefb0df76bba073fc89f7b3109ad5a8"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -25615,7 +25615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac62ce1996f9eb731a51d739932dfdbb9288e47c8e772fceab01d96638c6b989"
+          "content": "3ae3a813097abcf3671054fafea34ade391d52f24db3c30257d80ff5f711cea4"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

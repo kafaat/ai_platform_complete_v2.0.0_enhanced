@@ -106,7 +106,12 @@ ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(os.getenv("ALLOW_LEGACY_FIELD_REGIST
 VEGETATION_EVIDENCE_PUSH_ENABLED = _flag_enabled(
     os.getenv("VEGETATION_EVIDENCE_PUSH_ENABLED"), default=False
 )
-DECISION_SERVICE_URL = os.getenv("DECISION_SERVICE_URL", "http://decision-service:8007").rstrip("/")
+DECISION_SERVICE_URL = os.getenv(
+    # الافتراض يطابق خدمة compose الفعليّة (sahool-decision-service على المنفذ 8160) لا اسماً
+    # أو منفذاً وهميّاً — الافتراض الخاطئ سابقاً كان يجعل دفع لقطات النبات يفشل صامتاً عند غياب env.
+    "DECISION_SERVICE_URL",
+    "http://sahool-decision-service:8160",
+).rstrip("/")
 
 security = HTTPBearer(auto_error=False)
 
