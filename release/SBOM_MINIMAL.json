@@ -6755,6 +6755,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "728759d7a091af13341993141796a709d836572b5168bff3e095fd84a4772a40"
+        }
+      ],
+      "name": "migrations/v167_mpc_content_digest_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4780cbdc4797c942307ae4d13ad546cb17aa4b56279f93af6acce1cecfe12947"
         }
       ],

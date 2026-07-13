@@ -17,6 +17,9 @@ pytestmark = pytest.mark.unit
 
 _ROOT = pathlib.Path(__file__).resolve().parents[1]
 _MIGRATION = _ROOT / "migrations" / "v167_mpc_content_digest_lineage.sql"
+_DS_MIGRATION = (
+    _ROOT / "services" / "decision-service" / "migrations" / "026_content_digest_lineage.sql"
+)
 _PERSIST = _ROOT / "services" / "decision-service" / "persistence.py"
 _BRIDGE = _ROOT / "services" / "sahool-platform" / "api" / "lexicographic_mpc_bridge.py"
 _SOLVER = _ROOT / "services" / "sahool-platform" / "api" / "lexicographic_irrigation_mpc.py"
@@ -53,6 +56,17 @@ def test_migration_registered_in_both_runners():
     runner = _read(_ROOT / "scripts_v9" / "run_migrations.sql")
     assert "v167_mpc_content_digest_lineage.sql" in manifest
     assert "v167_mpc_content_digest_lineage.sql" in runner
+
+
+# ── مرافِق مخطّط decision-service (026): السلسلة تملك مخطّطها عبر migration_runner الخاصّ ──
+# (001..026 على Postgres حقيقيّ في CI)، فيجب أن يُضيف العمود نفسه وإلا فشلت اختبارات SoR.
+def test_decision_service_companion_migration_adds_columns():
+    src = _read(_DS_MIGRATION)
+    for table in _CHAIN_TABLES:
+        assert f"ALTER TABLE {table}" in src, f"عمود مفقود في مخطّط decision-service لـ{table}"
+        assert f"idx_{table}_content_digest" in src, f"فهرس مفقود في decision-service لـ{table}"
+    assert src.count("ADD COLUMN IF NOT EXISTS content_digest text") == len(_CHAIN_TABLES)
+    assert "DROP COLUMN" not in src  # additive/idempotent
 
 
 # ── الرأس: content_digest يُستخرَج من decision_value ويُدرَج في decision_record ──
