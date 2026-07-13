@@ -5985,7 +5985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fbe00134e8d1e0bbcbc6c0d2524977e1d078b157a8a34397b74f4f4c885256a8"
+          "content": "b9bfedd263e0340bcd298380fff227d1f2e67431e96238381c7af24494b5f8fc"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -9565,7 +9565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1a51616366c7ca5c12a3f78859801e62e9bf87fdea78c1faadc001d5a570acb5"
+          "content": "2d54fb720fc41051d586b70a43079f78f1ebde78d293fc2f7d7b5d25744f13f8"
         }
       ],
       "name": "services/decision-service/persistence.py",

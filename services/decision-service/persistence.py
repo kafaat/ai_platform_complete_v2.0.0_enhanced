@@ -51,6 +51,22 @@ def _json(value: Any) -> str:
     return json.dumps(value or {}, ensure_ascii=False, default=str)
 
 
+async def _lookup_content_digest(conn: Any, *, tenant_id: str, decision_id: str) -> str | None:
+    """v167: propagate the collision-free full digest down the chain from its authoritative
+    source (decision_record). Downstream links (dispatch/outcome/recommendation) never trust a
+    client-supplied digest — they read it server-side from the head row within the same
+    tenant-bound transaction. Returns None when the head row is absent or carries no digest,
+    keeping the column NULL-able and backward-compatible (never fails the write)."""
+    if not decision_id:
+        return None
+    row = await conn.fetchrow(
+        "SELECT content_digest FROM decision_record WHERE tenant_id=$1::uuid AND decision_id=$2",
+        tenant_id,
+        decision_id,
+    )
+    return row["content_digest"] if row else None
+
+
 async def persist_decision_record(
     *, tenant_id: str, payload: Any, decision_id: str
 ) -> dict[str, Any]:
@@ -60,6 +76,11 @@ async def persist_decision_record(
     candidate_lineage_id = (
         (payload.decision_value or {}).get("candidate_lineage_id") if is_candidate else None
     )
+    # v167: promote the collision-free full digest (sha256, 64-hex) to a first-class,
+    # indexed column so live lineage tracing queries the digest directly instead of the
+    # 16-hex candidate_lineage_id (higher collision) or a decision_value JSONB scan. Extracted
+    # from the same evidence the bridge writes; NULL for sources that carry no digest.
+    content_digest = (payload.decision_value or {}).get("content_digest")
     # AC-1: optional-but-validated context lineage. When the three context IDs are supplied they
     # must exist for this tenant and match the field; when supplied the row is bound as 'ac-1'.
     ctx_ids = (
@@ -106,15 +127,17 @@ async def persist_decision_record(
                        decision_value, confidence, created_by, review_state, candidate_lineage_id,
                        agronomic_context_snapshot_id, field_historical_context_snapshot_id,
                        feature_manifest_id, context_contract_version,
-                       season_id, crop_id, cultivar_id, vegetation_snapshot_id, feature_manifest_hash)
+                       season_id, crop_id, cultivar_id, vegetation_snapshot_id, feature_manifest_hash,
+                       content_digest)
                     VALUES ($1, $2::uuid, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, $11,
-                            $12, $13, $14, $15, $16, $17, $18, $19, $20)
+                            $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
                     ON CONFLICT (decision_id) DO UPDATE SET
                       stage = EXCLUDED.stage,
                       decision_value = EXCLUDED.decision_value,
                       confidence = EXCLUDED.confidence,
                       review_state = EXCLUDED.review_state,
                       candidate_lineage_id = EXCLUDED.candidate_lineage_id,
+                      content_digest = COALESCE(EXCLUDED.content_digest, decision_record.content_digest),
                       updated_at = now()
                     """,
                     decision_id,
@@ -137,6 +160,7 @@ async def persist_decision_record(
                     getattr(payload, "cultivar_id", None),
                     vegetation_snapshot_id,
                     feature_manifest_hash,
+                    content_digest,
                 )
             except (
                 asyncpg.exceptions.RaiseError,
@@ -165,13 +189,20 @@ async def persist_dispatch_decision(
     conn = await _connect()
     try:
         async with conn.transaction():
+            # v167: bind tenant then propagate the full digest server-side from the head row.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            content_digest = await _lookup_content_digest(
+                conn, tenant_id=tenant_id, decision_id=decision_id
+            )
             await conn.execute(
                 """
                 INSERT INTO dispatch_decisions
                   (decision_id, tenant_id, recommendation_id, action_type, risk_level,
-                   field_id, state, command, created_by)
-                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8::jsonb, $9)
-                ON CONFLICT (decision_id) DO UPDATE SET state = EXCLUDED.state
+                   field_id, state, command, created_by, content_digest)
+                VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8::jsonb, $9, $10)
+                ON CONFLICT (decision_id) DO UPDATE SET
+                  state = EXCLUDED.state,
+                  content_digest = COALESCE(EXCLUDED.content_digest, dispatch_decisions.content_digest)
                 """,
                 decision_id,
                 tenant_id,
@@ -182,6 +213,7 @@ async def persist_dispatch_decision(
                 payload.state,
                 _json(payload.command),
                 payload.created_by,
+                content_digest,
             )
             await emit_outbox_event(
                 conn,
@@ -202,14 +234,21 @@ async def persist_outcome_record(
     conn = await _connect()
     try:
         async with conn.transaction():
+            # v167: bind tenant then propagate the full digest server-side from the head row.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            content_digest = await _lookup_content_digest(
+                conn, tenant_id=tenant_id, decision_id=payload.decision_id
+            )
             await conn.execute(
                 """
                 INSERT INTO outcome_record
                   (outcome_id, tenant_id, decision_id, field_id, region, planned, actual,
-                   metrics, success, created_by, idempotency_key)
-                VALUES ($1, $2::uuid, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9, $10, $11)
+                   metrics, success, created_by, idempotency_key, content_digest)
+                VALUES ($1, $2::uuid, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9, $10, $11, $12)
                 ON CONFLICT (tenant_id, idempotency_key) WHERE idempotency_key IS NOT NULL
-                DO UPDATE SET actual = EXCLUDED.actual, metrics = EXCLUDED.metrics, success = EXCLUDED.success
+                DO UPDATE SET actual = EXCLUDED.actual, metrics = EXCLUDED.metrics,
+                  success = EXCLUDED.success,
+                  content_digest = COALESCE(EXCLUDED.content_digest, outcome_record.content_digest)
                 """,
                 outcome_id,
                 tenant_id,
@@ -222,6 +261,7 @@ async def persist_outcome_record(
                 payload.success,
                 payload.created_by,
                 payload.idempotency_key,
+                content_digest,
             )
             await emit_outbox_event(
                 conn,
@@ -240,17 +280,23 @@ async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dic
     conn = await _connect()
     try:
         async with conn.transaction():
+            # v167: bind tenant then propagate the full digest server-side from the head row.
+            await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+            content_digest = await _lookup_content_digest(
+                conn, tenant_id=tenant_id, decision_id=payload.decision_id
+            )
             await conn.execute(
                 """
                 INSERT INTO recommendation_outcomes
                   (tenant_id, recommendation_id, decision_id, field_id, season_id, outcome,
-                   confidence, metadata)
-                VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8::jsonb)
+                   confidence, metadata, content_digest)
+                VALUES ($1::uuid, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)
                 ON CONFLICT (tenant_id, recommendation_id) DO UPDATE SET
                   decision_id = EXCLUDED.decision_id,
                   outcome = EXCLUDED.outcome,
                   confidence = EXCLUDED.confidence,
-                  metadata = EXCLUDED.metadata
+                  metadata = EXCLUDED.metadata,
+                  content_digest = COALESCE(EXCLUDED.content_digest, recommendation_outcomes.content_digest)
                 """,
                 tenant_id,
                 payload.recommendation_id,
@@ -260,6 +306,7 @@ async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dic
                 payload.outcome,
                 payload.confidence,
                 _json(payload.metadata),
+                content_digest,
             )
             await emit_outbox_event(
                 conn,

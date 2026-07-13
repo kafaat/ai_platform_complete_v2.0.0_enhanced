@@ -487,3 +487,5 @@
 \i migrations/v165_soil_p5_validation_calibration_certification.sql
 \echo '═══ 172. v166_soil_p6_runtime_certification.sql ═══'
 \i migrations/v166_soil_p6_runtime_certification.sql
+\echo '═══ 173. v167_mpc_content_digest_lineage.sql ═══'
+\i migrations/v167_mpc_content_digest_lineage.sql

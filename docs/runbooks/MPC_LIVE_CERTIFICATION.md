@@ -105,23 +105,33 @@ curl -X POST …/api/v1/fields/{FIELD}/irrigation/mpc/recommendation -d '{"horiz
 #   خُذ content_digest من الاستجابة → DIGEST
 ```
 
-تتبّع **نفس `content_digest`** عبر السلسلة (استعلامات على PG لـdecision-service):
-```sql
--- 1) candidate مُثبَت وموثوق
-SELECT decision_id, stage, content_digest FROM decisions WHERE content_digest = '<DIGEST>';
--- 2) في طابور المراجعة بنفس البصمة
---    (أو: curl …/api/v1/decisions/review-queue → يظهر بنفس digest)
--- 3) بعد approve: خطّة التنفيذ تحمل نفس البصمة
-SELECT execution_plan_id, content_digest FROM execution_plans WHERE content_digest = '<DIGEST>';
--- 4) authorize → execution_request → MQTT dispatch
-SELECT execution_request_id, content_digest FROM execution_requests WHERE content_digest = '<DIGEST>';
--- 5) receipt → verify → outcome → learning تحتفظ بالبصمة
-SELECT * FROM outcomes WHERE content_digest = '<DIGEST>';
-```
-> ملاحظة: أسماء الجداول/الأعمدة أعلاه توضيحيّة — طابِقها بمخطّط decision-service الفعليّ.
+> **v167:** `content_digest` صار **عموداً أوّليّاً مفهرَساً** (لا حقلاً في `decision_value` JSONB) على
+> جداول السلسلة الأربعة، يُملأ من الرأس (`decision_record`) ويُنتشَر server-side للحلقات الأدنى بالبحث
+> عبر `decision_id`. لذا التتبّع أدناه استعلام عمود مباشر على الأسماء الفعليّة (لا توضيحيّة):
 
-**معيار النجاح:** نفس `content_digest` يظهر في **كلّ** حلقة من candidate حتى outcome (نَسَب
-end-to-end حقيقيّ).
+تتبّع **نفس `content_digest`** عبر السلسلة (استعلامات على PG لـdecision-service، بعد `SET app.current_tenant`):
+```sql
+-- 1) الرأس: candidate مُثبَت — content_digest مُستخرَج من decision_value إلى العمود الأوّليّ
+SELECT decision_id, stage, review_state, candidate_lineage_id, content_digest
+  FROM decision_record WHERE content_digest = '<DIGEST>';
+-- 2) طابور المراجعة يظهر بنفس البصمة (decision_record.review_state='pending_approval')
+--    (أو: curl …/api/v1/decisions/review-queue → نفس decision_id/candidate_lineage_id)
+-- 3) بعد approve → dispatch: الإرسال يحمل نفس البصمة (مُنتشَرة عبر decision_id)
+SELECT decision_id, recommendation_id, state, content_digest
+  FROM dispatch_decisions WHERE content_digest = '<DIGEST>';
+-- 4) النتيجة تحتفظ بالبصمة (مُنتشَرة عبر decision_id)
+SELECT outcome_id, decision_id, success, content_digest
+  FROM outcome_record WHERE content_digest = '<DIGEST>';
+-- 5) نتيجة التوصية تحتفظ بالبصمة (مُنتشَرة عبر decision_id)
+SELECT recommendation_id, decision_id, outcome, content_digest
+  FROM recommendation_outcomes WHERE content_digest = '<DIGEST>';
+```
+> ملاحظة: خطوات التنفيذ الوسيطة (execution_plan/authorize/execution_request) تربط عبر `decision_id`
+> إلى نفس رأس `decision_record.content_digest`؛ الفهرس `idx_*_content_digest (tenant_id, content_digest)`
+> يجعل كلّ استعلام أعلاه مُفهرَساً ومُقيَّداً بالمستأجِر.
+
+**معيار النجاح:** نفس `content_digest` يظهر في **كلّ** حلقة تحمل العمود (decision_record → dispatch →
+outcome → recommendation_outcome) — نَسَب end-to-end حقيقيّ قابل للاستعلام بالبصمة الكاملة (لا 16-hex فقط).
 
 **idempotency:** أعِد نفس الطلب ⇒ نفس `idempotency_key` ⇒ **لا صفّ مكرَّر** (قيد PG الفريد
 يمنع الكتابة الثانية).
