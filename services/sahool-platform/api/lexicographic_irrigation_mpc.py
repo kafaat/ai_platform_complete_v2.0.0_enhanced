@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import math
 from dataclasses import dataclass, field
 from enum import Enum
@@ -39,6 +40,9 @@ from api.canonical_water_stress import WATER_STRESS_CRITICAL_AWF
 from api.irrigation_mpc import ForecastDay, IrrigationPlan, plan_irrigation
 from api.irrigation_policy import IrrigationPolicy
 from api.soil_water import available_water_fraction
+
+# إصدار الحلّال — يدخل في النَّسَب والعقد؛ يُرفَع عند أيّ تغيير سلوكيّ.
+SOLVER_VERSION = "lex-mpc.v1"
 
 # مرحلة حرجة إن كانت حساسيّة Ky ≥ هذه العتبة (الإزهار/امتلاء الحبّ) — نفس عتبة النظام.
 CRITICAL_STAGE_KY = 0.85
@@ -59,14 +63,24 @@ _CANDIDATE_POLICIES: tuple[IrrigationPolicy, ...] = (
     IrrigationPolicy.SUSTAINABILITY,
 )
 
-# الحقول المُؤجَّلة صراحةً (تُعلَن ولا تُلفَّق).
-_NOT_MODELLED: tuple[str, ...] = (
+# الحقول المُؤجَّلة صراحةً (تُعلَن ولا تُلفَّق). التهجئة `not_modeled` (توحيد مع العقود السابقة).
+_NOT_MODELED: tuple[str, ...] = (
     "predicted_energy_kwh",  # يحتاج طبقة الطاقة/المضخّة (المرحلة 2)
     "source_well_id",  # يحتاج نموذج الآبار (المرحلة 2)
     "start_at",  # يحتاج أفقاً ساعيّاً (المرحلة 3)
     "duration_minutes",  # يحتاج معدّل تطبيق/تدفّق (المرحلة 3)
     "zone_id",  # يحتاج قراراً على مستوى المناطق (لاحقاً)
     "economic_margin_delta.revenue",  # الإيراد غير مُنمذَج (وكيل تكلفة فقط؛ لا يُشتَقّ من Ky)
+    "water_ledger_snapshot",  # لا لقطة دفتر ماء (النواة نقيّة؛ يُوصَل في P1.1b)
+    "forecast_source_hash",  # لا بصمة مصدر طقس بعد (يُوصَل في P1.1b)
+)
+
+# ما يُنمذِجه الحلّال فعلاً (شفافيّة القدرات).
+_MODELED_CAPABILITIES: tuple[str, ...] = (
+    "crop_protection_raw",  # J1: Dr ≤ RAW + إجهاد المراحل الحرجة
+    "water_and_deep_percolation_min",  # J2: تقليل الماء والرشح
+    "yield_ky_forecast_horizon",  # J3: Ky على أفق التنبّؤ (لا موسميّ)
+    "water_cost_proxy",  # J4: وكيل تكلفة الماء (لا إيراد)
 )
 
 
@@ -161,14 +175,22 @@ class LexicographicIrrigationDecision:
     """قرار الريّ المعجميّ — عقد المتحكّم (توصية-فقط)."""
 
     decision: str  # "irrigate" | "hold"
+    # ── حوكمة/هويّة ──
+    tenant_id: str | None
     field_id: str | None
+    season_id: str | None
+    solver_version: str
+    execution_allowed: bool  # False دائماً في هذه المرحلة (توصية-فقط)
     crop: str | None
     growth_stage: str | None
     operating_state: OperatingState
     selected_policy: str | None
     horizon_days: int
-    target_depth_mm: float
-    predicted_water_m3_per_ha: float
+    # ── مقادير الريّ (تُفصَل: عمق اليوم الأوّل مقابل إجماليّ الأفق) ──
+    first_action_depth_mm: float  # ريّ اليوم الأوّل فقط (الإجراء الفوريّ)
+    recommended_gross_water_m3_per_ha: float  # حجم اليوم الأوّل (1مم=10م³/هـ)
+    horizon_total_irrigation_mm: float  # إجماليّ ريّ الأفق (ما يُقيّمه J2)
+    horizon_total_water_m3_per_ha: float
     root_zone_depletion_before_mm: float
     expected_root_zone_depletion_after_mm: float
     raw_mm: float
@@ -176,10 +198,12 @@ class LexicographicIrrigationDecision:
     stress_risk_before: str
     stress_risk_after: str
     stress_days_in_horizon: list[int]
-    # ── J3 نموذج Ky ──
+    # ── J3 نموذج Ky (نطاق الأفق لا الموسم) ──
     yield_response: YieldResponse
     yield_floor_ratio: float | None
-    yield_floor_preserved: bool | None  # None = لا يمكن التأكيد (بيانات ناقصة أو لا هدف)
+    yield_floor_scope: str  # "forecast_horizon" — ليس موسميّاً
+    yield_floor_preserved: bool | None  # None = لا يمكن التأكيد (بيانات ناقصة/عامّ/لا هدف)
+    yield_floor_lower_bound: float | None  # الحدّ الأدنى للغلّة النسبيّة (ثقة) المستخدَم للتأكيد
     # ── اقتصاد (وكيل) ──
     water_cost_proxy: float | None
     economic_margin_delta: float | None  # None (لا إيراد؛ لا يُشتَقّ من Ky)
@@ -187,23 +211,34 @@ class LexicographicIrrigationDecision:
     approval_required: bool  # True دائماً
     reason_codes: list[ReasonCode]
     objectives: LexObjectives | None
+    # ── نَسَب/تدقيق ──
+    content_digest: str  # sha256 كامل لكلّ الحقائق (كشف إعادة الحساب بقيود مختلفة)
+    idempotency_key: str  # مفتاح الطلب المنطقيّ (فصل عن المحتوى)
+    constraint_trace: dict
+    modeled_capabilities: list[str]
     objective_trace: dict = field(default_factory=dict)
-    candidate_lineage_id: str = ""
-    not_modelled: list[str] = field(default_factory=list)
+    candidate_lineage_id: str = ""  # عرض قصير = content_digest[:16]
+    not_modeled: list[str] = field(default_factory=list)
     calibrated: bool = False
     notes_ar: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
             "decision": self.decision,
+            "tenant_id": self.tenant_id,
             "field_id": self.field_id,
+            "season_id": self.season_id,
+            "solver_version": self.solver_version,
+            "execution_allowed": self.execution_allowed,
             "crop": self.crop,
             "growth_stage": self.growth_stage,
             "operating_state": self.operating_state.value,
             "selected_policy": self.selected_policy,
             "horizon_days": self.horizon_days,
-            "target_depth_mm": round(self.target_depth_mm, 2),
-            "predicted_water_m3_per_ha": round(self.predicted_water_m3_per_ha, 2),
+            "first_action_depth_mm": round(self.first_action_depth_mm, 2),
+            "recommended_gross_water_m3_per_ha": round(self.recommended_gross_water_m3_per_ha, 2),
+            "horizon_total_irrigation_mm": round(self.horizon_total_irrigation_mm, 2),
+            "horizon_total_water_m3_per_ha": round(self.horizon_total_water_m3_per_ha, 2),
             "root_zone_depletion_before_mm": round(self.root_zone_depletion_before_mm, 2),
             "expected_root_zone_depletion_after_mm": round(
                 self.expected_root_zone_depletion_after_mm, 2
@@ -215,7 +250,13 @@ class LexicographicIrrigationDecision:
             "stress_days_in_horizon": self.stress_days_in_horizon,
             "yield_response": self.yield_response.to_dict(),
             "yield_floor_ratio": self.yield_floor_ratio,
+            "yield_floor_scope": self.yield_floor_scope,
             "yield_floor_preserved": self.yield_floor_preserved,
+            "yield_floor_lower_bound": (
+                None
+                if self.yield_floor_lower_bound is None
+                else round(self.yield_floor_lower_bound, 4)
+            ),
             "water_cost_proxy": (
                 None if self.water_cost_proxy is None else round(self.water_cost_proxy, 4)
             ),
@@ -224,9 +265,13 @@ class LexicographicIrrigationDecision:
             "approval_required": self.approval_required,
             "reason_codes": [c.value for c in self.reason_codes],
             "objectives": None if self.objectives is None else self.objectives.to_dict(),
+            "content_digest": self.content_digest,
+            "idempotency_key": self.idempotency_key,
+            "constraint_trace": self.constraint_trace,
+            "modeled_capabilities": self.modeled_capabilities,
             "objective_trace": self.objective_trace,
             "candidate_lineage_id": self.candidate_lineage_id,
-            "not_modelled": self.not_modelled,
+            "not_modeled": self.not_modeled,
             "calibrated": self.calibrated,
             "notes_ar": self.notes_ar,
         }
@@ -378,13 +423,43 @@ def _lexicographic_select(
     return winner[0], winner[1], winner[2], level
 
 
-def _lineage_id(payload: str) -> str:
-    # نَسَب مُعنون بالمحتوى (تتبّع/idempotency) لا أمان — sha256 حتميّ.
-    return "mpc_" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+def _canonical(obj: object) -> str:
+    """تسلسل JSON كنسيّ حتميّ (مفاتيح مرتَّبة، بلا فراغات)."""
+    return json.dumps(obj, sort_keys=True, separators=(",", ":"), default=str)
+
+
+def _content_digest(facts: dict) -> str:
+    """بصمة محتوى كاملة (sha256 64-hex) لكلّ حقائق القرار — تكشف إعادة الحساب بقيود مختلفة."""
+    return hashlib.sha256(_canonical(facts).encode("utf-8")).hexdigest()
+
+
+def _idempotency_key(tenant_id, field_id, season_id, growth_stage, forecast_sig) -> str:
+    """مفتاح الطلب المنطقيّ (فُصِل عن المحتوى): نفس الحقل/الموسم/المرحلة/الأفق ⇒ نفس الفتحة.
+
+    لا يشمل القيود (ميزانيّة/سقف/سعر) — تغيّرها يُبقي الفتحة نفسها لكن يُغيّر content_digest.
+    """
+    key = {
+        "tenant_id": tenant_id,
+        "field_id": field_id,
+        "season_id": season_id,
+        "solver_version": SOLVER_VERSION,
+        "growth_stage": growth_stage,
+        "forecast": forecast_sig,
+    }
+    return "mpcidem_" + hashlib.sha256(_canonical(key).encode("utf-8")).hexdigest()[:24]
+
+
+def _forecast_sig(forecast: list[ForecastDay]) -> list[tuple[float, float, float, float]]:
+    return [
+        (round(d.et0_mm, 4), round(d.kc, 4), round(d.rain_mm, 4), round(d.runoff_mm, 4))
+        for d in forecast
+    ]
 
 
 def _emergency_decision(
+    tenant_id: str | None,
     field_id: str | None,
+    season_id: str | None,
     crop: str | None,
     growth_stage: str | None,
     reason: ReasonCode,
@@ -392,16 +467,33 @@ def _emergency_decision(
 ) -> LexicographicIrrigationDecision:
     """قرار فاشل-مُغلَق محافظ: لا أمر تنفيذ، موافقة بشريّة، ثقة دنيا."""
     yr = YieldResponse("insufficient_data", None, None, None, None, None, None, False, None)
+    digest = _content_digest(
+        {
+            "fail_closed": reason.value,
+            "tenant_id": tenant_id,
+            "field_id": field_id,
+            "season_id": season_id,
+            "crop": crop,
+            "growth_stage": growth_stage,
+            "solver_version": SOLVER_VERSION,
+        }
+    )
     return LexicographicIrrigationDecision(
         decision="hold",
+        tenant_id=tenant_id,
         field_id=field_id,
+        season_id=season_id,
+        solver_version=SOLVER_VERSION,
+        execution_allowed=False,
         crop=crop,
         growth_stage=growth_stage,
         operating_state=OperatingState.EMERGENCY_FAIL_CLOSED,
         selected_policy=None,
         horizon_days=0,
-        target_depth_mm=0.0,
-        predicted_water_m3_per_ha=0.0,
+        first_action_depth_mm=0.0,
+        recommended_gross_water_m3_per_ha=0.0,
+        horizon_total_irrigation_mm=0.0,
+        horizon_total_water_m3_per_ha=0.0,
         root_zone_depletion_before_mm=0.0,
         expected_root_zone_depletion_after_mm=0.0,
         raw_mm=0.0,
@@ -411,16 +503,22 @@ def _emergency_decision(
         stress_days_in_horizon=[],
         yield_response=yr,
         yield_floor_ratio=None,
+        yield_floor_scope="forecast_horizon",
         yield_floor_preserved=None,
+        yield_floor_lower_bound=None,
         water_cost_proxy=None,
         economic_margin_delta=None,
         confidence=0.0,
         approval_required=True,
         reason_codes=[reason],
         objectives=None,
+        content_digest=digest,
+        idempotency_key=_idempotency_key(tenant_id, field_id, season_id, growth_stage, []),
+        constraint_trace={"fail_closed": reason.value},
+        modeled_capabilities=[],
         objective_trace={},
-        candidate_lineage_id="",
-        not_modelled=list(_NOT_MODELLED),
+        candidate_lineage_id="mpc_" + digest[:16],
+        not_modeled=list(_NOT_MODELED),
         calibrated=False,
         notes_ar=[note_ar],
     )
@@ -432,7 +530,9 @@ def solve_lexicographic_irrigation(
     taw_mm: float,
     raw_fraction: float,
     initial_depletion_mm: float,
+    tenant_id: str | None = None,
     field_id: str | None = None,
+    season_id: str | None = None,
     crop: str | None = None,
     growth_stage: str | None = None,
     yield_floor_ratio: float | None = None,
@@ -446,24 +546,57 @@ def solve_lexicographic_irrigation(
 
     J3 = نموذج Ky الكنسيّ (FAO-33) حسب المحصول والمرحلة؛ غياب Ky/المرحلة ⇒ insufficient_data
     (لا استبدال صامت). `yield_floor_preserved` لا يصير True إلّا مع بيانات كاملة (ETa/ETm
-    صالحان + مرحلة معروفة + Ky متاح + داخل حدود النموذج + هدف حدّ إنتاج مُمرَّر ومُحقَّق).
+    صالحان + مرحلة معروفة + Ky خاصّ-بالمحصول + داخل الحدود + هدف مُحقَّق بالحدّ الأدنى للثقة).
+    فشل-مُغلَق على المدخلات غير الصالحة (NaN/Inf/خارج المدى) بدل حساب على قمامة.
     """
     if not forecast:
         return _emergency_decision(
+            tenant_id,
             field_id,
+            season_id,
             crop,
             growth_stage,
             ReasonCode.MISSING_CRITICAL_INPUTS,
             "لا أفق تنبّؤ — لا قرار ريّ ممكن",
         )
-    if taw_mm <= 0.0 or not (0.0 < raw_fraction <= 1.0):
+    if not (math.isfinite(taw_mm) and taw_mm > 0.0) or not (0.0 < raw_fraction <= 1.0):
         return _emergency_decision(
+            tenant_id,
             field_id,
+            season_id,
             crop,
             growth_stage,
             ReasonCode.MISSING_CRITICAL_INPUTS,
             "TAW/RAW غير صالح — فشل مُغلَق",
         )
+    # استنزاف ابتدائيّ غير صالح (NaN/Inf/سالب/> TAW) ⇒ فشل-مُغلَق (لا حساب على قمامة).
+    if not math.isfinite(initial_depletion_mm) or not (0.0 <= initial_depletion_mm <= taw_mm):
+        return _emergency_decision(
+            tenant_id,
+            field_id,
+            season_id,
+            crop,
+            growth_stage,
+            ReasonCode.MISSING_CRITICAL_INPUTS,
+            "استنزاف ابتدائيّ غير صالح — فشل مُغلَق",
+        )
+    # أفق فيه قيم غير منتهية ⇒ فشل-مُغلَق.
+    for _d in forecast:
+        if not (math.isfinite(_d.et0_mm) and math.isfinite(_d.kc) and math.isfinite(_d.rain_mm)):
+            return _emergency_decision(
+                tenant_id,
+                field_id,
+                season_id,
+                crop,
+                growth_stage,
+                ReasonCode.MISSING_CRITICAL_INPUTS,
+                "قيم أفق غير منتهية — فشل مُغلَق",
+            )
+    # هدف حدّ إنتاج خارج [0,1] ⇒ يُهمَل (لا يُحسَب عليه) مع إعلان.
+    if yield_floor_ratio is not None and not (
+        math.isfinite(yield_floor_ratio) and 0.0 <= yield_floor_ratio <= 1.0
+    ):
+        yield_floor_ratio = None
 
     raw_mm = raw_fraction * taw_mm
     ky_lookup = lookup_ky(crop, growth_stage)
@@ -495,13 +628,25 @@ def solve_lexicographic_irrigation(
     risk_before = _risk_class(initial_depletion_mm, taw_mm, raw_fraction)
     risk_after = _risk_class(dr_after, taw_mm, raw_fraction)
 
-    # حدّ الإنتاج: يُحفَظ فقط ببيانات كاملة (Ky/مرحلة/ETa-ETm/داخل الحدود) + هدف مُحقَّق.
-    if yr.status != "ok" or yr.predicted_relative_yield is None:
-        yield_floor_preserved: bool | None = None
-    elif yield_floor_ratio is None:
-        yield_floor_preserved = None  # لا هدف حدّ إنتاج ⇒ لا تأكيد
+    # حدّ الإنتاج — **نطاق الأفق فقط لا الموسم** (Ky على ETa/ETm داخل الأفق؛ لا تراكم مرحليّ).
+    # يُحفَظ True حصراً عند: بيانات كاملة + Ky **خاصّ-بالمحصول** (لا عامّ) + داخل الحدود +
+    # هدف مُمرَّر + **الحدّ الأدنى للثقة** يحقّقه (نشر عدم يقين Ky: أسوأ حالة Ky+uncertainty).
+    yield_floor_scope = "forecast_horizon"
+    yield_floor_lower_bound: float | None = None
+    if (
+        yr.status == "ok"
+        and yr.ky is not None
+        and yr.eta_over_etm is not None
+        and yr.ky_basis == "crop_stage"
+    ):
+        ky_hi = yr.ky + (yr.uncertainty or 0.0)  # أسوأ حالة لعدم يقين Ky
+        yield_floor_lower_bound = max(0.0, min(1.0, 1.0 - ky_hi * (1.0 - yr.eta_over_etm)))
+        yield_floor_preserved: bool | None = (
+            None if yield_floor_ratio is None else yield_floor_lower_bound >= yield_floor_ratio
+        )
     else:
-        yield_floor_preserved = yr.predicted_relative_yield >= yield_floor_ratio
+        # عامّ حسب المرحلة أو بيانات ناقصة ⇒ لا تأكيد لحدّ الإنتاج (لا يحسم قراراً عالي الأثر).
+        yield_floor_preserved = None
 
     approaching_critical = dr_before >= raw_mm or risk_before in ("watch", "critical")
     if winner.budget_exhausted and winner.stress_days:
@@ -552,10 +697,11 @@ def solve_lexicographic_irrigation(
 
     notes = [
         "مقابض/أوزان أوّليّة غير معايَرة يمنيّاً (calibrated=False).",
-        "الطاقة والآبار غير مُنمذَجة (not_modelled) — J2 ماء فقط، لا قيد طاقة.",
+        "الطاقة والآبار غير مُنمذَجة (not_modeled) — J2 ماء فقط، لا قيد طاقة.",
+        "حدّ الإنتاج على نطاق الأفق (7 أيّام) لا الموسم — لا تراكم مرحليّ للعجز.",
     ]
     if yr.ky_basis == "generic_stage":
-        notes.append("Ky عامّ حسب المرحلة (FAO-33) — لا قيمة خاصّة بالمحصول؛ ثقة أدنى.")
+        notes.append("Ky عامّ حسب المرحلة (FAO-33) — لا قيمة خاصّة بالمحصول؛ لا تأكيد حدّ إنتاج.")
     if yr.status == "insufficient_data":
         notes.append("J3 غير محسوب (لا Ky/مرحلة أو ETm غير صالح) — حدّ الإنتاج غير مُؤكَّد.")
     if yr.status == "out_of_bounds":
@@ -581,33 +727,59 @@ def solve_lexicographic_irrigation(
         "yield_floor_ratio": yield_floor_ratio,
     }
 
-    lineage = _lineage_id(
-        "|".join(
-            str(x)
-            for x in (
-                field_id,
-                crop,
-                growth_stage,
-                round(taw_mm, 3),
-                round(raw_fraction, 3),
-                round(initial_depletion_mm, 3),
-                yield_floor_ratio,
-                KY_REGISTRY_VERSION,
-                [(round(d.et0_mm, 3), round(d.kc, 3), round(d.rain_mm, 3)) for d in forecast],
-            )
-        )
+    # أثر القيود (تدقيق): كلّ ما يقيّد القرار — يدخل بصمة المحتوى ويُعرَض للمراجِع.
+    constraint_trace = {
+        "raw_mm": round(raw_mm, 3),
+        "taw_mm": round(taw_mm, 3),
+        "raw_fraction": round(raw_fraction, 4),
+        "initial_depletion_mm": round(initial_depletion_mm, 3),
+        "season_budget_mm": season_budget_mm,
+        "max_application_mm": max_application_mm,
+        "water_price_per_m3": water_price_per_m3,
+        "yield_floor_ratio": yield_floor_ratio,
+        "depletion_confidence": depletion_confidence,
+        "data_degraded": data_degraded,
+    }
+
+    forecast_sig = _forecast_sig(forecast)
+    # بصمة المحتوى الكاملة (sha256 64-hex): كلّ المدخلات + القيود + الإصدار + السياسة الفائزة
+    # + الخطّة الناتجة ⇒ قراران مختلفان لا يتشاركان النَّسَب (يُصلِح تصادم [:16] السابق).
+    content = _content_digest(
+        {
+            "solver_version": SOLVER_VERSION,
+            "ky_registry_version": KY_REGISTRY_VERSION,
+            "tenant_id": tenant_id,
+            "field_id": field_id,
+            "season_id": season_id,
+            "crop": crop,
+            "growth_stage": growth_stage,
+            "constraints": constraint_trace,
+            "forecast": forecast_sig,
+            "selected_policy": winner.policy,
+            "decision": decision,
+            "first_action_depth_mm": round(target_depth, 4),
+            "horizon_total_irrigation_mm": round(winner.total_irrigation_mm, 4),
+            "objectives": obj.to_dict(),
+        }
     )
+    idem = _idempotency_key(tenant_id, field_id, season_id, growth_stage, forecast_sig)
 
     return LexicographicIrrigationDecision(
         decision=decision,
+        tenant_id=tenant_id,
         field_id=field_id,
+        season_id=season_id,
+        solver_version=SOLVER_VERSION,
+        execution_allowed=False,
         crop=crop,
         growth_stage=growth_stage,
         operating_state=state,
         selected_policy=winner.policy,
         horizon_days=len(forecast),
-        target_depth_mm=target_depth,
-        predicted_water_m3_per_ha=target_depth * 10.0,
+        first_action_depth_mm=target_depth,
+        recommended_gross_water_m3_per_ha=target_depth * 10.0,
+        horizon_total_irrigation_mm=winner.total_irrigation_mm,
+        horizon_total_water_m3_per_ha=winner.total_irrigation_m3_ha,
         root_zone_depletion_before_mm=dr_before,
         expected_root_zone_depletion_after_mm=dr_after,
         raw_mm=raw_mm,
@@ -617,16 +789,22 @@ def solve_lexicographic_irrigation(
         stress_days_in_horizon=winner.stress_days,
         yield_response=yr,
         yield_floor_ratio=yield_floor_ratio,
+        yield_floor_scope=yield_floor_scope,
         yield_floor_preserved=yield_floor_preserved,
+        yield_floor_lower_bound=yield_floor_lower_bound,
         water_cost_proxy=water_cost,
         economic_margin_delta=None,
         confidence=confidence,
         approval_required=True,
         reason_codes=reasons,
         objectives=obj,
+        content_digest=content,
+        idempotency_key=idem,
+        constraint_trace=constraint_trace,
+        modeled_capabilities=list(_MODELED_CAPABILITIES),
         objective_trace=objective_trace,
-        candidate_lineage_id=lineage,
-        not_modelled=list(_NOT_MODELLED),
+        candidate_lineage_id="mpc_" + content[:16],
+        not_modeled=list(_NOT_MODELED),
         calibrated=False,
         notes_ar=notes,
     )

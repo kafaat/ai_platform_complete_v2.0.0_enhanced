@@ -3,6 +3,22 @@
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
+## 2026-07-13 — Lexicographic MPC P1.1: إصلاح تصادم النَّسَب (P0) + تصلّب العقد وصدق حدّ الإنتاج (بتدقيق جنائيّ)
+
+**التدقيق أثبت خلل P0 في كودي:** `candidate_lineage_id` يتصادم — 3 قرارات مختلفة (37.5 عاديّ · 5.0 بميزانيّة · 2.0 بسقف تطبيق) أعادت نفس النَّسَب `mpc_67d5779885cdc2eb0`، لأنّ البصمة أغفلت القيود (season_budget/max_application/water_price/depletion_conf/data_degraded/السياسة/الخطّة) واقتُصَّت لـ16-hex. **أعدتُ إنتاجه ثمّ أصلحتُه.**
+
+**الإصلاح (نقيّ، إضافيّ):**
+- **`content_digest` كامل sha256 (64-hex)** على canonical-JSON لكلّ الحقائق (المدخلات + `constraint_trace` + `solver_version` + `ky_registry_version` + السياسة الفائزة + القرار + الخطّة + الأهداف). **فصل** `idempotency_key` (فتحة الطلب المنطقيّة: tenant+field+season+solver+stage+forecast — ثابتة رغم اختلاف القيود) عن `content_digest` (المحتوى الكامل) عن `candidate_lineage_id` (`mpc_`+content[:16] عرضاً).
+- **حقول حوكمة:** `tenant_id`/`season_id`/`solver_version`(=lex-mpc.v1)/`execution_allowed`(=False)/`constraint_trace`/`modeled_capabilities`.
+- **صدق حدّ الإنتاج:** `yield_floor_scope="forecast_horizon"` صراحةً (لا موسميّ — لا تراكم مرحليّ)؛ **Ky العامّ (`generic_stage`) لا يُثبِت** حدّ إنتاج (None)؛ التأكيد بـ**الحدّ الأدنى للثقة** `yield_floor_lower_bound` = `1−(Ky+uncertainty)·(1−ETa/ETm)` (نشر عدم يقين Ky أسوأ-حالة).
+- **تسميات:** فصل `first_action_depth_mm` (اليوم الأوّل) عن `horizon_total_irrigation_mm` (ما يقيّمه J2)؛ `predicted_water_m3_per_ha`→`recommended_gross_water_m3_per_ha`؛ توحيد `not_modeled`.
+- **فشل-مُغلَق للمدخلات:** NaN/Inf في TAW/الأفق، استنزاف <0 أو >TAW، هدف حدّ إنتاج خارج [0,1] (يُهمَل).
+
+**لم يُمَسّ** التنفيذ/MQTT/التفويض. **تصحيح صدق:** وسم zip السابق `…_verified` أوسع من الحقيقة — الأدقّ **computational core verified، غير موصول إنتاجيّاً**.
+
+**التحقّق:** `test_lexicographic_irrigation_mpc.py` **32/32** (11 جديد: النَّسَب يختلف بالقيود لا تصادم · ثبات فتحة idempotency · عزل مستأجر/موسم · content_digest 64-hex · فشل-مُغلَق NaN/خارج-مدى/أفق-غير-منتهٍ · هدف خارج [0,1] يُهمَل · Ky عامّ لا يُثبِت · execution_allowed=False · فصل first_action/horizon) · `pytest -m unit` **2946 نجاح @ 45.50%** · ruff نظيف · Ky guard أخضر · bandit HIGH صفر · ADR-0032 مُحدَّث. **المتبقّي P1.1b (قبل م2):** Route + وصل water_decision_bridge (مرشّح lexicographic_irrigation) + استمرار PG + انتشار النَّسَب عبر execution→outcome→learning.
+
+---
 ## 2026-07-13 — Lexicographic MPC المرحلة 1: نموذج Ky الكنسيّ (J3 حقيقيّ) + سجلّ FAO-33 + حارس عزل اقتصاديّ
 
 **بأمر المستخدم (م1 قبل م2):** حوّلتُ J3 من وكيل إجهاد إلى معادلة Ky الكنسيّة `Ya/Ym = 1 − Ky·(1 − ETa/ETm)` — توسعة منطقيّة فوق م0 بلا بنية تشغيليّة جديدة ولا هجرات.

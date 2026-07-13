@@ -48,7 +48,7 @@ def test_dry_critical_stage_irrigates_under_crop_protection():
         growth_stage="flowering",
     )
     assert d.decision == "irrigate"
-    assert d.target_depth_mm > 0
+    assert d.first_action_depth_mm > 0
     assert d.operating_state is OperatingState.CROP_PROTECTION
     assert ReasonCode.CRITICAL_GROWTH_STAGE in d.reason_codes
     assert d.expected_root_zone_depletion_after_mm <= d.raw_mm
@@ -84,15 +84,15 @@ def test_rain_covers_need_holds_without_fabricating_irrigation():
         growth_stage="vegetative",
     )
     assert d.decision == "hold"
-    assert d.target_depth_mm == 0.0
+    assert d.first_action_depth_mm == 0.0
 
 
 def test_energy_and_wells_always_declared_not_modelled():
     d = solve_lexicographic_irrigation(
         forecast=_dry(), taw_mm=100.0, raw_fraction=0.5, initial_depletion_mm=10.0
     )
-    assert "predicted_energy_kwh" in d.not_modelled
-    assert "source_well_id" in d.not_modelled
+    assert "predicted_energy_kwh" in d.not_modeled
+    assert "source_well_id" in d.not_modeled
     assert d.objectives is not None and d.objectives.energy_modelled is False
     assert d.operating_state is not OperatingState.ENERGY_CONSTRAINED
 
@@ -314,3 +314,122 @@ def test_no_economic_margin_derived_from_ky():
         water_price_per_m3=0.1,
     )
     assert d.economic_margin_delta is None
+
+
+# ─────────────── P1.1: نَسَب/idempotency/حوكمة/تحقّق-مدخلات ───────────────
+
+
+def _b(**kw):
+    args = dict(
+        forecast=_dry(),
+        taw_mm=100.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=40.0,
+        tenant_id="t1",
+        field_id="f1",
+        season_id="s1",
+        crop="maize",
+        growth_stage="flowering",
+    )
+    args.update(kw)
+    return solve_lexicographic_irrigation(**args)
+
+
+def test_lineage_varies_with_constraints_no_collision():
+    # الخلل المُثبَت سابقاً: قرارات مختلفة تشترك نَسَباً واحداً. الآن يجب أن تختلف.
+    a = _b()
+    b = _b(season_budget_mm=5.0)
+    c = _b(max_application_mm=2.0)
+    d = _b(water_price_per_m3=0.2)
+    ids = {
+        a.candidate_lineage_id,
+        b.candidate_lineage_id,
+        c.candidate_lineage_id,
+        d.candidate_lineage_id,
+    }
+    assert len(ids) == 4  # لا تصادم
+    assert len({a.content_digest, b.content_digest, c.content_digest, d.content_digest}) == 4
+
+
+def test_idempotency_key_is_stable_across_constraint_changes():
+    # مفتاح الطلب المنطقيّ ثابت (نفس الحقل/الموسم/الأفق) رغم اختلاف القيود.
+    a = _b()
+    b = _b(season_budget_mm=5.0)
+    assert a.idempotency_key == b.idempotency_key
+    assert a.content_digest != b.content_digest  # المحتوى يختلف
+
+
+def test_lineage_and_idempotency_isolate_tenant_and_season():
+    base = _b()
+    other_tenant = _b(tenant_id="t2")
+    other_season = _b(season_id="s2")
+    assert base.idempotency_key != other_tenant.idempotency_key
+    assert base.idempotency_key != other_season.idempotency_key
+    assert base.content_digest != other_tenant.content_digest
+
+
+def test_content_digest_full_sha256_hex():
+    d = _b()
+    assert len(d.content_digest) == 64  # sha256 كامل لا [:16]
+    assert d.candidate_lineage_id == "mpc_" + d.content_digest[:16]
+
+
+def test_fail_closed_on_non_finite_taw():
+    d = solve_lexicographic_irrigation(
+        forecast=_dry(), taw_mm=float("nan"), raw_fraction=0.5, initial_depletion_mm=10.0
+    )
+    assert d.operating_state is OperatingState.EMERGENCY_FAIL_CLOSED
+
+
+def test_fail_closed_on_depletion_out_of_range():
+    over = solve_lexicographic_irrigation(
+        forecast=_dry(), taw_mm=100.0, raw_fraction=0.5, initial_depletion_mm=150.0
+    )
+    neg = solve_lexicographic_irrigation(
+        forecast=_dry(), taw_mm=100.0, raw_fraction=0.5, initial_depletion_mm=-1.0
+    )
+    assert over.operating_state is OperatingState.EMERGENCY_FAIL_CLOSED
+    assert neg.operating_state is OperatingState.EMERGENCY_FAIL_CLOSED
+
+
+def test_fail_closed_on_non_finite_forecast():
+    fc = [ForecastDay(et0_mm=float("inf"), kc=1.0, rain_mm=0.0) for _ in range(5)]
+    d = solve_lexicographic_irrigation(
+        forecast=fc, taw_mm=100.0, raw_fraction=0.5, initial_depletion_mm=10.0
+    )
+    assert d.operating_state is OperatingState.EMERGENCY_FAIL_CLOSED
+
+
+def test_out_of_range_yield_floor_ratio_is_ignored():
+    # هدف خارج [0,1] يُهمَل (لا يُحسَب عليه) — لا يُثبِت حدّ إنتاج على قيمة غير صالحة.
+    d = _b(yield_floor_ratio=1.5)
+    assert d.yield_floor_ratio is None
+    assert d.yield_floor_preserved is None
+
+
+def test_generic_stage_never_certifies_yield_floor():
+    # Ky عامّ (محصول غير مسجَّل) لا يُثبِت حدّ الإنتاج مهما كان الهدف.
+    d = solve_lexicographic_irrigation(
+        forecast=_dry(et0=8.0),
+        taw_mm=120.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=20.0,
+        crop="mango",
+        growth_stage="flowering",
+        yield_floor_ratio=0.5,
+    )
+    assert d.yield_response.ky_basis == "generic_stage"
+    assert d.yield_floor_preserved is None
+
+
+def test_execution_never_allowed_and_solver_versioned():
+    d = _b()
+    assert d.execution_allowed is False  # توصية-فقط
+    assert d.solver_version and d.approval_required is True
+
+
+def test_first_action_vs_horizon_total_separated():
+    d = _b()
+    # عمق اليوم الأوّل ≠ إجماليّ الأفق (J2 يقيّم الأفق كلّه).
+    assert d.horizon_total_irrigation_mm >= d.first_action_depth_mm
+    assert d.recommended_gross_water_m3_per_ha == d.first_action_depth_mm * 10.0

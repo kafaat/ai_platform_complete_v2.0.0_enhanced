@@ -13865,7 +13865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f76771126cf5681c2a546aa530735c56ba4a37fddc417c1b6760a8ccb4f86201"
+          "content": "8ceb7783b9023c1a93eeb2b3b61052e19ba3f11f695bb9ff415cd66ad080d618"
         }
       ],
       "name": "services/sahool-platform/api/lexicographic_irrigation_mpc.py",
