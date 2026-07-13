@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
@@ -62,6 +63,18 @@ _UNITS = {
     "bulk_density": "g/cm3",
     "rootable_depth": "cm",
 }
+
+
+def _provenance_uncertainty(row: dict[str, Any]) -> dict[str, Any]:
+    """Extract the uncertainty map from an observation's provenance.
+
+    Provenance is a dict in-process but a JSONB string from PostgreSQL (no codec registered),
+    so normalise before access to avoid ``'str' object has no attribute 'get'``.
+    """
+    prov = row.get("provenance") or {}
+    if isinstance(prov, str):
+        prov = json.loads(prov) if prov else {}
+    return dict(prov.get("uncertainty") or {}) if isinstance(prov, dict) else {}
 
 
 def _score(row: dict[str, Any]) -> tuple[int, float, datetime, datetime]:
@@ -135,7 +148,7 @@ def compose_snapshot(
                 observed_at=selected.get("observed_at"),
                 confidence=float(selected.get("confidence") or 0),
                 verification_required=source_type not in {"laboratory", "sensor", "field"},
-                uncertainty=dict((selected.get("provenance") or {}).get("uncertainty") or {}),
+                uncertainty=_provenance_uncertainty(selected),
                 alternatives=alternatives,
             )
         layers.append(

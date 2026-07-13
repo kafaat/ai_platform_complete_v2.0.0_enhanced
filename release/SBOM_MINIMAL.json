@@ -6615,6 +6615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a8f4056c28f66f18bea29ad7e40c6652d4ab18b952a2d9d668f0f4eb3cb19413"
+        }
+      ],
+      "name": "migrations/v162_soil_p2_spatial_products.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4780cbdc4797c942307ae4d13ad546cb17aa4b56279f93af6acce1cecfe12947"
         }
       ],
@@ -23995,7 +24005,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4db461e720e93e08258f370f949953e7b3b78c385e90004e2dfae10c9280bcd1"
+          "content": "754b27ec117e3437f84ad36e63f24922610e202156ba3424993037cea57564a1"
+        }
+      ],
+      "name": "services/soil-service/p2_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "34456f9958b473170688e4d75b8127b3e9981c843a621e8cc65968745e109775"
+        }
+      ],
+      "name": "services/soil-service/p2_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a4174654f4540e4d61783b03d6bb349555999deb425e882241e17388b620a8b4"
         }
       ],
       "name": "services/soil-service/profile_composer.py",
@@ -24089,6 +24119,16 @@
         }
       ],
       "name": "services/soil-service/routers/p1_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8641648e62bbdc536e7e917b3c5926471be68d2f3ea5541f8c6315c5df4d8aeb"
+        }
+      ],
+      "name": "services/soil-service/routers/p2_products.py",
       "type": "file"
     },
     {
@@ -24189,6 +24229,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_p1_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ecf6aaaef10894899d085ba5452793671c7565408c0e9fbb35a9e8270bd5ed19"
+        }
+      ],
+      "name": "services/soil-service/test_soil_p2_products.py",
       "type": "file"
     },
     {
@@ -25649,6 +25699,16 @@
         }
       ],
       "name": "shared/contracts/soil/p1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bc8b2ba78cd3b2df934b1ae4ea7f78fe7919341da6a70536f940a49bff16ff7d"
+        }
+      ],
+      "name": "shared/contracts/soil/p2.py",
       "type": "file"
     },
     {
