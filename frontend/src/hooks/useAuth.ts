@@ -46,7 +46,10 @@ export const useAuthStore = create<AuthState>()(
         // بـ401 + X-MFA-Required إن لزم رمز ولم يُرسَل (يلتقطه LoginPage).
         const data = await apiLogin({ email, password, ...(mfaCode ? { mfa_code: mfaCode } : {}) });
         const token    = data.access_token;
-        const tenantId = data.user?.tenant_id || data.tenant_id || 'default';
+        // Fail-closed (forensic F-01): never fabricate a 'default' tenant from a malformed
+        // auth response — reject the login so the app cannot enter a bogus tenant context.
+        const tenantId = data.user?.tenant_id || data.tenant_id;
+        if (!token || !tenantId) throw new Error('auth response missing token or tenant identity');
         const user: AuthUser = {
           id: data.user?.id,
           email: data.user?.email || email,
@@ -64,7 +67,8 @@ export const useAuthStore = create<AuthState>()(
         // تسجيل حقيقيّ → توكن مباشر (دخول تلقائيّ). الدور دائماً farmer خادم-جانبيّاً.
         const res = await apiRegister(data);
         const token    = res.access_token;
-        const tenantId = res.user?.tenant_id || res.tenant_id || 'default';
+        const tenantId = res.user?.tenant_id || res.tenant_id;
+        if (!token || !tenantId) throw new Error('registration response missing token or tenant identity');
         const user: AuthUser = {
           id: res.user?.id,
           email: res.user?.email || data.email,
@@ -83,7 +87,8 @@ export const useAuthStore = create<AuthState>()(
         // خادم-جانبيّاً (لا يختارهما العميل) — العضو ينضمّ لمستأجِر الداعي بدوره المدعوّ.
         const res = await apiAcceptInvitation(data);
         const token    = res.access_token;
-        const tenantId = res.user?.tenant_id || res.tenant_id || 'default';
+        const tenantId = res.user?.tenant_id || res.tenant_id;
+        if (!token || !tenantId) throw new Error('invitation response missing token or tenant identity');
         const user: AuthUser = {
           id: res.user?.id,
           email: res.user?.email || '',
@@ -98,6 +103,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loginDemo: () => {
+        // Fail-closed (forensic P0): the demo session must be unreachable in production builds.
+        if (import.meta.env.PROD) {
+          throw new Error('demo login is disabled in production');
+        }
         const token    = 'demo_token_not_real';
         const tenantId = 'demo_tenant';
         // أمان: وضع التجريب يستخدم farmer لا admin (منع صلاحيات زائفة)

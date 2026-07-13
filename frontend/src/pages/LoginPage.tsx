@@ -152,13 +152,16 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
               <div className="flex-1 h-px" style={{ background:'#334155' }} />
             </div>
 
-            {/* Demo mode */}
-            <button type="button" onClick={loginDemo}
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm transition-all border"
-              style={{ background:'transparent', borderColor:'#334155', color:'#94a3b8' }}>
-              <Shield className="w-4 h-4" />
-              دخول تجريبي (بيانات افتراضية)
-            </button>
+            {/* Demo mode — tree-shaken out of production builds (import.meta.env.PROD is
+                statically evaluated by Vite, so the whole branch is dropped in prod). */}
+            {!import.meta.env.PROD && (
+              <button type="button" onClick={loginDemo}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm transition-all border"
+                style={{ background:'transparent', borderColor:'#334155', color:'#94a3b8' }}>
+                <Shield className="w-4 h-4" />
+                دخول تجريبي (بيانات افتراضية)
+              </button>
+            )}
 
             {/* Signup link */}
             <p className="text-center text-xs text-slate-500 pt-1">

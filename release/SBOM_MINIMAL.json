@@ -2265,7 +2265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb506e1977f4d8bbb6387eeae8cc3e0d40c8a1bd0a1816bfc87dd79eb866b162"
+          "content": "f932553fa0b93aee13a16fdc8137907360103e03dab3de16cd712ccb82892632"
         }
       ],
       "name": "frontend/src/components/shell/NavRail.tsx",
@@ -2385,7 +2385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "291ff26ace017e5df5257e16494c535b513ac8ac7c9114e93bedf5e69b55ffff"
+          "content": "b9193f5939d36dba8854cea9ab38897fb8504d727aa35ecf0355307f2bba0bf6"
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
@@ -4355,7 +4355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "806ebdd945cea4d235e498944dcfe937297eaab64ede1ae6f45049bc820e54d8"
+          "content": "caf1671357dba0d5a9adf02405c229f92312d083ece4382d9f092ef7f50e0676"
         }
       ],
       "name": "frontend/src/pages/LoginPage.tsx",
@@ -5515,7 +5515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4df8ec305aabb7c502369f6a8f5e5311052a200868d82edf4c1e600dc45262e9"
+          "content": "4ec12a4395a6f613ef54e692d50053baca0bbfd80b037e2a703cd13da13e44d3"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",

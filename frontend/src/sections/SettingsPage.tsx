@@ -169,7 +169,7 @@ export default function SettingsPage() {
               </div>
             </Row>
             <p style={{ fontSize: 11, color: T.faint }}>
-              احصل على مفتاح من <a href="https://console.anthropic.com" target="_blank" style={{ color: T.green }} className="hover:underline">console.anthropic.com</a>
+              احصل على مفتاح من <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" style={{ color: T.green }} className="hover:underline">console.anthropic.com</a>
               {' '}· لا يُخزَّن (يبقى في الذاكرة للجلسة فقط — حمايةً من XSS؛ المستشار يعمل عبر الخدمة الخلفيّة).
             </p>
           </Section>

@@ -161,7 +161,7 @@ export default function NavRail({ collapsed, setCollapsed, onNavigate }: NavRail
             <div className="flex-1 min-w-0">
               <div className="text-xs font-medium text-slate-200 truncate">{user?.full_name || user?.email || 'مستخدم'}</div>
               <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                <Shield className="w-2.5 h-2.5" />{user?.role || 'farmer'}
+                <Shield className="w-2.5 h-2.5" />{user?.role || 'viewer'}
               </div>
             </div>
             <button onClick={logout} title="خروج"
