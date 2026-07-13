@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0a86659fe33f699eda402c50e78c518ed8c15f7227d31843961a5fd743019cb3"
+          "content": "b3c00af7878f6f1b8bb31e68ee642b41f3f75bf2bc1d9dce5e1a35a36b5e8819"
         }
       ],
       "name": "frontend/run_all.ps1",
@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cf586c9e605a08ab748954516b561b94b84724e4c4091913544de25dfb912902"
+          "content": "20ac60d8e82d909b19a790827b1d3bda0fe67f55d56ef25ddbf969ac02de2197"
         }
       ],
       "name": "frontend/run_all.sh",
@@ -5985,7 +5985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c7c65ba64f59f37751222633d841de4b615be852ea7ddcd5097682ff9b71fa5"
+          "content": "ac4517bc51da12ae1623a5a3a81c79f9e7119b2e99f65b534031e1690fbc1519"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6919,6 +6919,26 @@
         }
       ],
       "name": "migrations/v181_irrigation_closed_loop_learning_production_certification.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9320837b66cb9f5e38ce5070c192e0a542f323fa47202ed6d275f32dacd4010d"
+        }
+      ],
+      "name": "migrations/v182_decision_content_lineage_and_secret_hardening.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "28d92b81a5d8a9534089e7ca86236b4cf9abbbde6bb6d270c199242bf56c728b"
+        }
+      ],
+      "name": "migrations/v183_decision_lineage_integrity_hardening.sql",
       "type": "file"
     },
     {
@@ -9195,7 +9215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7cd2542996e879829b53135ca0f38f778df08960bee77dba06c3e71bd26dc1c"
+          "content": "73a38e23890a7dd0f6f3051de4cd1de2ad884cc488d3690fbb8bd4776d61b5db"
         }
       ],
       "name": "services/auth/main.py",
@@ -22355,6 +22375,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a5f7cc073429b0612297794b07682bf890e626c2a0b4ce710198efc99f2b8584"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_jwt_key_validation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "be251a74bd0ff7a0afec9d6266fa0f2980f7e0bf9057d574414795e3006879e7"
         }
       ],
@@ -26889,6 +26919,16 @@
         }
       ],
       "name": "shared/security/gateway_deps.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f1cd04e3a37f36b7bb4c86d70d01f55f4210c66deea2b3061b0410381fc7f4e"
+        }
+      ],
+      "name": "shared/security/jwt_key_validation.py",
       "type": "file"
     },
     {

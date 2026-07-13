@@ -664,3 +664,7 @@ v179_hourly_energy_aware_irrigation_mpc.sql
 v180_governed_vri_prescription.sql
 # v181: M5 irrigation closed-loop learning + production certification (contract/model, not live loop).
 v181_irrigation_closed_loop_learning_production_certification.sql
+# v182: recommendation-lifecycle content-lineage (recommendations/reviews/decisions/feedback) — DB digest triggers; recommendation_outcomes excluded (v167 governs it). Renumbered from P0-fix v181.
+v182_decision_content_lineage_and_secret_hardening.sql
+# v183: content-lineage integrity hardening (review_decisions tenant RLS, DB-authoritative digest, append-only, NOT NULL). Renumbered from P0-fix v182.
+v183_decision_lineage_integrity_hardening.sql

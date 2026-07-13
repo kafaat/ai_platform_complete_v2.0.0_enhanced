@@ -42,30 +42,30 @@ generate_env() {
 # ⚠️ CHANGE ALL SECRETS BEFORE PRODUCTION
 
 # Database
-POSTGRES_PASSWORD=sahool_secure_db_2026_change_me
+POSTGRES_PASSWORD=<set-in-secret-manager>
 DB_PASSWORD=sahool_secure_db_2026_change_me
 
 # JWT
-JWT_SECRET=change_this_to_a_64_char_random_string_immediately
+JWT_SECRET=<set-in-secret-manager>
 
 # MinIO
 MINIO_ROOT_USER=sahool
-MINIO_ROOT_PASSWORD=minio_secure_2026_change_me
+MINIO_ROOT_PASSWORD=<set-in-secret-manager>
 
 # Sentinel Hub (Copernicus Data Space)
 SH_CLIENT_ID=your_sentinel_hub_client_id
-SH_CLIENT_SECRET=your_sentinel_hub_client_secret
+SH_CLIENT_SECRET=<set-in-secret-manager>
 SH_INSTANCE_ID=your_instance_id
 
 # SAHOOL Agent
-SAHOOL_AGENT_TOKEN=agent_token_change_me_64chars
+SAHOOL_AGENT_TOKEN=<set-in-secret-manager>
 EDGE_SYNC_TOKEN=edge_sync_token_change_me_64chars
 
 # Telegram Bot
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token_from_botfather
+TELEGRAM_BOT_TOKEN=<set-in-secret-manager>
 
 # Grafana
-GRAFANA_PASSWORD=admin_change_me
+GRAFANA_PASSWORD=<set-in-secret-manager>
 
 # Mapbox (optional, for fallback maps)
 MAPBOX_TOKEN=your_mapbox_token

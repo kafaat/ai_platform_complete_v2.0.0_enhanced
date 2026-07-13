@@ -185,6 +185,12 @@ jobs:
       # RLS — no fail-open WITH CHECK, no non-canonical app.current_tenant_id, idempotent policies.
       - name: irrigation RLS canonical (fail-closed) guard
         run: python scripts/ci/irrigation_rls_canonical_guard.py
+      # P0-fix bundle: DB-owned immutable recommendation content-lineage (v182/v183) + JWT/secret
+      # configuration hardening (RSA keypair validation + fallback full-tree secret scan).
+      - name: decision content-lineage v183 hardening guard
+        run: python scripts/ci/decision_lineage_v183_guard.py
+      - name: JWT and secret configuration guard
+        run: python scripts/ci/jwt_secret_configuration_guard.py
       # VEG-AGRIAI completion: vegetation stays real-source-honest and agriai-engine stays
       # context-bound (delivered increment; its dedicated workflow only runs on main/PR paths,
       # so enforce the structural contract on every push here too).

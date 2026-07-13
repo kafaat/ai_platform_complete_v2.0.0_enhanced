@@ -73,11 +73,11 @@ MINIO_ROOT_PASSWORD=$MINIO_PASS
 
 # ── Sentinel Hub ──
 SH_CLIENT_ID=your_sentinel_hub_client_id
-SH_CLIENT_SECRET=your_sentinel_hub_client_secret
+SH_CLIENT_SECRET=<set-in-secret-manager>
 SH_INSTANCE_ID=your_instance_id
 
 # ── Telegram ──
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token_from_botfather
+TELEGRAM_BOT_TOKEN=<set-in-secret-manager>
 
 # ── Mapbox ──
 MAPBOX_TOKEN=your_mapbox_token

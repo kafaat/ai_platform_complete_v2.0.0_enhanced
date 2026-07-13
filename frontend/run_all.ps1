@@ -69,14 +69,14 @@ function Setup-Env {
 # SAHOOL v8.0 — Environment Variables
 # عدّل هذه القيم قبل النشر!
 
-POSTGRES_PASSWORD=sahool_secure_pass_2026
-REDIS_PASSWORD=redis_secure_pass_2026
+POSTGRES_PASSWORD=<set-in-secret-manager>
+REDIS_PASSWORD=<set-in-secret-manager>
 MINIO_ROOT_USER=sahool-admin
-MINIO_ROOT_PASSWORD=minio_secure_pass_2026
-GRAFANA_PASSWORD=grafana_pass_2026
+MINIO_ROOT_PASSWORD=<set-in-secret-manager>
+GRAFANA_PASSWORD=<set-in-secret-manager>
 
 # JWT (أنشئ بـ: openssl rand -hex 32)
-JWT_SECRET=change_this_to_a_256bit_random_string_before_deployment
+JWT_SECRET=<set-in-secret-manager>
 
 # Copernicus (اختياري - للصور الحقيقية)
 COPERNICUS_USER=

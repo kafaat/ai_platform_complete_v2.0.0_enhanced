@@ -517,3 +517,7 @@
 \i migrations/v180_governed_vri_prescription.sql
 \echo '═══ 187. v181_irrigation_closed_loop_learning_production_certification.sql ═══'
 \i migrations/v181_irrigation_closed_loop_learning_production_certification.sql
+\echo '═══ 188. v182_decision_content_lineage_and_secret_hardening.sql ═══'
+\i migrations/v182_decision_content_lineage_and_secret_hardening.sql
+\echo '═══ 189. v183_decision_lineage_integrity_hardening.sql ═══'
+\i migrations/v183_decision_lineage_integrity_hardening.sql

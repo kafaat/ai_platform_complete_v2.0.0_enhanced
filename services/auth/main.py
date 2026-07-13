@@ -34,6 +34,8 @@ from jose import JWTError, jwt
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from shared.security.jwt_key_validation import validate_rsa_key_pair
+
 # تسجيل منظّم موحّد (JSON) — يهرّب الاقتباسات/العربي صحيحاً (لا JSON مكسور).
 # fallback آمن لو لم تتوفّر الحزمة المشتركة (لا يكسر الخدمة).
 try:
@@ -52,8 +54,14 @@ JWT_SECRET = os.getenv("JWT_SECRET", "")
 # RS256 (غير متماثل) لإنهاء shared trust domain: auth يوقّع بالمفتاح الخاصّ،
 # الخدمات تتحقّق بالمفتاح العامّ (آمن للتوزيع). fallback لـHS256 لو لم تُضبط
 # المفاتيح بعد (ترحيل آمن بلا flag-day). المفاتيح عبر env (PEM).
-JWT_PRIVATE_KEY = os.getenv("JWT_PRIVATE_KEY", "")  # PEM (auth فقط)
-JWT_PUBLIC_KEY = os.getenv("JWT_PUBLIC_KEY", "")  # PEM (للتحقّق)
+# P0-fix: validate RSA PEMs AND prove private/public form a matching pair at startup
+# (fail-closed on a mismatched pair, which would otherwise boot but reject every token).
+try:
+    JWT_PRIVATE_KEY, JWT_PUBLIC_KEY = validate_rsa_key_pair(
+        os.getenv("JWT_PRIVATE_KEY", ""), os.getenv("JWT_PUBLIC_KEY", "")
+    )
+except ValueError as exc:
+    raise RuntimeError(f"Invalid JWT RSA configuration: {exc}") from exc
 JWT_ALGORITHM = "RS256" if JWT_PRIVATE_KEY else "HS256"
 JWT_SIGNING_KEY = JWT_PRIVATE_KEY if JWT_PRIVATE_KEY else JWT_SECRET
 JWT_VERIFY_KEY = JWT_PUBLIC_KEY if JWT_PUBLIC_KEY else JWT_SECRET
