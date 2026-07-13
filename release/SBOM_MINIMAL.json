@@ -55,6 +55,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "dae5f2f4b36336b2f824f009e9e06695cdbed4104a0a5710f1feb61c34aa9285"
+        }
+      ],
+      "name": "docker-compose.soil-strict.yml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f9d4e8617f1554ee209588fa127cdc0f4a3d8aa2c5ed980c21276fa6854f2d94"
         }
       ],
@@ -6545,10 +6555,50 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d4c5859cd49d16f7bccec02e3cfbc722e3930fc2e7357d79ac8b708fb78c9e0b"
+        }
+      ],
+      "name": "migrations/v157_soil_projection_jobs_reconciliation.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b179ff5f3ae06e6290513762ff6ce3e57eeab1336eca5e3a2bb7110324344c33"
+        }
+      ],
+      "name": "migrations/v158_soil_projection_observability.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "07a85c24c172b457bc095370a21394fa5bfbb975241403942960293737d42c0d"
+        }
+      ],
+      "name": "migrations/v159_soil_observation_supersession_current_pointer.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fb0f425d3153fa93f00c48cc9b3fd8c85913f8cff4a953be22c98bf62b74f10c"
         }
       ],
       "name": "migrations/v15_offline_synced_operations.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9af73642558f95eec3ea609337107828d0841aa85ea0ec19f28b360d767fa3f8"
+        }
+      ],
+      "name": "migrations/v160_soil_lab_publication_lineage.sql",
       "type": "file"
     },
     {
@@ -23925,6 +23975,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d592ad021271cf529a5be96b1b5f2dec711a59b76ec481d21d3af8d4baaf67c1"
+        }
+      ],
+      "name": "services/soil-service/projection_jobs.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "619c60befd1b2886a07de23d109e58b9cc5da1280fccdecd85661798bad371ab"
+        }
+      ],
+      "name": "services/soil-service/projection_observability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4bce59f8e336deb7e4a77de89f00b9414ef951b770bc498e848ee6a2fa62d195"
         }
       ],
@@ -24045,6 +24115,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "370e7fa385a926b1628ab6c98665c6c823df4d9d87adf4b8345e0600424779aa"
+        }
+      ],
+      "name": "services/soil-service/test_soil_cutover_readiness.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "dad24a5681c0d42335eeb5e3e4613f55b0dba6f32e86f58bed1cc866b0bf6176"
         }
       ],
@@ -24055,10 +24135,60 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "091fd5e6100a1335993da4b8a2483527410afa9a875cdad8e96e8f3d40947251"
+        }
+      ],
+      "name": "services/soil-service/test_soil_lab_supersession_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1352eab165c3a00ca22d3680b91db0445d8fca7d0f3261fa9d2fba0efd8d8c30"
+        }
+      ],
+      "name": "services/soil-service/test_soil_projection_jobs.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd6d1e751ac74c1e2ad312328e35a337139b0e1e7e4b0e17b76394f2b97304b5"
+        }
+      ],
+      "name": "services/soil-service/test_soil_projection_observability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "9afab85b33d01475d9aa818be7a5f3184189b536c4717f00e070ceddf2033481"
         }
       ],
       "name": "services/soil-service/test_soil_router_decomposition_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e8c73e02cdf9068464dfe40e04f804ebbb710346e5f6977117633ce94df8083c"
+        }
+      ],
+      "name": "services/soil-service/test_soil_snapshot_identity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "713e391eb6ec23ca572b696619991c168cecd25c286cfdbffe532ddb8f362aec"
+        }
+      ],
+      "name": "services/soil-service/test_soil_supersession_current_pointer.py",
       "type": "file"
     },
     {

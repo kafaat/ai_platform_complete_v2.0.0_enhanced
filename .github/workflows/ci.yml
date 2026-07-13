@@ -258,7 +258,9 @@ jobs:
             # odoo-snippet مقتطف (fragment) يُلصق داخل compose آخر، وليس ملفّاً مستقلاً.
             # rag-kg-mcp تراكُب (overlay) يُشغَّل مع v9 (يعتمد qdrant/ollama/الشبكة من الأساس)
             # فلا يصحّ التحقّق منه مستقلّاً.
-            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
+            # soil-strict تراكُب إنتاجيّ (overlay) يحمل environment فقط لخدمات مُعرَّفة في
+            # الأساس (v9)، فلا image/build فيه ⇒ لا يصحّ standalone؛ يُطبَّق فوق v9 بعد الشهادة.
+            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
             # 1. YAML syntax
             python3 -c "import yaml; yaml.safe_load(open('$f'))"
             # 2. Compose schema (docker compose config) مع env وهمي
