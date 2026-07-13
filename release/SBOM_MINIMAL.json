@@ -1555,7 +1555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5c61298eb0142ec1ab54a73d7b7c9b278256abf7458defa291669bc5010b8d1"
+          "content": "0db71dc91e07ed229665f41531f698bbc509918d1e937054ddedac6350c9755a"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -1575,7 +1575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d196778313299d4321dfa64635ca413c8a166e9abd62966f3fe1fc5f202bb251"
+          "content": "de3dd093100e91c3091bf9987f3fa53f36972c95575660e256f2bce971184b01"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -1659,6 +1659,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "253527898e6ef07fa4142104c4d67fef58f2eb184b1948d5597d0246ab283fe7"
+        }
+      ],
+      "name": "frontend/src/components/maphub/MapImageryReflow.static.test.ts",
       "type": "file"
     },
     {
@@ -5115,7 +5125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ed321b40285fd712d0f43889fe2ab02e57ca9e2bf31d43967e7c94a441a96dc"
+          "content": "579e8b0c754fa3aee0b6a20edc1aa8a60a8159a37a26bb49201298e34cc2ab35"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5125,7 +5135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2b7c9df56c02c8938d5a62017971a4b0cd95fdc6c9082e8eec0349f625002b9f"
+          "content": "ceea3191413420373068eba729e79a962346aa23db4d754e7d143a88b7a49ea2"
         }
       ],
       "name": "frontend/src/sections/MapHubHistoricalTimeline.static.test.ts",
@@ -5165,7 +5175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7545e30f0983223c55ade63779346f287922fa816ceed0b77f282fc4a968167a"
+          "content": "81268755b710a75b9460e3a70b1ddab310900cbf288418bc6408d0dead8294db"
         }
       ],
       "name": "frontend/src/sections/MapHubTwoYearTimeline.static.test.ts",
@@ -13875,6 +13885,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "03264614a26a2b5c7b9989a102592cc5e30b5f1bb49207599d32319a32087756"
+        }
+      ],
+      "name": "services/sahool-platform/api/lexicographic_mpc_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "47c4daa60f05c43011a8a802a3e9f4143dc90c23f789648ed318dda9db1a7493"
         }
       ],
@@ -15119,6 +15139,16 @@
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_method.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b4ac6ebe227a25495fbd4657dfcbab3239f2a002e3ae15b7bfc1e3003d158ea9"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
       "type": "file"
     },
     {
@@ -22455,7 +22485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e32517eb00c0b227022c78fc28063b49675b53bda16109dda2f8a8486c2aa7c4"
+          "content": "7c604eb494f2853a3f4ff56140f536dcc8a3446f8a680b84d5ddd2e55cc1cb5e"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
