@@ -4555,7 +4555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ee224cc3b81d6610fa4f08f55da58bdba9f22c07c26a3ba4392f4795e548de4"
+          "content": "af26add0f2e982831be930cda3a7bd738dccd108e605a005fec1a47d2edca6c1"
         }
       ],
       "name": "frontend/src/sections/ChatbotPage.tsx",
@@ -5125,7 +5125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6d20c49b2a202e1898ad2d9799cf752365ed3a57e68b6e4f7e37d466870097b2"
+          "content": "14435bdde3d9bd35976f9585695ebea1903eaa3be0f394839471afc1d6b7e1da"
         }
       ],
       "name": "frontend/src/sections/LabSamplingPage.tsx",

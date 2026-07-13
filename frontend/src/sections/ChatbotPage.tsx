@@ -212,9 +212,10 @@ function BotMessage({ msg, isLatest }: { msg: Msg; isLatest: boolean; key?: Reac
     const key = approval.id || approval.tool || 'approval';
     setApprovalStates(s => ({ ...s, [key]: 'sending' }));
     try {
+      // لا نُرسِل approver من العميل: المُعتمِد الرسميّ يُشتقّ خادميّاً من هويّة المستخدِم
+      // المُصادَقة عبر البوّابة (X-User-Id، SEC-3.1) — لا يمكن انتحاله بتحرير الحمولة.
       await kongApi.post(`/api/ai-agronomist/approvals/${decision}`, {
         approval,
-        approver: 'web-user',
         reason: decision === 'deny' ? 'denied_by_user' : undefined,
       });
       setApprovalStates(s => ({ ...s, [key]: decision === 'approve' ? 'approved' : 'denied' }));

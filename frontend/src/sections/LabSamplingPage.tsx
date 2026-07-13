@@ -91,7 +91,9 @@ export default function LabSamplingPage() {
       cec_cmol_kg: n(fd.get('cec_cmol_kg')),
       calcium_carbonate_pct: n(fd.get('calcium_carbonate_pct')),
       texture: String(fd.get('texture') || ''),
-      approved: fd.get('approved') === 'on',
+      // لا نُرسِل approved من نموذج الإدخال: الإدخال العاديّ يُنشئ نتيجة «مُستلَمة» غير
+      // مُعتمَدة، والاعتماد انتقال حالة منفصل مُصرَّح به خادميّاً (/lab/samples/{id}/transition
+      // → approved) بهويّة مُعتمِد مُصادَقة — لا يجوز للعميل تصديق نتيجته بنفسه (فصل الواجبات).
     };
     try {
       const res = await submitSoil.mutateAsync(payload);
@@ -138,7 +140,7 @@ export default function LabSamplingPage() {
             <div className="grid grid-cols-3 gap-2"><input name="ph" type="number" step="any" placeholder="pH" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="ec_dsm" type="number" step="any" placeholder="EC dS/m" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="organic_matter_pct" type="number" step="any" placeholder="OM %" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></div>
             <div className="grid grid-cols-3 gap-2"><input name="nitrogen_mg_kg" type="number" step="any" placeholder="N" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="phosphorus_mg_kg" type="number" step="any" placeholder="P" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="potassium_mg_kg" type="number" step="any" placeholder="K" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></div>
             <div className="grid grid-cols-3 gap-2"><input name="cec_cmol_kg" type="number" step="any" placeholder="CEC" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="calcium_carbonate_pct" type="number" step="any" placeholder="CaCO3 %" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /><input name="texture" placeholder="Texture" className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></div>
-            <label className="flex items-center gap-2 text-sm text-slate-300"><input name="approved" type="checkbox" /> معتمدة من المختبر</label>
+            <p className="text-[11px] text-slate-400">تُحفَظ النتيجة كـ«مُستلَمة» بانتظار الاعتماد. اعتماد المختبر خطوة منفصلة مُصرَّح بها (انتقال حالة) لا يُصدِّقها مُدخِل البيانات بنفسه.</p>
             <button disabled={submitSoil.isPending} className="rounded-xl bg-emerald-600 px-4 py-2 text-white disabled:opacity-50">حفظ التحليل</button>
           </form>
 
