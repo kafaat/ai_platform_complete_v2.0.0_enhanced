@@ -1305,6 +1305,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "82bea0b5010de33002cf5da5a626b8503c911a048ad87ce72b24665e0d59da9e"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SoilGovernanceCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4771392f9d7535d512ae6ccf47d98908ede7dc07a908ee0ffe4ab703e8944e24"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/SoilGovernanceWiring.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "321330b11a4dd364dd56ea38731a29dd26af5613564a83cf78d90289681ec3fd"
         }
       ],
@@ -13829,6 +13849,16 @@
         }
       ],
       "name": "services/sahool-platform/api/learning_summary.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3562e2dbe006c0cf50da1387cbafb187783375d073b2047d3e319063d49c6092"
+        }
+      ],
+      "name": "services/sahool-platform/api/lexicographic_irrigation_mpc.py",
       "type": "file"
     },
     {

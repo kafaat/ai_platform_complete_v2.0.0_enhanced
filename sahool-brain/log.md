@@ -3,6 +3,20 @@
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
+## 2026-07-13 — Lexicographic MPC المرحلة 0: نواة الحلّال الهرميّ + العقد (توصية-فقط، الطاقة not_modelled)
+
+**السياق:** المستخدم قدّم مواصفة تفصيليّة لمتحكّم ريّ تنبّؤيّ هرميّ معجميّ (سلّم حماية-محصول≻ماء/طاقة≻حدّ-إنتاج≻هامش، غير قابل للمقايضة الماليّة). **استطلاع ثلاثيّ الطبقات (٣ وكلاء):** الهيكل المحكوم موجود كلّه (water_ledger Dr · canonical_water_stress AWF · fao56 ETc/TAW/Zr/Ks · سلسلة candidate→review→execute→verify→learning · water_decision_bridge يصدر مرشّح ريّ)؛ ومتحكّم جشِع قائم `api/irrigation_mpc.plan_irrigation` يصف نفسه صراحةً غير-QP/LP = نقطة التعميم. الجديد كلّيّاً: الحلّال المعجميّ · نموذج Ky الكنسيّ · **طبقة الطاقة/الآبار/الشمسيّة غائبة تماماً كبيانات** (COMPETITIVE_ANALYSIS.md مخطّط فقط). القرار: البدء بـم0 يبني كلّه على بيانات موجودة؛ الطاقة تُعلَن not_modelled لا تُلفَّق.
+
+**م0 المُنفَّذة (`services/sahool-platform/api/lexicographic_irrigation_mpc.py`، نقيّ حتميّ):**
+- يعمّم `plan_irrigation` من سياسة واحدة إلى **اختيار معجميّ بهامش ε**: يُحاكي السياسات الخمس أماماً، يسجّلها على 4 أهداف، ثمّ يثبّت J1 ⇒ ضمن EPS_J1 أفضل J2 ⇒ EPS_J2 أفضل J3 ⇒ EPS_J3 أدنى J4 (كسر تعادل حتميّ).
+- **J1** `Σ max(0,Dr−RAW)² + λ_s·(أيّام إجهاد في مرحلة حرجة)` (حرجة = Ky FAO-33 ≥ 0.85) · **J2** ماء + رشح عميق (طاقة not_modelled) · **J3** وكيل نقص إنتاج قائم على الإجهاد الحرج (`stress_proxy_pending_ky`، يُستبدَل بـ`Ya/Ym=1−Ky·(1−ETa/ETm)` في م1) · **J4** وكيل تكلفة ماء (إيراد not_modelled).
+- **آلة حالات:** NORMAL_OPTIMIZATION · CROP_PROTECTION (مرحلة حرجة + اقتراب/تجاوز RAW) · WATER_SCARCITY (نفاد ميزانيّة + إجهاد) · ENERGY_CONSTRAINED (غير قابلة للوصول م0) · DATA_DEGRADED (ثقة مخفوضة) · EMERGENCY_FAIL_CLOSED (مدخلات حرجة مفقودة ⇒ لا أمر، موافقة، ثقة 0).
+- `ReasonCode` enum + عقد `LexicographicIrrigationDecision` (عمق/استنزاف قبل-بعد/نغمة إجهاد كنسيّة/عدّادات/رموز أسباب/`not_modelled` صريحة/`calibrated=False`). **توصية-فقط:** `approval_required=True` دائماً؛ لا أمر مضخّة مباشر — يمرّ بمركز القرار.
+- يعيد استخدام: `plan_irrigation` (محاكٍ) · `_STAGE_SENSITIVITY` (Ky) · `available_water_fraction`+`WATER_STRESS_CRITICAL_AWF` (نغمة كنسيّة).
+
+**التحقّق:** `tests_v9/test_lexicographic_irrigation_mpc.py` **11/11** (حماية غير مقايَضة بالماء · فشل-مُغلَق على أفق مفقود/TAW غير صالح · مطر⇒تأجيل بلا اختلاق · الطاقة/الآبار not_modelled دائماً · توصية-فقط · تدهور يخفض الثقة · شحّ ماء يعلَّم · حتميّة قابلة للتكرار) · ruff نظيف على النطاق الكامل · ADR-0032 + فهرس ADR. إضافيّ صرف (لا هجرة، لا نقطة، لا تنفيذ). **المراحل التالية:** م1 Ky؛ م2 طبقة الطاقة/الآبار (هجرات wells/pumps + PV)؛ م3 أفق ساعيّ؛ م4 واجهة + كاتب irrigation_runs + إغلاق الحلقة.
+
+---
 ## 2026-07-13 — مراجعة واجهات (بوّابة/backend/عمل أخير) + أوّل مستهلك UI للحوكمة (SOIL-GOVERNANCE-WORKSPACE)
 
 **المراجعة (٣ وكلاء استطلاع متوازية):** (backend) ~50 نقطة soil-service P1–P6 تُخدَم بلا بادئة عبر `router_registry`؛ (بوّابة) `/api/soil/` → `service_proxy` (يجرّد رؤوس العميل، يحقن `X-Agent-Token`+`X-Tenant-Id`) → `SOIL_SERVICE_URL` (`sahool-soil-service:8000`)؛ لا upstream soil مباشر في nginx عمداً؛ (واجهة) المستهلَك فعليّاً: SoilGrids/Terrain (raster) · Irrigation-water · Salinity · Lab CRUD. **الفجوة:** P4–P6 (حلقة مغلقة/تحقّق/تصديق/runtime) بلا مستهلك واجهة، و`frontend/src/lib/soilWorkspace.ts` سقالة يتيمة تُخطئ عقد `soil-profile.v1`.
