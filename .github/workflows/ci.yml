@@ -141,6 +141,8 @@ jobs:
         run: python scripts/ci/soil_p4_closed_loop_guard.py
       - name: soil P5 certification guard
         run: python scripts/ci/soil_p5_certification_guard.py
+      - name: soil P6 runtime certification guard
+        run: python scripts/ci/soil_p6_runtime_certification_guard.py
       # VEG-AGRIAI completion: vegetation stays real-source-honest and agriai-engine stays
       # context-bound (delivered increment; its dedicated workflow only runs on main/PR paths,
       # so enforce the structural contract on every push here too).

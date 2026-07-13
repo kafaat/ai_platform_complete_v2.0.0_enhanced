@@ -631,3 +631,5 @@ v163_soil_p3_assessment_products.sql
 v164_soil_p4_closed_loop.sql
 # v165: P5 field validation, regional calibration, production certification, learning datasets.
 v165_soil_p5_validation_calibration_certification.sql
+# v166: P6 runtime/production certification (fail-closed manifest, content-addressed evidence).
+v166_soil_p6_runtime_certification.sql

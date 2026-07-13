@@ -3,6 +3,32 @@
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
+## 2026-07-13 — دمج soil P6 (التصديق التشغيليّ/الإنتاجيّ v166) + تشخيص أحمر Service Inventory Drift على main
+
+**P6 (`soil_p6_runtime_certification`) — دُمِج على حزمة P5 بتصميم الحزمة القانونيّ:** عقد `shared/contracts/soil/p6.py`
+(`RuntimeCertificationRun` + أدلّة مُعنونة بالمحتوى، صادرات صريحة في `__init__.py`) · بانِي `services/soil-service/p6_certification.py`
+(نقيّ، وحدةً 3/3) · راوتر `routers/p6_certification.py` (تركيب تلقائيّ عبر router_registry) · هجرة `v166`
+(جدولان `soil_runtime_certification_runs`/`soil_runtime_certification_evidence` بـENABLE+FORCE RLS + tenant_isolation) ·
+CLI `scripts/soil/run_production_certification.py` (يخرج 2 عند الفشل) · حارس `scripts/ci/soil_p6_runtime_certification_guard.py`
++ خطوة ci.yml. التسجيلات: MANIFEST v166 · run_migrations خطوة 172 · db_ownership الجدولان. طُبِّقت v166 على `sahool_ci`:
+0 أخطاء، 2/2 FORCE RLS.
+
+**عيب تسليم حقيقيّ أُصلح:** `tests_v9/test_soil_p6_runtime_integration.py::test_concurrent_supersession_accepts_one_replacement`
+كان INSERT في `soil_observations` يُغفِل NOT NULL `depth_from_cm`/`depth_to_cm` — كان سيفشل حتماً على PG حقيقيّ.
+أُضيف العمودان + `0,30`. بعده: P6 تكامل PG حقيقيّ **3/3**.
+
+**تشخيص أحمر main@`9f24a2a` (المستخدم أرسل رابط وظيفة CI):** وظيفة *Service Inventory Drift* (`drift`) فشلت في خطوة
+«Verify generated service inventory is current» بـ`Inventory drift detected: SERVICE_REGISTRY.md`. السبب: عند دمج سلسلة
+P0–P5 لم تُعَد الجرود المُولَّدة. الإصلاح: `generate_service_inventory.py --write-registry` (29 خدمة/997 مساراً) +
+`route_mount_contract_guard.py --write` (25 مدخلاً) + إعادة بناء حزمة الإصدار (**4222** checksum). **درس مُرسَّخ:** قائمة
+قبل-الالتزام لأيّ عمل يضيف راوترات/وحدات تشمل الآن إعادة توليد الجرود المُولَّدة صراحةً، لا الحُرّاس الساكنة فقط.
+
+**التحقّق الكامل:** `pytest -m unit` **2914 نجاح / 5 تخطٍّ**، تغطية **45.17%** (أرضيّة 40%) · 15/15 حارس تربة ·
+حارس تزامن المُشغّلَين · حُرّاس المنصّة (decomposition + route budget) · الجرود المُولَّدة نظيفة (`--check` أخضر) ·
+`ruff format+check` نظيف على النطاق الكامل · حزمة الإصدار 4222 checksum · ci.yml YAML صالح. تفصيل الملحق:
+`docs/audits/SOIL_P6_RUNTIME_CERTIFICATION_INTEGRATION_20260713.md`.
+
+---
 ## 2026-07-10 — دمج clp_all_nan_test_fix (برنامج جودة الراستر) + Docker Build Matrix (P-CERT)
 
 أرشيف `57cf56e_clp_all_nan_test_fix` — البصمات كشفت أساسه الحقيقيّ **استيرادنا السابق `c53875c`** (vs 57cf56e: 85+213؛ vs c53875c: **34 جديد + 7 مُعدَّل فقط**) ⇒ استيراد على c53875c ثمّ merge نظيف **بلا تعارضات** (git حسم تلقائيّاً؛ دُقّق يدويّاً: runtime_real_smoke.sh وملفّات الراستر الخمسة المتداخلة، وبقاء المرفوضات السابقة محذوفة).

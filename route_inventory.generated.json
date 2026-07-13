@@ -7401,6 +7401,30 @@
   },
   {
     "service": "soil-service",
+    "file": "services/soil-service/routers/p6_certification.py",
+    "line": 21,
+    "method": "POST",
+    "path": "/v1/soil/runtime-certifications/evaluate",
+    "function": "evaluate_certification"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p6_certification.py",
+    "line": 49,
+    "method": "POST",
+    "path": "/v1/soil/runtime-certifications/{run_id}/verify",
+    "function": "verify_certification"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p6_certification.py",
+    "line": 60,
+    "method": "GET",
+    "path": "/v1/soil/runtime-certifications/{run_id}",
+    "function": "get_certification"
+  },
+  {
+    "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
     "line": 23,
     "method": "GET",

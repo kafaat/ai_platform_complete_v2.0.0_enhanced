@@ -5915,7 +5915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "59f56fd6b29e1a9e1412f21836a19f1e9252112be916405393c4a163771d120e"
+          "content": "fbe00134e8d1e0bbcbc6c0d2524977e1d078b157a8a34397b74f4f4c885256a8"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6659,6 +6659,16 @@
         }
       ],
       "name": "migrations/v164_soil_p4_closed_loop.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2f693a0f45c77abb6245bf763c115685701ca60279a370a79d37fc97955af1d"
+        }
+      ],
+      "name": "migrations/v165_soil_p5_validation_calibration_certification.sql",
       "type": "file"
     },
     {
@@ -24115,6 +24125,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "74ee34d6dc773e99351503785060581f20e43e3bcde2e9d9d2ffed949d225319"
+        }
+      ],
+      "name": "services/soil-service/p5_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a4174654f4540e4d61783b03d6bb349555999deb425e882241e17388b620a8b4"
         }
       ],
@@ -24245,6 +24265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e02d298d1aa20c31a7e119ae4a5ba6bf1f94a447333c0eae1ee4df0c5875d678"
+        }
+      ],
+      "name": "services/soil-service/routers/p5_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "84391646cbd2f572d1bc1360c788896b21688bb6f4aa09c322fc9b01b2e4e52e"
         }
       ],
@@ -24369,6 +24399,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_p4_governance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9d4597ce992868059f68ad31bc5c0c0c69eb8c50a0fa680ec9d9f7f09c67a480"
+        }
+      ],
+      "name": "services/soil-service/test_soil_p5_certification.py",
       "type": "file"
     },
     {
@@ -25859,6 +25899,16 @@
         }
       ],
       "name": "shared/contracts/soil/p4.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c10e5cf9a7d932d950af130bc9c21adebda54b16a346651a02a5bee91db8b124"
+        }
+      ],
+      "name": "shared/contracts/soil/p5.py",
       "type": "file"
     },
     {

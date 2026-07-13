@@ -1222,3 +1222,13 @@ tables:
     writers: [soil-service]
     readers: [sahool-platform]
     source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_runtime_certification_runs:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v166_soil_p6_runtime_certification.sql"
+  soil_runtime_certification_evidence:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v166_soil_p6_runtime_certification.sql"
