@@ -15,6 +15,7 @@ import { Search } from 'lucide-react';
 import { useAuthStore } from '../../hooks/useAuth';
 import { canAccess } from '../../lib/permissions';
 import { isPageEnabled } from '../../lib/featureFlags';
+import { isRuntimePageEnabled, useFeatureRegistry } from '../../hooks/useFeatureRegistry';
 import { NAV_SECTIONS, maturityBadge, type RouteDef } from '../../lib/routes';
 
 /**
@@ -25,6 +26,7 @@ export default function CommandPalette() {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const reduce = useReducedMotion();
+  const featureRegistry = useFeatureRegistry();
   const [open, setOpen] = useState(false);
 
   // فتح/طيّ بـ⌘K / Ctrl-K (يُلتقَط عالميّاً، يمنع سلوك المتصفّح الافتراضيّ).
@@ -39,8 +41,10 @@ export default function CommandPalette() {
     return () => document.removeEventListener('keydown', onKey);
   }, []);
 
-  // مُرشِّح موحّد مطابق لـNavRail: مُفعّلة (علم الميزة) + يحقّ للدور فتحها (RBAC).
-  const allowed = (r: RouteDef) => isPageEnabled(r.id) && canAccess(user?.role, r.id) && !r.hidden;
+  // مُرشِّح موحّد مطابق لـNavRail: مُفعّلة بناءً (علم الميزة) + وقت‌تشغيلاً (سجلّ الميزات
+  // الحيّ) + يحقّ للدور فتحها (RBAC). إضافة isRuntimePageEnabled تُوحّد الترشيح مع NavRail
+  // فلا تظهر صفحة معطَّلة وقت‌تشغيلاً في لوحة الأوامر بينما هي مخفيّة في الشريط — F-UI-02.
+  const allowed = (r: RouteDef) => isPageEnabled(r.id) && isRuntimePageEnabled(r.id, featureRegistry) && canAccess(user?.role, r.id) && !r.hidden;
 
   // أقسام بعناصرها المسموح بها فقط؛ قسم بلا عناصر يُسقَط (لا رأس فارغ).
   const sections = NAV_SECTIONS

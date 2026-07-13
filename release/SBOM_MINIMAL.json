@@ -425,7 +425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c0e9bce25aef032053649ea7a841cddf318089a71665a611f17b6817a9fcbf2"
+          "content": "a64088189f8012f6bdfd20aecead99b9440182f18b189d9be63142225eeca3f6"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -2235,7 +2235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "003e58e19b54dc4e315c22ec212880a74294313d08fb06267f987ab6502275de"
+          "content": "03f9686ebb9cc3f68ffc6c2c49e0e1fd71cc6acf9c42046748b5ee3f2d5e88cb"
         }
       ],
       "name": "frontend/src/components/shell/CommandPalette.tsx",
@@ -2255,10 +2255,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d52e0e9d1974e4acf70b1c742a890bf121e68f8d6ff82db5b259d7310541886"
+          "content": "fcbe39c6679d7af0113f13d67572435b8059dba99da246206f9a308298f53e53"
         }
       ],
       "name": "frontend/src/components/shell/MobileTabBar.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e7bc09e1ab268de59a5574393c79d248be86d3f3edf9f8a58f1bdddc49e7d507"
+        }
+      ],
+      "name": "frontend/src/components/shell/NavGateParity.static.test.ts",
       "type": "file"
     },
     {

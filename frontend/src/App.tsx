@@ -273,9 +273,13 @@ export default function App() {
     }
   }
 
-  const renderPage = () => {
-    // حارس RBAC: صفحة لا يحقّ للدور فتحها (عبر زر/رابط داخليّ) تُمنَع صراحةً.
-    if (!canAccess(user?.role, page)) {
+  // بوّابة موحّدة لأيّ صفحة مستهدَفة: RBAC (canAccess) ثمّ علم الميزة (بناء + وقت‌تشغيل).
+  // مُستخرَجة كي تشترك فيها renderPage والمساراتُ الديناميكيّة (workspace) فلا يلتفّ أيّ
+  // مسار حول الحارس (F-UI-01: كان /fields/:id/workspace و/field/:id/workspace يعرضان
+  // الورشة مباشرةً متجاوزَين canAccess وعلم الميزة).
+  const guardPage = (targetPage: PageId, node: React.ReactNode): React.ReactNode => {
+    // حارس RBAC: صفحة لا يحقّ للدور فتحها (عبر زر/رابط/مسار عميق) تُمنَع صراحةً.
+    if (!canAccess(user?.role, targetPage)) {
       return (
         <div className="flex flex-col items-center justify-center h-64 text-center" dir="rtl">
           <Shield className="w-10 h-10 text-amber-500 mb-3" />
@@ -290,10 +294,10 @@ export default function App() {
     }
     // حارس الميزة: صفحة محجوبة خلف علم مُطفأ (لا خلفيّة جاهزة) ⇒ لافتة صريحة بدل
     // شاشة مكسورة. تبقى في اتّحاد PageId والمُصيِّر؛ تُعاد بالتفعيل (VITE_ENABLE_*).
-    if (!isPageEnabled(page) || !isRuntimePageEnabled(page, featureRegistry)) {
+    if (!isPageEnabled(targetPage) || !isRuntimePageEnabled(targetPage, featureRegistry)) {
       return (
         <div className="max-w-3xl mx-auto py-8" dir="rtl">
-          <FeatureDisabledState page={page} />
+          <FeatureDisabledState page={targetPage} />
           <button onClick={() => setPage('dashboard')}
             className="mt-4 px-4 py-2 rounded-lg text-sm text-emerald-400 border border-emerald-900 hover:bg-emerald-950">
             العودة للوحة المعلومات
@@ -301,6 +305,11 @@ export default function App() {
         </div>
       );
     }
+    return node;
+  };
+
+  const renderPage = () => {
+    const content = ((): React.ReactNode => {
     switch(page) {
       case 'dashboard':    return <DashboardPage setPage={setPage} />;
       case 'command':      return <OperationCommand />;
@@ -384,6 +393,8 @@ export default function App() {
       case 'settings':     return <SettingsPage />;
       default:             return <DashboardPage setPage={setPage} />;
     }
+    })();
+    return guardPage(page, content);
   };
 
   // محتوى الصفحة الحاليّة (نفس renderPage السابق) ملفوفاً بـSuspense — هدف عرض
@@ -404,8 +415,12 @@ export default function App() {
           {ALL_ROUTES.map((r) => (
             <Route key={r.id} path={r.path} element={pageContent} />
           ))}
-          <Route path="/fields/:fieldId/workspace" element={<FieldWorkspaceRouteShell />} />
-          <Route path="/field/:fieldId/workspace" element={<FieldWorkspaceRouteShell />} />
+          {/* المساران الديناميكيّان للورشة يمرّان الآن عبر guardPage('field-workspace')
+              (RBAC + علم الميزة) بدل عرض الورشة مباشرةً — إغلاق التفافة F-UI-01. */}
+          <Route path="/fields/:fieldId/workspace"
+            element={<Suspense fallback={<Loader />}>{guardPage('field-workspace', <FieldWorkspaceRouteShell />)}</Suspense>} />
+          <Route path="/field/:fieldId/workspace"
+            element={<Suspense fallback={<Loader />}>{guardPage('field-workspace', <FieldWorkspaceRouteShell />)}</Suspense>} />
           <Route path="/health/timeline" element={pageContent} />
           <Route path="/health/temporal-indicators" element={pageContent} />
           <Route path="/health/indicators/timeline" element={pageContent} />

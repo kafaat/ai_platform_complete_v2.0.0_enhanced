@@ -12,6 +12,7 @@ import { BottomTabBar } from '../ds';
 import { useAuthStore } from '../../hooks/useAuth';
 import { canAccess } from '../../lib/permissions';
 import { isPageEnabled } from '../../lib/featureFlags';
+import { isRuntimePageEnabled, useFeatureRegistry } from '../../hooks/useFeatureRegistry';
 import { NAV_SECTIONS, pageForPath, type NavSection } from '../../lib/routes';
 
 // الأقسام المعروضة في الشريط السفليّ (أهمّها — البقيّة عبر شريط التنقّل الكامل).
@@ -22,9 +23,12 @@ export default function MobileTabBar() {
   const navigate = useNavigate();
   const location = useLocation();
   const activePage = pageForPath(location.pathname);
+  // سجلّ الميزات الحيّ — نُرشِّح به تماماً كـNavRail كي لا يظهر عنصر معطَّل وقت‌تشغيلاً
+  // في شريط تبويب الموبايل بينما هو مخفيّ في NavRail (توحيد ترشيح التنقّل — F-UI-02).
+  const featureRegistry = useFeatureRegistry();
 
   const allowedItems = (s: NavSection) =>
-    s.items.filter((i) => isPageEnabled(i.id) && canAccess(user?.role, i.id) && !i.hidden);
+    s.items.filter((i) => isPageEnabled(i.id) && isRuntimePageEnabled(i.id, featureRegistry) && canAccess(user?.role, i.id) && !i.hidden);
 
   // أقسام لها عنصر مسموح به واحد على الأقلّ، ضمن المجموعة الأساسيّة.
   const sections = NAV_SECTIONS
