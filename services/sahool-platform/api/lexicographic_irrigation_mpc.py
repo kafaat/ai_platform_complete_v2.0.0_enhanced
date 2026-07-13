@@ -379,7 +379,8 @@ def _lexicographic_select(
 
 
 def _lineage_id(payload: str) -> str:
-    return "mpc_" + hashlib.sha1(payload.encode("utf-8")).hexdigest()[:16]
+    # نَسَب مُعنون بالمحتوى (تتبّع/idempotency) لا أمان — sha256 حتميّ.
+    return "mpc_" + hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
 
 def _emergency_decision(

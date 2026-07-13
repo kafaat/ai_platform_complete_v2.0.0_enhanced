@@ -13855,7 +13855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "34ecf6a7e3f03e300b87247daf2bb15e5d96cf966c959e00be8af3a2be3e31db"
+          "content": "f76771126cf5681c2a546aa530735c56ba4a37fddc417c1b6760a8ccb4f86201"
         }
       ],
       "name": "services/sahool-platform/api/lexicographic_irrigation_mpc.py",
@@ -18059,6 +18059,16 @@
         }
       ],
       "name": "services/sahool-platform/core/engines/input_traceability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a1de2985cb6cdb0b7799f8055c25f8cbf6d432adba339950a7372f8f005e3074"
+        }
+      ],
+      "name": "services/sahool-platform/core/engines/ky_registry.py",
       "type": "file"
     },
     {
