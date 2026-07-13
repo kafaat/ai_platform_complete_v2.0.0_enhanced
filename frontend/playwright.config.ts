@@ -33,7 +33,10 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   use: {
     baseURL: BASE_URL,
+    // أدلّة جنائيّة عند الفشل: أثر + لقطة + فيديو — تُرفَق بتقرير HTML لإعادة التشخيص.
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
   },
   projects: [
     {
@@ -58,6 +61,15 @@ export default defineConfig({
         },
       },
     },
+    // متصفّحات إضافيّة **اختياريّة** (WebKit/Safari-iOS · Firefox) — لا تعمل افتراضيّاً
+    // (CI يثبّت Chromium فقط)؛ تُفعَّل بـPW_ALL_BROWSERS=1 بعد `playwright install webkit
+    // firefox`. تُغلق فجوة تعدّد المتصفّحات (WebKit الأقرب لـiOS) دون كسر بوّابة Chromium.
+    ...(process.env.PW_ALL_BROWSERS === '1'
+      ? [
+          { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+          { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+        ]
+      : []),
   ],
   // يبني الواجهة بمحرّك maplibre ثمّ يخدمها (preview بلا وكيل ⇒ same-origin /api).
   webServer: {

@@ -74,6 +74,10 @@ test.beforeEach(async ({ page }) => {
 // (أزرار field-<id> ظاهرة من تركيبة الحقول الحقيقيّة).
 test('الخطوة 1: الخريطة تُحمَّل على WebGL وطبقات/قائمة الحقول مُسلَّكة @gating', async ({ page }) => {
   await expect(page.locator(`${CONTAINER} canvas`).first()).toBeVisible();
+  // ملاحظة صدق (تدقيق جنائيّ): «canvas ظاهر» لا يُثبِت اكتمال map.load/style/layers —
+  // محاولة استجواب `__hubmap.getMap().isStyleLoaded()` أثبتت عدم حتميّتها تحت SwiftShader
+  // headless (النمط قد لا يكتمل تحميله)، فلا نُضيف تأكيداً هشّاً يكسر خاصّيّة 0-flaky.
+  // إثبات الرسم الفعليّ مؤجَّل لعدّاء GPU حقيقيّ/توقيع بصريّ — انظر ملحق التدقيق.
   for (const f of FIELDS) {
     await expect(page.getByTestId(`field-${f.field_id}`)).toBeVisible();
   }

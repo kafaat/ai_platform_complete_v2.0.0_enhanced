@@ -122,8 +122,23 @@ describe('areaSqMeters', () => {
       ]],
     };
     const area = areaSqMeters(polygon);
-    expect(area).toBeGreaterThan(10000); // ~12,300 م²
-    expect(area).toBeLessThan(15000);
+    // تحقّق رقميّ دقيق (لا حدّ فضفاض): 0.001°×0.001° عند خطّ الاستواء ⇒ 12392.03 م²
+    // (قيمة turf@WGS84 المرجعيّة، مثبَّتة رقميّاً — لا حدّ فضفاض).
+    expect(area).toBeCloseTo(12392.03, 1); // ضمن ~±0.05 م²
+    expect(area / 10000).toBeCloseTo(1.2392, 3); // ≈ 1.2392 هكتار (نسبة مشتقّة دقيقة)
+  });
+
+  it('يحسب مساحة مربّع 0.01°×0.01° بنسبة ~100× مربّع 0.001° (مقياس تربيعيّ)', () => {
+    const small = areaSqMeters({
+      type: 'Polygon',
+      coordinates: [[[0, 0], [0.001, 0], [0.001, 0.001], [0, 0.001], [0, 0]]],
+    });
+    const big = areaSqMeters({
+      type: 'Polygon',
+      coordinates: [[[0, 0], [0.01, 0], [0.01, 0.01], [0, 0.01], [0, 0]]],
+    });
+    // المساحة تتناسب مع مربّع الطول ⇒ النسبة ≈ 100 (تحقّق مقياسيّ حتميّ).
+    expect(big / small).toBeCloseTo(100, 0);
   });
 
   it('يُرجِع صفراً عند مُدخَل غير صالح بدل أن يرمي', () => {
@@ -139,9 +154,10 @@ describe('lengthMeters', () => {
       coordinates: [[0, 0], [0.001, 0]],
     };
     const len = lengthMeters(line);
-    // ~111م لطول 0.001 درجة عند خطّ الاستواء — لو كان بالكم لكان ~0.111
-    expect(len).toBeGreaterThan(100);
-    expect(len).toBeLessThan(120);
+    // تحقّق رقميّ دقيق: 0.001° على خطّ الاستواء ⇒ ~111.19م (turf earthRadius=6371008.8).
+    // لو كانت الوحدة كم لكانت ~0.111 (نمنع انحدار الوحدات صراحةً).
+    expect(len).toBeCloseTo(111.19, 1); // ضمن ~±0.05م
+    expect(len).toBeGreaterThan(1); // ليست بالكيلومتر
   });
 
   it('يُرجِع صفراً عند مُدخَل غير صالح', () => {

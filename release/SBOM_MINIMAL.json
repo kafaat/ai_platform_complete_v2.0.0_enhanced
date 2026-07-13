@@ -255,7 +255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "25528c1768d828925a788964307a36bf5d3a7bdcd8978e8447d0e0f123a82721"
+          "content": "324005f9d7567d5bb4a1ab6131d03823253120a53de9e2a953a2808b8578cf45"
         }
       ],
       "name": "frontend/e2e/maphub-webgl.spec.ts",
@@ -275,7 +275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c88614b53bdda21e742f4c8043980ac70046ec285f7c646dba2df99c1b11ad36"
+          "content": "99935d1799c479bfd0d37abcdefe516cd9fea816bdbfd2ad92b238cfc022c842"
         }
       ],
       "name": "frontend/e2e/weather-maphub-smoke.spec.ts",
@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ce4a001a1974cc0418b88d182df5f5347a7a1f24f2f514105c0573b3116c950"
+          "content": "9b2da7b469b7e5adc3c73c0b8c283ca92847f62d49e295fb05baca7bfc51fc5f"
         }
       ],
       "name": "frontend/playwright.config.ts",
@@ -1579,6 +1579,16 @@
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "84a6611a75f25aca6ca0b3e57ae2ed862a68b515a4429a0a6633b35f29e4e9a5"
+        }
+      ],
+      "name": "frontend/src/components/maphub/HubMapTestBridge.guard.test.ts",
       "type": "file"
     },
     {
@@ -3655,7 +3665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8d9aec007c2549a75a99f7bb26f8c8b209a8b98bbeab6caa08be0d30e4967cf"
+          "content": "a9902fa2de18f586fbc9572f8ec6fd22475b572bd6c8e72a55b3fa63940d59c5"
         }
       ],
       "name": "frontend/src/lib/geo.test.ts",

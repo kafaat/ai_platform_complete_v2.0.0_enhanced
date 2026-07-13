@@ -82,7 +82,9 @@ test.describe('MapHub weather runtime smoke', () => {
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toContainText(/طقس|Weather|الخريطة/);
 
-    // The exact Leaflet canvas/DOM can vary, so click near map center and assert no app crash.
+    // المحرّك MapLibre/WebGL (لا Leaflet) — بنية الـcanvas تتباين، فننقر قرب مركز الخريطة
+    // ونتحقّق فقط من عدم انهيار التطبيق. هذا smoke لمسار الطقس، لا تصديق probe/interpolation
+    // (انظر ملحق التدقيق الجنائيّ: التحقّق العدديّ للـprobe مؤجَّل للمرحلة التالية).
     await page.mouse.click(500, 380);
     await page.waitForTimeout(300);
     // هذا فحص «بلا خلفيّة»: نقاط API غير المُحاكاة تفشل عمداً، فنتجاهل ضوضاء الشبكة
