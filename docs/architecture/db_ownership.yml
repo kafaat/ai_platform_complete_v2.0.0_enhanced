@@ -1157,3 +1157,28 @@ tables:
     writers: [soil-service]
     readers: [sahool-platform]
     source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_visual_observations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_analog_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_drainage_assessments:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_reclamation_assessments:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_reclamation_economics:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"

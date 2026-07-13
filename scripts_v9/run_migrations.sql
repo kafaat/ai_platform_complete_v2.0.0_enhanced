@@ -479,3 +479,5 @@
 \i migrations/v161_soil_p1_products.sql
 \echo '═══ 168. v162_soil_p2_spatial_products.sql ═══'
 \i migrations/v162_soil_p2_spatial_products.sql
+\echo '═══ 169. v163_soil_p3_assessment_products.sql ═══'
+\i migrations/v163_soil_p3_assessment_products.sql

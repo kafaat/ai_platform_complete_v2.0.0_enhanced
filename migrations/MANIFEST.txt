@@ -625,3 +625,5 @@ v160_soil_lab_publication_lineage.sql
 v161_soil_p1_products.sql
 # v162: P2 governed spatial products (bare-soil composite, terrain derivatives, texture/salinity probability).
 v162_soil_p2_spatial_products.sql
+# v163: P3 governed assessment products (mobile imaging, analog fields, drainage, reclamation, economics).
+v163_soil_p3_assessment_products.sql

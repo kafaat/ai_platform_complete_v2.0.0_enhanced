@@ -902,6 +902,16 @@ soil-service,services/soil-service/routers/p2_products.py,139,GET,/v1/fields/{fi
 soil-service,services/soil-service/routers/p2_products.py,146,GET,/v1/fields/{field_id}/soil/terrain-derivatives,get_terrain
 soil-service,services/soil-service/routers/p2_products.py,153,GET,/v1/fields/{field_id}/soil/texture-probability,get_texture
 soil-service,services/soil-service/routers/p2_products.py,160,GET,/v1/fields/{field_id}/soil/salinity-assessment,get_salinity
+soil-service,services/soil-service/routers/p3_products.py,58,POST,/v1/fields/{field_id}/soil/mobile-images/analyze,mobile
+soil-service,services/soil-service/routers/p3_products.py,76,POST,/v1/fields/{field_id}/soil/analog-estimate,analog
+soil-service,services/soil-service/routers/p3_products.py,94,POST,/v1/fields/{field_id}/soil/drainage-assessment,drainage
+soil-service,services/soil-service/routers/p3_products.py,114,POST,/v1/fields/{field_id}/soil/reclamation-assessment,reclamation
+soil-service,services/soil-service/routers/p3_products.py,134,POST,/v1/fields/{field_id}/soil/reclamation-economics,economics
+soil-service,services/soil-service/routers/p3_products.py,166,GET,/v1/fields/{field_id}/soil/mobile-images/latest,get_mobile
+soil-service,services/soil-service/routers/p3_products.py,173,GET,/v1/fields/{field_id}/soil/analog-estimate,get_analog
+soil-service,services/soil-service/routers/p3_products.py,180,GET,/v1/fields/{field_id}/soil/drainage-assessment,get_drainage
+soil-service,services/soil-service/routers/p3_products.py,187,GET,/v1/fields/{field_id}/soil/reclamation-assessment,get_reclamation
+soil-service,services/soil-service/routers/p3_products.py,194,GET,/v1/fields/{field_id}/soil/reclamation-economics,get_economics
 soil-service,services/soil-service/routers/readings.py,23,GET,/soil/readings/{field_id},get_readings
 soil-service,services/soil-service/routers/readings.py,38,POST,/soil/ingest,ingest_reading
 soil-service,services/soil-service/routers/soil_profile.py,47,POST,/soil/suitability,soil_suitability

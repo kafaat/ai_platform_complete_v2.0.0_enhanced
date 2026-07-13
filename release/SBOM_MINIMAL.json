@@ -5895,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e35446885e76699bb3e37063bd72f396cf83c6537c4614f839888d060d1dace1"
+          "content": "60a2dd8a69e418f16c18a5d0a2201120d65910d259a63107d3b0f09a87d7d055"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -25675,7 +25675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea1d7e08b704c7fc1a943fadbeac73e45597d63982a4fbf735bc410ef8a37833"
+          "content": "6ce2ea21a6a32232a3a90cc6117bb9a26a61c272d5070c4c6e7dab46b65c4e5f"
         }
       ],
       "name": "shared/contracts/soil/__init__.py",

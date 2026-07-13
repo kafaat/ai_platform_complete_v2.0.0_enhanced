@@ -55,6 +55,36 @@ __all__ = [
     "IrrigationWaterProfile",
 ]
 
+from .p1 import (
+    EvidenceOrigin,
+    HydraulicValue,
+    IrrigationWaterProfile,
+    IrrigationWaterSample,
+    SamplingCandidate,
+    SamplingPlan,
+    SamplingPlanRequest,
+    SamplingPoint,
+    SoilGridsLayerSummary,
+    SoilGridsSpatialProduct,
+    SoilHydraulicLayer,
+    SoilHydraulicProfile,
+)
+from .p2 import (
+    BareSoilComposite,
+    BareSoilCompositeRequest,
+    BareSoilScene,
+    SalinityAssessmentProduct,
+    SalinityAssessmentRequest,
+    SalinityZoneAssessment,
+    SalinityZoneEvidence,
+    TerrainDerivativesProduct,
+    TerrainRequest,
+    TextureCalibrationSample,
+    TextureFeatureVector,
+    TextureProbabilityProduct,
+    TextureProbabilityRequest,
+    TextureZoneProbability,
+)
 from .use_policy import (
     HIGH_RISK_USES,
     LOW_RISK_USES,
@@ -62,13 +92,55 @@ from .use_policy import (
     SoilUseDecision,
     validate_soil_use,
 )
-from .p1 import (EvidenceOrigin, SoilGridsLayerSummary, SoilGridsSpatialProduct,
- SamplingCandidate, SamplingPlanRequest, SamplingPoint, SamplingPlan,
- HydraulicValue, SoilHydraulicLayer, SoilHydraulicProfile,
- IrrigationWaterSample, IrrigationWaterProfile)
-from .p2 import (BareSoilScene, BareSoilCompositeRequest, BareSoilComposite, TerrainRequest, TerrainDerivativesProduct,
- TextureFeatureVector, TextureCalibrationSample, TextureProbabilityRequest, TextureZoneProbability, TextureProbabilityProduct,
- SalinityZoneEvidence, SalinityAssessmentRequest, SalinityZoneAssessment, SalinityAssessmentProduct)
-__all__ += ['BareSoilScene','BareSoilCompositeRequest','BareSoilComposite','TerrainRequest','TerrainDerivativesProduct',
-'TextureFeatureVector','TextureCalibrationSample','TextureProbabilityRequest','TextureZoneProbability','TextureProbabilityProduct',
-'SalinityZoneEvidence','SalinityAssessmentRequest','SalinityZoneAssessment','SalinityAssessmentProduct']
+
+__all__ += [
+    "BareSoilScene",
+    "BareSoilCompositeRequest",
+    "BareSoilComposite",
+    "TerrainRequest",
+    "TerrainDerivativesProduct",
+    "TextureFeatureVector",
+    "TextureCalibrationSample",
+    "TextureProbabilityRequest",
+    "TextureZoneProbability",
+    "TextureProbabilityProduct",
+    "SalinityZoneEvidence",
+    "SalinityAssessmentRequest",
+    "SalinityZoneAssessment",
+    "SalinityAssessmentProduct",
+]
+from .p3 import (
+    AnalogFieldCandidate,
+    AnalogFieldProduct,
+    AnalogFieldRequest,
+    AnalogPropertyEstimate,
+    DrainageAssessmentProduct,
+    DrainageAssessmentRequest,
+    MobileImageQuality,
+    MobileSoilImageRequest,
+    ReclamationAssessmentProduct,
+    ReclamationAssessmentRequest,
+    ReclamationEconomicsProduct,
+    ReclamationEconomicsRequest,
+    ReclamationScenario,
+    SoilVisualObservation,
+    SoilVisualPrediction,
+)
+
+__all__ += [
+    "MobileImageQuality",
+    "SoilVisualPrediction",
+    "MobileSoilImageRequest",
+    "SoilVisualObservation",
+    "AnalogFieldCandidate",
+    "AnalogFieldRequest",
+    "AnalogPropertyEstimate",
+    "AnalogFieldProduct",
+    "DrainageAssessmentRequest",
+    "DrainageAssessmentProduct",
+    "ReclamationAssessmentRequest",
+    "ReclamationAssessmentProduct",
+    "ReclamationEconomicsRequest",
+    "ReclamationScenario",
+    "ReclamationEconomicsProduct",
+]

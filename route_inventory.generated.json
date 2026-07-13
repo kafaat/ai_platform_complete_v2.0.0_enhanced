@@ -7225,6 +7225,86 @@
   },
   {
     "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 58,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/mobile-images/analyze",
+    "function": "mobile"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 76,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/analog-estimate",
+    "function": "analog"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 94,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/drainage-assessment",
+    "function": "drainage"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 114,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/reclamation-assessment",
+    "function": "reclamation"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 134,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/reclamation-economics",
+    "function": "economics"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 166,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/mobile-images/latest",
+    "function": "get_mobile"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 173,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/analog-estimate",
+    "function": "get_analog"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 180,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/drainage-assessment",
+    "function": "get_drainage"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 187,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/reclamation-assessment",
+    "function": "get_reclamation"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p3_products.py",
+    "line": 194,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/reclamation-economics",
+    "function": "get_economics"
+  },
+  {
+    "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
     "line": 23,
     "method": "GET",
