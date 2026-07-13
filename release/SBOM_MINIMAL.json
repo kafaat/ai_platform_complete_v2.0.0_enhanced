@@ -5895,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad07a7fe26b6cf3cc262f8876aca46090ff0239c012cc3a58926a3cdeecd5e62"
+          "content": "e35446885e76699bb3e37063bd72f396cf83c6537c4614f839888d060d1dace1"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6599,6 +6599,16 @@
         }
       ],
       "name": "migrations/v160_soil_lab_publication_lineage.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "90ba8e91012d5c48f335ef2c5f5fc77ed8c1bc97a70e738230d659da5d23a495"
+        }
+      ],
+      "name": "migrations/v161_soil_p1_products.sql",
       "type": "file"
     },
     {
@@ -23965,6 +23975,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9c6fb29d20ad6e1593120677518b4b3967b295625375494267d7ea8a660ca32c"
+        }
+      ],
+      "name": "services/soil-service/p1_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "40ed7710e556d89474f033543756f19ae207331ced906e4bc510ffacfe7a0b30"
+        }
+      ],
+      "name": "services/soil-service/p1_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4db461e720e93e08258f370f949953e7b3b78c385e90004e2dfae10c9280bcd1"
         }
       ],
@@ -24055,6 +24085,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7e4fccccb5da7b7b0cd24d2c00224042db44e75bd4225115cd70c029ee265620"
+        }
+      ],
+      "name": "services/soil-service/routers/p1_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "84391646cbd2f572d1bc1360c788896b21688bb6f4aa09c322fc9b01b2e4e52e"
         }
       ],
@@ -24139,6 +24179,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_lab_supersession_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7c48c338850f4fb6237f0590966c5f27c7d040a546b511e22a3a9002def920c1"
+        }
+      ],
+      "name": "services/soil-service/test_soil_p1_products.py",
       "type": "file"
     },
     {
@@ -25575,7 +25625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cefa580f4a4757bad16b4a7e73ae9781f844cf20a3d0d884641379f14c938e59"
+          "content": "ea1d7e08b704c7fc1a943fadbeac73e45597d63982a4fbf735bc410ef8a37833"
         }
       ],
       "name": "shared/contracts/soil/__init__.py",
@@ -25589,6 +25639,16 @@
         }
       ],
       "name": "shared/contracts/soil/observation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ba7c849e4f9a9b95aecb0731ef94c1ad9a76644a244b9f171c146f7fa4fb9034"
+        }
+      ],
+      "name": "shared/contracts/soil/p1.py",
       "type": "file"
     },
     {

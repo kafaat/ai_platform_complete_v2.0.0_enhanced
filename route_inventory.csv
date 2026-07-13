@@ -894,6 +894,14 @@ soil-service,services/soil-service/routers/p1_products.py,141,GET,/v1/fields/{fi
 soil-service,services/soil-service/routers/p1_products.py,154,GET,/v1/fields/{field_id}/soil/sampling-plans/current,current_sampling
 soil-service,services/soil-service/routers/p1_products.py,167,GET,/v1/fields/{field_id}/soil/hydraulic-profile,current_hydraulic
 soil-service,services/soil-service/routers/p1_products.py,180,GET,/v1/soil/irrigation-water/sources/{source_id}/profile,current_water
+soil-service,services/soil-service/routers/p2_products.py,48,POST,/v1/fields/{field_id}/soil/bare-soil-composite,bare
+soil-service,services/soil-service/routers/p2_products.py,69,POST,/v1/fields/{field_id}/soil/terrain-derivatives,terrain
+soil-service,services/soil-service/routers/p2_products.py,87,POST,/v1/fields/{field_id}/soil/texture-probability,texture
+soil-service,services/soil-service/routers/p2_products.py,107,POST,/v1/fields/{field_id}/soil/salinity-assessment,salinity
+soil-service,services/soil-service/routers/p2_products.py,139,GET,/v1/fields/{field_id}/soil/bare-soil-composite,get_bare
+soil-service,services/soil-service/routers/p2_products.py,146,GET,/v1/fields/{field_id}/soil/terrain-derivatives,get_terrain
+soil-service,services/soil-service/routers/p2_products.py,153,GET,/v1/fields/{field_id}/soil/texture-probability,get_texture
+soil-service,services/soil-service/routers/p2_products.py,160,GET,/v1/fields/{field_id}/soil/salinity-assessment,get_salinity
 soil-service,services/soil-service/routers/readings.py,23,GET,/soil/readings/{field_id},get_readings
 soil-service,services/soil-service/routers/readings.py,38,POST,/soil/ingest,ingest_reading
 soil-service,services/soil-service/routers/soil_profile.py,47,POST,/soil/suitability,soil_suitability

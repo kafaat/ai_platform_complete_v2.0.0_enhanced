@@ -66,3 +66,9 @@ from .p1 import (EvidenceOrigin, SoilGridsLayerSummary, SoilGridsSpatialProduct,
  SamplingCandidate, SamplingPlanRequest, SamplingPoint, SamplingPlan,
  HydraulicValue, SoilHydraulicLayer, SoilHydraulicProfile,
  IrrigationWaterSample, IrrigationWaterProfile)
+from .p2 import (BareSoilScene, BareSoilCompositeRequest, BareSoilComposite, TerrainRequest, TerrainDerivativesProduct,
+ TextureFeatureVector, TextureCalibrationSample, TextureProbabilityRequest, TextureZoneProbability, TextureProbabilityProduct,
+ SalinityZoneEvidence, SalinityAssessmentRequest, SalinityZoneAssessment, SalinityAssessmentProduct)
+__all__ += ['BareSoilScene','BareSoilCompositeRequest','BareSoilComposite','TerrainRequest','TerrainDerivativesProduct',
+'TextureFeatureVector','TextureCalibrationSample','TextureProbabilityRequest','TextureZoneProbability','TextureProbabilityProduct',
+'SalinityZoneEvidence','SalinityAssessmentRequest','SalinityZoneAssessment','SalinityAssessmentProduct']

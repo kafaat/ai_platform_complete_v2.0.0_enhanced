@@ -7161,6 +7161,70 @@
   },
   {
     "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 48,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/bare-soil-composite",
+    "function": "bare"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 69,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/terrain-derivatives",
+    "function": "terrain"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 87,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/texture-probability",
+    "function": "texture"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 107,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/salinity-assessment",
+    "function": "salinity"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 139,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/bare-soil-composite",
+    "function": "get_bare"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 146,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/terrain-derivatives",
+    "function": "get_terrain"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 153,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/texture-probability",
+    "function": "get_texture"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p2_products.py",
+    "line": 160,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/salinity-assessment",
+    "function": "get_salinity"
+  },
+  {
+    "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
     "line": 23,
     "method": "GET",

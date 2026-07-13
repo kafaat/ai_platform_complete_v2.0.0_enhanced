@@ -1137,3 +1137,23 @@ tables:
     writers: [soil-service]
     readers: [sahool-platform]
     source: "migrations/v161_soil_p1_products.sql"
+  soil_bare_composites:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_terrain_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_texture_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_salinity_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"

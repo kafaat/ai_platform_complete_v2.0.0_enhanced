@@ -477,3 +477,5 @@
 \i migrations/v160_soil_lab_publication_lineage.sql
 \echo '═══ 167. v161_soil_p1_products.sql ═══'
 \i migrations/v161_soil_p1_products.sql
+\echo '═══ 168. v162_soil_p2_spatial_products.sql ═══'
+\i migrations/v162_soil_p2_spatial_products.sql

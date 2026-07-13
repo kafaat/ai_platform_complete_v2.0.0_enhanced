@@ -623,3 +623,5 @@ v159_soil_observation_supersession_current_pointer.sql
 v160_soil_lab_publication_lineage.sql
 # v161: P1 governed soil products (SoilGrids spatial, sampling plans, hydraulic + irrigation-water profiles).
 v161_soil_p1_products.sql
+# v162: P2 governed spatial products (bare-soil composite, terrain derivatives, texture/salinity probability).
+v162_soil_p2_spatial_products.sql

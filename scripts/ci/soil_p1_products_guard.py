@@ -13,5 +13,7 @@ for table in ['soil_spatial_products','soil_sampling_plans','soil_hydraulic_prof
 router=(ROOT/'services/soil-service/routers/p1_products.py').read_text()
 for route in ['soilgrids-spatial','soil/sampling-plans','hydraulic-profile/rebuild','hydraulic-profile','irrigation-water/samples','irrigation-water/sources']:
  assert route in router, route
-assert "'evidence_class':'modelled'" in router
+# quote/space-robust: SoilGrids evidence must be modelled, never measured (ruff normalises quotes+spacing)
+_norm = router.replace(" ", "").replace('"', "'")
+assert "'evidence_class':'modelled'" in _norm
 print('soil_p1_products_guard_ok')
