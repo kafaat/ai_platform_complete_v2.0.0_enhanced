@@ -1,5 +1,5 @@
 {
- "baseline_python_module_count": 614,
+ "baseline_python_module_count": 616,
  "modules": [
   "api/__init__.py",
   "api/adaptive_calibration.py",
@@ -131,6 +131,7 @@
   "api/learning_feedback.py",
   "api/learning_summary.py",
   "api/lexicographic_irrigation_mpc.py",
+  "api/lexicographic_mpc_bridge.py",
   "api/main.py",
   "api/manual_converter.py",
   "api/master_data_models.py",
@@ -255,6 +256,7 @@
   "api/routers/ipm.py",
   "api/routers/irrigation.py",
   "api/routers/irrigation_method.py",
+  "api/routers/irrigation_mpc.py",
   "api/routers/irrigation_network.py",
   "api/routers/irrigation_plan.py",
   "api/routers/irrigation_recommendation.py",

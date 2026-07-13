@@ -1,7 +1,9 @@
 # ADR-0032 — متحكّم الريّ التنبّؤيّ الهرميّ المعجميّ (Lexicographic MPC)
 
-**الحالة:** مقبول — المرحلتان 0 و1 + **P1.1 تصلّب النَّسَب/العقد** مُنفَّذة (نواة الحلّال +
-العقد؛ نموذج Ky؛ نَسَب مُحكَم). المراحل 2–4 و**P1.1b (وصل الجسر + استمرار PG)** مُخطَّطة.
+**الحالة:** مقبول — المرحلتان 0 و1 + **P1.1 تصلّب النَّسَب/العقد** + **P1.1b وصل الجسر
+والنقطة** مُنفَّذة (نواة الحلّال + العقد؛ نموذج Ky؛ نَسَب مُحكَم؛ جسر محكوم + نقطة إنتاجيّة).
+انتشار النَّسَب الكامل عبر PostgreSQL/السلسلة يُشهَّد على staging (محاكاة حتى ذلك، نفس وضع
+`water_decision_bridge`). المراحل 2–4 (طاقة/آبار · أفق ساعيّ · واجهة MPC مخصّصة) مُخطَّطة.
 
 **تحديث P1.1 (تصلّب النَّسَب والعقد — استجابةً لتدقيق جنائيّ):** أُصلِح **خلل P0 مُثبَت**: كان
 `candidate_lineage_id` يتصادم عبر قرارات مختلفة (37.5/5/2 مم بميزانيّة/سقف مختلفَين ⇒ نفس
@@ -20,6 +22,27 @@
 Ky العامّ لا يُثبِت). **المتبقّي P1.1b:** Route يقرأ water_ledger + وصل الحلّال إلى
 water_decision_bridge (مرشّح `lexicographic_irrigation`) + استمرار PG + انتشار النَّسَب عبر
 execution→outcome→learning — يحتاج سلسلة decision-service وPG حقيقيّ.
+
+**تحديث P1.1b (وصل الجسر + النقطة الإنتاجيّة):** أُضيف **أوّل مستهلك إنتاجيّ** للحلّال:
+- **جسر محكوم** `api/lexicographic_mpc_bridge.py`: `build_mpc_candidate` يبني مرشّح قرار من
+  النوع **`irrigation_mpc`** ينشر النَّسَب الكامل صراحةً على مستوى القمّة
+  (`content_digest` 64-hex + `idempotency_key` + `solver_version` + `candidate_lineage_id`)
+  وداخل `decision_value` (فينتقل عبر review→execution→outcome→learning). `emit_mpc_candidate`
+  (async) يُصدِر المرشّح إلى مركز القرار عبر `record_decision` — **توصية-فقط بنيويّاً**
+  (`execution_allowed=False`، `requires_human_review=True`، لا مسار authorize/execution/MQTT)،
+  **مُطفأ افتراضيّاً** (`LEXICOGRAPHIC_MPC_BRIDGE_ENABLED`)، **فاشل-مُغلَق** على
+  `EMERGENCY_FAIL_CLOSED`. نفس وضع `water_decision_bridge`.
+- **نقطة إنتاجيّة** `POST /api/v1/irrigation/mpc/plan` (+ `GET …/capabilities`): تقرأ
+  **حقيقة الخادم** (أحدث استنزاف من `water_ledger`) عند غياب `initial_depletion_mm`؛ بلا صفّ ⇒
+  استنزاف 0 + `data_degraded` مُعلَن (**لا اختلاق**). `tenant_id` من المستخدم المُصادَق لا من
+  الجسم (عزل المستأجِر). `submit=true` (خلف عَلَم الجسر) يُصدِر المرشّح المحكوم فقط.
+- **حارس CI** `scripts/ci/mpc_lineage_propagation_guard.py`: يؤكّد المرشّح يحمل مفاتيح النَّسَب
+  والنوع `irrigation_mpc`، وأنّ الجسر يبقى توصية-فقط (لا استدعاء تنفيذ). **11 اختبار وحدة** للجسر
+  والنقطة (شكل المرشّح · انتشار النَّسَب · قرارات مختلفة ⇒ معرّفات مختلفة · مُطفأ افتراضيّاً ·
+  فاشل-مُغلَق · مركز قرار مموّه · قراءة الدفتر/التدهور · عزل المستأجِر). النقطتان مُعفَيتان بصدق في
+  عقد تغطية الواجهة (توصية تظهر عبر Decision/Approvals Console القائمة؛ شاشة MPC مخصّصة دَين
+  مُتتبَّع `MPC-P2-UI`). **⚠ محاكاة حتى staging:** انتشار النَّسَب الكامل عبر PostgreSQL يُشهَّد
+  على بيئة حيّة.
 
 **تحديث المرحلة 1 (نموذج Ky الكنسيّ):** J3 لم يعد وكيل إجهاد — صار
 `Ya/Ym = 1 − Ky·(1 − ETa/ETm)` بمعاملات Ky من `core/engines/ky_registry.py` (FAO-33،
@@ -93,7 +116,12 @@ Ks الملوحة، الغسيل)، وسلسلة candidate → review → execut
 ## المراجع
 
 - التنفيذ: `services/sahool-platform/api/lexicographic_irrigation_mpc.py`
-- الاختبار: `tests_v9/test_lexicographic_irrigation_mpc.py` (11 حالة، `-m unit`)
+- الجسر المحكوم: `services/sahool-platform/api/lexicographic_mpc_bridge.py` (P1.1b)
+- النقطة الإنتاجيّة: `services/sahool-platform/api/routers/irrigation_mpc.py` (P1.1b)
+- حارس النَّسَب: `scripts/ci/mpc_lineage_propagation_guard.py` · حارس العزل الاقتصاديّ:
+  `scripts/ci/ky_no_economic_coupling_guard.py`
+- الاختبار: `tests_v9/test_lexicographic_irrigation_mpc.py` (نواة الحلّال) +
+  `tests_v9/test_lexicographic_mpc_bridge.py` (الجسر + النقطة)، `-m unit`
 - يعمّم: `api/irrigation_mpc.py` · يعيد استخدام: `api/irrigation_policy.py` ·
   `core/engines/supplemental_irrigation.py` (Ky) · `api/canonical_water_stress.py` ·
   `api/soil_water.py`

@@ -1,0 +1,235 @@
+"""اختبار جسر وراوتر متحكّم الريّ الهرميّ المعجميّ (P1.1b) — نقيّ حتميّ.
+
+يغطّي:
+- بناء المرشّح (`build_mpc_candidate`): الشكل + انتشار النَّسَب الكامل (content_digest 64-hex +
+  idempotency_key + solver_version + candidate_lineage_id) + النوع irrigation_mpc + توصية-فقط.
+- الإصدار (`emit_mpc_candidate`): مُطفأ افتراضيّاً (لا مسّ للشبكة) · فاشل-مُغلَق على الطوارئ ·
+  candidate_created عند التمكين مع مركز قرار موثوق (mock) و execution_allowed=False دائماً.
+- الراوتر (`irrigation_mpc_plan`/`capabilities`): استدعاء المعالِج مباشرةً بمستخدم وهميّ —
+  عزل المستأجِر من المستخدم لا الجسم · قراءة الدفتر الغائبة ⇒ 0 + تدهور مُعلَن (لا اختلاق) ·
+  submit بلا تمكين ⇒ disabled · القدرات لا تصل لأسماء خاصّة.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+import sys
+
+import pytest
+
+pytestmark = pytest.mark.unit
+
+_PLATFORM = os.path.join(os.path.dirname(__file__), "..", "services/sahool-platform")
+if _PLATFORM not in sys.path:
+    sys.path.insert(0, _PLATFORM)
+
+from api.irrigation_mpc import ForecastDay  # noqa: E402
+from api.lexicographic_irrigation_mpc import (  # noqa: E402
+    OperatingState,
+    solve_lexicographic_irrigation,
+)
+from api.lexicographic_mpc_bridge import (  # noqa: E402
+    bridge_enabled,
+    build_mpc_candidate,
+    emit_mpc_candidate,
+)
+
+
+def _dry(n=7, et0=10.0, kc=1.0, rain=0.0):
+    return [ForecastDay(et0_mm=et0, kc=kc, rain_mm=rain) for _ in range(n)]
+
+
+def _decision(**overrides):
+    kwargs = dict(
+        forecast=_dry(),
+        taw_mm=100.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=45.0,
+        tenant_id="t1",
+        field_id="fld_a",
+        season_id="s1",
+        crop="maize",
+        growth_stage="flowering",
+    )
+    kwargs.update(overrides)
+    return solve_lexicographic_irrigation(**kwargs)
+
+
+# ─────────────────────────── build_mpc_candidate ───────────────────────────
+
+
+def test_candidate_shape_and_lineage_propagation():
+    d = _decision()
+    decision_id, lineage, candidate = build_mpc_candidate(d)
+
+    assert candidate["decision_type"] == "irrigation_mpc"
+    assert candidate["stage"] == "candidate"
+    assert candidate["field_id"] == "fld_a"
+    assert candidate["season_id"] == "s1"
+    assert decision_id == "mpcdec_" + d.content_digest[:24]
+    assert lineage == d.candidate_lineage_id
+
+    # النَّسَب الكامل مُنتشِر على مستوى القمّة (يسهل ربطه في السلسلة).
+    assert candidate["content_digest"] == d.content_digest
+    assert len(candidate["content_digest"]) == 64  # sha256 كامل، لا مبتور
+    assert candidate["idempotency_key"] == d.idempotency_key
+    assert candidate["solver_version"] == d.solver_version
+    assert candidate["candidate_lineage_id"] == d.candidate_lineage_id
+
+    # توصية-فقط: النَّسَب يدخل decision_value أيضاً فينتقل عبر السلسلة.
+    value = candidate["decision_value"]
+    assert value["requires_human_review"] is True
+    assert value["source_type"] == "lexicographic_mpc"
+    assert value["source_id"] == f"fld_a:{d.content_digest[:16]}"
+
+
+def test_distinct_decisions_yield_distinct_candidate_ids():
+    # قرارات مختلفة (استنزاف مختلف) ⇒ decision_id/lineage مختلفان (لا تصادم P0).
+    a = _decision(initial_depletion_mm=45.0)
+    b = _decision(initial_depletion_mm=60.0)
+    da, la, _ = build_mpc_candidate(a)
+    db, lb, _ = build_mpc_candidate(b)
+    assert da != db
+    assert la != lb
+
+
+def test_same_inputs_stable_idempotency_key():
+    a = _decision()
+    b = _decision()
+    _, _, ca = build_mpc_candidate(a)
+    _, _, cb = build_mpc_candidate(b)
+    assert ca["idempotency_key"] == cb["idempotency_key"]  # نفس المُدخلات ⇒ نفس الخانة المنطقيّة
+
+
+# ─────────────────────────── emit_mpc_candidate ───────────────────────────
+
+
+def test_emit_disabled_by_default(monkeypatch):
+    monkeypatch.delenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", raising=False)
+    assert bridge_enabled() is False
+    out = asyncio.run(emit_mpc_candidate(_decision(), tenant_id="t1"))
+    assert out == {"status": "disabled"}
+
+
+def test_emit_fail_closed_on_emergency(monkeypatch):
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
+    # حقائق غير صالحة ⇒ EMERGENCY_FAIL_CLOSED.
+    d = solve_lexicographic_irrigation(
+        forecast=[], taw_mm=100.0, raw_fraction=0.5, initial_depletion_mm=0.0, field_id="fld_x"
+    )
+    assert d.operating_state is OperatingState.EMERGENCY_FAIL_CLOSED
+    out = asyncio.run(emit_mpc_candidate(d, tenant_id="t1"))
+    assert out["status"] == "fail_closed"
+
+
+def test_emit_creates_candidate_with_mocked_center(monkeypatch):
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
+    captured = {}
+
+    async def _fake_record(payload, *, tenant_id=None):
+        captured["payload"] = payload
+        captured["tenant_id"] = tenant_id
+        return {"persisted": True, "authoritative": True}
+
+    import api.decision_service_client as dsc
+
+    monkeypatch.setattr(dsc, "record_decision", _fake_record)
+
+    d = _decision()
+    out = asyncio.run(emit_mpc_candidate(d, tenant_id="t1"))
+    assert out["status"] == "candidate_created"
+    assert out["execution_allowed"] is False  # توصية-فقط بنيويّاً
+    assert out["content_digest"] == d.content_digest
+    assert out["idempotency_key"] == d.idempotency_key
+    # عزل المستأجِر: يُمرَّر إلى مركز القرار.
+    assert captured["tenant_id"] == "t1"
+    assert captured["payload"]["decision_type"] == "irrigation_mpc"
+
+
+def test_emit_not_authoritative_is_surfaced(monkeypatch):
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
+
+    async def _fake_record(payload, *, tenant_id=None):
+        return {"persisted": False}
+
+    import api.decision_service_client as dsc
+
+    monkeypatch.setattr(dsc, "record_decision", _fake_record)
+
+    out = asyncio.run(emit_mpc_candidate(_decision(), tenant_id="t1"))
+    assert out["status"] == "candidate_not_authoritative"
+
+
+# ─────────────────────────── الراوتر (استدعاء المعالِج) ───────────────────────────
+
+
+class _User:
+    tenant_id = "tenant-42"
+
+
+def test_route_plan_uses_user_tenant_and_declares_degradation(monkeypatch):
+    """الدفتر الغائب ⇒ استنزاف 0 + data_degraded مُعلَن (لا اختلاق)، والمستأجِر من المستخدم."""
+    import api.routers.irrigation_mpc as route
+
+    async def _no_ledger(tenant_id, field_id):
+        return None  # لا صفّ دفتر
+
+    monkeypatch.setattr(route, "_latest_ledger_depletion", _no_ledger)
+
+    req = route.MpcPlanRequest(
+        field_id="fld_a",
+        forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
+        taw_mm=100.0,
+        crop="maize",
+        growth_stage="flowering",
+    )
+    out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
+    assert out["depletion_source"] == "absent_bootstrap"
+    assert out["decision"]["tenant_id"] == "tenant-42"  # من المستخدم لا الجسم
+
+
+def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
+    import api.routers.irrigation_mpc as route
+
+    async def _ledger(tenant_id, field_id):
+        return 55.0
+
+    monkeypatch.setattr(route, "_latest_ledger_depletion", _ledger)
+
+    req = route.MpcPlanRequest(
+        field_id="fld_a",
+        forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
+        taw_mm=100.0,
+    )
+    out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
+    assert out["depletion_source"] == "water_ledger"
+
+
+def test_route_plan_submit_without_bridge_is_disabled(monkeypatch):
+    import api.routers.irrigation_mpc as route
+
+    async def _ledger(tenant_id, field_id):
+        return 45.0
+
+    monkeypatch.setattr(route, "_latest_ledger_depletion", _ledger)
+    monkeypatch.delenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", raising=False)
+
+    req = route.MpcPlanRequest(
+        field_id="fld_a",
+        forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
+        taw_mm=100.0,
+        submit=True,
+    )
+    out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
+    assert out["emit"] == {"status": "disabled"}
+
+
+def test_route_capabilities_no_private_leak():
+    import api.routers.irrigation_mpc as route
+
+    out = asyncio.run(route.irrigation_mpc_capabilities(user=_User()))
+    assert out["execution_allowed"] is False
+    assert out["recommendation_only"] is True
+    assert "yield_ky_forecast_horizon" in out["modeled_capabilities"]
+    assert "predicted_energy_kwh" in out["not_modeled"]

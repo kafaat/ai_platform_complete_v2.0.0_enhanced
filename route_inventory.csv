@@ -677,6 +677,8 @@ sahool-platform,services/sahool-platform/api/routers/irrigation.py,397,POST,/api
 sahool-platform,services/sahool-platform/api/routers/irrigation_method.py,25,GET,/api/v1/irrigation-method,list_methods
 sahool-platform,services/sahool-platform/api/routers/irrigation_method.py,31,GET,/api/v1/irrigation-method/{method},get_method
 sahool-platform,services/sahool-platform/api/routers/irrigation_method.py,43,POST,/api/v1/irrigation-method/gross,compute_gross
+sahool-platform,services/sahool-platform/api/routers/irrigation_mpc.py,70,POST,/api/v1/irrigation/mpc/plan,irrigation_mpc_plan
+sahool-platform,services/sahool-platform/api/routers/irrigation_mpc.py,116,GET,/api/v1/irrigation/mpc/capabilities,irrigation_mpc_capabilities
 sahool-platform,services/sahool-platform/api/routers/irrigation_network.py,55,POST,/api/v1/irrigation/network/feasibility,network_feasibility_endpoint
 sahool-platform,services/sahool-platform/api/routers/irrigation_plan.py,111,POST,/api/v1/irrigation-plan,irrigation_plan_endpoint
 sahool-platform,services/sahool-platform/api/routers/irrigation_recommendation.py,169,POST,/api/v1/irrigation-recommendation,irrigation_recommendation

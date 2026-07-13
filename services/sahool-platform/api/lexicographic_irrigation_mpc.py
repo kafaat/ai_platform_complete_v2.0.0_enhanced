@@ -83,6 +83,10 @@ _MODELED_CAPABILITIES: tuple[str, ...] = (
     "water_cost_proxy",  # J4: وكيل تكلفة الماء (لا إيراد)
 )
 
+# أسماء عامّة للاستهلاك عبر الوحدات (نقطة القدرات لا تصل إلى أسماء خاصّة).
+MODELED_CAPABILITIES = _MODELED_CAPABILITIES
+NOT_MODELED = _NOT_MODELED
+
 
 class ReasonCode(str, Enum):
     """رموز أسباب معدودة — مفردات صريحة بدل النصّ الحرّ."""

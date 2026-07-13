@@ -716,6 +716,41 @@
       "importance": 0,
       "importance_tier": "none",
       "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/plan",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "متحكّم الريّ الهرميّ المعجميّ (P1.1b) توصية-فقط: يحسب القرار خادميّاً ويُصدِر (خلف عَلَم) مرشّحاً محكوماً يظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا عبر شاشة مباشرة. النقطة نفسها تشغيليّة تُستدعى خادميّاً/بالأدوات.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-decision-console",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/capabilities",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "شفافيّة قدرات الحلّال (ما يُنمذَج/يُؤجَّل) — بيانات وصفيّة تشغيليّة للتشخيص/التكامل، لا شاشة مستخدم نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     }
   ]
 }
