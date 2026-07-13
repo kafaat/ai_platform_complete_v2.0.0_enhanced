@@ -7089,6 +7089,78 @@
   },
   {
     "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 35,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
+    "function": "ingest_soilgrids"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 83,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/sampling-plans",
+    "function": "create_plan"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 100,
+    "method": "POST",
+    "path": "/v1/soil/sampling-plans/{plan_id}/approve",
+    "function": "approve_plan"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 114,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/hydraulic-profile/rebuild",
+    "function": "rebuild_hydraulic"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 128,
+    "method": "POST",
+    "path": "/v1/soil/irrigation-water/samples",
+    "function": "water_sample"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 141,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/soilgrids-spatial",
+    "function": "current_soilgrids"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 154,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/sampling-plans/current",
+    "function": "current_sampling"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 167,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/hydraulic-profile",
+    "function": "current_hydraulic"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p1_products.py",
+    "line": 180,
+    "method": "GET",
+    "path": "/v1/soil/irrigation-water/sources/{source_id}/profile",
+    "function": "current_water"
+  },
+  {
+    "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
     "line": 23,
     "method": "GET",

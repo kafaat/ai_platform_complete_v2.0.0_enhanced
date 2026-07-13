@@ -621,3 +621,5 @@ v158_soil_projection_observability.sql
 v159_soil_observation_supersession_current_pointer.sql
 # v160: Immutable soil lab-result publication lineage (published_observation_id + correction chains).
 v160_soil_lab_publication_lineage.sql
+# v161: P1 governed soil products (SoilGrids spatial, sampling plans, hydraulic + irrigation-water profiles).
+v161_soil_p1_products.sql

@@ -1112,3 +1112,28 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v156_durable_soil_lab_workflow.sql"
+  soil_spatial_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  soil_sampling_plans:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  soil_hydraulic_profiles:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  irrigation_water_samples:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  irrigation_water_profiles:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"

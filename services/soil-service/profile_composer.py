@@ -135,6 +135,7 @@ def compose_snapshot(
                 observed_at=selected.get("observed_at"),
                 confidence=float(selected.get("confidence") or 0),
                 verification_required=source_type not in {"laboratory", "sensor", "field"},
+                uncertainty=dict((selected.get("provenance") or {}).get("uncertainty") or {}),
                 alternatives=alternatives,
             )
         layers.append(

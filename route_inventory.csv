@@ -885,6 +885,15 @@ soil-service,services/soil-service/routers/health.py,28,GET,/readyz,readyz
 soil-service,services/soil-service/routers/health.py,47,GET,/v1/soil/projection/status,projection_status
 soil-service,services/soil-service/routers/health.py,56,GET,/metrics,metrics
 soil-service,services/soil-service/routers/modbus.py,36,POST,/soil/decode/modbus,decode_modbus
+soil-service,services/soil-service/routers/p1_products.py,35,POST,/v1/fields/{field_id}/soil/soilgrids-spatial,ingest_soilgrids
+soil-service,services/soil-service/routers/p1_products.py,83,POST,/v1/fields/{field_id}/soil/sampling-plans,create_plan
+soil-service,services/soil-service/routers/p1_products.py,100,POST,/v1/soil/sampling-plans/{plan_id}/approve,approve_plan
+soil-service,services/soil-service/routers/p1_products.py,114,POST,/v1/fields/{field_id}/soil/hydraulic-profile/rebuild,rebuild_hydraulic
+soil-service,services/soil-service/routers/p1_products.py,128,POST,/v1/soil/irrigation-water/samples,water_sample
+soil-service,services/soil-service/routers/p1_products.py,141,GET,/v1/fields/{field_id}/soil/soilgrids-spatial,current_soilgrids
+soil-service,services/soil-service/routers/p1_products.py,154,GET,/v1/fields/{field_id}/soil/sampling-plans/current,current_sampling
+soil-service,services/soil-service/routers/p1_products.py,167,GET,/v1/fields/{field_id}/soil/hydraulic-profile,current_hydraulic
+soil-service,services/soil-service/routers/p1_products.py,180,GET,/v1/soil/irrigation-water/sources/{source_id}/profile,current_water
 soil-service,services/soil-service/routers/readings.py,23,GET,/soil/readings/{field_id},get_readings
 soil-service,services/soil-service/routers/readings.py,38,POST,/soil/ingest,ingest_reading
 soil-service,services/soil-service/routers/soil_profile.py,47,POST,/soil/suitability,soil_suitability

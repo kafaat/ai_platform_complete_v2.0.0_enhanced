@@ -41,6 +41,18 @@ __all__ = [
     "LOW_RISK_USES",
     "MEDIUM_RISK_USES",
     "HIGH_RISK_USES",
+    "EvidenceOrigin",
+    "SoilGridsLayerSummary",
+    "SoilGridsSpatialProduct",
+    "SamplingCandidate",
+    "SamplingPlanRequest",
+    "SamplingPoint",
+    "SamplingPlan",
+    "HydraulicValue",
+    "SoilHydraulicLayer",
+    "SoilHydraulicProfile",
+    "IrrigationWaterSample",
+    "IrrigationWaterProfile",
 ]
 
 from .use_policy import (
@@ -50,3 +62,7 @@ from .use_policy import (
     SoilUseDecision,
     validate_soil_use,
 )
+from .p1 import (EvidenceOrigin, SoilGridsLayerSummary, SoilGridsSpatialProduct,
+ SamplingCandidate, SamplingPlanRequest, SamplingPoint, SamplingPlan,
+ HydraulicValue, SoilHydraulicLayer, SoilHydraulicProfile,
+ IrrigationWaterSample, IrrigationWaterProfile)
