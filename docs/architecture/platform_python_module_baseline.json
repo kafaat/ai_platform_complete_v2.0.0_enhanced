@@ -1,5 +1,5 @@
 {
- "baseline_python_module_count": 613,
+ "baseline_python_module_count": 614,
  "modules": [
   "api/__init__.py",
   "api/adaptive_calibration.py",
@@ -467,6 +467,7 @@
   "core/engines/harvest_traceability.py",
   "core/engines/human_escalation.py",
   "core/engines/input_traceability.py",
+  "core/engines/ky_registry.py",
   "core/engines/market_analyzer.py",
   "core/engines/pesticide.py",
   "core/engines/phenology_narrative.py",

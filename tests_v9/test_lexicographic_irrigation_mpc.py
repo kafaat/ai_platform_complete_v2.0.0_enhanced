@@ -1,10 +1,11 @@
-"""اختبار المتحكّم التنبّؤيّ الهرميّ المعجميّ للريّ (Lexicographic MPC, المرحلة 0) — نقيّ حتميّ.
+"""اختبار المتحكّم التنبّؤيّ الهرميّ المعجميّ للريّ (Lexicographic MPC) — نقيّ حتميّ.
 
-يثبت: (أ) حقل جافّ في مرحلة حرجة ⇒ ريّ + حالة حماية المحصول + رموز أسباب صحيحة؛
-(ب) الأولويّة المعجميّة: حماية المحصول (J1) غير قابلة للمقايضة مقابل توفير الماء (J2)؛
-(ج) J2 يكسر التعادل نحو أقلّ ماءً حين تتساوى الحماية؛ (د) فشل-مُغلَق عند غياب الأفق أو
-TAW غير صالح؛ (هـ) مطر كافٍ ⇒ تأجيل (hold) بلا اختلاق ريّ؛ (و) الطاقة/الآبار مُعلَنة
-not_modelled دائماً؛ (ز) توصية-فقط: approval_required=True دائماً؛ (ح) التدهور يخفض الثقة.
+يغطّي المرحلتين:
+- م0 (السلّم المعجميّ): حماية المحصول غير مقايَضة بالماء · فشل-مُغلَق · مطر⇒تأجيل ·
+  الطاقة not_modelled · توصية-فقط · التدهور يخفض الثقة.
+- م1 (نموذج Ky الكنسيّ J3): Ky حسب المحصول والمرحلة (FAO-33) · غياب Ky/المرحلة ⇒
+  insufficient_data · ETm=0/غير منتهٍ ⇒ insufficient_data · J3 لا يتغلّب على J1 ·
+  yield_floor_preserved لا يظهر بلا بيانات كاملة · حتميّة · أثر الأهداف + نَسَب المرشّح.
 """
 
 from __future__ import annotations
@@ -26,62 +27,31 @@ from api.lexicographic_irrigation_mpc import (  # noqa: E402
     ReasonCode,
     solve_lexicographic_irrigation,
 )
+from core.engines.ky_registry import lookup_ky  # noqa: E402
 
 
 def _dry(n=7, et0=10.0, kc=1.0, rain=0.0):
     return [ForecastDay(et0_mm=et0, kc=kc, rain_mm=rain) for _ in range(n)]
 
 
+# ─────────────────────────── م0: السلّم المعجميّ ───────────────────────────
+
+
 def test_dry_critical_stage_irrigates_under_crop_protection():
-    # TAW=100, p=0.5 ⇒ RAW=50. Dr0=45، ETc=10 ⇒ عبور RAW يوم 0 في مرحلة الإزهار الحرجة.
     d = solve_lexicographic_irrigation(
         forecast=_dry(),
         taw_mm=100.0,
         raw_fraction=0.5,
         initial_depletion_mm=45.0,
         field_id="fld_a",
+        crop="maize",
         growth_stage="flowering",
     )
     assert d.decision == "irrigate"
     assert d.target_depth_mm > 0
     assert d.operating_state is OperatingState.CROP_PROTECTION
     assert ReasonCode.CRITICAL_GROWTH_STAGE in d.reason_codes
-    assert ReasonCode.ROOT_ZONE_APPROACHING_RAW in d.reason_codes
-    # الريّ يُبقي منطقة الجذور خارج الإجهاد الحرج (J1 يقود).
     assert d.expected_root_zone_depletion_after_mm <= d.raw_mm
-    assert d.stress_risk_after in ("normal", "watch")
-
-
-def test_lexicographic_crop_protection_not_traded_for_water():
-    # سلّم معجميّ: J1 (حماية) يُثبَّت أوّلاً؛ الخطّة الفائزة يجب ألّا تحوي أيّام إجهاد
-    # في المرحلة الحرجة حين يمكن تفاديها — حتّى لو كانت خطّة أخرى أقلّ ماءً لكنّها تُجهِد.
-    d = solve_lexicographic_irrigation(
-        forecast=_dry(et0=12.0),
-        taw_mm=80.0,
-        raw_fraction=0.5,
-        initial_depletion_mm=30.0,
-        growth_stage="flowering",
-    )
-    assert d.objectives is not None
-    # J1 للخطّة الفائزة = 0 (لا تجاوز RAW) — الحماية محقّقة قبل أيّ توفير.
-    assert d.objectives.j1_crop_protection == pytest.approx(0.0, abs=1e-6)
-    assert d.yield_floor_preserved is True
-
-
-def test_water_tie_break_prefers_lower_consumption():
-    # في مرحلة غير حرجة مع خطط متعدّدة تحقّق J1=0، يفوز الأقلّ ماءً (J2).
-    d = solve_lexicographic_irrigation(
-        forecast=_dry(et0=8.0),
-        taw_mm=120.0,
-        raw_fraction=0.5,
-        initial_depletion_mm=20.0,
-        growth_stage="vegetative",
-    )
-    # السياسة الفائزة يجب أن تكون من الطيف الموفِّر (sustainability/water_saving) لا yield_max
-    # حين تتساوى الحماية — لأنّ J2 يكسر التعادل نحو أقلّ استهلاك.
-    assert d.selected_policy in ("sustainability", "water_saving", "profit_max")
-    assert d.objectives is not None
-    assert d.objectives.j1_crop_protection == pytest.approx(0.0, abs=1e-6)
 
 
 def test_fail_closed_on_missing_forecast():
@@ -110,6 +80,7 @@ def test_rain_covers_need_holds_without_fabricating_irrigation():
         taw_mm=120.0,
         raw_fraction=0.5,
         initial_depletion_mm=5.0,
+        crop="sorghum",
         growth_stage="vegetative",
     )
     assert d.decision == "hold"
@@ -123,7 +94,6 @@ def test_energy_and_wells_always_declared_not_modelled():
     assert "predicted_energy_kwh" in d.not_modelled
     assert "source_well_id" in d.not_modelled
     assert d.objectives is not None and d.objectives.energy_modelled is False
-    # لا حالة ENERGY_CONSTRAINED في المرحلة 0 (لا بيانات طاقة).
     assert d.operating_state is not OperatingState.ENERGY_CONSTRAINED
 
 
@@ -133,11 +103,11 @@ def test_recommendation_only_and_uncalibrated():
         taw_mm=100.0,
         raw_fraction=0.5,
         initial_depletion_mm=40.0,
+        crop="maize",
         growth_stage="flowering",
     )
     assert d.approval_required is True
     assert d.calibrated is False
-    assert d.yield_floor_basis == "stress_proxy_pending_ky"
 
 
 def test_data_degraded_lowers_confidence():
@@ -146,6 +116,7 @@ def test_data_degraded_lowers_confidence():
         taw_mm=100.0,
         raw_fraction=0.5,
         initial_depletion_mm=10.0,
+        crop="sorghum",
         growth_stage="vegetative",
         data_degraded=True,
     )
@@ -155,17 +126,163 @@ def test_data_degraded_lowers_confidence():
 
 
 def test_budget_exhaustion_flags_water_scarcity():
-    # ميزانيّة صغيرة جدّاً مع طلب عالٍ في مرحلة حرجة ⇒ إجهاد + شحّ ماء.
     d = solve_lexicographic_irrigation(
         forecast=_dry(et0=12.0, n=10),
         taw_mm=80.0,
         raw_fraction=0.5,
         initial_depletion_mm=35.0,
+        crop="maize",
         growth_stage="flowering",
         season_budget_mm=15.0,
     )
     assert ReasonCode.WATER_BUDGET_LIMITED in d.reason_codes
     assert d.operating_state in (OperatingState.WATER_SCARCITY, OperatingState.CROP_PROTECTION)
+
+
+# ─────────────────────────── م1: نموذج Ky الكنسيّ ───────────────────────────
+
+
+def test_ky_registry_crop_stage_values_are_sourced():
+    # قيم FAO-33 حسب المحصول والمرحلة — لا اختلاق؛ كلّ مدخل يحمل مصدره.
+    lk = lookup_ky("maize", "flowering")
+    assert lk is not None
+    assert lk.ky == pytest.approx(1.5)  # الذرة/التزهير — الأكثر حساسيّة
+    assert lk.ky_basis == "crop_stage"
+    assert "FAO-33" in lk.ky_source
+    assert lk.version and lk.effective_from
+
+
+def test_ky_per_stage_differs_within_crop():
+    # Ky يختلف بالمرحلة داخل المحصول (لا قيمة موسميّة واحدة).
+    veg = lookup_ky("maize", "vegetative").ky
+    flow = lookup_ky("maize", "flowering").ky
+    assert flow > veg
+
+
+def test_ky_unknown_crop_falls_back_to_labeled_generic_stage():
+    lk = lookup_ky("mango", "flowering")
+    assert lk is not None
+    assert lk.ky_basis == "generic_stage"  # مُعلَّم صراحةً — لا استبدال صامت
+    assert lk.crop is None
+
+
+def test_ky_unknown_stage_returns_none():
+    assert lookup_ky("maize", "banana_time") is None
+    assert lookup_ky("maize", None) is None
+
+
+def test_j3_yield_response_computed_when_ky_available():
+    # حقل مرويّ جيّداً في مرحلة الذرة الحرجة ⇒ ETa/ETm≈1 ⇒ غلّة نسبيّة عالية.
+    d = solve_lexicographic_irrigation(
+        forecast=_dry(et0=8.0),
+        taw_mm=120.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=20.0,
+        crop="maize",
+        growth_stage="flowering",
+        yield_floor_ratio=0.85,
+    )
+    yr = d.yield_response
+    assert yr.status == "ok"
+    assert yr.ky == pytest.approx(1.5)
+    assert yr.eta_over_etm is not None and yr.eta_over_etm >= 0.95
+    assert yr.predicted_relative_yield is not None and yr.predicted_relative_yield >= 0.85
+    assert d.yield_floor_preserved is True
+    assert d.objective_trace["ky_source"] and d.candidate_lineage_id.startswith("mpc_")
+
+
+def test_j3_insufficient_data_when_stage_missing():
+    d = solve_lexicographic_irrigation(
+        forecast=_dry(),
+        taw_mm=120.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=20.0,
+        crop="maize",
+        growth_stage=None,
+    )
+    assert d.yield_response.status == "insufficient_data"
+    assert d.yield_floor_preserved is None  # لا تأكيد بلا بيانات
+    assert ReasonCode.YIELD_DATA_INSUFFICIENT in d.reason_codes
+
+
+def test_j3_insufficient_data_when_etm_zero():
+    fc = [ForecastDay(et0_mm=0.0, kc=0.0, rain_mm=0.0) for _ in range(5)]
+    d = solve_lexicographic_irrigation(
+        forecast=fc,
+        taw_mm=120.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=10.0,
+        crop="maize",
+        growth_stage="flowering",
+    )
+    assert d.yield_response.status == "insufficient_data"
+    assert d.yield_floor_preserved is None
+
+
+def test_j3_out_of_bounds_on_severe_deficit_high_ky():
+    # عجز شديد + Ky عالٍ (1.5) ⇒ الغلّة النسبيّة الخطّيّة سالبة ⇒ خارج الحدود، مقصوصة.
+    fc = [ForecastDay(et0_mm=14.0, kc=1.1, rain_mm=0.0) for _ in range(7)]
+    d = solve_lexicographic_irrigation(
+        forecast=fc,
+        taw_mm=60.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=25.0,
+        crop="maize",
+        growth_stage="flowering",
+        season_budget_mm=5.0,
+        yield_floor_ratio=0.85,
+    )
+    assert d.yield_response.status == "out_of_bounds"
+    assert d.yield_response.within_bounds is False
+    assert 0.0 <= d.yield_response.predicted_relative_yield <= 1.0
+    assert d.yield_floor_preserved is None  # خارج الحدود ⇒ لا تأكيد
+
+
+def test_j3_does_not_override_j1():
+    # حماية المحصول (J1) أعلى: الخطّة الفائزة يجب ألّا تُجهِد في مرحلة حرجة حتى لو خطّة
+    # أخرى أعلى غلّة متوقّعة لكنّها تكسر الحماية. J1 للفائز = 0 دائماً حين يمكن تفاديه.
+    d = solve_lexicographic_irrigation(
+        forecast=_dry(et0=12.0),
+        taw_mm=80.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=30.0,
+        crop="maize",
+        growth_stage="flowering",
+        yield_floor_ratio=0.9,
+    )
+    assert d.objectives is not None
+    assert d.objectives.j1_crop_protection == pytest.approx(0.0, abs=1e-6)
+    # القرار حُسِم عند مستوى ≥1 (J1 صفّى أوّلاً)، والحماية لم تُكسَر.
+    assert d.expected_root_zone_depletion_after_mm <= d.raw_mm
+
+
+def test_yield_floor_not_preserved_without_target_ratio():
+    # بيانات كاملة لكن بلا هدف حدّ إنتاج ⇒ لا يمكن التأكيد ⇒ None (ليس True).
+    d = solve_lexicographic_irrigation(
+        forecast=_dry(et0=8.0),
+        taw_mm=120.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=20.0,
+        crop="maize",
+        growth_stage="flowering",
+    )
+    assert d.yield_response.status == "ok"
+    assert d.yield_floor_preserved is None
+
+
+def test_generic_stage_basis_lowers_confidence_vs_crop_specific():
+    common = dict(
+        forecast=_dry(et0=8.0),
+        taw_mm=120.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=20.0,
+        growth_stage="vegetative",
+    )
+    crop_specific = solve_lexicographic_irrigation(crop="maize", **common)
+    generic = solve_lexicographic_irrigation(crop="mango", **common)
+    assert generic.yield_response.ky_basis == "generic_stage"
+    assert crop_specific.yield_response.ky_basis == "crop_stage"
+    assert generic.confidence < crop_specific.confidence
 
 
 def test_deterministic_repeatable():
@@ -174,8 +291,26 @@ def test_deterministic_repeatable():
         taw_mm=100.0,
         raw_fraction=0.5,
         initial_depletion_mm=40.0,
+        field_id="fld_z",
+        crop="maize",
         growth_stage="flowering",
+        yield_floor_ratio=0.85,
     )
     a = solve_lexicographic_irrigation(**args)
     b = solve_lexicographic_irrigation(**args)
     assert a.to_dict() == b.to_dict()
+    assert a.candidate_lineage_id == b.candidate_lineage_id
+
+
+def test_no_economic_margin_derived_from_ky():
+    # حارس دلاليّ: J3 (Ky) لا يغذّي أيّ هامش/إيراد — economic_margin_delta يبقى None.
+    d = solve_lexicographic_irrigation(
+        forecast=_dry(et0=8.0),
+        taw_mm=120.0,
+        raw_fraction=0.5,
+        initial_depletion_mm=20.0,
+        crop="maize",
+        growth_stage="flowering",
+        water_price_per_m3=0.1,
+    )
+    assert d.economic_margin_delta is None

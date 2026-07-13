@@ -3,6 +3,19 @@
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
+## 2026-07-13 — Lexicographic MPC المرحلة 1: نموذج Ky الكنسيّ (J3 حقيقيّ) + سجلّ FAO-33 + حارس عزل اقتصاديّ
+
+**بأمر المستخدم (م1 قبل م2):** حوّلتُ J3 من وكيل إجهاد إلى معادلة Ky الكنسيّة `Ya/Ym = 1 − Ky·(1 − ETa/ETm)` — توسعة منطقيّة فوق م0 بلا بنية تشغيليّة جديدة ولا هجرات.
+
+**`core/engines/ky_registry.py` (جديد):** معاملات FAO-33 (Doorenbos & Kassam 1979، Table 24) حسب المحصول والمرحلة. **لا اختلاق:** `KyEntry` يحمل `ky_source`/`version`/`effective_from`/`uncertainty`. 7 محاصيل يمنيّة خاصّة (maize/sorghum/wheat/tomato/potato/onion) + صفّ عامّ حسب المرحلة (نفس قيم FAO-33 المستخدَمة في المنصّة). `lookup_ky(crop,stage)`: خاصّ-بالمحصول (`crop_stage`) ⇒ عامّ حسب المرحلة (`generic_stage` مُعلَّم) ⇒ None. **مرحلة مجهولة ⇒ None** (لا استبدال صامت). مرادفات عربيّة للمحاصيل.
+
+**`lexicographic_irrigation_mpc.py` (تعميم J3):** `_eta_over_etm(plan)` يحسب ETa/ETm من Ks اليوميّ (FAO-56: Ks=1 عند Dr≤RAW وإلّا (TAW−Dr)/(TAW−RAW)). `_yield_response(plan,ky)` → `YieldResponse{status, eta_over_etm, ky, ky_source, ky_basis, predicted_relative_yield, predicted_yield_loss_fraction, within_bounds, uncertainty}`. J3 = كسر الغلّة حين يُحسَب؛ 0 محايد عند `insufficient_data`. `yield_floor_preserved` = True **فقط** ببيانات كاملة (status=ok + مرحلة + Ky + داخل الحدود + هدف مُحقَّق)؛ وإلّا None. عجز شديد + Ky>1 ⇒ `out_of_bounds` (RY مقصوصة [0,1]). عقد مُوسَّع: `crop`/`growth_stage`/`yield_response`/`yield_floor_ratio`/`objective_trace`/`candidate_lineage_id`. رموز أسباب جديدة: `YIELD_FLOOR_AT_RISK`/`YIELD_DATA_INSUFFICIENT`. الثقة تنخفض لـ`generic_stage`/`out_of_bounds`/عدم يقين Ky. **J1 يبقى الأعلى** (السلّم يضمن أنّ J3 لا يكسر الحماية — مُختبَر).
+
+**عزل اقتصاديّ (طلب المستخدم):** حارس CI `scripts/ci/ky_no_economic_coupling_guard.py` (مُركَّب في ci.yml) يمنع أيّ إيراد/هامش مُشتَقّ من Ky (سجلّ Ky بلا مصطلحات اقتصاديّة · `economic_margin_delta=None` دائماً · J4 من الماء فقط · لا ضرب غلّة×سعر). لم يُمَسّ التنفيذ/MQTT/التفويض.
+
+**التحقّق:** 21 اختبار وحدة (بوّابات القبول كلّها: Ky لكلّ مرحلة · غياب Ky ⇒ insufficient_data · ETm=0 ⇒ insufficient_data · J3 لا يتغلّب على J1 · yield_floor لا يظهر بلا بيانات كاملة · حتميّة · لا هامش من Ky) · `pytest -m unit` **2935 نجاح/5 تخطٍّ @ 45.47%** · ruff نظيف (نطاق CI) · حارس Ky أخضر · baseline 613→614 · ci.yml صالح · release 4236 · ADR-0032 مُحدَّث. إضافيّ صرف (لا هجرة/نقطة/تنفيذ). **التالي: م2 طبقة الطاقة/الآبار كحزمة مستقلّة.**
+
+---
 ## 2026-07-13 — Lexicographic MPC المرحلة 0: نواة الحلّال الهرميّ + العقد (توصية-فقط، الطاقة not_modelled)
 
 **السياق:** المستخدم قدّم مواصفة تفصيليّة لمتحكّم ريّ تنبّؤيّ هرميّ معجميّ (سلّم حماية-محصول≻ماء/طاقة≻حدّ-إنتاج≻هامش، غير قابل للمقايضة الماليّة). **استطلاع ثلاثيّ الطبقات (٣ وكلاء):** الهيكل المحكوم موجود كلّه (water_ledger Dr · canonical_water_stress AWF · fao56 ETc/TAW/Zr/Ks · سلسلة candidate→review→execute→verify→learning · water_decision_bridge يصدر مرشّح ريّ)؛ ومتحكّم جشِع قائم `api/irrigation_mpc.plan_irrigation` يصف نفسه صراحةً غير-QP/LP = نقطة التعميم. الجديد كلّيّاً: الحلّال المعجميّ · نموذج Ky الكنسيّ · **طبقة الطاقة/الآبار/الشمسيّة غائبة تماماً كبيانات** (COMPETITIVE_ANALYSIS.md مخطّط فقط). القرار: البدء بـم0 يبني كلّه على بيانات موجودة؛ الطاقة تُعلَن not_modelled لا تُلفَّق.
