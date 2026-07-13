@@ -160,6 +160,19 @@ export interface WaterAnalysisResult {
 export const analyzeWaterSample = (payload: WaterSampleInput): Promise<WaterAnalysisResult> =>
   kongApi.post<WaterAnalysisResult>('/api/v1/irrigation/water-analysis', payload).then(r => r.data);
 
+// ── شفافيّة قدرات متحكّم الريّ الهرميّ المعجميّ (Lexicographic MPC) ──────────
+// قراءة فقط: ما يُنمذِجه الحلّال (J1..J4) مقابل المُؤجَّل صراحةً (طاقة/آبار/أفق ساعيّ)،
+// وإصداره، وأنّه توصية-فقط بنيويّاً (لا تنفيذ تلقائيّ). لا مدخلات/تلفيق — نقطة العقد نفسها.
+export interface MpcCapabilities {
+  solver_version: string;
+  modeled_capabilities: string[];
+  not_modeled: string[];
+  execution_allowed: boolean;
+  recommendation_only: boolean;
+}
+export const fetchMpcCapabilities = (): Promise<MpcCapabilities> =>
+  kongApi.get<MpcCapabilities>('/api/v1/irrigation/mpc/capabilities').then(r => r.data);
+
 // ── خطّة الريّ التنبّؤيّة (POST /api/v1/irrigation-plan) — خطّ «مركز المحاصيل» ──
 // نسيج+عمق ⇒ TAW ⇒ سياسة ⇒ جدول ريّ عبر أفق التنبّؤ (FAO-56). كلّ القيم موسومة calibrated.
 export interface ForecastDayInput {

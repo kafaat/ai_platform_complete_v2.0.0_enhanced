@@ -143,6 +143,8 @@ jobs:
         run: python scripts/ci/soil_p5_certification_guard.py
       - name: soil P6 runtime certification guard
         run: python scripts/ci/soil_p6_runtime_certification_guard.py
+      - name: no unresolved merge-conflict markers (repo-wide)
+        run: python scripts/ci/no_merge_conflict_markers_guard.py
       - name: irrigation MPC — Ky no-economic-coupling guard
         run: python scripts/ci/ky_no_economic_coupling_guard.py
       - name: irrigation MPC — bridge lineage-propagation guard

@@ -7,6 +7,7 @@ import {
   kongApi, indicatorsApi, vegetationApi,
   weatherApi, soilApi, authApi, rasterApi,
   fetchSoilProfileSnapshot, fetchSoilClosedLoop, fetchSoilProfileHistory,
+  fetchMpcCapabilities, type MpcCapabilities,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
   analyzeFieldIntelligence, startAnalyzeFieldIntelligence, getFieldIntelligenceJob, cancelFieldIntelligenceJob, getCostAnalytics,
   getYieldAnalysis, type YieldAnalysisResult,
@@ -128,6 +129,7 @@ export const QK = {
   soilProfileSnap:  (fid: string)        => ['soil', 'profile-snapshot', fid],
   soilClosedLoop:   (fid: string)        => ['soil', 'closed-loop', fid],
   soilProfileHist:  (fid: string)        => ['soil', 'profile-history', fid],
+  mpcCapabilities:                          ['irrigation', 'mpc', 'capabilities'],
   fields:           (tid: string)        => ['fields', tid],
   fieldDetail:      (tid: string, fid: string) => ['field-detail', tid, fid],
   fieldWorkspace:   (tid: string, fid: string) => ['field-workspace', tid, fid],
@@ -763,6 +765,17 @@ export function useSoilWorkspace(fieldId: string | null | undefined, enabled = t
     isError: profileQ.isError,
     closedLoopLoading: loopQ.isLoading,
   };
+}
+
+// شفافيّة قدرات متحكّم الريّ MPC — قراءة فقط، نقطة عقد ثابتة (بلا حقل/مدخلات).
+export function useMpcCapabilities(enabled = true): UseQueryResult<MpcCapabilities> {
+  return useQuery({
+    queryKey: QK.mpcCapabilities,
+    queryFn:  fetchMpcCapabilities,
+    staleTime:10 * 60_000,
+    enabled,
+    retry:    false,
+  });
 }
 
 // ── Phenology / Season (ربط حيّ بنقاط المنصّة؛ لا كتابة، اقتراحات فقط) ──

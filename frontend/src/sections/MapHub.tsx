@@ -67,6 +67,7 @@ import AgroKnowledgeCard from '../components/fieldview/AgroKnowledgeCard';
 import AgroCalculatorsCard from '../components/fieldview/AgroCalculatorsCard';
 import DiagnosticsCard from '../components/fieldview/DiagnosticsCard';
 import SoilGovernanceCard from '../components/fieldview/SoilGovernanceCard';
+import MpcGovernanceCard from '../components/fieldview/MpcGovernanceCard';
 import WhatIfScenariosCard from '../components/fieldview/WhatIfScenariosCard';
 import WaterHarvestingCard from '../components/fieldview/WaterHarvestingCard';
 import IrrigationDecisionAidsCard from '../components/fieldview/IrrigationDecisionAidsCard';
@@ -1868,6 +1869,10 @@ function MapHubCore() {
           الجودة والاستخدامات المحجوبة وعدّادات التنفيذ/التحقّق/التعلّم. قراءة فقط. */}
       {selected && fieldMode === 'expert' && (
         <SoilGovernanceCard fieldId={fieldId ?? null} enabled={expertMode} />
+      )}
+      {/* شفافيّة متحكّم الريّ الهرميّ (MPC) — قدرات مُنمذَجة/مُؤجَّلة + توصية-فقط. قراءة فقط. */}
+      {selected && fieldMode === 'expert' && (
+        <MpcGovernanceCard enabled={expertMode} />
       )}
 
       {/* سيناريوهات «ماذا لو؟»: حرارة/مطر/تاريخ زراعة/توأم ماء — محاكاة افتراضات

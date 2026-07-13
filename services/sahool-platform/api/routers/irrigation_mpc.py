@@ -6,7 +6,13 @@ P1.1b: أوّل **مستهلك إنتاجيّ** لـ`solve_lexicographic_irrigat
 `submit=true` (خلف عَلَم الجسر) يُصدِر مرشّحاً محكوماً إلى مركز القرار فقط.
 
 `tenant_id` من المستخدم المُصادَق (لا من الجسم) — عزل المستأجِر. الحساب نقيّ فيُختبَر
-باستدعاء المعالِج؛ قراءة الدفتر دفاعيّة (بلا صفّ ⇒ استنزاف 0 + data_degraded، لا اختلاق).
+باستدعاء المعالِج.
+
+**P1.1c (تصلّب fail-closed + فصل المحاكاة/العمليّ):** تمرير `initial_depletion_mm` صريحاً
+⇒ **محاكاة** (حقيقة عميل) لا تُصدَر مرشّحاً محكوماً. غيابه ⇒ يُقرأ Dr من `water_ledger`
+(حقيقة الخادم) = **عمليّ** قابل للإصدار؛ وغياب صفّ الدفتر ⇒ **blocked** (لا اختلاق Dr=0).
+حدود صارمة على العقد (422 على القيم السالبة/خارج المدى). **متبقٍّ (مُعلَن):** مصدرة كلّ
+الحقائق (TAW/RAW/المحصول/المرحلة/الطقس) من SoR خادميّاً + بصمات لقطات + شهادة PostgreSQL.
 """
 
 from __future__ import annotations
@@ -26,29 +32,36 @@ logger = logging.getLogger("sahool.irrigation_mpc")
 
 
 class ForecastDayIn(BaseModel):
-    et0_mm: float
-    kc: float
-    rain_mm: float = 0.0
-    runoff_mm: float = 0.0
+    # حدود صارمة على العقد (422 مبكّراً بدل تمرير قيم فيزيائيّة غير قانونيّة للنواة).
+    et0_mm: float = Field(ge=0)
+    kc: float = Field(ge=0)
+    rain_mm: float = Field(default=0.0, ge=0)
+    runoff_mm: float = Field(default=0.0, ge=0)
 
 
 class MpcPlanRequest(BaseModel):
-    """مدخلات خطّة الريّ المعجميّة (الحقائق تُمرَّر أو تُقرأ من الدفتر)."""
+    """مدخلات خطّة الريّ المعجميّة.
 
-    field_id: str
+    **دلالة المدخلات (P1.1c):** تمرير `initial_depletion_mm` صريحاً ⇒ **محاكاة** (حقيقة
+    عميل، لا تُصدِر مرشّحاً محكوماً). غيابه ⇒ يُقرأ Dr من `water_ledger` (حقيقة الخادم) =
+    **عمليّ** قابل للإصدار؛ وغياب صفّ الدفتر ⇒ **fail-closed** (لا اختلاق صفر). الحدود
+    الصارمة أدناه ترفض القيم غير القانونيّة بـ422.
+    """
+
+    field_id: str = Field(min_length=1)
     forecast: list[ForecastDayIn] = Field(min_length=1)
-    taw_mm: float
-    raw_fraction: float = 0.5
-    initial_depletion_mm: float | None = None  # يُقرأ من water_ledger عند الغياب
+    taw_mm: float = Field(gt=0)
+    raw_fraction: float = Field(default=0.5, gt=0, le=1)
+    initial_depletion_mm: float | None = Field(default=None, ge=0)  # مُمرَّراً ⇒ محاكاة
     season_id: str | None = None
     crop: str | None = None
     growth_stage: str | None = None
-    yield_floor_ratio: float | None = None
-    max_application_mm: float | None = None
-    season_budget_mm: float | None = None
-    water_price_per_m3: float | None = None
-    depletion_confidence: float | None = None
-    submit: bool = False  # إصدار مرشّح محكوم (خلف عَلَم الجسر)
+    yield_floor_ratio: float | None = Field(default=None, ge=0, le=1)
+    max_application_mm: float | None = Field(default=None, ge=0)
+    season_budget_mm: float | None = Field(default=None, ge=0)
+    water_price_per_m3: float | None = Field(default=None, ge=0)
+    depletion_confidence: float | None = Field(default=None, ge=0, le=1)
+    submit: bool = False  # إصدار مرشّح محكوم (عمليّ فقط، خلف عَلَم الجسر)
 
 
 async def _latest_ledger_depletion(tenant_id: str, field_id: str) -> float | None:
@@ -71,13 +84,27 @@ async def irrigation_mpc_plan(
     req: MpcPlanRequest, user: UserSchema = Depends(get_current_user)
 ) -> dict:
     tenant_id = user.tenant_id
-    data_degraded = False
-    depletion = req.initial_depletion_mm
-    if depletion is None:
-        depletion = await _latest_ledger_depletion(tenant_id, req.field_id)
-        if depletion is None:
-            depletion = 0.0  # لا اختلاق: استنزاف مجهول ⇒ 0 + تدهور بيانات مُعلَن
-            data_degraded = True
+    # P1.1c: فصل المحاكاة عن العمليّ + fail-closed على غياب الحقيقة (لا اختلاق Dr=0).
+    manual_depletion = req.initial_depletion_mm is not None
+    if manual_depletion:
+        depletion = float(req.initial_depletion_mm)  # حقيقة عميل ⇒ محاكاة
+        depletion_source = "request_simulation"
+    else:
+        ledger_dr = await _latest_ledger_depletion(tenant_id, req.field_id)
+        if ledger_dr is None:
+            # fail-closed: لا استنزاف مرجعيّ ⇒ لا صفر مُختلَق ولا قرار قابل للإرسال.
+            return {
+                "status": "blocked",
+                "reason": "no_ground_truth_depletion",
+                "field_id": req.field_id,
+                "detail": (
+                    "لا استنزاف Dr مرجعيّ من water_ledger لهذا الحقل؛ لا يُختلَق صفر لقرار "
+                    "قابل للإرسال. شغّل عامل ميزان الماء، أو مرّر initial_depletion_mm صراحةً "
+                    "كمحاكاة (لا تُصدَر مرشّحاً محكوماً)."
+                ),
+            }
+        depletion = ledger_dr
+        depletion_source = "water_ledger"
 
     decision = solve_lexicographic_irrigation(
         forecast=[
@@ -97,20 +124,23 @@ async def irrigation_mpc_plan(
         season_budget_mm=req.season_budget_mm,
         water_price_per_m3=req.water_price_per_m3,
         depletion_confidence=req.depletion_confidence,
-        data_degraded=data_degraded,
+        data_degraded=False,
     )
 
-    out: dict = {
-        "decision": decision.to_dict(),
-        "depletion_source": (
-            "request"
-            if req.initial_depletion_mm is not None
-            else ("water_ledger" if not data_degraded else "absent_bootstrap")
-        ),
-    }
+    # وضع صريح: المحاكاة (حقائق عميل) لا تُصدَر مرشّحاً محكوماً؛ العمليّ (حقيقة خادم) يُصدَر.
+    mode = "simulation" if manual_depletion else "operational"
+    out: dict = {"decision": decision.to_dict(), "depletion_source": depletion_source, "mode": mode}
 
     if req.submit:
-        if not bridge_enabled():
+        if manual_depletion:
+            out["emit"] = {
+                "status": "rejected_simulation",
+                "detail": (
+                    "لا يُصدَر مرشّح محكوم من محاكاة (حقائق عميل). الإصدار العمليّ يتطلّب "
+                    "استنزافاً مرجعيّاً من الخادم (water_ledger)."
+                ),
+            }
+        elif not bridge_enabled():
             out["emit"] = {"status": "disabled"}
         else:
             out["emit"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)

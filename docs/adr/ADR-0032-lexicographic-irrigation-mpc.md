@@ -23,6 +23,18 @@ Ky العامّ لا يُثبِت). **المتبقّي P1.1b:** Route يقرأ w
 water_decision_bridge (مرشّح `lexicographic_irrigation`) + استمرار PG + انتشار النَّسَب عبر
 execution→outcome→learning — يحتاج سلسلة decision-service وPG حقيقيّ.
 
+**تحديث P1.1c-a (تصلّب fail-closed + فصل المحاكاة/العمليّ — استجابةً لتدقيق جنائيّ):** التدقيق
+أثبت **فجوة P0 في كودي**: الراوتر كان يضع `Dr=0` عند غياب صفّ الدفتر — وهو **اختلاق** (يعني
+رطوبة ممتلئة، فقد يُصدِر `hold` بينما الحقل جافّ). أُصلِح: غياب Dr المرجعيّ ⇒ **`blocked`**
+(`reason=no_ground_truth_depletion`، لا قرار قابل للإرسال). وأُضيف **فصل صريح**: تمرير
+`initial_depletion_mm` صراحةً ⇒ **محاكاة** (`mode=simulation`) لا تُصدِر مرشّحاً محكوماً
+(`submit` ⇒ `rejected_simulation`)؛ غيابه + صفّ دفتر ⇒ **عمليّ** (`mode=operational`) قابل
+للإصدار. وحدود صارمة على العقد (Pydantic `ge/gt/le`) ترفض ET0/Kc/TAW/السعر/الميزانية السالبة
+و`raw_fraction`/`yield_floor_ratio` خارج المدى بـ422. **متبقٍّ P1.1c (مُعلَن صراحةً):** مصدرة
+كلّ الحقائق (TAW/RAW/المحصول/المرحلة/الطقس) من SoR خادميّاً (لا من العميل) + مساران منفصلان
+`/simulate` و`/recommendation` + بصمات لقطات (دفتر ماء/طقس) + شهادة PostgreSQL للسلسلة
+حتى outcome. لذا `LEXICOGRAPHIC_MPC_BRIDGE_ENABLED=true` يبقى **غير جاهز للإنتاج** حتى P1.1c الكامل.
+
 **تحديث P1.1b (وصل الجسر + النقطة الإنتاجيّة):** أُضيف **أوّل مستهلك إنتاجيّ** للحلّال:
 - **جسر محكوم** `api/lexicographic_mpc_bridge.py`: `build_mpc_candidate` يبني مرشّح قرار من
   النوع **`irrigation_mpc`** ينشر النَّسَب الكامل صراحةً على مستوى القمّة

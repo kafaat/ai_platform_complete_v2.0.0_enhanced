@@ -83,7 +83,9 @@ describe('backend-to-frontend coverage registry', () => {
   });
 
   it('summarizes covered, partial, internal and not-ready layers deterministically', () => {
-    expect(coverageSummary()).toEqual({ covered: 16, partial: 0, waived_internal: 1, not_ready: 1 });
+    // 16→17: طبقة إضافيّة صارت مُغطّاة (بطاقة حوكمة التربة، جلسة سابقة) — العدّاد
+    // انحرف لأنّ vitest غير مُبوَّب في CI؛ صُحِّح عند تشغيل السويت كاملاً.
+    expect(coverageSummary()).toEqual({ covered: 17, partial: 0, waived_internal: 1, not_ready: 1 });
   });
 
   it('maps endpoint patterns back to their owning layer', () => {

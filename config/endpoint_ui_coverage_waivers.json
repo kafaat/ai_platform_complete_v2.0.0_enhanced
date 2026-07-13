@@ -743,10 +743,10 @@
         "get@services/sahool-platform/api/routers/irrigation_mpc.py"
       ],
       "reason_category": "operational",
-      "reason": "شفافيّة قدرات الحلّال (ما يُنمذَج/يُؤجَّل) — بيانات وصفيّة تشغيليّة للتشخيص/التكامل، لا شاشة مستخدم نهائيّ.",
+      "reason": "شفافيّة قدرات الحلّال (ما يُنمذَج/يُؤجَّل + توصية-فقط) — بيانات وصفيّة تشغيليّة. لها الآن مستهلك واجهة في وضع الخبير (MpcGovernanceCard في MapHub)، لكنّها تبقى تشخيصيّة لا شاشة مزارع نهائيّ.",
       "priority": "none",
       "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
+      "ui_surface_hint": "expert-transparency-card",
       "criticality": "none",
       "importance": 0,
       "importance_tier": "none",

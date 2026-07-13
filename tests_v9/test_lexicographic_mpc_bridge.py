@@ -177,8 +177,8 @@ class _User:
 
 
 @_requires_fastapi
-def test_route_plan_uses_user_tenant_and_declares_degradation(monkeypatch):
-    """الدفتر الغائب ⇒ استنزاف 0 + data_degraded مُعلَن (لا اختلاق)، والمستأجِر من المستخدم."""
+def test_route_plan_blocks_when_no_ground_truth_depletion(monkeypatch):
+    """P1.1c: غياب Dr مرجعيّ ⇒ blocked (لا اختلاق صفر، لا قرار قابل للإرسال)."""
     import api.routers.irrigation_mpc as route
 
     async def _no_ledger(tenant_id, field_id):
@@ -194,12 +194,14 @@ def test_route_plan_uses_user_tenant_and_declares_degradation(monkeypatch):
         growth_stage="flowering",
     )
     out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
-    assert out["depletion_source"] == "absent_bootstrap"
-    assert out["decision"]["tenant_id"] == "tenant-42"  # من المستخدم لا الجسم
+    assert out["status"] == "blocked"
+    assert out["reason"] == "no_ground_truth_depletion"
+    assert "decision" not in out  # لا قرار مُختلَق
 
 
 @_requires_fastapi
 def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
+    """غياب initial_depletion + وجود صفّ دفتر ⇒ عمليّ بحقيقة الخادم، والمستأجِر من المستخدم."""
     import api.routers.irrigation_mpc as route
 
     async def _ledger(tenant_id, field_id):
@@ -214,6 +216,55 @@ def test_route_plan_reads_ledger_when_depletion_absent(monkeypatch):
     )
     out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
     assert out["depletion_source"] == "water_ledger"
+    assert out["mode"] == "operational"
+    assert out["decision"]["tenant_id"] == "tenant-42"  # من المستخدم لا الجسم
+
+
+@_requires_fastapi
+def test_route_plan_manual_depletion_is_simulation_and_submit_rejected(monkeypatch):
+    """P1.1c: تمرير initial_depletion صراحةً ⇒ محاكاة؛ submit لا يُصدِر مرشّحاً محكوماً."""
+    import api.routers.irrigation_mpc as route
+
+    async def _ledger(tenant_id, field_id):
+        raise AssertionError("must not read ledger when depletion is client-supplied")
+
+    monkeypatch.setattr(route, "_latest_ledger_depletion", _ledger)
+    monkeypatch.setenv("LEXICOGRAPHIC_MPC_BRIDGE_ENABLED", "true")
+
+    req = route.MpcPlanRequest(
+        field_id="fld_a",
+        forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
+        taw_mm=100.0,
+        initial_depletion_mm=40.0,  # حقيقة عميل ⇒ محاكاة
+        submit=True,
+    )
+    out = asyncio.run(route.irrigation_mpc_plan(req, user=_User()))
+    assert out["mode"] == "simulation"
+    assert out["depletion_source"] == "request_simulation"
+    assert out["emit"]["status"] == "rejected_simulation"  # لا مرشّح من محاكاة
+
+
+@_requires_fastapi
+def test_route_plan_rejects_illegal_bounds():
+    """P1.1c: العقد يرفض القيم غير القانونيّة مبكّراً (422 عبر Pydantic)."""
+    import api.routers.irrigation_mpc as route
+    import pydantic
+
+    with pytest.raises(pydantic.ValidationError):
+        route.MpcPlanRequest(
+            field_id="fld_a",
+            forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
+            taw_mm=-5.0,  # TAW سالب ⇒ مرفوض
+        )
+    with pytest.raises(pydantic.ValidationError):
+        route.ForecastDayIn(et0_mm=-1.0, kc=1.0)  # ET0 سالب ⇒ مرفوض
+    with pytest.raises(pydantic.ValidationError):
+        route.MpcPlanRequest(
+            field_id="fld_a",
+            forecast=[route.ForecastDayIn(et0_mm=10.0, kc=1.0)],
+            taw_mm=100.0,
+            raw_fraction=1.5,  # خارج (0,1] ⇒ مرفوض
+        )
 
 
 @_requires_fastapi

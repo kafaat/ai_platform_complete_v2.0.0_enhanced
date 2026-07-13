@@ -1255,6 +1255,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5776e17b968e1105829eb169f974241d674b68491a0d2cd0307b85756db9788c"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/MpcGovernanceCard.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c20145ec7aee318f07818843464f83825775912869412deb4e6e35d5439e149"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/MpcGovernanceWiring.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "763ce1d2355e526bdbc663a61027956bf262c97133d99b1000ce86cd747ea0f3"
         }
       ],
@@ -2265,7 +2285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36d2ebc60db0ae42224839bc086032e9460d514bee58f2c5e25fefcb795f8a47"
+          "content": "77523712e4cbb1610ccfb873f881fc86c80fd6c5debeb1e73c80daa38b60cfaa"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.test.ts",
@@ -2345,7 +2365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97fa1f0830277bd3ba0d5694df36c839286597ba990358216884bcc555a3dc03"
+          "content": "75cc98c34685ae4fa586f21a49ee4df463280305774a9abdf5cda9b0f724743e"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -5135,7 +5155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "579e8b0c754fa3aee0b6a20edc1aa8a60a8159a37a26bb49201298e34cc2ab35"
+          "content": "ca00e541eb2b377bfde215c7a8df74e419ca133762c90b771d0df124495665db"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5835,7 +5855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c5e64f462d7a8fcd2e898a787f50bf0123a258abd31f4876aa63399f1eed027a"
+          "content": "3ea18763dc2fa2a1d86ef0b31af44d6c973172df7e259a55c8e803d04faec3dc"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -15155,7 +15175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4ac6ebe227a25495fbd4657dfcbab3239f2a002e3ae15b7bfc1e3003d158ea9"
+          "content": "85f2bf4ae5f97260f8b7b212bac208136e559653f959b7ae3284024d413de79f"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
