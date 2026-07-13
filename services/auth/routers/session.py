@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Annotated
 
 import main
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 
@@ -21,7 +21,7 @@ router = APIRouter()
 
 
 @router.post("/auth/login", response_model=main.TokenResponse)
-async def login(req: main.LoginRequest, request: Request):
+async def login(req: main.LoginRequest, request: Request, response: Response):
     ip = request.client.host if request.client else "unknown"
     await main.check_ip_rate(ip)
     await main.check_lockout(req.email)  # ✅ account lockout check
@@ -107,6 +107,9 @@ async def login(req: main.LoginRequest, request: Request):
     await main.audit_log("login", row["id"], ip, tenant_id=row["tenant_id"])
     main.LOGIN_COUNTER.labels(status="success").inc()
 
+    # كوكي مصادقة البلاطات (HttpOnly) — يُغني عن تمرير JWT في رابط بلاطة <img>.
+    main.set_tile_auth_cookie(response, token)
+
     return main.TokenResponse(
         access_token=token,
         refresh_token=refresh,
@@ -119,7 +122,7 @@ async def login(req: main.LoginRequest, request: Request):
 
 
 @router.post("/auth/refresh", response_model=main.TokenResponse)
-async def refresh_token(req: main.RefreshRequest):
+async def refresh_token(req: main.RefreshRequest, response: Response):
     """✅ NEW: Refresh access token using refresh token."""
     if not main._redis:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Refresh tokens require Redis")
@@ -146,6 +149,9 @@ async def refresh_token(req: main.RefreshRequest):
         row["id"], row["email"], row["role"], row["full_name"], tenant_id
     )
 
+    # جدّد كوكي مصادقة البلاطات كي يبقى صالحاً مع تجديد التوكن (وإلّا انتهت مع انتهاء JWT).
+    main.set_tile_auth_cookie(response, token)
+
     return main.TokenResponse(
         access_token=token,
         refresh_token=new_refresh,
@@ -160,6 +166,7 @@ async def refresh_token(req: main.RefreshRequest):
 @router.post("/auth/logout")
 async def logout(
     request: Request,
+    response: Response,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(main.security)],
 ):
     """✅ NEW: Invalidate access token (JTI blacklist) + refresh token."""
@@ -192,6 +199,9 @@ async def logout(
         main.logger.debug("logout: لا جسم JSON في الطلب: %s", type(e).__name__)
     if rt := body.get("refresh_token"):
         await main.revoke_refresh_token(rt)
+
+    # امسح كوكي مصادقة البلاطات كي لا تبقى صالحة بعد الخروج على متصفّح مشترك.
+    main.clear_tile_auth_cookie(response)
 
     await main.audit_log("logout", None, ip)
     return {"message": "تم تسجيل الخروج بنجاح"}

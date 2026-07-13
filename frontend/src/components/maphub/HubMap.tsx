@@ -355,13 +355,16 @@ function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string |
   const params = new URLSearchParams({ index });
   // عقد التاريخ (D): لا نمرّر date حين latest/فارغ — الخادم يختار أحدث مشهد.
   if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
-  // المستأجِر كـ`tenant_id` (لا `tid`): بلاطات <img> بلا ترويسات، وبوّابة nginx تقرأ
-  // `$arg_tenant_id` فتحقن X-Tenant-Id الموثوق (المسار الآمن، مطابق api.ts↔بوّابة 3003).
-  if (tenantId) params.set('tenant_id', tenantId);
+  // في الإنتاج لا نضع JWT ولا tenant_id في رابط بلاطة <img>: البوّابة تشتقّ المستأجِر من
+  // JWT الموثّق (X-Tenant-Id عبر auth_request)، والمصادقة عبر كوكي HttpOnly `sahool_at`
+  // (تُرسَل تلقائيّاً مع <img> نفس‌المصدر). هذا يمنع تسريب JWT عبر سجلّ المتصفّح/الـReferrer.
+  // في التطوير (بلا بوّابة/كوكي) نُبقي tenant_id + access_token كـfallback مباشر لخدمة الراستر.
+  if (!import.meta.env.PROD && tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
-  // مصادقة بلاطة <img> خلف بوّابة الإنتاج (auth_request): JWT كـ`access_token` تقرأه البوّابة.
-  const _tok = getAccessToken();
-  if (_tok) params.set('access_token', _tok);
+  if (!import.meta.env.PROD) {
+    const _tok = getAccessToken();
+    if (_tok) params.set('access_token', _tok);
+  }
   // عقد القصّ (poly/bbox) لمسار CDSE الحيّ فقط: مسار `/tiles` المحفوظ يقرأ COG مقصوصاً
   // مسبقاً من raster_assets (لا يحتاج poly، وتمريره لا يضرّ لكن نُبقيه للحيّ فقط).
   if (!preferPersistedCog) {

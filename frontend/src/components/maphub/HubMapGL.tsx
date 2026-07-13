@@ -122,13 +122,15 @@ export interface HubMapGLProps {
 function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null, preferPersistedCog = false): string {
   const params = new URLSearchParams({ index });
   if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
-  // المستأجِر كـ`tenant_id` (لا `tid`): بوّابة nginx تقرأ `$arg_tenant_id` فتحقن X-Tenant-Id
-  // الموثوق لبلاطات <img> بلا ترويسات (المسار الآمن، مطابق بوّابة 3003/الإنتاج).
-  if (tenantId) params.set('tenant_id', tenantId);
+  // في الإنتاج لا JWT ولا tenant_id في الرابط: البوّابة تشتقّ المستأجِر من JWT الموثّق،
+  // والمصادقة عبر كوكي HttpOnly `sahool_at` (تُرسَل مع <img> نفس‌المصدر). التطوير يبقي
+  // tenant_id + access_token كـfallback مباشر. (نفس سياسة HubMap.indicatorTileUrl.)
+  if (!import.meta.env.PROD && tenantId) params.set('tenant_id', tenantId);
   if (imageryTs) params.set('v', String(imageryTs));
-  // مصادقة بلاطة <img> خلف بوّابة auth_request: JWT كـ`access_token` تقرأه البوّابة.
-  const _tok = getAccessToken();
-  if (_tok) params.set('access_token', _tok);
+  if (!import.meta.env.PROD) {
+    const _tok = getAccessToken();
+    if (_tok) params.set('access_token', _tok);
+  }
   // القصّ (poly/bbox) لمسار CDSE الحيّ فقط؛ /tiles المحفوظ يقرأ COG مقصوصاً مسبقاً.
   if (!preferPersistedCog) {
   const poly = geomToPolygon(field.geometry);

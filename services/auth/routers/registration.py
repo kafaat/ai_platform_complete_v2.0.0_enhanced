@@ -10,13 +10,13 @@
 from __future__ import annotations
 
 import main
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 router = APIRouter()
 
 
 @router.post("/auth/register", response_model=main.TokenResponse, status_code=201)
-async def register(req: main.RegisterRequest, request: Request):
+async def register(req: main.RegisterRequest, request: Request, response: Response):
     ip = request.client.host if request.client else "unknown"
     await main.check_ip_rate(ip)
 
@@ -55,6 +55,9 @@ async def register(req: main.RegisterRequest, request: Request):
 
     await main.audit_log("register", row["id"], ip, tenant_id=row["tenant_id"])
     main.REGISTER_COUNTER.labels(status="success").inc()
+
+    # كوكي مصادقة البلاطات — المستخدِم الجديد مُصادَق فوراً، فتعمل بلاطاته دون JWT في الرابط.
+    main.set_tile_auth_cookie(response, token)
 
     return main.TokenResponse(
         access_token=token,

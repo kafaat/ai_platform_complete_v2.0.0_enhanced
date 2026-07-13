@@ -1575,7 +1575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "81eb72f4011dd3f8820415e035cee1b50bda832beb87527b0ebbfb0d5583ea64"
+          "content": "025b8bf2e1e7305f2f45908112f7c50e3db6655c9bc2a73798f3f601af50e9f5"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -1595,7 +1595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c331c2e82c1a3cb5f1b3d7ab560fb8f76c8d7e6ff5bc30c7ceee200a84e18f70"
+          "content": "b9dda2e38df968f2ec601a072c7a27ee06d4f3d7cf63d023a6868eb31b094361"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -5865,7 +5865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ea18763dc2fa2a1d86ef0b31af44d6c973172df7e259a55c8e803d04faec3dc"
+          "content": "7f8cd1f65953cb094a365369ad9d64adf506b275bdf84c6199f4b1d5619dc86a"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -9225,7 +9225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73a38e23890a7dd0f6f3051de4cd1de2ad884cc488d3690fbb8bd4776d61b5db"
+          "content": "128022d01f494e4208649ae04608da765c7758d7c1212e85384e66b35dcfac60"
         }
       ],
       "name": "services/auth/main.py",
@@ -9305,7 +9305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "02afc63f7fc646f7656fa2a8b16150f024c4d85f1ae98c2958ab7ffa5c616c5e"
+          "content": "1f5af2d4fa3ee574914c13e9005a574d469cea52ca3aae2a043bf49a026bbeec"
         }
       ],
       "name": "services/auth/routers/invitations.py",
@@ -9345,7 +9345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36f09208348ecf3ef69a2916af98b9d2e1cf436a22f464dd4ced5d98b6a0b0be"
+          "content": "b6b7311de165d15826fd0829c3ac065e1a1a56f2bb66698f2bf0f7e5348f7496"
         }
       ],
       "name": "services/auth/routers/registration.py",
@@ -9355,7 +9355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a4693cecd49f202fd9d10b4dce07177b9f95243fffebc307d1f6b795e9f35163"
+          "content": "2bf891cd97db7c48f3b7104286f903f457135d69b766ab49b7c28a2f6f458bbe"
         }
       ],
       "name": "services/auth/routers/session.py",

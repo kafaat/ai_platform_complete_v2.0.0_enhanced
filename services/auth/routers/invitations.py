@@ -16,7 +16,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import main
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
 router = APIRouter()
 
@@ -112,7 +112,9 @@ async def list_invitations(user: Annotated[dict, Depends(main.get_current_user)]
 
 
 @router.post("/auth/invitations/accept", response_model=main.TokenResponse, status_code=201)
-async def accept_invitation(req: main.InvitationAcceptRequest, request: Request):
+async def accept_invitation(
+    req: main.InvitationAcceptRequest, request: Request, response: Response
+):
     """قبول دعوة (عموميّ، محميّ بالـtoken): يُنشئ مستخدِماً ينضمّ لمستأجِر الداعي.
 
     أمان: الدور والمستأجِر يُؤخذان من **صفّ الدعوة فقط** — العميل لا يختارهما.
@@ -174,6 +176,9 @@ async def accept_invitation(req: main.InvitationAcceptRequest, request: Request)
     await main.audit_log(
         "invite_accepted", new_user["id"], ip, details=new_user["email"], tenant_id=tid
     )
+
+    # كوكي مصادقة البلاطات — المدعوّ مُصادَق فوراً، فتعمل بلاطاته دون JWT في الرابط.
+    main.set_tile_auth_cookie(response, token)
 
     return main.TokenResponse(
         access_token=token,

@@ -69,6 +69,47 @@ JWT_VERIFY_KEY = JWT_PUBLIC_KEY if JWT_PUBLIC_KEY else JWT_SECRET
 _ALLOWED_ISS = {"sahool-auth", "sahool-platform"}
 JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))  # 1 hour
 REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))  # 30 days
+
+# ── مصادقة بلاطات الخريطة عبر كوكي (بدل JWT في رابط <img>) ─────────────────
+# بلاطات المؤشّر/الراستر تُحمَّل كـ<img> بلا ترويسات، فكان الرابط يحمل JWT كـ
+# `access_token` query — تسريب محتمل عبر سجلّ المتصفّح/الـReferrer/التلمترة. الحلّ:
+# نضبط الكوكي HttpOnly عند الدخول/التجديد (نفس المصدر، فتُرسَل تلقائيّاً مع <img>)،
+# وبوّابة nginx تقرأها كمصدر توكن لـauth_request (تبقى query fallback للتطوير بلا بوّابة).
+# الكوكي HttpOnly ⇒ غير قابلة للقراءة من JS (لا يُوسِّع سطح XSS). Secure افتراضيّاً
+# (يُعطَّل صراحةً للتطوير http عبر AUTH_COOKIE_SECURE=0). Path=/ ليشمل /api/raster و/api/vegetation.
+AUTH_TILE_COOKIE_NAME = os.getenv("AUTH_TILE_COOKIE_NAME", "sahool_at")
+AUTH_COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "1") not in ("0", "false", "False", "")
+AUTH_COOKIE_SAMESITE = os.getenv("AUTH_COOKIE_SAMESITE", "lax")
+
+
+def set_tile_auth_cookie(response, token: str) -> None:
+    """يضبط كوكي مصادقة البلاطات (HttpOnly) على ردّ الدخول/التجديد.
+
+    قيمتها JWT الوصول نفسه؛ عمرها = عمر التوكن. تُرسَل تلقائيّاً مع طلبات <img>
+    نفس‌المصدر فتُغني عن تمرير JWT في رابط البلاطة. لا تغيّر جسم الردّ (النموذج كما هو).
+    """
+    response.set_cookie(
+        key=AUTH_TILE_COOKIE_NAME,
+        value=token,
+        max_age=JWT_EXPIRE_MINUTES * 60,
+        httponly=True,
+        secure=AUTH_COOKIE_SECURE,
+        samesite=AUTH_COOKIE_SAMESITE,
+        path="/",
+    )
+
+
+def clear_tile_auth_cookie(response) -> None:
+    """يمسح كوكي مصادقة البلاطات عند الخروج (بنفس السمات كي يُطابَق ويُحذَف)."""
+    response.delete_cookie(
+        key=AUTH_TILE_COOKIE_NAME,
+        httponly=True,
+        secure=AUTH_COOKIE_SECURE,
+        samesite=AUTH_COOKIE_SAMESITE,
+        path="/",
+    )
+
+
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/0")
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")

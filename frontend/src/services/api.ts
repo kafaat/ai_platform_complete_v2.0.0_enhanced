@@ -3118,6 +3118,11 @@ export const normalizeIndicatorIndex = (index?: string | null): string => {
 // ($arg_access_token) وتُمرّره لـ/auth/verify. نمط صناعيّ معتمَد (Mapbox/ArcGIS)؛ مُخفَّف
 // بتوكن قصير العمر + تنظيف access_token من سجلّ nginx + Referrer-Policy صارم.
 const appendTileAccessToken = (params: URLSearchParams): void => {
+  // في الإنتاج: لا نُلحق JWT في رابط البلاطة. المصادقة تمرّ عبر كوكي HttpOnly `sahool_at`
+  // (تضبطها خدمة auth عند الدخول/التجديد، تُرسَل تلقائيّاً مع <img> نفس‌المصدر، تقرأها
+  // البوّابة كمصدر auth_request). يمنع تسريب JWT عبر سجلّ المتصفّح/الـReferrer/التلمترة.
+  // التطوير فقط (بلا بوّابة/كوكي) يُلحق access_token كـfallback مباشر لخدمة الراستر.
+  if (import.meta.env.PROD) return;
   const tok = getAccessToken();
   if (tok) params.set('access_token', tok);
 };
@@ -3133,7 +3138,9 @@ export const fieldIndicatorTileUrl = (
   // يعامل الغياب كأحدث مشهد، فلا نُسرّب date=latest في رابط البلاطة.
   const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
   if (date && date !== 'latest') params.set('date', date);
-  if (tenantId) params.set('tid', tenantId);
+  // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
+  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
   appendTileAccessToken(params);
   const qs = params.toString();
@@ -3179,7 +3186,9 @@ export const fieldCdseTileUrl = (
 ): string => {
   const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
   if (date && date !== 'latest') params.set('date', date);
-  if (tenantId) params.set('tid', tenantId);
+  // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
+  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   if (cacheVersion !== undefined && cacheVersion !== null && String(cacheVersion) !== '') params.set('v', String(cacheVersion));
   // عقد القصّ الموحَّد (poly/bbox) — نفس ما يفحصه cdse-tilejson (مصدر حقيقة واحد).
   for (const [k, v] of Object.entries(cdseClipParams(geometry, bbox))) params.set(k, v);
@@ -3202,7 +3211,9 @@ export const fieldCdseThumbnailUrl = (
 ): string => {
   const params = new URLSearchParams({ index: normalizeIndicatorIndex(index) });
   if (date && date !== 'latest') params.set('date', date);
-  if (tenantId) params.set('tid', tenantId);
+  // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
+  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   params.set('size', String(size));
   // عقد القصّ الموحَّد (poly/bbox) — نفس المصدر المشترك مع البلاطة وTileJSON.
   for (const [k, v] of Object.entries(cdseClipParams(geometry, bbox))) params.set(k, v);
@@ -3258,7 +3269,9 @@ export const fetchTerrainTileJson = (
 // على نمط fieldCdseTileUrl: tid للمستأجِر + access_token لمصادقة بلاطة <img> خلف البوّابة.
 export const hillshadeTileUrl = (tenantId?: string | null): string => {
   const params = new URLSearchParams();
-  if (tenantId) params.set('tid', tenantId);
+  // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
+  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
@@ -3267,7 +3280,9 @@ export const hillshadeTileUrl = (tenantId?: string | null): string => {
 
 export const slopeTileUrl = (tenantId?: string | null): string => {
   const params = new URLSearchParams();
-  if (tenantId) params.set('tid', tenantId);
+  // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
+  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
@@ -3385,7 +3400,9 @@ export const soilTileUrl = (
   tenantId?: string | null,
 ): string => {
   const params = new URLSearchParams();
-  if (tenantId) params.set('tid', tenantId);
+  // الإنتاج: البوّابة تشتقّ المستأجِر من JWT الموثّق (X-Tenant-Id) فلا حاجة لـtid في الرابط؛
+  // التطوير يُبقيه كـfallback لخدمة الراستر (raster_security_context يقرأ الرأس أوّلاً ثمّ tid).
+  if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);
   appendTileAccessToken(params);
   const qs = params.toString();
   // eslint-disable-next-line no-template-curly-in-string
