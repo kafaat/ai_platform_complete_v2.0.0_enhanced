@@ -1,6 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from datetime import date
+from importlib.util import find_spec
 
 import pytest
 
@@ -211,4 +212,11 @@ def test_operational_route_carries_source_digests(monkeypatch):
     assert out["mode"] == "operational"
 
 
-pytestmark = pytest.mark.unit
+# canonical_water_state transitively imports platform runtime modules (field_context /
+# weather_service_client) that require fastapi. The root "Unit Tests" CI job runs pure-logic
+# tests_v9 without fastapi installed, so skip this module there (same precedent as the MPC
+# route tests). It still runs anywhere fastapi is present.
+pytestmark = [
+    pytest.mark.unit,
+    pytest.mark.skipif(find_spec("fastapi") is None, reason="requires fastapi (platform runtime)"),
+]

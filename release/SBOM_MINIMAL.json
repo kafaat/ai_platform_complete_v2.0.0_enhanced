@@ -6765,6 +6765,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e5122c8f471f48e603e31e3716763324e1e7fdbab01ed5e54ad15a8fa6cd5ab1"
+        }
+      ],
+      "name": "migrations/v168_irrigation_engineering_foundation.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ad080e533a38c7afda6f6def836267e1b484331e2ae89f141b2a748ac6779c4"
+        }
+      ],
+      "name": "migrations/v169_canonical_root_zone_hydraulic_profile.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4780cbdc4797c942307ae4d13ad546cb17aa4b56279f93af6acce1cecfe12947"
         }
       ],
@@ -6775,10 +6795,130 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "6666407d53b2f6cf179b53c33eed0ea2f4fbdd3fbf2df0aefb6868aa0b7ddf6d"
+        }
+      ],
+      "name": "migrations/v170_water_source_well_digital_twin.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8292bd0f7982aa1317f20c7c1469b36a56fdbc601695dcb6d2e2a09e670b2cc0"
+        }
+      ],
+      "name": "migrations/v171_pump_hydraulic_network_capability.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ad3d5b88e520dbc1c960f2f4c2197a72c2beb23910d5ab1af8aba446763dc18a"
+        }
+      ],
+      "name": "migrations/v172_irrigation_machine_capability.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c3529a7f4f9a0237f4278c239d5cd0bc02caa69e2d44acf4e41a1c528b5fd012"
+        }
+      ],
+      "name": "migrations/v173_sprinkler_runoff_capability.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "59146dcd471b096c132cbf78af11f8082db1870f94df23b27cf29f042cba505e"
+        }
+      ],
+      "name": "migrations/v174_energy_agricultural_microgrid_capability.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d20776da22785e2fef36c126c0b5c54d6b59b938ff284db136aece2ff4274b3c"
+        }
+      ],
+      "name": "migrations/v175_unified_irrigation_capability_graph.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "277fc1414a7576afcfc6eb96667183e3416a407777fb99a9575989dbf9483026"
+        }
+      ],
+      "name": "migrations/v176_controller_edge_adapter_framework.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e6c804665a4e5651a9abc24208e4dca506c66c3204ad743fe1c75545f8ce8b1f"
+        }
+      ],
+      "name": "migrations/v177_irrigation_commissioning_certification.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2fef0973313e65117107dd25def9d7dac51b4e4129841280ab57f69d65439fde"
+        }
+      ],
+      "name": "migrations/v178_canonical_as_applied_irrigation_truth.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f0700d7cfc66b72193c46cfb5d6b61df36b999aabc9244c63a93ad378a61cc5e"
+        }
+      ],
+      "name": "migrations/v179_hourly_energy_aware_irrigation_mpc.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ee7cefca57cf46c52a37bbedc71833738b7f0766b844e96434a88fa0dad64cf5"
         }
       ],
       "name": "migrations/v17_workflow_state_full.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d5f78a8d969db54ce8fa52a9758b2f610961f346f476539a4e779fe153809563"
+        }
+      ],
+      "name": "migrations/v180_governed_vri_prescription.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f81b621229d16c92a79e79fe1a06647244ba37f06a45fb1bc87006c73be08739"
+        }
+      ],
+      "name": "migrations/v181_irrigation_closed_loop_learning_production_certification.sql",
       "type": "file"
     },
     {
@@ -12815,10 +12955,90 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "481bb70a4b8ec087af2f0d063eedfc38c6057e74eba491b899cbd13e67e92ae5"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_as_applied_irrigation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "756f5f18dcca620f66c43339e33fb66ad567d5dc9feff6653b238553f5ca59c5"
         }
       ],
       "name": "services/sahool-platform/api/canonical_boundary.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f7ffe0745f08fbe0a652cb7b1c21f45e4a48859d98ebf267c8bc00262a461f12"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "99e4b0c67c32254bc13ede00961d6139709938100c23fda65d7f5249331d7cde"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_hydraulic_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8a89175efaf06ce82f8091174b1541099335b6a017dcb6301061cd7d258fc6d5"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "903f506d09bf73aa8c0697b670816cc60e627487744ca3807977ef980830b808"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "27f08c1c48c06ba61b31f6cf9dc2d25845cc9af0ae49036cdaa32f6be1504447"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_root_zone_profile.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec729279710a857d80fb50e55a28e2d2c95af2f54aa71668a685e27564f22815"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "144ec068dc46a0fbfefc44055787fdbc932b35e8e2ebbd29f108ec95613de5e8"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_vri_prescription.py",
       "type": "file"
     },
     {
@@ -12835,10 +13055,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5797d5e6cdd54f12c0d4ffcd1e8468b20af49885338a4ca38f958c2e9f276413"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_water_state.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "6717c65acca1360671d236ab704e08e922ca5566eb9b38de58e1451239f4888a"
         }
       ],
       "name": "services/sahool-platform/api/canonical_water_stress.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e5cd945f49ec481f1159241df89374ca7926279f59257ecfcaffdb489a93f7f0"
+        }
+      ],
+      "name": "services/sahool-platform/api/canonical_well_capability.py",
       "type": "file"
     },
     {
@@ -12969,6 +13209,16 @@
         }
       ],
       "name": "services/sahool-platform/api/connectors/openmeteo.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "370913f4b05d876dfa2a887cc6d427a9012f5a6cf96bde47b0eee6aa13e5d611"
+        }
+      ],
+      "name": "services/sahool-platform/api/controller_edge_adapter.py",
       "type": "file"
     },
     {
@@ -13755,6 +14005,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "92e3e7d72e01b767c29e1cd4611a148a18508bcc93a6a187b5c21b8471ee2f0e"
+        }
+      ],
+      "name": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7a4b84c9ab872dc3c65503f53c81f14543cfc0f910e55102488176e0993689c0"
         }
       ],
@@ -13809,6 +14069,36 @@
         }
       ],
       "name": "services/sahool-platform/api/ipm_advisor.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "afcdebebc0d81ad264c5ac10ea0cc40573ff8afcb940fe9c9a62c7447ebab915"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_closed_loop_learning.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "61f3cca54860fdcddaf33514344d6b9fb9499f5921257d72e76b4f7b08908ea3"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_commissioning_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "49854909cc2c84c0f109f6a944b1991e30d8d807f4be6c4e46dabf1f43cc8cf8"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_engineering_contracts.py",
       "type": "file"
     },
     {
@@ -16089,6 +16379,16 @@
         }
       ],
       "name": "services/sahool-platform/api/soil_evidence_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cda6be890ec5ab627ba66946ba2ed6f72ac37cb926a9c9f1d5f67c1242554647"
+        }
+      ],
+      "name": "services/sahool-platform/api/soil_hydraulic_client.py",
       "type": "file"
     },
     {
@@ -20425,6 +20725,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e28d448518f1e398e6bd39ad8473279c2a332db37e00aa3e79ae1066ba4ea642"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_canonical_well_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3f3b67478ecf66ccc896ee8b873b3393754f4995d46c9fa5abd70eba38a893ac"
         }
       ],
@@ -21969,6 +22279,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_depletion_wiring_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "31dfba4de1da2e20b876cc7a76c4e3022c0a5237dd698bb6c52cc5a9a2181ce2"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_engineering_contracts.py",
       "type": "file"
     },
     {
