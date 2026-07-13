@@ -118,15 +118,33 @@ async def insert_soil_results(
     observed_at: datetime,
     approved: bool,
     approved_by: str | None,
+    correction_reason: str | None = None,
 ) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     quality = "approved" if approved else "unreviewed"
     for item in analytes:
+        supersedes = item.get("supersedes_result_id")
+        if supersedes:
+            prior = await conn.fetchrow(
+                """SELECT result_id, analyte, quality_status, published_observation_id
+                   FROM soil_lab_results
+                   WHERE tenant_id=$1::uuid AND sample_id=$2 AND result_id=$3
+                   FOR UPDATE""",
+                tenant_id,
+                sample_id,
+                supersedes,
+            )
+            if (
+                not prior
+                or prior["analyte"] != item["analyte"]
+                or prior["quality_status"] == "superseded"
+            ):
+                raise ValueError("invalid_or_already_superseded_lab_result")
         row = await conn.fetchrow(
             """INSERT INTO soil_lab_results
                (result_id,tenant_id,sample_id,analyte,value_json,unit,method_code,detection_limit,
-                uncertainty,quality_status,observed_at,approved_by,approved_at)
-               VALUES($1,$2::uuid,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *""",
+                uncertainty,quality_status,observed_at,approved_by,approved_at,supersedes_result_id)
+               VALUES($1,$2::uuid,$3,$4,$5::jsonb,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *""",
             uuid4(),
             tenant_id,
             sample_id,
@@ -140,7 +158,15 @@ async def insert_soil_results(
             observed_at,
             approved_by if approved else None,
             datetime.now(UTC) if approved else None,
+            supersedes,
         )
+        if supersedes:
+            await conn.execute(
+                """UPDATE soil_lab_results SET quality_status='superseded'
+                   WHERE tenant_id=$1::uuid AND result_id=$2""",
+                tenant_id,
+                supersedes,
+            )
         out.append(dict(row))
     return out
 
@@ -148,7 +174,7 @@ async def insert_soil_results(
 async def latest_soil_analysis(conn, *, tenant_id: str, field_id: str) -> dict[str, Any] | None:
     rows = await conn.fetch(
         """
-        SELECT s.sample_id, r.analyte, r.value_json, r.quality_status
+        SELECT s.sample_id, r.result_id, r.analyte, r.value_json, r.quality_status, r.published_observation_id, r.supersedes_result_id
         FROM lab_samples s JOIN soil_lab_results r ON r.sample_id=s.sample_id AND r.tenant_id=s.tenant_id
         WHERE s.tenant_id=$1::uuid AND s.field_id=$2 AND s.kind='soil'
           AND s.status IN ('approved','published')
@@ -203,3 +229,38 @@ async def latest_water_analysis(conn, *, tenant_id: str, field_id: str) -> dict[
         field_id,
     )
     return dict(row["analysis"]) if row else None
+
+
+async def publishable_soil_results(conn, *, tenant_id: str, sample_id: str) -> list[dict[str, Any]]:
+    rows = await conn.fetch(
+        """SELECT r.result_id, r.analyte, r.value_json, r.unit, r.method_code, r.detection_limit,
+                         r.uncertainty, r.observed_at, r.supersedes_result_id, r.published_observation_id,
+                         prior.published_observation_id AS superseded_published_observation_id
+                  FROM soil_lab_results r
+                  LEFT JOIN soil_lab_results prior ON prior.result_id=r.supersedes_result_id
+                  WHERE r.tenant_id=$1::uuid AND r.sample_id=$2 AND r.quality_status='approved'
+                  ORDER BY r.analyte, r.received_at DESC""",
+        tenant_id,
+        sample_id,
+    )
+    return [dict(r) for r in rows]
+
+
+async def mark_soil_results_published(
+    conn,
+    *,
+    tenant_id: str,
+    observation_by_analyte: dict[str, str],
+    result_by_analyte: dict[str, str],
+) -> None:
+    for analyte, observation_id in observation_by_analyte.items():
+        result_id = result_by_analyte.get(analyte)
+        if result_id:
+            await conn.execute(
+                """UPDATE soil_lab_results
+                   SET published_observation_id=$3, published_at=now()
+                   WHERE tenant_id=$1::uuid AND result_id=$2::uuid""",
+                tenant_id,
+                result_id,
+                observation_id,
+            )

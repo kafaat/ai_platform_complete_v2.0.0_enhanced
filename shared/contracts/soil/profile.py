@@ -138,9 +138,16 @@ class SoilProfileSnapshot(BaseModel):
 
 
 def canonical_soil_profile_hash(payload: dict[str, Any]) -> str:
-    """Hash snapshot content excluding profile_hash itself."""
+    """Hash governed snapshot content, excluding generated persistence metadata.
+
+    ``profile_id`` and ``data_available_at`` are assigned at projection time and must
+    not change the logical identity of an otherwise identical snapshot. Tenant, field,
+    effective time, evidence, policy version, and projected values remain part of the
+    digest.
+    """
     canonical = dict(payload)
-    canonical.pop("profile_hash", None)
+    for generated_key in ("profile_hash", "profile_id", "data_available_at"):
+        canonical.pop(generated_key, None)
     raw = json.dumps(canonical, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(raw.encode()).hexdigest()
 

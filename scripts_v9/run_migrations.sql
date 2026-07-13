@@ -467,3 +467,11 @@
 \i migrations/v155_soil_observations_profiles.sql
 \echo '═══ 162. v156_durable_soil_lab_workflow.sql ═══'
 \i migrations/v156_durable_soil_lab_workflow.sql
+\echo '═══ 163. v157_soil_projection_jobs_reconciliation.sql ═══'
+\i migrations/v157_soil_projection_jobs_reconciliation.sql
+\echo '═══ 164. v158_soil_projection_observability.sql ═══'
+\i migrations/v158_soil_projection_observability.sql
+\echo '═══ 165. v159_soil_observation_supersession_current_pointer.sql ═══'
+\i migrations/v159_soil_observation_supersession_current_pointer.sql
+\echo '═══ 166. v160_soil_lab_publication_lineage.sql ═══'
+\i migrations/v160_soil_lab_publication_lineage.sql

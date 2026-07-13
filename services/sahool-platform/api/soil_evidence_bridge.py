@@ -22,7 +22,13 @@ _ANALYTE_MAP = {
 
 
 async def publish_soil_lab_evidence(
-    *, tenant_id: str, field_id: str, sample: dict[str, Any], results: dict[str, Any]
+    *,
+    tenant_id: str,
+    field_id: str,
+    sample: dict[str, Any],
+    results: dict[str, Any],
+    result_rows: list[dict[str, Any]] | None = None,
+    correction_reason: str | None = None,
 ) -> dict[str, Any]:
     base = os.getenv("SOIL_SERVICE_URL", "http://soil-service:8134").rstrip("/")
     token = (
@@ -44,6 +50,19 @@ async def publish_soil_lab_evidence(
                 units[canonical] = unit
     if not properties:
         raise RuntimeError("no publishable soil analytes")
+    supersedes_observation_ids: dict[str, str] = {}
+    result_by_canonical: dict[str, str] = {}
+    for row in result_rows or []:
+        mapped = _ANALYTE_MAP.get(row.get("analyte"))
+        if not mapped:
+            continue
+        canonical = mapped[0]
+        result_by_canonical[canonical] = str(row.get("result_id"))
+        prior = row.get("supersedes_result_id")
+        if prior:
+            prior_observation = row.get("superseded_published_observation_id")
+            if prior_observation:
+                supersedes_observation_ids[canonical] = prior_observation
     payload = {
         "source_type": "laboratory",
         "source_id": sample["sample_id"],
@@ -53,6 +72,8 @@ async def publish_soil_lab_evidence(
         "depth_to_cm": float(sample.get("depth_cm_to") or 30),
         "approved": True,
         "procedure_id": "platform-lab-workflow.v1",
+        "supersedes_observation_ids": supersedes_observation_ids,
+        "supersession_reason": correction_reason,
         "provenance": {
             "sample_id": sample["sample_id"],
             "units": units,
@@ -65,4 +86,6 @@ async def publish_soil_lab_evidence(
             f"{base}/v1/fields/{field_id}/soil/evidence", json=payload, headers=headers
         )
     response.raise_for_status()
-    return response.json()
+    receipt = response.json()
+    receipt["result_by_canonical"] = result_by_canonical
+    return receipt

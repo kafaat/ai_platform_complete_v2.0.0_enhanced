@@ -38,6 +38,8 @@ def observations_from_properties(
     approved: bool = False,
     procedure_id: str | None = None,
     provenance: dict[str, Any] | None = None,
+    supersedes_observation_ids: dict[str, str] | None = None,
+    supersession_reason: str | None = None,
 ) -> list[SoilObservation]:
     observed_at = observed_at or datetime.now(UTC)
     quality = (
@@ -86,6 +88,8 @@ def observations_from_properties(
                 confidence=confidence_default,
                 idempotency_key=f"{source_type.value}:{source_id}:{canonical}:{depth_from_cm}:{depth_to_cm}",
                 provenance={**(provenance or {}), "adapter_version": "soil-evidence-adapters.v1"},
+                supersedes_observation_id=(supersedes_observation_ids or {}).get(canonical),
+                supersession_reason=supersession_reason,
             )
         )
     return out

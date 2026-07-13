@@ -8,7 +8,7 @@
 
 ### `auth` — pass
 classification: `ui`
-- ui: 43 match(es)
+- ui: 44 match(es)
   - `frontend/src/App.tsx` ← `LoginPage`
   - `frontend/src/App.tsx` ← `SignupPage`
   - `frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts` ← `refresh`
@@ -100,7 +100,7 @@ classification: `ui`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
   - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
-- platform-proxy: 264 match(es)
+- platform-proxy: 268 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/api/main.py` ← `soil`
   - `services/sahool-platform/api/event_replay.py` ← `soil`

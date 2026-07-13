@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import main
+import projection_observability
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
@@ -26,14 +27,29 @@ async def health():
 @router.get("/readyz")
 async def readyz():
     try:
+        response = {"status": "ready"}
         if main._pool:
             async with main._pool.acquire() as conn:
                 await conn.fetchval("SELECT 1")
-        return {"status": "ready"}
+            stats = await projection_observability.refresh_queue_metrics(main._pool)
+            healthy, reasons = projection_observability.readiness_policy(stats)
+            response["soil_projection"] = {"healthy": healthy, "reasons": reasons, **stats}
+            if not healthy:
+                raise HTTPException(503, detail=response)
+        return response
     except Exception as e:
         # لا نُرجِع str(e) (يسرّب DSN/تفاصيل اتّصال) — رسالة عامّة + تسجيل داخليّ
         main.logger.warning("readyz فشل: %s", e)
         raise HTTPException(503, "not ready") from e
+
+
+@router.get("/v1/soil/projection/status")
+async def projection_status():
+    if not main._pool:
+        raise HTTPException(503, "database unavailable")
+    stats = await projection_observability.refresh_queue_metrics(main._pool)
+    healthy, reasons = projection_observability.readiness_policy(stats)
+    return {"healthy": healthy, "reasons": reasons, **stats}
 
 
 @router.get("/metrics")

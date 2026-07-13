@@ -118,6 +118,8 @@ class EvidenceBatchIn(BaseModel):
     approved: bool = False
     procedure_id: str | None = None
     provenance: dict[str, object] = Field(default_factory=dict)
+    supersedes_observation_ids: dict[str, str] = Field(default_factory=dict)
+    supersession_reason: str | None = Field(default=None, max_length=160)
 
 
 @router.post("/v1/fields/{field_id}/soil/evidence", status_code=201)
@@ -142,6 +144,8 @@ async def ingest_typed_evidence(
         approved=payload.approved,
         procedure_id=payload.procedure_id,
         provenance=payload.provenance,
+        supersedes_observation_ids=payload.supersedes_observation_ids,
+        supersession_reason=payload.supersession_reason,
     )
     created = 0
     for observation in observations:
@@ -157,3 +161,13 @@ async def ingest_typed_evidence(
         "profile_id": snapshot.profile_id,
         "profile_hash": snapshot.profile_hash,
     }
+
+
+@router.get("/v1/soil/cutover/readiness")
+async def soil_cutover_readiness(x_agent_token: str = Header(None)):
+    """Gate strict production cutover using tenant-scoped canonical profile coverage."""
+    main._require_service_token(x_agent_token)
+    tenant_id = _tenant_required()
+    if not main._pool:
+        raise HTTPException(503, "database unavailable")
+    return await soil_store.get_cutover_readiness(main._pool, tenant_id=tenant_id)

@@ -612,3 +612,12 @@ v155_soil_observations_profiles.sql
 
 # v156: Durable lab samples, chain of custody, immutable analyte results and water result sets.
 v156_durable_soil_lab_workflow.sql
+
+# v157: Durable soil profile projection jobs and per-tenant historical reconciliation checkpoints.
+v157_soil_projection_jobs_reconciliation.sql
+# v158: Soil projection observability (worker heartbeats + projection lag metrics).
+v158_soil_projection_observability.sql
+# v159: Soil observation supersession chain + explicit current-snapshot pointer.
+v159_soil_observation_supersession_current_pointer.sql
+# v160: Immutable soil lab-result publication lineage (published_observation_id + correction chains).
+v160_soil_lab_publication_lineage.sql

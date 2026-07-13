@@ -6,8 +6,10 @@ MED-SOIL-01 FIX: service implementation added.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
+import socket
 from contextlib import asynccontextmanager
 from contextvars import ContextVar
 from datetime import UTC, datetime
@@ -44,6 +46,8 @@ def _require_service_token(x_agent_token: str = Header(None)) -> None:
 VERSION = "9.1.0"
 
 _pool = None
+_projection_stop: asyncio.Event | None = None
+_projection_task: asyncio.Task | None = None
 
 
 @asynccontextmanager
@@ -59,8 +63,23 @@ async def lifespan(app: FastAPI):
         from shared.db_role_guard import assert_db_role_rls_safe
 
         await assert_db_role_rls_safe(_pool, service="soil-service")
+        if os.getenv("SOIL_PROJECTION_WORKER_ENABLED", "true").lower() in {"1", "true", "yes"}:
+            import projection_jobs
+
+            global _projection_stop, _projection_task
+            _projection_stop = asyncio.Event()
+            worker_id = os.getenv("HOSTNAME") or socket.gethostname()
+            _projection_task = asyncio.create_task(
+                projection_jobs.worker_loop(
+                    _pool, stop=_projection_stop, worker_id=f"soil:{worker_id}"
+                )
+            )
     logger.info("✅ soil-service started")
     yield
+    if _projection_stop:
+        _projection_stop.set()
+    if _projection_task:
+        await _projection_task
     if _pool:
         await _pool.close()
 

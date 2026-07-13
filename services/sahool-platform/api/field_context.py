@@ -93,8 +93,8 @@ async def _field_weather_context(
 async def _latest_soil_moisture(conn, field_id: str):
     """أحدث قراءة رطوبة تربة (٪) لأجهزة الحقل، أو None إن لا قراءة صالحة.
 
-    يجلب قراءات soil_moisture من device_telemetry للأجهزة المرتبطة بالحقل
-    (iot_devices.field_id) ضمن سياق المستأجِر (RLS)، ثمّ يلتقط أحدثها الصالحة عبر
+    يجلب قراءات soil_moisture من مخزن soil_observations القانوني ضمن سياق
+    المستأجِر (RLS)، ثمّ يلتقط أحدثها الصالحة عبر
     المنطق النقيّ pick_latest_soil_moisture (يتجاهل القيم خارج النطاق المعقول).
     يُعيد كائن SoilMoistureReading أو None — لا يرفع استثناء عند غياب البيانات
     (القرار يتدبّر None برشاقة: يعتمد احتياج الريّ بدلاً منها).
@@ -102,11 +102,14 @@ async def _latest_soil_moisture(conn, field_id: str):
     from api.soil_telemetry import pick_latest_soil_moisture
 
     rows = await conn.fetch(
-        """SELECT t.value, t.unit, t.recorded_at, t.device_id
-             FROM device_telemetry t
-             JOIN iot_devices d ON d.device_id = t.device_id
-            WHERE d.field_id = $1 AND t.sensor_type = 'soil_moisture'
-            ORDER BY t.recorded_at DESC
+        """SELECT value_json AS value, unit, observed_at AS recorded_at,
+                  source_id AS device_id
+             FROM soil_observations
+            WHERE field_id = $1
+              AND property = 'soil_moisture'
+              AND source_type = 'sensor'
+              AND quality_status <> 'rejected'
+            ORDER BY observed_at DESC
             LIMIT 50""",
         field_id,
     )

@@ -1062,3 +1062,53 @@ tables:
     writers: [raster-service]
     readers: [sahool-platform]
     source: "migrations/v14_imagery_storage.sql"
+  soil_observations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v155_soil_observations_profiles.sql"
+  soil_profile_snapshots:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v155_soil_observations_profiles.sql"
+  soil_observation_supersessions:
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v159_soil_observation_supersession_current_pointer.sql"
+  soil_profile_current:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v159_soil_observation_supersession_current_pointer.sql"
+  soil_profile_projection_jobs:
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v157_soil_projection_jobs_reconciliation.sql"
+  soil_reconciliation_checkpoints:
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v157_soil_projection_jobs_reconciliation.sql"
+  lab_samples:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v156_durable_soil_lab_workflow.sql"
+  lab_sample_custody_events:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v156_durable_soil_lab_workflow.sql"
+  soil_lab_results:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [soil-service]
+    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v160_soil_lab_publication_lineage.sql"
+  water_lab_result_sets:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v156_durable_soil_lab_workflow.sql"

@@ -42,7 +42,15 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
         return dict(samples[sample_id])
 
     async def insert_soil_results(
-        conn, *, tenant_id, sample_id, analytes, observed_at, approved, approved_by
+        conn,
+        *,
+        tenant_id,
+        sample_id,
+        analytes,
+        observed_at,
+        approved,
+        approved_by,
+        correction_reason=None,
     ):
         results[sample_id] = {a["analyte"]: a["value"] for a in analytes}
         results[sample_id].update(sample_id=sample_id, approved=approved)
@@ -115,5 +123,56 @@ def test_lab_sampling_api_roundtrip_and_context(monkeypatch):
         ctx = c.get("/api/v1/fields/field-a/lab-context").json()
         assert ctx["soil_lab_ready_for_fertilizer"] is True
         assert ctx["recommendation_gate"] == "allow"
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_published_sample_correction_is_accepted_for_republication(monkeypatch):
+    from contextlib import asynccontextmanager
+
+    captured = {}
+
+    @asynccontextmanager
+    async def fake_tenant_connection(user):
+        yield object()
+
+    async def get_sample(*args, **kwargs):
+        return {"sample_id": "s-1", "field_id": "f-1", "kind": "soil", "status": "published"}
+
+    async def insert_soil_results(*args, **kwargs):
+        captured["correction_reason"] = kwargs.get("correction_reason")
+        return []
+
+    async def set_status(*args, **kwargs):
+        captured["status"] = kwargs["status"]
+        return {"sample_id": "s-1", "status": kwargs["status"]}
+
+    async def add_custody_event(*args, **kwargs):
+        return {}
+
+    monkeypatch.setattr(mod, "tenant_connection", fake_tenant_connection)
+    monkeypatch.setattr(mod.lab_store, "get_sample", get_sample)
+    monkeypatch.setattr(mod.lab_store, "insert_soil_results", insert_soil_results)
+    monkeypatch.setattr(mod.lab_store, "set_status", set_status)
+    monkeypatch.setattr(mod.lab_store, "add_custody_event", add_custody_event)
+
+    app = FastAPI()
+    app.include_router(mod.router)
+    app.dependency_overrides[get_current_user] = _user
+    c = TestClient(app)
+    try:
+        response = c.post(
+            "/api/v1/lab/soil-results",
+            json={
+                "sample_id": "s-1",
+                "ec_dsm": 3.4,
+                "approved": True,
+                "supersedes_result_ids": {"ec_dsm": "00000000-0000-0000-0000-000000000123"},
+                "correction_reason": "instrument recalibration",
+            },
+        )
+        assert response.status_code == 200
+        assert captured["status"] == "approved"
+        assert captured["correction_reason"] == "instrument recalibration"
     finally:
         app.dependency_overrides.clear()

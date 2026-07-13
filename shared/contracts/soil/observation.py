@@ -53,6 +53,8 @@ class SoilObservation(BaseModel):
     quality_flags: list[str] = Field(default_factory=list)
     confidence: float = Field(default=1.0, ge=0, le=1)
     idempotency_key: str = Field(min_length=1, max_length=256)
+    supersedes_observation_id: str | None = Field(default=None, max_length=80)
+    supersession_reason: str | None = Field(default=None, max_length=160)
     provenance: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
@@ -63,4 +65,6 @@ class SoilObservation(BaseModel):
             raise ValueError("soil_observation_depth_invalid")
         if self.received_at < self.observed_at:
             raise ValueError("soil_observation_received_before_observed")
+        if self.supersedes_observation_id == self.observation_id:
+            raise ValueError("soil_observation_cannot_supersede_itself")
         return self

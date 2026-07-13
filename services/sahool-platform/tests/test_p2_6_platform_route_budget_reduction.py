@@ -16,8 +16,8 @@ def test_platform_route_budget_reduced_after_extractions():
         if not str(p.relative_to(ROOT)).startswith("tests/")
     )
     assert (
-        budget <= 592
-    )  # deliberately raised 567->570 (JSON-metrics hotfix); 575->576 WX-10.6 candidate; 576->577 WX-10.7 decision review; 577->578 WX-10.8 review-queue; 578->582 WX-10.9..10.12 execution; 582->591 WX-10.13..11.6 model/MLOps chain; 591->592 Phase E decision-evidence BFF proxy (owned+documented)
+        budget <= 593
+    )  # deliberately raised 567->570 (JSON-metrics hotfix); 575->576 WX-10.6 candidate; 576->577 WX-10.7 decision review; 577->578 WX-10.8 review-queue; 578->582 WX-10.9..10.12 execution; 582->591 WX-10.13..11.6 model/MLOps chain; 591->592 Phase E decision-evidence BFF proxy (owned+documented); 592->593 durable lab chain-of-custody transition + publication (v156/v159/v160; owned+documented)
     assert current <= budget
     assert data["p2_6_route_budget_reduction"]["previous_baseline_route_count"] == 567
 

@@ -1,0 +1,19 @@
+# Production cutover override for canonical soil truth.
+# Apply only after GET /v1/soil/cutover/readiness returns can_enable_strict_soil=true.
+services:
+  sahool-agriai-engine:
+    environment:
+      SAHOOL_ENV: production
+      AGRIAI_STRICT_CONTEXT: "true"
+      AGRIAI_PRODUCTION_MODE: "true"
+
+  sahool-decision-service:
+    environment:
+      SAHOOL_ENV: production
+      DECISION_REQUIRE_AGRONOMIC_CONTEXT: "true"
+      DECISION_REQUIRE_SOIL_PROFILE: "true"
+      DECISION_REQUIRE_SOIL_EVIDENCE_GATE: "true"
+
+  sahool-soil-service:
+    environment:
+      SAHOOL_ENV: production

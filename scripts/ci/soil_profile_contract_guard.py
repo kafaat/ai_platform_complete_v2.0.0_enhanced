@@ -24,11 +24,28 @@ if "DECISION_REQUIRE_SOIL_PROFILE" not in pit:
 
 compose = (ROOT / "docker-compose.v9.yml").read_text()
 for token in (
-    "AGRIAI_STRICT_CONTEXT: ${AGRIAI_STRICT_CONTEXT:-true}",
-    "DECISION_REQUIRE_AGRONOMIC_CONTEXT: ${DECISION_REQUIRE_AGRONOMIC_CONTEXT:-true}",
-    "DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-true}",
+    "AGRIAI_STRICT_CONTEXT: ${AGRIAI_STRICT_CONTEXT:-false}",
+    "AGRIAI_PRODUCTION_MODE: ${AGRIAI_PRODUCTION_MODE:-false}",
+    "DECISION_REQUIRE_AGRONOMIC_CONTEXT: ${DECISION_REQUIRE_AGRONOMIC_CONTEXT:-false}",
+    "DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-false}",
 ):
     if token not in compose:
-        raise SystemExit(f"soil_profile_contract_guard: compose enforcement missing: {token}")
+        raise SystemExit(f"soil_profile_contract_guard: safe compose default missing: {token}")
+
+override = (ROOT / "docker-compose.soil-strict.yml").read_text()
+for token in (
+    'SAHOOL_ENV: production',
+    'AGRIAI_STRICT_CONTEXT: "true"',
+    'AGRIAI_PRODUCTION_MODE: "true"',
+    'DECISION_REQUIRE_AGRONOMIC_CONTEXT: "true"',
+    'DECISION_REQUIRE_SOIL_PROFILE: "true"',
+    'DECISION_REQUIRE_SOIL_EVIDENCE_GATE: "true"',
+):
+    if token not in override:
+        raise SystemExit(f"soil_profile_contract_guard: strict production override missing: {token}")
+
+canonical = (ROOT / "services/soil-service/routers/canonical.py").read_text()
+if "/v1/soil/cutover/readiness" not in canonical:
+    raise SystemExit("soil_profile_contract_guard: soil cutover readiness endpoint missing")
 
 print("soil_profile_contract_guard_ok")

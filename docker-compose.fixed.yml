@@ -704,6 +704,7 @@ services:
       # Soil evidence gate — declared but default OFF (non-breaking until soil profiles exist).
       DECISION_REQUIRE_SOIL_EVIDENCE_GATE: ${DECISION_REQUIRE_SOIL_EVIDENCE_GATE:-false}
       DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-false}
+      DECISION_REQUIRE_AGRONOMIC_CONTEXT: ${DECISION_REQUIRE_AGRONOMIC_CONTEXT:-false}
     networks:
       - sahool-internal
     healthcheck:

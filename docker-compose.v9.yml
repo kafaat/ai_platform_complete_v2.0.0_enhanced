@@ -146,7 +146,8 @@ services:
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # Agronomic-context strictness (soil P0). Set AGRIAI_STRICT_CONTEXT=false in .env if the
       # stack runs before agronomic context/soil profiles are populated.
-      AGRIAI_STRICT_CONTEXT: ${AGRIAI_STRICT_CONTEXT:-true}
+      AGRIAI_STRICT_CONTEXT: ${AGRIAI_STRICT_CONTEXT:-false}
+      AGRIAI_PRODUCTION_MODE: ${AGRIAI_PRODUCTION_MODE:-false}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SENTINEL_HUB_MCP_URL: http://sahool-sentinel-hub-mcp:8000
@@ -1067,8 +1068,8 @@ services:
       # set DECISION_REQUIRE_AGRONOMIC_CONTEXT=false and DECISION_REQUIRE_SOIL_PROFILE=false in
       # .env to avoid fail-closed decisions until the data is populated.
       DECISION_REQUIRE_SOIL_EVIDENCE_GATE: ${DECISION_REQUIRE_SOIL_EVIDENCE_GATE:-false}
-      DECISION_REQUIRE_AGRONOMIC_CONTEXT: ${DECISION_REQUIRE_AGRONOMIC_CONTEXT:-true}
-      DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-true}
+      DECISION_REQUIRE_AGRONOMIC_CONTEXT: ${DECISION_REQUIRE_AGRONOMIC_CONTEXT:-false}
+      DECISION_REQUIRE_SOIL_PROFILE: ${DECISION_REQUIRE_SOIL_PROFILE:-false}
     networks:
     - sahool-internal
     healthcheck:

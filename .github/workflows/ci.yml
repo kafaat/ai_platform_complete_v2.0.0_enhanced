@@ -117,6 +117,20 @@ jobs:
         run: python scripts/ci/soil_profile_contract_guard.py
       - name: canonical soil evidence store gate
         run: python scripts/ci/soil_canonical_store_guard.py
+      - name: canonical soil full-chain gate
+        run: python scripts/ci/soil_full_chain_guard.py
+      - name: durable soil lab projection gate
+        run: python scripts/ci/soil_lab_projection_guard.py
+      - name: soil runtime certification guard
+        run: python scripts/ci/soil_runtime_certification_guard.py
+      - name: soil projection and reconciliation guard
+        run: python scripts/ci/soil_projection_reconciliation_guard.py
+      - name: soil projection observability guard
+        run: python scripts/ci/soil_projection_observability_guard.py
+      - name: soil supersession and current pointer guard
+        run: python scripts/ci/soil_supersession_current_pointer_guard.py
+      - name: soil lab supersession lineage guard
+        run: python scripts/ci/soil_lab_supersession_lineage_guard.py
       # VEG-AGRIAI completion: vegetation stays real-source-honest and agriai-engine stays
       # context-bound (delivered increment; its dedicated workflow only runs on main/PR paths,
       # so enforce the structural contract on every push here too).

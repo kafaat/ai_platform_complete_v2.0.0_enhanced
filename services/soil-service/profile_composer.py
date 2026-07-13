@@ -64,10 +64,10 @@ _UNITS = {
 }
 
 
-def _score(row: dict[str, Any]) -> tuple[int, float, datetime]:
+def _score(row: dict[str, Any]) -> tuple[int, float, datetime, datetime]:
     quality = str(row.get("quality_status") or "")
     if quality == "rejected":
-        return (-1, 0.0, datetime.min.replace(tzinfo=UTC))
+        return (-1, 0.0, datetime.min.replace(tzinfo=UTC), datetime.min.replace(tzinfo=UTC))
     quality_bonus = 10 if quality == "accepted" else 0
     property_name = str(row.get("property") or "")
     priorities = (
@@ -79,13 +79,16 @@ def _score(row: dict[str, Any]) -> tuple[int, float, datetime]:
         priorities.get(str(row.get("source_type")), 0) + quality_bonus,
         float(row.get("confidence") or 0),
         row.get("observed_at") or datetime.min.replace(tzinfo=UTC),
+        row.get("received_at") or datetime.min.replace(tzinfo=UTC),
     )
 
 
 def compose_snapshot(
     *, tenant_id: str, field_id: str, observations: list[dict[str, Any]]
 ) -> SoilProfileSnapshot:
-    usable = [row for row in observations if _score(row)[0] >= 0]
+    usable = [
+        row for row in observations if _score(row)[0] >= 0 and not bool(row.get("is_superseded"))
+    ]
     groups: dict[tuple[float, float], dict[str, list[dict[str, Any]]]] = {}
     for row in usable:
         depth = (float(row.get("depth_from_cm") or 0), float(row.get("depth_to_cm") or 30))

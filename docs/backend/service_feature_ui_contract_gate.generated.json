@@ -86,7 +86,7 @@
               "pattern": "/auth/"
             }
           ],
-          "match_count": 43
+          "match_count": 44
         },
         {
           "kind": "gateway",
@@ -903,6 +903,11 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/lab_store.py",
+              "pattern": "soil"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/soil_water.py",
               "pattern": "soil"
             },
@@ -910,14 +915,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/failure_modes.py",
               "pattern": "soil"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/analytics_shapers.py",
-              "pattern": "soil"
             }
           ],
-          "match_count": 264
+          "match_count": 268
         }
       ]
     },
