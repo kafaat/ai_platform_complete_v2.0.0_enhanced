@@ -23,7 +23,7 @@ classification: `ui`
 
 ### `sahool-platform` — pass
 classification: `ui`
-- ui: 190 match(es)
+- ui: 192 match(es)
   - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
@@ -85,7 +85,7 @@ classification: `ui`
   - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherHoverReadout.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
-- platform-proxy: 288 match(es)
+- platform-proxy: 290 match(es)
   - `services/sahool-platform/api/season_simulation.py` ← `weather-service`
   - `services/sahool-platform/api/season_simulation.py` ← `weather`
   - `services/sahool-platform/api/main.py` ← `weather`
@@ -94,13 +94,13 @@ classification: `ui`
 
 ### `soil-service` — pass
 classification: `ui`
-- ui: 142 match(es)
+- ui: 152 match(es)
   - `frontend/src/App.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
   - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
-- platform-proxy: 268 match(es)
+- platform-proxy: 271 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/api/main.py` ← `soil`
   - `services/sahool-platform/api/event_replay.py` ← `soil`
@@ -178,7 +178,7 @@ classification: `ui`
 
 ### `guardrails-engine` — pass
 classification: `ui`
-- ui: 87 match(es)
+- ui: 92 match(es)
   - `frontend/src/App.tsx` ← `approval`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `validate`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `validate`
@@ -210,7 +210,7 @@ classification: `internal`
 
 ### `actuator-service` — pass
 classification: `ui`
-- ui: 174 match(es)
+- ui: 177 match(es)
   - `frontend/src/App.tsx` ← `irrigation`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
@@ -225,7 +225,7 @@ classification: `ui`
 
 ### `edge-inference` — pass
 classification: `ui`
-- ui: 120 match(es)
+- ui: 121 match(es)
   - `frontend/src/App.tsx` ← `pest`
   - `frontend/src/App.tsx` ← `yield`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `yield`
@@ -238,7 +238,7 @@ classification: `ui`
 
 ### `video-processor` — pass
 classification: `ui`
-- ui: 25 match(es)
+- ui: 29 match(es)
   - `frontend/src/App.tsx` ← `DevicesPage`
   - `frontend/src/components/maphub/weather/weatherLayerDefinitions.ts` ← `stream`
   - `frontend/src/components/approvals/DecisionEvidencePanel.tsx` ← `snapshot`

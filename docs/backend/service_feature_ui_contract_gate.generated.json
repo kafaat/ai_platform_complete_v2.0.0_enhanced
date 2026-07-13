@@ -222,7 +222,7 @@
               "pattern": "AddFieldWithMap"
             }
           ],
-          "match_count": 190
+          "match_count": 192
         },
         {
           "kind": "gateway",
@@ -760,7 +760,7 @@
               "pattern": "weather"
             }
           ],
-          "match_count": 288
+          "match_count": 290
         }
       ]
     },
@@ -843,7 +843,7 @@
               "pattern": "Soil"
             }
           ],
-          "match_count": 142
+          "match_count": 152
         },
         {
           "kind": "platform-proxy",
@@ -917,7 +917,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 268
+          "match_count": 271
         }
       ]
     },
@@ -1583,6 +1583,16 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/maphub/HubMap.tsx",
+              "pattern": "validate"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/maphub/MapImageryReflow.static.test.ts",
+              "pattern": "validate"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/maphub/FieldSplitMergeTool.test.tsx",
               "pattern": "validate"
             },
@@ -1600,19 +1610,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
               "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/drawingFeatureApi.ts",
-              "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/zoneDesigner.ts",
-              "pattern": "validate"
             }
           ],
-          "match_count": 87
+          "match_count": 92
         },
         {
           "kind": "gateway",
@@ -1879,7 +1879,7 @@
               "pattern": "irrigation"
             }
           ],
-          "match_count": 174
+          "match_count": 177
         },
         {
           "kind": "platform-proxy",
@@ -2037,7 +2037,7 @@
               "pattern": "yield"
             }
           ],
-          "match_count": 120
+          "match_count": 121
         },
         {
           "kind": "platform-proxy",
@@ -2115,6 +2115,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/MpcGovernanceCard.tsx",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
               "pattern": "stream"
             },
@@ -2130,6 +2135,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/hooks/useApi.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/useWaterFieldOps.ts",
               "pattern": "stream"
             },
@@ -2137,19 +2147,9 @@
               "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "camera"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ManagerConsolePage.tsx",
-              "pattern": "camera"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ManagerConsolePage.tsx",
-              "pattern": "snapshot"
             }
           ],
-          "match_count": 25
+          "match_count": 29
         },
         {
           "kind": "platform-proxy",
