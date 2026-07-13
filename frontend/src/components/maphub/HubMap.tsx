@@ -260,6 +260,38 @@ function FitToFields({
   return null;
 }
 
+// يُعيد حساب أبعاد الخريطة عند تغيّر حجم حاويتها. المشكلة: حين تظهر كتل الصور
+// (بطاقة الجاهزيّة، شريط الصور التاريخيّ، محدّد التاريخ) *فوق* الخريطة داخل نفس العمود،
+// يتغيّر صندوق الخريطة لكن Leaflet يحتفظ بأصل بكسليّ قديم ⇒ تظهر الخريطة رماديّة/فارغة
+// (البلاطات بإزاحة خاطئة). لا يُعاد تركيب الخريطة عند تبديل الصور، ولا مُراقِب أبعاد —
+// فنُضيف invalidateSize عند التركيب + ResizeObserver على حاوية الخريطة (نمط
+// AddFieldWithMap.InvalidateMapSize) لاستعادة العرض تلقائيّاً.
+function InvalidateOnResize() {
+  const map = useMap();
+  useEffect(() => {
+    const t1 = setTimeout(() => map.invalidateSize(false), 60);
+    const t2 = setTimeout(() => map.invalidateSize(false), 260);
+    const el = map.getContainer();
+    let raf = 0;
+    const ro =
+      typeof ResizeObserver !== 'undefined'
+        ? new ResizeObserver(() => {
+            // خفّف: اجمع دفعات تغيّر الأبعاد في إطار واحد قبل إعادة الحساب.
+            if (raf) cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(() => map.invalidateSize(false));
+          })
+        : null;
+    ro?.observe(el);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      if (raf) cancelAnimationFrame(raf);
+      ro?.disconnect();
+    };
+  }, [map]);
+  return null;
+}
+
 // يلتقط استقرار حركة المستخدم (moveend) فيُبلّغ المركز [lat,lng] والتكبير لأعلى.
 // خفيف بلا حالة؛ الكتابة في MapHub مُتسامِحة (نفس القيمة لا تُحدث حلقة).
 function ViewCapture({ onViewChange }: { onViewChange?: (center: [number, number], zoom: number) => void }) {
@@ -583,6 +615,7 @@ export default function HubMap({
         <PivotDesignerClickHandler enabled={pivotDesignerEnabled} onAddPivotDraft={onAddPivotDraft} />
         {drawTools && <MeasureTools />}
         <FitToFields fields={fields} selectedId={selectedId} hasRestoredView={hasRestoredView} />
+        <InvalidateOnResize />
         <ViewCapture onViewChange={onViewChange} />
       </MapContainer>
 

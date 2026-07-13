@@ -37,10 +37,19 @@ describe('TIMELINE-PROVIDER-DATES — محور الالتقاط الحقيقيّ
   );
 
   it('timeline fetch merges provider capture dates for the SELECTED indicator', () => {
-    expect(maphub).toContain('{ includeProvider: true, months: 24 }');
     // كلا موضعَي الجلب (الأوّليّ + تحديث ما-بعد-backfill) يطلبان تواريخ المزوّد.
     expect(maphub.split('includeProvider: true').length - 1).toBeGreaterThanOrEqual(2);
     expect(api).toContain('include_provider: true');
+  });
+
+  it('timeline window follows the selected period (3/6/12/24) — not a hardcoded 24 months', () => {
+    // إصلاح 2026-07-13: زرّ الفترة يقود نافذة الشريط عبر حالة timelineMonths، فلا
+    // يُسحَب 24 شهراً دائماً. الجلب الأوّليّ يمرّر timelineMonths؛ تحديث ما-بعد-backfill
+    // يمرّر months (الفترة المختارة)؛ والمعالِج يضبط setTimelineMonths(months).
+    expect(maphub).toContain('const [timelineMonths, setTimelineMonths]');
+    expect(maphub).toContain('includeProvider: true, months: timelineMonths');
+    expect(maphub).toContain('setTimelineMonths(months)');
+    expect(maphub).not.toContain('{ includeProvider: true, months: 24 }');
   });
 
   it('raster endpoint merges STAC capture dates honestly (has_cog=false, declared errors)', () => {

@@ -12,8 +12,9 @@ describe('MapHub historical imagery timeline thumbnails', () => {
     // طلب المستخدم 2026-07-12: الشريط حسب الطبقة المختارة، وكلّ تواريخ التقاط المزوّد
     // تظهر (الجاهز بصورة، والباقي «ينتظر COG» بتاريخه) — لا الاقتصار على المعالَج.
     expect(source).toContain('timelineImageryDates');
+    // إصلاح 2026-07-13: نافذة الشريط تتبع الفترة المختارة (timelineMonths) لا 24 شهراً ثابتة.
     expect(source).toContain(
-      'fetchFieldImageryAvailableDates(fieldId, idx, 240, { includeProvider: true, months: 24 })',
+      'fetchFieldImageryAvailableDates(fieldId, idx, 240, { includeProvider: true, months: timelineMonths })',
     );
     expect(source).toContain('summarizeTwoYearTimeline(timelineImageryDates)');
     expect(source).toContain('dateSelectorDates');

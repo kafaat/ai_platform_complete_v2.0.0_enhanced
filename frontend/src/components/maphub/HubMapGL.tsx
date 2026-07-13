@@ -337,6 +337,7 @@ export default function HubMapGL({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
+  const resizeObsRef = useRef<ResizeObserver | null>(null);
   const loadedRef = useRef(false);
   const [failed, setFailed] = useState(false);
   const [ready, setReady] = useState(false); // يُعاد الرسم بعد load كي تُزامِن التراكبات
@@ -422,6 +423,19 @@ export default function HubMapGL({
     mapRef.current = map;
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-left');
 
+    // مُراقِب أبعاد: حين تظهر كتل الصور فوق الخريطة داخل نفس العمود يتغيّر صندوقها،
+    // فيجب أن يُعيد MapLibre حساب حجم اللوحة (WebGL) وإلّا تظهر رماديّة/فارغة. نجمع
+    // دفعات التغيّر في إطار واحد قبل resize().
+    if (containerRef.current && typeof ResizeObserver !== 'undefined') {
+      let raf = 0;
+      const ro = new ResizeObserver(() => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => mapRef.current?.resize());
+      });
+      ro.observe(containerRef.current);
+      resizeObsRef.current = ro;
+    }
+
     const popup = new maplibregl.Popup({ closeButton: false, closeOnClick: false, offset: 8 });
     popupRef.current = popup;
 
@@ -470,6 +484,8 @@ export default function HubMapGL({
     return () => {
       loadedRef.current = false;
       setReady(false);
+      resizeObsRef.current?.disconnect();
+      resizeObsRef.current = null;
       // تفكيك الرسم أوّلاً (يعتمد على map).
       try { drawRef.current?.stop(); } catch { /* أفضل-جهد */ }
       drawRef.current = null;

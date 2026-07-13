@@ -333,6 +333,9 @@ function MapHubCore() {
   const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
   const [availableImageryDates, setAvailableImageryDates] = useState<FieldImageryDateOption[]>([]);
   const [timelineImageryDates, setTimelineImageryDates] = useState<FieldImageryDateOption[]>([]);
+  // نافذة شريط الصور التاريخيّ (بالأشهر). تُقاد بزرّ الفترة المختار (3/6/12/24) — فبدل
+  // سحب 24 شهراً دائماً، يعرض الشريط تواريخ المزوّد ضمن الفترة المطلوبة فقط.
+  const [timelineMonths, setTimelineMonths] = useState<number>(24);
   const [trueColorRuntime, setTrueColorRuntime] = useState<TrueColorRuntimeStatus>({ state: 'idle', message: 'لم يتم اختيار حقل بعد.' });
   const [historicalBackfillBusy, setHistoricalBackfillBusy] = useState(false);
   const [historicalBackfillStatus, setHistoricalBackfillStatus] = useState<string | null>(null);
@@ -490,7 +493,7 @@ function MapHubCore() {
       // TIMELINE-PROVIDER-DATES (طلب المستخدم 2026-07-12): شريط الصور التاريخيّ يعرض
       // محور الالتقاط الحقيقيّ كاملاً حسب الطبقة المختارة — الجاهز لهذا المؤشّر يحمل
       // صورته، وتواريخ المزوّد غير المعالَجة تظهر بتاريخها «ينتظر COG» بلا صورة.
-      fetchFieldImageryAvailableDates(fieldId, idx, 240, { includeProvider: true, months: 24 }),
+      fetchFieldImageryAvailableDates(fieldId, idx, 240, { includeProvider: true, months: timelineMonths }),
     ])
       .then(([dates, allDates]) => {
         if (cancelled) return;
@@ -515,7 +518,7 @@ function MapHubCore() {
         }
       });
     return () => { cancelled = true; };
-  }, [fieldId, mode, activeIndicator]);
+  }, [fieldId, mode, activeIndicator, timelineMonths]);
 
   // عند اختيار مؤشّر وحقل، نطلب معالجة/تحديث صور Sentinel ثم نكسر كاش البلاطات.
   // هذا لا يصنع قيماً وهمية: إذا لم تنتج الخلفية COG حقيقي، ستظل البلاطات شفافة.
@@ -786,6 +789,8 @@ function MapHubCore() {
     const pollFieldId = selected.id;
     const pollToken = backfillPollTokenRef.current + 1;
     backfillPollTokenRef.current = pollToken;
+    // اربط نافذة الشريط بالفترة المختارة (3/6/12/24) — لا تُظهِر 24 شهراً دائماً.
+    setTimelineMonths(months);
     let finalRefreshImageryTimeline: null | (() => Promise<void>) = null;
     setHistoricalBackfillBusy(true);
     setHistoricalBackfillStatus(`جارٍ إنشاء خطة/مهمة backfill لمدة ${months} شهر…`);
@@ -846,7 +851,7 @@ function MapHubCore() {
       const refreshImageryTimeline = async () => {
         const [dates, allDates] = await Promise.all([
           fetchFieldImageryAvailableDates(pollFieldId, refreshIndex, 240).catch(() => [] as FieldImageryDateOption[]),
-          fetchFieldImageryAvailableDates(pollFieldId, refreshIndex, 240, { includeProvider: true, months: 24 }).catch(() => [] as FieldImageryDateOption[]),
+          fetchFieldImageryAvailableDates(pollFieldId, refreshIndex, 240, { includeProvider: true, months }).catch(() => [] as FieldImageryDateOption[]),
         ]);
         if (Array.isArray(dates) && dates.length > 0) {
           setAvailableImageryDates([...dates].sort((a, b) => b.date.localeCompare(a.date)));
@@ -2219,8 +2224,11 @@ function MapHubCore() {
             )}
           </aside>
 
-          {/* ── العمود المركزيّ: أدوات + خريطة ── */}
-          <div className="space-y-3">
+          {/* ── العمود المركزيّ: أدوات + خريطة ──
+              min-w-0: مسار الشبكة 1fr افتراضه min-width:auto، فيُتيح لشريط الصور
+              (overflow-x-auto) أن يوسّع المسار بدل التمرير — ما يغيّر عرض الخريطة
+              ويكسر تمرير الشريط. min-w-0 يحصر التمرير داخل الشريط ويثبّت عرض الخريطة. */}
+          <div className="space-y-3 min-w-0">
             <Card pad={12}>
               <div className="flex flex-wrap items-center justify-between gap-2" data-testid="map-data-status">
                 <div>
