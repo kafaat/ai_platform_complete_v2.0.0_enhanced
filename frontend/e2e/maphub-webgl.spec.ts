@@ -105,8 +105,10 @@ test('الخطوة 2-3: لوحة الرسم وأزرار الوضع تظهر ع�
 // التسليك الوظيفيّ (لوحة الرسم + زرّ وضع المضلّع) مُغطّى حاجزاً في الاختبار أعلاه.
 // جاهز للتفعيل حتميّاً عبر خطّاف __hubmap (حقن هندسة حقيقيّة عبر Terra Draw ⇒ مسار
 // turf الإنتاجيّ)، لكنّ data-draw-ready لا يُرفَع تحت SwiftShader headless (تهيئة
-// Terra Draw + start() لا تكتمل) — فيبقى @visual. دالّتا القياس areaSqMeters/
-// lengthMeters مُغطّاتان بـunit tests. يُنزَع fixme فور استقرار تهيئة الرسم headless.
+// Terra Draw + start() لا تكتمل) — فيبقى @visual. مسار القيمة (الرسم⇒القياس⇒العرض
+// بـ«م²») صار محروساً حتميّاً في src/lib/measureDrawWiring.test.ts (يُعيد إنتاج نفس
+// الهندسة المحقونة عبر areaSqMeters+formatArea الإنتاجيّتَين). يُنزَع fixme فور استقرار
+// تهيئة الرسم headless (يبقى هذا توقيعاً بصريّاً إضافيّاً على تفاعل Canvas الحقيقيّ).
 test.fixme('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة محقونة) ⇒ measure-area بـ«م²» @visual', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });
@@ -135,7 +137,8 @@ test.fixme('الخطوة 2-3: رسم مضلّع (هندسة حقيقيّة مح�
 // تعذّر جعله حتميّاً تحت SwiftShader headless (كما نصّ رأس الملفّ) — يُعلَّم @visual
 // (توقيع بصريّ يدويّ على متصفّح حقيقيّ)، ولا يُزيَّف نجاحاً. القياس صحيح للمستخدم الفعليّ.
 // نفس قيد المضلّع: جاهز حتميّاً عبر __hubmap، لكن Terra Draw لا يُهيَّأ headless
-// (data-draw-ready) — @visual حتى يُستقَرّ. lengthMeters مُغطّاة بـunit tests.
+// (data-draw-ready) — @visual حتى يُستقَرّ. مسار القيمة (الرسم⇒القياس⇒العرض بـ«كم»)
+// محروس حتميّاً في src/lib/measureDrawWiring.test.ts عبر lengthMeters+formatLength.
 test.fixme('الخطوة 2-3: رسم خطّ (هندسة حقيقيّة محقونة) ⇒ measure-length بـ«كم» @visual', async ({ page }) => {
   await page.getByTestId('btn-draw').click();
   await page.waitForSelector('[data-draw-ready="true"]', { timeout: 15_000 });

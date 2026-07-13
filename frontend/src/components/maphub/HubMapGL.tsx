@@ -33,6 +33,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint,
   areaSqMeters, lengthMeters, snapPoint,
+  formatArea as fmtArea, formatLength as fmtLength,
 } from '../../lib/geo';
 import type { SnapTarget } from '../../lib/geo';
 import { getLayer, resolveLayerSource, toMapLibreRasterUrl } from '../../lib/layerRegistry';
@@ -313,15 +314,7 @@ function pinEl(p: ScoutPin): HTMLElement {
   return el;
 }
 
-// تنسيق عرض القياسات (نفس HubMap.fmtArea/fmtLength).
-function fmtArea(m2: number): string {
-  const ha = m2 / 10000;
-  return `${Math.round(m2).toLocaleString('en-US')} م² · ${ha.toFixed(2)} هكتار`;
-}
-function fmtLength(m: number): string {
-  const km = m / 1000;
-  return `${Math.round(m).toLocaleString('en-US')} م · ${km.toFixed(2)} كم`;
-}
+// تنسيق عرض القياسات: fmtArea/fmtLength مُستورَدان من lib/geo (مصدر واحد لكلا المحرّكَين).
 
 interface MeasureState { polys: number; lines: number; areaM2: number; lengthM: number }
 const EMPTY_MEASURE: MeasureState = { polys: 0, lines: 0, areaM2: 0, lengthM: 0 };

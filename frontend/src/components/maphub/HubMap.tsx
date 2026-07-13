@@ -20,7 +20,7 @@ import {
 import DrawControl from './DrawControl'; // أداة رسم على leaflet-draw خام (بديل EditControl — توافق React 19)
 import L from 'leaflet';
 import '../../lib/leafletSetup';
-import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters } from '../../lib/geo';
+import { geomToPolygon, collectFieldBoundsPoints, fieldRepresentativePoint, areaSqMeters, lengthMeters, formatArea as fmtArea, formatLength as fmtLength } from '../../lib/geo';
 import { readFieldMapView, consumeDefaultViewOnce } from '../../lib/fieldMapView';
 import type { DrawFeature } from './drawing';
 import { getLayer, resolveLayerSource } from '../../lib/layerRegistry';
@@ -112,15 +112,7 @@ export interface HubMapProps {
 
 export type { AlertMarker, DeviceMarker, WeatherMarker, OperationalMarker };
 
-// ── تنسيق عرض القياسات (نفس FieldIndicatorMap) ──────────────────
-function fmtArea(m2: number): string {
-  const ha = m2 / 10000;
-  return `${Math.round(m2).toLocaleString('en-US')} م² · ${ha.toFixed(2)} هكتار`;
-}
-function fmtLength(m: number): string {
-  const km = m / 1000;
-  return `${Math.round(m).toLocaleString('en-US')} م · ${km.toFixed(2)} كم`;
-}
+// ── تنسيق عرض القياسات: fmtArea/fmtLength مُستورَدان من lib/geo (مصدر واحد) ──
 
 interface Measurement { id: number; kind: 'polygon' | 'polyline'; areaM2?: number; lengthM?: number }
 

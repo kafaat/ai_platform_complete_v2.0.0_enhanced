@@ -86,6 +86,20 @@ export function lengthMeters(geojson: unknown): number {
   }
 }
 
+// ── تنسيق عرض القياسات (مصدر واحد لمحرّكَي الخريطة Leaflet/MapLibre) ──────
+// المساحة بالمتر المربّع + الهكتار؛ الطول بالمتر + الكيلومتر. أرقام حقيقيّة من turf
+// (لا تفبرك). كانت مُكرَّرة حرفيّاً في HubMap وHubMapGL — وُحِّدت هنا لتُختبَر حتميّاً
+// (مسار الرسم⇒القياس⇒العرض المرئيّ الذي يبقى @visual تحت SwiftShader headless).
+export function formatArea(m2: number): string {
+  const ha = m2 / 10000;
+  return `${Math.round(m2).toLocaleString('en-US')} م² · ${ha.toFixed(2)} هكتار`;
+}
+
+export function formatLength(m: number): string {
+  const km = m / 1000;
+  return `${Math.round(m).toLocaleString('en-US')} م · ${km.toFixed(2)} كم`;
+}
+
 // ── التقاط الرؤوس للحدود أثناء الرسم (snap / edge-assist) ─────────────
 // أثناء رسم حدّ حقل، نُلصِق الرأس المُضاف حديثاً بأقرب حدّ حقل قائم (أو رأس البداية
 // لإغلاق نظيف) ضمن تسامح صغير بالمتر. هندسة حقيقيّة جهة-العميل (لا خادم، لا تلفيق):
