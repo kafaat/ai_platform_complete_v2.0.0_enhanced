@@ -24,11 +24,19 @@ classification: `ui`
 ### `sahool-platform` — pass
 classification: `ui`
 - ui: 192 match(es)
+<<<<<<< HEAD
   - `frontend/src/lib/agronomyConsistency.ts` ← `/api/v1`
   - `frontend/src/lib/fieldProfitability.ts` ← `/api/v1`
   - `frontend/src/lib/waterHarvesting.ts` ← `/api/v1`
   - `frontend/src/lib/mapRegression.test.ts` ← `AddFieldWithMap`
   - `frontend/src/lib/recommendationsLifecycle.ts` ← `/api/v1`
+=======
+  - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
+  - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
+  - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
+  - `frontend/src/components/AddFieldWithMap.tsx` ← `/api/v1`
+  - `frontend/src/components/AddFieldWithMap.tsx` ← `AddFieldWithMap`
+>>>>>>> origin/main
 - gateway: 4 match(es)
   - `nginx/nginx.v9.conf` ← `/api/v1/`
   - `nginx/nginx.v9.conf` ← `platform_backend`
@@ -82,6 +90,7 @@ classification: `ui`
 - ui: 15 match(es)
   - `frontend/src/App.tsx` ← `WeatherAdvice`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
+<<<<<<< HEAD
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherProbePopup.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherProbePopup.ts` ← `operation-window`
@@ -91,15 +100,30 @@ classification: `ui`
   - `services/sahool-platform/core/canonical_field_state_lock.py` ← `weather`
   - `services/sahool-platform/core/weather_overlay_pipeline.py` ← `weather`
   - `services/sahool-platform/core/agronomic_decision.py` ← `weather`
+=======
+- platform-proxy: 290 match(es)
+  - `services/sahool-platform/api/season_simulation.py` ← `weather-service`
+  - `services/sahool-platform/api/season_simulation.py` ← `weather`
+  - `services/sahool-platform/api/main.py` ← `weather`
+  - `services/sahool-platform/api/event_replay.py` ← `weather`
+  - `services/sahool-platform/api/season_models.py` ← `weather`
+>>>>>>> origin/main
 
 ### `soil-service` — pass
 classification: `ui`
 - ui: 152 match(es)
   - `frontend/src/App.tsx` ← `soil`
+<<<<<<< HEAD
   - `frontend/src/lib/featureFlags.ts` ← `soil`
   - `frontend/src/lib/specialtyCrops.test.ts` ← `soil`
   - `frontend/src/lib/fieldWaterBrain.test.ts` ← `soil`
   - `frontend/src/lib/decisionDeep.ts` ← `soil`
+=======
+  - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
+  - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
+  - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
+  - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
+>>>>>>> origin/main
 - platform-proxy: 271 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/core/sensor_intake.py` ← `soil`
