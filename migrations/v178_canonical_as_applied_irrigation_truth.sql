@@ -108,15 +108,20 @@ ALTER TABLE as_applied_irrigation_observations FORCE ROW LEVEL SECURITY;
 ALTER TABLE canonical_as_applied_irrigation_truths ENABLE ROW LEVEL SECURITY;
 ALTER TABLE canonical_as_applied_irrigation_truths FORCE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS as_applied_runs_tenant_policy ON as_applied_irrigation_runs;
+
 CREATE POLICY as_applied_runs_tenant_policy ON as_applied_irrigation_runs
-USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);
+DROP POLICY IF EXISTS as_applied_receipts_tenant_policy ON as_applied_irrigation_receipts;
 CREATE POLICY as_applied_receipts_tenant_policy ON as_applied_irrigation_receipts
-USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);
+DROP POLICY IF EXISTS as_applied_observations_tenant_policy ON as_applied_irrigation_observations;
 CREATE POLICY as_applied_observations_tenant_policy ON as_applied_irrigation_observations
-USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);
+DROP POLICY IF EXISTS canonical_as_applied_truths_tenant_policy ON canonical_as_applied_irrigation_truths;
 CREATE POLICY canonical_as_applied_truths_tenant_policy ON canonical_as_applied_irrigation_truths
-USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);

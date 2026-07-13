@@ -228,10 +228,13 @@ BEGIN
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
     EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);
     EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', t);
+    -- Fail-closed on BOTH read and write: an empty/unset app.current_tenant makes NULLIF
+    -- return NULL, so `tenant_id = NULL` is never true → no cross-tenant read OR write. The
+    -- prior WITH CHECK had an `IS NULL OR …` escape that let a session with no tenant context
+    -- INSERT any tenant_id (fail-open write injection). Matches the canonical soil pattern.
     EXECUTE format($p$CREATE POLICY tenant_isolation ON %I
       USING (tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', true), ''))
-      WITH CHECK (NULLIF(current_setting('app.current_tenant', true), '') IS NULL
-        OR tenant_id::TEXT = current_setting('app.current_tenant', true))$p$, t);
+      WITH CHECK (tenant_id::TEXT = NULLIF(current_setting('app.current_tenant', true), ''))$p$, t);
   END LOOP;
 END $$;
 

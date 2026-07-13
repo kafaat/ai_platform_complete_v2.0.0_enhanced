@@ -50,9 +50,12 @@ ALTER TABLE hourly_irrigation_mpc_schedules FORCE ROW LEVEL SECURITY;
 ALTER TABLE hourly_irrigation_mpc_actions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE hourly_irrigation_mpc_actions FORCE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS hourly_irrigation_mpc_schedules_tenant ON hourly_irrigation_mpc_schedules;
+
 CREATE POLICY hourly_irrigation_mpc_schedules_tenant ON hourly_irrigation_mpc_schedules
-USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);
+DROP POLICY IF EXISTS hourly_irrigation_mpc_actions_tenant ON hourly_irrigation_mpc_actions;
 CREATE POLICY hourly_irrigation_mpc_actions_tenant ON hourly_irrigation_mpc_actions
-USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);

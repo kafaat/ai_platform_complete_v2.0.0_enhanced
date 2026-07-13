@@ -99,15 +99,20 @@ ALTER TABLE vri_machine_translation_artifacts FORCE ROW LEVEL SECURITY;
 ALTER TABLE vri_as_applied_variances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vri_as_applied_variances FORCE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS vri_prescriptions_tenant_policy ON vri_prescriptions;
+
 CREATE POLICY vri_prescriptions_tenant_policy ON vri_prescriptions
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);
+DROP POLICY IF EXISTS vri_prescription_zones_tenant_policy ON vri_prescription_zones;
 CREATE POLICY vri_prescription_zones_tenant_policy ON vri_prescription_zones
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);
+DROP POLICY IF EXISTS vri_translation_artifacts_tenant_policy ON vri_machine_translation_artifacts;
 CREATE POLICY vri_translation_artifacts_tenant_policy ON vri_machine_translation_artifacts
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);
+DROP POLICY IF EXISTS vri_as_applied_variances_tenant_policy ON vri_as_applied_variances;
 CREATE POLICY vri_as_applied_variances_tenant_policy ON vri_as_applied_variances
-  USING (tenant_id = current_setting('app.current_tenant_id', true)::uuid)
-  WITH CHECK (tenant_id = current_setting('app.current_tenant_id', true)::uuid);
+  USING (tenant_id = current_setting('app.current_tenant', true)::uuid)
+  WITH CHECK (tenant_id = current_setting('app.current_tenant', true)::uuid);

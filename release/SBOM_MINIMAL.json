@@ -6765,7 +6765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5122c8f471f48e603e31e3716763324e1e7fdbab01ed5e54ad15a8fa6cd5ab1"
+          "content": "ac38e373dc114d09a7c07cad1859cefd8839fb0c724faa384273966a27026c77"
         }
       ],
       "name": "migrations/v168_irrigation_engineering_foundation.sql",
@@ -6775,7 +6775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ad080e533a38c7afda6f6def836267e1b484331e2ae89f141b2a748ac6779c4"
+          "content": "38aef86a2e719db5b478ad7278946458709499291cc8a8a1e8a05b697438d175"
         }
       ],
       "name": "migrations/v169_canonical_root_zone_hydraulic_profile.sql",
@@ -6875,7 +6875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2fef0973313e65117107dd25def9d7dac51b4e4129841280ab57f69d65439fde"
+          "content": "4b4d5203c29d8f38436294dc17484b42d9e3be00b538225e5cf1100d914cef4f"
         }
       ],
       "name": "migrations/v178_canonical_as_applied_irrigation_truth.sql",
@@ -6885,7 +6885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0700d7cfc66b72193c46cfb5d6b61df36b999aabc9244c63a93ad378a61cc5e"
+          "content": "d79a0ce81ab5696b981d0cfc4f1ae9cf6ce6c78e1e536c75335570f47eb5a02a"
         }
       ],
       "name": "migrations/v179_hourly_energy_aware_irrigation_mpc.sql",
@@ -6905,7 +6905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5f78a8d969db54ce8fa52a9758b2f610961f346f476539a4e779fe153809563"
+          "content": "cf6779cbb5b5e60993f2cfe0c390535e85452b2e81f6e5f87fa455118df8e69a"
         }
       ],
       "name": "migrations/v180_governed_vri_prescription.sql",
@@ -6915,7 +6915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f81b621229d16c92a79e79fe1a06647244ba37f06a45fb1bc87006c73be08739"
+          "content": "1dd53f6220d4283adb9eb57c0518998eb69780839b2118d63d8bdcc695aadb55"
         }
       ],
       "name": "migrations/v181_irrigation_closed_loop_learning_production_certification.sql",

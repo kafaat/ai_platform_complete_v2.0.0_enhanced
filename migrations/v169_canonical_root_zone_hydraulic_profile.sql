@@ -63,10 +63,10 @@ ALTER TABLE canonical_root_zone_profiles FORCE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS crop_root_policies_tenant_isolation ON crop_root_policies;
 CREATE POLICY crop_root_policies_tenant_isolation ON crop_root_policies
-    USING (tenant_id::text = current_setting('app.current_tenant_id', true))
-    WITH CHECK (tenant_id::text = current_setting('app.current_tenant_id', true));
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));
 
 DROP POLICY IF EXISTS canonical_root_zone_profiles_tenant_isolation ON canonical_root_zone_profiles;
 CREATE POLICY canonical_root_zone_profiles_tenant_isolation ON canonical_root_zone_profiles
-    USING (tenant_id::text = current_setting('app.current_tenant_id', true))
-    WITH CHECK (tenant_id::text = current_setting('app.current_tenant_id', true));
+    USING (tenant_id::text = current_setting('app.current_tenant', true))
+    WITH CHECK (tenant_id::text = current_setting('app.current_tenant', true));
