@@ -85,7 +85,7 @@ classification: `ui`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherProbePopup.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherProbePopup.ts` ← `operation-window`
-- platform-proxy: 288 match(es)
+- platform-proxy: 290 match(es)
   - `services/sahool-platform/core/api_adapter.py` ← `weather`
   - `services/sahool-platform/core/guardrails.py` ← `weather`
   - `services/sahool-platform/core/canonical_field_state_lock.py` ← `weather`
@@ -100,7 +100,7 @@ classification: `ui`
   - `frontend/src/lib/specialtyCrops.test.ts` ← `soil`
   - `frontend/src/lib/fieldWaterBrain.test.ts` ← `soil`
   - `frontend/src/lib/decisionDeep.ts` ← `soil`
-- platform-proxy: 269 match(es)
+- platform-proxy: 271 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/core/sensor_intake.py` ← `soil`
   - `services/sahool-platform/core/guardrails.py` ← `soil`
@@ -303,7 +303,7 @@ classification: `internal`
 
 ### `raster-tiler-service` — pass
 classification: `internal`
-- internal-consumer: 67 match(es)
+- internal-consumer: 66 match(es)
   - `services/raster-service/cloud_native_catalog.py` ← `tilejson`
   - `services/raster-service/raster_cdse_tile_runtime.py` ← `tilejson`
   - `services/raster-service/test_router_query_direct_call.py` ← `tilejson`

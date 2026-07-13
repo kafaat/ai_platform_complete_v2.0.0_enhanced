@@ -760,7 +760,7 @@
               "pattern": "weather"
             }
           ],
-          "match_count": 288
+          "match_count": 290
         }
       ]
     },
@@ -917,7 +917,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 269
+          "match_count": 271
         }
       ]
     },
@@ -2710,7 +2710,7 @@
               "pattern": "tilejson"
             }
           ],
-          "match_count": 67
+          "match_count": 66
         }
       ]
     },
