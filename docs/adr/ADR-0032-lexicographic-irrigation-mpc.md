@@ -23,6 +23,16 @@ Ky العامّ لا يُثبِت). **المتبقّي P1.1b:** Route يقرأ w
 water_decision_bridge (مرشّح `lexicographic_irrigation`) + استمرار PG + انتشار النَّسَب عبر
 execution→outcome→learning — يحتاج سلسلة decision-service وPG حقيقيّ.
 
+**تحديث P1.1c-b (مصدرة الحقائق الخادميّة + فصل المسارات):** استجابةً لتدقيق يطلب «حقائق العميل
+لا تحكم القرار» — أُضيف مساران منفصلان: `POST /api/v1/irrigation/mpc/simulate` (حقائق يدويّة،
+scenario، **لا يُصدِر مرشّحاً محكوماً أبداً**) و`POST /api/v1/fields/{field_id}/irrigation/mpc/
+recommendation` (**توصية عمليّة بلا حقائق عميل** — Dr+المرحلة من `water_ledger`، TAW من التربة،
+التنبّؤ من الطقس؛ نقص أيّ حقيقة ⇒ `blocked` مع قائمة الناقص؛ **تحقّق ملكيّة الحقل**؛ **بصمات لقطات
+64-hex** لكلّ مصدر: ledger/weather/soil). مصدرا soil/weather **fail-closed stubs** هنا (يُوصَلان
+بـsoil/weather-service في staging؛ الاختبارات تحقنهما لإثبات مسار الحقائق الكاملة). `/plan` يبقى
+للتوافق. **متبقٍّ (staging):** وصل soil/weather الفعليّ + شهادة PostgreSQL للسلسلة حتى outcome —
+فتفعيل `LEXICOGRAPHIC_MPC_BRIDGE_ENABLED` يبقى غير جاهز للإنتاج حتى ذلك.
+
 **تحديث P1.1c-a (تصلّب fail-closed + فصل المحاكاة/العمليّ — استجابةً لتدقيق جنائيّ):** التدقيق
 أثبت **فجوة P0 في كودي**: الراوتر كان يضع `Dr=0` عند غياب صفّ الدفتر — وهو **اختلاق** (يعني
 رطوبة ممتلئة، فقد يُصدِر `hold` بينما الحقل جافّ). أُصلِح: غياب Dr المرجعيّ ⇒ **`blocked`**

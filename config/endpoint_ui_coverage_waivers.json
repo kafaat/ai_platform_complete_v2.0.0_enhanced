@@ -751,6 +751,41 @@
       "importance": 0,
       "importance_tier": "none",
       "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/simulate",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "محاكاة MPC صريحة بحقائق يدويّة (scenario) — أداة تشخيص/سيناريو لا تُصدِر مرشّحاً محكوماً ولا شاشة مزارع نهائيّ؛ تُستدعى خادميّاً/بالأدوات.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "diagnostic-scenario",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "توصية ريّ MPC عمليّة تُبنى من حقائق SoR خادميّاً (P1.1c-b) — توصية-فقط تظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا شاشة مباشرة؛ شاشة MPC مخصّصة دَين مُتتبَّع.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-decision-console",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
     }
   ]
 }

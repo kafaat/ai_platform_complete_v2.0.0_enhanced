@@ -6095,7 +6095,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 83,
+    "line": 92,
     "method": "POST",
     "path": "/api/v1/irrigation/mpc/plan",
     "handler": "irrigation_mpc_plan",
@@ -6104,10 +6104,28 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
-    "line": 151,
+    "line": 160,
     "method": "GET",
     "path": "/api/v1/irrigation/mpc/capabilities",
     "handler": "irrigation_mpc_capabilities",
+    "classification": "legacy_unversioned_business"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+    "line": 260,
+    "method": "POST",
+    "path": "/api/v1/irrigation/mpc/simulate",
+    "handler": "irrigation_mpc_simulate",
+    "classification": "legacy_unversioned_business"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_mpc.py",
+    "line": 293,
+    "method": "POST",
+    "path": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
+    "handler": "irrigation_mpc_recommendation",
     "classification": "legacy_unversioned_business"
   },
   {
