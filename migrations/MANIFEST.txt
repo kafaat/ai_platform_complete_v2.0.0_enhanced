@@ -629,3 +629,5 @@ v162_soil_p2_spatial_products.sql
 v163_soil_p3_assessment_products.sql
 # v164: P4 governed closed loop (execution, verification, outcome, learning attribution).
 v164_soil_p4_closed_loop.sql
+# v165: P5 field validation, regional calibration, production certification, learning datasets.
+v165_soil_p5_validation_calibration_certification.sql

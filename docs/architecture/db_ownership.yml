@@ -1202,3 +1202,23 @@ tables:
     writers: [soil-service]
     readers: [sahool-platform]
     source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_field_validations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_regional_calibrations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_production_certifications:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_learning_datasets:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"

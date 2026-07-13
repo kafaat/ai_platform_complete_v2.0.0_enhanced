@@ -483,3 +483,5 @@
 \i migrations/v163_soil_p3_assessment_products.sql
 \echo '═══ 170. v164_soil_p4_closed_loop.sql ═══'
 \i migrations/v164_soil_p4_closed_loop.sql
+\echo '═══ 171. v165_soil_p5_validation_calibration_certification.sql ═══'
+\i migrations/v165_soil_p5_validation_calibration_certification.sql

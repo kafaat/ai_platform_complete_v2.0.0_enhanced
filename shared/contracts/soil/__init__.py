@@ -161,3 +161,24 @@ from .p4 import (
     SoilOutcomeRecord,
     SoilVerificationRecord,
 )
+from .p5 import (
+    AcceptanceThreshold,
+    CalibrationMetric,
+    CalibrationPromotionDecision,
+    FieldValidationRecord,
+    LearningDatasetManifest,
+    ProductionCertificationRecord,
+    RegionalCalibrationArtifact,
+    ValidationMeasurement,
+)
+
+__all__ += [
+    "FieldValidationRecord",
+    "ValidationMeasurement",
+    "CalibrationMetric",
+    "RegionalCalibrationArtifact",
+    "AcceptanceThreshold",
+    "CalibrationPromotionDecision",
+    "ProductionCertificationRecord",
+    "LearningDatasetManifest",
+]

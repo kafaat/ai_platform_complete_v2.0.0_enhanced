@@ -4095,6 +4095,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ee8dc8211dfa65324c4addac5d32fb8bb615e24afc683491a6b6d05f6117b123"
+        }
+      ],
+      "name": "frontend/src/lib/soilWorkspace.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "78c712de4dd9148b4f2b523bddcc2c4ded5be6a81a17f91c9d2dc449a9b5a596"
+        }
+      ],
+      "name": "frontend/src/lib/soilWorkspace.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "07cddd25e0f408cc35005c1e7e6e6a09626cea5ac5311ada569975ee8122ca15"
         }
       ],
@@ -5895,7 +5915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea2a0f82a2a86b1f2fce645f83a095c768ba13fffc5b4317048cfb007cd77374"
+          "content": "59f56fd6b29e1a9e1412f21836a19f1e9252112be916405393c4a163771d120e"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6629,6 +6649,16 @@
         }
       ],
       "name": "migrations/v163_soil_p3_assessment_products.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76fdb36073d2d975f90d5bfb9f052855eca73e00346f369b3f02ec8e5b7894a8"
+        }
+      ],
+      "name": "migrations/v164_soil_p4_closed_loop.sql",
       "type": "file"
     },
     {
@@ -7729,6 +7759,16 @@
         }
       ],
       "name": "mobile/sahool_app/lib/models/canonical_field_geometry.dart",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2cd37c6687f4b88940aede08bd02288f2f7a65418475a3b132df914edd64b381"
+        }
+      ],
+      "name": "mobile/sahool_app/lib/models/soil_workspace_model.dart",
       "type": "file"
     },
     {
@@ -24055,6 +24095,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f7d8ff33355202d0c88574a0ea03aae7b3a432c19ef955e5981e510044b6fc7c"
+        }
+      ],
+      "name": "services/soil-service/p4_governance.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a6dbbecb4370a958badba62c04fd8fafbec5ab46e72a43a1da1858baa43169b"
+        }
+      ],
+      "name": "services/soil-service/p4_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a4174654f4540e4d61783b03d6bb349555999deb425e882241e17388b620a8b4"
         }
       ],
@@ -24175,6 +24235,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e77258646f42517fda469db3bbdab445d83c3f6a08fa9aafa3e463d05ad2cf83"
+        }
+      ],
+      "name": "services/soil-service/routers/p4_workflow.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "84391646cbd2f572d1bc1360c788896b21688bb6f4aa09c322fc9b01b2e4e52e"
         }
       ],
@@ -24289,6 +24359,16 @@
         }
       ],
       "name": "services/soil-service/test_soil_p3_products.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cd0e641750aed0dfeaa249621e2ccd6b57f3c2a4358e4569609df248d9060402"
+        }
+      ],
+      "name": "services/soil-service/test_soil_p4_governance.py",
       "type": "file"
     },
     {
@@ -25725,7 +25805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef88e5520b2cba7fb4e8e48a706bce02411068d2b3c2d75250ef0a0bcbe9a082"
+          "content": "2e417ec862900716828754516dbb131eb8d12c3c654e8948c3aa9fc37d44e83e"
         }
       ],
       "name": "shared/contracts/soil/__init__.py",
@@ -25769,6 +25849,16 @@
         }
       ],
       "name": "shared/contracts/soil/p3.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "91b8ec0a8bb4235904d9bb9969e4c8b72d19af0eb4260ae2a7f1c86b69ce92f1"
+        }
+      ],
+      "name": "shared/contracts/soil/p4.py",
       "type": "file"
     },
     {

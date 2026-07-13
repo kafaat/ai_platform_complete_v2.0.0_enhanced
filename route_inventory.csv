@@ -919,6 +919,11 @@ soil-service,services/soil-service/routers/p4_workflow.py,76,POST,/v1/fields/{fi
 soil-service,services/soil-service/routers/p4_workflow.py,95,POST,/v1/fields/{field_id}/soil/outcomes,create_outcome
 soil-service,services/soil-service/routers/p4_workflow.py,114,POST,/v1/fields/{field_id}/soil/learning-attributions,create_learning
 soil-service,services/soil-service/routers/p4_workflow.py,139,GET,/v1/fields/{field_id}/soil/closed-loop,closed_loop
+soil-service,services/soil-service/routers/p5_certification.py,34,POST,/v1/fields/{field_id}/soil/validations,create_validation
+soil-service,services/soil-service/routers/p5_certification.py,58,POST,/v1/soil/calibrations/build,create_calibration
+soil-service,services/soil-service/routers/p5_certification.py,92,POST,/v1/soil/calibrations/{calibration_id}/evaluate,evaluate_calibration
+soil-service,services/soil-service/routers/p5_certification.py,103,POST,/v1/soil/production-certifications,create_certification
+soil-service,services/soil-service/routers/p5_certification.py,128,POST,/v1/soil/learning-datasets,create_learning_dataset
 soil-service,services/soil-service/routers/readings.py,23,GET,/soil/readings/{field_id},get_readings
 soil-service,services/soil-service/routers/readings.py,38,POST,/soil/ingest,ingest_reading
 soil-service,services/soil-service/routers/soil_profile.py,47,POST,/soil/suitability,soil_suitability
