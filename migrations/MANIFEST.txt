@@ -635,3 +635,32 @@ v165_soil_p5_validation_calibration_certification.sql
 v166_soil_p6_runtime_certification.sql
 # v167: MPC content_digest first-class lineage column across the decision chain (decision_record + dispatch_decisions + outcome_record + recommendation_outcomes) + tenant-scoped indexes.
 v167_mpc_content_digest_lineage.sql
+# --- V21 irrigation engineering program (M2.1–M5), additive kernels; renumbered +1 (v167 taken by MPC content_digest). Not yet runtime-wired; bridge/execution default-off. ---
+# v168: M2.1 irrigation engineering foundation (projects/sources/wells/pumps/mainlines/machines/controllers/energy — RLS+FORCE, design/commissioned/live envelopes). Renumbered from v167.
+v168_irrigation_engineering_foundation.sql
+# v169: M2.2 canonical root-zone hydraulic profile (crop root policies + soil hydraulics → irrigation truth).
+v169_canonical_root_zone_hydraulic_profile.sql
+# v170: M2.3 water-source/well digital twin.
+v170_water_source_well_digital_twin.sql
+# v171: M2.4 pump/hydraulic-network capability.
+v171_pump_hydraulic_network_capability.sql
+# v172: M2.5 irrigation-machine capability.
+v172_irrigation_machine_capability.sql
+# v173: M2.6 sprinkler/runoff capability.
+v173_sprinkler_runoff_capability.sql
+# v174: M2.7 energy/agricultural-microgrid capability (solar/generator/LiFePO4, no dispatch automation).
+v174_energy_agricultural_microgrid_capability.sql
+# v175: M2.8 unified irrigation capability graph.
+v175_unified_irrigation_capability_graph.sql
+# v176: M2.9 controller/edge adapter framework (opaque external credential refs only).
+v176_controller_edge_adapter_framework.sql
+# v177: M2.10 irrigation commissioning certification.
+v177_irrigation_commissioning_certification.sql
+# v178: M2.11 canonical as-applied irrigation truth.
+v178_canonical_as_applied_irrigation_truth.sql
+# v179: M3 hourly energy-aware lexicographic irrigation MPC (recommendation-only).
+v179_hourly_energy_aware_irrigation_mpc.sql
+# v180: M4 governed variable-rate irrigation prescription (no controller execution).
+v180_governed_vri_prescription.sql
+# v181: M5 irrigation closed-loop learning + production certification (contract/model, not live loop).
+v181_irrigation_closed_loop_learning_production_certification.sql

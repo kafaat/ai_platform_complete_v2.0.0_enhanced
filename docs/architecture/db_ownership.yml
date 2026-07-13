@@ -1232,3 +1232,285 @@ tables:
     writers: [soil-service]
     readers: [sahool-platform]
     source: "migrations/v166_soil_p6_runtime_certification.sql"
+
+  # --- V21 irrigation engineering program (M2.1–M5), platform-domain canonical tables ---
+  as_applied_irrigation_observations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  as_applied_irrigation_receipts:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  as_applied_irrigation_runs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  canonical_as_applied_irrigation_truths:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  canonical_controller_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  canonical_energy_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  canonical_hydraulic_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  canonical_irrigation_capability_graphs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v175_unified_irrigation_capability_graph.sql"
+  canonical_irrigation_machine_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v172_irrigation_machine_capability.sql"
+  canonical_root_zone_profiles:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v169_canonical_root_zone_hydraulic_profile.sql"
+  canonical_sprinkler_runoff_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v173_sprinkler_runoff_capability.sql"
+  canonical_well_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  crop_root_policies:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v169_canonical_root_zone_hydraulic_profile.sql"
+  hourly_energy_envelopes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  hourly_irrigation_mpc_actions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v179_hourly_energy_aware_irrigation_mpc.sql"
+  hourly_irrigation_mpc_schedules:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v179_hourly_energy_aware_irrigation_mpc.sql"
+  irrigation_battery_systems:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_capability_graph_edges:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v175_unified_irrigation_capability_graph.sql"
+  irrigation_capability_graph_nodes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v175_unified_irrigation_capability_graph.sql"
+  irrigation_closed_loop_records:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_commissioning_certifications:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v177_irrigation_commissioning_certification.sql"
+  irrigation_commissioning_evidence:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v177_irrigation_commissioning_certification.sql"
+  irrigation_controller_command_requests:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  irrigation_controller_handshakes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  irrigation_controller_telemetry:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  irrigation_controllers:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_energy_loads:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_energy_systems:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_executability_gates:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v177_irrigation_commissioning_certification.sql"
+  irrigation_generators:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_grid_connections:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_hybrid_inverters:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_hydraulic_nodes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  irrigation_hydraulic_segments:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  irrigation_learning_proposals:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_machine_spans:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v172_irrigation_machine_capability.sql"
+  irrigation_machines:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_mainlines:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_outcome_evidence:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_production_certifications:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_projects:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_pump_curve_points:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  irrigation_pumps:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_pv_arrays:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_sprinkler_packages:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v173_sprinkler_runoff_capability.sql"
+  irrigation_sprinkler_zones:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v173_sprinkler_runoff_capability.sql"
+  irrigation_water_allocations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_water_quality_samples:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_water_sources:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_well_measurements:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_well_pumping_tests:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_wells:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  vri_as_applied_variances:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"
+  vri_machine_translation_artifacts:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"
+  vri_prescription_zones:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"
+  vri_prescriptions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"

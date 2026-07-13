@@ -149,6 +149,38 @@ jobs:
         run: python scripts/ci/ky_no_economic_coupling_guard.py
       - name: irrigation MPC — bridge lineage-propagation guard
         run: python scripts/ci/mpc_lineage_propagation_guard.py
+      # V21 irrigation engineering program (M2.1–M5): additive domain-contract ratchets. These are
+      # static presence/shape guards over the canonical irrigation kernels + migrations v168–v181
+      # (renumbered +1; v167 taken by MPC content_digest). Kernels are NOT yet mounted into runtime
+      # routes (bridge/execution stay default-off) — the guards pin the contracts, not live wiring.
+      - name: irrigation M2.1 engineering foundation guard
+        run: python scripts/ci/irrigation_engineering_m2_1_guard.py
+      - name: irrigation M2.2 root-zone hydraulic guard
+        run: python scripts/ci/irrigation_root_zone_m2_2_guard.py
+      - name: irrigation M2.3 well digital-twin guard
+        run: python scripts/ci/irrigation_well_digital_twin_m2_3_guard.py
+      - name: irrigation M2.4 hydraulic capability guard
+        run: python scripts/ci/irrigation_hydraulic_m2_4_guard.py
+      - name: irrigation M2.5 machine capability guard
+        run: python scripts/ci/irrigation_machine_m2_5_guard.py
+      - name: irrigation M2.6 sprinkler/runoff guard
+        run: python scripts/ci/irrigation_sprinkler_m2_6_guard.py
+      - name: irrigation M2.7 energy microgrid guard
+        run: python scripts/ci/irrigation_energy_m2_7_guard.py
+      - name: irrigation M2.8 capability graph guard
+        run: python scripts/ci/irrigation_capability_graph_m2_8_guard.py
+      - name: irrigation M2.9 controller-edge guard
+        run: python scripts/ci/irrigation_controller_edge_m2_9_guard.py
+      - name: irrigation M2.10 commissioning guard
+        run: python scripts/ci/irrigation_commissioning_m2_10_guard.py
+      - name: irrigation M2.11 as-applied guard
+        run: python scripts/ci/irrigation_as_applied_m2_11_guard.py
+      - name: irrigation M3 hourly MPC guard
+        run: python scripts/ci/irrigation_hourly_mpc_m3_guard.py
+      - name: irrigation M4 VRI prescription guard
+        run: python scripts/ci/irrigation_vri_m4_guard.py
+      - name: irrigation M5 closed-loop certification guard
+        run: python scripts/ci/irrigation_closed_loop_m5_guard.py
       # VEG-AGRIAI completion: vegetation stays real-source-honest and agriai-engine stays
       # context-bound (delivered increment; its dedicated workflow only runs on main/PR paths,
       # so enforce the structural contract on every push here too).

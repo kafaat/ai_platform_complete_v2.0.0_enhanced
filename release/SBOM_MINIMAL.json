@@ -5985,7 +5985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9bfedd263e0340bcd298380fff227d1f2e67431e96238381c7af24494b5f8fc"
+          "content": "5c7c65ba64f59f37751222633d841de4b615be852ea7ddcd5097682ff9b71fa5"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -9569,6 +9569,16 @@
         }
       ],
       "name": "services/decision-service/migrations/025_worker_tenant_command_ledger.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4badb5cd05a881899a967a45290856f9c25de75b97e3da5ce7da8c429db1ca43"
+        }
+      ],
+      "name": "services/decision-service/migrations/026_content_digest_lineage.sql",
       "type": "file"
     },
     {

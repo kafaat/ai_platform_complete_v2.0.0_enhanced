@@ -489,3 +489,31 @@
 \i migrations/v166_soil_p6_runtime_certification.sql
 \echo '═══ 173. v167_mpc_content_digest_lineage.sql ═══'
 \i migrations/v167_mpc_content_digest_lineage.sql
+\echo '═══ 174. v168_irrigation_engineering_foundation.sql ═══'
+\i migrations/v168_irrigation_engineering_foundation.sql
+\echo '═══ 175. v169_canonical_root_zone_hydraulic_profile.sql ═══'
+\i migrations/v169_canonical_root_zone_hydraulic_profile.sql
+\echo '═══ 176. v170_water_source_well_digital_twin.sql ═══'
+\i migrations/v170_water_source_well_digital_twin.sql
+\echo '═══ 177. v171_pump_hydraulic_network_capability.sql ═══'
+\i migrations/v171_pump_hydraulic_network_capability.sql
+\echo '═══ 178. v172_irrigation_machine_capability.sql ═══'
+\i migrations/v172_irrigation_machine_capability.sql
+\echo '═══ 179. v173_sprinkler_runoff_capability.sql ═══'
+\i migrations/v173_sprinkler_runoff_capability.sql
+\echo '═══ 180. v174_energy_agricultural_microgrid_capability.sql ═══'
+\i migrations/v174_energy_agricultural_microgrid_capability.sql
+\echo '═══ 181. v175_unified_irrigation_capability_graph.sql ═══'
+\i migrations/v175_unified_irrigation_capability_graph.sql
+\echo '═══ 182. v176_controller_edge_adapter_framework.sql ═══'
+\i migrations/v176_controller_edge_adapter_framework.sql
+\echo '═══ 183. v177_irrigation_commissioning_certification.sql ═══'
+\i migrations/v177_irrigation_commissioning_certification.sql
+\echo '═══ 184. v178_canonical_as_applied_irrigation_truth.sql ═══'
+\i migrations/v178_canonical_as_applied_irrigation_truth.sql
+\echo '═══ 185. v179_hourly_energy_aware_irrigation_mpc.sql ═══'
+\i migrations/v179_hourly_energy_aware_irrigation_mpc.sql
+\echo '═══ 186. v180_governed_vri_prescription.sql ═══'
+\i migrations/v180_governed_vri_prescription.sql
+\echo '═══ 187. v181_irrigation_closed_loop_learning_production_certification.sql ═══'
+\i migrations/v181_irrigation_closed_loop_learning_production_certification.sql
