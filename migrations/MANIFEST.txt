@@ -627,3 +627,5 @@ v161_soil_p1_products.sql
 v162_soil_p2_spatial_products.sql
 # v163: P3 governed assessment products (mobile imaging, analog fields, drainage, reclamation, economics).
 v163_soil_p3_assessment_products.sql
+# v164: P4 governed closed loop (execution, verification, outcome, learning attribution).
+v164_soil_p4_closed_loop.sql

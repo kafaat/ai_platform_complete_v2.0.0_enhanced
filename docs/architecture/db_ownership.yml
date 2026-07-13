@@ -1182,3 +1182,23 @@ tables:
     writers: [soil-service]
     readers: [sahool-platform]
     source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_execution_records:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_verification_records:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_outcome_records:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_learning_attributions:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"

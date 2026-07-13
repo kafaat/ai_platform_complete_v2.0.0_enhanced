@@ -143,4 +143,21 @@ __all__ += [
     "ReclamationEconomicsRequest",
     "ReclamationScenario",
     "ReclamationEconomicsProduct",
+    "ApprovalRequirement",
+    "SoilActionPolicy",
+    "SoilActionEvaluation",
+    "SoilExecutionRecord",
+    "SoilVerificationRecord",
+    "SoilOutcomeRecord",
+    "SoilLearningAttribution",
 ]
+
+from .p4 import (
+    ApprovalRequirement,
+    SoilActionEvaluation,
+    SoilActionPolicy,
+    SoilExecutionRecord,
+    SoilLearningAttribution,
+    SoilOutcomeRecord,
+    SoilVerificationRecord,
+)

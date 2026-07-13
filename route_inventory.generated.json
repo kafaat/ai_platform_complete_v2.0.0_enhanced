@@ -7305,6 +7305,62 @@
   },
   {
     "service": "soil-service",
+    "file": "services/soil-service/routers/p4_workflow.py",
+    "line": 32,
+    "method": "GET",
+    "path": "/v1/soil/action-policies",
+    "function": "policies"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p4_workflow.py",
+    "line": 38,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/actions/{action_type}/evaluate",
+    "function": "evaluate"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p4_workflow.py",
+    "line": 51,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/executions",
+    "function": "create_execution"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p4_workflow.py",
+    "line": 76,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/verifications",
+    "function": "create_verification"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p4_workflow.py",
+    "line": 95,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/outcomes",
+    "function": "create_outcome"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p4_workflow.py",
+    "line": 114,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/soil/learning-attributions",
+    "function": "create_learning"
+  },
+  {
+    "service": "soil-service",
+    "file": "services/soil-service/routers/p4_workflow.py",
+    "line": 139,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/soil/closed-loop",
+    "function": "closed_loop"
+  },
+  {
+    "service": "soil-service",
     "file": "services/soil-service/routers/readings.py",
     "line": 23,
     "method": "GET",

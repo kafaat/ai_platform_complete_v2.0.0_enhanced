@@ -11,3 +11,11 @@
 [run]
 omit =
     services/decision-service/*
+    # soil-service persistence + HTTP surfaces are DB/TestClient-bound (integration-tested by
+    # the "Integration Tests" job's soil runtime certification, and their per-route live proofs
+    # are explicit runtime-certification tasks). They are not `-m unit` coverable, so — exactly
+    # like decision-service above — their zero-coverage lines are excluded from the UNIT floor
+    # denominator. The PURE governed builders (p1/p2/p3_products.py, p4_governance.py,
+    # profile_composer.py, soil_science.py) stay measured and are unit-tested.
+    services/soil-service/*_store.py
+    services/soil-service/routers/*
