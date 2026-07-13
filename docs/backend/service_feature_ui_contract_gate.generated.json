@@ -42,47 +42,47 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useManagerConsole.ts",
+              "path": "frontend/src/sections/MapHubTwoYearBackfill.static.test.ts",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/MapHub.tsx",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/SatellitePage.tsx",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/SatellitePageFieldGeometryRefresh.static.test.ts",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/SettingsPage.tsx",
+              "pattern": "SignupPage"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/SettingsPage.tsx",
               "pattern": "/auth/"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
+              "path": "frontend/src/sections/SettingsPage.tsx",
               "pattern": "refresh"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useAuth.ts",
-              "pattern": "LoginPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useAuth.ts",
-              "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
+              "path": "frontend/src/sections/ManagerConsolePage.tsx",
               "pattern": "/auth/"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
-              "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/auth.ts",
-              "pattern": "/auth/"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/auth.ts",
-              "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/client.ts",
+              "path": "frontend/src/sections/SatellitePageRuntimeFix.static.test.ts",
               "pattern": "/auth/"
             }
           ],
@@ -100,12 +100,12 @@
           "matches": [
             {
               "root": "nginx",
-              "path": "nginx/nginx.light.conf",
+              "path": "nginx/nginx.unified.conf",
               "pattern": "/auth/"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.light.conf",
+              "path": "nginx/nginx.unified.conf",
               "pattern": "auth_backend"
             },
             {
@@ -120,22 +120,22 @@
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.fixed.conf",
+              "path": "nginx/nginx.light.conf",
               "pattern": "/auth/"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.fixed.conf",
+              "path": "nginx/nginx.light.conf",
               "pattern": "auth_backend"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.unified.conf",
+              "path": "nginx/nginx.fixed.conf",
               "pattern": "/auth/"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.unified.conf",
+              "path": "nginx/nginx.fixed.conf",
               "pattern": "auth_backend"
             }
           ],
@@ -163,66 +163,66 @@
           "matches": [
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/FieldIndicatorMap.tsx",
-              "pattern": "AddFieldWithMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.undoredo.test.tsx",
-              "pattern": "AddFieldWithMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.workspace.test.tsx",
-              "pattern": "AddFieldWithMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.tsx",
+              "path": "frontend/src/lib/agronomyConsistency.ts",
               "pattern": "/api/v1"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.tsx",
-              "pattern": "AddFieldWithMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/FieldDetailPanel.tsx",
-              "pattern": "FieldDetailPanel"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/AutoSegmentControl.tsx",
-              "pattern": "AddFieldWithMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/FieldDetailDrawer.tsx",
-              "pattern": "FieldDetailPanel"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/InteractiveDrawLayer.test.ts",
-              "pattern": "AddFieldWithMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/DrawingTools.static.test.ts",
-              "pattern": "AddFieldWithMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/TerrainView3D.tsx",
+              "path": "frontend/src/lib/fieldProfitability.ts",
               "pattern": "/api/v1"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/HubMap.tsx",
+              "path": "frontend/src/lib/waterHarvesting.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/mapRegression.test.ts",
               "pattern": "AddFieldWithMap"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/recommendationsLifecycle.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/evidenceHistory.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/decisionDeep.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/globalScaleRuntime.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/layerRegistry.test.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/permissions.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/irrigationDecisionAids.ts",
+              "pattern": "/api/v1"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/enterpriseGisPhase7.ts",
+              "pattern": "/api/v1"
             }
           ],
-          "match_count": 190
+          "match_count": 192
         },
         {
           "kind": "gateway",
@@ -279,6 +279,26 @@
           "matches": [
             {
               "root": "frontend/src",
+              "path": "frontend/src/lib/geo.ts",
+              "pattern": "FieldIndicatorMap"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/layerRegistry.ts",
+              "pattern": "FieldIndicatorMap"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/leafletSetup.ts",
+              "pattern": "FieldIndicatorMap"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/FieldIndicatorMap.static.test.ts",
+              "pattern": "FieldIndicatorMap"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/FieldIndicatorMap.tsx",
               "pattern": "cdse-tilejson"
             },
@@ -290,21 +310,6 @@
             {
               "root": "frontend/src",
               "path": "frontend/src/components/FieldIndicatorMap.tsx",
-              "pattern": "FieldIndicatorMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/FieldIndicatorMap.static.test.ts",
-              "pattern": "FieldIndicatorMap"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
-              "pattern": "tilejson"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/HubMap.tsx",
               "pattern": "FieldIndicatorMap"
             },
             {
@@ -319,23 +324,18 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
-              "pattern": "cdse-tilejson"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
+              "path": "frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts",
               "pattern": "tilejson"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
+              "path": "frontend/src/components/maphub/HubMap.tsx",
               "pattern": "FieldIndicatorMap"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/services/api/client.ts",
-              "pattern": "tilejson"
+              "path": "frontend/src/sections/FarmMapOverview.tsx",
+              "pattern": "FieldIndicatorMap"
             }
           ],
           "match_count": 24
@@ -400,58 +400,58 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/NDVIGauge.tsx",
+              "path": "frontend/src/lib/fieldObjectiveEngine.ts",
               "pattern": "NDVI"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/sql/SQLEditor.tsx",
+              "path": "frontend/src/lib/layerRegistry.test.ts",
               "pattern": "NDVI"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/DataFreshnessBadge.tsx",
+              "path": "frontend/src/lib/realData.test.ts",
+              "pattern": "FieldRanking"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/gisWorkbench.test.ts",
               "pattern": "NDVI"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/DataFreshnessBadge.test.tsx",
+              "path": "frontend/src/lib/irrigationDecisionAids.ts",
               "pattern": "NDVI"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/ds/tokens.ts",
+              "path": "frontend/src/lib/gisCatalog.test.ts",
               "pattern": "NDVI"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/shell/ContextBar.tsx",
+              "path": "frontend/src/lib/fieldZoneVra.ts",
               "pattern": "NDVI"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/approvals/DecisionEvidencePanel.tsx",
+              "path": "frontend/src/lib/fieldFarmerMetrics.test.ts",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/layerRegistry.ts",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/sceneFreshness.ts",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/indicatorsRegistry.generated.ts",
               "pattern": "vegetation"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/FieldIntelligenceCardView.tsx",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/CropPropagationCard.tsx",
-              "pattern": "NDVI"
             }
           ],
           "match_count": 98
@@ -520,7 +520,27 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+              "path": "frontend/src/lib/permissions.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldOperatingContract.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/learningEvidence.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/indicatorsRegistry.generated.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/routes.ts",
               "pattern": "indicators"
             },
             {
@@ -530,42 +550,22 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+              "pattern": "indicators"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/config/endpoints.ts",
               "pattern": "indicators"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useIndicatorRegistry.static.test.ts",
-              "pattern": "HybridIndexPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useIndicatorRegistry.static.test.ts",
-              "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useIndicatorRegistry.ts",
-              "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
+              "path": "frontend/src/sections/SpatialIndicatorsPage.tsx",
               "pattern": "useIndicators"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
-              "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useLearningEvidence.ts",
-              "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useIndicators.ts",
+              "path": "frontend/src/sections/SpatialIndicatorsPage.tsx",
               "pattern": "indicators"
             }
           ],
@@ -632,13 +632,38 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
+              "path": "frontend/src/components/maphub/weather/README.md",
               "pattern": "WeatherTileLayer"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
+              "path": "frontend/src/components/maphub/weather/README.md",
               "pattern": "WeatherProbePopup"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
+              "pattern": "WeatherProbePopup"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
+              "pattern": "operation-window"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+              "pattern": "WeatherTileLayer"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+              "pattern": "WeatherProbePopup"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+              "pattern": "operation-window"
             },
             {
               "root": "frontend/src",
@@ -647,42 +672,17 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/README.md",
+              "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
               "pattern": "WeatherTileLayer"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/README.md",
+              "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
               "pattern": "WeatherProbePopup"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
-              "pattern": "WeatherProbePopup"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
-              "pattern": "operation-window"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
-              "pattern": "WeatherTileLayer"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
-              "pattern": "WeatherProbePopup"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
-              "pattern": "operation-window"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/fieldWeather.ts",
+              "path": "frontend/src/sections/FieldWorkspaceWeatherPanel.tsx",
               "pattern": "operation-window"
             }
           ],
@@ -701,62 +701,62 @@
           "matches": [
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/season_simulation.py",
+              "path": "services/sahool-platform/core/api_adapter.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/guardrails.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/canonical_field_state_lock.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/weather_overlay_pipeline.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/agronomic_decision.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/agronomic_state_engine.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/gdd_phenology.py",
               "pattern": "weather-service"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/season_simulation.py",
+              "path": "services/sahool-platform/core/gdd_phenology.py",
               "pattern": "weather"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/main.py",
+              "path": "services/sahool-platform/core/skills_registry.py",
               "pattern": "weather"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/event_replay.py",
+              "path": "services/sahool-platform/core/decision_playbook.py",
               "pattern": "weather"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/season_models.py",
+              "path": "services/sahool-platform/core/internal_orchestrator.py",
               "pattern": "weather"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/temporal_arbitration.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/phase_runtime_workers.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/cost_governance.py",
-              "pattern": "weather-service"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/cost_governance.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/crop_twin.py",
-              "pattern": "weather-service"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/crop_twin.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/failure_modes.py",
+              "path": "services/sahool-platform/core/field_intelligence_card.py",
               "pattern": "weather"
             }
           ],
@@ -789,61 +789,61 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.tsx",
+              "path": "frontend/src/lib/featureFlags.ts",
               "pattern": "soil"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.tsx",
+              "path": "frontend/src/lib/specialtyCrops.test.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldWaterBrain.test.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/decisionDeep.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldDiagnostics.test.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/whatIfScenarios.test.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldWaterBrain.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/learningEvidence.test.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/irrigationDecisionAids.ts",
+              "pattern": "soil"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/irrigationDecisionAids.ts",
               "pattern": "Soil"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/FieldDetailPanel.tsx",
+              "path": "frontend/src/lib/fieldOperatingContract.ts",
               "pattern": "soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
-              "pattern": "soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/ProductivityZonesPanel.tsx",
-              "pattern": "Soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
-              "pattern": "soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.tsx",
-              "pattern": "Soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/HubMapGL.test.tsx",
-              "pattern": "soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/FieldDetailDrawer.tsx",
-              "pattern": "soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts",
-              "pattern": "soil"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/SoilSamplingPlannerPanel.static.test.ts",
-              "pattern": "Soil"
             }
           ],
-          "match_count": 142
+          "match_count": 152
         },
         {
           "kind": "platform-proxy",
@@ -863,61 +863,61 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/main.py",
+              "path": "services/sahool-platform/core/sensor_intake.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/event_replay.py",
+              "path": "services/sahool-platform/core/guardrails.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/data_quality.py",
+              "path": "services/sahool-platform/core/agronomic_decision.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/prescriptions.py",
+              "path": "services/sahool-platform/core/agronomic_state_engine.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/temporal_arbitration.py",
+              "path": "services/sahool-platform/core/crop_rotation_intelligence.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/phase_runtime_workers.py",
+              "path": "services/sahool-platform/core/skills_registry.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/water_ledger_compute.py",
+              "path": "services/sahool-platform/core/decision_playbook.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/calibration.py",
+              "path": "services/sahool-platform/core/soil_feedback_trend.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/lab_store.py",
+              "path": "services/sahool-platform/core/field_intelligence_card.py",
+              "pattern": "soil-service"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/field_intelligence_card.py",
               "pattern": "soil"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/soil_water.py",
-              "pattern": "soil"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/failure_modes.py",
+              "path": "services/sahool-platform/core/weather_sources.py",
               "pattern": "soil"
             }
           ],
-          "match_count": 268
+          "match_count": 269
         }
       ]
     },
@@ -1057,6 +1057,11 @@
           "matches": [
             {
               "root": "services/field-segmentation",
+              "path": "services/field-segmentation/exg_preprocess.py",
+              "pattern": "sam2"
+            },
+            {
+              "root": "services/field-segmentation",
               "path": "services/field-segmentation/main.py",
               "pattern": "SEGMENTATION_INFERENCE_URL"
             },
@@ -1088,11 +1093,6 @@
             {
               "root": "services/field-segmentation",
               "path": "services/field-segmentation/test_exg_preprocess.py",
-              "pattern": "sam2"
-            },
-            {
-              "root": "services/field-segmentation",
-              "path": "services/field-segmentation/exg_preprocess.py",
               "pattern": "sam2"
             },
             {
@@ -1145,22 +1145,32 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
+              "path": "frontend/src/lib/approvalsConsole.test.ts",
+              "pattern": "ChatbotPage"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ChatbotPage.tsx",
+              "pattern": "ChatbotPage"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ChatbotPage.tsx",
               "pattern": "ai-agronomist"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/fieldViewUiWide.static.test.ts",
+              "path": "frontend/src/sections/ChatbotProviderToolApproval.v58.static.test.ts",
               "pattern": "ChatbotPage"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
+              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
               "pattern": "ChatbotPage"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
+              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
               "pattern": "ai-agronomist"
             },
             {
@@ -1170,22 +1180,12 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotPage.tsx",
+              "path": "frontend/src/sections/ChatbotAiContextPack.static.test.ts",
               "pattern": "ChatbotPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotPage.tsx",
-              "pattern": "ai-agronomist"
             },
             {
               "root": "frontend/src",
               "path": "frontend/src/sections/ChatbotAiEvidenceTransparency.static.test.ts",
-              "pattern": "ChatbotPage"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotAiContextPack.static.test.ts",
               "pattern": "ChatbotPage"
             },
             {
@@ -1195,7 +1195,7 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotProviderToolApproval.v58.static.test.ts",
+              "path": "frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts",
               "pattern": "ChatbotPage"
             }
           ],
@@ -1267,12 +1267,12 @@
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
               "pattern": "rag-retrieval"
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
+              "path": "tests_v9/test_service_feature_ui_contract_gate.py",
               "pattern": "rag-retrieval"
             },
             {
@@ -1282,18 +1282,8 @@
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_service_feature_ui_contract_gate.py",
+              "path": "tests_v9/test_real_findings_closure_20260702.py",
               "pattern": "rag-retrieval"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-              "pattern": "rag-retrieval"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
-              "pattern": "/api/rag/"
             },
             {
               "root": "tests_v9",
@@ -1303,6 +1293,16 @@
             {
               "root": "tests_v9",
               "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
+              "pattern": "rag-retrieval"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/runtime_activation/test_phase2_ai_gateway_web_binding_static.py",
+              "pattern": "/api/rag/"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/runtime_activation/test_phase1_ai_runtime_compose_static.py",
               "pattern": "rag-retrieval"
             }
           ],
@@ -1364,22 +1364,22 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_remaining_gap_completion.py",
-              "pattern": "knowledge-graph"
-            },
-            {
-              "root": "services/sahool-platform",
               "path": "services/sahool-platform/core/mcp_service_servers.py",
               "pattern": "knowledge-graph"
             },
             {
-              "root": "tests_v9",
-              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_remaining_gap_completion.py",
               "pattern": "knowledge-graph"
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_gateway_trusted_identity_sec3.py",
+              "pattern": "knowledge-graph"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_service_feature_ui_contract_gate.py",
               "pattern": "knowledge-graph"
             },
             {
@@ -1417,52 +1417,7 @@
           "matches": [
             {
               "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
-              "pattern": "/api/agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
-              "pattern": "supervisor"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useApi.ts",
-              "pattern": "agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/client.ts",
-              "pattern": "/api/agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/client.ts",
-              "pattern": "agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/MapHub.tsx",
-              "pattern": "agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ApprovalsConsolePage.tsx",
-              "pattern": "agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
-              "pattern": "/api/agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
-              "pattern": "agent"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/lib/fieldViewGovernance.ts",
+              "path": "frontend/src/lib/fieldViewDecisionScript.test.ts",
               "pattern": "agent"
             },
             {
@@ -1472,7 +1427,52 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/lib/fieldViewGovernance.test.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/designSystemGovernance.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldViewActionDeck.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/lib/fieldHealthReport.test.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/designSystemGovernance.test.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldViewGovernance.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/MapHub.tsx",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
+              "pattern": "/api/agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ChatbotPage.endpoint.test.ts",
+              "pattern": "agent"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/sections/ApprovalsConsolePage.tsx",
               "pattern": "agent"
             }
           ],
@@ -1490,12 +1490,12 @@
           "matches": [
             {
               "root": "nginx",
-              "path": "nginx/nginx.light.conf",
+              "path": "nginx/nginx.unified.conf",
               "pattern": "/api/agent/"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.light.conf",
+              "path": "nginx/nginx.unified.conf",
               "pattern": "supervisor_backend"
             },
             {
@@ -1510,22 +1510,22 @@
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.fixed.conf",
+              "path": "nginx/nginx.light.conf",
               "pattern": "/api/agent/"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.fixed.conf",
+              "path": "nginx/nginx.light.conf",
               "pattern": "supervisor_backend"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.unified.conf",
+              "path": "nginx/nginx.fixed.conf",
               "pattern": "/api/agent/"
             },
             {
               "root": "nginx",
-              "path": "nginx/nginx.unified.conf",
+              "path": "nginx/nginx.fixed.conf",
               "pattern": "supervisor_backend"
             }
           ],
@@ -1558,61 +1558,61 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.undoredo.test.tsx",
+              "path": "frontend/src/lib/agronomyConsistency.ts",
+              "pattern": "approval"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/agronomyConsistency.ts",
               "pattern": "validate"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.workspace.test.tsx",
+              "path": "frontend/src/lib/recommendationsLifecycle.ts",
               "pattern": "validate"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.tsx",
+              "path": "frontend/src/lib/decisionDeep.ts",
+              "pattern": "approval"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/globalScaleRuntime.ts",
+              "pattern": "guardrails"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/recommendationsLifecycle.test.ts",
               "pattern": "validate"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddSeasonWithStages.tsx",
-              "pattern": "validate"
+              "path": "frontend/src/lib/permissions.ts",
+              "pattern": "approval"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/DrawingTools.static.test.ts",
-              "pattern": "validate"
+              "path": "frontend/src/lib/irrigationDecisionAids.ts",
+              "pattern": "approval"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/FieldSplitMergeTool.test.tsx",
-              "pattern": "validate"
+              "path": "frontend/src/lib/enterpriseGisPhase7.ts",
+              "pattern": "approval"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/drawingEvents.ts",
-              "pattern": "validate"
+              "path": "frontend/src/lib/enterpriseGisPhase7.test.ts",
+              "pattern": "approval"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/ZoneDesigner.static.test.ts",
-              "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/DrawingCore.static.test.ts",
-              "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/drawingFeatureApi.ts",
-              "pattern": "validate"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/drawing/zoneDesigner.ts",
+              "path": "frontend/src/lib/fieldOperatingContract.ts",
               "pattern": "validate"
             }
           ],
-          "match_count": 87
+          "match_count": 92
         },
         {
           "kind": "gateway",
@@ -1685,12 +1685,7 @@
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_crop_model_uncertainty_v64.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "path": "tests_v9/test_v9_feature_transfer_20260702.py",
               "pattern": "agriai-engine"
             },
             {
@@ -1700,7 +1695,12 @@
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_v9_feature_transfer_20260702.py",
+              "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "pattern": "agriai-engine"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_crop_model_uncertainty_v64.py",
               "pattern": "agriai-engine"
             },
             {
@@ -1736,22 +1736,12 @@
           "matches": [
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/test_graceful_degradation.py",
+              "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
               "pattern": "MCP"
             },
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/main.py",
-              "pattern": "MCP"
-            },
-            {
-              "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/main.py",
-              "pattern": "sentinel"
-            },
-            {
-              "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/test_chaos_resilience.py",
+              "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
               "pattern": "sentinel"
             },
             {
@@ -1761,8 +1751,18 @@
             },
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/circuit_breaker.py",
+              "path": "services/supervisor-agent/test_graceful_degradation.py",
               "pattern": "MCP"
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/advisory_skill.py",
+              "pattern": "MCP"
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/test_chaos_resilience.py",
+              "pattern": "sentinel"
             },
             {
               "root": "services/supervisor-agent",
@@ -1771,13 +1771,18 @@
             },
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+              "path": "services/supervisor-agent/main.py",
               "pattern": "MCP"
             },
             {
               "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/test_ai_orchestration_forensic.py",
+              "path": "services/supervisor-agent/main.py",
               "pattern": "sentinel"
+            },
+            {
+              "root": "services/supervisor-agent",
+              "path": "services/supervisor-agent/circuit_breaker.py",
+              "pattern": "MCP"
             },
             {
               "root": "services/supervisor-agent",
@@ -1788,11 +1793,6 @@
               "root": "services/supervisor-agent",
               "path": "services/supervisor-agent/remote_sensing_skill.py",
               "pattern": "sentinel"
-            },
-            {
-              "root": "services/supervisor-agent",
-              "path": "services/supervisor-agent/crop_model_skill.py",
-              "pattern": "MCP"
             }
           ],
           "match_count": 93
@@ -1825,61 +1825,61 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddFieldWithMap.tsx",
+              "path": "frontend/src/lib/featureFlags.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/FieldDetailPanel.tsx",
+              "path": "frontend/src/lib/agronomyConsistency.test.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddSeasonWithStages.tsx",
+              "path": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
+              "pattern": "schedule"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldObjectiveEngine.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/FieldDetailDrawer.tsx",
+              "path": "frontend/src/lib/agronomyConsistency.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
+              "path": "frontend/src/lib/ledgerEntry.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
+              "path": "frontend/src/lib/waterHarvesting.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
+              "path": "frontend/src/lib/recommendationsLifecycle.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/shell/MobileTabBar.tsx",
+              "path": "frontend/src/lib/fieldWaterBrain.test.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/decision/DecisionDeepPanel.tsx",
+              "path": "frontend/src/lib/decisionDeep.ts",
               "pattern": "irrigation"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/LedgerEntryCard.tsx",
-              "pattern": "irrigation"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/CropSafetyKnowledgeCard.tsx",
+              "path": "frontend/src/lib/whatIfScenarios.test.ts",
               "pattern": "irrigation"
             }
           ],
-          "match_count": 174
+          "match_count": 177
         },
         {
           "kind": "platform-proxy",
@@ -1894,62 +1894,62 @@
           "matches": [
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/phase_runtime_store.py",
+              "path": "services/sahool-platform/core/loop_referential_integrity.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/phase_runtime_workers.py",
+              "path": "services/sahool-platform/core/outcome_reconciler.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/command_store.py",
+              "path": "services/sahool-platform/core/agronomic_decision.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/decision_service_client.py",
+              "path": "services/sahool-platform/core/impact_measurement.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/command_dispatcher.py",
+              "path": "services/sahool-platform/core/policy_registry.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/offline_sync_db.py",
+              "path": "services/sahool-platform/core/dispatch_lifecycle.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/crop_decision_bridge.py",
+              "path": "services/sahool-platform/core/execution_ledger_entry.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/learning_summary.py",
+              "path": "services/sahool-platform/core/field_intelligence_coordinator.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/device_registry.py",
+              "path": "services/sahool-platform/core/dispatch_notification.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/dispatch_executor.py",
               "pattern": "actuator-service"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/water_decision_bridge.py",
+              "path": "services/sahool-platform/core/dispatch_executor.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/correlation_middleware.py",
-              "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/field_aggregate.py",
+              "path": "services/sahool-platform/core/field_intelligence_adapters.py",
               "pattern": "dispatch"
             }
           ],
@@ -1988,56 +1988,56 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/FieldDetailPanel.tsx",
+              "path": "frontend/src/lib/fieldProfitability.ts",
               "pattern": "yield"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/AddSeasonWithStages.tsx",
-              "pattern": "yield"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/FieldDetailDrawer.tsx",
-              "pattern": "yield"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/ds/tokens.ts",
-              "pattern": "yield"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/decision/DecisionDeepPanel.tsx",
+              "path": "frontend/src/lib/ledgerEntry.ts",
               "pattern": "pest"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/decision/DecisionDeepPanel.tsx",
-              "pattern": "yield"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/decision/RecommendationsLifecyclePanel.tsx",
-              "pattern": "yield"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/LedgerEntryCard.tsx",
+              "path": "frontend/src/lib/fieldScouting.test.ts",
               "pattern": "pest"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/CropSafetyKnowledgeCard.tsx",
+              "path": "frontend/src/lib/recommendationsLifecycle.ts",
+              "pattern": "yield"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/decisionDeep.ts",
               "pattern": "pest"
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/AgroAnalyticsCard.tsx",
+              "path": "frontend/src/lib/decisionDeep.ts",
               "pattern": "yield"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/reports.ts",
+              "pattern": "yield"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/fieldDiagnostics.test.ts",
+              "pattern": "pest"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/recommendationsLifecycle.test.ts",
+              "pattern": "yield"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/permissions.ts",
+              "pattern": "pest"
             }
           ],
-          "match_count": 120
+          "match_count": 121
         },
         {
           "kind": "platform-proxy",
@@ -2051,17 +2051,17 @@
           "matches": [
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/capabilities.py",
+              "pattern": "edge-inference"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/routers/service_proxy.py",
               "pattern": "EDGE_INFERENCE_URL"
             },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/routers/service_proxy.py",
-              "pattern": "edge-inference"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/core/capabilities.py",
               "pattern": "edge-inference"
             }
           ],
@@ -2095,8 +2095,48 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/weatherLayerDefinitions.ts",
+              "path": "frontend/src/lib/evidenceHistory.test.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/evidenceHistory.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/precisionAgriculture.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/districtsWeather.ts",
               "pattern": "stream"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/waterFieldOps.ts",
+              "pattern": "stream"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/soilWorkspace.test.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/precisionAgriculture.test.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/approvalsConsole.ts",
+              "pattern": "snapshot"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/lib/soilWorkspace.ts",
+              "pattern": "snapshot"
             },
             {
               "root": "frontend/src",
@@ -2105,51 +2145,11 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/WaterFieldOpsCard.tsx",
-              "pattern": "stream"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/EvidenceHistoryCard.tsx",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/DistrictsWeatherCard.tsx",
-              "pattern": "stream"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useManagerConsole.ts",
-              "pattern": "camera"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useManagerConsole.ts",
-              "pattern": "snapshot"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useWaterFieldOps.ts",
-              "pattern": "stream"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
-              "pattern": "camera"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ManagerConsolePage.tsx",
-              "pattern": "camera"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/sections/ManagerConsolePage.tsx",
+              "path": "frontend/src/components/fieldview/MpcGovernanceCard.tsx",
               "pattern": "snapshot"
             }
           ],
-          "match_count": 25
+          "match_count": 29
         },
         {
           "kind": "platform-proxy",
@@ -2206,11 +2206,6 @@
           "matches": [
             {
               "root": "frontend/src",
-              "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
-              "pattern": "WeatherTileLayer"
-            },
-            {
-              "root": "frontend/src",
               "path": "frontend/src/components/maphub/weather/README.md",
               "pattern": "WeatherTileLayer"
             },
@@ -2238,6 +2233,11 @@
               "root": "frontend/src",
               "path": "frontend/src/components/maphub/weather/WeatherTileLayer.ts",
               "pattern": "tile-data"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx",
+              "pattern": "WeatherTileLayer"
             }
           ],
           "match_count": 7
@@ -2256,16 +2256,6 @@
           "matches": [
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
-              "pattern": "weather_overlay_pipeline"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
-              "pattern": "weather-polygon-worker"
-            },
-            {
-              "root": "services/sahool-platform",
               "path": "services/sahool-platform/core/weather_overlay_pipeline.py",
               "pattern": "field_weather_overlay"
             },
@@ -2280,14 +2270,14 @@
               "pattern": "weather-polygon-worker"
             },
             {
-              "root": "tests_v9",
-              "path": "tests_v9/test_nats_publisher_coverage.py",
-              "pattern": "weather-polygon-worker"
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
+              "pattern": "weather_overlay_pipeline"
             },
             {
-              "root": "tests_v9",
-              "path": "tests_v9/test_weather_intelligence_migration.py",
-              "pattern": "field_weather_overlay"
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_weather_overlay_pipeline.py",
+              "pattern": "weather-polygon-worker"
             },
             {
               "root": "tests_v9",
@@ -2296,7 +2286,17 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_weather_intelligence_migration.py",
+              "pattern": "field_weather_overlay"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_weather_polygon_worker.py",
+              "pattern": "weather-polygon-worker"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_nats_publisher_coverage.py",
               "pattern": "weather-polygon-worker"
             },
             {
@@ -2330,6 +2330,26 @@
           "matches": [
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/weather_overlay_pipeline.py",
+              "pattern": "weather_signals"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/decision_playbook.py",
+              "pattern": "weather_signals"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/decision_playbook.py",
+              "pattern": "decision_playbook"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/weather_signals.py",
+              "pattern": "weather_signals"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/field_season_projection.py",
               "pattern": "weather_signals"
             },
@@ -2345,33 +2365,8 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_field_season_projection.py",
-              "pattern": "weather_signals"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
-              "pattern": "weather_signals"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
-              "pattern": "decision_playbook"
-            },
-            {
-              "root": "services/sahool-platform",
               "path": "services/sahool-platform/tests/test_weather_signals.py",
               "pattern": "weather_signals"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_decision_playbook.py",
-              "pattern": "weather_signals"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/tests/test_decision_playbook.py",
-              "pattern": "decision_playbook"
             },
             {
               "root": "services/sahool-platform",
@@ -2385,8 +2380,13 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/core/decision_playbook.py",
+              "path": "services/sahool-platform/tests/test_decision_playbook.py",
               "pattern": "weather_signals"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/tests/test_decision_playbook.py",
+              "pattern": "decision_playbook"
             }
           ],
           "match_count": 17
@@ -2446,16 +2446,6 @@
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_real_findings_closure_20260702.py",
-              "pattern": "erp-bridge"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_remaining_closure_20260702.py",
-              "pattern": "erp-bridge"
-            },
-            {
-              "root": "tests_v9",
               "path": "tests_v9/test_erp_bridge_alias_contract.py",
               "pattern": "/api/erp/"
             },
@@ -2472,6 +2462,16 @@
             {
               "root": "tests_v9",
               "path": "tests_v9/test_service_feature_ui_contract_gate.py",
+              "pattern": "erp-bridge"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_remaining_closure_20260702.py",
+              "pattern": "erp-bridge"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_real_findings_closure_20260702.py",
               "pattern": "erp-bridge"
             }
           ],
@@ -2500,6 +2500,11 @@
           "matches": [
             {
               "root": "frontend/src",
+              "path": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
+              "pattern": "synthesize"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/SpeakButton.tsx",
               "pattern": "SpeakButton"
             },
@@ -2511,16 +2516,6 @@
             {
               "root": "frontend/src",
               "path": "frontend/src/components/SpeakButton.tsx",
-              "pattern": "tts"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
-              "pattern": "synthesize"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api.ts",
               "pattern": "tts"
             },
             {
@@ -2535,8 +2530,13 @@
             },
             {
               "root": "frontend/src",
-              "path": "frontend/src/lib/fieldObjectiveHiddenGaps.test.ts",
+              "path": "frontend/src/services/api.ts",
               "pattern": "synthesize"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/services/api.ts",
+              "pattern": "tts"
             }
           ],
           "match_count": 8
@@ -2595,32 +2595,32 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/nl_sql_validate.py",
+              "path": "services/sahool-platform/core/decision_firewall.py",
               "pattern": "RAG"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/cost_governance.py",
-              "pattern": "local-ai-rag"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/crop_rotation.py",
+              "path": "services/sahool-platform/core/guardrails.py",
               "pattern": "RAG"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/api_models.py",
+              "path": "services/sahool-platform/core/canonical_field_state_lock.py",
               "pattern": "RAG"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/decision_explainer.py",
-              "pattern": "local-ai-rag"
+              "path": "services/sahool-platform/core/farm_costing.py",
+              "pattern": "RAG"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/decision_explainer.py",
+              "path": "services/sahool-platform/core/sla_monitor.py",
+              "pattern": "RAG"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/core/mcp_tool_registry.py",
               "pattern": "RAG"
             }
           ],
@@ -2651,22 +2651,17 @@
           "matches": [
             {
               "root": "services/raster-service",
+              "path": "services/raster-service/cloud_native_catalog.py",
+              "pattern": "tilejson"
+            },
+            {
+              "root": "services/raster-service",
+              "path": "services/raster-service/raster_cdse_tile_runtime.py",
+              "pattern": "tilejson"
+            },
+            {
+              "root": "services/raster-service",
               "path": "services/raster-service/test_router_query_direct_call.py",
-              "pattern": "tilejson"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/main.py",
-              "pattern": "TITILER_URL"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/raster_job_orchestration.py",
-              "pattern": "tilejson"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/test_tiles.py",
               "pattern": "tilejson"
             },
             {
@@ -2676,27 +2671,17 @@
             },
             {
               "root": "services/raster-service",
-              "path": "services/raster-service/test_cdse_date_normalization.py",
+              "path": "services/raster-service/raster_pixel_processing.py",
               "pattern": "tilejson"
             },
             {
               "root": "services/raster-service",
-              "path": "services/raster-service/raster_settings.py",
-              "pattern": "TITILER_URL"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/test_p2_tile_observability_static.py",
+              "path": "services/raster-service/raster_job_orchestration.py",
               "pattern": "tilejson"
             },
             {
               "root": "services/raster-service",
-              "path": "services/raster-service/tile_observability.py",
-              "pattern": "tilejson"
-            },
-            {
-              "root": "services/raster-service",
-              "path": "services/raster-service/test_raster_router_decomposition_guard.py",
+              "path": "services/raster-service/test_cloud_native_catalog.py",
               "pattern": "tilejson"
             },
             {
@@ -2706,7 +2691,22 @@
             },
             {
               "root": "services/raster-service",
-              "path": "services/raster-service/cloud_native_catalog.py",
+              "path": "services/raster-service/test_tile_tenant_query.py",
+              "pattern": "tilejson"
+            },
+            {
+              "root": "services/raster-service",
+              "path": "services/raster-service/raster_settings.py",
+              "pattern": "TITILER_URL"
+            },
+            {
+              "root": "services/raster-service",
+              "path": "services/raster-service/tile_observability.py",
+              "pattern": "tilejson"
+            },
+            {
+              "root": "services/raster-service",
+              "path": "services/raster-service/test_tiles.py",
               "pattern": "tilejson"
             }
           ],
@@ -2761,22 +2761,17 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
+              "pattern": "collection"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_rag.py",
+              "pattern": "QDRANT"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_prescription_export_adapters_v62_1.py",
-              "pattern": "collection"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_crs_service_shared.py",
-              "pattern": "collection"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_gis_multipolygon_geometry_versioning.py",
-              "pattern": "collection"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_mcp_functional.py",
               "pattern": "collection"
             },
             {
@@ -2786,12 +2781,17 @@
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_catalog_bridge_registry_stac_v30_1.py",
+              "path": "tests_v9/test_gis_kernel_geojson.py",
               "pattern": "collection"
             },
             {
               "root": "tests_v9",
-              "path": "tests_v9/test_e2e_cdse_to_element84_switch_v31_4.py",
+              "path": "tests_v9/test_gis_multipolygon_geometry_versioning.py",
+              "pattern": "collection"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_raster_scene_model_v63.py",
               "pattern": "collection"
             }
           ],

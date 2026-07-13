@@ -1,4 +1,5 @@
 from pathlib import Path
+
 req={
  'migrations/v164_soil_p4_closed_loop.sql':['soil_execution_records','soil_learning_attributions','FORCE ROW LEVEL SECURITY'],
  'services/soil-service/p4_governance.py':['POLICIES','max_evidence_age_days','block_on_conflict','build_learning'],
@@ -7,7 +8,8 @@ req={
 }
 for f,toks in req.items():
  s=Path(f).read_text()
- for x in toks: assert x in s,(f,x)
+ for x in toks:
+  assert x in s,(f,x)
 # Repository ratchet: direct soil primitives are forbidden in newly governed decision entrypoints.
 for f in ['services/decision-service/main.py']:
  s=Path(f).read_text()

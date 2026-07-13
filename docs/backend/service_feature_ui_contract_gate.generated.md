@@ -12,23 +12,23 @@ classification: `ui`
   - `frontend/src/App.tsx` ← `LoginPage`
   - `frontend/src/App.tsx` ← `SignupPage`
   - `frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts` ← `refresh`
-  - `frontend/src/hooks/useManagerConsole.ts` ← `/auth/`
-  - `frontend/src/hooks/useApi.ts` ← `refresh`
+  - `frontend/src/sections/MapHubTwoYearBackfill.static.test.ts` ← `refresh`
+  - `frontend/src/sections/MapHub.tsx` ← `refresh`
 - gateway: 8 match(es)
-  - `nginx/nginx.light.conf` ← `/auth/`
-  - `nginx/nginx.light.conf` ← `auth_backend`
+  - `nginx/nginx.unified.conf` ← `/auth/`
+  - `nginx/nginx.unified.conf` ← `auth_backend`
   - `nginx/nginx.v9.conf` ← `/auth/`
   - `nginx/nginx.v9.conf` ← `auth_backend`
-  - `nginx/nginx.fixed.conf` ← `/auth/`
+  - `nginx/nginx.light.conf` ← `/auth/`
 
 ### `sahool-platform` — pass
 classification: `ui`
-- ui: 190 match(es)
-  - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
-  - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
-  - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
-  - `frontend/src/components/AddFieldWithMap.tsx` ← `/api/v1`
-  - `frontend/src/components/AddFieldWithMap.tsx` ← `AddFieldWithMap`
+- ui: 192 match(es)
+  - `frontend/src/lib/agronomyConsistency.ts` ← `/api/v1`
+  - `frontend/src/lib/fieldProfitability.ts` ← `/api/v1`
+  - `frontend/src/lib/waterHarvesting.ts` ← `/api/v1`
+  - `frontend/src/lib/mapRegression.test.ts` ← `AddFieldWithMap`
+  - `frontend/src/lib/recommendationsLifecycle.ts` ← `/api/v1`
 - gateway: 4 match(es)
   - `nginx/nginx.v9.conf` ← `/api/v1/`
   - `nginx/nginx.v9.conf` ← `platform_backend`
@@ -38,11 +38,11 @@ classification: `ui`
 ### `raster-service` — pass
 classification: `ui`
 - ui: 24 match(es)
-  - `frontend/src/components/FieldIndicatorMap.tsx` ← `cdse-tilejson`
-  - `frontend/src/components/FieldIndicatorMap.tsx` ← `tilejson`
-  - `frontend/src/components/FieldIndicatorMap.tsx` ← `FieldIndicatorMap`
+  - `frontend/src/lib/geo.ts` ← `FieldIndicatorMap`
+  - `frontend/src/lib/layerRegistry.ts` ← `FieldIndicatorMap`
+  - `frontend/src/lib/leafletSetup.ts` ← `FieldIndicatorMap`
   - `frontend/src/components/FieldIndicatorMap.static.test.ts` ← `FieldIndicatorMap`
-  - `frontend/src/components/maphub/MapHubTerrainSoilLayers.static.test.ts` ← `tilejson`
+  - `frontend/src/components/FieldIndicatorMap.tsx` ← `cdse-tilejson`
 - gateway: 4 match(es)
   - `nginx/nginx.v9.conf` ← `/api/raster/`
   - `nginx/nginx.v9.conf` ← `raster_backend`
@@ -53,10 +53,10 @@ classification: `ui`
 classification: `ui`
 - ui: 98 match(es)
   - `frontend/src/App.tsx` ← `FieldRanking`
-  - `frontend/src/components/NDVIGauge.tsx` ← `NDVI`
-  - `frontend/src/components/sql/SQLEditor.tsx` ← `NDVI`
-  - `frontend/src/components/maphub/DataFreshnessBadge.tsx` ← `NDVI`
-  - `frontend/src/components/maphub/DataFreshnessBadge.test.tsx` ← `NDVI`
+  - `frontend/src/lib/fieldObjectiveEngine.ts` ← `NDVI`
+  - `frontend/src/lib/layerRegistry.test.ts` ← `NDVI`
+  - `frontend/src/lib/realData.test.ts` ← `FieldRanking`
+  - `frontend/src/lib/gisWorkbench.test.ts` ← `NDVI`
 - gateway: 4 match(es)
   - `nginx/nginx.v9.conf` ← `/api/vegetation/`
   - `nginx/nginx.v9.conf` ← `vegetation_backend`
@@ -68,9 +68,9 @@ classification: `ui`
 - ui: 29 match(es)
   - `frontend/src/App.tsx` ← `HybridIndexPage`
   - `frontend/src/App.tsx` ← `indicators`
-  - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `indicators`
-  - `frontend/src/components/insights/MapIndicatorLegend.test.tsx` ← `indicators`
-  - `frontend/src/config/endpoints.ts` ← `indicators`
+  - `frontend/src/lib/permissions.ts` ← `indicators`
+  - `frontend/src/lib/fieldOperatingContract.ts` ← `indicators`
+  - `frontend/src/lib/learningEvidence.ts` ← `indicators`
 - gateway: 4 match(es)
   - `nginx/nginx.v9.conf` ← `/api/indicators/`
   - `nginx/nginx.v9.conf` ← `indicators_backend`
@@ -81,31 +81,31 @@ classification: `ui`
 classification: `ui`
 - ui: 15 match(es)
   - `frontend/src/App.tsx` ← `WeatherAdvice`
-  - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherTileLayer`
-  - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherProbePopup`
-  - `frontend/src/components/maphub/weather/WeatherHoverReadout.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
+  - `frontend/src/components/maphub/weather/README.md` ← `WeatherProbePopup`
+  - `frontend/src/components/maphub/weather/WeatherProbePopup.ts` ← `WeatherProbePopup`
+  - `frontend/src/components/maphub/weather/WeatherProbePopup.ts` ← `operation-window`
 - platform-proxy: 288 match(es)
-  - `services/sahool-platform/api/season_simulation.py` ← `weather-service`
-  - `services/sahool-platform/api/season_simulation.py` ← `weather`
-  - `services/sahool-platform/api/main.py` ← `weather`
-  - `services/sahool-platform/api/event_replay.py` ← `weather`
-  - `services/sahool-platform/api/season_models.py` ← `weather`
+  - `services/sahool-platform/core/api_adapter.py` ← `weather`
+  - `services/sahool-platform/core/guardrails.py` ← `weather`
+  - `services/sahool-platform/core/canonical_field_state_lock.py` ← `weather`
+  - `services/sahool-platform/core/weather_overlay_pipeline.py` ← `weather`
+  - `services/sahool-platform/core/agronomic_decision.py` ← `weather`
 
 ### `soil-service` — pass
 classification: `ui`
-- ui: 142 match(es)
+- ui: 152 match(es)
   - `frontend/src/App.tsx` ← `soil`
-  - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
-  - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
-  - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
-  - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
-- platform-proxy: 268 match(es)
+  - `frontend/src/lib/featureFlags.ts` ← `soil`
+  - `frontend/src/lib/specialtyCrops.test.ts` ← `soil`
+  - `frontend/src/lib/fieldWaterBrain.test.ts` ← `soil`
+  - `frontend/src/lib/decisionDeep.ts` ← `soil`
+- platform-proxy: 269 match(es)
   - `services/sahool-platform/README.md` ← `soil`
-  - `services/sahool-platform/api/main.py` ← `soil`
-  - `services/sahool-platform/api/event_replay.py` ← `soil`
-  - `services/sahool-platform/api/data_quality.py` ← `soil`
-  - `services/sahool-platform/api/prescriptions.py` ← `soil`
+  - `services/sahool-platform/core/sensor_intake.py` ← `soil`
+  - `services/sahool-platform/core/guardrails.py` ← `soil`
+  - `services/sahool-platform/core/agronomic_decision.py` ← `soil`
+  - `services/sahool-platform/core/agronomic_state_engine.py` ← `soil`
 
 ### `field-segmentation` — pass
 classification: `ui`
@@ -125,20 +125,20 @@ classification: `ui`
 ### `sam2-inference` — pass
 classification: `internal`
 - internal-consumer: 33 match(es)
+  - `services/field-segmentation/exg_preprocess.py` ← `sam2`
   - `services/field-segmentation/main.py` ← `SEGMENTATION_INFERENCE_URL`
   - `services/field-segmentation/main.py` ← `SEGMENTATION_BACKEND`
   - `services/field-segmentation/main.py` ← `sam2`
   - `services/field-segmentation/test_segmentation.py` ← `SEGMENTATION_INFERENCE_URL`
-  - `services/field-segmentation/test_segmentation.py` ← `SEGMENTATION_BACKEND`
 
 ### `ai_agronomist` — pass
 classification: `ui`
 - ui: 18 match(es)
   - `frontend/src/App.tsx` ← `ChatbotPage`
-  - `frontend/src/hooks/useApi.ts` ← `ai-agronomist`
-  - `frontend/src/hooks/fieldViewUiWide.static.test.ts` ← `ChatbotPage`
-  - `frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts` ← `ChatbotPage`
-  - `frontend/src/sections/ChatbotApprovalUi.v58.static.test.ts` ← `ai-agronomist`
+  - `frontend/src/lib/approvalsConsole.test.ts` ← `ChatbotPage`
+  - `frontend/src/sections/ChatbotPage.tsx` ← `ChatbotPage`
+  - `frontend/src/sections/ChatbotPage.tsx` ← `ai-agronomist`
+  - `frontend/src/sections/ChatbotProviderToolApproval.v58.static.test.ts` ← `ChatbotPage`
 - gateway: 2 match(es)
   - `nginx/nginx.v9.conf` ← `/api/ai-agronomist/`
   - `nginx/nginx.v9.conf` ← `ai_agronomist_backend`
@@ -150,7 +150,7 @@ classification: `internal-sensitive`
   - `services/ai_agronomist/main.py` ← `rag-retrieval`
   - `services/ai_agronomist/ai_evidence_runtime.py` ← `RAG_BASE_URL`
   - `services/ai_agronomist/ai_evidence_runtime.py` ← `rag-retrieval`
-  - `tests_v9/test_real_findings_closure_20260702.py` ← `rag-retrieval`
+  - `tests_v9/test_gateway_trusted_identity_sec3.py` ← `rag-retrieval`
 
 ### `knowledge-graph` — pass
 classification: `internal-sensitive`
@@ -164,26 +164,26 @@ classification: `internal-sensitive`
 ### `supervisor-agent` — pass
 classification: `ui`
 - ui: 20 match(es)
-  - `frontend/src/hooks/useApi.ts` ← `/api/agent`
-  - `frontend/src/hooks/useApi.ts` ← `supervisor`
-  - `frontend/src/hooks/useApi.ts` ← `agent`
-  - `frontend/src/services/api/client.ts` ← `/api/agent`
-  - `frontend/src/services/api/client.ts` ← `agent`
+  - `frontend/src/lib/fieldViewDecisionScript.test.ts` ← `agent`
+  - `frontend/src/lib/fieldOperatingContract.ts` ← `supervisor`
+  - `frontend/src/lib/fieldViewGovernance.test.ts` ← `agent`
+  - `frontend/src/lib/designSystemGovernance.ts` ← `agent`
+  - `frontend/src/lib/fieldViewActionDeck.ts` ← `agent`
 - gateway: 8 match(es)
-  - `nginx/nginx.light.conf` ← `/api/agent/`
-  - `nginx/nginx.light.conf` ← `supervisor_backend`
+  - `nginx/nginx.unified.conf` ← `/api/agent/`
+  - `nginx/nginx.unified.conf` ← `supervisor_backend`
   - `nginx/nginx.v9.conf` ← `/api/agent/`
   - `nginx/nginx.v9.conf` ← `supervisor_backend`
-  - `nginx/nginx.fixed.conf` ← `/api/agent/`
+  - `nginx/nginx.light.conf` ← `/api/agent/`
 
 ### `guardrails-engine` — pass
 classification: `ui`
-- ui: 87 match(es)
+- ui: 92 match(es)
   - `frontend/src/App.tsx` ← `approval`
-  - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `validate`
-  - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `validate`
-  - `frontend/src/components/AddFieldWithMap.tsx` ← `validate`
-  - `frontend/src/components/AddSeasonWithStages.tsx` ← `validate`
+  - `frontend/src/lib/agronomyConsistency.ts` ← `approval`
+  - `frontend/src/lib/agronomyConsistency.ts` ← `validate`
+  - `frontend/src/lib/recommendationsLifecycle.ts` ← `validate`
+  - `frontend/src/lib/decisionDeep.ts` ← `approval`
 - gateway: 4 match(es)
   - `nginx/nginx.v9.conf` ← `/api/guardrails/`
   - `nginx/nginx.v9.conf` ← `guardrails_backend`
@@ -196,54 +196,54 @@ classification: `internal`
   - `docker-compose.unified.yml` ← `MCP_AGRIAI_URL`
   - `docker-compose.unified.yml` ← `agriai-engine`
   - `docker-compose.unified.yml` ← `sahool-unified-agriai-engine`
-  - `tests_v9/test_crop_model_uncertainty_v64.py` ← `agriai-engine`
-  - `tests_v9/test_real_findings_closure_20260702.py` ← `agriai-engine`
+  - `tests_v9/test_v9_feature_transfer_20260702.py` ← `agriai-engine`
+  - `tests_v9/test_agriai_engine_features_20260702.py` ← `agriai-engine`
 
 ### `mcp_servers` — pass
 classification: `internal`
 - internal-consumer: 93 match(es)
-  - `services/supervisor-agent/test_graceful_degradation.py` ← `MCP`
-  - `services/supervisor-agent/main.py` ← `MCP`
-  - `services/supervisor-agent/main.py` ← `sentinel`
-  - `services/supervisor-agent/test_chaos_resilience.py` ← `sentinel`
+  - `services/supervisor-agent/test_ai_orchestration_forensic.py` ← `MCP`
+  - `services/supervisor-agent/test_ai_orchestration_forensic.py` ← `sentinel`
   - `services/supervisor-agent/market_skill.py` ← `MCP`
+  - `services/supervisor-agent/test_graceful_degradation.py` ← `MCP`
+  - `services/supervisor-agent/advisory_skill.py` ← `MCP`
 
 ### `actuator-service` — pass
 classification: `ui`
-- ui: 174 match(es)
+- ui: 177 match(es)
   - `frontend/src/App.tsx` ← `irrigation`
-  - `frontend/src/components/AddFieldWithMap.tsx` ← `irrigation`
-  - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
-  - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
-  - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
+  - `frontend/src/lib/featureFlags.ts` ← `irrigation`
+  - `frontend/src/lib/agronomyConsistency.test.ts` ← `irrigation`
+  - `frontend/src/lib/fieldObjectiveHiddenGaps.test.ts` ← `schedule`
+  - `frontend/src/lib/fieldObjectiveEngine.ts` ← `irrigation`
 - platform-proxy: 84 match(es)
-  - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`
-  - `services/sahool-platform/api/phase_runtime_workers.py` ← `dispatch`
-  - `services/sahool-platform/api/command_store.py` ← `dispatch`
-  - `services/sahool-platform/api/decision_service_client.py` ← `dispatch`
-  - `services/sahool-platform/api/command_dispatcher.py` ← `dispatch`
+  - `services/sahool-platform/core/loop_referential_integrity.py` ← `dispatch`
+  - `services/sahool-platform/core/outcome_reconciler.py` ← `dispatch`
+  - `services/sahool-platform/core/agronomic_decision.py` ← `dispatch`
+  - `services/sahool-platform/core/impact_measurement.py` ← `dispatch`
+  - `services/sahool-platform/core/policy_registry.py` ← `dispatch`
 
 ### `edge-inference` — pass
 classification: `ui`
-- ui: 120 match(es)
+- ui: 121 match(es)
   - `frontend/src/App.tsx` ← `pest`
   - `frontend/src/App.tsx` ← `yield`
-  - `frontend/src/components/FieldDetailPanel.tsx` ← `yield`
-  - `frontend/src/components/AddSeasonWithStages.tsx` ← `yield`
-  - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `yield`
+  - `frontend/src/lib/fieldProfitability.ts` ← `yield`
+  - `frontend/src/lib/ledgerEntry.ts` ← `pest`
+  - `frontend/src/lib/fieldScouting.test.ts` ← `pest`
 - platform-proxy: 3 match(es)
+  - `services/sahool-platform/core/capabilities.py` ← `edge-inference`
   - `services/sahool-platform/api/routers/service_proxy.py` ← `EDGE_INFERENCE_URL`
   - `services/sahool-platform/api/routers/service_proxy.py` ← `edge-inference`
-  - `services/sahool-platform/core/capabilities.py` ← `edge-inference`
 
 ### `video-processor` — pass
 classification: `ui`
-- ui: 25 match(es)
+- ui: 29 match(es)
   - `frontend/src/App.tsx` ← `DevicesPage`
-  - `frontend/src/components/maphub/weather/weatherLayerDefinitions.ts` ← `stream`
-  - `frontend/src/components/approvals/DecisionEvidencePanel.tsx` ← `snapshot`
-  - `frontend/src/components/fieldview/WaterFieldOpsCard.tsx` ← `stream`
-  - `frontend/src/components/fieldview/EvidenceHistoryCard.tsx` ← `snapshot`
+  - `frontend/src/lib/evidenceHistory.test.ts` ← `snapshot`
+  - `frontend/src/lib/evidenceHistory.ts` ← `snapshot`
+  - `frontend/src/lib/precisionAgriculture.ts` ← `snapshot`
+  - `frontend/src/lib/districtsWeather.ts` ← `stream`
 - platform-proxy: 4 match(es)
   - `services/sahool-platform/api/device_registry.py` ← `field_cameras`
   - `services/sahool-platform/api/field_cameras.py` ← `field_cameras`
@@ -253,26 +253,26 @@ classification: `ui`
 ### `weather-polygon-worker` — pass
 classification: `ui-indirect`
 - ui: 7 match(es)
-  - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherTileLayer`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `WeatherTileLayer`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `operation-tile-data`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `tile-data`
+  - `frontend/src/components/maphub/weather/WeatherTileLayer.ts` ← `operation-tile-data`
 - internal-consumer: 10 match(es)
-  - `services/sahool-platform/tests/test_weather_overlay_pipeline.py` ← `weather_overlay_pipeline`
-  - `services/sahool-platform/tests/test_weather_overlay_pipeline.py` ← `weather-polygon-worker`
   - `services/sahool-platform/core/weather_overlay_pipeline.py` ← `field_weather_overlay`
   - `services/sahool-platform/core/weather_overlay_pipeline.py` ← `weather_overlay_pipeline`
   - `services/sahool-platform/core/weather_overlay_pipeline.py` ← `weather-polygon-worker`
+  - `services/sahool-platform/tests/test_weather_overlay_pipeline.py` ← `weather_overlay_pipeline`
+  - `services/sahool-platform/tests/test_weather_overlay_pipeline.py` ← `weather-polygon-worker`
 
 ### `weather-signal-engine` — pass
 classification: `internal`
 - internal-consumer: 17 match(es)
+  - `services/sahool-platform/core/weather_overlay_pipeline.py` ← `weather_signals`
+  - `services/sahool-platform/core/decision_playbook.py` ← `weather_signals`
+  - `services/sahool-platform/core/decision_playbook.py` ← `decision_playbook`
+  - `services/sahool-platform/core/weather_signals.py` ← `weather_signals`
   - `services/sahool-platform/api/field_season_projection.py` ← `weather_signals`
-  - `services/sahool-platform/api/routers/agro_intelligence.py` ← `weather_signals`
-  - `services/sahool-platform/api/routers/agro_intelligence.py` ← `decision_playbook`
-  - `services/sahool-platform/tests/test_field_season_projection.py` ← `weather_signals`
-  - `services/sahool-platform/tests/test_agro_intelligence_endpoints.py` ← `weather_signals`
 
 ### `erp-bridge` — pass
 classification: `integration`
@@ -286,11 +286,11 @@ classification: `integration`
 ### `tts-service` — pass
 classification: `ui`
 - ui: 8 match(es)
+  - `frontend/src/lib/fieldObjectiveHiddenGaps.test.ts` ← `synthesize`
   - `frontend/src/components/SpeakButton.tsx` ← `SpeakButton`
   - `frontend/src/components/SpeakButton.tsx` ← `synthesize`
   - `frontend/src/components/SpeakButton.tsx` ← `tts`
-  - `frontend/src/services/api.ts` ← `synthesize`
-  - `frontend/src/services/api.ts` ← `tts`
+  - `frontend/src/sections/RecommendationPage.tsx` ← `SpeakButton`
 
 ### `local-ai-rag` — pass
 classification: `internal`
@@ -304,11 +304,11 @@ classification: `internal`
 ### `raster-tiler-service` — pass
 classification: `internal`
 - internal-consumer: 67 match(es)
+  - `services/raster-service/cloud_native_catalog.py` ← `tilejson`
+  - `services/raster-service/raster_cdse_tile_runtime.py` ← `tilejson`
   - `services/raster-service/test_router_query_direct_call.py` ← `tilejson`
-  - `services/raster-service/main.py` ← `TITILER_URL`
-  - `services/raster-service/raster_job_orchestration.py` ← `tilejson`
-  - `services/raster-service/test_tiles.py` ← `tilejson`
   - `services/raster-service/test_raster_map_deep_hardening_static.py` ← `tilejson`
+  - `services/raster-service/raster_pixel_processing.py` ← `tilejson`
 
 ### `qdrant-seed` — pass
 classification: `job`

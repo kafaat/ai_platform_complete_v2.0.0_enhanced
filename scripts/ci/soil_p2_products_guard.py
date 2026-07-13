@@ -1,4 +1,5 @@
 from pathlib import Path
+
 ROOT=Path(__file__).resolve().parents[2]
 required=['migrations/v162_soil_p2_spatial_products.sql','shared/contracts/soil/p2.py','services/soil-service/p2_products.py','services/soil-service/p2_store.py','services/soil-service/routers/p2_products.py','services/soil-service/test_soil_p2_products.py']
 missing=[x for x in required if not (ROOT/x).exists()]
