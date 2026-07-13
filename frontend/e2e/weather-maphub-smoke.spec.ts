@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { seedAuthAndRoutes } from './support/seed';
 
 const json = (payload: unknown) => ({
   status: 200,
@@ -12,6 +13,12 @@ test.describe('MapHub weather runtime smoke', () => {
     page.on('console', (msg) => {
       if (msg.type() === 'error') consoleErrors.push(msg.text());
     });
+
+    // مصادقة عبر بذر الجلسة (addInitScript) بدل زرّ الدخول التجريبيّ — الزرّ محجوب في
+    // بناء الإنتاج (import.meta.env.PROD) الذي يشغّله preview، وهو ما تفرضه سياسة الأمان
+    // (لا دخول تجريبيّ في الإنتاج). نبذر أوّلاً كي تُسجَّل مساراتُ الطقس الخاصّة بعده
+    // فتفوز بأسبقيّة المطابقة (Playwright يطابق المسارات بترتيب عكسيّ للتسجيل).
+    await seedAuthAndRoutes(page);
 
     await page.route('**/api/v1/weather/layers', async (route) => {
       await route.fulfill(json({
@@ -72,12 +79,8 @@ test.describe('MapHub weather runtime smoke', () => {
       await route.fulfill(json({ dry_run: false, recommendation_id: 'weather-rec-smoke' }))
     });
 
-    // مصادقة عبر الدخول التجريبيّ (عميل فقط، بلا خلفيّة) — وإلّا يُعاد التوجيه لصفحة
-    // الدخول فلا تُحمَّل الخريطة. loginDemo يضبط التوكن والحالة في sessionStorage/المتجر.
-    await page.goto('/');
-    await page.getByRole('button', { name: /دخول تجريبي/ }).click();
-    await page.waitForLoadState('networkidle');
-
+    // الجلسة مبذورة مسبقاً (seedAuthAndRoutes) فلا حاجة لزرّ الدخول — ننتقل مباشرةً
+    // لمركز الخرائط بسياق الطقس.
     await page.goto('/fields/map-center?field_id=00000000-0000-4000-8000-000000000001&index=ndvi&source=my-fields&weather=1');
     await page.waitForLoadState('networkidle');
     await expect(page.locator('body')).toContainText(/طقس|Weather|الخريطة/);
@@ -93,6 +96,9 @@ test.describe('MapHub weather runtime smoke', () => {
     const appErrors = consoleErrors.filter(
       (line) =>
         !line.includes('favicon') &&
+        // ضوضاء WebSocket متوقّعة: لا خادم إشعارات في هذا الفحص الهرمسيّ، فالجلسة المبذورة
+        // (user.id) تحاول فتح /ws/notifications فيفشل الـhandshake — نفس صنف ضوضاء الشبكة أدناه.
+        !/WebSocket connection to|Connection closed before receiving a handshake/i.test(line) &&
         !/Failed to load resource|net::ERR|Failed to fetch|the server responded with a status of|Unexpected token|JSON/i.test(line),
     );
     expect(appErrors.join('\n')).toBe('');

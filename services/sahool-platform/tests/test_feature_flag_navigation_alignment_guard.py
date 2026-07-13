@@ -32,7 +32,10 @@ def test_frontend_nav_uses_backend_runtime_feature_registry():
     assert "advancedFeatureForPage" in hook
     assert "useFeatureRegistry" in nav
     assert "isRuntimePageEnabled(r.id, featureRegistry)" in nav
-    assert "FeatureDisabledState page={page}" in app
+    # البوّابة استُخرِجت في guardPage(targetPage, node) لتشترك فيها المساراتُ الديناميكيّة
+    # (workspace) — فالمتغيّر صار targetPage (سلوك محفوظ: لافتة صريحة لصفحة معطَّلة).
+    assert "FeatureDisabledState page={targetPage}" in app
+    assert "isRuntimePageEnabled(targetPage, featureRegistry)" in app
 
 
 def test_runtime_registry_is_fail_open_but_hides_explicit_disabled_pages_after_load():

@@ -275,7 +275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99935d1799c479bfd0d37abcdefe516cd9fea816bdbfd2ad92b238cfc022c842"
+          "content": "6a08e97f32e8a1e948313cb76a7de5890f7b420b0d1e2e118439c3ddef365d6c"
         }
       ],
       "name": "frontend/e2e/weather-maphub-smoke.spec.ts",
@@ -21765,7 +21765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b5142ab0594706601405adf6841e8040a4d627181919fe5751bd39ddca6a9103"
+          "content": "4a761832445f3b35f90cf7fa41d7e498503713554da376aca51191a27f7e378a"
         }
       ],
       "name": "services/sahool-platform/tests/test_feature_flag_navigation_alignment_guard.py",
