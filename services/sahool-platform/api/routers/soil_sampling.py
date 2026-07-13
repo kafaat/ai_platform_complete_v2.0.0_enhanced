@@ -98,7 +98,10 @@ class SoilLabResultIn(BaseModel):
     cec_cmol_kg: float | None = None
     calcium_carbonate_pct: float | None = None
     texture: str | None = None
-    approved: bool = False
+    # فصل الواجبات: لا يُقبَل «approved» من نموذج الإدخال — الإدخال العاديّ يُنشئ نتيجة
+    # غير مُعتمَدة (result_received)، والاعتماد انتقال حالة منفصل مُصرَّح به
+    # (POST /lab/samples/{id}/transition → approved) بهويّة مُعتمِد مُصادَقة. حذف الحقل
+    # يمنع تصديق المُدخِل نتيجته بنفسه في خطوة واحدة (fail-closed على مستوى العقد).
     observed_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     method_code: str | None = None
     detection_limit: float | None = Field(default=None, ge=0)
@@ -213,21 +216,24 @@ async def submit_soil_lab_result(
                 )
                 current = "in_lab"
             validate_soil_transition(current, "result_received", has_result=True)
+        # فصل الواجبات: الإدخال العاديّ يُنشئ نتيجة غير مُعتمَدة (quality_status='unreviewed')
+        # بحالة عيّنة result_received. لا اعتماد ذاتيّ من مُدخِل البيانات — الاعتماد انتقال
+        # حالة منفصل مُصرَّح به (/transition → approved) يَختِم الصفوف بهويّة المُعتمِد.
         await lab_store.insert_soil_results(
             conn,
             tenant_id=str(user.tenant_id),
             sample_id=payload.sample_id,
             analytes=analytes,
             observed_at=payload.observed_at,
-            approved=payload.approved,
-            approved_by=str(user.user_id) if payload.approved else None,
+            approved=False,
+            approved_by=None,
             correction_reason=payload.correction_reason,
         )
         await lab_store.set_status(
             conn,
             tenant_id=str(user.tenant_id),
             sample_id=payload.sample_id,
-            status="approved" if payload.approved else "result_received",
+            status="result_received",
         )
         await lab_store.add_custody_event(
             conn,
@@ -298,20 +304,38 @@ async def transition_lab_sample(
         )
         if not sample:
             raise HTTPException(404, "sample not found")
+        is_soil = sample["kind"] == "soil"
         soil = (
             await lab_store.latest_soil_analysis(
                 conn, tenant_id=str(user.tenant_id), field_id=sample["field_id"]
             )
-            if sample["kind"] == "soil"
+            if is_soil
             else None
         )
+        # شرط «توجد نتيجة» للانتقال: نتيجة مُعتمَدة (للنشر) أو أيّ نتيجة مُدخَلة (للاعتماد).
+        # لولا الفرع الثاني لاستحال result_received→approved، إذ تُدخَل النتيجة غير مُعتمَدة.
+        has_result = bool(soil) or (
+            is_soil
+            and await lab_store.has_soil_result(
+                conn, tenant_id=str(user.tenant_id), sample_id=sample_id
+            )
+        )
         try:
-            validate_soil_transition(sample["status"], payload.target_status, has_result=bool(soil))
+            validate_soil_transition(sample["status"], payload.target_status, has_result=has_result)
         except SoilWorkflowError as exc:
             raise HTTPException(exc.http_status, exc.message_ar) from exc
         row = await lab_store.set_status(
             conn, tenant_id=str(user.tenant_id), sample_id=sample_id, status=payload.target_status
         )
+        # الاعتماد المُصرَّح به هو نقطة ختم النتيجة الوحيدة: يَختِم صفوف النتيجة
+        # (unreviewed→approved) بهويّة المُعتمِد المُصادَقة عبر البوّابة — فصل الواجبات.
+        if payload.target_status == "approved" and is_soil:
+            await lab_store.approve_soil_results(
+                conn,
+                tenant_id=str(user.tenant_id),
+                sample_id=sample_id,
+                approved_by=str(user.user_id),
+            )
         await lab_store.add_custody_event(
             conn,
             tenant_id=str(user.tenant_id),

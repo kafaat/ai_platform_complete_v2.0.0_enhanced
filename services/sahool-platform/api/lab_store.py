@@ -171,6 +171,46 @@ async def insert_soil_results(
     return out
 
 
+async def has_soil_result(conn, *, tenant_id: str, sample_id: str) -> bool:
+    """هل توجد نتيجة تربة فعليّة (غير مُلغاة) لهذه العيّنة — بصرف النظر عن الاعتماد؟
+
+    يُستخدَم للتحقّق من شرط «توجد نتيجة» عند انتقال result_received→approved: النتيجة
+    تُدخَل غير مُعتمَدة (unreviewed)، فلا يصحّ استعمال ``latest_soil_analysis`` (المقصورة
+    على المُعتمَد) لهذا الشرط وإلّا استحال الاعتمادُ أصلاً (دجاجة وبيضة).
+    """
+    row = await conn.fetchrow(
+        """SELECT 1 FROM soil_lab_results
+           WHERE tenant_id=$1::uuid AND sample_id=$2 AND quality_status <> 'superseded'
+           LIMIT 1""",
+        tenant_id,
+        sample_id,
+    )
+    return row is not None
+
+
+async def approve_soil_results(conn, *, tenant_id: str, sample_id: str, approved_by: str) -> int:
+    """يَختِم صفوف نتيجة التربة غير المُعتمَدة بالاعتماد + هويّة المُعتمِد + طابع زمنيّ.
+
+    نقطة ختم الاعتماد الوحيدة: تُستدعى فقط من انتقال الحالة المُصرَّح به (→ approved)،
+    فتُصبح النتائج مؤهّلة للاستهلاك في القرار (latest_soil_analysis/publishable). لا تلمس
+    الصفوف المُلغاة (superseded) ولا المُعتمَدة مسبقاً. تُرجِع عدد الصفوف المختومة.
+    """
+    result = await conn.execute(
+        """UPDATE soil_lab_results
+           SET quality_status='approved', approved_by=$3, approved_at=$4
+           WHERE tenant_id=$1::uuid AND sample_id=$2 AND quality_status='unreviewed'""",
+        tenant_id,
+        sample_id,
+        approved_by,
+        datetime.now(UTC),
+    )
+    # asyncpg execute → "UPDATE N"؛ نُخرِج N عدداً (best-effort، 0 إن لا صفوف مؤهّلة).
+    try:
+        return int(str(result).split()[-1])
+    except (ValueError, IndexError):
+        return 0
+
+
 async def latest_soil_analysis(conn, *, tenant_id: str, field_id: str) -> dict[str, Any] | None:
     rows = await conn.fetch(
         """
