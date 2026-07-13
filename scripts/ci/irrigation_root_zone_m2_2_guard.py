@@ -15,7 +15,9 @@ water = WATER.read_text(encoding="utf-8")
 for table in ("crop_root_policies", "canonical_root_zone_profiles"):
     assert f"CREATE TABLE IF NOT EXISTS {table}" in migration
 assert migration.count("FORCE ROW LEVEL SECURITY") >= 2
-assert "current_setting('app.current_tenant_id'" in migration
+# Canonical tenant key (forensic F-02): the platform sets 'app.current_tenant', not the
+# '..._id' variant the zip originally shipped. Assert the corrected key.
+assert "current_setting('app.current_tenant'" in migration
 for token in (
     "soil_profile_does_not_cover_root_depth",
     "validated_crop_root_policy_missing",
