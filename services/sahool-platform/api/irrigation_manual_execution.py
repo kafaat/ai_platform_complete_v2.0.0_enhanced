@@ -82,6 +82,7 @@ class ManualExecutionConfirmation(BaseModel):
     meter_end_m3: float | None = Field(default=None, ge=0)
     measured_flow_m3_h: float | None = Field(default=None, gt=0)
     estimated_flow_m3_h: float | None = Field(default=None, gt=0)
+    manual_volume_m3: float | None = Field(default=None, gt=0)
     interruptions_minutes: float = Field(default=0, ge=0)
     pressure_bar: float | None = Field(default=None, ge=0)
     evidence_digests: list[str] = Field(default_factory=list)
@@ -91,6 +92,8 @@ class ManualExecutionConfirmation(BaseModel):
     def validate_confirmation(self) -> ManualExecutionConfirmation:
         if self.stopped_at <= self.started_at:
             raise ValueError("EXECUTION_TIME_WINDOW_INVALID")
+        if (self.meter_start_m3 is None) != (self.meter_end_m3 is None):
+            raise ValueError("METER_READING_PAIR_REQUIRED")
         if self.meter_start_m3 is not None and self.meter_end_m3 is not None:
             if self.meter_end_m3 < self.meter_start_m3:
                 raise ValueError("METER_READING_REGRESSION")
@@ -143,6 +146,10 @@ def derive_manual_as_applied(
     elif confirmation.measured_flow_m3_h is not None:
         volume = confirmation.measured_flow_m3_h * runtime_h
         quality = "measured_flow"
+    elif confirmation.manual_volume_m3 is not None:
+        volume = confirmation.manual_volume_m3
+        quality = "operator_declared"
+        blockers.append("OPERATOR_DECLARED_VOLUME_REQUIRES_INDEPENDENT_MEASUREMENT")
     elif confirmation.estimated_flow_m3_h is not None:
         volume = confirmation.estimated_flow_m3_h * runtime_h
         quality = "estimated"

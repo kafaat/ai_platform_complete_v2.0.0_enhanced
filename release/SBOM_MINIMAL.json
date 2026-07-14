@@ -5315,7 +5315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e32e7f86f304b030dc6ef6a4ed19f79061f97dcc8844711bced03a1e89650cde"
+          "content": "22acc6416522e5b514a73523e70b398871323b3f535a32c90335cdaca02e1474"
         }
       ],
       "name": "frontend/src/sections/IrrigationManualOperationsPanel.tsx",
@@ -6155,7 +6155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b1b8b62f90b8d67c4259d1c48898082f400580fd26a833e1e9803b40f108529f"
+          "content": "7313768d75119d06a10289b631e0cc3344da8549f58f12884d3121e0dbd66110"
         }
       ],
       "name": "frontend/src/services/api/irrigationManualOperations.ts",
@@ -14585,7 +14585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "183a79243817e10f8f6c69d5036431a5a6bf2ec7d8357887e4b8f513b6e735dc"
+          "content": "1416fdd819c3215592514f85203792a24e8e876253eea3f016f6a6180b55f336"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_manual_execution.py",

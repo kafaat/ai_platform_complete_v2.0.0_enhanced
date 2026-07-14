@@ -62,6 +62,7 @@ export default function IrrigationManualOperationsPanel({ fieldId, seasonId }: {
           meter_start_m3: form.meter_start_m3 ? Number(form.meter_start_m3) : undefined,
           meter_end_m3: form.meter_end_m3 ? Number(form.meter_end_m3) : undefined,
           measured_flow_m3_h: form.measured_flow_m3_h ? Number(form.measured_flow_m3_h) : undefined,
+          manual_volume_m3: form.manual_volume_m3 ? Number(form.manual_volume_m3) : undefined,
           estimated_flow_m3_h: form.estimated_flow_m3_h ? Number(form.estimated_flow_m3_h) : undefined,
           interruptions_minutes: Number(form.interruptions_minutes || 0),
           pressure_bar: form.pressure_bar ? Number(form.pressure_bar) : undefined,
@@ -126,7 +127,7 @@ export default function IrrigationManualOperationsPanel({ fieldId, seasonId }: {
       {selected && mode && <div className="rounded-2xl border border-emerald-800/50 bg-slate-950 p-4">
         <h3 className="font-semibold text-slate-100">{mode === 'confirm' ? 'تأكيد التنفيذ الميداني' : 'التحقق المستقل'}</h3>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {(mode === 'confirm' ? ['started_at','stopped_at','completion_ratio','meter_start_m3','meter_end_m3','measured_flow_m3_h','estimated_flow_m3_h','interruptions_minutes','pressure_bar','evidence_digests','notes'] : ['volume_verified','timing_verified','field_verified','evidence_digests','notes']).map(name => <label key={name} className="text-xs text-slate-400">{name}<input type={name.includes('_at') ? 'datetime-local' : name.endsWith('_verified') ? 'checkbox' : name === 'notes' || name === 'evidence_digests' ? 'text' : 'number'} step="any" value={name.endsWith('_verified') ? undefined : (form[name] ?? '')} checked={name.endsWith('_verified') ? form[name] === 'true' : undefined} onChange={e => setForm(v => ({ ...v, [name]: name.endsWith('_verified') ? String(e.target.checked) : e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"/></label>)}
+          {(mode === 'confirm' ? ['started_at','stopped_at','completion_ratio','meter_start_m3','meter_end_m3','measured_flow_m3_h','manual_volume_m3','estimated_flow_m3_h','interruptions_minutes','pressure_bar','evidence_digests','notes'] : ['volume_verified','timing_verified','field_verified','evidence_digests','notes']).map(name => <label key={name} className="text-xs text-slate-400">{name}<input type={name.includes('_at') ? 'datetime-local' : name.endsWith('_verified') ? 'checkbox' : name === 'notes' || name === 'evidence_digests' ? 'text' : 'number'} step="any" value={name.endsWith('_verified') ? undefined : (form[name] ?? '')} checked={name.endsWith('_verified') ? form[name] === 'true' : undefined} onChange={e => setForm(v => ({ ...v, [name]: name.endsWith('_verified') ? String(e.target.checked) : e.target.value }))} className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"/></label>)}
         </div>
         {mutation.isError && <p className="mt-3 text-sm text-red-300">فشل الطلب؛ لم تتغير حالة التنفيذ.</p>}
         <div className="mt-4 flex gap-2"><ActionButton disabled={mutation.isPending} onClick={() => mutation.mutate({ execution: selected, action: mode })}>حفظ</ActionButton><ActionButton onClick={() => { setSelected(null); setMode(null); }}>إغلاق</ActionButton></div>

@@ -53,6 +53,7 @@ export interface ManualExecutionConfirmationInput {
   meter_start_m3?: number;
   meter_end_m3?: number;
   measured_flow_m3_h?: number;
+  manual_volume_m3?: number;
   estimated_flow_m3_h?: number;
   interruptions_minutes: number;
   pressure_bar?: number;

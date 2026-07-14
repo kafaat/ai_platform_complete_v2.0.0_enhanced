@@ -86,3 +86,36 @@ def test_transition_chain_and_illegal_skip():
 def test_meter_regression_rejected():
     with pytest.raises(ValidationError):
         confirmation(meter_start_m3=1000, meter_end_m3=900)
+
+
+def test_operator_declared_volume_is_accepted_but_not_ledger_eligible():
+    c = confirmation(
+        meter_start_m3=None,
+        meter_end_m3=None,
+        measured_flow_m3_h=None,
+        manual_volume_m3=750,
+        estimated_flow_m3_h=None,
+    )
+    result = m.derive_manual_as_applied(recommendation("manual_estimated"), c)
+    assert result.actual_volume_m3 == 750
+    assert result.quality == "operator_declared"
+    assert result.ledger_eligible is False
+    assert "OPERATOR_DECLARED_VOLUME_REQUIRES_INDEPENDENT_MEASUREMENT" in result.blocking_reasons
+
+
+def test_operator_declared_volume_does_not_satisfy_measured_mode():
+    c = confirmation(
+        meter_start_m3=None,
+        meter_end_m3=None,
+        measured_flow_m3_h=None,
+        manual_volume_m3=750,
+        estimated_flow_m3_h=None,
+    )
+    result = m.derive_manual_as_applied(recommendation("manual_measured"), c)
+    assert "MEASURED_MODE_REQUIRES_MEASURED_EVIDENCE" in result.blocking_reasons
+    assert result.ledger_eligible is False
+
+
+def test_incomplete_meter_pair_is_rejected():
+    with pytest.raises(ValidationError):
+        confirmation(meter_start_m3=100, meter_end_m3=None)
