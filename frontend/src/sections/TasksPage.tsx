@@ -126,7 +126,12 @@ export default function TasksPage() {
   const TaskCard = ({ task }: { task: Task }) => {
     const cfg = TASK_CONFIG[task.task_type] || TASK_CONFIG.scouting;
     const Icon = cfg.icon;
-    const isOld = new Date(task.recommended_date) < new Date() && task.status === 'pending';
+    // مقارنة تقويميّة محلّيّة (F5-12): كان `new Date(recommended_date) < new Date()`
+    // يقارن تاريخاً بلا وقت (يُفسَّر UTC منتصف الليل) بلحظةٍ راهنة، فتصير مهمّة «اليوم»
+    // متأخّرةً عند منتصف ليل UTC لا بعد مهلتها. نقارن تاريخ التقويم المحلّيّ نصّيّاً:
+    // متأخّرة فقط إن كان تاريخها يوماً محلّيّاً سابقاً.
+    const todayLocal = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD محلّيّ
+    const isOld = !!task.recommended_date && task.recommended_date.slice(0, 10) < todayLocal && task.status === 'pending';
 
     return (
       <Card style={{ border: `1px solid ${isOld ? T.danger : T.line}` }}>

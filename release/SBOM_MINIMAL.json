@@ -5615,7 +5615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7c05a2cd018e16ca6568113cdfd447477bf16b579ebb373cc976734fe9513988"
+          "content": "3ba0433877c5d5172366f9584de4cb845935305d2264f569a2a91b16c3adb4f2"
         }
       ],
       "name": "frontend/src/sections/TasksPage.tsx",
