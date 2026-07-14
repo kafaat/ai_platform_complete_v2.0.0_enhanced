@@ -415,6 +415,12 @@ services:
       JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
       SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
+      # كوكي مصادقة البلاطات HttpOnly `sahool_at` (تُرسَل تلقائيّاً مع <img> فتُغني عن JWT في
+      # الرابط). Secure=1 افتراضاً (صحيح لإنتاج HTTPS). ⚠️ نشرٌ عبر HTTP عاديّ (محلّيّ/staging)
+      # يجب أن يضبط AUTH_COOKIE_SECURE=0 وإلّا لا يُرسِل المتصفّح الكوكي ⇒ بوّابة /api/raster
+      # ترفض بلاطات <img> بـ403 في بناء الإنتاج (لا fallback لتوكن الرابط). انظر auth main.py:81.
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-1}
+      AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
       JWT_EXPIRE_MINUTES: 60
       REFRESH_EXPIRE_DAYS: 30
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
