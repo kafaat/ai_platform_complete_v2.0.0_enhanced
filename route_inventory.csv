@@ -957,10 +957,10 @@ tts-service,services/tts-service/routers/tts.py,44,POST,/tts/synthesize,synthesi
 tts-service,services/tts-service/routers/tts.py,125,POST,/tts/stream,stream
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,21,GET,/v1/analyze,analyze
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,45,GET,/v1/timeseries/{field_id},timeseries
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,83,GET,/v1/ndvi/current/{field_id},current_ndvi
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,132,GET,/v1/all_fields,all_fields
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,171,GET,/v1/indicators/registry,indicators_registry
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,178,GET,/v1/indicators/registry/{name},indicator_registry_item
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,85,GET,/v1/ndvi/current/{field_id},current_ndvi
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,134,GET,/v1/all_fields,all_fields
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,173,GET,/v1/indicators/registry,indicators_registry
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,180,GET,/v1/indicators/registry/{name},indicator_registry_item
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,21,GET,/healthz,healthz
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,21,GET,/health,healthz
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,26,GET,/readyz,readyz
