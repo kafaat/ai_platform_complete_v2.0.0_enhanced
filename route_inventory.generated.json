@@ -274,7 +274,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/invitations.py",
-    "line": 190,
+    "line": 195,
     "method": "DELETE",
     "path": "/auth/invitations/{invitation_id}",
     "function": "revoke_invitation"
@@ -362,7 +362,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/registration.py",
-    "line": 71,
+    "line": 74,
     "method": "POST",
     "path": "/auth/change-password",
     "function": "change_password"
@@ -378,7 +378,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 122,
+    "line": 125,
     "method": "POST",
     "path": "/auth/refresh",
     "function": "refresh_token"
@@ -386,7 +386,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 161,
+    "line": 167,
     "method": "POST",
     "path": "/auth/logout",
     "function": "logout"
@@ -394,7 +394,7 @@
   {
     "service": "auth",
     "file": "services/auth/routers/session.py",
-    "line": 201,
+    "line": 211,
     "method": "GET",
     "path": "/auth/me",
     "function": "me"
@@ -6466,7 +6466,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 157,
+    "line": 160,
     "method": "GET",
     "path": "/api/v1/lab/samples",
     "function": "list_lab_samples"
@@ -6474,7 +6474,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 166,
+    "line": 169,
     "method": "POST",
     "path": "/api/v1/lab/samples",
     "function": "create_lab_sample"
@@ -6482,7 +6482,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 187,
+    "line": 190,
     "method": "POST",
     "path": "/api/v1/lab/soil-results",
     "function": "submit_soil_lab_result"
@@ -6490,7 +6490,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 256,
+    "line": 262,
     "method": "POST",
     "path": "/api/v1/lab/water-results",
     "function": "submit_water_lab_result"
@@ -6498,7 +6498,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 288,
+    "line": 294,
     "method": "POST",
     "path": "/api/v1/lab/samples/{sample_id}/transition",
     "function": "transition_lab_sample"
@@ -6506,7 +6506,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/soil_sampling.py",
-    "line": 372,
+    "line": 396,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/lab-context",
     "function": "field_lab_context"
@@ -6546,7 +6546,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/tasks.py",
-    "line": 62,
+    "line": 87,
     "method": "PATCH",
     "path": "/api/v1/tasks/{task_id}",
     "function": "update_task"

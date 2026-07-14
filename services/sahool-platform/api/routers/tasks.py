@@ -36,26 +36,51 @@ router = APIRouter()
 @router.get("/api/v1/tasks", response_model=TaskListResponse)
 async def list_tasks(
     field_id: str | None = None,
+    limit: int | None = None,
+    offset: int = 0,
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
-    """مهامّ المستأجِر (مُرشَّحة بـRLS، واختياريّاً بحقل). الأعلى أولويّةً ثمّ الأقرب
-    موعداً. يُرجِع {tasks:[...]} (عقد الواجهة). 503 عند تعذّر القاعدة."""
+    """مهامّ المستأجِر (مُرشَّحة بـRLS، واختياريّاً بحقل). الأعلى أولويّةً ثمّ الأقرب موعداً.
+
+    ترقيم اختياريّ متوافق للخلف (F5-06): بلا ``limit`` يُرجِع كلّ الصفوف كما كان
+    (total/next_cursor = None). بتمرير ``limit`` (يُقصَر إلى 1..500) يُرجِع صفحةً مع
+    ``total`` و``next_cursor`` (الإزاحة التالية) فتُميّز الواجهة «كلّ السجلّات» عن «أوّل
+    صفحة». يُرجِع {tasks:[...]} دائماً (عقد الواجهة). 503 عند تعذّر القاعدة.
+    """
+    order = "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC"
+    where = "WHERE field_id = $1 " if field_id else ""
+    base_args: list[object] = [field_id] if field_id else []
+    paginate = limit is not None
+    eff_limit = max(1, min(int(limit), 500)) if paginate else None
+    eff_offset = max(0, int(offset))
     try:
         async with tenant_connection(user) as conn:
-            if field_id:
+            total: int | None = None
+            if paginate:
+                total = await conn.fetchval(
+                    f"SELECT COUNT(*) FROM field_tasks {where}".strip(), *base_args
+                )
+                page_args = [*base_args, eff_limit, eff_offset]
                 rows = await conn.fetch(
-                    f"SELECT {_TASK_COLS} FROM field_tasks WHERE field_id = $1 "
-                    "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC",
-                    field_id,
+                    f"SELECT {_TASK_COLS} FROM field_tasks {where}{order} "
+                    f"LIMIT ${len(base_args) + 1} OFFSET ${len(base_args) + 2}",
+                    *page_args,
                 )
             else:
                 rows = await conn.fetch(
-                    f"SELECT {_TASK_COLS} FROM field_tasks "
-                    "ORDER BY priority ASC, recommended_date ASC NULLS LAST, created_at DESC"
+                    f"SELECT {_TASK_COLS} FROM field_tasks {where}{order}", *base_args
                 )
     except Exception as e:  # noqa: BLE001
         raise _db_unavailable("قراءة المهامّ", e) from e
-    return TaskListResponse(tasks=[_row_to_task(r) for r in rows])
+    next_cursor: str | None = None
+    if paginate and total is not None and eff_offset + len(rows) < total:
+        next_cursor = str(eff_offset + (eff_limit or 0))
+    return TaskListResponse(
+        tasks=[_row_to_task(r) for r in rows],
+        total=total,
+        limit=eff_limit,
+        next_cursor=next_cursor,
+    )
 
 
 @router.patch("/api/v1/tasks/{task_id}", response_model=TaskSummary)

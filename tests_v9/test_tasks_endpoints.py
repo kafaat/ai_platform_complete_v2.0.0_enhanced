@@ -80,3 +80,26 @@ def test_tasks_list_contract(app_mod):
     if resp.status_code == 200:
         body = resp.json()
         assert isinstance(body, dict) and "tasks" in body and isinstance(body["tasks"], list)
+
+
+def test_tasks_list_accepts_pagination_params(app_mod):
+    """?limit/&offset مقبولان كمعاملَي استعلام (لا 404/422) — مغلّف F5-06 متوافق للخلف."""
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app_mod.app, raise_server_exceptions=False)
+    resp = client.get(
+        "/api/v1/tasks?limit=5&offset=0",
+        headers={"Authorization": f"Bearer {_token(app_mod)}"},
+    )
+    assert resp.status_code != 404
+    assert resp.status_code != 422, "limit/offset يجب أن يكونا مقبولَين"
+
+
+def test_task_list_response_has_optional_pagination_fields(app_mod):
+    """نموذج TaskListResponse يحمل حقول الترقيم الاختياريّة (total/limit/next_cursor)."""
+    fields = app_mod.TaskListResponse.model_fields
+    for f in ("tasks", "total", "limit", "next_cursor"):
+        assert f in fields, f"TaskListResponse ينقصه الحقل {f}"
+    # الحقول الجديدة اختياريّة (افتراضها None) فيبقى العقد متوافقاً للخلف.
+    assert fields["total"].default is None
+    assert fields["next_cursor"].default is None

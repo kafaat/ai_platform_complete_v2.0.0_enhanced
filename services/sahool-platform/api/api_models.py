@@ -101,9 +101,17 @@ class TaskSummary(BaseModel):
 
 
 class TaskListResponse(BaseModel):
-    """غلاف {tasks:[...]} — يطابق عقد الواجهة (useTasks يقرأ data.tasks)."""
+    """غلاف {tasks:[...]} — يطابق عقد الواجهة (useTasks يقرأ data.tasks).
+
+    حقول الترقيم اختياريّة (مغلّف F5-06): تُملأ فقط عند تمرير ``?limit`` وإلّا تبقى None،
+    فيبقى العقد متوافقاً للخلف تماماً (المستهلكون القدامى يتجاهلون الحقول الإضافيّة).
+    ``next_cursor`` = الإزاحة التالية كنصّ، أو None عند بلوغ النهاية.
+    """
 
     tasks: list[TaskSummary]
+    total: int | None = None
+    limit: int | None = None
+    next_cursor: str | None = None
 
 
 class TaskUpdateRequest(BaseModel):
