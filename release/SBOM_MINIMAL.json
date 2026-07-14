@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d4be287189710756eca41e30df96e4659f9dd60b81990ee3f4ed8294dad1e8c5"
+          "content": "6289e95e4441c8c39969994311675eb45c1148c27ad5a39dd8dece899b2cadb9"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -1045,7 +1045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fb85c9b74aa94cf89571edc8fb02cc1231527bd3f96143f75cbca7369d472d6c"
+          "content": "d317a05784c7043b52afdd548591478a7d7acc22b30c0ffab042df215ba83b59"
         }
       ],
       "name": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
@@ -2285,7 +2285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d127de6676dfb08202d29027620d81247f43d2d6f80f4e4ada93fd613719746c"
+          "content": "7f5d03c172ee93794ea1cd0b534e2a184baed073b8aa50c6b07f9dbe616ac514"
         }
       ],
       "name": "frontend/src/components/sharing/SharingPanel.tsx",
@@ -2415,6 +2415,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "27e19e9a6386ab729600f5b017e1e6bcf7ae42fe8e891c4406a89ce09d026928"
+        }
+      ],
+      "name": "frontend/src/hooks/TenantFailClosed.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c62a6c57f67b81cfd99899b28cbfdadfc3d6ec65a620bd52213da35843efc991"
         }
       ],
@@ -2475,7 +2485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "18cf0ca26b4b2908ef98533f1957135f825429ec6be29529465971ce2425d31e"
+          "content": "2ae1b9e39ccfce6f19661d9dbb2b1d6277b232dbbd7a542acdf348928052cb27"
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
@@ -4135,7 +4145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c0742e89cd2df9b33a38d1509e2858bdd224850da8ffd7b9d9a4b554baa0979"
+          "content": "660edfb62491bcfb1eadbb36772ac1e226848841498911e15ee37d73b257639b"
         }
       ],
       "name": "frontend/src/lib/permissions.test.ts",
@@ -4145,7 +4155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2874480ea0d3d01de30c8090edbfc513b6f67909deb812fd1572a416bc34e06d"
+          "content": "66e725ac33548d1300698fe6613613b0708802bc49d96b90870ad824be409780"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -4515,6 +4525,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f00dc642924a297f8fdce7c103c4613d7309da22995c0bc37d3df98ad0129d3e"
+        }
+      ],
+      "name": "frontend/src/pages/DemoExcludedInProd.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "caf1671357dba0d5a9adf02405c229f92312d083ece4382d9f092ef7f50e0676"
         }
       ],
@@ -4605,7 +4625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b57cf4d8c608b57a77ece0752ccf7c2d64f4c249e7916ce0b46db4546ad30410"
+          "content": "056924459515fb98253a7f7b6e67d142713f183ff88cb0f56df450ada8388061"
         }
       ],
       "name": "frontend/src/sections/ApprovalsConsolePage.tsx",
@@ -4965,7 +4985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99cfc3108005d891af8171962a1104eb9ab29e7183d79d2348ddd10461cf6ca9"
+          "content": "bf30571cc5c518c53d0411ffd4d9b978a2c73e526328c1d76e5ff85746b156bc"
         }
       ],
       "name": "frontend/src/sections/FieldManagementPage.tsx",
@@ -5345,7 +5365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3e4a492465ef87f2d66f9ef0b51cf4768ff11936971cfa63767ff9d08b783f38"
+          "content": "852c2f9bdfd4c44dc1dd330ee6a02c284859f1fc6e9bdafba527a7f2c560ce1d"
         }
       ],
       "name": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",
@@ -6105,7 +6125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "20b38e360ecf513949e0ad8792ac582a39bfc9ad0c61ee132a21049c4b255d5b"
+          "content": "8eb96dba9f413afc1cd2f5bc3c913332c2d1d45922efa5d9868ec30cbe621926"
         }
       ],
       "name": "frontend/src/services/websocket.test.ts",
@@ -6115,7 +6135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ca43b46be1bbd2ee29b6d8fc4597fe781d97078d03871f719afcd21c66ee6946"
+          "content": "29f868fedd024537fe5265c39c51f0089653e34c6fe121b7e57e83e1a610fc62"
         }
       ],
       "name": "frontend/src/services/websocket.ts",
@@ -14675,7 +14695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8be5d859cde02421a7ddb69f972a304a7ee807d77fe9d1c06da3b8cd1b4b8a02"
+          "content": "03bddec0d7a951e8486f2cc3fb3d96cff73716078efbb9b817cc4d40321e056c"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -16825,7 +16845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "831b33f15ad0fe02cc0cd10f4393b4f409703c2ab935d1857d11b8c0fac61136"
+          "content": "8ccc42c1c131cf8265b49502a9e497174854d8a49babfb866f891edf9aaa601b"
         }
       ],
       "name": "services/sahool-platform/api/water_decision_bridge.py",
