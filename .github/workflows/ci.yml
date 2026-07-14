@@ -253,6 +253,11 @@ jobs:
       - name: raster-import-graph-gate
         run: python scripts/ci/raster_import_graph_gate.py
 
+      # يُشغَّل هنا ضمن فحص الفرع (لا في push إلى main فقط) كي يُلتقَط انحراف
+      # المخزون قبل الدمج/التقديم، لا بعده — مرآة لبوّابة service-inventory-drift.yml.
+      - name: service-inventory-drift-gate
+        run: python scripts/ci/generate_service_inventory.py --check
+
       - name: v9-feature-transfer-gate
         run: python scripts/ci/v9_feature_transfer_gate.py
 

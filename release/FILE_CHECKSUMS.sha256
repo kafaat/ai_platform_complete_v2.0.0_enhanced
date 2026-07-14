@@ -5,7 +5,7 @@
 a5321dec5c9e498d0d443b5034ecaafe9d04fd43d31af33d467e07f7719cf65f  .github/workflows/ai-agronomist-main-decomposition.yml
 be9a963938fab01da2ed7a7c98e8a48552b5a94b609303891d5589d1ef8066b1  .github/workflows/ai-container-contract.yml
 fdc6f925c9821255c7bf8a20e66e10ff6c60665876c867bed5b6f7da4ee4ad29  .github/workflows/auth-main-decomposition.yml
-aeec5921ae9729807d845ebff5766ed33f31c815dc754bac08694a4532cc69f8  .github/workflows/ci.yml
+9dbc712a1aadaae74f7a37068d3e6e19c3a8db539ca54c8dc3fd3f1b1f33a1a8  .github/workflows/ci.yml
 b10529f01376f4e97a31770b6832667fb37ae3014d9203382f9a6f3f2427acbd  .github/workflows/container-fleet-contract.yml
 82b40b81a838119fa2f49cc9a7a927f4283099c442a4a636b45774fd88f00aad  .github/workflows/contract-capabilities-schema.yml
 1346b741bf903ddc3508485cf71baea8846596994c93ff9359502db5fc3af0a5  .github/workflows/copilot-setup-steps.yml
