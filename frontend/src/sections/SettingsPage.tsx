@@ -211,12 +211,14 @@ export default function SettingsPage() {
                 <Loader2 className="w-5 h-5 animate-spin" style={{ color: T.green }} />
               </div>
             ) : (
-              (services || []).map((svc: ServiceHealth, i: number) => {
+              (services || []).map((svc: ServiceHealth) => {
                 // ServiceHealth.status ∈ {'ok','error','unknown'} (checkAll يصدر ok/error فقط)؛
                 // 'ready'/'alive' كانتا شرطين ميّتين لا يتحقّقان أبداً — أُزيلتا.
                 const ok = svc.status === 'ok';
                 return (
-                  <div key={i} className="flex items-center justify-between py-2"
+                  // مفتاح ثابت باسم الخدمة (لا فهرس المصفوفة): إعادة الترتيب/التحديث
+                  // الجزئيّ لا يُعيد استخدام حالة صفٍّ لخدمة أخرى (continuation-1 P1).
+                  <div key={svc.name} className="flex items-center justify-between py-2"
                     style={{ borderBottom: `1px solid ${T.line}` }}>
                     <span className="capitalize" style={{ fontSize: 13, color: T.ink }}>{svc.name}</span>
                     <Pill tone={ok ? 'ok' : 'danger'}>{ok ? 'متاح' : 'غير متاح'}</Pill>

@@ -5575,7 +5575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ec12a4395a6f613ef54e692d50053baca0bbfd80b037e2a703cd13da13e44d3"
+          "content": "7ff7d01d5c24c3e5a24b6b5511cddaf8ed7e8c35724be7bbd8e7ac58bac3be3a"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
