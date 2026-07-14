@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c374d35c271e06adf6e8d323240c9747529247416829bc30889fc6f5a54cd85d"
+          "content": "7d99f340f979907e611ef1aa937224dbdcf4e571f07c5b356fc61b485c7c8484"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -22619,6 +22619,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_method_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9e77eae308e93210d902af7ba388f00ed860653002b7c1a1e3867db4411132c8"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_mpc_hourly_recommendation_route.py",
       "type": "file"
     },
     {
