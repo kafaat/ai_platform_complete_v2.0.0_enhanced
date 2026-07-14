@@ -86,6 +86,60 @@ def _scan_code() -> list[tuple[str, int, str, int]]:
     return hits
 
 
+def _scan_compose_env() -> list[tuple[str, str, str, int]]:
+    """يمسح قيَم ``environment`` في كلّ ملفّات compose عن ``http://sahool-<svc>:<port>``.
+
+    الثغرة التي فاتت (تدقيق الحاويات V21 §3.1): كان الحارس يمسح الكود فقط، فمرّ
+    ``WEATHER_SERVICE_URL: ...weather-service:8092`` في افتراض compose لعامل دفتر
+    المياه (المنفذ الصحيح 8000). نمسح الآن افتراضات compose ذاتها.
+    """
+    # نطاق: ملفّ الإنتاج المُشهَّد ``docker-compose.v9.yml`` فقط (ما فحصه التدقيق).
+    # طبقات overlay البديلة (unified/light) لها تسمية خدمات مختلفة وتُدقَّق منفصلةً.
+    hits: list[tuple[str, str, str, int]] = []
+    for comp in [ROOT / "docker-compose.v9.yml"]:
+        if not comp.exists():
+            continue
+        try:
+            doc = yaml.safe_load(comp.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            continue
+        for svc, spec in (doc.get("services") or {}).items():
+            if not isinstance(spec, dict):
+                continue
+            env = spec.get("environment")
+            # environment قد تكون dict {KEY: val} أو list ["KEY=val"].
+            values: list[str] = []
+            if isinstance(env, dict):
+                values = [str(v) for v in env.values()]
+            elif isinstance(env, list):
+                values = [str(v) for v in env]
+            for val in values:
+                for m in _URL_RE.finditer(val):
+                    hits.append((str(comp.relative_to(ROOT)), svc, m.group(1), int(m.group(2))))
+    return hits
+
+
+def test_no_compose_env_endpoint_drift() -> None:
+    """افتراضات compose (environment) لا تحمل مضيفاً وهميّاً أو منفذاً خاطئاً.
+
+    مرآة لحارس الكود لكن على compose نفسه — يقفل صنف الانحراف الذي مرّ في افتراض
+    عامل دفتر المياه (weather-service:8092 بدل :8000).
+    """
+    names, ports = _load_compose_services()
+    invalid_host: list[str] = []
+    wrong_port: list[str] = []
+    for comp, svc, host, port in _scan_compose_env():
+        if host not in names:
+            invalid_host.append(f"{comp} [{svc}] -> {host}:{port} (unknown service)")
+            continue
+        expected = ports.get(host)
+        if expected is not None and port != expected:
+            wrong_port.append(f"{comp} [{svc}] -> {host}:{port} (expected :{expected})")
+
+    problems = invalid_host + wrong_port
+    assert not problems, "compose environment endpoint drift:\n" + "\n".join(problems)
+
+
 def test_no_internal_service_endpoint_drift() -> None:
     names, ports = _load_compose_services()
     assert "sahool-decision-service" in names, "compose parse sanity failed"

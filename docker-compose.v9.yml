@@ -1911,7 +1911,7 @@ services:
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8092}
+      WEATHER_SERVICE_URL: ${WEATHER_SERVICE_URL:-http://sahool-weather-service:8000}
       WATER_LEDGER_AUTO_ENABLED: ${WATER_LEDGER_AUTO_ENABLED:-false}
       # WATER-DEFICIT-BRIDGE: جسر عجز الماء المحكوم — default-off مزدوج (جسر + تنفيذ
       # آليّ)، والتنفيذ الآليّ يتطلّب هدفاً صريحاً؛ بدونهما القيد بشريّ المراجعة دائماً.
