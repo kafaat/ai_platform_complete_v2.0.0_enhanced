@@ -258,6 +258,14 @@ jobs:
       - name: service-inventory-drift-gate
         run: python scripts/ci/generate_service_inventory.py --check
 
+      # المخزونان المُولَّدان لـmain.py المنصّة/تركيب الراوترات كانا يُفحَصان في مسارَي
+      # main فقط (platform-main-subinventory.yml · runtime_real_smoke) فينحرفان بعد الـFF
+      # لا قبله. نُدرِجهما هنا في فحص الفرع (pre-FF) اتّساقاً مع «المخزون ضمن الفحص لا بعده».
+      - name: platform-main-subinventory-drift-gate
+        run: python scripts/ci/platform_main_subinventory_guard.py --check
+      - name: route-mount-inventory-drift-gate
+        run: python scripts/ci/route_mount_contract_guard.py --check
+
       # يمنع رجوع خطّافات FastAPI المهجورة (@app.on_event) — يُلزِم lifespan واحداً
       # مُرتَّباً (بدء/إيقاف صريحان) فتبقى تحذيرات الإهمال غائبة. يُشغَّل في فحص الفرع (pre-FF).
       - name: fastapi-lifespan-guard
