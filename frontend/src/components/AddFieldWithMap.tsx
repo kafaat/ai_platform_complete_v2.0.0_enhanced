@@ -1015,7 +1015,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   // صالحاً نرفع خطأً واضحاً بدل إرسال شيء فارغ.
   const firstPolygonFeature = (
     fc: GeoJSON.FeatureCollection | GeoJSON.FeatureCollection[],
-  ): GeoJSON.Feature<GeoJSON.Polygon> => {
+  ): { feature: GeoJSON.Feature<GeoJSON.Polygon>; discardedParts: number } => {
     // shpjs قد يُرجع مجموعة واحدة أو مصفوفة مجموعات (إذا حوى الـ.zip عدّة طبقات).
     const collections = Array.isArray(fc) ? fc : [fc];
     for (const coll of collections) {
@@ -1024,16 +1024,20 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
         const g = feat?.geometry;
         if (!g) continue;
         if (g.type === 'Polygon' && Array.isArray(g.coordinates) && g.coordinates.length > 0) {
-          return { type: 'Feature', properties: feat.properties ?? {}, geometry: g };
+          return { feature: { type: 'Feature', properties: feat.properties ?? {}, geometry: g }, discardedParts: 0 };
         }
-        // MultiPolygon: نأخذ أوّل مضلّع (أوّل حلقة خارجيّة) — اختيار صريح، لا تلفيق.
+        // MultiPolygon: نأخذ أوّل مضلّع (أوّل حلقة خارجيّة) — اختيار صريح، لا تلفيق. نُبلِغ
+        // عدد الأجزاء المُسقَطة (جزر/قطع منفصلة) كي لا يكون فقد البيانات صامتاً (continuation-1 P1).
         if (g.type === 'MultiPolygon' && Array.isArray(g.coordinates) && g.coordinates.length > 0) {
           const first = g.coordinates[0];
           if (Array.isArray(first) && first.length > 0) {
             return {
-              type: 'Feature',
-              properties: feat.properties ?? {},
-              geometry: { type: 'Polygon', coordinates: first },
+              feature: {
+                type: 'Feature',
+                properties: feat.properties ?? {},
+                geometry: { type: 'Polygon', coordinates: first },
+              },
+              discardedParts: g.coordinates.length - 1,
             };
           }
         }
@@ -1066,7 +1070,7 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
             throw new Error('ملفّ Shapefile فارغ أو تعذّرت قراءته.');
           }
           const parsed = await shp(buf);
-          const feature = firstPolygonFeature(parsed);
+          const { feature, discardedParts } = firstPolygonFeature(parsed);
           const geojson: GeoJSON.FeatureCollection = {
             type: 'FeatureCollection',
             features: [feature],
@@ -1074,6 +1078,11 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
           setFileName(f.name);
           setFileText(JSON.stringify(geojson));
           setFileFmt('geojson'); // الخلفيّة تستقبله كـGeoJSON بعد التحويل
+          // تنبيه فقد بيانات صريح (لا صامت): MultiPolygon متعدّد الأجزاء اُستخدم جزؤه
+          // الأوّل فقط؛ نُعلِم المستخدم بعدد الأجزاء (جزر/قطع منفصلة) المُسقَطة.
+          if (discardedParts > 0) {
+            setError(`تنبيه: الحدود متعدّدة الأجزاء (${discardedParts + 1})؛ استُخدم الجزء الأوّل فقط وأُسقِط ${discardedParts}. راجِع إن كانت القطع المنفصلة مطلوبة.`);
+          }
         } catch (e: unknown) {
           setError(asApiError(e).message || 'تعذّر تحليل ملفّ Shapefile — تأكّد أنّه ملفّ .shp/.zip صالح.');
           setFileName(''); setFileText(''); setFileFmt(null);

@@ -435,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b2aaed0d956100913700458d72d7f0341a4d202dfd3e57e19909964e3c334569"
+          "content": "1e8fcfa2b49539ef4cf923c14989f5b7eb48562159ecb34ea5b9f9621c291dc2"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -559,6 +559,16 @@
         }
       ],
       "name": "frontend/src/components/ProtectedRoute.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f8767e46461e842f02e6d8cd6c4036fdb000c18b552f26f2fbcc0572479e181c"
+        }
+      ],
+      "name": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
       "type": "file"
     },
     {
@@ -4375,7 +4385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bf49a2aba41c99026c42b7e7070c336832bbfc5db165bccf885bbc441e2bcc26"
+          "content": "b9e4d3a40a3ab5fe7e8b160f2d217e0e708be3454e1ffcb82d625c1eb953d6c6"
         }
       ],
       "name": "frontend/src/main.tsx",

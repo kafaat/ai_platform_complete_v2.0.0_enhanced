@@ -26,7 +26,16 @@ useAuthStore.subscribe((state) => {
   queryClient.clear();
   useFieldContextStore.getState().clearSelectedField();
   void resetDuckDB();
-  if (!state.tenantId) wsService.disconnect();
+  if (!state.tenantId) {
+    // خروج: نقطع WebSocket ونمسح التفضيلات التشغيليّة المُثبَّتة عالميّاً كي لا تعبر
+    // بين المستخدمين على متصفّح مُشترَك (نطاق shared-browser — continuation-1 P1).
+    wsService.disconnect();
+    try {
+      localStorage.removeItem('sahool_settings');
+    } catch {
+      /* التخزين غير متاح (خصوصيّة/SSR) — تجاهل */
+    }
+  }
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
