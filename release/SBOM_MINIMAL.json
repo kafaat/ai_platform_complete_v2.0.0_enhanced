@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0485aedbfface840ed06527075ff60261d56def7c42cb7356bb333a66f1e2aed"
+          "content": "6b8f77a755f2fb990b54126d655c7b083a99a4e8b679304f95d19d701b617d42"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -365,7 +365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c1bd8e55cae7401f62106d0cb6c4e8f4c8979f797751eb0f78b7641bd348132b"
+          "content": "254257a6fbbe2ec8f20ea307e8c6e96be12fee51a422fcf45c38111f6ca30715"
         }
       ],
       "name": "frontend/package.json",
@@ -439,6 +439,16 @@
         }
       ],
       "name": "frontend/scripts/run-web-tests-smart.mjs",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8090782a55316d7f799c6aa98774d7d539d83460ffe9e9ff91e213c2bacc0d5d"
+        }
+      ],
+      "name": "frontend/scripts/verify-no-demo-in-build.mjs",
       "type": "file"
     },
     {
@@ -2419,6 +2429,16 @@
         }
       ],
       "name": "frontend/src/hooks/TenantFailClosed.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "60d06efed6f0c651046719ccbb173b7d9a372749ee3c30501bddea15c67bbc46"
+        }
+      ],
+      "name": "frontend/src/hooks/TenantFailClosedCacheKeys.static.test.ts",
       "type": "file"
     },
     {
@@ -4525,7 +4545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f00dc642924a297f8fdce7c103c4613d7309da22995c0bc37d3df98ad0129d3e"
+          "content": "a650449d5c340b2b0efb3aaeb10913566bf30a397ca6db275f5d24bbc37cc8e0"
         }
       ],
       "name": "frontend/src/pages/DemoExcludedInProd.static.test.ts",

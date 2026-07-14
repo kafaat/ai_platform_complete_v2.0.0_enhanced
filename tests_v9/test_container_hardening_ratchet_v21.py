@@ -56,9 +56,9 @@ HARDENED_SET: dict[str, set[str]] = {
 # خدمات مرحّلة لدفعات لاحقة (توثيق فقط، لا تأكيد): تحمل no-new-privileges لكنّها
 # لم تُنقل بعد إلى read_only لأنّ كتاباتها تحتاج تعليلاً (مجلّدات/كاش/حالة على القرص).
 STAGED_FOR_LATER_BATCHES = (
-    "sahool-migrate",            # يملك مجلّدات — خارج نطاق CT-05.
+    "sahool-migrate",  # يملك مجلّدات — خارج نطاق CT-05.
     "sahool-zlmediakit-config",  # يملك مجلّد zlm-conf — خارج نطاق CT-05.
-    "sahool-nginx",              # كاش nginx على القرص — دفعة لاحقة.
+    "sahool-nginx",  # كاش nginx على القرص — دفعة لاحقة.
 )
 
 
