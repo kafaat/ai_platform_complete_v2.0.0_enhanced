@@ -1827,7 +1827,12 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-    healthcheck: *id002
+    healthcheck:
+      test: ["CMD-SHELL", "python -m api.worker_heartbeat check --worker phase-runtime-outbox --max-age 120"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
   sahool-plugin-runtime-worker:
     build: *id003
     mem_limit: 512m
@@ -1941,7 +1946,12 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-    healthcheck: *id002
+    healthcheck:
+      test: ["CMD-SHELL", "python -m api.worker_heartbeat check --worker phase-runtime-water_ledger --max-age 7800"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
   sahool-actuator-dispatch-worker:
     build: *id003
     mem_limit: 512m
@@ -1974,7 +1984,12 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-    healthcheck: *id002
+    healthcheck:
+      test: ["CMD-SHELL", "python -m api.worker_heartbeat check --worker phase-runtime-actuator --max-age 120"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
   sahool-zlmediakit-config:
     image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
     container_name: sahool-v9-zlmediakit-config

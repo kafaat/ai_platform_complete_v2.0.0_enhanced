@@ -556,9 +556,23 @@ async def loop_worker(kind: str) -> None:
     }
     if kind not in runners:
         raise SystemExit(f"unknown worker kind {kind}; choose one of {', '.join(runners)}")
+    # CT-06 (تدقيق الحاويات V21 §2.1): نبضة كلّ دورة تُثبِت أنّ حلقة المعالجة تتحرّك — يقرؤها
+    # healthcheck الحاوية (حداثة + حالة) بدل مجرّد وجود متغيّر بيئة. خطأ المُشغّل يُسجَّل في
+    # النبضة ثمّ يُعاد رفعه فتتقادم النبضة وتُعاد الحاوية (لا إخفاء لتوقّف وظيفيّ).
+    from api.worker_heartbeat import HeartbeatState
+
+    hb = HeartbeatState(worker_name=f"phase-runtime-{kind}")
+    hb.write()
     try:
         while True:
-            processed = await runners[kind](pool)
+            try:
+                processed = await runners[kind](pool)
+            except Exception as exc:  # noqa: BLE001 — نُسجّل الفشل في النبضة ثمّ نُعيد رفعه
+                hb.mark_error(str(exc))
+                hb.write()
+                raise
+            hb.mark_poll(processed)
+            hb.write()
             print(json.dumps({"worker": kind, "processed": processed}), flush=True)
             await asyncio.sleep(interval)
     finally:
