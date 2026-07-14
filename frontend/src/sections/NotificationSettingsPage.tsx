@@ -107,14 +107,16 @@ function Channel({
 }
 
 function TextField({
-  value, onChange, type = 'text', placeholder, label,
-}: { value: string; onChange: (v: string) => void; type?: string; placeholder?: string; label: string }) {
+  value, onChange, type = 'text', placeholder, label, readOnly = false, hint,
+}: { value: string; onChange: (v: string) => void; type?: string; placeholder?: string; label: string; readOnly?: boolean; hint?: string }) {
   return (
     <div className="pt-3">
       <label className="block text-xs text-slate-400 mb-1">{label}</label>
-      <input value={value} onChange={e => onChange(e.target.value)} type={type} placeholder={placeholder}
+      <input value={value} onChange={e => !readOnly && onChange(e.target.value)} type={type} placeholder={placeholder}
+        readOnly={readOnly}
         className="w-full px-3 py-2 rounded-lg text-sm"
-        style={{ background: '#0f1117', border: '1px solid #334155', color: '#e2e8f0' }} />
+        style={{ background: '#0f1117', border: '1px solid #334155', color: readOnly ? '#94a3b8' : '#e2e8f0', cursor: readOnly ? 'not-allowed' : 'auto' }} />
+      {hint && <div className="text-[10px] text-slate-500 mt-0.5">{hint}</div>}
     </div>
   );
 }
@@ -253,7 +255,10 @@ export default function NotificationSettingsPage() {
 
       <Channel icon={Smartphone} title="تطبيق الجوال (Push)" desc="يستقبل كلّ الدرجات افتراضيّاً"
         enabled={prefs.push_enabled} onToggle={(v: boolean) => update('push_enabled', v)}>
-        <TextField label="رمز الجهاز (Device Token)" placeholder="FCM token يُولَّد تلقائياً من التطبيق"
+        {/* رمز الجهاز يُسجّله SDK التطبيق ويُخزَّن خادم-جانبيّاً — للعرض فقط، لا يُحرَّره
+            المستخدم يدويّاً (continuation-2 #9). */}
+        <TextField label="رمز الجهاز (Device Token)" placeholder="يُولَّد تلقائيّاً من تطبيق الجوال"
+          readOnly hint="يُسجَّل تلقائيّاً من تطبيق الجوال — غير قابل للتحرير هنا"
           value={prefs.push_token ?? ''} onChange={v => update('push_token', v)} />
       </Channel>
 

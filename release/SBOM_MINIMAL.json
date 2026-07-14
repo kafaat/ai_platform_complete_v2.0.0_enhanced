@@ -5335,7 +5335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad09c3f4c337f39409bb4d4782ef43234f53929f8214082454b16415e6d3877c"
+          "content": "ea0289b44ecf74988db7c0e6287090e4b4275f7f71dd1dc22810b5784ba741dc"
         }
       ],
       "name": "frontend/src/sections/NotificationSettingsPage.tsx",
@@ -5449,6 +5449,16 @@
         }
       ],
       "name": "frontend/src/sections/ProblemFields.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f9dd52d3597804089ff94c155aee4cf10b328935576fd9db404f21807c0a999"
+        }
+      ],
+      "name": "frontend/src/sections/PushTokenReadOnly.static.test.ts",
       "type": "file"
     },
     {
