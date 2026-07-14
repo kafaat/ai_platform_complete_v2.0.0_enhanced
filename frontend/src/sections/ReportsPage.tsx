@@ -82,10 +82,13 @@ function exportToCSV(data: Record<string, unknown>[], filename: string) {
   const rows = data.map(r => csvRow(Object.values(r)));
   const csv = '﻿' + [headers, ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
+  link.href = url;
   link.download = filename;
   link.click();
+  // إبطال object URL بعد التنزيل — كان يُترَك دون إبطال فيتسرّب (continuation-3 P1).
+  URL.revokeObjectURL(url);
 }
 
 const CARD = 'rounded-xl p-4 border';

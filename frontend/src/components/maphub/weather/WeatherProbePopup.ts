@@ -92,9 +92,13 @@ export function registerWeatherProbePopup(
             createBtn.textContent = 'جارٍ إنشاء المهمة…';
             try {
               const op = actionData.task_draft.operation || selectedOperation;
+              // مفتاح idempotency ثابت مُشتقّ من مدخلات الإجراء (حقل/عمليّة/إحداثيّات/نموذج/
+              // تاريخ) — إعادة فتح النافذة أو المحاولة بعد مهلة تُنتِج المفتاح ذاته فيمنع
+              // الخادمُ التكرار (F5-08).
+              const idemKey = `wx-task:${fieldId}:${op}:${lat.toFixed(4)}:${lng.toFixed(4)}:${model}:${actionData.task_draft.recommended_date ?? ''}`;
               const res = await fetch('/api/v1/weather/tasks/from-operation-plan', {
                 method: 'POST',
-                headers: weatherJsonHeaders(),
+                headers: { ...weatherJsonHeaders(), 'Idempotency-Key': idemKey },
                 body: JSON.stringify({ field_id: fieldId, lat, lon: lng, operation: op, model, dry_run: false }),
               });
               if (!res.ok) {
@@ -118,9 +122,11 @@ export function registerWeatherProbePopup(
             recBtn.disabled = true;
             recBtn.textContent = 'جارٍ حفظ التوصية…';
             try {
+              // مفتاح idempotency ثابت (F5-08): إعادة الفتح/المحاولة لا تُنشئ توصية مكرّرة.
+              const idemKey = `wx-rec:${fieldId}:${lat.toFixed(4)}:${lng.toFixed(4)}:${model}`;
               const res = await fetch('/api/v1/weather/recommendations/from-operation-plan', {
                 method: 'POST',
-                headers: weatherJsonHeaders(),
+                headers: { ...weatherJsonHeaders(), 'Idempotency-Key': idemKey },
                 body: JSON.stringify({ field_id: fieldId, lat, lon: lng, operations: 'spraying,irrigation,harvesting,sowing', model, dry_run: false }),
               });
               if (!res.ok) {

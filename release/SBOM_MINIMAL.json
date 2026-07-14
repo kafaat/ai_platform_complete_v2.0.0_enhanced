@@ -2115,6 +2115,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "711a5b258c6c90719841f95579b95483688b33644b67da3abb7b671a12ad7151"
+        }
+      ],
+      "name": "frontend/src/components/maphub/weather/WeatherActionLifecycle.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3601ed4d0476441747d692a269f78276867ae93bf3569740c1854aad414ac8d6"
         }
       ],
@@ -2155,7 +2165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4acb9d6240ea4c1dc03df1ed750d19f0cd5da92f0d15ce40b4ab6df7da1a4569"
+          "content": "bc8272736b4e4584ed568ed7d9ecfea0b716394ace967a82ac42a132c26cbb20"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
@@ -5495,7 +5505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d9a8748db4c55cce25456f7f3be7f5f6b3ce3ca9b07c3efdd1a39ddc4e53a5e0"
+          "content": "e05f4b049fcb4906b2b0f52279ae7f9f0ed40739eaa14fdfe44f11efe8e964a4"
         }
       ],
       "name": "frontend/src/sections/ReportsPage.tsx",
