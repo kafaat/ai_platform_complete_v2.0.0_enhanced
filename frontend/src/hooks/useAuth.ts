@@ -186,8 +186,12 @@ export const useAuthStore = create<AuthState>()(
 export const useIsAuthenticated = () =>
   useAuthStore(s => s.isAuthenticated);
 
-export const useTenantId = () =>
-  useAuthStore(s => s.tenantId) || 'default';
+// Fail-closed (forensic FE-07): لا نُلفّق مستأجِراً 'default' عند غياب الهويّة.
+// حين لا يوجد مستأجِر مُصادَق (خروج/جلسة مشوّهة) نُعيد null — لا سلسلة 'default' —
+// فيعامله المستهلكون كـ«غير جاهز / يجب المصادقة» بدل القراءة/الكتابة على مستأجِر
+// وهميّ. المسار المُصادَق سليم: login/signup/acceptInvite يضبطون tenantId من الخادم.
+export const useTenantId = (): string | null =>
+  useAuthStore(s => s.tenantId);
 
 export const useCurrentUser = () =>
   useAuthStore(s => s.user);

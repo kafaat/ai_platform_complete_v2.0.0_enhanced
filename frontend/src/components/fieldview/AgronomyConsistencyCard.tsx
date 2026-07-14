@@ -321,9 +321,10 @@ export default function AgronomyConsistencyCard({ fieldId, cropLabel, enabled = 
   const [orEnd, setOrEnd] = useState('');
   const [orFieldLabel, setOrFieldLabel] = useState('');
   const reportMut = useOperationReportCsv();
-  const reportReady = !!fieldId && !!orName.trim() && !!orStart.trim() && !!orEnd.trim();
+  // Fail-closed (FE-07): بلا مستأجِر مُصادَق (tenantId === null) لا تقرير — لا نُلفّق 'default'.
+  const reportReady = !!tenantId && !!fieldId && !!orName.trim() && !!orStart.trim() && !!orEnd.trim();
   const onExportReport = () => {
-    if (!reportReady || !fieldId) return;
+    if (!reportReady || !fieldId || !tenantId) return;
     reportMut.mutate({
       tenant_id: tenantId,
       operation_name_ar: orName.trim(),
