@@ -1519,3 +1519,48 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v180_governed_vri_prescription.sql"
+  irrigation_system_specifications:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql"
+  irrigation_engineering_calculations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql"
+  irrigation_commissioning_tests_v2:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v186_irrx1_digital_commissioning_runtime.sql"
+  irrigation_commissioning_certificates_v2:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v186_irrx1_digital_commissioning_runtime.sql"
+  irrigation_execution_authorizations_v2:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v186_irrx1_digital_commissioning_runtime.sql"
+  irrigation_manual_executions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v187_irrx1_manual_execution_lifecycle.sql"
+  irrigation_manual_execution_events:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v187_irrx1_manual_execution_lifecycle.sql"
+  irrigation_manual_ledger_reconciliations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v188_irrx1_verified_manual_as_applied_ledger_bridge.sql"
+  irrigation_manual_execution_sources:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql"

@@ -181,6 +181,20 @@ jobs:
         run: python scripts/ci/irrigation_vri_m4_guard.py
       - name: irrigation M5 closed-loop certification guard
         run: python scripts/ci/irrigation_closed_loop_m5_guard.py
+      - name: IRR-X1 vendor-neutral engineering workspace guard
+        run: python scripts/ci/irrx1_vendor_neutral_guard.py
+      - name: IRR-X1.1 digital commissioning runtime guard
+        run: python scripts/ci/irrx1_commissioning_runtime_guard.py
+      - name: IRR-X1.2 manual execution lifecycle guard
+        run: python scripts/ci/irrx1_manual_execution_guard.py
+      - name: IRR-X1.3 verified manual as-applied ledger guard
+        run: python scripts/ci/irrx1_verified_manual_ledger_guard.py
+      - name: IRR-X1.4 farmer manual operations UI guard
+        run: python scripts/ci/irrx1_farmer_manual_operations_ui_guard.py
+      - name: IRR-PCERT database truth guard
+        run: python scripts/ci/irrx1_pcert_guard.py
+      - name: IRR-X1.5 authoritative recommendation provenance guard
+        run: python scripts/ci/irrx1_authoritative_provenance_guard.py
       # WX-I1 runtime: server-owned hourly MPC orchestrator (recommendation-only) + the durable
       # measured-as-applied → water-ledger reconciliation return path (v184) must stay wired.
       - name: irrigation runtime orchestrator guard

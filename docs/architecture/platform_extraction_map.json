@@ -1,5 +1,5 @@
 {
-  "baseline_route_count": 602,
+  "baseline_route_count": 612,
   "routes": [
     {
       "file": "api/chat_proxy_reference.py",
@@ -6038,12 +6038,112 @@
       "target_owner": "agriai-engine",
       "owner_type": "decision-compute",
       "route_key": "api/routers/yield_interval.py::POST /api/v1/fields/{field_id}/yield-interval::field_yield_interval_endpoint"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "calculate_engineering",
+      "method": "POST",
+      "path": "/calculate",
+      "line": 55,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /calculate::calculate_engineering"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "issue_commissioning_certificate",
+      "method": "POST",
+      "path": "/commissioning/certificates",
+      "line": 78,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /commissioning/certificates::issue_commissioning_certificate"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "get_current_commissioning_certificate",
+      "method": "GET",
+      "path": "/commissioning/systems/{system_id}/current",
+      "line": 143,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::GET /commissioning/systems/{system_id}/current::get_current_commissioning_certificate"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "evaluate_execution_authorization",
+      "method": "POST",
+      "path": "/commissioning/authorize",
+      "line": 167,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /commissioning/authorize::evaluate_execution_authorization"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "create_manual_execution",
+      "method": "POST",
+      "path": "/manual-executions",
+      "line": 242,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /manual-executions::create_manual_execution"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "list_manual_executions",
+      "method": "GET",
+      "path": "/manual-executions",
+      "line": 204,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::GET /manual-executions::list_manual_executions"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "transition_manual_execution_endpoint",
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/transition",
+      "line": 321,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /manual-executions/{execution_id}/transition::transition_manual_execution_endpoint"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "confirm_manual_execution",
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/confirm",
+      "line": 393,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /manual-executions/{execution_id}/confirm::confirm_manual_execution"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "verify_manual_execution",
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/verify",
+      "line": 0,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /manual-executions/{execution_id}/verify::verify_manual_execution"
+    },
+    {
+      "file": "api/routers/irrigation_engineering.py",
+      "function": "reconcile_manual_execution_to_water_ledger",
+      "method": "POST",
+      "path": "/manual-executions/{execution_id}/reconcile",
+      "line": 542,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_engineering.py::POST /manual-executions/{execution_id}/reconcile::reconcile_manual_execution_to_water_ledger"
     }
   ],
   "p2_6_route_budget_reduction": {
     "previous_baseline_route_count": 567,
     "measured_route_count_after_p4_5": 570,
-    "new_max_platform_routes": 599,
+    "new_max_platform_routes": 609,
     "policy": "No route growth above the verified AST route budget after P3/P4 extraction without ownership-map review; extraction progress is enforced by service boundary guards, not artificial route deletion. Budget deliberately raised 567->570 for the JSON-metrics hotfix (field-intelligence async-job + evidence-graph read endpoints, platform-owned).",
     "ui3b_ui4_note": "Budget deliberately raised 570->572 for two UI-alignment BFF routes (/api/v1/features runtime flag registry; /api/v1/fields/{field_id}/readiness facade over data-completeness). Documented raise via the sanctioned guard path, not silent growth.",
     "ui27_ui35_note": "Budget raised 572->575 for UI27-UI35 Field Workspace BFF facades (imagery/weather/timeline/priority), owned+documented.",

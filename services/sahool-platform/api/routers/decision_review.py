@@ -14,13 +14,15 @@ its own audit contract — this route only performs the single terminal transiti
 
 from __future__ import annotations
 
+import json
+
 from core.authorization import Permission
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from api.decision_service_client import list_review_queue as ds_list_review_queue
 from api.decision_service_client import review_decision as ds_review_decision
-from api.main import UserSchema, require_permission
+from api.main import UserSchema, require_permission, tenant_connection
 
 router = APIRouter()
 
@@ -219,11 +221,91 @@ async def create_decision_execution_plan(
         raise HTTPException(
             status_code=503, detail="decision-service did not prove an authoritative execution plan"
         )
+    plan_digest = str(result.get("plan_digest") or "")
+    if len(plan_digest) != 64:
+        raise HTTPException(
+            status_code=503, detail="decision-service omitted authoritative plan digest"
+        )
+
+    # IRR-X1.5: only an authoritative approved irrigation execution plan may become
+    # a manual execution source. The free-form browser payload never becomes execution truth.
+    if req.operation_type == "manual_irrigation":
+        c = req.constraints
+        required = (
+            "field_id",
+            "season_id",
+            "system_id",
+            "target_depth_mm",
+            "target_volume_m3",
+            "water_truth_digest",
+        )
+        missing = [k for k in required if c.get(k) in (None, "")]
+        if missing:
+            raise HTTPException(
+                status_code=422,
+                detail={"code": "MANUAL_IRRIGATION_PLAN_FIELDS_REQUIRED", "missing": missing},
+            )
+        if req.planned_start is None or req.planned_end is None:
+            raise HTTPException(
+                status_code=422,
+                detail="planned_start and planned_end are required for manual irrigation",
+            )
+        if req.planned_end <= req.planned_start:
+            raise HTTPException(status_code=422, detail="planned_end must be after planned_start")
+        for key in ("plan_digest", "water_truth_digest"):
+            value = plan_digest if key == "plan_digest" else str(c["water_truth_digest"])
+            if len(value) != 64 or any(ch not in "0123456789abcdef" for ch in value):
+                raise HTTPException(status_code=422, detail=f"{key} must be lowercase sha256")
+        try:
+            target_depth = float(c["target_depth_mm"])
+            target_volume = float(c["target_volume_m3"])
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(
+                status_code=422, detail="target depth/volume must be numeric"
+            ) from exc
+        if target_depth <= 0 or target_volume <= 0:
+            raise HTTPException(status_code=422, detail="target depth/volume must be positive")
+        async with tenant_connection(user) as conn:
+            await conn.execute(
+                """INSERT INTO irrigation_manual_execution_sources (
+                       tenant_id, execution_plan_id, decision_id, review_id, candidate_lineage_id,
+                       field_id, season_id, system_id, target_depth_mm, target_volume_m3,
+                       nominal_flow_m3_h, valid_from, valid_until, water_truth_digest,
+                       plan_digest, source_payload, created_by
+                   ) VALUES ($1::uuid,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17)
+                   ON CONFLICT (tenant_id,execution_plan_id) DO NOTHING""",
+                str(user.tenant_id),
+                result["execution_plan_id"],
+                decision_id,
+                result["review_id"],
+                result["candidate_lineage_id"],
+                str(c["field_id"]),
+                str(c["season_id"]),
+                str(c["system_id"]),
+                target_depth,
+                target_volume,
+                c.get("nominal_flow_m3_h"),
+                req.planned_start,
+                req.planned_end,
+                str(c["water_truth_digest"]),
+                plan_digest,
+                json.dumps(
+                    {
+                        "constraints": c,
+                        "safety_conditions": req.safety_conditions,
+                        "weather_window_reference": req.weather_window_reference,
+                    },
+                    default=str,
+                ),
+                str(user.user_id),
+            )
+
     return {
         "execution_plan_id": result["execution_plan_id"],
         "decision_id": decision_id,
         "review_id": result["review_id"],
         "candidate_lineage_id": result["candidate_lineage_id"],
+        "plan_digest": plan_digest,
         "state": "planned",
         "replay": bool(result.get("replay", False)),
         "created_at": result["created_at"],

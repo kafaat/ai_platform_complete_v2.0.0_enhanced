@@ -4005,6 +4005,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e1483af808476a61216eaecd698a5f1c601e3520b1fae3b8753586f360a9a4e1"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationEngineering.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "63afbcd5498bb1537c9adfe51f7e0f3547da9a75d1fd46d7c08ec4d9119be1e1"
+        }
+      ],
+      "name": "frontend/src/lib/irrigationEngineering.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4c390f9edbd6ac864bf453f80bd18ef310c282608d0614bfd86250b8c094b743"
         }
       ],
@@ -5105,7 +5125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c5317fd1756ce8a510d7f9e876b1954071be17127698b5a0e8ff019fdf57a3f"
+          "content": "b08e51b79d53bd21a1c8b0521aeeb3fc0a0f95439d73f7c90f3fbf34d2c85e5d"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
@@ -5279,6 +5299,26 @@
         }
       ],
       "name": "frontend/src/sections/InventoryPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "096494f09fb364b22e69b167edbd9e12f5a12f0cd14086edc2abdc81ad701f66"
+        }
+      ],
+      "name": "frontend/src/sections/IrrigationEngineeringWorkspace.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e32e7f86f304b030dc6ef6a4ed19f79061f97dcc8844711bced03a1e89650cde"
+        }
+      ],
+      "name": "frontend/src/sections/IrrigationManualOperationsPanel.tsx",
       "type": "file"
     },
     {
@@ -6115,6 +6155,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b1b8b62f90b8d67c4259d1c48898082f400580fd26a833e1e9803b40f108529f"
+        }
+      ],
+      "name": "frontend/src/services/api/irrigationManualOperations.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0bd29e688b5011b53599de50e48a6a21f17983a908fcea1284815e75a01d09e2"
         }
       ],
@@ -6275,7 +6325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d0ee308a1cdac2573ea942b4fc7f95429d0155f42c7b1984c3196b966c434cc"
+          "content": "d37acca03a6788ec513f17035654cc2d487ebeac3c14a4136b5f545e3bb1d443"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7245,10 +7295,70 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4de7d1896b08b6ca2738f7074eda00d5c7423f56992e3bd7307f8601cf35b191"
+        }
+      ],
+      "name": "migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f23be41e649cb9dde809e16857b2f8702eebe492a71e5b6272dfe410fbf92c4e"
+        }
+      ],
+      "name": "migrations/v186_irrx1_digital_commissioning_runtime.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "52db651a178d62be434baad0170d04a3d62f412f3313fcff22fb0f76b5d035ba"
+        }
+      ],
+      "name": "migrations/v187_irrx1_manual_execution_lifecycle.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "effe3448285cc7e9fe1bfc120af9ff63bf223436ed936f9061520984a9357c93"
+        }
+      ],
+      "name": "migrations/v188_irrx1_verified_manual_as_applied_ledger_bridge.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f809b186601f328fb924377aab2746d5b2716b2598416dbe319cae7e9aa96d46"
+        }
+      ],
+      "name": "migrations/v189_irrx1_pcert_manual_execution_db_invariants.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "833cb41ac9881fa91f538a600f3b1f3db6b646e0557cf5dc967bf671870d5dc3"
         }
       ],
       "name": "migrations/v18_entity_ids_text.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6c5338ff6f8de9f5262a30b234d65440f7984fe143acd25d79d6d62b81762b9e"
+        }
+      ],
+      "name": "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql",
       "type": "file"
     },
     {
@@ -10045,7 +10155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d54fb720fc41051d586b70a43079f78f1ebde78d293fc2f7d7b5d25744f13f8"
+          "content": "71b7b0db0016b73483ae529b7839e212bc5da2a5ad9514f410eb28686c7cdf87"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -14435,6 +14545,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "60aedfb2474bac32123a3caf4d48a1564398fb33ecb24290c7ff4ba9905238c3"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_commissioning_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "49854909cc2c84c0f109f6a944b1991e30d8d807f4be6c4e46dabf1f43cc8cf8"
         }
       ],
@@ -14445,10 +14565,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5b8836527cd9e242578f355bdbd9050c32f23a35e2d65e83d53e1c52845bbb0e"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_engineering_workspace.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8ce8f191e27aaa8f93cbe723ce4ebd2e81a5421235f883d9889a62ca7dda207a"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_logic.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "183a79243817e10f8f6c69d5036431a5a6bf2ec7d8357887e4b8f513b6e735dc"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_manual_execution.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "026a6f99e3833b3d63ccf1220bd971f1fb30540c10a4d3b9c611c1bf5a49b1b5"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_manual_ledger_bridge.py",
       "type": "file"
     },
     {
@@ -15345,7 +15495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "402ec0beae5fa063b4e6187b8c953a2e1cb10baca46b84eb5357186742779024"
+          "content": "a2871817d54c523d02c1d99827a93055b03f9671a1a558e2bcde3c46eae463c9"
         }
       ],
       "name": "services/sahool-platform/api/routers/decision_review.py",
@@ -15819,6 +15969,16 @@
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5fe90945e950006ad4ea44dd7c34d8faa255d13606c68f3d2fd0d473eb128a27"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/irrigation_engineering.py",
       "type": "file"
     },
     {
@@ -22635,6 +22795,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2a42a38b573235af2a15f69a9c8dae513230cda69db5b38dcbfede5cd3c7de41"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_commissioning_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "11935a76aa98d314f1cad4de8a092acd2a85ffb5d28f68b8454de092095a9546"
         }
       ],
@@ -22659,6 +22829,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_engineering_contracts.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bea00ad4e4b2abc251218df38061c38427d65cc635ee733d8d4be0544a94489c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_engineering_workspace.py",
       "type": "file"
     },
     {
@@ -23255,7 +23435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68d4ea3ad396b95348c15a26f692001ca29b2b9f67b87a9b514339524b461a1a"
+          "content": "af9003f73ad323a01fe55c2706309cc9b3d4c4f5f91145574da9fb92691cb9be"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
