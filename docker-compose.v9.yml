@@ -3,6 +3,10 @@ x-logging: &id001
   options:
     max-size: 10m
     max-file: '5'
+# CT-06 (تدقيق الحاويات V21 §2.1+§2.2): كان الفحص القائم على وجود متغيّر بيئة (``&id002``:
+# ``DATABASE_URL``/``JOBS_DATABASE_URL``) مُشتركاً عبر عمّال phase-runtime وعامِلَي الراستر.
+# حُوِّل كلّ عامل (الخمسة + الراستريّان) إلى نبضة قدرة-واعية تُثبِت تحرّك الحلقة لا مجرّد وجود
+# متغيّر، فلم يبقَ أيّ مُشير إلى ``*id002`` وأُزيلت المرساة اليتيمة (لا كتلة ميّتة في المخطّط).
 services:
   raster-tiler-service:
     build: ./services/raster-tiler-service
@@ -894,11 +898,9 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-    healthcheck: &id002
-      test:
-      - CMD-SHELL
-      - python -c "import os, sys; sys.exit(0 if (os.getenv('DATABASE_URL') or os.getenv('JOBS_DATABASE_URL'))
-        else 1)"
+    healthcheck:
+      # CT-06 §2.2: نبضة قدرة-واعية — poll كلّ ~5s ⇒ max-age 120 (هامش 24× كعمّال phase-runtime).
+      test: ["CMD-SHELL", "python -m worker_heartbeat check --worker raster-cache-invalidation --max-age 120"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -951,7 +953,15 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-    healthcheck: *id002
+    healthcheck:
+      # CT-06 §2.2: نبضة قدرة-واعية. تشغيلة backfill واحدة قد تطول (مسح STAC شهريّ + معالجة
+      # مشاهد)، والنبضة تُحدَّث بين دورات run_once فقط؛ لذا max-age يتجاوز مهلة الإيجار
+      # (BACKFILL_LEASE_TIMEOUT_SECONDS=1800) بهامش: 2100s — فلا يُعاد تشغيل تشغيلة سليمة داخل نافذة إيجارها.
+      test: ["CMD-SHELL", "python -m worker_heartbeat check --worker raster-backfill-scan --max-age 2100"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
   sahool-titiler:
     image: ${TITILER_IMAGE:-ghcr.io/developmentseed/titiler:0.18.6}
     command: uvicorn titiler.application.main:app --host 0.0.0.0 --port 8000 --workers

@@ -38,6 +38,7 @@ import raster_settings
 import raster_stac_runtime
 import scene_policy
 import stac_search as stac_search_helpers
+from worker_heartbeat import HeartbeatState  # نبضة قدرة-واعية (V21 §2.2 / CT-06)
 
 logger = logging.getLogger("raster-service.backfill_scan_worker")
 
@@ -494,22 +495,36 @@ def _as_dt(d) -> datetime:
 async def loop_worker() -> None:
     pool: asyncpg.Pool | None = None
     logged_disabled = False
+    # CT-06 (تدقيق الحاويات V21 §2.2): نبضة كلّ دورة تُثبِت أنّ حلقة الاستطلاع تتحرّك — يقرؤها
+    # healthcheck الحاوية (حداثة + حالة) بدل مجرّد وجود متغيّر بيئة. خطأ المُشغّل يُسجَّل في
+    # النبضة (state=failed) فيبقى الفحص أحمر ما دام العطل قائماً (تُعاد الحاوية بعد retries)،
+    # ودورة ناجحة لاحقاً تُعيد الحالة إلى running — نُبقي رؤية انحراف المخطّط + تحمّل العابر.
+    hb = HeartbeatState(worker_name="raster-backfill-scan")
+    hb.write()
     while True:
         if not _enabled():
             if not logged_disabled:
                 logger.info("backfill scan worker خامل (RASTER_ASYNC_BACKFILL_ENABLED=false)")
                 logged_disabled = True
+            # النبضة تُكتَب حتّى في وضع الخمول: الحلقة حيّة (تستطلع الراية) فيبقى الفحص أخضر.
+            hb.mark_poll(0)
+            hb.write()
             await asyncio.sleep(WORKER_POLL_SECONDS)
             continue
         logged_disabled = False
         try:
             if pool is None:
                 pool = await _connect()
-            await run_once(pool)
+            processed = await run_once(pool)
+            hb.mark_poll(processed)
+            hb.write()
         except (asyncpg.UndefinedColumnError, asyncpg.UndefinedTableError) as e:
             # خطأ مخطّط دائم (عمود/جدول مفقود بعد ترحيل ناقص) — ليس عابراً كتأخّر الإقلاع.
             # لو بقي عند warning لظلّ العلوق صامتاً: استعلام المطالبة يفشل كلّ دورة فتتراكم
-            # التشغيلات في 'planned' بلا إشارة. نرفعه إلى ERROR بتلميح صريح للترحيل.
+            # التشغيلات في 'planned' بلا إشارة. نرفعه إلى ERROR بتلميح صريح للترحيل ونُسجّله
+            # في النبضة (state=failed) كي يفشل الفحص الصحّيّ ما دام الانحراف قائماً.
+            hb.mark_error(str(e))
+            hb.write()
             logger.error(
                 "backfill scan BLOCKED by schema drift (runs will stay 'planned' forever): %s — "
                 "apply pending migrations (v144–v147: backfill_runs + source column, "
@@ -522,7 +537,9 @@ async def loop_worker() -> None:
                 except Exception:  # noqa: BLE001
                     pass
             pool = None
-        except Exception as e:  # noqa: BLE001 — القاعدة قد تتأخّر عند الإقلاع (عابر)
+        except Exception as e:  # noqa: BLE001 — القاعدة قد تتأخّر عند الإقلاع (عابر)؛ نُسجّله بالنبضة
+            hb.mark_error(str(e))
+            hb.write()
             logger.warning("backfill scan cycle skipped (transient, e.g. DB warming up): %s", e)
             if pool is not None:
                 try:

@@ -28,6 +28,7 @@ from typing import Any
 
 import asyncpg
 import tile_cache_maint  # وحدة خفيفة (بلا FastAPI): إبطال/إخلاء كاش البلاطات
+from worker_heartbeat import HeartbeatState  # نبضة قدرة-واعية (V21 §2.2 / CT-06)
 
 logger = logging.getLogger("raster-service.cache_invalidation_worker")
 
@@ -163,6 +164,12 @@ async def loop_worker() -> None:
     pool: asyncpg.Pool | None = None
     cycle = 0
     _logged_disabled = False
+    # CT-06 (تدقيق الحاويات V21 §2.2): نبضة كلّ دورة تُثبِت أنّ حلقة الاستطلاع تتحرّك — يقرؤها
+    # healthcheck الحاوية (حداثة + حالة) بدل مجرّد وجود متغيّر بيئة. خطأ المُشغّل يُسجَّل في
+    # النبضة (state=failed) فيبقى الفحص أحمر ما دام العطل قائماً (تُعاد الحاوية بعد retries)،
+    # ودورة ناجحة لاحقاً تُعيد الحالة إلى running — نُبقي تحمّل تأخّر الإقلاع (لا نُسقط الحلقة).
+    hb = HeartbeatState(worker_name="raster-cache-invalidation")
+    hb.write()
     while True:
         if not _enabled():
             if not _logged_disabled:
@@ -170,14 +177,21 @@ async def loop_worker() -> None:
                     "cache-invalidation worker خامل (RASTER_CACHE_INVALIDATION_ENABLED=false)"
                 )
                 _logged_disabled = True
+            # النبضة تُكتَب حتّى في وضع الخمول: الحلقة حيّة (تستطلع الراية) فيبقى الفحص أخضر.
+            hb.mark_poll(0)
+            hb.write()
             await asyncio.sleep(WORKER_POLL_SECONDS)
             continue
         _logged_disabled = False
         try:
             if pool is None:
                 pool = await _connect()
-            await run_once(pool)
-        except Exception as e:  # noqa: BLE001 — القاعدة قد تتأخّر عند الإقلاع
+            processed = await run_once(pool)
+            hb.mark_poll(processed)
+            hb.write()
+        except Exception as e:  # noqa: BLE001 — القاعدة قد تتأخّر عند الإقلاع؛ نُسجّل الفشل بالنبضة
+            hb.mark_error(str(e))
+            hb.write()
             logger.warning("cache-invalidation cycle skipped: %s", e)
             if pool is not None:
                 try:
