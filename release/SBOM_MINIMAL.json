@@ -5905,7 +5905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9e1da2b4838150c25e567220154c027c8876198d9ca7e581e3a6b860e080fdbf"
+          "content": "20b38e360ecf513949e0ad8792ac582a39bfc9ad0c61ee132a21049c4b255d5b"
         }
       ],
       "name": "frontend/src/services/websocket.test.ts",
@@ -5915,7 +5915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94bcfd1acfd05105a804be5aa2cf8f6b2085de7876e3851b62864b7313194681"
+          "content": "ca43b46be1bbd2ee29b6d8fc4597fe781d97078d03871f719afcd21c66ee6946"
         }
       ],
       "name": "frontend/src/services/websocket.ts",

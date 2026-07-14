@@ -16,6 +16,20 @@ type EventType =
 
 type Handler = (data: Record<string, unknown>) => void;
 
+// أنواع أحداث الخادم المعروفة — أيّ إطار وارد لا يحمل event_type منها (أو pong) يُهمَل
+// بلا توزيع/إشعار (منع انتحال تنبيه تشغيليّ عبر إطار مُلفَّق — continuation-2 #3/#4).
+const KNOWN_EVENT_TYPES: ReadonlySet<string> = new Set<EventType>([
+  'satellite', 'weather_alert', 'pest_alert', 'irrigation_rec',
+  'fertilizer_rec', 'low_stock', 'task_assigned', 'economic_analysis',
+]);
+
+// أُطُر العميل → الخادم المسموح بها فقط: تحكّم (auth/ping) واشتراك بالقنوات. المتصفّح
+// لا يُصدر أوامر تشغيليّة/مُغيِّرة للحالة (ريّ/صمام/مضخّة) عبر WebSocket إطلاقاً — تلك
+// تمرّ عبر REST المُصادَق والمحكوم حصراً (continuation-2 #2، P0).
+const ALLOWED_CLIENT_TYPES: ReadonlySet<string> = new Set([
+  'auth', 'ping', 'subscribe', 'unsubscribe',
+]);
+
 // نتيجة الإرسال (P0.2): بدل bool صامت نُعيد حالة صريحة كي يعرف مُستدعو الأوامر
 // المُغيِّرة للحالة (ريّ/صمام/مضخّة) مصير أمره — أُرسل فوراً، أم طُوبِر، أم
 // أُسقط الأقدم لإفساح مكان (فقد بيانات صريح)، أم فشل التسلسل ولم يُحفَظ.
@@ -39,6 +53,9 @@ class WebSocketService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
+  // إقرار المصادقة (continuation-2 #1): لا نُفرّغ الصندوق الصادر حتى يُقرّ الخادمُ
+  // الاتصالَ (أوّل رسالة واردة بعد إطار auth) — فلا تُبَثّ رسائل قبل المصادقة.
+  private authed = false;
   // صندوق صادر محدود (Phase 3): يحفظ الرسائل المُرسَلة بينما القناة ليست OPEN
   // (إعادة اتصال/إقلاع) ويُفرِّغها عند الفتح، بدل إسقاطها صامتةً. فقدان أمر
   // تشغيليّ (ريّ/صمام/مضخّة) صامتاً أخطر من تأخيره. محدود بسقفٍ لتجنّب نموّ
@@ -73,11 +90,12 @@ class WebSocketService {
         console.info('[WS] SAHOOL WebSocket connected');
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        this.authed = false; // لم يُقِرّ الخادمُ المصادقةَ بعد.
         // أوّلاً: أرسل إطار المصادقة قبل أيّ شيء آخر (التوكن في الرسالة الأولى).
         this.ws?.send(JSON.stringify({ type: 'auth', token }));
-        // ثمّ فرّغ أيّ رسائل مُعلّقة طُوبِرت بينما كانت القناة مغلقة.
-        this._flushOutbox();
-        // Ping كل 30 ثانية للحفاظ على الاتصال
+        // لا نُفرّغ الصندوق هنا: ننتظر إقرار الخادم (أوّل رسالة واردة) — continuation-2 #1.
+        // امسح أيّ مؤقّت ping سابق قبل إنشاء جديد كي لا تتراكم مؤقّتات عند إعادة الاتصال (#2).
+        if (this.pingInterval) clearInterval(this.pingInterval);
         this.pingInterval = setInterval(() => {
           if (this.ws?.readyState === WebSocket.OPEN) {
             this.ws.send(JSON.stringify({ type: 'ping' }));
@@ -86,27 +104,36 @@ class WebSocketService {
       };
 
       this.ws.onmessage = (event) => {
+        let data: Record<string, unknown>;
         try {
-          const data = JSON.parse(event.data) as Record<string, unknown>;
-          if (data.type === 'pong') return;
-          const eventType = data.event_type as EventType;
-
-          // Dispatch to type-specific listeners
-          if (eventType && this.listeners.has(eventType)) {
-            this.listeners.get(eventType)!.forEach(cb => cb(data));
-          }
-          // Dispatch to global listeners
-          this.globalListeners.forEach(cb => cb(data));
-
-          // Browser notification
-          this._showBrowserNotif(data);
+          data = JSON.parse(event.data) as Record<string, unknown>;
         } catch {
-          // invalid JSON — ignore
+          // إطار غير صالح (JSON فاسد): لا نُوزّعه، ونُسجّل تشخيصاً بدل ابتلاع صامت (#16).
+          console.warn('[WS] dropping invalid (non-JSON) frame');
+          return;
         }
+        // أوّل رسالة واردة بعد الفتح = إقرار مصادقة الخادم ⇒ نُفرّغ الصندوق الآن فقط (#1).
+        if (!this.authed) {
+          this.authed = true;
+          this._flushOutbox();
+        }
+        if (data.type === 'pong') return;
+        const eventType = typeof data.event_type === 'string' ? data.event_type : '';
+        // تحقّق صارم من النوع (#3): إطار بلا event_type معروف يُهمَل — لا توزيع ولا إشعار
+        // (منع بثّ/انتحال تنبيه تشغيليّ عبر إطار مُلفَّق).
+        if (!KNOWN_EVENT_TYPES.has(eventType)) {
+          return;
+        }
+        if (this.listeners.has(eventType as EventType)) {
+          this.listeners.get(eventType as EventType)!.forEach(cb => cb(data));
+        }
+        this.globalListeners.forEach(cb => cb(data));
+        this._showBrowserNotif(data);
       };
 
       this.ws.onclose = (e) => {
         this.isConnecting = false;
+        this.authed = false;
         if (this.pingInterval) clearInterval(this.pingInterval);
         if (e.code !== 1000 && this.reconnectAttempts < this.maxReconnects) {
           const delay = Math.min(30_000, 2000 * Math.pow(1.5, this.reconnectAttempts));
@@ -150,6 +177,14 @@ class WebSocketService {
    * تعذّر تسلسلها (لم تُحفظ).
    */
   send(data: Record<string, unknown>): SendResult {
+    // منع الأوامر التشغيليّة/المُغيِّرة للحالة عبر WebSocket (P0، continuation-2 #2):
+    // يُسمح فقط بأُطُر التحكّم (auth/ping) والاشتراك. أيّ نوع آخر (valve/pump/irrigation/…)
+    // يُرفَض؛ الأوامر الحسّاسة تمرّ عبر REST المُصادَق والمحكوم حصراً.
+    const type = typeof data?.type === 'string' ? data.type : '';
+    if (!ALLOWED_CLIENT_TYPES.has(type)) {
+      console.warn(`[WS] blocked non-control client frame over WebSocket: ${type || '(no type)'}`);
+      return 'failed';
+    }
     let payload: string;
     try {
       payload = JSON.stringify(data);
@@ -226,7 +261,8 @@ class WebSocketService {
   }
 
   private _showBrowserNotif(data: Record<string, unknown>): void {
-    if (Notification.permission !== 'granted') return;
+    // حارس وجود Notification (بيئات SSR/اختبار/متصفّح غير داعم) قبل قراءة permission.
+    if (!('Notification' in globalThis) || Notification.permission !== 'granted') return;
     const title   = String(data.title   || 'SAHOOL تنبيه');
     const message = String(data.message || '');
     const icon    = '/favicon.svg';
