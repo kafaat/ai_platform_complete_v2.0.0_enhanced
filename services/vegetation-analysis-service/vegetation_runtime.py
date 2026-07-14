@@ -259,23 +259,34 @@ def _geometry_to_bbox(geometry: dict | None) -> list[float] | None:
     return [min(xs), min(ys), max(xs), max(ys)]
 
 
-async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> dict | None:
+async def _load_field_from_db(
+    field_id: str,
+    tenant_id: str | None = None,
+    *,
+    user_bearer: str | None = None,
+) -> dict | None:
     """يقرأ الحقل من «القاعدة» عبر platform API (sahool-platform يملك fields + RLS
     + PostGIS). يُحوّل هندسة GeoJSON ⇒ bbox (مكافئ ST_Envelope) بصدق.
 
     قيد معماريّ صريح: هذه الخدمة بلا pool قاعدة خاصّ بها (لا asyncpg/DATABASE_URL)،
     فالعزل عبر المستأجِر (RLS / set app.current_tenant) يُفرَض في **المنصّة** خلف
-    GET /api/v1/fields/{id} (مُرشَّح بالمستأجِر هناك). نمرّر المستأجِر ترويسةً
-    إرشاديّة. لو غاب PLATFORM_API_URL ⇒ لا منفذ قاعدة (None، fail-soft).
+    GET /api/v1/fields/{id} (مُرشَّح بالمستأجِر هناك).
+
+    user_bearer: توكن JWT المستخدم (Bearer) يُمرَّر كـAuthorization إلى المنصّة عند
+    توفّره — المنصّة تتطلّب JWT لا X-Agent-Token على هذا المسار. يُستخدَم X-Agent-Token
+    كاحتياط إن غاب التوكن (استدعاء داخليّ بلا سياق مستخدم).
 
     fail-soft مطلق: أيّ تعذّر/مهلة/هندسة غير صالحة ⇒ None (يقرّر المتّصِل الارتداد).
     """
-    if not PLATFORM_API_URL or not RASTER_SERVICE_TOKEN:
+    if not PLATFORM_API_URL:
         return None
-    headers = {
-        "Accept": "application/json",
-        "X-Agent-Token": RASTER_SERVICE_TOKEN,
-    }
+    if not user_bearer and not RASTER_SERVICE_TOKEN:
+        return None
+    headers: dict[str, str] = {"Accept": "application/json"}
+    if user_bearer:
+        headers["Authorization"] = f"Bearer {user_bearer}"
+    else:
+        headers["X-Agent-Token"] = RASTER_SERVICE_TOKEN
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
     try:
@@ -331,19 +342,26 @@ async def list_fields_from_platform(tenant_id: str) -> list[dict]:
     return [item for item in items if isinstance(item, dict)]
 
 
-async def load_field(field_id: str, tenant_id: str | None = None) -> dict | None:
+async def load_field(
+    field_id: str,
+    tenant_id: str | None = None,
+    *,
+    user_bearer: str | None = None,
+) -> dict | None:
     """مُحمِّل الحقول المرن (الإغلاق المرن — لا كسر).
 
     خلف FEATURE_SENTINEL_DB_FIELDS (مُطفأ افتراضيّاً) يحاول قراءة الحقل من القاعدة/
     المنصّة؛ وإلّا — أو عند الفشل المسموح بارتداده — يرتدّ للسجلّ التركيبيّ القديم
     مع وسم صدق `legacy_field_registry_used`. لا يرفع استثناءً على مسار القراءة.
 
+    user_bearer: JWT المستخدم يُمرَّر لـ_load_field_from_db لمصادقة طلب المنصّة.
+
     ملاحظة صدق: السجلّ القديم تقدير تركيبيّ (synthetic)، لا هندسة per-pixel حقيقيّة.
     """
     db_field: dict | None = None
     if FEATURE_SENTINEL_DB_FIELDS:
         try:
-            db_field = await _load_field_from_db(field_id, tenant_id)
+            db_field = await _load_field_from_db(field_id, tenant_id, user_bearer=user_bearer)
         except Exception as e:  # noqa: BLE001 — fail-soft شامل
             logger.warning("db_field_load_error field_id=%s err=%s", field_id, e)
             db_field = None
