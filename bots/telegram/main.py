@@ -127,7 +127,7 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 # B4 fix: compose يمرّر TELEGRAM_WEBHOOK_SECRET — اقرأ الاسم الصحيح (مع fallback)
 WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", os.getenv("WEBHOOK_SECRET", ""))
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/2")
-SUPERVISOR_URL = os.getenv("SUPERVISOR_AGENT_URL", "http://sahool-supervisor:8000")
+SUPERVISOR_URL = os.getenv("SUPERVISOR_AGENT_URL", "http://sahool-supervisor-agent:8000")
 AUTH_URL = os.getenv("AUTH_SERVICE_URL", "http://sahool-auth:8000")
 # ملاحظة B5: البوت لم يعد يصكّ توكنات — لا يحمل سرّ التوقيع إطلاقاً.
 
@@ -177,7 +177,7 @@ def _md2(text: str) -> str:
 
 
 # ── TTS Voice Helper (Yemeni Arabic) ────────────────────────────
-TTS_URL = os.getenv("TTS_URL", "http://sahool-tts:8000")
+TTS_URL = os.getenv("TTS_URL", "http://sahool-tts-service:8000")
 TTS_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")  # service-to-service token
 
 

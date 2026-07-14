@@ -16,7 +16,7 @@ from typing import Any
 # import chains) which runs WITHOUT fastapi installed, so a module-level fastapi import
 # would break collection. Keep fastapi out of module import time.
 
-DEFAULT_WEATHER_SERVICE_URL = "http://sahool-weather-service:8092"
+DEFAULT_WEATHER_SERVICE_URL = "http://sahool-weather-service:8000"
 
 
 def weather_service_url() -> str:

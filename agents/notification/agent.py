@@ -114,7 +114,7 @@ async def send_tts_voice(text: str, telegram_chat_id: int, voice: str = "yemeni_
 
     Returns True on success, False otherwise (caller may fallback to text).
     """
-    tts_url = os.getenv("TTS_URL", "http://sahool-tts:8000")
+    tts_url = os.getenv("TTS_URL", "http://sahool-tts-service:8000")
     tts_token = os.getenv("SAHOOL_AGENT_TOKEN", "")
     if not (tts_token and telegram_chat_id):
         return False

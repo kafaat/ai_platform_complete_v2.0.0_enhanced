@@ -64,7 +64,7 @@ def _json_request(
 
 class DecisionClient:
     def __init__(self) -> None:
-        self.base = _env("DECISION_SERVICE_URL", "http://decision-service:8090").rstrip("/")
+        self.base = _env("DECISION_SERVICE_URL", "http://sahool-decision-service:8160").rstrip("/")
         self.token = _env("DECISION_SERVICE_TOKEN", required_prod=True)
         self.timeout = float(_env("DECISION_SERVICE_TIMEOUT_SECONDS", "15"))
 

@@ -12,7 +12,7 @@ from typing import Any
 
 from adapter import HttpRegistry, RegistryError, validate_runtime
 
-BASE = os.getenv("DECISION_SERVICE_URL", "http://decision-service:8090").rstrip("/")
+BASE = os.getenv("DECISION_SERVICE_URL", "http://sahool-decision-service:8160").rstrip("/")
 TOKEN = os.getenv("DECISION_SERVICE_TOKEN", "")
 ADAPTER_ID = os.getenv("REGISTRY_ADAPTER_ID", "")
 

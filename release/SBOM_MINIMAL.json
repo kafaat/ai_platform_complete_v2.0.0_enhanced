@@ -11005,7 +11005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d93240eb0e2ef6338cbd53ff62ef4eac5bf53d50dd03578b679cedce4838874"
+          "content": "e29def4a3459018f4fa40cb45cc8df2c26cb8e545323d75345d209a1ef323bf3"
         }
       ],
       "name": "services/model-registry-adapter/runtime.py",
@@ -11045,7 +11045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8a5b389831adb0ee8e02065d2f8416f22419f66604dee9f3b98b9c62d4ebfa7"
+          "content": "eefb589bd848eb97e59b4128d76296740f215ed0c3ae6cba2412cd5a52eb99dc"
         }
       ],
       "name": "services/model-registry-adapter/worker.py",
@@ -11075,7 +11075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "711809f3253a263f734253a6717fbe5b74cbcd4dc9ab3b9aedef2f5f0f5cc6ac"
+          "content": "6a0d9c1dd3e588958f5479a0c30969ea5500116125ddf0b1c51315139b41bd43"
         }
       ],
       "name": "services/odoo-bridge/erp_runtime.py",
@@ -16715,7 +16715,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "442fe40fbe1b74e199f73cb4db9c6fec3a33f6a2abca32b76d912195826a6bfe"
+          "content": "1ae2f2b52458d67179f7e4b2783b9719e43d528919bd935cf419cb431603d4c5"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -25635,7 +25635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a494a2d7f9de105e0682a5a6d7b8128e5900f88273fb32908c1bcf1118099821"
+          "content": "5d9902cf870dabeaf718e54ff41902006e6ce58493ef7dd1db530a5bb8635a57"
         }
       ],
       "name": "services/video-processor/main.py",

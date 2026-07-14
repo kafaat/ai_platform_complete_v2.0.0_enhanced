@@ -30,7 +30,7 @@ except ImportError:
     logger = logging.getLogger("erp-bridge")
 
 # ── Config ────────────────────────────────────────────────────
-ODOO_URL = os.getenv("ODOO_URL", "http://odoo:8069")
+ODOO_URL = os.getenv("ODOO_URL", "http://sahool-odoo:8069")
 ODOO_DB = os.getenv("ODOO_DB", "sahool_erp")
 ODOO_USER = os.getenv("ODOO_USER", "admin")
 ODOO_PASSWORD = os.getenv("ODOO_PASSWORD")  # CRIT-ODOO-01: no default — must be set in env

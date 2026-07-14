@@ -93,9 +93,9 @@ def _mqtt_disabled() -> bool:
     return not MQTT_BROKER_URL or MQTT_BROKER_URL.startswith("disabled")
 
 
-EDGE_INFERENCE_URL = os.getenv("EDGE_INFERENCE_URL", "http://sahool-edge:8000")
+EDGE_INFERENCE_URL = os.getenv("EDGE_INFERENCE_URL", "http://sahool-edge:8100")
 ZLMEDIA_API_URL = os.getenv(
-    "ZLMEDIA_API_URL", os.getenv("ZLMEDIAKIT_URL", "http://sahool-zlmediakit:8080")
+    "ZLMEDIA_API_URL", os.getenv("ZLMEDIAKIT_URL", "http://sahool-zlmediakit:80")
 )
 REDIS_URL = os.getenv("REDIS_URL", "")
 FRAME_INTERVAL_SEC = int(os.getenv("FRAME_INTERVAL_SEC", "5"))
