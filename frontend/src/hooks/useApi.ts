@@ -110,7 +110,7 @@ import {
   type ProductivityObservationInput, type ProductivityZoneResult,
   type ZoneSamplingPlanResult, type DailyAiBriefResult,
 } from '../services/api';
-import { useAuthStore } from './useAuth';
+import { useAuthStore, UNAUTH_TENANT_KEY } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
 import { buildSoilWorkspaceSummary, type SoilWorkspaceSummary } from '../lib/soilWorkspace';
 import { unwrapList } from '../lib/paginated';
@@ -297,7 +297,7 @@ export function useVegetationTimeseries(fieldId: string, days = 30) {
 
 export function useAllFieldsNdvi() {
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useQuery({
     queryKey: QK.allFieldsNdvi(tid),
     queryFn:  () => vegetationApi.get('/v1/all_fields', { params: { tenant_id: tid } }).then(r => r.data),
@@ -1975,7 +1975,7 @@ export function useDecideAgentApproval(): ReturnType<typeof useMutation<unknown,
 // ── Fields & Tasks ────────────────────────────────────────────
 export function useFields() {
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useQuery({
     queryKey: QK.fields(tid),
     // الخلفيّة: GET /api/v1/fields تُرجع قائمة FieldSummary (مع lat/lon/geometry
@@ -2774,7 +2774,7 @@ export function useAgentQuery() {
         query,
         field_id:             fieldId,
         user_id:              user?.id != null ? String(user.id) : 'unknown',
-        tenant_id:            user?.tenant_id ?? 'default',
+        tenant_id:            user?.tenant_id ?? UNAUTH_TENANT_KEY,
         preferred_objectives: objectives ?? ['balanced'],
       }).then(r => r.data),
   });
@@ -2787,7 +2787,7 @@ export function useFarmOptimize() {
       kongApi.post('/api/agent/optimize', {
         query: 'optimize farm', field_id: fieldId,
         user_id:   user?.id != null ? String(user.id) : 'unknown',
-        tenant_id: user?.tenant_id ?? 'default',
+        tenant_id: user?.tenant_id ?? UNAUTH_TENANT_KEY,
         preferred_objectives: objectives,
       }).then(r => r.data),
   });
@@ -2807,7 +2807,7 @@ export function useGuardrailsValidate() {
         action_data:  actionData,
         farm_context: farmContext,
         user_id:      user?.id != null ? String(user.id) : 'unknown',
-        tenant_id:    user?.tenant_id ?? 'default',
+        tenant_id:    user?.tenant_id ?? UNAUTH_TENANT_KEY,
         auto_approve_low_risk: true,
       }).then(r => r.data),
   });
@@ -3302,7 +3302,7 @@ export function useDashboardData(primaryFieldId = '') {
 // ── Lab Sampling hooks: soil/water sampling points and decision context ─────
 export function useLabSamples(fieldId?: string): UseQueryResult<LabSampleRecord[]> {
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useQuery({
     queryKey: QK.labSamples(tid, fieldId),
     queryFn: () => listLabSamples(fieldId),
@@ -3313,7 +3313,7 @@ export function useLabSamples(fieldId?: string): UseQueryResult<LabSampleRecord[
 export function useCreateLabSample(): UseMutationResult<LabSampleRecord, Error, LabSampleCreateInput> {
   const qc = useQueryClient();
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useMutation({
     mutationFn: createLabSample,
     onSuccess: (row) => {
@@ -3326,7 +3326,7 @@ export function useCreateLabSample(): UseMutationResult<LabSampleRecord, Error, 
 export function useSubmitSoilLabResult(): UseMutationResult<SoilLabAnalysisResult, Error, SoilLabResultInput> {
   const qc = useQueryClient();
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useMutation({
     mutationFn: submitSoilLabResult,
     onSuccess: () => {
@@ -3338,7 +3338,7 @@ export function useSubmitSoilLabResult(): UseMutationResult<SoilLabAnalysisResul
 
 export function useLabDecisionContext(fieldId?: string): UseQueryResult<LabDecisionContext> {
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useQuery({
     queryKey: QK.labContext(tid, fieldId ?? 'none'),
     queryFn: () => fetchLabDecisionContext(fieldId as string),
@@ -3351,7 +3351,7 @@ export function useLabDecisionContext(fieldId?: string): UseQueryResult<LabDecis
 // ── OneSoil-inspired precision workflow hooks ─────────────────────────────
 export function useProductivityZones(fieldId?: string, observations: ProductivityObservationInput[] = []): UseQueryResult<ProductivityZoneResult> {
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useQuery({
     queryKey: QK.productivityZones(tid, fieldId ?? 'none', observations.length),
     queryFn: () => buildProductivityZones(fieldId as string, observations),
@@ -3362,7 +3362,7 @@ export function useProductivityZones(fieldId?: string, observations: Productivit
 
 export function useZoneSamplingPlan(fieldId?: string, observations: ProductivityObservationInput[] = []): UseQueryResult<ZoneSamplingPlanResult> {
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useQuery({
     queryKey: QK.zoneSamplingPlan(tid, fieldId ?? 'none', observations.length),
     queryFn: () => buildZoneSamplingPlan(fieldId as string, observations),
@@ -3373,7 +3373,7 @@ export function useZoneSamplingPlan(fieldId?: string, observations: Productivity
 
 export function useDailyAiBrief(fieldId?: string, signals: Record<string, unknown> = {}, tasks: Record<string, unknown>[] = []): UseQueryResult<DailyAiBriefResult> {
   const { user } = useAuthStore();
-  const tid = user?.tenant_id ?? 'default';
+  const tid = user?.tenant_id ?? UNAUTH_TENANT_KEY;
   return useQuery({
     queryKey: QK.dailyAiBrief(tid, fieldId ?? 'none'),
     queryFn: () => fetchDailyAiBrief(fieldId as string, signals, tasks),

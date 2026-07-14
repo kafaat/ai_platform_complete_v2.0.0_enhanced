@@ -193,6 +193,14 @@ export const useIsAuthenticated = () =>
 export const useTenantId = (): string | null =>
   useAuthStore(s => s.tenantId);
 
+// Fail-closed (forensic FE-07، مراجعة 22bd27e): مفتاح مستأجِر «صنميّ» غير قابل للتصادم
+// يُستعمَل بديلاً عن تلفيق مستأجِر الافتراض في مفاتيح كاش React Query حين تغيب هويّة
+// المستأجِر (تحميل/غير مُصادَق). '__unauthenticated__' لا يساوي أيّ مستأجِر حقيقيّ (بما
+// فيه مستأجِر الافتراض الحقيقيّ)، فلا يشترك حالٌ غير مُصادَق كاشَ مستأجِرٍ فعليّ (عزل الكاش
+// محفوظ، وعزل التبديل مضمون أصلاً عبر queryClient.clear في main.tsx). الطلب بهذا المفتاح
+// يرفضه الخادم (لا توكن صالح) — لا تسريب.
+export const UNAUTH_TENANT_KEY = '__unauthenticated__';
+
 export const useCurrentUser = () =>
   useAuthStore(s => s.user);
 

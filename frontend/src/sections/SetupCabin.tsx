@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useFarms, useEquipment, useDevices, QK } from '../hooks/useApi';
 import { useSelectedField } from '../hooks/useSelectedField';
-import { useAuthStore } from '../hooks/useAuth';
+import { useAuthStore, UNAUTH_TENANT_KEY } from '../hooks/useAuth';
 import { ROLE_LABEL_AR, normalizeRole, canAccess, canMutate, type Role } from '../lib/permissions';
 import { kongApi, type FieldImportInput } from '../services/api';
 import { loadSettings } from '../lib/appSettings';
@@ -96,7 +96,7 @@ export default function SetupCabin() {
   // كي يلتقط المعالج field_id. لا تلفيق ولا مسار حفظ جديد.
   const mutateAllowed = canMutate(userRole);
   const qc = useQueryClient();
-  const tid = useAuthStore((s) => s.user)?.tenant_id ?? 'default';
+  const tid = useAuthStore((s) => s.user)?.tenant_id ?? UNAUTH_TENANT_KEY;
   const [showWizard, setShowWizard] = useState(false);
 
   // بعد الإنشاء/الاستيراد نُبطِل كاش قائمة الحقول كي تُعيد SetupCabin الجلب

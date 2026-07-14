@@ -34,7 +34,7 @@ import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment
 import { fieldRepresentativePoint, geomToPolygon } from '../lib/geo';
 import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fetchHistoricalImageryBackfillStatus, isTerminalBackfillStatus, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, fetchSoilSamplingPlan, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
 import { toastStore } from '../services/websocket';
-import { useAuthStore } from '../hooks/useAuth';
+import { useAuthStore, UNAUTH_TENANT_KEY } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
 import { availableBasemapLayers, layersOfKind } from '../lib/layerRegistry';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
@@ -525,7 +525,7 @@ function MapHubCore() {
   // هذا لا يصنع قيماً وهمية: إذا لم تنتج الخلفية COG حقيقي، ستظل البلاطات شفافة.
   useEffect(() => {
     if (!fieldId || !activeIndicator || mode !== '2d') return;
-    const key = `${tenantId ?? 'default'}:${fieldId}:${activeIndicator}:${selectedImageryDate}`;
+    const key = `${tenantId ?? UNAUTH_TENANT_KEY}:${fieldId}:${activeIndicator}:${selectedImageryDate}`;
     if (imageryRefreshKeyRef.current === key) return;
     // FINDING-007 + v8-F5: مجرّد اختيار تاريخ لا يُطلق معالجة صامتة (توليد COG جديد
     // كأثر جانبيّ للاختيار). القاعدة:

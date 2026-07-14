@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { kongApi } from '../services/api';
-import { useAuthStore } from './useAuth';
+import { useAuthStore, UNAUTH_TENANT_KEY } from './useAuth';
 
 // ── useDashboardKPIs ───────────────────────────────────────────────────────
 // لقطة لوحة المؤشّرات المُجمَّعة للمستأجِر — ربط حيّ واحد عبر البوّابة:
@@ -13,7 +13,7 @@ import { useAuthStore } from './useAuth';
 // ويبتلع كلّ الأخطاء بصمت ⇒ مصفوفات فارغة دائماً (mock زائف). الآن نقطة حقيقيّة
 // واحدة، وأيّ خطأ (503 DB / 403) يُرفع ليعرض المُستهلك حالة صادقة (Loading/Error).
 export function useDashboardKPIs() {
-  const tid = useAuthStore(s => s.user?.tenant_id ?? 'default');
+  const tid = useAuthStore(s => s.user?.tenant_id ?? UNAUTH_TENANT_KEY);
 
   return useQuery<{ kpis: unknown[]; alerts: unknown[]; fields_summary: unknown[] }>({
     queryKey: ['dashboard-kpis', tid],
