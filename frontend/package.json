@@ -20,6 +20,8 @@
     "e2e:smoke": "node scripts/playwright-smoke-smart.mjs",
     "e2e:gis-timeline": "playwright test e2e/gis-tools-timeline-comparison.spec.ts",
     "e2e:weather-smoke": "playwright test e2e/weather-maphub-smoke.spec.ts",
+    "e2e:visual": "PW_VISUAL=1 playwright test --project=visual",
+    "e2e:visual:update": "PW_VISUAL=1 playwright test --project=visual --update-snapshots",
     "typecheck:field-workspace-contract": "tsc -p tsconfig.field-workspace-contract.json --noEmit"
   },
   "dependencies": {

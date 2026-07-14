@@ -111,7 +111,7 @@ export default function SettingsPage() {
   const selSty   = { ...inputSty };
 
   return (
-    <div className="space-y-5 max-w-2xl mx-auto" dir="rtl">
+    <div className="space-y-5 max-w-2xl mx-auto" dir="rtl" data-testid="settings-page">
       <div className="flex items-center gap-2">
         <Settings style={{ width: 20, height: 20, color: T.gold }} />
         <h2 style={{ fontSize: 20, fontWeight: 800, color: T.ink }}>الإعدادات</h2>

@@ -30,7 +30,22 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [['html', { open: 'never' }], ['github'], ['list']],
   timeout: 60_000,
-  expect: { timeout: 15_000 },
+  expect: {
+    timeout: 15_000,
+    // انحدار بصريّ (toHaveScreenshot): تسامح صغير مع فروق البكسل غير الجوهريّة
+    // (تنعيم الخطّ/ضغط PNG) كي لا تتحوّل فروق التصيير التافهة إلى فشل كاذب — مع
+    // إبقاء الحسّاسيّة لتغيّرات التخطيط/اللون الحقيقيّة. تُطبَّق على مشروع visual.
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.01,
+      threshold: 0.2,
+      animations: 'disabled',
+      caret: 'hide',
+    },
+  },
+  // لقطات مرجعيّة مستقرّة الاسم بمعزل عن نظام التشغيل/المعمارية: نمنع لاحقة النظام
+  // التلقائيّة كي تُصان اللقطات على العدّاء الأساسيّ (Linux CI) وتُقارَن به. اسم
+  // ثابت: <spec>-snapshots/<title>.png (لا -linux/-darwin) — انظر رأس الملفّ البصريّ.
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}{ext}',
   use: {
     baseURL: BASE_URL,
     // أدلّة جنائيّة عند الفشل: أثر + لقطة + فيديو — تُرفَق بتقرير HTML لإعادة التشخيص.
@@ -41,6 +56,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      // البوّابة الوظيفيّة لا تُشغّل سويت الانحدار البصريّ (*.visual.spec.ts): تلك
+      // تقارن بكسلات ضدّ لقطات مرجعيّة مصونة، وتُشغَّل صراحةً عبر مشروع visual
+      // (PW_VISUAL=1) كي لا يحجب انحراف تصيير بيئيّ البوّابةَ العامّة.
+      testIgnore: /\.visual\.spec\.ts$/,
       use: {
         ...devices['Desktop Chrome'],
         // في CI: متصفّح Playwright المُدار (channel من Desktop Chrome). إن وُجد
@@ -66,8 +85,35 @@ export default defineConfig({
     // firefox`. تُغلق فجوة تعدّد المتصفّحات (WebKit الأقرب لـiOS) دون كسر بوّابة Chromium.
     ...(process.env.PW_ALL_BROWSERS === '1'
       ? [
-          { name: 'webkit', use: { ...devices['Desktop Safari'] } },
-          { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+          { name: 'webkit', use: { ...devices['Desktop Safari'], testIgnore: /\.visual\.spec\.ts$/ } },
+          { name: 'firefox', use: { ...devices['Desktop Firefox'], testIgnore: /\.visual\.spec\.ts$/ } },
+        ]
+      : []),
+    // ── مشروع الانحدار البصريّ (opt-in، PW_VISUAL=1) ────────────────────────
+    // يُشغّل *.visual.spec.ts فقط: لقطات DOM حتميّة (شاشة الدخول + كسوة الإعدادات
+    // DS) — لا canvas/WebGL (تصييره غير حتميّ تحت SwiftShader headless، انظر رأس
+    // الملفّ). منفصل عن البوّابة كي لا يحجب انحرافُ بيئةٍ التطويرَ حتى تُصان اللقطات
+    // على العدّاء الأساسيّ. viewport ثابت + خطّ نظام + reduced-motion للحتميّة.
+    ...(process.env.PW_VISUAL === '1'
+      ? [
+          {
+            name: 'visual',
+            testMatch: /\.visual\.spec\.ts$/,
+            use: {
+              ...devices['Desktop Chrome'],
+              viewport: { width: 1280, height: 800 },
+              deviceScaleFactor: 1,
+              // نُثبّت التفضيل «تقليل الحركة» كي تُعطَّل الانتقالات (framer-motion)
+              // فتستقرّ اللقطة. animations:'disabled' في expect يكمّله.
+              reducedMotion: 'reduce',
+              colorScheme: 'light',
+              ...(CHROMIUM_PATH ? { channel: undefined } : {}),
+              launchOptions: {
+                ...(CHROMIUM_PATH ? { executablePath: CHROMIUM_PATH } : {}),
+                args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+              },
+            },
+          },
         ]
       : []),
   ],

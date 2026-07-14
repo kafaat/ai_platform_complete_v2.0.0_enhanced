@@ -32,17 +32,20 @@ function b64url(obj: unknown): string {
   return btoa(json).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 }
 const FUTURE_EXP = Math.floor(new Date('2099-01-01T00:00:00Z').getTime() / 1000);
-const FAKE_JWT = `${b64url({ alg: 'HS256', typ: 'JWT' })}.${b64url({
-  sub: 'e2e-user', exp: FUTURE_EXP, role: 'farmer', tenant_id: 'default',
-})}.e2esig`;
+// الدور افتراضيّاً 'farmer' (→worker): يكفي لمركز الخرائط ولا يُحبَس ببوّابة إنشاء
+// مزرعة. اختبارات تحتاج صفحات أعلى (مثل /settings: agronomist+) تمرّر دوراً صريحاً.
+const jwtFor = (role: string) =>
+  `${b64url({ alg: 'HS256', typ: 'JWT' })}.${b64url({
+    sub: 'e2e-user', exp: FUTURE_EXP, role, tenant_id: 'default',
+  })}.e2esig`;
 
-const USER = {
+const userFor = (role: string) => ({
   id: 1,
   email: 'e2e@sahool.ye',
   full_name: 'مستخدِم E2E',
-  role: 'farmer',
+  role,
   tenant_id: 'default',
-};
+});
 
 // JSON helper: يملأ المسار باستجابة JSON 200.
 function json(route: Route, body: unknown) {
@@ -59,7 +62,9 @@ const TRANSPARENT_PNG = Buffer.from(
   'base64',
 );
 
-export async function seedAuthAndRoutes(page: Page): Promise<void> {
+export async function seedAuthAndRoutes(page: Page, role = 'farmer'): Promise<void> {
+  const FAKE_JWT = jwtFor(role);
+  const USER = userFor(role);
   // (1) جلسة مُصادَقة قبل أيّ كود تطبيق (يُحقَن في كلّ ملاحة).
   await page.addInitScript(
     ({ token, user, authState }) => {
