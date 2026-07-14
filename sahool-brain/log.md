@@ -1,5 +1,12 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-14 — NDVI 424 تشخيصيّ: بطاقة الحالة الفارغة الهادئة في الواجهة — LANDED
+- **What:** أُكمِل الجانب الواجهيّ لعقد 424 التشخيصيّ (خلفيّته نزلت `6d9c05a`: خدمة الغطاء real-only تفشل مُغلَقةً بـ`{code,message,field_id,action,retryable}` وتحافظ على HTTP 424). مكوّن جديد `frontend/src/components/fieldview/NdviUnavailableNotice.tsx` — قابل لإعادة الاستخدام + مُحلِّل `ndviUnavailableFromError(error)` (يستخرج التفصيل المُصنَّف من axios 424؛ 424 القديم بتفصيل نصّيّ ⇒ `{code:'NO_PROCESSED_IMAGERY', retryable:false}`). يُصيّر حالة فارغة **هادئة** (`role="status"`، لا `console.error`، لا اختلاق قيمة NDVI) برسالة عربيّة لكلّ code. زرّ المعالجة (`refreshFieldImagery`) يظهر **فقط** للحالات الحتميّة القابلة للمعالجة يدويّاً (`retryable===false` + cta + معالِج) — لا للأعطال العابرة (`RASTER_DEPENDENCY_UNAVAILABLE`) ولا التفويض (`RASTER_AUTH_FAILURE`)، وبلا إعادة محاولة تلقائيّة.
+- **Wiring:** `SatellitePage.tsx` يلتقط خطأ `useCurrentNDVI(fieldId)` (`error: ndviError`) ⇒ `ndviUnavailable = ndviUnavailableFromError(...)` ⇒ يُصيّر البطاقة في اللوحة الجانبيّة تحت شبكة إحصاء NDVI، موصولاً الزرّ بـ`refreshImagery({fieldId})`/`refreshingImagery`. tokens sahool-* المستخدَمة تطابق ألوان الصفحة الداخليّة (surface #1e293b/border #334155/green #16a34a).
+- **صدق:** لا تحويل 424→200 null، لا NDVI مُصطنَع، لا بدء backfill تلقائيّ — تحسين تابع للإصلاح الجذريّ (تطابُق المستأجِر) لا بديل عنه.
+- **Green + FF:** CI run 29358795610 — 13/13 وظيفة مكتملة، 0 فشل. تغيير واجهة صرف (لا services/compose/migration ⇒ لا production_validation_gate، لا انحراف مُشغّل main-only). 11 اختبار vitest (المُحلِّل: 424/غير-424/شبكة/null + تصيير لكلّ code + بوّابة الزرّ + processing/disabled) · typecheck نظيف · حزمة الإصدار مُعاد بناؤها (4390 checksum). main=develop=`efe777e`.
+- **Source:** `NdviUnavailableNotice.tsx` + `.test.tsx` · `SatellitePage.tsx:211,662` · متابعة لـ`vegetation_runtime.py` diagnostic contract (6d9c05a).
+
 > ألحِق مدخلاً في نهاية كلّ جلسة. لا تُعدّل المدخلات السابقة. الأحدث في الأعلى.
 
 ---
