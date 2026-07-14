@@ -4,6 +4,8 @@ import { getFieldIrrigationAdvice, getFieldIrrigationSchedules } from '../servic
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
 import IrrigationManualOperationsPanel from './IrrigationManualOperationsPanel';
+import IrrigationEngineeringCalculator from './IrrigationEngineeringCalculator';
+import ReservoirBoosterNetworkCalculator from './ReservoirBoosterNetworkCalculator';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -57,6 +59,8 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
         {schedulesQ.data && (schedulesQ.data.length ? <ol className="space-y-2">{schedulesQ.data.map(s => <li key={s.schedule_id} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-100">{s.name}</p><span className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">{s.enabled ? 'enabled' : 'disabled'}</span></div><p className="mt-1 text-xs text-slate-500">{s.start_time} · {s.duration_min} دقيقة{typeof s.water_target_mm === 'number' ? ` · ${s.water_target_mm}mm` : ''}</p></li>)}</ol> : <EmptyState title="لا توجد جداول ري محفوظة" hint="لا يتم توليد جدول ري من الواجهة." />)}
       </div>
       </div>
+      <IrrigationEngineeringCalculator fieldId={fieldId} seasonId={seasonId} />
+      <ReservoirBoosterNetworkCalculator fieldId={fieldId} seasonId={seasonId} />
       <IrrigationManualOperationsPanel fieldId={fieldId} seasonId={seasonId} />
     </section>
   );

@@ -1,9 +1,16 @@
 from api.irrigation_engineering_workspace import (
+    CropWaterContext,
     ExecutionMode,
+    InteractiveIrrigationCalculationRequest,
+    InteractiveWaterDemandInput,
     IrrigationSystemSpecification,
     IrrigationSystemType,
+    PipeFittingsInput,
     QualityStatus,
+    SoilWaterContext,
     WaterDemandInput,
+    WeatherWaterContext,
+    calculate_interactive_irrigation_engineering,
     calculate_irrigation_engineering,
 )
 
@@ -77,3 +84,66 @@ def test_digest_is_stable_and_changes_with_demand():
     c = calculate_irrigation_engineering(spec, WaterDemandInput(net_depth_mm=11))
     assert a.content_digest == b.content_digest
     assert a.content_digest != c.content_digest
+
+
+def test_interactive_manual_calculator_explains_volume_pressure_and_power():
+    req = InteractiveIrrigationCalculationRequest(
+        specification=_spec(
+            application_efficiency=0.82,
+            design_flow_lps=230 / 3.6,
+            mainline_length_m=1000,
+            mainline_internal_diameter_mm=200,
+            elevation_change_m=8,
+            required_terminal_pressure_bar=2.5,
+            pump_efficiency=0.8,
+            motor_efficiency=0.9,
+        ),
+        water_demand=InteractiveWaterDemandInput(
+            mode="manual",
+            manual_net_depth_mm=18,
+            crop=CropWaterContext(crop_type="wheat", growth_stage="flowering", kc=1.15),
+            soil=SoilWaterContext(soil_type="loam", infiltration_rate_mm_h=12),
+            weather=WeatherWaterContext(et0_mm_day=6.4, effective_rain_mm=0),
+        ),
+        fittings=PipeFittingsInput(elbows_90=4, valves=2, check_valves=1, filters=1),
+        safety_margin_m=5,
+        installed_motor_power_kw=45,
+    )
+    result = calculate_interactive_irrigation_engineering(req)
+    assert result.calculations["gross_volume_m3"] == 10975.61
+    assert result.calculations["mainline_velocity_m_s"] > 2
+    assert result.calculations["required_pressure_bar"] > 0
+    assert result.calculations["required_input_power_kw"] > 45
+    assert "INSTALLED_MOTOR_POWER_INSUFFICIENT" in result.blocking_constraints
+    assert result.feasibility["execution_authorized"] is False
+
+
+def test_interactive_sahool_mode_uses_soil_weather_crop_and_effective_rain():
+    req = InteractiveIrrigationCalculationRequest(
+        specification=_spec(application_efficiency=0.8),
+        water_demand=InteractiveWaterDemandInput(
+            mode="sahool",
+            crop=CropWaterContext(crop_type="wheat", kc=1.0),
+            soil=SoilWaterContext(depletion_mm=18, taw_mm=100, raw_mm=40),
+            weather=WeatherWaterContext(et0_mm_day=6, forecast_days=1, effective_rain_mm=5),
+        ),
+    )
+    result = calculate_interactive_irrigation_engineering(req)
+    assert result.calculations["net_depth_mm"] == 19
+    assert result.calculations["gross_depth_mm"] == 23.75
+    assert "ETC_FROM_ET0_TIMES_KC" in result.explanations
+
+
+def test_interactive_sahool_mode_requires_depletion_truth():
+    req = InteractiveIrrigationCalculationRequest(
+        specification=_spec(),
+        water_demand=InteractiveWaterDemandInput(
+            mode="sahool",
+            crop=CropWaterContext(kc=1),
+            weather=WeatherWaterContext(et0_mm_day=5),
+        ),
+    )
+    import pytest
+
+    with pytest.raises(ValueError, match="soil.depletion_mm"):
+        calculate_interactive_irrigation_engineering(req)

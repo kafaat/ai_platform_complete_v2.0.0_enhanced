@@ -197,6 +197,12 @@ jobs:
         run: python scripts/ci/irrx1_authoritative_provenance_guard.py
       - name: IRR-X1.6 operator-declared manual volume guard
         run: python scripts/ci/irrx1_6_manual_volume_guard.py
+      - name: IRR-X1.7 interactive irrigation calculator guard
+        run: python scripts/ci/irrx1_7_interactive_calculator_guard.py
+      - name: IRR-X1.8 reservoir/booster network guard
+        run: python scripts/ci/irrx1_8_reservoir_booster_guard.py
+      - name: IRR-X1.9 multi-system irrigation calculator guard
+        run: python scripts/ci/irrx1_9_multi_system_calculator_guard.py
       # WX-I1 runtime: server-owned hourly MPC orchestrator (recommendation-only) + the durable
       # measured-as-applied → water-ledger reconciliation return path (v184) must stay wired.
       - name: irrigation runtime orchestrator guard

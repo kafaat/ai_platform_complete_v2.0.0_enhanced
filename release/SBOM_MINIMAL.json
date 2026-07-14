@@ -5125,7 +5125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b08e51b79d53bd21a1c8b0521aeeb3fc0a0f95439d73f7c90f3fbf34d2c85e5d"
+          "content": "09a582919d12540bfbadf0bbc5926d9802aac52f5d1e55056043f82d94524db2"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceIrrigationPanel.tsx",
@@ -5299,6 +5299,16 @@
         }
       ],
       "name": "frontend/src/sections/InventoryPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb1e19a40bea4b8040c924a705b1ac925a7d5cb3fb49dec73c2d6630c13048b8"
+        }
+      ],
+      "name": "frontend/src/sections/IrrigationEngineeringCalculator.tsx",
       "type": "file"
     },
     {
@@ -5719,6 +5729,16 @@
         }
       ],
       "name": "frontend/src/sections/ReportsPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbc5c001689940ce2c1b5d1087a07172b2918024cb075653069a03d586bf32fd"
+        }
+      ],
+      "name": "frontend/src/sections/ReservoirBoosterNetworkCalculator.tsx",
       "type": "file"
     },
     {
@@ -6155,10 +6175,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a78a6a5f1b56aa727ebc04379fcef928d9237465266365d18510ed6e8c772257"
+        }
+      ],
+      "name": "frontend/src/services/api/irrigationEngineeringCalculator.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7313768d75119d06a10289b631e0cc3344da8549f58f12884d3121e0dbd66110"
         }
       ],
       "name": "frontend/src/services/api/irrigationManualOperations.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ae6a47215c0d03a0402f6dfaecc9e04e1a07047226a777ed5605f4d398c2e2fd"
+        }
+      ],
+      "name": "frontend/src/services/api/irrigationNetworkCalculator.ts",
       "type": "file"
     },
     {
@@ -14565,7 +14605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b8836527cd9e242578f355bdbd9050c32f23a35e2d65e83d53e1c52845bbb0e"
+          "content": "3d29433b7d329f37276160049e62cad97c3aa88f6deaffdf9a2221ae91c8f6dc"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_engineering_workspace.py",
@@ -15975,7 +16015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5fe90945e950006ad4ea44dd7c34d8faa255d13606c68f3d2fd0d473eb128a27"
+          "content": "21fd5bd058fd31f1aa979c9d4104d3c08b2d44897c7592260fe9b26a3c787b2b"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_engineering.py",
@@ -22835,7 +22875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bea00ad4e4b2abc251218df38061c38427d65cc635ee733d8d4be0544a94489c"
+          "content": "6de5e9056f62c6859eb709a686a2760698d4a99f56d374e86e3507e8e93aebe6"
         }
       ],
       "name": "services/sahool-platform/tests/test_irrigation_engineering_workspace.py",
@@ -23435,7 +23475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af9003f73ad323a01fe55c2706309cc9b3d4c4f5f91145574da9fb92691cb9be"
+          "content": "4b691ed95bcd2883bf2002a98700400d064402bdee49e27a3edd5a1a60576989"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",

@@ -18,9 +18,15 @@ from api.irrigation_commissioning_runtime import (
 )
 from api.irrigation_engineering_workspace import (
     EngineeringResult,
+    InteractiveIrrigationCalculationRequest,
+    InteractiveIrrigationCalculationResult,
     IrrigationSystemSpecification,
+    ReservoirBoosterNetworkRequest,
+    ReservoirBoosterNetworkResult,
     WaterDemandInput,
+    calculate_interactive_irrigation_engineering,
     calculate_irrigation_engineering,
+    calculate_reservoir_booster_network,
 )
 from api.irrigation_manual_execution import (
     ManualAsAppliedResult,
@@ -61,6 +67,32 @@ async def calculate_engineering(
     if str(req.specification.tenant_id) != str(user.tenant_id):
         raise HTTPException(status_code=403, detail="tenant mismatch")
     return calculate_irrigation_engineering(req.specification, req.water_demand)
+
+
+@router.post("/interactive-calculate", response_model=InteractiveIrrigationCalculationResult)
+async def calculate_interactive_engineering(
+    req: InteractiveIrrigationCalculationRequest,
+    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_VIEW)),
+) -> InteractiveIrrigationCalculationResult:
+    if str(req.specification.tenant_id) != str(user.tenant_id):
+        raise HTTPException(status_code=403, detail="tenant mismatch")
+    try:
+        return calculate_interactive_irrigation_engineering(req)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/network-calculate", response_model=ReservoirBoosterNetworkResult)
+async def calculate_network_engineering(
+    req: ReservoirBoosterNetworkRequest,
+    user: UserSchema = Depends(require_permission(Permission.IRRIGATION_VIEW)),
+) -> ReservoirBoosterNetworkResult:
+    if str(req.tenant_id) != str(user.tenant_id):
+        raise HTTPException(status_code=403, detail="tenant mismatch")
+    try:
+        return calculate_reservoir_booster_network(req)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 # ── IRR-X1.1 Digital Commissioning Runtime ───────────────────────────────────
