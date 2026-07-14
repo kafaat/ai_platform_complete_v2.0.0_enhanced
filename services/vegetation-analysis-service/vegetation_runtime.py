@@ -713,52 +713,124 @@ async def run_analysis(
     }
 
 
-async def _real_timeseries_from_raster(field_id: str, index: str, days: int) -> dict | None:
-    """Read the authoritative per-field series from raster-service; never invent points."""
+# عقد 424 التشخيصيّ: يبقى المنتج غير متوفّر (fail-closed) لكن **السبب مُصنَّف** كي تفهم
+# الواجهة/المشغّل الحالة (لا اختلاق، لا تحويل 424→200). (رسالة، إجراء، قابل لإعادة المحاولة؟)
+NDVI_UNAVAILABLE: dict[str, tuple[str, str, bool]] = {
+    "NO_PROCESSED_IMAGERY": (
+        "No validated NDVI imagery has been processed for this field yet.",
+        "RUN_IMAGERY_BACKFILL",
+        False,
+    ),
+    "NO_VALIDATED_NDVI_ASSET": (
+        "No validated NDVI observation is available in the recent window for this field.",
+        "RUN_IMAGERY_BACKFILL",
+        False,
+    ),
+    "RASTER_DEPENDENCY_UNAVAILABLE": (
+        "The imagery-processing service is temporarily unavailable.",
+        "RETRY_LATER",
+        True,
+    ),
+    "RASTER_AUTH_FAILURE": (
+        "Imagery authorization failed for this tenant/field.",
+        "REAUTH_OR_CONTACT_SUPPORT",
+        False,
+    ),
+    "RASTER_RESPONSE_INVALID": (
+        "The imagery service returned an unexpected response.",
+        "CONTACT_SUPPORT",
+        False,
+    ),
+}
+
+
+def _ndvi_unavailable_detail(field_id: str, code: str) -> dict:
+    """Structured 424 detail for a classified NDVI-unavailability reason (HTTP stays 424)."""
+    message, action, retryable = NDVI_UNAVAILABLE.get(
+        code, NDVI_UNAVAILABLE["RASTER_DEPENDENCY_UNAVAILABLE"]
+    )
+    return {
+        "code": code,
+        "message": message,
+        "field_id": field_id,
+        "action": action,
+        "retryable": retryable,
+    }
+
+
+async def _real_timeseries_from_raster(
+    field_id: str, index: str, days: int, tenant_id: str | None = None
+) -> tuple[dict | None, str]:
+    """Read the authoritative per-field series from raster-service; never invent points.
+
+    Returns ``(data, code)``: ``data`` is the timeseries (or None), ``code`` is ``"OK"`` or a
+    diagnostic reason (RASTER_AUTH_FAILURE / RASTER_DEPENDENCY_UNAVAILABLE /
+    RASTER_RESPONSE_INVALID / NO_PROCESSED_IMAGERY). raster ``/timeseries`` authorizes by field
+    ownership (``X-Tenant-Id``); a call without the authenticated tenant is rejected (403) ⇒ a
+    spurious 424 even when NDVI exists — so we forward the caller's verified JWT tenant plus the
+    service token for defence-in-depth.
+    """
     try:
+        headers: dict[str, str] = {}
+        if tenant_id:
+            headers["X-Tenant-Id"] = str(tenant_id)
+        if RASTER_SERVICE_TOKEN:
+            headers["X-Agent-Token"] = RASTER_SERVICE_TOKEN
         async with httpx.AsyncClient(timeout=15) as c:
             r = await c.get(
-                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/timeseries", params={"index": index}
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/timeseries",
+                params={"index": index},
+                headers=headers or None,
             )
-        if r.status_code != 200:
-            return None
-        data = r.json()
-        if not data.get("available") or not data.get("real_data"):
-            return None
-        points = list(data.get("points") or [])
-        cutoff = date.today() - timedelta(days=days)
-        points = [p for p in points if str(p.get("datetime", ""))[:10] >= cutoff.isoformat()]
-        return {**data, "points": points}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001 — transient transport failure
         logger.warning("real vegetation timeseries unavailable for %s: %s", field_id, exc)
-        return None
+        return None, "RASTER_DEPENDENCY_UNAVAILABLE"
+    if r.status_code in (401, 403):
+        return None, "RASTER_AUTH_FAILURE"
+    if r.status_code != 200:
+        return None, "RASTER_DEPENDENCY_UNAVAILABLE"
+    try:
+        data = r.json()
+    except Exception:  # noqa: BLE001 — malformed body from the raster dependency
+        return None, "RASTER_RESPONSE_INVALID"
+    if not data.get("available") or not data.get("real_data"):
+        return None, "NO_PROCESSED_IMAGERY"
+    points = list(data.get("points") or [])
+    cutoff = date.today() - timedelta(days=days)
+    points = [p for p in points if str(p.get("datetime", ""))[:10] >= cutoff.isoformat()]
+    return {**data, "points": points}, "OK"
 
 
-async def _current_ndvi_from_raster(field_id: str, days: int = 45) -> dict | None:
-    """أحدث مشاهدة NDVI موثّقة من raster-service — أو None بصدق.
+async def _current_ndvi_from_raster(
+    field_id: str, tenant_id: str | None = None, days: int = 45
+) -> tuple[dict | None, str]:
+    """أحدث مشاهدة NDVI موثّقة من raster-service — ``(observation | None, code)``.
 
-    المشاهدة يجب أن تحمل نَسَب بيانات حقيقيّة (مشهد + زمن). لا تُبنى أيّ قيمة
-    تركيبيّة/تقديريّة عند غياب بيانات raster (استُبدل بها المولِّد التركيبيّ المحذوف).
+    لا تُبنى أيّ قيمة تركيبيّة عند غياب بيانات raster (المولِّد التركيبيّ محذوف). ``tenant_id``
+    (مستأجِر JWT الموثّق) يُمرَّر لتفويض ملكيّة الحقل. ``code`` يُصنّف سبب غياب المنتج:
+    NO_PROCESSED_IMAGERY (لا صور) · NO_VALIDATED_NDVI_ASSET (صور بلا مشاهدة صالحة حديثة) ·
+    RASTER_* (فشل تبعيّة/تفويض/ردّ) — يُغذّي عقد 424 التشخيصيّ.
     """
-    data = await _real_timeseries_from_raster(field_id, "ndvi", days)
-    if not data:
-        return None
+    data, code = await _real_timeseries_from_raster(field_id, "ndvi", days, tenant_id=tenant_id)
+    if data is None:
+        return None, code
     points = [p for p in (data.get("points") or []) if isinstance(p, dict)]
     if not points:
-        return None
+        # المنتج متوفّر عموماً (available) لكن لا مشاهدة صالحة في النافذة الحديثة.
+        return None, "NO_VALIDATED_NDVI_ASSET"
     points.sort(key=lambda p: str(p.get("datetime") or p.get("date") or ""))
     point = points[-1]
     value = point.get("value", point.get("ndvi"))
     try:
         value = float(value)
     except (TypeError, ValueError):
-        return None
+        return None, "RASTER_RESPONSE_INVALID"
     if not math.isfinite(value):
-        return None
+        return None, "RASTER_RESPONSE_INVALID"
     observed_at = point.get("datetime") or point.get("date")
     scene_id = point.get("scene_id") or point.get("asset_id")
     if not observed_at or not scene_id:
-        return None
+        return None, "RASTER_RESPONSE_INVALID"
     return {
         "value": value,
         "observed_at": observed_at,
@@ -770,7 +842,7 @@ async def _current_ndvi_from_raster(field_id: str, days: int = 45) -> dict | Non
         "qa_mask_version": point.get("qa_mask_version") or data.get("qa_mask_version"),
         "source": "raster-service",
         "real_data": True,
-    }
+    }, "OK"
 
 
 def _current_ndvi_payload(field_id: str, field: dict, analysis: dict) -> dict:

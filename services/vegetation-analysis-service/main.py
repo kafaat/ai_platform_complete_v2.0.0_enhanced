@@ -97,6 +97,8 @@ from vegetation_runtime import (  # noqa: E402,F401
     _geometry_to_bbox,
     _health_classification,
     _load_field_from_db,
+    _ndvi_unavailable_detail,
+    _real_timeseries_from_raster,
     _recommendations_ar,
     _tenant_from_claims,
     _valid_date,
