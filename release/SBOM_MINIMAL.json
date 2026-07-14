@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9f1d966843fbbe90a3398ff9ebdf3d23274aee54208dd2a81e0cfbaa0b37185"
+          "content": "4576a8edcf8761ed022f5e0c29cad0ecd1767c158be730450aa1e9d2fb36d65d"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -11555,7 +11555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f74b5df29ab893cd66882eeb0c5443d8924ba31054f623fc307b035c4944277d"
+          "content": "73a3ef751f09980e60350a66650023ba470344065b4cbb96163efdc7490699e5"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -11575,7 +11575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74d02cd7a3e1289ddaec47ca1a39e727f7e543294a76e8a301a3c42c6443e2e4"
+          "content": "94424bfc04ce8c61750a28c628f4755b71601da69ba8e88c7b514bd45f80688b"
         }
       ],
       "name": "services/raster-service/cache_invalidation_worker.py",
@@ -12999,6 +12999,16 @@
         }
       ],
       "name": "services/raster-service/wapor_worldcereal.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "134c6a0a782cc7b45d147def698e695c03ef790192f8bb3c5376ac0033dc1a4a"
+        }
+      ],
+      "name": "services/raster-service/worker_heartbeat.py",
       "type": "file"
     },
     {
