@@ -7,18 +7,20 @@
   §4.2 video-processor/ZLMediaKit: الإنتاج يرفض السرّ الفارغ أو قيمة التطوير المعروفة
        (``sahool-zlm-dev-secret``) — بلا سرّ يبقى control plane مفتوحاً.
 
-يتحقّق الحارس من: (1) فشل الإنتاج بلا سرّ؛ (2) نجاح التطوير بقيَم محلّيّة مصرّح بها؛
-(3) عدم تسريب السرّ في مخرجات الخطأ؛ (4) عدم بقاء fallback صامت لقيمة التطوير في compose.
-
-نُشغّل استيراد الخدمة في **مفسّر فرعيّ نظيف** (subprocess) لا في عمليّة الاختبار: خدمات
-main تحمل استيرادات نسبيّة ثقيلة (مثل ``agronomic_context``) تتصادم في sys.modules عبر
-السويت الكامل — والعزل عبر subprocess يجعل الفحص حتميّاً بصرف النظر عن ترتيب التشغيل،
-ويختبر رفض الإقلاع الحقيقيّ (فيديو: الحارس على مستوى الوحدة ⇒ رمز خروج غير صفريّ).
-منطق صرف (subprocess + قراءة ملفّات) — ``pytest -m unit``.
+طبقتان:
+  • **فحوص ساكنة** (تعمل دائماً، بلا استيراد): تؤكّد وجود منطق الفرض وتوصيله في المصدر،
+    وأنّ compose لا يحمل افتراض قيمة تطوير صامتاً. هذه هي حماية الانحدار في بوّابة CI
+    (بيئة الوحدة الدنيا: بلا fastapi/خدمات).
+  • **فحوص سلوكيّة حيّة** (تُتخطّى حين تغيب تبعيّات الخدمة): تُشغّل استيراد الخدمة في
+    **مفسّر فرعيّ نظيف** (subprocess) فتختبر رفض الإقلاع الحقيقيّ ورسائله. تعمل محلّيّاً
+    وفي بيئات التكامل حيث fastapi متاح؛ تُتخطّى في بيئة الوحدة الدنيا (نمط الريبو للفحوص
+    المقترنة بالخدمات). العزل عبر subprocess يجعلها حتميّة بصرف النظر عن ترتيب السويت.
+منطق صرف — ``pytest -m unit``.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import subprocess
 import sys
@@ -29,6 +31,12 @@ import pytest
 pytestmark = pytest.mark.unit
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# بيئة الوحدة الدنيا في CI بلا fastapi ⇒ لا يمكن استيراد خدمة main؛ نُتخطّى الحيّ حينها.
+_HAS_FASTAPI = importlib.util.find_spec("fastapi") is not None
+_live = pytest.mark.skipif(
+    not _HAS_FASTAPI, reason="minimal unit env: fastapi/services not installed"
+)
 
 
 def _run(service_dir: str, snippet: str, env: dict[str, str]) -> subprocess.CompletedProcess:
@@ -55,9 +63,41 @@ def _run(service_dir: str, snippet: str, env: dict[str, str]) -> subprocess.Comp
     )
 
 
-# ─────────────────────────── §4.1 decision-service ───────────────────────────
+# ═══════════════════════ فحوص ساكنة (تعمل دائماً في CI) ═══════════════════════
+def test_decision_lifespan_wires_hard_fail():
+    # §4.1: الإقلاع (lifespan) يستدعي الحارس ويرمي فعليّاً (رفض إقلاع لا مجرّد تحذير).
+    src = (ROOT / "services" / "decision-service" / "main.py").read_text(encoding="utf-8")
+    assert "def production_auth_startup_error(" in src
+    assert "production_auth_startup_error()" in src
+    assert "raise RuntimeError(auth_error)" in src
+    # يعتمد على وضع الإنتاج (SAHOOL_ENV) أو العلَم الصريح.
+    assert "DECISION_REQUIRE_AUTH_TOKEN" in src and "_is_production()" in src
+
+
+def test_video_processor_zlm_enforcement_present():
+    # §4.2: حارس سرّ ZLMediaKit على مستوى الوحدة (رفض إقلاع) + رفض قيمة التطوير المعروفة.
+    src = (ROOT / "services" / "video-processor" / "main.py").read_text(encoding="utf-8")
+    assert "def zlmediakit_secret_startup_error(" in src
+    assert '_KNOWN_DEV_ZLM_SECRET = "sahool-zlm-dev-secret"' in src
+    assert "raise RuntimeError(_zlm_secret_error)" in src
+
+
+def test_compose_has_no_hardcoded_dev_zlm_secret_default():
+    compose = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
+    # لا افتراض صامت لقيمة التطوير: ``${...:-sahool-zlm-dev-secret}`` مُزال.
+    assert ":-sahool-zlm-dev-secret}" not in compose
+    # حارس الإنتاج في sidecar التهيئة موجود (يفشل مُغلَقاً على الفارغ/قيمة التطوير).
+    assert "refusing to configure ZLMediaKit" in compose
+    # القيمة المعروفة تظهر فقط كسلسلة مرفوضة داخل الحارس (لا كافتراض).
+    for line in compose.splitlines():
+        if "sahool-zlm-dev-secret" in line:
+            assert '"sahool-zlm-dev-secret"' in line or "'sahool-zlm-dev-secret'" in line, (
+                f"unexpected use of dev secret literal: {line.strip()}"
+            )
+
+
+# ═══════════════ فحوص سلوكيّة حيّة (تُتخطّى في بيئة الوحدة الدنيا) ═══════════════
 def _decision_auth_error(env: dict[str, str]) -> str:
-    """يطبع نتيجة production_auth_startup_error() تحت البيئة المُعطاة (فارغة = لا خطأ)."""
     r = _run(
         "decision-service",
         "print('ERR::' + (m.production_auth_startup_error() or ''))\n",
@@ -70,6 +110,7 @@ def _decision_auth_error(env: dict[str, str]) -> str:
     raise AssertionError(f"no ERR:: marker in output: {r.stdout!r}")
 
 
+@_live
 def test_decision_production_requires_auth_token():
     # تطوير بلا توكن ⇒ لا خطأ.
     assert _decision_auth_error({"SAHOOL_ENV": "development"}) == ""
@@ -89,22 +130,13 @@ def test_decision_production_requires_auth_token():
     )
 
 
+@_live
 def test_decision_error_never_leaks_token():
-    # حتى لو ضُبِط توكن ثمّ أُفرِغ منطقيّاً، الرسالة تصف الغياب ولا تطبع أيّ قيمة سرّ.
     msg = _decision_auth_error({"SAHOOL_ENV": "production"})
     assert "a-real-token" not in msg  # قيمة توكن اختبار لا يجب أن تظهر أبداً
 
 
-def test_decision_lifespan_wires_hard_fail():
-    # تحقّق ساكن: الإقلاع (lifespan) يستدعي الحارس ويرمي فعليّاً (رفض إقلاع لا مجرّد تحذير).
-    src = (ROOT / "services" / "decision-service" / "main.py").read_text(encoding="utf-8")
-    assert "production_auth_startup_error()" in src
-    assert "raise RuntimeError(auth_error)" in src
-
-
-# ─────────────────────────── §4.2 video-processor/ZLM ────────────────────────
 def _video_import(env: dict[str, str]) -> subprocess.CompletedProcess:
-    # استيراد الوحدة فقط: الحارس على مستوى الوحدة ⇒ رفض الإقلاع = رمز خروج غير صفريّ.
     # video-processor له حارس إنتاج آخر (JWT/RS256) يسبق حارس ZLM؛ نُرضيه صراحةً
     # (SAHOOL_ALLOW_HS256_IN_PROD=1) كي يكون سرّ ZLMediaKit هو وحده تحت الاختبار.
     return _run(
@@ -112,6 +144,7 @@ def _video_import(env: dict[str, str]) -> subprocess.CompletedProcess:
     )
 
 
+@_live
 def test_zlmediakit_production_refuses_missing_or_dev_secret():
     # إنتاج + سرّ فارغ ⇒ رفض إقلاع (استيراد يفشل).
     r = _video_import({"SAHOOL_ENV": "production", "ZLMEDIAKIT_API_SECRET": ""})
@@ -134,24 +167,9 @@ def test_zlmediakit_production_refuses_missing_or_dev_secret():
     assert r.returncode == 0 and "IMPORT_OK" in r.stdout
 
 
+@_live
 def test_zlmediakit_refusal_never_leaks_operator_secret():
-    # سرّ المشغّل (القويّ) يمرّ فيقلع ⇒ لا رسالة رفض أصلاً، فلا مكان لتسريبه.
     secret = "operator-secret-should-never-appear-in-logs"
     r = _video_import({"SAHOOL_ENV": "production", "ZLMEDIAKIT_API_SECRET": secret})
     assert r.returncode == 0
     assert secret not in r.stdout and secret not in r.stderr
-
-
-# ─────────────────────────── compose: no silent dev fallback ─────────────────
-def test_compose_has_no_hardcoded_dev_zlm_secret_default():
-    compose = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
-    # لا افتراض صامت لقيمة التطوير: ``${...:-sahool-zlm-dev-secret}`` مُزال.
-    assert ":-sahool-zlm-dev-secret}" not in compose
-    # حارس الإنتاج في sidecar التهيئة موجود (يفشل مُغلَقاً على الفارغ/قيمة التطوير).
-    assert "refusing to configure ZLMediaKit" in compose
-    # القيمة المعروفة تظهر فقط كسلسلة مرفوضة داخل الحارس (لا كافتراض).
-    for line in compose.splitlines():
-        if "sahool-zlm-dev-secret" in line:
-            assert '"sahool-zlm-dev-secret"' in line or "'sahool-zlm-dev-secret'" in line, (
-                f"unexpected use of dev secret literal: {line.strip()}"
-            )
