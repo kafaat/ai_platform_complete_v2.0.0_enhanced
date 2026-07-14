@@ -4385,7 +4385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f636504d6d7c4f18c70bf3ac48753b42702f4fc6f990107ba41235cc3a0346cb"
+          "content": "129643fbb8b7eb7c20dae468b395b4b72a1551b073d24f06f74c9b1ffb18ef04"
         }
       ],
       "name": "frontend/src/pages/AcceptInvitationPage.tsx",
@@ -5585,7 +5585,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bce12e9f8b134e1546a4bb94840188efdd5246deaa0e568bce6dfe84988505b1"
+          "content": "d5f144d7e73062ed5cd11a8bf2e63e1c79882fdd7685d84b69462b554ed2bfa5"
+        }
+      ],
+      "name": "frontend/src/sections/TaskEvidenceAndInviteToken.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7c05a2cd018e16ca6568113cdfd447477bf16b579ebb373cc976734fe9513988"
         }
       ],
       "name": "frontend/src/sections/TasksPage.tsx",

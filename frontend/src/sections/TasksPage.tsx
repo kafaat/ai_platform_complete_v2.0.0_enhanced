@@ -110,11 +110,17 @@ export default function TasksPage() {
 
   const handlePhotoUpload = (taskId: string, file: File) => {
     if (!mutateAllowed) return;
-    // معاينة محلّيّة فقط (blob: غير صالح على الخادم). لا نُرسل الرابط المحلّيّ
-    // كـphoto_url — الرفع الفعليّ للملفّ يحتاج endpoint multipart (مؤجَّل بصدق).
+    // معاينة محلّيّة فقط (blob) — لا رفع للخادم بعد (لا endpoint multipart). **لا نُكمل
+    // المهمّة هنا**: كان الإكمال التلقائيّ عند اختيار صورة يوحي بإنجازٍ موثَّق بصورة بينما
+    // السجلّ الدائم لا يحمل صورة (أثر تدقيق زائف — continuation-3 P0). المعاينة صريحة غير
+    // محفوظة، والإكمال يبقى إجراءً مستقلّاً عبر زرّ «إنجاز». نُبطِل رابط المعاينة السابق
+    // لتفادي تسريب object URL (continuation-3 P1).
     const url = URL.createObjectURL(file);
-    setStatus(taskId, { photo_url: url });
-    void completeTask(taskId); // الإنجاز يُحفظ فعليّاً (بلا رابط blob زائف)
+    setOverrides((p) => {
+      const prev = p[taskId]?.photo_url;
+      if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+      return { ...p, [taskId]: { ...p[taskId], photo_url: url } };
+    });
   };
 
   const TaskCard = ({ task }: { task: Task }) => {
@@ -143,7 +149,14 @@ export default function TasksPage() {
               {task.estimated_duration_min != null && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{task.estimated_duration_min} دقيقة</span>}
               {task.estimated_cost_usd != null && <span className="flex items-center gap-1" style={{ color: T.gold }}>${task.estimated_cost_usd}</span>}
             </div>
-            {task.photo_url && <img src={task.photo_url} alt="توثيق" loading="lazy" decoding="async" className="mt-2 h-20 rounded-lg object-cover" />}
+            {task.photo_url && (
+              <div className="mt-2">
+                <img src={task.photo_url} alt="معاينة" loading="lazy" decoding="async" className="h-20 rounded-lg object-cover" />
+                {task.photo_url.startsWith('blob:') && (
+                  <div className="text-[10px] mt-0.5" style={{ color: T.faint }}>معاينة محلّيّة — لم تُرفَع بعد</div>
+                )}
+              </div>
+            )}
           </div>
           {mutateAllowed && task.status !== 'completed' && task.status !== 'cancelled' && (
             <div className="flex flex-col gap-1.5 flex-shrink-0">

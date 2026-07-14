@@ -5,7 +5,7 @@
 // خادم-جانبيّاً (لا يختارهما العميل) — العضو ينضمّ لمستأجِر الداعي بدوره المدعوّ.
 // النجاح ⇒ توكن محفوظ ⇒ التطبيق ينتقل تلقائيّاً (isAuthenticated).
 // ═══════════════════════════════════════════════════════════════
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Leaf, Eye, EyeOff, Loader2, AlertTriangle, UserPlus } from 'lucide-react';
 import { useAuthStore } from '../hooks/useAuth';
 import { apiErrorMessage } from '../services/api';
@@ -19,6 +19,19 @@ function tokenFromUrl(): string {
 export default function AcceptInvitationPage({ onLogin }: { onLogin?: () => void }) {
   const { acceptInvite } = useAuthStore();
   const [token] = useState(tokenFromUrl);
+
+  // بعد التقاط الرمز مرّةً (في الحالة)، أزِله من الرابط عبر history.replaceState كي لا
+  // يبقى رمز الدعوة السرّيّ في سجلّ المتصفّح/اللقطات/التتبّع أو يُنسَخ مع الرابط
+  // (continuation-1 P0). لا يُعيد تحميل الصفحة، والحالة تحتفظ بالرمز للإرسال.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('token')) return;
+    params.delete('token');
+    const qs = params.toString();
+    const clean = window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash;
+    window.history.replaceState(window.history.state, '', clean);
+  }, []);
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm]   = useState('');
