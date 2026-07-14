@@ -32,6 +32,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from api.irrigation_mpc import ForecastDay
+from api.irrigation_runtime_orchestrator import orchestrate_irrigation_recommendation
 from api.lexicographic_irrigation_mpc import solve_lexicographic_irrigation
 from api.lexicographic_mpc_bridge import bridge_enabled, emit_mpc_candidate
 from api.main import UserSchema, get_current_user, tenant_connection
@@ -375,3 +376,47 @@ async def irrigation_mpc_recommendation(
         else:
             out["emit"] = await emit_mpc_candidate(decision, tenant_id=tenant_id)
     return out
+
+
+# ═══════════════ WX-I1 wiring: hourly energy-aware MPC (server-owned) ═══════════════
+# مسار أعلى دقّةً من `/recommendation` اليوميّ: يستهلك ETc الساعيّ الأصليّ من محرّك الطقس
+# (WX-I1، لا تفكيك زمنيّ) + نوافذ الطاقة الساعيّة + بيان القدرة/التكليف، ويحلّ جدول M3
+# الساعيّ الواعي بالطاقة. **توصية-فقط بنيويّاً** (`execution_allowed=False`): لا أمر مضخّة.
+# كلّ الحقائق خادميّة (المنسّق يقرأ SoR: ميزان الماء، بيان القدرة، بوّابة التكليف، الطقس)؛
+# `tenant_id` من JWT لا من الجسم؛ تحقّق ملكيّة الحقل؛ نقص أيّ حقيقة ⇒ blocked (لا تلفيق).
+
+
+class HourlyRecommendationRequest(BaseModel):
+    """توصية ساعيّة واعية بالطاقة — لا حقائق فيزيائيّة من العميل (كلّها SoR خادميّاً)."""
+
+    horizon_hours: int = Field(default=48, ge=1, le=72)
+    persist: bool = True  # المنسّق يحفظ جدولاً توصويّاً فقط (لا أمر تنفيذ)
+
+
+@router.post("/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation")
+async def irrigation_mpc_hourly_recommendation(
+    field_id: str,
+    req: HourlyRecommendationRequest,
+    user: UserSchema = Depends(get_current_user),
+) -> dict:
+    """توصية ريّ ساعيّة واعية بالطاقة قابلة للجدولة — كلّ الحقائق من SoR خادميّاً.
+
+    يتحقّق من ملكيّة الحقل، ثمّ يفوّض المنسّق الخادميّ الذي يركّب: حالة الماء القانونيّة +
+    أحدث بيان قدرة ريّ + بوّابة تكليف/تنفيذيّة + ETc الساعيّ الأصليّ (WX-I1) في جدول M3
+    توصويّ-فقط. أيّ حقيقة ناقصة ⇒ blocked (لا اختلاق). `execution_allowed=False` دائماً.
+    """
+    tenant_id = user.tenant_id
+    if not await _field_belongs_to_tenant(tenant_id, field_id):
+        return {"status": "blocked", "reason": "field_not_owned", "field_id": field_id}
+    async with tenant_connection(tenant_id) as conn:
+        result = await orchestrate_irrigation_recommendation(
+            conn,
+            tenant_id=tenant_id,
+            field_id=field_id,
+            horizon_hours=req.horizon_hours,
+            persist=req.persist,
+        )
+    # ثبات العقد: توصية-فقط صراحةً حتى لو أعاد المنسّق حمولة blocked مبكّرة.
+    result.setdefault("recommendation_only", True)
+    result.setdefault("execution_allowed", False)
+    return result

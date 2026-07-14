@@ -15795,7 +15795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c407c2781b4b495018542dc58b4d7eda1050b1149fb3aacaaa746d65c230793a"
+          "content": "2f20c834112ff1bd6e6307d3aebf5e98501455c2c1b39f424850649f228031a6"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -23195,7 +23195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16c7b1e19ca84b2e05b2177767d1b35c1ccfdb9735be6c3f2636ef4d2a36a668"
+          "content": "91c98e1189a4beccc1a13373c424b9c0a151344e520c43ec21089eb3d3660015"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",

@@ -786,6 +786,25 @@
       "owner": "irrigation-mpc",
       "expiry": "2026-12-31",
       "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "توصية ريّ MPC ساعيّة واعية بالطاقة (WX-I1) تُبنى من حقائق SoR خادميّاً — الشقيق الساعيّ لـ/recommendation اليوميّة؛ توصية-فقط (execution_allowed=False) تظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا شاشة مباشرة؛ شاشة MPC مخصّصة دَين مُتتبَّع.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-decision-console",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
     }
   ]
 }
