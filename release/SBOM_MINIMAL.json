@@ -2405,7 +2405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2c444ce55ceaff964d377aadebf7c4401460b3fdc34b2342fbd1f46b2a0f960a"
+          "content": "f1eefac2708e420be8a365700e79092e8d58f3f1e8e6f2bd1326b1839792a363"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",

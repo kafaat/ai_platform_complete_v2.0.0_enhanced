@@ -2199,7 +2199,11 @@ export function useTasks(fieldId?: string) {
   const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useQuery<{ tasks: Task[] }>({
     queryKey: QK.tasks(tid, fieldId),
-    queryFn:  () => kongApi.get('/api/v1/tasks', { params: fieldId ? { field_id: fieldId } : {} })
+    // نمرّر AbortSignal الذي يوفّره React Query كي يُلغى الطلب الجاري عند إبطال
+    // الاستعلام/التبديل/التفكيك — فلا يكتمل طلب مستأجِرٍ سابق بعد التبديل (F5-07).
+    // (React Query يُلغّم أصلاً: نفس المفتاح ⇒ استعلام واحد مُشترَك بلا استطلاع مكرّر،
+    // وrefetchInterval لا يعمل والتبويب في الخلفيّة افتراضيّاً.)
+    queryFn:  ({ signal }) => kongApi.get('/api/v1/tasks', { params: fieldId ? { field_id: fieldId } : {}, signal })
       .then(r => r.data),
     staleTime:2 * 60_000,
     refetchInterval: 5 * 60_000,
