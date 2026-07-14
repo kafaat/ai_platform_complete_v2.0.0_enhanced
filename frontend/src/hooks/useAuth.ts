@@ -55,6 +55,9 @@ export const useAuthStore = create<AuthState>()(
           email: data.user?.email || email,
           full_name: data.user?.full_name,
           role: data.user?.role || data.role || 'farmer',
+          // احمل tenant_id على user (كما signup/acceptInvite) — كان غيابه يجعل
+          // hooks تقرأ user?.tenant_id فتحصل على 'default' بعد تسجيل دخول سليم (F5-02).
+          tenant_id: tenantId,
         };
         // التوكن في sessionStorage فقط (لا localStorage) — يقرؤه الـ interceptor.
         sessionStorage.setItem('sahool_access_token', token);
@@ -126,7 +129,12 @@ export const useAuthStore = create<AuthState>()(
 
       setTenant: (id: string) => {
         sessionStorage.setItem('sahool_tenant_id', id);
-        set({ tenantId: id });
+        // زامِن user.tenant_id مع المصدر القانونيّ (tenantId) كي لا تقرأ أيّ hook
+        // (user?.tenant_id) مستأجِراً قديماً بعد التبديل — مصدر واحد متّسق (F5-02/F5-05).
+        const u = get().user;
+        const user = u ? { ...u, tenant_id: id } : u;
+        if (user) sessionStorage.setItem('sahool_user', JSON.stringify(user));
+        set({ tenantId: id, user });
       },
 
       refreshUser: async () => {

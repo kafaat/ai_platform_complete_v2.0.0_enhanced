@@ -2335,6 +2335,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8f42166035becbab1af1d70c1a201a9cc749cd8084cd5aa7bcdb927caae4a4b4"
+        }
+      ],
+      "name": "frontend/src/hooks/TenantCacheIsolation.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c62a6c57f67b81cfd99899b28cbfdadfc3d6ec65a620bd52213da35843efc991"
         }
       ],
@@ -2375,7 +2385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75cc98c34685ae4fa586f21a49ee4df463280305774a9abdf5cda9b0f724743e"
+          "content": "2c444ce55ceaff964d377aadebf7c4401460b3fdc34b2342fbd1f46b2a0f960a"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -2395,7 +2405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9193f5939d36dba8854cea9ab38897fb8504d727aa35ecf0355307f2bba0bf6"
+          "content": "18cf0ca26b4b2908ef98533f1957135f825429ec6be29529465971ce2425d31e"
         }
       ],
       "name": "frontend/src/hooks/useAuth.ts",
@@ -4345,7 +4355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cd1f9f23405637ce9a77dc59fe024dbe28534020ba66212207e87c908325520f"
+          "content": "bf49a2aba41c99026c42b7e7070c336832bbfc5db165bccf885bbc441e2bcc26"
         }
       ],
       "name": "frontend/src/main.tsx",
@@ -5875,7 +5885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0966fe9ad4ea11de6ce42a827fd4cdf2a6767466a49723f2fdcf5cfd7727bb13"
+          "content": "c59798fd2fd3526d1b34eb97950b28b7beb629614fbfe4221caeb8bddfa15620"
         }
       ],
       "name": "frontend/src/services/duckdb.ts",

@@ -33,6 +33,23 @@ export async function getDuckDB(): Promise<duckdb.AsyncDuckDB> {
   return dbPromise;
 }
 
+/**
+ * يُنهي مثيل DuckDB المُتشارَك ويُصفّر المفرد — يُستدعى عند تبديل المستأجِر/الخروج كي
+ * لا يبقى جدول `fields` لمستأجِرٍ سابق قابلاً للاستعلام/التصدير في الجلسة (F-UI-35/F5-05).
+ * أفضل-جهد: أيّ فشل إنهاء لا يمنع التصفير (getDuckDB يُعيد الإنشاء عند الحاجة).
+ */
+export async function resetDuckDB(): Promise<void> {
+  const pending = dbPromise;
+  dbPromise = null;
+  if (!pending) return;
+  try {
+    const db = await pending;
+    await db.terminate();
+  } catch {
+    /* أفضل-جهد: المثيل صُفِّر أصلاً */
+  }
+}
+
 /** صفّ جدول `fields` (أعمدة v1 — سمات متاحة عميل-فقط؛ المؤشّرات async ⇒ خارج النطاق). */
 export interface FieldRow {
   id: string;

@@ -134,7 +134,7 @@ export const QK = {
   fieldDetail:      (tid: string, fid: string) => ['field-detail', tid, fid],
   fieldWorkspace:   (tid: string, fid: string) => ['field-workspace', tid, fid],
   farms:            (tid: string)        => ['farms', tid],
-  tasks:            (fid?: string)       => ['tasks', fid ?? 'all'],
+  tasks:            (tid: string, fid?: string) => ['tasks', tid, fid ?? 'all'],
   activities:       (tid: string, fid: string) => ['activities', tid, fid],
   seasons:          (tid: string, fid: string) => ['seasons', tid, fid],
   irrigationAdvice: (tid: string, fid: string) => ['weather-advice', 'irrigation', tid, fid],
@@ -2195,8 +2195,10 @@ export function useTasks(fieldId?: string) {
   // صدق: لا ابتلاع صامت للأخطاء. كان .catch(() => ({tasks:[]})) يُحوّل فشل الخادم/
   // المصادقة إلى «لا مهامّ» فلا يُفعَّل isError أبداً (pseudo-mock). الآن يَطفو الخطأ
   // فتعرض TasksPage حالة ErrorState بصدق (retry:false كبقيّة قوائم المنصّة).
+  // مفتاح مُنطاق بالمستأجِر (F5-01): لا تصادم كاش عبر المستأجرين عند تطابق معرّف الحقل.
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useQuery<{ tasks: Task[] }>({
-    queryKey: QK.tasks(fieldId),
+    queryKey: QK.tasks(tid, fieldId),
     queryFn:  () => kongApi.get('/api/v1/tasks', { params: fieldId ? { field_id: fieldId } : {} })
       .then(r => r.data),
     staleTime:2 * 60_000,
@@ -2206,9 +2208,14 @@ export function useTasks(fieldId?: string) {
 }
 
 export function useCompleteTask() {
+  const qc  = useQueryClient();
+  const tid = useAuthStore((s) => s.tenantId) ?? 'default';
   return useMutation({
     mutationFn: ({ taskId, photoUrl }: { taskId: string; photoUrl?: string }) =>
       kongApi.patch(`/api/v1/tasks/${taskId}`, { status: 'completed', photo_url: photoUrl }).then(r => r.data),
+    // أبطِل استعلام المهامّ المُشترَك (F5-03) كي تعكس كلّ الشاشات (MapHub/OperationCommand/
+    // FieldTasksCabin/اللوحة) الإكمال فوراً بدل بقائها معلّقةً حتى فترة الاستطلاع.
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['tasks', tid] }); },
   });
 }
 
