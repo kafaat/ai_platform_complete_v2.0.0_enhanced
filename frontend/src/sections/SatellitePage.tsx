@@ -21,6 +21,7 @@ import {
 import FieldIndicatorMap from '../components/FieldIndicatorMap';
 import DataFreshnessBadge from '../components/maphub/DataFreshnessBadge';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import NdviUnavailableNotice, { ndviUnavailableFromError } from '../components/fieldview/NdviUnavailableNotice';
 import { geomToPolygon } from '../lib/geo';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { apiErrorMessage, fieldCdseThumbnailUrl } from '../services/api';
@@ -208,7 +209,10 @@ export default function SatellitePage() {
   );
 
   const { data: tsData,  isLoading: tsLoading }  = useVegetationTimeseries(fieldId, days);
-  const { data: ndviNow }                        = useCurrentNDVI(fieldId);
+  const { data: ndviNow, error: ndviError }      = useCurrentNDVI(fieldId);
+  // عقد 424 التشخيصيّ: خدمة الغطاء real-only تفشل مُغلَقةً بسبب مُصنَّف حين لا NDVI موثّق.
+  // نُصيّر حالة فارغة هادئة (لا console.error، لا اختلاق) بدل ترك الخطأ صامتاً.
+  const ndviUnavailable = useMemo(() => ndviUnavailableFromError(ndviError), [ndviError]);
   const { mutateAsync: analyze, isPending: analyzing } = useAnalyzeVegetation();
   // «تحليل الآن» مع أثر مرئيّ صريح: نجاح ⇒ يُبطِل المخبّأ (في الخطّاف) فيُحدَّث الشريط
   // الزمنيّ والقيم؛ خطأ ⇒ رسالة عربيّة صادقة بدل صمت. يختفي التنويه بعد ثوانٍ.
@@ -660,6 +664,16 @@ export default function SatellitePage() {
                 </div>
               ))}
             </div>
+            {/* حالة فارغة هادئة لـ424 التشخيصيّ (retryable:false) — رسالة مُصنَّفة + إجراء
+                معالجة صريح (refreshFieldImagery) للحالات الحتميّة، بلا إعادة محاولة تلقائيّة. */}
+            {ndviUnavailable && (
+              <NdviUnavailableNotice
+                info={ndviUnavailable}
+                onProcess={() => fieldId && refreshImagery({ fieldId })}
+                processing={refreshingImagery}
+                className="mt-2 flex flex-col items-center gap-2 rounded-lg border border-sahool-border bg-sahool-surface/40 p-3 text-center"
+              />
+            )}
           </div>
 
           {/* ── لوحة جانبيّة خاصّة بالوضع ── */}

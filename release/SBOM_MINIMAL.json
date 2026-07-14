@@ -5675,7 +5675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "665758cd0b5177addddbc3c4a6b194da6b2520383fdf4b45b21ce47f3dc95c25"
+          "content": "4fa53840a2bb281b5f8c74690fa1e1700e3cd1a81fdb6ace01bc4385983c4c10"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
