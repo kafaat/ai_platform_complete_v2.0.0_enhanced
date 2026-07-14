@@ -24,9 +24,13 @@ describe('ndviUnavailableFromError — استخراج تفصيل 424', () => {
     });
   });
 
-  it('424 بتفصيل نصّيّ قديم ⇒ يسقط إلى NO_PROCESSED_IMAGERY (retryable:false)', () => {
+  it('424 بتفصيل نصّيّ قديم ⇒ يسقط إلى NO_PROCESSED_IMAGERY + action backfill (توافق خلفيّ)', () => {
     const info = ndviUnavailableFromError(axios424('no imagery'));
-    expect(info).toEqual({ code: 'NO_PROCESSED_IMAGERY', retryable: false });
+    expect(info).toEqual({
+      code: 'NO_PROCESSED_IMAGERY',
+      action: 'RUN_IMAGERY_BACKFILL',
+      retryable: false,
+    });
   });
 
   it('غير 424 (500) ⇒ null', () => {
@@ -44,11 +48,11 @@ describe('ndviUnavailableFromError — استخراج تفصيل 424', () => {
 });
 
 describe('NdviUnavailableNotice — تصيير الحالة الفارغة', () => {
-  it('NO_PROCESSED_IMAGERY (حتميّ) ⇒ رسالة + زرّ معالجة (role=status)', () => {
+  it('NO_PROCESSED_IMAGERY (action=backfill) ⇒ رسالة + زرّ معالجة (role=status)', () => {
     const onProcess = vi.fn();
     render(
       <NdviUnavailableNotice
-        info={{ code: 'NO_PROCESSED_IMAGERY', retryable: false }}
+        info={{ code: 'NO_PROCESSED_IMAGERY', action: 'RUN_IMAGERY_BACKFILL', retryable: false }}
         onProcess={onProcess}
       />,
     );
@@ -59,10 +63,32 @@ describe('NdviUnavailableNotice — تصيير الحالة الفارغة', () 
     expect(onProcess).toHaveBeenCalledTimes(1);
   });
 
-  it('عطل عابر (RASTER_DEPENDENCY_UNAVAILABLE) ⇒ رسالة بلا زرّ معالجة', () => {
+  it('الزرّ يُربَط بـaction لا code: كود مجهول + action=backfill ⇒ يظهر الزرّ (توافق أماميّ)', () => {
+    const onProcess = vi.fn();
     render(
       <NdviUnavailableNotice
-        info={{ code: 'RASTER_DEPENDENCY_UNAVAILABLE', retryable: true }}
+        info={{ code: 'SOME_FUTURE_CODE', action: 'RUN_IMAGERY_BACKFILL', retryable: false }}
+        onProcess={onProcess}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /معالجة الصور/ }));
+    expect(onProcess).toHaveBeenCalledTimes(1);
+  });
+
+  it('كود معالجة معروف لكن بلا action (خادم ناقص) ⇒ لا زرّ (القرار من العقد)', () => {
+    render(
+      <NdviUnavailableNotice
+        info={{ code: 'NO_PROCESSED_IMAGERY', retryable: false }}
+        onProcess={() => {}}
+      />,
+    );
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('عطل عابر (action=RETRY_LATER) ⇒ رسالة بلا زرّ معالجة', () => {
+    render(
+      <NdviUnavailableNotice
+        info={{ code: 'RASTER_DEPENDENCY_UNAVAILABLE', action: 'RETRY_LATER', retryable: true }}
         onProcess={() => {}}
       />,
     );
@@ -70,21 +96,30 @@ describe('NdviUnavailableNotice — تصيير الحالة الفارغة', () 
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('فشل تفويض (RASTER_AUTH_FAILURE) ⇒ رسالة بلا زرّ (لا cta)', () => {
-    render(<NdviUnavailableNotice info={{ code: 'RASTER_AUTH_FAILURE', retryable: false }} onProcess={() => {}} />);
+  it('فشل تفويض (action=REAUTH…) ⇒ رسالة بلا زرّ', () => {
+    render(
+      <NdviUnavailableNotice
+        info={{ code: 'RASTER_AUTH_FAILURE', action: 'REAUTH_OR_CONTACT_SUPPORT', retryable: false }}
+        onProcess={() => {}}
+      />,
+    );
     expect(screen.getByText(/تعذّر تفويض صور هذا الحقل/)).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  it('لا معالِج (onProcess غائب) ⇒ لا زرّ حتّى للحالة الحتميّة', () => {
-    render(<NdviUnavailableNotice info={{ code: 'NO_PROCESSED_IMAGERY', retryable: false }} />);
+  it('لا معالِج (onProcess غائب) ⇒ لا زرّ حتّى مع action=backfill', () => {
+    render(
+      <NdviUnavailableNotice
+        info={{ code: 'NO_PROCESSED_IMAGERY', action: 'RUN_IMAGERY_BACKFILL', retryable: false }}
+      />,
+    );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('processing=true ⇒ الزرّ مُعطَّل', () => {
     render(
       <NdviUnavailableNotice
-        info={{ code: 'NO_PROCESSED_IMAGERY', retryable: false }}
+        info={{ code: 'NO_PROCESSED_IMAGERY', action: 'RUN_IMAGERY_BACKFILL', retryable: false }}
         onProcess={() => {}}
         processing
       />,

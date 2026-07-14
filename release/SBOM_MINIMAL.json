@@ -1325,6 +1325,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "c3ae0b80d3f7616754637bfe210b971175ec2aaaf30e7394e60861597b100b45"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/NdviUnavailableNotice.test.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c70f303dd4af1c9a2b19dad67bfe92d2d80f7231eee543e61d29ae2c658e4443"
+        }
+      ],
+      "name": "frontend/src/components/fieldview/NdviUnavailableNotice.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "763ce1d2355e526bdbc663a61027956bf262c97133d99b1000ce86cd747ea0f3"
         }
       ],
