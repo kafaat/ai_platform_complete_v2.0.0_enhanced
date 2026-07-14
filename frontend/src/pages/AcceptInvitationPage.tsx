@@ -95,8 +95,10 @@ export default function AcceptInvitationPage({ onLogin }: { onLogin?: () => void
                   onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password"
                   className="w-full px-4 py-2.5 pl-11 rounded-xl text-sm" style={fieldStyle} />
                 <button type="button" onClick={() => setShowPw(!showPw)}
+                  aria-label={showPw ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  aria-pressed={showPw}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPw ? <EyeOff className="w-4 h-4" aria-hidden="true" /> : <Eye className="w-4 h-4" aria-hidden="true" />}
                 </button>
               </div>
             </div>

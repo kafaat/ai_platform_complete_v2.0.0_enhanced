@@ -75,12 +75,27 @@ const num = (n: number) => (n ?? 0).toLocaleString('en-US');
 
 // هروب CSV قياسيّ (RFC 4180): اقتبس القيمة إن احتوت فاصلة/اقتباس/سطراً جديداً
 // وضاعِف الاقتباسات الداخليّة — يمنع تحريف الأعمدة (نصوص عربيّة قد تحوي ",").
+// يبني نصّ CSV بأعمدة صريحة: قائمة الأعمدة = اتّحاد مفاتيح كلّ الصفوف بترتيب أوّل ظهور،
+// وكل صفّ يُصفّ بها صراحةً (col → row[col] ?? '') — فلا تنزاح الأعمدة عند اختلاف ترتيب
+// المفاتيح أو نقص/زيادة مفتاح في صفّ (continuation-3 P2). دالّة نقيّة قابلة للاختبار.
+export function buildCsv(data: Record<string, unknown>[]): string {
+  if (!data.length) return '';
+  const cols: string[] = [];
+  const seen = new Set<string>();
+  for (const row of data) {
+    for (const k of Object.keys(row)) {
+      if (!seen.has(k)) { seen.add(k); cols.push(k); }
+    }
+  }
+  const headers = csvRow(cols);
+  const rows = data.map((r) => csvRow(cols.map((c) => r[c] ?? '')));
+  return [headers, ...rows].join('\n');
+}
+
 function exportToCSV(data: Record<string, unknown>[], filename: string) {
   if (!data.length) return;
-  // ترميز آمن مُشترَك: تهريب RFC-4180 + تحييد حقن الصيغ (F-UI-38).
-  const headers = csvRow(Object.keys(data[0]));
-  const rows = data.map(r => csvRow(Object.values(r)));
-  const csv = '﻿' + [headers, ...rows].join('\n');
+  // ترميز آمن مُشترَك: تهريب RFC-4180 + تحييد حقن الصيغ (F-UI-38) + أعمدة صريحة (P2).
+  const csv = '﻿' + buildCsv(data);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');

@@ -4435,7 +4435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "129643fbb8b7eb7c20dae468b395b4b72a1551b073d24f06f74c9b1ffb18ef04"
+          "content": "49ffb3e5360cfaf25dbdec7c3cad4e2f366e686037d83397a5163ac25f88f962"
         }
       ],
       "name": "frontend/src/pages/AcceptInvitationPage.tsx",
@@ -5545,7 +5545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e05f4b049fcb4906b2b0f52279ae7f9f0ed40739eaa14fdfe44f11efe8e964a4"
+          "content": "a7b835923ce3607970267bcf69330f1e306ec2c9a63d1a020d769a5fb3e2dbdc"
         }
       ],
       "name": "frontend/src/sections/ReportsPage.tsx",
@@ -5879,6 +5879,16 @@
         }
       ],
       "name": "frontend/src/sections/notificationChannelValidation.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "73330dc5159627da1d37eefe9ecb6c01154400126313fe6460dbdf54a39d5d14"
+        }
+      ],
+      "name": "frontend/src/sections/reportsCsv.test.ts",
       "type": "file"
     },
     {
