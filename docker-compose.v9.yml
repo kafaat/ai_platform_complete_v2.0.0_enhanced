@@ -2029,6 +2029,19 @@ services:
       retries: 5
       start_period: 40s
   sahool-zlmediakit-config:
+    # CT-07 (container-audit V21 §6): pin floating image tags.
+    # Upstream zlmediakit/zlmediakit ships ONLY moving branch tags
+    # (master / master_py / feature-*) — no semver/date release tag exists
+    # (verified: Docker Hub tags API + upstream docs, which recommend :master;
+    # the GitHub project cuts no releases). We keep the OFFICIAL image because its
+    # /opt/media/conf layout is what the config entrypoint below depends on, and we
+    # do NOT swap to a stale community fork (e.g. panjjo/zlmediakit, whose newest
+    # published tag is 1.2.x and whose v6.0.0 in docker-compose.unified.yml 404s).
+    # The immutable pin is a resolved sha256 digest set via ZLMEDIAKIT_IMAGE by the
+    # release pipeline (not resolvable in this sandbox — no registry pull). Until
+    # then this image is the ONLY entry allowlisted in
+    # tests_v9/test_compose_image_pinning_guard_v21.py; every other image must stay
+    # pinned to an explicit non-master/latest tag.
     image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
     container_name: sahool-v9-zlmediakit-config
     restart: 'no'
@@ -2056,6 +2069,9 @@ services:
     networks:
     - sahool-internal
   sahool-zlmediakit:
+    # CT-07 (V21 §6): see rationale on sahool-zlmediakit-config above — upstream
+    # publishes no release tag; immutable pin = sha256 digest via ZLMEDIAKIT_IMAGE
+    # in the release pipeline. Allowlisted in the compose image-pinning guard.
     image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
     container_name: sahool-v9-zlmediakit
     mem_limit: 768m
