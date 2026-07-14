@@ -129,8 +129,12 @@ def test_evaluate_readiness_pure_logic():
 
     # حالة failed → غير جاهز صراحةً.
     ok, reason = ev(
-        {"telegram_ready": True, "last_beat_at": now, "current_state": "failed",
-         "last_error": "getMe failed"},
+        {
+            "telegram_ready": True,
+            "last_beat_at": now,
+            "current_state": "failed",
+            "last_error": "getMe failed",
+        },
         now,
         90,
     )
