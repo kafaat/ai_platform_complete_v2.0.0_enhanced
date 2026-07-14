@@ -521,3 +521,5 @@
 \i migrations/v182_decision_content_lineage_and_secret_hardening.sql
 \echo '═══ 189. v183_decision_lineage_integrity_hardening.sql ═══'
 \i migrations/v183_decision_lineage_integrity_hardening.sql
+\echo '═══ 190. v184_irrigation_closed_loop_runtime_reconciliation.sql ═══'
+\i migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql

@@ -6255,7 +6255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ac4517bc51da12ae1623a5a3a81c79f9e7119b2e99f65b534031e1690fbc1519"
+          "content": "7d0ee308a1cdac2573ea942b4fc7f95429d0155f42c7b1984c3196b966c434cc"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -13355,7 +13355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5797d5e6cdd54f12c0d4ffcd1e8468b20af49885338a4ca38f958c2e9f276413"
+          "content": "d0fcac3f3321ca7a2d46c5cda3875d142a880c629c9c4dcf38e7c93b03eb27e3"
         }
       ],
       "name": "services/sahool-platform/api/canonical_water_state.py",
@@ -15795,7 +15795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f20c834112ff1bd6e6307d3aebf5e98501455c2c1b39f424850649f228031a6"
+          "content": "3f9f8cb0f7f611bcf194a11f4d8f3e52bd4570d9bf165b6e2eb14384473361af"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -23205,7 +23205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "91c98e1189a4beccc1a13373c424b9c0a151344e520c43ec21089eb3d3660015"
+          "content": "68d4ea3ad396b95348c15a26f692001ca29b2b9f67b87a9b514339524b461a1a"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",

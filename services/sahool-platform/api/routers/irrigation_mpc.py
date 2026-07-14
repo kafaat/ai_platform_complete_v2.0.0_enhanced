@@ -420,3 +420,28 @@ async def irrigation_mpc_hourly_recommendation(
     result.setdefault("recommendation_only", True)
     result.setdefault("execution_allowed", False)
     return result
+
+
+# ═══════════ المسار الراجع القابل للقياس (Closed-loop reconciliation) ═══════════
+# يشتقّ الحقيقة المُطبَّقة فعليّاً (as-applied) من إيصالات المتحكّم والقياسات الخادميّة،
+# ثمّ يوفّق الماء المقيس المُتحقَّق منه **فقط** في دفتر الماء اليوميّ بشكل idempotent
+# (v184 + irrigation_closed_loop_runtime). `tenant_id` من JWT؛ لا أمر تنفيذ — قياس بحت.
+
+
+class ReconcileIrrigationRunRequest(BaseModel):
+    """Trigger server-owned reconciliation for an already persisted execution run."""
+
+    run_id: str = Field(min_length=36, max_length=36)
+
+
+@router.post("/api/v1/irrigation/executions/reconcile")
+async def reconcile_irrigation_execution(
+    req: ReconcileIrrigationRunRequest,
+    user: UserSchema = Depends(get_current_user),
+) -> dict:
+    """Derive measured as-applied truth and update the water ledger idempotently."""
+    from api.irrigation_closed_loop_runtime import reconcile_irrigation_run
+
+    async with tenant_connection(user.tenant_id) as conn:
+        async with conn.transaction():
+            return await reconcile_irrigation_run(conn, run_id=req.run_id)

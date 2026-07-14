@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 634,
+  "baseline_python_module_count": 635,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -132,6 +132,7 @@
     "api/inventory_models.py",
     "api/ipm_advisor.py",
     "api/irrigation_closed_loop_learning.py",
+    "api/irrigation_closed_loop_runtime.py",
     "api/irrigation_commissioning_certification.py",
     "api/irrigation_engineering_contracts.py",
     "api/irrigation_logic.py",
@@ -645,5 +646,6 @@
   "water_ledger_auto_note": "api/water_ledger_auto.py: WATER-LEDGER-AUTO pure FAO-56 daily accumulation logic (bootstrap declared, manual-entry precedence) consumed by the water_ledger phase runtime worker — closes the operational gap where FAO-56 recommendations were blocked on missing_depletion_mm because only manual entries wrote water_ledger.",
   "water_decision_bridge_note": "api/water_decision_bridge.py: WATER-DEFICIT-BRIDGE governed bridge (delivered bundle, reconciled): deficit>threshold -> deterministic candidate via the existing governance chain; double default-off; auto-execution requires explicit target; integrated with the entity_id::text fix (events.entity_id is TEXT since v18).",
   "soil_lab_supersession_note": "v155-v160 canonical soil chain: api/lab_store.py + api/soil_evidence_bridge.py are the platform lab-intake/publication bridge to soil-service (durable lab workflow + supersession lineage). Platform-owned intake surfaces; canonical evidence/projection owned by soil-service.",
-  "wx_i1_hourly_etc_orchestrator_note": "WX-I1: api/irrigation_runtime_orchestrator.py composes server-owned canonical water truth + persisted irrigation capability graph + commissioning executability + Weather-Engine native hourly ETc into one recommendation-only MPC schedule (no client-supplied agronomic/engineering truth). Platform-owned because it joins platform-owned canonical DB truth; the hourly ETc product itself stays engine-owned."
+  "wx_i1_hourly_etc_orchestrator_note": "WX-I1: api/irrigation_runtime_orchestrator.py composes server-owned canonical water truth + persisted irrigation capability graph + commissioning executability + Weather-Engine native hourly ETc into one recommendation-only MPC schedule (no client-supplied agronomic/engineering truth). Platform-owned because it joins platform-owned canonical DB truth; the hourly ETc product itself stays engine-owned.",
+  "closed_loop_runtime_note": "api/irrigation_closed_loop_runtime.py: durable measured-as-applied → water_ledger reconciliation return path (v184). Platform-owned (joins platform SoR: as_applied_* truth tables + water_ledger); recommendation/measurement only, no actuation."
 }

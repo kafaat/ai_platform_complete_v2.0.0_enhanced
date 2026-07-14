@@ -1,5 +1,5 @@
 {
-  "baseline_route_count": 601,
+  "baseline_route_count": 602,
   "routes": [
     {
       "file": "api/chat_proxy_reference.py",
@@ -4120,6 +4120,16 @@
     },
     {
       "file": "api/routers/irrigation_mpc.py",
+      "function": "reconcile_irrigation_execution",
+      "method": "POST",
+      "path": "/api/v1/irrigation/executions/reconcile",
+      "line": 0,
+      "target_owner": "sahool-platform",
+      "owner_type": "bff-orchestrator",
+      "route_key": "api/routers/irrigation_mpc.py::POST /api/v1/irrigation/executions/reconcile::reconcile_irrigation_execution"
+    },
+    {
+      "file": "api/routers/irrigation_mpc.py",
       "function": "irrigation_mpc_plan",
       "method": "POST",
       "path": "/api/v1/irrigation/mpc/plan",
@@ -6033,11 +6043,12 @@
   "p2_6_route_budget_reduction": {
     "previous_baseline_route_count": 567,
     "measured_route_count_after_p4_5": 570,
-    "new_max_platform_routes": 598,
+    "new_max_platform_routes": 599,
     "policy": "No route growth above the verified AST route budget after P3/P4 extraction without ownership-map review; extraction progress is enforced by service boundary guards, not artificial route deletion. Budget deliberately raised 567->570 for the JSON-metrics hotfix (field-intelligence async-job + evidence-graph read endpoints, platform-owned).",
     "ui3b_ui4_note": "Budget deliberately raised 570->572 for two UI-alignment BFF routes (/api/v1/features runtime flag registry; /api/v1/fields/{field_id}/readiness facade over data-completeness). Documented raise via the sanctioned guard path, not silent growth.",
     "ui27_ui35_note": "Budget raised 572->575 for UI27-UI35 Field Workspace BFF facades (imagery/weather/timeline/priority), owned+documented.",
     "note": "591->592: Phase E decision-evidence BFF proxy (GET agronomic-evidence; authz + fail-closed pass-through; decision-service owns the truth).",
-    "wx_i1_hourly_recommendation_note": "597->598: WX-I1 hourly energy-aware MPC recommendation (POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation). bff-orchestrator; owned+documented; hourly sibling of the daily irrigation_mpc_recommendation — composes platform-owned SoR (water_ledger, canonical_irrigation_capability_graphs, irrigation_executability_gates) with the weather-engine native hourly ETc product; fail-closed; recommendation-only (execution_allowed=False). No owner service exists for this composition (it joins platform-owned canonical DB truth), so it correctly lives in the BFF."
+    "wx_i1_hourly_recommendation_note": "597->598: WX-I1 hourly energy-aware MPC recommendation (POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation). bff-orchestrator; owned+documented; hourly sibling of the daily irrigation_mpc_recommendation — composes platform-owned SoR (water_ledger, canonical_irrigation_capability_graphs, irrigation_executability_gates) with the weather-engine native hourly ETc product; fail-closed; recommendation-only (execution_allowed=False). No owner service exists for this composition (it joins platform-owned canonical DB truth), so it correctly lives in the BFF.",
+    "closed_loop_reconcile_note": "598->599: WX-I1 closed-loop reconcile (POST /api/v1/irrigation/executions/reconcile). bff-orchestrator; owned+documented; server-owned measured-as-applied → water_ledger reconciliation (v184); tenant from JWT; idempotent; measurement-only, no actuation."
   }
 }

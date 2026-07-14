@@ -668,3 +668,5 @@ v181_irrigation_closed_loop_learning_production_certification.sql
 v182_decision_content_lineage_and_secret_hardening.sql
 # v183: content-lineage integrity hardening (review_decisions tenant RLS, DB-authoritative digest, append-only, NOT NULL). Renumbered from P0-fix v182.
 v183_decision_lineage_integrity_hardening.sql
+# v184: durable closed-loop reconciliation from measured as-applied truth into water_ledger.
+v184_irrigation_closed_loop_runtime_reconciliation.sql

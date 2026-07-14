@@ -805,6 +805,25 @@
       "owner": "irrigation-mpc",
       "expiry": "2026-12-31",
       "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/executions/reconcile",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "مسار راجع خادميّ (WX-I1): يوفّق الماء المقيس المُتحقَّق منه في دفتر الماء بشكل idempotent (v184) — مستهلِك آليّ/تشغيليّ (مُشغَّل من عامل التسوية بعد التنفيذ) لا شاشة مباشرة؛ الأثر يظهر عبر دفتر الماء/سلسلة القرار القائمة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-water-ledger",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
     }
   ]
 }

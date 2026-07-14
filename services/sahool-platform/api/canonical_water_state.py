@@ -215,6 +215,7 @@ async def resolve_canonical_water_state(
             "days_since_sowing": days_since_sowing,
         },
         "weather_source": fc.get("source") or "weather-engine",
+        "location": {"lat": float(lat), "lon": float(lon)},
     }
     weather_digest = _digest(forecast)
     soil_digest = root_zone.profile_digest

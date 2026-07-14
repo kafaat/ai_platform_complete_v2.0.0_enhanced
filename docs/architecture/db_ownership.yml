@@ -1254,6 +1254,11 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  irrigation_water_ledger_reconciliations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql"
   canonical_controller_capabilities:
     owner: sahool-platform
     writers: [sahool-platform]
