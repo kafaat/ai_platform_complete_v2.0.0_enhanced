@@ -26,6 +26,41 @@ def bridge_enabled() -> bool:
     return _bool("WATER_DEFICIT_DECISION_BRIDGE_ENABLED", False)
 
 
+def _is_production() -> bool:
+    return os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
+
+
+def water_ledger_identity_startup_error() -> str | None:
+    """CT-03 (تدقيق الحاويات V21): هويّة الخدمة إلزاميّة للعامل في الإنتاج متى فُعّل الجسر.
+
+    متى فُعّل ``WATER_DEFICIT_DECISION_BRIDGE_ENABLED`` يدفع عامل دفتر المياه مرشّحات
+    قرار إلى decision-service مُصادَقاً عليها بـ``X-Agent-Token``/``SAHOOL_AGENT_TOKEN``.
+    بلا التوكن يرفض decision-service (401) ويظلّ العامل يطرق الباب بلا هويّة. في الإنتاج
+    (``SAHOOL_ENV=production``) نرفض الإقلاع رفضاً صارماً كي لا يحاول عاملٌ مجهول الهويّة
+    دفع مرشّحات قرار محكومة أصلاً. التطوير (أو الجسر مُعطَّل) يبقى قابلاً للتشغيل. علَمٌ
+    صريح ``WATER_LEDGER_REQUIRE_IDENTITY`` يُسلّح الفحص خارج الإنتاج. يعيد رسالة الرفض
+    أو ``None`` عند الرضا — ولا يطبع قيمة التوكن أبداً، بل غيابه فقط.
+    """
+    require = os.getenv("WATER_LEDGER_REQUIRE_IDENTITY", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if not (require or _is_production()):
+        return None
+    if not bridge_enabled():
+        return None
+    if os.getenv("SAHOOL_AGENT_TOKEN", "").strip():
+        return None
+    return (
+        "SAHOOL_AGENT_TOKEN is required when the water-deficit decision bridge is enabled in "
+        "production (or when WATER_LEDGER_REQUIRE_IDENTITY is set) but is empty — refusing to "
+        "start an unidentified water-ledger worker that would push governed decision candidates "
+        "to decision-service. Configure the shared service agent token before deployment."
+    )
+
+
 def auto_execution_enabled() -> bool:
     return _bool("WATER_DEFICIT_AUTO_EXECUTION_ENABLED", False)
 

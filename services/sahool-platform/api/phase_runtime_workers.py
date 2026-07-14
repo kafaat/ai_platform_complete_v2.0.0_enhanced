@@ -536,6 +536,15 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
 
 
 async def loop_worker(kind: str) -> None:
+    # CT-03 (تدقيق الحاويات V21): هويّة الخدمة إلزاميّة — نرفض الإقلاع قبل أيّ اتّصال متى
+    # فُعّل جسر عجز الماء في الإنتاج وكان SAHOOL_AGENT_TOKEN فارغاً، كي لا يحاول عاملٌ
+    # مجهول الهويّة دفع مرشّحات قرار محكومة إلى decision-service (الرسالة لا تطبع التوكن).
+    if kind == "water_ledger":
+        from api.water_decision_bridge import water_ledger_identity_startup_error
+
+        identity_error = water_ledger_identity_startup_error()
+        if identity_error:
+            raise RuntimeError(identity_error)
     pool = await _connect()
     interval = float(os.getenv("WORKER_POLL_SECONDS", "5"))
     runners = {

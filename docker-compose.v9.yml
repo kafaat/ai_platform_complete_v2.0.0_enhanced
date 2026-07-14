@@ -1924,6 +1924,9 @@ services:
       WATER_DEFICIT_POLICY_ACTOR: ${WATER_DEFICIT_POLICY_ACTOR:-water-deficit-policy}
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       # هويّة الجسر أمام decision-service (X-Agent-Token) — بدونها تُرفَض مرشّحات العجز.
+      # CT-03: في الإنتاج (SAHOOL_ENV=production) متى فُعّل الجسر أعلاه يرفض العامل الإقلاع
+      # إن بقي هذا فارغاً (fail-closed، انظر water_ledger_identity_startup_error) — على
+      # المشغّل حقنه من مدير الأسرار؛ الافتراض الفارغ يخدم التطوير/الجسر المُعطَّل فقط.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
       WORKER_POLL_SECONDS: ${WATER_LEDGER_POLL_SECONDS:-3600}
     command:
