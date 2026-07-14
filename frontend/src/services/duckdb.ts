@@ -84,6 +84,38 @@ export interface QueryResult {
   rows: Record<string, unknown>[];
 }
 
+/** سقف صفوف نتيجة الاستعلام — يمنع استنزاف الذاكرة/العرض بنتيجة ضخمة. */
+export const MAX_RESULT_ROWS = 10_000;
+
+// كلمات مفتاحيّة على مستوى البيان تُشير إلى تعديل/إدارة/تسريب — ممنوعة في مساحة SQL
+// القرائيّة (F-UI-33). مطابقة بحدود الكلمة كي لا تُطابَق كأجزاء من معرّفات.
+const FORBIDDEN_SQL = /\b(insert|update|delete|drop|create|alter|attach|detach|copy|export|import|install|load|pragma|truncate|vacuum|grant|revoke)\b/i;
+
+/**
+ * يتحقّق أنّ `sql` استعلام **قراءة فقط** واحد (SELECT/WITH) بلا DDL/DML/COPY/ATTACH/…
+ * ويعيد الاستعلام مُنظَّفاً من التعليقات والفاصلة الختاميّة. يرمي خطأً عربيّاً واضحاً عند
+ * المخالفة. مصدر تحقّق واحد لكلّ مسارات التنفيذ (اليدويّ وNL-to-SQL) — F-UI-33/F-UI-34.
+ */
+export function assertReadOnlySelect(sql: string): string {
+  const stripped = sql
+    .replace(/--[^\n]*/g, ' ') // تعليقات السطر
+    .replace(/\/\*[\s\S]*?\*\//g, ' ') // تعليقات الكتلة
+    .trim();
+  if (!stripped) throw new Error('استعلام فارغ.');
+  const single = stripped.replace(/;\s*$/, '');
+  if (single.includes(';')) {
+    throw new Error('يُسمح ببيان واحد فقط (لا فواصل منقوطة متعدّدة).');
+  }
+  if (!/^\s*(select|with)\b/i.test(single)) {
+    throw new Error('يُسمح باستعلام قراءة فقط يبدأ بـSELECT أو WITH.');
+  }
+  const bad = single.match(FORBIDDEN_SQL);
+  if (bad) {
+    throw new Error(`كلمة غير مسموح بها في استعلام القراءة: ${bad[0].toUpperCase()}`);
+  }
+  return single;
+}
+
 /**
  * يصدّر نتيجة استعلام كـ**Parquet** (تنسيق أعمدة) عبر قدرة DuckDB-WASM على الكتابة:
  * `COPY (<sql>) TO 'result.parquet' (FORMAT PARQUET)` يكتب الملفّ في نظام ملفّات DuckDB
@@ -98,10 +130,14 @@ export async function exportQueryToParquet(sql: string): Promise<Uint8Array> {
   const db = await getDuckDB();
   const conn = await db.connect();
   const FILE = 'result.parquet';
+  const safe = assertReadOnlySelect(sql); // قراءة فقط + بيان واحد (F-UI-33)
   try {
     await db.dropFile(FILE).catch(() => undefined); // تنظيف بقايا تصدير سابق إن وُجدت
-    // COPY يلفّ الاستعلام كاستعلام فرعيّ؛ أيّ خطأ SQL يُرمى هنا بصدق (لا ابتلاع).
-    await conn.query(`COPY (${sql}) TO '${FILE}' (FORMAT PARQUET)`);
+    // COPY (تُديرها المساحة لا المستخدم) يلفّ الاستعلام المُتحقَّق مع سقف صفوف؛ أيّ خطأ
+    // SQL يُرمى هنا بصدق (لا ابتلاع).
+    await conn.query(
+      `COPY (SELECT * FROM (${safe}) AS _sahool_ro LIMIT ${MAX_RESULT_ROWS}) TO '${FILE}' (FORMAT PARQUET)`,
+    );
     return await db.copyFileToBuffer(FILE);
   } finally {
     await conn.close();
@@ -111,10 +147,12 @@ export async function exportQueryToParquet(sql: string): Promise<Uint8Array> {
 
 /** ينفّذ استعلاماً ويعيد {columns, rows}. يرمي عند خطأ SQL (يُعرَض بصدق، لا ابتلاع). */
 export async function runQuery(sql: string): Promise<QueryResult> {
+  const safe = assertReadOnlySelect(sql); // قراءة فقط + بيان واحد (F-UI-33/F-UI-34)
   const db = await getDuckDB();
   const conn = await db.connect();
   try {
-    const table = await conn.query(sql);
+    // لفّ الاستعلام المُتحقَّق بسقف صفوف صارم كي لا تُرجِع نتيجةٌ ضخمة تُجمِّد الواجهة.
+    const table = await conn.query(`SELECT * FROM (${safe}) AS _sahool_ro LIMIT ${MAX_RESULT_ROWS}`);
     const columns = table.schema.fields.map((f) => f.name);
     const arr = table.toArray() as Array<Record<string, unknown>>;
     const rows = arr.map((row) => {

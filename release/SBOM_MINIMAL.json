@@ -5885,7 +5885,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c59798fd2fd3526d1b34eb97950b28b7beb629614fbfe4221caeb8bddfa15620"
+          "content": "6bb1c651ce259adeaacc600a1b0c7c043f2025202ff7c3b16c21d03e998515a1"
+        }
+      ],
+      "name": "frontend/src/services/duckdb.readonly.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b2070af57d86ff312a159eb2ef779b50fbf53414912a354661e6c4850119aaa5"
         }
       ],
       "name": "frontend/src/services/duckdb.ts",
