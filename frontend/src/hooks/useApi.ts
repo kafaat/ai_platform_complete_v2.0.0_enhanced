@@ -113,6 +113,7 @@ import {
 import { useAuthStore } from './useAuth';
 import { useDashboardKPIs } from './useIndicators';
 import { buildSoilWorkspaceSummary, type SoilWorkspaceSummary } from '../lib/soilWorkspace';
+import { unwrapList } from '../lib/paginated';
 
 // ── Query Keys ─────────────────────────────────────────────────
 export const QK = {
@@ -2204,7 +2205,9 @@ export function useTasks(fieldId?: string) {
     // (React Query يُلغّم أصلاً: نفس المفتاح ⇒ استعلام واحد مُشترَك بلا استطلاع مكرّر،
     // وrefetchInterval لا يعمل والتبويب في الخلفيّة افتراضيّاً.)
     queryFn:  ({ signal }) => kongApi.get('/api/v1/tasks', { params: fieldId ? { field_id: fieldId } : {}, signal })
-      .then(r => r.data),
+      // تطبيع مُتسامح (F5-06): يعمل مع {tasks:[]} الحاليّ ومع مغلّف {items,total,…}
+      // مستقبلاً دون كسر مستهلكي useTasks (يبقى العقد {tasks}).
+      .then(r => ({ tasks: unwrapList<Task>(r.data).items })),
     staleTime:2 * 60_000,
     refetchInterval: 5 * 60_000,
     retry: false,

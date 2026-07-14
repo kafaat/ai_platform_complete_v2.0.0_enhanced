@@ -2405,7 +2405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f1eefac2708e420be8a365700e79092e8d58f3f1e8e6f2bd1326b1839792a363"
+          "content": "e46244550d2d5052b78812f48d9ba697bb4675e4048f4e4f79ba164c6b8e0726"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -4039,6 +4039,26 @@
         }
       ],
       "name": "frontend/src/lib/measureDrawWiring.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "478f44aa594c434a34ff0f8e23e4c8e97e4cfea63f4a23dd99eeecc281f92352"
+        }
+      ],
+      "name": "frontend/src/lib/paginated.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d6f57d4592b93729a76e0c66e5314cae86adbb7c941ce2f2401af16957e64cfd"
+        }
+      ],
+      "name": "frontend/src/lib/paginated.ts",
       "type": "file"
     },
     {
