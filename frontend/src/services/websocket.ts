@@ -30,6 +30,13 @@ const ALLOWED_CLIENT_TYPES: ReadonlySet<string> = new Set([
   'auth', 'ping', 'subscribe', 'unsubscribe',
 ]);
 
+// إقرار المصادقة الصريح (FE-09، P0): لا نُعلّم القناة مُصادَقة على "أوّل إطار وارد"
+// (كان أيّ إطار مُلفَّق يكفي لفتح البوّابة قبل تحقّق الخادم من الـJWT)؛ نطلب إطار إقرار
+// صريحاً من الخادم — auth_ok أو authenticated — قبل authed=true وتفريغ الصندوق الصادر.
+const AUTH_ACK_TYPES: ReadonlySet<string> = new Set([
+  'auth_ok', 'authenticated',
+]);
+
 // نتيجة الإرسال (P0.2): بدل bool صامت نُعيد حالة صريحة كي يعرف مُستدعو الأوامر
 // المُغيِّرة للحالة (ريّ/صمام/مضخّة) مصير أمره — أُرسل فوراً، أم طُوبِر، أم
 // أُسقط الأقدم لإفساح مكان (فقد بيانات صريح)، أم فشل التسلسل ولم يُحفَظ.
@@ -53,8 +60,9 @@ class WebSocketService {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private isConnecting = false;
   private pingInterval: ReturnType<typeof setInterval> | null = null;
-  // إقرار المصادقة (continuation-2 #1): لا نُفرّغ الصندوق الصادر حتى يُقرّ الخادمُ
-  // الاتصالَ (أوّل رسالة واردة بعد إطار auth) — فلا تُبَثّ رسائل قبل المصادقة.
+  // إقرار المصادقة (FE-09/continuation-2 #1): لا نُفرّغ الصندوق الصادر حتى يُقرّ الخادمُ
+  // الاتصالَ بإطار إقرار صريح (auth_ok/authenticated) بعد إطار auth — لا على مجرّد
+  // ورود أوّل إطار — فلا تُبَثّ رسائل قبل تحقّق الخادم من الـJWT.
   private authed = false;
   // صندوق صادر محدود (Phase 3): يحفظ الرسائل المُرسَلة بينما القناة ليست OPEN
   // (إعادة اتصال/إقلاع) ويُفرِّغها عند الفتح، بدل إسقاطها صامتةً. فقدان أمر
@@ -78,10 +86,12 @@ class WebSocketService {
     }
 
     this.isConnecting = true;
-    // التوكن لم يَعُد في الرابط (كان يتسرّب إلى سجلّات الوكلاء/الخوادم)؛ نرسله
-    // الآن في أوّل رسالة (إطار auth) بعد فتح الاتصال. نُبقي user_id للتوجيه
-    // والتوافق الخلفيّ (الخادم يتجاهله للمصادقة — يعتمد sub من الـJWT).
-    const url = `${WS_URL}?user_id=${userId}`;
+    // FE-10 (P0): لا مُعرّفات في الرابط إطلاقاً. لا التوكن (كان يتسرّب عبر الـquery
+    // string إلى سجلّات الوكلاء/الخوادم والـreferrer) ولا user_id (كان قابلاً للانتحال
+    // — يُغيّره أيّ عميل في يده الرابط). الهُويّة تُشتَقّ خادميّاً من الـJWT (sub) الذي
+    // نرسله في أوّل رسالة (إطار auth) بعد فتح الاتصال — لا من أيّ وسيط في الرابط.
+    // user_id يبقى محليّاً (this.userId) للتوجيه/إعادة الاتصال فقط، لا في الـURL.
+    const url = WS_URL;
 
     try {
       this.ws = new WebSocket(url);
@@ -93,7 +103,7 @@ class WebSocketService {
         this.authed = false; // لم يُقِرّ الخادمُ المصادقةَ بعد.
         // أوّلاً: أرسل إطار المصادقة قبل أيّ شيء آخر (التوكن في الرسالة الأولى).
         this.ws?.send(JSON.stringify({ type: 'auth', token }));
-        // لا نُفرّغ الصندوق هنا: ننتظر إقرار الخادم (أوّل رسالة واردة) — continuation-2 #1.
+        // لا نُفرّغ الصندوق هنا: ننتظر إطار إقرار مصادقة صريحاً من الخادم — FE-09.
         // امسح أيّ مؤقّت ping سابق قبل إنشاء جديد كي لا تتراكم مؤقّتات عند إعادة الاتصال (#2).
         if (this.pingInterval) clearInterval(this.pingInterval);
         this.pingInterval = setInterval(() => {
@@ -112,10 +122,17 @@ class WebSocketService {
           console.warn('[WS] dropping invalid (non-JSON) frame');
           return;
         }
-        // أوّل رسالة واردة بعد الفتح = إقرار مصادقة الخادم ⇒ نُفرّغ الصندوق الآن فقط (#1).
+        // FE-09 (P0): البوّابة تُفتَح بإقرار مصادقة صريح فقط. قبل authed، لا نُوزّع ولا
+        // نُشعِر ولا نُفرّغ الصندوق مهما كان الإطار — نقبل حصراً إطار auth_ok/authenticated
+        // (تحقّق الخادم من الـJWT). أيّ إطار آخر قبل الإقرار يُهمَل (fail-closed) فلا يفتح
+        // إطارٌ مُلفَّق البوّابةَ. إطار الإقرار نفسه يُستهلَك هنا ولا يُوزَّع كحدث.
         if (!this.authed) {
-          this.authed = true;
-          this._flushOutbox();
+          const t = typeof data.type === 'string' ? data.type : '';
+          if (AUTH_ACK_TYPES.has(t)) {
+            this.authed = true;
+            this._flushOutbox();
+          }
+          return;
         }
         if (data.type === 'pong') return;
         const eventType = typeof data.event_type === 'string' ? data.event_type : '';
@@ -192,7 +209,11 @@ class WebSocketService {
       console.warn('[WS] Dropping unserializable message:', e);
       return 'failed';
     }
-    if (this.ws?.readyState === WebSocket.OPEN) {
+    // FE-09 (P0): لا نكتب فوراً إلّا على قناة مفتوحة ومُصادَقة صراحةً. قبل إقرار
+    // الخادم (authed) نُطوّر حتى أُطُر التحكّم/الاشتراك فلا يسبق شيءٌ مصافحةَ المصادقة
+    // (auth ↦ auth_ok). إطارا auth/ping يُرسَلان مباشرةً عبر ws.send لا عبر هذا المسار،
+    // فلا يُعرقلان بالبوّابة.
+    if (this.authed && this.ws?.readyState === WebSocket.OPEN) {
       // قد تُغلَق القناة بين فحص الحالة والإرسال (سباق) فيُرمى — نلتقط ونُعيد
       // الرسالة للطابور بدل فقدها صامتةً.
       try {
@@ -202,7 +223,7 @@ class WebSocketService {
         console.warn('[WS] send failed, re-queuing message:', e);
       }
     }
-    // غير مفتوحة بعد: ضعها في الطابور لتُرسَل عند الفتح. عند الامتلاء أسقط الأقدم
+    // غير مفتوحة/مُصادَقة بعد: ضعها في الطابور لتُرسَل عند الإقرار. عند الامتلاء أسقط الأقدم
     // (نُبقي الأحدث) مع تحذير صريح حتى لا يكون فقد الأوامر التشغيليّة خفيّاً.
     if (this.outbox.length >= this.maxOutbox) {
       this.outbox.shift();

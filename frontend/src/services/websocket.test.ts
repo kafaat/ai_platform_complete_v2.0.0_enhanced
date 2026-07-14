@@ -1,7 +1,8 @@
-// اختبارات websocket — تثبّت السياسة المُحصَّنة (continuation-2 #1/#2/#3):
+// اختبارات websocket — تثبّت السياسة المُحصَّنة (continuation-2 #1/#2/#3 + FE-09/FE-10):
 //   • المتصفّح لا يُصدر أوامر تشغيليّة عبر WS (valve/pump/irrigation) — تُرفَض.
 //   • أُطُر التحكّم/الاشتراك المسموح بها تُحفَظ في الصندوق ولا تُفرَّغ إلا بعد إقرار
-//     مصادقة الخادم (أوّل رسالة واردة)، لا على مجرّد فتح القناة.
+//     مصادقة صريح (auth_ok/authenticated)، لا على مجرّد فتح القناة ولا على أوّل إطار وارد (FE-09).
+//   • الرابط لا يحمل user_id ولا token — الهُويّة تُشتَقّ خادميّاً من الـJWT (FE-10).
 //   • الأطر الواردة بلا event_type معروف (أو JSON فاسد) تُهمَل بلا توزيع.
 // نحقن WebSocket وهميّاً (jsdom لا يوفّره).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -44,7 +45,7 @@ import { wsService } from './websocket';
 
 const AUTH_FRAME = JSON.stringify({ type: 'auth', token: 'test-jwt' });
 const outboxOnly = (ws: MockWebSocket) => ws.sent.filter(m => m !== AUTH_FRAME);
-// إقرار مصادقة الخادم = أوّل رسالة واردة بعد الفتح.
+// إقرار مصادقة الخادم = إطار إقرار صريح (auth_ok/authenticated) بعد الفتح — FE-09.
 const ack = (ws: MockWebSocket) => ws._message({ type: 'auth_ok' });
 
 beforeEach(() => {
@@ -72,17 +73,18 @@ describe('WebSocket — الأوامر التشغيليّة ممنوعة عبر 
     expect(outboxOnly(MockWebSocket.instances[0])).toHaveLength(0);
   });
 
-  it("يسمح بأُطُر التحكّم/الاشتراك ويرسلها فوراً عند فتح القناة ('sent')", () => {
+  it("يسمح بأُطُر التحكّم/الاشتراك ويرسلها فوراً عند فتح القناة ومصادقتها ('sent')", () => {
     wsService.connect(1);
     const ws = MockWebSocket.instances[0];
     ws._open();
+    ack(ws); // FE-09: لا كتابة فوريّة قبل الإقرار الصريح.
     expect(wsService.send({ type: 'subscribe', channel: 'field-42' })).toBe('sent');
     expect(outboxOnly(ws)).toContain(JSON.stringify({ type: 'subscribe', channel: 'field-42' }));
   });
 });
 
-describe('WebSocket — تفريغ الصندوق يتطلّب إقرار مصادقة (continuation-2 #1)', () => {
-  it('لا يُفرّغ على مجرّد فتح القناة؛ يُفرّغ بعد أوّل رسالة واردة', () => {
+describe('WebSocket — تفريغ الصندوق يتطلّب إقرار مصادقة صريح (FE-09/continuation-2 #1)', () => {
+  it('لا يُفرّغ على مجرّد فتح القناة؛ يُفرّغ بعد إطار إقرار صريح', () => {
     expect(wsService.send({ type: 'subscribe', channel: 'a' })).toBe('queued');
 
     wsService.connect(1);
@@ -93,6 +95,44 @@ describe('WebSocket — تفريغ الصندوق يتطلّب إقرار مصا
 
     ack(ws); // إقرار الخادم ⇒ التفريغ الآن.
     expect(outboxOnly(ws)).toEqual([JSON.stringify({ type: 'subscribe', channel: 'a' })]);
+  });
+
+  it('FE-09: إطار وارد ليس إقراراً لا يفتح البوّابة؛ فقط auth_ok/authenticated يُفرّغ', () => {
+    expect(wsService.send({ type: 'subscribe', channel: 'a' })).toBe('queued');
+    wsService.connect(1);
+    const ws = MockWebSocket.instances[0];
+    ws._open();
+
+    // إطار وارد غير إقرار (كان "أوّل إطار" يكفي سابقاً) — يجب ألّا يُصادِق ولا يُفرّغ.
+    ws._message({ type: 'notification', title: 'مُلفَّق' });
+    ws._message({ event_type: 'pest_alert', title: 'آفة' }); // حتى حدث معروف: قبل الإقرار لا يُفرّغ
+    expect(outboxOnly(ws)).toHaveLength(0);
+    // القناة مفتوحة لكن غير مُصادَقة ⇒ الإرسال لا يزال يُطوَّر (لا يُكتَب فوراً).
+    expect(wsService.send({ type: 'subscribe', channel: 'b' })).toBe('queued');
+    expect(outboxOnly(ws)).toHaveLength(0);
+
+    ack(ws); // إقرار صريح ⇒ يُفرَّغ ما تراكم بالترتيب.
+    expect(outboxOnly(ws)).toEqual([
+      JSON.stringify({ type: 'subscribe', channel: 'a' }),
+      JSON.stringify({ type: 'subscribe', channel: 'b' }),
+    ]);
+  });
+
+  it("FE-09: 'authenticated' مقبول أيضاً كإطار إقرار", () => {
+    expect(wsService.send({ type: 'subscribe', channel: 'a' })).toBe('queued');
+    wsService.connect(1);
+    const ws = MockWebSocket.instances[0];
+    ws._open();
+    ws._message({ type: 'authenticated' });
+    expect(outboxOnly(ws)).toEqual([JSON.stringify({ type: 'subscribe', channel: 'a' })]);
+  });
+
+  it('FE-09: بعد المصادقة، الإرسال على قناة مفتوحة يُكتَب فوراً (sent)', () => {
+    wsService.connect(1);
+    const ws = MockWebSocket.instances[0];
+    ws._open();
+    ack(ws);
+    expect(wsService.send({ type: 'subscribe', channel: 'c' })).toBe('sent');
   });
 
   it('سقف الصندوق يُسقط الأقدم ويُبقي الأحدث (100)', () => {
@@ -120,6 +160,20 @@ describe('WebSocket — تفريغ الصندوق يتطلّب إقرار مصا
     ws._open();
     ack(ws);
     expect(outboxOnly(ws)).toHaveLength(0);
+  });
+});
+
+describe('WebSocket — لا مُعرّفات هُويّة في الرابط (FE-10)', () => {
+  it('رابط الاتصال لا يحمل user_id ولا token — الهُويّة من الـJWT في إطار auth', () => {
+    wsService.connect(42);
+    const ws = MockWebSocket.instances[0];
+    expect(ws.url).not.toContain('user_id');
+    expect(ws.url).not.toContain('token');
+    expect(ws.url).not.toContain('42');
+    expect(ws.url).not.toContain('?'); // لا query string إطلاقاً
+    // التوكن يُرسَل داخل إطار auth بعد الفتح، لا في الرابط.
+    ws._open();
+    expect(ws.sent[0]).toBe(JSON.stringify({ type: 'auth', token: 'test-jwt' }));
   });
 });
 
