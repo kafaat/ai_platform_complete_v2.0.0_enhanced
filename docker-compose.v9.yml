@@ -101,7 +101,7 @@ services:
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
       EDGE_INFERENCE_URL: http://sahool-edge:8100
       ZLMEDIA_API_URL: http://sahool-zlmediakit:80
-      ZLMEDIAKIT_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
+      ZLMEDIAKIT_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/3
       JWT_SECRET: ${JWT_SECRET}
       JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
@@ -1977,12 +1977,21 @@ services:
     container_name: sahool-v9-zlmediakit-config
     restart: 'no'
     environment:
-      ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
+      ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
     entrypoint:
     - /bin/sh
     - -c
     - |
       set -e
+      # Container-audit V21 §4.2: fail-closed — production must not configure ZLMediaKit
+      # with a missing/empty or the known-development secret (leaves /index/api/* open).
+      if [ "$$SAHOOL_ENV" = "production" ] || [ "$$SAHOOL_ENV" = "prod" ]; then
+        if [ -z "$$ZLM_API_SECRET" ] || [ "$$ZLM_API_SECRET" = "sahool-zlm-dev-secret" ]; then
+          echo "FATAL: ZLMEDIAKIT_API_SECRET missing/empty/known-dev in production — refusing to configure ZLMediaKit" >&2
+          exit 1
+        fi
+      fi
       if [ ! -f /conf/.sahool_init ]; then cp -a /opt/media/conf/. /conf/ && touch /conf/.sahool_init; fi
       sed -i "s|^secret=.*|secret=$$ZLM_API_SECRET|" /conf/config.ini || true
       echo "zlmediakit config: [api] secret pinned"
@@ -2000,7 +2009,7 @@ services:
     logging: *id001
     environment:
       TZ: ${TZ:-UTC}
-      ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-sahool-zlm-dev-secret}
+      ZLM_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-}
     depends_on:
       sahool-zlmediakit-config:
         condition: service_completed_successfully

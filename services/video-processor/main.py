@@ -108,6 +108,40 @@ VIDEO_STRICT_READY = os.getenv("VIDEO_STRICT_READY", "false").strip().lower() in
     "on",
 }
 
+# Container-audit V21 §4.2: the ZLMediaKit API secret must not ship a known development
+# fallback into production. This literal was the compose default; it is rejected here.
+_KNOWN_DEV_ZLM_SECRET = "sahool-zlm-dev-secret"
+
+
+def zlmediakit_secret_startup_error(secret: str, env: str) -> str | None:
+    """Pure helper: production must not run ZLMediaKit with a missing/empty/known-dev secret.
+
+    In production an empty secret leaves the ZLMediaKit /index/api/* control plane open, and
+    the well-known development value is effectively public. Returns the fail message (never the
+    secret value itself), or None when the secret is an operator-supplied production value.
+    """
+    if env.strip().lower() not in {"production", "prod"}:
+        return None
+    s = (secret or "").strip()
+    if not s:
+        return (
+            "ZLMEDIAKIT_API_SECRET is empty in production — refusing to start with an "
+            "unauthenticated ZLMediaKit control plane. Configure a strong secret."
+        )
+    if s == _KNOWN_DEV_ZLM_SECRET:
+        return (
+            "ZLMEDIAKIT_API_SECRET is the known development value in production — refusing to "
+            "start. Rotate to a strong, unique secret before deployment."
+        )
+    return None
+
+
+_zlm_secret_error = zlmediakit_secret_startup_error(
+    ZLMEDIAKIT_API_SECRET, os.getenv("SAHOOL_ENV", "development")
+)
+if _zlm_secret_error:
+    raise RuntimeError(_zlm_secret_error)
+
 
 def _zlmedia_params(**params: object) -> dict[str, object]:
     """Build ZLMediaKit API parameters.

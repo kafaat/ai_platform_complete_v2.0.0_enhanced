@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "357b41f4030db5e1ca81f6ad99465f85431c8f5d276f44f2ff6946002d0525c4"
+          "content": "d4be287189710756eca41e30df96e4659f9dd60b81990ee3f4ed8294dad1e8c5"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9695,7 +9695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e970c14fd47458402e2fa73ad727bbaf89cb54bbbc0614e0278bee6ad904432"
+          "content": "4acb73ab7a60459d257a3757cba83c2e8a18fe6a0a80912a5ae7f2e7a0d2b767"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -25855,7 +25855,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5d9902cf870dabeaf718e54ff41902006e6ce58493ef7dd1db530a5bb8635a57"
+          "content": "14ee676acfbd2b6b7c5430e535c617ceaf176ef4c65b499f138c091b652bdbda"
         }
       ],
       "name": "services/video-processor/main.py",

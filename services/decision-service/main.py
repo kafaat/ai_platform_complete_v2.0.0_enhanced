@@ -91,6 +91,12 @@ from shared.contracts.soil import validate_soil_use
 async def lifespan(app: FastAPI):
     # Modern FastAPI lifespan startup (replaces the deprecated startup event handler).
     # sor_misconfig_message()/logger are module globals resolved at startup time.
+    # Container-audit V21 §4.1: hard fail-closed — refuse to start an unauthenticated
+    # decision service in production (never log the token itself, only its absence).
+    auth_error = production_auth_startup_error()
+    if auth_error:
+        logger.error(auth_error)
+        raise RuntimeError(auth_error)
     message = sor_misconfig_message()
     if message:
         logger.error(message)
@@ -340,6 +346,36 @@ def auth_token_missing_in_sor() -> bool:
         "on",
     }
     return require and sor_enabled() and not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()
+
+
+def _is_production() -> bool:
+    return os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
+
+
+def production_auth_startup_error() -> str | None:
+    """Container-audit V21 §4.1: authentication is mandatory in production — refuse to start.
+
+    In production (SAHOOL_ENV=production), DECISION_SERVICE_AUTH_TOKEN must be configured;
+    without it a service reachable directly on the internal port can spoof tenant/actor
+    identity headers (see the _service_token_guard middleware). Rather than start open and
+    degrade /readyz (the earlier staged behaviour), we hard-fail startup so an unauthenticated
+    authoritative service can never accept traffic. An explicit DECISION_REQUIRE_AUTH_TOKEN
+    also arms the check outside production. Returns the fail message, or None when satisfied.
+    """
+    require = os.getenv("DECISION_REQUIRE_AUTH_TOKEN", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    if (require or _is_production()) and not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip():
+        return (
+            "DECISION_SERVICE_AUTH_TOKEN is required in production (or when "
+            "DECISION_REQUIRE_AUTH_TOKEN is set) but is empty — refusing to start an "
+            "unauthenticated decision service on the internal port. Configure the shared "
+            "service bearer token before deployment."
+        )
+    return None
 
 
 def sor_misconfig_message() -> str | None:
