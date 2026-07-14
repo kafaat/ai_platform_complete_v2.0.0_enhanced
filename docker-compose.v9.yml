@@ -407,6 +407,14 @@ services:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
+      # RS256 (غير متماثل، الموصى به): auth يوقّع بالمفتاح الخاصّ والخدمات تتحقّق بالعامّ.
+      # لا بدّ أن تُعرَّض هذه هنا كي يكون مسار RS256 قابلاً للضبط على المُوقِّع نفسه — وإلّا
+      # ضبطُ JWT_PUBLIC_KEY لمنصّةٍ (RS256) مع بقاء auth بلا مفتاح خاصّ (HS256) ⇒ عدم تطابق
+      # خوارزميّة (InvalidAlgorithmError → 401 في التطوير، رفض إقلاع في الإنتاج). تطابق أسماء
+      # متغيّرات sahool-platform (JWT_PUBLIC_KEY/SAHOOL_ALLOW_HS256_IN_PROD) — عقد مشترَك متماثل.
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:-}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY:-}
+      SAHOOL_ALLOW_HS256_IN_PROD: ${SAHOOL_ALLOW_HS256_IN_PROD:-}
       JWT_EXPIRE_MINUTES: 60
       REFRESH_EXPIRE_DAYS: 30
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
