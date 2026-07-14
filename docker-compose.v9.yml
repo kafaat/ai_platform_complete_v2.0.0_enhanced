@@ -6,6 +6,8 @@ x-logging: &id001
 services:
   raster-tiler-service:
     build: ./services/raster-tiler-service
+    security_opt:
+    - no-new-privileges:true
     environment:
     - PORT=8088
     ports:
@@ -506,6 +508,8 @@ services:
     build:
       context: .
       dockerfile: services/weather-polygon-worker/Dockerfile
+    security_opt:
+    - no-new-privileges:true
     restart: unless-stopped
     logging: *id001
     environment:
@@ -540,6 +544,8 @@ services:
     build:
       context: .
       dockerfile: services/weather-signal-engine/Dockerfile
+    security_opt:
+    - no-new-privileges:true
     restart: unless-stopped
     logging: *id001
     environment:
@@ -1694,6 +1700,8 @@ services:
       context: .
       dockerfile: services/soil-service/Dockerfile
     container_name: sahool-v9-soil-service
+    security_opt:
+    - no-new-privileges:true
     restart: unless-stopped
     logging: *id001
     environment:
@@ -1800,10 +1808,16 @@ services:
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
     restart: unless-stopped
     logging: *id001
     environment:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
@@ -1838,10 +1852,16 @@ services:
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
     restart: unless-stopped
     logging: *id001
     environment:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
@@ -1871,10 +1891,16 @@ services:
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
     restart: unless-stopped
     logging: *id001
     environment:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
@@ -1908,10 +1934,16 @@ services:
     mem_limit: 384m
     security_opt:
     - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
     restart: unless-stopped
     logging: *id001
     environment:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
@@ -1957,10 +1989,16 @@ services:
     mem_limit: 512m
     security_opt:
     - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
     restart: unless-stopped
     logging: *id001
     environment:
       SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
