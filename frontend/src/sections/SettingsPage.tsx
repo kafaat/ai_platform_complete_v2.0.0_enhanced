@@ -23,6 +23,7 @@ import { useAuthStore } from '../hooks/useAuth';
 import { normalizeRole, ROLE_LABEL_AR } from '../lib/permissions';
 import { Card, Button, Pill, TabBar } from '../components/ds/atoms';
 import { T } from '../components/ds/tokens';
+import { loadSettings, saveSettings } from '../lib/appSettings';
 import {
   mfaSetup, mfaActivate, mfaDisable, changePassword, apiErrorMessage,
   getVerificationStatus, requestVerification, confirmVerification,
@@ -34,15 +35,8 @@ import {
 
 type Tab = 'general' | 'notifications' | 'services' | 'security' | 'sharing' | 'team';
 
-// حفظ إعدادات العميل فعليّاً (كانت حالة محلّيّة تُفقَد عند التحديث).
-const SETTINGS_KEY = 'sahool_settings';
-function loadSettings(): { lang?: string; map?: string } {
-  try {
-    return JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-  } catch {
-    return {};
-  }
-}
+// حفظ/قراءة تفضيلات العميل (لغة/خريطة) عبر الوحدة المُشترَكة lib/appSettings —
+// نفس المفتاح والمنطق الدفاعيّ يقرأه SetupCabin (منع انحراف نسختَين).
 
 const BASE_TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id:'general',       label:'عام',         icon:Globe  },
@@ -76,11 +70,7 @@ export default function SettingsPage() {
   const handleSave = () => {
     // persist للتفضيلات غير الحسّاسة فقط (لغة/خريطة) — يصمد عبر تحديث الصفحة.
     // لا نحفظ المفتاح أبداً (سرّ: تخزينه في localStorage مخاطرة XSS).
-    try {
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ lang, map }));
-    } catch {
-      /* تخزين المتصفّح غير متاح — نتجاهل بهدوء */
-    }
+    saveSettings({ lang, map });
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
   };

@@ -21,6 +21,7 @@ import { useSelectedField } from '../hooks/useSelectedField';
 import { useAuthStore } from '../hooks/useAuth';
 import { ROLE_LABEL_AR, normalizeRole, canAccess, canMutate, type Role } from '../lib/permissions';
 import { kongApi, type FieldImportInput } from '../services/api';
+import { loadSettings } from '../lib/appSettings';
 import { toastStore } from '../services/websocket';
 import FieldSetupWizard from '../components/fieldsetup/FieldSetupWizard';
 import type { PageId } from '../App';
@@ -45,20 +46,8 @@ const ALL_PAGE_IDS: PageId[] = [
   'documents', 'governance', 'chatbot', 'settings',
 ];
 
-// قراءة تفضيلات العميل المحفوظة محلّيّاً (نفس مفتاح SettingsPage). قراءة فقط —
-// لا نكتب هنا. غياب التخزين/فساده ⇒ كائن فارغ (لا قيم مُختلَقة).
-const SETTINGS_KEY = 'sahool_settings';
-function readSettings(): { lang?: string; map?: string } {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
+// قراءة تفضيلات العميل المحفوظة محلّيّاً عبر الوحدة المُشترَكة lib/appSettings —
+// نفس مفتاح SettingsPage ومنطقه الدفاعيّ. قراءة فقط هنا (SettingsPage هو الكاتب).
 
 function idempotencyConfig(source: Record<string, unknown> | null | undefined) {
   const key = source?.idempotency_key;
@@ -96,7 +85,7 @@ export default function SetupCabin() {
     [userRole],
   );
 
-  const prefs = useMemo(readSettings, []);
+  const prefs = useMemo(loadSettings, []);
   const langLabel = prefs.lang ? (LANG_AR[prefs.lang] ?? prefs.lang) : null;
   const mapLabel = prefs.map ? (MAP_AR[prefs.map] ?? prefs.map) : null;
 
