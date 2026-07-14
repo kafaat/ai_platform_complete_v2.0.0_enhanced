@@ -114,7 +114,7 @@ _KNOWN_DEV_ZLM_SECRET = "sahool-zlm-dev-secret"
 
 
 def zlmediakit_secret_startup_error(secret: str, env: str) -> str | None:
-    """Pure helper: production must not run ZLMediaKit with a missing/empty/known-dev secret.
+    """Pure helper: production must not run ZLMediaKit with a missing/empty/known development value.
 
     In production an empty secret leaves the ZLMediaKit /index/api/* control plane open, and
     the well-known development value is effectively public. Returns the fail message (never the
