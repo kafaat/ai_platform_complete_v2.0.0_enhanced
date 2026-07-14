@@ -2485,7 +2485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88bf974c5fdf001bdcb9084453af3559b0dce587176a08ee00cb07db57af1255"
+          "content": "d8222c5e6b92d41f4718e76f9c27e6457c98d890377678afab876a403dda177f"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -6155,7 +6155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29f868fedd024537fe5265c39c51f0089653e34c6fe121b7e57e83e1a610fc62"
+          "content": "f2395c0bf1123265a57a5a9216be66d251454ba701eb0bd7ac7072001b64dd7b"
         }
       ],
       "name": "frontend/src/services/websocket.ts",
@@ -25795,7 +25795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "935e57aa00f18d530fdc7cd68dd7c9a2bf3071ac4a347beb02a348728ea657df"
+          "content": "4df86f5119220a9ab206cdde1ab0e5c80e6c649e95931f26d33e7440c8ef8183"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -25835,7 +25835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90776fc57dcfb489eb3269b90cad92cf93181b865e54dc1afbfa037236239084"
+          "content": "0fb123862376f59b3894ba140c6ba8bf9ad0abd3b702f8e208f6ec224a4b6ea8"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -25955,7 +25955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3ae3a813097abcf3671054fafea34ade391d52f24db3c30257d80ff5f711cea4"
+          "content": "5eaa7449e4364f98062a4082fb65aadaf860d0bb0eff70949483cf47cbaeaf7a"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

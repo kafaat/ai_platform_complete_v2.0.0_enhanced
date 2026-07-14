@@ -275,16 +275,26 @@ export function useAllServicesHealth(): UseQueryResult<ServiceHealth[]> {
 }
 
 // ── NDVI & Vegetation ─────────────────────────────────────────
-// real-only fail-closed: خدمة الغطاء تُعيد 424 حين لا مشاهدة NDVI موثّقة للحقل (لا تُختلَق
-// قيمة تركيبيّة). هذا فشل حتميّ لا عابر، فإعادة المحاولة (retry:2 الافتراضيّ) تُكرّر النداء
-// ٣ مرّات وتضجّ الـconsole بلا فائدة. retry:false ⇒ حالة صادقة تظهر مرّة (نمط useSpecialtyCrops).
+// عقد 424 التشخيصيّ: خدمة الغطاء real-only تُعيد 424 مُصنَّفاً حين لا NDVI موثّق. أعِد
+// المحاولة **فقط** حين يعلن الخادم retryable:true (RASTER_DEPENDENCY_UNAVAILABLE) أو على
+// 5xx/شبكة (عابر)؛ أمّا NO_PROCESSED_IMAGERY وأخواتها (حتميّة) فبلا إعادة محاولة ولا ضجيج.
+const retryTransientOnly = (failureCount: number, error: unknown): boolean => {
+  const resp = (error as { response?: { status?: number; data?: { detail?: { retryable?: boolean } } } })
+    ?.response;
+  const status = resp?.status;
+  if (status === undefined) return failureCount < 2;            // خطأ شبكة ⇒ عابر
+  if (status === 424) return resp?.data?.detail?.retryable === true && failureCount < 2;
+  if (status >= 500) return failureCount < 2;                   // خطأ خادم ⇒ عابر
+  return false;                                                 // 4xx آخر ⇒ حتميّ، لا إعادة
+};
+
 export function useCurrentNDVI(fieldId: string) {
   return useQuery({
     queryKey: QK.ndviCurrent(fieldId),
     queryFn:  () => vegetationApi.get(`/v1/ndvi/current/${fieldId}`).then(r => r.data),
     staleTime:10 * 60_000,
     enabled:  !!fieldId,
-    retry:    false,
+    retry:    retryTransientOnly,
   });
 }
 
@@ -296,7 +306,7 @@ export function useVegetationTimeseries(fieldId: string, days = 30) {
       .then(r => r.data),
     staleTime:15 * 60_000,
     enabled:  !!fieldId,
-    retry:    false,  // real-only 424 حتميّ — لا إعادة محاولة (يُخفّف ضجيج الـconsole)
+    retry:    retryTransientOnly,
   });
 }
 

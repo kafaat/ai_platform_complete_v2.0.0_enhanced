@@ -49,10 +49,12 @@ async def timeseries(
     tenant_id = str(claims.get("tenant_id") or "") or None
     if await main.load_field(field_id, tenant_id) is None:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
-    real = await main._real_timeseries_from_raster(field_id, "ndvi", days)
+    real, reason = await main._real_timeseries_from_raster(
+        field_id, "ndvi", days, tenant_id=tenant_id
+    )
     if real is None:
         if main.VEGETATION_REAL_ONLY:
-            raise HTTPException(424, "authoritative raster timeseries is required in production")
+            raise HTTPException(424, detail=main._ndvi_unavailable_detail(field_id, reason))
         return {
             "field_id": field_id,
             "days": days,
@@ -92,10 +94,10 @@ async def current_ndvi(field_id: str, token: str = Depends(main.security)):
     field = await main.load_field(field_id, tenant_id)
     if field is None:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
-    observed = await main._current_ndvi_from_raster(field_id)
+    observed, reason = await main._current_ndvi_from_raster(field_id, tenant_id=tenant_id)
     if observed is None:
         if main.VEGETATION_REAL_ONLY:
-            raise HTTPException(424, "authoritative current NDVI is required in production")
+            raise HTTPException(424, detail=main._ndvi_unavailable_detail(field_id, reason))
         return {
             "field_id": field_id,
             "field_name": field.get("name"),
@@ -139,7 +141,7 @@ async def all_fields(token: str = Depends(main.security)):
         fid = str(item.get("id") or item.get("field_id") or "").strip()
         if not fid:
             continue
-        observed = await main._current_ndvi_from_raster(fid)
+        observed, _reason = await main._current_ndvi_from_raster(fid, tenant_id=tenant_id)
         value = observed.get("value") if observed else None
         health = main._health_classification(value, 0.5) if value is not None else None
         fields_out.append(

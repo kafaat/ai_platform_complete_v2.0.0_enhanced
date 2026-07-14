@@ -100,6 +100,12 @@ class WebSocketService {
         console.info('[WS] SAHOOL WebSocket connected');
         this.isConnecting = false;
         this.reconnectAttempts = 0;
+        // نجاح الفتح يُلغي أيّ إعادة اتّصال معلّقة: بدون هذا قد يُطلِق مؤقّت قديم (من
+        // onclose سابق) connect() مرّةً أخرى بعد أن صرنا OPEN ⇒ اتّصالان متوازيان.
+        if (this.reconnectTimer) {
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = null;
+        }
         this.authed = false; // لم يُقِرّ الخادمُ المصادقةَ بعد.
         // أوّلاً: أرسل إطار المصادقة قبل أيّ شيء آخر (التوكن في الرسالة الأولى).
         this.ws?.send(JSON.stringify({ type: 'auth', token }));
@@ -258,7 +264,7 @@ class WebSocketService {
   }
 
   disconnect(): void {
-    if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+    if (this.reconnectTimer) { clearTimeout(this.reconnectTimer); this.reconnectTimer = null; }
     if (this.pingInterval)   clearInterval(this.pingInterval);
     this.ws?.close(1000, 'logout');
     this.ws = null;
