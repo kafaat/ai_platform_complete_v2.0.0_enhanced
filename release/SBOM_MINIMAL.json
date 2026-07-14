@@ -7215,6 +7215,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9e57559fdb8947fda4527e2772ff78da5d76ea0d32dd06fae534f57351b2df6b"
+        }
+      ],
+      "name": "migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "833cb41ac9881fa91f538a600f3b1f3db6b646e0557cf5dc967bf671870d5dc3"
         }
       ],
@@ -14379,6 +14389,16 @@
         }
       ],
       "name": "services/sahool-platform/api/irrigation_closed_loop_learning.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7c60d057ca76426a7512ff5b37eeb3c17f34d94591faed1ce6db27f48a797ae9"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
       "type": "file"
     },
     {
@@ -22579,6 +22599,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_input_traceability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "da3c246a436b4a879569d4f01f5bde8601f8520741ada4de9ea3f25c33742d7c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_irrigation_closed_loop_runtime.py",
       "type": "file"
     },
     {

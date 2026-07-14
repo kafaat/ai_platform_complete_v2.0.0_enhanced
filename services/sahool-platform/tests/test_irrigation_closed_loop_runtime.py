@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from api import irrigation_closed_loop_runtime as mod
 
 D = "a" * 64
