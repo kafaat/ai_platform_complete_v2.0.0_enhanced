@@ -12405,7 +12405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cabf73f988dce0ce8bb04960d09a09adcb43456df1e2e22197b533d4626cdf6"
+          "content": "3b195f34caafae295ddd724671feaaeaf56aa189d360b2889fea8574e8edfa57"
         }
       ],
       "name": "services/raster-service/test_batch_single_open_metrics.py",
@@ -12705,7 +12705,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "13d1aedb54e538a78ff392858299e75cb6ffef4d55c9ba448f62da63eb7bba71"
+          "content": "bfcda8d04035936ef46d4f3312170292da69a395d32ec59f5df3097aa4bdd50a"
         }
       ],
       "name": "services/raster-service/test_raster_durable_identity.py",

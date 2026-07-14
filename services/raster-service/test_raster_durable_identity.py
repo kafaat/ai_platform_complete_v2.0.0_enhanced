@@ -6,6 +6,10 @@ from types import SimpleNamespace
 
 import raster_batch_job_store as store
 
+# جذر المستودع مثبَّت على __file__ كي تعمل الفحوص الساكنة من أيّ cwd (بوّابة raster
+# تُشغّل pytest من داخل services/raster-service، والمسارات أدناه جذر-مستودعيّة).
+_ROOT = Path(__file__).resolve().parents[2]
+
 
 class _Tx:
     async def __aenter__(self):
@@ -38,7 +42,7 @@ class _Conn:
 
 
 def test_v154_replaces_underspecified_unique_index():
-    sql = Path("migrations/v154_raster_product_identity_batch_leases.sql").read_text()
+    sql = (_ROOT / "migrations/v154_raster_product_identity_batch_leases.sql").read_text()
     assert "DROP INDEX IF EXISTS uq_raster_assets_product" in sql
     assert "uq_raster_assets_product_identity" in sql
     for column in (
@@ -53,7 +57,7 @@ def test_v154_replaces_underspecified_unique_index():
 
 
 def test_db_writer_conflicts_on_full_product_identity():
-    source = Path("services/raster-service/db_persist.py").read_text()
+    source = (_ROOT / "services/raster-service/db_persist.py").read_text()
     assert "ON CONFLICT (product_identity_key)" in source
     assert "ON CONFLICT (tenant_id, field_id, index_name, acquisition_date, scene_id)" not in source
 
@@ -116,7 +120,7 @@ def test_terminal_write_requires_current_lease_token(monkeypatch):
 
 
 def test_product_identity_is_written_by_persistence_adapter():
-    source = Path("services/raster-service/raster_asset_persistence.py").read_text()
+    source = (_ROOT / "services/raster-service/raster_asset_persistence.py").read_text()
     assert "ProductIdentity(" in source
     assert "product_identity_key=_product_identity.key()" in source
     assert "algorithm_version=raster_quality.ALGORITHM_VERSION" in source
@@ -124,6 +128,6 @@ def test_product_identity_is_written_by_persistence_adapter():
 
 
 def test_lease_token_is_not_persisted_in_public_job_payload():
-    source = Path("services/raster-service/routers/processing.py").read_text()
+    source = (_ROOT / "services/raster-service/routers/processing.py").read_text()
     assert '"lease_token": lease_token' not in source
     assert "raster_batch_runtime_leases.set_token(job_id, lease_token)" in source
