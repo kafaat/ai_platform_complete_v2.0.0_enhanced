@@ -88,8 +88,11 @@ def test_loop_worker_writes_heartbeat_each_iteration():
 
 def test_compose_target_workers_use_heartbeat_healthcheck():
     compose = (ROOT / "docker-compose.v9.yml").read_text()
+    # جميع عمّال phase-runtime الخمسة على فحص النبضة (CT-06 مُكتمِل لهذه الفئة).
     for worker in (
         "phase-runtime-outbox",
+        "phase-runtime-plugin",
+        "phase-runtime-model",
         "phase-runtime-actuator",
         "phase-runtime-water_ledger",
     ):

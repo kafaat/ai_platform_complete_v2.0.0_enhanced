@@ -1885,7 +1885,12 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-    healthcheck: *id002
+    healthcheck:
+      test: ["CMD-SHELL", "python -m api.worker_heartbeat check --worker phase-runtime-plugin --max-age 120"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
   sahool-model-registry-worker:
     build: *id003
     mem_limit: 512m
@@ -1924,7 +1929,12 @@ services:
         condition: service_completed_successfully
     networks:
     - sahool-internal
-    healthcheck: *id002
+    healthcheck:
+      test: ["CMD-SHELL", "python -m api.worker_heartbeat check --worker phase-runtime-model --max-age 120"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
   sahool-water-ledger-worker:
     # WATER-LEDGER-AUTO: يحسب قيد دفتر المياه اليوميّ (FAO-56) آليّاً لكلّ حقل بموسم
     # نشط — ET0 من محرّك الطقس حصراً، المطر من توقّع اليوم، الريّ من irrigation_runs.
