@@ -21,6 +21,19 @@ import type { NotificationPreferences } from '../services/api';
 
 type Severity = 'info' | 'warning' | 'critical';
 
+// قناة مُفعّلة يجب أن تحمل هدفاً صالحاً (continuation-2 #10). يُعيد أسماء القنوات
+// المُفعّلة بلا هدف صالح (فارغة عند صحّة الكلّ). دالّة نقيّة قابلة للاختبار.
+export function invalidEnabledChannels(prefs: NotificationPreferences): string[] {
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRe = /^\+?[0-9][0-9\s-]{6,}$/;
+  const missing: string[] = [];
+  if (prefs.email_enabled && !emailRe.test((prefs.email_address ?? '').trim())) missing.push('البريد الإلكترونيّ');
+  if (prefs.sms_enabled && !phoneRe.test((prefs.sms_number ?? '').trim())) missing.push('رقم SMS');
+  if (prefs.whatsapp_enabled && !phoneRe.test((prefs.whatsapp_number ?? '').trim())) missing.push('رقم واتساب');
+  if (prefs.push_enabled && !(prefs.push_token ?? '').trim()) missing.push('رمز جهاز Push');
+  return missing;
+}
+
 const DEFAULT_PREFS: NotificationPreferences = {
   email_enabled:    false, email_address:    '',
   sms_enabled:      false, sms_number:       '',
@@ -150,6 +163,12 @@ export default function NotificationSettingsPage() {
     }));
 
   const handleSave = () => {
+    // قناة مُفعّلة بلا هدف صالح تمنع الحفظ (continuation-2 #10).
+    const missing = invalidEnabledChannels(prefs);
+    if (missing.length) {
+      toastStore.add('error', 'إعداد ناقص', `فعّلتَ قنوات بلا هدف صالح: ${missing.join('، ')}`);
+      return;
+    }
     // نُحوّل العناوين الفارغة إلى null (الخادم يقبل null؛ يبقى صادقاً عن «غير مضبوط»).
     const payload: NotificationPreferences = {
       ...prefs,

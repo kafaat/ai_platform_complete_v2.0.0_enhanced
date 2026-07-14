@@ -5335,7 +5335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f08d5fb54c492476875a82b91174be868b0c2f46d2a321ca70ed590124bdc6f"
+          "content": "ad09c3f4c337f39409bb4d4782ef43234f53929f8214082454b16415e6d3877c"
         }
       ],
       "name": "frontend/src/sections/NotificationSettingsPage.tsx",
@@ -5829,6 +5829,16 @@
         }
       ],
       "name": "frontend/src/sections/maphub/roleUiContract.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f1ec5413281363840ab0d6e889e6699c69c561b6d2bff900af3ab94e169cfbad"
+        }
+      ],
+      "name": "frontend/src/sections/notificationChannelValidation.test.ts",
       "type": "file"
     },
     {
