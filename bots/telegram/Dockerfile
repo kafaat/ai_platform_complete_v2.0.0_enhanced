@@ -22,8 +22,10 @@ COPY bots/telegram/ /app/
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD pgrep -f "python main.py" || exit 1
+# V21 §2.3: فحص جاهزيّة قادر على الإدراك (getMe مقبول + حداثة نبضة) بدل pgrep
+# الذي يُثبِت وجود العمليّة لا جاهزيّتها. (compose قد يتجاوزه بفحصه الخاصّ.)
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 --start-period=45s \
+    CMD python /app/bot_readiness.py check --max-age 90 || exit 1
 RUN useradd -m sahool && chown -R sahool:sahool /app 2>/dev/null || true
 USER sahool
 CMD ["python", "main.py"]

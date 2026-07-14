@@ -222,6 +222,69 @@ router = Router()
 dp.include_router(router)
 dp.message.middleware(RedisThrottlingMiddleware())
 
+# ── جاهزيّة قادرة على الإدراك (container-audit V21 §2.3) ────────────
+# healthcheck البوت كان يفحص /proc/1/cmdline فقط (وجود العمليّة لا جاهزيّتها).
+# الآن يكتب البوت نبضة جاهزيّة يقرأ الـhealthcheck حداثتها + راية قبول التوكن.
+from bot_readiness import ReadinessState  # noqa: E402 — يعتمد PYTHONPATH=/app
+
+_readiness = ReadinessState()
+# فاصل كتابة النبضة (ثوانٍ). أقصر بكثير من max-age في الـhealthcheck (90s) لتحمّل
+# فوات نبضة أو نبضتين دون فشل كاذب.
+HEARTBEAT_INTERVAL = float(os.getenv("TELEGRAM_HEARTBEAT_INTERVAL", "20"))
+# كلّ كم نبضة نُعيد التحقّق من التوكن عبر getMe (لا نُغرق Telegram API؛ الـhealthcheck
+# نفسه لا يلمس Telegram إطلاقاً). 15 نبضة × 20s ≈ إعادة تحقّق كلّ ~5 دقائق.
+_GETME_REVERIFY_EVERY = 15
+
+
+async def _check_redis_reachable() -> bool | None:
+    """محاولة ping خفيفة لـRedis (إشارة إعلاميّة فقط — لا تُبوِّب الجاهزيّة).
+
+    يعيد None إن لم يكن هناك عميل Redis (بديل MemoryStorage) — لا نزيّف إشارة.
+    """
+    client = globals().get("_redis_fsm")
+    if client is None:
+        return None
+    try:
+        await client.ping()
+        return True
+    except Exception:
+        return False
+
+
+async def _heartbeat_loop() -> None:
+    """يكتب نبضة الجاهزيّة دوريّاً من داخل حلقة الحدث نفسها (تُثبِت حياة الحلقة)."""
+    beats = 0
+    while True:
+        try:
+            beats += 1
+            # إعادة تحقّق دوريّة منخفضة التردّد من صلاحيّة التوكن (كشف إبطال/انتهاء).
+            if beats % _GETME_REVERIFY_EVERY == 0:
+                try:
+                    me = await bot.get_me()
+                    _readiness.mark_ready(getattr(me, "username", None))
+                except Exception as e:  # noqa: BLE001 — فشل getMe يُعلَّم فشلاً في النبضة
+                    _readiness.mark_error(f"getMe re-verify failed: {e}")
+            else:
+                _readiness.mark_beat()
+            _readiness.set_redis(await _check_redis_reachable() or False)
+        except Exception as e:  # noqa: BLE001 — لا نُسقِط حلقة النبضة
+            logger.warning("heartbeat loop iteration failed: %s", e)
+        _readiness.write()
+        await asyncio.sleep(HEARTBEAT_INTERVAL)
+
+
+async def _on_startup() -> None:
+    """يتحقّق من التوكن فعليّاً عبر getMe ثمّ يبدأ حلقة النبضة."""
+    try:
+        me = await bot.get_me()
+        _readiness.mark_ready(getattr(me, "username", None))
+        logger.info("[SAHOOL Bot] getMe ok — @%s (token accepted)", getattr(me, "username", "?"))
+    except Exception as e:  # noqa: BLE001 — نُسجّل الفشل في النبضة (getMe لم ينجح)
+        _readiness.mark_error(f"getMe at startup failed: {e}")
+        logger.error("[SAHOOL Bot] getMe at startup failed: %s", e)
+    _readiness.write()
+    asyncio.create_task(_heartbeat_loop())
+
 
 # ─── FSM States ────────────────────────────────────────────
 class RegistrationStates(StatesGroup):
@@ -859,6 +922,8 @@ async def main():
     logger.info("[SAHOOL Bot] Supervisor: %s", SUPERVISOR_URL)
     logger.info("[SAHOOL Bot] Connected users: %s", len(user_cache))
 
+    # V21 §2.3: تحقّق التوكن (getMe) + بدء نبضة الجاهزيّة قبل الاستطلاع.
+    dp.startup.register(_on_startup)
     await dp.start_polling(bot)
 
 

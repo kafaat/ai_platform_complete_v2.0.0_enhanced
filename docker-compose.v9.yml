@@ -1510,14 +1510,16 @@ services:
     networks:
     - sahool-internal
     healthcheck:
+      # V21 §2.3: فحص جاهزيّة قادر على الإدراك بدل مجرّد /proc/1/cmdline (وجود العمليّة).
+      # يقرأ نبضة الجاهزيّة التي يكتبها البوت (getMe مقبول + حداثة نبضة حلقة الحدث).
+      # لا يلمس Telegram API — القراءة من ملفّ محلّيّ فقط (لا إغراق).
       test:
       - CMD-SHELL
-      - python -c "import sys; sys.exit(0 if b'main.py' in open('/proc/1/cmdline','rb').read()
-        else 1)"
+      - python /app/bot_readiness.py check --max-age 90 || exit 1
       interval: 30s
       timeout: 10s
       retries: 6
-      start_period: 30s
+      start_period: 45s
   sahool-notification-agent:
     build:
       context: .
