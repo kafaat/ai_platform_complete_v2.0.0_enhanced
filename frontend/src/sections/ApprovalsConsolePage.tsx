@@ -6,7 +6,7 @@ import {
   useDecisionReviewQueue, useReviewDecisionCandidate,
 } from '../hooks/useApi';
 import { useAuthStore } from '../hooks/useAuth';
-import { canManage } from '../lib/permissions';
+import { can } from '../lib/permissions';
 import {
   approvalKey, candidateEvidenceSummary, newReviewIdempotencyKey, paramsSummary,
   pendingDispatchDecisions, riskColor,
@@ -21,7 +21,9 @@ import DecisionEvidencePanel from '../components/approvals/DecisionEvidencePanel
  *  لا ينفّذ الأداة — التنفيذ على خدمة النطاق المالكة بعد التخويل. owner/manager فقط. */
 export default function ApprovalsConsolePage() {
   const { user } = useAuthStore();
-  const allowed = canManage(user?.role);
+  // قدرة دقيقة: البتّ في الموافقات فعلٌ `approve` (لا مجرّد canManage الخشنة) —
+  // يُبقي العتبة عند مدير/مالك لكن يُصرّح بالنيّة (إقرار لا «إدارة عامّة»).
+  const allowed = can(user?.role, 'approve', 'approval');
   const qc = useQueryClient();
 
   const approvalsQ = usePendingAgentApprovals(allowed);

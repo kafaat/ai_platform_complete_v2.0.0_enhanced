@@ -95,15 +95,75 @@ export function canAccess(role: string | undefined, page: PageId): boolean {
   return ROLE_PAGES[normalizeRole(role)].includes(page);
 }
 
-/** صلاحيّة التعديل (إضافة/حذف/إقرار…). viewer قراءة فقط؛ غيره يعدّل في نطاقه. */
-export function canMutate(role: string | undefined): boolean {
-  return normalizeRole(role) !== 'viewer';
+// ── طبقة القدرات الدقيقة (FE-06) ───────────────────────────────────
+// سابقاً كانت `canMutate(role)` بوّابةً عالميّةً واحدة: علمٌ منطقيّ يفتح كلّ
+// أنواع التعديل (إنشاء/تعديل/حذف/إقرار) دفعةً واحدة — «رائحة» تصميميّة تُخفي
+// أنّ الحذف/الإقرار/تغيير الأدوار أخطر من مجرّد الإنشاء/التعديل. هنا نميّز
+// الفعل (Capability) وأحياناً المورد (ResourceArea) مع الإبقاء على التوافق
+// الخلفيّ: نداء `canMutate(role)` المجرّد يظلّ الفحص الخشن نفسه.
+//
+// القرار قائم على «رتبة» الدور، وهي كافية لصون أحاديّة الشبكة
+// (viewer ⊆ worker ⊆ agronomist ⊆ manager ⊆ owner): بما أنّ القدرة تُمنَح
+// حين `rank(role) >= threshold`، فإنّ أيّ دور أعلى يملك حتماً كلّ قدرات ما
+// دونه (عتبة مونوتونيّة — لا يمكن أن يُمنَح الأدنى قدرةً يُحرَمها الأعلى).
+export type Capability = 'create' | 'edit' | 'delete' | 'approve' | 'manage';
+export type ResourceArea =
+  | 'field' | 'farm' | 'user' | 'task' | 'activity' | 'irrigation'
+  | 'equipment' | 'inventory' | 'device' | 'recommendation'
+  | 'master-data' | 'governance' | 'approval';
+
+// رتبة الدور — أساس المونوتونيّة. تفصيل داخليّ لا يُصدَّر (لا يعتمد عليه أحد خارجاً).
+const ROLE_RANK: Record<Role, number> = {
+  viewer: 0, worker: 1, agronomist: 2, manager: 3, owner: 4,
+};
+
+// أدنى رتبة لكلّ فعل (بلا مورد) — الأساس العامّ:
+//  • create/edit: العامل فأعلى (= دلالة canMutate القديمة: أيّ دور غير viewer).
+//  • delete: أخطر من التعديل — مهندس زراعيّ فأعلى افتراضاً (لا يحذف العاملُ السجلّات).
+//  • approve/manage: إداريّ — مدير/مالك فقط (= دلالة canManage).
+const CAPABILITY_MIN_RANK: Record<Capability, number> = {
+  create: ROLE_RANK.worker,
+  edit: ROLE_RANK.worker,
+  delete: ROLE_RANK.agronomist,
+  approve: ROLE_RANK.manager,
+  manage: ROLE_RANK.manager,
+};
+
+// تجاوزات دقيقة لكلّ (فعل:مورد) حيث تفرض RBAC الخلفيّة/عقد الواجهة قيداً أشدّ.
+// لا قيمة بلا مصدر:
+const RESOURCE_OVERRIDES: Record<string, number> = {
+  'create:farm': ROLE_RANK.owner,   // = canCreateFarm (FARM_CREATE مقصور على OWNER في الخلفيّة)
+  'delete:field': ROLE_RANK.owner,  // = roleUiContract.delete_field (owner فقط) — الحذف الحقليّ للمالك
+  'manage:user': ROLE_RANK.manager, // تغيير الأدوار/الدعوات: owner/manager (= canManage)
+  'delete:user': ROLE_RANK.owner,   // إزالة مستخدم: المالك فقط
+};
+
+function requiredRank(action: Capability, resource?: ResourceArea): number {
+  if (resource !== undefined) {
+    const override = RESOURCE_OVERRIDES[`${action}:${resource}`];
+    if (override !== undefined) return override;
+  }
+  return CAPABILITY_MIN_RANK[action];
 }
 
-/** صلاحيّة الإدارة الحسّاسة (إدارة مستخدمين/إعدادات حرجة): owner/manager فقط. */
+/** القدرة الدقيقة: هل يملك الدور تنفيذ هذا الفعل (على هذا المورد إن حُدِّد)؟
+ *  fail-closed (المجهول = viewer). أحاديّة مضمونة: عتبة رتبة مونوتونيّة. */
+export function can(role: string | undefined, action: Capability, resource?: ResourceArea): boolean {
+  return ROLE_RANK[normalizeRole(role)] >= requiredRank(action, resource);
+}
+
+/** صلاحيّة التعديل. بلا مورد: الفحص الخشن (أيّ دور غير viewer) — توافق خلفيّ
+ *  مع كلّ نقاط النداء القائمة. بمورد: يفوّض إلى `can(role,'edit',resource)`
+ *  فيضيّق حين يفرض المورد قيداً أشدّ. لا يستبدل `can` للحذف/الإقرار. */
+export function canMutate(role: string | undefined, resource?: ResourceArea): boolean {
+  if (resource === undefined) return normalizeRole(role) !== 'viewer';
+  return can(role, 'edit', resource);
+}
+
+/** صلاحيّة الإدارة الحسّاسة (إدارة مستخدمين/إعدادات حرجة): owner/manager فقط.
+ *  مُعبَّر عنها الآن بالرتبة (مصدر واحد للحقيقة = عتبة الفعل الإداريّ). */
 export function canManage(role: string | undefined): boolean {
-  const r = normalizeRole(role);
-  return r === 'owner' || r === 'manager';
+  return ROLE_RANK[normalizeRole(role)] >= ROLE_RANK.manager;
 }
 
 /** صلاحيّة إنشاء مزرعة (farm:create) — owner فقط (يطابق RBAC الخلفيّة:
@@ -111,7 +171,7 @@ export function canManage(role: string | undefined): boolean {
  *  غير المالك (manager/agronomist/worker/viewer) في شاشة إنشاء مزرعة لا
  *  يستطيع إكمالها (POST /api/v1/farms يردّ 403 لهم). */
 export function canCreateFarm(role: string | undefined): boolean {
-  return normalizeRole(role) === 'owner';
+  return can(role, 'create', 'farm');
 }
 
 /** تسمية عربيّة موحّدة للدور. */

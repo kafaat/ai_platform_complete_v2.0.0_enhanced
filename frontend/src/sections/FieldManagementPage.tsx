@@ -22,7 +22,7 @@ import { toastStore } from '../services/websocket';
 import { useFields, useSimulateSeason } from '../hooks/useApi';
 import type { SeasonSimResult } from '../services/api';
 import { useAuthStore } from '../hooks/useAuth';
-import { canMutate } from '../lib/permissions';
+import { canMutate, can } from '../lib/permissions';
 import { saveFieldMapView } from '../lib/fieldMapView';
 import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
 
@@ -98,6 +98,10 @@ function healthConfig(h: string) {
 export default function FieldManagementPage() {
   const { user } = useAuthStore();
   const mutateAllowed = canMutate(user?.role);
+  // قدرة دقيقة (FE-06): حذف الحقل أخطر من إنشائه/تعديله — مقصور على المالك
+  // (= roleUiContract.delete_field). لم يعُد زرّ الحذف يتسرّب لكلّ من يملك
+  // canMutate الخشنة (عامل/مهندس/مدير) بينما تردّ الخلفيّة 403 لهم.
+  const canDeleteField = can(user?.role, 'delete', 'field');
   const { data, isLoading, isError, refetch } = useFields();
   const [fields,        setFields]        = useState<Field[]>([]);
   const [seeded,        setSeeded]        = useState(false);
@@ -394,11 +398,13 @@ export default function FieldManagementPage() {
               style={{ borderColor:'#334155' }}>
               <Pencil className="w-3 h-3" />
             </button>
-            <button onClick={() => handleDelete(f.field_id)}
-              className="px-2.5 py-1.5 rounded-lg text-xs text-red-400 hover:text-red-300 border"
-              style={{ borderColor:'#dc262633' }}>
-              <Trash2 className="w-3 h-3" />
-            </button>
+            {canDeleteField && (
+              <button onClick={() => handleDelete(f.field_id)}
+                className="px-2.5 py-1.5 rounded-lg text-xs text-red-400 hover:text-red-300 border"
+                style={{ borderColor:'#dc262633' }}>
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -527,10 +533,12 @@ export default function FieldManagementPage() {
                               className="p-1.5 rounded hover:bg-slate-700 text-slate-400 hover:text-slate-200">
                               <Pencil className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={()=>handleDelete(f.field_id)}
-                              className="p-1.5 rounded hover:bg-red-950 text-slate-400 hover:text-red-400">
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                            {canDeleteField && (
+                              <button onClick={()=>handleDelete(f.field_id)}
+                                className="p-1.5 rounded hover:bg-red-950 text-slate-400 hover:text-red-400">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                           </div>
                         ) : null}
                         </div>

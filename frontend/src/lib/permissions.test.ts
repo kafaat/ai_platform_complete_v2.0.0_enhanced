@@ -1,14 +1,21 @@
 // اختبارات RBAC الواجهة — تتحقّق من سياسة الوصول/التعديل/الإدارة كما تُطبَّق فعلاً
 // (fail-closed: المجهول = viewer)، وحدود الأدوار الموثّقة.
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import {
   normalizeRole,
   canAccess,
+  can,
   canMutate,
   canManage,
   canCreateFarm,
   ROLE_LABEL_AR,
   ALL_PAGES,
+  type Role,
+  type Capability,
+  type ResourceArea,
 } from './permissions';
 
 describe('normalizeRole', () => {
@@ -163,6 +170,133 @@ describe('canMutate / canManage / canCreateFarm', () => {
     expect(canCreateFarm('manager')).toBe(false);
     expect(canCreateFarm('agronomist')).toBe(false);
     expect(canCreateFarm(undefined)).toBe(false);
+  });
+});
+
+describe('FE-06 — القدرات الدقيقة (can) + التوافق الخلفيّ لـcanMutate', () => {
+  it('can: create/edit للعامل فأعلى (= دلالة canMutate الخشنة)، لا للمُشاهِد', () => {
+    for (const action of ['create', 'edit'] as const) {
+      expect(can('viewer', action)).toBe(false);
+      expect(can(undefined, action)).toBe(false); // fail-closed → viewer
+      expect(can('worker', action)).toBe(true);
+      expect(can('agronomist', action)).toBe(true);
+      expect(can('manager', action)).toBe(true);
+      expect(can('owner', action)).toBe(true);
+    }
+  });
+
+  it('can: delete افتراضاً أشدّ من التعديل — مهندس زراعيّ فأعلى (لا العامل)', () => {
+    expect(can('viewer', 'delete')).toBe(false);
+    expect(can('worker', 'delete')).toBe(false); // العامل لا يحذف السجلّات
+    expect(can('agronomist', 'delete')).toBe(true);
+    expect(can('manager', 'delete')).toBe(true);
+    expect(can('owner', 'delete')).toBe(true);
+  });
+
+  it('can: approve/manage إداريّ — مدير/مالك فقط (= canManage)', () => {
+    for (const action of ['approve', 'manage'] as const) {
+      expect(can('viewer', action)).toBe(false);
+      expect(can('worker', action)).toBe(false);
+      expect(can('agronomist', action)).toBe(false);
+      expect(can('manager', action)).toBe(true);
+      expect(can('owner', action)).toBe(true);
+      // تكافؤ صريح مع canManage للفعل الإداريّ:
+      for (const r of ['viewer', 'worker', 'agronomist', 'manager', 'owner'] as const) {
+        expect(can(r, action)).toBe(canManage(r));
+      }
+    }
+  });
+
+  it('تجاوزات المورد: delete:field و create:farm مقصوران على المالك', () => {
+    for (const [action, resource] of [['delete', 'field'], ['create', 'farm']] as const) {
+      expect(can('owner', action, resource)).toBe(true);
+      expect(can('manager', action, resource)).toBe(false);
+      expect(can('agronomist', action, resource)).toBe(false);
+      expect(can('worker', action, resource)).toBe(false);
+      expect(can('viewer', action, resource)).toBe(false);
+    }
+    // create:farm يطابق canCreateFarm تماماً:
+    for (const r of ['viewer', 'worker', 'agronomist', 'manager', 'owner'] as const) {
+      expect(can(r, 'create', 'farm')).toBe(canCreateFarm(r));
+    }
+  });
+
+  it('تجاوزات المورد: manage:user (مدير+) و delete:user (مالك فقط)', () => {
+    expect(can('manager', 'manage', 'user')).toBe(true);
+    expect(can('agronomist', 'manage', 'user')).toBe(false);
+    expect(can('owner', 'delete', 'user')).toBe(true);
+    expect(can('manager', 'delete', 'user')).toBe(false);
+  });
+
+  it('توافق خلفيّ: canMutate(role) المجرّد لم يتغيّر (أيّ دور غير viewer)', () => {
+    expect(canMutate('viewer')).toBe(false);
+    expect(canMutate(undefined)).toBe(false);
+    expect(canMutate('worker')).toBe(true);
+    expect(canMutate('agronomist')).toBe(true);
+    expect(canMutate('manager')).toBe(true);
+    expect(canMutate('owner')).toBe(true);
+  });
+
+  it('canMutate(role, resource) يفوّض إلى can(role, "edit", resource)', () => {
+    for (const r of ['viewer', 'worker', 'agronomist', 'manager', 'owner'] as const) {
+      for (const resource of ['field', 'task', 'irrigation'] as const) {
+        expect(canMutate(r, resource)).toBe(can(r, 'edit', resource));
+      }
+    }
+  });
+
+  it('أحاديّة الشبكة محفوظة لكلّ (فعل × مورد): إن قدر الأدنى قدر الأعلى', () => {
+    const CHAIN: Role[] = ['viewer', 'worker', 'agronomist', 'manager', 'owner'];
+    const ACTIONS: Capability[] = ['create', 'edit', 'delete', 'approve', 'manage'];
+    const RESOURCES: (ResourceArea | undefined)[] = [
+      undefined, 'field', 'farm', 'user', 'task', 'irrigation',
+      'equipment', 'inventory', 'device', 'recommendation', 'master-data', 'governance', 'approval',
+    ];
+    for (const action of ACTIONS) {
+      for (const resource of RESOURCES) {
+        for (let i = 0; i < CHAIN.length - 1; i++) {
+          const lower = CHAIN[i];
+          const higher = CHAIN[i + 1];
+          if (can(lower, action, resource)) {
+            expect(
+              can(higher, action, resource),
+              `${lower} يقدر ${action}:${resource ?? '*'} لكن ${higher} لا`,
+            ).toBe(true);
+          }
+        }
+      }
+    }
+  });
+});
+
+describe('FE-06 — حارس ساكن: نقاط الخطر العليا هُجِّرت إلى القدرة الدقيقة', () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const read = (rel: string) => readFileSync(resolve(here, rel), 'utf8');
+
+  it('ApprovalsConsolePage يبتّ عبر can(...,"approve",...) لا canManage الخشنة', () => {
+    const src = read('../sections/ApprovalsConsolePage.tsx');
+    expect(src).toMatch(/can\(\s*user\?\.role\s*,\s*'approve'/);
+    expect(src).not.toMatch(/canManage\s*\(/); // لم تعُد بوّابة الإقرار تستدعي canManage
+    expect(src).not.toMatch(/import\s*\{[^}]*\bcanManage\b/);
+  });
+
+  it('FieldManagementPage يحرس حذف الحقل بـcan(...,"delete","field") (مالك فقط)', () => {
+    const src = read('../sections/FieldManagementPage.tsx');
+    expect(src).toMatch(/can\(\s*user\?\.role\s*,\s*'delete'\s*,\s*'field'\s*\)/);
+    expect(src).toMatch(/canDeleteField\s*&&/);
+  });
+
+  it('SharingPanel يحرس تغيير صلاحيّات الوصول بـcan(...,"manage","user")', () => {
+    const src = read('../components/sharing/SharingPanel.tsx');
+    expect(src).toMatch(/can\(\s*role\s*,\s*'manage'\s*,\s*'user'\s*\)/);
+    expect(src).not.toMatch(/canManage\s*\(/); // لم تعُد بوّابة المشاركة تستدعي canManage
+    expect(src).not.toMatch(/import\s*\{[^}]*\bcanManage\b/);
+  });
+
+  it('permissions.ts يُبقي canMutate ذا مسار خشن (بلا مورد) للتوافق الخلفيّ', () => {
+    const src = read('./permissions.ts');
+    expect(src).toMatch(/export function canMutate\(role: string \| undefined, resource\?: ResourceArea\)/);
+    expect(src).toMatch(/if \(resource === undefined\) return normalizeRole\(role\) !== 'viewer'/);
   });
 });
 

@@ -18,7 +18,7 @@ import { KeyRound, Plus, Copy, Check, AlertTriangle, Share2 } from 'lucide-react
 import { useSharingKeys, useCreateSharingKey } from '../../hooks/useApi';
 import { useSelectedField } from '../../hooks/useSelectedField';
 import { useAuthStore } from '../../hooks/useAuth';
-import { canManage } from '../../lib/permissions';
+import { can } from '../../lib/permissions';
 import { apiErrorMessage, type SharingKey, type SharingScope } from '../../services/api';
 import { Card, Button, Pill, SectionLabel } from '../ds/atoms';
 import { Input, Select, Checkbox, FormField } from '../ds/forms';
@@ -275,7 +275,10 @@ function PlaintextBanner({ plaintext, onDismiss }: { plaintext: string; onDismis
 // ── اللوحة الرئيسيّة ──────────────────────────────────────────────
 export default function SharingPanel() {
   const role = useAuthStore((s) => s.user?.role);
-  const manageable = canManage(role);
+  // قدرة دقيقة (FE-06): إنشاء/إبطال مفاتيح المشاركة تغييرُ صلاحيّة وصول
+  // (فعل `manage` على مورد `user`) لا مجرّد canManage الخشنة — العتبة نفسها
+  // (owner/manager) لكن بنيّة مصرّحة.
+  const manageable = can(role, 'manage', 'user');
   const { data, isLoading, error, refetch } = useSharingKeys();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [plaintext, setPlaintext] = useState<string | null>(null);
