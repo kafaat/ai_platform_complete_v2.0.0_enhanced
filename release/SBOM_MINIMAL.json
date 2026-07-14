@@ -16975,6 +16975,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "be8be94f13b2429944f4c6286e778852e48be35c10f42de1ceea6928291a4303"
+        }
+      ],
+      "name": "services/sahool-platform/api/worker_heartbeat.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8aaa71b0ad50d58a306c8931632e5b931faf53eff2767c6b1fd5847ca1b934e9"
         }
       ],

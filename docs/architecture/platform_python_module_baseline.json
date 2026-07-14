@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 632,
+  "baseline_python_module_count": 633,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -393,6 +393,7 @@
     "api/weather_automation.py",
     "api/weather_service_client.py",
     "api/wofost_crop_params.py",
+    "api/worker_heartbeat.py",
     "api/workflow_definitions.py",
     "api/yemeni_calendars.py",
     "api/yield_analysis.py",
