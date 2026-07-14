@@ -82,6 +82,27 @@ export function isMfaRequiredError(e: unknown): boolean {
 }
 
 // يستخرج رسالة خطأ مقروءة من ردّ FastAPI (detail قد يكون نصّاً أو مصفوفة كائنات).
+/**
+ * يستخرج أخطاء الحقول من استجابة 422 (FastAPI): ``detail: [{loc:[...], msg}]`` →
+ * ``[{field, msg}]`` حيث field = آخر مقطع في loc (بعد 'body'). فارغة إن لم تكن 422
+ * حقليّة. تُمكّن الواجهةَ من ربط الخطأ بالحقل بدل رسالة واحدة عامّة (continuation-3 P2).
+ */
+export function apiFieldErrors(e: unknown): { field: string; msg: string }[] {
+  const err = asApiError(e);
+  const d = err.response?.data?.detail;
+  if (!Array.isArray(d)) return [];
+  const out: { field: string; msg: string }[] = [];
+  for (const raw of d) {
+    const item = raw as { loc?: unknown; msg?: unknown; message_ar?: unknown };
+    const loc = Array.isArray(item.loc) ? item.loc : [];
+    const segs = (loc as unknown[]).filter((s) => s !== 'body' && typeof s === 'string');
+    const field = segs.length ? String(segs[segs.length - 1]) : '';
+    const msg = item.msg || item.message_ar || '';
+    if (msg) out.push({ field, msg: String(msg) });
+  }
+  return out;
+}
+
 export function apiErrorMessage(e: unknown, fallback: string): string {
   const err = asApiError(e);
   const d = err.response?.data?.detail ?? err.response?.data?.message_ar;

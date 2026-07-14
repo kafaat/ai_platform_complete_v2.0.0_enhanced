@@ -5205,7 +5205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5b12df21f7d2cfc4b5c47bf27a511aab6dddfcb0243ec4011a3772de01231498"
+          "content": "bb816254c09ac4f938e8dd63bd223dc38bc474d0b1518c6232913b74a77b466c"
         }
       ],
       "name": "frontend/src/sections/LabSamplingPage.tsx",
@@ -5895,7 +5895,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f02ee58688e635540b49bd5c176a83dc179137078b2f3d7cfb44781c53d0635"
+          "content": "27db343898acd6e4f55c9eaebdd7277e68f74e25641a63ef8b612f0425681137"
         }
       ],
       "name": "frontend/src/services/api/auth.ts",
@@ -5995,10 +5995,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7f8cd1f65953cb094a365369ad9d64adf506b275bdf84c6199f4b1d5619dc86a"
+          "content": "61ea74ebb0a21e86f337e3b2bc0fc92c7da6c2c82d3321c9cbcce819180abe4c"
         }
       ],
       "name": "frontend/src/services/api.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6a32683bd774608d92a8eb1a4a9a2cc81dc2ecd4e0a967fa8e8867186f64b3d1"
+        }
+      ],
+      "name": "frontend/src/services/apiFieldErrors.test.ts",
       "type": "file"
     },
     {

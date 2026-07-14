@@ -55,6 +55,7 @@ export {
   asApiError,
   isMfaRequiredError,
   apiErrorMessage,
+  apiFieldErrors,
   deactivateUser,
 } from './api/auth';
 // إعادة التصدير أعلاه لا تربط الأسماء في نطاق هذه الوحدة — الواجهة تستخدمها داخليّاً.

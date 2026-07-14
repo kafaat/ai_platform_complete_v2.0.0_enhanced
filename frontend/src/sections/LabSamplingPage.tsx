@@ -4,10 +4,26 @@ import '../lib/leafletSetup';
 import { FlaskConical, MapPin, Plus, ShieldCheck } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useCreateLabSample, useLabDecisionContext, useLabSamples, useSubmitSoilLabResult } from '../hooks/useApi';
-import { asApiError, apiErrorMessage, type LabSampleCreateInput, type SoilLabResultInput } from '../services/api';
+import { asApiError, apiErrorMessage, apiFieldErrors, type LabSampleCreateInput, type SoilLabResultInput } from '../services/api';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateViews';
 import { geomToPolygon, fieldRepresentativePoint } from '../lib/geo';
 import { useLocation } from 'react-router-dom';
+
+// يبني رسالة خطأ تُسمّي الحقول المُخالِفة من 422 (بدل رسالة واحدة عامّة — continuation-3 P2).
+// تسميات عربيّة للحقول الشائعة؛ غير المعروف يظهر باسمه الحرفيّ.
+const LAB_FIELD_LABELS: Record<string, string> = {
+  latitude: 'خط العرض', longitude: 'خط الطول', ph: 'pH', ec_dsm: 'EC',
+  depth_cm_from: 'العمق من', depth_cm_to: 'العمق إلى', gps_accuracy_m: 'دقّة GPS',
+  organic_matter_pct: 'المادة العضويّة %', nitrogen_mg_kg: 'النيتروجين',
+  phosphorus_mg_kg: 'الفوسفور', potassium_mg_kg: 'البوتاسيوم',
+};
+function labErrorMessage(e: unknown, fallback: string): string {
+  const fields = apiFieldErrors(e);
+  if (fields.length) {
+    return fields.map((f) => `${LAB_FIELD_LABELS[f.field] ?? (f.field || 'حقل')}: ${f.msg}`).join('؛ ');
+  }
+  return apiErrorMessage(e, fallback);
+}
 
 
 const BASEMAP_SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -97,7 +113,7 @@ export default function LabSamplingPage() {
     try {
       await createSample.mutateAsync(payload);
       setMsg('تم حفظ نقطة العينة وربطها بالحقل والخريطة.');
-    } catch (e) { setMsg(apiErrorMessage(e, 'فشل حفظ العينة')); }
+    } catch (e) { setMsg(labErrorMessage(e, 'فشل حفظ العينة')); }
   };
 
   const onSubmitSoil = async (fd: FormData) => {
@@ -120,7 +136,7 @@ export default function LabSamplingPage() {
     try {
       const res = await submitSoil.mutateAsync(payload);
       setMsg(res.decision_usable ? 'نتيجة التربة مكتملة ومعتمدة وجاهزة لعقل التوصيات.' : 'تم حفظ النتيجة، لكنها تحتاج اعتماداً أو قيماً ناقصة قبل استخدامها في القرار.');
-    } catch (e) { setMsg(apiErrorMessage(e, 'فشل حفظ نتيجة المختبر')); }
+    } catch (e) { setMsg(labErrorMessage(e, 'فشل حفظ نتيجة المختبر')); }
   };
 
   return (
