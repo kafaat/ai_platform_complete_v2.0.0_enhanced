@@ -275,9 +275,13 @@ export function useAllServicesHealth(): UseQueryResult<ServiceHealth[]> {
 }
 
 // ── NDVI & Vegetation ─────────────────────────────────────────
+// real-only fail-closed: خدمة الغطاء تُعيد 424 حين لا مشاهدة NDVI موثّقة للحقل (لا تُختلَق
+// قيمة تركيبيّة). هذا فشل حتميّ لا عابر، فإعادة المحاولة (retry:2 الافتراضيّ) تُكرّر النداء
+// ٣ مرّات وتضجّ الـconsole بلا فائدة. retry:false ⇒ حالة صادقة تظهر مرّة (نمط useSpecialtyCrops).
 export function useCurrentNDVI(fieldId: string) {
   return useQuery({
     queryKey: QK.ndviCurrent(fieldId),
+<<<<<<< HEAD
     queryFn: async () => {
       try {
         const r = await vegetationApi.get(`/v1/ndvi/current/${fieldId}`);
@@ -293,6 +297,12 @@ export function useCurrentNDVI(fieldId: string) {
     staleTime: 10 * 60_000,
     enabled:   !!fieldId,
     retry:     false,
+=======
+    queryFn:  () => vegetationApi.get(`/v1/ndvi/current/${fieldId}`).then(r => r.data),
+    staleTime:10 * 60_000,
+    enabled:  !!fieldId,
+    retry:    false,
+>>>>>>> 601aa941b0439e7dabbb0086844e7ea134312f4b
   });
 }
 
@@ -304,6 +314,7 @@ export function useVegetationTimeseries(fieldId: string, days = 30) {
       .then(r => r.data),
     staleTime:15 * 60_000,
     enabled:  !!fieldId,
+    retry:    false,  // real-only 424 حتميّ — لا إعادة محاولة (يُخفّف ضجيج الـconsole)
   });
 }
 
