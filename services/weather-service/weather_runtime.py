@@ -16,6 +16,7 @@ from canonical_weather_state import (
 from chill_accumulation import compute_chill_accumulation
 from et0 import et0_series_product
 from fastapi import Body, HTTPException, Query
+from hourly_etc import build_hourly_etc_product
 from lodging_risk import compute_lodging_risk
 from open_meteo import (
     circuit_breaker_state,
@@ -24,13 +25,14 @@ from open_meteo import (
     fetch_daily_wind_temp_rain,
     fetch_forecast,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     fetch_historical,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
+    fetch_hourly_fao_et0_precipitation,
     fetch_thermal_series,
     fetch_tile_sample,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
     readiness_probe,  # noqa: F401 — إعادة تصدير للواجهة/الحُرّاس (نمط main.X)
 )
 from operations import advice_ar, best_operation_frame, operation_suitability
 from pollination_risk import compute_pollination_risk
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from raw_weather_processing import RawWeatherProcessRequest, build_raw_weather_response
 from thermal_stress import compute_compound_thermal_stress
 from tiles import (
@@ -103,9 +105,77 @@ def contract():
             "p3_2_operation_windows": ["operation-window", "operation-plan", "operation-tile-data"],
             "p3_3_tiles_wind_grid": ["tile-data", "tile-series", "wind-grid", "tile-interpolation"],
             "raw_weather_processing": ["raw-process", "numeric-summary", "provenance"],
+            "wx_i1_hourly_etc": [
+                "provider-native-hourly-et0",
+                "hourly-etc",
+                "effective-rain",
+                "digest",
+            ],
         },
         "source": "open-meteo+sahool-rules",
     }
+
+
+class HourlyEtcRequest(BaseModel):
+    lat: float
+    lon: float
+    horizon_hours: int = 48
+    daily_kc_by_date: dict[str, float]
+    daily_runoff_mm_by_date: dict[str, float] = Field(default_factory=dict)
+    model: str = "best_match"
+
+
+async def agro_hourly_etc(request: HourlyEtcRequest = Body(...)):
+    """Canonical provider-native hourly ET0/Kc/ETc product for irrigation MPC."""
+    if not (-90 <= request.lat <= 90 and -180 <= request.lon <= 180):
+        raise HTTPException(status_code=422, detail="invalid latitude/longitude")
+    horizon = max(1, min(int(request.horizon_hours), 384))
+    key_material = {
+        "lat": round(request.lat, 5),
+        "lon": round(request.lon, 5),
+        "horizon_hours": horizon,
+        "daily_kc_by_date": request.daily_kc_by_date,
+        "daily_runoff_mm_by_date": request.daily_runoff_mm_by_date,
+        "model": request.model,
+    }
+    import hashlib
+    import json
+
+    cache_key = (
+        "hourly-etc:"
+        + hashlib.sha256(
+            json.dumps(key_material, sort_keys=True, separators=(",", ":")).encode()
+        ).hexdigest()
+    )
+    cached, state, age = cache_get(cache_key)
+    if cached is not None and state == "fresh":
+        result = dict(cached)
+        result["cache_state"] = "fresh"
+        result["cache_age_s"] = age
+        return result
+    try:
+        payload = await fetch_hourly_fao_et0_precipitation(
+            request.lat, request.lon, horizon_hours=horizon, model=request.model
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502, detail=f"Open-Meteo hourly FAO ET0 unavailable: {exc}"
+        ) from exc
+    result = build_hourly_etc_product(
+        provider_payload=payload,
+        lat=request.lat,
+        lon=request.lon,
+        horizon_hours=horizon,
+        daily_kc_by_date=request.daily_kc_by_date,
+        daily_runoff_mm_by_date=request.daily_runoff_mm_by_date,
+        model=request.model,
+    )
+    if result.get("status") != "verified":
+        raise HTTPException(status_code=424, detail=result)
+    result["cache_state"] = "refreshed"
+    result["cache_age_s"] = 0
+    cache_set(cache_key, result)
+    return result
 
 
 async def raw_weather_process(request: RawWeatherProcessRequest = Body(...)):

@@ -16985,7 +16985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1ae2f2b52458d67179f7e4b2783b9719e43d528919bd935cf419cb431603d4c5"
+          "content": "ef1cb4630746891960c714c7ce57ec25e67a969510793d8ae724c60a7badc607"
         }
       ],
       "name": "services/sahool-platform/api/weather_service_client.py",
@@ -26145,6 +26145,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ea06c32076f254bff4dd6815b623c77aca439ef431a6ebe369342a31c1904514"
+        }
+      ],
+      "name": "services/weather-service/hourly_etc.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a3bdb3434153caa9d51916824142c86f22c16aac23684a6d4d2995dcb0db71a1"
         }
       ],
@@ -26165,7 +26175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "143f06e9fd80e475ba5f7d79c9c51e577cde5536293e861004ee10275ab5c4b4"
+          "content": "3274fef96859aee420e4cb16378faa58b0357bf2863762f533a8960e5310e01e"
         }
       ],
       "name": "services/weather-service/main.py",
@@ -26175,7 +26185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ad2c5cc8e8ded7abeffcd2ca81a3937b4716993a50d059a018a4ea8af097c6d6"
+          "content": "73ff2062d1c5aeebb75811e44e5cb0d2ef8a1951e86e8d41102af1490fe4e131"
         }
       ],
       "name": "services/weather-service/open_meteo.py",
@@ -26299,6 +26309,16 @@
         }
       ],
       "name": "services/weather-service/tests/test_gdd_view.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "376f8e56779f9ec8ec48563ba8403b6dee4edf8edb19be14211e2f2fdcf9b301"
+        }
+      ],
+      "name": "services/weather-service/tests/test_hourly_etc_product.py",
       "type": "file"
     },
     {
@@ -26445,7 +26465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e623f67365459671ff6c6667d36054aa2dcab00368f0a73cbcf4546c55febd06"
+          "content": "3bf716a746fd13a5c1f05293b5adf8f241ae51c187fc66b8769c491aa638f60b"
         }
       ],
       "name": "services/weather-service/weather_runtime.py",

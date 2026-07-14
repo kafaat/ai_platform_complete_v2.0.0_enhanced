@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 633,
+  "baseline_python_module_count": 634,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -141,6 +141,7 @@
     "api/irrigation_network.py",
     "api/irrigation_policy.py",
     "api/irrigation_recommendation_policy.py",
+    "api/irrigation_runtime_orchestrator.py",
     "api/irrigation_state_guard.py",
     "api/lab_store.py",
     "api/learning_feedback.py",
@@ -643,5 +644,6 @@
   "crop_intelligence_phase2_6d_note": "Crop Intelligence Engine Phases 2-6D: additive core/crop_intelligence package (models/engine/spectral/phenology/roots/stress_memory/crop_water/recommendation_context) + api crop_stress_store/ingestion/memory_service and crop_decision_bridge. Boundary-respecting (no ET0/GDD/raster/soil-water compute in Crop Intelligence); enforced by scripts/ci/crop_intelligence_boundary_gate.py. No new route (p2_6 budget unchanged).",
   "water_ledger_auto_note": "api/water_ledger_auto.py: WATER-LEDGER-AUTO pure FAO-56 daily accumulation logic (bootstrap declared, manual-entry precedence) consumed by the water_ledger phase runtime worker — closes the operational gap where FAO-56 recommendations were blocked on missing_depletion_mm because only manual entries wrote water_ledger.",
   "water_decision_bridge_note": "api/water_decision_bridge.py: WATER-DEFICIT-BRIDGE governed bridge (delivered bundle, reconciled): deficit>threshold -> deterministic candidate via the existing governance chain; double default-off; auto-execution requires explicit target; integrated with the entity_id::text fix (events.entity_id is TEXT since v18).",
-  "soil_lab_supersession_note": "v155-v160 canonical soil chain: api/lab_store.py + api/soil_evidence_bridge.py are the platform lab-intake/publication bridge to soil-service (durable lab workflow + supersession lineage). Platform-owned intake surfaces; canonical evidence/projection owned by soil-service."
+  "soil_lab_supersession_note": "v155-v160 canonical soil chain: api/lab_store.py + api/soil_evidence_bridge.py are the platform lab-intake/publication bridge to soil-service (durable lab workflow + supersession lineage). Platform-owned intake surfaces; canonical evidence/projection owned by soil-service.",
+  "wx_i1_hourly_etc_orchestrator_note": "WX-I1: api/irrigation_runtime_orchestrator.py composes server-owned canonical water truth + persisted irrigation capability graph + commissioning executability + Weather-Engine native hourly ETc into one recommendation-only MPC schedule (no client-supplied agronomic/engineering truth). Platform-owned because it joins platform-owned canonical DB truth; the hourly ETc product itself stays engine-owned."
 }

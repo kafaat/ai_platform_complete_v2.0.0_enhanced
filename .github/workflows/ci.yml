@@ -263,6 +263,12 @@ jobs:
       - name: fastapi-lifespan-guard
         run: python scripts/ci/fastapi_lifespan_guard.py
 
+      # WX-I1: يُلزِم منتج ETc الساعيّ القانونيّ (ET0 مُزوَّد-أصليّ من المحرّك، Kc مُحقَن،
+      # مطر فعّال، بصمة محتوى) موصولاً end-to-end (منتج · جلب · مسار · عميل · مستهلِك M3)
+      # بلا نواة ET0 محلّيّة ولا تفكيك زمنيّ يوميّ. يُشغَّل في فحص الفرع (pre-FF).
+      - name: weather-hourly-etc-wx-i1-guard
+        run: python scripts/ci/weather_hourly_etc_wx_i1_guard.py
+
       - name: v9-feature-transfer-gate
         run: python scripts/ci/v9_feature_transfer_gate.py
 

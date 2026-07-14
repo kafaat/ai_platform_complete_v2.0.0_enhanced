@@ -148,6 +148,24 @@ async def _fetch_json(url: str, params: dict[str, Any]) -> dict[str, Any]:
         raise
 
 
+async def fetch_hourly_fao_et0_precipitation(
+    lat: float, lon: float, *, horizon_hours: int = 48, model: str = "best_match"
+) -> dict[str, Any]:
+    """Fetch provider-native hourly FAO ET0 and precipitation in canonical UTC hours."""
+    horizon_hours = max(1, min(int(horizon_hours), 384))
+    forecast_days = max(1, min(16, (horizon_hours + 23) // 24 + 1))
+    params: dict[str, Any] = {
+        "latitude": lat,
+        "longitude": lon,
+        "hourly": "et0_fao_evapotranspiration,precipitation",
+        "forecast_days": forecast_days,
+        "timezone": "UTC",
+    }
+    if model and model not in {"best_match", "auto"}:
+        params["models"] = model
+    return await _fetch_json(FORECAST_URL, params)
+
+
 async def fetch_current(lat: float, lon: float, *, model: str = "best_match") -> dict[str, Any]:
     params = {
         "latitude": lat,

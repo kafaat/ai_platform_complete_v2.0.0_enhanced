@@ -1,190 +1,182 @@
-"""Native hourly ETc product (WX-I1) — weather-engine owned, pure, fail-closed.
-
-خلفيّة: جدولة M3 الساعيّة كانت ستُبنى على تفكيك زمنيّ لرقم ETc يوميّ. هذا المنتج يُلغي
-ذلك: يستهلك ET0 **الساعيّ القانونيّ** من محرّك الطقس (متغيّر Open-Meteo ``et0_fao_evapotranspiration``
-الساعيّ — لا نواة ET0 محلّيّة موازية) ويحسب لكلّ ساعة Kc (مُحقَن من سياق المحصول/NDVI من
-المُستهلِك، تماماً كما يُحقَن ET0 في ``compute_etc_dual`` اليوميّ) وETc=Kc·ET0 والمطر الفعّال،
-ثمّ يُغلِّفها في منتج قانونيّ بجودة/نَسَب/بصمة حتميّة على نمط ``et0.py``/``canonical_daily_weather_series.py``.
-
-صدق معماريّ: محرّك الطقس حياديّ الحقل (lat/lon)، فلا يملك سياق المحصول. لذلك Kc يُحقَن (لا
-يُختلَق): ساعة بلا Kc �⇒ ``etc_mm=None`` + قيد مُصرَّح (لا ETc مُختلَق). ET0 المصدر الوحيد هو
-المنتج الساعيّ للمحرّك — لا تفكيك ولا احتياطيّ صامت. Penman-Monteith المحلّيّ (إن لزم لاحقاً)
-مسار تحقّق/احتياطيّ **مُعلَن** فقط، لا نواة موازية.
-"""
-
 from __future__ import annotations
 
 import hashlib
 import json
+import math
+from datetime import UTC, datetime
+from typing import Any
 
-PRODUCT_ID = "etc_hourly"
-FORMULA_VERSION = "etc/fao56-dual/1.0.0"  # ETc = Kc·ET0 (Kc مُحقَن؛ ET0 من منتج المحرّك)
-SCHEMA_VERSION = "wx-i1/hourly-etc-series/1.0.0"
-SNAPSHOT_SCHEME = "wsnap/sha1/1"
-OWNER = "weather-service"
-UNIT = "mm/h"
-
-# نموذج المطر الفعّال الساعيّ (مُصرَّح، قابل للمعايرة): جزء ثابت من هطول الساعة يصل الجذور.
-# ⚠ منحنى USDA-SCS اليوميّ (نقطة كسر 75mm) مُعرَّف على عمق يوميّ لا ساعيّ، فلا يُطبَّق هنا؛
-# نستعمل جزء ترشّح ساعيّاً (افتراض 1.0 = الهطول الخام) ونُصرّح بذلك كقيد. راجع
-# water_balance._effective_rain للمسار اليوميّ (منحنى SCS) — مصدرا حقيقة منفصلان قصداً.
-DEFAULT_HOURLY_INFILTRATION = 1.0
+SCHEMA_VERSION = "hourly_etc.v1"
+FORMULA_VERSION = "open-meteo-fao-et0×season-kc.v1"
 
 
-def _num(value: object) -> float | None:
-    """يحوّل إلى float موجب-الدلالة أو None (لا يُسقِط، لا يختلق)."""
-    if value is None:
-        return None
+def _digest(payload: Any) -> str:
+    raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
+    return hashlib.sha256(raw).hexdigest()
+
+
+def _finite_nonnegative(value: Any) -> float | None:
     try:
-        out = float(value)  # type: ignore[arg-type]
+        number = float(value)
     except (TypeError, ValueError):
         return None
-    if out != out:  # NaN
+    if not math.isfinite(number) or number < 0:
         return None
-    return out
+    return number
 
 
-def _hourly_snapshot_id(records: list[dict]) -> str:
-    """بصمة حتميّة لمتّجه الساعات المُستخدَم — هويّة اللقطة (لا زمن/عشوائيّة).
-
-    نفس المدخلات ⇒ نفس المُعرِّف (dedup/shadow-compare). sha1 لـJSON مقنَّن للحقول
-    المؤثّرة فقط (الوقت + ET0 + الهطول + Kc) مُقرَّبة، بترتيب زمنيّ ثابت.
-    """
-    canonical = [
-        {
-            "t": r.get("hour"),
-            "et0": round(v, 4) if isinstance((v := _num(r.get("et0_mm"))), float) else None,
-            "p": round(v, 4) if isinstance((v := _num(r.get("precip_mm"))), float) else None,
-            "kc": round(v, 4) if isinstance((v := _num(r.get("kc"))), float) else None,
-        }
-        for r in records
-    ]
-    digest = hashlib.sha1(  # بصمة/هويّة لا أمان تعميّة (bandit B324 / ruff S324)
-        json.dumps(canonical, sort_keys=True, separators=(",", ":")).encode("utf-8"),
-        usedforsecurity=False,
-    ).hexdigest()[:16]
-    return f"{SNAPSHOT_SCHEME}:{digest}"
-
-
-def _effective_rain_hourly(precip_mm: float | None, infiltration: float) -> float | None:
-    """المطر الفعّال الساعيّ = هطول الساعة × جزء الترشّح (مُصرَّح، لا منحنى يوميّ)."""
-    p = _num(precip_mm)
-    if p is None:
+def _parse_utc_hour(value: Any) -> datetime | None:
+    if not value:
         return None
-    if p <= 0:
-        return 0.0
-    return round(p * infiltration, 4)
+    try:
+        dt = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC).replace(minute=0, second=0, microsecond=0)
 
 
-def hourly_etc_product(
+def build_hourly_etc_product(
     *,
-    records: list[dict],
-    infiltration_fraction: float = DEFAULT_HOURLY_INFILTRATION,
-    valid_time: str | None = None,
-    hourly_snapshot_id_override: str | None = None,
-) -> dict:
-    """يبني منتج ETc الساعيّ القانونيّ من سجلّات ساعيّة.
+    provider_payload: dict[str, Any],
+    lat: float,
+    lon: float,
+    horizon_hours: int,
+    daily_kc_by_date: dict[str, float],
+    daily_runoff_mm_by_date: dict[str, float] | None = None,
+    model: str = "best_match",
+) -> dict[str, Any]:
+    """Build a canonical, provider-native hourly crop-water demand product.
 
-    كلّ سجلّ مدخل: ``{hour(ISO-8601 UTC), et0_mm(من منتج المحرّك), precip_mm, kc(مُحقَن أو None)}``.
-    المخرَج لكلّ ساعة: ``{hour, et0_mm, kc, etc_mm, effective_rain_mm}`` — و``etc_mm=kc·et0``
-    فقط حين توفّر كلاهما (وإلّا None + قيد). الغلاف يحمل جودة/نَسَب/بصمة حتميّة.
-
-    fail-closed: بلا ساعات صالحة ⇒ ``quality_status="unavailable"`` + سبب (لا 5xx، لا اختلاق).
+    Open-Meteo owns the native hourly FAO ET0. Season/phenology owns daily Kc and
+    supplies it as an explicit dated policy input. This function performs only the
+    governed hourly ETc/rain join and never derives ET0 locally.
     """
-    infiltration = _num(infiltration_fraction)
-    if infiltration is None or infiltration < 0:
-        infiltration = DEFAULT_HOURLY_INFILTRATION
+    horizon_hours = max(1, min(int(horizon_hours), 384))
+    hourly = provider_payload.get("hourly") or {}
+    times = hourly.get("time") or []
+    et0_values = hourly.get("et0_fao_evapotranspiration") or []
+    precip_values = hourly.get("precipitation") or []
+    runoff_by_date = daily_runoff_mm_by_date or {}
 
-    hours: list[dict] = []
-    limitations: list[str] = []
-    missing_et0 = 0
-    missing_kc = 0
-    computed = 0
+    if (
+        not isinstance(times, list)
+        or not isinstance(et0_values, list)
+        or not isinstance(precip_values, list)
+    ):
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "status": "blocked",
+            "reason": "provider_hourly_arrays_missing",
+            "quality_status": "unavailable",
+            "hours": [],
+        }
 
-    for raw in records:
-        when = raw.get("hour")
-        et0 = _num(raw.get("et0_mm"))
-        kc = _num(raw.get("kc"))
-        p_eff = _effective_rain_hourly(raw.get("precip_mm"), infiltration)
-        if when is None:
-            continue  # سجلّ بلا وقت لا يدخل السلسلة (لا نختلق ترتيباً)
-        if et0 is None:
-            missing_et0 += 1
-        etc = None
-        if et0 is not None and kc is not None:
-            if kc < 0:
-                kc = None
-                missing_kc += 1
-            else:
-                etc = round(kc * et0, 4)
-                computed += 1
-        if kc is None and et0 is not None:
-            missing_kc += 1
-        hours.append(
+    raw_rows: list[dict[str, Any]] = []
+    for idx, raw_time in enumerate(times):
+        if len(raw_rows) >= horizon_hours:
+            break
+        hour = _parse_utc_hour(raw_time)
+        if hour is None:
+            continue
+        et0 = _finite_nonnegative(et0_values[idx] if idx < len(et0_values) else None)
+        precipitation = _finite_nonnegative(
+            precip_values[idx] if idx < len(precip_values) else None
+        )
+        date_key = hour.date().isoformat()
+        kc = _finite_nonnegative(daily_kc_by_date.get(date_key))
+        if et0 is None or precipitation is None or kc is None:
+            return {
+                "schema_version": SCHEMA_VERSION,
+                "status": "blocked",
+                "reason": "canonical_hourly_etc_input_incomplete",
+                "quality_status": "unavailable",
+                "missing_hour": hour.isoformat().replace("+00:00", "Z"),
+                "missing": [
+                    name
+                    for name, value in (
+                        ("et0_mm", et0),
+                        ("precipitation_mm", precipitation),
+                        ("kc", kc),
+                    )
+                    if value is None
+                ],
+                "hours": [],
+            }
+        raw_rows.append(
             {
-                "hour": when,
-                "et0_mm": round(et0, 4) if et0 is not None else None,
-                "kc": round(kc, 4) if kc is not None else None,
-                "etc_mm": etc,
-                "effective_rain_mm": p_eff,
+                "hour": hour,
+                "date": date_key,
+                "et0_mm": et0,
+                "kc": kc,
+                "precipitation_mm": precipitation,
             }
         )
 
-    # ترتيب زمنيّ ثابت + إزالة تكرار الساعة نفسها (آخر قيمة تفوز) — حتميّة النَّسَب.
-    seen: dict[str, dict] = {}
-    for h in hours:
-        seen[str(h["hour"])] = h
-    ordered = [seen[k] for k in sorted(seen)]
+    if len(raw_rows) < horizon_hours:
+        return {
+            "schema_version": SCHEMA_VERSION,
+            "status": "blocked",
+            "reason": "provider_hourly_horizon_incomplete",
+            "quality_status": "unavailable",
+            "expected_hours": horizon_hours,
+            "received_hours": len(raw_rows),
+            "hours": [],
+        }
 
-    total_hours = len(ordered)
-    if total_hours == 0:
-        quality_status = "unavailable"
-        limitations.append("no valid hourly records supplied")
-    elif missing_et0 == total_hours:
-        quality_status = "unavailable"
-        limitations.append("hourly ET0 missing for all hours (weather-engine product required)")
-    elif missing_et0 or missing_kc:
-        quality_status = "partial"
-        if missing_et0:
-            limitations.append(f"hourly ET0 missing for {missing_et0}/{total_hours} hours")
-        if missing_kc:
-            limitations.append(
-                f"Kc not injected for {missing_kc}/{total_hours} hours — ETc omitted there"
-            )
-    else:
-        quality_status = "ok"
+    # Allocate a governed daily runoff amount only across rainy hours, proportional
+    # to provider precipitation. This avoids pretending all gross rainfall is effective.
+    precip_sum_by_date: dict[str, float] = {}
+    for row in raw_rows:
+        precip_sum_by_date[row["date"]] = precip_sum_by_date.get(row["date"], 0.0) + float(
+            row["precipitation_mm"]
+        )
 
-    # المطر الفعّال الساعيّ نموذج جزء ثابت (مُصرَّح دائماً، لا منحنى SCS اليوميّ).
-    limitations.append(
-        f"effective rainfall uses a fixed hourly infiltration fraction ({infiltration}); "
-        "not the daily USDA-SCS curve"
-    )
-    if valid_time is None:
-        limitations.append("valid_time not supplied by consumer")
+    output: list[dict[str, Any]] = []
+    for row in raw_rows:
+        date_key = row["date"]
+        gross = float(row["precipitation_mm"])
+        daily_runoff = _finite_nonnegative(runoff_by_date.get(date_key)) or 0.0
+        day_precip = precip_sum_by_date.get(date_key, 0.0)
+        allocated_runoff = (daily_runoff * gross / day_precip) if day_precip > 0 else 0.0
+        effective_rain = max(0.0, gross - allocated_runoff)
+        etc = float(row["et0_mm"]) * float(row["kc"])
+        hour_payload = {
+            "hour": row["hour"].isoformat().replace("+00:00", "Z"),
+            "et0_mm": round(float(row["et0_mm"]), 6),
+            "kc": round(float(row["kc"]), 6),
+            "etc_mm": round(etc, 6),
+            "precipitation_mm": round(gross, 6),
+            "effective_rain_mm": round(effective_rain, 6),
+            "net_crop_demand_mm": round(max(0.0, etc - effective_rain), 6),
+            "quality_status": "provider_native",
+            "source": "open_meteo_fao_et0",
+        }
+        hour_payload["content_digest"] = _digest(hour_payload)
+        output.append(hour_payload)
 
-    snap_id = hourly_snapshot_id_override or _hourly_snapshot_id(ordered)
-    et0_provided = total_hours - missing_et0
-    input_completeness = round(et0_provided / total_hours, 4) if total_hours else 0.0
-
-    return {
-        "product": PRODUCT_ID,
-        "product_id": PRODUCT_ID,
-        "schema_version": SCHEMA_VERSION,
+    provenance = {
+        "provider": "open-meteo",
+        "provider_model": model,
+        "provider_timezone": provider_payload.get("timezone") or "UTC",
+        "provider_utc_offset_seconds": provider_payload.get("utc_offset_seconds", 0),
+        "et0_variable": "et0_fao_evapotranspiration",
+        "kc_owner": "season_phenology_policy",
+        "rain_method": "provider_precipitation_minus_proportional_governed_daily_runoff",
         "formula_version": FORMULA_VERSION,
-        "owner": OWNER,
-        "unit": UNIT,
-        "method": "hourly-native-et0 × injected-Kc (no daily disaggregation)",
-        "hours": ordered,
-        "hours_count": total_hours,
-        "hours_with_etc": computed,
-        "input_completeness": input_completeness,
-        "quality_status": quality_status,
-        "weather_snapshot_id": snap_id,
-        "valid_time": valid_time,
-        "provenance": {
-            "et0_source": "weather-engine hourly product (et0_fao_evapotranspiration)",
-            "kc_source": "injected by consumer (crop stage / NDVI, platform fao56)",
-            "effective_rain_model": f"fixed hourly infiltration={infiltration}",
-        },
-        "limitations": limitations,
+        "fetched_generation_time_ms": provider_payload.get("generationtime_ms"),
     }
+    product_base = {
+        "schema_version": SCHEMA_VERSION,
+        "status": "verified",
+        "quality_status": "provider_native",
+        "location": {"lat": float(lat), "lon": float(lon)},
+        "horizon_hours": horizon_hours,
+        "valid_period": {"start": output[0]["hour"], "end": output[-1]["hour"]},
+        "hours": output,
+        "provenance": provenance,
+        "limitations": [],
+    }
+    product_base["content_digest"] = _digest(product_base)
+    return product_base

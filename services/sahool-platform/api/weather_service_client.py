@@ -176,6 +176,30 @@ async def get_et0_series(
     )
 
 
+async def get_hourly_etc_product(
+    *,
+    lat: float,
+    lon: float,
+    horizon_hours: int,
+    daily_kc_by_date: dict[str, float],
+    daily_runoff_mm_by_date: dict[str, float] | None = None,
+    model: str = "best_match",
+    tenant_id: str | None = None,
+) -> dict[str, Any]:
+    """Provider-native hourly ET0/ETc product from Weather Engine; no local fallback."""
+    body = {
+        "lat": lat,
+        "lon": lon,
+        "horizon_hours": horizon_hours,
+        "daily_kc_by_date": dict(daily_kc_by_date),
+        "daily_runoff_mm_by_date": dict(daily_runoff_mm_by_date or {}),
+        "model": model,
+    }
+    return await weather_post_json(
+        "/v1/weather/agro/etc/hourly", json_body=body, tenant_id=tenant_id
+    )
+
+
 async def get_gdd_product(
     *,
     daily_t_min: list,
