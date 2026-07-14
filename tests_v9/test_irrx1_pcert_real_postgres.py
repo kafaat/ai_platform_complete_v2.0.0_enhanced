@@ -40,6 +40,26 @@ def _digest(seed: str) -> str:
     return (seed.encode().hex() + "0" * 64)[:64]
 
 
+# RLS read/write isolation is only observable under a NOBYPASSRLS role — the CI
+# test superuser bypasses RLS even with FORCE. Mirror the soil-cert pattern.
+IRRX1_TEST_ROLE = "sahool_irrx1_pcert_role"
+
+
+async def _ensure_role_and_grants(conn) -> None:
+    await conn.execute(
+        f"""DO $$ BEGIN
+              IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{IRRX1_TEST_ROLE}') THEN
+                CREATE ROLE {IRRX1_TEST_ROLE} NOSUPERUSER NOBYPASSRLS;
+              END IF;
+            END $$;"""
+    )
+    await conn.execute(f"GRANT USAGE ON SCHEMA public TO {IRRX1_TEST_ROLE}")
+    await conn.execute(
+        "GRANT SELECT, INSERT, UPDATE ON irrigation_manual_execution_sources, "
+        f"irrigation_manual_executions, irrigation_manual_execution_events TO {IRRX1_TEST_ROLE}"
+    )
+
+
 @pytest.mark.integration
 def test_irrx1_pcert_schema_rls_and_database_state_machine() -> None:
     if not _db_available():
@@ -48,6 +68,7 @@ def test_irrx1_pcert_schema_rls_and_database_state_machine() -> None:
 
     async def check() -> None:
         conn = await asyncpg.connect(DB_URL, statement_cache_size=0)
+        await _ensure_role_and_grants(conn)
         tenant_a = uuid.uuid4()
         tenant_b = uuid.uuid4()
         execution_id = uuid.uuid4()
@@ -91,6 +112,8 @@ def test_irrx1_pcert_schema_rls_and_database_state_machine() -> None:
             assert "manual_execution_events_append_only" in triggers
             assert "manual_ledger_reconciliations_append_only" in triggers
 
+            # Switch off the RLS-bypassing superuser so tenant isolation is observable.
+            await conn.execute(f"SET ROLE {IRRX1_TEST_ROLE}")
             async with conn.transaction():
                 await conn.execute(
                     "SELECT set_config('app.current_tenant', $1, true)", str(tenant_a)
@@ -163,6 +186,7 @@ def test_irrx1_pcert_schema_rls_and_database_state_machine() -> None:
                     )
 
         finally:
+            await conn.execute("RESET ROLE")
             await conn.close()
 
     asyncio.run(check())
