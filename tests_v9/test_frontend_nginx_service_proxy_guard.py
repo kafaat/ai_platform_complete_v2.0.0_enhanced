@@ -9,7 +9,8 @@
 هذا الحارس يُثبّت الإصلاح في CI:
   • المسارات الخمسة موجودة و**تسبق** catch-all `location /api/`.
   • أهداف proxy_pass تطابق تحويلات `nginx.v9.conf` (مصدر الحقيقة للإنتاج).
-  • لا `auth_request` في بوّابة التطوير (لا تكرار لبوّابة الإنتاج).
+  • `auth_request` مسموح **حصراً** في بوّابة الراستر (`/api/raster/` + `/_auth_verify`)
+    — بلاطات <img> للحزمة الإنتاجية تحتاج عقد الهوية الموثّق — ومحظور في بقيّة الوكلاء.
   • `/api/raster/` ما زال موجوداً وقبل catch-all.
 
 مسح ساكن لملفّ الإعداد — لا تشغيل nginx.
@@ -69,14 +70,43 @@ def test_proxy_targets_match_v9_transforms():
     assert "sahool-supervisor-agent:8000/health" in src, "هدف صحّة الوكيل خاطئ"
 
 
-def test_no_auth_request_in_dev_gateway():
-    """بوّابة التطوير 3003 بلا توجيه auth_request فعليّ (التعليقات تذكره للتوضيح فقط)."""
-    # نتجاهل أسطر التعليقات (تبدأ بـ#) — الكلمة تَرِد فيها شرحاً لتباين بوّابة الإنتاج.
-    directive_lines = [
-        ln for ln in _read(_FRONTEND_NGINX).splitlines() if not ln.strip().startswith("#")
-    ]
-    offenders = [ln.strip() for ln in directive_lines if "auth_request" in ln]
-    assert not offenders, f"توجيه auth_request فعليّ في بوّابة التطوير: {offenders}"
+def _block_span(src: str, header: str) -> tuple[int, int]:
+    """(start,end) لموقع `header ... { ... }` عبر موازنة الأقواس."""
+    start = src.index(header)
+    i = src.index("{", start)
+    depth = 0
+    for j in range(i, len(src)):
+        if src[j] == "{":
+            depth += 1
+        elif src[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return start, j + 1
+    raise AssertionError(f"unbalanced braces after {header!r}")
+
+
+def test_auth_request_only_in_raster_dev_gateway():
+    """auth_request مسموح **حصراً** داخل بوّابة الراستر (`/api/raster/` + `/_auth_verify`)
+    ومحظور في بقيّة وكلاء التطوير (fetch APIs تُرسل Authorization/X-Tenant-Id مباشرةً).
+
+    خلفيّة: بلاطة <img> للحزمة الإنتاجية لا تحمل tid/ترويسات ⇒ 403. أُصلِح بجعل
+    `/api/raster/` يحاكي عقد الإنتاج (كوكي sahool_at ⇒ auth_request ⇒ X-Tenant-Id موثّق).
+    هذا الحارس يسمح بذلك المسار الواحد ويمنع انحدار auth_request إلى بقيّة البوّابة.
+    """
+    src = _read(_FRONTEND_NGINX)
+    verify_span = _block_span(src, "location = /_auth_verify")
+    raster_span = _block_span(src, "location ^~ /api/raster/")
+
+    def _allowed(pos: int) -> bool:
+        return (verify_span[0] <= pos < verify_span[1]) or (raster_span[0] <= pos < raster_span[1])
+
+    offenders = []
+    for ln in src.splitlines():
+        if ln.strip().startswith("#") or "auth_request" not in ln:
+            continue
+        if not _allowed(src.index(ln)):
+            offenders.append(ln.strip())
+    assert not offenders, f"auth_request خارج بوّابة الراستر (انحدار): {offenders}"
 
 
 def test_raster_still_present_before_catchall():
