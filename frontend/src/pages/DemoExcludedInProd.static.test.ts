@@ -48,3 +48,35 @@ describe('FE-08 — demo login hard-disabled at runtime in production (useAuth)'
     expect(demoTokenIdx).toBeGreaterThan(guardIdx);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FE-08 — إثبات أثر البناء مقفول في المستودع.
+// vitest لا يشغّل بناءً كاملاً، فلا يمكنه فحص الحزمة المُصدَّرة هنا. لكنّ الإثبات
+// الحقيقيّ (بناء الإنتاج + تفتيش assets/*.js عن البصمات التجريبيّة) يعيش في
+// scripts/verify-no-demo-in-build.mjs ويُشغَّل عبر npm run verify:no-demo. هذا
+// الفحص يضمن بقاء ذينك المصدرين موجودَين (منع انحدار صامت لدليل الأثر).
+// ═══════════════════════════════════════════════════════════════════════════
+describe('FE-08 — build-artifact proof is locked into the repo', () => {
+  const verifyScript = read('scripts/verify-no-demo-in-build.mjs');
+
+  it('the verify-no-demo build-artifact script exists and greps emitted JS', () => {
+    // يبني الإنتاج (أو يستهلك dist) ثمّ يفتّش كلّ assets/*.js.
+    expect(verifyScript).toContain('assets');
+    expect(verifyScript).toMatch(/vite/i);
+    expect(verifyScript).toContain('process.exit(1)');
+  });
+
+  it('the script checks the demo sentinels unique to the demo-login path', () => {
+    // بصمات حصريّة لمسار الدخول التجريبيّ (لا demo_token_not_real ولا loginDemo،
+    // فهما يُشحنان شرعيّاً في الإنتاج عبر jwt.ts / مفاتيح متجر zustand).
+    expect(verifyScript).toContain('demo_tenant');
+    expect(verifyScript).toContain('demo@sahool.ye');
+    expect(verifyScript).toContain('مستخدم تجريبي');
+    expect(verifyScript).toContain('دخول تجريبي (بيانات افتراضية)');
+  });
+
+  it('package.json wires the verify:no-demo npm script', () => {
+    const pkg = JSON.parse(read('package.json'));
+    expect(pkg.scripts['verify:no-demo']).toBe('node scripts/verify-no-demo-in-build.mjs');
+  });
+});
