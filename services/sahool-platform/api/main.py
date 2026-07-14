@@ -40,6 +40,7 @@ import logging
 import os
 import secrets
 import sys
+from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
@@ -163,15 +164,35 @@ if _DEV_AUTH_ENABLED:
 _OFFLINE_QUEUE = OfflineQueue(max_per_tenant=1000)
 
 
-# ─── FastAPI app ─────────────────────────────────────────────────
+# ─── FastAPI app lifecycle ───────────────────────────────────────
+@asynccontextmanager
+async def _lifespan(_: FastAPI):
+    """Own platform startup/shutdown through one ordered lifespan context.
+
+    The database pools must be ready before the scheduler and outbox relay.
+    Teardown runs in reverse order and also covers partially-started resources
+    when startup fails.
+    """
+    try:
+        await _warn_weak_dev_jwt_secret()
+        await _init_db_pool()
+        await _start_scheduler()
+        await _start_outbox_worker()
+        yield
+    finally:
+        await _stop_outbox_worker()
+        await _stop_scheduler()
+        await _close_db_pool()
+
+
 app = FastAPI(
     title="SAHOOL Core API",
     description="API للنواة سهول — decision-system زراعي offline-first",
     version="1.0.0",
+    lifespan=_lifespan,
 )
 
 
-@app.on_event("startup")
 async def _warn_weak_dev_jwt_secret():
     """يسجّل تحذير سرّ JWT الضعيف وقت الإقلاع فقط، لا وقت الاستيراد.
 
@@ -198,7 +219,6 @@ _DB_POOL = None  # asyncpg.Pool | None — مسبح التطبيق (sahool_app،
 _JOBS_POOL = None  # asyncpg.Pool | None
 
 
-@app.on_event("startup")
 async def _init_db_pool():
     global _DB_POOL, _JOBS_POOL
     dsn = os.getenv("DATABASE_URL", "")
@@ -272,7 +292,6 @@ async def _assert_db_role_rls_safe(pool) -> None:
         raise RuntimeError(msg)
 
 
-@app.on_event("startup")
 async def _start_scheduler():
     """يبدأ جدولة المهامّ الدوريّة (أتمتة داخليّة).
 
@@ -497,7 +516,6 @@ _OUTBOX_TASK = None  # asyncio.Task | None
 _NATS_CONN = None  # nats client | None
 
 
-@app.on_event("startup")
 async def _start_outbox_worker():
     """يبدأ relay الأحداث (outbox → NATS). تدهور رشيق: لو غاب NATS/القاعدة، نتخطّى
     بتحذير دون إسقاط الإقلاع — الأحداث تبقى في outbox لتُنشَر عند توفّر NATS لاحقاً."""
@@ -535,7 +553,6 @@ async def _start_outbox_worker():
         logging.warning("OutboxWorker معطّل (NATS؟): %s — الأحداث تبقى في outbox", e)
 
 
-@app.on_event("shutdown")
 async def _stop_outbox_worker():
     global _OUTBOX_WORKER, _OUTBOX_TASK, _NATS_CONN
     if _OUTBOX_WORKER is not None:
@@ -555,14 +572,12 @@ async def _stop_outbox_worker():
     _OUTBOX_WORKER = _OUTBOX_TASK = _NATS_CONN = None
 
 
-@app.on_event("shutdown")
 async def _stop_scheduler():
     from api.scheduler import scheduler
 
     await scheduler.stop()
 
 
-@app.on_event("shutdown")
 async def _close_db_pool():
     global _DB_POOL
     if _DB_POOL is not None:
@@ -581,10 +596,7 @@ def get_pool():
     return _DB_POOL
 
 
-from contextlib import asynccontextmanager as _asynccontextmanager  # noqa: E402
-
-
-@_asynccontextmanager
+@asynccontextmanager
 async def tenant_connection(user):
     """يفتح اتّصالاً ضمن معاملة ويضبط سياق المستأجر لتفعيل RLS فعليّاً.
 

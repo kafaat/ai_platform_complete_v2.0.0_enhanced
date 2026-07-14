@@ -258,6 +258,11 @@ jobs:
       - name: service-inventory-drift-gate
         run: python scripts/ci/generate_service_inventory.py --check
 
+      # يمنع رجوع خطّافات FastAPI المهجورة (@app.on_event) — يُلزِم lifespan واحداً
+      # مُرتَّباً (بدء/إيقاف صريحان) فتبقى تحذيرات الإهمال غائبة. يُشغَّل في فحص الفرع (pre-FF).
+      - name: fastapi-lifespan-guard
+        run: python scripts/ci/fastapi_lifespan_guard.py
+
       - name: v9-feature-transfer-gate
         run: python scripts/ci/v9_feature_transfer_gate.py
 

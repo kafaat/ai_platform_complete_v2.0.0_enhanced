@@ -14535,7 +14535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "47c4daa60f05c43011a8a802a3e9f4143dc90c23f789648ed318dda9db1a7493"
+          "content": "696286cbf3e7c3d7947f5b4816eb8e423aa24896708dae24b2b6a45eef8ffb35"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
