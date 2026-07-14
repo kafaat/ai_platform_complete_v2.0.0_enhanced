@@ -30,13 +30,14 @@ describe('MapHub uses persisted COG tiles when the selected date has a COG', () 
   });
 
   it('both map engines switch endpoint by preferPersistedCog (/tiles vs /cdse-tiles)', () => {
+    // المنطق في الباني المُشترَك (indicatorTileUrl.ts) — نتحقّق منه فيه، ومن أنّ كِلا
+    // المحرّكَين يستعملانه.
+    const tileUrl = readFileSync(join(root, 'src/components/maphub/indicatorTileUrl.ts'), 'utf8');
+    expect(tileUrl).toContain('preferPersistedCog');
+    expect(tileUrl).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
+    expect(tileUrl).toContain('if (!preferPersistedCog)');
     for (const [name, src] of [['HubMap', hubMap], ['HubMapGL', hubMapGL]] as const) {
-      expect(src, `${name} missing preferPersistedCog param`).toContain('preferPersistedCog');
-      expect(src, `${name} does not switch segment`).toContain(
-        "preferPersistedCog ? 'tiles' : 'cdse-tiles'",
-      );
-      // القصّ (poly) لمسار CDSE الحيّ فقط — المحفوظ مقصوص مسبقاً.
-      expect(src, `${name} does not gate poly on live path`).toContain('if (!preferPersistedCog)');
+      expect(src, `${name} does not use shared indicatorTileUrl`).toContain('indicatorTileUrl(');
     }
   });
 });

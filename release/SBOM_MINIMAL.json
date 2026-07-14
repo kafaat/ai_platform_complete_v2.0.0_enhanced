@@ -1585,7 +1585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "025b8bf2e1e7305f2f45908112f7c50e3db6655c9bc2a73798f3f601af50e9f5"
+          "content": "7e5a60bf9a635fca6bf7a288af96346239e81fd302bd8bbe421cf92434b47f8c"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -1605,7 +1605,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9dda2e38df968f2ec601a072c7a27ee06d4f3d7cf63d023a6868eb31b094361"
+          "content": "b33bd201de6e630826a8b9678be3ecb71a6a987a594f34766abdead1948c1c0a"
         }
       ],
       "name": "frontend/src/components/maphub/HubMapGL.tsx",
@@ -1645,7 +1645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9957d481175d025560902e0be27f4a8088e8da5030b8f05675328cff2d98fd01"
+          "content": "7faa52b46a73d5873ffa844aa6623ca2db71350b8d952aecef842d509c9f6e74"
         }
       ],
       "name": "frontend/src/components/maphub/ImageryDateWiring.static.test.ts",
@@ -1675,7 +1675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b061b1981c51d28c331cf05dcdc89a2337400e16fd3ac2eb2c5924b0a8b98029"
+          "content": "a83bca4adc5b57847dbb3be419b04309b8bb003c8d67556ee14f7e22a19056c1"
         }
       ],
       "name": "frontend/src/components/maphub/MapForensicHardening.static.test.ts",
@@ -1735,7 +1735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3450bcc0d2a2628be99e153e6bcd97f69358b1b0d41a51afdff84019648a7dc5"
+          "content": "4a038a8dd43a090f45cd9a0337bbc8bbd0b7e36c77d13879058f7378fb0d11fd"
         }
       ],
       "name": "frontend/src/components/maphub/PersistedCogTiles.static.test.ts",
@@ -2099,6 +2099,26 @@
         }
       ],
       "name": "frontend/src/components/maphub/drawing/zoneDesigner.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c71e0433cc68cf49b8e72a937e4948e36b44807cfbebda32179fa6be441af9d3"
+        }
+      ],
+      "name": "frontend/src/components/maphub/indicatorTileUrl.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2e5e3efe6d707c5c21eb141b72aa17f7752380b64e560235b760dd4a6d17b4fe"
+        }
+      ],
+      "name": "frontend/src/components/maphub/indicatorTileUrl.ts",
       "type": "file"
     },
     {

@@ -37,9 +37,8 @@ import {
 } from '../../lib/geo';
 import type { SnapTarget } from '../../lib/geo';
 import { getLayer, resolveLayerSource, toMapLibreRasterUrl } from '../../lib/layerRegistry';
-import { rasterBaseUrl } from '../../services/api';
-import { getAccessToken } from '../../lib/authStorage';
 import type { FieldOption } from '../../lib/fields';
+import { indicatorTileUrl } from './indicatorTileUrl';
 import type { DrawFeature } from './drawing';
 // أنواع فقط (تُمحى وقت الترجمة) — لا يدخل Leaflet هذه الحزمة المقسومة.
 import type { ScoutPin } from './HubMap';
@@ -116,43 +115,8 @@ export interface HubMapGLProps {
   onViewChange?: (center: [number, number], zoom: number) => void;
 }
 
-// رابط بلاطات مؤشّر الحقل — نفس باني HubMap.indicatorTileUrl (مصدر واحد للصدق).
-// CDSE الحيّ: المسار المحلّيّ `tiles` يحتاج COG مُسبق-التوليد ⇒ 404 لحقل بلا معالجة
-// (MAPHUB-CDSE)؛ `cdse-tiles` يجلب المشهد حيّاً ويقصّه على المضلّع (قناع rasterio).
-function indicatorTileUrl(field: FieldOption, index: string, tenantId?: string | null, imageryTs = 0, imageryDate?: string | null, preferPersistedCog = false): string {
-  const params = new URLSearchParams({ index });
-  if (imageryDate && imageryDate !== 'latest') params.set('date', imageryDate);
-  // في الإنتاج لا JWT ولا tenant_id في الرابط: البوّابة تشتقّ المستأجِر من JWT الموثّق،
-  // والمصادقة عبر كوكي HttpOnly `sahool_at` (تُرسَل مع <img> نفس‌المصدر). التطوير يبقي
-  // tenant_id + access_token كـfallback مباشر. (نفس سياسة HubMap.indicatorTileUrl.)
-  if (!import.meta.env.PROD && tenantId) params.set('tenant_id', tenantId);
-  if (imageryTs) params.set('v', String(imageryTs));
-  if (!import.meta.env.PROD) {
-    const _tok = getAccessToken();
-    if (_tok) params.set('access_token', _tok);
-  }
-  // القصّ (poly/bbox) لمسار CDSE الحيّ فقط؛ /tiles المحفوظ يقرأ COG مقصوصاً مسبقاً.
-  if (!preferPersistedCog) {
-  const poly = geomToPolygon(field.geometry);
-  if (poly && poly.length >= 3) {
-    let w = Infinity, s = Infinity, e = -Infinity, n = -Infinity;
-    for (const [lat, lng] of poly) {
-      if (lng < w) w = lng;
-      if (lng > e) e = lng;
-      if (lat < s) s = lat;
-      if (lat > n) n = lat;
-    }
-    params.set('bbox_w', String(w)); params.set('bbox_s', String(s));
-    params.set('bbox_e', String(e)); params.set('bbox_n', String(n));
-    params.set('poly', poly.map(([lat, lng]) => `${lng},${lat}`).join(';'));
-  }
-  }
-  const qs = params.toString();
-  // preferPersistedCog (has_cog) ⇒ COG المحفوظ /tiles؛ وإلّا CDSE الحيّ /cdse-tiles (يُصلِح الطبقة الورديّة).
-  const segment = preferPersistedCog ? 'tiles' : 'cdse-tiles';
-  // eslint-disable-next-line no-template-curly-in-string
-  return `${rasterBaseUrl()}/v1/fields/${field.id}/${segment}/{z}/{x}/{y}.png?${qs}`;
-}
+// باني رابط بلاطة المؤشّر انتقل إلى الوحدة المُشترَكة القابلة للاختبار (indicatorTileUrl.ts)
+// — مصدر واحد للصدق بدل النسخة المُكرَّرة (كانت مطابقة لـHubMap حرفيّاً).
 
 // مصدر بلاطات الأساس مُكيَّف لـMapLibre (tiles: [url]):
 //   • Esri World Imagery يستعمل …/tile/{z}/{y}/{x} — يعمل كما هو.
