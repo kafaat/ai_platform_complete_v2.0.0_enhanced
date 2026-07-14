@@ -1045,6 +1045,14 @@ export default function AddFieldWithMap({ onSave, onCancel, onImport, existingFi
   const handleFilePicked = (f: File | null) => {
     setError('');
     if (!f) { setFileName(''); setFileText(''); setFileFmt(null); return; }
+    // حدّ حجم الملفّ قبل أيّ قراءة/تحليل (continuation-1 P0): ملفّ ضخم/مضغوط بشراهة
+    // (zip-bomb) قد يُجمِّد/يُعطِّل متصفّح الموبايل. نرفض مبكراً قبل FileReader.
+    const MAX_IMPORT_BYTES = 15 * 1024 * 1024; // 15MB — كافٍ لحدود حقل واقعيّة
+    if (f.size > MAX_IMPORT_BYTES) {
+      setError(`الملفّ كبير جدّاً (${(f.size / 1048576).toFixed(1)}MB) — الحدّ الأقصى ${MAX_IMPORT_BYTES / 1048576}MB.`);
+      setFileName(''); setFileText(''); setFileFmt(null);
+      return;
+    }
     const lower = f.name.toLowerCase();
     // Shapefile (.zip مضغوط أو .shp مفرد) → نحلّله في المتصفّح إلى GeoJSON.
     if (lower.endsWith('.zip') || lower.endsWith('.shp')) {

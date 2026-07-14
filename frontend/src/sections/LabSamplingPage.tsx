@@ -41,6 +41,21 @@ function n(v: FormDataEntryValue | null): number | null {
   return Number.isFinite(x) ? x : null;
 }
 
+// تحقّق مجال عدديّ/إحداثيّ لعيّنة المختبر قبل الإرسال (continuation-3 P0): حدود
+// خط العرض/الطول، عمق غير سالب، عمق النهاية > البداية، دقّة GPS غير سالبة. يُعيد
+// رسالة خطأ عربيّة أو null. (n() يرفض NaN/Infinity أصلاً بإعادته null.)
+export function validateSampleNumerics(v: {
+  lat: number; lon: number; dFrom: number | null; dTo: number | null; gps: number | null;
+}): string | null {
+  if (!Number.isFinite(v.lat) || v.lat < -90 || v.lat > 90) return 'خط العرض يجب أن يكون بين -90 و90.';
+  if (!Number.isFinite(v.lon) || v.lon < -180 || v.lon > 180) return 'خط الطول يجب أن يكون بين -180 و180.';
+  if (v.dFrom != null && v.dFrom < 0) return 'عمق البداية يجب أن يكون صفراً أو أكثر.';
+  if (v.dTo != null && v.dTo < 0) return 'عمق النهاية يجب أن يكون صفراً أو أكثر.';
+  if (v.dFrom != null && v.dTo != null && v.dTo <= v.dFrom) return 'عمق النهاية يجب أن يكون أكبر من عمق البداية.';
+  if (v.gps != null && v.gps < 0) return 'دقّة GPS يجب أن تكون صفراً أو أكثر.';
+  return null;
+}
+
 export default function LabSamplingPage() {
   const location = useLocation();
   const routeFieldId = ((location.state as { fieldId?: string } | null)?.fieldId) ?? null;
@@ -60,16 +75,23 @@ export default function LabSamplingPage() {
   const onCreateSample = async (fd: FormData) => {
     if (!fieldId) return;
     setMsg(null);
+    const latitude = Number(fd.get('latitude') || pickedPoint?.[0]);
+    const longitude = Number(fd.get('longitude') || pickedPoint?.[1]);
+    const depth_cm_from = n(fd.get('depth_cm_from'));
+    const depth_cm_to = n(fd.get('depth_cm_to'));
+    const gps_accuracy_m = n(fd.get('gps_accuracy_m'));
+    const err = validateSampleNumerics({ lat: latitude, lon: longitude, dFrom: depth_cm_from, dTo: depth_cm_to, gps: gps_accuracy_m });
+    if (err) { setMsg(err); return; }
     const payload: LabSampleCreateInput = {
       field_id: fieldId,
       kind: fd.get('kind') === 'water' ? 'water' : 'soil',
-      latitude: Number(fd.get('latitude') || pickedPoint?.[0]),
-      longitude: Number(fd.get('longitude') || pickedPoint?.[1]),
+      latitude,
+      longitude,
       sampled_on: String(fd.get('sampled_on') || new Date().toISOString().slice(0, 10)),
-      depth_cm_from: n(fd.get('depth_cm_from')),
-      depth_cm_to: n(fd.get('depth_cm_to')),
+      depth_cm_from,
+      depth_cm_to,
       source: String(fd.get('source') || ''),
-      gps_accuracy_m: n(fd.get('gps_accuracy_m')),
+      gps_accuracy_m,
       status: 'collected',
     };
     try {
@@ -126,7 +148,7 @@ export default function LabSamplingPage() {
             <label className="block text-sm text-slate-300">نوع العينة<select name="kind" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2"><option value="soil">تربة</option><option value="water">مياه</option></select></label>
             <SamplePointPicker value={pickedPoint} onPick={(lat, lng) => setPickedPoint([lat, lng])} polygon={fieldPolygon} center={mapCenter} />
             <p className="text-[11px] text-slate-400">انقر داخل الخريطة لتحديد نقطة العينة، أو أدخل الإحداثيات يدويًا.</p>
-            <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">Latitude<input required name="latitude" type="number" step="any" value={pickedPoint?.[0] ?? ''} onChange={(e) => setPickedPoint([Number(e.target.value), pickedPoint?.[1] ?? mapCenter[1]])} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">Longitude<input required name="longitude" type="number" step="any" value={pickedPoint?.[1] ?? ''} onChange={(e) => setPickedPoint([pickedPoint?.[0] ?? mapCenter[0], Number(e.target.value)])} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
+            <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">Latitude<input required name="latitude" type="number" step="any" min={-90} max={90} value={pickedPoint?.[0] ?? ''} onChange={(e) => setPickedPoint([Number(e.target.value), pickedPoint?.[1] ?? mapCenter[1]])} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">Longitude<input required name="longitude" type="number" step="any" min={-180} max={180} value={pickedPoint?.[1] ?? ''} onChange={(e) => setPickedPoint([pickedPoint?.[0] ?? mapCenter[0], Number(e.target.value)])} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
             <div className="grid grid-cols-2 gap-2"><label className="text-sm text-slate-300">من عمق سم<input name="depth_cm_from" type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label><label className="text-sm text-slate-300">إلى عمق سم<input name="depth_cm_to" type="number" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label></div>
             <label className="block text-sm text-slate-300">تاريخ العينة<input name="sampled_on" type="date" defaultValue={new Date().toISOString().slice(0, 10)} className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" /></label>
             <label className="block text-sm text-slate-300">مصدر/ملاحظة<input name="source" className="mt-1 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2" placeholder="بئر 3 / شبكة 1 / قطاع شمالي" /></label>

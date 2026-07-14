@@ -435,7 +435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d6fec619ad43beaa61952552bcaec06075c2933169fe92e5a1cf44634fdab0f3"
+          "content": "b2aaed0d956100913700458d72d7f0341a4d202dfd3e57e19909964e3c334569"
         }
       ],
       "name": "frontend/src/components/AddFieldWithMap.tsx",
@@ -5155,7 +5155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "14435bdde3d9bd35976f9585695ebea1903eaa3be0f394839471afc1d6b7e1da"
+          "content": "5b12df21f7d2cfc4b5c47bf27a511aab6dddfcb0243ec4011a3772de01231498"
         }
       ],
       "name": "frontend/src/sections/LabSamplingPage.tsx",
@@ -5679,6 +5679,16 @@
         }
       ],
       "name": "frontend/src/sections/fieldWorkspaceContract.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a4f5f6a4592d44c3485fe3ed46663e57dfb4e3a41564958cf3a775ddab5ba812"
+        }
+      ],
+      "name": "frontend/src/sections/labSampleValidation.test.ts",
       "type": "file"
     },
     {
