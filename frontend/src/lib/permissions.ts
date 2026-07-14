@@ -23,7 +23,7 @@ export function normalizeRole(role?: string | null): Role {
 // ملاحظة: `as const satisfies readonly PageId[]` يحفظ الأنواع الحرفيّة لكلّ عنصر
 // (كي يعمل حارس الاكتمال أدناه)، وفي الوقت نفسه يضمن أنّ كلّ عنصر هو PageId صالح
 // (الاتّجاه العكسيّ مغطّى بـ`satisfies` — لا حاجة لشيفرة إضافيّة له).
-const ALL_PAGES = [
+export const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'sql-workspace', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'decision-runtime', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'lab-sampling', 'devices', 'device-twin', 'inventory', 'equipment',
@@ -41,7 +41,10 @@ void _assertAllPagesComplete;
 // worker (مزارع/عامل): الصفحات التشغيليّة فقط (وفق سياسة الإعدادات الموثّقة:
 // لوحة + أقمار + حقول + مهام، مع التنبيهات/المستشار/المكانيّة + أدوات حقله).
 const WORKER_PAGES: PageId[] = [
-  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'field-workspace', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators', 'lab-sampling',
+  // 'recommendations'/'hybrid-index': عرض تشغيليّ يراه العامل (والمُشاهِد قراءةً) —
+  // أُضيفا كي تبقى شبكة الرتب أحاديّة (viewer ⊆ worker) بلا حرمان الوصول المشروع؛
+  // بينما sql-workspace/calibration-workbench/settings تبقى خارج worker (agronomist+).
+  'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'recommendations', 'hybrid-monitor', 'hybrid-index', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'field-workspace', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators', 'lab-sampling',
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'pest-escalation', 'field-intelligence',
   'inventory', 'equipment', 'devices', 'device-twin', 'irrigation-ops', 'irrigation-network',
   'agro-zones', 'yemeni-calendars', 'climate-analogs',
@@ -70,7 +73,12 @@ const VIEWER_BLOCKED_PAGES: PageId[] = [
   // كونسول تشغيل القرار: طابور/سياسات/معاينة — ليس للمُشاهِد.
   'decision-runtime',
 ];
-const VIEWER_PAGES: PageId[] = NON_MANAGEMENT_PAGES.filter(
+// المُشاهِد ⊆ العامل (شبكة رتب أحاديّة الاتّجاه — F-UI-31): يُشتقّ من صفحات العامل
+// (لا من كامل غير-الإداريّة) ثمّ يُطرَح المحجوب عن المُشاهِد. هكذا لا يفتح viewer أبداً
+// صفحةً لا يفتحها worker (سابقاً كان المكمّل يمنح viewer صفحات ينقصها worker مثل
+// sql-workspace/calibration-workbench/hybrid-index/recommendations/settings — تسريب
+// امتياز + سطح تصدير مجمّع للمُشاهِد عبر SQL workspace، F-UI-32).
+const VIEWER_PAGES: PageId[] = WORKER_PAGES.filter(
   (p) => !VIEWER_BLOCKED_PAGES.includes(p),
 );
 

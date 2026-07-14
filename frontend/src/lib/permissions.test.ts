@@ -8,6 +8,7 @@ import {
   canManage,
   canCreateFarm,
   ROLE_LABEL_AR,
+  ALL_PAGES,
 } from './permissions';
 
 describe('normalizeRole', () => {
@@ -96,6 +97,30 @@ describe('viewer tightening (مواءمة الواجهة مع RBAC الخلفي�
     for (const page of FINANCIAL_ANALYTICAL) {
       expect(canAccess('agronomist', page)).toBe(true);
       expect(canAccess('viewer', page)).toBe(false);
+    }
+  });
+});
+
+describe('F-UI-31 — شبكة الرتب أحاديّة الاتّجاه (viewer ⊆ worker ⊆ agronomist ⊆ owner)', () => {
+  const CHAIN = ['viewer', 'worker', 'agronomist', 'owner'] as const;
+
+  it('لكلّ صفحة: إن وصلها دور أدنى وصلها كلّ من فوقه (لا تسريب امتياز)', () => {
+    for (const page of ALL_PAGES) {
+      for (let i = 0; i < CHAIN.length - 1; i++) {
+        const lower = CHAIN[i];
+        const higher = CHAIN[i + 1];
+        if (canAccess(lower, page)) {
+          expect(canAccess(higher, page), `${lower} يرى ${page} لكن ${higher} لا`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('الصفحات التي رُصِد فيها التسريب سابقاً لم تعُد للمُشاهِد', () => {
+    // sql-workspace/calibration-workbench/settings: خارج worker ⇒ خارج viewer (F-UI-32/39).
+    for (const page of ['sql-workspace', 'calibration-workbench', 'settings'] as const) {
+      expect(canAccess('viewer', page)).toBe(false);
+      expect(canAccess('worker', page)).toBe(false);
     }
   });
 });

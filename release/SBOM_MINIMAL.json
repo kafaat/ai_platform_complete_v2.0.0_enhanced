@@ -4005,7 +4005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "01b1e52fc42a39cd55aad1b60f360223ac9b1529d32b5ed8503e0be2a41e5067"
+          "content": "8c0742e89cd2df9b33a38d1509e2858bdd224850da8ffd7b9d9a4b554baa0979"
         }
       ],
       "name": "frontend/src/lib/permissions.test.ts",
@@ -4015,7 +4015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b6287bef07d44bee4fd6845bc76842ba35e8b78e0ffe4ff657c4dc46f850d32"
+          "content": "2874480ea0d3d01de30c8090edbfc513b6f67909deb812fd1572a416bc34e06d"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
