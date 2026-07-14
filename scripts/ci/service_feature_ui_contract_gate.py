@@ -89,6 +89,26 @@ def _path_exists(repo: Path, rel: str) -> bool:
     return (repo / rel).exists()
 
 
+# أسماء بديلة: خدمة في سجلّ الجرد باسم دليلها، ولها عقد باسم وظيفيّ مختلف (نفس الخدمة).
+# odoo-bridge (دليل/جرد) ≡ erp-bridge (العقد + خدمة compose sahool-erp-bridge).
+_INVENTORY_ALIASES = {"odoo-bridge": "erp-bridge"}
+
+
+def _inventory_service_names(repo: Path) -> list[str]:
+    """أسماء خدمات سجلّ الجرد المُولَّد (مصدر الحقيقة لِما يعمل فعلاً)."""
+    inv_path = repo / "service_inventory.generated.json"
+    if not inv_path.exists():
+        return []
+    doc = json.loads(inv_path.read_text(encoding="utf-8"))
+    services = doc.get("services", doc) if isinstance(doc, dict) else doc
+    out = []
+    for entry in services:
+        name = entry.get("service") if isinstance(entry, dict) else entry
+        if name:
+            out.append(str(name))
+    return out
+
+
 def run_gate(repo: Path, manifest_path: Path) -> tuple[bool, dict]:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     rows: list[dict] = []
@@ -131,9 +151,22 @@ def run_gate(repo: Path, manifest_path: Path) -> tuple[bool, dict]:
             }
         )
 
+    # عقد الشمول (P0 من تدقيق البوّابة): كلّ خدمة في سجلّ الجرد يجب أن يكون لها عقد
+    # مستهلك. الحارس سابقاً يفحص العقود المسجّلة فقط (contracts ⊆ present) لا الجرد
+    # (inventory ⊆ contracts)، فمرّت خدمات غير مسجّلة (decision/model-registry/…). نُغلقها.
+    contract_names = {s["service"] for s in manifest["services"]}
+    missing_contracts = []
+    for inv_name in _inventory_service_names(repo):
+        mapped = _INVENTORY_ALIASES.get(inv_name, inv_name)
+        if mapped not in contract_names:
+            missing_contracts.append(inv_name)
+    for inv_name in sorted(missing_contracts):
+        failures.append(f"totality: inventory service '{inv_name}' has no consumer contract")
+
     result = {
         "gate": "service-feature-ui-contract-gate",
         "version": manifest.get("version"),
+        "inventory_totality": "pass" if not missing_contracts else "fail",
         "service_count": len(rows),
         "passed": sum(1 for r in rows if r["status"] == "pass"),
         "failed": sum(1 for r in rows if r["status"] == "fail"),

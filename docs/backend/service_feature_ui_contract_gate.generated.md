@@ -1,7 +1,7 @@
 # service-feature-ui-contract-gate report
 
-- services: 26
-- passed: 26
+- services: 29
+- passed: 29
 - failed: 0
 
 ## Service evidence
@@ -85,7 +85,7 @@ classification: `ui`
   - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherHoverReadout.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
-- platform-proxy: 290 match(es)
+- platform-proxy: 295 match(es)
   - `services/sahool-platform/api/season_simulation.py` ← `weather-service`
   - `services/sahool-platform/api/season_simulation.py` ← `weather`
   - `services/sahool-platform/api/main.py` ← `weather`
@@ -100,7 +100,7 @@ classification: `ui`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
   - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
-- platform-proxy: 271 match(es)
+- platform-proxy: 278 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/api/main.py` ← `soil`
   - `services/sahool-platform/api/event_replay.py` ← `soil`
@@ -216,12 +216,12 @@ classification: `ui`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
   - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
-- platform-proxy: 84 match(es)
+- platform-proxy: 91 match(es)
+  - `services/sahool-platform/api/controller_edge_adapter.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_workers.py` ← `dispatch`
   - `services/sahool-platform/api/command_store.py` ← `dispatch`
   - `services/sahool-platform/api/decision_service_client.py` ← `dispatch`
-  - `services/sahool-platform/api/command_dispatcher.py` ← `dispatch`
 
 ### `edge-inference` — pass
 classification: `ui`
@@ -294,7 +294,7 @@ classification: `ui`
 
 ### `local-ai-rag` — pass
 classification: `internal`
-- internal-consumer: 61 match(es)
+- internal-consumer: 64 match(es)
   - `services/supervisor-agent/test_ai_orchestration_forensic.py` ← `LOCAL_AI_RAG_URL`
   - `services/supervisor-agent/test_ai_orchestration_forensic.py` ← `RAG`
   - `services/supervisor-agent/advisory_skill.py` ← `RAG`
@@ -318,3 +318,30 @@ classification: `job`
   - `docker-compose.fixed.yml` ← `qdrant-seed`
   - `docker-compose.fixed.yml` ← `QDRANT`
   - `docker-compose.rag-kg-mcp.yml` ← `QDRANT`
+
+### `decision-service` — pass
+classification: `internal-sensitive`
+- internal-consumer: 22 match(es)
+  - `services/sahool-platform/api/phase_runtime_store.py` ← `decision_service_client`
+  - `services/sahool-platform/api/decision_service_client.py` ← `DECISION_SERVICE_URL`
+  - `services/sahool-platform/api/decision_service_client.py` ← `sahool-decision-service`
+  - `services/sahool-platform/api/crop_decision_bridge.py` ← `decision_service_client`
+  - `services/sahool-platform/api/water_decision_bridge.py` ← `decision_service_client`
+
+### `model-registry-adapter` — pass
+classification: `internal`
+- internal-consumer: 6 match(es)
+  - `services/model-registry-adapter/worker.py` ← `DECISION_SERVICE_URL`
+  - `services/model-registry-adapter/runtime.py` ← `DECISION_SERVICE_URL`
+  - `services/model-registry-adapter/tests/test_runtime_contract.py` ← `DECISION_SERVICE_URL`
+  - `docker-compose.v9.yml` ← `DECISION_SERVICE_URL`
+  - `docker-compose.v9.yml` ← `sahool-model-registry-worker`
+
+### `gis-workflow-service` — pass
+classification: `internal`
+- internal-consumer: 20 match(es)
+  - `services/gis-workflow-service/bulletin_figure.py` ← `bulletin`
+  - `services/gis-workflow-service/workflow_spec.py` ← `publication_map`
+  - `services/gis-workflow-service/map_layout.py` ← `publication_map`
+  - `services/gis-workflow-service/map_layout.py` ← `map_layout`
+  - `services/gis-workflow-service/README.md` ← `publication_map`

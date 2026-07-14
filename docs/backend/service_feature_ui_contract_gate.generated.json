@@ -1,8 +1,9 @@
 {
   "gate": "service-feature-ui-contract-gate",
   "version": 1,
-  "service_count": 26,
-  "passed": 26,
+  "inventory_totality": "pass",
+  "service_count": 29,
+  "passed": 29,
   "failed": 0,
   "failures": [],
   "services": [
@@ -736,6 +737,11 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+              "pattern": "weather"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/cost_governance.py",
               "pattern": "weather-service"
             },
@@ -752,15 +758,10 @@
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/crop_twin.py",
-              "pattern": "weather"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/failure_modes.py",
               "pattern": "weather"
             }
           ],
-          "match_count": 290
+          "match_count": 295
         }
       ]
     },
@@ -917,7 +918,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 271
+          "match_count": 278
         }
       ]
     },
@@ -1894,6 +1895,11 @@
           "matches": [
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/controller_edge_adapter.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/phase_runtime_store.py",
               "pattern": "dispatch"
             },
@@ -1919,12 +1925,22 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/offline_sync_db.py",
               "pattern": "dispatch"
             },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/crop_decision_bridge.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/canonical_vri_prescription.py",
               "pattern": "dispatch"
             },
             {
@@ -1936,24 +1952,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/device_registry.py",
               "pattern": "actuator-service"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/water_decision_bridge.py",
-              "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/correlation_middleware.py",
-              "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/field_aggregate.py",
-              "pattern": "dispatch"
             }
           ],
-          "match_count": 84
+          "match_count": 91
         }
       ]
     },
@@ -2610,21 +2611,21 @@
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/api_models.py",
+              "path": "services/sahool-platform/api/canonical_vri_prescription.py",
               "pattern": "RAG"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/decision_explainer.py",
-              "pattern": "local-ai-rag"
+              "path": "services/sahool-platform/api/canonical_as_applied_irrigation.py",
+              "pattern": "RAG"
             },
             {
               "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/decision_explainer.py",
+              "path": "services/sahool-platform/api/api_models.py",
               "pattern": "RAG"
             }
           ],
-          "match_count": 61
+          "match_count": 64
         }
       ]
     },
@@ -2796,6 +2797,224 @@
             }
           ],
           "match_count": 18
+        }
+      ]
+    },
+    {
+      "service": "decision-service",
+      "classification": "internal-sensitive",
+      "status": "pass",
+      "missing_sources": [],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/sahool-platform",
+            "services/actuator-service"
+          ],
+          "patterns": [
+            "DECISION_SERVICE_URL",
+            "decision_service_client",
+            "sahool-decision-service"
+          ],
+          "matches": [
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/phase_runtime_store.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/decision_service_client.py",
+              "pattern": "DECISION_SERVICE_URL"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/decision_service_client.py",
+              "pattern": "sahool-decision-service"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/crop_decision_bridge.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/water_decision_bridge.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/lexicographic_mpc_bridge.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/routers/decision_record.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/routers/decision_review.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/routers/decision_dispatch.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/routers/weather.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/routers/irrigation_recommendation.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/routers/recommendations.py",
+              "pattern": "decision_service_client"
+            }
+          ],
+          "match_count": 22
+        }
+      ]
+    },
+    {
+      "service": "model-registry-adapter",
+      "classification": "internal",
+      "status": "pass",
+      "missing_sources": [],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/model-registry-adapter",
+            "docker-compose.v9.yml"
+          ],
+          "patterns": [
+            "DECISION_SERVICE_URL",
+            "sahool-model-registry-worker",
+            "model-registry"
+          ],
+          "matches": [
+            {
+              "root": "services/model-registry-adapter",
+              "path": "services/model-registry-adapter/worker.py",
+              "pattern": "DECISION_SERVICE_URL"
+            },
+            {
+              "root": "services/model-registry-adapter",
+              "path": "services/model-registry-adapter/runtime.py",
+              "pattern": "DECISION_SERVICE_URL"
+            },
+            {
+              "root": "services/model-registry-adapter",
+              "path": "services/model-registry-adapter/tests/test_runtime_contract.py",
+              "pattern": "DECISION_SERVICE_URL"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "DECISION_SERVICE_URL"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "sahool-model-registry-worker"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "model-registry"
+            }
+          ],
+          "match_count": 6
+        }
+      ]
+    },
+    {
+      "service": "gis-workflow-service",
+      "classification": "internal",
+      "status": "pass",
+      "missing_sources": [],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/gis-workflow-service"
+          ],
+          "patterns": [
+            "publication_map",
+            "bulletin",
+            "map_layout"
+          ],
+          "matches": [
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/bulletin_figure.py",
+              "pattern": "bulletin"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/workflow_spec.py",
+              "pattern": "publication_map"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/map_layout.py",
+              "pattern": "publication_map"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/map_layout.py",
+              "pattern": "map_layout"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/README.md",
+              "pattern": "publication_map"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/README.md",
+              "pattern": "bulletin"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/README.md",
+              "pattern": "map_layout"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/bulletin_render.py",
+              "pattern": "bulletin"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/publication_map.py",
+              "pattern": "publication_map"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/publication_map.py",
+              "pattern": "map_layout"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/run_bundle.py",
+              "pattern": "publication_map"
+            },
+            {
+              "root": "services/gis-workflow-service",
+              "path": "services/gis-workflow-service/run_bundle.py",
+              "pattern": "map_layout"
+            }
+          ],
+          "match_count": 20
         }
       ]
     }
