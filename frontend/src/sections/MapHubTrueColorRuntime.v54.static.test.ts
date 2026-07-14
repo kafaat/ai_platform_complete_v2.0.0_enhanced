@@ -8,6 +8,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const mapHub = readFileSync(join(here, 'MapHub.tsx'), 'utf8');
 const hubMap = readFileSync(join(here, '../components/maphub/HubMap.tsx'), 'utf8');
 const hubMapGL = readFileSync(join(here, '../components/maphub/HubMapGL.tsx'), 'utf8');
+// باني رابط البلاطة استُخرِج إلى وحدة مُشترَكة قابلة للاختبار (indicatorTileUrl.ts) —
+// نتحقّق من العقد فيها، ومن أنّ كِلا المحرّكَين (HubMap/HubMapGL) يستعملانه.
+const tileUrl = readFileSync(join(here, '../components/maphub/indicatorTileUrl.ts'), 'utf8');
 const api = readFileSync(join(here, '../services/api.ts'), 'utf8');
 const layerRegistry = readFileSync(join(here, '../lib/layerRegistry.ts'), 'utf8');
 
@@ -23,14 +26,15 @@ describe('v54 TrueColor runtime verification', () => {
 
   it('renders TrueColor through raster-service cdse-tiles with field polygon clipping, not as the basemap', () => {
     // البلاطة مُقولَبة: `${segment}/{z}/{x}/{y}.png` حيث segment = cdse-tiles الحيّ افتراضاً
-    // (أو /tiles المحفوظ حين التاريخ has_cog). TrueColor الحيّ يبقى على cdse-tiles + قصّ المضلّع.
-    expect(hubMap).toContain('/v1/fields/${field.id}/${segment}/{z}/{x}/{y}.png');
-    expect(hubMap).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
-    expect(hubMap).toContain("params.set('poly'");
-    expect(hubMap).toContain("params.set('bbox_w'");
-    expect(hubMap).toContain('access_token');
-    expect(hubMapGL).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
-    expect(hubMapGL).toContain("params.set('poly'");
+    // (أو /tiles المحفوظ حين التاريخ has_cog). المنطق في الباني المُشترَك (indicatorTileUrl.ts).
+    expect(tileUrl).toContain('/v1/fields/${field.id}/${segment}/{z}/{x}/{y}.png');
+    expect(tileUrl).toContain("preferPersistedCog ? 'tiles' : 'cdse-tiles'");
+    expect(tileUrl).toContain("params.set('poly'");
+    expect(tileUrl).toContain("params.set('bbox_w'");
+    expect(tileUrl).toContain('access_token');
+    // وكِلا المحرّكَين يستعملان الباني المُشترَك فينطبق العقد عليهما.
+    expect(hubMap).toContain('indicatorTileUrl(');
+    expect(hubMapGL).toContain('indicatorTileUrl(');
   });
 
   it('does not show numeric scale legends for TrueColor', () => {
