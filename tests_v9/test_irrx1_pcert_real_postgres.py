@@ -95,19 +95,41 @@ def test_irrx1_pcert_schema_rls_and_database_state_machine() -> None:
                 await conn.execute(
                     "SELECT set_config('app.current_tenant', $1, true)", str(tenant_a)
                 )
+                # v190 authoritative-provenance lock: an execution may only be created
+                # from a registered authoritative source with matching provenance.
+                await conn.execute(
+                    """INSERT INTO irrigation_manual_execution_sources (
+                           tenant_id, execution_plan_id, decision_id, review_id,
+                           candidate_lineage_id, field_id, season_id, system_id,
+                           target_depth_mm, target_volume_m3, nominal_flow_m3_h,
+                           valid_from, valid_until, water_truth_digest, plan_digest,
+                           source_payload, created_by
+                       ) VALUES ($1,'plan-a','dec-a','rev-a','lin-a',
+                                 'field-a','season-a','system-a',10,1000,100,
+                                 $2,$3,$4,$5,'{}'::jsonb,'pcert')""",
+                    tenant_a,
+                    now - timedelta(hours=1),
+                    now + timedelta(hours=8),
+                    _digest("water"),
+                    _digest("plan"),
+                )
                 await conn.execute(
                     """INSERT INTO irrigation_manual_executions (
                            execution_id, tenant_id, field_id, season_id, system_id,
                            recommendation_id, recommendation_digest, execution_mode, state,
                            target_depth_mm, target_volume_m3, nominal_flow_m3_h,
-                           valid_from, valid_until, idempotency_key, created_by
+                           valid_from, valid_until, idempotency_key, created_by,
+                           decision_id, execution_plan_id, plan_digest, water_truth_digest
                        ) VALUES ($1,$2,'field-a','season-a','system-a','rec-a',$3,
-                                 'manual_measured','recommended',10,1000,100,$4,$5,'pcert-key','pcert')""",
+                                 'manual_measured','recommended',10,1000,100,$4,$5,'pcert-key','pcert',
+                                 'dec-a','plan-a',$6,$7)""",
                     execution_id,
                     tenant_a,
                     _digest("recommendation"),
                     now - timedelta(hours=1),
                     now + timedelta(hours=8),
+                    _digest("plan"),
+                    _digest("water"),
                 )
 
                 # RLS: another tenant cannot read or mutate tenant A's execution.
@@ -161,19 +183,40 @@ def test_irrx1_pcert_append_only_and_tenant_bound_children() -> None:
         try:
             async with conn.transaction():
                 await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant))
+                # v190 authoritative-provenance lock: seed the registered source first.
+                await conn.execute(
+                    """INSERT INTO irrigation_manual_execution_sources (
+                           tenant_id, execution_plan_id, decision_id, review_id,
+                           candidate_lineage_id, field_id, season_id, system_id,
+                           target_depth_mm, target_volume_m3, nominal_flow_m3_h,
+                           valid_from, valid_until, water_truth_digest, plan_digest,
+                           source_payload, created_by
+                       ) VALUES ($1,'plan-b','dec-b','rev-b','lin-b',
+                                 'field-b','season-b','system-b',8,800,80,
+                                 $2,$3,$4,$5,'{}'::jsonb,'pcert')""",
+                    tenant,
+                    now - timedelta(hours=1),
+                    now + timedelta(hours=8),
+                    _digest("water-2"),
+                    _digest("plan-2"),
+                )
                 await conn.execute(
                     """INSERT INTO irrigation_manual_executions (
                            execution_id, tenant_id, field_id, season_id, system_id,
                            recommendation_id, recommendation_digest, execution_mode, state,
                            target_depth_mm, target_volume_m3, nominal_flow_m3_h,
-                           valid_from, valid_until, idempotency_key, created_by
+                           valid_from, valid_until, idempotency_key, created_by,
+                           decision_id, execution_plan_id, plan_digest, water_truth_digest
                        ) VALUES ($1,$2,'field-b','season-b','system-b','rec-b',$3,
-                                 'manual_measured','recommended',8,800,80,$4,$5,'pcert-key-2','pcert')""",
+                                 'manual_measured','recommended',8,800,80,$4,$5,'pcert-key-2','pcert',
+                                 'dec-b','plan-b',$6,$7)""",
                     execution_id,
                     tenant,
                     _digest("recommendation-2"),
                     now - timedelta(hours=1),
                     now + timedelta(hours=8),
+                    _digest("plan-2"),
+                    _digest("water-2"),
                 )
                 await conn.execute(
                     """INSERT INTO irrigation_manual_execution_events
