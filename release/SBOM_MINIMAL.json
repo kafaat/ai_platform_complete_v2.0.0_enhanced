@@ -2125,7 +2125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e09965f954940dc6adba44cbb6f6cf245de8378a1ced9ccc12ce9dedfb29a923"
+          "content": "fe4421c6c7e98699d842677da5bee8d54ae8ae5a08fda906339626dfee93464b"
         }
       ],
       "name": "frontend/src/components/maphub/weather/WeatherHoverReadout.ts",
@@ -2285,7 +2285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "567d0e49aeeaa932dc08e7d16cc85ca221adb01a31af6a9fd0ac65b76f81349e"
+          "content": "7cb6c92e2c3288c2dd7cd7973251359c531279ac9693d11604738f23441ea49c"
         }
       ],
       "name": "frontend/src/components/sql/SQLEditor.tsx",
@@ -2919,6 +2919,26 @@
         }
       ],
       "name": "frontend/src/lib/cropSafetyKnowledge.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8a2c4b2940057376d586339e1015de8ab16b90e88a3881adcf008f5b49b52520"
+        }
+      ],
+      "name": "frontend/src/lib/csv.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "11fae008b7b3863588871af579ca2ec9b08ec9d7ea175989b6c9f614d4e68993"
+        }
+      ],
+      "name": "frontend/src/lib/csv.ts",
       "type": "file"
     },
     {
@@ -5465,7 +5485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e681cde182c6bbbd55f3920d669ba10b1a0cf2e8134d3d52c58fd1e9d87bda25"
+          "content": "d9a8748db4c55cce25456f7f3be7f5f6b3ce3ca9b07c3efdd1a39ddc4e53a5e0"
         }
       ],
       "name": "frontend/src/sections/ReportsPage.tsx",

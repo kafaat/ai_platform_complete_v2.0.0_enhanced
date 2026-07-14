@@ -79,7 +79,17 @@ export function registerWeatherHoverReadout(
   const render = (lat: number, lng: number, valueLine: string) => {
     if (disposed) return;
     const cfg = layerConfig(layer);
-    tip.innerHTML = `<b>${cfg.shortAr}</b>: <b>${valueLine}</b><br/><span style="opacity:0.7">${lat.toFixed(3)}, ${lng.toFixed(3)}</span>`;
+    // بناء DOM بـtextContent بدل innerHTML — قيمة الطبقة/القياس (valueLine) لا تُحقَن
+    // كـHTML، فيُغلَق سطح XSS في قراءة تمرير الطقس (continuation-2 #14).
+    tip.replaceChildren();
+    const label = document.createElement('b');
+    label.textContent = cfg.shortAr;
+    const value = document.createElement('b');
+    value.textContent = valueLine;
+    const coords = document.createElement('span');
+    coords.style.opacity = '0.7';
+    coords.textContent = `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
+    tip.append(label, document.createTextNode(': '), value, document.createElement('br'), coords);
   };
 
   const position = (point: L.Point) => {

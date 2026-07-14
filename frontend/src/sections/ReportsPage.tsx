@@ -13,6 +13,7 @@
 // ═══════════════════════════════════════════════════════════════
 import { useMemo, useState } from 'react';
 import { useQueries } from '@tanstack/react-query';
+import { csvRow } from '../lib/csv';
 import {
   Download, BarChart3, DollarSign, ListChecks, Wallet, Printer,
   Tractor, Layers, Maximize2, Sprout, BellRing, Wheat, ClipboardList,
@@ -74,15 +75,11 @@ const num = (n: number) => (n ?? 0).toLocaleString('en-US');
 
 // هروب CSV قياسيّ (RFC 4180): اقتبس القيمة إن احتوت فاصلة/اقتباس/سطراً جديداً
 // وضاعِف الاقتباسات الداخليّة — يمنع تحريف الأعمدة (نصوص عربيّة قد تحوي ",").
-function csvCell(v: unknown): string {
-  const s = v == null ? '' : String(v);
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-
 function exportToCSV(data: Record<string, unknown>[], filename: string) {
   if (!data.length) return;
-  const headers = Object.keys(data[0]).map(csvCell).join(',');
-  const rows = data.map(r => Object.values(r).map(csvCell).join(','));
+  // ترميز آمن مُشترَك: تهريب RFC-4180 + تحييد حقن الصيغ (F-UI-38).
+  const headers = csvRow(Object.keys(data[0]));
+  const rows = data.map(r => csvRow(Object.values(r)));
   const csv = '﻿' + [headers, ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');

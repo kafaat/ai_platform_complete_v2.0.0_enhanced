@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { useSelectedField } from '../../hooks/useSelectedField';
 import { useDuckDBFields } from '../../hooks/useDuckDB';
 import type { FieldRow, QueryResult } from '../../services/duckdb';
+import { csvRow } from '../../lib/csv';
 import { exportQueryToParquet } from '../../services/duckdb';
 import { DataTable, type Column } from '../ds/table';
 import { LoadingState, ErrorState, EmptyState } from '../StateViews';
@@ -56,14 +57,10 @@ function formatCell(v: unknown): string {
   return String(v);
 }
 
-/** يحوّل النتيجة إلى CSV مع تهريب صحيح (اقتباس عند فاصلة/سطر/علامة). */
+/** يحوّل النتيجة إلى CSV عبر المُرمّز الآمن المُشترَك (تهريب RFC-4180 + تحييد حقن الصيغ، F-UI-38). */
 function toCsv(columns: string[], rows: Record<string, unknown>[]): string {
-  const esc = (v: unknown): string => {
-    const s = v === null || v === undefined ? '' : String(v);
-    return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  const head = columns.map(esc).join(',');
-  const body = rows.map((r) => columns.map((c) => esc(r[c])).join(',')).join('\r\n');
+  const head = csvRow(columns);
+  const body = rows.map((r) => csvRow(columns.map((c) => r[c]))).join('\r\n');
   return `${head}\r\n${body}`;
 }
 
