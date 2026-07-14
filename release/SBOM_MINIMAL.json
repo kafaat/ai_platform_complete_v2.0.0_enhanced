@@ -205,6 +205,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "93e6cdf8ec26244ffa7773786d3bdeced5420e68ec6fe0e2eeb37c4c9e0c513b"
+        }
+      ],
+      "name": "frontend/e2e/__screenshots__/ui-chrome.visual.spec.ts/login-screen.png",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3ed11961ef87c4f3338428ca84e0ace0a6165d6ef339cf86cd5820f4d81fc38d"
+        }
+      ],
+      "name": "frontend/e2e/__screenshots__/ui-chrome.visual.spec.ts/settings-general.png",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f49c55435656f02aa355a91563a0291a44c8347e86d0804c8a6c08d6be93f14a"
         }
       ],
@@ -265,10 +285,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "214ed0a490951118a1eb09f3e881332e37622ade92d4e1c7ed014458f28d91a2"
+          "content": "752fcfecbc3602ab028351c4567f6fe0f6235ff87f73dd0f1c1df9f54e77ddf0"
         }
       ],
       "name": "frontend/e2e/support/seed.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7e683aa5176ddbe646e9e26d5e61b678dbb394e9f9741273ad73e848b8a558cd"
+        }
+      ],
+      "name": "frontend/e2e/ui-chrome.visual.spec.ts",
       "type": "file"
     },
     {
@@ -335,7 +365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ae542c8ecef4030a35358bde7a8cfe3beef06303a84149820f1940feb58d6493"
+          "content": "c1bd8e55cae7401f62106d0cb6c4e8f4c8979f797751eb0f78b7641bd348132b"
         }
       ],
       "name": "frontend/package.json",
@@ -345,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b2da7b469b7e5adc3c73c0b8c283ca92847f62d49e295fb05baca7bfc51fc5f"
+          "content": "e48f25e9ddc7a8cc7f0d0f4169487bcc9622136c76b459f74c50065946eb49cf"
         }
       ],
       "name": "frontend/playwright.config.ts",
@@ -2859,6 +2889,26 @@
         }
       ],
       "name": "frontend/src/lib/agronomyConsistency.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a342151a09db921faa576abc05be95e8b96b2f07e3068435c9cbcb9de729b6fb"
+        }
+      ],
+      "name": "frontend/src/lib/appSettings.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b4760c728bad7313e71b2aa77d145de53a39f60055509e23ece22986e58c27e"
+        }
+      ],
+      "name": "frontend/src/lib/appSettings.ts",
       "type": "file"
     },
     {
@@ -5635,7 +5685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7ff7d01d5c24c3e5a24b6b5511cddaf8ed7e8c35724be7bbd8e7ac58bac3be3a"
+          "content": "4de78e850255cb1b9af9f6827978e0251482c8f216d4ce379cad2240824ee485"
         }
       ],
       "name": "frontend/src/sections/SettingsPage.tsx",
@@ -5645,7 +5695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8a05fbbbf4a2523a9a10377ac1f1b65b95a60f6fd7017bc75f8d6f7da0590654"
+          "content": "042486b06419cf0cfa7c0b7b19b1af370b765a72d1fc5ff6697b5359983f5e3d"
         }
       ],
       "name": "frontend/src/sections/SetupCabin.tsx",

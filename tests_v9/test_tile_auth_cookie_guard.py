@@ -76,12 +76,16 @@ def test_frontend_prod_gates_jwt_and_tenant_out_of_tile_urls() -> None:
     # tid مقصور على التطوير.
     assert "if (!import.meta.env.PROD && tenantId) params.set('tid', tenantId);" in api
 
-    # بانيا HubMap/HubMapGL المباشرين: access_token + tenant_id خلف حارس الإنتاج.
+    # باني رابط البلاطة استُخرِج إلى وحدة مُشترَكة قابلة للاختبار (indicatorTileUrl.ts):
+    # نتحقّق من حارس الإنتاج فيها — access_token + tenant_id خلف `!import.meta.env.PROD`.
+    tile_url = _read("frontend/src/components/maphub/indicatorTileUrl.ts")
+    assert "if (!import.meta.env.PROD) {" in tile_url
+    assert "params.set('access_token', tok)" in tile_url
+    assert "if (!import.meta.env.PROD && tenantId) params.set('tenant_id', tenantId);" in tile_url
+
+    # وكِلا المحرّكَين (HubMap/HubMapGL) يستعملان الباني المُشترَك ⇒ ينطبق الحارس عليهما.
     for rel in (
         "frontend/src/components/maphub/HubMap.tsx",
         "frontend/src/components/maphub/HubMapGL.tsx",
     ):
-        src = _read(rel)
-        assert "if (!import.meta.env.PROD) {" in src
-        assert "params.set('access_token', _tok)" in src
-        assert "if (!import.meta.env.PROD && tenantId) params.set('tenant_id', tenantId);" in src
+        assert "indicatorTileUrl(" in _read(rel)
