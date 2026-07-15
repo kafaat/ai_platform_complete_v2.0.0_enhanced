@@ -789,7 +789,7 @@ services:
       PLATFORM_API_URL: http://sahool-platform:8000
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
-      VEGETATION_REAL_ONLY: "1"
+      VEGETATION_REAL_ONLY: "0"
       # vegetation publishes events best-effort; NATS is not a startup/readiness blocker.
       VEGETATION_NATS_PUBLISH_MODE: ${VEGETATION_NATS_PUBLISH_MODE:-best_effort}
       # نبات → decision-service: دفع لقطات النبات المُصانة (opt-in، fail-soft). العنوان يطابق
