@@ -2194,7 +2194,15 @@
   {
     "service": "remote-sensing-workspace-bff",
     "file": "services/remote-sensing-workspace-bff/main.py",
-    "line": 44,
+    "line": 32,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "readyz"
+  },
+  {
+    "service": "remote-sensing-workspace-bff",
+    "file": "services/remote-sensing-workspace-bff/main.py",
+    "line": 63,
     "method": "GET",
     "path": "/v1/fields/{field_id}/remote-sensing-workspace",
     "function": "workspace"
@@ -7826,7 +7834,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 94,
+    "line": 96,
     "method": "POST",
     "path": "/v1/fields/{field_id}/signal-anomalies/detect",
     "function": "detect_signal_anomalies"
@@ -7834,7 +7842,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 150,
+    "line": 152,
     "method": "GET",
     "path": "/v1/fields/{field_id}/signal-anomalies",
     "function": "list_signal_anomalies"
@@ -7842,7 +7850,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 164,
+    "line": 166,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/transition",
     "function": "transition_anomaly"
@@ -7850,7 +7858,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 187,
+    "line": 189,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
     "function": "request_ground_verification"
@@ -7858,7 +7866,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 220,
+    "line": 222,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
     "function": "accept_verification_result"
@@ -7874,7 +7882,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/diagnoses.py",
-    "line": 29,
+    "line": 31,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/diagnoses",
     "function": "generate_diagnosis"
@@ -7882,7 +7890,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/diagnoses.py",
-    "line": 52,
+    "line": 54,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/decision-referrals",
     "function": "refer_to_decision"
@@ -7918,6 +7926,30 @@
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/outcomes.py",
+    "line": 45,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/post-execution-observations",
+    "function": "schedule_post_execution_observation"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/outcomes.py",
+    "line": 67,
+    "method": "POST",
+    "path": "/v1/execution-requests/{execution_request_id}/remote-sensing-outcome",
+    "function": "verify_remote_sensing_outcome"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/outcomes.py",
+    "line": 88,
+    "method": "POST",
+    "path": "/v1/outcomes/{outcome_id}/remote-sensing-attribution",
+    "function": "attribute_remote_sensing_outcome"
   },
   {
     "service": "video-processor",

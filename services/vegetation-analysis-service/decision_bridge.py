@@ -38,10 +38,16 @@ class DecisionBridge:
         body = diagnosis.model_dump(mode="json")
         canonical = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
         snapshot_hash = hashlib.sha256(canonical).hexdigest()
+        snapshot_idempotency = "idmp_rs8_snapshot_" + snapshot_hash
+        decision_idempotency = (
+            "idmp_rs8_decision_"
+            + hashlib.sha256(f"{diagnosis.diagnosis_ref}|{snapshot_hash}".encode()).hexdigest()
+        )
         headers = {
             "Authorization": authorization,
             "X-Tenant-Id": str(diagnosis.tenant_id),
             "Content-Type": "application/json",
+            "Idempotency-Key": snapshot_idempotency,
         }
         now = datetime.now(UTC)
         snapshot_payload = {
@@ -80,8 +86,11 @@ class DecisionBridge:
                 "confidence": float(diagnosis.confidence),
                 "vegetation_snapshot_id": snapshot_id,
             }
+            decision_headers = {**headers, "Idempotency-Key": decision_idempotency}
             dec = await client.post(
-                f"{self.base_url}/v1/decisions/record", headers=headers, json=decision_payload
+                f"{self.base_url}/v1/decisions/record",
+                headers=decision_headers,
+                json=decision_payload,
             )
             if dec.status_code >= 400:
                 raise RuntimeError(f"decision_referral_rejected:{dec.status_code}")
@@ -113,4 +122,11 @@ class DecisionBridge:
             ),
             referred_at=now,
         )
-        return {"referral": referral.model_dump(mode="json"), "decision_service": result}
+        return {
+            "referral": referral.model_dump(mode="json"),
+            "decision_service": result,
+            "idempotency": {
+                "snapshot": snapshot_idempotency,
+                "decision": decision_idempotency,
+            },
+        }

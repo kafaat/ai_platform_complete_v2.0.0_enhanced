@@ -20,12 +20,31 @@ VEGETATION_URL = os.getenv(
 DECISION_URL = os.getenv("DECISION_SERVICE_URL", "http://sahool-decision-service:8160").rstrip("/")
 TASK_URL = os.getenv("TASK_SERVICE_URL", "").rstrip("/")
 TIMEOUT = float(os.getenv("WORKSPACE_BFF_TIMEOUT_S", "6"))
-_ALLOWED = {"overview", "timeline", "anomalies", "ground", "decisions", "compare"}
+_ALLOWED = {"overview", "timeline", "anomalies", "ground", "decisions", "compare", "outcomes"}
 
 
 @app.get("/healthz")
 def healthz() -> dict[str, str]:
     return {"status": "ok", "service": "remote-sensing-workspace-bff"}
+
+
+@app.get("/readyz")
+def readyz() -> dict[str, Any]:
+    required = {
+        "indicators": INDICATORS_URL,
+        "vegetation": VEGETATION_URL,
+        "decision": DECISION_URL,
+    }
+    missing = sorted(name for name, value in required.items() if not value)
+    if missing:
+        raise HTTPException(
+            503, detail={"code": "workspace_upstream_not_configured", "services": missing}
+        )
+    return {
+        "status": "ready",
+        "service": "remote-sensing-workspace-bff",
+        "task_service_configured": bool(TASK_URL),
+    }
 
 
 async def _get(
@@ -44,7 +63,7 @@ async def _get(
 async def workspace(
     field_id: str,
     season_id: str,
-    include: str = Query(default="overview,timeline,anomalies,ground,decisions,compare"),
+    include: str = Query(default="overview,timeline,anomalies,ground,decisions,compare,outcomes"),
     authorization: str = Header(..., alias="Authorization"),
     tenant_id: str = Header(..., alias="X-Tenant-Id"),
 ) -> dict[str, Any]:
@@ -52,6 +71,10 @@ async def workspace(
     unknown = sorted(sections - _ALLOWED)
     if unknown:
         raise HTTPException(422, detail={"code": "unknown_workspace_sections", "sections": unknown})
+    if not tenant_id.strip() or len(tenant_id) > 128:
+        raise HTTPException(400, detail={"code": "invalid_tenant_id"})
+    if not field_id.strip() or len(field_id) > 128:
+        raise HTTPException(400, detail={"code": "invalid_field_id"})
     headers = {"Authorization": authorization, "X-Tenant-Id": tenant_id}
     result: dict[str, Any] = {
         "field_id": field_id,
@@ -83,6 +106,13 @@ async def workspace(
                 headers,
                 {"field_id": field_id, "season_id": season_id, "limit": 100},
             )
+        if "outcomes" in sections or "overview" in sections:
+            calls["outcomes"] = _get(
+                client,
+                f"{DECISION_URL}/v1/outcomes/reconciled",
+                headers,
+                {"field_id": field_id, "season_id": season_id},
+            )
         if "ground" in sections and TASK_URL:
             calls["ground"] = _get(
                 client,
@@ -97,7 +127,10 @@ async def workspace(
         errors: dict[str, str] = {}
         for name, value in zip(names, values, strict=True):
             if isinstance(value, Exception):
-                errors[name] = str(value)
+                message = str(value)
+                errors[name] = (
+                    message if message.startswith("upstream_") else "upstream_unavailable"
+                )
             else:
                 raw[name] = value
 
@@ -107,6 +140,8 @@ async def workspace(
         result["sections"]["anomalies"] = raw.get("anomalies", {"anomalies": []})
     if "decisions" in sections:
         result["sections"]["decisions"] = raw.get("decisions", {"decisions": [], "count": 0})
+    if "outcomes" in sections:
+        result["sections"]["outcomes"] = raw.get("outcomes", {"outcomes": [], "count": 0})
     if "ground" in sections:
         if TASK_URL:
             result["sections"]["ground"] = raw.get("ground", {"items": []})
@@ -126,11 +161,13 @@ async def workspace(
         timeline = raw.get("timeline", {})
         anomalies = raw.get("anomalies", {}).get("anomalies", [])
         decisions = raw.get("decisions", {}).get("decisions", [])
+        outcomes = raw.get("outcomes", {}).get("outcomes", [])
         result["sections"]["overview"] = {
             "latest_observation_refs": timeline.get("latest_observation_refs", {}),
             "observation_count": len(timeline.get("items", [])),
             "open_anomaly_count": sum(1 for item in anomalies if item.get("status") != "resolved"),
             "decision_count": len(decisions),
+            "verified_outcome_count": len(outcomes),
         }
     if errors:
         result["partial"] = True

@@ -29,6 +29,7 @@ COPY services/vegetation-analysis-service/anomaly_store.py /app/anomaly_store.py
 COPY services/vegetation-analysis-service/ground_verification_bridge.py /app/ground_verification_bridge.py
 COPY services/vegetation-analysis-service/diagnosis_engine.py /app/diagnosis_engine.py
 COPY services/vegetation-analysis-service/decision_bridge.py /app/decision_bridge.py
+COPY services/vegetation-analysis-service/post_execution_bridge.py /app/post_execution_bridge.py
 # indicator_registry.py يقرأ ملفّ القدرات المُولَّد عند الاستيراد
 # (Path(__file__).with_name("indicator_capabilities.generated.json")). غير منسوخ ⇒
 # FileNotFoundError عند الإقلاع ⇒ تعطّل الخدمة. نسخه إلزاميّ.

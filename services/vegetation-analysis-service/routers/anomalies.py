@@ -58,6 +58,8 @@ class VerificationCompletion(BaseModel):
 
 
 async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[dict[str, Any]]:
+    # Call the engine route's dependencies through indicators directly to avoid an
+    # HTTP self-call when running as one process.
     import routers.baselines as baseline_router
 
     tenant_id = main._tenant_from_claims(main._verify_claims(token))
@@ -66,7 +68,7 @@ async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[
             response = await client.get(
                 f"{baseline_router.INDICATORS_SERVICE_URL}/v1/fields/{field_id}/observation-timeline",
                 params={"season_id": request.season_id, "indicators": request.indicator},
-                headers={"X-Tenant-Id": tenant_id},
+                headers={"X-Tenant-Id": tenant_id, "Authorization": f"Bearer {token}"},
             )
         if response.status_code != 200:
             raise HTTPException(424, "canonical observation timeline unavailable")

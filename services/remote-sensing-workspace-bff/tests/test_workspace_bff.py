@@ -33,3 +33,13 @@ def test_ground_section_is_honest_when_task_service_missing(monkeypatch):
     )
     assert response.status_code == 200
     assert response.json()["sections"]["ground"]["configured"] is False
+
+
+def test_outcomes_is_legal_workspace_section():
+    assert "outcomes" in mod._ALLOWED
+
+
+def test_readyz_reports_optional_task_service():
+    response = client.get("/readyz")
+    assert response.status_code == 200
+    assert response.json()["task_service_configured"] is False

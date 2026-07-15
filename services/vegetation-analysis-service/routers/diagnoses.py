@@ -7,7 +7,7 @@ from anomaly_store import AnomalyNotFound, InvalidTransition
 from decision_bridge import DecisionBridge
 from diagnosis_engine import build_diagnosis
 from fastapi import APIRouter, Depends, Header, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from routers.anomalies import _store
 
 router = APIRouter()
@@ -15,10 +15,12 @@ _bridge = DecisionBridge()
 
 
 class DiagnosisRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     expected_version: int = Field(ge=1)
 
 
 class ReferralRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     expected_version: int = Field(ge=1)
     field_state_ref: str
     soil_context_ref: str | None = None

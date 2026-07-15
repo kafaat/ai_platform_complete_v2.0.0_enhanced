@@ -44,8 +44,11 @@ class AnomalyStore:
         self._init()
 
     def _connect(self) -> sqlite3.Connection:
-        conn = sqlite3.connect(self.path, timeout=10)
+        conn = sqlite3.connect(self.path, timeout=10, isolation_level=None)
         conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=FULL")
+        conn.execute("PRAGMA busy_timeout=10000")
         return conn
 
     def _init(self) -> None:
@@ -72,13 +75,9 @@ class AnomalyStore:
         ref = str(payload["anomaly_ref"])
         now = datetime.now(UTC).isoformat()
         with self._lock, self._connect() as conn:
-            existing = conn.execute(
-                "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (ref,)
-            ).fetchone()
-            if existing:
-                return self._row(existing)
+            conn.execute("BEGIN IMMEDIATE")
             conn.execute(
-                """INSERT INTO signal_anomalies
+                """INSERT OR IGNORE INTO signal_anomalies
                    (anomaly_ref, tenant_id, field_id, season_id, status, version, payload_json, created_at, updated_at)
                    VALUES (?, ?, ?, ?, 'detected', 1, ?, ?, ?)""",
                 (
@@ -94,6 +93,7 @@ class AnomalyStore:
             row = conn.execute(
                 "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (ref,)
             ).fetchone()
+            conn.commit()
             return self._row(row)
 
     def get(self, anomaly_ref: str) -> dict[str, Any]:
@@ -125,6 +125,7 @@ class AnomalyStore:
         task_ref: str | None = None,
     ) -> dict[str, Any]:
         with self._lock, self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
             row = conn.execute(
                 "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (anomaly_ref,)
             ).fetchone()
@@ -140,7 +141,7 @@ class AnomalyStore:
             payload["status"] = new_status
             payload["updated_at"] = datetime.now(UTC).isoformat()
             version = expected_version + 1
-            conn.execute(
+            cursor = conn.execute(
                 """UPDATE signal_anomalies
                    SET status = ?, version = ?, task_ref = COALESCE(?, task_ref), payload_json = ?, updated_at = ?
                    WHERE anomaly_ref = ? AND version = ?""",
@@ -154,9 +155,13 @@ class AnomalyStore:
                     expected_version,
                 ),
             )
+            if cursor.rowcount != 1:
+                conn.rollback()
+                raise InvalidTransition("aggregate_version_conflict")
             updated = conn.execute(
                 "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (anomaly_ref,)
             ).fetchone()
+            conn.commit()
             return self._row(updated)
 
     @staticmethod

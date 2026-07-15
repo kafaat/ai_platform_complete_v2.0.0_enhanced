@@ -13285,7 +13285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "006ce8eafce76df509493d400ad41b9dd26563b3810fa8b0387a376f36b3b962"
+          "content": "a3e69b5dc50bf95a127c7bc560344a5ec88611c43a052740124a021e72c0cc22"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/main.py",
@@ -13305,7 +13305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6717dba40e42f259965b5f39fdfee004716b5b0d0778fbeab15f4548ff49ce89"
+          "content": "3a7a3116015b6e3c107bf8c0a91284dc7596333a7104a81a59ca3e6aa875c7e5"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
@@ -26095,7 +26095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "afc1837511c8d4b7f25906e2dff399d6cc45f35aad7d9cbc36fcdc035b62d4c6"
+          "content": "d5894849e758f132d29e204da538090b62798f32f7e078f10797feab1c413725"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -26125,7 +26125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ea8ed3e23bb5f49964a859074945a495b3e3bc2579c6b1d41840882c61c1c606"
+          "content": "1c9eb9d22e4d04c6ee70a4111ec566cd94d169e94932ba0cf7a13b05b51bee6b"
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_store.py",
@@ -26145,7 +26145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d5c4a4ac68fb6053d4c88d59ce58f98f5c979dbe2d13c203a848ee9c807bb0d"
+          "content": "e804b3033948b7e7f34eab68c44e3561bc28a4d2bdb36a3671418f74779928b8"
         }
       ],
       "name": "services/vegetation-analysis-service/decision_bridge.py",
@@ -26205,6 +26205,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e6665f0a644f7213db2af18105a31bee161f2d39219a5c3daee30158abed546b"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/post_execution_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c39d3a2e98346ca32ce06637f5f74c252873e6d2d7b985a624b7d8af919c7662"
         }
       ],
@@ -26245,7 +26255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b4d1c5868632489b778863843b8af0f71f98d3f8191b78c7ff733282ed425e40"
+          "content": "95f02e5cdfd69ccd12a62cc4b6a4094729fb77a00ec289da223d3acae1646410"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/anomalies.py",
@@ -26265,7 +26275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "edae1103b1092ae71f51c37663301fb6fd4b558dc10bf479bca5fa48d76de7bc"
+          "content": "3c9f5713fc4d81018997267c9fb2e135ff698d45f7bd097cefcfe8d5386c88e0"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/diagnoses.py",
@@ -26279,6 +26289,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "29a592c0e713deba56765ae714ca3c315c78f7acc1da577391de4d3a569061d5"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/outcomes.py",
       "type": "file"
     },
     {
@@ -26365,6 +26385,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "523a6a5dca801cae906f9f28a3bea2759f81594ee1cd9f4e74f8993b589d2363"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "98a5ac4746a71b31e8c92d29fc1f038584d0cde80fb685283d27babdb5a1e8b2"
         }
       ],
@@ -26379,6 +26409,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "330628742c6460911ea08ba706f9b0d5b1f41ee3190fb5a1e9cdf84a00ba5a0a"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_rs_review_hardening.py",
       "type": "file"
     },
     {
