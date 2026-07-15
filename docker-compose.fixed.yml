@@ -311,6 +311,9 @@ services:
       JWT_EXPIRE_MINUTES: 60
       REFRESH_EXPIRE_DAYS: 30
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
+      # MFA للأدوار الحسّاسة — مُفعَّل افتراضاً (fail-safe إنتاجيّ). عطّله في التطوير فقط.
+      ENFORCE_SENSITIVE_MFA: ${ENFORCE_SENSITIVE_MFA:-true}
+      REQUIRE_MFA_ROLES: ${REQUIRE_MFA_ROLES:-admin}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}

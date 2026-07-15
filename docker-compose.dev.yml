@@ -23,3 +23,6 @@ services:
       # HTTP, so the sahool_at cookie must be non-Secure or Leaflet <img> tile loads
       # never carry it and the raster gateway 401s. Production keeps 'auto'/'1'.
       AUTH_COOKIE_SECURE: "0"
+      # dev-only: skip sensitive-role MFA so the admin can log in during local bring-up.
+      # Production/staging keep ENFORCE_SENSITIVE_MFA defaulting to true (fail-safe).
+      ENFORCE_SENSITIVE_MFA: "false"
