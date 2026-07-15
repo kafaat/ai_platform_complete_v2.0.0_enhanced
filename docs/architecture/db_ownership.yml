@@ -1,2009 +1,1571 @@
+# P0 DB ownership baseline. One table -> one writer owner.
+# This file is parsed by tests without external YAML dependencies.
 tables:
   IF:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v58_field_boundary_quality.sql, migrations/v75_work_orders.sql,
-      migrations/v76_crop_kc_timeseries.sql, migrations/v77_recommendations.sql
+    source: "migrations/v58_field_boundary_quality.sql, migrations/v75_work_orders.sql, migrations/v76_crop_kc_timeseries.sql, migrations/v77_recommendations.sql"
   activities:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v35_activities.sql
+    source: "migrations/v35_activities.sql"
   activity_log:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: services/sahool-platform/storage/lite_store.py
+    source: "services/sahool-platform/storage/lite_store.py"
   actuation_killswitch:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v133_actuation_killswitch.sql
+    source: "migrations/v133_actuation_killswitch.sql"
   actuator_command_dedup:
     owner: actuator-service
-    writers:
-    - actuator-service
-    readers:
-    - sahool-platform
-    source: migrations/v81_actuator_command_dedup.sql
+    writers: [actuator-service]
+    readers: [sahool-platform]
+    source: "migrations/v81_actuator_command_dedup.sql"
   actuator_command_outbox:
     owner: actuator-service
-    writers:
-    - actuator-service
-    readers:
-    - sahool-platform
-    source: migrations/v118_phase9_autonomous_farm_os.sql
+    writers: [actuator-service]
+    readers: [sahool-platform]
+    source: "migrations/v118_phase9_autonomous_farm_os.sql"
   agent_authority_envelopes:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v111_phase11_federated_agent_runtime.sql
+    source: "migrations/v111_phase11_federated_agent_runtime.sql"
   agent_conflict_resolutions:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v111_phase11_federated_agent_runtime.sql
+    source: "migrations/v111_phase11_federated_agent_runtime.sql"
   agent_federation_cycles:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v120_phase11_federated_agents.sql
+    source: "migrations/v120_phase11_federated_agents.sql"
   agent_proposals:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v120_phase11_federated_agents.sql
+    source: "migrations/v120_phase11_federated_agents.sql"
   agent_queries:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_new_tables.sql
+    source: "migrations/v9_new_tables.sql"
   agent_reputation_scores:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v111_phase11_federated_agent_runtime.sql
+    source: "migrations/v111_phase11_federated_agent_runtime.sql"
   agent_tool_audit:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v126_agent_tool_audit.sql
+    source: "migrations/v126_agent_tool_audit.sql"
   alerts:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v36_alerts.sql
+    source: "migrations/v36_alerts.sql"
   approval_workflows:
     owner: guardrails-engine
-    writers:
-    - guardrails-engine
-    readers:
-    - sahool-platform
-    source: migrations/v9_new_tables.sql
+    writers: [guardrails-engine]
+    readers: [sahool-platform]
+    source: "migrations/v9_new_tables.sql"
   audit_log:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_auth_improvements.sql
+    source: "migrations/v9_auth_improvements.sql"
   automation_rules:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v20_automation_tables.sql
+    source: "migrations/v20_automation_tables.sql"
   autonomous_event_store:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v107_phase9_10_event_drift_hardening.sql
+    source: "migrations/v107_phase9_10_event_drift_hardening.sql"
   autonomous_execution_plan:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v118_phase9_autonomous_farm_os.sql
+    source: "migrations/v118_phase9_autonomous_farm_os.sql"
   autonomous_recommendations:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v116_enterprise_gis_phase7.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v116_enterprise_gis_phase7.sql"
   backfill_run_items:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v144_backfill_runs.sql
+    source: "migrations/v144_backfill_runs.sql"
   backfill_runs:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v144_backfill_runs.sql
+    source: "migrations/v144_backfill_runs.sql"
   boundary_extraction_jobs:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v115_precision_agriculture_phase6.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v115_precision_agriculture_phase6.sql"
   break_glass_grants:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v90_break_glass.sql
+    source: "migrations/v90_break_glass.sql"
   calibration_audit:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v84_calibration_audit.sql
+    source: "migrations/v84_calibration_audit.sql"
   calibration_evidence:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v86_calibration_evidence_trigger.sql
+    source: "migrations/v86_calibration_evidence_trigger.sql"
   calibration_override:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v80_calibration_override.sql
+    source: "migrations/v80_calibration_override.sql"
   canonical_field_state_snapshots:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: alembic/versions/v101_field_runtime_cohesion.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "alembic/versions/v101_field_runtime_cohesion.sql"
   command_verification_loop:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v107_phase9_10_event_drift_hardening.sql
+    source: "migrations/v107_phase9_10_event_drift_hardening.sql"
   commands:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v10_command_store_lifecycle.sql
+    source: "migrations/v10_command_store_lifecycle.sql"
   connector_registry:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
   crop_kc_timeseries:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v76_crop_kc_timeseries.sql
+    source: "migrations/v76_crop_kc_timeseries.sql"
   crop_rotations:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v26_master_data.sql
+    source: "migrations/v26_master_data.sql"
   crop_stages:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/init_v8.sql
+    source: "migrations/init_v8.sql"
   crop_stress_events:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v153_crop_stress_memory_store.sql
+    source: "migrations/v153_crop_stress_memory_store.sql"
   crop_stress_memory_snapshots:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v153_crop_stress_memory_store.sql
+    source: "migrations/v153_crop_stress_memory_store.sql"
   custody_chain_events:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v65_harvest_traceability.sql
+    source: "migrations/v65_harvest_traceability.sql"
   decision_policies:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v69_decision_policies.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v69_decision_policies.sql"
   decision_record:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     mirror: decision-service
     status: interim-bridge
-    readers:
-    - decision-service
-    source: migrations/v78_decision_record.sql
+    readers: [decision-service]
+    source: "migrations/v78_decision_record.sql"
   decision_reviews:
+    # WX-10.7 append-only reviewer/policy audit. Materializes ONLY under a deployed SoR
+    # (services/decision-service/migrations/002_decision_review.sql, applied via migration_runner,
+    # never at startup). decision-service is the sole writer (append-only; DB trigger blocks
+    # UPDATE/DELETE); there is no platform mirror for a state transition. In the current
+    # interim-bridge deployment the review endpoint fails closed (503) so nothing is written yet.
     owner: decision-service
-    writers:
-    - decision-service
+    writers: [decision-service]
     status: interim-bridge
-    readers:
-    - decision-service
-    source: services/decision-service/migrations/002_decision_review.sql
+    readers: [decision-service]
+    source: "services/decision-service/migrations/002_decision_review.sql"
   decision_execution_plans:
+    # WX-10.9 append-only planned projection of an approved decision. No dispatch side effect.
     owner: decision-service
-    writers:
-    - decision-service
+    writers: [decision-service]
     status: interim-bridge
-    readers:
-    - decision-service
-    source: services/decision-service/migrations/003_execution_plan.sql
+    readers: [decision-service]
+    source: "services/decision-service/migrations/003_execution_plan.sql"
   decision_dispatch_authorizations:
+    # WX-10.10 append-only authorization record. It authorizes a later dispatch increment but
+    # does not create a task, issue a command, or mutate the execution plan.
     owner: decision-service
-    writers:
-    - decision-service
+    writers: [decision-service]
     status: interim-bridge
-    readers:
-    - decision-service
-    source: services/decision-service/migrations/004_dispatch_authorization.sql
+    readers: [decision-service]
+    source: "services/decision-service/migrations/004_dispatch_authorization.sql"
   device_commands_log:
     owner: actuator-service
-    writers:
-    - actuator-service
-    readers:
-    - sahool-platform
-    source: migrations/v20_automation_tables.sql
+    writers: [actuator-service]
+    readers: [sahool-platform]
+    source: "migrations/v20_automation_tables.sql"
   device_telemetry:
     owner: actuator-service
-    writers:
-    - actuator-service
-    readers:
-    - sahool-platform
-    source: migrations/v24_iot_devices.sql
+    writers: [actuator-service]
+    readers: [sahool-platform]
+    source: "migrations/v24_iot_devices.sql"
   digital_twin_scenarios:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v116_enterprise_gis_phase7.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v116_enterprise_gis_phase7.sql"
   dispatch_decisions:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     mirror: decision-service
     status: interim-bridge
-    readers:
-    - decision-service
-    source: migrations/v66_dispatch_decisions.sql
+    readers: [decision-service]
+    source: "migrations/v66_dispatch_decisions.sql"
   distributed_raster_jobs:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v116_enterprise_gis_phase7.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v116_enterprise_gis_phase7.sql"
   documents:
     owner: rag-retrieval
-    writers:
-    - rag-retrieval
-    readers:
-    - sahool-platform
-    source: migrations/v29_documents.sql
+    writers: [rag-retrieval]
+    readers: [sahool-platform]
+    source: "migrations/v29_documents.sql"
   drone_missions:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/init_v8.sql
+    source: "migrations/init_v8.sql"
   edge_results:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_new_tables.sql
+    source: "migrations/v9_new_tables.sql"
   equipment:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v23_equipment.sql
+    source: "migrations/v23_equipment.sql"
   equipment_maintenance:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v23_equipment.sql
+    source: "migrations/v23_equipment.sql"
   equipment_telemetry_frames:
     owner: actuator-service
-    writers:
-    - actuator-service
-    readers:
-    - sahool-platform
-    source: migrations/v109_phase9_iot_execution_adapters.sql
+    writers: [actuator-service]
+    readers: [sahool-platform]
+    source: "migrations/v109_phase9_iot_execution_adapters.sql"
   event_outbox:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v11_events_bus.sql
+    source: "migrations/v11_events_bus.sql"
   events:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v11_events_bus.sql
+    source: "migrations/v11_events_bus.sql"
   evidence_graph_edges:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v149_evidence_graph_nodes_edges.sql
+    source: "migrations/v149_evidence_graph_nodes_edges.sql"
   evidence_graph_nodes:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v149_evidence_graph_nodes_edges.sql
+    source: "migrations/v149_evidence_graph_nodes_edges.sql"
   execution_ledger:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v68_execution_ledger.sql
+    source: "migrations/v68_execution_ledger.sql"
   execution_verification_event:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v118_phase9_autonomous_farm_os.sql
+    source: "migrations/v118_phase9_autonomous_farm_os.sql"
   experiment_evaluations:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v119_phase10_continuous_learning.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v119_phase10_continuous_learning.sql"
   farm_business_units:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_digital_twin_snapshots:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v115_precision_agriculture_phase6.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v115_precision_agriculture_phase6.sql"
   farm_energy_records:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_equipment_records:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_indirect_cost_pools:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v101_farm_budget_costing.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v101_farm_budget_costing.sql"
   farm_input_records:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_labor_records:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_ledger_economic_snapshots:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v102_farm_closed_loop.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v102_farm_closed_loop.sql"
   farm_ledger_erp_projection_outbox:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v102_farm_closed_loop.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v102_farm_closed_loop.sql"
   farm_ledger_inventory_projections:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v102_farm_closed_loop.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v102_farm_closed_loop.sql"
   farm_operation_ledger:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_production_units:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_revenue_records:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v101_farm_budget_costing.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v101_farm_budget_costing.sql"
   farm_season_budget_lines:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v101_farm_budget_costing.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v101_farm_budget_costing.sql"
   farm_season_projects:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farm_water_records:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v100_farm_operations_ledger.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v100_farm_operations_ledger.sql"
   farmer_knowledge:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: services/sahool-platform/storage/lite_store.py
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "services/sahool-platform/storage/lite_store.py"
   farms:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v19_farms.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v19_farms.sql"
   feature_definitions_runtime:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   feature_lineage_registry:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v107_phase9_10_event_drift_hardening.sql
+    source: "migrations/v107_phase9_10_event_drift_hardening.sql"
   feature_set_specs:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v119_phase10_continuous_learning.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v119_phase10_continuous_learning.sql"
   feature_set_versions_runtime:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   federated_policy_experiments:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v120_phase11_federated_agents.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v120_phase11_federated_agents.sql"
   field_boundaries:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/init_v8.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/init_v8.sql"
   field_boundary_graph:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v58_field_boundary_quality.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v58_field_boundary_quality.sql"
   field_digital_twin_views:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: alembic/versions/v101_field_runtime_cohesion.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "alembic/versions/v101_field_runtime_cohesion.sql"
   field_evidence_snapshots:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v148_field_evidence_snapshots.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v148_field_evidence_snapshots.sql"
   field_feature_store_candidate:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v118_phase9_autonomous_farm_os.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v118_phase9_autonomous_farm_os.sql"
   field_geometry_history:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v96_spatial_geometry_integrity.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v96_spatial_geometry_integrity.sql"
   field_geometry_versions:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v105_enterprise_imagery_best_practices.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v105_enterprise_imagery_best_practices.sql"
   field_indicators:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/init_v8.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/init_v8.sql"
   field_lifecycle:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v10_command_store_lifecycle.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v10_command_store_lifecycle.sql"
   field_lifecycle_transitions:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v10_command_store_lifecycle.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v10_command_store_lifecycle.sql"
   field_state:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v104_fields_create_contract.sql, migrations/v53_field_state_projection.sql,
-      services/sahool-platform/storage/lite_store.py
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v104_fields_create_contract.sql, migrations/v53_field_state_projection.sql, services/sahool-platform/storage/lite_store.py"
   field_state_snapshots:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v60_event_snapshots.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v60_event_snapshots.sql"
   field_tasks:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v9_new_tables.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v9_new_tables.sql"
   field_weather_overlay:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/v74_weather_intelligence.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/v74_weather_intelligence.sql"
   fields:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v9_foundation.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v9_foundation.sql"
   geometry_editing_sessions:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v114_cloud_native_gis_best_practices.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v114_cloud_native_gis_best_practices.sql"
   geometry_locks:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v114_cloud_native_gis_best_practices.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v114_cloud_native_gis_best_practices.sql"
   gis_collaboration_events:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v116_enterprise_gis_phase7.sql
+    source: "migrations/v116_enterprise_gis_phase7.sql"
   gis_collaboration_sessions:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v116_enterprise_gis_phase7.sql
+    source: "migrations/v116_enterprise_gis_phase7.sql"
   global_gis_release_gate:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v117_global_scale_phase8.sql
+    source: "migrations/v117_global_scale_phase8.sql"
   global_gis_topology:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v117_global_scale_phase8.sql
+    source: "migrations/v117_global_scale_phase8.sql"
   guardrails_log:
     owner: guardrails-engine
-    writers:
-    - guardrails-engine
-    readers:
-    - sahool-platform
-    source: migrations/v9_new_tables.sql
+    writers: [guardrails-engine]
+    readers: [sahool-platform]
+    source: "migrations/v9_new_tables.sql"
   harvest_lots:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v65_harvest_traceability.sql
+    source: "migrations/v65_harvest_traceability.sql"
   imagery_automation_fields:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v9_automation_persistence.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v9_automation_persistence.sql"
   inventory_batches:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v22_inventory.sql
+    source: "migrations/v22_inventory.sql"
   inventory_items:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v22_inventory.sql
+    source: "migrations/v22_inventory.sql"
   invitations:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v89_invitations.sql
+    source: "migrations/v89_invitations.sql"
   iot_command_dispatch:
     owner: actuator-service
-    writers:
-    - actuator-service
-    readers:
-    - sahool-platform
-    source: migrations/v109_phase9_iot_execution_adapters.sql
+    writers: [actuator-service]
+    readers: [sahool-platform]
+    source: "migrations/v109_phase9_iot_execution_adapters.sql"
   iot_devices:
     owner: actuator-service
-    writers:
-    - actuator-service
-    readers:
-    - sahool-platform
-    source: migrations/v24_iot_devices.sql
+    writers: [actuator-service]
+    readers: [sahool-platform]
+    source: "migrations/v24_iot_devices.sql"
   irrigation_configs:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: services/sahool-platform/storage/lite_store.py
+    source: "services/sahool-platform/storage/lite_store.py"
   irrigation_runs:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v136_irrigation_runs.sql
+    source: "migrations/v136_irrigation_runs.sql"
   irrigation_schedules:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v25_irrigation.sql
+    source: "migrations/v25_irrigation.sql"
   irrigation_valves:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v25_irrigation.sql
+    source: "migrations/v25_irrigation.sql"
   knowledge_snippets:
     owner: rag-retrieval
-    writers:
-    - rag-retrieval
-    readers:
-    - sahool-platform
-    source: services/sahool-platform/storage/lite_store.py
+    writers: [rag-retrieval]
+    readers: [sahool-platform]
+    source: "services/sahool-platform/storage/lite_store.py"
   lab_requests:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: services/sahool-platform/storage/lite_store.py
+    source: "services/sahool-platform/storage/lite_store.py"
   learning_drift_reports:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v107_phase9_10_event_drift_hardening.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v107_phase9_10_event_drift_hardening.sql"
   lifecycle_temporal_rejections:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_lifecycle_occurred_at.sql
+    source: "migrations/v9_lifecycle_occurred_at.sql"
   lineage_link:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v82_lineage_link.sql
+    source: "migrations/v82_lineage_link.sql"
   management_zone_sets:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v115_precision_agriculture_phase6.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v115_precision_agriculture_phase6.sql"
   management_zones:
     owner: field-management-service
-    writers:
-    - field-management-service
-    readers:
-    - sahool-platform
-    source: migrations/v14_imagery_storage.sql
+    writers: [field-management-service]
+    readers: [sahool-platform]
+    source: "migrations/v14_imagery_storage.sql"
   market_sales_listings:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_market.sql
+    source: "migrations/v9_market.sql"
   marketplace_apps:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
   marketplace_installations:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
   marketplace_plugin_execution_runs:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: migrations/v110_phase12_plugin_sandbox_runtime.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v110_phase12_plugin_sandbox_runtime.sql"
   marketplace_plugin_output_validations:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: migrations/v110_phase12_plugin_sandbox_runtime.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v110_phase12_plugin_sandbox_runtime.sql"
   marketplace_plugin_quota_ledger:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: migrations/v110_phase12_plugin_sandbox_runtime.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v110_phase12_plugin_sandbox_runtime.sql"
   marketplace_plugin_runtime_events:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: migrations/v110_phase12_plugin_sandbox_runtime.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v110_phase12_plugin_sandbox_runtime.sql"
   master_data:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v26_master_data.sql
+    source: "migrations/v26_master_data.sql"
   mfa_audit_events:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v128_mfa_hardening.sql
+    source: "migrations/v128_mfa_hardening.sql"
   mfa_recovery_codes:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v128_mfa_hardening.sql
+    source: "migrations/v128_mfa_hardening.sql"
   mobile_sync_clients:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v112_mobile_offline_sync_runtime.sql
+    source: "migrations/v112_mobile_offline_sync_runtime.sql"
   mobile_sync_conflicts:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v112_mobile_offline_sync_runtime.sql
+    source: "migrations/v112_mobile_offline_sync_runtime.sql"
   model_experiment_assignment:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v118_phase9_autonomous_farm_os.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v118_phase9_autonomous_farm_os.sql"
   model_lifecycle_decisions:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v119_phase10_continuous_learning.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v119_phase10_continuous_learning.sql"
   model_promotion_history_runtime:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   model_registry_version:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v118_phase9_autonomous_farm_os.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v118_phase9_autonomous_farm_os.sql"
   model_rollback_history_runtime:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   model_serving_aliases_runtime:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   model_versions_runtime:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   ndvi_timeseries:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/init_v8.sql
+    source: "migrations/init_v8.sql"
   nl_gis_audit:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v85_nl_gis_audit.sql
+    source: "migrations/v85_nl_gis_audit.sql"
   notification_delivery:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v83_notification_delivery.sql
+    source: "migrations/v83_notification_delivery.sql"
   notification_preferences:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_foundation.sql
+    source: "migrations/v9_foundation.sql"
   observations:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: services/sahool-platform/storage/lite_store.py
+    source: "services/sahool-platform/storage/lite_store.py"
   offline_dataset_versions_runtime:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   offline_pending_ops:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v92_offline_pending_ops.sql
+    source: "migrations/v92_offline_pending_ops.sql"
   offline_synced_operations:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v15_offline_synced_operations.sql
+    source: "migrations/v15_offline_synced_operations.sql"
   ogc_conformance_runs:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v116_enterprise_gis_phase7.sql
+    source: "migrations/v116_enterprise_gis_phase7.sql"
   onboarding_responses:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_onboarding.sql
+    source: "migrations/v9_onboarding.sql"
   online_feature_values:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v106_phase9_10_runtime_strengthening.sql
+    source: "migrations/v106_phase9_10_runtime_strengthening.sql"
   online_learning_updates:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     mirror: decision-service
     status: interim-bridge
-    readers:
-    - decision-service
-    source: migrations/v119_phase10_continuous_learning.sql
+    readers: [decision-service]
+    source: "migrations/v119_phase10_continuous_learning.sql"
   outbox_delivery_attempts:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v140_outbox_delivery_attempts.sql
+    source: "migrations/v140_outbox_delivery_attempts.sql"
   outcome_record:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     mirror: decision-service
     status: interim-bridge
-    readers:
-    - decision-service
-    source: migrations/v79_outcome_record.sql
+    readers: [decision-service]
+    source: "migrations/v79_outcome_record.sql"
   plugin_permission_audit:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql
+    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
   point_in_time_snapshots_runtime:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v108_phase10_feature_store_model_registry_runtime.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v108_phase10_feature_store_model_registry_runtime.sql"
   prescription_maps:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v115_precision_agriculture_phase6.sql
+    source: "migrations/v115_precision_agriculture_phase6.sql"
   prescriptions:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v95_prescriptions.sql
+    source: "migrations/v95_prescriptions.sql"
   processed_events:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v93_processed_events.sql
+    source: "migrations/v93_processed_events.sql"
   processing_jobs:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/init_v8.sql
+    source: "migrations/init_v8.sql"
   raster_assets:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v14_imagery_storage.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v14_imagery_storage.sql"
   raster_batch_jobs:
     owner: raster-service
-    writers:
-    - raster-service
+    writers: [raster-service]
     readers: []
-    source: migrations/v154_raster_product_identity_batch_leases.sql
+    source: "migrations/v154_raster_product_identity_batch_leases.sql"
   raster_cache_invalidations:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v96_spatial_geometry_integrity.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v96_spatial_geometry_integrity.sql"
   raster_registry:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v114_cloud_native_gis_best_practices.sql
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v114_cloud_native_gis_best_practices.sql"
   raster_snapshots:
     owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: services/sahool-platform/storage/lite_store.py
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "services/sahool-platform/storage/lite_store.py"
   recommendation_feedback:
     owner: decision-service
-    writers:
-    - decision-service
-    readers:
-    - sahool-platform
-    source: alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql
+    writers: [decision-service]
+    readers: [sahool-platform]
+    source: "alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql"
   recommendation_lifecycle_events:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: alembic/versions/v101_field_runtime_cohesion.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "alembic/versions/v101_field_runtime_cohesion.sql"
   recommendation_outcomes:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     mirror: decision-service
     status: interim-bridge
-    readers:
-    - decision-service
-    source: migrations/v49_zone_key_recommendation_outcomes.sql
+    readers: [decision-service]
+    source: "migrations/v49_zone_key_recommendation_outcomes.sql"
   recommendation_reviews:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql"
   recommendations:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v77_recommendations.sql, services/sahool-platform/storage/lite_store.py
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v77_recommendations.sql, services/sahool-platform/storage/lite_store.py"
   retraining_jobs:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v107_phase9_10_event_drift_hardening.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v107_phase9_10_event_drift_hardening.sql"
   review_decisions:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "alembic/versions/0002_ai_recommendation_runtime.py, migrations/v_ai_recommendation_runtime.sql"
   runtime_event_outbox:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v106_phase9_10_runtime_strengthening.sql
+    source: "migrations/v106_phase9_10_runtime_strengthening.sql"
   scenario_runs:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v119_phase10_continuous_learning.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v119_phase10_continuous_learning.sql"
   scouting_pins:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v94_scouting_pins.sql
+    source: "migrations/v94_scouting_pins.sql"
   seasons:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v32_seasons.sql
+    source: "migrations/v32_seasons.sql"
   settings:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v28_settings.sql
+    source: "migrations/v28_settings.sql"
   sharing_keys:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v12_trueup_sharing.sql
+    source: "migrations/v12_trueup_sharing.sql"
   soil_lab_tests:
     owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v50_soil_lab_tests.sql
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v50_soil_lab_tests.sql"
   soil_readings:
     owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/init_v8.sql
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/init_v8.sql"
   stac_item_registry:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v114_cloud_native_gis_best_practices.sql
+    source: "migrations/v114_cloud_native_gis_best_practices.sql"
   tenant_ai_policies:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v124_tenant_ai_policies.sql
+    source: "migrations/v124_tenant_ai_policies.sql"
   training_datasets:
     owner: agriai-engine
-    writers:
-    - agriai-engine
-    readers:
-    - sahool-platform
-    source: migrations/v119_phase10_continuous_learning.sql
+    writers: [agriai-engine]
+    readers: [sahool-platform]
+    source: "migrations/v119_phase10_continuous_learning.sql"
   trueup_calibrations:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v12_trueup_sharing.sql
+    source: "migrations/v12_trueup_sharing.sql"
   usage_metering_records:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
   user_consent:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: services/sahool-platform/storage/lite_store.py
+    source: "services/sahool-platform/storage/lite_store.py"
   users:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v9_foundation.sql, services/sahool-platform/storage/lite_store.py
+    source: "migrations/v9_foundation.sql, services/sahool-platform/storage/lite_store.py"
   variety_trials:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: services/sahool-platform/storage/lite_store.py
+    source: "services/sahool-platform/storage/lite_store.py"
   water_ledger:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v98_water_ledger.sql
+    source: "migrations/v98_water_ledger.sql"
   weather_alerts:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/v74_weather_intelligence.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/v74_weather_intelligence.sql"
   weather_automation_cache:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/v9_automation_persistence.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/v9_automation_persistence.sql"
   weather_automation_locations:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/v9_automation_persistence.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/v9_automation_persistence.sql"
   weather_forecasts:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/v74_weather_intelligence.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/v74_weather_intelligence.sql"
   weather_grid:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/v74_weather_intelligence.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/v74_weather_intelligence.sql"
   weather_observations:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/init_v8.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/init_v8.sql"
   weather_signals:
     owner: weather-service
-    writers:
-    - weather-service
-    readers:
-    - sahool-platform
-    source: migrations/v74_weather_intelligence.sql
+    writers: [weather-service]
+    readers: [sahool-platform]
+    source: "migrations/v74_weather_intelligence.sql"
   webhook_deliveries:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
   webhook_subscriptions:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "alembic/versions/v105_marketplace_ecosystem.sql, migrations/v121_marketplace_ecosystem.sql"
   wofost_seasons:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/init_v8.sql
+    source: "migrations/init_v8.sql"
   work_orders:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v75_work_orders.sql
+    source: "migrations/v75_work_orders.sql"
   workflow_state:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: migrations/v16_workflow_state.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v16_workflow_state.sql"
   workflow_states:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: migrations/v9_odoo_bridge.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
   workflow_transitions:
     owner: erp-bridge
-    writers:
-    - erp-bridge
-    readers:
-    - sahool-platform
-    source: migrations/v9_odoo_bridge.sql
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
   yield_records:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: services/sahool-platform/storage/lite_store.py
+    source: "services/sahool-platform/storage/lite_store.py"
   yield_stability_maps:
     owner: sahool-platform
-    writers:
-    - sahool-platform
+    writers: [sahool-platform]
     readers: []
-    source: migrations/v115_precision_agriculture_phase6.sql
-  zonal_stats:
-    owner: raster-service
-    writers:
-    - raster-service
-    readers:
-    - sahool-platform
-    source: migrations/v14_imagery_storage.sql
-  soil_observations:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v155_soil_observations_profiles.sql
-  soil_profile_snapshots:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v155_soil_observations_profiles.sql
-  soil_observation_supersessions:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers: []
-    source: migrations/v159_soil_observation_supersession_current_pointer.sql
-  soil_profile_current:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v159_soil_observation_supersession_current_pointer.sql
-  soil_profile_projection_jobs:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers: []
-    source: migrations/v157_soil_projection_jobs_reconciliation.sql
-  soil_reconciliation_checkpoints:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers: []
-    source: migrations/v157_soil_projection_jobs_reconciliation.sql
-  lab_samples:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v156_durable_soil_lab_workflow.sql
-  lab_sample_custody_events:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v156_durable_soil_lab_workflow.sql
-  soil_lab_results:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers:
-    - soil-service
-    source: migrations/v156_durable_soil_lab_workflow.sql, migrations/v160_soil_lab_publication_lineage.sql
-  water_lab_result_sets:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v156_durable_soil_lab_workflow.sql
-  soil_spatial_products:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v161_soil_p1_products.sql
-  soil_sampling_plans:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v161_soil_p1_products.sql
-  soil_hydraulic_profiles:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v161_soil_p1_products.sql
-  irrigation_water_samples:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v161_soil_p1_products.sql
-  irrigation_water_profiles:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v161_soil_p1_products.sql
-  soil_bare_composites:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v162_soil_p2_spatial_products.sql
-  soil_terrain_products:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v162_soil_p2_spatial_products.sql
-  soil_texture_products:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v162_soil_p2_spatial_products.sql
-  soil_salinity_products:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v162_soil_p2_spatial_products.sql
-  soil_visual_observations:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v163_soil_p3_assessment_products.sql
-  soil_analog_products:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v163_soil_p3_assessment_products.sql
-  soil_drainage_assessments:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v163_soil_p3_assessment_products.sql
-  soil_reclamation_assessments:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v163_soil_p3_assessment_products.sql
-  soil_reclamation_economics:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v163_soil_p3_assessment_products.sql
-  soil_execution_records:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v164_soil_p4_closed_loop.sql
-  soil_verification_records:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v164_soil_p4_closed_loop.sql
-  soil_outcome_records:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v164_soil_p4_closed_loop.sql
-  soil_learning_attributions:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v164_soil_p4_closed_loop.sql
-  soil_field_validations:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v165_soil_p5_validation_calibration_certification.sql
-  soil_regional_calibrations:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v165_soil_p5_validation_calibration_certification.sql
-  soil_production_certifications:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v165_soil_p5_validation_calibration_certification.sql
-  soil_learning_datasets:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v165_soil_p5_validation_calibration_certification.sql
-  soil_runtime_certification_runs:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v166_soil_p6_runtime_certification.sql
-  soil_runtime_certification_evidence:
-    owner: soil-service
-    writers:
-    - soil-service
-    readers:
-    - sahool-platform
-    source: migrations/v166_soil_p6_runtime_certification.sql
-  as_applied_irrigation_observations:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v178_canonical_as_applied_irrigation_truth.sql
-  as_applied_irrigation_receipts:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v178_canonical_as_applied_irrigation_truth.sql
-  as_applied_irrigation_runs:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v178_canonical_as_applied_irrigation_truth.sql
-  canonical_as_applied_irrigation_truths:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v178_canonical_as_applied_irrigation_truth.sql
-  irrigation_water_ledger_reconciliations:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql
-  canonical_controller_capabilities:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v176_controller_edge_adapter_framework.sql
-  canonical_energy_capabilities:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  canonical_hydraulic_capabilities:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v171_pump_hydraulic_network_capability.sql
-  canonical_irrigation_capability_graphs:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v175_unified_irrigation_capability_graph.sql
-  canonical_irrigation_machine_capabilities:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v172_irrigation_machine_capability.sql
-  canonical_root_zone_profiles:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v169_canonical_root_zone_hydraulic_profile.sql
-  canonical_sprinkler_runoff_capabilities:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v173_sprinkler_runoff_capability.sql
-  canonical_well_capabilities:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v170_water_source_well_digital_twin.sql
-  crop_root_policies:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v169_canonical_root_zone_hydraulic_profile.sql
-  hourly_energy_envelopes:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  hourly_irrigation_mpc_actions:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v179_hourly_energy_aware_irrigation_mpc.sql
-  hourly_irrigation_mpc_schedules:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v179_hourly_energy_aware_irrigation_mpc.sql
-  irrigation_battery_systems:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  irrigation_capability_graph_edges:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v175_unified_irrigation_capability_graph.sql
-  irrigation_capability_graph_nodes:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v175_unified_irrigation_capability_graph.sql
-  irrigation_closed_loop_records:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v181_irrigation_closed_loop_learning_production_certification.sql
-  irrigation_commissioning_certifications:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v177_irrigation_commissioning_certification.sql
-  irrigation_commissioning_evidence:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v177_irrigation_commissioning_certification.sql
-  irrigation_controller_command_requests:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v176_controller_edge_adapter_framework.sql
-  irrigation_controller_handshakes:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v176_controller_edge_adapter_framework.sql
-  irrigation_controller_telemetry:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v176_controller_edge_adapter_framework.sql
-  irrigation_controllers:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  irrigation_energy_loads:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  irrigation_energy_systems:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  irrigation_executability_gates:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v177_irrigation_commissioning_certification.sql
-  irrigation_generators:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  irrigation_grid_connections:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  irrigation_hybrid_inverters:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  irrigation_hydraulic_nodes:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v171_pump_hydraulic_network_capability.sql
-  irrigation_hydraulic_segments:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v171_pump_hydraulic_network_capability.sql
-  irrigation_learning_proposals:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v181_irrigation_closed_loop_learning_production_certification.sql
-  irrigation_machine_spans:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v172_irrigation_machine_capability.sql
-  irrigation_machines:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  irrigation_mainlines:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  irrigation_outcome_evidence:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v181_irrigation_closed_loop_learning_production_certification.sql
-  irrigation_production_certifications:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v181_irrigation_closed_loop_learning_production_certification.sql
-  irrigation_projects:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  irrigation_pump_curve_points:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v171_pump_hydraulic_network_capability.sql
-  irrigation_pumps:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  irrigation_pv_arrays:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v174_energy_agricultural_microgrid_capability.sql
-  irrigation_sprinkler_packages:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v173_sprinkler_runoff_capability.sql
-  irrigation_sprinkler_zones:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v173_sprinkler_runoff_capability.sql
-  irrigation_water_allocations:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v170_water_source_well_digital_twin.sql
-  irrigation_water_quality_samples:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v170_water_source_well_digital_twin.sql
-  irrigation_water_sources:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  irrigation_well_measurements:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v170_water_source_well_digital_twin.sql
-  irrigation_well_pumping_tests:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v170_water_source_well_digital_twin.sql
-  irrigation_wells:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v168_irrigation_engineering_foundation.sql
-  vri_as_applied_variances:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v180_governed_vri_prescription.sql
-  vri_machine_translation_artifacts:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v180_governed_vri_prescription.sql
-  vri_prescription_zones:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v180_governed_vri_prescription.sql
-  vri_prescriptions:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v180_governed_vri_prescription.sql
-  irrigation_system_specifications:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql
-  irrigation_engineering_calculations:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql
-  irrigation_commissioning_tests_v2:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v186_irrx1_digital_commissioning_runtime.sql
-  irrigation_commissioning_certificates_v2:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v186_irrx1_digital_commissioning_runtime.sql
-  irrigation_execution_authorizations_v2:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v186_irrx1_digital_commissioning_runtime.sql
-  irrigation_manual_executions:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v187_irrx1_manual_execution_lifecycle.sql
-  irrigation_manual_execution_events:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v187_irrx1_manual_execution_lifecycle.sql
-  irrigation_manual_ledger_reconciliations:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v188_irrx1_verified_manual_as_applied_ledger_bridge.sql
-  irrigation_manual_execution_sources:
-    owner: sahool-platform
-    writers:
-    - sahool-platform
-    readers: []
-    source: migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql
+    source: "migrations/v115_precision_agriculture_phase6.sql"
   signal_anomalies:
     owner: vegetation-analysis-service
-    writers:
-    - vegetation-analysis-service
+    writers: [vegetation-analysis-service]
     readers: []
-    source: migrations/v191_rs_signal_anomalies_store.sql
+    source: "migrations/v191_rs_signal_anomalies_store.sql"
+  zonal_stats:
+    owner: raster-service
+    writers: [raster-service]
+    readers: [sahool-platform]
+    source: "migrations/v14_imagery_storage.sql"
+  soil_observations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v155_soil_observations_profiles.sql"
+  soil_profile_snapshots:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v155_soil_observations_profiles.sql"
+  soil_observation_supersessions:
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v159_soil_observation_supersession_current_pointer.sql"
+  soil_profile_current:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v159_soil_observation_supersession_current_pointer.sql"
+  soil_profile_projection_jobs:
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v157_soil_projection_jobs_reconciliation.sql"
+  soil_reconciliation_checkpoints:
+    owner: soil-service
+    writers: [soil-service]
+    readers: []
+    source: "migrations/v157_soil_projection_jobs_reconciliation.sql"
+  lab_samples:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v156_durable_soil_lab_workflow.sql"
+  lab_sample_custody_events:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v156_durable_soil_lab_workflow.sql"
+  soil_lab_results:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [soil-service]
+    source: "migrations/v156_durable_soil_lab_workflow.sql, migrations/v160_soil_lab_publication_lineage.sql"
+  water_lab_result_sets:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v156_durable_soil_lab_workflow.sql"
+  soil_spatial_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  soil_sampling_plans:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  soil_hydraulic_profiles:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  irrigation_water_samples:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  irrigation_water_profiles:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v161_soil_p1_products.sql"
+  soil_bare_composites:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_terrain_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_texture_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_salinity_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v162_soil_p2_spatial_products.sql"
+  soil_visual_observations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_analog_products:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_drainage_assessments:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_reclamation_assessments:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_reclamation_economics:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v163_soil_p3_assessment_products.sql"
+  soil_execution_records:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_verification_records:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_outcome_records:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_learning_attributions:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v164_soil_p4_closed_loop.sql"
+  soil_field_validations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_regional_calibrations:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_production_certifications:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_learning_datasets:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v165_soil_p5_validation_calibration_certification.sql"
+  soil_runtime_certification_runs:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v166_soil_p6_runtime_certification.sql"
+  soil_runtime_certification_evidence:
+    owner: soil-service
+    writers: [soil-service]
+    readers: [sahool-platform]
+    source: "migrations/v166_soil_p6_runtime_certification.sql"
+
+  # --- V21 irrigation engineering program (M2.1–M5), platform-domain canonical tables ---
+  as_applied_irrigation_observations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  as_applied_irrigation_receipts:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  as_applied_irrigation_runs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  canonical_as_applied_irrigation_truths:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v178_canonical_as_applied_irrigation_truth.sql"
+  irrigation_water_ledger_reconciliations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql"
+  canonical_controller_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  canonical_energy_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  canonical_hydraulic_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  canonical_irrigation_capability_graphs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v175_unified_irrigation_capability_graph.sql"
+  canonical_irrigation_machine_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v172_irrigation_machine_capability.sql"
+  canonical_root_zone_profiles:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v169_canonical_root_zone_hydraulic_profile.sql"
+  canonical_sprinkler_runoff_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v173_sprinkler_runoff_capability.sql"
+  canonical_well_capabilities:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  crop_root_policies:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v169_canonical_root_zone_hydraulic_profile.sql"
+  hourly_energy_envelopes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  hourly_irrigation_mpc_actions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v179_hourly_energy_aware_irrigation_mpc.sql"
+  hourly_irrigation_mpc_schedules:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v179_hourly_energy_aware_irrigation_mpc.sql"
+  irrigation_battery_systems:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_capability_graph_edges:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v175_unified_irrigation_capability_graph.sql"
+  irrigation_capability_graph_nodes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v175_unified_irrigation_capability_graph.sql"
+  irrigation_closed_loop_records:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_commissioning_certifications:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v177_irrigation_commissioning_certification.sql"
+  irrigation_commissioning_evidence:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v177_irrigation_commissioning_certification.sql"
+  irrigation_controller_command_requests:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  irrigation_controller_handshakes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  irrigation_controller_telemetry:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v176_controller_edge_adapter_framework.sql"
+  irrigation_controllers:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_energy_loads:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_energy_systems:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_executability_gates:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v177_irrigation_commissioning_certification.sql"
+  irrigation_generators:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_grid_connections:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_hybrid_inverters:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_hydraulic_nodes:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  irrigation_hydraulic_segments:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  irrigation_learning_proposals:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_machine_spans:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v172_irrigation_machine_capability.sql"
+  irrigation_machines:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_mainlines:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_outcome_evidence:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_production_certifications:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v181_irrigation_closed_loop_learning_production_certification.sql"
+  irrigation_projects:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_pump_curve_points:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v171_pump_hydraulic_network_capability.sql"
+  irrigation_pumps:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_pv_arrays:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v174_energy_agricultural_microgrid_capability.sql"
+  irrigation_sprinkler_packages:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v173_sprinkler_runoff_capability.sql"
+  irrigation_sprinkler_zones:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v173_sprinkler_runoff_capability.sql"
+  irrigation_water_allocations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_water_quality_samples:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_water_sources:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  irrigation_well_measurements:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_well_pumping_tests:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v170_water_source_well_digital_twin.sql"
+  irrigation_wells:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v168_irrigation_engineering_foundation.sql"
+  vri_as_applied_variances:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"
+  vri_machine_translation_artifacts:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"
+  vri_prescription_zones:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"
+  vri_prescriptions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v180_governed_vri_prescription.sql"
+  irrigation_system_specifications:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql"
+  irrigation_engineering_calculations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql"
+  irrigation_commissioning_tests_v2:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v186_irrx1_digital_commissioning_runtime.sql"
+  irrigation_commissioning_certificates_v2:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v186_irrx1_digital_commissioning_runtime.sql"
+  irrigation_execution_authorizations_v2:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v186_irrx1_digital_commissioning_runtime.sql"
+  irrigation_manual_executions:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v187_irrx1_manual_execution_lifecycle.sql"
+  irrigation_manual_execution_events:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v187_irrx1_manual_execution_lifecycle.sql"
+  irrigation_manual_ledger_reconciliations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v188_irrx1_verified_manual_as_applied_ledger_bridge.sql"
+  irrigation_manual_execution_sources:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql"
