@@ -291,8 +291,15 @@ async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> di
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
     try:
+        # Service-to-service read: the public GET /api/v1/fields/{id} requires a user
+        # Bearer JWT (require_permission(FIELD_VIEW)) which this service does not hold —
+        # it authenticates with a service token. Calling it returned 401 → None → a
+        # spurious 404 "field not found" for fields that genuinely exist. Use the
+        # service-token internal read instead; tenant is our JWT-derived X-Tenant-Id.
         async with httpx.AsyncClient(timeout=8) as c:
-            r = await c.get(f"{PLATFORM_API_URL}/api/v1/fields/{field_id}", headers=headers)
+            r = await c.get(
+                f"{PLATFORM_API_URL}/api/v1/internal/fields/{field_id}", headers=headers
+            )
         if r.status_code != 200:
             return None
         data = r.json()

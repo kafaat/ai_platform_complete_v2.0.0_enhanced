@@ -30,6 +30,10 @@
       "audience": "internal"
     },
     {
+      "prefix": "/api/v1/internal/",
+      "audience": "internal"
+    },
+    {
       "prefix": "/api/v1/decision/",
       "audience": "agronomist"
     },
