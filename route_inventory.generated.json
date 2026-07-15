@@ -7809,6 +7809,46 @@
   },
   {
     "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 94,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/signal-anomalies/detect",
+    "function": "detect_signal_anomalies"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 150,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/signal-anomalies",
+    "function": "list_signal_anomalies"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 164,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/transition",
+    "function": "transition_anomaly"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 187,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
+    "function": "request_ground_verification"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 220,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
+    "function": "accept_verification_result"
+  },
+  {
+    "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/baselines.py",
     "line": 30,
     "method": "POST",

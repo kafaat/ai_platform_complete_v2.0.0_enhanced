@@ -780,6 +780,9 @@ services:
       INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
       VEGETATION_PREFER_CANONICAL_OBSERVATIONS: "1"
       VEGETATION_CANONICAL_SHADOW: "1"
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
+      TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:-}
+      VEGETATION_ANOMALY_DB_PATH: /data/vegetation/anomalies.db
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # runtime-truth: real fields come from the tenant-scoped platform catalog
       # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
@@ -793,6 +796,8 @@ services:
       # خدمة compose الفعليّة (sahool-decision-service:8160) بدل الافتراض الوهميّ في الكود.
       DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
+    volumes:
+    - vegetation-anomaly-data:/data/vegetation
     networks:
     - sahool-internal
     healthcheck:
@@ -2174,3 +2179,4 @@ volumes:
   jaeger-data: null
   nginx-cache: null
   zlm-conf: null
+  vegetation-anomaly-data: null

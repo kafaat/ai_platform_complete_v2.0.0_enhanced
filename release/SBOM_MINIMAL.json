@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7645bd0265081ba15bcfba9c40aceaf037e1e2f0bf258beab8d7f823ed2ffe72"
+          "content": "3f4c9431552fa2eda731facbf3698592affc4084caa353e5ea9b42e50b6014f6"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "112152268cfaaae0106b0179b3fedb931d5b1541f1307309a7fe35ff1d4969d3"
+          "content": "8c76d4417db47aa6e2a9b11d3fb78d15c65140c9261b68c9eed5360b1fb44148"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -26075,10 +26075,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8907440c4eab5bb6da433b6ebde324236365a0223e4e6227a125746c2e7bfb3d"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea8ed3e23bb5f49964a859074945a495b3e3bc2579c6b1d41840882c61c1c606"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "a8ae2215d39e0cd9677a23b8f71449458bba1c17a78257de05a372923c2d2187"
         }
       ],
       "name": "services/vegetation-analysis-service/baseline_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03c9a5ecdebc5a2778aaf7d014c63744dc6390a822293ae92e385056d321e7eb"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/ground_verification_bridge.py",
       "type": "file"
     },
     {
@@ -26155,6 +26185,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b4d1c5868632489b778863843b8af0f71f98d3f8191b78c7ff733282ed425e40"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/anomalies.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4fea8f669e1820832ddc9af119a16276c0140c0e9a8a3f232d12b2bb4777bbec"
         }
       ],
@@ -26175,6 +26215,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "60a648c9e0a7a26944d7b31d27769813ad1f8fb6713b3bb65f16a1d1412e891b"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_anomaly_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09ae3be6d98909654787396ca80559e7a4d45de73b0e8677595a55f0182def7f"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_anomaly_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1d5d0e7cf55f99198ab548770e7fc989dd6eff21953604e0d16297ad43639d9c"
         }
       ],
@@ -26189,6 +26249,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdc7022f603c69cc57e3b853c452b964681d193eee2c387bc22c794f92d6e646"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_ground_verification_bridge.py",
       "type": "file"
     },
     {

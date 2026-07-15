@@ -17,7 +17,7 @@ services/sam2-inference/main.py,sam2-inference,True,4,0,False,False,True,direct_
 services/soil-service/main.py,soil-service,True,0,59,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/supervisor-agent/main.py,supervisor-agent,True,0,10,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/tts-service/main.py,tts-service,True,0,8,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
-services/vegetation-analysis-service/main.py,vegetation-analysis-service,True,0,11,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
+services/vegetation-analysis-service/main.py,vegetation-analysis-service,True,0,16,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/video-processor/main.py,video-processor,True,0,11,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/weather-service/main.py,weather-service,True,27,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/weather-polygon-worker/src/main.py,weather-polygon-worker,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
