@@ -523,3 +523,15 @@
 \i migrations/v183_decision_lineage_integrity_hardening.sql
 \echo '═══ 190. v184_irrigation_closed_loop_runtime_reconciliation.sql ═══'
 \i migrations/v184_irrigation_closed_loop_runtime_reconciliation.sql
+\echo '═══ 191. v185_vendor_neutral_irrigation_engineering_workspace.sql ═══'
+\i migrations/v185_vendor_neutral_irrigation_engineering_workspace.sql
+\echo '═══ 192. v186_irrx1_digital_commissioning_runtime.sql ═══'
+\i migrations/v186_irrx1_digital_commissioning_runtime.sql
+\echo '═══ 193. v187_irrx1_manual_execution_lifecycle.sql ═══'
+\i migrations/v187_irrx1_manual_execution_lifecycle.sql
+\echo '═══ 194. v188_irrx1_verified_manual_as_applied_ledger_bridge.sql ═══'
+\i migrations/v188_irrx1_verified_manual_as_applied_ledger_bridge.sql
+\echo '═══ 195. v189_irrx1_pcert_manual_execution_db_invariants.sql ═══'
+\i migrations/v189_irrx1_pcert_manual_execution_db_invariants.sql
+\echo '═══ 196. v190_irrx1_authoritative_recommendation_provenance_lock.sql ═══'
+\i migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql

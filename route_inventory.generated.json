@@ -3714,7 +3714,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 43,
+    "line": 45,
     "method": "GET",
     "path": "/api/v1/decisions/review-queue",
     "function": "get_decision_review_queue"
@@ -3722,7 +3722,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 69,
+    "line": 71,
     "method": "GET",
     "path": "/api/v1/decisions/{decision_id}/agronomic-evidence",
     "function": "get_decision_agronomic_evidence_boundary"
@@ -3730,7 +3730,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 105,
+    "line": 107,
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/review",
     "function": "review_decision_candidate"
@@ -3738,7 +3738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 186,
+    "line": 188,
     "method": "POST",
     "path": "/api/v1/decisions/{decision_id}/execution-plan",
     "function": "create_decision_execution_plan"
@@ -3746,7 +3746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 246,
+    "line": 328,
     "method": "POST",
     "path": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
     "function": "authorize_execution_plan_dispatch"
@@ -3754,7 +3754,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 311,
+    "line": 393,
     "method": "POST",
     "path": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
     "function": "create_authorized_execution_request"
@@ -3762,7 +3762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 378,
+    "line": 460,
     "method": "POST",
     "path": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
     "function": "verify_execution_outcome_boundary"
@@ -3770,7 +3770,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 441,
+    "line": 523,
     "method": "POST",
     "path": "/api/v1/outcomes/{outcome_id}/learning-attribution",
     "function": "create_learning_attribution_boundary"
@@ -3778,7 +3778,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 497,
+    "line": 579,
     "method": "GET",
     "path": "/api/v1/learning/calibration-dataset",
     "function": "read_calibration_dataset_boundary"
@@ -3786,7 +3786,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 551,
+    "line": 633,
     "method": "POST",
     "path": "/api/v1/learning/evaluation-runs",
     "function": "register_model_evaluation_boundary"
@@ -3794,7 +3794,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 602,
+    "line": 684,
     "method": "POST",
     "path": "/api/v1/learning/promotion-decisions",
     "function": "register_model_promotion_decision_boundary"
@@ -3802,7 +3802,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 647,
+    "line": 729,
     "method": "POST",
     "path": "/api/v1/learning/activation-requests",
     "function": "register_model_activation_request_boundary"
@@ -3810,7 +3810,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 695,
+    "line": 777,
     "method": "POST",
     "path": "/api/v1/learning/activation-requests/{activation_request_id}/review",
     "function": "review_model_activation_request_boundary"
@@ -3818,7 +3818,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 749,
+    "line": 831,
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
     "function": "claim_registry_activation_command_bff"
@@ -3826,7 +3826,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 786,
+    "line": 868,
     "method": "POST",
     "path": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
     "function": "record_registry_activation_receipt_bff"
@@ -3834,7 +3834,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/decision_review.py",
-    "line": 818,
+    "line": 900,
     "method": "POST",
     "path": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
     "function": "create_registry_rollback_command_bff"
@@ -5398,6 +5398,102 @@
     "method": "POST",
     "path": "/api/v1/irrigation/water-analysis",
     "function": "irrigation_water_analysis"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 62,
+    "method": "POST",
+    "path": "/calculate",
+    "function": "calculate_engineering"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 73,
+    "method": "POST",
+    "path": "/interactive-calculate",
+    "function": "calculate_interactive_engineering"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 86,
+    "method": "POST",
+    "path": "/network-calculate",
+    "function": "calculate_network_engineering"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 111,
+    "method": "POST",
+    "path": "/commissioning/certificates",
+    "function": "issue_commissioning_certificate"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 176,
+    "method": "GET",
+    "path": "/commissioning/systems/{system_id}/current",
+    "function": "get_current_commissioning_certificate"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 200,
+    "method": "POST",
+    "path": "/commissioning/authorize",
+    "function": "evaluate_execution_authorization"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 237,
+    "method": "GET",
+    "path": "/manual-executions",
+    "function": "list_manual_executions"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 275,
+    "method": "POST",
+    "path": "/manual-executions",
+    "function": "create_manual_execution"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 354,
+    "method": "POST",
+    "path": "/manual-executions/{execution_id}/transition",
+    "function": "transition_manual_execution_endpoint"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 426,
+    "method": "POST",
+    "path": "/manual-executions/{execution_id}/confirm",
+    "function": "confirm_manual_execution"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 489,
+    "method": "POST",
+    "path": "/manual-executions/{execution_id}/verify",
+    "function": "verify_manual_execution"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/irrigation_engineering.py",
+    "line": 575,
+    "method": "POST",
+    "path": "/manual-executions/{execution_id}/reconcile",
+    "function": "reconcile_manual_execution_to_water_ledger"
   },
   {
     "service": "sahool-platform",

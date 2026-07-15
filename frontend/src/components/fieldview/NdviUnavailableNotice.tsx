@@ -7,10 +7,31 @@
 // «معالجة الصور» للحالات الحتميّة (لا صور مُعالَجة) — بلا بدء backfill تلقائيّ.
 import { AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
+// أكواد العقد التشخيصيّ (مرآة لـ`NDVI_UNAVAILABLE` في vegetation_runtime.py). النوع
+// المضبوط يمنع الأخطاء الإملائيّة عند التطوير؛ `(string & {})` يُبقي الأكواد المستقبليّة
+// من الخادم مقبولةً بلا كسر (المُحلِّل يتعامل مع المجهول عبر احتياطيّ COPY).
+export type NdviUnavailableCode =
+  | 'NO_PROCESSED_IMAGERY'
+  | 'NO_VALIDATED_NDVI_ASSET'
+  | 'RASTER_DEPENDENCY_UNAVAILABLE'
+  | 'RASTER_AUTH_FAILURE'
+  | 'RASTER_RESPONSE_INVALID';
+
+// إجراءات العقد. `RUN_IMAGERY_BACKFILL` هو الوحيد الّذي تحلّه الواجهة محلّيّاً
+// (عبر refreshFieldImagery)؛ الباقي (RETRY_LATER/REAUTH…/CONTACT_SUPPORT) بلا زرّ.
+export type NdviUnavailableAction =
+  | 'RUN_IMAGERY_BACKFILL'
+  | 'RETRY_LATER'
+  | 'REAUTH_OR_CONTACT_SUPPORT'
+  | 'CONTACT_SUPPORT';
+
+/** الإجراء الوحيد القابل للحلّ محلّيّاً — مصدر قرار إظهار الزرّ (العقد لا الاستنتاج). */
+export const IMAGERY_BACKFILL_ACTION: NdviUnavailableAction = 'RUN_IMAGERY_BACKFILL';
+
 export interface NdviUnavailable {
-  code: string;
+  code: NdviUnavailableCode | (string & {});
   message?: string;
-  action?: string;
+  action?: NdviUnavailableAction | (string & {});
   retryable?: boolean;
 }
 
@@ -40,8 +61,9 @@ export function ndviUnavailableFromError(error: unknown): NdviUnavailable | null
   if (detail && typeof detail === 'object' && typeof detail.code === 'string') {
     return detail;
   }
-  // 424 قديم بتفصيل نصّيّ (قبل العقد التشخيصيّ): عامِله كـ«لا صور مُعالَجة».
-  return { code: 'NO_PROCESSED_IMAGERY', retryable: false };
+  // 424 قديم بتفصيل نصّيّ (قبل العقد التشخيصيّ): عامِله كـ«لا صور مُعالَجة». نُضمّن
+  // `action` كي يبقى زرّ المعالجة يعمل مع الخوادم القديمة (الزرّ يُربَط بـaction لا code).
+  return { code: 'NO_PROCESSED_IMAGERY', action: IMAGERY_BACKFILL_ACTION, retryable: false };
 }
 
 interface Props {
@@ -54,8 +76,11 @@ interface Props {
 
 export default function NdviUnavailableNotice({ info, onProcess, processing, className }: Props) {
   const copy = COPY[info.code] ?? { ar: info.message || 'مؤشّر NDVI غير متاح لهذا الحقل.' };
-  // الزرّ للحالات الحتميّة القابلة للمعالجة فقط (retryable:false + cta + معالِج).
-  const showCta = !!copy.cta && !!onProcess && info.retryable === false;
+  // قرار الزرّ من **عقد الخادم** (`action`) لا من استنتاج الـcode: يظهر فقط حين يوصي
+  // الخادم بـRUN_IMAGERY_BACKFILL (الإجراء الوحيد الّذي تحلّه الواجهة عبر refreshFieldImagery)
+  // ووُجِد معالِج. هكذا تُظهِر أكوادٌ مستقبليّة بنفس الإجراء الزرَّ تلقائيّاً بلا تعديل الواجهة.
+  const showCta = !!onProcess && info.action === IMAGERY_BACKFILL_ACTION;
+  const ctaLabel = copy.cta ?? 'معالجة الصور';
   return (
     <div
       role="status"
@@ -79,7 +104,7 @@ export default function NdviUnavailableNotice({ info, onProcess, processing, cla
           ) : (
             <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
           )}
-          {copy.cta}
+          {ctaLabel}
         </button>
       )}
     </div>

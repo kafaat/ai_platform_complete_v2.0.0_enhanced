@@ -662,6 +662,7 @@ def _authoritative_execution_plan(row: Any, *, replay: bool) -> dict[str, Any]:
         "plan_state": row["status"],
         "created_by": row["created_by"],
         "created_at": created_at.isoformat() if hasattr(created_at, "isoformat") else created_at,
+        "plan_digest": row["request_hash"],
     }
 
 

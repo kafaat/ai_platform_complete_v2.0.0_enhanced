@@ -670,3 +670,15 @@ v182_decision_content_lineage_and_secret_hardening.sql
 v183_decision_lineage_integrity_hardening.sql
 # v184: durable closed-loop reconciliation from measured as-applied truth into water_ledger.
 v184_irrigation_closed_loop_runtime_reconciliation.sql
+# v185: IRR-X1 vendor-neutral irrigation engineering specifications and immutable calculation snapshots.
+v185_vendor_neutral_irrigation_engineering_workspace.sql
+# v186: IRR-X1.1 vendor-neutral digital commissioning runtime and central execution authorization gate.
+v186_irrx1_digital_commissioning_runtime.sql
+# v187: IRR-X1.2 governed manual execution lifecycle, measured as-applied gate, and append-only events.
+v187_irrx1_manual_execution_lifecycle.sql
+# v188: IRR-X1.3 independently verified manual as-applied truth and idempotent water-ledger reconciliation.
+v188_irrx1_verified_manual_as_applied_ledger_bridge.sql
+# v189: IRR-PCERT database-authoritative state/evidence invariants and tenant-bound child ownership.
+v189_irrx1_pcert_manual_execution_db_invariants.sql
+# v190: IRR-X1.5 authoritative decision/execution-plan provenance lock for manual irrigation.
+v190_irrx1_authoritative_recommendation_provenance_lock.sql

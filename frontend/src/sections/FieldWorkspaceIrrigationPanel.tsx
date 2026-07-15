@@ -3,6 +3,9 @@ import { Droplets, Timer } from 'lucide-react';
 import { getFieldIrrigationAdvice, getFieldIrrigationSchedules } from '../services/api/fieldIrrigation';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
+import IrrigationManualOperationsPanel from './IrrigationManualOperationsPanel';
+import IrrigationEngineeringCalculator from './IrrigationEngineeringCalculator';
+import ReservoirBoosterNetworkCalculator from './ReservoirBoosterNetworkCalculator';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -35,7 +38,8 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
   }
 
   return (
-    <section className="grid gap-4 xl:grid-cols-2" dir="rtl" aria-label="ري الحقل">
+    <section className="space-y-4" dir="rtl" aria-label="ري الحقل">
+      <div className="grid gap-4 xl:grid-cols-2">
       <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
         <div className="mb-4 flex items-center gap-2"><Droplets className="h-5 w-5 text-emerald-300" /><h2 className="text-base font-bold text-slate-100">نصيحة الري</h2></div>
         {adviceQ.isLoading && <LoadingState message="جارٍ تحميل نصيحة الري…" />}
@@ -54,6 +58,10 @@ export default function FieldWorkspaceIrrigationPanel({ fieldId, seasonId }: { f
         {schedulesQ.isError && <IrrigationState title="جداول الري" error={schedulesQ.error} onRetry={() => schedulesQ.refetch()} />}
         {schedulesQ.data && (schedulesQ.data.length ? <ol className="space-y-2">{schedulesQ.data.map(s => <li key={s.schedule_id} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-100">{s.name}</p><span className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">{s.enabled ? 'enabled' : 'disabled'}</span></div><p className="mt-1 text-xs text-slate-500">{s.start_time} · {s.duration_min} دقيقة{typeof s.water_target_mm === 'number' ? ` · ${s.water_target_mm}mm` : ''}</p></li>)}</ol> : <EmptyState title="لا توجد جداول ري محفوظة" hint="لا يتم توليد جدول ري من الواجهة." />)}
       </div>
+      </div>
+      <IrrigationEngineeringCalculator fieldId={fieldId} seasonId={seasonId} />
+      <ReservoirBoosterNetworkCalculator fieldId={fieldId} seasonId={seasonId} />
+      <IrrigationManualOperationsPanel fieldId={fieldId} seasonId={seasonId} />
     </section>
   );
 }
