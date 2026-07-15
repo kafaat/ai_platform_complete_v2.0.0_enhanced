@@ -70,7 +70,11 @@ def check_indicators_contract_boundary_is_honest() -> None:
     required = [
         '"status": "ready"',
         '"implemented_runtime": True',
-        '"runtime_role": "contract-only"',
+        # RS2/RS3 cutover: the service is now the canonical-observation adapter
+        # (reads observations from raster-service), not a passive contract-only
+        # stub. The honest role marker moved accordingly; spectral compute is
+        # still disowned (409) and never simulated here.
+        '"runtime_role": "canonical-observation-adapter"',
         '"spectral_compute": False',
         "status_code=409",
     ]

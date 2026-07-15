@@ -10,8 +10,8 @@
     "package": "httpx",
     "version_count": 2,
     "versions": "0.27.0, 0.28.1",
-    "services": "0.27.0=>field-segmentation,sam2-inference; 0.28.1=>ai_agronomist,decision-service,weather-service",
-    "files": "services/ai_agronomist/requirements.txt:4; services/decision-service/requirements.txt:3; services/field-segmentation/requirements.txt:6; services/sam2-inference/requirements.txt:14; services/weather-service/requirements.txt:3"
+    "services": "0.27.0=>field-segmentation,sam2-inference; 0.28.1=>ai_agronomist,decision-service,indicators-service,weather-service",
+    "files": "services/ai_agronomist/requirements.txt:4; services/decision-service/requirements.txt:3; services/field-segmentation/requirements.txt:6; services/indicators-service/requirements.txt:7; services/sam2-inference/requirements.txt:14; services/weather-service/requirements.txt:3"
   },
   {
     "package": "pydantic",

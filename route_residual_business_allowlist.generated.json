@@ -541,7 +541,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 79,
+      "line": 87,
       "method": "GET",
       "path": "/v1/indicators/ownership",
       "function": "ownership"
@@ -549,7 +549,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 84,
+      "line": 92,
       "method": "GET",
       "path": "/v1/indicators/catalog",
       "function": "catalog"
@@ -557,10 +557,26 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 136,
+      "line": 147,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 165,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/observations",
+      "function": "field_observations"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 196,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/observation-timeline",
+      "function": "observation_timeline"
     },
     {
       "service": "knowledge-graph",
@@ -625,6 +641,14 @@
       "method": "POST",
       "path": "/search",
       "function": "search"
+    },
+    {
+      "service": "remote-sensing-workspace-bff",
+      "file": "services/remote-sensing-workspace-bff/main.py",
+      "line": 63,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/remote-sensing-workspace",
+      "function": "workspace"
     },
     {
       "service": "sam2-inference",

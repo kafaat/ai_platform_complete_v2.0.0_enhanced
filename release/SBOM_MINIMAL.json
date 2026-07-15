@@ -12135,7 +12135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c1c1aee61b700faab826a727bc3772f214a1385257cc4186fba8de021f5e2f21"
+          "content": "94ef5fea747b3123fffbcba8fe1050eb73d60a0c97052b1aee6f6f265d13cec2"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -12635,7 +12635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99d598363c23d7e13942e2addf8e32f4addbb148ff2900e07ae5a4effc4924a1"
+          "content": "df0b05530447ad244b59f0c1033a97d1b643f29e7044087c662a81ed1a8dbc10"
         }
       ],
       "name": "services/raster-service/test_batch_single_open_certification.py",

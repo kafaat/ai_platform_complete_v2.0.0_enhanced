@@ -29,10 +29,16 @@ class _DatasetProxy:
 
 def test_batch_opens_source_once_and_reads_each_shared_band_once(tmp_path, monkeypatch):
     source = tmp_path / "scene.tif"
+    # 32x32 (not 8x8): large enough for cog_writer's overview levels [2,4,8,16] to
+    # build, so a real COG is written and cog_url is populated. Under the production
+    # RASTER_PERSISTENCE_MODE=required default a job only reaches ``completed`` when
+    # it durably persists, which requires a written COG; the tiny 8x8 raster raised
+    # OverviewCreationError, left cog_url=None and honestly terminated ``failed``.
+    dim = 32
     profile = {
         "driver": "GTiff",
-        "width": 8,
-        "height": 8,
+        "width": dim,
+        "height": dim,
         "count": 6,
         "dtype": "float32",
         "crs": "EPSG:32638",
@@ -41,7 +47,7 @@ def test_batch_opens_source_once_and_reads_each_shared_band_once(tmp_path, monke
     }
     with rasterio.open(source, "w", **profile) as dst:
         for band in range(1, 7):
-            dst.write(np.full((8, 8), band / 10.0, dtype="float32"), band)
+            dst.write(np.full((dim, dim), band / 10.0, dtype="float32"), band)
 
     real_open = rasterio.open
     source_opens = 0
@@ -57,7 +63,12 @@ def test_batch_opens_source_once_and_reads_each_shared_band_once(tmp_path, monke
 
     monkeypatch.setattr(rasterio, "open", counted_open)
     ctx = raster_processing_runtime.make_processing_context(upload_dir=str(tmp_path))
-    ctx._persist_raster_asset = lambda *a, **k: False
+    # This test certifies single-open shared-band I/O, not persistence. Under the
+    # production default RASTER_PERSISTENCE_MODE=required (raster_persistence_policy),
+    # a job only reaches ``completed`` when the asset is durably persisted — so the
+    # happy path must simulate persistence success (True), otherwise the job would
+    # honestly terminate ``failed``/``processed_unpublished`` and never certify I/O.
+    ctx._persist_raster_asset = lambda *a, **k: True
     req = models.BatchProcessRequest(
         tenant_id="tenant-1",
         field_id="field-1",
