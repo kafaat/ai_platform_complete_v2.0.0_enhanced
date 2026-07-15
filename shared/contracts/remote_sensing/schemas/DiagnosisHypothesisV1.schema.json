@@ -1,0 +1,342 @@
+{
+  "$defs": {
+    "DiagnosisAssessmentStatus": {
+      "enum": [
+        "pending",
+        "supported",
+        "not_supported",
+        "revised"
+      ],
+      "title": "DiagnosisAssessmentStatus",
+      "type": "string"
+    },
+    "EvidenceBundleV1": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvidenceRefV1"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "title": "EvidenceBundleV1",
+      "type": "object"
+    },
+    "EvidenceRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "format": "date-time",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "evidence_ref": {
+          "pattern": "^urn:sahool:evidence:[A-Za-z0-9_-]+$",
+          "title": "Evidence Ref",
+          "type": "string"
+        },
+        "evidence_type": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Evidence Type",
+          "type": "string"
+        },
+        "geometry_ref": {
+          "anyOf": [
+            {
+              "pattern": "^urn:sahool:geometry:[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Geometry Ref"
+        },
+        "quality_grade": {
+          "anyOf": [
+            {
+              "pattern": "^(A|B|C|D|F)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quality Grade"
+        },
+        "relation_type": {
+          "$ref": "#/$defs/EvidenceRelationType"
+        },
+        "source_system": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Source System",
+          "type": "string"
+        },
+        "tenant_id": {
+          "format": "uuid",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        },
+        "verification_state": {
+          "$ref": "#/$defs/EvidenceVerificationState"
+        }
+      },
+      "required": [
+        "evidence_ref",
+        "tenant_id",
+        "source_system",
+        "evidence_type",
+        "relation_type",
+        "captured_at",
+        "content_hash",
+        "verification_state"
+      ],
+      "title": "EvidenceRefV1",
+      "type": "object"
+    },
+    "EvidenceRelationType": {
+      "enum": [
+        "primary",
+        "supporting",
+        "contradicting",
+        "baseline",
+        "corroborating"
+      ],
+      "title": "EvidenceRelationType",
+      "type": "string"
+    },
+    "EvidenceVerificationState": {
+      "enum": [
+        "pending",
+        "verified",
+        "disputed",
+        "superseded"
+      ],
+      "title": "EvidenceVerificationState",
+      "type": "string"
+    },
+    "VerificationRequirement": {
+      "enum": [
+        "required",
+        "recommended",
+        "not_required"
+      ],
+      "title": "VerificationRequirement",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "alternative_assessment_note": {
+      "anyOf": [
+        {
+          "maxLength": 512,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Alternative Assessment Note"
+    },
+    "alternative_conditions": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Alternative Conditions",
+      "type": "array"
+    },
+    "assessment_status": {
+      "$ref": "#/$defs/DiagnosisAssessmentStatus",
+      "default": "pending"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Confidence"
+    },
+    "confidence_method": {
+      "maxLength": 96,
+      "minLength": 1,
+      "title": "Confidence Method",
+      "type": "string"
+    },
+    "diagnosis_model_ref": {
+      "pattern": "^urn:sahool:model:[A-Za-z0-9_.-]+$",
+      "title": "Diagnosis Model Ref",
+      "type": "string"
+    },
+    "diagnosis_ref": {
+      "pattern": "^urn:sahool:diagnosis:[A-Za-z0-9_-]+$",
+      "title": "Diagnosis Ref",
+      "type": "string"
+    },
+    "evidence_bundle": {
+      "$ref": "#/$defs/EvidenceBundleV1"
+    },
+    "field_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^fld_[A-Za-z0-9_-]+$",
+      "title": "Field Id",
+      "type": "string"
+    },
+    "ground_verification_requirement": {
+      "$ref": "#/$defs/VerificationRequirement"
+    },
+    "primary_anomaly_ref": {
+      "pattern": "^urn:sahool:anomaly:[A-Za-z0-9_-]+$",
+      "title": "Primary Anomaly Ref",
+      "type": "string"
+    },
+    "proposed_at": {
+      "format": "date-time",
+      "title": "Proposed At",
+      "type": "string"
+    },
+    "recommended_verification_methods": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Recommended Verification Methods",
+      "type": "array"
+    },
+    "related_anomaly_refs": {
+      "default": [],
+      "items": {
+        "pattern": "^urn:sahool:anomaly:[A-Za-z0-9_-]+$",
+        "type": "string"
+      },
+      "title": "Related Anomaly Refs",
+      "type": "array"
+    },
+    "review_notes": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Notes"
+    },
+    "reviewed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reviewed At"
+    },
+    "reviewed_by": {
+      "anyOf": [
+        {
+          "pattern": "^urn:sahool:user:[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reviewed By"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "season_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Season Id",
+      "type": "string"
+    },
+    "suspected_condition": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Suspected Condition",
+      "type": "string"
+    },
+    "tenant_id": {
+      "format": "uuid",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Updated At"
+    }
+  },
+  "required": [
+    "diagnosis_ref",
+    "tenant_id",
+    "field_id",
+    "season_id",
+    "primary_anomaly_ref",
+    "suspected_condition",
+    "evidence_bundle",
+    "confidence",
+    "confidence_method",
+    "ground_verification_requirement",
+    "diagnosis_model_ref",
+    "proposed_at"
+  ],
+  "title": "DiagnosisHypothesisV1",
+  "type": "object"
+}

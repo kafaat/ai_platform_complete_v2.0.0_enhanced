@@ -986,7 +986,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 55,
+    "line": 63,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -994,7 +994,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 60,
+    "line": 68,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1002,7 +1002,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 65,
+    "line": 73,
     "method": "GET",
     "path": "/readyz",
     "function": "ready"
@@ -1010,7 +1010,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 79,
+    "line": 87,
     "method": "GET",
     "path": "/v1/indicators/ownership",
     "function": "ownership"
@@ -1018,7 +1018,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 84,
+    "line": 92,
     "method": "GET",
     "path": "/v1/indicators/catalog",
     "function": "catalog"
@@ -1026,7 +1026,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 94,
+    "line": 102,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1034,7 +1034,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 116,
+    "line": 125,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -1042,7 +1042,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 136,
+    "line": 147,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "function": "compute_indicator"
@@ -1050,10 +1050,26 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 144,
+    "line": 155,
     "method": "GET",
     "path": "/",
     "function": "root"
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/main.py",
+    "line": 165,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/observations",
+    "function": "field_observations"
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/main.py",
+    "line": 196,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/observation-timeline",
+    "function": "observation_timeline"
   },
   {
     "service": "knowledge-graph",
@@ -2166,6 +2182,30 @@
     "method": "POST",
     "path": "/imagery/timeseries/parallel",
     "function": "imagery_timeseries_parallel"
+  },
+  {
+    "service": "remote-sensing-workspace-bff",
+    "file": "services/remote-sensing-workspace-bff/main.py",
+    "line": 27,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "healthz"
+  },
+  {
+    "service": "remote-sensing-workspace-bff",
+    "file": "services/remote-sensing-workspace-bff/main.py",
+    "line": 32,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "readyz"
+  },
+  {
+    "service": "remote-sensing-workspace-bff",
+    "file": "services/remote-sensing-workspace-bff/main.py",
+    "line": 63,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/remote-sensing-workspace",
+    "function": "workspace"
   },
   {
     "service": "sahool-platform",
@@ -7793,6 +7833,70 @@
   },
   {
     "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 66,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/signal-anomalies/detect",
+    "function": "detect_signal_anomalies"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 122,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/signal-anomalies",
+    "function": "list_signal_anomalies"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 136,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/transition",
+    "function": "transition_anomaly"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 160,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
+    "function": "request_ground_verification"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/anomalies.py",
+    "line": 194,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
+    "function": "accept_verification_result"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/baselines.py",
+    "line": 30,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/baseline-comparisons",
+    "function": "baseline_comparisons"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/diagnoses.py",
+    "line": 31,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/diagnoses",
+    "function": "generate_diagnosis"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/diagnoses.py",
+    "line": 55,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/decision-referrals",
+    "function": "refer_to_decision"
+  },
+  {
+    "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/health.py",
     "line": 21,
     "method": "GET",
@@ -7822,6 +7926,30 @@
     "method": "GET",
     "path": "/metrics",
     "function": "metrics"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/outcomes.py",
+    "line": 45,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/post-execution-observations",
+    "function": "schedule_post_execution_observation"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/outcomes.py",
+    "line": 67,
+    "method": "POST",
+    "path": "/v1/execution-requests/{execution_request_id}/remote-sensing-outcome",
+    "function": "verify_remote_sensing_outcome"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/outcomes.py",
+    "line": 88,
+    "method": "POST",
+    "path": "/v1/outcomes/{outcome_id}/remote-sensing-attribution",
+    "function": "attribute_remote_sensing_outcome"
   },
   {
     "service": "video-processor",

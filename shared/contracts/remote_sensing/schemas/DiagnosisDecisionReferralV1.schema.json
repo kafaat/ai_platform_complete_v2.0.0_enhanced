@@ -1,0 +1,344 @@
+{
+  "$defs": {
+    "EvidenceBundleV1": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvidenceRefV1"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "title": "EvidenceBundleV1",
+      "type": "object"
+    },
+    "EvidenceRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "format": "date-time",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "evidence_ref": {
+          "pattern": "^urn:sahool:evidence:[A-Za-z0-9_-]+$",
+          "title": "Evidence Ref",
+          "type": "string"
+        },
+        "evidence_type": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Evidence Type",
+          "type": "string"
+        },
+        "geometry_ref": {
+          "anyOf": [
+            {
+              "pattern": "^urn:sahool:geometry:[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Geometry Ref"
+        },
+        "quality_grade": {
+          "anyOf": [
+            {
+              "pattern": "^(A|B|C|D|F)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quality Grade"
+        },
+        "relation_type": {
+          "$ref": "#/$defs/EvidenceRelationType"
+        },
+        "source_system": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Source System",
+          "type": "string"
+        },
+        "tenant_id": {
+          "format": "uuid",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        },
+        "verification_state": {
+          "$ref": "#/$defs/EvidenceVerificationState"
+        }
+      },
+      "required": [
+        "evidence_ref",
+        "tenant_id",
+        "source_system",
+        "evidence_type",
+        "relation_type",
+        "captured_at",
+        "content_hash",
+        "verification_state"
+      ],
+      "title": "EvidenceRefV1",
+      "type": "object"
+    },
+    "EvidenceRelationType": {
+      "enum": [
+        "primary",
+        "supporting",
+        "contradicting",
+        "baseline",
+        "corroborating"
+      ],
+      "title": "EvidenceRelationType",
+      "type": "string"
+    },
+    "EvidenceVerificationState": {
+      "enum": [
+        "pending",
+        "verified",
+        "disputed",
+        "superseded"
+      ],
+      "title": "EvidenceVerificationState",
+      "type": "string"
+    },
+    "FieldContextRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "field_state_ref": {
+          "pattern": "^urn:sahool:field-state:[A-Za-z0-9_-]+$",
+          "title": "Field State Ref",
+          "type": "string"
+        },
+        "soil_context_ref": {
+          "anyOf": [
+            {
+              "pattern": "^urn:sahool:soil-context:[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Soil Context Ref"
+        },
+        "weather_context_ref": {
+          "anyOf": [
+            {
+              "pattern": "^urn:sahool:weather-context:[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weather Context Ref"
+        }
+      },
+      "required": [
+        "field_state_ref"
+      ],
+      "title": "FieldContextRefV1",
+      "type": "object"
+    },
+    "SuggestedActionClassV1": {
+      "additionalProperties": false,
+      "properties": {
+        "action_type": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Action Type",
+          "type": "string"
+        },
+        "expected_benefit": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Benefit"
+        },
+        "risk_if_ignored": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Risk If Ignored"
+        },
+        "urgency": {
+          "pattern": "^(immediate|high|medium|low|routine)$",
+          "title": "Urgency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_type",
+        "urgency"
+      ],
+      "title": "SuggestedActionClassV1",
+      "type": "object"
+    },
+    "ValidityContextV1": {
+      "additionalProperties": false,
+      "properties": {
+        "crop_stage_constraint": {
+          "anyOf": [
+            {
+              "maxLength": 96,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Crop Stage Constraint"
+        },
+        "valid_from": {
+          "format": "date-time",
+          "title": "Valid From",
+          "type": "string"
+        },
+        "valid_until": {
+          "format": "date-time",
+          "title": "Valid Until",
+          "type": "string"
+        },
+        "weather_window_required": {
+          "default": false,
+          "title": "Weather Window Required",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "valid_from",
+        "valid_until"
+      ],
+      "title": "ValidityContextV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "diagnosis_ref": {
+      "pattern": "^urn:sahool:diagnosis:[A-Za-z0-9_-]+$",
+      "title": "Diagnosis Ref",
+      "type": "string"
+    },
+    "evidence_bundle": {
+      "$ref": "#/$defs/EvidenceBundleV1"
+    },
+    "field_context": {
+      "$ref": "#/$defs/FieldContextRefV1"
+    },
+    "field_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^fld_[A-Za-z0-9_-]+$",
+      "title": "Field Id",
+      "type": "string"
+    },
+    "referral_ref": {
+      "pattern": "^urn:sahool:decision-referral:[A-Za-z0-9_-]+$",
+      "title": "Referral Ref",
+      "type": "string"
+    },
+    "referred_at": {
+      "format": "date-time",
+      "title": "Referred At",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "season_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Season Id",
+      "type": "string"
+    },
+    "suggested_action_class": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SuggestedActionClassV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "tenant_id": {
+      "format": "uuid",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "validity_context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ValidityContextV1"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "referral_ref",
+    "tenant_id",
+    "field_id",
+    "season_id",
+    "diagnosis_ref",
+    "field_context",
+    "evidence_bundle",
+    "referred_at"
+  ],
+  "title": "DiagnosisDecisionReferralV1",
+  "type": "object"
+}

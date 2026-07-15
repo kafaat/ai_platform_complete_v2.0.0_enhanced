@@ -47,9 +47,12 @@ def test_run_analysis_consumes_single_observation_bundle():
     # حزمة واحدة بدل 7 طلبات: لا asyncio.gather على مؤشّرات مفردة.
     assert "_real_observation_bundle_from_raster" in body, "لا يستهلك حزمة المشاهدة الواحدة"
     assert "asyncio.gather" not in body, "لا يزال يجلب المؤشّرات بطلبات متوازية مفردة"
-    assert 'index_sources[public_name] = "raster-service"' in body, "لا يَسِم المصدر الحقيقيّ"
+    # RS-3 cutover: المصدر يُوسَم ديناميكيّاً (canonical أو raster-service) مع ارتداد fail-closed لـ"raster-service".
+    assert 'index_sources[public_name] = str(bundle.get("source") or "raster-service")' in body, (
+        "لا يَسِم المصدر الحقيقيّ"
+    )
     # فشل مُغلَق: حزمة غير متّسقة/غائبة ⇒ 424، وغياب NDVI ⇒ 424.
-    assert "consistent validated raster observation bundle is required" in body
+    assert "consistent validated canonical observation is required" in body
     assert "validated real NDVI is required from raster-service" in body
     # لا جلب مزوّد مباشر داخل vegetation (خرق حدود الحاويات).
     assert "fetch_from_sentinel_hub" not in body and "fetch_from_cdse" not in body

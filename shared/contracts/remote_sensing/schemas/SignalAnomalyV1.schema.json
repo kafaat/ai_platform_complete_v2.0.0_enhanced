@@ -1,0 +1,430 @@
+{
+  "$defs": {
+    "AnomalyStatus": {
+      "enum": [
+        "detected",
+        "triaged",
+        "verification_requested",
+        "confirmed",
+        "rejected",
+        "inconclusive",
+        "diagnosis_proposed",
+        "decision_referred",
+        "resolved"
+      ],
+      "title": "AnomalyStatus",
+      "type": "string"
+    },
+    "BaselineRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "baseline_run_ref": {
+          "pattern": "^urn:sahool:processing-run:[A-Za-z0-9_-]+$",
+          "title": "Baseline Run Ref",
+          "type": "string"
+        },
+        "baseline_type": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Baseline Type",
+          "type": "string"
+        },
+        "expected_confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Confidence"
+        },
+        "expected_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Value"
+        },
+        "observation_refs": {
+          "default": [],
+          "items": {
+            "pattern": "^urn:sahool:observation:[A-Za-z0-9_-]+$",
+            "type": "string"
+          },
+          "title": "Observation Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "baseline_type",
+        "baseline_run_ref"
+      ],
+      "title": "BaselineRefV1",
+      "type": "object"
+    },
+    "EvidenceBundleV1": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/EvidenceRefV1"
+          },
+          "title": "Evidence",
+          "type": "array"
+        }
+      },
+      "title": "EvidenceBundleV1",
+      "type": "object"
+    },
+    "EvidenceRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "captured_at": {
+          "format": "date-time",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "content_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "evidence_ref": {
+          "pattern": "^urn:sahool:evidence:[A-Za-z0-9_-]+$",
+          "title": "Evidence Ref",
+          "type": "string"
+        },
+        "evidence_type": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Evidence Type",
+          "type": "string"
+        },
+        "geometry_ref": {
+          "anyOf": [
+            {
+              "pattern": "^urn:sahool:geometry:[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Geometry Ref"
+        },
+        "quality_grade": {
+          "anyOf": [
+            {
+              "pattern": "^(A|B|C|D|F)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Quality Grade"
+        },
+        "relation_type": {
+          "$ref": "#/$defs/EvidenceRelationType"
+        },
+        "source_system": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Source System",
+          "type": "string"
+        },
+        "tenant_id": {
+          "format": "uuid",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "valid_until": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Valid Until"
+        },
+        "verification_state": {
+          "$ref": "#/$defs/EvidenceVerificationState"
+        }
+      },
+      "required": [
+        "evidence_ref",
+        "tenant_id",
+        "source_system",
+        "evidence_type",
+        "relation_type",
+        "captured_at",
+        "content_hash",
+        "verification_state"
+      ],
+      "title": "EvidenceRefV1",
+      "type": "object"
+    },
+    "EvidenceRelationType": {
+      "enum": [
+        "primary",
+        "supporting",
+        "contradicting",
+        "baseline",
+        "corroborating"
+      ],
+      "title": "EvidenceRelationType",
+      "type": "string"
+    },
+    "EvidenceVerificationState": {
+      "enum": [
+        "pending",
+        "verified",
+        "disputed",
+        "superseded"
+      ],
+      "title": "EvidenceVerificationState",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "info"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "VerificationRequirement": {
+      "enum": [
+        "required",
+        "recommended",
+        "not_required"
+      ],
+      "title": "VerificationRequirement",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "affected_area_ha": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Affected Area Ha"
+    },
+    "anomaly_ref": {
+      "pattern": "^urn:sahool:anomaly:[A-Za-z0-9_-]+$",
+      "title": "Anomaly Ref",
+      "type": "string"
+    },
+    "baseline_refs": {
+      "items": {
+        "$ref": "#/$defs/BaselineRefV1"
+      },
+      "minItems": 1,
+      "title": "Baseline Refs",
+      "type": "array"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Confidence"
+    },
+    "detected_at": {
+      "format": "date-time",
+      "title": "Detected At",
+      "type": "string"
+    },
+    "detection_run_ref": {
+      "pattern": "^urn:sahool:processing-run:[A-Za-z0-9_-]+$",
+      "title": "Detection Run Ref",
+      "type": "string"
+    },
+    "detector_model_ref": {
+      "pattern": "^urn:sahool:model:[A-Za-z0-9_.-]+$",
+      "title": "Detector Model Ref",
+      "type": "string"
+    },
+    "deviation": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        }
+      ],
+      "title": "Deviation"
+    },
+    "deviation_percent": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Deviation Percent"
+    },
+    "evidence_bundle": {
+      "$ref": "#/$defs/EvidenceBundleV1"
+    },
+    "field_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^fld_[A-Za-z0-9_-]+$",
+      "title": "Field Id",
+      "type": "string"
+    },
+    "geometry_ref": {
+      "anyOf": [
+        {
+          "pattern": "^urn:sahool:geometry:[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Geometry Ref"
+    },
+    "primary_observation_ref": {
+      "pattern": "^urn:sahool:observation:[A-Za-z0-9_-]+$",
+      "title": "Primary Observation Ref",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "season_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Season Id",
+      "type": "string"
+    },
+    "severity": {
+      "$ref": "#/$defs/Severity"
+    },
+    "signal_type": {
+      "maxLength": 96,
+      "minLength": 1,
+      "title": "Signal Type",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/AnomalyStatus"
+    },
+    "tenant_id": {
+      "format": "uuid",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Updated At"
+    },
+    "verification_deadline": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Verification Deadline"
+    },
+    "verification_requirement": {
+      "$ref": "#/$defs/VerificationRequirement"
+    }
+  },
+  "required": [
+    "anomaly_ref",
+    "tenant_id",
+    "field_id",
+    "season_id",
+    "detection_run_ref",
+    "primary_observation_ref",
+    "signal_type",
+    "deviation",
+    "baseline_refs",
+    "severity",
+    "confidence",
+    "evidence_bundle",
+    "verification_requirement",
+    "status",
+    "detector_model_ref",
+    "detected_at"
+  ],
+  "title": "SignalAnomalyV1",
+  "type": "object"
+}

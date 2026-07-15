@@ -559,6 +559,12 @@ services:
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: http://sahool-raster-service:8001
+      INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
+      VEGETATION_PREFER_CANONICAL_OBSERVATIONS: "1"
+      VEGETATION_CANONICAL_SHADOW: "1"
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
+      TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:-}
+      VEGETATION_ANOMALY_DB_PATH: /data/vegetation/anomalies.db
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # runtime-truth: real fields come from the tenant-scoped platform catalog
       # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
@@ -566,6 +572,8 @@ services:
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
       VEGETATION_REAL_ONLY: "1"
+    volumes:
+      - vegetation-anomaly-data:/data/vegetation
     depends_on:
       sahool-nats:
         condition: service_healthy
@@ -1230,3 +1238,4 @@ volumes:
   nginx-cache:
   # أوزان SAM2 (يملؤها المستخدم قبل رفع profile gpu) — راجع docs/SAM2_DEPLOYMENT.md.
   sam2-models:
+  vegetation-anomaly-data:

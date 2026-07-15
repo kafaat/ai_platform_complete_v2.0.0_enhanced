@@ -23,6 +23,15 @@ COPY services/vegetation-analysis-service/routers/ /app/routers/
 COPY services/vegetation-analysis-service/vegetation_runtime.py /app/vegetation_runtime.py
 COPY services/vegetation-analysis-service/vegetation_contracts.py /app/vegetation_contracts.py
 COPY services/vegetation-analysis-service/indicator_registry.py /app/indicator_registry.py
+COPY services/vegetation-analysis-service/baseline_engine.py /app/baseline_engine.py
+COPY services/vegetation-analysis-service/anomaly_engine.py /app/anomaly_engine.py
+COPY services/vegetation-analysis-service/anomaly_store.py /app/anomaly_store.py
+COPY services/vegetation-analysis-service/anomaly_requests.py /app/anomaly_requests.py
+COPY services/vegetation-analysis-service/anomaly_runtime.py /app/anomaly_runtime.py
+COPY services/vegetation-analysis-service/ground_verification_bridge.py /app/ground_verification_bridge.py
+COPY services/vegetation-analysis-service/diagnosis_engine.py /app/diagnosis_engine.py
+COPY services/vegetation-analysis-service/decision_bridge.py /app/decision_bridge.py
+COPY services/vegetation-analysis-service/post_execution_bridge.py /app/post_execution_bridge.py
 # indicator_registry.py يقرأ ملفّ القدرات المُولَّد عند الاستيراد
 # (Path(__file__).with_name("indicator_capabilities.generated.json")). غير منسوخ ⇒
 # FileNotFoundError عند الإقلاع ⇒ تعطّل الخدمة. نسخه إلزاميّ.

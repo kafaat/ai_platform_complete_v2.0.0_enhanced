@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "825d5290856190dc6fd11b9d763d7a39cc001e99ddc24bc6aa3b40c3709e8c25"
+          "content": "3f4c9431552fa2eda731facbf3698592affc4084caa353e5ea9b42e50b6014f6"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "034d9d270e97df1c8a824d5eaa4c672f62ad4661cdddce9a289b0c9f6cd71497"
+          "content": "8f1066c5b6a836809367a507b52671fa658caaa436739791fdd9a96ff1d9c5d6"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -11165,7 +11165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3952cdfa0aafd9febfa3d93f0807e3a92ae71aeea1057368f3efd811ee093023"
+          "content": "8480edca314a8c5ba1fe504d7136a719c72a3340d8be2bcb02a6a7b2f206cafe"
         }
       ],
       "name": "services/indicators-service/main.py",
@@ -11175,7 +11175,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32b486b6eb6b52e9d9bf82c6a73dd2b16f8de11d0f5eefc515148f722b05de35"
+          "content": "8e896c6b2d3c5c89df6c0619bfc2238869b76e3ce4974e4f7e7f325155ec30df"
+        }
+      ],
+      "name": "services/indicators-service/observation_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "26785bf98d5e6f19f64b2b7edfcb903faf24492382b785673f0d834d76448a2f"
+        }
+      ],
+      "name": "services/indicators-service/observation_timeline.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f196b79ac660b142e56d5339b9c0c6e309c5364961d6a00b7fdcca7a483e51b2"
         }
       ],
       "name": "services/indicators-service/requirements.txt",
@@ -11185,7 +11205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3db81e1852affa7d97ecbd647cd3d9cdeaa497c97f56c719e28b07dd73fa4fde"
+          "content": "415cb184b0b19ae7278154448b53955c01a9408a358bb8cb794bede05413d600"
         }
       ],
       "name": "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
@@ -11199,6 +11219,26 @@
         }
       ],
       "name": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb76c187336fbe7f0c36715866c5b54ee3a7f4f78d8ddd3fef49730800d2502c"
+        }
+      ],
+      "name": "services/indicators-service/tests/test_observation_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "021d2ceb3c50f7a7a03263c4f8ecf2468b1f1559418b9ea933e9cf439c9ebfa7"
+        }
+      ],
+      "name": "services/indicators-service/tests/test_observation_timeline.py",
       "type": "file"
     },
     {
@@ -11945,7 +11985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c251a471bb60a7c8d0a2d04851a62b078062a5989a34d0f59f02756600892a1"
+          "content": "1b5f8b40fd65e06814fd435b140c42875b8a00ea5a9b871d066c2e5f9377b271"
         }
       ],
       "name": "services/raster-service/raster_api_models.py",
@@ -12085,7 +12125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8afe44151de10744fe75bc4b819fae57fdb0ab3cb69ac39653c8fae752653ac6"
+          "content": "c1c1aee61b700faab826a727bc3772f214a1385257cc4186fba8de021f5e2f21"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -12119,6 +12159,16 @@
         }
       ],
       "name": "services/raster-service/raster_main_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c914fc648404d357dff1f431e2f82a73d5b20c4e69ae0ff67aa4bff6edb6bda5"
+        }
+      ],
+      "name": "services/raster-service/raster_persistence_policy.py",
       "type": "file"
     },
     {
@@ -12945,6 +12995,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "678a19e360a19e15c48ad46d6ed2f415b202b3f5ad0cf1a6add17a761c9067a7"
+        }
+      ],
+      "name": "services/raster-service/test_raster_persistence_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f50b9fe6fbb89690c9c74ae17605b82185b4422a86c52478a72849d745ecbe1a"
         }
       ],
@@ -13209,6 +13269,46 @@
         }
       ],
       "name": "services/raster-tiler-service/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ada03f564b8bb2939ea339eaead91efa12f48df0c142c60fa567aef32b16aa1a"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "05476a47a152d714013db004675b57034da8b83c066df426e7b08cb6de9f9c9f"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "95cf865eae2d6933d6729dcf301e66884e554633490f08e9801de760a559403e"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3a7a3116015b6e3c107bf8c0a91284dc7596333a7104a81a59ca3e6aa875c7e5"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
       "type": "file"
     },
     {
@@ -25995,7 +26095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21a9d94d053ec483b09eac739154fb87b3979f468772f9a5f7425667db383abc"
+          "content": "65578b64d5654bc97a87014a719848733a205a29becd17eede3c876f9e37314f"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -26009,6 +26109,86 @@
         }
       ],
       "name": "services/vegetation-analysis-service/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8907440c4eab5bb6da433b6ebde324236365a0223e4e6227a125746c2e7bfb3d"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2908e0c0aa78f7a369f386d8f06bd1a3c5a9170d7720c6b3486e53f1634cd719"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_requests.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7cfd4b623754d433e32f0d18af9e0b12bbc7d8b28058d426bb7ffb712a0942fe"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "65b911934b3e673e249c4b8be56742d664b8be2559285b89126bab2c7f6e24ea"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "a8ae2215d39e0cd9677a23b8f71449458bba1c17a78257de05a372923c2d2187"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/baseline_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e804b3033948b7e7f34eab68c44e3561bc28a4d2bdb36a3671418f74779928b8"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/decision_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d7827b6db2c3e4249ff6a6a9926baf06186aa1dced7bf2b91c591eab06f72541"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/diagnosis_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "03c9a5ecdebc5a2778aaf7d014c63744dc6390a822293ae92e385056d321e7eb"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/ground_verification_bridge.py",
       "type": "file"
     },
     {
@@ -26035,10 +26215,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4df86f5119220a9ab206cdde1ab0e5c80e6c649e95931f26d33e7440c8ef8183"
+          "content": "aac1bfe4015a647c2e59a1b6e4c48a1846ed18127667f16026b38756aa62eede"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e6665f0a644f7213db2af18105a31bee161f2d39219a5c3daee30158abed546b"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/post_execution_bridge.py",
       "type": "file"
     },
     {
@@ -26085,6 +26275,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8602cd297a4ee36828aef2cb5fd53d6b2483c76defc2fa357ffc9fb7109478ed"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/anomalies.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4fea8f669e1820832ddc9af119a16276c0140c0e9a8a3f232d12b2bb4777bbec"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/baselines.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7dfb159e451a410493b7ae92276f7fdb82328295776150a6da2bb8637b478643"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/diagnoses.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1da84d82db5d299931f7c4b10f43d1aa859289b8b93eb6cd05dad74b3f64e061"
         }
       ],
@@ -26095,10 +26315,70 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "29a592c0e713deba56765ae714ca3c315c78f7acc1da577391de4d3a569061d5"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/outcomes.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "60a648c9e0a7a26944d7b31d27769813ad1f8fb6713b3bb65f16a1d1412e891b"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_anomaly_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09ae3be6d98909654787396ca80559e7a4d45de73b0e8677595a55f0182def7f"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_anomaly_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d5d0e7cf55f99198ab548770e7fc989dd6eff21953604e0d16297ad43639d9c"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_baseline_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4dccb3872400cca7e98e7ff3b10d19e91737c906ea41a5035cfd6bf4426ec4f7"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_diagnosis_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3df6529e6821bd51bde6b235b51c67fd3638d6fce5461bbd827a3074d8230d77"
         }
       ],
       "name": "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fdc7022f603c69cc57e3b853c452b964681d193eee2c387bc22c794f92d6e646"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_ground_verification_bridge.py",
       "type": "file"
     },
     {
@@ -26125,6 +26405,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "523a6a5dca801cae906f9f28a3bea2759f81594ee1cd9f4e74f8993b589d2363"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_post_execution_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "98a5ac4746a71b31e8c92d29fc1f038584d0cde80fb685283d27babdb5a1e8b2"
         }
       ],
@@ -26139,6 +26429,26 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c49643b64555bb6e1800e3b5fae3b278602cbb06bd7232165bb3ee72de02bc47"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_rs_final_hardening.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "330628742c6460911ea08ba706f9b0d5b1f41ee3190fb5a1e9cdf84a00ba5a0a"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_rs_review_hardening.py",
       "type": "file"
     },
     {
@@ -26195,7 +26505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5eaa7449e4364f98062a4082fb65aadaf860d0bb0eff70949483cf47cbaeaf7a"
+          "content": "fa50bed0e9924dba072f20947b3d7c5c83d2a24e2198fc6c5747715294f01348"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",
@@ -26969,6 +27279,276 @@
         }
       ],
       "name": "shared/contracts/intelligence_governance.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fd661135c58f4577b71a7ccde05f61e134abd437da9b1f69b06d1ee0994526e0"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/README.md",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ea209649ae9c40d772f2a19699dceb6dea834664b57072b973eeb7dec39833f9"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d2af52142cf8f4a3b80ce63c50894862ea610acf7978cad7516e0fca6319c15d"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/anomaly_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8b3bac99329c45365c7176c35bb6b36c442e99e8f1881b68400ab113fec5be35"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/base.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3caa6c76853755c2ed77af71f6506e462f81fea180121efff0d5d525e3763c0b"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/decision_referral_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e28f32b0bdbad226da27dcb48a74b0c9826080e867cb6ebfcd06ad683847263e"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/diagnosis_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b68efe7651daf9e9ed9b85c4a37cd1df26c95001f40ce3eb06d63162bda29b38"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/enums.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bd869301d950d381f3b86c08151411d669e24dbc017f42f4e0ecf1bada239509"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/events/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3e6cbf2fdd50a6a55a60310b91d9a101bfe109ed598abd7bd2744e81a3df060e"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/events/anomaly_events_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7a5006d989fbe578df8a8c485bff8de7a067722b21cc1a28ed59f6b712dbc208"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/events/diagnosis_events_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2ecde822e1ec521ce04b4d10acc807ed10d45615d496729504e6100b07a8dbbd"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/events/envelope_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9527e1c93248def3dc113f8139a3880d84dbb0b4f978f875499b751082087d5a"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/events/observation_events_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6eb4ee1c9a344e690de6d3996c83184831de71e7233424710a643c775c97e920"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/events/raster_events_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ddfb03c9e0e97e6662a47fe54bdd436db2abfa02ef85cc3fb08baa96ed5bfc5a"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/evidence_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d829e256e103d065445dbc6740ba3b508a41f5d55f68e1f64da2f5959b6feadf"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/identifiers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "baef89104d03a3dfb34fdcf4fa25d9bf1e462640b269547e15f08935850f1e3c"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/observation_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "22ca4a5cdf694e0e23fbfd569026b8f5c923f81dd33a0d1fe1cb9d66c31bc2b6"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/quality_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "82b4b7687bc0138c076f1b054b488b3ad16044f1e9c86020005980c6090d81ed"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/raster_asset_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc8adff570490d63836f3771a4b376c50bb1f191118f25b4d9e706759cc8b639"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/AnomalyDetectedEventV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "44ae31f462f8f4d68645fa55563c71917fffc68240b787bec10e5f1795bb7497"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/CanonicalObservationV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "009d36285ba85a08eb7ca457d89c40fd4c2264aa7e2cb657fb2e747f97a945fc"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/DiagnosisDecisionReferralV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "acba7b1c8bff37ee10a578e46912a813355b52ed6e89f7409dfd70392ca41f4f"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/DiagnosisHypothesisV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5bb7cdfb3ffaa9d189a92ffb168bff0ed7a55b6361591bc14945cdb1d77dbe57"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/DiagnosisProposedEventV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e7801c58a1f7e53733f78f30539942aaa9ef56bda2a200d4dda7a157c916843f"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/ObservationPublishedEventV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fec7516d573ae088c65b72e8efe9989877fed1d9f72b8107ad9b6f04e3f69bc2"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/RasterAssetPersistedEventV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "da7903fb632fbcdf0bcbb5e7f5d5c53c263c7da92b7c8bb4c53c375d36bdc439"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/RasterAssetPersistedV1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cdbe5cf0af232f024558dd8c1efd0d44ef12efb8802da4f49d3fa4fd1682093b"
+        }
+      ],
+      "name": "shared/contracts/remote_sensing/schemas/SignalAnomalyV1.schema.json",
       "type": "file"
     },
     {

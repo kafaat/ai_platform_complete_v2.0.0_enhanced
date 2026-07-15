@@ -13,13 +13,13 @@ spec.loader.exec_module(main)
 client = TestClient(main.app)
 
 
-def test_indicators_service_reports_contract_only_readiness():
+def test_indicators_service_reports_canonical_adapter_readiness():
     response = client.get("/readyz")
     assert response.status_code == 200
     ready = response.json()
     assert ready["status"] == "ready"
     assert ready["implemented_runtime"] is True
-    assert ready["runtime_role"] == "contract-only"
+    assert ready["runtime_role"] == "canonical-observation-adapter"
     assert ready["spectral_compute"] is False
     assert ready["observed_spectral_owner"] == "raster-service"
 
