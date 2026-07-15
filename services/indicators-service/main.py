@@ -21,6 +21,7 @@ _SERVICE_DIR = Path(__file__).resolve().parent
 if str(_SERVICE_DIR) not in sys.path:
     sys.path.insert(0, str(_SERVICE_DIR))
 from observation_runtime import fetch_canonical_observations  # noqa: E402
+from observation_timeline import fetch_canonical_timeline  # noqa: E402
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-contract-boundary")
 
@@ -198,11 +199,32 @@ async def observation_timeline(
     indicators: str = Query("ndvi"),
     x_tenant_id: str = Header(..., alias="X-Tenant-Id"),
 ):
-    data = await field_observations(field_id, season_id, indicators, x_tenant_id)
+    try:
+        tenant_id = UUID(x_tenant_id)
+    except ValueError as exc:
+        raise HTTPException(400, "invalid X-Tenant-Id") from exc
+    requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
+    try:
+        entries = await fetch_canonical_timeline(
+            field_id=field_id, tenant_id=tenant_id, season_id=season_id, indicators=requested
+        )
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(424, "canonical raster timeline unavailable") from exc
+    if not entries:
+        raise HTTPException(424, "no real canonical timeline available")
+    latest = {}
+    for item in entries:
+        code = item.indicator.code
+        if code not in latest and item.publication_status.value == "published":
+            latest[code] = item.observation_ref
     return {
         "field_id": field_id,
         "season_id": season_id,
-        "entries": sorted(data["observations"], key=lambda item: item["acquired_at"], reverse=True),
+        "entries": [item.model_dump(mode="json") for item in entries],
+        "latest_observation_refs": latest,
         "source": "indicators-service",
         "canonical": True,
+        "supersession_projected": True,
     }

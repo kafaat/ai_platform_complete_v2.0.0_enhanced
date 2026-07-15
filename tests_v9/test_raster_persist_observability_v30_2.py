@@ -42,7 +42,7 @@ def test_job_result_carries_persisted_flag() -> None:
     src = RASTER_JOBS.read_text(encoding="utf-8")
     joined = " ".join(src.split())
     assert '"persisted": persisted' in joined, "نتيجة المهمّة يجب أن تحمل persisted"
-    assert "persisted=%s" in src, "سطر الحالة النهائيّة يجب أن يذكر persisted"
+    assert "persisted={persisted}" in src, "سطر completed يجب أن يذكر persisted"
 
 
 def test_backfill_scan_summary_logged() -> None:

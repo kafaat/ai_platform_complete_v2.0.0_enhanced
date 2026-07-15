@@ -11165,7 +11165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f9f271be91a735872dac58cecee4a992f40a9ee5d8afa71a682e8f79cd3f4424"
+          "content": "8480edca314a8c5ba1fe504d7136a719c72a3340d8be2bcb02a6a7b2f206cafe"
         }
       ],
       "name": "services/indicators-service/main.py",
@@ -11179,6 +11179,16 @@
         }
       ],
       "name": "services/indicators-service/observation_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "26785bf98d5e6f19f64b2b7edfcb903faf24492382b785673f0d834d76448a2f"
+        }
+      ],
+      "name": "services/indicators-service/observation_timeline.py",
       "type": "file"
     },
     {
@@ -11219,6 +11229,16 @@
         }
       ],
       "name": "services/indicators-service/tests/test_observation_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "021d2ceb3c50f7a7a03263c4f8ecf2468b1f1559418b9ea933e9cf439c9ebfa7"
+        }
+      ],
+      "name": "services/indicators-service/tests/test_observation_timeline.py",
       "type": "file"
     },
     {
@@ -12105,7 +12125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "776a8596a4c18138846ad681efce67ffd46e4095269a3c1c84552f7c864fb7e7"
+          "content": "c1c1aee61b700faab826a727bc3772f214a1385257cc4186fba8de021f5e2f21"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -26055,6 +26075,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a8ae2215d39e0cd9677a23b8f71449458bba1c17a78257de05a372923c2d2187"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/baseline_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "74c21bdea1fba06cf772b89d3bfdde391d31bba15fff5716a7be400e8f4a8709"
         }
       ],
@@ -26125,10 +26155,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4fea8f669e1820832ddc9af119a16276c0140c0e9a8a3f232d12b2bb4777bbec"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/baselines.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1da84d82db5d299931f7c4b10f43d1aa859289b8b93eb6cd05dad74b3f64e061"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/health.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1d5d0e7cf55f99198ab548770e7fc989dd6eff21953604e0d16297ad43639d9c"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_baseline_engine.py",
       "type": "file"
     },
     {
