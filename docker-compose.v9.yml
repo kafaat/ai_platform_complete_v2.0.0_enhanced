@@ -777,6 +777,9 @@ services:
       NATS_URL: nats://sahool-nats:4222
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_SERVICE_URL: http://sahool-raster-service:8001
+      INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
+      VEGETATION_PREFER_CANONICAL_OBSERVATIONS: "1"
+      VEGETATION_CANONICAL_SHADOW: "1"
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       # runtime-truth: real fields come from the tenant-scoped platform catalog
       # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
@@ -825,6 +828,7 @@ services:
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
+      RASTER_PERSISTENCE_MODE: ${RASTER_PERSISTENCE_MODE:-required}
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
       RASTER_LAYER_EVICT_ENABLED: ${RASTER_LAYER_EVICT_ENABLED:-true}
       # v154: مطالبة دفعة راستر دائمة على PostgreSQL + إيجارات قابلة للاسترداد بعد تعطُّل العامل.
@@ -942,6 +946,7 @@ services:
       JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
+      RASTER_PERSISTENCE_MODE: ${RASTER_PERSISTENCE_MODE:-required}
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
@@ -1018,7 +1023,10 @@ services:
     logging: *id001
     environment:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      INDICATORS_RUNTIME_MODE: contract-only
+      INDICATORS_RUNTIME_MODE: canonical-observation-adapter
+      RASTER_SERVICE_URL: http://sahool-raster-service:8001
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      RS_OBSERVATION_POLICY_ID: ${RS_OBSERVATION_POLICY_ID:-NDVI_CURRENT_REAL_ONLY_V1}
     networks:
     - sahool-internal
     healthcheck:

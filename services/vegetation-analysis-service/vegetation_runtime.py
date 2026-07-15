@@ -67,6 +67,18 @@ VEGETATION_MIN_QUALITY = float(os.getenv("VEGETATION_MIN_QUALITY", "0.55"))
 _RASTER_REAL_INDEX = {"evi": "evi", "savi": "msavi", "ndmi": "moisture"}
 
 RASTER_SERVICE_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+INDICATORS_SERVICE_URL = os.getenv(
+    "INDICATORS_SERVICE_URL", "http://indicators-service:8000"
+).rstrip("/")
+VEGETATION_PREFER_CANONICAL_OBSERVATIONS = os.getenv(
+    "VEGETATION_PREFER_CANONICAL_OBSERVATIONS", "1"
+) not in ("0", "false", "False", "")
+VEGETATION_CANONICAL_SHADOW = os.getenv("VEGETATION_CANONICAL_SHADOW", "1") not in (
+    "0",
+    "false",
+    "False",
+    "",
+)
 
 
 # ── مصدر الحقول (Field source) — إغلاق مرن نحو القاعدة ──────────────
@@ -462,6 +474,85 @@ async def _publish_analysis(field_id: str, tenant_id: str, indices: dict, source
         logger.warning(f"NATS publish failed: {e}")
 
 
+async def _canonical_observation_bundle_from_indicators(
+    field_id: str, tenant_id: str, season_id: str, raster_indices: list[str]
+) -> dict | None:
+    """Read canonical observations from indicators-service and adapt locally.
+
+    The adapter exists only during cutover so downstream vegetation logic remains
+    behavior-compatible while the legal source moves from raster bundles to
+    CanonicalObservationV1. It never accesses the indicators database directly.
+    """
+    if not VEGETATION_PREFER_CANONICAL_OBSERVATIONS:
+        return None
+    try:
+        async with httpx.AsyncClient(timeout=12) as client:
+            response = await client.get(
+                f"{INDICATORS_SERVICE_URL}/v1/fields/{field_id}/observations",
+                params={"season_id": season_id, "indicators": ",".join(raster_indices)},
+                headers={"X-Tenant-Id": str(tenant_id)},
+            )
+        if response.status_code != 200:
+            return None
+        payload = response.json()
+        canonical = payload.get("observations") or []
+        observations: dict[str, dict] = {}
+        dates: set[str] = set()
+        for item in canonical:
+            indicator = (item.get("indicator") or {}).get("code")
+            if not indicator:
+                continue
+            acquired_at = item.get("acquired_at")
+            if acquired_at:
+                dates.add(str(acquired_at))
+            quality = item.get("observation_quality") or {}
+            summary = item.get("summary") or {}
+            lineage = item.get("lineage") or {}
+            observations[str(indicator)] = {
+                "real_data": True,
+                "date": acquired_at,
+                "stats": {
+                    "mean": summary.get("mean"),
+                    "median": summary.get("median"),
+                    "p10": summary.get("p10"),
+                    "p90": summary.get("p90"),
+                    "std": summary.get("stddev"),
+                },
+                "valid_pixel_ratio": quality.get("valid_pixel_ratio"),
+                "coverage_ratio": quality.get("field_coverage_ratio"),
+                "cloud_cover": quality.get("field_cloud_ratio"),
+                "confidence": quality.get("score"),
+                "index_quality_flags": quality.get("reason_codes") or [],
+                "indicator_product": {
+                    "quality_score": quality.get("score"),
+                    "valid_pixel_ratio": quality.get("valid_pixel_ratio"),
+                    "data_available_at": item.get("published_at"),
+                    "provenance": {
+                        "asset_ref": item.get("asset_ref"),
+                        "processing_run_ref": lineage.get("processing_run_ref"),
+                        "algorithm_version": (item.get("indicator") or {}).get("semantic_version"),
+                        "acquisition_datetime": acquired_at,
+                        "canonical_observation_ref": item.get("observation_ref"),
+                    },
+                },
+            }
+        if not observations:
+            return None
+        return {
+            "field_id": field_id,
+            "observations": observations,
+            "acquisition_dates": sorted(dates),
+            "bundle_consistency": len(dates) <= 1,
+            "mixed_scene": len(dates) > 1,
+            "real_data": True,
+            "canonical": True,
+            "source": "indicators-service",
+        }
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("canonical observation unavailable field=%s: %s", field_id, exc)
+        return None
+
+
 async def _real_observation_bundle_from_raster(
     field_id: str, tenant_id: str, raster_indices: list[str]
 ) -> dict | None:
@@ -557,9 +648,36 @@ async def run_analysis(
         index_quality: dict[str, dict] = {}
         requested = ["ndvi", "evi", "savi", "ndmi", "msi", "ndwi", "gndvi"]
         raster_names = ["ndvi", "evi", "msavi", "moisture", "msi", "ndwi", "gndvi"]
-        bundle = await _real_observation_bundle_from_raster(field_id, tenant_id, raster_names)
+        _season = season_id or f"unscoped-{date_to}"
+        canonical_bundle = await _canonical_observation_bundle_from_indicators(
+            field_id, tenant_id, _season, raster_names
+        )
+        raster_bundle = None
+        if canonical_bundle is None or VEGETATION_CANONICAL_SHADOW:
+            raster_bundle = await _real_observation_bundle_from_raster(
+                field_id, tenant_id, raster_names
+            )
+        bundle = canonical_bundle or raster_bundle
+        if canonical_bundle is not None and raster_bundle is not None:
+            _canon_ndvi = (
+                ((canonical_bundle.get("observations") or {}).get("ndvi") or {})
+                .get("stats", {})
+                .get("mean")
+            )
+            _raster_ndvi = (
+                ((raster_bundle.get("observations") or {}).get("ndvi") or {})
+                .get("stats", {})
+                .get("mean")
+            )
+            if isinstance(_canon_ndvi, (int, float)) and isinstance(_raster_ndvi, (int, float)):
+                _delta = abs(float(_canon_ndvi) - float(_raster_ndvi))
+                if _delta > float(os.getenv("VEGETATION_CANONICAL_PARITY_TOLERANCE", "0.0001")):
+                    logger.warning(
+                        "canonical parity mismatch field=%s ndvi_delta=%s", field_id, _delta
+                    )
         if bundle is None:
-            raise HTTPException(424, "consistent validated raster observation bundle is required")
+            raise HTTPException(424, "consistent validated canonical observation is required")
+        source = str(bundle.get("source") or source)
         acquisition_dates: list[str] = list(bundle.get("acquisition_dates") or [])
         bundle_observations = bundle.get("observations") or {}
         for public_name, raster_name in zip(requested, raster_names, strict=True):
@@ -571,7 +689,7 @@ async def run_analysis(
             if not isinstance(mean, (int, float)):
                 continue
             indices[public_name] = round(float(mean), 3)
-            index_sources[public_name] = "raster-service"
+            index_sources[public_name] = str(bundle.get("source") or "raster-service")
             valid = product.get("valid_pixel_ratio")
             provenance = product.get("provenance") or {}
             index_quality[public_name] = {

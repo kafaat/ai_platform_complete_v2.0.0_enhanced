@@ -13,6 +13,7 @@ import uuid
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
+from raster_persistence_policy import terminal_status
 
 
 class _LeaseHeartbeat:
@@ -234,11 +235,24 @@ def run_processing(ctx, job_id: str, req):
             "provenance": provenance,
             "persisted": persisted,  # v5-audit F1: هل حُفِظ في DB فعلاً (لا الذاكرة فقط)؟
         }
-        job["status"] = ctx.JobStatus.completed
-        job["progress_pct"] = 100
+        _terminal, _error_code = terminal_status(persisted=bool(persisted))
+        job["status"] = getattr(ctx.JobStatus, _terminal)
+        job["progress_pct"] = 100 if persisted else 95
         job["finished_at"] = now
-        ctx._jobs.set(job_id, job)  # تثبيت النتيجة المكتملة (Redis/ذاكرة)
-        ctx.logger.info(f"job {job_id} completed → layer {layer_id} persisted={persisted}")
+        if _error_code:
+            job["error_code"] = _error_code
+            job["publication_eligible"] = False
+        else:
+            job["publication_eligible"] = True
+        ctx._jobs.set(job_id, job)
+        ctx.logger.info(
+            "job %s terminal=%s layer=%s persisted=%s publication_eligible=%s",
+            job_id,
+            _terminal,
+            layer_id,
+            persisted,
+            job["publication_eligible"],
+        )
     except Exception as e:  # noqa: BLE001
         job["status"] = ctx.JobStatus.failed
         # لا نُخزّن تفاصيل الاستثناء الخام في job status لأنّها تُقرأ عبر API وقد
@@ -455,11 +469,24 @@ def run_batch_processing(ctx, job_id: str, req):
         shared_src.close()
     job["shared_band_cache_entries"] = len(shared_cache)
     lease_lost = bool(lease_heartbeat is not None and lease_heartbeat.lost)
+    _persisted_results = [
+        value
+        for value in results.values()
+        if isinstance(value, dict) and bool(value.get("persisted"))
+    ]
+    _all_persisted = bool(results) and len(_persisted_results) == len(results)
     if lease_lost:
         job["error_message"] = "durable_lease_lost"
         job["status"] = ctx.JobStatus.failed
+    elif not results:
+        job["status"] = ctx.JobStatus.failed
+        job["error_code"] = "batch_no_products_completed"
     else:
-        job["status"] = ctx.JobStatus.completed if results else ctx.JobStatus.failed
+        _terminal, _error_code = terminal_status(persisted=_all_persisted)
+        job["status"] = getattr(ctx.JobStatus, _terminal)
+        job["publication_eligible"] = _all_persisted
+        if _error_code:
+            job["error_code"] = _error_code
     job["finished_at"] = datetime.now(UTC).isoformat()
     job["batch_results"] = results
     job["batch_failed"] = failed
@@ -489,14 +516,16 @@ def run_batch_processing(ctx, job_id: str, req):
                 claim_key=durable_claim_key,
                 tenant_id=durable_tenant_id,
                 lease_token=durable_lease_token,
-                status="completed" if results else "failed",
+                status=str(
+                    job["status"].value if hasattr(job["status"], "value") else job["status"]
+                ),
                 result_payload={
                     "batch_results": results,
                     "batch_failed": failed,
                     "single_open_certified": bool(job.get("single_open_certified")),
                     "shared_band_cache_entries": job.get("shared_band_cache_entries", 0),
                 },
-                error_code=None if results else "batch_no_products_completed",
+                error_code=job.get("error_code"),
             )
         except Exception:  # noqa: BLE001 — كتابة إيجار/عدّاد best-effort لا تُسقِط المعالجة
             ctx.logger.warning("batch %s durable terminal write failed", job_id)

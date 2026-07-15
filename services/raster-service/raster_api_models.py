@@ -60,6 +60,7 @@ class JobStatus(StrEnum):
     pending = "pending"
     processing = "processing"
     completed = "completed"
+    processed_unpublished = "processed_unpublished"
     failed = "failed"
     cancelled = "cancelled"
 

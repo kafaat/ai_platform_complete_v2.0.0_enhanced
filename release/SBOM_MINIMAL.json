@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "825d5290856190dc6fd11b9d763d7a39cc001e99ddc24bc6aa3b40c3709e8c25"
+          "content": "7645bd0265081ba15bcfba9c40aceaf037e1e2f0bf258beab8d7f823ed2ffe72"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "034d9d270e97df1c8a824d5eaa4c672f62ad4661cdddce9a289b0c9f6cd71497"
+          "content": "112152268cfaaae0106b0179b3fedb931d5b1541f1307309a7fe35ff1d4969d3"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -11165,7 +11165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3952cdfa0aafd9febfa3d93f0807e3a92ae71aeea1057368f3efd811ee093023"
+          "content": "f9f271be91a735872dac58cecee4a992f40a9ee5d8afa71a682e8f79cd3f4424"
         }
       ],
       "name": "services/indicators-service/main.py",
@@ -11175,7 +11175,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "32b486b6eb6b52e9d9bf82c6a73dd2b16f8de11d0f5eefc515148f722b05de35"
+          "content": "8e896c6b2d3c5c89df6c0619bfc2238869b76e3ce4974e4f7e7f325155ec30df"
+        }
+      ],
+      "name": "services/indicators-service/observation_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f196b79ac660b142e56d5339b9c0c6e309c5364961d6a00b7fdcca7a483e51b2"
         }
       ],
       "name": "services/indicators-service/requirements.txt",
@@ -11185,7 +11195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3db81e1852affa7d97ecbd647cd3d9cdeaa497c97f56c719e28b07dd73fa4fde"
+          "content": "415cb184b0b19ae7278154448b53955c01a9408a358bb8cb794bede05413d600"
         }
       ],
       "name": "services/indicators-service/tests/test_indicators_service_honest_boundary.py",
@@ -11199,6 +11209,16 @@
         }
       ],
       "name": "services/indicators-service/tests/test_indicators_service_static_route_smoke.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cb76c187336fbe7f0c36715866c5b54ee3a7f4f78d8ddd3fef49730800d2502c"
+        }
+      ],
+      "name": "services/indicators-service/tests/test_observation_runtime.py",
       "type": "file"
     },
     {
@@ -11945,7 +11965,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c251a471bb60a7c8d0a2d04851a62b078062a5989a34d0f59f02756600892a1"
+          "content": "1b5f8b40fd65e06814fd435b140c42875b8a00ea5a9b871d066c2e5f9377b271"
         }
       ],
       "name": "services/raster-service/raster_api_models.py",
@@ -12085,7 +12105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8afe44151de10744fe75bc4b819fae57fdb0ab3cb69ac39653c8fae752653ac6"
+          "content": "776a8596a4c18138846ad681efce67ffd46e4095269a3c1c84552f7c864fb7e7"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -12119,6 +12139,16 @@
         }
       ],
       "name": "services/raster-service/raster_main_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c914fc648404d357dff1f431e2f82a73d5b20c4e69ae0ff67aa4bff6edb6bda5"
+        }
+      ],
+      "name": "services/raster-service/raster_persistence_policy.py",
       "type": "file"
     },
     {
@@ -12939,6 +12969,16 @@
         }
       ],
       "name": "services/raster-service/test_raster_map_deep_hardening_static.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "678a19e360a19e15c48ad46d6ed2f415b202b3f5ad0cf1a6add17a761c9067a7"
+        }
+      ],
+      "name": "services/raster-service/test_raster_persistence_policy.py",
       "type": "file"
     },
     {
@@ -26195,7 +26235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5eaa7449e4364f98062a4082fb65aadaf860d0bb0eff70949483cf47cbaeaf7a"
+          "content": "fa50bed0e9924dba072f20947b3d7c5c83d2a24e2198fc6c5747715294f01348"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

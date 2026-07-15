@@ -11,9 +11,16 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
+from uuid import UUID
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Query
+
+_SERVICE_DIR = Path(__file__).resolve().parent
+if str(_SERVICE_DIR) not in sys.path:
+    sys.path.insert(0, str(_SERVICE_DIR))
+from observation_runtime import fetch_canonical_observations  # noqa: E402
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-contract-boundary")
 
@@ -68,7 +75,7 @@ async def ready():
         "status": "ready",
         "service": "indicators-service",
         "implemented_runtime": True,
-        "runtime_role": "contract-only",
+        "runtime_role": "canonical-observation-adapter",
         "spectral_compute": False,
         "observed_spectral_owner": manifest["policy"]["observed_spectral_owner"],
         "schema_version": manifest["schema_version"],
@@ -96,13 +103,14 @@ async def capabilities():
         "schema_version": _manifest()["schema_version"],
         "service": "indicators-service",
         "implemented_runtime": True,
-        "runtime_role": "contract-only",
+        "runtime_role": "canonical-observation-adapter",
         "capabilities": {
             "ownership_contract": True,
             "indicator_catalog": True,
             "indicator_compute": False,
             "tile_generation": False,
-            "timeseries": False,
+            "timeseries": True,
+            "canonical_observation_adapter": True,
         },
         "owners": {
             "observed_spectral": "raster-service",
@@ -118,7 +126,7 @@ async def contract():
         "service": "indicators-service",
         "contract_version": "2026-07-12.riv-p0",
         "implemented_runtime": True,
-        "runtime_role": "contract-only",
+        "runtime_role": "canonical-observation-adapter",
         "truth_policy": "single-owner-fail-closed",
         "allowed_routes": [
             "/healthz",
@@ -127,6 +135,8 @@ async def contract():
             "/contract",
             "/v1/indicators/ownership",
             "/v1/indicators/catalog",
+            "/v1/fields/{field_id}/observations",
+            "/v1/fields/{field_id}/observation-timeline",
             "/",
         ],
     }
@@ -145,6 +155,54 @@ async def root():
     return {
         "service": "indicators-service",
         "implemented_runtime": True,
-        "runtime_role": "contract-only",
+        "runtime_role": "canonical-observation-adapter",
         "spectral_compute": False,
+    }
+
+
+@app.get("/v1/fields/{field_id}/observations")
+async def field_observations(
+    field_id: str,
+    season_id: str = Query(..., min_length=1),
+    indicators: str = Query("ndvi"),
+    x_tenant_id: str = Header(..., alias="X-Tenant-Id"),
+):
+    try:
+        tenant_id = UUID(x_tenant_id)
+    except ValueError as exc:
+        raise HTTPException(400, "invalid X-Tenant-Id") from exc
+    requested = [v.strip().lower() for v in indicators.split(",") if v.strip()]
+    try:
+        observations = await fetch_canonical_observations(
+            field_id=field_id, tenant_id=tenant_id, season_id=season_id, indicators=requested
+        )
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(424, "canonical raster observation unavailable") from exc
+    if not observations:
+        raise HTTPException(424, "no consistent real canonical observation available")
+    return {
+        "field_id": field_id,
+        "season_id": season_id,
+        "source": "indicators-service",
+        "canonical": True,
+        "observations": [item.model_dump(mode="json") for item in observations],
+    }
+
+
+@app.get("/v1/fields/{field_id}/observation-timeline")
+async def observation_timeline(
+    field_id: str,
+    season_id: str = Query(..., min_length=1),
+    indicators: str = Query("ndvi"),
+    x_tenant_id: str = Header(..., alias="X-Tenant-Id"),
+):
+    data = await field_observations(field_id, season_id, indicators, x_tenant_id)
+    return {
+        "field_id": field_id,
+        "season_id": season_id,
+        "entries": sorted(data["observations"], key=lambda item: item["acquired_at"], reverse=True),
+        "source": "indicators-service",
+        "canonical": True,
     }

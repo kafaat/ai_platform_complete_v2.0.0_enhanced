@@ -986,7 +986,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 55,
+    "line": 62,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -994,7 +994,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 60,
+    "line": 67,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1002,7 +1002,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 65,
+    "line": 72,
     "method": "GET",
     "path": "/readyz",
     "function": "ready"
@@ -1010,7 +1010,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 79,
+    "line": 86,
     "method": "GET",
     "path": "/v1/indicators/ownership",
     "function": "ownership"
@@ -1018,7 +1018,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 84,
+    "line": 91,
     "method": "GET",
     "path": "/v1/indicators/catalog",
     "function": "catalog"
@@ -1026,7 +1026,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 94,
+    "line": 101,
     "method": "GET",
     "path": "/capabilities",
     "function": "capabilities"
@@ -1034,7 +1034,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 116,
+    "line": 124,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -1042,7 +1042,7 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 136,
+    "line": 146,
     "method": "POST",
     "path": "/v1/indicators/compute",
     "function": "compute_indicator"
@@ -1050,10 +1050,26 @@
   {
     "service": "indicators-service",
     "file": "services/indicators-service/main.py",
-    "line": 144,
+    "line": 154,
     "method": "GET",
     "path": "/",
     "function": "root"
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/main.py",
+    "line": 164,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/observations",
+    "function": "field_observations"
+  },
+  {
+    "service": "indicators-service",
+    "file": "services/indicators-service/main.py",
+    "line": 195,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/observation-timeline",
+    "function": "observation_timeline"
   },
   {
     "service": "knowledge-graph",
