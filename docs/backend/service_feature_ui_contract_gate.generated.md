@@ -8,12 +8,12 @@
 
 ### `auth` — pass
 classification: `ui`
-- ui: 44 match(es)
+- ui: 48 match(es)
   - `frontend/src/App.tsx` ← `LoginPage`
   - `frontend/src/App.tsx` ← `SignupPage`
   - `frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts` ← `refresh`
+  - `frontend/src/components/fieldview/NdviUnavailableNotice.tsx` ← `refresh`
   - `frontend/src/hooks/useManagerConsole.ts` ← `/auth/`
-  - `frontend/src/hooks/useApi.ts` ← `refresh`
 - gateway: 8 match(es)
   - `nginx/nginx.light.conf` ← `/auth/`
   - `nginx/nginx.light.conf` ← `auth_backend`
@@ -23,7 +23,7 @@ classification: `ui`
 
 ### `sahool-platform` — pass
 classification: `ui`
-- ui: 192 match(es)
+- ui: 197 match(es)
   - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
@@ -51,7 +51,7 @@ classification: `ui`
 
 ### `vegetation-analysis-service` — pass
 classification: `ui`
-- ui: 98 match(es)
+- ui: 100 match(es)
   - `frontend/src/App.tsx` ← `FieldRanking`
   - `frontend/src/components/NDVIGauge.tsx` ← `NDVI`
   - `frontend/src/components/sql/SQLEditor.tsx` ← `NDVI`
@@ -65,7 +65,7 @@ classification: `ui`
 
 ### `indicators-service` — pass
 classification: `ui`
-- ui: 29 match(es)
+- ui: 30 match(es)
   - `frontend/src/App.tsx` ← `HybridIndexPage`
   - `frontend/src/App.tsx` ← `indicators`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `indicators`
@@ -79,13 +79,13 @@ classification: `ui`
 
 ### `weather-service` — pass
 classification: `ui`
-- ui: 15 match(es)
+- ui: 16 match(es)
   - `frontend/src/App.tsx` ← `WeatherAdvice`
   - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherTileLayer`
   - `frontend/src/components/maphub/weather/WeatherRasterOverlay.tsx` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/WeatherHoverReadout.ts` ← `WeatherProbePopup`
   - `frontend/src/components/maphub/weather/README.md` ← `WeatherTileLayer`
-- platform-proxy: 295 match(es)
+- platform-proxy: 300 match(es)
   - `services/sahool-platform/api/season_simulation.py` ← `weather-service`
   - `services/sahool-platform/api/season_simulation.py` ← `weather`
   - `services/sahool-platform/api/main.py` ← `weather`
@@ -94,13 +94,13 @@ classification: `ui`
 
 ### `soil-service` — pass
 classification: `ui`
-- ui: 152 match(es)
+- ui: 154 match(es)
   - `frontend/src/App.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
   - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
-- platform-proxy: 278 match(es)
+- platform-proxy: 281 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/api/main.py` ← `soil`
   - `services/sahool-platform/api/event_replay.py` ← `soil`
@@ -178,7 +178,7 @@ classification: `ui`
 
 ### `guardrails-engine` — pass
 classification: `ui`
-- ui: 92 match(es)
+- ui: 99 match(es)
   - `frontend/src/App.tsx` ← `approval`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `validate`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `validate`
@@ -201,7 +201,7 @@ classification: `internal`
 
 ### `mcp_servers` — pass
 classification: `internal`
-- internal-consumer: 93 match(es)
+- internal-consumer: 94 match(es)
   - `services/supervisor-agent/test_graceful_degradation.py` ← `MCP`
   - `services/supervisor-agent/main.py` ← `MCP`
   - `services/supervisor-agent/main.py` ← `sentinel`
@@ -210,22 +210,22 @@ classification: `internal`
 
 ### `actuator-service` — pass
 classification: `ui`
-- ui: 177 match(es)
+- ui: 191 match(es)
   - `frontend/src/App.tsx` ← `irrigation`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
   - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
-- platform-proxy: 91 match(es)
+- platform-proxy: 92 match(es)
+  - `services/sahool-platform/api/irrigation_commissioning_runtime.py` ← `dispatch`
   - `services/sahool-platform/api/controller_edge_adapter.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_workers.py` ← `dispatch`
   - `services/sahool-platform/api/command_store.py` ← `dispatch`
-  - `services/sahool-platform/api/decision_service_client.py` ← `dispatch`
 
 ### `edge-inference` — pass
 classification: `ui`
-- ui: 121 match(es)
+- ui: 122 match(es)
   - `frontend/src/App.tsx` ← `pest`
   - `frontend/src/App.tsx` ← `yield`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `yield`
@@ -258,7 +258,7 @@ classification: `ui-indirect`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `WeatherTileLayer`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `operation-tile-data`
   - `frontend/src/components/maphub/weather/WeatherEngine.static.test.ts` ← `tile-data`
-- internal-consumer: 10 match(es)
+- internal-consumer: 11 match(es)
   - `services/sahool-platform/tests/test_weather_overlay_pipeline.py` ← `weather_overlay_pipeline`
   - `services/sahool-platform/tests/test_weather_overlay_pipeline.py` ← `weather-polygon-worker`
   - `services/sahool-platform/core/weather_overlay_pipeline.py` ← `field_weather_overlay`
@@ -303,7 +303,7 @@ classification: `internal`
 
 ### `raster-tiler-service` — pass
 classification: `internal`
-- internal-consumer: 67 match(es)
+- internal-consumer: 68 match(es)
   - `services/raster-service/test_router_query_direct_call.py` ← `tilejson`
   - `services/raster-service/main.py` ← `TITILER_URL`
   - `services/raster-service/raster_job_orchestration.py` ← `tilejson`

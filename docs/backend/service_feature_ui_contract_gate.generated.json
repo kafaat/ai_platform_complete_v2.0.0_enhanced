@@ -43,6 +43,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/NdviUnavailableNotice.tsx",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/useManagerConsole.ts",
               "pattern": "/auth/"
             },
@@ -63,6 +68,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/hooks/TenantCacheIsolation.static.test.ts",
+              "pattern": "refresh"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/services/api.ts",
               "pattern": "/auth/"
             },
@@ -74,20 +84,10 @@
             {
               "root": "frontend/src",
               "path": "frontend/src/services/api/auth.ts",
-              "pattern": "/auth/"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/auth.ts",
-              "pattern": "refresh"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/client.ts",
               "pattern": "/auth/"
             }
           ],
-          "match_count": 44
+          "match_count": 48
         },
         {
           "kind": "gateway",
@@ -194,6 +194,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/SharedBrowserHygiene.static.test.ts",
+              "pattern": "AddFieldWithMap"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/maphub/AutoSegmentControl.tsx",
               "pattern": "AddFieldWithMap"
             },
@@ -216,14 +221,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/maphub/TerrainView3D.tsx",
               "pattern": "/api/v1"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/maphub/HubMap.tsx",
-              "pattern": "AddFieldWithMap"
             }
           ],
-          "match_count": 192
+          "match_count": 197
         },
         {
           "kind": "gateway",
@@ -441,21 +441,21 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/NdviUnavailableNotice.tsx",
+              "pattern": "vegetation"
+            },
+            {
+              "root": "frontend/src",
+              "path": "frontend/src/components/fieldview/NdviUnavailableNotice.tsx",
+              "pattern": "NDVI"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/fieldview/GisTemporalOpsCard.tsx",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/AgronomyConsistencyCard.tsx",
-              "pattern": "NDVI"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/components/fieldview/CropPropagationCard.tsx",
               "pattern": "NDVI"
             }
           ],
-          "match_count": 98
+          "match_count": 100
         },
         {
           "kind": "gateway",
@@ -536,6 +536,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/hooks/TenantFailClosedCacheKeys.static.test.ts",
+              "pattern": "useIndicators"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/hooks/useIndicatorRegistry.static.test.ts",
               "pattern": "HybridIndexPage"
             },
@@ -563,14 +568,9 @@
               "root": "frontend/src",
               "path": "frontend/src/hooks/useLearningEvidence.ts",
               "pattern": "indicators"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/hooks/useIndicators.ts",
-              "pattern": "indicators"
             }
           ],
-          "match_count": 29
+          "match_count": 30
         },
         {
           "kind": "gateway",
@@ -658,6 +658,11 @@
             },
             {
               "root": "frontend/src",
+              "path": "frontend/src/components/maphub/weather/WeatherActionLifecycle.static.test.ts",
+              "pattern": "WeatherProbePopup"
+            },
+            {
+              "root": "frontend/src",
               "path": "frontend/src/components/maphub/weather/WeatherProbePopup.ts",
               "pattern": "WeatherProbePopup"
             },
@@ -680,14 +685,9 @@
               "root": "frontend/src",
               "path": "frontend/src/components/maphub/weather/WeatherEngine.static.test.ts",
               "pattern": "operation-window"
-            },
-            {
-              "root": "frontend/src",
-              "path": "frontend/src/services/api/fieldWeather.ts",
-              "pattern": "operation-window"
             }
           ],
-          "match_count": 15
+          "match_count": 16
         },
         {
           "kind": "platform-proxy",
@@ -761,7 +761,7 @@
               "pattern": "weather"
             }
           ],
-          "match_count": 295
+          "match_count": 300
         }
       ]
     },
@@ -844,7 +844,7 @@
               "pattern": "Soil"
             }
           ],
-          "match_count": 152
+          "match_count": 154
         },
         {
           "kind": "platform-proxy",
@@ -918,7 +918,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 278
+          "match_count": 281
         }
       ]
     },
@@ -1613,7 +1613,7 @@
               "pattern": "validate"
             }
           ],
-          "match_count": 92
+          "match_count": 99
         },
         {
           "kind": "gateway",
@@ -1796,7 +1796,7 @@
               "pattern": "MCP"
             }
           ],
-          "match_count": 93
+          "match_count": 94
         }
       ]
     },
@@ -1880,7 +1880,7 @@
               "pattern": "irrigation"
             }
           ],
-          "match_count": 177
+          "match_count": 191
         },
         {
           "kind": "platform-proxy",
@@ -1893,6 +1893,11 @@
             "dispatch"
           ],
           "matches": [
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_commissioning_runtime.py",
+              "pattern": "dispatch"
+            },
             {
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/controller_edge_adapter.py",
@@ -1947,14 +1952,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/learning_summary.py",
               "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/device_registry.py",
-              "pattern": "actuator-service"
             }
           ],
-          "match_count": 91
+          "match_count": 92
         }
       ]
     },
@@ -2038,7 +2038,7 @@
               "pattern": "yield"
             }
           ],
-          "match_count": 121
+          "match_count": 122
         },
         {
           "kind": "platform-proxy",
@@ -2292,6 +2292,11 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_container_hardening_ratchet_v21.py",
+              "pattern": "weather-polygon-worker"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_weather_signal_engine.py",
               "pattern": "weather_overlay_pipeline"
             },
@@ -2306,7 +2311,7 @@
               "pattern": "weather-polygon-worker"
             }
           ],
-          "match_count": 10
+          "match_count": 11
         }
       ]
     },
@@ -2711,7 +2716,7 @@
               "pattern": "tilejson"
             }
           ],
-          "match_count": 67
+          "match_count": 68
         }
       ]
     },
