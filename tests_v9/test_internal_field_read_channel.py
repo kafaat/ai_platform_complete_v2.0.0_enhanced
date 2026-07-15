@@ -147,6 +147,7 @@ class _FakeClient:
 @pytest.fixture(scope="module")
 def veg_mod():
     pytest.importorskip("httpx")
+    pytest.importorskip("fastapi")  # vegetation_runtime imports fastapi at module load
     added = VEG not in sys.path
     if added:
         sys.path.insert(0, VEG)

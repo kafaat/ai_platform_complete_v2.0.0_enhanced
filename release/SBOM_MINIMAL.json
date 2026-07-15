@@ -10725,6 +10725,56 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "10b89dd496713b9fe5179a0048553269b694dc2346366a5b6ad1644c47a41b0e"
+        }
+      ],
+      "name": "services/field-management-service/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ba25e16f276e3c6d7d97f9c1a2485b63ba777bc8715822b96b7516c184cecf5"
+        }
+      ],
+      "name": "services/field-management-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ebcb72c30aab0578e811ae79c55f083c3b9a1f9dd5a989f514fd8715ab8eb01"
+        }
+      ],
+      "name": "services/field-management-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "42eca45d4a321fd5c22275eec4202313e53a9dad9b150c4cc89566ef74d34a8c"
+        }
+      ],
+      "name": "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e77d8c1e3bd0be785606c6e2fa1024f974ed9c914f88cb07a1608988ddf5e57e"
+        }
+      ],
+      "name": "services/field-management-service/tests/test_field_management_service_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ea2b94f0643e06001b9ec5ecc0c8b8f8975a971caecbacb51a9855fa6cbd2f59"
         }
       ],

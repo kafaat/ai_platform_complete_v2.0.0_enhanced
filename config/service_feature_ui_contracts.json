@@ -816,6 +816,27 @@
           ]
         }
       ]
+    },
+    {
+      "service": "field-management-service",
+      "classification": "internal-sensitive",
+      "source": [
+        "services/field-management-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/vegetation-analysis-service",
+            "docker-compose.v9.yml"
+          ],
+          "patterns": [
+            "FIELD_SERVICE_URL",
+            "sahool-field-management",
+            "/internal/fields"
+          ]
+        }
+      ]
     }
   ]
 }
