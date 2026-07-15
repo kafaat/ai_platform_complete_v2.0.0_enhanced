@@ -23,6 +23,32 @@ def test_nginx_raster_proxy_injects_authenticated_tenant_and_forwards_token():
     assert "proxy_set_header Authorization $fwd_auth;" in NGINX
 
 
+def _auth_verify_block(conf: str) -> str:
+    # Isolate the `location = /_auth_verify { ... }` body for subrequest-scope assertions.
+    start = conf.index("location = /_auth_verify")
+    depth = 0
+    body_start = conf.index("{", start)
+    for i in range(body_start, len(conf)):
+        if conf[i] == "{":
+            depth += 1
+        elif conf[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return conf[body_start : i + 1]
+    raise AssertionError("unterminated /_auth_verify block")
+
+
+def test_auth_verify_subrequest_derives_cookie_bearer():
+    # tile-401 root fix: the cookie->Bearer derivation MUST live inside /_auth_verify.
+    # `set $fwd_auth` in the parent /api/raster/ `if` block does not propagate into the
+    # auth_request subrequest, so a cookie-only <img> tile hit /auth/verify with an empty
+    # Authorization and got 401. The Cookie header IS inherited by the subrequest.
+    for conf in (NGINX, FRONTEND_NGINX):
+        block = _auth_verify_block(conf)
+        assert 'if ($cookie_sahool_at) { set $fwd_auth "Bearer $cookie_sahool_at"; }' in block
+        assert "proxy_set_header" in block and "Authorization" in block and "$fwd_auth" in block
+
+
 def test_nginx_raster_proxy_points_at_correct_service():
     assert "server sahool-raster-service:8001;" in NGINX
     assert "http://sahool-raster-service:8001/" in FRONTEND_NGINX

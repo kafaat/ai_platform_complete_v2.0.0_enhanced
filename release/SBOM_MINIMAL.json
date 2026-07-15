@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aa8b940d0a83b48218164df9408f6e2f2524e33ba2259212bef780c670aadfe8"
+          "content": "69db7d2a757db5d17ac189f3554a9e4a6d318ea2a45c7a210232b6a82593a499"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd02fcdf3c7f9c06b398c73d062d22476adc0e300edc0dca83fcd6991506eba9"
+          "content": "0b793898418995314d996c7864c9a0acaeab3912d5ba2bba02f035249c313a8a"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "adf43c271e050ec38ad23e968dc5781c8df50547c844054f7e7f5d0fe870770d"
+          "content": "be8e428093d2159e8f1bc0c800bc93b22bf9320652c6ebf43b098c1d8f43039f"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -26285,7 +26285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fb123862376f59b3894ba140c6ba8bf9ad0abd3b702f8e208f6ec224a4b6ea8"
+          "content": "299f94539bc377bd8bbc0f695dfb78ff72fd5da122878d839827e51a579d0109"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",

@@ -1,0 +1,25 @@
+# Development override — opt into soft-fail + HTTP cookies for local work.
+#
+# Usage:
+#   docker compose -f docker-compose.v9.yml -f docker-compose.dev.yml up
+#
+# This is the ONLY sanctioned place to relax the production fail-closed posture.
+# It sets VEGETATION_REAL_ONLY=0 so a field with no processed observation returns
+# an honest 200 {available:false, synthetic:false} instead of 424 — useful when the
+# CDSE quota is exhausted in dev. Production/staging (docker-compose.v9.yml alone)
+# keep VEGETATION_REAL_ONLY defaulting to 1 (fail-closed), enforced by the compose
+# guard. A local .env is gitignored (.env.*), so this committed override documents
+# the dev profile explicitly rather than hiding it in an untracked file.
+services:
+  sahool-vegetation-analysis:
+    environment:
+      # dev soft-fail: no synthetic NDVI is ever produced; the service returns
+      # available:false with a classified reason (see routers/analysis.py).
+      VEGETATION_REAL_ONLY: "0"
+
+  sahool-auth:
+    environment:
+      # dev serves over plain HTTP (127.0.0.1); browsers withhold Secure cookies on
+      # HTTP, so the sahool_at cookie must be non-Secure or Leaflet <img> tile loads
+      # never carry it and the raster gateway 401s. Production keeps 'auto'/'1'.
+      AUTH_COOKIE_SECURE: "0"

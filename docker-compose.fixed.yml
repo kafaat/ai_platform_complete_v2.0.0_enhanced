@@ -573,7 +573,9 @@ services:
       PLATFORM_API_URL: http://sahool-platform:8000
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
-      VEGETATION_REAL_ONLY: "1"
+      # Fail-closed default (see docker-compose.v9.yml). Dev opts into soft-fail via
+      # VEGETATION_REAL_ONLY=0; the default stays 1 so production cannot silently degrade.
+      VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}
     volumes:
       - vegetation-anomaly-data:/data/vegetation
     depends_on:
