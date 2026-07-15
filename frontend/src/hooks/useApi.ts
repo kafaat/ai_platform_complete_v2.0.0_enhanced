@@ -291,7 +291,6 @@ const retryTransientOnly = (failureCount: number, error: unknown): boolean => {
 export function useCurrentNDVI(fieldId: string) {
   return useQuery({
     queryKey: QK.ndviCurrent(fieldId),
-<<<<<<< HEAD
     queryFn: async () => {
       try {
         const r = await vegetationApi.get(`/v1/ndvi/current/${fieldId}`);
@@ -307,11 +306,6 @@ export function useCurrentNDVI(fieldId: string) {
     staleTime: 10 * 60_000,
     enabled:   !!fieldId,
     retry:     false,
-=======
-    queryFn:  () => vegetationApi.get(`/v1/ndvi/current/${fieldId}`).then(r => r.data),
-    staleTime:10 * 60_000,
-    enabled:  !!fieldId,
-    retry:    false,
   });
 }
 

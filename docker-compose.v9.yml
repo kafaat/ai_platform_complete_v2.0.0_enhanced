@@ -1564,6 +1564,7 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       TTS_URL: http://sahool-tts-service:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      JWT_SECRET: ${JWT_SECRET}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
