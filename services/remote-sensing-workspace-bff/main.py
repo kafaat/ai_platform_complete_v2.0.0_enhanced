@@ -71,10 +71,14 @@ async def workspace(
     unknown = sorted(sections - _ALLOWED)
     if unknown:
         raise HTTPException(422, detail={"code": "unknown_workspace_sections", "sections": unknown})
+    if not authorization.strip() or len(authorization) > 8192:
+        raise HTTPException(400, detail={"code": "invalid_authorization"})
     if not tenant_id.strip() or len(tenant_id) > 128:
         raise HTTPException(400, detail={"code": "invalid_tenant_id"})
     if not field_id.strip() or len(field_id) > 128:
         raise HTTPException(400, detail={"code": "invalid_field_id"})
+    if not season_id.strip() or len(season_id) > 128:
+        raise HTTPException(400, detail={"code": "invalid_season_id"})
     headers = {"Authorization": authorization, "X-Tenant-Id": tenant_id}
     result: dict[str, Any] = {
         "field_id": field_id,

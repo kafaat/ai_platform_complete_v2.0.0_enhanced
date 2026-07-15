@@ -3,12 +3,12 @@ from __future__ import annotations
 from uuid import UUID
 
 import main
+from anomaly_runtime import store as _store
 from anomaly_store import AnomalyNotFound, InvalidTransition
 from decision_bridge import DecisionBridge
 from diagnosis_engine import build_diagnosis
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
-from routers.anomalies import _store
 
 router = APIRouter()
 _bridge = DecisionBridge()
@@ -33,7 +33,7 @@ async def generate_diagnosis(
 ):
     tenant = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref)
+        record = _store.get(anomaly_ref, tenant_id=tenant)
         if record["tenant_id"] != tenant:
             raise AnomalyNotFound(anomaly_ref)
         diagnosis = build_diagnosis(anomaly_record=record, tenant_id=UUID(tenant))
@@ -42,6 +42,7 @@ async def generate_diagnosis(
             "diagnosis_proposed",
             expected_version=request.expected_version,
             patch={"diagnosis": diagnosis.model_dump(mode="json")},
+            tenant_id=tenant,
         )
         return {"diagnosis": diagnosis.model_dump(mode="json"), "anomaly": updated}
     except AnomalyNotFound as exc:
@@ -59,7 +60,7 @@ async def refer_to_decision(
 ):
     tenant = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref)
+        record = _store.get(anomaly_ref, tenant_id=tenant)
         if record["tenant_id"] != tenant:
             raise AnomalyNotFound(anomaly_ref)
         diagnosis_payload = record["payload"].get("diagnosis")
@@ -83,6 +84,7 @@ async def refer_to_decision(
                 "decision_referral": result["referral"],
                 "decision_service": result["decision_service"],
             },
+            tenant_id=tenant,
         )
         return {**result, "anomaly": updated}
     except AnomalyNotFound as exc:

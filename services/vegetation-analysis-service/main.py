@@ -144,6 +144,20 @@ app.add_middleware(
 )
 
 
+# Ensure the repository-level ``shared`` package is importable before router
+# auto-registration, mirroring the production image layout (/app/shared).
+# Walk up parents to find the dir that holds ``shared`` (no fragile fixed index:
+# the container flattens this to /app/main.py, the repo nests it three levels).
+import sys  # noqa: E402
+from pathlib import Path as _Path  # noqa: E402
+
+_here = _Path(__file__).resolve()
+for _base in (_here.parent, *_here.parents):
+    if (_base / "shared").is_dir():
+        if str(_base) not in sys.path:
+            sys.path.insert(0, str(_base))
+        break
+
 from router_registry import register_routers  # noqa: E402
 
 register_routers(app)

@@ -5,56 +5,26 @@ from __future__ import annotations
 import hashlib
 import os
 import secrets
-from datetime import UTC, datetime
-from decimal import Decimal
-from typing import Any, Literal
+from datetime import UTC
+from typing import Any
 
 import httpx
 import main
 from anomaly_engine import detect_signals
-from anomaly_store import AnomalyNotFound, AnomalyStore, InvalidTransition
+from anomaly_requests import (
+    DetectRequest,
+    TransitionRequest,
+    VerificationCompletion,
+    VerificationRequest,
+)
+from anomaly_runtime import store as _store
+from anomaly_store import AnomalyNotFound, InvalidTransition
 from fastapi import APIRouter, Depends, Header, HTTPException
 from ground_verification_bridge import GroundVerificationBridge
-from pydantic import BaseModel, ConfigDict, Field
 
 router = APIRouter()
-_store = AnomalyStore()
 _bridge = GroundVerificationBridge()
 _TASK_CALLBACK_TOKEN = os.getenv("TASK_SERVICE_CALLBACK_TOKEN", "")
-
-
-class DetectRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    season_id: str = Field(min_length=1, max_length=128)
-    indicator: str = Field(default="ndvi", min_length=1, max_length=64)
-    current_stage: str | None = Field(default=None, max_length=128)
-    stage_by_observation: dict[str, str] = Field(default_factory=dict)
-    max_history: int = Field(default=12, ge=1, le=60)
-    min_deviation_percent: Decimal = Field(default=Decimal("7"), ge=0, le=100)
-    auto_request_verification: bool = False
-
-
-class TransitionRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    expected_version: int = Field(ge=1)
-    target_status: Literal["triaged", "resolved"]
-    reason_codes: list[str] = Field(default_factory=list)
-
-
-class VerificationRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    expected_version: int = Field(ge=1)
-    priority: str | None = Field(default=None, max_length=32)
-
-
-class VerificationCompletion(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    expected_version: int = Field(ge=1)
-    task_ref: str = Field(min_length=1, max_length=256)
-    verification_result: Literal["confirmed", "rejected", "inconclusive"]
-    evidence_refs: list[str] = Field(default_factory=list)
-    reason_codes: list[str] = Field(default_factory=list)
-    completed_at: datetime
 
 
 async def _baselines(field_id: str, request: DetectRequest, token: str) -> list[dict[str, Any]]:
@@ -170,7 +140,7 @@ async def transition_anomaly(
 ):
     tenant_id = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref)
+        record = _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
         return _store.transition(
@@ -178,6 +148,7 @@ async def transition_anomaly(
             request.target_status,
             expected_version=request.expected_version,
             patch={"transition_reason_codes": request.reason_codes},
+            tenant_id=tenant_id,
         )
     except AnomalyNotFound as exc:
         raise HTTPException(404, "anomaly not found") from exc
@@ -194,7 +165,7 @@ async def request_ground_verification(
 ):
     tenant_id = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref)
+        record = _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
         key = hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
@@ -209,6 +180,7 @@ async def request_ground_verification(
             expected_version=request.expected_version,
             task_ref=task.task_ref,
             patch={"task_ref": task.task_ref},
+            tenant_id=tenant_id,
         )
     except AnomalyNotFound as exc:
         raise HTTPException(404, "anomaly not found") from exc
@@ -231,7 +203,7 @@ async def accept_verification_result(
         raise HTTPException(403, "invalid task-service callback token")
     tenant_id = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref)
+        record = _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
         if record.get("task_ref") and record["task_ref"] != request.task_ref:
@@ -247,6 +219,7 @@ async def accept_verification_result(
             request.verification_result,
             expected_version=request.expected_version,
             patch=patch,
+            tenant_id=tenant_id,
         )
     except AnomalyNotFound as exc:
         raise HTTPException(404, "anomaly not found") from exc

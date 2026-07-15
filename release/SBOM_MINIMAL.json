@@ -13285,7 +13285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a3e69b5dc50bf95a127c7bc560344a5ec88611c43a052740124a021e72c0cc22"
+          "content": "05476a47a152d714013db004675b57034da8b83c066df426e7b08cb6de9f9c9f"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/main.py",
@@ -26095,7 +26095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d5894849e758f132d29e204da538090b62798f32f7e078f10797feab1c413725"
+          "content": "65578b64d5654bc97a87014a719848733a205a29becd17eede3c876f9e37314f"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -26125,7 +26125,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c9eb9d22e4d04c6ee70a4111ec566cd94d169e94932ba0cf7a13b05b51bee6b"
+          "content": "2908e0c0aa78f7a369f386d8f06bd1a3c5a9170d7720c6b3486e53f1634cd719"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_requests.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7cfd4b623754d433e32f0d18af9e0b12bbc7d8b28058d426bb7ffb712a0942fe"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "65b911934b3e673e249c4b8be56742d664b8be2559285b89126bab2c7f6e24ea"
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_store.py",
@@ -26195,7 +26215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4df86f5119220a9ab206cdde1ab0e5c80e6c649e95931f26d33e7440c8ef8183"
+          "content": "aac1bfe4015a647c2e59a1b6e4c48a1846ed18127667f16026b38756aa62eede"
         }
       ],
       "name": "services/vegetation-analysis-service/main.py",
@@ -26255,7 +26275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "95f02e5cdfd69ccd12a62cc4b6a4094729fb77a00ec289da223d3acae1646410"
+          "content": "8602cd297a4ee36828aef2cb5fd53d6b2483c76defc2fa357ffc9fb7109478ed"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/anomalies.py",
@@ -26275,7 +26295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3c9f5713fc4d81018997267c9fb2e135ff698d45f7bd097cefcfe8d5386c88e0"
+          "content": "7dfb159e451a410493b7ae92276f7fdb82328295776150a6da2bb8637b478643"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/diagnoses.py",
@@ -26409,6 +26429,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_raster_bundle_boundary.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c49643b64555bb6e1800e3b5fae3b278602cbb06bd7232165bb3ee72de02bc47"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_rs_final_hardening.py",
       "type": "file"
     },
     {

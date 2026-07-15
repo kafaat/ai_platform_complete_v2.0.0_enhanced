@@ -96,11 +96,17 @@ class AnomalyStore:
             conn.commit()
             return self._row(row)
 
-    def get(self, anomaly_ref: str) -> dict[str, Any]:
+    def get(self, anomaly_ref: str, *, tenant_id: str | None = None) -> dict[str, Any]:
         with self._connect() as conn:
-            row = conn.execute(
-                "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (anomaly_ref,)
-            ).fetchone()
+            if tenant_id is None:
+                row = conn.execute(
+                    "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (anomaly_ref,)
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    "SELECT * FROM signal_anomalies WHERE anomaly_ref = ? AND tenant_id = ?",
+                    (anomaly_ref, tenant_id),
+                ).fetchone()
         if not row:
             raise AnomalyNotFound(anomaly_ref)
         return self._row(row)
@@ -123,12 +129,19 @@ class AnomalyStore:
         expected_version: int,
         patch: dict[str, Any] | None = None,
         task_ref: str | None = None,
+        tenant_id: str | None = None,
     ) -> dict[str, Any]:
         with self._lock, self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
-            row = conn.execute(
-                "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (anomaly_ref,)
-            ).fetchone()
+            if tenant_id is None:
+                row = conn.execute(
+                    "SELECT * FROM signal_anomalies WHERE anomaly_ref = ?", (anomaly_ref,)
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    "SELECT * FROM signal_anomalies WHERE anomaly_ref = ? AND tenant_id = ?",
+                    (anomaly_ref, tenant_id),
+                ).fetchone()
             if not row:
                 raise AnomalyNotFound(anomaly_ref)
             current = str(row["status"])
@@ -144,7 +157,8 @@ class AnomalyStore:
             cursor = conn.execute(
                 """UPDATE signal_anomalies
                    SET status = ?, version = ?, task_ref = COALESCE(?, task_ref), payload_json = ?, updated_at = ?
-                   WHERE anomaly_ref = ? AND version = ?""",
+                   WHERE anomaly_ref = ? AND version = ?
+                     AND (? IS NULL OR tenant_id = ?)""",
                 (
                     new_status,
                     version,
@@ -153,6 +167,8 @@ class AnomalyStore:
                     payload["updated_at"],
                     anomaly_ref,
                     expected_version,
+                    tenant_id,
+                    tenant_id,
                 ),
             )
             if cursor.rowcount != 1:
