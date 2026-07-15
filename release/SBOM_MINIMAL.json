@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a05564adba09ee4838f74fdd14ebddbd7bd01f0162472c7419ea26dc82293459"
+          "content": "bd02fcdf3c7f9c06b398c73d062d22476adc0e300edc0dca83fcd6991506eba9"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -345,7 +345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d99f340f979907e611ef1aa937224dbdcf4e571f07c5b356fc61b485c7c8484"
+          "content": "adf43c271e050ec38ad23e968dc5781c8df50547c844054f7e7f5d0fe870770d"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -9675,7 +9675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "128022d01f494e4208649ae04608da765c7758d7c1212e85384e66b35dcfac60"
+          "content": "a67216b222073e69c9212e37b597cd2f554b2fd40020604a797f41baea6c0f41"
         }
       ],
       "name": "services/auth/main.py",
@@ -9755,7 +9755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1f5af2d4fa3ee574914c13e9005a574d469cea52ca3aae2a043bf49a026bbeec"
+          "content": "11083b25fcc9bcf49858a8322fabf544a8c96677400759ab766cad3b3925f559"
         }
       ],
       "name": "services/auth/routers/invitations.py",
@@ -9795,7 +9795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6b7311de165d15826fd0829c3ac065e1a1a56f2bb66698f2bf0f7e5348f7496"
+          "content": "33e37fa0102db246bab2193dccbf184a266c616af25cfd89f35debd8246ab635"
         }
       ],
       "name": "services/auth/routers/registration.py",
@@ -9805,7 +9805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2bf891cd97db7c48f3b7104286f903f457135d69b766ab49b7c28a2f6f458bbe"
+          "content": "d7166abf54006c66a61e55167a73ea31ceb9b7437be62a13e7e7843f8caa0e67"
         }
       ],
       "name": "services/auth/routers/session.py",
@@ -13265,7 +13265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d8e228662bc5cd6b492b38fb79b3cada9c931a092db08ef67ceba73a82711eb"
+          "content": "1e9479601540a9171ed43334bea232270af2f5f55deaf601ef91b5cbf725b12b"
         }
       ],
       "name": "services/raster-tiler-service/Dockerfile",

@@ -178,7 +178,7 @@ async def accept_invitation(
     )
 
     # كوكي مصادقة البلاطات — المدعوّ مُصادَق فوراً، فتعمل بلاطاته دون JWT في الرابط.
-    main.set_tile_auth_cookie(response, token)
+    main.set_tile_auth_cookie(response, token, request)
 
     return main.TokenResponse(
         access_token=token,

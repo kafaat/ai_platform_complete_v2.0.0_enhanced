@@ -57,7 +57,7 @@ async def register(req: main.RegisterRequest, request: Request, response: Respon
     main.REGISTER_COUNTER.labels(status="success").inc()
 
     # كوكي مصادقة البلاطات — المستخدِم الجديد مُصادَق فوراً، فتعمل بلاطاته دون JWT في الرابط.
-    main.set_tile_auth_cookie(response, token)
+    main.set_tile_auth_cookie(response, token, request)
 
     return main.TokenResponse(
         access_token=token,
