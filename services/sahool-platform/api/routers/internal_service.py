@@ -6,88 +6,19 @@ routes remain service-token protected and preserve their paths/contracts.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from api import main
 from api.service_token_auth import _require_service_token
 
 router = APIRouter()
 
-
-@router.get("/api/v1/internal/fields/{field_id}")
-async def internal_get_field(
-    field_id: str,
-    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
-    _: None = Depends(_require_service_token),
-):
-    """Service-to-service field read for tenant-scoped consumers (e.g. vegetation
-    analysis) that hold a service token but no user JWT.
-
-    Contract (SEC-3):
-      • service-token only — ``_require_service_token`` (X-Agent-Token); a user JWT
-        alone is rejected. Never widens the public ``get_field`` authz.
-      • tenant is taken from the verified ``X-Tenant-Id`` header (the caller derives it
-        from a verified user JWT), never from body/query. Missing ⇒ 400.
-      • the query is scoped by BOTH field_id AND tenant_id under RLS (app.current_tenant),
-        so a field owned by another tenant is indistinguishable from a missing one ⇒ 404
-        (no cross-tenant existence disclosure).
-    """
-    if not x_tenant_id:
-        raise HTTPException(status_code=400, detail="X-Tenant-Id required for internal field read")
-    from api.field_models import _FIELD_DETAIL_SELECT, _row_to_field_detail
-
-    try:
-        pool = main.get_pool()
-        async with pool.acquire() as conn:
-            async with conn.transaction():
-                await main._apply_tenant_guc(conn, x_tenant_id)
-                row = await conn.fetchrow(
-                    f"SELECT {_FIELD_DETAIL_SELECT} FROM fields "
-                    "WHERE field_id = $1 AND tenant_id = $2::uuid",
-                    field_id,
-                    str(x_tenant_id),
-                )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
-        raise main._db_unavailable("قراءة الحقل الداخليّة (خدمة)", e) from e
-    if row is None:
-        raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
-    return _row_to_field_detail(row)
-
-
-@router.get("/api/v1/internal/fields")
-async def internal_list_fields(
-    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
-    _: None = Depends(_require_service_token),
-):
-    """Service-to-service field enumeration for tenant-scoped consumers.
-
-    Same SEC-3 contract as the by-id read: service-token only (never the public
-    user-JWT ``list_fields``), tenant from the verified ``X-Tenant-Id`` header
-    (missing ⇒ 400), rows scoped by tenant_id under RLS. Does not widen public authz.
-    """
-    if not x_tenant_id:
-        raise HTTPException(status_code=400, detail="X-Tenant-Id required for internal field list")
-    from api.field_models import _row_to_field_summary
-
-    try:
-        pool = main.get_pool()
-        async with pool.acquire() as conn:
-            async with conn.transaction():
-                await main._apply_tenant_guc(conn, x_tenant_id)
-                rows = await conn.fetch(
-                    "SELECT field_id, farm_id, name, area_ha, crop, soil_type, manager, "
-                    "field_code, description, water_source, ownership_type, country, region, "
-                    "lat, lon, geometry "
-                    "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
-                    str(x_tenant_id),
-                )
-    except HTTPException:
-        raise
-    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
-        raise main._db_unavailable("قراءة الحقول الداخليّة (خدمة)", e) from e
-    return [_row_to_field_summary(r) for r in rows]
+# NOTE: the tenant-scoped internal field READ routes (GET /api/v1/internal/fields
+# and /api/v1/internal/fields/{field_id}) were MOVED off the platform to the new
+# field-management-service (the declared owner of the `fields` table per
+# docs/architecture/db_ownership.yml). vegetation-analysis now reads fields from
+# FIELD_SERVICE_URL/internal/fields[...] with its service token. Keeping those reads
+# here duplicated ownership and exceeded the platform route budget.
 
 
 @router.get("/internal/fields/{field_id}/state")

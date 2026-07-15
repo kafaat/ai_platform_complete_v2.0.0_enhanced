@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "69db7d2a757db5d17ac189f3554a9e4a6d318ea2a45c7a210232b6a82593a499"
+          "content": "fa9279b92e0a6eb4f893664dd97f6ab702813babfa7b70c2f7903e47320f11c1"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -105,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0b793898418995314d996c7864c9a0acaeab3912d5ba2bba02f035249c313a8a"
+          "content": "1f2b538f5223ee296b86ef75447e725133c2994b0cf1f49d925a151e497c92fa"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -16085,7 +16085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8843d3c7b458de634a098aee29c5a79703c88b135448c176da6279147e531591"
+          "content": "3ef2ff77dd9f0772b14afd29680ae387543f475072368f397508055262f62125"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -26425,7 +26425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "085fc0b6735a8f9f602679c41447ca354f900640cf8499930a13399bfa23aad4"
+          "content": "43dd04771ffdf76ce935582faf9b155bd526aba329331bf6cbaa607f752ca4f8"
         }
       ],
       "name": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
@@ -26535,7 +26535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a41c73670d29fd4b3269c05a38a46a484887c0f76180cb9e82b6402cd262251"
+          "content": "337623547aa8ed95ce6f557ce889f3b8b00ea8531b2e68013f1cd8b1c0035876"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

@@ -1,15 +1,16 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 118,
+  "total_residual_main_routes": 125,
   "classification_counts": {
     "business_endpoint": 82,
     "capabilities": 2,
-    "contract": 2,
-    "health": 16,
-    "legacy_alias": 1,
+    "contract": 3,
+    "health": 18,
+    "internal_endpoint": 2,
+    "legacy_alias": 2,
     "metrics": 4,
-    "readiness": 11
+    "readiness": 12
   },
   "business_endpoint_count": 82,
   "rows": [
@@ -723,6 +724,69 @@
       "path": "/readyz",
       "function": "readyz",
       "classification": "readiness"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 119,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 124,
+      "method": "GET",
+      "path": "/health",
+      "function": "legacy_health",
+      "classification": "health"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 129,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 141,
+      "method": "GET",
+      "path": "/contract",
+      "function": "contract",
+      "classification": "contract"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 160,
+      "method": "GET",
+      "path": "/",
+      "function": "root",
+      "classification": "legacy_alias"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 169,
+      "method": "GET",
+      "path": "/internal/fields/{field_id}",
+      "function": "internal_get_field",
+      "classification": "internal_endpoint"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 201,
+      "method": "GET",
+      "path": "/internal/fields",
+      "function": "internal_list_fields",
+      "classification": "internal_endpoint"
     },
     {
       "service": "field-segmentation",

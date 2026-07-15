@@ -786,9 +786,11 @@ services:
       VEGETATION_ANOMALY_STORE: ${VEGETATION_ANOMALY_STORE:-sqlite}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
-      # runtime-truth: real fields come from the tenant-scoped platform catalog
-      # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
+      # runtime-truth: real fields come from field-management-service (the declared
+      # owner of the `fields` table); load_field/list_fields_from_platform read there.
+      # PLATFORM_API_URL is retained for other platform reads and the truth guard.
       PLATFORM_API_URL: http://sahool-platform:8000
+      FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
       # Fail-closed by default (production/staging): no processed observation ⇒ 424,
@@ -816,6 +818,38 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+  sahool-field-management:
+    build:
+      context: .
+      dockerfile: services/field-management-service/Dockerfile
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      # Declared owner of the `fields` table (docs/architecture/db_ownership.yml).
+      # Connects with the restricted sahool_app role so RLS is enforced (NOBYPASSRLS).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      # Service-token only — a user Bearer JWT is never accepted on this service.
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -sf
+      - http://localhost:8000/healthz
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
   sahool-remote-sensing-workspace-bff:
     build:
       context: .

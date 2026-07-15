@@ -896,6 +896,62 @@
     "function": "readyz"
   },
   {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 119,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "healthz"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 124,
+    "method": "GET",
+    "path": "/health",
+    "function": "legacy_health"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 129,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "readyz"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 141,
+    "method": "GET",
+    "path": "/contract",
+    "function": "contract"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 160,
+    "method": "GET",
+    "path": "/",
+    "function": "root"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 169,
+    "method": "GET",
+    "path": "/internal/fields/{field_id}",
+    "function": "internal_get_field"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 201,
+    "method": "GET",
+    "path": "/internal/fields",
+    "function": "internal_list_fields"
+  },
+  {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
     "line": 370,
@@ -5274,23 +5330,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 18,
-    "method": "GET",
-    "path": "/api/v1/internal/fields/{field_id}",
-    "function": "internal_get_field"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 60,
-    "method": "GET",
-    "path": "/api/v1/internal/fields",
-    "function": "internal_list_fields"
-  },
-  {
-    "service": "sahool-platform",
-    "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 94,
+    "line": 25,
     "method": "GET",
     "path": "/internal/fields/{field_id}/state",
     "function": "internal_field_state"
@@ -5298,7 +5338,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 114,
+    "line": 45,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "function": "internal_ai_advice_event"

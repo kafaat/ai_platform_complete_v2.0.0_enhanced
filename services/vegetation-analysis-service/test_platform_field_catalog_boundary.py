@@ -31,7 +31,8 @@ class _Client:
 
     async def get(self, url, headers=None):
         self.headers = headers
-        assert url.endswith("/api/v1/fields")
+        # field-management-service owns the catalog now (not the platform).
+        assert url.endswith("/internal/fields")
         assert headers["X-Tenant-Id"] == "tenant-a"
         assert headers["X-Agent-Token"] == "service-token"
         return _Response()
@@ -39,7 +40,7 @@ class _Client:
 
 @pytest.mark.asyncio
 async def test_platform_catalog_is_tenant_scoped_and_authenticated(monkeypatch):
-    monkeypatch.setattr(vr, "PLATFORM_API_URL", "http://platform")
+    monkeypatch.setattr(vr, "FIELD_SERVICE_URL", "http://field-management:8000")
     monkeypatch.setattr(vr, "RASTER_SERVICE_TOKEN", "service-token")
     monkeypatch.setattr(vr.httpx, "AsyncClient", _Client)
     assert await vr.list_fields_from_platform("tenant-a") == [{"id": "f-1", "name": "Field 1"}]

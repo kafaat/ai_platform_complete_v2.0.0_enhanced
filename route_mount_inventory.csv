@@ -5,6 +5,7 @@ services/ai_agronomist/main.py,ai_agronomist,True,13,0,False,False,True,direct_r
 services/auth/main.py,auth,True,0,27,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/decision-service/main.py,decision-service,True,52,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/edge-inference/main.py,edge-inference,True,6,0,False,False,False,direct_routes,main.py owns direct route handlers
+services/field-management-service/main.py,field-management-service,True,7,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/field-segmentation/main.py,field-segmentation,True,4,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/guardrails-engine/main.py,guardrails-engine,True,0,7,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/indicators-service/main.py,indicators-service,True,11,0,False,False,True,direct_routes,main.py owns direct route handlers
@@ -23,5 +24,5 @@ services/video-processor/main.py,video-processor,True,0,11,True,False,False,dele
 services/weather-service/main.py,weather-service,True,27,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/weather-polygon-worker/src/main.py,weather-polygon-worker,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
 services/weather-signal-engine/src/main.py,weather-signal-engine,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
-services/sahool-platform/api/main.py,sahool-platform,True,0,555,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
+services/sahool-platform/api/main.py,sahool-platform,True,0,553,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 bots/telegram/main.py,telegram,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint

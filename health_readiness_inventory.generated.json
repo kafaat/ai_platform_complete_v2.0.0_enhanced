@@ -80,6 +80,26 @@
     "verdict": "ok"
   },
   {
+    "file": "services/field-management-service/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 119,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/field-management-service/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 129,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
     "file": "services/field-segmentation/main.py",
     "function": "healthz",
     "path": "/healthz",

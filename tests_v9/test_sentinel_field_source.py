@@ -1,9 +1,9 @@
 """مصدر حقول Sentinel/Vegetation — حقيقة تشغيليّة: لا تلفيق تركيبيّ (20260712).
 
 بعد اكتمال حقيقة التشغيل (runtime-truth): `FIELD_REGISTRY` فارغ، ومُحمِّل الحقول
-`load_field` يقرأ الحقل من المنصّة المستأجَرة (platform API؛ هندسة GeoJSON ⇒ bbox،
-مكافئ ST_Envelope محليّاً) خلف علم FEATURE_SENTINEL_DB_FIELDS (يُفعَّل تلقائيّاً عند
-توفّر PLATFORM_API_URL). المسار fail-soft، لكنّه **لا يرتدّ للسجلّ التركيبيّ إطلاقاً**:
+`load_field` يقرأ الحقل من field-management-service (المالك المُعلَن لجدول fields؛ هندسة
+GeoJSON ⇒ bbox، مكافئ ST_Envelope محليّاً) خلف علم FEATURE_SENTINEL_DB_FIELDS (يُفعَّل
+تلقائيّاً عند توفّر FIELD_SERVICE_URL). المسار fail-soft، لكنّه **لا يرتدّ للسجلّ التركيبيّ إطلاقاً**:
 مسار «legacy» ميْت بصدق ⇒ يُسجَّل `legacy_field_registry_forbidden` ويعيد None حتّى
 تفشل النشرات القديمة بوضوح بدل تلفيق بيانات. `ALLOW_LEGACY_FIELD_REGISTRY` يبقى مِفتاح
 تهيئة (off افتراضيّاً) لكنّه لم يعُد يسبّب تلفيقاً.
@@ -57,12 +57,12 @@ def test_load_field_exists_and_never_fabricates():
 
 def test_feature_flag_and_legacy_defaults_are_production_safe():
     src = _src()
-    # FEATURE_SENTINEL_DB_FIELDS يُفعَّل تلقائيّاً عند توفّر PLATFORM_API_URL (منفذ القاعدة).
+    # FEATURE_SENTINEL_DB_FIELDS يُفعَّل تلقائيّاً عند توفّر FIELD_SERVICE_URL (منفذ خدمة الحقول).
     assert re.search(
         r"FEATURE_SENTINEL_DB_FIELDS\s*=\s*_flag_enabled\(\s*os\.getenv\("
-        r"\"FEATURE_SENTINEL_DB_FIELDS\"\),\s*default=bool\(PLATFORM_API_URL\)",
+        r"\"FEATURE_SENTINEL_DB_FIELDS\"\),\s*default=bool\(FIELD_SERVICE_URL\)",
         src,
-    ), "FEATURE_SENTINEL_DB_FIELDS يجب أن يُفعَّل تلقائيّاً عند توفّر PLATFORM_API_URL"
+    ), "FEATURE_SENTINEL_DB_FIELDS يجب أن يُفعَّل تلقائيّاً عند توفّر FIELD_SERVICE_URL"
     # الارتداد التركيبيّ مُعطَّل افتراضيّاً في كلّ بيئة (production-safe، لا تلفيق).
     assert re.search(
         r"ALLOW_LEGACY_FIELD_REGISTRY\s*=\s*_flag_enabled\(\s*"
@@ -71,9 +71,10 @@ def test_feature_flag_and_legacy_defaults_are_production_safe():
     ), "ALLOW_LEGACY_FIELD_REGISTRY يجب أن يكون off افتراضيّاً في كلّ بيئة"
 
 
-def test_db_loader_is_failsoft_via_platform_api():
+def test_db_loader_is_failsoft_via_field_service():
     body = _func_src("_load_field_from_db")
-    assert "PLATFORM_API_URL" in body, "لا يقرأ من المنصّة (لا منفذ قاعدة في الخدمة)"
+    assert "FIELD_SERVICE_URL" in body, "لا يقرأ من خدمة الحقول (لا منفذ قاعدة في الخدمة)"
+    assert "PLATFORM_API_URL" not in body, "يجب ألّا يرتدّ للمنصّة لقراءة الحقل"
     assert "_geometry_to_bbox" in body, "لا يحوّل هندسة GeoJSON إلى bbox"
     assert "except Exception" in body, "ليس fail-soft (لا يلتقط الاستثناء)"
 

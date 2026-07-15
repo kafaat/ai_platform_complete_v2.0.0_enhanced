@@ -111,6 +111,13 @@ edge-inference,services/edge-inference/main.py,262,POST,/inference/yield-estimat
 edge-inference,services/edge-inference/main.py,328,POST,/sync/trigger,trigger_sync
 edge-inference,services/edge-inference/main.py,360,GET,/capabilities,capabilities
 edge-inference,services/edge-inference/main.py,365,GET,/readyz,readyz
+field-management-service,services/field-management-service/main.py,119,GET,/healthz,healthz
+field-management-service,services/field-management-service/main.py,124,GET,/health,legacy_health
+field-management-service,services/field-management-service/main.py,129,GET,/readyz,readyz
+field-management-service,services/field-management-service/main.py,141,GET,/contract,contract
+field-management-service,services/field-management-service/main.py,160,GET,/,root
+field-management-service,services/field-management-service/main.py,169,GET,/internal/fields/{field_id},internal_get_field
+field-management-service,services/field-management-service/main.py,201,GET,/internal/fields,internal_list_fields
 field-segmentation,services/field-segmentation/main.py,370,GET,/healthz,healthz
 field-segmentation,services/field-segmentation/main.py,375,GET,/health,legacy_health
 field-segmentation,services/field-segmentation/main.py,380,GET,/readyz,readyz
@@ -658,10 +665,8 @@ sahool-platform,services/sahool-platform/api/routers/indicators.py,35,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/indicators.py,47,GET,/api/v1/indicators/map-layers,indicators_map_layers
 sahool-platform,services/sahool-platform/api/routers/indicators.py,60,GET,/api/v1/indicators/dashboard,indicators_dashboard
 sahool-platform,services/sahool-platform/api/routers/indices.py,22,GET,/api/v1/indices/coverage-report,indices_coverage_report
-sahool-platform,services/sahool-platform/api/routers/internal_service.py,18,GET,/api/v1/internal/fields/{field_id},internal_get_field
-sahool-platform,services/sahool-platform/api/routers/internal_service.py,60,GET,/api/v1/internal/fields,internal_list_fields
-sahool-platform,services/sahool-platform/api/routers/internal_service.py,94,GET,/internal/fields/{field_id}/state,internal_field_state
-sahool-platform,services/sahool-platform/api/routers/internal_service.py,114,POST,/internal/events/ai-advice,internal_ai_advice_event
+sahool-platform,services/sahool-platform/api/routers/internal_service.py,25,GET,/internal/fields/{field_id}/state,internal_field_state
+sahool-platform,services/sahool-platform/api/routers/internal_service.py,45,POST,/internal/events/ai-advice,internal_ai_advice_event
 sahool-platform,services/sahool-platform/api/routers/introduction.py,29,GET,/api/v1/introduction/candidates,introduction_candidates_endpoint
 sahool-platform,services/sahool-platform/api/routers/introduction.py,35,GET,/api/v1/introduction/card,introduction_card_endpoint
 sahool-platform,services/sahool-platform/api/routers/introduction.py,41,POST,/api/v1/introduction/field-fit,introduction_field_fit_endpoint

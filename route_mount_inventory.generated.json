@@ -72,6 +72,18 @@
     "reason": "main.py owns direct route handlers"
   },
   {
+    "path": "services/field-management-service/main.py",
+    "service": "field-management-service",
+    "has_fastapi": true,
+    "direct_routes": 7,
+    "router_routes": 0,
+    "delegates_to_router_registry": false,
+    "delegates_to_app_factory": false,
+    "delegates_to_runtime_module": false,
+    "status": "direct_routes",
+    "reason": "main.py owns direct route handlers"
+  },
+  {
     "path": "services/field-segmentation/main.py",
     "service": "field-segmentation",
     "has_fastapi": true,
@@ -292,7 +304,7 @@
     "service": "sahool-platform",
     "has_fastapi": true,
     "direct_routes": 0,
-    "router_routes": 555,
+    "router_routes": 553,
     "delegates_to_router_registry": true,
     "delegates_to_app_factory": false,
     "delegates_to_runtime_module": false,
