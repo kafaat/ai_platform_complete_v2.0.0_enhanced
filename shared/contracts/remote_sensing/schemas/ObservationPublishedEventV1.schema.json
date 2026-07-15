@@ -1,0 +1,902 @@
+{
+  "$defs": {
+    "CanonicalObservationV1": {
+      "additionalProperties": false,
+      "properties": {
+        "acquired_at": {
+          "format": "date-time",
+          "title": "Acquired At",
+          "type": "string"
+        },
+        "asset_ref": {
+          "pattern": "^urn:sahool:raster-asset:[A-Za-z0-9_-]+$",
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "field_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^fld_[A-Za-z0-9_-]+$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "indicator": {
+          "$ref": "#/$defs/IndicatorDefinitionRefV1"
+        },
+        "lineage": {
+          "$ref": "#/$defs/ObservationLineageV1"
+        },
+        "observation_quality": {
+          "$ref": "#/$defs/ObservationQualityV1"
+        },
+        "observation_ref": {
+          "pattern": "^urn:sahool:observation:[A-Za-z0-9_-]+$",
+          "title": "Observation Ref",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "publication_status": {
+          "$ref": "#/$defs/PublicationStatus"
+        },
+        "published_at": {
+          "format": "date-time",
+          "title": "Published At",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "season_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Season Id",
+          "type": "string"
+        },
+        "summary": {
+          "discriminator": {
+            "mapping": {
+              "categorical": "#/$defs/CategoricalSummaryV1",
+              "continuous": "#/$defs/ContinuousSummaryV1",
+              "spatial": "#/$defs/SpatialSummaryV1"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ContinuousSummaryV1"
+            },
+            {
+              "$ref": "#/$defs/CategoricalSummaryV1"
+            },
+            {
+              "$ref": "#/$defs/SpatialSummaryV1"
+            }
+          ],
+          "title": "Summary"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "pattern": "^urn:sahool:observation:[A-Za-z0-9_-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supersedes"
+        },
+        "tenant_id": {
+          "format": "uuid",
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "uncertainty": {
+          "$ref": "#/$defs/ObservationUncertaintyV1"
+        }
+      },
+      "required": [
+        "observation_ref",
+        "tenant_id",
+        "field_id",
+        "season_id",
+        "asset_ref",
+        "indicator",
+        "acquired_at",
+        "observed_at",
+        "published_at",
+        "summary",
+        "observation_quality",
+        "uncertainty",
+        "lineage",
+        "publication_status"
+      ],
+      "title": "CanonicalObservationV1",
+      "type": "object"
+    },
+    "CategoricalSummaryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "class_distribution": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              }
+            ]
+          },
+          "title": "Class Distribution",
+          "type": "object"
+        },
+        "dominant_class": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dominant Class"
+        },
+        "kind": {
+          "const": "categorical",
+          "default": "categorical",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "class_distribution"
+      ],
+      "title": "CategoricalSummaryV1",
+      "type": "object"
+    },
+    "ContinuousSummaryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "continuous",
+          "default": "continuous",
+          "title": "Kind",
+          "type": "string"
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "mean": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Mean"
+        },
+        "median": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Median"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "p10": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P10"
+        },
+        "p90": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "P90"
+        },
+        "sample_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sample Count"
+        },
+        "stddev": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stddev"
+        }
+      },
+      "required": [
+        "mean"
+      ],
+      "title": "ContinuousSummaryV1",
+      "type": "object"
+    },
+    "IndicatorDefinitionRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "algorithm_ref": {
+          "anyOf": [
+            {
+              "maxLength": 256,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Algorithm Ref"
+        },
+        "code": {
+          "maxLength": 64,
+          "minLength": 1,
+          "pattern": "^[a-z0-9_]+$",
+          "title": "Code",
+          "type": "string"
+        },
+        "semantic_version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Semantic Version",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "value_type": {
+          "$ref": "#/$defs/ValueType"
+        }
+      },
+      "required": [
+        "code",
+        "semantic_version",
+        "value_type"
+      ],
+      "title": "IndicatorDefinitionRefV1",
+      "type": "object"
+    },
+    "ObservationLineageV1": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_ref": {
+          "pattern": "^urn:sahool:raster-asset:[A-Za-z0-9_-]+$",
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "input_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Input Hash",
+          "type": "string"
+        },
+        "output_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Output Hash",
+          "type": "string"
+        },
+        "pipeline_version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+          "title": "Pipeline Version",
+          "type": "string"
+        },
+        "processing_run_ref": {
+          "pattern": "^urn:sahool:processing-run:[A-Za-z0-9_-]+$",
+          "title": "Processing Run Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_ref",
+        "processing_run_ref",
+        "input_hash",
+        "output_hash",
+        "pipeline_version"
+      ],
+      "title": "ObservationLineageV1",
+      "type": "object"
+    },
+    "ObservationPublishedPayloadV1": {
+      "additionalProperties": false,
+      "properties": {
+        "observation": {
+          "$ref": "#/$defs/CanonicalObservationV1"
+        }
+      },
+      "required": [
+        "observation"
+      ],
+      "title": "ObservationPublishedPayloadV1",
+      "type": "object"
+    },
+    "ObservationQualityV1": {
+      "additionalProperties": false,
+      "properties": {
+        "field_cloud_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Field Cloud Ratio"
+        },
+        "field_coverage_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Field Coverage Ratio"
+        },
+        "field_shadow_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Field Shadow Ratio"
+        },
+        "gate_status": {
+          "$ref": "#/$defs/QualityGateStatus"
+        },
+        "indicator_in_range": {
+          "title": "Indicator In Range",
+          "type": "boolean"
+        },
+        "indicator_range_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Indicator Range Max"
+        },
+        "indicator_range_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Indicator Range Min"
+        },
+        "measurements": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityMeasurementV1"
+          },
+          "title": "Measurements",
+          "type": "array"
+        },
+        "policy": {
+          "$ref": "#/$defs/QualityPolicyRefV1"
+        },
+        "reason_codes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "valid_pixel_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Valid Pixel Ratio"
+        }
+      },
+      "required": [
+        "gate_status",
+        "policy",
+        "field_coverage_ratio",
+        "valid_pixel_ratio",
+        "field_cloud_ratio",
+        "field_shadow_ratio",
+        "indicator_in_range"
+      ],
+      "title": "ObservationQualityV1",
+      "type": "object"
+    },
+    "ObservationUncertaintyV1": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Confidence"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "method": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        }
+      },
+      "required": [
+        "method",
+        "confidence"
+      ],
+      "title": "ObservationUncertaintyV1",
+      "type": "object"
+    },
+    "PublicationStatus": {
+      "enum": [
+        "draft",
+        "published",
+        "superseded",
+        "withdrawn"
+      ],
+      "title": "PublicationStatus",
+      "type": "string"
+    },
+    "QualityGateStatus": {
+      "enum": [
+        "not_evaluated",
+        "passed",
+        "rejected",
+        "review_required"
+      ],
+      "title": "QualityGateStatus",
+      "type": "string"
+    },
+    "QualityMeasurementV1": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "metric_name": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Metric Name",
+          "type": "string"
+        },
+        "metric_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Metric Value"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "threshold_operator": {
+          "anyOf": [
+            {
+              "pattern": "^(gte|lte|gt|lt|eq|ne)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold Operator"
+        },
+        "threshold_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "metric_name",
+        "metric_value",
+        "passed"
+      ],
+      "title": "QualityMeasurementV1",
+      "type": "object"
+    },
+    "QualityPolicyRefV1": {
+      "additionalProperties": false,
+      "properties": {
+        "policy_hash": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Policy Hash",
+          "type": "string"
+        },
+        "policy_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Policy Id",
+          "type": "string"
+        },
+        "policy_version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "use_case": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Use Case",
+          "type": "string"
+        }
+      },
+      "required": [
+        "policy_id",
+        "policy_version",
+        "policy_hash",
+        "use_case"
+      ],
+      "title": "QualityPolicyRefV1",
+      "type": "object"
+    },
+    "SpatialSummaryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "feature_count": {
+          "minimum": 0,
+          "title": "Feature Count",
+          "type": "integer"
+        },
+        "geometry_ref": {
+          "pattern": "^urn:sahool:geometry:[A-Za-z0-9_-]+$",
+          "title": "Geometry Ref",
+          "type": "string"
+        },
+        "kind": {
+          "const": "spatial",
+          "default": "spatial",
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "geometry_ref",
+        "feature_count"
+      ],
+      "title": "SpatialSummaryV1",
+      "type": "object"
+    },
+    "ValueType": {
+      "enum": [
+        "continuous",
+        "categorical",
+        "spatial",
+        "model_estimate"
+      ],
+      "title": "ValueType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "aggregate_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Aggregate Id",
+      "type": "string"
+    },
+    "aggregate_type": {
+      "const": "field_observation",
+      "default": "field_observation",
+      "title": "Aggregate Type",
+      "type": "string"
+    },
+    "aggregate_version": {
+      "minimum": 1,
+      "title": "Aggregate Version",
+      "type": "integer"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "pattern": "^evt_[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causation Id"
+    },
+    "correlation_id": {
+      "pattern": "^corr_[A-Za-z0-9_-]+$",
+      "title": "Correlation Id",
+      "type": "string"
+    },
+    "event_id": {
+      "pattern": "^evt_[A-Za-z0-9_-]+$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "const": "sahool.rs.observation.published.v1",
+      "default": "sahool.rs.observation.published.v1",
+      "title": "Event Type",
+      "type": "string"
+    },
+    "idempotency_key": {
+      "maxLength": 256,
+      "minLength": 16,
+      "pattern": "^[A-Za-z0-9:._-]+$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/ObservationPublishedPayloadV1"
+    },
+    "producer": {
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "title": "Producer",
+      "type": "string"
+    },
+    "producer_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+      "title": "Producer Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "format": "uuid",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "traceparent": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traceparent"
+    }
+  },
+  "required": [
+    "event_id",
+    "occurred_at",
+    "producer",
+    "producer_version",
+    "tenant_id",
+    "correlation_id",
+    "aggregate_id",
+    "aggregate_version",
+    "idempotency_key",
+    "payload"
+  ],
+  "title": "ObservationPublishedEventV1",
+  "type": "object"
+}

@@ -1,0 +1,507 @@
+{
+  "$defs": {
+    "QualityMeasurementV1": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "metric_name": {
+          "maxLength": 96,
+          "minLength": 1,
+          "title": "Metric Name",
+          "type": "string"
+        },
+        "metric_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Metric Value"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "threshold_operator": {
+          "anyOf": [
+            {
+              "pattern": "^(gte|lte|gt|lt|eq|ne)$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold Operator"
+        },
+        "threshold_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold Value"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        }
+      },
+      "required": [
+        "metric_name",
+        "metric_value",
+        "passed"
+      ],
+      "title": "QualityMeasurementV1",
+      "type": "object"
+    },
+    "RasterAssetPersistedPayloadV1": {
+      "additionalProperties": false,
+      "properties": {
+        "asset": {
+          "$ref": "#/$defs/RasterAssetPersistedV1"
+        }
+      },
+      "required": [
+        "asset"
+      ],
+      "title": "RasterAssetPersistedPayloadV1",
+      "type": "object"
+    },
+    "RasterAssetPersistedV1": {
+      "additionalProperties": false,
+      "properties": {
+        "acquired_at": {
+          "format": "date-time",
+          "title": "Acquired At",
+          "type": "string"
+        },
+        "asset_quality": {
+          "$ref": "#/$defs/RasterAssetQualityV1"
+        },
+        "asset_ref": {
+          "pattern": "^urn:sahool:raster-asset:[A-Za-z0-9_-]+$",
+          "title": "Asset Ref",
+          "type": "string"
+        },
+        "cog_artifact_ref": {
+          "pattern": "^urn:sahool:raster-artifact:[A-Za-z0-9_-]+$",
+          "title": "Cog Artifact Ref",
+          "type": "string"
+        },
+        "field_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^fld_[A-Za-z0-9_-]+$",
+          "title": "Field Id",
+          "type": "string"
+        },
+        "persisted_at": {
+          "format": "date-time",
+          "title": "Persisted At",
+          "type": "string"
+        },
+        "platform": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Platform",
+          "type": "string"
+        },
+        "processed_at": {
+          "format": "date-time",
+          "title": "Processed At",
+          "type": "string"
+        },
+        "processing_level": {
+          "anyOf": [
+            {
+              "maxLength": 64,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Processing Level"
+        },
+        "processing_run_ref": {
+          "pattern": "^urn:sahool:processing-run:[A-Za-z0-9_-]+$",
+          "title": "Processing Run Ref",
+          "type": "string"
+        },
+        "producer": {
+          "default": "raster-service",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+          "title": "Producer",
+          "type": "string"
+        },
+        "producer_version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+          "title": "Producer Version",
+          "type": "string"
+        },
+        "product_type": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Product Type",
+          "type": "string"
+        },
+        "provider": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Provider",
+          "type": "string"
+        },
+        "scene_id": {
+          "maxLength": 255,
+          "minLength": 3,
+          "title": "Scene Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "season_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Season Id"
+        },
+        "sensor": {
+          "maxLength": 64,
+          "minLength": 1,
+          "title": "Sensor",
+          "type": "string"
+        },
+        "tenant_id": {
+          "format": "uuid",
+          "title": "Tenant Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_ref",
+        "tenant_id",
+        "field_id",
+        "provider",
+        "platform",
+        "sensor",
+        "scene_id",
+        "product_type",
+        "acquired_at",
+        "processed_at",
+        "persisted_at",
+        "cog_artifact_ref",
+        "asset_quality",
+        "processing_run_ref",
+        "producer_version"
+      ],
+      "title": "RasterAssetPersistedV1",
+      "type": "object"
+    },
+    "RasterAssetQualityV1": {
+      "additionalProperties": false,
+      "properties": {
+        "checksum_value": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Checksum Value",
+          "type": "string"
+        },
+        "cloud_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Cloud Ratio"
+        },
+        "coverage_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Coverage Ratio"
+        },
+        "expected_bands": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Expected Bands",
+          "type": "array"
+        },
+        "footprint_crs": {
+          "default": "EPSG:4326",
+          "title": "Footprint Crs",
+          "type": "string"
+        },
+        "measurements": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/QualityMeasurementV1"
+          },
+          "title": "Measurements",
+          "type": "array"
+        },
+        "missing_bands": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Bands",
+          "type": "array"
+        },
+        "native_crs": {
+          "maxLength": 128,
+          "minLength": 1,
+          "title": "Native Crs",
+          "type": "string"
+        },
+        "native_resolution_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Native Resolution M"
+        },
+        "present_bands": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Present Bands",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "1.0.0",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "shadow_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Shadow Ratio"
+        },
+        "unexpected_bands": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Unexpected Bands",
+          "type": "array"
+        },
+        "valid_pixel_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+              "type": "string"
+            }
+          ],
+          "title": "Valid Pixel Ratio"
+        }
+      },
+      "required": [
+        "coverage_ratio",
+        "valid_pixel_ratio",
+        "cloud_ratio",
+        "shadow_ratio",
+        "checksum_value",
+        "native_crs",
+        "native_resolution_m"
+      ],
+      "title": "RasterAssetQualityV1",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "aggregate_id": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Aggregate Id",
+      "type": "string"
+    },
+    "aggregate_type": {
+      "const": "raster_asset",
+      "default": "raster_asset",
+      "title": "Aggregate Type",
+      "type": "string"
+    },
+    "aggregate_version": {
+      "minimum": 1,
+      "title": "Aggregate Version",
+      "type": "integer"
+    },
+    "causation_id": {
+      "anyOf": [
+        {
+          "pattern": "^evt_[A-Za-z0-9_-]+$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causation Id"
+    },
+    "correlation_id": {
+      "pattern": "^corr_[A-Za-z0-9_-]+$",
+      "title": "Correlation Id",
+      "type": "string"
+    },
+    "event_id": {
+      "pattern": "^evt_[A-Za-z0-9_-]+$",
+      "title": "Event Id",
+      "type": "string"
+    },
+    "event_type": {
+      "const": "sahool.rs.asset.persisted.v1",
+      "default": "sahool.rs.asset.persisted.v1",
+      "title": "Event Type",
+      "type": "string"
+    },
+    "idempotency_key": {
+      "maxLength": 256,
+      "minLength": 16,
+      "pattern": "^[A-Za-z0-9:._-]+$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "occurred_at": {
+      "format": "date-time",
+      "title": "Occurred At",
+      "type": "string"
+    },
+    "payload": {
+      "$ref": "#/$defs/RasterAssetPersistedPayloadV1"
+    },
+    "producer": {
+      "pattern": "^[a-z0-9][a-z0-9-]{1,62}$",
+      "title": "Producer",
+      "type": "string"
+    },
+    "producer_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+      "title": "Producer Version",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": "1.0.0",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tenant_id": {
+      "format": "uuid",
+      "title": "Tenant Id",
+      "type": "string"
+    },
+    "traceparent": {
+      "anyOf": [
+        {
+          "pattern": "^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traceparent"
+    }
+  },
+  "required": [
+    "event_id",
+    "occurred_at",
+    "producer",
+    "producer_version",
+    "tenant_id",
+    "correlation_id",
+    "aggregate_id",
+    "aggregate_version",
+    "idempotency_key",
+    "payload"
+  ],
+  "title": "RasterAssetPersistedEventV1",
+  "type": "object"
+}
