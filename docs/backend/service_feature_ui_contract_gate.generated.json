@@ -2,8 +2,8 @@
   "gate": "service-feature-ui-contract-gate",
   "version": 1,
   "inventory_totality": "pass",
-  "service_count": 29,
-  "passed": 29,
+  "service_count": 30,
+  "passed": 30,
   "failed": 0,
   "failures": [],
   "services": [
@@ -3020,6 +3020,50 @@
             }
           ],
           "match_count": 20
+        }
+      ]
+    },
+    {
+      "service": "remote-sensing-workspace-bff",
+      "classification": "internal",
+      "status": "pass",
+      "missing_sources": [],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "docker-compose.v9.yml",
+            "docker-compose.fixed.yml",
+            "services/remote-sensing-workspace-bff/tests"
+          ],
+          "patterns": [
+            "remote-sensing-workspace-bff",
+            "WORKSPACE_BFF_TIMEOUT_S",
+            "remote-sensing-workspace"
+          ],
+          "matches": [
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "remote-sensing-workspace-bff"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "WORKSPACE_BFF_TIMEOUT_S"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "remote-sensing-workspace"
+            },
+            {
+              "root": "services/remote-sensing-workspace-bff/tests",
+              "path": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+              "pattern": "remote-sensing-workspace"
+            }
+          ],
+          "match_count": 4
         }
       ]
     }

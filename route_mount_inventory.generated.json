@@ -168,6 +168,18 @@
     "reason": "main.py delegates to an app factory and routers contain routes"
   },
   {
+    "path": "services/remote-sensing-workspace-bff/main.py",
+    "service": "remote-sensing-workspace-bff",
+    "has_fastapi": true,
+    "direct_routes": 2,
+    "router_routes": 0,
+    "delegates_to_router_registry": false,
+    "delegates_to_app_factory": false,
+    "delegates_to_runtime_module": false,
+    "status": "direct_routes",
+    "reason": "main.py owns direct route handlers"
+  },
+  {
     "path": "services/sam2-inference/main.py",
     "service": "sam2-inference",
     "has_fastapi": true,
@@ -220,7 +232,7 @@
     "service": "vegetation-analysis-service",
     "has_fastapi": true,
     "direct_routes": 0,
-    "router_routes": 16,
+    "router_routes": 18,
     "delegates_to_router_registry": true,
     "delegates_to_app_factory": false,
     "delegates_to_runtime_module": true,

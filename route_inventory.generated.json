@@ -2184,6 +2184,22 @@
     "function": "imagery_timeseries_parallel"
   },
   {
+    "service": "remote-sensing-workspace-bff",
+    "file": "services/remote-sensing-workspace-bff/main.py",
+    "line": 27,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "healthz"
+  },
+  {
+    "service": "remote-sensing-workspace-bff",
+    "file": "services/remote-sensing-workspace-bff/main.py",
+    "line": 44,
+    "method": "GET",
+    "path": "/v1/fields/{field_id}/remote-sensing-workspace",
+    "function": "workspace"
+  },
+  {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/chat_proxy_reference.py",
     "line": 110,
@@ -7854,6 +7870,22 @@
     "method": "POST",
     "path": "/v1/fields/{field_id}/baseline-comparisons",
     "function": "baseline_comparisons"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/diagnoses.py",
+    "line": 29,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/diagnoses",
+    "function": "generate_diagnosis"
+  },
+  {
+    "service": "vegetation-analysis-service",
+    "file": "services/vegetation-analysis-service/routers/diagnoses.py",
+    "line": 52,
+    "method": "POST",
+    "path": "/v1/anomalies/{anomaly_ref:path}/decision-referrals",
+    "function": "refer_to_decision"
   },
   {
     "service": "vegetation-analysis-service",

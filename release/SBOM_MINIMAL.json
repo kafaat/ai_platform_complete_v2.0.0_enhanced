@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c76d4417db47aa6e2a9b11d3fb78d15c65140c9261b68c9eed5360b1fb44148"
+          "content": "8f1066c5b6a836809367a507b52671fa658caaa436739791fdd9a96ff1d9c5d6"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -13275,6 +13275,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ada03f564b8bb2939ea339eaead91efa12f48df0c142c60fa567aef32b16aa1a"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "006ce8eafce76df509493d400ad41b9dd26563b3810fa8b0387a376f36b3b962"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "95cf865eae2d6933d6729dcf301e66884e554633490f08e9801de760a559403e"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6717dba40e42f259965b5f39fdfee004716b5b0d0778fbeab15f4548ff49ce89"
+        }
+      ],
+      "name": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "878f7a462a11eff27fc3b035b97673df788394aff26b89f2b4a1aede42b045d2"
         }
       ],
@@ -26055,7 +26095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21a9d94d053ec483b09eac739154fb87b3979f468772f9a5f7425667db383abc"
+          "content": "afc1837511c8d4b7f25906e2dff399d6cc45f35aad7d9cbc36fcdc035b62d4c6"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -26099,6 +26139,26 @@
         }
       ],
       "name": "services/vegetation-analysis-service/baseline_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4d5c4a4ac68fb6053d4c88d59ce58f98f5c979dbe2d13c203a848ee9c807bb0d"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/decision_bridge.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d7827b6db2c3e4249ff6a6a9926baf06186aa1dced7bf2b91c591eab06f72541"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/diagnosis_engine.py",
       "type": "file"
     },
     {
@@ -26205,6 +26265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "edae1103b1092ae71f51c37663301fb6fd4b558dc10bf479bca5fa48d76de7bc"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/routers/diagnoses.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1da84d82db5d299931f7c4b10f43d1aa859289b8b93eb6cd05dad74b3f64e061"
         }
       ],
@@ -26239,6 +26309,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/test_baseline_engine.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4dccb3872400cca7e98e7ff3b10d19e91737c906ea41a5035cfd6bf4426ec4f7"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/test_diagnosis_engine.py",
       "type": "file"
     },
     {

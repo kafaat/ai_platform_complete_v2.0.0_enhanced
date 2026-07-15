@@ -272,6 +272,8 @@ raster-service,services/raster-service/routers/tiles.py,37,GET,/layers/{layer_id
 raster-service,services/raster-service/routers/timeseries_routes.py,24,GET,/imagery/timeseries,imagery_timeseries
 raster-service,services/raster-service/routers/timeseries_routes.py,77,POST,/imagery/timeseries/analyze,imagery_timeseries_analyze
 raster-service,services/raster-service/routers/timeseries_routes.py,92,POST,/imagery/timeseries/parallel,imagery_timeseries_parallel
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,27,GET,/healthz,healthz
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,44,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace
 sahool-platform,services/sahool-platform/api/chat_proxy_reference.py,110,POST,/api/chat,chat
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,147,POST,/feature-schema,feature_schema
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,152,POST,/dataset,dataset
@@ -981,6 +983,8 @@ vegetation-analysis-service,services/vegetation-analysis-service/routers/anomali
 vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,187,POST,/v1/anomalies/{anomaly_ref:path}/verification-requests,request_ground_verification
 vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,220,POST,/v1/anomalies/{anomaly_ref:path}/verification-results,accept_verification_result
 vegetation-analysis-service,services/vegetation-analysis-service/routers/baselines.py,30,POST,/v1/fields/{field_id}/baseline-comparisons,baseline_comparisons
+vegetation-analysis-service,services/vegetation-analysis-service/routers/diagnoses.py,29,POST,/v1/anomalies/{anomaly_ref:path}/diagnoses,generate_diagnosis
+vegetation-analysis-service,services/vegetation-analysis-service/routers/diagnoses.py,52,POST,/v1/anomalies/{anomaly_ref:path}/decision-referrals,refer_to_decision
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,21,GET,/healthz,healthz
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,21,GET,/health,healthz
 vegetation-analysis-service,services/vegetation-analysis-service/routers/health.py,26,GET,/readyz,readyz

@@ -810,6 +810,38 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+  sahool-remote-sensing-workspace-bff:
+    build:
+      context: .
+      dockerfile: services/remote-sensing-workspace-bff/Dockerfile
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      INDICATORS_SERVICE_URL: http://sahool-indicators-service:8000
+      VEGETATION_SERVICE_URL: http://sahool-vegetation-analysis:8000
+      DECISION_SERVICE_URL: http://sahool-decision-service:8160
+      TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
+      WORKSPACE_BFF_TIMEOUT_S: ${WORKSPACE_BFF_TIMEOUT_S:-6}
+    depends_on:
+      sahool-indicators-service:
+        condition: service_healthy
+      sahool-vegetation-analysis:
+        condition: service_healthy
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8185/healthz
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
   sahool-raster-service:
     build:
       context: .

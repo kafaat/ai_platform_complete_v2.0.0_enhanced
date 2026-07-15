@@ -2,34 +2,820 @@
   "version": 1,
   "description": "Service feature/UI/internal-consumer contract matrix. Every runtime service must have at least one live UI/mobile surface, platform proxy, or internal consumer contract test.",
   "services": [
-    {"service":"auth","classification":"ui","source":["services/auth/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["LoginPage","SignupPage","/auth/","refresh"]},{"kind":"gateway","roots":["nginx"],"patterns":["/auth/","auth_backend"]}]},
-    {"service":"sahool-platform","classification":"ui","source":["services/sahool-platform/api/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["/api/v1","AddFieldWithMap","FieldDetailPanel"]},{"kind":"gateway","roots":["nginx"],"patterns":["/api/v1/","platform_backend"]}]},
-    {"service":"raster-service","classification":"ui","source":["services/raster-service/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["cdse-tilejson","tilejson","FieldIndicatorMap"]},{"kind":"gateway","roots":["nginx"],"patterns":["/api/raster/","raster_backend"]}]},
-    {"service":"vegetation-analysis-service","classification":"ui","source":["services/vegetation-analysis-service/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["vegetation","NDVI","FieldRanking"]},{"kind":"gateway","roots":["nginx"],"patterns":["/api/vegetation/","vegetation_backend"]}]},
-    {"service":"indicators-service","classification":"ui","source":["services/indicators-service/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src"],"patterns":["useIndicators","HybridIndexPage","indicators"]},{"kind":"gateway","roots":["nginx"],"patterns":["/api/indicators/","indicators_backend"]}]},
-    {"service":"weather-service","classification":"ui","source":["services/weather-service/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["WeatherTileLayer","WeatherAdvice","WeatherProbePopup","operation-window"]},{"kind":"platform-proxy","roots":["services/sahool-platform"],"patterns":["WEATHER_SERVICE_URL","weather-service","weather"]}]},
-    {"service":"soil-service","classification":"ui","source":["services/soil-service/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["SoilTestStep","soil","Soil"]},{"kind":"platform-proxy","roots":["services/sahool-platform"],"patterns":["SOIL_SERVICE_URL","soil-service","soil"]}]},
-    {"service":"field-segmentation","classification":"ui","source":["services/field-segmentation/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["segmentField","AutoSegmentControl","/api/segmentation"]},{"kind":"platform-proxy","roots":["services/sahool-platform","nginx"],"patterns":["SEGMENTATION_URL","/api/segmentation/","segmentation"]}]},
-    {"service":"sam2-inference","classification":"internal","source":["services/sam2-inference/main.py"],"evidence":[{"kind":"internal-consumer","roots":["services/field-segmentation","docker-compose.v9.yml","docker-compose.fixed.yml","tests_v9"],"patterns":["SEGMENTATION_INFERENCE_URL","SEGMENTATION_BACKEND","sam2","sahool-sam2-inference"]}]},
-    {"service":"ai_agronomist","classification":"ui","source":["services/ai_agronomist/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["ChatbotPage","ai-agronomist","advisor_screen"]},{"kind":"gateway","roots":["nginx"],"patterns":["/api/ai-agronomist/","ai_agronomist_backend"]}]},
-    {"service":"rag-retrieval","classification":"internal-sensitive","source":["services/rag-retrieval/main.py"],"evidence":[{"kind":"internal-consumer","roots":["services/ai_agronomist","tests_v9","nginx"],"patterns":["RAG_BASE_URL","rag-retrieval","/api/rag/"]}]},
-    {"service":"knowledge-graph","classification":"internal-sensitive","source":["services/knowledge-graph/main.py"],"evidence":[{"kind":"internal-consumer","roots":["services/ai_agronomist","services/mcp_servers","services/sahool-platform","tests_v9","nginx"],"patterns":["KNOWLEDGE_GRAPH_URL","knowledge-graph","query_kg_annotations","/api/knowledge-graph/"]}]},
-    {"service":"supervisor-agent","classification":"ui","source":["services/supervisor-agent/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["/api/agent","supervisor","agent"]},{"kind":"gateway","roots":["nginx"],"patterns":["/api/agent/","supervisor_backend"]}]},
-    {"service":"guardrails-engine","classification":"ui","source":["services/guardrails-engine/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["guardrails","approval","validate"]},{"kind":"gateway","roots":["nginx"],"patterns":["/api/guardrails/","guardrails_backend"]}]},
-    {"service":"agriai-engine","classification":"internal","source":["services/agriai-engine/main.py"],"evidence":[{"kind":"internal-consumer","roots":["docker-compose.unified.yml","services/supervisor-agent","tests_v9"],"patterns":["MCP_AGRIAI_URL","agriai-engine","sahool-unified-agriai-engine"]}]},
-    {"service":"mcp_servers","classification":"internal","source":["services/mcp_servers"],"evidence":[{"kind":"internal-consumer","roots":["services/supervisor-agent","services/sahool-platform","tests_v9","docker-compose.v9.yml"],"patterns":["MCP","mcp_service_servers","kg-mcp-server","sentinel"]}]},
-    {"service":"actuator-service","classification":"ui","source":["services/actuator-service/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["actuator","irrigation","valve","schedule"]},{"kind":"platform-proxy","roots":["services/sahool-platform"],"patterns":["ACTUATOR_SERVICE_URL","actuator-service","dispatch"]}]},
-    {"service":"edge-inference","classification":"ui","source":["services/edge-inference/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["pest","yield","advisor_screen","YieldStep"]},{"kind":"platform-proxy","roots":["services/sahool-platform"],"patterns":["EDGE_INFERENCE_URL","edge-inference"]}]},
-    {"service":"video-processor","classification":"ui","source":["services/video-processor/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["camera","stream","snapshot","DevicesPage"]},{"kind":"platform-proxy","roots":["services/sahool-platform"],"patterns":["VIDEO_PROCESSOR_URL","field_cameras","video-processor"]}]},
-    {"service":"weather-polygon-worker","classification":"ui-indirect","source":["services/weather-polygon-worker/src/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src"],"patterns":["WeatherTileLayer","operation-tile-data","tile-data"]},{"kind":"internal-consumer","roots":["services/sahool-platform","tests_v9"],"patterns":["field_weather_overlay","weather_overlay_pipeline","weather-polygon-worker"]}]},
-    {"service":"weather-signal-engine","classification":"internal","source":["services/weather-signal-engine/src/main.py"],"evidence":[{"kind":"internal-consumer","roots":["services/sahool-platform","services/weather-signal-engine","tests_v9"],"patterns":["weather_signals","decision_playbook","test_weather_signal_engine"]}]},
-    {"service":"erp-bridge","classification":"integration","source":["services/odoo-bridge/main.py"],"evidence":[{"kind":"gateway-or-internal","roots":["nginx","services/mcp_servers","docker-compose.v9.yml","tests_v9"],"patterns":["/api/erp/","ERP_BRIDGE_URL","erp-bridge","test_erp_bridge_alias_contract"]}]},
-    {"service":"tts-service","classification":"ui","source":["services/tts-service/main.py"],"evidence":[{"kind":"ui","roots":["frontend/src","mobile"],"patterns":["SpeakButton","synthesize","tts","voices"]}]},
-    {"service":"local-ai-rag","classification":"internal","source":["services/local-ai-rag/main.py"],"evidence":[{"kind":"internal-consumer","roots":["services/supervisor-agent","services/sahool-platform","docker-compose.v9.yml","tests_v9"],"patterns":["LOCAL_AI_RAG_URL","local-ai-rag","RAG"]}]},
-    {"service":"raster-tiler-service","classification":"internal","source":["services/raster-tiler-service"],"evidence":[{"kind":"internal-consumer","roots":["services/raster-service","docker-compose.v9.yml","docker-compose.fixed.yml","docs","tests_v9"],"patterns":["TITILER_URL","raster-tiler-service","tilejson"]}]},
-    {"service":"qdrant-seed","classification":"job","source":["docker-compose.v9.yml"],"evidence":[{"kind":"job-contract","roots":["docker-compose.v9.yml","docker-compose.fixed.yml","docker-compose.rag-kg-mcp.yml","tests_v9"],"patterns":["qdrant-seed","QDRANT","collection"]}]},
-    {"service":"decision-service","classification":"internal-sensitive","source":["services/decision-service/main.py"],"evidence":[{"kind":"internal-consumer","roots":["services/sahool-platform","services/actuator-service"],"patterns":["DECISION_SERVICE_URL","decision_service_client","sahool-decision-service"]}]},
-    {"service":"model-registry-adapter","classification":"internal","source":["services/model-registry-adapter/runtime.py"],"evidence":[{"kind":"internal-consumer","roots":["services/model-registry-adapter","docker-compose.v9.yml"],"patterns":["DECISION_SERVICE_URL","sahool-model-registry-worker","model-registry"]}]},
-    {"service":"gis-workflow-service","classification":"internal","source":["services/gis-workflow-service/run_bundle.py"],"evidence":[{"kind":"internal-consumer","roots":["services/gis-workflow-service"],"patterns":["publication_map","bulletin","map_layout"]}]}
+    {
+      "service": "auth",
+      "classification": "ui",
+      "source": [
+        "services/auth/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "LoginPage",
+            "SignupPage",
+            "/auth/",
+            "refresh"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/auth/",
+            "auth_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "sahool-platform",
+      "classification": "ui",
+      "source": [
+        "services/sahool-platform/api/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "/api/v1",
+            "AddFieldWithMap",
+            "FieldDetailPanel"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/api/v1/",
+            "platform_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "raster-service",
+      "classification": "ui",
+      "source": [
+        "services/raster-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "cdse-tilejson",
+            "tilejson",
+            "FieldIndicatorMap"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/api/raster/",
+            "raster_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "vegetation-analysis-service",
+      "classification": "ui",
+      "source": [
+        "services/vegetation-analysis-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "vegetation",
+            "NDVI",
+            "FieldRanking"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/api/vegetation/",
+            "vegetation_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "indicators-service",
+      "classification": "ui",
+      "source": [
+        "services/indicators-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src"
+          ],
+          "patterns": [
+            "useIndicators",
+            "HybridIndexPage",
+            "indicators"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/api/indicators/",
+            "indicators_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "weather-service",
+      "classification": "ui",
+      "source": [
+        "services/weather-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "WeatherTileLayer",
+            "WeatherAdvice",
+            "WeatherProbePopup",
+            "operation-window"
+          ]
+        },
+        {
+          "kind": "platform-proxy",
+          "roots": [
+            "services/sahool-platform"
+          ],
+          "patterns": [
+            "WEATHER_SERVICE_URL",
+            "weather-service",
+            "weather"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "soil-service",
+      "classification": "ui",
+      "source": [
+        "services/soil-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "SoilTestStep",
+            "soil",
+            "Soil"
+          ]
+        },
+        {
+          "kind": "platform-proxy",
+          "roots": [
+            "services/sahool-platform"
+          ],
+          "patterns": [
+            "SOIL_SERVICE_URL",
+            "soil-service",
+            "soil"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "field-segmentation",
+      "classification": "ui",
+      "source": [
+        "services/field-segmentation/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "segmentField",
+            "AutoSegmentControl",
+            "/api/segmentation"
+          ]
+        },
+        {
+          "kind": "platform-proxy",
+          "roots": [
+            "services/sahool-platform",
+            "nginx"
+          ],
+          "patterns": [
+            "SEGMENTATION_URL",
+            "/api/segmentation/",
+            "segmentation"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "sam2-inference",
+      "classification": "internal",
+      "source": [
+        "services/sam2-inference/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/field-segmentation",
+            "docker-compose.v9.yml",
+            "docker-compose.fixed.yml",
+            "tests_v9"
+          ],
+          "patterns": [
+            "SEGMENTATION_INFERENCE_URL",
+            "SEGMENTATION_BACKEND",
+            "sam2",
+            "sahool-sam2-inference"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "ai_agronomist",
+      "classification": "ui",
+      "source": [
+        "services/ai_agronomist/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "ChatbotPage",
+            "ai-agronomist",
+            "advisor_screen"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/api/ai-agronomist/",
+            "ai_agronomist_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "rag-retrieval",
+      "classification": "internal-sensitive",
+      "source": [
+        "services/rag-retrieval/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/ai_agronomist",
+            "tests_v9",
+            "nginx"
+          ],
+          "patterns": [
+            "RAG_BASE_URL",
+            "rag-retrieval",
+            "/api/rag/"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "knowledge-graph",
+      "classification": "internal-sensitive",
+      "source": [
+        "services/knowledge-graph/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/ai_agronomist",
+            "services/mcp_servers",
+            "services/sahool-platform",
+            "tests_v9",
+            "nginx"
+          ],
+          "patterns": [
+            "KNOWLEDGE_GRAPH_URL",
+            "knowledge-graph",
+            "query_kg_annotations",
+            "/api/knowledge-graph/"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "supervisor-agent",
+      "classification": "ui",
+      "source": [
+        "services/supervisor-agent/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "/api/agent",
+            "supervisor",
+            "agent"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/api/agent/",
+            "supervisor_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "guardrails-engine",
+      "classification": "ui",
+      "source": [
+        "services/guardrails-engine/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "guardrails",
+            "approval",
+            "validate"
+          ]
+        },
+        {
+          "kind": "gateway",
+          "roots": [
+            "nginx"
+          ],
+          "patterns": [
+            "/api/guardrails/",
+            "guardrails_backend"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "agriai-engine",
+      "classification": "internal",
+      "source": [
+        "services/agriai-engine/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "docker-compose.unified.yml",
+            "services/supervisor-agent",
+            "tests_v9"
+          ],
+          "patterns": [
+            "MCP_AGRIAI_URL",
+            "agriai-engine",
+            "sahool-unified-agriai-engine"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "mcp_servers",
+      "classification": "internal",
+      "source": [
+        "services/mcp_servers"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/supervisor-agent",
+            "services/sahool-platform",
+            "tests_v9",
+            "docker-compose.v9.yml"
+          ],
+          "patterns": [
+            "MCP",
+            "mcp_service_servers",
+            "kg-mcp-server",
+            "sentinel"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "actuator-service",
+      "classification": "ui",
+      "source": [
+        "services/actuator-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "actuator",
+            "irrigation",
+            "valve",
+            "schedule"
+          ]
+        },
+        {
+          "kind": "platform-proxy",
+          "roots": [
+            "services/sahool-platform"
+          ],
+          "patterns": [
+            "ACTUATOR_SERVICE_URL",
+            "actuator-service",
+            "dispatch"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "edge-inference",
+      "classification": "ui",
+      "source": [
+        "services/edge-inference/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "pest",
+            "yield",
+            "advisor_screen",
+            "YieldStep"
+          ]
+        },
+        {
+          "kind": "platform-proxy",
+          "roots": [
+            "services/sahool-platform"
+          ],
+          "patterns": [
+            "EDGE_INFERENCE_URL",
+            "edge-inference"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "video-processor",
+      "classification": "ui",
+      "source": [
+        "services/video-processor/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "camera",
+            "stream",
+            "snapshot",
+            "DevicesPage"
+          ]
+        },
+        {
+          "kind": "platform-proxy",
+          "roots": [
+            "services/sahool-platform"
+          ],
+          "patterns": [
+            "VIDEO_PROCESSOR_URL",
+            "field_cameras",
+            "video-processor"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "weather-polygon-worker",
+      "classification": "ui-indirect",
+      "source": [
+        "services/weather-polygon-worker/src/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src"
+          ],
+          "patterns": [
+            "WeatherTileLayer",
+            "operation-tile-data",
+            "tile-data"
+          ]
+        },
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/sahool-platform",
+            "tests_v9"
+          ],
+          "patterns": [
+            "field_weather_overlay",
+            "weather_overlay_pipeline",
+            "weather-polygon-worker"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "weather-signal-engine",
+      "classification": "internal",
+      "source": [
+        "services/weather-signal-engine/src/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/sahool-platform",
+            "services/weather-signal-engine",
+            "tests_v9"
+          ],
+          "patterns": [
+            "weather_signals",
+            "decision_playbook",
+            "test_weather_signal_engine"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "erp-bridge",
+      "classification": "integration",
+      "source": [
+        "services/odoo-bridge/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "gateway-or-internal",
+          "roots": [
+            "nginx",
+            "services/mcp_servers",
+            "docker-compose.v9.yml",
+            "tests_v9"
+          ],
+          "patterns": [
+            "/api/erp/",
+            "ERP_BRIDGE_URL",
+            "erp-bridge",
+            "test_erp_bridge_alias_contract"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "tts-service",
+      "classification": "ui",
+      "source": [
+        "services/tts-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "ui",
+          "roots": [
+            "frontend/src",
+            "mobile"
+          ],
+          "patterns": [
+            "SpeakButton",
+            "synthesize",
+            "tts",
+            "voices"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "local-ai-rag",
+      "classification": "internal",
+      "source": [
+        "services/local-ai-rag/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/supervisor-agent",
+            "services/sahool-platform",
+            "docker-compose.v9.yml",
+            "tests_v9"
+          ],
+          "patterns": [
+            "LOCAL_AI_RAG_URL",
+            "local-ai-rag",
+            "RAG"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "raster-tiler-service",
+      "classification": "internal",
+      "source": [
+        "services/raster-tiler-service"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/raster-service",
+            "docker-compose.v9.yml",
+            "docker-compose.fixed.yml",
+            "docs",
+            "tests_v9"
+          ],
+          "patterns": [
+            "TITILER_URL",
+            "raster-tiler-service",
+            "tilejson"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "qdrant-seed",
+      "classification": "job",
+      "source": [
+        "docker-compose.v9.yml"
+      ],
+      "evidence": [
+        {
+          "kind": "job-contract",
+          "roots": [
+            "docker-compose.v9.yml",
+            "docker-compose.fixed.yml",
+            "docker-compose.rag-kg-mcp.yml",
+            "tests_v9"
+          ],
+          "patterns": [
+            "qdrant-seed",
+            "QDRANT",
+            "collection"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "decision-service",
+      "classification": "internal-sensitive",
+      "source": [
+        "services/decision-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/sahool-platform",
+            "services/actuator-service"
+          ],
+          "patterns": [
+            "DECISION_SERVICE_URL",
+            "decision_service_client",
+            "sahool-decision-service"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "model-registry-adapter",
+      "classification": "internal",
+      "source": [
+        "services/model-registry-adapter/runtime.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/model-registry-adapter",
+            "docker-compose.v9.yml"
+          ],
+          "patterns": [
+            "DECISION_SERVICE_URL",
+            "sahool-model-registry-worker",
+            "model-registry"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "gis-workflow-service",
+      "classification": "internal",
+      "source": [
+        "services/gis-workflow-service/run_bundle.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/gis-workflow-service"
+          ],
+          "patterns": [
+            "publication_map",
+            "bulletin",
+            "map_layout"
+          ]
+        }
+      ]
+    },
+    {
+      "service": "remote-sensing-workspace-bff",
+      "classification": "internal",
+      "source": [
+        "services/remote-sensing-workspace-bff/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "docker-compose.v9.yml",
+            "docker-compose.fixed.yml",
+            "services/remote-sensing-workspace-bff/tests"
+          ],
+          "patterns": [
+            "remote-sensing-workspace-bff",
+            "WORKSPACE_BFF_TIMEOUT_S",
+            "remote-sensing-workspace"
+          ]
+        }
+      ]
+    }
   ]
 }

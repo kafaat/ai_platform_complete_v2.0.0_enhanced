@@ -1,7 +1,7 @@
 # service-feature-ui-contract-gate report
 
-- services: 29
-- passed: 29
+- services: 30
+- passed: 30
 - failed: 0
 
 ## Service evidence
@@ -345,3 +345,11 @@ classification: `internal`
   - `services/gis-workflow-service/map_layout.py` ← `publication_map`
   - `services/gis-workflow-service/map_layout.py` ← `map_layout`
   - `services/gis-workflow-service/README.md` ← `publication_map`
+
+### `remote-sensing-workspace-bff` — pass
+classification: `internal`
+- internal-consumer: 4 match(es)
+  - `docker-compose.v9.yml` ← `remote-sensing-workspace-bff`
+  - `docker-compose.v9.yml` ← `WORKSPACE_BFF_TIMEOUT_S`
+  - `docker-compose.v9.yml` ← `remote-sensing-workspace`
+  - `services/remote-sensing-workspace-bff/tests/test_workspace_bff.py` ← `remote-sensing-workspace`
