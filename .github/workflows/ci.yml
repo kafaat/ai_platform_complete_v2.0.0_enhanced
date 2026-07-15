@@ -372,7 +372,8 @@ jobs:
             # فلا يصحّ التحقّق منه مستقلّاً.
             # soil-strict تراكُب إنتاجيّ (overlay) يحمل environment فقط لخدمات مُعرَّفة في
             # الأساس (v9)، فلا image/build فيه ⇒ لا يصحّ standalone؛ يُطبَّق فوق v9 بعد الشهادة.
-            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
+            # dev تراكُب تطوير (overlay): environment فقط (soft-fail + كوكي HTTP) فوق v9 ⇒ لا يصحّ standalone.
+            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ] || [ "$f" = "docker-compose.dev.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
             # 1. YAML syntax
             python3 -c "import yaml; yaml.safe_load(open('$f'))"
             # 2. Compose schema (docker compose config) مع env وهمي
