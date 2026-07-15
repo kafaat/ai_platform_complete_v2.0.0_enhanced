@@ -333,8 +333,14 @@ async def list_fields_from_platform(tenant_id: str) -> list[dict]:
         "X-Tenant-Id": str(tenant_id),
     }
     try:
+        # Service-to-service enumeration: the public GET /api/v1/fields (list_fields)
+        # requires a user Bearer JWT which this service does not hold — calling it
+        # returned 401 → 503. Use the service-token internal list; tenant is our
+        # JWT-derived X-Tenant-Id header.
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(f"{PLATFORM_API_URL}/api/v1/fields", headers=headers)
+            response = await client.get(
+                f"{PLATFORM_API_URL}/api/v1/internal/fields", headers=headers
+            )
     except Exception as exc:  # noqa: BLE001
         logger.warning("platform field list unavailable tenant=%s: %s", tenant_id, exc)
         raise HTTPException(503, "platform field catalog unavailable") from None

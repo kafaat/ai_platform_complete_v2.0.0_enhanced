@@ -23,5 +23,5 @@ services/video-processor/main.py,video-processor,True,0,11,True,False,False,dele
 services/weather-service/main.py,weather-service,True,27,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/weather-polygon-worker/src/main.py,weather-polygon-worker,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
 services/weather-signal-engine/src/main.py,weather-signal-engine,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint
-services/sahool-platform/api/main.py,sahool-platform,True,0,554,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
+services/sahool-platform/api/main.py,sahool-platform,True,0,555,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 bots/telegram/main.py,telegram,False,0,0,False,False,False,non_http_entrypoint,documented worker/bot entrypoint

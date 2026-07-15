@@ -47,6 +47,22 @@ def app_mod():
 def test_internal_field_read_route_registered(app_mod):
     paths = {getattr(r, "path", None) for r in app_mod.app.routes}
     assert "/api/v1/internal/fields/{field_id}" in paths
+    assert "/api/v1/internal/fields" in paths  # list route (same SEC-3 contract)
+
+
+def test_vegetation_never_calls_public_jwt_field_routes():
+    # Regression guard: both the by-id read and the list must go through the
+    # service-token internal routes. A live GET against the public JWT-protected
+    # /api/v1/fields would 401 → the masked-404 / 503 bug returns.
+    veg_src = open(os.path.join(VEG, "vegetation_runtime.py"), encoding="utf-8").read()
+    import re as _re
+
+    public_calls = _re.findall(
+        r'\.get\(\s*\n?\s*f?"\{PLATFORM_API_URL\}/api/v1/fields[/"]', veg_src
+    )
+    assert public_calls == [], f"vegetation still calls the public JWT field route: {public_calls}"
+    assert "{PLATFORM_API_URL}/api/v1/internal/fields/{field_id}" in veg_src
+    assert '{PLATFORM_API_URL}/api/v1/internal/fields"' in veg_src
 
 
 def test_service_token_guard_is_fail_closed(monkeypatch):

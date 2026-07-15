@@ -16085,7 +16085,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b415a18c06a48c60ef31af939fe15ed7b2b427906dcba66c1316d11211eaeff8"
+          "content": "8843d3c7b458de634a098aee29c5a79703c88b135448c176da6279147e531591"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -26535,7 +26535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a753a4613611fb89601b3a3b32b77a9eca6aee907f0c8fc6637f79e8b0e388a"
+          "content": "7a41c73670d29fd4b3269c05a38a46a484887c0f76180cb9e82b6402cd262251"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

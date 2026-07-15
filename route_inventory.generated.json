@@ -5284,13 +5284,21 @@
     "file": "services/sahool-platform/api/routers/internal_service.py",
     "line": 60,
     "method": "GET",
+    "path": "/api/v1/internal/fields",
+    "function": "internal_list_fields"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/internal_service.py",
+    "line": 94,
+    "method": "GET",
     "path": "/internal/fields/{field_id}/state",
     "function": "internal_field_state"
   },
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 80,
+    "line": 114,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "function": "internal_ai_advice_event"

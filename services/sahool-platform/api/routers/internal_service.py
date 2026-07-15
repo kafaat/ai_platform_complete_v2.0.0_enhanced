@@ -56,6 +56,40 @@ async def internal_get_field(
     return _row_to_field_detail(row)
 
 
+@router.get("/api/v1/internal/fields")
+async def internal_list_fields(
+    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
+    _: None = Depends(_require_service_token),
+):
+    """Service-to-service field enumeration for tenant-scoped consumers.
+
+    Same SEC-3 contract as the by-id read: service-token only (never the public
+    user-JWT ``list_fields``), tenant from the verified ``X-Tenant-Id`` header
+    (missing ⇒ 400), rows scoped by tenant_id under RLS. Does not widen public authz.
+    """
+    if not x_tenant_id:
+        raise HTTPException(status_code=400, detail="X-Tenant-Id required for internal field list")
+    from api.field_models import _row_to_field_summary
+
+    try:
+        pool = main.get_pool()
+        async with pool.acquire() as conn:
+            async with conn.transaction():
+                await main._apply_tenant_guc(conn, x_tenant_id)
+                rows = await conn.fetch(
+                    "SELECT field_id, farm_id, name, area_ha, crop, soil_type, manager, "
+                    "field_code, description, water_source, ownership_type, country, region, "
+                    "lat, lon, geometry "
+                    "FROM fields WHERE tenant_id = $1::uuid ORDER BY name",
+                    str(x_tenant_id),
+                )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001 — أيّ خطأ DB ⇒ 503 موثَّق لا 500
+        raise main._db_unavailable("قراءة الحقول الداخليّة (خدمة)", e) from e
+    return [_row_to_field_summary(r) for r in rows]
+
+
 @router.get("/internal/fields/{field_id}/state")
 async def internal_field_state(
     field_id: str,
