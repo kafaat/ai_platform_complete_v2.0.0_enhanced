@@ -7,3 +7,4 @@ prometheus-client>=0.19.0
 python-dotenv>=1.0.0
 PyJWT>=2.13.0  # تحقّق توقيع JWT الحقيقيّ (كان أيّ Bearer يمرّ)
 # aiosmtplib>=3.0.0  # for email in notification agent
+asyncpg>=0.30,<1

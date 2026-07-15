@@ -89,7 +89,7 @@ async def detect_signal_anomalies(
             "status": "detected",
             "detector_model_ref": "urn:sahool:model:signal_detector_v1",
         }
-        record = _store.upsert_detected(payload)
+        record = await _store.upsert_detected(payload)
         if request.auto_request_verification and signal.verification_requirement == "required":
             try:
                 key = hashlib.sha256(f"{record['anomaly_ref']}|verification".encode()).hexdigest()
@@ -98,12 +98,13 @@ async def detect_signal_anomalies(
                     authorization=authorization,
                     idempotency_key=key,
                 )
-                record = _store.transition(
+                record = await _store.transition(
                     record["anomaly_ref"],
                     "verification_requested",
                     expected_version=record["aggregate_version"],
                     task_ref=task.task_ref,
                     patch={"task_ref": task.task_ref},
+                    tenant_id=tenant_id,
                 )
             except RuntimeError as exc:
                 record["verification_bridge_error"] = str(exc)
@@ -128,7 +129,7 @@ async def list_signal_anomalies(
     return {
         "field_id": field_id,
         "season_id": season_id,
-        "anomalies": _store.list(tenant_id, field_id, season_id),
+        "anomalies": await _store.list(tenant_id, field_id, season_id),
     }
 
 
@@ -140,10 +141,10 @@ async def transition_anomaly(
 ):
     tenant_id = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref, tenant_id=tenant_id)
+        record = await _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
-        return _store.transition(
+        return await _store.transition(
             anomaly_ref,
             request.target_status,
             expected_version=request.expected_version,
@@ -165,7 +166,7 @@ async def request_ground_verification(
 ):
     tenant_id = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref, tenant_id=tenant_id)
+        record = await _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
         key = hashlib.sha256(f"{anomaly_ref}|verification".encode()).hexdigest()
@@ -174,7 +175,7 @@ async def request_ground_verification(
             authorization=authorization,
             idempotency_key=key,
         )
-        return _store.transition(
+        return await _store.transition(
             anomaly_ref,
             "verification_requested",
             expected_version=request.expected_version,
@@ -203,7 +204,7 @@ async def accept_verification_result(
         raise HTTPException(403, "invalid task-service callback token")
     tenant_id = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref, tenant_id=tenant_id)
+        record = await _store.get(anomaly_ref, tenant_id=tenant_id)
         if record["tenant_id"] != tenant_id:
             raise AnomalyNotFound(anomaly_ref)
         if record.get("task_ref") and record["task_ref"] != request.task_ref:
@@ -214,7 +215,7 @@ async def accept_verification_result(
             "disposition_reason_codes": request.reason_codes,
             "verification_completed_at": request.completed_at.astimezone(UTC).isoformat(),
         }
-        return _store.transition(
+        return await _store.transition(
             anomaly_ref,
             request.verification_result,
             expected_version=request.expected_version,

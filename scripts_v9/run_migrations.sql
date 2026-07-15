@@ -535,3 +535,5 @@
 \i migrations/v189_irrx1_pcert_manual_execution_db_invariants.sql
 \echo '═══ 196. v190_irrx1_authoritative_recommendation_provenance_lock.sql ═══'
 \i migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql
+\echo '═══ 197. v191_rs_signal_anomalies_store.sql ═══'
+\i migrations/v191_rs_signal_anomalies_store.sql

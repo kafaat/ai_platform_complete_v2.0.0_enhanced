@@ -979,10 +979,10 @@ vegetation-analysis-service,services/vegetation-analysis-service/routers/analysi
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,173,GET,/v1/indicators/registry,indicators_registry
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,180,GET,/v1/indicators/registry/{name},indicator_registry_item
 vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,66,POST,/v1/fields/{field_id}/signal-anomalies/detect,detect_signal_anomalies
-vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,122,GET,/v1/fields/{field_id}/signal-anomalies,list_signal_anomalies
-vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,136,POST,/v1/anomalies/{anomaly_ref:path}/transition,transition_anomaly
-vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,160,POST,/v1/anomalies/{anomaly_ref:path}/verification-requests,request_ground_verification
-vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,194,POST,/v1/anomalies/{anomaly_ref:path}/verification-results,accept_verification_result
+vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,123,GET,/v1/fields/{field_id}/signal-anomalies,list_signal_anomalies
+vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,137,POST,/v1/anomalies/{anomaly_ref:path}/transition,transition_anomaly
+vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,161,POST,/v1/anomalies/{anomaly_ref:path}/verification-requests,request_ground_verification
+vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,195,POST,/v1/anomalies/{anomaly_ref:path}/verification-results,accept_verification_result
 vegetation-analysis-service,services/vegetation-analysis-service/routers/baselines.py,30,POST,/v1/fields/{field_id}/baseline-comparisons,baseline_comparisons
 vegetation-analysis-service,services/vegetation-analysis-service/routers/diagnoses.py,31,POST,/v1/anomalies/{anomaly_ref:path}/diagnoses,generate_diagnosis
 vegetation-analysis-service,services/vegetation-analysis-service/routers/diagnoses.py,55,POST,/v1/anomalies/{anomaly_ref:path}/decision-referrals,refer_to_decision

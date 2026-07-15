@@ -15,7 +15,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f4c9431552fa2eda731facbf3698592affc4084caa353e5ea9b42e50b6014f6"
+          "content": "aa8b940d0a83b48218164df9408f6e2f2524e33ba2259212bef780c670aadfe8"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -95,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f1066c5b6a836809367a507b52671fa658caaa436739791fdd9a96ff1d9c5d6"
+          "content": "a05564adba09ee4838f74fdd14ebddbd7bd01f0162472c7419ea26dc82293459"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d37acca03a6788ec513f17035654cc2d487ebeac3c14a4136b5f545e3bb1d443"
+          "content": "9923f20f52bcf040111cf480f9cad5acae7ff61e6b20349be09e396730c4eead"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7399,6 +7399,16 @@
         }
       ],
       "name": "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f5cdf79411291ea7f3834fdb1bc1fa5a77dda40909fb96f4796597dbad16aca"
+        }
+      ],
+      "name": "migrations/v191_rs_signal_anomalies_store.sql",
       "type": "file"
     },
     {
@@ -26095,7 +26105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65578b64d5654bc97a87014a719848733a205a29becd17eede3c876f9e37314f"
+          "content": "5ab93c178718d4ed33689db882f51c3faa3b3a612c4b333961432478736e42df"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -26135,7 +26145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7cfd4b623754d433e32f0d18af9e0b12bbc7d8b28058d426bb7ffb712a0942fe"
+          "content": "5a8bcda3545028710d4e1775f0397ad2e7a2ac38b88e3b11c001da8add998612"
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_runtime.py",
@@ -26149,6 +26159,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2803c53257920790fd1fc7314d91000ef0e89750875ae36d838ec0d37c27a10d"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_store_pg.py",
       "type": "file"
     },
     {
@@ -26235,7 +26255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c39d3a2e98346ca32ce06637f5f74c252873e6d2d7b985a624b7d8af919c7662"
+          "content": "549bdbebf531b85b27f3908f30c1519a0435d4caa8066ecb4b8a4a506a9b8676"
         }
       ],
       "name": "services/vegetation-analysis-service/requirements.txt",
@@ -26275,7 +26295,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8602cd297a4ee36828aef2cb5fd53d6b2483c76defc2fa357ffc9fb7109478ed"
+          "content": "950a0c34ef0fa9278470020c8a631be5b5b130d8fbd84c104f64c701ad7ea7b0"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/anomalies.py",
@@ -26295,7 +26315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7dfb159e451a410493b7ae92276f7fdb82328295776150a6da2bb8637b478643"
+          "content": "a4a71125e9aa79d0993fc5f1b93f55bdec436df5cd2f4f7827308bce2abee997"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/diagnoses.py",
