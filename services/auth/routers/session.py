@@ -108,7 +108,7 @@ async def login(req: main.LoginRequest, request: Request, response: Response):
     main.LOGIN_COUNTER.labels(status="success").inc()
 
     # كوكي مصادقة البلاطات (HttpOnly) — يُغني عن تمرير JWT في رابط بلاطة <img>.
-    main.set_tile_auth_cookie(response, token)
+    main.set_tile_auth_cookie(response, token, request)
 
     return main.TokenResponse(
         access_token=token,
@@ -122,7 +122,7 @@ async def login(req: main.LoginRequest, request: Request, response: Response):
 
 
 @router.post("/auth/refresh", response_model=main.TokenResponse)
-async def refresh_token(req: main.RefreshRequest, response: Response):
+async def refresh_token(req: main.RefreshRequest, request: Request, response: Response):
     """✅ NEW: Refresh access token using refresh token."""
     if not main._redis:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "Refresh tokens require Redis")
@@ -150,7 +150,7 @@ async def refresh_token(req: main.RefreshRequest, response: Response):
     )
 
     # جدّد كوكي مصادقة البلاطات كي يبقى صالحاً مع تجديد التوكن (وإلّا انتهت مع انتهاء JWT).
-    main.set_tile_auth_cookie(response, token)
+    main.set_tile_auth_cookie(response, token, request)
 
     return main.TokenResponse(
         access_token=token,
@@ -201,7 +201,7 @@ async def logout(
         await main.revoke_refresh_token(rt)
 
     # امسح كوكي مصادقة البلاطات كي لا تبقى صالحة بعد الخروج على متصفّح مشترك.
-    main.clear_tile_auth_cookie(response)
+    main.clear_tile_auth_cookie(response, request)
 
     await main.audit_log("logout", None, ip)
     return {"message": "تم تسجيل الخروج بنجاح"}

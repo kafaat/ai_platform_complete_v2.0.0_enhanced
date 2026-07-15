@@ -1057,6 +1057,11 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v115_precision_agriculture_phase6.sql"
+  signal_anomalies:
+    owner: vegetation-analysis-service
+    writers: [vegetation-analysis-service]
+    readers: []
+    source: "migrations/v191_rs_signal_anomalies_store.sql"
   zonal_stats:
     owner: raster-service
     writers: [raster-service]

@@ -81,19 +81,20 @@ VEGETATION_CANONICAL_SHADOW = os.getenv("VEGETATION_CANONICAL_SHADOW", "1") not 
 )
 
 
-# ── مصدر الحقول (Field source) — إغلاق مرن نحو القاعدة ──────────────
+# ── مصدر الحقول (Field source) — إغلاق مرن نحو خدمة الحقول ──────────────
 # هذه الخدمة لا تملك pool قاعدة (لا asyncpg ولا DATABASE_URL — راجع رأس الملفّ
-# واللايف‌سايكل). لذلك «القاعدة» تُقرأ عبر **platform API** (sahool-platform يملك
-# جدول fields + RLS + PostGIS؛ راجع GET /api/v1/fields/{id} الذي يُرجِع هندسة
-# GeoJSON). نحوّل الهندسة إلى bbox محليّاً (مكافئ ST_Envelope) بصدق — لا نلفّق
-# هندسة. كلّ المسار fail-soft خلف علم مُطفأ افتراضيّاً ⇒ السلوك الحاليّ تماماً.
+# واللايف‌سايكل). لذلك «القاعدة» تُقرأ عبر **field-management-service** (المالك
+# المُعلَن لجدول fields + RLS + PostGIS حسب docs/architecture/db_ownership.yml؛ راجع
+# GET /internal/fields/{id} الذي يُرجِع هندسة GeoJSON). نحوّل الهندسة إلى bbox محليّاً
+# (مكافئ ST_Envelope) بصدق — لا نلفّق هندسة. كلّ المسار fail-soft خلف علم مُطفأ
+# افتراضيّاً ⇒ السلوك الحاليّ تماماً. لا ارتداد للمنصّة.
 #
-# FEATURE_SENTINEL_DB_FIELDS: علم تفعيل قراءة الحقول من القاعدة/المنصّة. off ⇒
+# FEATURE_SENTINEL_DB_FIELDS: علم تفعيل قراءة الحقول من خدمة الحقول. off ⇒
 #   السجلّ التركيبيّ القديم حصراً (لا تغيير سلوكيّ).
 # ALLOW_LEGACY_FIELD_REGISTRY: عند false، فشلُ مصدر القاعدة لا يرتدّ للسجلّ القديم
 #   (يُعيد None). الافتراض true ⇒ ارتداد مرن موسوم `legacy_field_registry_used`.
-# PLATFORM_API_URL: قاعدة عنوان sahool-platform لقراءة الحقل (إن غاب ⇒ لا منفذ
-#   قاعدة، فيرتدّ للسجلّ بحسب ALLOW_LEGACY_FIELD_REGISTRY).
+# FIELD_SERVICE_URL: قاعدة عنوان field-management-service لقراءة الحقل (إن غاب ⇒ لا
+#   منفذ قاعدة، فيرتدّ للسجلّ بحسب ALLOW_LEGACY_FIELD_REGISTRY).
 def _flag_enabled(value: str | None, *, default: bool) -> bool:
     """تطبيع علم بيئة منطقيّ (منطق نقيّ قابل للعزل — يُختبَر في الوحدة).
 
@@ -106,10 +107,15 @@ def _flag_enabled(value: str | None, *, default: bool) -> bool:
 
 
 PLATFORM_API_URL = os.getenv("PLATFORM_API_URL", "").rstrip("/")
-# Runtime field truth is platform-owned. Legacy synthetic field fixtures are disabled
-# in every environment; tests must inject fixtures explicitly.
+# Field truth now lives in field-management-service (the declared owner of the
+# `fields` table per docs/architecture/db_ownership.yml). It exposes service-token
+# internal reads at /internal/fields[/{id}] — the tenant-scoped read that used to be
+# duplicated on the platform. We read fields ONLY from here (no platform fallback).
+FIELD_SERVICE_URL = os.getenv("FIELD_SERVICE_URL", "").rstrip("/")
+# Runtime field truth is owned by field-management-service. Legacy synthetic field
+# fixtures are disabled in every environment; tests must inject fixtures explicitly.
 FEATURE_SENTINEL_DB_FIELDS = _flag_enabled(
-    os.getenv("FEATURE_SENTINEL_DB_FIELDS"), default=bool(PLATFORM_API_URL)
+    os.getenv("FEATURE_SENTINEL_DB_FIELDS"), default=bool(FIELD_SERVICE_URL)
 )
 ALLOW_LEGACY_FIELD_REGISTRY = _flag_enabled(os.getenv("ALLOW_LEGACY_FIELD_REGISTRY"), default=False)
 # AC-6 evidence producer: push content-addressed vegetation snapshots to the
@@ -271,6 +277,7 @@ def _geometry_to_bbox(geometry: dict | None) -> list[float] | None:
     return [min(xs), min(ys), max(xs), max(ys)]
 
 
+<<<<<<< HEAD
 async def _load_field_from_db(
     field_id: str,
     tenant_id: str | None = None,
@@ -299,17 +306,49 @@ async def _load_field_from_db(
         headers["Authorization"] = f"Bearer {user_bearer}"
     else:
         headers["X-Agent-Token"] = RASTER_SERVICE_TOKEN
+=======
+async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> dict | None:
+    """يقرأ الحقل من field-management-service (المالك المُعلَن لجدول fields + RLS
+    + PostGIS حسب docs/architecture/db_ownership.yml). يُحوّل هندسة GeoJSON ⇒ bbox
+    (مكافئ ST_Envelope) بصدق.
+
+    قيد معماريّ صريح: هذه الخدمة بلا pool قاعدة خاصّ بها (لا asyncpg/DATABASE_URL)،
+    فالعزل عبر المستأجِر (RLS / set app.current_tenant) يُفرَض في **خدمة الحقول** خلف
+    GET /internal/fields/{id} (مُرشَّح بالمستأجِر هناك). نمرّر المستأجِر ترويسةً
+    موثّقة. لو غاب FIELD_SERVICE_URL ⇒ لا منفذ قاعدة (None، fail-soft). لا ارتداد للمنصّة.
+
+    fail-soft مطلق: أيّ تعذّر/مهلة/هندسة غير صالحة ⇒ None (يقرّر المتّصِل الارتداد).
+    """
+    if not FIELD_SERVICE_URL or not RASTER_SERVICE_TOKEN:
+        return None
+    headers = {
+        "Accept": "application/json",
+        "X-Agent-Token": RASTER_SERVICE_TOKEN,
+        "X-Service-Name": "vegetation-analysis-service",
+    }
+>>>>>>> 0da934a3612eb7efce20f478c8f12203dfdb3cc9
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
+    # Distinct failure mapping — an unavailable/auth failure must NOT be masked as a
+    # missing field (that masking is the very bug this extraction fixes). Only a real
+    # 404 from the owner is a genuine "not found" (⇒ None ⇒ caller's honest 404).
     try:
         async with httpx.AsyncClient(timeout=8) as c:
-            r = await c.get(f"{PLATFORM_API_URL}/api/v1/fields/{field_id}", headers=headers)
-        if r.status_code != 200:
-            return None
-        data = r.json()
-    except Exception as e:  # noqa: BLE001 — fail-soft: ارتداد، لا كسر
-        logger.debug("platform field load فشل لـ%s: %s", field_id, e)
-        return None
+            r = await c.get(f"{FIELD_SERVICE_URL}/internal/fields/{field_id}", headers=headers)
+    except Exception as e:  # noqa: BLE001 — الشبكة/المهلة ⇒ المالك غير متاح (لا يُخفى كـ404)
+        logger.warning("field owner unavailable field_id=%s err=%s", field_id, e)
+        raise HTTPException(503, "field_owner_unavailable") from None
+    if r.status_code == 404:
+        return None  # الحقل غير موجود لهذا المستأجِر (المتّصِل يرفع 404 صريحاً)
+    if r.status_code in (401, 403):
+        logger.error(
+            "field owner auth-contract failure status=%s field=%s", r.status_code, field_id
+        )
+        raise HTTPException(502, "field_owner_auth_contract")
+    if r.status_code != 200:
+        logger.warning("field owner status=%s field=%s", r.status_code, field_id)
+        raise HTTPException(503, "field_owner_unavailable")
+    data = r.json()
     bbox = _geometry_to_bbox(data.get("geometry"))
     if bbox is None:
         return None
@@ -324,26 +363,35 @@ async def _load_field_from_db(
 
 
 async def list_fields_from_platform(tenant_id: str) -> list[dict]:
-    """Return the tenant-scoped field catalog from sahool-platform.
+    """Return the tenant-scoped field catalog from field-management-service.
 
-    No local enumeration fallback is permitted. The service token authenticates
-    the internal caller while X-Tenant-Id scopes the platform query.
+    field-management-service is the declared owner of the `fields` table. No local
+    enumeration fallback is permitted, and there is NO platform fallback. The service
+    token authenticates the internal caller while X-Tenant-Id scopes the query.
+
+    (Name kept as ``list_fields_from_platform`` to avoid touching importers.)
     """
-    if not PLATFORM_API_URL or not RASTER_SERVICE_TOKEN:
-        raise HTTPException(503, "platform field catalog is not configured")
+    if not FIELD_SERVICE_URL or not RASTER_SERVICE_TOKEN:
+        raise HTTPException(503, "field catalog is not configured")
     headers = {
         "Accept": "application/json",
         "X-Agent-Token": RASTER_SERVICE_TOKEN,
+        "X-Service-Name": "vegetation-analysis-service",
         "X-Tenant-Id": str(tenant_id),
     }
     try:
+        # Service-to-service enumeration against the field owner. Service-token
+        # protected; tenant is our JWT-derived X-Tenant-Id header. No user Bearer JWT.
         async with httpx.AsyncClient(timeout=10) as client:
-            response = await client.get(f"{PLATFORM_API_URL}/api/v1/fields", headers=headers)
+            response = await client.get(f"{FIELD_SERVICE_URL}/internal/fields", headers=headers)
     except Exception as exc:  # noqa: BLE001
-        logger.warning("platform field list unavailable tenant=%s: %s", tenant_id, exc)
-        raise HTTPException(503, "platform field catalog unavailable") from None
+        logger.warning("field catalog unavailable tenant=%s: %s", tenant_id, exc)
+        raise HTTPException(503, "field_owner_unavailable") from None
+    if response.status_code in (401, 403):
+        logger.error("field owner auth-contract failure status=%s", response.status_code)
+        raise HTTPException(502, "field_owner_auth_contract")
     if response.status_code != 200:
-        raise HTTPException(503, f"platform field catalog returned {response.status_code}")
+        raise HTTPException(503, "field_owner_unavailable")
     payload = response.json()
     if isinstance(payload, dict):
         items = payload.get("fields") or payload.get("items") or payload.get("data") or []
@@ -373,8 +421,17 @@ async def load_field(
     db_field: dict | None = None
     if FEATURE_SENTINEL_DB_FIELDS:
         try:
+<<<<<<< HEAD
             db_field = await _load_field_from_db(field_id, tenant_id, user_bearer=user_bearer)
         except Exception as e:  # noqa: BLE001 — fail-soft شامل
+=======
+            db_field = await _load_field_from_db(field_id, tenant_id)
+        except HTTPException:
+            # owner-unavailable (503) / auth-contract (502) propagate with their
+            # distinct status — they must NOT be swallowed to a misleading 404.
+            raise
+        except Exception as e:  # noqa: BLE001 — fail-soft شامل لغير HTTP
+>>>>>>> 0da934a3612eb7efce20f478c8f12203dfdb3cc9
             logger.warning("db_field_load_error field_id=%s err=%s", field_id, e)
             db_field = None
 

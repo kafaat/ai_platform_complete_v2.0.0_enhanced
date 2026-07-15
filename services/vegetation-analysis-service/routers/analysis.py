@@ -63,6 +63,8 @@ async def timeseries(
             "real_data": False,
             "available": False,
             "synthetic": False,
+            "degraded": True,
+            "reason": reason or "no_processed_observation",
             "warning_ar": "لا توجد سلسلة رصد فعلية؛ لم يتم إنشاء قيم تركيبية.",
             "generated_at": main.datetime.now(main.UTC).isoformat(),
         }
@@ -108,6 +110,9 @@ async def current_ndvi(field_id: str, token: str = Depends(main.security)):
             "data_source": "raster-service",
             "real_data": False,
             "available": False,
+            "synthetic": False,
+            "degraded": True,
+            "reason": reason or "no_processed_observation",
             "warning_ar": "لا توجد مشاهدة NDVI فعليّة متاحة؛ لم يتم إنشاء قيمة تركيبيّة.",
         }
     value = observed["value"]

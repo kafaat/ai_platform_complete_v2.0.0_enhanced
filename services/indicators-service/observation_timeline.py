@@ -54,6 +54,21 @@ def _parse_date(value: str) -> datetime:
     return dt.astimezone(UTC)
 
 
+def _ratio01(value: Any) -> Decimal | None:
+    """Coerce a value to a [0,1] Decimal, or None if absent/invalid."""
+    if value is None:
+        return None
+    try:
+        d = Decimal(str(value))
+    except (ArithmeticError, ValueError, TypeError):
+        return None
+    if d < 0:
+        return Decimal("0")
+    if d > 1:
+        return Decimal("1")
+    return d
+
+
 def canonicalize_timeseries(
     *,
     field_id: str,
@@ -87,6 +102,17 @@ def canonicalize_timeseries(
         run_native = _stable_id("run", asset_native)
         value = Decimal(str(point["mean"]))
         is_latest = observation_ref == latest_ref
+        # RS-4 honesty: carry the REAL per-observation quality reported by
+        # raster-service instead of a fabricated perfect 1.0. Legacy layers that
+        # predate quality capture report None → flag it, never invent a score.
+        _vpr = _ratio01(point.get("valid_pixel_ratio"))
+        _cov = _ratio01(point.get("coverage_ratio"))
+        _cloud_pct = point.get("cloud_pct")
+        _cloud = (
+            _ratio01(Decimal(str(_cloud_pct)) / Decimal("100")) if _cloud_pct is not None else None
+        )
+        _quality_reported = _vpr is not None or _cov is not None or _cloud is not None
+        _score = _vpr if _vpr is not None else _cov
         output.append(
             CanonicalObservationV1(
                 observation_ref=observation_ref,
@@ -115,16 +141,25 @@ def canonicalize_timeseries(
                         ).hexdigest(),
                         use_case="timeline_display",
                     ),
-                    field_coverage_ratio=Decimal("1"),
-                    valid_pixel_ratio=Decimal("1"),
-                    field_cloud_ratio=Decimal("0"),
+                    field_coverage_ratio=(_cov if _cov is not None else (_vpr or Decimal("1"))),
+                    valid_pixel_ratio=(_vpr if _vpr is not None else (_cov or Decimal("1"))),
+                    field_cloud_ratio=(_cloud if _cloud is not None else Decimal("0")),
                     field_shadow_ratio=Decimal("0"),
                     indicator_in_range=True,
-                    score=Decimal("1"),
-                    reason_codes=(),
+                    score=_score,
+                    reason_codes=(
+                        ("per_point_quality_from_raster",)
+                        if _quality_reported
+                        else ("per_point_quality_not_reported",)
+                    ),
                 ),
                 uncertainty=ObservationUncertaintyV1(
-                    method="timeline-source-projection-v1", confidence=Decimal("1")
+                    method=(
+                        "timeline-source-projection-v1"
+                        if _quality_reported
+                        else "timeline-source-projection-quality-unreported-v1"
+                    ),
+                    confidence=(_score if _score is not None else Decimal("0.5")),
                 ),
                 lineage=ObservationLineageV1(
                     asset_ref=f"urn:sahool:raster-asset:{asset_native}",

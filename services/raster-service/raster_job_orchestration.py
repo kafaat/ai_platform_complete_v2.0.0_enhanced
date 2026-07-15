@@ -283,6 +283,11 @@ def run_batch_processing(ctx, job_id: str, req):
     ctx._jobs.set(job_id, job)
     results = {}
     failed = {}
+    # per-indicator durable-persistence flags. batch_results carries client-facing
+    # layer_ids (strings), so persistence truth must be tracked separately — reading
+    # ``.persisted`` off the string layer_id always yielded False and made every
+    # batch honestly-but-wrongly ``failed`` under RASTER_PERSISTENCE_MODE=required.
+    persisted_by_indicator: dict[str, bool] = {}
     unique_indicators = []
     seen_indicators = set()
     for ind in req.indicators:
@@ -449,6 +454,7 @@ def run_batch_processing(ctx, job_id: str, req):
             sj = ctx._jobs.get(sub_job_id) or {}
             if sj["status"] == ctx.JobStatus.completed:
                 results[ind.value] = sj.get("layer_id") or sub_job_id
+                persisted_by_indicator[ind.value] = bool((sj.get("result") or {}).get("persisted"))
             else:
                 failed[ind.value] = sj.get("error_message", "unknown")
         except Exception as e:  # noqa: BLE001 — عزل لكلّ مؤشّر
@@ -470,12 +476,9 @@ def run_batch_processing(ctx, job_id: str, req):
         shared_src.close()
     job["shared_band_cache_entries"] = len(shared_cache)
     lease_lost = bool(lease_heartbeat is not None and lease_heartbeat.lost)
-    _persisted_results = [
-        value
-        for value in results.values()
-        if isinstance(value, dict) and bool(value.get("persisted"))
-    ]
-    _all_persisted = bool(results) and len(_persisted_results) == len(results)
+    _all_persisted = bool(results) and all(
+        persisted_by_indicator.get(indicator, False) for indicator in results
+    )
     if lease_lost:
         job["error_message"] = "durable_lease_lost"
         job["status"] = ctx.JobStatus.failed

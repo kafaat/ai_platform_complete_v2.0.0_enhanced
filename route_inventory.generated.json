@@ -896,6 +896,62 @@
     "function": "readyz"
   },
   {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 119,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "healthz"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 124,
+    "method": "GET",
+    "path": "/health",
+    "function": "legacy_health"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 129,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "readyz"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 141,
+    "method": "GET",
+    "path": "/contract",
+    "function": "contract"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 160,
+    "method": "GET",
+    "path": "/",
+    "function": "root"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 169,
+    "method": "GET",
+    "path": "/internal/fields/{field_id}",
+    "function": "internal_get_field"
+  },
+  {
+    "service": "field-management-service",
+    "file": "services/field-management-service/main.py",
+    "line": 201,
+    "method": "GET",
+    "path": "/internal/fields",
+    "function": "internal_list_fields"
+  },
+  {
     "service": "field-segmentation",
     "file": "services/field-segmentation/main.py",
     "line": 370,
@@ -1738,7 +1794,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1110,
+    "line": 1117,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png",
     "function": "field_tile"
@@ -1746,7 +1802,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1184,
+    "line": 1191,
     "method": "GET",
     "path": "/v1/fields/{field_id}/available-dates",
     "function": "field_available_dates"
@@ -1754,7 +1810,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1346,
+    "line": 1353,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "function": "field_terrain"
@@ -1762,7 +1818,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1395,
+    "line": 1402,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"
@@ -5274,7 +5330,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 18,
+    "line": 25,
     "method": "GET",
     "path": "/internal/fields/{field_id}/state",
     "function": "internal_field_state"
@@ -5282,7 +5338,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/internal_service.py",
-    "line": 38,
+    "line": 45,
     "method": "POST",
     "path": "/internal/events/ai-advice",
     "function": "internal_ai_advice_event"
@@ -7802,7 +7858,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 85,
+    "line": 87,
     "method": "GET",
     "path": "/v1/ndvi/current/{field_id}",
     "function": "current_ndvi"
@@ -7810,7 +7866,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 134,
+    "line": 139,
     "method": "GET",
     "path": "/v1/all_fields",
     "function": "all_fields"
@@ -7818,7 +7874,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 173,
+    "line": 178,
     "method": "GET",
     "path": "/v1/indicators/registry",
     "function": "indicators_registry"
@@ -7826,7 +7882,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 180,
+    "line": 185,
     "method": "GET",
     "path": "/v1/indicators/registry/{name}",
     "function": "indicator_registry_item"
@@ -7842,7 +7898,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 122,
+    "line": 123,
     "method": "GET",
     "path": "/v1/fields/{field_id}/signal-anomalies",
     "function": "list_signal_anomalies"
@@ -7850,7 +7906,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 136,
+    "line": 137,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/transition",
     "function": "transition_anomaly"
@@ -7858,7 +7914,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 160,
+    "line": 161,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-requests",
     "function": "request_ground_verification"
@@ -7866,7 +7922,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/anomalies.py",
-    "line": 194,
+    "line": 195,
     "method": "POST",
     "path": "/v1/anomalies/{anomaly_ref:path}/verification-results",
     "function": "accept_verification_result"

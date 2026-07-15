@@ -419,11 +419,16 @@ services:
       # الرابط). Secure=1 افتراضاً (صحيح لإنتاج HTTPS). ⚠️ نشرٌ عبر HTTP عاديّ (محلّيّ/staging)
       # يجب أن يضبط AUTH_COOKIE_SECURE=0 وإلّا لا يُرسِل المتصفّح الكوكي ⇒ بوّابة /api/raster
       # ترفض بلاطات <img> بـ403 في بناء الإنتاج (لا fallback لتوكن الرابط). انظر auth main.py:81.
-      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-1}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-auto}
       AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-lax}
       JWT_EXPIRE_MINUTES: 60
       REFRESH_EXPIRE_DAYS: 30
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
+      # MFA للأدوار الحسّاسة (admin افتراضاً). مُفعَّل افتراضاً — fail-safe إنتاجيّ:
+      # الأدوار الحسّاسة تُلزَم بـMFA. لا تُعطِّله إلّا في التطوير المحلّيّ عبر
+      # docker-compose.dev.yml (ENFORCE_SENSITIVE_MFA=false)؛ لا تجعل false افتراضاً.
+      ENFORCE_SENSITIVE_MFA: ${ENFORCE_SENSITIVE_MFA:-true}
+      REQUIRE_MFA_ROLES: ${REQUIRE_MFA_ROLES:-admin}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
@@ -783,13 +788,25 @@ services:
       TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
       TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:-}
       VEGETATION_ANOMALY_DB_PATH: /data/vegetation/anomalies.db
+      VEGETATION_ANOMALY_STORE: ${VEGETATION_ANOMALY_STORE:-sqlite}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
-      # runtime-truth: real fields come from the tenant-scoped platform catalog
-      # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
+      # runtime-truth: real fields come from field-management-service (the declared
+      # owner of the `fields` table); load_field/list_fields_from_platform read there.
+      # PLATFORM_API_URL is retained for other platform reads and the truth guard.
       PLATFORM_API_URL: http://sahool-platform:8000
+      FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
+<<<<<<< HEAD
       VEGETATION_REAL_ONLY: "0"
+=======
+      # Fail-closed by default (production/staging): no processed observation ⇒ 424,
+      # never a synthetic NDVI. Development may opt into soft-fail (available:false, 200)
+      # by exporting VEGETATION_REAL_ONLY=0 (see .env.development). The default MUST stay
+      # 1 so production can never silently degrade — enforced by the compose guard.
+      VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}
+>>>>>>> 0da934a3612eb7efce20f478c8f12203dfdb3cc9
       # vegetation publishes events best-effort; NATS is not a startup/readiness blocker.
       VEGETATION_NATS_PUBLISH_MODE: ${VEGETATION_NATS_PUBLISH_MODE:-best_effort}
       # نبات → decision-service: دفع لقطات النبات المُصانة (opt-in، fail-soft). العنوان يطابق
@@ -810,6 +827,38 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+  sahool-field-management:
+    build:
+      context: .
+      dockerfile: services/field-management-service/Dockerfile
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      # Declared owner of the `fields` table (docs/architecture/db_ownership.yml).
+      # Connects with the restricted sahool_app role so RLS is enforced (NOBYPASSRLS).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      # Service-token only — a user Bearer JWT is never accepted on this service.
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -sf
+      - http://localhost:8000/healthz
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
   sahool-remote-sensing-workspace-bff:
     build:
       context: .

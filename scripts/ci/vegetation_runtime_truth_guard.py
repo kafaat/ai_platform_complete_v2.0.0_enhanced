@@ -46,11 +46,19 @@ for compose in COMPOSES:
         "PLATFORM_API_URL:",
         'FEATURE_SENTINEL_DB_FIELDS: "1"',
         'ALLOW_LEGACY_FIELD_REGISTRY: "0"',
-        'VEGETATION_REAL_ONLY: "1"',
         "SAHOOL_AGENT_TOKEN:",
     ):
         if required not in service:
             errors.append(f"{compose.name}: vegetation missing {required}")
+    # VEGETATION_REAL_ONLY must be FAIL-CLOSED in production compose. The literal
+    # "1" and the env-driven default ${VEGETATION_REAL_ONLY:-1} both satisfy this
+    # (dev opts into soft-fail via docker-compose.dev.yml). A soft default (0/false)
+    # is rejected — see scripts/ci/vegetation_real_only_posture_guard.py.
+    if (
+        'VEGETATION_REAL_ONLY: "1"' not in service
+        and "VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}" not in service
+    ):
+        errors.append(f"{compose.name}: vegetation VEGETATION_REAL_ONLY must default fail-closed (1)")
 
 if errors:
     raise SystemExit("vegetation_runtime_truth_guard failed:\n- " + "\n- ".join(errors))

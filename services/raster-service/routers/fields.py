@@ -1079,6 +1079,13 @@ async def field_timeseries(
             {
                 "datetime": str(real.get("date") or date)[:10],
                 "mean": real["stats"]["mean"],
+                # Surface the real per-observation quality so canonical consumers
+                # (RS-4 observation timeline) carry measured quality instead of a
+                # fabricated 1.0. Keys may be None on legacy layers that predate
+                # quality capture — consumers must treat None as "not reported".
+                "valid_pixel_ratio": real.get("valid_pixel_ratio"),
+                "coverage_ratio": real.get("coverage_ratio"),
+                "cloud_pct": real.get("cloud_pct"),
             }
         )
 

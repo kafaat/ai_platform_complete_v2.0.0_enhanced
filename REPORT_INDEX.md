@@ -122,4 +122,4 @@ This index identifies the current release-candidate evidence and separates it fr
 - `PHASE17_RUNTIME_BOOTSTRAP_ENV_DOCTOR_REPORT_20260626.md`
 - `PHASE18_URGENT_PRODUCTION_RUNTIME_FIXES_REPORT_20260626.md`
 - `PHASE19_PRODUCTION_GAP_CLOSURE_MIGRATIONS_EXEC_BITS_REPORT_20260626.md`
-- ... 80 additional historical reports omitted from this index view
+- ... 89 additional historical reports omitted from this index view

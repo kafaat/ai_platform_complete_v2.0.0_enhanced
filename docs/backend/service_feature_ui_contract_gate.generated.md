@@ -1,7 +1,7 @@
 # service-feature-ui-contract-gate report
 
-- services: 30
-- passed: 30
+- services: 31
+- passed: 31
 - failed: 0
 
 ## Service evidence
@@ -353,3 +353,12 @@ classification: `internal`
   - `docker-compose.v9.yml` ← `WORKSPACE_BFF_TIMEOUT_S`
   - `docker-compose.v9.yml` ← `remote-sensing-workspace`
   - `services/remote-sensing-workspace-bff/tests/test_workspace_bff.py` ← `remote-sensing-workspace`
+
+### `field-management-service` — pass
+classification: `internal-sensitive`
+- internal-consumer: 6 match(es)
+  - `services/vegetation-analysis-service/vegetation_runtime.py` ← `FIELD_SERVICE_URL`
+  - `services/vegetation-analysis-service/vegetation_runtime.py` ← `/internal/fields`
+  - `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py` ← `FIELD_SERVICE_URL`
+  - `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py` ← `/internal/fields`
+  - `docker-compose.v9.yml` ← `FIELD_SERVICE_URL`

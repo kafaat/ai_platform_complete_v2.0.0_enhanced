@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Guard the indicators-service contract-only container boundary.
+"""Guard the indicators-service canonical-observation-adapter container boundary.
 
 The service publishes canonical ownership/catalog contracts and never computes
-observed spectral products. It remains lightweight and infrastructure-free.
+observed spectral products. Since the RS2/RS3 cutover it is a thin
+canonical-observation adapter that reads observations/timeline from raster-service
+over HTTP (httpx), so it stays free of DB/cache/broker drivers but does carry an
+HTTP client. It keeps no direct Postgres/Redis/NATS coupling.
 """
 
 from __future__ import annotations
@@ -17,7 +20,10 @@ REQ = SERVICE / "requirements.txt"
 MAIN = SERVICE / "main.py"
 COMPOSE = ROOT / "docker-compose.v9.yml"
 
-ALLOWED_REQUIREMENTS = {"fastapi", "uvicorn"}
+# httpx is the canonical-observation adapter's upstream HTTP client (reads from
+# raster-service). It is not a DB/cache/broker driver, so it stays allowed while
+# the forbidden set below keeps the service infrastructure-free.
+ALLOWED_REQUIREMENTS = {"fastapi", "uvicorn", "httpx"}
 FORBIDDEN_RUNTIME_DEPS = {"asyncpg", "redis", "nats-py", "prometheus-client"}
 FORBIDDEN_COMPOSE_ENV = {"DATABASE_URL", "REDIS_URL", "NATS_URL"}
 FORBIDDEN_COMPOSE_DEPS = {"sahool-postgres", "sahool-redis", "sahool-nats"}
@@ -95,8 +101,11 @@ def check_compose_is_not_blocked_on_unused_infra() -> None:
             "indicators-service contract-only compose must not depend_on unused infra: "
             + repr(leaked_deps)
         )
-    if "INDICATORS_RUNTIME_MODE: contract-only" not in block:
-        fail("indicators-service compose must declare INDICATORS_RUNTIME_MODE=contract-only")
+    if "INDICATORS_RUNTIME_MODE: canonical-observation-adapter" not in block:
+        fail(
+            "indicators-service compose must declare "
+            "INDICATORS_RUNTIME_MODE=canonical-observation-adapter"
+        )
     if "http://localhost:8000/healthz" not in block:
         fail("indicators-service compose healthcheck must use /healthz")
 
@@ -106,14 +115,16 @@ def check_main_is_honest_contract_only() -> None:
     required = [
         '"status": "ready"',
         '"implemented_runtime": True',
-        '"runtime_role": "contract-only"',
+        # RS2/RS3 cutover: the honest role is the canonical-observation adapter.
+        # spectral compute is still disowned (409) and never done here.
+        '"runtime_role": "canonical-observation-adapter"',
         '"spectral_compute": False',
         "status_code=409",
         '"indicator_compute": False',
     ]
     missing = [item for item in required if item not in text]
     if missing:
-        fail("indicators-service main.py missing contract-only markers: " + repr(missing))
+        fail("indicators-service main.py missing canonical-adapter markers: " + repr(missing))
     forbidden = ['"health_only": True', '"implemented_runtime": False', "status_code=501"]
     present = [item for item in forbidden if item in text]
     if present:

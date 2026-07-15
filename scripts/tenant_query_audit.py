@@ -203,7 +203,11 @@ def audit() -> list[dict]:
                 sig = lines[fs] if fs < len(lines) else ""
                 if re.search(r"tenant_connection(_for)?\(", ctx):
                     cls = "RLS_CONN"
-                elif "set_config('app.current_tenant'" in ctx or "_apply_tenant_guc" in ctx:
+                elif (
+                    "set_config('app.current_tenant'" in ctx
+                    or "_apply_tenant_guc" in ctx
+                    or "_tenant_conn(" in ctx
+                ):
                     cls = "EXPLICIT"
                 elif re.search(r"\bconn\b", sig) and not re.search(
                     r"\.acquire\(\)|get_pool\(\)", ctx

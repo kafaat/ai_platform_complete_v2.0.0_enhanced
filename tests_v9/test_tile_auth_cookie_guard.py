@@ -43,15 +43,15 @@ def test_auth_defines_httponly_tile_cookie_helpers() -> None:
 def test_session_sets_cookie_on_login_and_refresh_and_clears_on_logout() -> None:
     session = _read("services/auth/routers/session.py")
     # الدخول والتجديد يضبطان الكوكي؛ الخروج يمسحها.
-    assert session.count("main.set_tile_auth_cookie(response, token)") >= 2
-    assert "main.clear_tile_auth_cookie(response)" in session
+    assert session.count("main.set_tile_auth_cookie(response, token, request)") >= 2
+    assert "main.clear_tile_auth_cookie(response, request)" in session
 
 
 def test_registration_and_invitation_set_cookie() -> None:
-    assert "main.set_tile_auth_cookie(response, token)" in _read(
+    assert "main.set_tile_auth_cookie(response, token, request)" in _read(
         "services/auth/routers/registration.py"
     )
-    assert "main.set_tile_auth_cookie(response, token)" in _read(
+    assert "main.set_tile_auth_cookie(response, token, request)" in _read(
         "services/auth/routers/invitations.py"
     )
 

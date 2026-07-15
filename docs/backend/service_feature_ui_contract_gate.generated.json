@@ -2,8 +2,8 @@
   "gate": "service-feature-ui-contract-gate",
   "version": 1,
   "inventory_totality": "pass",
-  "service_count": 30,
-  "passed": 30,
+  "service_count": 31,
+  "passed": 31,
   "failed": 0,
   "failures": [],
   "services": [
@@ -3064,6 +3064,59 @@
             }
           ],
           "match_count": 4
+        }
+      ]
+    },
+    {
+      "service": "field-management-service",
+      "classification": "internal-sensitive",
+      "status": "pass",
+      "missing_sources": [],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/vegetation-analysis-service",
+            "docker-compose.v9.yml"
+          ],
+          "patterns": [
+            "FIELD_SERVICE_URL",
+            "sahool-field-management",
+            "/internal/fields"
+          ],
+          "matches": [
+            {
+              "root": "services/vegetation-analysis-service",
+              "path": "services/vegetation-analysis-service/vegetation_runtime.py",
+              "pattern": "FIELD_SERVICE_URL"
+            },
+            {
+              "root": "services/vegetation-analysis-service",
+              "path": "services/vegetation-analysis-service/vegetation_runtime.py",
+              "pattern": "/internal/fields"
+            },
+            {
+              "root": "services/vegetation-analysis-service",
+              "path": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
+              "pattern": "FIELD_SERVICE_URL"
+            },
+            {
+              "root": "services/vegetation-analysis-service",
+              "path": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
+              "pattern": "/internal/fields"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "FIELD_SERVICE_URL"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "sahool-field-management"
+            }
+          ],
+          "match_count": 6
         }
       ]
     }

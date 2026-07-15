@@ -59,6 +59,28 @@
     "status": "ok"
   },
   {
+    "file": "services/field-management-service/main.py",
+    "endpoint": "/contract",
+    "handler": "contract",
+    "mode": "inline-dict",
+    "keys": [
+      "allowed_routes",
+      "auth",
+      "contract_version",
+      "implemented_runtime",
+      "runtime_role",
+      "service",
+      "truth_policy"
+    ],
+    "required_keys": [
+      "contract_version",
+      "implemented_runtime",
+      "service"
+    ],
+    "missing_keys": [],
+    "status": "ok"
+  },
+  {
     "file": "services/indicators-service/main.py",
     "endpoint": "/capabilities",
     "handler": "capabilities",

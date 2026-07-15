@@ -13,6 +13,13 @@ from api.service_token_auth import _require_service_token
 
 router = APIRouter()
 
+# NOTE: the tenant-scoped internal field READ routes (GET /api/v1/internal/fields
+# and /api/v1/internal/fields/{field_id}) were MOVED off the platform to the new
+# field-management-service (the declared owner of the `fields` table per
+# docs/architecture/db_ownership.yml). vegetation-analysis now reads fields from
+# FIELD_SERVICE_URL/internal/fields[...] with its service token. Keeping those reads
+# here duplicated ownership and exceeded the platform route budget.
+
 
 @router.get("/internal/fields/{field_id}/state")
 async def internal_field_state(

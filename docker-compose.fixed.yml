@@ -311,6 +311,9 @@ services:
       JWT_EXPIRE_MINUTES: 60
       REFRESH_EXPIRE_DAYS: 30
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD required}
+      # MFA للأدوار الحسّاسة — مُفعَّل افتراضاً (fail-safe إنتاجيّ). عطّله في التطوير فقط.
+      ENFORCE_SENSITIVE_MFA: ${ENFORCE_SENSITIVE_MFA:-true}
+      REQUIRE_MFA_ROLES: ${REQUIRE_MFA_ROLES:-admin}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
@@ -565,13 +568,19 @@ services:
       TASK_SERVICE_URL: ${TASK_SERVICE_URL:-}
       TASK_SERVICE_CALLBACK_TOKEN: ${TASK_SERVICE_CALLBACK_TOKEN:-}
       VEGETATION_ANOMALY_DB_PATH: /data/vegetation/anomalies.db
+      VEGETATION_ANOMALY_STORE: ${VEGETATION_ANOMALY_STORE:-sqlite}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
-      # runtime-truth: real fields come from the tenant-scoped platform catalog
-      # (synthetic FIELD_REGISTRY is empty); load_field/list_fields_from_platform need this.
+      # runtime-truth: real fields come from field-management-service (the declared
+      # owner of the `fields` table); load_field/list_fields_from_platform read there.
+      # PLATFORM_API_URL is retained for other platform reads and the truth guard.
       PLATFORM_API_URL: http://sahool-platform:8000
+      FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
-      VEGETATION_REAL_ONLY: "1"
+      # Fail-closed default (see docker-compose.v9.yml). Dev opts into soft-fail via
+      # VEGETATION_REAL_ONLY=0; the default stays 1 so production cannot silently degrade.
+      VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}
     volumes:
       - vegetation-anomaly-data:/data/vegetation
     depends_on:
@@ -585,6 +594,35 @@ services:
       timeout: 5s
       retries: 6
       start_period: 30s
+
+  # ═══════════════════════════════════════════════════════════════
+  # 12a. Field Management Service (المالك المُعلَن لجدول fields) — internal-only
+  #      قراءات الحقول بتوكن خدميّ للمستهلكين (vegetation) بلا JWT مستخدم.
+  # ═══════════════════════════════════════════════════════════════
+  sahool-field-management:
+    build:
+      context: .
+      dockerfile: services/field-management-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      # Declared owner of the `fields` table (docs/architecture/db_ownership.yml).
+      # Connects with the restricted sahool_app role so RLS is enforced (NOBYPASSRLS).
+      DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:-sahool_app_pw}@sahool-postgres:5432/sahool}
+      # Service-token only — a user Bearer JWT is never accepted on this service.
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+      - sahool-internal
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/healthz"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
 
   # ═══════════════════════════════════════════════════════════════
   # 12b. Raster Service (الصور الجوّية + المؤشّرات + البلاطات) — port 8001

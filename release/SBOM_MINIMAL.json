@@ -5,6 +5,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a5c486c9517fd5ff351402e1d2749c91d28bad60867627995436255bc47023a9"
+        }
+      ],
+      "name": "docker-compose.dev.yml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "5c10228d48d18fa503b62649f22b1f98835797c0dd2ba2f70d267a4e62013c1a"
         }
       ],
@@ -15,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f4c9431552fa2eda731facbf3698592affc4084caa353e5ea9b42e50b6014f6"
+          "content": "c709b0d2333960da4aac4dc7abbdc9f603b4a929856094434f4c9b36c8fe1509"
         }
       ],
       "name": "docker-compose.fixed.yml",
@@ -95,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f1066c5b6a836809367a507b52671fa658caaa436739791fdd9a96ff1d9c5d6"
+          "content": "712a5ec3c5766e442659feb143db9637cd6054c67413547ae5cdb1f4a4f37eb8"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -345,7 +355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d99f340f979907e611ef1aa937224dbdcf4e571f07c5b356fc61b485c7c8484"
+          "content": "be8e428093d2159e8f1bc0c800bc93b22bf9320652c6ebf43b098c1d8f43039f"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -6365,7 +6375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d37acca03a6788ec513f17035654cc2d487ebeac3c14a4136b5f545e3bb1d443"
+          "content": "9923f20f52bcf040111cf480f9cad5acae7ff61e6b20349be09e396730c4eead"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7399,6 +7409,16 @@
         }
       ],
       "name": "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f5cdf79411291ea7f3834fdb1bc1fa5a77dda40909fb96f4796597dbad16aca"
+        }
+      ],
+      "name": "migrations/v191_rs_signal_anomalies_store.sql",
       "type": "file"
     },
     {
@@ -9665,7 +9685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "128022d01f494e4208649ae04608da765c7758d7c1212e85384e66b35dcfac60"
+          "content": "a67216b222073e69c9212e37b597cd2f554b2fd40020604a797f41baea6c0f41"
         }
       ],
       "name": "services/auth/main.py",
@@ -9745,7 +9765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1f5af2d4fa3ee574914c13e9005a574d469cea52ca3aae2a043bf49a026bbeec"
+          "content": "11083b25fcc9bcf49858a8322fabf544a8c96677400759ab766cad3b3925f559"
         }
       ],
       "name": "services/auth/routers/invitations.py",
@@ -9785,7 +9805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6b7311de165d15826fd0829c3ac065e1a1a56f2bb66698f2bf0f7e5348f7496"
+          "content": "33e37fa0102db246bab2193dccbf184a266c616af25cfd89f35debd8246ab635"
         }
       ],
       "name": "services/auth/routers/registration.py",
@@ -9795,7 +9815,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2bf891cd97db7c48f3b7104286f903f457135d69b766ab49b7c28a2f6f458bbe"
+          "content": "d7166abf54006c66a61e55167a73ea31ceb9b7437be62a13e7e7843f8caa0e67"
         }
       ],
       "name": "services/auth/routers/session.py",
@@ -10705,6 +10725,56 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "10b89dd496713b9fe5179a0048553269b694dc2346366a5b6ad1644c47a41b0e"
+        }
+      ],
+      "name": "services/field-management-service/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8ba25e16f276e3c6d7d97f9c1a2485b63ba777bc8715822b96b7516c184cecf5"
+        }
+      ],
+      "name": "services/field-management-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6ebcb72c30aab0578e811ae79c55f083c3b9a1f9dd5a989f514fd8715ab8eb01"
+        }
+      ],
+      "name": "services/field-management-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "42eca45d4a321fd5c22275eec4202313e53a9dad9b150c4cc89566ef74d34a8c"
+        }
+      ],
+      "name": "services/field-management-service/tests/test_field_management_pg_isolation_integration.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e77d8c1e3bd0be785606c6e2fa1024f974ed9c914f88cb07a1608988ddf5e57e"
+        }
+      ],
+      "name": "services/field-management-service/tests/test_field_management_service_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ea2b94f0643e06001b9ec5ecc0c8b8f8975a971caecbacb51a9855fa6cbd2f59"
         }
       ],
@@ -11185,7 +11255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "26785bf98d5e6f19f64b2b7edfcb903faf24492382b785673f0d834d76448a2f"
+          "content": "7f94478937dc07887d1ce2255eb05be3654b2f6078ba8960acafff1891cc650a"
         }
       ],
       "name": "services/indicators-service/observation_timeline.py",
@@ -11235,7 +11305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "021d2ceb3c50f7a7a03263c4f8ecf2468b1f1559418b9ea933e9cf439c9ebfa7"
+          "content": "7ffabceca39d871203d26dc8fb81bb88da079ad5eae797f9176c0653590ddcd2"
         }
       ],
       "name": "services/indicators-service/tests/test_observation_timeline.py",
@@ -12125,7 +12195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c1c1aee61b700faab826a727bc3772f214a1385257cc4186fba8de021f5e2f21"
+          "content": "94ef5fea747b3123fffbcba8fe1050eb73d60a0c97052b1aee6f6f265d13cec2"
         }
       ],
       "name": "services/raster-service/raster_job_orchestration.py",
@@ -12345,7 +12415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5fd2fdc3fac4ba115ff45857d175e1e183156d5f1652a0e098578da9dea24cfe"
+          "content": "cd0e5cebb4e58562ef9fa9c8aa294af1efb422496b5d1d3973b5611e334241a7"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -12625,7 +12695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "99d598363c23d7e13942e2addf8e32f4addbb148ff2900e07ae5a4effc4924a1"
+          "content": "df0b05530447ad244b59f0c1033a97d1b643f29e7044087c662a81ed1a8dbc10"
         }
       ],
       "name": "services/raster-service/test_batch_single_open_certification.py",
@@ -13255,7 +13325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d8e228662bc5cd6b492b38fb79b3cada9c931a092db08ef67ceba73a82711eb"
+          "content": "1e9479601540a9171ed43334bea232270af2f5f55deaf601ef91b5cbf725b12b"
         }
       ],
       "name": "services/raster-tiler-service/Dockerfile",
@@ -16065,7 +16135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "209e242a6e60b146d49609be2ace6455f5dad7ac3908c5b321f8864e87a46794"
+          "content": "3ef2ff77dd9f0772b14afd29680ae387543f475072368f397508055262f62125"
         }
       ],
       "name": "services/sahool-platform/api/routers/internal_service.py",
@@ -26095,7 +26165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65578b64d5654bc97a87014a719848733a205a29becd17eede3c876f9e37314f"
+          "content": "5ab93c178718d4ed33689db882f51c3faa3b3a612c4b333961432478736e42df"
         }
       ],
       "name": "services/vegetation-analysis-service/Dockerfile",
@@ -26135,7 +26205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7cfd4b623754d433e32f0d18af9e0b12bbc7d8b28058d426bb7ffb712a0942fe"
+          "content": "5a8bcda3545028710d4e1775f0397ad2e7a2ac38b88e3b11c001da8add998612"
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_runtime.py",
@@ -26149,6 +26219,16 @@
         }
       ],
       "name": "services/vegetation-analysis-service/anomaly_store.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2803c53257920790fd1fc7314d91000ef0e89750875ae36d838ec0d37c27a10d"
+        }
+      ],
+      "name": "services/vegetation-analysis-service/anomaly_store_pg.py",
       "type": "file"
     },
     {
@@ -26235,7 +26315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c39d3a2e98346ca32ce06637f5f74c252873e6d2d7b985a624b7d8af919c7662"
+          "content": "549bdbebf531b85b27f3908f30c1519a0435d4caa8066ecb4b8a4a506a9b8676"
         }
       ],
       "name": "services/vegetation-analysis-service/requirements.txt",
@@ -26265,7 +26345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0fb123862376f59b3894ba140c6ba8bf9ad0abd3b702f8e208f6ec224a4b6ea8"
+          "content": "299f94539bc377bd8bbc0f695dfb78ff72fd5da122878d839827e51a579d0109"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -26275,7 +26355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8602cd297a4ee36828aef2cb5fd53d6b2483c76defc2fa357ffc9fb7109478ed"
+          "content": "950a0c34ef0fa9278470020c8a631be5b5b130d8fbd84c104f64c701ad7ea7b0"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/anomalies.py",
@@ -26295,7 +26375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7dfb159e451a410493b7ae92276f7fdb82328295776150a6da2bb8637b478643"
+          "content": "a4a71125e9aa79d0993fc5f1b93f55bdec436df5cd2f4f7827308bce2abee997"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/diagnoses.py",
@@ -26395,7 +26475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "085fc0b6735a8f9f602679c41447ca354f900640cf8499930a13399bfa23aad4"
+          "content": "43dd04771ffdf76ce935582faf9b155bd526aba329331bf6cbaa607f752ca4f8"
         }
       ],
       "name": "services/vegetation-analysis-service/test_platform_field_catalog_boundary.py",
@@ -26505,7 +26585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa50bed0e9924dba072f20947b3d7c5c83d2a24e2198fc6c5747715294f01348"
+          "content": "337623547aa8ed95ce6f557ce889f3b8b00ea8531b2e68013f1cd8b1c0035876"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

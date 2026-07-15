@@ -33,11 +33,11 @@ async def generate_diagnosis(
 ):
     tenant = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref, tenant_id=tenant)
+        record = await _store.get(anomaly_ref, tenant_id=tenant)
         if record["tenant_id"] != tenant:
             raise AnomalyNotFound(anomaly_ref)
         diagnosis = build_diagnosis(anomaly_record=record, tenant_id=UUID(tenant))
-        updated = _store.transition(
+        updated = await _store.transition(
             anomaly_ref,
             "diagnosis_proposed",
             expected_version=request.expected_version,
@@ -60,7 +60,7 @@ async def refer_to_decision(
 ):
     tenant = main._tenant_from_claims(main._verify_claims(token))
     try:
-        record = _store.get(anomaly_ref, tenant_id=tenant)
+        record = await _store.get(anomaly_ref, tenant_id=tenant)
         if record["tenant_id"] != tenant:
             raise AnomalyNotFound(anomaly_ref)
         diagnosis_payload = record["payload"].get("diagnosis")
@@ -76,7 +76,7 @@ async def refer_to_decision(
             soil_context_ref=request.soil_context_ref,
             weather_context_ref=request.weather_context_ref,
         )
-        updated = _store.transition(
+        updated = await _store.transition(
             anomaly_ref,
             "decision_referred",
             expected_version=request.expected_version,

@@ -28,3 +28,44 @@ def test_timeline_projects_latest_and_supersession():
     assert items[1].publication_status.value == "published"
     assert items[1].supersedes == items[0].observation_ref
     assert items[1].acquired_at.tzinfo == UTC
+
+
+def test_timeline_carries_real_quality_and_does_not_fabricate_score():
+    from decimal import Decimal
+
+    items = runtime.canonicalize_timeseries(
+        field_id="fld_demo",
+        tenant_id=UUID("11111111-1111-4111-8111-111111111111"),
+        season_id="sea_demo",
+        indicator_code="ndvi",
+        points=[
+            {
+                "datetime": "2026-07-10",
+                "mean": 0.6,
+                "valid_pixel_ratio": 0.82,
+                "coverage_ratio": 0.9,
+                "cloud_pct": 12,
+            }
+        ],
+    )
+    q = items[0].observation_quality
+    # Real per-observation quality is carried, not a fabricated perfect 1.0.
+    assert q.valid_pixel_ratio == Decimal("0.82")
+    assert q.field_coverage_ratio == Decimal("0.9")
+    assert q.field_cloud_ratio == Decimal("0.12")
+    assert q.score == Decimal("0.82")
+    assert "per_point_quality_from_raster" in q.reason_codes
+
+
+def test_timeline_flags_when_quality_not_reported():
+    items = runtime.canonicalize_timeseries(
+        field_id="fld_demo",
+        tenant_id=UUID("11111111-1111-4111-8111-111111111111"),
+        season_id="sea_demo",
+        indicator_code="ndvi",
+        points=[{"datetime": "2026-07-10", "mean": 0.6}],
+    )
+    q = items[0].observation_quality
+    # Legacy point without quality → honest flag + no invented score.
+    assert q.score is None
+    assert "per_point_quality_not_reported" in q.reason_codes

@@ -1,0 +1,7 @@
+# field-management-service — thin service-token owner of the `fields` table
+# (docs/architecture/db_ownership.yml: owner=field-management-service). Reads
+# tenant-scoped field rows via asyncpg under RLS; NO PyJWT (service-token only —
+# a user Bearer JWT is never accepted on this service).
+fastapi==0.136.3
+uvicorn[standard]==0.30.6
+asyncpg==0.30.0

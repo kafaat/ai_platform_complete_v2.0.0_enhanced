@@ -67,7 +67,11 @@ def main() -> int:
     req = _text(REQ)
     if "PyJWT==2.13.0#" in req:
         raise SystemExit("vegetation requirements has malformed inline PyJWT comment")
-    for forbidden in ("asyncpg", "psycopg", "redis"):
+    # asyncpg is a deliberate, opt-in dependency of the RS-6 durable anomaly store
+    # (anomaly_store_pg.py, selected by VEGETATION_ANOMALY_STORE=postgres for
+    # horizontal scale). psycopg/redis remain forbidden — the service takes no
+    # other DB/cache driver.
+    for forbidden in ("psycopg", "redis"):
         if forbidden in req:
             raise SystemExit(f"vegetation requirements regained unused {forbidden!r} dependency")
 

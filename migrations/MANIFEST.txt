@@ -682,3 +682,6 @@ v188_irrx1_verified_manual_as_applied_ledger_bridge.sql
 v189_irrx1_pcert_manual_execution_db_invariants.sql
 # v190: IRR-X1.5 authoritative decision/execution-plan provenance lock for manual irrigation.
 v190_irrx1_authoritative_recommendation_provenance_lock.sql
+
+# v191: RS-6 durable multi-replica anomaly store (Postgres + FORCE RLS); opt-in via VEGETATION_ANOMALY_STORE=postgres.
+v191_rs_signal_anomalies_store.sql

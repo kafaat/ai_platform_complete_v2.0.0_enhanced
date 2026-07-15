@@ -1,17 +1,18 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 113,
+  "total_residual_main_routes": 125,
   "classification_counts": {
-    "business_endpoint": 79,
+    "business_endpoint": 82,
     "capabilities": 2,
-    "contract": 2,
-    "health": 15,
-    "legacy_alias": 1,
+    "contract": 3,
+    "health": 18,
+    "internal_endpoint": 2,
+    "legacy_alias": 2,
     "metrics": 4,
-    "readiness": 10
+    "readiness": 12
   },
-  "business_endpoint_count": 79,
+  "business_endpoint_count": 82,
   "rows": [
     {
       "service": "agriai-engine",
@@ -725,6 +726,69 @@
       "classification": "readiness"
     },
     {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 119,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 124,
+      "method": "GET",
+      "path": "/health",
+      "function": "legacy_health",
+      "classification": "health"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 129,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 141,
+      "method": "GET",
+      "path": "/contract",
+      "function": "contract",
+      "classification": "contract"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 160,
+      "method": "GET",
+      "path": "/",
+      "function": "root",
+      "classification": "legacy_alias"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 169,
+      "method": "GET",
+      "path": "/internal/fields/{field_id}",
+      "function": "internal_get_field",
+      "classification": "internal_endpoint"
+    },
+    {
+      "service": "field-management-service",
+      "file": "services/field-management-service/main.py",
+      "line": 201,
+      "method": "GET",
+      "path": "/internal/fields",
+      "function": "internal_list_fields",
+      "classification": "internal_endpoint"
+    },
+    {
       "service": "field-segmentation",
       "file": "services/field-segmentation/main.py",
       "line": 370,
@@ -763,7 +827,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 55,
+      "line": 63,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -772,7 +836,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 60,
+      "line": 68,
       "method": "GET",
       "path": "/health",
       "function": "legacy_health",
@@ -781,7 +845,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 65,
+      "line": 73,
       "method": "GET",
       "path": "/readyz",
       "function": "ready",
@@ -790,7 +854,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 79,
+      "line": 87,
       "method": "GET",
       "path": "/v1/indicators/ownership",
       "function": "ownership",
@@ -799,7 +863,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 84,
+      "line": 92,
       "method": "GET",
       "path": "/v1/indicators/catalog",
       "function": "catalog",
@@ -808,7 +872,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 94,
+      "line": 102,
       "method": "GET",
       "path": "/capabilities",
       "function": "capabilities",
@@ -817,7 +881,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 116,
+      "line": 125,
       "method": "GET",
       "path": "/contract",
       "function": "contract",
@@ -826,7 +890,7 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 136,
+      "line": 147,
       "method": "POST",
       "path": "/v1/indicators/compute",
       "function": "compute_indicator",
@@ -835,11 +899,29 @@
     {
       "service": "indicators-service",
       "file": "services/indicators-service/main.py",
-      "line": 144,
+      "line": 155,
       "method": "GET",
       "path": "/",
       "function": "root",
       "classification": "legacy_alias"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 165,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/observations",
+      "function": "field_observations",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "indicators-service",
+      "file": "services/indicators-service/main.py",
+      "line": 196,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/observation-timeline",
+      "function": "observation_timeline",
+      "classification": "business_endpoint"
     },
     {
       "service": "knowledge-graph",
@@ -992,6 +1074,33 @@
       "method": "POST",
       "path": "/search",
       "function": "search",
+      "classification": "business_endpoint"
+    },
+    {
+      "service": "remote-sensing-workspace-bff",
+      "file": "services/remote-sensing-workspace-bff/main.py",
+      "line": 27,
+      "method": "GET",
+      "path": "/healthz",
+      "function": "healthz",
+      "classification": "health"
+    },
+    {
+      "service": "remote-sensing-workspace-bff",
+      "file": "services/remote-sensing-workspace-bff/main.py",
+      "line": 32,
+      "method": "GET",
+      "path": "/readyz",
+      "function": "readyz",
+      "classification": "readiness"
+    },
+    {
+      "service": "remote-sensing-workspace-bff",
+      "file": "services/remote-sensing-workspace-bff/main.py",
+      "line": 63,
+      "method": "GET",
+      "path": "/v1/fields/{field_id}/remote-sensing-workspace",
+      "function": "workspace",
       "classification": "business_endpoint"
     },
     {

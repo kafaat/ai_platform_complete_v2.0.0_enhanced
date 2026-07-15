@@ -78,11 +78,30 @@ REFRESH_EXPIRE_DAYS = int(os.getenv("REFRESH_EXPIRE_DAYS", "30"))  # 30 days
 # الكوكي HttpOnly ⇒ غير قابلة للقراءة من JS (لا يُوسِّع سطح XSS). Secure افتراضيّاً
 # (يُعطَّل صراحةً للتطوير http عبر AUTH_COOKIE_SECURE=0). Path=/ ليشمل /api/raster و/api/vegetation.
 AUTH_TILE_COOKIE_NAME = os.getenv("AUTH_TILE_COOKIE_NAME", "sahool_at")
-AUTH_COOKIE_SECURE = os.getenv("AUTH_COOKIE_SECURE", "1") not in ("0", "false", "False", "")
+AUTH_COOKIE_SECURE_MODE = os.getenv("AUTH_COOKIE_SECURE", "auto").strip().lower()
 AUTH_COOKIE_SAMESITE = os.getenv("AUTH_COOKIE_SAMESITE", "lax")
 
 
-def set_tile_auth_cookie(response, token: str) -> None:
+def _tile_cookie_secure(request) -> bool:
+    """Resolve Secure for the tile cookie without breaking local HTTP.
+
+    ``AUTH_COOKIE_SECURE=1`` forces HTTPS-only, ``0`` forces local HTTP, and
+    ``auto`` (default) trusts the reverse proxy's X-Forwarded-Proto then the
+    request URL scheme. This keeps :3003 HTTP usable while production HTTPS
+    remains Secure without separate source builds.
+    """
+    if AUTH_COOKIE_SECURE_MODE in {"1", "true", "yes", "on"}:
+        return True
+    if AUTH_COOKIE_SECURE_MODE in {"0", "false", "no", "off", ""}:
+        return False
+    forwarded = request.headers.get("x-forwarded-proto", "") if request else ""
+    scheme = forwarded.split(",", 1)[0].strip().lower()
+    if not scheme and request is not None:
+        scheme = str(request.url.scheme).lower()
+    return scheme == "https"
+
+
+def set_tile_auth_cookie(response, token: str, request=None) -> None:
     """يضبط كوكي مصادقة البلاطات (HttpOnly) على ردّ الدخول/التجديد.
 
     قيمتها JWT الوصول نفسه؛ عمرها = عمر التوكن. تُرسَل تلقائيّاً مع طلبات <img>
@@ -93,18 +112,18 @@ def set_tile_auth_cookie(response, token: str) -> None:
         value=token,
         max_age=JWT_EXPIRE_MINUTES * 60,
         httponly=True,
-        secure=AUTH_COOKIE_SECURE,
+        secure=_tile_cookie_secure(request),
         samesite=AUTH_COOKIE_SAMESITE,
         path="/",
     )
 
 
-def clear_tile_auth_cookie(response) -> None:
+def clear_tile_auth_cookie(response, request=None) -> None:
     """يمسح كوكي مصادقة البلاطات عند الخروج (بنفس السمات كي يُطابَق ويُحذَف)."""
     response.delete_cookie(
         key=AUTH_TILE_COOKIE_NAME,
         httponly=True,
-        secure=AUTH_COOKIE_SECURE,
+        secure=_tile_cookie_secure(request),
         samesite=AUTH_COOKIE_SAMESITE,
         path="/",
     )
