@@ -19,6 +19,7 @@ from shared.governance.chemical_lineage import (  # noqa: F401
     ViolationCode,
     audit_chemical_lineage,
     configured_mode,
+    effective_mode,
 )
 
 __all__ = [
@@ -32,4 +33,5 @@ __all__ = [
     "ViolationCode",
     "audit_chemical_lineage",
     "configured_mode",
+    "effective_mode",
 ]

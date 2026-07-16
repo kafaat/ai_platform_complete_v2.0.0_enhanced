@@ -17755,7 +17755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "53a16da667d21fba7f202864be2dde9ea60dcc22cf6635b400e90601037b8019"
+          "content": "0c7b166208935c66ccb16aa36f24773d7c7cb3fac8a44037f2fdf6dfa7bcd6ca"
         }
       ],
       "name": "services/sahool-platform/core/chemical_lineage.py",
@@ -22789,6 +22789,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_fii_chemical_lineage_hardened.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "924874f53ceaf7171d610bc30d0acacabf0a2cec2407609891fbf2a913841356"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_fii_chemical_lineage_p0_hardening.py",
       "type": "file"
     },
     {
@@ -28035,7 +28045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7d786c8a590762b0c707b44d6fc6d5394bce4f93d9b1a035924de6ba98b3b8bc"
+          "content": "a93f9eb1e3f9d49ef9529d88bc2c43e85a299ca315a0f87360c5b059ca015d33"
         }
       ],
       "name": "shared/governance/chemical_lineage.py",
