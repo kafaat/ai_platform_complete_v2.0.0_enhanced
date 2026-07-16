@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9923f20f52bcf040111cf480f9cad5acae7ff61e6b20349be09e396730c4eead"
+          "content": "8777b7a78af0cf9f5b54c2bd278177b4d0b656a654effdf914393ad821ccf370"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6385,7 +6385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "797498ab0636c27d306d6cd2bb7b55c8d096574d57f328774e9b6ce160fdaa78"
+          "content": "88404019df3fbb599b71f0c5c2db335bb629fb08af5fbdea325d77877ed26772"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -7409,6 +7409,36 @@
         }
       ],
       "name": "migrations/v191_rs_signal_anomalies_store.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4ad7c6624d3e3fb461fc6678c8f43a03564164ba084f76f8d7db4afb98ae2c28"
+        }
+      ],
+      "name": "migrations/v192_fii_rls_write_fail_closed.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d0fb34be396df597292a924b92afc0bbaae50040fcbc624c7d6a7e8ce492d65"
+        }
+      ],
+      "name": "migrations/v193_prescriptions_season_context_expand.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5a30268e638b41548c349ae4b2107491fa523f049c9e6732e5fe1937b82ffd0c"
+        }
+      ],
+      "name": "migrations/v194_fii_chemical_chain_rls_fail_closed.sql",
       "type": "file"
     },
     {
@@ -13525,7 +13555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "582645de701f0e45b03eb69e101fd2cbab8783df510eea5be00155fee567ba52"
+          "content": "3dc6781598994b3c974d064ad758eebfa97a9f6a8d421cd9cc04f24c16fb1a0a"
         }
       ],
       "name": "services/sahool-platform/api/api_models.py",
@@ -14115,7 +14145,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a25fee8fc24b521db40844ca3f962fc6ec3dbd3c9b8307d45b1bb9da8c7c3a7e"
+          "content": "f01123ca283e384556a6cd8794e2305fb79f8eccab8b48f37a9eb321d6ee8c6c"
         }
       ],
       "name": "services/sahool-platform/api/disease_diagnosis.py",
@@ -16425,7 +16455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e9c550cadde909149863911a5fba9f7472076674f3b2e1b41fb4c2130c3d55f0"
+          "content": "536dca3edbac61b458f12abc17db343d7fa310345e26629a8e7ef24c37d0b561"
         }
       ],
       "name": "services/sahool-platform/api/routers/pest_escalation.py",
@@ -16505,7 +16535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9756d4785d339e4d2c0585233e449b12302f5c02afbb122d35a5db4c5a7c43c"
+          "content": "e6593a1d08bbd0d0278055a64e0acf1f19db4c63fe4ef1b36dec0700fd0e2edd"
         }
       ],
       "name": "services/sahool-platform/api/routers/prescriptions.py",
@@ -17719,6 +17749,16 @@
         }
       ],
       "name": "services/sahool-platform/core/capabilities.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "53a16da667d21fba7f202864be2dde9ea60dcc22cf6635b400e90601037b8019"
+        }
+      ],
+      "name": "services/sahool-platform/core/chemical_lineage.py",
       "type": "file"
     },
     {
@@ -22729,6 +22769,36 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_fields_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3fe0111399a092291f298df20b50db16588df3b5e2dc4e87506c9d642dfe8a5"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_fii_chemical_lineage.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9b1d52829f594f751f3ba1d0207a4029cb8b906de99cc7d0bbbcbe641c0681e5"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_fii_chemical_lineage_hardened.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0c14f695ca91ce2f8ab38d5c4fdb12a3892b17833d8c3fc2cfca9c7c802b037e"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_fii_score_semantics.py",
       "type": "file"
     },
     {
@@ -27949,6 +28019,26 @@
         }
       ],
       "name": "shared/gis/test_phase5_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "348966a71d3c6b0865830a11f7da50cbf593cbf558c602c5f174d97c5dbcd1b6"
+        }
+      ],
+      "name": "shared/governance/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7d786c8a590762b0c707b44d6fc6d5394bce4f93d9b1a035924de6ba98b3b8bc"
+        }
+      ],
+      "name": "shared/governance/chemical_lineage.py",
       "type": "file"
     },
     {

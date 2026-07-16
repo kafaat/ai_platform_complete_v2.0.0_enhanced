@@ -895,6 +895,14 @@ jobs:
         run: |
           python3 scripts/security/validate_rls_write_policies.py --root .
           pytest -q tests/security/test_phase22_rls_with_check_backfill.py
+      # FII Safety Increment 1C: fail-closed tenant-write ratchet on NEW migrations
+      # (>v191 + the forward fail-closed migrations) + the FII security-gate tests.
+      # The historical migrations are superseded at runtime by v192/v194; their live
+      # posture is proven by the integration test, not this static ratchet.
+      - name: FII RLS safety gates (Increment 1C)
+        run: |
+          python3 scripts/ci/fii_rls_write_policy_gate.py --root .
+          pytest -q tests/security/test_fii_rls_role_gate.py tests/security/test_fii_chemical_chain_rls_gate.py
 
   flutter-analyze:
     name: Flutter Analyze & Test

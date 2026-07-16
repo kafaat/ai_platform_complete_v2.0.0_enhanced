@@ -25,7 +25,7 @@ tables:
     owner: actuator-service
     writers: [actuator-service]
     readers: [sahool-platform]
-    source: "migrations/v81_actuator_command_dedup.sql"
+    source: "migrations/v81_actuator_command_dedup.sql, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
   actuator_command_outbox:
     owner: actuator-service
     writers: [actuator-service]
@@ -197,7 +197,7 @@ tables:
     mirror: decision-service
     status: interim-bridge
     readers: [decision-service]
-    source: "migrations/v78_decision_record.sql"
+    source: "migrations/v78_decision_record.sql, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
   decision_reviews:
     # WX-10.7 append-only reviewer/policy audit. Materializes ONLY under a deployed SoR
     # (services/decision-service/migrations/002_decision_review.sql, applied via migration_runner,
@@ -620,7 +620,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v82_lineage_link.sql"
+    source: "migrations/v82_lineage_link.sql, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
   management_zone_sets:
     owner: field-management-service
     writers: [field-management-service]
@@ -799,7 +799,7 @@ tables:
     mirror: decision-service
     status: interim-bridge
     readers: [decision-service]
-    source: "migrations/v79_outcome_record.sql"
+    source: "migrations/v79_outcome_record.sql, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
   plugin_permission_audit:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -819,7 +819,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v95_prescriptions.sql"
+    source: "migrations/v95_prescriptions.sql, migrations/v192_fii_rls_write_fail_closed.sql"
   processed_events:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -881,7 +881,7 @@ tables:
     owner: agriai-engine
     writers: [agriai-engine]
     readers: [sahool-platform]
-    source: "migrations/v77_recommendations.sql, services/sahool-platform/storage/lite_store.py"
+    source: "migrations/v77_recommendations.sql, services/sahool-platform/storage/lite_store.py, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
   retraining_jobs:
     owner: agriai-engine
     writers: [agriai-engine]
@@ -906,7 +906,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v94_scouting_pins.sql"
+    source: "migrations/v94_scouting_pins.sql, migrations/v192_fii_rls_write_fail_closed.sql"
   seasons:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1031,7 +1031,7 @@ tables:
     owner: sahool-platform
     writers: [sahool-platform]
     readers: []
-    source: "migrations/v75_work_orders.sql"
+    source: "migrations/v75_work_orders.sql, migrations/v194_fii_chemical_chain_rls_fail_closed.sql"
   workflow_state:
     owner: erp-bridge
     writers: [erp-bridge]

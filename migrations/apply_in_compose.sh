@@ -19,6 +19,7 @@ set -euo pipefail
 MIG_DIR="${MIG_DIR:-/migrations}"
 APP_ROLE="${APP_DB_ROLE:-sahool_app}"
 APP_PASSWORD="${APP_DB_PASSWORD:-sahool_app_pw}"
+APP_ALLOW_SCHEMA_CREATE="${APP_ALLOW_SCHEMA_CREATE:-false}"
 # دور المهامّ الخلفيّة (المرسِل/المجدوِل): BYPASSRLS مقصود — يقرأ عابراً للمستأجرين
 # (event_outbox/الطقس). يُستعمَل فقط من مسارات الوظائف عبر JOBS_DATABASE_URL، لا التطبيق.
 JOBS_ROLE="${JOBS_DB_ROLE:-sahool_jobs}"
@@ -53,12 +54,10 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_role')
 ALTER ROLE :"app_role"
   LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
 
--- صلاحيّات وقت التشغيل: DML + EXECUTE + USAGE
+-- صلاحيّات وقت التشغيل: DML + EXECUTE + USAGE فقط. CREATE يُسحب صراحةً؛
+-- أي خدمة ما زالت تُنشئ schema عند الإقلاع يجب نقلها إلى migration job مستقل.
 GRANT USAGE ON SCHEMA public TO :"app_role";
--- FINDING-001 collateral: بعض الخدمات تُنشئ جداولها (IF NOT EXISTS) عند الإقلاع
--- (مثل odoo-bridge _run_migrations). تحتاج CREATE على المخطّط. لا يمسّ عزل المستأجرين:
--- CREATE ليس BYPASSRLS — تبقى RLS سارية على كلّ الجداول (الخاصّيّة الحرجة محفوظة).
-GRANT CREATE ON SCHEMA public TO :"app_role";
+REVOKE CREATE ON SCHEMA public FROM :"app_role";
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO :"app_role";
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO :"app_role";
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO :"app_role";
@@ -71,6 +70,15 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
 SQL
+
+
+# استثناء legacy صريح ومؤقّت للتطوير/الانتقال فقط. الافتراضي fail-closed بلا DDL runtime.
+if [[ "${APP_ALLOW_SCHEMA_CREATE,,}" == "true" ]]; then
+  echo "⚠ APP_ALLOW_SCHEMA_CREATE=true: منح CREATE مؤقّت لـ${APP_ROLE}; غير مسموح في production certification" >&2
+  psql_exec -v app_role="$APP_ROLE" <<'SQL'
+GRANT CREATE ON SCHEMA public TO :"app_role";
+SQL
+fi
 
 echo "─ إنشاء دور المهامّ الخلفيّة (${JOBS_ROLE} — BYPASSRLS لمسار الوظائف فقط) ─"
 psql_exec -v jobs_role="$JOBS_ROLE" -v jobs_pw="$JOBS_PASSWORD" <<'SQL'

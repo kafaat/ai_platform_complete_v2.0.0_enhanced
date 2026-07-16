@@ -670,6 +670,9 @@ class WaterAnalysisRequest(BaseModel):
 class PestEscalationRequest(BaseModel):
     workflow_id: str
     field_id: str | None = None
+    season_id: str | None = None
+    diagnosis_ref: str | None = None
+    evidence_ref: str | None = None
     pest_type: str | None = None
     severity: float = 0.0
     # للاستئناف بعد التعليق: موافقة الخبير (approved) أو رفضه (rejected)

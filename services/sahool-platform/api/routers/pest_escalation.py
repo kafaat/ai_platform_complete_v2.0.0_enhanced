@@ -14,7 +14,9 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from api.main import (
     Permission,
@@ -25,6 +27,7 @@ from api.main import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/api/v1/pest-escalation/run")
@@ -39,12 +42,46 @@ async def pest_escalation_run(
     سيادة: tenant_id من التوكن (لا من الجسم). HIL: لا تنفيذ قبل موافقة الخبير."""
     import asyncio as _aio
 
+    from core.chemical_lineage import ChemicalBoundary, audit_chemical_lineage
     from core.correlation import set_correlation
     from core.pest_escalation_flow import run_pest_escalation
     from core.workflow_engine import workflow_trace
 
     set_correlation()  # خيط تتبّع موحّد لكلّ ما ينتج عن هذا الطلب
-    initial: dict = {}
+    lineage = audit_chemical_lineage(
+        field_id=req.field_id,
+        season_id=req.season_id,
+        diagnosis_ref=req.diagnosis_ref,
+        evidence_ref=req.evidence_ref,
+        # Increment 2: tenant from the authenticated context (never the body) so the
+        # hardened audit can check TENANT_MISMATCH against the diagnosis owner.
+        tenant_id=str(user.tenant_id),
+        boundary=(
+            ChemicalBoundary.EXECUTE
+            if req.approval_status == "approved"
+            else ChemicalBoundary.DRAFT
+        ),
+        human_approval=req.approval_status == "approved",
+    )
+    if not lineage.compliant:
+        logger.warning(
+            "fii chemical lineage violation tenant_id=%s workflow_id=%s violations=%s mode=%s",
+            user.tenant_id,
+            req.workflow_id,
+            ",".join(lineage.violations),
+            lineage.mode,
+        )
+        if lineage.mode == "enforce":
+            raise HTTPException(
+                status_code=422, detail={"code": "CHEMICAL_LINEAGE_REQUIRED", **lineage.to_dict()}
+            )
+    initial: dict = {"chemical_lineage_audit": lineage.to_dict()}
+    if req.season_id:
+        initial["season_id"] = req.season_id
+    if req.diagnosis_ref:
+        initial["diagnosis_ref"] = req.diagnosis_ref
+    if req.evidence_ref:
+        initial["evidence_ref"] = req.evidence_ref
     if req.pest_type is not None:
         initial["pest_type"] = req.pest_type
     if req.severity:

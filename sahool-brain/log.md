@@ -3011,3 +3011,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **Merged chain:** `7846689` brain(PR#584 record) → `697cfa8` fix(restore guarded fieldWorkspaceCompletionContract.ts + finish safe dead-code removal) → `9e38080` feat(wire orphan IrrigationEngineeringWorkspace → real page + /irrigation/engineering/calculate). Broken deletion commits a60ecdc/69a6607 remain in history but superseded by 697cfa8; end-state correct + green.
 - **Verify:** branch CI success on 9e38080 + local tsc 0 · vitest 1265/1265 · pytest -m unit 3180/0 · coverage PASS · validate 4520.
 - **Discipline:** FF only (exact tested SHA), no merge-commit/squash/rebase, no auto-merge. main = develop = claude/code-review-34hO3 = `9e38080` (synced).
+
+## 2026-07-16 — FII Safety FULL_DELTA integrated (Increment 1, onto main tip)
+- **What:** integrated the 35-file FII Safety FULL_DELTA (previously unmerged, built on 0da934a) onto the branch: RLS write fail-closed (v192), prescriptions season-context (v193), chemical-chain RLS fail-closed (v194); RLS write/role CI gates + security tests; chemical_lineage canonical + shared/governance module + platform re-export; api_models/disease_diagnosis/pest_escalation/prescriptions score/season/lineage changes; ci.yml "FII RLS safety gates 1C" step.
+- **Clean apply:** all FULL_DELTA backend targets were byte-identical to 0da934a on main (frontend/brain work never touched them) → no manual merge. Excluded stale release/*, rebuilt fresh (4520→4543). Migrations v192-194 slot after v191 (no collision), registered in both runners.
+- **Ruff drift:** current ruff config reformatted 3 files + fixed 5 datetime.UTC lints (FULL_DELTA was clean under 0da934a's ruff) — re-applied so Lint&Format stays green.
+- **Verify:** fii_rls_write_policy_gate PASSED · fii_rls_role_gate PASSED · ruff clean · pytest -m unit 3180/0 · 49 FII tests explicit 0-fail · validate_release 4543 · ci.yml YAML OK.
+- **REQUIRED before FF:** LIVE PostgreSQL staging gate (RLS write fail-closed + NOSUPERUSER/NOBYPASSRLS role + tenant isolation) — CI green does NOT certify RLS (same as #584). Then FII cross-service (Increment 2). main/develop untouched at 9e38080.
