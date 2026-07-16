@@ -3005,3 +3005,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **Wiring:** PageId member + lazy import + switch case (App.tsx); nav entry `/irrigation/engineering` (routes.ts, alpha); ALL_PAGES + WORKER_PAGES (permissions.ts — the PageId completeness guard forced this, caught by tsc); static guard `IrrigationEngineeringWiring.static.test.ts`.
 - **Lesson applied (from the earlier break):** tsc caught the permissions.ts `ALL_PAGES` completeness guard AND the asApiError nullability before push; and staged new files BEFORE `build_release_bundle.py` (git-tracked enumeration skips untracked → files would be absent from checksums). Bundle 4518→4520.
 - **Verify (green):** tsc 0 · vitest 1265/1265 (186 files, +1 new) · endpoint-ui-coverage PASS · validate_release 4520 · `pytest -m unit` 3180 passed / 0 failed. main/develop untouched at `0da934a`.
+
+## 2026-07-16 — FF main=develop=`9e38080` (branch cleanup + irrigation wiring merged)
+- **What:** fast-forwarded main AND develop `0da934a..9e38080` (no merge-commit) after branch CI went green on `9e38080` (ci.yml completed/success, confirmed via GitHub MCP + owner "اخضر").
+- **Merged chain:** `7846689` brain(PR#584 record) → `697cfa8` fix(restore guarded fieldWorkspaceCompletionContract.ts + finish safe dead-code removal) → `9e38080` feat(wire orphan IrrigationEngineeringWorkspace → real page + /irrigation/engineering/calculate). Broken deletion commits a60ecdc/69a6607 remain in history but superseded by 697cfa8; end-state correct + green.
+- **Verify:** branch CI success on 9e38080 + local tsc 0 · vitest 1265/1265 · pytest -m unit 3180/0 · coverage PASS · validate 4520.
+- **Discipline:** FF only (exact tested SHA), no merge-commit/squash/rebase, no auto-merge. main = develop = claude/code-review-34hO3 = `9e38080` (synced).
