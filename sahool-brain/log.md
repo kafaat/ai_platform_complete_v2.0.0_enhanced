@@ -2992,3 +2992,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   - `useFieldIntelligence` export in `frontend/src/hooks/useApi.ts` (superseded variant; the app uses `useFieldIntelligenceCard`/`useFieldIntelligenceJob`) + dropped its now-orphan `analyzeFieldIntelligence` import.
 - **Kept (out of named scope):** the exported service fn `analyzeFieldIntelligence` in `services/api.ts` (now unused but exported API surface) — flagged as a follow-up candidate, not removed.
 - **Verify:** tsc --noEmit exit 0 · vitest 1261/1261 (185 files) · no residual refs. frontend not in release checksums (no bundle rebuild). main/develop untouched at `0da934a`.
+
+## 2026-07-16 — dead-code delta CORRECTION (broke then fixed branch CI)
+- **Root cause:** deleted `frontend/src/sections/fieldWorkspaceCompletionContract.ts` as "dead" (0 TS imports) in `a60ecdc`, but a Python guard `test_ui31_ui35_workspace_completion_guard.py::test_ui34_completion_contract_exists_on_frontend_and_backend` asserts it exists and mirrors the backend contract `api/field_workspace_completion_contract.py` (+ `scripts/ci/field_workspace_production_closure_gate.py` reads it). Branch CI went red (#4139 a60ecdc, #4140 69a6607). main/develop unaffected (`0da934a`).
+- **Lesson violated (was already in the brain):** "Python guards read frontend source, not just vitest." My scan checked TS imports only.
+- **Fix:** restored the contract from `0da934a`; kept the safe removals — `ProtectedRoute` (no guard), `useFieldIntelligence` (its guard requires `useFieldIntelligenceJob`, not the sync hook), and deleted `NotificationCenter`/`FieldEntryWizard` (empty shell + inert-save mockup, no guards, only doc/SBOM mentions). Rebuilt bundle 4519→4518.
+- **Verify (green):** tsc --noEmit 0 · vitest 1261/1261 · `pytest -m unit` 3180 passed / 6 skipped / 0 failed · test_ui31_ui35 + test_field_intelligence guards 8/8 · validate_release 4518.
+- **Hardened rule:** before deleting a frontend file, `grep -rln '<basename>' --include=*.py --include=*.json --include=*.md` (guards/inventories/SBOM), not TS imports alone.

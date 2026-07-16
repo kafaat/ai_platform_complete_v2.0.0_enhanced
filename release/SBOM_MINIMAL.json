@@ -5025,16 +5025,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb34208ab83197e96e5e718a23a6a9f27008cdbb50b401354d8083e8c2bdcf1b"
-        }
-      ],
-      "name": "frontend/src/sections/FieldEntryWizard.tsx",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "95b6395b0977e1c470df027e801f07dd595e27489e1317cae7377a5cc5302942"
         }
       ],
@@ -5535,16 +5525,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "365f5747cf57a963449ef89eba33909e397adff87ce06bda339065400f1751e4"
-        }
-      ],
-      "name": "frontend/src/sections/NotificationCenter.tsx",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "ea0289b44ecf74988db7c0e6287090e4b4275f7f71dd1dc22810b5784ba741dc"
         }
       ],
@@ -5909,6 +5889,16 @@
         }
       ],
       "name": "frontend/src/sections/fieldWorkspaceAvailability.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "57b7299c04d4a64265a65d1acec0a4175f68866b848bd6bdd8cbf6c6a2697e1e"
+        }
+      ],
+      "name": "frontend/src/sections/fieldWorkspaceCompletionContract.ts",
       "type": "file"
     },
     {
