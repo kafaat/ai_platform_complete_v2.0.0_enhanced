@@ -7415,7 +7415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4ad7c6624d3e3fb461fc6678c8f43a03564164ba084f76f8d7db4afb98ae2c28"
+          "content": "f08190dc8a4e7db90f6fa059c05eb25f5a93a4cbfe37a14ad22b9be1ddaaeffe"
         }
       ],
       "name": "migrations/v192_fii_rls_write_fail_closed.sql",
@@ -7435,7 +7435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5a30268e638b41548c349ae4b2107491fa523f049c9e6732e5fe1937b82ffd0c"
+          "content": "073bd0fe13b180256c7ca92a73ea064b447f87f7c10a0a0db80b3aff1f98310b"
         }
       ],
       "name": "migrations/v194_fii_chemical_chain_rls_fail_closed.sql",
