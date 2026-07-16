@@ -2984,3 +2984,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **FF verified:** `git ls-remote origin refs/heads/main refs/heads/develop` → both `0da934a`. PR #584 auto-closed as merged.
 - **Remaining (live env only):** fresh migration test (drop→recreate→migrate). Branch `claude/code-review-34hO3` merged/spent; follow-ups restart from new main.
 - **Source:** PR #584 (`kafaat/ai_platform_complete_v2.0.0_enhanced#584`); gate output exit 0; scratchpad runbook `FIELD_MANAGEMENT_LIVE_GATE_RUNBOOK.md`.
+
+## 2026-07-16 — dead-code deletion delta (frontend)
+- **What:** removed three confirmed-dead frontend items (orphan inventory follow-up), on `claude/code-review-34hO3`:
+  - `frontend/src/components/ProtectedRoute.tsx` (0 refs — app uses `canAccess` + tab-render, not this wrapper; dead since the router refactor).
+  - `frontend/src/sections/fieldWorkspaceCompletionContract.ts` (0 refs — a static contract object, "not a data source", imported nowhere).
+  - `useFieldIntelligence` export in `frontend/src/hooks/useApi.ts` (superseded variant; the app uses `useFieldIntelligenceCard`/`useFieldIntelligenceJob`) + dropped its now-orphan `analyzeFieldIntelligence` import.
+- **Kept (out of named scope):** the exported service fn `analyzeFieldIntelligence` in `services/api.ts` (now unused but exported API surface) — flagged as a follow-up candidate, not removed.
+- **Verify:** tsc --noEmit exit 0 · vitest 1261/1261 (185 files) · no residual refs. frontend not in release checksums (no bundle rebuild). main/develop untouched at `0da934a`.

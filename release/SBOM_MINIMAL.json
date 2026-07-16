@@ -605,16 +605,6 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c5fc709f8b18cfbd5896aca68ea63ca16086a8b208e92fec7803233d1a12e69f"
-        }
-      ],
-      "name": "frontend/src/components/ProtectedRoute.tsx",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
           "content": "f8767e46461e842f02e6d8cd6c4036fdb000c18b552f26f2fbcc0572479e181c"
         }
       ],
@@ -2515,7 +2505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d8222c5e6b92d41f4718e76f9c27e6457c98d890377678afab876a403dda177f"
+          "content": "73a9a8ffdc45b401b8355ff58afe4376eb2c8a22f6b33011016b8558e8d93a70"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -5919,16 +5909,6 @@
         }
       ],
       "name": "frontend/src/sections/fieldWorkspaceAvailability.ts",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "57b7299c04d4a64265a65d1acec0a4175f68866b848bd6bdd8cbf6c6a2697e1e"
-        }
-      ],
-      "name": "frontend/src/sections/fieldWorkspaceCompletionContract.ts",
       "type": "file"
     },
     {
