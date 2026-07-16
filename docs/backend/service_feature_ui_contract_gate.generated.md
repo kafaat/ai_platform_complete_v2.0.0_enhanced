@@ -23,7 +23,7 @@ classification: `ui`
 
 ### `sahool-platform` — pass
 classification: `ui`
-- ui: 197 match(es)
+- ui: 199 match(es)
   - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
@@ -51,7 +51,7 @@ classification: `ui`
 
 ### `vegetation-analysis-service` — pass
 classification: `ui`
-- ui: 100 match(es)
+- ui: 98 match(es)
   - `frontend/src/App.tsx` ← `FieldRanking`
   - `frontend/src/components/NDVIGauge.tsx` ← `NDVI`
   - `frontend/src/components/sql/SQLEditor.tsx` ← `NDVI`
@@ -94,7 +94,7 @@ classification: `ui`
 
 ### `soil-service` — pass
 classification: `ui`
-- ui: 154 match(es)
+- ui: 153 match(es)
   - `frontend/src/App.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
@@ -210,13 +210,13 @@ classification: `internal`
 
 ### `actuator-service` — pass
 classification: `ui`
-- ui: 191 match(es)
+- ui: 193 match(es)
   - `frontend/src/App.tsx` ← `irrigation`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
   - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
-- platform-proxy: 92 match(es)
+- platform-proxy: 93 match(es)
   - `services/sahool-platform/api/irrigation_commissioning_runtime.py` ← `dispatch`
   - `services/sahool-platform/api/controller_edge_adapter.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`

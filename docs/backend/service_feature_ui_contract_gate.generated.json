@@ -223,7 +223,7 @@
               "pattern": "/api/v1"
             }
           ],
-          "match_count": 197
+          "match_count": 199
         },
         {
           "kind": "gateway",
@@ -455,7 +455,7 @@
               "pattern": "NDVI"
             }
           ],
-          "match_count": 100
+          "match_count": 98
         },
         {
           "kind": "gateway",
@@ -844,7 +844,7 @@
               "pattern": "Soil"
             }
           ],
-          "match_count": 154
+          "match_count": 153
         },
         {
           "kind": "platform-proxy",
@@ -1880,7 +1880,7 @@
               "pattern": "irrigation"
             }
           ],
-          "match_count": 191
+          "match_count": 193
         },
         {
           "kind": "platform-proxy",
@@ -1954,7 +1954,7 @@
               "pattern": "dispatch"
             }
           ],
-          "match_count": 92
+          "match_count": 93
         }
       ]
     },

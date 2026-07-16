@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 640,
+  "baseline_python_module_count": 641,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -431,6 +431,7 @@
     "core/canonical_field_state_lock.py",
     "core/canonical_schemas.py",
     "core/capabilities.py",
+    "core/chemical_lineage.py",
     "core/circuit_breaker.py",
     "core/connectors/__init__.py",
     "core/connectors/base.py",
@@ -653,5 +654,6 @@
   "soil_lab_supersession_note": "v155-v160 canonical soil chain: api/lab_store.py + api/soil_evidence_bridge.py are the platform lab-intake/publication bridge to soil-service (durable lab workflow + supersession lineage). Platform-owned intake surfaces; canonical evidence/projection owned by soil-service.",
   "wx_i1_hourly_etc_orchestrator_note": "WX-I1: api/irrigation_runtime_orchestrator.py composes server-owned canonical water truth + persisted irrigation capability graph + commissioning executability + Weather-Engine native hourly ETc into one recommendation-only MPC schedule (no client-supplied agronomic/engineering truth). Platform-owned because it joins platform-owned canonical DB truth; the hourly ETc product itself stays engine-owned.",
   "closed_loop_runtime_note": "api/irrigation_closed_loop_runtime.py: durable measured-as-applied → water_ledger reconciliation return path (v184). Platform-owned (joins platform SoR: as_applied_* truth tables + water_ledger); recommendation/measurement only, no actuation.",
-  "irrx1_engineering_manual_execution_note": "635->640 IRR-X1 vendor-neutral irrigation engineering + digital commissioning + manual execution lifecycle + verified as-applied ledger bridge (owned+documented; recommendation/record-only, no actuation; provenance-locked v190). Modules: irrigation_engineering_workspace, irrigation_commissioning_runtime, irrigation_manual_execution, irrigation_manual_ledger_bridge, routers/irrigation_engineering."
+  "irrx1_engineering_manual_execution_note": "635->640 IRR-X1 vendor-neutral irrigation engineering + digital commissioning + manual execution lifecycle + verified as-applied ledger bridge (owned+documented; recommendation/record-only, no actuation; provenance-locked v190). Modules: irrigation_engineering_workspace, irrigation_commissioning_runtime, irrigation_manual_execution, irrigation_manual_ledger_bridge, routers/irrigation_engineering.",
+  "fii_chemical_lineage_governance_note": "core/chemical_lineage.py is a thin backward-compatible re-export of the canonical FII chemical-lineage audit promoted to shared/governance/chemical_lineage.py, so decision/actuator/odoo import the same audit; platform callers keep importing core.chemical_lineage unchanged (audit-only governance)."
 }
