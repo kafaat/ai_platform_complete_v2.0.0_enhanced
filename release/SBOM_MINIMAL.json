@@ -475,7 +475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a64088189f8012f6bdfd20aecead99b9440182f18b189d9be63142225eeca3f6"
+          "content": "6f1f253d87f04b8cc5af65fb5a88ae375245342f00b0a1f959b673036d30293e"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -4215,7 +4215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "66e725ac33548d1300698fe6613613b0708802bc49d96b90870ad824be409780"
+          "content": "025b6215ac8316d57a4bf1025afffe0bed1ab11d7c4a1383cfda89487db8d2c0"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -4345,7 +4345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04502fc750e34dfcb4acb8fb586188c0cf62b9be1cc8cb6f85e8178ba70430ad"
+          "content": "07109bd3ed29140e65877bb5b88a71e345a26436f925ef417e8334de78227359"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -5305,6 +5305,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "005b4b24758aee89e9fd2042132958cbbb5495f44b96f346c56827a441f0e530"
+        }
+      ],
+      "name": "frontend/src/sections/IrrigationEngineeringPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "89aa9a39e3946955edf12c6754e091420dc2b88a3defedd1e140e08b3a188ce2"
+        }
+      ],
+      "name": "frontend/src/sections/IrrigationEngineeringWiring.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "096494f09fb364b22e69b167edbd9e12f5a12f0cd14086edc2abdc81ad701f66"
         }
       ],
@@ -6155,7 +6175,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a78a6a5f1b56aa727ebc04379fcef928d9237465266365d18510ed6e8c772257"
+          "content": "a34279d9ad69de2d717aa30904132c66ed10754edddf068fa7a9bd02d7e2edea"
         }
       ],
       "name": "frontend/src/services/api/irrigationEngineeringCalculator.ts",

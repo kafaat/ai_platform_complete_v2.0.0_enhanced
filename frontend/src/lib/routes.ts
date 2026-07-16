@@ -109,6 +109,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'etc-dual',          path: '/irrigation/etc-dual', label: 'ETc المزدوج (FAO-56)', icon: Droplets, maturity: 'alpha' },
       { id: 'irrigation-ops',    path: '/irrigation/ops',      label: 'الري التشغيلي', icon: Waypoints, maturity: 'beta' },
       { id: 'irrigation-network', path: '/irrigation/network', label: 'توأم شبكة الريّ', icon: Share2, maturity: 'beta' },
+      { id: 'irrigation-engineering', path: '/irrigation/engineering', label: 'هندسة نظام الريّ', icon: Droplets, maturity: 'alpha' },
       { id: 'portfolio',         path: '/irrigation/portfolio', label: 'توزيع ماء المزرعة', icon: Layers, maturity: 'beta' },
       { id: 'portfolio-command', path: '/irrigation/portfolio-command', label: 'مركز قيادة المحفظة', icon: Crosshair, maturity: 'beta' },
       { id: 'crop-state',        path: '/crop/state',          label: 'حالة المحصول الموحّدة', icon: Sprout, maturity: 'stable' },

@@ -25,7 +25,7 @@ export function normalizeRole(role?: string | null): Role {
 // (الاتّجاه العكسيّ مغطّى بـ`satisfies` — لا حاجة لشيفرة إضافيّة له).
 export const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
-  'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'sql-workspace', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'decision-runtime', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'pest-escalation', 'field-intelligence',
+  'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'sql-workspace', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'decision-runtime', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'irrigation-engineering', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'lab-sampling', 'devices', 'device-twin', 'inventory', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'yield-analysis', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'admin-runtime', 'approvals-console', 'manager-console', 'chatbot', 'settings',
   'operations-wall', 'agro-zones', 'yemeni-calendars', 'climate-analogs',
@@ -46,7 +46,7 @@ const WORKER_PAGES: PageId[] = [
   // بينما sql-workspace/calibration-workbench/settings تبقى خارج worker (agronomist+).
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'recommendations', 'hybrid-monitor', 'hybrid-index', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'field-workspace', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators', 'lab-sampling',
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'pest-escalation', 'field-intelligence',
-  'inventory', 'equipment', 'devices', 'device-twin', 'irrigation-ops', 'irrigation-network',
+  'inventory', 'equipment', 'devices', 'device-twin', 'irrigation-ops', 'irrigation-network', 'irrigation-engineering',
   'agro-zones', 'yemeni-calendars', 'climate-analogs',
 ];
 
