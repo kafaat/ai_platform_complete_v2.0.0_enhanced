@@ -198,13 +198,13 @@ async def test_create_prescription_persists_and_returns_payload(monkeypatch):
     captured = {}
 
     class _WConn:
-        async def fetchval(self, *a, **k):
+        # INSERT ... RETURNING via fetchval: capture it and return the id (row inserted).
+        async def fetchval(self, sql, *args, **k):
+            if "INSERT INTO prescriptions" in sql:
+                captured["sql"] = sql
+                captured["args"] = args
+                return args[0]  # prescription_id ⇒ a real insert happened
             return 1
-
-        async def execute(self, sql, *args, **k):
-            captured["sql"] = sql
-            captured["args"] = args
-            return "INSERT 0 1"
 
     class _User:
         tenant_id = "11111111-1111-1111-1111-111111111111"
@@ -224,13 +224,115 @@ async def test_create_prescription_persists_and_returns_payload(monkeypatch):
         zones=[rx.PrescriptionZone(geometry={"type": "Polygon"}, rate=450, unit="seeds/m2")],
     )
     out = await rx.create_prescription(req=req, field_id="fld_1", user=_User())
-    assert out["persisted"] is True
+    assert out["persisted"] is True and out["idempotent_replay"] is False
     assert out["prescription_id"] == "rx_1"
     assert out["field_id"] == "fld_1"
     assert out["zones"][0]["rate"] == 450
-    # SQL بارامتريّ (لا حقن): القيم تُمرَّر كوسائط لا تُحقَن في النصّ.
+    # INSERT ... RETURNING (بارامتريّ، لا حقن) — القيم تُمرَّر كوسائط.
     assert "ON CONFLICT (prescription_id) DO NOTHING" in captured["sql"]
+    assert "RETURNING prescription_id" in captured["sql"]
     assert "rx_1" in captured["args"]
+
+
+def _stored_row(**over):
+    row = {
+        "prescription_id": "rx_1",
+        "field_id": "fld_1",
+        "season_id": None,
+        "season_resolution_status": "unresolved",
+        "name": "وصفة قمح",
+        "product_type": "seed",
+        # rate is a float field ⇒ what gets stored (json of model_dump) is 450.0, not 450.
+        "zones": [{"geometry": {"type": "Polygon"}, "rate": 450.0, "unit": "seeds/m2"}],
+        "created_by": "user_1",
+        "created_at": "2026-06-22T10:00:00+00:00",
+    }
+    row.update(over)
+    return row
+
+
+def _conflict_conn(existing_row):
+    """A connection whose INSERT conflicts (fetchval→None) and whose read-back
+    (fetchrow) returns ``existing_row`` (None ⇒ invisible/cross-tenant)."""
+
+    class _CConn:
+        async def fetchval(self, sql, *args, **k):
+            if "INSERT INTO prescriptions" in sql:
+                return None  # ON CONFLICT DO NOTHING ⇒ no row inserted
+            return 1
+
+        async def fetchrow(self, *a, **k):
+            return existing_row
+
+    return _CConn()
+
+
+async def _make_req(**over):
+    kw = dict(
+        prescription_id="rx_1",
+        name="وصفة قمح",
+        product_type="seed",
+        zones=[rx.PrescriptionZone(geometry={"type": "Polygon"}, rate=450, unit="seeds/m2")],
+    )
+    kw.update(over)
+    return rx.PrescriptionCreateRequest(**kw)
+
+
+class _U:
+    tenant_id = "11111111-1111-1111-1111-111111111111"
+    user_id = "user_1"
+
+
+async def test_create_prescription_idempotent_replay_returns_persisted_false(monkeypatch):
+    """Same id + same content ⇒ NOT a new write: persisted=False, returns the stored row."""
+    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(
+        rx, "tenant_connection", lambda user: _FakeCtx(_conflict_conn(_stored_row()))
+    )
+
+    async def _ok_assert(conn, field_id):
+        return None
+
+    monkeypatch.setattr(rx, "_assert_field_in_tenant", _ok_assert)
+    out = await rx.create_prescription(req=await _make_req(), field_id="fld_1", user=_U())
+    assert out["persisted"] is False and out["idempotent_replay"] is True
+    assert out["prescription_id"] == "rx_1"  # the STORED row is returned
+
+
+async def test_create_prescription_same_id_different_content_is_409(monkeypatch):
+    """Same id, different content ⇒ 409 IDEMPOTENCY_CONFLICT (never claim persistence)."""
+    from fastapi import HTTPException
+
+    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(
+        rx, "tenant_connection", lambda user: _FakeCtx(_conflict_conn(_stored_row(name="مختلف")))
+    )
+
+    async def _ok_assert(conn, field_id):
+        return None
+
+    monkeypatch.setattr(rx, "_assert_field_in_tenant", _ok_assert)
+    with pytest.raises(HTTPException) as ei:
+        await rx.create_prescription(req=await _make_req(), field_id="fld_1", user=_U())
+    assert ei.value.status_code == 409
+    assert ei.value.detail["code"] == "IDEMPOTENCY_CONFLICT"
+
+
+async def test_create_prescription_cross_tenant_id_collision_is_409(monkeypatch):
+    """Id exists but invisible to this tenant (global PK owned elsewhere) ⇒ 409, not success."""
+    from fastapi import HTTPException
+
+    monkeypatch.setattr(rx, "_DB_POOL", object())
+    monkeypatch.setattr(rx, "tenant_connection", lambda user: _FakeCtx(_conflict_conn(None)))
+
+    async def _ok_assert(conn, field_id):
+        return None
+
+    monkeypatch.setattr(rx, "_assert_field_in_tenant", _ok_assert)
+    with pytest.raises(HTTPException) as ei:
+        await rx.create_prescription(req=await _make_req(), field_id="fld_1", user=_U())
+    assert ei.value.status_code == 409
+    assert ei.value.detail["code"] == "IDEMPOTENCY_CONFLICT"
 
 
 # ─── توصيل الموجِّه ──────────────────────────────────────────────
