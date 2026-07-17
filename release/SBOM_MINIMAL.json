@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8777b7a78af0cf9f5b54c2bd278177b4d0b656a654effdf914393ad821ccf370"
+          "content": "94e94d32b7fd321f22a0507d68488c4af527a2b99bd2ac0a8d1d95d35ca94065"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7439,6 +7439,16 @@
         }
       ],
       "name": "migrations/v194_fii_chemical_chain_rls_fail_closed.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "93c3247846e04a705ffc9b68b2f3512f6718c757ca635960c6702cb7c21a4991"
+        }
+      ],
+      "name": "migrations/v195_irrigation_capacity_reservation_core.sql",
       "type": "file"
     },
     {

@@ -544,3 +544,5 @@
 \i migrations/v193_prescriptions_season_context_expand.sql
 \echo '═══ 200. v194_fii_chemical_chain_rls_fail_closed.sql ═══'
 \i migrations/v194_fii_chemical_chain_rls_fail_closed.sql
+\echo '═══ 201. v195_irrigation_capacity_reservation_core.sql ═══'
+\i migrations/v195_irrigation_capacity_reservation_core.sql

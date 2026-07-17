@@ -32,7 +32,7 @@ MIGRATIONS = ROOT / "migrations"
 ADR = ROOT / "docs" / "architecture" / "ADR-IRR-F01-OWNERSHIP.md"
 MAPPING = ROOT / "docs" / "architecture" / "irrigation_convergence_mapping.yml"
 KERNEL = ROOT / "services" / "sahool-platform" / "api" / "irrigation_capacity_reservation.py"
-CAPACITY_MIGRATION = "v195_irrigation_topology_capacity_convergence.sql"
+CAPACITY_MIGRATION = "v195_irrigation_capacity_reservation_core.sql"
 FIRST_CONVERGENCE_VERSION = 195
 
 # Prohibited new parallel system-of-record tables.
