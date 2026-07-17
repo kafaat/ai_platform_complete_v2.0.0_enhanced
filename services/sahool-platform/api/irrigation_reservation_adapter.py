@@ -25,7 +25,7 @@ PostgreSQL integration gate, not here.
 from __future__ import annotations
 
 import json
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
@@ -170,8 +170,15 @@ async def reserve_and_request_dispatch_db(
     correlation_id: UUID,
     canonical_hydraulic_capability_id: str | None = None,
     idempotency_key: str | None = None,
+    after_locks_acquired: Callable[[], Awaitable[None]] | None = None,
 ) -> ReservationOutcome:
-    """Lock-before-evaluate reserve + dispatch-REQUEST inside the caller's tx."""
+    """Lock-before-evaluate reserve + dispatch-REQUEST inside the caller's tx.
+
+    ``after_locks_acquired`` is a test-only deterministic injection point (default
+    ``None``; production callers never pass it): it is awaited once, with every
+    advisory lock held but BEFORE the fresh overlap read, so a concurrency test can
+    interleave a second transaction and certify end-to-end serialization without sleeps.
+    """
 
     if not resources:
         raise ValueError("NO_HYDRAULIC_RESOURCES")
@@ -192,6 +199,10 @@ async def reserve_and_request_dispatch_db(
     )
     for ref in ordered:
         await conn.execute(ADVISORY_XACT_LOCK_SQL, advisory_lock_key(ref))
+
+    # All advisory locks held, nothing read/written yet — deterministic test interleave point.
+    if after_locks_acquired is not None:
+        await after_locks_acquired()
 
     idem = idempotency_key or f"{execution_ref_type}:{execution_ref_id}"
     reservation_ids: list[str] = []

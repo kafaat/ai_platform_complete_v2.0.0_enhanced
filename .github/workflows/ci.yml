@@ -588,6 +588,65 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
         run: pytest -v -m integration --tb=short
+      # ── IRR-F01 live certification ─────────────────────────────────────────────────
+      # The shared run above connects as the superuser sahool_test, so the live reservation
+      # gates SKIP there (RLS needs a real app role). These dedicated steps run them for real
+      # as a restricted NOSUPERUSER/NOBYPASSRLS role with IRR_F01_CERTIFICATION_REQUIRED=1, so
+      # any skip (DB down, missing migration, wrong role) becomes a HARD failure — no
+      # green-but-skipped certification. Dedicated steps keep app-role scoping out of the
+      # shared integration run, which other tests legitimately run as superuser.
+      - name: Create restricted application role for RLS certification
+        env:
+          PGPASSWORD: test_password
+        run: |
+          psql -h localhost -p 5433 -U sahool_test -d sahool_test -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_app_test') THEN
+              CREATE ROLE sahool_app_test LOGIN PASSWORD 'app_test_password'
+                NOSUPERUSER NOBYPASSRLS NOINHERIT;
+            END IF;
+          END $$;
+          GRANT CONNECT ON DATABASE sahool_test TO sahool_app_test;
+          GRANT USAGE ON SCHEMA public TO sahool_app_test;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sahool_app_test;
+          GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO sahool_app_test;
+          GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO sahool_app_test;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO sahool_app_test;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT USAGE, SELECT ON SEQUENCES TO sahool_app_test;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT EXECUTE ON FUNCTIONS TO sahool_app_test;
+          SQL
+          role_flags=$(psql -h localhost -p 5433 -U sahool_test -d sahool_test -Atc \
+            "SELECT rolsuper::text || ':' || rolbypassrls::text FROM pg_roles WHERE rolname='sahool_app_test'")
+          test "$role_flags" = "false:false" || { echo "::error::invalid RLS role flags: $role_flags"; exit 1; }
+      - name: IRR-F01 fresh-schema certification (Gate A + Gate B1)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          IRR_F01_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
+      - name: IRR-F01 upgrade certification (Gate U1 — v194→v195/v196)
+        env:
+          PGHOST: localhost
+          PGPORT: "5433"
+          ADMIN_USER: sahool_test
+          ADMIN_PASS: test_password
+          U1_DB: sahool_u1_upgrade
+          APP_ROLE: sahool_app_test
+          APP_PASS: app_test_password
+          IRR_F01_CERTIFICATION_REQUIRED: "1"
+        run: |
+          bash scripts/irr_f01/upgrade_gate_u1.sh
+          export IRR_F01_UPGRADE_DATABASE_URL="postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_u1_upgrade"
+          export IRR_F01_UPGRADE_ADMIN_URL="postgresql://sahool_test:test_password@localhost:5433/sahool_u1_upgrade"
+          pytest -v -m integration -rs tests_v9/test_irr_f01_upgrade_gate_u1_pg.py
+          # Gate A + Gate B1 must also pass over the UPGRADED base, not only fresh schema.
+          TEST_DATABASE_URL="$IRR_F01_UPGRADE_DATABASE_URL" \
+          TEST_DATABASE_ADMIN_URL="$IRR_F01_UPGRADE_ADMIN_URL" \
+            pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
 
   decision-service-tests:
     name: Decision Service Tests
