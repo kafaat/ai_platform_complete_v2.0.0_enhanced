@@ -14745,6 +14745,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8d053cd84f3887dca5bc96852cd7d686773565533c45f3b535a1abadd4583b83"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_capacity_reservation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "afcdebebc0d81ad264c5ac10ea0cc40573ff8afcb940fe9c9a62c7447ebab915"
         }
       ],

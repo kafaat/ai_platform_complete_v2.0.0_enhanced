@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 641,
+  "baseline_python_module_count": 642,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -131,6 +131,7 @@
     "api/index_registry.py",
     "api/inventory_models.py",
     "api/ipm_advisor.py",
+    "api/irrigation_capacity_reservation.py",
     "api/irrigation_closed_loop_learning.py",
     "api/irrigation_closed_loop_runtime.py",
     "api/irrigation_commissioning_certification.py",
@@ -655,5 +656,6 @@
   "wx_i1_hourly_etc_orchestrator_note": "WX-I1: api/irrigation_runtime_orchestrator.py composes server-owned canonical water truth + persisted irrigation capability graph + commissioning executability + Weather-Engine native hourly ETc into one recommendation-only MPC schedule (no client-supplied agronomic/engineering truth). Platform-owned because it joins platform-owned canonical DB truth; the hourly ETc product itself stays engine-owned.",
   "closed_loop_runtime_note": "api/irrigation_closed_loop_runtime.py: durable measured-as-applied → water_ledger reconciliation return path (v184). Platform-owned (joins platform SoR: as_applied_* truth tables + water_ledger); recommendation/measurement only, no actuation.",
   "irrx1_engineering_manual_execution_note": "635->640 IRR-X1 vendor-neutral irrigation engineering + digital commissioning + manual execution lifecycle + verified as-applied ledger bridge (owned+documented; recommendation/record-only, no actuation; provenance-locked v190). Modules: irrigation_engineering_workspace, irrigation_commissioning_runtime, irrigation_manual_execution, irrigation_manual_ledger_bridge, routers/irrigation_engineering.",
-  "fii_chemical_lineage_governance_note": "core/chemical_lineage.py is a thin backward-compatible re-export of the canonical FII chemical-lineage audit promoted to shared/governance/chemical_lineage.py, so decision/actuator/odoo import the same audit; platform callers keep importing core.chemical_lineage unchanged (audit-only governance)."
+  "fii_chemical_lineage_governance_note": "core/chemical_lineage.py is a thin backward-compatible re-export of the canonical FII chemical-lineage audit promoted to shared/governance/chemical_lineage.py, so decision/actuator/odoo import the same audit; platform callers keep importing core.chemical_lineage unchanged (audit-only governance).",
+  "irr_f01_capacity_reservation_note": "api/irrigation_capacity_reservation.py: IRR-F01 pure-logic transaction-safe hydraulic capacity/reservation primitives (stable tenant-scoped int64 advisory-lock keys, deadlock-safe resource ordering, peak concurrent-flow over half-open intervals, exclusive/shared admission, lock-before-evaluate reserve-and-request-dispatch contract). DB-free; wired into the EXISTING decision execution-request/outbox + v187 manual-execution path via injected callbacks — no new execution SoR. Closes the confirmed concurrency gap (only v136 per-valve running flag existed). Ownership: docs/architecture/ADR-IRR-F01-OWNERSHIP.md; guard scripts/ci/irrigation_convergence_guard.py."
 }

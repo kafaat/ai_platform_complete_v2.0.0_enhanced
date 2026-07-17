@@ -1,0 +1,28 @@
+name: Irrigation convergence contract
+on:
+  pull_request:
+    paths:
+      - 'migrations/**'
+      - 'services/sahool-platform/api/irrigation_*'
+      - 'docs/architecture/ADR-IRR-F01-OWNERSHIP.md'
+      - 'docs/architecture/irrigation_convergence_mapping.yml'
+      - 'scripts/ci/irrigation_convergence_guard.py'
+      - 'tests/irrigation/**'
+  push:
+    paths:
+      - 'migrations/**'
+      - 'services/sahool-platform/api/irrigation_*'
+      - 'docs/architecture/ADR-IRR-F01-OWNERSHIP.md'
+      - 'docs/architecture/irrigation_convergence_mapping.yml'
+      - 'scripts/ci/irrigation_convergence_guard.py'
+      - 'tests/irrigation/**'
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/ci/irrigation_convergence_guard.py
+      - run: python -m pytest -q tests/irrigation
