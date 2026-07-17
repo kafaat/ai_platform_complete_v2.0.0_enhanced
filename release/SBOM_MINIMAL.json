@@ -10265,6 +10265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "816c10bc779561a2cbc95712fd8b300ebb9dec01b17ad5aeef99a6a0bd6e6d17"
+        }
+      ],
+      "name": "services/decision-service/migrations/027_reservation_dispatch_inbox.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "410b2f2726d9fdfefef03ba7992162f8b03803b949f469e851bea1dba170c0b3"
         }
       ],
@@ -10429,6 +10439,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_execution_request_feed.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7e40ba01aa5504bb83f3b1f1cb8e09aa5fd52f591c08d34d39c159513e26e9e2"
+        }
+      ],
+      "name": "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
       "type": "file"
     },
     {
