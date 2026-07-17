@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 643,
+  "baseline_python_module_count": 644,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -148,6 +148,7 @@
     "api/irrigation_path_query.py",
     "api/irrigation_policy.py",
     "api/irrigation_recommendation_policy.py",
+    "api/irrigation_reservation_adapter.py",
     "api/irrigation_runtime_orchestrator.py",
     "api/irrigation_state_guard.py",
     "api/lab_store.py",
@@ -659,5 +660,6 @@
   "irrx1_engineering_manual_execution_note": "635->640 IRR-X1 vendor-neutral irrigation engineering + digital commissioning + manual execution lifecycle + verified as-applied ledger bridge (owned+documented; recommendation/record-only, no actuation; provenance-locked v190). Modules: irrigation_engineering_workspace, irrigation_commissioning_runtime, irrigation_manual_execution, irrigation_manual_ledger_bridge, routers/irrigation_engineering.",
   "fii_chemical_lineage_governance_note": "core/chemical_lineage.py is a thin backward-compatible re-export of the canonical FII chemical-lineage audit promoted to shared/governance/chemical_lineage.py, so decision/actuator/odoo import the same audit; platform callers keep importing core.chemical_lineage unchanged (audit-only governance).",
   "irr_f01_capacity_reservation_note": "api/irrigation_capacity_reservation.py: IRR-F01 pure-logic transaction-safe hydraulic capacity/reservation primitives (stable tenant-scoped int64 advisory-lock keys, deadlock-safe resource ordering, peak concurrent-flow over half-open intervals, exclusive/shared admission, lock-before-evaluate reserve-and-request-dispatch contract). DB-free; wired into the EXISTING decision execution-request/outbox + v187 manual-execution path via injected callbacks — no new execution SoR. Closes the confirmed concurrency gap (only v136 per-valve running flag existed). Ownership: docs/architecture/ADR-IRR-F01-OWNERSHIP.md; guard scripts/ci/irrigation_convergence_guard.py.",
-  "irr_f01_path_query_note": "api/irrigation_path_query.py: IRR-F01 pure hydraulic path resolution over the existing v171 graph (replaces deferred closure/version tables). Tenant+project scoped, cycle-guarded, depth-capped; reports path_status unique/multiple/unreachable/invalid_cycle with path_count and every alternative (no silent first-path); never declares a bottleneck from topology (that is v175's capability concern). Ships the canonical recursive CTE as a reviewable constant. DB-free."
+  "irr_f01_path_query_note": "api/irrigation_path_query.py: IRR-F01 pure hydraulic path resolution over the existing v171 graph (replaces deferred closure/version tables). Tenant+project scoped, cycle-guarded, depth-capped; reports path_status unique/multiple/unreachable/invalid_cycle with path_count and every alternative (no silent first-path); never declares a bottleneck from topology (that is v175's capability concern). Ships the canonical recursive CTE as a reviewable constant. DB-free.",
+  "irr_f01_reservation_adapter_note": "api/irrigation_reservation_adapter.py: IRR-F01 DB adapter contract binding the pure reservation kernel to the platform-owned v195 tables + the EXISTING execution-request/outbox path via an injected ExecutionRequestPort. Lock-before-evaluate reserve-and-request-dispatch inside the caller's tx (set tenant GUC -> ordered advisory locks -> fresh overlap read + admission -> INSERT evaluation -> INSERT reservations+events -> outbox intent). Committed reservation = dispatch_requested; actuator receipt = dispatched. Forward compensation on post-commit actuator failure (reservation->cancelled, request->dispatch_failed), no rollback. No new execution SoR; no new route. Live execution + the port's outbox binding are the deferred Phase-4 PostgreSQL integration gate."
 }
