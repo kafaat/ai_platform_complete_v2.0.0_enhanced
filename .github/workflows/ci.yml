@@ -741,6 +741,15 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx10_12_execution_outcome.py -q -p no:cacheprovider
+      # IRR-F01 Gate B-delivery (thin inbox, real Postgres): a delivered reservation dispatch
+      # INTENT is recorded idempotently (dedup on tenant+source_event_id), a corrupted redelivery
+      # is rejected, the receipt is append-preserving, the consumer heartbeat advances — and a
+      # delivery does NOT create an execution_request (delivery != fulfillment).
+      - name: IRR-F01 Gate B-delivery reservation dispatch-intent inbox (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_gate_b_reservation_dispatch_inbox.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->

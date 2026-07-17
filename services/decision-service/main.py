@@ -71,6 +71,7 @@ from persistence import (
     record_model_registry_rollback_receipt,
     record_monitoring_snapshot,
     record_reconcile_evidence,
+    record_reservation_dispatch_intent,
     record_retraining_dispatch_receipt,
     record_rollout_receipt,
     register_runtime_worker_tenant,
@@ -1109,6 +1110,47 @@ async def execute_authorized_dispatch(
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="dispatch authorization not found")
     raise HTTPException(status_code=409, detail=result.get("reason", "execution request conflict"))
+
+
+class ReservationDispatchIntentIn(BaseModel):
+    source_event_id: str
+    event_type: str
+    evaluation_id: str | None = None
+    reservation_ids: list[str] = Field(default_factory=list)
+    execution_ref_type: str | None = None
+    execution_ref_id: str | None = None
+    correlation_id: str | None = None
+    causation_id: str | None = None
+    raw_payload: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/reservation-dispatch-intents")
+async def ingest_reservation_dispatch_intent(
+    payload: ReservationDispatchIntentIn,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """IRR-F01 Gate B-delivery (thin inbox): durably record a reservation dispatch INTENT
+    delivered from the platform outbox. Idempotent on (tenant, source_event_id). This records
+    DELIVERY only — it does NOT create an execution_request (fulfillment is a later WX-10-gated
+    step). Fails closed (503) outside SoR mode, like the other execution-chain writers."""
+    tenant = _tenant(x_tenant_id)
+    if not str(payload.source_event_id or "").strip():
+        raise HTTPException(status_code=422, detail="source_event_id is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — dispatch-intent inbox unavailable",
+        )
+    result = await record_reservation_dispatch_intent(
+        tenant_id=tenant,
+        source_event_id=payload.source_event_id,
+        event_type=payload.event_type,
+        payload=payload,
+    )
+    status = result.get("status")
+    if status in ("received", "failure_notice", "duplicate"):
+        return {"accepted": True, "tenant_id": tenant, **result}
+    raise HTTPException(status_code=409, detail=result.get("reason", "dispatch intent conflict"))
 
 
 class ExecutionDeliveryClaimIn(BaseModel):
