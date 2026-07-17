@@ -214,6 +214,10 @@ class EventType(str, Enum):  # noqa: UP042 (intentional str-mixin for JSON/Pydan
     # أحداث الصمّامات (تسجيل + تغيير حالة) — لازمة لنقاط /irrigation/valves.
     IRRIGATION_VALVE_REGISTERED = "irrigation.valve.registered"
     IRRIGATION_VALVE_STATE_CHANGED = "irrigation.valve.state_changed"
+    # IRR-F01 Gate B: نيّة إرسال الحجز عبر outbox القائم (dispatch_requested لا dispatched؛
+    # التسليم الفعليّ للـexecution_request يتمّ عبر عامل outbox القائم + decision-service).
+    IRRIGATION_RESERVATION_DISPATCH_REQUESTED = "irrigation.reservation.dispatch_requested"
+    IRRIGATION_RESERVATION_DISPATCH_FAILED = "irrigation.reservation.dispatch_failed"
     # المرحلة 2: مخزون/معدّات/مرجعيّة/دورة زراعيّة.
     INVENTORY_ITEM_CREATED = "inventory.item.created"
     INVENTORY_BATCH_ADDED = "inventory.batch.added"

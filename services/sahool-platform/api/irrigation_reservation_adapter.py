@@ -294,14 +294,24 @@ async def compensate_dispatch_failure(
     tenant = str(tenant_id)
     await conn.execute(SET_TENANT_SQL, tenant)
     for reservation_id in reservation_ids:
-        await conn.execute(CANCEL_RESERVATION_SQL, tenant_id, UUID(reservation_id), reason)
+        rid = UUID(reservation_id)
+        # The reservation event's correlation_id is NOT NULL — reuse the reservation's
+        # own correlation thread (reserve always sets it); fall back to the reservation
+        # id (a valid UUID) so compensation can never fail on a missing correlation.
+        correlation_id = await conn.fetchval(
+            "SELECT correlation_id FROM irrigation_resource_reservations "
+            "WHERE tenant_id = $1 AND reservation_id = $2",
+            tenant_id,
+            rid,
+        )
+        await conn.execute(CANCEL_RESERVATION_SQL, tenant_id, rid, reason)
         await conn.execute(
             INSERT_RESERVATION_EVENT_SQL,
             tenant_id,
-            UUID(reservation_id),
+            rid,
             "cancelled",
             None,
-            None,
+            correlation_id or rid,
             json.dumps({"reason": reason}),
         )
     await execution_port.mark_dispatch_failed(

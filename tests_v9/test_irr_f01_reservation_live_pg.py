@@ -99,6 +99,13 @@ async def live():
         # Children are ON DELETE RESTRICT (append-only audit), so clean up in order;
         # set the tenant context in case admin is itself a NOBYPASSRLS app role.
         await admin.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
+        if await admin.fetchval("select to_regclass('events')") is not None:
+            await admin.execute(
+                "delete from event_outbox where event_id in "
+                "(select event_id from events where tenant_id = $1)",
+                tenant,
+            )
+            await admin.execute("delete from events where tenant_id = $1", tenant)
         for table in (
             "irrigation_resource_reservation_events",
             "irrigation_resource_reservations",
@@ -272,3 +279,86 @@ async def test_gate_a_two_connection_advisory_lock_serializes(live):
         await c1.close()
         await c2.close()
     assert blocked, "second session must block on the held advisory lock"
+
+
+async def test_gate_b1_dispatch_intent_emitted_to_outbox_atomically(live):
+    """Gate B1 — the real EmitEventExecutionRequestPort writes the dispatch INTENT to
+    the existing outbox atomically with the reservation. Skips without the events subsystem."""
+    adapter, kernel = _adapter()
+    app, tenant, project, n1 = live["app"], live["tenant"], live["project"], live["n1"]
+    if await app.fetchval("select to_regclass('events')") is None:
+        pytest.skip("events table absent — apply the events-bus migrations for Gate B1")
+    from api.irrigation_execution_request_port import EmitEventExecutionRequestPort
+
+    port = EmitEventExecutionRequestPort()
+    async with app.transaction():
+        out = await adapter.reserve_and_request_dispatch_db(
+            app,
+            tenant_id=tenant,
+            project_id=project,
+            requested_start=START,
+            requested_end=END,
+            resources=[_req(kernel, n1, "shared_capacity", "120", "300")],
+            execution_ref_type="manual_execution",
+            execution_ref_id="b1",
+            calculation_model_version="v1",
+            execution_port=port,
+            correlation_id=tenant,
+        )
+    await app.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
+    ev = await app.fetchrow(
+        "select event_id, entity_type, entity_id from events "
+        "where event_type='irrigation.reservation.dispatch_requested' and entity_id=$1",
+        out.evaluation_id,
+    )
+    assert ev is not None and ev["entity_type"] == "operation"
+    assert out.dispatch_request_ref == str(ev["event_id"])
+    # The outbox carries the intent for the existing worker (dispatch_requested, not dispatched).
+    assert (
+        await app.fetchval("select count(*) from event_outbox where event_id=$1", ev["event_id"])
+        == 1
+    )
+
+    # Atomicity: a rolled-back reservation emits NO outbox event.
+    before = await app.fetchval("select count(*) from events")
+    with pytest.raises(RuntimeError):
+        async with app.transaction():
+            await adapter.reserve_and_request_dispatch_db(
+                app,
+                tenant_id=tenant,
+                project_id=project,
+                requested_start=START,
+                requested_end=END,
+                resources=[_req(kernel, n1, "shared_capacity", "50", "300")],
+                execution_ref_type="manual_execution",
+                execution_ref_id="b1-roll",
+                calculation_model_version="v1",
+                execution_port=port,
+                correlation_id=tenant,
+                idempotency_key="B1ROLL",
+            )
+            raise RuntimeError("force rollback")
+    assert await app.fetchval("select count(*) from events") == before
+
+    # Compensation emits dispatch_failed and cancels the reservation (no correlation crash).
+    await adapter.compensate_dispatch_failure(
+        app,
+        tenant_id=tenant,
+        reservation_ids=out.reservation_ids,
+        execution_request_ref=out.dispatch_request_ref,
+        execution_port=port,
+        reason="actuator_nak",
+    )
+    assert (
+        await app.fetchval(
+            "select count(*) from events where event_type='irrigation.reservation.dispatch_failed'"
+        )
+        >= 1
+    )
+    assert (
+        await app.fetchval(
+            "select state from irrigation_resource_reservations where reservation_id=$1",
+            __import__("uuid").UUID(out.reservation_ids[0]),
+        )
+        == "cancelled"
+    )
