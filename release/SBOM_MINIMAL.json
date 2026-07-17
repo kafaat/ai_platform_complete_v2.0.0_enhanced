@@ -6365,7 +6365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94e94d32b7fd321f22a0507d68488c4af527a2b99bd2ac0a8d1d95d35ca94065"
+          "content": "61429476cf5b629792281ff75946f897277cfcde1dc9743db10c9aac6fc69f63"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7449,6 +7449,16 @@
         }
       ],
       "name": "migrations/v195_irrigation_capacity_reservation_core.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "965ec65941b353f6adcb1facc604c3f9ffae0fc4b8c69636e20e377286949fb3"
+        }
+      ],
+      "name": "migrations/v196_irrigation_target_binding.sql",
       "type": "file"
     },
     {
@@ -14889,6 +14899,16 @@
         }
       ],
       "name": "services/sahool-platform/api/irrigation_network.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "49061f62dee5c9ccc06d51550f93f0bd8f617ea1751b13101dac84b411298def"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_path_query.py",
       "type": "file"
     },
     {

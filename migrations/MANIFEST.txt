@@ -692,3 +692,5 @@ v193_prescriptions_season_context_expand.sql
 v194_fii_chemical_chain_rls_fail_closed.sql
 # v195: IRR-F01 capacity/reservation core — transaction-safe hydraulic reservation over v171 (no parallel SoR, no topology/closure, no water-allocation ALTER).
 v195_irrigation_capacity_reservation_core.sql
+# v196: IRR-F01 target binding — version-pinned field/zone → existing v171 terminal hydraulic node (read-only projection).
+v196_irrigation_target_binding.sql

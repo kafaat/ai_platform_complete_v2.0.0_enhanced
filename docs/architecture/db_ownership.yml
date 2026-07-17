@@ -1569,3 +1569,23 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql"
+  hydraulic_capacity_evaluations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v195_irrigation_capacity_reservation_core.sql"
+  irrigation_resource_reservations:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v195_irrigation_capacity_reservation_core.sql"
+  irrigation_resource_reservation_events:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v195_irrigation_capacity_reservation_core.sql"
+  irrigation_target_bindings:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v196_irrigation_target_binding.sql"

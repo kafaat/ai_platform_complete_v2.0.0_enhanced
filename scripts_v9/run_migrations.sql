@@ -546,3 +546,5 @@
 \i migrations/v194_fii_chemical_chain_rls_fail_closed.sql
 \echo '═══ 201. v195_irrigation_capacity_reservation_core.sql ═══'
 \i migrations/v195_irrigation_capacity_reservation_core.sql
+\echo '═══ 202. v196_irrigation_target_binding.sql ═══'
+\i migrations/v196_irrigation_target_binding.sql
