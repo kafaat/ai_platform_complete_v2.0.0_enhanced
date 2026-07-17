@@ -74,5 +74,26 @@ forbidden_parallel_tables:
   - irrigation_assets
   - irrigation_executions
   - irrigation_execution_evidence
-forbidden_alter_add:
-  - irrigation_water_allocations
+forbidden_competing_capability_sor_prefixes:
+  - canonical_hydraulic_capabilit
+  - canonical_irrigation_capability_graph
+  - irrigation_capability_graph
+deferred_topology_tables:
+  - irrigation_physical_graph_versions
+  - irrigation_physical_graph_node_memberships
+  - irrigation_physical_graph_segment_memberships
+  - irrigation_physical_path_closure
+# Precise ban: the daily-volume quota ledger (v170 irrigation_water_allocations)
+# must not gain per-field flow/priority entitlement columns. A benign ADD is fine.
+quota_ledger: irrigation_water_allocations
+forbidden_quota_ledger_add_columns:
+  - allocated_flow_m3h
+  - allocated_flow_lps
+  - priority
+  - allocation_basis
+  - allocation_share_pct
+  - farm_id
+  - field_id
+dispatch_semantics:
+  outbox_write_means: dispatch_requested
+  dispatched_confirmed_by: actuator_receipt

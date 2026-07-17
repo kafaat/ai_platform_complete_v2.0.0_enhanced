@@ -145,3 +145,73 @@ def test_orchestration_locks_before_fresh_evaluation_and_writes_dispatch_request
         "outbox",
         "commit",
     ]
+
+
+# --- IRR-F01 review-requested additional cases ---------------------------------
+def test_partial_overlap_conflicts_not_only_exact_interval_match() -> None:
+    # An existing [10:00,10:30) reservation must conflict with a request that only
+    # partially overlaps it ([10:20,10:40)), not merely with an identical interval.
+    result = evaluate_admission(
+        policy=ResourcePolicy.EXCLUSIVE,
+        existing=[window(0, 30, "100")],
+        requested_start=START + timedelta(minutes=20),
+        requested_end=START + timedelta(minutes=40),
+        requested_flow_m3h=Decimal("50"),
+        derated_capacity_m3h=None,
+    )
+    assert result.eligible is False
+    assert result.blocking_code == "RESOURCE_CONFLICT"
+
+
+def test_variable_peak_uses_segment_load_not_full_period_sum() -> None:
+    # Spec example: A 10:00-10:30=100, B 10:20-10:50=80, C req 10:35-11:00=90.
+    # Inside C's window the only pre-existing overlap is B (in [10:35,10:50)=80);
+    # A never coexists with C. Peak-with-request must be 80+90=170, never 100+80+90.
+    existing = [window(0, 30, "100"), window(20, 50, "80")]
+    peak_existing = peak_reserved_flow(
+        existing, START + timedelta(minutes=35), START + timedelta(minutes=60)
+    )
+    assert peak_existing == Decimal("80")
+    result = evaluate_admission(
+        policy=ResourcePolicy.SHARED_CAPACITY,
+        existing=existing,
+        requested_start=START + timedelta(minutes=35),
+        requested_end=START + timedelta(minutes=60),
+        requested_flow_m3h=Decimal("90"),
+        derated_capacity_m3h=Decimal("200"),
+    )
+    assert result.peak_with_request_m3h == Decimal("170")
+    assert result.eligible is True  # 170 <= 200
+
+
+def test_input_order_does_not_change_canonical_order_or_lock_identities() -> None:
+    a = ResourceRef(
+        TENANT, "pump", UUID("22222222-2222-2222-2222-222222222222"), ResourcePolicy.SHARED_CAPACITY
+    )
+    b = ResourceRef(
+        TENANT, "valve", UUID("33333333-3333-3333-3333-333333333333"), ResourcePolicy.EXCLUSIVE
+    )
+    c = ResourceRef(
+        TENANT, "well", UUID("11111111-2222-3333-4444-555555555555"), ResourcePolicy.SHARED_CAPACITY
+    )
+    order_one = ordered_resources([a, b, c])
+    order_two = ordered_resources([c, a, b, a])  # different order + duplicate
+    assert order_one == order_two
+    # Lock-acquisition identity sequence is identical regardless of input order.
+    assert [advisory_lock_key(r) for r in order_one] == [advisory_lock_key(r) for r in order_two]
+
+
+def test_kernel_is_pure_no_db_no_http_no_io() -> None:
+    source = MODULE_PATH.read_text(encoding="utf-8")
+    for forbidden in (
+        "asyncpg",
+        "psycopg",
+        "import requests",
+        "import httpx",
+        "aiohttp",
+        "execute(",
+        "fetch(",
+        " SELECT ",
+        "INSERT INTO",
+    ):
+        assert forbidden not in source, f"kernel must stay pure — found {forbidden!r}"

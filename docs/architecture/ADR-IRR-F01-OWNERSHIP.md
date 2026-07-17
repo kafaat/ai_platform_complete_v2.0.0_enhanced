@@ -45,10 +45,19 @@ ADR and explicit backfill/cutover/rollback plan:
 - a third commissioning certificate store
 - a second water-allocation system of record
 
-Additionally, IRR migrations (>= v195) must **not** `ALTER TABLE
-irrigation_water_allocations ... ADD COLUMN`: v170 owns that table as a
-daily-volume quota ledger; per-field flow entitlement belongs on the
-capacity-evaluation / target-binding side, not grafted onto the quota ledger.
+Additionally — the ban here is **precise, not blanket**. A benign `ALTER TABLE
+irrigation_water_allocations ADD COLUMN` (e.g. an audit/comment column) is fine.
+What is forbidden is turning v170's **daily-volume quota ledger** into a
+per-field **flow/priority allocation** system of record: IRR migrations (>= v195)
+must not ADD flow/priority entitlement columns (`allocated_flow_m3h`,
+`priority`, `allocation_basis`, `allocation_share_pct`, per-field `farm_id`/
+`field_id`). That entitlement belongs on the capacity-evaluation / target-binding
+side.
+
+The guard also forbids, for migrations >= v195: a new canonical
+hydraulic-capability SoR competing with v171/v175, and the deferred
+topology-version / path-closure tables (they need a superseding ADR — the
+hydraulic path is answered by a query over the existing v171 graph).
 
 ## Dispatch semantics
 

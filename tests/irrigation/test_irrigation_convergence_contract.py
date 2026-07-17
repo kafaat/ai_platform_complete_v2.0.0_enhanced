@@ -29,7 +29,10 @@ def test_ownership_artifacts_exist() -> None:
     mapping = MAPPING.read_text(encoding="utf-8")
     for token in FORBIDDEN_TABLES:
         assert token in mapping, f"mapping must declare forbidden table {token}"
-    assert "forbidden_alter_add" in mapping
+    # Precise quota-ledger ban + deferred topology tables must be declared.
+    assert "forbidden_quota_ledger_add_columns" in mapping
+    assert "allocated_flow_m3h" in mapping
+    assert "deferred_topology_tables" in mapping
     assert "irrigation_water_allocations" in mapping
 
 
