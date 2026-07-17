@@ -1,0 +1,2 @@
+asyncpg>=0.29,<1
+pytest>=8,<9

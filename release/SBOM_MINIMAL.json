@@ -35,6 +35,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ef338b15275abbc9e898d223e962aed400d148859f344f0f69b99df20244f404"
+        }
+      ],
+      "name": "docker-compose.irr-f01-test.yml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "642c2983c4800cb3b9121a71732fb4c5198196804db788fea8a0d8c40d7588b1"
         }
       ],
