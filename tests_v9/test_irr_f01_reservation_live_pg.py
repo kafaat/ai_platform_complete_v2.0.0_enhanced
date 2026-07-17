@@ -96,24 +96,29 @@ async def live():
     try:
         yield ctx
     finally:
-        # Children are ON DELETE RESTRICT (append-only audit), so clean up in order;
-        # set the tenant context in case admin is itself a NOBYPASSRLS app role.
-        await admin.execute("select set_config('app.current_tenant', $1, false)", str(tenant))
-        if await admin.fetchval("select to_regclass('events')") is not None:
+        # The reservation event log is DB-enforced append-only (trigger) and every FK is
+        # ON DELETE RESTRICT, so per-row cleanup is impossible BY DESIGN. This certification
+        # therefore requires a DISPOSABLE database: the owner/superuser admin truncates the
+        # reservation tables (TRUNCATE bypasses the row-level append-only trigger). If the
+        # admin lacks owner rights, rows for this random tenant are left behind (harmless on
+        # a throwaway instance). NEVER point TEST_DATABASE_URL at a shared DB with real data.
+        try:
             await admin.execute(
-                "delete from event_outbox where event_id in "
-                "(select event_id from events where tenant_id = $1)",
-                tenant,
+                "TRUNCATE irrigation_resource_reservation_events, "
+                "irrigation_resource_reservations, hydraulic_capacity_evaluations CASCADE"
             )
-            await admin.execute("delete from events where tenant_id = $1", tenant)
-        for table in (
-            "irrigation_resource_reservation_events",
-            "irrigation_resource_reservations",
-            "hydraulic_capacity_evaluations",
-        ):
-            await admin.execute(f"delete from {table} where tenant_id = $1", tenant)
-        await admin.execute("delete from irrigation_hydraulic_nodes where tenant_id = $1", tenant)
-        await admin.execute("delete from irrigation_projects where id = $1", project)
+        except asyncpg.PostgresError:
+            pass
+        if await admin.fetchval("select to_regclass('events')") is not None:
+            try:
+                await admin.execute("TRUNCATE events, event_outbox CASCADE")
+            except asyncpg.PostgresError:
+                pass
+        try:
+            await admin.execute("delete from irrigation_hydraulic_nodes where tenant_id = $1", tenant)
+            await admin.execute("delete from irrigation_projects where id = $1", project)
+        except asyncpg.PostgresError:
+            pass
         await admin.close()
         await app.close()
 

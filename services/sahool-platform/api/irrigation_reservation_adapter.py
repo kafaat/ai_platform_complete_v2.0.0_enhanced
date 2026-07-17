@@ -122,7 +122,12 @@ class ResourceRequest:
 class ReservationOutcome:
     evaluation_id: str
     reservation_ids: tuple[str, ...]
-    dispatch_request_ref: str
+    dispatch_intent_id: str
+
+    @property
+    def dispatch_request_ref(self) -> str:
+        """Backward-compatible alias; this is an outbox INTENT, not an execution receipt."""
+        return self.dispatch_intent_id
 
 
 class ExecutionRequestPort(Protocol):
@@ -172,6 +177,11 @@ async def reserve_and_request_dispatch_db(
         raise ValueError("NO_HYDRAULIC_RESOURCES")
     if requested_end <= requested_start:
         raise ValueError("REQUEST_INTERVAL_INVALID")
+    # Reject duplicate resource requests before any lock/write — a caller asking to
+    # reserve the same node twice in one request is a bug, not a silent dedup.
+    resource_ids = [r.resource_node_id for r in resources]
+    if len(resource_ids) != len(set(resource_ids)):
+        raise ValueError("DUPLICATE_HYDRAULIC_RESOURCE")
 
     tenant = str(tenant_id)
     await conn.execute(SET_TENANT_SQL, tenant)
@@ -263,7 +273,7 @@ async def reserve_and_request_dispatch_db(
             json.dumps({"resource_node_id": str(req.resource_node_id)}),
         )
 
-    dispatch_request_ref = await execution_port.request_dispatch(
+    dispatch_intent_id = await execution_port.request_dispatch(
         conn,
         tenant_id=tenant,
         evaluation_id=str(evaluation_id),
@@ -276,7 +286,7 @@ async def reserve_and_request_dispatch_db(
     return ReservationOutcome(
         evaluation_id=str(evaluation_id),
         reservation_ids=tuple(reservation_ids),
-        dispatch_request_ref=dispatch_request_ref,
+        dispatch_intent_id=dispatch_intent_id,
     )
 
 

@@ -48,8 +48,21 @@ def test_v195_creates_only_the_three_core_tables() -> None:
 def test_v195_extends_existing_hydraulic_stores() -> None:
     sql = MIGRATION.read_text(encoding="utf-8")
     assert "REFERENCES irrigation_projects(id, tenant_id)" in sql
-    assert "REFERENCES canonical_hydraulic_capabilities(capability_id)" in sql
+    # Tenant-scoped capability FK: an evaluation cannot reference another tenant's capability.
+    assert (
+        "REFERENCES canonical_hydraulic_capabilities(capability_id, tenant_id)" in sql
+    )
+    assert "CREATE UNIQUE INDEX IF NOT EXISTS uq_canonical_hydraulic_capability_tenant" in sql
     assert "REFERENCES irrigation_hydraulic_nodes(id, tenant_id)" in sql
+
+
+def test_v195_reservation_events_are_hardened() -> None:
+    sql = MIGRATION.read_text(encoding="utf-8")
+    # Deterministic idempotent replay even when causation_id is NULL.
+    assert "UNIQUE NULLS NOT DISTINCT (tenant_id, reservation_id, event_type, causation_id)" in sql
+    # DB-enforced append-only audit log.
+    assert "BEFORE UPDATE OR DELETE ON irrigation_resource_reservation_events" in sql
+    assert "is append-only" in sql
 
 
 def test_v195_forces_tenant_rls_on_all_three_tables() -> None:

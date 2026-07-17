@@ -21,6 +21,13 @@
 -- acknowledged/started/completed live in the execution/dispatch lineage, not here.
 BEGIN;
 
+-- Tenant-scoped capability reference: enable a composite (capability_id, tenant_id)
+-- FK below so an evaluation can never reference another tenant's capability. Added
+-- here (not by editing the shipped v171) so it applies to both fresh and already-
+-- migrated databases; capability_id is already the PK so this is a safe superset.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_canonical_hydraulic_capability_tenant
+    ON canonical_hydraulic_capabilities (capability_id, tenant_id);
+
 CREATE TABLE IF NOT EXISTS hydraulic_capacity_evaluations (
     evaluation_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
@@ -48,8 +55,8 @@ CREATE TABLE IF NOT EXISTS hydraulic_capacity_evaluations (
     UNIQUE (evaluation_id, tenant_id),
     FOREIGN KEY (project_id, tenant_id)
         REFERENCES irrigation_projects(id, tenant_id) ON DELETE CASCADE,
-    FOREIGN KEY (canonical_hydraulic_capability_id)
-        REFERENCES canonical_hydraulic_capabilities(capability_id) ON DELETE RESTRICT,
+    FOREIGN KEY (canonical_hydraulic_capability_id, tenant_id)
+        REFERENCES canonical_hydraulic_capabilities(capability_id, tenant_id) ON DELETE RESTRICT,
     FOREIGN KEY (bottleneck_node_id, tenant_id)
         REFERENCES irrigation_hydraulic_nodes(id, tenant_id) ON DELETE RESTRICT,
     CHECK (NOT isempty(requested_interval)),
@@ -117,7 +124,7 @@ CREATE TABLE IF NOT EXISTS irrigation_resource_reservation_events (
     correlation_id UUID NOT NULL,
     payload JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (tenant_id, reservation_id, event_type, causation_id),
+    UNIQUE NULLS NOT DISTINCT (tenant_id, reservation_id, event_type, causation_id),
     FOREIGN KEY (reservation_id, tenant_id)
         REFERENCES irrigation_resource_reservations(reservation_id, tenant_id) ON DELETE RESTRICT
 );
@@ -151,5 +158,21 @@ COMMENT ON TABLE irrigation_resource_reservations IS
     'IRR-F01: transaction-safe per-resource-node interval reservation; references existing execution aggregates polymorphically; lifecycle reserved/active/released/expired/cancelled only.';
 COMMENT ON TABLE irrigation_resource_reservation_events IS
     'IRR-F01: append-only reservation lifecycle audit for crash recovery and provenance.';
+
+-- Enforce the documented append-only audit contract at the database boundary: the
+-- reservation event log may only be inserted, never updated or deleted.
+CREATE OR REPLACE FUNCTION reject_irrigation_reservation_event_mutation()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+    RAISE EXCEPTION 'irrigation_resource_reservation_events is append-only'
+        USING ERRCODE = '55000';
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_irrigation_reservation_events_append_only
+    ON irrigation_resource_reservation_events;
+CREATE TRIGGER trg_irrigation_reservation_events_append_only
+BEFORE UPDATE OR DELETE ON irrigation_resource_reservation_events
+FOR EACH ROW EXECUTE FUNCTION reject_irrigation_reservation_event_mutation();
 
 COMMIT;
