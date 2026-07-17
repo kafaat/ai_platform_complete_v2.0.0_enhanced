@@ -115,7 +115,9 @@ async def live():
             except asyncpg.PostgresError:
                 pass
         try:
-            await admin.execute("delete from irrigation_hydraulic_nodes where tenant_id = $1", tenant)
+            await admin.execute(
+                "delete from irrigation_hydraulic_nodes where tenant_id = $1", tenant
+            )
             await admin.execute("delete from irrigation_projects where id = $1", project)
         except asyncpg.PostgresError:
             pass
