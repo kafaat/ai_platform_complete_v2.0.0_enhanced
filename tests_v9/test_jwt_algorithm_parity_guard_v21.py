@@ -31,7 +31,7 @@ _VERIFIER = "sahool-platform"
 
 
 def _env(service: str) -> dict[str, str]:
-    doc = yaml.safe_load(_COMPOSE.read_text())
+    doc = yaml.safe_load(_COMPOSE.read_text(encoding="utf-8"))
     env = doc["services"][service].get("environment", {})
     if isinstance(env, list):
         env = {e.split("=", 1)[0]: (e.split("=", 1)[1] if "=" in e else "") for e in env}

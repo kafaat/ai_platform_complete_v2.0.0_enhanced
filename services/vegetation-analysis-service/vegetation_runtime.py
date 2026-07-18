@@ -277,36 +277,6 @@ def _geometry_to_bbox(geometry: dict | None) -> list[float] | None:
     return [min(xs), min(ys), max(xs), max(ys)]
 
 
-<<<<<<< HEAD
-async def _load_field_from_db(
-    field_id: str,
-    tenant_id: str | None = None,
-    *,
-    user_bearer: str | None = None,
-) -> dict | None:
-    """يقرأ الحقل من «القاعدة» عبر platform API (sahool-platform يملك fields + RLS
-    + PostGIS). يُحوّل هندسة GeoJSON ⇒ bbox (مكافئ ST_Envelope) بصدق.
-
-    قيد معماريّ صريح: هذه الخدمة بلا pool قاعدة خاصّ بها (لا asyncpg/DATABASE_URL)،
-    فالعزل عبر المستأجِر (RLS / set app.current_tenant) يُفرَض في **المنصّة** خلف
-    GET /api/v1/fields/{id} (مُرشَّح بالمستأجِر هناك).
-
-    user_bearer: توكن JWT المستخدم (Bearer) يُمرَّر كـAuthorization إلى المنصّة عند
-    توفّره — المنصّة تتطلّب JWT لا X-Agent-Token على هذا المسار. يُستخدَم X-Agent-Token
-    كاحتياط إن غاب التوكن (استدعاء داخليّ بلا سياق مستخدم).
-
-    fail-soft مطلق: أيّ تعذّر/مهلة/هندسة غير صالحة ⇒ None (يقرّر المتّصِل الارتداد).
-    """
-    if not PLATFORM_API_URL:
-        return None
-    if not user_bearer and not RASTER_SERVICE_TOKEN:
-        return None
-    headers: dict[str, str] = {"Accept": "application/json"}
-    if user_bearer:
-        headers["Authorization"] = f"Bearer {user_bearer}"
-    else:
-        headers["X-Agent-Token"] = RASTER_SERVICE_TOKEN
-=======
 async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> dict | None:
     """يقرأ الحقل من field-management-service (المالك المُعلَن لجدول fields + RLS
     + PostGIS حسب docs/architecture/db_ownership.yml). يُحوّل هندسة GeoJSON ⇒ bbox
@@ -326,7 +296,6 @@ async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> di
         "X-Agent-Token": RASTER_SERVICE_TOKEN,
         "X-Service-Name": "vegetation-analysis-service",
     }
->>>>>>> 0da934a3612eb7efce20f478c8f12203dfdb3cc9
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
     # Distinct failure mapping — an unavailable/auth failure must NOT be masked as a
@@ -421,17 +390,12 @@ async def load_field(
     db_field: dict | None = None
     if FEATURE_SENTINEL_DB_FIELDS:
         try:
-<<<<<<< HEAD
-            db_field = await _load_field_from_db(field_id, tenant_id, user_bearer=user_bearer)
-        except Exception as e:  # noqa: BLE001 — fail-soft شامل
-=======
             db_field = await _load_field_from_db(field_id, tenant_id)
         except HTTPException:
             # owner-unavailable (503) / auth-contract (502) propagate with their
             # distinct status — they must NOT be swallowed to a misleading 404.
             raise
         except Exception as e:  # noqa: BLE001 — fail-soft شامل لغير HTTP
->>>>>>> 0da934a3612eb7efce20f478c8f12203dfdb3cc9
             logger.warning("db_field_load_error field_id=%s err=%s", field_id, e)
             db_field = None
 

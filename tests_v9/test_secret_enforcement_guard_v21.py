@@ -59,6 +59,7 @@ def _run(service_dir: str, snippet: str, env: dict[str, str]) -> subprocess.Comp
         env=full_env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=90,
     )
 

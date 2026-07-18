@@ -72,7 +72,7 @@ def test_state_roundtrip_and_cli(tmp_path, monkeypatch):
     state = hb.HeartbeatState("raster-backfill-scan")
     state.mark_poll(2)
     state.write()
-    data = json.loads((tmp_path / "raster-backfill-scan.json").read_text())
+    data = json.loads((tmp_path / "raster-backfill-scan.json").read_text(encoding="utf-8"))
     assert data["processed_total"] == 2 and data["current_state"] == "running"
     assert isinstance(data["last_poll_at"], (int, float))
     assert hb.main(["check", "--worker", "raster-backfill-scan", "--max-age", "2100"]) == 0
@@ -84,7 +84,7 @@ def test_state_roundtrip_and_cli(tmp_path, monkeypatch):
 
 # ── توصيل الحلقتين (كلاهما يكتب نبضة كلّ دورة + عند الخطأ ثمّ يُعيد الرفع) ──────
 def test_cache_invalidation_loop_writes_heartbeat_each_iteration():
-    src = _CACHE_WORKER.read_text()
+    src = _CACHE_WORKER.read_text(encoding="utf-8")
     assert "from worker_heartbeat import HeartbeatState" in src
     assert 'HeartbeatState(worker_name="raster-cache-invalidation")' in src
     assert "hb.mark_poll(processed)" in src
@@ -93,7 +93,7 @@ def test_cache_invalidation_loop_writes_heartbeat_each_iteration():
 
 
 def test_backfill_scan_loop_writes_heartbeat_each_iteration():
-    src = _BACKFILL_WORKER.read_text()
+    src = _BACKFILL_WORKER.read_text(encoding="utf-8")
     assert "from worker_heartbeat import HeartbeatState" in src
     assert 'HeartbeatState(worker_name="raster-backfill-scan")' in src
     assert "hb.mark_poll(processed)" in src
@@ -104,7 +104,7 @@ def test_backfill_scan_loop_writes_heartbeat_each_iteration():
 
 # ── compose: كلا العاملَين يستعملان فحص النبضة، ونقل المرساة أبقى id002 صالحاً ──
 def test_compose_raster_workers_use_heartbeat_healthcheck():
-    doc = yaml.safe_load(_COMPOSE.read_text())
+    doc = yaml.safe_load(_COMPOSE.read_text(encoding="utf-8"))
     svcs = doc["services"]
     cache_hc = svcs["sahool-raster-cache-invalidation-worker"]["healthcheck"]["test"]
     backfill_hc = svcs["sahool-raster-backfill-scan-worker"]["healthcheck"]["test"]
@@ -115,7 +115,7 @@ def test_compose_raster_workers_use_heartbeat_healthcheck():
 def test_id002_env_healthcheck_anchor_fully_retired():
     # حالة متقاربة بعد §2.1+§2.2: كلّ العمّال (phase-runtime الخمسة + الراستريّان) على نبضة
     # قدرة-واعية، فلم يبقَ مُشير إلى ``*id002`` وأُزيلت المرساة اليتيمة (لا كتلة ميّتة).
-    text = _COMPOSE.read_text()
+    text = _COMPOSE.read_text(encoding="utf-8")
     # لا تعريف مرساة ولا أيّ إشارة alias فعليّة (نتجاهل ذِكرها داخل التعليق التوثيقيّ).
     code_lines = [ln for ln in text.splitlines() if not ln.lstrip().startswith("#")]
     assert not any("&id002" in ln for ln in code_lines)
@@ -135,6 +135,6 @@ def test_id002_env_healthcheck_anchor_fully_retired():
 
 
 def test_module_is_stdlib_only():
-    src = _MOD.read_text()
+    src = _MOD.read_text(encoding="utf-8")
     for forbidden in ("import fastapi", "import asyncpg", "from fastapi", "import httpx"):
         assert forbidden not in src

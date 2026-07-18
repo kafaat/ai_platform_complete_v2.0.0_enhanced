@@ -82,7 +82,7 @@ def scan() -> tuple[list[str], bool]:
     violations: list[str] = []
     canonical_ok = False
     for p in _ROOT.rglob("*.py"):
-        rel = str(p.relative_to(_ROOT))
+        rel = p.relative_to(_ROOT).as_posix()
         if "__pycache__" in rel or "/tests/" in rel or Path(rel).name.startswith("test_"):
             continue
         if not rel.startswith(("services/", "bots/", "agents/")):
