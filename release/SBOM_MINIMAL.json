@@ -10425,6 +10425,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a5e508cdb571fa16f5027b9ca2e95cbd23ce4823cbba91cca1936c235a0152b4"
+        }
+      ],
+      "name": "services/decision-service/tests/test_activation_evidence_contract.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b44b3c37d93b4632ee5b6984522d56ed267dcf2483043c1434772ba10779eb47"
+        }
+      ],
+      "name": "services/decision-service/tests/test_activation_gate_core_hardening.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b46de83aeab10f9c06ebde18e4646d1e33dd6099ce7b8a7a28b380fcec1235ee"
         }
       ],

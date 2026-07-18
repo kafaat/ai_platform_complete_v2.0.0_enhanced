@@ -113,17 +113,23 @@ async def _exec(sql: str, *args):
         await conn.close()
 
 
-async def _insert_receipt_directly(stored_env: str, *, signature: str | None) -> str:
+async def _insert_receipt_directly(
+    stored_env: str, *, signature: str | None, expired: bool = False
+) -> str:
     """Insert a receipt straight into the store, bypassing the ingest endpoint. Used to prove the
-    gate re-verifies at resolve (a forged signature) and applies admissibility (a wrong-env receipt
-    that ingest would never accept). When ``signature`` is None a VALID one is computed."""
+    gate re-verifies at resolve (a forged signature) and applies admissibility (a wrong-env or
+    expired receipt that ingest would never accept). When ``signature`` is None a VALID one is
+    computed; ``expired`` places the whole validity window in the past."""
     import asyncpg
     from activation_gate_core import canonical_evidence_signature
 
     conn = await asyncpg.connect(DB, statement_cache_size=0)
     try:
         now = datetime.now(UTC)
-        observed, valid_until = now - timedelta(minutes=1), now + timedelta(hours=1)
+        if expired:
+            observed, valid_until = now - timedelta(hours=2), now - timedelta(hours=1)
+        else:
+            observed, valid_until = now - timedelta(minutes=1), now + timedelta(hours=1)
         sig = signature or canonical_evidence_signature(
             "evidence-key",
             gate_name=GATE,
@@ -221,6 +227,40 @@ def test_wrong_environment_receipt_does_not_enable_even_if_stored(monkeypatch):
     c = _client(monkeypatch, env_id)
     # A DISTINCT random other-env keeps the semantic UNIQUE key unique across runs.
     eid = asyncio.run(_insert_receipt_directly("other-" + uuid4().hex[:10], signature=None))
+    r = _enable(c, env_id, [eid])
+    assert r.status_code == 200 and r.json()["status"] == "degraded"
+
+
+def test_expired_receipt_rejected_at_ingest(monkeypatch):
+    from activation_gate_core import canonical_evidence_signature
+
+    env_id = "env-" + uuid4().hex[:10]
+    c = _client(monkeypatch, env_id)
+    # observed_at in the past, valid_until already elapsed (still valid_until > observed_at, so the
+    # window CHECK holds) ⇒ ingest refuses an already-expired receipt (400).
+    observed = (datetime.now(UTC) - timedelta(hours=2)).isoformat()
+    elapsed = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
+    item = {
+        "producer": "ci",
+        "check_name": "ci_live_certification",
+        "observed_at": observed,
+        "valid_until": elapsed,
+        "result": "pass",
+        "provenance": "ci",
+        "environment_id": env_id,
+    }
+    body = {**item, "gate_name": GATE, "build_sha": "d" * 40, "payload": {}}
+    body["signature"] = canonical_evidence_signature("evidence-key", **body)
+    r = c.post("/v1/activation/evidence-receipts", json=body)
+    assert r.status_code == 400 and "expired" in r.json()["detail"]
+
+
+def test_expired_receipt_does_not_enable_even_if_stored(monkeypatch):
+    # Defense in depth: an expired receipt that reaches the store by bypassing ingest is resolved
+    # (signature valid) but NOT admissible (valid_until <= now) ⇒ degraded, never enabled.
+    env_id = "env-" + uuid4().hex[:10]
+    c = _client(monkeypatch, env_id)
+    eid = asyncio.run(_insert_receipt_directly(env_id, signature=None, expired=True))
     r = _enable(c, env_id, [eid])
     assert r.status_code == 200 and r.json()["status"] == "degraded"
 
