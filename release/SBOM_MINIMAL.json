@@ -10565,6 +10565,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a36f88814a9b32cc635b773497b1aaa1e70217dc292b3e0b68cec9a0c2675c4c"
+        }
+      ],
+      "name": "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "36f5691b1d854305d0369b841a0f2a2aac6520d9b97697c0ca8d77c356d2c2da"
         }
       ],
@@ -12105,6 +12115,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3e541d339bb5fdf58633cc591bc10160041c5d3be446ed6c8afbfeaa43693a3f"
+        }
+      ],
+      "name": "services/raster-service/imagery_source_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "eeee7f20d63cca9f142c34f8c159fd1ce249a12c8ce454af6c7deed4930a49b4"
         }
       ],
@@ -13009,6 +13029,26 @@
         }
       ],
       "name": "services/raster-service/test_historical_backfill.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6277a6213df33c0c0230434715e5dbb5c718987b4523bcc87bad119378889bf2"
+        }
+      ],
+      "name": "services/raster-service/test_imagery_source_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "daacd99a468b7a7a5e7ebc364bbf5202fdd2801b87a5e22b7fee6767b9063b6d"
+        }
+      ],
+      "name": "services/raster-service/test_imagery_source_gate_no_bypass_static.py",
       "type": "file"
     },
     {
