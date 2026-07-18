@@ -15,8 +15,11 @@ jobs:
           python-version: '3.12'
       # الاختبارات تستورد pydantic/numpy وتمرّ عبر conftest tests_v9 — بيئة الاختبار
       # القانونيّة إلزاميّة، وpython -m pytest لا pytest المجرّد (درس dual-pytest).
+      # fastapi: خطوة satellite_cdse consumer (P2-c) تستورد raster_cdse_tile_runtime →
+      # raster_date_geo التي تستورد fastapi.HTTPException (سلسلة تفكيك الراوترات). درس httpx
+      # مكرّراً: مهمّة CI دنيا تستورد موديول خدمة يحمل اعتماديّة تشغيل ⇒ ثبّتها صراحةً.
       - name: Install test dependencies
-        run: python -m pip install -r tests_v9/requirements-test.txt
+        run: python -m pip install -r tests_v9/requirements-test.txt fastapi
       - name: Run raster validated product guard
         run: python scripts/ci/raster_validated_product_guard.py
       - name: Run raster validated product tests

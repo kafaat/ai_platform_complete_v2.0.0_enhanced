@@ -23745,6 +23745,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0bc1e7b3e07b828d32ab4ec497c16fc7d1e049a8227cbea53c66c32e0997725c"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_notifications_ws_handshake.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "78156db01bd379a5b081468a91cd56c60f320d6960876c0783658ba1baee055c"
         }
       ],
