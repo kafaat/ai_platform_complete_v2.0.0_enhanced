@@ -1200,6 +1200,9 @@ services:
       ACTIVATION_REQUIRE_PRODUCTION_HARDENING: ${ACTIVATION_REQUIRE_PRODUCTION_HARDENING:-false}
       DEPLOY_BUILD_SHA: ${DEPLOY_BUILD_SHA:-}
       ACTIVATION_PROBE_SIGNING_KEY: ${ACTIVATION_PROBE_SIGNING_KEY:-}
+      # Trust root for stored producer-issued evidence receipts. Required to ingest/resolve any
+      # receipt; the evidence-ingest and gate-completion paths fail closed (503) without it.
+      ACTIVATION_EVIDENCE_SIGNING_KEY: ${ACTIVATION_EVIDENCE_SIGNING_KEY:-}
       IRR_F01_RESERVATION_ENFORCE_ACTIVATION: ${IRR_F01_RESERVATION_ENFORCE_ACTIVATION:-false}
       # Soil/agronomic evidence gates. Contract guards mandate production-safe defaults here;
       # the DISPATCH-blocking gate stays OFF by default so the live stack is not fail-closed

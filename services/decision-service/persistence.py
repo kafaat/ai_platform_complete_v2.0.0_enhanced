@@ -15,6 +15,7 @@ import json
 import os
 from datetime import UTC, datetime
 from typing import Any
+import asyncio
 
 _TRUTHY = {"1", "true", "yes", "on"}
 
@@ -39,12 +40,41 @@ def now_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
-async def _connect():
+_POOLS: dict[int, Any] = {}
+
+
+class _PooledConnection:
+    def __init__(self, pool: Any, conn: Any) -> None:
+        self._pool = pool
+        self._conn = conn
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._conn, name)
+
+    async def close(self) -> None:
+        if self._conn is not None:
+            conn, self._conn = self._conn, None
+            await self._pool.release(conn)
+
+
+async def acquire_connection():
     try:
         import asyncpg  # type: ignore
-    except ImportError as exc:  # pragma: no cover - exercised in deploy/runtime only
+    except ImportError as exc:  # pragma: no cover
         raise RuntimeError("asyncpg is required when DECISION_SERVICE_SOR_ENABLED=true") from exc
-    return await asyncpg.connect(database_url(), statement_cache_size=0)
+    loop_id = id(asyncio.get_running_loop())
+    pool = _POOLS.get(loop_id)
+    if pool is None:
+        pool = await asyncpg.create_pool(
+            database_url(), min_size=1, max_size=int(os.getenv("DECISION_DB_POOL_MAX", "10")),
+            statement_cache_size=0,
+        )
+        _POOLS[loop_id] = pool
+    return _PooledConnection(pool, await pool.acquire())
+
+
+async def _connect():
+    return await acquire_connection()
 
 
 def _json(value: Any) -> str:

@@ -29,10 +29,12 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from typing import Any
+from uuid import UUID
 
 from persistence import database_url
 
@@ -40,6 +42,14 @@ STATES = frozenset({"disabled", "evaluating", "enabled", "degraded", "revoked"})
 DEFAULT_STALE_EVALUATION_SECONDS = 900
 # Generation-bound short-TTL read cache staleness bound for the read-heavy /current + /probe paths.
 CACHE_TTL_SECONDS = float(os.getenv("ACTIVATION_CACHE_TTL_SECONDS", "3") or 3)
+# Defense-in-depth bound on how long a single receipt can remain replayable. It complements — does
+# not replace — the revocation kill switch: even absent an explicit revoke, a receipt's blast radius
+# is capped. Enforced at three layers (ingest endpoint, this admissibility check, and a DB CHECK).
+MAX_EVIDENCE_VALIDITY_SECONDS = 24 * 60 * 60
+# Provenance is a canonical, whitespace-free identifier (not free text). This makes it a stable,
+# non-spoofable component of the semantic UNIQUE key: a distinct canonical provenance is, by
+# construction, a distinct producer observation — there is no implicit "latest receipt wins" lookup.
+PROVENANCE_RE = re.compile(r"^[a-z0-9][a-z0-9._:/-]{0,254}$")
 
 
 class ActivationProbeDenied(Exception):
@@ -58,10 +68,6 @@ class GateConfig:
     known_producers: frozenset[str]
     probe_role: str
     build_sha_namespace: str
-    # Producers that CANNOT be authenticated by in-cluster service identity (e.g. CI runs outside
-    # the network). In the production profile their receipts MUST carry a valid HMAC signature at
-    # ingest; internal producers rely on mTLS/service identity + the stored content hash + actor.
-    external_producers: frozenset[str] = frozenset()
 
 
 def _now() -> datetime:
@@ -89,36 +95,69 @@ def deploy_build_sha() -> str:
     (``DEPLOY_BUILD_SHA``). Binding activation to it means an enabled verdict is tied to the exact
     build that earned it — a redeploy of a different build changes the fingerprint. Never a request
     input (non-spoofable)."""
-    return os.getenv("DEPLOY_BUILD_SHA", "").strip()
+    value = os.getenv("DEPLOY_BUILD_SHA", "").strip().lower()
+    if not value or len(value) not in {40, 64} or any(ch not in "0123456789abcdef" for ch in value):
+        raise RuntimeError(
+            "DEPLOY_BUILD_SHA must be a non-empty 40- or 64-character hexadecimal build identity"
+        )
+    return value
+
+
+def _canonical_ts(value: Any) -> str:
+    """Timestamps are canonicalised to UTC ISO-8601 before signing, so a receipt verifies
+    identically no matter the DB session timezone or the tz-offset the producer happened to send."""
+    if isinstance(value, datetime):
+        aware = value.replace(tzinfo=UTC) if value.tzinfo is None else value
+        return aware.astimezone(UTC).isoformat()
+    return str(value)
+
+
+def _canonical_payload_field(value: Any) -> dict[str, Any]:
+    """The receipt ``payload`` round-trips through jsonb (asyncpg hands it back as text). Normalise
+    to a dict so the signed form is identical on the producer, ingest-verify, and resolve-verify
+    sides — otherwise a dict signed at ingest would never re-verify against a string read back."""
+    if isinstance(value, (str, bytes, bytearray)):
+        text = value.decode() if isinstance(value, (bytes, bytearray)) else value
+        return json.loads(text) if text else {}
+    return value or {}
+
+
+def canonical_evidence_signature(
+    secret: str,
+    *,
+    gate_name: str,
+    producer: str,
+    check_name: str,
+    environment_id: str,
+    observed_at: Any,
+    valid_until: Any,
+    result: str,
+    provenance: str,
+    build_sha: str,
+    payload: Any,
+) -> str:
+    """THE single source of truth for a receipt's HMAC. The producer signs with it, the ingest
+    endpoint re-derives it to verify the caller, and the gate re-derives it again at resolve. Binding
+    ``gate_name`` into the signature means a receipt minted for one gate cannot be replayed under
+    another even if an attacker could otherwise satisfy the row lookup."""
+    body = {
+        "gate_name": gate_name,
+        "producer": producer,
+        "check_name": check_name,
+        "environment_id": environment_id,
+        "observed_at": _canonical_ts(observed_at),
+        "valid_until": _canonical_ts(valid_until),
+        "result": result,
+        "provenance": provenance,
+        "build_sha": build_sha,
+        "payload": _canonical_payload_field(payload),
+    }
+    canonical = json.dumps(body, sort_keys=True, separators=(",", ":"), default=str)
+    return hmac.new(secret.encode(), canonical.encode(), hashlib.sha256).hexdigest()
 
 
 def _probe_secret() -> str:
     return os.getenv("ACTIVATION_PROBE_SIGNING_KEY", "").strip()
-
-
-def production_hardening_armed() -> bool:
-    """The activation production profile: external-producer signatures become mandatory. A deliberate
-    operator cutover gate (ACTIVATION_REQUIRE_PRODUCTION_HARDENING), not auto-armed by SAHOOL_ENV —
-    so the transitional mirror deployment is never broken, and the operator arms it at production
-    cutover (mirrors main.py's _activation_production_profile)."""
-    return os.getenv("ACTIVATION_REQUIRE_PRODUCTION_HARDENING", "").strip().lower() in (
-        "1",
-        "true",
-        "yes",
-        "on",
-    )
-
-
-def _evidence_signing_key(producer: str) -> str:
-    slug = producer.upper().replace("-", "_")
-    return os.getenv(f"ACTIVATION_EVIDENCE_SIGNING_KEY_{slug}", "").strip()
-
-
-def _expected_evidence_signature(producer: str, content_hash: str) -> str | None:
-    key = _evidence_signing_key(producer)
-    if not key:
-        return None
-    return hmac.new(key.encode(), content_hash.encode(), hashlib.sha256).hexdigest()
 
 
 class ActivationGateCore:
@@ -130,30 +169,112 @@ class ActivationGateCore:
 
     # ---- connection ---------------------------------------------------------------------------
     async def _connect(self):
+        # Use the service-owned pool when available; fall back to a direct connection only in
+        # isolated tests/tools. The returned handle always exposes close(), preserving callers.
+        try:
+            from persistence import acquire_connection  # type: ignore
+        except ImportError:
+            acquire_connection = None
+        if acquire_connection is not None:
+            return await acquire_connection()
         import asyncpg  # type: ignore
 
         return await asyncpg.connect(database_url(), statement_cache_size=0)
 
-    # ---- evidence + build_sha (server-derived, non-spoofable) ---------------------------------
+    # ---- evidence + build_sha (server-resolved, producer-signed) ------------------------------
     def _evidence_admissible(
         self, item: dict[str, Any], environment_id: str, now: datetime
     ) -> bool:
+        observed_at = _parse_ts(item.get("observed_at"))
         valid_until = _parse_ts(item.get("valid_until"))
+        provenance = item.get("provenance")
         return bool(
             item.get("producer") in self.cfg.known_producers
             and item.get("check_name") in self.cfg.required_checks
-            and str(item.get("environment_id")) == str(environment_id)
+            and item.get("environment_id") == environment_id
             and item.get("result") == "pass"
+            and observed_at is not None
+            and observed_at <= now
             and valid_until is not None
             and valid_until > now
+            and isinstance(provenance, str)
+            and bool(PROVENANCE_RE.fullmatch(provenance))
+            and (valid_until - observed_at).total_seconds() <= MAX_EVIDENCE_VALIDITY_SECONDS
         )
+
+    async def _resolve_evidence_refs(
+        self, conn: Any, evidence_refs: list[str], environment_id: str
+    ) -> list[dict[str, Any]]:
+        if not evidence_refs:
+            return []
+        try:
+            ids = [UUID(str(value)) for value in evidence_refs]
+        except (ValueError, TypeError) as exc:
+            raise ValueError("invalid_evidence_reference") from exc
+        # Revocation is enforced INSIDE this single fetch (NOT EXISTS against the append-only
+        # revocations table) so admit/reject is decided atomically against one snapshot — no
+        # second round-trip, no TOCTOU window between "is it revoked?" and "resolve it".
+        rows = await conn.fetch(
+            """SELECT r.evidence_id, r.producer, r.check_name, r.environment_id, r.observed_at,
+                      r.valid_until, r.result, r.provenance, r.build_sha, r.payload, r.signature
+                 FROM activation_evidence_receipts r
+                WHERE r.evidence_id = ANY($1::uuid[]) AND r.gate_name=$2
+                  AND NOT EXISTS (
+                    SELECT 1 FROM activation_evidence_revocations v
+                     WHERE v.evidence_id = r.evidence_id)""",
+            ids,
+            self.cfg.gate_name,
+        )
+        if len(rows) != len(set(ids)):
+            # A referenced receipt is missing, belongs to another gate, or has been revoked.
+            raise ValueError("evidence_reference_not_found")
+        secret = os.getenv("ACTIVATION_EVIDENCE_SIGNING_KEY", "").strip()
+        if not secret:
+            raise RuntimeError("ACTIVATION_EVIDENCE_SIGNING_KEY is required")
+        evidence: list[dict[str, Any]] = []
+        for row in rows:
+            item = dict(row)
+            fields = {
+                "gate_name": self.cfg.gate_name,
+                "producer": item["producer"],
+                "check_name": item["check_name"],
+                "environment_id": item["environment_id"],
+                "observed_at": item["observed_at"],
+                "valid_until": item["valid_until"],
+                "result": item["result"],
+                "provenance": item["provenance"],
+                "build_sha": item["build_sha"],
+                "payload": item["payload"],
+            }
+            expected = canonical_evidence_signature(secret, **fields)
+            if not hmac.compare_digest(expected, item["signature"]):
+                raise ValueError("evidence_signature_invalid")
+            # The admitted envelope carries canonical ISO timestamps + a dict payload so downstream
+            # admissibility (and the digest) see exactly what was signed.
+            evidence.append(
+                {
+                    "producer": item["producer"],
+                    "check_name": item["check_name"],
+                    "environment_id": item["environment_id"],
+                    "observed_at": _canonical_ts(item["observed_at"]),
+                    "valid_until": _canonical_ts(item["valid_until"]),
+                    "result": item["result"],
+                    "provenance": item["provenance"],
+                    "build_sha": item["build_sha"],
+                    "payload": _canonical_payload_field(item["payload"]),
+                }
+            )
+        return evidence
 
     def deploy_build_sha(self) -> str:
         return deploy_build_sha()
 
     def build_sha(self, evidence_items: list[dict[str, Any]]) -> str:
-        """Deterministic, server-derived fingerprint of (deployed build + admitted evidence) —
-        non-spoofable because it is computed here, never supplied by a caller."""
+        # The build identity is read from immutable deployment metadata, never supplied by a caller.
+        deployed = deploy_build_sha()
+        for item in evidence_items:
+            if item.get("build_sha") != deployed:
+                raise ValueError("evidence_build_sha_mismatch")
         canon = json.dumps(
             sorted(
                 f"{e.get('producer')}|{e.get('check_name')}|{e.get('provenance')}|{e.get('valid_until')}"
@@ -161,177 +282,13 @@ class ActivationGateCore:
             ),
             separators=(",", ":"),
         )
-        namespaced = (
-            f"{self.cfg.gate_name}:{self.cfg.build_sha_namespace}:{deploy_build_sha()}:{canon}"
-        )
+        namespaced = f"{self.cfg.gate_name}:{self.cfg.build_sha_namespace}:{deployed}:{canon}"
         return hashlib.sha256(namespaced.encode()).hexdigest()
 
     def _evidence_digest(self, evidence_items: list[dict[str, Any]]) -> str:
         return hashlib.sha256(
             json.dumps(evidence_items, sort_keys=True, separators=(",", ":"), default=str).encode()
         ).hexdigest()
-
-    def build_sha_from_receipts(self, receipts: list[dict[str, Any]]) -> str:
-        """The enabled verdict's fingerprint, bound to (deployed build + the exact admitted receipt
-        content hashes). Non-spoofable: the content hashes are server-stored, never caller input."""
-        canon = json.dumps(sorted(str(r["content_hash"]) for r in receipts), separators=(",", ":"))
-        namespaced = (
-            f"{self.cfg.gate_name}:{self.cfg.build_sha_namespace}:{deploy_build_sha()}:{canon}"
-        )
-        return hashlib.sha256(namespaced.encode()).hexdigest()
-
-    # ---- stored evidence receipts (the root of trust — Gate-Trust-1) ---------------------------
-    def _receipt_content_hash(
-        self,
-        *,
-        environment_id: str,
-        producer: str,
-        check_name: str,
-        result: str,
-        observed_at: str,
-        valid_until: str,
-        provenance: str | None,
-        build_sha: str | None,
-    ) -> str:
-        canon = json.dumps(
-            {
-                "gate": self.cfg.gate_name,
-                "environment_id": str(environment_id),
-                "producer": str(producer),
-                "check_name": str(check_name),
-                "result": str(result),
-                "observed_at": str(observed_at),
-                "valid_until": str(valid_until),
-                "provenance": provenance or "",
-                "build_sha": build_sha or "",
-            },
-            sort_keys=True,
-            separators=(",", ":"),
-        )
-        return hashlib.sha256(canon.encode()).hexdigest()
-
-    async def record_receipt(
-        self,
-        *,
-        environment_id: str,
-        producer: str,
-        check_name: str,
-        result: str,
-        observed_at: str,
-        valid_until: str,
-        provenance: str | None = None,
-        build_sha: str | None = None,
-        signature: str | None = None,
-        key_id: str | None = None,
-    ) -> dict[str, Any]:
-        """Authenticated ingest: a trusted producer issues ONE evidence receipt. Validates the
-        producer identity + the gate's contract SERVER-SIDE, computes the canonical content hash,
-        and stores an append-only receipt. Idempotent — identical content returns the same receipt.
-        This is the only way evidence enters the system; the activation caller never supplies it."""
-        if producer not in self.cfg.known_producers:
-            return {"status": "rejected", "reason": "unknown_producer"}
-        if check_name not in self.cfg.required_checks:
-            return {"status": "rejected", "reason": "unsupported_check"}
-        if result not in ("pass", "fail"):
-            return {"status": "rejected", "reason": "invalid_result"}
-        observed = _parse_ts(observed_at)
-        valid = _parse_ts(valid_until)
-        if observed is None or valid is None:
-            return {"status": "rejected", "reason": "invalid_timestamp"}
-        content_hash = self._receipt_content_hash(
-            environment_id=environment_id,
-            producer=producer,
-            check_name=check_name,
-            result=result,
-            observed_at=observed.isoformat(),
-            valid_until=valid.isoformat(),
-            provenance=provenance,
-            build_sha=build_sha,
-        )
-        # External producers (e.g. CI, outside the cluster) must prove origin with a valid signature
-        # over the content hash in the production profile — service identity alone is not available.
-        if producer in self.cfg.external_producers and production_hardening_armed():
-            expected = _expected_evidence_signature(producer, content_hash)
-            if expected is None:
-                return {"status": "rejected", "reason": "signing_key_unavailable"}
-            if not signature or not hmac.compare_digest(expected, signature):
-                return {"status": "rejected", "reason": "invalid_signature"}
-        conn = await self._connect()
-        try:
-            row = await conn.fetchrow(
-                "INSERT INTO activation_evidence_receipts "
-                "(gate_name, environment_id, producer, check_name, result, observed_at, valid_until, "
-                " provenance, build_sha, content_hash, signature, key_id) "
-                "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) "
-                "ON CONFLICT (gate_name, environment_id, content_hash) "
-                "  DO UPDATE SET content_hash = EXCLUDED.content_hash "  # no-op: return the existing id
-                "RETURNING receipt_id",
-                self.cfg.gate_name,
-                str(environment_id),
-                producer,
-                check_name,
-                result,
-                observed,
-                valid,
-                provenance,
-                build_sha,
-                content_hash,
-                signature,
-                key_id,
-            )
-            return {
-                "status": "recorded",
-                "receipt_id": str(row["receipt_id"]),
-                "content_hash": content_hash,
-            }
-        finally:
-            await conn.close()
-
-    async def _resolve_receipts(
-        self, conn: Any, receipt_ids: list[str], environment_id: str, now: datetime
-    ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
-        """Resolve caller-submitted receipt IDs against the store — the caller sends references, the
-        gate reads the truth. Every mismatch (unknown / wrong gate / wrong env / revoked / expired /
-        non-pass / unknown producer / unsupported check) is a rejection, never an admission."""
-        admitted: list[dict[str, Any]] = []
-        rejections: list[dict[str, str]] = []
-        for rid in receipt_ids:
-            try:
-                row = await conn.fetchrow(
-                    "SELECT receipt_id, gate_name, environment_id, producer, check_name, result, "
-                    "observed_at, valid_until, provenance, build_sha, content_hash, revoked "
-                    "FROM activation_evidence_receipts WHERE receipt_id = $1::uuid",
-                    str(rid),
-                )
-            except Exception:  # noqa: BLE001 — a malformed receipt id is a rejection, not a crash
-                rejections.append({"receipt_id": str(rid), "reason": "invalid_receipt_id"})
-                continue
-            if row is None:
-                rejections.append({"receipt_id": str(rid), "reason": "unknown_receipt"})
-                continue
-            if row["gate_name"] != self.cfg.gate_name:
-                rejections.append({"receipt_id": str(rid), "reason": "wrong_gate"})
-                continue
-            if row["environment_id"] != str(environment_id):
-                rejections.append({"receipt_id": str(rid), "reason": "wrong_environment"})
-                continue
-            if row["revoked"]:
-                rejections.append({"receipt_id": str(rid), "reason": "revoked"})
-                continue
-            if row["valid_until"] <= now:
-                rejections.append({"receipt_id": str(rid), "reason": "expired"})
-                continue
-            if row["result"] != "pass":
-                rejections.append({"receipt_id": str(rid), "reason": "not_pass"})
-                continue
-            if row["producer"] not in self.cfg.known_producers:
-                rejections.append({"receipt_id": str(rid), "reason": "unknown_producer"})
-                continue
-            if row["check_name"] not in self.cfg.required_checks:
-                rejections.append({"receipt_id": str(rid), "reason": "unsupported_check"})
-                continue
-            admitted.append(dict(row))
-        return admitted, rejections
 
     # ---- cache --------------------------------------------------------------------------------
     def invalidate_cache(self, environment_id: str) -> None:
@@ -358,14 +315,12 @@ class ActivationGateCore:
         actor: str,
         reason: str,
     ) -> None:
-        # No ON CONFLICT: the (environment_id, activation_generation) unique index means a duplicate
-        # event is a real invariant breach (the CAS already makes each generation transition once),
-        # so it must surface as an error, never be silently swallowed.
         await conn.execute(
             f"""INSERT INTO {self.cfg.events_table}
                  (environment_id, from_state, to_state, activation_generation, build_sha, evidence,
                   actor, reason)
-               VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8)""",
+               VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8)
+""",
             environment_id,
             from_state,
             to_state,
@@ -429,16 +384,30 @@ class ActivationGateCore:
         actor: str,
         ttl_seconds: int,
     ) -> dict[str, Any]:
-        """evaluating → enabled|degraded (CAS on the generation begin_evaluation returned).
-
-        The caller submits RECEIPT REFERENCES only (``evidence_refs``). The gate resolves them from
-        the server-side receipt store INSIDE the transaction (the trust root — a caller can never
-        supply a check result). All required checks covered by valid admitted receipts ⇒ enabled
-        with a server-derived build_sha bound to those receipts; else degraded. Every rejected
-        reference is reported for audit but never admitted."""
+        """evaluating → enabled|degraded (CAS on the generation begin_evaluation returned). All
+        required checks present + admissible ⇒ enabled with a server-derived build_sha; else degraded."""
         now = _now()
-        expires = now + timedelta(seconds=max(1, int(ttl_seconds)))
         conn = await self._connect()
+        try:
+            evidence = await self._resolve_evidence_refs(conn, evidence_refs, environment_id)
+        except Exception:
+            await conn.close()
+            raise
+        admitted = {
+            e.get("check_name")
+            for e in evidence
+            if self._evidence_admissible(e, environment_id, now)
+        }
+        enabled = self.cfg.required_checks <= admitted
+        to_state = "enabled" if enabled else "degraded"
+        sha = self.build_sha(evidence) if enabled else None
+        digest = self._evidence_digest(evidence)
+        expires = now + timedelta(seconds=max(1, int(ttl_seconds)))
+        reason = (
+            "evidence_complete"
+            if enabled
+            else f"missing_checks:{sorted(self.cfg.required_checks - admitted)}"
+        )
         try:
             async with conn.transaction():
                 row = await conn.fetchrow(
@@ -450,31 +419,6 @@ class ActivationGateCore:
                     return {"status": "conflict", "reason": "not_evaluating"}
                 if row["activation_generation"] != expected_generation:
                     return {"status": "conflict", "reason": "cas_conflict"}
-                admitted, rejections = await self._resolve_receipts(
-                    conn, list(evidence_refs or []), environment_id, now
-                )
-                admitted_checks = {r["check_name"] for r in admitted}
-                enabled = self.cfg.required_checks <= admitted_checks
-                to_state = "enabled" if enabled else "degraded"
-                sha = self.build_sha_from_receipts(admitted) if enabled else None
-                # The event records the resolved receipt provenance (id + content hash bound to this
-                # generation), never a caller claim.
-                receipt_evidence = [
-                    {
-                        "receipt_id": str(r["receipt_id"]),
-                        "content_hash": r["content_hash"],
-                        "producer": r["producer"],
-                        "check_name": r["check_name"],
-                        "valid_until": r["valid_until"].isoformat(),
-                    }
-                    for r in admitted
-                ]
-                digest = self._evidence_digest(receipt_evidence)
-                reason = (
-                    "evidence_complete"
-                    if enabled
-                    else f"missing_checks:{sorted(self.cfg.required_checks - admitted_checks)}"
-                )
                 status = await conn.execute(
                     f"UPDATE {self.cfg.activation_table} "
                     "SET state=$3, activation_generation=$2+1, build_sha=$4, evidence_digest=$5, "
@@ -497,7 +441,7 @@ class ActivationGateCore:
                     to_state=to_state,
                     generation=expected_generation + 1,
                     build_sha_value=sha,
-                    evidence=receipt_evidence,
+                    evidence=evidence,
                     actor=actor,
                     reason=reason,
                 )
@@ -506,8 +450,6 @@ class ActivationGateCore:
                     "generation": expected_generation + 1,
                     "build_sha": sha,
                     "state_expires_at": expires.isoformat(),
-                    "admitted_receipts": [str(r["receipt_id"]) for r in admitted],
-                    "rejected_receipts": rejections,
                 }
         finally:
             await conn.close()
@@ -676,7 +618,10 @@ class ActivationGateCore:
 
     # ---- probe envelope (role + HMAC signature) -----------------------------------------------
     def probe_signature(self, environment_id: str, *, secret: str | None = None) -> str:
-        key = (secret if secret is not None else _probe_secret()).encode()
+        secret_value = secret if secret is not None else _probe_secret()
+        if not secret_value:
+            raise ActivationProbeDenied("probe signing key unavailable")
+        key = secret_value.encode()
         return hmac.new(
             key, f"{self.cfg.gate_name}:{environment_id}".encode(), hashlib.sha256
         ).hexdigest()

@@ -39,15 +39,11 @@ _CORE = ActivationGateCore(
         known_producers=KNOWN_PRODUCERS,
         probe_role=PROBE_ROLE,
         build_sha_namespace="v028",
-        # CI runs outside the cluster: its receipts must be signed in production (raster-service /
-        # decision-service are internal and rely on service identity).
-        external_producers=frozenset({"ci"}),
     )
 )
 
 # Public API — bound to the shared core (signatures unchanged from the pre-extraction module).
 build_sha = _CORE.build_sha
-record_receipt = _CORE.record_receipt
 begin_evaluation = _CORE.begin_evaluation
 complete_evaluation = _CORE.complete_evaluation
 revoke = _CORE.revoke
@@ -80,7 +76,6 @@ __all__ = [
     "invalidate_cache",
     "probe_signature",
     "probe_state",
-    "record_receipt",
     "recover_stale_evaluations",
     "reset",
     "revoke",

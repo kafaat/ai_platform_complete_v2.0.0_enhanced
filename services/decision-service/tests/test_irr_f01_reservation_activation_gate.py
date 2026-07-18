@@ -9,6 +9,9 @@ immutability, and CAS + activation_generation correctness.
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import hmac
+import json
 import os
 import sys
 from datetime import UTC, datetime, timedelta
@@ -66,22 +69,47 @@ def _evidence(env: str, *, complete: bool = True) -> list[dict]:
     return items if complete else items[:1]
 
 
-async def _ingest(env: str, *, complete: bool = True) -> list[str]:
-    """Gate-Trust-1: producers issue receipts server-side; the operator references them by id."""
-    ids = []
-    for item in _evidence(env, complete=complete):
-        r = await gate.record_receipt(
-            environment_id=env,
-            producer=item["producer"],
-            check_name=item["check_name"],
-            result=item["result"],
-            observed_at=item["observed_at"],
-            valid_until=item["valid_until"],
-            provenance=item.get("provenance"),
-        )
-        assert r["status"] == "recorded"
-        ids.append(r["receipt_id"])
-    return ids
+async def _store_evidence(env: str, items: list[dict]) -> list[str]:
+    os.environ.setdefault("DEPLOY_BUILD_SHA", "d" * 40)
+    os.environ.setdefault("ACTIVATION_EVIDENCE_SIGNING_KEY", "evidence-key")
+    conn = await _connect()
+    refs: list[str] = []
+    try:
+        from activation_gate_core import canonical_evidence_signature
+
+        for item in items:
+            signature = canonical_evidence_signature(
+                "evidence-key",
+                gate_name="irr_f01_reservation",
+                producer=item["producer"],
+                check_name=item["check_name"],
+                environment_id=env,
+                observed_at=item["observed_at"],
+                valid_until=item["valid_until"],
+                result=item["result"],
+                provenance=item["provenance"],
+                build_sha="d" * 40,
+                payload={},
+            )
+            evidence_id = await conn.fetchval(
+                """INSERT INTO activation_evidence_receipts
+                   (gate_name,producer,check_name,environment_id,observed_at,valid_until,result,provenance,build_sha,payload,signature)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'{}'::jsonb,$10) RETURNING evidence_id""",
+                "irr_f01_reservation",
+                item["producer"],
+                item["check_name"],
+                env,
+                datetime.fromisoformat(item["observed_at"]),
+                datetime.fromisoformat(item["valid_until"]),
+                item["result"],
+                item["provenance"],
+                "d" * 40,
+                signature,
+            )
+            refs.append(str(evidence_id))
+        return refs
+    finally:
+        await conn.close()
 
 
 async def _enable(env: str, ttl: int = 3600) -> dict:
@@ -90,7 +118,7 @@ async def _enable(env: str, ttl: int = 3600) -> dict:
     return await gate.complete_evaluation(
         env,
         expected_generation=began["generation"],
-        evidence_refs=await _ingest(env),
+        evidence_refs=await _store_evidence(env, _evidence(env)),
         actor="op",
         ttl_seconds=ttl,
     )
@@ -216,7 +244,7 @@ def test_enforcement_is_the_only_gate():
         deg = await gate.complete_evaluation(
             env,
             expected_generation=began_gen,
-            evidence_refs=await _ingest(env, complete=False),
+            evidence_refs=await _store_evidence(env, _evidence(env, complete=False)),
             actor="op",
             ttl_seconds=3600,
         )
@@ -255,7 +283,9 @@ def test_cas_and_generation_correctness():
         env = _env()
         began = await gate.begin_evaluation(env, actor="op")  # gen 1
         assert began["generation"] == 1
-        refs = await _ingest(env)
+        # One stored receipt set is reused: the semantic UNIQUE index means the same producer/check/
+        # env/provenance/build is a single receipt, referenced by UUID across attempts.
+        refs = await _store_evidence(env, _evidence(env))
         # A completion with a stale expected generation is a CAS conflict (no-op).
         stale = await gate.complete_evaluation(
             env, expected_generation=0, evidence_refs=refs, actor="op", ttl_seconds=60

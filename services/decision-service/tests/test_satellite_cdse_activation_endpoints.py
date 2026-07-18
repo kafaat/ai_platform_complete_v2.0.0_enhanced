@@ -8,6 +8,9 @@ that the probe endpoint is closed to a normal caller. Runs against real Postgres
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import os
 import sys
 from datetime import UTC, datetime, timedelta
@@ -28,7 +31,8 @@ def _client(monkeypatch, env_id: str):
     monkeypatch.setenv("DECISION_SERVICE_SOR_ENABLED", "true")
     monkeypatch.setenv("ACTIVATION_ENVIRONMENT_ID", env_id)
     monkeypatch.setenv("ACTIVATION_PROBE_SIGNING_KEY", "probe-key")
-    monkeypatch.setenv("DEPLOY_BUILD_SHA", "deadbeef")
+    monkeypatch.setenv("DEPLOY_BUILD_SHA", "d" * 40)
+    monkeypatch.setenv("ACTIVATION_EVIDENCE_SIGNING_KEY", "evidence-key")
     monkeypatch.delenv("DECISION_SERVICE_AUTH_TOKEN", raising=False)
     import main
     from fastapi.testclient import TestClient
@@ -37,12 +41,13 @@ def _client(monkeypatch, env_id: str):
 
 
 def _evidence(env_id: str, *, complete: bool = True) -> list[dict]:
+    observed = (datetime.now(UTC) - timedelta(minutes=1)).isoformat()
     future = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     items = [
         {
             "producer": "raster-service",
             "check_name": "cdse_credentials_present",
-            "observed_at": future,
+            "observed_at": observed,
             "valid_until": future,
             "result": "pass",
             "provenance": "raster-service/cdse_client",
@@ -51,7 +56,7 @@ def _evidence(env_id: str, *, complete: bool = True) -> list[dict]:
         {
             "producer": "raster-service",
             "check_name": "cdse_live_probe",
-            "observed_at": future,
+            "observed_at": observed,
             "valid_until": future,
             "result": "pass",
             "provenance": "raster-service/stac_search",
@@ -61,26 +66,17 @@ def _evidence(env_id: str, *, complete: bool = True) -> list[dict]:
     return items if complete else items[:1]
 
 
-def _ingest_refs(c, env_id: str, *, complete: bool = True) -> list[str]:
-    """POST each evidence item to the authenticated ingest endpoint; return the receipt ids the
-    operator will reference (Gate-Trust-1: the operator never submits check results)."""
-    ids = []
-    for item in _evidence(env_id, complete=complete):
-        r = c.post(
-            "/v1/activation/satellite_cdse/evidence-receipts",
-            headers={"X-Requested-By": "producer"},
-            json={
-                "producer": item["producer"],
-                "check_name": item["check_name"],
-                "result": item["result"],
-                "observed_at": item["observed_at"],
-                "valid_until": item["valid_until"],
-                "provenance": item.get("provenance"),
-            },
-        )
-        assert r.status_code == 200, r.text
-        ids.append(r.json()["receipt_id"])
-    return ids
+def _store_evidence(client, items: list[dict], gate_name: str) -> list[str]:
+    from activation_gate_core import canonical_evidence_signature
+
+    refs = []
+    for item in items:
+        body = {**item, "gate_name": gate_name, "build_sha": "d" * 40, "payload": {}}
+        body["signature"] = canonical_evidence_signature("evidence-key", **body)
+        response = client.post("/v1/activation/evidence-receipts", json=body)
+        assert response.status_code == 201, response.text
+        refs.append(response.json()["evidence_id"])
+    return refs
 
 
 def test_operator_lifecycle_over_api(monkeypatch):
@@ -95,7 +91,7 @@ def test_operator_lifecycle_over_api(monkeypatch):
         headers=h,
         json={
             "expected_generation": gen,
-            "evidence_refs": _ingest_refs(c, env_id),
+            "evidence_refs": _store_evidence(c, _evidence(env_id), "satellite_cdse"),
             "ttl_seconds": 3600,
         },
     )
@@ -122,7 +118,7 @@ def test_source_selection_reflects_gate(monkeypatch):
         headers=h,
         json={
             "expected_generation": gen,
-            "evidence_refs": _ingest_refs(c, env_id),
+            "evidence_refs": _store_evidence(c, _evidence(env_id), "satellite_cdse"),
             "ttl_seconds": 3600,
         },
     )

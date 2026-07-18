@@ -7,6 +7,9 @@ probe endpoint is closed to a normal caller, and the pure build_sha (deploy meta
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import os
 import sys
 from datetime import UTC, datetime, timedelta
@@ -27,7 +30,8 @@ def _client(monkeypatch, env_id: str, *, enforce: bool = False):
     monkeypatch.setenv("DECISION_SERVICE_SOR_ENABLED", "true")
     monkeypatch.setenv("ACTIVATION_ENVIRONMENT_ID", env_id)
     monkeypatch.setenv("ACTIVATION_PROBE_SIGNING_KEY", "probe-key")
-    monkeypatch.setenv("DEPLOY_BUILD_SHA", "deadbeef")
+    monkeypatch.setenv("DEPLOY_BUILD_SHA", "d" * 40)
+    monkeypatch.setenv("ACTIVATION_EVIDENCE_SIGNING_KEY", "evidence-key")
     monkeypatch.setenv("IRR_F01_RESERVATION_ENFORCE_ACTIVATION", "1" if enforce else "")
     monkeypatch.delenv("DECISION_SERVICE_AUTH_TOKEN", raising=False)
     import main
@@ -37,12 +41,13 @@ def _client(monkeypatch, env_id: str, *, enforce: bool = False):
 
 
 def _evidence(env_id: str, *, complete: bool = True) -> list[dict]:
+    observed = (datetime.now(UTC) - timedelta(minutes=1)).isoformat()
     future = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     items = [
         {
             "producer": "ci",
             "check_name": "ci_live_certification",
-            "observed_at": future,
+            "observed_at": observed,
             "valid_until": future,
             "result": "pass",
             "provenance": "ci",
@@ -51,7 +56,7 @@ def _evidence(env_id: str, *, complete: bool = True) -> list[dict]:
         {
             "producer": "decision-service",
             "check_name": "consumer_heartbeat",
-            "observed_at": future,
+            "observed_at": observed,
             "valid_until": future,
             "result": "pass",
             "provenance": "inbox",
@@ -61,26 +66,17 @@ def _evidence(env_id: str, *, complete: bool = True) -> list[dict]:
     return items if complete else items[:1]
 
 
-def _ingest_refs(c, env_id: str, *, complete: bool = True) -> list[str]:
-    """POST each evidence item to the authenticated ingest endpoint; return the receipt ids the
-    operator will reference (Gate-Trust-1: the operator never submits check results)."""
-    ids = []
-    for item in _evidence(env_id, complete=complete):
-        r = c.post(
-            "/v1/activation/irr_f01_reservation/evidence-receipts",
-            headers={"X-Requested-By": "producer"},
-            json={
-                "producer": item["producer"],
-                "check_name": item["check_name"],
-                "result": item["result"],
-                "observed_at": item["observed_at"],
-                "valid_until": item["valid_until"],
-                "provenance": item.get("provenance"),
-            },
-        )
-        assert r.status_code == 200, r.text
-        ids.append(r.json()["receipt_id"])
-    return ids
+def _store_evidence(client, items: list[dict], gate_name: str) -> list[str]:
+    from activation_gate_core import canonical_evidence_signature
+
+    refs = []
+    for item in items:
+        body = {**item, "gate_name": gate_name, "build_sha": "d" * 40, "payload": {}}
+        body["signature"] = canonical_evidence_signature("evidence-key", **body)
+        response = client.post("/v1/activation/evidence-receipts", json=body)
+        assert response.status_code == 201, response.text
+        refs.append(response.json()["evidence_id"])
+    return refs
 
 
 def test_operator_lifecycle_over_api(monkeypatch):
@@ -95,7 +91,7 @@ def test_operator_lifecycle_over_api(monkeypatch):
         headers=h,
         json={
             "expected_generation": gen,
-            "evidence_refs": _ingest_refs(c, env_id),
+            "evidence_refs": _store_evidence(c, _evidence(env_id), "irr_f01_reservation"),
             "ttl_seconds": 3600,
         },
     )
@@ -128,7 +124,7 @@ def test_ingest_enforces_activation_when_flag_on(monkeypatch):
         headers=oh,
         json={
             "expected_generation": gen,
-            "evidence_refs": _ingest_refs(c, env_id),
+            "evidence_refs": _store_evidence(c, _evidence(env_id), "irr_f01_reservation"),
             "ttl_seconds": 3600,
         },
     )
@@ -159,10 +155,15 @@ def test_probe_endpoint_closed_to_normal_caller(monkeypatch):
 def test_build_sha_binds_deploy_metadata(monkeypatch):
     import activation_gate as gate
 
-    ev = _evidence("env-x")
-    monkeypatch.setenv("DEPLOY_BUILD_SHA", "aaaa")
-    a = gate.build_sha(ev)
-    monkeypatch.setenv("DEPLOY_BUILD_SHA", "bbbb")
-    b = gate.build_sha(ev)
+    # Evidence must carry the deployed build identity; build_sha() re-verifies that binding, so the
+    # fixtures below use valid 40-hex identities (the gate fails closed on anything else).
+    ev_a = _evidence("env-x")
+    for item in ev_a:
+        item["build_sha"] = "a" * 40
+    ev_b = [{**item, "build_sha": "b" * 40} for item in ev_a]
+    monkeypatch.setenv("DEPLOY_BUILD_SHA", "a" * 40)
+    a = gate.build_sha(ev_a)
+    monkeypatch.setenv("DEPLOY_BUILD_SHA", "b" * 40)
+    b = gate.build_sha(ev_b)
     assert a != b  # a different deployed build changes the fingerprint
-    assert gate.build_sha(ev) == b  # deterministic for a fixed build + evidence
+    assert gate.build_sha(ev_b) == b  # deterministic for a fixed build + evidence

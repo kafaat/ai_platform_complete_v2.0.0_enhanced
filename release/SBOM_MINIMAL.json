@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8f14dc82e9ae717352fbc53ca96ef34393deea7018f18b7ad113407a5c3f2411"
+          "content": "d77a7001f9a2295787499ea67c902ba159a86f5b42517437d9d8e2fbd13dbc66"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9935,7 +9935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cdb4eaaa456a6af3f00dac1b836063c5d35c3fcc06a1453ad6db1aba72bda529"
+          "content": "a2a45c69c4b2abe38c7b6a398ebbe471f72bdaf6f0f32d98ba908faf74e43447"
         }
       ],
       "name": "services/decision-service/activation_gate.py",
@@ -9945,7 +9945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "24aa83f80540b98a44b24bce006d10f22317729107504a3161af326e17a6f3e7"
+          "content": "ba5f1a8d6bd725c7ba9bf0d636b86c6e1681996278892ad27c08414bb58fcd89"
         }
       ],
       "name": "services/decision-service/activation_gate_core.py",
@@ -10005,7 +10005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "00dcbd3feeaf2573c90810d73d50bc9401c6b1162a513b887d93c5ea6889a5a8"
+          "content": "a9691ddf77cee8b55aaa12452ca301b0c819bc089c6e8d7c96c646a7cd0d0b70"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10315,7 +10315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "258e34e69a84dbc3bad68943ea7f5de3355d94fd6f491691a423b28ff771cf79"
+          "content": "3a88b915c55520033f275726d0c5a16d1f5a93ba30fdc6b57f9811cd77a41ec4"
         }
       ],
       "name": "services/decision-service/migrations/030_activation_evidence_receipts.sql",
@@ -10325,7 +10325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "410b2f2726d9fdfefef03ba7992162f8b03803b949f469e851bea1dba170c0b3"
+          "content": "4d2b9bad1b2c87c3cdd77f82be27f4c2802960f348a98aee37fa46b1dec1a155"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -10375,7 +10375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "291b472c3658e1879da9e9681972e136d6fae02ba87061fc4698da6b8583b9eb"
+          "content": "3d8c82a6f1155f6d3946fc66346695a369c99a5bdf78f37cc20fedc716904c30"
         }
       ],
       "name": "services/decision-service/satellite_cdse_activation_gate.py",
@@ -10405,7 +10405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0e3eebbd09ff94857d5496767b28bdacef9de05fca7941fe9f55f6f799c7b34f"
+          "content": "446ce9b34d57c9f456464b491fa7b6f242593cce65e751a3ba4e9781c3752640"
         }
       ],
       "name": "services/decision-service/tests/conftest.py",
@@ -10419,16 +10419,6 @@
         }
       ],
       "name": "services/decision-service/tests/test_ac1_agronomic_context.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "d4c21aa259e4a064d314dd01f26b4e1fb336eb9a7baf698820b7350a6fc9d783"
-        }
-      ],
-      "name": "services/decision-service/tests/test_activation_evidence_receipts.py",
       "type": "file"
     },
     {
@@ -10525,7 +10515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "37e5cdb0685923c4dd5f51a6769bedd267f0453a957bc9b0e49d91c006f11184"
+          "content": "0a8dd203d917b3b2135c9d11bc2121bb88f0859e64650d3d0a7d7a48a44aa72d"
         }
       ],
       "name": "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
@@ -10535,7 +10525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6912f8b5f88978c92a703b7734bf9474a2007a116afd9176f3665faf79bc3f84"
+          "content": "0778c142ab8d2a433dfd9626ae9082ba3c6984c4799bcc20cd0d83d7c8d882fe"
         }
       ],
       "name": "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
@@ -10575,7 +10565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f78df376c9b29a8eee026cde9969be1ee004cdd1834d1af3bd5117f72375c17f"
+          "content": "d3fd9ce05d1d6f3951212bfbe782c6a332985f77c662c1ebd10941f731d5b664"
         }
       ],
       "name": "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
@@ -10585,7 +10575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "775e9b61ba81155d40c4099f50d2a8538096a4cb28ce6889a0c67f9fd64c123e"
+          "content": "af5fed4a54d5b23f76a45bf6531d689441f2a2b285fd557472c4557e4e01b3c3"
         }
       ],
       "name": "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
@@ -10595,7 +10585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2d5f3696a1be44d1bed92effcdbe68b572af565e04e1e4e4a1fd46b8e350d659"
+          "content": "fc931b8631e471e2b99140a7ba4b297e7b8b839145822810c2dde7754a7e3780"
         }
       ],
       "name": "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",

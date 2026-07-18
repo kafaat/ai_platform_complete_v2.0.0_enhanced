@@ -9,11 +9,15 @@ persisted in real Postgres. This proves the operator's closure conditions end to
   #3 degraded (incomplete evidence) uses Element84 without pretending the gate is enabled
   #4 a generation change between two resolves is observable (the race signal)
 
-Runs in the Decision Service Tests job (real Postgres, SoR on).
+Trust root: activation consumes STORED producer-signed receipts referenced by UUID — the caller
+submits receipt references only, never raw inline evidence. Runs in the Decision Service Tests job.
 """
 
 from __future__ import annotations
 
+import hashlib
+import hmac
+import json
 import os
 import sys
 from datetime import UTC, datetime, timedelta
@@ -25,9 +29,8 @@ import pytest
 
 DECISION_DIR = Path(__file__).resolve().parents[1]
 RASTER_DIR = DECISION_DIR.parents[0] / "raster-service"
-# decision-service must stay FIRST on sys.path so `import main` resolves to it — raster-service also
-# has a `main.py`, so its dir is APPENDED (not inserted ahead) to avoid shadowing when this file is
-# collected alongside the other decision-service tests in one pytest process.
+# decision-service's own dir must win for ``import main`` (both services ship a main.py); the raster
+# consumer module is importable via an APPENDED path so it never shadows the decision app.
 if str(DECISION_DIR) not in sys.path:
     sys.path.insert(0, str(DECISION_DIR))
 if str(RASTER_DIR) not in sys.path:
@@ -36,14 +39,18 @@ if str(RASTER_DIR) not in sys.path:
 DB = os.getenv("DATABASE_URL", "").strip()
 pytestmark = pytest.mark.skipif(not DB, reason="requires real Postgres")
 
+_KEY = b"evidence-key"
+_BUILD = "d" * 40
+
 
 def _evidence(env: str, *, complete: bool = True) -> list[dict]:
+    observed = (datetime.now(UTC) - timedelta(minutes=1)).isoformat()
     future = (datetime.now(UTC) + timedelta(hours=1)).isoformat()
     items = [
         {
             "producer": "raster-service",
             "check_name": "cdse_credentials_present",
-            "observed_at": future,
+            "observed_at": observed,
             "valid_until": future,
             "result": "pass",
             "provenance": "raster-service/cdse_client",
@@ -52,7 +59,7 @@ def _evidence(env: str, *, complete: bool = True) -> list[dict]:
         {
             "producer": "raster-service",
             "check_name": "cdse_live_probe",
-            "observed_at": future,
+            "observed_at": observed,
             "valid_until": future,
             "result": "pass",
             "provenance": "raster-service/stac_search",
@@ -62,9 +69,24 @@ def _evidence(env: str, *, complete: bool = True) -> list[dict]:
     return items if complete else items[:1]
 
 
+async def _store(ds: httpx.AsyncClient, items: list[dict]) -> list[str]:
+    from activation_gate_core import canonical_evidence_signature
+
+    refs = []
+    for item in items:
+        body = {**item, "gate_name": "satellite_cdse", "build_sha": _BUILD, "payload": {}}
+        body["signature"] = canonical_evidence_signature("evidence-key", **body)
+        r = await ds.post("/v1/activation/evidence-receipts", json=body)
+        assert r.status_code == 201, r.text
+        refs.append(r.json()["evidence_id"])
+    return refs
+
+
 async def _decision_client(monkeypatch, env: str):
     monkeypatch.setenv("DECISION_SERVICE_SOR_ENABLED", "true")
     monkeypatch.setenv("ACTIVATION_ENVIRONMENT_ID", env)
+    monkeypatch.setenv("DEPLOY_BUILD_SHA", _BUILD)
+    monkeypatch.setenv("ACTIVATION_EVIDENCE_SIGNING_KEY", "evidence-key")
     monkeypatch.delenv("DECISION_SERVICE_AUTH_TOKEN", raising=False)
     monkeypatch.setenv("RASTER_ACTIVATION_GATE_ENFORCE", "1")
     import main  # decision-service app
@@ -72,33 +94,12 @@ async def _decision_client(monkeypatch, env: str):
     return httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), base_url="http://ds")
 
 
-async def _operate(ds: httpx.AsyncClient, path: str, **json):
+async def _operate(ds: httpx.AsyncClient, path: str, **json_body):
     return await ds.post(
         f"/v1/activation/satellite_cdse/{path}",
         headers={"X-Requested-By": "operator"},
-        json=json or None,
+        json=json_body or None,
     )
-
-
-async def _ingest_refs(ds: httpx.AsyncClient, env: str, *, complete: bool = True) -> list[str]:
-    """Producers issue receipts over the ingest endpoint; the operator references them by id."""
-    ids = []
-    for item in _evidence(env, complete=complete):
-        r = await ds.post(
-            "/v1/activation/satellite_cdse/evidence-receipts",
-            headers={"X-Requested-By": "producer"},
-            json={
-                "producer": item["producer"],
-                "check_name": item["check_name"],
-                "result": item["result"],
-                "observed_at": item["observed_at"],
-                "valid_until": item["valid_until"],
-                "provenance": item.get("provenance"),
-            },
-        )
-        assert r.status_code == 200, r.text
-        ids.append(r.json()["receipt_id"])
-    return ids
 
 
 async def test_gate_state_changes_flip_the_consumer_source(monkeypatch):
@@ -114,12 +115,9 @@ async def test_gate_state_changes_flip_the_consumer_source(monkeypatch):
         # operator enables ⇒ consumer now selects CDSE, bound to the live generation
         began = await _operate(ds, "begin")
         gen = began.json()["generation"]
+        refs = await _store(ds, _evidence(env))
         await _operate(
-            ds,
-            "complete",
-            expected_generation=gen,
-            evidence_refs=await _ingest_refs(ds, env),
-            ttl_seconds=3600,
+            ds, "complete", expected_generation=gen, evidence_refs=refs, ttl_seconds=3600
         )
         d1 = await consumer.resolve_active_source(env=env, client=ds)
         assert d1.use_cdse is True and d1.provider == "cdse"
@@ -143,12 +141,9 @@ async def test_degraded_evidence_stays_on_fallback(monkeypatch):
         began = await _operate(ds, "begin")
         gen = began.json()["generation"]
         # incomplete evidence ⇒ gate degraded ⇒ consumer must NOT treat it as enabled (proof #3)
+        refs = await _store(ds, _evidence(env, complete=False))
         done = await _operate(
-            ds,
-            "complete",
-            expected_generation=gen,
-            evidence_refs=await _ingest_refs(ds, env, complete=False),
-            ttl_seconds=3600,
+            ds, "complete", expected_generation=gen, evidence_refs=refs, ttl_seconds=3600
         )
         assert done.json()["status"] == "degraded"
         d = await consumer.resolve_active_source(env=env, client=ds)

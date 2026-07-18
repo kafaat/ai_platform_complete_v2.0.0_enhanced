@@ -86,7 +86,7 @@ def test_prod_06_no_parallel_readiness_consumes_evidence():
 def test_prod_evidence_receipt_trust_root():
     # Gate-Trust-1: caller-supplied evidence was spoofable; the root of trust is now server-stored
     # producer-issued RECEIPTS. The caller submits references (evidence_refs), the gate resolves them
-    # from its own store, and raw caller evidence is structurally forbidden.
+    # from its own store, re-verifies the stored HMAC signature, and raw caller evidence is forbidden.
     RECEIPT_MIGRATION = (
         ROOT
         / "services"
@@ -95,31 +95,40 @@ def test_prod_evidence_receipt_trust_root():
         / "030_activation_evidence_receipts.sql"
     ).read_text(encoding="utf-8")
     assert "activation_evidence_receipts" in RECEIPT_MIGRATION
-    assert "append-only" in RECEIPT_MIGRATION and "revoke is one-way" in RECEIPT_MIGRATION
-    # The core ingests + resolves receipts server-side; complete takes references, not results.
-    assert "async def record_receipt" in CORE
-    assert "async def _resolve_receipts" in CORE
+    assert "activation_evidence_receipts is append-only" in RECEIPT_MIGRATION
+    # The revocation kill switch is a SEPARATE INSERT-only table (one revocation per receipt, itself
+    # append-only) — it restores a selective kill switch without an UPDATE-able column on receipts.
+    assert "activation_evidence_revocations" in RECEIPT_MIGRATION
+    assert "evidence_id uuid NOT NULL UNIQUE" in RECEIPT_MIGRATION
+    assert "activation_evidence_revocations is append-only" in RECEIPT_MIGRATION
+    # The core resolves receipts server-side, re-verifies the stored signature, and drops any revoked
+    # receipt inside the SAME resolve query (NOT EXISTS — no TOCTOU); complete takes references.
+    assert "async def _resolve_evidence_refs" in CORE
+    assert "evidence_signature_invalid" in CORE and "compare_digest" in CORE
+    assert "NOT EXISTS" in CORE and "activation_evidence_revocations" in CORE
     assert (
         "evidence_refs" in CORE
         and "evidence: list[dict[str, Any]]"
         not in CORE.split("async def complete_evaluation")[1].split("async def")[0]
     )
     # Raw caller evidence is forbidden at the HTTP contract (extra=forbid) — a smuggled results
-    # field is rejected, not silently ignored.
+    # field is rejected, not silently ignored — and the ingest + revoke endpoints exist.
     assert 'ConfigDict(extra="forbid")' in MAIN
     assert "evidence-receipts" in MAIN  # the authenticated ingest endpoint
+    assert "/revoke" in MAIN and "X-Requested-By is required" in MAIN  # actor-authed revoke
 
 
 def test_prod_production_profile_fail_closed():
-    # Gate-Trust-1 Slice 2: the production profile hard-fails startup unless the gate's non-spoofable
-    # config is present, and external-producer receipts must be signed. Fail-open is impossible when
-    # the operator arms the profile.
-    assert "def activation_production_startup_error" in MAIN
-    assert "DEPLOY_BUILD_SHA" in MAIN and "ACTIVATION_PROBE_SIGNING_KEY" in MAIN
-    assert "activation_production_startup_error()" in MAIN  # wired into the lifespan
-    # External producers (CI) must sign in production; verification lives in the core.
-    assert "production_hardening_armed" in CORE
-    assert "external_producers" in CORE and "invalid_signature" in CORE
+    # Gate-Trust-1: the trust root fails closed at READ. The deployed build identity is mandatory and
+    # non-spoofable — deploy_build_sha() raises on an absent/malformed DEPLOY_BUILD_SHA, so no verdict
+    # can bind to an unknown build. The evidence signing key is mandatory to ingest or resolve.
+    assert "def deploy_build_sha" in CORE and "DEPLOY_BUILD_SHA" in CORE
+    assert 'raise RuntimeError("ACTIVATION_EVIDENCE_SIGNING_KEY is required")' in CORE
+    # Ingest fails closed without the signing key (503) and caps validity at 24h (defense-in-depth
+    # alongside the revocation kill switch).
+    assert "activation evidence signing unavailable" in MAIN
+    assert "MAX_EVIDENCE_VALIDITY_SECONDS" in MAIN
+    assert "MAX_EVIDENCE_VALIDITY_SECONDS = 24 * 60 * 60" in CORE
 
 
 def test_prod_07_shared_core_extracted_after_two_gates():
