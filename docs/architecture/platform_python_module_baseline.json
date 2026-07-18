@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 647,
+  "baseline_python_module_count": 648,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -131,6 +131,7 @@
     "api/index_registry.py",
     "api/inventory_models.py",
     "api/ipm_advisor.py",
+    "api/irrigation_activation_gate.py",
     "api/irrigation_capacity_reservation.py",
     "api/irrigation_closed_loop_learning.py",
     "api/irrigation_closed_loop_runtime.py",
@@ -667,5 +668,6 @@
   "irr_f01_reservation_adapter_note": "api/irrigation_reservation_adapter.py: IRR-F01 DB adapter contract binding the pure reservation kernel to the platform-owned v195 tables + the EXISTING execution-request/outbox path via an injected ExecutionRequestPort. Lock-before-evaluate reserve-and-request-dispatch inside the caller's tx (set tenant GUC -> ordered advisory locks -> fresh overlap read + admission -> INSERT evaluation -> INSERT reservations+events -> outbox intent). Committed reservation = dispatch_requested; actuator receipt = dispatched. Forward compensation on post-commit actuator failure (reservation->cancelled, request->dispatch_failed), no rollback. No new execution SoR; no new route. Live execution + the port's outbox binding are the deferred Phase-4 PostgreSQL integration gate.",
   "irr_f01_execution_request_port_note": "api/irrigation_execution_request_port.py: IRR-F01 Gate B — the real ExecutionRequestPort binding the reservation adapter to the EXISTING emit_event outbox on the same tx connection (dispatch_requested intent, entity_type='operation' to satisfy the events CHECK; the outbox worker + decision-service do the live delivery). Registers EventType IRRIGATION_RESERVATION_DISPATCH_REQUESTED/_FAILED. Certified live (Gate B1): emit atomicity + rollback + compensation on PostgreSQL 16.",
   "irr_f01_dispatch_relay_note": "IRR-F01 Gate B-delivery: pure event->decision-service ingest relay mapper (irrigation_dispatch_relay.py). Sits with the other irrigation_* IRR-F01 modules; single-use (no general framework extraction per ACTIVATION-GATE-PROD-07). +1 (645->646).",
-  "gate_b_d2_live_relay_note": "api/irrigation_dispatch_relay_worker.py: IRR-F01 Gate B-delivery Slice B-d2-live — the reservation-dispatch relay worker. Subscribes to the reservation dispatch events the OutboxWorker publishes to NATS and POSTs each to decision-service's durable inbox (POST /v1/reservation-dispatch-intents). Delivery-only: NEVER derives/creates an execution_request (delivery != fulfillment, locked by tests/irrigation/test_gate_b_dispatch_relay_worker.py). DEFAULT-OFF twice: opt-in `relay` compose profile + FEATURE_RESERVATION_DISPATCH_RELAY flag. The message->ingest->POST core is pure/unit-tested; the live NATS+decision-service round-trip is staging-certified (deferred). Owner: irrigation delivery boundary (decision-service inbox is the sink)."
+  "gate_b_d2_live_relay_note": "api/irrigation_dispatch_relay_worker.py: IRR-F01 Gate B-delivery Slice B-d2-live — the reservation-dispatch relay worker. Subscribes to the reservation dispatch events the OutboxWorker publishes to NATS and POSTs each to decision-service's durable inbox (POST /v1/reservation-dispatch-intents). Delivery-only: NEVER derives/creates an execution_request (delivery != fulfillment, locked by tests/irrigation/test_gate_b_dispatch_relay_worker.py). DEFAULT-OFF twice: opt-in `relay` compose profile + FEATURE_RESERVATION_DISPATCH_RELAY flag. The message->ingest->POST core is pure/unit-tested; the live NATS+decision-service round-trip is staging-certified (deferred). Owner: irrigation delivery boundary (decision-service inbox is the sink).",
+  "irr_f01_reservation_activation_guard_note": "api/irrigation_activation_gate.py — the platform-side RESTRICTED adapter that enforces the irr_f01_reservation activation gate before a reservation is created (open-ledger #1). It MUST live in platform (it is the platform's consumer of the decision-service enforce endpoint, mirroring raster-service's imagery_source_gate), reads the enforcement flag fresh, fails closed on 403/non-200/transport error, and provides the activation_guard thunk injected into reserve_and_request_dispatch_db. Default-off/transitional; a static no-bypass guard locks it."
 }
