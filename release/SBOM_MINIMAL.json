@@ -2515,7 +2515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73a9a8ffdc45b401b8355ff58afe4376eb2c8a22f6b33011016b8558e8d93a70"
+          "content": "9435fbaa179af6be337f8b8c1bbed4d1f44a1a8a83d587fe8551467f9c580bdf"
         }
       ],
       "name": "frontend/src/hooks/useApi.ts",
@@ -6395,7 +6395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "88404019df3fbb599b71f0c5c2db335bb629fb08af5fbdea325d77877ed26772"
+          "content": "3efd1cc2f2b04eacb8f39ce997c7eab19d74ff54ecbce31109fcc97c5047fc88"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "92bf5266673cab841e8b79f6df3b5e4b9b23e95d29d72b36375f38fa11424a3c"
+          "content": "ef2b6e77379a6f5b8a5c800b73ecefa17ea4a616dd68f20f0026b9ea3a18b2b0"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",

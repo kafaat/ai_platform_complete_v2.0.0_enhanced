@@ -291,7 +291,16 @@ const retryTransientOnly = (failureCount: number, error: unknown): boolean => {
 export function useCurrentNDVI(fieldId: string) {
   return useQuery({
     queryKey: QK.ndviCurrent(fieldId),
-    queryFn:  () => vegetationApi.get(`/v1/ndvi/current/${fieldId}`).then(r => r.data),
+    queryFn: async () => {
+      try {
+        return (await vegetationApi.get(`/v1/ndvi/current/${fieldId}`)).data;
+      } catch (err: unknown) {
+        // 404 ⇒ الحقل غير مُسجَّل في خدمة الغطاء بعد — نُعيد null بدل رمي الخطأ (يتجنّب
+        // ضجيج console لكلّ حقل جديد). أيّ حالة أخرى تُرمى فيتولّاها retryTransientOnly.
+        if ((err as { response?: { status?: number } }).response?.status === 404) return null;
+        throw err;
+      }
+    },
     staleTime:10 * 60_000,
     enabled:  !!fieldId,
     retry:    retryTransientOnly,
