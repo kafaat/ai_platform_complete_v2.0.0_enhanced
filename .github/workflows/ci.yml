@@ -766,6 +766,15 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_irr_f01_activation_endpoints.py -q -p no:cacheprovider
+      # Phase 2: the SECOND, independent Category-A activation gate (satellite_cdse) — same state
+      # machine/CAS/TTL/evidence proofs, but enforcement is imagery-SOURCE SELECTION (cdse vs the
+      # element84 fallback) rather than a refusal. Two independent gates unlock the Phase-3
+      # extraction (ACTIVATION-GATE-PROD-07).
+      - name: satellite_cdse activation gate proof tests (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_satellite_cdse_activation_gate.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->
