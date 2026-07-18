@@ -43,7 +43,7 @@ while IFS= read -r f; do
 done < <(grep -vE '^\s*#|^\s*$' "$MIG_DIR/MANIFEST.txt")
 echo "  ✓ طُبّقت $applied هجرة (idempotent — آمنة على التكرار)"
 
-echo "─ إنشاء دور التطبيق المقيّد (${APP_ROLE} — NOSUPERUSER NOBYPASSRLS) ─"
+echo "─ إنشاء دور التطبيق المقيّد (${APP_ROLE} — NOSUPERUSER NOBYPASSRLS NOINHERIT) ─"
 psql_exec -v app_role="$APP_ROLE" -v app_pw="$APP_PASSWORD" <<'SQL'
 -- ١) أنشئ الدور فقط إن لم يكن موجوداً (يُولّد SQL ثمّ يُنفّذ بـ\gexec)
 SELECT format('CREATE ROLE %I LOGIN', :'app_role')
@@ -51,8 +51,9 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_role')
 \gexec
 
 -- ٢) ثبّت السمات الأمنيّة وكلمة السرّ (idempotent سواء أُنشئ الآن أو سابقاً)
+-- NOINHERIT: يمنع توريث صلاحيّات أيّ دور عضو فيه — عقد الدور المقيَّد (IRR-F01 Gate A).
 ALTER ROLE :"app_role"
-  LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
+  LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
 
 -- صلاحيّات وقت التشغيل: DML + EXECUTE + USAGE فقط. CREATE يُسحب صراحةً؛
 -- أي خدمة ما زالت تُنشئ schema عند الإقلاع يجب نقلها إلى migration job مستقل.
