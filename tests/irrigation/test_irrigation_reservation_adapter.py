@@ -201,6 +201,70 @@ def test_overcommit_raises_and_writes_no_reservation_or_dispatch():
     assert port.dispatch_calls == []
 
 
+def test_activation_guard_refuses_before_any_lock_or_write():
+    # A disabled/revoked gate: the injected guard raises. The reservation must be refused
+    # AT THE SOURCE — no tenant GUC, no advisory lock, no evaluation, no reservation, no dispatch.
+    class GateNotEnabled(Exception):
+        pass
+
+    async def deny():
+        raise GateNotEnabled("irr_f01_reservation not activated")
+
+    conn, port = FakeConn(), FakePort()
+    try:
+        _run(
+            reserve_and_request_dispatch_db(
+                conn,
+                tenant_id=TENANT,
+                project_id=PROJECT,
+                requested_start=START,
+                requested_end=END,
+                resources=[_req(NODE_A, "shared_capacity", "180", "300")],
+                execution_ref_type="manual_execution",
+                execution_ref_id="mx-3",
+                calculation_model_version="v1",
+                execution_port=port,
+                correlation_id=CORR,
+                activation_guard=deny,
+            )
+        )
+        raised = False
+    except GateNotEnabled:
+        raised = True
+    assert raised
+    assert conn.calls == []  # nothing touched the DB — not even set_config or a lock
+    assert port.dispatch_calls == []
+
+
+def test_activation_guard_pass_through_leaves_happy_path_unchanged():
+    # An enabled gate (guard returns without raising) — the reserve/dispatch flow is intact.
+    awaited = {"n": 0}
+
+    async def allow():
+        awaited["n"] += 1
+
+    conn, port = FakeConn(), FakePort()
+    outcome = _run(
+        reserve_and_request_dispatch_db(
+            conn,
+            tenant_id=TENANT,
+            project_id=PROJECT,
+            requested_start=START,
+            requested_end=END,
+            resources=[_req(NODE_A, "shared_capacity", "180", "300")],
+            execution_ref_type="manual_execution",
+            execution_ref_id="mx-4",
+            calculation_model_version="v1",
+            execution_port=port,
+            correlation_id=CORR,
+            activation_guard=allow,
+        )
+    )
+    assert awaited["n"] == 1  # the guard was consulted exactly once
+    assert outcome.reservation_ids == ("res-1",)
+    assert len(port.dispatch_calls) == 1
+
+
 def test_compensation_cancels_reservations_and_marks_request_failed():
     conn, port = FakeConn(), FakePort()
     res_ids = ["dddddddd-0000-0000-0000-000000000001", "dddddddd-0000-0000-0000-000000000002"]

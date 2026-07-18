@@ -170,9 +170,17 @@ async def reserve_and_request_dispatch_db(
     correlation_id: UUID,
     canonical_hydraulic_capability_id: str | None = None,
     idempotency_key: str | None = None,
+    activation_guard: Callable[[], Awaitable[None]] | None = None,
     after_locks_acquired: Callable[[], Awaitable[None]] | None = None,
 ) -> ReservationOutcome:
     """Lock-before-evaluate reserve + dispatch-REQUEST inside the caller's tx.
+
+    ``activation_guard`` is the IRR-F01 activation enforcement seam (default ``None`` =
+    off, so the current mirror deployment is unchanged). When the caller wires it (to the
+    ``irr_f01_reservation`` gate's ``enforce_enabled``), it is awaited BEFORE any tenant
+    GUC / advisory lock / DB write, so a disabled or revoked gate refuses the reservation
+    at its source — never at the delivery inbox alone. A raised exception propagates
+    unchanged (the caller maps it to a 403), and NOTHING is written.
 
     ``after_locks_acquired`` is a test-only deterministic injection point (default
     ``None``; production callers never pass it): it is awaited once, with every
@@ -189,6 +197,11 @@ async def reserve_and_request_dispatch_db(
     resource_ids = [r.resource_node_id for r in resources]
     if len(resource_ids) != len(set(resource_ids)):
         raise ValueError("DUPLICATE_HYDRAULIC_RESOURCE")
+
+    # Activation enforcement AT THE SOURCE: gate the reservation before any side effect.
+    # A disabled/revoked gate raises here, so no lock is taken and no row is written.
+    if activation_guard is not None:
+        await activation_guard()
 
     tenant = str(tenant_id)
     await conn.execute(SET_TENANT_SQL, tenant)
