@@ -798,15 +798,11 @@ services:
       FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
-<<<<<<< HEAD
-      VEGETATION_REAL_ONLY: "0"
-=======
       # Fail-closed by default (production/staging): no processed observation ⇒ 424,
       # never a synthetic NDVI. Development may opt into soft-fail (available:false, 200)
       # by exporting VEGETATION_REAL_ONLY=0 (see .env.development). The default MUST stay
       # 1 so production can never silently degrade — enforced by the compose guard.
       VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}
->>>>>>> 0da934a3612eb7efce20f478c8f12203dfdb3cc9
       # vegetation publishes events best-effort; NATS is not a startup/readiness blocker.
       VEGETATION_NATS_PUBLISH_MODE: ${VEGETATION_NATS_PUBLISH_MODE:-best_effort}
       # نبات → decision-service: دفع لقطات النبات المُصانة (opt-in، fail-soft). العنوان يطابق

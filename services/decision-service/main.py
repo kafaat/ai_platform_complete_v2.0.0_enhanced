@@ -23,6 +23,7 @@ Migration path to a real decision-service SoR is documented in
 from __future__ import annotations
 
 import hmac
+import json
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -30,10 +31,13 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
+import activation_gate
+import satellite_cdse_activation_gate
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
 from persistence import (
+    acquire_connection,
     authorize_dispatch,
     build_calibration_dataset,
     claim_execution_request,
@@ -71,6 +75,7 @@ from persistence import (
     record_model_registry_rollback_receipt,
     record_monitoring_snapshot,
     record_reconcile_evidence,
+    record_reservation_dispatch_intent,
     record_retraining_dispatch_receipt,
     record_rollout_receipt,
     register_runtime_worker_tenant,
@@ -82,9 +87,13 @@ from persistence import (
     verify_execution_outcome,
     worker_tenant_authorized,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from shared.contracts.soil import validate_soil_use
+
+
+def _is_production() -> bool:
+    return os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
 
 
 @asynccontextmanager
@@ -103,20 +112,44 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Sahool Decision Service", version="p0-sor-strangler", lifespan=lifespan)
+app = FastAPI(
+    title="Sahool Decision Service",
+    version="p0-sor-strangler",
+    lifespan=lifespan,
+    docs_url=None if _is_production() else "/docs",
+    redoc_url=None if _is_production() else "/redoc",
+    openapi_url=None if _is_production() else "/openapi.json",
+)
 
 # Critical: do not trust identity headers (X-Tenant-Id / X-*-By) on the raw internal port.
 # When DECISION_SERVICE_AUTH_TOKEN is configured, every non-probe request must present the shared
 # service bearer token (the runtime/worker already send it). Unset (dev/mirror) → no-op, so the
 # existing gateway-trusted flow is unchanged. This is defense-in-depth for the future SoR mode:
 # a service reachable directly inside the cluster can no longer spoof tenant/actor identities.
-_AUTH_EXEMPT = {"/healthz", "/readyz", "/livez", "/", "/docs", "/openapi.json", "/redoc"}
+# Health/liveness probes are ALWAYS exempt (the orchestrator hits them unauthenticated). The
+# interactive docs paths are exempt only in development: in production they are disabled at app
+# construction (docs_url=None → 404), so listing them as exempt there would be dead-and-misleading —
+# production restricts the exemption set to the probes alone.
+_PROBE_EXEMPT = {"/healthz", "/readyz", "/livez", "/"}
+_DOCS_PATHS = {"/docs", "/openapi.json", "/redoc"}
+
+
+def _auth_exempt_paths() -> set[str]:
+    """The set of paths that bypass the service-token check, evaluated per request so an operator's
+    SAHOOL_ENV flip takes effect without a restart. Production = probes only; development also
+    exempts the docs paths for convenience."""
+    return _PROBE_EXEMPT if _is_production() else (_PROBE_EXEMPT | _DOCS_PATHS)
 
 
 @app.middleware("http")
 async def _service_token_guard(request, call_next):
     required = os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip()
-    if required and request.url.path not in _AUTH_EXEMPT:
+    path = "/" if request.url.path == "/" else request.url.path.rstrip("/")
+    if service_auth_required() and not required:
+        from fastapi.responses import JSONResponse
+
+        return JSONResponse({"detail": "service authentication unavailable"}, status_code=503)
+    if required and path not in _auth_exempt_paths():
         header = request.headers.get("authorization", "")
         presented = header[7:].strip() if header[:7].lower() == "bearer " else ""
         if not presented or not hmac.compare_digest(presented, required):
@@ -352,6 +385,15 @@ def _is_production() -> bool:
     return os.getenv("SAHOOL_ENV", "development").strip().lower() in {"production", "prod"}
 
 
+def service_auth_required() -> bool:
+    return _is_production() or os.getenv("DECISION_REQUIRE_AUTH_TOKEN", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
 def production_auth_startup_error() -> str | None:
     """Container-audit V21 §4.1: authentication is mandatory in production — refuse to start.
 
@@ -362,13 +404,7 @@ def production_auth_startup_error() -> str | None:
     authoritative service can never accept traffic. An explicit DECISION_REQUIRE_AUTH_TOKEN
     also arms the check outside production. Returns the fail message, or None when satisfied.
     """
-    require = os.getenv("DECISION_REQUIRE_AUTH_TOKEN", "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
-    if (require or _is_production()) and not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip():
+    if service_auth_required() and not os.getenv("DECISION_SERVICE_AUTH_TOKEN", "").strip():
         return (
             "DECISION_SERVICE_AUTH_TOKEN is required in production (or when "
             "DECISION_REQUIRE_AUTH_TOKEN is set) but is empty — refusing to start an "
@@ -1109,6 +1145,476 @@ async def execute_authorized_dispatch(
     if result.get("status") == "not_found":
         raise HTTPException(status_code=404, detail="dispatch authorization not found")
     raise HTTPException(status_code=409, detail=result.get("reason", "execution request conflict"))
+
+
+class ReservationDispatchIntentIn(BaseModel):
+    source_event_id: str
+    event_type: str
+    evaluation_id: str | None = None
+    reservation_ids: list[str] = Field(default_factory=list)
+    execution_ref_type: str | None = None
+    execution_ref_id: str | None = None
+    correlation_id: str | None = None
+    causation_id: str | None = None
+    raw_payload: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/v1/reservation-dispatch-intents")
+async def ingest_reservation_dispatch_intent(
+    payload: ReservationDispatchIntentIn,
+    x_tenant_id: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """IRR-F01 Gate B-delivery (thin inbox): durably record a reservation dispatch INTENT
+    delivered from the platform outbox. Idempotent on (tenant, source_event_id). This records
+    DELIVERY only — it does NOT create an execution_request (fulfillment is a later WX-10-gated
+    step). Fails closed (503) outside SoR mode, like the other execution-chain writers."""
+    tenant = _tenant(x_tenant_id)
+    if not str(payload.source_event_id or "").strip():
+        raise HTTPException(status_code=422, detail="source_event_id is required")
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503,
+            detail="decision-service is not the system-of-record — dispatch-intent inbox unavailable",
+        )
+    # Enforcement point (opt-in): when IRR_F01_RESERVATION_ENFORCE_ACTIVATION is on, the
+    # irr_f01_reservation activation gate must be effectively enabled for this environment or the
+    # intent is refused (403). Off by default so pre-activation behaviour is unchanged.
+    if _enforce_reservation_activation():
+        try:
+            await activation_gate.enforce_enabled(_activation_environment())
+        except activation_gate.ActivationNotEnabled as exc:
+            raise HTTPException(
+                status_code=403, detail=f"irr_f01_reservation not activated: {exc.reason}"
+            ) from exc
+    result = await record_reservation_dispatch_intent(
+        tenant_id=tenant,
+        source_event_id=payload.source_event_id,
+        event_type=payload.event_type,
+        payload=payload,
+    )
+    status = result.get("status")
+    if status in ("received", "failure_notice", "duplicate"):
+        return {"accepted": True, "tenant_id": tenant, **result}
+    raise HTTPException(status_code=409, detail=result.get("reason", "dispatch intent conflict"))
+
+
+# --- IRR-F01 Phase 1: irr_f01_reservation activation gate (operator + probe surface) ----------
+
+
+def _activation_environment() -> str:
+    return (
+        os.getenv("ACTIVATION_ENVIRONMENT_ID") or os.getenv("SAHOOL_ENV", "development")
+    ).strip()
+
+
+def _enforce_reservation_activation() -> bool:
+    return os.getenv("IRR_F01_RESERVATION_ENFORCE_ACTIVATION", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _activation_actor(x_requested_by: str | None) -> str:
+    actor = (x_requested_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    return actor
+
+
+class ActivationCompleteIn(BaseModel):
+    # Reject any unknown field: a caller cannot smuggle raw inline `evidence=[...]` (the old,
+    # spoofable contract) past this model — only stored receipt references are accepted.
+    model_config = ConfigDict(extra="forbid")
+    expected_generation: int
+    evidence_refs: list[UUID] = Field(default_factory=list)
+    ttl_seconds: int = 3600
+
+
+class ActivationEvidenceIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    gate_name: str
+    producer: str
+    check_name: str
+    environment_id: str
+    observed_at: datetime
+    valid_until: datetime
+    result: str
+    provenance: str
+    build_sha: str
+    payload: dict[str, Any] = Field(default_factory=dict)
+    signature: str
+
+
+class ActivationRevokeIn(BaseModel):
+    reason: str
+
+
+class ActivationEvidenceRevokeIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    reason: str
+
+
+def _activation_result(result: dict[str, Any]) -> dict[str, Any]:
+    if result.get("status") == "conflict":
+        raise HTTPException(status_code=409, detail=result.get("reason", "activation conflict"))
+    return {"environment_id": _activation_environment(), **result}
+
+
+# The trust root is stored producer-signed receipts referenced by UUID. When a reference cannot be
+# resolved into a trustworthy receipt, that is a rejection — never a silent enable.
+_EVIDENCE_REJECTED = {
+    "evidence_reference_not_found",  # unknown / wrong-gate / REVOKED receipt
+    "invalid_evidence_reference",  # not a UUID
+    "evidence_signature_invalid",  # stored signature failed re-verification
+}
+
+
+async def _complete_with_evidence(coro: Any) -> dict[str, Any]:
+    """Await a gate completion, mapping receipt-resolution failures to honest HTTP status: a
+    bad/unknown/revoked/wrong-gate reference or a forged signature is a client rejection (400);
+    an absent signing key is a server misconfiguration (503). Anything else propagates."""
+    try:
+        return await coro
+    except ValueError as exc:
+        if str(exc) in _EVIDENCE_REJECTED:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise
+    except RuntimeError as exc:
+        if "ACTIVATION_EVIDENCE_SIGNING_KEY" in str(exc):
+            raise HTTPException(
+                status_code=503, detail="activation evidence signing unavailable"
+            ) from exc
+        raise
+
+
+@app.post("/v1/activation/evidence-receipts", status_code=201)
+async def store_activation_evidence(payload: ActivationEvidenceIn) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503, detail="activation evidence store requires the system-of-record"
+        )
+    secret = os.getenv("ACTIVATION_EVIDENCE_SIGNING_KEY", "").strip()
+    if not secret:
+        raise HTTPException(status_code=503, detail="activation evidence signing unavailable")
+    # Verify the caller's signature with the SAME canonical function the gate re-derives at resolve
+    # time — a receipt that passes here is guaranteed to re-verify later (no ingest/resolve drift).
+    from activation_gate_core import (
+        MAX_EVIDENCE_VALIDITY_SECONDS,
+        PROVENANCE_RE,
+        canonical_evidence_signature,
+        deploy_build_sha,
+    )
+
+    expected = canonical_evidence_signature(
+        secret,
+        gate_name=payload.gate_name,
+        producer=payload.producer,
+        check_name=payload.check_name,
+        environment_id=payload.environment_id,
+        observed_at=payload.observed_at,
+        valid_until=payload.valid_until,
+        result=payload.result,
+        provenance=payload.provenance,
+        build_sha=payload.build_sha,
+        payload=payload.payload,
+    )
+    if not hmac.compare_digest(expected, payload.signature):
+        raise HTTPException(status_code=401, detail="invalid evidence signature")
+    if payload.environment_id != _activation_environment():
+        raise HTTPException(status_code=400, detail="evidence environment mismatch")
+    # Server-side ingest validation (defense-in-depth; the same rules are also DB CHECK constraints
+    # and activation-core admissibility checks). A receipt must bind the deployed build, carry a
+    # canonical provenance, and have a bounded, non-future validity window.
+
+    if payload.build_sha.lower() != deploy_build_sha():
+        raise HTTPException(status_code=400, detail="evidence build SHA mismatch")
+    if not PROVENANCE_RE.fullmatch(payload.provenance):
+        raise HTTPException(status_code=400, detail="invalid evidence provenance")
+    now = datetime.now(UTC)
+    if payload.observed_at > now:
+        raise HTTPException(status_code=400, detail="evidence observed_at is in the future")
+    if payload.valid_until <= now:
+        raise HTTPException(status_code=400, detail="evidence is already expired")
+    if (payload.valid_until - payload.observed_at).total_seconds() > MAX_EVIDENCE_VALIDITY_SECONDS:
+        raise HTTPException(status_code=400, detail="evidence validity exceeds 24 hours")
+    conn = await acquire_connection()
+    try:
+        evidence_id = await conn.fetchval(
+            """INSERT INTO activation_evidence_receipts
+               (gate_name,producer,check_name,environment_id,observed_at,valid_until,result,provenance,build_sha,payload,signature)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11)
+               RETURNING evidence_id""",
+            payload.gate_name,
+            payload.producer,
+            payload.check_name,
+            payload.environment_id,
+            payload.observed_at,
+            payload.valid_until,
+            payload.result,
+            payload.provenance,
+            payload.build_sha,
+            json.dumps(payload.payload),
+            payload.signature,
+        )
+        return {"evidence_id": str(evidence_id)}
+    finally:
+        await conn.close()
+
+
+@app.post("/v1/activation/evidence-receipts/{evidence_id}/revoke", status_code=201)
+async def revoke_activation_evidence(
+    evidence_id: str,
+    payload: ActivationEvidenceRevokeIn,
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Kill-switch for a stored receipt. Actor auth = X-Requested-By (actor identity, required
+    here) + the shared service bearer token enforced by _service_token_guard. Writes an
+    append-only revocation row; a duplicate revocation is a 409 (UNIQUE), and any receipt it
+    references becomes unresolvable atomically inside the gate's single resolve query."""
+    if not sor_enabled():
+        raise HTTPException(
+            status_code=503, detail="activation evidence store requires the system-of-record"
+        )
+    if not (x_requested_by or "").strip():
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    try:
+        eid = UUID(evidence_id)
+    except (ValueError, TypeError) as exc:
+        raise HTTPException(status_code=400, detail="invalid evidence_id") from exc
+    conn = await acquire_connection()
+    try:
+        exists = await conn.fetchval(
+            "SELECT 1 FROM activation_evidence_receipts WHERE evidence_id=$1", eid
+        )
+        if not exists:
+            raise HTTPException(status_code=404, detail="evidence receipt not found")
+        # One revocation per receipt: ON CONFLICT DO NOTHING makes a duplicate a no-op, which we
+        # surface as 409 (the receipt is already revoked; the append-only row is never rewritten).
+        revocation_id = await conn.fetchval(
+            """INSERT INTO activation_evidence_revocations (evidence_id, revoked_by, reason)
+               VALUES ($1,$2,$3) ON CONFLICT (evidence_id) DO NOTHING RETURNING revocation_id""",
+            eid,
+            x_requested_by.strip(),
+            payload.reason,
+        )
+        if revocation_id is None:
+            raise HTTPException(status_code=409, detail="evidence receipt already revoked")
+        return {"revocation_id": str(revocation_id), "evidence_id": str(eid), "status": "revoked"}
+    finally:
+        await conn.close()
+
+
+@app.post("/v1/activation/irr_f01_reservation/enforce")
+async def activation_enforce() -> dict[str, Any]:
+    """Server-side REFUSAL check for consumers that must gate an action BEFORE performing it
+    (the platform reservation adapter calls this before creating a reservation). The server owns
+    the gate semantics — it runs enforce_enabled (a FRESH read, never the cache), returning 200 with
+    the snapshot when effectively enabled, or 403 with the reason otherwise. The consumer only
+    translates 403 into a local refusal; it never re-implements TTL/expiry (no parallel readiness)."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    try:
+        snapshot = await activation_gate.enforce_enabled(_activation_environment())
+    except activation_gate.ActivationNotEnabled as exc:
+        raise HTTPException(
+            status_code=403, detail=f"irr_f01_reservation not activated: {exc.reason}"
+        ) from exc
+    return {
+        "environment_id": _activation_environment(),
+        "enforced": True,
+        "gate_state": snapshot.get("state"),
+        "generation": snapshot.get("generation"),
+        "build_sha": snapshot.get("build_sha"),
+        "effective_enabled": snapshot.get("effective_enabled"),
+    }
+
+
+@app.post("/v1/activation/irr_f01_reservation/begin")
+async def activation_begin(x_requested_by: str | None = Header(default=None)) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await activation_gate.begin_evaluation(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.post("/v1/activation/irr_f01_reservation/complete")
+async def activation_complete(
+    payload: ActivationCompleteIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await _complete_with_evidence(
+            activation_gate.complete_evaluation(
+                _activation_environment(),
+                expected_generation=payload.expected_generation,
+                evidence_refs=[str(value) for value in payload.evidence_refs],
+                actor=_activation_actor(x_requested_by),
+                ttl_seconds=payload.ttl_seconds,
+            )
+        )
+    )
+
+
+@app.post("/v1/activation/irr_f01_reservation/revoke")
+async def activation_revoke(
+    payload: ActivationRevokeIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await activation_gate.revoke(
+            _activation_environment(),
+            actor=_activation_actor(x_requested_by),
+            reason=payload.reason,
+        )
+    )
+
+
+@app.post("/v1/activation/irr_f01_reservation/reset")
+async def activation_reset(x_requested_by: str | None = Header(default=None)) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await activation_gate.reset(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.get("/v1/activation/irr_f01_reservation")
+async def activation_current() -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return await activation_gate.current_cached(_activation_environment())
+
+
+@app.get("/v1/activation/irr_f01_reservation/probe")
+async def activation_probe(
+    x_activation_role: str | None = Header(default=None),
+    x_activation_probe_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Read-only probe — allowed ONLY with the activation_probe role AND a valid HMAC signature,
+    never from a normal request path."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    try:
+        return await activation_gate.probe_state(
+            _activation_environment(),
+            caller_role=(x_activation_role or "").strip(),
+            signature=(x_activation_probe_signature or "").strip(),
+        )
+    except activation_gate.ActivationProbeDenied as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
+# --- Phase 2: satellite_cdse activation gate (operator + probe + source-selection surface) -----
+# Symmetric with the irr_f01_reservation gate above but a SEPARATE gate module; the enforcement
+# read is /source (imagery source selection), not a 403.
+
+
+def _cdse_activation_result(result: dict[str, Any]) -> dict[str, Any]:
+    if result.get("status") == "conflict":
+        raise HTTPException(status_code=409, detail=result.get("reason", "activation conflict"))
+    return {"environment_id": _activation_environment(), **result}
+
+
+@app.post("/v1/activation/satellite_cdse/begin")
+async def cdse_activation_begin(
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await satellite_cdse_activation_gate.begin_evaluation(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.post("/v1/activation/satellite_cdse/complete")
+async def cdse_activation_complete(
+    payload: ActivationCompleteIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await _complete_with_evidence(
+            satellite_cdse_activation_gate.complete_evaluation(
+                _activation_environment(),
+                expected_generation=payload.expected_generation,
+                evidence_refs=[str(value) for value in payload.evidence_refs],
+                actor=_activation_actor(x_requested_by),
+                ttl_seconds=payload.ttl_seconds,
+            )
+        )
+    )
+
+
+@app.post("/v1/activation/satellite_cdse/revoke")
+async def cdse_activation_revoke(
+    payload: ActivationRevokeIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await satellite_cdse_activation_gate.revoke(
+            _activation_environment(),
+            actor=_activation_actor(x_requested_by),
+            reason=payload.reason,
+        )
+    )
+
+
+@app.post("/v1/activation/satellite_cdse/reset")
+async def cdse_activation_reset(
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await satellite_cdse_activation_gate.reset(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.get("/v1/activation/satellite_cdse")
+async def cdse_activation_current() -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return await satellite_cdse_activation_gate.current_cached(_activation_environment())
+
+
+@app.get("/v1/activation/satellite_cdse/source")
+async def cdse_active_source() -> dict[str, Any]:
+    """Enforcement read: which imagery source is active for this environment — 'cdse' when the gate
+    is enabled, otherwise the safe 'element84' fallback. Never a 403 (Category A source selection)."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return await satellite_cdse_activation_gate.active_imagery_source(_activation_environment())
+
+
+@app.get("/v1/activation/satellite_cdse/probe")
+async def cdse_activation_probe(
+    x_activation_role: str | None = Header(default=None),
+    x_activation_probe_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    try:
+        return await satellite_cdse_activation_gate.probe_state(
+            _activation_environment(),
+            caller_role=(x_activation_role or "").strip(),
+            signature=(x_activation_probe_signature or "").strip(),
+        )
+    except satellite_cdse_activation_gate.ActivationProbeDenied as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
 class ExecutionDeliveryClaimIn(BaseModel):

@@ -1,5 +1,38 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-18 — رنبوك التحقّق الحيّ: إصلاح WS + YAML + FII RLS + IRR-F01 + تدفّقات مكانيّة — مكتمل
+
+**ما أُنجز:**
+
+1. **إصلاح حلقة إعادة اتّصال WS (`984e8f49`):** الخادم كان يستدعي `websocket.close(1008)` قبل `websocket.accept()` ⇒ المتصفّح يعيد الاتّصال لأبد؛ أُصلِح بقبول الاتّصال أوّلاً ثمّ قراءة إطار auth (FE-10: token في رسالة لا URL) + إرسال `auth_ok` (FE-09). الملفّ: `services/sahool-platform/api/routers/notifications.py`.
+
+2. **إصلاح تعارض دمج YAML في docker-compose.v9.yml (سطر 802):** أُزيلت علامات `<<<<<<<`/`=======`/`>>>>>>>` وأُبقيت القيمة الآمنة للإنتاج `VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}`.
+
+3. **بوّابة دور DB (FII):** `apply_in_compose.sh` استُرجع من `origin/main` (كان يفتقد `REVOKE CREATE` و`APP_ALLOW_SCHEMA_CREATE`)؛ أُضيف `NOINHERIT` لكلا النصَّين (`apply_in_compose.sh` و`bootstrap_postgres.sh`). حارس `fii_rls_role_gate.py`: **PASSED**. 6 اختبارات PG حيّة: **PASSED**.
+
+4. **IRR-F01 Gate A + B1:** هجرات v195/v196 طُبِّقت على DB الحيّ؛ `sahool_app` حُوِّل إلى `NOINHERIT`؛ وحدات `irrigation_capacity_reservation.py`/`_adapter.py`/`_execution_request_port.py`/`event_bus.py` استُرجعت من `origin/main`. النتيجة: **5/5 اختبارات PASSED**.
+
+5. **البوّابات الأخرى:** SoR staging probe · WX-10.11b delivery receipt · dispatch decisions (3) · RS anomaly PG isolation · irrx1 pcert (2) — كلّها **PASSED**.
+
+6. **إصلاح علّة InterfaceError في PATCH /api/v1/fields/{id} (حرج):**
+   - **الجذر:** `conn.fetchrow("SELECT … WHERE field_id = $1 AND tenant_id = $2::uuid", field_id)` — SQL يحتوي معاملَين (`$1`, `$2`) لكن asyncpg يتلقّى واحداً فقط ⇒ `InterfaceError: the query requires 2 arguments, but 1 were given`. وقع في 3 مواضع: `routers/fields.py:1316` (مسار تعارض الإصدار) و`1339` (مسار الدمج التلقائيّ) و`1396` (المسار العاديّ — يُنفَّذ دائماً).
+   - **الإصلاح:** إضافة `str(user.tenant_id)` معاملاً ثانياً في المواضع الثلاثة. إعادة بناء صورة Docker وإعادة تشغيل `sahool-platform`.
+
+7. **التدفّقات المكانيّة E2E (10 تدفّقات):** بعد إصلاح PATCH — كلّها PASSED: auth.register · auth.login · draw.create · draw.edit_geometry (كان يفشل بـ503) · draw.geometry_history · draw.reject_invalid · pivot.derived_geometry · pivot.reject_raw_polygon · raster.invalidation_signal · conflict.stale_base_version.
+
+**مؤجَّل بصدق:** Upgrade Gate U1 (يحتاج `IRR_F01_UPGRADE_DATABASE_URL` + DB منفصل بسلسلة هجرات v1→v196 كاملة + `upgrade_gate_u1.sh`).
+
+**الملفّات المعدَّلة محلّيّاً (غير مدموجة في CI):**
+- `services/sahool-platform/api/routers/fields.py` (إصلاح InterfaceError: 3 مواضع)
+- `services/sahool-platform/api/routers/notifications.py` (إصلاح WS auth)
+- `migrations/apply_in_compose.sh` (NOINHERIT + REVOKE CREATE + APP_ALLOW_SCHEMA_CREATE)
+- `migrations/bootstrap_postgres.sh` (NOINHERIT)
+- `docker-compose.v9.yml` (حلّ تعارض YAML)
+- `.env` (CDSE_CLIENT_ID → حساب Flyssama)
+- `services/sahool-platform/api/event_bus.py`, `irrigation_capacity_reservation.py`, `irrigation_reservation_adapter.py`, `irrigation_execution_request_port.py` (مُسترجَعة من origin/main)
+
+---
+
 ## 2026-07-14 — IRR-X1.7-1.9 حاسبات الري التفاعلية ومتعددة الأنظمة — LANDED
 - **What:** دمجتُ حزمة X1.9 (تحوي X1.7-1.9، efe777e-based) جراحيّاً فوق تِلّ X1.6. حاسبتان هندسيّتان **عديمتا الحالة توصية-فقط** (لا حفظ، لا تشغيل، `execution_authorized=False`): X1.7 تفاعليّة (احتياج ماء من محصول/تربة/طقس + احتكاك Hazen-Williams + فواقد ثانويّة + ضغط/رفع مطلوب + قدرة مضخّة/محرّك + مدّة)؛ X1.8/1.9 شبكة بركة-بوستر متعدّدة الأنظمة (آبار + رصيد بركة + بوستر + جهاز ريّ اختياريّ: محور/خطّيّ/بكرة/رشاشات/تنقيط/شبكة صمامات، أو «بدون»). خلفيّة: `irrigation_engineering_workspace.py` +615 سطراً إضافيّاً + راوتر +مساران `/interactive-calculate`، `/network-calculate` (مستأجِر خادميّ 403، 422 على مدخل خاطئ). واجهة: مكوّنان + عميلا API موصولان في FieldWorkspaceIrrigationPanel. 3 حُرّاس + سويتا اختبار.
 - **الدمج (جراحيّ، حفظ إصلاحاتي X1.1-1.6):** طبّقتُ نسخ X1.9 للملفّات المتغيّرة فعليّاً (workspace/router/workspace-test) عبر مقارنة ruff-normalized؛ أبقيتُ نسختي حيث كان الفرق إصلاحاتي فقط. إعادة hoist استيرادات الراوتر (E402) + دمج كتلة استيراد الاختبار + pytestmark=unit. رفع أُسُس المسارَين: extraction-map 612→614، p2_6 609→611، تسجيل ملكيّة؛ baseline الوحدات ثابت (لا وحدة جديدة). جرد 1014→1016.
