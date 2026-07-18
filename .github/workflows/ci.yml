@@ -420,6 +420,11 @@ jobs:
       - run: pip install ruff==0.15.8 mypy
       - run: ruff check services/ bots/ agents/ tests_v9/
       - run: ruff format --check services/ bots/ agents/ tests_v9/
+      # حارس علامات تعارض الدمج: فرع مدموج بعلامات `<<<<<<< / ======= / >>>>>>>` غير محلولة
+      # (أحدها SyntaxError غير قابل للاستيراد) مرّ CI أخضر لأنّ الجناح لا يستورد تلك الملفّات —
+      # «الأخضر يقيس ما تختبره فقط». سطر structural grep واحد يصطاد الصنف عند الالتزام.
+      - name: conflict-marker guard
+        run: bash scripts/ci/conflict_marker_guard.sh
       # بوّابة مانيفست الإصدار على الفرع أيضاً (لا main-only فقط): تعديل ملفّ مشمول
       # بالمانيفست دون إعادة بناء checksums كان يمرّ على الفرع ثمّ يفشل على main في
       # «Sahool Production Gates». تشغيلها هنا يلتقط الانحراف قبل الدمج لا بعده.
