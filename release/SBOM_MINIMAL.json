@@ -10615,6 +10615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b57c7f4697e180ebc92825be79d21b335bc5d0987a7b9e55d780c54e3c3bc8f7"
+        }
+      ],
+      "name": "services/decision-service/tests/test_service_token_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "36f5691b1d854305d0369b841a0f2a2aac6520d9b97697c0ca8d77c356d2c2da"
         }
       ],

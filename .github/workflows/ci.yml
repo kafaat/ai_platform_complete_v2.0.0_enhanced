@@ -813,6 +813,11 @@ jobs:
       - name: service-token guard middleware
         working-directory: services/decision-service
         run: pytest tests/test_service_token_guard.py -q -p no:cacheprovider
+      # LOOP_TABLES drift (no phantom table) + WebSocket auth guard (no WS route bypasses the
+      # service-token middleware). Static, no DB.
+      - name: loop-tables + websocket governance guards
+        working-directory: services/decision-service
+        run: pytest tests/test_loop_tables_and_ws_guard.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->
