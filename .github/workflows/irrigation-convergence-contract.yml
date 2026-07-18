@@ -24,6 +24,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python -m pip install --upgrade pip pytest
+      # pytest-asyncio is required: tests/irrigation carries async tests (the Gate B dispatch-relay
+      # worker) that pytest.ini runs under asyncio_mode=auto. Bare pytest cannot collect them.
+      - run: python -m pip install --upgrade pip pytest pytest-asyncio
       - run: python scripts/ci/irrigation_convergence_guard.py
       - run: python -m pytest -q tests/irrigation

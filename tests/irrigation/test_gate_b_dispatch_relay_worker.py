@@ -4,6 +4,8 @@ The worker's message→ingest→POST core is pure (a mocked POST stands in for t
 whole relay contract is proven without NATS or a running decision-service. A static guard locks the
 delivery≠fulfillment boundary at the worker: it must be default-off, POST only to the inbox, and
 never create an execution_request.
+
+Requires pytest-asyncio (pytest.ini runs asyncio_mode=auto); the CI job installs it explicitly.
 """
 
 from __future__ import annotations
