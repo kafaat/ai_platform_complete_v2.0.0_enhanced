@@ -537,3 +537,14 @@
 \i migrations/v190_irrx1_authoritative_recommendation_provenance_lock.sql
 \echo '═══ 197. v191_rs_signal_anomalies_store.sql ═══'
 \i migrations/v191_rs_signal_anomalies_store.sql
+
+\echo '═══ 198. v192_fii_rls_write_fail_closed.sql ═══'
+\i migrations/v192_fii_rls_write_fail_closed.sql
+\echo '═══ 199. v193_prescriptions_season_context_expand.sql ═══'
+\i migrations/v193_prescriptions_season_context_expand.sql
+\echo '═══ 200. v194_fii_chemical_chain_rls_fail_closed.sql ═══'
+\i migrations/v194_fii_chemical_chain_rls_fail_closed.sql
+\echo '═══ 201. v195_irrigation_capacity_reservation_core.sql ═══'
+\i migrations/v195_irrigation_capacity_reservation_core.sql
+\echo '═══ 202. v196_irrigation_target_binding.sql ═══'
+\i migrations/v196_irrigation_target_binding.sql

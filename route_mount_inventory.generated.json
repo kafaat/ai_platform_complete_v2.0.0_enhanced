@@ -51,7 +51,7 @@
     "path": "services/decision-service/main.py",
     "service": "decision-service",
     "has_fastapi": true,
-    "direct_routes": 52,
+    "direct_routes": 69,
     "router_routes": 0,
     "delegates_to_router_registry": false,
     "delegates_to_app_factory": false,

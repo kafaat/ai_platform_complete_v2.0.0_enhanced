@@ -112,3 +112,7 @@ gis-timeline-e2e:
 raster-ci:
 	@echo "═══ Raster service architecture + tests ═══"
 	bash scripts/ci/raster_quality_gate.sh
+
+.PHONY: test-irr-f01-local
+test-irr-f01-local:
+	@bash scripts/irr_f01/local_gate.sh

@@ -122,7 +122,11 @@ class DiagnosisCandidate:
             "issue_code": self.issue_code,
             "name_ar": self.name_ar,
             "category": self.category,
-            "confidence": round(self.confidence, 2),
+            "confidence": round(self.confidence, 2),  # deprecated compatibility field
+            "score": round(self.confidence, 2),
+            "score_semantics": "rule_match",
+            "is_calibrated": False,
+            "producer_type": "rule_engine",
             "matched_ar": self.matched_ar,
         }
 
@@ -189,7 +193,7 @@ def diagnose(crop: str, symptoms: list[str]) -> DiagnosisResult:
             )
         else:
             next_step = (
-                f"الأرجح: {top.name_ar} (ثقة {top.confidence:.0%}). ثبّت بصورة "
+                f"الأرجح: {top.name_ar} (درجة تطابق أعراض {top.confidence:.0%}). ثبّت بصورة "
                 "عالية الدقّة + مهندس قبل أيّ مبيد. هذا تشخيص أوّلي لا قاطع."
             )
 

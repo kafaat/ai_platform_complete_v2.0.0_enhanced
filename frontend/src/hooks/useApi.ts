@@ -9,7 +9,7 @@ import {
   fetchSoilProfileSnapshot, fetchSoilClosedLoop, fetchSoilProfileHistory,
   fetchMpcCapabilities, type MpcCapabilities,
   analyzeWaterSample, runPestEscalation, getFieldRecommendation,
-  analyzeFieldIntelligence, startAnalyzeFieldIntelligence, getFieldIntelligenceJob, cancelFieldIntelligenceJob, getCostAnalytics,
+  startAnalyzeFieldIntelligence, getFieldIntelligenceJob, cancelFieldIntelligenceJob, getCostAnalytics,
   getYieldAnalysis, type YieldAnalysisResult,
   getFarmSummary, getFieldReportSummary, getSeasonReportSummary,
   simulateSeason, type SeasonSimResult,
@@ -2779,13 +2779,6 @@ export function useFieldIntelligenceJob(jobId?: string | null) {
 export function useCancelFieldIntelligenceJob() {
   return useMutation<FieldIntelJobStatus, Error, string>({
     mutationFn: (jobId) => cancelFieldIntelligenceJob(jobId),
-  });
-}
-
-// توافق قديم: يبقى متاحاً لكنه يستعمل job + polling، وليس POST متزامناً طويلاً.
-export function useFieldIntelligence() {
-  return useMutation<FieldIntelResult, Error, FieldIntelInput>({
-    mutationFn: (input) => analyzeFieldIntelligence(input),
   });
 }
 

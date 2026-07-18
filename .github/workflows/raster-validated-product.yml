@@ -15,9 +15,17 @@ jobs:
           python-version: '3.12'
       # الاختبارات تستورد pydantic/numpy وتمرّ عبر conftest tests_v9 — بيئة الاختبار
       # القانونيّة إلزاميّة، وpython -m pytest لا pytest المجرّد (درس dual-pytest).
+      # fastapi: خطوة satellite_cdse consumer (P2-c) تستورد raster_cdse_tile_runtime →
+      # raster_date_geo التي تستورد fastapi.HTTPException (سلسلة تفكيك الراوترات). درس httpx
+      # مكرّراً: مهمّة CI دنيا تستورد موديول خدمة يحمل اعتماديّة تشغيل ⇒ ثبّتها صراحةً.
       - name: Install test dependencies
-        run: python -m pip install -r tests_v9/requirements-test.txt
+        run: python -m pip install -r tests_v9/requirements-test.txt fastapi
       - name: Run raster validated product guard
         run: python scripts/ci/raster_validated_product_guard.py
       - name: Run raster validated product tests
         run: PYTHONPATH=services/raster-service python -m pytest -q services/raster-service/test_raster_validated_product.py services/raster-service/test_cloud_mask_strategies.py tests_v9/test_raster_validated_product_guard.py tests_v9/test_raster_pixel_processing_edge_cases.py
+      # Phase 2 P2-c: the raster-service live consumer of the satellite_cdse activation gate — the
+      # source-selection mapping + fail-closed behaviour, and the static no-bypass guard proving
+      # CDSE can only be selected through the single restricted adapter.
+      - name: Run satellite_cdse consumer + no-bypass guard
+        run: PYTHONPATH=services/raster-service python -m pytest -q services/raster-service/test_imagery_source_gate.py services/raster-service/test_imagery_source_gate_no_bypass_static.py

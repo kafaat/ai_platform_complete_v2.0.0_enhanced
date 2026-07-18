@@ -25,8 +25,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import os
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Response
 from pydantic import BaseModel, Field
@@ -50,7 +52,7 @@ router = APIRouter()
 _PRODUCT_TYPES = {"seed", "fertility"}
 
 # أعمدة القراءة لجدول prescriptions (v95) — مطابقة لمخرَج الحفظ.
-_RX_SELECT_COLS = "prescription_id, field_id, name, product_type, zones, created_by, created_at"
+_RX_SELECT_COLS = "prescription_id, field_id, season_id, season_resolution_status, name, product_type, zones, created_by, created_at"
 
 
 # ─── النماذج ─────────────────────────────────────────────────────
@@ -68,9 +70,31 @@ class PrescriptionCreateRequest(BaseModel):
     """طلب حفظ وصفة يدويّة. ``prescription_id`` معرّف العميل (idempotency)."""
 
     prescription_id: str = Field(..., min_length=1, max_length=128)
+    season_id: str | None = Field(default=None, min_length=1, max_length=128)
     name: str = Field(..., min_length=1, max_length=200)
     product_type: str = Field(default="seed")
     zones: list[PrescriptionZone] = Field(default_factory=list)
+
+
+def _prescription_content_digest(
+    *, field_id: str, season_id: str | None, name: str, product_type: str, zones: list
+) -> str:
+    """Stable sha256 over the content-bearing fields — used to tell an idempotent
+    replay (same id, same content) from an idempotency CONFLICT (same id, different
+    content). Canonical JSON (sorted keys, compact) so it is order-stable."""
+    canon = json.dumps(
+        {
+            "field_id": field_id,
+            "season_id": season_id,
+            "name": name,
+            "product_type": product_type,
+            "zones": zones,
+        },
+        sort_keys=True,
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
 
 def _row_to_prescription(row) -> dict:
@@ -91,6 +115,12 @@ def _row_to_prescription(row) -> dict:
     return {
         "prescription_id": row["prescription_id"],
         "field_id": row["field_id"],
+        "season_id": row.get("season_id") if hasattr(row, "get") else row["season_id"],
+        "season_resolution_status": (
+            row.get("season_resolution_status")
+            if hasattr(row, "get")
+            else row["season_resolution_status"]
+        ),
         "name": row["name"],
         "product_type": row["product_type"],
         "zones": zones if isinstance(zones, list) else [],
@@ -112,6 +142,15 @@ async def create_prescription(
     (إعادة الإرسال لا تُكرّر). يُرجِع الوصفة المحفوظة. صدق: القاعدة غير مفعّلة
     (``DATABASE_URL``) ⇒ 503 موثَّق (لا ادّعاء حفظ)؛ نوع منتج غير مدعوم ⇒ 422.
     """
+    season_mode = os.getenv("FII_PRESCRIPTION_SEASON_MODE", "audit").strip().lower()
+    if season_mode not in {"audit", "enforce"}:
+        season_mode = "audit"
+    if not req.season_id and season_mode == "enforce":
+        raise HTTPException(status_code=422, detail={"code": "SEASON_CONTEXT_REQUIRED"})
+    if not req.season_id:
+        logger.warning(
+            "fii prescription missing season context field_id=%s mode=%s", field_id, season_mode
+        )
     if req.product_type not in _PRODUCT_TYPES:
         raise HTTPException(
             status_code=422,
@@ -123,41 +162,96 @@ async def create_prescription(
             detail="تعذّر حفظ الوصفة (القاعدة غير مفعّلة DATABASE_URL أو الهجرات غير مطبّقة).",
         )
     zones_payload = [z.model_dump() for z in req.zones]
+    req_digest = _prescription_content_digest(
+        field_id=field_id,
+        season_id=req.season_id,
+        name=req.name,
+        product_type=req.product_type,
+        zones=zones_payload,
+    )
     try:
         async with tenant_connection(user) as conn:
             await _assert_field_in_tenant(conn, field_id)
-            await conn.execute(
+            # RETURNING lets us tell an actual insert from a no-op conflict — the
+            # ``persisted`` flag must be HONEST (never claim a write that did not happen).
+            inserted_id = await conn.fetchval(
                 "INSERT INTO prescriptions "
-                "(prescription_id, tenant_id, field_id, name, product_type, "
+                "(prescription_id, tenant_id, field_id, season_id, season_resolution_status, name, product_type, "
                 " zones, created_by, created_at) "
-                "VALUES ($1, $2::uuid, $3, $4, $5, $6::jsonb, $7, now()) "
-                "ON CONFLICT (prescription_id) DO NOTHING",
+                "VALUES ($1, $2::uuid, $3, $4, $5, $6, $7, $8::jsonb, $9, now()) "
+                "ON CONFLICT (prescription_id) DO NOTHING "
+                "RETURNING prescription_id",
                 req.prescription_id,
                 str(user.tenant_id),
                 field_id,
+                req.season_id,
+                "resolved" if req.season_id else "unresolved",
                 req.name,
                 req.product_type,
                 json.dumps(zones_payload),
                 user.user_id,
             )
+            if inserted_id is None:
+                # Conflict: a row with this prescription_id already exists. Read it back
+                # UNDER RLS (tenant-scoped) to decide idempotent-replay vs a real conflict.
+                existing = await conn.fetchrow(
+                    f"SELECT {_RX_SELECT_COLS} FROM prescriptions WHERE prescription_id = $1",
+                    req.prescription_id,
+                )
+                if existing is None:
+                    # The id exists but is invisible to this tenant ⇒ the (global) PK is
+                    # owned by another tenant. Never claim persistence — surface a conflict.
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "code": "IDEMPOTENCY_CONFLICT",
+                            "reason": "prescription_id is already in use",
+                        },
+                    )
+                stored = _row_to_prescription(existing)
+                stored_digest = _prescription_content_digest(
+                    field_id=stored["field_id"],
+                    season_id=stored["season_id"],
+                    name=stored["name"],
+                    product_type=stored["product_type"],
+                    zones=stored["zones"],
+                )
+                if stored_digest != req_digest:
+                    # Same id, different content ⇒ a genuine idempotency conflict.
+                    raise HTTPException(
+                        status_code=409,
+                        detail={
+                            "code": "IDEMPOTENCY_CONFLICT",
+                            "reason": "prescription_id already exists with different content",
+                        },
+                    )
+                # Idempotent replay of identical content: return the STORED row, and be
+                # honest that nothing new was written.
+                return {**stored, "persisted": False, "idempotent_replay": True}
     except HTTPException:
-        raise  # 404 (حقل خارج المستأجِر) يصعد كما هو
+        raise  # 404 (حقل خارج المستأجِر) / 409 (تعارض idempotency) يصعد كما هو
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق (لا ادّعاء حفظ)
         raise _db_unavailable("حفظ الوصفة", e) from e
     return {
         "prescription_id": req.prescription_id,
         "field_id": field_id,
+        "season_id": req.season_id,
+        "season_resolution_status": "resolved" if req.season_id else "unresolved",
         "name": req.name,
         "product_type": req.product_type,
         "zones": zones_payload,
         "created_by": user.user_id,
         "persisted": True,
+        "idempotent_replay": False,
     }
 
 
 @router.get("/api/v1/fields/{field_id}/prescriptions")
 async def list_prescriptions(
     field_id: str = Path(..., description="معرّف الحقل لجلب وصفاته"),
+    include_legacy: bool = Query(
+        False, description="إظهار السجلات القديمة غير المحسومة للإدارة فقط"
+    ),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):
     """وصفات الحقل المحفوظة (الأحدث أوّلاً) — معزولة بالمستأجِر (RLS).
@@ -178,8 +272,15 @@ async def list_prescriptions(
             await _assert_field_in_tenant(conn, field_id)
             rows = await conn.fetch(
                 f"SELECT {_RX_SELECT_COLS} FROM prescriptions "
-                "WHERE field_id = $1 ORDER BY created_at DESC",
+                "WHERE field_id = $1 "
+                "AND ($2::boolean OR season_resolution_status <> 'unresolved') "
+                "ORDER BY created_at DESC",
                 field_id,
+                # Audit-mode (default) shows legacy 'unresolved' rows so v193 does not
+                # silently hide existing prescriptions; only enforce mode hides them
+                # unless include_legacy is explicitly requested.
+                include_legacy
+                or os.getenv("FII_PRESCRIPTION_SEASON_MODE", "audit").strip().lower() != "enforce",
             )
     except HTTPException:
         raise  # 404 (حقل خارج المستأجِر) يصعد كما هو
@@ -223,6 +324,30 @@ async def export_prescription(
         raise _db_unavailable("تصدير الوصفة", e) from e
     if row is None:
         raise HTTPException(status_code=404, detail="الوصفة غير موجودة")
+    status = (
+        row.get("season_resolution_status")
+        if hasattr(row, "get")
+        else row["season_resolution_status"]
+    )
+    if status == "unresolved":
+        # Audit-only by default (Increment 4): freezing legacy rows from export is an
+        # ENFORCE-mode behaviour. In audit mode we log and allow, so applying v193
+        # (which defaults every legacy row to 'unresolved') does NOT retroactively
+        # freeze existing prescriptions. Flip to enforce only after legacy rows are
+        # triaged/backfilled.
+        _season_mode = os.getenv("FII_PRESCRIPTION_SEASON_MODE", "audit").strip().lower()
+        if _season_mode == "enforce":
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "code": "LEGACY_SEASON_UNRESOLVED",
+                    "message": "الوصفة القديمة غير المحسومة مجمّدة ولا يمكن تصديرها للتنفيذ",
+                },
+            )
+        logger.warning(
+            "fii prescription export of unresolved legacy row (audit mode, allowed) prescription_id=%s",
+            row["prescription_id"] if hasattr(row, "__getitem__") else "?",
+        )
     rx = _row_to_prescription(row)
     try:
         data = build_shapefile_zip(rx["name"], rx["product_type"], rx["zones"])

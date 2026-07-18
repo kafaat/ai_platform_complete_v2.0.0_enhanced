@@ -1,4 +1,5 @@
 import { kongApi } from './client';
+import type { IrrigationEngineeringSummary, IrrigationSystemType } from '../../lib/irrigationEngineering';
 
 export type EvidenceLevel = 'measured' | 'commissioned' | 'manufacturer_spec' | 'user_declared' | 'estimated' | 'unknown';
 
@@ -116,4 +117,59 @@ export async function calculateInteractiveIrrigation(input: InteractiveCalculato
     installed_motor_power_kw: input.installedMotorPowerKw ?? null,
   });
   return data as InteractiveCalculatorResult;
+}
+
+// ── Engineering summary (capability graph + manual operation) ─────────────────
+// Consumes POST /api/v1/irrigation/engineering/calculate which returns the full
+// EngineeringResult (== IrrigationEngineeringSummary): status + blocking_constraints
+// + warnings + calculations + capability_graph + manual_operation + content_digest.
+// Distinct from `calculateInteractiveIrrigation` (/interactive-calculate) which
+// returns the interactive breakdown, not the composite workspace summary.
+export interface EngineeringCalcInput {
+  tenantId: string;
+  fieldId: string;
+  seasonId?: string | null;
+  systemId: string;
+  name: string;
+  systemType: IrrigationSystemType;
+  irrigatedAreaHa: number;
+  netDepthMm: number;
+  effectiveRainMm?: number;
+  applicationEfficiency?: number;
+  designFlowLps?: number | null;
+  measuredFlowLps?: number | null;
+  lengthM?: number | null; // required for center_pivot
+  mainlineLengthM?: number;
+  mainlineInternalDiameterMm?: number | null;
+  hazenWilliamsC?: number;
+  elevationChangeM?: number;
+}
+
+export async function calculateIrrigationEngineering(
+  input: EngineeringCalcInput,
+): Promise<IrrigationEngineeringSummary> {
+  const { data } = await kongApi.post('/api/v1/irrigation/engineering/calculate', {
+    specification: {
+      tenant_id: input.tenantId,
+      field_id: input.fieldId,
+      season_id: input.seasonId ?? null,
+      system_id: input.systemId,
+      name: input.name,
+      system_type: input.systemType,
+      irrigated_area_ha: input.irrigatedAreaHa,
+      application_efficiency: input.applicationEfficiency ?? 0.8,
+      design_flow_lps: input.designFlowLps ?? null,
+      measured_flow_lps: input.measuredFlowLps ?? null,
+      length_m: input.lengthM ?? null,
+      mainline_length_m: input.mainlineLengthM ?? 0,
+      mainline_internal_diameter_mm: input.mainlineInternalDiameterMm ?? null,
+      hazen_williams_c: input.hazenWilliamsC ?? 140,
+      elevation_change_m: input.elevationChangeM ?? 0,
+    },
+    water_demand: {
+      net_depth_mm: input.netDepthMm,
+      effective_rain_mm: input.effectiveRainMm ?? 0,
+    },
+  });
+  return data as IrrigationEngineeringSummary;
 }

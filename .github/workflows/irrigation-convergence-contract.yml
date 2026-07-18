@@ -1,0 +1,33 @@
+name: Irrigation convergence contract
+on:
+  pull_request:
+    paths:
+      - 'migrations/**'
+      - 'services/sahool-platform/api/irrigation_*'
+      - 'docs/architecture/ADR-IRR-F01-OWNERSHIP.md'
+      - 'docs/architecture/irrigation_convergence_mapping.yml'
+      - 'scripts/ci/irrigation_convergence_guard.py'
+      - 'tests/irrigation/**'
+  push:
+    paths:
+      - 'migrations/**'
+      - 'services/sahool-platform/api/irrigation_*'
+      - 'docs/architecture/ADR-IRR-F01-OWNERSHIP.md'
+      - 'docs/architecture/irrigation_convergence_mapping.yml'
+      - 'scripts/ci/irrigation_convergence_guard.py'
+      - 'tests/irrigation/**'
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # pytest-asyncio is required: tests/irrigation carries async tests (the Gate B dispatch-relay
+      # worker) that pytest.ini runs under asyncio_mode=auto. Bare pytest cannot collect them.
+      # httpx is required: the platform irrigation_activation_gate restricted adapter (open-ledger
+      # #1) uses httpx to reach the decision-service enforce endpoint, and its unit test imports it.
+      - run: python -m pip install --upgrade pip pytest pytest-asyncio httpx
+      - run: python scripts/ci/irrigation_convergence_guard.py
+      - run: python -m pytest -q tests/irrigation

@@ -5,7 +5,8 @@
   • POST   /api/v1/notifications/delivery     — إدامة/تحديث حالة تسليم تنبيه×قناة
     (إغلاق دورة الإشعار، جدول v83 notification_delivery، fail-soft غير كاسر).
   • WS     /api/v1/notifications/ws           — بثّ حيّ بسيط (اشتراك مستأجِر،
-    تحقّق توكن fail-closed في الـhandshake). انظر ملاحظة الإرسال أدناه.
+    مصادقة داخل القناة بعد accept: التوكن في أوّل إطار auth — أو قناة
+    Sec-WebSocket-Protocol البديلة — لا في الـURL إطلاقاً). انظر ملاحظة الإرسال أدناه.
 
 النماذج/المساعِدات (NotificationPreferences، _row_to_prefs، _PREF_SELECT_COLS،
 _NOTIF_EVENT_TYPES، _ALERT_SEVERITIES، …) تبقى في api.main وتُستورَد هنا.
@@ -21,7 +22,6 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    Query,
     WebSocket,
     WebSocketDisconnect,
 )
@@ -238,54 +238,79 @@ async def upsert_notification_delivery(
     )
 
 
-# ─── بثّ حيّ (WebSocket) — اشتراك مستأجِر + handshake موثَّق (fail-closed) ─────────
+# ─── بثّ حيّ (WebSocket) — اشتراك مستأجِر + مصادقة داخل القناة (fail-closed) ───────
 #
-# الإغلاق المرن الصادق: هذه النقطة تُنفّذ **اشتراكاً آمناً** — تحقّق توكن في الـ
-# handshake (fail-closed: توكن غائب/غير صالح ⇒ إغلاق فوريّ 1008 قبل قبول أيّ بثّ)
-# ثمّ تبقي القناة مفتوحة على قناة المستأجِر. البثّ الكامل (fan-out من event_bus/NATS
-# لكلّ المشتركين) **لم يُنفَّذ هنا** (بنية تتطلّب سجلّ اتّصالات مشترك + مستهلِك
-# أحداث) — لا ندّعيه. ما هو منفَّذ: عقد اشتراك موثَّق + إطار ترحيب يصف القناة +
-# بنية إرسال موثَّقة (send_to_subscriber) جاهزة للوصل بمستهلِك الأحداث لاحقاً.
+# الإغلاق المرن الصادق: هذه النقطة تُنفّذ **اشتراكاً آمناً**. المصافحة:
+#   1) ``accept`` أوّلاً دائماً — الإغلاق قبل accept يُنتِج رمز إغلاق 1006 (شاذّ) في
+#      المتصفّح، والواجهة (FE-10: لا توكن في الـURL) تقرؤه فشلاً وتعيد الاتّصال ⇒
+#      حلقة إعادة اتّصال. نقبل، ثمّ نصادق داخل القناة، ثمّ نغلق 1008 (إغلاق سياسة
+#      نظيف) فقط عند فشل المصادقة.
+#   2) التوكن من أوّل إطار ``{"type":"auth","token":<JWT>}`` (القناة المفضّلة، FE-10 —
+#      التوكن لا يلمس الـURL) أو من ``Sec-WebSocket-Protocol`` كقناة بديلة نظيفة. رمز
+#      الاستعلام ``?token=`` أُزيل عمداً (توكن في الـURL يتسرّب إلى سجلّات الوصول في
+#      الوكيل/البوّابة).
+#   3) التحقّق بمصدر واحد: get_current_user (نفس فكّ JWT + إصدار + denylist للمسار
+#      HTTP) — لا منطق تحقّق موازٍ.
+#   4) إقرار صريح ``{"type":"auth_ok"}`` (FE-09) يفكّ بوّابة الصندوق الصادر في الواجهة.
+# البثّ الكامل (fan-out من event_bus/NATS لكلّ المشتركين) **لم يُنفَّذ هنا** — لا
+# ندّعيه. المنفَّذ: عقد اشتراك موثَّق + إقرار + بنية إرسال (send_to_subscriber).
+
+# مهلة انتظار إطار المصادقة الأوّل بعد accept (ثوانٍ) — بعدها إغلاق 1008 (fail-closed).
+_WS_AUTH_TIMEOUT_SECONDS = 10.0
+# القناة البديلة النظيفة لعملاء غير المتصفّح: ``Sec-WebSocket-Protocol: sahool-bearer, <JWT>``.
+# الخادم يردّ صدى الرمز الدلاليّ فقط (sahool-bearer) لا التوكن — فلا يتسرّب في رأس الردّ.
+_WS_SUBPROTOCOL_SCHEME = "sahool-bearer"
 
 
-async def _authenticate_ws(websocket: WebSocket, token: str | None) -> UserSchema | None:
-    """يتحقّق من توكن الـWebSocket بعد القبول (fail-closed).
+def _subprotocol_token(websocket: WebSocket) -> tuple[str | None, str | None]:
+    """يستخرج (توكن، رمز الصدى) من ``Sec-WebSocket-Protocol`` إن استُخدمت القناة البديلة.
 
-    يدعم مسارَيْن:
-    - URL query ``?token=<JWT>`` (للتوافق مع عملاء قديمة أو اختبارات مباشرة).
-    - إطار auth أوّل ``{"type":"auth","token":"<JWT>"}`` (نموذج FE-10: لا توكن في
-      الـURL — التوكن يُرسَل في أوّل رسالة بعد الفتح بدلاً من الـquery string لمنع
-      تسرّبه في سجلّات الوكلاء/Referrer).
+    العميل يعرض ``sahool-bearer, <JWT>``؛ نعيد (التوكن، "sahool-bearer") ليُردّ صداه في
+    accept (بعض العملاء يُجهضون إن لم يُردَّ بروتوكول فرعيّ مطابق). غير ذلك ⇒ (None, None).
+    """
+    raw = websocket.headers.get("sec-websocket-protocol")
+    if not raw:
+        return None, None
+    parts = [p.strip() for p in raw.split(",") if p.strip()]
+    if len(parts) >= 2 and parts[0] == _WS_SUBPROTOCOL_SCHEME:
+        return parts[1], _WS_SUBPROTOCOL_SCHEME
+    return None, None
 
-    الاتّصال **مقبول دائماً أوّلاً** ثمّ نتحقّق (fail-closed في الجسم لا في الـ
-    handshake): هذا يمنع إغلاقَ 1008 قبل accept الذي يُسبّب حلقة إعادة اتّصال
-    بلا نهاية في المتصفّح (كود != 1000 ⇒ reconnect مباشر).
 
-    يُرجِع UserSchema عند النجاح، أو None بعد إغلاق الاتّصال (1008) عند الفشل.
+def _verify_ws_token(token: str | None) -> UserSchema | None:
+    """مصدر تحقّق واحد — يُعاد استعمال get_current_user (فاكّ الـJWT الوحيد). لا منطق موازٍ.
+
+    يُرجِع المستخدم عند النجاح، أو None عند أيّ فشل (يُغلق المُستدعي القناة 1008).
     """
     if not token:
-        # انتظر إطار auth أوّل (حدّ 10 ث) — FE-10
-        try:
-            raw = await asyncio.wait_for(websocket.receive_text(), timeout=10.0)
-            frame = json.loads(raw)
-            if frame.get("type") == "auth":
-                token = str(frame.get("token") or "").strip() or None
-        except (asyncio.TimeoutError, json.JSONDecodeError, Exception):  # noqa: BLE001
-            await websocket.close(code=1008)
-            return None
-    if not token:
-        await websocket.close(code=1008)
         return None
     try:
-        # get_current_user دالّة متزامنة نقيّة الفكّ (بلا I/O قاعدة) — تُستدعى مباشرةً
-        # بتركيب رأس Bearer؛ ترفع HTTPException عند أيّ فشل تحقّق (fail-closed).
         return get_current_user(authorization=f"Bearer {token}")
     except HTTPException:
-        await websocket.close(code=1008)  # توكن غير صالح/مُبطَل/مصدر مجهول
         return None
-    except Exception:  # noqa: BLE001 — أيّ تعذّر تحقّق ⇒ إغلاق (لا قبول مشكوك)
-        await websocket.close(code=1008)
+    except Exception:  # noqa: BLE001 — أيّ تعذّر تحقّق ⇒ رفض (لا قبول مشكوك)
         return None
+
+
+async def _resolve_ws_token(websocket: WebSocket, sub_token: str | None) -> str | None:
+    """يحسم توكن القناة: القناة البديلة (sub_token) إن وُجدت، وإلّا أوّل إطار auth.
+
+    ينتظر إطار العميل الأوّل حتى _WS_AUTH_TIMEOUT_SECONDS؛ إطار غير auth/غير JSON/مهلة/
+    انقطاع ⇒ None (fail-closed). التوكن لا يُقرأ من الـURL إطلاقاً.
+    """
+    if sub_token is not None:
+        return sub_token
+    try:
+        raw = await asyncio.wait_for(websocket.receive_text(), timeout=_WS_AUTH_TIMEOUT_SECONDS)
+        frame = json.loads(raw)
+    except (TimeoutError, WebSocketDisconnect):
+        return None
+    except Exception:  # noqa: BLE001 — إطار أوّل مُشوَّه ⇒ لا توكن
+        return None
+    if isinstance(frame, dict) and frame.get("type") == "auth":
+        tok = frame.get("token")
+        return tok if isinstance(tok, str) and tok else None
+    return None
 
 
 async def send_to_subscriber(websocket: WebSocket, message: dict) -> bool:
@@ -303,32 +328,39 @@ async def send_to_subscriber(websocket: WebSocket, message: dict) -> bool:
 
 
 @router.websocket("/api/v1/notifications/ws")
-async def notifications_ws(
-    websocket: WebSocket,
-    token: str | None = Query(default=None),
-):
-    """بثّ إشعارات حيّ — اشتراك مستأجِر موثَّق (fail-closed بعد القبول).
+async def notifications_ws(websocket: WebSocket):
+    """بثّ إشعارات حيّ — اشتراك مستأجِر مُصادَق داخل القناة (accept ثمّ مصادقة، fail-closed).
 
-    العقد (FE-10): العميل يفتح ``wss://…/api/v1/notifications/ws`` بلا توكن في
-    الـURL ثمّ يُرسِل إطار ``{"type":"auth","token":"<JWT>"}`` كأوّل رسالة. الخادم
-    يقبل الاتّصال أوّلاً (لا يمكن الإرسال/الاستقبال قبل accept)، يتحقّق من
-    التوكن (من الإطار أو من query string للتوافق)، يُرسِل ``{"type":"auth_ok"}``
-    (بوّابة FE-09: الواجهة لا تُفرِّغ الصندوق الصادر حتى تستلم هذا الإقرار)،
-    ثمّ يُرسِل إطار الاشتراك ويبقى في حلقة heartbeat.
+    العقد: العميل يفتح ``wss://…/api/v1/notifications/ws`` **بلا توكن في الـURL**، ثمّ
+    يُرسل أوّل إطار ``{"type":"auth","token":<JWT>}`` (أو يمرّر التوكن عبر
+    ``Sec-WebSocket-Protocol: sahool-bearer, <JWT>``). الخادم يقبل أوّلاً، يصادق، يردّ
+    ``{"type":"auth_ok"}`` (FE-09)، ثمّ إطار ترحيب يصف قناة المستأجِر، وتبقى القناة
+    مفتوحة (heartbeat: العميل يُرسل، والخادم يردّ pong) حتى يقطع العميل. فشل/مهلة
+    المصادقة ⇒ إغلاق 1008 نظيف **بعد** accept (لا إغلاق قبل accept — يمنع حلقة إعادة
+    الاتّصال FE-10).
 
     صدق الحدود: الـfan-out الفعليّ (دفع كلّ حدث جديد للمشترِكين) يتطلّب سجلّ اتّصالات
     مشترك + مستهلِك أحداث — غير موصول هنا. send_to_subscriber أعلاه هي نقطة الوصل
     الموثَّقة. لا ندّعي بثّاً لم يُوصَل.
     """
-    # قبول أوّلاً — الإغلاق قبل accept يُسبّب حلقة إعادة اتّصال لا نهاية لها في
-    # المتصفّح (كود 1006/غير متوقّع ⇒ onclose.code != 1000 ⇒ reconnect فوريّ).
-    await websocket.accept()
+    # 1) accept أوّلاً دائماً (يمنع 1006/حلقة إعادة الاتّصال) — مع صدى البروتوكول الفرعيّ
+    #    إن استُخدمت القناة البديلة.
+    sub_token, echo = _subprotocol_token(websocket)
+    if echo:
+        await websocket.accept(subprotocol=echo)
+    else:
+        await websocket.accept()
 
-    user = await _authenticate_ws(websocket, token)
+    # 2) حسم التوكن (أوّل إطار auth — أو القناة البديلة)، ثمّ 3) تحقّق بمصدر واحد.
+    token = await _resolve_ws_token(websocket, sub_token)
+    user = _verify_ws_token(token)
     if user is None:
-        return  # أُغلق الاتّصال داخل _authenticate_ws (fail-closed)
+        # fail-closed: قُبِلت القناة لكن بلا هويّة صالحة ⇒ إغلاق سياسة نظيف (1008) لا
+        # إجهاض قبل accept. الواجهة تحدّ إعادة المحاولة (maxReconnects) فلا تُشكِّل حلقة.
+        await websocket.close(code=1008)
+        return
 
-    # إقرار المصادقة الصريح — FE-09: الواجهة تنتظر هذا قبل تفريغ الصندوق الصادر.
+    # 4) إقرار مصادقة صريح (FE-09): الواجهة تُبقي صندوقها الصادر مقفلاً حتى ترى auth_ok.
     await websocket.send_json({"type": "auth_ok"})
 
     channel = f"sahool.notifications.{user.tenant_id}"

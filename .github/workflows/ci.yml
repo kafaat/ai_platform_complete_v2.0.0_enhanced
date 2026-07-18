@@ -588,6 +588,65 @@ jobs:
           TEST_REDIS_URL: redis://localhost:6380/0
           JWT_SECRET: test_secret_min_32_chars_for_sahool_v9
         run: pytest -v -m integration --tb=short
+      # ── IRR-F01 live certification ─────────────────────────────────────────────────
+      # The shared run above connects as the superuser sahool_test, so the live reservation
+      # gates SKIP there (RLS needs a real app role). These dedicated steps run them for real
+      # as a restricted NOSUPERUSER/NOBYPASSRLS role with IRR_F01_CERTIFICATION_REQUIRED=1, so
+      # any skip (DB down, missing migration, wrong role) becomes a HARD failure — no
+      # green-but-skipped certification. Dedicated steps keep app-role scoping out of the
+      # shared integration run, which other tests legitimately run as superuser.
+      - name: Create restricted application role for RLS certification
+        env:
+          PGPASSWORD: test_password
+        run: |
+          psql -h localhost -p 5433 -U sahool_test -d sahool_test -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_app_test') THEN
+              CREATE ROLE sahool_app_test LOGIN PASSWORD 'app_test_password'
+                NOSUPERUSER NOBYPASSRLS NOINHERIT;
+            END IF;
+          END $$;
+          GRANT CONNECT ON DATABASE sahool_test TO sahool_app_test;
+          GRANT USAGE ON SCHEMA public TO sahool_app_test;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO sahool_app_test;
+          GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO sahool_app_test;
+          GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO sahool_app_test;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO sahool_app_test;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT USAGE, SELECT ON SEQUENCES TO sahool_app_test;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT EXECUTE ON FUNCTIONS TO sahool_app_test;
+          SQL
+          role_flags=$(psql -h localhost -p 5433 -U sahool_test -d sahool_test -Atc \
+            "SELECT rolsuper::text || ':' || rolbypassrls::text FROM pg_roles WHERE rolname='sahool_app_test'")
+          test "$role_flags" = "false:false" || { echo "::error::invalid RLS role flags: $role_flags"; exit 1; }
+      - name: IRR-F01 fresh-schema certification (Gate A + Gate B1)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          IRR_F01_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
+      - name: IRR-F01 upgrade certification (Gate U1 — v194→v195/v196)
+        env:
+          PGHOST: localhost
+          PGPORT: "5433"
+          ADMIN_USER: sahool_test
+          ADMIN_PASS: test_password
+          U1_DB: sahool_u1_upgrade
+          APP_ROLE: sahool_app_test
+          APP_PASS: app_test_password
+          IRR_F01_CERTIFICATION_REQUIRED: "1"
+        run: |
+          bash scripts/irr_f01/upgrade_gate_u1.sh
+          export IRR_F01_UPGRADE_DATABASE_URL="postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_u1_upgrade"
+          export IRR_F01_UPGRADE_ADMIN_URL="postgresql://sahool_test:test_password@localhost:5433/sahool_u1_upgrade"
+          pytest -v -m integration -rs tests_v9/test_irr_f01_upgrade_gate_u1_pg.py
+          # Gate A + Gate B1 must also pass over the UPGRADED base, not only fresh schema.
+          TEST_DATABASE_URL="$IRR_F01_UPGRADE_DATABASE_URL" \
+          TEST_DATABASE_ADMIN_URL="$IRR_F01_UPGRADE_ADMIN_URL" \
+            pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
 
   decision-service-tests:
     name: Decision Service Tests
@@ -682,6 +741,83 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx10_12_execution_outcome.py -q -p no:cacheprovider
+      # IRR-F01 Gate B-delivery (thin inbox, real Postgres): a delivered reservation dispatch
+      # INTENT is recorded idempotently (dedup on tenant+source_event_id), a corrupted redelivery
+      # is rejected, the receipt is append-preserving, the consumer heartbeat advances — and a
+      # delivery does NOT create an execution_request (delivery != fulfillment).
+      - name: IRR-F01 Gate B-delivery reservation dispatch-intent inbox (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_gate_b_reservation_dispatch_inbox.py -q -p no:cacheprovider
+      # IRR-F01 Phase 1: the irr_f01_reservation ACTIVATION GATE reference implementation
+      # (5-state machine + CAS on activation_generation + TTL + stale-evaluating recovery +
+      # append-only evidence + probe role/signature + enforcement). The eight mandatory proofs
+      # run on real Postgres.
+      - name: IRR-F01 activation gate (irr_f01_reservation) proof tests (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_irr_f01_reservation_activation_gate.py -q -p no:cacheprovider
+      # IRR-F01 Phase 1 P1-b: the activation gate HTTP surface (operator begin/complete/revoke/
+      # reset + guarded probe) and the ingest enforcement wiring, over the real app + Postgres.
+      - name: IRR-F01 activation gate HTTP + enforcement (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_irr_f01_activation_endpoints.py -q -p no:cacheprovider
+      # Phase 2: the SECOND, independent Category-A activation gate (satellite_cdse) — same state
+      # machine/CAS/TTL/evidence proofs, but enforcement is imagery-SOURCE SELECTION (cdse vs the
+      # element84 fallback) rather than a refusal. Two independent gates unlock the Phase-3
+      # extraction (ACTIVATION-GATE-PROD-07).
+      - name: satellite_cdse activation gate proof tests (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_satellite_cdse_activation_gate.py -q -p no:cacheprovider
+      # Phase 2 P2-b: the satellite_cdse activation gate HTTP surface (operator begin/complete/
+      # revoke/reset + guarded probe) and the /source enforcement read (cdse when enabled, else the
+      # element84 fallback — a SOURCE SELECTION, never a 403), over the real app + Postgres.
+      - name: satellite_cdse activation gate HTTP + source selection (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_satellite_cdse_activation_endpoints.py -q -p no:cacheprovider
+      # Phase 2 P2-c: the REAL end-to-end — the raster-service restricted adapter consuming the live
+      # satellite_cdse gate over ASGI (state change flips the imagery source; revoke blocks a new
+      # CDSE selection; degraded stays on the Element84 fallback; generation change is observable).
+      - name: satellite_cdse live consumer E2E (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_satellite_cdse_live_consumer_e2e.py -q -p no:cacheprovider
+      # Gate-Trust-1: the stored producer-issued evidence RECEIPT store is the activation root of
+      # trust — the caller submits references, the gate resolves them server-side, and every reject
+      # case (unknown/wrong-gate/wrong-env/revoked/expired/not-pass/unknown-producer/unsupported-
+      # check) plus "raw caller evidence forbidden (422)" is proven on real Postgres.
+      - name: activation evidence receipts trust root (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_activation_evidence_contract.py -q -p no:cacheprovider
+      # Gate-Trust-1: the trust root fails closed at READ — deploy_build_sha() and the probe secret
+      # raise on absent/invalid config, the evidence window is capped, provenance is canonical. Pure
+      # decisions, no DB.
+      - name: activation core hardening fail-closed
+        working-directory: services/decision-service
+        run: pytest tests/test_activation_gate_core_hardening.py -q -p no:cacheprovider
+      # Service-token guard middleware (open-ledger #2): the raw internal port refuses spoofed
+      # identity headers when a token is configured / production is armed, fails closed (503) when
+      # required-but-unset, and in production restricts the auth-exemption set to the health probes.
+      # Pure middleware decision, no DB.
+      - name: service-token guard middleware
+        working-directory: services/decision-service
+        run: pytest tests/test_service_token_guard.py -q -p no:cacheprovider
+      # LOOP_TABLES drift (no phantom table) + WebSocket auth guard (no WS route bypasses the
+      # service-token middleware). Static, no DB.
+      - name: loop-tables + websocket governance guards
+        working-directory: services/decision-service
+        run: pytest tests/test_loop_tables_and_ws_guard.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->
@@ -895,6 +1031,14 @@ jobs:
         run: |
           python3 scripts/security/validate_rls_write_policies.py --root .
           pytest -q tests/security/test_phase22_rls_with_check_backfill.py
+      # FII Safety Increment 1C: fail-closed tenant-write ratchet on NEW migrations
+      # (>v191 + the forward fail-closed migrations) + the FII security-gate tests.
+      # The historical migrations are superseded at runtime by v192/v194; their live
+      # posture is proven by the integration test, not this static ratchet.
+      - name: FII RLS safety gates (Increment 1C)
+        run: |
+          python3 scripts/ci/fii_rls_write_policy_gate.py --root .
+          pytest -q tests/security/test_fii_rls_role_gate.py tests/security/test_fii_chemical_chain_rls_gate.py
 
   flutter-analyze:
     name: Flutter Analyze & Test

@@ -97,6 +97,7 @@ const EquipmentPage       = lazy(() => import('./sections/EquipmentPage'));
 const DevicesPage         = lazy(() => import('./sections/DevicesPage'));
 const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
 const IrrigationNetworkPage = lazy(() => import('./sections/IrrigationNetworkPage'));
+const IrrigationEngineeringPage = lazy(() => import('./sections/IrrigationEngineeringPage'));
 const WeatherAdvicePage   = lazy(() => import('./sections/WeatherAdvicePage'));
 const MasterDataPage      = lazy(() => import('./sections/MasterDataPage'));
 const DocumentsPage       = lazy(() => import('./sections/DocumentsPage'));
@@ -141,7 +142,7 @@ export type PageId =
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'lab-sampling' | 'irrigation' | 'irrigation-plan' | 'water-twin' | 'etc-dual' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'decision-confidence' | 'decision-runtime' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
-  | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network'
+  | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network' | 'irrigation-engineering'
   | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime' | 'approvals-console' | 'manager-console'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
   | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert'
@@ -372,6 +373,7 @@ export default function App() {
       case 'device-twin':  return <DeviceTwinPage />;
       case 'irrigation-ops': return <IrrigationOpsPage />;
       case 'irrigation-network': return <IrrigationNetworkPage />;
+      case 'irrigation-engineering': return <IrrigationEngineeringPage />;
       case 'weather-advice': return <WeatherAdvicePage />;
       case 'agro-zones':   return <AgroZonesPanel />;
       case 'yemeni-calendars': return <YemeniCalendarPanel />;

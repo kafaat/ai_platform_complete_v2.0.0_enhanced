@@ -44,8 +44,10 @@ def test_stac_search_dispatches_to_cdse_failclosed():
     assert "async def stac_search_cdse" in src, "يجب وجود باحث CDSE للكتالوج"
     assert "search_scenes(" in src, "يجب استعمال cdse_client.search_scenes"
     assert '"source": "cdse-catalog"' in src
-    # Element84 ارتداد صريح فقط (تجاوز واعٍ)
-    assert 'HISTORICAL_SEARCH_PROVIDER == "element84"' in src
+    # Element84 فرع صريح — الأساس HISTORICAL_SEARCH_PROVIDER، ويُشتَقّ الاختيار الفعّال من
+    # بوّابة satellite_cdse عند التفعيل (P2-c). يبقى الفرع الصريح مطلوباً.
+    assert "provider = HISTORICAL_SEARCH_PROVIDER" in src
+    assert 'if provider == "element84":' in src
     # لا اعتمادات CDSE ⇒ فشل مُغلَق بـ503 (لا تسرّب صامت إلى Element84)
     idx = src.find("async def stac_search(")
     body = src[idx : idx + 1800]

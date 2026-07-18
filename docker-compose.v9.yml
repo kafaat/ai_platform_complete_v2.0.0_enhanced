@@ -901,6 +901,12 @@ services:
       # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
       # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
       HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
+      # P2-c: بوّابة تفعيل satellite_cdse. الافتراض معطَّل (0) فيبقى اختيار المزوّد كما هو ثابتاً؛
+      # عند التفعيل يستشير raster-service قرار decision-service (/v1/activation/satellite_cdse/source)
+      # قبل اختيار CDSE، ويسقط مُغلَقاً إلى element84 عند أيّ تعذُّر. environment_id يطابق جانب البوّابة.
+      DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      RASTER_ACTIVATION_GATE_ENFORCE: ${RASTER_ACTIVATION_GATE_ENFORCE:-0}
+      ACTIVATION_ENVIRONMENT_ID: ${ACTIVATION_ENVIRONMENT_ID:-default}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
@@ -1186,6 +1192,18 @@ services:
       DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       DECISION_STRICT_WORKER_TENANTS: ${DECISION_STRICT_WORKER_TENANTS:-false}
+      # Gate-Trust-1 Slice 2: activation gate production profile. DEFAULT OFF (transitional — the
+      # mirror deployment must not be forced fail-closed). When the operator cuts the activation gate
+      # over to enforced production, set ACTIVATION_REQUIRE_PRODUCTION_HARDENING=true — startup then
+      # HARD-FAILS unless DEPLOY_BUILD_SHA + ACTIVATION_PROBE_SIGNING_KEY + the enforcement flag are
+      # set, and CI-issued (external) evidence receipts must be signed. Never a silent fail-open.
+      ACTIVATION_REQUIRE_PRODUCTION_HARDENING: ${ACTIVATION_REQUIRE_PRODUCTION_HARDENING:-false}
+      DEPLOY_BUILD_SHA: ${DEPLOY_BUILD_SHA:-}
+      ACTIVATION_PROBE_SIGNING_KEY: ${ACTIVATION_PROBE_SIGNING_KEY:-}
+      # Trust root for stored producer-issued evidence receipts. Required to ingest/resolve any
+      # receipt; the evidence-ingest and gate-completion paths fail closed (503) without it.
+      ACTIVATION_EVIDENCE_SIGNING_KEY: ${ACTIVATION_EVIDENCE_SIGNING_KEY:-}
+      IRR_F01_RESERVATION_ENFORCE_ACTIVATION: ${IRR_F01_RESERVATION_ENFORCE_ACTIVATION:-false}
       # Soil/agronomic evidence gates. Contract guards mandate production-safe defaults here;
       # the DISPATCH-blocking gate stays OFF by default so the live stack is not fail-closed
       # until soil profiles exist. On a stack without populated agronomic context/soil profiles,
@@ -1964,6 +1982,40 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
+  # IRR-F01 Gate B-delivery Slice B-d2-live: relays reservation dispatch events (published to NATS
+  # by the outbox worker) to decision-service's durable inbox. DEFAULT-OFF twice over: only started
+  # under the opt-in `relay` compose profile, AND no-ops internally unless
+  # FEATURE_RESERVATION_DISPATCH_RELAY is on. Records DELIVERY only — never fulfillment.
+  sahool-reservation-dispatch-relay-worker:
+    build: *id003
+    profiles:
+    - relay
+    mem_limit: 384m
+    security_opt:
+    - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
+      NATS_URL: ${NATS_URL:-nats://sahool-nats:4222}
+      DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:-}
+      FEATURE_RESERVATION_DISPATCH_RELAY: ${FEATURE_RESERVATION_DISPATCH_RELAY:-0}
+    command:
+    - python
+    - -m
+    - api.irrigation_dispatch_relay_worker
+    depends_on:
+      sahool-nats:
+        condition: service_started
+    networks:
+    - sahool-internal
   sahool-plugin-runtime-worker:
     build: *id003
     mem_limit: 512m

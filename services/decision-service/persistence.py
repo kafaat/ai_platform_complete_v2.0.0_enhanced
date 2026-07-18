@@ -10,6 +10,7 @@ real Postgres integration tests and backfill prove decision-service can be promo
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import os
@@ -39,12 +40,43 @@ def now_iso() -> str:
     return datetime.now(UTC).isoformat()
 
 
-async def _connect():
+_POOLS: dict[int, Any] = {}
+
+
+class _PooledConnection:
+    def __init__(self, pool: Any, conn: Any) -> None:
+        self._pool = pool
+        self._conn = conn
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._conn, name)
+
+    async def close(self) -> None:
+        if self._conn is not None:
+            conn, self._conn = self._conn, None
+            await self._pool.release(conn)
+
+
+async def acquire_connection():
     try:
         import asyncpg  # type: ignore
-    except ImportError as exc:  # pragma: no cover - exercised in deploy/runtime only
+    except ImportError as exc:  # pragma: no cover
         raise RuntimeError("asyncpg is required when DECISION_SERVICE_SOR_ENABLED=true") from exc
-    return await asyncpg.connect(database_url(), statement_cache_size=0)
+    loop_id = id(asyncio.get_running_loop())
+    pool = _POOLS.get(loop_id)
+    if pool is None:
+        pool = await asyncpg.create_pool(
+            database_url(),
+            min_size=1,
+            max_size=int(os.getenv("DECISION_DB_POOL_MAX", "10")),
+            statement_cache_size=0,
+        )
+        _POOLS[loop_id] = pool
+    return _PooledConnection(pool, await pool.acquire())
+
+
+async def _connect():
+    return await acquire_connection()
 
 
 def _json(value: Any) -> str:
@@ -1019,6 +1051,143 @@ def _authoritative_execution_request(row: Any, *, replay: bool) -> dict[str, Any
         if hasattr(requested_at, "isoformat")
         else requested_at,
     }
+
+
+# --- IRR-F01 Gate B-delivery: thin reservation dispatch-intent inbox --------------------
+# Records DELIVERY of a reservation dispatch INTENT from the platform outbox (a durable,
+# deduplicated receipt) WITHOUT creating an execution_request. Fulfillment (turning a received
+# intent into an authorized execution_request) is a later, explicit WX-10-gated step.
+
+RESERVATION_INBOX_CONSUMER = "reservation_dispatch_inbox"
+
+_RESERVATION_EVENT_STATE = {
+    "irrigation.reservation.dispatch_requested": "received",
+    "irrigation.reservation.dispatch_failed": "failure_notice",
+}
+
+
+def _reservation_intent_hash(*, source_event_id: str, event_type: str, payload: Any) -> str:
+    blob = json.dumps(
+        {
+            "source_event_id": source_event_id,
+            "event_type": event_type,
+            "evaluation_id": getattr(payload, "evaluation_id", None),
+            "reservation_ids": list(getattr(payload, "reservation_ids", []) or []),
+            "execution_ref_type": getattr(payload, "execution_ref_type", None),
+            "execution_ref_id": getattr(payload, "execution_ref_id", None),
+            "raw_payload": getattr(payload, "raw_payload", {}) or {},
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(blob.encode()).hexdigest()
+
+
+def _authoritative_inbox(row: Any, *, replay: bool) -> dict[str, Any]:
+    received_at = row["received_at"]
+    return {
+        "authoritative": True,
+        "persisted": True,
+        "replay": replay,
+        "inbox_id": row["inbox_id"],
+        "receipt_id": row["receipt_id"],
+        "source_event_id": row["source_event_id"],
+        "event_type": row["event_type"],
+        "dispatch_state": row["dispatch_state"],
+        "evaluation_id": row["evaluation_id"],
+        "execution_ref_type": row["execution_ref_type"],
+        "execution_ref_id": row["execution_ref_id"],
+        "received_at": received_at.isoformat()
+        if hasattr(received_at, "isoformat")
+        else received_at,
+    }
+
+
+async def _touch_consumer_heartbeat(conn: Any, consumer_name: str, event_id: str) -> None:
+    await conn.execute(
+        """INSERT INTO decision_consumer_heartbeats
+             (consumer_name, last_seen_at, last_event_id, processed_count)
+           VALUES ($1, now(), $2, 1)
+           ON CONFLICT (consumer_name) DO UPDATE
+             SET last_seen_at = now(),
+                 last_event_id = EXCLUDED.last_event_id,
+                 processed_count = decision_consumer_heartbeats.processed_count + 1""",
+        consumer_name,
+        event_id,
+    )
+
+
+async def record_reservation_dispatch_intent(
+    *, tenant_id: str, source_event_id: str, event_type: str, payload: Any
+) -> dict[str, Any]:
+    """Idempotently record a delivered reservation dispatch intent. Never creates an
+    execution_request. Returns status: received | failure_notice (first delivery),
+    duplicate (idempotent redelivery, same receipt), or conflict (same event id, different
+    payload — a corrupted/forged redelivery)."""
+    state = _RESERVATION_EVENT_STATE.get(event_type)
+    if state is None:
+        return {"status": "conflict", "reason": "unsupported_event_type"}
+    request_hash = _reservation_intent_hash(
+        source_event_id=source_event_id, event_type=event_type, payload=payload
+    )
+    conn = await _connect()
+    try:
+        async with conn.transaction():
+            prior = await conn.fetchrow(
+                "SELECT * FROM decision_reservation_dispatch_inbox "
+                "WHERE tenant_id=$1::uuid AND source_event_id=$2",
+                tenant_id,
+                source_event_id,
+            )
+            if prior:
+                if prior["request_hash"] != request_hash:
+                    return {"status": "conflict", "reason": "source_event_payload_mismatch"}
+                return {"status": "duplicate", **_authoritative_inbox(prior, replay=True)}
+            inbox_id = (
+                "rdi_" + hashlib.sha256(f"{tenant_id}:{source_event_id}".encode()).hexdigest()[:20]
+            )
+            receipt_id = (
+                "rcpt_"
+                + hashlib.sha256(
+                    f"{tenant_id}:{source_event_id}:{request_hash}".encode()
+                ).hexdigest()[:20]
+            )
+            row = await conn.fetchrow(
+                """INSERT INTO decision_reservation_dispatch_inbox
+                     (inbox_id,tenant_id,source_event_id,event_type,evaluation_id,reservation_ids,
+                      execution_ref_type,execution_ref_id,correlation_id,causation_id,payload,
+                      dispatch_state,receipt_id,request_hash)
+                   VALUES ($1,$2::uuid,$3,$4,$5,$6::jsonb,$7,$8,$9,$10,$11::jsonb,$12,$13,$14)
+                   ON CONFLICT (tenant_id, source_event_id) DO NOTHING RETURNING *""",
+                inbox_id,
+                tenant_id,
+                source_event_id,
+                event_type,
+                getattr(payload, "evaluation_id", None),
+                _json(list(getattr(payload, "reservation_ids", []) or [])),
+                getattr(payload, "execution_ref_type", None),
+                getattr(payload, "execution_ref_id", None),
+                getattr(payload, "correlation_id", None),
+                getattr(payload, "causation_id", None),
+                _json(getattr(payload, "raw_payload", {}) or {}),
+                state,
+                receipt_id,
+                request_hash,
+            )
+            if row is None:
+                # Concurrent delivery won the unique index — re-read and return its receipt.
+                row = await conn.fetchrow(
+                    "SELECT * FROM decision_reservation_dispatch_inbox "
+                    "WHERE tenant_id=$1::uuid AND source_event_id=$2",
+                    tenant_id,
+                    source_event_id,
+                )
+                return {"status": "duplicate", **_authoritative_inbox(row, replay=True)}
+            await _touch_consumer_heartbeat(conn, RESERVATION_INBOX_CONSUMER, source_event_id)
+            return {"status": state, **_authoritative_inbox(row, replay=False)}
+    finally:
+        await conn.close()
 
 
 async def create_execution_request(

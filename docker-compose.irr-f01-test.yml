@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: sahool_irr_test
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "127.0.0.1::5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sahool_irr_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 3s
+    tmpfs:
+      - /var/lib/postgresql/data
