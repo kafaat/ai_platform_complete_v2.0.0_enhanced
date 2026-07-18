@@ -25,9 +25,13 @@ import pytest
 
 DECISION_DIR = Path(__file__).resolve().parents[1]
 RASTER_DIR = DECISION_DIR.parents[0] / "raster-service"
-for p in (str(DECISION_DIR), str(RASTER_DIR)):
-    if p not in sys.path:
-        sys.path.insert(0, p)
+# decision-service must stay FIRST on sys.path so `import main` resolves to it — raster-service also
+# has a `main.py`, so its dir is APPENDED (not inserted ahead) to avoid shadowing when this file is
+# collected alongside the other decision-service tests in one pytest process.
+if str(DECISION_DIR) not in sys.path:
+    sys.path.insert(0, str(DECISION_DIR))
+if str(RASTER_DIR) not in sys.path:
+    sys.path.append(str(RASTER_DIR))
 
 DB = os.getenv("DATABASE_URL", "").strip()
 pytestmark = pytest.mark.skipif(not DB, reason="requires real Postgres")

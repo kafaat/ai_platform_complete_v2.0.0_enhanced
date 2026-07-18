@@ -58,6 +58,10 @@ class GateConfig:
     known_producers: frozenset[str]
     probe_role: str
     build_sha_namespace: str
+    # Producers that CANNOT be authenticated by in-cluster service identity (e.g. CI runs outside
+    # the network). In the production profile their receipts MUST carry a valid HMAC signature at
+    # ingest; internal producers rely on mTLS/service identity + the stored content hash + actor.
+    external_producers: frozenset[str] = frozenset()
 
 
 def _now() -> datetime:
@@ -90,6 +94,31 @@ def deploy_build_sha() -> str:
 
 def _probe_secret() -> str:
     return os.getenv("ACTIVATION_PROBE_SIGNING_KEY", "").strip()
+
+
+def production_hardening_armed() -> bool:
+    """The activation production profile: external-producer signatures become mandatory. A deliberate
+    operator cutover gate (ACTIVATION_REQUIRE_PRODUCTION_HARDENING), not auto-armed by SAHOOL_ENV —
+    so the transitional mirror deployment is never broken, and the operator arms it at production
+    cutover (mirrors main.py's _activation_production_profile)."""
+    return os.getenv("ACTIVATION_REQUIRE_PRODUCTION_HARDENING", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
+
+
+def _evidence_signing_key(producer: str) -> str:
+    slug = producer.upper().replace("-", "_")
+    return os.getenv(f"ACTIVATION_EVIDENCE_SIGNING_KEY_{slug}", "").strip()
+
+
+def _expected_evidence_signature(producer: str, content_hash: str) -> str | None:
+    key = _evidence_signing_key(producer)
+    if not key:
+        return None
+    return hmac.new(key.encode(), content_hash.encode(), hashlib.sha256).hexdigest()
 
 
 class ActivationGateCore:
@@ -219,6 +248,14 @@ class ActivationGateCore:
             provenance=provenance,
             build_sha=build_sha,
         )
+        # External producers (e.g. CI, outside the cluster) must prove origin with a valid signature
+        # over the content hash in the production profile — service identity alone is not available.
+        if producer in self.cfg.external_producers and production_hardening_armed():
+            expected = _expected_evidence_signature(producer, content_hash)
+            if expected is None:
+                return {"status": "rejected", "reason": "signing_key_unavailable"}
+            if not signature or not hmac.compare_digest(expected, signature):
+                return {"status": "rejected", "reason": "invalid_signature"}
         conn = await self._connect()
         try:
             row = await conn.fetchrow(

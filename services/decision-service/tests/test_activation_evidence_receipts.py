@@ -276,6 +276,89 @@ def test_raw_caller_evidence_is_forbidden_over_http(monkeypatch):
     assert forged.status_code == 422
 
 
+def test_external_producer_signature_required_in_production(monkeypatch):
+    import hashlib
+    import hmac
+
+    from activation_gate_core import _parse_ts
+
+    async def go():
+        env = _env()
+        monkeypatch.setenv("ACTIVATION_REQUIRE_PRODUCTION_HARDENING", "1")
+        monkeypatch.setenv("ACTIVATION_EVIDENCE_SIGNING_KEY_CI", "ci-key")
+        obs, val = "2026-07-18T00:00:00+00:00", "2026-07-18T06:00:00+00:00"
+        # An unsigned CI receipt is rejected in the production profile (CI is external).
+        unsigned = await irr.record_receipt(
+            environment_id=env,
+            producer="ci",
+            check_name="ci_live_certification",
+            result="pass",
+            observed_at=obs,
+            valid_until=val,
+        )
+        assert unsigned == {"status": "rejected", "reason": "invalid_signature"}
+        # A correctly signed receipt is recorded.
+        content_hash = irr._CORE._receipt_content_hash(
+            environment_id=env,
+            producer="ci",
+            check_name="ci_live_certification",
+            result="pass",
+            observed_at=_parse_ts(obs).isoformat(),
+            valid_until=_parse_ts(val).isoformat(),
+            provenance=None,
+            build_sha=None,
+        )
+        sig = hmac.new(b"ci-key", content_hash.encode(), hashlib.sha256).hexdigest()
+        signed = await irr.record_receipt(
+            environment_id=env,
+            producer="ci",
+            check_name="ci_live_certification",
+            result="pass",
+            observed_at=obs,
+            valid_until=val,
+            signature=sig,
+        )
+        assert signed["status"] == "recorded"
+
+    _run(go())
+
+
+def test_internal_producer_needs_no_signature_in_production(monkeypatch):
+    async def go():
+        env = _env()
+        monkeypatch.setenv("ACTIVATION_REQUIRE_PRODUCTION_HARDENING", "1")
+        # decision-service is internal (relies on service identity), so no signature required.
+        r = await irr.record_receipt(
+            environment_id=env,
+            producer="decision-service",
+            check_name="consumer_heartbeat",
+            result="pass",
+            observed_at=_future(),
+            valid_until=_future(),
+        )
+        assert r["status"] == "recorded"
+
+    _run(go())
+
+
+def test_external_producer_needs_no_signature_in_development(monkeypatch):
+    async def go():
+        env = _env()
+        monkeypatch.delenv("ACTIVATION_REQUIRE_PRODUCTION_HARDENING", raising=False)
+        monkeypatch.setenv("SAHOOL_ENV", "development")
+        r = await irr.record_receipt(
+            environment_id=env,
+            producer="ci",
+            check_name="ci_live_certification",
+            result="pass",
+            observed_at=_future(),
+            valid_until=_future(),
+        )
+        assert r["status"] == "recorded"
+
+    _run(go())
+
+
 async def _connect():
     import asyncpg
 

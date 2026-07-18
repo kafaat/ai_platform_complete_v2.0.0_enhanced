@@ -39,6 +39,9 @@ _CORE = ActivationGateCore(
         known_producers=KNOWN_PRODUCERS,
         probe_role=PROBE_ROLE,
         build_sha_namespace="v028",
+        # CI runs outside the cluster: its receipts must be signed in production (raster-service /
+        # decision-service are internal and rely on service identity).
+        external_producers=frozenset({"ci"}),
     )
 )
 

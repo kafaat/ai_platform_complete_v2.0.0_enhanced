@@ -100,6 +100,10 @@ async def lifespan(app: FastAPI):
     if auth_error:
         logger.error(auth_error)
         raise RuntimeError(auth_error)
+    activation_error = activation_production_startup_error()
+    if activation_error:
+        logger.error(activation_error)
+        raise RuntimeError(activation_error)
     message = sor_misconfig_message()
     if message:
         logger.error(message)
@@ -377,6 +381,53 @@ def production_auth_startup_error() -> str | None:
             "DECISION_REQUIRE_AUTH_TOKEN is set) but is empty — refusing to start an "
             "unauthenticated decision service on the internal port. Configure the shared "
             "service bearer token before deployment."
+        )
+    return None
+
+
+def _activation_production_profile() -> bool:
+    """The activation gate's production hardening — a DELIBERATE cutover gate the operator arms
+    (ACTIVATION_REQUIRE_PRODUCTION_HARDENING), NOT auto-armed by SAHOOL_ENV. The gate ships default-
+    off/transitional (mirror-mode decision-service runs SAHOOL_ENV=production without it operational),
+    so the operator must explicitly arm this before the activation gate goes enforced-in-production —
+    at which point startup fail-closes on any missing hardening (per the deployment contract)."""
+    return os.getenv("ACTIVATION_REQUIRE_PRODUCTION_HARDENING", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def activation_production_startup_error() -> str | None:
+    """Gate-Trust-1 Slice 2: the activation gate's non-spoofable guarantees depend on runtime config
+    that is fail-OPEN when unset. In the production profile we HARD-FAIL startup unless all are set,
+    so the gate can never run in a spoofable/unenforced posture. Returns the message, or None.
+
+      * DEPLOY_BUILD_SHA — else build_sha binds an empty deploy fingerprint (fail-open).
+      * ACTIVATION_PROBE_SIGNING_KEY — else the probe HMAC uses an empty key.
+      * IRR_F01_RESERVATION_ENFORCE_ACTIVATION — enforcement must be armed (default-off is dev-only).
+    """
+    if not _activation_production_profile():
+        return None
+    missing = []
+    if not os.getenv("DEPLOY_BUILD_SHA", "").strip():
+        missing.append("DEPLOY_BUILD_SHA")
+    if not os.getenv("ACTIVATION_PROBE_SIGNING_KEY", "").strip():
+        missing.append("ACTIVATION_PROBE_SIGNING_KEY")
+    if os.getenv("IRR_F01_RESERVATION_ENFORCE_ACTIVATION", "").strip().lower() not in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }:
+        missing.append("IRR_F01_RESERVATION_ENFORCE_ACTIVATION")
+    if missing:
+        return (
+            "activation gate production profile is armed but required config is missing: "
+            f"{sorted(missing)}. The gate's non-spoofable build_sha, probe signature, and enforced "
+            "refusal all depend on these — refusing to start in a fail-open posture. Set them (or "
+            "unset ACTIVATION_REQUIRE_PRODUCTION_HARDENING outside production) before deployment."
         )
     return None
 

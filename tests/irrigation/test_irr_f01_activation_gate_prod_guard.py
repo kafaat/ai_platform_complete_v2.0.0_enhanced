@@ -110,6 +110,18 @@ def test_prod_evidence_receipt_trust_root():
     assert "evidence-receipts" in MAIN  # the authenticated ingest endpoint
 
 
+def test_prod_production_profile_fail_closed():
+    # Gate-Trust-1 Slice 2: the production profile hard-fails startup unless the gate's non-spoofable
+    # config is present, and external-producer receipts must be signed. Fail-open is impossible when
+    # the operator arms the profile.
+    assert "def activation_production_startup_error" in MAIN
+    assert "DEPLOY_BUILD_SHA" in MAIN and "ACTIVATION_PROBE_SIGNING_KEY" in MAIN
+    assert "activation_production_startup_error()" in MAIN  # wired into the lifespan
+    # External producers (CI) must sign in production; verification lives in the core.
+    assert "production_hardening_armed" in CORE
+    assert "external_producers" in CORE and "invalid_signature" in CORE
+
+
 def test_prod_07_shared_core_extracted_after_two_gates():
     # Phase 3: the machinery is shared by exactly the two proven gates, each a thin wrapper that
     # instantiates the core with its own GateConfig. Neither re-implements the state machine.

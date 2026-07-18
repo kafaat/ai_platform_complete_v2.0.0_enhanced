@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a4ee2c585783a74cfabe511ac0440e7696fc4ea8210826491b5d780b1fad401f"
+          "content": "8f14dc82e9ae717352fbc53ca96ef34393deea7018f18b7ad113407a5c3f2411"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9935,7 +9935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c845d78bcb4521de4f8a191b7f2a22d2a5ba7905c1ff5f7d8d5658d0c597b2b"
+          "content": "cdb4eaaa456a6af3f00dac1b836063c5d35c3fcc06a1453ad6db1aba72bda529"
         }
       ],
       "name": "services/decision-service/activation_gate.py",
@@ -9945,7 +9945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09759e81024baaef1e04f1a4c439d45824dc483dc1da296b52c4459144432f59"
+          "content": "24aa83f80540b98a44b24bce006d10f22317729107504a3161af326e17a6f3e7"
         }
       ],
       "name": "services/decision-service/activation_gate_core.py",
@@ -10005,7 +10005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "06d3b5ec12b3663718ec90895c5b0dec134e959db1fccfc7748598c7180a8875"
+          "content": "00dcbd3feeaf2573c90810d73d50bc9401c6b1162a513b887d93c5ea6889a5a8"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10425,7 +10425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0c25f6bae2bbdd9e0004f3f5452563d5aa4eaf8dec2225a238200625919eeb97"
+          "content": "d4c21aa259e4a064d314dd01f26b4e1fb336eb9a7baf698820b7350a6fc9d783"
         }
       ],
       "name": "services/decision-service/tests/test_activation_evidence_receipts.py",
@@ -10595,7 +10595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5868deda22e8b1f9e1fef5f0a40e1aa4a759726afe6a984c0a702b5d82316c1b"
+          "content": "2d5f3696a1be44d1bed92effcdbe68b572af565e04e1e4e4a1fd46b8e350d659"
         }
       ],
       "name": "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
