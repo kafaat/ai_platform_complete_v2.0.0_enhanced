@@ -30,6 +30,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
+import activation_gate
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
@@ -1141,6 +1142,16 @@ async def ingest_reservation_dispatch_intent(
             status_code=503,
             detail="decision-service is not the system-of-record — dispatch-intent inbox unavailable",
         )
+    # Enforcement point (opt-in): when IRR_F01_RESERVATION_ENFORCE_ACTIVATION is on, the
+    # irr_f01_reservation activation gate must be effectively enabled for this environment or the
+    # intent is refused (403). Off by default so pre-activation behaviour is unchanged.
+    if _enforce_reservation_activation():
+        try:
+            await activation_gate.enforce_enabled(_activation_environment())
+        except activation_gate.ActivationNotEnabled as exc:
+            raise HTTPException(
+                status_code=403, detail=f"irr_f01_reservation not activated: {exc.reason}"
+            ) from exc
     result = await record_reservation_dispatch_intent(
         tenant_id=tenant,
         source_event_id=payload.source_event_id,
@@ -1151,6 +1162,127 @@ async def ingest_reservation_dispatch_intent(
     if status in ("received", "failure_notice", "duplicate"):
         return {"accepted": True, "tenant_id": tenant, **result}
     raise HTTPException(status_code=409, detail=result.get("reason", "dispatch intent conflict"))
+
+
+# --- IRR-F01 Phase 1: irr_f01_reservation activation gate (operator + probe surface) ----------
+
+
+def _activation_environment() -> str:
+    return (
+        os.getenv("ACTIVATION_ENVIRONMENT_ID") or os.getenv("SAHOOL_ENV", "development")
+    ).strip()
+
+
+def _enforce_reservation_activation() -> bool:
+    return os.getenv("IRR_F01_RESERVATION_ENFORCE_ACTIVATION", "").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def _activation_actor(x_requested_by: str | None) -> str:
+    actor = (x_requested_by or "").strip()
+    if not actor:
+        raise HTTPException(status_code=400, detail="X-Requested-By is required")
+    return actor
+
+
+class ActivationCompleteIn(BaseModel):
+    expected_generation: int
+    evidence: list[dict[str, Any]] = Field(default_factory=list)
+    ttl_seconds: int = 3600
+
+
+class ActivationRevokeIn(BaseModel):
+    reason: str
+
+
+def _activation_result(result: dict[str, Any]) -> dict[str, Any]:
+    if result.get("status") == "conflict":
+        raise HTTPException(status_code=409, detail=result.get("reason", "activation conflict"))
+    return {"environment_id": _activation_environment(), **result}
+
+
+@app.post("/v1/activation/irr_f01_reservation/begin")
+async def activation_begin(x_requested_by: str | None = Header(default=None)) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await activation_gate.begin_evaluation(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.post("/v1/activation/irr_f01_reservation/complete")
+async def activation_complete(
+    payload: ActivationCompleteIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await activation_gate.complete_evaluation(
+            _activation_environment(),
+            expected_generation=payload.expected_generation,
+            evidence=payload.evidence,
+            actor=_activation_actor(x_requested_by),
+            ttl_seconds=payload.ttl_seconds,
+        )
+    )
+
+
+@app.post("/v1/activation/irr_f01_reservation/revoke")
+async def activation_revoke(
+    payload: ActivationRevokeIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await activation_gate.revoke(
+            _activation_environment(),
+            actor=_activation_actor(x_requested_by),
+            reason=payload.reason,
+        )
+    )
+
+
+@app.post("/v1/activation/irr_f01_reservation/reset")
+async def activation_reset(x_requested_by: str | None = Header(default=None)) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _activation_result(
+        await activation_gate.reset(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.get("/v1/activation/irr_f01_reservation")
+async def activation_current() -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return await activation_gate.current_cached(_activation_environment())
+
+
+@app.get("/v1/activation/irr_f01_reservation/probe")
+async def activation_probe(
+    x_activation_role: str | None = Header(default=None),
+    x_activation_probe_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    """Read-only probe — allowed ONLY with the activation_probe role AND a valid HMAC signature,
+    never from a normal request path."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    try:
+        return await activation_gate.probe_state(
+            _activation_environment(),
+            caller_role=(x_activation_role or "").strip(),
+            signature=(x_activation_probe_signature or "").strip(),
+        )
+    except activation_gate.ActivationProbeDenied as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
 class ExecutionDeliveryClaimIn(BaseModel):

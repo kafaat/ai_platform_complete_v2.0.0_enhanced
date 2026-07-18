@@ -22,6 +22,7 @@ import hashlib
 import hmac
 import json
 import os
+import time
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -92,9 +93,17 @@ def _evidence_admissible(item: dict[str, Any], environment_id: str, now: datetim
     )
 
 
+def deploy_build_sha() -> str:
+    """The deployed build fingerprint, supplied server-side by the deploy/CI pipeline
+    (``DEPLOY_BUILD_SHA``). Binding activation to it means an enabled verdict is tied to the exact
+    build that earned it — a redeploy of a different build changes the fingerprint. Never a request
+    input (non-spoofable)."""
+    return os.getenv("DEPLOY_BUILD_SHA", "").strip()
+
+
 def build_sha(evidence_items: list[dict[str, Any]]) -> str:
-    """Deterministic, server-derived fingerprint of the admitted evidence set — non-spoofable
-    because it is computed here from the evidence the gate accepted, never supplied by a caller."""
+    """Deterministic, server-derived fingerprint of (deployed build + admitted evidence) —
+    non-spoofable because it is computed here, never supplied by a caller."""
     canon = json.dumps(
         sorted(
             f"{e.get('producer')}|{e.get('check_name')}|{e.get('provenance')}|{e.get('valid_until')}"
@@ -102,7 +111,7 @@ def build_sha(evidence_items: list[dict[str, Any]]) -> str:
         ),
         separators=(",", ":"),
     )
-    return hashlib.sha256(f"{GATE_NAME}:v028:{canon}".encode()).hexdigest()
+    return hashlib.sha256(f"{GATE_NAME}:v028:{deploy_build_sha()}:{canon}".encode()).hexdigest()
 
 
 def _evidence_digest(evidence_items: list[dict[str, Any]]) -> str:
@@ -146,6 +155,8 @@ async def _log(
         actor,
         reason,
     )
+    # Any recorded transition supersedes the read cache for this environment.
+    invalidate_cache(environment_id)
 
 
 async def begin_evaluation(environment_id: str, *, actor: str) -> dict[str, Any]:
@@ -407,9 +418,31 @@ async def current(environment_id: str) -> dict[str, Any]:
         await conn.close()
 
 
+# Generation-bound short-TTL read cache for the read-heavy /current + /probe paths. The cached
+# snapshot carries its generation; any local transition invalidates it (below), and cross-process
+# staleness is bounded by CACHE_TTL_SECONDS. Enforcement (enforce_enabled) deliberately does NOT
+# read the cache — a physical/governance decision must see fresh TTL/revoke state.
+CACHE_TTL_SECONDS = float(os.getenv("ACTIVATION_CACHE_TTL_SECONDS", "3") or 3)
+_CACHE: dict[str, tuple[float, dict[str, Any]]] = {}
+
+
+def invalidate_cache(environment_id: str) -> None:
+    _CACHE.pop(environment_id, None)
+
+
+async def current_cached(environment_id: str) -> dict[str, Any]:
+    entry = _CACHE.get(environment_id)
+    if entry is not None and (time.monotonic() - entry[0]) < CACHE_TTL_SECONDS:
+        return {**entry[1], "cached": True}
+    snapshot = await current(environment_id)
+    _CACHE[environment_id] = (time.monotonic(), snapshot)
+    return {**snapshot, "cached": False}
+
+
 async def enforce_enabled(environment_id: str) -> dict[str, Any]:
     """The single enforcement point. Raises ActivationNotEnabled unless the gate is EFFECTIVELY
-    enabled (state=='enabled' and TTL not expired). No internal path may bypass this."""
+    enabled (state=='enabled' and TTL not expired). No internal path may bypass this. Reads fresh
+    (never the cache) so an expired TTL or a revoke takes effect immediately."""
     snapshot = await current(environment_id)
     if not snapshot["effective_enabled"]:
         reason = "ttl_expired" if snapshot.get("expired") else snapshot["state"]

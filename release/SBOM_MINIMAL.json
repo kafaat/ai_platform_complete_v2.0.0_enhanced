@@ -9935,6 +9935,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5f66665df626395bcd1708c3fc0989aa56fe24533baa1d5e047ba8debb9dcc2c"
+        }
+      ],
+      "name": "services/decision-service/activation_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d8bd3cd973da0b232acfd1d0028939616836638eb8e6b9f98e46486838da3601"
         }
       ],
@@ -9985,7 +9995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cf1f499265e26bff13b24c55f444b9ed634979cb9a6b475c5d467260c9696e2"
+          "content": "7b04e0e9862a07fd884075df806711182ae8daa2ce48e9d7279bdd485fbe1124"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10275,6 +10285,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2151e3af484d9e30cd079f010a50e6b267c0c37a084ac06c1d68dea4a3490233"
+        }
+      ],
+      "name": "services/decision-service/migrations/028_irr_f01_reservation_activation_gate.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "410b2f2726d9fdfefef03ba7992162f8b03803b949f469e851bea1dba170c0b3"
         }
       ],
@@ -10449,6 +10469,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "edbcdf658d6ac2e5e8397ff096925a21c86a93f91c0eb798a5db1c051d4df8a3"
+        }
+      ],
+      "name": "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
       "type": "file"
     },
     {
