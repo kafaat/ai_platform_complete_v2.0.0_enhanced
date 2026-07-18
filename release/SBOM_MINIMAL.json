@@ -16345,7 +16345,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09c70c291ba063677294ad4a9f7781e03391ed6fb85980b4618fcc64d5fc0d88"
+          "content": "eb148187a72189d6eff3ecd5c3e8a64e453a9b777589a69929f853a757c84bd2"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -23069,6 +23069,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_fields_endpoint.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "70af736bb33f4801fe151e63739dbb4f69220b03573665c68721b41e949b10f4"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_fields_tenant_arg_completeness_guard.py",
       "type": "file"
     },
     {
