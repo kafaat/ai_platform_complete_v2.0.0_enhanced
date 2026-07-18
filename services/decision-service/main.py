@@ -1394,6 +1394,31 @@ async def revoke_activation_evidence(
         await conn.close()
 
 
+@app.post("/v1/activation/irr_f01_reservation/enforce")
+async def activation_enforce() -> dict[str, Any]:
+    """Server-side REFUSAL check for consumers that must gate an action BEFORE performing it
+    (the platform reservation adapter calls this before creating a reservation). The server owns
+    the gate semantics — it runs enforce_enabled (a FRESH read, never the cache), returning 200 with
+    the snapshot when effectively enabled, or 403 with the reason otherwise. The consumer only
+    translates 403 into a local refusal; it never re-implements TTL/expiry (no parallel readiness)."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    try:
+        snapshot = await activation_gate.enforce_enabled(_activation_environment())
+    except activation_gate.ActivationNotEnabled as exc:
+        raise HTTPException(
+            status_code=403, detail=f"irr_f01_reservation not activated: {exc.reason}"
+        ) from exc
+    return {
+        "environment_id": _activation_environment(),
+        "enforced": True,
+        "gate_state": snapshot.get("state"),
+        "generation": snapshot.get("generation"),
+        "build_sha": snapshot.get("build_sha"),
+        "effective_enabled": snapshot.get("effective_enabled"),
+    }
+
+
 @app.post("/v1/activation/irr_f01_reservation/begin")
 async def activation_begin(x_requested_by: str | None = Header(default=None)) -> dict[str, Any]:
     if not sor_enabled():
