@@ -30,9 +30,8 @@ def _client(monkeypatch, env_id: str, *, enforce: bool = False):
     monkeypatch.setenv("DEPLOY_BUILD_SHA", "deadbeef")
     monkeypatch.setenv("IRR_F01_RESERVATION_ENFORCE_ACTIVATION", "1" if enforce else "")
     monkeypatch.delenv("DECISION_SERVICE_AUTH_TOKEN", raising=False)
-    from fastapi.testclient import TestClient
-
     import main
+    from fastapi.testclient import TestClient
 
     return TestClient(main.app)
 

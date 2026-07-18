@@ -68,6 +68,19 @@ def test_prod_06_no_parallel_readiness_consumes_evidence():
         assert field in REGISTRY
 
 
+def test_prod_schema_scope_and_operational_role_contract():
+    # Closure of the schema/RLS/operational-role criterion: the gate is ENVIRONMENT-scoped, not
+    # tenant-scoped, so tenant-RLS is inapplicable by design — the schema carries no tenant_id and
+    # keys on environment_id. Access control is the operational role/token contract instead.
+    assert "environment_id text PRIMARY KEY" in MIGRATION
+    assert "tenant_id" not in MIGRATION
+    # Operator transitions require an actor (X-Requested-By) and the system-of-record.
+    assert "_activation_actor(x_requested_by)" in MAIN
+    assert MAIN.count("activation gate requires the system-of-record") >= 5
+    # A shared service token guards every non-probe request when configured (production).
+    assert "_service_token_guard" in MAIN
+
+
 def test_prod_07_probe_role_and_enforcement_wiring():
     assert 'PROBE_ROLE = "activation_probe"' in GATE
     assert "def probe_state" in GATE
