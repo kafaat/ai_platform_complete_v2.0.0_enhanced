@@ -113,8 +113,10 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_role')
 \gexec
 
 -- ٢) ثبّت السمات الأمنيّة وكلمة السرّ (idempotent سواء أُنشئ الآن أو سابقاً)
+-- NOINHERIT: يمنع توريث صلاحيّات أيّ دور عضو فيه — عقد الدور المقيَّد (IRR-F01 Gate A).
+-- آمن هنا: الدور يُمنَح DML/EXECUTE/USAGE مباشرةً (لا عبر عضويّة)، فلا يُكسَر أيّ grant.
 ALTER ROLE :"app_role"
-  LOGIN NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
+  LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
 
 -- صلاحيّات وقت التشغيل: DML + EXECUTE + USAGE فقط (لا DDL)
 GRANT USAGE ON SCHEMA public TO :"app_role";
