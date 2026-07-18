@@ -1314,6 +1314,7 @@ async def update_field(
                     srow = await conn.fetchrow(
                         f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                         field_id,
+                        str(user.tenant_id),
                     )
                     if srow is None:
                         raise HTTPException(
@@ -1337,6 +1338,7 @@ async def update_field(
                         mrow = await conn.fetchrow(
                             f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                             field_id,
+                            str(user.tenant_id),
                         )
                         _auto_payload = {**client_changes, "_auto_merged": True}
                         if geometry_changed and req.geometry is not None:
@@ -1395,6 +1397,7 @@ async def update_field(
                 row = await conn.fetchrow(
                     f"SELECT {_FIELD_DETAIL_SELECT} FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
                     field_id,
+                    str(user.tenant_id),
                 )
                 if row is None:
                     # سُحب الحقل بين التأكيد والقراءة (نادر) ⇒ نرفع 404 **داخل** المعاملة
