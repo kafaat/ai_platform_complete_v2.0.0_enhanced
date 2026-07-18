@@ -161,3 +161,5 @@
   - `certification/final-readiness-evidence` · `claude/unify-main-and-certification` · `copilot/29041154936` (مدموجة، محتواها ⊆ main) · `claude/code-review-34hO3` (مُصفّى بالمراجعة).
   - **`develop` — لا يُحذَف** (فرع قانونيّ ثانٍ).
 - **الأمر:** `for b in certification/final-readiness-evidence claude/unify-main-and-certification copilot/29041154936 claude/code-review-34hO3; do gh api -X DELETE repos/kafaat/ai_platform_complete_v2.0.0_enhanced/git/refs/heads/$b; done` (أو حذف من واجهة GitHub). التقرير الكامل: `docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md`.
+
+- **الأداة مبنيّة (`cf9f6b0`+):** [`scripts/ops/branch_funeral.py`](../../scripts/ops/branch_funeral.py) — تصنيف + حذف محروس (DRY-RUN افتراضيّ · fail-safe بلا بيانات PR · أرشفة SHA قبل الحذف · دفعات `--limit` · `--apply` بتأكيد). dry-run حيّ 2026-07-18: 384 فرعاً ⇒ zero-ahead=3 (آمن) · stale-unmerged=255 (أرشفة+حذف) · review-manual=122 · recent-keep=4. التنفيذ في بيئة المالك (gh + حذف). تقرير: `docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md`.
