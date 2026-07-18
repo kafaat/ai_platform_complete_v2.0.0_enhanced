@@ -43,7 +43,10 @@ def test_decision_service_has_real_persistence_adapter_and_outbox() -> None:
         "list_decision_records",
     ):
         assert f"async def {symbol}" in text
-    assert "asyncpg.connect" in text
+    # A real Postgres adapter — either a direct connection or the production connection pool
+    # (asyncpg.create_pool, adopted with the pooled acquire_connection()); both are genuine, a stub
+    # is neither.
+    assert "asyncpg.connect" in text or "asyncpg.create_pool" in text
     assert "decision_outbox_events" in text
     assert "ON CONFLICT" in text
     assert "learning update must be traceable" in text

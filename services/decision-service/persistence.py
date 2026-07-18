@@ -10,12 +10,12 @@ real Postgres integration tests and backfill prove decision-service can be promo
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import os
 from datetime import UTC, datetime
 from typing import Any
-import asyncio
 
 _TRUTHY = {"1", "true", "yes", "on"}
 
@@ -66,7 +66,9 @@ async def acquire_connection():
     pool = _POOLS.get(loop_id)
     if pool is None:
         pool = await asyncpg.create_pool(
-            database_url(), min_size=1, max_size=int(os.getenv("DECISION_DB_POOL_MAX", "10")),
+            database_url(),
+            min_size=1,
+            max_size=int(os.getenv("DECISION_DB_POOL_MAX", "10")),
             statement_cache_size=0,
         )
         _POOLS[loop_id] = pool

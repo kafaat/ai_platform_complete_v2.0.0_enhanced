@@ -10325,7 +10325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4d2b9bad1b2c87c3cdd77f82be27f4c2802960f348a98aee37fa46b1dec1a155"
+          "content": "0139a87a08151fe016fad1d51a530a475b3586861c44a75f5cc82ffbabdd5401"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -23845,7 +23845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d01a4d968ad4a2e651b5feb7494c4f87badedd5a01518203b3f7ffff4cef3415"
+          "content": "84c7a86a5c8a616a4c723ca44138411d0404977330e2cd992950b37a221329f3"
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
