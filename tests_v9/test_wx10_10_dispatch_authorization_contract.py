@@ -9,9 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_migration_is_additive_append_only_and_non_executing():
-    text = (
-        ROOT / "services/decision-service/migrations/004_dispatch_authorization.sql"
-    ).read_text(encoding="utf-8")
+    text = (ROOT / "services/decision-service/migrations/004_dispatch_authorization.sql").read_text(
+        encoding="utf-8"
+    )
     assert "CREATE TABLE IF NOT EXISTS decision_dispatch_authorizations" in text
     assert "BEFORE UPDATE OR DELETE" in text
     assert "status = 'authorized'" in text
@@ -36,7 +36,9 @@ def test_persistence_emits_authorization_event_not_dispatch():
 
 
 def test_bff_requires_dedicated_permission_and_authoritative_proof():
-    text = (ROOT / "services/sahool-platform/api/routers/decision_review.py").read_text(encoding="utf-8")
+    text = (ROOT / "services/sahool-platform/api/routers/decision_review.py").read_text(
+        encoding="utf-8"
+    )
     assert "DECISION_DISPATCH_AUTHORIZE" in text
     assert 'result.get("authoritative") is True' in text
     assert 'result.get("persisted") is True' in text

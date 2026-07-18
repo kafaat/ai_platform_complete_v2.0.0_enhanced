@@ -78,7 +78,9 @@ def test_state_roundtrip_and_cli(tmp_path, monkeypatch):
 
 
 def test_loop_worker_writes_heartbeat_each_iteration():
-    src = (ROOT / "services" / "sahool-platform" / "api" / "phase_runtime_workers.py").read_text(encoding="utf-8")
+    src = (ROOT / "services" / "sahool-platform" / "api" / "phase_runtime_workers.py").read_text(
+        encoding="utf-8"
+    )
     # يُنشئ HeartbeatState ويكتب النبضة (كلّ دورة + عند الخطأ قبل إعادة الرفع).
     assert "from api.worker_heartbeat import HeartbeatState" in src
     assert "hb.mark_poll(processed)" in src

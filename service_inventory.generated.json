@@ -6,9 +6,9 @@
     "python_loc": 1523,
     "tests": 4,
     "routes": 6,
-    "main": "services/actuator-service/main.py",
-    "dockerfile": "services/actuator-service/Dockerfile",
-    "requirements": "services/actuator-service/requirements.txt",
+    "main": "services\\actuator-service\\main.py",
+    "dockerfile": "services\\actuator-service\\Dockerfile",
+    "requirements": "services\\actuator-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -16,11 +16,11 @@
     "domain": "AI Advisor",
     "python_files": 13,
     "python_loc": 1355,
-    "tests": 5,
+    "tests": 4,
     "routes": 8,
-    "main": "services/agriai-engine/main.py",
-    "dockerfile": "services/agriai-engine/Dockerfile",
-    "requirements": "services/agriai-engine/requirements.txt",
+    "main": "services\\agriai-engine\\main.py",
+    "dockerfile": "services\\agriai-engine\\Dockerfile",
+    "requirements": "services\\agriai-engine\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -30,9 +30,9 @@
     "python_loc": 6007,
     "tests": 1,
     "routes": 13,
-    "main": "services/ai_agronomist/main.py",
-    "dockerfile": "services/ai_agronomist/Dockerfile",
-    "requirements": "services/ai_agronomist/requirements.txt",
+    "main": "services\\ai_agronomist\\main.py",
+    "dockerfile": "services\\ai_agronomist\\Dockerfile",
+    "requirements": "services\\ai_agronomist\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -40,11 +40,11 @@
     "domain": "Identity & Access",
     "python_files": 18,
     "python_loc": 2298,
-    "tests": 2,
+    "tests": 1,
     "routes": 27,
-    "main": "services/auth/main.py",
-    "dockerfile": "services/auth/Dockerfile",
-    "requirements": "services/auth/requirements.txt",
+    "main": "services\\auth\\main.py",
+    "dockerfile": "services\\auth\\Dockerfile",
+    "requirements": "services\\auth\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -52,11 +52,11 @@
     "domain": "Decision SoR",
     "python_files": 57,
     "python_loc": 13542,
-    "tests": 41,
+    "tests": 39,
     "routes": 69,
-    "main": "services/decision-service/main.py",
-    "dockerfile": "services/decision-service/Dockerfile",
-    "requirements": "services/decision-service/requirements.txt",
+    "main": "services\\decision-service\\main.py",
+    "dockerfile": "services\\decision-service\\Dockerfile",
+    "requirements": "services\\decision-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -66,9 +66,9 @@
     "python_loc": 1112,
     "tests": 1,
     "routes": 6,
-    "main": "services/edge-inference/main.py",
-    "dockerfile": "services/edge-inference/Dockerfile.arm64",
-    "requirements": "services/edge-inference/requirements.txt",
+    "main": "services\\edge-inference\\main.py",
+    "dockerfile": "services\\edge-inference\\Dockerfile.arm64",
+    "requirements": "services\\edge-inference\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -78,9 +78,9 @@
     "python_loc": 339,
     "tests": 2,
     "routes": 7,
-    "main": "services/field-management-service/main.py",
-    "dockerfile": "services/field-management-service/Dockerfile",
-    "requirements": "services/field-management-service/requirements.txt",
+    "main": "services\\field-management-service\\main.py",
+    "dockerfile": "services\\field-management-service\\Dockerfile",
+    "requirements": "services\\field-management-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -90,9 +90,9 @@
     "python_loc": 986,
     "tests": 2,
     "routes": 4,
-    "main": "services/field-segmentation/main.py",
-    "dockerfile": "services/field-segmentation/Dockerfile",
-    "requirements": "services/field-segmentation/requirements.txt",
+    "main": "services\\field-segmentation\\main.py",
+    "dockerfile": "services\\field-segmentation\\Dockerfile",
+    "requirements": "services\\field-segmentation\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -100,11 +100,11 @@
     "domain": "Unclassified / Support",
     "python_files": 18,
     "python_loc": 1347,
-    "tests": 9,
+    "tests": 8,
     "routes": 0,
     "main": "-",
     "dockerfile": "-",
-    "requirements": "services/gis-workflow-service/requirements.txt",
+    "requirements": "services\\gis-workflow-service\\requirements.txt",
     "risk": "medium-runtime-contract-gap"
   },
   {
@@ -114,9 +114,9 @@
     "python_loc": 1553,
     "tests": 1,
     "routes": 7,
-    "main": "services/guardrails-engine/main.py",
-    "dockerfile": "services/guardrails-engine/Dockerfile",
-    "requirements": "services/guardrails-engine/requirements.txt",
+    "main": "services\\guardrails-engine\\main.py",
+    "dockerfile": "services\\guardrails-engine\\Dockerfile",
+    "requirements": "services\\guardrails-engine\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -126,9 +126,9 @@
     "python_loc": 721,
     "tests": 4,
     "routes": 11,
-    "main": "services/indicators-service/main.py",
-    "dockerfile": "services/indicators-service/Dockerfile",
-    "requirements": "services/indicators-service/requirements.txt",
+    "main": "services\\indicators-service\\main.py",
+    "dockerfile": "services\\indicators-service\\Dockerfile",
+    "requirements": "services\\indicators-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -138,9 +138,9 @@
     "python_loc": 153,
     "tests": 1,
     "routes": 7,
-    "main": "services/knowledge-graph/main.py",
-    "dockerfile": "services/knowledge-graph/Dockerfile",
-    "requirements": "services/knowledge-graph/requirements.txt",
+    "main": "services\\knowledge-graph\\main.py",
+    "dockerfile": "services\\knowledge-graph\\Dockerfile",
+    "requirements": "services\\knowledge-graph\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -150,9 +150,9 @@
     "python_loc": 445,
     "tests": 1,
     "routes": 5,
-    "main": "services/local-ai-rag/main.py",
-    "dockerfile": "services/local-ai-rag/Dockerfile",
-    "requirements": "services/local-ai-rag/requirements.txt",
+    "main": "services\\local-ai-rag\\main.py",
+    "dockerfile": "services\\local-ai-rag\\Dockerfile",
+    "requirements": "services\\local-ai-rag\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -163,8 +163,8 @@
     "tests": 1,
     "routes": 33,
     "main": "-",
-    "dockerfile": "services/mcp_servers/Dockerfile",
-    "requirements": "services/mcp_servers/requirements.txt",
+    "dockerfile": "services\\mcp_servers\\Dockerfile",
+    "requirements": "services\\mcp_servers\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -175,7 +175,7 @@
     "tests": 2,
     "routes": 0,
     "main": "-",
-    "dockerfile": "services/model-registry-adapter/Dockerfile",
+    "dockerfile": "services\\model-registry-adapter\\Dockerfile",
     "requirements": "-",
     "risk": "medium-runtime-contract-gap"
   },
@@ -186,9 +186,9 @@
     "python_loc": 1538,
     "tests": 1,
     "routes": 10,
-    "main": "services/odoo-bridge/main.py",
-    "dockerfile": "services/odoo-bridge/Dockerfile",
-    "requirements": "services/odoo-bridge/requirements.txt",
+    "main": "services\\odoo-bridge\\main.py",
+    "dockerfile": "services\\odoo-bridge\\Dockerfile",
+    "requirements": "services\\odoo-bridge\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -199,8 +199,8 @@
     "tests": 1,
     "routes": 0,
     "main": "-",
-    "dockerfile": "services/qdrant-seed/Dockerfile",
-    "requirements": "services/qdrant-seed/requirements.txt",
+    "dockerfile": "services\\qdrant-seed\\Dockerfile",
+    "requirements": "services\\qdrant-seed\\requirements.txt",
     "risk": "medium-runtime-contract-gap"
   },
   {
@@ -210,9 +210,9 @@
     "python_loc": 135,
     "tests": 1,
     "routes": 5,
-    "main": "services/rag-retrieval/main.py",
-    "dockerfile": "services/rag-retrieval/Dockerfile",
-    "requirements": "services/rag-retrieval/requirements.txt",
+    "main": "services\\rag-retrieval\\main.py",
+    "dockerfile": "services\\rag-retrieval\\Dockerfile",
+    "requirements": "services\\rag-retrieval\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -222,9 +222,9 @@
     "python_loc": 20951,
     "tests": 63,
     "routes": 79,
-    "main": "services/raster-service/main.py",
-    "dockerfile": "services/raster-service/Dockerfile",
-    "requirements": "services/raster-service/requirements.txt",
+    "main": "services\\raster-service\\main.py",
+    "dockerfile": "services\\raster-service\\Dockerfile",
+    "requirements": "services\\raster-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -235,7 +235,7 @@
     "tests": 0,
     "routes": 0,
     "main": "-",
-    "dockerfile": "services/raster-tiler-service/Dockerfile",
+    "dockerfile": "services\\raster-tiler-service\\Dockerfile",
     "requirements": "-",
     "risk": "medium-runtime-contract-gap"
   },
@@ -246,9 +246,9 @@
     "python_loc": 196,
     "tests": 1,
     "routes": 3,
-    "main": "services/remote-sensing-workspace-bff/main.py",
-    "dockerfile": "services/remote-sensing-workspace-bff/Dockerfile",
-    "requirements": "services/remote-sensing-workspace-bff/requirements.txt",
+    "main": "services\\remote-sensing-workspace-bff\\main.py",
+    "dockerfile": "services\\remote-sensing-workspace-bff\\Dockerfile",
+    "requirements": "services\\remote-sensing-workspace-bff\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -258,8 +258,8 @@
     "python_loc": 146738,
     "tests": 410,
     "routes": 616,
-    "main": "services/sahool-platform/api/main.py",
-    "dockerfile": "services/sahool-platform/Dockerfile",
+    "main": "services\\sahool-platform\\api\\main.py",
+    "dockerfile": "services\\sahool-platform\\Dockerfile",
     "requirements": "-",
     "risk": "critical-core-concentration"
   },
@@ -270,9 +270,9 @@
     "python_loc": 534,
     "tests": 0,
     "routes": 4,
-    "main": "services/sam2-inference/main.py",
-    "dockerfile": "services/sam2-inference/Dockerfile",
-    "requirements": "services/sam2-inference/requirements.txt",
+    "main": "services\\sam2-inference\\main.py",
+    "dockerfile": "services\\sam2-inference\\Dockerfile",
+    "requirements": "services\\sam2-inference\\requirements.txt",
     "risk": "high-zero-test-routes"
   },
   {
@@ -282,9 +282,9 @@
     "python_loc": 5537,
     "tests": 16,
     "routes": 59,
-    "main": "services/soil-service/main.py",
-    "dockerfile": "services/soil-service/Dockerfile",
-    "requirements": "services/soil-service/requirements.txt",
+    "main": "services\\soil-service\\main.py",
+    "dockerfile": "services\\soil-service\\Dockerfile",
+    "requirements": "services\\soil-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -294,9 +294,9 @@
     "python_loc": 3149,
     "tests": 7,
     "routes": 10,
-    "main": "services/supervisor-agent/main.py",
-    "dockerfile": "services/supervisor-agent/Dockerfile",
-    "requirements": "services/supervisor-agent/requirements.txt",
+    "main": "services\\supervisor-agent\\main.py",
+    "dockerfile": "services\\supervisor-agent\\Dockerfile",
+    "requirements": "services\\supervisor-agent\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -306,21 +306,21 @@
     "python_loc": 784,
     "tests": 1,
     "routes": 8,
-    "main": "services/tts-service/main.py",
-    "dockerfile": "services/tts-service/Dockerfile",
-    "requirements": "services/tts-service/requirements.txt",
+    "main": "services\\tts-service\\main.py",
+    "dockerfile": "services\\tts-service\\Dockerfile",
+    "requirements": "services\\tts-service\\requirements.txt",
     "risk": "normal"
   },
   {
     "service": "vegetation-analysis-service",
     "domain": "Vegetation Analytics",
     "python_files": 40,
-    "python_loc": 3750,
+    "python_loc": 3756,
     "tests": 17,
     "routes": 21,
-    "main": "services/vegetation-analysis-service/main.py",
-    "dockerfile": "services/vegetation-analysis-service/Dockerfile",
-    "requirements": "services/vegetation-analysis-service/requirements.txt",
+    "main": "services\\vegetation-analysis-service\\main.py",
+    "dockerfile": "services\\vegetation-analysis-service\\Dockerfile",
+    "requirements": "services\\vegetation-analysis-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -330,9 +330,9 @@
     "python_loc": 1041,
     "tests": 1,
     "routes": 11,
-    "main": "services/video-processor/main.py",
-    "dockerfile": "services/video-processor/Dockerfile",
-    "requirements": "services/video-processor/requirements.txt",
+    "main": "services\\video-processor\\main.py",
+    "dockerfile": "services\\video-processor\\Dockerfile",
+    "requirements": "services\\video-processor\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -342,9 +342,9 @@
     "python_loc": 177,
     "tests": 0,
     "routes": 0,
-    "main": "services/weather-polygon-worker/src/main.py",
-    "dockerfile": "services/weather-polygon-worker/Dockerfile",
-    "requirements": "services/weather-polygon-worker/requirements.txt",
+    "main": "services\\weather-polygon-worker\\src\\main.py",
+    "dockerfile": "services\\weather-polygon-worker\\Dockerfile",
+    "requirements": "services\\weather-polygon-worker\\requirements.txt",
     "risk": "medium-runtime-contract-gap"
   },
   {
@@ -354,9 +354,9 @@
     "python_loc": 5821,
     "tests": 19,
     "routes": 27,
-    "main": "services/weather-service/main.py",
-    "dockerfile": "services/weather-service/Dockerfile",
-    "requirements": "services/weather-service/requirements.txt",
+    "main": "services\\weather-service\\main.py",
+    "dockerfile": "services\\weather-service\\Dockerfile",
+    "requirements": "services\\weather-service\\requirements.txt",
     "risk": "normal"
   },
   {
@@ -366,9 +366,9 @@
     "python_loc": 115,
     "tests": 0,
     "routes": 0,
-    "main": "services/weather-signal-engine/src/main.py",
-    "dockerfile": "services/weather-signal-engine/Dockerfile",
-    "requirements": "services/weather-signal-engine/requirements.txt",
+    "main": "services\\weather-signal-engine\\src\\main.py",
+    "dockerfile": "services\\weather-signal-engine\\Dockerfile",
+    "requirements": "services\\weather-signal-engine\\requirements.txt",
     "risk": "medium-runtime-contract-gap"
   }
 ]
