@@ -901,6 +901,12 @@ services:
       # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
       # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
       HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
+      # P2-c: بوّابة تفعيل satellite_cdse. الافتراض معطَّل (0) فيبقى اختيار المزوّد كما هو ثابتاً؛
+      # عند التفعيل يستشير raster-service قرار decision-service (/v1/activation/satellite_cdse/source)
+      # قبل اختيار CDSE، ويسقط مُغلَقاً إلى element84 عند أيّ تعذُّر. environment_id يطابق جانب البوّابة.
+      DECISION_SERVICE_URL: ${DECISION_SERVICE_URL:-http://sahool-decision-service:8160}
+      RASTER_ACTIVATION_GATE_ENFORCE: ${RASTER_ACTIVATION_GATE_ENFORCE:-0}
+      ACTIVATION_ENVIRONMENT_ID: ${ACTIVATION_ENVIRONMENT_ID:-default}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}

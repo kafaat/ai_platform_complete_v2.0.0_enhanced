@@ -783,6 +783,14 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_satellite_cdse_activation_endpoints.py -q -p no:cacheprovider
+      # Phase 2 P2-c: the REAL end-to-end — the raster-service restricted adapter consuming the live
+      # satellite_cdse gate over ASGI (state change flips the imagery source; revoke blocks a new
+      # CDSE selection; degraded stays on the Element84 fallback; generation change is observable).
+      - name: satellite_cdse live consumer E2E (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_satellite_cdse_live_consumer_e2e.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->

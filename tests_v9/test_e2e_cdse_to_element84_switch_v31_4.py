@@ -104,7 +104,12 @@ class TestStaticProviderConfig:
 
     def test_stac_search_module_has_element84_branch(self):
         src = _read(_RASTER / "stac_search.py")
-        assert 'HISTORICAL_SEARCH_PROVIDER == "element84"' in src, (
+        # P2-c: الأساس ما يزال HISTORICAL_SEARCH_PROVIDER، لكنّ الاختيار الفعّال قد يُشتَقّ من
+        # بوّابة satellite_cdse عند التفعيل. يبقى فرع element84 الصريح مطلوباً.
+        assert "provider = HISTORICAL_SEARCH_PROVIDER" in src, (
+            "stac_search.py يجب أن يبقى HISTORICAL_SEARCH_PROVIDER أساس اختيار المزوّد"
+        )
+        assert 'if provider == "element84":' in src, (
             "stac_search.py يجب أن يحوي فرع element84 الصريح"
         )
 

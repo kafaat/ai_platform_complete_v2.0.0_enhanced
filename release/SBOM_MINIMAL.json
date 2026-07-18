@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "712a5ec3c5766e442659feb143db9637cd6054c67413547ae5cdb1f4a4f37eb8"
+          "content": "8461a8c350e2b52465c31c5ce7b2e5404db60198464475887bdd27b077d7022f"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -10355,7 +10355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1935407a4d36b1f14efe3db8c58d71536d9d73071469309abf48cf835e60c9e"
+          "content": "18c3d4e2b198fbc4127bb152b268f1009eb637fe91a3f7f0bd30357f4601757b"
         }
       ],
       "name": "services/decision-service/satellite_cdse_activation_gate.py",
@@ -10539,6 +10539,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_runtime_worker_tenants.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "225b056bca221b7df6ddb64e1812699bebb9129993f9687cebcfb30f8e47e52d"
+        }
+      ],
+      "name": "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
       "type": "file"
     },
     {
@@ -12555,7 +12565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cd0e5cebb4e58562ef9fa9c8aa294af1efb422496b5d1d3973b5611e334241a7"
+          "content": "2cabbec9133eb9bd8cd47f4cd8cffdfb33a4cf673e4280a58eea5ce498f8d56b"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -12745,7 +12755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9d08548f4ba89bd6bf5cbf1380c94fe0baa6bdf5d8acd868cfca5ae14cc2c321"
+          "content": "de40704e46e0ac67b201117b7a7131e16e38c9b311aaa4cf795e33a99ac0b18d"
         }
       ],
       "name": "services/raster-service/stac_search.py",

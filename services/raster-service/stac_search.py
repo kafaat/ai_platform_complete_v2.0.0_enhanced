@@ -150,11 +150,24 @@ async def stac_search(
     limit: int,
     geometry: dict | None = None,
 ) -> dict:
-    """Search historical Sentinel-2 scenes using CDSE by default."""
+    """Search historical Sentinel-2 scenes using CDSE by default.
+
+    When the ``satellite_cdse`` activation gate is enforced, the effective provider is the gate's
+    live source decision (CDSE only while the gate is enabled; otherwise the Element84 fallback) —
+    never the static ``HISTORICAL_SEARCH_PROVIDER`` alone. Enforcement off keeps legacy behaviour.
+    """
 
     import cdse_client as _cdse
+    import imagery_source_gate
 
-    if HISTORICAL_SEARCH_PROVIDER == "element84":
+    provider = HISTORICAL_SEARCH_PROVIDER
+    if imagery_source_gate.enforce_enabled():
+        decision = await imagery_source_gate.resolve_active_source()
+        provider = decision.provider
+        if _logger is not None:
+            _logger.info("satellite_cdse gate search decision: %s", decision.evidence())
+
+    if provider == "element84":
         return await stac_search_element84(bbox, dt_start, dt_end, max_cloud, limit)
     if not _cdse.is_configured():
         # اقتراح احتياطيّ مُهيكَل (قابل للقراءة آليّاً) بدل نصّ حرّ فقط — يوجّه إلى Element84.

@@ -664,6 +664,7 @@ async def process_cdse(
     """
     _require_service_token(x_agent_token)
     import cdse_client
+    import imagery_source_gate
 
     if not cdse_client.is_configured():
         return {
@@ -672,22 +673,39 @@ async def process_cdse(
             "queued": False,
             "note_ar": "CDSE غير مُهيّأ (لا CDSE_CLIENT_ID/SECRET) — يسقط المنسّق إلى Element84.",
         }
+    # satellite_cdse activation gate — the SINGLE authorization for running CDSE processing. When
+    # enforced and the gate is not effectively enabled (disabled/degraded/revoked/evaluating, or
+    # unreachable), refuse to queue CDSE work and report available=false so the orchestrator drops
+    # to Element84 — identical contract to the unconfigured branch above. No side path to CDSE.
+    gate_decision = None
+    if imagery_source_gate.enforce_enabled():
+        gate_decision = await imagery_source_gate.resolve_active_source()
+        if not gate_decision.use_cdse:
+            return {
+                "provider": "cdse",
+                "available": False,
+                "queued": False,
+                "gate": gate_decision.evidence(),
+                "note_ar": "بوّابة satellite_cdse غير مُفعّلة لهذه البيئة — يسقط المنسّق إلى Element84.",
+            }
     if not req.bbox or len(req.bbox) != 4:
         raise HTTPException(400, "bbox مطلوب [west,south,east,north] (EPSG:4326).")
     if not req.indicators:
         raise HTTPException(400, "indicators مطلوبة (مؤشّر واحد على الأقلّ).")
     job_id = f"cdse_{uuid.uuid4().hex[:12]}"
-    _jobs.set(
-        job_id,
-        {
-            "job_id": job_id,
-            "status": JobStatus.pending,
-            "progress_pct": 0,
-            "created_at": datetime.now(UTC).isoformat(),
-            "indicators": list(req.indicators),
-            "provider": "cdse",
-        },
-    )
+    job_record = {
+        "job_id": job_id,
+        "status": JobStatus.pending,
+        "progress_pct": 0,
+        "created_at": datetime.now(UTC).isoformat(),
+        "indicators": list(req.indicators),
+        "provider": "cdse",
+    }
+    if gate_decision is not None:
+        # Bind the job to the exact activation generation it was authorized under (proof #4/#5):
+        # a later revoke/expiry bumps the generation, so the persisted evidence is non-repudiable.
+        job_record["gate"] = gate_decision.evidence()
+    _jobs.set(job_id, job_record)
     background_tasks.add_task(_run_cdse_processing, job_id, field_id, req)
     return {
         "provider": "cdse",

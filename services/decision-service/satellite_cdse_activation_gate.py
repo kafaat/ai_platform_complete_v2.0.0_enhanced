@@ -409,13 +409,22 @@ async def active_imagery_source(environment_id: str) -> dict[str, Any]:
     gate is effectively enabled, otherwise the safe 'element84' fallback. Reads fresh (never the
     cache) so an expired TTL or a revoke re-routes to the fallback immediately."""
     snapshot = await current(environment_id)
+    # generation + build_sha travel with the decision so a live consumer can BIND a long-running
+    # job to the exact activation generation it started under (detecting a mid-job revoke/expiry as
+    # a generation change) and record non-repudiable provenance in its own evidence.
+    common = {
+        "environment_id": environment_id,
+        "gate_state": snapshot["state"],
+        "generation": snapshot["generation"],
+        "build_sha": snapshot.get("build_sha"),
+    }
     if snapshot["effective_enabled"]:
-        return {"source": PRIMARY_SOURCE, "gate_state": snapshot["state"], "fallback": False}
+        return {"source": PRIMARY_SOURCE, "fallback": False, **common}
     return {
         "source": FALLBACK_SOURCE,
-        "gate_state": snapshot["state"],
         "fallback": True,
         "reason": "ttl_expired" if snapshot.get("expired") else snapshot["state"],
+        **common,
     }
 
 
