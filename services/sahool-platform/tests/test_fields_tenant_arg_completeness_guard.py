@@ -20,9 +20,9 @@ import pytest
 
 pytestmark = pytest.mark.unit
 
-FIELDS = (
-    Path(__file__).resolve().parents[1] / "api" / "routers" / "fields.py"
-).read_text(encoding="utf-8")
+FIELDS = (Path(__file__).resolve().parents[1] / "api" / "routers" / "fields.py").read_text(
+    encoding="utf-8"
+)
 
 
 def test_every_tenant_scoped_query_passes_the_tenant_arg():
