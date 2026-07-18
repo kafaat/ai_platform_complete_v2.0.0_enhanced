@@ -10315,6 +10315,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "258e34e69a84dbc3bad68943ea7f5de3355d94fd6f491691a423b28ff771cf79"
+        }
+      ],
+      "name": "services/decision-service/migrations/030_activation_evidence_receipts.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "410b2f2726d9fdfefef03ba7992162f8b03803b949f469e851bea1dba170c0b3"
         }
       ],
@@ -10409,6 +10419,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_ac1_agronomic_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0c25f6bae2bbdd9e0004f3f5452563d5aa4eaf8dec2225a238200625919eeb97"
+        }
+      ],
+      "name": "services/decision-service/tests/test_activation_evidence_receipts.py",
       "type": "file"
     },
     {
