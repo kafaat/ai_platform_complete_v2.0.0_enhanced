@@ -83,6 +83,33 @@ def test_prod_06_no_parallel_readiness_consumes_evidence():
         assert field in REGISTRY
 
 
+def test_prod_evidence_receipt_trust_root():
+    # Gate-Trust-1: caller-supplied evidence was spoofable; the root of trust is now server-stored
+    # producer-issued RECEIPTS. The caller submits references (evidence_refs), the gate resolves them
+    # from its own store, and raw caller evidence is structurally forbidden.
+    RECEIPT_MIGRATION = (
+        ROOT
+        / "services"
+        / "decision-service"
+        / "migrations"
+        / "030_activation_evidence_receipts.sql"
+    ).read_text(encoding="utf-8")
+    assert "activation_evidence_receipts" in RECEIPT_MIGRATION
+    assert "append-only" in RECEIPT_MIGRATION and "revoke is one-way" in RECEIPT_MIGRATION
+    # The core ingests + resolves receipts server-side; complete takes references, not results.
+    assert "async def record_receipt" in CORE
+    assert "async def _resolve_receipts" in CORE
+    assert (
+        "evidence_refs" in CORE
+        and "evidence: list[dict[str, Any]]"
+        not in CORE.split("async def complete_evaluation")[1].split("async def")[0]
+    )
+    # Raw caller evidence is forbidden at the HTTP contract (extra=forbid) — a smuggled results
+    # field is rejected, not silently ignored.
+    assert 'ConfigDict(extra="forbid")' in MAIN
+    assert "evidence-receipts" in MAIN  # the authenticated ingest endpoint
+
+
 def test_prod_07_shared_core_extracted_after_two_gates():
     # Phase 3: the machinery is shared by exactly the two proven gates, each a thin wrapper that
     # instantiates the core with its own GateConfig. Neither re-implements the state machine.

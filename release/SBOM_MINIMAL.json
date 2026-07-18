@@ -9935,7 +9935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a2a45c69c4b2abe38c7b6a398ebbe471f72bdaf6f0f32d98ba908faf74e43447"
+          "content": "5c845d78bcb4521de4f8a191b7f2a22d2a5ba7905c1ff5f7d8d5658d0c597b2b"
         }
       ],
       "name": "services/decision-service/activation_gate.py",
@@ -9945,7 +9945,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1204fd68464b604eea2f6e3c44b39807e53a5d52ced00e1f96dd86aacf779a3c"
+          "content": "09759e81024baaef1e04f1a4c439d45824dc483dc1da296b52c4459144432f59"
         }
       ],
       "name": "services/decision-service/activation_gate_core.py",
@@ -10005,7 +10005,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "502e4a604185448c7a0535ea0e9e9e0ef61807cc1c1ba04fb704b3d200b9c8d5"
+          "content": "06d3b5ec12b3663718ec90895c5b0dec134e959db1fccfc7748598c7180a8875"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10365,7 +10365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3d8c82a6f1155f6d3946fc66346695a369c99a5bdf78f37cc20fedc716904c30"
+          "content": "291b472c3658e1879da9e9681972e136d6fae02ba87061fc4698da6b8583b9eb"
         }
       ],
       "name": "services/decision-service/satellite_cdse_activation_gate.py",
@@ -10505,7 +10505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "21f39b87ba2c13d020fc311648108563f2ffe74de294c41ac0613600d441b5b6"
+          "content": "37e5cdb0685923c4dd5f51a6769bedd267f0453a957bc9b0e49d91c006f11184"
         }
       ],
       "name": "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
@@ -10515,7 +10515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "edbcdf658d6ac2e5e8397ff096925a21c86a93f91c0eb798a5db1c051d4df8a3"
+          "content": "6912f8b5f88978c92a703b7734bf9474a2007a116afd9176f3665faf79bc3f84"
         }
       ],
       "name": "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
@@ -10555,7 +10555,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "225b056bca221b7df6ddb64e1812699bebb9129993f9687cebcfb30f8e47e52d"
+          "content": "f78df376c9b29a8eee026cde9969be1ee004cdd1834d1af3bd5117f72375c17f"
         }
       ],
       "name": "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
@@ -10565,7 +10565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "233a4a63a46b922449a225bbdc98b2283ed58b6ea95896ed360f8c84ffd37844"
+          "content": "775e9b61ba81155d40c4099f50d2a8538096a4cb28ce6889a0c67f9fd64c123e"
         }
       ],
       "name": "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
@@ -10575,7 +10575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a36f88814a9b32cc635b773497b1aaa1e70217dc292b3e0b68cec9a0c2675c4c"
+          "content": "5868deda22e8b1f9e1fef5f0a40e1aa4a759726afe6a984c0a702b5d82316c1b"
         }
       ],
       "name": "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
@@ -14979,6 +14979,16 @@
         }
       ],
       "name": "services/sahool-platform/api/irrigation_dispatch_relay.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "0c827c03780b58af948111a85a212f8305e692c9dd22bd325acd442c6719dfa8"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
       "type": "file"
     },
     {

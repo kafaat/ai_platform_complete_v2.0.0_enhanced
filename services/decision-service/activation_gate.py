@@ -44,6 +44,7 @@ _CORE = ActivationGateCore(
 
 # Public API — bound to the shared core (signatures unchanged from the pre-extraction module).
 build_sha = _CORE.build_sha
+record_receipt = _CORE.record_receipt
 begin_evaluation = _CORE.begin_evaluation
 complete_evaluation = _CORE.complete_evaluation
 revoke = _CORE.revoke
@@ -76,6 +77,7 @@ __all__ = [
     "invalidate_cache",
     "probe_signature",
     "probe_state",
+    "record_receipt",
     "recover_stale_evaluations",
     "reset",
     "revoke",

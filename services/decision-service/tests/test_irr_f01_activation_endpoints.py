@@ -61,6 +61,28 @@ def _evidence(env_id: str, *, complete: bool = True) -> list[dict]:
     return items if complete else items[:1]
 
 
+def _ingest_refs(c, env_id: str, *, complete: bool = True) -> list[str]:
+    """POST each evidence item to the authenticated ingest endpoint; return the receipt ids the
+    operator will reference (Gate-Trust-1: the operator never submits check results)."""
+    ids = []
+    for item in _evidence(env_id, complete=complete):
+        r = c.post(
+            "/v1/activation/irr_f01_reservation/evidence-receipts",
+            headers={"X-Requested-By": "producer"},
+            json={
+                "producer": item["producer"],
+                "check_name": item["check_name"],
+                "result": item["result"],
+                "observed_at": item["observed_at"],
+                "valid_until": item["valid_until"],
+                "provenance": item.get("provenance"),
+            },
+        )
+        assert r.status_code == 200, r.text
+        ids.append(r.json()["receipt_id"])
+    return ids
+
+
 def test_operator_lifecycle_over_api(monkeypatch):
     env_id = "env-" + uuid4().hex[:10]
     c = _client(monkeypatch, env_id)
@@ -71,7 +93,11 @@ def test_operator_lifecycle_over_api(monkeypatch):
     done = c.post(
         "/v1/activation/irr_f01_reservation/complete",
         headers=h,
-        json={"expected_generation": gen, "evidence": _evidence(env_id), "ttl_seconds": 3600},
+        json={
+            "expected_generation": gen,
+            "evidence_refs": _ingest_refs(c, env_id),
+            "ttl_seconds": 3600,
+        },
     )
     assert done.status_code == 200 and done.json()["status"] == "enabled"
     cur = c.get("/v1/activation/irr_f01_reservation")
@@ -100,7 +126,11 @@ def test_ingest_enforces_activation_when_flag_on(monkeypatch):
     c.post(
         "/v1/activation/irr_f01_reservation/complete",
         headers=oh,
-        json={"expected_generation": gen, "evidence": _evidence(env_id), "ttl_seconds": 3600},
+        json={
+            "expected_generation": gen,
+            "evidence_refs": _ingest_refs(c, env_id),
+            "ttl_seconds": 3600,
+        },
     )
     ok = c.post("/v1/reservation-dispatch-intents", headers=hdr, json=body)
     assert ok.status_code == 200 and ok.json()["accepted"] is True

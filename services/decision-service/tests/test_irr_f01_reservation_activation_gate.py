@@ -66,13 +66,31 @@ def _evidence(env: str, *, complete: bool = True) -> list[dict]:
     return items if complete else items[:1]
 
 
+async def _ingest(env: str, *, complete: bool = True) -> list[str]:
+    """Gate-Trust-1: producers issue receipts server-side; the operator references them by id."""
+    ids = []
+    for item in _evidence(env, complete=complete):
+        r = await gate.record_receipt(
+            environment_id=env,
+            producer=item["producer"],
+            check_name=item["check_name"],
+            result=item["result"],
+            observed_at=item["observed_at"],
+            valid_until=item["valid_until"],
+            provenance=item.get("provenance"),
+        )
+        assert r["status"] == "recorded"
+        ids.append(r["receipt_id"])
+    return ids
+
+
 async def _enable(env: str, ttl: int = 3600) -> dict:
     began = await gate.begin_evaluation(env, actor="op")
     assert began["status"] == "evaluating"
     return await gate.complete_evaluation(
         env,
         expected_generation=began["generation"],
-        evidence=_evidence(env),
+        evidence_refs=await _ingest(env),
         actor="op",
         ttl_seconds=ttl,
     )
@@ -198,7 +216,7 @@ def test_enforcement_is_the_only_gate():
         deg = await gate.complete_evaluation(
             env,
             expected_generation=began_gen,
-            evidence=_evidence(env, complete=False),
+            evidence_refs=await _ingest(env, complete=False),
             actor="op",
             ttl_seconds=3600,
         )
@@ -237,13 +255,14 @@ def test_cas_and_generation_correctness():
         env = _env()
         began = await gate.begin_evaluation(env, actor="op")  # gen 1
         assert began["generation"] == 1
+        refs = await _ingest(env)
         # A completion with a stale expected generation is a CAS conflict (no-op).
         stale = await gate.complete_evaluation(
-            env, expected_generation=0, evidence=_evidence(env), actor="op", ttl_seconds=60
+            env, expected_generation=0, evidence_refs=refs, actor="op", ttl_seconds=60
         )
         assert stale["status"] == "conflict" and stale["reason"] == "cas_conflict"
         done = await gate.complete_evaluation(
-            env, expected_generation=1, evidence=_evidence(env), actor="op", ttl_seconds=60
+            env, expected_generation=1, evidence_refs=refs, actor="op", ttl_seconds=60
         )
         assert done["status"] == "enabled" and done["generation"] == 2
         # DB guard: generation may only advance by exactly 1, env is immutable.

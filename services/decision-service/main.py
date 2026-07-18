@@ -85,7 +85,7 @@ from persistence import (
     verify_execution_outcome,
     worker_tenant_authorized,
 )
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from shared.contracts.soil import validate_soil_use
 
@@ -1191,13 +1191,33 @@ def _activation_actor(x_requested_by: str | None) -> str:
 
 
 class ActivationCompleteIn(BaseModel):
+    # Gate-Trust-1: the caller submits RECEIPT REFERENCES only — never check results. A stray
+    # ``evidence`` (or any other) field is REJECTED (422), not silently ignored — raw caller
+    # evidence is forbidden, structurally.
+    model_config = ConfigDict(extra="forbid")
     expected_generation: int
-    evidence: list[dict[str, Any]] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
     ttl_seconds: int = 3600
 
 
 class ActivationRevokeIn(BaseModel):
     reason: str
+
+
+class ActivationEvidenceReceiptIn(BaseModel):
+    """A trusted producer issues one evidence receipt over the authenticated ingest path. The server
+    validates the producer identity + contract and computes the content hash — the receipt, not this
+    request, becomes the source of truth the gate later resolves by id."""
+
+    producer: str
+    check_name: str
+    result: str
+    observed_at: str
+    valid_until: str
+    provenance: str | None = None
+    build_sha: str | None = None
+    signature: str | None = None
+    key_id: str | None = None
 
 
 def _activation_result(result: dict[str, Any]) -> dict[str, Any]:
@@ -1227,11 +1247,37 @@ async def activation_complete(
         await activation_gate.complete_evaluation(
             _activation_environment(),
             expected_generation=payload.expected_generation,
-            evidence=payload.evidence,
+            evidence_refs=payload.evidence_refs,
             actor=_activation_actor(x_requested_by),
             ttl_seconds=payload.ttl_seconds,
         )
     )
+
+
+@app.post("/v1/activation/irr_f01_reservation/evidence-receipts")
+async def activation_evidence_receipt(
+    payload: ActivationEvidenceReceiptIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    """Authenticated ingest for a trusted producer to issue an irr_f01_reservation evidence receipt.
+    The gate validates producer identity + contract server-side and stores an append-only receipt;
+    the operator later references it by id — the caller never supplies check results."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    result = await activation_gate.record_receipt(
+        environment_id=_activation_environment(),
+        producer=payload.producer,
+        check_name=payload.check_name,
+        result=payload.result,
+        observed_at=payload.observed_at,
+        valid_until=payload.valid_until,
+        provenance=payload.provenance,
+        build_sha=payload.build_sha,
+        signature=payload.signature,
+        key_id=payload.key_id,
+    )
+    if result.get("status") == "rejected":
+        raise HTTPException(status_code=422, detail=result.get("reason", "receipt rejected"))
+    return {"environment_id": _activation_environment(), **result}
 
 
 @app.post("/v1/activation/irr_f01_reservation/revoke")
@@ -1320,11 +1366,36 @@ async def cdse_activation_complete(
         await satellite_cdse_activation_gate.complete_evaluation(
             _activation_environment(),
             expected_generation=payload.expected_generation,
-            evidence=payload.evidence,
+            evidence_refs=payload.evidence_refs,
             actor=_activation_actor(x_requested_by),
             ttl_seconds=payload.ttl_seconds,
         )
     )
+
+
+@app.post("/v1/activation/satellite_cdse/evidence-receipts")
+async def cdse_activation_evidence_receipt(
+    payload: ActivationEvidenceReceiptIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    """Authenticated ingest for a trusted producer (raster-service) to issue a satellite_cdse
+    evidence receipt; the operator later references it by id (never supplies check results)."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    result = await satellite_cdse_activation_gate.record_receipt(
+        environment_id=_activation_environment(),
+        producer=payload.producer,
+        check_name=payload.check_name,
+        result=payload.result,
+        observed_at=payload.observed_at,
+        valid_until=payload.valid_until,
+        provenance=payload.provenance,
+        build_sha=payload.build_sha,
+        signature=payload.signature,
+        key_id=payload.key_id,
+    )
+    if result.get("status") == "rejected":
+        raise HTTPException(status_code=422, detail=result.get("reason", "receipt rejected"))
+    return {"environment_id": _activation_environment(), **result}
 
 
 @app.post("/v1/activation/satellite_cdse/revoke")

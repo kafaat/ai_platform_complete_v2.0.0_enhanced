@@ -142,6 +142,160 @@ class ActivationGateCore:
             json.dumps(evidence_items, sort_keys=True, separators=(",", ":"), default=str).encode()
         ).hexdigest()
 
+    def build_sha_from_receipts(self, receipts: list[dict[str, Any]]) -> str:
+        """The enabled verdict's fingerprint, bound to (deployed build + the exact admitted receipt
+        content hashes). Non-spoofable: the content hashes are server-stored, never caller input."""
+        canon = json.dumps(sorted(str(r["content_hash"]) for r in receipts), separators=(",", ":"))
+        namespaced = (
+            f"{self.cfg.gate_name}:{self.cfg.build_sha_namespace}:{deploy_build_sha()}:{canon}"
+        )
+        return hashlib.sha256(namespaced.encode()).hexdigest()
+
+    # ---- stored evidence receipts (the root of trust — Gate-Trust-1) ---------------------------
+    def _receipt_content_hash(
+        self,
+        *,
+        environment_id: str,
+        producer: str,
+        check_name: str,
+        result: str,
+        observed_at: str,
+        valid_until: str,
+        provenance: str | None,
+        build_sha: str | None,
+    ) -> str:
+        canon = json.dumps(
+            {
+                "gate": self.cfg.gate_name,
+                "environment_id": str(environment_id),
+                "producer": str(producer),
+                "check_name": str(check_name),
+                "result": str(result),
+                "observed_at": str(observed_at),
+                "valid_until": str(valid_until),
+                "provenance": provenance or "",
+                "build_sha": build_sha or "",
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        return hashlib.sha256(canon.encode()).hexdigest()
+
+    async def record_receipt(
+        self,
+        *,
+        environment_id: str,
+        producer: str,
+        check_name: str,
+        result: str,
+        observed_at: str,
+        valid_until: str,
+        provenance: str | None = None,
+        build_sha: str | None = None,
+        signature: str | None = None,
+        key_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Authenticated ingest: a trusted producer issues ONE evidence receipt. Validates the
+        producer identity + the gate's contract SERVER-SIDE, computes the canonical content hash,
+        and stores an append-only receipt. Idempotent — identical content returns the same receipt.
+        This is the only way evidence enters the system; the activation caller never supplies it."""
+        if producer not in self.cfg.known_producers:
+            return {"status": "rejected", "reason": "unknown_producer"}
+        if check_name not in self.cfg.required_checks:
+            return {"status": "rejected", "reason": "unsupported_check"}
+        if result not in ("pass", "fail"):
+            return {"status": "rejected", "reason": "invalid_result"}
+        observed = _parse_ts(observed_at)
+        valid = _parse_ts(valid_until)
+        if observed is None or valid is None:
+            return {"status": "rejected", "reason": "invalid_timestamp"}
+        content_hash = self._receipt_content_hash(
+            environment_id=environment_id,
+            producer=producer,
+            check_name=check_name,
+            result=result,
+            observed_at=observed.isoformat(),
+            valid_until=valid.isoformat(),
+            provenance=provenance,
+            build_sha=build_sha,
+        )
+        conn = await self._connect()
+        try:
+            row = await conn.fetchrow(
+                "INSERT INTO activation_evidence_receipts "
+                "(gate_name, environment_id, producer, check_name, result, observed_at, valid_until, "
+                " provenance, build_sha, content_hash, signature, key_id) "
+                "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) "
+                "ON CONFLICT (gate_name, environment_id, content_hash) "
+                "  DO UPDATE SET content_hash = EXCLUDED.content_hash "  # no-op: return the existing id
+                "RETURNING receipt_id",
+                self.cfg.gate_name,
+                str(environment_id),
+                producer,
+                check_name,
+                result,
+                observed,
+                valid,
+                provenance,
+                build_sha,
+                content_hash,
+                signature,
+                key_id,
+            )
+            return {
+                "status": "recorded",
+                "receipt_id": str(row["receipt_id"]),
+                "content_hash": content_hash,
+            }
+        finally:
+            await conn.close()
+
+    async def _resolve_receipts(
+        self, conn: Any, receipt_ids: list[str], environment_id: str, now: datetime
+    ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+        """Resolve caller-submitted receipt IDs against the store — the caller sends references, the
+        gate reads the truth. Every mismatch (unknown / wrong gate / wrong env / revoked / expired /
+        non-pass / unknown producer / unsupported check) is a rejection, never an admission."""
+        admitted: list[dict[str, Any]] = []
+        rejections: list[dict[str, str]] = []
+        for rid in receipt_ids:
+            try:
+                row = await conn.fetchrow(
+                    "SELECT receipt_id, gate_name, environment_id, producer, check_name, result, "
+                    "observed_at, valid_until, provenance, build_sha, content_hash, revoked "
+                    "FROM activation_evidence_receipts WHERE receipt_id = $1::uuid",
+                    str(rid),
+                )
+            except Exception:  # noqa: BLE001 — a malformed receipt id is a rejection, not a crash
+                rejections.append({"receipt_id": str(rid), "reason": "invalid_receipt_id"})
+                continue
+            if row is None:
+                rejections.append({"receipt_id": str(rid), "reason": "unknown_receipt"})
+                continue
+            if row["gate_name"] != self.cfg.gate_name:
+                rejections.append({"receipt_id": str(rid), "reason": "wrong_gate"})
+                continue
+            if row["environment_id"] != str(environment_id):
+                rejections.append({"receipt_id": str(rid), "reason": "wrong_environment"})
+                continue
+            if row["revoked"]:
+                rejections.append({"receipt_id": str(rid), "reason": "revoked"})
+                continue
+            if row["valid_until"] <= now:
+                rejections.append({"receipt_id": str(rid), "reason": "expired"})
+                continue
+            if row["result"] != "pass":
+                rejections.append({"receipt_id": str(rid), "reason": "not_pass"})
+                continue
+            if row["producer"] not in self.cfg.known_producers:
+                rejections.append({"receipt_id": str(rid), "reason": "unknown_producer"})
+                continue
+            if row["check_name"] not in self.cfg.required_checks:
+                rejections.append({"receipt_id": str(rid), "reason": "unsupported_check"})
+                continue
+            admitted.append(dict(row))
+        return admitted, rejections
+
     # ---- cache --------------------------------------------------------------------------------
     def invalidate_cache(self, environment_id: str) -> None:
         self._cache.pop(environment_id, None)
@@ -167,12 +321,14 @@ class ActivationGateCore:
         actor: str,
         reason: str,
     ) -> None:
+        # No ON CONFLICT: the (environment_id, activation_generation) unique index means a duplicate
+        # event is a real invariant breach (the CAS already makes each generation transition once),
+        # so it must surface as an error, never be silently swallowed.
         await conn.execute(
             f"""INSERT INTO {self.cfg.events_table}
                  (environment_id, from_state, to_state, activation_generation, build_sha, evidence,
                   actor, reason)
-               VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8)
-               ON CONFLICT (environment_id, activation_generation) DO NOTHING""",
+               VALUES ($1,$2,$3,$4,$5,$6::jsonb,$7,$8)""",
             environment_id,
             from_state,
             to_state,
@@ -232,28 +388,19 @@ class ActivationGateCore:
         environment_id: str,
         *,
         expected_generation: int,
-        evidence: list[dict[str, Any]],
+        evidence_refs: list[str],
         actor: str,
         ttl_seconds: int,
     ) -> dict[str, Any]:
-        """evaluating → enabled|degraded (CAS on the generation begin_evaluation returned). All
-        required checks present + admissible ⇒ enabled with a server-derived build_sha; else degraded."""
+        """evaluating → enabled|degraded (CAS on the generation begin_evaluation returned).
+
+        The caller submits RECEIPT REFERENCES only (``evidence_refs``). The gate resolves them from
+        the server-side receipt store INSIDE the transaction (the trust root — a caller can never
+        supply a check result). All required checks covered by valid admitted receipts ⇒ enabled
+        with a server-derived build_sha bound to those receipts; else degraded. Every rejected
+        reference is reported for audit but never admitted."""
         now = _now()
-        admitted = {
-            e.get("check_name")
-            for e in evidence
-            if self._evidence_admissible(e, environment_id, now)
-        }
-        enabled = self.cfg.required_checks <= admitted
-        to_state = "enabled" if enabled else "degraded"
-        sha = self.build_sha(evidence) if enabled else None
-        digest = self._evidence_digest(evidence)
         expires = now + timedelta(seconds=max(1, int(ttl_seconds)))
-        reason = (
-            "evidence_complete"
-            if enabled
-            else f"missing_checks:{sorted(self.cfg.required_checks - admitted)}"
-        )
         conn = await self._connect()
         try:
             async with conn.transaction():
@@ -266,6 +413,31 @@ class ActivationGateCore:
                     return {"status": "conflict", "reason": "not_evaluating"}
                 if row["activation_generation"] != expected_generation:
                     return {"status": "conflict", "reason": "cas_conflict"}
+                admitted, rejections = await self._resolve_receipts(
+                    conn, list(evidence_refs or []), environment_id, now
+                )
+                admitted_checks = {r["check_name"] for r in admitted}
+                enabled = self.cfg.required_checks <= admitted_checks
+                to_state = "enabled" if enabled else "degraded"
+                sha = self.build_sha_from_receipts(admitted) if enabled else None
+                # The event records the resolved receipt provenance (id + content hash bound to this
+                # generation), never a caller claim.
+                receipt_evidence = [
+                    {
+                        "receipt_id": str(r["receipt_id"]),
+                        "content_hash": r["content_hash"],
+                        "producer": r["producer"],
+                        "check_name": r["check_name"],
+                        "valid_until": r["valid_until"].isoformat(),
+                    }
+                    for r in admitted
+                ]
+                digest = self._evidence_digest(receipt_evidence)
+                reason = (
+                    "evidence_complete"
+                    if enabled
+                    else f"missing_checks:{sorted(self.cfg.required_checks - admitted_checks)}"
+                )
                 status = await conn.execute(
                     f"UPDATE {self.cfg.activation_table} "
                     "SET state=$3, activation_generation=$2+1, build_sha=$4, evidence_digest=$5, "
@@ -288,7 +460,7 @@ class ActivationGateCore:
                     to_state=to_state,
                     generation=expected_generation + 1,
                     build_sha_value=sha,
-                    evidence=evidence,
+                    evidence=receipt_evidence,
                     actor=actor,
                     reason=reason,
                 )
@@ -297,6 +469,8 @@ class ActivationGateCore:
                     "generation": expected_generation + 1,
                     "build_sha": sha,
                     "state_expires_at": expires.isoformat(),
+                    "admitted_receipts": [str(r["receipt_id"]) for r in admitted],
+                    "rejected_receipts": rejections,
                 }
         finally:
             await conn.close()

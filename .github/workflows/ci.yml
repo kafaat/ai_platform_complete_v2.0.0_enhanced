@@ -791,6 +791,15 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_satellite_cdse_live_consumer_e2e.py -q -p no:cacheprovider
+      # Gate-Trust-1: the stored producer-issued evidence RECEIPT store is the activation root of
+      # trust — the caller submits references, the gate resolves them server-side, and every reject
+      # case (unknown/wrong-gate/wrong-env/revoked/expired/not-pass/unknown-producer/unsupported-
+      # check) plus "raw caller evidence forbidden (422)" is proven on real Postgres.
+      - name: activation evidence receipts trust root (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_activation_evidence_receipts.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->

@@ -49,9 +49,7 @@ def test_v195_extends_existing_hydraulic_stores() -> None:
     sql = MIGRATION.read_text(encoding="utf-8")
     assert "REFERENCES irrigation_projects(id, tenant_id)" in sql
     # Tenant-scoped capability FK: an evaluation cannot reference another tenant's capability.
-    assert (
-        "REFERENCES canonical_hydraulic_capabilities(capability_id, tenant_id)" in sql
-    )
+    assert "REFERENCES canonical_hydraulic_capabilities(capability_id, tenant_id)" in sql
     assert "CREATE UNIQUE INDEX IF NOT EXISTS uq_canonical_hydraulic_capability_tenant" in sql
     assert "REFERENCES irrigation_hydraulic_nodes(id, tenant_id)" in sql
 

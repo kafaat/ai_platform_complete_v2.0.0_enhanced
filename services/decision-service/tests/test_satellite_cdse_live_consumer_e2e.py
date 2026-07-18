@@ -76,6 +76,27 @@ async def _operate(ds: httpx.AsyncClient, path: str, **json):
     )
 
 
+async def _ingest_refs(ds: httpx.AsyncClient, env: str, *, complete: bool = True) -> list[str]:
+    """Producers issue receipts over the ingest endpoint; the operator references them by id."""
+    ids = []
+    for item in _evidence(env, complete=complete):
+        r = await ds.post(
+            "/v1/activation/satellite_cdse/evidence-receipts",
+            headers={"X-Requested-By": "producer"},
+            json={
+                "producer": item["producer"],
+                "check_name": item["check_name"],
+                "result": item["result"],
+                "observed_at": item["observed_at"],
+                "valid_until": item["valid_until"],
+                "provenance": item.get("provenance"),
+            },
+        )
+        assert r.status_code == 200, r.text
+        ids.append(r.json()["receipt_id"])
+    return ids
+
+
 async def test_gate_state_changes_flip_the_consumer_source(monkeypatch):
     import imagery_source_gate as consumer
 
@@ -90,7 +111,11 @@ async def test_gate_state_changes_flip_the_consumer_source(monkeypatch):
         began = await _operate(ds, "begin")
         gen = began.json()["generation"]
         await _operate(
-            ds, "complete", expected_generation=gen, evidence=_evidence(env), ttl_seconds=3600
+            ds,
+            "complete",
+            expected_generation=gen,
+            evidence_refs=await _ingest_refs(ds, env),
+            ttl_seconds=3600,
         )
         d1 = await consumer.resolve_active_source(env=env, client=ds)
         assert d1.use_cdse is True and d1.provider == "cdse"
@@ -118,7 +143,7 @@ async def test_degraded_evidence_stays_on_fallback(monkeypatch):
             ds,
             "complete",
             expected_generation=gen,
-            evidence=_evidence(env, complete=False),
+            evidence_refs=await _ingest_refs(ds, env, complete=False),
             ttl_seconds=3600,
         )
         assert done.json()["status"] == "degraded"
