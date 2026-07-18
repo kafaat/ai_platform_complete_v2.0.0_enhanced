@@ -26,6 +26,8 @@ jobs:
           python-version: '3.12'
       # pytest-asyncio is required: tests/irrigation carries async tests (the Gate B dispatch-relay
       # worker) that pytest.ini runs under asyncio_mode=auto. Bare pytest cannot collect them.
-      - run: python -m pip install --upgrade pip pytest pytest-asyncio
+      # httpx is required: the platform irrigation_activation_gate restricted adapter (open-ledger
+      # #1) uses httpx to reach the decision-service enforce endpoint, and its unit test imports it.
+      - run: python -m pip install --upgrade pip pytest pytest-asyncio httpx
       - run: python scripts/ci/irrigation_convergence_guard.py
       - run: python -m pytest -q tests/irrigation

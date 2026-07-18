@@ -3,6 +3,8 @@
 Certifies the fail-closed REFUSAL contract of ``irrigation_activation_gate`` without a live gate:
 a fake async client stands in for the decision-service enforce endpoint. Runs under bare pytest
 via asyncio.run (the convergence workflow installs pytest-asyncio, but these need neither).
+
+Requires httpx (the restricted adapter imports it); the convergence CI job installs it explicitly.
 """
 
 from __future__ import annotations
