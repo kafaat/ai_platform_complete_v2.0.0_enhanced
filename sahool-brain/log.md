@@ -3169,3 +3169,12 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الحارس مُحدَّث:** مسار البلاطات انتقل من TILE_PATH_REMAINDER (حُذِف) إلى GATE_CONSULTING_CHOKEPOINTS (الآن ٤ نقاط اختناق: بحث + معالجة + بلاطات-runtime + tilejson-router). لا remainder مفتوح لاختيار CDSE. اختبار سلوكيّ جديد: بوّابة معطَّلة ⇒ normalize يعيد None قبل أيّ عمل كتالوج/DB.
 - **تحقّق:** raster consumer+guards 18/18 · router-decomposition 7/7 · `pytest -m unit` 3180/0 · ruff نظيف · inventory + route-mount نظيفان.
 - **المؤجَّل بصدق (بيئة حيّة/إشارة):** FF لـmain/develop (بوّابة RLS الحيّة) · FII P1+P2 · شهادة staging للبوّابتين + المستهلك تحت حمل · Gate B-d2-live/B-d3 (يحتاج NATS/خدمات).
+
+## 2026-07-18 — Gate B-delivery Slice B-d2-live (مُرحِّل NATS→inbox، محاكاة حتى staging)
+- **الحلقة الحيّة الأخيرة لـGate B-delivery:** عامل `services/sahool-platform/api/irrigation_dispatch_relay_worker.py` يشترك على أحداث الحجز (`sahool.events.irrigation.reservation.dispatch_{requested,failed}` التي ينشرها OutboxWorker) → يُخطّطها بالمُخطِّط النقيّ (B-d2) → يـPOST إلى صندوق decision-service الدائم (`/v1/reservation-dispatch-intents`).
+- **الحدّ محفوظ (delivery≠fulfillment):** العامل **لا يُنشئ execution_request أبداً** — يُسجّل تسليماً فقط، والصندوق يُزيل التكرار (dedup على source_event_id) ثمّ يتوقّف. حارس ساكن يقفل ذلك.
+- **default-off مزدوج:** بروفايل compose `relay` (لا يُنشأ افتراضاً) **+** راية `FEATURE_RESERVATION_DISPATCH_RELAY` (العامل no-op داخليّاً بدونها؛ main يـidle لا يخرج فيمنع restart-thrash).
+- **النواة نقيّة ومُختبَرة:** `handle_delivered_message(raw, post_fn)` — 8 اختبارات (delivered · duplicate 200 settled · unsupported→skip بلا POST · missing id→fail-closed skip · malformed→skip · non-2xx→failed لا fulfilled · default-off لا يشتغل · حارس no-fulfillment ساكن). تعمل في lane irrigation-convergence (67، +8).
+- **صدق:** جولة NATS+decision-service الحيّة **مؤجَّلة لشهادة staging** (نمط water-deficit-bridge المُعتمَد) — الـoutbox المُنتِج الدائم، الصندوق الحوض idempotent، فرسالة core-NATS ضائعة يُعيد الـoutbox نشرها. دلالة durability للقفزة (core vs JetStream ack) قرار staging.
+- **تحقّق:** compose-env نظيف (FEATURE_RESERVATION_DISPATCH_RELAY مُعلَن) · module baseline 646→647 (+note) · inventory + route-mount نظيفان · ruff نظيف · `pytest -m unit` 3180/0 · bundle مُعاد.
+- **المتبقّي (محجوب بيئة حيّة):** FF لـmain/develop (بوّابة RLS الحيّة) · FII P1+P2 · شهادة staging (البوّابتان + المستهلك + هذا المُرحِّل تحت حمل حقيقيّ) · B-d3 الإيفاء خلف WX-10.
