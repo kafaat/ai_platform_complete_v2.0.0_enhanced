@@ -14955,6 +14955,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b5315122cb1da4006db1c5aa264d4914f406fb6e8e881244798b91e3b0a55d38"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_activation_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8d053cd84f3887dca5bc96852cd7d686773565533c45f3b535a1abadd4583b83"
         }
       ],
