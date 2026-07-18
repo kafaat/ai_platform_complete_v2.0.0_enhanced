@@ -4,11 +4,11 @@ import pytest
 
 pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[1]
-MAIN = (ROOT / "services/decision-service/main.py").read_text()
-PERSIST = (ROOT / "services/decision-service/persistence.py").read_text()
-SQL = (
-    ROOT / "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
-).read_text()
+MAIN = (ROOT / "services/decision-service/main.py").read_text(encoding="utf-8")
+PERSIST = (ROOT / "services/decision-service/persistence.py").read_text(encoding="utf-8")
+SQL = (ROOT / "services/decision-service/migrations/014_wx11_closed_loop_completion.sql").read_text(
+    encoding="utf-8"
+)
 
 
 def test_wx117_rollback_claim_receipt_contract():

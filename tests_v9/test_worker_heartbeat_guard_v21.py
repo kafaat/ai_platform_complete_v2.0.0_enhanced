@@ -65,7 +65,7 @@ def test_state_roundtrip_and_cli(tmp_path, monkeypatch):
     state.mark_poll(3)
     state.write()
     # الملفّ مكتوب ذرّيّاً بالحقول المتوقّعة.
-    data = json.loads((tmp_path / "phase-runtime-outbox.json").read_text())
+    data = json.loads((tmp_path / "phase-runtime-outbox.json").read_text(encoding="utf-8"))
     assert data["processed_total"] == 3 and data["current_state"] == "running"
     assert isinstance(data["last_poll_at"], (int, float))
     # CLI check يعود 0 لنبضة طازجة، و1 لعامل مجهول (لا نبضة).
@@ -78,7 +78,9 @@ def test_state_roundtrip_and_cli(tmp_path, monkeypatch):
 
 
 def test_loop_worker_writes_heartbeat_each_iteration():
-    src = (ROOT / "services" / "sahool-platform" / "api" / "phase_runtime_workers.py").read_text()
+    src = (ROOT / "services" / "sahool-platform" / "api" / "phase_runtime_workers.py").read_text(
+        encoding="utf-8"
+    )
     # يُنشئ HeartbeatState ويكتب النبضة (كلّ دورة + عند الخطأ قبل إعادة الرفع).
     assert "from api.worker_heartbeat import HeartbeatState" in src
     assert "hb.mark_poll(processed)" in src
@@ -87,7 +89,7 @@ def test_loop_worker_writes_heartbeat_each_iteration():
 
 
 def test_compose_target_workers_use_heartbeat_healthcheck():
-    compose = (ROOT / "docker-compose.v9.yml").read_text()
+    compose = (ROOT / "docker-compose.v9.yml").read_text(encoding="utf-8")
     # جميع عمّال phase-runtime الخمسة على فحص النبضة (CT-06 مُكتمِل لهذه الفئة).
     for worker in (
         "phase-runtime-outbox",
@@ -101,6 +103,6 @@ def test_compose_target_workers_use_heartbeat_healthcheck():
 
 # نتأكّد أنّ الوحدة بلا تبعيّات ثقيلة (تعمل في بيئة الوحدة الدنيا في CI).
 def test_module_is_stdlib_only():
-    src = _MOD.read_text()
+    src = _MOD.read_text(encoding="utf-8")
     for forbidden in ("import fastapi", "import asyncpg", "from fastapi", "import httpx"):
         assert forbidden not in src
