@@ -31,6 +31,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 import activation_gate
+import satellite_cdse_activation_gate
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
@@ -1282,6 +1283,108 @@ async def activation_probe(
             signature=(x_activation_probe_signature or "").strip(),
         )
     except activation_gate.ActivationProbeDenied as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+
+
+# --- Phase 2: satellite_cdse activation gate (operator + probe + source-selection surface) -----
+# Symmetric with the irr_f01_reservation gate above but a SEPARATE gate module; the enforcement
+# read is /source (imagery source selection), not a 403.
+
+
+def _cdse_activation_result(result: dict[str, Any]) -> dict[str, Any]:
+    if result.get("status") == "conflict":
+        raise HTTPException(status_code=409, detail=result.get("reason", "activation conflict"))
+    return {"environment_id": _activation_environment(), **result}
+
+
+@app.post("/v1/activation/satellite_cdse/begin")
+async def cdse_activation_begin(
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await satellite_cdse_activation_gate.begin_evaluation(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.post("/v1/activation/satellite_cdse/complete")
+async def cdse_activation_complete(
+    payload: ActivationCompleteIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await satellite_cdse_activation_gate.complete_evaluation(
+            _activation_environment(),
+            expected_generation=payload.expected_generation,
+            evidence=payload.evidence,
+            actor=_activation_actor(x_requested_by),
+            ttl_seconds=payload.ttl_seconds,
+        )
+    )
+
+
+@app.post("/v1/activation/satellite_cdse/revoke")
+async def cdse_activation_revoke(
+    payload: ActivationRevokeIn, x_requested_by: str | None = Header(default=None)
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await satellite_cdse_activation_gate.revoke(
+            _activation_environment(),
+            actor=_activation_actor(x_requested_by),
+            reason=payload.reason,
+        )
+    )
+
+
+@app.post("/v1/activation/satellite_cdse/reset")
+async def cdse_activation_reset(
+    x_requested_by: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return _cdse_activation_result(
+        await satellite_cdse_activation_gate.reset(
+            _activation_environment(), actor=_activation_actor(x_requested_by)
+        )
+    )
+
+
+@app.get("/v1/activation/satellite_cdse")
+async def cdse_activation_current() -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return await satellite_cdse_activation_gate.current_cached(_activation_environment())
+
+
+@app.get("/v1/activation/satellite_cdse/source")
+async def cdse_active_source() -> dict[str, Any]:
+    """Enforcement read: which imagery source is active for this environment — 'cdse' when the gate
+    is enabled, otherwise the safe 'element84' fallback. Never a 403 (Category A source selection)."""
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    return await satellite_cdse_activation_gate.active_imagery_source(_activation_environment())
+
+
+@app.get("/v1/activation/satellite_cdse/probe")
+async def cdse_activation_probe(
+    x_activation_role: str | None = Header(default=None),
+    x_activation_probe_signature: str | None = Header(default=None),
+) -> dict[str, Any]:
+    if not sor_enabled():
+        raise HTTPException(status_code=503, detail="activation gate requires the system-of-record")
+    try:
+        return await satellite_cdse_activation_gate.probe_state(
+            _activation_environment(),
+            caller_role=(x_activation_role or "").strip(),
+            signature=(x_activation_probe_signature or "").strip(),
+        )
+    except satellite_cdse_activation_gate.ActivationProbeDenied as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 

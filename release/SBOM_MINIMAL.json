@@ -9995,7 +9995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7b04e0e9862a07fd884075df806711182ae8daa2ce48e9d7279bdd485fbe1124"
+          "content": "502e4a604185448c7a0535ea0e9e9e0ef61807cc1c1ba04fb704b3d200b9c8d5"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10295,6 +10295,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "0016d63c0532f1d7f2edc09fc374fc0c0d4085d9a8d1250dd6a0f1ce035da7a0"
+        }
+      ],
+      "name": "services/decision-service/migrations/029_satellite_cdse_activation_gate.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "410b2f2726d9fdfefef03ba7992162f8b03803b949f469e851bea1dba170c0b3"
         }
       ],
@@ -10339,6 +10349,16 @@
         }
       ],
       "name": "services/decision-service/rollback.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d1935407a4d36b1f14efe3db8c58d71536d9d73071469309abf48cf835e60c9e"
+        }
+      ],
+      "name": "services/decision-service/satellite_cdse_activation_gate.py",
       "type": "file"
     },
     {
@@ -10519,6 +10539,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_runtime_worker_tenants.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "233a4a63a46b922449a225bbdc98b2283ed58b6ea95896ed360f8c84ffd37844"
+        }
+      ],
+      "name": "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
       "type": "file"
     },
     {
