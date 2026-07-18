@@ -12,6 +12,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = (ROOT / "sahool-brain" / "gaps" / "registry.md").read_text(encoding="utf-8")
 GATE = (ROOT / "services" / "decision-service" / "activation_gate.py").read_text(encoding="utf-8")
+# Phase 3: the proven-shared machinery (build_sha / evidence admissibility / probe envelope / state
+# machine) was extracted into this core AFTER two independent gates existed (PROD-07 honoured). The
+# irr_f01-specific enforcement (a REFUSAL) stays in GATE; the machinery is asserted against CORE.
+CORE = (ROOT / "services" / "decision-service" / "activation_gate_core.py").read_text(
+    encoding="utf-8"
+)
+SAT_GATE = (ROOT / "services" / "decision-service" / "satellite_cdse_activation_gate.py").read_text(
+    encoding="utf-8"
+)
 MIGRATION = (
     ROOT
     / "services"
@@ -53,19 +62,36 @@ def test_prod_04_ttl_and_fresh_enforcement():
 
 
 def test_prod_05_non_spoofable_build_sha():
-    assert "def deploy_build_sha" in GATE
-    assert "DEPLOY_BUILD_SHA" in GATE
-    assert "never supplied by a caller" in GATE
+    # Server-derived, non-spoofable build_sha now lives in the shared core.
+    assert "def deploy_build_sha" in CORE
+    assert "DEPLOY_BUILD_SHA" in CORE
+    assert "never supplied by a caller" in CORE
+    # The gate wrapper still binds/exposes it (public API unchanged).
+    assert "deploy_build_sha" in GATE and "build_sha = _CORE.build_sha" in GATE
 
 
 def test_prod_06_no_parallel_readiness_consumes_evidence():
-    # The gate CONSUMES evidence (never re-runs checks): it reads these envelope fields.
+    # The gate CONSUMES evidence (never re-runs checks): the admissibility check in the core reads
+    # these envelope fields.
     for field in ("producer", "check_name", "valid_until", "result", "environment_id"):
-        assert field in GATE
-    assert "REQUIRED_CHECKS" in GATE and "_evidence_admissible" in GATE
+        assert field in CORE
+    assert "_evidence_admissible" in CORE
+    # The irr_f01 evidence config stays specific to the gate wrapper.
+    assert "REQUIRED_CHECKS" in GATE
     # The full provenance envelope is the documented contract in the registry.
     for field in ("producer", "check_name", "observed_at", "valid_until", "result", "provenance"):
         assert field in REGISTRY
+
+
+def test_prod_07_shared_core_extracted_after_two_gates():
+    # Phase 3: the machinery is shared by exactly the two proven gates, each a thin wrapper that
+    # instantiates the core with its own GateConfig. Neither re-implements the state machine.
+    assert "class ActivationGateCore" in CORE
+    for wrapper in (GATE, SAT_GATE):
+        assert "ActivationGateCore(" in wrapper and "GateConfig(" in wrapper
+    # The enforcement meaning stays per-gate: a refusal here, a source selection there.
+    assert "async def enforce_enabled" in GATE
+    assert "async def active_imagery_source" in SAT_GATE
 
 
 def test_prod_schema_scope_and_operational_role_contract():
@@ -81,9 +107,11 @@ def test_prod_schema_scope_and_operational_role_contract():
     assert "_service_token_guard" in MAIN
 
 
-def test_prod_07_probe_role_and_enforcement_wiring():
+def test_prod_probe_role_and_enforcement_wiring():
     assert 'PROBE_ROLE = "activation_probe"' in GATE
-    assert "def probe_state" in GATE
+    # The probe envelope (role + HMAC signature) is in the shared core; the wrapper exposes it.
+    assert "async def probe_state" in CORE
+    assert "probe_state = _CORE.probe_state" in GATE
     # Enforcement is wired at the ingest point behind the opt-in flag, returning 403.
     assert "_enforce_reservation_activation()" in MAIN
     assert "activation_gate.enforce_enabled(_activation_environment())" in MAIN
