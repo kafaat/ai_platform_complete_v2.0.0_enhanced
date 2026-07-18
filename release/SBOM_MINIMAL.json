@@ -14845,6 +14845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1918251a2b59244b8c2a630ad79282fa1de2dc55730db2ae428a8f96245a11b4"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_dispatch_relay.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "49854909cc2c84c0f109f6a944b1991e30d8d807f4be6c4e46dabf1f43cc8cf8"
         }
       ],

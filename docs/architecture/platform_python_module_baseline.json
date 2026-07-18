@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 645,
+  "baseline_python_module_count": 646,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -136,6 +136,7 @@
     "api/irrigation_closed_loop_runtime.py",
     "api/irrigation_commissioning_certification.py",
     "api/irrigation_commissioning_runtime.py",
+    "api/irrigation_dispatch_relay.py",
     "api/irrigation_engineering_contracts.py",
     "api/irrigation_engineering_workspace.py",
     "api/irrigation_execution_request_port.py",
@@ -663,5 +664,6 @@
   "irr_f01_capacity_reservation_note": "api/irrigation_capacity_reservation.py: IRR-F01 pure-logic transaction-safe hydraulic capacity/reservation primitives (stable tenant-scoped int64 advisory-lock keys, deadlock-safe resource ordering, peak concurrent-flow over half-open intervals, exclusive/shared admission, lock-before-evaluate reserve-and-request-dispatch contract). DB-free; wired into the EXISTING decision execution-request/outbox + v187 manual-execution path via injected callbacks — no new execution SoR. Closes the confirmed concurrency gap (only v136 per-valve running flag existed). Ownership: docs/architecture/ADR-IRR-F01-OWNERSHIP.md; guard scripts/ci/irrigation_convergence_guard.py.",
   "irr_f01_path_query_note": "api/irrigation_path_query.py: IRR-F01 pure hydraulic path resolution over the existing v171 graph (replaces deferred closure/version tables). Tenant+project scoped, cycle-guarded, depth-capped; reports path_status unique/multiple/unreachable/invalid_cycle with path_count and every alternative (no silent first-path); never declares a bottleneck from topology (that is v175's capability concern). Ships the canonical recursive CTE as a reviewable constant. DB-free.",
   "irr_f01_reservation_adapter_note": "api/irrigation_reservation_adapter.py: IRR-F01 DB adapter contract binding the pure reservation kernel to the platform-owned v195 tables + the EXISTING execution-request/outbox path via an injected ExecutionRequestPort. Lock-before-evaluate reserve-and-request-dispatch inside the caller's tx (set tenant GUC -> ordered advisory locks -> fresh overlap read + admission -> INSERT evaluation -> INSERT reservations+events -> outbox intent). Committed reservation = dispatch_requested; actuator receipt = dispatched. Forward compensation on post-commit actuator failure (reservation->cancelled, request->dispatch_failed), no rollback. No new execution SoR; no new route. Live execution + the port's outbox binding are the deferred Phase-4 PostgreSQL integration gate.",
-  "irr_f01_execution_request_port_note": "api/irrigation_execution_request_port.py: IRR-F01 Gate B — the real ExecutionRequestPort binding the reservation adapter to the EXISTING emit_event outbox on the same tx connection (dispatch_requested intent, entity_type='operation' to satisfy the events CHECK; the outbox worker + decision-service do the live delivery). Registers EventType IRRIGATION_RESERVATION_DISPATCH_REQUESTED/_FAILED. Certified live (Gate B1): emit atomicity + rollback + compensation on PostgreSQL 16."
+  "irr_f01_execution_request_port_note": "api/irrigation_execution_request_port.py: IRR-F01 Gate B — the real ExecutionRequestPort binding the reservation adapter to the EXISTING emit_event outbox on the same tx connection (dispatch_requested intent, entity_type='operation' to satisfy the events CHECK; the outbox worker + decision-service do the live delivery). Registers EventType IRRIGATION_RESERVATION_DISPATCH_REQUESTED/_FAILED. Certified live (Gate B1): emit atomicity + rollback + compensation on PostgreSQL 16.",
+  "irr_f01_dispatch_relay_note": "IRR-F01 Gate B-delivery: pure event->decision-service ingest relay mapper (irrigation_dispatch_relay.py). Sits with the other irrigation_* IRR-F01 modules; single-use (no general framework extraction per ACTIVATION-GATE-PROD-07). +1 (645->646)."
 }
