@@ -750,6 +750,15 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_gate_b_reservation_dispatch_inbox.py -q -p no:cacheprovider
+      # IRR-F01 Phase 1: the irr_f01_reservation ACTIVATION GATE reference implementation
+      # (5-state machine + CAS on activation_generation + TTL + stale-evaluating recovery +
+      # append-only evidence + probe role/signature + enforcement). The eight mandatory proofs
+      # run on real Postgres.
+      - name: IRR-F01 activation gate (irr_f01_reservation) proof tests (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_irr_f01_reservation_activation_gate.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->
