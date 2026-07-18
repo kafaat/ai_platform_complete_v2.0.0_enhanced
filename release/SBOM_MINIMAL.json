@@ -10555,6 +10555,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "275d8f77ad360e0ec5915fc93a39d2add834d677a4f7b9da35b8651035a20633"
+        }
+      ],
+      "name": "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "1d8df15b5d4f6567bdbf555e67aa51a56eda85cc2502d130edd20f11c9b75d8e"
         }
       ],

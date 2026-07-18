@@ -16,6 +16,11 @@ Two static guards, no DB, no network:
    so an unauthenticated WS endpoint would be a hole in the exact defense open-ledger #2 built. The
    service has NO WebSocket routes today; this guard fails the moment one is added, forcing a
    reviewer to confirm it authenticates before it can land.
+
+3. Raw connection confinement (open-ledger #4) — production DB access should route through the
+   pooled ``persistence.acquire_connection`` (asyncpg.create_pool). A raw ``asyncpg.connect(`` is
+   confined to a fixed, reviewed allowlist of standalone/fallback modules; a NEW module opening a
+   raw connection fails this guard, forcing a reviewer to use the pool (or justify the exception).
 """
 
 from __future__ import annotations
@@ -88,3 +93,30 @@ def test_ws_guard_would_catch_a_contrived_route():
     # Negative proof: the marker scan detects a synthetic WebSocket handler.
     contrived = "@app.websocket('/v1/stream')\nasync def stream(ws): ...\n"
     assert any(m in contrived for m in _WS_MARKERS)
+
+
+# ---- Raw asyncpg.connect confinement (open-ledger #4) -----------------------------------------
+# Modules permitted to open a RAW connection instead of the pooled acquire_connection(). Each is a
+# standalone tool or a documented pooled-first fallback — reviewed on entry.
+_RAW_CONNECT_ALLOWLIST = {
+    "persistence.py",  # owns the pool (create_pool) + acquire_connection; the reference adapter
+    "migration_runner.py",  # standalone schema-migration tool: a direct admin connection, not the pool
+    "backfill.py",  # standalone backfill worker/CLI: runs outside the request path
+    "activation_gate_core.py",  # pooled-FIRST; raw connect is a documented fallback for isolated tests/tools
+}
+
+
+def test_raw_asyncpg_connect_is_confined_to_the_reviewed_allowlist():
+    offenders = sorted(name for name, src in _service_modules() if "asyncpg.connect(" in src)
+    unexpected = set(offenders) - _RAW_CONNECT_ALLOWLIST
+    assert not unexpected, (
+        f"Module(s) open a raw asyncpg connection instead of the pool: {sorted(unexpected)}. "
+        "Route DB access through persistence.acquire_connection(), or add to "
+        "_RAW_CONNECT_ALLOWLIST with a justification if a raw connection is genuinely required."
+    )
+
+
+def test_raw_connect_guard_would_catch_a_contrived_bypass():
+    # Negative proof: a synthetic new module opening a raw connection is not in the allowlist.
+    synthetic = {"persistence.py", "sneaky_direct_db.py"}
+    assert synthetic - _RAW_CONNECT_ALLOWLIST == {"sneaky_direct_db.py"}
