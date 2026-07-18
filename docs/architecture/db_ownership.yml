@@ -1589,3 +1589,200 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v196_irrigation_target_binding.sql"
+
+  # ── decision-service SoR-owned tables (ownership baseline, ledger #6) ────────────────
+  # decision-service owns (sole writer) every table its own migrations create. Populating
+  # this baseline lets the LOOP_TABLES ⊆ ownership check be wired (see decision-service
+  # test_loop_tables_and_ws_guard.py). The 5 interim-bridge loop tables (decision_record,
+  # dispatch_decisions, outcome_record, recommendation_outcomes, online_learning_updates)
+  # stay platform-owned with mirror:decision-service until the SoR flip (runbook ⑤).
+  activation_evidence_receipts:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/030_activation_evidence_receipts.sql"
+  activation_evidence_revocations:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/030_activation_evidence_receipts.sql"
+  decision_agronomic_context_snapshots:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/018_ac1_agronomic_context.sql"
+  decision_consumer_heartbeats:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/027_reservation_dispatch_inbox.sql"
+  decision_execution_delivery_attempts:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/006_execution_delivery_receipt.sql"
+  decision_execution_requests:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/005_execution_request.sql"
+  decision_feature_manifest_entries:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/018_ac1_agronomic_context.sql"
+  decision_feature_manifests:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/018_ac1_agronomic_context.sql"
+  decision_field_historical_context_snapshots:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/018_ac1_agronomic_context.sql"
+  decision_learning_attributions:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/008_learning_attribution.sql"
+  decision_model_activation_requests:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/011_model_activation_request.sql"
+  decision_model_activation_reviews:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/012_model_activation_approval_command.sql"
+  decision_model_evaluation_runs:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/009_model_evaluation_run.sql"
+  decision_model_monitoring_snapshots:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
+  decision_model_post_activation_verifications:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
+  decision_model_promotion_decisions:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/010_model_promotion_decision.sql"
+  decision_model_reconcile_evidence:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/017_wx12_runtime_schedules.sql"
+  decision_model_registry_activation_claims:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/013_registry_adapter_receipt_rollback.sql"
+  decision_model_registry_activation_commands:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/012_model_activation_approval_command.sql"
+  decision_model_registry_activation_receipts:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/013_registry_adapter_receipt_rollback.sql"
+  decision_model_registry_rollback_claims:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
+  decision_model_registry_rollback_commands:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/013_registry_adapter_receipt_rollback.sql"
+  decision_model_registry_rollback_receipts:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
+  decision_model_retraining_dispatch_receipts:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/015_wx12_runtime_receipts.sql"
+  decision_model_retraining_requests:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
+  decision_model_rollout_plans:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/014_wx11_closed_loop_completion.sql"
+  decision_model_rollout_receipts:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/015_wx12_runtime_receipts.sql"
+  decision_model_runtime_schedules:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/017_wx12_runtime_schedules.sql"
+  decision_model_runtime_work_claims:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/016_wx12_runtime_work_claims.sql"
+  decision_outbox_events:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/001_decision_sor.sql"
+  decision_reservation_dispatch_inbox:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/027_reservation_dispatch_inbox.sql"
+  decision_runtime_worker_tenant_commands:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/025_worker_tenant_command_ledger.sql"
+  decision_runtime_worker_tenants:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/024_runtime_worker_tenants.sql"
+  decision_vegetation_snapshots:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/019_agronomic_lineage_integrity.sql"
+  irr_f01_reservation_activation:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/028_irr_f01_reservation_activation_gate.sql"
+  irr_f01_reservation_activation_events:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/028_irr_f01_reservation_activation_gate.sql"
+  satellite_cdse_activation:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/029_satellite_cdse_activation_gate.sql"
+  satellite_cdse_activation_events:
+    owner: decision-service
+    writers: [decision-service]
+    readers: []
+    source: "services/decision-service/migrations/029_satellite_cdse_activation_gate.sql"

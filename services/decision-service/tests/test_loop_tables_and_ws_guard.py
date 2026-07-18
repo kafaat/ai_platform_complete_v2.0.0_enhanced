@@ -8,9 +8,12 @@ Two static guards, no DB, no network:
    Honest scope: LOOP_TABLES is a CURATED SUBSET of the decision tables (the closed-loop tables),
    so the reverse ("every decision table must be in LOOP_TABLES") is deliberately NOT enforced — it
    would drag non-loop tables (activation receipts, satellite_cdse, irr_f01 gate) into the list.
-   The ownership cross-check (LOOP_TABLES ⊆ db_ownership.yml[decision-service]) is a documented
-   FOLLOW-UP: docs/architecture/db_ownership.yml currently registers only 4 decision tables, so
-   wiring that check requires first populating the ownership baseline — a separate governance change.
+
+   Ownership cross-check (ledger #6, now WIRED): every LOOP_TABLES entry must be a table
+   decision-service owns in docs/architecture/db_ownership.yml — either owner=decision-service, or
+   (for the 5 interim-bridge SoR tables) mirror=decision-service until the SoR flip. The ownership
+   baseline was populated (decision-service now owns the tables its migrations create) so this check
+   holds without dragging non-loop tables into LOOP_TABLES.
 
 2. WebSocket auth — a WebSocket route bypasses the HTTP ``_service_token_guard`` middleware entirely,
    so an unauthenticated WS endpoint would be a hole in the exact defense open-ledger #2 built. The
@@ -31,6 +34,32 @@ from pathlib import Path
 SERVICE_DIR = Path(__file__).resolve().parents[1]
 MAIN = (SERVICE_DIR / "main.py").read_text(encoding="utf-8")
 MIGRATIONS = SERVICE_DIR / "migrations"
+OWNERSHIP = SERVICE_DIR.parents[1] / "docs" / "architecture" / "db_ownership.yml"
+
+
+def _decision_owned_or_mirrored() -> set[str]:
+    """Tables decision-service owns, per db_ownership.yml — parsed without a YAML dependency.
+
+    A loop table qualifies if decision-service is the ``owner`` OR its designated ``mirror``.
+    The mirror clause covers the 5 interim-bridge SoR tables (decision_record, dispatch_decisions,
+    outcome_record, recommendation_outcomes, online_learning_updates) which stay platform-owned
+    with ``mirror: decision-service`` until the SoR flip (runbook ⑤) makes decision-service the
+    owner outright. After that flip, those become owner=decision-service and the mirror clause is
+    simply redundant — the check keeps passing without edits.
+    """
+    text = OWNERSHIP.read_text(encoding="utf-8")
+    qualified: set[str] = set()
+    cur: str | None = None
+    for line in text.splitlines():
+        m = re.match(r"^  ([a-z0-9_]+):\s*$", line)
+        if m:
+            cur = m.group(1)
+            continue
+        if cur and re.match(r"^    owner:\s*decision-service\s*$", line):
+            qualified.add(cur)
+        if cur and re.match(r"^    mirror:\s*decision-service\s*$", line):
+            qualified.add(cur)
+    return qualified
 
 
 def _loop_tables() -> set[str]:
@@ -75,6 +104,26 @@ def test_loop_tables_gate_would_catch_a_phantom():
     migrated = _migration_tables()
     synthetic = {next(iter(migrated)), "decision_totally_made_up_table"}
     assert sorted(synthetic - migrated) == ["decision_totally_made_up_table"]
+
+
+# ---- LOOP_TABLES ⊆ db_ownership[decision-service] (ledger #6, now wired) ----------------------
+def test_every_loop_table_is_owned_by_decision_service():
+    loop = _loop_tables()
+    owned = _decision_owned_or_mirrored()
+    orphan = sorted(loop - owned)
+    assert not orphan, (
+        f"LOOP_TABLES entries not registered as decision-service-owned (nor mirrored) in "
+        f"docs/architecture/db_ownership.yml: {orphan}. A closed-loop table decision-service "
+        "runs against must declare decision-service as its owner (or mirror during the SoR "
+        "interim-bridge). Add the ownership entry, or fix LOOP_TABLES."
+    )
+
+
+def test_ownership_check_would_catch_an_unowned_loop_table():
+    # Negative proof: a loop table absent from the ownership set is flagged by the set difference.
+    owned = _decision_owned_or_mirrored()
+    synthetic = {next(iter(owned)), "decision_unowned_loop_table"}
+    assert sorted(synthetic - owned) == ["decision_unowned_loop_table"]
 
 
 # ---- WebSocket auth ---------------------------------------------------------------------------
