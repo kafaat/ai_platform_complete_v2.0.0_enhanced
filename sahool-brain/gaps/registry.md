@@ -127,8 +127,10 @@
 - **ملاحظة المنهج (صدق):** جداول الهدف/السلسلة أُنشئت **بأسمائها الحقيقيّة لكن بأعمدة أدنى (`id, tenant_id`)** لا بمخطّطها الإنتاجيّ الكامل — وهذا **برهان أمين للسياسة** (السياسة تقرأ `tenant_id` فقط)، نفس منهج v192 المُقيَّم «أقوى من اختبار تطبيقيّ». التطبيق على المخطّط الكامل عبر السلسلة v1..v194 يبقى تحسيناً (ترتيب الهجرات محروس أصلاً بـfinding #12 الذي بُرهِن أعلاه). الأدوار: البوستشر السلوكيّ (NOSUPERUSER/NOBYPASSRLS لا يتجاوز) مُثبَت؛ دور `sahool_app` الفعليّ محروس بتزويد الأدوار + `field_management_live_gate` (#584).
 - **الأثر:** لم تعد على main أيّ آلية أمنيّة RLS في نطاق FII بلا برهان حيّ. الخلل الذي حذّر منه الدفتر (آلية أمنيّة مدموجة بلا برهان) **مُغلَق لـ v192 و v194**.
 
-## OPEN-LEDGER-DEFERRED (③ عزل مفتاح المنتِج) — OPEN (Medium/deferred-as-framed) 2026-07-18
-- **③ عزل مفتاح المنتِج:** فصل مفتاح توقيع إيصالات التفعيل (`ACTIVATION_EVIDENCE_SIGNING_KEY_CI`) عن مفتاح الخدمة — حاليّاً التوقيع دفاع-في-العمق فوق الجذر المخزَّن. مؤجَّل بصدق (يخصّ إدارة مفاتيح المشغّل). المصدر: log 2026-07-18 (Gate-Trust Slice 2b).
+## ③ عزل مفتاح المنتِج (activation signing-key isolation) — CLOSED-IN-CODE 2026-07-18 (`e2f330e`)
+- **الحقيقة عند الفحص:** العزل **قائم أصلاً** في الكود+compose (عمل Gate-Trust): `ACTIVATION_EVIDENCE_SIGNING_KEY` و`ACTIVATION_PROBE_SIGNING_KEY` متغيّران مخصّصان، كلٌّ من `${اسمه:-}` الخاصّ، **لا يُسنَد أيّهما لـ`${JWT_SECRET}`/`${SAHOOL_AGENT_TOKEN}`** (تحقّق grep = صفر). المفتاح ليس دفاعاً-في-العمق فوق مفتاح الخدمة بل جذر ثقة معزول بمتغيّره.
+- **المُضاف (قفل + توثيق):** `tests_v9/test_activation_signing_key_isolation_guard.py` يفشل CI إن أسند تعديلٌ مستقبليّ أيّ مفتاح توقيع لسرّ الخدمة/JWT (برهان سالب) + ملاحظة `.env.example` صريحة: القيمة يجب أن تكون سرّاً متمايزاً عن JWT_SECRET/SAHOOL_AGENT_TOKEN/probe.
+- **المتبقّي (مشغّل، بصدق):** تزويد **قيَم** سرّيّة متمايزة فعليّاً — واجب secret-manager لا يراه فحص ساكن. الجزء الكوديّ من ③ مُغلَق ومقفول ضدّ الانحدار.
 
 ## ⑥ db_ownership baseline + LOOP_TABLES⊆ownership — CLOSED 2026-07-18 (`773beb8`)
 - **الإغلاق:** `db_ownership.yml` كان يسجّل 4 جداول decision فقط. مُلِئ الأساس: أُضيفت 38 جدولاً تنشئها هجرات decision-service ذاتها (owner=decision-service، sole writer، مصدر=الهجرة)؛ تُحقِّق أنّ **0 منها** تنشئه هجرة منصّة/عامّة (ملكيّة قاطعة). الخمسة interim-bridge (decision_record/dispatch_decisions/outcome_record/recommendation_outcomes/online_learning_updates) **لم تُقلَب** — تبقى platform-owned + mirror:decision-service حتّى قلب SoR (رنبوك ⑤).
