@@ -13445,6 +13445,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4535fb1521f3247143219a8af8b5ce17ea246e71796584c9ab7c452558a7cd7c"
+        }
+      ],
+      "name": "services/raster-service/test_tenant_guc_session_scope_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "438265b24fe9c26898287ca5680420c6ba16534bbee0b2edf6eff390a5899e53"
         }
       ],
