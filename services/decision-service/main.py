@@ -126,7 +126,19 @@ app = FastAPI(
 # service bearer token (the runtime/worker already send it). Unset (dev/mirror) → no-op, so the
 # existing gateway-trusted flow is unchanged. This is defense-in-depth for the future SoR mode:
 # a service reachable directly inside the cluster can no longer spoof tenant/actor identities.
-_AUTH_EXEMPT = {"/healthz", "/readyz", "/livez", "/", "/docs", "/openapi.json", "/redoc"}
+# Health/liveness probes are ALWAYS exempt (the orchestrator hits them unauthenticated). The
+# interactive docs paths are exempt only in development: in production they are disabled at app
+# construction (docs_url=None → 404), so listing them as exempt there would be dead-and-misleading —
+# production restricts the exemption set to the probes alone.
+_PROBE_EXEMPT = {"/healthz", "/readyz", "/livez", "/"}
+_DOCS_PATHS = {"/docs", "/openapi.json", "/redoc"}
+
+
+def _auth_exempt_paths() -> set[str]:
+    """The set of paths that bypass the service-token check, evaluated per request so an operator's
+    SAHOOL_ENV flip takes effect without a restart. Production = probes only; development also
+    exempts the docs paths for convenience."""
+    return _PROBE_EXEMPT if _is_production() else (_PROBE_EXEMPT | _DOCS_PATHS)
 
 
 @app.middleware("http")
@@ -137,7 +149,7 @@ async def _service_token_guard(request, call_next):
         from fastapi.responses import JSONResponse
 
         return JSONResponse({"detail": "service authentication unavailable"}, status_code=503)
-    if required and path not in _AUTH_EXEMPT:
+    if required and path not in _auth_exempt_paths():
         header = request.headers.get("authorization", "")
         presented = header[7:].strip() if header[:7].lower() == "bearer " else ""
         if not presented or not hmac.compare_digest(presented, required):

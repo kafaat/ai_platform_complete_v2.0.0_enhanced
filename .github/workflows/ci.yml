@@ -806,6 +806,13 @@ jobs:
       - name: activation core hardening fail-closed
         working-directory: services/decision-service
         run: pytest tests/test_activation_gate_core_hardening.py -q -p no:cacheprovider
+      # Service-token guard middleware (open-ledger #2): the raw internal port refuses spoofed
+      # identity headers when a token is configured / production is armed, fails closed (503) when
+      # required-but-unset, and in production restricts the auth-exemption set to the health probes.
+      # Pure middleware decision, no DB.
+      - name: service-token guard middleware
+        working-directory: services/decision-service
+        run: pytest tests/test_service_token_guard.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->
