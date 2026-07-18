@@ -1672,6 +1672,9 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       TTS_URL: http://sahool-tts-service:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # WS auth: agent.py:_validate_ws_token فكّ JWT (HS256, aud=sahool) يقرأ JWT_SECRET؛
+      # بلا حقنه raise "Missing token or secret" ⇒ يرفض كلّ اتّصال WS (fail-closed صامت).
+      JWT_SECRET: ${JWT_SECRET}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
