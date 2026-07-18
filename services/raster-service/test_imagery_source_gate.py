@@ -163,6 +163,29 @@ async def test_evidence_carries_full_provenance(monkeypatch):
     assert isinstance(ev["decision_timestamp"], str) and ev["decision_timestamp"]
 
 
+async def test_tile_render_blocked_when_gate_not_enabled(monkeypatch):
+    """The live tile path refuses to render CDSE tiles when the gate is enforced and not enabled —
+    normalize_cdse_request returns None (same fail-closed contract as the unconfigured branch),
+    before any catalogue/DB work."""
+    import cdse_client
+    import imagery_source_gate
+    import raster_cdse_tile_runtime as rt
+
+    monkeypatch.setattr(cdse_client, "is_configured", lambda: True)
+    monkeypatch.setattr(imagery_source_gate, "enforce_enabled", lambda: True)
+
+    async def _fallback(**_kwargs):
+        return imagery_source_gate.decision_from_source_payload(
+            {"source": "element84", "gate_state": "revoked", "reason": "revoked"}, env="env-x"
+        )
+
+    monkeypatch.setattr(imagery_source_gate, "resolve_active_source", _fallback)
+    out = await rt.normalize_cdse_request(
+        "field-1", "ndvi", "latest", (None, None, None, None), None
+    )
+    assert out is None
+
+
 def test_pure_mapping_of_source_payload():
     d_cdse = gate.decision_from_source_payload(
         {"source": "cdse", "gate_state": "enabled", "generation": 3}, env=ENV

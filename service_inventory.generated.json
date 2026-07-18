@@ -219,7 +219,7 @@
     "service": "raster-service",
     "domain": "Imagery & Raster",
     "python_files": 150,
-    "python_loc": 20910,
+    "python_loc": 20951,
     "tests": 63,
     "routes": 79,
     "main": "services/raster-service/main.py",

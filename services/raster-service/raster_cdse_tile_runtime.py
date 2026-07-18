@@ -49,9 +49,20 @@ async def normalize_cdse_request(
     bbox: tuple[float | None, float | None, float | None, float | None],
     poly: str | None,
 ) -> dict | None:
-    """Normalize CDSE tile/thumbnail request parameters without rendering."""
+    """Normalize CDSE tile/thumbnail request parameters without rendering.
+
+    The satellite_cdse activation gate governs this on-demand tile surface exactly as it governs
+    scene search/processing: when enforced and the gate is not effectively enabled (or unreachable),
+    return None so no CDSE tile is rendered — identical fail-closed contract to the unconfigured
+    branch. Default-off keeps legacy behaviour."""
     if not _cdse.is_configured():
         return None
+    import imagery_source_gate
+
+    if imagery_source_gate.enforce_enabled():
+        decision = await imagery_source_gate.resolve_active_source()
+        if not decision.use_cdse:
+            return None
     internal = layer_lookup.GRID_INDEX_ALIASES.get(index, index)
     if not _cdse.is_truecolor(internal) and internal not in _cdse.INDEX_EXPR:
         return None

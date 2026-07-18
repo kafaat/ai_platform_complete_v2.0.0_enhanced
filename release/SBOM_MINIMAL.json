@@ -9945,6 +9945,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1204fd68464b604eea2f6e3c44b39807e53a5d52ced00e1f96dd86aacf779a3c"
+        }
+      ],
+      "name": "services/decision-service/activation_gate_core.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d8bd3cd973da0b232acfd1d0028939616836638eb8e6b9f98e46486838da3601"
         }
       ],
@@ -12315,7 +12325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97f31798a21ccc3c311bc700eba9b19b887db7e3efc4883c2f43163b3b0b1b44"
+          "content": "20aa55c7082c638b28ad06f5fea3adf32b0a0b3fef86002be8f353c0bab827de"
         }
       ],
       "name": "services/raster-service/raster_cdse_tile_runtime.py",
@@ -12575,7 +12585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8123b6a6d81ad3d38945528149355e92fa3c16db79cee26e1bab51e292944469"
+          "content": "a6af83827bb1732ba99c84e2b8e4ee61f1cbc5421715166f8ff86ebbb34c286d"
         }
       ],
       "name": "services/raster-service/routers/cdse_tiles.py",
@@ -13035,7 +13045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6277a6213df33c0c0230434715e5dbb5c718987b4523bcc87bad119378889bf2"
+          "content": "edf58887918acf53ff0ace0b537571d15d02ce1dc76fa803678856b72ba19b0f"
         }
       ],
       "name": "services/raster-service/test_imagery_source_gate.py",
@@ -13045,7 +13055,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "daacd99a468b7a7a5e7ebc364bbf5202fdd2801b87a5e22b7fee6767b9063b6d"
+          "content": "ae304afc094bdddb6fabc8bcae4a80829f96214caafd4403193649debc5f5dfe"
         }
       ],
       "name": "services/raster-service/test_imagery_source_gate_no_bypass_static.py",

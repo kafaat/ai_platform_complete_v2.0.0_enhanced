@@ -29,24 +29,24 @@ pytestmark = pytest.mark.unit
 
 SERVICE_DIR = Path(__file__).resolve().parent
 
-# Chokepoints that MUST route CDSE selection through the gate.
+# Chokepoints that MUST route CDSE selection through the gate. All three CDSE-selecting surfaces —
+# scene search, index processing, and the on-demand live tile/tilejson render — consult it.
 GATE_CONSULTING_CHOKEPOINTS = {
     "stac_search.py": ("imagery_source_gate", "resolve_active_source"),
     "routers/fields.py": ("imagery_source_gate", "resolve_active_source"),
+    "raster_cdse_tile_runtime.py": ("imagery_source_gate", "resolve_active_source"),
+    "routers/cdse_tiles.py": ("imagery_source_gate", "resolve_active_source"),
 }
 
 # Modules permitted to touch the raw CDSE scene-selection primitives. Each is either the client
-# itself, the gate-guarded search dispatch, or a step that runs AFTER authorization at a chokepoint.
+# itself, a gate-guarded chokepoint, or a step that runs AFTER authorization at a chokepoint.
 DIRECT_CDSE_ALLOWLIST = {
     "cdse_client.py",  # the client library itself
     "stac_search.py",  # gate-guarded search dispatch (chokepoint)
     "raster_cdse_processing.py",  # runs under a job authorized at the process-cdse chokepoint
     "raster_backfill_scene_processing.py",  # backfill worker, runs under an authorized scan
-    "raster_cdse_tile_runtime.py",  # on-demand tile render — see TILE_PATH_REMAINDER
+    "raster_cdse_tile_runtime.py",  # gate-guarded live tile render (chokepoint)
 }
-
-# Explicit, non-silent remainder: the live tile-render surface is not gated by this slice.
-TILE_PATH_REMAINDER = {"raster_cdse_tile_runtime.py", "routers/cdse_tiles.py"}
 
 _SELECTION_PRIMITIVES = ("search_scenes(", "stac_search_cdse(", "get_client()")
 
@@ -88,8 +88,11 @@ def test_adapter_fail_closed_returns_element84_never_cdse():
     assert "provider=PRIMARY_SOURCE" not in fc
 
 
-def test_tile_path_remainder_is_recorded_honestly():
-    # This is a scope marker, not a coverage claim: the tile-render modules exist and are
-    # deliberately excluded from this slice's search/processing gating.
-    for rel in TILE_PATH_REMAINDER:
-        assert (SERVICE_DIR / rel).exists(), f"documented remainder path missing: {rel}"
+def test_tile_path_now_gated_no_open_remainder():
+    # The live tile-render surface (previously a documented remainder) now consults the gate:
+    # normalize_cdse_request refuses to render CDSE tiles when the gate is not enabled, and the
+    # tilejson endpoint reports availability truthfully.
+    runtime = (SERVICE_DIR / "raster_cdse_tile_runtime.py").read_text(encoding="utf-8")
+    assert "imagery_source_gate" in runtime and "decision.use_cdse" in runtime
+    tiles = (SERVICE_DIR / "routers" / "cdse_tiles.py").read_text(encoding="utf-8")
+    assert "cdse_gate_inactive" in tiles

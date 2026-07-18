@@ -208,6 +208,21 @@ async def field_cdse_tilejson(
 
     configured = _cdse.is_configured()
     available, reason, user_message = _tilejson_availability(configured, index)
+    # satellite_cdse activation gate: when enforced and not enabled, report CDSE tiles unavailable
+    # truthfully (so the UI shows the honest reason) rather than advertising a layer that will not
+    # render. Default-off preserves legacy behaviour.
+    if available:
+        import imagery_source_gate
+
+        if imagery_source_gate.enforce_enabled():
+            decision = await imagery_source_gate.resolve_active_source()
+            if not decision.use_cdse:
+                available = False
+                reason = "cdse_gate_inactive"
+                user_message = (
+                    "بوّابة تفعيل satellite_cdse غير مُفعّلة لهذه البيئة — صور CDSE الحيّة غير "
+                    "متاحة حاليّاً؛ يُستخدم مصدر element84 الاحتياطيّ."
+                )
     if available and not geom_resolved:
         available = False
         reason = reason or "field_geometry_unavailable"
