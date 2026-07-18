@@ -16685,7 +16685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "71f05311936c9c90d8f76a33010d2d0d178d92028ea1414867674c2320b6a1ef"
+          "content": "6eaaf7715a2c9b3b29658b0cbefa8b227c4f6a8c6970a46b1fbffd9720d17926"
         }
       ],
       "name": "services/sahool-platform/api/routers/notifications.py",

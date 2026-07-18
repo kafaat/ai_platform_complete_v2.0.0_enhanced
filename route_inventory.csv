@@ -747,10 +747,10 @@ sahool-platform,services/sahool-platform/api/routers/niche_crops.py,24,GET,/api/
 sahool-platform,services/sahool-platform/api/routers/niche_crops.py,30,GET,/api/v1/niche-crops/detail,niche_crops_detail_endpoint
 sahool-platform,services/sahool-platform/api/routers/nl_gis.py,199,POST,/api/v1/nl-gis/query,nl_gis_query_endpoint
 sahool-platform,services/sahool-platform/api/routers/nl_sql.py,71,POST,/api/v1/nl-sql,nl_sql_endpoint
-sahool-platform,services/sahool-platform/api/routers/notifications.py,56,GET,/api/v1/notifications/preferences,get_notification_preferences
-sahool-platform,services/sahool-platform/api/routers/notifications.py,86,PUT,/api/v1/notifications/preferences,update_notification_preferences
-sahool-platform,services/sahool-platform/api/routers/notifications.py,177,POST,/api/v1/notifications/delivery,upsert_notification_delivery
-sahool-platform,services/sahool-platform/api/routers/notifications.py,289,WEBSOCKET,/api/v1/notifications/ws,notifications_ws
+sahool-platform,services/sahool-platform/api/routers/notifications.py,58,GET,/api/v1/notifications/preferences,get_notification_preferences
+sahool-platform,services/sahool-platform/api/routers/notifications.py,88,PUT,/api/v1/notifications/preferences,update_notification_preferences
+sahool-platform,services/sahool-platform/api/routers/notifications.py,179,POST,/api/v1/notifications/delivery,upsert_notification_delivery
+sahool-platform,services/sahool-platform/api/routers/notifications.py,331,WEBSOCKET,/api/v1/notifications/ws,notifications_ws
 sahool-platform,services/sahool-platform/api/routers/nutrients.py,31,POST,/api/v1/nutrients/4r-plan,nutrient_4r_plan
 sahool-platform,services/sahool-platform/api/routers/observations.py,34,POST,/api/v1/observations,observations
 sahool-platform,services/sahool-platform/api/routers/onboarding.py,35,GET,/api/v1/onboarding/questionnaire,onboarding_questionnaire
