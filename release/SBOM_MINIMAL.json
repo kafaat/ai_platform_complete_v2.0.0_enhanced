@@ -7475,6 +7475,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "307d8b7110c68ddb2d1a79ab0260e2e5e390c0b9b30a49db08c423ed52806dec"
+        }
+      ],
+      "name": "migrations/v197_external_submissions_ingest.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "26ff3f730c9e7cd21703aea05f6f7cbde138580a2b1199c44dc27f1d457f0144"
         }
       ],
@@ -27779,6 +27789,16 @@
         }
       ],
       "name": "shared/contracts/ingest/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d21d13abf4bde7d4f300fa6eba1cfcb17d76799833079a79c01783c6b88b6527"
+        }
+      ],
+      "name": "shared/contracts/ingest/dedup_resolution.py",
       "type": "file"
     },
     {
