@@ -40,7 +40,7 @@ CREATE INDEX IF NOT EXISTS ix_external_submissions_accepted
 
 -- عقد RLS الحرفيّ (FORCE + USING + WITH CHECK على app.current_tenant) — نمط v155/v192 المشهود.
 ALTER TABLE external_submissions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE external_submissions FORCE  ROW LEVEL SECURITY;
+ALTER TABLE external_submissions FORCE ROW LEVEL SECURITY;
 DO $$
 BEGIN
   EXECUTE 'DROP POLICY IF EXISTS tenant_isolation ON external_submissions';
