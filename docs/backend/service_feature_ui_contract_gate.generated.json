@@ -2,8 +2,8 @@
   "gate": "service-feature-ui-contract-gate",
   "version": 1,
   "inventory_totality": "pass",
-  "service_count": 31,
-  "passed": 31,
+  "service_count": 32,
+  "passed": 32,
   "failed": 0,
   "failures": [],
   "services": [
@@ -918,7 +918,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 281
+          "match_count": 283
         }
       ]
     },
@@ -1895,6 +1895,11 @@
           "matches": [
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_reservation_adapter.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/irrigation_commissioning_runtime.py",
               "pattern": "dispatch"
             },
@@ -1905,7 +1910,17 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/phase_runtime_store.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_activation_gate.py",
               "pattern": "dispatch"
             },
             {
@@ -1937,24 +1952,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/offline_sync_db.py",
               "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/crop_decision_bridge.py",
-              "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/canonical_vri_prescription.py",
-              "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/learning_summary.py",
-              "pattern": "dispatch"
             }
           ],
-          "match_count": 93
+          "match_count": 99
         }
       ]
     },
@@ -2716,7 +2716,7 @@
               "pattern": "tilejson"
             }
           ],
-          "match_count": 68
+          "match_count": 70
         }
       ]
     },
@@ -2825,8 +2825,23 @@
           "matches": [
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+              "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/phase_runtime_store.py",
               "pattern": "decision_service_client"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_activation_gate.py",
+              "pattern": "DECISION_SERVICE_URL"
+            },
+            {
+              "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_activation_gate.py",
+              "pattern": "sahool-decision-service"
             },
             {
               "root": "services/sahool-platform",
@@ -2867,24 +2882,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/routers/decision_dispatch.py",
               "pattern": "decision_service_client"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/routers/weather.py",
-              "pattern": "decision_service_client"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/routers/irrigation_recommendation.py",
-              "pattern": "decision_service_client"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/routers/recommendations.py",
-              "pattern": "decision_service_client"
             }
           ],
-          "match_count": 22
+          "match_count": 25
         }
       ]
     },
@@ -3117,6 +3117,70 @@
             }
           ],
           "match_count": 6
+        }
+      ]
+    },
+    {
+      "service": "scout-ingest-service",
+      "classification": "internal-sensitive",
+      "status": "pass",
+      "missing_sources": [],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/scout-ingest-service",
+            "docker-compose.v9.yml",
+            "tests_v9/test_scout_ingest_service_ownership.py"
+          ],
+          "patterns": [
+            "sahool-scout-ingest",
+            "/internal/ingest/submissions/odk",
+            "scout-ingest-service"
+          ],
+          "matches": [
+            {
+              "root": "services/scout-ingest-service",
+              "path": "services/scout-ingest-service/main.py",
+              "pattern": "/internal/ingest/submissions/odk"
+            },
+            {
+              "root": "services/scout-ingest-service",
+              "path": "services/scout-ingest-service/main.py",
+              "pattern": "scout-ingest-service"
+            },
+            {
+              "root": "services/scout-ingest-service",
+              "path": "services/scout-ingest-service/tests/test_ingest_live.py",
+              "pattern": "/internal/ingest/submissions/odk"
+            },
+            {
+              "root": "services/scout-ingest-service",
+              "path": "services/scout-ingest-service/tests/test_ingest_live.py",
+              "pattern": "scout-ingest-service"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "sahool-scout-ingest"
+            },
+            {
+              "root": "docker-compose.v9.yml",
+              "path": "docker-compose.v9.yml",
+              "pattern": "scout-ingest-service"
+            },
+            {
+              "root": "tests_v9/test_scout_ingest_service_ownership.py",
+              "path": "tests_v9/test_scout_ingest_service_ownership.py",
+              "pattern": "sahool-scout-ingest"
+            },
+            {
+              "root": "tests_v9/test_scout_ingest_service_ownership.py",
+              "path": "tests_v9/test_scout_ingest_service_ownership.py",
+              "pattern": "scout-ingest-service"
+            }
+          ],
+          "match_count": 8
         }
       ]
     }

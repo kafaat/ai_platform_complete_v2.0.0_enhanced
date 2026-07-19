@@ -837,6 +837,28 @@
           ]
         }
       ]
+    },
+    {
+      "service": "scout-ingest-service",
+      "classification": "internal-sensitive",
+      "source": [
+        "services/scout-ingest-service/main.py"
+      ],
+      "evidence": [
+        {
+          "kind": "internal-consumer",
+          "roots": [
+            "services/scout-ingest-service",
+            "docker-compose.v9.yml",
+            "tests_v9/test_scout_ingest_service_ownership.py"
+          ],
+          "patterns": [
+            "sahool-scout-ingest",
+            "/internal/ingest/submissions/odk",
+            "scout-ingest-service"
+          ]
+        }
+      ]
     }
   ]
 }
