@@ -7410,7 +7410,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/season_api.py",
-    "line": 151,
+    "line": 152,
     "method": "POST",
     "path": "/internal/seasons",
     "function": "create_season_draft"
@@ -7418,7 +7418,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/season_api.py",
-    "line": 210,
+    "line": 211,
     "method": "PATCH",
     "path": "/internal/seasons/{season_id}",
     "function": "patch_season_draft"
@@ -7426,7 +7426,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/season_api.py",
-    "line": 252,
+    "line": 253,
     "method": "POST",
     "path": "/internal/seasons/{season_id}/logbook",
     "function": "upload_logbook"
@@ -7434,7 +7434,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/season_api.py",
-    "line": 314,
+    "line": 315,
     "method": "GET",
     "path": "/internal/seasons/{season_id}/logbook",
     "function": "get_logbook_url"
@@ -7442,7 +7442,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/season_api.py",
-    "line": 352,
+    "line": 353,
     "method": "POST",
     "path": "/internal/seasons/{season_id}/accept",
     "function": "accept_season"
@@ -7450,7 +7450,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/season_api.py",
-    "line": 416,
+    "line": 425,
     "method": "GET",
     "path": "/internal/seasons",
     "function": "list_seasons"
