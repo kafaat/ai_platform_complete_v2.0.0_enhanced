@@ -42,10 +42,13 @@ if _REPO not in os.sys.path:
     os.sys.path.insert(0, _REPO)
 
 
-def _sign(uid: str, roles: str, ts: str) -> str:
-    from shared.security.trusted_tenant import compute_edge_attestation
+def _sign(
+    uid: str, roles: str, ts: str, *, path: str, method: str = "POST", body: bytes = b""
+) -> str:
+    # التصديق مقيَّد بالوجهة (شرط المالك ①): يُوقَّع على method/path/body أيضاً.
+    from shared.security.trusted_tenant import compute_edge_attestation, edge_body_sha256
 
-    return compute_edge_attestation(uid, roles, ts, _HMAC)
+    return compute_edge_attestation(uid, roles, method, path, edge_body_sha256(body), ts, _HMAC)
 
 
 @pytest.fixture
@@ -106,7 +109,14 @@ async def live_app(tmp_path):
     return TestClient(main.app)
 
 
-def _hdr(tenant: str, *, reviewer: bool = False, attest: bool = True, roles: str | None = None):
+def _hdr(
+    tenant: str,
+    *,
+    reviewer: bool = False,
+    attest: bool = True,
+    roles: str | None = None,
+    accept_path: str | None = None,
+):
     h = {"X-Season-Entry-Token": _TOKEN, "X-Tenant-Id": tenant}
     if reviewer or roles is not None:
         ts = "1800000000"
@@ -116,12 +126,12 @@ def _hdr(tenant: str, *, reviewer: bool = False, attest: bool = True, roles: str
         h["X-Roles"] = rolestr
         h["X-Edge-Timestamp"] = ts
         if attest:
-            # نافذة ±120ث: زوّد now عبر ترويسة؟ الخدمة تستخدم الوقت الحقيقيّ؛ نستخدم ختم قريب.
             import time
 
             ts = str(int(time.time()))
             h["X-Edge-Timestamp"] = ts
-            h["X-Edge-Attestation"] = _sign(uid, rolestr, ts)
+            # التصديق مقيَّد بالوجهة: يُوقَّع على مسار القبول الفعليّ (POST، جسم فارغ).
+            h["X-Edge-Attestation"] = _sign(uid, rolestr, ts, path=accept_path or "/x")
     return h
 
 
@@ -164,18 +174,27 @@ async def test_season_entry_live_proofs(live_app):
     # ① قبول بلا تصديق حافّة ⇒ 401
     assert c.post(f"/internal/seasons/{sid}/accept", headers=_hdr(_A)).status_code == 401
     # ① توقيع HMAC باطل (X-User-Id ملفّقة بلا توقيع صحيح) ⇒ 401
-    forged = _hdr(_A, reviewer=True)
+    forged = _hdr(_A, reviewer=True, accept_path=f"/internal/seasons/{sid}/accept")
     forged["X-Edge-Attestation"] = "deadbeef" * 8  # توقيع غير مطابق
     assert c.post(f"/internal/seasons/{sid}/accept", headers=forged).status_code == 401
+    # ① إعادة لعب عبر المسارات: تصديق صُكّ لمسار بريء ⇒ 401 على accept (التقييد بالوجهة)
+    cross = _hdr(_A, reviewer=True, accept_path=f"/internal/seasons/{sid}")  # مسار PATCH لا accept
+    assert c.post(f"/internal/seasons/{sid}/accept", headers=cross).status_code == 401
     # ⑨-role قبول مُصدَّق لكن بلا دور season-reviewer ⇒ 403
     assert (
-        c.post(f"/internal/seasons/{sid}/accept", headers=_hdr(_A, roles="farmer")).status_code
+        c.post(
+            f"/internal/seasons/{sid}/accept",
+            headers=_hdr(_A, roles="farmer", accept_path=f"/internal/seasons/{sid}/accept"),
+        ).status_code
         == 403
     )
     # مالك/غير مالك: B يطلب presign لموسم A ⇒ 404 (لا 403 — لا تسريب وجود)
     assert c.get(f"/internal/seasons/{sid}/logbook", headers=_hdr(_B)).status_code == 404
     # ⑧ قبول بلا مرفق موجود ⇒ 422 logbook_missing
-    r = c.post(f"/internal/seasons/{sid}/accept", headers=_hdr(_A, reviewer=True))
+    r = c.post(
+        f"/internal/seasons/{sid}/accept",
+        headers=_hdr(_A, reviewer=True, accept_path=f"/internal/seasons/{sid}/accept"),
+    )
     assert r.status_code == 422 and r.json()["detail"] == "logbook_missing", r.text
 
     # ③ رفع بامتداد كاذب (بايتات ليست JPEG) ⇒ 415
@@ -199,7 +218,10 @@ async def test_season_entry_live_proofs(live_app):
     assert ok.status_code == 200, ok.text
 
     # القبول الآن ينجح (مُصدَّق + دور + مرفق موجود)
-    acc = c.post(f"/internal/seasons/{sid}/accept", headers=_hdr(_A, reviewer=True))
+    acc = c.post(
+        f"/internal/seasons/{sid}/accept",
+        headers=_hdr(_A, reviewer=True, accept_path=f"/internal/seasons/{sid}/accept"),
+    )
     assert acc.status_code == 200 and acc.json()["trust_status"] == "accepted", acc.text
     assert acc.json()["accepted_by"] == "user-ali"
 
@@ -208,7 +230,10 @@ async def test_season_entry_live_proofs(live_app):
     assert patch_after.status_code == 409, patch_after.text
     # قبول مكرّر ⇒ 409 already_accepted
     assert (
-        c.post(f"/internal/seasons/{sid}/accept", headers=_hdr(_A, reviewer=True)).status_code
+        c.post(
+            f"/internal/seasons/{sid}/accept",
+            headers=_hdr(_A, reviewer=True, accept_path=f"/internal/seasons/{sid}/accept"),
+        ).status_code
         == 409
     )
 

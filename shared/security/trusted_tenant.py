@@ -80,22 +80,49 @@ def service_token_ok(provided: str | None, expected: str | None) -> bool:
     return hmac.compare_digest(str(provided or ""), str(expected_s))
 
 
-# ── SEASON-RECORD-ENTRY-01 §4-① — edge attestation (HMAC) ──────────────────────
-# The nginx gateway strips any client X-User-Id/X-Roles/X-Edge-Attestation, then
-# re-injects the verified identity AND signs it: X-Edge-Attestation = HMAC(secret,
-# user_id\nroles\ntimestamp). A container that bypasses nginx and POSTs a forged
-# X-User-Id has no valid signature (shared key nginx<->service only) -> 401. This
-# does NOT rely on the service port staying nginx-only (network config drift-proof).
+# ── SEASON-RECORD-ENTRY-01 §4-① — edge attestation (HMAC), DESTINATION-BOUND ────
+# The auth service (SEC-3.1 auth_request→verify) strips any client X-Edge-Attestation,
+# verifies the JWT, then re-injects the verified identity AND signs it:
+#   X-Edge-Attestation = HMAC(secret, user_id\nroles\nMETHOD\nPATH\nBODY_SHA256\ntimestamp).
+# A container that bypasses the gateway and POSTs a forged X-User-Id has no valid
+# signature (key held by auth<->consuming service only) -> 401. Network-drift-proof.
+#
+# **Destination-bound (owner slice-3 condition ①):** the signature also covers the HTTP
+# method, the canonical path, and the sha-256 of the body — so an attestation minted for
+# a benign path (e.g. a GET) CANNOT be replayed on ``.../accept`` (cross-path replay). The
+# ±``max_age_s`` window guards time; binding method/path/body guards place & payload.
 
 
-def _edge_message(user_id: str, roles: str, timestamp: str) -> bytes:
-    return f"{user_id}\n{roles}\n{timestamp}".encode()
+def edge_body_sha256(body: bytes | None) -> str:
+    """Hex sha-256 of the request body (empty body -> sha256 of b'') for the signature."""
+    return hashlib.sha256(body or b"").hexdigest()
 
 
-def compute_edge_attestation(user_id: str, roles: str, timestamp: str, secret: str) -> str:
-    """The signature nginx computes; the service recomputes and compares (pure)."""
+def _edge_message(
+    user_id: str, roles: str, method: str, path: str, body_sha256: str, timestamp: str
+) -> bytes:
+    return f"{user_id}\n{roles}\n{method}\n{path}\n{body_sha256}\n{timestamp}".encode()
+
+
+def compute_edge_attestation(
+    user_id: str,
+    roles: str,
+    method: str,
+    path: str,
+    body_sha256: str,
+    timestamp: str,
+    secret: str,
+) -> str:
+    """The signature auth computes; the consuming service recomputes and compares (pure).
+
+    Destination-bound: identity + method + canonical path + body hash + timestamp. The
+    signer (auth) and verifier (e.g. scout-ingest) must agree on the SAME canonical
+    ``method``/``path`` string (wired in the gateway) — the pure function is agnostic.
+    """
     return hmac.new(
-        secret.encode(), _edge_message(user_id, roles, timestamp), hashlib.sha256
+        secret.encode(),
+        _edge_message(user_id, roles, method, path, body_sha256, timestamp),
+        hashlib.sha256,
     ).hexdigest()
 
 
@@ -103,23 +130,39 @@ def verify_edge_attestation(
     *,
     user_id: str | None,
     roles: str | None,
+    method: str | None,
+    path: str | None,
+    body_sha256: str | None,
     timestamp: str | None,
     attestation: str | None,
     secret: str | None,
     now_epoch: float,
     max_age_s: int = EDGE_ATTESTATION_MAX_AGE_S,
 ) -> str:
-    """Verify the edge HMAC (fail-closed). Returns the attested user_id, or raises.
+    """Verify the destination-bound edge HMAC (fail-closed). Returns the user_id, or raises.
 
-    - Unset secret / missing user_id|timestamp|attestation -> ``edge_unattested`` (401).
+    - Unset secret / missing user_id|method|path|body_sha256|timestamp|attestation
+      -> ``edge_unattested`` (401).
     - Timestamp outside ``max_age_s`` (either direction) -> ``edge_attestation_stale`` (401).
-    - Signature mismatch (constant-time) -> ``edge_unattested`` (401).
+    - Signature mismatch — incl. a valid attestation for a DIFFERENT method/path/body
+      (cross-path replay) -> ``edge_unattested`` (401).
     """
     uid = _clean(user_id)
     ts = _clean(timestamp)
     att = _clean(attestation)
+    mth = _clean(method)
+    pth = _clean(path)
+    bsha = _clean(body_sha256)
     key = secret or ""
-    if not key or uid is None or ts is None or att is None:
+    if (
+        not key
+        or uid is None
+        or ts is None
+        or att is None
+        or mth is None
+        or pth is None
+        or bsha is None
+    ):
         raise TrustedTenantError(ERROR_EDGE_UNATTESTED, "edge attestation required")
     try:
         ts_epoch = float(ts)
@@ -127,7 +170,7 @@ def verify_edge_attestation(
         raise TrustedTenantError(ERROR_EDGE_STALE, "edge timestamp malformed") from None
     if abs(now_epoch - ts_epoch) > max_age_s:
         raise TrustedTenantError(ERROR_EDGE_STALE, "edge attestation outside replay window")
-    expected = compute_edge_attestation(uid, _clean(roles) or "", ts, key)
+    expected = compute_edge_attestation(uid, _clean(roles) or "", mth, pth, bsha, ts, key)
     if not hmac.compare_digest(expected, att):
         raise TrustedTenantError(ERROR_EDGE_UNATTESTED, "edge attestation signature mismatch")
     return uid

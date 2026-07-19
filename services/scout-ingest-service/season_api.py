@@ -45,6 +45,7 @@ from shared.security.trusted_tenant import (
     ERROR_REVIEWER_ROLE_REQUIRED,
     SEASON_REVIEWER_ROLE,
     TrustedTenantError,
+    edge_body_sha256,
     has_reviewer_role,
     resolve_trusted_tenant,
     service_token_ok,
@@ -351,6 +352,7 @@ async def get_logbook_url(
 @router.post("/internal/seasons/{season_id}/accept")
 async def accept_season(
     season_id: str,
+    request: Request,
     x_season_entry_token: str | None = Header(None, alias="X-Season-Entry-Token"),
     x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
     x_user_id: str | None = Header(None, alias="X-User-Id"),
@@ -361,17 +363,24 @@ async def accept_season(
     """القبول (يحرّر calibration_eligible). هويّة **مُصدَّقة من الحافّة** + دور season-reviewer + مرفق موجود.
 
     البرهان العاشر (تعديل المالك المُلزِم): مرجع دفتر ميّت (لا كائن خلفه) ⇒ القبول يُرفَض ``logbook_missing``.
+
+    التصديق **مقيَّد بالوجهة** (شرط المالك ①): يُوقَّع على (الهويّة + method + path + body_hash + الوقت)
+    فتصديق مسار بريء لا يُعاد لعبه على القبول. الخدمة تحسب method/path/body من طلبها المُستلَم لا من ترويسة.
     """
     _require_enabled()
     _require_service_token(x_season_entry_token)
     tenant = _require_tenant(x_tenant_id)
     sid = _season_uuid(season_id)
 
-    # §4-①: هويّة مُصدَّقة من الحافّة (HMAC) — بلا توقيع صالح ⇒ 401 (لا يكفي توكن الخدمة)
+    # §4-①: هويّة مُصدَّقة من الحافّة (HMAC مقيَّد بالوجهة) — بلا توقيع صالح لهذا المسار ⇒ 401
+    body = await request.body()  # القبول بلا جسم ⇒ sha256(b"")؛ لكن نحسبه من المُستلَم لا نفترضه
     try:
         reviewer = verify_edge_attestation(
             user_id=x_user_id,
             roles=x_roles,
+            method=request.method,
+            path=request.url.path,
+            body_sha256=edge_body_sha256(body),
             timestamp=x_edge_timestamp,
             attestation=x_edge_attestation,
             secret=os.getenv("SEASON_EDGE_HMAC_KEY"),
