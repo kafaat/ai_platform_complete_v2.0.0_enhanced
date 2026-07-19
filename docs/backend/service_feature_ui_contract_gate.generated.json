@@ -1686,12 +1686,22 @@
             },
             {
               "root": "tests_v9",
+              "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
+              "pattern": "agriai-engine"
+            },
+            {
+              "root": "tests_v9",
               "path": "tests_v9/test_crop_model_uncertainty_v64.py",
               "pattern": "agriai-engine"
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_real_findings_closure_20260702.py",
+              "pattern": "agriai-engine"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_simulation_capability_contract.py",
               "pattern": "agriai-engine"
             },
             {
@@ -1710,7 +1720,7 @@
               "pattern": "agriai-engine"
             }
           ],
-          "match_count": 8
+          "match_count": 10
         }
       ]
     },

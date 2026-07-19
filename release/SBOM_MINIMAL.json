@@ -9245,7 +9245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "68b97b631226122d9aa94c95059d432f9b286b5ed569a437cb51b8f220060dc6"
+          "content": "58cd8c14c09ecb908f0069afad7c0425c108560934ee62ca8a1981d3730ca62e"
         }
       ],
       "name": "services/agriai-engine/wofost_adapter.py",
