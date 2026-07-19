@@ -172,7 +172,7 @@
     "service": "raster-service",
     "has_fastapi": false,
     "direct_routes": 0,
-    "router_routes": 79,
+    "router_routes": 80,
     "delegates_to_router_registry": false,
     "delegates_to_app_factory": true,
     "delegates_to_runtime_module": true,

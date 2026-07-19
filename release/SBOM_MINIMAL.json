@@ -11165,7 +11165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a2282e6c9dfafad29b15bbea23b4b87858af3b29679af07bb2494701584da08"
+          "content": "2f52a47aab3544c0bbb3ae5e52cd50f0bf8f92de7f4eacca5f3769466bedfed7"
         }
       ],
       "name": "services/gis-workflow-service/bulletin_figure.py",
@@ -11239,6 +11239,16 @@
         }
       ],
       "name": "services/gis-workflow-service/self_checks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "437debf0243b6b06d9b8708c385617802b4a3b81d767ae64ff5909f7b4837575"
+        }
+      ],
+      "name": "services/gis-workflow-service/svg_print_map.py",
       "type": "file"
     },
     {
@@ -12255,6 +12265,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "363ef6d1297cd499fbaec103f6e152f6c903208d5918809d11ba65e4031d9454"
+        }
+      ],
+      "name": "services/raster-service/gis_boundaries_read.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3e541d339bb5fdf58633cc591bc10160041c5d3be446ed6c8afbfeaa43693a3f"
         }
       ],
@@ -12725,7 +12745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2cabbec9133eb9bd8cd47f4cd8cffdfb33a4cf673e4280a58eea5ce498f8d56b"
+          "content": "1973cf31b8592959673ea8475a706d1d457816ec726762bf4c06a11e8604a4ca"
         }
       ],
       "name": "services/raster-service/routers/fields.py",

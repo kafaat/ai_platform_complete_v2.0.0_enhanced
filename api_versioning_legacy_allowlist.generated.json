@@ -325,6 +325,7 @@
     "GET /developer-portal/index",
     "GET /edges",
     "GET /erp/provider",
+    "GET /gis/admin-boundaries",
     "GET /graphql/schema",
     "GET /idempotency/metrics",
     "GET /imagery/best",
