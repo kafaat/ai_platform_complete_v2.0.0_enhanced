@@ -141,3 +141,6 @@ sam2-inference,services/sam2-inference/main.py,24,POST,/predict,predict,business
 sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz,health
 sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health,health
 sam2-inference,services/sam2-inference/main.py,115,GET,/readyz,readyz,readiness
+scout-ingest-service,services/scout-ingest-service/main.py,151,GET,/healthz,healthz,health
+scout-ingest-service,services/scout-ingest-service/main.py,156,GET,/readyz,readyz,readiness
+scout-ingest-service,services/scout-ingest-service/main.py,165,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint

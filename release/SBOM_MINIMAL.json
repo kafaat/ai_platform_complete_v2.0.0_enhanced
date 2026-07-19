@@ -25675,6 +25675,46 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "738e3b6cacecea503e24a961719ddd2c292ad7a556f9cd97e68b2c40214be814"
+        }
+      ],
+      "name": "services/scout-ingest-service/Dockerfile",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dd97f047df82882051ef223f718712b0a8f7252eda22bf9a86cd012bf41a4f5a"
+        }
+      ],
+      "name": "services/scout-ingest-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cbf05485edd30b908e7fe621eda8c0e609ea1276e7d1e40b818274e06fd9bf56"
+        }
+      ],
+      "name": "services/scout-ingest-service/requirements.txt",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4428d9138eae9580927dbfd7141f3e6533edcb82ddacac5961448640ad28ceaf"
+        }
+      ],
+      "name": "services/scout-ingest-service/tests/test_ingest_live.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "119c171eafc13d68ed0b88fadceeab024368356dce689576a573e47f158d59c2"
         }
       ],

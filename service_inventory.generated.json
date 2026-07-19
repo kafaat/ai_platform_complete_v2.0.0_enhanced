@@ -278,14 +278,14 @@
   {
     "service": "scout-ingest-service",
     "domain": "Unclassified / Support",
-    "python_files": 1,
-    "python_loc": 182,
-    "tests": 0,
+    "python_files": 2,
+    "python_loc": 271,
+    "tests": 1,
     "routes": 3,
     "main": "services/scout-ingest-service/main.py",
     "dockerfile": "services/scout-ingest-service/Dockerfile",
     "requirements": "services/scout-ingest-service/requirements.txt",
-    "risk": "high-zero-test-routes"
+    "risk": "normal"
   },
   {
     "service": "soil-service",
