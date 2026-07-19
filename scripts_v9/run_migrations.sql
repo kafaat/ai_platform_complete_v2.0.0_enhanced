@@ -556,3 +556,5 @@
 \i migrations/v199_external_field_observations.sql
 \echo '═══ 206. v200_admin_boundaries.sql ═══'
 \i migrations/v200_admin_boundaries.sql
+\echo '═══ 207. v201_season_records.sql ═══'
+\i migrations/v201_season_records.sql

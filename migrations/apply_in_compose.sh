@@ -81,6 +81,12 @@ BEGIN
   IF to_regclass('public.admin_boundaries_source') IS NOT NULL THEN
     EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM ' || quote_ident(:'app_role');
   END IF;
+  -- SEASON-RECORD-01 (v201): سجلّ موسم append-only — **لا DELETE أبداً**. SELECT/INSERT/UPDATE يبقى؛ DELETE يُنزَع.
+  IF to_regclass('public.season_records')    IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_records FROM '    || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_crop')       IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_crop FROM '       || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_events')     IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_events FROM '     || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_harvest')    IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_harvest FROM '    || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_cost_items') IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_cost_items FROM ' || quote_ident(:'app_role'); END IF;
 END $$;
 SQL
 

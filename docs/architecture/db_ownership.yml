@@ -339,6 +339,32 @@ tables:
     writers: [scout-ingest-service]
     readers: []
     source: "migrations/v197_external_submissions_ingest.sql"
+  # SEASON-RECORD-01 (v201): سجلّ الموسم المُدار — كاتب واحد scout-ingest-service (نفس بوّابة الثقة، append-only لا DELETE).
+  season_records:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: [agriai-engine]
+    source: "migrations/v201_season_records.sql"
+  season_crop:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: [agriai-engine]
+    source: "migrations/v201_season_records.sql"
+  season_events:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: [agriai-engine]
+    source: "migrations/v201_season_records.sql"
+  season_harvest:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: [agriai-engine]
+    source: "migrations/v201_season_records.sql"
+  season_cost_items:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v201_season_records.sql"
   experiment_evaluations:
     owner: agriai-engine
     writers: [agriai-engine]
