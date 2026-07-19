@@ -28,6 +28,36 @@ ERROR_REVIEWER_ROLE_REQUIRED = "reviewer_role_required"  # attested but not a se
 EDGE_ATTESTATION_MAX_AGE_S = 120  # anti-replay window (nginx clock ~= service clock)
 SEASON_REVIEWER_ROLE = "season-reviewer"
 
+# ── SEASON-RECORD-ENTRY-01 slice 3b — who carries season-reviewer authority ──────
+# The auth service is single-role RBAC (owner/admin/expert/farmer/viewer); there is no
+# grantable multi-``roles`` claim yet (deferred — see gaps SHARED grant model). The auth
+# edge-sign endpoint therefore DERIVES season-reviewer authority from that single role.
+#
+# **Declared derivation (owner slice-3 decision):** only {owner, expert} carry the
+# authority — acceptance is an AGRONOMIC act (attesting yields/practices that feed
+# scientific calibration), not an operational one.
+#   • owner  — data owner; self-review is explicitly sanctioned for this phase (spec §5-2).
+#   • expert — literally "المهندس الزراعيّ"; agronomic acceptance is stronger than the owner's.
+#   • admin  — DELIBERATELY EXCLUDED: operational (users, settings), not agronomic. Letting a
+#     sysadmin with no agronomic background attest yields that enter scientific calibration
+#     would conflate operational privilege with agronomic authority. The exclusion is the
+#     decision a future reader will ask about — it is intentional, not an oversight.
+#   • farmer / viewer — never.
+SEASON_REVIEWER_SOURCE_ROLES = frozenset({"owner", "expert"})
+
+
+def season_reviewer_roles_for(role: str | None) -> str:
+    """Derive the comma-separated ``roles`` string the auth edge-sign endpoint signs.
+
+    Returns ``season-reviewer`` (plus the source role) iff the single JWT role is in
+    :data:`SEASON_REVIEWER_SOURCE_ROLES`; otherwise just the role — so a downstream
+    ``has_reviewer_role`` check yields 403 for admin/farmer/viewer (declared, not silent).
+    """
+    r = (role or "").strip().lower()
+    if r in SEASON_REVIEWER_SOURCE_ROLES:
+        return f"{r},{SEASON_REVIEWER_ROLE}"
+    return r
+
 
 class TrustedTenantError(Exception):
     """Raised (fail-closed) when a gateway-trusted tenant cannot be established.

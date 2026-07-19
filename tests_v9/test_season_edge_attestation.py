@@ -17,10 +17,12 @@ import pytest
 from shared.security.trusted_tenant import (
     ERROR_EDGE_STALE,
     ERROR_EDGE_UNATTESTED,
+    SEASON_REVIEWER_SOURCE_ROLES,
     TrustedTenantError,
     compute_edge_attestation,
     edge_body_sha256,
     has_reviewer_role,
+    season_reviewer_roles_for,
     verify_edge_attestation,
 )
 
@@ -132,3 +134,17 @@ def test_missing_destination_parts_fail_closed():
         with pytest.raises(TrustedTenantError) as e:
             _verify(att, **{missing: None})
         assert e.value.code == ERROR_EDGE_UNATTESTED
+
+
+# ── 3b condition ②: التفويض المُعلَن {owner, expert} فقط — برهان لكلّ دور ─────────
+def test_reviewer_authority_owner_and_expert_only():
+    """القرار المُعلَن: owner+expert = سلطة قبول زراعيّ؛ admin مستثنى عمداً (تشغيليّ لا زراعيّ)."""
+    assert SEASON_REVIEWER_SOURCE_ROLES == frozenset({"owner", "expert"})
+    # owner/expert ⇒ roles المُشتقّة تحمل season-reviewer ⇒ has_reviewer_role True (يمرّ القبول)
+    for r in ("owner", "expert", "OWNER", " Expert "):
+        assert has_reviewer_role(season_reviewer_roles_for(r)) is True
+    # admin/farmer/viewer/غيرها ⇒ لا season-reviewer ⇒ has_reviewer_role False (⇒ 403 لاحقاً)
+    for r in ("admin", "farmer", "viewer", "", None):
+        assert has_reviewer_role(season_reviewer_roles_for(r)) is False, r
+    # admin تحديداً مستثنى (لا توسّع صامت للقائمة)
+    assert "season-reviewer" not in season_reviewer_roles_for("admin")
