@@ -128,6 +128,55 @@ CREATE TRIGGER trg_season_harvest_after_sowing
   FOR EACH ROW EXECUTE FUNCTION season_harvest_after_sowing();
 
 -- ════════════════════════════════════════════════════════════════════════════
+-- نزاهة المعايرة (نطاق UPDATE — سؤال المالك ①): تجميد مدخلات الأهليّة بعد القبول.
+-- بعد trust_status='accepted' تصير مدخلات calibration_eligible **غير قابلة للتحوير الصامت**:
+--   • season_harvest (yield_kg_ha/harvest_date/harvest_precision) — نقطة المعايرة الذهبيّة
+--   • season_crop (sowing_precision) — يدخل صيغة الأهليّة
+--   • season_records.trust_status لا يرتدّ عن accepted + audit القبول (accepted_by/at) مُجمَّد
+-- التصحيح = إصدار موسم مُبطِل جديد، لا تعديل صامت. وإلّا: calibration_eligible يبقى true بينما
+-- الرقم تغيّر ⇒ تسميم SIM-GOLDEN. UPDATE يبقى مفتوحاً قبل القبول (untrusted) وللقبول نفسه.
+-- ════════════════════════════════════════════════════════════════════════════
+CREATE OR REPLACE FUNCTION season_child_immutable_after_accept() RETURNS trigger
+LANGUAGE plpgsql AS $$
+DECLARE v_status TEXT;
+BEGIN
+  SELECT trust_status INTO v_status FROM season_records WHERE id = NEW.season_id;
+  IF v_status = 'accepted' THEN
+    RAISE EXCEPTION 'season child row is immutable after acceptance (correction = superseding record); calibration integrity';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS trg_season_harvest_immutable ON season_harvest;
+CREATE TRIGGER trg_season_harvest_immutable
+  BEFORE UPDATE ON season_harvest
+  FOR EACH ROW EXECUTE FUNCTION season_child_immutable_after_accept();
+DROP TRIGGER IF EXISTS trg_season_crop_immutable ON season_crop;
+CREATE TRIGGER trg_season_crop_immutable
+  BEFORE UPDATE ON season_crop
+  FOR EACH ROW EXECUTE FUNCTION season_child_immutable_after_accept();
+
+CREATE OR REPLACE FUNCTION season_records_acceptance_immutable() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  IF OLD.trust_status = 'accepted' THEN
+    IF NEW.trust_status <> 'accepted' THEN
+      RAISE EXCEPTION 'season_records: cannot revert trust_status away from accepted (append-only acceptance)';
+    END IF;
+    IF NEW.accepted_by IS DISTINCT FROM OLD.accepted_by
+       OR NEW.accepted_at IS DISTINCT FROM OLD.accepted_at THEN
+      RAISE EXCEPTION 'season_records: acceptance audit (accepted_by/accepted_at) is immutable once accepted';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+DROP TRIGGER IF EXISTS trg_season_records_acceptance_immutable ON season_records;
+CREATE TRIGGER trg_season_records_acceptance_immutable
+  BEFORE UPDATE ON season_records
+  FOR EACH ROW EXECUTE FUNCTION season_records_acceptance_immutable();
+
+-- ════════════════════════════════════════════════════════════════════════════
 -- ٥) season_cost_items — التكاليف (1:N) — تعدّد عملات آمن (Q4)
 -- ════════════════════════════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS season_cost_items (

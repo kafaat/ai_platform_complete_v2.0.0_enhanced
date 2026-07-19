@@ -117,6 +117,17 @@ def test_integrity_constraints_present():
     assert "BEFORE INSERT OR UPDATE ON season_harvest" in MIG
 
 
+def test_calibration_inputs_immutable_after_accept():
+    """① نطاق UPDATE (سؤال المالك): مدخلات الأهليّة مُجمَّدة بعد القبول — لا تسميم صامت لسلسلة المعايرة."""
+    assert "season_child_immutable_after_accept" in MIG
+    assert "trg_season_harvest_immutable" in MIG and "BEFORE UPDATE ON season_harvest" in MIG
+    assert "trg_season_crop_immutable" in MIG and "BEFORE UPDATE ON season_crop" in MIG
+    # trust_status لا يرتدّ + audit القبول مُجمَّد
+    assert "season_records_acceptance_immutable" in MIG
+    assert "cannot revert trust_status away from accepted" in MIG
+    assert "acceptance audit" in MIG and "is immutable" in MIG
+
+
 def test_currency_multi_iso4217_safe():
     """تعدّد عملات آمن: YER افتراضيّة + CHECK ISO 4217 (3 أحرف كبيرة)."""
     assert re.search(
