@@ -3152,11 +3152,6 @@
             {
               "root": "services/scout-ingest-service",
               "path": "services/scout-ingest-service/tests/test_ingest_live.py",
-              "pattern": "/internal/ingest/submissions/odk"
-            },
-            {
-              "root": "services/scout-ingest-service",
-              "path": "services/scout-ingest-service/tests/test_ingest_live.py",
               "pattern": "scout-ingest-service"
             },
             {
@@ -3180,7 +3175,7 @@
               "pattern": "scout-ingest-service"
             }
           ],
-          "match_count": 8
+          "match_count": 7
         }
       ]
     }

@@ -8237,7 +8237,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 154,
+    "line": 173,
     "method": "GET",
     "path": "/healthz",
     "handler": "healthz",
@@ -8246,7 +8246,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 159,
+    "line": 178,
     "method": "GET",
     "path": "/readyz",
     "handler": "readyz",
@@ -8255,7 +8255,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 178,
+    "line": 197,
     "method": "GET",
     "path": "/internal/scouting/external-observations",
     "handler": "read_external_observations",
@@ -8264,10 +8264,19 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 220,
+    "line": 316,
     "method": "POST",
     "path": "/internal/ingest/submissions/odk",
     "handler": "ingest_odk_submission",
+    "classification": "internal_s2s"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/main.py",
+    "line": 325,
+    "method": "POST",
+    "path": "/internal/ingest/submissions/kobo",
+    "handler": "ingest_kobo_submission",
     "classification": "internal_s2s"
   },
   {

@@ -7495,6 +7495,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "f0687d9b3c37c97d7fc8cee64433a0d2874e503adfa556175ccccfc11b268bbd"
+        }
+      ],
+      "name": "migrations/v199_external_field_observations.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "26ff3f730c9e7cd21703aea05f6f7cbde138580a2b1199c44dc27f1d457f0144"
         }
       ],
@@ -25685,10 +25695,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "da2857fcca9d1b896ff34075963778b5f6fe0a39de67edee994d3065e2b9ffda"
+          "content": "97446b011418b25a0c7e7f125b2abd030e10a0131bbd8d3bb383130cff056900"
         }
       ],
       "name": "services/scout-ingest-service/main.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "49c17d7864baa3c2055f91691eb52d58fdb4834cc9303a3bed00b1942253b7ea"
+        }
+      ],
+      "name": "services/scout-ingest-service/projection_worker.py",
       "type": "file"
     },
     {
@@ -25705,10 +25725,20 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "11e7d2ffe97893d778d12c0e537222bfe39261f54a8e6b3c86b70ae5f6b51ec3"
+          "content": "7464115433224bc671d4df732821bc97a432926cc62dd354615d4ea32889eb6c"
         }
       ],
       "name": "services/scout-ingest-service/tests/test_ingest_live.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c102a85842bd24c75e56efb6fc81fb11fa26825db6fe6d2756b0528280aa25b"
+        }
+      ],
+      "name": "services/scout-ingest-service/tests/test_projection_live.py",
       "type": "file"
     },
     {
@@ -27879,6 +27909,16 @@
         }
       ],
       "name": "shared/contracts/ingest/odk_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6a87c655b5d8e653e4283addeeba65f393e3ed3664db7f68b054bbbab546bcbb"
+        }
+      ],
+      "name": "shared/contracts/ingest/projection.py",
       "type": "file"
     },
     {

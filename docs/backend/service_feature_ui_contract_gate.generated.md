@@ -365,9 +365,9 @@ classification: `internal-sensitive`
 
 ### `scout-ingest-service` — pass
 classification: `internal-sensitive`
-- internal-consumer: 8 match(es)
+- internal-consumer: 7 match(es)
   - `services/scout-ingest-service/main.py` ← `/internal/ingest/submissions/odk`
   - `services/scout-ingest-service/main.py` ← `scout-ingest-service`
-  - `services/scout-ingest-service/tests/test_ingest_live.py` ← `/internal/ingest/submissions/odk`
   - `services/scout-ingest-service/tests/test_ingest_live.py` ← `scout-ingest-service`
   - `docker-compose.v9.yml` ← `sahool-scout-ingest`
+  - `docker-compose.v9.yml` ← `scout-ingest-service`

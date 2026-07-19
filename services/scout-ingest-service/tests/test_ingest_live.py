@@ -63,17 +63,20 @@ async def live_app():
         CREATE POLICY t ON fields USING (tenant_id::text = NULLIF(current_setting('app.current_tenant', true), ''));
         GRANT SELECT ON fields TO sahool_ingest;
     """)
-    await admin.execute("DELETE FROM external_ingest_sources; DELETE FROM external_submissions;")
+    # TRUNCATE لا يُطلق trigger الحذف الصفّيّ (الجدول append-only) — تنظيف سليم بين الاختبارات.
+    await admin.execute("DELETE FROM external_ingest_sources; TRUNCATE external_submissions;")
     await admin.execute(
         "INSERT INTO fields VALUES ('fb',$1) ON CONFLICT DO NOTHING", __import__("uuid").UUID(_B)
     )
     await admin.execute(
         "INSERT INTO external_ingest_sources(tenant_id,provider,server,form_id,token_hash,mapping_version,enabled)"
-        " VALUES ($1,'odk','sA','fb',$2,'1.0.0',false),($3,'odk','sB','fb',$4,'1.0.0',true)",
+        " VALUES ($1,'odk','sA','fb',$2,'1.0.0',false),($3,'odk','sB','fb',$4,'1.0.0',true),"
+        "        ($3,'kobo','sK','fb',$5,'1.0.0',true)",  # B1.4: مصدر Kobo مُفعَّل
         __import__("uuid").UUID(_A),
         _h("tokA"),
         __import__("uuid").UUID(_B),
         _h("tokB"),
+        _h("tokK"),
     )
     await admin.close()
 
@@ -90,9 +93,9 @@ async def live_app():
     yield TestClient(main.app)
 
 
-def _post(client, tok, body):
+def _post(client, tok, body, path="odk"):
     h = {"X-Scout-Ingest-Token": tok} if tok else {}
-    return client.post("/internal/ingest/submissions/odk", json=body, headers=h)
+    return client.post(f"/internal/ingest/submissions/{path}", json=body, headers=h)
 
 
 async def test_full_ingest_path_live(live_app) -> None:
@@ -107,3 +110,34 @@ async def test_full_ingest_path_live(live_app) -> None:
     r = _post(c, "tokB", {"meta": {"instanceID": "i1"}, "field_id": "fb", "value": 999})
     assert r.status_code == 202 and r.json()["outcome"] == "quarantined"
     assert "duplicate_key_divergent_payload" in r.json()["quarantine_reasons"]
+
+
+async def test_kobo_path_live(live_app) -> None:
+    """B1.4: مسار Kobo — نفس المسار المُصادَق، محوّل Kobo (meta/instanceID مسطّح + _submission_time)."""
+    c = live_app
+    assert _post(c, None, {"field_id": "fb"}, path="kobo").status_code == 401
+    r = _post(
+        c,
+        "tokK",
+        {
+            "meta/instanceID": "uuid:k1",
+            "_submission_time": "2026-07-19T08:00:00",
+            "field_id": "fb",
+            "value": 5,
+        },
+        path="kobo",
+    )
+    assert r.status_code == 200 and r.json()["outcome"] == "accepted"
+    # نفس الخانة (نفس instanceID) بنفس الجسم ⇒ إعادة idempotent؛ توكن ODK لا يصل لمصدر Kobo.
+    r = _post(
+        c,
+        "tokK",
+        {
+            "meta/instanceID": "uuid:k1",
+            "_submission_time": "2026-07-19T08:00:00",
+            "field_id": "fb",
+            "value": 5,
+        },
+        path="kobo",
+    )
+    assert r.status_code == 200 and r.json()["outcome"] == "idempotent_replay"

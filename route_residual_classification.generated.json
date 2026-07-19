@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
   "policy": "Residual routes in main.py must be classified. New business endpoints should be moved to routers unless explicitly allowlisted.",
-  "total_residual_main_routes": 146,
+  "total_residual_main_routes": 147,
   "classification_counts": {
     "business_endpoint": 99,
     "capabilities": 2,
     "contract": 3,
     "health": 19,
-    "internal_endpoint": 4,
+    "internal_endpoint": 5,
     "legacy_alias": 2,
     "metrics": 4,
     "readiness": 13
@@ -1295,7 +1295,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 154,
+      "line": 173,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1304,7 +1304,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 159,
+      "line": 178,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1313,7 +1313,7 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 178,
+      "line": 197,
       "method": "GET",
       "path": "/internal/scouting/external-observations",
       "function": "read_external_observations",
@@ -1322,10 +1322,19 @@
     {
       "service": "scout-ingest-service",
       "file": "services/scout-ingest-service/main.py",
-      "line": 220,
+      "line": 316,
       "method": "POST",
       "path": "/internal/ingest/submissions/odk",
       "function": "ingest_odk_submission",
+      "classification": "internal_endpoint"
+    },
+    {
+      "service": "scout-ingest-service",
+      "file": "services/scout-ingest-service/main.py",
+      "line": 325,
+      "method": "POST",
+      "path": "/internal/ingest/submissions/kobo",
+      "function": "ingest_kobo_submission",
       "classification": "internal_endpoint"
     }
   ]

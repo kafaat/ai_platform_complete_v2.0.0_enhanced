@@ -33,6 +33,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from shared.contracts.ingest.ingest_handler import IngestPorts, process_submission
+from shared.contracts.ingest.kobo_adapter import build_envelope_from_kobo
 from shared.contracts.ingest.odk_adapter import build_envelope_from_odk
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-scout-ingest")
@@ -67,6 +68,24 @@ def _normalize_odk(raw: dict[str, Any]) -> dict[str, Any]:
     """تعيين v1 (مُصدَّر، أدنى): field_id + خاصّية/قيمة رصد. لا اختلاق: ما غاب يبقى غائباً."""
     out: dict[str, Any] = {}
     fid = raw.get("field_id") or raw.get("fieldId")
+    if isinstance(fid, str) and fid.strip():
+        out["field_id"] = fid.strip()
+    for k in ("observed_property", "value", "note", "observed_at"):
+        if k in raw:
+            out[k] = raw[k]
+    return out
+
+
+def _normalize_kobo(raw: dict[str, Any]) -> dict[str, Any]:
+    """تعيين Kobo v1: نفس الحقول، مع دعم مفاتيح Kobo المسطّحة بالمجموعة (group/field_id)."""
+    out: dict[str, Any] = {}
+    fid = raw.get("field_id") or raw.get("fieldId")
+    if not (isinstance(fid, str) and fid.strip()):
+        # Kobo يسطّح المجموعات بـ"/": ابحث عن مفتاح ينتهي بـ.../field_id
+        for k, v in raw.items():
+            if k.endswith("/field_id") and isinstance(v, str) and v.strip():
+                fid = v
+                break
     if isinstance(fid, str) and fid.strip():
         out["field_id"] = fid.strip()
     for k in ("observed_property", "value", "note", "observed_at"):
@@ -216,24 +235,31 @@ async def read_external_observations(
     return {"observations": [dict(r) for r in rows], "count": len(rows)}
 
 
-@app.post("/internal/ingest/submissions/odk")
-async def ingest_odk_submission(
-    request: Request,
-    x_scout_ingest_token: str | None = Header(None, alias="X-Scout-Ingest-Token"),
-):
-    """يستقبل إدخال ODK، يحلّ المصدر لكلّ توكن، يخزّن بحالته (accepted/quarantined). خلف الراية."""
+def _instance_for_raw_ref(raw: dict[str, Any], provider_kind: str) -> str:
+    """هويّة النسخة لِـURN النَّسَب فقط (المظروف يعيد اشتقاقها داخليّاً بمحوّله)."""
+    if provider_kind == "kobo":
+        meta = raw.get("meta") if isinstance(raw.get("meta"), dict) else {}
+        return str(
+            raw.get("meta/instanceID")
+            or meta.get("instanceID")
+            or raw.get("_uuid")
+            or raw.get("_id")
+            or "unknown"
+        )
+    meta = raw.get("meta") if isinstance(raw.get("meta"), dict) else {}
+    return str(meta.get("instanceID") or raw.get("__id") or "unknown")
+
+
+async def _handle_submission(raw: Any, token: str | None, provider_kind: str) -> JSONResponse:
+    """المسار المشترك (ODK/Kobo): توكن لكلّ مصدر → resolve → مظروف بمحوّل المزوّد → تخزين بحالته."""
     if not _enabled():
         raise HTTPException(status_code=404, detail="SCOUT-INGEST disabled (SCOUT_INGEST_ENABLED)")
-    if not x_scout_ingest_token:
+    if not token:
         raise HTTPException(status_code=401, detail="X-Scout-Ingest-Token required")
-    try:
-        raw = await request.json()
-    except Exception:  # noqa: BLE001
-        raise HTTPException(status_code=400, detail="invalid JSON body") from None
     if not isinstance(raw, dict):
-        raise HTTPException(status_code=400, detail="ODK payload must be an object")
+        raise HTTPException(status_code=400, detail="submission payload must be an object")
 
-    token_hash = hashlib.sha256(x_scout_ingest_token.encode("utf-8")).hexdigest()
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
     try:
         source = await _resolve_source(token_hash)
     except HTTPException:
@@ -244,18 +270,22 @@ async def ingest_odk_submission(
         raise HTTPException(status_code=403, detail="unknown or disabled ingest source")
 
     tenant_id: UUID = source["tenant_id"]
-    instance = str(raw.get("meta", {}).get("instanceID") or raw.get("__id") or "unknown")
-    envelope = build_envelope_from_odk(
+    instance = _instance_for_raw_ref(raw, provider_kind)
+    raw_ref = f"urn:sahool:ingest:{tenant_id}:{instance}"
+    common = dict(
         raw=raw,
         tenant_id=tenant_id,
         provider=source["provider"],
         server=source["server"],
         form_id=source["form_id"],
         mapping_version=source["mapping_version"],
-        normalized_payload=_normalize_odk(raw),
         received_at=datetime.now(UTC),
-        raw_ref=f"urn:sahool:ingest:{tenant_id}:{instance}",
+        raw_ref=raw_ref,
     )
+    if provider_kind == "kobo":
+        envelope = build_envelope_from_kobo(normalized_payload=_normalize_kobo(raw), **common)
+    else:
+        envelope = build_envelope_from_odk(normalized_payload=_normalize_odk(raw), **common)
     try:
         result = await process_submission(envelope, raw, _ports(tenant_id))
     except HTTPException:
@@ -273,3 +303,28 @@ async def ingest_odk_submission(
             "quarantine_reasons": list(result.quarantine_reasons),
         },
     )
+
+
+async def _parse_body(request: Request) -> Any:
+    try:
+        return await request.json()
+    except Exception:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail="invalid JSON body") from None
+
+
+@app.post("/internal/ingest/submissions/odk")
+async def ingest_odk_submission(
+    request: Request,
+    x_scout_ingest_token: str | None = Header(None, alias="X-Scout-Ingest-Token"),
+):
+    """يستقبل إدخال ODK، يحلّ المصدر لكلّ توكن، يخزّن بحالته (accepted/quarantined). خلف الراية."""
+    return await _handle_submission(await _parse_body(request), x_scout_ingest_token, "odk")
+
+
+@app.post("/internal/ingest/submissions/kobo")
+async def ingest_kobo_submission(
+    request: Request,
+    x_scout_ingest_token: str | None = Header(None, alias="X-Scout-Ingest-Token"),
+):
+    """يستقبل إدخال KoboToolbox (مزوّد ثانٍ، B1.4) — نفس المسار المُصادَق، محوّل Kobo. خلف الراية."""
+    return await _handle_submission(await _parse_body(request), x_scout_ingest_token, "kobo")
