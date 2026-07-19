@@ -45,6 +45,11 @@ _ENABLED_TRUE = {"1", "true", "yes", "on"}
 
 app = FastAPI(title="SAHOOL Scout Ingest Service", version=VERSION)
 
+# SEASON-RECORD-ENTRY-01: النقاط الستّ لإدخال سجلّ الموسم (خلف SEASON_ENTRY_ENABLED، صفر مسار منصّة).
+from season_api import router as season_router  # noqa: E402
+
+app.include_router(season_router)
+
 
 def _enabled() -> bool:
     return os.getenv("SCOUT_INGEST_ENABLED", "0").strip().lower() in _ENABLED_TRUE

@@ -225,9 +225,18 @@ BEGIN
   IF to_regprocedure('public.complete_submission_projection(bigint,text,text)') IS NOT NULL THEN
     GRANT EXECUTE ON FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) TO sahool_ingest;
   END IF;
+  -- SEASON-RECORD-ENTRY-01 §2: scout-ingest is the single writer of the season tables (v201/v202).
+  -- SELECT+INSERT+UPDATE — INSERT (draft), UPDATE (draft edits + untrusted→accepted transition);
+  -- **لا DELETE** (append-only، التصحيح = إصدار مُبطِل). RLS يبقى فعّالاً (NOBYPASSRLS)، وtriggers
+  -- التجميد (v201) تمنع تحوير الأبناء بعد القبول بصرف النظر عن المنح.
+  IF to_regclass('public.season_records') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON
+      season_records, season_crop, season_events, season_harvest, season_cost_items
+      TO sahool_ingest;
+  END IF;
 END $$;
 SQL
-echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على submissions+observations + EXECUTE resolver/projection؛ لا UPDATE/DELETE)"
+echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على submissions+observations؛ SELECT+INSERT+UPDATE على مواسم v201؛ لا DELETE)"
 
 echo ""
 echo "═══ تمّ ✓ ═══"

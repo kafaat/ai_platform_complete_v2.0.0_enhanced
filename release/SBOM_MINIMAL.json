@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d6f4518e178416b5a0232d0192aaf864b04a64e4970e4bf482d1375eb11b89e"
+          "content": "8fa24cb9792ee0e64dc4cb357997068bb3fd2b30db0d114c0084c8947f154db3"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -6375,7 +6375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6aab66d85d174419ffb2312336af5799fc65abb2946fa6215e8eb343ec57495f"
+          "content": "bb4965dd95d30c77ab9337295eee14e481582192d850a9ac0ac739d3b223c61e"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6395,7 +6395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6525c1a6f2dd81dd71e62df39a1e1fe820e377482d93b221ce45e9d989c90a62"
+          "content": "886a82a9742b8aba6d7e4fbddb4f4ee20e552d1e8f855dcec7fc6fe2e82e7d2e"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "61a28ea1bed389fabf8a9ad2ba35fab15d204f9042e48e546346c204cc0adf80"
+          "content": "e981de401c610e1e241b884c6c9c93a2c4108e88fffc8baa074512c670a68a7b"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -25785,7 +25785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "97446b011418b25a0c7e7f125b2abd030e10a0131bbd8d3bb383130cff056900"
+          "content": "5c57ea838b21b48f389891a62c081de013781eceea6e7ab0bfd1a13e1ad32010"
         }
       ],
       "name": "services/scout-ingest-service/main.py",
@@ -25805,7 +25805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cbf05485edd30b908e7fe621eda8c0e609ea1276e7d1e40b818274e06fd9bf56"
+          "content": "ab9d7c3a6da79ffe52f4bf619c144954ec9b1591af7f9d914c7358d30f09d706"
         }
       ],
       "name": "services/scout-ingest-service/requirements.txt",
@@ -28899,6 +28899,16 @@
         }
       ],
       "name": "shared/security/jwt_key_validation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6c5ec7f7c478203fd8f5c72b389c2b4fdb029a92f43f3f689fcdcaa95160b3bd"
+        }
+      ],
+      "name": "shared/security/season_logbook.py",
       "type": "file"
     },
     {

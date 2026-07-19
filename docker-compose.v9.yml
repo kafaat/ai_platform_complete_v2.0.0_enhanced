@@ -875,6 +875,19 @@ services:
       # B1.3 read channel: a dedicated service token (NOT the shared SAHOOL_AGENT_TOKEN) so the
       # owned read model is consumed via /internal, never by direct SQL on the table.
       SCOUT_INGEST_READ_TOKEN: ${SCOUT_INGEST_READ_TOKEN:-}
+      # SEASON-RECORD-ENTRY-01: النقاط الستّ خلف راية مستقلّة (افتراضيّ off ⇒ 404).
+      SEASON_ENTRY_ENABLED: ${SEASON_ENTRY_ENABLED:-0}
+      # توكن خدمة مخصّص لقناة إدخال المواسم (القيمة مُحقَنة بيئيّاً، لا سرّ في compose — نمط READ_TOKEN).
+      SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
+      # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/). S3_BUCKET فارغ ⇒ file:// تطويريّ.
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      # تدهور file:// مُعلَن (تطوير فقط)؛ غيابه ⇒ fail-closed (لا رفع صامت في الإنتاج).
+      S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
+      LOGBOOK_LOCAL_DIR: ${LOGBOOK_LOCAL_DIR:-/tmp/sahool-logbooks}
     depends_on:
       sahool-postgres:
         condition: service_healthy

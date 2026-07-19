@@ -558,3 +558,5 @@
 \i migrations/v200_admin_boundaries.sql
 \echo '═══ 207. v201_season_records.sql ═══'
 \i migrations/v201_season_records.sql
+\echo '═══ 208. v202_season_draft_key.sql ═══'
+\i migrations/v202_season_draft_key.sql
