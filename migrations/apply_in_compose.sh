@@ -82,6 +82,30 @@ GRANT CREATE ON SCHEMA public TO :"app_role";
 SQL
 fi
 
+# ─ دور التحكّم لدالّة resolve_ingest_source (SCOUT-INGEST-01 B1.2b) ─
+# NOSUPERUSER + BYPASSRLS + SELECT على external_ingest_sources فقط، يملك الدالّة (SECURITY DEFINER).
+# FORCE RLS يسري على المالك ⇒ مالك غير BYPASS يُجوّع resolver. أقلّ سطح تصعيد. راجع ...B1.2b §1.1.
+echo "─ دور التحكّم sahool_ingest_resolver (NOSUPERUSER BYPASSRLS، مالك الدالّة فقط) ─"
+psql_exec <<'SQL'
+SELECT format('CREATE ROLE %I NOLOGIN', 'sahool_ingest_resolver')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest_resolver')
+\gexec
+
+ALTER ROLE sahool_ingest_resolver NOLOGIN NOSUPERUSER NOINHERIT BYPASSRLS NOCREATEDB NOCREATEROLE;
+GRANT USAGE ON SCHEMA public TO sahool_ingest_resolver;
+
+DO $$
+BEGIN
+  IF to_regclass('public.external_ingest_sources') IS NOT NULL THEN
+    GRANT SELECT ON external_ingest_sources TO sahool_ingest_resolver;
+  END IF;
+  IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION resolve_ingest_source(TEXT) OWNER TO sahool_ingest_resolver';
+  END IF;
+END $$;
+SQL
+# EXECUTE لـapp_role مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" أعلاه (الهجرات قبل bootstrap).
+
 echo "─ إنشاء دور المهامّ الخلفيّة (${JOBS_ROLE} — BYPASSRLS لمسار الوظائف فقط) ─"
 psql_exec -v jobs_role="$JOBS_ROLE" -v jobs_pw="$JOBS_PASSWORD" <<'SQL'
 -- HIGH-002: المرسِل (event_outbox→NATS) والمجدوِل (الطقس) يقرآن عابراً للمستأجرين

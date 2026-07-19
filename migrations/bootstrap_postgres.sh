@@ -134,6 +134,34 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 SQL
 echo "  ✓ الدور $APP_ROLE جاهز (NOSUPERUSER NOBYPASSRLS) — وجّه DATABASE_URL للتطبيق إليه"
 
+# ─ ٥.١ دور التحكّم لدالّة resolve_ingest_source (SCOUT-INGEST-01 B1.2b) ─
+# NOSUPERUSER + BYPASSRLS + SELECT على external_ingest_sources فقط، يملك الدالّة (SECURITY DEFINER).
+# FORCE RLS يسري على مالك الجدول ⇒ مالك غير BYPASS يُجوّع resolver (كلّ توكن 403). أقلّ سطح تصعيد:
+# دور لا يتّصل، لا superuser، بلا DML، SELECT على جدول واحد. راجع docs/specs/...B1.2b §1.1.
+echo "─ ٥.١ دور التحكّم sahool_ingest_resolver (NOSUPERUSER BYPASSRLS، مالك الدالّة فقط) ─"
+psql_exec <<'SQL'
+SELECT format('CREATE ROLE %I NOLOGIN', 'sahool_ingest_resolver')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest_resolver')
+\gexec
+
+ALTER ROLE sahool_ingest_resolver NOLOGIN NOSUPERUSER NOINHERIT BYPASSRLS NOCREATEDB NOCREATEROLE;
+GRANT USAGE ON SCHEMA public TO sahool_ingest_resolver;
+
+DO $$
+BEGIN
+  IF to_regclass('public.external_ingest_sources') IS NOT NULL THEN
+    GRANT SELECT ON external_ingest_sources TO sahool_ingest_resolver;   -- الحدّ الأدنى (SELECT ليس DML)
+  END IF;
+  IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
+    -- المالك يتجاوز FORCE (BYPASSRLS) فتعمل الدالّة قبل ضبط app.current_tenant
+    EXECUTE 'ALTER FUNCTION resolve_ingest_source(TEXT) OWNER TO sahool_ingest_resolver';
+  END IF;
+END $$;
+SQL
+# EXECUTE لـ$APP_ROLE مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" في الخطوة ٥ (تسبق هنا،
+# والدالّة موجودة إذ تُطبَّق الهجرات قبل bootstrap) — يُبطِل REVOKE FROM PUBLIC (v198) دون 500.
+echo "  ✓ sahool_ingest_resolver جاهز (يملك resolve_ingest_source؛ EXECUTE لـ$APP_ROLE عبر الخطوة ٥)"
+
 echo ""
 echo "═══ تمّ ✓ ═══"
 # نموذج الدورين: الهجرات بالمالك المُمتاز، التطبيق بالدور المقيّد ليبقى RLS فعّالاً.

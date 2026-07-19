@@ -695,3 +695,4 @@ v195_irrigation_capacity_reservation_core.sql
 # v196: IRR-F01 target binding — version-pinned field/zone → existing v171 terminal hydraulic node (read-only projection).
 v196_irrigation_target_binding.sql
 v197_external_submissions_ingest.sql
+v198_external_ingest_sources.sql

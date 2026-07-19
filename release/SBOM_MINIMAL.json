@@ -6375,7 +6375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f7f9000740c89dc5909edb4615ffd3e6ce84a72bec2c833f401f93a108318077"
+          "content": "7ad0f63cd39c4914ea1dcd00cb03f188d71aa39e19f0958a3dc5411f1160bc41"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6395,7 +6395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3efd1cc2f2b04eacb8f39ce997c7eab19d74ff54ecbce31109fcc97c5047fc88"
+          "content": "b8bd338992cdb53d0f9d3f43f686ca421f584dda520631fa15ada2a7f186016c"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ef2b6e77379a6f5b8a5c800b73ecefa17ea4a616dd68f20f0026b9ea3a18b2b0"
+          "content": "4a661ab4dcbd62e10a9ccc67a9b399acea8a99e55a89224cfab32f1aa7035485"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",

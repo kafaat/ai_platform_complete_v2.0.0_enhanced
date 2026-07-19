@@ -311,6 +311,11 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v118_phase9_autonomous_farm_os.sql"
+  external_ingest_sources:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v198_external_ingest_sources.sql"
   external_submissions:
     owner: sahool-platform
     writers: [sahool-platform]

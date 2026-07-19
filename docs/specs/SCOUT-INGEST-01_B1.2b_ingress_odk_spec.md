@@ -51,6 +51,34 @@ REVOKE ALL ON FUNCTION resolve_ingest_source(TEXT) FROM PUBLIC;   -- المنح 
 **لماذا SECURITY DEFINER لا RLS-off:** لو مُنح `sahool_app` قراءةً كاملة على الجدول، لأمكنه تعداد كلّ تعيينات
 المستأجرين. الدالّة تُقيّد الكشف إلى «توكن تملكه ⇒ مستأجرك» — والتوكن نفسه لا يُخزَّن (hash). `enabled=false` ⇒ لا صفّ ⇒ 403.
 
+### 1.1 · مالك الدالّة (الحسم المانع — تفاعل SECURITY DEFINER مع FORCE RLS)
+**المعضلة:** `FORCE ROW LEVEL SECURITY` يسري على مالك الجدول أيضاً؛ وSECURITY DEFINER يعمل بصلاحية **مالكها**.
+والدالّة تُستدعى **قبل** ضبط `app.current_tenant` (غرضها). فلو كان مالكها خاضعاً لـFORCE ⇒ `NULLIF('','')=NULL` ⇒
+صفر صفوف ⇒ كلّ توكن 403 = **سطح ميت (fail-closed لكن مكسور)**.
+
+**الحسم:** دور تحكّم مخصّص **`sahool_ingest_resolver`** — `NOLOGIN NOSUPERUSER NOINHERIT BYPASSRLS` — يملك الدالّة
+**فقط**، وله `SELECT` على `external_ingest_sources` **وحده** (SELECT ليس DML؛ وهو الحدّ الأدنى الذي تحتاجه الدالّة).
+لا LOGIN (لا يتّصل)، لا superuser (لا تصعيد)، لا DML، لا جداول أخرى. هذا يُبقي:
+- `sahool_app` على `NOBYPASSRLS` (لا نكسر ما صُدِّق حيّاً في IRR-F01 Gate A / NOINHERIT)،
+- الدالّة تعمل قبل ضبط السياق (BYPASSRLS للمالك يتجاوز FORCE)،
+- سطح التصعيد محصوراً في **دالّة SELECT واحدة محدّدة الأعمدة** يملكها دور لا يتّصل ولا يملك سوى SELECT على جدول واحد.
+
+**موضع الإنشاء (يحترم عرف «لا إشارة أدوار في الهجرات» — الأدوار تُنشأ بعد الهجرات):**
+- **v198** يُنشئ الدالّة SECURITY DEFINER + `REVOKE ALL ON FUNCTION resolve_ingest_source(TEXT) FROM PUBLIC` (بلا إشارة دور).
+- **bootstrap** (`bootstrap_postgres.sh` + `apply_in_compose.sh`، حيث تُنشأ الأدوار) يضيف — بعد إنشاء الجدول والهجرات:
+  ```sql
+  CREATE ROLE sahool_ingest_resolver NOLOGIN NOSUPERUSER NOINHERIT BYPASSRLS NOCREATEDB NOCREATEROLE;  -- مشروط \gexec
+  GRANT USAGE ON SCHEMA public TO sahool_ingest_resolver;
+  GRANT SELECT ON external_ingest_sources TO sahool_ingest_resolver;   -- SELECT على الجدول الواحد فقط
+  ALTER FUNCTION resolve_ingest_source(TEXT) OWNER TO sahool_ingest_resolver;
+  ```
+- **منح التنفيذ لـsahool_app (note #1، مثبَّت):** `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO sahool_app`
+  القائم في bootstrap (`:125`) يشمل `resolve_ingest_source` (bootstrap بعد الهجرات ⇒ الدالّة موجودة). نُبقيه صريحاً
+  في bootstrap كي لا تُولَد الدالّة REVOKEدة-من-PUBLIC بلا ممنوح (⇒ 500 عند أوّل نداء).
+
+**البرهان الحيّ (يحسم القرار لا يكتشفه CI):** بمالك `sahool_ingest_resolver` (BYPASSRLS) وبـ`app.current_tenant=''`،
+`resolve_ingest_source(hash)` يعيد الصفّ المطابق؛ وبمالك خاضع لـFORCE (غير bypass) يعيد صفراً. كلاهما مُصادَق على PG16 أصليّ.
+
 ## 2 · المدخل (ingress) — اعتماد لكلّ مصدر (لا SAHOOL_AGENT_TOKEN المشترك)
 راوتر جديد `api/routers/ingest.py`: `POST /internal/ingest/submissions/odk` (نمط `routers/internal_service.py`).
 **لا** يستخدم `service_token_auth._require_service_token` (ذاك التوكن المشترك — خرقه يعرّض الجميع). بدلاً:

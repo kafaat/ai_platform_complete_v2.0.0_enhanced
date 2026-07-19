@@ -550,3 +550,5 @@
 \i migrations/v196_irrigation_target_binding.sql
 \echo '═══ 203. v197_external_submissions_ingest.sql ═══'
 \i migrations/v197_external_submissions_ingest.sql
+\echo '═══ 204. v198_external_ingest_sources.sql ═══'
+\i migrations/v198_external_ingest_sources.sql
