@@ -37,6 +37,9 @@ from shared.contracts.ingest.odk_adapter import build_envelope_from_odk
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-scout-ingest")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
+# قناة قراءة نموذج B1.3 المملوك: توكن خدمة **مخصّص** (لا SAHOOL_AGENT_TOKEN المشترك) — يستهلكه
+# المستهلك الداخليّ عبر /internal، فلا يكتشف أحدٌ الجدول عبر SQL مباشر (مرض direct-DB في p4).
+READ_TOKEN = os.getenv("SCOUT_INGEST_READ_TOKEN", "")
 _ENABLED_TRUE = {"1", "true", "yes", "on"}
 
 app = FastAPI(title="SAHOOL Scout Ingest Service", version=VERSION)
@@ -159,6 +162,58 @@ async def readyz():
         "service": "scout-ingest-service",
         "ingest_enabled": _enabled(),
     }
+
+
+def _require_read_token(token: str | None) -> None:
+    """قناة قراءة B1.3: توكن خدمة مخصّص fail-closed. غير مضبوط ⇒ 503 · غير مطابق/غائب ⇒ 401."""
+    if not READ_TOKEN:
+        raise HTTPException(
+            status_code=503, detail="read channel not configured (SCOUT_INGEST_READ_TOKEN)"
+        )
+    if not token or token != READ_TOKEN:
+        raise HTTPException(status_code=401, detail="X-Scout-Ingest-Read-Token required")
+
+
+@app.get("/internal/scouting/external-observations")
+async def read_external_observations(
+    field_id: str | None = None,
+    x_scout_ingest_read_token: str | None = Header(None, alias="X-Scout-Ingest-Read-Token"),
+    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
+):
+    """نموذج القراءة المملوك لـscout-ingest — توكن خدمة + المستأجِر من الترويسة، RLS يقصّ.
+
+    عقد مُعلَن (شرط المالك): المستهلك الداخليّ يقرأ عبر هذا المسار لا عبر SQL مباشر على الجدول.
+    """
+    _require_read_token(x_scout_ingest_read_token)
+    if not x_tenant_id:
+        raise HTTPException(status_code=400, detail="X-Tenant-Id required")
+    try:
+        tenant = str(UUID(x_tenant_id))
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=400, detail="X-Tenant-Id must be a UUID") from None
+    conn = await _connect()
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", tenant)
+        if field_id:
+            rows = await conn.fetch(
+                "SELECT observation_id, field_id, observed_property, value, severity, lat, lng, "
+                "observed_at, projected_at FROM external_field_observations "
+                "WHERE field_id = $1 ORDER BY projected_at DESC LIMIT 500",
+                field_id,
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT observation_id, field_id, observed_property, value, severity, lat, lng, "
+                "observed_at, projected_at FROM external_field_observations "
+                "ORDER BY projected_at DESC LIMIT 500"
+            )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001 — DB error ⇒ 503, never 500
+        raise HTTPException(status_code=503, detail="observations store unavailable") from exc
+    finally:
+        await conn.close()
+    return {"observations": [dict(r) for r in rows], "count": len(rows)}
 
 
 @app.post("/internal/ingest/submissions/odk")

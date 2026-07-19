@@ -696,3 +696,4 @@ v195_irrigation_capacity_reservation_core.sql
 v196_irrigation_target_binding.sql
 v197_external_submissions_ingest.sql
 v198_external_ingest_sources.sql
+v199_external_field_observations.sql

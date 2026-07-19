@@ -156,6 +156,18 @@ BEGIN
     -- المالك يتجاوز FORCE (BYPASSRLS) فتعمل الدالّة قبل ضبط app.current_tenant
     EXECUTE 'ALTER FUNCTION resolve_ingest_source(TEXT) OWNER TO sahool_ingest_resolver';
   END IF;
+  -- B1.3: دالّتا الإسقاط (claim/complete) SECURITY DEFINER يملكهما resolver (BYPASSRLS) فتمسحان
+  -- عابراً للمستأجرين وتحدّثان projection_status دون منح UPDATE لـsahool_ingest. تحتاجان SELECT+UPDATE
+  -- على external_submissions (تحديث بكرة المعالجة فقط؛ trigger الخامّ يمنع مسّ الدليل).
+  IF to_regclass('public.external_submissions') IS NOT NULL THEN
+    GRANT SELECT, UPDATE ON external_submissions TO sahool_ingest_resolver;
+  END IF;
+  IF to_regprocedure('public.claim_submissions_for_projection(integer,integer)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION claim_submissions_for_projection(INT, INT) OWNER TO sahool_ingest_resolver';
+  END IF;
+  IF to_regprocedure('public.complete_submission_projection(bigint,text,text)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) OWNER TO sahool_ingest_resolver';
+  END IF;
 END $$;
 SQL
 # EXECUTE لـ$APP_ROLE مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" في الخطوة ٥ (تسبق هنا،
@@ -183,9 +195,19 @@ BEGIN
   IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
     GRANT EXECUTE ON FUNCTION resolve_ingest_source(TEXT) TO sahool_ingest;
   END IF;
+  -- B1.3: العامل يُدرِج نموذج القراءة المملوك، ونقطة القراءة تختاره؛ التحديث عبر دالّتَي DEFINER فقط.
+  IF to_regclass('public.external_field_observations') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON external_field_observations TO sahool_ingest;   -- لا UPDATE/DELETE
+  END IF;
+  IF to_regprocedure('public.claim_submissions_for_projection(integer,integer)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION claim_submissions_for_projection(INT, INT) TO sahool_ingest;
+  END IF;
+  IF to_regprocedure('public.complete_submission_projection(bigint,text,text)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) TO sahool_ingest;
+  END IF;
 END $$;
 SQL
-echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على external_submissions + EXECUTE resolver؛ لا UPDATE/DELETE)"
+echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على submissions+observations + EXECUTE resolver/projection؛ لا UPDATE/DELETE)"
 
 echo ""
 echo "═══ تمّ ✓ ═══"

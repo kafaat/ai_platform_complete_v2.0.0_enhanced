@@ -311,6 +311,11 @@ tables:
     writers: [sahool-platform]
     readers: []
     source: "migrations/v118_phase9_autonomous_farm_os.sql"
+  external_field_observations:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v199_external_field_observations.sql"
   external_ingest_sources:
     owner: sahool-platform
     writers: [sahool-platform]

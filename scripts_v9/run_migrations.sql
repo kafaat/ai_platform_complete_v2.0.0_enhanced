@@ -552,3 +552,5 @@
 \i migrations/v197_external_submissions_ingest.sql
 \echo '═══ 204. v198_external_ingest_sources.sql ═══'
 \i migrations/v198_external_ingest_sources.sql
+\echo '═══ 205. v199_external_field_observations.sql ═══'
+\i migrations/v199_external_field_observations.sql

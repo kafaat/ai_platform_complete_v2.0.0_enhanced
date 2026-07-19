@@ -102,6 +102,16 @@ BEGIN
   IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
     EXECUTE 'ALTER FUNCTION resolve_ingest_source(TEXT) OWNER TO sahool_ingest_resolver';
   END IF;
+  -- B1.3: دالّتا الإسقاط DEFINER يملكهما resolver (تحدّثان projection_status عابراً للمستأجرين).
+  IF to_regclass('public.external_submissions') IS NOT NULL THEN
+    GRANT SELECT, UPDATE ON external_submissions TO sahool_ingest_resolver;
+  END IF;
+  IF to_regprocedure('public.claim_submissions_for_projection(integer,integer)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION claim_submissions_for_projection(INT, INT) OWNER TO sahool_ingest_resolver';
+  END IF;
+  IF to_regprocedure('public.complete_submission_projection(bigint,text,text)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) OWNER TO sahool_ingest_resolver';
+  END IF;
 END $$;
 SQL
 # EXECUTE لـapp_role مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" أعلاه (الهجرات قبل bootstrap).
@@ -125,6 +135,16 @@ BEGIN
   END IF;
   IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
     GRANT EXECUTE ON FUNCTION resolve_ingest_source(TEXT) TO sahool_ingest;
+  END IF;
+  -- B1.3: نموذج القراءة المملوك + دالّتا الإسقاط (التحديث عبر DEFINER فقط، لا UPDATE مباشر).
+  IF to_regclass('public.external_field_observations') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON external_field_observations TO sahool_ingest;   -- لا UPDATE/DELETE
+  END IF;
+  IF to_regprocedure('public.claim_submissions_for_projection(integer,integer)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION claim_submissions_for_projection(INT, INT) TO sahool_ingest;
+  END IF;
+  IF to_regprocedure('public.complete_submission_projection(bigint,text,text)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) TO sahool_ingest;
   END IF;
 END $$;
 SQL

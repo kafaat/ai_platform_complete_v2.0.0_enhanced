@@ -699,3 +699,10 @@ SHAs من `git log --oneline origin/main`.
 - **الأمان:** اعتماد لكلّ مصدر (X-Scout-Ingest-Token→resolver DEFINER، لا توكن مشترك/JWT) · دور `sahool_ingest` NOBYPASSRLS بأقلّ منح (SELECT+INSERT، لا UPDATE/DELETE) · الهويّة من السجلّ لا المُرسِل · خلف SCOUT_INGEST_ENABLED. حارس ملكيّة `test_scout_ingest_service_ownership.py` يُثبّت الكاتب الوحيد بنيويّاً.
 - **تصحيح مرافق (مفتاح dedup):** `derive_dedup_key` = هويّة الخانة `sha256(provider|server|form|instance)` فقط — **أُزيل content_hash** (كان يجعل حالة التباين مستحيلة)؛ content_hash يُقارَن منفصلاً. التقطه البرهان الحيّ (divergent كان يعيد accepted بدل quarantined).
 - **SHA:** يُدفَع مع هذا القيد. **الأثر:** خدمة جديدة + دور DB + نقل ملكيّة + كتلة compose + حارس؛ صفر تعديل لحُرّاس المنصّة الأربعة. برهان HTTP حيّ 6/6 + أقلّ-منح على PG16.
+
+## SCOUT-INGEST-01 / B1.3 — القرار (أ): نموذج قراءة مملوك، لا كتابة scouting_pins
+- **القرار:** scout-ingest يملك `external_field_observations` + عامل إسقاط + نقطة قراءة خاصّة؛ لا يكتب `scouting_pins`/`observations` المملوكَين للمنصّة. توحيد العرض مع FieldView = دَين موثَّق مؤجَّل (B1.3b).
+- **السبب:** (ب) [عامل منصّة يكتب scouting_pins] يُنمّي المنصّة فيعاكس قرار (ج)/الحراس الأربعة في الشريحة التالية مباشرةً. (أ) يحترم single-writer مرّتين (المنصّة وحدها لـscouting_pins، scout-ingest وحده لجدوله). الازدواج دَين لا خطأ — الـstrangler يؤجّل التوحيد حتى تنضج الحدود.
+- **الشرطان (المالك):** ① محفّز B1.3b مكتوب (أوّل مستهلك قرار يحتاج رؤية موحّدة أو مصادر القراءة > 2). ② عقد قراءة مُعلَن بتوكن خدمة مخصّص (لا direct-DB).
+- **قرار فرعيّ (least-grant↔scan):** claim/complete = SECURITY DEFINER يملكهما resolver (BYPASSRLS) ⇒ sahool_ingest يبقى بلا UPDATE. + trigger BEFORE UPDATE يصون immutability الخامّ (يُسمح projection_* فقط).
+- **SHA:** يُدفَع مع هذا القيد. **الأثر:** v199 + عامل + نقطة + دور DEFINER×2 + كتلة compose + حارس؛ صفر كتابة لجداول المنصّة، صفر نموّ منصّة. برهان حيّ PG16 (accepted-only + idempotent + dead_letter).

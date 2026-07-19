@@ -20,6 +20,9 @@ pytestmark = pytest.mark.integration
 
 ADMIN_URL = os.getenv("TEST_ADMIN_URL", "")
 _REPO = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+_SVC = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..")
+)  # للـ`import main` (خدمة scout-ingest)
 _A = "00000000-0000-0000-0000-0000000000aa"
 _B = "00000000-0000-0000-0000-0000000000bb"
 
@@ -76,8 +79,9 @@ async def live_app():
 
     os.environ["DATABASE_URL"] = "postgresql://sahool_ingest:ingpw@" + ADMIN_URL.split("@", 1)[1]
     os.environ["SCOUT_INGEST_ENABLED"] = "1"
-    if _REPO not in os.sys.path:
-        os.sys.path.append(_REPO)
+    for p in (_REPO, _SVC):  # _REPO لـshared، _SVC لـ`import main`
+        if p not in os.sys.path:
+            os.sys.path.append(p)
     import main
 
     importlib.reload(main)

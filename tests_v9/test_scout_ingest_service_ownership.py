@@ -82,7 +82,7 @@ def test_ingest_role_is_least_grant_no_update_delete(runner: Path):
     ), f"{runner.name}: منح SELECT+INSERT لـsahool_ingest مفقود"
     # لا UPDATE/DELETE يُمنَح للدور على الجدول (تحديث الحالة لكاتب لاحق B1.3).
     assert not re.search(
-        r"GRANT[^\n;]*\b(UPDATE|DELETE)\b[^\n;]*external_submissions[^\n;]*sahool_ingest",
+        r"GRANT[^\n;]*\b(UPDATE|DELETE)\b[^\n;]*external_submissions[^\n;]*\bsahool_ingest\b(?!_)",
         text,
         re.I,
     ), f"{runner.name}: sahool_ingest لا يجوز منحه UPDATE/DELETE على external_submissions"
@@ -118,3 +118,67 @@ def test_service_is_fail_closed_per_source_credential():
     # بلا توكن ⇒ 401 · مصدر مجهول/معطَّل ⇒ 403 · خلف الراية ⇒ 404.
     assert "status_code=401" in src and "status_code=403" in src
     assert "SCOUT_INGEST_ENABLED" in src
+
+
+# ═══════════════════════ B1.3 — نموذج الإسقاط المملوك ═══════════════════════
+def test_field_observations_sole_writer_owner():
+    """(أ): external_field_observations كاتبه/مالكه scout-ingest وحده — لا platform (لا scouting_pins)."""
+    block = _ownership_block("external_field_observations")
+    assert block.get("owner") == SERVICE, block
+    assert block.get("writers") == f"[{SERVICE}]", block
+
+
+@pytest.mark.parametrize("runner", [BOOTSTRAP, APPLY])
+def test_ingest_role_least_grant_on_observations(runner: Path):
+    """العامل يُدرِج فقط (SELECT+INSERT) — لا UPDATE/DELETE على نموذج القراءة (التحديث عبر DEFINER)."""
+    text = runner.read_text(encoding="utf-8")
+    assert re.search(
+        r"GRANT\s+SELECT,\s*INSERT\s+ON\s+external_field_observations\s+TO\s+sahool_ingest", text
+    ), f"{runner.name}: منح SELECT+INSERT على external_field_observations مفقود"
+    assert not re.search(
+        r"GRANT[^\n;]*\b(UPDATE|DELETE)\b[^\n;]*external_field_observations[^\n;]*sahool_ingest",
+        text,
+        re.I,
+    ), f"{runner.name}: لا UPDATE/DELETE لـsahool_ingest على external_field_observations"
+
+
+@pytest.mark.parametrize("runner", [BOOTSTRAP, APPLY])
+def test_projection_status_updated_only_via_definer(runner: Path):
+    """least-grant محفوظ: تحديث projection_status عبر دالّتَي DEFINER (يملكهما resolver) لا UPDATE مباشر."""
+    text = runner.read_text(encoding="utf-8")
+    assert (
+        "ALTER FUNCTION claim_submissions_for_projection(INT, INT) OWNER TO sahool_ingest_resolver"
+        in text
+    )
+    assert (
+        "ALTER FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) OWNER TO sahool_ingest_resolver"
+        in text
+    )
+    # sahool_ingest يبقى بلا UPDATE على external_submissions (الحارس الأصليّ) — يُنفَّذ التحديث كـresolver.
+    assert not re.search(
+        r"GRANT[^\n;]*\bUPDATE\b[^\n;]*external_submissions[^\n;]*sahool_ingest\b", text, re.I
+    )
+
+
+def test_read_channel_uses_dedicated_token_not_shared():
+    """قناة القراءة توكن خدمة **مخصّص** (SCOUT_INGEST_READ_TOKEN) لا SAHOOL_AGENT_TOKEN المشترك."""
+    src = (SVC_DIR / "main.py").read_text(encoding="utf-8")
+    assert "/internal/scouting/external-observations" in src
+    assert 'getenv("SCOUT_INGEST_READ_TOKEN' in src
+    assert 'getenv("SAHOOL_AGENT_TOKEN' not in src
+    # الجدول يُقرأ عبر المسار لا SQL مباشر من مستهلك خارجيّ (العقد مُعلَن هنا).
+    assert "external_field_observations" in src
+
+
+def test_projection_worker_projects_only_owned_model_not_platform_tables():
+    """العامل يكتب نموذج scout-ingest المملوك فقط — لا يلمس scouting_pins/observations المملوكَين للمنصّة."""
+    src = (SVC_DIR / "projection_worker.py").read_text(encoding="utf-8")
+    assert "INSERT INTO external_field_observations" in src
+    # لا كتابة SQL لجداول المنصّة (ذِكرها في docstring لِنفيها مقبول).
+    assert "INSERT INTO scouting_pins" not in src and "UPDATE scouting_pins" not in src
+    assert "INSERT INTO observations" not in src
+    # المقبولة فقط تُسقَط (عبر دالّة claim) + idempotent (ON CONFLICT DO NOTHING).
+    assert (
+        "claim_submissions_for_projection" in src
+        and "ON CONFLICT (observation_id) DO NOTHING" in src
+    )

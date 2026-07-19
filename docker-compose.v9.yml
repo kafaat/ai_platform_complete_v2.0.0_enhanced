@@ -872,6 +872,9 @@ services:
       # Per-source credentials live in external_ingest_sources (X-Scout-Ingest-Token → resolve_ingest_source).
       # No shared SAHOOL_AGENT_TOKEN and no user JWT are ever accepted on this service.
       SCOUT_INGEST_ENABLED: ${SCOUT_INGEST_ENABLED:-0}
+      # B1.3 read channel: a dedicated service token (NOT the shared SAHOOL_AGENT_TOKEN) so the
+      # owned read model is consumed via /internal, never by direct SQL on the table.
+      SCOUT_INGEST_READ_TOKEN: ${SCOUT_INGEST_READ_TOKEN:-}
     depends_on:
       sahool-postgres:
         condition: service_healthy
@@ -888,6 +891,39 @@ services:
       interval: 20s
       timeout: 5s
       retries: 6
+      start_period: 20s
+  sahool-scout-ingest-projection:
+    build:
+      context: .
+      dockerfile: services/scout-ingest-service/Dockerfile
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      # B1.3 projection worker — same restricted sahool_ingest role. Claims accepted submissions and
+      # projects them into external_field_observations (scout-ingest-owned; never scouting_pins).
+      # projection_status is updated only via SECURITY DEFINER functions ⇒ sahool_ingest keeps no UPDATE.
+      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      SCOUT_INGEST_PROJECTION_ENABLED: ${SCOUT_INGEST_PROJECTION_ENABLED:-0}
+      SCOUT_INGEST_PROJECTION_POLL_SECONDS: ${SCOUT_INGEST_PROJECTION_POLL_SECONDS:-5}
+    command:
+    - python
+    - -m
+    - projection_worker
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f projection_worker || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
       start_period: 20s
   sahool-remote-sensing-workspace-bff:
     build:
