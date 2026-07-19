@@ -20,6 +20,12 @@
 ## ①-1 — دفن الفروع (ابدأ هنا: أسهل، صفر خطر)
 
 - **الشرط المسبق:** صلاحيّة حذف على GitHub (واجهة الويب أو `gh`/توكن بصلاحيّة `repo`). **لا تُحذَف `main` ولا `develop`** (فرعان قانونيّان).
+- **⚠ تحقّق ما قبل الحذف — خاصّ بـ`claude/code-review-34hO3` (لا يُتخطّى):** هو الفرع الوحيد في الدفعة الذي كان **متقدّماً 22 commit** على main في آخر فحص، وادّعاء حصاده (Windows-encoding) جاء تقريراً لا بسطر إثبات. قبل حذفه تحديداً:
+  ```bash
+  git fetch && git log --oneline main..origin/claude/code-review-34hO3
+  ```
+  - **فارغ** أو كلّ ما فيه مدموج معروف ⇒ احذف بأمان.
+  - **أيّ commit غير محصود** ⇒ **توقّف**، التقطه بنفس مسار الانتقاء الجراحيّ (cherry-pick)، ثمّ احذف. (رخيص، ويمنع رمي عملٍ آخر بالخطأ في فرعٍ أثبت أنّه ينبت commits باستمرار.)
 - **الأمر — دفعة أولى (موثَّقة آمنة، محتواها ⊆ main):**
   ```bash
   for b in certification/final-readiness-evidence \
@@ -102,6 +108,7 @@ DECISION_SERVICE_SOR_ENABLED=true
 DATABASE_URL='postgresql://<restricted-decision-role>@…/decision'   # كلاهما مطلوب معاً
 # + قلب ملكيّة loop tables في docs/architecture/db_ownership.yml (decision_record: interim-bridge → decision-service)
 ```
+- **توضيح (قلب الملكيّة تغيير مستودع لا خطوة خادميّة):** تعديل ملكيّة loop tables في `db_ownership.yml` يُنفَّذ كـ**PR عاديّ (مراجعة + CI أخضر + إعادة توليد)** قبل ضبط الراية — لأنّ الحُرّاس الساكنة تقرأه، والانجراف بين الملفّ والواقع يُحمِّر البوّابات. الراية خطوة خادميّة؛ الملكيّة خطوة مستودع — لا تخلطهما.
 - الراية وحدها **لا تكفي** لخفض المنصّة — يلزم `DECISION_SERVICE_SOR_ENABLED=true` **و** `DATABASE_URL` معاً (`main.py:475,488`). بلا `DATABASE_URL` مع الراية ⇒ **يرفض المطالبة** ويبقى mirror fail-closed (`main.py:421`).
 - **برهان النجاح:** `/readyz` → **200** مع `db_reachable=true` + `migrations_current=true`؛ كتابة قرار جديدة تُخزَّن في decision-service وتُقرأ منه؛ `decision_reviews` سليمة.
 - **التراجع (آمن، يصون البيانات):** `DECISION_SERVICE_SOR_ENABLED=false` ⇒ عودة فوريّة لوضع المِرْآة fail-closed (المنصّة تبقى SoR)؛ الراية opt-in افتراض فارغ فالتراجع لا يكسر تنصيباً قائماً؛ rollback **يصون `decision_reviews`**. **لا تُسقِط schema** — البيانات المُدخَلة تبقى للمحاولة التالية.
