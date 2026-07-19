@@ -175,3 +175,9 @@
 - **لماذا مقبول الآن:** نموذج تهديد داخليّ + شبكة docker معزولة + `season-logbooks/<tenant>/<season_id>/` مُشتقّ خادميّاً (لا يختار العميل المسار) + المرجع الداخليّ لا يُسرَّب (presigned ≤300ث). المخاطرة = خدمة داخليّة مُخترَقة تقرأ بادئة أخرى، لا عميل خارجيّ.
 - **القالب عند التصليب:** سابقة B1.2 (per-source credentials عبر `resolve_ingest_source`، لا توكن مشترك) هي القالب — مفاتيح/سياسات MinIO لكلّ خدمة (bucket-policy أو IAM users مُنفصلة) بدل `sahool-admin` الواحد. **المحفّز:** أوّل بيانات حسّاسة تتطلّب عزلاً تنظيميّاً، أو تصلّب أمنيّ مُخطَّط.
 - **المصدر:** `shared/storage/blob_store.py` (يقرأ `S3_*` المشترك) · `docker-compose.v9.yml` (`S3_ACCESS_KEY:-sahool-admin`) · سابقة `migrations/bootstrap_postgres.sh` §٥.٢ (per-source). **الحالة:** OPEN — لا فعل الآن (اصطلاح المنصّة المشترك، لا انحراف شريحة).
+
+## RUFF-FORMAT-DRIFT-SHARED — OPEN (Low/housekeeping) — كشفه فحص نطاق-CI الموسّع 2026-07-19
+- **الملاحظة:** `ruff format --check` على النطاق الموسّع (`shared/` مضمَّناً) يُبلِّغ ~36 ملفًّا «would reformat» (مثل `shared/test_marketplace_ecosystem_phase12.py`) — **انجراف تنسيق قديم على main** (غالباً اختلاف نسخة ruff بين بيئات)، سابق لهذه الجلسة ولا علاقة له بأيّ شريحة.
+- **لا يحجب:** بوّابة CI للتنسيق مقصورة على `services/ bots/ agents/ tests_v9/` (أخضر: 2203 ملفّ مُنسَّق) — `shared/` خارج النطاق المحجوب. ملفّات الشرائح (`shared/storage/*`, `season_api.py`, tests) نظيفة.
+- **القاعدة المُطبَّقة (منعاً للتكرار):** لا يُدخَل إصلاح 36 ملفًّا غريباً في التزام شريحة (تضخيم نطاق). يُعالَج في **التزام تنسيق جماعيّ مستقلّ** بعنوان صريح لاحقاً.
+- **المصدر:** `ruff format --check services/ bots/ agents/ tests_v9/ shared/` (2026-07-19). **الحالة:** OPEN — housekeeping، لا فعل الآن.
