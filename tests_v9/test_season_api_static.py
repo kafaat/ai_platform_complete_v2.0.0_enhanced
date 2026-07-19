@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-import sys
+import ast
 from pathlib import Path
 
 import pytest
@@ -23,28 +23,45 @@ _SVC = _ROOT / "services" / "scout-ingest-service"
 _SEASON_API = _SVC / "season_api.py"
 
 
-def _load_season_api():
-    if str(_SVC) not in sys.path:
-        sys.path.insert(0, str(_SVC))
-    import season_api  # noqa: PLC0415
+def _route_decorators() -> set[tuple[str, str]]:
+    """(METHOD, path) pairs from ``@router.<method>("<path>")`` — AST parse, NO import.
 
-    return season_api
+    The endpoint module imports FastAPI, which is absent in the no-fastapi ``-m unit``
+    tier; so this static guard reads the source (like other ``*_static`` guards) instead
+    of importing ``season_api``. Keeps the guard honest without dragging FastAPI in.
+    """
+    tree = ast.parse(_SEASON_API.read_text(encoding="utf-8"))
+    out: set[tuple[str, str]] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef) and not isinstance(node, ast.AsyncFunctionDef):
+            continue
+        for dec in node.decorator_list:
+            # @router.post("/path", ...)
+            if (
+                isinstance(dec, ast.Call)
+                and isinstance(dec.func, ast.Attribute)
+                and isinstance(dec.func.value, ast.Name)
+                and dec.func.value.id == "router"
+                and dec.args
+                and isinstance(dec.args[0], ast.Constant)
+            ):
+                out.add((dec.func.attr.upper(), dec.args[0].value))
+    return out
 
 
 # ── بنيويّ: النقاط + صفر مسار منصّة + أسلاك الأمان ───────────────────────────────
 def test_six_endpoints_all_on_scout_ingest_internal():
-    m = _load_season_api()
-    paths = {(tuple(sorted(r.methods)), r.path) for r in m.router.routes}
-    assert (("POST",), "/internal/seasons") in paths  # إنشاء مسودّة
-    assert (("PATCH",), "/internal/seasons/{season_id}") in paths
-    assert (("POST",), "/internal/seasons/{season_id}/logbook") in paths
-    assert (("GET",), "/internal/seasons/{season_id}/logbook") in paths
-    assert (("POST",), "/internal/seasons/{season_id}/accept") in paths
-    assert (("GET",), "/internal/seasons") in paths
-    assert len(m.router.routes) == 6
+    routes = _route_decorators()
+    assert ("POST", "/internal/seasons") in routes  # إنشاء مسودّة
+    assert ("PATCH", "/internal/seasons/{season_id}") in routes
+    assert ("POST", "/internal/seasons/{season_id}/logbook") in routes
+    assert ("GET", "/internal/seasons/{season_id}/logbook") in routes
+    assert ("POST", "/internal/seasons/{season_id}/accept") in routes
+    assert ("GET", "/internal/seasons") in routes
+    assert len(routes) == 6
     # صفر مسار منصّة: كلّ المسارات داخليّة على هذه الخدمة المالكة
-    for r in m.router.routes:
-        assert r.path.startswith("/internal/seasons")
+    for _method, path in routes:
+        assert path.startswith("/internal/seasons")
 
 
 def test_security_wiring_present_in_source():
