@@ -9195,6 +9195,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d1ac8cd3360d997bb9d26dca67faf9f3ced51a324cf28fb59eb2356498abdcff"
+        }
+      ],
+      "name": "services/agriai-engine/sim_crop_registry.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec771d472f531b248c64bb275a168e09f5f5e23671742a073e1bca0db1fc0fe9"
+        }
+      ],
+      "name": "services/agriai-engine/simulation_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9219ecb9a968c055dc2cfd357a5b528e3e098afc57eee2229dd11cade5da285"
+        }
+      ],
+      "name": "services/agriai-engine/simulation_io.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4df5b46b03e1b90130eff9c041ea7b7ee836b7774b2e7524ca40f429607c8860"
         }
       ],
