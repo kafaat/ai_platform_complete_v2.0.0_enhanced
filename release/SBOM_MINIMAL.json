@@ -9155,6 +9155,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1cba43d3cb6eb620030824df7ae643de2995ae2f93a4342744c968b5c851210d"
+        }
+      ],
+      "name": "services/agriai-engine/aquacrop_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ea61282ef14c20dddca2802ea5550218cd2fc7e02d47264acc0dd01ba28f3c9c"
         }
       ],
