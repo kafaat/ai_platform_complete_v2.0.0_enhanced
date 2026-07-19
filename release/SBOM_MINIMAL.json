@@ -27775,6 +27775,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b996f46e25fdd3e9ee854d356f66259483ebe7da28ef2974b4e63c947ea80b2e"
+        }
+      ],
+      "name": "shared/contracts/ingest/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "592d9f1ff6e45eb4b15290c930b2118fa1aa23debd9941c02e7c5e2dc1bc89dd"
+        }
+      ],
+      "name": "shared/contracts/ingest/external_submission_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "f515c9e91b8a56d527e64fd631017e6d6efcce721df3889318d3571334927a4c"
         }
       ],
