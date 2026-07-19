@@ -20545,6 +20545,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "6456fab40f3fd36b328b871a476905bf053f37406f774672de1ab041cd5b4563"
+        }
+      ],
+      "name": "services/sahool-platform/core/salinity_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aead37af993776d08da7fcf15ee8e31707a609b1f9a331f868aea26b3c1a4aba"
         }
       ],
@@ -24609,6 +24619,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_runtime_routes_v66.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fe8f42b7102a9c88b69e45d6eab4032fc8357ab16fd6523b7a2e81e1bf064420"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_salinity_capability_contract.py",
       "type": "file"
     },
     {
