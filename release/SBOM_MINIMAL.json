@@ -28915,7 +28915,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fa1d685a50ccab4b17866179ee4b5d4288bfcd79f978104e63d3650498c66258"
+          "content": "4519957dc8dfcfcd66b9fc82db1801b521bf3f3762280f2742fc8fbc5abc4dd8"
         }
       ],
       "name": "shared/security/trusted_tenant.py",
