@@ -548,3 +548,5 @@
 \i migrations/v195_irrigation_capacity_reservation_core.sql
 \echo '═══ 202. v196_irrigation_target_binding.sql ═══'
 \i migrations/v196_irrigation_target_binding.sql
+\echo '═══ 203. v197_external_submissions_ingest.sql ═══'
+\i migrations/v197_external_submissions_ingest.sql
