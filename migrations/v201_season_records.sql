@@ -25,7 +25,7 @@
 CREATE TABLE IF NOT EXISTS season_records (
     id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id          UUID NOT NULL,
-    field_id           UUID NOT NULL REFERENCES fields(id),   -- لا هندسة هنا
+    field_id           TEXT NOT NULL,                          -- مرجع الحقل (اقتران فضفاض عبر-خدمات، نمط الشقيق v199؛ لا FK صارم: fields ملك المنصّة وPKها VARCHAR field_id لا UUID id). لا هندسة هنا.
     season_label       TEXT,                                   -- "شتاء 2022/2023" (وصف حرّ)
     observed_at_from   DATE NOT NULL,                          -- أقدم تاريخ في الدفتر
     observed_at_to     DATE NOT NULL,                          -- أحدث تاريخ
@@ -196,6 +196,6 @@ COMMENT ON VIEW season_calibration_eligibility IS
 
 COMMENT ON TABLE season_records IS
   'SEASON-RECORD-01: رأس سجلّ الموسم المُدار (بوّابة ثقة untrusted→accepted، append-only، لا DELETE). '
-  'مالك: scout-ingest-service. الهندسة ملك سجلّ الحقول (field_id FK لا polygon هنا).';
+  'مالك: scout-ingest-service. الهندسة ملك سجلّ الحقول (field_id مرجع نصّيّ لا polygon هنا).';
 COMMENT ON TABLE season_harvest IS
   'SEASON-RECORD-01: نقطة المعايرة الذهبيّة (yield_kg_ha) — تُغذّي SIM-GOLDEN-01 عند توفّر مواسم مؤهَّلة.';

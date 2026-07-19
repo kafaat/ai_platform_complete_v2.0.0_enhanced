@@ -7525,6 +7525,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b1e151bc99459d8d40c7b3b309aace69bbc61ae8f9e7f9dcfff5f852fb3f48e7"
+        }
+      ],
+      "name": "migrations/v201_season_records.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b2cf3059b484bf566460533e29aaf2584215f04990056872814a38c3b5053698"
         }
       ],

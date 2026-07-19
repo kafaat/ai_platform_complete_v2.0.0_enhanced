@@ -10,7 +10,7 @@
   • append-only: **لا DELETE أبداً** — يُنزَع في كلا المُشغّلَين (bootstrap/apply) — برهان سلبيّ.
   • قيود النزاهة (لا مستقبل · مدى · حصاد-بعد-زراعة trigger · ساعات معدّة موجبة · دليل طاقة).
   • تعدّد عملات آمن (ISO 4217 CHECK، YER افتراضيّة).
-  • الهندسة ليست هنا (field_id FK لا polygon).
+  • الهندسة ليست هنا (field_id مرجع نصّيّ فضفاض، لا FK صارم عبر-خدمات؛ لا polygon).
   • الملكيّة: scout-ingest-service كاتب واحد للخمسة (Q1) + مسجَّل في المُشغّلَين.
 
 فحص ساكن صرف — ``pytest -m unit`` (لا PostGIS/قاعدة).
@@ -54,9 +54,15 @@ def test_rls_force_and_policy_on_all_five():
         assert re.search(rf"'{t}'", MIG), f"{t} غير مذكور في حلقة RLS"
 
 
-def test_no_geometry_here_field_id_fk():
-    """الهندسة ملك سجلّ الحقول — field_id FK، لا عمود geometry/geom في جداول المواسم."""
-    assert re.search(r"field_id\s+UUID NOT NULL REFERENCES fields\(id\)", MIG)
+def test_no_geometry_here_field_ref_loose():
+    """الهندسة ملك سجلّ الحقول — field_id مرجع نصّيّ (اقتران فضفاض عبر-خدمات، نمط v199)، لا عمود geometry.
+    برهان سلبيّ ضدّ العيب الذي أوقع CI: fields.PK = VARCHAR field_id لا UUID id ⇒ **لا FK صارم عبر-خدمات**."""
+    assert re.search(r"field_id\s+TEXT NOT NULL", MIG), (
+        "field_id يجب أن يكون TEXT (نمط v199، لا UUID)"
+    )
+    assert "REFERENCES fields(" not in MIG, (
+        "لا FK صارم عبر-خدمات إلى fields (المالك المنصّة؛ العيب الذي أوقع CI)"
+    )
     assert "geometry(" not in MIG and re.search(r"\bgeom\b\s+geometry", MIG) is None
 
 
