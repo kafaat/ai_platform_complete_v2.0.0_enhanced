@@ -31,6 +31,16 @@ tables:
     writers: [actuator-service]
     readers: [sahool-platform]
     source: "migrations/v118_phase9_autonomous_farm_os.sql"
+  admin_boundaries:
+    owner: gis-workflow-service
+    writers: [gis-workflow-service]
+    readers: ["*"]
+    source: "migrations/v200_admin_boundaries.sql"
+  admin_boundaries_source:
+    owner: gis-workflow-service
+    writers: [gis-workflow-service]
+    readers: ["*"]
+    source: "migrations/v200_admin_boundaries.sql"
   agent_authority_envelopes:
     owner: sahool-platform
     writers: [sahool-platform]

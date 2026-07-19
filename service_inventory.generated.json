@@ -98,8 +98,8 @@
   {
     "service": "gis-workflow-service",
     "domain": "Unclassified / Support",
-    "python_files": 18,
-    "python_loc": 1347,
+    "python_files": 19,
+    "python_loc": 1465,
     "tests": 9,
     "routes": 0,
     "main": "-",

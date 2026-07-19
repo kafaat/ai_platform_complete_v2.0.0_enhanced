@@ -554,3 +554,5 @@
 \i migrations/v198_external_ingest_sources.sql
 \echo '═══ 205. v199_external_field_observations.sql ═══'
 \i migrations/v199_external_field_observations.sql
+\echo '═══ 206. v200_admin_boundaries.sql ═══'
+\i migrations/v200_admin_boundaries.sql

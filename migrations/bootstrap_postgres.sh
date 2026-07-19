@@ -131,8 +131,21 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO :"app_role";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
+
+-- A7 (مرجع مشترك admin_boundaries): قراءة-عامّة/كتابة-محمِّل. sahool_app **SELECT فقط** —
+-- تُنزَع الكتابة (طبقة مرجعيّة تتغيّر بلا provenance = انجراف صامت؛ الكتابة عبر المُحمِّل الإداريّ الموثّق).
+-- (الهجرات قبل bootstrap فالجدولان موجودان؛ :'app_role' مربوط في هذه الكتلة.)
+DO $$
+BEGIN
+  IF to_regclass('public.admin_boundaries') IS NOT NULL THEN
+    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries FROM ' || quote_ident(:'app_role');
+  END IF;
+  IF to_regclass('public.admin_boundaries_source') IS NOT NULL THEN
+    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM ' || quote_ident(:'app_role');
+  END IF;
+END $$;
 SQL
-echo "  ✓ الدور $APP_ROLE جاهز (NOSUPERUSER NOBYPASSRLS) — وجّه DATABASE_URL للتطبيق إليه"
+echo "  ✓ الدور $APP_ROLE جاهز (NOSUPERUSER NOBYPASSRLS) + admin_boundaries SELECT-only (A7 مرجع مشترك)"
 
 # ─ ٥.١ دور التحكّم لدالّة resolve_ingest_source (SCOUT-INGEST-01 B1.2b) ─
 # NOSUPERUSER + BYPASSRLS + SELECT على external_ingest_sources فقط، يملك الدالّة (SECURITY DEFINER).

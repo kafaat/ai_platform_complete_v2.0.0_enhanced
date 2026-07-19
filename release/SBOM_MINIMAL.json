@@ -6375,7 +6375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f24b6413da63b0dbe8777c1eada6580917cc53ba0959f52477bf65ec2c1bd89a"
+          "content": "d054904ebfcb159964f3b8a39c66f577f1b080b05bd3cd791f34cdc2c433d26b"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6395,7 +6395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a7a55a8857bb9062b35fcc7fa5e6aadc09c5ba9768993eea6c60948c4b98aa13"
+          "content": "989fc2497f5d872f0ad52f8d1a9df1cb6bd1c15e2e4512b8b7bd2e33e6e6d06a"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "616fe5fda950c9c390246b69923240d5acc95d45a77b4b0d34de2e77f0f52a0f"
+          "content": "6e657d3c4f5036814e2e2807fe246ec5e43d7f00437f3787aaef7b72a57c2d68"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -7509,6 +7509,16 @@
         }
       ],
       "name": "migrations/v19_farms.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3f89ec11366b259fb71431522b48f52b8d8f379895f9af5dcc908c30ac5339c0"
+        }
+      ],
+      "name": "migrations/v200_admin_boundaries.sql",
       "type": "file"
     },
     {
@@ -11169,6 +11179,16 @@
         }
       ],
       "name": "services/gis-workflow-service/bulletin_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1c974f5c22b97be63d149f3769eb3399849c0f5b812782ccc9427fac33790be1"
+        }
+      ],
+      "name": "services/gis-workflow-service/load_admin_boundaries.py",
       "type": "file"
     },
     {

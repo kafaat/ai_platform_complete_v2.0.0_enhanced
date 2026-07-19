@@ -71,6 +71,17 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO :"app_role";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
+
+-- A7 (مرجع مشترك admin_boundaries): sahool_app **SELECT فقط** — تُنزَع الكتابة (الكتابة عبر المُحمِّل الموثّق).
+DO $$
+BEGIN
+  IF to_regclass('public.admin_boundaries') IS NOT NULL THEN
+    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries FROM ' || quote_ident(:'app_role');
+  END IF;
+  IF to_regclass('public.admin_boundaries_source') IS NOT NULL THEN
+    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM ' || quote_ident(:'app_role');
+  END IF;
+END $$;
 SQL
 
 
