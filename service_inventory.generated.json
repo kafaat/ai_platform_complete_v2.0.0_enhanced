@@ -276,6 +276,18 @@
     "risk": "high-zero-test-routes"
   },
   {
+    "service": "scout-ingest-service",
+    "domain": "Unclassified / Support",
+    "python_files": 1,
+    "python_loc": 182,
+    "tests": 0,
+    "routes": 3,
+    "main": "services/scout-ingest-service/main.py",
+    "dockerfile": "services/scout-ingest-service/Dockerfile",
+    "requirements": "services/scout-ingest-service/requirements.txt",
+    "risk": "high-zero-test-routes"
+  },
+  {
     "service": "soil-service",
     "domain": "Soil Intelligence",
     "python_files": 50,

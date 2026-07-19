@@ -106,6 +106,29 @@ END $$;
 SQL
 # EXECUTE لـapp_role مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" أعلاه (الهجرات قبل bootstrap).
 
+# ─ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
+# أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE resolver. NOBYPASSRLS · لا UPDATE/DELETE.
+echo "─ دور خدمة الإدخال sahool_ingest (NOBYPASSRLS، SELECT+INSERT فقط) ─"
+psql_exec -v ing_pw="${INGEST_DB_PASSWORD:-sahool_ingest_pw}" <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN', 'sahool_ingest')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest')
+\gexec
+
+ALTER ROLE sahool_ingest LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'ing_pw';
+GRANT USAGE ON SCHEMA public TO sahool_ingest;
+
+DO $$
+BEGIN
+  IF to_regclass('public.external_submissions') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON external_submissions TO sahool_ingest;   -- لا UPDATE/DELETE
+    GRANT USAGE, SELECT ON SEQUENCE external_submissions_id_seq TO sahool_ingest;
+  END IF;
+  IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION resolve_ingest_source(TEXT) TO sahool_ingest;
+  END IF;
+END $$;
+SQL
+
 echo "─ إنشاء دور المهامّ الخلفيّة (${JOBS_ROLE} — BYPASSRLS لمسار الوظائف فقط) ─"
 psql_exec -v jobs_role="$JOBS_ROLE" -v jobs_pw="$JOBS_PASSWORD" <<'SQL'
 -- HIGH-002: المرسِل (event_outbox→NATS) والمجدوِل (الطقس) يقرآن عابراً للمستأجرين

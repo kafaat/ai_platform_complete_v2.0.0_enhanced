@@ -36,11 +36,7 @@ def _env(**overrides) -> ExternalSubmissionEnvelopeV1:
     instance_id = overrides.pop("instance_id", "uuid:xyz")
     content_hash = overrides.pop("content_hash", _H)
     key = derive_dedup_key(
-        provider=provider,
-        server=server,
-        form_id=form_id,
-        instance_id=instance_id,
-        content_hash=content_hash,
+        provider=provider, server=server, form_id=form_id, instance_id=instance_id
     )
     base = dict(
         submission_id="sub-1",

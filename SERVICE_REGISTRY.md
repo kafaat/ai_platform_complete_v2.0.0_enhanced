@@ -5,9 +5,9 @@
 
 ## Inventory summary
 
-- Services discovered: **31**
-- Python LOC discovered: **225,966**
-- Routes discovered: **1056**
+- Services discovered: **32**
+- Python LOC discovered: **226,148**
+- Routes discovered: **1059**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
 
@@ -38,6 +38,7 @@
 | `remote-sensing-workspace-bff` | Unclassified / Support | 2 | 196 | 1 | 3 | `services/remote-sensing-workspace-bff/main.py` | `services/remote-sensing-workspace-bff/Dockerfile` | `services/remote-sensing-workspace-bff/requirements.txt` | `normal` |
 | `sahool-platform` | Core Field Platform | 1060 | 146887 | 411 | 616 | `services/sahool-platform/api/main.py` | `services/sahool-platform/Dockerfile` | `-` | `critical-core-concentration` |
 | `sam2-inference` | Field Boundary AI | 3 | 534 | 0 | 4 | `services/sam2-inference/main.py` | `services/sam2-inference/Dockerfile` | `services/sam2-inference/requirements.txt` | `high-zero-test-routes` |
+| `scout-ingest-service` | Unclassified / Support | 1 | 182 | 0 | 3 | `services/scout-ingest-service/main.py` | `services/scout-ingest-service/Dockerfile` | `services/scout-ingest-service/requirements.txt` | `high-zero-test-routes` |
 | `soil-service` | Soil Intelligence | 50 | 5537 | 16 | 59 | `services/soil-service/main.py` | `services/soil-service/Dockerfile` | `services/soil-service/requirements.txt` | `normal` |
 | `supervisor-agent` | Agent Orchestration | 26 | 3149 | 7 | 10 | `services/supervisor-agent/main.py` | `services/supervisor-agent/Dockerfile` | `services/supervisor-agent/requirements.txt` | `normal` |
 | `tts-service` | Voice & Notifications | 8 | 784 | 1 | 8 | `services/tts-service/main.py` | `services/tts-service/Dockerfile` | `services/tts-service/requirements.txt` | `normal` |
@@ -65,7 +66,7 @@
 | IoT Actuation | `actuator-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Knowledge Retrieval | `local-ai-rag`, `rag-retrieval` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Soil Intelligence | `soil-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
-| Unclassified / Support | `field-management-service`, `gis-workflow-service`, `model-registry-adapter`, `qdrant-seed`, `remote-sensing-workspace-bff` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Unclassified / Support | `field-management-service`, `gis-workflow-service`, `model-registry-adapter`, `qdrant-seed`, `remote-sensing-workspace-bff`, `scout-ingest-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Vegetation Analytics | `indicators-service`, `vegetation-analysis-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Video Processing | `video-processor` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Voice & Notifications | `tts-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |

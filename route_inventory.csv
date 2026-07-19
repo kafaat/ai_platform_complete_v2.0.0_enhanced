@@ -919,6 +919,9 @@ sam2-inference,services/sam2-inference/main.py,24,POST,/predict,predict
 sam2-inference,services/sam2-inference/main.py,105,GET,/healthz,healthz
 sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health
 sam2-inference,services/sam2-inference/main.py,115,GET,/readyz,readyz
+scout-ingest-service,services/scout-ingest-service/main.py,149,GET,/healthz,healthz
+scout-ingest-service,services/scout-ingest-service/main.py,154,GET,/readyz,readyz
+scout-ingest-service,services/scout-ingest-service/main.py,163,POST,/internal/ingest/submissions/odk,ingest_odk_submission
 soil-service,services/soil-service/routers/canonical.py,22,POST,/v1/soil/observations,create_observation
 soil-service,services/soil-service/routers/canonical.py,43,GET,/v1/fields/{field_id}/soil/observations,observations
 soil-service,services/soil-service/routers/canonical.py,60,POST,/v1/fields/{field_id}/soil/profile/rebuild,rebuild_profile

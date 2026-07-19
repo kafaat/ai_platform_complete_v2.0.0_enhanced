@@ -66,11 +66,7 @@ def build_envelope_from_odk(
     content_hash = canonical_content_hash(raw)
     instance_id = _instance_id(raw)
     key = derive_dedup_key(
-        provider=provider,
-        server=server,
-        form_id=form_id,
-        instance_id=instance_id,
-        content_hash=content_hash,
+        provider=provider, server=server, form_id=form_id, instance_id=instance_id
     )
     return ExternalSubmissionEnvelopeV1(
         submission_id=instance_id,

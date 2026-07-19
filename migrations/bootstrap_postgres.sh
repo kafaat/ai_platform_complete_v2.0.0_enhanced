@@ -162,6 +162,31 @@ SQL
 # والدالّة موجودة إذ تُطبَّق الهجرات قبل bootstrap) — يُبطِل REVOKE FROM PUBLIC (v198) دون 500.
 echo "  ✓ sahool_ingest_resolver جاهز (يملك resolve_ingest_source؛ EXECUTE لـ$APP_ROLE عبر الخطوة ٥)"
 
+# ─ ٥.٢ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
+# أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE على resolve_ingest_source.
+# NOBYPASSRLS (RLS فعّال؛ الخدمة تضبط app.current_tenant) · **لا UPDATE/DELETE** (تحديث الحالة لكاتب B1.3).
+echo "─ ٥.٢ دور خدمة الإدخال sahool_ingest (NOBYPASSRLS، SELECT+INSERT فقط) ─"
+psql_exec -v ing_pw="${INGEST_DB_PASSWORD:-sahool_ingest_pw}" <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN', 'sahool_ingest')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest')
+\gexec
+
+ALTER ROLE sahool_ingest LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'ing_pw';
+GRANT USAGE ON SCHEMA public TO sahool_ingest;
+
+DO $$
+BEGIN
+  IF to_regclass('public.external_submissions') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON external_submissions TO sahool_ingest;   -- لا UPDATE/DELETE
+    GRANT USAGE, SELECT ON SEQUENCE external_submissions_id_seq TO sahool_ingest;
+  END IF;
+  IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION resolve_ingest_source(TEXT) TO sahool_ingest;
+  END IF;
+END $$;
+SQL
+echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على external_submissions + EXECUTE resolver؛ لا UPDATE/DELETE)"
+
 echo ""
 echo "═══ تمّ ✓ ═══"
 # نموذج الدورين: الهجرات بالمالك المُمتاز، التطبيق بالدور المقيّد ليبقى RLS فعّالاً.

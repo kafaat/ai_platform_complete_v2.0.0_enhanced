@@ -7360,6 +7360,30 @@
     "function": "readyz"
   },
   {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/main.py",
+    "line": 149,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "healthz"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/main.py",
+    "line": 154,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "readyz"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/main.py",
+    "line": 163,
+    "method": "POST",
+    "path": "/internal/ingest/submissions/odk",
+    "function": "ingest_odk_submission"
+  },
+  {
     "service": "soil-service",
     "file": "services/soil-service/routers/canonical.py",
     "line": 22,

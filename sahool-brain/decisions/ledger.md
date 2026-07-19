@@ -692,3 +692,10 @@ SHAs من `git log --oneline origin/main`.
 - **السبب:** يوفّر مفردات مستقرّة محاذية لمعيار لمظروف B1 (كي يُعيّن الطرف الثالث مرّة واحدة) — والعنقود الأقوى (`sosa:Observation`) هو المرشّح الأوّل. المرجع مُثبَّت بالجلب لا الذاكرة (قاعدة grep-الوجهة-الفعليّة). Season/Irrigation `absent` في OCSM الأساسيّ = نتيجة حقيقيّة.
 - **محفّز التنفيذ:** أوّل حاجة فعليّة لتشغيل بينيّ (مظروف B1 أو شريك OCSM). حتى ذلك: مرجع فقط.
 - **SHA:** يُدفَع مع هذا القيد. **الأثر:** ADR + حارس؛ صفر تغيير عقد/runtime.
+
+## SCOUT-INGEST-01 / B1.2b — قرار (ج) مُصحَّح: خدمة مالكة مستقلّة لا مسار منصّة
+- **القرار:** بناء `scout-ingest-service` مستقلّة تملك مسار الإدخال الخارجيّ (`/internal/ingest/submissions/odk`) + جدول `external_submissions` (db_ownership نُقِل platform→scout-ingest-service)، بدل مسار على المنصّة كما اقترحت المواصفة أوّلاً.
+- **السبب:** حُرّاس المنصّة الأربعة (route_budget_does_not_grow · route_budget_reduced · route_ownership · mutating_auth) **رفضت** أيّ مسار منصّة جديد — انضباط strangler: المنصّة تُقلّص لا تنمو. الحُرّاس ليست عقبة بل الهندسة تُصحّح قراراً أقدم. **السابقة #201** (field-management-service) حسمت النمط: مدخل خارجيّ ⇒ خدمة مالكة. الحُرّاس الأربعة **لم تُعدَّل** (هم اتّخذوا القرار، فلا نكافئهم بالتعديل).
+- **الأمان:** اعتماد لكلّ مصدر (X-Scout-Ingest-Token→resolver DEFINER، لا توكن مشترك/JWT) · دور `sahool_ingest` NOBYPASSRLS بأقلّ منح (SELECT+INSERT، لا UPDATE/DELETE) · الهويّة من السجلّ لا المُرسِل · خلف SCOUT_INGEST_ENABLED. حارس ملكيّة `test_scout_ingest_service_ownership.py` يُثبّت الكاتب الوحيد بنيويّاً.
+- **تصحيح مرافق (مفتاح dedup):** `derive_dedup_key` = هويّة الخانة `sha256(provider|server|form|instance)` فقط — **أُزيل content_hash** (كان يجعل حالة التباين مستحيلة)؛ content_hash يُقارَن منفصلاً. التقطه البرهان الحيّ (divergent كان يعيد accepted بدل quarantined).
+- **SHA:** يُدفَع مع هذا القيد. **الأثر:** خدمة جديدة + دور DB + نقل ملكيّة + كتلة compose + حارس؛ صفر تعديل لحُرّاس المنصّة الأربعة. برهان HTTP حيّ 6/6 + أقلّ-منح على PG16.

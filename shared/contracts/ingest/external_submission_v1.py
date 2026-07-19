@@ -32,15 +32,15 @@ _NonEmpty = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1
 _SEP = "\x1f"  # فاصل وحدة لا يظهر في المعرّفات ⇒ مفتاح dedup غير قابل للالتباس
 
 
-def derive_dedup_key(
-    *, provider: str, server: str, form_id: str, instance_id: str, content_hash: str
-) -> str:
-    """مفتاح إزالة تكرار محدَّد: ``sha256(provider|server|form|instance|content_hash)``.
+def derive_dedup_key(*, provider: str, server: str, form_id: str, instance_id: str) -> str:
+    """مفتاح إزالة تكرار = **هويّة الخانة**: ``sha256(provider|server|form|instance)``.
 
-    البنية تمنع دخول الإدخال نفسه مرّتين من نفس المزوّد/الخادم/الاستمارة/النسخة.
-    يعيد 64 خانة hex (يطابق قيد ``content_hash``/``idempotency_key``).
+    **لا يُضمِّن content_hash عمداً:** المفتاح يعرّف «خانة الإدخال» (المزوّد/الخادم/الاستمارة/النسخة)
+    كي تُقارَن hash الجسم **منفصلةً** ⇒ نفس الخانة بنفس الجسم = idempotent، ونفس الخانة بجسم مختلف
+    (جهاز أعاد الإرسال بعد تعديل) = **متباين يُرى** (لا يُبتلع). لو أُدرِج content_hash في المفتاح لصار
+    كلّ جسم مفتاحاً جديداً واستحالت الحالة المتباينة (كشفه برهان B1.2b الحيّ). يعيد 64 خانة hex.
     """
-    raw = _SEP.join((provider, server, form_id, instance_id, content_hash))
+    raw = _SEP.join((provider, server, form_id, instance_id))
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
@@ -97,7 +97,6 @@ class ExternalSubmissionEnvelopeV1(BaseModel):
             server=self.server,
             form_id=self.form_id,
             instance_id=self.instance_id,
-            content_hash=self.content_hash,
         )
         if self.idempotency_key != expected:
             raise ValueError("idempotency_key_must_equal_derived_dedup_key")

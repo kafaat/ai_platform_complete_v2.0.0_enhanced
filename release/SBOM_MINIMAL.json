@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f49af8b583381514e72e4f23e82c3b5513c303bcfed54d1bb4e60f5353f94fe"
+          "content": "149dab7800ab165f92a4d7243d89ca1006051c07d5765c05dda157002845400e"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -6395,7 +6395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b8bd338992cdb53d0f9d3f43f686ca421f584dda520631fa15ada2a7f186016c"
+          "content": "fac0b077e7c04714508f940cc52039325c34e099fa7c1a200e6225c99b26e13d"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a661ab4dcbd62e10a9ccc67a9b399acea8a99e55a89224cfab32f1aa7035485"
+          "content": "05306ca0c891f9b18ef49ee5aea9031d44a80ae67c7c6b6e29a1f6a312696fc2"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -27815,10 +27815,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "592d9f1ff6e45eb4b15290c930b2118fa1aa23debd9941c02e7c5e2dc1bc89dd"
+          "content": "d5e413326603d8d8fd1659e53cbd0dfb0b941ed38708f175acadb05e4ef5ad4f"
         }
       ],
       "name": "shared/contracts/ingest/external_submission_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2299b49e0ed6929bffc5f8d32ed254bf07612a3d6ebe3afada008e1e869ebc42"
+        }
+      ],
+      "name": "shared/contracts/ingest/ingest_handler.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e64e8d63d7c5d8048f2f401e0e3615e29bcbdbad05e53219a865e57945371513"
+        }
+      ],
+      "name": "shared/contracts/ingest/odk_adapter.py",
       "type": "file"
     },
     {

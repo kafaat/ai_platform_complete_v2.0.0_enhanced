@@ -855,6 +855,40 @@ services:
       timeout: 5s
       retries: 6
       start_period: 20s
+  sahool-scout-ingest:
+    build:
+      context: .
+      dockerfile: services/scout-ingest-service/Dockerfile
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      # Declared owner of `external_submissions` (docs/architecture/db_ownership.yml).
+      # Connects with the restricted sahool_ingest role: SELECT+INSERT only, NOBYPASSRLS —
+      # RLS stays enforced and the service sets app.current_tenant per operation.
+      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      # Per-source credentials live in external_ingest_sources (X-Scout-Ingest-Token → resolve_ingest_source).
+      # No shared SAHOOL_AGENT_TOKEN and no user JWT are ever accepted on this service.
+      SCOUT_INGEST_ENABLED: ${SCOUT_INGEST_ENABLED:-0}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -sf
+      - http://localhost:8000/healthz
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
   sahool-remote-sensing-workspace-bff:
     build:
       context: .

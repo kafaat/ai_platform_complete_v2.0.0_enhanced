@@ -35,11 +35,7 @@ def _envelope(**overrides):
     key = overrides.pop(
         "idempotency_key",
         derive_dedup_key(
-            provider=provider,
-            server=server,
-            form_id=form_id,
-            instance_id=instance_id,
-            content_hash=content_hash,
+            provider=provider, server=server, form_id=form_id, instance_id=instance_id
         ),
     )
     base = dict(
@@ -68,14 +64,13 @@ def test_valid_envelope_defaults_to_untrusted() -> None:
     assert env.contract_version == "external-submission.v1"
 
 
-def test_dedup_key_is_deterministic_and_hex64() -> None:
-    a = derive_dedup_key(provider="odk", server="s", form_id="f", instance_id="i", content_hash=_H)
-    b = derive_dedup_key(provider="odk", server="s", form_id="f", instance_id="i", content_hash=_H)
+def test_dedup_key_is_slot_identity_deterministic_hex64() -> None:
+    """المفتاح = هويّة الخانة (provider|server|form|instance) — لا يُضمِّن content_hash عمداً."""
+    a = derive_dedup_key(provider="odk", server="s", form_id="f", instance_id="i")
+    b = derive_dedup_key(provider="odk", server="s", form_id="f", instance_id="i")
     assert a == b and len(a) == 64 and all(c in "0123456789abcdef" for c in a)
-    # تغيّر أيّ مكوّن يغيّر المفتاح (منع تصادم عبر النُّسخ):
-    assert a != derive_dedup_key(
-        provider="odk", server="s", form_id="f", instance_id="i2", content_hash=_H
-    )
+    # تغيّر النسخة يغيّر المفتاح؛ لكن تغيّر الجسم (content_hash) لا يغيّره (يُقارَن منفصلاً):
+    assert a != derive_dedup_key(provider="odk", server="s", form_id="f", instance_id="i2")
 
 
 def test_forged_dedup_key_is_rejected() -> None:

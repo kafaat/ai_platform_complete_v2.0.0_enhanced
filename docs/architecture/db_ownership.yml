@@ -317,8 +317,8 @@ tables:
     readers: []
     source: "migrations/v198_external_ingest_sources.sql"
   external_submissions:
-    owner: sahool-platform
-    writers: [sahool-platform]
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
     readers: []
     source: "migrations/v197_external_submissions_ingest.sql"
   experiment_evaluations:
