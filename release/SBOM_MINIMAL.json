@@ -7535,6 +7535,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "2bd23ca90417b8eeaadd99426c70c4372ed8ef2ef5b9731569e46d3760540c85"
+        }
+      ],
+      "name": "migrations/v202_season_draft_key.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b2cf3059b484bf566460533e29aaf2584215f04990056872814a38c3b5053698"
         }
       ],
@@ -25815,6 +25825,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "934e92cae0cbfc2ae178a653c8e1516ea87059c477fac74bad2da500a4af4f40"
+        }
+      ],
+      "name": "services/scout-ingest-service/season_api.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7464115433224bc671d4df732821bc97a432926cc62dd354615d4ea32889eb6c"
         }
       ],
@@ -25829,6 +25849,16 @@
         }
       ],
       "name": "services/scout-ingest-service/tests/test_projection_live.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "57f1410c86bab6bd402880617663824e86235a0f7b26fc06aafe6ad3df366940"
+        }
+      ],
+      "name": "services/scout-ingest-service/tests/test_season_live.py",
       "type": "file"
     },
     {
@@ -28929,6 +28959,26 @@
         }
       ],
       "name": "shared/security/trusted_tenant.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc1104fe819374b5cd38581bc3bf235fb6e67932156a1f36f2310bd8950f1289"
+        }
+      ],
+      "name": "shared/storage/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5231b0c13ba77adcb3cfe696c57ee8f80aea825595f8e1d47bb13ea29791984e"
+        }
+      ],
+      "name": "shared/storage/blob_store.py",
       "type": "file"
     },
     {

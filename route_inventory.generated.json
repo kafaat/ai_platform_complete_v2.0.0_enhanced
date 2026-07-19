@@ -7370,7 +7370,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 173,
+    "line": 178,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -7378,7 +7378,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 178,
+    "line": 183,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -7386,7 +7386,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 197,
+    "line": 202,
     "method": "GET",
     "path": "/internal/scouting/external-observations",
     "function": "read_external_observations"
@@ -7394,7 +7394,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 316,
+    "line": 321,
     "method": "POST",
     "path": "/internal/ingest/submissions/odk",
     "function": "ingest_odk_submission"
@@ -7402,10 +7402,58 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 325,
+    "line": 330,
     "method": "POST",
     "path": "/internal/ingest/submissions/kobo",
     "function": "ingest_kobo_submission"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/season_api.py",
+    "line": 151,
+    "method": "POST",
+    "path": "/internal/seasons",
+    "function": "create_season_draft"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/season_api.py",
+    "line": 210,
+    "method": "PATCH",
+    "path": "/internal/seasons/{season_id}",
+    "function": "patch_season_draft"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/season_api.py",
+    "line": 252,
+    "method": "POST",
+    "path": "/internal/seasons/{season_id}/logbook",
+    "function": "upload_logbook"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/season_api.py",
+    "line": 314,
+    "method": "GET",
+    "path": "/internal/seasons/{season_id}/logbook",
+    "function": "get_logbook_url"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/season_api.py",
+    "line": 352,
+    "method": "POST",
+    "path": "/internal/seasons/{season_id}/accept",
+    "function": "accept_season"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/season_api.py",
+    "line": 416,
+    "method": "GET",
+    "path": "/internal/seasons",
+    "function": "list_seasons"
   },
   {
     "service": "soil-service",
