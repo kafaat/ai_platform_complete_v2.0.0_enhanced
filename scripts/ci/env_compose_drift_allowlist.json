@@ -19,6 +19,7 @@
     "INTERNAL_SERVICE_TOKEN": {"category": "B", "why": "توكن خدمة داخليّ مشترك؛ سرّ من مدير الأسرار؛ لا في compose؛ soil_evidence_bridge.py/soil_hydraulic_client.py."},
     "SOIL_SERVICE_TOKEN": {"category": "B", "why": "توكن خدمة التربة؛ سرّ من مدير الأسرار؛ لا في compose؛ soil_evidence_bridge.py/soil_hydraulic_client.py."},
     "SAHOOL_ALLOW_RLS_BYPASS_ROLE": {"category": "B", "why": "مهرب تطوير محلّيّ فقط. enforcement_active fail-closed: غيابه ⇒ الفرض مُفعَّل ⇒ رفض الإقلاع على دور يتجاوز RLS (غيابه = لا تجاوز أبداً، الوضع الأصحّ). وجوده truthy في الإنتاج/compose ثغرة عزل مستأجرين؛ يجب ألّا يظهر في compose. يُسجَّل .critical دوماً؛ shared/db_role_guard.py:34-46."},
+    "SEASON_EDGE_HMAC_KEY": {"category": "B", "why": "سرّ تصديق الحافّة HMAC (SEASON-RECORD-ENTRY-01 §4-①)، مشترك بين nginx والخدمة فقط، من مدير الأسرار. غيابه fail-closed ⇒ verify_edge_attestation يرفض كلّ قبول (401 edge_unattested، لا قبول صامت). وجوده في compose يكسر نموذج التوقيع؛ يجب ألّا يظهر في compose؛ shared/security/trusted_tenant.py:102-133 · gateway_deps.py:71-102."},
 
     "SAHOOL_NATS_URL": {"category": "C", "why": "عنوان NATS لكلّ بيئة؛ غيابه=النشر غير مُهيّأ (best-effort)؛ يُحقَن بيئيّاً؛ phase_runtime_workers.py/irrigation_dispatch_relay_worker.py."},
     "MODEL_SERVING_BACKEND_URL": {"category": "C", "why": "عنوان خلفيّة خدمة الموديل لكلّ بيئة؛ يُحقَن بيئيّاً؛ phase_runtime_workers.py."},

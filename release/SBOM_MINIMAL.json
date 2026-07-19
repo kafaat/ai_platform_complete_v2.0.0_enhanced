@@ -28885,7 +28885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "af8685763f8f5a713881cec886f4447aaeab9fcb8cf25a9889147268581f2a6b"
+          "content": "5aa4732eb84c87d1e83b3d95488327c6cbd4148a4e5b157ddd980cf0ade46e08"
         }
       ],
       "name": "shared/security/gateway_deps.py",
