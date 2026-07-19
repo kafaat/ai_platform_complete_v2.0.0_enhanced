@@ -27905,6 +27905,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "200f07d60aed9f5c3fc65d3abf89c83e4d3aaa014f5bdabd1791f418781546cd"
+        }
+      ],
+      "name": "shared/contracts/ingest/kobo_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e64e8d63d7c5d8048f2f401e0e3615e29bcbdbad05e53219a865e57945371513"
         }
       ],
