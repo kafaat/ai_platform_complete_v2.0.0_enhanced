@@ -12,6 +12,8 @@
 from __future__ import annotations
 
 import ast
+import importlib.util
+import sys
 from pathlib import Path
 
 import pytest
@@ -21,6 +23,28 @@ pytestmark = pytest.mark.unit
 _ROOT = Path(__file__).resolve().parents[1]
 _SVC = _ROOT / "services" / "scout-ingest-service"
 _SEASON_API = _SVC / "season_api.py"
+_BLOB_STORE = _ROOT / "shared" / "storage" / "blob_store.py"
+
+
+def _load_blob_store():
+    """Load blob_store from its ABSOLUTE path — immune to the ``shared`` name collision.
+
+    The repo has TWO ``shared`` packages (repo-root and ``services/mcp_servers/shared``);
+    an mcp test can rebind top-level ``shared`` to the mcp one (which lacks ``storage``)
+    in the shared pytest worker, so ``from shared.storage import blob_store`` fails
+    depending on test order. Loading the file directly (the aquacrop/rs-anomaly static-
+    guard pattern) bypasses ``sys.modules['shared']`` entirely — blob_store is stdlib-only
+    (no ``from shared…``), so it exec's cleanly regardless of any shadow binding.
+    """
+    spec = importlib.util.spec_from_file_location("season_blob_store", _BLOB_STORE)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+# Loaded once, path-independent — no reliance on the shadowed top-level ``shared`` package.
+_BS = _load_blob_store()
 
 
 def _route_decorators() -> set[tuple[str, str]]:
@@ -94,7 +118,7 @@ def test_patch_rejects_after_accept_status_check():
 
 # ── ⑦ سقف presign TTL داخل blob_store ────────────────────────────────────────────
 def test_presign_ttl_cap_enforced_inside_module():
-    from shared.storage import blob_store
+    blob_store = _BS
 
     for bad in (0, -1, 301, 3600):
         with pytest.raises(blob_store.BlobStoreError):
@@ -105,7 +129,7 @@ def test_presign_ttl_cap_enforced_inside_module():
 
 # ── ⑧/⑪ برهان الكائن عند القبول ─────────────────────────────────────────────────
 def test_object_exists_dead_ref_and_file_in_production(monkeypatch):
-    from shared.storage import blob_store
+    blob_store = _BS
 
     # مرجع فارغ/مجهول ⇒ False
     assert blob_store.object_exists("") is False
@@ -122,7 +146,7 @@ def test_object_exists_dead_ref_and_file_in_production(monkeypatch):
 
 # ── مخزن الكائنات: fail-closed + تدهور مُعلَن + ① تهيئة مكسورة ────────────────────
 def test_upload_dev_fallback_and_roundtrip(tmp_path, monkeypatch):
-    from shared.storage import blob_store
+    blob_store = _BS
 
     monkeypatch.setattr(blob_store, "S3_BUCKET", "")  # dev
     monkeypatch.setattr(blob_store, "LOCAL_DIR", str(tmp_path))
@@ -132,7 +156,7 @@ def test_upload_dev_fallback_and_roundtrip(tmp_path, monkeypatch):
 
 
 def test_missing_keys_fail_closed_when_s3_enabled(monkeypatch):
-    from shared.storage import blob_store
+    blob_store = _BS
 
     monkeypatch.setattr(blob_store, "S3_BUCKET", "b")
     monkeypatch.setattr(blob_store, "S3_ENDPOINT", "http://minio:9000")
@@ -144,7 +168,7 @@ def test_missing_keys_fail_closed_when_s3_enabled(monkeypatch):
 
 def test_bucket_without_endpoint_is_broken_not_dev(monkeypatch):
     """①: BUCKET مضبوط بلا ENDPOINT = مكسور (لا سقوط صامت لـfile://)."""
-    from shared.storage import blob_store
+    blob_store = _BS
 
     monkeypatch.setattr(blob_store, "S3_BUCKET", "b")
     monkeypatch.setattr(blob_store, "S3_ENDPOINT", "")
@@ -154,10 +178,34 @@ def test_bucket_without_endpoint_is_broken_not_dev(monkeypatch):
 
 def test_endpoint_scheme_from_ssl_flag_no_silent_http(monkeypatch):
     """②: المخطّط من S3_USE_SSL صراحةً — لا استنتاج صامت من الـendpoint."""
-    from shared.storage import blob_store
+    blob_store = _BS
 
     monkeypatch.setattr(blob_store, "S3_ENDPOINT", "minio.example.com:9000")
     monkeypatch.setattr(blob_store, "S3_USE_SSL", "true")
     assert blob_store._endpoint_url() == "https://minio.example.com:9000"
     monkeypatch.setattr(blob_store, "S3_USE_SSL", "false")
     assert blob_store._endpoint_url() == "http://minio.example.com:9000"
+
+
+# ── ③ برهان ترتيبيّ ضدّ الارتداد: تصادم اسم الحزمة shared لا يكسر تحميل blob_store ──
+def test_blob_store_immune_to_shared_package_shadow(monkeypatch):
+    """يحاكي الجريمة: حقن services/mcp_servers (حزمة shared بلا storage) في sys.path[0]
+    وربط shared عليها في sys.modules — ثمّ يجب أن يبقى تحميل blob_store عبر المسار ناجحاً.
+
+    توثيق: ``shared`` اسم حزمة عالي الاصطدام (repo-root + services/mcp_servers/shared)؛
+    الحُرّاس التي تستورد ``shared.*`` يجب أن تحمّل عبر المسار المطلق لا عبر اسم الحزمة.
+    """
+    mcp_dir = _ROOT / "services" / "mcp_servers"
+    monkeypatch.syspath_prepend(str(mcp_dir))  # auto-restored — لا يتسرّب للجيران
+    # اربط shared على نسخة mcp_servers (بلا storage) كما يفعل الملوِّث
+    for name in [n for n in list(sys.modules) if n == "shared" or n.startswith("shared.")]:
+        monkeypatch.delitem(sys.modules, name, raising=False)
+    import shared as _shadow  # noqa: PLC0415 — الآن shared = mcp_servers/shared (بلا storage)
+
+    assert "mcp_servers" in (getattr(_shadow, "__file__", "") or "")
+    with pytest.raises(ModuleNotFoundError):
+        import shared.storage  # noqa: F401,PLC0415 — النسخة المظلِّلة لا تملك storage
+    # ومع ذلك: التحميل عبر المسار المطلق يبقى ناجحاً (مناعة الحارس)
+    bs = _load_blob_store()
+    assert bs.PRESIGN_TTL_S == 300 if hasattr(bs, "PRESIGN_TTL_S") else True
+    assert bs.s3_enabled() in (True, False)  # يُحمَّل ويعمل رغم التظليل

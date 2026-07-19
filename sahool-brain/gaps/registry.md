@@ -181,3 +181,9 @@
 - **لا يحجب:** بوّابة CI للتنسيق مقصورة على `services/ bots/ agents/ tests_v9/` (أخضر: 2203 ملفّ مُنسَّق) — `shared/` خارج النطاق المحجوب. ملفّات الشرائح (`shared/storage/*`, `season_api.py`, tests) نظيفة.
 - **القاعدة المُطبَّقة (منعاً للتكرار):** لا يُدخَل إصلاح 36 ملفًّا غريباً في التزام شريحة (تضخيم نطاق). يُعالَج في **التزام تنسيق جماعيّ مستقلّ** بعنوان صريح لاحقاً.
 - **المصدر:** `ruff format --check services/ bots/ agents/ tests_v9/ shared/` (2026-07-19). **الحالة:** OPEN — housekeeping، لا فعل الآن.
+
+## SHARED-PACKAGE-NAME-COLLISION — OPEN (Low/refactor) — كشفه فشل CI الترتيبيّ 2026-07-19
+- **الملاحظة:** حزمتان بالاسم `shared` في المستودع: **جذر المستودع** `shared/` (الكاملة، فيها security/storage/…) و**`services/mcp_servers/shared/`** (جزئيّة: oauth_middleware/streamable_http فقط، **بلا storage**). في عامل pytest واحد متقاسم sys.path (وxdist يوازي عمّالاً)، اختبار MCP يحقن مسار mcp_servers ويربط `shared` على النسخة الجزئيّة ⇒ اختبار لاحق يستورد `shared.storage` يفشل **حسب ترتيب التشغيل** (لاحتمائيّ = أخطر: إعادة التشغيل قد تخفيه).
+- **الإصلاح المُطبَّق (شريحة 2):** الحُرّاس التي تستورد `shared.*` عالية-الاصطدام تُحمَّل عبر **المسار المطلق** (`importlib.util.spec_from_file_location`، نمط aquacrop/rs-anomaly) — مناعة تامّة ضدّ التظليل بصرف النظر عن ترتيب xdist. + `pythonpath = .` في pytest.ini + برهان ترتيبيّ (`test_blob_store_immune_to_shared_package_shadow`). **تحقّق:** كامل `-m unit` مع fastapi محجوبة ⇒ صفر فشل مواسم (كان 6).
+- **الحلّ النهائيّ (مؤجَّل، refactor أوسع):** إعادة تسمية `services/mcp_servers/shared` → `mcp_shared` (أو حزمة namespace مؤهَّلة) ليزول التصادم من جذوره. **المحفّز:** أوّل عمل جوهريّ على mcp_servers. حتّى ذلك: أيّ حارس جديد يستورد `shared.*` يُحمَّل عبر المسار المطلق (قاعدة مراجعة).
+- **المصدر:** `services/mcp_servers/shared/` · `tests_v9/test_mcp_functional.py:78-102,148-167` (يُنظّف ذاتيّاً) · `tests_v9/test_season_api_static.py` (نمط المناعة). **الحالة:** OPEN — refactor مؤجَّل، المناعة تكفي الآن.
