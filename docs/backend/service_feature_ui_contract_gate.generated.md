@@ -8,7 +8,7 @@
 
 ### `auth` — pass
 classification: `ui`
-- ui: 48 match(es)
+- ui: 49 match(es)
   - `frontend/src/App.tsx` ← `LoginPage`
   - `frontend/src/App.tsx` ← `SignupPage`
   - `frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts` ← `refresh`
@@ -23,7 +23,7 @@ classification: `ui`
 
 ### `sahool-platform` — pass
 classification: `ui`
-- ui: 199 match(es)
+- ui: 205 match(es)
   - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
@@ -94,7 +94,7 @@ classification: `ui`
 
 ### `soil-service` — pass
 classification: `ui`
-- ui: 153 match(es)
+- ui: 154 match(es)
   - `frontend/src/App.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
@@ -192,7 +192,7 @@ classification: `ui`
 
 ### `agriai-engine` — pass
 classification: `internal`
-- internal-consumer: 10 match(es)
+- internal-consumer: 11 match(es)
   - `docker-compose.unified.yml` ← `MCP_AGRIAI_URL`
   - `docker-compose.unified.yml` ← `agriai-engine`
   - `docker-compose.unified.yml` ← `sahool-unified-agriai-engine`
@@ -238,7 +238,7 @@ classification: `ui`
 
 ### `video-processor` — pass
 classification: `ui`
-- ui: 29 match(es)
+- ui: 30 match(es)
   - `frontend/src/App.tsx` ← `DevicesPage`
   - `frontend/src/components/maphub/weather/weatherLayerDefinitions.ts` ← `stream`
   - `frontend/src/components/approvals/DecisionEvidencePanel.tsx` ← `snapshot`

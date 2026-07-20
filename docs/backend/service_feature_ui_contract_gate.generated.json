@@ -87,7 +87,7 @@
               "pattern": "/auth/"
             }
           ],
-          "match_count": 48
+          "match_count": 49
         },
         {
           "kind": "gateway",
@@ -223,7 +223,7 @@
               "pattern": "/api/v1"
             }
           ],
-          "match_count": 199
+          "match_count": 205
         },
         {
           "kind": "gateway",
@@ -844,7 +844,7 @@
               "pattern": "Soil"
             }
           ],
-          "match_count": 153
+          "match_count": 154
         },
         {
           "kind": "platform-proxy",
@@ -1718,9 +1718,14 @@
               "root": "tests_v9",
               "path": "tests_v9/smoke_services.py",
               "pattern": "agriai-engine"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
+              "pattern": "agriai-engine"
             }
           ],
-          "match_count": 10
+          "match_count": 11
         }
       ]
     },
@@ -2160,7 +2165,7 @@
               "pattern": "camera"
             }
           ],
-          "match_count": 29
+          "match_count": 30
         },
         {
           "kind": "platform-proxy",

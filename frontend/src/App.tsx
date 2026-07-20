@@ -136,6 +136,7 @@ const ApprovalsConsolePage = lazy(() => import('./sections/ApprovalsConsolePage'
 const AgroZonesPanel = lazy(() => import('./components/agrozones/AgroZonesPanel'));
 const YemeniCalendarPanel = lazy(() => import('./components/calendars/YemeniCalendarPanel'));
 const ClimateAnalogsPanel = lazy(() => import('./components/climate/ClimateAnalogsPanel'));
+const SeasonRecordEntryPage = lazy(() => import('./sections/SeasonRecordEntryPage'));
 
 export type PageId =
   | 'dashboard' | 'hybrid-index' | 'satellite' | 'fields' | 'farm-map' | 'field-workspace'
@@ -145,7 +146,7 @@ export type PageId =
   | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network' | 'irrigation-engineering'
   | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime' | 'approvals-console' | 'manager-console'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
-  | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert'
+  | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert' | 'season-record-entry'
   | 'agro-zones' | 'yemeni-calendars' | 'climate-analogs';
 
 // ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
@@ -318,6 +319,7 @@ export default function App() {
       // مُستورَداً ومتاحاً (يُحتفَظ به مرجعاً) لكنّ الـMap Hub يَخلُفه افتراضيّاً.
       case 'map-center':   return <MapHub />;
       case 'farm-map':     return <FarmMapOverview />;
+      case 'season-record-entry': return <SeasonRecordEntryPage />;
       case 'field-workspace': return <FieldWorkspaceRouteShell />;
       case 'tasks-cabin':  return <FieldTasksCabin />;
       case 'rec-flow':     return <RecommendationFlow />;

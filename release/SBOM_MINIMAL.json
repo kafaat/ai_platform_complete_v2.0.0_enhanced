@@ -485,7 +485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6f1f253d87f04b8cc5af65fb5a88ae375245342f00b0a1f959b673036d30293e"
+          "content": "ded8e04d43f260e635bab96a99949efbef078b472df225e9c6ea4f3129b6acd8"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -4225,7 +4225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "025b6215ac8316d57a4bf1025afffe0bed1ab11d7c4a1383cfda89487db8d2c0"
+          "content": "4163c6808cf30ab259de66410f31a75e5a14bd1cc8a48e2c93491f2e49450d96"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -4355,7 +4355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "07109bd3ed29140e65877bb5b88a71e345a26436f925ef417e8334de78227359"
+          "content": "e96079141bd2a48e72f54189d9ca3b7a8a99a07295c9a19a5b120d0dd490eb7e"
         }
       ],
       "name": "frontend/src/lib/routes.ts",

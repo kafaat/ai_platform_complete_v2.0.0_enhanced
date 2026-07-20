@@ -194,3 +194,14 @@
 - **النموذج النهائيّ (مؤجَّل، شريحة قائمة بذاتها):** مطالبة `roles` متعدّدة قابلة للمنح لكلّ مستأجِر (هجرة role-grants + claim في JWT + مسار/واجهة منح من مدير المستأجِر، §5-2 حرفيّاً) — يزيل الاشتقاق من الدور المفرد.
 - **المحفّز الصريح:** **أوّل حاجة لمُراجِع ليس مالكًا ولا خبيرًا** — مثلاً مُدقّق خارجيّ لموسم تصدير، أو مُراجِع مفوَّض من تعاونيّة. عندها يُبنى نموذج المنح الكامل بدل توسيع قائمة الاشتقاق (الذي يُبقي «الصلاحية التشغيلية = السلطة الزراعية» خلطاً مرفوضاً).
 - **المصدر:** `shared/security/trusted_tenant.py:SEASON_REVIEWER_SOURCE_ROLES` · `services/auth/main.py` (single-role RBAC: owner/admin/expert/farmer/viewer، X-User-Role مفرد). **الحالة:** OPEN — الاشتقاق الضيّق يكفي المرحلة.
+
+## SEASON-EDGE-LIVE-PROOF — OPEN (Medium/deferred-to-staging) — الشريحة 3b-infra 2026-07-20
+- **الملاحظة:** البرهان السلبيّ الثالث لبوّابة القبول (شرط المالك ③) — **ترويسة `X-Canonical-Path` مزوَّرة من عميل لا تصل auth** — لا يمكن إثباته بوحدة؛ يتطلّب nginx حيًّا يعمل (تجريد الترويسة سلوك تشغيليّ لا نصّيّ). أُثبِت **تصميميّاً** بحارس ساكن (`test_season_gateway_nginx_static.py`: البوّابة تكتب X-Canonical-* بنفسها فتَطمِس المزوَّرة) لكن **السلوك الحيّ مؤجَّل**.
+- **الإثبات المؤجَّل (عند أوّل إقلاع stack كامل، بجانب irr_f01 PROD-01→07):** (أ) قبول بترويسة X-Canonical/هويّة/تصديق مزوَّرة من عميل ⇒ **401/deny** (المزوَّرة جُرِّدت) · (ب) مُراجِع owner/expert يقبل موسمه ⇒ 200 · (ج) إعادة القبول ⇒ 409. البرهان المكمّل: تصديق مسار عامّ لا يُقبَل على القبول (تقيّد الطرفين بالداخليّ).
+- **الرَّنبوك القابل للنسخ:** [`sahool-brain/runbooks/season-record-entry.md`](../runbooks/season-record-entry.md) §3 (أوامر curl جاهزة). المهمّة المرقّمة: #225.
+- **المصدر:** `nginx/nginx.v9.conf` (مواقع المواسم) · `services/auth/routers/season_edge_sign.py` · `services/scout-ingest-service/season_api.py:accept_season`. **الحالة:** OPEN — يُقفَل فور رصد (أ/ب/ج) على staging أخضر.
+
+## SEASON-ENTRY-EVENTS-UI — OPEN (Medium/next-slice) — حدّ نطاق الشريحة 3c 2026-07-20
+- **الملاحظة:** واجهة 3c تُرقّم الموسم عبر السطح الخلفيّ **الموجود** (مسودّة+محصول · تحديث · رفع/معاينة دفتر · قبول · قائمة). لكنّ جداول `season_events`/`season_harvest`/`season_cost_items` (v201) **بلا نقاط API بعد** (شريحة 2b بنت الستّ النقاط فقط). فبناء نماذج أحداث/حصاد/تكاليف تُرسِل إلى العدم = نصف الحلّ الممنوع — لذا صُرِّح في خطوة المراجعة أنّها «شريحة لاحقة» ولم تُبنَ.
+- **الشريحة اللاحقة (المطلوبة لإكمال §2 من المواصفة):** نقاط POST على scout-ingest لـevents/harvest/cost_items (نفس بوّابة الثقة، نفس ضريبة التسجيل) ثمّ خطوات واجهة مقابلة في `SeasonRecordEntryPage`. المعايرة (`calibration_eligible`) تحتاج `season_harvest` — فهذه الشريحة تفتح مسار SIM-GOLDEN فعليّاً.
+- **المصدر:** `services/scout-ingest-service/season_api.py` (6 نقاط، لا events/harvest/cost) · `migrations/v201_season_records.sql` (الجداول موجودة) · `frontend/src/sections/SeasonRecordEntryPage.tsx` (تصريح الحدّ في خطوة المراجعة). **الحالة:** OPEN — شريحة لاحقة مستقلّة.
