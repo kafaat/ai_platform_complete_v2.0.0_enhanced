@@ -1123,6 +1123,17 @@ tables:
     writers: [erp-bridge]
     readers: [sahool-platform]
     source: "migrations/v9_odoo_bridge.sql"
+  # ERP-BRIDGE-FIX-01: جدولا مزامنة Odoo (v9_odoo_bridge.sql) — تسجيل متأخّر يغلق حارس P0.
+  odoo_sync_state:
+    owner: erp-bridge
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
+  odoo_sync_log:
+    owner: erp-bridge
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
   yield_records:
     owner: sahool-platform
     writers: [sahool-platform]
