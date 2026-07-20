@@ -97,14 +97,33 @@ def test_deviation_documented_in_header():
 
 
 def test_append_only_no_delete_in_both_runners():
-    """append-only: تُنزَع DELETE على الجداول الخمسة في كلا المُشغّلَين (يبقى INSERT/UPDATE للقبول)."""
+    """append-only: تُنزَع DELETE على الجداول الخمسة في كلا المُشغّلَين (يبقى INSERT/UPDATE للقبول).
+
+    صياغة ``\\gexec`` المُعتمَدة تُولّد النزع عبر ``format('REVOKE DELETE ON TABLE public.%I …')`` على
+    قائمة ``VALUES`` بالجداول الخمسة (لا سطر حرفيّ لكلّ جدول). الحارس يفرض **النيّة**: (أ) قالب نزع
+    DELETE على جدول مُقنَّع بـ``%I``؛ (ب) الجداول الخمسة كلّها ضمن كتلة النزع المُغذّية. القابليّة
+    للتنفيذ يبرهنها الاختبار الحيّ ``test_role_bootstrap_executable`` (الساكن يفحص النصّ، الحيّ التنفيذ).
+    """
     for runner_name, runner in (("bootstrap", BOOTSTRAP), ("apply", APPLY)):
-        for t in _TABLES:
-            assert re.search(rf"REVOKE DELETE ON {t} FROM", runner), (
-                f"{t}: DELETE غير مُنزَع في {runner_name} — الـappend-only غير مضمون"
-            )
-        # لا يُنزَع INSERT/UPDATE (القبول untrusted→accepted يحتاج UPDATE)
+        # كتلة نزع DELETE المُولَّدة بـ\gexec (تمتدّ من قالب REVOKE إلى \gexec).
+        block = re.search(
+            r"REVOKE DELETE ON (?:TABLE )?(?:public\.)?%I FROM[\s\S]*?\\gexec", runner
+        )
+        if block:
+            region = block.group(0)
+            for t in _TABLES:
+                assert re.search(rf"'{t}'", region), (
+                    f"{t}: غير مشمول في نزع DELETE (\\gexec) في {runner_name} — append-only غير مضمون"
+                )
+        else:
+            # صيغة بديلة (سطر حرفيّ لكلّ جدول) — نقبلها أيضاً حفاظاً على التوافق.
+            for t in _TABLES:
+                assert re.search(rf"REVOKE DELETE ON (?:TABLE )?(?:public\.)?{t}\b FROM", runner), (
+                    f"{t}: DELETE غير مُنزَع في {runner_name} — الـappend-only غير مضمون"
+                )
+        # لا يُنزَع INSERT/UPDATE (القبول untrusted→accepted يحتاج UPDATE) — بأيّ من الصيغتين.
         assert "REVOKE INSERT, UPDATE, DELETE ON season_records" not in runner
+        assert "REVOKE INSERT, UPDATE, DELETE ON TABLE public.season_records" not in runner
 
 
 def test_integrity_constraints_present():
