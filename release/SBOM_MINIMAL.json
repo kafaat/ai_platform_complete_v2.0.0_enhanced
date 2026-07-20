@@ -4405,6 +4405,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d7472a780f93f760e194196cd43a001a7e0d5af42d6b3a00409251d50141b6be"
+        }
+      ],
+      "name": "frontend/src/lib/seasonDraftStorage.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "12ea700dfefa0efcf6311f4e1372c4e3059b45a1bd8639104a437bb5a7511daf"
         }
       ],
@@ -5815,6 +5825,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "74f418ba3d738f3c29285dcabaa91efacd451db18769f9334ec097f5f0ae9c0b"
+        }
+      ],
+      "name": "frontend/src/sections/SeasonRecordEntry.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3943c0a771f60346ce5d4459e4c48aef1232a4a487008b391464da956e9f0fc5"
+        }
+      ],
+      "name": "frontend/src/sections/SeasonRecordEntryPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4de78e850255cb1b9af9f6827978e0251482c8f216d4ce379cad2240824ee485"
         }
       ],
@@ -6209,6 +6239,16 @@
         }
       ],
       "name": "frontend/src/services/api/irrigationNetworkCalculator.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d0560b32ab48b4a6423d6e6e80e3fdb798a0fd9162f39a5aea0603a575eef2b9"
+        }
+      ],
+      "name": "frontend/src/services/api/season.ts",
       "type": "file"
     },
     {
