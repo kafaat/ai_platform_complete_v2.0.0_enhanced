@@ -10,9 +10,11 @@ pytestmark = pytest.mark.unit
 
 
 def test_ai_agronomist_main_decomposition_guard():
+    import os
     root = Path(__file__).resolve().parents[1]
     subprocess.run(
         [sys.executable, "scripts/ci/ai_agronomist_main_decomposition_guard.py"],
         cwd=root,
         check=True,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"},
     )
