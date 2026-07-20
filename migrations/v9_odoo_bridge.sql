@@ -42,6 +42,28 @@ INSERT INTO workflow_transitions (workflow_name, from_state, to_state, required_
 ('procurement', 'proc_manager_approved', 'proc_rejected', 'finance', '{}', true, 99)
 ON CONFLICT (workflow_name, from_state, to_state) DO NOTHING;
 
+-- ── ERP bridge sync tables ────────────────────────────────────────────────────
+-- تُنشأ هنا (بواسطة sahool_user) كي لا يحتاج sahool_app إلى امتياز CREATE.
+-- erp_runtime._run_migrations() كانت تُنشئها لكنّ sahool_app يفتقر إلى CREATE
+-- على schema public (ERR-BRIDGE-001: ينهار lifespan ⇒ healthcheck لا يستجيب).
+CREATE TABLE IF NOT EXISTS odoo_sync_state (
+    entity       TEXT        NOT NULL,
+    direction    TEXT        NOT NULL,
+    last_sync_at TIMESTAMPTZ,
+    PRIMARY KEY (entity, direction)
+);
+
+CREATE TABLE IF NOT EXISTS odoo_sync_log (
+    id           BIGSERIAL    PRIMARY KEY,
+    direction    TEXT         NOT NULL,
+    entity       TEXT         NOT NULL,
+    odoo_id      INTEGER,
+    sahool_id    TEXT,
+    status       TEXT         NOT NULL,
+    details      TEXT         DEFAULT '',
+    created_at   TIMESTAMPTZ  DEFAULT NOW()
+);
+
 DO $$
 DECLARE tbl TEXT;
 BEGIN

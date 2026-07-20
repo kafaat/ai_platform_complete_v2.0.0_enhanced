@@ -197,20 +197,14 @@ async def get_pool() -> asyncpg.Pool:
 
 
 async def _run_migrations():
-    """يضمن وجود الجداول المطلوبة قبل أيّ مزامنة (تشغيل مستقلّ بلا مانيفست خارجيّ)."""
-    pool = await get_pool()
-    if not pool:
-        return
-    async with pool.acquire() as conn:
-        await conn.execute(
-            """CREATE TABLE IF NOT EXISTS odoo_sync_state (
-                entity       TEXT        NOT NULL,
-                direction    TEXT        NOT NULL,
-                last_sync_at TIMESTAMPTZ,
-                PRIMARY KEY (entity, direction)
-            )"""
-        )
-    logger.info("DB migrations applied")
+    """لا-عمليّة — الجداول تُنشأ بواسطة sahool-migrate (migrations/v9_odoo_bridge.sql).
+
+    ERR-BRIDGE-001: كانت تُنشئ odoo_sync_state هنا (CREATE TABLE) لكنّ sahool_app
+    يفتقر إلى امتياز CREATE على schema public (مُزال بـREVOKE في apply_in_compose.sh)،
+    فكان lifespan ينهار قبل أن يبدأ uvicorn تلقّي الطلبات ⇒ healthcheck يفشل دائماً.
+    الإصلاح: DDL في ملفّ هجرة (sahool_user مُمتاز) لا في وقت تشغيل الخدمة.
+    """
+    logger.info("DB migrations: tables pre-created by sahool-migrate (v9_odoo_bridge.sql)")
 
 
 async def get_last_sync(entity: str, direction: str) -> datetime | None:
