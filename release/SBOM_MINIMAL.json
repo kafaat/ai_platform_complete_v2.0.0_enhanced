@@ -5775,7 +5775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4fa53840a2bb281b5f8c74690fa1e1700e3cd1a81fdb6ace01bc4385983c4c10"
+          "content": "d0bd4acb8d7bd97600698a326581af6bcbf3d67fa5a6ed8f7aac11afbe1fa34f"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -9245,7 +9245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29cc711558f59ef81db78288aa9d840764dd11322f4d5263e24b6091a3bdb178"
+          "content": "cda58a67123a5c9916bb3a763ff635f6af313f14f56fb51cef40882862aa6423"
         }
       ],
       "name": "services/agriai-engine/main.py",
@@ -9355,7 +9355,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb3188bc4725c65d10e3fbbd78b286ad863ee4f6cdcb96c93704aea2ed728a5b"
+          "content": "6607a53c303f89b242be9b5556ff1a93a552e8c0b2a275e60128b9ecd0306e34"
         }
       ],
       "name": "services/agriai-engine/tests/test_production_readiness_truth.py",
@@ -9365,7 +9365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "58cd8c14c09ecb908f0069afad7c0425c108560934ee62ca8a1981d3730ca62e"
+          "content": "40510bd7505d8996e1867538a568ad15c5d3e945477e5c3a1a8097f4ad82a4a9"
         }
       ],
       "name": "services/agriai-engine/wofost_adapter.py",

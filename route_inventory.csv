@@ -8,11 +8,11 @@ actuator-service,services/actuator-service/routers/metrics.py,18,GET,/idempotenc
 agriai-engine,services/agriai-engine/main.py,55,GET,/healthz,healthz
 agriai-engine,services/agriai-engine/main.py,60,GET,/health,legacy_health
 agriai-engine,services/agriai-engine/main.py,65,GET,/readyz,readyz
-agriai-engine,services/agriai-engine/main.py,85,GET,/metrics,metrics
-agriai-engine,services/agriai-engine/main.py,233,POST,/recommend,recommend
-agriai-engine,services/agriai-engine/main.py,293,POST,/simulate,simulate
-agriai-engine,services/agriai-engine/main.py,306,POST,/plan,plan
-agriai-engine,services/agriai-engine/main.py,322,POST,/replay/verify,replay_verify
+agriai-engine,services/agriai-engine/main.py,90,GET,/metrics,metrics
+agriai-engine,services/agriai-engine/main.py,238,POST,/recommend,recommend
+agriai-engine,services/agriai-engine/main.py,298,POST,/simulate,simulate
+agriai-engine,services/agriai-engine/main.py,311,POST,/plan,plan
+agriai-engine,services/agriai-engine/main.py,327,POST,/replay/verify,replay_verify
 ai_agronomist,services/ai_agronomist/main.py,113,GET,/healthz,healthz
 ai_agronomist,services/ai_agronomist/main.py,118,GET,/healthz/ai-provider,ai_provider_snapshot
 ai_agronomist,services/ai_agronomist/main.py,126,GET,/approvals/pending,list_pending_approvals

@@ -6,7 +6,7 @@
 ## Inventory summary
 
 - Services discovered: **32**
-- Python LOC discovered: **228,293**
+- Python LOC discovered: **228,360**
 - Routes discovered: **1073**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
@@ -16,7 +16,7 @@
 | Service | Domain | Python files | LOC | Tests | Routes | Main | Docker | Requirements | Risk |
 |---|---:|---:|---:|---:|---:|---|---|---|---|
 | `actuator-service` | IoT Actuation | 11 | 1523 | 4 | 6 | `services/actuator-service/main.py` | `services/actuator-service/Dockerfile` | `services/actuator-service/requirements.txt` | `normal` |
-| `agriai-engine` | AI Advisor | 17 | 1769 | 5 | 8 | `services/agriai-engine/main.py` | `services/agriai-engine/Dockerfile` | `services/agriai-engine/requirements.txt` | `normal` |
+| `agriai-engine` | AI Advisor | 17 | 1836 | 5 | 8 | `services/agriai-engine/main.py` | `services/agriai-engine/Dockerfile` | `services/agriai-engine/requirements.txt` | `normal` |
 | `ai_agronomist` | AI Advisor | 46 | 6007 | 1 | 13 | `services/ai_agronomist/main.py` | `services/ai_agronomist/Dockerfile` | `services/ai_agronomist/requirements.txt` | `normal` |
 | `auth` | Identity & Access | 19 | 2355 | 2 | 28 | `services/auth/main.py` | `services/auth/Dockerfile` | `services/auth/requirements.txt` | `normal` |
 | `decision-service` | Decision SoR | 57 | 13581 | 41 | 69 | `services/decision-service/main.py` | `services/decision-service/Dockerfile` | `services/decision-service/requirements.txt` | `normal` |

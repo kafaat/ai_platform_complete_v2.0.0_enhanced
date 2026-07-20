@@ -1,7 +1,8 @@
 // SAHOOL v9 — SatellitePage.tsx (v4 · صحّة الحقل طراز FieldView)
 // ✅ سطح «صحّة الحقل» بثلاثة أوضاع عبر مبدّل مقسَّم (LayerSwitcher):
 //    • الاستطلاع (Scouting): تباين مناطقيّ (management zones) + دبابيس مشاهدات
-//      محلّيّة للجلسة (لا GET للقراءة في الخادم — TODO موثّق).
+//      دائمة على الخادم (v94): تُكتَب بـPOST وتُجلَب بـGET /api/v1/scouting/pins
+//      (useScoutingPins، معزولة بالمستأجِر RLS) فتبقى عبر الجلسات والأجهزة.
 //    • النباتيّ (Vegetation): NDVI/NDMI زمنيّاً ببلاطات المؤشّر + شريط زمنيّ.
 //    • اللون الحقيقيّ (True-Color): صور الأساس فقط (طبقة المؤشّر مخفيّة).
 // ✅ شريط/منزلق زمنيّ (DateScrubber) يصفّح تواريخ COG الحقيقيّة من raster-service.

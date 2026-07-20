@@ -15,7 +15,7 @@
     "service": "agriai-engine",
     "domain": "AI Advisor",
     "python_files": 17,
-    "python_loc": 1769,
+    "python_loc": 1836,
     "tests": 5,
     "routes": 8,
     "main": "services/agriai-engine/main.py",

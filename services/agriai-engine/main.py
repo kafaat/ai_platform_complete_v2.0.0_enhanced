@@ -63,21 +63,26 @@ async def legacy_health():
 
 @app.get("/readyz")
 async def readyz():
-    # في وضع الإنتاج تصبح pcse شرطاً صلباً (المحاكاة العلميّة إلزاميّة)؛ خارجه تبقى
-    # الخدمة حوسبة صرفة جاهزة دائماً بصدق مع وسم التبعيّة الاختياريّة.
+    # في وضع الإنتاج، الجاهزيّة العلميّة تتطلّب مساراً **مُثبَتاً تكامليّاً** لا مجرّد توفّر
+    # مكتبة pcse (بُناة الموفِّر أقلّاب حتى إكمال التكامل — SIM_PCSE_INTEGRATION_VERIFIED).
+    # خارج الإنتاج تبقى الخدمة حوسبةً صرفةً جاهزةً بصدق مع وسم حالة المسار العلميّ.
     production_mode = os.getenv("AGRIAI_PRODUCTION_MODE", "0").lower() in {"1", "true", "yes", "on"}
-    scientific_runtime_ready = wa.pcse_available() or not production_mode
+    sci = wa.scientific_path_status()
+    ready = (not production_mode) or sci["scientific_ready"]
+    if sci["scientific_ready"]:
+        pcse_state = "ready"
+    elif production_mode:
+        pcse_state = "verified_missing"  # مكتبة قد تكون متاحة لكن التكامل غير مُثبَت
+    else:
+        pcse_state = "optional_unverified"
     return {
-        "status": "ready" if scientific_runtime_ready else "not_ready",
+        "status": "ready" if ready else "not_ready",
         "service": "agriai-engine",
-        "ready": scientific_runtime_ready,
+        "ready": ready,
         "implemented_runtime": True,
         "runtime_mode": "pcse-required" if production_mode else "development-compatible",
-        "dependencies": {
-            "pcse": "ready"
-            if wa.pcse_available()
-            else ("required_missing" if production_mode else "optional_missing")
-        },
+        "scientific_path": sci,
+        "dependencies": {"pcse": pcse_state},
     }
 
 

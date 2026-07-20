@@ -59,6 +59,44 @@ def pcse_available() -> bool:
     return _PCSE_AVAILABLE
 
 
+def sim_pcse_integration_verified() -> bool:
+    """هل أُثبِت المسار العلميّ (PCSE/WOFOST) تكامليّاً حيّاً؟ (افتراضيّاً مُطفأ).
+
+    استيراد ``pcse`` شرط **لازم غير كافٍ**: بُناة الموفِّر (``_build_weather_provider`` /
+    ``_build_agromanagement``) يحتاجان إكمالاً في بيئة التكامل قبل أن يُنتِج WOFOST محاكاةً
+    علميّةً حقيقيّةً. تُرفَع هذه الراية يدويّاً **فقط بعد برهان حيّ**، فلا يدّعي ``/readyz``
+    جاهزيّةً علميّةً على مجرّد توفّر المكتبة.
+    """
+    return os.getenv("SIM_PCSE_INTEGRATION_VERIFIED", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+
+
+def scientific_path_status() -> dict[str, Any]:
+    """حالة صادقة للمسار العلميّ PCSE/WOFOST — بلا مبالغة.
+
+    ``scientific_ready`` يتطلّب الثلاثة معاً: المكتبة متاحة **و** الراية مُفعَّلة **و** التكامل
+    مُثبَت حيّاً. أيّ نقص ⇒ المحاكاة تلجأ للبديل الحتميّ الموثّق (``simulate`` لا ينهار).
+    """
+    importable = pcse_available()
+    enabled = sim_pcse_enabled()
+    verified = sim_pcse_integration_verified()
+    return {
+        "pcse_importable": importable,
+        "pcse_enabled": enabled,
+        "integration_verified": verified,
+        "scientific_ready": bool(importable and enabled and verified),
+        "note": (
+            "pcse importable is necessary but NOT sufficient: the provider builders need "
+            "integration completion. Set SIM_PCSE_INTEGRATION_VERIFIED=1 only after a live "
+            "scientific proof; otherwise the deterministic fallback is used."
+        ),
+    }
+
+
 def _num(value: Any, default: float = 0.0) -> float:
     if isinstance(value, bool):
         return default
