@@ -334,6 +334,7 @@ async def ingest_kobo_submission(
     """يستقبل إدخال KoboToolbox (مزوّد ثانٍ، B1.4) — نفس المسار المُصادَق، محوّل Kobo. خلف الراية."""
     return await _handle_submission(await _parse_body(request), x_scout_ingest_token, "kobo")
 
+
 # GAP-FIELD-FORMS-01: النماذج الميدانيّة الديناميكية فوق B1 (خلف FIELD_FORMS_ENABLED).
 from field_forms_api import router as field_forms_router  # noqa: E402
 
