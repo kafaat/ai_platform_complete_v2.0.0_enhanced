@@ -119,7 +119,9 @@ curl -sS -o /dev/null -w 'accept-again=%{http_code}\n' -X POST \
 # المتوقَّع: 409 season_already_accepted
 ```
 
-### تسجيل النتيجة
+### تسجيل النتيجة — ✅ مُنجَز (2026-07-20)
+
+> **رُصِد `ALL PROOFS PASSED ✅` على staging** (فرع البناء `claude/code-review-34hO3`) — (أ) deny · (ب) 200 · (ج) 409. فجوة `SEASON-EDGE-LIVE-PROOF` مُقفَلة، المهمّة #225 مُغلَقة.
 
 بعد رصد (أ)=401 و(ب)=200 و(ج)=409 على staging:
 - حدّث قائمة تشغيل المالك: «SEASON-EDGE-LIVE-PROOF ✅ مرصود على staging <SHA>».
