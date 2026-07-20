@@ -15,7 +15,11 @@ import asyncio
 from pathlib import Path
 
 import pytest
-from fastapi import HTTPException
+
+# وظيفة Integration في CI تثبّت تبعيّات دنيا (بلا fastapi) — تخطَّ الموديول كاملًا
+# هناك بدل كسر الجمع؛ في وظيفة Unit (fastapi متوفّر) يعمل كاملًا.
+pytest.importorskip("fastapi", reason="integration job installs minimal deps (no fastapi)")
+from fastapi import HTTPException  # noqa: E402
 
 pytestmark = pytest.mark.unit
 
