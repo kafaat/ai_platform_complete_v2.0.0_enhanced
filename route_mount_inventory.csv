@@ -11,7 +11,7 @@ services/guardrails-engine/main.py,guardrails-engine,True,0,7,True,False,False,d
 services/indicators-service/main.py,indicators-service,True,11,0,False,False,True,direct_routes,main.py owns direct route handlers
 services/knowledge-graph/main.py,knowledge-graph,True,7,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/local-ai-rag/main.py,local-ai-rag,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
-services/odoo-bridge/main.py,odoo-bridge,True,0,10,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
+services/odoo-bridge/main.py,odoo-bridge,True,0,11,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/rag-retrieval/main.py,rag-retrieval,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/raster-service/main.py,raster-service,False,0,80,False,True,True,factory_delegated_routes,main.py delegates to an app factory and routers contain routes
 services/remote-sensing-workspace-bff/main.py,remote-sensing-workspace-bff,True,3,0,False,False,False,direct_routes,main.py owns direct route handlers
