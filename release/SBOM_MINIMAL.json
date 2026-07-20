@@ -11495,7 +11495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "40af94c07e10383daaafed4fa3f83a153413235cc189c41ca36b2f11404909f0"
+          "content": "b31fca044c799c1638374826e06a777ebd7d47c65c1a45d4f8406eae41e2ada3"
         }
       ],
       "name": "services/guardrails-engine/main.py",
@@ -13329,6 +13329,16 @@
         }
       ],
       "name": "services/raster-service/test_indicator_batch_claim.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f9f2051d3678ca7636b9f16ccbf4967ba06d968f6c67d01ff0bb8e5870627988"
+        }
+      ],
+      "name": "services/raster-service/test_indicator_grid_provenance_static.py",
       "type": "file"
     },
     {
@@ -15475,7 +15485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e4e0d6d6d3a5feb4afc4c3fe0019ed69f66d90090ef55c20bc480657598f7e09"
+          "content": "360d11ac1d9fa990cf11131863d377f3ea8890a21726a1bd2f1e939a933d67d1"
         }
       ],
       "name": "services/sahool-platform/api/main.py",

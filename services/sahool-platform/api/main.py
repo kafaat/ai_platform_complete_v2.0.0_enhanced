@@ -68,10 +68,10 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
     JSONResponse,
     PlainTextResponse,
 )
-
-from shared.security.cors_policy import parse_cors_origins
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
+
+from shared.security.cors_policy import parse_cors_origins
 
 logger = logging.getLogger("sahool.api")
 

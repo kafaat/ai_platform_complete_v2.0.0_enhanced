@@ -24,13 +24,13 @@ from diff_generator import ActionDiffGenerator
 from fastapi import FastAPI, HTTPException
 from fastapi import Header as _Header
 from fastapi.middleware.cors import CORSMiddleware
-
-from shared.security.cors_policy import parse_cors_origins
 from human_in_loop import HumanApprovalWorkflow
 from pydantic import BaseModel, Field
 from tiers.chemical_tier import ChemicalSafetyTier
 from tiers.economic_tier import EconomicSafetyTier
 from tiers.environmental_tier import EnvironmentalSafetyTier
+
+from shared.security.cors_policy import parse_cors_origins
 
 
 class GuardrailsRequest(BaseModel):
