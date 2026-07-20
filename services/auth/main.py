@@ -34,6 +34,7 @@ from jose import JWTError, jwt
 from prometheus_client import Counter
 from pydantic import BaseModel, EmailStr, Field, field_validator
 
+from shared.security.cors_policy import parse_cors_origins
 from shared.security.jwt_key_validation import validate_rsa_key_pair
 
 # تسجيل منظّم موحّد (JSON) — يهرّب الاقتباسات/العربي صحيحاً (لا JSON مكسور).
@@ -131,7 +132,7 @@ def clear_tile_auth_cookie(response, request=None) -> None:
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 REDIS_URL = os.getenv("REDIS_URL", "redis://sahool-redis:6379/0")
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True)
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")

@@ -31,10 +31,15 @@ VIDEO_BASE = os.getenv("VIDEO_PROCESSOR_BASE_URL", "https://localhost/api/video"
 # ZLM_API_SECRET (compose default sahool-zlm-dev-secret) or the API returns code -100.
 ZLM_SECRET = os.getenv("ZLMEDIAKIT_API_SECRET", "sahool-zlm-dev-secret")
 # The dev gateway serves a self-signed cert on :443; the host gate reaches video-processor
-# only through nginx. Skip TLS verify by default (loopback dev); set E2E_TLS_VERIFY=1 once
-# a real cert is installed.
-_TLS_VERIFY = os.getenv("E2E_TLS_VERIFY", "0").strip().lower() in {"1", "true", "yes", "on"}
-_CTX = None if _TLS_VERIFY else ssl._create_unverified_context()
+# only through nginx. TLS is verified by default now; to accept the self-signed loopback
+# cert set INSECURE_TLS=1 (central policy shared.security.tls_policy — insecure only for
+# loopback unless INSECURE_TLS_ALLOW_REMOTE=1). A real cert needs no flag.
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+from shared.security.tls_policy import tls_context as _tls_context  # noqa: E402
+
+_CTX = _tls_context(VIDEO_BASE)
 
 
 def get(url: str) -> tuple[int, str]:

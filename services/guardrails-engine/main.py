@@ -24,6 +24,8 @@ from diff_generator import ActionDiffGenerator
 from fastapi import FastAPI, HTTPException
 from fastapi import Header as _Header
 from fastapi.middleware.cors import CORSMiddleware
+
+from shared.security.cors_policy import parse_cors_origins
 from human_in_loop import HumanApprovalWorkflow
 from pydantic import BaseModel, Field
 from tiers.chemical_tier import ChemicalSafetyTier
@@ -344,7 +346,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_origins=parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True),
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type"],
     allow_credentials=True,

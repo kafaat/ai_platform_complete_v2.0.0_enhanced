@@ -37,22 +37,31 @@ from __future__ import annotations
 
 import json
 import os
+import pathlib
 import ssl
 import sys
 import time
 import urllib.error
 import urllib.request
 
+_REPO_ROOT = str(pathlib.Path(__file__).resolve().parents[1])
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+from shared.security.tls_policy import tls_context as _tls_context  # noqa: E402
+
 _TIMEOUT = float(os.getenv("SMOKE_TIMEOUT", "15"))
 
 
 def _ssl_context() -> ssl.SSLContext | None:
-    if os.getenv("INSECURE_TLS", "").strip() in {"1", "true", "yes", "on"}:
-        ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-        return ctx
-    return None
+    # INSECURE_TLS يُشرَّف فقط لأهداف loopback (شهادات dev)، ما لم يُضبَط
+    # INSECURE_TLS_ALLOW_REMOTE صراحةً — المُعقِّم المركزيّ shared.security.tls_policy.
+    base = (
+        os.getenv("BASE_URL")
+        or os.getenv("API_BASE")
+        or os.getenv("AUTH_BASE")
+        or "https://localhost"
+    )
+    return _tls_context(base)
 
 
 def _request(

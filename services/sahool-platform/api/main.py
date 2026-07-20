@@ -68,6 +68,8 @@ from fastapi.responses import (  # noqa: F401 — إعادة تصدير (نمط 
     JSONResponse,
     PlainTextResponse,
 )
+
+from shared.security.cors_policy import parse_cors_origins
 from jwt.exceptions import InvalidTokenError
 from pydantic import BaseModel
 
@@ -774,14 +776,13 @@ async def _idempotent(store, command_id, do_work, *, command_type, actor_id, ten
 # كاحتياط حتى لا ينكسر CORS إن غُذِّيت المنصّة بـCORS_ORIGINS وحدها. الأسبقيّة:
 # SAHOOL_CORS_ORIGINS ⇐ CORS_ORIGINS ⇐ "" (فيبقى منطق dev-مفتوح/prod-مغلق أدناه كما هو).
 _cors_raw = os.getenv("SAHOOL_CORS_ORIGINS") or os.getenv("CORS_ORIGINS") or ""
-_cors_origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
-
-if not _cors_origins:
-    # في غياب الـENV — fallback آمن (dev مفتوح، prod مغلق)
-    if os.getenv("SAHOOL_ENV", "development") == "production":
-        _cors_origins = []  # ❌ لا يقبل أيّ origin (يجب ضبط SAHOOL_CORS_ORIGINS)
-    else:
-        _cors_origins = ["http://localhost:3000", "http://10.0.2.2:8000"]
+# المُعقِّم المركزيّ (shared.security.cors_policy): يجرّد الفراغات، يُسقِط الفارغ، يرفض
+# wildcard مع credentials، وعند غياب الـENV: dev مفتوح (localhost) / prod مغلق ([]).
+_cors_origins = parse_cors_origins(
+    _cors_raw,
+    allow_credentials=True,
+    production=os.getenv("SAHOOL_ENV", "development") == "production",
+)
 
 app.add_middleware(
     CORSMiddleware,

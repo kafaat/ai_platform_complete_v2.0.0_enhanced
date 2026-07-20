@@ -28,6 +28,8 @@ from prometheus_client import (
 )
 from vegetation_contracts import build_snapshot, derive_lai_from_ndvi, quality_gate
 
+from shared.security.cors_policy import parse_cors_origins
+
 try:
     from shared.logging_config import setup_logging
 
@@ -40,7 +42,7 @@ except ImportError:
 
 # ── Config ─────────────────────────────────────────────────────
 NATS_URL = os.getenv("NATS_URL", "nats://sahool-nats:4222")
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True)
 
 # تفضيل NDVI الحقيقيّ من raster-service (بكسليّ، Sentinel-2) على التقدير التركيبيّ.
 # مُفعَّل افتراضيّاً؛ يبقى مفتاح إيقاف (=0) لأغراض التشغيل. fail-safe بالكامل:

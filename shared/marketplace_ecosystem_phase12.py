@@ -10,6 +10,7 @@ permission logic without external services. Production adapters can later back
 these contracts with Postgres, Redis, Kong, Stripe, OpenAPI/GraphQL servers, and
 sandboxed plugin runners.
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
@@ -18,6 +19,9 @@ from enum import Enum
 from typing import Any
 import hashlib
 import hmac
+import os
+
+from shared.security.secret_guard import is_production, weak_secret_error
 import json
 import math
 
@@ -270,14 +274,18 @@ def validate_plugin_manifest(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def register_marketplace_app(raw_manifest: dict[str, Any], category: str = "agronomy") -> dict[str, Any]:
+def register_marketplace_app(
+    raw_manifest: dict[str, Any], category: str = "agronomy"
+) -> dict[str, Any]:
     review = validate_plugin_manifest(raw_manifest)
     manifest = PluginManifest(**review["manifest"])
     app = MarketplaceApp(
         app_id=_stable_id({"manifest": manifest.to_dict(), "category": category}, "app"),
         manifest=manifest,
         category=category,
-        status=PluginStatus.REVIEW.value if review["requires_security_review"] or not review["valid"] else PluginStatus.APPROVED.value,
+        status=PluginStatus.REVIEW.value
+        if review["requires_security_review"] or not review["valid"]
+        else PluginStatus.APPROVED.value,
         risk_level=review["risk_level"],
         review_findings=tuple(review["findings"]),
         published_at=_now() if review["valid"] and not review["requires_security_review"] else None,
@@ -304,10 +312,16 @@ def install_marketplace_app(
     requested = set(requested_permissions or manifest.get("permissions", []))
     denied = sorted(requested - allowed)
     if denied:
-        return {"installed": False, "reason": "permission_not_declared", "denied_permissions": denied}
+        return {
+            "installed": False,
+            "reason": "permission_not_declared",
+            "denied_permissions": denied,
+        }
     granted = tuple(sorted(requested))
     installation = AppInstallation(
-        installation_id=_stable_id({"app_id": app.get("app_id"), "tenant_id": tenant_id, "granted": granted}, "install"),
+        installation_id=_stable_id(
+            {"app_id": app.get("app_id"), "tenant_id": tenant_id, "granted": granted}, "install"
+        ),
         app_id=str(app.get("app_id")),
         tenant_id=tenant_id,
         granted_permissions=granted,
@@ -345,11 +359,15 @@ def build_plugin_sandbox_policy(manifest: dict[str, Any]) -> dict[str, Any]:
         "write_allowed": write_allowed,
         "actuation_allowed": actuation_allowed,
         "human_approval_required_for_actuation": actuation_allowed,
-        "audit_level": "elevated" if actuation_allowed or permissions & SENSITIVE_PERMISSIONS else "standard",
+        "audit_level": "elevated"
+        if actuation_allowed or permissions & SENSITIVE_PERMISSIONS
+        else "standard",
     }
 
 
-def create_webhook_subscription(tenant_id: str, url: str, events: list[str], secret_ref: str) -> dict[str, Any]:
+def create_webhook_subscription(
+    tenant_id: str, url: str, events: list[str], secret_ref: str
+) -> dict[str, Any]:
     normalized_events = tuple(sorted(set(str(e).strip() for e in events if str(e).strip())))
     unknown_events = sorted(set(normalized_events) - KNOWN_HOOKS)
     if unknown_events:
@@ -357,7 +375,9 @@ def create_webhook_subscription(tenant_id: str, url: str, events: list[str], sec
     if not (url.startswith("https://") or url.startswith("http://localhost")):
         return {"created": False, "reason": "insecure_webhook_url"}
     subscription = WebhookSubscription(
-        webhook_id=_stable_id({"tenant_id": tenant_id, "url": url, "events": normalized_events}, "wh"),
+        webhook_id=_stable_id(
+            {"tenant_id": tenant_id, "url": url, "events": normalized_events}, "wh"
+        ),
         tenant_id=tenant_id,
         url=url,
         events=normalized_events,
@@ -372,13 +392,25 @@ def sign_webhook_payload(payload: dict[str, Any], secret: str) -> str:
     return "sha256=" + hmac.new(secret.encode("utf-8"), body, hashlib.sha256).hexdigest()
 
 
-def plan_webhook_delivery(subscription: dict[str, Any], event_type: str, payload: dict[str, Any], secret: str) -> dict[str, Any]:
+def plan_webhook_delivery(
+    subscription: dict[str, Any], event_type: str, payload: dict[str, Any], secret: str
+) -> dict[str, Any]:
     if not subscription.get("active"):
-        return {"status": WebhookDeliveryStatus.DEAD_LETTER.value, "reason": "subscription_inactive"}
+        return {
+            "status": WebhookDeliveryStatus.DEAD_LETTER.value,
+            "reason": "subscription_inactive",
+        }
     if event_type not in set(subscription.get("events", [])):
         return {"status": "ignored", "reason": "event_not_subscribed"}
     envelope = {
-        "event_id": _stable_id({"event_type": event_type, "payload": payload, "webhook_id": subscription.get("webhook_id")}, "evt"),
+        "event_id": _stable_id(
+            {
+                "event_type": event_type,
+                "payload": payload,
+                "webhook_id": subscription.get("webhook_id"),
+            },
+            "evt",
+        ),
         "event_type": event_type,
         "tenant_id": subscription.get("tenant_id"),
         "created_at": _now(),
@@ -406,9 +438,15 @@ def define_connector_descriptor(
     sync_modes: list[str] | None = None,
 ) -> dict[str, Any]:
     if connector_type not in {c.value for c in ConnectorType}:
-        return {"valid": False, "reason": "unknown_connector_type", "connector_type": connector_type}
+        return {
+            "valid": False,
+            "reason": "unknown_connector_type",
+            "connector_type": connector_type,
+        }
     descriptor = ConnectorDescriptor(
-        connector_id=_stable_id({"name": name, "type": connector_type, "capabilities": capabilities}, "conn"),
+        connector_id=_stable_id(
+            {"name": name, "type": connector_type, "capabilities": capabilities}, "conn"
+        ),
         name=name,
         connector_type=connector_type,
         capabilities=tuple(sorted(set(capabilities))),
@@ -449,9 +487,26 @@ def build_graphql_facade_schema() -> dict[str, Any]:
         "DigitalTwin": ["field", "weather", "soil", "water", "economics", "scenarios"],
         "MarketplaceApp": ["id", "name", "version", "category", "permissions", "status"],
     }
-    queries = ["field(id: ID!)", "fields", "digitalTwin(fieldId: ID!)", "marketplaceApps", "recommendations(fieldId: ID!)"]
-    mutations = ["installApp(appId: ID!)", "createWebhook(input: WebhookInput!)", "approveRecommendation(id: ID!)"]
-    return {"schema_id": _stable_id({"types": types, "queries": queries, "mutations": mutations}, "graphql"), "types": types, "queries": queries, "mutations": mutations}
+    queries = [
+        "field(id: ID!)",
+        "fields",
+        "digitalTwin(fieldId: ID!)",
+        "marketplaceApps",
+        "recommendations(fieldId: ID!)",
+    ]
+    mutations = [
+        "installApp(appId: ID!)",
+        "createWebhook(input: WebhookInput!)",
+        "approveRecommendation(id: ID!)",
+    ]
+    return {
+        "schema_id": _stable_id(
+            {"types": types, "queries": queries, "mutations": mutations}, "graphql"
+        ),
+        "types": types,
+        "queries": queries,
+        "mutations": mutations,
+    }
 
 
 def record_usage(
@@ -474,10 +529,16 @@ def record_usage(
         recorded_at=_now(),
         metadata=metadata or {},
     )
-    return {"recorded": True, "usage": record.to_dict(), "usage_id": _stable_id(record.to_dict(), "usage")}
+    return {
+        "recorded": True,
+        "usage": record.to_dict(),
+        "usage_id": _stable_id(record.to_dict(), "usage"),
+    }
 
 
-def enforce_quota(installation: dict[str, Any], usage_totals: dict[str, float], requested: dict[str, float]) -> dict[str, Any]:
+def enforce_quota(
+    installation: dict[str, Any], usage_totals: dict[str, float], requested: dict[str, float]
+) -> dict[str, Any]:
     quota = installation.get("quota", DEFAULT_QUOTAS)
     violations: list[str] = []
     projections: dict[str, float] = {}
@@ -508,15 +569,31 @@ def build_developer_portal_index() -> dict[str, Any]:
         {"slug": "billing", "title": "Usage Metering and Quotas", "required": True},
         {"slug": "sandbox", "title": "Developer Sandbox", "required": False},
     ]
-    return {"portal_id": _stable_id(sections, "portal"), "sections": sections, "status": "ready_for_static_site"}
+    return {
+        "portal_id": _stable_id(sections, "portal"),
+        "sections": sections,
+        "status": "ready_for_static_site",
+    }
 
 
 def run_phase12_ecosystem_cycle(
     manifest: dict[str, Any],
     tenant_id: str = "tenant-demo",
     installed_by: str = "admin-demo",
-    webhook_secret: str = "dev-secret",
+    webhook_secret: str | None = None,
 ) -> dict[str, Any]:
+    # لا سرّ افتراضيّ حرفيّ في الشيفرة: يُقرأ من البيئة؛ في الإنتاج تُرفَض القيم
+    # الضعيفة/الفارغة عبر الحارس المركزيّ (shared.security.secret_guard). خارج الإنتاج
+    # يُسمَح بمفتاح demo مُعلَّم صراحةً (ليس سرّاً حقيقيّاً).
+    if webhook_secret is None:
+        webhook_secret = os.getenv("MARKETPLACE_WEBHOOK_SECRET", "")
+    err = weak_secret_error(
+        "MARKETPLACE_WEBHOOK_SECRET", webhook_secret, production=is_production()
+    )
+    if err:
+        raise RuntimeError(err)
+    if not webhook_secret:
+        webhook_secret = "demo-only-not-a-real-secret"  # non-production demo signing key
     registration = register_marketplace_app(manifest)
     app = registration["app"]
     sandbox = build_plugin_sandbox_policy(app["manifest"])
@@ -527,17 +604,29 @@ def run_phase12_ecosystem_cycle(
         events=["recommendation.created", "operation.completed"],
         secret_ref="secret/demo",
     )
-    delivery = plan_webhook_delivery(
-        webhook.get("webhook", {}),
-        "recommendation.created",
-        {"recommendation_id": "rec-1", "app_id": app["app_id"]},
-        webhook_secret,
-    ) if webhook.get("created") else {"status": "skipped"}
+    delivery = (
+        plan_webhook_delivery(
+            webhook.get("webhook", {}),
+            "recommendation.created",
+            {"recommendation_id": "rec-1", "app_id": app["app_id"]},
+            webhook_secret,
+        )
+        if webhook.get("created")
+        else {"status": "skipped"}
+    )
     sdk = build_public_sdk_manifest()
     graphql = build_graphql_facade_schema()
     portal = build_developer_portal_index()
     usage = record_usage(tenant_id, app["app_id"], "api_calls_day", 1, "idem-1")
-    quota = enforce_quota(install.get("installation", {"quota": DEFAULT_QUOTAS}), {"api_calls_day": 0}, {"api_calls_day": 1}) if install.get("installed") else {"allowed": False, "reason": "not_installed"}
+    quota = (
+        enforce_quota(
+            install.get("installation", {"quota": DEFAULT_QUOTAS}),
+            {"api_calls_day": 0},
+            {"api_calls_day": 1},
+        )
+        if install.get("installed")
+        else {"allowed": False, "reason": "not_installed"}
+    )
     return {
         "cycle_id": _stable_id({"manifest": manifest, "tenant_id": tenant_id}, "ecosystem"),
         "registration": registration,

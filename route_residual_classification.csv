@@ -2,11 +2,11 @@ service,file,line,method,path,function,classification
 agriai-engine,services/agriai-engine/main.py,55,GET,/healthz,healthz,health
 agriai-engine,services/agriai-engine/main.py,60,GET,/health,legacy_health,health
 agriai-engine,services/agriai-engine/main.py,65,GET,/readyz,readyz,readiness
-agriai-engine,services/agriai-engine/main.py,85,GET,/metrics,metrics,metrics
-agriai-engine,services/agriai-engine/main.py,233,POST,/recommend,recommend,business_endpoint
-agriai-engine,services/agriai-engine/main.py,293,POST,/simulate,simulate,business_endpoint
-agriai-engine,services/agriai-engine/main.py,306,POST,/plan,plan,business_endpoint
-agriai-engine,services/agriai-engine/main.py,322,POST,/replay/verify,replay_verify,business_endpoint
+agriai-engine,services/agriai-engine/main.py,90,GET,/metrics,metrics,metrics
+agriai-engine,services/agriai-engine/main.py,238,POST,/recommend,recommend,business_endpoint
+agriai-engine,services/agriai-engine/main.py,298,POST,/simulate,simulate,business_endpoint
+agriai-engine,services/agriai-engine/main.py,311,POST,/plan,plan,business_endpoint
+agriai-engine,services/agriai-engine/main.py,327,POST,/replay/verify,replay_verify,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,113,GET,/healthz,healthz,health
 ai_agronomist,services/ai_agronomist/main.py,118,GET,/healthz/ai-provider,ai_provider_snapshot,business_endpoint
 ai_agronomist,services/ai_agronomist/main.py,126,GET,/approvals/pending,list_pending_approvals,business_endpoint

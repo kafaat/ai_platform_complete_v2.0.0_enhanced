@@ -34,6 +34,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 from starlette.middleware.base import BaseHTTPMiddleware as _BaseHTTPMiddleware
 
+from shared.security.cors_policy import parse_cors_origins
+
 
 # ── Logging ────────────────────────────────────────────────────
 def setup_logging(service_name: str, level: str = "INFO") -> logging.Logger:
@@ -65,8 +67,11 @@ async def init_db(dsn: str | None = None, min_size: int = 2, max_size: int = 10)
     for attempt in range(6):
         try:
             _db_pool = await asyncpg.create_pool(
-                url, min_size=min_size, max_size=max_size,
-                command_timeout=30, statement_cache_size=0,
+                url,
+                min_size=min_size,
+                max_size=max_size,
+                command_timeout=30,
+                statement_cache_size=0,
             )
             return _db_pool
         except (OSError, asyncpg.PostgresError) as e:
@@ -74,7 +79,9 @@ async def init_db(dsn: str | None = None, min_size: int = 2, max_size: int = 10)
             delay = min(2**attempt, 20)
             logging.warning(
                 "init_db: Postgres غير جاهز (محاولة %d/6): %s — إعادة بعد %ds",
-                attempt + 1, e, delay,
+                attempt + 1,
+                e,
+                delay,
             )
             await asyncio.sleep(delay)
     raise RuntimeError(f"init_db: تعذّر الاتصال بـPostgres بعد 6 محاولات: {last_err}")
@@ -405,7 +412,7 @@ def create_app(
     with_redis: bool = True,
     with_nats: bool = False,
 ) -> FastAPI:
-    cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    cors_origins = parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True)
     app = FastAPI(
         title=f"SAHOOL {service_name}",
         version=version,

@@ -34,9 +34,16 @@ REQUIRE_MODEL = os.getenv("SEGMENTATION_REQUIRE_MODEL", "false").lower() in {"1"
 BBOX = os.getenv("SEGMENTATION_BBOX", "44.15,15.35,44.17,15.37")
 
 
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+from shared.security.tls_policy import tls_context as _tls_context  # noqa: E402
+
+
 def _ctx():
-    # Local v9 uses self-signed dev TLS.  This script is an operator gate, not browser code.
-    return ssl._create_unverified_context() if BASE_URL.startswith("https://") else None
+    # Local v9 uses self-signed dev TLS. Insecure only for loopback + INSECURE_TLS=1
+    # (central policy shared.security.tls_policy); a remote host verifies normally.
+    return _tls_context(BASE_URL)
 
 
 def get_json(url: str) -> tuple[int, dict]:

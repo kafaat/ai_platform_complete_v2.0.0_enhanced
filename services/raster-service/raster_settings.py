@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import os
 
+from shared.security.cors_policy import parse_cors_origins
+
 EARTH_SEARCH_URL = os.getenv("EARTH_SEARCH_URL", "https://earth-search.aws.element84.com/v1")
 # الافتراض element84: صور Sentinel-2 خام مباشرة (VRT محليّ) بلا وحدات معالجة CDSE.
 # عيّن HISTORICAL_SEARCH_PROVIDER=cdse لاستعمال Copernicus Process API عند توفّر الرصيد.
@@ -48,7 +50,7 @@ LANDSAT_THERMAL_ASSET_CANDIDATES = (
     "thermal_ir",
 )
 DEM_COLLECTION = "cop-dem-glo-30"
-CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS"), allow_credentials=True)
 HTTP_TIMEOUT = float(os.getenv("HTTP_TIMEOUT", "30"))
 TITILER_URL = os.getenv("TITILER_URL", "")
 PC_STAC_URL = os.getenv(

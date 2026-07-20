@@ -3,8 +3,8 @@
 ## Summary
 
 - File: `services/sahool-platform/api/main.py`
-- Total lines: `2532`
-- Import lines: `131`
+- Total lines: `2533`
+- Import lines: `132`
 - Top-level symbols: `46`
 - Direct route decorators: `0`
 - Status: `route_free_with_embedded_business_logic`
@@ -32,26 +32,26 @@
 
 | Symbol | Category | Classification | LOC | Lines |
 |---|---|---|---:|---|
-| `_start_scheduler` | `idempotency_outbox_events` | `embedded_business_logic` | 214 | 295-508 |
-| `_evaluate_field_alerts_persist` | `field_task_alert_helpers` | `embedded_business_logic` | 182 | 1655-1836 |
-| `_log_alert_deliveries` | `field_task_alert_helpers` | `embedded_business_logic` | 60 | 1583-1642 |
-| `_emit_domain_event` | `idempotency_outbox_events` | `embedded_business_logic` | 42 | 669-710 |
-| `rate_limit_middleware` | `middleware_and_rate_limit` | `middleware_runtime` | 41 | 877-917 |
-| `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 37 | 1154-1190 |
-| `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 36 | 222-257 |
-| `_start_outbox_worker` | `idempotency_outbox_events` | `embedded_business_logic` | 35 | 519-553 |
-| `_assert_db_role_rls_safe` | `auth_jwt_permissions` | `security_runtime` | 33 | 260-292 |
-| `require_permission` | `auth_jwt_permissions` | `security_runtime` | 31 | 1193-1223 |
-| `_idempotent` | `idempotency_outbox_events` | `embedded_business_logic` | 30 | 739-768 |
-| `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1271-1299 |
-| `_build_denylist` | `auth_jwt_permissions` | `security_runtime` | 27 | 1122-1148 |
-| `_row_to_activity` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1412-1437 |
-| `_row_to_soil_test` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1487-1512 |
-| `_build_walk_plan` | `field_task_alert_helpers` | `embedded_business_logic` | 26 | 2087-2112 |
-| `tenant_connection` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 24 | 600-623 |
-| `_build_versioned_update` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 23 | 1040-1062 |
-| `_get_workflow_store` | `workflow_compatibility` | `compatibility_runtime` | 23 | 2464-2486 |
-| `_row_to_prefs` | `parsers_mappers_serializers` | `compatibility_runtime` | 22 | 1552-1573 |
+| `_start_scheduler` | `idempotency_outbox_events` | `embedded_business_logic` | 214 | 297-510 |
+| `_evaluate_field_alerts_persist` | `field_task_alert_helpers` | `embedded_business_logic` | 182 | 1656-1837 |
+| `_log_alert_deliveries` | `field_task_alert_helpers` | `embedded_business_logic` | 60 | 1584-1643 |
+| `_emit_domain_event` | `idempotency_outbox_events` | `embedded_business_logic` | 42 | 671-712 |
+| `rate_limit_middleware` | `middleware_and_rate_limit` | `middleware_runtime` | 41 | 878-918 |
+| `get_current_user` | `auth_jwt_permissions` | `security_runtime` | 37 | 1155-1191 |
+| `_init_db_pool` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 36 | 224-259 |
+| `_start_outbox_worker` | `idempotency_outbox_events` | `embedded_business_logic` | 35 | 521-555 |
+| `_assert_db_role_rls_safe` | `auth_jwt_permissions` | `security_runtime` | 33 | 262-294 |
+| `require_permission` | `auth_jwt_permissions` | `security_runtime` | 31 | 1194-1224 |
+| `_idempotent` | `idempotency_outbox_events` | `embedded_business_logic` | 30 | 741-770 |
+| `_reverse_geocode` | `parsers_mappers_serializers` | `compatibility_runtime` | 29 | 1272-1300 |
+| `_build_denylist` | `auth_jwt_permissions` | `security_runtime` | 27 | 1123-1149 |
+| `_row_to_activity` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1413-1438 |
+| `_row_to_soil_test` | `parsers_mappers_serializers` | `compatibility_runtime` | 26 | 1488-1513 |
+| `_build_walk_plan` | `field_task_alert_helpers` | `embedded_business_logic` | 26 | 2088-2113 |
+| `tenant_connection` | `db_tenant_rls_bootstrap` | `bootstrap_runtime` | 24 | 602-625 |
+| `_build_versioned_update` | `misc_bootstrap_compatibility` | `bootstrap_compatibility` | 23 | 1041-1063 |
+| `_get_workflow_store` | `workflow_compatibility` | `compatibility_runtime` | 23 | 2465-2487 |
+| `_row_to_prefs` | `parsers_mappers_serializers` | `compatibility_runtime` | 22 | 1553-1574 |
 
 ## Recommendations
 
