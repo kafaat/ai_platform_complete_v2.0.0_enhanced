@@ -73,27 +73,24 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
 
 -- A7 (مرجع مشترك admin_boundaries): sahool_app **SELECT فقط** — تُنزَع الكتابة (الكتابة عبر المُحمِّل الموثّق).
--- psql لا يستبدل :'app_role' داخل سلاسل dollar-quoted (DO $$ … $$) — تُرسَل حرفيّاً
--- فيصل ':' خامّاً للمحلّل ⇒ خطأ صياغة. نمرّر الدور عبر GUC (أمر SELECT عاديّ يُستبدَل
--- فيه المتغيّر) ونقرأه داخل الكتلة بـcurrent_setting + format('%I') (تعقيم معرّف مدمج).
-SELECT set_config('sahool.app_role', :'app_role', false);
-DO $$
-DECLARE
-  v_role text := current_setting('sahool.app_role');
-BEGIN
-  IF to_regclass('public.admin_boundaries') IS NOT NULL THEN
-    EXECUTE format('REVOKE INSERT, UPDATE, DELETE ON admin_boundaries FROM %I', v_role);
-  END IF;
-  IF to_regclass('public.admin_boundaries_source') IS NOT NULL THEN
-    EXECUTE format('REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM %I', v_role);
-  END IF;
-  -- SEASON-RECORD-01 (v201): سجلّ موسم append-only — **لا DELETE أبداً**. SELECT/INSERT/UPDATE يبقى؛ DELETE يُنزَع.
-  IF to_regclass('public.season_records')    IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_records FROM %I',    v_role); END IF;
-  IF to_regclass('public.season_crop')       IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_crop FROM %I',       v_role); END IF;
-  IF to_regclass('public.season_events')     IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_events FROM %I',     v_role); END IF;
-  IF to_regclass('public.season_harvest')    IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_harvest FROM %I',    v_role); END IF;
-  IF to_regclass('public.season_cost_items') IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_cost_items FROM %I', v_role); END IF;
-END $$;
+-- حاسم: :'app_role' متغيّر psql يُستبدَل **فقط خارج** كتل dollar-quoted (DO $$…$$).
+-- لذا نتجنّب DO ونولّد أوامر REVOKE بـformat() ثمّ ننفّذها بـ\gexec:
+--   • :'app_role' خارج أيّ اقتباس دولاريّ ⇒ يعالجه psql · %I يقتبس المعرّف بأمان
+--   • WHERE to_regclass(...) IS NOT NULL يحفظ idempotency · \gexec ينفّذ المُولَّد فقط.
+SELECT format('REVOKE INSERT, UPDATE, DELETE ON TABLE public.admin_boundaries FROM %I', :'app_role')
+WHERE to_regclass('public.admin_boundaries') IS NOT NULL
+\gexec
+SELECT format('REVOKE INSERT, UPDATE, DELETE ON TABLE public.admin_boundaries_source FROM %I', :'app_role')
+WHERE to_regclass('public.admin_boundaries_source') IS NOT NULL
+\gexec
+-- SEASON-RECORD-01 (v201): سجلّ موسم append-only — **لا DELETE أبداً**. SELECT/INSERT/UPDATE يبقى؛ DELETE يُنزَع.
+SELECT format('REVOKE DELETE ON TABLE public.%I FROM %I', t.table_name, :'app_role')
+FROM (VALUES
+        ('season_records'), ('season_crop'), ('season_events'),
+        ('season_harvest'), ('season_cost_items')
+     ) AS t(table_name)
+WHERE to_regclass(format('public.%I', t.table_name)) IS NOT NULL
+\gexec
 SQL
 
 
