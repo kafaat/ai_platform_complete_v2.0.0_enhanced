@@ -767,3 +767,10 @@ SHAs من `git log --oneline origin/main`.
 - **الصدق:** لم يُدمَج أحمر — اكتُشِف أنّ الفرع كان أحمر على CI (لا محليّاً فقط)، فأُصلِحت 3 عِلَل (حارسان ساكنان هشّان + رابط DB اختبار + سياق TLS مُضمَّن) قبل الدمج وبعده. برهان الاتحاد أخضر محليّاً (`-m unit` 3364) قبل الدفع.
 - **يبقى:** دفن فرع `claude/code-review-34hO3` (حذفه) يحتاج إذناً صريحاً — لم يُحذَف بعد.
 - **SHA:** `b01c75b` (main).
+
+## 2026-07-20 — 🌾 سجلّ الجنازة: دفن `claude/code-review-34hO3` بعد خضرة الاتحاد
+- **الطرف المُؤرشَف:** `fa6a128186369eebd6c3bfdec8dcbef0e074ae66` (2026-07-20T14:15:31Z) — «fix(migrate-tests): v201 append-only guard tolerates \gexec form + refresh release bundle».
+- **المصير:** **أُدمج في `b01c75b` (main) — دُفن بعد خضرة الاتحاد.** 34 التزاماً منذ merge-base `84e14f0`، جميعها الآن مبلوغة من `main` (فحص `--not origin/main` فارغ ⇒ لا عمل غير مدموج يُفقَد).
+- **شرطا الإذن (تحقّقا):** (١) main CI أخضر بالكامل على الاتحاد — بما فيه البوّابتان main-only اللتان لم ترَيا الاتحاد قط: *Runtime Real Smoke* ✅ و*Sahool Production Gates* ✅ (production_truth_readiness_gate)، إضافةً إلى *SAHOOL v9.1.0 CI* ✅ (run 29751291136، success) على طرف `main` c7c25c0 الحاوي شجرة الاتحاد كاملةً. (٢) هذا السجلّ.
+- **الحكاية:** الفرع الذي نجا من الجنازة الأولى بـ«22 التزاماً مجهولاً»، فعاد وبنى نصف المنظومة الحديثة (CDSE truecolor · terrain · decision SoR · MPC · الموسم · إلخ)، ثمّ أدّى غرضه الأخير (إصلاح \gexec + براهين #225) — يُدفَن الآن بشرف بعد أن أُدمج بالكامل. `git push origin --delete claude/code-review-34hO3`.
+- **SHA:** الاتحاد `b01c75b` · الطرف المدفون `fa6a128` · طرف main `c7c25c0`.
