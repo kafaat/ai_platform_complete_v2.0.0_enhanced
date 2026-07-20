@@ -115,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6993a357c04b4be29a1bedb19f8c03fb711613bcf0b54cdce92df8416da1b3b4"
+          "content": "66c6c809938a4d3ec558373f979c537a5ba4fe96cc1462fe438ef092235494ab"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -365,7 +365,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "be8e428093d2159e8f1bc0c800bc93b22bf9320652c6ebf43b098c1d8f43039f"
+          "content": "291b02ef464343f9a2499e73b039e4006b30ee810cfec54984f36fdb7dc3295c"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -6435,7 +6435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "784f3d19ebeceff2191b8b44d00994ca841a67a086f4b464471410c1876e45b1"
+          "content": "0e5f4db8c955e37a56172171dd957f9a6ef3c0b2776d46be331b8bbb5133835f"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6445,7 +6445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6e01128821049d42d90121d57021959efadfe76ca111f322af0f6a5557abb221"
+          "content": "cbd6f93c81966c65ec1dfc395442b04c1121ab4086948930559df7265406bbde"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -27035,7 +27035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "299f94539bc377bd8bbc0f695dfb78ff72fd5da122878d839827e51a579d0109"
+          "content": "7a0b46a04477c2bc338d6cb075925090f8dc42da75a28468eb4d927b07623adf"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",
@@ -27275,7 +27275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "337623547aa8ed95ce6f557ce889f3b8b00ea8531b2e68013f1cd8b1c0035876"
+          "content": "5429e5b1a372a4274d8b3df7fba57f648d764f05c4d64804834d0e82c909d1ae"
         }
       ],
       "name": "services/vegetation-analysis-service/vegetation_runtime.py",

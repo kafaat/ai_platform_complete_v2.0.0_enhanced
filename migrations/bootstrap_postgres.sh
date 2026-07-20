@@ -134,22 +134,28 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 
 -- A7 (مرجع مشترك admin_boundaries): قراءة-عامّة/كتابة-محمِّل. sahool_app **SELECT فقط** —
 -- تُنزَع الكتابة (طبقة مرجعيّة تتغيّر بلا provenance = انجراف صامت؛ الكتابة عبر المُحمِّل الإداريّ الموثّق).
--- (الهجرات قبل bootstrap فالجدولان موجودان؛ :'app_role' مربوط في هذه الكتلة.)
+-- (الهجرات قبل bootstrap فالجدولان موجودان.)
+-- psql لا يستبدل :'app_role' داخل سلاسل dollar-quoted (DO $$ … $$) — تُرسَل حرفيّاً
+-- فيصل ':' خامّاً للمحلّل ⇒ خطأ صياغة. نمرّر الدور عبر GUC (أمر SELECT عاديّ يُستبدَل
+-- فيه المتغيّر) ونقرأه داخل الكتلة بـcurrent_setting + format('%I') (تعقيم معرّف مدمج).
+SELECT set_config('sahool.app_role', :'app_role', false);
 DO $$
+DECLARE
+  v_role text := current_setting('sahool.app_role');
 BEGIN
   IF to_regclass('public.admin_boundaries') IS NOT NULL THEN
-    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries FROM ' || quote_ident(:'app_role');
+    EXECUTE format('REVOKE INSERT, UPDATE, DELETE ON admin_boundaries FROM %I', v_role);
   END IF;
   IF to_regclass('public.admin_boundaries_source') IS NOT NULL THEN
-    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM ' || quote_ident(:'app_role');
+    EXECUTE format('REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM %I', v_role);
   END IF;
   -- SEASON-RECORD-01 (v201): سجلّ موسم append-only — **لا DELETE أبداً** (التصحيح = إصدار مُبطِل).
   -- يبقى SELECT/INSERT/UPDATE (قبول untrusted→accepted) — تُنزَع DELETE فقط (برهان سلبيّ).
-  IF to_regclass('public.season_records')    IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_records FROM '    || quote_ident(:'app_role'); END IF;
-  IF to_regclass('public.season_crop')       IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_crop FROM '       || quote_ident(:'app_role'); END IF;
-  IF to_regclass('public.season_events')     IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_events FROM '     || quote_ident(:'app_role'); END IF;
-  IF to_regclass('public.season_harvest')    IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_harvest FROM '    || quote_ident(:'app_role'); END IF;
-  IF to_regclass('public.season_cost_items') IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_cost_items FROM ' || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_records')    IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_records FROM %I',    v_role); END IF;
+  IF to_regclass('public.season_crop')       IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_crop FROM %I',       v_role); END IF;
+  IF to_regclass('public.season_events')     IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_events FROM %I',     v_role); END IF;
+  IF to_regclass('public.season_harvest')    IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_harvest FROM %I',    v_role); END IF;
+  IF to_regclass('public.season_cost_items') IS NOT NULL THEN EXECUTE format('REVOKE DELETE ON season_cost_items FROM %I', v_role); END IF;
 END $$;
 SQL
 echo "  ✓ الدور $APP_ROLE جاهز (NOSUPERUSER NOBYPASSRLS) + admin_boundaries SELECT-only (A7) + season_records لا-DELETE (v201)"
