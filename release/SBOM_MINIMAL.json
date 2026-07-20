@@ -28975,6 +28975,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "10cda2ba7b74590fbe17d36bbd1ba1fc984b4069e7ddafec0c034746d32d9c0d"
+        }
+      ],
+      "name": "shared/security/cors_policy.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "915b2420baadfc442723a06bdd9e1b74efc5f9f53a7569fae37465baf4f2add5"
         }
       ],
@@ -29005,10 +29015,30 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "5b1ef1969bbe23e3f6e47aee06f75aade3e07d629f2009da80bda3bd508c4c5a"
+        }
+      ],
+      "name": "shared/security/secret_guard.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "cb7e8354439b9f06b427e78a7873133e8e30843a512ca61ec2b09ec29ce57d33"
         }
       ],
       "name": "shared/security/tenant_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "073b56c2bd947c4996c491d57c74f9859c1c22516d772d14e1056f6edfc8f55f"
+        }
+      ],
+      "name": "shared/security/tls_policy.py",
       "type": "file"
     },
     {
