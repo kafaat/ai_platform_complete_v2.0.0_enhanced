@@ -38,10 +38,10 @@
   {
     "service": "auth",
     "domain": "Identity & Access",
-    "python_files": 18,
-    "python_loc": 2298,
+    "python_files": 19,
+    "python_loc": 2355,
     "tests": 2,
-    "routes": 27,
+    "routes": 28,
     "main": "services/auth/main.py",
     "dockerfile": "services/auth/Dockerfile",
     "requirements": "services/auth/requirements.txt",

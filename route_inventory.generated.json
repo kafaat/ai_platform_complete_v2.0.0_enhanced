@@ -369,6 +369,14 @@
   },
   {
     "service": "auth",
+    "file": "services/auth/routers/season_edge_sign.py",
+    "line": 41,
+    "method": "GET",
+    "path": "/auth/edge-sign",
+    "function": "edge_sign"
+  },
+  {
+    "service": "auth",
     "file": "services/auth/routers/session.py",
     "line": 24,
     "method": "POST",

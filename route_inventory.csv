@@ -45,6 +45,7 @@ auth,services/auth/routers/password_reset.py,21,POST,/auth/password-reset/reques
 auth,services/auth/routers/password_reset.py,41,POST,/auth/password-reset/confirm,confirm_password_reset
 auth,services/auth/routers/registration.py,19,POST,/auth/register,register
 auth,services/auth/routers/registration.py,74,POST,/auth/change-password,change_password
+auth,services/auth/routers/season_edge_sign.py,41,GET,/auth/edge-sign,edge_sign
 auth,services/auth/routers/session.py,24,POST,/auth/login,login
 auth,services/auth/routers/session.py,125,POST,/auth/refresh,refresh_token
 auth,services/auth/routers/session.py,167,POST,/auth/logout,logout

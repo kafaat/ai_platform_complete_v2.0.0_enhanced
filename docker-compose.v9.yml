@@ -43,9 +43,14 @@ services:
     - nginx-cache:/var/cache/nginx
     environment:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
-      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN
+      # SEASON-RECORD-ENTRY-01 3b: أضِف SEASON_ENTRY_SERVICE_TOKEN كي يُستبدَل في القالب.
+      # الفلتر يقصر الاستبدال على هذه الأسماء فقط — متغيّرات nginx وقت التشغيل تبقى كما هي.
+      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN|SEASON_ENTRY_SERVICE_TOKEN
       DOMAIN: ${DOMAIN:-localhost}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # توكن خدمة قناة المواسم (تُحقنه البوّابة upstream نحو scout-ingest). فارغ محلّيّاً ⇒ الخدمة
+      # ترفض (SEASON_ENTRY_ENABLED=0 افتراضاً) — نمط READ_TOKEN، لا سرّ بقيمة في compose.
+      SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
