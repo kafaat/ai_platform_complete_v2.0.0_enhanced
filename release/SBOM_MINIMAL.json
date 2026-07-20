@@ -6415,7 +6415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb4965dd95d30c77ab9337295eee14e481582192d850a9ac0ac739d3b223c61e"
+          "content": "09c03bc0754f28ccbeb4e1b3a7e3155933bd493f6cb856164eb3682bd9b2da9c"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -25905,7 +25905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6b27c3b33dab35306b3a771a3893b2538b6b46b3b3f9299cd671ec1f7c5367c3"
+          "content": "ae0022bd7d04863fe36f4d81d624604372b1ada1d7134abb6636d18809243fde"
         }
       ],
       "name": "services/scout-ingest-service/tests/test_season_live.py",

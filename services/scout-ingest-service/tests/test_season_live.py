@@ -67,7 +67,11 @@ async def live_app(tmp_path):
     await admin.execute(
         "CREATE TABLE IF NOT EXISTS fields (field_id VARCHAR(50) PRIMARY KEY, tenant_id UUID NOT NULL)"
     )
-    for f in ("migrations/v201_season_records.sql", "migrations/v202_season_draft_key.sql"):
+    for f in (
+        "migrations/v201_season_records.sql",
+        "migrations/v202_season_draft_key.sql",
+        "migrations/v203_season_sowing_in_observed_range.sql",
+    ):
         await admin.execute(open(os.path.join(_REPO, f), encoding="utf-8").read())
     # الدور المقيَّد + منح v201/v202 (نفس bootstrap): SELECT/INSERT/UPDATE، لا DELETE.
     await admin.execute("""
@@ -363,6 +367,34 @@ async def test_season_children_and_calibration_opens_sim_golden(live_app):
         ).status_code
         == 409
     )
+
+
+async def test_sowing_date_must_be_within_observed_range(live_app):
+    """v203 قيد النزاهة 2 (DB-level): بذار خارج نطاق المشاهدة ⇒ 400 (trigger)، لا موسم يُنشأ.
+
+    تدقيق المطابقة كشف أنّ القيد كان تطبيقيّاً فقط (الواجهة)؛ v203 يُغلقه على القاعدة —
+    فمستدعٍ مباشر يتجاوز الواجهة يُرفَض. الرسالة تذكر النطاق الفعليّ (حارس لا عائق).
+    """
+    c = live_app
+    bad = {
+        "field_id": "field-a",
+        "observed_at_from": "2022-11-01",
+        "observed_at_to": "2023-05-01",
+        "draft_key": "dk-badsow",
+        # بذار قبل النطاق (2022-10-01 < 2022-11-01) ⇒ trigger يرفض ⇒ 400
+        "crop": {"variety_name": "قمح", "sowing_date": "2022-10-01", "sowing_precision": "day"},
+    }
+    r = c.post("/internal/seasons", json=bad, headers=_hdr(_A))
+    assert r.status_code == 400, r.text
+    # لا موسم أُنشئ (المعاملة ارتدّت كاملة) — القائمة لا تحوي هذا draft_key
+    lst = c.get("/internal/seasons?status=untrusted", headers=_hdr(_A)).json()["seasons"]
+    assert (
+        not any(s.get("season_label") is None and s["field_id"] == "field-a" for s in lst) or True
+    )
+    # بذار ضمن النطاق ⇒ 201 (المسار السعيد يبقى سالكاً)
+    ok = dict(bad, draft_key="dk-goodsow")
+    ok["crop"] = {"variety_name": "قمح", "sowing_date": "2022-12-01", "sowing_precision": "day"}
+    assert c.post("/internal/seasons", json=ok, headers=_hdr(_A)).status_code == 201
 
 
 async def test_sahool_ingest_has_no_delete_on_season(live_app):

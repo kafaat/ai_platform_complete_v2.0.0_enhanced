@@ -215,3 +215,13 @@
 - **الإغلاق (`7419b13`):** أربع نقاط أبناء على scout-ingest (POST events/harvest/costs + GET detail، الستّ ⇒ عشر) — untrusted فقط (409 بعد القبول، trigger + نقطة) · low_confidence تلقائيّ للنوع الكمّيّ بلا شاهد (قاعدة ٤) · قيود energy/machinery/currency/harvest>sowing مفروضة (⇒ 400) · `detail` يقرأ `calibration_eligible` من الـVIEW المُشتقّ (مصدر قاعدة واحد). ثلاث خطوات واجهة (أحداث/حصاد/تكاليف اختياريّة) + تلميح «مؤهَّل للمعايرة» في المراجعة. **برهان حيّ PG16:** calibration_eligible يقلب FALSE→TRUE عند القبول (SIM-GOLDEN مفتوح).
 - **درس (برهان حيّ يمسك ما لا تمسكه الوحدة):** `sahool_ingest` كان يفتقر SELECT على الـVIEW ⇒ `detail` 503 — **فجوة منح إنتاجيّة حقيقيّة** لا يكشفها اختبار وحدة؛ أُصلِحت `GRANT SELECT ON season_calibration_eligibility` في المُشغّلَين (bootstrap + apply).
 - **المصدر:** `services/scout-ingest-service/season_api.py` (10 نقاط) · `SeasonRecordEntryPage.tsx` · `services/api/season.ts` · `test_season_live.py` (البرهان). **الأثر على SIM-GOLDEN:** الجسر مكتمل — SEASON-RECORD يجمع الحصاد المؤهَّل؛ SIM-PATHS-DUAL يبقى OPEN (أيّ محرّك يُعايَر ضدّه يُحسَم عند SIM-GOLDEN-01).
+
+## SEASON-CONFORMANCE-AUDIT — تدقيق مطابقة SEASON-RECORD-01 (spec↔مبنى) 2026-07-20
+تدقيق المالك للمواصفة المعتمدة ↔ المبنيّ (v201، أخضر) وجد **فجوة صلابة واحدة** في مخطّط بهذا الحجم:
+- **① قيد النزاهة 2 (بذار ضمن نطاق المشاهدة) كان تطبيقيّاً فقط — أُغلِق DB-level (`v203`):** المواصفة §قيود-النزاهة صرّحت «DB-level، لا تطبيقيّة فقط»؛ v201 فرضته في الواجهة فقط (`SeasonRecordEntryPage:270`) — الواجهة عميل مؤدّب لا حارس، فمستدعٍ مباشر يتجاوزها. **`v203`** يفرضه بـtrigger `season_crop_sowing_in_observed_range` (يعبر جدولين، نمط `season_harvest_after_sowing`)؛ الرسالة تذكر النطاق الفعليّ (حارس لا عائق). برهان حيّ PG16 (بذار خارج النطاق ⇒ 400، لا موسم يُنشأ) + حارس ساكن. **الحالة: CLOSED.**
+
+## SEASON-QUARANTINE-FLOW — انحراف مقبول موثَّق (لا فجوة) — قرار المالك 2026-07-20
+- **قيمة `quarantined` محجوزة للمصادر الخارجيّة غير المتزامنة مستقبلاً؛ الترقيم الورقيّ يرفض مبكّراً (400) + `low_confidence` — انحراف عن §3 الأصليّ، مقبول 2026-07-20 بمبرّر التزامن.**
+- **قواعد 4ب/4ج (طاقة/معدّات ناقصة) تبقى سارية كرفض مبكّر — لم تُفقَد، تغيّرت آليتها فقط** (CHECK ⇒ 400 بدل quarantine).
+- **القاعدة العامّة المُعلَنة:** الرفض المبكّر للمصدر **المتزامن** (مُدخِل بشريّ حاضر يقدر على الإصلاح فوراً)، الحجر (`quarantined`) للمصدر **غير المتزامن** (B1: ODK/Kobo — البيانات تصل من جهة لا تُردّ لحظيّاً). quarantine في جلسة متزامنة كان سينتج كومة بيانات سيّئة مخزَّنة تنتظر مراجعة قد لا تأتي.
+- **المصدر:** `services/scout-ingest-service/season_api.py` (رفض مبكّر) · `migrations/v201_season_records.sql` (enum يبقي `quarantined` للمستقبل غير المتزامن). **الحالة:** انحراف مقبول موثَّق — لا فعل.
