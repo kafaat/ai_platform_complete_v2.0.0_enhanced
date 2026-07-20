@@ -4395,7 +4395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "522690b34aae9332925ea8b19928813c7d15c2ca5f12cb626e501ec77e85cd3b"
+          "content": "3f4f7943e4fe616cf56fd389eeb7009e1f31a3899307ce59164328dc355ea4e4"
         }
       ],
       "name": "frontend/src/lib/sceneFreshness.ts",
@@ -5775,7 +5775,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0bd4acb8d7bd97600698a326581af6bcbf3d67fa5a6ed8f7aac11afbe1fa34f"
+          "content": "e7f75f449041ab95fea5c7434b78ce687849effd703c38d54b710c674688331e"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -12115,6 +12115,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "fa9715aa7851babcb71478d6de2c61693ccd96891f566a5568a471f3420969d6"
+        }
+      ],
+      "name": "services/odoo-bridge/test_erp_readiness_granular.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "50b2eaf3c063f875a34c4b0740189a296ead2c489faab76b6e1c971d0da2b749"
         }
       ],
@@ -12835,7 +12845,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1973cf31b8592959673ea8475a706d1d457816ec726762bf4c06a11e8604a4ca"
+          "content": "10724b592bef7a5d25c3727b20b48acc4ce9d24962e90783b660fc95f35198db"
         }
       ],
       "name": "services/raster-service/routers/fields.py",

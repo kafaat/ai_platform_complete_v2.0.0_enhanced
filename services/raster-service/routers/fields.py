@@ -822,6 +822,10 @@ async def field_indicator_observation_bundle(
     unavailable: dict[str, str] = {}
     scene_ids: set[str] = set()
     acquisition_dates: set[str] = set()
+    # نَسَب الطبقة لمقارنة الحداثة الكاملة في الواجهة (sceneFreshness.ts): نجمع القيم
+    # المتمايزة ونكشف المفرد **فقط عند عدم الالتباس** (قيمة واحدة) — لا نخترع حقلاً.
+    field_revisions: set[int] = set()
+    processing_versions: set[str] = set()
     for public_name in requested:
         internal = _normalize_index(public_name)
         layer = await _resolve_field_layer(field_id, internal, date)
@@ -845,8 +849,20 @@ async def field_indicator_observation_bundle(
             scene_ids.add(str(scene_id))
         if acquisition:
             acquisition_dates.add(str(acquisition))
+        field_revision = provenance.get("geometry_revision")
+        if field_revision is None:
+            field_revision = layer.get("geometry_revision")
+        if field_revision is not None:
+            field_revisions.add(int(field_revision))
+        processing_version = provenance.get("processing_version")
+        if processing_version:
+            processing_versions.add(str(processing_version))
 
     mixed_scene = len(scene_ids) > 1 or len(acquisition_dates) > 1
+
+    def _single(values: set) -> object | None:
+        return next(iter(values)) if len(values) == 1 else None
+
     return {
         "field_id": field_id,
         "requested": requested,
@@ -857,6 +873,10 @@ async def field_indicator_observation_bundle(
         "mixed_scene": mixed_scene,
         "scene_ids": sorted(scene_ids),
         "acquisition_dates": sorted(acquisition_dates),
+        # نَسَب مفرد للواجهة عند اتّساق الحزمة (قيمة واحدة) — وإلّا null بصدق.
+        "scene_id": _single(scene_ids),
+        "field_revision": _single(field_revisions),
+        "processing_version": _single(processing_versions),
         "source": "raster-service",
         "real_data": bool(observations),
         "estimated": False,

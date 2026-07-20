@@ -6,18 +6,17 @@
 // المختار على الشريط الزمنيّ)، نُحذّر بوضوح كي لا يثق المستخدم بطبقة قديمة.
 //
 // صدق المصدر (مُتحقَّق منه): استجابة raster-service لـ`indicator-grid` تُرجِع
-// `date` = `layer.acquisition_date` (تاريخ التقاط المشهد الفعليّ للـCOG المعروض)
-// — لا تُرجِع `scene_id` ولا `field_revision` بعد. لذا المقارنة المُتاحة اليوم
-// (الصادقة) هي: «تاريخ مشهد الطبقة» مقابل «التاريخ المختار للعرض». أمّا مقارنة
-// `scene_id`/`field_revision` الكاملة (التي تكشف اختلاف هندسة الحقل أو إعادة
-// معالجة المشهد) فتنتظر أن تُسطّح الواجهة الخلفيّة `geometry_metadata(...)` على
-// استجابات الراستر (انظر SceneProvenance + TODO أدناه).
+// `date` = `layer.acquisition_date`، **وتُسطّح الآن** النَّسَب المفرد عند اتّساق
+// الحزمة: `scene_id` / `field_revision` (= geometry_revision) / `processing_version`
+// (قيمة واحدة فقط عند عدم الالتباس، وإلّا null — لا اختلاق). لذا تتوفّر مقارنتان:
+//   • «تاريخ مشهد الطبقة» مقابل «التاريخ المختار» (compareSceneFreshness) — دائماً.
+//   • مقارنة scene_id/field_revision الكاملة (compareSceneProvenance) — حين يوفّر
+//     المستدعي مرجعاً «حاليّاً» (مثلاً مراجعة هندسة الحقل الحاليّة) للمقارنة معه.
 
-// ── مزوّد المصدر الكامل (TODO: عندما تُرجعه واجهة الراستر) ──────────────
-// يطابق `gis_geometry_guard.geometry_metadata(...)` في الخلفيّة:
-//   { processing_version, scene_id, captured_at, field_revision, crs }
-// عند توفّره على استجابة `indicator-grid` نُفعّل مقارنة كاملة (scene_id +
-// field_revision) بدل مقارنة التاريخ وحدها. لا نخترع هذه الحقول قبل وصولها.
+// ── مزوّد المصدر الكامل (يُرجعه الراستر الآن على indicator-grid) ──────────────
+// يطابق النَّسَب المُسطَّح في الخلفيّة (routers/fields.py field_indicator_grid):
+//   { processing_version, scene_id, captured_at, field_revision }
+// عند توفّر مرجع «حاليّ» نُفعّل المقارنة الكاملة. لا نخترع هذه الحقول قبل وصولها.
 export interface SceneProvenance {
   scene_id?: string | null;
   captured_at?: string | null;

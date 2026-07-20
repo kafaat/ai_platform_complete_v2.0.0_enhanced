@@ -1914,7 +1914,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 867,
+    "line": 887,
     "method": "GET",
     "path": "/v1/fields/{field_id}/pixel",
     "function": "field_pixel_value"
@@ -1922,7 +1922,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 946,
+    "line": 966,
     "method": "POST",
     "path": "/v1/fields/{field_id}/prescription",
     "function": "field_prescription"
@@ -1930,7 +1930,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1025,
+    "line": 1045,
     "method": "POST",
     "path": "/v1/fields/{field_id}/change",
     "function": "field_change"
@@ -1938,7 +1938,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1082,
+    "line": 1102,
     "method": "GET",
     "path": "/v1/fields/{field_id}/timeseries",
     "function": "field_timeseries"
@@ -1946,7 +1946,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1173,
+    "line": 1193,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png",
     "function": "field_tile"
@@ -1954,7 +1954,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1247,
+    "line": 1267,
     "method": "GET",
     "path": "/v1/fields/{field_id}/available-dates",
     "function": "field_available_dates"
@@ -1962,7 +1962,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1409,
+    "line": 1429,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "function": "field_terrain"
@@ -1970,7 +1970,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1458,
+    "line": 1478,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"

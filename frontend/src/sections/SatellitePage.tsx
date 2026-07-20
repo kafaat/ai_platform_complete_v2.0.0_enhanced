@@ -498,9 +498,10 @@ export default function SatellitePage() {
           {/* تحذير عدم تطابق توقيت بيانات الطبقة/المشهد (FieldView) — يقارن تاريخ
               مشهد الطبقة (gridResp.date = acquisition_date من raster-service) بالتاريخ
               المختار للعرض (selectedDate). mismatch ⇒ تحذير؛ match ⇒ شارة حداثة؛
-              unknown (لا تاريخ طبقة / العرض «الأحدث») ⇒ لا شيء. صدق: المقارنة الكاملة
-              (scene_id/field_revision) تنتظر تسطيح geometry_metadata على استجابة الراستر
-              (TODO موثّق في lib/sceneFreshness.ts). */}
+              unknown (لا تاريخ طبقة / العرض «الأحدث») ⇒ لا شيء. النَّسَب المفرد
+              (scene_id/field_revision/processing_version) يُسطّحه الراستر الآن على
+              indicator-grid؛ المقارنة الكاملة (compareSceneProvenance) تُفعَّل حين
+              يتوفّر مرجع «حاليّ» لهندسة الحقل. */}
           {mode !== 'truecolor' && hasGrid && (
             <DataFreshnessBadge
               layerDate={gridResp?.date}
