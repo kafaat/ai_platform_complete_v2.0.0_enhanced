@@ -57,13 +57,20 @@ def test_geometry_validity_trigger_negative_proof():
 
 @pytest.mark.parametrize("runner", [BOOTSTRAP, APPLY])
 def test_app_role_is_select_only_on_reference(runner: str):
-    """قراءة-عامّة/كتابة-محمِّل: sahool_app تُنزَع منه INSERT/UPDATE/DELETE على الجدولين."""
-    assert re.search(r"REVOKE INSERT, UPDATE, DELETE ON admin_boundaries FROM", runner), (
-        "REVOKE الكتابة عن app على admin_boundaries مفقود"
-    )
-    assert re.search(r"REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM", runner), (
-        "REVOKE الكتابة عن app على admin_boundaries_source مفقود"
-    )
+    """قراءة-عامّة/كتابة-محمِّل: sahool_app تُنزَع منه INSERT/UPDATE/DELETE على الجدولين.
+
+    تسامح بنيويّ مع ``ON [TABLE] [public.]<جدول>``: صياغة ``\\gexec`` المُنفَّذة (المُعتمَدة) تكتب
+    ``ON TABLE public.admin_boundaries``، بينما صيغ أقدم تكتب ``ON admin_boundaries``. الحارس يفرض
+    **النيّة** (نزع الكتابة عن الدور) لا حرفاً هشّاً؛ القابليّة للتنفيذ يبرهنها الاختبار الحيّ
+    ``tests_v9/test_role_bootstrap_executable.py`` (درس staging: الساكن يفحص النصّ، الحيّ يفحص التنفيذ).
+    """
+    assert re.search(
+        r"REVOKE INSERT, UPDATE, DELETE ON (?:TABLE )?(?:public\.)?admin_boundaries FROM", runner
+    ), "REVOKE الكتابة عن app على admin_boundaries مفقود"
+    assert re.search(
+        r"REVOKE INSERT, UPDATE, DELETE ON (?:TABLE )?(?:public\.)?admin_boundaries_source FROM",
+        runner,
+    ), "REVOKE الكتابة عن app على admin_boundaries_source مفقود"
 
 
 def test_ownership_gis_workflow_public_read():

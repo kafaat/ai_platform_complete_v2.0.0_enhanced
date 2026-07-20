@@ -25,7 +25,15 @@ pytestmark = [pytest.mark.integration]
 _ROOT = Path(__file__).resolve().parents[1]
 _SCRIPT = _ROOT / "migrations" / "apply_in_compose.sh"
 
-_ADMIN_URL = os.getenv("TEST_ADMIN_URL") or os.getenv("DATABASE_URL")
+# مصدر الرابط الإداريّ (دور بامتياز CREATE DATABASE). في CI (وظيفة Integration Tests) يُصدَّر
+# ``TEST_DATABASE_ADMIN_URL``/``TEST_DATABASE_URL`` كدور superuser ``sahool_test`` على TCP؛ نُفضّلهما
+# على ``DATABASE_URL`` العامّ (قد يكون رابط socket ``?host=/…`` لا يعمل في هذه الوظيفة).
+_ADMIN_URL = (
+    os.getenv("TEST_DATABASE_ADMIN_URL")
+    or os.getenv("TEST_ADMIN_URL")
+    or os.getenv("TEST_DATABASE_URL")
+    or os.getenv("DATABASE_URL")
+)
 
 
 def _extract_role_heredoc(text: str) -> str:
@@ -46,19 +54,25 @@ def _psql(url: str, *args: str, sql: str | None = None) -> subprocess.CompletedP
     )
 
 
-def _split_conn(url: str) -> tuple[str, str]:
-    """يعيد (admin_url_to_postgres_db, base_without_db) لإنشاء/حذف قاعدة اختبار."""
-    base, _, _db = url.rpartition("/")
-    return f"{base}/postgres", base
+def _split_conn(url: str) -> tuple[str, str, str]:
+    """يعيد (admin_url_to_postgres_db, base_without_db, query_suffix) لإنشاء/حذف قاعدة اختبار.
+
+    يعزل سلسلة الاستعلام (مثل ``?host=/tmp/postgres`` أو ``?sslmode=…``) **قبل** التقسيم على '/'
+    كي لا تُخلَط شرطة مسار socket داخل الاستعلام مع فاصل اسم القاعدة (كانت تكسر rpartition).
+    """
+    head, sep, query = url.partition("?")
+    base, _, _db = head.rpartition("/")
+    suffix = f"?{query}" if sep else ""
+    return f"{base}/postgres{suffix}", base, suffix
 
 
 @pytest.mark.skipif(shutil.which("psql") is None, reason="psql client not available")
-@pytest.mark.skipif(not _ADMIN_URL, reason="TEST_ADMIN_URL/DATABASE_URL not set")
+@pytest.mark.skipif(not _ADMIN_URL, reason="TEST_DATABASE_ADMIN_URL/TEST_DATABASE_URL not set")
 def test_role_bootstrap_block_executes_and_sets_privileges():
     body = _extract_role_heredoc(_SCRIPT.read_text(encoding="utf-8"))
-    admin_pg, base = _split_conn(_ADMIN_URL)
+    admin_pg, base, query = _split_conn(_ADMIN_URL)
     dbname = f"roletest_{uuid.uuid4().hex[:10]}"
-    test_url = f"{base}/{dbname}"
+    test_url = f"{base}/{dbname}{query}"
     role = f"sahool_app_t_{uuid.uuid4().hex[:6]}"
 
     created = _psql(admin_pg, "-tA", sql=f"CREATE DATABASE {dbname}")
