@@ -26,9 +26,7 @@ def _claims() -> dict:
 
 def test_roundtrip_current_key() -> None:
     token = issue_token(_claims(), secret="s3cret", key_id="k1")
-    out = verify_token(
-        token, current_secret="s3cret", current_key_id="k1", now_epoch=NOW
-    )
+    out = verify_token(token, current_secret="s3cret", current_key_id="k1", now_epoch=NOW)
     assert out["tenant_id"] == _claims()["tenant_id"]
     assert out["revision"] == 4
 

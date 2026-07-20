@@ -46,8 +46,15 @@ def test_no_hard_delete_revoked_and_triggered() -> None:
 def test_versions_state_machine_and_column_precise_immutability() -> None:
     body = SQL[SQL.index("field_form_versions_guard") :]
     # immutability بدقّة الأعمدة (لا منع UPDATE شامل — كان سيمنع التقاعد نفسه)
-    for col in ("schema_json", "logic_json", "schema_hash", "validation_rules",
-                "localization", "form_definition_id", "version_number"):
+    for col in (
+        "schema_json",
+        "logic_json",
+        "schema_hash",
+        "validation_rules",
+        "localization",
+        "form_definition_id",
+        "version_number",
+    ):
         assert f"NEW.{col} IS DISTINCT FROM OLD.{col}" in body, col
     # state machine: draft→published→retired فقط
     assert "draft' AND NEW.status = 'published" in body
@@ -79,7 +86,10 @@ def test_composite_tenant_fks_and_unique_tenant_id() -> None:
 
 def test_envelope_unique_simple_no_idempotency_column() -> None:
     """UNIQUE(envelope_id) بسيط (one-to-one) + لا عمود idempotency_key (ديدوب B1 حصرًا)."""
-    assert re.search(r"CREATE UNIQUE INDEX.*ux_field_submissions_envelope\s+ON field_submissions \(envelope_id\)", SQL)
+    assert re.search(
+        r"CREATE UNIQUE INDEX.*ux_field_submissions_envelope\s+ON field_submissions \(envelope_id\)",
+        SQL,
+    )
     block = SQL[SQL.index("CREATE TABLE IF NOT EXISTS field_submissions") :]
     block = block[: block.index(");")]
     assert "idempotency_key" not in block

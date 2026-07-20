@@ -25,7 +25,9 @@ from shared.contracts.forms.condition_v1 import (
     validate_condition,
 )
 
-CORPUS = Path(__file__).resolve().parents[1] / "shared" / "contracts" / "forms" / "condition_corpus.json"
+CORPUS = (
+    Path(__file__).resolve().parents[1] / "shared" / "contracts" / "forms" / "condition_corpus.json"
+)
 
 
 def _cases() -> list[dict]:

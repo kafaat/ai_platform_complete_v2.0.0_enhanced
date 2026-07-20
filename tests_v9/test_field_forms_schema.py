@@ -56,8 +56,12 @@ def test_answer_for_hidden_field_invalid() -> None:
 
 
 def test_required_only_when_visible() -> None:
-    schema = {"fields": [{**SCHEMA["fields"][0], "required": True},
-                         {**SCHEMA["fields"][1], "required": True}]}
+    schema = {
+        "fields": [
+            {**SCHEMA["fields"][0], "required": True},
+            {**SCHEMA["fields"][1], "required": True},
+        ]
+    }
     _n, errors = validate_answers(schema, LOGIC, {"crop": "barley"})
     assert not any("required_missing: severity" in e for e in errors)
 
