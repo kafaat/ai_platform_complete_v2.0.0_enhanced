@@ -7585,6 +7585,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "489230f6b4da67dca083aa26aa02781ce397d2131d061511fc3a0f2b5e3a96bd"
+        }
+      ],
+      "name": "migrations/v203_season_sowing_in_observed_range.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b2cf3059b484bf566460533e29aaf2584215f04990056872814a38c3b5053698"
         }
       ],
