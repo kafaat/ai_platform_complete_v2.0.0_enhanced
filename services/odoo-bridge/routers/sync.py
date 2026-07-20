@@ -25,7 +25,27 @@ async def trigger_sync(
 
     الأمان: المزامنة تكتب لـERP — تتطلّب مصادقة (نفس require_auth المطبَّقة
     على نقاط القراءة).
+
+    fail-closed (ERP-BRIDGE-FIX-01): إذا كان مزوّد ERP غير مهيّأ (none) يُرفَض
+    الطلب بـHTTP 424 Failed Dependency — لا إرسال وهميّ إلى ERP، لا كتابة جزئية.
+    الحالة "ERP معطّل" معروضة كبيانات في /readyz/capabilities؛ الرفض يحدث هنا
+    عند محاولة المزامنة الفعلية لا عند إقلاع الحاوية.
     """
+    provider = main.get_active_erp_provider()
+    if provider.name == "none":
+        raise HTTPException(
+            424,
+            {
+                "error": "erp_provider_not_configured",
+                "provider": provider.name,
+                "detail": (
+                    "ERP provider is not configured or credentials are missing. "
+                    "Set ERP_PROVIDER and the corresponding credentials "
+                    "(ERPNEXT_API_KEY/ERPNEXT_API_SECRET or ODOO_*). "
+                    "Check /readyz/capabilities for current capability status."
+                ),
+            },
+        )
     if req.entity == "all" or req.entity == "products":
         background_tasks.add_task(main.sync_products)
     if req.entity == "all" or req.entity == "suppliers":
