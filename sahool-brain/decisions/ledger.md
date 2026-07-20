@@ -775,3 +775,9 @@ SHAs من `git log --oneline origin/main`.
 - **شرطا الإذن (تحقّقا):** (١) main CI أخضر بالكامل على الاتحاد — بما فيه البوّابتان main-only اللتان لم ترَيا الاتحاد قط: *Runtime Real Smoke* ✅ و*Sahool Production Gates* ✅ (production_truth_readiness_gate)، إضافةً إلى *SAHOOL v9.1.0 CI* ✅ (run 29751291136، success) على طرف `main` c7c25c0 الحاوي شجرة الاتحاد كاملةً. (٢) هذا السجلّ.
 - **الحكاية:** الفرع الذي نجا من الجنازة الأولى بـ«22 التزاماً مجهولاً»، فعاد وبنى نصف المنظومة الحديثة (CDSE truecolor · terrain · decision SoR · MPC · الموسم · إلخ)، ثمّ أدّى غرضه الأخير (إصلاح \gexec + براهين #225) — يُدفَن بشرف فور تنفيذ الحذف الشكليّ (محتواه مُدمَج ومؤرشَف). أمر الدفن: `git push origin --delete claude/code-review-34hO3`.
 - **SHA:** الاتحاد `b01c75b` · الطرف المدفون `fa6a128` · طرف main `c7c25c0`.
+
+## 2026-07-20 — MIGRATE-ID-COLLISION مُغلَق: فضاءان منفصلان لنظامَي الهجرة
+- **القرار:** فصل صريح — `alembic/versions/` = مراجعات alembic `NNNN_*.py` حصراً · `migrations/` = `vNNN_*.sql` حصراً. أُزيل الزومبيّان `alembic/versions/v101_field_runtime_cohesion.sql` و`v105_marketplace_ecosystem.sql` (بقايا ما قبل phase19، ميّتان بثلاثة محاور: لا MANIFEST · لا runner · خارج سلسلة alembic + صفر استعمال جداول).
+- **السبب:** التصادم «نفس الرقم، ملفّان» قنبلة صامتة (rollback/مطابقة بيئات)؛ إصلاح صغير بلا أثر رجعيّ (الزومبيّان لا يطبّقهما أحد) يُغلق الفجوة فوراً بدل توثيقها ونسيانها.
+- **الحارس:** `tests_v9/test_migration_id_namespace_separation_guard.py` (unit، في مسار CI) + برهان سلبيّ. لا يُعاد المنهج مستقبلاً — الحارس يمنع الانحدار.
+- **SHA:** يُختم بعد الدفع.

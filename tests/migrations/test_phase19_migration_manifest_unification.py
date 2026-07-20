@@ -65,3 +65,44 @@ def test_runtime_activation_migrations_were_renumbered_out_of_duplicate_range() 
     ]:
         assert (ROOT / "migrations" / name).exists(), name
         assert name in manifest
+
+
+def test_no_cross_system_migration_id_collision_between_alembic_and_migrations() -> None:
+    """MIGRATE-ID-COLLISION مُغلَق: نظاما الهجرة يملكان فضاءَي ترقيم **منفصلَين**.
+
+    التصادم القديم: ``alembic/versions/v101_field_runtime_cohesion.sql`` و
+    ``v105_marketplace_ecosystem.sql`` أعادا استعمال أرقام vNNN المملوكة لـ``migrations/``
+    (v101=farm_budget_costing · v105=enterprise_imagery؛ marketplace canonical = v121) ⇒
+    «نفس الرقم، ملفّان مختلفان لكلّ نظام». الملفّان كانا ميّتَين (خارج سلسلة مراجعات alembic
+    0001→0002، لا يطبّقهما أيّ runner، صفر استعمال لجداولهما) فأُزيلا. الحارس يمنع الانحدار:
+      • ``alembic/versions/`` = مراجعات alembic الأصليّة ``NNNN_*.py`` حصراً — لا ``vNNN_*.sql``.
+      • ``migrations/`` = هجرات ``vNNN_*.sql`` حصراً — لا مراجعات alembic ``NNNN_*.py``.
+    """
+    stray_sql_in_alembic = sorted(p.name for p in (ROOT / "alembic/versions").glob("v*.sql"))
+    assert stray_sql_in_alembic == [], (
+        "alembic/versions/ يجب ألّا يحوي ملفّات vNNN_*.sql (فضاء migrations/): "
+        f"{stray_sql_in_alembic} — يعيد تصادم معرّفات الهجرة عبر النظامين."
+    )
+    stray_alembic_in_migrations = sorted(
+        p.name for p in (ROOT / "migrations").glob("[0-9][0-9][0-9][0-9]_*.py")
+    )
+    assert stray_alembic_in_migrations == [], (
+        f"migrations/ يجب ألّا يحوي مراجعات alembic NNNN_*.py: {stray_alembic_in_migrations}"
+    )
+
+
+def test_alembic_vnnn_collision_guard_negative_proof(tmp_path) -> None:
+    """برهان سلبيّ: زرع ملفّ ``vNNN_*.sql`` اصطناعيّ في مجلّد alembic-شبيه يقلب الحارس أحمر.
+
+    يمنع أن يمرّ الحارس **فراغاً** (vacuously): لو كان المنطق معطوباً لَما التقط الزومبيّ.
+    """
+    fake_versions = tmp_path / "alembic" / "versions"
+    fake_versions.mkdir(parents=True)
+    (fake_versions / "0001_baseline.py").write_text("revision='0001_baseline'\n", encoding="utf-8")
+    (fake_versions / "v101_field_runtime_cohesion.sql").write_text(
+        "CREATE TABLE zombie(id int);\n", encoding="utf-8"
+    )
+    stray = sorted(p.name for p in fake_versions.glob("v*.sql"))
+    assert stray == ["v101_field_runtime_cohesion.sql"], (
+        "منطق الحارس يجب أن يلتقط ملفّ vNNN_*.sql الاصطناعيّ (وإلّا الحارس يمرّ فراغاً)"
+    )

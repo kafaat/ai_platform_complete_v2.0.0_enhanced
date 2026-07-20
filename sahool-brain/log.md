@@ -3331,3 +3331,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **برهان الاتحاد الأخضر:** محليّاً `-m unit` 3364 passed · ruff نظيف · conflict_marker ✓ · validate_release 4700 ✓ · صفر انجراف inventory · الـ7 hardening حاضرة. دُفِع إلى main.
 - **قاعدة معمَّمة:** «أخضر محليّاً ≠ أخضر على CI» — تحقّق من CI الفعليّ للفرع (لا افترض) قبل أيّ دمج.
 
+
+## 2026-07-20 (تكملة) — «رقّم دفاتري»: MIGRATE-ID-COLLISION مُغلَق (فصل الفضاءين + إزالة زومبيَّين + حارس)
+- **التصادم:** ملفّان في `alembic/versions/` أعادا استعمال أرقام vNNN المملوكة لـ`migrations/`: `v101_field_runtime_cohesion.sql` (migrations/v101=farm_budget_costing) و`v105_marketplace_ecosystem.sql` (canonical=migrations/v121). «نفس الرقم، ملفّان مختلفان لكلّ نظام» — قنبلة ترقيميّة صامتة.
+- **برهان الزومبيّة (3 محاور):** لا في MANIFEST · لا مُشغّل يطبّقهما (`run_migrations.sql` يستعمل migrations/v121 فقط) · خارج سلسلة alembic (0001→0002، down_revision لا يشير إليهما). +صفر استعمال لجداولهما الثلاثة (`canonical_field_state_snapshots`/`field_digital_twin_views`/`recommendation_lifecycle_events`) و`shared/field_runtime_cohesion.py` منطق صرف بلا DB I/O.
+- **الإصلاح:** أُزيل الزومبيّان (git rm) — فصار الفضاءان منفصلَين: alembic=`NNNN_*.py` حصراً · migrations=`vNNN_*.sql` حصراً. **الحارس (جوهر الإصلاح):** `tests_v9/test_migration_id_namespace_separation_guard.py` (مُعلَّم unit، **في مسار CI** — لأنّ `tests/migrations/` خارج `testpaths=tests_v9`) — يرفض أيّ vNNN_*.sql في alembic/ + برهان سلبيّ (زومبيّ اصطناعيّ يقلبه أحمر). حارس توثيقيّ شقيق في `tests/migrations/test_phase19_*`.
+- **الحالة:** MIGRATE-ID-COLLISION → **CLOSED**. بوّابات: guard 3 passed · manifest validator 209 · ruff نظيف · bundle 4698.
