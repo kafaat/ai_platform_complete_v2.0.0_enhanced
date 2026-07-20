@@ -87,7 +87,9 @@ class ServiceRow:
 
 
 def rel(path: Path) -> str:
-    return str(path.relative_to(ROOT))
+    # as_posix() normalizes to forward slashes on every OS — otherwise a Windows
+    # regen emits backslash paths that drift against the Linux CI check every time.
+    return path.relative_to(ROOT).as_posix()
 
 
 def python_loc(files: Iterable[Path]) -> int:

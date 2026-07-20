@@ -47,7 +47,10 @@ async def timeseries(
 ):
     claims = main._verify_claims(token)
     tenant_id = str(claims.get("tenant_id") or "") or None
-    if await main.load_field(field_id, tenant_id) is None:
+    if (
+        await main.load_field(field_id, tenant_id, user_bearer=token.credentials if token else None)
+        is None
+    ):
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     real, reason = await main._real_timeseries_from_raster(
         field_id, "ndvi", days, tenant_id=tenant_id
@@ -93,7 +96,9 @@ async def current_ndvi(field_id: str, token: str = Depends(main.security)):
     """
     claims = main._verify_claims(token)
     tenant_id = main._tenant_from_claims(claims)
-    field = await main.load_field(field_id, tenant_id)
+    field = await main.load_field(
+        field_id, tenant_id, user_bearer=token.credentials if token else None
+    )
     if field is None:
         raise HTTPException(404, f"field_id {field_id!r} غير موجود")
     observed, reason = await main._current_ndvi_from_raster(field_id, tenant_id=tenant_id)

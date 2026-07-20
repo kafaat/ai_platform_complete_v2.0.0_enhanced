@@ -64,6 +64,16 @@ docker compose -f docker-compose.v9.yml exec sahool-nginx \
 
 ## 3. البراهين الحيّة (تُنفَّذ مرّة عند أوّل إقلاع كامل — لا يمكن إثباتها بوحدة)
 
+> **حزمة جاهزة:** `scripts/e2e/season_gateway_live_gate.py` تُشغّل البراهين الثلاثة تلقائيّاً وتطبع
+> PASS/FAIL + تلميحات (تخرج 0 عند نجاح الثلاثة):
+> ```bash
+> SEASON_BASE_URL=https://staging.sahool.ye \
+> SEASON_COOKIE="sahool_at=<جلسة owner/expert>" \
+> SEASON_SID="<uuid موسم مسودّة بمرفق دفتر>" \
+> python scripts/e2e/season_gateway_live_gate.py
+> ```
+> (البرهان (ب) يُحوّل الموسم accepted — استخدم موسماً مخصَّصاً للاختبار.) الأوامر اليدويّة أدناه للتشخيص.
+
 > تُدرَج ضمن قائمة تشغيل المالك بجانب PROD-01→07 لـirr_f01. البرهان المؤجَّل بلا موعد يموت صامتاً —
 > لذا هذه المهمّة مرقّمة (#225) وتُقفَل فجوة `SEASON-EDGE-LIVE-PROOF` في الدماغ فور رصد الأخضر.
 
@@ -109,7 +119,9 @@ curl -sS -o /dev/null -w 'accept-again=%{http_code}\n' -X POST \
 # المتوقَّع: 409 season_already_accepted
 ```
 
-### تسجيل النتيجة
+### تسجيل النتيجة — ✅ مُنجَز (2026-07-20)
+
+> **رُصِد `ALL PROOFS PASSED ✅` على staging** (فرع البناء `claude/code-review-34hO3`) — (أ) deny · (ب) 200 · (ج) 409. فجوة `SEASON-EDGE-LIVE-PROOF` مُقفَلة، المهمّة #225 مُغلَقة.
 
 بعد رصد (أ)=401 و(ب)=200 و(ج)=409 على staging:
 - حدّث قائمة تشغيل المالك: «SEASON-EDGE-LIVE-PROOF ✅ مرصود على staging <SHA>».

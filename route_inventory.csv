@@ -1015,10 +1015,10 @@ tts-service,services/tts-service/routers/tts.py,44,POST,/tts/synthesize,synthesi
 tts-service,services/tts-service/routers/tts.py,125,POST,/tts/stream,stream
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,21,GET,/v1/analyze,analyze
 vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,45,GET,/v1/timeseries/{field_id},timeseries
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,87,GET,/v1/ndvi/current/{field_id},current_ndvi
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,139,GET,/v1/all_fields,all_fields
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,178,GET,/v1/indicators/registry,indicators_registry
-vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,185,GET,/v1/indicators/registry/{name},indicator_registry_item
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,90,GET,/v1/ndvi/current/{field_id},current_ndvi
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,144,GET,/v1/all_fields,all_fields
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,183,GET,/v1/indicators/registry,indicators_registry
+vegetation-analysis-service,services/vegetation-analysis-service/routers/analysis.py,190,GET,/v1/indicators/registry/{name},indicator_registry_item
 vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,66,POST,/v1/fields/{field_id}/signal-anomalies/detect,detect_signal_anomalies
 vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,123,GET,/v1/fields/{field_id}/signal-anomalies,list_signal_anomalies
 vegetation-analysis-service,services/vegetation-analysis-service/routers/anomalies.py,137,POST,/v1/anomalies/{anomaly_ref:path}/transition,transition_anomaly

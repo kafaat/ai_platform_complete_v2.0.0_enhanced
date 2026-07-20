@@ -8130,7 +8130,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 87,
+    "line": 90,
     "method": "GET",
     "path": "/v1/ndvi/current/{field_id}",
     "function": "current_ndvi"
@@ -8138,7 +8138,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 139,
+    "line": 144,
     "method": "GET",
     "path": "/v1/all_fields",
     "function": "all_fields"
@@ -8146,7 +8146,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 178,
+    "line": 183,
     "method": "GET",
     "path": "/v1/indicators/registry",
     "function": "indicators_registry"
@@ -8154,7 +8154,7 @@
   {
     "service": "vegetation-analysis-service",
     "file": "services/vegetation-analysis-service/routers/analysis.py",
-    "line": 185,
+    "line": 190,
     "method": "GET",
     "path": "/v1/indicators/registry/{name}",
     "function": "indicator_registry_item"

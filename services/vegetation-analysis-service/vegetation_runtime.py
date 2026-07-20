@@ -373,12 +373,19 @@ async def list_fields_from_platform(tenant_id: str) -> list[dict]:
     return [item for item in items if isinstance(item, dict)]
 
 
-async def load_field(field_id: str, tenant_id: str | None = None) -> dict | None:
+async def load_field(
+    field_id: str,
+    tenant_id: str | None = None,
+    *,
+    user_bearer: str | None = None,
+) -> dict | None:
     """مُحمِّل الحقول المرن (الإغلاق المرن — لا كسر).
 
     خلف FEATURE_SENTINEL_DB_FIELDS (مُطفأ افتراضيّاً) يحاول قراءة الحقل من القاعدة/
     المنصّة؛ وإلّا — أو عند الفشل المسموح بارتداده — يرتدّ للسجلّ التركيبيّ القديم
     مع وسم صدق `legacy_field_registry_used`. لا يرفع استثناءً على مسار القراءة.
+
+    user_bearer: JWT المستخدم يُمرَّر لـ_load_field_from_db لمصادقة طلب المنصّة.
 
     ملاحظة صدق: السجلّ القديم تقدير تركيبيّ (synthetic)، لا هندسة per-pixel حقيقيّة.
     """

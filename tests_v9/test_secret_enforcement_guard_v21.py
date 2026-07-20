@@ -54,11 +54,15 @@ def _run(service_dir: str, snippet: str, env: dict[str, str]) -> subprocess.Comp
     for k in ("SAHOOL_ENV", "DECISION_SERVICE_AUTH_TOKEN", "DECISION_REQUIRE_AUTH_TOKEN"):
         if k not in env:
             full_env.pop(k, None)
+    # فرض UTF-8 على مدخلات/مخرجات المفسّر الفرعيّ (ضروريّ على Windows حيث الترميز الافتراضيّ cp1252).
+    full_env.setdefault("PYTHONIOENCODING", "utf-8")
+    full_env.setdefault("PYTHONUTF8", "1")
     return subprocess.run(
         [sys.executable, "-c", prog],
         env=full_env,
         capture_output=True,
         text=True,
+        encoding="utf-8",
         timeout=90,
     )
 

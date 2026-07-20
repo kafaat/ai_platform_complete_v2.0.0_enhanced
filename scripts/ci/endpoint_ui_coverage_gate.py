@@ -110,7 +110,7 @@ def collect_frontend_corpus() -> str:
         for f in base.rglob("*"):
             if f.suffix.lower() not in {".ts", ".tsx", ".js", ".jsx", ".dart"}:
                 continue
-            rel = str(f.relative_to(REPO))
+            rel = f.relative_to(REPO).as_posix()
             if any(rel.endswith(p) for p in PHANTOM_EVIDENCE_FILES):
                 continue  # سجلّ سرد صريح — لا يُحتسب دليلاً.
             text = _read(f)

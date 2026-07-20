@@ -1,5 +1,38 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-18 — رنبوك التحقّق الحيّ: إصلاح WS + YAML + FII RLS + IRR-F01 + تدفّقات مكانيّة — مكتمل
+
+**ما أُنجز:**
+
+1. **إصلاح حلقة إعادة اتّصال WS (`984e8f49`):** الخادم كان يستدعي `websocket.close(1008)` قبل `websocket.accept()` ⇒ المتصفّح يعيد الاتّصال لأبد؛ أُصلِح بقبول الاتّصال أوّلاً ثمّ قراءة إطار auth (FE-10: token في رسالة لا URL) + إرسال `auth_ok` (FE-09). الملفّ: `services/sahool-platform/api/routers/notifications.py`.
+
+2. **إصلاح تعارض دمج YAML في docker-compose.v9.yml (سطر 802):** أُزيلت علامات `<<<<<<<`/`=======`/`>>>>>>>` وأُبقيت القيمة الآمنة للإنتاج `VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}`.
+
+3. **بوّابة دور DB (FII):** `apply_in_compose.sh` استُرجع من `origin/main` (كان يفتقد `REVOKE CREATE` و`APP_ALLOW_SCHEMA_CREATE`)؛ أُضيف `NOINHERIT` لكلا النصَّين (`apply_in_compose.sh` و`bootstrap_postgres.sh`). حارس `fii_rls_role_gate.py`: **PASSED**. 6 اختبارات PG حيّة: **PASSED**.
+
+4. **IRR-F01 Gate A + B1:** هجرات v195/v196 طُبِّقت على DB الحيّ؛ `sahool_app` حُوِّل إلى `NOINHERIT`؛ وحدات `irrigation_capacity_reservation.py`/`_adapter.py`/`_execution_request_port.py`/`event_bus.py` استُرجعت من `origin/main`. النتيجة: **5/5 اختبارات PASSED**.
+
+5. **البوّابات الأخرى:** SoR staging probe · WX-10.11b delivery receipt · dispatch decisions (3) · RS anomaly PG isolation · irrx1 pcert (2) — كلّها **PASSED**.
+
+6. **إصلاح علّة InterfaceError في PATCH /api/v1/fields/{id} (حرج):**
+   - **الجذر:** `conn.fetchrow("SELECT … WHERE field_id = $1 AND tenant_id = $2::uuid", field_id)` — SQL يحتوي معاملَين (`$1`, `$2`) لكن asyncpg يتلقّى واحداً فقط ⇒ `InterfaceError: the query requires 2 arguments, but 1 were given`. وقع في 3 مواضع: `routers/fields.py:1316` (مسار تعارض الإصدار) و`1339` (مسار الدمج التلقائيّ) و`1396` (المسار العاديّ — يُنفَّذ دائماً).
+   - **الإصلاح:** إضافة `str(user.tenant_id)` معاملاً ثانياً في المواضع الثلاثة. إعادة بناء صورة Docker وإعادة تشغيل `sahool-platform`.
+
+7. **التدفّقات المكانيّة E2E (10 تدفّقات):** بعد إصلاح PATCH — كلّها PASSED: auth.register · auth.login · draw.create · draw.edit_geometry (كان يفشل بـ503) · draw.geometry_history · draw.reject_invalid · pivot.derived_geometry · pivot.reject_raw_polygon · raster.invalidation_signal · conflict.stale_base_version.
+
+**مؤجَّل بصدق:** Upgrade Gate U1 (يحتاج `IRR_F01_UPGRADE_DATABASE_URL` + DB منفصل بسلسلة هجرات v1→v196 كاملة + `upgrade_gate_u1.sh`).
+
+**الملفّات المعدَّلة محلّيّاً (غير مدموجة في CI):**
+- `services/sahool-platform/api/routers/fields.py` (إصلاح InterfaceError: 3 مواضع)
+- `services/sahool-platform/api/routers/notifications.py` (إصلاح WS auth)
+- `migrations/apply_in_compose.sh` (NOINHERIT + REVOKE CREATE + APP_ALLOW_SCHEMA_CREATE)
+- `migrations/bootstrap_postgres.sh` (NOINHERIT)
+- `docker-compose.v9.yml` (حلّ تعارض YAML)
+- `.env` (CDSE_CLIENT_ID → حساب Flyssama)
+- `services/sahool-platform/api/event_bus.py`, `irrigation_capacity_reservation.py`, `irrigation_reservation_adapter.py`, `irrigation_execution_request_port.py` (مُسترجَعة من origin/main)
+
+---
+
 ## 2026-07-14 — IRR-X1.7-1.9 حاسبات الري التفاعلية ومتعددة الأنظمة — LANDED
 - **What:** دمجتُ حزمة X1.9 (تحوي X1.7-1.9، efe777e-based) جراحيّاً فوق تِلّ X1.6. حاسبتان هندسيّتان **عديمتا الحالة توصية-فقط** (لا حفظ، لا تشغيل، `execution_authorized=False`): X1.7 تفاعليّة (احتياج ماء من محصول/تربة/طقس + احتكاك Hazen-Williams + فواقد ثانويّة + ضغط/رفع مطلوب + قدرة مضخّة/محرّك + مدّة)؛ X1.8/1.9 شبكة بركة-بوستر متعدّدة الأنظمة (آبار + رصيد بركة + بوستر + جهاز ريّ اختياريّ: محور/خطّيّ/بكرة/رشاشات/تنقيط/شبكة صمامات، أو «بدون»). خلفيّة: `irrigation_engineering_workspace.py` +615 سطراً إضافيّاً + راوتر +مساران `/interactive-calculate`، `/network-calculate` (مستأجِر خادميّ 403، 422 على مدخل خاطئ). واجهة: مكوّنان + عميلا API موصولان في FieldWorkspaceIrrigationPanel. 3 حُرّاس + سويتا اختبار.
 - **الدمج (جراحيّ، حفظ إصلاحاتي X1.1-1.6):** طبّقتُ نسخ X1.9 للملفّات المتغيّرة فعليّاً (workspace/router/workspace-test) عبر مقارنة ruff-normalized؛ أبقيتُ نسختي حيث كان الفرق إصلاحاتي فقط. إعادة hoist استيرادات الراوتر (E402) + دمج كتلة استيراد الاختبار + pytestmark=unit. رفع أُسُس المسارَين: extraction-map 612→614، p2_6 609→611، تسجيل ملكيّة؛ baseline الوحدات ثابت (لا وحدة جديدة). جرد 1014→1016.
@@ -3280,3 +3313,13 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **SEASON-ENTRY-EVENTS-UI (`7419b13`) — إكمال سجلّ الموسم المُدار: فتح مسار SIM-GOLDEN:** جداول `season_events`/`season_harvest`/`season_cost_items` (v201) كانت بلا API؛ أُضيفت أربع نقاط أبناء على scout-ingest (الستّ ⇒ **عشر**): `POST .../events` (untrusted فقط؛ **low_confidence تلقائيّ** للنوع الكمّيّ بلا كمّيّة/مدّة/وصف — قاعدة ٤ لا تخمين؛ قيود energy/machinery بـCHECK ⇒ 400) · `POST .../harvest` (1:1 upsert؛ harvest>sowing بـtrigger ⇒ 400) · `POST .../costs` (تعدّد عملات آمن ISO 4217 ⇒ 400؛ لا تحويل صامت) · `GET .../detail` (تجميعة + `calibration_eligible` من **الـVIEW المُشتقّ** لا إعادة حساب — مصدر قاعدة واحد). ثلاث خطوات واجهة (أحداث/حصاد/تكاليف اختياريّة) في `SeasonRecordEntryPage` + تلميح «مؤهَّل للمعايرة» بالمراجعة + عميل `season.ts` (أربع دوالّ). **برهان حيّ PG16 (المدخل الحقيقيّ تحت sahool_ingest+RLS):** calibration_eligible يقلب **FALSE→TRUE عند القبول** (SIM-GOLDEN مفتوح) · energy/machinery/currency/harvest-قبل-البذار ⇒ 400 · RLS 404 عابر المستأجرين · كتابة ابن بعد القبول ⇒ 409. **درس محوريّ (البرهان الحيّ يمسك ما لا تمسكه الوحدة):** `detail` رجع **503** لأنّ `sahool_ingest` بلا SELECT على الـVIEW — **فجوة منح إنتاجيّة حقيقيّة** لا يكشفها اختبار وحدة قطّ؛ أُصلِحت `GRANT SELECT ON season_calibration_eligibility` في المُشغّلَين. ضريبة التسجيل (سبعة مولَّدات) + production_validation_gate + service-feature-ui(32/32) خضراء؛ pytest -m unit=3337 · frontend typecheck+vitest(1275). حارس ساكن (season_api ⇒ 10 نقاط · season.ts ⇒ 10 دوالّ). **الفجوة SEASON-ENTRY-EVENTS-UI مُقفَلة.**
 - **تدقيق مطابقة SEASON-RECORD-01 (spec↔مبنى، المالك 2026-07-20) — فجوة صلابة واحدة أُغلِقت + انحراف موثَّق:** المطابقة بعد الإقفال (تُؤجَّل عادةً للأبد) وجدت في مخطّط الجداول الخمسة **فجوة واحدة حقيقيّة**: قيد النزاهة 2 (بذار ضمن نطاق المشاهدة) كان **تطبيقيّاً فقط** (`SeasonRecordEntryPage:270`) رغم نصّ المواصفة الصريح «DB-level لا تطبيقيّة فقط» — الواجهة عميل مؤدّب لا حارس، فمستدعٍ مباشر يتجاوزها. **`v203`** يفرضه بـtrigger `season_crop_sowing_in_observed_range` (يعبر جدولين، نمط `season_harvest_after_sowing`؛ RAISE يذكر النطاق الفعليّ ⇒ حارس لا عائق ⇒ 400 عبر _db_or_input_error). **برهان حيّ PG16:** بذار قبل النطاق ⇒ 400 لا موسم يُنشأ (المعاملة ارتدّت) · بذار ضمن النطاق ⇒ 201 · + حارس ساكن (3) + حارس تزامن المُشغّلَين. **الانحراف الثاني (quarantine) مقبول موثَّق (لا فجوة):** قيمة `quarantined` محجوزة للمصادر غير المتزامنة (B1: ODK/Kobo)؛ الترقيم الورقيّ المتزامن يرفض مبكّراً (400) + `low_confidence` — **القاعدة: الرفض المبكّر للمتزامن، الحجر لغير المتزامن**. قواعد 4ب/4ج تبقى سارية (تغيّرت آليتها لا وجودها). MANIFEST + run_migrations (خطوة 209) + fixture الحيّ محدّثة؛ منظومتا الترحيل متطابقتان.
 - **درس CI (توسيع ضريبة التسجيل، `b7283d3`⇒`17900e4`): إضافة أسطر لأيّ ملفّ تحت دليل خدمة — بما فيه `tests/` — تُحرّك جرد LOC للخدمة.** v203 (هجرة + برهان حيّ تحت `services/scout-ingest-service/tests/`) أعاد بناء المانيفست + production_validation_gate (كلاهما أخضر) لكن **لم أُعِد `generate_service_inventory`** ظنّاً أنّ تغيير هجرة لا يمسّ جرد المسارات — لكنّ الجرد يعدّ **LOC الخدمة كاملة** (tests مضمَّنة: 1528→1554) فأوقع «Repository Structural Lint». **القاعدة المُصقَّلة:** قبل الدفع شغّل **مجموعة `--check` الساكنة الكاملة** (service_inventory · route_mount · route_residual · health · platform_subinventory · nginx_dns · env_drift · compose_env) لا production_validation_gate وحده — أيّ سطر تحت `services/<svc>/**` (حتى اختبار) يحتاج regen جرد الخدمة في التزام الشريحة. **القاعدة الأخرى صمدت:** `develop` بقي على `0d7a14d` الأخضر — لم يتقدّم على SHA فاشل، بلا استثناء.
+
+## 2026-07-20 — دروس CI من جلسة التدقيق العميق (main) + عطب staging (فرع البناء)
+- **بوّابة main-only خارج المجموعة المحليّة:** `production_truth_readiness_gate` (main-only) كسرها تغيير readiness الصادق (`required_missing`→`verified_missing`) ولم يُلتقَط محليّاً. الدرس: شغّل `bash scripts/ci/runtime_real_smoke.sh` **كاملاً** محليّاً قبل الدفع، لا مجموعة الحُرّاس الساكنة وحدها. (عضو سابع لعائلة «المحليّ أكرم».)
+- **ruff check ≠ ruff format:** إدراج `from shared…` وسط كتلة import كسر `ruff check` (I001 Organize imports) رغم أنّ `ruff format --check` مرّ. الدرس: شغّل **كليهما** محليّاً (`ruff check` + `ruff format --check`) على مدى CI (`services/ bots/ agents/ tests_v9/`).
+- **psql colon-var داخل DO $$:** `quote_ident(:'app_role')` داخل كتلة dollar-quoted لا يُستبدَل أبداً (يُرسَل حرفيّاً) ⇒ «syntax error at or near ":"» على بيئة نظيفة (خرج sahool-migrate 3 بعد «209 هجرة»). الإصلاح: GUC (`set_config` + `current_setting` + `format('%I')`). حارس ساكن جديد يمنع التكرار (`tests_v9/test_migration_psql_var_in_do_block_guard.py`). برهان حيّ PG16 (fixed=OK، القديم=syntax error).
+
+## 2026-07-20 (تكملة) — إصلاح المهاجرة النهائيّ: \gexec بدل DO، + اختبار قابليّة تنفيذ حيّ
+- **الإصلاح المعتمَد (شرط المالك):** استُبدلت كتلة `DO $$…$$` كلّها بأوامر `SELECT format('REVOKE … %I', :'app_role') WHERE to_regclass(...) IS NOT NULL \gexec` في المُشغّلين. `:'app_role'` **خارج** أيّ اقتباس دولاريّ ⇒ يعالجه psql؛ `%I` يقتبس المعرّف؛ `\gexec` ينفّذ المُولَّد فقط؛ `WHERE` يحفظ idempotency. (كان GUC/set_config يعمل أيضاً لكن \gexec أنظف: بلا GUC جلسة، وقائمة الموسم DRY عبر VALUES.)
+- **الدرس الأهمّ (شرط المالك):** الحارس الساكن تحقّق من **وجود** نصّ REVOKE لا من **قابليّة تنفيذه** — لذا مرّ خطأ الصياغة عبر CI أخضر. أُضيف `tests_v9/test_role_bootstrap_executable.py` (integration): يستخرج heredoc تهيئة الدور الحقيقيّ ويشغّله عبر psql (مرّتين، idempotent) ويؤكّد مصفوفة الصلاحيات الفعليّة (admin_boundaries: SELECT=t، الكتابة=f؛ جداول الموسم: DELETE=f، الباقي=t). برهان حيّ PG16: 7 REVOKEs، exit 0، المصفوفة مطابقة.
+- **قاعدة عامّة:** أيّ كتلة SQL في سكربت تشغيليّ تحتاج **اختبار تنفيذ حيّ** لا حارس نصّ فقط.

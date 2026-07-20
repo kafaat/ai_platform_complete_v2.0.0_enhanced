@@ -327,7 +327,7 @@
     "service": "vegetation-analysis-service",
     "domain": "Vegetation Analytics",
     "python_files": 40,
-    "python_loc": 3751,
+    "python_loc": 3762,
     "tests": 17,
     "routes": 21,
     "main": "services/vegetation-analysis-service/main.py",

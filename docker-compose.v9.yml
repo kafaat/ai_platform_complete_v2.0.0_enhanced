@@ -389,6 +389,7 @@ services:
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
+      INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:-sahool_ingest_pw}
     volumes:
     - ./migrations:/migrations:ro
     command:
