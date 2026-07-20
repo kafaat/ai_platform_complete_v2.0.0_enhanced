@@ -167,6 +167,11 @@
 
 - **الأداة مبنيّة (`cf9f6b0`+):** [`scripts/ops/branch_funeral.py`](../../scripts/ops/branch_funeral.py) — تصنيف + حذف محروس (DRY-RUN افتراضيّ · fail-safe بلا بيانات PR · أرشفة SHA قبل الحذف · دفعات `--limit` · `--apply` بتأكيد). dry-run حيّ 2026-07-18: 384 فرعاً ⇒ zero-ahead=3 (آمن) · stale-unmerged=255 (أرشفة+حذف) · review-manual=122 · recent-keep=4. التنفيذ في بيئة المالك (gh + حذف). تقرير: `docs/audits/BRANCH_TRIAGE_REVIEW_20260718.md`.
 
+- **مراجعة 2026-07-20 (بأمر المالك «راجع جميع الفروع الفاشلة») — النشطة فقط، والمقبرة مؤجَّلة بقرار:**
+  - **الفروع النشطة الثلاثة كلّها خضراء على `ci.yml`:** `main` (139eb0d ✅) · `develop` (84e14f0 ✅) · `claude/code-review-34hO3` (fa6a128 ✅ — أُصلِح ودُمِج اليوم). **صفر فرع فاشل نشط.**
+  - **المقبرة:** 386 فرعاً بعيداً؛ ~380 بلا CI حديث (خامدة). **لم يُجرَ مسح CI شامل عمداً** (قرار المالك): (١) الحذف نفسه محجوب بيئيّاً (403 على ref-deletion يحجب الـ380 كما حجب 34hO3) ⇒ قائمة فرز الآن غير قابلة للتصرّف؛ (٢) الفروع تشيخ ⇒ الفرز الصحيح لحظة جلسة الحذف لا قبلها. **البروتوكول:** يُستدعى `branch_funeral.py --dry-run` في **جلسة حذف المالك نفسها** (تصنيف بحالة PR-merged عبر GitHub API لا بنسب SHA؛ squash يكسر النسب) — لا منهج جديد، لا إنفاق نداءات استباقيّ.
+  - **🪦 جاهز للحذف الفوريّ (بند مؤكَّد):** `claude/code-review-34hO3` — محتواه مُدمَج بالكامل في `b01c75b` (main، 0/34 غير مُدمَجة) ومؤرشَف في سجلّ الجنازة (`139eb0d`). الأمر: `gh api -X DELETE repos/kafaat/ai_platform_complete_v2.0.0_enhanced/git/refs/heads/claude/code-review-34hO3` (أو واجهة GitHub). لا يحتاج فرزاً — جاهز.
+
 ## SIM-PATHS-DUAL — OPEN (يُحسم عند مواصفة SIM-GOLDEN-01) — سُجِّل مع SEASON-RECORD-01 (v201)
 - **الملاحظة:** مساران للمحاكاة الموسميّة يتعايشان: (١) `season_simulation.py` على المنصّة (RUE/FAO-56 نقيّ، نطاق±ثقة) و(٢) `wofost_adapter.py` في agriai-engine (PCSE/WOFOST أو بديل Liebig حتميّ، عقد قدرة). كلاهما صادق (غير مُعايَر، مُعلَّم). عند بناء SIM-GOLDEN-01 يجب **حسم أيّهما نقطة المعايرة ضدّ `season_harvest.yield_kg_ha`** (المُشتقّ عبر `season_calibration_eligibility` من v201) لتفادي مصدرَي حقيقة للتنبّؤ.
 - **المصدر:** `services/sahool-platform/api/season_simulation.py` · `services/agriai-engine/wofost_adapter.py` · `migrations/v201_season_records.sql` (season_calibration_eligibility). **الحالة:** OPEN — لا فعل الآن (SEASON-RECORD يجمع البيانات؛ SIM-GOLDEN يستهلكها لاحقاً بعد توفّر مواسم مؤهَّلة).
