@@ -293,19 +293,17 @@ export function useCurrentNDVI(fieldId: string) {
     queryKey: QK.ndviCurrent(fieldId),
     queryFn: async () => {
       try {
-        const r = await vegetationApi.get(`/v1/ndvi/current/${fieldId}`);
-        return r.data;
+        return (await vegetationApi.get(`/v1/ndvi/current/${fieldId}`)).data;
       } catch (err: unknown) {
-        // 404 → الحقل غير مسجَّل في خدمة الغطاء النباتيّ بعد — نُعيد null بدل رمي الخطأ
-        // (يتجنّب تكرار سجلّات الخطأ في وحدة التحكّم لكلّ حقل جديد).
-        const status = (err as { response?: { status?: number } }).response?.status;
-        if (status === 404) return null;
+        // 404 ⇒ الحقل غير مُسجَّل في خدمة الغطاء بعد — نُعيد null بدل رمي الخطأ (يتجنّب
+        // ضجيج console لكلّ حقل جديد). أيّ حالة أخرى تُرمى فيتولّاها retryTransientOnly.
+        if ((err as { response?: { status?: number } }).response?.status === 404) return null;
         throw err;
       }
     },
-    staleTime: 10 * 60_000,
-    enabled:   !!fieldId,
-    retry:     false,
+    staleTime:10 * 60_000,
+    enabled:  !!fieldId,
+    retry:    retryTransientOnly,
   });
 }
 

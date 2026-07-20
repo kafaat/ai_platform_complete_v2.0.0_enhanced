@@ -73,6 +73,44 @@ from raster_field_runtime import (
 router = APIRouter()
 
 
+@router.get("/gis/admin-boundaries")
+async def gis_admin_boundaries(
+    level: int = Query(1, ge=1, le=2),
+    bbox: str | None = Query(None, description="minx,miny,maxx,maxy (4326) — مقصوص، محدود المساحة"),
+    x_agent_token: str = Header(None),
+):
+    """A6/A7: قراءة طبقة الحدود المشتركة (GeoJSON + ST_AsSVG) + مرجعيّتها — لخريطة الطباعة المتجهة.
+
+    **استهلاك shared-reference معلَن** (لا تسلّل جدول غير مملوك — راجع gis_boundaries_read). توكن خدمة
+    إلزاميّ؛ bbox مُطهَّر (أرقام + سقف مساحة — حارس ضدّ الوحشيّ يجرّ الطبقة). fail-closed: بلا قاعدة ⇒ 503.
+    """
+    _require_service_token(x_agent_token)  # نمط الشقيقات — منع كشف غير مصرّح
+    import gis_boundaries_read as gbr
+
+    try:
+        clean_bbox = gbr.sanitize_bbox(bbox)
+    except ValueError as e:
+        raise HTTPException(400, f"bbox غير صالح: {e}") from None
+
+    import db_persist as _dbp
+
+    conn = await _dbp._connect()
+    try:
+        sql, params = gbr.admin_boundaries_query(level, clean_bbox)
+        rows = await conn.fetch(sql, *params)
+        prov = await conn.fetchrow(gbr.source_provenance_query(level), int(level))
+    except Exception as e:  # noqa: BLE001 — قاعدة ⇒ 503 لا 500
+        raise HTTPException(503, "تعذّرت قراءة الحدود الإداريّة") from e
+    finally:
+        await conn.close()
+    return {
+        "level": level,
+        "features": [dict(r) for r in rows],
+        "source": dict(prov) if prov else None,
+        "count": len(rows),
+    }
+
+
 def _async_backfill_enabled() -> bool:
     """راية backfill اللاتزامنيّ (v5-F1/F2 · v6-F1/F2): يُنشئ تشغيلة ويعيد run_id فوراً
     ويُخرج مسح STAC الشهريّ من مسار الطلب إلى عامل الفحص. خامل حتّى التحقّق التكامليّ."""

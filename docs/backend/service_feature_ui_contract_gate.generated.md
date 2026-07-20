@@ -1,14 +1,14 @@
 # service-feature-ui-contract-gate report
 
-- services: 31
-- passed: 31
+- services: 32
+- passed: 32
 - failed: 0
 
 ## Service evidence
 
 ### `auth` — pass
 classification: `ui`
-- ui: 48 match(es)
+- ui: 49 match(es)
   - `frontend/src/App.tsx` ← `LoginPage`
   - `frontend/src/App.tsx` ← `SignupPage`
   - `frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts` ← `refresh`
@@ -23,7 +23,7 @@ classification: `ui`
 
 ### `sahool-platform` — pass
 classification: `ui`
-- ui: 199 match(es)
+- ui: 205 match(es)
   - `frontend/src/components/FieldIndicatorMap.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.undoredo.test.tsx` ← `AddFieldWithMap`
   - `frontend/src/components/AddFieldWithMap.workspace.test.tsx` ← `AddFieldWithMap`
@@ -94,13 +94,13 @@ classification: `ui`
 
 ### `soil-service` — pass
 classification: `ui`
-- ui: 153 match(es)
+- ui: 154 match(es)
   - `frontend/src/App.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `soil`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `Soil`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `soil`
   - `frontend/src/components/maphub/ProductivityZonesPanel.tsx` ← `soil`
-- platform-proxy: 281 match(es)
+- platform-proxy: 283 match(es)
   - `services/sahool-platform/README.md` ← `soil`
   - `services/sahool-platform/api/main.py` ← `soil`
   - `services/sahool-platform/api/event_replay.py` ← `soil`
@@ -192,12 +192,12 @@ classification: `ui`
 
 ### `agriai-engine` — pass
 classification: `internal`
-- internal-consumer: 8 match(es)
+- internal-consumer: 11 match(es)
   - `docker-compose.unified.yml` ← `MCP_AGRIAI_URL`
   - `docker-compose.unified.yml` ← `agriai-engine`
   - `docker-compose.unified.yml` ← `sahool-unified-agriai-engine`
+  - `tests_v9/test_sim_pcse_flag_and_safety.py` ← `agriai-engine`
   - `tests_v9/test_crop_model_uncertainty_v64.py` ← `agriai-engine`
-  - `tests_v9/test_real_findings_closure_20260702.py` ← `agriai-engine`
 
 ### `mcp_servers` — pass
 classification: `internal`
@@ -210,22 +210,22 @@ classification: `internal`
 
 ### `actuator-service` — pass
 classification: `ui`
-- ui: 193 match(es)
+- ui: 195 match(es)
   - `frontend/src/App.tsx` ← `irrigation`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
   - `frontend/src/components/AddSeasonWithStages.tsx` ← `irrigation`
   - `frontend/src/components/maphub/FieldDetailDrawer.tsx` ← `irrigation`
-- platform-proxy: 93 match(es)
+- platform-proxy: 99 match(es)
+  - `services/sahool-platform/api/irrigation_reservation_adapter.py` ← `dispatch`
   - `services/sahool-platform/api/irrigation_commissioning_runtime.py` ← `dispatch`
   - `services/sahool-platform/api/controller_edge_adapter.py` ← `dispatch`
+  - `services/sahool-platform/api/irrigation_dispatch_relay_worker.py` ← `dispatch`
   - `services/sahool-platform/api/phase_runtime_store.py` ← `dispatch`
-  - `services/sahool-platform/api/phase_runtime_workers.py` ← `dispatch`
-  - `services/sahool-platform/api/command_store.py` ← `dispatch`
 
 ### `edge-inference` — pass
 classification: `ui`
-- ui: 122 match(es)
+- ui: 126 match(es)
   - `frontend/src/App.tsx` ← `pest`
   - `frontend/src/App.tsx` ← `yield`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `yield`
@@ -238,7 +238,7 @@ classification: `ui`
 
 ### `video-processor` — pass
 classification: `ui`
-- ui: 29 match(es)
+- ui: 30 match(es)
   - `frontend/src/App.tsx` ← `DevicesPage`
   - `frontend/src/components/maphub/weather/weatherLayerDefinitions.ts` ← `stream`
   - `frontend/src/components/approvals/DecisionEvidencePanel.tsx` ← `snapshot`
@@ -303,7 +303,7 @@ classification: `internal`
 
 ### `raster-tiler-service` — pass
 classification: `internal`
-- internal-consumer: 68 match(es)
+- internal-consumer: 70 match(es)
   - `services/raster-service/test_router_query_direct_call.py` ← `tilejson`
   - `services/raster-service/main.py` ← `TITILER_URL`
   - `services/raster-service/raster_job_orchestration.py` ← `tilejson`
@@ -321,12 +321,12 @@ classification: `job`
 
 ### `decision-service` — pass
 classification: `internal-sensitive`
-- internal-consumer: 22 match(es)
+- internal-consumer: 25 match(es)
+  - `services/sahool-platform/api/irrigation_dispatch_relay_worker.py` ← `decision_service_client`
   - `services/sahool-platform/api/phase_runtime_store.py` ← `decision_service_client`
+  - `services/sahool-platform/api/irrigation_activation_gate.py` ← `DECISION_SERVICE_URL`
+  - `services/sahool-platform/api/irrigation_activation_gate.py` ← `sahool-decision-service`
   - `services/sahool-platform/api/decision_service_client.py` ← `DECISION_SERVICE_URL`
-  - `services/sahool-platform/api/decision_service_client.py` ← `sahool-decision-service`
-  - `services/sahool-platform/api/crop_decision_bridge.py` ← `decision_service_client`
-  - `services/sahool-platform/api/water_decision_bridge.py` ← `decision_service_client`
 
 ### `model-registry-adapter` — pass
 classification: `internal`
@@ -362,3 +362,12 @@ classification: `internal-sensitive`
   - `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py` ← `FIELD_SERVICE_URL`
   - `services/vegetation-analysis-service/test_platform_field_catalog_boundary.py` ← `/internal/fields`
   - `docker-compose.v9.yml` ← `FIELD_SERVICE_URL`
+
+### `scout-ingest-service` — pass
+classification: `internal-sensitive`
+- internal-consumer: 7 match(es)
+  - `services/scout-ingest-service/main.py` ← `/internal/ingest/submissions/odk`
+  - `services/scout-ingest-service/main.py` ← `scout-ingest-service`
+  - `services/scout-ingest-service/tests/test_ingest_live.py` ← `scout-ingest-service`
+  - `docker-compose.v9.yml` ← `sahool-scout-ingest`
+  - `docker-compose.v9.yml` ← `scout-ingest-service`

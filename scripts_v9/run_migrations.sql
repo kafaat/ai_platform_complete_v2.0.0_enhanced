@@ -548,3 +548,17 @@
 \i migrations/v195_irrigation_capacity_reservation_core.sql
 \echo '═══ 202. v196_irrigation_target_binding.sql ═══'
 \i migrations/v196_irrigation_target_binding.sql
+\echo '═══ 203. v197_external_submissions_ingest.sql ═══'
+\i migrations/v197_external_submissions_ingest.sql
+\echo '═══ 204. v198_external_ingest_sources.sql ═══'
+\i migrations/v198_external_ingest_sources.sql
+\echo '═══ 205. v199_external_field_observations.sql ═══'
+\i migrations/v199_external_field_observations.sql
+\echo '═══ 206. v200_admin_boundaries.sql ═══'
+\i migrations/v200_admin_boundaries.sql
+\echo '═══ 207. v201_season_records.sql ═══'
+\i migrations/v201_season_records.sql
+\echo '═══ 208. v202_season_draft_key.sql ═══'
+\i migrations/v202_season_draft_key.sql
+\echo '═══ 209. v203_season_sowing_in_observed_range.sql ═══'
+\i migrations/v203_season_sowing_in_observed_range.sql

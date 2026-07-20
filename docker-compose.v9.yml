@@ -43,9 +43,14 @@ services:
     - nginx-cache:/var/cache/nginx
     environment:
       NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx
-      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN
+      # SEASON-RECORD-ENTRY-01 3b: أضِف SEASON_ENTRY_SERVICE_TOKEN كي يُستبدَل في القالب.
+      # الفلتر يقصر الاستبدال على هذه الأسماء فقط — متغيّرات nginx وقت التشغيل تبقى كما هي.
+      NGINX_ENVSUBST_FILTER: DOMAIN|SAHOOL_AGENT_TOKEN|SEASON_ENTRY_SERVICE_TOKEN
       DOMAIN: ${DOMAIN:-localhost}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # توكن خدمة قناة المواسم (تُحقنه البوّابة upstream نحو scout-ingest). فارغ محلّيّاً ⇒ الخدمة
+      # ترفض (SEASON_ENTRY_ENABLED=0 افتراضاً) — نمط READ_TOKEN، لا سرّ بقيمة في compose.
+      SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
     depends_on:
@@ -854,6 +859,89 @@ services:
       interval: 20s
       timeout: 5s
       retries: 6
+      start_period: 20s
+  sahool-scout-ingest:
+    build:
+      context: .
+      dockerfile: services/scout-ingest-service/Dockerfile
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      # Declared owner of `external_submissions` (docs/architecture/db_ownership.yml).
+      # Connects with the restricted sahool_ingest role: SELECT+INSERT only, NOBYPASSRLS —
+      # RLS stays enforced and the service sets app.current_tenant per operation.
+      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      # Per-source credentials live in external_ingest_sources (X-Scout-Ingest-Token → resolve_ingest_source).
+      # No shared SAHOOL_AGENT_TOKEN and no user JWT are ever accepted on this service.
+      SCOUT_INGEST_ENABLED: ${SCOUT_INGEST_ENABLED:-0}
+      # B1.3 read channel: a dedicated service token (NOT the shared SAHOOL_AGENT_TOKEN) so the
+      # owned read model is consumed via /internal, never by direct SQL on the table.
+      SCOUT_INGEST_READ_TOKEN: ${SCOUT_INGEST_READ_TOKEN:-}
+      # SEASON-RECORD-ENTRY-01: النقاط الستّ خلف راية مستقلّة (افتراضيّ off ⇒ 404).
+      SEASON_ENTRY_ENABLED: ${SEASON_ENTRY_ENABLED:-0}
+      # توكن خدمة مخصّص لقناة إدخال المواسم (القيمة مُحقَنة بيئيّاً، لا سرّ في compose — نمط READ_TOKEN).
+      SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
+      # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/). S3_BUCKET فارغ ⇒ file:// تطويريّ.
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_USE_SSL: ${S3_USE_SSL:-false}
+      # تدهور file:// مُعلَن (تطوير فقط)؛ غيابه ⇒ fail-closed (لا رفع صامت في الإنتاج).
+      S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
+      LOGBOOK_LOCAL_DIR: ${LOGBOOK_LOCAL_DIR:-/tmp/sahool-logbooks}
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD
+      - curl
+      - -sf
+      - http://localhost:8000/healthz
+      interval: 20s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+  sahool-scout-ingest-projection:
+    build:
+      context: .
+      dockerfile: services/scout-ingest-service/Dockerfile
+    mem_limit: 256m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      # B1.3 projection worker — same restricted sahool_ingest role. Claims accepted submissions and
+      # projects them into external_field_observations (scout-ingest-owned; never scouting_pins).
+      # projection_status is updated only via SECURITY DEFINER functions ⇒ sahool_ingest keeps no UPDATE.
+      DATABASE_URL: ${INGEST_DATABASE_URL:-postgresql://sahool_ingest:${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      SCOUT_INGEST_PROJECTION_ENABLED: ${SCOUT_INGEST_PROJECTION_ENABLED:-0}
+      SCOUT_INGEST_PROJECTION_POLL_SECONDS: ${SCOUT_INGEST_PROJECTION_POLL_SECONDS:-5}
+    command:
+    - python
+    - -m
+    - projection_worker
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
+    networks:
+    - sahool-internal
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f projection_worker || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
       start_period: 20s
   sahool-remote-sensing-workspace-bff:
     build:
@@ -1672,6 +1760,8 @@ services:
       SMTP_FROM: ${SMTP_FROM}
       TTS_URL: http://sahool-tts-service:8000
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      # WS auth: agent.py:_validate_ws_token فكّ JWT (HS256, aud=sahool) يقرأ JWT_SECRET؛
+      # بلا حقنه raise "Missing token or secret" ⇒ يرفض كلّ اتّصال WS (fail-closed صامت).
       JWT_SECRET: ${JWT_SECRET}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}

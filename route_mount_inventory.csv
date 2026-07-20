@@ -2,7 +2,7 @@ path,service,has_fastapi,direct_routes,router_routes,delegates_to_router_registr
 services/actuator-service/main.py,actuator-service,False,0,6,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/agriai-engine/main.py,agriai-engine,True,8,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/ai_agronomist/main.py,ai_agronomist,True,13,0,False,False,True,direct_routes,main.py owns direct route handlers
-services/auth/main.py,auth,True,0,27,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
+services/auth/main.py,auth,True,0,28,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/decision-service/main.py,decision-service,True,69,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/edge-inference/main.py,edge-inference,True,6,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/field-management-service/main.py,field-management-service,True,7,0,False,False,False,direct_routes,main.py owns direct route handlers
@@ -13,9 +13,10 @@ services/knowledge-graph/main.py,knowledge-graph,True,7,0,False,False,False,dire
 services/local-ai-rag/main.py,local-ai-rag,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/odoo-bridge/main.py,odoo-bridge,True,0,10,True,False,True,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/rag-retrieval/main.py,rag-retrieval,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
-services/raster-service/main.py,raster-service,False,0,79,False,True,True,factory_delegated_routes,main.py delegates to an app factory and routers contain routes
+services/raster-service/main.py,raster-service,False,0,80,False,True,True,factory_delegated_routes,main.py delegates to an app factory and routers contain routes
 services/remote-sensing-workspace-bff/main.py,remote-sensing-workspace-bff,True,3,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/sam2-inference/main.py,sam2-inference,True,4,0,False,False,True,direct_routes,main.py owns direct route handlers
+services/scout-ingest-service/main.py,scout-ingest-service,True,5,0,False,False,False,direct_routes,main.py owns direct route handlers
 services/soil-service/main.py,soil-service,True,0,59,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/supervisor-agent/main.py,supervisor-agent,True,0,10,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes
 services/tts-service/main.py,tts-service,True,0,8,True,False,False,delegated_routes,main.py delegates to router_registry and routers contain routes

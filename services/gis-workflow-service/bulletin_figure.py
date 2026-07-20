@@ -66,11 +66,14 @@ def _result(name: str, severity: str, passed: bool | None, detail: str) -> dict[
     return {"name": name, "severity": severity, "passed": passed, "detail": detail}
 
 
-def bulletin_self_checks(bulletin: Any) -> dict[str, Any]:
-    """فحوص ذاتيّة للنشرة: وجود محافظات + احترام الخصوصيّة + إعلان «تصنيفيّ لا جغرافيّ».
+def bulletin_self_checks(
+    bulletin: Any, admin_geometry_present: bool | None = None
+) -> dict[str, Any]:
+    """فحوص ذاتيّة للنشرة: وجود محافظات + احترام الخصوصيّة + حالة الحدود الإداريّة.
 
-    ``admin_geometry_present`` **دائماً متخطٍّ بسبب** (لا حدود ⇒ ليست خريطة) — إعلان صادق
-    لا فشل. ``privacy_floor_respected`` **required**: أيّ مجموعة مكتومة تُسرِّب رقماً ⇒ فشل.
+    ``admin_geometry_present`` (A6 يفكّ حظر A7): **حاضرة ⇒ pass** (خريطة حقيقيّة) · **غائبة ⇒ يبقى
+    تخطٍّ صادق** (None بنفس العبارة — لا خريطة مزيّفة تولد بلا حدود). **لا False أبداً**: الغياب حالة
+    (degraded) لا فشل. ``privacy_floor_respected`` **required**: أيّ مجموعة مكتومة تُسرِّب رقماً ⇒ فشل.
     """
     b = bulletin if isinstance(bulletin, dict) else {}
     govs = b.get("governorates") or []
@@ -100,12 +103,18 @@ def bulletin_self_checks(bulletin: Any) -> dict[str, Any]:
             "لا تسريب" if not leaks else f"تسريب في: {leaks}",
         )
     )
+    # A6 (يفكّ حظر A7): حاضرة ⇒ pass (خريطة حقيقيّة) · غائبة ⇒ None (تخطٍّ صادق، لا خريطة مزيّفة). لا False.
+    _geo_detail = (
+        "حدود إداريّة (A7) حاضرة — choropleth جغرافيّ حقيقيّ"
+        if admin_geometry_present
+        else "لا حدود إداريّة — شكل تصنيفيّ لا choropleth جغرافيّ (تخطٍّ صادق)"
+    )
     checks.append(
         _result(
             "admin_geometry_present",
             "quality",
-            None,
-            "لا حدود إداريّة — شكل تصنيفيّ لا choropleth جغرافيّ (تخطٍّ صادق)",
+            True if admin_geometry_present else None,  # حاضرة⇒True · غائبة⇒None (لا False)
+            _geo_detail,
         )
     )
     failed_req = [c for c in checks if c["severity"] == "required" and c["passed"] is False]

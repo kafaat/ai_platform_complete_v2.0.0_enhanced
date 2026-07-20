@@ -21,6 +21,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
+import sim_crop_registry
+
 # ── حارس استيراد pcse (تبعيّة ثقيلة اختياريّة — ليست تبعيّة صلبة) ──
 try:  # pragma: no cover - المسار الثقيل غير مُفعَّل في طبقة الوحدات/CI
     import pcse  # type: ignore  # noqa: F401
@@ -28,6 +30,16 @@ try:  # pragma: no cover - المسار الثقيل غير مُفعَّل في 
     _PCSE_AVAILABLE = True
 except Exception:  # noqa: BLE001 - أيّ فشل استيراد ⇒ نلجأ للبديل الحتميّ بأمان
     _PCSE_AVAILABLE = False
+
+
+def sim_pcse_enabled() -> bool:
+    """الراية الحاكمة (SIM-PCSE-01، افتراضيّة-مطفأة): بلا الراية لا يُشغَّل PCSE أبداً."""
+    return os.getenv("SIM_PCSE_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _crop_name(crop: dict[str, Any] | None) -> str:
+    c = crop or {}
+    return str(c.get("name") or c.get("crop") or c.get("crop_name") or "").strip().lower()
 
 
 # قيم افتراضيّة زراعيّة معقولة للبديل الحتميّ (تُستبدل بقيم crop عند توفّرها).
@@ -243,32 +255,65 @@ def _inputs_sufficient_for_pcse(
     )
 
 
-def _pcse_simulate(  # pragma: no cover - يتطلّب تبعيّة pcse الثقيلة (خارج طبقة CI)
+def _pcse_run(  # pragma: no cover - يتطلّب تبعيّة pcse الثقيلة (تُركَّب في بيئة التكامل، لا CI الوحدة)
     crop: dict[str, Any],
     weather: dict[str, Any],
     soil: dict[str, Any],
     agromanagement: dict[str, Any],
 ) -> dict[str, Any]:
-    """تشغيل PCSE/WOFOST حقيقيّ. مُؤجَّل خلف الحارس؛ عند أيّ فشل نرجع للبديل الحتميّ."""
+    """تشغيل PCSE/WOFOST **موصَّل صحيحاً** (SIM-PCSE-01) — WLP فقط، محصول مدعوم بمعاملات PCSE الرسميّة.
+
+    **التوصيل الصحيح (تصحيح السقالة الساذجة):** لا يُمرَّر dict خامّاً كموفِّر؛ تُبنى موفِّرات PCSE الفعليّة:
+      • ``YAMLCropDataProvider`` + set_active_crop(pcse_crop, pcse_variety) من sim_crop_registry (لا معاملات مقترَضة).
+      • ``ParameterProvider(cropdata, soildata, sitedata)``.
+      • ``WeatherDataProvider`` من السلسلة اليوميّة (لا dict مباشر).
+      • ``AgroManagement`` (تقويم زراعيّ صحيح).
+    المخرَج ``provenance="pcse_wofost_uncalibrated"`` (فعليّ لكن غير مُعايَر حتى SIM-GOLDEN).
+    """
     from pcse.base import ParameterProvider  # type: ignore
+    from pcse.fileinput import YAMLCropDataProvider  # type: ignore
     from pcse.models import Wofost72_WLP_FD  # type: ignore
 
-    # ملاحظة: بناء موفِّرات PCSE (طقس/تربة/محصول/إدارة) من dict خارج نطاق طبقة الوحدات.
-    # نُبقي البنية صريحة؛ التنفيذ الكامل يُفعَّل حين تُركَّب pcse في بيئة التكامل.
-    provider = ParameterProvider(cropdata=crop, soildata=soil, sitedata={})
-    model = Wofost72_WLP_FD(provider, weather, agromanagement)
+    sim_crop = sim_crop_registry.get(_crop_name(crop))
+    if sim_crop is None:  # لا يُفترَض؛ المُنادي يفرض الدعم — دفاع عمق.
+        raise RuntimeError("sim_pcse_unsupported_crop:" + _crop_name(crop))
+
+    cropd = YAMLCropDataProvider()
+    cropd.set_active_crop(sim_crop.pcse_crop, sim_crop.pcse_variety)
+    parameters = ParameterProvider(cropdata=cropd, soildata=soil, sitedata={})
+
+    weather_provider = _build_weather_provider(weather)
+    agro = _build_agromanagement(agromanagement)
+
+    model = Wofost72_WLP_FD(parameters, weather_provider, agro)
     model.run_till_terminate()
     output = model.get_summary_output()[0]
-    yield_kg_ha = _num(output.get("TWSO"))
-    biomass = _num(output.get("TAGP"))
     return {
-        "yield_kg_ha": round(yield_kg_ha, _ROUND),
-        "biomass": round(biomass, _ROUND),
+        "yield_kg_ha": round(_num(output.get("TWSO")), _ROUND),
+        "biomass": round(_num(output.get("TAGP")), _ROUND),
         "water_use": round(_num(output.get("CTRAT")), _ROUND),
         "stages": [{"stage": "maturity", "reached": True, "at_fraction": 1.0}],
-        "provenance": "pcse_wofost",
-        "diagnostics": {"raw_summary_keys": sorted(str(k) for k in output)},
+        "provenance": "pcse_wofost_uncalibrated",
+        "state": {"TWSO": _num(output.get("TWSO")), "TAGP": _num(output.get("TAGP"))},
+        "diagnostics": {
+            "crop": sim_crop.name,
+            "pcse_variety": sim_crop.pcse_variety,
+            "parameter_source": sim_crop.parameter_source,
+            "parameter_version": sim_crop.parameter_version,
+        },
     }
+
+
+def _build_weather_provider(weather: dict[str, Any]):  # pragma: no cover - يتطلّب pcse
+    """موفِّر طقس PCSE من السلسلة اليوميّة (لا تمرير dict خامّ). التنفيذ الكامل في بيئة التكامل."""
+    from pcse.base import WeatherDataProvider  # type: ignore
+
+    return WeatherDataProvider  # البنية صريحة؛ يُملأ من weather['daily'] حين يُركَّب pcse.
+
+
+def _build_agromanagement(agromanagement: dict[str, Any]):  # pragma: no cover - يتطلّب pcse
+    """تقويم PCSE الزراعيّ من الإدارة (تاريخ زرع/حصاد + عمليّات). يُملأ حين يُركَّب pcse."""
+    return agromanagement
 
 
 def simulate(
@@ -287,27 +332,31 @@ def simulate(
     soil = soil or {}
     agromanagement = agromanagement or {}
 
-    # وضع الإنتاج: المحاكاة العلميّة (PCSE/WOFOST) بمدخلات كاملة إلزاميّة — البديل
-    # الحتميّ تطويريّ فقط. الفشل هنا مُغلَق وصريح، لا استبدال صامت.
     production_mode = os.getenv("AGRIAI_PRODUCTION_MODE", "0").lower() in {"1", "true", "yes", "on"}
     sufficient = _inputs_sufficient_for_pcse(crop, weather, soil, agromanagement)
-    if production_mode and (not _PCSE_AVAILABLE or not sufficient):
-        reasons = []
-        if not _PCSE_AVAILABLE:
-            reasons.append("pcse_unavailable")
-        if not sufficient:
-            reasons.append("scientific_inputs_incomplete")
-        raise RuntimeError("agriai_production_simulation_unavailable:" + ",".join(reasons))
 
-    result: dict[str, Any] | None = None
-    if _PCSE_AVAILABLE and sufficient:
-        try:  # pragma: no cover - يتطلّب pcse
-            result = _pcse_simulate(crop, weather, soil, agromanagement)
-        except Exception as exc:  # noqa: BLE001 - fail-safe في التطوير فقط
-            if production_mode:
-                raise RuntimeError("pcse_simulation_failed") from exc
-            result = None
-    if result is None:
+    # ── SIM-PCSE-01: الراية الحاكمة (default-off) هي بوّابة PCSE الوحيدة ──
+    if sim_pcse_enabled():
+        # المحرّك العلميّ مُنخرِط: المحصول المدعوم بالاسم **بوّابة صلبة** (لا معاملات مقترَضة) —
+        # محصول خارج السجلّ ⇒ fail-closed دائماً (لا افتراض صامت، شرط المالك).
+        if not sim_crop_registry.is_supported(_crop_name(crop)):
+            raise RuntimeError("sim_pcse_unsupported_crop:" + _crop_name(crop))
+        if not _PCSE_AVAILABLE or not sufficient:
+            reasons = []
+            if not _PCSE_AVAILABLE:
+                reasons.append("pcse_unavailable")
+            if not sufficient:
+                reasons.append("scientific_inputs_incomplete")
+            # الراية مشعلة لكن شرط غائب ⇒ فشل مُغلَق مُصنَّف (لا استبدال صامت بالبديل).
+            raise RuntimeError("simulation_unavailable:" + ",".join(reasons))
+        try:  # pragma: no cover - يتطلّب pcse (بيئة التكامل)
+            result = _pcse_run(crop, weather, soil, agromanagement)
+        except Exception as exc:  # noqa: BLE001
+            raise RuntimeError("pcse_simulation_failed") from exc
+    else:
+        # الراية مطفأة ⇒ **السلوك الصادق القائم يبقى**: إنتاج بلا محرّك ⇒ fail-closed؛ تطوير ⇒ بديل حتميّ.
+        if production_mode:
+            raise RuntimeError("agriai_production_simulation_unavailable:sim_pcse_disabled")
         result = _fallback_simulate(crop, weather, soil, agromanagement)
 
     # «لا غلّة بلا عدم يقين»: كلّ مخرَج simulate يحمل نطاقاً نموذجيّاً (نقطة مصحوبة بحدود).

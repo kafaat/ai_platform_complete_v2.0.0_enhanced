@@ -52,6 +52,7 @@ WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'app_role')
 
 -- ٢) ثبّت السمات الأمنيّة وكلمة السرّ (idempotent سواء أُنشئ الآن أو سابقاً)
 -- NOINHERIT: يمنع توريث صلاحيّات أيّ دور عضو فيه — عقد الدور المقيَّد (IRR-F01 Gate A).
+-- آمن هنا: الدور يُمنَح DML/EXECUTE/USAGE مباشرةً (لا عبر عضويّة)، فلا يُكسَر أيّ grant.
 ALTER ROLE :"app_role"
   LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'app_pw';
 
@@ -70,6 +71,23 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO :"app_role";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"app_role";
+
+-- A7 (مرجع مشترك admin_boundaries): sahool_app **SELECT فقط** — تُنزَع الكتابة (الكتابة عبر المُحمِّل الموثّق).
+DO $$
+BEGIN
+  IF to_regclass('public.admin_boundaries') IS NOT NULL THEN
+    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries FROM ' || quote_ident(:'app_role');
+  END IF;
+  IF to_regclass('public.admin_boundaries_source') IS NOT NULL THEN
+    EXECUTE 'REVOKE INSERT, UPDATE, DELETE ON admin_boundaries_source FROM ' || quote_ident(:'app_role');
+  END IF;
+  -- SEASON-RECORD-01 (v201): سجلّ موسم append-only — **لا DELETE أبداً**. SELECT/INSERT/UPDATE يبقى؛ DELETE يُنزَع.
+  IF to_regclass('public.season_records')    IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_records FROM '    || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_crop')       IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_crop FROM '       || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_events')     IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_events FROM '     || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_harvest')    IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_harvest FROM '    || quote_ident(:'app_role'); END IF;
+  IF to_regclass('public.season_cost_items') IS NOT NULL THEN EXECUTE 'REVOKE DELETE ON season_cost_items FROM ' || quote_ident(:'app_role'); END IF;
+END $$;
 SQL
 
 
@@ -80,6 +98,86 @@ if [[ "${APP_ALLOW_SCHEMA_CREATE,,}" == "true" ]]; then
 GRANT CREATE ON SCHEMA public TO :"app_role";
 SQL
 fi
+
+# ─ دور التحكّم لدالّة resolve_ingest_source (SCOUT-INGEST-01 B1.2b) ─
+# NOSUPERUSER + BYPASSRLS + SELECT على external_ingest_sources فقط، يملك الدالّة (SECURITY DEFINER).
+# FORCE RLS يسري على المالك ⇒ مالك غير BYPASS يُجوّع resolver. أقلّ سطح تصعيد. راجع ...B1.2b §1.1.
+echo "─ دور التحكّم sahool_ingest_resolver (NOSUPERUSER BYPASSRLS، مالك الدالّة فقط) ─"
+psql_exec <<'SQL'
+SELECT format('CREATE ROLE %I NOLOGIN', 'sahool_ingest_resolver')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest_resolver')
+\gexec
+
+ALTER ROLE sahool_ingest_resolver NOLOGIN NOSUPERUSER NOINHERIT BYPASSRLS NOCREATEDB NOCREATEROLE;
+GRANT USAGE ON SCHEMA public TO sahool_ingest_resolver;
+
+DO $$
+BEGIN
+  IF to_regclass('public.external_ingest_sources') IS NOT NULL THEN
+    GRANT SELECT ON external_ingest_sources TO sahool_ingest_resolver;
+  END IF;
+  IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION resolve_ingest_source(TEXT) OWNER TO sahool_ingest_resolver';
+  END IF;
+  -- B1.3: دالّتا الإسقاط DEFINER يملكهما resolver (تحدّثان projection_status عابراً للمستأجرين).
+  IF to_regclass('public.external_submissions') IS NOT NULL THEN
+    GRANT SELECT, UPDATE ON external_submissions TO sahool_ingest_resolver;
+  END IF;
+  IF to_regprocedure('public.claim_submissions_for_projection(integer,integer)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION claim_submissions_for_projection(INT, INT) OWNER TO sahool_ingest_resolver';
+  END IF;
+  IF to_regprocedure('public.complete_submission_projection(bigint,text,text)') IS NOT NULL THEN
+    EXECUTE 'ALTER FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) OWNER TO sahool_ingest_resolver';
+  END IF;
+END $$;
+SQL
+# EXECUTE لـapp_role مُغطّى بـ"GRANT EXECUTE ON ALL FUNCTIONS ... TO app_role" أعلاه (الهجرات قبل bootstrap).
+
+# ─ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
+# أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE resolver. NOBYPASSRLS · لا UPDATE/DELETE.
+echo "─ دور خدمة الإدخال sahool_ingest (NOBYPASSRLS، SELECT+INSERT فقط) ─"
+psql_exec -v ing_pw="${INGEST_DB_PASSWORD:-sahool_ingest_pw}" <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN', 'sahool_ingest')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest')
+\gexec
+
+ALTER ROLE sahool_ingest LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS NOCREATEDB NOCREATEROLE PASSWORD :'ing_pw';
+GRANT USAGE ON SCHEMA public TO sahool_ingest;
+
+DO $$
+BEGIN
+  IF to_regclass('public.external_submissions') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON external_submissions TO sahool_ingest;   -- لا UPDATE/DELETE
+    GRANT USAGE, SELECT ON SEQUENCE external_submissions_id_seq TO sahool_ingest;
+  END IF;
+  IF to_regprocedure('public.resolve_ingest_source(text)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION resolve_ingest_source(TEXT) TO sahool_ingest;
+  END IF;
+  -- B1.3: نموذج القراءة المملوك + دالّتا الإسقاط (التحديث عبر DEFINER فقط، لا UPDATE مباشر).
+  IF to_regclass('public.external_field_observations') IS NOT NULL THEN
+    GRANT SELECT, INSERT ON external_field_observations TO sahool_ingest;   -- لا UPDATE/DELETE
+  END IF;
+  IF to_regprocedure('public.claim_submissions_for_projection(integer,integer)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION claim_submissions_for_projection(INT, INT) TO sahool_ingest;
+  END IF;
+  IF to_regprocedure('public.complete_submission_projection(bigint,text,text)') IS NOT NULL THEN
+    GRANT EXECUTE ON FUNCTION complete_submission_projection(BIGINT, TEXT, TEXT) TO sahool_ingest;
+  END IF;
+  -- SEASON-RECORD-ENTRY-01 §2: scout-ingest is the single writer of the season tables (v201/v202).
+  -- SELECT+INSERT+UPDATE — INSERT (draft), UPDATE (draft edits + untrusted→accepted transition);
+  -- **لا DELETE** (append-only، التصحيح = إصدار مُبطِل). RLS يبقى فعّالاً (NOBYPASSRLS)، وtriggers
+  -- التجميد (v201) تمنع تحوير الأبناء بعد القبول بصرف النظر عن المنح.
+  IF to_regclass('public.season_records') IS NOT NULL THEN
+    GRANT SELECT, INSERT, UPDATE ON
+      season_records, season_crop, season_events, season_harvest, season_cost_items
+      TO sahool_ingest;
+  END IF;
+  -- SEASON-ENTRY-EVENTS-UI: منح SELECT على الـVIEW المُشتقّ للأهليّة (نقطة detail تقرأه؛ security_invoker).
+  IF to_regclass('public.season_calibration_eligibility') IS NOT NULL THEN
+    GRANT SELECT ON season_calibration_eligibility TO sahool_ingest;
+  END IF;
+END $$;
+SQL
 
 echo "─ إنشاء دور المهامّ الخلفيّة (${JOBS_ROLE} — BYPASSRLS لمسار الوظائف فقط) ─"
 psql_exec -v jobs_role="$JOBS_ROLE" -v jobs_pw="$JOBS_PASSWORD" <<'SQL'

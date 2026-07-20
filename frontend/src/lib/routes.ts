@@ -162,6 +162,7 @@ export const NAV_SECTIONS: NavSection[] = [
     id: 'operations', label: 'العمليّات', icon: FolderKanban, defaultOpen: false,
     items: [
       { id: 'tasks',       path: '/ops/tasks',       label: 'المهام الميدانية', icon: ClipboardList, maturity: 'stable' },
+      { id: 'season-record-entry', path: '/ops/season-records', label: 'ترقيم المواسم (سجلّ الموسم)', icon: CalendarRange, maturity: 'beta' },
       { id: 'activities',  path: '/ops/activities',  label: 'العمليّات الزراعيّة', icon: Sprout, maturity: 'stable' },
       { id: 'inventory',   path: '/ops/inventory',   label: 'المخزون', icon: Boxes, maturity: 'stable' },
       { id: 'equipment',   path: '/ops/equipment',   label: 'المعدّات', icon: Tractor, maturity: 'stable' },

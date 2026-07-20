@@ -1,0 +1,42 @@
+{
+  "_note": "قائمة استثناء انجراف env↔compose (السجلّ التشغيليّ #3). كلّ مدخل مُبرَّر ويُراجَع كمراجعة كود (شرط المالك ③). المفتاح = اسم المتغيّر؛ القيمة = {category, why}. الفئات: A=راية/مُنتقٍ بافتراضيّ آمن داخليّ · B=سرّ يُحقَن إنتاجاً فقط (غيابه هو الوضع الآمن المطلوب؛ وجوده في compose ثغرة) · C=عنوان بنية/مُنتقي خلفيّة لكلّ بيئة (الافتراضيّ آمن، الترقية اختياريّة) · D=ضبط أداء/هويّة بافتراضيّ آمن. لا سرّ من هذه في compose. غياب المدخل من هذه القائمة + غيابه من compose/.env.example ⇒ يُحمِّر الحارس (--check strict) ⇒ راجعه: صنّفه هنا بتبرير، أو أصلِح المصدر.",
+  "intentional": {
+    "AI_GENERATION_ENABLED": {"category": "A", "why": "راية توليد-AI معطَّلة افتراضاً (غيابها=معطَّل)؛ services/ai_agronomist/ai_generation.py."},
+    "FEATURE_AUTOMATION_RULES_ACTUATION": {"category": "A", "why": "راية تفعيل تنفيذ قواعد الأتمتة، معطَّلة افتراضاً؛ actuator_runtime.py."},
+    "FEATURE_MANUAL_ACTUATOR_COMMANDS": {"category": "A", "why": "راية أوامر المُشغِّل اليدويّة، معطَّلة افتراضاً؛ actuator_runtime.py."},
+    "WEATHER_LIVE_DISABLED": {"category": "A", "why": "راية تعطيل الطقس الحيّ؛ غيابها=الحيّ مُفعَّل بسلوك آمن؛ field_intelligence_adapters.py."},
+    "SAHOOL_IRRIGATION_SALINITY_POLICY": {"category": "A", "why": "مُنتقي سياسة ملوحة الريّ بافتراضيّ محافظ؛ irrigation_recommendation_policy.py."},
+    "ACTUATOR_MODE": {"category": "A", "why": "resolve_actuator_mode(getenv, MQTT_BROKER_URL): الافتراضيّ يحفظ السلوك الحاليّ تماماً (يُستنتَج من الوسيط)؛ actuator_runtime.py:50."},
+    "ACTUATOR_IDEMPOTENCY_MODE": {"category": "A", "why": "resolve_idempotency_mode(None)='local' (إزالة تكرار داخل العمليّة = السلوك الحاليّ الآمن)، مكشوف عبر /metrics mode؛ shared/actuator_idempotency.py:29."},
+    "ANTHROPIC_MODEL": {"category": "A", "why": "مُنتقي موديل؛ غيابه بلا AI_MODEL يُبلَّغ صراحةً في قائمة missing (لا كسر صامت)؛ ai_provider_config.py:165,177."},
+    "LOCAL_LLM_MODEL": {"category": "A", "why": "مُنتقي موديل محلّيّ بافتراضيّ DEFAULT_LOCAL_MODEL آمن؛ ai_provider_config.py:227."},
+
+    "WHATSAPP_TOKEN": {"category": "B", "why": "سرّ WhatsApp من مدير الأسرار إنتاجاً؛ غيابه=قناة معطَّلة بصدق؛ يجب ألّا يظهر في compose؛ core/alert_delivery.py."},
+    "SMS_API_KEY": {"category": "B", "why": "سرّ SMS من مدير الأسرار؛ غيابه=قناة معطَّلة؛ لا في compose؛ core/alert_delivery.py."},
+    "FCM_SERVER_KEY": {"category": "B", "why": "سرّ FCM من مدير الأسرار؛ غيابه=دفع معطَّل؛ لا في compose؛ core/capabilities.py."},
+    "OLLAMA_API_KEY": {"category": "B", "why": "سرّ مزوّد LLM من مدير الأسرار؛ غيابه=المزوّد غير مُهيّأ؛ لا في compose؛ ai_generation.py."},
+    "MFA_AUDIT_HASH_KEY": {"category": "B", "why": "مفتاح تجزئة تدقيق MFA؛ سرّ من مدير الأسرار؛ لا في compose؛ services/auth/mfa_runtime.py."},
+    "INTERNAL_SERVICE_TOKEN": {"category": "B", "why": "توكن خدمة داخليّ مشترك؛ سرّ من مدير الأسرار؛ لا في compose؛ soil_evidence_bridge.py/soil_hydraulic_client.py."},
+    "SOIL_SERVICE_TOKEN": {"category": "B", "why": "توكن خدمة التربة؛ سرّ من مدير الأسرار؛ لا في compose؛ soil_evidence_bridge.py/soil_hydraulic_client.py."},
+    "SAHOOL_ALLOW_RLS_BYPASS_ROLE": {"category": "B", "why": "مهرب تطوير محلّيّ فقط. enforcement_active fail-closed: غيابه ⇒ الفرض مُفعَّل ⇒ رفض الإقلاع على دور يتجاوز RLS (غيابه = لا تجاوز أبداً، الوضع الأصحّ). وجوده truthy في الإنتاج/compose ثغرة عزل مستأجرين؛ يجب ألّا يظهر في compose. يُسجَّل .critical دوماً؛ shared/db_role_guard.py:34-46."},
+    "SEASON_EDGE_HMAC_KEY": {"category": "B", "why": "سرّ تصديق الحافّة HMAC (SEASON-RECORD-ENTRY-01 §4-①)، مشترك بين nginx والخدمة فقط، من مدير الأسرار. غيابه fail-closed ⇒ verify_edge_attestation يرفض كلّ قبول (401 edge_unattested، لا قبول صامت). وجوده في compose يكسر نموذج التوقيع؛ يجب ألّا يظهر في compose؛ shared/security/trusted_tenant.py:102-133 · gateway_deps.py:71-102."},
+
+    "SAHOOL_NATS_URL": {"category": "C", "why": "عنوان NATS لكلّ بيئة؛ غيابه=النشر غير مُهيّأ (best-effort)؛ يُحقَن بيئيّاً؛ phase_runtime_workers.py/irrigation_dispatch_relay_worker.py."},
+    "MODEL_SERVING_BACKEND_URL": {"category": "C", "why": "عنوان خلفيّة خدمة الموديل لكلّ بيئة؛ يُحقَن بيئيّاً؛ phase_runtime_workers.py."},
+    "PLUGIN_EXECUTOR_URL": {"category": "C", "why": "عنوان مُنفِّذ الملحقات لكلّ بيئة؛ يُحقَن بيئيّاً؛ phase_runtime_workers.py."},
+    "SAHOOL_WEATHER_CACHE_BACKEND": {"category": "C", "why": "مُنتقي خلفيّة كاش الطقس؛ الافتراضيّ 'memory' آمن (داخل العمليّة)؛ redis اختياريّ؛ routers/weather.py:146."},
+    "WEATHER_CACHE_BACKEND": {"category": "C", "why": "اسم بديل لخلفيّة كاش الطقس؛ نفس الافتراضيّ 'memory'؛ routers/weather.py."},
+    "SAHOOL_WEATHER_REDIS_URL": {"category": "C", "why": "عنوان Redis للطقس؛ الافتراضيّ memory عند غيابه (الطبقة تبقى صالحة)؛ حالة مكشوفة عبر status؛ routers/weather.py:161."},
+    "SAHOOL_WEATHER_RATE_LIMIT_BACKEND": {"category": "C", "why": "مُنتقي خلفيّة تحديد المعدّل؛ الافتراضيّ 'memory' (المحدِّد يبقى فعّالاً داخل العمليّة، لا يُعطَّل)؛ routers/weather.py:295."},
+    "WEATHER_RATE_LIMIT_BACKEND": {"category": "C", "why": "اسم بديل لخلفيّة تحديد المعدّل؛ نفس الافتراضيّ 'memory'؛ routers/weather.py:298."},
+    "SAHOOL_WEATHER_RATE_LIMIT_REDIS_URL": {"category": "C", "why": "عنوان Redis لتحديد المعدّل؛ غيابه ⇒ محدِّد داخل العمليّة يبقى فعّالاً (ليس تعطيلاً)؛ effective_backend+last_error مكشوفان؛ routers/weather.py:308."},
+
+    "SOIL_COG_DIR": {"category": "C", "why": "مجلّد SoilGrids COG لكلّ بيئة؛ غيابه ⇒ render_soil_tile→None (بلاطة شفّافة صادقة) وsource_configured=readable>0 يُبلَّغ صراحةً؛ soil_render.py:202."},
+    "SOILGRIDS_COG_DIR": {"category": "C", "why": "اسم بديل لمجلّد SoilGrids COG؛ نفس السلوك الصادق عند الغياب؛ soil_render.py:202,285."},
+    "SOIL_LAYER_PATH_TEMPLATE": {"category": "C", "why": "قالب مسار طبقة التربة لكلّ بيئة؛ غيابه ⇒ يُجرَّب المجلّد ثمّ None صادق؛ soil_render.py:194,283."},
+
+    "GDAL_DISABLE_READDIR_ON_OPEN": {"category": "D", "why": "ضبط أداء GDAL لقراءة COG السحابيّة بافتراضيّ آمن؛ object_store.py."},
+    "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": {"category": "D", "why": "ضبط أداء GDAL/curl (امتدادات مسموحة) بافتراضيّ آمن؛ object_store.py."},
+    "WORKFLOW_WORKER_ID": {"category": "D", "why": "تجاوز اختياريّ لهويّة عامل ثابتة؛ غيابه ⇒ uuid فريد لكلّ نسخة (الافتراضيّ الآمن ضدّ تصادم الهويّة)؛ workflow_engine.py:269,439."}
+  }
+}

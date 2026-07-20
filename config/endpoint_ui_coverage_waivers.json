@@ -824,6 +824,22 @@
       "owner": "irrigation-mpc",
       "expiry": "2026-12-31",
       "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/auth/edge-sign",
+      "audience": "farmer",
+      "methods": [
+        "get@services/auth/routers/season_edge_sign.py"
+      ],
+      "reason_category": "operational",
+      "reason": "طلب فرعيّ داخليّ (nginx auth_request) لتوقيع تصديق الحافّة على مسار قبول الموسم — لا يصله عميل مباشرةً (البوّابة تجرّده)، فلا شاشة مستخدم نهائيّ؛ SEASON-RECORD-ENTRY-01 3b.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
     }
   ]
 }

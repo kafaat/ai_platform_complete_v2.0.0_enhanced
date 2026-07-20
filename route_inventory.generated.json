@@ -369,6 +369,14 @@
   },
   {
     "service": "auth",
+    "file": "services\\auth\\routers\\season_edge_sign.py",
+    "line": 41,
+    "method": "GET",
+    "path": "/auth/edge-sign",
+    "function": "edge_sign"
+  },
+  {
+    "service": "auth",
     "file": "services\\auth\\routers\\session.py",
     "line": 24,
     "method": "POST",
@@ -1834,7 +1842,15 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 88,
+    "line": 77,
+    "method": "GET",
+    "path": "/gis/admin-boundaries",
+    "function": "gis_admin_boundaries"
+  },
+  {
+    "service": "raster-service",
+    "file": "services\\raster-service\\routers\\fields.py",
+    "line": 126,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "function": "process_from_stac"
@@ -1842,7 +1858,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 173,
+    "line": 211,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "function": "field_historical_backfill"
@@ -1850,7 +1866,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 555,
+    "line": 593,
     "method": "GET",
     "path": "/v1/fields/{field_id}/imagery/backfill/{run_id}",
     "function": "field_backfill_run_status"
@@ -1858,7 +1874,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 573,
+    "line": 611,
     "method": "POST",
     "path": "/v1/fields/{field_id}/geometry/versions",
     "function": "create_field_geometry_version"
@@ -1866,7 +1882,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 602,
+    "line": 640,
     "method": "POST",
     "path": "/v1/fields/analytics/geoparquet/export",
     "function": "export_field_analytics_geoparquet"
@@ -1874,7 +1890,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 654,
+    "line": 692,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-cdse",
     "function": "process_cdse"
@@ -1882,7 +1898,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 722,
+    "line": 760,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-grid",
     "function": "field_indicator_grid"
@@ -1890,7 +1906,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 760,
+    "line": 798,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-observation-bundle",
     "function": "field_indicator_observation_bundle"
@@ -1898,7 +1914,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 829,
+    "line": 867,
     "method": "GET",
     "path": "/v1/fields/{field_id}/pixel",
     "function": "field_pixel_value"
@@ -1906,7 +1922,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 908,
+    "line": 946,
     "method": "POST",
     "path": "/v1/fields/{field_id}/prescription",
     "function": "field_prescription"
@@ -1914,7 +1930,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 987,
+    "line": 1025,
     "method": "POST",
     "path": "/v1/fields/{field_id}/change",
     "function": "field_change"
@@ -1922,7 +1938,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 1044,
+    "line": 1082,
     "method": "GET",
     "path": "/v1/fields/{field_id}/timeseries",
     "function": "field_timeseries"
@@ -1930,7 +1946,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 1135,
+    "line": 1173,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png",
     "function": "field_tile"
@@ -1938,7 +1954,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 1209,
+    "line": 1247,
     "method": "GET",
     "path": "/v1/fields/{field_id}/available-dates",
     "function": "field_available_dates"
@@ -1946,7 +1962,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 1371,
+    "line": 1409,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "function": "field_terrain"
@@ -1954,7 +1970,7 @@
   {
     "service": "raster-service",
     "file": "services\\raster-service\\routers\\fields.py",
-    "line": 1420,
+    "line": 1458,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"
@@ -7358,6 +7374,126 @@
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\main.py",
+    "line": 178,
+    "method": "GET",
+    "path": "/healthz",
+    "function": "healthz"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\main.py",
+    "line": 183,
+    "method": "GET",
+    "path": "/readyz",
+    "function": "readyz"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\main.py",
+    "line": 202,
+    "method": "GET",
+    "path": "/internal/scouting/external-observations",
+    "function": "read_external_observations"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\main.py",
+    "line": 321,
+    "method": "POST",
+    "path": "/internal/ingest/submissions/odk",
+    "function": "ingest_odk_submission"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\main.py",
+    "line": 330,
+    "method": "POST",
+    "path": "/internal/ingest/submissions/kobo",
+    "function": "ingest_kobo_submission"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 205,
+    "method": "POST",
+    "path": "/internal/seasons",
+    "function": "create_season_draft"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 264,
+    "method": "PATCH",
+    "path": "/internal/seasons/{season_id}",
+    "function": "patch_season_draft"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 306,
+    "method": "POST",
+    "path": "/internal/seasons/{season_id}/logbook",
+    "function": "upload_logbook"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 368,
+    "method": "GET",
+    "path": "/internal/seasons/{season_id}/logbook",
+    "function": "get_logbook_url"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 406,
+    "method": "POST",
+    "path": "/internal/seasons/{season_id}/accept",
+    "function": "accept_season"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 478,
+    "method": "GET",
+    "path": "/internal/seasons",
+    "function": "list_seasons"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 522,
+    "method": "POST",
+    "path": "/internal/seasons/{season_id}/events",
+    "function": "add_season_event"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 583,
+    "method": "POST",
+    "path": "/internal/seasons/{season_id}/harvest",
+    "function": "set_season_harvest"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 624,
+    "method": "POST",
+    "path": "/internal/seasons/{season_id}/costs",
+    "function": "add_season_cost"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services\\scout-ingest-service\\season_api.py",
+    "line": 668,
+    "method": "GET",
+    "path": "/internal/seasons/{season_id}/detail",
+    "function": "season_detail"
   },
   {
     "service": "soil-service",

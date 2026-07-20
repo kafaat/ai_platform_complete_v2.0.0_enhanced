@@ -266,6 +266,13 @@ jobs:
       - name: compose-env-contract-gate
         run: python scripts/ci/compose_env_contract_gate.py
 
+      # env↔compose drift guard (operational-backlog #3): every env var read WITHOUT a default and
+      # absent from BOTH compose and .env.example must be classified in the reviewed allowlist
+      # (flag / prod-secret / per-env infra URL / perf-default). Catches "code reads env, compose
+      # doesn't provide it" before it bites in prod (httpx/JWT_SECRET precedent).
+      - name: env-compose-drift-guard
+        run: python scripts/ci/env_compose_drift_guard.py --check
+
       - name: backfill-ui-sync-gate
         run: python scripts/ci/backfill_ui_sync_gate.py
 
@@ -420,6 +427,11 @@ jobs:
       - run: pip install ruff==0.15.8 mypy
       - run: ruff check services/ bots/ agents/ tests_v9/
       - run: ruff format --check services/ bots/ agents/ tests_v9/
+      # حارس علامات تعارض الدمج: فرع مدموج بعلامات `<<<<<<< / ======= / >>>>>>>` غير محلولة
+      # (أحدها SyntaxError غير قابل للاستيراد) مرّ CI أخضر لأنّ الجناح لا يستورد تلك الملفّات —
+      # «الأخضر يقيس ما تختبره فقط». سطر structural grep واحد يصطاد الصنف عند الالتزام.
+      - name: conflict-marker guard
+        run: bash scripts/ci/conflict_marker_guard.sh
       # بوّابة مانيفست الإصدار على الفرع أيضاً (لا main-only فقط): تعديل ملفّ مشمول
       # بالمانيفست دون إعادة بناء checksums كان يمرّ على الفرع ثمّ يفشل على main في
       # «Sahool Production Gates». تشغيلها هنا يلتقط الانحراف قبل الدمج لا بعده.

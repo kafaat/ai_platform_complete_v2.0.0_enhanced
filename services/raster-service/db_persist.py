@@ -881,10 +881,11 @@ async def fetch_field_geometry(field_id: str, tenant_id: str | None = None) -> d
         if tenant_id is None:
             # المالك الموثوق دون كشف بيانات (يتجاوز RLS/FORCE على fields).
             tenant_id = await conn.fetchval("SELECT sahool_field_owner_tenant($1)", field_id)
-        # FIX: is_local=true (المعاملة) لا يعمل في asyncpg بوضع autocommit — كلّ
-        # استعلام معاملةٌ مستقلّة، فيضيع السياق فور انتهاء set_config.
-        # is_local=false (الجلسة) يحتفظ بالقيمة طوال الاتّصال؛ الاتّصال قصير
-        # العمر (يُغلق في finally) فلا خطر تسرّب السياق عبر العملاء.
+        # is_local=false (جلسة) لا true (معاملة): asyncpg بلا معاملة صريحة = autocommit،
+        # فـset_config(...,true) يضيع فور تنفيذه ⇒ يُفقَد سياق المستأجِر قبل fetchrow التالي
+        # ⇒ RLS يعيد صفراً ⇒ geometry=None ⇒ بلاطة bbox بلا قصّ على المضلّع (العلّة الموصوفة
+        # أعلاه). آمن: _connect() اتّصال جديد قصير العمر لكلّ عمليّة (لا pool، يُغلق في finally)
+        # فلا تسرّب سياق. متّسق مع بقيّة دوالّ الملفّ (كلّها is_local=false).
         await conn.execute(
             "SELECT set_config('app.current_tenant', $1, false)",
             str(tenant_id) if tenant_id else "",

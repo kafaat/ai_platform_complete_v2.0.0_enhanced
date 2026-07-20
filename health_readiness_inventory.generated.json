@@ -238,5 +238,25 @@
     "has_service": true,
     "has_ready_or_implemented": true,
     "verdict": "ok"
+  },
+  {
+    "file": "services/scout-ingest-service/main.py",
+    "function": "healthz",
+    "path": "/healthz",
+    "line": 178,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
+  },
+  {
+    "file": "services/scout-ingest-service/main.py",
+    "function": "readyz",
+    "path": "/readyz",
+    "line": 183,
+    "has_status": true,
+    "has_service": true,
+    "has_ready_or_implemented": true,
+    "verdict": "ok"
   }
 ]

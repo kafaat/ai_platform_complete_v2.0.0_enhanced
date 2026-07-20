@@ -50,6 +50,11 @@ def _run_checks():
     )
     m = importlib.util.module_from_spec(spec)
     sys.modules["auth_main"] = m
+    # The auth routers do `import main`; alias it to THIS instance so the router's
+    # main._pool is the one the lifespan populates. Without this, `import main` loads a
+    # second copy whose _pool stays None ⇒ register/login 500 (a harness artifact, not an
+    # RLS/role fault). Must be set before exec_module (routers import main at app build).
+    sys.modules["main"] = m
     spec.loader.exec_module(m)
 
     P, F = [], []
@@ -72,8 +77,12 @@ def _run_checks():
             bool(r.json().get("access_token")) if r.status_code == 201 else False,
         )
         ck(
-            "تصعيد الدور مرفوض — الدور 'farmer' لا 'owner' (server-side)",
-            r.status_code == 201 and r.json().get("role") == "farmer",
+            "الدور معيَّن خادميّاً — المُسجِّل مؤسِّس مؤسّسته ⇒ 'owner' (دور العميل مُتجاهَل بنيويّاً)",
+            # Anti-escalation is STRUCTURAL: RegisterRequest has no role field, so the client's
+            # requested role (owner/superadmin/…) is ignored. Self-registration founds a NEW tenant
+            # (users.tenant_id defaults to gen_random_uuid), so the founder is 'owner' of their OWN
+            # isolated tenant — not an escalation within someone else's (see routers/registration.py).
+            r.status_code == 201 and r.json().get("role") == "owner",
             f"role={r.json().get('role') if r.status_code == 201 else '?'}",
         )
 

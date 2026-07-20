@@ -5,9 +5,9 @@
 
 ## Inventory summary
 
-- Services discovered: **31**
-- Python LOC discovered: **225,754**
-- Routes discovered: **1056**
+- Services discovered: **32**
+- Python LOC discovered: **228,304**
+- Routes discovered: **1073**
 - Largest service concentration: **sahool-platform**
 - Protected product decision: **MapHub default must be raw field satellite image / truecolor, not weather and not NDVI-only.**
 
@@ -16,14 +16,14 @@
 | Service | Domain | Python files | LOC | Tests | Routes | Main | Docker | Requirements | Risk |
 |---|---:|---:|---:|---:|---:|---|---|---|---|
 | `actuator-service` | IoT Actuation | 11 | 1523 | 4 | 6 | `services\actuator-service\main.py` | `services\actuator-service\Dockerfile` | `services\actuator-service\requirements.txt` | `normal` |
-| `agriai-engine` | AI Advisor | 13 | 1355 | 4 | 8 | `services\agriai-engine\main.py` | `services\agriai-engine\Dockerfile` | `services\agriai-engine\requirements.txt` | `normal` |
+| `agriai-engine` | AI Advisor | 17 | 1769 | 4 | 8 | `services\agriai-engine\main.py` | `services\agriai-engine\Dockerfile` | `services\agriai-engine\requirements.txt` | `normal` |
 | `ai_agronomist` | AI Advisor | 46 | 6007 | 1 | 13 | `services\ai_agronomist\main.py` | `services\ai_agronomist\Dockerfile` | `services\ai_agronomist\requirements.txt` | `normal` |
-| `auth` | Identity & Access | 18 | 2298 | 1 | 27 | `services\auth\main.py` | `services\auth\Dockerfile` | `services\auth\requirements.txt` | `normal` |
-| `decision-service` | Decision SoR | 57 | 13542 | 39 | 69 | `services\decision-service\main.py` | `services\decision-service\Dockerfile` | `services\decision-service\requirements.txt` | `normal` |
+| `auth` | Identity & Access | 19 | 2355 | 1 | 28 | `services\auth\main.py` | `services\auth\Dockerfile` | `services\auth\requirements.txt` | `normal` |
+| `decision-service` | Decision SoR | 57 | 13581 | 39 | 69 | `services\decision-service\main.py` | `services\decision-service\Dockerfile` | `services\decision-service\requirements.txt` | `normal` |
 | `edge-inference` | Edge Inference | 9 | 1112 | 1 | 6 | `services\edge-inference\main.py` | `services\edge-inference\Dockerfile.arm64` | `services\edge-inference\requirements.txt` | `normal` |
 | `field-management-service` | Unclassified / Support | 3 | 339 | 2 | 7 | `services\field-management-service\main.py` | `services\field-management-service\Dockerfile` | `services\field-management-service\requirements.txt` | `normal` |
 | `field-segmentation` | Field Boundary AI | 5 | 986 | 2 | 4 | `services\field-segmentation\main.py` | `services\field-segmentation\Dockerfile` | `services\field-segmentation\requirements.txt` | `normal` |
-| `gis-workflow-service` | Unclassified / Support | 18 | 1347 | 8 | 0 | `-` | `-` | `services\gis-workflow-service\requirements.txt` | `medium-runtime-contract-gap` |
+| `gis-workflow-service` | Unclassified / Support | 20 | 1562 | 8 | 0 | `-` | `-` | `services\gis-workflow-service\requirements.txt` | `medium-runtime-contract-gap` |
 | `guardrails-engine` | AI Safety & Governance | 13 | 1553 | 1 | 7 | `services\guardrails-engine\main.py` | `services\guardrails-engine\Dockerfile` | `services\guardrails-engine\requirements.txt` | `normal` |
 | `indicators-service` | Vegetation Analytics | 8 | 721 | 4 | 11 | `services\indicators-service\main.py` | `services\indicators-service\Dockerfile` | `services\indicators-service\requirements.txt` | `normal` |
 | `knowledge-graph` | Edge Inference | 2 | 153 | 1 | 7 | `services\knowledge-graph\main.py` | `services\knowledge-graph\Dockerfile` | `services\knowledge-graph\requirements.txt` | `normal` |
@@ -33,11 +33,12 @@
 | `odoo-bridge` | ERP Integration | 10 | 1538 | 1 | 10 | `services\odoo-bridge\main.py` | `services\odoo-bridge\Dockerfile` | `services\odoo-bridge\requirements.txt` | `normal` |
 | `qdrant-seed` | Unclassified / Support | 4 | 866 | 1 | 0 | `-` | `services\qdrant-seed\Dockerfile` | `services\qdrant-seed\requirements.txt` | `medium-runtime-contract-gap` |
 | `rag-retrieval` | Knowledge Retrieval | 2 | 135 | 1 | 5 | `services\rag-retrieval\main.py` | `services\rag-retrieval\Dockerfile` | `services\rag-retrieval\requirements.txt` | `normal` |
-| `raster-service` | Imagery & Raster | 150 | 20951 | 63 | 79 | `services\raster-service\main.py` | `services\raster-service\Dockerfile` | `services\raster-service\requirements.txt` | `normal` |
+| `raster-service` | Imagery & Raster | 152 | 21073 | 64 | 80 | `services\raster-service\main.py` | `services\raster-service\Dockerfile` | `services\raster-service\requirements.txt` | `normal` |
 | `raster-tiler-service` | Imagery & Raster | 0 | 0 | 0 | 0 | `-` | `services\raster-tiler-service\Dockerfile` | `-` | `medium-runtime-contract-gap` |
 | `remote-sensing-workspace-bff` | Unclassified / Support | 2 | 196 | 1 | 3 | `services\remote-sensing-workspace-bff\main.py` | `services\remote-sensing-workspace-bff\Dockerfile` | `services\remote-sensing-workspace-bff\requirements.txt` | `normal` |
-| `sahool-platform` | Core Field Platform | 1058 | 146738 | 410 | 616 | `services\sahool-platform\api\main.py` | `services\sahool-platform\Dockerfile` | `-` | `critical-core-concentration` |
+| `sahool-platform` | Core Field Platform | 1060 | 146887 | 411 | 616 | `services\sahool-platform\api\main.py` | `services\sahool-platform\Dockerfile` | `-` | `critical-core-concentration` |
 | `sam2-inference` | Field Boundary AI | 3 | 534 | 0 | 4 | `services\sam2-inference\main.py` | `services\sam2-inference\Dockerfile` | `services\sam2-inference\requirements.txt` | `high-zero-test-routes` |
+| `scout-ingest-service` | Unclassified / Support | 6 | 1554 | 3 | 15 | `services\scout-ingest-service\main.py` | `services\scout-ingest-service\Dockerfile` | `services\scout-ingest-service\requirements.txt` | `normal` |
 | `soil-service` | Soil Intelligence | 50 | 5537 | 16 | 59 | `services\soil-service\main.py` | `services\soil-service\Dockerfile` | `services\soil-service\requirements.txt` | `normal` |
 | `supervisor-agent` | Agent Orchestration | 26 | 3149 | 7 | 10 | `services\supervisor-agent\main.py` | `services\supervisor-agent\Dockerfile` | `services\supervisor-agent\requirements.txt` | `normal` |
 | `tts-service` | Voice & Notifications | 8 | 784 | 1 | 8 | `services\tts-service\main.py` | `services\tts-service\Dockerfile` | `services\tts-service\requirements.txt` | `normal` |
@@ -65,7 +66,7 @@
 | IoT Actuation | `actuator-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Knowledge Retrieval | `local-ai-rag`, `rag-retrieval` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Soil Intelligence | `soil-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
-| Unclassified / Support | `field-management-service`, `gis-workflow-service`, `model-registry-adapter`, `qdrant-seed`, `remote-sensing-workspace-bff` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
+| Unclassified / Support | `field-management-service`, `gis-workflow-service`, `model-registry-adapter`, `qdrant-seed`, `remote-sensing-workspace-bff`, `scout-ingest-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Vegetation Analytics | `indicators-service`, `vegetation-analysis-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Video Processing | `video-processor` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |
 | Voice & Notifications | `tts-service` | One product owner, one API contract, explicit data-source ownership, CI smoke, and generated registry drift guard. |

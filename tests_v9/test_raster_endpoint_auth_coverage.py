@@ -91,6 +91,7 @@ FIELD_SCOPED_SERVICE_ONLY: set[str] = {
 # مبنيّة من قراءة الكود: كلّ نقطة هنا تستدعي ``_require_service_token``.
 # ─────────────────────────────────────────────────────────────────────────────
 SERVICE_ONLY: set[str] = {
+    "/gis/admin-boundaries",  # A6/A7: قراءة طبقة الحدود المشتركة (خدمة-لخدمة، bbox مُطهَّر).
     "/imagery/search",  # بحث متقدّم (POST) — توكن خدمة.
     "/raw/process",  # فحص راستر خام: metadata+إحصاءات نطاقات (require_service_token في processing.py).
     "/imagery/timeseries/analyze",  # تحليل سلسلة زمنيّة من قيم محسوبة.
