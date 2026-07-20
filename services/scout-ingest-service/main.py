@@ -50,6 +50,11 @@ from season_api import router as season_router  # noqa: E402
 
 app.include_router(season_router)
 
+# GAP-FIELD-FORMS-01: النماذج الميدانيّة الديناميكية فوق B1 (خلف FIELD_FORMS_ENABLED).
+from field_forms_api import router as field_forms_router  # noqa: E402
+
+app.include_router(field_forms_router)
+
 
 def _enabled() -> bool:
     return os.getenv("SCOUT_INGEST_ENABLED", "0").strip().lower() in _ENABLED_TRUE
