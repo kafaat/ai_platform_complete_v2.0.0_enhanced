@@ -216,3 +216,8 @@
 - **مؤجَّل بصدق (فجوتان + مهمّة):** **SEASON-EDGE-LIVE-PROOF** (#225): عند أوّل إقلاع stack كامل، مسبار (أ) X-Canonical مزوَّرة ⇒ 401 · (ب) مُراجِع owner/expert ⇒ 200 · (ج) إعادة قبول ⇒ 409 · مكمّل: تصديق مسار عامّ ⇒ 401. **SEASON-ENTRY-EVENTS-UI:** نقاط events/harvest/costs غير مبنيّة ⇒ لا نماذج لها بعد (لا نصف حلّ) — الشريحة التي تفتح SIM-GOLDEN فعليّاً.
 - **درس ضريبة التسجيل (مُحدَّث):** regen قبل الدفع = **سبعة** مولَّدات لا ستّة (+ `route_mount_contract_guard` — فاتني فأوقع Structural Lint + Runtime Real Smoke على d9f5aa4، أُصلِح 047486b).
 - **الأدوار (فرونت↔باك):** الواجهة owner/manager/agronomist (worker/viewer محجوبان)؛ القبول الخلفيّ owner/expert فقط (admin مستثنى عمداً — SEASON-REVIEWER-GRANT-MODEL يفتح النموذج الكامل عند أوّل مُراجِع خارجيّ).
+
+## 2026-07-20 — SEASON-ENTRY-EVENTS-UI (`7419b13`) — الجسر مكتمل، SIM-GOLDEN مفتوح
+- سجلّ الموسم صار كاملاً: عشر نقاط على scout-ingest (+ events/harvest/costs/detail) + ثلاث خطوات واجهة. حصاد بدقّة يوميّة + قبول ⇒ **calibration_eligible=true** (برهان حيّ PG16 يقلبها).
+- **درس:** البرهان الحيّ كشف فجوة منح إنتاجيّة (`sahool_ingest` بلا SELECT على الـVIEW ⇒ detail 503) — لا تمسكها الوحدة؛ أُصلِحت في المُشغّلَين.
+- **يبقى:** SIM-PATHS-DUAL (أيّ محرّك يُعايَر ضدّ season_harvest.yield — يُحسَم عند SIM-GOLDEN-01) · SEASON-EDGE-LIVE-PROOF (#225، staging).

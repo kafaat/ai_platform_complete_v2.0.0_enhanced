@@ -725,3 +725,9 @@ SHAs من `git log --oneline origin/main`.
 - **الانحرافات/الحدود المُعلَنة:** `SEASON_EDGE_HMAC_KEY` فئة B (لا في compose، غيابه fail-closed) · البرهان السلبيّ ③ حيّ لا وحدة ⇒ مؤجَّل لـstaging (فجوة SEASON-EDGE-LIVE-PROOF + مهمّة #225) · نقاط events/harvest/costs غير مبنيّة ⇒ الواجهة لا تبني نماذج لها (لا نصف حلّ؛ فجوة SEASON-ENTRY-EVENTS-UI).
 - **درس CI:** ضريبة التسجيل سبعة مولَّدات لا ستّة — `route_mount_contract_guard` هو السابع (فاتني ⇒ أوقع Structural Lint + Runtime Real Smoke).
 - **SHA:** `6158688`+`81a9fc4` (3a) · `19c4e63` (3b-core) · **`d9f5aa4`+`047486b` (3b-infra، الطرف الأخضر)** · `9f92c7d` (3c). **الفجوتان الجديدتان:** SEASON-EDGE-LIVE-PROOF · SEASON-ENTRY-EVENTS-UI.
+
+## SEASON-ENTRY-EVENTS-UI — 2026-07-20
+- **القرار:** إكمال سجلّ الموسم بأربع نقاط أبناء (events/harvest/costs/detail) على scout-ingest المالكة + خطوات واجهة مقابلة؛ الأهليّة للمعايرة تُقرأ من الـVIEW المُشتقّ لا تُعاد حسابها.
+- **السبب:** الجسر بلا events/harvest = نصف أداة (لا معايرة). الحصاد بدقّة يوميّة هو ما يفتح SIM-GOLDEN؛ وقراءة الأهليّة من الـVIEW تُبقي قاعدة الأهليّة مصدراً واحداً (لا منطق مُكرَّر في النقطة).
+- **الانحرافات/الدروس المُعلَنة:** low_confidence يُوسَم تلقائيّاً لا يُخمَّن (قاعدة ٤) · الأبناء untrusted فقط (409، فوق trigger التجميد) · **منح SELECT على الـVIEW لـsahool_ingest** كان ناقصاً (البرهان الحيّ كشفه 503 — لا تمسكه الوحدة) فأُضيف للمُشغّلَين.
+- **SHA:** `7419b13`. **الفجوة المُقفَلة:** SEASON-ENTRY-EVENTS-UI. **يبقى OPEN:** SIM-PATHS-DUAL (يُحسَم عند SIM-GOLDEN-01) · SEASON-EDGE-LIVE-PROOF (#225، staging).
