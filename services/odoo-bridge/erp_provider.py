@@ -292,11 +292,25 @@ class ERPNextProvider(ERPProvider):
             return False
 
     async def health(self) -> dict:
+        """جاهزيّة تفصيليّة صادقة: الاتصال قد يكون أخضر بينما نشرُ القيود المحاسبيّة
+
+        غير متاح (ربط الحسابات غير مُعدّ). لذا نفصل الجاهزيّات بدل علم واحد:
+        posting يتطلّب حساب مصروف + حساب دائن + company (نفس شرط push_field_cost).
+        """
         ok = await self.authenticate()
+        account_mapping_configured = bool(
+            self.expense_account and self.credit_account and self.company
+        )
         return {
             "provider": "erpnext",
             "url_configured": bool(self.url),
             "status": "connected" if ok else "unreachable",
+            "erp_connection_ready": ok,
+            "account_mapping_configured": account_mapping_configured,
+            # نشر تكلفة الحقل كقيد يوميّة يتطلّب اتصالاً + ربط حسابات معاً.
+            "field_cost_posting_ready": bool(ok and account_mapping_configured),
+            # مزامنة المخزون/المنتجات تكفيها القراءة عبر الاتصال (لا ربط حسابات).
+            "inventory_sync_ready": ok,
         }
 
 

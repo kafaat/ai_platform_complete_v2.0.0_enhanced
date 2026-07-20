@@ -12015,7 +12015,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2f45081fa9a8494a8e6800745857b2aaee61b39e7ae99de48a5cb15edcdb71db"
+          "content": "4a6baff9ed1107ab255d73beb4081cea258007a96dc9f8f1980286cc6d4c8a97"
         }
       ],
       "name": "services/odoo-bridge/erp_provider.py",

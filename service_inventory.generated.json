@@ -182,9 +182,9 @@
   {
     "service": "odoo-bridge",
     "domain": "ERP Integration",
-    "python_files": 10,
-    "python_loc": 1538,
-    "tests": 1,
+    "python_files": 11,
+    "python_loc": 1606,
+    "tests": 2,
     "routes": 10,
     "main": "services/odoo-bridge/main.py",
     "dockerfile": "services/odoo-bridge/Dockerfile",
