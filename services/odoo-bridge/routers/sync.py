@@ -9,10 +9,69 @@
 
 from __future__ import annotations
 
+import asyncio
+
 import main
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 
 router = APIRouter()
+
+# مهلة probe المزوّد (ثوان) — قصيرة لتجنّب انتظار مفتوح على مسار المزامنة.
+_PROVIDER_PROBE_TIMEOUT: float = 5.0
+
+
+async def _probe_erp_or_503(provider) -> None:
+    """يستدعي health() المزوّد بمهلة؛ 503 إن كان المزوّد متاحاً لكن غير مستجيب.
+
+    يُستدعى بعد بوّابة 424 (provider.name != 'none') — أيّ استثناء يُحوَّل إلى
+    503 Failed Service Dependency بدلاً من 500 الداخلي.
+    يُثبت ضمن وثيقة إقفال ERP-BRIDGE-FIX-01 أنّ fail-closed يحدث عند مسار القدرة
+    لحظة استدعائها (لا عند إقلاع الحاوية، ولا في /readyz أو /healthz).
+    """
+    try:
+        result = await asyncio.wait_for(provider.health(), timeout=_PROVIDER_PROBE_TIMEOUT)
+    except asyncio.TimeoutError:
+        raise HTTPException(
+            503,
+            {
+                "error": "erp_provider_timeout",
+                "provider": provider.name,
+                "detail": (
+                    f"ERP provider '{provider.name}' probe timed out "
+                    f"({_PROVIDER_PROBE_TIMEOUT}s). "
+                    "Retry when ERP is available. "
+                    "Check /readyz/capabilities for capability status."
+                ),
+            },
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            503,
+            {
+                "error": "erp_provider_unreachable",
+                "provider": provider.name,
+                "detail": str(exc)[:200],
+            },
+        ) from exc
+
+    status = result.get("status", "")
+    if status not in ("connected", "disabled", "reported"):
+        raise HTTPException(
+            503,
+            {
+                "error": "erp_provider_unreachable",
+                "provider": provider.name,
+                "erp_status": status,
+                "detail": (
+                    f"ERP provider '{provider.name}' is configured but unreachable "
+                    f"(health={status!r}). "
+                    "Retry when ERP is available. "
+                    "Check /readyz/capabilities for live status."
+                ),
+            },
+        )
 
 
 @router.post("/sync")
@@ -26,12 +85,15 @@ async def trigger_sync(
     الأمان: المزامنة تكتب لـERP — تتطلّب مصادقة (نفس require_auth المطبَّقة
     على نقاط القراءة).
 
-    fail-closed (ERP-BRIDGE-FIX-01): إذا كان مزوّد ERP غير مهيّأ (none) يُرفَض
-    الطلب بـHTTP 424 Failed Dependency — لا إرسال وهميّ إلى ERP، لا كتابة جزئية.
-    الحالة "ERP معطّل" معروضة كبيانات في /readyz/capabilities؛ الرفض يحدث هنا
-    عند محاولة المزامنة الفعلية لا عند إقلاع الحاوية.
+    fail-closed (ERP-BRIDGE-FIX-01):
+      424 — مزوّد ERP غير مهيّأ (none/مفاتيح فارغة): لا إرسال وهميّ، لا كتابة جزئية.
+      503 — مزوّد مهيّأ لكن غير مستجيب: probe بمهلة 5s قبل الإضافة للطابور.
+    كلا الرفضين يحدثان قبل أيّ background_tasks.add_task() — ضمان لا كتابة جزئية.
+    الحالة الطبيعية معروضة كبيانات في /readyz/capabilities (HTTP 200 دائماً).
     """
     provider = main.get_active_erp_provider()
+
+    # بوّابة ١: مزوّد غير مهيّأ → 424 (قبل أيّ I/O)
     if provider.name == "none":
         raise HTTPException(
             424,
@@ -46,6 +108,10 @@ async def trigger_sync(
                 ),
             },
         )
+
+    # بوّابة ٢: مزوّد مهيّأ لكن غير مستجيب → 503 (probe بمهلة)
+    await _probe_erp_or_503(provider)
+
     if req.entity == "all" or req.entity == "products":
         background_tasks.add_task(main.sync_products)
     if req.entity == "all" or req.entity == "suppliers":
