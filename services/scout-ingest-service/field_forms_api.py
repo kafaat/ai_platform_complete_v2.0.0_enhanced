@@ -27,7 +27,7 @@ import hashlib
 import json
 import os
 import time
-from datetime import UTC, datetime
+from datetime import datetime
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Header, HTTPException
@@ -44,7 +44,11 @@ from shared.contracts.forms.schema_v1 import (
 from shared.contracts.forms.sync_token import SyncTokenError, issue_token, verify_token
 from shared.contracts.ingest.dedup_resolution import resolve_dedup
 from shared.contracts.ingest.external_submission_v1 import derive_dedup_key
-from shared.security.trusted_tenant import TrustedTenantError, resolve_trusted_tenant, service_token_ok
+from shared.security.trusted_tenant import (
+    TrustedTenantError,
+    resolve_trusted_tenant,
+    service_token_ok,
+)
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 _ENABLED_TRUE = {"1", "true", "yes", "on"}
@@ -100,7 +104,9 @@ def _db_or_input_error(exc: Exception) -> HTTPException:
         k in name
         for k in ("Check", "Integrity", "NotNull", "Restrict", "Exclusion", "RaiseError", "Unique")
     ):
-        return HTTPException(status_code=400, detail=f"field_forms_constraint_violation: {msg[:200]}")
+        return HTTPException(
+            status_code=400, detail=f"field_forms_constraint_violation: {msg[:200]}"
+        )
     return HTTPException(status_code=503, detail="field forms store unavailable")
 
 
@@ -508,8 +514,16 @@ async def submit_form(
             if dec.action == "quarantine_divergent":
                 # «نفس مفتاح، جسم مختلف» = حدث يُرى (B1.2) — يُحجَر بمفتاح مشتقّ قبل أيّ منطق نماذج
                 env_id = await _insert_envelope(
-                    conn, tenant, submission_id, body, dec.storage_key, source_hash, raw_ref,
-                    raw_payload, "quarantined", list(dec.quarantine_reasons),
+                    conn,
+                    tenant,
+                    submission_id,
+                    body,
+                    dec.storage_key,
+                    source_hash,
+                    raw_ref,
+                    raw_payload,
+                    "quarantined",
+                    list(dec.quarantine_reasons),
                 )
                 return _quarantined_response(env_id, dec.quarantine_reasons[0])
 
@@ -543,12 +557,29 @@ async def submit_form(
             elif version["retirement_mode"] == "withdrawn":
                 # نموذج مسحوب ⇒ محجور مهما كان التوكن (لا DSL، لا قبول)
                 env_id = await _insert_envelope(
-                    conn, tenant, submission_id, body, dec.storage_key, source_hash, raw_ref,
-                    raw_payload, "quarantined", ["form_version_withdrawn"],
+                    conn,
+                    tenant,
+                    submission_id,
+                    body,
+                    dec.storage_key,
+                    source_hash,
+                    raw_ref,
+                    raw_payload,
+                    "quarantined",
+                    ["form_version_withdrawn"],
                 )
                 fs_id = await _insert_field_submission(
-                    conn, tenant, vid, None, env_id, raw_payload["answers"],
-                    "unknown_schema", "withdrawn_quarantined", False, source_hash, x_actor_id,
+                    conn,
+                    tenant,
+                    vid,
+                    None,
+                    env_id,
+                    raw_payload["answers"],
+                    "unknown_schema",
+                    "withdrawn_quarantined",
+                    False,
+                    source_hash,
+                    x_actor_id,
                 )
                 return _quarantined_response(
                     env_id, "form_version_withdrawn", fs_id, "withdrawn_quarantined"
@@ -565,12 +596,29 @@ async def submit_form(
                 )
                 if claims is None:
                     env_id = await _insert_envelope(
-                        conn, tenant, submission_id, body, dec.storage_key, source_hash, raw_ref,
-                        raw_payload, "quarantined", ["invalid_sync_proof"],
+                        conn,
+                        tenant,
+                        submission_id,
+                        body,
+                        dec.storage_key,
+                        source_hash,
+                        raw_ref,
+                        raw_payload,
+                        "quarantined",
+                        ["invalid_sync_proof"],
                     )
                     fs_id = await _insert_field_submission(
-                        conn, tenant, vid, None, env_id, raw_payload["answers"],
-                        "unknown_schema", "invalid_sync_proof", False, source_hash, x_actor_id,
+                        conn,
+                        tenant,
+                        vid,
+                        None,
+                        env_id,
+                        raw_payload["answers"],
+                        "unknown_schema",
+                        "invalid_sync_proof",
+                        False,
+                        source_hash,
+                        x_actor_id,
                     )
                     return _quarantined_response(
                         env_id, "invalid_sync_proof", fs_id, "invalid_sync_proof"
@@ -587,12 +635,29 @@ async def submit_form(
                 normalized, errors = {}, [f"validation_engine_error: {exc}"]
             if errors:
                 env_id = await _insert_envelope(
-                    conn, tenant, submission_id, body, dec.storage_key, source_hash, raw_ref,
-                    raw_payload, "quarantined", ["form_validation_failed"],
+                    conn,
+                    tenant,
+                    submission_id,
+                    body,
+                    dec.storage_key,
+                    source_hash,
+                    raw_ref,
+                    raw_payload,
+                    "quarantined",
+                    ["form_validation_failed"],
                 )
                 fs_id = await _insert_field_submission(
-                    conn, tenant, vid, claims.get("assignment_id") if claims else None, env_id,
-                    body.answers, "invalid", resolution, stale, source_hash, x_actor_id,
+                    conn,
+                    tenant,
+                    vid,
+                    claims.get("assignment_id") if claims else None,
+                    env_id,
+                    body.answers,
+                    "invalid",
+                    resolution,
+                    stale,
+                    source_hash,
+                    x_actor_id,
                 )
                 return _quarantined_response(
                     env_id, "form_validation_failed", fs_id, resolution, errors=errors[:10]
@@ -600,12 +665,29 @@ async def submit_form(
 
             # ⑤ مقبول: المظروف accepted + الصفّ valid (invariant §12.1 محفوظ بنيويًّا)
             env_id = await _insert_envelope(
-                conn, tenant, submission_id, body, dec.storage_key, source_hash, raw_ref,
-                raw_payload, "accepted", [],
+                conn,
+                tenant,
+                submission_id,
+                body,
+                dec.storage_key,
+                source_hash,
+                raw_ref,
+                raw_payload,
+                "accepted",
+                [],
             )
             fs_id = await _insert_field_submission(
-                conn, tenant, vid, claims.get("assignment_id") if claims else None, env_id,
-                normalized, "valid", resolution, stale, source_hash, x_actor_id,
+                conn,
+                tenant,
+                vid,
+                claims.get("assignment_id") if claims else None,
+                env_id,
+                normalized,
+                "valid",
+                resolution,
+                stale,
+                source_hash,
+                x_actor_id,
             )
     except HTTPException:
         raise
