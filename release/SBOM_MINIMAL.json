@@ -9965,6 +9965,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "18a55a85b5db78071ddcb31175147e70d67d37bc37afd5e6100600e2309004b3"
+        }
+      ],
+      "name": "services/auth/routers/season_edge_sign.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "d7166abf54006c66a61e55167a73ea31ceb9b7437be62a13e7e7843f8caa0e67"
         }
       ],
