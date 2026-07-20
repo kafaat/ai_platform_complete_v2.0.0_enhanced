@@ -365,6 +365,28 @@ tables:
     writers: [scout-ingest-service]
     readers: []
     source: "migrations/v201_season_records.sql"
+  # GAP-FIELD-FORMS-01 (v204): النماذج الميدانيّة الديناميكية فوق B1 — كاتب واحد scout-ingest-service
+  # (امتداد قرار SEASON-RECORD — مالك أنبوب الإدخال الخارجيّ). لا hard delete على definitions/versions.
+  field_form_definitions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_form_versions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_form_assignments:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_submissions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
   experiment_evaluations:
     owner: agriai-engine
     writers: [agriai-engine]
