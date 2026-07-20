@@ -172,6 +172,10 @@ BEGIN
       season_records, season_crop, season_events, season_harvest, season_cost_items
       TO sahool_ingest;
   END IF;
+  -- SEASON-ENTRY-EVENTS-UI: منح SELECT على الـVIEW المُشتقّ للأهليّة (نقطة detail تقرأه؛ security_invoker).
+  IF to_regclass('public.season_calibration_eligibility') IS NOT NULL THEN
+    GRANT SELECT ON season_calibration_eligibility TO sahool_ingest;
+  END IF;
 END $$;
 SQL
 

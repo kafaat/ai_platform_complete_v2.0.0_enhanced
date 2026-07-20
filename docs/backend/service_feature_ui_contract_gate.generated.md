@@ -210,7 +210,7 @@ classification: `internal`
 
 ### `actuator-service` — pass
 classification: `ui`
-- ui: 193 match(es)
+- ui: 195 match(es)
   - `frontend/src/App.tsx` ← `irrigation`
   - `frontend/src/components/AddFieldWithMap.tsx` ← `irrigation`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `irrigation`
@@ -225,7 +225,7 @@ classification: `ui`
 
 ### `edge-inference` — pass
 classification: `ui`
-- ui: 122 match(es)
+- ui: 126 match(es)
   - `frontend/src/App.tsx` ← `pest`
   - `frontend/src/App.tsx` ← `yield`
   - `frontend/src/components/FieldDetailPanel.tsx` ← `yield`

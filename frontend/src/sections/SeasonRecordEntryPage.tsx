@@ -21,15 +21,23 @@ import {
   Sprout,
   RefreshCw,
   FileWarning,
+  Droplets,
+  Wheat,
+  Coins,
+  Plus,
 } from 'lucide-react';
 import AddFieldWithMap from '../components/AddFieldWithMap';
 import StepShell from '../components/fieldsetup/StepShell';
 import { kongApi, apiErrorMessage } from '../services/api';
 import {
   acceptSeason,
+  addSeasonCost,
+  addSeasonEvent,
   createSeasonDraft,
   listSeasons,
+  setSeasonHarvest,
   uploadSeasonLogbook,
+  type SeasonEventType,
   type SeasonListRow,
   type SowingPrecision,
 } from '../services/api/season';
@@ -41,7 +49,30 @@ import {
   type SeasonDraftSnapshot,
 } from '../lib/seasonDraftStorage';
 
-type Phase = 'list' | 'draw' | 'details' | 'logbook' | 'review' | 'done';
+type Phase =
+  | 'list'
+  | 'draw'
+  | 'details'
+  | 'events'
+  | 'harvest'
+  | 'costs'
+  | 'logbook'
+  | 'review'
+  | 'done';
+
+const EVENT_TYPES: { value: SeasonEventType; label: string }[] = [
+  { value: 'tillage', label: 'حراثة' },
+  { value: 'land_prep', label: 'تجهيز الأرض' },
+  { value: 'irrigation', label: 'ريّ' },
+  { value: 'fert_organic', label: 'تسميد عضويّ' },
+  { value: 'fert_chemical', label: 'تسميد كيميائيّ' },
+  { value: 'pesticide', label: 'مبيد' },
+  { value: 'energy', label: 'طاقة (ديزل/كهرباء)' },
+  { value: 'other', label: 'أخرى' },
+];
+
+// عدد الخطوات في المعالج (draw=0): بيانات · أحداث · حصاد · تكاليف · دفتر · مراجعة = 7.
+const STEP_TOTAL = 7;
 
 // FieldData الذي يمرّره AddFieldWithMap.onSave (مجموعة جزئيّة كافية لإنشاء الحقل).
 interface DrawnField {
@@ -80,6 +111,26 @@ export default function SeasonRecordEntryPage() {
 
   const [logbookFile, setLogbookFile] = useState<File | null>(null);
   const [acceptedBy, setAcceptedBy] = useState('');
+
+  // الأبناء (SEASON-ENTRY-EVENTS-UI): أحداث/حصاد/تكاليف
+  const [evType, setEvType] = useState<SeasonEventType>('irrigation');
+  const [evDate, setEvDate] = useState('');
+  const [evAmountKg, setEvAmountKg] = useState('');
+  const [evAmountMm, setEvAmountMm] = useState('');
+  const [evDesc, setEvDesc] = useState('');
+  const [addedEvents, setAddedEvents] = useState<{ type: string; date: string; lowConf: boolean }[]>(
+    [],
+  );
+  const [harvestDate, setHarvestDate] = useState('');
+  const [harvestPrecision, setHarvestPrecision] = useState<SowingPrecision>('day');
+  const [harvestYield, setHarvestYield] = useState('');
+  const [harvestSaved, setHarvestSaved] = useState(false);
+  const [costLabel, setCostLabel] = useState('');
+  const [costAmount, setCostAmount] = useState('');
+  const [costCurrency, setCostCurrency] = useState('YER');
+  const [addedCosts, setAddedCosts] = useState<{ label: string; amount: string; currency: string }[]>(
+    [],
+  );
 
   const [drafts, setDrafts] = useState<SeasonListRow[]>([]);
   const [loadingList, setLoadingList] = useState(false);
@@ -162,6 +213,11 @@ export default function SeasonRecordEntryPage() {
     setSeedRate('');
     setNotes('');
     setLogbookFile(null);
+    setAddedEvents([]);
+    setHarvestDate('');
+    setHarvestYield('');
+    setHarvestSaved(false);
+    setAddedCosts([]);
     setError('');
     setPhase('draw');
     saveSeasonDraft({ draftKey: key, fieldId: '', fieldName: '', phase: 'draw' });
@@ -242,10 +298,125 @@ export default function SeasonRecordEntryPage() {
         },
       });
       setSeasonId(res.season_id);
-      setPhase('logbook');
-      persist({ seasonId: res.season_id, phase: 'logbook' });
+      setPhase('events');
+      persist({ seasonId: res.season_id, phase: 'events' });
     } catch (e: unknown) {
       setError(apiErrorMessage(e, 'تعذّر حفظ المسودّة — تحقّق من التواريخ والصلاحيّة.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── الخطوة ٣: أحداث (1:N، تُحفَظ فرادى) — نوع كمّيّ بلا شاهد ⇒ يوسَمه الخادم low_confidence ──
+  const addEvent = async () => {
+    if (!evDate) {
+      setError('حدّد تاريخ الحدث.');
+      return;
+    }
+    const parseNum = (s: string): number | null | undefined => {
+      if (!s.trim()) return undefined;
+      const n = Number(s);
+      return Number.isFinite(n) && n >= 0 ? n : null;
+    };
+    const kg = parseNum(evAmountKg);
+    const mm = parseNum(evAmountMm);
+    if (kg === null || mm === null) {
+      setError('الكمّيّات يجب أن تكون أرقاماً غير سالبة (أو فارغة).');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const res = await addSeasonEvent(seasonId, {
+        event_type: evType,
+        event_date: evDate,
+        amount_kg_ha: kg ?? null,
+        amount_mm: mm ?? null,
+        description: evDesc.trim() || null,
+      });
+      setAddedEvents((p) => [
+        ...p,
+        { type: EVENT_TYPES.find((t) => t.value === evType)?.label ?? evType, date: evDate, lowConf: res.low_confidence },
+      ]);
+      setEvDate('');
+      setEvAmountKg('');
+      setEvAmountMm('');
+      setEvDesc('');
+    } catch (e: unknown) {
+      setError(
+        apiErrorMessage(e, 'تعذّر حفظ الحدث — حدث طاقة يتطلّب ديزل/كهرباء؛ ساعات المعدّة موجبة.'),
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── الخطوة ٤: الحصاد (1:1، نقطة المعايرة) — يُحفَظ عند «التالي» إن مُلئ ──────────
+  const saveHarvestNext = async () => {
+    if (!harvestDate) {
+      // الحصاد اختياريّ — لكن بدونه لا calibration_eligible (SIM-GOLDEN). ننتقل بلا حفظ.
+      setPhase('costs');
+      persist({ phase: 'costs' });
+      return;
+    }
+    let yieldVal: number | null = null;
+    if (harvestYield.trim()) {
+      const n = Number(harvestYield);
+      if (!Number.isFinite(n) || n < 0) {
+        setError('الغلّة يجب أن تكون رقماً غير سالب (أو فارغة).');
+        return;
+      }
+      yieldVal = n;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await setSeasonHarvest(seasonId, {
+        harvest_date: harvestDate,
+        harvest_precision: harvestPrecision,
+        yield_kg_ha: yieldVal,
+      });
+      setHarvestSaved(true);
+      setPhase('costs');
+      persist({ phase: 'costs' });
+    } catch (e: unknown) {
+      setError(apiErrorMessage(e, 'تعذّر حفظ الحصاد — يجب أن يكون تاريخه بعد البذار.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── الخطوة ٥: تكاليف (1:N، تعدّد عملات آمن) ─────────────────────────────────────
+  const addCost = async () => {
+    if (!costLabel.trim()) {
+      setError('اسم بند التكلفة مطلوب.');
+      return;
+    }
+    const n = Number(costAmount);
+    if (!costAmount.trim() || !Number.isFinite(n) || n < 0) {
+      setError('المبلغ يجب أن يكون رقماً غير سالب.');
+      return;
+    }
+    if (!/^[A-Za-z]{3}$/.test(costCurrency.trim())) {
+      setError('العملة يجب أن تكون رمز ISO 4217 من ثلاثة أحرف (مثل YER).');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await addSeasonCost(seasonId, {
+        item_label: costLabel.trim(),
+        amount: n,
+        currency: costCurrency.trim().toUpperCase(),
+      });
+      setAddedCosts((p) => [
+        ...p,
+        { label: costLabel.trim(), amount: costAmount, currency: costCurrency.trim().toUpperCase() },
+      ]);
+      setCostLabel('');
+      setCostAmount('');
+    } catch (e: unknown) {
+      setError(apiErrorMessage(e, 'تعذّر حفظ التكلفة.'));
     } finally {
       setSaving(false);
     }
@@ -313,7 +484,7 @@ export default function SeasonRecordEntryPage() {
         subtitle={`الحقل: ${fieldName}`}
         icon={<Sprout className="w-5 h-5" />}
         stepIndex={1}
-        stepTotal={4}
+        stepTotal={STEP_TOTAL}
         canGoBack={false}
         onBack={() => undefined}
         onNext={submitDetails}
@@ -406,16 +577,183 @@ export default function SeasonRecordEntryPage() {
     );
   }
 
+  if (phase === 'events') {
+    const inputCls =
+      'mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm';
+    return (
+      <StepShell
+        title="العمليّات والمدخلات"
+        subtitle="أضِف الأحداث فُرادى (اختياريّ) — ثمّ التالي"
+        icon={<Droplets className="w-5 h-5" />}
+        stepIndex={2}
+        stepTotal={STEP_TOTAL}
+        optional
+        canGoBack={false}
+        onBack={() => undefined}
+        onSkip={() => setPhase('harvest')}
+        onNext={() => setPhase('harvest')}
+        saving={saving}
+        error={error}
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <label className="text-xs text-slate-300">
+            نوع الحدث
+            <select value={evType} onChange={(e) => setEvType(e.target.value as SeasonEventType)} className={inputCls}>
+              {EVENT_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-slate-300">
+            التاريخ
+            <input type="date" value={evDate} onChange={(e) => setEvDate(e.target.value)} className={inputCls} />
+          </label>
+          <label className="text-xs text-slate-300">
+            كمّيّة (kg/ha، اختياريّ)
+            <input value={evAmountKg} onChange={(e) => setEvAmountKg(e.target.value)} inputMode="decimal" placeholder="—" className={inputCls} />
+          </label>
+          <label className="text-xs text-slate-300">
+            ماء (mm، اختياريّ)
+            <input value={evAmountMm} onChange={(e) => setEvAmountMm(e.target.value)} inputMode="decimal" placeholder="—" className={inputCls} />
+          </label>
+          <label className="text-xs text-slate-300 col-span-2">
+            وصف (اختياريّ)
+            <input value={evDesc} onChange={(e) => setEvDesc(e.target.value)} className={inputCls} />
+          </label>
+        </div>
+        <button
+          onClick={addEvent}
+          disabled={saving}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-emerald-300 hover:text-emerald-100 disabled:opacity-50"
+          style={{ borderColor: '#334155' }}
+        >
+          <Plus className="w-4 h-4" /> أضِف الحدث
+        </button>
+        {addedEvents.length > 0 && (
+          <ul className="text-[11px] text-slate-400 space-y-1">
+            {addedEvents.map((e, i) => (
+              <li key={i}>
+                • {e.type} — {e.date}
+                {e.lowConf && <span className="text-amber-400"> · منخفض الثقة (بلا كمّيّة)</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="text-[11px] text-slate-400">
+          نوع حامل لكمّيّة بلا كمّيّة/مدّة/وصف يُوسَم <b>منخفض الثقة</b> تلقائيّاً (لا تخمين قيمة).
+        </p>
+      </StepShell>
+    );
+  }
+
+  if (phase === 'harvest') {
+    const inputCls =
+      'mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm';
+    return (
+      <StepShell
+        title="الحصاد (نقطة المعايرة)"
+        subtitle="بدقّة يوميّة + غلّة ⇒ يفتح المعايرة بعد القبول"
+        icon={<Wheat className="w-5 h-5" />}
+        stepIndex={3}
+        stepTotal={STEP_TOTAL}
+        optional
+        canGoBack
+        onBack={() => setPhase('events')}
+        onSkip={() => setPhase('costs')}
+        onNext={saveHarvestNext}
+        saving={saving}
+        error={error}
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <label className="text-xs text-slate-300">
+            تاريخ الحصاد
+            <input type="date" value={harvestDate} onChange={(e) => setHarvestDate(e.target.value)} className={inputCls} />
+          </label>
+          <label className="text-xs text-slate-300">
+            دقّة التاريخ
+            <select value={harvestPrecision} onChange={(e) => setHarvestPrecision(e.target.value as SowingPrecision)} className={inputCls}>
+              {SOWING_PRECISION_OPTS.map((o) => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs text-slate-300 col-span-2">
+            الغلّة (kg/ha، اختياريّ لكن مطلوب للمعايرة)
+            <input value={harvestYield} onChange={(e) => setHarvestYield(e.target.value)} inputMode="decimal" placeholder="—" className={inputCls} />
+          </label>
+        </div>
+        <p className="text-[11px] text-slate-400">
+          {harvestSaved ? '✓ محفوظ. ' : ''}
+          أهليّة المعايرة (SIM-GOLDEN) تتطلّب: حصاداً بدقّة <b>يوميّة</b> + غلّة + بذاراً بدقّة يوميّة + قبول الموسم.
+        </p>
+      </StepShell>
+    );
+  }
+
+  if (phase === 'costs') {
+    const inputCls =
+      'mt-1 w-full px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-100 text-sm';
+    return (
+      <StepShell
+        title="التكاليف"
+        subtitle="بنود التكلفة فُرادى (اختياريّ) — تعدّد عملات آمن"
+        icon={<Coins className="w-5 h-5" />}
+        stepIndex={4}
+        stepTotal={STEP_TOTAL}
+        optional
+        canGoBack
+        onBack={() => setPhase('harvest')}
+        onSkip={() => setPhase('logbook')}
+        onNext={() => setPhase('logbook')}
+        saving={saving}
+        error={error}
+      >
+        <div className="grid grid-cols-3 gap-3">
+          <label className="text-xs text-slate-300 col-span-2">
+            البند
+            <input value={costLabel} onChange={(e) => setCostLabel(e.target.value)} placeholder="بذور / أجرة حراثة" className={inputCls} />
+          </label>
+          <label className="text-xs text-slate-300">
+            المبلغ
+            <input value={costAmount} onChange={(e) => setCostAmount(e.target.value)} inputMode="decimal" className={inputCls} />
+          </label>
+          <label className="text-xs text-slate-300">
+            العملة (ISO)
+            <input value={costCurrency} onChange={(e) => setCostCurrency(e.target.value)} maxLength={3} className={inputCls} />
+          </label>
+        </div>
+        <button
+          onClick={addCost}
+          disabled={saving}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm border text-emerald-300 hover:text-emerald-100 disabled:opacity-50"
+          style={{ borderColor: '#334155' }}
+        >
+          <Plus className="w-4 h-4" /> أضِف بند التكلفة
+        </button>
+        {addedCosts.length > 0 && (
+          <ul className="text-[11px] text-slate-400 space-y-1">
+            {addedCosts.map((c, i) => (
+              <li key={i}>• {c.label} — {c.amount} {c.currency}</li>
+            ))}
+          </ul>
+        )}
+        <p className="text-[11px] text-slate-400">
+          لا تجميع صامت عبر عملتين — كلّ عملة سطر مستقلّ (التحويل يتطلّب سعراً صريحاً في التقارير).
+        </p>
+      </StepShell>
+    );
+  }
+
   if (phase === 'logbook') {
     return (
       <StepShell
         title="مرفق صفحة الدفتر"
         subtitle="المرفق هو «التوقيع» الوحيد — شرط للقبول"
         icon={<BookImage className="w-5 h-5" />}
-        stepIndex={2}
-        stepTotal={4}
+        stepIndex={5}
+        stepTotal={STEP_TOTAL}
         canGoBack
-        onBack={() => setPhase('details')}
+        onBack={() => setPhase('costs')}
         onNext={submitLogbook}
         saving={saving}
         error={error}
@@ -445,8 +783,8 @@ export default function SeasonRecordEntryPage() {
         title="مراجعة وتسليم للقبول"
         subtitle={`الموسم: ${seasonLabel || fieldName}`}
         icon={<CheckCircle2 className="w-5 h-5" />}
-        stepIndex={3}
-        stepTotal={4}
+        stepIndex={6}
+        stepTotal={STEP_TOTAL}
         canGoBack
         onBack={() => setPhase('logbook')}
         onNext={submitAccept}
@@ -460,18 +798,31 @@ export default function SeasonRecordEntryPage() {
           <Row k="الصنف" v={varietyName} />
           <Row k="البذار" v={`${sowingDate} (${SOWING_PRECISION_OPTS.find((o) => o.value === sowingPrecision)?.label})`} />
           {seedRate.trim() && <Row k="كمية البذور" v={`${seedRate} kg/ha`} />}
+          <Row k="الأحداث" v={addedEvents.length ? `${addedEvents.length} حدثاً` : '—'} />
+          <Row
+            k="الحصاد"
+            v={harvestSaved ? `${harvestDate}${harvestYield.trim() ? ` · ${harvestYield} kg/ha` : ''}` : '—'}
+          />
+          <Row k="التكاليف" v={addedCosts.length ? `${addedCosts.length} بنداً` : '—'} />
           <Row k="مرفق الدفتر" v="مرفوع ✓" />
         </dl>
-        <div
-          className="flex items-start gap-2 px-3 py-2 rounded-lg text-[11px]"
-          style={{ background: '#78350f22', border: '1px solid #f59e0b33', color: '#fbbf24' }}
-        >
-          <FileWarning className="w-4 h-4 mt-0.5 shrink-0" />
-          <span>
-            تسجيل الأحداث الزراعيّة والحصاد والتكاليف يأتي في شريحة لاحقة (نقاطها الخلفيّة قيد البناء).
-            هذه الشريحة تُرقّم الموسم وترفعه للقبول المُصدَّق.
-          </span>
-        </div>
+        {harvestSaved && harvestYield.trim() && harvestPrecision === 'day' && sowingPrecision === 'day' ? (
+          <div
+            className="flex items-start gap-2 px-3 py-2 rounded-lg text-[11px]"
+            style={{ background: '#052e1655', border: '1px solid #16a34a55', color: '#6ee7b7' }}
+          >
+            <Wheat className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>هذا الموسم <b>مؤهَّل للمعايرة</b> بعد القبول (حصاد وبذار بدقّة يوميّة + غلّة) ⇒ يُغذّي SIM-GOLDEN.</span>
+          </div>
+        ) : (
+          <div
+            className="flex items-start gap-2 px-3 py-2 rounded-lg text-[11px]"
+            style={{ background: '#78350f22', border: '1px solid #f59e0b33', color: '#fbbf24' }}
+          >
+            <FileWarning className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>غير مؤهَّل للمعايرة: تحتاج حصاداً وبذاراً بدقّة <b>يوميّة</b> + غلّة مُسجَّلة (يبقى الموسم صالحاً للترقيم).</span>
+          </div>
+        )}
         <p className="text-[11px] text-slate-400">
           القبول فعل حسّاس: يتطلّب دور <b>مالك</b> أو <b>خبير زراعيّ</b> (البوّابة توقّع الهويّة والخدمة تتحقّق).
         </p>

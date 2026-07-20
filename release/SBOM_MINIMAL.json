@@ -5825,7 +5825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "74f418ba3d738f3c29285dcabaa91efacd451db18769f9334ec097f5f0ae9c0b"
+          "content": "596cfd1fd5cc4e18bfa8993eab741ad0aa288a5b1dfa794ecb692cb0d404bc72"
         }
       ],
       "name": "frontend/src/sections/SeasonRecordEntry.static.test.ts",
@@ -5835,7 +5835,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3943c0a771f60346ce5d4459e4c48aef1232a4a487008b391464da956e9f0fc5"
+          "content": "ce35cb4c6f9398f6da795e0bf059f5860e76a98463b0176d8c989576ad70efd1"
         }
       ],
       "name": "frontend/src/sections/SeasonRecordEntryPage.tsx",
@@ -6245,7 +6245,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d0560b32ab48b4a6423d6e6e80e3fdb798a0fd9162f39a5aea0603a575eef2b9"
+          "content": "7d1a4893d4754ccb2cab76ca372fcf5acdef6c040bf9e9c4fcefcffd468d9291"
         }
       ],
       "name": "frontend/src/services/api/season.ts",
@@ -6435,7 +6435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "886a82a9742b8aba6d7e4fbddb4f4ee20e552d1e8f855dcec7fc6fe2e82e7d2e"
+          "content": "784f3d19ebeceff2191b8b44d00994ca841a67a086f4b464471410c1876e45b1"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -6445,7 +6445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e981de401c610e1e241b884c6c9c93a2c4108e88fffc8baa074512c670a68a7b"
+          "content": "6e01128821049d42d90121d57021959efadfe76ca111f322af0f6a5557abb221"
         }
       ],
       "name": "migrations/bootstrap_postgres.sh",
@@ -25875,7 +25875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04add6a687d328f62d245d1fbdb3714bb0c5b99fb38d73e8c9b9b232f6604e4d"
+          "content": "8366a8135c0f04f2e00cc4e04a2e25572168d4c389bcc22587ca2c8879e39f78"
         }
       ],
       "name": "services/scout-ingest-service/season_api.py",
@@ -25905,7 +25905,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e64226074e76d3d18bb478d363fa15b1c8bfe745f53bbae982a889f38bf796d7"
+          "content": "6b27c3b33dab35306b3a771a3893b2538b6b46b3b3f9299cd671ec1f7c5367c3"
         }
       ],
       "name": "services/scout-ingest-service/tests/test_season_live.py",

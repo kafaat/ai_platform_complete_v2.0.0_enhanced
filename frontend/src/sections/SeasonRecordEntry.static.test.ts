@@ -25,7 +25,7 @@ describe('SeasonRecordEntry — API client wiring', () => {
     expect(apiSrc).toMatch(/['"`]\/api\/v1\/seasons/);
   });
 
-  it('season client exposes the six endpoints (draft, patch, logbook up/url, accept, list)', () => {
+  it('season client exposes the ten endpoints (six core + events/harvest/costs/detail)', () => {
     for (const fn of [
       'createSeasonDraft',
       'patchSeasonDraft',
@@ -33,6 +33,11 @@ describe('SeasonRecordEntry — API client wiring', () => {
       'getSeasonLogbookUrl',
       'acceptSeason',
       'listSeasons',
+      // SEASON-ENTRY-EVENTS-UI (opens SIM-GOLDEN)
+      'addSeasonEvent',
+      'setSeasonHarvest',
+      'addSeasonCost',
+      'getSeasonDetail',
     ]) {
       expect(apiSrc).toContain(`export const ${fn}`);
     }

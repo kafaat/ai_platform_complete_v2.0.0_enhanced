@@ -234,6 +234,11 @@ BEGIN
       season_records, season_crop, season_events, season_harvest, season_cost_items
       TO sahool_ingest;
   END IF;
+  -- SEASON-ENTRY-EVENTS-UI: نقطة detail تقرأ الأهليّة من الـVIEW المُشتقّ (security_invoker ⇒ RLS
+  -- تبقى بصلاحيّات القارئ) — يحتاج منح SELECT على الـVIEW نفسه (غيابه ⇒ 503 على detail).
+  IF to_regclass('public.season_calibration_eligibility') IS NOT NULL THEN
+    GRANT SELECT ON season_calibration_eligibility TO sahool_ingest;
+  END IF;
 END $$;
 SQL
 echo "  ✓ sahool_ingest جاهز (SELECT+INSERT على submissions+observations؛ SELECT+INSERT+UPDATE على مواسم v201؛ لا DELETE)"

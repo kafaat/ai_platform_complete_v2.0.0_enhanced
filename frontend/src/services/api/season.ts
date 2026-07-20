@@ -115,3 +115,87 @@ export const listSeasons = (status: SeasonTrustStatus = 'untrusted') =>
       params: { status },
     })
     .then((r) => r.data);
+
+// ── SEASON-ENTRY-EVENTS-UI: الأبناء (أحداث/حصاد/تكاليف) — تفتح مسار SIM-GOLDEN ──────
+export type SeasonEventType =
+  | 'tillage'
+  | 'land_prep'
+  | 'irrigation'
+  | 'fert_organic'
+  | 'fert_chemical'
+  | 'pesticide'
+  | 'energy'
+  | 'other';
+
+export interface SeasonEventIn {
+  event_type: SeasonEventType;
+  event_date: string; // YYYY-MM-DD
+  date_precision?: SowingPrecision;
+  growth_stage?: string | null;
+  amount_kg_ha?: number | null;
+  amount_mm?: number | null;
+  duration_hours?: number | null;
+  machinery_hours?: number | null;
+  fuel_liters?: number | null;
+  energy_kwh?: number | null;
+  low_confidence?: boolean;
+  npk_composition?: string | null;
+  active_ingredient?: string | null;
+  description?: string | null;
+}
+
+export interface SeasonHarvestIn {
+  harvest_date: string; // YYYY-MM-DD
+  harvest_precision?: SowingPrecision;
+  yield_kg_ha?: number | null;
+}
+
+export interface SeasonCostIn {
+  item_label: string;
+  amount: number;
+  currency?: string; // ISO 4217; YER افتراضيّة
+  cost_date?: string | null;
+  linked_event_id?: string | null;
+}
+
+// ٧) إضافة حدث/مدخل (untrusted فقط) — يعيد low_confidence المُوسَّم خادميّاً
+export const addSeasonEvent = (seasonId: string, body: SeasonEventIn) =>
+  kongApi
+    .post<{ season_id: string; event_id: string; low_confidence: boolean }>(
+      `/api/v1/seasons/${encodeURIComponent(seasonId)}/events`,
+      body,
+    )
+    .then((r) => r.data);
+
+// ٨) ضبط الحصاد (1:1، upsert) — نقطة المعايرة الذهبيّة
+export const setSeasonHarvest = (seasonId: string, body: SeasonHarvestIn) =>
+  kongApi
+    .post<{ season_id: string; harvest_set: boolean }>(
+      `/api/v1/seasons/${encodeURIComponent(seasonId)}/harvest`,
+      body,
+    )
+    .then((r) => r.data);
+
+// ٩) إضافة بند تكلفة (تعدّد عملات آمن)
+export const addSeasonCost = (seasonId: string, body: SeasonCostIn) =>
+  kongApi
+    .post<{ season_id: string; cost_item_id: string }>(
+      `/api/v1/seasons/${encodeURIComponent(seasonId)}/costs`,
+      body,
+    )
+    .then((r) => r.data);
+
+export interface SeasonDetail {
+  season: Record<string, unknown>;
+  crop: Record<string, unknown> | null;
+  events: Record<string, unknown>[];
+  harvest: Record<string, unknown> | null;
+  costs: Record<string, unknown>[];
+  calibration_eligible: boolean;
+}
+
+// ١٠) تجميعة الموسم + أهليّة المعايرة (للمراجعة/الاستئناف؛ يُظهر هل يُغذّي SIM-GOLDEN)
+export const getSeasonDetail = (seasonId: string) =>
+  kongApi
+    .get<SeasonDetail>(`/api/v1/seasons/${encodeURIComponent(seasonId)}/detail`)
+    .then((r) => r.data);

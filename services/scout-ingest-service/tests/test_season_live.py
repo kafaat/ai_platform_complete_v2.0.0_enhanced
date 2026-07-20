@@ -79,9 +79,13 @@ async def live_app(tmp_path):
         GRANT SELECT, INSERT, UPDATE ON
           season_records, season_crop, season_events, season_harvest, season_cost_items
           TO sahool_ingest;
+        GRANT SELECT ON season_calibration_eligibility TO sahool_ingest;
     """)
-    # نظافة بين التشغيلات (append-only: لا DELETE بالدور المقيَّد؛ الإعداد بالمسؤول).
-    await admin.execute("DELETE FROM season_crop; DELETE FROM season_records; DELETE FROM fields;")
+    # نظافة بين التشغيلات بترتيب FK (الأبناء أوّلاً) — بالمسؤول (append-only يمنع DELETE بالدور المقيَّد).
+    await admin.execute(
+        "DELETE FROM season_cost_items; DELETE FROM season_events; DELETE FROM season_harvest; "
+        "DELETE FROM season_crop; DELETE FROM season_records; DELETE FROM fields;"
+    )
     await admin.execute(
         "INSERT INTO fields VALUES ('field-a',$1),('field-b',$2)",
         uuid.UUID(_A),
@@ -233,6 +237,129 @@ async def test_season_entry_live_proofs(live_app):
         c.post(
             f"/internal/seasons/{sid}/accept",
             headers=_hdr(_A, reviewer=True, accept_path=f"/internal/seasons/{sid}/accept"),
+        ).status_code
+        == 409
+    )
+
+
+async def test_season_children_and_calibration_opens_sim_golden(live_app):
+    """SEASON-ENTRY-EVENTS-UI: أحداث/حصاد/تكاليف + قلب calibration_eligible عند القبول (SIM-GOLDEN).
+
+    البرهان المحوريّ: حصاد بدقّة يوميّة + زراعة بدقّة يوميّة + موسم مقبول ⇒ الـVIEW المُشتقّ يُرجِع
+    calibration_eligible=true (يُغذّي SIM-GOLDEN). قبل القبول = false. والقيود مفروضة من المدخل الحيّ.
+    """
+    c = live_app
+    hdr = _hdr(_A)
+    # مسودّة بمحصول بدقّة زراعة يوميّة (شرط الأهليّة)
+    draft = {
+        "field_id": "field-a",
+        "observed_at_from": "2022-11-01",
+        "observed_at_to": "2023-05-01",
+        "season_label": "معايرة",
+        "draft_key": "dk-calib",
+        "crop": {"variety_name": "قمح", "sowing_date": "2022-11-10", "sowing_precision": "day"},
+    }
+    sid = c.post("/internal/seasons", json=draft, headers=hdr).json()["season_id"]
+
+    # حدث ريّ بلا كمّيّة/مدّة/وصف ⇒ low_confidence يُضبط تلقائيّاً (قاعدة ٤، لا تخمين)
+    ev = c.post(
+        f"/internal/seasons/{sid}/events",
+        json={"event_type": "irrigation", "event_date": "2022-12-01"},
+        headers=hdr,
+    )
+    assert ev.status_code == 201 and ev.json()["low_confidence"] is True, ev.text
+    # حدث طاقة بلا وقود/كهرباء/دقّة-موسم ⇒ 400 (قيد CHECK — لا تفكيك مُختلَق)
+    bad_energy = c.post(
+        f"/internal/seasons/{sid}/events",
+        json={"event_type": "energy", "event_date": "2022-12-02"},
+        headers=hdr,
+    )
+    assert bad_energy.status_code == 400, bad_energy.text
+    # ساعات معدّة سالبة ⇒ 400 (قيد CHECK)
+    bad_mach = c.post(
+        f"/internal/seasons/{sid}/events",
+        json={"event_type": "tillage", "event_date": "2022-11-05", "machinery_hours": -1},
+        headers=hdr,
+    )
+    assert bad_mach.status_code == 400, bad_mach.text
+
+    # تكلفة صالحة (YER) ⇒ 201؛ عملة غير ISO ⇒ 400
+    assert (
+        c.post(
+            f"/internal/seasons/{sid}/costs",
+            json={"item_label": "بذور", "amount": 1000},
+            headers=hdr,
+        ).status_code
+        == 201
+    )
+    assert (
+        c.post(
+            f"/internal/seasons/{sid}/costs",
+            json={"item_label": "x", "amount": 1, "currency": "yer1"},
+            headers=hdr,
+        ).status_code
+        == 400
+    )
+
+    # حصاد قبل الزراعة ⇒ 400 (trigger harvest_date > sowing_date)
+    assert (
+        c.post(
+            f"/internal/seasons/{sid}/harvest",
+            json={"harvest_date": "2022-10-01", "harvest_precision": "day", "yield_kg_ha": 3000},
+            headers=hdr,
+        ).status_code
+        == 400
+    )
+    # حصاد صحيح بدقّة يوميّة + غلّة (نقطة المعايرة)
+    assert (
+        c.post(
+            f"/internal/seasons/{sid}/harvest",
+            json={"harvest_date": "2023-05-01", "harvest_precision": "day", "yield_kg_ha": 4200},
+            headers=hdr,
+        ).status_code
+        == 200
+    )
+
+    # قبل القبول: التجميعة تعرض الأبناء لكن calibration_eligible=false (الموسم غير مقبول بعد)
+    det = c.get(f"/internal/seasons/{sid}/detail", headers=hdr)
+    assert det.status_code == 200, det.text
+    d = det.json()
+    assert len(d["events"]) == 1 and d["harvest"]["yield_kg_ha"] == 4200 and len(d["costs"]) == 1
+    assert d["calibration_eligible"] is False
+
+    # ⑨ عزل RLS: المستأجِر B لا يرى تجميعة موسم A ⇒ 404 (لا تسريب)
+    assert c.get(f"/internal/seasons/{sid}/detail", headers=_hdr(_B)).status_code == 404
+
+    # رفع الدفتر + القبول ⇒ يقلب الأهليّة
+    c.post(
+        f"/internal/seasons/{sid}/logbook",
+        content=b"\xff\xd8\xff\xe0\x00\x10JFIF real jpeg",
+        headers=hdr,
+    )
+    acc = c.post(
+        f"/internal/seasons/{sid}/accept",
+        headers=_hdr(_A, reviewer=True, accept_path=f"/internal/seasons/{sid}/accept"),
+    )
+    assert acc.status_code == 200, acc.text
+
+    # 🎯 بعد القبول: calibration_eligible=true ⇒ الموسم يُغذّي SIM-GOLDEN
+    det2 = c.get(f"/internal/seasons/{sid}/detail", headers=hdr).json()
+    assert det2["calibration_eligible"] is True, det2
+
+    # الأبناء مُجمَّدون بعد القبول: كتابة حدث/حصاد ⇒ 409 (§4-④، trigger + نقطة)
+    assert (
+        c.post(
+            f"/internal/seasons/{sid}/events",
+            json={"event_type": "other", "event_date": "2023-01-01"},
+            headers=hdr,
+        ).status_code
+        == 409
+    )
+    assert (
+        c.post(
+            f"/internal/seasons/{sid}/harvest",
+            json={"harvest_date": "2023-05-02", "harvest_precision": "day", "yield_kg_ha": 9999},
+            headers=hdr,
         ).status_code
         == 409
     )

@@ -74,15 +74,21 @@ def _route_decorators() -> set[tuple[str, str]]:
 
 
 # ── بنيويّ: النقاط + صفر مسار منصّة + أسلاك الأمان ───────────────────────────────
-def test_six_endpoints_all_on_scout_ingest_internal():
+def test_ten_endpoints_all_on_scout_ingest_internal():
     routes = _route_decorators()
+    # النواة الستّ (شريحة 2b)
     assert ("POST", "/internal/seasons") in routes  # إنشاء مسودّة
     assert ("PATCH", "/internal/seasons/{season_id}") in routes
     assert ("POST", "/internal/seasons/{season_id}/logbook") in routes
     assert ("GET", "/internal/seasons/{season_id}/logbook") in routes
     assert ("POST", "/internal/seasons/{season_id}/accept") in routes
     assert ("GET", "/internal/seasons") in routes
-    assert len(routes) == 6
+    # الأبناء الأربعة (SEASON-ENTRY-EVENTS-UI): تفتح مسار SIM-GOLDEN
+    assert ("POST", "/internal/seasons/{season_id}/events") in routes
+    assert ("POST", "/internal/seasons/{season_id}/harvest") in routes
+    assert ("POST", "/internal/seasons/{season_id}/costs") in routes
+    assert ("GET", "/internal/seasons/{season_id}/detail") in routes
+    assert len(routes) == 10
     # صفر مسار منصّة: كلّ المسارات داخليّة على هذه الخدمة المالكة
     for _method, path in routes:
         assert path.startswith("/internal/seasons")

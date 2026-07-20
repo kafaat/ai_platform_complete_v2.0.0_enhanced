@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""SEASON-RECORD-ENTRY-01 — واجهة إدخال سجلّ الموسم (النقاط الستّ، مالكها scout-ingest).
+"""SEASON-RECORD-ENTRY-01 — واجهة إدخال سجلّ الموسم (عشر نقاط، مالكها scout-ingest).
+
+النواة الستّ (شريحة 2b): مسودّة+محصول · تحديث · رفع/معاينة دفتر · قبول · قائمة. وأربع أبناء
+(SEASON-ENTRY-EVENTS-UI): أحداث/مدخلات · حصاد (نقطة المعايرة) · تكاليف · تجميعة+أهليّة المعايرة —
+تفتح مسار SIM-GOLDEN (حصاد بدقّة يوميّة + موسم مقبول ⇒ season_calibration_eligibility=true).
 
 الجسر الذي يحوّل أساس v201/v202 إلى **أداة ترقيم**. كلّ النقاط على هذه الخدمة المالكة —
 **صفر مسار منصّة** (المواصفة §2؛ حارس route-residual للمنصّة يبقى دون تغيير).
@@ -133,6 +137,55 @@ class SeasonPatchIn(BaseModel):
     observed_at_from: date | None = None
     observed_at_to: date | None = None
     notes: str | None = None
+
+
+# ── SEASON-ENTRY-EVENTS-UI: نماذج الأبناء (أحداث/حصاد/تكاليف) — تفتح مسار SIM-GOLDEN ──
+_EVENT_TYPES = frozenset(
+    {
+        "tillage",
+        "land_prep",
+        "irrigation",
+        "fert_organic",
+        "fert_chemical",
+        "pesticide",
+        "energy",
+        "other",
+    }
+)
+# الأنواع الحاملة لكمّيّة: غيابُ كلّ كمّيّة/مدّة/وصف ⇒ يُوسَم low_confidence صراحةً (قاعدة ٤، لا تخمين).
+_QUANTITY_TYPES = frozenset({"irrigation", "fert_organic", "fert_chemical", "pesticide"})
+_PRECISIONS = frozenset({"day", "month", "season"})
+
+
+class SeasonEventIn(BaseModel):
+    event_type: str
+    event_date: date
+    date_precision: str = "day"
+    growth_stage: str | None = None
+    amount_kg_ha: float | None = None
+    amount_mm: float | None = None
+    duration_hours: float | None = None
+    machinery_hours: float | None = None
+    fuel_liters: float | None = None
+    energy_kwh: float | None = None
+    low_confidence: bool = False
+    npk_composition: str | None = None
+    active_ingredient: str | None = None
+    description: str | None = None
+
+
+class SeasonHarvestIn(BaseModel):
+    harvest_date: date
+    harvest_precision: str = "day"
+    yield_kg_ha: float | None = None
+
+
+class SeasonCostIn(BaseModel):
+    item_label: str = Field(min_length=1)
+    amount: float
+    currency: str = "YER"
+    cost_date: date | None = None
+    linked_event_id: str | None = None
 
 
 async def _load_status(conn, season_id: str) -> str | None:
@@ -449,6 +502,217 @@ async def list_seasons(
     finally:
         await conn.close()
     return {"seasons": [dict(r) for r in rows], "count": len(rows)}
+
+
+async def _require_untrusted(conn, sid: str) -> None:
+    """الأبناء يُكتَبون ما دام الموسم untrusted فقط — غياب ⇒ 404 · مقبول ⇒ 409 (§4-④).
+
+    الحارس من مدخله الحقيقيّ: التجميد بعد القبول مفروض أيضاً بـtrigger DB (season_child_immutable_
+    after_accept)، لكنّ الرفض الصريح على مستوى النقطة يعطي 409 نظيفاً لا 400 constraint.
+    """
+    status = await _load_status(conn, sid)
+    if status is None:
+        raise HTTPException(status_code=404, detail="season not found")
+    if status != "untrusted":
+        raise HTTPException(status_code=409, detail="season_not_editable_after_accept")
+
+
+# ── ٧) POST /internal/seasons/{id}/events — حدث/مدخل (1:N، ما دام untrusted) ──────
+@router.post("/internal/seasons/{season_id}/events", status_code=201)
+async def add_season_event(
+    season_id: str,
+    body: SeasonEventIn,
+    x_season_entry_token: str | None = Header(None, alias="X-Season-Entry-Token"),
+    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
+):
+    """يضيف عمليّة/مدخلاً. **لا بيانات مُخترَعة:** نوع حامل لكمّيّة بلا أيّ كمّيّة/مدّة/وصف ⇒ يُوسَم
+    ``low_confidence=true`` صراحةً (قاعدة ٤، لا تخمين). قيود energy/machinery مفروضة بـCHECK (⇒ 400)."""
+    _require_enabled()
+    _require_service_token(x_season_entry_token)
+    tenant = _require_tenant(x_tenant_id)
+    sid = _season_uuid(season_id)
+    if body.event_type not in _EVENT_TYPES:
+        raise HTTPException(status_code=400, detail="invalid event_type")
+    if body.date_precision not in _PRECISIONS:
+        raise HTTPException(status_code=400, detail="invalid date_precision")
+    # وسم منخفض-الثقة تلقائيّ (لا تخمين قيمة): نوع كمّيّ بلا شاهد ⇒ low_confidence إجباريّ.
+    low_conf = body.low_confidence or (
+        body.event_type in _QUANTITY_TYPES
+        and body.amount_kg_ha is None
+        and body.amount_mm is None
+        and body.duration_hours is None
+        and not (body.description or "").strip()
+    )
+    conn = await _tenant_conn(tenant)
+    try:
+        await _require_untrusted(conn, sid)
+        eid = await conn.fetchval(
+            "INSERT INTO season_events "
+            "(season_id, tenant_id, event_type, event_date, date_precision, growth_stage, "
+            " amount_kg_ha, amount_mm, duration_hours, machinery_hours, fuel_liters, energy_kwh, "
+            " low_confidence, npk_composition, active_ingredient, description) "
+            "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id",
+            sid,
+            tenant,
+            body.event_type,
+            body.event_date,
+            body.date_precision,
+            body.growth_stage,
+            body.amount_kg_ha,
+            body.amount_mm,
+            body.duration_hours,
+            body.machinery_hours,
+            body.fuel_liters,
+            body.energy_kwh,
+            low_conf,
+            body.npk_composition,
+            body.active_ingredient,
+            body.description,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_or_input_error(exc) from exc
+    finally:
+        await conn.close()
+    return {"season_id": sid, "event_id": str(eid), "low_confidence": low_conf}
+
+
+# ── ٨) POST /internal/seasons/{id}/harvest — الحصاد (1:1، upsert، نقطة المعايرة) ──
+@router.post("/internal/seasons/{season_id}/harvest")
+async def set_season_harvest(
+    season_id: str,
+    body: SeasonHarvestIn,
+    x_season_entry_token: str | None = Header(None, alias="X-Season-Entry-Token"),
+    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
+):
+    """يضبط/يحدّث الحصاد (1:1). ``harvest_date > sowing_date`` مفروض بـtrigger (⇒ 400).
+    نقطة المعايرة الذهبيّة: ``yield_kg_ha`` بدقّة ``day`` + موسم مقبول ⇒ calibration_eligible=true."""
+    _require_enabled()
+    _require_service_token(x_season_entry_token)
+    tenant = _require_tenant(x_tenant_id)
+    sid = _season_uuid(season_id)
+    if body.harvest_precision not in _PRECISIONS:
+        raise HTTPException(status_code=400, detail="invalid harvest_precision")
+    conn = await _tenant_conn(tenant)
+    try:
+        await _require_untrusted(conn, sid)
+        await conn.execute(
+            "INSERT INTO season_harvest (season_id, tenant_id, harvest_date, harvest_precision, yield_kg_ha) "
+            "VALUES ($1,$2,$3,$4,$5) "
+            "ON CONFLICT (season_id) DO UPDATE SET "
+            "  harvest_date = EXCLUDED.harvest_date, "
+            "  harvest_precision = EXCLUDED.harvest_precision, "
+            "  yield_kg_ha = EXCLUDED.yield_kg_ha",
+            sid,
+            tenant,
+            body.harvest_date,
+            body.harvest_precision,
+            body.yield_kg_ha,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_or_input_error(exc) from exc
+    finally:
+        await conn.close()
+    return {"season_id": sid, "harvest_set": True}
+
+
+# ── ٩) POST /internal/seasons/{id}/costs — بند تكلفة (1:N، تعدّد عملات آمن) ───────
+@router.post("/internal/seasons/{season_id}/costs", status_code=201)
+async def add_season_cost(
+    season_id: str,
+    body: SeasonCostIn,
+    x_season_entry_token: str | None = Header(None, alias="X-Season-Entry-Token"),
+    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
+):
+    """يضيف بند تكلفة. العملة ISO 4217 (YER افتراضيّة، CHECK ⇒ 400) — لا تحويل صامت.
+    التكلفة العائمة (linked_event_id فارغ) مقبولة صراحةً — لا ربط مُختلَق."""
+    _require_enabled()
+    _require_service_token(x_season_entry_token)
+    tenant = _require_tenant(x_tenant_id)
+    sid = _season_uuid(season_id)
+    linked = None
+    if body.linked_event_id:
+        try:
+            linked = str(UUID(body.linked_event_id))
+        except (ValueError, AttributeError):
+            raise HTTPException(status_code=400, detail="linked_event_id must be a UUID") from None
+    conn = await _tenant_conn(tenant)
+    try:
+        await _require_untrusted(conn, sid)
+        cid = await conn.fetchval(
+            "INSERT INTO season_cost_items "
+            "(season_id, tenant_id, item_label, amount, currency, cost_date, linked_event_id) "
+            "VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id",
+            sid,
+            tenant,
+            body.item_label,
+            body.amount,
+            body.currency.strip().upper(),
+            body.cost_date,
+            linked,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise _db_or_input_error(exc) from exc
+    finally:
+        await conn.close()
+    return {"season_id": sid, "cost_item_id": str(cid)}
+
+
+# ── ١٠) GET /internal/seasons/{id}/detail — تجميعة الموسم + أهليّة المعايرة ────────
+@router.get("/internal/seasons/{season_id}/detail")
+async def season_detail(
+    season_id: str,
+    x_season_entry_token: str | None = Header(None, alias="X-Season-Entry-Token"),
+    x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
+):
+    """تجميعة كاملة (رأس + محصول + أحداث + حصاد + تكاليف) + ``calibration_eligible`` من الـVIEW
+    المُشتقّ (لا عمود يدويّ). للاستئناف/المراجعة وإظهار هل يُغذّي الموسم SIM-GOLDEN بعد القبول."""
+    _require_enabled()
+    _require_service_token(x_season_entry_token)
+    tenant = _require_tenant(x_tenant_id)
+    sid = _season_uuid(season_id)
+    conn = await _tenant_conn(tenant)
+    try:
+        rec = await conn.fetchrow(
+            "SELECT id, field_id, season_label, observed_at_from, observed_at_to, source, "
+            "trust_status, logbook_image_ref IS NOT NULL AS has_logbook, accepted_by, accepted_at, "
+            "notes, created_at, updated_at FROM season_records WHERE id = $1",
+            sid,
+        )
+        if rec is None:
+            raise HTTPException(status_code=404, detail="season not found")
+        crop = await conn.fetchrow("SELECT * FROM season_crop WHERE season_id = $1", sid)
+        events = await conn.fetch(
+            "SELECT * FROM season_events WHERE season_id = $1 ORDER BY event_date, id", sid
+        )
+        harvest = await conn.fetchrow("SELECT * FROM season_harvest WHERE season_id = $1", sid)
+        costs = await conn.fetch(
+            "SELECT * FROM season_cost_items WHERE season_id = $1 ORDER BY cost_date NULLS LAST, id",
+            sid,
+        )
+        calib = await conn.fetchval(
+            "SELECT calibration_eligible FROM season_calibration_eligibility WHERE season_id = $1",
+            sid,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=503, detail="season store unavailable") from exc
+    finally:
+        await conn.close()
+    return {
+        "season": dict(rec),
+        "crop": dict(crop) if crop else None,
+        "events": [dict(e) for e in events],
+        "harvest": dict(harvest) if harvest else None,
+        "costs": [dict(c) for c in costs],
+        "calibration_eligible": bool(calib) if calib is not None else False,
+    }
 
 
 def _db_or_input_error(exc: Exception) -> HTTPException:
