@@ -8515,7 +8515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c3071b89c316438ac6d1f78ab0adceffa67e47b65acaa2145ca304ad919cbd2"
+          "content": "9550d66eca4f8b88c1654eee65480e1c7d3cf966fd112284f45b7b46becd6816"
         }
       ],
       "name": "migrations/v9_odoo_bridge.sql",
