@@ -502,6 +502,16 @@ jobs:
         run: pytest -m unit --cov=services --cov-fail-under=40 -q || (echo "التغطية انهارت دون الأرضيّة 40%" && exit 1)
       - uses: codecov/codecov-action@v4
         with: {files: coverage.xml}
+      # خطوة معزولة: تُثبّت fastapi فوق البيئة الدنيا (بعد بوّابة التغطية كي لا تُوقظ
+      # الاختبارات الخامدة في مسار -m unit) وتشغّل الملفّات الثلاثة المقصودة صراحةً
+      # بالمسار — تغطية حقيقيّة لـfield-forms API بلا أثر جانبيّ على البيئة المشتركة.
+      - name: Field-forms API integration (isolated fastapi env)
+        run: |
+          pip install -r tests_v9/requirements-field-forms.txt
+          pytest -v \
+            tests_v9/test_field_forms_api_integration.py \
+            tests_v9/test_field_forms_sync_binding_p02.py \
+            tests_v9/test_erp_bridge_fail_closed.py
 
   platform-unit-tests:
     name: Platform Unit Tests
