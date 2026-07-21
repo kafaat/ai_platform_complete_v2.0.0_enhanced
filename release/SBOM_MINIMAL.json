@@ -375,7 +375,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a0a6497b879dc9df5fec7a474f175824d0ca0ee0c404891cc4ef3b6ee8235f0"
+          "content": "46f7792e31b3dc1ad73276e444e749b18837ff3b838b54e48e753bcada5bf17e"
         }
       ],
       "name": "frontend/package-lock.json",
@@ -385,7 +385,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "254257a6fbbe2ec8f20ea307e8c6e96be12fee51a422fcf45c38111f6ca30715"
+          "content": "5c177d8c306c7f829867302aa71144b50216bfc75434e99f097e377ba09c939f"
         }
       ],
       "name": "frontend/package.json",
