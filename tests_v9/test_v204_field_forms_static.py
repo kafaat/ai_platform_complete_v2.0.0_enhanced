@@ -59,6 +59,12 @@ def test_versions_state_machine_and_column_precise_immutability() -> None:
     # state machine: draft→published→retired فقط
     assert "draft' AND NEW.status = 'published" in body
     assert "published' AND NEW.status = 'retired" in body
+    # P0-1 (مراجعة PR #585): state machine تسري على INSERT أيضًا — لا UPDATE فقط
+    assert "BEFORE INSERT OR UPDATE ON field_form_versions" in SQL
+    assert "TG_OP = 'INSERT'" in body
+    assert "insert must start as draft" in body
+    # النشر يتطلّب فاعلًا موثَّقًا — published_by لا يبقى NULL عند الانتقال
+    assert "publish requires published_at and published_by" in body
     # write-once
     for col in ("retired_at", "retired_by", "retirement_reason", "retirement_mode"):
         assert f"{col} is write-once" in body, col
@@ -113,3 +119,9 @@ def test_manifest_and_ownership_registered() -> None:
 def test_assignments_revision_guard() -> None:
     assert "field_form_assignments_revision_guard" in SQL
     assert "revision may not decrease" in SQL
+
+
+def test_no_active_assignment_status_in_check() -> None:
+    """P0-3: حالة no_active_assignment مسجّلة في CHECK — وإلا رفضت القاعدة صفّ الحجر وقت التشغيل."""
+    assert "'no_active_assignment'" in SQL
+    assert re.search(r"version_resolution_status IN[^)]*'no_active_assignment'", SQL)
