@@ -30,18 +30,27 @@ class FieldWidgetRegistry {
   const FieldWidgetRegistry({this.photoPicker});
 
   /// يعيد البنّاء أو null لنوع خارج السجلّ (لا يحدث — contract يرفض قبلها).
-  FieldWidgetBuilder? builderFor(FormFieldType type) => _builders[type];
-
-  late final Map<FormFieldType, FieldWidgetBuilder> _builders = {
-    FormFieldType.text: _buildText,
-    FormFieldType.number: _buildNumber,
-    FormFieldType.integer: _buildInteger,
-    FormFieldType.select: _buildSelect,
-    FormFieldType.multiSelect: _buildMultiSelect,
-    FormFieldType.date: _buildDate,
-    FormFieldType.gps: _buildGps,
-    FormFieldType.photo: _buildPhoto,
-  };
+  /// سجلّ مغلق: switch شامل على الأنواع الثمانية فقط.
+  FieldWidgetBuilder? builderFor(FormFieldType type) {
+    switch (type) {
+      case FormFieldType.text:
+        return _buildText;
+      case FormFieldType.number:
+        return _buildNumber;
+      case FormFieldType.integer:
+        return _buildInteger;
+      case FormFieldType.select:
+        return _buildSelect;
+      case FormFieldType.multiSelect:
+        return _buildMultiSelect;
+      case FormFieldType.date:
+        return _buildDate;
+      case FormFieldType.gps:
+        return _buildGps;
+      case FormFieldType.photo:
+        return _buildPhoto;
+    }
+  }
 
   Widget _buildText(BuildContext context, FormFieldDef def, Object? value,
       String? errorText, FieldChanged onChanged) {
@@ -173,52 +182,8 @@ class FieldWidgetRegistry {
 
   Widget _buildGps(BuildContext context, FormFieldDef def, Object? value,
       String? errorText, FieldChanged onChanged) {
-    double? lat;
-    double? lng;
-    if (value is Map) {
-      if (value['lat'] is num) lat = (value['lat'] as num).toDouble();
-      if (value['lng'] is num) lng = (value['lng'] as num).toDouble();
-    }
-    void emit() {
-      if (lat != null && lng != null) {
-        onChanged({'lat': lat, 'lng': lng});
-      } else {
-        onChanged(null);
-      }
-    }
-
-    return Column(
-      key: ValueKey('field_${def.key}'),
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(def.key, style: Theme.of(context).textTheme.bodyLarge),
-        if (errorText != null)
-          Text(errorText,
-              style: TextStyle(color: Theme.of(context).colorScheme.error)),
-        TextFormField(
-          key: ValueKey('field_${def.key}_lat'),
-          initialValue: lat?.toString() ?? '',
-          keyboardType: const TextInputType.numberWithOptions(
-              decimal: true, signed: true),
-          decoration: const InputDecoration(labelText: 'lat'),
-          onChanged: (v) {
-            lat = double.tryParse(v);
-            emit();
-          },
-        ),
-        TextFormField(
-          key: ValueKey('field_${def.key}_lng'),
-          initialValue: lng?.toString() ?? '',
-          keyboardType: const TextInputType.numberWithOptions(
-              decimal: true, signed: true),
-          decoration: const InputDecoration(labelText: 'lng'),
-          onChanged: (v) {
-            lng = double.tryParse(v);
-            emit();
-          },
-        ),
-      ],
-    );
+    return _GpsField(def: def, value: value, errorText: errorText,
+        onChanged: onChanged);
   }
 
   Widget _buildPhoto(BuildContext context, FormFieldDef def, Object? value,
@@ -249,6 +214,82 @@ class FieldWidgetRegistry {
         if (errorText != null)
           Text(errorText,
               style: TextStyle(color: Theme.of(context).colorScheme.error)),
+      ],
+    );
+  }
+}
+
+/// حقل gps بحالة داخليّة: lat/lng مستقلّان ولا يضيعان عند إعادة البناء.
+class _GpsField extends StatefulWidget {
+  final FormFieldDef def;
+  final Object? value;
+  final String? errorText;
+  final FieldChanged onChanged;
+
+  const _GpsField({required this.def, this.value, this.errorText,
+      required this.onChanged});
+
+  @override
+  State<_GpsField> createState() => _GpsFieldState();
+}
+
+class _GpsFieldState extends State<_GpsField> {
+  double? _lat;
+  double? _lng;
+
+  @override
+  void initState() {
+    super.initState();
+    final v = widget.value;
+    if (v is Map) {
+      if (v['lat'] is num) _lat = (v['lat'] as num).toDouble();
+      if (v['lng'] is num) _lng = (v['lng'] as num).toDouble();
+    }
+  }
+
+  void _emit() {
+    final lat = _lat;
+    final lng = _lng;
+    if (lat != null && lng != null) {
+      widget.onChanged({'lat': lat, 'lng': lng});
+    } else {
+      widget.onChanged(null);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final def = widget.def;
+    return Column(
+      key: ValueKey('field_${def.key}'),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(def.key, style: Theme.of(context).textTheme.bodyLarge),
+        if (widget.errorText != null)
+          Text(widget.errorText!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error)),
+        TextFormField(
+          key: ValueKey('field_${def.key}_lat'),
+          initialValue: _lat?.toString() ?? '',
+          keyboardType: const TextInputType.numberWithOptions(
+              decimal: true, signed: true),
+          decoration: const InputDecoration(labelText: 'lat'),
+          onChanged: (v) {
+            _lat = double.tryParse(v);
+            _emit();
+          },
+        ),
+        TextFormField(
+          key: ValueKey('field_${def.key}_lng'),
+          initialValue: _lng?.toString() ?? '',
+          keyboardType: const TextInputType.numberWithOptions(
+              decimal: true, signed: true),
+          decoration: const InputDecoration(labelText: 'lng'),
+          onChanged: (v) {
+            _lng = double.tryParse(v);
+            _emit();
+          },
+        ),
       ],
     );
   }
