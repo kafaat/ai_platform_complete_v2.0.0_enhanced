@@ -37,3 +37,11 @@ nats-py>=2.3.0
 # field_forms_api/odoo-bridge تستوردان fastapi — بدونها تتخطّى اختبارات fail-closed
 # وتكامل field-forms (importorskip) في وظيفة Unit وتفقد تغطيتها الفعليّة في CI.
 fastapi>=0.115.0
+# إضافة fastapi تنشّط test_decision_record_mandatory_persist الذي يستورد api.main ←
+# router_registry ← trials→trial_engine (scipy) وfields→geo_import (defusedxml) على
+# مستوى الوحدة — كلاهما مُعلَن في services/sahool-platform/api/requirements.txt.
+# غيابهما أجهض جمع الاختبارات كلّها في وظيفتي Unit/Integration (ModuleNotFoundError:
+# scipy — 3990 اختبارًا أُجهضت بخطأ جمع واحد). anthropic/pyshp كسولان وuvicorn تحت
+# حارس __main__ فلا حاجة لهما هنا.
+scipy>=1.13.0
+defusedxml>=0.7.1
