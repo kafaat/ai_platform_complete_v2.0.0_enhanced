@@ -19,6 +19,11 @@ withdrawn ⇒ quarantined مهما كان التوكن (نموذج فاسد لا
 و``FIELD_FORMS_SYNC_HMAC_KEY_PREVIOUS`` (+``_PREVIOUS_KEY_ID`` +``_PREVIOUS_UNTIL_EPOCH``)
 سابقٌ محتفَظ به بحدّ زمنيّ صريح. نافذة offline القصوى ``FIELD_FORMS_MAX_OFFLINE_SECONDS``
 (افتراضيّ 30 يومًا).
+
+P0 (مراجعة PR #585): ربط sync proof إلزاميّ بالمستخدم والجهاز والتكليف (X-Actor-Id +
+X-Device-Id + assignment_revision — حذفها يفشل الإثبات لا يُلغي المقارنة) · مطالبة assignment
+تُقرأ من PostgreSQL وتُطابَق بالحقل · الإرسال على النسخة الحاليّة يتطلّب إسنادًا فعّالًا
+(لا إسناد ⇒ حجر no_active_assignment · الغموض ⇒ 409).
 """
 
 from __future__ import annotations
@@ -454,6 +459,7 @@ async def submit_form(
     x_field_forms_token: str | None = Header(None, alias="X-Field-Forms-Token"),
     x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
     x_actor_id: str | None = Header(None, alias="X-Actor-Id"),
+    x_device_id: str | None = Header(None, alias="X-Device-Id"),
 ):
     """يدخل المظروف ويحسم مصيره في معاملة واحدة (الخيار الأقلّ تغييرًا، §12.1):
 
@@ -552,8 +558,46 @@ async def submit_form(
             claims = None
             resolution = "current"
             stale = False
+            resolved_assignment_id = None
             if version["status"] == "published":
                 resolution = "current"
+                # P0-3 (مراجعة PR #585): الإرسال على النسخة الحاليّة يتطلّب إسنادًا فعّالًا
+                # مقروءًا من PostgreSQL — لا إسناد ⇒ حجر no_active_assignment؛
+                # الغموض ⇒ 409 ambiguous_active_assignment (§5.3، مثل التنزيل)
+                resolved_assignment_id = await _resolve_active_assignment(
+                    conn, tenant, body.field_id, version["form_definition_id"]
+                )
+                if resolved_assignment_id == "ambiguous":
+                    raise HTTPException(status_code=409, detail="ambiguous_active_assignment")
+                if resolved_assignment_id is None:
+                    env_id = await _insert_envelope(
+                        conn,
+                        tenant,
+                        submission_id,
+                        body,
+                        dec.storage_key,
+                        source_hash,
+                        raw_ref,
+                        raw_payload,
+                        "quarantined",
+                        ["no_active_assignment"],
+                    )
+                    fs_id = await _insert_field_submission(
+                        conn,
+                        tenant,
+                        vid,
+                        None,
+                        env_id,
+                        raw_payload["answers"],
+                        "unknown_schema",
+                        "no_active_assignment",
+                        False,
+                        source_hash,
+                        x_actor_id,
+                    )
+                    return _quarantined_response(
+                        env_id, "no_active_assignment", fs_id, "no_active_assignment"
+                    )
             elif version["retirement_mode"] == "withdrawn":
                 # نموذج مسحوب ⇒ محجور مهما كان التوكن (لا DSL، لا قبول)
                 env_id = await _insert_envelope(
@@ -590,10 +634,17 @@ async def submit_form(
                     body.definition_sync_token,
                     tenant=tenant,
                     actor_id=x_actor_id,
+                    device_id=x_device_id,
                     assignment_revision=body.assignment_revision,
                     form_version_id=vid,
                     schema_hash=body.schema_hash,
                 )
+                # P0-2: مطالبة assignment تُقرأ من PostgreSQL وتُطابَق بالحقل —
+                # التوقيع وحده لا يكفي (لا وثوق بمحتوى موقَّع بلا مرجع حيّ)
+                if claims is not None and not await _assignment_row_matches(
+                    conn, tenant, claims["assignment_id"], body.field_id
+                ):
+                    claims = None
                 if claims is None:
                     env_id = await _insert_envelope(
                         conn,
@@ -625,6 +676,7 @@ async def submit_form(
                     )
                 resolution = "stale_proven"
                 stale = True
+                resolved_assignment_id = claims["assignment_id"]
 
             # ④ DSL + schema خادميًّا (§10/§12)
             schema_json = _json_out(version["schema_json"])
@@ -650,7 +702,7 @@ async def submit_form(
                     conn,
                     tenant,
                     vid,
-                    claims.get("assignment_id") if claims else None,
+                    resolved_assignment_id,
                     env_id,
                     body.answers,
                     "invalid",
@@ -680,7 +732,7 @@ async def submit_form(
                 conn,
                 tenant,
                 vid,
-                claims.get("assignment_id") if claims else None,
+                resolved_assignment_id,
                 env_id,
                 normalized,
                 "valid",
@@ -726,11 +778,16 @@ def _verify_sync_claims(
     *,
     tenant: str,
     actor_id: str | None,
+    device_id: str | None,
     assignment_revision: int | None,
     form_version_id: str,
     schema_hash: str,
 ) -> dict | None:
-    """يتحقّق من التوكن + تطابق الهويّة/الوجهة + نافذة offline (§9.2). None ⇒ invalid_sync_proof."""
+    """يتحقّق من التوكن + تطابق الهويّة/الوجهة + نافذة offline (§9.2). None ⇒ invalid_sync_proof.
+
+    P0-2 (مراجعة PR #585): الربط إلزاميّ — حذف الترويسة/الحقل لا يُلغي المقارنة
+    بل يفشل الإثبات (fail-closed): actor + device + revision كلّها مطلوبة ومطابقة.
+    """
     if not token:
         return None
     secret, key_id = _sync_keypair()
@@ -750,16 +807,56 @@ def _verify_sync_claims(
         return None
     if claims["tenant_id"] != tenant:
         return None
-    if actor_id and claims["actor_id"] != actor_id:
+    if not actor_id or claims["actor_id"] != actor_id:
+        return None
+    if not device_id or claims["device_id"] != device_id:
         return None
     if claims["form_version_id"] != form_version_id or claims["schema_hash"] != schema_hash:
         return None
-    if assignment_revision is not None and claims["revision"] != assignment_revision:
+    if assignment_revision is None or claims["revision"] != assignment_revision:
         return None
     issued_at = claims["issued_at"]
     if not isinstance(issued_at, (int, float)) or now - issued_at > _max_offline_seconds():
         return None
     return claims
+
+
+async def _resolve_active_assignment(
+    conn, tenant: str, field_id: str, form_definition_id
+) -> str | None:
+    """P0-3: الإسناد الفعّال الوحيد لـ(حقل، تعريف) على النسخة المنشورة.
+
+    None ⇒ لا إسناد فعّال (يُحجَر no_active_assignment) · "ambiguous" ⇒ غموض (§5.3 ⇒ 409).
+    """
+    rows = await conn.fetch(
+        "SELECT a.id FROM field_form_assignments a "
+        "JOIN field_form_versions v ON v.id = a.form_version_id AND v.tenant_id = a.tenant_id "
+        "WHERE a.tenant_id = $1 AND a.field_id = $2 AND v.form_definition_id = $3 "
+        "AND v.status = 'published' "
+        "AND a.active_from <= now() AND (a.active_to IS NULL OR a.active_to > now())",
+        tenant,
+        field_id,
+        form_definition_id,
+    )
+    if len(rows) > 1:
+        return "ambiguous"
+    if not rows:
+        return None
+    return str(rows[0]["id"])
+
+
+async def _assignment_row_matches(conn, tenant: str, assignment_id, field_id: str) -> bool:
+    """P0-2: مطالبة assignment الموقَّعة تُقرأ من PostgreSQL وتُطابَق بالحقل."""
+    try:
+        aid = str(UUID(str(assignment_id)))
+    except (ValueError, AttributeError, TypeError):
+        return False
+    row = await conn.fetchrow(
+        "SELECT field_id FROM field_form_assignments WHERE tenant_id = $1 AND id = $2",
+        tenant,
+        aid,
+    )
+    return bool(row) and row["field_id"] == field_id
 
 
 async def _insert_envelope(

@@ -85,3 +85,68 @@ def test_unknown_answer_key_invalid() -> None:
 
 def test_canonical_hash_stable() -> None:
     assert canonical_answers_hash({"b": 1, "a": 2}) == canonical_answers_hash({"a": 2, "b": 1})
+
+
+# ── P0-4 (مراجعة PR #585): قواعد validation مُنوَّعة ومغلقة القائمة عند النشر ──
+
+
+def _schema_with_rules(rules: dict) -> dict:
+    return {"fields": [{"key": "notes", "field_type": "text", "validation_rules": rules}]}
+
+
+def test_untyped_min_length_rejected_at_publish() -> None:
+    """مثال المراجعة حرفيًّا: "min_length": "five" يُرفَض عند التعريف لا عند الإرسال."""
+    with pytest.raises(SchemaError, match="validation_rule_type_int"):
+        validate_form_schema(_schema_with_rules({"min_length": "five"}), None)
+
+
+def test_bool_rule_rejected_at_publish() -> None:
+    with pytest.raises(SchemaError, match="validation_rule_type_int"):
+        validate_form_schema(_schema_with_rules({"max_length": True}), None)
+
+
+def test_unknown_rule_key_rejected_at_publish() -> None:
+    with pytest.raises(SchemaError, match="validation_rule_unknown"):
+        validate_form_schema(_schema_with_rules({"minLength": 3}), None)
+
+
+def test_negative_length_rejected_at_publish() -> None:
+    with pytest.raises(SchemaError, match="validation_rule_negative"):
+        validate_form_schema(_schema_with_rules({"min_length": -1}), None)
+
+
+def test_inverted_length_bounds_rejected() -> None:
+    with pytest.raises(SchemaError, match="validation_rule_inverted_length"):
+        validate_form_schema(_schema_with_rules({"min_length": 10, "max_length": 3}), None)
+
+
+def test_untyped_numeric_range_rejected_at_publish() -> None:
+    bad = {"fields": [{"key": "sev", "field_type": "number", "validation_rules": {"min": "0"}}]}
+    with pytest.raises(SchemaError, match="validation_rule_type_number"):
+        validate_form_schema(bad, None)
+
+
+def test_inverted_numeric_range_rejected() -> None:
+    bad = {
+        "fields": [
+            {"key": "sev", "field_type": "number", "validation_rules": {"min": 5, "max": 1}}
+        ]
+    }
+    with pytest.raises(SchemaError, match="validation_rule_inverted_range"):
+        validate_form_schema(bad, None)
+
+
+def test_valid_typed_rules_still_pass() -> None:
+    validate_form_schema(_schema_with_rules({"min_length": 1, "max_length": 200}), None)
+
+
+def test_legacy_bad_rules_no_typeerror_at_submission() -> None:
+    """دفاع عمق: نسخة منشورة قديمة بقواعد معطوبة ⇒ خطأ تحقّق نظيف (validation_rules_invalid)
+    لا TypeError — تُحجَر الإجابة بدل انفجار وقت التشغيل."""
+    legacy = {
+        "fields": [
+            {"key": "notes", "field_type": "text", "validation_rules": {"min_length": "five"}}
+        ]
+    }
+    _, errors = validate_answers(legacy, None, {"notes": "abc"})
+    assert any("validation_rules_invalid" in e for e in errors), errors
