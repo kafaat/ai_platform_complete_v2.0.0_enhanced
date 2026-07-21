@@ -49,9 +49,11 @@ SCHEMA = {
         {"key": "notes", "field_type": "text", "validation_rules": {"max_length": 50}},
     ]
 }
-SCHEMA_HASH = __import__("hashlib").sha256(
-    json.dumps(SCHEMA, sort_keys=True, separators=(",", ":")).encode()
-).hexdigest()
+SCHEMA_HASH = (
+    __import__("hashlib")
+    .sha256(json.dumps(SCHEMA, sort_keys=True, separators=(",", ":")).encode())
+    .hexdigest()
+)
 
 
 # ══ قاعدة زائفة في الذاكرة — تحاكي سطح asyncpg الذي يستخدمه field_forms_api ══
@@ -110,7 +112,11 @@ class FakeDB:
             vid = str(uuid.uuid4())
             def_id = args[1]
             num = 1 + max(
-                (v["version_number"] for v in self.versions.values() if v["form_definition_id"] == def_id),
+                (
+                    v["version_number"]
+                    for v in self.versions.values()
+                    if v["form_definition_id"] == def_id
+                ),
                 default=0,
             )
             self.versions[vid] = {
@@ -271,7 +277,9 @@ def _submission(vid, instance=None, field_id="field-1", **over):
 # ══ البوّابات ══
 def test_disabled_flag_returns_404(client, monkeypatch):
     monkeypatch.setenv("FIELD_FORMS_ENABLED", "0")
-    r = client.post("/internal/field-forms/definitions", headers=H, json={"code": "x", "title": "t"})
+    r = client.post(
+        "/internal/field-forms/definitions", headers=H, json={"code": "x", "title": "t"}
+    )
     assert r.status_code == 404
 
 
@@ -286,7 +294,9 @@ def test_wrong_service_token_returns_401(client):
 
 def test_missing_token_config_returns_503(client, monkeypatch):
     monkeypatch.setenv("FIELD_FORMS_SERVICE_TOKEN", "")
-    r = client.post("/internal/field-forms/definitions", headers=H, json={"code": "x", "title": "t"})
+    r = client.post(
+        "/internal/field-forms/definitions", headers=H, json={"code": "x", "title": "t"}
+    )
     assert r.status_code == 503
 
 
@@ -384,9 +394,7 @@ def test_superseded_with_full_proof_accepted_stale(client):
     r = client.post(
         "/internal/field-forms/submissions",
         headers={**H, "X-Actor-Id": "scout-1", "X-Device-Id": "dev-1"},
-        json=_submission(
-            vid, assignment_revision=1, definition_sync_token=_valid_token(vid, aid)
-        ),
+        json=_submission(vid, assignment_revision=1, definition_sync_token=_valid_token(vid, aid)),
     )
     body = r.json()
     assert body["trust_status"] == "accepted", body
@@ -402,9 +410,7 @@ def test_superseded_missing_device_header_fails(client):
     r = client.post(
         "/internal/field-forms/submissions",
         headers={**H, "X-Actor-Id": "scout-1"},  # بلا X-Device-Id
-        json=_submission(
-            vid, assignment_revision=1, definition_sync_token=_valid_token(vid, aid)
-        ),
+        json=_submission(vid, assignment_revision=1, definition_sync_token=_valid_token(vid, aid)),
     )
     body = r.json()
     assert body["trust_status"] == "quarantined"
@@ -447,9 +453,7 @@ def test_withdrawn_quarantined_even_with_valid_token(client):
     r = client.post(
         "/internal/field-forms/submissions",
         headers={**H, "X-Actor-Id": "scout-1", "X-Device-Id": "dev-1"},
-        json=_submission(
-            vid, assignment_revision=1, definition_sync_token=_valid_token(vid, aid)
-        ),
+        json=_submission(vid, assignment_revision=1, definition_sync_token=_valid_token(vid, aid)),
     )
     body = r.json()
     assert body["trust_status"] == "quarantined"
