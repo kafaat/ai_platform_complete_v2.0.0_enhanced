@@ -128,9 +128,7 @@ def test_untyped_numeric_range_rejected_at_publish() -> None:
 
 def test_inverted_numeric_range_rejected() -> None:
     bad = {
-        "fields": [
-            {"key": "sev", "field_type": "number", "validation_rules": {"min": 5, "max": 1}}
-        ]
+        "fields": [{"key": "sev", "field_type": "number", "validation_rules": {"min": 5, "max": 1}}]
     }
     with pytest.raises(SchemaError, match="validation_rule_inverted_range"):
         validate_form_schema(bad, None)

@@ -9,10 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 
 API = (
-    Path(__file__).resolve().parents[1]
-    / "services"
-    / "scout-ingest-service"
-    / "field_forms_api.py"
+    Path(__file__).resolve().parents[1] / "services" / "scout-ingest-service" / "field_forms_api.py"
 ).read_text(encoding="utf-8")
 
 
