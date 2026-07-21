@@ -94,7 +94,9 @@ def test_compose_wires_restricted_role_behind_flag():
     text = COMPOSE.read_text(encoding="utf-8")
     assert "sahool-scout-ingest:" in text, "خدمة scout-ingest غير مُسجّلة في docker-compose.v9.yml"
     # كتلة الخدمة تصل بدور sahool_ingest المقيَّد (لا sahool_app/sahool_user).
-    block = text.split("sahool-scout-ingest:", 1)[1].split("\n  sahool-", 1)[0]
+    # الإرساء على سطر تعريف الخدمة (`\n  sahool-scout-ingest:\n`) لا على أيّ ظهور للنصّ —
+    # وإلّا خطف URL مثل `http://sahool-scout-ingest:8000` (في كتلة المنصّة) موضعَ الكتلة.
+    block = text.split("\n  sahool-scout-ingest:\n", 1)[1].split("\n  sahool-", 1)[0]
     assert "postgresql://sahool_ingest:" in block, "الخدمة لا تتّصل بدور sahool_ingest المقيَّد"
     assert "sahool_user" not in block and "sahool_app" not in block
     assert "SCOUT_INGEST_ENABLED" in block  # خلف راية التفعيل
