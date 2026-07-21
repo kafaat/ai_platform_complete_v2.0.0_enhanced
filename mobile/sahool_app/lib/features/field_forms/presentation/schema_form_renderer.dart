@@ -9,7 +9,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../contract/condition_v1.dart';
 import '../contract/form_schema.dart';
 import 'field_widget_registry.dart';
 
@@ -55,9 +54,20 @@ class SchemaFormRenderer extends StatefulWidget {
 }
 
 class SchemaFormRendererState extends State<SchemaFormRenderer> {
-  late final Map<String, Object?> _answers =
+  late Map<String, Object?> _answers =
       Map<String, Object?>.from(widget.initialAnswers);
   Map<String, String> _errors = const {};
+
+  @override
+  void didUpdateWidget(covariant SchemaFormRenderer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // مخطّط/نسخة جديدة (V1←V2 مثلًا) ⇒ إعادة تهيئة الإجابات من الحزمة الجديدة.
+    if (!identical(oldWidget.schema, widget.schema) ||
+        !identical(oldWidget.initialAnswers, widget.initialAnswers)) {
+      _answers = Map<String, Object?>.from(widget.initialAnswers);
+      _errors = const {};
+    }
+  }
 
   Set<String> get _visibleKeys => computeVisibleKeys(
         schema: widget.schema,
@@ -83,18 +93,20 @@ class SchemaFormRendererState extends State<SchemaFormRenderer> {
   /// تحقّق محليّ كامل + بناء payload (يُسقط المجهول والمخفيّ).
   RendererSubmitResult validateAndBuild() {
     final visible = _visibleKeys;
-    final errors = validateAnswers(
+    // يُسقط المجهول/المخفيّ أوّلًا — واجهة المستخدم لا تستطيع الإجابة عنها.
+    final cleaned = buildSubmissionAnswers(
       schema: widget.schema,
       visibleKeys: visible,
       answers: _answers,
     );
-    setState(() => _errors = errors);
-    if (errors.isNotEmpty) return RendererSubmitResult.invalid(errors);
-    return RendererSubmitResult.ok(buildSubmissionAnswers(
+    final errors = validateAnswers(
       schema: widget.schema,
       visibleKeys: visible,
-      answers: _answers,
-    ));
+      answers: cleaned,
+    );
+    setState(() => _errors = errors);
+    if (errors.isNotEmpty) return RendererSubmitResult.invalid(errors);
+    return RendererSubmitResult.ok(cleaned);
   }
 
   void _submit() {
