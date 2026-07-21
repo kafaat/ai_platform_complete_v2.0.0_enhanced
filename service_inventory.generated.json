@@ -279,7 +279,7 @@
     "service": "scout-ingest-service",
     "domain": "Unclassified / Support",
     "python_files": 7,
-    "python_loc": 2320,
+    "python_loc": 2405,
     "tests": 3,
     "routes": 22,
     "main": "services/scout-ingest-service/main.py",

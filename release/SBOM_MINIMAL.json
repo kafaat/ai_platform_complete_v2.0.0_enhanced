@@ -6415,7 +6415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09c03bc0754f28ccbeb4e1b3a7e3155933bd493f6cb856164eb3682bd9b2da9c"
+          "content": "3b08df5aa76546c07b28dc77035d3a0c37c504dda00e79bd15520ce2834cd97c"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7595,6 +7595,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "42650bc6eede9df9dda71b110ddfe06bad3319cccf629283730711c682f63a16"
+        }
+      ],
+      "name": "migrations/v204_field_forms.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b2cf3059b484bf566460533e29aaf2584215f04990056872814a38c3b5053698"
         }
       ],
@@ -8505,7 +8515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4e8a06bb463276507328f2fabd268c425c074c5a02ff36ebcc6021b0a62538ed"
+          "content": "9c3071b89c316438ac6d1f78ab0adceffa67e47b65acaa2145ca304ad919cbd2"
         }
       ],
       "name": "migrations/v9_odoo_bridge.sql",
@@ -12025,7 +12035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6a0d9c1dd3e588958f5479a0c30969ea5500116125ddf0b1c51315139b41bd43"
+          "content": "0b75dd13694a72c4c6147d0671deee20441fd931aa76b96194637bdd60f58ec2"
         }
       ],
       "name": "services/odoo-bridge/erp_runtime.py",
@@ -12085,7 +12095,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "383de74b20093d41d02d4d5adb55feaaabbf97e178249015e488b42825bb2772"
+          "content": "3a96d6245ccf9f57aafa774e8837a6b86ef4689d1f2d9d31411f1b04bea9b775"
         }
       ],
       "name": "services/odoo-bridge/routers/health.py",
@@ -12095,7 +12105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb13f939b88f172fb4f03d5b1bb7f900b3d409a7ec18d183c503723c2f80bfcf"
+          "content": "8ce8c9bec7484c730ea36936d179628af03a012f63d96de2c5ea59d0c460cb22"
         }
       ],
       "name": "services/odoo-bridge/routers/sync.py",
@@ -25875,7 +25885,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5c57ea838b21b48f389891a62c081de013781eceea6e7ab0bfd1a13e1ad32010"
+          "content": "7e49ba89b65764e5a2024edbf93b12cdccd32687b18040766ac364ef0db80f7b"
+        }
+      ],
+      "name": "services/scout-ingest-service/field_forms_api.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "7ecea640937b33c5b034145de942bb6ef3a46e988f5026866416b37fa89e904b"
         }
       ],
       "name": "services/scout-ingest-service/main.py",
@@ -28029,6 +28049,56 @@
         }
       ],
       "name": "shared/continuous_learning_phase10.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9cfabd48e9cdcad87d9a1ea2b7399c7a721e7e1c1b50bee52d0dbe959426f99d"
+        }
+      ],
+      "name": "shared/contracts/forms/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab435fcfa20dff20c14c6c08da4c8c0a9dc42e3717e8d8a9672636ad19c1125d"
+        }
+      ],
+      "name": "shared/contracts/forms/condition_corpus.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6e486de0c7152bb339881dfbf330b081a17ba8221fbc02e13be8ff30b6f8e458"
+        }
+      ],
+      "name": "shared/contracts/forms/condition_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "dbdd4fff7d7978be0181c90bd9d7122386cc18099d563c2b3bc37354ab0fea2f"
+        }
+      ],
+      "name": "shared/contracts/forms/schema_v1.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec7540bda8cadd807abbc83bbb48da9e422ca55431099ff79c1ed250dee96821"
+        }
+      ],
+      "name": "shared/contracts/forms/sync_token.py",
       "type": "file"
     },
     {
