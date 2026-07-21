@@ -45,7 +45,14 @@ def _token(**over):
         "issued_at": time.time(),
     }
     claims.update(over)
-    return issue_token(claims, secret="test-secret-p02", key_id="k1")
+    # أصدِر بنفس مفتاح البيئة الذي يقرأه ‎_verify_sync_claims‎ (لا سرّ مُثبَّت):
+    # ملفّ آخر في نفس عمليّة pytest قد يكون ضبط FIELD_FORMS_SYNC_HMAC_KEY أوّلاً
+    # (setdefault لا يتجاوزه) ⇒ الإصدار بسرّ مُثبَّت يخالف التحقّق ⇒ فشل معتمِد على الترتيب.
+    return issue_token(
+        claims,
+        secret=os.environ["FIELD_FORMS_SYNC_HMAC_KEY"],
+        key_id=os.environ["FIELD_FORMS_SYNC_HMAC_KEY_ID"],
+    )
 
 
 def _verify(token, **kw):
