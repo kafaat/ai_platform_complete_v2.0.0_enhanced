@@ -213,7 +213,7 @@ services:
       sahool-redis:
         condition: service_healthy
     networks:
-      sahool-internal: null
+    - sahool-internal
     healthcheck:
       test:
       - CMD
@@ -339,7 +339,7 @@ services:
     environment:
       QDRANT__SERVICE__API_KEY: ${QDRANT_API_KEY:?QDRANT_API_KEY required}
     volumes:
-    - qdrant-storage:/qdrant/storage
+    - qdrant-storage:/var/lib/qdrant
     networks:
     - sahool-internal
     # NO in-container healthcheck: qdrant/qdrant is DISTROLESS (no shell/curl/wget),
@@ -360,8 +360,7 @@ services:
           devices:
           - driver: nvidia
             count: 1
-            capabilities:
-            - gpu
+            capabilities: [gpu]
     volumes:
     - ollama-models:/root/.ollama
     networks:
@@ -491,6 +490,10 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
+      # GAP-FIELD-FORMS-01 §8.6 (Slice 2): قناة BFF للنماذج الميدانيّة — المنصّة تحقن
+      # X-Field-Forms-Token نحو scout-ingest؛ الهاتف لا يحمل التوكن إطلاقًا. فارغ ⇒ 503 صادق.
+      SCOUT_INGEST_URL: ${SCOUT_INGEST_URL:-http://sahool-scout-ingest:8000}
+      FIELD_FORMS_SERVICE_TOKEN: ${FIELD_FORMS_SERVICE_TOKEN:-}
       RAG_RETRIEVAL_URL: ${RAG_RETRIEVAL_URL:-http://sahool-rag-retrieval:8000}
       KNOWLEDGE_GRAPH_URL: ${KNOWLEDGE_GRAPH_URL:-http://sahool-knowledge-graph:8000}
       AI_AGRONOMIST_URL: ${AI_AGRONOMIST_URL:-http://sahool-ai-agronomist:8000}
@@ -632,7 +635,7 @@ services:
       - -f
       - http://localhost:8000/healthz
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 6
       start_period: 30s
   sahool-guardrails-engine:
@@ -692,7 +695,7 @@ services:
       - -f
       - http://localhost:8000/healthz
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 6
       start_period: 30s
   sahool-weather-mcp:
@@ -717,7 +720,7 @@ services:
       - -f
       - http://localhost:8000/healthz
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 6
       start_period: 30s
   sahool-wofost-mcp:
@@ -740,7 +743,7 @@ services:
       - -f
       - http://localhost:8000/healthz
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 6
       start_period: 30s
   sahool-market-mcp:
@@ -770,7 +773,7 @@ services:
       - -f
       - http://localhost:8000/healthz
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 6
       start_period: 30s
   sahool-vegetation-analysis:
@@ -885,6 +888,10 @@ services:
       SEASON_ENTRY_ENABLED: ${SEASON_ENTRY_ENABLED:-0}
       # توكن خدمة مخصّص لقناة إدخال المواسم (القيمة مُحقَنة بيئيّاً، لا سرّ في compose — نمط READ_TOKEN).
       SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
+      # GAP-FIELD-FORMS-01 (Slice 1/2): واجهات النماذج الميدانيّة /internal/field-forms/*
+      # خلف راية مستقلّة (off ⇒ 404) وتوكن قناة مخصّص يحقنه proxy المنصّة (§8.6).
+      FIELD_FORMS_ENABLED: ${FIELD_FORMS_ENABLED:-0}
+      FIELD_FORMS_SERVICE_TOKEN: ${FIELD_FORMS_SERVICE_TOKEN:-}
       # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/). S3_BUCKET فارغ ⇒ file:// تطويريّ.
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
@@ -1074,8 +1081,7 @@ services:
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       RASTER_CACHE_INVALIDATION_ENABLED: ${RASTER_CACHE_INVALIDATION_ENABLED:-true}
       TILE_CACHE_TTL_SECONDS: ${TILE_CACHE_TTL_SECONDS:-2592000}
@@ -1120,18 +1126,19 @@ services:
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD
         required}@sahool-postgres:5432/sahool}
-      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD
-        required}@sahool-postgres:5432/sahool}
       WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-5}
       RASTER_PERSISTENCE_MODE: ${RASTER_PERSISTENCE_MODE:-required}
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
-      # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
+      # CDSE). عيّنه cdse لاستعمال Copernicus Process API (يتطلّب رصيد معالجة).
       HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
+      CDSE_ENABLED: ${CDSE_ENABLED:-true}
+      SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
+      SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
       CDSE_PROCESS_MIN_INTERVAL_SECONDS: ${CDSE_PROCESS_MIN_INTERVAL_SECONDS:-2.0}
       CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
@@ -1168,12 +1175,12 @@ services:
     restart: unless-stopped
     logging: *id001
     environment:
-      TITILER_API_CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-      AWS_S3_ENDPOINT: ${S3_ENDPOINT_HOST:-sahool-minio:9000}
+      TITILER_API_CORS_ORIGINS: ${TITILER_API_CORS_ORIGINS:-http://localhost:3000}
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT_HOST:-sahool-minio:9000}
       AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-sahool-admin}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-}
-      AWS_DEFAULT_REGION: ${S3_REGION:-us-east-1}
-      AWS_HTTPS: ${S3_USE_SSL:-false}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      AWS_HTTPS: ${AWS_HTTPS:-false}
       AWS_VIRTUAL_HOSTING: ${AWS_VIRTUAL_HOSTING:-false}
     volumes:
     - raster-data:/data/rasters:ro
@@ -1184,7 +1191,8 @@ services:
       - CMD
       - python
       - -c
-      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')
+      - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
+        timeout=3)
       interval: 20s
       timeout: 5s
       retries: 6
@@ -1376,7 +1384,6 @@ services:
       FEATURE_DISPATCH_ACTUATOR: ${FEATURE_DISPATCH_ACTUATOR:-}
       DECISION_SERVICE_URL: http://sahool-decision-service:8160
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
-      ACTUATOR_DISPATCH_TENANT_IDS: ${ACTUATOR_DISPATCH_TENANT_IDS:-}
       ACTUATOR_DISPATCH_POLL_SECONDS: ${ACTUATOR_DISPATCH_POLL_SECONDS:-10}
       ACTUATOR_DISPATCH_RISK_ALLOWLIST: ${ACTUATOR_DISPATCH_RISK_ALLOWLIST:-}
       # تصلّب سلامة الجهاز + استرداد الإيصال (حزمة 20260712): نضارة سجلّ الجهاز
@@ -1417,7 +1424,7 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - mosquitto_sub -h 127.0.0.1 -p 1883 -t '$$SYS/broker/version' -C 1 -W 3 >/dev/null
+      - mosquitto_sub -h 0.0.0.0 -t '$$SYS/broker/version' -C 1 -W 3 >/dev/null
         2>&1 || exit 1
       interval: 20s
       timeout: 5s
@@ -1481,7 +1488,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
     depends_on:
       sahool-qdrant:
-        condition: service_started  # qdrant is distroless — no healthcheck; gate on start
+        condition: service_started
       sahool-ollama:
         condition: service_healthy
     networks:
@@ -1515,7 +1522,7 @@ services:
       QDRANT_API_KEY: ${QDRANT_API_KEY:-}
     depends_on:
       sahool-qdrant:
-        condition: service_started  # qdrant is distroless — no healthcheck; gate on start
+        condition: service_started
     networks:
     - sahool-internal
     healthcheck:
@@ -1524,8 +1531,8 @@ services:
       - python
       - -c
       - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
-        timeout=3).read()
-      interval: 30s
+        timeout=3)
+      interval: 20s
       timeout: 5s
       retries: 6
       start_period: 40s
@@ -1553,8 +1560,8 @@ services:
       - python
       - -c
       - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
-        timeout=3).read()
-      interval: 30s
+        timeout=3)
+      interval: 20s
       timeout: 5s
       retries: 6
       start_period: 20s
@@ -1594,8 +1601,8 @@ services:
       - python
       - -c
       - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
-        timeout=3).read()
-      interval: 30s
+        timeout=3)
+      interval: 20s
       timeout: 5s
       retries: 6
       start_period: 45s
@@ -1616,7 +1623,7 @@ services:
       EMBEDDING_MODEL: nomic-embed-text
     depends_on:
       sahool-qdrant:
-        condition: service_started  # qdrant is distroless — no healthcheck; gate on start
+        condition: service_started
       sahool-ollama:
         condition: service_healthy
     networks:
@@ -1684,7 +1691,7 @@ services:
       DB_NAME: ${ODOO_DB:-sahool_erp}
     volumes:
     - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro
-    - odoo-web-data:/var/lib/odoo
+    - odoo-web-data:/var/lib/odoo/data
     - odoo-config:/etc/odoo
     - odoo-addons:/mnt/extra-addons
     depends_on:
@@ -1815,7 +1822,7 @@ services:
       - --tries=1
       - --spider
       - http://localhost:8080/healthz
-      interval: 30s
+      interval: 20s
       timeout: 10s
       retries: 6
       start_period: 30s
@@ -1831,7 +1838,7 @@ services:
     volumes:
     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
-    - prometheus-data:/prometheus
+    - prometheus-data:/data
     networks:
     - sahool-internal
     healthcheck:
@@ -1842,7 +1849,7 @@ services:
       - --tries=1
       - --spider
       - http://localhost:9090/-/healthy
-      interval: 30s
+      interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
@@ -1857,7 +1864,7 @@ services:
     - 127.0.0.1:9093:9093
     volumes:
     - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-    - alertmanager-data:/alertmanager
+    - alertmanager-data:/data
     networks:
     - sahool-internal
     healthcheck:
@@ -1868,7 +1875,7 @@ services:
       - --tries=1
       - --spider
       - http://localhost:9093/-/healthy
-      interval: 30s
+      interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
@@ -1894,7 +1901,7 @@ services:
       - CMD-SHELL
       - wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit
         1
-      interval: 30s
+      interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
@@ -1916,8 +1923,8 @@ services:
     healthcheck:
       test:
       - CMD-SHELL
-      - wget --no-verbose --tries=1 --spider http://localhost:14269/ || exit 1
-      interval: 30s
+      - wget --no-verbose --tries=1 --spider http://localhost:14269/healthz || exit 1
+      interval: 20s
       timeout: 5s
       retries: 6
       start_period: 30s
@@ -1950,7 +1957,7 @@ services:
       - python
       - -c
       - import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz',
-        timeout=3).read()
+        timeout=3)
       interval: 20s
       timeout: 5s
       retries: 6
@@ -2004,8 +2011,7 @@ services:
           devices:
           - driver: nvidia
             count: 1
-            capabilities:
-            - gpu
+            capabilities: [gpu]
     environment:
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
