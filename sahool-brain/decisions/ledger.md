@@ -789,3 +789,15 @@ SHAs من `git log --oneline origin/main`.
 - **الحكم:** جاهز للدمج — spec✓ build✓ static✓ unit(79)✓ CI(62/62)✓ live-PG16(6/6)✓.
 - **الدمج:** المالك دمج (squash) إلى main — `5eded1d`. main CI ما بعد الدمج أخضر شامل بما فيه main-only gates (Runtime Real Smoke · Sahool Production Gates · Service Inventory Drift). الميزة خلف راية `FIELD_FORMS_ENABLED` (مغلق افتراضاً).
 - **SHA:** الطرف الأخضر `d7861c3` · دمج main `5eded1d`.
+
+## 2026-07-21 — PR #587 ERP-BRIDGE-FIX-01: تصليب RLS جسر Odoo لمعيار v204 (FORCE + WITH CHECK)
+- **القرار:** رفع جداول جسر Odoo ذات `tenant_id` من `ENABLE` إلى `FORCE ROW LEVEL SECURITY` + سياسات `WITH CHECK ( tenant_id::TEXT = current_setting('app.current_tenant', true) )` داخل حلقة `v9_odoo_bridge.sql` المُمْنَعة — يوحّد الجسر مع معيار v204.
+- **السبب:** `ENABLE` وحده لا يُخضِع مالك الجدول؛ FORCE + WITH CHECK يمنع تسريب/إدراج عبر المستأجرين. تغيير هجرة صرف بلا مسّ منطق.
+- **البرهان الحيّ:** PG16، جدول مؤهَّل مملوك لدور غير-superuser ⇒ FORCE فعّال + WITH CHECK يرفض مستأجِراً مخالفاً. (CI الأخضر لا يغطّي RLS — live PG proof قبل الدمج.)
+- **SHA:** بصمات `061ba3b` · دمج main `6fccc32`.
+
+## 2026-07-21 — PR #588 PHYSICS-AI-CALIBRATION-01: أرشفة ADR المصادَق (وثيقة فقط)
+- **القرار:** أرشفة حكم المالك المصادَق في `docs/architecture/ADR_PHYSICS_AI_CALIBRATION_01.md` بلا تغيير منطق/هجرة. تصحيح تحريريّ فقط؛ صناديق build_unlock حرفيّة غير مؤشَّرة (ليست backlog قابلاً للتنفيذ).
+- **السبب:** توثيق القرار المصادَق كمصدر مرجعيّ؛ لا حاجة براهين PG (وثيقة). `validate_release_package` متساهل مع الملفّات غير المُدرَجة ⇒ شغّلتُ `build_release_bundle` لإدراج ADR في البصمات (4716).
+- **الانضباط:** تحقّقتُ من خضرة الـ58 فحص CI الفعليّة على `15535d0` قبل الدمج (Security Scan آخر بوّابة).
+- **SHA:** بصمات `15535d0` · دمج main `04862e6`.

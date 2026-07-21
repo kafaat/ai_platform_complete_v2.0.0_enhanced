@@ -3342,3 +3342,17 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - إخضار 3 فحوص (انجراف جرد من روتّر field_forms) بإعادة توليد الجرد+الحزمة (d7861c3، 62/62 أخضر).
 - المراجعة النهائيّة: 6 براهين §14 على PG16 حيّ بدور sahool_ingest الحقيقيّ (RLS · state-machine-on-INSERT P0-1 · REVOKE DELETE طبقتان · no_active_assignment P0-3 · invalid_sync_proof P0-2 · concurrency partial-index) — 6/6 خضراء. الـ4 P0 مُثبَتة سلوكيّاً لا نصّيّاً.
 - المالك دمج squash → main `5eded1d`؛ main CI أخضر شامل (main-only gates). درس: CI الأخضر لا يغطّي RLS/role — live PG proof قبل الدمج (انضباط ثابت).
+
+## 2026-07-21 — PR #587 (ERP-BRIDGE-FIX-01): تصليب RLS في جسر Odoo لمعيار v204 → دُمِج
+- **التغيير:** داخل حلقة `migrations/v9_odoo_bridge.sql` المُمْنَعة (`CONTINUE WHEN to_regclass(tbl) IS NULL` + `CONTINUE WHEN NOT EXISTS(... tenant_id)`): رُفِعت كلّ جداول الجسر ذات `tenant_id` من `ENABLE` إلى `FORCE ROW LEVEL SECURITY` + سياسات `WITH CHECK ( tenant_id::TEXT = current_setting('app.current_tenant', true) )` — يُطابق معيار v204 (المالك/غير SUPERUSER يخضع للـRLS، والإدراج يُرفَض إن خالف المستأجِر).
+- **إخضار CI:** لا مسّ منطق — الأحمر كان انجراف checksum للحزمة؛ أُعيد توليد `build_release_bundle` (061ba3b) → أخضر.
+- **البرهان الحيّ (PG16):** جدول مؤهَّل (`field_cost_ledger` بـtenant_id) مملوك لدور غير-superuser، أُعيد تشغيل حلقة الهجرة الفعليّة عليه ⇒ FORCE فعّال (المالك يخضع) + WITH CHECK يرفض إدراج صفّ بمستأجِر مخالف. **مُثبَت سلوكيّاً لا نصّيّاً.**
+- **الدمج:** squash → main `6fccc32`. درس مكرَّر: CI الأخضر لا يغطّي RLS/FORCE — live PG proof قبل الدمج (انضباط ثابت).
+- **SHA:** بصمات `061ba3b` · دمج main `6fccc32`.
+
+## 2026-07-21 — PR #588 (PHYSICS-AI-CALIBRATION-01): أرشفة ADR المصادَق → دُمِج (وثيقة فقط)
+- **التغيير:** `docs/architecture/ADR_PHYSICS_AI_CALIBRATION_01.md` (44 سطراً) — حكم المالك المصادَق المؤرشَف (تصحيح تحريريّ دقيقة→دقيق؛ صناديق build_unlock تبقى حرفيّة غير مؤشَّرة، لا backlog). وثيقة صرفة، لا منطق، لا هجرة، لا حاجة براهين PG.
+- **إخضار CI:** `validate_release_package.py` متساهل مع الملفّات غير المُدرَجة (مرّ عند 4715 وADR حاضر لكن خارج `FILE_CHECKSUMS.sha256`)؛ شغّلتُ `build_release_bundle.py` فأُضيف ADR → **4716 بصمة مُتحقَّقة** (تغيّر `FILE_CHECKSUMS.sha256` + المانيفست حصراً).
+- **البرهان:** جميع الـ58 فحص CI خضراء على الطرف `15535d0` (Security Scan آخر بوّابة، pip-audit ~6 دقائق، أخضر 15:41). تحقّقتُ من CI الفعليّ قبل الدمج (لا افتراض).
+- **الدمج:** squash → main `04862e6`.
+- **SHA:** بصمات `15535d0` · دمج main `04862e6`.
