@@ -1674,31 +1674,39 @@
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 20,
+    "line": 31,
     "method": "GET",
     "path": "/healthz",
-    "function": "health"
+    "function": "healthz"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 20,
+    "line": 31,
     "method": "GET",
     "path": "/health",
-    "function": "health"
+    "function": "healthz"
   },
   {
     "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/health.py",
-    "line": 32,
+    "line": 41,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
   },
   {
     "service": "odoo-bridge",
+    "file": "services/odoo-bridge/routers/health.py",
+    "line": 76,
+    "method": "GET",
+    "path": "/readyz/capabilities",
+    "function": "readyz_capabilities"
+  },
+  {
+    "service": "odoo-bridge",
     "file": "services/odoo-bridge/routers/sync.py",
-    "line": 19,
+    "line": 78,
     "method": "POST",
     "path": "/sync",
     "function": "trigger_sync"
@@ -7374,6 +7382,62 @@
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/field_forms_api.py",
+    "line": 187,
+    "method": "POST",
+    "path": "/internal/field-forms/definitions",
+    "function": "create_definition"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/field_forms_api.py",
+    "line": 222,
+    "method": "POST",
+    "path": "/internal/field-forms/definitions/{code}/versions",
+    "function": "create_version"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/field_forms_api.py",
+    "line": 270,
+    "method": "POST",
+    "path": "/internal/field-forms/versions/{version_id}/publish",
+    "function": "publish_version"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/field_forms_api.py",
+    "line": 319,
+    "method": "POST",
+    "path": "/internal/field-forms/versions/{version_id}/retire",
+    "function": "retire_version"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/field_forms_api.py",
+    "line": 353,
+    "method": "POST",
+    "path": "/internal/field-forms/assignments",
+    "function": "create_assignment"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/field_forms_api.py",
+    "line": 385,
+    "method": "GET",
+    "path": "/internal/field-forms/download",
+    "function": "download_forms"
+  },
+  {
+    "service": "scout-ingest-service",
+    "file": "services/scout-ingest-service/field_forms_api.py",
+    "line": 457,
+    "method": "POST",
+    "path": "/internal/field-forms/submissions",
+    "function": "submit_form"
   },
   {
     "service": "scout-ingest-service",

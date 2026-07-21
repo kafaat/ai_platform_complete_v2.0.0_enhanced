@@ -15,14 +15,17 @@ import asyncio
 from pathlib import Path
 
 import pytest
-from fastapi import HTTPException
+
+# وظيفة Integration في CI تثبّت تبعيّات دنيا (بلا fastapi) — تخطَّ الموديول كاملًا
+# هناك بدل كسر الجمع؛ في وظيفة Unit (fastapi متوفّر) يعمل كاملًا.
+pytest.importorskip("fastapi", reason="integration job installs minimal deps (no fastapi)")
+from fastapi import HTTPException  # noqa: E402
 
 pytestmark = pytest.mark.unit
 
-SYNC_SRC = (
-    Path(__file__).resolve().parents[1]
-    / "services/odoo-bridge/routers/sync.py"
-).read_text(encoding="utf-8")
+SYNC_SRC = (Path(__file__).resolve().parents[1] / "services/odoo-bridge/routers/sync.py").read_text(
+    encoding="utf-8"
+)
 
 
 # ══════════════════════════════════════════════════════════════
@@ -30,19 +33,30 @@ SYNC_SRC = (
 # ══════════════════════════════════════════════════════════════
 class _NullProvider:
     name = "none"
-    async def health(self): return {"status": "disabled"}
+
+    async def health(self):
+        return {"status": "disabled"}
+
 
 class _UnreachableProvider:
     name = "erpnext"
-    async def health(self): return {"status": "unreachable", "erp_connection_ready": False}
+
+    async def health(self):
+        return {"status": "unreachable", "erp_connection_ready": False}
+
 
 class _HealthyProvider:
     name = "erpnext"
-    async def health(self): return {"status": "connected", "erp_connection_ready": True}
+
+    async def health(self):
+        return {"status": "connected", "erp_connection_ready": True}
+
 
 class _TimeoutProvider:
     name = "erpnext"
-    async def health(self): await asyncio.sleep(3600)  # hang indefinite
+
+    async def health(self):
+        await asyncio.sleep(3600)  # hang indefinite
 
 
 # ══════════════════════════════════════════════════════════════
@@ -52,15 +66,22 @@ async def _probe(provider, timeout: float = 5.0) -> None:
     """منطق probe محمول للاختبار المعزول (يطابق sync._probe_erp_or_503 حرفيّاً)."""
     try:
         result = await asyncio.wait_for(provider.health(), timeout=timeout)
-    except asyncio.TimeoutError:
-        raise HTTPException(503, {"error": "erp_provider_timeout", "provider": provider.name})
+    except TimeoutError:
+        raise HTTPException(
+            503, {"error": "erp_provider_timeout", "provider": provider.name}
+        ) from None
     except HTTPException:
         raise
     except Exception as exc:
-        raise HTTPException(503, {"error": "erp_provider_unreachable", "detail": str(exc)[:200]})
+        raise HTTPException(
+            503, {"error": "erp_provider_unreachable", "detail": str(exc)[:200]}
+        ) from exc
     status = result.get("status", "")
     if status not in ("connected", "disabled", "reported"):
-        raise HTTPException(503, {"error": "erp_provider_unreachable", "provider": provider.name, "erp_status": status})
+        raise HTTPException(
+            503,
+            {"error": "erp_provider_unreachable", "provider": provider.name, "erp_status": status},
+        )
 
 
 # ══════════════════════════════════════════════════════════════
@@ -73,7 +94,9 @@ def test_424_fires_for_null_provider():
     # منطق البوّابة مطابق لـsync.trigger_sync()
     with pytest.raises(HTTPException) as exc_info:
         if provider.name == "none":
-            raise HTTPException(424, {"error": "erp_provider_not_configured", "provider": provider.name})
+            raise HTTPException(
+                424, {"error": "erp_provider_not_configured", "provider": provider.name}
+            )
     assert exc_info.value.status_code == 424
     assert exc_info.value.detail["error"] == "erp_provider_not_configured"
 
@@ -124,8 +147,7 @@ def test_424_gate_precedes_background_task_enqueue():
     assert idx_424 != -1, "لم يُعثَر على 424 gate في sync.py"
     assert idx_bg != -1, "لم يُعثَر على background_tasks.add_task(main. في sync.py"
     assert idx_424 < idx_bg, (
-        "424 gate يجب أن يسبق background_tasks.add_task() "
-        "لمنع الكتابة الجزئية — وُجد في ترتيب خاطئ"
+        "424 gate يجب أن يسبق background_tasks.add_task() لمنع الكتابة الجزئية — وُجد في ترتيب خاطئ"
     )
 
 

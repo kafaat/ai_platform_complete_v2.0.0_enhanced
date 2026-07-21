@@ -89,8 +89,7 @@ async def readyz_capabilities():
             "erp_provider": provider_name,
             "erp_configured": configured,
             "note": (
-                "network probe not performed here — "
-                "call /erp/config or /sync for live ERP status"
+                "network probe not performed here — call /erp/config or /sync for live ERP status"
             ),
         },
     }

@@ -365,6 +365,28 @@ tables:
     writers: [scout-ingest-service]
     readers: []
     source: "migrations/v201_season_records.sql"
+  # GAP-FIELD-FORMS-01 (v204): النماذج الميدانيّة الديناميكية فوق B1 — كاتب واحد scout-ingest-service
+  # (امتداد قرار SEASON-RECORD — مالك أنبوب الإدخال الخارجيّ). لا hard delete على definitions/versions.
+  field_form_definitions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_form_versions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_form_assignments:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_submissions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
   experiment_evaluations:
     owner: agriai-engine
     writers: [agriai-engine]
@@ -1097,6 +1119,17 @@ tables:
     readers: [sahool-platform]
     source: "migrations/v9_odoo_bridge.sql"
   workflow_transitions:
+    owner: erp-bridge
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
+  # ERP-BRIDGE-FIX-01: جدولا مزامنة Odoo (v9_odoo_bridge.sql) — تسجيل متأخّر يغلق حارس P0.
+  odoo_sync_state:
+    owner: erp-bridge
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
+  odoo_sync_log:
     owner: erp-bridge
     writers: [erp-bridge]
     readers: [sahool-platform]

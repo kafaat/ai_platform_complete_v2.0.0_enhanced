@@ -562,3 +562,5 @@
 \i migrations/v202_season_draft_key.sql
 \echo '═══ 209. v203_season_sowing_in_observed_range.sql ═══'
 \i migrations/v203_season_sowing_in_observed_range.sql
+\echo '═══ 210. v204_field_forms.sql ═══'
+\i migrations/v204_field_forms.sql
