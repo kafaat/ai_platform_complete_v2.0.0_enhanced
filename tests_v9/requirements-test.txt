@@ -33,3 +33,7 @@ hypothesis>=6.100.0
 
 # notification agent imports nats.aio during mobile push tests
 nats-py>=2.3.0
+
+# field_forms_api/odoo-bridge تستوردان fastapi — بدونها تتخطّى اختبارات fail-closed
+# وتكامل field-forms (importorskip) في وظيفة Unit وتفقد تغطيتها الفعليّة في CI.
+fastapi>=0.115.0
