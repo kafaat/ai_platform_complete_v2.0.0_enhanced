@@ -78,6 +78,16 @@ CREATE INDEX IF NOT EXISTS ix_field_form_versions_schema_hash
 CREATE OR REPLACE FUNCTION field_form_versions_guard() RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
+  -- P0-1 (مراجعة PR #585): الإدخال يمرّ عبر state machine أيضًا — الصفّ يولد draft حصرًا
+  IF TG_OP = 'INSERT' THEN
+    IF NEW.status <> 'draft' THEN
+      RAISE EXCEPTION 'field_form_versions: insert must start as draft (state machine applies to INSERT)';
+    END IF;
+    IF NEW.published_at IS NOT NULL OR NEW.published_by IS NOT NULL THEN
+      RAISE EXCEPTION 'field_form_versions: publish metadata not allowed at insert';
+    END IF;
+    RETURN NEW;
+  END IF;
   -- state machine: الانتقالات القانونيّة فقط
   IF NEW.status IS DISTINCT FROM OLD.status THEN
     IF NOT (
@@ -86,6 +96,12 @@ BEGIN
         OR (OLD.status = NEW.status)
     ) THEN
       RAISE EXCEPTION 'field_form_versions: illegal status transition % -> %', OLD.status, NEW.status;
+    END IF;
+  END IF;
+  -- P0-1: النشر يتطلّب فاعلًا موثَّقًا — لا published بلا published_at/published_by
+  IF OLD.status = 'draft' AND NEW.status = 'published' THEN
+    IF NEW.published_at IS NULL OR NEW.published_by IS NULL THEN
+      RAISE EXCEPTION 'field_form_versions: publish requires published_at and published_by';
     END IF;
   END IF;
   -- immutability بدقّة الأعمدة بعد أوّل نشر
@@ -125,7 +141,7 @@ END;
 $$;
 DROP TRIGGER IF EXISTS trg_field_form_versions_guard ON field_form_versions;
 CREATE TRIGGER trg_field_form_versions_guard
-  BEFORE UPDATE ON field_form_versions
+  BEFORE INSERT OR UPDATE ON field_form_versions
   FOR EACH ROW EXECUTE FUNCTION field_form_versions_guard();
 
 -- ── ٣) field_form_assignments — الإسناد (revision يمنع الإنقاص؛ الغموض يفشل تطبيقيًّا) ──
@@ -183,7 +199,7 @@ CREATE TABLE IF NOT EXISTS field_submissions (
                               CHECK (form_validation_status IN ('valid','invalid','unknown_schema')),
     version_resolution_status TEXT NOT NULL
                               CHECK (version_resolution_status IN
-                                  ('current','stale_proven','withdrawn_quarantined','invalid_sync_proof')),
+                                  ('current','stale_proven','withdrawn_quarantined','invalid_sync_proof','no_active_assignment')),
     stale_version             BOOLEAN NOT NULL DEFAULT false,
     submitted_by              TEXT,
     submitted_at              TIMESTAMPTZ NOT NULL DEFAULT now(),

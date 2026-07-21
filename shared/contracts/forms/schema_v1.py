@@ -30,11 +30,44 @@ SCHEMA_CONTRACT_VERSION = "sahool-form-schema.v1"
 NORMALIZER_VERSION = "1.0.0"
 
 # القائمة المثبَّتة (§8) — لا نوع جديد في الشريحة الأولى
-FIELD_TYPES = frozenset({"text", "number", "integer", "select", "multi_select", "date", "gps", "photo"})
+FIELD_TYPES = frozenset(
+    {"text", "number", "integer", "select", "multi_select", "date", "gps", "photo"}
+)
 # ملاحظة: integer فئة تخزين مستقلّة عن number (لا coercion بينهما).
 
 _KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+# P0-4 (مراجعة PR #585): قواعد validation مُنوَّعة ومغلقة القائمة — تُرفَض عند النشر
+# لا عند الإرسال. الأنواع الصحيحة فقط؛ bool مرفوض صراحة (فئته الفرعية int في بايثون).
+_RULE_INT_KEYS = frozenset({"min_length", "max_length"})
+_RULE_NUM_KEYS = frozenset({"min", "max"})
+_RULE_ALLOWED_KEYS = _RULE_INT_KEYS | _RULE_NUM_KEYS
+
+
+def _is_num(v: Any) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+def _validate_rules_typed(rules: dict, key: str) -> None:
+    """يفرض نوع كلّ قاعدة عند النشر + اتّساق الحدود (fail-closed عند التعريف)."""
+    for rk, rv in rules.items():
+        if rk not in _RULE_ALLOWED_KEYS:
+            raise _err(f"validation_rule_unknown: {rk} at {key}")
+        if rk in _RULE_INT_KEYS:
+            if not isinstance(rv, int) or isinstance(rv, bool):
+                raise _err(f"validation_rule_type_int: {rk} at {key}")
+            if rv < 0:
+                raise _err(f"validation_rule_negative: {rk} at {key}")
+        else:
+            if not _is_num(rv):
+                raise _err(f"validation_rule_type_number: {rk} at {key}")
+    if "min_length" in rules and "max_length" in rules:
+        if rules["min_length"] > rules["max_length"]:
+            raise _err(f"validation_rule_inverted_length at {key}")
+    if "min" in rules and "max" in rules:
+        if rules["min"] > rules["max"]:
+            raise _err(f"validation_rule_inverted_range at {key}")
 
 
 class SchemaError(ValueError):
@@ -71,10 +104,14 @@ def validate_form_schema(schema_json: Any, logic_json: Any) -> None:
         rules = field.get("validation_rules", {})
         if rules is not None and not isinstance(rules, dict):
             raise _err(f"validation_rules_must_be_object at {key}")
+        if isinstance(rules, dict):
+            _validate_rules_typed(rules, key)
         if ftype in ("select", "multi_select"):
             options = field.get("options")
-            if not isinstance(options, list) or not options or not all(
-                isinstance(o, str) for o in options
+            if (
+                not isinstance(options, list)
+                or not options
+                or not all(isinstance(o, str) for o in options)
             ):
                 raise _err(f"select_requires_string_options at {key}")
     if logic_json is None:
@@ -108,7 +145,9 @@ def _collect_var_paths(node: Any) -> list[str]:
     return paths
 
 
-def visible_fields(schema_json: dict[str, Any], logic_json: Any, answers: dict[str, Any]) -> set[str]:
+def visible_fields(
+    schema_json: dict[str, Any], logic_json: Any, answers: dict[str, Any]
+) -> set[str]:
     """يُقيِّم الظهور الشرطيّ خادميًّا. بلا logic ⇒ كلّ الحقول ظاهرة."""
     keys = {f["key"] for f in schema_json["fields"]}
     if not logic_json:
@@ -159,28 +198,49 @@ def validate_answers(
 def _validate_value(field: dict[str, Any], value: Any) -> str | None:
     ftype = field["field_type"]
     rules = field.get("validation_rules") or {}
+    if not isinstance(rules, dict):  # دفاع عمق (P0-4): نسخة قديمة منشورة قبل تشدّد النشر
+        return "validation_rules_invalid"
+    # حدود مطبَّقة فقط إذا كانت مُنوَّعة سليمة — القاعدة المعطوبة تُعامَل كخلل تعريف لا TypeError
+    min_length = rules.get("min_length")
+    max_length = rules.get("max_length")
+    min_v = rules.get("min")
+    max_v = rules.get("max")
+    bad_rule = (
+        (
+            min_length is not None
+            and (not isinstance(min_length, int) or isinstance(min_length, bool))
+        )
+        or (
+            max_length is not None
+            and (not isinstance(max_length, int) or isinstance(max_length, bool))
+        )
+        or (min_v is not None and not _is_num(min_v))
+        or (max_v is not None and not _is_num(max_v))
+    )
+    if bad_rule:
+        return "validation_rules_invalid"
     if ftype == "text":
         if not isinstance(value, str):
             return "expected_string"
-        if "min_length" in rules and len(value) < rules["min_length"]:
+        if min_length is not None and len(value) < min_length:
             return "below_min_length"
-        if "max_length" in rules and len(value) > rules["max_length"]:
+        if max_length is not None and len(value) > max_length:
             return "above_max_length"
         return None
     if ftype == "number":
         if not isinstance(value, (int, float)) or isinstance(value, bool):
             return "expected_number"
-        if "min" in rules and value < rules["min"]:
+        if min_v is not None and value < min_v:
             return "below_min"
-        if "max" in rules and value > rules["max"]:
+        if max_v is not None and value > max_v:
             return "above_max"
         return None
     if ftype == "integer":
         if not isinstance(value, int) or isinstance(value, bool):
             return "expected_integer"
-        if "min" in rules and value < rules["min"]:
+        if min_v is not None and value < min_v:
             return "below_min"
-        if "max" in rules and value > rules["max"]:
+        if max_v is not None and value > max_v:
             return "above_max"
         return None
     if ftype == "select":
