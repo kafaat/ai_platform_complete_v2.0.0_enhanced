@@ -780,4 +780,12 @@ SHAs من `git log --oneline origin/main`.
 - **القرار:** فصل صريح — `alembic/versions/` = مراجعات alembic `NNNN_*.py` حصراً · `migrations/` = `vNNN_*.sql` حصراً. أُزيل الزومبيّان `alembic/versions/v101_field_runtime_cohesion.sql` و`v105_marketplace_ecosystem.sql` (بقايا ما قبل phase19، ميّتان بثلاثة محاور: لا MANIFEST · لا runner · خارج سلسلة alembic + صفر استعمال جداول).
 - **السبب:** التصادم «نفس الرقم، ملفّان» قنبلة صامتة (rollback/مطابقة بيئات)؛ إصلاح صغير بلا أثر رجعيّ (الزومبيّان لا يطبّقهما أحد) يُغلق الفجوة فوراً بدل توثيقها ونسيانها.
 - **الحارس:** `tests_v9/test_migration_id_namespace_separation_guard.py` (unit، في مسار CI) + برهان سلبيّ. لا يُعاد المنهج مستقبلاً — الحارس يمنع الانحدار.
-- **SHA:** يُختم بعد الدفع.
+- **SHA:** `d4a622a` (main).
+
+## 2026-07-21 — PR #585 GAP-FIELD-FORMS-01 (v204): حكم المراجع + دمج (مساهمة وكيل المالك)
+- **الدور:** الميزة بناها وكيل آخر (فرع `claude/field-forms-01`). دوري: (١) إخضار CI؛ (٢) المراجعة النهائيّة المستقلّة + براهين PG16 الحيّة قبل الدمج (مسار C).
+- **إخضار CI:** ثلاثة فحوص حمراء جذرها واحد — روتّر `field_forms_api.py` أضاف مسارات بلا إعادة توليد الجرد (`drift` · `Repository Structural Lint` على `--check` · `Lint & Format` على checksum `SERVICE_REGISTRY.md`). أعدتُ توليد الجرد (32 خدمة · 1081 مساراً +8) + حزمة الإصدار — ملفّات مُولَّدة حصراً، لا مسّ منطق. الطرف `d7861c3` أخضر 62/62.
+- **البراهين الستّة الحيّة (PG16 · دور `sahool_ingest` الحقيقيّ NOSUPERUSER NOBYPASSRLS LOGIN):** ① RLS (A لا يرى B قراءةً + WITH CHECK يرفض إدراج A صفّاً موسوماً B) · ② state machine على INSERT/P0-1 (published عند الإدراج ⇒ رُفض؛ draft→published بلا published_by ⇒ رُفض؛ published→draft ⇒ رُفض) · ③ REVOKE DELETE طبقتان (permission denied كـingest · trigger `hard DELETE prohibited` كـsuperuser على versions+definitions) · ④ no_active_assignment/P0-3 (اختبارات القرار خضراء + تخزين حيّ) · ⑤ invalid_sync_proof/P0-2 (اختبارات الربط خضراء + تخزين حيّ + رفض خارج-enum بـCHECK) · ⑥ concurrency (نشرتان متزامنتان ⇒ واحدة تنجح، الأخرى `duplicate key ux_field_form_versions_one_published`). **6/6 خضراء.**
+- **الحكم:** جاهز للدمج — spec✓ build✓ static✓ unit(79)✓ CI(62/62)✓ live-PG16(6/6)✓.
+- **الدمج:** المالك دمج (squash) إلى main — `5eded1d`. main CI ما بعد الدمج أخضر شامل بما فيه main-only gates (Runtime Real Smoke · Sahool Production Gates · Service Inventory Drift). الميزة خلف راية `FIELD_FORMS_ENABLED` (مغلق افتراضاً).
+- **SHA:** الطرف الأخضر `d7861c3` · دمج main `5eded1d`.

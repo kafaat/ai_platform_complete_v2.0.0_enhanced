@@ -3337,3 +3337,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **برهان الزومبيّة (3 محاور):** لا في MANIFEST · لا مُشغّل يطبّقهما (`run_migrations.sql` يستعمل migrations/v121 فقط) · خارج سلسلة alembic (0001→0002، down_revision لا يشير إليهما). +صفر استعمال لجداولهما الثلاثة (`canonical_field_state_snapshots`/`field_digital_twin_views`/`recommendation_lifecycle_events`) و`shared/field_runtime_cohesion.py` منطق صرف بلا DB I/O.
 - **الإصلاح:** أُزيل الزومبيّان (git rm) — فصار الفضاءان منفصلَين: alembic=`NNNN_*.py` حصراً · migrations=`vNNN_*.sql` حصراً. **الحارس (جوهر الإصلاح):** `tests_v9/test_migration_id_namespace_separation_guard.py` (مُعلَّم unit، **في مسار CI** — لأنّ `tests/migrations/` خارج `testpaths=tests_v9`) — يرفض أيّ vNNN_*.sql في alembic/ + برهان سلبيّ (زومبيّ اصطناعيّ يقلبه أحمر). حارس توثيقيّ شقيق في `tests/migrations/test_phase19_*`.
 - **الحالة:** MIGRATE-ID-COLLISION → **CLOSED**. بوّابات: guard 3 passed · manifest validator 209 · ruff نظيف · bundle 4698.
+
+## 2026-07-21 — PR #585 (v204 field-forms): إخضار CI + مراجعة نهائيّة + 6 براهين PG16 حيّة → دُمِج
+- إخضار 3 فحوص (انجراف جرد من روتّر field_forms) بإعادة توليد الجرد+الحزمة (d7861c3، 62/62 أخضر).
+- المراجعة النهائيّة: 6 براهين §14 على PG16 حيّ بدور sahool_ingest الحقيقيّ (RLS · state-machine-on-INSERT P0-1 · REVOKE DELETE طبقتان · no_active_assignment P0-3 · invalid_sync_proof P0-2 · concurrency partial-index) — 6/6 خضراء. الـ4 P0 مُثبَتة سلوكيّاً لا نصّيّاً.
+- المالك دمج squash → main `5eded1d`؛ main CI أخضر شامل (main-only gates). درس: CI الأخضر لا يغطّي RLS/role — live PG proof قبل الدمج (انضباط ثابت).
