@@ -3396,3 +3396,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **البصمات:** 4737. **كلّ 61 فحص أخضر/مُتخطّى فعليًّا على `c4e0f68`** (Lint & Format ✅ · Platform Unit Tests ✅ ×2 · Repository Structural Lint ✅ · drift ✅ · Unit/Security/Integration/Flutter/Frontend Typecheck+E2E/Validate Compose/release-package/production-validation-gate/كلّ حُرّاس العقد ✅).
 - **الدمج:** squash → main `5fb4166`. أُغلِق GAP-FIELD-FORMS-01 Slice 2 (UI + BFF) بالكامل.
 - **SHA:** رأس أخضر `c4e0f68` · دمج main `5fb4166`.
+
+## 2026-07-22 — PR #595 (compose: sahool-redis-state لعزل حالة الأمان): تصليب Part A → دُمِج
+- **المصدر:** ملفّ `dockercompose.v9.hardened.yml` رفعه المالك. حلّلتُه كجزأين متمايزَي الأمان.
+- **Part A (طُبِّق):** خدمة `sahool-redis-state` مستقلّة (`redis:7-alpine`، `--maxmemory-policy noeviction --appendonly yes`، حجم `redis-state-data`، محميّة بـ`REDIS_PASSWORD` القائم، `no-new-privileges`, mem_limit 384m، healthcheck). أُعيد توجيه `REDIS_URL` لخدمتَي **platform** و**edge (8097)** فقط نحوها؛ باقي الخدمات تبقى على كاش Redis. السبب: مفاتيح الأمان (denylist/reset/MFA/lockout) كانت تتشارك الكاش الذي طرده قد يمحوها صامتة. **بلا متغيّر بيئة جديد.**
+- **Part B (أُجِّل بصدق):** تغيير Odoo إلى دور `odoo_app` أقلّ-امتياز — الدور **غير مُهيَّأ في أيّ bootstrap/migration**؛ و`odoo-init.sh` يصادِق به (لا يُنشئه) ⇒ تطبيقه يكسر Odoo وقت التشغيل. يحتاج خطوة bootstrap تُنشئ `odoo_app` (CREATEDB + ملكيّة sahool_erp) أوّلًا. مُوثَّق في وصف الـPR.
+- **التحقّق:** YAML صالح (64 خدمة) · compose-env contract OK · حُرّاس compose (redis-health/odoo-db-separation/rls-bypass/env-bypass) 40 passed · `pytest -m unit` **3380 passed** · bundle **4737** · drift نظيف · **كلّ 62 فحص CI أخضر/مُتخطّى فعليًّا على `d64e786`**.
+- **تنبيه صادق (فرع أجنبيّ، ليس هذا الـPR):** المالك لصق سجلّ فشل `tests/irrigation` (v195/v196 غير مُسجَّلَين في MANIFEST) — لكنّ MANIFEST في ذلك السجلّ ينتهي بـ`v206_rls_final_hardening.sql`، بينما `origin/main` (وفرعي) ينتهي بـ`v204_field_forms.sql` **ويحوي v195 (سطر 694) + v196 (696)**. فالسجلّ من **شجرة أخرى** (فرع رقّم حتى v206 وأسقط تسجيل v195/v196) لا علاقة له بـ#595 (الذي مسّ compose فقط ومرّت وظيفة Unit Tests خاصّته خضراء). يُنصَح بفحص ذلك الفرع الآخر لاحقًا.
+- **SHA:** رأس أخضر `d64e786` · دمج main `ed57004`.

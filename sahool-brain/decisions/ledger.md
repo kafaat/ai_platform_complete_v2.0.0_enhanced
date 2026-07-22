@@ -822,3 +822,8 @@ SHAs من `git log --oneline origin/main`.
 - **القرار:** دمج `5fb4166` (squash). GAP-FIELD-FORMS-01 Slice 2 مُغلَق.
 - **السبب:** كلّ 61 فحص CI أخضر/مُتخطّى فعليًّا على `c4e0f68` بعد إصلاح جذرَين متمايزَين (drift/lint/checksum ← إعادة توليد الجرد+الحزمة+ruff؛ Platform Unit Tests ← تسجيل مسار BFF في `platform_extraction_map.json` + رفع الميزانيّة 614→615). المصدر: سجلّ الوظيفة الفعليّ (لا حدس).
 - **SHA:** رأس `c4e0f68` · دمج `5fb4166`.
+
+## 2026-07-22 — #595 compose redis-state (Part A) دُمِج
+- **القرار:** دمج `ed57004` (squash). عزل حالة الأمان عن كاش Redis.
+- **السبب:** كلّ 62 فحص CI أخضر على `d64e786`. Part B (دور odoo_app) أُجِّل لغياب تهيئة الدور.
+- **SHA:** رأس `d64e786` · دمج `ed57004`.
