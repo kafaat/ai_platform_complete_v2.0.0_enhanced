@@ -1,0 +1,16 @@
+# SAHOOL gitleaks configuration.
+# Extends the built-in gitleaks ruleset (keeps every default secret rule) and
+# adds a narrow allowlist for files that legitimately contain secret *detection
+# patterns* — a scanner's own regex literal (e.g. "-----BEGIN PRIVATE KEY-----")
+# is not a secret. Do NOT add real credential-bearing paths here.
+title = "SAHOOL secret-scan config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Scanner/guard source that embeds detection patterns, not real secrets"
+paths = [
+  '''scripts/release/scan_release_archive\.py$''',
+  '''scripts/ci/jwt_secret_configuration_guard\.py$''',
+]
