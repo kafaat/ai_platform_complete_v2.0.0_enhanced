@@ -49,6 +49,7 @@ from shared.contracts.forms.schema_v1 import (
 from shared.contracts.forms.sync_token import SyncTokenError, issue_token, verify_token
 from shared.contracts.ingest.dedup_resolution import resolve_dedup
 from shared.contracts.ingest.external_submission_v1 import derive_dedup_key
+from shared.contracts.ingest.projection import FIELD_FORM_KIND
 from shared.security.trusted_tenant import (
     TrustedTenantError,
     resolve_trusted_tenant,
@@ -59,6 +60,11 @@ DATABASE_URL = os.getenv("DATABASE_URL", "")
 _ENABLED_TRUE = {"1", "true", "yes", "on"}
 
 FORM_PROVIDER_FORM_ID = "sahool-field-form"
+# Slice 3 (§قوننة الهويّة): provider/server يُشتقّان خادميًّا — قيم العميل تُقبَل توافقيًّا
+# لكنّها لا تدخل مفتاح الديدوب ولا التخزين (منع انتحال خانة الديدوب). CANONICAL ثابت،
+# وServer قابل للضبط بيئيًّا (نشر متعدّد) بافتراض «sahool».
+CANONICAL_PROVIDER = "sahool-field-forms"
+FIELD_FORMS_SERVER_ID = os.getenv("FIELD_FORMS_SERVER_ID", "sahool")
 DEFAULT_MAX_OFFLINE_SECONDS = 30 * 24 * 3600
 
 router = APIRouter()
@@ -478,8 +484,8 @@ async def submit_form(
     canonical_raw = json.dumps(raw_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
     source_hash = hashlib.sha256(canonical_raw).hexdigest()
     dedup_key = derive_dedup_key(
-        provider=body.provider,
-        server=body.server,
+        provider=CANONICAL_PROVIDER,
+        server=FIELD_FORMS_SERVER_ID,
         form_id=FORM_PROVIDER_FORM_ID,
         instance_id=body.instance_id,
     )
@@ -880,8 +886,8 @@ async def _insert_envelope(
         "VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING id",
         tenant,
         submission_id,
-        body.provider,
-        body.server,
+        CANONICAL_PROVIDER,
+        FIELD_FORMS_SERVER_ID,
         FORM_PROVIDER_FORM_ID,
         body.instance_id,
         content_hash,
@@ -890,7 +896,7 @@ async def _insert_envelope(
         raw_ref,
         json.dumps(raw_payload),
         "1.0.0",
-        json.dumps({"field_id": body.field_id, "answers": body.answers}),
+        json.dumps({"kind": FIELD_FORM_KIND, "field_id": body.field_id, "answers": body.answers}),
         trust_status,
         reasons,
     )

@@ -181,8 +181,22 @@ async def healthz():
 
 @app.get("/readyz")
 async def readyz():
+    # Slice 3: جاهزيّة حقيقيّة — فحص DB فعليّ (SELECT 1) مع 503 fail-closed بدل
+    # الجاهزيّة الإيجابيّة الكاذبة (DATABASE_URL مضبوط ≠ DB قابلة للوصول).
+    if not DATABASE_URL:
+        raise HTTPException(status_code=503, detail="DATABASE_URL not configured")
+    try:
+        conn = await _connect()
+        try:
+            await conn.fetchval("SELECT 1")
+        finally:
+            await conn.close()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=503, detail="database not ready") from None
     return {
-        "status": "ready" if DATABASE_URL else "degraded",
+        "status": "ready",
         "service": "scout-ingest-service",
         "ingest_enabled": _enabled(),
     }
