@@ -1,5 +1,5 @@
 {
-  "baseline_route_count": 614,
+  "baseline_route_count": 615,
   "routes": [
     {
       "file": "api/chat_proxy_reference.py",
@@ -5307,6 +5307,16 @@
       "target_owner": "soil-service",
       "owner_type": "system-of-record",
       "route_key": "api/routers/service_proxy.py::DELETE,GET,PATCH,POST,PUT /api/soil/{path:path}::proxy_soil"
+    },
+    {
+      "file": "api/routers/service_proxy.py",
+      "function": "proxy_field_forms",
+      "method": "GET,POST",
+      "path": "/api/field-forms/{path:path}",
+      "line": 165,
+      "target_owner": "scout-ingest-service",
+      "owner_type": "system-of-record",
+      "route_key": "api/routers/service_proxy.py::GET,POST /api/field-forms/{path:path}::proxy_field_forms"
     },
     {
       "file": "api/routers/settings.py",
