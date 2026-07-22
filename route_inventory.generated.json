@@ -6738,7 +6738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 104,
+    "line": 123,
     "method": "ANY",
     "path": "/api/edge/{path:path}",
     "function": "proxy_edge"
@@ -6746,7 +6746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 119,
+    "line": 138,
     "method": "ANY",
     "path": "/api/soil/{path:path}",
     "function": "proxy_soil"
@@ -6754,10 +6754,18 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 134,
+    "line": 153,
     "method": "ANY",
     "path": "/api/segmentation/{path:path}",
     "function": "proxy_segmentation"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/service_proxy.py",
+    "line": 170,
+    "method": "ANY",
+    "path": "/api/field-forms/{path:path}",
+    "function": "proxy_field_forms"
   },
   {
     "service": "sahool-platform",

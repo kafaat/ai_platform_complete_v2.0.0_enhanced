@@ -841,9 +841,10 @@ sahool-platform,services/sahool-platform/api/routers/seed.py,36,POST,/api/v1/see
 sahool-platform,services/sahool-platform/api/routers/seed.py,42,GET,/api/v1/seed/germination-rate,seed_germination_endpoint
 sahool-platform,services/sahool-platform/api/routers/seed.py,50,GET,/api/v1/seed/storage-check,seed_storage_endpoint
 sahool-platform,services/sahool-platform/api/routers/seed.py,58,GET,/api/v1/seed/sowing-depth,seed_sowing_depth_endpoint
-sahool-platform,services/sahool-platform/api/routers/service_proxy.py,104,ANY,/api/edge/{path:path},proxy_edge
-sahool-platform,services/sahool-platform/api/routers/service_proxy.py,119,ANY,/api/soil/{path:path},proxy_soil
-sahool-platform,services/sahool-platform/api/routers/service_proxy.py,134,ANY,/api/segmentation/{path:path},proxy_segmentation
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,123,ANY,/api/edge/{path:path},proxy_edge
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,138,ANY,/api/soil/{path:path},proxy_soil
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,153,ANY,/api/segmentation/{path:path},proxy_segmentation
+sahool-platform,services/sahool-platform/api/routers/service_proxy.py,170,ANY,/api/field-forms/{path:path},proxy_field_forms
 sahool-platform,services/sahool-platform/api/routers/settings.py,30,PUT,/api/v1/settings,upsert_setting
 sahool-platform,services/sahool-platform/api/routers/settings.py,63,GET,/api/v1/settings,list_settings
 sahool-platform,services/sahool-platform/api/routers/sharing.py,46,POST,/api/v1/sharing/generate-key,generate_share_key

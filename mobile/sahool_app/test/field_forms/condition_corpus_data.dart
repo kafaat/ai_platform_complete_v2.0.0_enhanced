@@ -1,0 +1,35 @@
+/// بيانات corpus التكافؤ لـ SahoolFormConditionV1 (§15.3).
+///
+/// تنبيه لحارس الانعكاس (tests_v9): الثابت kConditionCorpusJson أدناه هو
+/// نسخة حرفيّة من shared/contracts/forms/condition_corpus.json — يُستخرج
+/// بـregex ويُقارن مع corpus الخادم لمنع انحراف النسختين.
+library;
+
+const String kConditionCorpusJson = r'''
+[{"name":"eq_string_true","condition":{"==":[{"var":"crop"},"wheat"]},"answers":{"crop":"wheat"},"expect":true},
+{"name":"eq_string_false","condition":{"==":[{"var":"crop"},"wheat"]},"answers":{"crop":"barley"},"expect":false},
+{"name":"neq_number_true","condition":{"!=":[{"var":"count"},0]},"answers":{"count":3},"expect":true},
+{"name":"gt_number_true","condition":{">":[{"var":"severity"},3]},"answers":{"severity":4},"expect":true},
+{"name":"lte_number_true","condition":{"<=":[{"var":"severity"},3]},"answers":{"severity":3},"expect":true},
+{"name":"nested_path_true","condition":{"==":[{"var":"site.irrigated"},true]},"answers":{"site":{"irrigated":true}},"expect":true},
+{"name":"missing_var_eq_false","condition":{"==":[{"var":"ghost"},"x"]},"answers":{},"expect":false},
+{"name":"missing_var_neq_also_false","condition":{"!=":[{"var":"ghost"},"x"]},"answers":{},"expect":false},
+{"name":"missing_var_gt_false","condition":{">":[{"var":"ghost"},1]},"answers":{},"expect":false},
+{"name":"and_two_true","condition":{"and":[{"==":[{"var":"a"},1]},{"==":[{"var":"b"},2]}]},"answers":{"a":1,"b":2},"expect":true},
+{"name":"and_short_circuit_semantics_false","condition":{"and":[{"==":[{"var":"a"},1]},{"==":[{"var":"b"},2]}]},"answers":{"a":1,"b":9},"expect":false},
+{"name":"or_one_true","condition":{"or":[{"==":[{"var":"a"},1]},{"==":[{"var":"b"},2]}]},"answers":{"a":9,"b":2},"expect":true},
+{"name":"not_true","condition":{"not":[{"==":[{"var":"done"},true]}]},"answers":{"done":false},"expect":true},
+{"name":"in_membership_true","condition":{"in":[{"var":"pest"},["aphid","thrips","mite"]]},"answers":{"pest":"thrips"},"expect":true},
+{"name":"in_membership_false","condition":{"in":[{"var":"pest"},["aphid","thrips"]]},"answers":{"pest":"armyworm"},"expect":false},
+{"name":"in_strict_type_no_coercion","condition":{"in":[{"var":"code"},["1","2"]]},"answers":{"code":1},"expect":false},
+{"name":"bool_not_number","condition":{"==":[{"var":"flag"},1]},"answers":{"flag":true},"expect":"error"},
+{"name":"string_vs_number_error","condition":{">":[{"var":"label"},3]},"answers":{"label":"abc"},"expect":"error"},
+{"name":"and_nonboolean_error","condition":{"and":[{"var":"a"},{"==":[{"var":"b"},1]}]},"answers":{"a":1,"b":1},"expect":"error"},
+{"name":"numeric_int_float_compatible","condition":{"==":[{"var":"v"},3.0]},"answers":{"v":3},"expect":true},
+{"name":"operator_not_allowed_cat","condition":{"cat":[1,2]},"answers":{},"expect":"invalid"},
+{"name":"eval_forbidden","condition":{"eval":"1+1"},"answers":{},"expect":"invalid"},
+{"name":"in_requires_array","condition":{"in":[{"var":"x"},"abc"]},"answers":{"x":"a"},"expect":"invalid"},
+{"name":"arity_comparison","condition":{"==":[{"var":"x"}]},"answers":{},"expect":"invalid"},
+{"name":"depth_exceeded","condition":{"not":[{"not":[{"not":[{"not":[{"not":[{"==":[{"var":"x"},1]}]}]}]}]}]},"answers":{"x":1},"expect":"invalid"},
+{"name":"var_path_dunder_forbidden","condition":{"==":[{"var":"__class__.x"},1]},"answers":{},"expect":"invalid"}]
+''';
