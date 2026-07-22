@@ -274,6 +274,33 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+  sahool-redis-state:
+    # حزمة 72 ساعة (ST-P1-04/Redis): حالة أمنيّة (denylist/reset/MFA/lockout)
+    # منفصلة عن الكاش — noeviction + AOF؛ الطرد هنا كان يمحو مفاتيح أمنيّة.
+    image: redis:7-alpine
+    mem_limit: 384m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
+    command: 'redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD required}"
+      --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes
+
+      '
+    volumes:
+    - redis-state-data:/data
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
   sahool-nats:
     image: nats:2-alpine
     mem_limit: 384m
@@ -411,7 +438,7 @@ services:
     logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       # RS256 (غير متماثل، الموصى به): auth يوقّع بالمفتاح الخاصّ والخدمات تتحقّق بالعامّ.
       # لا بدّ أن تُعرَّض هذه هنا كي يكون مسار RS256 قابلاً للضبط على المُوقِّع نفسه — وإلّا
@@ -652,7 +679,7 @@ services:
     - 127.0.0.1:8097:8000
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
@@ -2391,6 +2418,7 @@ volumes:
   postgres-data: null
   raster-data: null
   redis-data: null
+  redis-state-data: null
   fastbee-data: null
   nats-js: null
   minio-data: null
