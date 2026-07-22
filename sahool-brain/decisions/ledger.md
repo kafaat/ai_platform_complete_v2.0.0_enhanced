@@ -817,3 +817,8 @@ SHAs من `git log --oneline origin/main`.
 - **القرار:** نقل حكم PHYSICS-AI-CALIBRATION-01 من `docs/architecture/` إلى `docs/adr/ADR-0035-physics-ai-calibration.md` (الترقيم المتسلسل) + فهرسته + حذف القديم.
 - **السبب:** اتّفاقيّة ADR في المستودع تعيش في `docs/adr/` بترقيم متسلسل. النصّ حرفيّ (تحقّقتُ بمقارنة) — فرق وحيد: بادئة `ADR-0035:` + ملاحظة provenance. الفرع كان متأخّرًا عن main فدمجتُ main فيه وأعدتُ توليد البصمات (4718).
 - **SHA:** رأس أخضر `90b871e` · دمج main `ccf262e`.
+
+## 2026-07-22 — #593 field-forms Slice 2 (UI+BFF) دُمِج
+- **القرار:** دمج `5fb4166` (squash). GAP-FIELD-FORMS-01 Slice 2 مُغلَق.
+- **السبب:** كلّ 61 فحص CI أخضر/مُتخطّى فعليًّا على `c4e0f68` بعد إصلاح جذرَين متمايزَين (drift/lint/checksum ← إعادة توليد الجرد+الحزمة+ruff؛ Platform Unit Tests ← تسجيل مسار BFF في `platform_extraction_map.json` + رفع الميزانيّة 614→615). المصدر: سجلّ الوظيفة الفعليّ (لا حدس).
+- **SHA:** رأس `c4e0f68` · دمج `5fb4166`.
