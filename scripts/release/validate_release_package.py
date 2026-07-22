@@ -13,6 +13,7 @@ REQUIRED_RELEASE_ASSETS = [
     "release/SAHOOL_RELEASE_MANIFEST_20260626.json",
     "release/FILE_CHECKSUMS.sha256",
     "release/SBOM_MINIMAL.json",
+    "release/SBOM_DEPENDENCIES.cdx.json",
     "release/DEPLOYMENT_READINESS_CHECKLIST.md",
     "RELEASE_NOTES_20260626.md",
     "scripts/release/build_release_bundle.py",

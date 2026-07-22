@@ -210,6 +210,9 @@ class SeasonSimResponse(BaseModel):
     # النموذج RUE/FAO-56 إرشاديّ غير معاير محلّيّاً ⇒ يتطلّب تحقّقاً حقليّاً دائماً.
     estimate_only: bool = True
     requires_field_validation: bool = True
+    model_role: str = "screening_only"
+    eligible_for_calibration: bool = False
+    canonical_yield_engine: str = "pcse_wofost"
     estimate_disclaimer_ar: str = (
         "تقدير نموذجيّ (RUE/FAO-56) غير معاير محلّيّاً — يُعرَض بنطاق وثقة، ويتطلّب تحقّقاً "
         "حقليّاً قبل اعتماده قراراً. ليس غلّة فعليّة."

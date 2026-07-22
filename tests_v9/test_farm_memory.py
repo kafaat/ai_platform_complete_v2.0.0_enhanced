@@ -268,25 +268,27 @@ def test_export_to_json_structure(tmp_path: Path) -> None:
         "preferences",
         "patterns",
         "recommendations",
-        "vectors",
+        "vector_export",
     ):
         assert key in data, f"Missing key: {key}"
 
     assert data["farm_id"] == "farm-e1"
-    assert data["schema_version"] == SCHEMA_VERSION
-    assert len(data["conversations"]) == 1
-    assert len(data["patterns"]) == 1
-    assert len(data["recommendations"]) == 1
-    assert data["preferences"]["crop"] == "wheat"
+    assert data["vector_export"] == {"included": False, "reason": "not_requested"}
+    assert manifest["vectors_included"] is False
 
-    # ISO timestamp validation (ends with Z or +00:00)
-    exported_at = data["exported_at"]
-    assert "T" in exported_at
-    assert exported_at.endswith("Z") or "+00" in exported_at
 
-    # Manifest
-    assert manifest["checksum_sha256"] is not None
-    assert len(manifest["checksum_sha256"]) == 64  # SHA-256 hex
+@pytest.mark.unit
+def test_export_to_json_rejects_fake_vector_backup(tmp_path: Path) -> None:
+    from shared.memory.export_engine import VectorExportUnavailable
+
+    mem = _make_memory("farm-vector", tmp_path / "store")
+    with pytest.raises(VectorExportUnavailable):
+        export_to_json(
+            "farm-vector",
+            tmp_path / "export.json",
+            mem,
+            include_vectors=True,
+        )
 
 
 @pytest.mark.unit

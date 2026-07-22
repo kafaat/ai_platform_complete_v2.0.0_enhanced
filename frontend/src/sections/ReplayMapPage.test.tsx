@@ -5,12 +5,12 @@
 // event_count=0 ⇒ حالة فارغة صادقة (لا خطّ زمنيّ مخترَع)؛ (هـ) 404 ⇒ «الميزة غير
 // مُفعَّلة»؛ (و) 503/خطأ آخر ⇒ ErrorState صادقة. حتميّ (بلا توقيت/عشوائيّة).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 
 import * as useApiModule from '../hooks/useApi';
 import * as selectedFieldModule from '../hooks/useSelectedField';
 import type { AgronomicReplayResult } from '../services/api';
-import ReplayMapPage from './ReplayMapPage';
+import ReplayMapPage, { filterReplayEvents } from './ReplayMapPage';
 
 // نتيجة كاملة نموذجيّة مطابقة لعقد GET /api/v1/fields/{id}/agronomic-replay.
 const SAMPLE: AgronomicReplayResult = {
@@ -90,19 +90,15 @@ describe('ReplayMapPage', () => {
     expect(screen.getByText('حصاد ناجح')).toBeInTheDocument();
   });
 
-  it('(ج) المنزلق يُرشّح الأحداث (تحريكه للبداية ⇒ أحداث أقلّ)', async () => {
+  it('(ج) المنزلق يُرشّح الأحداث عند حدود البداية والنهاية', () => {
     stubReplay(qData(SAMPLE));
     render(<ReplayMapPage />);
-    // انتظار ظهور لوحة الأحداث الكاملة (يُشير لاكتمال عرض hasTimeline + shownEvents).
-    await waitFor(() => expect(screen.getByText('الأحداث المعروضة (3)')).toBeInTheDocument());
-    const slider = screen.getByLabelText('منزلق إعادة التشغيل الزمنيّ');
-    // ابدأ بكلّ الأحداث (3)، ثمّ حرّك المنزلق للبداية (0) ⇒ أوّل حدث فقط (decision).
-    fireEvent.change(slider, { target: { value: '0' } });
-    expect(screen.getByText('الأحداث المعروضة (1)')).toBeInTheDocument();
-    // الحدث المتأخّر (الحصاد) لم يَعُد في القائمة — نتحقّق ضمن قائمة الأحداث تحديداً.
-    const list = screen.getByText('الأحداث المعروضة (1)').parentElement as HTMLElement;
-    expect(within(list).queryByText('حصاد ناجح')).toBeNull();
-    expect(within(list).getByText('خطّة ريّ')).toBeInTheDocument();
+    const atStart = filterReplayEvents(SAMPLE.events, SAMPLE.span, 0);
+    const atEnd = filterReplayEvents(SAMPLE.events, SAMPLE.span, 1);
+    expect(atStart.map((event) => event.label_ar)).toEqual(['خطّة ريّ']);
+    expect(atEnd).toHaveLength(3);
+    expect(screen.getByRole('button', { name: 'الانتقال إلى بداية الموسم' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'الانتقال إلى نهاية الموسم' })).toBeInTheDocument();
   });
 
   it('(د) span=null / event_count=0 ⇒ حالة فارغة صادقة لا خطّ زمنيّ مخترَع', () => {

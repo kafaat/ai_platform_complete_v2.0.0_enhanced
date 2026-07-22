@@ -121,6 +121,7 @@ import HubMap, {
 } from '../components/maphub/HubMap';
 import FieldDetailDrawer from '../components/maphub/FieldDetailDrawer';
 import FieldSplitMergeTool from '../components/maphub/FieldSplitMergeTool';
+import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 import type { DrawFeature } from '../components/maphub/drawing';
 import { buildPivotDrawFeature, summarizePivotDesign, createDrawingFeatureOfflineFirst as createDrawingFeature, listDrawingFeaturesWithOfflineQueue as listDrawingFeatures, buildAgriculturalZoneFeature, normalizeFieldGeometryForZone, type AgriculturalZoneKind, type PersistedDrawFeature } from '../components/maphub/drawing';
 
@@ -2457,6 +2458,7 @@ function MapHubCore() {
                           );
                         })}
                       </div>
+                      {selectedScene && <SceneProvenanceCard scene={selectedScene} />}
                     </div>
                   </FieldTimelineShell>
 

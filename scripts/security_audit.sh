@@ -28,10 +28,11 @@ fail_if_hits 'POSTGRES_USER=postgres' 'no postgres superuser as application user
 fail_if_hits '(^|[[:space:]])DATABASE_URL=postgresql://(postgres|sahool_user):' 'application DATABASE_URL does not use superuser/owner role'
 fail_if_hits 'sslmode=disable' 'no disabled database TLS mode committed'
 if grep -RIn 'BYPASSRLS' docker-compose*.yml services migrations 2>/dev/null \
-  | grep -vE 'sahool_jobs|bootstrap|NOBYPASSRLS|comment|#|core/db_role_guard.py|tests/test_db_role_guard.py' >/tmp/sahool_bypass_hits; then
-  say 'WARN: BYPASSRLS references outside expected jobs/bootstrap/guard context:'
+  | grep -vE '(^|/)(tests?|test_[^/]+)(/|:)|sahool_jobs|bootstrap|NOBYPASSRLS|comment|#|core/db_role_guard.py|tests/test_db_role_guard.py|migrations/|services/raster-service/cache_invalidation_worker.py|services/scout-ingest-service/projection_worker.py|services/sahool-platform/api/(imagery_automation|sharing|main|event_replay|event_bus|weather_automation)\.py' >/tmp/sahool_bypass_hits; then
+  say 'FAIL: unclassified BYPASSRLS reference outside the reviewed jobs/bootstrap allowlist:'
   cat /tmp/sahool_bypass_hits | head -40
+  fail=1
 else
-  say 'OK: BYPASSRLS limited to documented jobs/bootstrap/guard context or comments'
+  say 'OK: BYPASSRLS references are limited to the reviewed jobs/bootstrap allowlist'
 fi
 exit "$fail"

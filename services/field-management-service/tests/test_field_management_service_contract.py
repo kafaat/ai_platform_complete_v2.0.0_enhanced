@@ -2,7 +2,7 @@
 
 Pins the SEC contract of the new tenant-scoped field owner:
   • service-token only (401 fail-closed) — NO user-JWT / permission dependency
-  • tenant from the X-Tenant-Id header (missing ⇒ 400), never query/body
+  • tenant is bound to the authenticated caller by a short-lived HMAC assertion
   • every query scoped by field_id AND tenant_id under RLS ⇒ 404 (no disclosure)
   • DATABASE_URL unset ⇒ 503 (fail-closed, no platform fallback)
 """
@@ -60,15 +60,81 @@ def test_service_token_guard_is_fail_closed(monkeypatch):
     assert e3.value.status_code == 401
 
 
-def test_tenant_required_from_header(monkeypatch):
+def test_production_requires_caller_allowlist(monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "s3cr3t")
+    monkeypatch.delenv("FIELD_SERVICE_ALLOWED_CALLERS", raising=False)
     mod = _load_main()
     from fastapi import HTTPException
 
+    with pytest.raises(HTTPException) as exc:
+        mod._require_service_token("s3cr3t", "vegetation-analysis-service")
+    assert exc.value.status_code == 503
+
+
+def test_production_rejects_non_allowlisted_caller(monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.setenv("SAHOOL_AGENT_TOKEN", "s3cr3t")
+    monkeypatch.setenv("FIELD_SERVICE_ALLOWED_CALLERS", "vegetation-analysis-service")
+    mod = _load_main()
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as exc:
+        mod._require_service_token("s3cr3t", "unknown-service")
+    assert exc.value.status_code == 403
+    assert mod._require_service_token("s3cr3t", "vegetation-analysis-service") is None
+
+
+def test_tenant_required_from_header(monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "development")
+    monkeypatch.delenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", raising=False)
+    mod = _load_main()
+    from fastapi import HTTPException
+    from starlette.requests import Request
+
+    request = Request({"type": "http", "method": "GET", "path": "/internal/fields", "headers": []})
+
     for missing in (None, ""):
         with pytest.raises(HTTPException) as e:
-            mod._require_tenant(missing)
+            mod._require_tenant(request, missing, None, "vegetation-analysis-service", None, None)
         assert e.value.status_code == 400
-    assert mod._require_tenant("tenant-1") == "tenant-1"
+    assert (
+        mod._require_tenant(request, "tenant-1", None, "vegetation-analysis-service", None, None)
+        == "tenant-1"
+    )
+
+
+def test_production_tenant_assertion_is_required_and_scoped(monkeypatch):
+    monkeypatch.setenv("SAHOOL_ENV", "production")
+    monkeypatch.setenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "k" * 32)
+    mod = _load_main()
+    from fastapi import HTTPException
+    from starlette.requests import Request
+
+    from shared.security.service_tenant_assertion import create_tenant_assertion
+
+    request = Request({"type": "http", "method": "GET", "path": "/internal/fields", "headers": []})
+    monkeypatch.setattr(mod, "_claim_assertion_once", lambda *_: None)
+
+    assertion = create_tenant_assertion(
+        "k" * 32,
+        "vegetation-analysis-service",
+        "tenant-1",
+        method="GET",
+        path="/internal/fields",
+        request_id="req-1",
+    )
+    assert (
+        mod._require_tenant(
+            request, "tenant-1", assertion, "vegetation-analysis-service", "req-1", None
+        )
+        == "tenant-1"
+    )
+    with pytest.raises(HTTPException) as mismatch:
+        mod._require_tenant(
+            request, "tenant-2", assertion, "vegetation-analysis-service", "req-1", None
+        )
+    assert mismatch.value.status_code == 403
 
 
 def test_readyz_envelope_has_required_keys():

@@ -3,6 +3,7 @@ import { CalendarDays, Image as ImageIcon, Satellite } from 'lucide-react';
 import { getFieldImageryAvailableDates, getFieldImageryTimeline, type FieldImageryDateOption, type FieldImageryTimelineItem } from '../services/api/fieldImagery';
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
+import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -36,6 +37,7 @@ function DateRow({ item }: { item: FieldImageryDateOption }) {
         {item.scene_id && <span>scene: {item.scene_id}</span>}
         {item.indices?.length ? <span>indices: {item.indices.join(', ')}</span> : null}
       </div>
+      <SceneProvenanceCard scene={item} compact />
     </li>
   );
 }
@@ -52,6 +54,7 @@ function TimelineRow({ item }: { item: FieldImageryTimelineItem }) {
         {typeof item.clear_pct === 'number' && <span>clear: {item.clear_pct}%</span>}
         {item.indices?.length ? <span>indices: {item.indices.join(', ')}</span> : null}
       </div>
+      <SceneProvenanceCard scene={item} compact />
     </li>
   );
 }

@@ -2,14 +2,14 @@
   "checksums_file": "release/FILE_CHECKSUMS.sha256",
   "components": {
     "component_file_counts": {
-      "frontend": 628,
+      "frontend": 633,
       "grafana": 5,
       "migrations": 219,
       "mobile": 65,
       "prometheus": 2,
-      "scripts": 239,
+      "scripts": 253,
       "services": 1887,
-      "shared": 130,
+      "shared": 131,
       "tests": 57
     }
   },
@@ -19,6 +19,12 @@
     "scripts/observability/validate_observability_assets.py",
     "scripts/release/validate_release_package.py",
     "scripts/ci/validate_ci_gates.py",
+    "scripts/ci/github_actions_policy_guard.py",
+    "scripts/ci/release_attestation_guard.py",
+    "scripts/ci/secret_history_scan_guard.py",
+    "scripts/ci/github_actions_policy_guard.py",
+    "scripts/ci/frontend_reproducibility_guard.py",
+    "scripts/ci/local_test_dependency_preflight.py",
     "scripts/ci/local_quality_gate.sh",
     "scripts/ci/raster_quality_gate.sh",
     "scripts/runtime/env_doctor.py",
@@ -29,8 +35,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 4740,
-  "generated_at": "2026-07-22T21:59:19.401162+00:00",
+  "file_count": 4776,
+  "generated_at": "2026-07-22T19:59:44.041626+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -48,6 +54,20 @@
     "scripts/chaos/run_chaos_tests.sh",
     "scripts/recovery/recovery_smoke.sh",
     "scripts/ci/validate_ci_gates.py",
+    "scripts/ci/unified_production_readiness_gate.py",
+    "scripts/ci/container_image_pin_guard.py",
+    "scripts/ci/release_attestation_guard.py",
+    "scripts/ci/secret_history_scan_guard.py",
+    "scripts/ci/github_actions_policy_guard.py",
+    "scripts/ci/local_test_dependency_preflight.py",
+    "scripts/release/scan_release_archive.py",
+    "scripts/ci/frontend_reproducibility_guard.py",
+    "config/security_exceptions.json",
+    "scripts/release/verify_attested_artifact.sh",
+    "scripts/ci/scene_provenance_ui_guard.py",
+    "scripts/release/generate_dependency_sbom.py",
+    "scripts/qdrant/snapshot_manager.py",
+    "scripts/simulation/sim_golden.py",
     "scripts/ci/local_quality_gate.sh",
     "scripts/ci/raster_quality_gate.sh",
     "scripts/runtime/env_doctor.py",
@@ -58,6 +78,12 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh",
     ".github/workflows/sahool-production-gates.yml",
+    ".github/workflows/qdrant-backup-restore-drill.yml",
+    ".github/workflows/scene-provenance-ui.yml",
+    ".github/workflows/sim-golden-certification.yml",
+    ".github/workflows/release-artifact-attestation.yml",
+    ".github/workflows/secret-history-scan.yml",
+    ".github/workflows/transitive-lock-certification.yml",
     ".github/workflows/raster-service-gates.yml",
     "RUNBOOK.md",
     "scripts/architecture/legacy_path_audit.py"
@@ -93,5 +119,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 31916571
+  "total_size_bytes": 32065204
 }

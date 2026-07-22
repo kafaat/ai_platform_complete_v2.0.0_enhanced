@@ -356,6 +356,28 @@ services:
       timeout: 10s
       retries: 6
       start_period: 60s
+  sahool-minio-init:
+    image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-04-16T18-13-26Z}
+    restart: "no"
+    security_opt:
+    - no-new-privileges:true
+    environment:
+      MINIO_ENDPOINT: http://sahool-minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sahool-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
+      SCOUT_INGEST_S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
+      SCOUT_INGEST_S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
+      RASTER_S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      RASTER_S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
+    entrypoint: ["/bin/sh", "/provision.sh"]
+    volumes:
+    - ./scripts/minio/provision.sh:/provision.sh:ro
+    - ./deploy/minio/policies:/policies:ro
+    depends_on:
+      sahool-minio:
+        condition: service_healthy
+    networks:
+    - sahool-internal
   sahool-qdrant:
     image: qdrant/qdrant:v1.17.1
     mem_limit: 2g
@@ -416,7 +438,7 @@ services:
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
-      INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:-sahool_ingest_pw}
+      INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}
     volumes:
     - ./migrations:/migrations:ro
     command:
@@ -833,6 +855,8 @@ services:
       # PLATFORM_API_URL is retained for other platform reads and the truth guard.
       PLATFORM_API_URL: http://sahool-platform:8000
       FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
       # Fail-closed by default (production/staging): no processed observation ⇒ 424,
@@ -875,11 +899,20 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
+      FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY:-}
+      FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID:-previous}
+      FIELD_SERVICE_ASSERTION_REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD required}@sahool-redis:6379/5
     depends_on:
       sahool-postgres:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+      sahool-redis:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:
@@ -923,8 +956,8 @@ services:
       # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/). S3_BUCKET فارغ ⇒ file:// تطويريّ.
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       # تدهور file:// مُعلَن (تطوير فقط)؛ غيابه ⇒ fail-closed (لا رفع صامت في الإنتاج).
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1035,8 +1068,8 @@ services:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1102,8 +1135,8 @@ services:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1148,8 +1181,8 @@ services:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1438,7 +1471,7 @@ services:
       retries: 6
       start_period: 30s
   sahool-fastbee:
-    image: eclipse-mosquitto:2
+    image: eclipse-mosquitto:2.0.22
     mem_limit: 128m
     security_opt:
     - no-new-privileges:true
@@ -2351,7 +2384,7 @@ services:
     # then this image is the ONLY entry allowlisted in
     # tests_v9/test_compose_image_pinning_guard_v21.py; every other image must stay
     # pinned to an explicit non-master/latest tag.
-    image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
+    image: ${ZLMEDIAKIT_IMAGE:?ZLMEDIAKIT_IMAGE sha256 digest required}
     container_name: sahool-v9-zlmediakit-config
     restart: 'no'
     environment:
@@ -2381,7 +2414,7 @@ services:
     # CT-07 (V21 §6): see rationale on sahool-zlmediakit-config above — upstream
     # publishes no release tag; immutable pin = sha256 digest via ZLMEDIAKIT_IMAGE
     # in the release pipeline. Allowlisted in the compose image-pinning guard.
-    image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
+    image: ${ZLMEDIAKIT_IMAGE:?ZLMEDIAKIT_IMAGE sha256 digest required}
     container_name: sahool-v9-zlmediakit
     mem_limit: 768m
     security_opt:

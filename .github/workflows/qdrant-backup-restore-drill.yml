@@ -1,0 +1,41 @@
+name: Qdrant Backup Restore Drill
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  qdrant-restore-drill:
+    runs-on: ubuntu-24.04
+    environment: staging
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Require staging Qdrant credentials
+        env:
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+        run: test -n "$QDRANT_URL" && test -n "$QDRANT_API_KEY"
+      - name: Create collection snapshots
+        env:
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+        run: python3 scripts/qdrant/snapshot_manager.py backup --directory qdrant-backup
+      - name: Verify and restore into temporary collections
+        env:
+          QDRANT_URL: ${{ secrets.QDRANT_URL }}
+          QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+        run: python3 scripts/qdrant/snapshot_manager.py restore-drill --directory qdrant-backup
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: qdrant-backup-restore-evidence
+          path: |
+            qdrant-backup/manifest.json
+            certification/evidence/qdrant_restore_drill_summary.json
+          if-no-files-found: error
+          retention-days: 30

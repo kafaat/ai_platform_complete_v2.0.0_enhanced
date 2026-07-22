@@ -119,7 +119,7 @@ export default defineConfig({
   ],
   // يبني الواجهة بمحرّك maplibre ثمّ يخدمها (preview بلا وكيل ⇒ same-origin /api).
   webServer: {
-    command: 'npm run build && npm run preview -- --host 127.0.0.1',
+    command: 'npm run build && npm run verify:bundle-budget && npm run preview -- --host 127.0.0.1',
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

@@ -47,7 +47,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
   const fieldStyle = { background:'#0f1117', border:'1px solid #334155', color:'#e2e8f0', outline:'none' } as const;
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 dir-rtl"
+    <main className="min-h-screen flex items-center justify-center p-4 dir-rtl"
       style={{ background:'linear-gradient(135deg, #0f1117 0%, #0d2010 50%, #0f1117 100%)' }}>
 
       {/* Background decoration */}
@@ -76,8 +76,9 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
           <form onSubmit={handleSubmit} className="space-y-4" dir="rtl">
             {/* Email */}
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">البريد الإلكتروني</label>
+              <label htmlFor="login-email" className="block text-sm text-slate-400 mb-1.5">البريد الإلكتروني</label>
               <input
+                id="login-email"
                 type="email" value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="admin@sahool.ye"
                 className="w-full px-4 py-3 rounded-xl text-sm"
@@ -88,9 +89,10 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
 
             {/* Password */}
             <div>
-              <label className="block text-sm text-slate-400 mb-1.5">كلمة المرور</label>
+              <label htmlFor="login-password" className="block text-sm text-slate-400 mb-1.5">كلمة المرور</label>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPw ? 'text' : 'password'} value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -99,6 +101,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
                   autoComplete="current-password"
                 />
                 <button type="button" onClick={() => setShowPw(!showPw)}
+                  aria-label={showPw ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200">
                   {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -123,7 +126,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
 
             {/* Error */}
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
+              <div role="alert" aria-live="polite" className="flex items-center gap-2 p-3 rounded-xl text-sm" style={{ background:'#1a0000', border:'1px solid #dc262633' }}>
                 <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0" />
                 <span className="text-red-300">{error}</span>
               </div>
@@ -191,7 +194,7 @@ export default function LoginPage({ onSignup }: { onSignup?: () => void }) {
           SAHOOL v8.0 · 47/47 اختبار ✅
         </p>
       </div>
-    </div>
+    </main>
   );
 }
 

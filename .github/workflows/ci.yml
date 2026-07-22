@@ -7,7 +7,7 @@ jobs:
     name: Repository Structural Lint
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: service-feature-ui-contract-gate
         run: python scripts/ci/service_feature_ui_contract_gate.py
@@ -348,8 +348,8 @@ jobs:
     name: Platform Structure Inspector
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       # PyYAML مطلوب لفحص عقد ناشري الأحداث (event_publish_contracts.yaml): H2 publisher
       # coverage + waiver «منشور بلا مشترِك». بدونه يفشل الفحص بـModuleNotFoundError.
@@ -360,7 +360,7 @@ jobs:
     name: Validate Docker Compose
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - name: Validate all compose files
         run: |
           set -e
@@ -415,8 +415,8 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       # المشروع موحّد على ruff (ruff.toml): يغطّي lint + تنسيق + ترتيب الاستيراد،
       # فاستُبدل black/isort بـ`ruff format --check` لتطابق التنسيق المعتمد.
@@ -447,13 +447,13 @@ jobs:
     name: Frontend Typecheck
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with: {node-version: "20"}
       # بوّابة فحص نوعيّ للواجهة: كانت غائبة تماماً، فتراكمت أخطاء TS صامتة (مثل
       # ضياع user_id في login). tsc --noEmit يكشفها قبل الدمج. لا يبني الإنتاج
       # (vite build لا يفحص الأنواع) — هذا الفحص مكمّل له.
-      - run: npm ci
+      - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: frontend
       - run: npm run typecheck
         working-directory: frontend
@@ -462,21 +462,21 @@ jobs:
     name: Frontend E2E (Playwright · MapLibre/WebGL QA)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with: {node-version: "20"}
       # بوّابة QA الوظيفيّة لمحرّك MapLibre/WebGL على Chromium حقيقيّ (SwiftShader).
       # هرمسيّة: لا خلفيّة — التركيبات تُعترَض في طبقة Playwright (e2e/support/seed.ts).
       # الـconfig يبني الواجهة بـVITE_MAP_ENGINE=maplibre ويُشغّل preview على :4173.
       # الخطوتان البصريّتان الصرفتان (٧ إزاحة المؤشّر، ٩ تطابق leaflet↔maplibre)
       # مُعلَّمتان @visual ومُخطّاتان (test.fixme) ⇒ تُتخطّى تلقائيّاً، فلا تحجب.
-      - run: npm ci
+      - run: npm ci --ignore-scripts --no-audit --no-fund
         working-directory: frontend
       - run: npx playwright install --with-deps chromium
         working-directory: frontend
       - run: npx playwright test
         working-directory: frontend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:
           name: playwright-report
@@ -487,8 +487,8 @@ jobs:
     name: Unit Tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt
       - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
@@ -500,7 +500,7 @@ jobs:
       # docs/testing/coverage_ratchet.md للخطّة المرحليّة والتفصيل حسب النطاق.
       - name: Coverage gate (fail-under)
         run: pytest -m unit --cov=services --cov-fail-under=40 -q || (echo "التغطية انهارت دون الأرضيّة 40%" && exit 1)
-      - uses: codecov/codecov-action@v4
+      - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with: {files: coverage.xml}
       # خطوة معزولة: تُثبّت fastapi فوق البيئة الدنيا (بعد بوّابة التغطية كي لا تُوقظ
       # الاختبارات الخامدة في مسار -m unit) وتشغّل الملفّات الثلاثة المقصودة صراحةً
@@ -517,8 +517,8 @@ jobs:
     name: Platform Unit Tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       # اختبارات منطق المنصّة (services/sahool-platform/tests) كانت خارج نطاق CI
       # كلّيّاً: pytest.ini يحصر testpaths في tests_v9، فلم تُجمَع هذه الاختبارات
@@ -541,8 +541,8 @@ jobs:
     name: Weather Service Unit Tests
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       # اختبارات محرّك الطقس (services/weather-service/tests) كانت خارج نطاق CI:
       # الوظيفة الجذر «Unit Tests» تحصر testpaths في tests_v9، و«Platform Unit Tests»
@@ -562,8 +562,8 @@ jobs:
     # (registry-1.docker.io: context deadline exceeded). بدلاً منها نُدير الحاويات
     # يدويّاً بإعادة سحب مرنة (٦ محاولات backoff) — نفس الصور والمنافذ تماماً.
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       # مرآة سجلّ Docker Hub (Google mirror.gcr.io تعكس Hub كاملاً بما فيه postgis/postgis):
       # أوثق بكثير من Hub المباشر — تُنهي رفرفة «registry-1.docker.io: timeout» التي تُعطّل السحب.
@@ -678,8 +678,8 @@ jobs:
     # append-only cannot be faked) — this job is their CI home. Same resilient-pull pattern as
     # Integration Tests (manual docker run + backoff instead of `services:`).
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       - name: Configure Docker registry mirror (avoid Docker Hub flakes)
         run: |
@@ -985,8 +985,8 @@ jobs:
     name: Security Scan
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: "3.12"}
       - run: pip install bandit pip-audit pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       # بوّابة أمان: تفشل على HIGH severity (تنفيذ كود/تشفير ضعيف/حقن) — صُحّحت إلى 0.
@@ -1000,10 +1000,8 @@ jobs:
       # تُثبَّت ولا تُشغَّل أبداً ⇒ لا فحص تبعيّات مفروض (الفجوة المعياريّة #٧).
       # هذه الملفّات مُتحقَّقة نظافتها؛ فشلها لاحقاً = تبعيّة جديدة ضعيفة دخلت.
       # توسعة C1: البوّابة كانت تفحص ٤ مسارات فقط فتفلت خدمات كاملة. وُسِّعت لتشمل
-      # كلّ ملفّات requirements الحقيقيّة المُتحقَّق خلوّها من ثغرات معروفة (فُحصت
-      # فعليّاً بـpip-audit، كلّها نظيفة). يُستثنى services/local-ai-rag/requirements.txt
-      # عمداً: يحمل ثغرة out-of-range (PYSEC-2026-77 في langchain-text-splitters،
-      # وقيود langchain 0.3.x/pypdf) — يبقى تحت المسح الإرشاديّ أدناه لا البوّابة.
+      # كلّ ملفات requirements الحقيقيّة، بما فيها local-ai-rag بعد نقل تكاملات
+      # LangChain إلى خط 1.x الآمن؛ لا يجوز إعادة الخدمة إلى المسح الإرشادي فقط.
       # استثناء موثّق واحد (PYSEC-2026-1325 في ecdsa 0.19.2): تبعيّة عبوريّة أساسيّة
       # لـpython-jose. ثغرة قناة-جانبيّة (Minerva timing) صنّفها صانعو ecdsa WONTFIX
       # صراحةً (لا نسخة إصلاح — 0.19.2 هي الأحدث 2026-03-26؛ README يوصي بـpyca/
@@ -1022,6 +1020,7 @@ jobs:
           -r services/agriai-engine/requirements.txt
           -r services/edge-inference/requirements.txt
           -r services/indicators-service/requirements.txt
+          -r services/local-ai-rag/requirements.txt
           -r services/mcp_servers/requirements.txt
           -r services/odoo-bridge/requirements.txt
           -r services/qdrant-seed/requirements.txt
@@ -1066,8 +1065,8 @@ jobs:
     name: Flutter Analyze & Test
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: subosito/flutter-action@v2
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           flutter-version: "3.27.4"  # Dart 3.6.2 — تتطلّبه flutter_map_mbtiles ^1.0.4 (≥3.6.0)
           channel: stable

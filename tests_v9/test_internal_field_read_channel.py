@@ -97,8 +97,10 @@ def test_field_service_token_guard_is_fail_closed_401(monkeypatch, field_mod):
 def test_field_service_tenant_required(field_mod):
     from fastapi import HTTPException
 
+    # ``request`` is the first positional param (used only for method/path binding of
+    # the tenant assertion); a missing X-Tenant-Id fails closed at 400 before it is read.
     with pytest.raises(HTTPException) as e:
-        field_mod._require_tenant(None)
+        field_mod._require_tenant(request=None, x_tenant_id=None)
     assert e.value.status_code == 400
 
 
@@ -178,6 +180,11 @@ def test_vegetation_never_calls_public_or_platform_field_routes():
 async def test_load_field_uses_field_service_channel_with_headers(veg_mod, monkeypatch):
     monkeypatch.setattr(veg_mod, "FIELD_SERVICE_URL", "http://field-management:8000")
     monkeypatch.setattr(veg_mod, "RASTER_SERVICE_TOKEN", "svc-tkn")
+    # A tenant-scoped read must carry a caller-bound tenant assertion (field-catalog
+    # caller boundary): the signing key is required or the call fails closed at 503.
+    monkeypatch.setattr(
+        veg_mod, "FIELD_SERVICE_TENANT_ASSERTION_KEY", "assertion-signing-key-at-least-32-chars"
+    )
     sink: list = []
     # 404 (other-tenant/missing) ⇒ fail-soft None, but the call is still recorded.
     monkeypatch.setattr(
@@ -189,6 +196,9 @@ async def test_load_field_uses_field_service_channel_with_headers(veg_mod, monke
     assert url.endswith("/internal/fields/fld_1")
     assert headers["X-Agent-Token"] == "svc-tkn"
     assert headers["X-Tenant-Id"] == "tenant-1"
+    # the signed, caller/method/path-bound assertion accompanies the tenant header
+    assert headers["X-Tenant-Assertion"]
+    assert headers["X-Service-Name"] == veg_mod.FIELD_SERVICE_CALLER
 
 
 @pytest.mark.asyncio

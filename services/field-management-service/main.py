@@ -26,7 +26,12 @@ import hmac
 import json
 import os
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
+
+from shared.security.service_tenant_assertion import (
+    TenantAssertionError,
+    verify_tenant_assertion,
+)
 
 VERSION = os.getenv("SERVICE_VERSION", "9.1.0-field-owner")
 DATABASE_URL = os.getenv("DATABASE_URL", "")
@@ -69,21 +74,81 @@ def _require_service_token(
             status_code=401,
             detail="internal field endpoint requires a valid X-Agent-Token",
         )
+    production = os.getenv("SAHOOL_ENV", "development").strip().lower() in {
+        "production",
+        "prod",
+    }
+    if production and not _ALLOWED_CALLERS:
+        raise HTTPException(
+            status_code=503,
+            detail="FIELD_SERVICE_ALLOWED_CALLERS is required in production",
+        )
     if _ALLOWED_CALLERS and (x_service_name or "") not in _ALLOWED_CALLERS:
         raise HTTPException(status_code=403, detail="caller not in field-service allowlist")
 
 
 def _require_tenant(
+    request: Request,
     x_tenant_id: str | None = Header(None, alias="X-Tenant-Id"),
+    x_tenant_assertion: str | None = Header(None, alias="X-Tenant-Assertion"),
+    x_service_name: str | None = Header(None, alias="X-Service-Name"),
+    x_request_id: str | None = Header(None, alias="X-Request-Id"),
     _: None = Depends(_require_service_token),
 ) -> str:
-    """Tenant is taken ONLY from the verified X-Tenant-Id header (missing/empty ⇒ 400).
+    """Return a tenant only after verifying its short-lived caller-bound assertion.
 
-    Depends on the service-token guard so the token is verified BEFORE the tenant header
-    is accepted/validated (no tenant processing for an unauthenticated caller)."""
+    Development retains an explicit header-only compatibility mode. Production
+    requires ``FIELD_SERVICE_TENANT_ASSERTION_KEY`` and a valid assertion."""
     if not x_tenant_id:
         raise HTTPException(status_code=400, detail="X-Tenant-Id required for internal field read")
+    production = os.getenv("SAHOOL_ENV", "development").strip().lower() in {
+        "production",
+        "prod",
+    }
+    key = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "")
+    previous_key = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY", "")
+    current_kid = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY_ID", "current")
+    previous_kid = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID", "previous")
+    if production and not key:
+        raise HTTPException(status_code=503, detail="tenant assertion verification unavailable")
+    if key:
+        try:
+            claims = verify_tenant_assertion(
+                x_tenant_assertion or "",
+                {current_kid: key, **({previous_kid: previous_key} if previous_key else {})},
+                x_service_name or "",
+                x_tenant_id,
+                expected_method=request.method,
+                expected_path=request.url.path,
+                expected_request_id=x_request_id or "",
+            )
+            _claim_assertion_once(claims.replay_key, production)
+        except TenantAssertionError as exc:
+            raise HTTPException(
+                status_code=403, detail=f"invalid tenant assertion: {exc}"
+            ) from None
     return x_tenant_id
+
+
+def _claim_assertion_once(replay_key: str, production: bool) -> None:
+    """Atomically consume one nonce. Production never falls back to process memory."""
+    redis_url = os.getenv("FIELD_SERVICE_ASSERTION_REDIS_URL", "")
+    if not redis_url:
+        if production:
+            raise HTTPException(status_code=503, detail="tenant assertion replay store unavailable")
+        return
+    try:
+        import redis
+
+        client = redis.Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
+        if not client.set(replay_key, "1", nx=True, ex=70):
+            raise HTTPException(status_code=403, detail="tenant assertion replayed")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="tenant assertion replay store unavailable"
+        ) from exc
 
 
 def _row_to_dict(row) -> dict:

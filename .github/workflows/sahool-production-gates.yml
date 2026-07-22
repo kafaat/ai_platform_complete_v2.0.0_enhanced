@@ -17,8 +17,8 @@ jobs:
   production-validation-gate:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Install gate dependencies
@@ -29,8 +29,8 @@ jobs:
   security-audit:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Install gate dependencies
@@ -43,8 +43,8 @@ jobs:
   observability-assets:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Validate dashboards and alert assets
@@ -53,8 +53,8 @@ jobs:
   helm-readiness:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Install gate dependencies
@@ -65,8 +65,8 @@ jobs:
   release-package:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Validate release package checksums
@@ -75,8 +75,8 @@ jobs:
   python-compile-sweep:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Compile all Python files
@@ -106,8 +106,8 @@ jobs:
   pytest-contracts:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Install minimal test dependencies
@@ -124,12 +124,24 @@ jobs:
   supply-chain-static-scan:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Validate CI gate wiring
         run: python3 scripts/ci/validate_ci_gates.py --root .
+      - name: Enforce immutable GitHub Actions policy
+        run: python3 scripts/ci/github_actions_policy_guard.py
+      - name: Enforce immutable versioned container image references
+        run: python3 scripts/ci/container_image_pin_guard.py
+      - name: Generate CycloneDX dependency SBOM
+        run: python3 scripts/release/generate_dependency_sbom.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: dependency-sbom
+          path: release/SBOM_DEPENDENCIES.cdx.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Detect unsafe workflow patterns
         run: |
           # حدث الـ PR-target الخطِر (تصعيد صلاحيّات) ⇒ يُحجب. ملاحظة: نتفادى كتابة
@@ -146,6 +158,32 @@ jobs:
             exit 1
           fi
 
+  unified-readiness-evidence:
+    runs-on: ubuntu-24.04
+    needs:
+      - production-validation-gate
+      - security-audit
+      - observability-assets
+      - helm-readiness
+      - release-package
+      - python-compile-sweep
+      - pytest-contracts
+      - supply-chain-static-scan
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python3 -m pip install --upgrade pip pyyaml
+      - name: Build unified release-candidate verdict
+        run: python3 scripts/ci/unified_production_readiness_gate.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unified-readiness-evidence
+          path: certification/evidence/unified_readiness_summary.json
+          if-no-files-found: error
+          retention-days: 30
+
   runtime-stack-e2e-chaos:
     runs-on: ubuntu-24.04
     if: github.event_name == 'workflow_dispatch' && vars.RUN_LIVE_RUNTIME_TESTS == 'true'
@@ -156,8 +194,8 @@ jobs:
       - release-package
       - pytest-contracts
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
       - name: Preflight environment doctor

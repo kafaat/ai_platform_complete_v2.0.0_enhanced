@@ -32,6 +32,7 @@ REQUIRED_LOCAL_GATES = [
     "scripts/release/validate_release_package.py",
     "scripts/migrations/validate_migration_manifest.py",
     "scripts/security/validate_rls_write_policies.py",
+    "scripts/ci/github_actions_policy_guard.py",
 ]
 
 REQUIRED_WORKFLOW_TOKENS = [
@@ -145,11 +146,13 @@ def validate(root: Path) -> list[str]:
         errors,
     )
     require(
-        "actions/checkout@v5" in workflow, "workflow must use pinned checkout major version", errors
+        "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09" in workflow,
+        "workflow must use immutable checkout v5 commit",
+        errors,
     )
     require(
-        "actions/setup-python@v6" in workflow,
-        "workflow must use pinned setup-python major version",
+        "actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1" in workflow,
+        "workflow must use immutable setup-python v6 commit",
         errors,
     )
     for script_call in [

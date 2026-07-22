@@ -1,0 +1,13 @@
+{
+  "waivers": [
+    {
+      "id": "PYSEC-2026-1325",
+      "temporary": true,
+      "owner": "platform-security",
+      "expiry": "2026-09-30",
+      "reason": "No fixed ecdsa release is available; JWT uses the cryptography backend. Remove when python-jose no longer resolves ecdsa or a fixed release exists.",
+      "scope": ".github/workflows/ci.yml:pip-audit-critical-path"
+    }
+  ]
+}
+

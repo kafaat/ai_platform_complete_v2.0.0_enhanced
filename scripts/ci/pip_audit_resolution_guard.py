@@ -26,6 +26,7 @@ REQ_FILES = [
     "services/agriai-engine/requirements.txt",
     "services/edge-inference/requirements.txt",
     "services/indicators-service/requirements.txt",
+    "services/local-ai-rag/requirements.txt",
     "services/mcp_servers/requirements.txt",
     "services/odoo-bridge/requirements.txt",
     "services/qdrant-seed/requirements.txt",
@@ -124,6 +125,22 @@ def check() -> None:
             )
     if errors:
         raise SystemExit("\n".join(errors))
+
+    rag_requirements = (ROOT / "services/local-ai-rag/requirements.txt").read_text(encoding="utf-8")
+    ci = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    required_rag = (
+        "langchain-community==0.4.2",
+        "langchain-ollama==1.1.0",
+        "langchain-text-splitters==1.1.2",
+        "langchain-qdrant==1.1.0",
+    )
+    missing = [item for item in required_rag if item not in rag_requirements]
+    if missing:
+        raise SystemExit(f"local-ai-rag safe LangChain boundary drifted: missing {missing}")
+    if re.search(r"^langchain(?:\[[^]]+\])?[<>=~!]", rag_requirements, re.MULTILINE):
+        raise SystemExit("local-ai-rag must not restore the unused langchain meta-package")
+    if "-r services/local-ai-rag/requirements.txt" not in ci:
+        raise SystemExit("local-ai-rag must remain in the gating pip-audit command")
 
 
 def main() -> None:

@@ -49,6 +49,30 @@ export default defineConfig({
     format: 'es',
   },
   build: {
-    chunkSizeWarningLimit: 3000,
+    // Keep the warning meaningful. DuckDB workers are emitted separately and the
+    // heavy GIS routes are lazy; application/vendor chunks should stay below 1 MiB.
+    chunkSizeWarningLimit: 1050,
+    rollupOptions: {
+      output: {
+        // Stable framework/domain boundaries improve caching and keep the entry
+        // chunk from absorbing libraries used by many lazy screens.
+        manualChunks(id) {
+          if (!id.includes('/node_modules/')) return undefined;
+          const groups: Array<[string, string[]]> = [
+            ['vendor-react', ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'zustand']],
+            ['vendor-ui', ['lucide-react', 'framer-motion', 'cmdk']],
+            ['vendor-charts', ['recharts', 'd3-']],
+            ['vendor-leaflet', ['leaflet', 'react-leaflet', '@react-leaflet/core']],
+            ['vendor-maplibre', ['maplibre-gl']],
+            ['vendor-terra-draw', ['terra-draw', 'terra-draw-maplibre-gl-adapter']],
+            ['vendor-turf', ['@turf/']],
+          ];
+          for (const [chunk, packages] of groups) {
+            if (packages.some((pkg) => id.includes(`/node_modules/${pkg}`))) return chunk;
+          }
+          return undefined;
+        },
+      },
+    },
   },
 });

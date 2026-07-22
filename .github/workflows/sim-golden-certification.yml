@@ -1,0 +1,33 @@
+name: SIM GOLDEN Certification
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset_path:
+        description: Path to the protected runner-mounted golden dataset
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  sim-golden:
+    runs-on: [self-hosted, sim-golden]
+    environment: staging
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Evaluate held-out real harvest seasons
+        env:
+          SIM_GOLDEN_EVIDENCE_KEY: ${{ secrets.SIM_GOLDEN_EVIDENCE_KEY }}
+        run: python3 scripts/simulation/sim_golden.py "${{ inputs.dataset_path }}" --require-promotion-eligible
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: sim-golden-evidence
+          path: certification/evidence/sim_golden_summary.json
+          if-no-files-found: error
+          retention-days: 90

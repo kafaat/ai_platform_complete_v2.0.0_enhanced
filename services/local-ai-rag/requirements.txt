@@ -2,11 +2,13 @@ fastapi==0.136.3
 uvicorn[standard]==0.30.6
 pydantic==2.13.4
 httpx>=0.27.0
-langchain>=0.3.0,<1.0  # pip يختار أحدث 0.3.x متوافق تلقائيّاً
-langchain-community>=0.3.0,<1.0  # متوافق داخليّاً مع langchain 0.3.x
-langchain-ollama>=0.2.0,<1.0
-langchain-text-splitters>=0.3.0,<1.0  # PYSEC-2026-77 يتطلّب 1.1.2، لكن langchain 0.3.x يفرض <1.0؛ الترقية الكبرى خارج النطاق
-langchain-qdrant>=0.2.0,<1.0
+# لا يعتمد runtime على حزمة langchain الجامعة؛ يستخدم حزم التكامل المنفصلة فقط.
+# تثبيت خط 1.x المتوافق يغلق PYSEC-2026-77 في text-splitters ويمنع رجوع محلّل
+# الاعتماد تلقائياً إلى خط 0.x الضعيف.
+langchain-community==0.4.2
+langchain-ollama==1.1.0
+langchain-text-splitters==1.1.2
+langchain-qdrant==1.1.0
 qdrant-client>=1.14.0,<2.0
 python-multipart>=0.0.18
 aiofiles>=24.0.0

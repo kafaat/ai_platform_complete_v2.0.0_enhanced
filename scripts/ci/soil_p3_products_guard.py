@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from pathlib import Path
+
 root=Path(__file__).resolve().parents[2]
 required=[
  'shared/contracts/soil/p3.py','services/soil-service/p3_products.py','services/soil-service/p3_store.py',
