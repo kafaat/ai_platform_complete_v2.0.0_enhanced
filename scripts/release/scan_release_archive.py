@@ -15,7 +15,7 @@ FORBIDDEN_NAMES = {
     "secrets.yml", "secrets.yaml",
 }
 FORBIDDEN_SUFFIXES = {".pem", ".key", ".p12", ".pfx", ".jks", ".keystore"}
-PRIVATE_KEY = re.compile(br"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")
+PRIVATE_KEY = re.compile(br"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")  # gitleaks:allow — detection pattern, not a secret
 MAX_ENTRY_BYTES = 100 * 1024 * 1024
 MAX_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
 
