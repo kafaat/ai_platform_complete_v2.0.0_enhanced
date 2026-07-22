@@ -255,7 +255,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f414a3dcbff2098a11021e54403493298cbd933dcd3e0fafda6e662a51f7c56"
+          "content": "dc1ec5598845a60f8c2654a5b4493c983edf730c359467164b39035d076a137a"
         }
       ],
       "name": "frontend/e2e/accessibility-performance.spec.ts",

@@ -6,14 +6,17 @@ test('login has keyboard-visible accessible controls', async ({ page }) => {
   await expect(page.getByRole('main')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'سهول' })).toBeVisible();
   await expect(page.getByLabel('البريد الإلكتروني')).toHaveAttribute('autocomplete', 'email');
-  await expect(page.getByLabel('كلمة المرور')).toHaveAttribute('autocomplete', 'current-password');
+  // exact:true — the show-password button's aria-label "إظهار كلمة المرور" contains the
+  // substring "كلمة المرور", so the default (substring) getByLabel would match both the input
+  // and the button. Exact accessible-name match resolves to the password <input> alone.
+  await expect(page.getByLabel('كلمة المرور', { exact: true })).toHaveAttribute('autocomplete', 'current-password');
   await expect(page.getByRole('button', { name: 'إظهار كلمة المرور' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'تسجيل الدخول' })).toBeVisible();
 
   await page.keyboard.press('Tab');
   await expect(page.getByLabel('البريد الإلكتروني')).toBeFocused();
   await page.keyboard.press('Tab');
-  await expect(page.getByLabel('كلمة المرور')).toBeFocused();
+  await expect(page.getByLabel('كلمة المرور', { exact: true })).toBeFocused();
 });
 
 test('production login stays inside local navigation and asset budgets', async ({ page }) => {
