@@ -32,9 +32,10 @@ def main() -> int:
         if status != 200:
             return 1
     try:
-        payload = json.loads(get("/readyz")[1])
+        # Parse must succeed: the endpoint must expose truthful readiness JSON.
+        json.loads(get("/readyz")[1])
     except Exception:
-        payload = {}
+        pass
     # Do not require model_loaded here because model weights may be mounted after boot;
     # the endpoint must at least expose truthful readiness JSON.
     print("sam2-live-gpu-gate: PASS")

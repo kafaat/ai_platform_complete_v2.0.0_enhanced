@@ -1,0 +1,30 @@
+services:
+  production-preflight:
+    image: busybox:1.37.0
+    restart: "no"
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:?SAHOOL_ENV required}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
+      SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY:?JWT_PRIVATE_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      SCOUT_INGEST_S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
+      SCOUT_INGEST_S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
+      RASTER_S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      RASTER_S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
+      ZLMEDIAKIT_IMAGE: ${ZLMEDIAKIT_IMAGE:?ZLMEDIAKIT_IMAGE sha256 digest required}
+    command: ["sh", "-ec", "test \"$$SAHOOL_ENV\" = production; test $${#FIELD_SERVICE_TENANT_ASSERTION_KEY} -ge 32; case \"$$ZLMEDIAKIT_IMAGE\" in *@sha256:*) ;; *) echo ZLMEDIAKIT_IMAGE-must-use-sha256 >&2; exit 1;; esac; echo production-preflight-ok"]
+
+  sahool-field-management:
+    depends_on:
+      production-preflight: {condition: service_completed_successfully}
+  vegetation-analysis-service:
+    depends_on:
+      production-preflight: {condition: service_completed_successfully}
+  sahool-raster:
+    depends_on:
+      production-preflight: {condition: service_completed_successfully}
+
+# Canonical production command:
+# docker compose -f docker-compose.v9.yml -f docker-compose.production.yml up -d

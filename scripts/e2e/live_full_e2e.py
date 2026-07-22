@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import os
-import ssl
 import sys
 import time
 import urllib.error
@@ -99,7 +98,7 @@ def area_degrees2(poly: dict) -> float:
     if len(ring) < 4:
         return 0.0
     acc = 0.0
-    for (x1, y1), (x2, y2) in zip(ring, ring[1:]):
+    for (x1, y1), (x2, y2) in zip(ring, ring[1:], strict=False):
         acc += x1 * y2 - x2 * y1
     return abs(acc) / 2.0
 

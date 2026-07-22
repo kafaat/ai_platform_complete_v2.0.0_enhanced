@@ -16,6 +16,7 @@
     "format": "prettier --write src/**/*.{ts,tsx}",
     "build:docker": "vite build",
     "verify:no-demo": "node scripts/verify-no-demo-in-build.mjs",
+    "verify:bundle-budget": "node scripts/verify-bundle-budget.mjs",
     "test:ci": "vitest run --no-file-parallelism --maxWorkers=1",
     "test:smart": "node scripts/run-web-tests-smart.mjs",
     "e2e:smoke": "node scripts/playwright-smoke-smart.mjs",

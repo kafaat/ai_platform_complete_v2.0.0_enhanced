@@ -7,6 +7,7 @@ it does not convert local/sandbox checks into deployment evidence.
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -27,7 +28,7 @@ def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def main() -> int:
+def main(*, require_certified: bool = False) -> int:
     rows = []
     for blocker_id, name, filename, waivable in BLOCKERS:
         payload = _load(EVIDENCE_DIR / filename)
@@ -51,10 +52,17 @@ def main() -> int:
             {"production_certified": certified, "blockers": rows}, indent=2, ensure_ascii=False
         )
     )
-    if certified:
+    if certified or not require_certified:
         return 0
-    return 0
+    return 1
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--require-certified",
+        action="store_true",
+        help="exit non-zero while any non-waived production blocker is pending",
+    )
+    args = parser.parse_args()
+    raise SystemExit(main(require_certified=args.require_certified))

@@ -98,6 +98,17 @@ def main() -> int:
             f"docker-compose.v9.yml missing raster S3 environment keys: {', '.join(missing_compose)}"
         )
 
+    for required in (
+        "sahool-minio-init:", "deploy/minio/policies", "scripts/minio/provision.sh",
+        "SCOUT_INGEST_S3_ACCESS_KEY:", "RASTER_S3_ACCESS_KEY:",
+    ):
+        if required not in compose:
+            fail(f"docker-compose.v9.yml missing MinIO least-privilege provisioning: {required}")
+    provision = (ROOT / "scripts/minio/provision.sh").read_text(encoding="utf-8")
+    for denial in ("scout/sahool-rasters", "raster/sahool-scout-ingest"):
+        if denial not in provision:
+            fail(f"MinIO provisioning lacks cross-scope negative check: {denial}")
+
     # MinIO version pin: the community admin console was gutted in RELEASE.2025-05-24,
     # the repo was archived (2026-04), and later Docker Hub images carry a HIGH CVE and
     # were pulled. This deployment relies on the console (--console-address :9001), so we

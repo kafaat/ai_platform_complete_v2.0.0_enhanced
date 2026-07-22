@@ -3,7 +3,9 @@
 Supports exporting farm memory to:
 - JSON (always available)
 - Parquet (requires pyarrow; raises OptionalDependencyError if missing)
-- Qdrant snapshot (lazy; falls back to JSON snapshot if qdrant_client missing)
+- Portable JSON snapshots of scalar memory. Native Qdrant vector snapshots are
+  rejected until a live collection exporter is configured; vectors are never
+  silently represented as an empty list.
 - Encrypted tarball AES-256 (always available via cryptography)
 
 All operations are logged for audit trail.
@@ -49,6 +51,10 @@ class OptionalDependencyError(ImportError):
     Raised when an optional dependency required for a specific export format
     is not installed.  Arabic message is included for farmer-facing tooling.
     """
+
+
+class VectorExportUnavailable(RuntimeError):
+    """Raised when a caller requests vectors without a real Qdrant exporter."""
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +112,7 @@ def export_to_json(
     farm_id: str,
     path: str | Path,
     memory: FarmMemory,
-    include_vectors: bool = True,
+    include_vectors: bool = False,
 ) -> dict[str, Any]:
     """Export farm memory to a JSON file.
 
@@ -120,7 +126,7 @@ def export_to_json(
         "preferences": {...},
         "patterns": [...],
         "recommendations": [...],
-        "vectors": []  # placeholder for real vector data
+        "vector_export": {"included": false, "reason": "not_requested"}
     }
 
     Parameters
@@ -132,8 +138,8 @@ def export_to_json(
     memory:
         FarmMemory instance to export.
     include_vectors:
-        If True, include a ``vectors`` key (currently empty list;
-        real deployment would populate from qdrant).
+        Vector export is not implemented by this scalar JSON exporter. Passing
+        True fails closed instead of producing a misleading empty list.
 
     Returns
     -------
@@ -144,6 +150,11 @@ def export_to_json(
         raise ValueError(
             f"Tenant isolation violation: memory.farm_id={memory.farm_id!r} != "
             f"export farm_id={farm_id!r}"
+        )
+    if include_vectors:
+        raise VectorExportUnavailable(
+            "Vector export requires a live, tenant-scoped Qdrant collection exporter; "
+            "refusing to write a scalar-only backup that claims to contain vectors"
         )
 
     path = Path(path)
@@ -159,9 +170,8 @@ def export_to_json(
         "preferences": raw.get("preferences", {}),
         "patterns": raw.get("patterns", []),
         "recommendations": raw.get("recommendations", []),
+        "vector_export": {"included": False, "reason": "not_requested"},
     }
-    if include_vectors:
-        payload["vectors"] = []  # placeholder; swap for real vectors in production
 
     # Atomic write: write to temp then rename
     tmp_path = path.with_suffix(".tmp")
@@ -189,6 +199,7 @@ def export_to_json(
             "recommendations": len(payload["recommendations"]),
             "preferences": len(payload["preferences"]),
         },
+        "vectors_included": False,
     }
     logger.info(
         "export_engine[%s]: exported JSON → %s (conversations=%d, patterns=%d, "
@@ -457,7 +468,7 @@ def export_to_encrypted_tarball(
 
         # Step 1: Export JSON
         json_path = tmp / "memory.json"
-        json_manifest = export_to_json(farm_id, json_path, memory, include_vectors=True)
+        json_manifest = export_to_json(farm_id, json_path, memory, include_vectors=False)
         json_checksum = json_manifest["checksum_sha256"]
 
         # Step 2: Write manifest.json
@@ -468,6 +479,7 @@ def export_to_encrypted_tarball(
             "schema_version": SCHEMA_VERSION,
             "json_checksum_sha256": json_checksum,
             "counts": json_manifest["counts"],
+            "vectors_included": False,
         }
         manifest_path = tmp / "manifest.json"
         manifest_path.write_text(

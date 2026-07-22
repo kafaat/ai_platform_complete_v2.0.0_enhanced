@@ -244,6 +244,9 @@ async def simulate_season_endpoint(
         sim_ran_at=ran_at.isoformat(),
         gdd_provenance=gdd_provenance,
         et0_provenance=et0_provenance,
+        model_role="screening_only",
+        eligible_for_calibration=False,
+        canonical_yield_engine="pcse_wofost",
     )
 
 

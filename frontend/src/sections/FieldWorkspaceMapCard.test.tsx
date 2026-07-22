@@ -5,7 +5,7 @@
 //   • المكوّن: loading→بيانات، empty عند فراغ، error عند خطأ، وقاعدة عدم الاختلاق
 //     (زرّ NDVI مُعطَّل إن لم تُعلِن مساحة العمل طبقة ndvi).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import type { ReactNode } from 'react';
@@ -111,7 +111,7 @@ function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   // البطاقة تستخدم useNavigate لأزرار الانتقال بسياق الحقل ⇒ تحتاج Router في الاختبار.
   return (
-    <MemoryRouter>
+    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <QueryClientProvider client={qc}>{children}</QueryClientProvider>
     </MemoryRouter>
   );
@@ -180,27 +180,39 @@ describe('سلوك FieldWorkspaceMapCard', () => {
     } as unknown as ReturnType<typeof useApiModule.useFieldDetail>);
   }
 
-  it('loading: يعرض هيكل التحميل', () => {
+  async function flushImageryDatesEffect() {
+    // The component intentionally fetches imagery dates after mount. Flush that
+    // resolved promise inside React's test boundary so post-render state updates
+    // are observed instead of leaking `act(...)` warnings into the full suite.
+    await act(async () => {
+      await Promise.resolve();
+    });
+  }
+
+  it('loading: يعرض هيكل التحميل', async () => {
     stubWorkspace({ isLoading: true, isSuccess: false });
     stubDetail(null);
     render(<FieldWorkspaceMapCard fieldId="f-1" />, { wrapper });
+    await flushImageryDatesEffect();
     expect(screen.getByText(/جارٍ تحميل مساحة عمل الحقل/)).toBeInTheDocument();
   });
 
-  it('error: يعرض حالة خطأ صادقة', () => {
+  it('error: يعرض حالة خطأ صادقة', async () => {
     stubWorkspace({ isError: true, isSuccess: false, error: new Error('503') });
     stubDetail(null);
     render(<FieldWorkspaceMapCard fieldId="f-1" />, { wrapper });
+    await flushImageryDatesEffect();
     expect(screen.getByText(/تعذّر تحميل مساحة عمل الحقل/)).toBeInTheDocument();
   });
 
-  it('بيانات: يعرض الملخّص + الخطّ الزمنيّ + الخريطة', () => {
+  it('بيانات: يعرض الملخّص + الخطّ الزمنيّ + الخريطة', async () => {
     stubWorkspace({ data: WS });
     stubDetail({
       type: 'Polygon',
       coordinates: [[[44, 15], [44.01, 15], [44.01, 15.01], [44, 15.01], [44, 15]]],
     });
     render(<FieldWorkspaceMapCard fieldId="f-1" />, { wrapper });
+    await flushImageryDatesEffect();
     expect(screen.getByText('ملخّص القرار الموحّد')).toBeInTheDocument();
     expect(screen.getByText('قمح')).toBeInTheDocument();
     expect(screen.getByText('الخطّ الزمنيّ')).toBeInTheDocument();
@@ -208,22 +220,24 @@ describe('سلوك FieldWorkspaceMapCard', () => {
     expect(screen.getByTestId('polygon')).toBeInTheDocument();
   });
 
-  it('قاعدة عدم الاختلاق: NDVI on_demand ⇒ الزرّ موجود لكن لا طبقة tile قبل التفعيل', () => {
+  it('قاعدة عدم الاختلاق: NDVI on_demand ⇒ الزرّ موجود لكن لا طبقة tile قبل التفعيل', async () => {
     stubWorkspace({ data: WS });
     stubDetail({
       type: 'Polygon',
       coordinates: [[[44, 15], [44.01, 15], [44.01, 15.01], [44, 15.01], [44, 15]]],
     });
     render(<FieldWorkspaceMapCard fieldId="f-1" />, { wrapper });
+    await flushImageryDatesEffect();
     // قبل التفعيل لا توجد طبقة بلاطات NDVI (طبقة الأساس فقط).
     const tiles = screen.getAllByTestId('tile');
     expect(tiles.some((t) => (t.getAttribute('data-url') || '').includes('tiles'))).toBe(false);
   });
 
-  it('empty: لا حدود ⇒ يعرض "لا حدود مرسومة" دون اختلاق مضلّع', () => {
+  it('empty: لا حدود ⇒ يعرض "لا حدود مرسومة" دون اختلاق مضلّع', async () => {
     stubWorkspace({ data: WS });
     stubDetail(null); // لا هندسة
     render(<FieldWorkspaceMapCard fieldId="f-1" />, { wrapper });
+    await flushImageryDatesEffect();
     expect(screen.getByText(/لا حدود مرسومة للحقل/)).toBeInTheDocument();
     expect(screen.queryByTestId('polygon')).not.toBeInTheDocument();
   });

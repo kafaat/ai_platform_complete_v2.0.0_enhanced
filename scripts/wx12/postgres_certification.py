@@ -1,7 +1,12 @@
 """WX-12.1 database certification. Requires a real PostgreSQL DATABASE_URL."""
 
 from __future__ import annotations
-import asyncio, json, os, subprocess, sys
+
+import asyncio
+import json
+import os
+import subprocess
+import sys
 
 
 async def checks():

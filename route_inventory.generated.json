@@ -1042,7 +1042,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 119,
+    "line": 184,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1050,7 +1050,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 124,
+    "line": 189,
     "method": "GET",
     "path": "/health",
     "function": "legacy_health"
@@ -1058,7 +1058,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 129,
+    "line": 194,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"
@@ -1066,7 +1066,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 141,
+    "line": 206,
     "method": "GET",
     "path": "/contract",
     "function": "contract"
@@ -1074,7 +1074,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 160,
+    "line": 225,
     "method": "GET",
     "path": "/",
     "function": "root"
@@ -1082,7 +1082,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 169,
+    "line": 234,
     "method": "GET",
     "path": "/internal/fields/{field_id}",
     "function": "internal_get_field"
@@ -1090,7 +1090,7 @@
   {
     "service": "field-management-service",
     "file": "services/field-management-service/main.py",
-    "line": 201,
+    "line": 266,
     "method": "GET",
     "path": "/internal/fields",
     "function": "internal_list_fields"
@@ -6682,7 +6682,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/seasons.py",
-    "line": 251,
+    "line": 254,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
     "function": "field_season_state_endpoint"

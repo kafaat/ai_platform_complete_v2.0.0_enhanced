@@ -1,7 +1,10 @@
 """Fail-closed staging drill verifier. It validates externally supplied evidence JSON."""
 
 from __future__ import annotations
-import json, os, sys
+
+import json
+import os
+import sys
 
 REQUIRED = [
     "candidate_digest",
