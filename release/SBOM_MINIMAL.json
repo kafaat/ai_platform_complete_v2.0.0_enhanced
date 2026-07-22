@@ -6475,7 +6475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "159318d4524d0068637f524b85d32dd6c5b08831514f1bf9925ef4a139dc391a"
+          "content": "10cd9d69cd8d528d92daf5cf613a04d8ed06ce855a038ad769e27a899df6dbe8"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7579,6 +7579,16 @@
         }
       ],
       "name": "migrations/v197_external_submissions_ingest.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "9c0cb89c25de1483d8874f1872fe4b8b7e0d87c4e3ec263b738923b2f15fc297"
+        }
+      ],
+      "name": "migrations/v197_irrigation_reservation_runtime_hardening.sql",
       "type": "file"
     },
     {
@@ -15455,6 +15465,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "82090c27d9bf40e880da471acf589e207ddb39face2dcd4eda0c2303d69a6dfa"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_authoritative_reservation.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e824e69068c7e8f48fca546c8b35af692963a452e8ffc85caf6f645838d42551"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_authoritative_resolver.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8d053cd84f3887dca5bc96852cd7d686773565533c45f3b535a1abadd4583b83"
         }
       ],
@@ -15515,7 +15545,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0c827c03780b58af948111a85a212f8305e692c9dd22bd325acd442c6719dfa8"
+          "content": "62921ab62850013455343e5e7bc6a10fbc7dc1f9cfb42f52267ae08a458e6316"
         }
       ],
       "name": "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
@@ -15659,6 +15689,16 @@
         }
       ],
       "name": "services/sahool-platform/api/irrigation_reservation_adapter.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d647722830b8a0b2a88b4ea6589aba07f069a7acc8eb53d2382d8e1ab17cdad5"
+        }
+      ],
+      "name": "services/sahool-platform/api/irrigation_reservation_lifecycle.py",
       "type": "file"
     },
     {

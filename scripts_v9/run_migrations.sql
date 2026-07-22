@@ -565,5 +565,7 @@
 \echo '═══ 210. v204_field_forms.sql ═══'
 \i migrations/v204_field_forms.sql
 
-\echo '═══ 211. v206_rls_final_hardening.sql ═══'
+\echo '═══ 211. v197_irrigation_reservation_runtime_hardening.sql ═══'
+\i migrations/v197_irrigation_reservation_runtime_hardening.sql
+\echo '═══ 212. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
