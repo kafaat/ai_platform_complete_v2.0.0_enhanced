@@ -32,7 +32,15 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: '3.12'}
-      - run: pip install asyncpg pytest pytest-asyncio
+      # migration_runner connects via asyncpg — that is all this cert step needs.
+      - run: pip install asyncpg
+      # WX-12 runtime certification proves the decision-service migration set applies cleanly and
+      # is idempotent (--check) against a real Postgres. The decision-service TEST SUITE is NOT run
+      # here: it is owned end-to-end by the "Decision Service Tests" job in ci.yml, which runs each
+      # file with the correct per-file environment (SoR-on files vs the mirror-mode contract file
+      # need CONTRADICTORY DECISION_SERVICE_SOR_ENABLED values, so a single blanket
+      # `pytest services/decision-service/tests` invocation can never satisfy both — it is a
+      # redundant, mis-configured duplicate of that job). Keep this gate scoped to the migration
+      # certification that is unique to it.
       - run: python services/decision-service/migration_runner.py --apply
       - run: python services/decision-service/migration_runner.py --check
-      - run: pytest -q services/decision-service/tests
