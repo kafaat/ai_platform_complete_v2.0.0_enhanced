@@ -36,7 +36,7 @@
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
   "file_count": 4777,
-  "generated_at": "2026-07-22T20:36:24.536327+00:00",
+  "generated_at": "2026-07-22T20:39:23.748370+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
