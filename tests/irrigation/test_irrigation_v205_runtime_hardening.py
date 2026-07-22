@@ -1,7 +1,7 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SQL = (ROOT / "migrations/v197_irrigation_reservation_runtime_hardening.sql").read_text()
+SQL = (ROOT / "migrations/v205_irrigation_reservation_runtime_hardening.sql").read_text()
 RELAY = (ROOT / "services/sahool-platform/api/irrigation_dispatch_relay_worker.py").read_text()
 RESOLVER = (ROOT / "services/sahool-platform/api/irrigation_authoritative_resolver.py").read_text()
 

@@ -704,9 +704,9 @@ v203_season_sowing_in_observed_range.sql
 # v204: GAP-FIELD-FORMS-01 — النماذج الميدانيّة الديناميكية فوق B1 (4 جداول، scout-ingest،
 # RLS صريح + immutability بالأعمدة + state machine + حظر hard delete + FKs مركّبة). idempotent.
 v204_field_forms.sql
-# v197_irrigation (IRR-F01 sequential): تشديد وقت التشغيل لحجوزات الريّ (ALTER فقط على جداول
+# v205_irrigation (IRR-F01 sequential): تشديد وقت التشغيل لحجوزات الريّ (ALTER فقط على جداول
 # v195/v196 القائمة — قيود/فهارس/أعمدة، لا جداول جديدة). يُدرَج قبل v206 لإبقاء v206 آخر مدخل.
-v197_irrigation_reservation_runtime_hardening.sql
+v205_irrigation_reservation_runtime_hardening.sql
 # v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
 # app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
 v206_rls_final_hardening.sql
