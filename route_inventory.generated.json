@@ -6738,7 +6738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 123,
+    "line": 127,
     "method": "ANY",
     "path": "/api/edge/{path:path}",
     "function": "proxy_edge"
@@ -6746,7 +6746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 138,
+    "line": 142,
     "method": "ANY",
     "path": "/api/soil/{path:path}",
     "function": "proxy_soil"
@@ -6754,7 +6754,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 153,
+    "line": 157,
     "method": "ANY",
     "path": "/api/segmentation/{path:path}",
     "function": "proxy_segmentation"
@@ -6762,7 +6762,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/service_proxy.py",
-    "line": 170,
+    "line": 174,
     "method": "ANY",
     "path": "/api/field-forms/{path:path}",
     "function": "proxy_field_forms"
@@ -7394,7 +7394,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 187,
+    "line": 193,
     "method": "POST",
     "path": "/internal/field-forms/definitions",
     "function": "create_definition"
@@ -7402,7 +7402,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 222,
+    "line": 228,
     "method": "POST",
     "path": "/internal/field-forms/definitions/{code}/versions",
     "function": "create_version"
@@ -7410,7 +7410,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 270,
+    "line": 276,
     "method": "POST",
     "path": "/internal/field-forms/versions/{version_id}/publish",
     "function": "publish_version"
@@ -7418,7 +7418,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 319,
+    "line": 325,
     "method": "POST",
     "path": "/internal/field-forms/versions/{version_id}/retire",
     "function": "retire_version"
@@ -7426,7 +7426,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 353,
+    "line": 359,
     "method": "POST",
     "path": "/internal/field-forms/assignments",
     "function": "create_assignment"
@@ -7434,7 +7434,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 385,
+    "line": 391,
     "method": "GET",
     "path": "/internal/field-forms/download",
     "function": "download_forms"
@@ -7442,7 +7442,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/field_forms_api.py",
-    "line": 457,
+    "line": 463,
     "method": "POST",
     "path": "/internal/field-forms/submissions",
     "function": "submit_form"
@@ -7466,7 +7466,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 202,
+    "line": 216,
     "method": "GET",
     "path": "/internal/scouting/external-observations",
     "function": "read_external_observations"
@@ -7474,7 +7474,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 321,
+    "line": 335,
     "method": "POST",
     "path": "/internal/ingest/submissions/odk",
     "function": "ingest_odk_submission"
@@ -7482,7 +7482,7 @@
   {
     "service": "scout-ingest-service",
     "file": "services/scout-ingest-service/main.py",
-    "line": 330,
+    "line": 344,
     "method": "POST",
     "path": "/internal/ingest/submissions/kobo",
     "function": "ingest_kobo_submission"

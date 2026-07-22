@@ -42,6 +42,12 @@ class ProjectionSkip:
     reason: str
 
 
+# Slice 3 (§استبعاد الإسقاط): علامة نوع تُزرع خادميًّا في normalized_payload للنماذج
+# الميدانيّة الديناميكية — إسقاطها إلى external_field_observations يُنتج صفوف NULL كلّها
+# (لا observed_property/value واحد)، فتُصنّف dead_letter بدل تلويث نموذج القراءة.
+FIELD_FORM_KIND = "field_form"
+
+
 def derive_observation_id(*, tenant_id: str, idempotency_key: str) -> str:
     """معرّف مشاهدة حتميّ من هويّة الخانة ⇒ إسقاط idempotent (نفس المفتاح ⇒ نفس المعرّف)."""
     raw = _SEP.join((str(tenant_id), idempotency_key))
@@ -84,6 +90,10 @@ def project_submission(
 ) -> ExternalFieldObservation | ProjectionSkip:
     """يُسقِط إدخالاً مقبولاً إلى مشاهدة، أو يُصنّف التخطّي (field_id مفقود ⇒ dead_letter)."""
     payload = normalized_payload if isinstance(normalized_payload, dict) else {}
+    # Slice 3: النماذج الميدانيّة الديناميكية ليست مشاهدة نقطيّة — تُستبعَد من الإسقاط
+    # (dead_letter مُصنَّف) بدل بناء صفّ مشاهدة كلّه NULL.
+    if payload.get("kind") == FIELD_FORM_KIND:
+        return ProjectionSkip(reason="field_forms_not_projectable")
     field_id = payload.get("field_id")
     if not isinstance(field_id, str) or not field_id.strip():
         return ProjectionSkip(reason="no_field_id")

@@ -143,6 +143,6 @@ sam2-inference,services/sam2-inference/main.py,110,GET,/health,legacy_health,hea
 sam2-inference,services/sam2-inference/main.py,115,GET,/readyz,readyz,readiness
 scout-ingest-service,services/scout-ingest-service/main.py,178,GET,/healthz,healthz,health
 scout-ingest-service,services/scout-ingest-service/main.py,183,GET,/readyz,readyz,readiness
-scout-ingest-service,services/scout-ingest-service/main.py,202,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint
-scout-ingest-service,services/scout-ingest-service/main.py,321,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint
-scout-ingest-service,services/scout-ingest-service/main.py,330,POST,/internal/ingest/submissions/kobo,ingest_kobo_submission,internal_endpoint
+scout-ingest-service,services/scout-ingest-service/main.py,216,GET,/internal/scouting/external-observations,read_external_observations,internal_endpoint
+scout-ingest-service,services/scout-ingest-service/main.py,335,POST,/internal/ingest/submissions/odk,ingest_odk_submission,internal_endpoint
+scout-ingest-service,services/scout-ingest-service/main.py,344,POST,/internal/ingest/submissions/kobo,ingest_kobo_submission,internal_endpoint

@@ -63,6 +63,10 @@ def _filtered_headers(
         # لا نثق بأي ترويسات خدمة/مستأجر قادمة من العميل.
         if lk in {"x-agent-token", "x-tenant-id", "x-field-forms-token"}:
             continue
+        # Slice 3: لا تُمرَّر مصادقة العميل (JWT/جلسة) للخدمات الداخليّة — المصادقة
+        # الداخليّة عبر توكن القناة المحقون + X-Tenant-Id حصرًا (منع تمرير هويّة العميل).
+        if lk in {"authorization", "cookie"}:
+            continue
         headers[key] = value
     if service_header is not None:
         headers[service_header[0]] = service_header[1]
