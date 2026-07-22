@@ -4,7 +4,9 @@
 يفرض:
 - v206 آخر مدخل MANIFEST دائمًا + محتواه (fail-closed WITH CHECK + catalog assertion).
 - backup_postgres.sh يشير لخدمة compose/الدور الفعليّين (لا sahool-postgis/postgres).
-- دور Odoo المقيَّد في apply_in_compose.sh (REVOKE CONNECT على قاعدة المنصّة).
+- دور Odoo المقيَّد في apply_in_compose.sh (REVOKE ALL PRIVILEGES على قاعدة المنصّة).
+- سحب CONNECT الضمنيّ من PUBLIC + منح صريح + حارس MANIFEST وقت التشغيل + تأكيد
+  سمات الأدوار (SUPERUSER/BYPASSRLS) عند bootstrap.
 - compose: redis-state منفصل (noeviction+AOF) وخدمات الأمان تشير إليه، وOdoo لا
   يعمل بـsahool_user. (تُستكمَل تعديلات compose ضمن الفرع نفسه قبل فتح PR.)
 """
@@ -59,10 +61,38 @@ def test_backup_script_targets_real_service_and_role():
 def test_odoo_restricted_role_cannot_reach_platform_db():
     src = APPLY.read_text(encoding="utf-8")
     assert 'ODOO_DB_ROLE:-odoo_app' in src, "دور odoo_app المقيَّد غائب"
-    assert "REVOKE CONNECT ON DATABASE sahool FROM" in src, (
-        "منع اتّصال odoo بقاعدة المنصّة غائب"
+    # REVOKE CONNECT وحده لا يكفي (يبقي المنح السابقة/TEMP) — يلزم REVOKE ALL:
+    assert "REVOKE ALL PRIVILEGES ON DATABASE" in src, (
+        "سحب كلّ امتيازات قاعدة المنصّة عن odoo غائب"
     )
     assert "NOBYPASSRLS CREATEDB NOCREATEROLE" in src
+
+
+def test_public_connect_revoked_with_explicit_grants():
+    src = APPLY.read_text(encoding="utf-8")
+    # PostgreSQL يمنح CONNECT لـPUBLIC افتراضيًّا — يهزم REVOKE الموجَّه لأيّ دور جديد:
+    assert "FROM PUBLIC" in src and "REVOKE CONNECT ON DATABASE" in src, (
+        "سحب CONNECT الضمنيّ من PUBLIC غائب"
+    )
+    # والمنح الصريح للأدوار المُدارة موجود (إلّا يتعذّر اتّصال التطبيق نفسه):
+    assert "GRANT CONNECT ON DATABASE" in src
+
+
+def test_manifest_last_entry_enforced_at_runtime():
+    src = APPLY.read_text(encoding="utf-8")
+    # الحارس الساكن (أعلاه) لا يكفي — السكربت نفسه يجب أن يرفض MANIFEST مكسور الترتيب:
+    assert "LAST_SQL=" in src, "حارس وقت التشغيل لآخر مدخل MANIFEST غائب"
+    assert '!= "v206_rls_final_hardening.sql"' in src
+    assert "exit 1" in src
+
+
+def test_bootstrap_roles_attributes_asserted():
+    src = APPLY.read_text(encoding="utf-8")
+    # تأكيد bootstrap: لا SUPERUSER/BYPASSRLS خارج القائمة المعتمدة (انجراف يدويّ):
+    assert "app.managed_roles" in src
+    assert "app.bypassrls_allowed" in src
+    assert "r.rolsuper OR r.rolbypassrls" in src
+    assert "bootstrap assertion فشل" in src
 
 
 def test_compose_splits_security_redis_from_cache():

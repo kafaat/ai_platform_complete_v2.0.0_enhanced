@@ -2,9 +2,6 @@
 # scripts/backup_postgres.sh — PostgreSQL Backup مع PITR support
 #
 # المرجع: مراجعة Production Readiness — "PITR backups, WAL archiving"
-# حزمة 72 ساعة (DB-P0-04): تصحيح الافتراضيّات إلى خدمة compose الفعليّة
-# (sahool-postgres) ودور التهيئة الفعليّ (sahool_user) — الافتراضيان القديمان
-# (sahool-postgis/postgres) كانا يجعلان التشغيل بلا env يفشل أو يصيب هدفًا خاطئًا.
 #
 # الميزات:
 #   ١. pg_dump → custom format (مضغوط، parallel-safe)
