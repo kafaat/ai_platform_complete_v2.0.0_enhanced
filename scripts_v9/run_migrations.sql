@@ -564,3 +564,6 @@
 \i migrations/v203_season_sowing_in_observed_range.sql
 \echo '═══ 210. v204_field_forms.sql ═══'
 \i migrations/v204_field_forms.sql
+
+\echo '═══ 211. v206_rls_final_hardening.sql ═══'
+\i migrations/v206_rls_final_hardening.sql
