@@ -6415,7 +6415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3b08df5aa76546c07b28dc77035d3a0c37c504dda00e79bd15520ce2834cd97c"
+          "content": "159318d4524d0068637f524b85d32dd6c5b08831514f1bf9925ef4a139dc391a"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -6435,7 +6435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e1036831d494704001c37450eae0128c06dfa60ba32d3b22debe38e94c7bfd81"
+          "content": "3b01c6a4ceaa32d33f60a02f0734f082c1b09bf277280b62514df0f588bf9b6d"
         }
       ],
       "name": "migrations/apply_in_compose.sh",
@@ -7599,6 +7599,16 @@
         }
       ],
       "name": "migrations/v204_field_forms.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5d44c98657b172915885c3a238ad4d4508d6e6ac2c0ca62a043dda015bdb4571"
+        }
+      ],
+      "name": "migrations/v206_rls_final_hardening.sql",
       "type": "file"
     },
     {

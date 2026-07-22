@@ -51,6 +51,14 @@ BEGIN
           AND c.table_name = pol.tablename
           AND c.column_name = 'tenant_id';
 
+        -- تخطَّ الجداول بلا عمود tenant_id: عزلها المستأجريّ يمرّ عبر جدول أب
+        -- (مثال: field_lifecycle_transitions ← field_lifecycle.tenant_id عبر lifecycle_id)،
+        -- فإعادة كتابة WITH CHECK إلى (tenant_id = …) تفشل («column tenant_id does not exist»)
+        -- وتهدم العزل الأبويّ الصحيح. تأكيد catalog (2) يقتصر أصلاً على جداول tenant_id.
+        IF NOT FOUND THEN
+            CONTINUE;
+        END IF;
+
         IF tenant_nullable THEN
             -- صفوف نظاميّة بلا مستأجر تبقى ممكنة؛ صفّ بمستأجر يتطلّب السياق المطابق.
             predicate := '(tenant_id IS NULL OR tenant_id::text = public.sahool_effective_tenant_id())';
