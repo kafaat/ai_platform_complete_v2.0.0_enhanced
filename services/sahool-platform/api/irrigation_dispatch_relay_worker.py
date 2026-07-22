@@ -30,7 +30,7 @@ import os
 from collections.abc import Awaitable, Callable
 from typing import Any
 
-from decision_service_client import decision_post_json
+from decision_service_client import decision_service_headers, decision_service_url
 from irrigation_dispatch_relay import (
     SUPPORTED_DISPATCH_EVENTS,
     build_reservation_dispatch_ingest,
@@ -114,7 +114,24 @@ async def handle_delivered_message(raw: bytes, *, post_fn: PostFn) -> dict[str, 
 
 
 async def _default_post(tenant_id: str | None, body: dict[str, Any]) -> tuple[int, Any]:
-    return await decision_post_json(INGEST_PATH, body, tenant_id=tenant_id)
+    """Return the transport status and decoded body; do not collapse it to a dict."""
+    import httpx
+
+    url = f"{decision_service_url()}/{INGEST_PATH.lstrip('/')}"
+    try:
+        async with httpx.AsyncClient(timeout=20.0) as client:
+            response = await client.post(
+                url,
+                json=body,
+                headers=decision_service_headers(tenant_id=tenant_id),
+            )
+    except httpx.HTTPError as exc:
+        return 502, {"detail": f"decision-service unavailable: {exc}"}
+    try:
+        payload: Any = response.json()
+    except ValueError:
+        payload = response.text
+    return response.status_code, payload
 
 
 async def run_relay(*, post_fn: PostFn | None = None) -> None:

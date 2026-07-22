@@ -30,6 +30,10 @@ DIRECT_RESERVATION_ALLOWLIST = {
     "irrigation_reservation_adapter.py",  # the coordinator (defines/uses the primitive + the seam)
     "irrigation_capacity_reservation.py",  # the pure kernel that defines evaluate_admission
     "irrigation_activation_gate.py",  # the restricted adapter (names the primitive in its contract)
+    # IRR-F01 sequential: the single governed entry point (intent → authoritative resolution →
+    # reservation). Reviewed: it accepts activation_guard and threads it through to
+    # reserve_and_request_dispatch_db (the gated coordinator) — it never bypasses the seam.
+    "irrigation_authoritative_reservation.py",
 }
 
 

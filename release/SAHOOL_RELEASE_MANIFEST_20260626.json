@@ -4,13 +4,13 @@
     "component_file_counts": {
       "frontend": 633,
       "grafana": 5,
-      "migrations": 219,
+      "migrations": 220,
       "mobile": 65,
       "prometheus": 2,
       "scripts": 253,
-      "services": 1887,
+      "services": 1890,
       "shared": 131,
-      "tests": 57
+      "tests": 58
     }
   },
   "deployment_gates": [
@@ -35,8 +35,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 4778,
-  "generated_at": "2026-07-22T22:10:52.728903+00:00",
+  "file_count": 4784,
+  "generated_at": "2026-07-22T22:20:25.742314+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -119,5 +119,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 32075298
+  "total_size_bytes": 32094680
 }
