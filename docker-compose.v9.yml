@@ -1714,8 +1714,10 @@ services:
     - /opt/odoo-init.sh
     environment:
       HOST: sahool-postgres
-      USER: sahool_user
-      PASSWORD: ${DB_PASSWORD}
+      # دور Odoo المقيَّد (لا مالك الهجرات sahool_user): يُنشئه apply_in_compose.sh
+      # (LOGIN NOBYPASSRLS CREATEDB + سحب CONNECT من PUBLIC). لذا odoo يبدأ بعد sahool-migrate.
+      USER: ${ODOO_DB_ROLE:-odoo_app}
+      PASSWORD: ${ODOO_DB_PASSWORD:-odoo_app_pw}
       DB_NAME: ${ODOO_DB:-sahool_erp}
     volumes:
     - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro
@@ -1725,6 +1727,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
     networks:
     - sahool-internal
     healthcheck:

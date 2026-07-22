@@ -60,11 +60,9 @@ def test_backup_script_targets_real_service_and_role():
 
 def test_odoo_restricted_role_cannot_reach_platform_db():
     src = APPLY.read_text(encoding="utf-8")
-    assert 'ODOO_DB_ROLE:-odoo_app' in src, "دور odoo_app المقيَّد غائب"
+    assert "ODOO_DB_ROLE:-odoo_app" in src, "دور odoo_app المقيَّد غائب"
     # REVOKE CONNECT وحده لا يكفي (يبقي المنح السابقة/TEMP) — يلزم REVOKE ALL:
-    assert "REVOKE ALL PRIVILEGES ON DATABASE" in src, (
-        "سحب كلّ امتيازات قاعدة المنصّة عن odoo غائب"
-    )
+    assert "REVOKE ALL PRIVILEGES ON DATABASE" in src, "سحب كلّ امتيازات قاعدة المنصّة عن odoo غائب"
     assert "NOBYPASSRLS CREATEDB NOCREATEROLE" in src
 
 
