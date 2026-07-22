@@ -44,9 +44,10 @@ def test_bff_path_allowlist_closed():
     assert "internal/field-forms/" in route_body, "الهدف الداخليّ غائب"
     # إدارة التعريفات/النشر لا تمرّ عبر BFF:
     for admin in ("definitions", "publish", "retire", "assignments"):
-        assert f'"{admin}"' not in route_body.split("allowed", 1)[1].split(
-            "raise HTTPException(404"
-        )[0]
+        assert (
+            f'"{admin}"'
+            not in route_body.split("allowed", 1)[1].split("raise HTTPException(404")[0]
+        )
 
 
 def test_compose_wires_flag_and_token_both_services():
