@@ -2,6 +2,9 @@
 # scripts/backup_postgres.sh — PostgreSQL Backup مع PITR support
 #
 # المرجع: مراجعة Production Readiness — "PITR backups, WAL archiving"
+# حزمة 72 ساعة (DB-P0-04): تصحيح الافتراضيّات إلى خدمة compose الفعليّة
+# (sahool-postgres) ودور التهيئة الفعليّ (sahool_user) — الافتراضيان القديمان
+# (sahool-postgis/postgres) كانا يجعلان التشغيل بلا env يفشل أو يصيب هدفًا خاطئًا.
 #
 # الميزات:
 #   ١. pg_dump → custom format (مضغوط، parallel-safe)
@@ -30,9 +33,9 @@ RETENTION_DAYS_LOCAL="${RETENTION_DAYS_LOCAL:-7}"
 RETENTION_DAYS_S3="${RETENTION_DAYS_S3:-30}"
 
 # Postgres connection (from env)
-PGHOST="${PGHOST:-sahool-postgis}"
+PGHOST="${PGHOST:-sahool-postgres}"
 PGPORT="${PGPORT:-5432}"
-PGUSER="${PGUSER:-postgres}"
+PGUSER="${PGUSER:-sahool_user}"
 PGDATABASE="${PGDATABASE:-sahool}"
 # PGPASSWORD يجب أن يُمرّر عبر env (لا في الـscript)
 
