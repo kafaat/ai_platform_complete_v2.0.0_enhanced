@@ -62,7 +62,12 @@ export default defineConfig({
             ['vendor-react', ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'zustand']],
             ['vendor-ui', ['lucide-react', 'framer-motion', 'cmdk']],
             ['vendor-charts', ['recharts', 'd3-']],
-            ['vendor-leaflet', ['leaflet', 'react-leaflet', '@react-leaflet/core']],
+            // NOTE: the Leaflet ecosystem is deliberately NOT manually chunked. Its
+            // plugins (leaflet-draw, @geoman-io/leaflet-geoman-free) are UMD modules
+            // that reference the bare global `L` at module-load; forcing them into a
+            // standalone vendor chunk breaks that interop and throws "L is not defined"
+            // (blank app). Leave leaflet to the automatic shared-chunk splitting, which
+            // keeps the interop intact.
             ['vendor-maplibre', ['maplibre-gl']],
             ['vendor-terra-draw', ['terra-draw', 'terra-draw-maplibre-gl-adapter']],
             ['vendor-turf', ['@turf/']],

@@ -6445,7 +6445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d1056aa41ed9ecdb96d055a3222c4f83a6f65c5f381518edc80b15e352f5f076"
+          "content": "d3cd1b701a265f25d35acf5dd05a8baf9d4304086653592cb6bd249bf494b742"
         }
       ],
       "name": "frontend/vite.config.ts",
