@@ -1,212 +1,709 @@
-# migrations/MANIFEST.txt — ترتيب التطبيق الملزِم (يُطبَّق أعلى→أسفل).
-# قواعد:
-#   ١. كلّ migration جديد يُضاف هنا بالترتيب الزمنيّ (لا إعادة ترتيب للماضي).
-#   ٢. idempotent إلزاميّ (IF NOT EXISTS / CREATE OR REPLACE / DO $$).
-#   ٣. v206 يجب أن يبقى آخر مدخل دائمًا (تأكيد catalog النهائيّ يرى الحالة النهائيّة).
-v1_init.sql
-v2_auth_users.sql
-v3_audit_log.sql
-v4_otp.sql
-v5_refresh_tokens.sql
-v6_password_resets.sql
-v7_mfa.sql
-v8_roles.sql
+# دليل ترتيب الـmigrations (MANIFEST)
+#
+# المشكلة: الترتيب الأبجدي يضع v10/v11/v12 قبل v9 — خطأ (الاعتماديّات تنكسر).
+# الحلّ: ترتيب صريح. كل سطر = ملفّ يُطبَّق بالتسلسل. الأسطر الفارغة و# تُتجاهَل.
+#
+# C2 FIX: أُكملت الملفّات الناقصة (كان MANIFEST يسرد 11 من 18 — أخطرها
+# v9_rls_tenant_isolation الغائب ⇒ قاعدة إنتاج بلا عزل مستأجرين).
+# ملفّات .down (التراجع) لا تُدرَج هنا — تُطبَّق يدويّاً عند الحاجة فقط.
+#
+# الترتيب مبنيّ على الاعتماديّات:
+#   init_v8         → الأساس (extensions: postgis, uuid-ossp, pgcrypto + جداول core)
+#   v9_foundation   → جداول v9 الأساسيّة (مُشار إليها بـFK لاحقاً)
+#   v9_*            → إضافات v9 (auth/market/automation/odoo/new_tables/onboarding)
+#   v9_rls_*        → عزل المستأجرين (RLS) — بعد إنشاء الجداول، حرج للأمان
+#   v9_append_only  → فرض append-only على الأحداث (سلامة البيانات)
+#   v10             → command_store + field_lifecycle
+#   v11             → events_bus (يعتمد على pgcrypto من init_v8)
+#   v12             → trueup + sharing keys
+#   v13             → geospatial core
+
+init_v8.sql
+v9_foundation.sql
+v9_auth_improvements.sql
+v9_new_tables.sql
+v9_onboarding.sql
+v9_market.sql
+v9_automation.sql
+v9_automation_persistence.sql
+v9_odoo_bridge.sql
+v9_edge_idempotency.sql
+v9_edge_occurred_at.sql
 v9_rls_tenant_isolation.sql
-v10_audit_trail.sql
-v11_metrics.sql
-v12_weather.sql
-v13_devices.sql
-v14_actuators.sql
-v15_crop_calendars.sql
-v16_ndvi_timeseries.sql
-v17_pest_detections.sql
-v18_tts_requests.sql
-v19_notifications.sql
-v20_irrigation.sql
-v21_farmers.sql
-v22_fields.sql
-v23_tasks.sql
-v24_equipment.sql
-v25_inventory.sql
-v26_marketplace.sql
-v27_payments.sql
-v28_support_tickets.sql
-v29_knowledge_base.sql
-v30_agent_sessions.sql
-v31_videos.sql
-v32_edge_devices.sql
-v33_sync_queue.sql
-v34_soil.sql
-v35_fertilizers.sql
-v36_pesticides.sql
-v37_harvest.sql
-v38_traceability.sql
-v39_certifications.sql
-v40_insurance.sql
-v41_subscriptions.sql
-v42_api_keys.sql
-v43_webhooks.sql
-v44_rate_limits.sql
-v45_feature_flags.sql
-v46_system_settings.sql
-v47_audit_partitioning.sql
-v48_indexes_performance.sql
-v49_views_analytics.sql
-v50_functions_triggers.sql
-v51_data_retention.sql
-v52_backup_metadata.sql
+# نُقِل v9_append_only_enforcement.sql إلى نهاية الـMANIFEST: كان يُطبَّق هنا
+# (موضع ١٤) قبل إنشاء events (v11) وfield_lifecycle_transitions (v10) و
+# lifecycle_temporal_rejections (v9_lifecycle_occurred_at)، فحارس IF EXISTS
+# يتخطّاها صامتاً ⇒ السجلّ غير المحميّ (UPDATE/DELETE ممكنان). idempotent فالنقل آمن.
+v10_command_store_lifecycle.sql
+# FIX: v9_lifecycle_occurred_at يُعدّل field_lifecycle_transitions المُنشأ في
+# v10 — لذا يجب أن يأتي بعده (كان قبله ⇒ "relation does not exist").
+v9_lifecycle_occurred_at.sql
+v11_events_bus.sql
+v12_trueup_sharing.sql
+v13_geospatial_core.sql
+# v14: تخزين الصور (raster_assets / management_zones / zonal_stats) — قبل
+# v9_rls_force_all ليُفرَض RLS على جداوله الجديدة.
+v14_imagery_storage.sql
+# FIX (أمان): يُطبَّق أخيراً — يفرض RLS على كلّ الجداول المُفعّلة (كان 7/26 فقط
+# تُفرض، فالباقي يتسرّب لمالك الجدول). يحتاج كلّ الجداول منشأة قبله.
+v9_rls_force_all.sql
+# v15: تخزين عمليّات offline-first المُزامَنة. يُطبّق RLS بنفسه عبر
+# _sahool_apply_tenant_rls، فترتيبه بعد force_all آمن.
+v15_offline_synced_operations.sql
+# v16: حالة الـworkflow متعدّد الخطوات (durable/resumable) لـworkflow_engine.
+# يُطبّق RLS بنفسه (ENABLE + سياسة العزل)، فترتيبه بعد force_all آمن.
+v16_workflow_state.sql
+# v17: أعمدة WorkflowState الناقصة في v16 (للحفظ المعمّر الكامل).
+v17_workflow_state_full.sql
+# v18: إصلاح بنيويّ — معرّفات الكيانات نصّيّة لا UUID (events.entity_id،
+# field_lifecycle.field_id، trueup_calibrations.field_id، allowed_field_ids).
+# يعيد تعريف emit_event بتوقيع p_entity_id TEXT (يُسقط القديم — لا overload).
+v18_entity_ids_text.sql
+# v19: جدول المزارع (Farms) + fields.farm_id — هرميّة المزرعة→الحقل (تدقيق
+# التغطية، الطبقة ١). self-applied RLS، فترتيبه بعد force_all آمن.
+v19_farms.sql
+# v20: جداول الأتمتة (automation_rules + device_commands_log) التي يتوقّعها
+# actuator-service ولم تُنشأ قطّ — يُصلح الأتمتة المعطّلة. self-applied RLS.
+v20_automation_tables.sql
+# v21: أعمدة MFA (TOTP) على users (mfa_secret/mfa_enabled) — مصادقة ثنائيّة.
+v21_mfa.sql
+# v22: إدارة المخزون (inventory_items + inventory_batches) — الطبقة ١٠ الغائبة.
+# self-applied RLS، فترتيبه بعد force_all آمن.
+v22_inventory.sql
+# v23: إدارة المعدّات (equipment + equipment_maintenance) — الطبقة ١١ الغائبة.
+# self-applied RLS.
+v23_equipment.sql
+# v24: سجلّ أجهزة IoT (iot_devices) + ابتلاع القراءات (device_telemetry) —
+# الطبقة ٤ الغائبة. self-applied RLS.
+v24_iot_devices.sql
+# v25: الري التشغيلي (irrigation_valves + irrigation_schedules) — الطبقة ٣.
+# يعتمد على fields + iot_devices. self-applied RLS.
+v25_irrigation.sql
+# v26: البيانات المرجعيّة (master_data) + الدورات الزراعيّة (crop_rotations).
+# يعتمد على fields. self-applied RLS.
+v26_master_data.sql
+# v27: فرض صحّة الهندسة على القاعدة (trigger يرفض geom غير صالحة) — الطبقة ٢.
+# يعتمد على is_valid_field_geom (v13) + field_boundaries (init_v8).
+v27_gis_enforce.sql
+# v28: الإعدادات (settings) — منصّة/مزرعة/ريّ/إشعارات، مفتاح/قيمة JSONB مُنطّقة
+# بـscope. self-applied RLS.
+v28_settings.sql
+# v29: سجلّ مستندات (documents) — بيانات وصفيّة فقط (لا blob؛ يحتاج S3/MinIO)
+# + storage_ref + تحكّم وصول (RLS + RBAC). يعتمد على fields. self-applied RLS.
+v29_documents.sql
+# v30: عمود geometry (GeoJSON) + idx_fields_tenant لجدول fields — لرسم/عرض
+# الحقول المرسومة على الخريطة (POST/GET /api/v1/fields). يعدّل fields (v9). idempotent.
+v30_fields_geometry.sql
+# v31: عمود manager (المسؤول عن الحقل) لجدول fields — يكمل تدفّق بيانات الحقل.
+v31_fields_manager.sql
+# v32: المواسم الزراعيّة (seasons) لكلّ حقل — محاصيل/صنف/ريّ/تواريخ/مراحل/حالة.
+# يعتمد على fields. self-applied RLS.
+v32_seasons.sql
+# v33: إثراء الحقول — field_code + water_source + ownership_type + الكشف الآلي
+# للدولة (country) + الإقليم/المحافظة (region) من مركز المضلّع. يعدّل fields. idempotent.
+v33_fields_extended.sql
+# v34: تنظيم المزرعة — حقول إضافيّة على farms (دولة/منطقة/منطقة زمنيّة/وحدات/
+# عملة/وصف/نوع نشاط) لشاشة «إنشاء مزرعة» (Sprint 1b). يعدّل farms (v19). idempotent.
+v34_farms_org.sql
+# v35: العمليّات الزراعيّة (activities) لكلّ حقل — بذر/تسميد/ريّ/رشّ/تقليم/حصاد/كشف.
+# يعتمد على fields. self-applied RLS.
+v35_activities.sql
+# v36: التنبيهات الزراعيّة (alerts) لكلّ مستأجِر — رطوبة منخفضة/أمطار غزيرة/خطر
+# مرض/إجهاد حراريّ/خطر صقيع + خطورة/حالة/إقرار. حقل اختياريّ. self-applied RLS.
+v36_alerts.sql
+# v37: إثراء متقدّم للحقول — كيمياء التربة (pH/EC/OM/NPK) + المناخ الدقيق
+# (ارتفاع/ميل/جهة/منطقة مناخيّة/أمطار) + تفاصيل الملكيّة (مالك/إيجار/سجلّ) — تُملأ
+# تدريجيّاً عبر لوحة تفاصيل الحقل (GET/PATCH /api/v1/fields/{id}). يعدّل fields. idempotent.
+v37_fields_advanced.sql
+# v38: قنوات تسليم التنبيهات — توسعة notification_preferences (v9) بقنوات SMS
+# وواتساب + user_ref نصّيّ (هويّة المنصّة) + أرضيّة خطورة دنيا، لإعدادات الإشعارات
+# (GET/PUT /api/v1/notifications/preferences). يعدّل notification_preferences. idempotent.
+v38_notif_channels.sql
+# v39: محاكاة الموسم — أعمدة sim_* على seasons (إنتاج/كتلة حيويّة/GDD/LAI/ماء +
+# وقت التشغيل) تحفظ ناتج محاكاة محصوليّة RUE/FAO-56 (POST /api/v1/seasons/{id}/
+# simulate). كلّها nullable تقديريّة. يعدّل seasons (v32). idempotent.
+v39_season_simulation.sql
+# v40: تأكيد البريد/الهاتف — أعمدة verified_email/verified_phone على users
+# (تحقّق ناعم عبر OTP في Redis). يعدّل users (v9/v21). idempotent.
+v40_verification.sql
+
+# v41: حقل — نموذج الريّ/المياه التفصيليّ (irrigation_type/efficiency/flow/pump/
+# well_depth/water_ec) + manager_user_id (ربط منطقيّ بمستخدم). أعمدة متقدّمة
+# اختياريّة تُملأ تدريجيّاً عبر PATCH. يعدّل fields. idempotent.
+v41_fields_irrigation.sql
+# v42: موسم — KPIs زراعيّة (target_yield/plant_density/row_spacing/seed_variety_
+# source) أساس التحليلات. nullable تُملأ تدريجيّاً. يعدّل seasons. idempotent.
+v42_seasons_kpis.sql
+# v43: عمود geom (PostGIS) مفهرس GiST على fields — يُسرّع فحص تداخل الحقول
+# (ST_Intersects على فهرس بدل مسح خطّيّ). trigger يزامنه من geometry JSONB.
+# يعدّل fields. يتطلّب PostGIS. idempotent.
+v43_fields_geom_index.sql
+# v44: موسم نشط واحد لكلّ حقل — فهرس فريد جزئي على seasons(field_id) حيث
+# status='active'. يضمن ثابت «حقل ⇒ موسم نشط واحد على الأكثر» (يكمّله create_season
+# بإغلاق الموسم النشط القديم آليّاً). يعدّل seasons (v32). idempotent.
+v44_one_active_season.sql
+# v45: فهرس season_id على activities + توثيق العلاقة المنطقيّة (الموسم يخصّ نفس
+# الحقل). لا FK صلب (قد يفشل على صفوف يتيمة) — فهرس داعم + تحقّق تطبيقيّ في
+# create_activity. يعدّل activities (v35). idempotent.
+v45_activity_season_fk.sql
+# v46: مزامنة دورة الحياة ↔ سجلّ الأحداث — trigger بعد INSERT على
+# field_lifecycle_transitions يستدعي emit_event بنوع 'lifecycle.transitioned'،
+# فيُغلِق انحراف الحالة (كان السجلّ يخلو من أحداث الانتقال رغم توقّع المستهلكين
+# لها). DB-level فيلتقط كلّ مسارات الكتابة. يعتمد على v10 (field_lifecycle*) +
+# v11/v18 (emit_event). idempotent (CREATE OR REPLACE + DROP TRIGGER IF EXISTS).
+v46_lifecycle_event_sync.sql
+# v47: تقوية سلامة الـSchema — FK مركّب tenant-aware (seasons/activities ↔ fields)،
+# تفرّد الحقل (field_code/الاسم لكلّ مستأجِر)، قيود تواريخ الموسم، وترقية
+# manager_user_id إلى INTEGER + FK users(id). idempotent + NOT VALID/DO-guard.
+v47_schema_integrity.sql
+# v48: FK صلب Activity→Season (ON DELETE SET NULL، NOT VALID) يُغلق العلاقة على
+# مستوى القاعدة؛ + حوكمة الأحداث الفاشلة (DLQ): عرض v_event_dead_letter ودالّتا
+# requeue_dead_letter/requeue_all_dead_letter. يعدّل activities + يضيف عرض/دوالّ.
+v48_activity_season_fk_dlq.sql
+# v49: تفعيل الربط الحيّ لـ#62/#63 — عمود fields.zone_key (مفتاح الإقليم القانوني)
+# + جدول recommendation_outcomes (أزواج توقّع/نتيجة + قبول/نضج) مع RLS. idempotent.
+v49_zone_key_recommendation_outcomes.sql
+# v50: Workflow مخبري للتربة — جدول soil_lab_tests (دورة حياة عيّنة→مختبر→نتيجة→اعتماد→نشر)
+# مع RLS وtrigger updated_at. قواعد الانتقال في core/engines/soil_lab_workflow. idempotent.
+v50_soil_lab_tests.sql
+# v51: إصلاحات المراجعة (جولة ٢) — توسيع events.entity_type (activity/soil_lab_test)،
+# RLS على lifecycle_temporal_rejections، وقصر requeue على مستأجِر السياق. idempotent.
+v51_review_round2_fixes.sql
+# v52: حقول أغرونوميّة للموسم (نمط FieldView) — maturity/tillage_type/
+# actual_yield_kg_ha/notes_ar على جدول seasons. كلّها اختياريّة. idempotent.
+v52_season_agronomy_fields.sql
+# v53: إسقاط الحالة القانونيّة الموحّدة للحقل (Canonical Field State read model) —
+# جدول field_state يُعاد حسابه من المصادر القانونيّة ويُقرأ من كلّ المستهلكين. idempotent.
 v53_field_state_projection.sql
-v54_event_outbox.sql
-v55_decision_log.sql
+# v54: قيمة NDVI الحقيقيّة لكلّ حقل (Stage D) — عمودان على imagery_automation_fields
+# تقرأهما الحالة القانونيّة. idempotent (ADD COLUMN IF NOT EXISTS).
+v54_imagery_ndvi_value.sql
+# v55: تخزين الحقائق الزراعيّة الغنيّة (Stage E) — عمود agronomic JSONB على field_state.
+v55_field_state_agronomic.sql
+# فرض append-only (immutability) — يُطبَّق أخيراً كي توجد events/field_lifecycle_transitions/
+# lifecycle_temporal_rejections فعليّاً وقت تركيب trigger الحظر (كان موضعه الأصليّ يسبق
+# إنشاءها فيتخطّاها). idempotent (DROP TRIGGER IF EXISTS) — آمن إعادة التطبيق كلّ إقلاع.
+v9_append_only_enforcement.sql
+# v56: تغطية RLS ديناميكيّة (catch-all) — يُطبَّق أخيراً بعد إنشاء كلّ الجداول/الأعمدة.
+# يمسح كلّ جدول public يحوي tenant_id بلا أيّ سياسة RLS ويطبّق العزل عبر
+# _sahool_apply_tenant_rls. يقتصر على «صفر سياسات» تجنّباً لتوسعة الوصول بـOR على
+# الجداول ذات السياسات المخصّصة. idempotent (الجدول المُغطّى يصبح ذا سياسة فيُتخطّى).
 v56_rls_dynamic_all.sql
-v57_rls_write_paths.sql
-v58_tenant_context.sql
-v59_audit_integrity.sql
-v60_session_security.sql
-v61_token_denylist.sql
-v62_mfa_enforcement.sql
-v63_sensitive_data_encryption.sql
-v64_key_rotation.sql
-v65_security_events.sql
-v66_threat_detection.sql
-v67_compliance_gdpr.sql
-v68_data_classification.sql
-v69_consent_management.sql
-v70_retention_policies.sql
-v71_incident_response.sql
-v72_security_audit.sql
-v73_penetration_findings.sql
-v74_vulnerability_scans.sql
-v75_patch_management.sql
-v76_asset_inventory.sql
-v77_network_segments.sql
-v78_firewall_rules.sql
-v79_ids_signatures.sql
-v80_honeypots.sql
-v81_security_metrics.sql
-v82_sla_monitoring.sql
-v83_capacity_planning.sql
-v84_cost_tracking.sql
-v85_budgets.sql
-v86_invoices.sql
-v87_tax_config.sql
-v88_currencies.sql
-v89_exchange_rates.sql
-v90_accounting_integration.sql
-v91_erp_sync.sql
-v92_odoo_bridge.sql
-v93_market_data.sql
-v94_price_history.sql
-v95_crop_insurance.sql
-v96_weather_stations.sql
-v97_satellite_imagery.sql
-v98_drone_flights.sql
-v99_iot_sensors.sql
-v100_sensor_readings.sql
-v101_alert_rules.sql
-v102_alert_history.sql
-v103_notification_templates.sql
+# v57: تغطية فهارس tenant_id ديناميكيّة — يُطبَّق أخيراً بعد إنشاء كلّ الجداول/
+# الأعمدة. يمسح كلّ جدول public يحوي tenant_id بلا فهرس صدارته tenant_id وينشئ
+# له idx_<table>_tenant، فيُغلق مسح RLS التسلسليّ. توأم v56 (التغطية الديناميكيّة).
+# يكمّل المصفوفة الثابتة في v9_rls_tenant_isolation. idempotent.
+v57_rls_dynamic_indexes.sql
+# v58: نموذج بيانات حدود الحقل (#15) — أعمدة المصدر/الجودة على field_boundaries
+# (confidence_score/source_type/model_version/review_status) + جدول
+# field_boundary_graph للعلاقات المكانيّة بين الحقول (الجيران/الحواف المشتركة)
+# لتمكين التحليلات الإقليميّة. يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls
+# (المعرّفة في v9_rls_tenant_isolation سابقاً)، فترتيبه بعد v56/v57 آمن. idempotent.
+v58_field_boundary_quality.sql
+# v59: محرّك الطوبولوجيا للحدود (#15) — دالّة sahool_clean_boundary_geom الحتميّة:
+# MakeValid + إزالة الرؤوس المكرّرة + استخراج وإبقاء المضلّع الأكبر مساحةً
+# (الحقل، إسقاط الشظايا) + تبسيط حافظ للطوبولوجيا. بلا ML — مضلّعات تشغيليّة.
+# تقريب المتر→درجة (÷111320) صالح قرب خطوط عرض اليمن. CREATE OR REPLACE فهي
+# idempotent. لا تُحدّث بيانات (تُنشئ الدالّة فقط). تعتمد PostGIS من v58 وما قبلها.
+v59_boundary_topology_fn.sql
+# v60: لقطات حالة الحقل (field_state_snapshots) — مخبّأ مُشتقّ
+# لإعادة بناء state الحقل تزايديّاً: لقطة + إعادة تشغيل ما بعد
+# مؤشّرها فقط. ليست مصدر حقيقة — مخزن الأحداث append-only يبقى المصدر.
+# يطبّق RLS بنفسه عبر _sahool_apply_tenant_rls (v9). idempotent.
+v60_event_snapshots.sql
+# v61: عمّاد تزامن تفاؤليّ (row_version) على fields — يتزايد كلّ تحديث، يمكّن
+# كشف تعارض تعديلات offline (409) عند تمرير العميل base_version. idempotent.
+v61_fields_row_version.sql
+# v62: حارس سباق دورة حياة الحقل — فهرس فريد جزئيّ على (field_id) حيث
+# season_id IS NULL، يسدّ ثغرة NULL≠NULL في UNIQUE(field_id, season_id) فيمنع
+# تكرار دورة الحياة قبل-البذر. ينظّف تكرارات سابقة ثمّ يُنشئ الفهرس. idempotent.
+v62_field_lifecycle_null_season_guard.sql
+# v63: عمود seq (BIGINT IDENTITY) على events — مؤشّر إدراج تسلسليّ صارم يكسر
+# تعادل occurred_at حتميّاً (يسدّ Projection Drift الذي اعترف به تعليق v60) +
+# فهرسا ترتيب لإعادة البناء ومسار الأمر. append-only فالـseq لا يتغيّر. idempotent.
+v63_events_seq_deterministic_order.sql
+# v64: توسيع التزامن التفاؤليّ إلى seasons — عمّاد row_version يرفعه trigger
+# (bump_row_version) على كلّ UPDATE (يغطّي كلّ مسارات كتابة الموسم: تحديث/محاكاة/
+# إغلاق آليّ). update_season يقارن base_version ويردّ 409 عند التعارض. يكمّل v61.
+v64_seasons_row_version.sql
+# v65: تتبّع سلسلة الإمداد (farm-to-market) — جدولا harvest_lots (دفعة الحصاد،
+# تربط field/season) وcustody_chain_events (سلسلة حيازة append-only: حصاد→تخزين→
+# نقل→بيع + content_hash للتدقيق). RLS صريح لكلّ مستأجِر (نمط v50). يسدّ الفجوة
+# التنافسيّة (xFarm/Farmonaut) فوق input-traceability القائم. idempotent.
+v65_harvest_traceability.sql
+# v66: سجلّ قرارات الإرسال المحروسة (dispatch_decisions) — سجلّ تدقيق
+# decision→execution لكلّ guarded-dispatch (محظور/بانتظار موافقة/جاهز) مع خروقات
+# الحظر/التحذير والموافقات، ويعمل كطابور أوامر يستهلكه الـactuator
+# (exec_status='queued'). tenant-isolated عبر _sahool_apply_tenant_rls (v9). idempotent.
+v66_dispatch_decisions.sql
+# v67: تصليب موزِّع القرار — idempotency_key (مفتاح لاتكرار حتميّ) + فهرس فريد جزئيّ
+# على الحالات الحيّة (queued/dispatched) يمنع الإطلاق المزدوج، وتوسيع exec_status
+# بـdispatched/failed لإغلاق دورة الحياة (مستهلِك+سجلّ). يعدّل dispatch_decisions (v66).
+# دورة الحياة محروسة في core/dispatch_lifecycle. idempotent.
+v67_dispatch_hardening.sql
+# v68: سجلّ التنفيذ append-only (execution_ledger) — يُغلِق الحلقة ويقيسها: لكلّ قرار
+# مُسلَّم قيدٌ بنتيجته (executed/failed) + content_hash للتدقيق (مرآة custody_chain v65).
+# مرجع متبادَل مع dispatch_decisions (decision_id) وfarm_ledger الماليّ. tenant-isolated
+# عبر _sahool_apply_tenant_rls (v9). append-only. idempotent.
+v68_execution_ledger.sql
+# v69: سجلّ سياسات القرار (decision_policies) — حوكمة معلنة قابلة للتهيئة لكلّ مستأجِر:
+# لكلّ سياسة نطاق (scope) وأثر (effect: auto_block/require_approvals/water_cap_pct)
+# وأولويّة، تُستشار في core/policy_registry ضمن مسار القرار الموحّد والموزِّع. تكمّل
+# الحواجز لا تستبدلها. tenant-isolated عبر _sahool_apply_tenant_rls (v9). idempotent.
+v69_decision_policies.sql
+# v70: عزل كتابة المستأجرين (WITH CHECK) — دفاع عمق على RLS. v9 صار يعرّف السياسة
+# بـWITH CHECK (يمنع INSERT/UPDATE عابر المستأجرين تحت سياق مستأجِر، ويُبقي كتابة
+# النظام/الهجرات بلا سياق). هذا الملفّ يَنشُر التغيير: يُعيد تطبيق _sahool_apply_tenant_rls
+# على كلّ جدول يحمل سياسة tenant_isolation (حلقة v56 لا تلمس المُمَأسَسة). idempotent.
+v70_rls_with_check_propagate.sql
+
+# v71: MEDIUM-009 (تدقيق) — RLS على field_lifecycle_transitions (عزل عبر الأب
+# field_lifecycle بالمفتاح الأجنبيّ). weather_automation_locations يبقى عالميّاً
+# عمداً (مجدوِل عابر للمستأجرين — يُعالَج بدور خدميّ، لا RLS). idempotent.
+v71_rls_missing_tables.sql
+
+# v72: HIGH-002 (شهادة) — RLS على event_outbox (عزل عبر FK للأب events). يُمكَّن لأنّ
+# المرسِل صار على دور sahool_jobs (BYPASSRLS) عبر JOBS_DATABASE_URL. idempotent.
+v72_event_outbox_rls.sql
+
+# v73: HIGH-002 (شهادة) — RLS على weather_automation_locations (عزل عبر field_id→fields،
+# NULL=عالميّ) وweather_automation_cache (يرث رؤية موقعه). يُمكَّن لأنّ مجدوِل الطقس صار
+# على دور sahool_jobs (BYPASSRLS). idempotent.
+v73_weather_automation_rls.sql
+
+# v74: طبقة ذكاء الطقس — جداول التراكب/الإشارات/التنبيهات (field_id TEXT لا UUID،
+# RLS+FORCE بسياسة current_setting، PK مع tenant_id، قيود الدرجات). weather_grid/
+# weather_forecasts عالميّة بلا tenant (موثّق). idempotent.
+v74_weather_intelligence.sql
+
+# v75: FOES (نظام تنفيذ العمليّات الزراعيّة) — جدول work_orders: أمر عمل من توصية
+# (ري/تسميد/رشّ/فحص/حصاد) بآلة حالات (planned→…→verified). field_id نصّ، RLS+FORCE.
+v75_work_orders.sql
+
+# v76: تخزين Kc الدائم — جدول crop_kc_timeseries: معاملات Kc الثلاثيّة المُشتقّة
+# (FAO-56) لكلّ حقل×محصول×موسم×سيناريو، للمقارنة التاريخيّة. field_id نصّ، RLS+FORCE
+# بسياسة current_setting، UNIQUE(tenant,field,crop,season,scenario) للـupsert. idempotent.
+v76_crop_kc_timeseries.sql
+
+# v77: تخزين + تدقيق التوصية — جدول recommendations: يحفظ كلّ توصية مُولَّدة مع شرحها
+# (provenance + cross_reference)، PK بديل UUID + rec_id نصّ مفهرس، field_id نصّ،
+# RLS+FORCE بسياسة current_setting. يُصدِر RECOMMENDATION_CREATED عبر outbox. idempotent.
+v77_recommendations.sql
+
+# v78: إدامة رأس القرار — جدول decision_record: يُدِيم كلّ قرار مُتّخذ (decision_id،
+# نوعه، حقله، قيمته الكاملة JSONB، ثقته) كرأس سلسلة النَّسَب (Decision→Outcome→Evidence).
+# يُصدِر DECISION_RECORDED عبر outbox. RLS إلزاميّ معزول بالمستأجر. idempotent.
+v78_decision_record.sql
+
+# v79: إدامة نتيجة القرار — جدول outcome_record: يُدِيم قياس النتيجة (مُخطَّط/مرصود/مقاييس)
+# مربوطاً بـdecision_id (ربط ليّن مفهرس بلا FK صلب، يحفظ RLS) — يُغلق حلقة Decision→Outcome
+# (P0-1). يُصدِر OUTCOME_MEASURED عبر outbox. RLS إلزاميّ معزول بالمستأجر. idempotent.
+v79_outcome_record.sql
+
+# v80: معايرة إقليميّة مُدارة DB-backed — جدول calibration_override: يُدِيم قيم المعايرة
+# المُتحقَّقة لكلّ مستأجِر×منطقة (UNIQUE للـupsert، override_values JSONB، مصدر provenance
+# إلزاميّ) بدل تعديل _REGION_OVERRIDES في الكود — عكوسيّ (DELETE يعيد الوراثة). يُصدِر
+# CALIBRATION_OVERRIDE_SET عبر outbox. RLS+FORCE معزول بالمستأجر. idempotent.
+v80_calibration_override.sql
+
+# v81: مخزن إزالة التكرار العنقوديّ للـactuator — جدول actuator_command_dedup: يجعل dedup
+# الأوامر cluster-safe (فحص-وتثبيت ذرّيّ عبر القاعدة بدل dict محلّيّ per-replica) ⇒ يمنع
+# التنفيذ المزدوج على المضخّات/الصمّامات. يُستهلَك خلف علم ACTUATOR_IDEMPOTENCY_MODE
+# (local→shadow→cluster، إغلاق مرن). RLS+FORCE معزول بالمستأجر. idempotent.
+v81_actuator_command_dedup.sql
+
+# v82: توحيد نَسَب التنفيذ (PR #396) — جدول lineage_link: جسر ربط يُضيف معرّفاً عالميّاً
+# lin_ **فوق** المعرّفات القائمة (dec_/disp_/command_id) دون إعادة تسمية — صفّ لكلّ
+# (lineage_id↔مرجع) يجمع decision/dispatch/command/execution/outcome في سلسلة واحدة.
+# UNIQUE(tenant,ref_type,ref_id) للربط مرّةً، فهرس (tenant,lineage_id) للجلب. يُستهلَك خلف
+# علم FEATURE_UNIFIED_LINEAGE (إغلاق مرن). يُصدِر LINEAGE_LINKED. RLS+FORCE معزول. idempotent.
+v82_lineage_link.sql
+
+# v83: إيصالات تسليم الإشعار — جدول notification_delivery: يُدِيم حالة كلّ تسليم
+# (queued|sent|failed|delivered) لكلّ مستأجِر×تنبيه×قناة (UNIQUE(tenant,alert_key,channel)
+# للـupsert، error provenance) — يُغلق دورة الإشعار (تتبّع «هل وصل؟» + إعادة محاولة + تدقيق).
+# تُحدِّثه نقطة POST في موجِّه notifications. يُصدِر NOTIFICATION_DELIVERED. RLS+FORCE معزول. idempotent.
+v83_notification_delivery.sql
+
+# v84: سجلّ تدقيق المعايرة — جدول calibration_audit append-only (لا UPDATE/DELETE): يُدوّن كلّ
+# تغيير على calibration_override (override_set/reverted/adaptation_applied) مع old_values/new_values
+# JSONB + actor + source_ar، فيصبح «من غيّر المعايرة ومتى وما القيم قبل/بعد» متتبَّعاً ومدقَّقاً.
+# تُدرِجه نقاط المعايرة الثلاث (best-effort داخل savepoint). يُصدِر CALIBRATION_AUDIT_RECORDED.
+# فهرس (tenant,region,created_at DESC). RLS+FORCE معزول. idempotent.
+v84_calibration_audit.sql
+
+# v85: سجلّ تدقيق NL-GIS — جدول nl_gis_audit append-only (لا UPDATE/DELETE): يُدوّن كلّ استعلام
+# لُغة-طبيعيّة قراءة-فقط (النصّ الخام/النيّة المُصنَّفة/الخانات/المصدر المُستدعى/حالة النتيجة).
+# read_only=TRUE دائماً. الخانات من النصّ فقط (لا تلفيق). تُدرِجه نقطة /api/v1/nl-gis/query
+# (best-effort داخل savepoint). فهرس (tenant,created_at DESC). RLS+FORCE معزول. idempotent.
+v85_nl_gis_audit.sql
+
+# v86: trigger تجميع الدليل التراكمي — جدول calibration_evidence يُحدَّثه trigger على
+# outcome_record (AFTER INSERT): يُدِيم sample_count/success_count/success_rate/
+# evidence_level مُسبَقاً ⇒ GET /evidence قراءة O(1) بدل إعادة الحساب O(n). RLS+FORCE،
+# فهرس فريد تعبيريّ COALESCE(crop_type). idempotent. (دُمِج من مرفق مع تصحيحَي صحّة:
+# فهرس فريد بدل قيد UNIQUE تعبيريّ، والنجاح من عمود success القانونيّ.)
+v86_calibration_evidence_trigger.sql
+v87_audit_log_tenant.sql
+v88_field_owner_function.sql
+v89_invitations.sql
+
+# v90: break_glass_grants — وصول مدير المنصّة العابر للمستأجرين مُدقَّق (break-glass).
+# جدول منح: محدود بالزمن (expires_at)، مُتحقّق بـMFA (mfa_verified)، مُعلَّل (reason)،
+# مُدقَّق على كلّ استخدام (access_count/last_used_at + audit_log). عابر للمستأجرين عمداً
+# (target_tenant_id لا tenant_id ⇒ لا يلتقطه حارس RLS). RLS+FORCE بسياسة سياق
+# خدمة/إدارة فقط (لا مطابقة per-tenant). idempotent.
+v90_break_glass.sql
+
+# v91: workflow_state.compensation_failures — تقوية محرّك Saga (Stage A P1). فشل
+# خطوة تعويض كان يُبتلَع صامتاً؛ الآن يُسجَّل (ERROR) ويُحفَظ في هذا العمود (fail-loud)
+# ليصمد عبر إعادة التشغيل ويظهر في الرصد. status يكتسب قيمة compensation_failed
+# (تراجع جزئيّ نهائيّ يحتاج تدخّلاً). RLS+FORCE قائمة من v16. idempotent.
+v91_workflow_compensation_failures.sql
+# v92: طابور العمليّات المعلّقة الدائم — جدول offline_pending_ops يُدِيم عمليّات
+# offline-first **قبل** مزامنتها (status='pending') فتنجو من إعادة تشغيل العمليّة،
+# ثمّ تُعلَّم 'processed' بعد نجاح المزامنة. مفتاح op_id ⇒ إدخال/مزامنة idempotent
+# (ON CONFLICT). يُكمِّل offline_synced_operations (v15) الذي يُدوّن المُكتمِل فقط.
+# فهارس جزئيّة (pending FIFO / processed retention). RLS+FORCE عبر
+# _sahool_apply_tenant_rls (نفس نمط v15). idempotent.
+v92_offline_pending_ops.sql
+# v93: processed_events — استهلاك outbox مُتعاضد (idempotent consumption، at-most-once).
+# مخزن تعاضُد على مستوى الحدث: المُستهلِك يُطالِب الحدث (INSERT … ON CONFLICT DO NOTHING)
+# داخل نفس معاملة الأثر الجانبيّ ⇒ تعطّل في المنتصف يُرجِع كليهما (لا أثر مزدوج رغم
+# تسليم outbox at-least-once). عالميّ عمداً (لا tenant_id) — مُستهلِك عابر للمستأجرين
+# على دور sahool_jobs/BYPASSRLS، مرآةً لـevent_outbox/weather_grid. idempotent.
+v93_processed_events.sql
+# v94: scouting_pins — دبابيس المشاهدات الميدانيّة الدائمة (FieldView Scouting Pins).
+# يُديم ما كانت نقطة POST /fields/{id}/pins تتحقّق منه وتُرجِعه فقط (حفظ موبايل سابقاً)
+# فيصير قابلاً للقراءة عبر GET /api/v1/scouting/pins?field_id=… (كان session-only في
+# الواجهة). النموذج يطابق dataclass ScoutingPin حقلاً بحقل (موقع/فئة/شدّة/حالة/علم
+# موسمي-دائم/ملاحظة/صورة/لون). RLS+FORCE بسياسة tenant_isolation (نمط v92/v89،
+# fail-closed). فهرس (tenant_id, field_id, created_at DESC) للقراءة. idempotent.
+v94_scouting_pins.sql
+# v95: prescriptions — وصفات المعدّل المتغيّر اليدويّة (FieldView Manual Prescriptions).
+# يُديم وصفةً **يدويّة** (المستخدِم يرسم المناطق ويضبط المعدّلات) قابلةً للقراءة عبر
+# GET /api/v1/fields/{field_id}/prescriptions — كانت Generators في الذاكرة فقط
+# (api/prescriptions.py / core/vrt_manual_maps.py) وقراءةُ تقطيع كمّيّ في الواجهة
+# (useFieldPrescription) لا وصفةً محفوظة. النموذج: معرّف نصّيّ + مستأجِر + حقل + اسم +
+# نوع منتج {seed|fertility} + مناطق JSONB [{geometry GeoJSON, rate, unit}] + مُنشئ + وقت.
+# RLS+FORCE بسياسة tenant_isolation (نمط v94/v92، fail-closed). فهرس
+# (tenant_id, field_id, created_at DESC) للقراءة. idempotent.
+v95_prescriptions.sql
+# v96: spatial geometry integrity — سجلّ مراجعات هندسة الحقل (field_geometry_history)
+# + طابور إبطال كاش الراستر/المؤشّرات (raster_cache_invalidations). idempotent، معزول
+# بالمستأجِر عبر _sahool_apply_tenant_rls، وآمن لإعادة التشغيل محلّيّاً. (كان v94 في
+# الأرشيف — أُعيد ترقيمه لأنّ v94/v95 مأخوذان: scouting_pins/prescriptions.)
+v96_spatial_geometry_integrity.sql
+# v97: إصلاح سياسة user_self على users (WITH CHECK صريح) — يسمح بالتسجيل الذاتيّ
+# التأسيسيّ (مستأجِر جديد بلا سياق app.current_*) دون كسر عزل المستأجِر. يُصلح فشل
+# /auth/register بـasyncpg InsufficientPrivilegeError (RLS). idempotent.
+v97_user_self_with_check.sql
+# v98: water_ledger — دفتر المياه اليوميّ المُخزَّن القابل للتدقيق (إلهام IrriPro /
+# FAO-56، الفجوة #1 في water-intelligence-direction). صفّ لكلّ (حقل، يوم) يحمل
+# ET0/Kc/ETc/مطر/ريّ/رطوبة/عجز/مرحلة/قرار/ثقة — تخزين/تدقيق لقيم تُمرَّر أو محسوبة
+# بمحرّكات FAO-56 القائمة (لا اختراع أرقام، الناقص NULL). PK مركّب (field_id,
+# ledger_date) للـupsert idempotent. field_id نصّ (نمط v95)، RLS+FORCE بسياسة
+# tenant_isolation (current_setting، fail-closed). idempotent.
+v98_water_ledger.sql
+# v99: مؤشّرات الإجهاد المائيّ الطيفيّة (NDMI + MSI) على imagery_automation_fields
+# (نظير NDVI في v54) — يغذّيان تأكيد الإجهاد الطيفيّ (fuse_water_stress) لتصعيد D2b
+# للإجهاد المائيّ (خلف feature flag، default off). idempotent (ADD COLUMN IF NOT EXISTS).
+v99_imagery_spectral_indices.sql
+
+# ── الدفعة ١: بيانات المزرعة والحقل (سجلّ عمليّات/موازنة/حلقة مغلقة/تاريخ زراعة/عقد إنشاء) ──
+# v100: سجلّ العمليّات الزراعيّة الرقابيّ (أعمال يوميّة/مياه/مدخلات).
+v100_farm_operations_ledger.sql
+# v101: موازنة المزرعة وحساب التكاليف.
+v101_farm_budget_costing.sql
+# v102: الحلقة المغلقة للمزرعة (خطّة ← تنفيذ ← انحراف).
+v102_farm_closed_loop.sql
+# v103: تاريخ الزراعة في الحقول.
+v103_fields_planting_date.sql
+# v104: عقد إنشاء الحقل.
 v104_fields_create_contract.sql
-v105_field_boundaries.sql
-v106_field_seasons.sql
-v107_crop_rotations.sql
-v108_soil_tests.sql
-v109_soil_amendments.sql
-v110_water_rights.sql
-v111_irrigation_zones.sql
-v112_pivot_systems.sql
-v113_drip_lines.sql
-v114_pump_stations.sql
-v115_water_meters.sql
-v116_flow_readings.sql
-v117_pressure_readings.sql
-v118_energy_consumption.sql
-v119_solar_arrays.sql
-v120_generator_logs.sql
-v121_fuel_inventory.sql
+# v105: أفضل ممارسات الصور المؤسّسيّة.
+v105_enterprise_imagery_best_practices.sql
+# v_ai_recommendation_runtime: تخزين مراجعات/تغذية توصيات الذكاء الاصطناعيّ.
+v_ai_recommendation_runtime.sql
+
+# ── الدفعة ٢: runtime المراحل 9-12 (تقوية/انجراف أحداث/مخزن ميزات/IoT/sandbox/federated/offline) ──
+# v106: تقوية runtime المراحل 9-10 (outbox أحداث + قيم ميزات آنيّة).
+v106_phase9_10_runtime_strengthening.sql
+# v107: تصلّب انجراف الأحداث للمراحل 9-10.
+v107_phase9_10_event_drift_hardening.sql
+# v108: مخزن الميزات + سجلّ النماذج runtime (المرحلة 10).
+v108_phase10_feature_store_model_registry_runtime.sql
+# v109: مُحوّلات تنفيذ IoT المُدقَّقة (المرحلة 9).
+v109_phase9_iot_execution_adapters.sql
+# v110: sandbox/runtime الإضافات + حصص + تحقّق المخرجات (المرحلة 12).
+v110_phase12_plugin_sandbox_runtime.sql
+# v111: runtime الوكيل الفِدراليّ (المرحلة 11).
+v111_phase11_federated_agent_runtime.sql
+# v112: عقود المزامنة دون اتّصال + معرّفات عمليّات مستقرّة (المرحلة 11).
+v112_mobile_offline_sync_runtime.sql
+# v113: سياسات jobs الآمنة لعمّال runtime (outbox/plugin/model/actuator).
+v113_phase_runtime_workers_jobs.sql
+
+# ── الدفعة ٣: GIS السحابيّ والتوسّع (cloud-native/precision/enterprise/global/autonomy/marketplace) ──
+# v114: أفضل ممارسات GIS السحابيّ الأصليّ (COG/STAC).
+v114_cloud_native_gis_best_practices.sql
+# v115: الزراعة الدقيقة (المرحلة 6).
+v115_precision_agriculture_phase6.sql
+# v116: GIS المؤسّسيّ (المرحلة 7).
+v116_enterprise_gis_phase7.sql
+# v117: التوسّع العالميّ (المرحلة 8).
+v117_global_scale_phase8.sql
+# v118: نظام تشغيل المزرعة المستقلّ (المرحلة 9).
+v118_phase9_autonomous_farm_os.sql
+# v119: التعلّم المستمرّ (المرحلة 10).
+v119_phase10_continuous_learning.sql
+# v120: الوكلاء الفِدراليّون (المرحلة 11) — +FORCE صريح.
+v120_phase11_federated_agents.sql
+# v121: السوق والنظام البيئيّ (المرحلة 12) — +FORCE/سياسات عبر _sahool_apply_tenant_rls.
+v121_marketplace_ecosystem.sql
+
+# v122: تصلّب مسار الكتابة في RLS + توحيد متغيّر جلسة المستأجر. backfill مُدار
+# بالكتالوج يضيف WITH CHECK لكلّ سياسة كتابة tenant تفتقده (USING-only)، ويوحّد
+# app.current_tenant (canonical) مع app.tenant_id (توافق). idempotent + fail-closed.
 v122_rls_with_check_session_unification.sql
+# v123: تصلّب مسار الكتابة (خَلَف v122 المُصحَّح) — يحفظ USING الأصليّ ويشتقّ WITH CHECK
+# منه (دون استبدال USING)، فلا يُسقِط شروط ملكيّة/دور/خدمة. idempotent + لا-عمليّ على
+# مخطّط طبّق v122. يبقى الأخير (مدفوع بالكتالوج، يلي كلّ ترحيلات السياسات).
 v123_rls_with_check_preserve_using.sql
-v124_audit_trail_immutable.sql
-v125_soft_delete.sql
-v126_data_lineage.sql
-v127_schema_versioning.sql
-v128_migration_locks.sql
-v129_connection_pooling.sql
-v130_query_optimization.sql
-v131_index_maintenance.sql
-v132_vacuum_tuning.sql
-v133_partition_management.sql
-v134_archive_tables.sql
-v135_cold_storage.sql
-v136_warm_standby.sql
-v137_replication_slots.sql
-v138_failover_runbook.sql
-v139_disaster_recovery.sql
-v140_backup_verification.sql
-v141_restore_testing.sql
-v142_point_in_time_recovery.sql
-v143_cross_region_replication.sql
-v144_data_residency.sql
-v145_encryption_at_rest.sql
-v146_encryption_in_transit.sql
-v147_certificate_management.sql
-v148_secret_rotation.sql
-v149_vault_integration.sql
-v150_kms_envelope.sql
-v151_hsm_integration.sql
-v152_quantum_safe_pilot.sql
-v153_zero_trust_access.sql
-v154_service_mesh.sql
-v155_api_gateway_config.sql
-v156_rate_limiting_v2.sql
-v157_circuit_breakers.sql
-v158_bulkhead_isolation.sql
-v159_timeout_policies.sql
-v160_retry_policies.sql
-v161_dead_letter_queues.sql
-v162_saga_orchestration.sql
-v163_compensation_actions.sql
-v164_event_sourcing.sql
-v165_cqrs_read_models.sql
-v166_materialized_views.sql
-v167_search_indexes.sql
-v168_full_text_search.sql
-v169_geospatial_indexes.sql
-v170_time_series.sql
-v171_graph_relations.sql
-v172_vector_embeddings.sql
-v173_ml_features.sql
-v174_ml_models.sql
-v175_ml_predictions.sql
-v176_ml_feedback.sql
-v177_ab_testing.sql
-v178_feature_store.sql
-v179_data_quality.sql
-v180_data_contracts.sql
-v181_schema_registry.sql
-v182_api_versioning.sql
-v183_deprecation_tracking.sql
-v184_changelog.sql
-v185_release_notes.sql
-v186_tenant_onboarding.sql
-v187_tenant_billing.sql
-v188_tenant_usage.sql
-v189_tenant_quotas.sql
-v190_tenant_suspension.sql
-v191_tenant_deletion.sql
-v192_fii_rls_fail_closed.sql
-v193_fii_with_check.sql
-v194_fii_policy_consolidation.sql
-v195_season_record_entry.sql
-v196_season_logbooks.sql
-v197_external_ingest_sources.sql
-v198_external_submissions.sql
+# v124: سياسة حوكمة الذكاء الدائمة للمستأجِر (V52) — جدول tenant_ai_policies (سماح
+# التوليد/المزوّدات/النماذج المسموحة/مستوى مشاركة البيانات الخارجيّ/ملفّ التنقيح). يُغلِق
+# خطر V51 (TenantPolicyStore في الذاكرة). RLS معزول بسياسة tenant_isolation تحمل
+# WITH CHECK مباشرةً (نمط v9_rls_tenant_isolation)، فلا يحتاج backfill v122/v123. idempotent.
+v124_tenant_ai_policies.sql
+# v125: قدرات وكيل الذكاء لكلّ مستأجِر (V55) — عمود allowed_capabilities على
+# tenant_ai_policies (يحكم أيّ أدوات يستخدمها النموذج). يرث RLS+FORCE من v124.
+# ADD COLUMN IF NOT EXISTS، الافتراضيّ قراءة فقط (fail-closed). idempotent.
+v125_tenant_ai_capabilities.sql
+# v126: سجلّ تدقيق أدوات الوكيل الدائم + الموافقة البشريّة (V55 المرحلة ٤) — جدول
+# agent_tool_audit (append-only عبر sahool_block_mutation، RLS+FORCE معزول). كلّ
+# استدعاء أداة يُدوَّن (منفَّذ/مؤجَّل/مرفوض) بوسائط مُنقَّحة. idempotent.
+v126_agent_tool_audit.sql
+# v127 (سطر تصليب v49.5): تصلّب الأدلّة ونطاق المستأجِر لـrecommendation_outcomes —
+# قيود NOT VALID (tenant NOT NULL + غلّة غير سالبة) + سياسة RLS بـUSING وWITH CHECK +
+# فهرس (tenant_id, field_id, season_id). idempotent؛ يُطبَّق بعد v126.
+v127_evidence_context_hardening.sql
+# v128 (سطر v29.5): تصلّب MFA الإنتاجيّ — تشفير سرّ TOTP عند الراحة (encrypted_mfa_secret)
+# + قفل دائم في DB (mfa_failed_attempts/mfa_locked_until) + رموز استرداد (hash فقط) +
+# سجلّ تدقيق MFA. إضافيّ idempotent؛ جداول auth عابرة للمستأجِر (بلا RLS). بعد v127.
+v128_mfa_hardening.sql
+# v129 (سطر v29.6): تصلّب MFA — متابعة أمنيّة فوق v128. تضييق هروب RLS (يتطلّب
+# app.current_role='admin' لا مجرّد tenant فارغ) · mfa_recovery_codes خدمة-فقط (لا
+# قراءة ذاتيّة للـhashes) · mfa_audit_events append-only. idempotent؛ بعد v128.
+v129_mfa_hardening_followup.sql
+# v130 (سطر v57.5): تصلّب أدلّة فحص التربة — أعمدة analytes مُصنَّفة/مُتحقَّقة (pH/EC/N/P/K/SAR…)
+# + عمق/طريقة العيّنة + سلسلة عهدة (collector/lab_received/report_file/approved_at) + إصدار
+# النتيجة (result_version/supersedes). إضافيّ idempotent؛ JSONB الخام يبقى المصدر؛ بعد v129.
+v130_soil_lab_evidence_hardening.sql
+# v131 (سطر v57.5): بيانات جودة الصور على raster_assets — valid_pixel_ratio + coverage_ratio
+# (0..1، CHECK) + index_quality_flags + فهرس التقاط (أحدث/أنظف/أكثر تغطية). يكمل فجوة v54.
+# إضافيّ idempotent؛ بعد v130.
+v131_imagery_quality_metadata.sql
+# v132 (سطر v57.5): provenance إعادة حساب field_state — version (أحاديّ التزايد، يمنع دهس
+# إسقاط أحدث) + source_event_id (الحدث المُنتِج، لكشف الانحراف) + recomputed_at + فهرس جزئيّ.
+# يكمل فجوة v53. إضافيّ idempotent؛ بعد v131.
+v132_field_state_recompute_provenance.sql
+# v133 (سطر v29.5-op-1): مفتاح إيقاف طوارئ التشغيل (fail-closed) بنطاق مستأجِر/حقل/صمّام —
+# actuation_killswitch. يُستشار قبل send_mqtt_command/إدراج طابور التوزيع؛ تعذّر القاعدة ⇒
+# مُوقَف. RLS+FORCE tenant_isolation (نمط v98). إضافيّ idempotent؛ بعد v132.
+v133_actuation_killswitch.sql
+# v134 (سطر v39.5-1): فرض صحّة fields.geometry على القاعدة (ST_IsValid على ST_GeomFromGeoJSON،
+# فشل التحويل=باطل ⇒ ERRCODE 23514) — يسدّ فجوة v27 الذي يحرس field_boundaries.geom فقط بينما
+# مسار الرسم/PATCH يكتب fields.geometry (v30). + geometry_version عمود inline يتزايد عند تغيّر
+# الحدّ فقط (يميّزه عن row_version وfield_state.version). إضافيّ idempotent؛ بعد v132.
+v134_fields_geometry_integrity.sql
+# v135 (سطر v19.5-1): عقد كاتب-واحد على workflow_state — عمودا lease_owner +
+# lease_expires_at + فهرس جزئيّ لإعادة المطالبة بالعقود المنتهية. يمنع تنفيذ خطوات
+# مزدوجاً عند استئناف عاملَين لنفس workflow_id (يحاكي FOR UPDATE SKIP LOCKED للـoutbox).
+# إضافيّ idempotent؛ يرث RLS+FORCE من v16؛ بعد v132.
+v135_workflow_state_lease.sql
+# v136 (سطر v29.5-op-2): دفتر أحداث الريّ الفيزيائيّ المنفصلة — irrigation_runs. صفّ لكلّ
+# دورة فتح→إغلاق صمّام (started_at/stopped_at/volume/status running→completed) — يكمّل جداول
+# النيّة (irrigation_valves/schedules v25) ودفتر المياه اليوميّ (water_ledger v98) بحدث تشغيل
+# منفصل قابل للتدقيق، ركيزة رصديّة لِإقرار جهاز فيزيائيّ (ACK). RLS+FORCE tenant_isolation
+# (نمط v98). إضافيّ idempotent؛ بعد v135.
+v136_irrigation_runs.sql
+# v138 (سطر v19.5-3): حالتان نهائيّة/قيد-المعالجة لـoffline_pending_ops — توسيع
+# status بـprocessing (مُطالَب) + failed (نهائيّ بعد MAX محاولة) عبر CHECK صريح
+# (لم يكن في v92)، + failed_at، + فهرس جزئيّ لإعادة المطالبة بالعالق في processing.
+# يُنهي حلقة العمليّة السامّة (poison) التي كانت تبقى pending أبداً، ويمنع الالتقاط
+# المزدوج عبر مطالبة ذرّيّة (claim_pending). يرث RLS+FORCE من v92؛ إضافيّ idempotent؛ بعد v135.
+v138_offline_pending_ops_terminal.sql
+# v139 (سطر v39.5-2): جعل تدقيق رسم حدود الحقل (field_geometry_history، v96) غير قابل
+# للتزوير — append-only. لم يكن هناك فرض immutability فيمكن إعادة كتابة أثر التدقيق بصمت.
+# trigger trg_append_only_field_geometry_history يمنع UPDATE/DELETE عبر sahool_block_mutation
+# (v9)، تماماً كحماية mfa_audit_events في v129. التصحيح بإدراج revision جديدة لا بتحوير
+# القديم. يرث RLS+FORCE من v96؛ إضافيّ idempotent؛ بعد v138.
+v139_field_geometry_history_append_only.sql
+# v140 (سطر v19.5-4): سجلّ جنائيّ append-only لكلّ محاولة تسليم outbox —
+# outbox_delivery_attempts: صفّ لكلّ محاولة (attempt_no/attempted_at/subject/outcome/error)
+# مُلحَق بـevent_outbox (v11، الجدول الحيّ للعامل OutboxWorker). يكمّل حالة التسليم
+# المُجمَّعة (retry_count/last_error الواحد) بأثر لا يُدهَس لتشخيص DLQ. tenant_id إعلاميّ
+# (event_outbox غير مُنطّق بالمستأجِر ⇒ لا RLS، اتّساقاً). append-only عبر sahool_block_mutation
+# (نمط v9/mfa_audit_events). إضافيّ idempotent؛ بعد v138.
+v140_outbox_delivery_attempts.sql
+v141_mfa_totp_antireplay.sql
+
+# v142: منع تكرار أصول الراستر (فهرس فريد جزئيّ) + فهرس processing_job_id للتتبّع.
+#   يمكّن ON CONFLICT DO UPDATE في insert_raster_asset. idempotent؛ بعد v141.
+v142_raster_assets_dedup_traceability.sql
+
+# v143: دورة حياة أصول الراستر (asset_status: pending/ready/stale/failed) + نَسَب
+#   هندسة الحقل (geometry_revision) + فهارس. يمكّن عامل الإبطال ووسم البائت.
+#   إضافة أعمدة idempotent؛ لا RLS جديد (raster_assets مُنطّق منذ v14)؛ بعد v142.
+v143_raster_assets_lifecycle_lineage.sql
+
+# v144: backfill الصور كوظيفة لاتزامنيّة (backfill_runs + backfill_run_items) — يُخرج
+#   مسح STAC الشهريّ من مسار الطلب + مفتاح idempotency يمنع تكرار المعالجة. RLS FORCE
+#   (نمط v140). idempotent؛ بعد v143.
+v144_backfill_runs.sql
+
+# v145: إزالة تكرار raster_assets على مستوى «المنتَج» لا مسار COG (v8-F6/v9-F8) — مسار
+#   COG عشوائيّ كان يُفلِت فهرس v142 (المتضمّن cog_uri) فيُدرَج صفّ مكرّر. الفهرس الجديد
+#   بلا cog_uri (قابل للتحديث) + إزالة التكرارات القائمة. idempotent؛ بعد v144.
+v145_raster_assets_product_dedup.sql
+
+# v146: صدق حالة تشغيلة backfill (v8-F8/v9-F5) — 'completed_with_errors' + عدّادات
+#   items_persisted/failed/skipped تُحسَب من الحفظ الفعليّ لا من عدد المحاولات. idempotent؛ بعد v145.
+v146_backfill_runs_outcome_counters.sql
+
+# v147: مصدر backfill صريح لدعم Landsat thermal-only بدون خلطه مع Sentinel-2/CDSE.
+#   يضيف backfill_runs.source بقيم sentinel-2/landsat-thermal وفهرس تشغيل. بعد v146.
+v147_backfill_runs_source_landsat_thermal.sql
+
+# v148: استمرار رسم أدلّة الحقل (Evidence Graph) — جدول لقطات JSONB معزول بالمستأجِر
+#   (RLS FORCE) + فهارس (tenant/field/زمن + GIN). كاتب داخليّ fail-soft عند analyze،
+#   قراءة latest/timeline. لا أسرار تُخزَّن. المرحلة 1 (بلا Graph DB). بعد v147.
+v148_field_evidence_snapshots.sql
+
+# v149: تطبيع رسم الأدلّة (المرحلة 2) — evidence_graph_nodes/edges مُشتقّان من لقطة JSONB
+#   (v148 يبقى مصدر الحقيقة). RLS FORCE + فهارس + UNIQUE per snapshot. كاتب fail-soft. بعد v148.
+v149_evidence_graph_nodes_edges.sql
+
+# v150: قيود CHECK على غلّة الموسم (actual/target_yield_kg_ha ≥ 0 أو NULL) — دفاع في العمق
+#   يطابق تحقّق Pydantic ge=0 على مستوى القاعدة. idempotent (فحص pg_constraint). بعد v149.
+v150_seasons_yield_nonnegative_check.sql
+
+# v151: نَسَب مصدر التعلّم (جسر #2) — أعمدة source_type/source_id/field/season/rec/decision/
+#   evidence_snapshot + traceability_status على online_learning_updates. nullable + backfill
+#   unverified (متوافق للخلف؛ الفرض لاحقاً). قابليّة التتبّع تُحكَم في core. idempotent. بعد v150.
+v151_learning_source_lineage.sql
+
+# v152: إيقاف recommendation_feedback الميّت (جسر #4) — تعليق DEPRECATED يوجّه للمسارات المرجعيّة
+#   (recommendation_outcomes/farm_operations_ledger/water_ledger). لا كاتب (يُعيد التجزئة)، لا DROP.
+#   idempotent (COMMENT). بعد v151.
+v152_deprecate_recommendation_feedback.sql
+
+# v153: مخزن دائم لذاكرة إجهاد المحصول — أحداث خام append-only + لقطات مشتقة versioned،
+# مع dedup وRLS+FORCE حسب المستأجر. الأحداث الخام هي مصدر الحقيقة لإعادة الحساب. بعد v152.
+v153_crop_stress_memory_store.sql
+
+# v154: هويّة منتج راستر دائمة (product_identity_key حتميّ = مستأجر+هندسة+مشهد+مؤشّر+
+# نسخة خوارزميّة+نسخة قناع) بديلاً لفهرس v145 الأضيق، + جدول raster_batch_jobs بمطالبة
+# ذرّيّة PostgreSQL وإيجارات قابلة للاسترداد بعد تعطُّل العامل (RLS+FORCE حسب المستأجر). بعد v153.
+v154_raster_product_identity_batch_leases.sql
+
+# v155: Canonical SoilObservation evidence + immutable SoilProfileSnapshot projection.
+v155_soil_observations_profiles.sql
+
+# v156: Durable lab samples, chain of custody, immutable analyte results and water result sets.
+v156_durable_soil_lab_workflow.sql
+
+# v157: Durable soil profile projection jobs and per-tenant historical reconciliation checkpoints.
+v157_soil_projection_jobs_reconciliation.sql
+# v158: Soil projection observability (worker heartbeats + projection lag metrics).
+v158_soil_projection_observability.sql
+# v159: Soil observation supersession chain + explicit current-snapshot pointer.
+v159_soil_observation_supersession_current_pointer.sql
+# v160: Immutable soil lab-result publication lineage (published_observation_id + correction chains).
+v160_soil_lab_publication_lineage.sql
+# v161: P1 governed soil products (SoilGrids spatial, sampling plans, hydraulic + irrigation-water profiles).
+v161_soil_p1_products.sql
+# v162: P2 governed spatial products (bare-soil composite, terrain derivatives, texture/salinity probability).
+v162_soil_p2_spatial_products.sql
+# v163: P3 governed assessment products (mobile imaging, analog fields, drainage, reclamation, economics).
+v163_soil_p3_assessment_products.sql
+# v164: P4 governed closed loop (execution, verification, outcome, learning attribution).
+v164_soil_p4_closed_loop.sql
+# v165: P5 field validation, regional calibration, production certification, learning datasets.
+v165_soil_p5_validation_calibration_certification.sql
+# v166: P6 runtime/production certification (fail-closed manifest, content-addressed evidence).
+v166_soil_p6_runtime_certification.sql
+# v167: MPC content_digest first-class lineage column across the decision chain (decision_record + dispatch_decisions + outcome_record + recommendation_outcomes) + tenant-scoped indexes.
+v167_mpc_content_digest_lineage.sql
+# --- V21 irrigation engineering program (M2.1–M5), additive kernels; renumbered +1 (v167 taken by MPC content_digest). Not yet runtime-wired; bridge/execution default-off. ---
+# v168: M2.1 irrigation engineering foundation (projects/sources/wells/pumps/mainlines/machines/controllers/energy — RLS+FORCE, design/commissioned/live envelopes). Renumbered from v167.
+v168_irrigation_engineering_foundation.sql
+# v169: M2.2 canonical root-zone hydraulic profile (crop root policies + soil hydraulics → irrigation truth).
+v169_canonical_root_zone_hydraulic_profile.sql
+# v170: M2.3 water-source/well digital twin.
+v170_water_source_well_digital_twin.sql
+# v171: M2.4 pump/hydraulic-network capability.
+v171_pump_hydraulic_network_capability.sql
+# v172: M2.5 irrigation-machine capability.
+v172_irrigation_machine_capability.sql
+# v173: M2.6 sprinkler/runoff capability.
+v173_sprinkler_runoff_capability.sql
+# v174: M2.7 energy/agricultural-microgrid capability (solar/generator/LiFePO4, no dispatch automation).
+v174_energy_agricultural_microgrid_capability.sql
+# v175: M2.8 unified irrigation capability graph.
+v175_unified_irrigation_capability_graph.sql
+# v176: M2.9 controller/edge adapter framework (opaque external credential refs only).
+v176_controller_edge_adapter_framework.sql
+# v177: M2.10 irrigation commissioning certification.
+v177_irrigation_commissioning_certification.sql
+# v178: M2.11 canonical as-applied irrigation truth.
+v178_canonical_as_applied_irrigation_truth.sql
+# v179: M3 hourly energy-aware lexicographic irrigation MPC (recommendation-only).
+v179_hourly_energy_aware_irrigation_mpc.sql
+# v180: M4 governed variable-rate irrigation prescription (no controller execution).
+v180_governed_vri_prescription.sql
+# v181: M5 irrigation closed-loop learning + production certification (contract/model, not live loop).
+v181_irrigation_closed_loop_learning_production_certification.sql
+# v182: recommendation-lifecycle content-lineage (recommendations/reviews/decisions/feedback) — DB digest triggers; recommendation_outcomes excluded (v167 governs it). Renumbered from P0-fix v181.
+v182_decision_content_lineage_and_secret_hardening.sql
+# v183: content-lineage integrity hardening (review_decisions tenant RLS, DB-authoritative digest, append-only, NOT NULL). Renumbered from P0-fix v182.
+v183_decision_lineage_integrity_hardening.sql
+# v184: durable closed-loop reconciliation from measured as-applied truth into water_ledger.
+v184_irrigation_closed_loop_runtime_reconciliation.sql
+# v185: IRR-X1 vendor-neutral irrigation engineering specifications and immutable calculation snapshots.
+v185_vendor_neutral_irrigation_engineering_workspace.sql
+# v186: IRR-X1.1 vendor-neutral digital commissioning runtime and central execution authorization gate.
+v186_irrx1_digital_commissioning_runtime.sql
+# v187: IRR-X1.2 governed manual execution lifecycle, measured as-applied gate, and append-only events.
+v187_irrx1_manual_execution_lifecycle.sql
+# v188: IRR-X1.3 independently verified manual as-applied truth and idempotent water-ledger reconciliation.
+v188_irrx1_verified_manual_as_applied_ledger_bridge.sql
+# v189: IRR-PCERT database-authoritative state/evidence invariants and tenant-bound child ownership.
+v189_irrx1_pcert_manual_execution_db_invariants.sql
+# v190: IRR-X1.5 authoritative decision/execution-plan provenance lock for manual irrigation.
+v190_irrx1_authoritative_recommendation_provenance_lock.sql
+
+# v191: RS-6 durable multi-replica anomaly store (Postgres + FORCE RLS); opt-in via VEGETATION_ANOMALY_STORE=postgres.
+v191_rs_signal_anomalies_store.sql
+# v192: FII Safety Increment 1B — fail-closed write RLS for scouting_pins and prescriptions.
+v192_fii_rls_write_fail_closed.sql
+v193_prescriptions_season_context_expand.sql
+# v194: FII Safety Increment 1B batch 2 — fail-closed RLS for chemical decision/execution chain.
+v194_fii_chemical_chain_rls_fail_closed.sql
+# v195: IRR-F01 capacity/reservation core — transaction-safe hydraulic reservation over v171 (no parallel SoR, no topology/closure, no water-allocation ALTER).
+v195_irrigation_capacity_reservation_core.sql
+# v196: IRR-F01 target binding — version-pinned field/zone → existing v171 terminal hydraulic node (read-only projection).
+v196_irrigation_target_binding.sql
+v197_external_submissions_ingest.sql
+v198_external_ingest_sources.sql
 v199_external_field_observations.sql
-v200_projection_status.sql
-v201_scout_read_model.sql
-v202_season_entry_constraints.sql
-v203_field_forms.sql
-v204_field_forms_sync.sql
+v200_admin_boundaries.sql
+v201_season_records.sql
+v202_season_draft_key.sql
+v203_season_sowing_in_observed_range.sql
+# v204: GAP-FIELD-FORMS-01 — النماذج الميدانيّة الديناميكية فوق B1 (4 جداول، scout-ingest،
+# RLS صريح + immutability بالأعمدة + state machine + حظر hard delete + FKs مركّبة). idempotent.
+v204_field_forms.sql
 # v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
 # app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
 v206_rls_final_hardening.sql
