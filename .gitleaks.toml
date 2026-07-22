@@ -1,7 +1,7 @@
 # SAHOOL gitleaks configuration.
 # Extends the built-in gitleaks ruleset (keeps every default secret rule) and
 # adds a narrow allowlist for files that legitimately contain secret *detection
-# patterns* — a scanner's own regex literal (e.g. "-----BEGIN PRIVATE KEY-----")
+# patterns* — a scanner's own regex literal (e.g. a PEM private-key header line)
 # is not a secret. Do NOT add real credential-bearing paths here.
 title = "SAHOOL secret-scan config"
 
