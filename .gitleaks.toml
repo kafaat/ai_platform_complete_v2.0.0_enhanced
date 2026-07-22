@@ -14,3 +14,8 @@ paths = [
   '''scripts/release/scan_release_archive\.py$''',
   '''scripts/ci/jwt_secret_configuration_guard\.py$''',
 ]
+# Deterministic, obviously-fake fixture values used in unit tests (self-describing
+# placeholders, never real credentials). Keep this list narrow and literal.
+regexes = [
+  '''assertion-signing-key-at-least-32-chars''',
+]
