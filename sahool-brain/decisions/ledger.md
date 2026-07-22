@@ -827,3 +827,8 @@ SHAs من `git log --oneline origin/main`.
 - **القرار:** دمج `ed57004` (squash). عزل حالة الأمان عن كاش Redis.
 - **السبب:** كلّ 62 فحص CI أخضر على `d64e786`. Part B (دور odoo_app) أُجِّل لغياب تهيئة الدور.
 - **SHA:** رأس `d64e786` · دمج `ed57004`.
+
+## 2026-07-22 — #596 72h infra-hardening دُمِج + #594 أُغلِق
+- **القرار:** دمج `1152c76` (squash). v206 RLS fail-closed + odoo_app + redis-state auth/guardrails. #594 Dependabot أُغلِق (مكرَّر، axios على main عبر #589).
+- **السبب:** كلّ 63 فحص CI أخضر على `77d4182`؛ عقد no-context-write حُسِم fail-closed (Option A، قرار المالك).
+- **SHA:** رأس `77d4182` · دمج `1152c76`.
