@@ -1135,14 +1135,11 @@ services:
       RASTER_ASYNC_BACKFILL_ENABLED: ${RASTER_ASYNC_BACKFILL_ENABLED:-true}
       EARTH_SEARCH_URL: ${EARTH_SEARCH_URL:-https://earth-search.aws.element84.com/v1}
       # مزوّد البحث التاريخيّ: element84 (صور خام مباشرة عبر VRT محليّ — بلا وحدات معالجة
-      # CDSE). عيّنه cdse لاستعمال Copernicus Process API (يتطلّب رصيد معالجة).
+      # CDSE). عيّنه cdse لاستعمال Copernicus Process API عند توفّر رصيد المعالجة.
       HISTORICAL_SEARCH_PROVIDER: ${HISTORICAL_SEARCH_PROVIDER:-element84}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       CDSE_CLIENT_ID: ${CDSE_CLIENT_ID:-}
       CDSE_CLIENT_SECRET: ${CDSE_CLIENT_SECRET:-}
-      CDSE_ENABLED: ${CDSE_ENABLED:-true}
-      SH_BASE_URL: ${SH_BASE_URL:-https://sh.dataspace.copernicus.eu}
-      SH_TOKEN_URL: ${SH_TOKEN_URL:-https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token}
       CDSE_PROCESS_MIN_INTERVAL_SECONDS: ${CDSE_PROCESS_MIN_INTERVAL_SECONDS:-2.0}
       CDSE_PROCESS_MAX_RETRIES: ${CDSE_PROCESS_MAX_RETRIES:-5}
       CDSE_PROCESS_RETRY_BASE_SECONDS: ${CDSE_PROCESS_RETRY_BASE_SECONDS:-5}
@@ -1695,7 +1692,7 @@ services:
       DB_NAME: ${ODOO_DB:-sahool_erp}
     volumes:
     - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro
-    - odoo-web-data:/var/lib/odoo/data
+    - odoo-web-data:/var/lib/odoo
     - odoo-config:/etc/odoo
     - odoo-addons:/mnt/extra-addons
     depends_on:

@@ -3378,3 +3378,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **تحقّق الصدق:** قارنتُ النصّ حرفيًّا بالأصل — لا تغيير تحريريّ؛ فرق وحيد: بادئة `ADR-0035:` في العنوان + ملاحظة provenance تنصّ صراحة أنّ النصّ بلا تغيير. الضوابط التسعة وbuild_unlock كما اعتُمدت.
 - **الدمج:** squash → main `ccf262e`. الـ58 فحص أخضر فعليًّا على `90b871e`.
 - **SHA:** رأس أخضر `90b871e` · دمج main `ccf262e`.
+
+## 2026-07-21 — PR #592 (field-forms Slice 2 compose BFF): توصيل + تصليب حارس → دُمِج
+- **المصدر:** ملفّ compose «مُصحَّح» رفعه المالك — دلتا ٨ أسطر إضافيّة (توصيل نشر BFF لقناة النماذج الميدانيّة §8.6): platform (`SCOUT_INGEST_URL` + `FIELD_FORMS_SERVICE_TOKEN`) · scout-ingest (`FIELD_FORMS_ENABLED` + `FIELD_FORMS_SERVICE_TOKEN`).
+- **CI كشف فجوتين لم يغطّهما ملفّ compose وحده** (main أخضر لأنّ الوصل جديد):
+  1. **`compose_env_contract_gate` (Repository Structural Lint):** كلّ `${VAR}` في compose يجب أن يُعلَن في `.env.example` — أُضيفت الثلاثة.
+  2. **`test_scout_ingest_service_ownership` (Unit) — حارس هشّ:** كان يقسم على أوّل ظهور لنصّ `sahool-scout-ingest:`، فخطف `SCOUT_INGEST_URL=http://sahool-scout-ingest:8000` (في كتلة المنصّة، مُعرَّفة أوّلاً) موضعَ الكتلة ⇒ التقط env المنصّة لا scout-ingest. أُرسِي على سطر التعريف `\n  sahool-scout-ingest:\n` (الحارس ما زال يتحقّق من دور sahool_ingest المقيَّد؛ فقط يحدّد الكتلة بمتانة).
+- **البصمات:** 4718. الـ58+ فحص أخضر فعليّاً على `891783d` (Unit ✅ · Repository Structural Lint ✅ · Security Scan ✅). درس: ملفّ compose «مُصحَّح» من الخارج قد يفتح عقودًا أخرى (env-example + حُرّاس تُحلّل compose) — تحقّق من CI الفعليّ لا مجرّد صحّة YAML.
+- **SHA:** رأس أخضر `891783d` · دمج main `19235b1`.
