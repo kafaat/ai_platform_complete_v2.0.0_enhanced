@@ -160,14 +160,39 @@ def test_u4_ui_waivers_governed() -> None:
         assert w["tracking"], w
 
 
-def test_capabilities_do_not_invent_governance_semantics() -> None:
+def test_capabilities_governance_is_derived_not_invented() -> None:
+    """U5: الحَوكمة مُشتقّة من إشارات مُكتشَفة لا مُخترَعة يدويّاً — السياق قائمة
+    (لا null)، approval/idempotency قيم منطقيّة، وcurated=false يبقى (لا حكم بشريّ)."""
     caps = _catalog()["capabilities"]
     assert caps, "قدرات مشتقّة موجودة"
     for cap in caps:
         assert cap["curated"] is False
-        assert cap["approval_required"] is None
-        assert cap["idempotency_required"] is None
-        assert cap["required_context"] is None
+        assert isinstance(cap["approval_required"], bool)
+        assert isinstance(cap["idempotency_required"], bool)
+        assert isinstance(cap["required_context"], list)
+        assert set(cap["required_context"]) <= {"tenant", "field", "season"}
+
+
+def test_u5_context_is_discoverable_from_paths() -> None:
+    """U5: كلّ قدرة بسياق field/season يجب أن يظهر مُعامِل المسار المقابل في مدخلها،
+    وكلّ قدرة tenant-scoped مدخلها تحت /api (بوّابة مُصادَقة). لا سياق بلا إشارة."""
+    caps = _catalog()["capabilities"]
+    scoped = 0
+    for cap in caps:
+        ctx = set(cap["required_context"])
+        entry_paths = " ".join(cap["entrypoints"])
+        if "field" in ctx:
+            assert "field" in entry_paths and "{" in entry_paths, cap["capability_id"]
+        if "season" in ctx:
+            assert "season" in entry_paths, cap["capability_id"]
+        if "tenant" in ctx:
+            assert "/api/" in entry_paths, cap["capability_id"]
+            scoped += 1
+    assert scoped == _catalog()["counts"]["capabilities_tenant_scoped"] > 0
+    # idempotency لا يُدّعى إلّا على أمر مُغيِّر (لا استعلام GET)
+    for cap in caps:
+        if cap["idempotency_required"]:
+            assert cap["kind"] in {"command", "mixed"}, cap["capability_id"]
 
 
 def test_overrides_contain_only_non_discoverable_facts() -> None:
@@ -185,6 +210,47 @@ def test_manifest_never_claims_live_activation() -> None:
     for comp in manifest["components"]:
         assert comp["status"]["configured"] is None
         assert comp["status"]["activated"] is None
+
+
+def test_u7_ci_generates_and_gates_the_catalog() -> None:
+    """U7: المُصرِّف مصدر التوليد الوحيد، وبوّابة CI تفرض إعادة التوليد + عدم الانحراف
+    + انتهاء الصلاحيّة. كلّ مخرَج في OUTPUTS يُغطّى بـ--check بالبناء نفسه."""
+    ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    assert "build_platform_catalog.py --check --enforce-expiry" in ci
+    spec = importlib.util.spec_from_file_location("platform_catalog_compiler", COMPILER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    # عميل الواجهة المولَّد من مخرجات المُصرِّف (U6) ⇒ تحت الانحراف نفسه.
+    assert "frontend/src/lib/platformCatalog.generated.ts" in mod.OUTPUTS
+
+
+def test_u8_all_catalog_outputs_are_drift_controlled_and_present() -> None:
+    """U8: مصدر واحد — كلّ ملفّ ``.generated`` للكتالوج يُنتجه المُصرِّف ويوجد فعلاً؛
+    لا مخرَج يفلت من قائمة OUTPUTS (التي يقيسها --check بايتاً-ببايت)."""
+    spec = importlib.util.spec_from_file_location("platform_catalog_compiler", COMPILER)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    for rel in mod.OUTPUTS:
+        assert (ROOT / rel).exists(), f"catalog output missing: {rel}"
+    rendered = mod.render(mod.build())
+    assert set(rendered) == set(mod.OUTPUTS), (
+        "render() and OUTPUTS diverged — a file could escape drift"
+    )
+
+
+def test_u9_static_consistency_certified_never_claims_production() -> None:
+    """U9: شهادة اتّساق ساكن مُجمَّعة (صفر تعارضات/يتامى، U3/U4 خضراء، كلّ التكرارات
+    مصنَّفة)؛ وproduction_certified=false دائماً — لا ادّعاء شهادة إنتاج من مُصرِّف ساكن."""
+    cert = _catalog()["certification"]
+    assert cert["production_certified"] is False
+    assert cert["static_consistency_certified"] is True
+    assert cert["checks"]["zero_ownership_conflicts"] is True
+    assert cert["checks"]["zero_governing_orphans"] is True
+    assert cert["checks"]["u3_passed"] is True
+    assert cert["checks"]["u4_passed"] is True
+    assert cert["checks"]["all_duplicates_classified"] is True
+    # الشهادة صادقة فقط إذا مرّت كلّ الفحوص
+    assert cert["static_consistency_certified"] == all(cert["checks"].values())
 
 
 def test_compiler_importable_pure() -> None:

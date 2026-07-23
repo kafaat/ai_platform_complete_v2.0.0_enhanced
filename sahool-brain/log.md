@@ -3505,3 +3505,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - قيادة CI للأخضر: دفعتان (252449a: حارس IF + evidence-lab compose + ephemeral continue-on-error؛ fa2a16f: إعادة توليد الجرد المُقنَّع خلف فشل MinIO). كلّ الـ71 فحص success/skipped ⇒ دُمج.
 - درس: فشل مبكِّر في تسلسل «Repository Structural Lint» يُخفي فشل بوّابات لاحقة — أعِد فحص التسلسل كاملاً بعد كلّ إصلاح.
 - zip مُسلَّم sahool_main_0c01642.zip (5191 ملفّاً، SHA في تعليق الأرشيف).
+
+## 2026-07-23 — الكتالوج الموحّد U5–U9 (استكمال كامل الشرائح)
+- U5 سياق مُشتقّ (tenant من /api · field/season من مُعامِلات المسار · idempotency/approval من مسح دالّة المصدر عبر ast): 453/91/10/45/8. curated=false.
+- U6 بيان TS مولَّد `frontend/src/lib/platformCatalog.generated.ts` موصول بلوحة AdminRuntimePage (مستهلك حقيقيّ) + vitest يمنع اليتم/الادّعاء.
+- U7 كلّ المخرجات (9) تحت --check --enforce-expiry في CI. U8 اختبار meta: render()==OUTPUTS. U9 كتلة certification: static_consistency_certified=true، production_certified=false دائماً.
+- تحقّق: بوّابة الكتالوج 16 · حتميّ · ruff · typecheck 0 · vitest 3/3 · الحزمة 4845.

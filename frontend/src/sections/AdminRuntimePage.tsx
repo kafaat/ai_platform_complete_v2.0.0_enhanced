@@ -7,6 +7,11 @@ import {
 import { useAuthStore } from '../hooks/useAuth';
 import { canManage } from '../lib/permissions';
 import { dlqHealth, queueStatusChips, readinessCounters } from '../lib/adminRuntime';
+import {
+  PLATFORM_CATALOG_COMPONENTS,
+  PLATFORM_CATALOG_COUNTS,
+  PLATFORM_CATALOG_FINGERPRINT,
+} from '../lib/platformCatalog.generated';
 import { T } from '../components/ds';
 
 /** كونسول التشغيل الإداريّ: جاهزيّة الإنتاج + قوائم الموتى (أحداث/outbox) + رفض
@@ -185,6 +190,23 @@ export default function AdminRuntimePage() {
               )}
             </>
           )}
+        </Panel>
+
+        {/* كتالوج المنصّة (مولَّد، ساكن) — بنية المكوّنات لا حالة تشغيل حيّة */}
+        <Panel title="كتالوج المنصّة (Catalog)" icon={ListTree}>
+          <div className="text-[12px]" style={{ color: T.ink }}>
+            مكوّنات: <b>{PLATFORM_CATALOG_COUNTS.components}</b> ({PLATFORM_CATALOG_COUNTS.backend_components} backend) ·
+            قدرات: <b>{PLATFORM_CATALOG_COUNTS.capabilities}</b>
+          </div>
+          <div className="text-[11px] mt-1" style={{ color: T.muted }}>
+            موصولة (دليل): {PLATFORM_CATALOG_COMPONENTS.filter((c) => c.wired === true).length} ·
+            بسياق مستأجِر: {PLATFORM_CATALOG_COUNTS.capabilities_tenant_scoped} ·
+            idempotent: {PLATFORM_CATALOG_COUNTS.capabilities_idempotent}
+          </div>
+          <div className="text-[10px] mt-1" style={{ color: T.faint }}>
+            بصمة: {PLATFORM_CATALOG_FINGERPRINT.slice(0, 12)} · بنية ساكنة فقط —
+            «مُهيّأ/مُفعَّل» تُقرأ من الجاهزيّة الحيّة أعلاه لا من هذا الكتالوج.
+          </div>
         </Panel>
       </div>
 

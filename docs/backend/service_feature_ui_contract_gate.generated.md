@@ -366,7 +366,7 @@ wired: `True`
 classification: `job`
 wiring disposition: `standalone-job`
 wired: `None`
-- job-contract: 19 match(es)
+- job-contract: 20 match(es)
   - `docker-compose.v9.yml:1692` ← `qdrant-seed`
   - `docker-compose.v9.yml:393` ← `QDRANT`
   - `docker-compose.fixed.yml:257` ← `qdrant-seed`
