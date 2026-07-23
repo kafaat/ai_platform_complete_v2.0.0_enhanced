@@ -81,6 +81,7 @@ REQUIRED_FILES = [
     "config/platform_catalog_overrides.yml",
     "platform_catalog.generated.json",
     "runtime_capability_manifest.generated.json",
+    "frontend/src/lib/platformCatalog.generated.ts",
 ]
 REQUIRED_REPORTS = [
     "PHASE4_PRODUCTION_HARDENING_SECURITY_OBSERVABILITY_REPORT_20260626.md",

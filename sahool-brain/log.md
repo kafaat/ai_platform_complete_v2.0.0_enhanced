@@ -3500,3 +3500,14 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - تحسين على تصميم الحزمة: فحص الانتهاء زمنيّ فقط (--check --enforce-expiry في CI) لا يُضمَّن في المخرجات ⇒ حتميّة بايتيّة مستقلّة عن تاريخ اليوم.
 - مرفوض بدليل: BFF/nginx/evidence-lab أقدم من إصلاحاتنا المدموجة · تعديل v211 (لدينا v212) · مُصرِّف موازٍ + workflow منفصل · «18 تكراراً» غير مستنسَخ (المقيس 14).
 - الثوابت: 32 backend / 34 مكوّناً / 982 فريدة / 50 إعفاءً؛ بوّابة الكتالوج 12 اختباراً؛ بوّابات العقود/التغطية/الإعفاءات/consumer_contract/الجرد/الحزمة كلّها خضراء.
+
+## 2026-07-23 — دمج U0–U4 (PR #617، main=0c01642) + zip
+- قيادة CI للأخضر: دفعتان (252449a: حارس IF + evidence-lab compose + ephemeral continue-on-error؛ fa2a16f: إعادة توليد الجرد المُقنَّع خلف فشل MinIO). كلّ الـ71 فحص success/skipped ⇒ دُمج.
+- درس: فشل مبكِّر في تسلسل «Repository Structural Lint» يُخفي فشل بوّابات لاحقة — أعِد فحص التسلسل كاملاً بعد كلّ إصلاح.
+- zip مُسلَّم sahool_main_0c01642.zip (5191 ملفّاً، SHA في تعليق الأرشيف).
+
+## 2026-07-23 — الكتالوج الموحّد U5–U9 (استكمال كامل الشرائح)
+- U5 سياق مُشتقّ (tenant من /api · field/season من مُعامِلات المسار · idempotency/approval من مسح دالّة المصدر عبر ast): 453/91/10/45/8. curated=false.
+- U6 بيان TS مولَّد `frontend/src/lib/platformCatalog.generated.ts` موصول بلوحة AdminRuntimePage (مستهلك حقيقيّ) + vitest يمنع اليتم/الادّعاء.
+- U7 كلّ المخرجات (9) تحت --check --enforce-expiry في CI. U8 اختبار meta: render()==OUTPUTS. U9 كتلة certification: static_consistency_certified=true، production_certified=false دائماً.
+- تحقّق: بوّابة الكتالوج 16 · حتميّ · ruff · typecheck 0 · vitest 3/3 · الحزمة 4845.

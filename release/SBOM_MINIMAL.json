@@ -4315,6 +4315,26 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "12147cb9e03cb2dd76a7a641e3987bdfe680dbff4275b557096169c26014a348"
+        }
+      ],
+      "name": "frontend/src/lib/platformCatalog.generated.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b5b469eae931e317958f7871d97d0f1612690a1d20869e56b0199b63916bd620"
+        }
+      ],
+      "name": "frontend/src/lib/platformCatalog.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "2523b93081ed4d38dcf23c7ed91f72fb9c3d92d98d3a1f5b72a7d49558d134c6"
         }
       ],
@@ -4705,7 +4725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7a43bf2cd3db0dcb1df370845ddfd370ce73629be784ec9bf347dfd7ea0f166"
+          "content": "390f8253342f411091d81adb676957fea90ce75ffd218a5bf64cc3a980dd18e5"
         }
       ],
       "name": "frontend/src/sections/AdminRuntimePage.tsx",

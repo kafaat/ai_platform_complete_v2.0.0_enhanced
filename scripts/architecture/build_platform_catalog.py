@@ -49,6 +49,7 @@ members). UI waivers get governed owner/expiry/tracking from policy defaults.
 
 from __future__ import annotations
 
+import ast
 import csv
 import hashlib
 import io
@@ -87,6 +88,8 @@ OUTPUTS = [
     "orphan_functions.generated.json",
     "runtime_capability_manifest.generated.json",
     "docs/architecture/PLATFORM_CATALOG.generated.md",
+    # U6: بيان الواجهة — عميل TS مولَّد يستهلكه AdminRuntimePage (قراءة فقط).
+    "frontend/src/lib/platformCatalog.generated.ts",
 ]
 
 _STATUS_LADDER = ["discovered", "declared", "wired", "tested", "configured", "activated"]
@@ -298,9 +301,91 @@ def _slug(path: str) -> str:
     return ".".join(parts[:3]) or "root"
 
 
+# ── U5: context/governance derivation (discoverable, not invented) ──
+
+# سياق الحقل/الموسم يُكتشَف من مُعامِلات المسار؛ المستأجِر من مجال البوّابة المصادَق.
+_FIELD_PARAM = re.compile(r"/fields?/\{|\{field_id\}|/field/\{")
+_SEASON_PARAM = re.compile(r"/seasons?/\{|\{season_id\}")
+_MUTATING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
+# رموز idempotency/approval التي يُشتقّ منها الإلزام من جسم دالّة المعالِج (مسح ساكن).
+_IDEMPOTENCY_TOKENS = (
+    "client_operation_id",
+    "Idempotency-Key",
+    "idempotency_key",
+    "request_digest",
+)
+_APPROVAL_TOKENS = (
+    "approval_queue",
+    "requires_decision_center",
+    "require_decision_center",
+    "pending_approval",
+    "enqueue_approval",
+)
+
+
+def _derive_context(path: str) -> list[str]:
+    """سياق مُلزَم مُكتشَف: tenant لكلّ مسار خلف بوّابة /api المصادَقة (nginx يحقن
+    X-Tenant-Id الموثّق)، وfield/season من مُعامِلات المسار. لا اختلاق."""
+    ctx: set[str] = set()
+    if path.startswith("/api/"):
+        ctx.add("tenant")
+    if _FIELD_PARAM.search(path):
+        ctx.add("field")
+    if _SEASON_PARAM.search(path):
+        ctx.add("season")
+    return sorted(ctx)
+
+
+def _function_source_ranges(text: str) -> list[tuple[str, int, int]]:
+    """(اسم الدالّة، أوّل سطر، آخر سطر) لكلّ تعريف دالّة عبر ast — حتميّ ودقيق."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return []
+    out: list[tuple[str, int, int]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            start = min([node.lineno] + [d.lineno for d in node.decorator_list])
+            out.append((node.name, start, node.end_lineno or node.lineno))
+    return out
+
+
+def scan_route_governance(routes: list[dict]) -> dict[tuple[str, str, str], dict]:
+    """يمسح جسم دالّة كلّ مسار (مرّة واحدة لكلّ ملفّ) لاشتقاق idempotency/approval
+    من رموز حقيقيّة في الكود — لا قيمة مُخترَعة، فقط ما يظهر في المصدر."""
+    file_cache: dict[str, tuple[str, list[tuple[str, int, int]]]] = {}
+    result: dict[tuple[str, str, str], dict] = {}
+    for r in routes:
+        rel = r.get("file")
+        key = (str(r["method"]).upper(), str(r["path"]), str(r.get("function") or ""))
+        gov = {"idempotency": False, "approval": False}
+        if rel and (ROOT / rel).exists():
+            if rel not in file_cache:
+                text = (ROOT / rel).read_text(encoding="utf-8", errors="ignore")
+                file_cache[rel] = (text, _function_source_ranges(text))
+            text, ranges = file_cache[rel]
+            fn, line = r.get("function"), int(r.get("line") or 0)
+            body = ""
+            best = None
+            for name, start, end in ranges:
+                if name == fn and start <= line + 3 and end >= line - 3:
+                    if best is None or abs(start - line) < abs(best[0] - line):
+                        best = (start, end)
+            if best:
+                lines = text.splitlines()
+                body = "\n".join(lines[best[0] - 1 : best[1]])
+            if any(tok in body for tok in _IDEMPOTENCY_TOKENS):
+                gov["idempotency"] = True
+            if any(tok in body for tok in _APPROVAL_TOKENS):
+                gov["approval"] = True
+        result[key] = gov
+    return result
+
+
 def build_capabilities(
     routes: list[dict], events: list[dict], canonical, ui_contracts
 ) -> list[dict]:
+    route_gov = scan_route_governance(routes)
     caps: dict[str, dict] = {}
     for r in routes:
         comp = canonical(r["service"])
@@ -308,7 +393,8 @@ def build_capabilities(
         if path in _HEALTH_PATHS:
             continue
         cap_id = f"{comp}.{_slug(path)}"
-        kind = "query" if r["method"] in {"GET", "HEAD"} else "command"
+        method = str(r["method"]).upper()
+        kind = "query" if method in {"GET", "HEAD"} else "command"
         cap = caps.setdefault(
             cap_id,
             {
@@ -318,19 +404,25 @@ def build_capabilities(
                 "producer": comp,
                 "entrypoints": [],
                 "derived_from": "route",
-                # صدق: الدلالات الحاكمة (approval/idempotency/سياق) لا تُخترع آليّاً —
-                # تُعلَن في شرائح لاحقة (U5) من عقود صريحة، وتبقى null حتى ذلك.
-                "required_context": None,
-                "approval_required": None,
-                "idempotency_required": None,
+                # U5: السياق/الحَوكمة مُشتقّة من إشارات مُكتشَفة (مُعامِلات المسار +
+                # رموز المصدر)، لا مُخترَعة. curated=false يبقى: لا حكم بشريّ يدويّ.
+                "required_context": [],
+                "approval_required": False,
+                "idempotency_required": False,
                 "curated": False,
             },
         )
-        entry = f"{r['method']} {path}"
+        entry = f"{method} {path}"
         if entry not in cap["entrypoints"]:
             cap["entrypoints"].append(entry)
         if cap["kind"] != kind:
             cap["kind"] = "mixed"
+        cap["required_context"] = sorted(set(cap["required_context"]) | set(_derive_context(path)))
+        gov = route_gov.get((method, path, str(r.get("function") or "")), {})
+        if gov.get("idempotency") and method in _MUTATING_METHODS:
+            cap["idempotency_required"] = True
+        if gov.get("approval"):
+            cap["approval_required"] = True
         ui = ui_contracts.get(comp, {}).get("classification")
         cap["consumers"] = sorted(
             {*(cap.get("consumers") or []), *(["frontend"] if ui == "ui" else [])}
@@ -349,9 +441,10 @@ def build_capabilities(
             "entrypoints": [f"NATS {e['subject']}"],
             "consumers": [e["consumer"]] if e["consumer"] else [],
             "derived_from": "event",
-            "required_context": None,
-            "approval_required": None,
-            "idempotency_required": None,
+            # الأحداث ليست مسارات HTTP — لا سياق بوّابة يُشتقّ منها ساكناً.
+            "required_context": [],
+            "approval_required": False,
+            "idempotency_required": False,
             "curated": False,
         }
     for cap in caps.values():
@@ -673,6 +766,22 @@ def build() -> dict[str, object]:
             "duplicate_groups_classified": sum(1 for d in cross_service_dups if d["classified"]),
             "ownership_conflicts": len(ownership_conflicts),
             "ui_waivers": len(waivers),
+            # U5: قدرات بسياق مُلزَم مُشتقّ + قدرات بحَوكمة مُشتقّة.
+            "capabilities_tenant_scoped": sum(
+                1 for c in capabilities if "tenant" in (c.get("required_context") or [])
+            ),
+            "capabilities_field_scoped": sum(
+                1 for c in capabilities if "field" in (c.get("required_context") or [])
+            ),
+            "capabilities_season_scoped": sum(
+                1 for c in capabilities if "season" in (c.get("required_context") or [])
+            ),
+            "capabilities_idempotent": sum(
+                1 for c in capabilities if c.get("idempotency_required")
+            ),
+            "capabilities_approval_gated": sum(
+                1 for c in capabilities if c.get("approval_required")
+            ),
             "indicator_products": len(indicators.get("indicators", indicators) or []),
         },
         "components": [components[k] for k in sorted(components)],
@@ -686,6 +795,27 @@ def build() -> dict[str, object]:
             "u3_wiring_ownership": {"passed": not u3_failures, "failures": sorted(u3_failures)},
             "u4_duplicates_waivers": {"passed": not u4_failures, "failures": sorted(u4_failures)},
         },
+    }
+    # U9: شهادة الاتّساق الساكن — تجميع بوّابات U0–U8 في محصّلة واحدة صادقة.
+    # صدق صارم: هذه شهادة اتّساق ساكن للسجلّات، وليست شهادة إنتاج
+    # (production_certified يبقى مسؤوليّة المسار الحيّ S1..S12، لا يُدَّعى هنا أبداً).
+    consistency_checks = {
+        "zero_ownership_conflicts": len(ownership_conflicts) == 0,
+        "zero_governing_orphans": len(orphan) == 0,
+        # u3 يشمل شمول العقود (inventory ⊆ contracts) وصحّة الأدلّة fail-closed.
+        "u3_passed": not u3_failures,
+        "u4_passed": not u4_failures,
+        "all_duplicates_classified": all(d["classified"] for d in cross_service_dups),
+    }
+    catalog["certification"] = {
+        "schema": "sahool.static_consistency.v1",
+        "static_consistency_certified": all(consistency_checks.values()),
+        "checks": consistency_checks,
+        "production_certified": False,
+        "note": (
+            "static registry-consistency only; live production certification "
+            "(S1..S12) is never asserted by this compiler"
+        ),
     }
     canonical_bytes = json.dumps(
         catalog, ensure_ascii=False, sort_keys=True, separators=(",", ":")
@@ -830,6 +960,56 @@ def _markdown(bundle) -> str:
     return "\n".join(lines)
 
 
+def _frontend_ts(bundle) -> str:
+    """U6: بيان كتالوج مقروء للواجهة — عميل TS مولَّد حتميّ يستهلكه AdminRuntimePage.
+    صدق: يعكس status الساكن فقط (built/wired/tested)؛ configured/activated تبقى
+    runtime-only، والواجهة تتدهور على /readyz الحيّ لا على هذا الملفّ وحده."""
+    cat = bundle["catalog"]
+    manifest = bundle["manifest"]
+    counts = cat["counts"]
+    rows = []
+    for comp in manifest["components"]:
+        st = comp["status"]
+        rows.append(
+            {
+                "id": comp["component_id"],
+                "type": comp["type"],
+                "domain": comp["domain"],
+                "wired": st["wired"],
+                "wiringDisposition": comp.get("wiring_disposition"),
+                "tested": st["tested"],
+                "capabilityCount": comp["capability_count"],
+            }
+        )
+    body = json.dumps(rows, ensure_ascii=False, sort_keys=True, indent=2)
+    counts_body = json.dumps(counts, ensure_ascii=False, sort_keys=True, indent=2)
+    lines = [
+        "// AUTO-GENERATED from platform_catalog.generated.json — do not edit by hand.",
+        "// Regenerate: python scripts/architecture/build_platform_catalog.py",
+        "// Drift guard (--check) blocks divergence from the deterministic compiler.",
+        "// Honesty: `wired`/`tested` are static-derived; configured/activated are",
+        "// runtime-only and NEVER asserted here — the UI must degrade on live /readyz.",
+        "",
+        "export interface CatalogComponent {",
+        "  id: string;",
+        "  type: string;",
+        "  domain: string;",
+        "  wired: boolean | null;",
+        "  wiringDisposition: string | null;",
+        "  tested: boolean | null;",
+        "  capabilityCount: number;",
+        "}",
+        "",
+        f"export const PLATFORM_CATALOG_FINGERPRINT = '{cat['fingerprint']}';",
+        "",
+        f"export const PLATFORM_CATALOG_COUNTS = {counts_body} as const;",
+        "",
+        f"export const PLATFORM_CATALOG_COMPONENTS: CatalogComponent[] = {body};",
+        "",
+    ]
+    return "\n".join(lines)
+
+
 def render(bundle) -> dict[str, str]:
     return {
         "platform_catalog.generated.json": _dump_json(bundle["catalog"]),
@@ -840,6 +1020,7 @@ def render(bundle) -> dict[str, str]:
         "orphan_functions.generated.json": _dump_json(bundle["orphans"]),
         "runtime_capability_manifest.generated.json": _dump_json(bundle["manifest"]),
         "docs/architecture/PLATFORM_CATALOG.generated.md": _markdown(bundle),
+        "frontend/src/lib/platformCatalog.generated.ts": _frontend_ts(bundle),
     }
 
 
