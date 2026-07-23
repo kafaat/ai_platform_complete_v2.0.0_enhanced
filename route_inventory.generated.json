@@ -6674,7 +6674,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/seasons.py",
-    "line": 116,
+    "line": 132,
     "method": "POST",
     "path": "/api/v1/seasons/{season_id}/simulate",
     "function": "simulate_season_endpoint"
@@ -6682,7 +6682,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/seasons.py",
-    "line": 496,
+    "line": 512,
     "method": "GET",
     "path": "/api/v1/fields/{field_id}/seasons/{season_id}/state",
     "function": "field_season_state_endpoint"

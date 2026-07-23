@@ -16115,7 +16115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b159240ab19b592090579e19c1fc7c9480df9d33b16f43f94539c392c9956c6d"
+          "content": "9118c06a4f5b603abaabc209fbde3e0765d63402149ebca542fa39f889e03d88"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -16235,7 +16235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aeb79563d10791ec69ce1cd5c7c2ca1622d7c3cbd5f0353abef909898fea5b48"
+          "content": "0268999afe3fd8bec7d008b8f2c8b70ecb944471caa1622f79db7d0b28ca4c47"
         }
       ],
       "name": "services/sahool-platform/api/routers/agronomic_replay.py",
@@ -17595,7 +17595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9df2477f941781a8cfc950e2c1f3e0a646b098ea6f7eee48fce999546166a0c9"
+          "content": "ddf48ad8998f796dcba14a51619689148093fc629e53e2a74977d5892ab6c654"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",

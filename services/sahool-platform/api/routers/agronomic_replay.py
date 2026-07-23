@@ -67,14 +67,25 @@ async def agronomic_replay_endpoint(
             status_code=404,
             detail="ميزة إعادة تشغيل الموسم غير مُفعَّلة (اضبط FEATURE_REPLAY_MAP).",
         )
+    # Canonical NDVI track: the scalar per-date index mean from raster-service (live
+    # from the field's clipped COGs) via the allowlisted HTTP facade — NOT the legacy
+    # ``ndvi_timeseries`` table (seed-only, no live writer). Fail-soft: any failure ⇒
+    # empty NDVI track (source_status.ndvi="empty"), never a 503 and never fabricated.
+    # Cap to the most-recent per-track limit; the pure builder re-sorts ascending.
+    from api.raster_service_client import (
+        get_field_timeseries,
+        timeseries_point_to_vegetation_row,
+    )
+
+    ndvi_points = await get_field_timeseries(field_id, tenant_id=user.tenant_id, index="ndvi")
+    ndvi_points.sort(key=lambda p: str(p.get("datetime") or ""), reverse=True)
+    ndvi = [
+        timeseries_point_to_vegetation_row(point, field_id=field_id)
+        for point in ndvi_points[:_PER_TRACK_LIMIT]
+    ]
+
     try:
         async with tenant_connection(user) as conn:
-            ndvi = await _rows(
-                conn,
-                "SELECT field_id, acquisition_date, ndvi_mean FROM ndvi_timeseries "
-                f"WHERE field_id = $1 ORDER BY acquisition_date DESC LIMIT {_PER_TRACK_LIMIT}",
-                field_id,
-            )
             irrigation = await _rows(
                 conn,
                 "SELECT schedule_id, name, last_run_at, water_target_mm FROM irrigation_schedules "
