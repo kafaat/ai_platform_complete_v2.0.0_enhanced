@@ -14306,6 +14306,16 @@
       ],
       "canonical_name": "actuator-service",
       "component_id": "actuator-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "decision-service"
@@ -14324,6 +14334,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-actuator-service"
         ],
@@ -14351,6 +14362,15 @@
       ],
       "canonical_name": "agriai-engine",
       "component_id": "agriai-engine",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "activation-safety-contract"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": "SIM-GOLDEN-01 certification plus eligible real-season data",
+        "wiring_disposition": "intentional-unconsumed"
+      },
       "consumes": {
         "services": [
           "sahool-edge",
@@ -14387,6 +14407,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-agriai-engine"
         ],
@@ -14404,7 +14425,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": true
+        "wired": false
       },
       "type": "service"
     },
@@ -14412,6 +14433,16 @@
       "aliases": [],
       "canonical_name": "ai_agronomist",
       "component_id": "ai_agronomist",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14420,6 +14451,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": "direct_routes",
@@ -14435,7 +14467,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -14445,6 +14477,16 @@
       ],
       "canonical_name": "auth",
       "component_id": "auth",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14453,6 +14495,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-auth"
         ],
@@ -14480,6 +14523,15 @@
       ],
       "canonical_name": "decision-service",
       "component_id": "decision-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14531,6 +14583,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-decision-service"
         ],
@@ -14556,6 +14609,16 @@
       "aliases": [],
       "canonical_name": "edge-inference",
       "component_id": "edge-inference",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "platform-proxy",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14564,6 +14627,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": "direct_routes",
@@ -14579,7 +14643,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -14590,6 +14654,15 @@
       ],
       "canonical_name": "erp-bridge",
       "component_id": "erp-bridge",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway-or-internal"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "sahool-erpnext",
@@ -14617,6 +14690,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-erp-bridge"
         ],
@@ -14642,6 +14716,15 @@
       "aliases": [],
       "canonical_name": "field-management-service",
       "component_id": "field-management-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14684,6 +14767,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": "direct_routes",
@@ -14699,7 +14783,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -14709,6 +14793,16 @@
       ],
       "canonical_name": "field-segmentation",
       "component_id": "field-segmentation",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "platform-proxy",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "sam2-inference"
@@ -14719,6 +14813,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-field-segmentation"
         ],
@@ -14744,6 +14839,13 @@
       "aliases": [],
       "canonical_name": "frontend",
       "component_id": "frontend",
+      "consumer_contract": {
+        "declared": false,
+        "evidence_kinds": [],
+        "evidence_valid": null,
+        "reopen_trigger": null,
+        "wiring_disposition": null
+      },
       "consumes": {
         "services": []
       },
@@ -14752,6 +14854,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": null,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": null,
@@ -14775,6 +14878,15 @@
       "aliases": [],
       "canonical_name": "gis-workflow-service",
       "component_id": "gis-workflow-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "job-contract"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "standalone-job"
+      },
       "consumes": {
         "services": []
       },
@@ -14786,6 +14898,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": null,
@@ -14801,7 +14914,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": null
       },
       "type": "batch-job-tool"
     },
@@ -14811,6 +14924,16 @@
       ],
       "canonical_name": "guardrails-engine",
       "component_id": "guardrails-engine",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14822,6 +14945,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-guardrails-engine"
         ],
@@ -14851,6 +14975,16 @@
       ],
       "canonical_name": "indicators-service",
       "component_id": "indicators-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "raster-service"
@@ -14861,6 +14995,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-indicators-service"
         ],
@@ -14888,6 +15023,15 @@
       ],
       "canonical_name": "knowledge-graph",
       "component_id": "knowledge-graph",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14896,6 +15040,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-knowledge-graph"
         ],
@@ -14923,6 +15068,15 @@
       ],
       "canonical_name": "local-ai-rag",
       "component_id": "local-ai-rag",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "sahool-ollama"
@@ -14933,6 +15087,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-local-ai-rag"
         ],
@@ -14958,6 +15113,15 @@
       "aliases": [],
       "canonical_name": "mcp_servers",
       "component_id": "mcp_servers",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -14966,6 +15130,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": null,
@@ -14981,7 +15146,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -14989,6 +15154,13 @@
       "aliases": [],
       "canonical_name": "mobile",
       "component_id": "mobile",
+      "consumer_contract": {
+        "declared": false,
+        "evidence_kinds": [],
+        "evidence_valid": null,
+        "reopen_trigger": null,
+        "wiring_disposition": null
+      },
       "consumes": {
         "services": []
       },
@@ -14997,6 +15169,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": null,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": null,
@@ -15020,6 +15193,15 @@
       "aliases": [],
       "canonical_name": "model-registry-adapter",
       "component_id": "model-registry-adapter",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15028,6 +15210,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": null,
@@ -15043,7 +15226,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "adapter"
     },
@@ -15053,6 +15236,15 @@
       ],
       "canonical_name": "qdrant-seed",
       "component_id": "qdrant-seed",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "job-contract"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "standalone-job"
+      },
       "consumes": {
         "services": [
           "sahool-ollama"
@@ -15063,6 +15255,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-qdrant-seed"
         ],
@@ -15080,7 +15273,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": true
+        "wired": null
       },
       "type": "job"
     },
@@ -15090,6 +15283,15 @@
       ],
       "canonical_name": "rag-retrieval",
       "component_id": "rag-retrieval",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "sahool-qdrant"
@@ -15103,6 +15305,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-rag-retrieval"
         ],
@@ -15130,6 +15333,16 @@
       ],
       "canonical_name": "raster-service",
       "component_id": "raster-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "decision-service",
@@ -15156,6 +15369,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-raster-service"
         ],
@@ -15181,6 +15395,15 @@
       "aliases": [],
       "canonical_name": "raster-tiler-service",
       "component_id": "raster-tiler-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15189,6 +15412,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [
           "raster-tiler-service"
         ],
@@ -15208,7 +15432,7 @@
         "built": true,
         "configured": null,
         "tested": false,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -15218,6 +15442,15 @@
       ],
       "canonical_name": "remote-sensing-workspace-bff",
       "component_id": "remote-sensing-workspace-bff",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "ui-and-gateway-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "decision-service",
@@ -15230,6 +15463,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-remote-sensing-workspace-bff"
         ],
@@ -15255,6 +15489,16 @@
       "aliases": [],
       "canonical_name": "sahool-platform",
       "component_id": "sahool-platform",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "decision-service",
@@ -15271,7 +15515,6 @@
       "domain": "platform-core",
       "owns": {
         "tables": [
-          "IF",
           "activities",
           "activity_log",
           "actuation_killswitch",
@@ -15456,6 +15699,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-platform"
         ],
@@ -15483,6 +15727,15 @@
       ],
       "canonical_name": "sam2-inference",
       "component_id": "sam2-inference",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15491,6 +15744,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-sam2-inference"
         ],
@@ -15516,6 +15770,15 @@
       "aliases": [],
       "canonical_name": "scout-ingest-service",
       "component_id": "scout-ingest-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15536,6 +15799,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": "direct_routes",
@@ -15551,7 +15815,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -15561,6 +15825,16 @@
       ],
       "canonical_name": "soil-service",
       "component_id": "soil-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "platform-proxy",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15602,6 +15876,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-soil-service"
         ],
@@ -15629,6 +15904,16 @@
       ],
       "canonical_name": "supervisor-agent",
       "component_id": "supervisor-agent",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "sahool-market-mcp",
@@ -15642,6 +15927,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-supervisor-agent"
         ],
@@ -15671,6 +15957,15 @@
       ],
       "canonical_name": "tts-service",
       "component_id": "tts-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15679,6 +15974,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-tts-service"
         ],
@@ -15704,6 +16000,16 @@
       "aliases": [],
       "canonical_name": "vegetation-analysis-service",
       "component_id": "vegetation-analysis-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15714,6 +16020,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [],
         "healthcheck": null,
         "mount_status": "delegated_routes",
@@ -15729,7 +16036,7 @@
         "built": true,
         "configured": null,
         "tested": true,
-        "wired": false
+        "wired": true
       },
       "type": "service"
     },
@@ -15739,6 +16046,16 @@
       ],
       "canonical_name": "video-processor",
       "component_id": "video-processor",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "gateway",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": [
           "sahool-edge",
@@ -15750,6 +16067,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-video-processor"
         ],
@@ -15777,6 +16095,16 @@
       ],
       "canonical_name": "weather-polygon-worker",
       "component_id": "weather-polygon-worker",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15785,6 +16113,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [
           "sahool-weather-polygon-worker"
         ],
@@ -15802,7 +16131,7 @@
         "built": true,
         "configured": null,
         "tested": false,
-        "wired": false
+        "wired": true
       },
       "type": "worker"
     },
@@ -15812,6 +16141,16 @@
       ],
       "canonical_name": "weather-service",
       "component_id": "weather-service",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "platform-proxy",
+          "ui"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15829,6 +16168,7 @@
         ]
       },
       "runtime": {
+        "compose_reachable": true,
         "compose_services": [
           "sahool-weather-service"
         ],
@@ -15856,6 +16196,15 @@
       ],
       "canonical_name": "weather-signal-engine",
       "component_id": "weather-signal-engine",
+      "consumer_contract": {
+        "declared": true,
+        "evidence_kinds": [
+          "internal-consumer"
+        ],
+        "evidence_valid": true,
+        "reopen_trigger": null,
+        "wiring_disposition": "consumed"
+      },
       "consumes": {
         "services": []
       },
@@ -15864,6 +16213,7 @@
         "tables": []
       },
       "runtime": {
+        "compose_reachable": false,
         "compose_services": [
           "sahool-weather-signal-engine"
         ],
@@ -15881,7 +16231,7 @@
         "built": true,
         "configured": null,
         "tested": false,
-        "wired": false
+        "wired": true
       },
       "type": "worker"
     }
@@ -15891,41 +16241,63 @@
     "capabilities": 845,
     "components": 34,
     "cross_service_duplicate_method_paths": 14,
+    "duplicate_groups_classified": 14,
     "indicator_products": 34,
-    "ownership_conflicts": 1,
+    "ownership_conflicts": 0,
     "route_rows": 1094,
     "ui_waivers": 50,
     "unique_method_path": 982
   },
   "cross_service_duplicate_method_paths": [
     {
+      "canonical_owner": null,
+      "classification": "service_metadata",
+      "classified": true,
       "components": [
         "field-management-service",
         "indicators-service",
         "weather-service"
       ],
+      "decision": "جذور تعريفيّة محدودة النطاق بالخدمة؛ تبقى خارج الفضاء العامّ المشترك.",
+      "expires_on": "2026-12-31",
+      "facade": null,
       "method": "GET",
       "path": "/"
     },
     {
+      "canonical_owner": null,
+      "classification": "standard_capability_contract",
+      "classified": true,
       "components": [
         "edge-inference",
         "indicators-service"
       ],
+      "decision": "وثيقة قدرات معياريّة محلّيّة بالخدمة، ليست مساراً تجاريّاً مشتركاً.",
+      "expires_on": null,
+      "facade": null,
       "method": "GET",
       "path": "/capabilities"
     },
     {
+      "canonical_owner": null,
+      "classification": "standard_service_contract",
+      "classified": true,
       "components": [
         "decision-service",
         "field-management-service",
         "indicators-service",
         "weather-service"
       ],
+      "decision": "عقد ملكيّة معياريّ محلّيّ بالخدمة.",
+      "expires_on": null,
+      "facade": null,
       "method": "GET",
       "path": "/contract"
     },
     {
+      "canonical_owner": null,
+      "classification": "standard_health_alias",
+      "classified": true,
       "components": [
         "actuator-service",
         "agriai-engine",
@@ -15945,10 +16317,16 @@
         "video-processor",
         "weather-service"
       ],
+      "decision": "اسم توافقيّ للحيويّة؛ healthz هو عقد الحيويّة القانونيّ.",
+      "expires_on": "2026-12-31",
+      "facade": null,
       "method": "GET",
       "path": "/health"
     },
     {
+      "canonical_owner": null,
+      "classification": "standard_liveness",
+      "classified": true,
       "components": [
         "actuator-service",
         "agriai-engine",
@@ -15977,18 +16355,30 @@
         "video-processor",
         "weather-service"
       ],
+      "decision": "عقد حيويّة Kubernetes محلّيّ بالخدمة.",
+      "expires_on": null,
+      "facade": null,
       "method": "GET",
       "path": "/healthz"
     },
     {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
       "components": [
         "local-ai-rag",
         "rag-retrieval"
       ],
+      "decision": "ابتلاع RAG المحلّيّ وابتلاع الاسترجاع محدودان بخدمتَيهما؛ لا مسار بوّابة مشترك يدمجهما.",
+      "expires_on": "2026-12-31",
+      "facade": null,
       "method": "POST",
       "path": "/ingest"
     },
     {
+      "canonical_owner": null,
+      "classification": "standard_observability",
+      "classified": true,
       "components": [
         "agriai-engine",
         "ai_agronomist",
@@ -16003,34 +16393,58 @@
         "tts-service",
         "vegetation-analysis-service"
       ],
+      "decision": "عقد مقاييس Prometheus محلّيّ بالخدمة.",
+      "expires_on": null,
+      "facade": null,
       "method": "GET",
       "path": "/metrics"
     },
     {
+      "canonical_owner": "agriai-engine",
+      "classification": "legacy_bff_facade",
+      "classified": true,
       "components": [
         "agriai-engine",
         "sahool-platform"
       ],
+      "decision": "agriai يملك حوسبة التخطيط؛ المنصّة تُنسِّق أو تُمرِّر ولا تُعيد تنفيذها.",
+      "expires_on": "2026-12-31",
+      "facade": "sahool-platform",
       "method": "POST",
       "path": "/plan"
     },
     {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
       "components": [
         "erp-bridge",
         "mcp_servers"
       ],
+      "decision": "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما.",
+      "expires_on": "2026-12-31",
+      "facade": null,
       "method": "GET",
       "path": "/products"
     },
     {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
       "components": [
         "ai_agronomist",
         "local-ai-rag"
       ],
+      "decision": "استعلام المرشد الزراعيّ واستعلام RAG المحلّيّ مختلفان ويحتفظان بفضائَي بوّابة منفصلَين.",
+      "expires_on": "2026-12-31",
+      "facade": null,
       "method": "POST",
       "path": "/query"
     },
     {
+      "canonical_owner": null,
+      "classification": "standard_readiness",
+      "classified": true,
       "components": [
         "actuator-service",
         "agriai-engine",
@@ -16059,35 +16473,56 @@
         "video-processor",
         "weather-service"
       ],
+      "decision": "عقد جاهزيّة محلّيّ بالخدمة؛ قيمته تبقى مشتقّة وقت التشغيل.",
+      "expires_on": null,
+      "facade": null,
       "method": "GET",
       "path": "/readyz"
     },
     {
+      "canonical_owner": null,
+      "classification": "service_scoped_semantics",
+      "classified": true,
       "components": [
         "agriai-engine",
         "ai_agronomist"
       ],
+      "decision": "تقييم agriai وتوصية المرشد عقدان مختلفان خلف نطاقَي خدمة منفصلَين.",
+      "expires_on": "2026-12-31",
+      "facade": null,
       "method": "POST",
       "path": "/recommend"
     },
     {
+      "canonical_owner": "raster-service",
+      "classification": "legacy_bff_facade",
+      "classified": true,
       "components": [
         "raster-service",
         "sahool-platform"
       ],
+      "decision": "raster-service يملك STAC؛ مسار المنصّة واجهة توافق واعية بالمستأجِر فقط.",
+      "expires_on": "2026-12-31",
+      "facade": "sahool-platform",
       "method": "GET",
       "path": "/stac"
     },
     {
+      "canonical_owner": "raster-service",
+      "classification": "legacy_bff_facade",
+      "classified": true,
       "components": [
         "raster-service",
         "sahool-platform"
       ],
+      "decision": "raster-service يملك مجموعات STAC؛ مسار المنصّة واجهة توافق فقط.",
+      "expires_on": "2026-12-31",
+      "facade": "sahool-platform",
       "method": "GET",
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "e7ee8ef2cd0072e69b196acdb607ca270f4cf19a165cff36d0873d46d307b6c1",
+  "fingerprint": "addfa7198ea5118d101dcf27bac9bf3d221101507d9bc9efb5b2419e038c698d",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -16131,5 +16566,367 @@
       "weather-service"
     ]
   },
-  "schema": "sahool.platform_catalog.v1"
+  "governance": {
+    "u3_wiring_ownership": {
+      "failures": [],
+      "passed": true
+    },
+    "u4_duplicates_waivers": {
+      "failures": [],
+      "passed": true
+    }
+  },
+  "schema": "sahool.platform_catalog.v1",
+  "ui_waiver_governance": [
+    {
+      "endpoint": "/api/v1/admin/break-glass",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-001"
+    },
+    {
+      "endpoint": "/api/v1/admin/break-glass/{grant_id}",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-002"
+    },
+    {
+      "endpoint": "/api/v1/admin/break-glass/{token}/fields",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-003"
+    },
+    {
+      "endpoint": "/api/v1/admin/events/dead-letter/requeue-all",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-004"
+    },
+    {
+      "endpoint": "/api/v1/admin/outbox/dead-letter/requeue",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-005"
+    },
+    {
+      "endpoint": "/api/v1/auth/me",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-006"
+    },
+    {
+      "endpoint": "/api/v1/auth/signup",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-007"
+    },
+    {
+      "endpoint": "/api/v1/automation/imagery/register-field",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-008"
+    },
+    {
+      "endpoint": "/api/v1/automation/imagery/status",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-009"
+    },
+    {
+      "endpoint": "/api/v1/automation/weather/cached",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-010"
+    },
+    {
+      "endpoint": "/api/v1/automation/weather/register",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-011"
+    },
+    {
+      "endpoint": "/api/v1/automation/weather/status",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-012"
+    },
+    {
+      "endpoint": "/api/v1/cameras/register",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-013"
+    },
+    {
+      "endpoint": "/api/v1/decision/dispatch/consume",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-014"
+    },
+    {
+      "endpoint": "/api/v1/notifications/delivery",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-015"
+    },
+    {
+      "endpoint": "/api/v1/notifications/ws",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-016"
+    },
+    {
+      "endpoint": "/api/v1/weather/alerts/notify",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-017"
+    },
+    {
+      "endpoint": "/api/v1/weather/env-doctor",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-018"
+    },
+    {
+      "endpoint": "/api/v1/weather/observability",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-019"
+    },
+    {
+      "endpoint": "/api/v1/weather/rate-limit/backend",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-020"
+    },
+    {
+      "endpoint": "/api/v1/weather/runtime-contract",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-021"
+    },
+    {
+      "endpoint": "/api/v1/weather/runtime-smoke-plan",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-022"
+    },
+    {
+      "endpoint": "/api/v1/weather/self-test",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-023"
+    },
+    {
+      "endpoint": "/api/v1/weather/tile-cache/backend",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-024"
+    },
+    {
+      "endpoint": "/api/v1/weather/tile-cache/prune",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-025"
+    },
+    {
+      "endpoint": "/api/v1/weather/tile-cache/stats",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-026"
+    },
+    {
+      "endpoint": "/api/v1/weather/wind-source-selftest",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-027"
+    },
+    {
+      "endpoint": "/auth/me",
+      "expires_on": "2026-12-31",
+      "owner": "auth",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-028"
+    },
+    {
+      "endpoint": "/api/v1/crop-twin/decision-candidate",
+      "expires_on": "2026-10-11",
+      "owner": "sahool-platform",
+      "tracking": "WX-10.7",
+      "waiver_id": "ui-waiver-029"
+    },
+    {
+      "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
+      "expires_on": "2026-10-11",
+      "owner": "sahool-platform",
+      "tracking": "WX-10.11",
+      "waiver_id": "ui-waiver-030"
+    },
+    {
+      "endpoint": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+      "expires_on": "2026-10-11",
+      "owner": "sahool-platform",
+      "tracking": "WX-10.11",
+      "waiver_id": "ui-waiver-031"
+    },
+    {
+      "endpoint": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
+      "expires_on": "2026-10-11",
+      "owner": "sahool-platform",
+      "tracking": "WX-10.13",
+      "waiver_id": "ui-waiver-032"
+    },
+    {
+      "endpoint": "/api/v1/outcomes/{outcome_id}/learning-attribution",
+      "expires_on": "2026-10-11",
+      "owner": "sahool-platform",
+      "tracking": "WX-11",
+      "waiver_id": "ui-waiver-033"
+    },
+    {
+      "endpoint": "/api/v1/learning/calibration-dataset",
+      "expires_on": "2026-10-11",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.2",
+      "waiver_id": "ui-waiver-034"
+    },
+    {
+      "endpoint": "/api/v1/learning/evaluation-runs",
+      "expires_on": "2026-10-11",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.3",
+      "waiver_id": "ui-waiver-035"
+    },
+    {
+      "endpoint": "/api/v1/learning/promotion-decisions",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.4",
+      "waiver_id": "ui-waiver-036"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-requests",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.5",
+      "waiver_id": "ui-waiver-037"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-requests/{activation_request_id}/review",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.6",
+      "waiver_id": "ui-waiver-038"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.6",
+      "waiver_id": "ui-waiver-039"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.6",
+      "waiver_id": "ui-waiver-040"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "WX-11.6",
+      "waiver_id": "ui-waiver-041"
+    },
+    {
+      "endpoint": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "WX-10.11",
+      "waiver_id": "ui-waiver-042"
+    },
+    {
+      "endpoint": "/api/v1/lab/samples/{sample_id}/transition",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-043"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/plan",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "MPC-P2-UI",
+      "waiver_id": "ui-waiver-044"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/capabilities",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-045"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/simulate",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-046"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "MPC-P2-UI",
+      "waiver_id": "ui-waiver-047"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "MPC-P2-UI",
+      "waiver_id": "ui-waiver-048"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/executions/reconcile",
+      "expires_on": "2026-12-31",
+      "owner": "sahool-platform",
+      "tracking": "MPC-P2-UI",
+      "waiver_id": "ui-waiver-049"
+    },
+    {
+      "endpoint": "/auth/edge-sign",
+      "expires_on": "2026-12-31",
+      "owner": "auth",
+      "tracking": "U4-WAIVER-REVIEW",
+      "waiver_id": "ui-waiver-050"
+    }
+  ]
 }

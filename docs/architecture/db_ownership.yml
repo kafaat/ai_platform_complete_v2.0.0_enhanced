@@ -1,11 +1,6 @@
 # P0 DB ownership baseline. One table -> one writer owner.
 # This file is parsed by tests without external YAML dependencies.
 tables:
-  IF:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
-    source: "migrations/v58_field_boundary_quality.sql, migrations/v75_work_orders.sql, migrations/v76_crop_kc_timeseries.sql, migrations/v77_recommendations.sql"
   activities:
     owner: sahool-platform
     writers: [sahool-platform]

@@ -77,6 +77,10 @@ REQUIRED_FILES = [
     ".github/workflows/raster-service-gates.yml",
     "RUNBOOK.md",
     "scripts/architecture/legacy_path_audit.py",
+    "scripts/architecture/build_platform_catalog.py",
+    "config/platform_catalog_overrides.yml",
+    "platform_catalog.generated.json",
+    "runtime_capability_manifest.generated.json",
 ]
 REQUIRED_REPORTS = [
     "PHASE4_PRODUCTION_HARDENING_SECURITY_OBSERVABILITY_REPORT_20260626.md",

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "description": "Service feature/UI/internal-consumer contract matrix. Every runtime service must have at least one live UI/mobile surface, platform proxy, or internal consumer contract test.",
   "services": [
     {
@@ -422,6 +422,8 @@
     {
       "service": "agriai-engine",
       "classification": "experimental-model-runtime",
+      "wiring_disposition": "intentional-unconsumed",
+      "reopen_trigger": "SIM-GOLDEN-01 certification plus eligible real-season data",
       "source": [
         "services/agriai-engine/main.py"
       ],
@@ -485,14 +487,15 @@
           ]
         },
         {
-          "kind": "platform-proxy",
+          "kind": "internal-consumer",
           "roots": [
-            "services/sahool-platform"
+            "services/actuator-service",
+            "services/decision-service"
           ],
           "patterns": [
-            "ACTUATOR_SERVICE_URL",
-            "actuator-service",
-            "dispatch"
+            "ACTUATOR_DISPATCH_ADAPTER_ID",
+            "/v1/execution-requests/recovery",
+            "list_inflight_execution_requests"
           ]
         }
       ]
@@ -550,14 +553,13 @@
           ]
         },
         {
-          "kind": "platform-proxy",
+          "kind": "gateway",
           "roots": [
-            "services/sahool-platform"
+            "nginx"
           ],
           "patterns": [
-            "VIDEO_PROCESSOR_URL",
-            "field_cameras",
-            "video-processor"
+            "/api/video/",
+            "video_backend"
           ]
         }
       ]
@@ -611,7 +613,7 @@
           "patterns": [
             "weather_signals",
             "decision_playbook",
-            "test_weather_signal_engine"
+            "generate_signals"
           ]
         }
       ]
@@ -635,7 +637,7 @@
             "/api/erp/",
             "ERP_BRIDGE_URL",
             "erp-bridge",
-            "test_erp_bridge_alias_contract"
+            "sahool-erp-bridge"
           ]
         }
       ]
@@ -657,7 +659,7 @@
             "SpeakButton",
             "synthesize",
             "tts",
-            "voices"
+            "synthesizeSpeech"
           ]
         }
       ]
@@ -698,7 +700,6 @@
             "services/raster-service",
             "docker-compose.v9.yml",
             "docker-compose.fixed.yml",
-            "docs",
             "tests_v9"
           ],
           "patterns": [
@@ -712,6 +713,7 @@
     {
       "service": "qdrant-seed",
       "classification": "job",
+      "wiring_disposition": "standalone-job",
       "source": [
         "docker-compose.v9.yml"
       ],
@@ -777,6 +779,7 @@
     {
       "service": "gis-workflow-service",
       "classification": "batch-job-tool",
+      "wiring_disposition": "standalone-job",
       "source": [
         "services/gis-workflow-service/run_bundle.py"
       ],

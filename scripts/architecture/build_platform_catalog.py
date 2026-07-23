@@ -30,8 +30,21 @@ Outputs (deterministic — no timestamps; re-running must be byte-identical):
   docs/architecture/PLATFORM_CATALOG.generated.md
 
 Modes:
-  (default)  write outputs in place
-  --check    rebuild into a temp dir and fail (exit 1) on any byte difference
+  (default)         write outputs in place
+  --check           rebuild into memory and fail (exit 1) on any byte difference
+  --enforce-expiry  additionally fail (exit 1) on any U4 decision/waiver whose
+                    expires_on is in the past — runtime check only; outputs stay
+                    date-independent so the byte-drift gate never depends on today
+
+U3 (wiring/ownership): status.wired for backend components is EVIDENCE-driven —
+it comes from the hardened service-feature-ui-contract gate (fail-closed evidence
+groups, file:line matches, wiring dispositions), never from compose heuristics.
+Ownership conflicts are a hard failure (the registry source must stay clean).
+
+U4 (duplicates/waivers): every measured cross-service (method,path) duplicate
+group must carry a human decision in the overrides file (classification +
+rationale; expiry for temporary classes; facade decisions name distinct group
+members). UI waivers get governed owner/expiry/tracking from policy defaults.
 """
 
 from __future__ import annotations
@@ -41,12 +54,29 @@ import hashlib
 import io
 import json
 import re
+import runpy
 import sys
+from datetime import date
 from pathlib import Path
 
 import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
+
+# U4: مفردات تصنيف التكرارات — المؤقّت منها يتطلّب expires_on.
+PERMANENT_DUPLICATE_CLASSIFICATIONS = {
+    "standard_capability_contract",
+    "standard_liveness",
+    "standard_observability",
+    "standard_readiness",
+    "standard_service_contract",
+}
+KNOWN_DUPLICATE_CLASSIFICATIONS = PERMANENT_DUPLICATE_CLASSIFICATIONS | {
+    "legacy_bff_facade",
+    "service_metadata",
+    "service_scoped_semantics",
+    "standard_health_alias",
+}
 
 OUTPUTS = [
     "platform_catalog.generated.json",
@@ -74,11 +104,25 @@ def _load_yaml(rel: str):
     return yaml.safe_load((ROOT / rel).read_text(encoding="utf-8"))
 
 
+_ALLOWED_OVERRIDE_KEYS = {
+    "canonical_aliases",
+    "components",
+    "extra_components",
+    "ui_waiver_policy",
+    "duplicate_route_classifications",
+}
+
+
 def load_overrides() -> dict:
     data = _load_yaml("config/platform_catalog_overrides.yml") or {}
+    unknown = sorted(set(data) - _ALLOWED_OVERRIDE_KEYS)
+    if unknown:
+        raise ValueError(f"platform_catalog_overrides: unsupported keys {unknown}")
     data.setdefault("canonical_aliases", {})
     data.setdefault("components", {})
     data.setdefault("extra_components", [])
+    data.setdefault("ui_waiver_policy", {})
+    data.setdefault("duplicate_route_classifications", [])
     return data
 
 
@@ -316,6 +360,132 @@ def build_capabilities(
     return sorted(caps.values(), key=lambda c: c["capability_id"])
 
 
+# ── U3: evidence-driven wiring (hardened consumer gate) ──────────
+
+
+def run_consumer_gate(canonical) -> tuple[dict[str, dict], list[str]]:
+    """يشغّل بوّابة service-feature-ui-contract المُقوّاة ويعيد صفوفها مفهرسةً
+    بالاسم القانونيّ + إخفاقاتها. wired هنا مدفوع بالأدلّة (fail-closed) لا
+    بتخمينات compose."""
+    gate = runpy.run_path(str(ROOT / "scripts" / "ci" / "service_feature_ui_contract_gate.py"))
+    _ok, result = gate["run_gate"](ROOT, ROOT / "config" / "service_feature_ui_contracts.json")
+    rows = {canonical(row["service"]): row for row in result["services"]}
+    return rows, list(result["failures"])
+
+
+# ── U4: duplicate-route + UI-waiver governance ───────────────────
+
+
+def govern_duplicates(
+    overrides: dict, dup_groups: list[dict], canonical
+) -> tuple[list[dict], list[str]]:
+    """كلّ مجموعة تكرار مقاسة تحمل قراراً بشريّاً صالحاً؛ القرارات البائتة
+    (بلا مجموعة مقاسة) والمجهولة التصنيف والمفتقرة للسبب/الانتهاء إخفاقات."""
+    failures: list[str] = []
+    decisions: dict[tuple[str, str], dict] = {}
+    for row in overrides["duplicate_route_classifications"]:
+        key = (str(row.get("method", "")).upper(), str(row.get("path", "")))
+        label = f"{key[0]} {key[1]}"
+        if key in decisions:
+            failures.append(f"{label}: duplicate decision entry")
+            continue
+        entry = dict(row)
+        for field in ("canonical_owner", "facade"):
+            if entry.get(field):
+                entry[field] = canonical(entry[field])
+        classification = str(entry.get("classification") or "")
+        if classification not in KNOWN_DUPLICATE_CLASSIFICATIONS:
+            failures.append(f"{label}: unknown classification {classification!r}")
+        if not str(entry.get("decision") or "").strip():
+            failures.append(f"{label}: decision rationale missing")
+        expires_on = entry.get("expires_on")
+        if expires_on:
+            try:
+                date.fromisoformat(str(expires_on))
+            except ValueError:
+                failures.append(f"{label}: invalid expiry {expires_on!r}")
+        elif classification not in PERMANENT_DUPLICATE_CLASSIFICATIONS:
+            failures.append(f"{label}: temporary decision requires expires_on")
+        if classification == "legacy_bff_facade":
+            if not entry.get("canonical_owner") or not entry.get("facade"):
+                failures.append(f"{label}: legacy facade requires canonical_owner and facade")
+            elif entry["canonical_owner"] == entry["facade"]:
+                failures.append(f"{label}: canonical_owner and facade must differ")
+        decisions[key] = entry
+
+    actual = {(g["method"], g["path"]) for g in dup_groups}
+    for method, path in sorted(actual - set(decisions)):
+        failures.append(f"{method} {path}: measured duplicate group has no decision")
+    for method, path in sorted(set(decisions) - actual):
+        failures.append(f"{method} {path}: stale decision (no measured duplicate group)")
+
+    governed: list[dict] = []
+    for group in dup_groups:
+        decision = decisions.get((group["method"], group["path"]))
+        members = set(group["components"])
+        if decision:
+            for field in ("canonical_owner", "facade"):
+                declared = decision.get(field)
+                if declared and declared not in members:
+                    failures.append(
+                        f"{group['method']} {group['path']}: {field} {declared!r} "
+                        f"is not a member of {sorted(members)}"
+                    )
+        governed.append(
+            {
+                **group,
+                "classified": decision is not None,
+                "classification": decision.get("classification") if decision else None,
+                "canonical_owner": decision.get("canonical_owner") if decision else None,
+                "facade": decision.get("facade") if decision else None,
+                "expires_on": decision.get("expires_on") if decision else None,
+                "decision": decision.get("decision") if decision else None,
+            }
+        )
+    return governed, failures
+
+
+def govern_waivers(
+    overrides: dict, waivers: list[dict], component_ids: set[str], canonical
+) -> tuple[list[dict], list[str]]:
+    """حَوكمة إعفاءات تغطية الواجهة: مالك مُشتقّ من مصدر المسار أو من السياسة،
+    وانتهاء وتتبّع إلزاميّان. المخرَج حتميّ؛ فحص الانتهاء الفعليّ في --enforce-expiry."""
+    policy = overrides["ui_waiver_policy"]
+    default_owner = canonical(policy.get("default_owner") or "sahool-platform")
+    default_expiry = str(policy.get("default_expires_on") or "")
+    default_tracking = str(policy.get("default_tracking") or "")
+    failures: list[str] = []
+    rows: list[dict] = []
+    for index, waiver in enumerate(waivers):
+        source_services = {
+            canonical(m.group(1))
+            for item in waiver.get("methods") or []
+            if (m := re.search(r"@services/([^/]+)/", str(item)))
+        }
+        owner = next(iter(source_services)) if len(source_services) == 1 else default_owner
+        expires_on = str(waiver.get("expires_on") or waiver.get("expiry") or default_expiry)
+        tracking = str(waiver.get("tracking") or default_tracking)
+        label = f"waiver[{index}] {waiver.get('endpoint')}"
+        try:
+            date.fromisoformat(expires_on)
+        except ValueError:
+            failures.append(f"{label}: invalid expiry {expires_on!r}")
+        if owner not in component_ids:
+            failures.append(f"{label}: owner {owner!r} is not a catalog component")
+        if not tracking:
+            failures.append(f"{label}: tracking missing")
+        rows.append(
+            {
+                "waiver_id": f"ui-waiver-{index + 1:03d}",
+                "endpoint": waiver.get("endpoint"),
+                "owner": owner,
+                "expires_on": expires_on,
+                "tracking": tracking,
+            }
+        )
+    return rows, failures
+
+
 # ── assembly ─────────────────────────────────────────────────────
 
 
@@ -341,6 +511,7 @@ def build() -> dict[str, object]:
     owner_tables, ownership_conflicts = discover_db_ownership(canonical)
     events = discover_events(canonical)
     ui_contracts = discover_ui_contracts(canonical)
+    gate_rows, gate_failures = run_consumer_gate(canonical)
 
     components: dict[str, dict] = {}
     for s in services:
@@ -349,11 +520,12 @@ def build() -> dict[str, object]:
         ov = overrides["components"].get(comp_id, {})
         rt = compose.get(comp_id, {})
         mount = mounts.get(comp_id, {})
-        wired = bool(rt.get("compose_services")) and (
+        compose_reachable = bool(rt.get("compose_services")) and (
             comp_id in gateway["proxied_components"]
             or any(comp_id in c.get("consumes_services", []) for c in compose.values())
             or bool(rt.get("consumes_services"))
         )
+        gate_row = gate_rows.get(comp_id)
         components[comp_id] = {
             "component_id": comp_id,
             "type": ov.get("type", "service"),
@@ -365,6 +537,8 @@ def build() -> dict[str, object]:
                 "published_ports": sorted(rt.get("ports", [])),
                 "healthcheck": rt.get("healthcheck"),
                 "mount_status": mount.get("status"),
+                # قابليّة الوصول عبر compose/البوّابة — إشارة تشغيليّة، ليست دليل استهلاك.
+                "compose_reachable": compose_reachable,
             },
             "owns": {"tables": owner_tables.get(comp_id, [])},
             "consumes": {"services": rt.get("consumes_services", [])},
@@ -373,10 +547,22 @@ def build() -> dict[str, object]:
                 "db_ownership": comp_id in owner_tables,
                 "ui_contract": ui_contracts.get(comp_id, {}).get("classification"),
             },
+            # U3: عقد الاستهلاك المُتحقَّق (أدلّة fail-closed بمواقع file:line).
+            "consumer_contract": {
+                "declared": gate_row is not None,
+                "wiring_disposition": gate_row.get("wiring_disposition") if gate_row else None,
+                "evidence_valid": (gate_row["status"] == "pass") if gate_row else None,
+                "reopen_trigger": gate_row.get("reopen_trigger") if gate_row else None,
+                "evidence_kinds": (
+                    sorted({e["kind"] for e in gate_row["evidence"]}) if gate_row else []
+                ),
+            },
             # سُلَّم الحالة: نُعلن فقط ما نستطيع اشتقاقه صدقاً من المستودع.
             "status": {
                 "built": True,
-                "wired": wired,
+                # U3: wired مدفوع بالأدلّة — consumed المُثبَت فقط True؛
+                # «غير-مستهلَك عمداً» False؛ «مهمّة مستقلّة» null.
+                "wired": gate_row["wired"] if gate_row else False,
                 "tested": bool(s.get("tests")),
                 # configured/activated تتطلّب بيئة تشغيل حيّة — لا تُدَّعى ساكناً.
                 "configured": None,
@@ -396,9 +582,17 @@ def build() -> dict[str, object]:
                 "published_ports": [],
                 "healthcheck": None,
                 "mount_status": None,
+                "compose_reachable": None,
             },
             "owns": {"tables": owner_tables.get(cid, [])},
             "consumes": {"services": []},
+            "consumer_contract": {
+                "declared": False,
+                "wiring_disposition": None,
+                "evidence_valid": None,
+                "reopen_trigger": None,
+                "evidence_kinds": [],
+            },
             "sources": {
                 "service_inventory": None,
                 "db_ownership": cid in owner_tables,
@@ -455,6 +649,18 @@ def build() -> dict[str, object]:
         key=lambda d: (d["path"], d["method"]),
     )
 
+    # U4: حَوكمة التكرارات والإعفاءات (إخفاقاتها الساكنة تُفشِل البناء في main)
+    cross_service_dups, dup_failures = govern_duplicates(overrides, cross_service_dups, canonical)
+    governed_waivers, waiver_failures = govern_waivers(
+        overrides, waivers, set(components), canonical
+    )
+
+    # U3: إخفاقات السلك/الملكيّة — بوّابة الأدلّة + نظافة سجلّ الملكيّة.
+    u3_failures = list(gate_failures) + [
+        f"ownership conflict: {c['table']} ({c['kind']})" for c in ownership_conflicts
+    ]
+    u4_failures = dup_failures + waiver_failures
+
     catalog = {
         "schema": "sahool.platform_catalog.v1",
         "counts": {
@@ -464,6 +670,7 @@ def build() -> dict[str, object]:
             "unique_method_path": len(unique_method_path),
             "capabilities": len(capabilities),
             "cross_service_duplicate_method_paths": len(cross_service_dups),
+            "duplicate_groups_classified": sum(1 for d in cross_service_dups if d["classified"]),
             "ownership_conflicts": len(ownership_conflicts),
             "ui_waivers": len(waivers),
             "indicator_products": len(indicators.get("indicators", indicators) or []),
@@ -471,7 +678,14 @@ def build() -> dict[str, object]:
         "components": [components[k] for k in sorted(components)],
         "capabilities": capabilities,
         "cross_service_duplicate_method_paths": cross_service_dups,
+        "ui_waiver_governance": governed_waivers,
         "gateway": gateway,
+        # U3/U4: بوّابات الحَوكمة — إخفاقاتها ساكنة (لا تعتمد على تاريخ اليوم)؛
+        # فحص الانتهاء الزمنيّ يجري في --enforce-expiry دون المساس بالمخرجات.
+        "governance": {
+            "u3_wiring_ownership": {"passed": not u3_failures, "failures": sorted(u3_failures)},
+            "u4_duplicates_waivers": {"passed": not u4_failures, "failures": sorted(u4_failures)},
+        },
     }
     canonical_bytes = json.dumps(
         catalog, ensure_ascii=False, sort_keys=True, separators=(",", ":")
@@ -490,6 +704,7 @@ def build() -> dict[str, object]:
                 "type": c["type"],
                 "domain": c["domain"],
                 "status": c["status"],
+                "wiring_disposition": c["consumer_contract"]["wiring_disposition"],
                 "capability_count": sum(
                     1 for cap in capabilities if cap["owner"] == c["component_id"]
                 ),
@@ -596,11 +811,21 @@ def _markdown(bundle) -> str:
         )
     lines += [
         "",
-        "## Cross-service duplicate method/paths",
+        "## Governance gates (U3/U4)",
         "",
+        f"- U3 wiring/ownership: `{'PASS' if cat['governance']['u3_wiring_ownership']['passed'] else 'FAIL'}`",
+        f"- U4 duplicates/waivers: `{'PASS' if cat['governance']['u4_duplicates_waivers']['passed'] else 'FAIL'}`",
+        "",
+        "## Cross-service duplicate method/paths — governed decisions",
+        "",
+        "| method | path | classification | canonical owner | review |",
+        "|---|---|---|---|---|",
     ]
     for d in cat["cross_service_duplicate_method_paths"]:
-        lines.append(f"- `{d['method']} {d['path']}` ← {', '.join(d['components'])}")
+        lines.append(
+            f"| `{d['method']}` | `{d['path']}` | `{d['classification']}` | "
+            f"`{d['canonical_owner'] or 'service-local'}` | `{d['expires_on'] or 'permanent'}` |"
+        )
     lines.append("")
     return "\n".join(lines)
 
@@ -618,9 +843,46 @@ def render(bundle) -> dict[str, str]:
     }
 
 
+def _expiry_failures(catalog: dict) -> list[str]:
+    """فحص زمنيّ (وقت التشغيل فقط): قرارات/إعفاءات انتهت صلاحيّتها. لا يلمس
+    المخرجات — فتبقى حتميّة بايتاً-ببايت مهما كان تاريخ اليوم."""
+    today = date.today()
+    failures = []
+    for d in catalog["cross_service_duplicate_method_paths"]:
+        if d["expires_on"] and date.fromisoformat(d["expires_on"]) < today:
+            failures.append(
+                f"expired duplicate decision: {d['method']} {d['path']} ({d['expires_on']})"
+            )
+    for w in catalog["ui_waiver_governance"]:
+        if w["expires_on"] and date.fromisoformat(w["expires_on"]) < today:
+            failures.append(
+                f"expired ui waiver: {w['waiver_id']} {w['endpoint']} ({w['expires_on']})"
+            )
+    return failures
+
+
 def main() -> int:
     check = "--check" in sys.argv
+    enforce_expiry = "--enforce-expiry" in sys.argv
     rendered = render(build())
+
+    catalog = json.loads(rendered["platform_catalog.generated.json"])
+    governance_failures = [
+        f for gate in catalog["governance"].values() if not gate["passed"] for f in gate["failures"]
+    ]
+    if governance_failures:
+        print("platform-catalog governance FAIL:")
+        for failure in governance_failures:
+            print(f"  ✗ {failure}")
+        return 1
+    if enforce_expiry:
+        expired = _expiry_failures(catalog)
+        if expired:
+            print("platform-catalog expiry FAIL:")
+            for failure in expired:
+                print(f"  ✗ {failure}")
+            return 1
+
     if check:
         drift = [
             rel

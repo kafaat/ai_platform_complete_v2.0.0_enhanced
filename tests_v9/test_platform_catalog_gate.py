@@ -4,6 +4,12 @@ U0: تثبيت الجرد الحاليّ — 32 مكوّن backend و982 ترك�
 U1: كلّ مكوّن له اسم قانونيّ واحد؛ erp-bridge قانونيّ وodoo-bridge اسم مستعار؛
     compose/DNS تُربط بالقانونيّ ولا تُعامل كمكوّنات مستقلّة.
 U2: المُصرِّف حتميّ — إعادة التوليد تنتج نفس البصمة بايتاً-ببايت (--check).
+U3: wired مدفوع بأدلّة fail-closed (بوّابة العقود المُقوّاة): 29 مستهلَكاً مثبتاً،
+    agriai-engine غير-مستهلَك عمداً (بمُحفِّز إعادة فتح)، qdrant-seed وgis-workflow-service
+    مهمّتان مستقلّتان؛ سجلّ ملكيّة الجداول نظيف (مدخل IF الزائف أُزيل من مصدره).
+U4: كلّ مجموعة تكرار (method,path) مقاسة تحمل قراراً بشريّاً صالحاً (تصنيف + سبب +
+    انتهاء للمؤقّت)، وكلّ إعفاء واجهة محكوم بمالك/انتهاء/تتبّع؛ فحص الانتهاء الزمنيّ
+    في --enforce-expiry فقط فلا يلوّث حتميّة المخرجات.
 
 الصدق: قدرات U2 مشتقّة آليّاً (curated=false) ولا تحمل دلالات حَوكميّة مُختلَقة
 (approval/idempotency/سياق تبقى null حتى تُعلَن صراحةً في U5).
@@ -78,15 +84,80 @@ def test_u1_no_component_split_identity() -> None:
     assert not offenders, offenders
 
 
-def test_ownership_conflicts_are_only_the_known_finding() -> None:
-    """التطبيع القانونيّ يجب أن يُذيب انحراف أسماء الملكيّة كلّه؛ يبقى فقط
-    المدخل الزائف الموثَّق (جدول ``IF`` — أثر CREATE TABLE IF NOT EXISTS)."""
+def test_ownership_conflicts_are_zero() -> None:
+    """U3: التطبيع القانونيّ أذاب انحراف الأسماء، والمدخل الزائف (جدول ``IF`` —
+    أثر CREATE TABLE IF NOT EXISTS) أُزيل من مصدره db_ownership.yml — السجلّ نظيف،
+    وأيّ تعارض جديد يُفشِل بوّابة الحَوكمة U3 في المُصرِّف نفسه."""
     conflicts = json.loads(
         (ROOT / "ownership_conflicts.generated.json").read_text(encoding="utf-8")
     )["conflicts"]
-    kinds = sorted(c["kind"] for c in conflicts)
-    assert kinds == ["bogus_table_name"], conflicts
-    assert conflicts[0]["table"] == "IF"
+    assert conflicts == [], conflicts
+    ownership = (ROOT / "docs" / "architecture" / "db_ownership.yml").read_text(encoding="utf-8")
+    assert "\n  IF:\n" not in ownership
+
+
+def test_u3_wired_is_evidence_driven() -> None:
+    """U3: السلك من أدلّة بوّابة العقود المُقوّاة لا من تخمينات compose —
+    29 مستهلَكاً مثبتاً؛ agriai-engine غير-مستهلَك عمداً (False + مُحفِّز إعادة فتح)؛
+    qdrant-seed وgis-workflow-service مهمّتان مستقلّتان (null)."""
+    comps = {c["component_id"]: c for c in _catalog()["components"]}
+    agriai = comps["agriai-engine"]
+    assert agriai["status"]["wired"] is False
+    assert agriai["consumer_contract"]["wiring_disposition"] == "intentional-unconsumed"
+    assert agriai["consumer_contract"]["reopen_trigger"], "غير-مستهلَك عمداً بلا مُحفِّز = إخفاء"
+    for job in ("qdrant-seed", "gis-workflow-service"):
+        assert comps[job]["status"]["wired"] is None
+        assert comps[job]["consumer_contract"]["wiring_disposition"] == "standalone-job"
+    backend_wired = [
+        c["component_id"]
+        for c in comps.values()
+        if c["status"]["wired"] is True and c["consumer_contract"]["declared"]
+    ]
+    assert len(backend_wired) == 29, sorted(backend_wired)
+    # كلّ مكوّن backend مصرَّح عقده وأدلّته صالحة (fail-closed مرّت)
+    for c in comps.values():
+        if c["consumer_contract"]["declared"]:
+            assert c["consumer_contract"]["evidence_valid"] is True, c["component_id"]
+
+
+def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
+    """U4: كلّ مجموعة تكرار مقاسة مصنَّفة بقرار له سبب؛ المؤقّت يحمل انتهاءً؛
+    الواجهات القديمة تسمّي مالكاً قانونيّاً وواجهةً مختلفَين وكلاهما عضو المجموعة."""
+    cat = _catalog()
+    groups = cat["cross_service_duplicate_method_paths"]
+    assert cat["counts"]["duplicate_groups_classified"] == len(groups) == 14
+    for g in groups:
+        assert g["classified"] is True, g
+        assert g["classification"], g
+        assert str(g["decision"]).strip(), g
+        if g["classification"] == "legacy_bff_facade":
+            assert g["canonical_owner"] and g["facade"], g
+            assert g["canonical_owner"] != g["facade"], g
+            assert g["canonical_owner"] in g["components"], g
+            assert g["facade"] in g["components"], g
+    facades = {
+        (g["method"], g["path"]): g["canonical_owner"]
+        for g in groups
+        if g["classification"] == "legacy_bff_facade"
+    }
+    # فصل الحقيقة عن الواجهة: raster يملك STAC وagriai يملك التخطيط — المنصّة واجهة فقط.
+    assert facades[("GET", "/stac")] == "raster-service"
+    assert facades[("POST", "/plan")] == "agriai-engine"
+
+
+def test_u4_ui_waivers_governed() -> None:
+    """U4: الإعفاءات الخمسون كلّها محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
+    + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى."""
+    cat = _catalog()
+    waivers = cat["ui_waiver_governance"]
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 50
+    component_ids = {c["component_id"] for c in cat["components"]}
+    from datetime import date
+
+    for w in waivers:
+        assert w["owner"] in component_ids, w
+        date.fromisoformat(w["expires_on"])
+        assert w["tracking"], w
 
 
 def test_capabilities_do_not_invent_governance_semantics() -> None:
