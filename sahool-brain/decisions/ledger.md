@@ -865,3 +865,9 @@ SHAs من `git log --oneline origin/main`.
 - **السبب:** المسارات المتوازية (`/crop-twin/decision`، `/profit-aware`، `run_field_intelligence`) تلتفّ حول البوّابة fail-closed للمرشّح القانونيّ؛ المرشّح مبنيّ على مدخلات العميل لا عقود canonical حيّة (GDD وحده مجلوب خادميّاً)؛ `weather_state` غير ممرَّر ⇒ heat/frost/crop_water معطّلة.
 - **الفعل:** لا تغيير كود في هذه الجولة (تحقّق فقط)؛ اقتراح فجوة `DECISION-CENTER-UNIFY-01` (المسار 3/4/5: منع submit على compose + تحويل المسارين إلى preview + منع executable الالتفافيّ — قابل للتنفيذ الآن بلا migration) بانتظار موافقة المالك على التسجيل/التنفيذ.
 - **SHA:** المراجَعة عند `9a218c7`؛ لا commit في هذه الجولة.
+
+## 2026-07-23 — REGISTRY-CLASSIFICATION-SETTLEMENT (main=38ed755، بعد #616)
+- **القرار:** تجميد العمل الكوديّ العامّ + تسوية تصنيفات السجل بدل محاولة إغلاق بنود محجوبة من الكود.
+- **السبب:** الجرد أثبت صفر بند قابل للإغلاق كوديّاً دون نصف-حلّ؛ العمل القسريّ يخالف الصدق. المالك صحّح: تصنيف دقيق (OPERATIONAL/GOVERNANCE-TRIGGER/SPEC-DATA/DESIGN-RUNTIME/ACCEPTED_RISK) لا إعلان «خالٍ كوديّاً».
+- **التغييرات:** `SHARED-PACKAGE-NAME-COLLISION`→ACCEPTED_RISK/WONTFIX · `DECISION-CENTER-UNIFY-01`→BLOCKED-DESIGN+RUNTIME · قسم `#CODE-CLOSABLE-DEFERRED-SWEEP` · تصنيف 3 خدمات UNCONSUMED-INTENTIONAL/INTERNAL-FUTURE (بلا اختراع مستهلك).
+- **التالي:** بانتظار فتح المالك لمسار PG16 staging (P0×2) أو تأكيد محفّز/قرار PKI. السرّ env-only. لا force-push على main.
