@@ -3454,3 +3454,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التحقّق النهائيّ:** كلّ **69/69** فحص success/skipped على `a8a3d5a` (Flutter Analyze & Test · Unit/Platform/Integration/Decision · pytest-contracts · security-audit · production-validation-gate · report-index). محليًّا: `-m unit` 3400 · ري 90 · حارس الموبايل 4 · security phase12 4 · bundle 4795.
 - **معلّق بصدق (غير مُعلَن مكتملًا):** براهين PG16/PostGIS + RLS تحت الأدوار المقيَّدة · NATS/JetStream durable · سلسلة actuator claim/receipt E2E · سيناريوهات Flutter الحيّة للجهاز/offline. لا SoR ريّ مُوازٍ · `FIELD_FORMS_ENABLED=0` · العامل default-off.
 - **SHA:** رؤوس `416b9c6`→`f3e7669`→`a8a3d5a` (أخضر) · دمج merge-commit `7606901`.
+
+## 2026-07-23 — إغلاق RUFF-FORMAT-DRIFT-SHARED #603 (`main` = `b18a1c1`)
+- **السياق:** بعد سؤال المالك «ما المتبقّي من فجوات قابلة للتنفيذ» ثمّ «ابدأ بما تراه مناسبًا»، صنّفتُ سجلّ الفجوات (23 مفتوحًا) إلى قابل-للتنفيذ مقابل محجوب، وبدأتُ بأوّل بند مناسب غير مبكّر: RUFF-FORMAT-DRIFT-SHARED.
+- **العمل:** `shared/` كان خارج بوّابتَي `ruff check`/`ruff format` (`services/ bots/ agents/ tests_v9/` فقط) ⇒ 35 ملفّ تنسيق + 99 lint متراكمة على main. `ruff format shared/` + `ruff check --fix` (95/103 آليًّا) + إصلاح 8 يدويًّا (E402→`# noqa`، B007 `idx`→`_idx`، B905 `zip(...,strict=False)` محافِظ). **توسيع البوّابة:** `ci.yml` كلتا الخطوتين تشملان `shared/` الآن.
+- **الأمان:** `ruff.toml` يحمل `"**/__init__.py" = ["F401"]` ⇒ لا إعادة تصدير مُسّت (الـ`__init__` diffs سطر-فارغ فقط، الوحدات الأربع بـ`__all__` سليم 5/5/6/76). محايد سلوكيًّا.
+- **التحقّق:** 61/61 CI أخضر على `294b1fd`؛ محليًّا `-m unit` 3400 · اختبارات shared 229 · bundle 4795 · inventory نظيف.
+- **SHA:** رأس `294b1fd` · دمج `b18a1c1`. السجلّ: RUFF-FORMAT-DRIFT-SHARED ⇒ FIXED.
