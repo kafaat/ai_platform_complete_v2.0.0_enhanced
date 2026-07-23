@@ -14,6 +14,52 @@ from typing import Any
 _TRUTHY = {"1", "true", "yes", "on"}
 _ALLOWED_MODES = {"platform_sor", "shadow", "decision_service_sor"}
 
+# The canonical decision system-of-record tables — kept in lockstep with
+# decision-service `cutover._REQUIRED_TABLES`. Direct platform writes to these must
+# stop once the platform is demoted (effective_mode == "decision_service_sor").
+DECISION_SOR_TABLES = frozenset(
+    {
+        "decision_record",
+        "dispatch_decisions",
+        "outcome_record",
+        "recommendation_outcomes",
+        "online_learning_updates",
+        "decision_outbox_events",
+    }
+)
+
+
+class PlatformDecisionWriteForbidden(RuntimeError):
+    """Raised when the platform attempts a direct decision-SoR write after demotion.
+
+    Fail-closed: prevents a dual-write (platform + decision-service both authoritative)
+    in ``decision_service_sor`` mode. Never raised in ``platform_sor``/``shadow`` — where
+    ``platform_writes_required`` is True — so it is a strict no-op until an explicit,
+    fully-gated cutover.
+    """
+
+    def __init__(self, table: str, effective_mode: str) -> None:
+        self.table = table
+        self.effective_mode = effective_mode
+        super().__init__(
+            f"platform direct write to decision-SoR table {table!r} is forbidden in "
+            f"mode {effective_mode!r}; decision-service is the authoritative writer"
+        )
+
+
+def assert_platform_may_write_decision_sor(table: str) -> None:
+    """Fail-closed guard placed before every platform write to a decision-SoR table.
+
+    Consults :func:`get_platform_decision_sor_mode`. No-op while the platform is the
+    authoritative writer (``platform_writes_required`` True — the default and shadow
+    modes); raises :class:`PlatformDecisionWriteForbidden` once the platform has been
+    demoted, closing the dual-write window at the application layer. (DB-level write
+    revocation from the platform role is the complementary follow-up.)
+    """
+    mode = get_platform_decision_sor_mode()
+    if not mode.platform_writes_required:
+        raise PlatformDecisionWriteForbidden(table, mode.effective_mode)
+
 
 def _truthy(name: str) -> bool:
     return os.getenv(name, "").strip().lower() in _TRUTHY

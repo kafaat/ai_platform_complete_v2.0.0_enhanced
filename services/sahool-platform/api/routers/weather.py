@@ -1408,6 +1408,9 @@ async def _persist_weather_decision_record(conn, user, record: dict) -> str | No
     from api.main import _emit_domain_event
 
     decision_id = f"weather-{_uuid4().hex[:16]}"
+    from api.decision_sor_mode import assert_platform_may_write_decision_sor
+
+    assert_platform_may_write_decision_sor("decision_record")
     await conn.execute(
         """INSERT INTO decision_record
             (decision_id, tenant_id, field_id, decision_type, region,
