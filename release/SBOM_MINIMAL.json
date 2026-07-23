@@ -17565,7 +17565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3ad6a77f56d1be3ada7b142403561e4a0b6226c6f721f10317dd5ab883cda7d"
+          "content": "76d863545d1cab61d89d96aacd7d0ee525bb6d2e2bf7c2d2628c88bdce65f59f"
         }
       ],
       "name": "services/sahool-platform/api/routers/service_proxy.py",
@@ -26165,7 +26165,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb3cbbd68fb290fbce3565737aca9e6d1c7ece7bfc77b2669a7d144409a628fd"
+          "content": "699b4a9046261acb22795004b252015f85f54e8e204ec7cbef2b22561a0a6a82"
         }
       ],
       "name": "services/scout-ingest-service/field_forms_api.py",

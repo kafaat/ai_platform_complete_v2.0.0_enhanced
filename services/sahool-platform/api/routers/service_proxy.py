@@ -54,6 +54,7 @@ def _filtered_headers(
     user: UserSchema,
     *,
     service_header: tuple[str, str] | None = None,
+    inject_actor: bool = False,
 ) -> dict[str, str]:
     headers: dict[str, str] = {}
     for key, value in request.headers.items():
@@ -62,6 +63,9 @@ def _filtered_headers(
             continue
         # لا نثق بأي ترويسات خدمة/مستأجر قادمة من العميل.
         if lk in {"x-agent-token", "x-tenant-id", "x-field-forms-token"}:
+            continue
+        # field-forms: هويّة الفاعل تُحقَن من JWT — ادّعاء العميل مرفوض.
+        if inject_actor and lk == "x-actor-id":
             continue
         # Slice 3: لا تُمرَّر مصادقة العميل (JWT/جلسة) للخدمات الداخليّة — المصادقة
         # الداخليّة عبر توكن القناة المحقون + X-Tenant-Id حصرًا (منع تمرير هويّة العميل).
@@ -73,6 +77,8 @@ def _filtered_headers(
     else:
         headers["X-Agent-Token"] = _service_token()
     headers["X-Tenant-Id"] = str(user.tenant_id)
+    if inject_actor:
+        headers["X-Actor-Id"] = str(user.user_id)
     return headers
 
 
@@ -93,6 +99,7 @@ async def _proxy(
     path: str,
     timeout: float = 120.0,
     service_header: tuple[str, str] | None = None,
+    inject_actor: bool = False,
 ) -> Response:
     if request.method.upper() not in _ALLOWED_METHODS:
         raise HTTPException(405, "method not allowed")
@@ -104,7 +111,9 @@ async def _proxy(
                 request.method,
                 target,
                 params=request.query_params,
-                headers=_filtered_headers(request, user, service_header=service_header),
+                headers=_filtered_headers(
+                    request, user, service_header=service_header, inject_actor=inject_actor
+                ),
                 content=body,
             )
     except httpx.TimeoutException as e:
@@ -194,4 +203,5 @@ async def proxy_field_forms(
         path=f"internal/field-forms/{path.strip('/')}",
         timeout=60.0,
         service_header=("X-Field-Forms-Token", _field_forms_token()),
+        inject_actor=True,
     )

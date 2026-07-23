@@ -18,7 +18,9 @@ withdrawn ⇒ quarantined مهما كان التوكن (نموذج فاسد لا
 تدوير المفاتيح (§9.2): ``FIELD_FORMS_SYNC_HMAC_KEY`` (+``_KEY_ID``) الحاليّ،
 و``FIELD_FORMS_SYNC_HMAC_KEY_PREVIOUS`` (+``_PREVIOUS_KEY_ID`` +``_PREVIOUS_UNTIL_EPOCH``)
 سابقٌ محتفَظ به بحدّ زمنيّ صريح. نافذة offline القصوى ``FIELD_FORMS_MAX_OFFLINE_SECONDS``
-(افتراضيّ 30 يومًا).
+(افتراضيّ 30 يومًا). §9.2.1 سماح تدوير device-key: توكنات جهازٍ رُوّيت هويّته (``device_id``
+يختلف عن مطالبة التوكن) تبقى مقبولة ضمن نافذة ``FIELD_FORMS_DEVICE_ROTATION_GRACE_SECONDS``
+من إصدار التوكن — افتراضيّ 0 = مغلقة (سلوك fail-closed القائم لا يتغيّر ما لم تُضبَط عمدًا).
 
 P0 (مراجعة PR #585): ربط sync proof إلزاميّ بالمستخدم والجهاز والتكليف (X-Actor-Id +
 X-Device-Id + assignment_revision — حذفها يفشل الإثبات لا يُلغي المقارنة) · مطالبة assignment
@@ -779,6 +781,21 @@ def _json_out(value):
     return json.loads(value)
 
 
+def _device_rotation_grace_ok(claims: dict, now: float) -> bool:
+    """§9.2.1: سماح تدوير device-key — جهاز رُوّيت هويّته تبقى توكناته الموقَّعة
+    على الهويّة القديمة مقبولة ضمن نافذة صريحة من إصدار التوكن
+    (FIELD_FORMS_DEVICE_ROTATION_GRACE_SECONDS ثوانٍ). الافتراضيّ 0 = مغلقة
+    تمامًا ⇒ السلوك fail-closed القائم لا يتغيّر ما لم تُضبَط عمدًا."""
+    try:
+        grace = int(os.getenv("FIELD_FORMS_DEVICE_ROTATION_GRACE_SECONDS", "0"))
+    except ValueError:
+        grace = 0
+    if grace <= 0:
+        return False
+    issued_at = claims.get("issued_at")
+    return isinstance(issued_at, (int, float)) and (now - issued_at) <= grace
+
+
 def _verify_sync_claims(
     token: str | None,
     *,
@@ -815,7 +832,9 @@ def _verify_sync_claims(
         return None
     if not actor_id or claims["actor_id"] != actor_id:
         return None
-    if not device_id or claims["device_id"] != device_id:
+    if not device_id:
+        return None
+    if claims["device_id"] != device_id and not _device_rotation_grace_ok(claims, now):
         return None
     if claims["form_version_id"] != form_version_id or claims["schema_hash"] != schema_hash:
         return None

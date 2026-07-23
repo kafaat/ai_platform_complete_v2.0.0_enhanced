@@ -511,6 +511,7 @@ jobs:
           pytest -v \
             tests_v9/test_field_forms_api_integration.py \
             tests_v9/test_field_forms_sync_binding_p02.py \
+            tests_v9/test_field_forms_device_rotation_grace.py \
             tests_v9/test_erp_bridge_fail_closed.py
 
   platform-unit-tests:
