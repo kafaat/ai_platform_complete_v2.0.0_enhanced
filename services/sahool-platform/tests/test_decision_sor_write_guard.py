@@ -76,20 +76,25 @@ def test_sor_table_set_matches_decision_service_cutover_contract():
         assert f'"{table}"' in cutover, f"{table} missing from decision-service cutover contract"
 
 
-# --- Wiring: the SoR-row-creation writes in the router paths must be guarded. ---
-
-_GUARDED_ROUTER_WRITES = {
-    "decision_record.py": [("decision_record", 2), ("outcome_record", 1)],
-    "decision_dispatch.py": [("dispatch_decisions", 1)],
-    "recommendations.py": [("recommendation_outcomes", 1)],
-    "weather.py": [("decision_record", 1)],
+# --- Wiring: every platform decision-SoR write must be preceded by the guard. ---
+# Paths are relative to services/sahool-platform. Counts are the number of guard
+# calls for that table that must appear in the file (slice 1: SoR-row creation in
+# the HTTP routers; slice 2: dispatch state UPDATEs + the online_learning_updates
+# worker write). decision_outbox_events is NOT platform-written (decision-service
+# owns its own outbox), so there is nothing to guard for it here.
+_GUARDED_SOR_WRITES = {
+    "api/routers/decision_record.py": [("decision_record", 2), ("outcome_record", 1)],
+    "api/routers/decision_dispatch.py": [("dispatch_decisions", 3)],
+    "api/routers/recommendations.py": [("recommendation_outcomes", 1)],
+    "api/routers/weather.py": [("decision_record", 1)],
+    "api/phase_runtime_store.py": [("online_learning_updates", 1)],
 }
 
+_PLATFORM = ROOT / "services/sahool-platform"
 
-@pytest.mark.parametrize("filename,expected", sorted(_GUARDED_ROUTER_WRITES.items()))
-def test_router_sor_writes_are_preceded_by_the_guard(filename, expected):
-    src = (ROUTERS / filename).read_text(encoding="utf-8")
+
+@pytest.mark.parametrize("relpath,expected", sorted(_GUARDED_SOR_WRITES.items()))
+def test_platform_sor_writes_are_preceded_by_the_guard(relpath, expected):
+    src = (_PLATFORM / relpath).read_text(encoding="utf-8")
     for table, count in expected:
-        # The guard call for this table appears at least as many times as the
-        # INSERT INTO <table> creation sites we wired in this slice.
         assert src.count(f'assert_platform_may_write_decision_sor("{table}")') >= count

@@ -456,6 +456,9 @@ async def persist_phase10_learning_outputs(
             from core.learning_source_lineage import resolve_learning_source
 
             _lin = resolve_learning_source(update)
+            from api.decision_sor_mode import assert_platform_may_write_decision_sor
+
+            assert_platform_may_write_decision_sor("online_learning_updates")
             await conn.execute(
                 """
                 INSERT INTO online_learning_updates
