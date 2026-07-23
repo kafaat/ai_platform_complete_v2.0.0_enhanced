@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "357701a9f99cbd648f1325b69ce78c991f110384a9cc4564473db3b0aaae403e"
+          "content": "bf06fd429cae9d02c99166ff8387b9501ad8eeb580c3822a0b03d41ca5551af4"
         }
       ],
       "name": "docker-compose.evidence-lab.yml",
@@ -24625,7 +24625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4397f9cc7a65dc582eea19d26bd6a4d761296b23494508a0abe49e7f7eddc437"
+          "content": "62a21a0eb28f9300ae6d67f1b1a992f72b2053184e3713e36b5e2fd9a877fdc2"
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_db_ownership_guard.py",

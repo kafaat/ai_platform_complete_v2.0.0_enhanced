@@ -385,7 +385,10 @@ jobs:
             # soil-strict تراكُب إنتاجيّ (overlay) يحمل environment فقط لخدمات مُعرَّفة في
             # الأساس (v9)، فلا image/build فيه ⇒ لا يصحّ standalone؛ يُطبَّق فوق v9 بعد الشهادة.
             # dev تراكُب تطوير (overlay): environment فقط (soft-fail + كوكي HTTP) فوق v9 ⇒ لا يصحّ standalone.
-            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ] || [ "$f" = "docker-compose.dev.yml" ] || [ "$f" = "docker-compose.production.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
+            # evidence-lab مكدّس معزول زائل يُعلمِن منافذ المضيف (${EVIDENCE_*_PORT}) —
+            # لا يتوافق مع env الوهميّ لهذه الحلقة (يجعل المنفذ سلسلة). يُتحقَّق منه في
+            # workflow المخصّص .github/workflows/evidence-lab.yml بـenv حقيقيّ.
+            if [ "$f" = "docker-compose.odoo-snippet.yml" ] || [ "$f" = "docker-compose.rag-kg-mcp.yml" ] || [ "$f" = "docker-compose.v9.gpu.yml" ] || [ "$f" = "docker-compose.soil-strict.yml" ] || [ "$f" = "docker-compose.dev.yml" ] || [ "$f" = "docker-compose.production.yml" ] || [ "$f" = "docker-compose.evidence-lab.yml" ]; then echo "↷ skip (fragment/overlay)"; continue; fi
             # 1. YAML syntax
             python3 -c "import yaml; yaml.safe_load(open('$f'))"
             # 2. Compose schema (docker compose config) مع env وهمي

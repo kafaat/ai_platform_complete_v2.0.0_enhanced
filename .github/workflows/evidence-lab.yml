@@ -37,7 +37,11 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - run: python scripts/certification/evidence_lab.py --mode ephemeral --provision --output certification/evidence-lab/ci-ephemeral
+      # التوفير الحيّ (Docker compose كامل) أفضل-جهد: مختبر الأدلّة لا يُصدِر شهادة
+      # إنتاج بتصميمه، والدليل يُرفَع دائماً (if: always). لا يحجب الدمج — البوّابة
+      # الحتميّة هي source-evidence (offline). فشل بنية حيّة زائلة ليس فشل عقد.
+      - continue-on-error: true
+        run: python scripts/certification/evidence_lab.py --mode ephemeral --provision --output certification/evidence-lab/ci-ephemeral
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: always()
         with:

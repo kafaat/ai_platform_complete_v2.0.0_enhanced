@@ -6,6 +6,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 DB_OWNERSHIP = ROOT / "docs" / "architecture" / "db_ownership.yml"
 
+# ``--`` سطر تعليق SQL: يُجرَّد قبل مسح CREATE TABLE كي لا يُلتقَط DDL معطَّل داخل
+# التعليقات (مثال: تعليق «... CREATE TABLE IF NOT EXISTS / ...» كان يجعل الـregex
+# يتراجع ويلتقط الكلمة المفتاحيّة ``IF`` كأنّها اسم جدول).
+_SQL_LINE_COMMENT = re.compile(r"--[^\n]*")
+# كلمات SQL مفتاحيّة لا يجوز أن تكون أسماء جداول (دفاع ثانٍ ضدّ تراجع الـregex).
+_SQL_KEYWORDS = {"IF", "NOT", "EXISTS", "TABLE", "TEMPORARY", "TEMP", "UNLOGGED"}
+
 
 def _parse_db_ownership(text: str):
     tables = {}
@@ -56,11 +63,13 @@ def test_db_ownership_covers_all_create_table_migrations():
         if not directory.exists():
             continue
         for path in directory.rglob("*.sql"):
-            discovered.update(create_re.findall(path.read_text(encoding="utf-8", errors="ignore")))
+            text = _SQL_LINE_COMMENT.sub("", path.read_text(encoding="utf-8", errors="ignore"))
+            discovered.update(create_re.findall(text))
         for path in directory.rglob("*.py"):
             text = path.read_text(encoding="utf-8", errors="ignore")
             discovered.update(create_re.findall(text))
             discovered.update(op_re.findall(text))
+    discovered = {name for name in discovered if name.upper() not in _SQL_KEYWORDS}
     missing = sorted(discovered - known)
     assert not missing, "Tables missing from docs/architecture/db_ownership.yml: " + repr(
         missing[:20]
