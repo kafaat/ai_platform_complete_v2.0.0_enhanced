@@ -3481,3 +3481,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - جرد المستهلكين (أدلّة `file:line`، بلا اختراع): agriai-engine=UNCONSUMED-INTENTIONAL (internal route `/api/agriai/`، صفر مُنادٍ) · remote-sensing-workspace-bff=UNCONSUMED-INTENTIONAL (BFF مستقبليّ) · gis-workflow-service=INTERNAL/FUTURE (غير منشور compose/nginx).
 - المسار المُوصى المفتوح أوّلاً: PG16 staging (6 خطوات، يفتح P0×2). السرّ env-only.
 - موقف git: لا force-push على main المدموج؛ `%G?=N` = غياب توقيع فقط.
+
+## 2026-07-23 — فحص وظيفيّ حيّ داخل الجلسة (main=c50f629)
+- PG16.13+PostGIS أصليّ: 217 هجرة 0-خطأ، 319 جدولاً، أدوار bootstrap الأربعة، 8 براهين RLS/append-only سلوكيّة بدور sahool_app (v209/v210/v211 ضمناً).
+- منصّة API حيّة (553 مساراً) + weather-service: سموك HTTP كامل — دفتر المزارع v211 (حساب مضبوط + idempotency + CSV محيَّد) · طقس SoR v209 (PIT/supersede/409/coverage) · بوّابات #610 (preview_only + 403 submit) · عزل T2 عبر API · fail-closed صادق (weather-engine غائب 503، Open-Meteo محجوب شبكيّاً).
+- تكامليّ: 33 نجاح/153 تخطٍّ/4 بيئيّة-harness (كلّ منها صُنّف بدليل: يمرّ منفرداً أو بدور صحيح). **صفر عيوب منتج.**
+- حدّ صدق: هذا فحص جلسة، لا يستوفي مسار PG16 staging (يحتاج بيئة المالك + موافقة بشريّة)؛ يُخفّض مخاطرة خطوته 1 فقط.
