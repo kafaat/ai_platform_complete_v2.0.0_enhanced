@@ -3511,3 +3511,7 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - U6 بيان TS مولَّد `frontend/src/lib/platformCatalog.generated.ts` موصول بلوحة AdminRuntimePage (مستهلك حقيقيّ) + vitest يمنع اليتم/الادّعاء.
 - U7 كلّ المخرجات (9) تحت --check --enforce-expiry في CI. U8 اختبار meta: render()==OUTPUTS. U9 كتلة certification: static_consistency_certified=true، production_certified=false دائماً.
 - تحقّق: بوّابة الكتالوج 16 · حتميّ · ruff · typecheck 0 · vitest 3/3 · الحزمة 4845.
+
+## 2026-07-23 — دمج U5–U9 (PR #618، main=75aca99) + zip
+- كلّ الـ61 فحص success/skipped على 3581b96 ⇒ دُمج. اكتملت شرائح الكتالوج U0–U9 على main.
+- zip مُسلَّم sahool_main_75aca99.zip (5193 ملفّاً).
