@@ -354,7 +354,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       # PyYAML مطلوب لفحص عقد ناشري الأحداث (event_publish_contracts.yaml): H2 publisher
       # coverage + waiver «منشور بلا مشترِك». بدونه يفشل الفحص بـModuleNotFoundError.
@@ -424,7 +424,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       # المشروع موحّد على ruff (ruff.toml): يغطّي lint + تنسيق + ترتيب الاستيراد،
       # فاستُبدل black/isort بـ`ruff format --check` لتطابق التنسيق المعتمد.
@@ -499,7 +499,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       - run: pip install -r tests_v9/requirements-test.txt
       - run: pytest -v -m unit --cov=services --cov-report=xml --cov-report=term
@@ -530,7 +530,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       # اختبارات منطق المنصّة (services/sahool-platform/tests) كانت خارج نطاق CI
       # كلّيّاً: pytest.ini يحصر testpaths في tests_v9، فلم تُجمَع هذه الاختبارات
@@ -554,7 +554,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       # اختبارات محرّك الطقس (services/weather-service/tests) كانت خارج نطاق CI:
       # الوظيفة الجذر «Unit Tests» تحصر testpaths في tests_v9، و«Platform Unit Tests»
@@ -575,7 +575,7 @@ jobs:
     # يدويّاً بإعادة سحب مرنة (٦ محاولات backoff) — نفس الصور والمنافذ تماماً.
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       # مرآة سجلّ Docker Hub (Google mirror.gcr.io تعكس Hub كاملاً بما فيه postgis/postgis):
       # أوثق بكثير من Hub المباشر — تُنهي رفرفة «registry-1.docker.io: timeout» التي تُعطّل السحب.
@@ -691,7 +691,7 @@ jobs:
     # Integration Tests (manual docker run + backoff instead of `services:`).
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       - name: Configure Docker registry mirror (avoid Docker Hub flakes)
         run: |
@@ -998,7 +998,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with: {python-version: "3.12"}
       - run: pip install bandit pip-audit pytest python-jose httpx pytest-asyncio "pydantic[email]" bcrypt redis asyncpg PyJWT
       # بوّابة أمان: تفشل على HIGH severity (تنفيذ كود/تشفير ضعيف/حقن) — صُحّحت إلى 0.
