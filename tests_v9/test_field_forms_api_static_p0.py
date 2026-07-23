@@ -20,7 +20,13 @@ def test_actor_binding_unconditional() -> None:
 
 def test_device_binding_mandatory() -> None:
     assert 'alias="X-Device-Id"' in API
-    assert 'if not device_id or claims["device_id"] != device_id:' in API
+    # الحضور إلزاميّ: غياب device_id يفشل الإثبات (fail-closed) لا يتخطّى المقارنة.
+    assert "if not device_id:" in API
+    # التطابق مطلوب؛ الاستثناء الوحيد نافذة تدوير device-key صريحة (§9.2.1) مغلقة
+    # افتراضيًّا (grace<=0 ⇒ _device_rotation_grace_ok=False ⇒ السلوك القائم لا يتغيّر).
+    assert 'claims["device_id"] != device_id' in API
+    # منع تراجع P0-3: ربط مشروط (if device_id and ...) يتخطّى فحص الجهاز عند غيابه.
+    assert 'if device_id and claims["device_id"]' not in API
 
 
 def test_revision_binding_unconditional() -> None:
