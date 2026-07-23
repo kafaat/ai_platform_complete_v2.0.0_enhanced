@@ -423,7 +423,10 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                 forecast = await get_weather_forecast(float(row["lat"]), float(row["lon"]), days=1)
                 day0 = (forecast.get("days") or [{}])[0]
                 t_max, t_min = day0.get("temp_max_c"), day0.get("temp_min_c")
-                rain_mm = float(day0.get("precipitation_mm") or 0.0)
+                # ميّز «هطول مقيس = 0» عن «هطول مفقود» — الأخير يُفترَض 0 بإعلان لا صامتاً.
+                _precip = day0.get("precipitation_mm")
+                rain_assumed_zero = _precip is None
+                rain_mm = float(_precip or 0.0)
                 if t_max is None or t_min is None:
                     continue
                 et0 = await get_et0_product(
@@ -455,6 +458,7 @@ async def run_water_ledger_once(pool: asyncpg.Pool, *, batch_size: int = 50) -> 
                     rain_mm=rain_mm,
                     irrigation_mm=float(irr["mm"] or 0.0),
                     irrigation_volume_untracked=bool(irr["untracked"]),
+                    rain_assumed_zero=rain_assumed_zero,
                 )
                 await conn.execute(
                     """
