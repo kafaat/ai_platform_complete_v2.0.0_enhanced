@@ -6475,7 +6475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2582afe3ec894a5f5177ccc6073c12c1fef7a205004bb6e04519ecefc0d17946"
+          "content": "4a9cc0d57c81c0ba1547093971626b48b5127d31628418d2fb45782e9e0f29ca"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -17585,7 +17585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "689febedc7366be875fedf03f0471019153cdd1dcc319f9a2e8fa2e3b9ab1acc"
+          "content": "9df2477f941781a8cfc950e2c1f3e0a646b098ea6f7eee48fce999546166a0c9"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -17885,7 +17885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd78dac9b832d05b152ee3a738c7f20a22ba1df40b08551d2d391f8bc03fdb28"
+          "content": "29baf6e5162db052b571f10f16955f5f8db68bf0a1453cd3d96832f86a5df6e6"
         }
       ],
       "name": "services/sahool-platform/api/season_models.py",

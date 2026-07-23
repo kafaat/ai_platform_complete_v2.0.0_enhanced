@@ -356,18 +356,9 @@ async def simulate_season_endpoint(
     try:
         async with tenant_connection(user) as conn:
             async with conn.transaction():
-                await conn.execute(
-                    "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
-                    "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, "
-                    "sim_ran_at = $7 WHERE season_id = $1",
-                    season_id,
-                    result.yield_kg_ha,
-                    result.biomass_kg_ha,
-                    result.gdd_total,
-                    result.lai_max,
-                    result.water_need_mm,
-                    ran_at,
-                )
+                # Insert the canonical append-only run row FIRST so its run_id can be
+                # bound onto the seasons.sim_* projection in the same transaction —
+                # lineage from the latest projection back to its run is never lost.
                 run_id = await conn.fetchval(
                     "INSERT INTO season_simulation_runs "
                     "(tenant_id, field_id, season_id, mode, as_of_time, input_digest, "
@@ -389,6 +380,19 @@ async def simulate_season_endpoint(
                     result.confidence,
                     _json.dumps(result.assumptions_ar, ensure_ascii=False),
                     _json.dumps(result.warnings_ar, ensure_ascii=False),
+                )
+                await conn.execute(
+                    "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
+                    "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, "
+                    "sim_ran_at = $7, sim_run_id = $8 WHERE season_id = $1",
+                    season_id,
+                    result.yield_kg_ha,
+                    result.biomass_kg_ha,
+                    result.gdd_total,
+                    result.lai_max,
+                    result.water_need_mm,
+                    ran_at,
+                    run_id,
                 )
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("حفظ نتائج المحاكاة", e) from e
@@ -483,6 +487,7 @@ async def simulate_season_endpoint(
         decision_historical_snapshot_id=decision_historical_snapshot_id,
         model_role="screening_only",
         eligible_for_calibration=False,
+        simulation_engine=ENGINE_NAME,
         canonical_yield_engine="pcse_wofost",
     )
 

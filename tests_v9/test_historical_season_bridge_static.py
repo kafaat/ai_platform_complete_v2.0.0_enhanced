@@ -19,8 +19,13 @@ def _entries() -> list[str]:
 
 def test_bridge_runs_before_final_rls_catalog_assertion():
     entries = _entries()
+    # v206 (final RLS catalog hardening) MUST stay last; every season-bridge
+    # migration (v207 tables, v208 sim_run lineage ALTER) runs before it.
     assert entries[-1] == "v206_rls_final_hardening.sql"
-    assert entries.index(MIGRATION.name) == len(entries) - 2
+    assert entries.index(MIGRATION.name) < entries.index("v206_rls_final_hardening.sql")
+    assert entries.index("v208_seasons_sim_run_lineage.sql") < entries.index(
+        "v206_rls_final_hardening.sql"
+    )
 
 
 def test_bridge_is_tenant_bound_append_only_and_validates_accepted_ownership():
@@ -72,3 +77,32 @@ def test_decision_snapshot_carries_simulation_outcome_and_engine_identity():
     router = ROUTER.read_text(encoding="utf-8")
     assert "build_simulation_outcome(" in router
     assert '"simulation": simulation_outcome' in router
+
+
+V208 = ROOT / "migrations/v208_seasons_sim_run_lineage.sql"
+MODELS = ROOT / "services/sahool-platform/api/season_models.py"
+
+
+def test_sim_projection_is_bound_to_the_run_ledger_by_run_id():
+    """HISTORICAL-SEASON-COMPOSITION-02 slice: seasons.sim_* carries sim_run_id so
+    the latest projection can never lose its lineage to season_simulation_runs.
+    """
+    v208 = V208.read_text(encoding="utf-8")
+    assert "ADD COLUMN IF NOT EXISTS sim_run_id UUID" in v208
+
+    router = ROUTER.read_text(encoding="utf-8")
+    # The run row is inserted first, then the projection UPDATE binds its run_id.
+    assert "sim_run_id = $8 WHERE season_id = $1" in router
+    assert router.index("INSERT INTO season_simulation_runs") < router.index("sim_run_id = $8")
+
+
+def test_response_declares_actual_run_engine_not_only_canonical_target():
+    """The response must not pair yield with canonical_yield_engine alone: it states
+    the engine that actually produced the yield (rue-fao56) vs the canonical target.
+    """
+    models = MODELS.read_text(encoding="utf-8")
+    assert 'simulation_engine: str = "rue-fao56"' in models
+    assert 'canonical_yield_engine: str = "pcse_wofost"' in models
+
+    router = ROUTER.read_text(encoding="utf-8")
+    assert "simulation_engine=ENGINE_NAME" in router
