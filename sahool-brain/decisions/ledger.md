@@ -871,3 +871,8 @@ SHAs من `git log --oneline origin/main`.
 - **السبب:** الجرد أثبت صفر بند قابل للإغلاق كوديّاً دون نصف-حلّ؛ العمل القسريّ يخالف الصدق. المالك صحّح: تصنيف دقيق (OPERATIONAL/GOVERNANCE-TRIGGER/SPEC-DATA/DESIGN-RUNTIME/ACCEPTED_RISK) لا إعلان «خالٍ كوديّاً».
 - **التغييرات:** `SHARED-PACKAGE-NAME-COLLISION`→ACCEPTED_RISK/WONTFIX · `DECISION-CENTER-UNIFY-01`→BLOCKED-DESIGN+RUNTIME · قسم `#CODE-CLOSABLE-DEFERRED-SWEEP` · تصنيف 3 خدمات UNCONSUMED-INTENTIONAL/INTERNAL-FUTURE (بلا اختراع مستهلك).
 - **التالي:** بانتظار فتح المالك لمسار PG16 staging (P0×2) أو تأكيد محفّز/قرار PKI. السرّ env-only. لا force-push على main.
+
+## 2026-07-23 — ACCEPTED_RISK-GOVERNANCE-METADATA (ملاحظة حوكمة المالك)
+- **القرار:** أيّ تصنيف ACCEPTED_RISK/WONTFIX يجب أن يحمل حوكمة صريحة (مالك مخاطرة · تاريخ اعتماد · محفّز إعادة فتح · تاريخ مراجعة) كي لا يصير إغلاقاً دائماً غير مراقَب.
+- **التطبيق:** أُضيفت الحقول الأربعة لـ`MINIO-PER-SERVICE-CREDENTIALS` و`SHARED-PACKAGE-NAME-COLLISION` (مالك=المالك kafaat · اعتماد=2026-07-23 · محفّزات موثَّقة · مراجعة=2026-10-23 ربع سنويّ).
+- **المسار النشط الوحيد:** PG16 staging (P0×2)؛ لا فتح ADR-0033/WORKER-IDENTITY بالتوازي قبل المحفّز/PKI؛ لا إجراء صادق حتى توفّر اتصال PG16 عبر env/secret (لا نشر اعتماد في المحادثة). التحقّق المستقل من محتوى SHA/`file:line` مرهون بوصول الشجرة.
