@@ -99,8 +99,11 @@ def main() -> int:
         )
 
     for required in (
-        "sahool-minio-init:", "deploy/minio/policies", "scripts/minio/provision.sh",
-        "SCOUT_INGEST_S3_ACCESS_KEY:", "RASTER_S3_ACCESS_KEY:",
+        "sahool-minio-init:",
+        "deploy/minio/policies",
+        "scripts/minio/provision.sh",
+        "SCOUT_INGEST_S3_ACCESS_KEY:",
+        "RASTER_S3_ACCESS_KEY:",
     ):
         if required not in compose:
             fail(f"docker-compose.v9.yml missing MinIO least-privilege provisioning: {required}")

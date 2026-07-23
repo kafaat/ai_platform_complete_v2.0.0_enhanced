@@ -19,6 +19,7 @@ Create Date: 2026-06-08
 الهجرات اليدويّة (migrations/*.sql بالترتيب) ثمّ stamp، أو حوّلها لمراجعات
 Alembic لاحقاً. هذا baseline للقواعد القائمة.
 """
+
 import sqlalchemy as sa  # noqa: F401
 
 from alembic import op  # noqa: F401
@@ -31,14 +32,23 @@ depends_on = None
 # سجلّ الهجرات اليدويّة التي يمثّلها هذا الـbaseline (توثيق)
 MANUAL_MIGRATIONS = [
     "init_v8.sql",
-    "v9_foundation.sql", "v9_new_tables.sql", "v9_auth_improvements.sql",
-    "v9_append_only_enforcement.sql", "v9_rls_tenant_isolation.sql",
-    "v9_automation.sql", "v9_automation_persistence.sql",
-    "v9_edge_idempotency.sql", "v9_edge_occurred_at.sql",
-    "v9_lifecycle_occurred_at.sql", "v9_market.sql",
-    "v9_odoo_bridge.sql", "v9_onboarding.sql",
-    "v10_command_store_lifecycle.sql", "v11_events_bus.sql",
-    "v12_trueup_sharing.sql", "v13_geospatial_core.sql",
+    "v9_foundation.sql",
+    "v9_new_tables.sql",
+    "v9_auth_improvements.sql",
+    "v9_append_only_enforcement.sql",
+    "v9_rls_tenant_isolation.sql",
+    "v9_automation.sql",
+    "v9_automation_persistence.sql",
+    "v9_edge_idempotency.sql",
+    "v9_edge_occurred_at.sql",
+    "v9_lifecycle_occurred_at.sql",
+    "v9_market.sql",
+    "v9_odoo_bridge.sql",
+    "v9_onboarding.sql",
+    "v10_command_store_lifecycle.sql",
+    "v11_events_bus.sql",
+    "v12_trueup_sharing.sql",
+    "v13_geospatial_core.sql",
 ]
 
 

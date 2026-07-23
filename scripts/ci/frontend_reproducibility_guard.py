@@ -33,7 +33,9 @@ def main() -> int:
                     if flag not in line:
                         errors.append(f"{path.relative_to(ROOT)}: npm ci missing {flag}")
             if "run: npm install" in line:
-                errors.append(f"{path.relative_to(ROOT)}: npm install is non-deterministic; use npm ci")
+                errors.append(
+                    f"{path.relative_to(ROOT)}: npm install is non-deterministic; use npm ci"
+                )
     if install_count < 3:
         errors.append(f"expected at least 3 guarded npm ci installs, found {install_count}")
     if errors:
@@ -46,4 +48,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

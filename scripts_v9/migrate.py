@@ -132,8 +132,7 @@ def cmd_up(url: str, dry_run: bool = False) -> None:
             _psql(url, file=path)
             _psql(
                 url,
-                "INSERT INTO schema_migrations(version, checksum) VALUES (%s, %s);"
-                % (repr(migration), repr(checksum)),
+                f"INSERT INTO schema_migrations(version, checksum) VALUES ({repr(migration)}, {repr(checksum)});",
             )
             print(f"  ✓ {migration}")
         except RuntimeError as exc:

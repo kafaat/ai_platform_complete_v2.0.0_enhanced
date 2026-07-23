@@ -222,7 +222,12 @@ def extract_causal_links(results: dict) -> list[CausalLink]:
     )
 
     # 1. عجز مطري → انخفاض NDVI
-    if has_weather and has_sentinel and rainfall_deficit > 20.0 and ndvi_change < _NDVI_DECLINE_THRESHOLD:
+    if (
+        has_weather
+        and has_sentinel
+        and rainfall_deficit > 20.0
+        and ndvi_change < _NDVI_DECLINE_THRESHOLD
+    ):
         conf = min(0.95, 0.5 + (rainfall_deficit / 200.0) + abs(ndvi_change) / 200.0)
         links.append(
             CausalLink(

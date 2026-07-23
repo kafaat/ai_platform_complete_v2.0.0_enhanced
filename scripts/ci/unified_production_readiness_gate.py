@@ -31,8 +31,14 @@ CHECKS = (
     ("frontend_reproducibility", [sys.executable, "scripts/ci/frontend_reproducibility_guard.py"]),
     ("scene_provenance_ui", [sys.executable, "scripts/ci/scene_provenance_ui_guard.py"]),
     ("evidence_pack", [sys.executable, "scripts/ci/production_evidence_pack_guard.py", "--check"]),
-    ("certification_checklist", [sys.executable, "scripts/ci/production_certification_checklist_guard.py", "--check"]),
-    ("release_package", [sys.executable, "scripts/release/validate_release_package.py", "--root", "."]),
+    (
+        "certification_checklist",
+        [sys.executable, "scripts/ci/production_certification_checklist_guard.py", "--check"],
+    ),
+    (
+        "release_package",
+        [sys.executable, "scripts/release/validate_release_package.py", "--root", "."],
+    ),
     ("dependency_resolution", [sys.executable, "scripts/ci/pip_audit_resolution_guard.py"]),
 )
 
@@ -52,27 +58,35 @@ EXTERNAL_OR_TOOLCHAIN_GATES = (
 def _run(name: str, command: list[str]) -> dict[str, object]:
     result = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
     output = (result.stdout + result.stderr).strip()
-    return {"name": name, "status": "passed" if result.returncode == 0 else "failed",
-            "exit_code": result.returncode, "output_sha256": hashlib.sha256(output.encode()).hexdigest(),
-            "output_tail": output[-1200:]}
+    return {
+        "name": name,
+        "status": "passed" if result.returncode == 0 else "failed",
+        "exit_code": result.returncode,
+        "output_sha256": hashlib.sha256(output.encode()).hexdigest(),
+        "output_tail": output[-1200:],
+    }
 
 
 def _certification_status() -> dict[str, object]:
     result = subprocess.run(
         [sys.executable, "scripts/ci/production_certification_blockers_status.py"],
-        cwd=ROOT, text=True, capture_output=True,
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
     )
     if result.returncode:
         return {"production_certified": False, "error": result.stderr[-500:]}
     status = json.loads(result.stdout)
     qdrant = ROOT / "certification/evidence/qdrant_restore_drill_summary.json"
     status["qdrant_restore_drill"] = (
-        json.loads(qdrant.read_text(encoding="utf-8")) if qdrant.exists()
+        json.loads(qdrant.read_text(encoding="utf-8"))
+        if qdrant.exists()
         else {"status": "missing", "required_for_disaster_recovery": True}
     )
     sim_golden = ROOT / "certification/evidence/sim_golden_summary.json"
     status["sim_golden"] = (
-        json.loads(sim_golden.read_text(encoding="utf-8")) if sim_golden.exists()
+        json.loads(sim_golden.read_text(encoding="utf-8"))
+        if sim_golden.exists()
         else {"status": "missing", "eligible_for_promotion": False}
     )
     return status
@@ -89,7 +103,11 @@ def main() -> int:
     static_ready = all(row["status"] == "passed" for row in checks)
     certification = _certification_status()
     certified = static_ready and bool(certification.get("production_certified"))
-    verdict = "production_certified" if certified else ("release_candidate" if static_ready else "blocked")
+    verdict = (
+        "production_certified"
+        if certified
+        else ("release_candidate" if static_ready else "blocked")
+    )
     payload = {
         "schema_version": 1,
         "generated_at_utc": datetime.now(UTC).isoformat(),

@@ -25,7 +25,9 @@ def collect(root: Path) -> list[dict[str, object]]:
             match = REQ.match(raw.strip())
             if match:
                 name, version = match.groups()
-                found.setdefault(("pypi", name.lower(), version), set()).add(str(path.relative_to(root)))
+                found.setdefault(("pypi", name.lower(), version), set()).add(
+                    str(path.relative_to(root))
+                )
     for path in sorted(root.rglob("package.json")):
         if "node_modules" in path.parts:
             continue
@@ -39,11 +41,18 @@ def collect(root: Path) -> list[dict[str, object]]:
                 found.setdefault(("npm", name, clean), set()).add(str(path.relative_to(root)))
     rows = []
     for (kind, name, version), manifests in sorted(found.items()):
-        rows.append({
-            "type": "library", "bom-ref": _ref(kind, name, version), "name": name,
-            "version": version, "purl": f"pkg:{kind}/{name}@{version}",
-            "properties": [{"name": "sahool:source-manifest", "value": p} for p in sorted(manifests)],
-        })
+        rows.append(
+            {
+                "type": "library",
+                "bom-ref": _ref(kind, name, version),
+                "name": name,
+                "version": version,
+                "purl": f"pkg:{kind}/{name}@{version}",
+                "properties": [
+                    {"name": "sahool:source-manifest", "value": p} for p in sorted(manifests)
+                ],
+            }
+        )
     return rows
 
 
@@ -55,9 +64,16 @@ def main() -> int:
     root = Path(args.root).resolve()
     components = collect(root)
     payload = {
-        "bomFormat": "CycloneDX", "specVersion": "1.6", "version": 1,
-        "metadata": {"component": {"type": "application", "name": "sahool",
-                    "version": (root / "VERSION").read_text().strip()}},
+        "bomFormat": "CycloneDX",
+        "specVersion": "1.6",
+        "version": 1,
+        "metadata": {
+            "component": {
+                "type": "application",
+                "name": "sahool",
+                "version": (root / "VERSION").read_text().strip(),
+            }
+        },
         "components": components,
     }
     output = root / args.output

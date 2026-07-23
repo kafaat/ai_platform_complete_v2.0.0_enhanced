@@ -11,11 +11,18 @@ import zipfile
 from pathlib import PurePosixPath
 
 FORBIDDEN_NAMES = {
-    ".env", "id_rsa", "id_ed25519", "credentials.json", "service-account.json",
-    "secrets.yml", "secrets.yaml",
+    ".env",
+    "id_rsa",
+    "id_ed25519",
+    "credentials.json",
+    "service-account.json",
+    "secrets.yml",
+    "secrets.yaml",
 }
 FORBIDDEN_SUFFIXES = {".pem", ".key", ".p12", ".pfx", ".jks", ".keystore"}
-PRIVATE_KEY = re.compile(br"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----")  # gitleaks:allow — detection pattern, not a secret
+PRIVATE_KEY = re.compile(
+    rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"
+)  # gitleaks:allow — detection pattern, not a secret
 MAX_ENTRY_BYTES = 100 * 1024 * 1024
 MAX_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
 
@@ -57,4 +64,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

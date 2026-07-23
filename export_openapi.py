@@ -15,6 +15,7 @@ export_openapi.py — تصدير مواصفات OpenAPI لكلّ خدمات SAHO
 ملاحظة: بعض الخدمات تستورد حزماً ثقيلة (rasterio/redis...) — لو فشل استيراد
 خدمة، يتخطّاها بأمان ويسجّل السبب (لا يتوقّف).
 """
+
 import importlib.util
 import json
 import os
@@ -22,10 +23,20 @@ import sys
 
 # الخدمات وملفّات main الخاصّة بها (المسار النسبي من جذر المشروع)
 SERVICES = [
-    "actuator-service", "agriai-engine", "auth", "edge-inference",
-    "guardrails-engine", "local-ai-rag", "odoo-bridge", "raster-service",
-    "soil-service", "supervisor-agent", "tts-service",
-    "vegetation-analysis-service", "video-processor", "weather-service",
+    "actuator-service",
+    "agriai-engine",
+    "auth",
+    "edge-inference",
+    "guardrails-engine",
+    "local-ai-rag",
+    "odoo-bridge",
+    "raster-service",
+    "soil-service",
+    "supervisor-agent",
+    "tts-service",
+    "vegetation-analysis-service",
+    "video-processor",
+    "weather-service",
 ]
 
 OUT_DIR = os.path.join("docs", "openapi")
@@ -42,7 +53,8 @@ def load_app(service: str):
     sys.path.insert(0, os.path.abspath("."))
     try:
         spec = importlib.util.spec_from_file_location(
-            f"_svc_{service.replace('-', '_')}", main_path)
+            f"_svc_{service.replace('-', '_')}", main_path
+        )
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         app = getattr(mod, "app", None)
@@ -94,7 +106,7 @@ def main():
     with open(os.path.join(OUT_DIR, "INDEX.md"), "w", encoding="utf-8") as f:
         f.write("\n".join(index_lines))
 
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print(f"  صُدِّر: {len(exported)} خدمة")
     print(f"  تُخطّي: {len(skipped)} خدمة")
     if skipped:
@@ -102,7 +114,7 @@ def main():
         for svc, err in skipped:
             print(f"    • {svc}: {err}")
     print(f"  المخرجات في: {OUT_DIR}/")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
 
 
 if __name__ == "__main__":

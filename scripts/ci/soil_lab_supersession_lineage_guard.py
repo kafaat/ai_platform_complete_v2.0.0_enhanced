@@ -2,16 +2,21 @@ from pathlib import Path
 
 checks = {
     "migrations/v160_soil_lab_publication_lineage.sql": [
-        "published_observation_id", "supersedes_result_id", "published_at"
+        "published_observation_id",
+        "supersedes_result_id",
+        "published_at",
     ],
     "services/sahool-platform/api/soil_evidence_bridge.py": [
-        "supersedes_observation_ids", "result_by_canonical"
+        "supersedes_observation_ids",
+        "result_by_canonical",
     ],
     "services/soil-service/routers/canonical.py": [
-        "supersedes_observation_ids", "supersession_reason"
+        "supersedes_observation_ids",
+        "supersession_reason",
     ],
     "services/soil-service/evidence_adapters.py": [
-        "supersedes_observation_id", "supersession_reason"
+        "supersedes_observation_id",
+        "supersession_reason",
     ],
 }
 for name, tokens in checks.items():

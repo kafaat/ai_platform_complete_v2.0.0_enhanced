@@ -3,6 +3,7 @@
 يقرأ DATABASE_URL من متغيّر البيئة (لا كلمة سرّ في الملفّات).
 يعمل بنمط SQL خام (لا ORM) — متّسق مع هجرات المشروع الحاليّة.
 """
+
 import os
 import sys
 from logging.config import fileConfig

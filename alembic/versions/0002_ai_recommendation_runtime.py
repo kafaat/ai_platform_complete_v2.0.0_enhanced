@@ -1,4 +1,3 @@
-
 """AI recommendation runtime persistence
 
 Revision ID: 0002_ai_recommendation_runtime
@@ -8,9 +7,9 @@ Create Date: 2026-06-26
 
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "0002_ai_recommendation_runtime"
 down_revision = "0001_baseline"
@@ -27,18 +26,28 @@ def upgrade() -> None:
         sa.Column("recommendation_id", sa.String(length=64), nullable=False, index=True),
         sa.Column("state", sa.String(length=32), nullable=False),
         sa.Column("risk_level", sa.String(length=32), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
     )
     op.create_table(
         "review_decisions",
         sa.Column("id", sa.String(length=64), primary_key=True),
-        sa.Column("review_id", sa.String(length=64), sa.ForeignKey("recommendation_reviews.id"), nullable=False, index=True),
+        sa.Column(
+            "review_id",
+            sa.String(length=64),
+            sa.ForeignKey("recommendation_reviews.id"),
+            nullable=False,
+            index=True,
+        ),
         sa.Column("reviewer_id", sa.String(length=64), nullable=False),
         sa.Column("action", sa.String(length=32), nullable=False),
         sa.Column("reason", sa.Text(), nullable=True),
         sa.Column("modifications", sa.JSON(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
     op.create_table(
         "recommendation_feedback",
@@ -53,7 +62,9 @@ def upgrade() -> None:
         sa.Column("standard_cost", sa.Float(), nullable=True),
         sa.Column("actual_water", sa.Float(), nullable=True),
         sa.Column("standard_water", sa.Float(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+        ),
     )
 
 

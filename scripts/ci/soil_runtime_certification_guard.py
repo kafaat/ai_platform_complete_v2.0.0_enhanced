@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Static ratchet ensuring real-Postgres soil certification remains wired."""
+
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[2]
