@@ -451,7 +451,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with: {node-version: "20"}
       # بوّابة فحص نوعيّ للواجهة: كانت غائبة تماماً، فتراكمت أخطاء TS صامتة (مثل
       # ضياع user_id في login). tsc --noEmit يكشفها قبل الدمج. لا يبني الإنتاج
@@ -466,7 +466,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with: {node-version: "20"}
       # بوّابة QA الوظيفيّة لمحرّك MapLibre/WebGL على Chromium حقيقيّ (SwiftShader).
       # هرمسيّة: لا خلفيّة — التركيبات تُعترَض في طبقة Playwright (e2e/support/seed.ts).
