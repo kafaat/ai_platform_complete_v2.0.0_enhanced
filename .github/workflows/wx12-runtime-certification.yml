@@ -11,7 +11,7 @@ jobs:
   structural:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: '3.12'}
       - run: python scripts/ci/wx12_runtime_certification_gate.py
@@ -29,7 +29,7 @@ jobs:
       DATABASE_URL: postgresql://sahool:sahool@localhost:5432/sahool
       DECISION_SERVICE_ALLOW_SCHEMA_CHANGE: 'true'
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with: {python-version: '3.12'}
       # migration_runner connects via asyncpg — that is all this cert step needs.
