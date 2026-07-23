@@ -26,7 +26,7 @@ export function normalizeRole(role?: string | null): Role {
 export const ALL_PAGES = [
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'hybrid-monitor', 'analyze-cabin', 'setup-cabin', 'field-app', 'hybrid-index', 'satellite', 'fields', 'farm-map', 'field-workspace', 'recommendations',
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'sql-workspace', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'decision-runtime', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'irrigation-engineering', 'pest-escalation', 'field-intelligence',
-  'spatial-indicators', 'lab-sampling', 'devices', 'device-twin', 'inventory', 'equipment',
+  'spatial-indicators', 'lab-sampling', 'devices', 'device-twin', 'inventory', 'farm-book', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'yield-analysis', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'admin-runtime', 'approvals-console', 'manager-console', 'chatbot', 'settings',
   'operations-wall', 'agro-zones', 'yemeni-calendars', 'climate-analogs', 'season-record-entry',
 ] as const satisfies readonly PageId[];
@@ -46,7 +46,7 @@ const WORKER_PAGES: PageId[] = [
   // بينما sql-workspace/calibration-workbench/settings تبقى خارج worker (agronomist+).
   'dashboard', 'unified-cabin', 'command', 'map-center', 'tasks-cabin', 'rec-flow', 'recommendations', 'hybrid-monitor', 'hybrid-index', 'analyze-cabin', 'setup-cabin', 'field-app', 'satellite', 'fields', 'farm-map', 'field-workspace', 'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'alerts', 'chatbot', 'spatial-indicators', 'lab-sampling',
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'pest-escalation', 'field-intelligence',
-  'inventory', 'equipment', 'devices', 'device-twin', 'irrigation-ops', 'irrigation-network', 'irrigation-engineering',
+  'inventory', 'farm-book', 'equipment', 'devices', 'device-twin', 'irrigation-ops', 'irrigation-network', 'irrigation-engineering',
   'agro-zones', 'yemeni-calendars', 'climate-analogs',
 ];
 
@@ -65,7 +65,7 @@ const NON_MANAGEMENT_PAGES: PageId[] = ALL_PAGES.filter(
 // ANALYTICS_VIEW/AUDIT_VIEW ولا أيّ صلاحيّة ماليّة (core/authorization.py: VIEWER
 // = 12 صلاحيّة عرض فقط). قائمة قابلة للضبط من المنتَج بمصفوفة واحدة.
 const VIEWER_BLOCKED_PAGES: PageId[] = [
-  'economics', 'yield-analysis', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
+  'economics', 'farm-book', 'yield-analysis', 'analytics', 'reports', 'advisory-report', 'field-ranking', 'problem-fields',
   // منشئ الوصفات أداة كتابة (الحفظ يتطلّب FIELD_EDIT في الخلفيّة) — لا يُمنَح للمُشاهِد.
   'prescriptions',
   // جدار مركز العمليّات شاشة قيادة — owner/manager/agronomist فقط (لا worker ولا viewer).

@@ -1,0 +1,75 @@
+{
+  "baseline": "fbe6048+programmatic-closure-20260723",
+  "contract_version": "s0-s12-v1",
+  "status_vocabulary": [
+    "programmatic_ready",
+    "live_certification_required"
+  ],
+  "milestones": {
+    "S0": {
+      "name": "Baseline",
+      "status": "programmatic_ready",
+      "evidence": ["service_inventory.csv", "route_inventory.csv", "scripts/ci/generate_service_inventory.py"]
+    },
+    "S1": {
+      "name": "Decision SoR live certification",
+      "status": "live_certification_required",
+      "evidence": ["services/decision-service/production_promotion.py", "scripts/ci/decision_sor_final_certification_gate.py"]
+    },
+    "S2": {
+      "name": "AC-1 context enforcement",
+      "status": "programmatic_ready",
+      "evidence": ["services/decision-service/main.py", "scripts/ci/agronomic_context_gate.py"]
+    },
+    "S3": {
+      "name": "Historical Weather SoR",
+      "status": "programmatic_ready",
+      "evidence": ["migrations/v209_historical_weather_sor.sql", "services/sahool-platform/api/routers/operational_truth.py"]
+    },
+    "S4": {
+      "name": "Closed-loop E2E",
+      "status": "live_certification_required",
+      "evidence": ["services/decision-service/migrations/014_wx11_closed_loop_completion.sql", "scripts/ci/wx11_closed_loop_completion_gate.py"]
+    },
+    "S5": {
+      "name": "Operational Priority Queue",
+      "status": "programmatic_ready",
+      "evidence": ["services/sahool-platform/api/routers/field_priority_queue.py", "frontend/src/sections/FieldWorkspacePriorityPanel.tsx"]
+    },
+    "S6": {
+      "name": "Notification Delivery",
+      "status": "live_certification_required",
+      "evidence": ["migrations/v83_notification_delivery.sql", "services/sahool-platform/api/routers/notifications.py"]
+    },
+    "S7": {
+      "name": "PCSE + Model Router",
+      "status": "live_certification_required",
+      "evidence": ["services/agriai-engine/wofost_adapter.py", "services/agriai-engine/simulation_capability.py"]
+    },
+    "S8": {
+      "name": "Field Twin Workspace",
+      "status": "programmatic_ready",
+      "evidence": ["frontend/src/sections/FieldWorkspaceRouteShell.tsx", "scripts/ci/field_workspace_production_closure_gate.py"]
+    },
+    "S9": {
+      "name": "Edge Pest",
+      "status": "live_certification_required",
+      "evidence": ["services/edge-inference/models/pest_detector.py", "scripts/ci/edge_production_readiness_guard.py"]
+    },
+    "S10": {
+      "name": "UI capability closure",
+      "status": "programmatic_ready",
+      "evidence": ["frontend/src/config/backendCoverageRegistry.ts", "scripts/ci/endpoint_ui_coverage_gate.py"]
+    },
+    "S11": {
+      "name": "ERP reconciliation",
+      "status": "programmatic_ready",
+      "evidence": ["migrations/v210_erp_reconciliation_ledger.sql", "services/sahool-platform/api/routers/operational_truth.py"]
+    },
+    "S12": {
+      "name": "Production certification",
+      "status": "live_certification_required",
+      "evidence": ["scripts/ci/unified_production_readiness_gate.py", ".github/workflows/production-certification-checklist.yml"]
+    }
+  }
+}

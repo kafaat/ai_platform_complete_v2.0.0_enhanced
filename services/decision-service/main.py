@@ -538,12 +538,7 @@ async def record_decision(
     # without the full agronomic lineage (identity + three immutable context references +
     # vegetation evidence + manifest hash). Checked before the SoR branch: strict mode is a
     # contract violation regardless of mirror/authoritative state.
-    require_ctx = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
+    require_ctx = agronomic_context_required()
     if require_ctx:
         required = {
             "field_id": payload.field_id,
@@ -582,6 +577,20 @@ async def record_decision(
         stage=payload.stage,
         received_at=datetime.now(UTC).isoformat(),
     )
+
+
+def agronomic_context_required() -> bool:
+    """S2 enforcement is fail-closed in production and staged elsewhere.
+
+    An explicit true flag enables it in every environment. Production cannot
+    silently disable AC-1 by omitting or setting the flag to false.
+    """
+    explicit = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower()
+    environment = os.getenv("ENVIRONMENT", os.getenv("SAHOOL_ENV", "development")).strip().lower()
+    return explicit in {"1", "true", "yes", "on"} or environment in {
+        "production",
+        "prod",
+    }
 
 
 @app.get("/v1/decisions/review-queue")

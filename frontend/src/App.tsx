@@ -93,6 +93,7 @@ const AgronomicTimelinePage = lazy(() => import('./sections/AgronomicTimelinePag
 const PestEscalationPage  = lazy(() => import('./sections/PestEscalationPage'));
 const FieldIntelligencePage = lazy(() => import('./sections/FieldIntelligencePage'));
 const InventoryPage       = lazy(() => import('./sections/InventoryPage'));
+const SimpleFarmBookPage  = lazy(() => import('./sections/SimpleFarmBookPage'));
 const EquipmentPage       = lazy(() => import('./sections/EquipmentPage'));
 const DevicesPage         = lazy(() => import('./sections/DevicesPage'));
 const IrrigationOpsPage   = lazy(() => import('./sections/IrrigationOpsPage'));
@@ -143,7 +144,7 @@ export type PageId =
   | 'analytics' | 'alerts' | 'reports' | 'chatbot'
   | 'tasks' | 'settings' | 'recommendations' | 'spatial-indicators'
   | 'lab-sampling' | 'irrigation' | 'irrigation-plan' | 'water-twin' | 'etc-dual' | 'crop-state' | 'scenario-compare' | 'nl-gis' | 'portfolio' | 'portfolio-command' | 'calibration' | 'calibration-workbench' | 'lineage' | 'evidence-map' | 'replay-map' | 'learning-dashboard' | 'decision-studio' | 'decision-confidence' | 'decision-runtime' | 'execution-feedback' | 'agronomic-timeline' | 'pest-escalation' | 'field-intelligence'
-  | 'inventory' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network' | 'irrigation-engineering'
+  | 'inventory' | 'farm-book' | 'equipment' | 'devices' | 'device-twin' | 'irrigation-ops' | 'irrigation-network' | 'irrigation-engineering'
   | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime' | 'approvals-console' | 'manager-console'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
   | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert' | 'season-record-entry'
@@ -370,6 +371,7 @@ export default function App() {
       case 'field-intelligence': return <FieldIntelligencePage />;
       case 'spatial-indicators': return <SpatialIndicatorsPage />;
       case 'inventory':    return <InventoryPage />;
+      case 'farm-book':    return <SimpleFarmBookPage />;
       case 'equipment':    return <EquipmentPage />;
       case 'devices':      return <DevicesPage />;
       case 'device-twin':  return <DeviceTwinPage />;
