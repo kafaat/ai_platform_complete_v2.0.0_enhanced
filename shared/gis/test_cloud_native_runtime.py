@@ -1,12 +1,12 @@
 from pathlib import Path
 
 from shared.gis.cloud_native_runtime import (
-    record_from_db_row,
-    stac_item_from_record,
-    stac_collection,
-    mosaicjson_from_records,
-    tilejson_for_cog,
     export_records_to_geoparquet,
+    mosaicjson_from_records,
+    record_from_db_row,
+    stac_collection,
+    stac_item_from_record,
+    tilejson_for_cog,
 )
 
 
@@ -43,7 +43,10 @@ def test_record_stac_tilejson_are_db_backed_contracts():
 
 
 def test_collection_and_mosaic_from_registry_records():
-    records = [record_from_db_row(_row(scene_id="A", cog_url="/a.tif")), record_from_db_row(_row(scene_id="B", cog_url="/b.tif"))]
+    records = [
+        record_from_db_row(_row(scene_id="A", cog_url="/a.tif")),
+        record_from_db_row(_row(scene_id="B", cog_url="/b.tif")),
+    ]
     coll = stac_collection(records, index_type="ndvi")
     assert coll["id"] == "sahool-ndvi"
     assert coll["extent"]["spatial"]["bbox"][0] == [44.0, 15.0, 45.0, 16.0]

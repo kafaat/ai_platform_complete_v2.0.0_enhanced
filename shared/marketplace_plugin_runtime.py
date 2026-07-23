@@ -6,14 +6,15 @@ sandbox contexts, quota projections, event envelopes and output validation
 contracts that production adapters can later bind to gVisor/Firecracker/Docker,
 Kong, Redis, NATS and billing systems.
 """
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any
 import hashlib
 import json
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
 
 from shared.marketplace_ecosystem_phase12 import (
     DEFAULT_QUOTAS,
@@ -26,7 +27,7 @@ from shared.marketplace_ecosystem_phase12 import (
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -107,7 +108,9 @@ def _quota_request_for_action(action: str) -> dict[str, float]:
     return {meter: 1.0}
 
 
-def build_sandbox_runtime_context(app: dict[str, Any], installation: dict[str, Any], action: str) -> dict[str, Any]:
+def build_sandbox_runtime_context(
+    app: dict[str, Any], installation: dict[str, Any], action: str
+) -> dict[str, Any]:
     """Build the least-privilege runtime context given to a plugin runner.
 
     The context intentionally contains references and capabilities, not raw
@@ -117,7 +120,14 @@ def build_sandbox_runtime_context(app: dict[str, Any], installation: dict[str, A
     policy = build_plugin_sandbox_policy(manifest)
     granted = tuple(sorted(set(installation.get("granted_permissions", []))))
     return {
-        "sandbox_context_id": _stable_id({"app": app.get("app_id"), "installation": installation.get("installation_id"), "action": action}, "ctx"),
+        "sandbox_context_id": _stable_id(
+            {
+                "app": app.get("app_id"),
+                "installation": installation.get("installation_id"),
+                "action": action,
+            },
+            "ctx",
+        ),
         "app_id": app.get("app_id"),
         "tenant_id": installation.get("tenant_id"),
         "installation_id": installation.get("installation_id"),
@@ -130,7 +140,13 @@ def build_sandbox_runtime_context(app: dict[str, Any], installation: dict[str, A
             "cpu_seconds": policy.get("cpu_seconds"),
             "memory_mb": policy.get("memory_mb"),
         },
-        "denied_capabilities": ["direct_db", "raw_nats", "host_filesystem", "unscoped_secrets", "physical_actuation"],
+        "denied_capabilities": [
+            "direct_db",
+            "raw_nats",
+            "host_filesystem",
+            "unscoped_secrets",
+            "physical_actuation",
+        ],
         "runtime_env": {
             "SAHOOL_PLUGIN_APP_ID": str(app.get("app_id")),
             "SAHOOL_TENANT_ID": str(installation.get("tenant_id")),
@@ -160,26 +176,62 @@ def plan_plugin_execution(
         reasons.append("app_not_approved")
     if installation.get("status") != "active":
         reasons.append("installation_not_active")
-    if app.get("app_id") and installation.get("app_id") and app.get("app_id") != installation.get("app_id"):
+    if (
+        app.get("app_id")
+        and installation.get("app_id")
+        and app.get("app_id") != installation.get("app_id")
+    ):
         reasons.append("installation_app_mismatch")
 
-    permission = enforce_plugin_permission(installation, required_permission) if required_permission != "unknown" else {"allowed": False, "reason": "unknown_action"}
+    permission = (
+        enforce_plugin_permission(installation, required_permission)
+        if required_permission != "unknown"
+        else {"allowed": False, "reason": "unknown_action"}
+    )
     if not permission.get("allowed"):
         reasons.append(str(permission.get("reason") or "permission_denied"))
 
     requested_quota = _quota_request_for_action(action)
-    quota = enforce_quota({"quota": installation.get("quota") or DEFAULT_QUOTAS}, usage_totals or {}, requested_quota)
+    quota = enforce_quota(
+        {"quota": installation.get("quota") or DEFAULT_QUOTAS}, usage_totals or {}, requested_quota
+    )
     if not quota.get("allowed"):
         reasons.append("quota_exceeded")
 
     sandbox_context = build_sandbox_runtime_context(app, installation, action)
     sensitive = required_permission in SENSITIVE_PERMISSIONS
-    requires_human_approval = sensitive or bool(sandbox_context["policy"].get("human_approval_required_for_actuation"))
+    requires_human_approval = sensitive or bool(
+        sandbox_context["policy"].get("human_approval_required_for_actuation")
+    )
     if requires_human_approval:
         reasons.append("requires_human_approval")
 
-    decision = PluginRuntimeDecision.DENY.value if any(r in reasons for r in ("unknown_action", "app_not_approved", "installation_not_active", "installation_app_mismatch", "permission_denied", "quota_exceeded")) else PluginRuntimeDecision.REVIEW.value if requires_human_approval else PluginRuntimeDecision.ALLOW.value
-    idem = idempotency_key or _stable_id({"app": app.get("app_id"), "installation": installation.get("installation_id"), "action": action, "payload": payload}, "idem")
+    decision = (
+        PluginRuntimeDecision.DENY.value
+        if any(
+            r in reasons
+            for r in (
+                "unknown_action",
+                "app_not_approved",
+                "installation_not_active",
+                "installation_app_mismatch",
+                "permission_denied",
+                "quota_exceeded",
+            )
+        )
+        else PluginRuntimeDecision.REVIEW.value
+        if requires_human_approval
+        else PluginRuntimeDecision.ALLOW.value
+    )
+    idem = idempotency_key or _stable_id(
+        {
+            "app": app.get("app_id"),
+            "installation": installation.get("installation_id"),
+            "action": action,
+            "payload": payload,
+        },
+        "idem",
+    )
     plan = PluginExecutionPlan(
         execution_id=_stable_id({"idem": idem, "action": action}, "plugrun"),
         tenant_id=str(installation.get("tenant_id")),
@@ -196,7 +248,11 @@ def plan_plugin_execution(
         audit_level="elevated" if sensitive or requires_human_approval else "standard",
         reasons=tuple(sorted(set(reasons))),
     )
-    return {"plan": plan.to_dict(), "sandbox_context": sandbox_context, "allowed_to_execute": decision == PluginRuntimeDecision.ALLOW.value}
+    return {
+        "plan": plan.to_dict(),
+        "sandbox_context": sandbox_context,
+        "allowed_to_execute": decision == PluginRuntimeDecision.ALLOW.value,
+    }
 
 
 def build_plugin_event_envelope(
@@ -212,7 +268,10 @@ def build_plugin_event_envelope(
     for forbidden in ("secret", "password", "token", "api_key", "DATABASE_URL", "NATS_URL"):
         safe_payload.pop(forbidden, None)
     envelope = {
-        "event_id": _stable_id({"plan": plan.get("execution_id"), "event": event_type, "payload": safe_payload}, "plug_evt"),
+        "event_id": _stable_id(
+            {"plan": plan.get("execution_id"), "event": event_type, "payload": safe_payload},
+            "plug_evt",
+        ),
         "event_type": event_type,
         "schema_version": schema_version,
         "tenant_id": plan.get("tenant_id"),
@@ -252,7 +311,12 @@ def validate_plugin_output(plan: dict[str, Any], output: dict[str, Any]) -> dict
         elif kind == "model_promote":
             blocked_effects.append(kind)
             findings.append("model_promotion_must_use_phase10_registry")
-        elif kind in {"recommendation_proposal", "alert_proposal", "webhook_event", "field_annotation"}:
+        elif kind in {
+            "recommendation_proposal",
+            "alert_proposal",
+            "webhook_event",
+            "field_annotation",
+        }:
             allowed_effects.append(kind)
         else:
             blocked_effects.append(kind or "unknown")
@@ -264,16 +328,29 @@ def validate_plugin_output(plan: dict[str, Any], output: dict[str, Any]) -> dict
         "findings": findings,
         "allowed_effects": allowed_effects,
         "blocked_effects": blocked_effects,
-        "requires_review": bool(blocked_effects) or plan.get("decision") == PluginRuntimeDecision.REVIEW.value,
+        "requires_review": bool(blocked_effects)
+        or plan.get("decision") == PluginRuntimeDecision.REVIEW.value,
         "execution_id": plan.get("execution_id"),
     }
 
 
-def build_plugin_runtime_report(app: dict[str, Any], installation: dict[str, Any], actions: list[str]) -> dict[str, Any]:
-    plans = [plan_plugin_execution(app, installation, action, payload={}, usage_totals={})["plan"] for action in actions]
+def build_plugin_runtime_report(
+    app: dict[str, Any], installation: dict[str, Any], actions: list[str]
+) -> dict[str, Any]:
+    plans = [
+        plan_plugin_execution(app, installation, action, payload={}, usage_totals={})["plan"]
+        for action in actions
+    ]
     decisions = {p["decision"] for p in plans}
     return {
-        "report_id": _stable_id({"app": app.get("app_id"), "installation": installation.get("installation_id"), "actions": actions}, "plug_report"),
+        "report_id": _stable_id(
+            {
+                "app": app.get("app_id"),
+                "installation": installation.get("installation_id"),
+                "actions": actions,
+            },
+            "plug_report",
+        ),
         "created_at": _now(),
         "app_id": app.get("app_id"),
         "installation_id": installation.get("installation_id"),

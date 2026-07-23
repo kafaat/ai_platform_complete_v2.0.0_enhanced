@@ -28,14 +28,20 @@ def sample_state(**overrides):
 
 
 def test_context_and_specialist_agents_generate_irrigation_proposal():
-    ctx = build_agent_context(canonical_field_state=sample_state(), market_context={"expected_margin": 0.2})
+    ctx = build_agent_context(
+        canonical_field_state=sample_state(), market_context={"expected_margin": 0.2}
+    )
     proposals = run_specialist_agents(ctx)
     assert any(p["action"] == "irrigate" and p["agent_role"] == "water" for p in proposals)
     assert ctx["field_id"] == "field-1"
 
 
 def test_consensus_blocks_on_safety_veto():
-    ctx = build_agent_context(canonical_field_state=sample_state(operational_truths={"water_stress": 0.8, "salinity_risk": 0.9}))
+    ctx = build_agent_context(
+        canonical_field_state=sample_state(
+            operational_truths={"water_stress": 0.8, "salinity_risk": 0.9}
+        )
+    )
     proposals = run_specialist_agents(ctx)
     consensus = reach_consensus(proposals, execution_mode="autonomous")
     assert consensus["status"] == "blocked"
@@ -54,7 +60,13 @@ def test_operation_plan_requires_human_for_actuation_in_human_loop():
 
 
 def test_shadow_experiment_caps_traffic_and_sets_guardrails():
-    exp = design_shadow_experiment(name="policy-test", objective="yield", champion_policy="v1", challenger_policy="v2", traffic_pct=0.8)
+    exp = design_shadow_experiment(
+        name="policy-test",
+        objective="yield",
+        champion_policy="v1",
+        challenger_policy="v2",
+        traffic_pct=0.8,
+    )
     assert exp["traffic_split"]["challenger"] == 0.5
     assert exp["guardrails"]["human_approval_for_actuation"] is True
 
@@ -63,7 +75,11 @@ def test_full_phase11_cycle_includes_consensus_and_experiment():
     cycle = run_phase11_federation_cycle(
         canonical_field_state=sample_state(),
         execution_mode="shadow",
-        experiment={"name": "shadow-policy", "champion_policy": "safe-v1", "challenger_policy": "smart-v2"},
+        experiment={
+            "name": "shadow-policy",
+            "champion_policy": "safe-v1",
+            "challenger_policy": "smart-v2",
+        },
     )
     assert cycle["cycle_id"].startswith("fedcycle_")
     assert cycle["proposals"]

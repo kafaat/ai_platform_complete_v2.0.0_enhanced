@@ -17,7 +17,9 @@ def _clean(value: str | None) -> str | None:
     return value or None
 
 
-def resolve_tenant_context(request: Any, tid: str | None = None, tenant_id: str | None = None) -> str | None:
+def resolve_tenant_context(
+    request: Any, tid: str | None = None, tenant_id: str | None = None
+) -> str | None:
     """Resolve tenant context with production-safe priority.
 
     Priority:

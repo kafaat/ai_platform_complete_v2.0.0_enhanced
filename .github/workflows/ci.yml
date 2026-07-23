@@ -425,8 +425,8 @@ jobs:
       # (حدث فعلاً: ملفّ «already formatted» محلّيّاً صار «would reformat» في CI).
       # التثبيت يجعل التنسيق حتميّاً وقابلاً لإعادة الإنتاج محلّيّاً. حدّثه عمداً عند الرغبة.
       - run: pip install ruff==0.15.8 mypy
-      - run: ruff check services/ bots/ agents/ tests_v9/
-      - run: ruff format --check services/ bots/ agents/ tests_v9/
+      - run: ruff check services/ bots/ agents/ tests_v9/ shared/
+      - run: ruff format --check services/ bots/ agents/ tests_v9/ shared/
       # حارس علامات تعارض الدمج: فرع مدموج بعلامات `<<<<<<< / ======= / >>>>>>>` غير محلولة
       # (أحدها SyntaxError غير قابل للاستيراد) مرّ CI أخضر لأنّ الجناح لا يستورد تلك الملفّات —
       # «الأخضر يقيس ما تختبره فقط». سطر structural grep واحد يصطاد الصنف عند الالتزام.

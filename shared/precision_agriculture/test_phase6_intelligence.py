@@ -1,7 +1,7 @@
 from shared.precision_agriculture.phase6_intelligence import (
+    compose_digital_twin_snapshot,
     compute_profitability_map,
     compute_yield_stability,
-    compose_digital_twin_snapshot,
     extract_boundary,
     generate_management_zones,
     generate_prescription_map,
@@ -41,7 +41,9 @@ def test_prescription_map_uses_zone_multipliers():
         {"id": "a", "zone": 1, "label": "stress", "rate_multiplier": 0.75},
         {"id": "b", "zone": 3, "label": "high_potential", "rate_multiplier": 1.25},
     ]
-    rx = generate_prescription_map(zones, crop="wheat", prescription_type="nitrogen", target_yield_t_ha=5)
+    rx = generate_prescription_map(
+        zones, crop="wheat", prescription_type="nitrogen", target_yield_t_ha=5
+    )
     rates = [f["properties"]["rate"] for f in rx["features"]]
     assert rx["unit"] == "kgN/ha"
     assert rates[1] > rates[0]

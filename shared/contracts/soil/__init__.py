@@ -109,7 +109,7 @@ __all__ += [
     "SalinityZoneAssessment",
     "SalinityAssessmentProduct",
 ]
-from .p3 import (
+from .p3 import (  # noqa: E402
     AnalogFieldCandidate,
     AnalogFieldProduct,
     AnalogFieldRequest,
@@ -152,7 +152,7 @@ __all__ += [
     "SoilLearningAttribution",
 ]
 
-from .p4 import (
+from .p4 import (  # noqa: E402
     ApprovalRequirement,
     SoilActionEvaluation,
     SoilActionPolicy,
@@ -161,7 +161,7 @@ from .p4 import (
     SoilOutcomeRecord,
     SoilVerificationRecord,
 )
-from .p5 import (
+from .p5 import (  # noqa: E402
     AcceptanceThreshold,
     CalibrationMetric,
     CalibrationPromotionDecision,

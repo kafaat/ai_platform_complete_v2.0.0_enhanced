@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import hashlib
 import hmac
 import secrets
 import time
-from typing import Mapping
+from collections.abc import Mapping
+from dataclasses import dataclass
 
 VERSION = "v2"
 
@@ -29,9 +29,7 @@ class TenantAssertionClaims:
 
     @property
     def replay_key(self) -> str:
-        digest = hashlib.sha256(
-            f"{self.key_id}\n{self.service}\n{self.nonce}".encode()
-        ).hexdigest()
+        digest = hashlib.sha256(f"{self.key_id}\n{self.service}\n{self.nonce}".encode()).hexdigest()
         return f"sahool:tenant-assertion:{digest}"
 
 
@@ -45,8 +43,14 @@ def _clean(value: str, name: str) -> str:
 def _payload(claims: TenantAssertionClaims) -> bytes:
     return "\n".join(
         (
-            VERSION, claims.key_id, str(claims.issued_at), claims.nonce,
-            claims.service, claims.tenant_id, claims.method, claims.path,
+            VERSION,
+            claims.key_id,
+            str(claims.issued_at),
+            claims.nonce,
+            claims.service,
+            claims.tenant_id,
+            claims.method,
+            claims.path,
             claims.request_id,
         )
     ).encode()
@@ -78,8 +82,16 @@ def create_tenant_assertion(
     )
     signature = hmac.new(key.encode(), _payload(claims), hashlib.sha256).hexdigest()
     fields = (
-        VERSION, claims.key_id, str(claims.issued_at), claims.nonce, claims.service,
-        claims.tenant_id, claims.method, claims.path, claims.request_id, signature,
+        VERSION,
+        claims.key_id,
+        str(claims.issued_at),
+        claims.nonce,
+        claims.service,
+        claims.tenant_id,
+        claims.method,
+        claims.path,
+        claims.request_id,
+        signature,
     )
     return ":".join(fields)
 
@@ -108,15 +120,20 @@ def verify_tenant_assertion(
         issued_at = int(raw_ts)
     except ValueError as exc:
         raise TenantAssertionError("invalid assertion timestamp") from exc
-    claims = TenantAssertionClaims(kid, issued_at, nonce, service, tenant_id, method, path, request_id)
+    claims = TenantAssertionClaims(
+        kid, issued_at, nonce, service, tenant_id, method, path, request_id
+    )
     current = int(time.time()) if now is None else int(now)
     if issued_at > current + future_skew_seconds:
         raise TenantAssertionError("assertion timestamp is in the future")
     if current - issued_at > max_age_seconds:
         raise TenantAssertionError("tenant assertion expired")
     expected_scope = (
-        expected_service, expected_tenant_id, expected_method.upper(),
-        expected_path, expected_request_id,
+        expected_service,
+        expected_tenant_id,
+        expected_method.upper(),
+        expected_path,
+        expected_request_id,
     )
     if (service, tenant_id, method, path, request_id) != expected_scope:
         raise TenantAssertionError("tenant assertion scope mismatch")

@@ -39,20 +39,27 @@ def test_normalize_stac_item_extracts_cog_assets_and_quality():
 def test_build_mosaicjson_uses_scene_ids_as_stable_keys():
     mosaic = build_mosaicjson(
         name="field-season",
-        items=[{
-            "id": "scene-a",
-            "collection": "sentinel-2-l2a",
-            "properties": {"eo:cloud_cover": 4},
-            "assets": {"visual": {"href": "s3://bucket/a.tif", "type": "image/tiff"}},
-        }],
+        items=[
+            {
+                "id": "scene-a",
+                "collection": "sentinel-2-l2a",
+                "properties": {"eo:cloud_cover": 4},
+                "assets": {"visual": {"href": "s3://bucket/a.tif", "type": "image/tiff"}},
+            }
+        ],
     )
     assert mosaic["mosaicjson"] == "0.0.3"
     assert mosaic["tiles"] == {"scene-a": ["s3://bucket/a.tif"]}
 
 
 def test_geoparquet_partition_path_is_lake_friendly():
-    path = geoparquet_partition_path(country="Yemen", governorate="Al Jawf", district="Al Hazm", year=2026, crop="Wheat")
-    assert path == "country=yemen/governorate=al-jawf/district=al-hazm/year=2026/crop=wheat/fields.geoparquet"
+    path = geoparquet_partition_path(
+        country="Yemen", governorate="Al Jawf", district="Al Hazm", year=2026, crop="Wheat"
+    )
+    assert (
+        path
+        == "country=yemen/governorate=al-jawf/district=al-hazm/year=2026/crop=wheat/fields.geoparquet"
+    )
 
 
 def test_geometry_revision_event_rejects_unknown_operation():
