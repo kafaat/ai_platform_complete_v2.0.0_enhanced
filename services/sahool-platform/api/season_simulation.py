@@ -31,6 +31,10 @@ from datetime import date, timedelta
 
 from api.water_balance import KC_BY_CROP_STAGE
 
+ENGINE_NAME = "rue-fao56"
+ENGINE_VERSION = "rue-fao56/1"
+PARAMETER_VERSION = "sahool-season-defaults/1"
+
 # ─── معرفة المحاصيل (معاملات نموذجيّة إرشاديّة) ───────────────────
 # المصادر: FAO-56 (Kc, طول المراحل)، Monteith 1977 / Sinclair & Muchow 1999
 # (RUE نموذجيّ ~1.2–1.7 g/MJ للحبوب C3، ~1.7–2.0 لـC4)، HI من أدبيّات الإنتاج.

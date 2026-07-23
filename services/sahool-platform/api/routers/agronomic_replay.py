@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 from datetime import UTC, datetime
 
@@ -92,16 +93,71 @@ async def agronomic_replay_endpoint(
                 f"WHERE field_id = $1 ORDER BY created_at DESC LIMIT {_PER_TRACK_LIMIT}",
                 field_id,
             )
+            manual_irrigation = await _rows(
+                conn,
+                "SELECT e.id AS schedule_id, e.event_date AS date, "
+                "'ريّ من دفتر موسم معتمد' AS name, e.amount_mm AS water_target_mm "
+                "FROM season_record_links l "
+                "JOIN season_records sr ON sr.id = l.season_record_id "
+                "JOIN season_events e ON e.season_id = sr.id "
+                "WHERE l.field_id = $1 AND sr.trust_status = 'accepted' "
+                "AND e.event_type = 'irrigation' "
+                "AND NOT EXISTS (SELECT 1 FROM season_record_links n "
+                "                WHERE n.supersedes_link_id = l.link_id) "
+                f"ORDER BY e.event_date DESC LIMIT {_PER_TRACK_LIMIT}",
+                field_id,
+            )
+            manual_harvests = await _rows(
+                conn,
+                "SELECT h.season_id AS ref_id, h.harvest_date AS date, "
+                "'حصاد من دفتر موسم معتمد' AS label_ar, h.yield_kg_ha AS value "
+                "FROM season_record_links l "
+                "JOIN season_records sr ON sr.id = l.season_record_id "
+                "JOIN season_harvest h ON h.season_id = sr.id "
+                "WHERE l.field_id = $1 AND sr.trust_status = 'accepted' "
+                "AND NOT EXISTS (SELECT 1 FROM season_record_links n "
+                "                WHERE n.supersedes_link_id = l.link_id) "
+                f"ORDER BY h.harvest_date DESC LIMIT {_PER_TRACK_LIMIT}",
+                field_id,
+            )
+            simulation_context_rows = await _rows(
+                conn,
+                "SELECT context_snapshot FROM season_simulation_runs "
+                "WHERE field_id = $1 ORDER BY created_at DESC LIMIT 1",
+                field_id,
+            )
     except Exception as e:  # noqa: BLE001 — تعذّر فتح اتّصال المستأجِر ⇒ 503 موثَّق
         raise _db_unavailable("إعادة تشغيل الموسم", e) from e
+
+    weather: list[dict] = []
+    if simulation_context_rows:
+        snapshot = simulation_context_rows[0].get("context_snapshot")
+        if isinstance(snapshot, str):
+            try:
+                snapshot = json.loads(snapshot)
+            except (TypeError, ValueError):
+                snapshot = {}
+        if isinstance(snapshot, dict):
+            weather_group = snapshot.get("weather")
+            if isinstance(weather_group, dict) and isinstance(weather_group.get("days"), list):
+                weather = [row for row in weather_group["days"] if isinstance(row, dict)]
 
     out = build_agronomic_replay(
         field_id,
         ndvi=ndvi,
-        irrigation=irrigation,
+        weather=weather,
+        irrigation=[*irrigation, *manual_irrigation],
         decisions=decisions,
-        outcomes=outcomes,
+        outcomes=[*outcomes, *manual_harvests],
         generated_at=datetime.now(UTC).isoformat(),
     )
+    out["source_status"] = {
+        "ndvi": "available" if ndvi else "empty",
+        "weather": "available" if weather else "empty",
+        "irrigation": "available" if irrigation or manual_irrigation else "empty",
+        "decision": "available" if decisions else "empty",
+        "outcome": "available" if outcomes or manual_harvests else "empty",
+        "manual_logbook": "available" if manual_irrigation or manual_harvests else "empty",
+    }
     out["tenant_id"] = str(user.tenant_id)  # أثر: لِمن هذه الإعادة (RLS)
     return out

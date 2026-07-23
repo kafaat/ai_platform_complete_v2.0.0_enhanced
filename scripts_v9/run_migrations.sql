@@ -567,5 +567,7 @@
 
 \echo '═══ 211. v205_irrigation_reservation_runtime_hardening.sql ═══'
 \i migrations/v205_irrigation_reservation_runtime_hardening.sql
-\echo '═══ 212. v206_rls_final_hardening.sql ═══'
+\echo '═══ 212. v207_historical_season_simulation_bridge.sql ═══'
+\i migrations/v207_historical_season_simulation_bridge.sql
+\echo '═══ 213. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql
