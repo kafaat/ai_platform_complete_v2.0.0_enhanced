@@ -125,7 +125,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b730e93db947919047f7f088420d2f128a0c71c64b61cedfe473f64b3ce13794"
+          "content": "84c152ad91e0c37142fa957ef3d21d455ffcdb2927bd16701f128316836a538b"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -9325,7 +9325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "96d0b1d8b134992a27b39ce6f37666e07e84dc1578a81cf2a2259b96073d0847"
+          "content": "54ecd7460cb3680692a2043a84a9280d4b8b2fdfeae7ad012bf6763e99d8286a"
         }
       ],
       "name": "services/actuator-service/actuator_runtime.py",
@@ -27615,7 +27615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ecbe19383e849503162ac449a34b055a053ec8df5f67dc66720404da97f50257"
+          "content": "325d1fb01967288bf9901552857c02c5a1e7ab2d8891fe42c357b8ada01a4319"
         }
       ],
       "name": "services/video-processor/main.py",
@@ -27675,7 +27675,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7afa316858e595d20da2968154735055781612faaad8ffc2be12d0063dc2080b"
+          "content": "50648a190b1cfe5f447334f7373d8bdfc1ca6f68c93ba1d918edc5aed639959d"
         }
       ],
       "name": "services/video-processor/stream_events.py",

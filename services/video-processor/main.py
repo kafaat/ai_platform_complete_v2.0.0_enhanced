@@ -79,6 +79,17 @@ except ImportError:
 MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
 
 
+def _mqtt_auth_kwargs() -> dict:
+    """kwargs مصادقة aiomqtt: {username, password} إن ضُبط MQTT_USERNAME، وإلّا {} (مجهول).
+
+    الوسيط المشدَّد (allow_anonymous false) يتطلّبها؛ الاتّصال المجهول يبقى متوافقًا
+    للخلف لبيئات التطوير التي تشغّل وسيطًا مفتوحًا. لا سرّ في المستودع (env حصرًا)."""
+    username = os.getenv("MQTT_USERNAME", "").strip()
+    if username:
+        return {"username": username, "password": os.getenv("MQTT_PASSWORD", "")}
+    return {}
+
+
 def _parse_mqtt_broker_url(url: str) -> tuple[str, int]:
     """يستخرج (hostname, port) من mqtt://host:port — aiomqtt.Client يحتاج المضيف
     والمنفذ لا URL كاملاً (تمرير URL كاملاً كـhostname يفشل في DNS)."""
@@ -367,7 +378,7 @@ async def publish_alert(cfg: StreamConfig, detections: list):
         from aiomqtt import Client as MQTTClient  # ثقيل — داخل الدالّة كي لا يكسر الوحدة بلا وسيط
 
         host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
-        async with MQTTClient(host, port=port) as client:
+        async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
             await client.publish(topic, payload, qos=1)
     except Exception as e:
         logger.warning(f"MQTT publish failed: {e}")
