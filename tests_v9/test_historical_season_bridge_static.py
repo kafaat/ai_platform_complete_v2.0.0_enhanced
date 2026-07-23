@@ -55,3 +55,20 @@ def test_composer_forbids_silent_irrigation_and_daily_fapar_invention():
     assert '"no_daily_fapar_interpolation": True' in src
     assert "from api.season_simulation import fapar_from_ndvi" in src
     assert "1.24 *" not in src
+
+
+def test_decision_snapshot_carries_simulation_outcome_and_engine_identity():
+    """The decision-center mirror must expose the run's outcome, not inputs only.
+
+    Guards HISTORICAL-SEASON-COMPOSITION-02 slice 1: engine identity + prediction
+    band + expected-vs-actual delta reach the snapshot; the composer never invents
+    an actual yield.
+    """
+    composer = COMPOSER.read_text(encoding="utf-8")
+    assert "def build_simulation_outcome(" in composer
+    assert '"expected_vs_actual"' in composer
+    assert '"no_actual_yield"' in composer  # absence is explicit, not invented
+
+    router = ROUTER.read_text(encoding="utf-8")
+    assert "build_simulation_outcome(" in router
+    assert '"simulation": simulation_outcome' in router

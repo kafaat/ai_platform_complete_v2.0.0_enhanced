@@ -17585,7 +17585,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0491269d5284e7bb24a19a2ac8bf9bb4adc769e6d497568beb3c8ae28650f2f8"
+          "content": "689febedc7366be875fedf03f0471019153cdd1dcc319f9a2e8fa2e3b9ab1acc"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -20515,7 +20515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8c1ea1f17ddc3ae643fd48f61b6792c4ed492ed3dfa161dffabe6f7e2bdb9e51"
+          "content": "61e786c9b7ed1c9736d3cd7e3eeb94027e09d3f9b96161963790aaf48f2c5366"
         }
       ],
       "name": "services/sahool-platform/core/historical_season_context.py",
@@ -23865,7 +23865,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c86a968e27e7b80d4a8114784522858e8e2abccc5575a26453086d5dccdfad4d"
+          "content": "00406598cfbb9672ae0993fd4a58d1451a9732ce0eb7666ff0c931fb0251c7b1"
         }
       ],
       "name": "services/sahool-platform/tests/test_historical_season_context.py",

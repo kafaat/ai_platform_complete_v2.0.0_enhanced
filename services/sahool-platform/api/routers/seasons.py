@@ -342,6 +342,17 @@ async def simulate_season_endpoint(
     from api.season_simulation import ENGINE_NAME, ENGINE_VERSION, PARAMETER_VERSION
 
     result_payload = asdict(result)
+    # Output-side companion (engine identity + prediction band + expected-vs-actual
+    # delta) for the decision-center snapshot — kept out of the digested input bundle.
+    from core.historical_season_context import build_simulation_outcome
+
+    simulation_outcome = build_simulation_outcome(
+        result_payload,
+        engine_name=ENGINE_NAME,
+        engine_version=ENGINE_VERSION,
+        parameter_version=PARAMETER_VERSION,
+        harvest=historical_context["manual_record"].get("harvest"),
+    )
     try:
         async with tenant_connection(user) as conn:
             async with conn.transaction():
@@ -412,6 +423,7 @@ async def simulate_season_endpoint(
                     "operations": {
                         "event_count": len(historical_context["manual_record"]["events"])
                     },
+                    "simulation": simulation_outcome,
                 },
                 "historical": {
                     "history_from": datetime.combine(
