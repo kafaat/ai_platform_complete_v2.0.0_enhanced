@@ -16,12 +16,28 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 ALLOWED_SOURCES = {"combine_weighbridge", "certified_scale", "erp_verified"}
-DEFAULT_THRESHOLDS = {"max_mape_pct": 20.0, "max_nrmse_pct": 25.0,
-                      "max_abs_bias_pct": 10.0, "min_r2": 0.50,
-                      "min_samples": 30, "min_farms": 3, "min_seasons": 2}
-REQUIRED = {"sample_id", "crop", "season_id", "farm_id", "observed_yield_kg_ha",
-            "predicted_yield_kg_ha", "observation_source", "harvest_at", "prediction_at",
-            "model_version", "input_digest"}
+DEFAULT_THRESHOLDS = {
+    "max_mape_pct": 20.0,
+    "max_nrmse_pct": 25.0,
+    "max_abs_bias_pct": 10.0,
+    "min_r2": 0.50,
+    "min_samples": 30,
+    "min_farms": 3,
+    "min_seasons": 2,
+}
+REQUIRED = {
+    "sample_id",
+    "crop",
+    "season_id",
+    "farm_id",
+    "observed_yield_kg_ha",
+    "predicted_yield_kg_ha",
+    "observation_source",
+    "harvest_at",
+    "prediction_at",
+    "model_version",
+    "input_digest",
+}
 
 
 class GoldenError(ValueError):
@@ -55,7 +71,12 @@ def _validate(rows: list[dict]) -> None:
             raise GoldenError("unverified harvest observation source")
         observed = float(row["observed_yield_kg_ha"])
         predicted = float(row["predicted_yield_kg_ha"])
-        if not math.isfinite(observed) or not math.isfinite(predicted) or observed <= 0 or predicted < 0:
+        if (
+            not math.isfinite(observed)
+            or not math.isfinite(predicted)
+            or observed <= 0
+            or predicted < 0
+        ):
             raise GoldenError("yield values must be finite and observed yield must be positive")
         if _time(str(row["prediction_at"])) > _time(str(row["harvest_at"])):
             raise GoldenError("prediction was created after harvest (target leakage)")
@@ -63,7 +84,9 @@ def _validate(rows: list[dict]) -> None:
         if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest.lower()):
             raise GoldenError("input_digest must be sha256 hex")
         if "tenant_id" in row:
-            raise GoldenError("raw tenant_id is forbidden in portable golden datasets; use farm_id pseudonyms")
+            raise GoldenError(
+                "raw tenant_id is forbidden in portable golden datasets; use farm_id pseudonyms"
+            )
 
 
 def _metrics(rows: list[dict]) -> dict[str, float]:
@@ -77,9 +100,14 @@ def _metrics(rows: list[dict]) -> dict[str, float]:
     bias_pct = statistics.fmean(residuals) / mean_observed * 100
     denominator = sum((o - mean_observed) ** 2 for o in observed)
     r2 = 1 - sum(v * v for v in residuals) / denominator if denominator > 0 else float("-inf")
-    return {"mae_kg_ha": round(mae, 6), "rmse_kg_ha": round(rmse, 6),
-            "nrmse_pct": round(rmse / mean_observed * 100, 6), "mape_pct": round(mape, 6),
-            "bias_pct": round(bias_pct, 6), "r2": round(r2, 6)}
+    return {
+        "mae_kg_ha": round(mae, 6),
+        "rmse_kg_ha": round(rmse, 6),
+        "nrmse_pct": round(rmse / mean_observed * 100, 6),
+        "mape_pct": round(mape, 6),
+        "bias_pct": round(bias_pct, 6),
+        "r2": round(r2, 6),
+    }
 
 
 def evaluate(dataset: dict, *, signing_key: str = "") -> dict:
@@ -108,21 +136,38 @@ def evaluate(dataset: dict, *, signing_key: str = "") -> dict:
             "bias": abs(metrics["bias_pct"]) <= float(thresholds["max_abs_bias_pct"]),
             "r2": metrics["r2"] >= float(thresholds["min_r2"]),
         }
-        crop_results.append({"crop": crop, "samples": len(crop_rows), "farms": len(farms),
-                             "seasons": len(seasons), "holdout_season": latest,
-                             "holdout_samples": len(holdout), "metrics": metrics,
-                             "checks": checks, "passed": all(checks.values())})
+        crop_results.append(
+            {
+                "crop": crop,
+                "samples": len(crop_rows),
+                "farms": len(farms),
+                "seasons": len(seasons),
+                "holdout_season": latest,
+                "holdout_samples": len(holdout),
+                "metrics": metrics,
+                "checks": checks,
+                "passed": all(checks.values()),
+            }
+        )
     dataset_digest = hashlib.sha256(canonical(dataset)).hexdigest()
     model_versions = sorted({str(row["model_version"]) for row in rows})
     passed = bool(crop_results) and all(row["passed"] for row in crop_results)
-    evidence = {"schema_version": 1, "evidence_type": "sim_golden_01",
-                "generated_at_utc": datetime.now(UTC).isoformat(), "dataset_sha256": dataset_digest,
-                "model_versions": model_versions, "thresholds": thresholds,
-                "crops": crop_results, "status": "verified" if passed else "rejected",
-                "eligible_for_promotion": passed and len(signing_key) >= 32,
-                "signature_status": "signed" if len(signing_key) >= 32 else "missing"}
+    evidence = {
+        "schema_version": 1,
+        "evidence_type": "sim_golden_01",
+        "generated_at_utc": datetime.now(UTC).isoformat(),
+        "dataset_sha256": dataset_digest,
+        "model_versions": model_versions,
+        "thresholds": thresholds,
+        "crops": crop_results,
+        "status": "verified" if passed else "rejected",
+        "eligible_for_promotion": passed and len(signing_key) >= 32,
+        "signature_status": "signed" if len(signing_key) >= 32 else "missing",
+    }
     if len(signing_key) >= 32:
-        evidence["signature_hmac_sha256"] = hmac.new(signing_key.encode(), canonical(evidence), hashlib.sha256).hexdigest()
+        evidence["signature_hmac_sha256"] = hmac.new(
+            signing_key.encode(), canonical(evidence), hashlib.sha256
+        ).hexdigest()
     return evidence
 
 
@@ -139,17 +184,22 @@ def verify_signed_evidence(evidence: dict, signing_key: str) -> bool:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("dataset", type=Path)
-    parser.add_argument("--output", type=Path,
-                        default=Path("certification/evidence/sim_golden_summary.json"))
+    parser.add_argument(
+        "--output", type=Path, default=Path("certification/evidence/sim_golden_summary.json")
+    )
     parser.add_argument("--require-promotion-eligible", action="store_true")
     args = parser.parse_args()
     try:
         dataset = json.loads(args.dataset.read_text(encoding="utf-8"))
         evidence = evaluate(dataset, signing_key=os.getenv("SIM_GOLDEN_EVIDENCE_KEY", ""))
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        args.output.write_text(
+            json.dumps(evidence, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+        )
         print(json.dumps(evidence, indent=2, sort_keys=True))
-        return 1 if args.require_promotion_eligible and not evidence["eligible_for_promotion"] else 0
+        return (
+            1 if args.require_promotion_eligible and not evidence["eligible_for_promotion"] else 0
+        )
     except (OSError, ValueError, KeyError, TypeError) as exc:
         print(f"SIM-GOLDEN-01: {exc}", file=sys.stderr)
         return 1

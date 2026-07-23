@@ -49,7 +49,12 @@ from shared.security.tls_policy import tls_context as _tls_context  # noqa: E402
 
 def ssl_context():
     # INSECURE_TLS يُشرَّف فقط لأهداف loopback عبر المُعقِّم المركزيّ (shared.security.tls_policy).
-    base = os.getenv("BASE_URL") or os.getenv("API_BASE") or os.getenv("AUTH_BASE") or "https://localhost"
+    base = (
+        os.getenv("BASE_URL")
+        or os.getenv("API_BASE")
+        or os.getenv("AUTH_BASE")
+        or "https://localhost"
+    )
     return _tls_context(base)
 
 

@@ -135,7 +135,10 @@ def check_gap_hardening_contracts() -> None:
     required_sim = ("screening_only", "eligible_for_calibration", "pcse_wofost")
     missing_sim = [m for m in required_sim if m not in season_models or m not in season_router]
     if missing_sim:
-        fail("lightweight season simulation can compete with canonical yield truth: " + repr(missing_sim))
+        fail(
+            "lightweight season simulation can compete with canonical yield truth: "
+            + repr(missing_sim)
+        )
 
 
 def main() -> None:

@@ -171,7 +171,9 @@ def check_files() -> None:
             if not re.fullmatch(r"[0-9a-f]{40}", str(data["commit"])):
                 raise SystemExit(f"{p} verified with invalid commit SHA")
             try:
-                timestamp = datetime.fromisoformat(str(data["timestamp_utc"]).replace("Z", "+00:00"))
+                timestamp = datetime.fromisoformat(
+                    str(data["timestamp_utc"]).replace("Z", "+00:00")
+                )
             except ValueError as exc:
                 raise SystemExit(f"{p} verified with invalid timestamp") from exc
             now = datetime.now(UTC)

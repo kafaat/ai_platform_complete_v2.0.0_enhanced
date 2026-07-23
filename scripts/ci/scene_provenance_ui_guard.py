@@ -9,7 +9,13 @@ workspace = (ROOT / "frontend/src/sections/FieldWorkspaceImageryPanel.tsx").read
 maphub = (ROOT / "frontend/src/sections/MapHub.tsx").read_text()
 api = (ROOT / "frontend/src/services/api/fieldImagery.ts").read_text()
 
-for token in ("scene_id", "acquisition_datetime", "cloud_pct", "بيانات المصدر الناقصة", "لا تُعد هذه الصورة كاملة التتبّع"):
+for token in (
+    "scene_id",
+    "acquisition_datetime",
+    "cloud_pct",
+    "بيانات المصدر الناقصة",
+    "لا تُعد هذه الصورة كاملة التتبّع",
+):
     assert token in component, f"Scene provenance component missing {token}"
 assert "<SceneProvenanceCard scene={item} compact />" in workspace
 assert "<SceneProvenanceCard scene={selectedScene} />" in maphub

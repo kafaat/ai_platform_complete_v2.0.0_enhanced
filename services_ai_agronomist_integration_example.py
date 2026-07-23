@@ -1,4 +1,3 @@
-
 class IntegrationRules:
     USE_CANONICAL_FIELD_STATE = True
     ENABLE_PONYTAIL_GUARDRAILS = True

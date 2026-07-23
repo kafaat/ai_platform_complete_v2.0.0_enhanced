@@ -34,7 +34,7 @@ for token in (
 
 override = (ROOT / "docker-compose.soil-strict.yml").read_text()
 for token in (
-    'SAHOOL_ENV: production',
+    "SAHOOL_ENV: production",
     'AGRIAI_STRICT_CONTEXT: "true"',
     'AGRIAI_PRODUCTION_MODE: "true"',
     'DECISION_REQUIRE_AGRONOMIC_CONTEXT: "true"',
@@ -42,7 +42,9 @@ for token in (
     'DECISION_REQUIRE_SOIL_EVIDENCE_GATE: "true"',
 ):
     if token not in override:
-        raise SystemExit(f"soil_profile_contract_guard: strict production override missing: {token}")
+        raise SystemExit(
+            f"soil_profile_contract_guard: strict production override missing: {token}"
+        )
 
 canonical = (ROOT / "services/soil-service/routers/canonical.py").read_text()
 if "/v1/soil/cutover/readiness" not in canonical:
