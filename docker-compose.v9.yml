@@ -84,6 +84,8 @@ services:
         condition: service_healthy
       sahool-agriai-engine:
         condition: service_healthy
+      sahool-remote-sensing-workspace-bff:
+        condition: service_healthy
     networks:
     - sahool-public
     - sahool-internal

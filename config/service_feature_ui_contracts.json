@@ -421,22 +421,21 @@
     },
     {
       "service": "agriai-engine",
-      "classification": "internal",
+      "classification": "experimental-model-runtime",
       "source": [
         "services/agriai-engine/main.py"
       ],
       "evidence": [
         {
-          "kind": "internal-consumer",
+          "kind": "activation-safety-contract",
           "roots": [
-            "docker-compose.unified.yml",
-            "services/supervisor-agent",
+            "services/agriai-engine",
             "tests_v9"
           ],
           "patterns": [
-            "MCP_AGRIAI_URL",
-            "agriai-engine",
-            "sahool-unified-agriai-engine"
+            "AGRIAI_PRODUCTION_MODE",
+            "SIM_PCSE_ENABLED",
+            "uncalibrated_pending_golden"
           ]
         }
       ]
@@ -777,42 +776,42 @@
     },
     {
       "service": "gis-workflow-service",
-      "classification": "internal",
+      "classification": "batch-job-tool",
       "source": [
         "services/gis-workflow-service/run_bundle.py"
       ],
       "evidence": [
         {
-          "kind": "internal-consumer",
+          "kind": "job-contract",
           "roots": [
-            "services/gis-workflow-service"
+            "services/gis-workflow-service/tests",
+            ".github/workflows"
           ],
           "patterns": [
-            "publication_map",
-            "bulletin",
-            "map_layout"
+            "run_bundle",
+            "gis-workflow-service"
           ]
         }
       ]
     },
     {
       "service": "remote-sensing-workspace-bff",
-      "classification": "internal",
+      "classification": "ui-bff",
       "source": [
         "services/remote-sensing-workspace-bff/main.py"
       ],
       "evidence": [
         {
-          "kind": "internal-consumer",
+          "kind": "ui-and-gateway-consumer",
           "roots": [
-            "docker-compose.v9.yml",
-            "docker-compose.fixed.yml",
-            "services/remote-sensing-workspace-bff/tests"
+            "frontend/src",
+            "frontend/nginx.conf",
+            "nginx/nginx.v9.conf"
           ],
           "patterns": [
-            "remote-sensing-workspace-bff",
-            "WORKSPACE_BFF_TIMEOUT_S",
-            "remote-sensing-workspace"
+            "getRemoteSensingWorkspaceOverview",
+            "/api/remote-sensing-workspace/",
+            "remote_sensing_workspace_backend"
           ]
         }
       ]

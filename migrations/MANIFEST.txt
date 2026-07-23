@@ -718,6 +718,8 @@ v209_historical_weather_sor.sql
 v210_erp_reconciliation_ledger.sql
 # v211: واجهة دفتر المزارع المبسط فوق Farm Ledger القائم؛ نقد/آجل/أطراف/سداد.
 v211_simple_farm_book.sql
+# v212: فهرس فريد جزئيّ — تصحيح واحد لكلّ قيد دفتر (فرض DB لثابت v211).
+v212_farm_book_one_reversal_index.sql
 # v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
 # app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
 v206_rls_final_hardening.sql

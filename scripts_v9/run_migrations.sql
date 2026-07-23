@@ -577,5 +577,7 @@
 \i migrations/v210_erp_reconciliation_ledger.sql
 \echo '═══ 216. v211_simple_farm_book.sql ═══'
 \i migrations/v211_simple_farm_book.sql
-\echo '═══ 217. v206_rls_final_hardening.sql ═══'
+\echo '═══ 217. v212_farm_book_one_reversal_index.sql ═══'
+\i migrations/v212_farm_book_one_reversal_index.sql
+\echo '═══ 218. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

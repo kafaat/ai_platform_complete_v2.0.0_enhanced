@@ -87,7 +87,7 @@
               "pattern": "/auth/"
             }
           ],
-          "match_count": 49
+          "match_count": 51
         },
         {
           "kind": "gateway",
@@ -223,7 +223,7 @@
               "pattern": "/api/v1"
             }
           ],
-          "match_count": 205
+          "match_count": 206
         },
         {
           "kind": "gateway",
@@ -455,7 +455,7 @@
               "pattern": "NDVI"
             }
           ],
-          "match_count": 98
+          "match_count": 99
         },
         {
           "kind": "gateway",
@@ -570,7 +570,7 @@
               "pattern": "indicators"
             }
           ],
-          "match_count": 30
+          "match_count": 31
         },
         {
           "kind": "gateway",
@@ -761,7 +761,7 @@
               "pattern": "weather"
             }
           ],
-          "match_count": 300
+          "match_count": 308
         }
       ]
     },
@@ -918,7 +918,7 @@
               "pattern": "soil"
             }
           ],
-          "match_count": 283
+          "match_count": 284
         }
       ]
     },
@@ -1613,7 +1613,7 @@
               "pattern": "validate"
             }
           ],
-          "match_count": 99
+          "match_count": 105
         },
         {
           "kind": "gateway",
@@ -1652,80 +1652,84 @@
     },
     {
       "service": "agriai-engine",
-      "classification": "internal",
+      "classification": "experimental-model-runtime",
       "status": "pass",
       "missing_sources": [],
       "evidence": [
         {
-          "kind": "internal-consumer",
+          "kind": "activation-safety-contract",
           "roots": [
-            "docker-compose.unified.yml",
-            "services/supervisor-agent",
+            "services/agriai-engine",
             "tests_v9"
           ],
           "patterns": [
-            "MCP_AGRIAI_URL",
-            "agriai-engine",
-            "sahool-unified-agriai-engine"
+            "AGRIAI_PRODUCTION_MODE",
+            "SIM_PCSE_ENABLED",
+            "uncalibrated_pending_golden"
           ],
           "matches": [
             {
-              "root": "docker-compose.unified.yml",
-              "path": "docker-compose.unified.yml",
-              "pattern": "MCP_AGRIAI_URL"
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/main.py",
+              "pattern": "AGRIAI_PRODUCTION_MODE"
             },
             {
-              "root": "docker-compose.unified.yml",
-              "path": "docker-compose.unified.yml",
-              "pattern": "agriai-engine"
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/wofost_adapter.py",
+              "pattern": "AGRIAI_PRODUCTION_MODE"
             },
             {
-              "root": "docker-compose.unified.yml",
-              "path": "docker-compose.unified.yml",
-              "pattern": "sahool-unified-agriai-engine"
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/wofost_adapter.py",
+              "pattern": "SIM_PCSE_ENABLED"
+            },
+            {
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/simulation_capability.py",
+              "pattern": "SIM_PCSE_ENABLED"
+            },
+            {
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/simulation_capability.py",
+              "pattern": "uncalibrated_pending_golden"
+            },
+            {
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/aquacrop_adapter.py",
+              "pattern": "AGRIAI_PRODUCTION_MODE"
+            },
+            {
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/aquacrop_adapter.py",
+              "pattern": "uncalibrated_pending_golden"
+            },
+            {
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/tests/test_production_readiness_truth.py",
+              "pattern": "AGRIAI_PRODUCTION_MODE"
+            },
+            {
+              "root": "services/agriai-engine",
+              "path": "services/agriai-engine/tests/test_production_readiness_truth.py",
+              "pattern": "SIM_PCSE_ENABLED"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_service_consumer_closure_20260723.py",
+              "pattern": "SIM_PCSE_ENABLED"
+            },
+            {
+              "root": "tests_v9",
+              "path": "tests_v9/test_service_consumer_closure_20260723.py",
+              "pattern": "uncalibrated_pending_golden"
             },
             {
               "root": "tests_v9",
               "path": "tests_v9/test_sim_pcse_flag_and_safety.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_crop_model_uncertainty_v64.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_real_findings_closure_20260702.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_simulation_capability_contract.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_agriai_engine_features_20260702.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_v9_feature_transfer_20260702.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/smoke_services.py",
-              "pattern": "agriai-engine"
-            },
-            {
-              "root": "tests_v9",
-              "path": "tests_v9/test_aquacrop_salt_capability_contract.py",
-              "pattern": "agriai-engine"
+              "pattern": "AGRIAI_PRODUCTION_MODE"
             }
           ],
-          "match_count": 11
+          "match_count": 16
         }
       ]
     },
@@ -1811,7 +1815,7 @@
               "pattern": "MCP"
             }
           ],
-          "match_count": 94
+          "match_count": 95
         }
       ]
     },
@@ -1955,6 +1959,11 @@
             },
             {
               "root": "services/sahool-platform",
+              "path": "services/sahool-platform/api/irrigation_authoritative_reservation.py",
+              "pattern": "dispatch"
+            },
+            {
+              "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/command_dispatcher.py",
               "pattern": "dispatch"
             },
@@ -1962,14 +1971,9 @@
               "root": "services/sahool-platform",
               "path": "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
               "pattern": "dispatch"
-            },
-            {
-              "root": "services/sahool-platform",
-              "path": "services/sahool-platform/api/offline_sync_db.py",
-              "pattern": "dispatch"
             }
           ],
-          "match_count": 99
+          "match_count": 102
         }
       ]
     },
@@ -2053,7 +2057,7 @@
               "pattern": "yield"
             }
           ],
-          "match_count": 126
+          "match_count": 128
         },
         {
           "kind": "platform-proxy",
@@ -2165,7 +2169,7 @@
               "pattern": "camera"
             }
           ],
-          "match_count": 30
+          "match_count": 32
         },
         {
           "kind": "platform-proxy",
@@ -2496,7 +2500,7 @@
               "pattern": "erp-bridge"
             }
           ],
-          "match_count": 12
+          "match_count": 13
         }
       ]
     },
@@ -2816,7 +2820,7 @@
               "pattern": "collection"
             }
           ],
-          "match_count": 18
+          "match_count": 19
         }
       ]
     },
@@ -2899,7 +2903,7 @@
               "pattern": "decision_service_client"
             }
           ],
-          "match_count": 25
+          "match_count": 26
         }
       ]
     },
@@ -2958,127 +2962,87 @@
     },
     {
       "service": "gis-workflow-service",
-      "classification": "internal",
+      "classification": "batch-job-tool",
       "status": "pass",
       "missing_sources": [],
       "evidence": [
         {
-          "kind": "internal-consumer",
+          "kind": "job-contract",
           "roots": [
-            "services/gis-workflow-service"
+            "services/gis-workflow-service/tests",
+            ".github/workflows"
           ],
           "patterns": [
-            "publication_map",
-            "bulletin",
-            "map_layout"
+            "run_bundle",
+            "gis-workflow-service"
           ],
           "matches": [
             {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/bulletin_figure.py",
-              "pattern": "bulletin"
+              "root": "services/gis-workflow-service/tests",
+              "path": "services/gis-workflow-service/tests/test_run_bundle.py",
+              "pattern": "run_bundle"
             },
             {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/workflow_spec.py",
-              "pattern": "publication_map"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/map_layout.py",
-              "pattern": "publication_map"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/map_layout.py",
-              "pattern": "map_layout"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/README.md",
-              "pattern": "publication_map"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/README.md",
-              "pattern": "bulletin"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/README.md",
-              "pattern": "map_layout"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/bulletin_render.py",
-              "pattern": "bulletin"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/publication_map.py",
-              "pattern": "publication_map"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/publication_map.py",
-              "pattern": "map_layout"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/run_bundle.py",
-              "pattern": "publication_map"
-            },
-            {
-              "root": "services/gis-workflow-service",
-              "path": "services/gis-workflow-service/run_bundle.py",
-              "pattern": "map_layout"
+              "root": ".github/workflows",
+              "path": ".github/workflows/gis-workflow-service-gates.yml",
+              "pattern": "gis-workflow-service"
             }
           ],
-          "match_count": 20
+          "match_count": 2
         }
       ]
     },
     {
       "service": "remote-sensing-workspace-bff",
-      "classification": "internal",
+      "classification": "ui-bff",
       "status": "pass",
       "missing_sources": [],
       "evidence": [
         {
-          "kind": "internal-consumer",
+          "kind": "ui-and-gateway-consumer",
           "roots": [
-            "docker-compose.v9.yml",
-            "docker-compose.fixed.yml",
-            "services/remote-sensing-workspace-bff/tests"
+            "frontend/src",
+            "frontend/nginx.conf",
+            "nginx/nginx.v9.conf"
           ],
           "patterns": [
-            "remote-sensing-workspace-bff",
-            "WORKSPACE_BFF_TIMEOUT_S",
-            "remote-sensing-workspace"
+            "getRemoteSensingWorkspaceOverview",
+            "/api/remote-sensing-workspace/",
+            "remote_sensing_workspace_backend"
           ],
           "matches": [
             {
-              "root": "docker-compose.v9.yml",
-              "path": "docker-compose.v9.yml",
-              "pattern": "remote-sensing-workspace-bff"
+              "root": "frontend/src",
+              "path": "frontend/src/services/api/remoteSensingWorkspace.ts",
+              "pattern": "getRemoteSensingWorkspaceOverview"
             },
             {
-              "root": "docker-compose.v9.yml",
-              "path": "docker-compose.v9.yml",
-              "pattern": "WORKSPACE_BFF_TIMEOUT_S"
+              "root": "frontend/src",
+              "path": "frontend/src/services/api/remoteSensingWorkspace.ts",
+              "pattern": "/api/remote-sensing-workspace/"
             },
             {
-              "root": "docker-compose.v9.yml",
-              "path": "docker-compose.v9.yml",
-              "pattern": "remote-sensing-workspace"
+              "root": "frontend/src",
+              "path": "frontend/src/sections/FieldWorkspaceImageryPanel.tsx",
+              "pattern": "getRemoteSensingWorkspaceOverview"
             },
             {
-              "root": "services/remote-sensing-workspace-bff/tests",
-              "path": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
-              "pattern": "remote-sensing-workspace"
+              "root": "frontend/nginx.conf",
+              "path": "frontend/nginx.conf",
+              "pattern": "/api/remote-sensing-workspace/"
+            },
+            {
+              "root": "nginx/nginx.v9.conf",
+              "path": "nginx/nginx.v9.conf",
+              "pattern": "/api/remote-sensing-workspace/"
+            },
+            {
+              "root": "nginx/nginx.v9.conf",
+              "path": "nginx/nginx.v9.conf",
+              "pattern": "remote_sensing_workspace_backend"
             }
           ],
-          "match_count": 4
+          "match_count": 6
         }
       ]
     },

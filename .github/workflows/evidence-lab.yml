@@ -1,0 +1,46 @@
+name: Non-Production Evidence Lab
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "config/evidence_lab_matrix.json"
+      - "docker-compose.evidence-lab.yml"
+      - "scripts/certification/evidence_lab.py"
+      - "tests/fixtures/evidence_lab/**"
+      - "tests_v9/test_evidence_lab_contract.py"
+      - ".github/workflows/evidence-lab.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  source-evidence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/certification/evidence_lab.py --validate
+      - run: python scripts/certification/evidence_lab.py --mode offline --output certification/evidence-lab/ci-offline
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: evidence-lab-source
+          path: certification/evidence-lab/ci-offline
+          if-no-files-found: error
+
+  ephemeral-dependencies:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/certification/evidence_lab.py --mode ephemeral --provision --output certification/evidence-lab/ci-ephemeral
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: evidence-lab-ephemeral
+          path: certification/evidence-lab/ci-ephemeral
+          if-no-files-found: warn

@@ -22,6 +22,7 @@ EXCLUDE_DIRS = {
     "__pycache__",
     "node_modules",
     ".dart_tool",
+    "evidence-lab",  # نواتج تشغيل متغيّرة؛ تصميم المختبر نفسه يبقى داخل بصمة الإصدار
     "build",
     "dist",
     ".venv",

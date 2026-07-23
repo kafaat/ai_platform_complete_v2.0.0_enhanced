@@ -1,0 +1,25 @@
+{
+  "id": "4e6bcce5-7aa5-4b54-aae0-62793e47e004",
+  "name": "open-meteo deterministic provider failure",
+  "priority": 1,
+  "request": {
+    "method": "GET",
+    "urlPath": "/open-meteo/v1/forecast",
+    "headers": {
+      "X-Evidence-Fault": {
+        "equalTo": "upstream-timeout"
+      }
+    }
+  },
+  "response": {
+    "status": 503,
+    "fixedDelayMilliseconds": 250,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "error": "evidence_lab_provider_unavailable",
+      "retryable": true
+    }
+  }
+}

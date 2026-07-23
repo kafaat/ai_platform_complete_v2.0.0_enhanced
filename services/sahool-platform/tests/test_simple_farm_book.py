@@ -143,12 +143,21 @@ def test_migration_is_append_only_rls_and_idempotent() -> None:
         "settles_entry_id",
     ):
         assert token in sql
+    # The one-reversal-per-entry DB constraint ships as its own migration (v212):
+    # merged v211 is never edited in place, so already-applied databases converge.
+    v212 = (root / "migrations/v212_farm_book_one_reversal_index.sql").read_text(encoding="utf-8")
+    assert "ux_farm_ledger_entries_one_reversal" in v212
+    assert "WHERE reverses_entry_id IS NOT NULL" in v212
     entries = [
         line.strip()
         for line in (root / "migrations/MANIFEST.txt").read_text(encoding="utf-8").splitlines()
         if line.strip() and not line.lstrip().startswith("#")
     ]
-    assert entries[-2:] == ["v211_simple_farm_book.sql", "v206_rls_final_hardening.sql"]
+    assert entries[-3:] == [
+        "v211_simple_farm_book.sql",
+        "v212_farm_book_one_reversal_index.sql",
+        "v206_rls_final_hardening.sql",
+    ]
 
 
 def test_router_guards_scope_offline_conflict_and_exports() -> None:
