@@ -569,5 +569,7 @@
 \i migrations/v205_irrigation_reservation_runtime_hardening.sql
 \echo '═══ 212. v207_historical_season_simulation_bridge.sql ═══'
 \i migrations/v207_historical_season_simulation_bridge.sql
-\echo '═══ 213. v206_rls_final_hardening.sql ═══'
+\echo '═══ 213. v208_seasons_sim_run_lineage.sql ═══'
+\i migrations/v208_seasons_sim_run_lineage.sql
+\echo '═══ 214. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

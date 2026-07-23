@@ -137,3 +137,67 @@ def compose_historical_season_context(
     ).encode()
     context["input_digest"] = hashlib.sha256(canonical).hexdigest()
     return context
+
+
+def build_simulation_outcome(
+    result: Mapping[str, Any],
+    *,
+    engine_name: str,
+    engine_version: str,
+    parameter_version: str,
+    harvest: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Output-side companion to the input bundle for the decision-center snapshot.
+
+    Carries the run's engine identity, the prediction with its uncertainty band,
+    and — only when an accepted actual harvest yield exists — the expected-vs-actual
+    delta. Deliberately kept OUT of ``compose_historical_season_context`` and its
+    ``input_digest``: this describes results, not the reproducible inputs the run was
+    derived from. Never invents an actual yield; absence is reported explicitly.
+    """
+    row = _primitive(dict(result))
+    predicted = row.get("yield_kg_ha")
+    low = row.get("yield_low_kg_ha")
+    high = row.get("yield_high_kg_ha")
+
+    outcome: dict[str, Any] = {
+        "engine": {
+            "name": str(engine_name),
+            "version": str(engine_version),
+            "parameter_version": str(parameter_version),
+        },
+        "prediction": {
+            "yield_kg_ha": predicted,
+            "yield_low_kg_ha": low,
+            "yield_high_kg_ha": high,
+            "confidence": row.get("confidence"),
+            "water_stress_factor": row.get("water_stress_factor"),
+        },
+    }
+
+    actual: float | None = None
+    if harvest is not None and harvest.get("yield_kg_ha") is not None:
+        try:
+            actual = float(harvest["yield_kg_ha"])
+        except (TypeError, ValueError):
+            actual = None
+
+    if actual is not None and predicted is not None:
+        predicted_f = float(predicted)
+        delta = actual - predicted_f
+        relative_error = (delta / actual) if actual not in (0, 0.0) else None
+        within_band = low is not None and high is not None and float(low) <= actual <= float(high)
+        outcome["expected_vs_actual"] = {
+            "status": "compared",
+            "predicted_yield_kg_ha": predicted_f,
+            "actual_yield_kg_ha": actual,
+            "delta_kg_ha": round(delta, 6),
+            "relative_error": round(relative_error, 6) if relative_error is not None else None,
+            "actual_within_uncertainty_band": within_band,
+        }
+    else:
+        outcome["expected_vs_actual"] = {
+            "status": "no_actual_yield",
+            "predicted_yield_kg_ha": float(predicted) if predicted is not None else None,
+        }
+    return outcome

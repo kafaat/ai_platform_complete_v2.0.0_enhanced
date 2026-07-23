@@ -1,6 +1,9 @@
 from datetime import date
 
-from core.historical_season_context import compose_historical_season_context
+from core.historical_season_context import (
+    build_simulation_outcome,
+    compose_historical_season_context,
+)
 
 
 def _context(**overrides):
@@ -79,3 +82,67 @@ def test_missing_manual_record_and_satellite_are_explicit():
         "irrigation_mm_total": None,
         "observed_fapar": None,
     }
+
+
+def _outcome(**overrides):
+    kwargs = {
+        "result": {
+            "yield_kg_ha": 4000.0,
+            "yield_low_kg_ha": 3200.0,
+            "yield_high_kg_ha": 4800.0,
+            "confidence": 0.6,
+            "water_stress_factor": 0.9,
+        },
+        "engine_name": "sahool-season-sim",
+        "engine_version": "1",
+        "parameter_version": "sahool-season-defaults/1",
+        "harvest": None,
+    }
+    kwargs.update(overrides)
+    return build_simulation_outcome(kwargs.pop("result"), **kwargs)
+
+
+def test_outcome_carries_engine_identity_and_prediction_band():
+    out = _outcome()
+    assert out["engine"] == {
+        "name": "sahool-season-sim",
+        "version": "1",
+        "parameter_version": "sahool-season-defaults/1",
+    }
+    assert out["prediction"]["yield_low_kg_ha"] == 3200.0
+    assert out["prediction"]["yield_high_kg_ha"] == 4800.0
+    assert out["prediction"]["confidence"] == 0.6
+
+
+def test_outcome_without_harvest_is_explicit_not_invented():
+    out = _outcome(harvest=None)
+    assert out["expected_vs_actual"]["status"] == "no_actual_yield"
+    assert out["expected_vs_actual"]["predicted_yield_kg_ha"] == 4000.0
+
+
+def test_outcome_with_null_harvest_yield_reports_no_actual():
+    out = _outcome(harvest={"yield_kg_ha": None})
+    assert out["expected_vs_actual"]["status"] == "no_actual_yield"
+
+
+def test_outcome_compares_actual_within_uncertainty_band():
+    out = _outcome(harvest={"yield_kg_ha": 4200})
+    eva = out["expected_vs_actual"]
+    assert eva["status"] == "compared"
+    assert eva["actual_yield_kg_ha"] == 4200.0
+    assert eva["delta_kg_ha"] == 200.0
+    assert round(eva["relative_error"], 6) == round(200.0 / 4200.0, 6)
+    assert eva["actual_within_uncertainty_band"] is True
+
+
+def test_outcome_flags_actual_outside_uncertainty_band():
+    out = _outcome(harvest={"yield_kg_ha": 2000})
+    eva = out["expected_vs_actual"]
+    assert eva["status"] == "compared"
+    assert eva["delta_kg_ha"] == -2000.0
+    assert eva["actual_within_uncertainty_band"] is False
+
+
+def test_outcome_zero_actual_guards_relative_error():
+    out = _outcome(harvest={"yield_kg_ha": 0})
+    assert out["expected_vs_actual"]["relative_error"] is None

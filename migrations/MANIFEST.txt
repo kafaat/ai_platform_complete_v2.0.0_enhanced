@@ -710,6 +710,8 @@ v205_irrigation_reservation_runtime_hardening.sql
 # v207: جسر موسم تاريخي مقبول→موسم تشغيلي + ledger محاكاة append-only.
 # يسبق v206 عمداً كي يشمله تأكيد catalog النهائي.
 v207_historical_season_simulation_bridge.sql
+# v208 يسبق v206 عمداً (ALTER فقط على seasons المُغطّى) كي يبقى v206 آخِر مدخل.
+v208_seasons_sim_run_lineage.sql
 # v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
 # app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
 v206_rls_final_hardening.sql
