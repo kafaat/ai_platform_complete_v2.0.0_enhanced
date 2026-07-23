@@ -852,3 +852,16 @@ SHAs من `git log --oneline origin/main`.
 - **السبب:** أوّل فجوة قابلة للتنفيذ مناسبة (مُسجَّلة، غير مبكّرة، تشدّ السقّاطة). محايد سلوكيًّا؛ إعادة التصدير محميّة بـ`ruff.toml`.
 - **قرار انضباط:** تجنّبتُ عمدًا بنود «لا لمس حتى المحفّز» (FIELD-SVC-TENANT-HEADER-TRUST) و«MVP مؤجَّل» احترامًا لمنع التجريد المبكّر — تُنفَّذ فقط بقرار مالك صريح على البند.
 - **SHA:** رأس `294b1fd` · دمج `b18a1c1`.
+
+## 2026-07-23 — HISTORICAL-SEASON-BRIDGE-01 (v207) #605 دُمِج
+- **القرار:** مراجعة حزمة `historical_season_bridge_v2` (أساس `9a218c7`) وتطبيق الصحيح منها على main (`ccfa03b`) عبر فرع/PR واحد، ثمّ دمج merge-commit `bbfbf95` تحت انضباط الراتشِت (لا دمج إلّا على رأس أخضر مُثبَت بالكامل على SHA الدقيق؛ التحقّق من كلّ الفحوص لا عيّنة).
+- **السبب:** كلّ 65 فحص success/skipped على الرأس `428e508` (production-validation-gate · Repo Structural Lint · Platform Unit Tests · Structure Inspector · migration drift/contract · Security Scan). v207 مُدرَج قبل v206 (v206 يبقى آخِراً ويُعيد تغطية RLS)؛ الجدولان يعلنان RLS ذاتيّاً عبر المساعد القانونيّ.
+- **قرارات فرعيّة:** (١) توسيع `sahool_inspector.check_rls_coverage` ليقبل `sahool_effective_tenant_id()` كمسنِد tenant صحيح (غير مُضعِف؛ v206 نفسه يستعمله). (٢) تسجيل جدولَي v207 في `db_ownership.yml` كـsahool-platform + رفع ميزانيّة الوحدات 653→654 + `modules[]`/note لـ`core/historical_season_context.py` — الحُرّاس تعيش في `tests/test_p0_*` (وظيفة Platform Unit Tests) لا في `-m unit` المحلّيّ. (٣) `HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED=false` default-off.
+- **حدود بصدق:** تطبيق PG16 + برهان RLS بجلستَين على جدولَي v207 مؤجَّل؛ مرآة decision-service SoR default-off حتى الشهادة؛ لا SoR موازٍ للموسم/المحاكاة.
+- **SHA:** رأس `428e508` (سابقه `243ec93`) · دمج `bbfbf95`.
+
+## 2026-07-23 — تحقّق مستقلّ من مراجعة توصيل المحرّكات↔مركز القرار (`9a218c7`) — REQUEST CHANGES مؤيَّد
+- **القرار:** التحقّق من ادّعاءات مراجعة REQUEST CHANGES بأربعة وكلاء قراءة-كود عدائيّين مستقلّين (كلٌّ مكلَّف بالدحض) بدل قبولها؛ الحكم: **الادّعاءات 11 كلّها CONFIRMED** بأدلّة `file:line` ⇒ **أؤيّد حجب الاعتماد الإنتاجيّ على مركز القرار.**
+- **السبب:** المسارات المتوازية (`/crop-twin/decision`، `/profit-aware`، `run_field_intelligence`) تلتفّ حول البوّابة fail-closed للمرشّح القانونيّ؛ المرشّح مبنيّ على مدخلات العميل لا عقود canonical حيّة (GDD وحده مجلوب خادميّاً)؛ `weather_state` غير ممرَّر ⇒ heat/frost/crop_water معطّلة.
+- **الفعل:** لا تغيير كود في هذه الجولة (تحقّق فقط)؛ اقتراح فجوة `DECISION-CENTER-UNIFY-01` (المسار 3/4/5: منع submit على compose + تحويل المسارين إلى preview + منع executable الالتفافيّ — قابل للتنفيذ الآن بلا migration) بانتظار موافقة المالك على التسجيل/التنفيذ.
+- **SHA:** المراجَعة عند `9a218c7`؛ لا commit في هذه الجولة.
