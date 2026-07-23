@@ -50,6 +50,9 @@ ALLOWED_JOBS_DB_SERVICES = {
     # ثمّ يضبط app.current_tenant لكلّ حقل قبل قراءة/upsert water_ledger (RLS-scoped)؛
     # القيد اليدويّ سيّد ولا كتابة إلّا خلف WATER_LEDGER_AUTO_ENABLED.
     "sahool-water-ledger-worker",
+    # عامل دورة حياة حجوزات الريّ (IRR-F01): يكتشف الحجوزات المنقضية عابرًا للمستأجرين بدور
+    # JOBS ثمّ يضبط app.current_tenant لكلّ مستأجر قبل expire_due المحكوم (v205، RLS-scoped).
+    "sahool-irrigation-reservation-lifecycle-worker",
 }
 
 TRUTHY = {"1", "true", "yes", "on"}
