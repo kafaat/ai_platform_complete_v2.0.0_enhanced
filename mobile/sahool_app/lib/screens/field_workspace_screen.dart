@@ -5,7 +5,10 @@
 // من النظرة العامّة) أو معرّف الحقل (String) — فيُجلَب الحقل من getDashboard.
 // صدق: التبويبات التي لا تتوفّر لها واجهة برمجيّة في ApiService تُعرَض كـ«غير
 // متاح بعد» بدل اختلاق بيانات. تستعمل حالات العرض الموحّدة وRTL العربيّ.
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import '../features/field_forms/data/field_forms_coordinator.dart';
 import '../services/api_service.dart';
 import '../widgets/state_views.dart';
 import '../widgets/workspace/workspace_sections.dart';
@@ -78,6 +81,9 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
       _fieldId =
           (field['field_id'] ?? field['id'] ?? fieldId ?? '').toString();
       _loading = false;
+      if (_fieldId.isNotEmpty) {
+        unawaited(FieldFormsCoordinator.instance.syncField(_fieldId));
+      }
       return;
     }
     // لا كائن حقل — نملك معرّفاً فقط، فنجلب الحقل من النظرة العامّة.
@@ -125,6 +131,7 @@ class _FieldWorkspaceScreenState extends State<FieldWorkspaceScreen>
         _field = match;
         _loading = false;
       });
+      unawaited(FieldFormsCoordinator.instance.syncField(_fieldId));
     } catch (e) {
       if (!mounted) return;
       setState(() {

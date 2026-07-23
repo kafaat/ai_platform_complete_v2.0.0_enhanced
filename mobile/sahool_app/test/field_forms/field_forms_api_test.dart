@@ -14,7 +14,9 @@ class _RecordedRequest {
   final String path;
   final Map<String, dynamic> query;
   final Object? body;
-  const _RecordedRequest(this.method, this.path, this.query, this.body);
+  final Map<String, dynamic> headers;
+  const _RecordedRequest(
+      this.method, this.path, this.query, this.body, this.headers);
 }
 
 /// MockAdapter: يسجّل الطلب ويعيد ردًّا مبرمجًا.
@@ -34,7 +36,12 @@ class _MockAdapter implements HttpClientAdapter {
       body = jsonDecode(utf8.decode(bytes));
     }
     requests.add(_RecordedRequest(
-        options.method, options.path, options.queryParameters, body));
+      options.method,
+      options.path,
+      options.queryParameters,
+      body,
+      Map<String, dynamic>.from(options.headers),
+    ));
 
     if (options.path == '/api/field-forms/submissions') {
       return ResponseBody.fromString(
@@ -131,12 +138,13 @@ void main() {
       'definition_sync_token': 'sync-token-abc',
       'answers': {'crop': 'wheat', 'severity': 3},
     };
-    final result = await api.submit(envelope);
+    final result = await api.submit(envelope, deviceId: 'device-1');
 
     final request = adapter.requests.single;
     expect(request.method, 'POST');
     expect(request.path, '/api/field-forms/submissions');
     expect(request.body, envelope);
+    expect(request.headers['X-Device-Id'], 'device-1');
 
     expect(result.status, 'accepted');
     expect(result.versionResolutionStatus, 'current');
@@ -149,7 +157,10 @@ void main() {
       'version_resolution_status': 'stale_proven',
       'form_validation_status': 'valid',
     };
-    final result = await api.submit(const {'answers': {}});
+    final result = await api.submit(
+      const {'answers': {}},
+      deviceId: 'device-1',
+    );
     expect(result.status, 'quarantined');
     expect(result.versionResolutionStatus, 'stale_proven');
   });

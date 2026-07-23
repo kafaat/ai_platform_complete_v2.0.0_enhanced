@@ -11,6 +11,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../services/device_id_service.dart';
 import '../contract/condition_v1.dart';
 import '../contract/form_schema.dart';
 import '../data/draft_store.dart';
@@ -198,10 +199,15 @@ class FieldFormCubit extends Cubit<FieldFormState> {
     if (currentApi == null) return; // يبقى queued حتى يتوفّر اتصال
     emit(state.copyWith(status: FieldFormStatus.syncing));
     try {
-      final result = await currentApi.submit(item.buildEnvelope(
-        provider: provider,
-        server: server,
-      ));
+      // §9.2: هويّة الجهاز الثابتة تدخل ترويسة X-Device-Id (يحقنها الخادم في إثبات المزامنة).
+      final deviceId = await DeviceIdService.instance.deviceId();
+      final result = await currentApi.submit(
+        item.buildEnvelope(
+          provider: provider,
+          server: server,
+        ),
+        deviceId: deviceId,
+      );
       if (result.status == 'accepted' &&
           result.formValidationStatus != 'invalid') {
         await submissionQueue.remove(item.instanceId);
