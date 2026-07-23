@@ -1815,6 +1815,26 @@ tables:
     writers: [decision-service]
     readers: []
     source: "services/decision-service/migrations/015_wx12_runtime_receipts.sql"
+  historical_weather_daily:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, decision-service, agriai-engine]
+    source: "migrations/v209_historical_weather_sor.sql"
+  erp_reconciliation_ledger:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, odoo-bridge]
+    source: "migrations/v210_erp_reconciliation_ledger.sql"
+  farm_ledger_parties:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, odoo-bridge]
+    source: "migrations/v211_simple_farm_book.sql"
+  farm_ledger_entries:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, odoo-bridge]
+    source: "migrations/v211_simple_farm_book.sql"
   decision_model_retraining_requests:
     owner: decision-service
     writers: [decision-service]

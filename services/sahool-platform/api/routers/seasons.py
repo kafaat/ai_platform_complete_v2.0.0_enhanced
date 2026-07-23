@@ -100,15 +100,31 @@ async def _load_linked_historical_inputs(
         harvest = await conn.fetchrow(
             "SELECT * FROM season_harvest WHERE season_id = $1", record["id"]
         )
-    vegetation = await conn.fetch(
-        "SELECT id, acquisition_date, ndvi_mean, cloud_pct, satellite, source "
-        "FROM ndvi_timeseries WHERE field_id = $1 "
-        "AND acquisition_date BETWEEN $2 AND $3 "
-        "ORDER BY acquisition_date, id",
-        field_id,
-        start,
-        end,
+    # Canonical NDVI: read the scalar per-date index mean from raster-service (the
+    # single source computed live from the field's clipped COGs) via the allowlisted
+    # HTTP facade — NOT the legacy ``ndvi_timeseries`` table (seed-only, no live writer).
+    # Best-effort: any raster-service failure degrades to no NDVI, exactly the prior
+    # empty-table behavior. The window filter that the old SQL applied
+    # (``acquisition_date BETWEEN start AND end``) is re-applied client-side here since
+    # the endpoint returns every available COG date; the composer re-sorts by
+    # ``acquisition_date, id`` so ordering is preserved.
+    from api.raster_service_client import (
+        get_field_timeseries,
+        timeseries_point_to_vegetation_row,
     )
+
+    start_iso = start.isoformat() if start is not None else None
+    end_iso = end.isoformat() if end is not None else None
+    points = await get_field_timeseries(field_id, tenant_id=tenant_id, index="ndvi")
+    vegetation = [
+        timeseries_point_to_vegetation_row(point, field_id=field_id)
+        for point in points
+        if (
+            (day := str(point.get("datetime") or "")[:10])
+            and (start_iso is None or day >= start_iso)
+            and (end_iso is None or day <= end_iso)
+        )
+    ]
     return record, crop, events, harvest, vegetation
 
 

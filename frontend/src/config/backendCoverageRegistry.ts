@@ -131,6 +131,11 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
       '/api/v1/farm-ledger/variance/{season}',
       '/api/v1/farm-ledger/economic-state/{season}',
       '/api/v1/economics/break-even',
+      '/api/v1/farm-book/parties',
+      '/api/v1/farm-book/entries',
+      '/api/v1/farm-book/monthly',
+      '/api/v1/farm-book/balances',
+      '/api/v1/farm-book/export',
     ],
     hooks: ['useFarmLedgerSummary', 'useRecordLedgerOperation', 'useUpsertBudgetLines', 'useRecordRevenue', 'useSeasonProfitability', 'useSeasonVariance', 'useSeasonEconomicState', 'useBreakEven'],
     surfaces: [
@@ -138,6 +143,7 @@ export const BACKEND_COVERAGE_REGISTRY: BackendCoverageLayer[] = [
       { kind: 'fieldview_card', name: 'SeasonProfitabilityCard', component: 'SeasonProfitabilityCard' },
       { kind: 'fieldview_card', name: 'LedgerEntryCard', component: 'LedgerEntryCard' },
       { kind: 'page', name: 'EconomicsDashboard', routeId: 'economics', component: 'EconomicsDashboard' },
+      { kind: 'page', name: 'SimpleFarmBookPage', routeId: 'farm-book', component: 'SimpleFarmBookPage' },
     ],
   },
   {

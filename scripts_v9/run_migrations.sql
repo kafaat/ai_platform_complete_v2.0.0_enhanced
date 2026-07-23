@@ -571,5 +571,11 @@
 \i migrations/v207_historical_season_simulation_bridge.sql
 \echo '═══ 213. v208_seasons_sim_run_lineage.sql ═══'
 \i migrations/v208_seasons_sim_run_lineage.sql
-\echo '═══ 214. v206_rls_final_hardening.sql ═══'
+\echo '═══ 214. v209_historical_weather_sor.sql ═══'
+\i migrations/v209_historical_weather_sor.sql
+\echo '═══ 215. v210_erp_reconciliation_ledger.sql ═══'
+\i migrations/v210_erp_reconciliation_ledger.sql
+\echo '═══ 216. v211_simple_farm_book.sql ═══'
+\i migrations/v211_simple_farm_book.sql
+\echo '═══ 217. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

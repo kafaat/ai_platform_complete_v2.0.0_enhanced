@@ -515,7 +515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ded8e04d43f260e635bab96a99949efbef078b472df225e9c6ea4f3129b6acd8"
+          "content": "b719a2af02fdaf716685ab80865c431caa078ebea15f751ce64d7105acc6f200"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -2465,7 +2465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9420c60e3770b9d863d01be0ac6569d0e1a19e8a9f5442f78f42d2dd133277d1"
+          "content": "e86bf6318f0d1fa90fb845b1249fcbe6e969ccbc44467dea6f24b261f568df4e"
         }
       ],
       "name": "frontend/src/config/backendCoverageRegistry.ts",
@@ -4275,7 +4275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4163c6808cf30ab259de66410f31a75e5a14bd1cc8a48e2c93491f2e49450d96"
+          "content": "d69ca25a1fb2a9bd5e1d4d386f27c56cfec66c684840d83b9df0936674caff8c"
         }
       ],
       "name": "frontend/src/lib/permissions.ts",
@@ -4405,7 +4405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e96079141bd2a48e72f54189d9ca3b7a8a99a07295c9a19a5b120d0dd490eb7e"
+          "content": "0070bc387b9345af45c83be3e619573d2b337ef5941360318c502d5e98721fd8"
         }
       ],
       "name": "frontend/src/lib/routes.ts",
@@ -5915,6 +5915,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e3bbf25a779a51cad35c69378b6c6a42401695b2c08df09badf528b862049067"
+        }
+      ],
+      "name": "frontend/src/sections/SimpleFarmBookPage.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c2ca2637be29cd8fa12297d886df75d21600fa861c2fcfdcf9ff131ddf946df6"
         }
       ],
@@ -6475,7 +6485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4a9cc0d57c81c0ba1547093971626b48b5127d31628418d2fb45782e9e0f29ca"
+          "content": "a78739cec2ba72f6aff862a67818ee4d361ac9d2a9d8bd0a6589bc30648e18c4"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7705,10 +7715,40 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "9ffd38f0b7c9c8c3f737d07228f6b0a46d51d5bbfed0422aa80d8ba00c2034e4"
+        }
+      ],
+      "name": "migrations/v209_historical_weather_sor.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b2cf3059b484bf566460533e29aaf2584215f04990056872814a38c3b5053698"
         }
       ],
       "name": "migrations/v20_automation_tables.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e91526237ac0b70af55514f501f4bd8c4767479b17811b4c710d39ca2fa2fe87"
+        }
+      ],
+      "name": "migrations/v210_erp_reconciliation_ledger.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "32b1d15a6c25c33164a51ed21cb9f8a4df61f7dad55702cda549f86bf7cccde9"
+        }
+      ],
+      "name": "migrations/v211_simple_farm_book.sql",
       "type": "file"
     },
     {
@@ -10475,7 +10515,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "78f1594054c6129c244a3937a45c3ada555e27cdc046e9a217fc04dfbcae72bd"
+          "content": "75a871d8a2998af3aeec58ab87707a811fc8f3ae4f2d108056d6366e2b38d8e4"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10915,7 +10955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b46de83aeab10f9c06ebde18e4646d1e33dd6099ce7b8a7a28b380fcec1235ee"
+          "content": "2088f018d7de576b11f45bd45660aa25cf5158e945a62032b8d14708ed2c50f8"
         }
       ],
       "name": "services/decision-service/tests/test_agronomic_evidence_contract.py",
@@ -16115,7 +16155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b159240ab19b592090579e19c1fc7c9480df9d33b16f43f94539c392c9956c6d"
+          "content": "9118c06a4f5b603abaabc209fbde3e0765d63402149ebca542fa39f889e03d88"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -16235,7 +16275,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "aeb79563d10791ec69ce1cd5c7c2ca1622d7c3cbd5f0353abef909898fea5b48"
+          "content": "5b6444356f77e85f81c84adb84ad37d9d6c967eb46c70014b2095cc870ad0466"
         }
       ],
       "name": "services/sahool-platform/api/routers/agronomic_replay.py",
@@ -17295,6 +17335,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "41ae88e1e5c8296bb468dc3b8612ac40da6ee99aaa883fce9e67c46890f9f132"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/operational_truth.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "aafba354984b7fb246f6eab643899a37a9d3c9a18f80f3e31498fdc8278647c1"
         }
       ],
@@ -17595,7 +17645,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9df2477f941781a8cfc950e2c1f3e0a646b098ea6f7eee48fce999546166a0c9"
+          "content": "ddf48ad8998f796dcba14a51619689148093fc629e53e2a74977d5892ab6c654"
         }
       ],
       "name": "services/sahool-platform/api/routers/seasons.py",
@@ -17649,6 +17699,16 @@
         }
       ],
       "name": "services/sahool-platform/api/routers/sharing.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "aa5760d3572226622756322e1b6eba20c81ff569991825cead8cb6a1db155d18"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/simple_farm_book.py",
       "type": "file"
     },
     {
@@ -20905,6 +20965,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "94c578fbad79d0a7df30e47fe114c91d1897fe83b6166a476741b76404322cdc"
+        }
+      ],
+      "name": "services/sahool-platform/core/operational_truth.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "fec166e84c16b942b7db0eff0565554f3e828c08b5d2b344a0976e0521db336a"
         }
       ],
@@ -21179,6 +21249,16 @@
         }
       ],
       "name": "services/sahool-platform/core/sensor_intake.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4aaa063b75bca62f1049baed4b8544adeba7c609677b42fd387762b4e5c156e9"
+        }
+      ],
+      "name": "services/sahool-platform/core/simple_farm_book.py",
       "type": "file"
     },
     {
@@ -24415,6 +24495,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1c62c69333f2dd411612651ce064ac9efa2a181cea27286667e3e6494167e893"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_operational_truth_closure.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "8db22c186b75f301f0bcdd74ea1965d314c80b23f2e6e3a682bb323be50080e5"
         }
       ],
@@ -24595,7 +24685,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1eda79d877708682f2ad02cbb19fdfbeb0a8bd6afbba03a6ba4735501da68964"
+          "content": "996f39a58f1402ea729c13481c48e143f2bd571040c474959b93992f28d8a303"
         }
       ],
       "name": "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
@@ -24655,7 +24745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4b691ed95bcd2883bf2002a98700400d064402bdee49e27a3edd5a1a60576989"
+          "content": "90a844794a7c517c9cc583120151f1c2a5589ed042b504794134c307b2d99385"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -25379,6 +25469,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_signal_age_naive_datetime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5288047d0b24dfa95be5419e9ad510ce67ee781763acdcca6e6a07e236dc0453"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_simple_farm_book.py",
       "type": "file"
     },
     {

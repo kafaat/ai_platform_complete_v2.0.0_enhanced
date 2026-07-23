@@ -72,5 +72,10 @@
     "/v1/weather/current",
     "/v1/weather/operation-window",
     "/v1/weather/wind-grid/{z}/{x}/{y}"
-  ]
+  ],
+  "platform_owned_weather_routes": {
+    "api/routers/operational_truth.py::POST /api/v1/weather/history/records::ingest_historical_weather": "S3 historical-weather Source-of-Truth is a tenant-bound, append-only, PIT truth ledger OWNED by sahool-platform (db_ownership.yml: owner=sahool-platform), not a weather-service forecast facade. weather-service computes/serves live forecasts; the immutable historical record ledger is platform-owned cross-domain truth.",
+    "api/routers/operational_truth.py::GET /api/v1/weather/history/records::read_historical_weather": "S3 historical-weather SoR read (point-in-time as_known_at). Platform-owned truth ledger; see POST justification.",
+    "api/routers/operational_truth.py::GET /api/v1/weather/history/coverage::historical_weather_coverage": "S3 historical-weather SoR coverage summary. Platform-owned truth ledger; see POST justification."
+  }
 }
