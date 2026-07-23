@@ -16025,7 +16025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b7849b74d36eb1cd33ee529abee1e0de9e4dde1c4e0d31dbc6247c9b63b883e3"
+          "content": "82611365002a966c62c9cedb4081c477aef574ba5ea56e685741ac52e7ab4471"
         }
       ],
       "name": "services/sahool-platform/api/phase_runtime_workers.py",
@@ -18215,7 +18215,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "28bf1b073cd317cbc66db3a94c4672fd870e792623e6e34cdb993355d9afe8ba"
+          "content": "b793f63e1b1d0949f6a749be8edc2ba035ccd068b3f59a4be3fcbfcb2f00ff3d"
         }
       ],
       "name": "services/sahool-platform/api/water_ledger_auto.py",
@@ -25825,7 +25825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d17bfbf0b007ec05e7f058c5be7cdc02c0735ca415cac67dbf33a3634b5d076f"
+          "content": "66ccaeb1e53ff373ca5568ceea8aa85675953cec003cabb2f7cf1af541a19cc4"
         }
       ],
       "name": "services/sahool-platform/tests/test_water_ledger_auto.py",

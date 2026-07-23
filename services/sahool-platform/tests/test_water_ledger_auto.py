@@ -154,3 +154,43 @@ def test_worker_kind_is_wired():
     compose = (Path(__file__).parents[3] / "docker-compose.v9.yml").read_text()
     assert "sahool-water-ledger-worker:" in compose
     assert "- water_ledger" in compose
+
+
+def test_missing_precipitation_is_a_declared_assumption_not_a_silent_zero():
+    """هطول مفقود ⇒ يُفترَض 0mm بعلم مُعلَن precipitation_assumed_zero (لا تعبئة صامتة)."""
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=10.0,
+        taw_mm=100.0,
+        raw_mm=50.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+        rain_assumed_zero=True,
+    )
+    assert "precipitation_assumed_zero" in entry["notes"]
+    assert "precipitation_assumed_zero" in entry["decision"]
+    assert entry["effective_rain_mm"] == 0.0
+
+
+def test_measured_rain_does_not_flag_assumption():
+    """هطول مقيس (بما فيه 0 مقيس) ⇒ لا علم افتراض (الافتراضيّ False)."""
+    entry = compute_daily_ledger_entry(
+        prev_depletion_mm=10.0,
+        taw_mm=100.0,
+        raw_mm=50.0,
+        et0_mm=5.0,
+        kc=1.0,
+        rain_mm=0.0,
+        irrigation_mm=0.0,
+    )
+    assert "precipitation_assumed_zero" not in entry["notes"]
+
+
+def test_worker_distinguishes_missing_precip_from_measured_zero():
+    """الحارس الساكن: العامل يميّز الهطول المفقود عن 0 المقيس ويمرّر العلم."""
+    from pathlib import Path
+
+    src = (Path(__file__).parents[1] / "api" / "phase_runtime_workers.py").read_text()
+    assert "rain_assumed_zero = _precip is None" in src
+    assert "rain_assumed_zero=rain_assumed_zero" in src
