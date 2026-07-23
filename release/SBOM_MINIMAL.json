@@ -25,6 +25,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "bf06fd429cae9d02c99166ff8387b9501ad8eeb580c3822a0b03d41ca5551af4"
+        }
+      ],
+      "name": "docker-compose.evidence-lab.yml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c709b0d2333960da4aac4dc7abbdc9f603b4a929856094434f4c9b36c8fe1509"
         }
       ],
@@ -105,7 +115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "832736cfc2649611674a108f5396ebf739bf74e55c6b77f7643c7f0ab1b2b24c"
+          "content": "67f44f86343fa7f56585e552bd94a5355f3f8e3b293a90648ade10d485eb0497"
         }
       ],
       "name": "docker-compose.unified.yml",
@@ -125,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e82c1cbdd02cc75f5fb7e9e00091ce50f1927ab089d5991b0f14457582f96f04"
+          "content": "6cae588efb34015549c7761cbcc611314262e652c7c4f413ae829991a88a482b"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -385,7 +395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "291b02ef464343f9a2499e73b039e4006b30ee810cfec54984f36fdb7dc3295c"
+          "content": "314f28c6610a951e1a16bdaa7df54242973d4572aff90efed951ef23a7d862f0"
         }
       ],
       "name": "frontend/nginx.conf",
@@ -5175,7 +5185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d356f5ef40ca5b9b7ae3aea96f29b860b432de55df39943f5db5d9172e4d6a7e"
+          "content": "ca0a517e1e754360f0cb23c4d80ff9d742768a55dc218ab7db5383ce8f4889d5"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceImageryPanel.tsx",
@@ -5255,7 +5265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "29de2e45e0be27f21560e9c8b4706fff3c91c15463a823d968843c86c8f51f5c"
+          "content": "9c13d7bbbbfa9e06a8cd6b7e57966dc53f8b2fc82b87dacc9b84f1635722d2bc"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
@@ -6305,6 +6315,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7070ce16b68237d87d7de72d0cb699f56461788aaa06c48e708c0a91474671d7"
+        }
+      ],
+      "name": "frontend/src/services/api/remoteSensingWorkspace.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7d1a4893d4754ccb2cab76ca372fcf5acdef6c040bf9e9c4fcefcffd468d9291"
         }
       ],
@@ -6485,7 +6505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a78739cec2ba72f6aff862a67818ee4d361ac9d2a9d8bd0a6589bc30648e18c4"
+          "content": "fd08b693beeb261475f81bfd77ef13eca61109ef9cd6efd64778b3f28ee1796b"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7749,6 +7769,16 @@
         }
       ],
       "name": "migrations/v211_simple_farm_book.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "de08b9478c6dd2aca2d3986baf4354bdc0b191191ef2e54dfe886929dfc80fcf"
+        }
+      ],
+      "name": "migrations/v212_farm_book_one_reversal_index.sql",
       "type": "file"
     },
     {
@@ -14175,7 +14205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "05476a47a152d714013db004675b57034da8b83c066df426e7b08cb6de9f9c9f"
+          "content": "9d1b1d0129db37e8e247e1616e3712c01369ed29c086f87fd759bb9948c75413"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/main.py",
@@ -14195,7 +14225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3a7a3116015b6e3c107bf8c0a91284dc7596333a7104a81a59ca3e6aa875c7e5"
+          "content": "cf863b1a53e934835ed15b10f2904bcfa047ddceb39488a25834442a39ddfcf7"
         }
       ],
       "name": "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py",
@@ -24595,7 +24625,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4397f9cc7a65dc582eea19d26bd6a4d761296b23494508a0abe49e7f7eddc437"
+          "content": "62a21a0eb28f9300ae6d67f1b1a992f72b2053184e3713e36b5e2fd9a877fdc2"
         }
       ],
       "name": "services/sahool-platform/tests/test_p0_db_ownership_guard.py",
@@ -25275,7 +25305,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bd0bdcb4071a5e5c2ffd72c0de220a4665fd876784c4a4f0cb0ef63eadc2d56e"
+          "content": "d0d8de6500d9f6af06f892766a970f285e7250688817ef33b80b67b8e9364629"
         }
       ],
       "name": "services/sahool-platform/tests/test_router_decomposition_guard.py",
@@ -25475,7 +25505,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "5288047d0b24dfa95be5419e9ad510ce67ee781763acdcca6e6a07e236dc0453"
+          "content": "f3088b57f3cd38f0e19a5f13085d705dfca3a36900bff9e82ce1395251bd3ecf"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",

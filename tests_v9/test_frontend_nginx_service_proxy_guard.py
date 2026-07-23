@@ -85,20 +85,27 @@ def _block_span(src: str, header: str) -> tuple[int, int]:
     raise AssertionError(f"unbalanced braces after {header!r}")
 
 
-def test_auth_request_only_in_raster_dev_gateway():
-    """auth_request مسموح **حصراً** داخل بوّابة الراستر (`/api/raster/` + `/_auth_verify`)
-    ومحظور في بقيّة وكلاء التطوير (fetch APIs تُرسل Authorization/X-Tenant-Id مباشرةً).
+def test_auth_request_only_in_authenticated_dev_gateways():
+    """auth_request مسموح **حصراً** داخل البوّابتين المصادَقتين (`/api/raster/` +
+    `/api/remote-sensing-workspace/` + `/_auth_verify`) ومحظور في بقيّة وكلاء التطوير.
 
     خلفيّة: بلاطة <img> للحزمة الإنتاجية لا تحمل tid/ترويسات ⇒ 403. أُصلِح بجعل
     `/api/raster/` يحاكي عقد الإنتاج (كوكي sahool_at ⇒ auth_request ⇒ X-Tenant-Id موثّق).
-    هذا الحارس يسمح بذلك المسار الواحد ويمنع انحدار auth_request إلى بقيّة البوّابة.
+    RS-9 workspace أُلحِق بالنمط نفسه لأنّ الخدمات اللاحقة (indicators/decision) تثق
+    بترويسة X-Tenant-Id — تمريرها من العميل = انتحال مستأجِر. الحارس يقيّد auth_request
+    بهذين المسارين بالضبط ويمنع انحداره إلى بقيّة البوّابة، **ويُلزم** بقاءه في كليهما.
     """
     src = _read(_FRONTEND_NGINX)
     verify_span = _block_span(src, "location = /_auth_verify")
     raster_span = _block_span(src, "location ^~ /api/raster/")
+    workspace_span = _block_span(src, "location ^~ /api/remote-sensing-workspace/")
 
     def _allowed(pos: int) -> bool:
-        return (verify_span[0] <= pos < verify_span[1]) or (raster_span[0] <= pos < raster_span[1])
+        return (
+            (verify_span[0] <= pos < verify_span[1])
+            or (raster_span[0] <= pos < raster_span[1])
+            or (workspace_span[0] <= pos < workspace_span[1])
+        )
 
     offenders = []
     for ln in src.splitlines():
@@ -106,7 +113,15 @@ def test_auth_request_only_in_raster_dev_gateway():
             continue
         if not _allowed(src.index(ln)):
             offenders.append(ln.strip())
-    assert not offenders, f"auth_request خارج بوّابة الراستر (انحدار): {offenders}"
+    assert not offenders, f"auth_request خارج البوّابتين المصادَقتين (انحدار): {offenders}"
+    # الاتجاه العكسيّ: كلا البوّابتين يجب أن تحملا auth_request فعلاً (لا تليين صامت)،
+    # وبوّابة RS-9 يجب ألّا تمرّر X-Tenant-Id من العميل أبداً.
+    workspace_block = src[workspace_span[0] : workspace_span[1]]
+    raster_block = src[raster_span[0] : raster_span[1]]
+    assert "auth_request /_auth_verify;" in raster_block
+    assert "auth_request /_auth_verify;" in workspace_block
+    assert "$http_x_tenant_id" not in workspace_block, "بوّابة RS-9 تمرّر tenant العميل (انتحال)"
+    assert "auth_request_set" in workspace_block
 
 
 def test_raster_still_present_before_catchall():

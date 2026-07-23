@@ -44,6 +44,7 @@ class Match:
     root: str
     path: str
     pattern: str
+    line: int
 
 
 def _iter_files(root: Path) -> Iterable[Path]:
@@ -53,9 +54,12 @@ def _iter_files(root: Path) -> Iterable[Path]:
     if not root.exists():
         return
     for current, dirs, files in os.walk(root):
-        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
-        for name in files:
+        dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS)
+        for name in sorted(files):
             p = Path(current) / name
+            # الملفّات المولَّدة لا تصلح دليلاً — دليل مولَّد يثبت كتالوجه بنفسه.
+            if ".generated." in p.name:
+                continue
             if p.suffix.lower() in TEXT_EXTENSIONS or p.name.startswith("docker-compose"):
                 yield p
 
@@ -75,11 +79,13 @@ def _find_patterns(repo: Path, roots: list[str], patterns: list[str]) -> list[Ma
             text = _read_text(file_path)
             for pattern in patterns:
                 if pattern in text:
+                    line = text[: text.index(pattern)].count("\n") + 1
                     matches.append(
                         Match(
                             root=root_name,
                             path=str(file_path.relative_to(repo)),
                             pattern=pattern,
+                            line=line,
                         )
                     )
     return matches
@@ -87,6 +93,15 @@ def _find_patterns(repo: Path, roots: list[str], patterns: list[str]) -> list[Ma
 
 def _path_exists(repo: Path, rel: str) -> bool:
     return (repo / rel).exists()
+
+
+# U3: تصنيف السلك الصريح — «مستهلَك» أو «غير-مستهلَك عمداً» (بمُحفِّز إعادة فتح)
+# أو «مهمّة مستقلّة». لا قيمة رابعة؛ الغياب = consumed (الوضع الافتراضيّ الأصرم).
+_WIRING_DISPOSITIONS = {
+    "consumed",
+    "intentional-unconsumed",
+    "standalone-job",
+}
 
 
 # أسماء بديلة: خدمة في سجلّ الجرد باسم دليلها، ولها عقد باسم وظيفيّ مختلف (نفس الخدمة).
@@ -114,37 +129,90 @@ def run_gate(repo: Path, manifest_path: Path) -> tuple[bool, dict]:
     rows: list[dict] = []
     failures: list[str] = []
 
+    seen_contracts: set[str] = set()
     for service in manifest["services"]:
         name = service["service"]
+        if name in seen_contracts:
+            failures.append(f"{name}: duplicate consumer contract")
+        seen_contracts.add(name)
         source_paths = service.get("source", [])
         missing_sources = [p for p in source_paths if not _path_exists(repo, p)]
         evidence_rows = []
-        service_has_evidence = False
+        evidence_failures: list[str] = []
+        disposition = str(service.get("wiring_disposition") or "consumed")
 
+        # U3 fail-closed: كلّ مجموعة أدلّة إلزاميّة بكاملها — جذورها موجودة وأنماطها
+        # كلّها مطابِقة لمصدر غير-مولَّد. مجموعة صالحة لا تُخفي مجموعة ثانية بائتة.
         for evidence in service.get("evidence", []):
-            matches = _find_patterns(repo, evidence["roots"], evidence["patterns"])
-            if matches:
-                service_has_evidence = True
+            roots = [str(item) for item in evidence.get("roots") or []]
+            patterns = [str(item) for item in evidence.get("patterns") or []]
+            missing_roots = [item for item in roots if not _path_exists(repo, item)]
+            matches = _find_patterns(repo, roots, patterns)
+            matched_patterns = sorted({match.pattern for match in matches})
+            missing_patterns = sorted(set(patterns) - set(matched_patterns))
+            if not roots:
+                evidence_failures.append(f"{name}/{evidence.get('kind')}: roots missing")
+            if not patterns:
+                evidence_failures.append(f"{name}/{evidence.get('kind')}: patterns missing")
+            if missing_roots:
+                evidence_failures.append(
+                    f"{name}/{evidence.get('kind')}: missing root(s): " + ", ".join(missing_roots)
+                )
+            if missing_patterns:
+                evidence_failures.append(
+                    f"{name}/{evidence.get('kind')}: unmatched pattern(s): "
+                    + ", ".join(missing_patterns)
+                )
             evidence_rows.append(
                 {
                     "kind": evidence["kind"],
-                    "roots": evidence["roots"],
-                    "patterns": evidence["patterns"],
+                    "roots": roots,
+                    "patterns": patterns,
+                    "missing_roots": missing_roots,
+                    "matched_patterns": matched_patterns,
+                    "missing_patterns": missing_patterns,
                     "matches": [m.__dict__ for m in matches[:12]],
                     "match_count": len(matches),
                 }
             )
 
-        status = "pass" if not missing_sources and service_has_evidence else "fail"
+        if disposition not in _WIRING_DISPOSITIONS:
+            evidence_failures.append(f"{name}: unsupported wiring_disposition {disposition!r}")
+        if not evidence_rows:
+            evidence_failures.append(f"{name}: no evidence groups declared")
+        evidence_kinds = {row["kind"] for row in evidence_rows}
+        if disposition == "intentional-unconsumed":
+            if not service.get("reopen_trigger"):
+                evidence_failures.append(f"{name}: intentional-unconsumed requires reopen_trigger")
+            if "activation-safety-contract" not in evidence_kinds:
+                evidence_failures.append(
+                    f"{name}: intentional-unconsumed requires activation-safety-contract"
+                )
+        if disposition == "standalone-job" and "job-contract" not in evidence_kinds:
+            evidence_failures.append(f"{name}: standalone-job requires job-contract")
+
+        status = "pass" if not missing_sources and not evidence_failures else "fail"
         if missing_sources:
             failures.append(f"{name}: missing source path(s): {', '.join(missing_sources)}")
-        if not service_has_evidence:
-            failures.append(f"{name}: no UI/proxy/internal consumer evidence found")
+        failures.extend(evidence_failures)
+
+        # wired: أدلّة الاستهلاك تثبته للمستهلَك؛ «غير-مستهلَك عمداً» = False صراحةً؛
+        # «مهمّة مستقلّة» = null (السلك لا ينطبق عليها، لا ادّعاء).
+        wired: bool | None
+        if disposition == "intentional-unconsumed":
+            wired = False
+        elif disposition == "standalone-job":
+            wired = None
+        else:
+            wired = status == "pass"
 
         rows.append(
             {
                 "service": name,
                 "classification": service.get("classification", "unknown"),
+                "wiring_disposition": disposition,
+                "wired": wired,
+                "reopen_trigger": service.get("reopen_trigger"),
                 "status": status,
                 "missing_sources": missing_sources,
                 "evidence": evidence_rows,
@@ -196,10 +264,14 @@ def _write_report(result: dict, output: Path) -> None:
     for row in result["services"]:
         lines.append(f"### `{row['service']}` — {row['status']}")
         lines.append(f"classification: `{row['classification']}`")
+        lines.append(f"wiring disposition: `{row['wiring_disposition']}`")
+        lines.append(f"wired: `{row['wired']}`")
+        if row["reopen_trigger"]:
+            lines.append(f"reopen trigger: `{row['reopen_trigger']}`")
         for evidence in row["evidence"]:
             lines.append(f"- {evidence['kind']}: {evidence['match_count']} match(es)")
             for match in evidence["matches"][:5]:
-                lines.append(f"  - `{match['path']}` ← `{match['pattern']}`")
+                lines.append(f"  - `{match['path']}:{match['line']}` ← `{match['pattern']}`")
         lines.append("")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text("\n".join(lines), encoding="utf-8")

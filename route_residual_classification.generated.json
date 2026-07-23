@@ -1232,7 +1232,7 @@
     {
       "service": "remote-sensing-workspace-bff",
       "file": "services/remote-sensing-workspace-bff/main.py",
-      "line": 27,
+      "line": 33,
       "method": "GET",
       "path": "/healthz",
       "function": "healthz",
@@ -1241,7 +1241,7 @@
     {
       "service": "remote-sensing-workspace-bff",
       "file": "services/remote-sensing-workspace-bff/main.py",
-      "line": 32,
+      "line": 38,
       "method": "GET",
       "path": "/readyz",
       "function": "readyz",
@@ -1250,7 +1250,7 @@
     {
       "service": "remote-sensing-workspace-bff",
       "file": "services/remote-sensing-workspace-bff/main.py",
-      "line": 63,
+      "line": 69,
       "method": "GET",
       "path": "/v1/fields/{field_id}/remote-sensing-workspace",
       "function": "workspace",

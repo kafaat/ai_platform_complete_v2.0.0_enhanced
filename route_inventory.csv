@@ -299,9 +299,9 @@ raster-service,services/raster-service/routers/tiles.py,37,GET,/layers/{layer_id
 raster-service,services/raster-service/routers/timeseries_routes.py,24,GET,/imagery/timeseries,imagery_timeseries
 raster-service,services/raster-service/routers/timeseries_routes.py,77,POST,/imagery/timeseries/analyze,imagery_timeseries_analyze
 raster-service,services/raster-service/routers/timeseries_routes.py,92,POST,/imagery/timeseries/parallel,imagery_timeseries_parallel
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,27,GET,/healthz,healthz
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,32,GET,/readyz,readyz
-remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,63,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,33,GET,/healthz,healthz
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,38,GET,/readyz,readyz
+remote-sensing-workspace-bff,services/remote-sensing-workspace-bff/main.py,69,GET,/v1/fields/{field_id}/remote-sensing-workspace,workspace
 sahool-platform,services/sahool-platform/api/chat_proxy_reference.py,110,POST,/api/chat,chat
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,147,POST,/feature-schema,feature_schema
 sahool-platform,services/sahool-platform/api/phase10_continuous_learning.py,152,POST,/dataset,dataset

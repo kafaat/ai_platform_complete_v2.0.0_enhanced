@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "name": "SAHOOL Evidence Lab",
+  "purpose": "Repeatable pre-production evidence using real ephemeral dependencies and explicit service virtualization.",
+  "claim_policy": {
+    "maximum_offline_claim": "source_verified",
+    "maximum_ephemeral_claim": "ephemeral_dependency_verified",
+    "maximum_connected_claim": "sandbox_connected_verified",
+    "always_production_certified": false,
+    "forbidden_claims": [
+      "production_certified",
+      "live_certified",
+      "production_ready"
+    ]
+  },
+  "tiers": [
+    {
+      "id": "offline",
+      "claim": "source_verified",
+      "requires": "source tree only"
+    },
+    {
+      "id": "ephemeral",
+      "claim": "ephemeral_dependency_verified",
+      "requires": "Docker Compose and short-lived real dependencies"
+    },
+    {
+      "id": "connected",
+      "claim": "sandbox_connected_verified",
+      "requires": "reviewed non-production provider or enterprise sandbox credentials"
+    },
+    {
+      "id": "live_only",
+      "claim": "blocked_live_only",
+      "requires": "target deployment evidence"
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "decision_sor",
+      "ephemeral_evidence": [
+        "PostgreSQL 16 and PostGIS boot",
+        "migration apply/reapply can be exercised",
+        "RLS and single-writer integration can be exercised"
+      ],
+      "remaining_live_gate": [
+        "real cutover and rollback",
+        "target database grants",
+        "representative production data parity"
+      ]
+    },
+    {
+      "id": "state_and_messaging",
+      "ephemeral_evidence": [
+        "Redis authentication and read/write",
+        "NATS JetStream health",
+        "outbox idempotency and retry behavior"
+      ],
+      "remaining_live_gate": [
+        "deployed topology",
+        "capacity and latency under target load",
+        "monitoring and paging"
+      ]
+    },
+    {
+      "id": "object_storage_and_raster",
+      "ephemeral_evidence": [
+        "S3-compatible MinIO health",
+        "bucket/object integration can be exercised",
+        "raster provenance contracts can be replayed"
+      ],
+      "remaining_live_gate": [
+        "target object-store credentials and policies",
+        "target storage lifecycle",
+        "representative scene volume"
+      ]
+    },
+    {
+      "id": "weather_and_stac",
+      "ephemeral_evidence": [
+        "versioned Open-Meteo response fixtures",
+        "versioned STAC response fixtures",
+        "timeouts, invalid payloads and provider failure can be replayed"
+      ],
+      "remaining_live_gate": [
+        "provider availability and quotas",
+        "real DNS and egress",
+        "point-in-time source freshness"
+      ]
+    },
+    {
+      "id": "notifications_and_erp",
+      "ephemeral_evidence": [
+        "provider request contracts",
+        "idempotent receipts",
+        "failure and reconciliation paths"
+      ],
+      "remaining_live_gate": [
+        "real message delivery",
+        "provider consent and templates",
+        "target ERP reconciliation"
+      ]
+    },
+    {
+      "id": "edge_and_execution",
+      "ephemeral_evidence": [
+        "MQTT and adapter protocol contracts",
+        "duplicate and stale-command rejection",
+        "simulated receipts and outcomes"
+      ],
+      "remaining_live_gate": [
+        "physical device safety",
+        "telemetry freshness in the field",
+        "operator kill switch and supervised rollout"
+      ]
+    },
+    {
+      "id": "models",
+      "ephemeral_evidence": [
+        "artifact checksum and manifest validation",
+        "deterministic golden-season replay",
+        "inference runtime integration"
+      ],
+      "remaining_live_gate": [
+        "representative calibration and validation",
+        "field accuracy and drift monitoring",
+        "approved production model artifacts"
+      ]
+    },
+    {
+      "id": "ingress_and_recovery",
+      "ephemeral_evidence": [
+        "local TLS and cookie mechanics",
+        "backup and restore drill against temporary storage"
+      ],
+      "remaining_live_gate": [
+        "public DNS and target certificate chain",
+        "edge proxy and target cookies",
+        "scheduled backups and restore from target storage",
+        "post-deploy smoke and rollback"
+      ]
+    }
+  ]
+}

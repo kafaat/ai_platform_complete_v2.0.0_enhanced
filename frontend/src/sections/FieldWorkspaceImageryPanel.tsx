@@ -4,6 +4,10 @@ import { getFieldImageryAvailableDates, getFieldImageryTimeline, type FieldImage
 import { EmptyState, ErrorState, LoadingState } from '../components/StateViews';
 import { DegradedState } from '../components/product/DegradedState';
 import SceneProvenanceCard from '../components/maphub/SceneProvenanceCard';
+import {
+  getRemoteSensingWorkspaceOverview,
+  type RemoteSensingWorkspaceOverview,
+} from '../services/api/remoteSensingWorkspace';
 
 function apiStatus(error: unknown): number | undefined {
   return (error as { response?: { status?: number } } | null | undefined)?.response?.status;
@@ -59,7 +63,38 @@ function TimelineRow({ item }: { item: FieldImageryTimelineItem }) {
   );
 }
 
-export default function FieldWorkspaceImageryPanel({ fieldId }: { fieldId: string }) {
+function WorkspaceOverview({ data }: { data: RemoteSensingWorkspaceOverview }) {
+  const rows = [
+    ['الرصدات', data.observation_count],
+    ['الشذوذ المفتوح', data.open_anomaly_count],
+    ['القرارات المرتبطة', data.decision_count],
+    ['النتائج المتحققة', data.verified_outcome_count],
+  ] as const;
+  return (
+    <dl className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+      {rows.map(([label, value]) => (
+        <div key={label} className="rounded-xl border border-slate-800 bg-slate-950/50 p-3">
+          <dt className="text-xs text-slate-400">{label}</dt>
+          <dd className="mt-1 text-lg font-bold text-slate-100">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+export default function FieldWorkspaceImageryPanel({
+  fieldId,
+  seasonId,
+}: {
+  fieldId: string;
+  seasonId?: string | null;
+}) {
+  const workspaceQ = useQuery({
+    queryKey: ['field-workspace', fieldId, seasonId, 'remote-sensing-overview'],
+    queryFn: () => getRemoteSensingWorkspaceOverview(fieldId, seasonId as string),
+    enabled: Boolean(fieldId && seasonId),
+    staleTime: 120_000,
+  });
   const datesQ = useQuery({
     queryKey: ['field-workspace', fieldId, 'imagery-available-dates', 'truecolor'],
     queryFn: () => getFieldImageryAvailableDates(fieldId, 'truecolor', 20),
@@ -81,6 +116,39 @@ export default function FieldWorkspaceImageryPanel({ fieldId }: { fieldId: strin
           <h2 className="text-base font-bold text-slate-100">الصور والمؤشرات</h2>
         </div>
         <p className="text-sm leading-relaxed text-slate-400">تعرض هذه اللوحة تواريخ الالتقاط الفعلية وملفات COG الجاهزة من backend فقط. لا يتم توليد صور أو تواريخ من الواجهة.</p>
+      </div>
+
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+        <h3 className="mb-3 text-sm font-bold text-slate-100">ملخص الاستشعار المرتبط بالموسم</h3>
+        {!seasonId && (
+          <EmptyState
+            title="لا يوجد موسم نشط"
+            hint="أضف season_id إلى رابط مساحة العمل لربط الرصدات والشذوذ والقرارات دون تخمين موسم."
+          />
+        )}
+        {seasonId && workspaceQ.isLoading && <LoadingState message="جارٍ تركيب ملخص الاستشعار…" />}
+        {seasonId && workspaceQ.isError && (
+          <ImageryState
+            title="ملخص الاستشعار"
+            error={workspaceQ.error}
+            onRetry={() => workspaceQ.refetch()}
+          />
+        )}
+        {workspaceQ.data && (
+          <div className="space-y-3">
+            {workspaceQ.data.partial && (
+              <DegradedState
+                title="ملخص الاستشعار جزئي"
+                detail={`تعذر تحميل بعض المصادر: ${Object.keys(workspaceQ.data.errors ?? {}).join('، ') || 'مصدر غير محدد'}.`}
+              />
+            )}
+            {workspaceQ.data.sections.overview ? (
+              <WorkspaceOverview data={workspaceQ.data.sections.overview} />
+            ) : (
+              <EmptyState title="لا يوجد ملخص متاح" hint="لم تعد طبقة التركيب ملخصاً لهذا الموسم." />
+            )}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 xl:grid-cols-2">

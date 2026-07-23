@@ -781,7 +781,7 @@
     {
       "service": "remote-sensing-workspace-bff",
       "file": "services/remote-sensing-workspace-bff/main.py",
-      "line": 63,
+      "line": 69,
       "method": "GET",
       "path": "/v1/fields/{field_id}/remote-sensing-workspace",
       "function": "workspace"

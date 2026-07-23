@@ -1,0 +1,175 @@
+{
+  "edges": [
+    {
+      "from": "actuator-service",
+      "to": "decision-service",
+      "via": "env_url"
+    },
+    {
+      "from": "agriai-engine",
+      "to": "sahool-edge",
+      "via": "env_url"
+    },
+    {
+      "from": "agriai-engine",
+      "to": "sahool-sentinel-hub-mcp",
+      "via": "env_url"
+    },
+    {
+      "from": "agriai-engine",
+      "to": "sahool-weather-mcp",
+      "via": "env_url"
+    },
+    {
+      "from": "agriai-engine",
+      "to": "sahool-wofost-mcp",
+      "via": "env_url"
+    },
+    {
+      "from": "erp-bridge",
+      "to": "sahool-erpnext",
+      "via": "env_url"
+    },
+    {
+      "from": "erp-bridge",
+      "to": "sahool-odoo",
+      "via": "env_url"
+    },
+    {
+      "from": "field-segmentation",
+      "to": "sam2-inference",
+      "via": "env_url"
+    },
+    {
+      "from": "indicators-service",
+      "to": "raster-service",
+      "via": "env_url"
+    },
+    {
+      "from": "local-ai-rag",
+      "to": "sahool-ollama",
+      "via": "env_url"
+    },
+    {
+      "from": "qdrant-seed",
+      "to": "sahool-ollama",
+      "via": "env_url"
+    },
+    {
+      "from": "rag-retrieval",
+      "to": "sahool-qdrant",
+      "via": "env_url"
+    },
+    {
+      "from": "raster-service",
+      "to": "decision-service",
+      "via": "env_url"
+    },
+    {
+      "from": "raster-service",
+      "to": "sahool-titiler",
+      "via": "env_url"
+    },
+    {
+      "from": "remote-sensing-workspace-bff",
+      "to": "decision-service",
+      "via": "env_url"
+    },
+    {
+      "from": "remote-sensing-workspace-bff",
+      "to": "indicators-service",
+      "via": "env_url"
+    },
+    {
+      "from": "remote-sensing-workspace-bff",
+      "to": "sahool-vegetation-analysis",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "decision-service",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "field-segmentation",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "knowledge-graph",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "rag-retrieval",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "raster-service",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "sahool-ai-agronomist",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "sahool-scout-ingest",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "soil-service",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform",
+      "to": "weather-service",
+      "via": "env_url"
+    },
+    {
+      "from": "sahool-platform OutboxWorker",
+      "to": "notification-agent (notif_domain_events)",
+      "via": "nats:sahool.events.>"
+    },
+    {
+      "from": "supervisor-agent",
+      "to": "sahool-market-mcp",
+      "via": "env_url"
+    },
+    {
+      "from": "supervisor-agent",
+      "to": "sahool-sentinel-hub-mcp",
+      "via": "env_url"
+    },
+    {
+      "from": "supervisor-agent",
+      "to": "sahool-weather-mcp",
+      "via": "env_url"
+    },
+    {
+      "from": "supervisor-agent",
+      "to": "sahool-wofost-mcp",
+      "via": "env_url"
+    },
+    {
+      "from": "vegetation-analysis-service",
+      "to": "notification-agent (notif_satellite)",
+      "via": "nats:sahool.tenant.*.satellite.*.computed"
+    },
+    {
+      "from": "video-processor",
+      "to": "sahool-edge",
+      "via": "env_url"
+    },
+    {
+      "from": "video-processor",
+      "to": "sahool-zlmediakit",
+      "via": "env_url"
+    }
+  ],
+  "schema": "sahool.dependency_graph.v1"
+}
