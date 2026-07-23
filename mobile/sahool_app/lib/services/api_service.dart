@@ -30,6 +30,9 @@ class ApiService {
 
   late final Dio _dio;
   final _logger = Logger();
+
+  /// عميل Dio القانوني المشترك؛ يحافظ على JWT والتتبّع وسياسات retry.
+  Dio get dio => _dio;
   final Map<String, CancelToken> _cancelTokens = {};
   // حدّ أقصى للمحاولات + مولّد jitter (يمنع retry storm)
   static const int _maxRetries = 3;

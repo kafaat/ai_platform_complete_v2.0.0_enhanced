@@ -124,10 +124,14 @@ class FieldFormsApi {
   }
 
   /// POST /api/field-forms/submissions بالـenvelope الكامل.
-  Future<SubmissionResult> submit(Map<String, Object?> envelope) async {
+  Future<SubmissionResult> submit(
+    Map<String, Object?> envelope, {
+    required String deviceId,
+  }) async {
     final response = await _dio.post<Map<String, Object?>>(
       '/api/field-forms/submissions',
       data: envelope,
+      options: Options(headers: {'X-Device-Id': deviceId}),
     );
     return SubmissionResult.fromJson(
         response.data ?? const <String, Object?>{});

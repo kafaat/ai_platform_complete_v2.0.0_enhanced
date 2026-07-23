@@ -56,5 +56,6 @@ async def reserve_authoritative_intent(
         execution_port=execution_port,
         correlation_id=correlation_id,
         canonical_hydraulic_capability_id=resolved.capability_id,
+        capability_digest=resolved.capability_digest,
         activation_guard=activation_guard,
     )

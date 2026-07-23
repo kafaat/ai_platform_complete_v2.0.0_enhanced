@@ -2169,6 +2169,34 @@ services:
   # by the outbox worker) to decision-service's durable inbox. DEFAULT-OFF twice over: only started
   # under the opt-in `relay` compose profile, AND no-ops internally unless
   # FEATURE_RESERVATION_DISPATCH_RELAY is on. Records DELIVERY only — never fulfillment.
+  sahool-irrigation-reservation-lifecycle-worker:
+    build: *id003
+    profiles:
+    - irrigation-runtime
+    mem_limit: 384m
+    security_opt:
+    - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS: ${IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS:-15}
+    command:
+    - python
+    - -m
+    - api.irrigation_reservation_lifecycle_worker
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+    networks:
+    - sahool-internal
   sahool-reservation-dispatch-relay-worker:
     build: *id003
     profiles:

@@ -319,6 +319,7 @@ class EventBus:
         command_id: str | None = None,
         occurred_at: datetime | None = None,
         correlation_id: str | None = None,
+        causation_id: str | None = None,
     ) -> EmittedEvent:
         """يُصدر event عبر emit_event SQL function (atomic).
 
@@ -344,6 +345,7 @@ class EventBus:
             actor_id=actor_id,
             command_id=command_id,
             correlation_id=correlation_id,
+            causation_id=causation_id,
         )
         errors = validate_envelope(envelope)
         if errors:
@@ -605,6 +607,12 @@ class OutboxWorker:
             "payload": row["payload"]
             if isinstance(row["payload"], dict)
             else json.loads(row["payload"]),
+            "correlation_id": (
+                row["payload"].get("correlation_id") if isinstance(row["payload"], dict) else None
+            ),
+            "causation_id": (
+                row["payload"].get("causation_id") if isinstance(row["payload"], dict) else None
+            ),
             "occurred_at": row["occurred_at"].isoformat() if row["occurred_at"] else None,
         }
 

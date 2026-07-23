@@ -73,7 +73,12 @@ class EventEnvelope:
         }
 
     def to_emit_args(self) -> dict:
-        """وسائط EventBus.emit / دالّة emit_event SQL (لا يعيد اختراع العقد)."""
+        """وسائط EventBus.emit / دالّة emit_event SQL (لا يعيد اختراع العقد).
+
+        correlation_id/causation_id لا يُدرَجان هنا عمداً: عقد emit_event SQL ثابت على
+        الأعمدة الثمانية (+occurred_at مُمرَّر منفصلاً)، وخيط التتبّع يُنقَل داخل payload
+        (يقرأه OutboxWorker من row["payload"]). حارس test_to_emit_args_matches_emit_event_contract.
+        """
         return {
             "event_type": self.event_type,
             "entity_type": self.entity_type,
