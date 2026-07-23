@@ -43,6 +43,20 @@ except ImportError:
 
 # ── Config ────────────────────────────────────────────────────
 MQTT_BROKER_URL = os.getenv("MQTT_BROKER_URL", "mqtt://sahool-fastbee:1883")
+# مصادقة MQTT: الوسيط المشدَّد (allow_anonymous false) يتطلّب اسم/كلمة مرور. تُمرَّر
+# فقط إن ضُبط MQTT_USERNAME — يبقى الاتّصال المجهول متوافقًا للخلف لبيئات التطوير/
+# الاختبار التي تشغّل وسيطًا مفتوحًا. لا سرّ في المستودع (يُقرأ من env حصرًا).
+MQTT_USERNAME = os.getenv("MQTT_USERNAME", "").strip()
+MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
+
+
+def _mqtt_auth_kwargs() -> dict:
+    """kwargs مصادقة aiomqtt: {username, password} إن ضُبط MQTT_USERNAME، وإلّا {} (مجهول)."""
+    if MQTT_USERNAME:
+        return {"username": MQTT_USERNAME, "password": MQTT_PASSWORD}
+    return {}
+
+
 # وضع المُشغِّل (الإغلاق المرن، PR #394): real | simulation | disabled.
 # الافتراضيّ يحفظ السلوك الحاليّ تماماً — إن لم يُضبط ACTUATOR_MODE يُستنتَج من
 # MQTT_BROKER_URL (فارغ/'disabled' ⇒ disabled، وإلّا real). simulation لا ينشر
@@ -575,7 +589,7 @@ async def send_mqtt_command(device_id: str, command: str, payload: dict):
     )
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     try:
-        async with MQTTClient(host, port=port) as client:
+        async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
             await client.publish(topic, message, qos=1)
             logger.info(f"MQTT → {device_id}: {command}")
             return True
@@ -1009,7 +1023,7 @@ async def mqtt_sensor_listener():
     host, port = _parse_mqtt_broker_url(MQTT_BROKER_URL)
     while True:
         try:
-            async with MQTTClient(host, port=port) as client:
+            async with MQTTClient(host, port=port, **_mqtt_auth_kwargs()) as client:
                 async with client.messages() as messages:
                     await client.subscribe(topic, qos=1)
                     logger.info(f"MQTT listener subscribed: {topic}")

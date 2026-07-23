@@ -110,6 +110,8 @@ services:
     logging: *id001
     environment:
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+      MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
       EDGE_INFERENCE_URL: http://sahool-edge:8100
       ZLMEDIA_API_URL: http://sahool-zlmediakit:80
       ZLMEDIAKIT_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-}
@@ -1438,6 +1440,8 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+      MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
       JWT_SECRET: ${JWT_SECRET}
       # ACTUATOR-DISPATCH-CONSUMER (P0 من تدقيق المستهلكين): حلقة استهلاك طلبات التنفيذ
       # المحكومة من decision-service — default-OFF، وتخدم فقط المستأجرين المعيَّنين صراحةً.
@@ -1477,16 +1481,32 @@ services:
     - no-new-privileges:true
     restart: unless-stopped
     logging: *id001
+    environment:
+      MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
+    # allow_anonymous=false ⇒ نولّد passwd من env عند الإقلاع (لا سرّ في المستودع):
+    # -c يُنشئ الملفّ (idempotent عند إعادة التشغيل)، -b غير تفاعليّ؛ ثمّ نضبط الملكيّة
+    # لمستخدم mosquitto كي يقرأه بعد إسقاط الصلاحيّات، ونسلّم للـentrypoint الأصليّ.
+    entrypoint:
+    - /bin/sh
+    - -c
+    - |
+      set -e
+      mosquitto_passwd -b -c /mosquitto/config/passwd "$$MQTT_USERNAME" "$$MQTT_PASSWORD"
+      chown mosquitto:mosquitto /mosquitto/config/passwd
+      chmod 0600 /mosquitto/config/passwd
+      exec /docker-entrypoint.sh /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
     volumes:
     - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     - fastbee-data:/mosquitto/data
     networks:
     - sahool-internal
     healthcheck:
+      # المصادقة إلزاميّة الآن — يجب أن يوثّق فحص الصحّة نفسه أيضًا.
       test:
       - CMD-SHELL
-      - mosquitto_sub -h 127.0.0.1 -p 1883 -t '$$SYS/broker/version' -C 1 -W 3 >/dev/null
-        2>&1 || exit 1
+      - mosquitto_sub -h 127.0.0.1 -p 1883 -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t
+        '$$SYS/broker/version' -C 1 -W 3 >/dev/null 2>&1 || exit 1
       interval: 20s
       timeout: 5s
       retries: 6
