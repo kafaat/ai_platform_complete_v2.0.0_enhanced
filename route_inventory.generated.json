@@ -1506,7 +1506,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 178,
+    "line": 179,
     "method": "GET",
     "path": "/mcp/v1/tools",
     "function": "list_tools"
@@ -1514,7 +1514,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 243,
+    "line": 266,
     "method": "POST",
     "path": "/mcp/v1/tools/call",
     "function": "call_tool"
@@ -1522,7 +1522,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 411,
+    "line": 467,
     "method": "GET",
     "path": "/healthz",
     "function": "healthz"
@@ -1530,7 +1530,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 411,
+    "line": 467,
     "method": "GET",
     "path": "/health",
     "function": "healthz"
@@ -1538,7 +1538,7 @@
   {
     "service": "mcp_servers",
     "file": "services/mcp_servers/sentinel_hub_server.py",
-    "line": 416,
+    "line": 472,
     "method": "GET",
     "path": "/readyz",
     "function": "readyz"

@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from shared.oauth_middleware import require_scope
 from shared.streamable_http import StreamableHTTPTransport
 
+from shared.field_change_summary import InsufficientObservations, summarize_field_change
 from shared.helpers import retry_request
 
 app = FastAPI(title="SAHOOL Sentinel Hub MCP Server", version="2026.1")
@@ -235,6 +236,28 @@ async def list_tools() -> dict[str, Any]:
                     "required": ["field_id", "tenant_id"],
                 },
             },
+            {
+                "name": "analyze_field_change",
+                "description": (
+                    "تلخيص تغيّر المؤشّر للحقل بين أوّل وآخر مشاهدة حقيقيّة (منذ تاريخ اختياريّ). "
+                    "يقرأ السلسلة الزمنيّة القانونيّة من raster-service ويقارنها فقط — لا حساب "
+                    "طيفيّ ولا تفسير زراعيّ (التفسير في decision-service). قراءة فقط."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "field_id": {"type": "string"},
+                        "tenant_id": {"type": "string"},
+                        "index": {"type": "string", "default": "ndvi"},
+                        "since": {
+                            "type": "string",
+                            "format": "date",
+                            "description": "YYYY-MM-DD — يقارن المشاهدات من هذا التاريخ فأحدث.",
+                        },
+                    },
+                    "required": ["field_id", "tenant_id"],
+                },
+            },
         ]
     }
 
@@ -399,6 +422,39 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
             "deprecated_alias_used": name == "compute_ndvi",
         }
         return {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}]}
+    elif name == "analyze_field_change":
+        # المسار 1 (MCP فوق CDSE): أداة مركَّبة قراءة-فقط. تقرأ السلسلة الزمنيّة
+        # القانونيّة من raster-service وتُلخّص التغيّر عبر منطق نقيّ مشترك — لا حساب
+        # طيفيّ في MCP، ولا كتابة (satellite:read)، ولا تفسير زراعيّ.
+        field_id = str(args.get("field_id") or "").strip()
+        tenant_id = str(args.get("tenant_id") or "").strip()
+        index = str(args.get("index") or "ndvi").strip().lower()
+        since = args.get("since")
+        since = str(since).strip() if since else None
+        if not field_id or not tenant_id:
+            raise HTTPException(422, detail="field_id and tenant_id are required")
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            resp = await retry_request(
+                client.get,
+                f"{RASTER_SERVICE_URL}/v1/fields/{field_id}/timeseries",
+                params={"index": index},
+                headers={"X-Tenant-Id": tenant_id},
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        # صدق: raster-service يُعلن available=False بلا COG — لا نُخمّن مقارنةً.
+        points = data.get("points") if data.get("available") else []
+        try:
+            summary = summarize_field_change(
+                points or [],
+                field_id=field_id,
+                tenant_id=tenant_id,
+                index=index,
+                since=since,
+            )
+        except InsufficientObservations as exc:
+            raise HTTPException(424, detail=str(exc)) from exc
+        return {"content": [{"type": "text", "text": json.dumps(summary, ensure_ascii=False)}]}
     else:
         raise HTTPException(status_code=400, detail=f"Unknown tool: {name}")
 
