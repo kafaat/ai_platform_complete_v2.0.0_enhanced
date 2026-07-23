@@ -221,3 +221,11 @@ class SeasonSimResponse(BaseModel):
     gdd_provenance: dict | None = None
     # WS-C.1b: نَسَب سلسلة ET0 (مصدر=weather-engine/إصدار الصيغة/أيّام محسوبة) — لا Hargreaves محلّيّ.
     et0_provenance: dict | None = None
+    # HISTORICAL-SEASON-BRIDGE-01: lineage إلى حزمة الإدخال وسجل التشغيل.
+    simulation_run_id: str | None = None
+    input_digest: str | None = None
+    historical_context_used: bool = False
+    manual_irrigation_used: bool = False
+    observed_fapar_used: bool = False
+    decision_context_status: str = "not_attempted"
+    decision_historical_snapshot_id: str | None = None

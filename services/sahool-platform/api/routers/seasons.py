@@ -16,6 +16,8 @@
 
 from __future__ import annotations
 
+import os
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -30,6 +32,84 @@ from api.main import (
 from api.season_models import _SIM_MAX_WINDOW_DAYS, SeasonSimResponse
 
 router = APIRouter()
+_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def _decision_context_mirror_enabled() -> bool:
+    """Rollout guard: external AC-1 mirror is off until live SoR proof."""
+    return os.getenv("HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED", "0").strip().lower() in _TRUTHY
+
+
+async def _load_linked_historical_inputs(
+    conn, season_id: str, field_id: str, tenant_id, sowing_date, start, end
+):
+    """Read only an accepted, non-superseded manual record and qualified NDVI.
+
+    The link trigger enforces tenant/field ownership. RLS on every table remains
+    the authoritative isolation boundary.
+    """
+    record = await conn.fetchrow(
+        "SELECT sr.* FROM season_record_links l "
+        "JOIN season_records sr ON sr.id = l.season_record_id "
+        "WHERE l.canonical_season_id = $1 AND l.field_id = $2 "
+        "AND sr.trust_status = 'accepted' "
+        "AND NOT EXISTS (SELECT 1 FROM season_record_links n "
+        "                WHERE n.supersedes_link_id = l.link_id) "
+        "ORDER BY l.linked_at DESC LIMIT 1",
+        season_id,
+        field_id,
+    )
+    # Safe migration path for existing data: auto-link only one unambiguous accepted
+    # record with the same field and exact sowing day. Zero/multiple matches remain
+    # unlinked; no fuzzy date or crop inference is allowed.
+    if record is None and sowing_date is not None:
+        candidates = await conn.fetch(
+            "SELECT sr.* FROM season_records sr "
+            "JOIN season_crop sc ON sc.season_id = sr.id "
+            "WHERE sr.field_id = $1 AND sr.trust_status = 'accepted' "
+            "AND sc.sowing_precision = 'day' AND sc.sowing_date = $2 "
+            "AND NOT EXISTS (SELECT 1 FROM season_record_links l "
+            "                WHERE l.season_record_id = sr.id) "
+            "ORDER BY sr.accepted_at, sr.id LIMIT 2",
+            field_id,
+            sowing_date,
+        )
+        if len(candidates) == 1:
+            record = candidates[0]
+            await conn.execute(
+                "INSERT INTO season_record_links "
+                "(tenant_id, season_record_id, canonical_season_id, field_id, "
+                " linkage_reason, linked_by) "
+                "VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING",
+                tenant_id,
+                record["id"],
+                season_id,
+                field_id,
+                "exact_field_and_sowing_day",
+                "system:historical-season-composer",
+            )
+    crop = None
+    events = []
+    harvest = None
+    if record is not None:
+        crop = await conn.fetchrow("SELECT * FROM season_crop WHERE season_id = $1", record["id"])
+        events = await conn.fetch(
+            "SELECT * FROM season_events WHERE season_id = $1 ORDER BY event_date, id",
+            record["id"],
+        )
+        harvest = await conn.fetchrow(
+            "SELECT * FROM season_harvest WHERE season_id = $1", record["id"]
+        )
+    vegetation = await conn.fetch(
+        "SELECT id, acquisition_date, ndvi_mean, cloud_pct, satellite, source "
+        "FROM ndvi_timeseries WHERE field_id = $1 "
+        "AND acquisition_date BETWEEN $2 AND $3 "
+        "ORDER BY acquisition_date, id",
+        field_id,
+        start,
+        end,
+    )
+    return record, crop, events, harvest, vegetation
 
 
 @router.post("/api/v1/seasons/{season_id}/simulate", response_model=SeasonSimResponse)
@@ -102,6 +182,27 @@ async def simulate_season_endpoint(
             status_code=422,
             detail="نافذة الموسم قصيرة جدّاً أو في المستقبل — لا بيانات طقس تاريخيّة كافية للمحاكاة.",
         )
+
+    # ٢-ب) مدخلات الموسم التاريخي من المصادر القائمة (لا نسخ ولا تخمين).
+    try:
+        async with tenant_connection(user) as conn:
+            (
+                record,
+                historical_crop,
+                historical_events,
+                historical_harvest,
+                vegetation,
+            ) = await _load_linked_historical_inputs(
+                conn,
+                season_id,
+                str(srow["field_id"]),
+                user.tenant_id,
+                sow,
+                start,
+                win_end,
+            )
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("قراءة سياق الموسم التاريخي", e) from e
 
     # ٣) الطقس التاريخي (ERA5) من Open-Meteo — تعذّره ⇒ 503 صريح.
     try:
@@ -188,6 +289,38 @@ async def simulate_season_endpoint(
             "thresholds_used": gdd_engine.get("thresholds_used"),
         }
 
+    from core.historical_season_context import compose_historical_season_context
+
+    historical_context = compose_historical_season_context(
+        tenant_id=str(user.tenant_id),
+        field_id=str(srow["field_id"]),
+        season_id=season_id,
+        season=dict(srow),
+        season_record=dict(record) if record is not None else None,
+        crop=dict(historical_crop) if historical_crop is not None else None,
+        events=[dict(row) for row in historical_events],
+        harvest=dict(historical_harvest) if historical_harvest is not None else None,
+        vegetation=[dict(row) for row in vegetation],
+        weather=[
+            {
+                "date": (start + timedelta(days=i)).isoformat(),
+                "t_min_c": day.t_min_c,
+                "t_max_c": day.t_max_c,
+                "et0_mm": (
+                    et0_override[i]
+                    if et0_override is not None and i < len(et0_override)
+                    else day.et0_mm
+                ),
+                "rain_mm": day.rain_mm,
+                "gdd": (
+                    gdd_override[i] if gdd_override is not None and i < len(gdd_override) else None
+                ),
+            }
+            for i, day in enumerate(weather)
+        ],
+    )
+    composed_inputs = historical_context["simulation_inputs"]
+
     # ٤) المحاكاة النقيّة (نواة GDD محقونة من المحرّك حين توفّرت).
     result = simulate_season(
         SimContext(
@@ -195,6 +328,8 @@ async def simulate_season_endpoint(
             sowing_date=sow,
             season_end=end,
             weather=weather,
+            irrigation_mm_total=composed_inputs["irrigation_mm_total"],
+            observed_fapar=composed_inputs["observed_fapar"],
             gdd_daily_override=gdd_override,
             et0_daily_override=et0_override,
         )
@@ -202,22 +337,105 @@ async def simulate_season_endpoint(
 
     # ٥) حفظ النتائج على صفّ الموسم (+ وقت التشغيل).
     ran_at = datetime.now(UTC)
+    import json as _json
+
+    from api.season_simulation import ENGINE_NAME, ENGINE_VERSION, PARAMETER_VERSION
+
+    result_payload = asdict(result)
     try:
         async with tenant_connection(user) as conn:
-            await conn.execute(
-                "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
-                "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, sim_ran_at = $7 "
-                "WHERE season_id = $1",
-                season_id,
-                result.yield_kg_ha,
-                result.biomass_kg_ha,
-                result.gdd_total,
-                result.lai_max,
-                result.water_need_mm,
-                ran_at,
-            )
+            async with conn.transaction():
+                await conn.execute(
+                    "UPDATE seasons SET sim_yield_kg_ha = $2, sim_biomass_kg_ha = $3, "
+                    "sim_gdd_total = $4, sim_lai_max = $5, sim_water_mm = $6, "
+                    "sim_ran_at = $7 WHERE season_id = $1",
+                    season_id,
+                    result.yield_kg_ha,
+                    result.biomass_kg_ha,
+                    result.gdd_total,
+                    result.lai_max,
+                    result.water_need_mm,
+                    ran_at,
+                )
+                run_id = await conn.fetchval(
+                    "INSERT INTO season_simulation_runs "
+                    "(tenant_id, field_id, season_id, mode, as_of_time, input_digest, "
+                    "context_snapshot, engine_name, engine_version, parameter_version, "
+                    "result, confidence, assumptions, warnings) "
+                    "VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9, $10, "
+                    "$11::jsonb, $12, $13::jsonb, $14::jsonb) RETURNING run_id",
+                    user.tenant_id,
+                    str(srow["field_id"]),
+                    season_id,
+                    "historical_hindcast" if record is not None else "operational",
+                    datetime.combine(win_end, datetime.min.time(), tzinfo=UTC),
+                    historical_context["input_digest"],
+                    _json.dumps(historical_context, ensure_ascii=False, default=str),
+                    ENGINE_NAME,
+                    ENGINE_VERSION,
+                    PARAMETER_VERSION,
+                    _json.dumps(result_payload, ensure_ascii=False, default=str),
+                    result.confidence,
+                    _json.dumps(result.assumptions_ar, ensure_ascii=False),
+                    _json.dumps(result.warnings_ar, ensure_ascii=False),
+                )
     except Exception as e:  # noqa: BLE001 — خطأ DB ⇒ 503 موثَّق
         raise _db_unavailable("حفظ نتائج المحاكاة", e) from e
+
+    # ٥-ب) مرآة سياق فقط إلى مركز القرار القائم. لا قرار ولا dispatch ولا تجاوز
+    # للموافقة. فشل/تعطيل SoR لا يفقد سجل التشغيل المحلي؛ الحالة تعاد صراحة.
+    decision_context_status = "disabled"
+    decision_historical_snapshot_id = None
+    try:
+        if not _decision_context_mirror_enabled():
+            raise RuntimeError("decision context mirror disabled")
+        from api.decision_service_client import compose_context_snapshot
+
+        context_result = await compose_context_snapshot(
+            {
+                "field_id": str(srow["field_id"]),
+                "season_id": season_id,
+                "as_of_time": ran_at.isoformat(),
+                "decision_cutoff_time": ran_at.isoformat(),
+                "schema_version": "ac-1",
+                "composer_version": "historical-season-bridge/1",
+                "context": {
+                    "crop": historical_context["manual_record"].get("crop") or {"crop": crop},
+                    "soil": {"status": "missing", "reason": "not supplied by season simulation"},
+                    "irrigation": {"measured_total_mm": composed_inputs["irrigation_mm_total"]},
+                    "weather": {
+                        "source": historical_context["weather"]["source"],
+                        "day_count": historical_context["weather"]["day_count"],
+                    },
+                    "climate": {"status": "represented_by_historical_weather"},
+                    "terrain": {"status": "not_required_for_this_simulation"},
+                    "operations": {
+                        "event_count": len(historical_context["manual_record"]["events"])
+                    },
+                },
+                "historical": {
+                    "history_from": datetime.combine(
+                        start, datetime.min.time(), tzinfo=UTC
+                    ).isoformat(),
+                    "history_to": datetime.combine(
+                        win_end, datetime.min.time(), tzinfo=UTC
+                    ).isoformat(),
+                    "manifest_version": "historical-season-context.v1",
+                    "history": historical_context,
+                },
+                "features": [],
+                "idempotency_key": f"season-sim:{run_id}",
+            },
+            tenant_id=str(user.tenant_id),
+            requested_by=str(user.user_id),
+        )
+        decision_context_status = "persisted"
+        decision_historical_snapshot_id = context_result.get("historical_snapshot_id")
+    except HTTPException as exc:
+        decision_context_status = f"unavailable:{exc.status_code}"
+    except RuntimeError as exc:
+        if str(exc) != "decision context mirror disabled":
+            raise
 
     return SeasonSimResponse(
         season_id=season_id,
@@ -244,6 +462,13 @@ async def simulate_season_endpoint(
         sim_ran_at=ran_at.isoformat(),
         gdd_provenance=gdd_provenance,
         et0_provenance=et0_provenance,
+        simulation_run_id=str(run_id),
+        input_digest=historical_context["input_digest"],
+        historical_context_used=record is not None,
+        manual_irrigation_used=composed_inputs["irrigation_mm_total"] is not None,
+        observed_fapar_used=composed_inputs["observed_fapar"] is not None,
+        decision_context_status=decision_context_status,
+        decision_historical_snapshot_id=decision_historical_snapshot_id,
         model_role="screening_only",
         eligible_for_calibration=False,
         canonical_yield_engine="pcse_wofost",

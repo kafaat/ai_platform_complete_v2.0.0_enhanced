@@ -123,6 +123,17 @@ def build_agronomic_replay(
             events.append(ev)
 
     for r in outcomes or []:
+        if r.get("label_ar"):
+            ev = _event(
+                r.get("created_at") or r.get("date"),
+                "outcome",
+                str(r["label_ar"]),
+                value=r.get("value"),
+                ref_id=r.get("outcome_id") or r.get("ref_id"),
+            )
+            if ev:
+                events.append(ev)
+            continue
         success = r.get("success")
         label = (
             "نتيجة: نجاح"

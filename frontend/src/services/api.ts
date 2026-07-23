@@ -1091,6 +1091,7 @@ export interface AgronomicReplayResult {
   event_count:     number;
   span:            { start: string; end: string } | null; // null حين لا أحداث
   provenance:      { calibrated: string; note_ar: string };
+  source_status?:  Record<string, 'available' | 'empty' | 'unavailable' | 'forbidden' | 'incomplete'>;
   tenant_id:       string;
 }
 
