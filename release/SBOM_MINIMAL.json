@@ -12265,7 +12265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6c892acf0aac9e469c3c20bbd4427bbf8aca1073a1f49758d9bbef5f09867416"
+          "content": "d7eb0a0b8989d55cb36556008c586e626dd69123b34ab1013f8c8242240e74fe"
         }
       ],
       "name": "services/mcp_servers/sentinel_hub_server.py",
@@ -29259,6 +29259,16 @@
         }
       ],
       "name": "shared/federated_agents_phase11.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "118d910ab6bf9200610ba4c5f2e0fb9dc9e635974e15055d2a0f6b01491cc0f3"
+        }
+      ],
+      "name": "shared/field_change_summary.py",
       "type": "file"
     },
     {
