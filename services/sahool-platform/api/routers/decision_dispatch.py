@@ -452,6 +452,7 @@ async def consume_dispatch_queue(
                 "ORDER BY created_at ASC LIMIT $1 FOR UPDATE SKIP LOCKED",
                 limit,
             )
+            assert_platform_may_write_decision_sor("dispatch_decisions")
             notifications = []
             for row in rows:
                 target = assert_transition(row["exec_status"], "dispatched")  # fail-closed
@@ -624,6 +625,7 @@ async def record_execution_outcome(
                 str(user.user_id),
                 recorded_at,
             )
+            assert_platform_may_write_decision_sor("dispatch_decisions")
             await conn.execute(
                 "UPDATE dispatch_decisions SET exec_status = $1 WHERE decision_id = $2",
                 target,
