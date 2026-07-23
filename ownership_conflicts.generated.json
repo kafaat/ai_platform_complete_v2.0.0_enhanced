@@ -1,0 +1,10 @@
+{
+  "conflicts": [
+    {
+      "kind": "bogus_table_name",
+      "raw_owner": "sahool-platform",
+      "table": "IF"
+    }
+  ],
+  "schema": "sahool.ownership_conflicts.v1"
+}

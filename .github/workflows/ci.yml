@@ -301,6 +301,11 @@ jobs:
       - name: route-mount-inventory-drift-gate
         run: python scripts/ci/route_mount_contract_guard.py --check
 
+      # الكتالوج الموحّد (U2): مُصرِّف حتميّ يركّب السجلّات القائمة — أيّ drift في
+      # مخرجاته المولَّدة (كتالوج/قدرات/تعارضات ملكيّة/بيان) يفشل هنا (pre-FF).
+      - name: platform-catalog-drift-gate
+        run: python scripts/architecture/build_platform_catalog.py --check
+
       # يمنع رجوع خطّافات FastAPI المهجورة (@app.on_event) — يُلزِم lifespan واحداً
       # مُرتَّباً (بدء/إيقاف صريحان) فتبقى تحذيرات الإهمال غائبة. يُشغَّل في فحص الفرع (pre-FF).
       - name: fastapi-lifespan-guard

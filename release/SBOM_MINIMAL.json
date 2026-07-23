@@ -25,6 +25,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "357701a9f99cbd648f1325b69ce78c991f110384a9cc4564473db3b0aaae403e"
+        }
+      ],
+      "name": "docker-compose.evidence-lab.yml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "c709b0d2333960da4aac4dc7abbdc9f603b4a929856094434f4c9b36c8fe1509"
         }
       ],
@@ -6305,6 +6315,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "7070ce16b68237d87d7de72d0cb699f56461788aaa06c48e708c0a91474671d7"
+        }
+      ],
+      "name": "frontend/src/services/api/remoteSensingWorkspace.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7d1a4893d4754ccb2cab76ca372fcf5acdef6c040bf9e9c4fcefcffd468d9291"
         }
       ],
@@ -7749,6 +7769,16 @@
         }
       ],
       "name": "migrations/v211_simple_farm_book.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "de08b9478c6dd2aca2d3986baf4354bdc0b191191ef2e54dfe886929dfc80fcf"
+        }
+      ],
+      "name": "migrations/v212_farm_book_one_reversal_index.sql",
       "type": "file"
     },
     {
