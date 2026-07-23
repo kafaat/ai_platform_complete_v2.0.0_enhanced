@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 653,
+  "baseline_python_module_count": 654,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -549,6 +549,7 @@
     "core/harvest_feedback.py",
     "core/historical_loader.py",
     "core/historical_onboarding.py",
+    "core/historical_season_context.py",
     "core/human_feedback_learning.py",
     "core/hybrid_rag_retrieval.py",
     "core/identity.py",
@@ -677,5 +678,6 @@
   "irr_f01_reservation_activation_guard_note": "api/irrigation_activation_gate.py — the platform-side RESTRICTED adapter that enforces the irr_f01_reservation activation gate before a reservation is created (open-ledger #1). It MUST live in platform (it is the platform's consumer of the decision-service enforce endpoint, mirroring raster-service's imagery_source_gate), reads the enforcement flag fresh, fails closed on 403/non-200/transport error, and provides the activation_guard thunk injected into reserve_and_request_dispatch_db. Default-off/transitional; a static no-bypass guard locks it.",
   "water_salt_01_salinity_capability_note": "core/salinity_capability.py: WATER-SALT-01 declared salinity capability contract (limits-before-capability, guarded by tests/test_salinity_capability_contract.py). Consolidates the platform's EXISTING FAO-56 salinity behavior (core/engines/fao56.py salinity_stress_ks/leaching_requirement) into one declared contract; platform-owned because it declares platform-owned agronomic capability, not extractable transport. Documentation/declaration only, zero salinity-math change. 648->649.",
   "irr_f01_authoritative_reservation_note": "IRR-F01 sequential (v205): api/irrigation_authoritative_reservation.py (single governed entry point: intent -> authoritative resolution -> reservation, threading activation_guard through to the gated reserve_and_request_dispatch_db coordinator), api/irrigation_authoritative_resolver.py (pure authoritative intent resolution over the existing capability graph), api/irrigation_reservation_lifecycle.py (reservation state lifecycle helper). Platform-owned IRR-F01 domain alongside the existing irrigation_* modules; no new route, no new execution SoR. 649->652.",
-  "irr_f01_reservation_lifecycle_worker_note": "api/irrigation_reservation_lifecycle_worker.py: IRR-F01 recovery worker that expires elapsed 'reserved' reservations through the governed v205 transition (api/irrigation_reservation_lifecycle.expire_due). Cross-tenant discovery via the dedicated JOBS role, per-tenant short transactions, concurrent-safe via FOR UPDATE SKIP LOCKED. Platform-owned IRR-F01 domain alongside the existing irrigation_* modules; opt-in default-off compose service under the 'irrigation-runtime' profile. No new route, no new execution SoR. 652->653."
+  "irr_f01_reservation_lifecycle_worker_note": "api/irrigation_reservation_lifecycle_worker.py: IRR-F01 recovery worker that expires elapsed 'reserved' reservations through the governed v205 transition (api/irrigation_reservation_lifecycle.expire_due). Cross-tenant discovery via the dedicated JOBS role, per-tenant short transactions, concurrent-safe via FOR UPDATE SKIP LOCKED. Platform-owned IRR-F01 domain alongside the existing irrigation_* modules; opt-in default-off compose service under the 'irrigation-runtime' profile. No new route, no new execution SoR. 652->653.",
+  "historical_season_context_note": "core/historical_season_context.py: HISTORICAL-SEASON-BRIDGE-01 platform-owned read/link bridge between the historical ledger records (v201 season_records) and the operational season (v32 seasons), backed by the v207 append-only tables season_record_links + season_simulation_runs. Pure linkage/context assembly over platform-owned DB truth (no new engine/service, no source-data copy); consumed by season_simulation/agronomic_replay/seasons router behind HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED (default-off). 653->654."
 }

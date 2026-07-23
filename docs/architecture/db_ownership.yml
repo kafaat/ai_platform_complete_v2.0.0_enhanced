@@ -365,6 +365,18 @@ tables:
     writers: [scout-ingest-service]
     readers: []
     source: "migrations/v201_season_records.sql"
+  # HISTORICAL-SEASON-BRIDGE-01 (v207): جسر append-only بين سجلّ الدفتر التاريخيّ (v201)
+  # والموسم التشغيليّ (v32). مملوك للمنصّة (يكتبه core/historical_season_context.py).
+  season_record_links:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v207_historical_season_simulation_bridge.sql"
+  season_simulation_runs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v207_historical_season_simulation_bridge.sql"
   # GAP-FIELD-FORMS-01 (v204): النماذج الميدانيّة الديناميكية فوق B1 — كاتب واحد scout-ingest-service
   # (امتداد قرار SEASON-RECORD — مالك أنبوب الإدخال الخارجيّ). لا hard delete على definitions/versions.
   field_form_definitions:

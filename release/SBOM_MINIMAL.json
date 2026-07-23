@@ -7685,6 +7685,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "e45c176c11f468bb308b9f3ccbaae5f89edc5ed0a164d95b532dd00075e0e638"
+        }
+      ],
+      "name": "migrations/v207_historical_season_simulation_bridge.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b2cf3059b484bf566460533e29aaf2584215f04990056872814a38c3b5053698"
         }
       ],
@@ -20505,6 +20515,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8c1ea1f17ddc3ae643fd48f61b6792c4ed492ed3dfa161dffabe6f7e2bdb9e51"
+        }
+      ],
+      "name": "services/sahool-platform/core/historical_season_context.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "59da53539acc211a63ddbc00743ba2a89e4d27d4f36d0cd1e98f56a75bc4dd9a"
         }
       ],
@@ -22129,6 +22149,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_agronomic_decision.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "06564dd86b6b5e144bca7f02347eec7e6870b19113c467a8d65f3e1b0f1e28b6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_agronomic_replay_historical_sources.py",
       "type": "file"
     },
     {
@@ -23829,6 +23859,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_historical_onboarding.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c86a968e27e7b80d4a8114784522858e8e2abccc5575a26453086d5dccdfad4d"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_historical_season_context.py",
       "type": "file"
     },
     {
