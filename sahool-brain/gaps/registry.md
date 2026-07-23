@@ -280,3 +280,21 @@
 - **المسار المُوصى المفتوح أوّلاً (المالك): PG16 staging** — يفتح بندَي P0 ويولّد أقوى برهان تشغيليّ. التسلسل: (1) تطبيق الهجرات + تحقّق RLS بالدور المقيَّد · (2) backfill + فحوص اكتمال/مقارنة · (3) canary/read-side comparison · (4) قرار تحويل بشريّ · (5) قلب الملكيّة ثمّ REVOKE كتابة المنصّة · (6) إثبات rollback + health/audit على SHA نفسه. **السرّ (DSN/كلمة المرور) لا يُرسَل في المحادثة — متغيّر بيئة/سرّ في بيئة التنفيذ.**
 - **موقف توقيع commit:** `%G? = N` = غياب توقيع تشفيريّ (لا مفتاح توقيع في البيئة)، **ليس سبباً مشروعاً لـforce-push** على تاريخ main المدموج. لا يُعاد كتابة `38ed755` (دمج GitHub، `noreply@github.com`) ولا `69cd496` (بريدي الصحيح، غير موقَّع فقط).
 - **المصدر:** جرد وكيل + تحقّق `nginx/nginx.v9.conf:452` · `services/remote-sensing-workspace-bff/main.py:1` · `services/gis-workflow-service/` (لا في compose) · `config/service_feature_ui_contracts.json`. **الحالة:** تصنيفات مُسوّاة — لا فعل كوديّ حتى فتح المالك لمسار (PG16 staging / تأكيد محفّز / قرار PKI).
+
+## GIS-AI-INSPIRATION-TRACKS — سجلّ صادق (2026-07-23) — من مراجعة 5 مشاريع GIS+AI مفتوحة
+مصدر: مراجعة Geeflow/TESSERA/AiTLAS/SemanticSeg4EO/GeoOSAM ورأي مستقلّ.
+- **Track 1 (MCP فوق CDSE، إلهام Geeflow) — ✅ CLOSED-IN-CODE @ `762dd61`:** أداة MCP قراءة-فقط
+  `analyze_field_change` فوق `services/mcp_servers/sentinel_hub_server.py` + منطق نقيّ
+  `shared/field_change_summary.py`، تقرأ النقطة القانونيّة `GET /v1/fields/{id}/timeseries`،
+  fail-closed 424، بلا حساب طيفيّ/تفسير زراعيّ. اختبار وحدة 6/6. الإثبات الحيّ (MCP+raster مرفوعان) معلّق.
+- **Track 2 (TESSERA embeddings خلف v60) — BLOCKED-SPEC+DATA (مقعد موجود):** مقعد الاستبدال
+  **موجود أصلاً** — `services/ai_agronomist/productivity_zones_clustering.py::kmeans_nd` يقبل متّجهات
+  N-بُعد لكلّ خليّة (`_feature_vectors`/`_aligned_aux`)؛ تضمينات TESSERA 128-بُعد تُدخَل مباشرةً.
+  الناقص الوحيد = **مصدر التضمين (النموذج)**: أوزان TESSERA v1.1 + بيانات pilot حيّة + عامل offline —
+  غير متوفّرة داخل الحاوية؛ لا يُبنى مصدرٌ فارغ (سقالة). محفّز إعادة الفتح: توفّر أوزان v1.1 + مستأجِر pilot.
+- **Track 3 (TinyCD كشف تغيير) — BLOCKED-SPEC+DATA (منطق موجود):** الشذوذ/الاتّجاه **موجود أصلاً** —
+  `services/raster-service/time_series.py::build_time_series` (linear_trend + z_score). TinyCD ترقية
+  تحتاج **بيانات تغيير موسومة (ground truth) + أوزان + تصدير ONNX** — غير متوفّرة/موسومة؛ لا يُبنى نموذج مُختلَق.
+  محفّز: بيانات تغيير موسومة أو نموذج CD مُدرَّب مسبقاً + قناة model-registry.
+- **مرفوض بدليل:** Geeflow (GEE تجاريّاً مقيَّد) · SemanticSeg4EO/GeoOSAM (إضافات QGIS، GPL — لا يُلمَس الكود، تُقتبَس الأفكار فقط) · SAM3 (رخصة غير مؤكَّدة — يُفترَض غير-Apache حتى يثبت العكس).
+- **رخص مؤكَّدة:** TESSERA كود MIT/أوزان CC0 · AiTLAS Apache 2.0 · SAM/SAM2 Apache 2.0.
