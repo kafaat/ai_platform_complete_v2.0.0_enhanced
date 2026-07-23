@@ -52,9 +52,13 @@ def test_no_guardrails_means_not_evaluated_and_not_executable():
 
 
 @pytest.mark.unit
-def test_approved_guardrails_makes_decision_executable():
-    """(ب) قرار مع guardrails يُقرّ approved: قابل للتنفيذ."""
+def test_approved_guardrails_makes_decision_executable(monkeypatch):
+    """(ب) قرار مع guardrails approved: قابل للتنفيذ **فقط** مع علم التجاوز (legacy)."""
     from core.field_intelligence_coordinator import run_field_intelligence
+
+    # DECISION-CENTER-UNIFY-01: guardrails alone no longer suffice by default؛ نُفعّل
+    # علم التجاوز هنا لاختبار آليّة البوّابة (approved+actionable ⇒ executable).
+    monkeypatch.setenv("FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED", "1")
 
     req, soil_fn, sensing_fn = _salinity_field_request()
 
@@ -70,6 +74,29 @@ def test_approved_guardrails_makes_decision_executable():
     assert result.executable is True
     assert result.dispatch_block_reason is None
     assert result.policy_decision.get("executable") is True
+
+
+def test_approved_guardrails_alone_not_executable_by_default(monkeypatch):
+    """DECISION-CENTER-UNIFY-01: بلا علم التجاوز، guardrails-approved لا يجعل القرار
+    قابلاً للتنفيذ — يتطلّب مركز القرار (dispatch_block_reason=requires_decision_center)."""
+    from core.field_intelligence_coordinator import run_field_intelligence
+
+    monkeypatch.delenv("FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED", raising=False)
+
+    req, soil_fn, sensing_fn = _salinity_field_request()
+
+    def guardrails_fn(_decision, _state):
+        return {"status": "approved", "note": "مُخلَّص"}
+
+    result = run_field_intelligence(
+        req, soil_fn=soil_fn, sensing_fn=sensing_fn, guardrails_fn=guardrails_fn
+    )
+
+    assert result.policy_decision.get("actionable") is True
+    assert result.governance.get("status") == "approved"
+    assert result.executable is False
+    assert result.dispatch_block_reason == "requires_decision_center"
+    assert result.policy_decision.get("executable") is False
 
 
 @pytest.mark.unit

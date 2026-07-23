@@ -3722,7 +3722,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 190,
+    "line": 191,
     "method": "POST",
     "path": "/api/v1/crop-twin/compose",
     "function": "compose_crop_twin"
@@ -3730,7 +3730,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 242,
+    "line": 243,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision-candidate",
     "function": "crop_decision_candidate_endpoint"
@@ -3738,7 +3738,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 330,
+    "line": 344,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision",
     "function": "crop_decision_endpoint"
@@ -3746,7 +3746,7 @@
   {
     "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/crop_twin.py",
-    "line": 457,
+    "line": 478,
     "method": "POST",
     "path": "/api/v1/crop-twin/decision/profit-aware",
     "function": "profit_aware_decision_endpoint"
