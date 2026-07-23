@@ -187,6 +187,8 @@ def test_e2e_approved_makes_executable(monkeypatch):
 
     monkeypatch.setattr(fia, "AGENT_TOKEN", "svc-token")
     monkeypatch.setattr(fia, "_post_json", lambda *a, **k: {"allowed": True, "overall_risk": "LOW"})
+    # DECISION-CENTER-UNIFY-01: escape flag to test the legacy guardrails->executable gate.
+    monkeypatch.setenv("FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED", "1")
 
     req, soil_fn, sensing_fn = _salinity_field_request()
 

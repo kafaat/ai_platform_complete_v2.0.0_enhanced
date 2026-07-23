@@ -148,6 +148,7 @@ async def test_preview_writes_nothing(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_submit_creates_pending_approval_only(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     _patch_gdd(monkeypatch)
     _authoritative_record(monkeypatch)
     out = await crop_decision_candidate_endpoint(req=_req(submit=True), user=_USER)
@@ -159,6 +160,7 @@ async def test_submit_creates_pending_approval_only(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_decision_service_failure_no_fake_success(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     from fastapi import HTTPException
 
     _patch_gdd(monkeypatch)
@@ -185,6 +187,7 @@ async def test_evidence_ids_lossless_through_endpoint(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_preview_and_submit_lineage_identical(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     _patch_gdd(monkeypatch)
     _authoritative_record(monkeypatch)
     pv = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
@@ -205,6 +208,7 @@ async def test_changing_gdd_snapshot_changes_candidate_lineage(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_missing_gdd_lineage_fails_closed(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     from fastapi import HTTPException
 
     # canonical product without a lineage id ⇒ builder refuses ⇒ endpoint 422 (no candidate).
@@ -220,3 +224,18 @@ async def test_degraded_gdd_quality_preserved(monkeypatch):
     out = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
     assert out["candidate"]["evidence"]["gdd_series_quality_status"] == "degraded"
     assert "missing_days_present" in out["candidate"]["limitations"]
+
+
+@pytest.mark.asyncio
+async def test_submit_rejected_by_default_fail_closed(monkeypatch):
+    """DECISION-CENTER-UNIFY-01: submit=True is refused (403) unless the escape flag is set."""
+    from fastapi import HTTPException
+
+    _patch_gdd(monkeypatch)
+    monkeypatch.delenv("CROP_TWIN_DIRECT_DECISION_ENABLED", raising=False)
+    with pytest.raises(HTTPException) as ei:
+        await crop_decision_candidate_endpoint(req=_req(submit=True), user=_USER)
+    assert ei.value.status_code == 403
+    # preview still works with the flag off.
+    out = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
+    assert out["approval_state"] == "preview" and out["submitted"] is False

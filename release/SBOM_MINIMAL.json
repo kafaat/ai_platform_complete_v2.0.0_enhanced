@@ -14875,7 +14875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "598986971410086c5f3bf9543e0d7b8398ae74b65b2eb305b7c8acd35e171d6b"
+          "content": "8feb475fb39d51a39f1314b794b921cc0700a750fe1b1c26624d316a81b2311c"
         }
       ],
       "name": "services/sahool-platform/api/decision_sor_mode.py",
@@ -16485,7 +16485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cb06fb9eafd663050c95f9806d53380a86427543a3c85377d5ad14f572fbe679"
+          "content": "e7f0adc2e138845e7f3f1fdef2d4e5d9062bb97a886aa452d927362a41be771b"
         }
       ],
       "name": "services/sahool-platform/api/routers/crop_twin.py",
@@ -20425,7 +20425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8981f149da3110ec0ff2ddfa8865645f77ba5a985144a3825a60c47ffd44ace9"
+          "content": "80a6e14d12c2a01baeb0a35ac4b8ee94ce7bfbaec680c79510a186cf89379da2"
         }
       ],
       "name": "services/sahool-platform/core/field_intelligence_coordinator.py",
@@ -22535,7 +22535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2064ed4a1d8cbd36c256c6d1f98934a4a09b0b2cb073084ca04da1108ab4b9f"
+          "content": "4e40c7fa204b255d9f17dbe27d85a16274fc3ca6f1babbab4a2f20a3ab7a45f3"
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",

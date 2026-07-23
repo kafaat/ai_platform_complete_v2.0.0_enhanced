@@ -81,6 +81,19 @@ class PlatformDecisionSorMode:
         return data
 
 
+def crop_twin_direct_decision_enabled() -> bool:
+    """Escape hatch for the crop-twin DIRECT decision side-doors (DECISION-CENTER-UNIFY-01).
+
+    Default **False** = fail-closed / the correct posture: the crop-twin ``/decision``
+    and ``/decision/profit-aware`` endpoints are preview/scenario only (they do NOT
+    persist a platform-authoritative decision), and ``/decision-candidate`` refuses
+    ``submit=true`` (a candidate built from client-supplied inputs must not be pushed to
+    the decision center). Set ``CROP_TWIN_DIRECT_DECISION_ENABLED=true`` only to restore
+    the legacy direct-write behavior.
+    """
+    return _truthy("CROP_TWIN_DIRECT_DECISION_ENABLED")
+
+
 def get_platform_decision_sor_mode() -> PlatformDecisionSorMode:
     requested = os.getenv("SAHOOL_DECISION_WRITE_MODE", "platform_sor").strip().lower()
     if requested not in _ALLOWED_MODES:

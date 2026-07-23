@@ -26,6 +26,7 @@ from api.crop_decision_bridge import submit_crop_decision_candidate
 from api.crop_twin import TwinDay, crop_twin_state
 from api.data_quality import assess_data_quality
 from api.decision_lineage import ensure_decision_id, lineage_stage
+from api.decision_sor_mode import crop_twin_direct_decision_enabled
 from api.economic_state import economic_state
 from api.irrigation_method import gross_irrigation_mm, method_profile
 from api.irrigation_mpc import ForecastDay, plan_irrigation
@@ -255,7 +256,20 @@ async def crop_decision_candidate_endpoint(
 
     الثابت الحرجّ: نَسَب المرشّح في preview == نَسَبه في submit لنفس المدخلات (يُبنى مرّة
     واحدة؛ submit لا يعيد بناءه ولا يُغيّر الأدلة).
+
+    DECISION-CENTER-UNIFY-01 (fail-closed افتراضيّاً): ``submit=True`` مرفوض ما لم
+    يُفعَّل ``CROP_TWIN_DIRECT_DECISION_ENABLED`` — مرشّح مبنيّ على مدخلات العميل غير
+    الموثَّقة يجب ألّا يُدفَع لمركز القرار حتى يُبنى جامع canonical خادميّ.
     """
+    if req.submit and not crop_twin_direct_decision_enabled():
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "candidate submit is disabled (DECISION-CENTER-UNIFY-01): this path builds "
+                "the candidate from client-supplied inputs, which must not be pushed to the "
+                "decision center. Preview (submit=false) only."
+            ),
+        )
     st = await _compose_state(req)
     twin = st["twin"]
     crop_intelligence = twin.get("crop_intelligence")
@@ -338,14 +352,21 @@ async def crop_decision_endpoint(
     جانبيّ best-effort؛ persisted=false عند الإطفاء أو تعذّر القاعدة (لا يكسر القرار).
     """
     decision = await compose_crop_decision(req=req, user=user)
-    decision["persisted"] = await persist_decision_if_enabled(
-        user,
-        decision_id=decision["decision_id"],
-        decision_type="crop_twin",
-        decision_value=decision,
-        field_id=req.field_id,
-        confidence=decision.get("confidence"),
-    )
+    if crop_twin_direct_decision_enabled():
+        decision["persisted"] = await persist_decision_if_enabled(
+            user,
+            decision_id=decision["decision_id"],
+            decision_type="crop_twin",
+            decision_value=decision,
+            field_id=req.field_id,
+            confidence=decision.get("confidence"),
+        )
+    else:
+        # DECISION-CENTER-UNIFY-01: preview/scenario only — the platform does not persist
+        # a parallel authoritative decision here; the governed candidate→approval path
+        # (/decision-candidate → decision-service) owns real decisions.
+        decision["persisted"] = False
+        decision["preview_only"] = True
     return decision
 
 
@@ -465,13 +486,18 @@ async def profit_aware_decision_endpoint(
     persisted=false عند الإطفاء/تعذّر القاعدة (لا يكسر القرار).
     """
     decision = await compose_profit_aware_decision(req=req, user=user)
-    decision["persisted"] = await persist_decision_if_enabled(
-        user,
-        decision_id=decision["decision_id"],
-        decision_type="profit_aware",
-        decision_value=decision,
-        field_id=req.field_id,
-        region=req.region,
-        confidence=decision.get("confidence"),
-    )
+    if crop_twin_direct_decision_enabled():
+        decision["persisted"] = await persist_decision_if_enabled(
+            user,
+            decision_id=decision["decision_id"],
+            decision_type="profit_aware",
+            decision_value=decision,
+            field_id=req.field_id,
+            region=req.region,
+            confidence=decision.get("confidence"),
+        )
+    else:
+        # DECISION-CENTER-UNIFY-01: preview/scenario only — no parallel authoritative write.
+        decision["persisted"] = False
+        decision["preview_only"] = True
     return decision
