@@ -13,21 +13,21 @@ sandboxed plugin runners.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any
 import hashlib
 import hmac
-import os
-
-from shared.security.secret_guard import is_production, weak_secret_error
 import json
 import math
+import os
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
+
+from shared.security.secret_guard import is_production, weak_secret_error
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:

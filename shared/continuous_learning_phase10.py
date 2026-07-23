@@ -7,19 +7,22 @@ scientific scenario simulator scaffold.  It is dependency-light by design so it
 can run in CI and later be backed by PostGIS, object storage, MLflow/Feast, and
 APSIM/WOFOST/DSSAT adapters.
 """
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from statistics import mean
-from typing import Any
 import hashlib
 import json
 import math
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from enum import Enum
+from statistics import mean
+from typing import Any
 
 from shared.feature_store import (
     build_feature_lineage_manifest as build_production_feature_lineage,
+)
+from shared.feature_store import (
     build_point_in_time_snapshot,
     materialize_online_feature_values,
     register_feature_definitions,
@@ -34,7 +37,7 @@ from shared.mlops import (
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -141,7 +144,9 @@ class ScenarioResult:
     created_at: str
 
 
-def infer_feature_schema(records: list[dict[str, Any]], *, name: str = "canonical_learning_v1", version: str = "v1") -> dict[str, Any]:
+def infer_feature_schema(
+    records: list[dict[str, Any]], *, name: str = "canonical_learning_v1", version: str = "v1"
+) -> dict[str, Any]:
     """Infer a stable feature-set contract from Phase 9 feature records."""
     feature_names: set[str] = set()
     label_names: set[str] = set()
@@ -151,7 +156,15 @@ def infer_feature_schema(records: list[dict[str, Any]], *, name: str = "canonica
         feature_names.update((rec.get("features") or {}).keys())
         label_names.update((rec.get("labels") or {}).keys())
     spec = FeatureSetSpec(
-        feature_set_id=_stable_id({"name": name, "version": version, "features": sorted(feature_names), "labels": sorted(label_names)}, "fs"),
+        feature_set_id=_stable_id(
+            {
+                "name": name,
+                "version": version,
+                "features": sorted(feature_names),
+                "labels": sorted(label_names),
+            },
+            "fs",
+        ),
         name=name,
         version=version,
         entity_type=entity_type,
@@ -206,7 +219,10 @@ def materialize_training_dataset(
 
     status = DatasetStatus.TRAINABLE.value if not reasons else DatasetStatus.BLOCKED.value
     dataset = TrainingDataset(
-        dataset_id=_stable_id({"spec": spec.get("feature_set_id"), "records": [r.get("feature_id") for r in records]}, "ds"),
+        dataset_id=_stable_id(
+            {"spec": spec.get("feature_set_id"), "records": [r.get("feature_id") for r in records]},
+            "ds",
+        ),
         feature_set_id=str(spec.get("feature_set_id")),
         entity_type=str(spec.get("entity_type", "field")),
         entity_count=entity_count,
@@ -234,7 +250,11 @@ def decide_model_promotion(
     metric_policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Evaluate champion/challenger metrics and return a rollout decision."""
-    metric_policy = metric_policy or {"primary_metric": "score", "min_improvement": 0.02, "max_regression": 0.0}
+    metric_policy = metric_policy or {
+        "primary_metric": "score",
+        "min_improvement": 0.02,
+        "max_regression": 0.0,
+    }
     primary = metric_policy.get("primary_metric", "score")
     min_improvement = _num(metric_policy.get("min_improvement"), 0.0)
     max_regression = _num(metric_policy.get("max_regression"), 0.0)
@@ -262,25 +282,47 @@ def decide_model_promotion(
 
     metric_deltas: dict[str, float] = {}
     if challenger:
-        metric_keys = set((champion or {}).get("metrics", {}).keys()) | set(challenger.get("metrics", {}).keys())
-        metric_deltas = {k: _num(challenger.get("metrics", {}).get(k)) - _num((champion or {}).get("metrics", {}).get(k)) for k in sorted(metric_keys)}
+        metric_keys = set((champion or {}).get("metrics", {}).keys()) | set(
+            challenger.get("metrics", {}).keys()
+        )
+        metric_deltas = {
+            k: _num(challenger.get("metrics", {}).get(k))
+            - _num((champion or {}).get("metrics", {}).get(k))
+            for k in sorted(metric_keys)
+        }
 
-    return asdict(ModelLifecycleDecision(
-        decision_id=_stable_id({"task": task, "champion": champion, "challenger": challenger, "policy": metric_policy}, "mld"),
-        task=task,
-        champion_model_id=(champion or {}).get("model_id"),
-        challenger_model_id=(challenger or {}).get("model_id") if challenger else None,
-        decision=decision,
-        reasons=reasons,
-        metric_deltas=metric_deltas,
-        rollout={
-            "initial_percentage": 0 if decision in {PromotionDecision.BLOCKED.value, PromotionDecision.KEEP_CHAMPION.value} else 5,
-            "max_percentage": 100 if decision == PromotionDecision.PROMOTE_CHALLENGER.value else 20,
-            "requires_shadow_period_hours": decision != PromotionDecision.PROMOTE_CHALLENGER.value,
-            "fail_closed": True,
-        },
-        decided_at=_now(),
-    ))
+    return asdict(
+        ModelLifecycleDecision(
+            decision_id=_stable_id(
+                {
+                    "task": task,
+                    "champion": champion,
+                    "challenger": challenger,
+                    "policy": metric_policy,
+                },
+                "mld",
+            ),
+            task=task,
+            champion_model_id=(champion or {}).get("model_id"),
+            challenger_model_id=(challenger or {}).get("model_id") if challenger else None,
+            decision=decision,
+            reasons=reasons,
+            metric_deltas=metric_deltas,
+            rollout={
+                "initial_percentage": 0
+                if decision
+                in {PromotionDecision.BLOCKED.value, PromotionDecision.KEEP_CHAMPION.value}
+                else 5,
+                "max_percentage": 100
+                if decision == PromotionDecision.PROMOTE_CHALLENGER.value
+                else 20,
+                "requires_shadow_period_hours": decision
+                != PromotionDecision.PROMOTE_CHALLENGER.value,
+                "fail_closed": True,
+            },
+            decided_at=_now(),
+        )
+    )
 
 
 def create_online_learning_update(
@@ -297,34 +339,60 @@ def create_online_learning_update(
         for k, v in (rec.get("labels") or {}).items():
             if isinstance(v, (int, float, bool)):
                 label_values.setdefault(k, []).append(float(v))
-        numeric = [_num(v) for v in (rec.get("features") or {}).values() if isinstance(v, (int, float))]
+        numeric = [
+            _num(v) for v in (rec.get("features") or {}).values() if isinstance(v, (int, float))
+        ]
         if numeric:
             feature_means.append(mean(numeric))
 
-    baseline_mean = _num((model.get("training_stats") or {}).get("feature_mean"), mean(feature_means) if feature_means else 0.0)
+    baseline_mean = _num(
+        (model.get("training_stats") or {}).get("feature_mean"),
+        mean(feature_means) if feature_means else 0.0,
+    )
     current_mean = mean(feature_means) if feature_means else baseline_mean
     drift_score = abs(current_mean - baseline_mean) / max(1.0, abs(baseline_mean))
     action = "queue_retraining" if drift_score >= drift_threshold else "online_update_candidate"
     if dataset.get("status") != DatasetStatus.TRAINABLE.value:
         action = "blocked_dataset_not_trainable"
 
-    label_summary = {k: {"count": len(vs), "mean": mean(vs) if vs else None} for k, vs in label_values.items()}
-    return asdict(OnlineLearningUpdate(
-        update_id=_stable_id({"model": model.get("model_id"), "dataset": dataset.get("dataset_id"), "records": [r.get("feature_id") for r in records]}, "olu"),
-        model_id=str(model.get("model_id")),
-        feature_set_id=str(dataset.get("feature_set_id")),
-        learning_rate=_num(model.get("online_learning_rate"), 0.01),
-        sample_count=len(records),
-        label_summary=label_summary,
-        drift_score=round(drift_score, 4),
-        action=action,
-        created_at=_now(),
-    ))
+    label_summary = {
+        k: {"count": len(vs), "mean": mean(vs) if vs else None} for k, vs in label_values.items()
+    }
+    return asdict(
+        OnlineLearningUpdate(
+            update_id=_stable_id(
+                {
+                    "model": model.get("model_id"),
+                    "dataset": dataset.get("dataset_id"),
+                    "records": [r.get("feature_id") for r in records],
+                },
+                "olu",
+            ),
+            model_id=str(model.get("model_id")),
+            feature_set_id=str(dataset.get("feature_set_id")),
+            learning_rate=_num(model.get("online_learning_rate"), 0.01),
+            sample_count=len(records),
+            label_summary=label_summary,
+            drift_score=round(drift_score, 4),
+            action=action,
+            created_at=_now(),
+        )
+    )
 
 
-def evaluate_experiment_outcomes(*, experiment_key: str, assignments: list[dict[str, Any]], outcomes: list[dict[str, Any]], metric: str = "net_benefit") -> dict[str, Any]:
+def evaluate_experiment_outcomes(
+    *,
+    experiment_key: str,
+    assignments: list[dict[str, Any]],
+    outcomes: list[dict[str, Any]],
+    metric: str = "net_benefit",
+) -> dict[str, Any]:
     """Aggregate A/B outcomes and pick a conservative winner."""
-    entity_to_variant = {a.get("entity_id"): a.get("variant") for a in assignments if a.get("experiment_key") == experiment_key}
+    entity_to_variant = {
+        a.get("entity_id"): a.get("variant")
+        for a in assignments
+        if a.get("experiment_key") == experiment_key
+    }
     grouped: dict[str, list[float]] = {}
     for outcome in outcomes:
         variant = entity_to_variant.get(outcome.get("entity_id"))
@@ -340,15 +408,25 @@ def evaluate_experiment_outcomes(*, experiment_key: str, assignments: list[dict[
         spread = ordered[0][1]["mean"] - ordered[1][1]["mean"]
         confidence = max(0.0, min(0.99, spread / max(1.0, abs(ordered[1][1]["mean"]))))
         decision = "promote_variant" if confidence >= 0.05 else "continue_experiment"
-    return asdict(ExperimentEvaluation(
-        evaluation_id=_stable_id({"experiment": experiment_key, "assignments": assignments, "outcomes": outcomes, "metric": metric}, "eval"),
-        experiment_key=experiment_key,
-        variants=variants,
-        winner=winner,
-        decision=decision,
-        confidence=round(confidence, 4),
-        evaluated_at=_now(),
-    ))
+    return asdict(
+        ExperimentEvaluation(
+            evaluation_id=_stable_id(
+                {
+                    "experiment": experiment_key,
+                    "assignments": assignments,
+                    "outcomes": outcomes,
+                    "metric": metric,
+                },
+                "eval",
+            ),
+            experiment_key=experiment_key,
+            variants=variants,
+            winner=winner,
+            decision=decision,
+            confidence=round(confidence, 4),
+            evaluated_at=_now(),
+        )
+    )
 
 
 def run_scientific_scenario(
@@ -367,8 +445,12 @@ def run_scientific_scenario(
     crop = scenario.get("crop") or state.get("crop")
 
     baseline_yield = _num(scenario.get("baseline_yield_t_ha"), _num(truths.get("yield_t_ha"), 4.0))
-    baseline_water = _num(scenario.get("baseline_water_mm"), _num(truths.get("seasonal_water_mm"), 450.0))
-    baseline_profit = _num(scenario.get("baseline_profit_per_ha"), _num(truths.get("profit_per_ha"), 900.0))
+    baseline_water = _num(
+        scenario.get("baseline_water_mm"), _num(truths.get("seasonal_water_mm"), 450.0)
+    )
+    baseline_profit = _num(
+        scenario.get("baseline_profit_per_ha"), _num(truths.get("profit_per_ha"), 900.0)
+    )
 
     rainfall_delta = _num(scenario.get("rainfall_delta_pct"), 0.0) / 100.0
     fertilizer_delta = _num(scenario.get("fertilizer_delta_pct"), 0.0) / 100.0
@@ -381,10 +463,22 @@ def run_scientific_scenario(
     heat_factor = max(0.65, 1.0 - 0.08 * max(0.0, heat_stress_delta))
     projected_yield = baseline_yield * water_factor * nutrient_factor * delay_factor * heat_factor
     projected_water = max(0.0, baseline_water * (1.0 - rainfall_delta * 0.25))
-    projected_profit = baseline_profit + (projected_yield - baseline_yield) * _num(scenario.get("price_per_ton"), 250.0) - max(0.0, fertilizer_delta) * 80.0
+    projected_profit = (
+        baseline_profit
+        + (projected_yield - baseline_yield) * _num(scenario.get("price_per_ton"), 250.0)
+        - max(0.0, fertilizer_delta) * 80.0
+    )
 
-    baseline = {"yield_t_ha": round(baseline_yield, 3), "water_mm": round(baseline_water, 2), "profit_per_ha": round(baseline_profit, 2)}
-    projected = {"yield_t_ha": round(projected_yield, 3), "water_mm": round(projected_water, 2), "profit_per_ha": round(projected_profit, 2)}
+    baseline = {
+        "yield_t_ha": round(baseline_yield, 3),
+        "water_mm": round(baseline_water, 2),
+        "profit_per_ha": round(baseline_profit, 2),
+    }
+    projected = {
+        "yield_t_ha": round(projected_yield, 3),
+        "water_mm": round(projected_water, 2),
+        "profit_per_ha": round(projected_profit, 2),
+    }
     deltas = {k: round(projected[k] - baseline[k], 3) for k in baseline}
     flags: list[str] = []
     if deltas["yield_t_ha"] < -0.25:
@@ -394,21 +488,25 @@ def run_scientific_scenario(
     if deltas["profit_per_ha"] < 0:
         flags.append("profitability_risk")
 
-    return asdict(ScenarioResult(
-        scenario_id=_stable_id({"field": field_id, "scenario": scenario, "state": state.get("state_id")}, "scn"),
-        field_id=field_id,
-        crop=crop,
-        assumptions=dict(scenario),
-        baseline=baseline,
-        projected=projected,
-        deltas=deltas,
-        risk_flags=flags,
-        created_at=_now(),
-    ))
-
+    return asdict(
+        ScenarioResult(
+            scenario_id=_stable_id(
+                {"field": field_id, "scenario": scenario, "state": state.get("state_id")}, "scn"
+            ),
+            field_id=field_id,
+            crop=crop,
+            assumptions=dict(scenario),
+            baseline=baseline,
+            projected=projected,
+            deltas=deltas,
+            risk_flags=flags,
+            created_at=_now(),
+        )
+    )
 
 
 # --- Phase 10 production hardening: drift, lineage, retraining and champion/challenger runtime ---
+
 
 class DriftDecision(str, Enum):
     STABLE = "stable"
@@ -433,7 +531,11 @@ def detect_feature_drift(
     feature_scores: dict[str, float] = {}
     for key, values in feature_values.items():
         current_mean = mean(values) if values else 0.0
-        base = baseline_stats.get(key, {}) if isinstance(baseline_stats.get(key), dict) else {"mean": baseline_stats.get(key)}
+        base = (
+            baseline_stats.get(key, {})
+            if isinstance(baseline_stats.get(key), dict)
+            else {"mean": baseline_stats.get(key)}
+        )
         baseline_mean = _num(base.get("mean"), current_mean)
         baseline_std = max(abs(_num(base.get("std"), 1.0)), 1.0)
         feature_scores[key] = round(abs(current_mean - baseline_mean) / baseline_std, 4)
@@ -447,7 +549,14 @@ def detect_feature_drift(
     else:
         decision = DriftDecision.STABLE.value
     return {
-        "drift_id": _stable_id({"baseline": baseline_stats, "records": [r.get("feature_id") for r in current_records], "scores": feature_scores}, "drift"),
+        "drift_id": _stable_id(
+            {
+                "baseline": baseline_stats,
+                "records": [r.get("feature_id") for r in current_records],
+                "scores": feature_scores,
+            },
+            "drift",
+        ),
         "overall_score": round(overall, 4),
         "feature_scores": feature_scores,
         "decision": decision,
@@ -456,20 +565,34 @@ def detect_feature_drift(
     }
 
 
-def build_feature_lineage(*, feature_set: dict[str, Any], sources: list[dict[str, Any]], models: list[dict[str, Any]] | None = None) -> dict[str, Any]:
+def build_feature_lineage(
+    *,
+    feature_set: dict[str, Any],
+    sources: list[dict[str, Any]],
+    models: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Describe reproducible feature lineage from source→transform→consumer models."""
     payload = {
         "feature_set_id": feature_set.get("feature_set_id"),
         "feature_names": feature_set.get("feature_names", []),
         "sources": sources,
-        "models": [{"model_id": m.get("model_id"), "name": m.get("name"), "version": m.get("version")} for m in (models or [])],
+        "models": [
+            {"model_id": m.get("model_id"), "name": m.get("name"), "version": m.get("version")}
+            for m in (models or [])
+        ],
     }
     payload["lineage_id"] = _stable_id(payload, "lin")
     payload["created_at"] = _now()
     return payload
 
 
-def plan_retraining_job(*, drift: dict[str, Any], dataset: dict[str, Any], model: dict[str, Any], policy: dict[str, Any] | None = None) -> dict[str, Any]:
+def plan_retraining_job(
+    *,
+    drift: dict[str, Any],
+    dataset: dict[str, Any],
+    model: dict[str, Any],
+    policy: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Return a fail-closed retraining decision and reproducible job manifest."""
     policy = policy or {"allow_online_update": True, "min_rows": 10}
     reasons: list[str] = []
@@ -480,20 +603,37 @@ def plan_retraining_job(*, drift: dict[str, Any], dataset: dict[str, Any], model
     elif int(dataset.get("row_count", 0)) < int(policy.get("min_rows", 10)):
         reasons.append("insufficient_rows")
         action = "wait_for_more_data"
-    elif drift.get("decision") in {DriftDecision.RETRAIN.value, DriftDecision.BLOCK_PROMOTION.value}:
+    elif drift.get("decision") in {
+        DriftDecision.RETRAIN.value,
+        DriftDecision.BLOCK_PROMOTION.value,
+    }:
         reasons.append("drift_threshold_exceeded")
         action = "queue_retraining"
-    elif drift.get("decision") == DriftDecision.WATCH.value and policy.get("allow_online_update", True):
+    elif drift.get("decision") == DriftDecision.WATCH.value and policy.get(
+        "allow_online_update", True
+    ):
         reasons.append("minor_drift_online_update")
         action = "online_update"
     return {
-        "job_id": _stable_id({"drift": drift.get("drift_id"), "dataset": dataset.get("dataset_id"), "model": model.get("model_id"), "policy": policy}, "rtj"),
+        "job_id": _stable_id(
+            {
+                "drift": drift.get("drift_id"),
+                "dataset": dataset.get("dataset_id"),
+                "model": model.get("model_id"),
+                "policy": policy,
+            },
+            "rtj",
+        ),
         "model_id": model.get("model_id"),
         "dataset_id": dataset.get("dataset_id"),
         "action": action,
         "reasons": reasons,
         "drift_score": drift.get("overall_score"),
-        "reproducibility": {"feature_set_id": dataset.get("feature_set_id"), "object_uri": dataset.get("object_uri"), "model_version": model.get("version")},
+        "reproducibility": {
+            "feature_set_id": dataset.get("feature_set_id"),
+            "object_uri": dataset.get("object_uri"),
+            "model_version": model.get("version"),
+        },
         "created_at": _now(),
     }
 
@@ -508,16 +648,34 @@ def run_champion_challenger_cycle(
     metric_policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Promotion cycle that blocks rollout under material drift or bad data."""
-    promotion = decide_model_promotion(task=task, champion=champion, challenger=challenger, metric_policy=metric_policy)
+    promotion = decide_model_promotion(
+        task=task, champion=champion, challenger=challenger, metric_policy=metric_policy
+    )
     blocked_by_drift = drift.get("decision") == DriftDecision.BLOCK_PROMOTION.value
     blocked_by_dataset = dataset.get("status") != DatasetStatus.TRAINABLE.value
     if blocked_by_drift or blocked_by_dataset:
         promotion = dict(promotion)
         promotion["decision"] = PromotionDecision.BLOCKED.value
-        promotion["reasons"] = list(promotion.get("reasons", [])) + (["drift_blocks_promotion"] if blocked_by_drift else []) + (["dataset_blocks_promotion"] if blocked_by_dataset else [])
-        promotion["rollout"] = {"initial_percentage": 0, "max_percentage": 0, "requires_shadow_period_hours": True, "fail_closed": True}
+        promotion["reasons"] = (
+            list(promotion.get("reasons", []))
+            + (["drift_blocks_promotion"] if blocked_by_drift else [])
+            + (["dataset_blocks_promotion"] if blocked_by_dataset else [])
+        )
+        promotion["rollout"] = {
+            "initial_percentage": 0,
+            "max_percentage": 0,
+            "requires_shadow_period_hours": True,
+            "fail_closed": True,
+        }
     return {
-        "cycle_id": _stable_id({"promotion": promotion.get("decision_id"), "drift": drift.get("drift_id"), "dataset": dataset.get("dataset_id")}, "cc"),
+        "cycle_id": _stable_id(
+            {
+                "promotion": promotion.get("decision_id"),
+                "drift": drift.get("drift_id"),
+                "dataset": dataset.get("dataset_id"),
+            },
+            "cc",
+        ),
         "promotion": promotion,
         "drift": drift,
         "dataset_id": dataset.get("dataset_id"),
@@ -546,38 +704,77 @@ def run_phase10_learning_cycle(
     production_feature_set = feature_registry.get("feature_set", {})
     offline_dataset_version = write_offline_feature_dataset(
         records,
-        feature_set_id=str(production_feature_set.get("feature_set_id") or spec.get("feature_set_id")),
+        feature_set_id=str(
+            production_feature_set.get("feature_set_id") or spec.get("feature_set_id")
+        ),
         object_uri=dataset.get("object_uri"),
     )
     online_materialization = materialize_online_feature_values(
         records,
-        feature_set_id=str(production_feature_set.get("feature_set_id") or spec.get("feature_set_id")),
+        feature_set_id=str(
+            production_feature_set.get("feature_set_id") or spec.get("feature_set_id")
+        ),
     )
     as_of = max((r.get("event_time") for r in records if r.get("event_time")), default=_now())
     try:
         point_in_time_snapshot = build_point_in_time_snapshot(records, as_of=str(as_of))
     except ValueError:
-        point_in_time_snapshot = {"snapshot_id": None, "row_count": 0, "excluded_count": len(records), "point_in_time_safe": False}
+        point_in_time_snapshot = {
+            "snapshot_id": None,
+            "row_count": 0,
+            "excluded_count": len(records),
+            "point_in_time_safe": False,
+        }
 
-    promotion = decide_model_promotion(task=(challenger_model or champion_model or {}).get("task", "agronomic_recommendation"), champion=champion_model, challenger=challenger_model)
-    drift = detect_feature_drift(baseline_stats=(champion_model or {}).get("training_stats", {}), current_records=records)
-    lineage = build_feature_lineage(feature_set=spec, sources=[{"source": "phase9.feature_store_batch", "record_count": len(records)}], models=[m for m in [champion_model, challenger_model] if m])
+    promotion = decide_model_promotion(
+        task=(challenger_model or champion_model or {}).get("task", "agronomic_recommendation"),
+        champion=champion_model,
+        challenger=challenger_model,
+    )
+    drift = detect_feature_drift(
+        baseline_stats=(champion_model or {}).get("training_stats", {}), current_records=records
+    )
+    lineage = build_feature_lineage(
+        feature_set=spec,
+        sources=[{"source": "phase9.feature_store_batch", "record_count": len(records)}],
+        models=[m for m in [champion_model, challenger_model] if m],
+    )
     production_lineage = build_production_feature_lineage(
         feature_set=production_feature_set,
         definitions=feature_registry.get("definitions", []),
         dataset_version=offline_dataset_version,
-        consumers=[{"consumer": "phase10.model_registry", "task": (challenger_model or champion_model or {}).get("task", "agronomic_recommendation")}],
+        consumers=[
+            {
+                "consumer": "phase10.model_registry",
+                "task": (challenger_model or champion_model or {}).get(
+                    "task", "agronomic_recommendation"
+                ),
+            }
+        ],
     )
-    retraining_job = plan_retraining_job(drift=drift, dataset=dataset, model=champion_model or challenger_model or {"model_id": "unregistered"})
-    champion_challenger = run_champion_challenger_cycle(task=(challenger_model or champion_model or {}).get("task", "agronomic_recommendation"), champion=champion_model, challenger=challenger_model, dataset=dataset, drift=drift)
+    retraining_job = plan_retraining_job(
+        drift=drift,
+        dataset=dataset,
+        model=champion_model or challenger_model or {"model_id": "unregistered"},
+    )
+    champion_challenger = run_champion_challenger_cycle(
+        task=(challenger_model or champion_model or {}).get("task", "agronomic_recommendation"),
+        champion=champion_model,
+        challenger=challenger_model,
+        dataset=dataset,
+        drift=drift,
+    )
 
     registered_champion = None
     if champion_model:
         registered_champion = register_model_version(
-            model_name=str(champion_model.get("name") or champion_model.get("model_id") or "champion"),
+            model_name=str(
+                champion_model.get("name") or champion_model.get("model_id") or "champion"
+            ),
             version=str(champion_model.get("version") or "champion"),
             task=str(champion_model.get("task") or "agronomic_recommendation"),
-            artifacts=champion_model.get("artifacts") or {"uri": champion_model.get("artifact_uri", "")},
+            artifacts=champion_model.get("artifacts")
+            or {"uri": champion_model.get("artifact_uri", "")},
             metrics=champion_model.get("metrics") or {},
             dataset_version_id=offline_dataset_version.get("dataset_version_id"),
             feature_set_id=production_feature_set.get("feature_set_id"),
@@ -586,10 +783,13 @@ def run_phase10_learning_cycle(
     registered_challenger = None
     if challenger_model:
         registered_challenger = register_model_version(
-            model_name=str(challenger_model.get("name") or challenger_model.get("model_id") or "challenger"),
+            model_name=str(
+                challenger_model.get("name") or challenger_model.get("model_id") or "challenger"
+            ),
             version=str(challenger_model.get("version") or "candidate"),
             task=str(challenger_model.get("task") or "agronomic_recommendation"),
-            artifacts=challenger_model.get("artifacts") or {"uri": challenger_model.get("artifact_uri", "")},
+            artifacts=challenger_model.get("artifacts")
+            or {"uri": challenger_model.get("artifact_uri", "")},
             metrics=challenger_model.get("metrics") or {},
             dataset_version_id=offline_dataset_version.get("dataset_version_id"),
             feature_set_id=production_feature_set.get("feature_set_id"),
@@ -602,9 +802,15 @@ def run_phase10_learning_cycle(
             alias="agronomic_recommendation:production",
             champion=registered_champion,
             challenger=registered_challenger,
-            policy={"primary_metric": "score", "min_improvement": 0.02, "require_artifact_hash": True},
+            policy={
+                "primary_metric": "score",
+                "min_improvement": 0.02,
+                "require_artifact_hash": True,
+            },
         )
-        if serving_promotion.get("rollback_target_model_id") and serving_promotion.get("target_model_id"):
+        if serving_promotion.get("rollback_target_model_id") and serving_promotion.get(
+            "target_model_id"
+        ):
             rollback_plan = rollback_serving_alias(
                 alias=str(serving_promotion.get("alias")),
                 current_model_id=str(serving_promotion.get("target_model_id")),
@@ -613,15 +819,26 @@ def run_phase10_learning_cycle(
             )
     online_update = None
     if champion_model:
-        online_update = create_online_learning_update(model=champion_model, dataset=dataset, records=records)
+        online_update = create_online_learning_update(
+            model=champion_model, dataset=dataset, records=records
+        )
     scenario_result = None
     if scenario:
         canonical_runtime = phase9_cycle.get("canonical_runtime") or {}
-        state = canonical_runtime.get("canonical_state") or phase9_cycle.get("canonical_state") or {}
+        state = (
+            canonical_runtime.get("canonical_state") or phase9_cycle.get("canonical_state") or {}
+        )
         scenario_result = run_scientific_scenario(field_state=state, scenario=scenario)
     return {
         "phase": "phase10_continuous_learning_ai",
-        "cycle_id": _stable_id({"phase9": phase9_cycle.get("cycle_id"), "dataset": dataset.get("dataset_id"), "promotion": promotion.get("decision_id")}, "learn"),
+        "cycle_id": _stable_id(
+            {
+                "phase9": phase9_cycle.get("cycle_id"),
+                "dataset": dataset.get("dataset_id"),
+                "promotion": promotion.get("decision_id"),
+            },
+            "learn",
+        ),
         "feature_set": spec,
         "training_dataset": dataset,
         "model_promotion": champion_challenger.get("promotion", promotion),

@@ -6,8 +6,9 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "services" / "sahool-platform"))
 
-from core.agronomic_state_engine import CanonicalFieldState
-from shared.field_runtime_cohesion import (
+from core.agronomic_state_engine import CanonicalFieldState  # noqa: E402
+
+from shared.field_runtime_cohesion import (  # noqa: E402
     apply_lifecycle_transition,
     build_outcome_feedback,
     build_unified_digital_twin_view,
@@ -57,7 +58,12 @@ def test_recommendation_lifecycle_blocks_unapproved_actionable_decision():
     env = create_canonical_state_envelope(_state())
     rec = open_recommendation_lifecycle(
         env,
-        {"actionable": True, "executable": False, "dispatch_block_reason": "governance_not_evaluated", "action_type": "soil_remediation"},
+        {
+            "actionable": True,
+            "executable": False,
+            "dispatch_block_reason": "governance_not_evaluated",
+            "action_type": "soil_remediation",
+        },
     )
     assert rec["status"] == "guardrails_blocked"
     assert rec["source_state_id"] == env["state_id"]
@@ -65,12 +71,18 @@ def test_recommendation_lifecycle_blocks_unapproved_actionable_decision():
 
 def test_recommendation_lifecycle_closed_loop_feedback():
     env = create_canonical_state_envelope(_state())
-    rec = open_recommendation_lifecycle(env, {"actionable": True, "executable": True, "action_type": "irrigation"})
+    rec = open_recommendation_lifecycle(
+        env, {"actionable": True, "executable": True, "action_type": "irrigation"}
+    )
     assert rec["status"] == "approved"
     rec = apply_lifecycle_transition(rec, "dispatched", actor="scheduler")
     rec = apply_lifecycle_transition(rec, "executed", actor="pivot-controller")
-    rec = apply_lifecycle_transition(rec, "verified", actor="field-verifier", evidence={"water_mm": 18})
-    feedback = build_outcome_feedback(rec, verification={"ok": True}, outcome_metrics={"ndvi_delta": 0.04})
+    rec = apply_lifecycle_transition(
+        rec, "verified", actor="field-verifier", evidence={"water_mm": 18}
+    )
+    feedback = build_outcome_feedback(
+        rec, verification={"ok": True}, outcome_metrics={"ndvi_delta": 0.04}
+    )
     assert feedback["feature_store_candidate"] is True
     assert feedback["source_state_id"] == env["state_id"]
 
@@ -78,9 +90,15 @@ def test_recommendation_lifecycle_closed_loop_feedback():
 def test_cohesive_runtime_payload_integrates_existing_coordinator_result_shape():
     class Result:
         canonical_state = _state()
-        policy_decision = {"actionable": True, "executable": True, "action_type": "soil_remediation"}
+        policy_decision = {
+            "actionable": True,
+            "executable": True,
+            "action_type": "soil_remediation",
+        }
 
-    payload = run_cohesive_field_runtime(field_intelligence_result=Result(), economics={"profit_per_ha": 100})
+    payload = run_cohesive_field_runtime(
+        field_intelligence_result=Result(), economics={"profit_per_ha": 100}
+    )
     assert payload["contract"] == "canonical_state_to_twin_to_recommendation_to_feedback"
     assert payload["digital_twin_view"]["source_state_id"] == payload["canonical_state"]["state_id"]
     assert payload["recommendation_lifecycle"]["status"] == "approved"

@@ -5,19 +5,20 @@ and physical-equipment protocols.  It is intentionally deterministic and
 fail-closed so tests can validate dispatch behavior without real pumps, pivots,
 MQTT brokers, Modbus devices, or LoRaWAN gateways.
 """
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any
 import hashlib
 import json
 import math
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -91,12 +92,24 @@ class DispatchResult:
 
 
 DEFAULT_CAPABILITIES: dict[str, AdapterCapability] = {
-    Protocol.MANUAL_WORK_ORDER.value: AdapterCapability(Protocol.MANUAL_WORK_ORDER.value, True, DispatchMode.SIMULATION.value, False, False),
-    Protocol.MQTT.value: AdapterCapability(Protocol.MQTT.value, True, DispatchMode.SIMULATION.value, True, True),
-    Protocol.MODBUS_TCP.value: AdapterCapability(Protocol.MODBUS_TCP.value, False, DispatchMode.DISABLED.value, True, True),
-    Protocol.LORAWAN.value: AdapterCapability(Protocol.LORAWAN.value, False, DispatchMode.DISABLED.value, True, True),
-    Protocol.PIVOT_API.value: AdapterCapability(Protocol.PIVOT_API.value, False, DispatchMode.DISABLED.value, True, True),
-    Protocol.PUMP_API.value: AdapterCapability(Protocol.PUMP_API.value, False, DispatchMode.DISABLED.value, True, True),
+    Protocol.MANUAL_WORK_ORDER.value: AdapterCapability(
+        Protocol.MANUAL_WORK_ORDER.value, True, DispatchMode.SIMULATION.value, False, False
+    ),
+    Protocol.MQTT.value: AdapterCapability(
+        Protocol.MQTT.value, True, DispatchMode.SIMULATION.value, True, True
+    ),
+    Protocol.MODBUS_TCP.value: AdapterCapability(
+        Protocol.MODBUS_TCP.value, False, DispatchMode.DISABLED.value, True, True
+    ),
+    Protocol.LORAWAN.value: AdapterCapability(
+        Protocol.LORAWAN.value, False, DispatchMode.DISABLED.value, True, True
+    ),
+    Protocol.PIVOT_API.value: AdapterCapability(
+        Protocol.PIVOT_API.value, False, DispatchMode.DISABLED.value, True, True
+    ),
+    Protocol.PUMP_API.value: AdapterCapability(
+        Protocol.PUMP_API.value, False, DispatchMode.DISABLED.value, True, True
+    ),
 }
 
 
@@ -119,14 +132,18 @@ def merge_capabilities(config: dict[str, Any] | None = None) -> dict[str, Adapte
     merged = dict(DEFAULT_CAPABILITIES)
     for protocol, spec in (config or {}).items():
         key = normalize_protocol(protocol)
-        current = merged.get(key, AdapterCapability(key, False, DispatchMode.DISABLED.value, False, False))
+        current = merged.get(
+            key, AdapterCapability(key, False, DispatchMode.DISABLED.value, False, False)
+        )
         merged[key] = AdapterCapability(
             protocol=key,
             enabled=bool(spec.get("enabled", current.enabled)),
             mode=str(spec.get("mode", current.mode)),
             supports_ack=bool(spec.get("supports_ack", current.supports_ack)),
             supports_telemetry=bool(spec.get("supports_telemetry", current.supports_telemetry)),
-            max_commands_per_batch=int(spec.get("max_commands_per_batch", current.max_commands_per_batch)),
+            max_commands_per_batch=int(
+                spec.get("max_commands_per_batch", current.max_commands_per_batch)
+            ),
         )
     return merged
 
@@ -150,7 +167,12 @@ def build_dispatch_envelopes(
     envelopes: list[dict[str, Any]] = []
 
     if status != "dispatch_ready":
-        return {"ready": False, "reason": "execution_plan_not_dispatch_ready", "diagnostics": [status], "envelopes": []}
+        return {
+            "ready": False,
+            "reason": "execution_plan_not_dispatch_ready",
+            "diagnostics": [status],
+            "envelopes": [],
+        }
     if not commands:
         return {"ready": False, "reason": "no_commands", "diagnostics": [], "envelopes": []}
 
@@ -169,10 +191,25 @@ def build_dispatch_envelopes(
         if not cmd.get("command_id") or not cmd.get("target_id") or not cmd.get("idempotency_key"):
             diagnostics.append("invalid_command_identity")
             continue
-        mode = DispatchMode(capability.mode).value if capability.mode in DispatchMode._value2member_map_ else DispatchMode.DISABLED.value
-        physical_effect = bool(physical_actuation_enabled and mode == DispatchMode.REAL.value and not cmd.get("dry_run", False))
+        mode = (
+            DispatchMode(capability.mode).value
+            if capability.mode in DispatchMode._value2member_map_
+            else DispatchMode.DISABLED.value
+        )
+        physical_effect = bool(
+            physical_actuation_enabled
+            and mode == DispatchMode.REAL.value
+            and not cmd.get("dry_run", False)
+        )
         envelope = DispatchEnvelope(
-            envelope_id=_stable_id({"exec": execution_plan.get("execution_id"), "cmd": cmd.get("command_id"), "protocol": protocol}, "env"),
+            envelope_id=_stable_id(
+                {
+                    "exec": execution_plan.get("execution_id"),
+                    "cmd": cmd.get("command_id"),
+                    "protocol": protocol,
+                },
+                "env",
+            ),
             execution_id=str(execution_plan.get("execution_id")),
             tenant_id=execution_plan.get("tenant_id"),
             field_id=str(execution_plan.get("field_id")),
@@ -187,7 +224,12 @@ def build_dispatch_envelopes(
             created_at=_now(),
         )
         envelopes.append(asdict(envelope))
-    return {"ready": bool(envelopes), "reason": None if envelopes else "no_dispatchable_commands", "diagnostics": diagnostics, "envelopes": envelopes}
+    return {
+        "ready": bool(envelopes),
+        "reason": None if envelopes else "no_dispatchable_commands",
+        "diagnostics": diagnostics,
+        "envelopes": envelopes,
+    }
 
 
 def dispatch_envelopes(envelopes: list[dict[str, Any]]) -> dict[str, Any]:
@@ -226,23 +268,36 @@ def dispatch_envelopes(envelopes: list[dict[str, Any]]) -> dict[str, Any]:
             "requires_ack": env.get("protocol") != Protocol.MANUAL_WORK_ORDER.value,
             "requires_telemetry": True,
             "expected_command_id": env.get("command_id"),
-            "accepted_signals": ["acknowledged_command_ids", "flow_rate", "pressure", "power_current", "soil_moisture_delta", "fault"],
+            "accepted_signals": [
+                "acknowledged_command_ids",
+                "flow_rate",
+                "pressure",
+                "power_current",
+                "soil_moisture_delta",
+                "fault",
+            ],
             "fail_closed": True,
         }
-        results.append(asdict(DispatchResult(
-            envelope_id=str(env.get("envelope_id")),
-            command_id=str(env.get("command_id")),
-            status=status,
-            protocol=str(env.get("protocol")),
-            target_id=str(env.get("target_id")),
-            physical_effect=physical,
-            reason=reason,
-            adapter_receipt=receipt,
-            verification_contract=verification_contract,
-            dispatched_at=_now(),
-        )))
+        results.append(
+            asdict(
+                DispatchResult(
+                    envelope_id=str(env.get("envelope_id")),
+                    command_id=str(env.get("command_id")),
+                    status=status,
+                    protocol=str(env.get("protocol")),
+                    target_id=str(env.get("target_id")),
+                    physical_effect=physical,
+                    reason=reason,
+                    adapter_receipt=receipt,
+                    verification_contract=verification_contract,
+                    dispatched_at=_now(),
+                )
+            )
+        )
     return {
-        "dispatch_batch_id": _stable_id({"envelopes": [e.get("envelope_id") for e in envelopes]}, "iotbatch"),
+        "dispatch_batch_id": _stable_id(
+            {"envelopes": [e.get("envelope_id") for e in envelopes]}, "iotbatch"
+        ),
         "results": results,
         "physical_effect_count": sum(1 for r in results if r.get("physical_effect")),
         "fail_closed": True,
@@ -252,7 +307,11 @@ def dispatch_envelopes(envelopes: list[dict[str, Any]]) -> dict[str, Any]:
 def summarize_telemetry_frames(frames: list[dict[str, Any]]) -> dict[str, Any]:
     """Summarize equipment telemetry for command verification."""
     numeric_keys = ["flow_rate", "pressure", "power_current", "soil_moisture_delta"]
-    summary: dict[str, Any] = {"frame_count": len(frames), "faults": [], "acknowledged_command_ids": []}
+    summary: dict[str, Any] = {
+        "frame_count": len(frames),
+        "faults": [],
+        "acknowledged_command_ids": [],
+    }
     acked: set[str] = set()
     for frame in frames:
         acked.update(str(v) for v in (frame.get("acknowledged_command_ids") or []))
@@ -260,7 +319,17 @@ def summarize_telemetry_frames(frames: list[dict[str, Any]]) -> dict[str, Any]:
             summary["faults"].append(str(frame.get("fault")))
     summary["acknowledged_command_ids"] = sorted(acked)
     for key in numeric_keys:
-        values = [float(f[key]) for f in frames if isinstance(f.get(key), (int, float)) and math.isfinite(float(f[key]))]
-        summary[key] = {"count": len(values), "mean": sum(values) / len(values) if values else None, "latest": values[-1] if values else None}
-    summary["telemetry_ok"] = bool(acked or any(summary[k]["count"] for k in numeric_keys)) and not summary["faults"]
+        values = [
+            float(f[key])
+            for f in frames
+            if isinstance(f.get(key), (int, float)) and math.isfinite(float(f[key]))
+        ]
+        summary[key] = {
+            "count": len(values),
+            "mean": sum(values) / len(values) if values else None,
+            "latest": values[-1] if values else None,
+        }
+    summary["telemetry_ok"] = (
+        bool(acked or any(summary[k]["count"] for k in numeric_keys)) and not summary["faults"]
+    )
     return summary

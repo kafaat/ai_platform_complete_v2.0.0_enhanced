@@ -12,19 +12,20 @@ The runtime is intentionally fail-closed: any unknown high-impact action,
 missing field context, safety veto, or conflicting proposal set requires human
 approval and cannot be dispatched directly.
 """
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any
 import hashlib
 import json
 import math
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -112,14 +113,26 @@ def normalize_reputations(raw: dict[str, Any] | None = None) -> dict[str, AgentR
     out: dict[str, AgentReputation] = {}
     for role in sorted(roles):
         item = raw.get(role, {}) if isinstance(raw.get(role), dict) else {"score": raw.get(role)}
-        score = _num(item.get("score", DEFAULT_REPUTATION.get(role, 0.75)), DEFAULT_REPUTATION.get(role, 0.75))
+        score = _num(
+            item.get("score", DEFAULT_REPUTATION.get(role, 0.75)),
+            DEFAULT_REPUTATION.get(role, 0.75),
+        )
         score = max(0.05, min(1.0, score))
         sample_count = max(0, int(_num(item.get("sample_count", item.get("samples", 0)), 0)))
-        incident_count = max(0, int(_num(item.get("safety_incident_count", item.get("incidents", 0)), 0)))
+        incident_count = max(
+            0, int(_num(item.get("safety_incident_count", item.get("incidents", 0)), 0))
+        )
         stale = bool(item.get("stale", sample_count < 3))
         if incident_count:
             score = max(0.05, score - min(0.4, incident_count * 0.08))
-        out[role] = AgentReputation(role, round(score, 4), sample_count, incident_count, stale, str(item.get("updated_at") or _now()))
+        out[role] = AgentReputation(
+            role,
+            round(score, 4),
+            sample_count,
+            incident_count,
+            stale,
+            str(item.get("updated_at") or _now()),
+        )
     return out
 
 
@@ -134,16 +147,18 @@ def reputation_weighted_consensus(
     """Resolve proposals with reputation and fail-closed conflict controls."""
     reputation_records = normalize_reputations(reputations)
     if not proposals:
-        return asdict(ConflictResolution(
-            resolution_id=_stable_id({"objective": objective, "empty": True}, "res11"),
-            status=RuntimeDecisionStatus.BLOCKED.value,
-            selected_action=None,
-            conflict_reasons=["no_agent_proposals"],
-            vetoes=[],
-            approval_required=True,
-            ranked_actions=[],
-            created_at=_now(),
-        )) | {"reputations": {k: asdict(v) for k, v in reputation_records.items()}}
+        return asdict(
+            ConflictResolution(
+                resolution_id=_stable_id({"objective": objective, "empty": True}, "res11"),
+                status=RuntimeDecisionStatus.BLOCKED.value,
+                selected_action=None,
+                conflict_reasons=["no_agent_proposals"],
+                vetoes=[],
+                approval_required=True,
+                ranked_actions=[],
+                created_at=_now(),
+            )
+        ) | {"reputations": {k: asdict(v) for k, v in reputation_records.items()}}
 
     action_scores: dict[str, float] = {}
     action_support: dict[str, int] = {}
@@ -157,8 +172,12 @@ def reputation_weighted_consensus(
         rep = reputation_records.get(role) or AgentReputation(role, 0.65, 0, 0, True, _now())
         confidence = _num(proposal.get("confidence"), 0.0)
         priority = max(0.0, min(100.0, _num(proposal.get("priority"), 0.0)))
-        safety_flags = [str(f) for f in (proposal.get("safety_flags") or proposal.get("flags") or [])]
-        if action == "block" or any("veto" in f.lower() or "unsafe" in f.lower() for f in safety_flags):
+        safety_flags = [
+            str(f) for f in (proposal.get("safety_flags") or proposal.get("flags") or [])
+        ]
+        if action == "block" or any(
+            "veto" in f.lower() or "unsafe" in f.lower() for f in safety_flags
+        ):
             vetoes.append(f"{role}:{action}:{','.join(safety_flags) or 'safety_veto'}")
         # Safety agents get their reputation weight, but high confidence alone is not enough to execute.
         score = confidence * rep.score * (1.0 + priority / 100.0)
@@ -203,16 +222,20 @@ def reputation_weighted_consensus(
         status = RuntimeDecisionStatus.APPROVED_ADVISORY.value
         approval_required = False
 
-    return asdict(ConflictResolution(
-        resolution_id=_stable_id({"objective": objective, "ranked": ranked, "vetoes": vetoes}, "res11"),
-        status=status,
-        selected_action=selected,
-        conflict_reasons=sorted(set(conflict_reasons)),
-        vetoes=sorted(set(vetoes)),
-        approval_required=approval_required,
-        ranked_actions=ranked,
-        created_at=_now(),
-    )) | {
+    return asdict(
+        ConflictResolution(
+            resolution_id=_stable_id(
+                {"objective": objective, "ranked": ranked, "vetoes": vetoes}, "res11"
+            ),
+            status=status,
+            selected_action=selected,
+            conflict_reasons=sorted(set(conflict_reasons)),
+            vetoes=sorted(set(vetoes)),
+            approval_required=approval_required,
+            ranked_actions=ranked,
+            created_at=_now(),
+        )
+    ) | {
         "objective": objective,
         "execution_mode": execution_mode,
         "confidence": round(selected_conf, 4),
@@ -231,14 +254,21 @@ def create_authority_envelope(
     resolution = resolution or cycle.get("runtime_resolution") or cycle.get("consensus") or {}
     context = cycle.get("context") or {}
     op_plan = cycle.get("operation_plan") or {}
-    selected_action = resolution.get("selected_action") or (cycle.get("consensus") or {}).get("selected_action")
+    selected_action = resolution.get("selected_action") or (cycle.get("consensus") or {}).get(
+        "selected_action"
+    )
     field_id = context.get("field_id") or op_plan.get("field_id") or cycle.get("field_id")
     status = str(resolution.get("status") or "unknown")
     blocked: list[str] = []
 
     if not field_id:
         blocked.append("field_context_missing")
-    if status in {RuntimeDecisionStatus.BLOCKED.value, RuntimeDecisionStatus.CONFLICTED.value, "blocked", "conflicted"}:
+    if status in {
+        RuntimeDecisionStatus.BLOCKED.value,
+        RuntimeDecisionStatus.CONFLICTED.value,
+        "blocked",
+        "conflicted",
+    }:
         blocked.append(f"resolution_{status}")
     if resolution.get("approval_required"):
         blocked.append("human_approval_required")
@@ -247,15 +277,27 @@ def create_authority_envelope(
     if requested_authority not in {"advisory", "proposal", "shadow"}:
         blocked.append("phase11_cannot_request_execution_authority")
 
-    may_publish_event = bool(field_id) and not any(b.startswith("resolution_blocked") for b in blocked)
+    may_publish_event = bool(field_id) and not any(
+        b.startswith("resolution_blocked") for b in blocked
+    )
     envelope = AuthorityEnvelope(
-        envelope_id=_stable_id({"cycle": cycle.get("cycle_id"), "field": field_id, "status": status, "blocked": blocked}, "auth11"),
+        envelope_id=_stable_id(
+            {
+                "cycle": cycle.get("cycle_id"),
+                "field": field_id,
+                "status": status,
+                "blocked": blocked,
+            },
+            "auth11",
+        ),
         cycle_id=cycle.get("cycle_id"),
         field_id=field_id,
         allowed_authority="proposal" if not blocked else "advisory_blocked",
         may_execute=False,
         may_publish_event=may_publish_event,
-        required_next_gate="phase9_guardrails" if selected_action in HIGH_IMPACT_ACTIONS else "human_review_or_advisory_response",
+        required_next_gate="phase9_guardrails"
+        if selected_action in HIGH_IMPACT_ACTIONS
+        else "human_review_or_advisory_response",
         blocked_reasons=blocked,
         evidence={
             "resolution_id": resolution.get("resolution_id") or resolution.get("decision_id"),
@@ -302,9 +344,15 @@ def update_agent_reputation(
     return {k: asdict(v) for k, v in reps.items()}
 
 
-def build_federation_event_envelope(cycle: dict[str, Any], authority: dict[str, Any]) -> dict[str, Any]:
+def build_federation_event_envelope(
+    cycle: dict[str, Any], authority: dict[str, Any]
+) -> dict[str, Any]:
     """Create an event envelope suitable for an outbox/NATS publisher."""
-    event_type = "agent.federation.proposed" if authority.get("may_publish_event") else "agent.federation.blocked"
+    event_type = (
+        "agent.federation.proposed"
+        if authority.get("may_publish_event")
+        else "agent.federation.blocked"
+    )
     payload = {
         "cycle_id": cycle.get("cycle_id"),
         "field_id": authority.get("field_id"),
@@ -318,6 +366,8 @@ def build_federation_event_envelope(cycle: dict[str, Any], authority: dict[str, 
         "aggregate_type": "agent_federation_cycle",
         "aggregate_id": str(cycle.get("cycle_id") or authority.get("envelope_id")),
         "payload": payload,
-        "idempotency_key": _stable_id({"type": event_type, "cycle": cycle.get("cycle_id")}, "idem11"),
+        "idempotency_key": _stable_id(
+            {"type": event_type, "cycle": cycle.get("cycle_id")}, "idem11"
+        ),
         "created_at": _now(),
     }

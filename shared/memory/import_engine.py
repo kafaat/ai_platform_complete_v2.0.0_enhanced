@@ -328,7 +328,6 @@ def import_from_json(
         "schema_version": data.get("schema_version", file_schema),
     }
 
-
     # Import conversations
     for conv in data.get("conversations", []):
         conv_id = conv.get("id", "")

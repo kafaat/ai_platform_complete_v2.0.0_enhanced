@@ -1,9 +1,11 @@
 """P5 field validation, regional calibration and certification contracts."""
 
 from __future__ import annotations
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
+
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -31,7 +33,7 @@ class FieldValidationRecord(BaseModel):
     reviewer_id: str | None = None
     accepted: bool = False
     rejection_reasons: list[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     @model_validator(mode="after")
     def require_measurements(self):
@@ -64,7 +66,7 @@ class RegionalCalibrationArtifact(BaseModel):
     model_version: str
     training_data_hash: str
     leakage_checks_passed: bool = False
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class AcceptanceThreshold(BaseModel):
@@ -102,7 +104,7 @@ class ProductionCertificationRecord(BaseModel):
     blockers: list[str] = Field(default_factory=list)
     certified: bool = False
     certified_by: list[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class LearningDatasetManifest(BaseModel):
@@ -122,4 +124,4 @@ class LearningDatasetManifest(BaseModel):
     dataset_hash: str
     eligible_for_training: bool = False
     exclusion_reasons: list[str] = Field(default_factory=list)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))

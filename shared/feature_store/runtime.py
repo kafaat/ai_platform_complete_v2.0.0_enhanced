@@ -1,14 +1,14 @@
 from __future__ import annotations
 
+import json
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from hashlib import sha256
 from typing import Any
-import json
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -20,11 +20,11 @@ def _parse_time(value: Any) -> datetime | None:
     if value is None:
         return None
     if isinstance(value, datetime):
-        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
     try:
         text = str(value).replace("Z", "+00:00")
         dt = datetime.fromisoformat(text)
-        return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
     except Exception:
         return None
 
@@ -91,7 +91,12 @@ def register_feature_definitions(
             values_by_name.setdefault(str(key), []).append(value)
     definitions: list[FeatureDefinition] = []
     for fname in sorted(values_by_name):
-        payload = {"name": fname, "version": version, "entity_type": resolved_entity_type, "owner": owner}
+        payload = {
+            "name": fname,
+            "version": version,
+            "entity_type": resolved_entity_type,
+            "owner": owner,
+        }
         definitions.append(
             FeatureDefinition(
                 feature_id=_stable_id(payload, "featdef"),
@@ -107,7 +112,10 @@ def register_feature_definitions(
             )
         )
     manifest = FeatureSetManifest(
-        feature_set_id=_stable_id({"name": name, "version": version, "features": [d.feature_id for d in definitions]}, "fset"),
+        feature_set_id=_stable_id(
+            {"name": name, "version": version, "features": [d.feature_id for d in definitions]},
+            "fset",
+        ),
         name=name,
         version=version,
         entity_type=resolved_entity_type,
@@ -145,10 +153,14 @@ def write_offline_feature_dataset(
                 "quality": rec.get("quality") or {},
             }
         )
-    content_hash = sha256(json.dumps(normalized, sort_keys=True, default=str, ensure_ascii=False).encode("utf-8")).hexdigest()
+    content_hash = sha256(
+        json.dumps(normalized, sort_keys=True, default=str, ensure_ascii=False).encode("utf-8")
+    ).hexdigest()
     entities = {r["entity_id"] for r in normalized if r["entity_id"] != "unknown"}
     return {
-        "dataset_version_id": _stable_id({"feature_set_id": feature_set_id, "hash": content_hash, "version": version}, "dsver"),
+        "dataset_version_id": _stable_id(
+            {"feature_set_id": feature_set_id, "hash": content_hash, "version": version}, "dsver"
+        ),
         "dataset_name": dataset_name,
         "version": version,
         "feature_set_id": feature_set_id,
@@ -162,7 +174,9 @@ def write_offline_feature_dataset(
     }
 
 
-def build_point_in_time_snapshot(records: list[dict[str, Any]], *, as_of: str, max_age_hours: int = 48) -> dict[str, Any]:
+def build_point_in_time_snapshot(
+    records: list[dict[str, Any]], *, as_of: str, max_age_hours: int = 48
+) -> dict[str, Any]:
     """Return latest feature row per entity at or before `as_of`.
 
     Records without parseable event_time are excluded to prevent label leakage.
@@ -183,9 +197,18 @@ def build_point_in_time_snapshot(records: list[dict[str, Any]], *, as_of: str, m
             latest_by_entity[key] = (ts, rec)
     rows = []
     for (entity_type, entity_id), (ts, rec) in sorted(latest_by_entity.items()):
-        rows.append({"entity_type": entity_type, "entity_id": entity_id, "event_time": ts.isoformat(), "features": rec.get("features") or {}})
+        rows.append(
+            {
+                "entity_type": entity_type,
+                "entity_id": entity_id,
+                "event_time": ts.isoformat(),
+                "features": rec.get("features") or {},
+            }
+        )
     return {
-        "snapshot_id": _stable_id({"as_of": as_of_dt.isoformat(), "rows": rows, "max_age_hours": max_age_hours}, "pit"),
+        "snapshot_id": _stable_id(
+            {"as_of": as_of_dt.isoformat(), "rows": rows, "max_age_hours": max_age_hours}, "pit"
+        ),
         "as_of": as_of_dt.isoformat(),
         "row_count": len(rows),
         "excluded_count": excluded,
@@ -194,11 +217,13 @@ def build_point_in_time_snapshot(records: list[dict[str, Any]], *, as_of: str, m
     }
 
 
-def materialize_online_feature_values(records: list[dict[str, Any]], *, feature_set_id: str) -> dict[str, Any]:
+def materialize_online_feature_values(
+    records: list[dict[str, Any]], *, feature_set_id: str
+) -> dict[str, Any]:
     """Build latest online values per entity for Redis/Postgres online store."""
     latest: dict[tuple[str, str], tuple[datetime, dict[str, Any]]] = {}
     for rec in records:
-        ts = _parse_time(rec.get("event_time")) or datetime.now(timezone.utc)
+        ts = _parse_time(rec.get("event_time")) or datetime.now(UTC)
         key = (str(rec.get("entity_type") or "field"), str(rec.get("entity_id") or "unknown"))
         if key not in latest or ts >= latest[key][0]:
             latest[key] = (ts, rec)
@@ -217,7 +242,9 @@ def materialize_online_feature_values(records: list[dict[str, Any]], *, feature_
             }
         )
     return {
-        "materialization_id": _stable_id({"feature_set_id": feature_set_id, "writes": writes}, "onmat"),
+        "materialization_id": _stable_id(
+            {"feature_set_id": feature_set_id, "writes": writes}, "onmat"
+        ),
         "feature_set_id": feature_set_id,
         "write_count": len(writes),
         "writes": writes,
@@ -235,7 +262,15 @@ def build_feature_lineage_manifest(
     payload = {
         "feature_set_id": feature_set.get("feature_set_id"),
         "feature_names": feature_set.get("feature_names") or [d.get("name") for d in definitions],
-        "definitions": [{"feature_id": d.get("feature_id"), "name": d.get("name"), "sources": d.get("sources", []), "transformations": d.get("transformations", [])} for d in definitions],
+        "definitions": [
+            {
+                "feature_id": d.get("feature_id"),
+                "name": d.get("name"),
+                "sources": d.get("sources", []),
+                "transformations": d.get("transformations", []),
+            }
+            for d in definitions
+        ],
         "dataset_version_id": (dataset_version or {}).get("dataset_version_id"),
         "consumers": consumers or [],
     }

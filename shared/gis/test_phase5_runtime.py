@@ -15,9 +15,39 @@ from shared.gis.phase5_runtime import (
 
 def _records():
     return [
-        RasterRegistryRecord(id="1", tenant_id="t", field_id="f1", product_date="2026-06-20", index_type="ndvi", cog_url="s3://a.tif", cloud_pct=5, quality_score=90, bbox=[44,15,45,16]),
-        RasterRegistryRecord(id="2", tenant_id="t", field_id="f1", product_date="2026-06-18", index_type="ndvi", cog_url="s3://b.tif", cloud_pct=60, quality_score=30, bbox=[44,15,45,16]),
-        RasterRegistryRecord(id="3", tenant_id="t", field_id="f2", product_date="2026-06-19", index_type="truecolor", cog_url="s3://c.tif", cloud_pct=10, quality_score=80, bbox=[46,15,47,16]),
+        RasterRegistryRecord(
+            id="1",
+            tenant_id="t",
+            field_id="f1",
+            product_date="2026-06-20",
+            index_type="ndvi",
+            cog_url="s3://a.tif",
+            cloud_pct=5,
+            quality_score=90,
+            bbox=[44, 15, 45, 16],
+        ),
+        RasterRegistryRecord(
+            id="2",
+            tenant_id="t",
+            field_id="f1",
+            product_date="2026-06-18",
+            index_type="ndvi",
+            cog_url="s3://b.tif",
+            cloud_pct=60,
+            quality_score=30,
+            bbox=[44, 15, 45, 16],
+        ),
+        RasterRegistryRecord(
+            id="3",
+            tenant_id="t",
+            field_id="f2",
+            product_date="2026-06-19",
+            index_type="truecolor",
+            cog_url="s3://c.tif",
+            cloud_pct=10,
+            quality_score=80,
+            bbox=[46, 15, 47, 16],
+        ),
     ]
 
 
@@ -39,7 +69,9 @@ def test_filter_rank_and_plan_scenes():
 
 
 def test_ogc_feature_collection_and_cache_plan():
-    fc = ogc_feature_collection([{"field_id": "f1", "name": "A", "geometry": {"type": "Point", "coordinates": [44, 15]}}])
+    fc = ogc_feature_collection(
+        [{"field_id": "f1", "name": "A", "geometry": {"type": "Point", "coordinates": [44, 15]}}]
+    )
     assert fc["type"] == "FeatureCollection"
     assert fc["features"][0]["properties"]["name"] == "A"
     cache = tile_cache_plan(_records(), minzoom=8, maxzoom=10)

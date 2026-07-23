@@ -44,7 +44,12 @@ def test_dataset_blocks_low_rows():
 def test_model_promotion_prefers_better_challenger():
     champion = {"model_id": "m1", "metrics": {"score": 0.70}}
     challenger = {"model_id": "m2", "status": "candidate", "metrics": {"score": 0.75}}
-    decision = decide_model_promotion(task="yield", champion=champion, challenger=challenger, metric_policy={"primary_metric": "score", "min_improvement": 0.02})
+    decision = decide_model_promotion(
+        task="yield",
+        champion=champion,
+        challenger=challenger,
+        metric_policy={"primary_metric": "score", "min_improvement": 0.02},
+    )
     assert decision["decision"] == "promote_challenger"
     assert decision["metric_deltas"]["score"] > 0
 
@@ -53,8 +58,14 @@ def test_online_learning_detects_drift():
     records = _records()
     spec = infer_feature_schema(records)
     ds = materialize_training_dataset(records, feature_set_spec=spec)
-    model = {"model_id": "m1", "training_stats": {"feature_mean": 0.1}, "online_learning_rate": 0.05}
-    update = create_online_learning_update(model=model, dataset=ds, records=records, drift_threshold=0.1)
+    model = {
+        "model_id": "m1",
+        "training_stats": {"feature_mean": 0.1},
+        "online_learning_rate": 0.05,
+    }
+    update = create_online_learning_update(
+        model=model, dataset=ds, records=records, drift_threshold=0.1
+    )
     assert update["action"] == "queue_retraining"
     assert update["sample_count"] == 12
 
@@ -72,14 +83,22 @@ def test_experiment_evaluation_selects_winner():
         {"entity_id": "c", "net_benefit": 20},
         {"entity_id": "d", "net_benefit": 22},
     ]
-    result = evaluate_experiment_outcomes(experiment_key="irrigation-v1", assignments=assignments, outcomes=outcomes)
+    result = evaluate_experiment_outcomes(
+        experiment_key="irrigation-v1", assignments=assignments, outcomes=outcomes
+    )
     assert result["winner"] == "challenger"
     assert result["decision"] == "promote_variant"
 
 
 def test_scientific_scenario_flags_yield_risk():
-    field_state = {"field_id": "f1", "state": {"state_id": "s1", "crop": "wheat", "operational_truths": {"yield_t_ha": 4.0}}}
-    result = run_scientific_scenario(field_state=field_state, scenario={"rainfall_delta_pct": -40, "sowing_delay_days": 20, "baseline_yield_t_ha": 4.0})
+    field_state = {
+        "field_id": "f1",
+        "state": {"state_id": "s1", "crop": "wheat", "operational_truths": {"yield_t_ha": 4.0}},
+    }
+    result = run_scientific_scenario(
+        field_state=field_state,
+        scenario={"rainfall_delta_pct": -40, "sowing_delay_days": 20, "baseline_yield_t_ha": 4.0},
+    )
     assert result["projected"]["yield_t_ha"] < result["baseline"]["yield_t_ha"]
     assert "yield_decline_risk" in result["risk_flags"]
 
@@ -88,12 +107,20 @@ def test_phase10_cycle_builds_dataset_and_scenario():
     phase9 = {
         "cycle_id": "auto_1",
         "feature_store_batch": _records(),
-        "canonical_state": {"field_id": "f1", "state": {"state_id": "s1", "operational_truths": {"yield_t_ha": 4}}},
+        "canonical_state": {
+            "field_id": "f1",
+            "state": {"state_id": "s1", "operational_truths": {"yield_t_ha": 4}},
+        },
     }
     out = run_phase10_learning_cycle(
         phase9_cycle=phase9,
         champion_model={"model_id": "m1", "task": "agronomic", "metrics": {"score": 0.7}},
-        challenger_model={"model_id": "m2", "task": "agronomic", "status": "candidate", "metrics": {"score": 0.74}},
+        challenger_model={
+            "model_id": "m2",
+            "task": "agronomic",
+            "status": "candidate",
+            "metrics": {"score": 0.74},
+        },
         scenario={"rainfall_delta_pct": -10, "baseline_yield_t_ha": 4},
     )
     assert out["phase"] == "phase10_continuous_learning_ai"
