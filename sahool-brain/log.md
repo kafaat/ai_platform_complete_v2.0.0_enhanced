@@ -3417,3 +3417,22 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **التحقّق:** كلّ **63 فحص CI أخضر/مُتخطّى فعليًّا على `77d4182`** · حارس 72h 9/9 · Integration ✅ (fail-closed) · unit 3380 · bundle 4739.
 - **الدمج:** squash → main `1152c76`. **#594 (Dependabot axios 1.18) أُغلِق** كمُكرَّر — axios 1.18 على main أصلًا عبر #589، وقاعدته كانت فرع `code-review-34hO3` البائد لا main.
 - **SHA:** رأس أخضر `77d4182` · دمج main `1152c76`.
+
+## 2026-07-23 — field-forms Slice 3 (خادميّ) #600 + تشديد MQTT #601 — مدموجان (`main` = `3f2a010`)
+- **السياق:** حزمة تسليم المالك — الشريحة الخادميّة القابلة للتحقق + تشديد Mosquitto، كلٌّ فرع/PR مستقلّ، لا دمج قبل CI أخضر على SHA الدقيق، وقف Flutter، لا ادّعاء إثبات حيّ.
+- **#600 field-forms Slice 3 (خادميّ):**
+  1. **BFF حقن الفاعل:** `services/sahool-platform/api/routers/service_proxy.py` — `proxy_field_forms` يمرّر `inject_actor=True`؛ `_filtered_headers` يجرّد أيّ `x-actor-id` من العميل ويحقن `X-Actor-Id = str(user.user_id)` من JWT المُتحقَّق (نمط `X-Tenant-Id`، §8.6/SEC-3). الهاتف لا يدّعي هويّته.
+  2. **§9.2.1 سماح تدوير device-key:** `services/scout-ingest-service/field_forms_api.py` — `_verify_sync_claims` يبقي ربط الجهاز إلزاميًّا (`if not device_id: return None`)، والتطابق مطلوب إلّا ضمن نافذة صريحة `_device_rotation_grace_ok(claims, now)` تقرأ `FIELD_FORMS_DEVICE_ROTATION_GRACE_SECONDS` (افتراضي 0 = مغلقة ⇒ `not False=True` ⇒ رفض ⇒ **سلوك مطابق بايتيًّا** للفحص القديم). فشل-مغلق على `issued_at` مفقود/غير رقميّ وعلى قيمة env غير صالحة.
+  3. **الاختبارات:** `tests_v9/test_field_forms_device_rotation_grace.py` (٤ حالات: مغلق-افتراضيًّا يرفض توكنًا حديثًا حتى «0» صريحة · نافذة موجبة تقبل داخلها/ترفض خارجها · issued_at مفقود/غير صالح ⇒ رفض) + تحديث `test_field_forms_api_static_p0.py::test_device_binding_mandatory` للشكل ذي السطرين مع الإبقاء على منع تراجع `if device_id and ...` + وصله في خطوة field-forms المعزولة بـ`ci.yml`.
+  - **التحقّق:** كلّ 64 فحص أخضر/مُتخطّى على `042f18d` (unit 3391 · field-forms 120 · ruff · bundle 4784). دمج merge-commit `fc034f6`.
+- **#601 تشديد MQTT (تهيئة مكتملة، إثبات حيّ معلّق):**
+  - `mosquitto/mosquitto.conf`: `allow_anonymous false` + `password_file /mosquitto/config/passwd`.
+  - `docker-compose.v9.yml`: entrypoint `sahool-fastbee` يولّد passwd من `MQTT_USERNAME/MQTT_PASSWORD` (chown mosquitto، chmod 0600) ثمّ يسلّم للـentrypoint الأصليّ؛ فحص الصحّة يصادِق (`-u/-P`)؛ العميلان (actuator-service/video-processor) يستلمان الاعتماد (`${VAR:?}` إلزاميّ).
+  - كود العميل: `_mqtt_auth_kwargs()` في `actuator_runtime.py` + `video-processor/main.py` (+ inline في `stream_events.py`) يمرّر `{username,password}` عند ضبط `MQTT_USERNAME`، وإلّا `{}` (مجهول متوافق للخلف).
+  - **الاختبار:** `tests_v9/test_mqtt_anonymous_off_guard.py` (مُعلَّم unit): ٣ ساكنة (broker/compose/wiring) + وظيفيّان معزولان بعمليّة فرعيّة (تصادم اسمَي حزمة `routers`/`main` بين الخدمتين يلوّث sys.modules).
+  - **حمراء شُخِّصت وأُصلِحت:** «Repository Structural Lint» ⇐ `compose_env_contract_gate`: `${MQTT_USERNAME}/${MQTT_PASSWORD}` غير مُعلَنَين في `.env.example` ⇒ أُضيفا (اسم `sahool`، كلمة فارغة).
+  - **إعادة الرصف:** بعد دمج #600 صار الفرع خلف main؛ rebase ⇒ تعارضات في `SERVICE_REGISTRY.md`/`FILE_CHECKSUMS`/manifest **فقط** (المصدر اندمج تلقائيًّا) ⇒ حُلَّت بإعادة التوليد (`--write-registry` + bundle، validate 4786). force-with-lease.
+  - **التحقّق:** كلّ 68 فحص أخضر/مُتخطّى على `48ed5ae`. دمج merge-commit `3f2a010`.
+- **الدروس:** (أ) أيّ `${VAR}` جديد في compose يستلزم إعلانًا في `.env.example` وإلّا `compose_env_contract_gate` (تحت Repository Structural Lint) يحجب. (ب) فرعان يعيدان توليد نفس ملفّات الحزمة/الجرد ⇒ الثاني يحتاج rebase+regen؛ التعارضات مولَّدة فقط لا مصدريّة ⇒ لا توقّف. (ج) استيراد وحدتَي خدمتين بنفس اسم الحزمة (`routers`/`main`) في عمليّة pytest واحدة يلوّث `sys.modules` ⇒ اعزل بعمليّة فرعيّة.
+- **معلّق بصدق (غير مُعلَن مكتملًا):** إثبات MQTT الحيّ (اتّصال مجهول يفشل + موثّق ينجح مقابل وسيط فعليّ) · شريحة Flutter (متوقّفة: ملفّات copy-as-is الأصليّة غائبة + لا بيئة Flutter/Dart لتشغيل الـ11 اختبارًا) · براهين PG16/E2E الحيّة (تُنقَل لـCI/Docker؛ Postgres المحلّي مُعلَّق) · رقعة Dependabot (منفصلة). `FIELD_FORMS_ENABLED` يبقى 0.
+- **SHA:** #600 رأس `042f18d` دمج `fc034f6` · #601 رأس `48ed5ae` دمج `3f2a010`. main النهائيّ `3f2a010` (29 مسار CI success).
