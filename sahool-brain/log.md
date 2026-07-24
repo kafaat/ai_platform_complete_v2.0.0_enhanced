@@ -3578,3 +3578,20 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **قيادة للأخضر — 6 أعطال، كلّها من الشرائح:** env-drift (AQUACROP_ENABLED+SAHOOL_FTW_WEIGHTS صُنِّفا في allowlist) · **حدّ raster حقيقيّ** (P1-16 قرأ RASTER_SERVICE_URL خارج الواجهة ⇒ أُسقط raster من dependency_status) · baseline نموّ الوحدات (+2 وحدة منصّة، 658→660) · إعادة توليد route_residual + health_readiness inventory.
 - **درس:** الشرائح الجديدة تُحمِّر حُرّاساً لا يشملها التوليد المعتاد (env_compose_drift · route_residual · health_readiness · platform_module_growth) — أضِفها للتحقّق المحلّيّ قبل PR.
 - **تحقّق ما بعد الدمج (grep على main):** composer×1 · confidence×1 · reconcile×1 · MCP relay×3 — كلّها على main.
+
+## 2026-07-24 — DECISION-CENTER الشريحة 2: إغلاق حوكمة `/crop-twin/decision` (معاينة دائمة)
+- **الفجوة:** نقطتا crop-twin السيناريوهيّتان (`/crop-twin/decision` + `/decision/profit-aware`) كانتا
+  تُدِيمان قراراً منصّيّاً آمِراً موازياً خلف راية `CROP_TWIN_DIRECT_DECISION_ENABLED` — بابٌ جانبيّ
+  يخالف DECISION-CENTER-UNIFY-01 (المسار المحكوم `/decision-candidate`→decision-service يملك القرارات).
+- **الإغلاق (`crop_twin.py:453/587`):** أُزيل فرع `if crop_twin_direct_decision_enabled()` من النقطتَين
+  ⇒ `persisted=False` و`preview_only=True` **دائماً** (لا مجرّد إطفاء افتراضيّ — أُزيل الباب نفسه).
+  حُذف استيراد `persist_decision_if_enabled` (صار غير مُستخدَم). شرط سبق التأجيل (الجامع الخادميّ)
+  تحقّق بهبوط الشريحة 1 (`3c9c3c2`).
+- **صدق النطاق (لا إفراط):** بوّابة `/decision-candidate` submit=true→403 **بقيت** خلف الراية —
+  إغلاقها الحقيقيّ يحتاج وصل جامع الشريحة 1 (عمل منفصل)؛ إزالتها الآن إمّا تقتل مسار submit المحكوم
+  دائماً أو تحذف تغطيته. ضُيِّق نطاق الراية المُوثَّق (`decision_sor_mode.py:84` + `.env.example`):
+  صارت **بوّابة staging لمسار candidate فقط**، لا تمسّ النقطتَين السيناريوهيّتَين.
+- **حارس ارتداد:** اختباران جديدان يثبتان أنّ النقطتَين معاينةٌ دائمةٌ **حتى مع ضبط الراية على "1"**
+  (`test_crop_decision_endpoint.py` + `test_profit_aware_decision_endpoint.py`). 31 اختبار نقطة/مرشّح خضراء.
+- **بوّابات:** ruff (format+lint، لا استيراد ميت) · env↔compose drift=0 unclassified · حارس تفكيك الراوتر
+  أخضر · جرد الخدمات/المسارات مُعاد (تحوّل أرقام سطور فقط، لا مسار مُضاف/محذوف) · حزمة الإصدار 4857 checksum.
