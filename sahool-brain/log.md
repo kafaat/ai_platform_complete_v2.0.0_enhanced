@@ -3520,3 +3520,7 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - Track 1 (MCP analyze_field_change فوق CDSE، إلهام Geeflow): مُنفَّذ (762dd61) — أداة قراءة-فقط + منطق نقيّ + 6 اختبارات.
 - Track 2/3: مقاعد الاستبدال موجودة أصلاً (kmeans_nd N-بُعد · time_series شذوذ). ML (TESSERA/TinyCD) مؤجَّل BLOCKED-SPEC+DATA — يحتاج أوزاناً/بيانات موسومة/pilot حيّ غير متوفّرة بالحاوية. لم أبنِ سقالة مُختلَقة.
 - رخص مؤكَّدة: TESSERA MIT/CC0 · AiTLAS Apache2 · SAM2 Apache2. مرفوض: GEE تجاريّ · QGIS-GPL · SAM3 غير مؤكَّد.
+
+## 2026-07-23 — DECISION-CENTER Composer: المُحلِّل الطيفيّ الخادميّ (شريحة، default-off)
+- بُعد «سلطة المدخلات» من DECISION-CENTER-UNIFY-01: _compose_state يجلب NDVI/الطيف من raster-service خادميّاً (راية COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED، default-off) ويتجاوز مدخل العميل؛ fail-soft يعلّم spectral_unverified. 4 اختبارات + boundary 403 سليمة + جرد مُعاد + حزمة 4848.
+- المتبقّي معماريّ: طقس/تربة خادميّاً · AgronomicContext ذرّيّ · إثبات SoR حيّ (PG16). submit يبقى 403.
