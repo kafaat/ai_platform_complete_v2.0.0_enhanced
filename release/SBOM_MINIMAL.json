@@ -18755,7 +18755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d2065fe7a63cbabaf8e3bfb7ec48efcf19e59a6d466377d36a106d578928e17e"
+          "content": "98d08f22e14cc75d29d22f9159bf71649ff140235c4e71d28a173b670ec48312"
         }
       ],
       "name": "services/sahool-platform/core/capabilities.py",
@@ -22575,7 +22575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "cc6d24abcc44a230dbe9417f51f52ece58f8a8983044934456de8307a3f748bf"
+          "content": "d780072ffd74cdcc18d406a96298fe6dca9240d0e0a2310c122fc7c3570b0360"
         }
       ],
       "name": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py",

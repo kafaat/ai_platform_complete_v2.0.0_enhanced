@@ -5,7 +5,13 @@
 """
 
 import pytest
-from core.capabilities import all_capabilities, aquacrop_salinity_active, ml_field_boundary_active
+from core.capabilities import (
+    all_capabilities,
+    aquacrop_salinity_active,
+    capabilities_report,
+    dependency_status,
+    ml_field_boundary_active,
+)
 
 pytestmark = pytest.mark.unit
 
@@ -43,3 +49,26 @@ def test_capability_active_matches_gate(monkeypatch):
     monkeypatch.setenv("AQUACROP_ENABLED", "1")
     caps = {c.key: c for c in all_capabilities()}
     assert caps["aquacrop_salinity"].active is True  # الحالة تتبع البوّابة لا قيمة ثابتة
+
+
+def test_dependency_status_reflects_env(monkeypatch):
+    # P1-16: تهيئة التبعيّات الاختياريّة مرئيّة (لا انحدار صامت).
+    monkeypatch.delenv("DECISION_SERVICE_URL", raising=False)
+    monkeypatch.setenv("REDIS_URL", "redis://x:6379/0")
+    deps = dependency_status()
+    assert deps["decision_service"]["configured"] is False
+    assert deps["redis"]["configured"] is True
+    # كلّ تبعيّة تحمل اسم env الفعليّ + سلوك التدهور الصريح (لا انحدار صامت).
+    for d in deps.values():
+        assert d["env"] and d["degraded_behavior_ar"]
+
+
+def test_capabilities_report_surfaces_dependencies():
+    rep = capabilities_report()
+    assert "dependencies" in rep
+    assert set(rep["dependencies"]) == {
+        "decision_service",
+        "raster_service",
+        "weather_service",
+        "redis",
+    }

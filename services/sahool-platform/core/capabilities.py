@@ -140,8 +140,34 @@ def all_capabilities() -> list[Capability]:
     ]
 
 
+# التبعيّات الاختياريّة التي يقرؤها المنصّة (غيابها يُخفِّض القدرة بصمت اليوم — P1-16). القيم
+# أسماء متغيّرات فعليّة مقروءة في الكود، لا مُخترَعة. الحالة تهيئة (env حاضر؟) لا مسبار حيّ.
+_OPTIONAL_DEPENDENCIES = {
+    "decision_service": ("DECISION_SERVICE_URL", "القرار يُدام محلّيّاً كمرآة best-effort"),
+    "raster_service": ("RASTER_SERVICE_URL", "لا طيف/صور خادميّة — يسقط لحالة غير متحقّقة"),
+    "weather_service": ("WEATHER_SERVICE_URL", "لا GDD/ET0 من المحرّك — fail-closed 503"),
+    "redis": ("REDIS_URL", "يسقط لذاكرة داخل-العمليّة (لا مشاركة عبر النسخ)"),
+}
+
+
+def dependency_status() -> dict[str, dict[str, object]]:
+    """حالة **تهيئة** التبعيّات الاختياريّة (env حاضر؟) — شفافيّة P1-16.
+
+    صدق: ``configured`` يعني أنّ نقطة التكامل مضبوطة، **لا** أنّها قابلة للوصول حيّاً (لا مسبار
+    شبكيّ هنا — يبقى /readyz بوّابة لا تُعلّق). الغياب يُظهَر صراحةً بدل الانحدار الصامت."""
+    out: dict[str, dict[str, object]] = {}
+    for name, (env, degraded_ar) in _OPTIONAL_DEPENDENCIES.items():
+        out[name] = {
+            "env": env,
+            "configured": bool(os.getenv(env, "").strip()),
+            "degraded_behavior_ar": degraded_ar,
+        }
+    return out
+
+
 def capabilities_report() -> dict:
     caps = all_capabilities()
+    deps = dependency_status()
     return {
         "capabilities": [
             {
@@ -155,5 +181,8 @@ def capabilities_report() -> dict:
         ],
         "active_count": sum(1 for c in caps if c.active),
         "dormant_count": sum(1 for c in caps if not c.active),
+        # P1-16: تهيئة التبعيّات الاختياريّة مرئيّة (لا انحدار صامت).
+        "dependencies": deps,
+        "dependencies_note_ar": "«configured» = نقطة التكامل مضبوطة (env)، لا ضمان وصول حيّ",
         "note_ar": "القدرات الخاملة حاضرة في الكود وتبدأ فور تحقّق شرطها — لا تعديل لازم",
     }
