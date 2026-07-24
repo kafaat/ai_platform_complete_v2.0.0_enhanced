@@ -3524,3 +3524,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 ## 2026-07-23 — DECISION-CENTER Composer: المُحلِّل الطيفيّ الخادميّ (شريحة، default-off)
 - بُعد «سلطة المدخلات» من DECISION-CENTER-UNIFY-01: _compose_state يجلب NDVI/الطيف من raster-service خادميّاً (راية COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED، default-off) ويتجاوز مدخل العميل؛ fail-soft يعلّم spectral_unverified. 4 اختبارات + boundary 403 سليمة + جرد مُعاد + حزمة 4848.
 - المتبقّي معماريّ: طقس/تربة خادميّاً · AgronomicContext ذرّيّ · إثبات SoR حيّ (PG16). submit يبقى 403.
+
+## 2026-07-24 — استرداد شريحة Composer الطيفيّة + إصلاح حدّ raster (PR #621، main `64dea36`)
+- **الجذر:** PR #620 دمج الأب الخطأ (`7b60d09` وثائقيّ بدل `73966f9` Composer) — الشريحة لم تصل main. الاسترداد: cherry-pick على main ثمّ PR #621.
+- **عطل CI حقيقيّ كُشِف:** `_resolve_server_spectral` جلب indicator-grid عبر `raster_get_json` بمسار خامّ ⇒ كسر `test_p1_raster_boundary_guard` (مراجع raster يجب أن تبقى داخل الواجهة المسموحة). الإصلاح (`82ce4cc`): توجيه الجلب عبر الدالّة القانونيّة الوحيدة `api.raster_service_client.get_indicator_grid` — نفس نمط etc_dual/field_ai_context؛ المسار والنقل يبقيان داخل الواجهة، والراوتر بلا معرفة نقطة raster. صفر مراجع raster في crop_twin بعده.
+- **ضريبة التسجيل:** تعديل crop_twin غيّر بصمته ⇒ انجراف الجرد + عدم تطابق checksum الحزمة (drift/release-package/Lint&Format/Structural Lint/pytest-contracts حمراء). أُعيد توليد الجرد + الحزمة (`16ff308`): 4848 checksum + `--check` نظيف + catalog `--check` ok.
+- **تحقّق ما بعد الدمج (نفس فحص #620 الذي كشف الخطأ):** grep على main = compose_server_authoritative_spectral_enabled×2 · _resolve_server_spectral×2 · get_indicator_grid×2 · indicator-grid خامّ×0. الشريحة فعلاً على main. zip `sahool_main_64dea36.zip` (SHA كامل في تعليق الأرشيف، الشريحة داخله ×2).
+- **درس:** بعد أيّ تعديل ملفّ مصدر، أعِد توليد الجرد + الحزمة قبل الدفع (وإلّا 5 بوّابات حمراء بلا خطأ منطقيّ). وثّق: تعديل ملفّ واحد = ضريبة تسجيل كاملة حتى لو لم يتغيّر مسار/متغيّر.
