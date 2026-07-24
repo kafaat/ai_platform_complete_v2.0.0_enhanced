@@ -10565,7 +10565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75a871d8a2998af3aeec58ab87707a811fc8f3ae4f2d108056d6366e2b38d8e4"
+          "content": "6cde054c8dd93ab9b96a9d84323948ed22619832af81facd925dc8795d2314e8"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10885,7 +10885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0139a87a08151fe016fad1d51a530a475b3586861c44a75f5cc82ffbabdd5401"
+          "content": "ab323d4284d3358f61bd85308f6f43ee3f95e9ec38ee1d5717e897c5852c0e8d"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -22549,6 +22549,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_canonical_well_capability.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "cc6d24abcc44a230dbe9417f51f52ece58f8a8983044934456de8307a3f748bf"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py",
       "type": "file"
     },
     {

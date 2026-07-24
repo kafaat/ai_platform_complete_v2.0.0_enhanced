@@ -353,6 +353,37 @@ async def persist_recommendation_outcome(*, tenant_id: str, payload: Any) -> dic
         await conn.close()
 
 
+async def read_outcomes_for_reconcile(
+    *, tenant_id: str, field_id: str | None = None, season_id: str | None = None
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """يقرأ صفوف مصدرَي النتائج (tenant-scoped) لتغذية المُصالِح النقيّ (P1-13a).
+
+    ``SELECT *`` عمداً — المُصالِح متسامح مع الأعمدة، فلا نُثبّت أسماءً قد تختلف بين نسخ المخطّط.
+    ``season_id`` يضيّق ``recommendation_outcomes`` فقط (``outcome_record`` بلا عمود موسم — يُصفّى
+    بالحقل فقط). لا كتابة.
+    """
+    conn = await _connect()
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, true)", tenant_id)
+        orows = await conn.fetch(
+            "SELECT * FROM outcome_record "
+            "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2)",
+            tenant_id,
+            field_id,
+        )
+        rrows = await conn.fetch(
+            "SELECT * FROM recommendation_outcomes "
+            "WHERE tenant_id=$1::uuid AND ($2::text IS NULL OR field_id=$2) "
+            "AND ($3::text IS NULL OR season_id=$3)",
+            tenant_id,
+            field_id,
+            season_id,
+        )
+        return [dict(r) for r in orows], [dict(r) for r in rrows]
+    finally:
+        await conn.close()
+
+
 async def persist_learning_update(
     *, tenant_id: str, payload: Any, update_id: str, traceability_status: str
 ) -> dict[str, Any]:
