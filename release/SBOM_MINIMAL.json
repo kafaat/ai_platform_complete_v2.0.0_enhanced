@@ -14335,6 +14335,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "eea169567a4299ba6af1672b18299e1003e5bd1517921bda8846490595c03bfc"
+        }
+      ],
+      "name": "services/sahool-platform/api/agronomic_context_composer.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "22080002218ef5a2a76bd21f3d32d34115dd3287da025b994fac148d07bbbbcd"
         }
       ],
@@ -19655,7 +19665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08c31fdda1eef01074f9f02b2b8f5b7c1f0e1ed52446becd7cc03a1c3ca35924"
+          "content": "61744890758d0973b85a328e31d8256f2985d513b39d1d5dc301ceecb7ce807b"
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/engine.py",
@@ -22279,6 +22289,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_agro_intelligence_endpoints.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be2744e2033a04f2c1d554699271349104f7817f84c318f96b40082198c1bec4"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_agronomic_context_composer.py",
       "type": "file"
     },
     {
