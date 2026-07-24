@@ -3595,3 +3595,10 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   (`test_crop_decision_endpoint.py` + `test_profit_aware_decision_endpoint.py`). 31 اختبار نقطة/مرشّح خضراء.
 - **بوّابات:** ruff (format+lint، لا استيراد ميت) · env↔compose drift=0 unclassified · حارس تفكيك الراوتر
   أخضر · جرد الخدمات/المسارات مُعاد (تحوّل أرقام سطور فقط، لا مسار مُضاف/محذوف) · حزمة الإصدار 4857 checksum.
+
+## 2026-07-24 — PR #623 مدموج: الشريحة 2 (إغلاق حوكمة crop-twin/decision) — main `853f353`
+- **دُمِج تحت Ratchet كامل:** 64 فحصاً success/skipped على الرأس `1a529b7` (تحقّقت أنّ رأس PR=1a529b7،
+  mergeable_state=clean، قبل الدمج). تحقّق ما بعد الدمج (grep على main): النقطتان السيناريوهيّتان
+  `preview_only=True` غير مشروط (462/470، 586/593)؛ المرجع الوحيد المتبقّي للراية = بوّابة candidate (373).
+- **المتبقّي من DECISION-CENTER-UNIFY-01:** وصل جامع الشريحة 1 إلى `/decision-candidate` (يبني المرشّح من
+  منتجات خادميّة بدل مدخلات العميل) ⇒ عندها تُغلَق بوّابة submit نهائيّاً بلا راية. + وصل الجالبات async بالواجهات.
