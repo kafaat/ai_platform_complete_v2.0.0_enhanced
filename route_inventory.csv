@@ -464,10 +464,10 @@ sahool-platform,services/sahool-platform/api/routers/crop_cards.py,96,GET,/api/v
 sahool-platform,services/sahool-platform/api/routers/crop_cards.py,113,GET,/api/v1/crop-cards/variety/{variety_id}/disease-watch,variety_disease_watch_endpoint
 sahool-platform,services/sahool-platform/api/routers/crop_operations.py,24,GET,/api/v1/crops/{crop_id}/operations-calendar,crop_operations_calendar_endpoint
 sahool-platform,services/sahool-platform/api/routers/crop_suitability.py,31,POST,/api/v1/crop-suitability,crop_suitability
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,191,POST,/api/v1/crop-twin/compose,compose_crop_twin
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,243,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,344,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,478,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,302,POST,/api/v1/crop-twin/compose,compose_crop_twin
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,354,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,455,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,589,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
 sahool-platform,services/sahool-platform/api/routers/crops.py,26,GET,/api/v1/crops/drought-resilience,crop_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/crops.py,47,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/cultural_calendar.py,24,GET,/api/v1/cultural-calendar,cultural_calendar

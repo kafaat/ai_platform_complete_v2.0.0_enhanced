@@ -44,6 +44,78 @@ router = APIRouter()
 # منحنى Kc عامّ آمن حين يكون المحصول غير مُعرّف (موسوم في الاستجابة).
 _GENERIC_KC_MAP = {"initial": 0.40, "development": 0.75, "mid": 1.10, "late": 0.50}
 
+# DECISION-CENTER-UNIFY-01 (شريحة Composer — المُحلِّل الطيفيّ الخادميّ):
+# للحقول الحقيقيّة، الطيف الحاكم يجب أن يُجلَب خادميّاً من raster-service القانونيّ
+# لا أن يُوثَق من مدخلات العميل. راية default-off (نمط سهول): التفعيل قرار تشغيليّ.
+# المؤشّرات القانونيّة المُشتقّة خادميّاً (NDVI سيّد؛ إن غاب ⇒ لا سلطة خادميّة).
+_SERVER_SPECTRAL_INDICES = ("ndvi", "ndre", "ndmi", "msi")
+
+
+def compose_server_authoritative_spectral_enabled() -> bool:
+    """راية تفعيل جلب الطيف الحاكم خادميّاً (افتراض معطَّل — سلوك التشغيل بلا تغيير
+    حتى يُفعِّلها المشغّل). عند التعطيل يبقى المسار كما هو (مدخلات العميل للمعاينة)."""
+    import os
+
+    return os.getenv("COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED", "0").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
+async def _resolve_server_spectral(field_id: str, tenant_id: str | None) -> dict | None:
+    """يجلب مؤشّرات الطيف القانونيّة للحقل من raster-service خادميّاً (tenant-scoped).
+
+    NDVI سيّد: إن تعذّر جلبه أو لم يكن حقيقيّاً ⇒ ``None`` (لا سلطة خادميّة، لا خلط
+    مصادر). صدق: يقرأ منتج raster المُتحقَّق فقط عبر الواجهة القانونيّة الوحيدة؛ لا
+    حساب طيفيّ هنا. أيّ فشل نقل ⇒ ``None`` (fail-soft يُترجَم لتعليم غير-متحقَّق أعلى).
+    """
+    import asyncio
+
+    from api.raster_service_client import raster_get_json
+
+    async def _one(index: str) -> float | None:
+        try:
+            data = await raster_get_json(
+                f"/v1/fields/{field_id}/indicator-grid",
+                tenant_id=tenant_id,
+                params={"index": index, "date": "latest", "grid": 16},
+                timeout_s=20.0,
+            )
+        except Exception:  # noqa: BLE001 — fail-soft: أيّ خطأ ⇒ لا قيمة خادميّة لهذا المؤشّر
+            return None
+        if (
+            not isinstance(data, dict)
+            or not data.get("real_data")
+            or data.get("source") == "simulation"
+        ):
+            return None
+        stats = data.get("stats") if isinstance(data.get("stats"), dict) else {}
+        return stats.get("mean"), data.get("date"), data.get("scene_id") or data.get("asset_id")
+
+    results = await asyncio.gather(*[_one(ix) for ix in _SERVER_SPECTRAL_INDICES])
+    parsed: dict = {}
+    acquisition_date: str | None = None
+    scene_id: str | None = None
+    for ix, res in zip(_SERVER_SPECTRAL_INDICES, results, strict=True):
+        if isinstance(res, tuple):
+            mean, date, scene = res
+            parsed[ix] = mean
+            if ix == "ndvi":
+                acquisition_date, scene_id = date, scene
+        else:
+            parsed[ix] = None
+    if parsed.get("ndvi") is None:
+        return None  # NDVI السيّد غائب ⇒ لا سلطة خادميّة (لا خلط مع مدخلات العميل)
+    return {
+        "ndvi": parsed.get("ndvi"),
+        "ndre": parsed.get("ndre"),
+        "ndmi": parsed.get("ndmi"),
+        "msi": parsed.get("msi"),
+        "acquisition_date": acquisition_date,
+        "scene_id": scene_id,
+    }
+
 
 class ComposeForecastDay(BaseModel):
     t_min_c: float
@@ -86,12 +158,17 @@ class CropTwinComposeRequest(BaseModel):
     management: ComposeManagement = Field(default_factory=ComposeManagement)
 
 
-async def _compose_state(req: CropTwinComposeRequest) -> dict:
+async def _compose_state(req: CropTwinComposeRequest, *, tenant_id: str | None = None) -> dict:
     """تركيب مشترك: soil_water ⇒ Kc ديناميكيّ ⇒ نواة GDD من المحرّك ⇒ crop_twin ⇒ quality.
 
     WS-C.1c Zero-Legacy: نواة GDD تُجلَب من محرّك الطقس (method="modified"، نفس عتبات النموذج
     عبر ``crop_gdd_policy``) وتُحقَن في ``crop_twin_state`` — لا ``gdd_day`` محلّيّ. تعذّر المحرّك
     ⇒ 503 fail-closed. يعيد القطع التي تحتاجها نقطتا compose وdecision (تفادي تكرار الغراء).
+
+    DECISION-CENTER Composer: عند تفعيل الراية + حقل حقيقيّ، يُجلَب الطيف الحاكم
+    (NDVI/الطيف) خادميّاً من raster-service ويحلّ محلّ مدخلات العميل (لا وثوق بها في
+    المسار الحاكم). fail-soft: تعذّر الجلب ⇒ يُستخدَم مدخل العميل مع تعليم
+    ``client_supplied_spectral_unverified`` في الجودة (شفافيّة، لا اختلاق).
     """
     soil_in = req.soil
     sp = soil_water_params(
@@ -99,9 +176,34 @@ async def _compose_state(req: CropTwinComposeRequest) -> dict:
     )
     taw_mm = soil_in.taw_mm if soil_in.taw_mm is not None else sp["taw_mm"]
 
+    # DECISION-CENTER Composer — سلطة الطيف الخادميّة (default-off).
+    spectral_provenance = "client"
+    spec_ndvi, spec_ndre, spec_ndmi, spec_msi = req.ndvi, req.ndre, req.ndmi, req.msi
+    spec_acq_date = req.spectral_acquisition_date
+    spec_product_ids = req.spectral_product_ids
+    spec_quality = req.spectral_quality_status
+    spec_temporal_compat = req.spectral_temporal_compatible
+    server_spectral_attempted = False
+    if compose_server_authoritative_spectral_enabled() and req.field_id:
+        server_spectral_attempted = True
+        server_spec = await _resolve_server_spectral(req.field_id, tenant_id)
+        if server_spec is not None:
+            spectral_provenance = "raster-service"
+            spec_ndvi = server_spec["ndvi"]
+            spec_ndre, spec_ndmi, spec_msi = (
+                server_spec["ndre"],
+                server_spec["ndmi"],
+                server_spec["msi"],
+            )
+            spec_acq_date = server_spec.get("acquisition_date")
+            spec_product_ids = [server_spec["scene_id"]] if server_spec.get("scene_id") else []
+            spec_quality = "raster_service_authoritative"
+            # الطيف الخادميّ لا يحمل توافقاً زمنيّاً مُدّعى من العميل.
+            spec_temporal_compat = None
+
     # Kc ديناميكيّ من NDVI (تطعيم fAPAR بين البدئيّ والذروة) أو ثابت للمرحلة.
     kc_map = KC_BY_CROP_STAGE.get((req.crop or "").strip().lower(), _GENERIC_KC_MAP)
-    dyn_kc, kc_fapar = kc_from_ndvi(req.ndvi, kc_map, req.stage)
+    dyn_kc, kc_fapar = kc_from_ndvi(spec_ndvi, kc_map, req.stage)
 
     def _kc(d: ComposeForecastDay) -> float:
         return d.kc if d.kc is not None else dyn_kc
@@ -120,14 +222,14 @@ async def _compose_state(req: CropTwinComposeRequest) -> dict:
     ]
 
     spectral_state = build_canonical_spectral_state(
-        ndvi=req.ndvi,
-        ndre=req.ndre,
-        ndmi=req.ndmi,
-        msi=req.msi,
-        acquisition_date=req.spectral_acquisition_date,
-        product_ids=req.spectral_product_ids,
-        quality_status=req.spectral_quality_status,
-        temporal_compatible=req.spectral_temporal_compatible,
+        ndvi=spec_ndvi,
+        ndre=spec_ndre,
+        ndmi=spec_ndmi,
+        msi=spec_msi,
+        acquisition_date=spec_acq_date,
+        product_ids=spec_product_ids,
+        quality_status=spec_quality,
+        temporal_compatible=spec_temporal_compat,
     )
 
     # نواة GDD من محرّك الطقس (method="modified"، نفس عتبات النموذج) — لا gdd_day محلّيّ.
@@ -161,7 +263,7 @@ async def _compose_state(req: CropTwinComposeRequest) -> dict:
         field_id=req.field_id,
         season_id=req.season_id,
         spectral_state=spectral_state,
-        source_ids=req.spectral_product_ids,
+        source_ids=spec_product_ids,
         gdd_daily_override=gdd_override,
         gdd_product=gdd_engine,
     )
@@ -173,6 +275,11 @@ async def _compose_state(req: CropTwinComposeRequest) -> dict:
     if soil_in.taw_mm is None and (soil_in.root_depth_m is None or soil_in.root_depth_m <= 0):
         assumptions.append("estimated_root_depth")
     quality = assess_data_quality(assumptions)
+    # Composer: إن حاولنا السلطة الخادميّة وفشلت واستُخدم طيف العميل ⇒ تعليمه صراحةً
+    # كغير-متحقَّق (شفافيّة، لا اختلاق سلطة). حقل مخصّص لا وسمٌ محكوم في assess_data_quality.
+    spectral_unverified = bool(
+        server_spectral_attempted and spectral_provenance == "client" and spec_ndvi is not None
+    )
 
     return {
         "twin": twin,
@@ -184,6 +291,10 @@ async def _compose_state(req: CropTwinComposeRequest) -> dict:
         "quality": quality,
         "kc_of": _kc,  # لإعادة استخدام Kc الفعّال في خطّة الريّ
         "gdd_product": gdd_engine,  # WX-10.6: منتج GDD القانونيّ (نَسَب صريح لمرشّح القرار)
+        # Composer: مصدر الطيف الحاكم (raster-service خادميّاً أو client للمعاينة)
+        # + هل استُخدم طيف عميل بعد فشل السلطة الخادميّة (شفافيّة).
+        "spectral_provenance": spectral_provenance,
+        "spectral_unverified": spectral_unverified,
     }
 
 
@@ -197,7 +308,7 @@ async def compose_crop_twin(
     صدق: Kc ديناميكيّ من NDVI إن توفّر وإلّا ثابت للمرحلة؛ كلّ القيم موسومة
     calibrated=False مع quality/assumptions صريحة (لا لقطة حيّة مُدّعاة).
     """
-    st = await _compose_state(req)
+    st = await _compose_state(req, tenant_id=str(user.tenant_id) if user.tenant_id else None)
     twin = st["twin"]
 
     stress_flags: list[dict] = []
@@ -270,7 +381,7 @@ async def crop_decision_candidate_endpoint(
                 "decision center. Preview (submit=false) only."
             ),
         )
-    st = await _compose_state(req)
+    st = await _compose_state(req, tenant_id=str(user.tenant_id) if user.tenant_id else None)
     twin = st["twin"]
     crop_intelligence = twin.get("crop_intelligence")
     if not isinstance(crop_intelligence, dict):
@@ -312,7 +423,7 @@ async def compose_crop_decision(
     الاقتصاد مؤجَّل (economic_state=not_configured محجوز، لا مُختلق). نقيّ بلا قاعدة؛
     الإدامة في الغلاف async (crop_decision_endpoint) خلف علم تشغيليّ.
     """
-    st = await _compose_state(req)
+    st = await _compose_state(req, tenant_id=str(user.tenant_id) if user.tenant_id else None)
     kc_of = st["kc_of"]
 
     plan = plan_irrigation(
@@ -399,7 +510,7 @@ async def compose_profit_aware_decision(
     غالٍ ⇒ profit_max...). يحسب economic_state من ماء الخطّة (م³/ها) والتسميد المتبقّي
     والأسعار المُمرَّرة. صدق: لا أسعار مُختلقة — الغائب يظهر missing_inputs/partial.
     """
-    st = await _compose_state(req)
+    st = await _compose_state(req, tenant_id=str(user.tenant_id) if user.tenant_id else None)
     kc_of = st["kc_of"]
 
     # ١) السياسة: آليّة من سياق التكلفة، أو المُمرَّرة.
