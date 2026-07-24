@@ -63,6 +63,26 @@ def alerting_receivers_active() -> bool:
     )
 
 
+def ml_field_boundary_active() -> bool:
+    """كشف حدود الحقل بنموذج حقيقيّ — backend غير حتميّ + أوزان FTW مُزوَّدة (نفس أسماء
+    متغيّرات ``ai_agronomist/field_boundary_backends.py``). دون ذلك يسقط للاستدلال الحتميّ."""
+    backend = os.getenv("SAHOOL_FIELD_BOUNDARY_BACKEND", "deterministic").strip().lower()
+    return backend not in ("", "deterministic") and _truthy(os.getenv("SAHOOL_FTW_WEIGHTS"))
+
+
+def aquacrop_salinity_active() -> bool:
+    """محرّك AquaCrop لإجهاد الملوحة — راية ``AQUACROP_ENABLED`` (نفس اسم
+    ``agriai-engine/aquacrop_adapter.py``). دون التفعيل: نموذج عتبيّ ساكن موسوم uncalibrated."""
+    return _truthy(os.getenv("AQUACROP_ENABLED"))
+
+
+# ملاحظة صدق (لا نُدرِج قدرتين هنا لأنّهما ليستا «مشروطتين ببيئة»، فإدراجهما يكذب على السجلّ):
+#   • مناطق الإنتاجيّة (productivity_zones): **حتميّة دائماً** (لا وضع «نموذج حقيقيّ» يُبوَّب عليه)
+#     — طرقها كلّها `*_fallback` موسومة في الحمولة؛ ليست قدرة مؤجَّلة.
+#   • WOFOST: مُبوَّبة بحضور وحدة المحرّك وقت التشغيل (importlib) لا بمتغيّر بيئة — تعبيرها هنا
+#     بمتغيّر مُخمَّن سيكون غير دقيق؛ نقطة /simulate تُعلن available=false بصدق عند غيابها.
+
+
 @dataclass
 class Capability:
     key: str
@@ -102,6 +122,20 @@ def all_capabilities() -> list[Capability]:
             alerting_receivers_active(),
             "عيّن ALERT_SLACK_WEBHOOK أو ALERT_SMTP_HOST أو ALERT_TELEGRAM_TOKEN",
             "AlertManager يستقبل لكنّه لا يُسلّم (no-op، لا ضجيج)",
+        ),
+        Capability(
+            "ml_field_boundary",
+            "كشف حدود الحقل بنموذج ML (FTW/SAM)",
+            ml_field_boundary_active(),
+            "عيّن SAHOOL_FIELD_BOUNDARY_BACKEND=ftw وزوّد SAHOOL_FTW_WEIGHTS بمسار الأوزان",
+            "استدلال حتميّ (bbox/تتبّع كنتور مؤشّر) موسوم method في الحمولة — لا نموذج مزيّف",
+        ),
+        Capability(
+            "aquacrop_salinity",
+            "محرّك AquaCrop لإجهاد الملوحة",
+            aquacrop_salinity_active(),
+            "عيّن AQUACROP_ENABLED=1 (يتطلّب حزمة aquacrop الحقيقيّة)",
+            "نموذج ملوحة عتبيّ ساكن (Maas-Hoffman) موسوم aquacrop_uncalibrated — لا نقل زمنيّ مُختلَق",
         ),
     ]
 

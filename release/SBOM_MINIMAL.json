@@ -18735,7 +18735,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6fd17951cedb19fb86a02f9d182079f1e93873ba7d06ba2085dc63db2e62f19"
+          "content": "d2065fe7a63cbabaf8e3bfb7ec48efcf19e59a6d466377d36a106d578928e17e"
         }
       ],
       "name": "services/sahool-platform/core/capabilities.py",
@@ -19649,6 +19649,16 @@
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/__init__.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b14461cb28ddb39a6701aef2a4bca3265b2dd6d10e6c676972c708d844ffdd33"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/confidence.py",
       "type": "file"
     },
     {
@@ -22659,6 +22669,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_classification_readiness.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "72df6e17109487324c111f23f61ef6c0f746a40d437938e8588ca41568a388f9"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_confidence_contract.py",
       "type": "file"
     },
     {
