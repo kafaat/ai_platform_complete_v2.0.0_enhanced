@@ -1,7 +1,7 @@
 service,domain,python_files,python_loc,tests,routes,main,dockerfile,requirements,risk
 actuator-service,IoT Actuation,11,1530,4,6,services/actuator-service/main.py,services/actuator-service/Dockerfile,services/actuator-service/requirements.txt,normal
 agriai-engine,AI Advisor,17,1836,5,8,services/agriai-engine/main.py,services/agriai-engine/Dockerfile,services/agriai-engine/requirements.txt,normal
-ai_agronomist,AI Advisor,46,6007,1,13,services/ai_agronomist/main.py,services/ai_agronomist/Dockerfile,services/ai_agronomist/requirements.txt,normal
+ai_agronomist,AI Advisor,46,6011,1,13,services/ai_agronomist/main.py,services/ai_agronomist/Dockerfile,services/ai_agronomist/requirements.txt,normal
 auth,Identity & Access,19,2356,2,28,services/auth/main.py,services/auth/Dockerfile,services/auth/requirements.txt,normal
 decision-service,Decision SoR,59,13770,42,69,services/decision-service/main.py,services/decision-service/Dockerfile,services/decision-service/requirements.txt,normal
 edge-inference,Edge Inference,9,1112,1,6,services/edge-inference/main.py,services/edge-inference/Dockerfile.arm64,services/edge-inference/requirements.txt,normal

@@ -9825,7 +9825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0eea019fab935be574c84f0f7200b1932b9a4fc3b0dcf6838c4108fc1581fe3"
+          "content": "7e5a7b25592c4812ebfa5251d772fa2d38aab65e65b7a4a431b1f6a630da9000"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -10885,6 +10885,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "1c8b873f563e55ff9a5c0e62daaee03ae187769971f7cc0d643696c71fa1d06c"
+        }
+      ],
+      "name": "services/decision-service/outcome_reconcile.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "ab323d4284d3358f61bd85308f6f43ee3f95e9ec38ee1d5717e897c5852c0e8d"
         }
       ],
@@ -11129,6 +11139,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_no_leakage_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "04c088e6d5b8bfae384b7319b83aeffbc3cff1524bbd3ec5ea174162381f410c"
+        }
+      ],
+      "name": "services/decision-service/tests/test_outcome_reconcile.py",
       "type": "file"
     },
     {
