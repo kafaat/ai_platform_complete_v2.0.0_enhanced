@@ -187,11 +187,11 @@ mcp_servers,services/mcp_servers/market_server.py,691,GET,/analytics/{tenant_id}
 mcp_servers,services/mcp_servers/market_server.py,698,GET,/healthz,health
 mcp_servers,services/mcp_servers/market_server.py,698,GET,/health,health
 mcp_servers,services/mcp_servers/market_server.py,715,GET,/readyz,readyz
-mcp_servers,services/mcp_servers/sentinel_hub_server.py,179,GET,/mcp/v1/tools,list_tools
-mcp_servers,services/mcp_servers/sentinel_hub_server.py,266,POST,/mcp/v1/tools/call,call_tool
-mcp_servers,services/mcp_servers/sentinel_hub_server.py,467,GET,/healthz,healthz
-mcp_servers,services/mcp_servers/sentinel_hub_server.py,467,GET,/health,healthz
-mcp_servers,services/mcp_servers/sentinel_hub_server.py,472,GET,/readyz,readyz
+mcp_servers,services/mcp_servers/sentinel_hub_server.py,199,GET,/mcp/v1/tools,list_tools
+mcp_servers,services/mcp_servers/sentinel_hub_server.py,286,POST,/mcp/v1/tools/call,call_tool
+mcp_servers,services/mcp_servers/sentinel_hub_server.py,487,GET,/healthz,healthz
+mcp_servers,services/mcp_servers/sentinel_hub_server.py,487,GET,/health,healthz
+mcp_servers,services/mcp_servers/sentinel_hub_server.py,492,GET,/readyz,readyz
 mcp_servers,services/mcp_servers/shared/streamable_http.py,33,POST,<dynamic>,stream_endpoint
 mcp_servers,services/mcp_servers/weather_server.py,85,GET,/mcp/v1/tools,list_tools
 mcp_servers,services/mcp_servers/weather_server.py,148,POST,/mcp/v1/tools/call,call_tool

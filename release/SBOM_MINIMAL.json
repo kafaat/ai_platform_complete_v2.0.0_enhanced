@@ -12285,7 +12285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7eb0a0b8989d55cb36556008c586e626dd69123b34ab1013f8c8242240e74fe"
+          "content": "ceb41b985b9a7dcd4d67d878bc38e58f03e762db36a43e8057da75a9be543c2d"
         }
       ],
       "name": "services/mcp_servers/sentinel_hub_server.py",
