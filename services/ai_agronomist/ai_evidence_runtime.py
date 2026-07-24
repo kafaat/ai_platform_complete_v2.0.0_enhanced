@@ -672,6 +672,9 @@ async def build_evidence_response(
     # سياسة المستأجِر، بمفتاح من البيئة، مع سقوط آمن إلى جواب الأدلّة أعلاه عند أيّ
     # غياب/فشل. RAG+KG تبقى طبقة التأصيل الأساسيّة (تُمرَّر كأدلّة للنموذج).
     mode = "evidence_only"
+    # P1-8: يميّز «evidence-only لأنّ التوليد لم يُحاوَل» عن «حُوصِر بالسياسة» عن «حُوول وفشل» —
+    # حتّى لا يبدو الجواب المُدهوَر (فشل مزوّد) كأنّه evidence-only بالتصميم. شفافيّة، لا تغيير سلوك.
+    generation_status = "not_attempted"
     generation_model: str | None = None
     generation_provider: str | None = None
     provider_tool_calls: list[dict[str, Any]] = []
@@ -691,6 +694,7 @@ async def build_evidence_response(
         if _gen_gate["decision"] == policy_envelope.DECISION_BLOCKED:
             # Fail-closed: do not call an external provider; stay on the evidence-only answer.
             gen = None
+            generation_status = "blocked_by_policy"
         else:
             # Envelope is authoritative for data sharing: drive the existing redaction path
             # from the envelope's policy_mode (compose, don't duplicate).
@@ -714,6 +718,8 @@ async def build_evidence_response(
                 approval_saver=save_pending_approval,
                 allowed_tools=_envelope_tool_gate,
             )
+            # حُوول التوليد فعلاً: None ⇒ فشل مزوّد/إجابة فارغة (مُدهوَر)، لا تصميم.
+            generation_status = "succeeded" if gen is not None else "attempted_failed"
         if gen is not None:
             answer_ar = gen.text
             mode = "generated_grounded"
@@ -786,6 +792,8 @@ async def build_evidence_response(
     response = {
         "status": "ok",
         "mode": mode,
+        # P1-8: تمييز صريح لسبب evidence-only (لم يُحاوَل/حُوصِر بالسياسة/حُوول وفشل/نجح).
+        "generation_status": generation_status,
         "endpoint_mode": endpoint_mode,
         "answer_ar": answer_ar,
         "message": answer_ar,

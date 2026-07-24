@@ -40,6 +40,26 @@ RASTER_SERVICE_URL = os.getenv("RASTER_SERVICE_URL", "http://sahool-raster-servi
     "/"
 )
 
+
+def _relay_raster_status(resp: httpx.Response) -> None:
+    """يترجم استجابة raster-service غير الناجحة إلى حالة صادقة للمستدعي بدل تسريب 500.
+
+    راستر يعيد **424** حين لا COG/مشاهدات مؤهّلة — وهو سلوك fail-closed صحيح يجب أن يصل
+    مُستدعي MCP كـ424 (لا مشاهدة موثوقة) لا كـ500 عامّ. سابقاً كان ``resp.raise_for_status()``
+    يرفع ``httpx.HTTPStatusError`` غير مُلتقَط ⇒ FastAPI يترجمه 500 (يُلبِس الفشلَ الصادقَ رمزاً
+    مُضلِّلاً). هنا نُبقي الدلالة: 424⇒424 · 404⇒404 · بقيّة 4xx⇒422 · 5xx/غيرها⇒502 (خطأ منبع)."""
+    if resp.is_success:
+        return
+    code = resp.status_code
+    if code == 424:
+        raise HTTPException(424, detail="authoritative raster observation unavailable")
+    if code == 404:
+        raise HTTPException(404, detail="field not found in raster-service")
+    if 400 <= code < 500:
+        raise HTTPException(422, detail=f"raster-service rejected request (upstream {code})")
+    raise HTTPException(502, detail="raster-service upstream error")
+
+
 FIELD_REGISTRY = {
     "field_01": {
         "name": "حقل وادي سبأ",
@@ -404,7 +424,7 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
                 headers={"X-Tenant-Id": tenant_id},
                 timeout=60.0,
             )
-            resp.raise_for_status()
+            _relay_raster_status(resp)  # 424 من راستر ⇒ 424 لا 500 (fail-closed صادق)
             data = resp.json()
         if not data.get("real_data") or data.get("source") == "simulation":
             raise HTTPException(424, detail="authoritative raster observation unavailable")
@@ -440,7 +460,7 @@ async def _execute_tool(tool_input: ToolInput) -> dict[str, Any]:
                 params={"index": index},
                 headers={"X-Tenant-Id": tenant_id},
             )
-            resp.raise_for_status()
+            _relay_raster_status(resp)  # 424 من راستر ⇒ 424 لا 500 (fail-closed صادق)
             data = resp.json()
         # صدق: raster-service يُعلن available=False بلا COG — لا نُخمّن مقارنةً.
         points = data.get("points") if data.get("available") else []

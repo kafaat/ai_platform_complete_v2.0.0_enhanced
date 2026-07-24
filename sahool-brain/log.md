@@ -3524,3 +3524,50 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 ## 2026-07-23 — DECISION-CENTER Composer: المُحلِّل الطيفيّ الخادميّ (شريحة، default-off)
 - بُعد «سلطة المدخلات» من DECISION-CENTER-UNIFY-01: _compose_state يجلب NDVI/الطيف من raster-service خادميّاً (راية COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED، default-off) ويتجاوز مدخل العميل؛ fail-soft يعلّم spectral_unverified. 4 اختبارات + boundary 403 سليمة + جرد مُعاد + حزمة 4848.
 - المتبقّي معماريّ: طقس/تربة خادميّاً · AgronomicContext ذرّيّ · إثبات SoR حيّ (PG16). submit يبقى 403.
+
+## 2026-07-24 — استرداد شريحة Composer الطيفيّة + إصلاح حدّ raster (PR #621، main `64dea36`)
+- **الجذر:** PR #620 دمج الأب الخطأ (`7b60d09` وثائقيّ بدل `73966f9` Composer) — الشريحة لم تصل main. الاسترداد: cherry-pick على main ثمّ PR #621.
+- **عطل CI حقيقيّ كُشِف:** `_resolve_server_spectral` جلب indicator-grid عبر `raster_get_json` بمسار خامّ ⇒ كسر `test_p1_raster_boundary_guard` (مراجع raster يجب أن تبقى داخل الواجهة المسموحة). الإصلاح (`82ce4cc`): توجيه الجلب عبر الدالّة القانونيّة الوحيدة `api.raster_service_client.get_indicator_grid` — نفس نمط etc_dual/field_ai_context؛ المسار والنقل يبقيان داخل الواجهة، والراوتر بلا معرفة نقطة raster. صفر مراجع raster في crop_twin بعده.
+- **ضريبة التسجيل:** تعديل crop_twin غيّر بصمته ⇒ انجراف الجرد + عدم تطابق checksum الحزمة (drift/release-package/Lint&Format/Structural Lint/pytest-contracts حمراء). أُعيد توليد الجرد + الحزمة (`16ff308`): 4848 checksum + `--check` نظيف + catalog `--check` ok.
+- **تحقّق ما بعد الدمج (نفس فحص #620 الذي كشف الخطأ):** grep على main = compose_server_authoritative_spectral_enabled×2 · _resolve_server_spectral×2 · get_indicator_grid×2 · indicator-grid خامّ×0. الشريحة فعلاً على main. zip `sahool_main_64dea36.zip` (SHA كامل في تعليق الأرشيف، الشريحة داخله ×2).
+- **درس:** بعد أيّ تعديل ملفّ مصدر، أعِد توليد الجرد + الحزمة قبل الدفع (وإلّا 5 بوّابات حمراء بلا خطأ منطقيّ). وثّق: تعديل ملفّ واحد = ضريبة تسجيل كاملة حتى لو لم يتغيّر مسار/متغيّر.
+
+## 2026-07-24 — رَنبوك PG16 Staging Activation (تنسيق فتح البيئة الحيّة)
+- أُضيف `sahool-brain/runbooks/pg16-staging-activation.md` — رَنبوك **تنسيق (hub) لا تكرار**: يرفع PG16+PostGIS، يطبّق 219 هجرة عبر sahool-migrate، يُثبت RLS بالدور المقيَّد + production_validation_gate، ثمّ يُحيل لكلّ إغلاق حيّ إلى رَنبوكه القائم بترتيب الاعتماديّة (DECISION-SoR staging→compare→cutover→promote→revoke→rollback عبر `docs/runbooks/DECISION_SERVICE_SOR_*` وأدوات decision-service الحقيقيّة · SEASON-EDGE §225 · Track1 MCP · CDSE).
+- **تنبيه صدق مُوثَّق:** compose يُثبِّت `postgis/postgis:15-3.4` (PG15) — PG16 يتطلّب تجاوز صورة عبر override غير مُتعقَّب (مذكور في §0)، لا تعديل القيمة المُتعقَّبة.
+- عقد الصدق: الأسرار عبر البيئة فقط (DSN لا في المحادثة/ملفّ مُتعقَّب) · production_certified يبقى false حتى الشهادة الحيّة · «مؤشّر ≠ إثبات» (لا ترقية verified بلا برهان curl/psql/مسبار).
+
+## 2026-07-24 — رَنبوك Full-Stack Activation (hub الفئة 2)
+- أُضيف `sahool-brain/runbooks/full-stack-activation.md` — hub رفع الـmesh الكامل (خدمات+nginx+Redis+MinIO فوق أرضيّة pg16 G1+G2)، يشغّل `-m integration`، ويملأ الفجوات الفعليّة الثلاث للفئة 2: **خطوات Track 1 MCP الحيّة** (POST `/mcp/v1/tools/call` على `sahool-sentinel-hub-mcp`، satellite:read، متوقّع ملخّص أو 424) · **الخدمات الثلاث بلا مستهلك** (agriai-engine + rs-workspace-bff في compose · gis-workflow-service غير منشور — رفع+صحّة لا مستهلك، لا ترقية verified) · إحالة #225 لـseason-record §3.
+- **قرار صدق (hub لا تكرار):** لم أبنِ رَنبوك فئة 3 — `SATELLITE_IMAGERY_RUNBOOK.md` (238 سطراً) يغطّيها بالكامل؛ أُحيل إليه + REAL_ENV_VERIFICATION + OPERATOR_DISPATCH_BACKLOG بدل التكرار.
+- حقائق مُثبَتة من compose: 67 خدمة · `sahool-nginx/redis/redis-state/minio/minio-init/platform/raster-service/sentinel-hub-mcp` · `/api/agriai/` شبكات خاصّة فقط (nginx.v9.conf:469) · gis-workflow-service صفر في compose.
+
+## 2026-07-24 — DECISION-CENTER الشريحة 1: مُجمِّع السياق الزراعيّ الخادميّ (`3c9c3c2`)
+- من تدقيق الذكاء الزراعيّ (مؤرَّض ودقيق، نقيض «كشف الآفات» الذي ثبت خطؤه). أهمّ فجوة = **P0-3: نصف «الجمع» المفقود**. الاكتشاف الدقيق: `compose_agronomic_context` في decision-service (persistence.py:4023) يُثبِّت + يُبوِّب PIT، لكنّه يستقبل payload مُركَّباً من مدخلات العميل عبر crop_twin — لا جامع خادميّ.
+- **البُنية:** `services/sahool-platform/api/agronomic_context_composer.py` — `assemble_agronomic_context(...)` نقيّ يبني payload عقد AC-1 `ContextComposeIn` من منتجات قانونيّة مقروءة خادميّاً (نمط `_resolve_server_spectral`)، بنَسَب كامل لكلّ ميزة (P0-2)، المجموعات السبع حاضرة، quality_matrix، content_digest/idempotency حتميّان.
+- **ضمانات صدق:** لا اختلاق (مصدر غائب ⇒ missing بلا قيمة) · استبعاد التسرّب المستقبليّ (available_at>cutoff) · وسم عدم التماسك الزمنيّ (P1-4) · لا كتابة (تركيب نقيّ). راية `AGRONOMIC_CONTEXT_COMPOSE_ENABLED` default-off.
+- **برهان توافق عبر-الخدمات:** أكّدت أنّ الـpayload يجتاز عقد pydantic AC-1 الحقيقيّ + `validate_composition` (بوّابة PIT) بصفر مخالفات (dev) — تركيب حقيقيّ يُغذّي المُثبِّت القائم لا موازٍ.
+- 6 اختبارات وحدة · ruff · جرد+حزمة مُعاد (4848). **المتبقّي:** الشريحة 2 (جعل `/crop-twin/decision` preview دائماً + توجيهه عبر هذا الجامع) + وصل الجالبات async بالواجهات. سُجِّل تقدّم DECISION-CENTER-UNIFY-01 (بُعد السياق الذرّيّ بدأ).
+
+## 2026-07-24 — تدقيق الذكاء الزراعيّ: تحقّق منهجيّ + إغلاقات متاحة (Slice 3 + P1-9)
+- **تحقّق (وكيل قراءة-فقط، 43 أداة):** أُكِّد P1-2/P1-4/P1-5/P1-6/P1-10/P1-13/P1-17. **كُذِّب** P1-3 (roots تفشل مُغلَقة `validated_root_policy_required` لا defaults) وجزء RAG من P1-8 (RAG يفشل 502 مُغلَقاً). جزئيّ: P1-8 (وسم `mode` موجود لكن فشل التوليد يُبتلَع بلا علَم)، P1-9 (موسوم بالحمولة لا بالسجلّ)، P1-16 (/capabilities و/readyz لا يعكسان تبعيّات اختياريّة). **الدرس يتكرّر:** عدّة «فجوات» صادقة أصلاً في الكود.
+- **بُنِي (متاح حقيقيّ، Ratchet أخضر):**
+  - **Slice 3 (P0-4) `1f168be`:** عقد ثقة مُركَّب `core/crop_intelligence/confidence.py` — يضيف `confidence_factors` (اكتمال/تدهور/هويّة محصول + سقف صدق: high غير قابلة للبلوغ حتى تُقيَّم النضارة/المعايرة، موسومة not_assessed) بجوار سلسلة `confidence` القائمة (صفر انحدار، 26/26).
+  - **P1-9 `b593ad2`:** تسجيل قدرتَي AI مشروطتين بدقّة في `core/capabilities.py` (ml_field_boundary عبر SAHOOL_FIELD_BOUNDARY_BACKEND+FTW_WEIGHTS · aquacrop_salinity عبر AQUACROP_ENABLED). **استُبعِدت بصدق** productivity_zones (حتميّة دائماً) وWOFOST (مُبوَّبة بحضور الوحدة لا env) — إدراجهما يكذب على السجلّ.
+- **متاح لكن مؤجَّل بقرار (لم يُبنَ):** P1-4 (تماسك crop_water الزمنيّ — يحتاج طوابع per-product؛ إضافة param غير موصول = سقالة) · P1-8-label · P1-13a (join /outcomes/reconciled) · P1-16 (مسبار جاهزيّة). **محجوب:** P1-2/P1-5/P1-6/P1-10/P1-13b/P1-17 (بيانات/معايرة/migration/تحويل SoR).
+
+## 2026-07-24 — P1-13a: مصالحة نتائج حقيقيّة (decision-service `b445dca`)
+- **الفجوة:** `/v1/outcomes/reconciled` كان stub يعيد أصفاراً (sample_count:0) رغم وجود جدولَي النتائج ⇒ لوحة التعلّم تكذب.
+- **البُنية:** `outcome_reconcile.reconcile_outcomes` نقيّ يضمّ `outcome_record` + `recommendation_outcomes`: اشتقاق نجاح متسامح مع الأعمدة (success منطقيّ · outcome نصّيّ · غلّة فعليّة≥متوقّعة؛ accepted وحده ≠ نتيجة ⇒ unknown). **صدق:** success_rate فوق القابل للحسم فقط · **unique_decisions يفكّ العدّ المزدوج** الذي سمّاه التدقيق · دلو unknown صريح (لا اختلاق). `read_outcomes_for_reconcile` (SELECT * tenant-scoped، season على recommendation فقط). النقطة async محميّة بـDB: بلا DATABASE_URL ⇒ ملخّص فارغ `source:unavailable` (يحفظ test_p4_6)؛ مع مخزن ⇒ ضمّ حقيقيّ؛ تعذّر مُهيّأ ⇒ 503 (لا فراغ يُخفي فشلاً).
+- 5 اختبارات نقيّة + سويت P4 (test_p4_6 ضمناً) = 16 نجحت. **P1-13b** (توحيد هويّة الكتابة) يبقى محجوباً (migration+backfill).
+- **إجماليّ الجلسة على الفرع:** Slice 1 (composer P0-3) · Slice 3 (confidence P0-4) · P1-9 (سجلّ قدرات) · P1-13a (مصالحة). كلّها Ratchet-محلّيّ أخضر.
+
+## 2026-07-24 — P1-8 + P1-16: شفافيّة صادقة (استكمال «المتاح»)
+- **P1-8-label (`797b30a`):** `ai_evidence_runtime` صار يُظهر `generation_status` (not_attempted/blocked_by_policy/attempted_failed/succeeded) بجوار `mode` — فشل التوليد لم يعد يبدو evidence-only بالتصميم. إضافيّ صرف، حارس ساكن (نمط الملفّ)، 6/6 مع v57.
+- **P1-16:** `capabilities_report` صار يحمل كتلة `dependencies` (DECISION/RASTER/WEATHER_SERVICE_URL + REDIS_URL) بحالة `configured` (env حاضر؟) + سلوك التدهور الصريح لكلٍّ — تهيئة التبعيّات الاختياريّة مرئيّة في `/api/v1/capabilities` بدل الانحدار الصامت. **صدق:** configured≠وصول حيّ (لا مسبار شبكيّ؛ /readyz يبقى بوّابة لا تُعلَّق). 6/6 + 23 اختبار قدرات.
+- **حصيلة استكمال «المتاح» من التدقيق:** P1-9 · P1-13a · P1-8-label · P1-16 — كلّها إضافيّة/صادقة Ratchet-محلّيّ أخضر. المتبقّي محجوب (P1-2/5/6/10/13b/17 + الشريحة 2 حوكمة).
+
+## 2026-07-24 — تشغيل حيّ لرَنبوك full-stack (المالك) + إصلاح MCP 500→424
+- **milestone حيّ (تقرير المالك، لا أتحقّق منه من حاويتي):** الـstack الكامل مرفوع؛ ERP-Bridge healthy (ERR-BRIDGE-001 مُغلَق)؛ **SEASON-EDGE-LIVE-PROOF #225 مُغلَق حيّاً** (401 مزوَّرة · 200 مُراجِع · 409 إعادة قبول)؛ Track1 MCP: 3 أدوات + 424 من راستر عند حقل بلا مشاهدات؛ agriai/rs-bff خلف nginx خاصّ؛ 3360 unit + 131 integration خضراء. رَنبوكاي (pg16/full-stack) صحّا عمليّاً.
+- **عطل كوديّ حقيقيّ كشفه التشغيل + أُصلِح (`?`):** خادم MCP كان يُسرّب **500** حين يعيد راستر **424** (`resp.raise_for_status()` غير مُلتقَط في `read_indicator_observation` + `analyze_field_change`). أُضيف `_relay_raster_status` يُبقي الدلالة (424⇒424 · 404⇒404 · 4xx⇒422 · 5xx⇒502) — fail-closed الصادق يصل المستدعي بدل 500 مُضلِّل. حارس ساكن (تفادي تصادم حزمة shared). يُصلح كودي أنا (Track1) أيضاً.
+- **بنود المالك المؤجَّلة (تشغيليّة/حَوكمة، ليست كوداً لي):** scout-ingest-projection حلقة restart (SCOUT_INGEST_PROJECTION_ENABLED غير مضبوط) · water-ledger-worker heartbeat_stale · telegram-bot بلا توكن · حذف الفرع/تغيير الفرع الافتراضيّ (GitHub Settings — فعل المالك).

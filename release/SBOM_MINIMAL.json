@@ -9825,7 +9825,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a0eea019fab935be574c84f0f7200b1932b9a4fc3b0dcf6838c4108fc1581fe3"
+          "content": "7e5a7b25592c4812ebfa5251d772fa2d38aab65e65b7a4a431b1f6a630da9000"
         }
       ],
       "name": "services/ai_agronomist/ai_evidence_runtime.py",
@@ -10565,7 +10565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "75a871d8a2998af3aeec58ab87707a811fc8f3ae4f2d108056d6366e2b38d8e4"
+          "content": "6cde054c8dd93ab9b96a9d84323948ed22619832af81facd925dc8795d2314e8"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10885,7 +10885,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0139a87a08151fe016fad1d51a530a475b3586861c44a75f5cc82ffbabdd5401"
+          "content": "1c8b873f563e55ff9a5c0e62daaee03ae187769971f7cc0d643696c71fa1d06c"
+        }
+      ],
+      "name": "services/decision-service/outcome_reconcile.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ab323d4284d3358f61bd85308f6f43ee3f95e9ec38ee1d5717e897c5852c0e8d"
         }
       ],
       "name": "services/decision-service/persistence.py",
@@ -11129,6 +11139,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_no_leakage_certification.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "04c088e6d5b8bfae384b7319b83aeffbc3cff1524bbd3ec5ea174162381f410c"
+        }
+      ],
+      "name": "services/decision-service/tests/test_outcome_reconcile.py",
       "type": "file"
     },
     {
@@ -12265,7 +12285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d7eb0a0b8989d55cb36556008c586e626dd69123b34ab1013f8c8242240e74fe"
+          "content": "ceb41b985b9a7dcd4d67d878bc38e58f03e762db36a43e8057da75a9be543c2d"
         }
       ],
       "name": "services/mcp_servers/sentinel_hub_server.py",
@@ -14329,6 +14349,16 @@
         }
       ],
       "name": "services/sahool-platform/api/agronomic_consistency.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "eea169567a4299ba6af1672b18299e1003e5bd1517921bda8846490595c03bfc"
+        }
+      ],
+      "name": "services/sahool-platform/api/agronomic_context_composer.py",
       "type": "file"
     },
     {
@@ -18725,7 +18755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b6fd17951cedb19fb86a02f9d182079f1e93873ba7d06ba2085dc63db2e62f19"
+          "content": "ba9f126645fb67ca4e52979b2a6e6ed2fd16930e8180f8795035bba95579bf01"
         }
       ],
       "name": "services/sahool-platform/core/capabilities.py",
@@ -19645,6 +19675,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "b14461cb28ddb39a6701aef2a4bca3265b2dd6d10e6c676972c708d844ffdd33"
+        }
+      ],
+      "name": "services/sahool-platform/core/crop_intelligence/confidence.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "4e88f5c0de3a391b674ef1cd7461f76b168d5b8626b7df096593e30462c08e76"
         }
       ],
@@ -19655,7 +19695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "08c31fdda1eef01074f9f02b2b8f5b7c1f0e1ed52446becd7cc03a1c3ca35924"
+          "content": "61744890758d0973b85a328e31d8256f2985d513b39d1d5dc301ceecb7ce807b"
         }
       ],
       "name": "services/sahool-platform/core/crop_intelligence/engine.py",
@@ -22285,6 +22325,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "be2744e2033a04f2c1d554699271349104f7817f84c318f96b40082198c1bec4"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_agronomic_context_composer.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "7981e949b7c5ce46d4b0f4f1b7c874d6f5f4fb99f1a48443a4cef80038a9ad5e"
         }
       ],
@@ -22525,6 +22575,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "234c25c34a72077c644bb2dd06ca894b7bae425bd624d5c4fce1087dd8a773b5"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_capabilities_ai_fallbacks.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3f3b67478ecf66ccc896ee8b873b3393754f4995d46c9fa5abd70eba38a893ac"
         }
       ],
@@ -22639,6 +22699,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_crop_classification_readiness.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "72df6e17109487324c111f23f61ef6c0f746a40d437938e8588ca41568a388f9"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_crop_confidence_contract.py",
       "type": "file"
     },
     {
