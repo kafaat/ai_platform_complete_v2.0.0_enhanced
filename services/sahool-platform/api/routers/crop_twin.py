@@ -32,7 +32,6 @@ from api.irrigation_method import gross_irrigation_mm, method_profile
 from api.irrigation_mpc import ForecastDay, plan_irrigation
 from api.irrigation_policy import PolicyContext, resolve_policy
 from api.main import UserSchema, get_current_user
-from api.routers.decision_record import persist_decision_if_enabled
 from api.season_simulation import crop_gdd_policy
 from api.soil_water import soil_water_params
 from api.unified_decision import unified_decision
@@ -455,28 +454,20 @@ async def crop_decision_endpoint(
     req: CropDecisionRequest,
     user: UserSchema = Depends(get_current_user),
 ):
-    """يُصدر قرار المحصول الموحّد ويلتقطه في السلسلة المُدامة تلقائيّاً عند المصدر.
+    """يُصدر قرار المحصول الموحّد كـ**معاينة/سيناريو** فقط (لا يُدِيم قراراً آمِراً موازياً).
 
-    يحسب القرار نقيّاً (compose_crop_decision) ثمّ يُدِيمه إن فُعِّل SAHOOL_AUTO_PERSIST_DECISIONS
-    — فيُلتقَط كلّ قرار في سلسلة النَّسَب بلا نداء /decision/record منفصل. الصدق: الإدامة أثر
-    جانبيّ best-effort؛ persisted=false عند الإطفاء أو تعذّر القاعدة (لا يكسر القرار).
+    DECISION-CENTER-UNIFY-01 (إغلاق الحوكمة، الشريحة 2): هذه النقطة معاينةٌ **دائمةٌ** — لا
+    تكتب قراراً منصّيّاً آمِراً بعد الآن. المسار المحكوم وحده يملك القرارات الحقيقيّة:
+    ``/decision-candidate`` → موافقة بشريّة/سياسة → decision-service (SoR). الحساب نقيّ
+    (compose_crop_decision)؛ persisted=false وpreview_only=true دائماً — لا راية تُعيد باب
+    الكتابة المباشرة الجانبيّ (أُزيلت راية CROP_TWIN_DIRECT_DECISION_ENABLED من هذه النقطة).
     """
     decision = await compose_crop_decision(req=req, user=user)
-    if crop_twin_direct_decision_enabled():
-        decision["persisted"] = await persist_decision_if_enabled(
-            user,
-            decision_id=decision["decision_id"],
-            decision_type="crop_twin",
-            decision_value=decision,
-            field_id=req.field_id,
-            confidence=decision.get("confidence"),
-        )
-    else:
-        # DECISION-CENTER-UNIFY-01: preview/scenario only — the platform does not persist
-        # a parallel authoritative decision here; the governed candidate→approval path
-        # (/decision-candidate → decision-service) owns real decisions.
-        decision["persisted"] = False
-        decision["preview_only"] = True
+    # DECISION-CENTER-UNIFY-01: preview/scenario only — permanent. The platform does not
+    # persist a parallel authoritative decision here; the governed candidate→approval path
+    # (/decision-candidate → decision-service) owns real decisions.
+    decision["persisted"] = False
+    decision["preview_only"] = True
     return decision
 
 
@@ -589,25 +580,15 @@ async def profit_aware_decision_endpoint(
     req: ProfitAwareDecisionRequest,
     user: UserSchema = Depends(get_current_user),
 ):
-    """يُصدر القرار الواعي بالربح ويلتقطه في السلسلة المُدامة تلقائيّاً عند المصدر.
+    """يُصدر القرار الواعي بالربح كـ**معاينة/سيناريو** فقط (لا يُدِيم قراراً آمِراً موازياً).
 
-    يحسب القرار نقيّاً (compose_profit_aware_decision) ثمّ يُدِيمه إن فُعِّل علم الإدامة
-    التلقائيّة — مع المنطقة (req.region) للمعايرة. الصدق: أثر جانبيّ best-effort؛
-    persisted=false عند الإطفاء/تعذّر القاعدة (لا يكسر القرار).
+    DECISION-CENTER-UNIFY-01 (إغلاق الحوكمة، الشريحة 2): معاينةٌ **دائمةٌ** — الحساب نقيّ
+    (compose_profit_aware_decision)؛ persisted=false وpreview_only=true دائماً. لا كتابة
+    منصّيّة آمِرة موازية؛ المسار المحكوم (/decision-candidate → decision-service) وحده يملك
+    القرارات (أُزيلت راية CROP_TWIN_DIRECT_DECISION_ENABLED من هذه النقطة).
     """
     decision = await compose_profit_aware_decision(req=req, user=user)
-    if crop_twin_direct_decision_enabled():
-        decision["persisted"] = await persist_decision_if_enabled(
-            user,
-            decision_id=decision["decision_id"],
-            decision_type="profit_aware",
-            decision_value=decision,
-            field_id=req.field_id,
-            region=req.region,
-            confidence=decision.get("confidence"),
-        )
-    else:
-        # DECISION-CENTER-UNIFY-01: preview/scenario only — no parallel authoritative write.
-        decision["persisted"] = False
-        decision["preview_only"] = True
+    # DECISION-CENTER-UNIFY-01: preview/scenario only — permanent, no parallel authoritative write.
+    decision["persisted"] = False
+    decision["preview_only"] = True
     return decision

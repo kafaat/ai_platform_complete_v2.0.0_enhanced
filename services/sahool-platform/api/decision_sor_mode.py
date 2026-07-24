@@ -82,14 +82,20 @@ class PlatformDecisionSorMode:
 
 
 def crop_twin_direct_decision_enabled() -> bool:
-    """Escape hatch for the crop-twin DIRECT decision side-doors (DECISION-CENTER-UNIFY-01).
+    """Staging gate for the crop-twin ``/decision-candidate`` submit path (DECISION-CENTER-UNIFY-01).
 
-    Default **False** = fail-closed / the correct posture: the crop-twin ``/decision``
-    and ``/decision/profit-aware`` endpoints are preview/scenario only (they do NOT
-    persist a platform-authoritative decision), and ``/decision-candidate`` refuses
-    ``submit=true`` (a candidate built from client-supplied inputs must not be pushed to
-    the decision center). Set ``CROP_TWIN_DIRECT_DECISION_ENABLED=true`` only to restore
-    the legacy direct-write behavior.
+    Default **False** = fail-closed / the correct posture: ``/decision-candidate`` refuses
+    ``submit=true`` because the candidate is still built from client-supplied inputs; it must
+    not be pushed to the decision center until the server-side agronomic-context assembler
+    (Slice 1, ``agronomic_context_composer``) is wired into this path. Set
+    ``CROP_TWIN_DIRECT_DECISION_ENABLED=true`` only in staging to exercise the governed
+    candidate→approval submit flow.
+
+    NOTE (Slice 2 — governance closure): this flag NO LONGER controls the crop-twin
+    ``/decision`` and ``/decision/profit-aware`` endpoints. Those are now **permanently**
+    preview/scenario only (``preview_only=true``, never persist an authoritative decision) —
+    the legacy direct-write side-door was removed, not merely defaulted off. The governed
+    path (``/decision-candidate`` → decision-service) owns real decisions.
     """
     return _truthy("CROP_TWIN_DIRECT_DECISION_ENABLED")
 

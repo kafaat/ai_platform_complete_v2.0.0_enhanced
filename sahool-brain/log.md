@@ -3571,3 +3571,27 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **milestone حيّ (تقرير المالك، لا أتحقّق منه من حاويتي):** الـstack الكامل مرفوع؛ ERP-Bridge healthy (ERR-BRIDGE-001 مُغلَق)؛ **SEASON-EDGE-LIVE-PROOF #225 مُغلَق حيّاً** (401 مزوَّرة · 200 مُراجِع · 409 إعادة قبول)؛ Track1 MCP: 3 أدوات + 424 من راستر عند حقل بلا مشاهدات؛ agriai/rs-bff خلف nginx خاصّ؛ 3360 unit + 131 integration خضراء. رَنبوكاي (pg16/full-stack) صحّا عمليّاً.
 - **عطل كوديّ حقيقيّ كشفه التشغيل + أُصلِح (`?`):** خادم MCP كان يُسرّب **500** حين يعيد راستر **424** (`resp.raise_for_status()` غير مُلتقَط في `read_indicator_observation` + `analyze_field_change`). أُضيف `_relay_raster_status` يُبقي الدلالة (424⇒424 · 404⇒404 · 4xx⇒422 · 5xx⇒502) — fail-closed الصادق يصل المستدعي بدل 500 مُضلِّل. حارس ساكن (تفادي تصادم حزمة shared). يُصلح كودي أنا (Track1) أيضاً.
 - **بنود المالك المؤجَّلة (تشغيليّة/حَوكمة، ليست كوداً لي):** scout-ingest-projection حلقة restart (SCOUT_INGEST_PROJECTION_ENABLED غير مضبوط) · water-ledger-worker heartbeat_stale · telegram-bot بلا توكن · حذف الفرع/تغيير الفرع الافتراضيّ (GitHub Settings — فعل المالك).
+
+## 2026-07-24 — PR #622 مدموج: إغلاقات تدقيق الذكاء الزراعيّ + إصلاح MCP 424 (main `4358fa2`)
+- **دُمِج تحت Ratchet كامل:** 68 فحصاً success/skipped على الرأس `64223d9`، تحقّقت أنّ رأس PR = `64223d9` قبل الدمج (تفادي خطأ #620). 16 commit.
+- **المحتوى:** Slice 1 (P0-3 المُجمِّع الخادميّ) · Slice 3 (P0-4 عقد الثقة) · P1-9 (سجلّ قدرات) · P1-13a (مصالحة النتائج) · P1-8 (وسم generation_status) · P1-16 (رؤية التبعيّات) · **إصلاح MCP 424→424 لا 500** (كشفه تشغيل المالك الحيّ؛ إصلاح الجلسة الموازية محلّيّ لم يُدمَج ⇒ إصلاحي هو الذي أوصله main).
+- **قيادة للأخضر — 6 أعطال، كلّها من الشرائح:** env-drift (AQUACROP_ENABLED+SAHOOL_FTW_WEIGHTS صُنِّفا في allowlist) · **حدّ raster حقيقيّ** (P1-16 قرأ RASTER_SERVICE_URL خارج الواجهة ⇒ أُسقط raster من dependency_status) · baseline نموّ الوحدات (+2 وحدة منصّة، 658→660) · إعادة توليد route_residual + health_readiness inventory.
+- **درس:** الشرائح الجديدة تُحمِّر حُرّاساً لا يشملها التوليد المعتاد (env_compose_drift · route_residual · health_readiness · platform_module_growth) — أضِفها للتحقّق المحلّيّ قبل PR.
+- **تحقّق ما بعد الدمج (grep على main):** composer×1 · confidence×1 · reconcile×1 · MCP relay×3 — كلّها على main.
+
+## 2026-07-24 — DECISION-CENTER الشريحة 2: إغلاق حوكمة `/crop-twin/decision` (معاينة دائمة)
+- **الفجوة:** نقطتا crop-twin السيناريوهيّتان (`/crop-twin/decision` + `/decision/profit-aware`) كانتا
+  تُدِيمان قراراً منصّيّاً آمِراً موازياً خلف راية `CROP_TWIN_DIRECT_DECISION_ENABLED` — بابٌ جانبيّ
+  يخالف DECISION-CENTER-UNIFY-01 (المسار المحكوم `/decision-candidate`→decision-service يملك القرارات).
+- **الإغلاق (`crop_twin.py:453/587`):** أُزيل فرع `if crop_twin_direct_decision_enabled()` من النقطتَين
+  ⇒ `persisted=False` و`preview_only=True` **دائماً** (لا مجرّد إطفاء افتراضيّ — أُزيل الباب نفسه).
+  حُذف استيراد `persist_decision_if_enabled` (صار غير مُستخدَم). شرط سبق التأجيل (الجامع الخادميّ)
+  تحقّق بهبوط الشريحة 1 (`3c9c3c2`).
+- **صدق النطاق (لا إفراط):** بوّابة `/decision-candidate` submit=true→403 **بقيت** خلف الراية —
+  إغلاقها الحقيقيّ يحتاج وصل جامع الشريحة 1 (عمل منفصل)؛ إزالتها الآن إمّا تقتل مسار submit المحكوم
+  دائماً أو تحذف تغطيته. ضُيِّق نطاق الراية المُوثَّق (`decision_sor_mode.py:84` + `.env.example`):
+  صارت **بوّابة staging لمسار candidate فقط**، لا تمسّ النقطتَين السيناريوهيّتَين.
+- **حارس ارتداد:** اختباران جديدان يثبتان أنّ النقطتَين معاينةٌ دائمةٌ **حتى مع ضبط الراية على "1"**
+  (`test_crop_decision_endpoint.py` + `test_profit_aware_decision_endpoint.py`). 31 اختبار نقطة/مرشّح خضراء.
+- **بوّابات:** ruff (format+lint، لا استيراد ميت) · env↔compose drift=0 unclassified · حارس تفكيك الراوتر
+  أخضر · جرد الخدمات/المسارات مُعاد (تحوّل أرقام سطور فقط، لا مسار مُضاف/محذوف) · حزمة الإصدار 4857 checksum.
