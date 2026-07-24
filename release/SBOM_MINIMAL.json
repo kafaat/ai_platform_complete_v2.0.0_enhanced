@@ -16575,7 +16575,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "05ad03181f45fb4da11a55b5d78e557d88ebde908edbf313ff8e6bb0b885812d"
+          "content": "e2ce5d6c4e914c8ed24a98429e36e7c96883f7509d07d6d0d4519f940bcfe6b3"
         }
       ],
       "name": "services/sahool-platform/api/routers/crop_twin.py",
