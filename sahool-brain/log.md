@@ -3531,3 +3531,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **ضريبة التسجيل:** تعديل crop_twin غيّر بصمته ⇒ انجراف الجرد + عدم تطابق checksum الحزمة (drift/release-package/Lint&Format/Structural Lint/pytest-contracts حمراء). أُعيد توليد الجرد + الحزمة (`16ff308`): 4848 checksum + `--check` نظيف + catalog `--check` ok.
 - **تحقّق ما بعد الدمج (نفس فحص #620 الذي كشف الخطأ):** grep على main = compose_server_authoritative_spectral_enabled×2 · _resolve_server_spectral×2 · get_indicator_grid×2 · indicator-grid خامّ×0. الشريحة فعلاً على main. zip `sahool_main_64dea36.zip` (SHA كامل في تعليق الأرشيف، الشريحة داخله ×2).
 - **درس:** بعد أيّ تعديل ملفّ مصدر، أعِد توليد الجرد + الحزمة قبل الدفع (وإلّا 5 بوّابات حمراء بلا خطأ منطقيّ). وثّق: تعديل ملفّ واحد = ضريبة تسجيل كاملة حتى لو لم يتغيّر مسار/متغيّر.
+
+## 2026-07-24 — رَنبوك PG16 Staging Activation (تنسيق فتح البيئة الحيّة)
+- أُضيف `sahool-brain/runbooks/pg16-staging-activation.md` — رَنبوك **تنسيق (hub) لا تكرار**: يرفع PG16+PostGIS، يطبّق 219 هجرة عبر sahool-migrate، يُثبت RLS بالدور المقيَّد + production_validation_gate، ثمّ يُحيل لكلّ إغلاق حيّ إلى رَنبوكه القائم بترتيب الاعتماديّة (DECISION-SoR staging→compare→cutover→promote→revoke→rollback عبر `docs/runbooks/DECISION_SERVICE_SOR_*` وأدوات decision-service الحقيقيّة · SEASON-EDGE §225 · Track1 MCP · CDSE).
+- **تنبيه صدق مُوثَّق:** compose يُثبِّت `postgis/postgis:15-3.4` (PG15) — PG16 يتطلّب تجاوز صورة عبر override غير مُتعقَّب (مذكور في §0)، لا تعديل القيمة المُتعقَّبة.
+- عقد الصدق: الأسرار عبر البيئة فقط (DSN لا في المحادثة/ملفّ مُتعقَّب) · production_certified يبقى false حتى الشهادة الحيّة · «مؤشّر ≠ إثبات» (لا ترقية verified بلا برهان curl/psql/مسبار).
