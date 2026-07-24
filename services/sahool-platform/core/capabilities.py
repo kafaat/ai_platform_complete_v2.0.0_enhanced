@@ -142,9 +142,10 @@ def all_capabilities() -> list[Capability]:
 
 # التبعيّات الاختياريّة التي يقرؤها المنصّة (غيابها يُخفِّض القدرة بصمت اليوم — P1-16). القيم
 # أسماء متغيّرات فعليّة مقروءة في الكود، لا مُخترَعة. الحالة تهيئة (env حاضر؟) لا مسبار حيّ.
+# ملاحظة حدّ: raster لا يُدرَج هنا — عنوان خدمة الراستر يُقرأ حصراً داخل الواجهة القانونيّة
+# api/raster_service_client.py (حارس الحدّ P2.5)؛ قراءة سلكه الخامّ هنا تخرق الحدّ.
 _OPTIONAL_DEPENDENCIES = {
     "decision_service": ("DECISION_SERVICE_URL", "القرار يُدام محلّيّاً كمرآة best-effort"),
-    "raster_service": ("RASTER_SERVICE_URL", "لا طيف/صور خادميّة — يسقط لحالة غير متحقّقة"),
     "weather_service": ("WEATHER_SERVICE_URL", "لا GDD/ET0 من المحرّك — fail-closed 503"),
     "redis": ("REDIS_URL", "يسقط لذاكرة داخل-العمليّة (لا مشاركة عبر النسخ)"),
 }

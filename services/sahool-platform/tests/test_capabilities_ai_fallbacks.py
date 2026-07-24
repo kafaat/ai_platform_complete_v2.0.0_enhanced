@@ -66,9 +66,5 @@ def test_dependency_status_reflects_env(monkeypatch):
 def test_capabilities_report_surfaces_dependencies():
     rep = capabilities_report()
     assert "dependencies" in rep
-    assert set(rep["dependencies"]) == {
-        "decision_service",
-        "raster_service",
-        "weather_service",
-        "redis",
-    }
+    # raster مُستبعَد عمداً (عنوانه يُقرأ حصراً داخل الواجهة القانونيّة — حارس الحدّ P2.5).
+    assert set(rep["dependencies"]) == {"decision_service", "weather_service", "redis"}
