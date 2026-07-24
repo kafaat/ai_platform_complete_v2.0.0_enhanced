@@ -391,6 +391,12 @@ async def crop_decision_candidate_endpoint(
         return await submit_crop_decision_candidate(
             crop_intelligence,
             gdd_product=st.get("gdd_product"),
+            # DECISION-CENTER-UNIFY-01: relay the spectral trust basis (server-authoritative
+            # vs client-supplied-unverified) onto the candidate so decision-service sees it.
+            spectral_provenance={
+                "source": st.get("spectral_provenance", "unknown"),
+                "unverified": bool(st.get("spectral_unverified", False)),
+            },
             tenant_id=str(user.tenant_id) if user.tenant_id else None,
             submit=req.submit,
             created_by=user.user_id,

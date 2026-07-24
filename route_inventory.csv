@@ -466,8 +466,8 @@ sahool-platform,services/sahool-platform/api/routers/crop_operations.py,24,GET,/
 sahool-platform,services/sahool-platform/api/routers/crop_suitability.py,31,POST,/api/v1/crop-suitability,crop_suitability
 sahool-platform,services/sahool-platform/api/routers/crop_twin.py,300,POST,/api/v1/crop-twin/compose,compose_crop_twin
 sahool-platform,services/sahool-platform/api/routers/crop_twin.py,352,POST,/api/v1/crop-twin/decision-candidate,crop_decision_candidate_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,453,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
-sahool-platform,services/sahool-platform/api/routers/crop_twin.py,579,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,459,POST,/api/v1/crop-twin/decision,crop_decision_endpoint
+sahool-platform,services/sahool-platform/api/routers/crop_twin.py,585,POST,/api/v1/crop-twin/decision/profit-aware,profit_aware_decision_endpoint
 sahool-platform,services/sahool-platform/api/routers/crops.py,26,GET,/api/v1/crops/drought-resilience,crop_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/crops.py,47,GET,/api/v1/crops/compare-drought-resilience,compare_drought_resilience
 sahool-platform,services/sahool-platform/api/routers/cultural_calendar.py,24,GET,/api/v1/cultural-calendar,cultural_calendar

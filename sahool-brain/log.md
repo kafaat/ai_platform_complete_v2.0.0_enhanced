@@ -3602,3 +3602,21 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   `preview_only=True` غير مشروط (462/470، 586/593)؛ المرجع الوحيد المتبقّي للراية = بوّابة candidate (373).
 - **المتبقّي من DECISION-CENTER-UNIFY-01:** وصل جامع الشريحة 1 إلى `/decision-candidate` (يبني المرشّح من
   منتجات خادميّة بدل مدخلات العميل) ⇒ عندها تُغلَق بوّابة submit نهائيّاً بلا راية. + وصل الجالبات async بالواجهات.
+
+## 2026-07-24 — DECISION-CENTER استكمال: نَسَب الطيف على مرشّح القرار (خطوة نحو إغلاق submit)
+- **الاكتشاف (تحقّق قبل البناء):** جامع الشريحة 1 `assemble_agronomic_context` **بلا مستهلك** (مرجع في docstring فقط).
+  إغلاق بوّابة `/decision-candidate submit→403` نهائيّاً **محجوب بنية تحتيّة**: يحتاج جالب منتجات خادميّ
+  للمجموعات السبع **بنَسَب PIT لكلّ منتج** (observed_at/available_at)؛ اليوم الطيف (`_resolve_server_spectral`)
+  وGDD فقط مقروءان خادميّاً، وواجهة raster لا تكشف available_at. بناء نصفه = تلفيق طوابع أو لقطة 5/7 غائبة
+  (نصف حلّ مرفوض). **لم أُنصّف** — سُجِّل كمحجوب BLOCKED-DESIGN+RUNTIME.
+- **البُنية (خطوة صادقة متاحة، `?`):** المرشّح كان **يُسقط** نَسَب الطيف المحسوب في `_compose_state`
+  (`spectral_provenance`/`spectral_unverified`). صار المرشّح يُصرّح بأساس ثقته الطيفيّ في حزمة الأدلّة:
+  `evidence.spectral_provenance = {source: raster-service|client, unverified}` — **مُستهلَك حقيقيّاً**
+  (`record_decision` يرسل الأدلّة كاملةً إلى decision-service، فيقرؤها المُراجِع/السياسة). عند
+  client-supplied-unverified يُضاف قيد `client_supplied_spectral_unverified` (يظهر للمُراجِع **ويدخل** نَسَب
+  المرشّح — مرشّح غير متحقَّق مُتميِّز تعمويّاً عن الخادميّ لنفس الزراعة). لا اختلاق (None ⇒ source="unknown").
+- **صدق النطاق:** هذا **لا يفتح** submit — البوّابة تبقى fail-closed حتى يكتمل الجمع الخادميّ للعقد. هذه بنية
+  الأساس لبوّابة قادمة قائمة على النَسَب في decision-service. 29 اختباراً (13 مرشّح + 2 جديدان) · ruff · جرد/حزمة مُعاد.
+- **المتبقّي (محجوب بنية/بيانات):** (1) جالب المجموعات السبع الخادميّ + كشف available_at في واجهة raster ⇒
+  استهلاك `assemble_agronomic_context` فعليّاً ⇒ إغلاق submit. (2) بوّابة submit على `spectral_provenance.source`
+  في decision-service (قرار سياسة). (3) وصل الجالبات async بالواجهات.
