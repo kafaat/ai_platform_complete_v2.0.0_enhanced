@@ -72,15 +72,14 @@ async def _resolve_server_spectral(field_id: str, tenant_id: str | None) -> dict
     """
     import asyncio
 
-    from api.raster_service_client import raster_get_json
+    # الواجهة القانونيّة الوحيدة لحدود raster-service (نفس نمط etc_dual/field_ai_context):
+    # المسار والنقل يبقيان داخل الواجهة؛ المُركِّب مستهلِك صرف لا يملك معرفة نقطة raster.
+    from api.raster_service_client import get_indicator_grid
 
     async def _one(index: str) -> float | None:
         try:
-            data = await raster_get_json(
-                f"/v1/fields/{field_id}/indicator-grid",
-                tenant_id=tenant_id,
-                params={"index": index, "date": "latest", "grid": 16},
-                timeout_s=20.0,
+            data = await get_indicator_grid(
+                field_id, tenant_id=tenant_id, index=index, date="latest", timeout_s=20.0
             )
         except Exception:  # noqa: BLE001 — fail-soft: أيّ خطأ ⇒ لا قيمة خادميّة لهذا المؤشّر
             return None
