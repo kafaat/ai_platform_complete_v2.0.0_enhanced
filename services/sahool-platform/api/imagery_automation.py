@@ -75,6 +75,31 @@ class TrackedField:
         }
 
 
+def _parse_capture_time(value: str | None) -> datetime | None:
+    """يحلّل وقت التقاط STAC (``last_image_date``) إلى datetime واعٍ بالمنطقة الزمنيّة.
+
+    يقبل ISO8601 كامل (``2026-07-25T10:30:00Z``) أو تاريخاً وحده (``2026-07-25``).
+    يُعيد ``None`` إن غاب أو تعذّر التحليل (فيُفحَص الحقل بدل تخطّيه — لا نُسكِت خطأ
+    التحليل بتخطٍّ صامت). التاريخ الخام يُثبَّت على منتصف الليل UTC، والقيمة بلا منطقة
+    زمنيّة تُعامَل UTC كي تبقى المقارنة مع ``datetime.now(UTC)`` سليمة (لا date↔datetime).
+    """
+    if not value:
+        return None
+    raw = str(value).strip()
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        try:
+            parsed = datetime.strptime(raw[:10], "%Y-%m-%d")
+        except ValueError:
+            return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed
+
+
 class ImageryAutomation:
     """يتابع حقولاً، يكتشف صوراً جديدة، يُطلق حساب المؤشّرات.
 
@@ -468,25 +493,46 @@ class ImageryAutomation:
             "note_ar": "أُطلقت معالجة COG من Sentinel-2 الحقيقي. تصبح real_data=true فقط بعد اكتمال COG وقراءته.",
         }
 
-    async def scan_all(self, lookback_days: int = 10) -> dict:
+    async def scan_all(
+        self, lookback_days: int = 10, min_hours_since_last_capture: float = 24.0
+    ) -> dict:
         """يفحص كلّ الحقول المتابَعة عن صور جديدة (تُستدعى من scheduler).
 
-        معزول لكلّ حقل. يُرجع ملخّص: كم حقل فُحص، كم صورة جديدة، كم فشل.
+        معزول لكلّ حقل. يُرجع ملخّص: كم حقل فُحص، كم تُخطّي، كم صورة جديدة، كم فشل.
         صدق: لو لا حقول → لا يضرب raster-service.
+
+        كادينس لكلّ حقل: لا يُعاد فحص حقل إلّا بعد مرور ``min_hours_since_last_capture``
+        (افتراض 24 ساعة) على **وقت التقاط صورته السابقة** (``last_image_date``). حقل بلا
+        وقت التقاط معروف (لم تُلتقَط له صورة بعد) يُفحَص دائماً. هذا يجعل المزامنة فعليّاً
+        «كلّ 24 ساعة من وقت التقاط الصورة السابقة» لا كنساً أعمى لكلّ حقل كلّ دورة.
         """
         if not self._fields:
-            return {"scanned": 0, "new_images": 0, "failed": 0, "note": "لا حقول مُتابَعة"}
+            return {
+                "scanned": 0,
+                "skipped": 0,
+                "new_images": 0,
+                "failed": 0,
+                "note": "لا حقول مُتابَعة",
+            }
 
         now = datetime.now(UTC)
         start = (now - timedelta(days=lookback_days)).strftime("%Y-%m-%d")
         end = now.strftime("%Y-%m-%d")
+        min_gap = timedelta(hours=max(0.0, min_hours_since_last_capture))
 
         scanned = 0
+        skipped = 0
         new_images = 0
         failed = 0
         errors: list[str] = []
 
         for field_id, tf in list(self._fields.items()):
+            # حارس per-field: تخطَّ الحقل إن لم تمرّ 24 ساعة على وقت التقاط صورته
+            # السابقة (لا وقت التقاط ⇒ يُفحَص). لا يُعدّ فحصاً ولا يضرب raster-service.
+            last_capture = _parse_capture_time(tf.last_image_date)
+            if last_capture is not None and (now - last_capture) < min_gap:
+                skipped += 1
+                continue
             scanned += 1
             tf.last_checked_at = now.isoformat()
             try:
@@ -521,6 +567,7 @@ class ImageryAutomation:
 
         return {
             "scanned": scanned,
+            "skipped": skipped,
             "new_images": new_images,
             "failed": failed,
             "errors": errors[:10],
