@@ -10,7 +10,7 @@ Generated from `services/sahool-platform/api/**/*.py`. This is a CI-owned baseli
 
 | Target owner | Routes | Type |
 |---|---:|---|
-| `sahool-platform` | 244 | `bff-orchestrator` |
+| `sahool-platform` | 246 | `bff-orchestrator` |
 | `field-management-service` | 138 | `system-of-record-target` |
 | `weather-service` | 42 | `system-of-record` |
 | `agriai-engine` | 32 | `decision-compute` |
@@ -595,3 +595,5 @@ Generated from `services/sahool-platform/api/**/*.py`. This is a CI-owned baseli
 | `api/routers/wofost.py` | `GET` | `/api/v1/wofost/adaptation-guidance` | `wofost_adaptation_endpoint` | `sahool-platform` | `bff-orchestrator` |
 | `api/routers/yield_analysis.py` | `GET` | `/api/v1/analysis/yield` | `yield_analysis_endpoint` | `agriai-engine` | `decision-compute` |
 | `api/routers/yield_interval.py` | `POST` | `/api/v1/fields/{field_id}/yield-interval` | `field_yield_interval_endpoint` | `agriai-engine` | `decision-compute` |
+| `api/routers/varieties.py` | `GET` | `/api/v1/varieties/food-grains` | `food_grain_varieties_endpoint` | `sahool-platform` | `bff-orchestrator` |
+| `api/routers/varieties.py` | `GET` | `/api/v1/varieties/food-grains/{variety_id}` | `food_grain_variety_detail_endpoint` | `sahool-platform` | `bff-orchestrator` |

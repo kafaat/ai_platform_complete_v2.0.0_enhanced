@@ -7057,6 +7057,22 @@
   },
   {
     "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/varieties.py",
+    "line": 27,
+    "method": "GET",
+    "path": "/api/v1/varieties/food-grains",
+    "function": "food_grain_varieties_endpoint"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/varieties.py",
+    "line": 47,
+    "method": "GET",
+    "path": "/api/v1/varieties/food-grains/{variety_id}",
+    "function": "food_grain_variety_detail_endpoint"
+  },
+  {
+    "service": "sahool-platform",
     "file": "services/sahool-platform/api/routers/water_balance.py",
     "line": 66,
     "method": "POST",

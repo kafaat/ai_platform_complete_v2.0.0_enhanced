@@ -3626,3 +3626,16 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   تحقّق ما بعد الدمج (grep على main): `crop_decision_bridge.py` يحمل `evidence.spectral_provenance` (سطر 183).
 - **الأثر:** مرشّح القرار يُصرّح بأساس ثقته الطيفيّ (server-authoritative/client) — مُستهلَك عبر `record_decision`.
   البنية الأساس لبوّابة submit قائمة على النَسَب (لم تُفتَح بعد — محجوبة بجالب المجموعات السبع + كشف available_at).
+
+## 2026-07-25 — كتالوج أصناف الحبوب المرجعيّ (reference-only) — من حزمة المالك
+- **الأصل:** حزمة `SAHOOL_Editable_Variety_Card_Merged_v3` (بطاقة HTML + بيانات موثّقة). حلّلتُها: أصل
+  مرجعيّ محكوم، مطابق لفلسفة سهول (نَسَب PDF sha256 + صفحات · `reference_only_not_operational` · لا اختلاق).
+  الـHTML أداة مستقلّة (localStorage) لا ميزة منصّة ⇒ دمجتُ **البيانات** ككتالوج مرجعيّ محكوم.
+- **البُنية:** `api/food_grain_varieties.py` (قارئ نقيّ + بوّابة حوكمة، fail-closed على خرق العدّ/الحالة/النَسَب) +
+  `api/routers/varieties.py` (نقطتا قراءة `/api/v1/varieties/food-grains[/{id}]`، تُسجَّل تلقائيّاً، كلّ ردّ يحمل
+  `decision_engine_use_status=reference_only_not_operational`) + البيانات (29 صنفاً: 11 قمح/3 شعير/4 رفيعة/5 شامية/6 دخن) + schema.
+- **الحاجز الحرِج (نمط حدّ الراستر):** حارس ساكن `tests_v9/test_variety_catalog_reference_only_barrier.py` يمنع أيّ
+  وحدة قراريّة (crop_twin/المُجمِّع/جسر المرشّح/القرار الموحّد/water_balance/mpc/decision-service) من استيراد الكتالوج —
+  بيانات الأصناف لا تُغذّي القرار آليّاً؛ تمرّ عبر المسار المحكوم فقط.
+- **صدق:** مرجعيّ فقط (لا وصل قرار) · قضايا الجودة مُقدَّمة لا تُخفى · نَسَب المصدر إلزاميّ. 6 اختبارات كتالوج + 3 حارس.
+- **بوّابات:** ruff · env-drift=0 · حارس تفكيك الراوتر أخضر · module baseline 660→662 · جرد+حزمة مُعاد (route 1094→1096).

@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 982
+PINNED_UNIQUE_METHOD_PATH = 984
 
 
 def _catalog() -> dict:
@@ -150,7 +150,7 @@ def test_u4_ui_waivers_governed() -> None:
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 50
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 52
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 
