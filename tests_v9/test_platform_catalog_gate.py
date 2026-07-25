@@ -33,7 +33,7 @@ CATALOG = ROOT / "platform_catalog.generated.json"
 
 # U0 — الأرقام المُثبَّتة (تغييرها المتعمَّد = قرار معماريّ يُحدَّث هنا بوعي)
 PINNED_BACKEND_COMPONENTS = 32
-PINNED_UNIQUE_METHOD_PATH = 985  # +1: raster process-date endpoint (V8-05 PR1-a)
+PINNED_UNIQUE_METHOD_PATH = 986  # +1: platform imagery process-date proxy route (V8-05 PR2)
 
 
 def _catalog() -> dict:

@@ -3518,6 +3518,35 @@ export const refreshFieldImagery = (fieldId: string, date?: string | null, geome
   ).then(r => r.data);
 };
 
+/** V8-05 PR2: زرّ «عالِج هذا التاريخ» الصريح — يُجدوِل معالجة مشهد مفرد لتاريخٍ اختاره
+ *  المستخدم عبر بوّابة المنصّة (لا يُطلقه اختيار التاريخ). يعيد
+ *  ``{run_id,item_id,status,reused_existing_job}``؛ ``reused_existing_job`` يعني أنّ الأصل
+ *  جاهز/قيد المعالجة أصلاً (لا معالجة مكرّرة). */
+export interface ProcessImageryDateResult {
+  field_id: string;
+  date: string;
+  index: string;
+  scene_id: string;
+  run_id: number | null;
+  item_id: number | null;
+  status: string;
+  reused_existing_job: boolean;
+}
+export const processFieldImageryDate = (
+  fieldId: string,
+  params: { date: string; index: string; scene_id: string; geometry?: unknown },
+): Promise<ProcessImageryDateResult> => {
+  const body: Record<string, unknown> = {
+    date: params.date,
+    index: params.index,
+    scene_id: params.scene_id,
+  };
+  if (params.geometry) body.geometry = params.geometry;
+  return kongApi
+    .post(`/api/v1/fields/${fieldId}/imagery/process-date`, body)
+    .then((r) => r.data as ProcessImageryDateResult);
+};
+
 /** UI deeper-fix: غلاف متوافق للخلف — أيّ كود قديم يستدعي analyzeVegetation يجب ألّا
  *  يذهب إلى vegetation-service /v1/analyze بمعرّفات platform (fld_*) لأنّها لا تملكها
  *  (⇒ «field_id not found»). نُوجّهه للمسار القانونيّ نفسه: platform → raster-service. */
@@ -3532,6 +3561,11 @@ export interface FieldImageryDateOption {
   date: string;
   cloud_pct?: number | null;
   cloud_cover?: number | null;
+  // AOI-CLOUD-CONTRACT (#636): scene vs field cloud — aoi_cloud_pct=null=«لم تُحسب» لا 0%.
+  scene_cloud_pct?: number | null;
+  aoi_cloud_pct?: number | null;
+  clear_pct?: number | null;
+  quality_label?: 'high' | 'medium' | 'cloudy' | 'unknown' | string | null;
   has_cog?: boolean;
   scene_id?: string | null;
   // FINDING-006: المؤشّرات المتوفّرة لهذا التاريخ (الخادم يُرجِعها) — كي لا يُختار
@@ -3585,6 +3619,11 @@ export interface ImageryTimelineItem {
   date: string;
   has_cog: boolean;
   cloud_pct: number | null;
+  // AOI-CLOUD-CONTRACT (#636): سحابة صريحة مزدوجة القيمة —
+  //  • scene_cloud_pct: سحابة المشهد كاملاً (STAC).
+  //  • aoi_cloud_pct: السحابة فوق مضلّع الحقل؛ null=«لم تُحسب» (ليس 0%).
+  scene_cloud_pct?: number | null;
+  aoi_cloud_pct?: number | null;
   clear_pct?: number | null;
   quality_label?: 'high' | 'medium' | 'cloudy' | 'unknown' | string | null;
   indices: string[];
@@ -3639,6 +3678,11 @@ export const fetchFieldImageryAvailableDates = (
           date,
           cloud_pct: typeof obj.cloud_pct === 'number' ? obj.cloud_pct : (typeof obj.cloud_cover === 'number' ? obj.cloud_cover : null),
           cloud_cover: typeof obj.cloud_cover === 'number' ? obj.cloud_cover : null,
+          // AOI-CLOUD-CONTRACT (#636): scene vs field cloud — null=«لم تُحسب» لا 0%.
+          scene_cloud_pct: typeof obj.scene_cloud_pct === 'number' ? obj.scene_cloud_pct : null,
+          aoi_cloud_pct: typeof obj.aoi_cloud_pct === 'number' ? obj.aoi_cloud_pct : null,
+          clear_pct: typeof obj.clear_pct === 'number' ? obj.clear_pct : null,
+          quality_label: typeof obj.quality_label === 'string' ? obj.quality_label : null,
           has_cog: Boolean(obj.has_cog ?? obj.ready ?? false),
           scene_id: typeof obj.scene_id === 'string' ? obj.scene_id : null,
           indices: Array.isArray(obj.indices)

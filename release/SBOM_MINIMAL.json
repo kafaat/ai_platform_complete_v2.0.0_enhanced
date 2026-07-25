@@ -1745,7 +1745,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8d418caa28ae8839879528beb6eaca74a5617364b7dab745909c0bb0dbc3228d"
+          "content": "48a622f79af82c45ce87ba72459f9fada74aeee55cb4234a499fac1ae02893ec"
         }
       ],
       "name": "frontend/src/components/maphub/ImageryAutoRefreshGuard.static.test.ts",
@@ -4315,7 +4315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8b58b7e3e14f47d4168e0cf735696c644749cf37fa15ae9b7e66144e18b13f90"
+          "content": "3f3b5c5cf95fb116d00d68ddfe2df0e71f46a1281fcf399332d3762837889083"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5535,7 +5535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "65e27f02f6f73859571deeef4b2a34cf0cd0dae9afe821e494eee7eab7a556e4"
+          "content": "3e18b43540648bbe0aeef417d0a2324d763685f3fe94d3c276e34bca6cb1e75a"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -6405,7 +6405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "224d62d23867e6bdd659cc3baf2a049d43069964855401f7bee912946d362d16"
+          "content": "9e77e02b16a86e5f0afc2a6d0752d4dc20ba6e2f8642f1169a8c60b85c993a0b"
         }
       ],
       "name": "frontend/src/services/api.ts",
@@ -16335,7 +16335,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9118c06a4f5b603abaabc209fbde3e0765d63402149ebca542fa39f889e03d88"
+          "content": "8db746c159ee5a72789b8cf0c7095640435c997d973d8e674056b6e21437cd27"
         }
       ],
       "name": "services/sahool-platform/api/raster_service_client.py",
@@ -17135,7 +17135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dd24c3b5df3c4fd573d99668959d688b5cf4431c6155e9da6a8ba29956dc0652"
+          "content": "1e73f01719d01f7229df27c3b9e59e99e2c173de599239725c4918a665caeaf1"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",

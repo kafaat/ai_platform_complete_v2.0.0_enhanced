@@ -7769,6 +7769,7 @@
         "GET /api/v1/fields/{field_id}/imagery/backfill/{run_id}",
         "GET /api/v1/fields/{field_id}/imagery/timeline",
         "POST /api/v1/fields/{field_id}/imagery/backfill",
+        "POST /api/v1/fields/{field_id}/imagery/process-date",
         "POST /api/v1/fields/{field_id}/imagery/refresh"
       ],
       "idempotency_required": false,
@@ -17342,9 +17343,9 @@
     "duplicate_groups_classified": 14,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1097,
+    "route_rows": 1098,
     "ui_waivers": 50,
-    "unique_method_path": 985
+    "unique_method_path": 986
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17620,7 +17621,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "c963f19f648d413b0a873da5150a7bffa37d7a28e93ed43dfd3c90c9e0f71915",
+  "fingerprint": "23baea6caf0eb0b9afe538cae91a42305587892c2acea66129135d04e729cb38",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
