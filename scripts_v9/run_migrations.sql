@@ -579,5 +579,7 @@
 \i migrations/v211_simple_farm_book.sql
 \echo '═══ 217. v212_farm_book_one_reversal_index.sql ═══'
 \i migrations/v212_farm_book_one_reversal_index.sql
-\echo '═══ 218. v206_rls_final_hardening.sql ═══'
+\echo '═══ 218. v213_backfill_runs_single_scene.sql ═══'
+\i migrations/v213_backfill_runs_single_scene.sql
+\echo '═══ 219. v206_rls_final_hardening.sql ═══'
 \i migrations/v206_rls_final_hardening.sql

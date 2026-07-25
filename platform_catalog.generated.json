@@ -2425,7 +2425,8 @@
       "derived_from": "route",
       "entrypoints": [
         "GET /v1/fields/{field_id}/imagery/backfill/{run_id}",
-        "POST /v1/fields/{field_id}/imagery/backfill"
+        "POST /v1/fields/{field_id}/imagery/backfill",
+        "POST /v1/fields/{field_id}/imagery/process-date"
       ],
       "idempotency_required": false,
       "kind": "mixed",
@@ -17341,9 +17342,9 @@
     "duplicate_groups_classified": 14,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1096,
+    "route_rows": 1097,
     "ui_waivers": 50,
-    "unique_method_path": 984
+    "unique_method_path": 985
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17619,7 +17620,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "8daaaf6c8cfd44ab89cdd2f2cdb12caf6b1580b231a8e6a2ff3fa5f67567789b",
+  "fingerprint": "c963f19f648d413b0a873da5150a7bffa37d7a28e93ed43dfd3c90c9e0f71915",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
