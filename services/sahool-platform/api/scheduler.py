@@ -171,8 +171,10 @@ def register_default_tasks(
         # الطقس يوميّاً (Open-Meteo) — 24 ساعة
         scheduler.register("fetch_weather", 86400, fetch_weather)
     if scan_new_imagery:
-        # فحص صور Sentinel الجديدة — كلّ 6 ساعات (دورة القمر ~5 أيّام)
-        scheduler.register("scan_new_imagery", 21600, scan_new_imagery)
+        # فحص صور Sentinel الجديدة — كلّ 24 ساعة. الكنس اليوميّ كافٍ (دورة القمر
+        # ~5 أيّام)، والحقل نفسه لا يُعاد فحصه إلّا بعد مرور 24 ساعة على وقت التقاط
+        # صورته السابقة (حارس per-field في imagery_automation.scan_all).
+        scheduler.register("scan_new_imagery", 86400, scan_new_imagery)
     if check_decision_freshness:
         # فحص نضارة القرارات — كلّ ساعة
         scheduler.register("check_decision_freshness", 3600, check_decision_freshness)
