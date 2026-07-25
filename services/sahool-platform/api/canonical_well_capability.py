@@ -20,6 +20,12 @@ MAX_MEASUREMENT_AGE_HOURS = 24.0
 MAX_PUMPING_TEST_AGE_DAYS = 1095.0
 MAX_WATER_QUALITY_AGE_DAYS = 365.0
 
+# Canonical fail-closed water-salinity blocking-reason vocabulary. Single source,
+# reused by build_canonical_well_capability and the served MPC recommendation path.
+WATER_SALINITY_LIMIT_EXCEEDED = "WATER_SALINITY_LIMIT_EXCEEDED"
+WATER_QUALITY_REQUIRED = "WATER_QUALITY_REQUIRED"
+WATER_QUALITY_STALE = "WATER_QUALITY_STALE"
+
 
 def _digest(payload: Any) -> str:
     raw = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
@@ -85,6 +91,53 @@ class CanonicalWellCapability:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+def evaluate_water_salinity_gate(
+    *,
+    maximum_allowed_ec_ds_m: Any,
+    water_quality: dict[str, Any] | None,
+    now: datetime | None = None,
+    max_sample_age_days: float = MAX_WATER_QUALITY_AGE_DAYS,
+) -> dict[str, Any]:
+    """Fail-closed water-salinity verdict bound to a water source.
+
+    The single source of the H5 EC rule: reused by build_canonical_well_capability
+    and by the served MPC recommendation path once ECw is bound to a
+    water_source_id. Returns ``status`` clear|blocked with the canonical
+    blocking-reason vocabulary. A configured ``maximum_allowed_ec_ds_m`` with no
+    sample fails closed (WATER_QUALITY_REQUIRED); a measured ECw above the limit
+    fails closed (WATER_SALINITY_LIMIT_EXCEEDED); a stale sample warns
+    (WATER_QUALITY_STALE). No configured maximum ⇒ no limit to enforce ⇒ clear.
+    """
+    now = now or datetime.now(UTC)
+    maximum_ec = _number(maximum_allowed_ec_ds_m)
+    water_ec: float | None = None
+    quality_age_days: float | None = None
+    blockers: list[str] = []
+    limitations: list[str] = []
+    if water_quality:
+        water_ec = _number(water_quality.get("ec_ds_m"))
+        quality_age_h = _age_hours(water_quality.get("sampled_at"), now)
+        quality_age_days = None if quality_age_h is None else quality_age_h / 24.0
+        if quality_age_days is None:
+            limitations.append("water quality timestamp invalid")
+        elif quality_age_days > max_sample_age_days:
+            blockers.append(WATER_QUALITY_STALE)
+        if maximum_ec is not None and water_ec is not None and water_ec > maximum_ec:
+            blockers.append(WATER_SALINITY_LIMIT_EXCEEDED)
+    else:
+        limitations.append("water quality sample missing")
+        if maximum_ec is not None:
+            blockers.append(WATER_QUALITY_REQUIRED)
+    return {
+        "status": "blocked" if blockers else "clear",
+        "blocking_reasons": sorted(set(blockers)),
+        "limitations": limitations,
+        "water_ec_ds_m": water_ec,
+        "maximum_allowed_ec_ds_m": maximum_ec,
+        "water_quality_age_days": quality_age_days,
+    }
 
 
 def build_canonical_well_capability(
@@ -186,23 +239,16 @@ def build_canonical_well_capability(
     if remaining_seasonal is not None and remaining_seasonal <= 0:
         blockers.append("SEASONAL_WATER_ALLOCATION_EXHAUSTED")
 
-    quality_age_days = None
-    water_ec = None
-    maximum_ec = _number(water_source.get("maximum_allowed_ec_ds_m"))
-    if water_quality:
-        water_ec = _number(water_quality.get("ec_ds_m"))
-        quality_age_h = _age_hours(water_quality.get("sampled_at"), now)
-        quality_age_days = None if quality_age_h is None else quality_age_h / 24.0
-        if quality_age_days is None:
-            limitations.append("water quality timestamp invalid")
-        elif quality_age_days > MAX_WATER_QUALITY_AGE_DAYS:
-            blockers.append("WATER_QUALITY_STALE")
-        if maximum_ec is not None and water_ec is not None and water_ec > maximum_ec:
-            blockers.append("WATER_SALINITY_LIMIT_EXCEEDED")
-    else:
-        limitations.append("water quality sample missing")
-        if maximum_ec is not None:
-            blockers.append("WATER_QUALITY_REQUIRED")
+    salinity_gate = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=water_source.get("maximum_allowed_ec_ds_m"),
+        water_quality=water_quality,
+        now=now,
+    )
+    water_ec = salinity_gate["water_ec_ds_m"]
+    maximum_ec = salinity_gate["maximum_allowed_ec_ds_m"]
+    quality_age_days = salinity_gate["water_quality_age_days"]
+    blockers.extend(salinity_gate["blocking_reasons"])
+    limitations.extend(salinity_gate["limitations"])
 
     if recovery_rate is None or recovery_rate <= 0:
         limitations.append("recovery rate not certified")

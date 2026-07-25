@@ -3785,3 +3785,14 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **متابعة صادقة قائمة:** دَيْن هجرة react-router v6→v7 (PR #628 dependabot فُصِل — postcss يبقى، v7 مُؤجَّل
   بأمرَي `@dependabot ignore … major version`؛ كاسر عبر 21 ملفّاً + فقد provenance attestation). ومقارنة
   تاريخَين مخزَّنَين في زرّ «المقارنة» (تحسين).
+
+## 2026-07-25 — V8-05 PR2 مدموج (PR #640، main `aee19cf`)
+- **ماذا:** اختيار التاريخ/المؤشّر في MapHub بلا أثر جانبيّ (إزالة `refreshFieldImagery` من الاختيار حتّى لـ`latest`) +
+  زرّ «عالِج هذا التاريخ» صريح (`btn-process-date`) ⇒ بروكسي منصّة `POST /api/v1/fields/{id}/imagery/process-date`
+  (شقيق single-scene لـbackfill_proxy، `reused_existing_job` idempotent) + عرض عقد سحابة #636 ثنائيّ القيمة
+  (سحابة الحقل AOI مفضّلة + سحابة المشهد صراحةً).
+- **ضريبة تسجيل / درس:** المسار بروكسي **منصّة** ⇒ فشلت «Platform Unit Tests» على حرّاس حوكمة المسارات P0/P1/P2.6.
+  الإصلاح `c1bdfdf`: تسجيل في `platform_extraction_map.json` (target_owner=raster-service كـbackfill_proxy) +
+  `baseline_route_count` 629→630 + رفع مُوثَّق لسقف P2.6 625→626. **الدرس الجذر: شغّل حزمة المنصّة الكاملة
+  (`PYTHONPATH=. pytest tests` من `services/sahool-platform`، 3896) محلّيّاً — حرّاس حوكمة المسارات خارج `tests_v9/-m unit`.**
+- **الدمج:** Ratchet — 64 فحصاً success/skipped على `c1bdfdf` + mergeable clean ⇒ squash `aee19cf`. `develop` مُزامَن.
