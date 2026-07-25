@@ -13265,7 +13265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10724b592bef7a5d25c3727b20b48acc4ce9d24962e90783b660fc95f35198db"
+          "content": "946d8cbba1d41b277f4ff6c08a0ef47dca4820f452fe4e0a9cb4422cd7642aaa"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -13495,7 +13495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15a61da56ab04721a6a01670313ecc9f03bf95c0f0d4f43519084cade0d39f30"
+          "content": "f064c5cf926d167a66be995e2276518f3c67f3392a5bdcd9c9f0e5463296953c"
         }
       ],
       "name": "services/raster-service/test_available_dates_provider_datetime.py",
@@ -15595,7 +15595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a4b84c9ab872dc3c65503f53c81f14543cfc0f910e55102488176e0993689c0"
+          "content": "02fef4f2f46ca340b43d88e21ea3eab79d4eca701f95b7431c04fca9a0b45cb0"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -18025,7 +18025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e101acdad36f2ab4de47f5ac4d219e3423445a3792d0996ca6d4a89d6c4a9daf"
+          "content": "f750a4588238a50f238b78b4d60f37536e43c3fec86ad412f6c8d83ae8000d3b"
         }
       ],
       "name": "services/sahool-platform/api/scheduler.py",
@@ -24179,6 +24179,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_imagery_providers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be1ad31e857ad288ad36adf4cc428bb1f58d97c4c4cc7b48b5fcb69488731ac6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_imagery_sync_24h_cadence.py",
       "type": "file"
     },
     {
