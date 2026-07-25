@@ -11185,7 +11185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9ecf034da86e3cd390009f57f41662b81970eb47af65d249c963c7a07a864f2f"
+          "content": "e2f9196299411ed9a812484416a51194e11c5fdf3567b03d494759db1ce43ea6"
         }
       ],
       "name": "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
@@ -11289,6 +11289,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_soil_profile_context_gate.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f13d31871e297c1d4519c0c1e39da1f611f42678a9ebabcc1087cfff2beb07bc"
+        }
+      ],
+      "name": "services/decision-service/tests/test_worker_identity_binding.py",
       "type": "file"
     },
     {
@@ -12499,6 +12509,16 @@
         }
       ],
       "name": "services/model-registry-adapter/worker.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "6b4e324a4b4a2464153c584b5362d866435cffc3afe3f3791d0d1e71a1ac54fe"
+        }
+      ],
+      "name": "services/model-registry-adapter/worker_assertion.py",
       "type": "file"
     },
     {

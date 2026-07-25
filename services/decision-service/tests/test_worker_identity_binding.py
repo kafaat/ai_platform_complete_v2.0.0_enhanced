@@ -18,6 +18,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import main  # noqa: E402
+
 from shared.security.service_tenant_assertion import create_tenant_assertion  # noqa: E402
 
 KEY = "worker-assertion-key-least-32-characters-long!!"
