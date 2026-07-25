@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SAHOOL Source-Verified Food Grain Varieties",
+  "type": "object",
+  "required": [
+    "metadata",
+    "varieties",
+    "quality_issues"
+  ],
+  "properties": {
+    "metadata": {
+      "type": "object"
+    },
+    "varieties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "crop_code",
+          "crop_name_ar",
+          "name_ar",
+          "source_pages",
+          "source_verification",
+          "decision_engine_use_status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "crop_code": {
+            "type": "string"
+          },
+          "crop_name_ar": {
+            "type": "string"
+          },
+          "name_ar": {
+            "type": "string"
+          },
+          "name_en": {
+            "type": "string"
+          },
+          "source_pages": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            }
+          },
+          "issue_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "quality_issues": {
+      "type": "array"
+    },
+    "corrections": {
+      "type": "array"
+    }
+  },
+  "additionalProperties": false
+}

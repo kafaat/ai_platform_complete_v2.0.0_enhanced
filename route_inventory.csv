@@ -881,6 +881,8 @@ sahool-platform,services/sahool-platform/api/routers/temporal.py,34,POST,/api/v1
 sahool-platform,services/sahool-platform/api/routers/temporal.py,60,POST,/api/v1/temporal/coherence,temporal_coherence
 sahool-platform,services/sahool-platform/api/routers/tenant.py,29,GET,/api/v1/tenant/config,get_tenant_config
 sahool-platform,services/sahool-platform/api/routers/trials.py,30,POST,/api/v1/trials/analyze,analyze_trial
+sahool-platform,services/sahool-platform/api/routers/varieties.py,27,GET,/api/v1/varieties/food-grains,food_grain_varieties_endpoint
+sahool-platform,services/sahool-platform/api/routers/varieties.py,47,GET,/api/v1/varieties/food-grains/{variety_id},food_grain_variety_detail_endpoint
 sahool-platform,services/sahool-platform/api/routers/water_balance.py,66,POST,/api/v1/water-balance,compute_water_balance
 sahool-platform,services/sahool-platform/api/routers/water_harvesting.py,28,GET,/api/v1/water-harvesting/potential,water_potential_endpoint
 sahool-platform,services/sahool-platform/api/routers/water_harvesting.py,36,GET,/api/v1/water-harvesting/methods,water_methods_endpoint

@@ -1,0 +1,2268 @@
+{
+  "metadata": {
+    "dataset_id": "SAHOOL-YEMEN-FOOD-GRAINS-SOURCE-VERIFIED-V1",
+    "version": "1.0.0",
+    "created_at": "2026-07-24",
+    "language": "ar",
+    "source_title_ar": "الدليل الزراعي لمحاصيل الحبوب الغذائية",
+    "source_authority_ar": "الهيئة العامة للبحوث والإرشاد الزراعي - الجمهورية اليمنية",
+    "source_year": 2022,
+    "source_pdf_sha256": "a8e3d204200e09bd02820d427020a8b755facaa32fa638d0e1cdb4a799d45f32",
+    "record_count": 29,
+    "crop_counts": {
+      "قمح": 11,
+      "شعير": 3,
+      "ذرة رفيعة": 4,
+      "ذرة شامية": 5,
+      "دخن": 6
+    },
+    "verification_method": "visual review of rendered PDF pages; no silent correction of source conflicts",
+    "operational_policy": "catalog/reference use only; management values blocked from automated decision execution until expert validation"
+  },
+  "varieties": [
+    {
+      "id": "YEM-WHT-BAHOUTH-3",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "بحوث 3",
+      "name_en": "Bahouth 3",
+      "source_pages": [
+        6,
+        7
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "WATER_UNIT_CONTEXT_REQUIRES_AGRONOMIST_REVIEW"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "مناطق المرتفعات الوسطى ومناطق المرتفعات.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "الكمية المثلى مقدرة بـ500 متر مكعب محسوباً فيها المطر؛ ويجود الصنف عند إضافة 400-450 مم موزعة على 5-6 ريات، أو 2-3 ريات تكميلية تحت المطر العالي أو المتوسط.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "شتوي: منتصف ديسمبر إلى منتصف يناير في المرتفعات؛ صيفي: يوليو.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "weeding_raw_ar": "دورتان؛ الأولى بعد أسبوعين من الإنبات والثانية بعد شهرين.",
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر غامق",
+        "tillers_raw_ar": "يتوقف على مدى توفر الرطوبة",
+        "days_to_50_flowering": 93,
+        "days_to_maturity": 143,
+        "plant_height_cm": 73,
+        "awn_raw_ar": "متوسط الكثافة - أبيض",
+        "grain_color_ar": "أبيض محمر",
+        "spike_length_cm": 11,
+        "grains_per_spike": 43,
+        "thousand_grain_weight_g": 42
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 3.9,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية الحبية"
+        }
+      ],
+      "special_traits_ar": [
+        "منتخب من المشتل الدولي للأصناف المتحملة للجفاف",
+        "مناسب لمناطق عالية ومتوسطة الأمطار",
+        "متحمل لأمراض الأصداء الثلاثة"
+      ]
+    },
+    {
+      "id": "YEM-WHT-BAHOUTH-13",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "بحوث 13",
+      "name_en": "Bahouth 13",
+      "source_pages": [
+        8,
+        9
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "SOURCE_NUMERIC_OUTLIER_TGW_7_43",
+        "SOURCE_NUMERIC_OUTLIER_GRAINS_PER_SPIKE_9",
+        "WATER_UNIT_CONTEXT_REQUIRES_AGRONOMIST_REVIEW"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "مناطق المرتفعات الوسطى ومناطق المرتفعات.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "500 متر مكعب محسوباً فيها المطر؛ إضافة 400-450 مم على 5-6 ريات؛ 2-3 ريات تكميلية تحت المطر العالي أو المتوسط.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "شتوي: منتصف ديسمبر إلى منتصف يناير؛ صيفي: يوليو.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "days_to_maturity": 130,
+        "days_to_heading": 56,
+        "plant_height_cm": 77.5,
+        "tillers_mean": 2.6,
+        "grain_color_ar": "أبيض محمر خفيف",
+        "lodging_resistance_ar": "مقاوم",
+        "spike_length_cm": 11,
+        "grains_per_spike": 9,
+        "thousand_grain_weight_g": 7.43
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 3.6,
+          "unit": "t/ha",
+          "context_ar": "متوسط إنتاجية الحبوب"
+        }
+      ],
+      "special_traits_ar": [
+        "يزرع في مناطق عالية ومتوسطة الأمطار",
+        "طاقة إنتاج جيدة",
+        "متحمل لأمراض الأصداء الثلاثة"
+      ]
+    },
+    {
+      "id": "YEM-WHT-BAHOUTH-37",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "بحوث 37",
+      "name_en": "Bahouth 37",
+      "source_pages": [
+        10,
+        11
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "مناطق المرتفعات الوسطى ومناطق المرتفعات.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "من أكثر الأصناف تحملاً للجفاف؛ في المناطق قليلة الأمطار تضاف 2-3 ريات تكميلية.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "شتوي: منتصف ديسمبر إلى منتصف يناير؛ صيفي: يوليو.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر",
+        "tillers_raw_ar": "يتوقف على مدى توفر الرطوبة",
+        "days_to_50_flowering": 65,
+        "days_to_maturity": 130,
+        "plant_height_cm": 61,
+        "awn_raw_ar": "متوسط الكثافة - أبيض",
+        "grain_color_ar": "أبيض",
+        "spike_length_cm": 8,
+        "grains_per_spike": 41,
+        "thousand_grain_weight_g": 36
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 2.9,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "متحمل للجفاف",
+        "مناسب للزراعة المطرية عالية ومتوسطة وقليلة الأمطار مع ريتين تكميليتين عند انقطاع المطر",
+        "مبكر نسبياً",
+        "محبب للمزارعين في المرتفعات الوسطى"
+      ]
+    },
+    {
+      "id": "YEM-WHT-AWSAN",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "أوسان",
+      "name_en": "Awsan",
+      "source_pages": [
+        12,
+        13
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "row_spacing_cm": 20,
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "weeding_raw_ar": "دورتان؛ الأولى بعد أسبوعين من الإنبات والثانية بعد شهرين من الزراعة.",
+      "irrigation_stages_ar": [
+        "رية الزراعة",
+        "مرحلة البادرات",
+        "تطاول الساق",
+        "التزهير",
+        "الطور اللبني",
+        "الطور العجيني"
+      ],
+      "regions_raw_ar": "المرتفعات الشمالية: شبام وبني مطر تحت الري التكميلي؛ عمران وصعدة والجوف تحت الري الكامل.",
+      "water_raw_ar": "475-500 متر مكعب خلال نمو المحصول؛ 3-4 ريات تكميلية في المناطق متوسطة إلى قليلة الأمطار.",
+      "sowing_raw_ar": "صيفاً: 15-20 يونيو؛ شتاءً: 15 نوفمبر إلى 15 ديسمبر.",
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 5,
+        "days_to_50_flowering": 50,
+        "days_to_maturity": 102,
+        "plant_height_cm": 67,
+        "grain_color_ar": "أحمر باهت",
+        "spike_length_cm": 8.3,
+        "spikelets_per_spike": 24,
+        "grains_per_spike": 40,
+        "thousand_grain_weight_g": 40
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 3.936,
+          "unit": "t/ha",
+          "context_ar": "تحت الري التكميلي"
+        },
+        {
+          "product": "grain",
+          "value": 6.3,
+          "unit": "t/ha",
+          "context_ar": "تحت الري"
+        }
+      ],
+      "special_traits_ar": [
+        "متحمل لأمراض الأصداء",
+        "عالي الإنتاجية نسبياً"
+      ]
+    },
+    {
+      "id": "YEM-WHT-SHIBAM-8",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "شبام-8",
+      "name_en": "Shibam-8",
+      "source_pages": [
+        14,
+        15
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "row_spacing_cm": 20,
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "weeding_raw_ar": "دورتان؛ الأولى بعد أسبوعين من الإنبات والثانية بعد شهرين من الزراعة.",
+      "irrigation_stages_ar": [
+        "رية الزراعة",
+        "مرحلة البادرات",
+        "تطاول الساق",
+        "التزهير",
+        "الطور اللبني",
+        "الطور العجيني"
+      ],
+      "regions_raw_ar": "المرتفعات الشمالية: كحلان عفار، شبام، بني مطر، المحويت.",
+      "water_raw_ar": "475-500 متر مكعب؛ 3-4 ريات تكميلية في المناطق متوسطة إلى قليلة الأمطار.",
+      "sowing_raw_ar": "صيفاً: منتصف يوليو إلى منتصف أغسطس عند هطول الأمطار؛ شتاءً: ديسمبر.",
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر غامق",
+        "tillers_mean": 6,
+        "days_to_50_flowering": 52,
+        "days_to_maturity": 105,
+        "plant_height_cm": 63,
+        "grain_color_ar": "حمراء",
+        "spike_length_cm": 8.3,
+        "spikelets_per_spike": 22,
+        "grains_per_spike": 42,
+        "thousand_grain_weight_g": 38
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 3.0,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "متحمل لأمراض الأصداء الثلاثة خاصة تحت الزراعة على الأمطار",
+        "متوسط الإنتاجية",
+        "مناسب للزراعة المطرية"
+      ]
+    },
+    {
+      "id": "YEM-WHT-BARAQISH",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "براقش",
+      "name_en": "Baraqish",
+      "source_pages": [
+        16,
+        17
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "عمران وصعدة والجوف وما يشابهها؛ تحت الري الكامل.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "ري تكميلي عند الحاجة في مناطق عالية الهطول؛ تحت الري يحتاج 475-500 متر مكعب.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "صيفاً: 15-20 يونيو؛ شتاءً: 15 نوفمبر إلى 15 ديسمبر.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 6,
+        "days_to_50_flowering": 69,
+        "days_to_maturity": 128,
+        "plant_height_cm": 100,
+        "grain_color_ar": "رمادي محمر",
+        "spike_length_cm": {
+          "min": 9,
+          "max": 10
+        },
+        "spikelets_per_spike": 27,
+        "grains_per_spike": 53,
+        "thousand_grain_weight_g": 44
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 6.156,
+          "unit": "t/ha",
+          "context_ar": "متوسط تحت ظروف الري"
+        },
+        {
+          "product": "grain",
+          "value": 4.325,
+          "unit": "t/ha",
+          "context_ar": "تحت ارتفاع الملوحة في بعض مناطق الجوف"
+        },
+        {
+          "product": "grain",
+          "value": 9.4,
+          "unit": "t/ha",
+          "context_ar": "تحت الظروف المثالية"
+        }
+      ],
+      "special_traits_ar": [
+        "مناسب للمرتفعات الشمالية ومناطق زراعة القمح في الجوف",
+        "متحمل لأمراض الأصداء الثلاثة",
+        "عالي الإنتاجية"
+      ]
+    },
+    {
+      "id": "YEM-WHT-DHEIN",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "ضين",
+      "name_en": "Dhein",
+      "source_pages": [
+        18,
+        19
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "مناطق زراعة القمح في محافظة عمران والمناطق المشابهة تماماً.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "يفضل تحت النظام المروي بمعدل 500 متر مكعب؛ 2-3 ريات تكميلية في مناطق متوسطة الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "صيفاً: 20 يونيو؛ شتاءً: 15 نوفمبر إلى 15 ديسمبر.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 5,
+        "days_to_50_flowering": 77,
+        "days_to_maturity": 142,
+        "plant_height_cm": 92,
+        "grain_color_ar": "كريمي",
+        "spike_length_cm": 9.5,
+        "spikelets_per_spike": 26,
+        "grains_per_spike": {
+          "min": 39,
+          "max": 54,
+          "mean": 45
+        },
+        "thousand_grain_weight_g": 45
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 4.3,
+          "max": 7.1,
+          "mean": 5.9,
+          "unit": "t/ha",
+          "context_ar": "نطاق ومتوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "مناسب لعمران والجوف تحت الري",
+        "متوسط المقاومة لأمراض الأصداء الثلاثة",
+        "عال الإنتاجية في المناطق المناسبة",
+        "متأخر في النضج نسبياً"
+      ]
+    },
+    {
+      "id": "YEM-WHT-MOEEN",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "معين",
+      "name_en": "Moeen",
+      "source_pages": [
+        20,
+        21
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "عمران والجوف والمناطق المشابهة؛ تحت الري الكامل.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "يفضل تحت النظام المروي بمعدل 500 متر مكعب؛ 2-3 ريات تكميلية في مناطق متوسطة الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "صيفاً: 15-20 يونيو؛ شتاءً: 15 نوفمبر إلى 15 ديسمبر.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 6,
+        "days_to_50_flowering": 72,
+        "days_to_maturity": 132,
+        "plant_height_cm": 83,
+        "grain_color_ar": "كريمي محمر",
+        "spike_length_cm": 10.4,
+        "spikelets_per_spike": 27,
+        "grains_per_spike": {
+          "min": 48,
+          "max": 62,
+          "mean": 53
+        },
+        "thousand_grain_weight_g": 42
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 6.8,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "عالي الإنتاجية تحت ظروف الزراعة في عمران",
+        "مناسب جداً للزراعة المروية",
+        "مبكر في النضج نسبياً",
+        "متحمل جداً لأمراض الأصداء الثلاثة"
+      ]
+    },
+    {
+      "id": "YEM-WHT-AREF",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "عارف",
+      "name_en": "Aref",
+      "source_pages": [
+        22,
+        23
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "الجوف وعمران وما يشابهها؛ تحت الري الكامل.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "يفضل تحت النظام المروي بمعدل 500 متر مكعب؛ 2-3 ريات تكميلية في مناطق متوسطة الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "صيفاً: 15-20 يونيو؛ شتاءً: 15 نوفمبر إلى 15 ديسمبر.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 6,
+        "days_to_50_flowering": {
+          "min": 72,
+          "max": 84,
+          "mean": 78
+        },
+        "days_to_maturity": 135,
+        "plant_height_cm": 88,
+        "grain_color_ar": "كريمي",
+        "spike_length_cm": 9.2,
+        "spikelets_per_spike": 28,
+        "grains_per_spike": 48,
+        "thousand_grain_weight_g": 43
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 6.2,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "متحمل للملوحة",
+        "متحمل كثيراً لأمراض الأصداء الثلاثة"
+      ]
+    },
+    {
+      "id": "YEM-WHT-AIBAN",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "عيبان",
+      "name_en": "Aiban",
+      "source_pages": [
+        24,
+        25
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "الجوف وعمران وما يشابهها؛ تحت الري الكامل.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "يفضل تحت النظام المروي بمعدل 500 متر مكعب؛ 2-3 ريات تكميلية في مناطق متوسطة الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "صيفاً: 15-20 يونيو؛ شتاءً: 15 نوفمبر إلى 15 ديسمبر.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 6,
+        "days_to_50_flowering": 70,
+        "days_to_maturity": 125,
+        "plant_height_cm": 83,
+        "grain_color_ar": "كريمي",
+        "spike_length_cm": 10.6,
+        "spikelets_per_spike": 30,
+        "grains_per_spike": 60,
+        "thousand_grain_weight_g": 42
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 6.1,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "مبكر في النضج نسبياً",
+        "متحمل لأمراض الأصداء الثلاثة",
+        "عالي الإنتاجية تحت الري الكامل"
+      ]
+    },
+    {
+      "id": "YEM-WHT-FIRAS",
+      "crop_code": "wheat",
+      "crop_name_ar": "قمح",
+      "name_ar": "فراس",
+      "name_en": "Firas",
+      "source_pages": [
+        26,
+        27
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "صعدة والجوف وعمران وما يشابهها؛ تحت الري الكامل.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "يفضل تحت النظام المروي بمعدل 500 متر مكعب؛ 2-3 ريات تكميلية في مناطق متوسطة الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "صيفاً: أواخر يونيو؛ شتاءً: 15 نوفمبر إلى 15 ديسمبر.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً من الزراعة",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80,
+        "phosphorus_timing_ar": "دفعة واحدة عند إعداد الأرض"
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 6,
+        "days_to_50_flowering": 69,
+        "days_to_maturity": 125,
+        "plant_height_cm": 78,
+        "grain_color_ar": "كريمي فاتح",
+        "spike_length_cm": 10,
+        "spikelets_per_spike": 26,
+        "grains_per_spike": {
+          "min": 45,
+          "max": 65,
+          "mean": 51
+        },
+        "thousand_grain_weight_g": 46
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 6.0,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "مبكر في النضج نسبياً",
+        "متحمل لأمراض الأصداء الثلاثة",
+        "عالي الإنتاجية تحت الري الكامل"
+      ]
+    },
+    {
+      "id": "YEM-BAR-KAWKABAN-1",
+      "crop_code": "barley",
+      "crop_name_ar": "شعير",
+      "name_ar": "كوكبان 1",
+      "name_en": "Kawkaban 1",
+      "source_pages": [
+        39,
+        40,
+        41
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "المرتفعات الشمالية: حجة، شبام، كوكبان، بني مطر والمناطق المشابهة.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "متحمل للجفاف؛ في المناطق قليلة الأمطار يحتاج 2-3 ريات خلال الموسم.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "شتوي: منتصف يناير إلى منتصف مارس عند هطول الأمطار؛ صيفي: يوليو.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 80,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 60
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_mean": 5,
+        "days_to_50_flowering": 50,
+        "days_to_maturity": 102,
+        "plant_height_cm": 67,
+        "grain_color_ar": "أحمر باهت",
+        "spike_length_cm": 8.3,
+        "spikelets_per_spike": 24,
+        "grains_per_spike": 40,
+        "thousand_grain_weight_g": 40
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 3.936,
+          "unit": "t/ha",
+          "context_ar": "تحت الري التكميلي"
+        },
+        {
+          "product": "grain",
+          "value": 6.3,
+          "unit": "t/ha",
+          "context_ar": "تحت الري"
+        }
+      ],
+      "special_traits_ar": [
+        "صنف مطفر",
+        "مقاومة عالية لأمراض الأصداء الثلاثة",
+        "جيد الإنتاجية مطرياً وعالي الإنتاجية تحت الري"
+      ]
+    },
+    {
+      "id": "YEM-BAR-ASHMOUR-2",
+      "crop_code": "barley",
+      "crop_name_ar": "شعير",
+      "name_ar": "اشمور 2",
+      "name_en": "Ashmour 2",
+      "source_pages": [
+        42,
+        43
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "المرتفعات الشمالية: حجة، شبام، كوكبان، بني مطر والمناطق المشابهة.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "2-3 ريات عند توقف هطول الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 120,
+        "max": 120
+      },
+      "sowing_raw_ar": "شتوي: منتصف يناير إلى منتصف مارس؛ صيفي: يوليو.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 100,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 80
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر فاتح",
+        "tillers_range": "5-7",
+        "days_to_50_flowering": 44,
+        "days_to_maturity": 98,
+        "plant_height_cm": 47,
+        "awn_raw_ar": "سفا طويلة ذات ملمس ناعم",
+        "spike_length_cm": 7.8,
+        "spikelets_per_spike": 16,
+        "grains_per_spike": 41,
+        "thousand_grain_weight_g": 41
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 2.175,
+          "unit": "t/ha",
+          "context_ar": "متوسط في حقول المزارعين"
+        },
+        {
+          "product": "grain",
+          "value": 2.894,
+          "unit": "t/ha",
+          "context_ar": "في الحقول التجريبية"
+        }
+      ],
+      "special_traits_ar": [
+        "صنف سداسي الصفوف",
+        "صنف مطري ويضاف رية إلى ريتين تكميليتين عند الشح في الهطول"
+      ]
+    },
+    {
+      "id": "YEM-BAR-BAHOUTH-2002",
+      "crop_code": "barley",
+      "crop_name_ar": "شعير",
+      "name_ar": "بحوث 2002",
+      "name_en": "Bahouth 2002",
+      "source_pages": [
+        44,
+        45
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "المرتفعات الشمالية: حجة، شبام، كوكبان، بني مطر والمناطق المشابهة.",
+      "row_spacing_cm": 20,
+      "water_raw_ar": "2-3 ريات عند توقف هطول الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 80,
+        "max": 100
+      },
+      "sowing_raw_ar": "شتوي: منتصف يناير إلى منتصف مارس؛ صيفي: يوليو.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 80,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 25
+          },
+          {
+            "timing_ar": "بعد 40 يوماً",
+            "fraction_percent": 75
+          }
+        ],
+        "phosphorus_kg_ha": 60
+      },
+      "morphology": {
+        "growth_habit_ar": "شبه قائم",
+        "leaf_color_ar": "أخضر غامق",
+        "tillers_mean": 8,
+        "days_to_50_flowering": 65,
+        "days_to_maturity": {
+          "winter": 120,
+          "summer": 95
+        },
+        "plant_height_cm": 92,
+        "awn_raw_ar": "طويل خشن",
+        "spike_color_ar": "أبيض",
+        "grain_color_ar": "أبيض",
+        "grain_type_ar": "عاري؛ تنفصل القنابع عن الحبوب",
+        "rows": 6,
+        "spike_length_cm": 9,
+        "grains_per_spike": 54,
+        "thousand_grain_weight_g": 36
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 3.3,
+          "unit": "t/ha",
+          "context_ar": "مروي وأمطار عالية"
+        },
+        {
+          "product": "grain",
+          "value": 1.6,
+          "unit": "t/ha",
+          "context_ar": "أمطار منخفضة"
+        }
+      ],
+      "special_traits_ar": [
+        "إنتاجية عالية نسبياً تحت الري",
+        "يزرع في مناطق عالية الأمطار",
+        "مقاوم لصدأ الساق وحساس للصدأ الأصفر وصدأ الأوراق",
+        "مقاوم لحشرة المن"
+      ]
+    },
+    {
+      "id": "YEM-SOR-TIJARIB",
+      "crop_code": "sorghum",
+      "crop_name_ar": "ذرة رفيعة",
+      "name_ar": "تجارب",
+      "name_en": "Tijarib",
+      "source_pages": [
+        48,
+        49
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "المرتفعات الوسطى والمرتفعات الشمالية.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "water_raw_ar": "1-2 رية عند انقطاع الأمطار.",
+      "seed_rate_kg_ha": {
+        "min": 15,
+        "max": 20
+      },
+      "sowing_raw_ar": "أواخر النصف الثاني من مايو إلى بداية يونيو.",
+      "fertilization": {
+        "nitrogen_kg_ha_by_water_source": {
+          "wadi": 60,
+          "wells": 80
+        },
+        "nitrogen_split_percent": [
+          50,
+          50
+        ],
+        "phosphorus_kg_ha": 45
+      },
+      "morphology": {
+        "plant_height_cm": 180,
+        "panicle_shape_ar": "معكوف",
+        "days_to_50_flowering": 75,
+        "days_to_maturity": 120,
+        "grain_color_ar": "يميل للبياض",
+        "grain_size_ar": "كبيرة",
+        "thousand_grain_weight_g": 50
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 3.5,
+          "unit": "t/ha",
+          "context_ar": "في حقول المزارعين"
+        }
+      ],
+      "special_traits_ar": [
+        "مبكر في النضج؛ متوسط 120 يوم",
+        "إنتاجية عالية للحبوب"
+      ]
+    },
+    {
+      "id": "YEM-SOR-RUMAA-1",
+      "crop_code": "sorghum",
+      "crop_name_ar": "ذرة رفيعة",
+      "name_ar": "رماع-1",
+      "name_en": "Ruma'a-1",
+      "source_pages": [
+        50,
+        51
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "SOURCE_PAGE_51_HEADING_MISLABELS_AS_TIJARIB",
+        "SPACING_SOURCE_INTERNAL_CONFLICT"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "مناطق تهامة وما شابهها.",
+      "spacing_raw_ar": "المصدر يذكر 70-80 سم بين الخطوط و30 سم بين الجور، ثم يورد 20-25 سم بين الجور في السياق نفسه.",
+      "water_raw_ar": "4-5 ريات؛ الفترة بين الريات 15-20 يوماً.",
+      "seed_rate_kg_ha": {
+        "min": 10,
+        "max": 15
+      },
+      "sowing_raw_ar": "الخريفي: أغسطس إلى منتصف سبتمبر؛ البيني: منتصف نوفمبر.",
+      "fertilization": {
+        "nitrogen_kg_ha_by_water_source": {
+          "wadi": 60,
+          "wells": 80
+        },
+        "nitrogen_split_percent": [
+          50,
+          50
+        ],
+        "phosphorus_kg_ha": 80
+      },
+      "morphology": {
+        "plant_height_cm": 233,
+        "panicle_length_cm": 16.5,
+        "days_to_50_flowering": 65,
+        "days_to_maturity": 95,
+        "grain_color_ar": "بيضاء",
+        "grain_weight_per_head_g": 15.25,
+        "thousand_grain_weight_g": 24.5
+      },
+      "yield_observations": [
+        {
+          "product": "forage",
+          "value": 9.25,
+          "unit": "t/ha",
+          "context_ar": "إنتاجية علف"
+        },
+        {
+          "product": "grain",
+          "value": 1.23,
+          "unit": "t/ha",
+          "context_ar": "إنتاجية حبوب"
+        }
+      ],
+      "special_traits_ar": [
+        "مقاوم لحشرة الهاموش",
+        "إنتاج العلف عالٍ نسبياً"
+      ]
+    },
+    {
+      "id": "YEM-SOR-QURAY-WHITE",
+      "crop_code": "sorghum",
+      "crop_name_ar": "ذرة رفيعة",
+      "name_ar": "قريع (أبيض)",
+      "name_en": "Quray' (White)",
+      "source_pages": [
+        52,
+        53
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "غير مذكورة صراحة في خانة مناطق زراعة الصنف.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "water_raw_ar": "في المناطق متوسطة وقليلة الأمطار يحتاج 3-4 ريات تكميلية؛ جدول الري 4-5 ريات بفاصل 15-20 يوماً.",
+      "seed_rate_kg_ha": {
+        "min": 10,
+        "max": 15
+      },
+      "sowing_raw_ar": "تهامة: منتصف أغسطس إلى منتصف سبتمبر؛ الموسم البيني: نوفمبر.",
+      "fertilization": {
+        "nitrogen_kg_ha_by_water_source": {
+          "wadi": 60,
+          "wells": 80
+        },
+        "nitrogen_split_percent": [
+          50,
+          50
+        ],
+        "phosphorus_kg_ha": 80
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "plant_height_cm": 275,
+        "leaf_color_ar": "أخضر",
+        "days_to_50_flowering": 60,
+        "days_to_maturity": 95,
+        "grain_color_ar": "بيضاء",
+        "panicle_length_cm": {
+          "min": 20,
+          "max": 25
+        },
+        "grain_weight_per_panicle_g": {
+          "min": 15,
+          "max": 25
+        },
+        "thousand_grain_weight_g": {
+          "min": 20,
+          "max": 22
+        }
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 1.0,
+          "unit": "t/ha",
+          "context_ar": "حبوب"
+        },
+        {
+          "product": "forage",
+          "value": 12.5,
+          "unit": "t/ha",
+          "context_ar": "علف"
+        }
+      ],
+      "special_traits_ar": [
+        "طول الساق مفضل لدى المزارعين",
+        "إنتاج عالٍ من العلف",
+        "مبكر في النضج نسبياً"
+      ]
+    },
+    {
+      "id": "YEM-SOR-ZAR-RED",
+      "crop_code": "sorghum",
+      "crop_name_ar": "ذرة رفيعة",
+      "name_ar": "زعر (أحمر)",
+      "name_en": "Za'r (Red)",
+      "source_pages": [
+        54,
+        55
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "سيول",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "مناطق تهامة.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "water_raw_ar": "4-5 ريات بفاصل 15-20 يوماً.",
+      "seed_rate_kg_ha": {
+        "contexts": [
+          {
+            "min": 10,
+            "max": 15,
+            "context_ar": "الزراعة على السيول"
+          },
+          {
+            "min": 7,
+            "max": 9,
+            "context_ar": "الزراعة في الكثبان"
+          }
+        ]
+      },
+      "sowing_raw_ar": "الخريفي: أغسطس إلى سبتمبر؛ البيني: نوفمبر.",
+      "fertilization": {
+        "nitrogen_kg_ha_by_water_source": {
+          "wadi": 60,
+          "wells": 80
+        },
+        "nitrogen_split_percent": [
+          50,
+          50
+        ],
+        "phosphorus_kg_ha": 80
+      },
+      "morphology": {
+        "growth_habit_ar": "قائم",
+        "plant_height_cm": {
+          "min": 250,
+          "max": 300
+        },
+        "leaf_color_ar": "أخضر",
+        "days_to_50_flowering": 60,
+        "days_to_maturity": 95,
+        "grain_color_ar": "أحمر",
+        "panicle_length_cm": {
+          "min": 20,
+          "max": 25
+        },
+        "grain_weight_per_panicle_g": {
+          "min": 15,
+          "max": 25
+        },
+        "thousand_grain_weight_g": {
+          "min": 20,
+          "max": 22
+        }
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 0.7,
+          "max": 1.0,
+          "unit": "t/ha",
+          "context_ar": "حبوب"
+        },
+        {
+          "product": "forage",
+          "value": 12.5,
+          "unit": "t/ha",
+          "context_ar": "علف"
+        }
+      ],
+      "special_traits_ar": [
+        "طول الساق مفضل لدى المزارعين",
+        "إنتاج عالٍ من العلف",
+        "مبكر في النضج نسبياً"
+      ]
+    },
+    {
+      "id": "YEM-MAIZE-CITY-LAGOS",
+      "crop_code": "maize",
+      "crop_name_ar": "ذرة شامية",
+      "name_ar": "سيتي لاجوس",
+      "name_en": "City Lagos",
+      "source_pages": [
+        60,
+        61,
+        62
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "المرتفعات الجنوبية: تعز وإب.",
+      "spacing_raw_ar": "متوسط 70 سم بين الخطوط و50 سم بين الجور؛ 3-4 حبوب في الجورة؛ وفي المدرجات والمناطق متوسطة الأمطار 40-60 سم بين الخطوط.",
+      "water_raw_ar": "5-6 ريات عند الري من الآبار؛ 2-3 ريات في الري التكميلي.",
+      "seed_rate_kg_ha": {
+        "min": 30,
+        "max": 30
+      },
+      "sowing_raw_ar": "تعز: يونيو إلى منتصف يوليو؛ إب: مايو.",
+      "fertilization": {
+        "nitrogen_kg_ha_by_water_source": {
+          "wadi": 60,
+          "wells": 80
+        },
+        "nitrogen_split_percent": [
+          50,
+          50
+        ],
+        "phosphorus_kg_ha": 60
+      },
+      "morphology": {
+        "plant_height_cm": 183,
+        "plant_color_ar": "أحمر غامق",
+        "red_pigment_stem": true,
+        "red_pigment_leaf_sheath": true,
+        "leaves_above_ear": 7,
+        "ear_height_cm": 67,
+        "silk_color_ar": "أحمر فاتح",
+        "male_flower_color_ar": "أصفر محمر",
+        "anther_color_ar": "أصفر محمر",
+        "days_to_50_male_flowering": 50,
+        "days_to_50_female_flowering": 52,
+        "days_to_maturity": 90,
+        "grain_color_ar": "أصفر برتقالي",
+        "grain_shape_ar": "قرنية",
+        "ears_per_plant": 1.3,
+        "ear_length_cm": 16.7,
+        "ear_diameter_cm": 4.4,
+        "rows_per_ear": 14,
+        "kernels_per_row": 35,
+        "kernels_per_ear": 487,
+        "thousand_grain_weight_g": 261.7
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 5.2,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية الحبية"
+        }
+      ],
+      "special_traits_ar": [
+        "مبكر في النضج 90-100 يوم",
+        "عالي الإنتاجية"
+      ]
+    },
+    {
+      "id": "YEM-MAIZE-TEHAMA-1",
+      "crop_code": "maize",
+      "crop_name_ar": "ذرة شامية",
+      "name_ar": "تهامة 1",
+      "name_en": "Tehama 1",
+      "source_pages": [
+        63,
+        64
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "FERTILIZER_SOURCE_INTERNAL_CONFLICT_PAGE_63"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "الساحل الغربي - تهامة.",
+      "spacing_raw_ar": "70 سم بين الخطوط و50 سم بين الجور؛ 3-4 حبوب في الجورة.",
+      "water_raw_ar": "ثلاث ريات في المتوسط عند الزراعة على الوادي والأمطار؛ 5-8 ريات من الآبار بفاصل 10-15 يوماً؛ ريات تكميلية مع مياه الوادي حسب الاحتياج.",
+      "seed_rate_kg_ha": {
+        "min": 25,
+        "max": 35
+      },
+      "sowing_raw_ar": "منتصف سبتمبر إلى بداية نوفمبر.",
+      "fertilization_raw_ar": "المصدر يذكر 100 كجم/هـ نيتروجين مع مياه الوادي و80 كجم/هـ مع الآبار، ثم يورد 50 كجم/هـ مع الآبار دون تسمية العنصر؛ يحتاج حسم الصفحة الأصلية/خبير.",
+      "morphology": {
+        "plant_height_cm": {
+          "min": 200,
+          "max": 250
+        },
+        "growth_habit_ar": "قائم",
+        "ear_height_cm": 150,
+        "grain_color_ar": "صفراء",
+        "grain_shape_ar": "صوانية",
+        "days_to_50_flowering": 68,
+        "days_to_maturity": {
+          "min": 100,
+          "max": 110
+        },
+        "ear_length_cm": 19,
+        "rows_per_ear": 14,
+        "thousand_grain_weight_g": 245
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 4,
+          "max": 5,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "عالي الإنتاجية",
+        "مبكر في النضج"
+      ]
+    },
+    {
+      "id": "YEM-MAIZE-TEHAMA-2",
+      "crop_code": "maize",
+      "crop_name_ar": "ذرة شامية",
+      "name_ar": "تهامة 2",
+      "name_en": "Tehama 2",
+      "source_pages": [
+        65,
+        66
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "الساحل الغربي - تهامة.",
+      "spacing_raw_ar": "70 سم بين الخطوط و50 سم بين الجور؛ 3-4 حبوب في الجورة.",
+      "water_raw_ar": "ثلاث ريات في المتوسط عند الزراعة على الوادي والأمطار؛ 5-8 ريات من الآبار بفاصل 10-15 يوماً؛ ريات تكميلية حسب الاحتياج.",
+      "seed_rate_kg_ha": {
+        "min": 25,
+        "max": 35
+      },
+      "sowing_raw_ar": "منتصف سبتمبر إلى بداية نوفمبر.",
+      "fertilization": {
+        "nitrogen_kg_ha_by_water_source": {
+          "wadi": 100,
+          "wells": 80
+        },
+        "nitrogen_split_percent": [
+          50,
+          50
+        ],
+        "phosphorus_kg_ha": 50
+      },
+      "morphology": {
+        "plant_height_cm": {
+          "min": 200,
+          "max": 250
+        },
+        "growth_habit_ar": "قائم",
+        "ear_height_cm": 150,
+        "grain_color_ar": "صفراء",
+        "grain_shape_ar": "صوانية",
+        "days_to_50_flowering": 68,
+        "days_to_maturity": {
+          "min": 100,
+          "max": 110
+        },
+        "ear_length_cm": 19,
+        "rows_per_ear": 14,
+        "thousand_grain_weight_g": 245
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 4,
+          "max": 5,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "مبكر في النضج",
+        "عالي الإنتاجية"
+      ]
+    },
+    {
+      "id": "YEM-MAIZE-TAIZ-3",
+      "crop_code": "maize",
+      "crop_name_ar": "ذرة شامية",
+      "name_ar": "تعز 3",
+      "name_en": "Taiz 3",
+      "source_pages": [
+        67,
+        68,
+        69
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "SOWING_RECOMMENDATION_SOURCE_CONFLICT",
+        "FERTILIZER_RECOMMENDATION_SOURCE_CONFLICT"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "المرتفعات الجنوبية: تعز وإب، مع توصية تشمل المناطق العالية في إب وجبلة والسحول ومشورة والقاعدة والمناطق المشابهة.",
+      "spacing_raw_ar": "70 سم بين الخطوط و50 سم بين الجور؛ 3-4 حبوب في الجورة.",
+      "water_raw_ar": "5-8 ريات من الآبار بفاصل 10-15 يوماً؛ ريات تكميلية مع مياه الوادي. صفحة التوصيات تذكر 2-3 ريات صيفاً و4-5 ريات شتوياً.",
+      "seed_rate_kg_ha": {
+        "contexts": [
+          {
+            "min": 30,
+            "max": 35,
+            "context_ar": "ظروف الأبحاث"
+          },
+          {
+            "min": 40,
+            "max": 45,
+            "context_ar": "بطريقة المزارع"
+          }
+        ]
+      },
+      "sowing_raw_ar": "صفحة 67: تعز يونيو إلى منتصف يوليو وإب مايو. صفحة 69: صيفي أواخر مايو وبداية يونيو، وشتوي سبتمبر-نوفمبر في إب وتعز.",
+      "fertilization_raw_ar": "صفحة 67: 100 كجم/هـ نيتروجين للوادي و80 للآبار، وفوسفور 50. صفحة 69: نيتروجين 80 كجم/هـ (50% عند الزراعة و50% بعد 30-40 يوماً) وفوسفور 60.",
+      "morphology": {
+        "plant_height_cm": 160,
+        "ear_height_cm": 79,
+        "days_to_50_male_flowering": 67,
+        "days_to_50_female_flowering": 72,
+        "days_to_maturity": 104,
+        "grain_color_ar": "أصفر",
+        "ear_shape_ar": "مخروطي",
+        "ears_per_plant": 1.5,
+        "ear_length_cm": 15.6,
+        "ear_diameter_cm": 3.9,
+        "rows_per_ear": 14.5,
+        "kernels_per_row": 32.3,
+        "kernels_per_ear": 293.4,
+        "thousand_grain_weight_g": 428
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 4.9,
+          "unit": "t/ha",
+          "context_ar": "حقول المزارعين"
+        },
+        {
+          "product": "grain",
+          "value": 5.5,
+          "unit": "t/ha",
+          "context_ar": "المزرعة البحثية"
+        }
+      ],
+      "special_traits_ar": [
+        "مقاوم للصدأ",
+        "مقاوم نسبياً للفيروسات",
+        "مقاوم للفحة الأوراق",
+        "مقاوم للرقاد",
+        "مبكر الحصاد",
+        "عالي الإنتاجية"
+      ]
+    },
+    {
+      "id": "YEM-MAIZE-TAIZ-2",
+      "crop_code": "maize",
+      "crop_name_ar": "ذرة شامية",
+      "name_ar": "تعز 2",
+      "name_en": "Taiz 2",
+      "source_pages": [
+        70,
+        71
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "DUPLICATE_YIELD_CONTEXT_WITH_DIFFERENT_VALUES_PAGE_71"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "المرتفعات الجنوبية: تعز وإب.",
+      "spacing_raw_ar": "70 سم بين الخطوط و50 سم بين الجور؛ 3-4 حبوب في الجورة.",
+      "water_raw_ar": "عموماً 6-10 ريات خلال النمو؛ 500-600 مم عمق ماء تحت ظروف المرتفعات الجنوبية؛ مرحلة الإزهار وتكوين الحبوب حساسة لنقص الماء.",
+      "seed_rate_kg_ha": {
+        "min": 30,
+        "max": 30
+      },
+      "sowing_raw_ar": "تعز: يونيو إلى منتصف يوليو؛ إب: مايو.",
+      "fertilization": {
+        "nitrogen_total_kg_ha": 80,
+        "nitrogen_applications": [
+          {
+            "timing_ar": "عند الزراعة",
+            "fraction_percent": 50
+          },
+          {
+            "timing_ar": "عند الخف",
+            "fraction_percent": 50
+          }
+        ],
+        "phosphorus_kg_ha": 60
+      },
+      "morphology": {
+        "plant_height_cm": 195,
+        "ear_height_cm": 88.9,
+        "days_to_50_male_flowering": 67,
+        "days_to_50_female_flowering": 72,
+        "days_to_maturity": 135,
+        "grain_color_ar": "أصفر",
+        "ear_shape_ar": "مخروطي",
+        "ears_per_plant": 1.5,
+        "ear_length_cm": 15.5,
+        "ear_diameter_cm": 3.63,
+        "rows_per_ear": 14.5,
+        "kernels_per_row": 32.3,
+        "kernels_per_ear": 468,
+        "thousand_grain_weight_g": 385
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "value": 5.5,
+          "unit": "t/ha",
+          "context_ar": "حقول المزارعين - كما ورد"
+        },
+        {
+          "product": "grain",
+          "value": 4.9,
+          "unit": "t/ha",
+          "context_ar": "حقول المزارعين - كما ورد"
+        }
+      ],
+      "special_traits_ar": [
+        "صنف مركب",
+        "مقاوم للرقاد",
+        "عالي الإنتاجية نسبياً"
+      ]
+    },
+    {
+      "id": "YEM-MIL-KUDN-1",
+      "crop_code": "millet",
+      "crop_name_ar": "دخن",
+      "name_ar": "كدن 1",
+      "name_en": "Kudn 1",
+      "source_pages": [
+        82,
+        83,
+        84
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "PAGE_84_IRRIGATION_INTERVAL_TYPO_15_220",
+        "ABSOLUTE_DISEASE_FREE_CLAIM_REQUIRES_VALIDATION"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "تهامة الشمالية (وادي مور)، خميس بني سعد بالمحويت، عبس بحجة، الجعفرية، الجبين، وبلاد الطعام بريمة.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "seed_rate_kg_ha": {
+        "min": 7,
+        "max": 10
+      },
+      "sowing_raw_ar": "الخريفي في تهامة: أغسطس إلى سبتمبر؛ الصيفي قرب المرتفعات: يونيو إلى يوليو.",
+      "water_raw_ar": "عند الآبار 2-3 ريات بفاصل 15-20 يوماً؛ عند الزراعة على الأمطار تضاف رية إلى ريتين تكميليتين حسب الاحتياج.",
+      "fertilization_raw_ar": "توصيات المصدر تتغير حسب مصدر الماء: 40-60 كجم/هـ نيتروجين في المطري/الوادي، و60-80 كجم/هـ في الآبار، مع 30-80 كجم/هـ فوسفور حسب الصفحة؛ يضاف السماد العضوي المحلي بواقع 25 كجم/لبنة كما ورد.",
+      "morphology": {
+        "plant_height_cm": 190,
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر غامق",
+        "branches_per_plant": {
+          "min": 2,
+          "max": 3
+        },
+        "panicle_shape_ar": "إسطواني - مخروطي",
+        "seed_shape_ar": "رمحي - بيضاوي",
+        "mature_seed_color_ar": "رمادي فاتح",
+        "mature_seed_size_ar": "متوسط",
+        "days_to_50_flowering": 46.5,
+        "days_to_maturity": {
+          "min": 80,
+          "max": 85
+        },
+        "panicle_length_cm": 40,
+        "panicle_thickness_mm": 2.25,
+        "panicle_density_ar": "مزدحم compact",
+        "panicle_size_ar": "كبيرة",
+        "thousand_grain_weight_g": 9.0
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 2.5,
+          "max": 3.0,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "مبكر النضج 80-85 يوماً",
+        "وجود الشوك أو السفا يقلل مهاجمة الطيور",
+        "ورد في المصدر: خالي من الإصابات المرضية"
+      ]
+    },
+    {
+      "id": "YEM-MIL-KUDN-2",
+      "crop_code": "millet",
+      "crop_name_ar": "دخن",
+      "name_ar": "كدن 2",
+      "name_en": "Kudn 2",
+      "source_pages": [
+        86,
+        87
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "سهل تهامة: المنصورية، زبيد/الجبلية، وادي مور، خميس بني سعد، عبس، الجعفرية، الجبين، وبلاد الطعام.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "seed_rate_kg_ha": {
+        "min": 7,
+        "max": 10
+      },
+      "sowing_raw_ar": "الخريفي في تهامة: أغسطس إلى سبتمبر؛ الصيفي قرب المرتفعات: يونيو إلى يوليو.",
+      "water_raw_ar": "عند الآبار 2-3 ريات بفاصل 15-20 يوماً؛ عند الزراعة على الأمطار تضاف رية إلى ريتين تكميليتين حسب الاحتياج.",
+      "fertilization_raw_ar": "توصيات المصدر تتغير حسب مصدر الماء: 40-60 كجم/هـ نيتروجين في المطري/الوادي، و60-80 كجم/هـ في الآبار، مع 30-80 كجم/هـ فوسفور حسب الصفحة؛ يضاف السماد العضوي المحلي بواقع 25 كجم/لبنة كما ورد.",
+      "morphology": {
+        "plant_height_cm": 170,
+        "growth_habit_ar": "قائم - متدلي",
+        "leaf_color_ar": "أخضر غامق",
+        "branches_per_plant": {
+          "min": 4,
+          "max": 6
+        },
+        "panicle_shape_ar": "شمعي - مخروطي",
+        "seed_shape_ar": "بيضاوي - كروي",
+        "mature_seed_color_ar": "رمادي - أصفر",
+        "mature_seed_size_ar": "متوسط",
+        "days_to_50_flowering": 42.5,
+        "days_to_maturity": 72.5,
+        "panicle_length_cm": 23.5,
+        "panicle_thickness_mm": 2.5,
+        "panicle_density_ar": "شبه مزدحم",
+        "panicle_size_ar": "متوسطة",
+        "thousand_grain_weight_g": 8.25
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 2.5,
+          "max": 3.0,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "عالي الإنتاجية",
+        "مبكر في النضج"
+      ]
+    },
+    {
+      "id": "YEM-MIL-KUDN-3",
+      "crop_code": "millet",
+      "crop_name_ar": "دخن",
+      "name_ar": "كدن 3",
+      "name_en": "Kudn 3",
+      "source_pages": [
+        89,
+        90
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "ABSOLUTE_DISEASE_FREE_CLAIM_REQUIRES_VALIDATION"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري",
+        "ري تكميلي"
+      ],
+      "regions_raw_ar": "سهل تهامة: المنصورية، زبيد/الجبلية، وادي مور، خميس بني سعد، عبس، الجعفرية، الجبين، وبلاد الطعام.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "seed_rate_kg_ha": {
+        "min": 7,
+        "max": 10
+      },
+      "sowing_raw_ar": "الخريفي في تهامة: أغسطس إلى سبتمبر؛ الصيفي قرب المرتفعات: يونيو إلى يوليو.",
+      "water_raw_ar": "عند الآبار 2-3 ريات بفاصل 15-20 يوماً؛ عند الزراعة على الأمطار تضاف رية إلى ريتين تكميليتين حسب الاحتياج.",
+      "fertilization_raw_ar": "توصيات المصدر تتغير حسب مصدر الماء: 40-60 كجم/هـ نيتروجين في المطري/الوادي، و60-80 كجم/هـ في الآبار، مع 30-80 كجم/هـ فوسفور حسب الصفحة؛ يضاف السماد العضوي المحلي بواقع 25 كجم/لبنة كما ورد.",
+      "morphology": {
+        "plant_height_cm": 190,
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر غامق",
+        "branches_per_plant": 2,
+        "panicle_shape_ar": "مخروطي",
+        "seed_shape_ar": "سداسي",
+        "mature_seed_color_ar": "رمادي غامق",
+        "mature_seed_size_ar": "كبيرة",
+        "days_to_50_flowering": 42.54,
+        "days_to_maturity": 72.5,
+        "panicle_length_cm": 23.5,
+        "panicle_thickness_mm": 3.0,
+        "panicle_density_ar": "مزدحم compact",
+        "panicle_size_ar": "متوسطة",
+        "thousand_grain_weight_g": 13.5
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 2.0,
+          "max": 2.5,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "مبكر النضج 70-75 يوماً",
+        "سنابل ممتلئة بالحبوب وسميكة جذابة",
+        "متحمل للجفاف",
+        "ورد في المصدر: خالي من الإصابات المرضية"
+      ]
+    },
+    {
+      "id": "YEM-MIL-KUDN-4",
+      "crop_code": "millet",
+      "crop_name_ar": "دخن",
+      "name_ar": "كدن 4",
+      "name_en": "Kudn 4",
+      "source_pages": [
+        92,
+        93
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [
+        "ABSOLUTE_DISEASE_FREE_CLAIM_REQUIRES_VALIDATION"
+      ],
+      "production_systems_ar": [
+        "مروي",
+        "مطري"
+      ],
+      "regions_raw_ar": "غير مذكورة صراحة في صفحة الصنف.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "seed_rate_kg_ha": {
+        "min": 7,
+        "max": 10
+      },
+      "sowing_raw_ar": "الخريفي في تهامة: أغسطس إلى سبتمبر؛ الصيفي قرب المرتفعات: يونيو إلى يوليو.",
+      "water_raw_ar": "عند الآبار 2-3 ريات بفاصل 15-20 يوماً؛ عند الزراعة على الأمطار تضاف رية إلى ريتين تكميليتين حسب الاحتياج.",
+      "fertilization_raw_ar": "توصيات المصدر تتغير حسب مصدر الماء: 40-60 كجم/هـ نيتروجين في المطري/الوادي، و60-80 كجم/هـ في الآبار، مع 30-80 كجم/هـ فوسفور حسب الصفحة؛ يضاف السماد العضوي المحلي بواقع 25 كجم/لبنة كما ورد.",
+      "morphology": {
+        "plant_height_cm": 225,
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر غامق",
+        "branches_per_plant": {
+          "min": 2,
+          "max": 3
+        },
+        "panicle_shape_ar": "شمعي - مخروطي",
+        "seed_shape_ar": "رمحي",
+        "mature_seed_color_ar": "رمادي",
+        "mature_seed_size_ar": "كبيرة",
+        "days_to_50_flowering": {
+          "min": 45,
+          "max": 48
+        },
+        "days_to_maturity": {
+          "min": 80,
+          "max": 90
+        },
+        "panicle_length_cm": 32.5,
+        "panicle_thickness_mm": 3.0,
+        "panicle_density_ar": "مزدحم compact",
+        "panicle_size_ar": "كبيرة",
+        "thousand_grain_weight_g": 9
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 2.0,
+          "max": 2.5,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "إنتاجية عالية",
+        "متأقلم مع البيئات المختلفة",
+        "يزرع على الأمطار في المرتفعات الجبلية",
+        "ورد في المصدر: خالي من الإصابات المرضية"
+      ]
+    },
+    {
+      "id": "YEM-MIL-KUDN-5",
+      "crop_code": "millet",
+      "crop_name_ar": "دخن",
+      "name_ar": "كدن 5",
+      "name_en": "Kudn 5",
+      "source_pages": [
+        95,
+        96
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي"
+      ],
+      "regions_raw_ar": "سهل تهامة: المنصورية، زبيد/الجبلية، وادي مور، خميس بني سعد، عبس، الجعفرية، الجبين، وبلاد الطعام.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "seed_rate_kg_ha": {
+        "min": 7,
+        "max": 10
+      },
+      "sowing_raw_ar": "الخريفي في تهامة: أغسطس إلى سبتمبر؛ الصيفي قرب المرتفعات: يونيو إلى يوليو.",
+      "water_raw_ar": "عند الآبار 2-3 ريات بفاصل 15-20 يوماً؛ عند الزراعة على الأمطار تضاف رية إلى ريتين تكميليتين حسب الاحتياج.",
+      "fertilization_raw_ar": "توصيات المصدر تتغير حسب مصدر الماء: 40-60 كجم/هـ نيتروجين في المطري/الوادي، و60-80 كجم/هـ في الآبار، مع 30-80 كجم/هـ فوسفور حسب الصفحة؛ يضاف السماد العضوي المحلي بواقع 25 كجم/لبنة كما ورد.",
+      "morphology": {
+        "plant_height_cm": 195,
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر",
+        "branches_per_plant": 2,
+        "panicle_shape_ar": "شمعي - مخروطي",
+        "seed_shape_ar": "رمحي",
+        "mature_seed_color_ar": "كريمي - أصفر",
+        "mature_seed_size_ar": "كبيرة",
+        "days_to_50_flowering": 50,
+        "days_to_maturity": 85,
+        "panicle_length_cm": 32.5,
+        "panicle_thickness_mm": 3.0,
+        "panicle_density_ar": "مزدحم compact",
+        "panicle_size_ar": "كبيرة",
+        "thousand_grain_weight_g": 11
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 2.5,
+          "max": 3.0,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "إنتاجية عالية",
+        "متوسط النضج 80-90 يوماً",
+        "لون البذرة الصفراء مرغوب سوقياً",
+        "متأقلم مع البيئات المختلفة"
+      ]
+    },
+    {
+      "id": "YEM-MIL-TEHAMA",
+      "crop_code": "millet",
+      "crop_name_ar": "دخن",
+      "name_ar": "دخن تهامة",
+      "name_en": "Tehama Millet",
+      "source_pages": [
+        98,
+        99
+      ],
+      "source_verification": "visual_pdf_review",
+      "catalog_use_status": "source_verified",
+      "decision_engine_use_status": "reference_only_not_operational",
+      "issue_codes": [],
+      "production_systems_ar": [
+        "مروي بالآبار",
+        "سيول"
+      ],
+      "regions_raw_ar": "سهل تهامة: المنطقة الشمالية والجنوبية والوسطى.",
+      "spacing_raw_ar": "بين الخطوط 50-70 سم؛ بين الجور 20-25 سم.",
+      "seed_rate_kg_ha": {
+        "min": 7,
+        "max": 10
+      },
+      "sowing_raw_ar": "الخريفي في تهامة: أغسطس إلى سبتمبر؛ الصيفي قرب المرتفعات: يونيو إلى يوليو.",
+      "water_raw_ar": "عند الآبار 2-3 ريات بفاصل 15-20 يوماً؛ عند الزراعة على الأمطار تضاف رية إلى ريتين تكميليتين حسب الاحتياج.",
+      "fertilization_raw_ar": "توصيات المصدر تتغير حسب مصدر الماء: 40-60 كجم/هـ نيتروجين في المطري/الوادي، و60-80 كجم/هـ في الآبار، مع 30-80 كجم/هـ فوسفور حسب الصفحة؛ يضاف السماد العضوي المحلي بواقع 25 كجم/لبنة كما ورد.",
+      "morphology": {
+        "plant_height_cm": 290,
+        "growth_habit_ar": "قائم",
+        "leaf_color_ar": "أخضر غامق",
+        "branches_per_plant": {
+          "min": 2,
+          "max": 3
+        },
+        "panicle_shape_ar": "شمعي - مخروطي",
+        "days_to_50_flowering": 61,
+        "days_to_maturity": {
+          "min": 90,
+          "max": 100,
+          "note_ar": "أو أكثر"
+        },
+        "panicle_length_cm": {
+          "min": 35,
+          "max": 45
+        },
+        "panicle_thickness_mm": {
+          "min": 2.4,
+          "max": 3.2
+        },
+        "panicle_density_ar": "مزدحم",
+        "panicle_size_ar": "كبير",
+        "thousand_grain_weight_g": 10
+      },
+      "yield_observations": [
+        {
+          "product": "grain",
+          "min": 2.5,
+          "max": 3.0,
+          "unit": "t/ha",
+          "context_ar": "متوسط الإنتاجية"
+        }
+      ],
+      "special_traits_ar": [
+        "إنتاجية عالية",
+        "متأقلم مع البيئات المختلفة في الإقليم"
+      ]
+    }
+  ],
+  "quality_issues": [
+    {
+      "code": "DATASET_COUNT_CORRECTION",
+      "severity": "critical",
+      "status": "resolved",
+      "description_ar": "القائمة السابقة ذكرت 24 صنفاً، بينما الدليل يحتوي 29 بطاقة صنف: 11 قمح، 3 شعير، 4 ذرة رفيعة، 5 ذرة شامية، 6 دخن."
+    },
+    {
+      "code": "NAME_BAHOUTH_35_TO_37",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الاسم الصحيح في الصفحة 10 هو بحوث 37، وليس بحوث 35."
+    },
+    {
+      "code": "MISSING_BAHOUTH_13",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "بحوث 13 في الصفحتين 8-9 كان مفقوداً من القائمة السابقة."
+    },
+    {
+      "code": "NAME_SHIBAM_0_TO_8",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الاسم الصحيح في الصفحة 14 هو شبام-8."
+    },
+    {
+      "code": "NAME_ASHMOUR_0_TO_2",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الاسم الصحيح في الصفحة 42 هو اشمور 2."
+    },
+    {
+      "code": "NAME_BAHOUTH_0220_TO_2002",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الاسم الصحيح في الصفحة 44 هو بحوث 2002."
+    },
+    {
+      "code": "MISSING_RUMAA_1",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الصنف رماع-1 في الصفحتين 50-51 كان مفقوداً من القائمة السابقة."
+    },
+    {
+      "code": "NAME_CITY_AL_JAWS_TO_CITY_LAGOS",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الاسم الظاهر في الصفحة 60 هو سيتي لاجوس."
+    },
+    {
+      "code": "NAME_TEHAMA_0_TO_2",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الاسم الصحيح في الصفحة 65 هو تهامة 2."
+    },
+    {
+      "code": "NAME_TAIZ_0_TO_2",
+      "severity": "high",
+      "status": "resolved",
+      "description_ar": "الاسم الصحيح في الصفحة 70 هو تعز 2."
+    },
+    {
+      "code": "KUDN_COLLAPSE",
+      "severity": "critical",
+      "status": "resolved",
+      "description_ar": "الدليل يعرض كدن 1 إلى كدن 5 كخمسة أصناف مستقلة، إضافة إلى دخن تهامة؛ لا يجوز دمجها في بطاقتين إقليميتين."
+    },
+    {
+      "code": "SOURCE_MANAGEMENT_VALUES_REFERENCE_ONLY",
+      "severity": "critical",
+      "status": "open",
+      "description_ar": "قيم المياه والأسمدة والمواعيد من الدليل تحفظ كمرجع مصدر ولا تُفعّل آلياً في محرك توصيات سهول قبل مراجعة خبير وربطها بالمنطقة والتربة والموسم."
+    }
+  ],
+  "corrections": [
+    [
+      "عدد الأصناف",
+      "24",
+      "29",
+      "الدليل الكامل"
+    ],
+    [
+      "بحوث 35",
+      "بحوث 35",
+      "بحوث 37",
+      "ص10"
+    ],
+    [
+      "بحوث 13",
+      "مفقود",
+      "بحوث 13",
+      "ص8-9"
+    ],
+    [
+      "شبام-0",
+      "شبام-0",
+      "شبام-8",
+      "ص14"
+    ],
+    [
+      "اشمور 0",
+      "اشمور 0",
+      "اشمور 2",
+      "ص42"
+    ],
+    [
+      "بحوث 0220",
+      "بحوث 0220",
+      "بحوث 2002",
+      "ص44"
+    ],
+    [
+      "رماع-1",
+      "مفقود",
+      "رماع-1",
+      "ص50-51"
+    ],
+    [
+      "سيتي الجوس",
+      "City Al-Jaws",
+      "سيتي لاجوس / City Lagos",
+      "ص60"
+    ],
+    [
+      "تهامة 0",
+      "تهامة 0",
+      "تهامة 2",
+      "ص65"
+    ],
+    [
+      "تعز 0",
+      "تعز 0",
+      "تعز 2",
+      "ص70"
+    ],
+    [
+      "أصناف كدن",
+      "بطاقتان إقليميتان",
+      "كدن 1، 2، 3، 4، 5 + دخن تهامة",
+      "ص82-99"
+    ]
+  ]
+}
