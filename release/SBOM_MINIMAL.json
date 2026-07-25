@@ -195,7 +195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "2ad2aa52807d2a3eceefe9f258f0bc466fc0f80ae537bcf689a1b06df1da3a18"
+          "content": "89c5f7c46b0fef8c8da6b4ee463d4321b4ad1c8b2415f10363e96dd14f574c56"
         }
       ],
       "name": "frontend/Dockerfile",
@@ -405,7 +405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "46f7792e31b3dc1ad73276e444e749b18837ff3b838b54e48e753bcada5bf17e"
+          "content": "209d6af7b0f6b1b963be9e4ed03a7fc2de4c1e66319b750b643d62d1f489479d"
         }
       ],
       "name": "frontend/package-lock.json",
@@ -415,7 +415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "39174f8d78527729bbd3184e949e0dbc1b4b100bcd19061eb3fde1e1bdafe64b"
+          "content": "669adc34be526d39e64b8dd07ef9ec2110fa2c56fd58b90788e0075cab131c43"
         }
       ],
       "name": "frontend/package.json",
@@ -525,7 +525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e903da126afe38fed1f3570aab3a3b84ac03361bd1de05e426a9fc70ce00dfa8"
+          "content": "11401d9adccb61b53ebb46244bb826ce75435a4df361651721b41a9185149ec9"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -2395,7 +2395,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8ba2566bb0875bcec29bffa9f9222a373e21e4598011418eceb38f18da82336e"
+          "content": "c6ab003eb899eca716f10c98737fb32fa77d49325559230de9472585965b428a"
         }
       ],
       "name": "frontend/src/components/shell/AppShell.tsx",
@@ -2405,7 +2405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "03f9686ebb9cc3f68ffc6c2c49e0e1fd71cc6acf9c42046748b5ee3f2d5e88cb"
+          "content": "5e9393656c9e73305b05ecaa0df5d7b5cd981bf2306b089dfdc2a7f75563aade"
         }
       ],
       "name": "frontend/src/components/shell/CommandPalette.tsx",
@@ -2415,7 +2415,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4054d0c3b4358be95e38c14f459527ea7ab0ee5187d3eaf1fa6aff565bc71962"
+          "content": "39226986d15dfd7dbe1a3c3af76f3ee1142c7f2e2075897007aa4d49c1523fa5"
         }
       ],
       "name": "frontend/src/components/shell/ContextBar.tsx",
@@ -2425,7 +2425,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fcbe39c6679d7af0113f13d67572435b8059dba99da246206f9a308298f53e53"
+          "content": "12c7ac09c6533a25a18436e6474c5bde6fa131cd5320cb02eca91de4af315a93"
         }
       ],
       "name": "frontend/src/components/shell/MobileTabBar.tsx",
@@ -2445,7 +2445,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f932553fa0b93aee13a16fdc8137907360103e03dab3de16cd712ccb82892632"
+          "content": "ea17166fad9afb9ecde32c0f9e4c71c44a3238b40db401071084a035e6bb5e16"
         }
       ],
       "name": "frontend/src/components/shell/NavRail.tsx",
@@ -4665,7 +4665,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b9e4d3a40a3ab5fe7e8b160f2d217e0e708be3454e1ffcb82d625c1eb953d6c6"
+          "content": "5cc13d9bcc85aeebd953339bcef429dbeb2d9338642a8c9d60225d6b19e941b7"
         }
       ],
       "name": "frontend/src/main.tsx",
@@ -5035,7 +5035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "61acbc93fbf42b73e78f2dda16479ef097a1716d6e6822c65300f97df3791d4e"
+          "content": "111af0d825700c05b7f1e095a56d3283932f1200e306707856b71babc53e997c"
         }
       ],
       "name": "frontend/src/sections/EtcDualPage.tsx",
@@ -5105,7 +5105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a37d2278cbdb0b5e21d73cabd84710eaa139b541debbb043d17926c89f7d6ab2"
+          "content": "9715c563e273f969507bff16136a77ce575b5d310bd562f2b7cd322e8d99c275"
         }
       ],
       "name": "frontend/src/sections/FarmMapOverview.tsx",
@@ -5225,7 +5225,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "659d7e44e62eed2c02a54c03e1544ad34a8b0df7875dbae09122502abb20888a"
+          "content": "f1a9112509b03260d27e1646c50f61d18b1ed758bdb3a3cd54b61e5a76317deb"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.test.tsx",
@@ -5235,7 +5235,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "52301786161fedbfa3bc4d2637f56e5c94aa77a14962bb5f63abb69e381882f0"
+          "content": "2584740ea8239b53f319f159671e66b041ff037da24021c5e04beace79220432"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceMapCard.tsx",
@@ -5285,7 +5285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9c13d7bbbbfa9e06a8cd6b7e57966dc53f8b2fc82b87dacc9b84f1635722d2bc"
+          "content": "66ae83e999231e156a0c32c7f5bef008a047d34d2f1d21f2a1ea8987028f4ef3"
         }
       ],
       "name": "frontend/src/sections/FieldWorkspaceRouteShell.tsx",
@@ -5475,7 +5475,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dbcce467101972d6766147afb98bdf99bdf6e958d411a047d251762ce0338243"
+          "content": "f1e2b697e196298ce332c30a8c9cfc0f195248fc0416afe5508f41bf6847e10b"
         }
       ],
       "name": "frontend/src/sections/IrrigationPlanPage.tsx",
@@ -5485,7 +5485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7bdfe915551f5dda078161b524f6cbe333f9abfc92c06a579cfc67cae6d25514"
+          "content": "088d9f30ae8f35f9c75403ce960ad3966799c77a80f9af939f27f69539e5322d"
         }
       ],
       "name": "frontend/src/sections/IrrigationWaterPage.tsx",
@@ -5495,7 +5495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb816254c09ac4f938e8dd63bd223dc38bc474d0b1518c6232913b74a77b466c"
+          "content": "14dca3289c81cf1c2916274856909637842dad63bfd2b00e69db715d7028a81f"
         }
       ],
       "name": "frontend/src/sections/LabSamplingPage.tsx",
@@ -5535,7 +5535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "94779510b46837148da2f21f723d9f4f3481b53f3afc536c139d459b6c462824"
+          "content": "65e27f02f6f73859571deeef4b2a34cf0cd0dae9afe821e494eee7eab7a556e4"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5635,7 +5635,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "087f011569f5a028fc222af4f1af5f0090a55d00172870c187416ca3609b0c87"
+          "content": "22a1a76347c9182174a7491e926408046de58f57d8b30f54c1e84ac0e26e748f"
         }
       ],
       "name": "frontend/src/sections/MyFieldsPage.tsx",
@@ -5755,7 +5755,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c1c08eff163c994523d5bfb4b472e1b03adbaf93fe0ab32a58f5b414da0d1392"
+          "content": "82cc16d7b2bd0b840d5d50cfe31c3880a3501e3b124eec625561399fd083afc9"
         }
       ],
       "name": "frontend/src/sections/PrescriptionBuilderPage.test.tsx",
@@ -5765,7 +5765,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "16c36c91f90aebd195ae60e10d1ec6c0f83f11375da13eb8a7ba26a0907366f5"
+          "content": "84249e7020e8cb0997df92ce32212927733b4a2e91d1c2e3f6b545db733f57ab"
         }
       ],
       "name": "frontend/src/sections/PrescriptionBuilderPage.tsx",
@@ -5875,7 +5875,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e7f75f449041ab95fea5c7434b78ce687849effd703c38d54b710c674688331e"
+          "content": "67bddaced810791e4b3b6a8b622f1a779d86c3dc00426538bc43e82c8ab12ec0"
         }
       ],
       "name": "frontend/src/sections/SatellitePage.tsx",
@@ -6035,7 +6035,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "922b872ed932ef2d284e8654642839cc087adfa3777df0f4a31f801d2df8fcb2"
+          "content": "c0d26a5928c6966f7c30d1a7de7ccd1f9c77fc589e01ee7e2da0fe425103b0d1"
         }
       ],
       "name": "frontend/src/sections/WaterTwinPage.tsx",
@@ -6535,7 +6535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d3cd1b701a265f25d35acf5dd05a8baf9d4304086653592cb6bd249bf494b742"
+          "content": "851525a7d9bcaeaee909fff6db5ac1e013a44033ede389379bcd1e68891e2658"
         }
       ],
       "name": "frontend/vite.config.ts",

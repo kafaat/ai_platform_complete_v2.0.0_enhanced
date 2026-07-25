@@ -6,7 +6,7 @@
 // لمحدّدات سياقيّة بسيطة (حقل/سنة/طبقة) كعناصر <select> عاديّة (لاحقاً تُوصَل
 // ببيانات حقيقيّة). RTL. لا نخترع لغة بصريّة جديدة — نفس رموز اللوحة.
 // ═══════════════════════════════════════════════════════════════
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import {
   LayoutDashboard, Menu, Wifi, WifiOff, AlertTriangle, ChevronLeft,
 } from 'lucide-react';

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { RefreshCw, Search, Sprout, Layers, ChevronLeft, Plus } from 'lucide-react';
 import { useFields } from '../hooks/useApi';
 import { useFieldContextStore } from '../hooks/useFieldContext';

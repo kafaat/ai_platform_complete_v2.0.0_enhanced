@@ -7,7 +7,7 @@ import { useCreateLabSample, useLabDecisionContext, useLabSamples, useSubmitSoil
 import { asApiError, apiErrorMessage, apiFieldErrors, type LabSampleCreateInput, type SoilLabResultInput } from '../services/api';
 import { LoadingState, ErrorState, EmptyState } from '../components/StateViews';
 import { geomToPolygon, fieldRepresentativePoint } from '../lib/geo';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 // يبني رسالة خطأ تُسمّي الحقول المُخالِفة من 422 (بدل رسالة واحدة عامّة — continuation-3 P2).
 // تسميات عربيّة للحقول الشائعة؛ غير المعروف يظهر باسمه الحرفيّ.

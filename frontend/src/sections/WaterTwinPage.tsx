@@ -9,7 +9,7 @@ import { Droplets, GitCompare, Info, AlertTriangle } from 'lucide-react';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { simulateFieldWaterTwin, asApiError } from '../services/api';
 import type { FieldWaterTwinInput, WaterTwinResult } from '../services/api';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 export default function WaterTwinPage() {
   const location = useLocation();

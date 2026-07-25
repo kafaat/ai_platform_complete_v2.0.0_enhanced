@@ -7,7 +7,7 @@
 // النقر على حقل يضبط «الحقل النشط» المشترك (useSelectedField) فيتبع المستخدم عبر
 // الشاشات. أساسٌ لاحقٌ لـclustering (لفّ العلامات بمجموعة تجميع فوق هذه الخريطة).
 import { useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { MapContainer, TileLayer, Polygon, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Map as MapIcon, MapPin } from 'lucide-react';

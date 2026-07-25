@@ -59,7 +59,7 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('/node_modules/')) return undefined;
           const groups: Array<[string, string[]]> = [
-            ['vendor-react', ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'zustand']],
+            ['vendor-react', ['react', 'react-dom', 'react-router', '@tanstack/react-query', 'zustand']],
             ['vendor-ui', ['lucide-react', 'framer-motion', 'cmdk']],
             ['vendor-charts', ['recharts', 'd3-']],
             // NOTE: the Leaflet ecosystem is deliberately NOT manually chunked. Its

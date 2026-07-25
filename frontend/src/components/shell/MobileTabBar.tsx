@@ -7,7 +7,7 @@
 // مسار URL (الراوتر مصدر الحقيقة). يظهر فقط على الشاشات الصغيرة (md:hidden).
 // ═══════════════════════════════════════════════════════════════
 import { createElement } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { BottomTabBar } from '../ds';
 import { useAuthStore } from '../../hooks/useAuth';
 import { canAccess } from '../../lib/permissions';
