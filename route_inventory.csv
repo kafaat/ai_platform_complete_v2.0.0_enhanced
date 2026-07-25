@@ -245,8 +245,8 @@ raster-service,services/raster-service/routers/fields.py,1045,POST,/v1/fields/{f
 raster-service,services/raster-service/routers/fields.py,1102,GET,/v1/fields/{field_id}/timeseries,field_timeseries
 raster-service,services/raster-service/routers/fields.py,1193,GET,/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png,field_tile
 raster-service,services/raster-service/routers/fields.py,1267,GET,/v1/fields/{field_id}/available-dates,field_available_dates
-raster-service,services/raster-service/routers/fields.py,1429,GET,/v1/fields/{field_id}/terrain,field_terrain
-raster-service,services/raster-service/routers/fields.py,1478,GET,/v1/fields/{field_id}/tilejson,field_tilejson
+raster-service,services/raster-service/routers/fields.py,1444,GET,/v1/fields/{field_id}/terrain,field_terrain
+raster-service,services/raster-service/routers/fields.py,1493,GET,/v1/fields/{field_id}/tilejson,field_tilejson
 raster-service,services/raster-service/routers/imagery.py,22,GET,/v1/imagery/backfill/policy,historical_backfill_policy
 raster-service,services/raster-service/routers/imagery.py,44,GET,/v1/imagery/quality/policy,imagery_quality_policy
 raster-service,services/raster-service/routers/imagery.py,78,POST,/v1/imagery/scenes/rank,rank_imagery_scenes
