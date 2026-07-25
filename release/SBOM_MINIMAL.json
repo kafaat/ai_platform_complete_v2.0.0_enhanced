@@ -5535,7 +5535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0dd3bd8776c284ed5229e19f4f1745a5cfc04a724815d8c6108c55de30c8ad76"
+          "content": "c8442e7c95bf639f5d4618d63ea0a8ddd4bfcdf2c365d2138d62a55df849cb4a"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5569,6 +5569,16 @@
         }
       ],
       "name": "frontend/src/sections/MapHubTrueColorRuntime.v54.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e342534e5b9b7b718070cd44ceea62b4bce2039c6e4a07867185e122b0b0fa9c"
+        }
+      ],
+      "name": "frontend/src/sections/MapHubTwoDateCompare.static.test.ts",
       "type": "file"
     },
     {
