@@ -20,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 def _fn():
     import main  # noqa: F401 — wires the app + request-context ContextVar
-
     from routers.fields import _authenticated_tenant
 
     return _authenticated_tenant
