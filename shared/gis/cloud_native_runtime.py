@@ -4,14 +4,16 @@ These helpers intentionally keep side effects at the adapter edge.  They build
 STAC/MosaicJSON/TileJSON/GeoParquet payloads from durable registry rows so the
 API layer is not a static facade and can be exercised with fake rows in tests.
 """
+
 from __future__ import annotations
 
+import json
+import os
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from typing import Any, Iterable
-import json
-import os
+from typing import Any
 
 from shared.gis.cloud_native_gis import score_scene_quality
 
@@ -51,7 +53,9 @@ def _iso(value: Any) -> str | None:
 
 
 def _bbox_from_row(row: Any) -> list[float] | None:
-    bbox = _jsonish(row.get("bbox") if isinstance(row, dict) else row["bbox"] if "bbox" in row else None)
+    bbox = _jsonish(
+        row.get("bbox") if isinstance(row, dict) else row["bbox"] if "bbox" in row else None
+    )
     if isinstance(bbox, list) and len(bbox) == 4:
         return [float(x) for x in bbox]
     if isinstance(bbox, dict):
@@ -123,16 +127,32 @@ def stac_item_from_record(record: RasterRegistryRecord, *, api_base: str = "") -
         "assets": assets,
         "links": [
             {"rel": "self", "href": f"{api_base}/api/v1/gis/cloud-native/stac/items/{item_id}"},
-            {"rel": "collection", "href": f"{api_base}/api/v1/gis/cloud-native/stac/collections/sahool-{record.index_type}"},
+            {
+                "rel": "collection",
+                "href": f"{api_base}/api/v1/gis/cloud-native/stac/collections/sahool-{record.index_type}",
+            },
         ],
     }
 
 
-def stac_collection(records: Iterable[RasterRegistryRecord], *, index_type: str | None = None, api_base: str = "") -> dict[str, Any]:
+def stac_collection(
+    records: Iterable[RasterRegistryRecord], *, index_type: str | None = None, api_base: str = ""
+) -> dict[str, Any]:
     records = list(records)
     idx = index_type or (records[0].index_type if records else "raster")
     bboxes = [r.bbox for r in records if isinstance(r.bbox, list) and len(r.bbox) == 4]
-    extent_bbox = [[min(b[0] for b in bboxes), min(b[1] for b in bboxes), max(b[2] for b in bboxes), max(b[3] for b in bboxes)]] if bboxes else [[-180, -90, 180, 90]]
+    extent_bbox = (
+        [
+            [
+                min(b[0] for b in bboxes),
+                min(b[1] for b in bboxes),
+                max(b[2] for b in bboxes),
+                max(b[3] for b in bboxes),
+            ]
+        ]
+        if bboxes
+        else [[-180, -90, 180, 90]]
+    )
     dates = [_iso(r.product_date) for r in records if _iso(r.product_date)]
     interval = [[min(dates), max(dates)]] if dates else [[None, None]]
     return {
@@ -143,21 +163,38 @@ def stac_collection(records: Iterable[RasterRegistryRecord], *, index_type: str 
         "description": "DB-backed cloud-native raster registry collection.",
         "extent": {"spatial": {"bbox": extent_bbox}, "temporal": {"interval": interval}},
         "links": [
-            {"rel": "self", "href": f"{api_base}/api/v1/gis/cloud-native/stac/collections/sahool-{idx}"},
-            {"rel": "items", "href": f"{api_base}/api/v1/gis/cloud-native/stac/search?index_type={idx}"},
+            {
+                "rel": "self",
+                "href": f"{api_base}/api/v1/gis/cloud-native/stac/collections/sahool-{idx}",
+            },
+            {
+                "rel": "items",
+                "href": f"{api_base}/api/v1/gis/cloud-native/stac/search?index_type={idx}",
+            },
         ],
     }
 
 
-def mosaicjson_from_records(records: Iterable[RasterRegistryRecord], *, name: str, minzoom: int = 8, maxzoom: int = 18) -> dict[str, Any]:
+def mosaicjson_from_records(
+    records: Iterable[RasterRegistryRecord], *, name: str, minzoom: int = 8, maxzoom: int = 18
+) -> dict[str, Any]:
     tiles: dict[str, list[str]] = {}
     for rec in records:
         key = rec.scene_id or rec.id
         tiles.setdefault(str(key), []).append(rec.cog_url)
-    return {"mosaicjson": "0.0.3", "name": name, "minzoom": minzoom, "maxzoom": maxzoom, "tiles": tiles, "asset_type": "cog"}
+    return {
+        "mosaicjson": "0.0.3",
+        "name": name,
+        "minzoom": minzoom,
+        "maxzoom": maxzoom,
+        "tiles": tiles,
+        "asset_type": "cog",
+    }
 
 
-def tilejson_for_cog(record: RasterRegistryRecord, *, tiler_base_url: str | None = None, tile_scale: int = 1) -> dict[str, Any]:
+def tilejson_for_cog(
+    record: RasterRegistryRecord, *, tiler_base_url: str | None = None, tile_scale: int = 1
+) -> dict[str, Any]:
     base = (tiler_base_url or os.getenv("TITILER_BASE_URL") or "/tiler").rstrip("/")
     cog = record.cog_url
     tiles = [f"{base}/cog/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}@{tile_scale}x?url={cog}"]
@@ -174,7 +211,9 @@ def tilejson_for_cog(record: RasterRegistryRecord, *, tiler_base_url: str | None
     }
 
 
-def export_records_to_geoparquet(records: Iterable[dict[str, Any]], output_path: str | Path) -> dict[str, Any]:
+def export_records_to_geoparquet(
+    records: Iterable[dict[str, Any]], output_path: str | Path
+) -> dict[str, Any]:
     """Write GeoParquet when optional deps exist; otherwise produce a JSONL fallback manifest.
 
     Production deployments should install geopandas+pyarrow.  The fallback keeps CI and
@@ -202,4 +241,10 @@ def export_records_to_geoparquet(records: Iterable[dict[str, Any]], output_path:
         with fallback.open("w", encoding="utf-8") as f:
             for row in rows:
                 f.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
-        return {"format": "jsonl-fallback", "path": str(fallback), "rows": len(rows), "fallback": True, "reason": str(exc)[:240]}
+        return {
+            "format": "jsonl-fallback",
+            "path": str(fallback),
+            "rows": len(rows),
+            "fallback": True,
+            "reason": str(exc)[:240],
+        }

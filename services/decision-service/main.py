@@ -36,6 +36,7 @@ import satellite_cdse_activation_gate
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
 from fastapi import FastAPI, Header, HTTPException, Query
+from outcome_reconcile import reconcile_outcomes
 from persistence import (
     acquire_connection,
     authorize_dispatch,
@@ -70,6 +71,7 @@ from persistence import (
     persist_outcome_record,
     persist_recommendation_outcome,
     persist_vegetation_snapshot,
+    read_outcomes_for_reconcile,
     record_execution_receipt,
     record_model_registry_activation_receipt,
     record_model_registry_rollback_receipt,
@@ -538,12 +540,7 @@ async def record_decision(
     # without the full agronomic lineage (identity + three immutable context references +
     # vegetation evidence + manifest hash). Checked before the SoR branch: strict mode is a
     # contract violation regardless of mirror/authoritative state.
-    require_ctx = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower() in {
-        "1",
-        "true",
-        "yes",
-        "on",
-    }
+    require_ctx = agronomic_context_required()
     if require_ctx:
         required = {
             "field_id": payload.field_id,
@@ -582,6 +579,20 @@ async def record_decision(
         stage=payload.stage,
         received_at=datetime.now(UTC).isoformat(),
     )
+
+
+def agronomic_context_required() -> bool:
+    """S2 enforcement is fail-closed in production and staged elsewhere.
+
+    An explicit true flag enables it in every environment. Production cannot
+    silently disable AC-1 by omitting or setting the flag to false.
+    """
+    explicit = os.getenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", "").strip().lower()
+    environment = os.getenv("ENVIRONMENT", os.getenv("SAHOOL_ENV", "development")).strip().lower()
+    return explicit in {"1", "true", "yes", "on"} or environment in {
+        "production",
+        "prod",
+    }
 
 
 @app.get("/v1/decisions/review-queue")
@@ -968,23 +979,39 @@ def field_lineage(
 
 
 @app.get("/v1/outcomes/reconciled")
-def reconciled_outcomes(
+async def reconciled_outcomes(
     field_id: str | None = None,
     season_id: str | None = None,
     x_tenant_id: str | None = Header(default=None),
 ) -> dict[str, Any]:
-    return {
-        "tenant_id": _tenant(x_tenant_id),
-        "field_id": field_id,
-        "season_id": season_id,
-        "outcome_reconciliation": {
-            "enabled": True,
-            "sample_count": 0,
-            "success_rate": None,
-            "by_source": {},
-            "by_kind": {},
-        },
-    }
+    """P1-13a: مصالحة نتائج حقيقيّة تضمّ مصدرَي النتائج (outcome_record + recommendation_outcomes).
+
+    صدق: بلا ``DATABASE_URL`` (وضع mirror/بلا مخزن) ⇒ ملخّص فارغ صريح مع ``source:"unavailable"``
+    (لا ادّعاء بيانات)؛ مع مخزن مُهيّأ ⇒ ضمّ فعليّ عبر المُصالِح النقيّ (يفكّ العدّ المزدوج ولا
+    يُلفّق نسبة). تعذّر القاعدة رغم تهيئتها ⇒ 503 (لا فراغ يُخفي الفشل)."""
+    tenant = _tenant(x_tenant_id)
+    base = {"tenant_id": tenant, "field_id": field_id, "season_id": season_id}
+    if not _database_configured():
+        return {
+            **base,
+            "outcome_reconciliation": {
+                "enabled": True,
+                "sample_count": 0,
+                "success_rate": None,
+                "by_source": {},
+                "by_kind": {},
+                "source": "unavailable",
+            },
+        }
+    try:
+        orows, rrows = await read_outcomes_for_reconcile(
+            tenant_id=tenant, field_id=field_id, season_id=season_id
+        )
+    except Exception as e:  # noqa: BLE001 — قاعدة مُهيّأة لكن متعذّرة ⇒ فشل صريح لا فراغ مُضلّل
+        raise HTTPException(status_code=503, detail="outcome store unavailable") from e
+    recon = reconcile_outcomes(orows, rrows)
+    recon["source"] = "store"
+    return {**base, "outcome_reconciliation": recon}
 
 
 @app.get("/v1/decisions/{decision_id}/agronomic-evidence")

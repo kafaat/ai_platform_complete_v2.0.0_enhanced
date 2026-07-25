@@ -20,12 +20,14 @@ from core.api_adapter import ApiRequest, handle_recommendation_request
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
-# ApiRequest/handle_recommendation_request تُستورَدان مباشرةً من core.api_adapter —
-# نفس الرمزين اللذين كان main يستوردهما (نُقل استيرادهما هنا لإزالة F401 من main
-# بعد نقل دالّتي التوصية).
 from api.decision_service_client import (
     record_recommendation_outcome as _mirror_recommendation_outcome_to_service,
 )
+
+# ApiRequest/handle_recommendation_request تُستورَدان مباشرةً من core.api_adapter —
+# نفس الرمزين اللذين كان main يستوردهما (نُقل استيرادهما هنا لإزالة F401 من main
+# بعد نقل دالّتي التوصية).
+from api.decision_sor_mode import assert_platform_may_write_decision_sor
 from api.field_models import FieldRecommendationRequest
 from api.main import (
     CommandStore,
@@ -343,6 +345,7 @@ async def record_recommendation_outcome(
         async with tenant_connection(user) as conn:
 
             async def _work():
+                assert_platform_may_write_decision_sor("recommendation_outcomes")
                 row = await conn.fetchrow(
                     """INSERT INTO recommendation_outcomes
                            (tenant_id, field_id, farm_id, season_id, crop, recommendation_id,

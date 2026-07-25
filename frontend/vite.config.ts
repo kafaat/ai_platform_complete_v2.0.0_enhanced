@@ -49,6 +49,35 @@ export default defineConfig({
     format: 'es',
   },
   build: {
-    chunkSizeWarningLimit: 3000,
+    // Keep the warning meaningful. DuckDB workers are emitted separately and the
+    // heavy GIS routes are lazy; application/vendor chunks should stay below 1 MiB.
+    chunkSizeWarningLimit: 1050,
+    rollupOptions: {
+      output: {
+        // Stable framework/domain boundaries improve caching and keep the entry
+        // chunk from absorbing libraries used by many lazy screens.
+        manualChunks(id) {
+          if (!id.includes('/node_modules/')) return undefined;
+          const groups: Array<[string, string[]]> = [
+            ['vendor-react', ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query', 'zustand']],
+            ['vendor-ui', ['lucide-react', 'framer-motion', 'cmdk']],
+            ['vendor-charts', ['recharts', 'd3-']],
+            // NOTE: the Leaflet ecosystem is deliberately NOT manually chunked. Its
+            // plugins (leaflet-draw, @geoman-io/leaflet-geoman-free) are UMD modules
+            // that reference the bare global `L` at module-load; forcing them into a
+            // standalone vendor chunk breaks that interop and throws "L is not defined"
+            // (blank app). Leave leaflet to the automatic shared-chunk splitting, which
+            // keeps the interop intact.
+            ['vendor-maplibre', ['maplibre-gl']],
+            ['vendor-terra-draw', ['terra-draw', 'terra-draw-maplibre-gl-adapter']],
+            ['vendor-turf', ['@turf/']],
+          ];
+          for (const [chunk, packages] of groups) {
+            if (packages.some((pkg) => id.includes(`/node_modules/${pkg}`))) return chunk;
+          }
+          return undefined;
+        },
+      },
+    },
   },
 });

@@ -18,10 +18,10 @@ import sys
 import time
 import urllib.error
 import urllib.request
-from urllib.parse import urlparse
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable
+from urllib.parse import urlparse
 
 ROOT_MARKERS = ["docker-compose.v9.yml", "migrations/MANIFEST.txt"]
 REQUIRED_FILES = [

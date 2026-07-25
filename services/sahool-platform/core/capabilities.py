@@ -63,6 +63,26 @@ def alerting_receivers_active() -> bool:
     )
 
 
+def ml_field_boundary_active() -> bool:
+    """كشف حدود الحقل بنموذج حقيقيّ — backend غير حتميّ + أوزان FTW مُزوَّدة (نفس أسماء
+    متغيّرات ``ai_agronomist/field_boundary_backends.py``). دون ذلك يسقط للاستدلال الحتميّ."""
+    backend = os.getenv("SAHOOL_FIELD_BOUNDARY_BACKEND", "deterministic").strip().lower()
+    return backend not in ("", "deterministic") and _truthy(os.getenv("SAHOOL_FTW_WEIGHTS"))
+
+
+def aquacrop_salinity_active() -> bool:
+    """محرّك AquaCrop لإجهاد الملوحة — راية ``AQUACROP_ENABLED`` (نفس اسم
+    ``agriai-engine/aquacrop_adapter.py``). دون التفعيل: نموذج عتبيّ ساكن موسوم uncalibrated."""
+    return _truthy(os.getenv("AQUACROP_ENABLED"))
+
+
+# ملاحظة صدق (لا نُدرِج قدرتين هنا لأنّهما ليستا «مشروطتين ببيئة»، فإدراجهما يكذب على السجلّ):
+#   • مناطق الإنتاجيّة (productivity_zones): **حتميّة دائماً** (لا وضع «نموذج حقيقيّ» يُبوَّب عليه)
+#     — طرقها كلّها `*_fallback` موسومة في الحمولة؛ ليست قدرة مؤجَّلة.
+#   • WOFOST: مُبوَّبة بحضور وحدة المحرّك وقت التشغيل (importlib) لا بمتغيّر بيئة — تعبيرها هنا
+#     بمتغيّر مُخمَّن سيكون غير دقيق؛ نقطة /simulate تُعلن available=false بصدق عند غيابها.
+
+
 @dataclass
 class Capability:
     key: str
@@ -103,11 +123,52 @@ def all_capabilities() -> list[Capability]:
             "عيّن ALERT_SLACK_WEBHOOK أو ALERT_SMTP_HOST أو ALERT_TELEGRAM_TOKEN",
             "AlertManager يستقبل لكنّه لا يُسلّم (no-op، لا ضجيج)",
         ),
+        Capability(
+            "ml_field_boundary",
+            "كشف حدود الحقل بنموذج ML (FTW/SAM)",
+            ml_field_boundary_active(),
+            "عيّن SAHOOL_FIELD_BOUNDARY_BACKEND=ftw وزوّد SAHOOL_FTW_WEIGHTS بمسار الأوزان",
+            "استدلال حتميّ (bbox/تتبّع كنتور مؤشّر) موسوم method في الحمولة — لا نموذج مزيّف",
+        ),
+        Capability(
+            "aquacrop_salinity",
+            "محرّك AquaCrop لإجهاد الملوحة",
+            aquacrop_salinity_active(),
+            "عيّن AQUACROP_ENABLED=1 (يتطلّب حزمة aquacrop الحقيقيّة)",
+            "نموذج ملوحة عتبيّ ساكن (Maas-Hoffman) موسوم aquacrop_uncalibrated — لا نقل زمنيّ مُختلَق",
+        ),
     ]
+
+
+# التبعيّات الاختياريّة التي يقرؤها المنصّة (غيابها يُخفِّض القدرة بصمت اليوم — P1-16). القيم
+# أسماء متغيّرات فعليّة مقروءة في الكود، لا مُخترَعة. الحالة تهيئة (env حاضر؟) لا مسبار حيّ.
+# ملاحظة حدّ: raster لا يُدرَج هنا — عنوان خدمة الراستر يُقرأ حصراً داخل الواجهة القانونيّة
+# api/raster_service_client.py (حارس الحدّ P2.5)؛ قراءة سلكه الخامّ هنا تخرق الحدّ.
+_OPTIONAL_DEPENDENCIES = {
+    "decision_service": ("DECISION_SERVICE_URL", "القرار يُدام محلّيّاً كمرآة best-effort"),
+    "weather_service": ("WEATHER_SERVICE_URL", "لا GDD/ET0 من المحرّك — fail-closed 503"),
+    "redis": ("REDIS_URL", "يسقط لذاكرة داخل-العمليّة (لا مشاركة عبر النسخ)"),
+}
+
+
+def dependency_status() -> dict[str, dict[str, object]]:
+    """حالة **تهيئة** التبعيّات الاختياريّة (env حاضر؟) — شفافيّة P1-16.
+
+    صدق: ``configured`` يعني أنّ نقطة التكامل مضبوطة، **لا** أنّها قابلة للوصول حيّاً (لا مسبار
+    شبكيّ هنا — يبقى /readyz بوّابة لا تُعلّق). الغياب يُظهَر صراحةً بدل الانحدار الصامت."""
+    out: dict[str, dict[str, object]] = {}
+    for name, (env, degraded_ar) in _OPTIONAL_DEPENDENCIES.items():
+        out[name] = {
+            "env": env,
+            "configured": bool(os.getenv(env, "").strip()),
+            "degraded_behavior_ar": degraded_ar,
+        }
+    return out
 
 
 def capabilities_report() -> dict:
     caps = all_capabilities()
+    deps = dependency_status()
     return {
         "capabilities": [
             {
@@ -121,5 +182,8 @@ def capabilities_report() -> dict:
         ],
         "active_count": sum(1 for c in caps if c.active),
         "dormant_count": sum(1 for c in caps if not c.active),
+        # P1-16: تهيئة التبعيّات الاختياريّة مرئيّة (لا انحدار صامت).
+        "dependencies": deps,
+        "dependencies_note_ar": "«configured» = نقطة التكامل مضبوطة (env)، لا ضمان وصول حيّ",
         "note_ar": "القدرات الخاملة حاضرة في الكود وتبدأ فور تحقّق شرطها — لا تعديل لازم",
     }

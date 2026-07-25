@@ -83,12 +83,17 @@ BEGIN
             WHERE table_schema = 'public' AND table_name = tbl AND column_name = 'tenant_id'
         );
         EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
+        -- ERP-BRIDGE-FIX-01: FORCE + WITH CHECK — رفع عزل جداول odoo إلى معيار v204:
+        -- FORCE يطبّق السياسة على مالك الجدول أيضًا، وWITH CHECK يمنع إدراج صفّ بمستأجر غير الحاليّ.
+        EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', tbl);
         EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', tbl);
         EXECUTE format(
             $ddl$CREATE POLICY tenant_isolation ON %I USING (
                 tenant_id::TEXT = current_setting('app.current_tenant', true)
                 -- Removed: empty tenant bypass (C14 security fix)
                 -- System services must use explicit tenant_id or service account
+            ) WITH CHECK (
+                tenant_id::TEXT = current_setting('app.current_tenant', true)
             )$ddl$, tbl
         );
     END LOOP;

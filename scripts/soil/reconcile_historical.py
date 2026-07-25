@@ -4,6 +4,7 @@
 Idempotency keys are derived from the immutable legacy row identity. The script is
 restart-safe, tenant-scoped, batchable and records checkpoints in v157.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -45,10 +46,13 @@ async def _set_tenant(conn, tenant_id: str) -> None:
 
 async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
     await _set_tenant(conn, tenant_id)
-    checkpoint = await conn.fetchval(
-        "SELECT COALESCE(last_source_id,0) FROM soil_reconciliation_checkpoints WHERE source_name='soil_readings' AND tenant_id=$1::uuid",
-        tenant_id,
-    ) or 0
+    checkpoint = (
+        await conn.fetchval(
+            "SELECT COALESCE(last_source_id,0) FROM soil_reconciliation_checkpoints WHERE source_name='soil_readings' AND tenant_id=$1::uuid",
+            tenant_id,
+        )
+        or 0
+    )
     rows = await conn.fetch(
         """SELECT id, field_id, sensor_id, depth_cm, moisture_pct, temperature_c, ph,
                   ec_ds_m, nitrogen_mg_kg, phosphorus_mg_kg, potassium_mg_kg,
@@ -56,7 +60,9 @@ async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
            FROM soil_readings
            WHERE tenant_id=$1::uuid AND id>$2
            ORDER BY id LIMIT $3""",
-        tenant_id, checkpoint, batch,
+        tenant_id,
+        checkpoint,
+        batch,
     )
     stats = Stats(scanned=len(rows))
     last_id = checkpoint
@@ -78,10 +84,18 @@ async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
                            0,$7,$8,$8,'sensor',$9,'legacy_soil_readings_backfill',$10,'[]'::jsonb,
                            0.65,$11,jsonb_build_object('legacy_table','soil_readings','legacy_id',$12))
                    ON CONFLICT (tenant_id,idempotency_key) DO NOTHING""",
-                f"obs_legacy_sr_{row['id']}_{prop}", tenant_id, row["field_id"], prop,
-                value, unit, float(row["depth_cm"] or 30), row["recorded_at"],
-                row["sensor_id"], "accepted" if row["quality"] == "good" else "suspect",
-                f"soil_readings:{row['id']}:{prop}", row["id"],
+                f"obs_legacy_sr_{row['id']}_{prop}",
+                tenant_id,
+                row["field_id"],
+                prop,
+                value,
+                unit,
+                float(row["depth_cm"] or 30),
+                row["recorded_at"],
+                row["sensor_id"],
+                "accepted" if row["quality"] == "good" else "suspect",
+                f"soil_readings:{row['id']}:{prop}",
+                row["id"],
             )
             stats.inserted += int(result.endswith("1"))
     for field_id in fields:
@@ -90,7 +104,8 @@ async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
                VALUES($1::uuid,$2,'historical_reconciliation')
                ON CONFLICT(tenant_id,field_id) WHERE status IN ('pending','running','retry')
                DO UPDATE SET available_at=NOW(), updated_at=NOW()""",
-            tenant_id, field_id,
+            tenant_id,
+            field_id,
         )
     await conn.execute(
         """INSERT INTO soil_reconciliation_checkpoints(source_name,tenant_id,last_source_id,rows_scanned,rows_inserted,last_run_at)
@@ -100,23 +115,31 @@ async def reconcile_soil_readings(conn, tenant_id: str, batch: int) -> Stats:
              rows_scanned=soil_reconciliation_checkpoints.rows_scanned+EXCLUDED.rows_scanned,
              rows_inserted=soil_reconciliation_checkpoints.rows_inserted+EXCLUDED.rows_inserted,
              last_run_at=NOW(), last_error=NULL, updated_at=NOW()""",
-        tenant_id, last_id, stats.scanned, stats.inserted,
+        tenant_id,
+        last_id,
+        stats.scanned,
+        stats.inserted,
     )
     return stats
 
 
 async def reconcile_device_telemetry(conn, tenant_id: str, batch: int) -> Stats:
     await _set_tenant(conn, tenant_id)
-    checkpoint = await conn.fetchval(
-        "SELECT COALESCE(last_source_id,0) FROM soil_reconciliation_checkpoints WHERE source_name='device_telemetry' AND tenant_id=$1::uuid",
-        tenant_id,
-    ) or 0
+    checkpoint = (
+        await conn.fetchval(
+            "SELECT COALESCE(last_source_id,0) FROM soil_reconciliation_checkpoints WHERE source_name='device_telemetry' AND tenant_id=$1::uuid",
+            tenant_id,
+        )
+        or 0
+    )
     rows = await conn.fetch(
         """SELECT t.telemetry_id,t.device_id,t.sensor_type,t.value,t.unit,t.recorded_at,t.received_at,d.field_id
            FROM device_telemetry t JOIN iot_devices d ON d.device_id=t.device_id
            WHERE t.tenant_id=$1::uuid AND t.telemetry_id>$2 AND d.field_id IS NOT NULL
            ORDER BY t.telemetry_id LIMIT $3""",
-        tenant_id, checkpoint, batch,
+        tenant_id,
+        checkpoint,
+        batch,
     )
     stats = Stats(scanned=len(rows))
     last_id = checkpoint
@@ -137,9 +160,17 @@ async def reconcile_device_telemetry(conn, tenant_id: str, batch: int) -> Stats:
                        'sensor',$9,'device_telemetry_backfill','suspect','["depth_unknown","calibration_unknown"]'::jsonb,
                        0.60,$10,jsonb_build_object('legacy_table','device_telemetry','legacy_id',$11))
                ON CONFLICT(tenant_id,idempotency_key) DO NOTHING""",
-            f"obs_legacy_dt_{row['telemetry_id']}_{prop}", tenant_id, row["field_id"], prop,
-            row["value"], row["unit"] or default_unit, row["recorded_at"], row["received_at"],
-            row["device_id"], f"device_telemetry:{row['telemetry_id']}:{prop}", row["telemetry_id"],
+            f"obs_legacy_dt_{row['telemetry_id']}_{prop}",
+            tenant_id,
+            row["field_id"],
+            prop,
+            row["value"],
+            row["unit"] or default_unit,
+            row["recorded_at"],
+            row["received_at"],
+            row["device_id"],
+            f"device_telemetry:{row['telemetry_id']}:{prop}",
+            row["telemetry_id"],
         )
         stats.inserted += int(result.endswith("1"))
     for field_id in fields:
@@ -148,7 +179,8 @@ async def reconcile_device_telemetry(conn, tenant_id: str, batch: int) -> Stats:
                VALUES($1::uuid,$2,'historical_reconciliation')
                ON CONFLICT(tenant_id,field_id) WHERE status IN ('pending','running','retry')
                DO UPDATE SET available_at=NOW(), updated_at=NOW()""",
-            tenant_id, field_id,
+            tenant_id,
+            field_id,
         )
     await conn.execute(
         """INSERT INTO soil_reconciliation_checkpoints(source_name,tenant_id,last_source_id,rows_scanned,rows_inserted,last_run_at)
@@ -158,7 +190,10 @@ async def reconcile_device_telemetry(conn, tenant_id: str, batch: int) -> Stats:
              rows_scanned=soil_reconciliation_checkpoints.rows_scanned+EXCLUDED.rows_scanned,
              rows_inserted=soil_reconciliation_checkpoints.rows_inserted+EXCLUDED.rows_inserted,
              last_run_at=NOW(), last_error=NULL, updated_at=NOW()""",
-        tenant_id, last_id, stats.scanned, stats.inserted,
+        tenant_id,
+        last_id,
+        stats.scanned,
+        stats.inserted,
     )
     return stats
 

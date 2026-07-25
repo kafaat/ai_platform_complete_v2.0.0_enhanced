@@ -1,0 +1,62 @@
+name: Release Artifact Attestation
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-attestation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  attest-source-release:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Install gate dependencies
+        run: python3 -m pip install --upgrade pip pyyaml
+      - name: Validate release inputs
+        run: |
+          python3 scripts/ci/release_attestation_guard.py
+          python3 scripts/ci/container_image_pin_guard.py
+          python3 scripts/release/generate_dependency_sbom.py
+          python3 scripts/release/build_release_bundle.py
+          python3 scripts/release/validate_release_package.py --root .
+      - name: Build immutable source artifact
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          mkdir -p dist
+          git archive --format=zip --prefix="sahool-${RELEASE_SHA}/" \
+            --output="dist/sahool-${RELEASE_SHA}.zip" "${RELEASE_SHA}"
+          (cd dist && sha256sum "sahool-${RELEASE_SHA}.zip" > "sahool-${RELEASE_SHA}.zip.sha256")
+          python3 scripts/release/scan_release_archive.py "dist/sahool-${RELEASE_SHA}.zip"
+      - name: Attest build provenance
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-path: dist/sahool-${{ github.sha }}.zip
+      - name: Attest CycloneDX SBOM
+        uses: actions/attest@f7c74d28b9d84cb8768d0b8ca14a4bac6ef463e6 # v4.2.0
+        with:
+          subject-path: dist/sahool-${{ github.sha }}.zip
+          sbom-path: release/SBOM_DEPENDENCIES.cdx.json
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sahool-attested-${{ github.sha }}
+          path: |
+            dist/sahool-${{ github.sha }}.zip
+            dist/sahool-${{ github.sha }}.zip.sha256
+            release/SBOM_DEPENDENCIES.cdx.json
+          if-no-files-found: error
+          retention-days: 30

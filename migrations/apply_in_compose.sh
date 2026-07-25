@@ -33,6 +33,16 @@ done
 
 psql_exec() { psql -v ON_ERROR_STOP=1 -h "$PGHOST" -p "${PGPORT:-5432}" -U "$PGUSER" -d "$PGDATABASE" "$@"; }
 
+# حارس وقت التشغيل (حزمة 72 ساعة): v206_rls_final_hardening.sql يجب أن يبقى
+# آخر مدخل .sql في MANIFEST دائمًا (يُحصّن كلّ ما قبله؛ أيّ هجرة لاحقة تتجاوزه
+# تعيد فتح ثغرات RLS التي يغلقها). الحارس الساكن في CI وحده لا يكفي — هذا
+# الفحص يمنع التطبيق بترتيب مكسور حتى لو فات CI.
+LAST_SQL="$(grep -E '\.sql[[:space:]]*$' "$MIG_DIR/MANIFEST.txt" | grep -vE '^[[:space:]]*#' | tail -1 | xargs)"
+if [ "$LAST_SQL" != "v206_rls_final_hardening.sql" ]; then
+  echo "✗ MANIFEST مكسور الترتيب: آخر مدخل .sql هو '${LAST_SQL}' وليس v206_rls_final_hardening.sql" >&2
+  exit 1
+fi
+
 echo "─ تطبيق الهجرات (ترتيب MANIFEST، لا أبجدي) على ${PGHOST}/${PGDATABASE} ─"
 applied=0
 while IFS= read -r f; do
@@ -139,7 +149,8 @@ SQL
 # ─ دور خدمة الإدخال sahool_ingest (SCOUT-INGEST-01 B1.2b — scout-ingest-service) ─
 # أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE resolver. NOBYPASSRLS · لا UPDATE/DELETE.
 echo "─ دور خدمة الإدخال sahool_ingest (NOBYPASSRLS، SELECT+INSERT فقط) ─"
-psql_exec -v ing_pw="${INGEST_DB_PASSWORD:-sahool_ingest_pw}" <<'SQL'
+: "${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD is required; refusing known development fallback}"
+psql_exec -v ing_pw="${INGEST_DB_PASSWORD}" <<'SQL'
 SELECT format('CREATE ROLE %I LOGIN', 'sahool_ingest')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest')
 \gexec
@@ -205,6 +216,64 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO :"jobs_role";
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
   GRANT EXECUTE ON FUNCTIONS TO :"jobs_role";
+SQL
+
+
+# ── سحب CONNECT الضمنيّ من PUBLIC + منح صريح للأدوار المُدارة ──
+# PostgreSQL يمنح CONNECT على أيّ قاعدة جديدة لـPUBLIC افتراضيًّا — أيّ دور
+# يُنشأ لاحقًا (كـodoo_app) يتّصل بالمنصّة تلقائيًّا ويهزم أيّ REVOKE موجَّه.
+# نسحب الامتياز الضمنيّ ونمنح CONNECT صراحةً للأدوار المُدارة فقط.
+echo "─ سحب CONNECT من PUBLIC + منح صريح للأدوار المُدارة ─"
+psql_exec -v dbname="$PGDATABASE" -v app_role="$APP_ROLE" -v jobs_role="$JOBS_ROLE" <<'SQL'
+REVOKE CONNECT ON DATABASE :"dbname" FROM PUBLIC;
+GRANT CONNECT ON DATABASE :"dbname" TO :"app_role";
+GRANT CONNECT ON DATABASE :"dbname" TO :"jobs_role";
+GRANT CONNECT ON DATABASE :"dbname" TO sahool_ingest;
+SQL
+
+# ── دور Odoo المقيَّد (DB-P0-03) ──
+ODOO_ROLE="${ODOO_DB_ROLE:-odoo_app}"
+ODOO_ROLE_PW="${ODOO_DB_PASSWORD:-odoo_app_pw}"
+echo "─ دور Odoo المقيَّد (${ODOO_ROLE} — لا اتّصال بقواعد المنصّة) ─"
+# Odoo كان يعمل باعتماد مالك الهجرات (sahool_user superuser) — اختراق ERP كان
+# يعني المنصّة كلّها. هذا الدور: CREATEDB فقط (لينشئ sahool_erp عبر odoo-init)،
+# مسحوب منه كلّ امتيازات قاعدة المنصّة، وبلا BYPASSRLS/SUPERUSER.
+psql_exec -v dbname="$PGDATABASE" -v odoo_role="$ODOO_ROLE" -v odoo_pw="$ODOO_ROLE_PW" <<'SQL'
+SELECT format('CREATE ROLE %I LOGIN', :'odoo_role')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'odoo_role')
+\gexec
+
+ALTER ROLE :"odoo_role"
+  LOGIN NOSUPERUSER NOINHERIT NOBYPASSRLS CREATEDB NOCREATEROLE PASSWORD :'odoo_pw';
+
+-- حاسم: سحب **كلّ** امتيازات قاعدة المنصّة (لا CONNECT فقط — REVOKE CONNECT
+-- وحده يُبقي أيّ منح سابقة وTEMP). CREATEDB يكفيه: sahool_erp التي ينشئها
+-- يملكها تلقائيًّا فتُمنح له كلّ صلاحيّاتها.
+REVOKE ALL PRIVILEGES ON DATABASE :"dbname" FROM :"odoo_role";
+SQL
+
+# ── تأكيد bootstrap: لا SUPERUSER/BYPASSRLS خارج القائمة المعتمدة ──
+# يكشف أيّ انجراف يدويّ (ALTER ROLE ... BYPASSRLS خارج هذا السكربت) منذ الإقلاع
+# الأوّل. BYPASSRLS معتمد فقط لدور المهامّ (عابر مستأجرين بالتصميم) وresolver
+# (مالك دوالّ DEFINER). متغيّرات psql لا تُستبدَل داخل DO $$…$$ — نمرّر عبر GUC.
+echo "─ تأكيد سمات الأدوار المُدارة (SUPERUSER/BYPASSRLS) ─"
+MANAGED_CSV="${APP_ROLE},${JOBS_ROLE},sahool_ingest,sahool_ingest_resolver,${ODOO_ROLE}"
+BYPASS_OK_CSV="${JOBS_ROLE},sahool_ingest_resolver"
+psql_exec -v managed="$MANAGED_CSV" -v bypass_ok="$BYPASS_OK_CSV" <<'SQL'
+SET app.managed_roles = :'managed';
+SET app.bypassrls_allowed = :'bypass_ok';
+DO $$
+DECLARE bad text;
+BEGIN
+  SELECT string_agg(r.rolname, ', ') INTO bad
+  FROM pg_roles r
+  WHERE r.rolname = ANY (string_to_array(current_setting('app.managed_roles'), ','))
+    AND (r.rolsuper OR r.rolbypassrls)
+    AND NOT (r.rolname = ANY (string_to_array(current_setting('app.bypassrls_allowed'), ',')));
+  IF bad IS NOT NULL THEN
+    RAISE EXCEPTION 'bootstrap assertion فشل: أدوار مُدارة تحمل SUPERUSER/BYPASSRLS خارج المعتمد: %', bad;
+  END IF;
+END $$;
 SQL
 
 echo "✓ التهيئة اكتملت — الهجرات مُطبَّقة، ودورا ${APP_ROLE} (تطبيق) و${JOBS_ROLE} (مهامّ) جاهزان."

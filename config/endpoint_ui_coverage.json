@@ -118,6 +118,10 @@
       "audience": "farmer"
     },
     {
+      "prefix": "/api/v1/weather/history/",
+      "audience": "internal"
+    },
+    {
       "prefix": "/api/v1/weather",
       "audience": "farmer"
     },
@@ -512,6 +516,14 @@
     {
       "prefix": "/api/v1/features",
       "audience": "farmer"
+    },
+    {
+      "prefix": "/api/v1/farm-book/",
+      "audience": "farmer"
+    },
+    {
+      "prefix": "/api/v1/erp/reconciliations",
+      "audience": "internal"
     }
   ],
   "core_endpoints": [
@@ -2804,6 +2816,31 @@
       "endpoint": "/auth/verify/status",
       "audience": "farmer",
       "evidence": "/auth/verify/status"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/parties",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/parties"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/entries",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/entries"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/monthly",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/monthly"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/balances",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/balances"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/export",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/export"
     }
   ]
 }

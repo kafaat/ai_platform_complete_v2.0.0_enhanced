@@ -52,6 +52,7 @@ def build_crop_decision_candidate(
     crop_intelligence: dict[str, Any],
     *,
     gdd_product: dict[str, Any] | None = None,
+    spectral_provenance: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a reviewable decision candidate from a ``crop_intelligence_state.v2`` block.
 
@@ -59,6 +60,18 @@ def build_crop_decision_candidate(
     canonical weather GDD product — the authoritative source of accumulated GDD and GDD
     lineage. This function interprets/relays only; it never decides. Fail-closed on any
     missing/inconsistent evidence or boundary.
+
+    ``spectral_provenance`` (DECISION-CENTER-UNIFY-01): declares the **trust basis** of the
+    candidate's spectral evidence so the human/policy reviewer at decision-service sees
+    whether it was read server-authoritatively (``source="raster-service"``) or supplied by
+    the client (``source="client"``, i.e. unverified). It is a transparency relay only — no
+    fabrication: when unknown/None it is recorded as ``source="unknown"``. When the spectral
+    input is client-supplied-unverified, ``client_supplied_spectral_unverified`` is added to
+    the candidate limitations (so it flows into ``candidate_lineage_id`` — an unverified
+    candidate is cryptographically distinct from a server-authoritative one for identical
+    agronomy). This is the substrate for a future provenance-based submit gate; it does NOT
+    by itself allow submit (that gate stays fail-closed until server-authoritative context
+    assembly covers the full contract).
     """
     if not isinstance(crop_intelligence, dict):
         raise ValueError("crop_intelligence state is required")
@@ -100,11 +113,17 @@ def build_crop_decision_candidate(
     contributing_state_ids = list(contributing_state_ids)
 
     phenology = crop_intelligence.get("phenology") or {}
+    # Spectral trust basis (transparency relay — no fabrication). ``unverified`` ⇒ a
+    # limitation the reviewer sees AND that flows into candidate lineage.
+    sp = spectral_provenance if isinstance(spectral_provenance, dict) else {}
+    spectral_source = str(sp.get("source") or "unknown")
+    spectral_unverified = bool(sp.get("unverified", False))
     limitations = list(
         dict.fromkeys(
             [
                 *(crop_intelligence.get("limitations") or []),
                 *(gdd_product.get("limitations") or []),
+                *(["client_supplied_spectral_unverified"] if spectral_unverified else []),
             ]
         )
     )
@@ -158,6 +177,10 @@ def build_crop_decision_candidate(
         "confidence": crop_intelligence.get("confidence"),
         "limitations": limitations,
         "evidence_ids": evidence_ids,
+        # DECISION-CENTER-UNIFY-01: the candidate declares its spectral trust basis so the
+        # reviewer/policy at decision-service can gate on it. server-authoritative vs
+        # client-supplied is now first-class + persisted (record_decision sends this evidence).
+        "spectral_provenance": {"source": spectral_source, "unverified": spectral_unverified},
         "versions": {
             "engine_version": crop_intelligence.get("engine_version"),
             "schema": crop_intelligence.get("schema"),
@@ -205,6 +228,7 @@ async def submit_crop_decision_candidate(
     crop_intelligence: dict[str, Any],
     *,
     gdd_product: dict[str, Any] | None = None,
+    spectral_provenance: dict[str, Any] | None = None,
     tenant_id: str | None,
     submit: bool = False,
     created_by: str | None = None,
@@ -214,8 +238,11 @@ async def submit_crop_decision_candidate(
     The candidate is built **once**; preview and submit share the identical evidence and
     ``candidate_lineage_id``. Submit records the *same* candidate into decision-service and
     only returns ``pending_approval`` when the service proves authoritative persistence.
+    ``spectral_provenance`` (trust basis) is relayed into the candidate evidence unchanged.
     """
-    candidate = build_crop_decision_candidate(crop_intelligence, gdd_product=gdd_product)
+    candidate = build_crop_decision_candidate(
+        crop_intelligence, gdd_product=gdd_product, spectral_provenance=spectral_provenance
+    )
     if not submit:
         return _preview(candidate)
 

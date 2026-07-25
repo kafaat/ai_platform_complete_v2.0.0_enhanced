@@ -40,6 +40,7 @@ def compute_daily_ledger_entry(
     rain_mm: float,
     irrigation_mm: float,
     irrigation_volume_untracked: bool = False,
+    rain_assumed_zero: bool = False,
 ) -> dict:
     """قيد اليوم من قيد الأمس + مدخلات اليوم — نقيّ، مع افتراضات مُعلَنة لا صامتة.
 
@@ -52,6 +53,10 @@ def compute_daily_ledger_entry(
         raise ValueError("مدخلات سالبة/معدومة غير صالحة لميزان اليوم")
 
     notes: list[str] = []
+    if rain_assumed_zero:
+        # الطقس لم يُرجِع هطولاً لهذا اليوم ⇒ يُفترَض 0mm **صراحةً** (تقدير محافِظ: أعلى
+        # استنزاف) لا تعبئة صامتة. p_eff=0 عندئذٍ. القيد يبقى أدنى تقدير للماء المتاح.
+        notes.append("precipitation_assumed_zero")
     bootstrap = prev_depletion_mm is None
     if bootstrap:
         # التهيئة القياسيّة: بداية من السعة الحقليّة (Dr=0) — افتراض مُعلَن لا قياس.

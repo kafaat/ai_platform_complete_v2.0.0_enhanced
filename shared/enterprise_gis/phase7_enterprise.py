@@ -8,15 +8,14 @@ CI can validate behavior without WebSocket brokers, Dask/Ray clusters, TEAM
 Engine, or live tile CDNs.  Runtime services can replace the adapters behind the
 same request/response shapes.
 """
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from statistics import mean
-from typing import Any
 import hashlib
 import json
 import math
+from dataclasses import asdict, dataclass
+from typing import Any
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -86,10 +85,27 @@ def build_collaboration_event(
     current_revision: int,
     conflict_policy: str = "revision_guard_then_merge",
 ) -> dict[str, Any]:
-    if event_type not in {"presence", "cursor", "geometry_patch", "annotation", "commit", "rollback"}:
+    if event_type not in {
+        "presence",
+        "cursor",
+        "geometry_patch",
+        "annotation",
+        "commit",
+        "rollback",
+    }:
         raise ValueError("unsupported collaboration event_type")
     event = CollaborationEvent(
-        event_id=_stable_id({"session_id": session_id, "field_id": field_id, "user_id": user_id, "event_type": event_type, "payload": payload, "rev": current_revision}, "cge"),
+        event_id=_stable_id(
+            {
+                "session_id": session_id,
+                "field_id": field_id,
+                "user_id": user_id,
+                "event_type": event_type,
+                "payload": payload,
+                "rev": current_revision,
+            },
+            "cge",
+        ),
         session_id=session_id,
         field_id=field_id,
         user_id=user_id,
@@ -101,7 +117,9 @@ def build_collaboration_event(
     return asdict(event)
 
 
-def resolve_geometry_conflicts(events: list[dict[str, Any]], *, base_revision: int, strategy: str = "latest_safe_patch_wins") -> dict[str, Any]:
+def resolve_geometry_conflicts(
+    events: list[dict[str, Any]], *, base_revision: int, strategy: str = "latest_safe_patch_wins"
+) -> dict[str, Any]:
     """Resolve concurrent GIS edits using revision guards.
 
     Geometry commits below the base revision are rejected; same-or-newer commits
@@ -111,7 +129,9 @@ def resolve_geometry_conflicts(events: list[dict[str, Any]], *, base_revision: i
     accepted: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
     warnings: list[str] = []
-    for event in sorted(events, key=lambda e: (_num(e.get("revision")), str(e.get("event_id", "")))):
+    for event in sorted(
+        events, key=lambda e: (_num(e.get("revision")), str(e.get("event_id", "")))
+    ):
         etype = event.get("event_type")
         rev = int(_num(event.get("revision"), 0))
         if etype in {"presence", "cursor"}:
@@ -121,11 +141,23 @@ def resolve_geometry_conflicts(events: list[dict[str, Any]], *, base_revision: i
             warnings.append("stale_revision_rejected")
         elif etype in {"geometry_patch", "commit", "rollback", "annotation"}:
             accepted.append(event)
-    merged_revision = base_revision + len([e for e in accepted if e.get("event_type") in {"geometry_patch", "commit", "rollback"}])
-    return asdict(ConflictResolution(accepted=accepted, rejected=rejected, merged_revision=merged_revision, strategy=strategy, warnings=sorted(set(warnings))))
+    merged_revision = base_revision + len(
+        [e for e in accepted if e.get("event_type") in {"geometry_patch", "commit", "rollback"}]
+    )
+    return asdict(
+        ConflictResolution(
+            accepted=accepted,
+            rejected=rejected,
+            merged_revision=merged_revision,
+            strategy=strategy,
+            warnings=sorted(set(warnings)),
+        )
+    )
 
 
-def ogc_conformance_manifest(*, service_url: str, enabled: list[str] | None = None) -> dict[str, Any]:
+def ogc_conformance_manifest(
+    *, service_url: str, enabled: list[str] | None = None
+) -> dict[str, Any]:
     enabled = enabled or ["features", "tiles", "coverages", "processes"]
     classes = {
         "features": "http://www.opengis.net/spec/ogcapi-features-1/1.0/conf/core",
@@ -162,17 +194,21 @@ def plan_distributed_raster_processing(
         tile_estimate = max(1, int(math.ceil(area_ha / 20.0)))
         cloud = _num(scene.get("cloud_cover"), 0)
         priority = 10 if cloud < 15 else 6 if cloud < 40 else 3
-        pool = "gpu" if "cloud_mask" in operations and preferred_runtime in {"ray", "dask"} else "cpu"
+        pool = (
+            "gpu" if "cloud_mask" in operations and preferred_runtime in {"ray", "dask"} else "cpu"
+        )
         for op in operations:
-            tasks.append(DistributedRasterTask(
-                task_id=_stable_id({"scene": scene.get("scene_id"), "op": op}, "rtask"),
-                field_id=str(scene.get("field_id", "unknown")),
-                scene_id=str(scene.get("scene_id", "unknown")),
-                operation=op,
-                priority=priority,
-                estimated_tiles=tile_estimate,
-                worker_pool=pool if op in {"cloud_mask", "statistics"} else "cpu",
-            ))
+            tasks.append(
+                DistributedRasterTask(
+                    task_id=_stable_id({"scene": scene.get("scene_id"), "op": op}, "rtask"),
+                    field_id=str(scene.get("field_id", "unknown")),
+                    scene_id=str(scene.get("scene_id", "unknown")),
+                    operation=op,
+                    priority=priority,
+                    estimated_tiles=tile_estimate,
+                    worker_pool=pool if op in {"cloud_mask", "statistics"} else "cpu",
+                )
+            )
     total_tiles = sum(t.estimated_tiles for t in tasks if t.operation == "tile_warm")
     recommended_workers = max(1, math.ceil(total_tiles / max(1, max_tiles_per_worker)))
     return {
@@ -199,7 +235,10 @@ def simulate_digital_twin_scenario(
     nitrogen_change = _num(scenario.get("nitrogen_change_pct"), 0.0) / 100.0
     stress_reduction = _num(scenario.get("stress_reduction_pct"), 0.0) / 100.0
 
-    yield_factor = 1.0 + min(0.18, max(-0.12, irrigation_change * 0.18 + nitrogen_change * 0.10 + stress_reduction * 0.22))
+    yield_factor = 1.0 + min(
+        0.18,
+        max(-0.12, irrigation_change * 0.18 + nitrogen_change * 0.10 + stress_reduction * 0.22),
+    )
     water_factor = 1.0 + irrigation_change
     cost_factor = 1.0 + max(0.0, nitrogen_change * 0.08) + max(0.0, irrigation_change * 0.04)
 
@@ -210,8 +249,16 @@ def simulate_digital_twin_scenario(
     projected_profit = projected_yield * price - projected_cost
     return {
         "scenario_id": _stable_id({"baseline": baseline, "scenario": scenario}, "scenario"),
-        "baseline": {"yield_t_ha": baseline_yield, "water_mm": baseline_water, "profit_per_ha": round(baseline_profit, 2)},
-        "projection": {"yield_t_ha": projected_yield, "water_mm": projected_water, "profit_per_ha": round(projected_profit, 2)},
+        "baseline": {
+            "yield_t_ha": baseline_yield,
+            "water_mm": baseline_water,
+            "profit_per_ha": round(baseline_profit, 2),
+        },
+        "projection": {
+            "yield_t_ha": projected_yield,
+            "water_mm": projected_water,
+            "profit_per_ha": round(projected_profit, 2),
+        },
         "delta": {
             "yield_t_ha": round(projected_yield - baseline_yield, 3),
             "water_mm": round(projected_water - baseline_water, 2),
@@ -221,7 +268,9 @@ def simulate_digital_twin_scenario(
     }
 
 
-def generate_autonomous_recommendations(twin_snapshot: dict[str, Any], *, approval_threshold: float = 0.82) -> dict[str, Any]:
+def generate_autonomous_recommendations(
+    twin_snapshot: dict[str, Any], *, approval_threshold: float = 0.82
+) -> dict[str, Any]:
     state = twin_snapshot.get("state", {})
     fields = state.get("fields", []) or []
     irrigation = state.get("irrigation", {}) or {}
@@ -229,55 +278,76 @@ def generate_autonomous_recommendations(twin_snapshot: dict[str, Any], *, approv
     equipment = state.get("equipment", []) or []
     recs: list[AutonomousRecommendation] = []
 
-    stress_count = sum(1 for f in fields if str(f.get("status", "")).lower() in {"stress", "critical", "warning"})
+    stress_count = sum(
+        1 for f in fields if str(f.get("status", "")).lower() in {"stress", "critical", "warning"}
+    )
     if stress_count:
         conf = min(0.94, 0.68 + stress_count * 0.06)
-        recs.append(AutonomousRecommendation(
-            recommendation_id=_stable_id({"domain": "crop", "stress": stress_count, "farm": twin_snapshot.get("farm")}, "arec"),
-            domain="crop_health",
-            action="inspect_stress_zones_and_generate_irrigation_or_nutrition_task",
-            priority="high" if stress_count >= 2 else "medium",
-            confidence=round(conf, 2),
-            rationale=["field_stress_detected", f"affected_fields={stress_count}"],
-            requires_human_approval=conf < approval_threshold,
-            evidence={"stress_field_count": stress_count},
-        ))
+        recs.append(
+            AutonomousRecommendation(
+                recommendation_id=_stable_id(
+                    {"domain": "crop", "stress": stress_count, "farm": twin_snapshot.get("farm")},
+                    "arec",
+                ),
+                domain="crop_health",
+                action="inspect_stress_zones_and_generate_irrigation_or_nutrition_task",
+                priority="high" if stress_count >= 2 else "medium",
+                confidence=round(conf, 2),
+                rationale=["field_stress_detected", f"affected_fields={stress_count}"],
+                requires_human_approval=conf < approval_threshold,
+                evidence={"stress_field_count": stress_count},
+            )
+        )
     if str(irrigation.get("status", "")).lower() == "deficit":
         conf = 0.86
-        recs.append(AutonomousRecommendation(
-            recommendation_id=_stable_id({"domain": "water", "irrigation": irrigation}, "arec"),
-            domain="irrigation",
-            action="increase_next_irrigation_window_or_prioritize_deficit_zones",
-            priority="high",
-            confidence=conf,
-            rationale=["irrigation_deficit", "soil_water_balance_below_target"],
-            requires_human_approval=conf < approval_threshold,
-            evidence=irrigation,
-        ))
+        recs.append(
+            AutonomousRecommendation(
+                recommendation_id=_stable_id({"domain": "water", "irrigation": irrigation}, "arec"),
+                domain="irrigation",
+                action="increase_next_irrigation_window_or_prioritize_deficit_zones",
+                priority="high",
+                confidence=conf,
+                rationale=["irrigation_deficit", "soil_water_balance_below_target"],
+                requires_human_approval=conf < approval_threshold,
+                evidence=irrigation,
+            )
+        )
     if str(weather.get("risk", "")).lower() in {"high", "critical"}:
-        recs.append(AutonomousRecommendation(
-            recommendation_id=_stable_id({"domain": "weather", "weather": weather}, "arec"),
-            domain="weather_operations",
-            action="block_spraying_and_reschedule_sensitive_operations",
-            priority="critical" if str(weather.get("risk")).lower() == "critical" else "high",
-            confidence=0.9,
-            rationale=["weather_risk_high", "operation_window_unsafe"],
-            requires_human_approval=False,
-            evidence=weather,
-        ))
-    offline = [e for e in equipment if str(e.get("status", "")).lower() in {"offline", "fault", "maintenance"}]
+        recs.append(
+            AutonomousRecommendation(
+                recommendation_id=_stable_id({"domain": "weather", "weather": weather}, "arec"),
+                domain="weather_operations",
+                action="block_spraying_and_reschedule_sensitive_operations",
+                priority="critical" if str(weather.get("risk")).lower() == "critical" else "high",
+                confidence=0.9,
+                rationale=["weather_risk_high", "operation_window_unsafe"],
+                requires_human_approval=False,
+                evidence=weather,
+            )
+        )
+    offline = [
+        e
+        for e in equipment
+        if str(e.get("status", "")).lower() in {"offline", "fault", "maintenance"}
+    ]
     if offline:
-        recs.append(AutonomousRecommendation(
-            recommendation_id=_stable_id({"domain": "equipment", "offline": offline}, "arec"),
-            domain="equipment",
-            action="create_maintenance_ticket_for_blocking_equipment",
-            priority="medium",
-            confidence=0.84,
-            rationale=["equipment_unavailable", f"count={len(offline)}"],
-            requires_human_approval=False,
-            evidence={"equipment": offline},
-        ))
-    return {"recommendations": [asdict(r) for r in recs], "count": len(recs), "policy": {"approval_threshold": approval_threshold}}
+        recs.append(
+            AutonomousRecommendation(
+                recommendation_id=_stable_id({"domain": "equipment", "offline": offline}, "arec"),
+                domain="equipment",
+                action="create_maintenance_ticket_for_blocking_equipment",
+                priority="medium",
+                confidence=0.84,
+                rationale=["equipment_unavailable", f"count={len(offline)}"],
+                requires_human_approval=False,
+                evidence={"equipment": offline},
+            )
+        )
+    return {
+        "recommendations": [asdict(r) for r in recs],
+        "count": len(recs),
+        "policy": {"approval_threshold": approval_threshold},
+    }
 
 
 def validate_planet_scale_readiness(metrics: dict[str, Any]) -> dict[str, Any]:
@@ -302,14 +372,24 @@ def validate_planet_scale_readiness(metrics: dict[str, Any]) -> dict[str, Any]:
     return {"ready": passed, "checks": checks, "blockers": blockers, "thresholds": thresholds}
 
 
-def build_tile_cdn_policy(*, layer_id: str, update_frequency: str, sensitivity: str = "tenant_private") -> dict[str, Any]:
+def build_tile_cdn_policy(
+    *, layer_id: str, update_frequency: str, sensitivity: str = "tenant_private"
+) -> dict[str, Any]:
     ttl_by_frequency = {"hourly": 900, "daily": 86400, "weekly": 604800, "static": 2592000}
     ttl = ttl_by_frequency.get(update_frequency, 3600)
     return {
         "layer_id": layer_id,
         "cache_key": f"tenant:field:layer:{layer_id}:zxy:etag",
         "ttl_seconds": ttl,
-        "headers": {"Cache-Control": f"private, max-age={ttl}" if sensitivity == "tenant_private" else f"public, max-age={ttl}, stale-while-revalidate=3600"},
-        "invalidation_events": ["raster_registry.updated", "geometry_revision.committed", "scene_processing.completed"],
+        "headers": {
+            "Cache-Control": f"private, max-age={ttl}"
+            if sensitivity == "tenant_private"
+            else f"public, max-age={ttl}, stale-while-revalidate=3600"
+        },
+        "invalidation_events": [
+            "raster_registry.updated",
+            "geometry_revision.committed",
+            "scene_processing.completed",
+        ],
         "warm_strategy": "priority_tiles_first_then_background_pyramid",
     }

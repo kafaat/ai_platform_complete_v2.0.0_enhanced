@@ -41,6 +41,10 @@ def test_jobs_database_url_is_limited_to_background_channels() -> None:
         # JOBS ثمّ يضبط app.current_tenant لكلّ حقل قبل قراءة/upsert water_ledger
         # (RLS-scoped)؛ لا كتابة إلّا خلف WATER_LEDGER_AUTO_ENABLED والقيد اليدويّ سيّد.
         "sahool-water-ledger-worker",
+        # عامل دورة حياة حجوزات الريّ (IRR-F01): يكتشف الحجوزات المنقضية عابرًا للمستأجرين
+        # بدور JOBS ثمّ يضبط app.current_tenant لكلّ مستأجر قبل expire_due المحكوم (v205)؛
+        # opt-in default-off تحت بروفايل irrigation-runtime.
+        "sahool-irrigation-reservation-lifecycle-worker",
     }
     offenders: list[str] = []
     for name, svc in compose["services"].items():

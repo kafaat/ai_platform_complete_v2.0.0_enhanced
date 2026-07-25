@@ -4,15 +4,23 @@
 وOGC API/STAC وs2cloudless، لكنها نقيّة ولا تعتمد على I/O كي يمكن اختبارها
 واستخدامها في الخدمات والواجهة كعقد ثابت.
 """
+
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
-from typing import Any, Iterable
 import re
+from collections.abc import Iterable
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from typing import Any
 
 _ALLOWED_REVISION_OPS = {
-    "create", "edit", "split", "merge", "import", "auto_boundary", "rollback",
+    "create",
+    "edit",
+    "split",
+    "merge",
+    "import",
+    "auto_boundary",
+    "rollback",
 }
 
 
@@ -73,7 +81,12 @@ def score_scene_quality(
     if res > 20:
         factors.append("resolution_m")
     grade = "A" if final >= 85 else "B" if final >= 70 else "C" if final >= 50 else "D"
-    return SceneQuality(score=final, grade=grade, accepted=(cloud <= max_cloud_pct and final >= 50), limiting_factors=tuple(factors))
+    return SceneQuality(
+        score=final,
+        grade=grade,
+        accepted=(cloud <= max_cloud_pct and final >= 50),
+        limiting_factors=tuple(factors),
+    )
 
 
 def normalize_stac_item(item: dict[str, Any]) -> dict[str, Any]:
@@ -86,7 +99,12 @@ def normalize_stac_item(item: dict[str, Any]) -> dict[str, Any]:
     cog_assets = {
         name: asset.get("href")
         for name, asset in assets.items()
-        if isinstance(asset, dict) and asset.get("href") and ("image/tiff" in str(asset.get("type", "")) or str(asset.get("href", "")).lower().endswith((".tif", ".tiff")))
+        if isinstance(asset, dict)
+        and asset.get("href")
+        and (
+            "image/tiff" in str(asset.get("type", ""))
+            or str(asset.get("href", "")).lower().endswith((".tif", ".tiff"))
+        )
     }
     return {
         "scene_id": item.get("id"),
@@ -100,7 +118,9 @@ def normalize_stac_item(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def build_mosaicjson(*, name: str, items: Iterable[dict[str, Any]], minzoom: int = 8, maxzoom: int = 18) -> dict[str, Any]:
+def build_mosaicjson(
+    *, name: str, items: Iterable[dict[str, Any]], minzoom: int = 8, maxzoom: int = 18
+) -> dict[str, Any]:
     """أنشئ MosaicJSON مبسطاً يربط quadkey/scene-id بأصول COG.
 
     TiTiler يدعم MosaicJSON كنمط تجميع؛ هنا نحفظ عقداً مستقراً يمكن للـ registry
@@ -123,7 +143,9 @@ def build_mosaicjson(*, name: str, items: Iterable[dict[str, Any]], minzoom: int
     }
 
 
-def geoparquet_partition_path(*, country: str, governorate: str, district: str, year: int, crop: str | None = None) -> str:
+def geoparquet_partition_path(
+    *, country: str, governorate: str, district: str, year: int, crop: str | None = None
+) -> str:
     """مسار data-lake مستقر لتصدير GeoParquet حسب البلد/المحافظة/المديرية/السنة/المحصول."""
     parts = [
         f"country={_slug(country)}",
@@ -159,11 +181,17 @@ def geometry_revision_event(
         "reason": reason,
         "source": source,
         "parent_revision_id": parent_revision_id,
-        "changed_at": datetime.now(timezone.utc).isoformat(),
+        "changed_at": datetime.now(UTC).isoformat(),
     }
 
 
-def ogc_collection_descriptor(*, collection_id: str, title: str, item_type: str, crs: str = "http://www.opengis.net/def/crs/OGC/1.3/CRS84") -> dict[str, Any]:
+def ogc_collection_descriptor(
+    *,
+    collection_id: str,
+    title: str,
+    item_type: str,
+    crs: str = "http://www.opengis.net/def/crs/OGC/1.3/CRS84",
+) -> dict[str, Any]:
     """وصف collection خفيف متوافق مع مبادئ OGC API Features/Tiles."""
     return {
         "id": collection_id,

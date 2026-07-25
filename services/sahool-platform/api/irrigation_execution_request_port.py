@@ -106,6 +106,8 @@ class EmitEventExecutionRequestPort:
             "execution_ref_type": execution_ref_type,
             "execution_ref_id": execution_ref_id,
             "state": "dispatch_requested",
+            "correlation_id": correlation_id,
+            "causation_id": evaluation_id,
         }
         event_id = await _emit(
             conn,
@@ -121,7 +123,12 @@ class EmitEventExecutionRequestPort:
         return event_id or f"dispatch-requested:{execution_ref_type}:{execution_ref_id}"
 
     async def mark_dispatch_failed(
-        self, conn: Any, *, execution_request_ref: str, reason: str
+        self,
+        conn: Any,
+        *,
+        execution_request_ref: str,
+        reason: str,
+        correlation_id: str | None = None,
     ) -> None:
         tenant_id = await conn.fetchval("select current_setting('app.current_tenant', true)")
         if not tenant_id:
@@ -131,7 +138,12 @@ class EmitEventExecutionRequestPort:
             event_type=EventType.IRRIGATION_RESERVATION_DISPATCH_FAILED.value,
             entity_id=execution_request_ref,
             tenant_id=tenant_id,
-            payload={"execution_request_ref": execution_request_ref, "reason": reason},
-            correlation_id=None,
+            payload={
+                "execution_request_ref": execution_request_ref,
+                "reason": reason,
+                "correlation_id": correlation_id,
+                "causation_id": execution_request_ref,
+            },
+            correlation_id=correlation_id,
             occurred_at=self._timestamp(),
         )

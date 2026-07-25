@@ -44,6 +44,7 @@ from pydantic import BaseModel
 from api.decision_service_client import (
     record_dispatch_decision as _mirror_dispatch_to_service,
 )
+from api.decision_sor_mode import assert_platform_may_write_decision_sor
 from api.main import (
     Permission,
     UserSchema,
@@ -311,6 +312,7 @@ async def execute_dispatch_endpoint(
 
             async def _persist(dec, command_dict, exec_status):
                 # ON CONFLICT DO NOTHING على الفهرس الفريد الجزئيّ — حارس قاعديّ ضدّ السباق.
+                assert_platform_may_write_decision_sor("dispatch_decisions")
                 await conn.execute(
                     """INSERT INTO dispatch_decisions
                         (decision_id, tenant_id, recommendation_id, action_type, field_id,
@@ -450,6 +452,7 @@ async def consume_dispatch_queue(
                 "ORDER BY created_at ASC LIMIT $1 FOR UPDATE SKIP LOCKED",
                 limit,
             )
+            assert_platform_may_write_decision_sor("dispatch_decisions")
             notifications = []
             for row in rows:
                 target = assert_transition(row["exec_status"], "dispatched")  # fail-closed
@@ -622,6 +625,7 @@ async def record_execution_outcome(
                 str(user.user_id),
                 recorded_at,
             )
+            assert_platform_may_write_decision_sor("dispatch_decisions")
             await conn.execute(
                 "UPDATE dispatch_decisions SET exec_status = $1 WHERE decision_id = $2",
                 target,

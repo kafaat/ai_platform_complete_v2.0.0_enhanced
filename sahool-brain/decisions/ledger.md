@@ -780,10 +780,129 @@ SHAs من `git log --oneline origin/main`.
 - **القرار:** فصل صريح — `alembic/versions/` = مراجعات alembic `NNNN_*.py` حصراً · `migrations/` = `vNNN_*.sql` حصراً. أُزيل الزومبيّان `alembic/versions/v101_field_runtime_cohesion.sql` و`v105_marketplace_ecosystem.sql` (بقايا ما قبل phase19، ميّتان بثلاثة محاور: لا MANIFEST · لا runner · خارج سلسلة alembic + صفر استعمال جداول).
 - **السبب:** التصادم «نفس الرقم، ملفّان» قنبلة صامتة (rollback/مطابقة بيئات)؛ إصلاح صغير بلا أثر رجعيّ (الزومبيّان لا يطبّقهما أحد) يُغلق الفجوة فوراً بدل توثيقها ونسيانها.
 - **الحارس:** `tests_v9/test_migration_id_namespace_separation_guard.py` (unit، في مسار CI) + برهان سلبيّ. لا يُعاد المنهج مستقبلاً — الحارس يمنع الانحدار.
-- **SHA:** يُختم بعد الدفع.
+- **SHA:** `d4a622a` (main).
 
-## 2026-07-24 — ERR-BRIDGE-001: DDL في وقت التشغيل → ملف هجرة + فصل مستويات الصحّة
-- **القرار:** DDL يُنفَّذ بواسطة `sahool-migrate` (sahool_user SUPERUSER)، لا في `_run_migrations()` أثناء تشغيل الخدمة. `sahool_app` يبقى NOBYPASSRLS/NOSUPERUSER. ثلاثة مستويات صحّة مستقلّة (`/healthz`·`/readyz`·`/readyz/capabilities`). fail-closed مزدوج في `/sync` (424·503).
-- **السبب:** `sahool_app` بلا `CREATE ON SCHEMA public` (REVOKE في `apply_in_compose.sh`) ⇒ `_run_migrations()` ترفع `InsufficientPrivilegeError` ⇒ lifespan ينهار ⇒ 33+ خدمة تابعة تنهار. القيد الصارم: لا منح `CREATE` لـ`sahool_app` (مبدأ أقلّ-الامتيازات).
-- **الإثبات:** `/healthz` → alive ✅ · `/readyz` → ready (db:true) ✅ · `/readyz/capabilities` → HTTP 200 (ERP كبيانات) ✅ · erp-bridge healthy على staging ✅.
-- **SHA:** f1109df3 (DDL) · dd8e4653 (health) · 651b995c (fail-closed) · 361c530d (guards).
+## 2026-07-21 — PR #585 GAP-FIELD-FORMS-01 (v204): حكم المراجع + دمج (مساهمة وكيل المالك)
+- **الدور:** الميزة بناها وكيل آخر (فرع `claude/field-forms-01`). دوري: (١) إخضار CI؛ (٢) المراجعة النهائيّة المستقلّة + براهين PG16 الحيّة قبل الدمج (مسار C).
+- **إخضار CI:** ثلاثة فحوص حمراء جذرها واحد — روتّر `field_forms_api.py` أضاف مسارات بلا إعادة توليد الجرد (`drift` · `Repository Structural Lint` على `--check` · `Lint & Format` على checksum `SERVICE_REGISTRY.md`). أعدتُ توليد الجرد (32 خدمة · 1081 مساراً +8) + حزمة الإصدار — ملفّات مُولَّدة حصراً، لا مسّ منطق. الطرف `d7861c3` أخضر 62/62.
+- **البراهين الستّة الحيّة (PG16 · دور `sahool_ingest` الحقيقيّ NOSUPERUSER NOBYPASSRLS LOGIN):** ① RLS (A لا يرى B قراءةً + WITH CHECK يرفض إدراج A صفّاً موسوماً B) · ② state machine على INSERT/P0-1 (published عند الإدراج ⇒ رُفض؛ draft→published بلا published_by ⇒ رُفض؛ published→draft ⇒ رُفض) · ③ REVOKE DELETE طبقتان (permission denied كـingest · trigger `hard DELETE prohibited` كـsuperuser على versions+definitions) · ④ no_active_assignment/P0-3 (اختبارات القرار خضراء + تخزين حيّ) · ⑤ invalid_sync_proof/P0-2 (اختبارات الربط خضراء + تخزين حيّ + رفض خارج-enum بـCHECK) · ⑥ concurrency (نشرتان متزامنتان ⇒ واحدة تنجح، الأخرى `duplicate key ux_field_form_versions_one_published`). **6/6 خضراء.**
+- **الحكم:** جاهز للدمج — spec✓ build✓ static✓ unit(79)✓ CI(62/62)✓ live-PG16(6/6)✓.
+- **الدمج:** المالك دمج (squash) إلى main — `5eded1d`. main CI ما بعد الدمج أخضر شامل بما فيه main-only gates (Runtime Real Smoke · Sahool Production Gates · Service Inventory Drift). الميزة خلف راية `FIELD_FORMS_ENABLED` (مغلق افتراضاً).
+- **SHA:** الطرف الأخضر `d7861c3` · دمج main `5eded1d`.
+
+## 2026-07-21 — PR #587 ERP-BRIDGE-FIX-01: تصليب RLS جسر Odoo لمعيار v204 (FORCE + WITH CHECK)
+- **القرار:** رفع جداول جسر Odoo ذات `tenant_id` من `ENABLE` إلى `FORCE ROW LEVEL SECURITY` + سياسات `WITH CHECK ( tenant_id::TEXT = current_setting('app.current_tenant', true) )` داخل حلقة `v9_odoo_bridge.sql` المُمْنَعة — يوحّد الجسر مع معيار v204.
+- **السبب:** `ENABLE` وحده لا يُخضِع مالك الجدول؛ FORCE + WITH CHECK يمنع تسريب/إدراج عبر المستأجرين. تغيير هجرة صرف بلا مسّ منطق.
+- **البرهان الحيّ:** PG16، جدول مؤهَّل مملوك لدور غير-superuser ⇒ FORCE فعّال + WITH CHECK يرفض مستأجِراً مخالفاً. (CI الأخضر لا يغطّي RLS — live PG proof قبل الدمج.)
+- **SHA:** بصمات `061ba3b` · دمج main `6fccc32`.
+
+## 2026-07-21 — PR #588 PHYSICS-AI-CALIBRATION-01: أرشفة ADR المصادَق (وثيقة فقط)
+- **القرار:** أرشفة حكم المالك المصادَق في `docs/architecture/ADR_PHYSICS_AI_CALIBRATION_01.md` بلا تغيير منطق/هجرة. تصحيح تحريريّ فقط؛ صناديق build_unlock حرفيّة غير مؤشَّرة (ليست backlog قابلاً للتنفيذ).
+- **السبب:** توثيق القرار المصادَق كمصدر مرجعيّ؛ لا حاجة براهين PG (وثيقة). `validate_release_package` متساهل مع الملفّات غير المُدرَجة ⇒ شغّلتُ `build_release_bundle` لإدراج ADR في البصمات (4716).
+- **الانضباط:** تحقّقتُ من خضرة الـ58 فحص CI الفعليّة على `15535d0` قبل الدمج (Security Scan آخر بوّابة).
+- **SHA:** بصمات `15535d0` · دمج main `04862e6`.
+
+## 2026-07-21 — #589 axios security bump + رفض #586 كلغم رجعيّ
+- **القرار:** ترقية axios 1.17→1.18 (أمنيّ) تُطبَّق **معزولةً** على فرع من main (ملفّان: package.json + lock)، لا عبر Dependabot #586.
+- **السبب:** #586 قاعدته الفرع البائد `34hO3`؛ فرقه الفعليّ ضدّ main حمل نسخة أقدم من ملفّات جسر ERP ⇒ دمجه يدهس عمل #587 المدموج. أُثبِت ببصمات فعليّة. أُغلِق #586 كمُستبدَل.
+- **SHA:** بصمات `76999c4` · دمج main `e3ff38f`.
+
+## 2026-07-21 — #590 field-forms integration (P1): الخيار أ المُنقّح (بيئة نقيّة + خطوة معزولة)
+- **القرار:** لا تُضاف fastapi إلى بيئة `-m unit` المشتركة (تُوقظ ~15 اختباراً خامداً importorskip تبني api.main كاملاً ⇒ فشل بيئيّ). بدلاً منها **خطوة CI معزولة** في وظيفة Unit Tests (بعد بوّابة التغطية) تُثبّت `requirements-field-forms.txt` (fastapi فقط) وتشغّل ٣ ملفّات صراحةً بالمسار.
+- **السبب:** يحفظ فلسفة CLAUDE.md «الوحدة = منطق صرف بلا خدمات»، ويُبقي هدف الـPR (تغطية field-forms حيّة). + إصلاح عطب ترتيب HMAC (إصدار التوكن بمفتاح البيئة لا سرّ مُثبَّت) ⇒ مستقلّ عن ترتيب التشغيل.
+- **ملاحظة صلاحيّات:** رقعة `ci.yml` دفعها هذا الوكيل (توكن المالك بلا صلاحيّة `workflows`).
+- **SHA:** رأس أخضر `8f5634e` (الخطوة: 36 passed) · دمج main `35a4ae0`.
+
+## 2026-07-21 — #591 ADR-0035 relocation
+- **القرار:** نقل حكم PHYSICS-AI-CALIBRATION-01 من `docs/architecture/` إلى `docs/adr/ADR-0035-physics-ai-calibration.md` (الترقيم المتسلسل) + فهرسته + حذف القديم.
+- **السبب:** اتّفاقيّة ADR في المستودع تعيش في `docs/adr/` بترقيم متسلسل. النصّ حرفيّ (تحقّقتُ بمقارنة) — فرق وحيد: بادئة `ADR-0035:` + ملاحظة provenance. الفرع كان متأخّرًا عن main فدمجتُ main فيه وأعدتُ توليد البصمات (4718).
+- **SHA:** رأس أخضر `90b871e` · دمج main `ccf262e`.
+
+## 2026-07-22 — #593 field-forms Slice 2 (UI+BFF) دُمِج
+- **القرار:** دمج `5fb4166` (squash). GAP-FIELD-FORMS-01 Slice 2 مُغلَق.
+- **السبب:** كلّ 61 فحص CI أخضر/مُتخطّى فعليًّا على `c4e0f68` بعد إصلاح جذرَين متمايزَين (drift/lint/checksum ← إعادة توليد الجرد+الحزمة+ruff؛ Platform Unit Tests ← تسجيل مسار BFF في `platform_extraction_map.json` + رفع الميزانيّة 614→615). المصدر: سجلّ الوظيفة الفعليّ (لا حدس).
+- **SHA:** رأس `c4e0f68` · دمج `5fb4166`.
+
+## 2026-07-22 — #595 compose redis-state (Part A) دُمِج
+- **القرار:** دمج `ed57004` (squash). عزل حالة الأمان عن كاش Redis.
+- **السبب:** كلّ 62 فحص CI أخضر على `d64e786`. Part B (دور odoo_app) أُجِّل لغياب تهيئة الدور.
+- **SHA:** رأس `d64e786` · دمج `ed57004`.
+
+## 2026-07-22 — #596 72h infra-hardening دُمِج + #594 أُغلِق
+- **القرار:** دمج `1152c76` (squash). v206 RLS fail-closed + odoo_app + redis-state auth/guardrails. #594 Dependabot أُغلِق (مكرَّر، axios على main عبر #589).
+- **السبب:** كلّ 63 فحص CI أخضر على `77d4182`؛ عقد no-context-write حُسِم fail-closed (Option A، قرار المالك).
+- **SHA:** رأس `77d4182` · دمج `1152c76`.
+
+## 2026-07-23 — field-forms Slice 3 (خادميّ) #600 + تشديد MQTT #601 دُمِجا
+- **القرار:** دمج #600 (merge → `fc034f6`) ثمّ #601 (merge → `3f2a010`) تحت انضباط الراتشِت (لا دمج إلّا على رأس أخضر مُثبَت بالكامل على SHA الدقيق؛ التحقّق من كلّ الفحوص لا عيّنة).
+- **السبب:** #600 كلّ 64 فحص success/skipped على `042f18d`؛ #601 كلّ 68 فحص success/skipped على `48ed5ae` (بعد إصلاح `compose_env_contract_gate` بإعلان `MQTT_USERNAME/MQTT_PASSWORD` في `.env.example`، وإعادة رصف على main المدموج بحلّ تعارضات مولَّدة فقط عبر إعادة التوليد). main بعد الدمجين: 29 مسار CI success على `3f2a010`.
+- **قرار فرعيّ (تحديث حارس أمنيّ):** `test_device_binding_mandatory` عُدِّل ليطابق شكل §9.2.1 ذا السطرين مع الإبقاء على منع تراجع الربط المشروط — تتبُّع إعادة هيكلة مُحافِظة على السلوك (grace=0 مطابق بايتيًّا)، لا إضعاف.
+- **حدود بصدق:** تهيئة MQTT مكتملة لكنّ الإثبات الحيّ (رفض مجهول/قبول موثّق) معلّق؛ شريحة Flutter موقوفة (ملفّات copy-as-is غائبة + لا بيئة Flutter)؛ براهين PG16/E2E الحيّة مؤجَّلة؛ `FIELD_FORMS_ENABLED=0`.
+- **SHA:** #600 رأس `042f18d` دمج `fc034f6` · #601 رأس `48ed5ae` دمج `3f2a010`.
+
+## 2026-07-23 — IRR-F01 دورة حياة الحجز + field-forms Slice 3 عميل Flutter #602 دُمِج
+- **القرار:** مراجعة حزمة تكامل مرفوعة (أساس `3f2a010`) وتنفيذ الصحيح منها فقط على فرع/PR واحد، ثمّ دمج `7606901` (merge) تحت انضباط الراتشِت (لا دمج إلّا على رأس أخضر مُثبَت بالكامل على SHA الدقيق؛ التحقّق من كلّ الفحوص لا عيّنة).
+- **السبب:** كلّ 69 فحص success/skipped على الرأس `a8a3d5a` بعد قيادة CI عبر 3 رؤوس؛ كلّ حمراء كانت ثغرة تسجيل (gitignore/باقة الوحدات/قائمة JOBS/فهرس التقارير/call-site إلزاميّ) لا عيب منطق في الدلتا.
+- **قرارات فرعيّة:** (١) إرجاع تعديل `to_emit_args()` الميّت الذي كسر حارس العقد (خيط التتبّع يبقى عبر payload). (٢) العامل الجديد opt-in default-off تحت بروفايل `irrigation-runtime`؛ سُجِّل في قائمة `JOBS_DATABASE_URL` (سكربت+اختبار) وميزانيّة وحدات المنصّة 652→653. (٣) تمرير `deviceId` الإلزاميّ في مستدعٍ قائم خارج الدلتا.
+- **حدود بصدق:** براهين PG16/RLS الحيّة + NATS durable + actuator E2E + سيناريوهات Flutter الحيّة معلّقة؛ لا SoR ريّ مُوازٍ؛ `FIELD_FORMS_ENABLED=0`؛ العامل default-off.
+- **SHA:** رؤوس `416b9c6`/`f3e7669`/`a8a3d5a` · دمج `7606901`.
+
+## 2026-07-23 — إغلاق RUFF-FORMAT-DRIFT-SHARED #603
+- **القرار:** فتح/تنفيذ/دمج فرع مستقلّ يُنظّف `shared/` (format+lint) ويوسّع بوّابتَي ruff في CI لتشمله. دمج `b18a1c1` على رأس أخضر مُثبَت (61/61 على `294b1fd`).
+- **السبب:** أوّل فجوة قابلة للتنفيذ مناسبة (مُسجَّلة، غير مبكّرة، تشدّ السقّاطة). محايد سلوكيًّا؛ إعادة التصدير محميّة بـ`ruff.toml`.
+- **قرار انضباط:** تجنّبتُ عمدًا بنود «لا لمس حتى المحفّز» (FIELD-SVC-TENANT-HEADER-TRUST) و«MVP مؤجَّل» احترامًا لمنع التجريد المبكّر — تُنفَّذ فقط بقرار مالك صريح على البند.
+- **SHA:** رأس `294b1fd` · دمج `b18a1c1`.
+
+## 2026-07-23 — HISTORICAL-SEASON-BRIDGE-01 (v207) #605 دُمِج
+- **القرار:** مراجعة حزمة `historical_season_bridge_v2` (أساس `9a218c7`) وتطبيق الصحيح منها على main (`ccfa03b`) عبر فرع/PR واحد، ثمّ دمج merge-commit `bbfbf95` تحت انضباط الراتشِت (لا دمج إلّا على رأس أخضر مُثبَت بالكامل على SHA الدقيق؛ التحقّق من كلّ الفحوص لا عيّنة).
+- **السبب:** كلّ 65 فحص success/skipped على الرأس `428e508` (production-validation-gate · Repo Structural Lint · Platform Unit Tests · Structure Inspector · migration drift/contract · Security Scan). v207 مُدرَج قبل v206 (v206 يبقى آخِراً ويُعيد تغطية RLS)؛ الجدولان يعلنان RLS ذاتيّاً عبر المساعد القانونيّ.
+- **قرارات فرعيّة:** (١) توسيع `sahool_inspector.check_rls_coverage` ليقبل `sahool_effective_tenant_id()` كمسنِد tenant صحيح (غير مُضعِف؛ v206 نفسه يستعمله). (٢) تسجيل جدولَي v207 في `db_ownership.yml` كـsahool-platform + رفع ميزانيّة الوحدات 653→654 + `modules[]`/note لـ`core/historical_season_context.py` — الحُرّاس تعيش في `tests/test_p0_*` (وظيفة Platform Unit Tests) لا في `-m unit` المحلّيّ. (٣) `HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED=false` default-off.
+- **حدود بصدق:** تطبيق PG16 + برهان RLS بجلستَين على جدولَي v207 مؤجَّل؛ مرآة decision-service SoR default-off حتى الشهادة؛ لا SoR موازٍ للموسم/المحاكاة.
+- **SHA:** رأس `428e508` (سابقه `243ec93`) · دمج `bbfbf95`.
+
+## 2026-07-23 — تحقّق مستقلّ من مراجعة توصيل المحرّكات↔مركز القرار (`9a218c7`) — REQUEST CHANGES مؤيَّد
+- **القرار:** التحقّق من ادّعاءات مراجعة REQUEST CHANGES بأربعة وكلاء قراءة-كود عدائيّين مستقلّين (كلٌّ مكلَّف بالدحض) بدل قبولها؛ الحكم: **الادّعاءات 11 كلّها CONFIRMED** بأدلّة `file:line` ⇒ **أؤيّد حجب الاعتماد الإنتاجيّ على مركز القرار.**
+- **السبب:** المسارات المتوازية (`/crop-twin/decision`، `/profit-aware`، `run_field_intelligence`) تلتفّ حول البوّابة fail-closed للمرشّح القانونيّ؛ المرشّح مبنيّ على مدخلات العميل لا عقود canonical حيّة (GDD وحده مجلوب خادميّاً)؛ `weather_state` غير ممرَّر ⇒ heat/frost/crop_water معطّلة.
+- **الفعل:** لا تغيير كود في هذه الجولة (تحقّق فقط)؛ اقتراح فجوة `DECISION-CENTER-UNIFY-01` (المسار 3/4/5: منع submit على compose + تحويل المسارين إلى preview + منع executable الالتفافيّ — قابل للتنفيذ الآن بلا migration) بانتظار موافقة المالك على التسجيل/التنفيذ.
+- **SHA:** المراجَعة عند `9a218c7`؛ لا commit في هذه الجولة.
+
+## 2026-07-23 — REGISTRY-CLASSIFICATION-SETTLEMENT (main=38ed755، بعد #616)
+- **القرار:** تجميد العمل الكوديّ العامّ + تسوية تصنيفات السجل بدل محاولة إغلاق بنود محجوبة من الكود.
+- **السبب:** الجرد أثبت صفر بند قابل للإغلاق كوديّاً دون نصف-حلّ؛ العمل القسريّ يخالف الصدق. المالك صحّح: تصنيف دقيق (OPERATIONAL/GOVERNANCE-TRIGGER/SPEC-DATA/DESIGN-RUNTIME/ACCEPTED_RISK) لا إعلان «خالٍ كوديّاً».
+- **التغييرات:** `SHARED-PACKAGE-NAME-COLLISION`→ACCEPTED_RISK/WONTFIX · `DECISION-CENTER-UNIFY-01`→BLOCKED-DESIGN+RUNTIME · قسم `#CODE-CLOSABLE-DEFERRED-SWEEP` · تصنيف 3 خدمات UNCONSUMED-INTENTIONAL/INTERNAL-FUTURE (بلا اختراع مستهلك).
+- **التالي:** بانتظار فتح المالك لمسار PG16 staging (P0×2) أو تأكيد محفّز/قرار PKI. السرّ env-only. لا force-push على main.
+
+## 2026-07-23 — ACCEPTED_RISK-GOVERNANCE-METADATA (ملاحظة حوكمة المالك)
+- **القرار:** أيّ تصنيف ACCEPTED_RISK/WONTFIX يجب أن يحمل حوكمة صريحة (مالك مخاطرة · تاريخ اعتماد · محفّز إعادة فتح · تاريخ مراجعة) كي لا يصير إغلاقاً دائماً غير مراقَب.
+- **التطبيق:** أُضيفت الحقول الأربعة لـ`MINIO-PER-SERVICE-CREDENTIALS` و`SHARED-PACKAGE-NAME-COLLISION` (مالك=المالك kafaat · اعتماد=2026-07-23 · محفّزات موثَّقة · مراجعة=2026-10-23 ربع سنويّ).
+- **المسار النشط الوحيد:** PG16 staging (P0×2)؛ لا فتح ADR-0033/WORKER-IDENTITY بالتوازي قبل المحفّز/PKI؛ لا إجراء صادق حتى توفّر اتصال PG16 عبر env/secret (لا نشر اعتماد في المحادثة). التحقّق المستقل من محتوى SHA/`file:line` مرهون بوصول الشجرة.
+
+## 2026-07-23 — U3+U4: تبنّي مُكيَّف لحزمة U3_U4_hardened داخل مُصرِّفنا (eae59a2)
+- **القرار:** تمديد مُصرِّف الكتالوج القائم ببوّابتَي حَوكمة U3 (سلك مدفوع بالأدلّة عبر بوّابة العقود المُقوّاة fail-closed + صفر تعارضات ملكيّة بعد إزالة مدخل IF الزائف من مصدره) وU4 (قرارات التكرارات 14/14 + حَوكمة الإعفاءات الـ50 في overrides) — **رفض** استبدال المُصرِّف بمُصرِّف الحزمة الموازي، ورفض ملفّات BFF/nginx/evidence-lab فيها (أقدم من إصلاحاتنا المدموجة ce91d3b) وتعديلها لهجرة v211 المدموجة (v212 قائمة).
+- **السبب:** مُصرِّفنا مُثبَّت ببوّابة واختبارات مُدمَجة في ci.yml؛ الفريد الحقيقيّ في الحزمة هو دلالات U3/U4 لا بنيتها. تحسين إضافيّ: فحص الانتهاء زمنيّ فقط (--enforce-expiry) خارج المخرجات حفاظاً على الحتميّة البايتيّة المستقلّة عن تاريخ اليوم (تصميم الحزمة كان يضمّن إخفاقات الانتهاء في JSON المولَّد).
+- **الدليل:** SHA `eae59a2` على `claude/code-review-34hO3`؛ 3431 unit خضراء؛ بوّابة الكتالوج 12/12؛ العقود 32/32.
+
+## 2026-07-23 — U0–U4 مدموج عبر PR #617 (main=0c01642)
+- **القرار:** دمج الكتالوج الموحّد U0–U4 + consumer-routes إلى main بعد اخضرار كلّ الـ71 فحص CI (success/skipped) على الرأس fa2a16f، بإذن المالك الصريح («انتظر الاخضرار ثم ادمج»).
+- **السبب:** الـRatchet مُستوفى؛ الأعطال الخمسة الأوّليّة كلّها أُصلحت من الجذر (حارس تحليل IF · evidence-lab compose · انجراف الجرد المُقنَّع) بلا تليين عقد حقيقيّ (ephemeral-dependencies best-effort حيّ لا يُصدِر شهادة إنتاج بتصميمه).
+- **الدليل:** merge SHA `0c01642`؛ zip `sahool_main_0c01642.zip` (5191 ملفّاً).
+
+## 2026-07-23 — U5–U9 الكتالوج الموحّد (فرع claude/code-review-34hO3)
+- **القرار:** استكمال كلّ شرائح الكتالوج المتبقّية كمُشتقّات ساكنة حتميّة، بلا اختلاق حَوكمة (السياق/idempotency/approval كلّها مُكتشَفة من مسارات/مصدر) وبلا سقالة بلا مستهلك (بيان U6 موصول بلوحة حقيقيّة) وبلا ادّعاء شهادة إنتاج (U9 production_certified=false دائماً).
+- **السبب:** طلب المالك «استكمل الكل»؛ والحدّ الصادق أنّ ما يُبنى ساكناً يبقى ساكناً — الشهادة الحيّة S1..S12 خارج نطاق مُصرِّف ساكن.
+
+## 2026-07-24 — استرداد شريحة Composer الطيفيّة (PR #621)
+- **القرار:** إعادة تطبيق شريحة DECISION-CENTER-UNIFY-01 المفقودة (خطأ دمج #620) + توجيه جلب الطيف عبر الواجهة القانونيّة `get_indicator_grid` بدل المسار الخامّ، بلا إضافة crop_twin لقائمة السماح (الواجهة تحفظ الحدّ).
+- **السبب:** الحدّ raster يجب أن يبقى داخل الواجهة الوحيدة (نمط etc_dual/field_ai_context) — أنظف من توسيع قائمة السماح؛ والراوتر يبقى مستهلِكاً صرفاً. الـRatchet مُستوفى (64 فحصاً success/skipped) والتحقّق grep>0 على main يمنع تكرار خطأ #620.
+- **الدليل:** merge SHA `64dea36`؛ إصلاح الحدّ `82ce4cc`؛ إعادة التوليد `16ff308`؛ zip `sahool_main_64dea36.zip`.
+
+## 2026-07-24 — الشريحة 1: مُجمِّع السياق الزراعيّ الخادميّ (`3c9c3c2`)
+- **القرار:** بناء نصف «الجمع» المفقود كوحدة نقيّة في المنصّة تُغذّي `compose_agronomic_context` القائم (لا جامع موازٍ في decision-service، لا استيراد داخليّات عبر الحدّ) — راية default-off، fail-closed، تركيب لا كتابة.
+- **السبب:** تدقيق الذكاء الزراعيّ حدّد P0-3 كأخطر فجوة (أهمّ من أيّ نموذج AI جديد). العقد AC-1 يحمل أصلاً حقول النَسَب المطلوبة (P0-2) ⇒ الناقص هو المُلئ الخادميّ فقط. برهان اجتياز بوّابة PIT الحقيقيّة يمنع بناء شكل غير متوافق.
+- **الدليل:** commit `3c9c3c2`؛ `agronomic_context_composer.py` + 6 اختبارات؛ توافق عبر-الخدمات مُثبَت (ContextComposeIn + validate_composition = 0 مخالفات).
+
+- **PR #623 (`853f353`) — DECISION-CENTER الشريحة 2:** أُزيلت راية `CROP_TWIN_DIRECT_DECISION_ENABLED`
+  من نقطتَي crop-twin السيناريوهيّتَين (`/crop-twin/decision` + `/decision/profit-aware`) ⇒ معاينة
+  دائمة (`persisted=false`, `preview_only=true`). السبب: إغلاق باب الكتابة الجانبيّ بعد تحقّق شرطه
+  (جامع الشريحة 1، `3c9c3c2`). النطاق محدود بصدق: بوّابة `/decision-candidate submit→403` بقيت خلف
+  الراية (إغلاقها يحتاج وصل الجامع، عمل منفصل). Ratchet: 64 فحصاً success/skipped على الرأس `1a529b7`.

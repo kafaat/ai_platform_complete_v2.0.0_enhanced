@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -160,6 +162,25 @@ def check_files() -> None:
             missing = [f for f in item["minimum_fields"] if f not in data]
             if missing:
                 raise SystemExit(f"{p} verified but missing fields: {', '.join(missing)}")
+            provenance_fields = ["repository", "workflow", "workflow_run_id", "commit"]
+            missing_provenance = [f for f in provenance_fields if not data.get(f)]
+            if missing_provenance:
+                raise SystemExit(
+                    f"{p} verified but missing CI provenance: {', '.join(missing_provenance)}"
+                )
+            if not re.fullmatch(r"[0-9a-f]{40}", str(data["commit"])):
+                raise SystemExit(f"{p} verified with invalid commit SHA")
+            try:
+                timestamp = datetime.fromisoformat(
+                    str(data["timestamp_utc"]).replace("Z", "+00:00")
+                )
+            except ValueError as exc:
+                raise SystemExit(f"{p} verified with invalid timestamp") from exc
+            now = datetime.now(UTC)
+            if timestamp.tzinfo is None or timestamp > now + timedelta(minutes=5):
+                raise SystemExit(f"{p} verified with untrusted timestamp")
+            if timestamp < now - timedelta(days=30):
+                raise SystemExit(f"{p} verified evidence is older than 30 days")
     expected = json.dumps(manifest_payload(), indent=2, ensure_ascii=False) + "\n"
     actual = MANIFEST.read_text(encoding="utf-8")
     if actual != expected:

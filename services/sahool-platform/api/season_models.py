@@ -210,6 +210,13 @@ class SeasonSimResponse(BaseModel):
     # النموذج RUE/FAO-56 إرشاديّ غير معاير محلّيّاً ⇒ يتطلّب تحقّقاً حقليّاً دائماً.
     estimate_only: bool = True
     requires_field_validation: bool = True
+    model_role: str = "screening_only"
+    eligible_for_calibration: bool = False
+    # الحقيقة الصريحة: المحرّك الذي أنتج yield_kg_ha فعلاً في هذا المسار (RUE/FAO-56)،
+    # مقابل canonical_yield_engine = المحرّك القانونيّ **المستهدَف** (pcse_wofost) الذي لم
+    # يُشغَّل هنا. اقترانهما دون هذا الحقل كان مَزلَق-حقيقة (screening ≠ canonical).
+    simulation_engine: str = "rue-fao56"
+    canonical_yield_engine: str = "pcse_wofost"
     estimate_disclaimer_ar: str = (
         "تقدير نموذجيّ (RUE/FAO-56) غير معاير محلّيّاً — يُعرَض بنطاق وثقة، ويتطلّب تحقّقاً "
         "حقليّاً قبل اعتماده قراراً. ليس غلّة فعليّة."
@@ -218,3 +225,11 @@ class SeasonSimResponse(BaseModel):
     gdd_provenance: dict | None = None
     # WS-C.1b: نَسَب سلسلة ET0 (مصدر=weather-engine/إصدار الصيغة/أيّام محسوبة) — لا Hargreaves محلّيّ.
     et0_provenance: dict | None = None
+    # HISTORICAL-SEASON-BRIDGE-01: lineage إلى حزمة الإدخال وسجل التشغيل.
+    simulation_run_id: str | None = None
+    input_digest: str | None = None
+    historical_context_used: bool = False
+    manual_irrigation_used: bool = False
+    observed_fapar_used: bool = False
+    decision_context_status: str = "not_attempted"
+    decision_historical_snapshot_id: str | None = None

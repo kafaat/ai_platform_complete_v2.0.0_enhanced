@@ -1,0 +1,483 @@
+{
+  "components": [
+    {
+      "capability_count": 3,
+      "component_id": "actuator-service",
+      "domain": "execution",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 4,
+      "component_id": "agriai-engine",
+      "domain": "simulation-experimental",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": false
+      },
+      "type": "service",
+      "wiring_disposition": "intentional-unconsumed"
+    },
+    {
+      "capability_count": 10,
+      "component_id": "ai_agronomist",
+      "domain": "agents",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 22,
+      "component_id": "auth",
+      "domain": "identity",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 60,
+      "component_id": "decision-service",
+      "domain": "decision-governance",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 3,
+      "component_id": "edge-inference",
+      "domain": "edge",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 8,
+      "component_id": "erp-bridge",
+      "domain": "erp-projection",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 2,
+      "component_id": "field-management-service",
+      "domain": "fields-internal",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 1,
+      "component_id": "field-segmentation",
+      "domain": "fields-boundary",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 0,
+      "component_id": "frontend",
+      "domain": "user-interface",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": null,
+        "wired": null
+      },
+      "type": "frontend",
+      "wiring_disposition": null
+    },
+    {
+      "capability_count": 0,
+      "component_id": "gis-workflow-service",
+      "domain": "gis-publication",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": null
+      },
+      "type": "batch-job-tool",
+      "wiring_disposition": "standalone-job"
+    },
+    {
+      "capability_count": 3,
+      "component_id": "guardrails-engine",
+      "domain": "decision-governance",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 5,
+      "component_id": "indicators-service",
+      "domain": "indicators",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 3,
+      "component_id": "knowledge-graph",
+      "domain": "knowledge",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 2,
+      "component_id": "local-ai-rag",
+      "domain": "knowledge",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 11,
+      "component_id": "mcp_servers",
+      "domain": "agents-mcp",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 0,
+      "component_id": "mobile",
+      "domain": "user-interface",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": null,
+        "wired": null
+      },
+      "type": "mobile",
+      "wiring_disposition": null
+    },
+    {
+      "capability_count": 0,
+      "component_id": "model-registry-adapter",
+      "domain": "decision-governance",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "adapter",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 0,
+      "component_id": "qdrant-seed",
+      "domain": "knowledge",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": null
+      },
+      "type": "job",
+      "wiring_disposition": "standalone-job"
+    },
+    {
+      "capability_count": 2,
+      "component_id": "rag-retrieval",
+      "domain": "knowledge",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 74,
+      "component_id": "raster-service",
+      "domain": "remote-sensing-truth",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 0,
+      "component_id": "raster-tiler-service",
+      "domain": "remote-sensing-truth",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": false,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 1,
+      "component_id": "remote-sensing-workspace-bff",
+      "domain": "remote-sensing-workspace",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "bff",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 549,
+      "component_id": "sahool-platform",
+      "domain": "platform-core",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 1,
+      "component_id": "sam2-inference",
+      "domain": "fields-boundary",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": false,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 9,
+      "component_id": "scout-ingest-service",
+      "domain": "ground-ingest",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 19,
+      "component_id": "soil-service",
+      "domain": "soil",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 6,
+      "component_id": "supervisor-agent",
+      "domain": "agents",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 4,
+      "component_id": "tts-service",
+      "domain": "media",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 17,
+      "component_id": "vegetation-analysis-service",
+      "domain": "vegetation-interpretation",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 4,
+      "component_id": "video-processor",
+      "domain": "media",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 0,
+      "component_id": "weather-polygon-worker",
+      "domain": "weather-truth",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": false,
+        "wired": true
+      },
+      "type": "worker",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 21,
+      "component_id": "weather-service",
+      "domain": "weather-truth",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": true,
+        "wired": true
+      },
+      "type": "service",
+      "wiring_disposition": "consumed"
+    },
+    {
+      "capability_count": 0,
+      "component_id": "weather-signal-engine",
+      "domain": "weather-truth",
+      "status": {
+        "activated": null,
+        "built": true,
+        "configured": null,
+        "tested": false,
+        "wired": true
+      },
+      "type": "worker",
+      "wiring_disposition": "consumed"
+    }
+  ],
+  "fingerprint": "256c707e2e7a456b26244b541eb4bd856f1d5f23e64fe91d73ee4fd561a3ec68",
+  "note": "static declaration only — configured/activated require live readiness; the UI must degrade on live /readyz, never on this file alone",
+  "schema": "sahool.runtime_capability_manifest.v1"
+}

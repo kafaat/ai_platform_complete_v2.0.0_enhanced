@@ -42,6 +42,15 @@ def _router_module_names() -> list[str]:
     )
 
 
+def _effective_app_routes(app) -> list:
+    """Flatten FastAPI 0.136 lazy ``_IncludedRouter`` wrappers."""
+    out = []
+    for route in app.routes:
+        original = getattr(route, "original_router", None)
+        out.extend(getattr(original, "routes", []) if original is not None else [route])
+    return out
+
+
 def test_no_api_v1_endpoints_remain_in_main():
     """لا نقطة `/api/v1/*` مُعرَّفة مباشرةً بـ@app في main (يجب أن تكون في router)."""
     src = _main_src()
@@ -75,7 +84,7 @@ def test_every_router_module_is_included_in_main():
 
     from api.main import app
 
-    app_paths = {getattr(r, "path", None) for r in app.routes}
+    app_paths = {getattr(r, "path", None) for r in _effective_app_routes(app)}
 
     missing: list[str] = []
     for name in _router_module_names():
@@ -112,7 +121,7 @@ def test_no_duplicate_route_registrations():
 
     seen: set[tuple[str, str]] = set()
     dups: list[tuple[str, str]] = []
-    for r in app.routes:
+    for r in _effective_app_routes(app):
         methods = getattr(r, "methods", None)
         path = getattr(r, "path", None)
         if not methods or path is None:

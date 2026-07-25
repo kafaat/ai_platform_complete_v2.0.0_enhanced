@@ -38,7 +38,15 @@ function trackMeta(track: string) {
 
 // زمن الحدث بالميلّي ثانية — يتحمّل تواريخ فقط (YYYY-MM-DD) أو طوابع كاملة. NaN ⇒ 0.
 function ms(date: string): number {
-  const t = Date.parse(date);
+  const value = date.trim();
+  // عقد الـAPI قد يعيد تاريخاً فقط أو timestamp بلا offset. كلاهما يُمثّل UTC؛
+  // ترك timestamp بلا منطقة يجعل المتصفّح يفسّره بالتوقيت المحلي ويزيح حدود المنزلق.
+  const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? `${value}T00:00:00Z`
+    : /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/.test(value)
+      ? `${value}Z`
+      : value;
+  const t = Date.parse(normalized);
   return Number.isFinite(t) ? t : 0;
 }
 
@@ -47,6 +55,20 @@ function fractionOf(date: string, startMs: number, endMs: number): number {
   if (endMs <= startMs) return 0; // span بطول صفر (حدث واحد) ⇒ في البداية
   const f = (ms(date) - startMs) / (endMs - startMs);
   return Math.min(1, Math.max(0, f));
+}
+
+// ترشيح إعادة التشغيل كدالّة نقيّة قابلة للتحقّق دون الاعتماد على تفاصيل أحداث DOM.
+export function filterReplayEvents(
+  events: ReplayEvent[],
+  span: AgronomicReplayResult['span'],
+  scrub: number,
+): ReplayEvent[] {
+  if (!span) return [];
+  const start = ms(span.start);
+  const end = ms(span.end);
+  const position = Math.min(1, Math.max(0, scrub));
+  const cutoff = start + position * (end - start);
+  return events.filter((event) => ms(event.date) <= cutoff + 1);
 }
 
 // تصيير value المتغايرة كنصّ عربيّ مقروء (رقم/منطقيّ/كائن/null) — دفاعيّ، لا تلفيق.
@@ -99,8 +121,8 @@ export default function ReplayMapPage() {
   // الأحداث المعروضة: حتى cutoff (مُدامة مسبقاً تصاعديّاً، نُرشّح فقط) — «إعادة تشغيل».
   const shownEvents = useMemo<ReplayEvent[]>(() => {
     if (!data || !span) return [];
-    return data.events.filter((e) => ms(e.date) <= cutoffMs + 1); // +1ms هامش حدّ
-  }, [data, span, cutoffMs]);
+    return filterReplayEvents(data.events, span, scrub);
+  }, [data, span, scrub]);
 
   const cutoffLabel = span ? new Date(cutoffMs).toISOString().slice(0, 10) : '—';
 
@@ -266,9 +288,32 @@ function ReplayBody({
               step={0.001}
               value={scrub}
               onChange={(e) => setScrub(Number(e.target.value))}
+              onInput={(e) => setScrub(Number((e.target as HTMLInputElement).value))}
+              onKeyDown={(e) => {
+                if (e.key === 'Home') setScrub(0);
+                if (e.key === 'End') setScrub(1);
+              }}
               aria-label="منزلق إعادة التشغيل الزمنيّ"
               className="w-full accent-emerald-500"
             />
+            <div className="flex justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setScrub(0)}
+                aria-label="الانتقال إلى بداية الموسم"
+                className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
+              >
+                بداية الموسم
+              </button>
+              <button
+                type="button"
+                onClick={() => setScrub(1)}
+                aria-label="الانتقال إلى نهاية الموسم"
+                className="rounded border border-slate-700 px-2 py-1 text-[11px] text-slate-300 hover:border-emerald-500"
+              >
+                نهاية الموسم
+              </button>
+            </div>
             <div className="flex justify-between text-[11px] text-slate-500" dir="ltr">
               <span>{dayOf(span.start)}</span>
               <span>{dayOf(span.end)}</span>

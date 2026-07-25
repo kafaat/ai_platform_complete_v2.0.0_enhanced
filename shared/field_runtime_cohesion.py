@@ -6,14 +6,16 @@ THE source of truth.  The functions here are dependency-light and testable; live
 adapters can persist the returned dictionaries to PostGIS/outbox/NATS without
 changing the contracts.
 """
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Any, Callable
 import hashlib
 import json
+from collections.abc import Callable
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from enum import Enum
+from typing import Any
 
 try:  # runtime when services/sahool-platform is on PYTHONPATH
     from core.agronomic_state_engine import CanonicalFieldState  # type: ignore
@@ -22,7 +24,7 @@ except Exception:  # fallback for pure import in tooling
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _stable_id(value: Any, prefix: str) -> str:
@@ -113,7 +115,9 @@ def build_unified_digital_twin_view(
     if irrigation is None:
         limitations.append("irrigation_runtime_not_bound")
     view = DerivedTwinView(
-        twin_id=_stable_id({"source": envelope.get("state_id"), "kind": "digital_twin_view"}, "dtv"),
+        twin_id=_stable_id(
+            {"source": envelope.get("state_id"), "kind": "digital_twin_view"}, "dtv"
+        ),
         source_state_id=str(envelope.get("state_id")),
         field_id=str(envelope.get("field_id")),
         tenant_id=envelope.get("tenant_id"),
@@ -155,10 +159,23 @@ class RecommendationStatus(str, Enum):
 
 
 _ALLOWED_TRANSITIONS: dict[RecommendationStatus, set[RecommendationStatus]] = {
-    RecommendationStatus.PROPOSED: {RecommendationStatus.GUARDRAILS_BLOCKED, RecommendationStatus.APPROVED, RecommendationStatus.CANCELLED},
-    RecommendationStatus.GUARDRAILS_BLOCKED: {RecommendationStatus.PROPOSED, RecommendationStatus.CANCELLED},
-    RecommendationStatus.APPROVED: {RecommendationStatus.DISPATCHED, RecommendationStatus.CANCELLED},
-    RecommendationStatus.DISPATCHED: {RecommendationStatus.EXECUTED, RecommendationStatus.CANCELLED},
+    RecommendationStatus.PROPOSED: {
+        RecommendationStatus.GUARDRAILS_BLOCKED,
+        RecommendationStatus.APPROVED,
+        RecommendationStatus.CANCELLED,
+    },
+    RecommendationStatus.GUARDRAILS_BLOCKED: {
+        RecommendationStatus.PROPOSED,
+        RecommendationStatus.CANCELLED,
+    },
+    RecommendationStatus.APPROVED: {
+        RecommendationStatus.DISPATCHED,
+        RecommendationStatus.CANCELLED,
+    },
+    RecommendationStatus.DISPATCHED: {
+        RecommendationStatus.EXECUTED,
+        RecommendationStatus.CANCELLED,
+    },
     RecommendationStatus.EXECUTED: {RecommendationStatus.VERIFIED},
     RecommendationStatus.VERIFIED: {RecommendationStatus.LEARNED},
     RecommendationStatus.LEARNED: set(),
@@ -178,19 +195,33 @@ class RecommendationLifecycle:
     evidence: dict[str, Any]
     events: list[dict[str, Any]] = field(default_factory=list)
 
-    def transition(self, to_status: RecommendationStatus | str, *, actor: str, note: str = "", evidence: dict[str, Any] | None = None) -> None:
+    def transition(
+        self,
+        to_status: RecommendationStatus | str,
+        *,
+        actor: str,
+        note: str = "",
+        evidence: dict[str, Any] | None = None,
+    ) -> None:
         target = RecommendationStatus(to_status)
         if target not in _ALLOWED_TRANSITIONS[self.status]:
-            raise ValueError(f"invalid recommendation transition: {self.status.value} -> {target.value}")
+            raise ValueError(
+                f"invalid recommendation transition: {self.status.value} -> {target.value}"
+            )
         self.status = target
-        self.events.append({
-            "event_id": _stable_id({"rec": self.recommendation_id, "to": target.value, "n": len(self.events)}, "revt"),
-            "status": target.value,
-            "actor": actor,
-            "note": note,
-            "evidence": evidence or {},
-            "occurred_at": _now(),
-        })
+        self.events.append(
+            {
+                "event_id": _stable_id(
+                    {"rec": self.recommendation_id, "to": target.value, "n": len(self.events)},
+                    "revt",
+                ),
+                "status": target.value,
+                "actor": actor,
+                "note": note,
+                "evidence": evidence or {},
+                "occurred_at": _now(),
+            }
+        )
 
     def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
@@ -211,7 +242,9 @@ def open_recommendation_lifecycle(
     elif decision.get("executable", False):
         status = RecommendationStatus.APPROVED
     rec = RecommendationLifecycle(
-        recommendation_id=_stable_id({"state": envelope.get("state_id"), "decision": decision}, "rec"),
+        recommendation_id=_stable_id(
+            {"state": envelope.get("state_id"), "decision": decision}, "rec"
+        ),
         source_state_id=str(envelope.get("state_id")),
         field_id=str(envelope.get("field_id")),
         tenant_id=envelope.get("tenant_id"),
@@ -221,22 +254,35 @@ def open_recommendation_lifecycle(
         evidence={
             "canonical_state_id": envelope.get("state_id"),
             "confidence": envelope.get("state", {}).get("confidence"),
-            "effective_status": envelope.get("state", {}).get("operational_truths", {}).get("effective_status"),
+            "effective_status": envelope.get("state", {})
+            .get("operational_truths", {})
+            .get("effective_status"),
             "dispatch_block_reason": decision.get("dispatch_block_reason"),
         },
     )
-    rec.events.append({
-        "event_id": _stable_id({"rec": rec.recommendation_id, "status": rec.status.value}, "revt"),
-        "status": rec.status.value,
-        "actor": actor,
-        "note": "recommendation lifecycle opened from canonical state",
-        "evidence": rec.evidence,
-        "occurred_at": _now(),
-    })
+    rec.events.append(
+        {
+            "event_id": _stable_id(
+                {"rec": rec.recommendation_id, "status": rec.status.value}, "revt"
+            ),
+            "status": rec.status.value,
+            "actor": actor,
+            "note": "recommendation lifecycle opened from canonical state",
+            "evidence": rec.evidence,
+            "occurred_at": _now(),
+        }
+    )
     return rec.to_dict()
 
 
-def apply_lifecycle_transition(record: dict[str, Any], to_status: str, *, actor: str, note: str = "", evidence: dict[str, Any] | None = None) -> dict[str, Any]:
+def apply_lifecycle_transition(
+    record: dict[str, Any],
+    to_status: str,
+    *,
+    actor: str,
+    note: str = "",
+    evidence: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     rec = RecommendationLifecycle(
         recommendation_id=record["recommendation_id"],
         source_state_id=record["source_state_id"],
@@ -262,7 +308,9 @@ def build_outcome_feedback(
     if recommendation.get("status") != RecommendationStatus.VERIFIED.value:
         raise ValueError("outcome feedback requires a verified recommendation")
     return {
-        "feedback_id": _stable_id({"rec": recommendation.get("recommendation_id"), "metrics": outcome_metrics}, "fbk"),
+        "feedback_id": _stable_id(
+            {"rec": recommendation.get("recommendation_id"), "metrics": outcome_metrics}, "fbk"
+        ),
         "recommendation_id": recommendation.get("recommendation_id"),
         "source_state_id": recommendation.get("source_state_id"),
         "field_id": recommendation.get("field_id"),
@@ -305,14 +353,23 @@ def run_cohesive_field_runtime(
     persist_fn: Callable[[dict[str, Any]], None] | None = None,
 ) -> dict[str, Any]:
     """Compose the unified runtime payload from the existing coordinator result."""
-    state = getattr(field_intelligence_result, "canonical_state", None) or field_intelligence_result.get("canonical_state")
-    decision = getattr(field_intelligence_result, "policy_decision", None) or field_intelligence_result.get("policy_decision", {})
+    state = getattr(
+        field_intelligence_result, "canonical_state", None
+    ) or field_intelligence_result.get("canonical_state")
+    decision = getattr(
+        field_intelligence_result, "policy_decision", None
+    ) or field_intelligence_result.get("policy_decision", {})
     envelope = create_canonical_state_envelope(state)
-    twin = build_unified_digital_twin_view(envelope, economics=economics, equipment=equipment, irrigation=irrigation)
+    twin = build_unified_digital_twin_view(
+        envelope, economics=economics, equipment=equipment, irrigation=irrigation
+    )
     recommendation = open_recommendation_lifecycle(envelope, decision)
     phase6_inputs = adapt_phase6_inputs_from_twin(twin)
     payload = {
-        "runtime_id": _stable_id({"state": envelope["state_id"], "recommendation": recommendation["recommendation_id"]}, "frt"),
+        "runtime_id": _stable_id(
+            {"state": envelope["state_id"], "recommendation": recommendation["recommendation_id"]},
+            "frt",
+        ),
         "canonical_state": envelope,
         "digital_twin_view": twin,
         "recommendation_lifecycle": recommendation,

@@ -148,6 +148,22 @@ async def record_decision(
     return await decision_post_json("/v1/decisions/record", payload, tenant_id=tenant_id)
 
 
+async def compose_context_snapshot(
+    payload: dict[str, Any],
+    *,
+    tenant_id: str,
+    requested_by: str,
+) -> dict[str, Any]:
+    """Persist the existing AC-1 historical context; this never creates a decision."""
+    return await decision_post_json(
+        "/v1/context-snapshots",
+        payload,
+        tenant_id=tenant_id,
+        requested_by=requested_by,
+        timeout_s=3.0,
+    )
+
+
 async def list_review_queue(*, tenant_id: str | None = None, limit: int = 100) -> dict[str, Any]:
     """WX-10.8 authoritative pending-candidate queue owned by decision-service."""
     return await decision_get_json(

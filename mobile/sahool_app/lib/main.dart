@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'bloc/dashboard_bloc.dart';
+import 'features/field_forms/data/field_forms_coordinator.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/advisor_screen.dart';
 import 'screens/login_screen.dart';
@@ -144,6 +145,9 @@ class _AuthGateState extends State<AuthGate> {
       // (PushService.init لا يرمي أبداً؛ يبقى no-op بلا google-services). لا
       // ننتظرها كي لا تؤخّر ظهور الواجهة، ونبتلع أيّ تعذّر احتياطاً.
       unawaited(PushService.instance.init().catchError((Object _) {}));
+      unawaited(
+        FieldFormsCoordinator.instance.init().catchError((Object _) {}),
+      );
     }
     if (mounted) setState(() => _isReady = true);
   }
@@ -151,6 +155,7 @@ class _AuthGateState extends State<AuthGate> {
   @override
   void dispose() {
     WebSocketService.instance.dispose();
+    unawaited(FieldFormsCoordinator.instance.dispose());
     super.dispose();
   }
 

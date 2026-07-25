@@ -4,10 +4,16 @@ from __future__ import annotations
 
 import asyncio
 import os
+
+# Identifiers travel into internal upstream URLs; constrain them so an encoded
+# "?"/"#"/"/" can never rewrite the upstream path or query.
+import re
 from typing import Any
 
 import httpx
 from fastapi import FastAPI, Header, HTTPException, Query
+
+_ID_RE = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 
 app = FastAPI(title="SAHOOL Remote Sensing Workspace BFF", version="1.0.0")
 
@@ -73,11 +79,11 @@ async def workspace(
         raise HTTPException(422, detail={"code": "unknown_workspace_sections", "sections": unknown})
     if not authorization.strip() or len(authorization) > 8192:
         raise HTTPException(400, detail={"code": "invalid_authorization"})
-    if not tenant_id.strip() or len(tenant_id) > 128:
+    if not _ID_RE.fullmatch(tenant_id):
         raise HTTPException(400, detail={"code": "invalid_tenant_id"})
-    if not field_id.strip() or len(field_id) > 128:
+    if not _ID_RE.fullmatch(field_id):
         raise HTTPException(400, detail={"code": "invalid_field_id"})
-    if not season_id.strip() or len(season_id) > 128:
+    if not _ID_RE.fullmatch(season_id):
         raise HTTPException(400, detail={"code": "invalid_season_id"})
     headers = {"Authorization": authorization, "X-Tenant-Id": tenant_id}
     result: dict[str, Any] = {
@@ -87,7 +93,10 @@ async def workspace(
         "partial": False,
     }
 
-    async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+    # Internal service DNS must not be redirected through ambient HTTP/SOCKS
+    # proxy variables. This also keeps tenant-scoped upstream traffic inside
+    # the SAHOOL network boundary.
+    async with httpx.AsyncClient(timeout=TIMEOUT, trust_env=False) as client:
         calls: dict[str, Any] = {}
         if "timeline" in sections or "overview" in sections or "compare" in sections:
             calls["timeline"] = _get(
@@ -139,13 +148,13 @@ async def workspace(
                 raw[name] = value
 
     if "timeline" in sections:
-        result["sections"]["timeline"] = raw.get("timeline", {"items": []})
+        result["sections"]["timeline"] = raw.get("timeline", {"entries": []})
     if "anomalies" in sections:
         result["sections"]["anomalies"] = raw.get("anomalies", {"anomalies": []})
     if "decisions" in sections:
         result["sections"]["decisions"] = raw.get("decisions", {"decisions": [], "count": 0})
     if "outcomes" in sections:
-        result["sections"]["outcomes"] = raw.get("outcomes", {"outcomes": [], "count": 0})
+        result["sections"]["outcomes"] = raw.get("outcomes", {"outcome_reconciliation": {}})
     if "ground" in sections:
         if TASK_URL:
             result["sections"]["ground"] = raw.get("ground", {"items": []})
@@ -159,19 +168,23 @@ async def workspace(
         timeline = raw.get("timeline", {})
         result["sections"]["compare"] = {
             "latest_observation_refs": timeline.get("latest_observation_refs", {}),
-            "items": timeline.get("items", [])[:2],
+            "items": timeline.get("entries", [])[:2],
         }
     if "overview" in sections:
         timeline = raw.get("timeline", {})
         anomalies = raw.get("anomalies", {}).get("anomalies", [])
         decisions = raw.get("decisions", {}).get("decisions", [])
-        outcomes = raw.get("outcomes", {}).get("outcomes", [])
+
         result["sections"]["overview"] = {
             "latest_observation_refs": timeline.get("latest_observation_refs", {}),
-            "observation_count": len(timeline.get("items", [])),
+            "observation_count": len(timeline.get("entries", [])),
             "open_anomaly_count": sum(1 for item in anomalies if item.get("status") != "resolved"),
+            # field-wide today: upstream /v1/decisions has no season filter yet;
+            # season_id is forwarded for forward-compatibility.
             "decision_count": len(decisions),
-            "verified_outcome_count": len(outcomes),
+            "outcome_reconciliation_available": bool(
+                raw.get("outcomes", {}).get("outcome_reconciliation")
+            ),
         }
     if errors:
         result["partial"] = True

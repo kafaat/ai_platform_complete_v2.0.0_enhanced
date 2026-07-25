@@ -30,7 +30,7 @@ async def _probe_erp_or_503(provider) -> None:
     """
     try:
         result = await asyncio.wait_for(provider.health(), timeout=_PROVIDER_PROBE_TIMEOUT)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         raise HTTPException(
             503,
             {
@@ -43,7 +43,7 @@ async def _probe_erp_or_503(provider) -> None:
                     "Check /readyz/capabilities for capability status."
                 ),
             },
-        )
+        ) from None
     except HTTPException:
         raise
     except Exception as exc:

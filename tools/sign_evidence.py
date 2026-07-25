@@ -6,6 +6,7 @@ sign_evidence.py — توقيع evidence.json (Build Attestation — اختيا�
 (نفس بنية JWT_PRIVATE_KEY). اختياري — الـhash (sha256) يكفي للحماية الأساسيّة؛
 التوقيع يُثبت المصدر (لـCI الإنتاجي). يحتاج cryptography + مفتاح خاصّ.
 """
+
 import sys
 from pathlib import Path
 
@@ -18,8 +19,10 @@ def main():
         print("✗ build/evidence.json غير موجود — شغّل make report أوّلاً")
         return 1
     if not KEY.exists():
-        print(f"⚠ {KEY} غير موجود — التوقيع اختياري. الـhash (sha256) كافٍ "
-              "للحماية الأساسيّة. لتوليد مفتاح: scripts_v9/generate_jwt_keys.sh")
+        print(
+            f"⚠ {KEY} غير موجود — التوقيع اختياري. الـhash (sha256) كافٍ "
+            "للحماية الأساسيّة. لتوليد مفتاح: scripts_v9/generate_jwt_keys.sh"
+        )
         return 0
     try:
         from cryptography.hazmat.primitives import hashes, serialization

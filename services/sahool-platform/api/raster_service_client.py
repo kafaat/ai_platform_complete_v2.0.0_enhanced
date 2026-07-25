@@ -14,6 +14,7 @@ raster's JSON detail or a 502 service-unavailable envelope.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from typing import Any
 
 # NOTE: fastapi is imported lazily inside the functions that raise/catch HTTPException.
@@ -214,6 +215,72 @@ async def get_available_dates(
         params=params,
         timeout_s=15.0,
     )
+
+
+def timeseries_point_to_vegetation_row(
+    point: Mapping[str, Any],
+    *,
+    field_id: str,
+) -> dict[str, Any]:
+    """Map a raster-service ``/timeseries`` point to the canonical vegetation row.
+
+    The historical-season composer and the agronomic replay both expect the legacy
+    ``ndvi_timeseries`` column shape (``id`` / ``acquisition_date`` / ``ndvi_mean`` /
+    ``cloud_pct`` / ...). We translate the canonical raster-service point
+    (``{datetime, mean, valid_pixel_ratio, coverage_ratio, cloud_pct}``) into that
+    shape without inventing anything: ``cloud_pct`` stays ``None`` when the layer
+    predates quality capture, so the composer's ``cloud_pct_required<=30`` rule drops
+    it exactly as an unqualified observation — no fabricated cloud value. The per-date
+    ``datetime`` doubles as a stable ``id`` for deterministic sort ordering.
+    """
+    acquisition_date = point.get("datetime")
+    return {
+        "id": acquisition_date,
+        "field_id": field_id,
+        "acquisition_date": acquisition_date,
+        "ndvi_mean": point.get("mean"),
+        "cloud_pct": point.get("cloud_pct"),
+        "valid_pixel_ratio": point.get("valid_pixel_ratio"),
+        "coverage_ratio": point.get("coverage_ratio"),
+        "satellite": None,
+        "source": "raster-service:/v1/fields/{id}/timeseries",
+    }
+
+
+async def get_field_timeseries(
+    field_id: str,
+    *,
+    tenant_id: str | None = None,
+    index: str = "ndvi",
+    dates: str = "",
+    timeout_s: float = 20.0,
+) -> list[dict[str, Any]]:
+    """Best-effort canonical index time-series points for a field.
+
+    Reads raster-service ``GET /v1/fields/{field_id}/timeseries`` — the single
+    canonical source for a scalar index mean over the field's available dates
+    (computed live from the field's clipped COGs; a date with no COG is dropped, never
+    fabricated). Returns the raw per-date ``points`` list, or ``[]`` on any transport /
+    HTTP failure so historical-season and replay consumers degrade to *no NDVI* exactly
+    as they did when the legacy ``ndvi_timeseries`` table was empty — this read never
+    breaks the calling path and never invents an observation.
+    """
+    params: dict[str, Any] = {"index": index}
+    if dates:
+        params["dates"] = dates
+    try:
+        data = await raster_get_json(
+            f"/v1/fields/{field_id}/timeseries",
+            tenant_id=tenant_id,
+            params=params,
+            timeout_s=timeout_s,
+        )
+    except Exception:  # noqa: BLE001 — canonical NDVI read is fail-soft (degrade to empty)
+        return []
+    points = data.get("points")
+    if not isinstance(points, list):
+        return []
+    return [p for p in points if isinstance(p, dict)]
 
 
 async def start_imagery_backfill(

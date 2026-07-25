@@ -20,6 +20,7 @@ field_intelligence_coordinator.py — مسار التنفيذ الكامل (ال
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -169,6 +170,20 @@ def normalize_signals(collected: CollectorResult) -> list[SignalInput]:
 # not_evaluated/error) ⇒ القرار **استشاريّ فقط** ولا يُوزَّع (fail-closed:
 # لا نُخلّص ما لم تمرّ عليه القواعد الحاكمة فعليّاً).
 GOVERNANCE_APPROVED_STATES = frozenset({"approved", "passed", "cleared", "ok"})
+
+_TRUTHY = {"1", "true", "yes", "on"}
+
+
+def _direct_executable_enabled() -> bool:
+    """Escape hatch (DECISION-CENTER-UNIFY-01, fail-closed default).
+
+    Default **False**: a field-intelligence policy is never ``executable`` on guardrails
+    clearance alone — execution requires a decision-center pass. Set
+    ``FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED=true`` to restore the legacy
+    guardrails-only executability. (Note: ``executable`` here is display/evidence only;
+    the real actuator path runs through decision_dispatch's human-approval tiers.)
+    """
+    return os.getenv("FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED", "").strip().lower() in _TRUTHY
 
 
 def governance_permits_dispatch(governance: dict | None) -> bool:
@@ -328,15 +343,22 @@ def run_field_intelligence(
     # بحالة موافِقة فعليّاً. غياب guardrails_fn ⇒ not_evaluated ⇒ استشاريّ فقط
     # (لا تُختلق موافقة). نُعلن سبب المنع صراحةً في القرار (للواجهة وطبقة التوزيع).
     governance_ok = governance_permits_dispatch(governance)
-    executable = bool(decision.get("actionable")) and governance_ok
+    guardrails_cleared = bool(decision.get("actionable")) and governance_ok
+    # DECISION-CENTER-UNIFY-01 (fail-closed default): guardrails clearance alone does NOT
+    # make a field-intelligence policy executable — a decision-center pass is required.
+    # FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED restores the legacy guardrails-only gate.
+    executable = guardrails_cleared and _direct_executable_enabled()
     if executable:
         dispatch_block_reason = None
     elif not decision.get("actionable"):
         dispatch_block_reason = "not_actionable"  # القرار نفسه لا يستدعي تدخّلاً
     elif str(governance.get("status", "")).strip().lower() == "error":
         dispatch_block_reason = "governance_error"
-    else:
+    elif not governance_ok:
         dispatch_block_reason = "governance_not_evaluated"
+    else:
+        # الحَوكمة أقرّت لكنّ مركز القرار لم يُصرّح بالتنفيذ — لا تجاوز للمركز.
+        dispatch_block_reason = "requires_decision_center"
     # نعكس البوّابة في القرار نفسه لئلّا يُعامَل actionable كأنّه مُخلَّص للتنفيذ.
     decision["executable"] = executable
     decision["dispatch_block_reason"] = dispatch_block_reason

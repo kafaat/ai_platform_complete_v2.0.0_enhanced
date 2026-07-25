@@ -1,0 +1,128 @@
+name: sahool-evidence-lab
+
+# Short-lived pre-production evidence only. This stack is intentionally isolated
+# from the production stack and must never be used as a production deployment.
+services:
+  evidence-postgres:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: evidence_lab
+      POSTGRES_USER: evidence_lab
+      POSTGRES_PASSWORD: evidence-only
+    ports:
+      - "127.0.0.1:${EVIDENCE_PG_PORT:-55432}:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evidence_lab -d evidence_lab"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks:
+      - evidence-internal
+
+  evidence-migrate:
+    image: postgis/postgis:16-3.4
+    profiles:
+      - migration
+    environment:
+      PGHOST: evidence-postgres
+      PGPORT: "5432"
+      PGDATABASE: evidence_lab
+      PGUSER: evidence_lab
+      PGPASSWORD: evidence-only
+      APP_DB_ROLE: sahool_app
+      APP_DB_PASSWORD: evidence-only-app
+      JOBS_DB_ROLE: sahool_jobs
+      JOBS_DB_PASSWORD: evidence-only-jobs
+      INGEST_DB_PASSWORD: evidence-only-ingest
+      ODOO_DB_ROLE: odoo_app
+      ODOO_DB_PASSWORD: evidence-only-odoo
+    command: ["bash", "/migrations/apply_in_compose.sh"]
+    volumes:
+      - ./migrations:/migrations:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      evidence-postgres:
+        condition: service_healthy
+    networks:
+      - evidence-internal
+
+  evidence-redis:
+    image: redis:7-alpine
+    environment:
+      REDIS_PASSWORD: evidence-only
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --save \"\" --appendonly no"]
+    ports:
+      - "127.0.0.1:${EVIDENCE_REDIS_PORT:-56379}:6379"
+    tmpfs:
+      - /data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" --no-auth-warning ping | grep -q PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks:
+      - evidence-internal
+
+  evidence-nats:
+    image: nats:2.10-alpine
+    command: ["--jetstream", "--store_dir=/data", "--http_port=8222"]
+    ports:
+      - "127.0.0.1:${EVIDENCE_NATS_PORT:-54222}:4222"
+      - "127.0.0.1:${EVIDENCE_NATS_MONITOR_PORT:-58222}:8222"
+    tmpfs:
+      - /data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8222/healthz >/dev/null"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+    networks:
+      - evidence-internal
+
+  evidence-minio:
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-04-22T22-12-26Z}
+    environment:
+      MINIO_ROOT_USER: evidence-lab
+      MINIO_ROOT_PASSWORD: evidence-only-password
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports:
+      - "127.0.0.1:${EVIDENCE_MINIO_PORT:-59000}:9000"
+      - "127.0.0.1:${EVIDENCE_MINIO_CONSOLE_PORT:-59001}:9001"
+    tmpfs:
+      - /data
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - evidence-internal
+
+  evidence-wiremock:
+    image: wiremock/wiremock:3.13.2
+    command: ["--global-response-templating", "--disable-gzip", "--verbose"]
+    ports:
+      - "127.0.0.1:${EVIDENCE_WIREMOCK_PORT:-58080}:8080"
+    volumes:
+      - ./tests/fixtures/evidence_lab/wiremock:/home/wiremock:ro
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - evidence-internal
+
+networks:
+  evidence-internal:
+    name: sahool-evidence-lab-internal
+    internal: true

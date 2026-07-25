@@ -1,8 +1,11 @@
 """tests_v9/test_rls_write_isolation_integration.py — عزل كتابة المستأجرين (WITH CHECK).
 
 يتحقّق من إصلاح المراجعة الأمنيّة #3 (v9 + v70) على قاعدة حقيقيّة: سياسة tenant_isolation
-صارت بـWITH CHECK، فتمنع INSERT/UPDATE عابر المستأجرين تحت سياق مستأجِر، وتُبقي كتابة
-النظام (بلا سياق) كما كانت — يُقرأ عبر دور غير ممتاز (NOBYPASSRLS) كي يُطبَّق RLS فعليّاً.
+بـWITH CHECK تمنع INSERT/UPDATE عابر المستأجرين تحت سياق مستأجِر. ويتحقّق أيضًا من
+تشديد v206 (حزمة 72 ساعة، DB-P0-06): الكتابة **بلا سياق مستأجِر تفشل** (fail-closed) —
+هروب IS NULL القديم أُغلق لأنّ الهجرات تعمل بدور المالك superuser (تتجاوز RLS) ومهامّ
+النظام بدور BYPASSRLS (sahool_jobs)، فلا كاتب شرعيّ يحتاجه. يُقرأ عبر دور غير ممتاز
+(NOBYPASSRLS) كي يُطبَّق RLS فعليًّا.
 
 يعمل عبر ``pytest -m integration`` فقط (يتطلّب Postgres)؛ يتخطّى بوضوح إن لم تتوفّر القاعدة.
 """
@@ -96,7 +99,7 @@ async def test_cross_tenant_insert_blocked(conn):
 
 
 async def test_cross_tenant_update_blocked(conn):
-    """تحت سياق A، UPDATE ينقل صفّاً إلى tenant_id=B يُرفَض (WITH CHECK)."""
+    """تحت سياق A، UPDATE ينقل صفًّا إلى tenant_id=B يُرفَض (WITH CHECK)."""
     c, ctx = conn
     fid = f"fld_{uuid.uuid4().hex[:12]}"
     ctx["field_ids"].append(fid)
@@ -115,16 +118,23 @@ async def test_cross_tenant_update_blocked(conn):
         await c.execute("RESET ROLE")
 
 
-async def test_no_context_write_allowed(conn):
-    """بلا سياق مستأجِر (مهامّ نظام/هجرات) تُسمح الكتابة كما كانت — لا كسر."""
+async def test_no_context_write_blocked_fail_closed(conn):
+    """بلا سياق مستأجِر تفشل الكتابة (v206 fail-closed) — هروب IS NULL القديم أُغلق.
+
+    كان الاختبار يؤكّد السلوك القديم («كتابة النظام بلا سياق تمرّ») — وهو الثغرة
+    نفسها (DB-P0-06): دور runtime نسيَ set_config كان يكتب صفًّا لمستأجرٍ آخر.
+    الهجرات تعمل بدور المالك superuser (تتجاوز RLS كلّيًّا) ومهامّ النظام بدور
+    BYPASSRLS (sahool_jobs) — فلا كاتب شرعيّ يحتاج هروب «بلا سياق».
+    """
     c, ctx = conn
     fid = f"fld_{uuid.uuid4().hex[:12]}"
     ctx["field_ids"].append(fid)
     try:
         await c.execute(f"SET ROLE {_RLS_ROLE}")
         await c.execute("SELECT set_config('app.current_tenant', '', false)")  # بلا سياق
-        await _insert_field(c, fid, ctx["tenant_a"])  # يجب أن تمرّ (فرع بلا سياق)
+        with pytest.raises(asyncpg.InsufficientPrivilegeError):
+            await _insert_field(c, fid, ctx["tenant_a"])  # يجب أن تفشل (fail-closed)
     finally:
         await c.execute("RESET ROLE")
     cnt = await c.fetchval("SELECT count(*) FROM fields WHERE field_id = $1", fid)
-    assert cnt == 1
+    assert cnt == 0  # لم يُكتب شيء

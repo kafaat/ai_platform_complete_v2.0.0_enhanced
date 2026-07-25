@@ -100,7 +100,10 @@ def check_rls_coverage() -> Result:
         for t in new_tenant_tables:
             checked_after += 1
             has_force = bool(re.search(r"FORCE ROW LEVEL SECURITY", sql))
-            has_cs = "current_setting" in sql
+            # سياسة العزل تُعبَّر إمّا بـcurrent_setting الخام أو بالمساعِدة الكنسيّة
+            # public.sahool_effective_tenant_id() (v122، تلفّ current_setting + fallback الإرث)
+            # التي يستعملها v206 نفسه — كلاهما تقييد مستأجِريّ صحيح؛ رفض المساعِدة positive كاذب.
+            has_cs = "current_setting" in sql or "sahool_effective_tenant_id" in sql
             if not (has_force and has_cs):
                 miss = []
                 if not has_force:

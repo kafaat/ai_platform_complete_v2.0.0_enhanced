@@ -2,15 +2,15 @@
   "checksums_file": "release/FILE_CHECKSUMS.sha256",
   "components": {
     "component_file_counts": {
-      "frontend": 628,
+      "frontend": 637,
       "grafana": 5,
-      "migrations": 217,
-      "mobile": 48,
+      "migrations": 226,
+      "mobile": 68,
       "prometheus": 2,
-      "scripts": 239,
-      "services": 1886,
-      "shared": 125,
-      "tests": 57
+      "scripts": 258,
+      "services": 1909,
+      "shared": 132,
+      "tests": 63
     }
   },
   "deployment_gates": [
@@ -19,6 +19,12 @@
     "scripts/observability/validate_observability_assets.py",
     "scripts/release/validate_release_package.py",
     "scripts/ci/validate_ci_gates.py",
+    "scripts/ci/github_actions_policy_guard.py",
+    "scripts/ci/release_attestation_guard.py",
+    "scripts/ci/secret_history_scan_guard.py",
+    "scripts/ci/github_actions_policy_guard.py",
+    "scripts/ci/frontend_reproducibility_guard.py",
+    "scripts/ci/local_test_dependency_preflight.py",
     "scripts/ci/local_quality_gate.sh",
     "scripts/ci/raster_quality_gate.sh",
     "scripts/runtime/env_doctor.py",
@@ -29,8 +35,8 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh"
   ],
-  "file_count": 4698,
-  "generated_at": "2026-07-20T15:14:02.383940+00:00",
+  "file_count": 4857,
+  "generated_at": "2026-07-24T22:27:29.201648+00:00",
   "missing_required_assets": [],
   "release_name": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16",
   "required_files": [
@@ -48,6 +54,20 @@
     "scripts/chaos/run_chaos_tests.sh",
     "scripts/recovery/recovery_smoke.sh",
     "scripts/ci/validate_ci_gates.py",
+    "scripts/ci/unified_production_readiness_gate.py",
+    "scripts/ci/container_image_pin_guard.py",
+    "scripts/ci/release_attestation_guard.py",
+    "scripts/ci/secret_history_scan_guard.py",
+    "scripts/ci/github_actions_policy_guard.py",
+    "scripts/ci/local_test_dependency_preflight.py",
+    "scripts/release/scan_release_archive.py",
+    "scripts/ci/frontend_reproducibility_guard.py",
+    "config/security_exceptions.json",
+    "scripts/release/verify_attested_artifact.sh",
+    "scripts/ci/scene_provenance_ui_guard.py",
+    "scripts/release/generate_dependency_sbom.py",
+    "scripts/qdrant/snapshot_manager.py",
+    "scripts/simulation/sim_golden.py",
     "scripts/ci/local_quality_gate.sh",
     "scripts/ci/raster_quality_gate.sh",
     "scripts/runtime/env_doctor.py",
@@ -58,9 +78,20 @@
     "shared/runtime_worker_contracts.py",
     "scripts/workers/run_phase_runtime_worker.sh",
     ".github/workflows/sahool-production-gates.yml",
+    ".github/workflows/qdrant-backup-restore-drill.yml",
+    ".github/workflows/scene-provenance-ui.yml",
+    ".github/workflows/sim-golden-certification.yml",
+    ".github/workflows/release-artifact-attestation.yml",
+    ".github/workflows/secret-history-scan.yml",
+    ".github/workflows/transitive-lock-certification.yml",
     ".github/workflows/raster-service-gates.yml",
     "RUNBOOK.md",
-    "scripts/architecture/legacy_path_audit.py"
+    "scripts/architecture/legacy_path_audit.py",
+    "scripts/architecture/build_platform_catalog.py",
+    "config/platform_catalog_overrides.yml",
+    "platform_catalog.generated.json",
+    "runtime_capability_manifest.generated.json",
+    "frontend/src/lib/platformCatalog.generated.ts"
   ],
   "required_reports": [
     "PHASE4_PRODUCTION_HARDENING_SECURITY_OBSERVABILITY_REPORT_20260626.md",
@@ -93,5 +124,5 @@
     "bash scripts/recovery/recovery_smoke.sh"
   ],
   "source_root": "ai_platform_complete_v2.0.0_enhanced",
-  "total_size_bytes": 31614448
+  "total_size_bytes": 33187826
 }

@@ -64,9 +64,7 @@ def test_erp_bridge_compose_healthcheck_uses_healthz():
     compose = COMPOSE.read_text(encoding="utf-8")
     hc_line = _erp_bridge_healthcheck_line(compose)
     assert hc_line, "لم يُعثَر على سطر healthcheck في تعريف sahool-erp-bridge"
-    assert "/healthz" in hc_line, (
-        f"healthcheck لا يستخدم /healthz: {hc_line!r}"
-    )
+    assert "/healthz" in hc_line, f"healthcheck لا يستخدم /healthz: {hc_line!r}"
     for forbidden in _FORBIDDEN_HC_PATHS:
         assert forbidden not in hc_line, (
             f"healthcheck يحتوي مساراً محظوراً ({forbidden!r}): {hc_line!r}"
@@ -106,9 +104,7 @@ def test_healthz_contains_no_external_io():
     body = _healthz_function_source(src)
     assert body, "لم يُعثَر على دالة healthz في الراوتر"
     for forbidden in _FORBIDDEN_HEALTHZ_CALLS:
-        assert forbidden not in body, (
-            f"/healthz تستدعي {forbidden!r} — انتهاك نقاء مسار الحياة"
-        )
+        assert forbidden not in body, f"/healthz تستدعي {forbidden!r} — انتهاك نقاء مسار الحياة"
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -172,6 +168,5 @@ def test_guard_negative_proof_detects_forbidden_healthcheck_path():
     # ويجب أن يحتوي على مسار محظور
     has_forbidden = any(f in hc_line for f in _FORBIDDEN_HC_PATHS)
     assert has_forbidden, (
-        "الدالة المساعِدة لم ترصد المسار المحظور في النصّ المزيَّف — "
-        "الحارس الرئيسيّ قد يكون فارغاً"
+        "الدالة المساعِدة لم ترصد المسار المحظور في النصّ المزيَّف — الحارس الرئيسيّ قد يكون فارغاً"
     )

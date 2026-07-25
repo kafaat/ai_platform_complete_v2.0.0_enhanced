@@ -148,6 +148,7 @@ async def test_preview_writes_nothing(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_submit_creates_pending_approval_only(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     _patch_gdd(monkeypatch)
     _authoritative_record(monkeypatch)
     out = await crop_decision_candidate_endpoint(req=_req(submit=True), user=_USER)
@@ -159,6 +160,7 @@ async def test_submit_creates_pending_approval_only(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_decision_service_failure_no_fake_success(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     from fastapi import HTTPException
 
     _patch_gdd(monkeypatch)
@@ -185,6 +187,7 @@ async def test_evidence_ids_lossless_through_endpoint(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_preview_and_submit_lineage_identical(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     _patch_gdd(monkeypatch)
     _authoritative_record(monkeypatch)
     pv = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
@@ -205,6 +208,7 @@ async def test_changing_gdd_snapshot_changes_candidate_lineage(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_missing_gdd_lineage_fails_closed(monkeypatch):
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
     from fastapi import HTTPException
 
     # canonical product without a lineage id ⇒ builder refuses ⇒ endpoint 422 (no candidate).
@@ -220,3 +224,72 @@ async def test_degraded_gdd_quality_preserved(monkeypatch):
     out = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
     assert out["candidate"]["evidence"]["gdd_series_quality_status"] == "degraded"
     assert "missing_days_present" in out["candidate"]["limitations"]
+
+
+@pytest.mark.asyncio
+async def test_candidate_declares_spectral_trust_basis(monkeypatch):
+    """DECISION-CENTER-UNIFY-01: the candidate evidence declares its spectral trust basis.
+
+    In the unit path the server-authoritative spectral read is off (default), so the
+    provenance is honestly ``client`` and NOT flagged unverified (no attempt was made) —
+    the reviewer/policy at decision-service can read this from the candidate evidence.
+    """
+    _patch_gdd(monkeypatch)
+    out = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
+    prov = out["candidate"]["evidence"]["spectral_provenance"]
+    assert prov["source"] == "client"
+    assert prov["unverified"] is False
+    # not flagged as unverified ⇒ no spectral limitation injected (no fabricated warning).
+    assert "client_supplied_spectral_unverified" not in out["candidate"]["limitations"]
+
+
+def test_unverified_spectral_flag_flows_into_lineage():
+    """Pure builder: client-supplied-unverified spectral ⇒ a limitation that flows into
+    candidate lineage (an unverified candidate is distinct from a server-authoritative one)."""
+    import api.crop_decision_bridge as b
+
+    ci = {
+        "field_id": "f-1",
+        "season_id": "s-1",
+        "recommendation_context": {
+            "decision_boundary": {
+                "is_decision": False,
+                "consumer": "decision-service",
+                "approval_required": True,
+            }
+        },
+    }
+    gdd = {
+        "accumulated_gdd": 100.0,
+        "gdd_lineage_id": "gddseq/x",
+        "contributing_state_ids": ["s0"],
+    }
+    verified = b.build_crop_decision_candidate(
+        ci, gdd_product=gdd, spectral_provenance={"source": "raster-service", "unverified": False}
+    )
+    unverified = b.build_crop_decision_candidate(
+        ci, gdd_product=gdd, spectral_provenance={"source": "client", "unverified": True}
+    )
+    assert "client_supplied_spectral_unverified" in unverified["limitations"]
+    assert "client_supplied_spectral_unverified" not in verified["limitations"]
+    # provenance is lineage-affecting (via the limitation) — distinct trust bases, distinct id.
+    assert verified["candidate_lineage_id"] != unverified["candidate_lineage_id"]
+    assert unverified["evidence"]["spectral_provenance"] == {
+        "source": "client",
+        "unverified": True,
+    }
+
+
+@pytest.mark.asyncio
+async def test_submit_rejected_by_default_fail_closed(monkeypatch):
+    """DECISION-CENTER-UNIFY-01: submit=True is refused (403) unless the escape flag is set."""
+    from fastapi import HTTPException
+
+    _patch_gdd(monkeypatch)
+    monkeypatch.delenv("CROP_TWIN_DIRECT_DECISION_ENABLED", raising=False)
+    with pytest.raises(HTTPException) as ei:
+        await crop_decision_candidate_endpoint(req=_req(submit=True), user=_USER)
+    assert ei.value.status_code == 403
+    # preview still works with the flag off.
+    out = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
+    assert out["approval_state"] == "preview" and out["submitted"] is False

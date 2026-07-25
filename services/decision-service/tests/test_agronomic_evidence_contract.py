@@ -40,6 +40,15 @@ def test_strict_decision_rejects_missing_lineage(monkeypatch):
         assert key in detail["missing"]
 
 
+def test_production_rejects_missing_lineage_even_without_explicit_flag(monkeypatch):
+    monkeypatch.delenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", raising=False)
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.delenv("DECISION_SERVICE_SOR_ENABLED", raising=False)
+    response = client.post("/v1/decisions/record", headers=TENANT, json={"field_id": "f1"})
+    assert response.status_code == 422
+    assert response.json()["detail"]["code"] == "agronomic_context_required"
+
+
 def test_snapshot_hash_contract_rejects_invalid_hash(monkeypatch):
     monkeypatch.delenv("DECISION_REQUIRE_AGRONOMIC_CONTEXT", raising=False)
     r = client.post(

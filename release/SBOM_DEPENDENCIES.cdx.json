@@ -1,0 +1,1217 @@
+{
+  "bomFormat": "CycloneDX",
+  "components": [
+    {
+      "bom-ref": "urn:uuid:d2a869016a281d30edefa9b963a7da6d",
+      "name": "@duckdb/duckdb-wasm",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@duckdb/duckdb-wasm@1.33.1-dev57.0",
+      "type": "library",
+      "version": "1.33.1-dev57.0"
+    },
+    {
+      "bom-ref": "urn:uuid:ba11b8d7c7b7a28b38a8f2f21a9990dc",
+      "name": "@geoman-io/leaflet-geoman-free",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@geoman-io/leaflet-geoman-free@2.20.0",
+      "type": "library",
+      "version": "2.20.0"
+    },
+    {
+      "bom-ref": "urn:uuid:56fd14e51261c8fc78d1523d27bfa40e",
+      "name": "@playwright/test",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@playwright/test@1.49.0",
+      "type": "library",
+      "version": "1.49.0"
+    },
+    {
+      "bom-ref": "urn:uuid:238de600f8d304f56a9f8a3420996e40",
+      "name": "@react-leaflet/core",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@react-leaflet/core@3.0.0",
+      "type": "library",
+      "version": "3.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:24a40e7a665ae77246e3edf486e56536",
+      "name": "@tanstack/react-query",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@tanstack/react-query@5.28.0",
+      "type": "library",
+      "version": "5.28.0"
+    },
+    {
+      "bom-ref": "urn:uuid:e5d379996dcd2e8a18f3751822bc812f",
+      "name": "@testing-library/dom",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@testing-library/dom@10.4.1",
+      "type": "library",
+      "version": "10.4.1"
+    },
+    {
+      "bom-ref": "urn:uuid:8c6ccefff260936a6190b312c8d57c25",
+      "name": "@testing-library/jest-dom",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@testing-library/jest-dom@6.9.1",
+      "type": "library",
+      "version": "6.9.1"
+    },
+    {
+      "bom-ref": "urn:uuid:a9709066241749df6b960e45b2bd6086",
+      "name": "@testing-library/react",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@testing-library/react@16.3.2",
+      "type": "library",
+      "version": "16.3.2"
+    },
+    {
+      "bom-ref": "urn:uuid:9195b4348171bdcf11be4fbbe81668d3",
+      "name": "@turf/area",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/area@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:a4971e6fbbc9a793ef72fa8ea92c5979",
+      "name": "@turf/buffer",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/buffer@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:0c62907eef384ad79751ff3cc7109678",
+      "name": "@turf/difference",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/difference@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:030d0dded00d0c04a2a7bcc0154e3676",
+      "name": "@turf/helpers",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/helpers@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:dacd1fbddc9366118bedf9b38391d5de",
+      "name": "@turf/intersect",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/intersect@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:a4485ab14715707f506ab53ae7d5a023",
+      "name": "@turf/length",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/length@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:b2fe040c244ab50367b6c614a4861c0b",
+      "name": "@turf/simplify",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/simplify@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:2a50038819d369917c8160e607ab27f9",
+      "name": "@turf/union",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@turf/union@6.5.0",
+      "type": "library",
+      "version": "6.5.0"
+    },
+    {
+      "bom-ref": "urn:uuid:1f1b0575e78c95e6c7f469beaf0e750c",
+      "name": "@types/leaflet",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@types/leaflet@1.9.12",
+      "type": "library",
+      "version": "1.9.12"
+    },
+    {
+      "bom-ref": "urn:uuid:8161db1196ff6385e38610705ef3c261",
+      "name": "@types/leaflet-draw",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@types/leaflet-draw@0.4.6",
+      "type": "library",
+      "version": "0.4.6"
+    },
+    {
+      "bom-ref": "urn:uuid:1e7e1d4eea37ebeb7a57fd46d93bb276",
+      "name": "@types/react",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@types/react@19.0.0",
+      "type": "library",
+      "version": "19.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:f7edd7ff5e3c41dfb9296ca709a8a48b",
+      "name": "@types/react-dom",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@types/react-dom@19.0.0",
+      "type": "library",
+      "version": "19.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:b0aec6549e7d2f325be8a24474470a88",
+      "name": "@types/react-window",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@types/react-window@1.8.8",
+      "type": "library",
+      "version": "1.8.8"
+    },
+    {
+      "bom-ref": "urn:uuid:2b6f3dea44ae28303f2c5dd68dc8cee9",
+      "name": "@types/shpjs",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@types/shpjs@3.4.7",
+      "type": "library",
+      "version": "3.4.7"
+    },
+    {
+      "bom-ref": "urn:uuid:0465dd4777516154fe3ce17980cb6dd3",
+      "name": "@vitejs/plugin-react",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/@vitejs/plugin-react@6.0.2",
+      "type": "library",
+      "version": "6.0.2"
+    },
+    {
+      "bom-ref": "urn:uuid:47857f881aa4b92ae7aa0ba27a7d86d6",
+      "name": "autoprefixer",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/autoprefixer@10.4.19",
+      "type": "library",
+      "version": "10.4.19"
+    },
+    {
+      "bom-ref": "urn:uuid:039c1b8193500e3e95eaa0e90f5a5a4d",
+      "name": "axios",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/axios@1.18.0",
+      "type": "library",
+      "version": "1.18.0"
+    },
+    {
+      "bom-ref": "urn:uuid:50bd0ed4e295af23e53a3cf166643edc",
+      "name": "cmdk",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/cmdk@1.1.1",
+      "type": "library",
+      "version": "1.1.1"
+    },
+    {
+      "bom-ref": "urn:uuid:b84d7e1150e235ee2415140d4883f5c1",
+      "name": "framer-motion",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/framer-motion@11.1.7",
+      "type": "library",
+      "version": "11.1.7"
+    },
+    {
+      "bom-ref": "urn:uuid:c61974fbf4badff15bd35f321be4825d",
+      "name": "jsdom",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/jsdom@25.0.1",
+      "type": "library",
+      "version": "25.0.1"
+    },
+    {
+      "bom-ref": "urn:uuid:9fbc7ef1f24149e85d354a3fa101fbd2",
+      "name": "leaflet",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/leaflet@1.9.4",
+      "type": "library",
+      "version": "1.9.4"
+    },
+    {
+      "bom-ref": "urn:uuid:9b8d5447c56dc88149e87c54475afeee",
+      "name": "leaflet-draw",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/leaflet-draw@1.0.4",
+      "type": "library",
+      "version": "1.0.4"
+    },
+    {
+      "bom-ref": "urn:uuid:4c408564a504b034f9f1c7df4eeccf82",
+      "name": "lucide-react",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/lucide-react@0.400.0",
+      "type": "library",
+      "version": "0.400.0"
+    },
+    {
+      "bom-ref": "urn:uuid:f0335bcbb70ffd0fcdf79583ea061da8",
+      "name": "maplibre-gl",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/maplibre-gl@5.24.0",
+      "type": "library",
+      "version": "5.24.0"
+    },
+    {
+      "bom-ref": "urn:uuid:120206388b6c49a0b53658de837bfaab",
+      "name": "postcss",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/postcss@8.4.38",
+      "type": "library",
+      "version": "8.4.38"
+    },
+    {
+      "bom-ref": "urn:uuid:a174a73993e72d7dbd730b7cf39adda2",
+      "name": "prettier",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/prettier@3.2.5",
+      "type": "library",
+      "version": "3.2.5"
+    },
+    {
+      "bom-ref": "urn:uuid:dc3c4a3d1cbef13a8ce795c8c3968fa6",
+      "name": "react",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/react@19.0.0",
+      "type": "library",
+      "version": "19.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:1f9a57c5b9e2270202d9bccf341f1a92",
+      "name": "react-dom",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/react-dom@19.0.0",
+      "type": "library",
+      "version": "19.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:eae1ccb6f0f9d650fde4f9a446fb9748",
+      "name": "react-leaflet",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/react-leaflet@5.0.0",
+      "type": "library",
+      "version": "5.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:ce1fe72dc3e33ac45f9b15674150f542",
+      "name": "react-router-dom",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/react-router-dom@6.23.0",
+      "type": "library",
+      "version": "6.23.0"
+    },
+    {
+      "bom-ref": "urn:uuid:03199d62ae34a1eec6e116ac0971c767",
+      "name": "react-window",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/react-window@1.8.11",
+      "type": "library",
+      "version": "1.8.11"
+    },
+    {
+      "bom-ref": "urn:uuid:8f87e63e4806b3c70454d12a898035dd",
+      "name": "recharts",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/recharts@2.12.3",
+      "type": "library",
+      "version": "2.12.3"
+    },
+    {
+      "bom-ref": "urn:uuid:dcfe0e933c08cf5b63550e4a79c26492",
+      "name": "shpjs",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/shpjs@6.2.0",
+      "type": "library",
+      "version": "6.2.0"
+    },
+    {
+      "bom-ref": "urn:uuid:102d1c17c647e8f9795554d8f7dfa07e",
+      "name": "tailwindcss",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/tailwindcss@3.4.3",
+      "type": "library",
+      "version": "3.4.3"
+    },
+    {
+      "bom-ref": "urn:uuid:eee41e0f9ca70143767e8a6b4f4f3979",
+      "name": "terra-draw",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/terra-draw@1.31.2",
+      "type": "library",
+      "version": "1.31.2"
+    },
+    {
+      "bom-ref": "urn:uuid:f0dcd16fdd3f5f1666da6713c7aded88",
+      "name": "terra-draw-maplibre-gl-adapter",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/terra-draw-maplibre-gl-adapter@1.4.1",
+      "type": "library",
+      "version": "1.4.1"
+    },
+    {
+      "bom-ref": "urn:uuid:c368c64d67e845301db7ef166dfee8e3",
+      "name": "typescript",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/typescript@5.4.5",
+      "type": "library",
+      "version": "5.4.5"
+    },
+    {
+      "bom-ref": "urn:uuid:4607b3de152ae67b08bb9ea52d14604e",
+      "name": "vite",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/vite@8.0.16",
+      "type": "library",
+      "version": "8.0.16"
+    },
+    {
+      "bom-ref": "urn:uuid:602553c34b424a22968d9b27b97f0025",
+      "name": "vitest",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/vitest@4.1.9",
+      "type": "library",
+      "version": "4.1.9"
+    },
+    {
+      "bom-ref": "urn:uuid:b7808827cbd779d6bed26d77395db77c",
+      "name": "zustand",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "frontend/package.json"
+        }
+      ],
+      "purl": "pkg:npm/zustand@5.0.0",
+      "type": "library",
+      "version": "5.0.0"
+    },
+    {
+      "bom-ref": "urn:uuid:7272696b21f2f31c523e4bc626ca7502",
+      "name": "aiogram",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "bots/telegram/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/aiogram@3.28.2",
+      "type": "library",
+      "version": "3.28.2"
+    },
+    {
+      "bom-ref": "urn:uuid:2d4c15791e423f866c4a71811ee67c3e",
+      "name": "asyncpg",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/decision-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/field-management-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/scout-ingest-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/asyncpg@0.30.0",
+      "type": "library",
+      "version": "0.30.0"
+    },
+    {
+      "bom-ref": "urn:uuid:c8feca19ac4b28af207f45ca6a8c2573",
+      "name": "defusedxml",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/defusedxml@0.7.1",
+      "type": "library",
+      "version": "0.7.1"
+    },
+    {
+      "bom-ref": "urn:uuid:b527541ec73169ae5dcb7838c8b8e612",
+      "name": "fastapi",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/decision-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/fastapi@0.115.6",
+      "type": "library",
+      "version": "0.115.6"
+    },
+    {
+      "bom-ref": "urn:uuid:55b62796adf8b6c259cee82bb079a9ad",
+      "name": "fastapi",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "agents/notification/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "requirements-dev.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "requirements_real.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/actuator-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/agriai-engine/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/ai_agronomist/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/auth/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/edge-inference/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/field-management-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/field-segmentation/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/guardrails-engine/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/indicators-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/knowledge-graph/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/local-ai-rag/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/mcp_servers/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/odoo-bridge/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/rag-retrieval/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sam2-inference/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/scout-ingest-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/soil-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/supervisor-agent/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/tts-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/vegetation-analysis-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/video-processor/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/weather-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/fastapi@0.136.3",
+      "type": "library",
+      "version": "0.136.3"
+    },
+    {
+      "bom-ref": "urn:uuid:b2a00f6e0afd968ae087319fcbc546dc",
+      "name": "httpx",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/field-segmentation/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sam2-inference/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/httpx@0.27.0",
+      "type": "library",
+      "version": "0.27.0"
+    },
+    {
+      "bom-ref": "urn:uuid:380125794279f61c4dfb673d8db84ecd",
+      "name": "httpx",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/ai_agronomist/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/decision-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/indicators-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/weather-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/httpx@0.28.1",
+      "type": "library",
+      "version": "0.28.1"
+    },
+    {
+      "bom-ref": "urn:uuid:2b3f6fefae6576f6a17a9f8ae2d65cc3",
+      "name": "langchain-community",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/local-ai-rag/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/langchain-community@0.4.2",
+      "type": "library",
+      "version": "0.4.2"
+    },
+    {
+      "bom-ref": "urn:uuid:fb90658d437556702351b0bb6a0e651a",
+      "name": "langchain-ollama",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/local-ai-rag/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/langchain-ollama@1.1.0",
+      "type": "library",
+      "version": "1.1.0"
+    },
+    {
+      "bom-ref": "urn:uuid:0c5d27afc8cbceaec7aebed0eb3c9a14",
+      "name": "langchain-qdrant",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/local-ai-rag/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/langchain-qdrant@1.1.0",
+      "type": "library",
+      "version": "1.1.0"
+    },
+    {
+      "bom-ref": "urn:uuid:b2e4516bf735455b4c72c7fca219a145",
+      "name": "langchain-text-splitters",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/local-ai-rag/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/langchain-text-splitters@1.1.2",
+      "type": "library",
+      "version": "1.1.2"
+    },
+    {
+      "bom-ref": "urn:uuid:3d64902801d78209d1f19711678f4cb7",
+      "name": "nats-py",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/nats-py@2.10.0",
+      "type": "library",
+      "version": "2.10.0"
+    },
+    {
+      "bom-ref": "urn:uuid:4a33a10e59a6d37c6ea1f42ed0996199",
+      "name": "numpy",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sam2-inference/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/numpy@1.26.4",
+      "type": "library",
+      "version": "1.26.4"
+    },
+    {
+      "bom-ref": "urn:uuid:7c783f2c720336ecebab80693c4f983c",
+      "name": "prometheus-client",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/soil-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/prometheus-client@0.20.0",
+      "type": "library",
+      "version": "0.20.0"
+    },
+    {
+      "bom-ref": "urn:uuid:ae676b52337df8c5d440d548f93739cc",
+      "name": "pydantic",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/decision-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic@2.10.4",
+      "type": "library",
+      "version": "2.10.4"
+    },
+    {
+      "bom-ref": "urn:uuid:ac8bc4e7a1fbf2fb1f292951cc797ac6",
+      "name": "pydantic",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "bots/telegram/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "requirements-dev.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "requirements_real.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/actuator-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/agriai-engine/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/ai_agronomist/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/edge-inference/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/field-segmentation/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/guardrails-engine/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/knowledge-graph/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/local-ai-rag/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/mcp_servers/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/odoo-bridge/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/rag-retrieval/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/raster-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sam2-inference/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/scout-ingest-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/soil-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/supervisor-agent/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/tts-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/vegetation-analysis-service/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/video-processor/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/weather-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pydantic@2.13.4",
+      "type": "library",
+      "version": "2.13.4"
+    },
+    {
+      "bom-ref": "urn:uuid:a906c10b633c365faefb8306b67e929d",
+      "name": "pyjwt",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyjwt@2.13.0",
+      "type": "library",
+      "version": "2.13.0"
+    },
+    {
+      "bom-ref": "urn:uuid:68595d37b60b42e622ef9a0a0b33faf8",
+      "name": "pyotp",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyotp@2.9.0",
+      "type": "library",
+      "version": "2.9.0"
+    },
+    {
+      "bom-ref": "urn:uuid:313436370543ccade86392b2cb07fa80",
+      "name": "pyshp",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyshp@2.3.1",
+      "type": "library",
+      "version": "2.3.1"
+    },
+    {
+      "bom-ref": "urn:uuid:f5b3b4f7cc9418b1803a1d458301b5b3",
+      "name": "python-multipart",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/python-multipart@0.0.31",
+      "type": "library",
+      "version": "0.0.31"
+    },
+    {
+      "bom-ref": "urn:uuid:1760e2a7244596178f763b486ba10d3d",
+      "name": "pyyaml",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/pyyaml@6.0.2",
+      "type": "library",
+      "version": "6.0.2"
+    },
+    {
+      "bom-ref": "urn:uuid:dcd3629e9eced3d91ea443b0f272ecb3",
+      "name": "rasterio",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sam2-inference/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/rasterio@1.3.10",
+      "type": "library",
+      "version": "1.3.10"
+    },
+    {
+      "bom-ref": "urn:uuid:6c3d0836a01900653ef60f811832b0fb",
+      "name": "redis",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/field-management-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/redis@5.2.1",
+      "type": "library",
+      "version": "5.2.1"
+    },
+    {
+      "bom-ref": "urn:uuid:c524608e4c4706a573558badf080da0e",
+      "name": "redis",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        },
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/weather-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/redis@5.3.1",
+      "type": "library",
+      "version": "5.3.1"
+    },
+    {
+      "bom-ref": "urn:uuid:9d5dde75b66fda8044bbda6d18652a52",
+      "name": "scipy",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sahool-platform/api/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/scipy@1.13.1",
+      "type": "library",
+      "version": "1.13.1"
+    },
+    {
+      "bom-ref": "urn:uuid:90e040c43011ba4a448dc7b298197ca9",
+      "name": "shapely",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/sam2-inference/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/shapely@2.0.6",
+      "type": "library",
+      "version": "2.0.6"
+    },
+    {
+      "bom-ref": "urn:uuid:98119c57c133d4a595662065f1b249e7",
+      "name": "uvicorn",
+      "properties": [
+        {
+          "name": "sahool:source-manifest",
+          "value": "services/decision-service/requirements.txt"
+        }
+      ],
+      "purl": "pkg:pypi/uvicorn@0.34.0",
+      "type": "library",
+      "version": "0.34.0"
+    }
+  ],
+  "metadata": {
+    "component": {
+      "name": "sahool",
+      "type": "application",
+      "version": "SAHOOL_PHASE12_PRODUCTION_CANDIDATE_2026.06.26-rc.16"
+    }
+  },
+  "specVersion": "1.6",
+  "version": 1
+}

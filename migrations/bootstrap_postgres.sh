@@ -201,7 +201,8 @@ echo "  ✓ sahool_ingest_resolver جاهز (يملك resolve_ingest_source؛ EX
 # أقلّ منح: SELECT+INSERT على external_submissions + EXECUTE على resolve_ingest_source.
 # NOBYPASSRLS (RLS فعّال؛ الخدمة تضبط app.current_tenant) · **لا UPDATE/DELETE** (تحديث الحالة لكاتب B1.3).
 echo "─ ٥.٢ دور خدمة الإدخال sahool_ingest (NOBYPASSRLS، SELECT+INSERT فقط) ─"
-psql_exec -v ing_pw="${INGEST_DB_PASSWORD:-sahool_ingest_pw}" <<'SQL'
+: "${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD is required; refusing known development fallback}"
+psql_exec -v ing_pw="${INGEST_DB_PASSWORD}" <<'SQL'
 SELECT format('CREATE ROLE %I LOGIN', 'sahool_ingest')
 WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'sahool_ingest')
 \gexec

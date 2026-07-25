@@ -27,7 +27,10 @@ ROOT = Path(__file__).resolve().parents[2]
 
 # Governance waiver files carrying temporary/expiry semantics. Add new files here as
 # other subsystems adopt time-boxed waivers.
-WAIVER_FILES = (ROOT / "config" / "endpoint_ui_coverage_waivers.json",)
+WAIVER_FILES = (
+    ROOT / "config" / "endpoint_ui_coverage_waivers.json",
+    ROOT / "config" / "security_exceptions.json",
+)
 
 
 def _iter_waivers(data: object):
@@ -45,6 +48,11 @@ def check_waivers(entries: list, *, today: _dt.date) -> list[str]:
         if not isinstance(w, dict):
             continue
         label = w.get("endpoint") or w.get("id") or "<unknown-waiver>"
+        if w.get("temporary") is True:
+            required_fields = ("owner", "reason", "scope") if w.get("id") else ("owner", "reason")
+            for field in required_fields:
+                if not w.get(field):
+                    problems.append(f"{label}: temporary waiver missing required field {field}")
         expiry = w.get("expiry")
         if expiry in (None, ""):
             if w.get("temporary") is True:

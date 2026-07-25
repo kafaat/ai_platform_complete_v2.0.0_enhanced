@@ -3338,22 +3338,285 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الإصلاح:** أُزيل الزومبيّان (git rm) — فصار الفضاءان منفصلَين: alembic=`NNNN_*.py` حصراً · migrations=`vNNN_*.sql` حصراً. **الحارس (جوهر الإصلاح):** `tests_v9/test_migration_id_namespace_separation_guard.py` (مُعلَّم unit، **في مسار CI** — لأنّ `tests/migrations/` خارج `testpaths=tests_v9`) — يرفض أيّ vNNN_*.sql في alembic/ + برهان سلبيّ (زومبيّ اصطناعيّ يقلبه أحمر). حارس توثيقيّ شقيق في `tests/migrations/test_phase19_*`.
 - **الحالة:** MIGRATE-ID-COLLISION → **CLOSED**. بوّابات: guard 3 passed · manifest validator 209 · ruff نظيف · bundle 4698.
 
-## 2026-07-24 — ERR-BRIDGE-001 مُغلَق + رنبوك Full-Stack Activation مُنفَّذ
+## 2026-07-21 — PR #585 (v204 field-forms): إخضار CI + مراجعة نهائيّة + 6 براهين PG16 حيّة → دُمِج
+- إخضار 3 فحوص (انجراف جرد من روتّر field_forms) بإعادة توليد الجرد+الحزمة (d7861c3، 62/62 أخضر).
+- المراجعة النهائيّة: 6 براهين §14 على PG16 حيّ بدور sahool_ingest الحقيقيّ (RLS · state-machine-on-INSERT P0-1 · REVOKE DELETE طبقتان · no_active_assignment P0-3 · invalid_sync_proof P0-2 · concurrency partial-index) — 6/6 خضراء. الـ4 P0 مُثبَتة سلوكيّاً لا نصّيّاً.
+- المالك دمج squash → main `5eded1d`؛ main CI أخضر شامل (main-only gates). درس: CI الأخضر لا يغطّي RLS/role — live PG proof قبل الدمج (انضباط ثابت).
 
-**ERR-BRIDGE-001 — سبب الجذر والإصلاح:**
-- السبب: `erp_runtime._run_migrations()` أصدرت `CREATE TABLE IF NOT EXISTS odoo_sync_state` بدور `sahool_app` (بلا `CREATE` على `public`) → `InsufficientPrivilegeError` → lifespan ينهار → uvicorn لا يبدأ → healthcheck log فارغ → حاوية unhealthy → 33+ خدمة تابعة تنهار.
-- الإصلاح: (أ) `migrations/v9_odoo_bridge.sql` يُنشئ الجداول بـsahool_user. (ب) `_run_migrations()` no-op. (ج) ثلاثة مستويات صحّة: `/healthz` خالص · `/readyz` DB فقط · `/readyz/capabilities` HTTP 200 دائماً. (د) fail-closed في `/sync`: 424 مزوّد غير مُهيّأ · 503 probe 5s. (هـ) 10 اختبارات وحدة حارسة.
-- التزامات main: f1109df3 · dd8e4653 · 651b995c · 361c530d.
+## 2026-07-21 — PR #587 (ERP-BRIDGE-FIX-01): تصليب RLS في جسر Odoo لمعيار v204 → دُمِج
+- **التغيير:** داخل حلقة `migrations/v9_odoo_bridge.sql` المُمْنَعة (`CONTINUE WHEN to_regclass(tbl) IS NULL` + `CONTINUE WHEN NOT EXISTS(... tenant_id)`): رُفِعت كلّ جداول الجسر ذات `tenant_id` من `ENABLE` إلى `FORCE ROW LEVEL SECURITY` + سياسات `WITH CHECK ( tenant_id::TEXT = current_setting('app.current_tenant', true) )` — يُطابق معيار v204 (المالك/غير SUPERUSER يخضع للـRLS، والإدراج يُرفَض إن خالف المستأجِر).
+- **إخضار CI:** لا مسّ منطق — الأحمر كان انجراف checksum للحزمة؛ أُعيد توليد `build_release_bundle` (061ba3b) → أخضر.
+- **البرهان الحيّ (PG16):** جدول مؤهَّل (`field_cost_ledger` بـtenant_id) مملوك لدور غير-superuser، أُعيد تشغيل حلقة الهجرة الفعليّة عليه ⇒ FORCE فعّال (المالك يخضع) + WITH CHECK يرفض إدراج صفّ بمستأجِر مخالف. **مُثبَت سلوكيّاً لا نصّيّاً.**
+- **الدمج:** squash → main `6fccc32`. درس مكرَّر: CI الأخضر لا يغطّي RLS/FORCE — live PG proof قبل الدمج (انضباط ثابت).
+- **SHA:** بصمات `061ba3b` · دمج main `6fccc32`.
 
-**نتيجة staging (2026-07-24):**
-- sahool-erp-bridge: **healthy** (healthcheck: curl -f http://localhost:8126/healthz) ✅
-- /healthz → {"status":"alive","service":"erp-bridge"} ✅
-- /readyz → {"status":"ready","version":"9.1.0","database":{"reachable":true,"schema_ready":true}} ✅
-- /readyz/capabilities → HTTP 200 {"status":"reported"} ✅
+## 2026-07-21 — PR #588 (PHYSICS-AI-CALIBRATION-01): أرشفة ADR المصادَق → دُمِج (وثيقة فقط)
+- **التغيير:** `docs/architecture/ADR_PHYSICS_AI_CALIBRATION_01.md` (44 سطراً) — حكم المالك المصادَق المؤرشَف (تصحيح تحريريّ دقيقة→دقيق؛ صناديق build_unlock تبقى حرفيّة غير مؤشَّرة، لا backlog). وثيقة صرفة، لا منطق، لا هجرة، لا حاجة براهين PG.
+- **إخضار CI:** `validate_release_package.py` متساهل مع الملفّات غير المُدرَجة (مرّ عند 4715 وADR حاضر لكن خارج `FILE_CHECKSUMS.sha256`)؛ شغّلتُ `build_release_bundle.py` فأُضيف ADR → **4716 بصمة مُتحقَّقة** (تغيّر `FILE_CHECKSUMS.sha256` + المانيفست حصراً).
+- **البرهان:** جميع الـ58 فحص CI خضراء على الطرف `15535d0` (Security Scan آخر بوّابة، pip-audit ~6 دقائق، أخضر 15:41). تحقّقتُ من CI الفعليّ قبل الدمج (لا افتراض).
+- **الدمج:** squash → main `04862e6`.
+- **SHA:** بصمات `15535d0` · دمج main `04862e6`.
 
-**رنبوك Full-Stack Activation — النتائج:**
-- §0-§2: Stack مرفوع كاملاً. 3 خدمات غير صحيّة متوقَّعة: telegram-bot (بلا توكن)، water-ledger-worker (heartbeat_stale)، scout-ingest-projection (Restarting — مُعطَّل بتصميم، يخرج 0 فيُعاد تشغيله).
-- §3 (integration، TEST_DATABASE_URL=sahool_user): 131 passed، 21 failed (كلّها 401 لاختبارات HTTP تحتاج session حيّة، أو RLS bypass guard لاختبارات تُشغّل FastAPI بـsuperuser).
-- §4 (MCP): sentinel-hub-mcp 3 أدوات صالحة. read_indicator_observation على حقل بلا COG → raster-service يُعيد HTTP 424 ✅.
-- §5 (SEASON-EDGE-LIVE-PROOF): مُغلَقة 2026-07-20 (401/200/409 ✅).
-- §6: agriai-engine {"status":"alive"} ✅. rs-workspace-bff {"status":"ok"} port 8185 ✅. كلاهما محجوب بـnginx.
+## 2026-07-21 — axios 1.17→1.18 (أمنيّ): #586 مرفوض (لغم رجعيّ) → #589 نظيف مدموج
+- **الطلب:** "اخضر ادمج" على PR #586 (Dependabot: axios bump). لكنّه لم يكن جاهزاً.
+- **اكتشاف اللغم:** #586 قاعدتُه الفرع البائد المدموج `claude/code-review-34hO3` (لا main). عند إعادة استهدافه إلى main تبيّن أنّ رأسه يحمل **نسخة أقدم** من ملفّات جسر ERP (`health.py`/`sync.py`/`v9_odoo_bridge.sql`) — دمجه كان **سيدهس عمل #587**. أُثبِت ببصمات فعليّة (main `3a96d624`/`8ce8c9be` مقابل رأس #586 `3d9675c4`/`86b3daa8`). لم يُدمَج. **درس: تحقّق من قاعدة PR + فرقه الفعليّ قبل الثقة بـ«أخضر».**
+- **الحلّ النظيف (#589):** أعدتُ تطبيق ترقية axios **معزولةً** على فرع من main (ملفّان فقط: package.json + package-lock.json). CI الأوّل أحمر: 3 بوّابات checksum (`Lint & Format`/`release-package`/`pytest-contracts`) لأنّ ملفّي frontend مُتتبَّعان في `FILE_CHECKSUMS.sha256` (ضريبة التسجيل). أعدتُ توليد الحزمة (4716 بصمة) → **الـ58 فحص أخضر على `76999c4`**.
+- **الدمج:** squash → main `e3ff38f`. أُغلِق #586 كمُستبدَل. القيمة: تصلّب رؤوس إعادة التوجيه عبر الأصول + رفض روابط مشوَّهة (axios #10892/#11000).
+- **SHA:** axios `76999c4` (رأس أخضر) · دمج main `e3ff38f`.
+
+## 2026-07-21 — PR #590 (field-forms API integration tests P1): إخضار معماريّ → دُمِج
+- **الغاية:** اختبارات field-forms API حيّة عبر TestClient.
+- **العطب المعماريّ:** إضافة fastapi إلى `requirements-test.txt` المشترك أيقظت ~15 اختباراً خامداً (`importorskip("fastapi")` مُعلَّمة `unit`) تبني `api.main` كاملاً ⇒ فشل في البيئة الدنيا (مسارات فارغة/PIL/superuser-RLS). main أخضر لأنّها كانت تُتخطّى (لا fastapi).
+- **الحلّ (الخيار أ المُنقّح — المالك + وكيله):** (١) `requirements-test.txt` أُعيد مطابقاً لmain ⇒ الخامدة تنام. (٢) `requirements-field-forms.txt` (fastapi فقط) + **خطوة CI معزولة** في وظيفة Unit Tests بعد بوّابة التغطية تشغّل ٣ ملفّات صراحةً بالمسار (36 اختباراً) — تغطية حقيقيّة بلا أثر جانبيّ. رقعة `ci.yml` دفعتُها أنا (توكن المالك بلا صلاحيّة workflows).
+- **عطب خفيّ أصلحتُه (لم يكن في الرزمة):** `test_field_forms_sync_binding_p02` كان يفشل عند تشغيل الثلاثة **معاً** (لا منفردة): `test_field_forms_api_integration` يضبط `FIELD_FORMS_SYNC_HMAC_KEY="it-secret"` أوّلاً، فـ`setdefault` لا يتجاوزه، لكنّ التوكن كان يُصدَر بسرّ مُثبَّت مخالف ⇒ فشل معتمِد على الترتيب. جعلتُ الإصدار يقرأ نفس مفتاح البيئة ⇒ مستقلّ عن الترتيب (36/36 معاً). درس: «41/41 محليّاً» كان تشغيلاً منفصلاً؛ التشغيل المُجمَّع كشف العطب.
+- **البصمات:** 4718. الـ58 فحص أخضر فعليّاً على `8f5634e` (الخطوة المعزولة: 36 passed مؤكَّد من السجلّ).
+- **SHA:** رأس أخضر `8f5634e` · دمج main `35a4ae0`.
+
+## 2026-07-21 — PR #591 (ADR-0035 relocation): نقل حكم PHYSICS-AI-CALIBRATION-01 لموقعه الاتّفاقيّ → دُمِج
+- **التغيير:** نقل الحكم المصادَق من `docs/architecture/ADR_PHYSICS_AI_CALIBRATION_01.md` (أُرشف #588) إلى `docs/adr/ADR-0035-physics-ai-calibration.md` (الترقيم المتسلسل بعد ADR-0034) + فهرسته في `docs/adr/README.md` + حذف القديم. وثيقة صرفة.
+- **الفرع كان متأخّرًا** (قاعدته `14da286` قبل #590) و**بصماته لم تُحدَّث** — دمجتُ main الحاليّ فيه + أعدتُ توليد الحزمة (نقل: -architecture +adr، صافي 0 → 4718).
+- **تحقّق الصدق:** قارنتُ النصّ حرفيًّا بالأصل — لا تغيير تحريريّ؛ فرق وحيد: بادئة `ADR-0035:` في العنوان + ملاحظة provenance تنصّ صراحة أنّ النصّ بلا تغيير. الضوابط التسعة وbuild_unlock كما اعتُمدت.
+- **الدمج:** squash → main `ccf262e`. الـ58 فحص أخضر فعليًّا على `90b871e`.
+- **SHA:** رأس أخضر `90b871e` · دمج main `ccf262e`.
+
+## 2026-07-21 — PR #592 (field-forms Slice 2 compose BFF): توصيل + تصليب حارس → دُمِج
+- **المصدر:** ملفّ compose «مُصحَّح» رفعه المالك — دلتا ٨ أسطر إضافيّة (توصيل نشر BFF لقناة النماذج الميدانيّة §8.6): platform (`SCOUT_INGEST_URL` + `FIELD_FORMS_SERVICE_TOKEN`) · scout-ingest (`FIELD_FORMS_ENABLED` + `FIELD_FORMS_SERVICE_TOKEN`).
+- **CI كشف فجوتين لم يغطّهما ملفّ compose وحده** (main أخضر لأنّ الوصل جديد):
+  1. **`compose_env_contract_gate` (Repository Structural Lint):** كلّ `${VAR}` في compose يجب أن يُعلَن في `.env.example` — أُضيفت الثلاثة.
+  2. **`test_scout_ingest_service_ownership` (Unit) — حارس هشّ:** كان يقسم على أوّل ظهور لنصّ `sahool-scout-ingest:`، فخطف `SCOUT_INGEST_URL=http://sahool-scout-ingest:8000` (في كتلة المنصّة، مُعرَّفة أوّلاً) موضعَ الكتلة ⇒ التقط env المنصّة لا scout-ingest. أُرسِي على سطر التعريف `\n  sahool-scout-ingest:\n` (الحارس ما زال يتحقّق من دور sahool_ingest المقيَّد؛ فقط يحدّد الكتلة بمتانة).
+- **البصمات:** 4718. الـ58+ فحص أخضر فعليّاً على `891783d` (Unit ✅ · Repository Structural Lint ✅ · Security Scan ✅). درس: ملفّ compose «مُصحَّح» من الخارج قد يفتح عقودًا أخرى (env-example + حُرّاس تُحلّل compose) — تحقّق من CI الفعليّ لا مجرّد صحّة YAML.
+- **SHA:** رأس أخضر `891783d` · دمج main `19235b1`.
+
+## 2026-07-22 — PR #593 (field-forms Slice 2: mobile UI + BFF proxy + guards): تشخيص جذرَين → دُمِج
+- **المصدر:** الفرع الأساسيّ غير المدموج `claude/field-forms-01-slice2` (شقيق #592 الذي كان compose-only). صولح مع main المدموج أوّلاً (دُمِج `caface2` + استُعيد `docker-compose.v9.yml` مطابقًا بايت-ببايت) ⇒ الفرق صار **الميزة فقط** (23 ملفًّا: 17 Flutter + service_proxy.py BFF + حارسان + بصمات).
+- **CI كشف أربع بوّابات حمراء على الرأس القديم `fe4636b` — جذران متمايزان:**
+  1. **drift + Lint & Format + Repository Structural Lint:** مسار BFF الجديد في `service_proxy.py` أُضيف بلا إعادة توليد جرد الخدمات + الحزمة، + ملفّ اختبار غير مُنسَّق. أُصلِح في `edbeff8` (جرد: 32 خدمة/1082 مسار · ruff-format · bundle 4737).
+  2. **Platform Unit Tests — ليست drift إطلاقًا (السجلّ الفعليّ حسم):** فشلان بالضبط في حارس P0 `test_p0_platform_route_ownership_guard`: (أ) `test_every_platform_route_has_explicit_target_owner` — مسار `proxy_field_forms` غير مُسجَّل في `platform_extraction_map.json`؛ (ب) `test_platform_route_budget_does_not_grow` — عدّاد مسارات المنصّة نما 614→615. أُصلِح في `c4e0f68`: سُجِّل المسار `route_key = api/routers/service_proxy.py::GET,POST /api/field-forms/{path:path}::proxy_field_forms` بـ`target_owner: scout-ingest-service` (نمط `proxy_soil→soil-service`) + رُفِع `baseline_route_count` 614→615 + أُعيد بناء الحزمة. اختبار p2_6 غير متأثّر (يعدّ ديكوريتر الطريقة الواحدة فقط، لا `api_route`).
+- **درس:** «Platform Unit Tests أحمر» ليس بالضرورة drift — اسحب سجلّ الوظيفة الفعليّ قبل الحدس. الحدس الأوّليّ كان drift؛ السجلّ كشف حارسَي ملكيّة مسار مختلفَين تمامًا. أيّ مسار BFF جديد على المنصّة يستلزم قيدًا في خريطة الاستخراج + رفع الميزانيّة بوعي.
+- **البصمات:** 4737. **كلّ 61 فحص أخضر/مُتخطّى فعليًّا على `c4e0f68`** (Lint & Format ✅ · Platform Unit Tests ✅ ×2 · Repository Structural Lint ✅ · drift ✅ · Unit/Security/Integration/Flutter/Frontend Typecheck+E2E/Validate Compose/release-package/production-validation-gate/كلّ حُرّاس العقد ✅).
+- **الدمج:** squash → main `5fb4166`. أُغلِق GAP-FIELD-FORMS-01 Slice 2 (UI + BFF) بالكامل.
+- **SHA:** رأس أخضر `c4e0f68` · دمج main `5fb4166`.
+
+## 2026-07-22 — PR #595 (compose: sahool-redis-state لعزل حالة الأمان): تصليب Part A → دُمِج
+- **المصدر:** ملفّ `dockercompose.v9.hardened.yml` رفعه المالك. حلّلتُه كجزأين متمايزَي الأمان.
+- **Part A (طُبِّق):** خدمة `sahool-redis-state` مستقلّة (`redis:7-alpine`، `--maxmemory-policy noeviction --appendonly yes`، حجم `redis-state-data`، محميّة بـ`REDIS_PASSWORD` القائم، `no-new-privileges`, mem_limit 384m، healthcheck). أُعيد توجيه `REDIS_URL` لخدمتَي **platform** و**edge (8097)** فقط نحوها؛ باقي الخدمات تبقى على كاش Redis. السبب: مفاتيح الأمان (denylist/reset/MFA/lockout) كانت تتشارك الكاش الذي طرده قد يمحوها صامتة. **بلا متغيّر بيئة جديد.**
+- **Part B (أُجِّل بصدق):** تغيير Odoo إلى دور `odoo_app` أقلّ-امتياز — الدور **غير مُهيَّأ في أيّ bootstrap/migration**؛ و`odoo-init.sh` يصادِق به (لا يُنشئه) ⇒ تطبيقه يكسر Odoo وقت التشغيل. يحتاج خطوة bootstrap تُنشئ `odoo_app` (CREATEDB + ملكيّة sahool_erp) أوّلًا. مُوثَّق في وصف الـPR.
+- **التحقّق:** YAML صالح (64 خدمة) · compose-env contract OK · حُرّاس compose (redis-health/odoo-db-separation/rls-bypass/env-bypass) 40 passed · `pytest -m unit` **3380 passed** · bundle **4737** · drift نظيف · **كلّ 62 فحص CI أخضر/مُتخطّى فعليًّا على `d64e786`**.
+- **تنبيه صادق (فرع أجنبيّ، ليس هذا الـPR):** المالك لصق سجلّ فشل `tests/irrigation` (v195/v196 غير مُسجَّلَين في MANIFEST) — لكنّ MANIFEST في ذلك السجلّ ينتهي بـ`v206_rls_final_hardening.sql`، بينما `origin/main` (وفرعي) ينتهي بـ`v204_field_forms.sql` **ويحوي v195 (سطر 694) + v196 (696)**. فالسجلّ من **شجرة أخرى** (فرع رقّم حتى v206 وأسقط تسجيل v195/v196) لا علاقة له بـ#595 (الذي مسّ compose فقط ومرّت وظيفة Unit Tests خاصّته خضراء). يُنصَح بفحص ذلك الفرع الآخر لاحقًا.
+- **SHA:** رأس أخضر `d64e786` · دمج main `ed57004`.
+
+## 2026-07-22 — PR #596 (72h infra-hardening pack): تصليب RLS+odoo+redis → دُمِج + #594 أُغلِق
+- **المصدر:** فرع `claude/infra-hardening-72h` (الوكيل المحلّي بدأه). صُولح بالكامل: rebase على main (`d7de40e`) + تصليب compose + إصلاح v206.
+- **v206_rls_final_hardening.sql** (migration جديدة، آخر مدخل، خطوة runner 211): fail-closed للكتابة بلا `app.current_tenant` + تأكيد catalog (ENABLE+FORCE+WITH CHECK). **علّتان أُصلِحتا بالتتابع (كلاهما «الحيّ يفحص التنفيذ»):**
+  1. الحلقة طابقت سياسات `tenant_isolation` على جداول **بلا عمود tenant_id** (عزل أبويّ: `field_lifecycle_transitions ← field_lifecycle.tenant_id` عبر `lifecycle_id`) فأعادت كتابة WITH CHECK إلى `(tenant_id = …)` ⇒ `column "tenant_id" does not exist`. الحلّ: `IF NOT FOUND THEN CONTINUE` بعد بحث العمود (متّسق مع تأكيد catalog). **مُتحقَّق حيًّا على PG16** (تخطّي صحيح + تشديد صحيح + 0 أخطاء).
+  2. **عقد أمنيّ قائم انكسر:** `test_no_context_write_allowed` (على main) يؤكّد أنّ الكتابة بلا سياق مسموحة على جداول tenant، وv206 يزيل هذا المهرب عمدًا. **الحسم (قرار المالك، Option A):** أُعيدت تسمية الاختبار إلى `test_no_context_write_blocked_fail_closed` يؤكّد الرفض — متّسق مع عقد fail-closed القائم (fii v192 + external_submissions v197 يفرضان الرفض أصلًا؛ الهجرات=sahool_user superuser والوظائف=sahool_jobs BYPASSRLS تتجاوز RLS، فلا كاتب مقيَّد شرعيّ يحتاج المهرب). المبرّر: الثغرة نفسها (دور runtime نسيَ set_config يكتب لمستأجر آخر).
+- **odoo دور مقيَّد:** `USER: ${ODOO_DB_ROLE:-odoo_app}` + `depends_on: sahool-migrate` — `odoo_app` يُنشئه `apply_in_compose.sh` (LOGIN NOBYPASSRLS CREATEDB + REVOKE CONNECT من PUBLIC). `.env.example` يُعلن المتغيّرين.
+- **redis-state أمنيّ:** #595 (المدموج) يضع **auth + guardrails** على `sahool-redis-state` (تصحيح: نصّ #595 سمّاهما «platform+edge» خطأً؛ الفعليّان auth+guardrails — وهما هدف الحارس بالضبط). فالاتّحاد كان مُرضيًا سلفًا بعد الـrebase.
+- **تصحيح MANIFEST كارثيّ سابق (الوكيل المحلّي):** commit `850d2f8` استبدل MANIFEST بقائمة مُختلقة (205 مدخلًا، 197 بلا ملفّ)؛ استُعيد الحقيقيّ من main + v206 (`f241f04`/`c2edc61`).
+- **الدرس المتكرّر:** «Lint & Format» تشغّل أيضًا بوّابة checksum (`validate_release_package`) — فأيّ تعديل ملفّ مُتتبَّع بلا إعادة توليد الحزمة يُسقِط ٣ بوّابات (Lint&Format + release-package + pytest-contracts) لا واحدة.
+- **التحقّق:** كلّ **63 فحص CI أخضر/مُتخطّى فعليًّا على `77d4182`** · حارس 72h 9/9 · Integration ✅ (fail-closed) · unit 3380 · bundle 4739.
+- **الدمج:** squash → main `1152c76`. **#594 (Dependabot axios 1.18) أُغلِق** كمُكرَّر — axios 1.18 على main أصلًا عبر #589، وقاعدته كانت فرع `code-review-34hO3` البائد لا main.
+- **SHA:** رأس أخضر `77d4182` · دمج main `1152c76`.
+
+## 2026-07-23 — field-forms Slice 3 (خادميّ) #600 + تشديد MQTT #601 — مدموجان (`main` = `3f2a010`)
+- **السياق:** حزمة تسليم المالك — الشريحة الخادميّة القابلة للتحقق + تشديد Mosquitto، كلٌّ فرع/PR مستقلّ، لا دمج قبل CI أخضر على SHA الدقيق، وقف Flutter، لا ادّعاء إثبات حيّ.
+- **#600 field-forms Slice 3 (خادميّ):**
+  1. **BFF حقن الفاعل:** `services/sahool-platform/api/routers/service_proxy.py` — `proxy_field_forms` يمرّر `inject_actor=True`؛ `_filtered_headers` يجرّد أيّ `x-actor-id` من العميل ويحقن `X-Actor-Id = str(user.user_id)` من JWT المُتحقَّق (نمط `X-Tenant-Id`، §8.6/SEC-3). الهاتف لا يدّعي هويّته.
+  2. **§9.2.1 سماح تدوير device-key:** `services/scout-ingest-service/field_forms_api.py` — `_verify_sync_claims` يبقي ربط الجهاز إلزاميًّا (`if not device_id: return None`)، والتطابق مطلوب إلّا ضمن نافذة صريحة `_device_rotation_grace_ok(claims, now)` تقرأ `FIELD_FORMS_DEVICE_ROTATION_GRACE_SECONDS` (افتراضي 0 = مغلقة ⇒ `not False=True` ⇒ رفض ⇒ **سلوك مطابق بايتيًّا** للفحص القديم). فشل-مغلق على `issued_at` مفقود/غير رقميّ وعلى قيمة env غير صالحة.
+  3. **الاختبارات:** `tests_v9/test_field_forms_device_rotation_grace.py` (٤ حالات: مغلق-افتراضيًّا يرفض توكنًا حديثًا حتى «0» صريحة · نافذة موجبة تقبل داخلها/ترفض خارجها · issued_at مفقود/غير صالح ⇒ رفض) + تحديث `test_field_forms_api_static_p0.py::test_device_binding_mandatory` للشكل ذي السطرين مع الإبقاء على منع تراجع `if device_id and ...` + وصله في خطوة field-forms المعزولة بـ`ci.yml`.
+  - **التحقّق:** كلّ 64 فحص أخضر/مُتخطّى على `042f18d` (unit 3391 · field-forms 120 · ruff · bundle 4784). دمج merge-commit `fc034f6`.
+- **#601 تشديد MQTT (تهيئة مكتملة، إثبات حيّ معلّق):**
+  - `mosquitto/mosquitto.conf`: `allow_anonymous false` + `password_file /mosquitto/config/passwd`.
+  - `docker-compose.v9.yml`: entrypoint `sahool-fastbee` يولّد passwd من `MQTT_USERNAME/MQTT_PASSWORD` (chown mosquitto، chmod 0600) ثمّ يسلّم للـentrypoint الأصليّ؛ فحص الصحّة يصادِق (`-u/-P`)؛ العميلان (actuator-service/video-processor) يستلمان الاعتماد (`${VAR:?}` إلزاميّ).
+  - كود العميل: `_mqtt_auth_kwargs()` في `actuator_runtime.py` + `video-processor/main.py` (+ inline في `stream_events.py`) يمرّر `{username,password}` عند ضبط `MQTT_USERNAME`، وإلّا `{}` (مجهول متوافق للخلف).
+  - **الاختبار:** `tests_v9/test_mqtt_anonymous_off_guard.py` (مُعلَّم unit): ٣ ساكنة (broker/compose/wiring) + وظيفيّان معزولان بعمليّة فرعيّة (تصادم اسمَي حزمة `routers`/`main` بين الخدمتين يلوّث sys.modules).
+  - **حمراء شُخِّصت وأُصلِحت:** «Repository Structural Lint» ⇐ `compose_env_contract_gate`: `${MQTT_USERNAME}/${MQTT_PASSWORD}` غير مُعلَنَين في `.env.example` ⇒ أُضيفا (اسم `sahool`، كلمة فارغة).
+  - **إعادة الرصف:** بعد دمج #600 صار الفرع خلف main؛ rebase ⇒ تعارضات في `SERVICE_REGISTRY.md`/`FILE_CHECKSUMS`/manifest **فقط** (المصدر اندمج تلقائيًّا) ⇒ حُلَّت بإعادة التوليد (`--write-registry` + bundle، validate 4786). force-with-lease.
+  - **التحقّق:** كلّ 68 فحص أخضر/مُتخطّى على `48ed5ae`. دمج merge-commit `3f2a010`.
+- **الدروس:** (أ) أيّ `${VAR}` جديد في compose يستلزم إعلانًا في `.env.example` وإلّا `compose_env_contract_gate` (تحت Repository Structural Lint) يحجب. (ب) فرعان يعيدان توليد نفس ملفّات الحزمة/الجرد ⇒ الثاني يحتاج rebase+regen؛ التعارضات مولَّدة فقط لا مصدريّة ⇒ لا توقّف. (ج) استيراد وحدتَي خدمتين بنفس اسم الحزمة (`routers`/`main`) في عمليّة pytest واحدة يلوّث `sys.modules` ⇒ اعزل بعمليّة فرعيّة.
+- **معلّق بصدق (غير مُعلَن مكتملًا):** إثبات MQTT الحيّ (اتّصال مجهول يفشل + موثّق ينجح مقابل وسيط فعليّ) · شريحة Flutter (متوقّفة: ملفّات copy-as-is الأصليّة غائبة + لا بيئة Flutter/Dart لتشغيل الـ11 اختبارًا) · براهين PG16/E2E الحيّة (تُنقَل لـCI/Docker؛ Postgres المحلّي مُعلَّق) · رقعة Dependabot (منفصلة). `FIELD_FORMS_ENABLED` يبقى 0.
+- **SHA:** #600 رأس `042f18d` دمج `fc034f6` · #601 رأس `48ed5ae` دمج `3f2a010`. main النهائيّ `3f2a010` (29 مسار CI success).
+
+## 2026-07-23 — IRR-F01 دورة حياة الحجز + field-forms Slice 3 عميل Flutter #602 — مدموج (`main` = `7606901`)
+- **السياق:** المالك رفع حزمة تكامل كاملة (لقطة، أساس `3f2a010`، عنوان `IRR_F01_field_forms_integrated`) وطلب «المراجعة وتنفيذ ما هو صحيح». راجعتُ كلّ ملفّ متغيّر مقابل الأساس (لا ثقة بالتقرير)، ونفّذتُ الصحيح فقط، مع استبعاد الضجيج (`.pytest_cache`) وإعادة توليد الجرد/الحزمة بنفسي.
+- **الدلتا المُطبَّقة:**
+  - **IRR-F01 (خلفيّة):** (١) خيط التتبّع correlation/causation يُنقَل داخل **payload** (لا عقد emit_event الثابت ذي الأعمدة الثمانية)؛ حمولات الإرسال + تعويض الفشل تحملهما، والـOutboxWorker يقرأهما من `row["payload"]`. (٢) تعبئة أدلّة تقييم السعة: `capability_digest` يُحفَظ، `maximum_safe_flow_m3h`/`remaining_allocatable_flow_m3h` من `derated_capacity_m3h` الموثوق. (٣) عامل جديد `api/irrigation_reservation_lifecycle_worker.py` (Pattern A: `JOBS_DATABASE_URL` عابر المستأجرين · `set_config('app.current_tenant',...)` لكلّ مستأجر · `expire_due` المحكوم v205 · `FOR UPDATE SKIP LOCKED`) كخدمة `sahool-irrigation-reservation-lifecycle-worker` opt-in تحت بروفايل `irrigation-runtime` (default-off، مُقسّاة: read_only/cap_drop ALL/no-new-privileges) + اختباراته. (٤) `mark_dispatch_failed` يكتسب `correlation_id` اختياريًّا مع fallback على `TypeError` للتوقيع القديم.
+  - **Flutter Slice 3 (عميل — ملفّات copy-as-is التي كانت محجوبة):** `device_id_service.dart` (secure storage، `Random.secure()`، محفوظ عبر logout — `clearAuth` يحذف مفاتيح الجلسة الأربعة فقط لا `deleteAll`)، `field_forms_coordinator.dart` (Dio مشترك عبر `ApiService.dio`، download + تصريف FIFO، موصول عند بدء المصادقة/التخلّص/فتح الحقل)، `X-Device-Id` على الإرسال، + اختبارات Dart + حارس ربط بايثونيّ `tests_v9/test_field_forms_mobile_runtime_wiring.py` (unit).
+  - **`.github/dependabot.yml`** لتحديثات github-actions أسبوعيّة.
+- **تصحيحاتي (الصحيح لا النسخ الأعمى):**
+  - **إرجاع تعديل `to_emit_args()`** الذي أضاف مفتاحَي correlation/causation: لا مستهلك يقرأهما (كلا المستدعيَين يقرآن بالاسم للأعمدة الثمانية) وكسرا الحارس `test_to_emit_args_matches_emit_event_contract`. أمسكته بوّابة `-m unit` الكاملة لا تشغيل الحزمة «المركّز».
+  - إعلان `IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS` في `.env.example` (وإلّا `compose_env_contract_gate` يحجب — نفس فخّ #601).
+- **قيادة CI للأخضر (3 رؤوس، كلّ حمراء ثغرة تسجيل):**
+  1. `416b9c6` ⇒ 5 حمراء.
+  2. `f3e7669`: (أ) **فكّ تجاهل** `field_forms_coordinator.dart` — قاعدة `.gitignore: data/` ابتلعت ملفّ lib شرعيًّا؛ الحارس المحلّيّ نجح (الملفّ على القرص) لكنّ CI (نسخة نظيفة) لم يجده ⇒ كسر Flutter + الحارس البايثونيّ ⇒ `git add -f`. (ب) رفع ميزانيّة وحدات المنصّة 652→653 + `modules[]` + note (حارس `test_p0_platform_module_growth_guard`). (ج) تسجيل العامل في قائمة `JOBS_DATABASE_URL` في **نسختين متوازيتين**: السكربت `scripts/security/rls_runtime_gate.py` واختباره `tests/security/test_phase12_final_production_gates.py`. (د) إعادة توليد `REPORT_INDEX.md`.
+  3. `a8a3d5a`: خطأ Flutter الوحيد `missing_required_argument` — الدلتا جعلت `deviceId` إلزاميًّا على `FieldFormsApi.submit/download` لكن **مستدعٍ قائم خارج الدلتا** (`field_form_screen.dart::FieldFormCubit.sync`) لم يُحدَّث ⇒ جلب `DeviceIdService.instance.deviceId()` وتمريره (تحقّقت grep أنّ كلّ مستدعٍ يمرّره الآن).
+- **الدروس:** (أ) `.gitignore` النمطيّ (`data/`) قد يبتلع ملفّ مصدر شرعيًّا ⇒ حارس محلّيّ يقرأ القرص يخدع؛ CI هو الحكم ⇒ `git add -f`. (ب) وحدة منصّة جديدة = عدّاد الميزانيّة + `modules[]` + قائمة `JOBS_DATABASE_URL` بنسختيها. (ج) تغيير معامل API إلى إلزاميّ ⇒ حدّث **كلّ** المستدعين بمن فيهم من خارج الدلتا؛ «Flutter Analyze & Test» في CI هو الشاهد الحقيقيّ. (د) تشغيل الحزمة «المركّز» يفوّت حُرّاس البوّابة الكاملة.
+- **التحقّق النهائيّ:** كلّ **69/69** فحص success/skipped على `a8a3d5a` (Flutter Analyze & Test · Unit/Platform/Integration/Decision · pytest-contracts · security-audit · production-validation-gate · report-index). محليًّا: `-m unit` 3400 · ري 90 · حارس الموبايل 4 · security phase12 4 · bundle 4795.
+- **معلّق بصدق (غير مُعلَن مكتملًا):** براهين PG16/PostGIS + RLS تحت الأدوار المقيَّدة · NATS/JetStream durable · سلسلة actuator claim/receipt E2E · سيناريوهات Flutter الحيّة للجهاز/offline. لا SoR ريّ مُوازٍ · `FIELD_FORMS_ENABLED=0` · العامل default-off.
+- **SHA:** رؤوس `416b9c6`→`f3e7669`→`a8a3d5a` (أخضر) · دمج merge-commit `7606901`.
+
+## 2026-07-23 — إغلاق RUFF-FORMAT-DRIFT-SHARED #603 (`main` = `b18a1c1`)
+- **السياق:** بعد سؤال المالك «ما المتبقّي من فجوات قابلة للتنفيذ» ثمّ «ابدأ بما تراه مناسبًا»، صنّفتُ سجلّ الفجوات (23 مفتوحًا) إلى قابل-للتنفيذ مقابل محجوب، وبدأتُ بأوّل بند مناسب غير مبكّر: RUFF-FORMAT-DRIFT-SHARED.
+- **العمل:** `shared/` كان خارج بوّابتَي `ruff check`/`ruff format` (`services/ bots/ agents/ tests_v9/` فقط) ⇒ 35 ملفّ تنسيق + 99 lint متراكمة على main. `ruff format shared/` + `ruff check --fix` (95/103 آليًّا) + إصلاح 8 يدويًّا (E402→`# noqa`، B007 `idx`→`_idx`، B905 `zip(...,strict=False)` محافِظ). **توسيع البوّابة:** `ci.yml` كلتا الخطوتين تشملان `shared/` الآن.
+- **الأمان:** `ruff.toml` يحمل `"**/__init__.py" = ["F401"]` ⇒ لا إعادة تصدير مُسّت (الـ`__init__` diffs سطر-فارغ فقط، الوحدات الأربع بـ`__all__` سليم 5/5/6/76). محايد سلوكيًّا.
+- **التحقّق:** 61/61 CI أخضر على `294b1fd`؛ محليًّا `-m unit` 3400 · اختبارات shared 229 · bundle 4795 · inventory نظيف.
+- **SHA:** رأس `294b1fd` · دمج `b18a1c1`. السجلّ: RUFF-FORMAT-DRIFT-SHARED ⇒ FIXED.
+
+## 2026-07-23 — HISTORICAL-SEASON-BRIDGE-01 (v207) #605 دُمِج + تحقّق مراجعة مركز القرار (`main` = `bbfbf95`)
+- **السياق:** المالك رفع حزمة `historical_season_bridge_v2` (أساس `9a218c7`) وطلب «اخضر». الأساس على main = `ccfa03b` (بعد #604 whole-tree ruff).
+- **الدلتا المطبَّقة (الصحيح فقط، بإعادة توليد inventory/registry/bundle لا الوثوق بنسخ الأرشيف):**
+  - `migrations/v207_historical_season_simulation_bridge.sql` (جديد): `season_record_links` (immutable، trigger يفرض `season_records.trust_status='accepted'`+تطابق tenant/field) + `season_simulation_runs` (append-only). **يُعلن RLS ذاتيّاً** ENABLE+FORCE+`tenant_isolation` عبر `public.sahool_effective_tenant_id()`. **مُدرَج قبل v206** في `MANIFEST.txt`+`run_migrations.sql` (v207 خطوة 212، v206 آخِراً 213) كي يبقى v206 آخِر ملفّ ويُعيد تغطية catalog RLS للجديد. `validate_migrations` (v206 آخِراً) + runner-sync 102 يمرّان.
+  - `core/historical_season_context.py` (جديد) + تعديلات `season_simulation`/`season_models`/`agronomic_replay`(+router)/`seasons` router/`decision_service_client`/`frontend/src/services/api.ts` + 3 اختبارات.
+  - `.env.example: HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED=false` (default-off؛ مرآة decision-service مغلقة حتى برهان SoR حيّ).
+- **تصحيحي المحلّيّ الوحيد (أحمر ruff/inspector):** حارس `tools/sahool_inspector.py::check_rls_coverage` false-positive على جدولَي v207 — استدلاله بحث عن السلسلة الحرفيّة `current_setting` بينما v207 (كـv206 نفسه) يستعمل المساعد القانونيّ `sahool_effective_tenant_id()` (v122). وُسِّع `has_cs` ليقبل المساعد أيضاً — **غير مُضعِف** (كلاهما مسنِد tenant صحيح؛ الحكم الرسميّ يبقى Integration Tests). أمسكه `test_no_false_positives_vs_green_ci_guards` محليّاً.
+- **تصحيح تسجيل CI (رأس `243ec93`→`428e508`):** 3 حُرّاس *Platform Unit Tests* الحمراء تعيش في `tests/test_p0_*` **لا** في `pytest -m unit` المحلّيّ (الدرس المتكرّر — «الأخضر يقيس ما تختبره»): (أ) `db_ownership.yml` ينقصه جدولا v207 ⇒ أُضيفا كـ`sahool-platform`؛ (ب) ميزانيّة الوحدات 653→654؛ (ج) `core/historical_season_context.py` غير مُبرَّر ⇒ `modules[]`+`historical_season_context_note`. + إعادة توليد `release/`.
+- **التحقّق:** محليّاً 4 حُرّاس المنصّة خضراء · `-m unit` 3400 · migration validate/runner-sync 102 · اختبارات الجسر 9 · ruff whole-tree نظيف · bundle 4800. CI: **كلّ 65 فحص success/skipped على `428e508`** (production-validation-gate · Repo Structural Lint · Platform Unit Tests · Structure Inspector · drift/contract/no-report-only-change · Security Scan) ⇒ دمج merge-commit `bbfbf95`.
+- **معلّق بصدق:** تطبيق PG16 + برهان RLS بجلستَين على جدولَي v207 · مرآة decision-service SoR default-off حتى الشهادة. لا SoR موازٍ للموسم/المحاكاة.
+- **تحقّق مستقلّ من مراجعة توصيل المحرّكات↔مركز القرار عند `9a218c7` (طلبها المالك، REQUEST CHANGES):** 4 وكلاء قراءة-كود عدائيّين مستقلّين، **الادّعاءات 11 كلّها CONFIRMED** بأدلّة `file:line`. جوهر: مرشّح القرار مبنيّ على مدخلات العميل (ET0/NDVI/تربة/طيف)، GDD وحده مجلوب خادميّاً (`routers/crop_twin.py:136`)؛ `_compose_state` لا يمرّر `weather_state` ⇒ heat/frost ميّتان + `crop_water=unavailable` (أقوى من «degraded»)؛ لا SoilProfileSnapshot/CanonicalWaterState/طيف موثَّق؛ سلطات قرار متوازية (`/decision`+`/profit-aware` تكتبان `decision_record` المنصّة authoritative، `run_field_intelligence.executable` يُفتح بـguardrails وحده دون سجلّ موافقة)؛ المركز default-off كـSoR (submit fail-closed 502). **أخطر نقطة:** البوّابة fail-closed سليمة لكنّ المسارات المتوازية تلتفّ حولها. حكمي: **أؤيّد REQUEST CHANGES — حجب الاعتماد الإنتاجيّ مبرَّر.** اقترحتُ فجوة `DECISION-CENTER-UNIFY-01` (المسار 3/4/5 قابل للتنفيذ الآن بلا migration) — بانتظار موافقة المالك.
+- **SHA:** رؤوس `243ec93`→`428e508` (أخضر) · دمج `bbfbf95`.
+
+## 2026-07-23 — تسوية تصنيفات السجل (بعد #616) + تجميد العمل الكوديّ العامّ
+- جرد عدائيّ للبنود المؤجَّلة (وكيل + تحقّق يدويّ) ⇒ **صفر قابل للإغلاق من الكود وحده** دون خرق «لا نصف حلّ»/الصدق.
+- بأمر المالك: صحّحت التصنيفات في `gaps/registry.md`: `SHARED-PACKAGE-NAME-COLLISION` OPEN→**ACCEPTED_RISK/WONTFIX** (المناعة القائمة كافية) · `DECISION-CENTER-UNIFY-01` المتبقّي وُسِم صراحةً **BLOCKED-DESIGN+RUNTIME** (عمل معماريّ غير منفَّذ، لا PG16 وحده) · قسم جديد `#CODE-CLOSABLE-DEFERRED-SWEEP` يحمل تصنيف المُحجِّبات الدقيق + تصنيف جرد المستهلكين.
+- جرد المستهلكين (أدلّة `file:line`، بلا اختراع): agriai-engine=UNCONSUMED-INTENTIONAL (internal route `/api/agriai/`، صفر مُنادٍ) · remote-sensing-workspace-bff=UNCONSUMED-INTENTIONAL (BFF مستقبليّ) · gis-workflow-service=INTERNAL/FUTURE (غير منشور compose/nginx).
+- المسار المُوصى المفتوح أوّلاً: PG16 staging (6 خطوات، يفتح P0×2). السرّ env-only.
+- موقف git: لا force-push على main المدموج؛ `%G?=N` = غياب توقيع فقط.
+
+## 2026-07-23 — فحص وظيفيّ حيّ داخل الجلسة (main=c50f629)
+- PG16.13+PostGIS أصليّ: 217 هجرة 0-خطأ، 319 جدولاً، أدوار bootstrap الأربعة، 8 براهين RLS/append-only سلوكيّة بدور sahool_app (v209/v210/v211 ضمناً).
+- منصّة API حيّة (553 مساراً) + weather-service: سموك HTTP كامل — دفتر المزارع v211 (حساب مضبوط + idempotency + CSV محيَّد) · طقس SoR v209 (PIT/supersede/409/coverage) · بوّابات #610 (preview_only + 403 submit) · عزل T2 عبر API · fail-closed صادق (weather-engine غائب 503، Open-Meteo محجوب شبكيّاً).
+- تكامليّ: 33 نجاح/153 تخطٍّ/4 بيئيّة-harness (كلّ منها صُنّف بدليل: يمرّ منفرداً أو بدور صحيح). **صفر عيوب منتج.**
+- حدّ صدق: هذا فحص جلسة، لا يستوفي مسار PG16 staging (يحتاج بيئة المالك + موافقة بشريّة)؛ يُخفّض مخاطرة خطوته 1 فقط.
+
+## 2026-07-23 — consumer-routes (بإصلاحات) + الكتالوج الموحّد U0-U2 (فرع b734e81)
+- حزمة consumer-routes: دُمجت بعد GO-WITH-FIXES (أصفار ملفَّقة HIGH + انتحال tenant بوّابة dev MED + اختباران خاملان MED + regex LOW) + v212 بدل تحوير v211.
+- الكتالوج الموحّد: U0 مثبَّت (32/982/50/14-مقيس) · U1 (erp-bridge قانونيّ؛ 182 تعارضاً زائفاً ذاب؛ كُشف جدول IF الزائف) · U2 (مُصرِّف حتميّ + 8 مخرجات + بوّابة 9 اختبارات + خطوة CI).
+- الحُرّاس كلّها نظيفة، السويت 3428، الحزمة 4832. U3–U9 شرائح قادمة.
+
+## 2026-07-23 — الكتالوج الموحّد U3+U4: تكامل حزمة U3_U4_hardened المرفوعة (فرع claude/code-review-34hO3)
+- تبنّي مُكيَّف داخل مُصرِّفنا (لا استبدال): بوّابة عقود UI مُقوّاة fail-closed (جذور+كلّ الأنماط، file:line، استبعاد .generated.، فرز حتميّ) + عقود v2 بـdispositions (consumed 29 / intentional-unconsumed agriai-engine بمُحفِّز SIM-GOLDEN-01 / standalone-job qdrant-seed+gis-workflow-service) ⇒ status.wired مدفوع بالأدلّة (القديم بقي runtime.compose_reachable).
+- U4: قرارات التكرارات 14/14 في overrides (مفردات ثابتة + سبب + expires_on للمؤقّت + facade≠owner من أعضاء المجموعة؛ STAC→raster-service، plan→agriai-engine) + حَوكمة الإعفاءات الـ50 (مالك مُشتقّ من @services/<svc>/ أو السياسة + انتهاء + تتبّع).
+- إصلاح مصدر: إزالة مدخل IF الزائف من db_ownership.yml ⇒ صفر تعارضات ملكيّة (أيّ جديد يُفشِل U3). تسجيل ملفّات الكتالوج في قائمة حزمة الإصدار.
+- تحسين على تصميم الحزمة: فحص الانتهاء زمنيّ فقط (--check --enforce-expiry في CI) لا يُضمَّن في المخرجات ⇒ حتميّة بايتيّة مستقلّة عن تاريخ اليوم.
+- مرفوض بدليل: BFF/nginx/evidence-lab أقدم من إصلاحاتنا المدموجة · تعديل v211 (لدينا v212) · مُصرِّف موازٍ + workflow منفصل · «18 تكراراً» غير مستنسَخ (المقيس 14).
+- الثوابت: 32 backend / 34 مكوّناً / 982 فريدة / 50 إعفاءً؛ بوّابة الكتالوج 12 اختباراً؛ بوّابات العقود/التغطية/الإعفاءات/consumer_contract/الجرد/الحزمة كلّها خضراء.
+
+## 2026-07-23 — دمج U0–U4 (PR #617، main=0c01642) + zip
+- قيادة CI للأخضر: دفعتان (252449a: حارس IF + evidence-lab compose + ephemeral continue-on-error؛ fa2a16f: إعادة توليد الجرد المُقنَّع خلف فشل MinIO). كلّ الـ71 فحص success/skipped ⇒ دُمج.
+- درس: فشل مبكِّر في تسلسل «Repository Structural Lint» يُخفي فشل بوّابات لاحقة — أعِد فحص التسلسل كاملاً بعد كلّ إصلاح.
+- zip مُسلَّم sahool_main_0c01642.zip (5191 ملفّاً، SHA في تعليق الأرشيف).
+
+## 2026-07-23 — الكتالوج الموحّد U5–U9 (استكمال كامل الشرائح)
+- U5 سياق مُشتقّ (tenant من /api · field/season من مُعامِلات المسار · idempotency/approval من مسح دالّة المصدر عبر ast): 453/91/10/45/8. curated=false.
+- U6 بيان TS مولَّد `frontend/src/lib/platformCatalog.generated.ts` موصول بلوحة AdminRuntimePage (مستهلك حقيقيّ) + vitest يمنع اليتم/الادّعاء.
+- U7 كلّ المخرجات (9) تحت --check --enforce-expiry في CI. U8 اختبار meta: render()==OUTPUTS. U9 كتلة certification: static_consistency_certified=true، production_certified=false دائماً.
+- تحقّق: بوّابة الكتالوج 16 · حتميّ · ruff · typecheck 0 · vitest 3/3 · الحزمة 4845.
+
+## 2026-07-23 — دمج U5–U9 (PR #618، main=75aca99) + zip
+- كلّ الـ61 فحص success/skipped على 3581b96 ⇒ دُمج. اكتملت شرائح الكتالوج U0–U9 على main.
+- zip مُسلَّم sahool_main_75aca99.zip (5193 ملفّاً).
+
+## 2026-07-23 — مراجعة GIS+AI (5 مشاريع): Track 1 مُنفَّذ + Track 2/3 صدق
+- Track 1 (MCP analyze_field_change فوق CDSE، إلهام Geeflow): مُنفَّذ (762dd61) — أداة قراءة-فقط + منطق نقيّ + 6 اختبارات.
+- Track 2/3: مقاعد الاستبدال موجودة أصلاً (kmeans_nd N-بُعد · time_series شذوذ). ML (TESSERA/TinyCD) مؤجَّل BLOCKED-SPEC+DATA — يحتاج أوزاناً/بيانات موسومة/pilot حيّ غير متوفّرة بالحاوية. لم أبنِ سقالة مُختلَقة.
+- رخص مؤكَّدة: TESSERA MIT/CC0 · AiTLAS Apache2 · SAM2 Apache2. مرفوض: GEE تجاريّ · QGIS-GPL · SAM3 غير مؤكَّد.
+
+## 2026-07-23 — DECISION-CENTER Composer: المُحلِّل الطيفيّ الخادميّ (شريحة، default-off)
+- بُعد «سلطة المدخلات» من DECISION-CENTER-UNIFY-01: _compose_state يجلب NDVI/الطيف من raster-service خادميّاً (راية COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED، default-off) ويتجاوز مدخل العميل؛ fail-soft يعلّم spectral_unverified. 4 اختبارات + boundary 403 سليمة + جرد مُعاد + حزمة 4848.
+- المتبقّي معماريّ: طقس/تربة خادميّاً · AgronomicContext ذرّيّ · إثبات SoR حيّ (PG16). submit يبقى 403.
+
+## 2026-07-24 — استرداد شريحة Composer الطيفيّة + إصلاح حدّ raster (PR #621، main `64dea36`)
+- **الجذر:** PR #620 دمج الأب الخطأ (`7b60d09` وثائقيّ بدل `73966f9` Composer) — الشريحة لم تصل main. الاسترداد: cherry-pick على main ثمّ PR #621.
+- **عطل CI حقيقيّ كُشِف:** `_resolve_server_spectral` جلب indicator-grid عبر `raster_get_json` بمسار خامّ ⇒ كسر `test_p1_raster_boundary_guard` (مراجع raster يجب أن تبقى داخل الواجهة المسموحة). الإصلاح (`82ce4cc`): توجيه الجلب عبر الدالّة القانونيّة الوحيدة `api.raster_service_client.get_indicator_grid` — نفس نمط etc_dual/field_ai_context؛ المسار والنقل يبقيان داخل الواجهة، والراوتر بلا معرفة نقطة raster. صفر مراجع raster في crop_twin بعده.
+- **ضريبة التسجيل:** تعديل crop_twin غيّر بصمته ⇒ انجراف الجرد + عدم تطابق checksum الحزمة (drift/release-package/Lint&Format/Structural Lint/pytest-contracts حمراء). أُعيد توليد الجرد + الحزمة (`16ff308`): 4848 checksum + `--check` نظيف + catalog `--check` ok.
+- **تحقّق ما بعد الدمج (نفس فحص #620 الذي كشف الخطأ):** grep على main = compose_server_authoritative_spectral_enabled×2 · _resolve_server_spectral×2 · get_indicator_grid×2 · indicator-grid خامّ×0. الشريحة فعلاً على main. zip `sahool_main_64dea36.zip` (SHA كامل في تعليق الأرشيف، الشريحة داخله ×2).
+- **درس:** بعد أيّ تعديل ملفّ مصدر، أعِد توليد الجرد + الحزمة قبل الدفع (وإلّا 5 بوّابات حمراء بلا خطأ منطقيّ). وثّق: تعديل ملفّ واحد = ضريبة تسجيل كاملة حتى لو لم يتغيّر مسار/متغيّر.
+
+## 2026-07-24 — رَنبوك PG16 Staging Activation (تنسيق فتح البيئة الحيّة)
+- أُضيف `sahool-brain/runbooks/pg16-staging-activation.md` — رَنبوك **تنسيق (hub) لا تكرار**: يرفع PG16+PostGIS، يطبّق 219 هجرة عبر sahool-migrate، يُثبت RLS بالدور المقيَّد + production_validation_gate، ثمّ يُحيل لكلّ إغلاق حيّ إلى رَنبوكه القائم بترتيب الاعتماديّة (DECISION-SoR staging→compare→cutover→promote→revoke→rollback عبر `docs/runbooks/DECISION_SERVICE_SOR_*` وأدوات decision-service الحقيقيّة · SEASON-EDGE §225 · Track1 MCP · CDSE).
+- **تنبيه صدق مُوثَّق:** compose يُثبِّت `postgis/postgis:15-3.4` (PG15) — PG16 يتطلّب تجاوز صورة عبر override غير مُتعقَّب (مذكور في §0)، لا تعديل القيمة المُتعقَّبة.
+- عقد الصدق: الأسرار عبر البيئة فقط (DSN لا في المحادثة/ملفّ مُتعقَّب) · production_certified يبقى false حتى الشهادة الحيّة · «مؤشّر ≠ إثبات» (لا ترقية verified بلا برهان curl/psql/مسبار).
+
+## 2026-07-24 — رَنبوك Full-Stack Activation (hub الفئة 2)
+- أُضيف `sahool-brain/runbooks/full-stack-activation.md` — hub رفع الـmesh الكامل (خدمات+nginx+Redis+MinIO فوق أرضيّة pg16 G1+G2)، يشغّل `-m integration`، ويملأ الفجوات الفعليّة الثلاث للفئة 2: **خطوات Track 1 MCP الحيّة** (POST `/mcp/v1/tools/call` على `sahool-sentinel-hub-mcp`، satellite:read، متوقّع ملخّص أو 424) · **الخدمات الثلاث بلا مستهلك** (agriai-engine + rs-workspace-bff في compose · gis-workflow-service غير منشور — رفع+صحّة لا مستهلك، لا ترقية verified) · إحالة #225 لـseason-record §3.
+- **قرار صدق (hub لا تكرار):** لم أبنِ رَنبوك فئة 3 — `SATELLITE_IMAGERY_RUNBOOK.md` (238 سطراً) يغطّيها بالكامل؛ أُحيل إليه + REAL_ENV_VERIFICATION + OPERATOR_DISPATCH_BACKLOG بدل التكرار.
+- حقائق مُثبَتة من compose: 67 خدمة · `sahool-nginx/redis/redis-state/minio/minio-init/platform/raster-service/sentinel-hub-mcp` · `/api/agriai/` شبكات خاصّة فقط (nginx.v9.conf:469) · gis-workflow-service صفر في compose.
+
+## 2026-07-24 — DECISION-CENTER الشريحة 1: مُجمِّع السياق الزراعيّ الخادميّ (`3c9c3c2`)
+- من تدقيق الذكاء الزراعيّ (مؤرَّض ودقيق، نقيض «كشف الآفات» الذي ثبت خطؤه). أهمّ فجوة = **P0-3: نصف «الجمع» المفقود**. الاكتشاف الدقيق: `compose_agronomic_context` في decision-service (persistence.py:4023) يُثبِّت + يُبوِّب PIT، لكنّه يستقبل payload مُركَّباً من مدخلات العميل عبر crop_twin — لا جامع خادميّ.
+- **البُنية:** `services/sahool-platform/api/agronomic_context_composer.py` — `assemble_agronomic_context(...)` نقيّ يبني payload عقد AC-1 `ContextComposeIn` من منتجات قانونيّة مقروءة خادميّاً (نمط `_resolve_server_spectral`)، بنَسَب كامل لكلّ ميزة (P0-2)، المجموعات السبع حاضرة، quality_matrix، content_digest/idempotency حتميّان.
+- **ضمانات صدق:** لا اختلاق (مصدر غائب ⇒ missing بلا قيمة) · استبعاد التسرّب المستقبليّ (available_at>cutoff) · وسم عدم التماسك الزمنيّ (P1-4) · لا كتابة (تركيب نقيّ). راية `AGRONOMIC_CONTEXT_COMPOSE_ENABLED` default-off.
+- **برهان توافق عبر-الخدمات:** أكّدت أنّ الـpayload يجتاز عقد pydantic AC-1 الحقيقيّ + `validate_composition` (بوّابة PIT) بصفر مخالفات (dev) — تركيب حقيقيّ يُغذّي المُثبِّت القائم لا موازٍ.
+- 6 اختبارات وحدة · ruff · جرد+حزمة مُعاد (4848). **المتبقّي:** الشريحة 2 (جعل `/crop-twin/decision` preview دائماً + توجيهه عبر هذا الجامع) + وصل الجالبات async بالواجهات. سُجِّل تقدّم DECISION-CENTER-UNIFY-01 (بُعد السياق الذرّيّ بدأ).
+
+## 2026-07-24 — تدقيق الذكاء الزراعيّ: تحقّق منهجيّ + إغلاقات متاحة (Slice 3 + P1-9)
+- **تحقّق (وكيل قراءة-فقط، 43 أداة):** أُكِّد P1-2/P1-4/P1-5/P1-6/P1-10/P1-13/P1-17. **كُذِّب** P1-3 (roots تفشل مُغلَقة `validated_root_policy_required` لا defaults) وجزء RAG من P1-8 (RAG يفشل 502 مُغلَقاً). جزئيّ: P1-8 (وسم `mode` موجود لكن فشل التوليد يُبتلَع بلا علَم)، P1-9 (موسوم بالحمولة لا بالسجلّ)، P1-16 (/capabilities و/readyz لا يعكسان تبعيّات اختياريّة). **الدرس يتكرّر:** عدّة «فجوات» صادقة أصلاً في الكود.
+- **بُنِي (متاح حقيقيّ، Ratchet أخضر):**
+  - **Slice 3 (P0-4) `1f168be`:** عقد ثقة مُركَّب `core/crop_intelligence/confidence.py` — يضيف `confidence_factors` (اكتمال/تدهور/هويّة محصول + سقف صدق: high غير قابلة للبلوغ حتى تُقيَّم النضارة/المعايرة، موسومة not_assessed) بجوار سلسلة `confidence` القائمة (صفر انحدار، 26/26).
+  - **P1-9 `b593ad2`:** تسجيل قدرتَي AI مشروطتين بدقّة في `core/capabilities.py` (ml_field_boundary عبر SAHOOL_FIELD_BOUNDARY_BACKEND+FTW_WEIGHTS · aquacrop_salinity عبر AQUACROP_ENABLED). **استُبعِدت بصدق** productivity_zones (حتميّة دائماً) وWOFOST (مُبوَّبة بحضور الوحدة لا env) — إدراجهما يكذب على السجلّ.
+- **متاح لكن مؤجَّل بقرار (لم يُبنَ):** P1-4 (تماسك crop_water الزمنيّ — يحتاج طوابع per-product؛ إضافة param غير موصول = سقالة) · P1-8-label · P1-13a (join /outcomes/reconciled) · P1-16 (مسبار جاهزيّة). **محجوب:** P1-2/P1-5/P1-6/P1-10/P1-13b/P1-17 (بيانات/معايرة/migration/تحويل SoR).
+
+## 2026-07-24 — P1-13a: مصالحة نتائج حقيقيّة (decision-service `b445dca`)
+- **الفجوة:** `/v1/outcomes/reconciled` كان stub يعيد أصفاراً (sample_count:0) رغم وجود جدولَي النتائج ⇒ لوحة التعلّم تكذب.
+- **البُنية:** `outcome_reconcile.reconcile_outcomes` نقيّ يضمّ `outcome_record` + `recommendation_outcomes`: اشتقاق نجاح متسامح مع الأعمدة (success منطقيّ · outcome نصّيّ · غلّة فعليّة≥متوقّعة؛ accepted وحده ≠ نتيجة ⇒ unknown). **صدق:** success_rate فوق القابل للحسم فقط · **unique_decisions يفكّ العدّ المزدوج** الذي سمّاه التدقيق · دلو unknown صريح (لا اختلاق). `read_outcomes_for_reconcile` (SELECT * tenant-scoped، season على recommendation فقط). النقطة async محميّة بـDB: بلا DATABASE_URL ⇒ ملخّص فارغ `source:unavailable` (يحفظ test_p4_6)؛ مع مخزن ⇒ ضمّ حقيقيّ؛ تعذّر مُهيّأ ⇒ 503 (لا فراغ يُخفي فشلاً).
+- 5 اختبارات نقيّة + سويت P4 (test_p4_6 ضمناً) = 16 نجحت. **P1-13b** (توحيد هويّة الكتابة) يبقى محجوباً (migration+backfill).
+- **إجماليّ الجلسة على الفرع:** Slice 1 (composer P0-3) · Slice 3 (confidence P0-4) · P1-9 (سجلّ قدرات) · P1-13a (مصالحة). كلّها Ratchet-محلّيّ أخضر.
+
+## 2026-07-24 — P1-8 + P1-16: شفافيّة صادقة (استكمال «المتاح»)
+- **P1-8-label (`797b30a`):** `ai_evidence_runtime` صار يُظهر `generation_status` (not_attempted/blocked_by_policy/attempted_failed/succeeded) بجوار `mode` — فشل التوليد لم يعد يبدو evidence-only بالتصميم. إضافيّ صرف، حارس ساكن (نمط الملفّ)، 6/6 مع v57.
+- **P1-16:** `capabilities_report` صار يحمل كتلة `dependencies` (DECISION/RASTER/WEATHER_SERVICE_URL + REDIS_URL) بحالة `configured` (env حاضر؟) + سلوك التدهور الصريح لكلٍّ — تهيئة التبعيّات الاختياريّة مرئيّة في `/api/v1/capabilities` بدل الانحدار الصامت. **صدق:** configured≠وصول حيّ (لا مسبار شبكيّ؛ /readyz يبقى بوّابة لا تُعلَّق). 6/6 + 23 اختبار قدرات.
+- **حصيلة استكمال «المتاح» من التدقيق:** P1-9 · P1-13a · P1-8-label · P1-16 — كلّها إضافيّة/صادقة Ratchet-محلّيّ أخضر. المتبقّي محجوب (P1-2/5/6/10/13b/17 + الشريحة 2 حوكمة).
+
+## 2026-07-24 — تشغيل حيّ لرَنبوك full-stack (المالك) + إصلاح MCP 500→424
+- **milestone حيّ (تقرير المالك، لا أتحقّق منه من حاويتي):** الـstack الكامل مرفوع؛ ERP-Bridge healthy (ERR-BRIDGE-001 مُغلَق)؛ **SEASON-EDGE-LIVE-PROOF #225 مُغلَق حيّاً** (401 مزوَّرة · 200 مُراجِع · 409 إعادة قبول)؛ Track1 MCP: 3 أدوات + 424 من راستر عند حقل بلا مشاهدات؛ agriai/rs-bff خلف nginx خاصّ؛ 3360 unit + 131 integration خضراء. رَنبوكاي (pg16/full-stack) صحّا عمليّاً.
+- **عطل كوديّ حقيقيّ كشفه التشغيل + أُصلِح (`?`):** خادم MCP كان يُسرّب **500** حين يعيد راستر **424** (`resp.raise_for_status()` غير مُلتقَط في `read_indicator_observation` + `analyze_field_change`). أُضيف `_relay_raster_status` يُبقي الدلالة (424⇒424 · 404⇒404 · 4xx⇒422 · 5xx⇒502) — fail-closed الصادق يصل المستدعي بدل 500 مُضلِّل. حارس ساكن (تفادي تصادم حزمة shared). يُصلح كودي أنا (Track1) أيضاً.
+- **بنود المالك المؤجَّلة (تشغيليّة/حَوكمة، ليست كوداً لي):** scout-ingest-projection حلقة restart (SCOUT_INGEST_PROJECTION_ENABLED غير مضبوط) · water-ledger-worker heartbeat_stale · telegram-bot بلا توكن · حذف الفرع/تغيير الفرع الافتراضيّ (GitHub Settings — فعل المالك).
+
+## 2026-07-24 — PR #622 مدموج: إغلاقات تدقيق الذكاء الزراعيّ + إصلاح MCP 424 (main `4358fa2`)
+- **دُمِج تحت Ratchet كامل:** 68 فحصاً success/skipped على الرأس `64223d9`، تحقّقت أنّ رأس PR = `64223d9` قبل الدمج (تفادي خطأ #620). 16 commit.
+- **المحتوى:** Slice 1 (P0-3 المُجمِّع الخادميّ) · Slice 3 (P0-4 عقد الثقة) · P1-9 (سجلّ قدرات) · P1-13a (مصالحة النتائج) · P1-8 (وسم generation_status) · P1-16 (رؤية التبعيّات) · **إصلاح MCP 424→424 لا 500** (كشفه تشغيل المالك الحيّ؛ إصلاح الجلسة الموازية محلّيّ لم يُدمَج ⇒ إصلاحي هو الذي أوصله main).
+- **قيادة للأخضر — 6 أعطال، كلّها من الشرائح:** env-drift (AQUACROP_ENABLED+SAHOOL_FTW_WEIGHTS صُنِّفا في allowlist) · **حدّ raster حقيقيّ** (P1-16 قرأ RASTER_SERVICE_URL خارج الواجهة ⇒ أُسقط raster من dependency_status) · baseline نموّ الوحدات (+2 وحدة منصّة، 658→660) · إعادة توليد route_residual + health_readiness inventory.
+- **درس:** الشرائح الجديدة تُحمِّر حُرّاساً لا يشملها التوليد المعتاد (env_compose_drift · route_residual · health_readiness · platform_module_growth) — أضِفها للتحقّق المحلّيّ قبل PR.
+- **تحقّق ما بعد الدمج (grep على main):** composer×1 · confidence×1 · reconcile×1 · MCP relay×3 — كلّها على main.
+
+## 2026-07-24 — DECISION-CENTER الشريحة 2: إغلاق حوكمة `/crop-twin/decision` (معاينة دائمة)
+- **الفجوة:** نقطتا crop-twin السيناريوهيّتان (`/crop-twin/decision` + `/decision/profit-aware`) كانتا
+  تُدِيمان قراراً منصّيّاً آمِراً موازياً خلف راية `CROP_TWIN_DIRECT_DECISION_ENABLED` — بابٌ جانبيّ
+  يخالف DECISION-CENTER-UNIFY-01 (المسار المحكوم `/decision-candidate`→decision-service يملك القرارات).
+- **الإغلاق (`crop_twin.py:453/587`):** أُزيل فرع `if crop_twin_direct_decision_enabled()` من النقطتَين
+  ⇒ `persisted=False` و`preview_only=True` **دائماً** (لا مجرّد إطفاء افتراضيّ — أُزيل الباب نفسه).
+  حُذف استيراد `persist_decision_if_enabled` (صار غير مُستخدَم). شرط سبق التأجيل (الجامع الخادميّ)
+  تحقّق بهبوط الشريحة 1 (`3c9c3c2`).
+- **صدق النطاق (لا إفراط):** بوّابة `/decision-candidate` submit=true→403 **بقيت** خلف الراية —
+  إغلاقها الحقيقيّ يحتاج وصل جامع الشريحة 1 (عمل منفصل)؛ إزالتها الآن إمّا تقتل مسار submit المحكوم
+  دائماً أو تحذف تغطيته. ضُيِّق نطاق الراية المُوثَّق (`decision_sor_mode.py:84` + `.env.example`):
+  صارت **بوّابة staging لمسار candidate فقط**، لا تمسّ النقطتَين السيناريوهيّتَين.
+- **حارس ارتداد:** اختباران جديدان يثبتان أنّ النقطتَين معاينةٌ دائمةٌ **حتى مع ضبط الراية على "1"**
+  (`test_crop_decision_endpoint.py` + `test_profit_aware_decision_endpoint.py`). 31 اختبار نقطة/مرشّح خضراء.
+- **بوّابات:** ruff (format+lint، لا استيراد ميت) · env↔compose drift=0 unclassified · حارس تفكيك الراوتر
+  أخضر · جرد الخدمات/المسارات مُعاد (تحوّل أرقام سطور فقط، لا مسار مُضاف/محذوف) · حزمة الإصدار 4857 checksum.
+
+## 2026-07-24 — PR #623 مدموج: الشريحة 2 (إغلاق حوكمة crop-twin/decision) — main `853f353`
+- **دُمِج تحت Ratchet كامل:** 64 فحصاً success/skipped على الرأس `1a529b7` (تحقّقت أنّ رأس PR=1a529b7،
+  mergeable_state=clean، قبل الدمج). تحقّق ما بعد الدمج (grep على main): النقطتان السيناريوهيّتان
+  `preview_only=True` غير مشروط (462/470، 586/593)؛ المرجع الوحيد المتبقّي للراية = بوّابة candidate (373).
+- **المتبقّي من DECISION-CENTER-UNIFY-01:** وصل جامع الشريحة 1 إلى `/decision-candidate` (يبني المرشّح من
+  منتجات خادميّة بدل مدخلات العميل) ⇒ عندها تُغلَق بوّابة submit نهائيّاً بلا راية. + وصل الجالبات async بالواجهات.
+
+## 2026-07-24 — DECISION-CENTER استكمال: نَسَب الطيف على مرشّح القرار (خطوة نحو إغلاق submit)
+- **الاكتشاف (تحقّق قبل البناء):** جامع الشريحة 1 `assemble_agronomic_context` **بلا مستهلك** (مرجع في docstring فقط).
+  إغلاق بوّابة `/decision-candidate submit→403` نهائيّاً **محجوب بنية تحتيّة**: يحتاج جالب منتجات خادميّ
+  للمجموعات السبع **بنَسَب PIT لكلّ منتج** (observed_at/available_at)؛ اليوم الطيف (`_resolve_server_spectral`)
+  وGDD فقط مقروءان خادميّاً، وواجهة raster لا تكشف available_at. بناء نصفه = تلفيق طوابع أو لقطة 5/7 غائبة
+  (نصف حلّ مرفوض). **لم أُنصّف** — سُجِّل كمحجوب BLOCKED-DESIGN+RUNTIME.
+- **البُنية (خطوة صادقة متاحة، `?`):** المرشّح كان **يُسقط** نَسَب الطيف المحسوب في `_compose_state`
+  (`spectral_provenance`/`spectral_unverified`). صار المرشّح يُصرّح بأساس ثقته الطيفيّ في حزمة الأدلّة:
+  `evidence.spectral_provenance = {source: raster-service|client, unverified}` — **مُستهلَك حقيقيّاً**
+  (`record_decision` يرسل الأدلّة كاملةً إلى decision-service، فيقرؤها المُراجِع/السياسة). عند
+  client-supplied-unverified يُضاف قيد `client_supplied_spectral_unverified` (يظهر للمُراجِع **ويدخل** نَسَب
+  المرشّح — مرشّح غير متحقَّق مُتميِّز تعمويّاً عن الخادميّ لنفس الزراعة). لا اختلاق (None ⇒ source="unknown").
+- **صدق النطاق:** هذا **لا يفتح** submit — البوّابة تبقى fail-closed حتى يكتمل الجمع الخادميّ للعقد. هذه بنية
+  الأساس لبوّابة قادمة قائمة على النَسَب في decision-service. 29 اختباراً (13 مرشّح + 2 جديدان) · ruff · جرد/حزمة مُعاد.
+- **المتبقّي (محجوب بنية/بيانات):** (1) جالب المجموعات السبع الخادميّ + كشف available_at في واجهة raster ⇒
+  استهلاك `assemble_agronomic_context` فعليّاً ⇒ إغلاق submit. (2) بوّابة submit على `spectral_provenance.source`
+  في decision-service (قرار سياسة). (3) وصل الجالبات async بالواجهات.

@@ -151,7 +151,12 @@ class ExecutionRequestPort(Protocol):
     ) -> str: ...
 
     async def mark_dispatch_failed(
-        self, conn: Any, *, execution_request_ref: str, reason: str
+        self,
+        conn: Any,
+        *,
+        execution_request_ref: str,
+        reason: str,
+        correlation_id: str | None = None,
     ) -> None: ...
 
 
@@ -169,6 +174,8 @@ async def reserve_and_request_dispatch_db(
     execution_port: ExecutionRequestPort,
     correlation_id: UUID,
     canonical_hydraulic_capability_id: str | None = None,
+    capability_digest: str | None = None,
+    telemetry_snapshot_version: str | None = None,
     idempotency_key: str | None = None,
     activation_guard: Callable[[], Awaitable[None]] | None = None,
     after_locks_acquired: Callable[[], Awaitable[None]] | None = None,
@@ -252,20 +259,30 @@ async def reserve_and_request_dispatch_db(
         requested_start,
         requested_end,
         max((r.reserved_flow_m3h for r in resources), default=Decimal("0")),
-        None,  # maximum_safe_flow_m3h — filled by the capability read at integration
+        min(
+            (r.derated_capacity_m3h for r in resources if r.derated_capacity_m3h is not None),
+            default=None,
+        ),  # maximum_safe_flow_m3h from authoritative capability resolution
         min(
             (r.derated_capacity_m3h for r in resources if r.derated_capacity_m3h is not None),
             default=None,
         ),
         peak_over_all,
-        None,  # remaining_allocatable_flow_m3h
-        None,  # bottleneck_node_id — never declared from topology here
+        max(
+            Decimal("0"),
+            min(
+                (r.derated_capacity_m3h for r in resources if r.derated_capacity_m3h is not None),
+                default=peak_over_all,
+            )
+            - peak_over_all,
+        ),
+        None,  # bottleneck_node_id remains unset unless a per-node envelope proves it
         True,
         json.dumps([]),
         json.dumps([]),
         json.dumps({}),
-        None,
-        None,
+        capability_digest,
+        telemetry_snapshot_version,
         calculation_model_version,
         correlation_id,
     )
@@ -348,6 +365,17 @@ async def compensate_dispatch_failure(
             correlation_id or rid,
             json.dumps({"reason": reason}),
         )
-    await execution_port.mark_dispatch_failed(
-        conn, execution_request_ref=execution_request_ref, reason=reason
-    )
+    try:
+        await execution_port.mark_dispatch_failed(
+            conn,
+            execution_request_ref=execution_request_ref,
+            reason=reason,
+            correlation_id=str(correlation_id) if correlation_id else None,
+        )
+    except TypeError as exc:
+        # Backward compatibility for existing ports that implement the pre-trace signature.
+        if "correlation_id" not in str(exc):
+            raise
+        await execution_port.mark_dispatch_failed(
+            conn, execution_request_ref=execution_request_ref, reason=reason
+        )

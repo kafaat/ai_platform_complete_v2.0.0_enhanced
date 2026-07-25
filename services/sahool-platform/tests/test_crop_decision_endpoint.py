@@ -13,6 +13,7 @@ from api.routers.crop_twin import (
     ComposeSoil,
     CropDecisionRequest,
     compose_crop_decision,
+    crop_decision_endpoint,
 )
 from core.canonical_schemas import UserRole, UserSchema
 
@@ -121,3 +122,12 @@ async def test_water_deficit_flag():
     )
     codes = {f["code"] for f in out["stress_flags"]}
     assert "water_deficit" in codes
+
+
+async def test_endpoint_is_permanent_preview_even_with_flag_on(monkeypatch):
+    """DECISION-CENTER-UNIFY-01 (الشريحة 2): النقطة معاينةٌ **دائمةٌ** — لا كتابة آمِرة موازية
+    حتى لو ضُبِطت الراية القديمة (أُزيل باب الكتابة المباشرة، لا مجرّد إطفاء افتراضيّ)."""
+    monkeypatch.setenv("CROP_TWIN_DIRECT_DECISION_ENABLED", "1")
+    out = await crop_decision_endpoint(req=_req(), user=_USER)
+    assert out["preview_only"] is True
+    assert out["persisted"] is False

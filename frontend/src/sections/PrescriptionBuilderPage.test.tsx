@@ -70,6 +70,7 @@ const listResult = (over: Partial<ReturnType<typeof useApiModule.useFieldPrescri
   ({ isLoading: false, isError: false, data: undefined, error: undefined, ...over }) as never;
 const mutResult = () =>
   ({ mutate: vi.fn(), isPending: false, isSuccess: false, isError: false }) as never;
+const routerFuture = { v7_startTransition: true, v7_relativeSplatPath: true } as const;
 
 function stubList(over: Partial<ReturnType<typeof useApiModule.useFieldPrescriptions>>) {
   vi.spyOn(useApiModule, 'useFieldPrescriptions').mockReturnValue(listResult(over));
@@ -84,20 +85,20 @@ beforeEach(() => {
 describe('PrescriptionBuilderPage', () => {
   it('(أ) يعرض شارة النضج alpha وإعلان أنّه يدويّ (صدق المنهج)', () => {
     stubList({ data: EMPTY });
-    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
+    render(<MemoryRouter future={routerFuture}><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText('alpha')).toBeInTheDocument();
     expect(screen.getByText(/يدويّ/)).toBeInTheDocument();
   });
 
   it('(ب) فراغ صادق: لا وصفات محفوظة ⇒ تُعرَض note_ar (لا اختراع)', () => {
     stubList({ data: EMPTY });
-    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
+    render(<MemoryRouter future={routerFuture}><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText(/لا وصفات مُخزَّنة/)).toBeInTheDocument();
   });
 
   it('(ج) معمورة: الوصفة المحفوظة تظهر مع أزرار التصدير GeoJSON/CSV', () => {
     stubList({ data: FULL });
-    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
+    render(<MemoryRouter future={routerFuture}><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText(/تصدير GeoJSON/)).toBeInTheDocument();
     expect(screen.getByText(/تصدير CSV/)).toBeInTheDocument();
     // TODO صريح لصيغ المُتحكِّمات (لا ندّعي إنتاجها).
@@ -106,13 +107,13 @@ describe('PrescriptionBuilderPage', () => {
 
   it('(د) 503: قائمة الوصفات تعرض حالة خطأ صادقة', () => {
     stubList({ isError: true, error: { response: { status: 503 } } as unknown as Error });
-    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
+    render(<MemoryRouter future={routerFuture}><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByText(/غير متاحة \(503\)/)).toBeInTheDocument();
   });
 
   it('(هـ) يعرض أداة الرسم والخريطة (لرسم المناطق يدويّاً)', () => {
     stubList({ data: EMPTY });
-    render(<MemoryRouter><PrescriptionBuilderPage /></MemoryRouter>);
+    render(<MemoryRouter future={routerFuture}><PrescriptionBuilderPage /></MemoryRouter>);
     expect(screen.getByTestId('map')).toBeInTheDocument();
     expect(screen.getByTestId('draw')).toBeInTheDocument();
   });

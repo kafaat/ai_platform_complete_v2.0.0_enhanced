@@ -84,6 +84,8 @@ services:
         condition: service_healthy
       sahool-agriai-engine:
         condition: service_healthy
+      sahool-remote-sensing-workspace-bff:
+        condition: service_healthy
     networks:
     - sahool-public
     - sahool-internal
@@ -110,6 +112,8 @@ services:
     logging: *id001
     environment:
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+      MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
       EDGE_INFERENCE_URL: http://sahool-edge:8100
       ZLMEDIA_API_URL: http://sahool-zlmediakit:80
       ZLMEDIAKIT_API_SECRET: ${ZLMEDIAKIT_API_SECRET:-}
@@ -274,6 +278,33 @@ services:
       timeout: 5s
       retries: 10
       start_period: 30s
+  sahool-redis-state:
+    # حزمة 72 ساعة (ST-P1-04/Redis): حالة أمنيّة (denylist/reset/MFA/lockout)
+    # منفصلة عن الكاش — noeviction + AOF؛ الطرد هنا كان يمحو مفاتيح أمنيّة.
+    image: redis:7-alpine
+    mem_limit: 384m
+    security_opt:
+    - no-new-privileges:true
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?REDIS_PASSWORD required}
+    command: 'redis-server --requirepass "${REDIS_PASSWORD:?REDIS_PASSWORD required}"
+      --maxmemory 256mb --maxmemory-policy noeviction --appendonly yes
+
+      '
+    volumes:
+    - redis-state-data:/data
+    networks:
+    - sahool-internal
+    healthcheck:
+      test:
+      - CMD-SHELL
+      - redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep -q PONG
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
   sahool-nats:
     image: nats:2-alpine
     mem_limit: 384m
@@ -329,6 +360,28 @@ services:
       timeout: 10s
       retries: 6
       start_period: 60s
+  sahool-minio-init:
+    image: ${MINIO_MC_IMAGE:-minio/mc:RELEASE.2025-04-16T18-13-26Z}
+    restart: "no"
+    security_opt:
+    - no-new-privileges:true
+    environment:
+      MINIO_ENDPOINT: http://sahool-minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-sahool-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?MINIO_ROOT_PASSWORD required}
+      SCOUT_INGEST_S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
+      SCOUT_INGEST_S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
+      RASTER_S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      RASTER_S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
+    entrypoint: ["/bin/sh", "/provision.sh"]
+    volumes:
+    - ./scripts/minio/provision.sh:/provision.sh:ro
+    - ./deploy/minio/policies:/policies:ro
+    depends_on:
+      sahool-minio:
+        condition: service_healthy
+    networks:
+    - sahool-internal
   sahool-qdrant:
     image: qdrant/qdrant:v1.17.1
     mem_limit: 2g
@@ -389,7 +442,7 @@ services:
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:?APP_DB_PASSWORD required}
       JOBS_DB_ROLE: ${JOBS_DB_ROLE:-sahool_jobs}
       JOBS_DB_PASSWORD: ${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}
-      INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:-sahool_ingest_pw}
+      INGEST_DB_PASSWORD: ${INGEST_DB_PASSWORD:?INGEST_DB_PASSWORD required}
     volumes:
     - ./migrations:/migrations:ro
     command:
@@ -411,7 +464,7 @@ services:
     logging: *id001
     environment:
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL required}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required — min 32 chars}
       # RS256 (غير متماثل، الموصى به): auth يوقّع بالمفتاح الخاصّ والخدمات تتحقّق بالعامّ.
       # لا بدّ أن تُعرَّض هذه هنا كي يكون مسار RS256 قابلاً للضبط على المُوقِّع نفسه — وإلّا
@@ -491,6 +544,10 @@ services:
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
       EDGE_PRODUCTION_REQUIRED: ${EDGE_PRODUCTION_REQUIRED:-false}
       SEGMENTATION_URL: ${SEGMENTATION_URL:-http://sahool-field-segmentation:8000}
+      # GAP-FIELD-FORMS-01 §8.6 (Slice 2): قناة BFF للنماذج الميدانيّة — المنصّة تحقن
+      # X-Field-Forms-Token نحو scout-ingest؛ الهاتف لا يحمل التوكن إطلاقًا. فارغ ⇒ 503 صادق.
+      SCOUT_INGEST_URL: ${SCOUT_INGEST_URL:-http://sahool-scout-ingest:8000}
+      FIELD_FORMS_SERVICE_TOKEN: ${FIELD_FORMS_SERVICE_TOKEN:-}
       RAG_RETRIEVAL_URL: ${RAG_RETRIEVAL_URL:-http://sahool-rag-retrieval:8000}
       KNOWLEDGE_GRAPH_URL: ${KNOWLEDGE_GRAPH_URL:-http://sahool-knowledge-graph:8000}
       AI_AGRONOMIST_URL: ${AI_AGRONOMIST_URL:-http://sahool-ai-agronomist:8000}
@@ -648,7 +705,7 @@ services:
     - 127.0.0.1:8097:8000
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
+      REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis-state:6379/0
       JWT_SECRET: ${JWT_SECRET}
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
       EDGE_READINESS_MODE: ${EDGE_READINESS_MODE:-partial}
@@ -802,6 +859,8 @@ services:
       # PLATFORM_API_URL is retained for other platform reads and the truth guard.
       PLATFORM_API_URL: http://sahool-platform:8000
       FIELD_SERVICE_URL: ${FIELD_SERVICE_URL:-http://sahool-field-management:8000}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
       FEATURE_SENTINEL_DB_FIELDS: "1"
       ALLOW_LEGACY_FIELD_REGISTRY: "0"
       # Fail-closed by default (production/staging): no processed observation ⇒ 424,
@@ -844,11 +903,20 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgresql://sahool_app:${APP_DB_PASSWORD:?APP_DB_PASSWORD required}@sahool-postgres:5432/sahool}
       # Service-token only — a user Bearer JWT is never accepted on this service.
       SAHOOL_AGENT_TOKEN: ${SAHOOL_AGENT_TOKEN:?SAHOOL_AGENT_TOKEN required}
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      FIELD_SERVICE_ALLOWED_CALLERS: ${FIELD_SERVICE_ALLOWED_CALLERS:-vegetation-analysis-service}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_KEY:?FIELD_SERVICE_TENANT_ASSERTION_KEY required}
+      FIELD_SERVICE_TENANT_ASSERTION_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_KEY_ID:-current}
+      FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY:-}
+      FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID: ${FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID:-previous}
+      FIELD_SERVICE_ASSERTION_REDIS_URL: redis://:${REDIS_PASSWORD:?REDIS_PASSWORD required}@sahool-redis:6379/5
     depends_on:
       sahool-postgres:
         condition: service_healthy
       sahool-migrate:
         condition: service_completed_successfully
+      sahool-redis:
+        condition: service_healthy
     networks:
     - sahool-internal
     healthcheck:
@@ -885,11 +953,15 @@ services:
       SEASON_ENTRY_ENABLED: ${SEASON_ENTRY_ENABLED:-0}
       # توكن خدمة مخصّص لقناة إدخال المواسم (القيمة مُحقَنة بيئيّاً، لا سرّ في compose — نمط READ_TOKEN).
       SEASON_ENTRY_SERVICE_TOKEN: ${SEASON_ENTRY_SERVICE_TOKEN:-}
+      # GAP-FIELD-FORMS-01 (Slice 1/2): واجهات النماذج الميدانيّة /internal/field-forms/*
+      # خلف راية مستقلّة (off ⇒ 404) وتوكن قناة مخصّص يحقنه proxy المنصّة (§8.6).
+      FIELD_FORMS_ENABLED: ${FIELD_FORMS_ENABLED:-0}
+      FIELD_FORMS_SERVICE_TOKEN: ${FIELD_FORMS_SERVICE_TOKEN:-}
       # مخزن مرفقات الدفتر (يُعيد استخدام MinIO نفسه؛ بادئة مفتاح season-logbooks/). S3_BUCKET فارغ ⇒ file:// تطويريّ.
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${SCOUT_INGEST_S3_ACCESS_KEY:?SCOUT_INGEST_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${SCOUT_INGEST_S3_SECRET_KEY:?SCOUT_INGEST_S3_SECRET_KEY required}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       # تدهور file:// مُعلَن (تطوير فقط)؛ غيابه ⇒ fail-closed (لا رفع صامت في الإنتاج).
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1000,8 +1072,8 @@ services:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1067,8 +1139,8 @@ services:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1113,8 +1185,8 @@ services:
       RASTER_UPLOAD_DIR: /data/rasters
       S3_ENDPOINT: ${S3_ENDPOINT:-http://sahool-minio:9000}
       S3_BUCKET: ${S3_BUCKET:-}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-sahool-admin}
-      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_ACCESS_KEY: ${RASTER_S3_ACCESS_KEY:?RASTER_S3_ACCESS_KEY required}
+      S3_SECRET_KEY: ${RASTER_S3_SECRET_KEY:?RASTER_S3_SECRET_KEY required}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_USE_SSL: ${S3_USE_SSL:-false}
       S3_ALLOW_FILE_FALLBACK: ${S3_ALLOW_FILE_FALLBACK:-false}
@@ -1370,6 +1442,8 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://:${REDIS_PASSWORD}@sahool-redis:6379/0
       MQTT_BROKER_URL: mqtt://sahool-fastbee:1883
+      MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
       JWT_SECRET: ${JWT_SECRET}
       # ACTUATOR-DISPATCH-CONSUMER (P0 من تدقيق المستهلكين): حلقة استهلاك طلبات التنفيذ
       # المحكومة من decision-service — default-OFF، وتخدم فقط المستأجرين المعيَّنين صراحةً.
@@ -1403,22 +1477,38 @@ services:
       retries: 6
       start_period: 30s
   sahool-fastbee:
-    image: eclipse-mosquitto:2
+    image: eclipse-mosquitto:2.0.22
     mem_limit: 128m
     security_opt:
     - no-new-privileges:true
     restart: unless-stopped
     logging: *id001
+    environment:
+      MQTT_USERNAME: ${MQTT_USERNAME:?MQTT_USERNAME required — anonymous MQTT disabled (allow_anonymous false)}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:?MQTT_PASSWORD required — anonymous MQTT disabled (allow_anonymous false)}
+    # allow_anonymous=false ⇒ نولّد passwd من env عند الإقلاع (لا سرّ في المستودع):
+    # -c يُنشئ الملفّ (idempotent عند إعادة التشغيل)، -b غير تفاعليّ؛ ثمّ نضبط الملكيّة
+    # لمستخدم mosquitto كي يقرأه بعد إسقاط الصلاحيّات، ونسلّم للـentrypoint الأصليّ.
+    entrypoint:
+    - /bin/sh
+    - -c
+    - |
+      set -e
+      mosquitto_passwd -b -c /mosquitto/config/passwd "$$MQTT_USERNAME" "$$MQTT_PASSWORD"
+      chown mosquitto:mosquitto /mosquitto/config/passwd
+      chmod 0600 /mosquitto/config/passwd
+      exec /docker-entrypoint.sh /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
     volumes:
     - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     - fastbee-data:/mosquitto/data
     networks:
     - sahool-internal
     healthcheck:
+      # المصادقة إلزاميّة الآن — يجب أن يوثّق فحص الصحّة نفسه أيضًا.
       test:
       - CMD-SHELL
-      - mosquitto_sub -h 127.0.0.1 -p 1883 -t '$$SYS/broker/version' -C 1 -W 3 >/dev/null
-        2>&1 || exit 1
+      - mosquitto_sub -h 127.0.0.1 -p 1883 -u "$$MQTT_USERNAME" -P "$$MQTT_PASSWORD" -t
+        '$$SYS/broker/version' -C 1 -W 3 >/dev/null 2>&1 || exit 1
       interval: 20s
       timeout: 5s
       retries: 6
@@ -1679,8 +1769,10 @@ services:
     - /opt/odoo-init.sh
     environment:
       HOST: sahool-postgres
-      USER: sahool_user
-      PASSWORD: ${DB_PASSWORD}
+      # دور Odoo المقيَّد (لا مالك الهجرات sahool_user): يُنشئه apply_in_compose.sh
+      # (LOGIN NOBYPASSRLS CREATEDB + سحب CONNECT من PUBLIC). لذا odoo يبدأ بعد sahool-migrate.
+      USER: ${ODOO_DB_ROLE:-odoo_app}
+      PASSWORD: ${ODOO_DB_PASSWORD:-odoo_app_pw}
       DB_NAME: ${ODOO_DB:-sahool_erp}
     volumes:
     - ./scripts/odoo-init.sh:/opt/odoo-init.sh:ro
@@ -1690,6 +1782,8 @@ services:
     depends_on:
       sahool-postgres:
         condition: service_healthy
+      sahool-migrate:
+        condition: service_completed_successfully
     networks:
     - sahool-internal
     healthcheck:
@@ -2077,6 +2171,34 @@ services:
   # by the outbox worker) to decision-service's durable inbox. DEFAULT-OFF twice over: only started
   # under the opt-in `relay` compose profile, AND no-ops internally unless
   # FEATURE_RESERVATION_DISPATCH_RELAY is on. Records DELIVERY only — never fulfillment.
+  sahool-irrigation-reservation-lifecycle-worker:
+    build: *id003
+    profiles:
+    - irrigation-runtime
+    mem_limit: 384m
+    security_opt:
+    - no-new-privileges:true
+    read_only: true
+    tmpfs:
+    - /tmp
+    cap_drop:
+    - ALL
+    restart: unless-stopped
+    logging: *id001
+    environment:
+      SAHOOL_ENV: ${SAHOOL_ENV:-production}
+      PYTHONDONTWRITEBYTECODE: "1"
+      JOBS_DATABASE_URL: ${JOBS_DATABASE_URL:-postgresql://sahool_jobs:${JOBS_DB_PASSWORD:?JOBS_DB_PASSWORD required}@sahool-postgres:5432/sahool}
+      IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS: ${IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS:-15}
+    command:
+    - python
+    - -m
+    - api.irrigation_reservation_lifecycle_worker
+    depends_on:
+      sahool-postgres:
+        condition: service_healthy
+    networks:
+    - sahool-internal
   sahool-reservation-dispatch-relay-worker:
     build: *id003
     profiles:
@@ -2312,7 +2434,7 @@ services:
     # then this image is the ONLY entry allowlisted in
     # tests_v9/test_compose_image_pinning_guard_v21.py; every other image must stay
     # pinned to an explicit non-master/latest tag.
-    image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
+    image: ${ZLMEDIAKIT_IMAGE:?ZLMEDIAKIT_IMAGE sha256 digest required}
     container_name: sahool-v9-zlmediakit-config
     restart: 'no'
     environment:
@@ -2342,7 +2464,7 @@ services:
     # CT-07 (V21 §6): see rationale on sahool-zlmediakit-config above — upstream
     # publishes no release tag; immutable pin = sha256 digest via ZLMEDIAKIT_IMAGE
     # in the release pipeline. Allowlisted in the compose image-pinning guard.
-    image: ${ZLMEDIAKIT_IMAGE:-zlmediakit/zlmediakit:master}
+    image: ${ZLMEDIAKIT_IMAGE:?ZLMEDIAKIT_IMAGE sha256 digest required}
     container_name: sahool-v9-zlmediakit
     mem_limit: 768m
     security_opt:
@@ -2383,6 +2505,7 @@ volumes:
   postgres-data: null
   raster-data: null
   redis-data: null
+  redis-state-data: null
   fastbee-data: null
   nats-js: null
   minio-data: null

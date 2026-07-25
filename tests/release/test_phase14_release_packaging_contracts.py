@@ -38,8 +38,7 @@ def test_release_checksum_validator_passes() -> None:
         [sys.executable, "scripts/release/validate_release_package.py", "--root", str(ROOT)],
         cwd=ROOT,
         text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         timeout=60,
     )
     assert result.returncode == 0, result.stdout + result.stderr

@@ -18,9 +18,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SOIL = ROOT / "services" / "soil-service"
 sys.path[:0] = [str(ROOT), str(SOIL)]
-from p6_certification import evaluate_run
+from p6_certification import evaluate_run  # noqa: E402  (import after sys.path insertion)
 
-from shared.contracts.soil.p6 import (
+from shared.contracts.soil.p6 import (  # noqa: E402
     CertificationCheck,
     CertificationEvidence,
     RuntimeCertificationRun,

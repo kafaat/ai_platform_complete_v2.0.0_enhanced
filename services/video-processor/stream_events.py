@@ -149,5 +149,9 @@ async def _default_mqtt_publish(topic: str, payload: bytes) -> None:
     parsed = urlparse(broker)
     host = parsed.hostname or "localhost"
     port = parsed.port or 1883
-    async with MQTTClient(host, port=port) as client:
+    # مصادقة MQTT: تُمرَّر إن ضُبط MQTT_USERNAME (وسيط allow_anonymous=false)؛
+    # الاتّصال المجهول يبقى متوافقًا للخلف. لا سرّ في المستودع (env حصرًا).
+    username = os.getenv("MQTT_USERNAME", "").strip()
+    auth = {"username": username, "password": os.getenv("MQTT_PASSWORD", "")} if username else {}
+    async with MQTTClient(host, port=port, **auth) as client:
         await client.publish(topic, payload, qos=1)

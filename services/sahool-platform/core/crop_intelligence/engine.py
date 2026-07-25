@@ -3,6 +3,7 @@ from __future__ import annotations
 import math
 from typing import Any
 
+from core.crop_intelligence.confidence import compose_confidence
 from core.crop_intelligence.crop_water import build_crop_water_state
 from core.crop_intelligence.models import CropIntelligenceInput
 from core.crop_intelligence.phenology import build_phenology_state
@@ -177,6 +178,12 @@ def build_crop_intelligence_state(inp: CropIntelligenceInput) -> dict[str, Any]:
         "recommendation_context": recommendation_context,
         "component_status": component_status,
         "confidence": confidence,
+        # عقد الثقة المُركَّب (P0-4): يُظهر العوامل والسقف الصادق بجوار السلسلة القائمة (توافق).
+        "confidence_factors": compose_confidence(
+            component_status,
+            crop_known=crop_known,
+            recommendation_status=recommendation_context.get("status"),
+        ),
         "evidence_ids": list(dict.fromkeys(inp.source_ids)),
         "evidence_missing": evidence_missing,
         "limitations": list(dict.fromkeys(limitations)),

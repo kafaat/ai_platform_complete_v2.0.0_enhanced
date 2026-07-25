@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """verify_evidence.py — تحقّق توقيع evidence.json (اختياري، إنتاجي)."""
+
 import sys
 from pathlib import Path
 
@@ -12,6 +13,7 @@ def main():
     sha = Path("build/evidence.json.sha256")
     if ev.exists() and sha.exists():
         import hashlib
+
         actual = hashlib.sha256(ev.read_bytes()).hexdigest()
         if actual != sha.read_text(encoding="utf-8").strip():
             print("✗ hash لا يطابق — evidence عُدّل!")
@@ -24,6 +26,7 @@ def main():
     try:
         from cryptography.hazmat.primitives import hashes, serialization
         from cryptography.hazmat.primitives.asymmetric import padding
+
         pk = serialization.load_pem_public_key(pub.read_bytes())
         pk.verify(sig.read_bytes(), ev.read_bytes(), padding.PKCS1v15(), hashes.SHA256())
         print("✓ EVIDENCE VERIFIED (توقيع صالح)")

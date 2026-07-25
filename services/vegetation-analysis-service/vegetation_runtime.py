@@ -12,6 +12,7 @@ import logging
 import math
 import os
 import re
+import uuid
 from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
@@ -29,6 +30,7 @@ from prometheus_client import (
 from vegetation_contracts import build_snapshot, derive_lai_from_ndvi, quality_gate
 
 from shared.security.cors_policy import parse_cors_origins
+from shared.security.service_tenant_assertion import create_tenant_assertion
 
 try:
     from shared.logging_config import setup_logging
@@ -69,6 +71,11 @@ VEGETATION_MIN_QUALITY = float(os.getenv("VEGETATION_MIN_QUALITY", "0.55"))
 _RASTER_REAL_INDEX = {"evi": "evi", "savi": "msavi", "ndmi": "moisture"}
 
 RASTER_SERVICE_TOKEN = os.getenv("SAHOOL_AGENT_TOKEN", "")
+FIELD_SERVICE_TENANT_ASSERTION_KEY = os.getenv("FIELD_SERVICE_TENANT_ASSERTION_KEY", "")
+FIELD_SERVICE_TENANT_ASSERTION_KEY_ID = os.getenv(
+    "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID", "current"
+)
+FIELD_SERVICE_CALLER = "vegetation-analysis-service"
 INDICATORS_SERVICE_URL = os.getenv(
     "INDICATORS_SERVICE_URL", "http://indicators-service:8000"
 ).rstrip("/")
@@ -296,10 +303,24 @@ async def _load_field_from_db(field_id: str, tenant_id: str | None = None) -> di
     headers = {
         "Accept": "application/json",
         "X-Agent-Token": RASTER_SERVICE_TOKEN,
-        "X-Service-Name": "vegetation-analysis-service",
+        "X-Service-Name": FIELD_SERVICE_CALLER,
     }
     if tenant_id:
         headers["X-Tenant-Id"] = str(tenant_id)
+        if not FIELD_SERVICE_TENANT_ASSERTION_KEY:
+            raise HTTPException(503, "field_tenant_assertion_unavailable")
+        request_id = str(uuid.uuid4())
+        path = f"/internal/fields/{field_id}"
+        headers["X-Request-Id"] = request_id
+        headers["X-Tenant-Assertion"] = create_tenant_assertion(
+            FIELD_SERVICE_TENANT_ASSERTION_KEY,
+            FIELD_SERVICE_CALLER,
+            str(tenant_id),
+            key_id=FIELD_SERVICE_TENANT_ASSERTION_KEY_ID,
+            method="GET",
+            path=path,
+            request_id=request_id,
+        )
     # Distinct failure mapping — an unavailable/auth failure must NOT be masked as a
     # missing field (that masking is the very bug this extraction fixes). Only a real
     # 404 from the owner is a genuine "not found" (⇒ None ⇒ caller's honest 404).
@@ -344,12 +365,25 @@ async def list_fields_from_platform(tenant_id: str) -> list[dict]:
     """
     if not FIELD_SERVICE_URL or not RASTER_SERVICE_TOKEN:
         raise HTTPException(503, "field catalog is not configured")
+    if not FIELD_SERVICE_TENANT_ASSERTION_KEY:
+        raise HTTPException(503, "field_tenant_assertion_unavailable")
     headers = {
         "Accept": "application/json",
         "X-Agent-Token": RASTER_SERVICE_TOKEN,
-        "X-Service-Name": "vegetation-analysis-service",
+        "X-Service-Name": FIELD_SERVICE_CALLER,
         "X-Tenant-Id": str(tenant_id),
     }
+    request_id = str(uuid.uuid4())
+    headers["X-Request-Id"] = request_id
+    headers["X-Tenant-Assertion"] = create_tenant_assertion(
+        FIELD_SERVICE_TENANT_ASSERTION_KEY,
+        FIELD_SERVICE_CALLER,
+        str(tenant_id),
+        key_id=FIELD_SERVICE_TENANT_ASSERTION_KEY_ID,
+        method="GET",
+        path="/internal/fields",
+        request_id=request_id,
+    )
     try:
         # Service-to-service enumeration against the field owner. Service-token
         # protected; tenant is our JWT-derived X-Tenant-Id header. No user Bearer JWT.

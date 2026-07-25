@@ -1,11 +1,6 @@
 # P0 DB ownership baseline. One table -> one writer owner.
 # This file is parsed by tests without external YAML dependencies.
 tables:
-  IF:
-    owner: sahool-platform
-    writers: [sahool-platform]
-    readers: []
-    source: "migrations/v58_field_boundary_quality.sql, migrations/v75_work_orders.sql, migrations/v76_crop_kc_timeseries.sql, migrations/v77_recommendations.sql"
   activities:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -365,6 +360,40 @@ tables:
     writers: [scout-ingest-service]
     readers: []
     source: "migrations/v201_season_records.sql"
+  # HISTORICAL-SEASON-BRIDGE-01 (v207): جسر append-only بين سجلّ الدفتر التاريخيّ (v201)
+  # والموسم التشغيليّ (v32). مملوك للمنصّة (يكتبه core/historical_season_context.py).
+  season_record_links:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v207_historical_season_simulation_bridge.sql"
+  season_simulation_runs:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: []
+    source: "migrations/v207_historical_season_simulation_bridge.sql"
+  # GAP-FIELD-FORMS-01 (v204): النماذج الميدانيّة الديناميكية فوق B1 — كاتب واحد scout-ingest-service
+  # (امتداد قرار SEASON-RECORD — مالك أنبوب الإدخال الخارجيّ). لا hard delete على definitions/versions.
+  field_form_definitions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_form_versions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_form_assignments:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
+  field_submissions:
+    owner: scout-ingest-service
+    writers: [scout-ingest-service]
+    readers: []
+    source: "migrations/v204_field_forms.sql"
   experiment_evaluations:
     owner: agriai-engine
     writers: [agriai-engine]
@@ -1101,6 +1130,17 @@ tables:
     writers: [erp-bridge]
     readers: [sahool-platform]
     source: "migrations/v9_odoo_bridge.sql"
+  # ERP-BRIDGE-FIX-01: جدولا مزامنة Odoo (v9_odoo_bridge.sql) — تسجيل متأخّر يغلق حارس P0.
+  odoo_sync_state:
+    owner: erp-bridge
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
+  odoo_sync_log:
+    owner: erp-bridge
+    writers: [erp-bridge]
+    readers: [sahool-platform]
+    source: "migrations/v9_odoo_bridge.sql"
   yield_records:
     owner: sahool-platform
     writers: [sahool-platform]
@@ -1770,6 +1810,26 @@ tables:
     writers: [decision-service]
     readers: []
     source: "services/decision-service/migrations/015_wx12_runtime_receipts.sql"
+  historical_weather_daily:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, decision-service, agriai-engine]
+    source: "migrations/v209_historical_weather_sor.sql"
+  erp_reconciliation_ledger:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, odoo-bridge]
+    source: "migrations/v210_erp_reconciliation_ledger.sql"
+  farm_ledger_parties:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, odoo-bridge]
+    source: "migrations/v211_simple_farm_book.sql"
+  farm_ledger_entries:
+    owner: sahool-platform
+    writers: [sahool-platform]
+    readers: [sahool-platform, odoo-bridge]
+    source: "migrations/v211_simple_farm_book.sql"
   decision_model_retraining_requests:
     owner: decision-service
     writers: [decision-service]

@@ -87,7 +87,7 @@ export default function FieldWorkspaceRouteShell() {
 
       {activeTab === 'map' && <FieldWorkspaceMapCard fieldId={fieldId} showPicker={false} />}
       {activeTab === 'season' && <FieldWorkspaceTimelinePanel fieldId={fieldId} seasonId={seasonId} />}
-      {activeTab === 'imagery' && <FieldWorkspaceImageryPanel fieldId={fieldId} />}
+      {activeTab === 'imagery' && <FieldWorkspaceImageryPanel fieldId={fieldId} seasonId={seasonId} />}
       {activeTab === 'weather' && <FieldWorkspaceWeatherPanel fieldId={fieldId} seasonId={seasonId} />}
       {activeTab === 'irrigation' && <FieldWorkspaceIrrigationPanel fieldId={fieldId} seasonId={seasonId} />}
       {activeTab === 'operations' && <FieldWorkspaceOperationsPanel fieldId={fieldId} seasonId={seasonId} />}

@@ -1,0 +1,91 @@
+{
+  "id": "4e6bcce5-7aa5-4b54-aae0-62793e47e003",
+  "name": "earth-search deterministic STAC result",
+  "request": {
+    "method": "POST",
+    "urlPath": "/earth-search/v1/search"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/geo+json"
+    },
+    "jsonBody": {
+      "type": "FeatureCollection",
+      "numberMatched": 1,
+      "numberReturned": 1,
+      "features": [
+        {
+          "type": "Feature",
+          "stac_version": "1.0.0",
+          "id": "S2B_EVIDENCE_20260720",
+          "bbox": [
+            44.19,
+            15.34,
+            44.21,
+            15.36
+          ],
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  44.19,
+                  15.34
+                ],
+                [
+                  44.21,
+                  15.34
+                ],
+                [
+                  44.21,
+                  15.36
+                ],
+                [
+                  44.19,
+                  15.36
+                ],
+                [
+                  44.19,
+                  15.34
+                ]
+              ]
+            ]
+          },
+          "properties": {
+            "datetime": "2026-07-20T07:32:11Z",
+            "eo:cloud_cover": 3.2,
+            "platform": "sentinel-2b"
+          },
+          "assets": {
+            "blue": {
+              "href": "https://fixtures.invalid/S2B/blue.tif"
+            },
+            "green": {
+              "href": "https://fixtures.invalid/S2B/green.tif"
+            },
+            "red": {
+              "href": "https://fixtures.invalid/S2B/red.tif"
+            },
+            "nir": {
+              "href": "https://fixtures.invalid/S2B/nir.tif"
+            },
+            "rededge1": {
+              "href": "https://fixtures.invalid/S2B/rededge1.tif"
+            },
+            "swir16": {
+              "href": "https://fixtures.invalid/S2B/swir16.tif"
+            },
+            "swir22": {
+              "href": "https://fixtures.invalid/S2B/swir22.tif"
+            },
+            "scl": {
+              "href": "https://fixtures.invalid/S2B/scl.tif"
+            }
+          }
+        }
+      ],
+      "links": []
+    }
+  }
+}

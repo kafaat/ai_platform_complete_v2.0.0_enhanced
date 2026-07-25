@@ -53,6 +53,9 @@ python scripts/architecture/legacy_path_audit.py --root . --strict
 echo "-- source-of-truth audit --"
 python scripts/architecture/source_of_truth_audit.py --root . --strict
 
+echo "-- container image pinning --"
+python scripts/ci/container_image_pin_guard.py
+
 echo "-- certification matrix validation --"
 python scripts/certification/validate_certification_matrix.py --root .
 

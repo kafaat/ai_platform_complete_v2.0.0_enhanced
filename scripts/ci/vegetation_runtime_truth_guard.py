@@ -58,7 +58,9 @@ for compose in COMPOSES:
         'VEGETATION_REAL_ONLY: "1"' not in service
         and "VEGETATION_REAL_ONLY: ${VEGETATION_REAL_ONLY:-1}" not in service
     ):
-        errors.append(f"{compose.name}: vegetation VEGETATION_REAL_ONLY must default fail-closed (1)")
+        errors.append(
+            f"{compose.name}: vegetation VEGETATION_REAL_ONLY must default fail-closed (1)"
+        )
 
 if errors:
     raise SystemExit("vegetation_runtime_truth_guard failed:\n- " + "\n- ".join(errors))

@@ -701,3 +701,25 @@ v200_admin_boundaries.sql
 v201_season_records.sql
 v202_season_draft_key.sql
 v203_season_sowing_in_observed_range.sql
+# v204: GAP-FIELD-FORMS-01 — النماذج الميدانيّة الديناميكية فوق B1 (4 جداول، scout-ingest،
+# RLS صريح + immutability بالأعمدة + state machine + حظر hard delete + FKs مركّبة). idempotent.
+v204_field_forms.sql
+# v205_irrigation (IRR-F01 sequential): تشديد وقت التشغيل لحجوزات الريّ (ALTER فقط على جداول
+# v195/v196 القائمة — قيود/فهارس/أعمدة، لا جداول جديدة). يُدرَج قبل v206 لإبقاء v206 آخر مدخل.
+v205_irrigation_reservation_runtime_hardening.sql
+# v207: جسر موسم تاريخي مقبول→موسم تشغيلي + ledger محاكاة append-only.
+# يسبق v206 عمداً كي يشمله تأكيد catalog النهائي.
+v207_historical_season_simulation_bridge.sql
+# v208 يسبق v206 عمداً (ALTER فقط على seasons المُغطّى) كي يبقى v206 آخِر مدخل.
+v208_seasons_sim_run_lineage.sql
+# v209/S3: سجل طقس تاريخي يومي canonical + PIT/provenance/idempotency، append-only.
+v209_historical_weather_sor.sql
+# v210/S11: مصالحة ERP محايدة للمزوّد فوق outbox القائم، append-only.
+v210_erp_reconciliation_ledger.sql
+# v211: واجهة دفتر المزارع المبسط فوق Farm Ledger القائم؛ نقد/آجل/أطراف/سداد.
+v211_simple_farm_book.sql
+# v212: فهرس فريد جزئيّ — تصحيح واحد لكلّ قيد دفتر (فرض DB لثابت v211).
+v212_farm_book_one_reversal_index.sql
+# v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
+# app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
+v206_rls_final_hardening.sql

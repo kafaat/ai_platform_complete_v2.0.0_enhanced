@@ -107,10 +107,18 @@ def test_weatherish_platform_routes_target_weather_service():
     allowlist = json.loads(ALLOWLIST_PATH.read_text(encoding="utf-8"))
     by_key = {r["route_key"]: r for r in extraction_map["routes"]}
     keywords = allowlist["weather_route_keywords"]
+    # Explicit, justified exceptions: weather-DOMAIN routes that are legitimately
+    # owned by sahool-platform (e.g. the S3 historical-weather Source-of-Truth ledger,
+    # a tenant-bound append-only truth store per db_ownership.yml) rather than being a
+    # weather-service forecast facade. Mirrors the raster guard's explicit-exception
+    # pattern; each entry carries a written justification in the allowlist.
+    platform_owned = set(allowlist.get("platform_owned_weather_routes", {}))
 
     violations = []
     for route in _current_platform_routes():
         if not _is_weatherish(route, keywords):
+            continue
+        if route["route_key"] in platform_owned:
             continue
         mapped = by_key.get(route["route_key"])
         owner = mapped.get("target_owner") if mapped else None

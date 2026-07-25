@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import os
-import ssl
 import sys
 import time
 import urllib.error
@@ -50,7 +49,12 @@ from shared.security.tls_policy import tls_context as _tls_context  # noqa: E402
 
 def ssl_context():
     # INSECURE_TLS يُشرَّف فقط لأهداف loopback عبر المُعقِّم المركزيّ (shared.security.tls_policy).
-    base = os.getenv("BASE_URL") or os.getenv("API_BASE") or os.getenv("AUTH_BASE") or "https://localhost"
+    base = (
+        os.getenv("BASE_URL")
+        or os.getenv("API_BASE")
+        or os.getenv("AUTH_BASE")
+        or "https://localhost"
+    )
     return _tls_context(base)
 
 
@@ -99,7 +103,7 @@ def area_degrees2(poly: dict) -> float:
     if len(ring) < 4:
         return 0.0
     acc = 0.0
-    for (x1, y1), (x2, y2) in zip(ring, ring[1:]):
+    for (x1, y1), (x2, y2) in zip(ring, ring[1:], strict=False):
         acc += x1 * y2 - x2 * y1
     return abs(acc) / 2.0
 

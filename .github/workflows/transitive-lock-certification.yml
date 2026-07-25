@@ -1,0 +1,29 @@
+name: Transitive Lock Certification
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "31 2 * * 2"
+
+permissions:
+  contents: read
+
+jobs:
+  compile-audit-locks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Compile hashed transitive locks and audit them
+        run: bash scripts/ci/compile_transitive_service_locks.sh
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: verified-transitive-locks-${{ github.sha }}
+          path: |
+            services/**/requirements.lock
+            certification/evidence/transitive_locks_summary.json
+          if-no-files-found: error
+          retention-days: 30
+

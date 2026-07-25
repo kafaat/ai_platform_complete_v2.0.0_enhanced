@@ -31,7 +31,7 @@ import {
   ShieldCheck, Sprout, CloudRain, Smartphone, Layers, ListChecks, TrendingUp,
   CalendarRange, GitCompare, GitBranch, Crosshair, Search, History,
   FlaskConical, GitCommitHorizontal, SlidersHorizontal, MonitorPlay, Share2, Repeat, Gauge,
-  Home, HeartPulse, FolderKanban, Wrench, Shapes, Briefcase,
+  Home, HeartPulse, FolderKanban, Wrench, Shapes, Briefcase, BookOpen,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import type { PageId } from '../App';
@@ -165,6 +165,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'season-record-entry', path: '/ops/season-records', label: 'ترقيم المواسم (سجلّ الموسم)', icon: CalendarRange, maturity: 'beta' },
       { id: 'activities',  path: '/ops/activities',  label: 'العمليّات الزراعيّة', icon: Sprout, maturity: 'stable' },
       { id: 'inventory',   path: '/ops/inventory',   label: 'المخزون', icon: Boxes, maturity: 'stable' },
+      { id: 'farm-book',   path: '/ops/farm-book',   label: 'دفتر المزرعة', icon: BookOpen, maturity: 'beta' },
       { id: 'equipment',   path: '/ops/equipment',   label: 'المعدّات', icon: Tractor, maturity: 'stable' },
       { id: 'devices',     path: '/ops/devices',     label: 'أجهزة IoT', icon: Cpu, maturity: 'stable' },
       { id: 'device-twin', path: '/ops/device-twin', label: 'توائم الأجهزة وثقة الحسّاس', icon: Activity, maturity: 'beta' },

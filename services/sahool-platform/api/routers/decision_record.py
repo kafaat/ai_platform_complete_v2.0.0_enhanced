@@ -32,6 +32,7 @@ from pydantic import BaseModel, Field
 from api.decision_lineage import ensure_decision_id, lineage_stage
 from api.decision_service_client import record_decision as _mirror_decision_to_service
 from api.decision_service_client import record_outcome as _mirror_outcome_to_service
+from api.decision_sor_mode import assert_platform_may_write_decision_sor
 from api.main import (
     Permission,
     UserSchema,
@@ -191,6 +192,7 @@ async def persist_decision_if_enabled(
     conf = confidence if isinstance(confidence, (int, float)) else None
     try:
         async with tenant_connection(user) as conn:
+            assert_platform_may_write_decision_sor("decision_record")
             await conn.execute(
                 """INSERT INTO decision_record
                     (decision_id, tenant_id, field_id, decision_type, region,
@@ -336,6 +338,7 @@ async def record_decision(
     lineage = lineage_stage(did, "decision", field_id=req.field_id, region=req.region)
     try:
         async with tenant_connection(user) as conn:
+            assert_platform_may_write_decision_sor("decision_record")
             await conn.execute(
                 """INSERT INTO decision_record
                     (decision_id, tenant_id, field_id, decision_type, region,
@@ -445,6 +448,7 @@ async def record_outcome(
     lineage = lineage_stage(did, "outcome", field_id=req.field_id, region=req.region)
     try:
         async with tenant_connection(user) as conn:
+            assert_platform_may_write_decision_sor("outcome_record")
             inserted = await conn.fetchval(
                 """INSERT INTO outcome_record
                     (outcome_id, tenant_id, decision_id, field_id, region,

@@ -1,0 +1,111 @@
+# platform_catalog_overrides.yml — الاستثناءات اليدويّة لمُصرِّف الكتالوج الموحّد (U1)
+#
+# القاعدة الصارمة: هذا الملفّ يحمل فقط ما لا يمكن اكتشافه آليّاً من المستودع
+# (أسماء قانونيّة/أسماء مستعارة تاريخيّة، مجالات أعمال، مكوّنات غير-HTTP بلا جرد ذاتيّ).
+# أيّ معلومة قابلة للاكتشاف (مسارات، منافذ compose، ملكيّة جداول، أحداث NATS، عقود UI)
+# يكتشفها scripts/architecture/build_platform_catalog.py من مصادرها القانونيّة القائمة —
+# ووضعها هنا انتهاك يُفشِل بوّابة الكتالوج.
+#
+# schema (U1):
+#   canonical_aliases: {alias_name: canonical_component_id}
+#   components: {component_id: {type?, domain?, notes?}}  # type/domain غير-مكتشَفين فقط
+#   extra_components: [{component_id, type, domain, notes}]  # مكوّنات بلا صفّ جرد ذاتيّ
+# schema (U4) — أحكام بشريّة غير قابلة للاكتشاف الآليّ:
+#   duplicate_route_classifications: قرار لكلّ مجموعة (method,path) مكرّرة عبر الخدمات —
+#     التصنيف + السبب إلزاميّان؛ التصنيفات المؤقّتة تتطلّب expires_on؛ legacy_bff_facade
+#     يتطلّب canonical_owner وfacade مختلفَين وكلاهما عضو في المجموعة المقاسة.
+#   ui_waiver_policy: مالك/انتهاء/تتبّع افتراضيّ لإعفاءات تغطية الواجهة.
+
+canonical_aliases:
+  # erp-bridge هو الاسم القانونيّ؛ odoo-bridge اسم مستعار تاريخيّ (الدليل: rename zipB
+  # 2026-07 وثّق إعادة التسمية، وcompose/الكود ما زالا يحملان الاسم القديم كـDNS).
+  odoo-bridge: erp-bridge
+  sahool-odoo-bridge: erp-bridge
+
+components:
+  # المجال (domain) حكم أعمال غير قابل للاكتشاف الآليّ — يُعلَن هنا.
+  sahool-platform: {type: service, domain: platform-core}
+  auth: {type: service, domain: identity}
+  raster-service: {type: service, domain: remote-sensing-truth}
+  vegetation-analysis-service: {type: service, domain: vegetation-interpretation}
+  indicators-service: {type: service, domain: indicators}
+  weather-service: {type: service, domain: weather-truth}
+  weather-polygon-worker: {type: worker, domain: weather-truth}
+  weather-signal-engine: {type: worker, domain: weather-truth}
+  decision-service: {type: service, domain: decision-governance}
+  model-registry-adapter: {type: adapter, domain: decision-governance}
+  agriai-engine: {type: service, domain: simulation-experimental}
+  soil-service: {type: service, domain: soil}
+  field-management-service: {type: service, domain: fields-internal}
+  field-segmentation: {type: service, domain: fields-boundary}
+  sam2-inference: {type: service, domain: fields-boundary}
+  scout-ingest-service: {type: service, domain: ground-ingest}
+  erp-bridge: {type: service, domain: erp-projection}
+  actuator-service: {type: service, domain: execution}
+  guardrails-engine: {type: service, domain: decision-governance}
+  supervisor-agent: {type: service, domain: agents}
+  knowledge-graph: {type: service, domain: knowledge}
+  local-ai-rag: {type: service, domain: knowledge}
+  rag-retrieval: {type: service, domain: knowledge}
+  ai_agronomist: {type: service, domain: agents}
+  edge-inference: {type: service, domain: edge}
+  tts-service: {type: service, domain: media}
+  video-processor: {type: service, domain: media}
+  remote-sensing-workspace-bff: {type: bff, domain: remote-sensing-workspace}
+  gis-workflow-service: {type: batch-job-tool, domain: gis-publication}
+  qdrant-seed: {type: job, domain: knowledge}
+  mcp_servers: {type: service, domain: agents-mcp}
+  raster-tiler-service: {type: service, domain: remote-sensing-truth}
+
+ui_waiver_policy:
+  # الإعفاءات القائمة لا تحمل مالكاً/انتهاءً ذاتيّاً — السياسة تمنحها حكماً افتراضيّاً
+  # قابلاً للمراجعة. المالك الفعليّ يُشتقّ أوّلاً من مصدر المسار (@services/<svc>/).
+  default_owner: sahool-platform
+  default_expires_on: "2026-12-31"
+  default_tracking: U4-WAIVER-REVIEW
+
+duplicate_route_classifications:
+  # قرار واحد لكلّ مجموعة (method,path) مكرّرة — 14 مجموعة مقاسة في الكتالوج.
+  - {method: GET, path: /, classification: service_metadata, expires_on: "2026-12-31",
+     decision: "جذور تعريفيّة محدودة النطاق بالخدمة؛ تبقى خارج الفضاء العامّ المشترك."}
+  - {method: GET, path: /capabilities, classification: standard_capability_contract,
+     decision: "وثيقة قدرات معياريّة محلّيّة بالخدمة، ليست مساراً تجاريّاً مشتركاً."}
+  - {method: GET, path: /contract, classification: standard_service_contract,
+     decision: "عقد ملكيّة معياريّ محلّيّ بالخدمة."}
+  - {method: GET, path: /health, classification: standard_health_alias, expires_on: "2026-12-31",
+     decision: "اسم توافقيّ للحيويّة؛ healthz هو عقد الحيويّة القانونيّ."}
+  - {method: GET, path: /healthz, classification: standard_liveness,
+     decision: "عقد حيويّة Kubernetes محلّيّ بالخدمة."}
+  - {method: GET, path: /metrics, classification: standard_observability,
+     decision: "عقد مقاييس Prometheus محلّيّ بالخدمة."}
+  - {method: GET, path: /products, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "منتجات ERP ومنتجات MCP دلالتان مختلفتان؛ بادئات البوّابة تحفظ نطاق كلٍّ منهما."}
+  - {method: GET, path: /readyz, classification: standard_readiness,
+     decision: "عقد جاهزيّة محلّيّ بالخدمة؛ قيمته تبقى مشتقّة وقت التشغيل."}
+  - {method: GET, path: /stac, classification: legacy_bff_facade,
+     canonical_owner: raster-service, facade: sahool-platform, expires_on: "2026-12-31",
+     decision: "raster-service يملك STAC؛ مسار المنصّة واجهة توافق واعية بالمستأجِر فقط."}
+  - {method: GET, path: /stac/collections, classification: legacy_bff_facade,
+     canonical_owner: raster-service, facade: sahool-platform, expires_on: "2026-12-31",
+     decision: "raster-service يملك مجموعات STAC؛ مسار المنصّة واجهة توافق فقط."}
+  - {method: POST, path: /ingest, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "ابتلاع RAG المحلّيّ وابتلاع الاسترجاع محدودان بخدمتَيهما؛ لا مسار بوّابة مشترك يدمجهما."}
+  - {method: POST, path: /plan, classification: legacy_bff_facade,
+     canonical_owner: agriai-engine, facade: sahool-platform, expires_on: "2026-12-31",
+     decision: "agriai يملك حوسبة التخطيط؛ المنصّة تُنسِّق أو تُمرِّر ولا تُعيد تنفيذها."}
+  - {method: POST, path: /query, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "استعلام المرشد الزراعيّ واستعلام RAG المحلّيّ مختلفان ويحتفظان بفضائَي بوّابة منفصلَين."}
+  - {method: POST, path: /recommend, classification: service_scoped_semantics, expires_on: "2026-12-31",
+     decision: "تقييم agriai وتوصية المرشد عقدان مختلفان خلف نطاقَي خدمة منفصلَين."}
+
+extra_components:
+  # واجهات الاستهلاك — ليست في service_inventory (ليست خدمات backend) لكنّها مكوّنات
+  # كتالوج من الطراز الأوّل (النموذج المستهدَف يشمل frontend/mobile).
+  - component_id: frontend
+    type: frontend
+    domain: user-interface
+    notes: React SPA — يُخدَّم عبر nginx البوّابة؛ مستهلك عقود UI القانونيّ.
+  - component_id: mobile
+    type: mobile
+    domain: user-interface
+    notes: Flutter app — مستهلك متنقّل؛ مساراته عبر البوّابة نفسها.

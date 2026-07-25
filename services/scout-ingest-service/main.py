@@ -181,8 +181,22 @@ async def healthz():
 
 @app.get("/readyz")
 async def readyz():
+    # Slice 3: جاهزيّة حقيقيّة — فحص DB فعليّ (SELECT 1) مع 503 fail-closed بدل
+    # الجاهزيّة الإيجابيّة الكاذبة (DATABASE_URL مضبوط ≠ DB قابلة للوصول).
+    if not DATABASE_URL:
+        raise HTTPException(status_code=503, detail="DATABASE_URL not configured")
+    try:
+        conn = await _connect()
+        try:
+            await conn.fetchval("SELECT 1")
+        finally:
+            await conn.close()
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=503, detail="database not ready") from None
     return {
-        "status": "ready" if DATABASE_URL else "degraded",
+        "status": "ready",
         "service": "scout-ingest-service",
         "ingest_enabled": _enabled(),
     }
@@ -333,3 +347,9 @@ async def ingest_kobo_submission(
 ):
     """يستقبل إدخال KoboToolbox (مزوّد ثانٍ، B1.4) — نفس المسار المُصادَق، محوّل Kobo. خلف الراية."""
     return await _handle_submission(await _parse_body(request), x_scout_ingest_token, "kobo")
+
+
+# GAP-FIELD-FORMS-01: النماذج الميدانيّة الديناميكية فوق B1 (خلف FIELD_FORMS_ENABLED).
+from field_forms_api import router as field_forms_router  # noqa: E402
+
+app.include_router(field_forms_router)

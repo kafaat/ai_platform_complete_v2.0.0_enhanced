@@ -21,6 +21,13 @@ namespace:
 
 networkPolicy:
   enabled: true
+  # Same-namespace workloads are allowed explicitly below. Only ingress controller
+  # namespaces listed here may enter from outside the SAHOOL namespace.
+  trustedIngressNamespaces:
+    - ingress-nginx
+  # External HTTPS is required for CDSE/weather providers whose addresses rotate.
+  # Clusters with an egress proxy should set this false and add proxy-specific policy.
+  allowPublicHttpsEgress: true
 
 ingress:
   enabled: true

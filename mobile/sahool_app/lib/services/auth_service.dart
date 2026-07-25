@@ -68,7 +68,14 @@ class AuthService {
 
   Future<void> clearAuth() async {
     _token = _refreshToken = _userId = _userProfile = null;
-    await _storage.deleteAll();
+    // احذف مفاتيح الجلسة فقط؛ هويّة جهاز النماذج يجب أن تبقى ثابتة
+    // عبر تسجيل الخروج، وكذلك تفضيل البصمة المستقل عن الجلسة.
+    await Future.wait([
+      _storage.delete(key: 'access_token'),
+      _storage.delete(key: 'refresh_token'),
+      _storage.delete(key: 'user_id'),
+      _storage.delete(key: 'user_profile'),
+    ]);
   }
 
   // F13: Check JWT expiry — مصدر واحد للحقيقة (utils/jwt.dart) يفشل-مغلقاً.

@@ -7,15 +7,16 @@ extraction, management zones, prescription maps, yield stability, profitability
 maps and a digital-twin snapshot.  Heavy model services can replace the fallback
 implementations behind the same request/response shape.
 """
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
-from statistics import mean, pstdev
-from typing import Any, Iterable
 import hashlib
 import json
 import math
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from statistics import mean, pstdev
+from typing import Any
 
 GeoJSON = dict[str, Any]
 
@@ -125,7 +126,7 @@ def polygon_area_ha(geometry: GeoJSON) -> float:
         meters_per_lat = 110_540.0
         pts = [(float(x) * meters_per_lon, float(y) * meters_per_lat) for x, y, *_ in ring]
         shoelace = 0.0
-        for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1]):
+        for (x1, y1), (x2, y2) in zip(pts, pts[1:] + pts[:1], strict=False):
             shoelace += x1 * y2 - x2 * y1
         total_m2 += abs(shoelace) / 2.0
     return round(total_m2 / 10_000.0, 4)
@@ -238,7 +239,10 @@ def _quantile_cuts(values: list[float], n: int) -> list[float]:
     if not values:
         return []
     ordered = sorted(values)
-    return [ordered[min(len(ordered) - 1, max(0, int(round((len(ordered) - 1) * i / n))))] for i in range(1, n)]
+    return [
+        ordered[min(len(ordered) - 1, max(0, int(round((len(ordered) - 1) * i / n))))]
+        for i in range(1, n)
+    ]
 
 
 def generate_management_zones(
@@ -252,9 +256,27 @@ def generate_management_zones(
         raise ValueError("n_zones must be between 2 and 7")
     if not samples:
         return {"zones": [], "features": [], "error": "no_samples"}
-    feature_keys = feature_keys or [k for k in ["ndvi", "ndre", "soil_ec", "elevation", "slope", "yield"] if any(k in s for s in samples)] or ["value"]
-    weights = weights or {"ndvi": 1.8, "ndre": 1.4, "yield": 2.0, "soil_ec": -0.8, "slope": -0.4, "elevation": 0.2, "value": 1.0}
-    scored: list[tuple[dict[str, Any], float]] = [(s, _weighted_score(s, feature_keys, weights)) for s in samples]
+    feature_keys = (
+        feature_keys
+        or [
+            k
+            for k in ["ndvi", "ndre", "soil_ec", "elevation", "slope", "yield"]
+            if any(k in s for s in samples)
+        ]
+        or ["value"]
+    )
+    weights = weights or {
+        "ndvi": 1.8,
+        "ndre": 1.4,
+        "yield": 2.0,
+        "soil_ec": -0.8,
+        "slope": -0.4,
+        "elevation": 0.2,
+        "value": 1.0,
+    }
+    scored: list[tuple[dict[str, Any], float]] = [
+        (s, _weighted_score(s, feature_keys, weights)) for s in samples
+    ]
     cuts = _quantile_cuts([score for _, score in scored], n_zones)
     labels3 = {0: "stress", 1: "medium", 2: "high_potential"}
     zone_features: list[ZoneFeature] = []
@@ -266,25 +288,29 @@ def generate_management_zones(
         sums[zone] += score
         label = labels3.get(zone, f"zone_{zone + 1}") if n_zones == 3 else f"zone_{zone + 1}"
         multiplier = round(0.75 + (zone / max(1, n_zones - 1)) * 0.5, 2)
-        zone_features.append(ZoneFeature(
-            id=str(sample.get("id") or _stable_id(sample, "zone")),
-            zone=zone + 1,
-            label=label,
-            score=round(score, 4),
-            rate_multiplier=multiplier,
-            properties={k: sample.get(k) for k in sample.keys() if k != "geometry"},
-        ))
+        zone_features.append(
+            ZoneFeature(
+                id=str(sample.get("id") or _stable_id(sample, "zone")),
+                zone=zone + 1,
+                label=label,
+                score=round(score, 4),
+                rate_multiplier=multiplier,
+                properties={k: sample.get(k) for k in sample.keys() if k != "geometry"},
+            )
+        )
     zones = []
     for i in range(n_zones):
         label = labels3.get(i, f"zone_{i + 1}") if n_zones == 3 else f"zone_{i + 1}"
-        zones.append({
-            "zone": i + 1,
-            "label": label,
-            "sample_count": counts[i],
-            "pct": round(100 * counts[i] / len(samples), 1),
-            "mean_score": round(sums[i] / counts[i], 4) if counts[i] else None,
-            "rate_multiplier": round(0.75 + (i / max(1, n_zones - 1)) * 0.5, 2),
-        })
+        zones.append(
+            {
+                "zone": i + 1,
+                "label": label,
+                "sample_count": counts[i],
+                "pct": round(100 * counts[i] / len(samples), 1),
+                "mean_score": round(sums[i] / counts[i], 4) if counts[i] else None,
+                "rate_multiplier": round(0.75 + (i / max(1, n_zones - 1)) * 0.5, 2),
+            }
+        )
     return {
         "algorithm": "weighted_quantile_fallback",
         "n_zones": n_zones,
@@ -295,10 +321,34 @@ def generate_management_zones(
 
 
 BASE_RATES = {
-    "wheat": {"nitrogen": (140, "kgN/ha"), "seed": (160, "kg/ha"), "irrigation": (45, "mm"), "phosphorus": (60, "kgP2O5/ha"), "potassium": (50, "kgK2O/ha")},
-    "maize": {"nitrogen": (190, "kgN/ha"), "seed": (25, "kg/ha"), "irrigation": (55, "mm"), "phosphorus": (70, "kgP2O5/ha"), "potassium": (75, "kgK2O/ha")},
-    "potato": {"nitrogen": (180, "kgN/ha"), "seed": (2500, "kg/ha"), "irrigation": (35, "mm"), "phosphorus": (95, "kgP2O5/ha"), "potassium": (160, "kgK2O/ha")},
-    "default": {"nitrogen": (120, "kgN/ha"), "seed": (100, "kg/ha"), "irrigation": (40, "mm"), "phosphorus": (50, "kgP2O5/ha"), "potassium": (50, "kgK2O/ha")},
+    "wheat": {
+        "nitrogen": (140, "kgN/ha"),
+        "seed": (160, "kg/ha"),
+        "irrigation": (45, "mm"),
+        "phosphorus": (60, "kgP2O5/ha"),
+        "potassium": (50, "kgK2O/ha"),
+    },
+    "maize": {
+        "nitrogen": (190, "kgN/ha"),
+        "seed": (25, "kg/ha"),
+        "irrigation": (55, "mm"),
+        "phosphorus": (70, "kgP2O5/ha"),
+        "potassium": (75, "kgK2O/ha"),
+    },
+    "potato": {
+        "nitrogen": (180, "kgN/ha"),
+        "seed": (2500, "kg/ha"),
+        "irrigation": (35, "mm"),
+        "phosphorus": (95, "kgP2O5/ha"),
+        "potassium": (160, "kgK2O/ha"),
+    },
+    "default": {
+        "nitrogen": (120, "kgN/ha"),
+        "seed": (100, "kg/ha"),
+        "irrigation": (40, "mm"),
+        "phosphorus": (50, "kgP2O5/ha"),
+        "potassium": (50, "kgK2O/ha"),
+    },
 }
 
 
@@ -310,12 +360,16 @@ def generate_prescription_map(
     target_yield_t_ha: float | None = None,
 ) -> dict[str, Any]:
     crop_key = crop.lower()
-    base_rate, unit = BASE_RATES.get(crop_key, BASE_RATES["default"]).get(prescription_type, BASE_RATES["default"].get(prescription_type, (100, "unit/ha")))
+    base_rate, unit = BASE_RATES.get(crop_key, BASE_RATES["default"]).get(
+        prescription_type, BASE_RATES["default"].get(prescription_type, (100, "unit/ha"))
+    )
     if target_yield_t_ha and prescription_type in {"nitrogen", "phosphorus", "potassium"}:
         base_rate *= max(0.7, min(1.4, target_yield_t_ha / 5.0))
     features: list[PrescriptionFeature] = []
     for z in zone_features:
-        mult = _safe_float(z.get("rate_multiplier") or z.get("properties", {}).get("rate_multiplier") or 1.0)
+        mult = _safe_float(
+            z.get("rate_multiplier") or z.get("properties", {}).get("rate_multiplier") or 1.0
+        )
         zone = int(z.get("zone", 1))
         label = str(z.get("label", f"zone_{zone}"))
         # Stress zones receive more water/fertilizer but lower seed density.
@@ -324,21 +378,26 @@ def generate_prescription_map(
         elif prescription_type in {"nitrogen", "irrigation"} and label in {"stress", "low"}:
             mult *= 1.08
         rate = round(base_rate * mult, 2)
-        features.append(PrescriptionFeature(
-            id=str(z.get("id") or _stable_id(z, "rx")),
-            zone=zone,
-            prescription_type=prescription_type,
-            crop=crop,
-            rate=rate,
-            unit=unit,
-            properties={"source_label": label, "rate_multiplier": round(mult, 3)},
-        ))
+        features.append(
+            PrescriptionFeature(
+                id=str(z.get("id") or _stable_id(z, "rx")),
+                zone=zone,
+                prescription_type=prescription_type,
+                crop=crop,
+                rate=rate,
+                unit=unit,
+                properties={"source_label": label, "rate_multiplier": round(mult, 3)},
+            )
+        )
     return {
         "type": "FeatureCollection",
         "prescription_type": prescription_type,
         "crop": crop,
         "unit": unit,
-        "features": [{"type": "Feature", "id": f.id, "geometry": None, "properties": asdict(f)} for f in features],
+        "features": [
+            {"type": "Feature", "id": f.id, "geometry": None, "properties": asdict(f)}
+            for f in features
+        ],
         "exports": ["GeoJSON", "Shapefile", "ISOXML", "JohnDeereOperationsCenter", "Trimble"],
     }
 
@@ -351,14 +410,18 @@ def _linear_trend(values: list[float]) -> float:
     xm = mean(xs)
     ym = mean(values)
     denom = sum((x - xm) ** 2 for x in xs) or 1.0
-    return sum((x - xm) * (y - ym) for x, y in zip(xs, values)) / denom
+    return sum((x - xm) * (y - ym) for x, y in zip(xs, values, strict=False)) / denom
 
 
-def compute_yield_stability(history: dict[str, list[float]] | list[dict[str, Any]]) -> dict[str, Any]:
+def compute_yield_stability(
+    history: dict[str, list[float]] | list[dict[str, Any]],
+) -> dict[str, Any]:
     if isinstance(history, list):
         grouped: dict[str, list[float]] = {}
         for row in history:
-            grouped.setdefault(str(row.get("zone", "field")), []).append(_safe_float(row.get("yield")))
+            grouped.setdefault(str(row.get("zone", "field")), []).append(
+                _safe_float(row.get("yield"))
+            )
     else:
         grouped = {str(k): [float(x) for x in v] for k, v in history.items()}
     classes: list[YieldStabilityClass] = []
@@ -381,7 +444,16 @@ def compute_yield_stability(history: dict[str, list[float]] | list[dict[str, Any
             label = "stable_low"
         else:
             label = "moderate_stable"
-        classes.append(YieldStabilityClass(zone=zone, label=label, mean_yield=round(m, 3), cv=round(cv, 3), trend=round(trend, 3), years=len(vals)))
+        classes.append(
+            YieldStabilityClass(
+                zone=zone,
+                label=label,
+                mean_yield=round(m, 3),
+                cv=round(cv, 3),
+                trend=round(trend, 3),
+                years=len(vals),
+            )
+        )
     return {"classes": [asdict(c) for c in classes], "count": len(classes)}
 
 
@@ -396,23 +468,37 @@ def compute_profitability_map(
     features: list[ProfitabilityFeature] = []
     for z in zones:
         zone_no = int(z.get("zone", 1))
-        expected_yield = _safe_float(z.get("expected_yield_t_ha") or z.get("mean_yield") or z.get("score") or 3.0)
+        expected_yield = _safe_float(
+            z.get("expected_yield_t_ha") or z.get("mean_yield") or z.get("score") or 3.0
+        )
         cost_adjustment = _safe_float(z.get("cost_adjustment") or z.get("rate_multiplier") or 1.0)
         total_cost = round(base_cost * max(0.2, cost_adjustment), 2)
         revenue = round(expected_yield * market_price_per_t, 2)
         profit = round(revenue - total_cost, 2)
         roi = round(profit / total_cost, 3) if total_cost else 0.0
-        label = "high_profit" if profit > total_cost * 0.5 else "medium_profit" if profit >= 0 else "loss_area"
-        features.append(ProfitabilityFeature(
-            id=str(z.get("id") or _stable_id(z, "profit")),
-            zone=zone_no,
-            gross_revenue_per_ha=revenue,
-            total_cost_per_ha=total_cost,
-            profit_per_ha=profit,
-            roi=roi,
-            label=label,
-        ))
-    return {"features": [asdict(f) for f in features], "currency": "configured_market_currency", "basis": "per_ha"}
+        label = (
+            "high_profit"
+            if profit > total_cost * 0.5
+            else "medium_profit"
+            if profit >= 0
+            else "loss_area"
+        )
+        features.append(
+            ProfitabilityFeature(
+                id=str(z.get("id") or _stable_id(z, "profit")),
+                zone=zone_no,
+                gross_revenue_per_ha=revenue,
+                total_cost_per_ha=total_cost,
+                profit_per_ha=profit,
+                roi=roi,
+                label=label,
+            )
+        )
+    return {
+        "features": [asdict(f) for f in features],
+        "currency": "configured_market_currency",
+        "basis": "per_ha",
+    }
 
 
 def compose_digital_twin_snapshot(
@@ -428,8 +514,14 @@ def compose_digital_twin_snapshot(
 ) -> dict[str, Any]:
     fields = fields or []
     equipment = equipment or []
-    stress_fields = [f for f in fields if str(f.get("status", "")).lower() in {"stress", "critical", "warning"}]
-    offline_equipment = [e for e in equipment if str(e.get("status", "")).lower() in {"offline", "fault", "maintenance"}]
+    stress_fields = [
+        f for f in fields if str(f.get("status", "")).lower() in {"stress", "critical", "warning"}
+    ]
+    offline_equipment = [
+        e
+        for e in equipment
+        if str(e.get("status", "")).lower() in {"offline", "fault", "maintenance"}
+    ]
     health_score = 100
     health_score -= min(35, len(stress_fields) * 8)
     health_score -= min(20, len(offline_equipment) * 5)
@@ -438,8 +530,10 @@ def compose_digital_twin_snapshot(
     if weather and str(weather.get("risk", "")).lower() in {"high", "critical"}:
         health_score -= 10
     snapshot = {
-        "snapshot_id": _stable_id({"farm": farm, "ts": datetime.now(timezone.utc).date().isoformat()}, "twin"),
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "snapshot_id": _stable_id(
+            {"farm": farm, "ts": datetime.now(UTC).date().isoformat()}, "twin"
+        ),
+        "generated_at": datetime.now(UTC).isoformat(),
         "farm": farm,
         "field_count": len(fields),
         "equipment_count": len(equipment),
@@ -454,8 +548,17 @@ def compose_digital_twin_snapshot(
         },
         "health_score": max(0, min(100, health_score)),
         "alerts": [
-            *[{"type": "field_stress", "field_id": f.get("field_id") or f.get("id")} for f in stress_fields],
-            *[{"type": "equipment_attention", "equipment_id": e.get("equipment_id") or e.get("id")} for e in offline_equipment],
+            *[
+                {"type": "field_stress", "field_id": f.get("field_id") or f.get("id")}
+                for f in stress_fields
+            ],
+            *[
+                {
+                    "type": "equipment_attention",
+                    "equipment_id": e.get("equipment_id") or e.get("id"),
+                }
+                for e in offline_equipment
+            ],
         ],
     }
     return snapshot
