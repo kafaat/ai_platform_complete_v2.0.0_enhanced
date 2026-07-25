@@ -3664,3 +3664,23 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **متابعة صادقة قائمة:** المُجدوِل داخل العمليّة بنسخة واحدة بلا قفل موزَّع (نسخ متعدّدة قد تُكرّر الكنس —
   الحارس الجديد يقلّل الأثر لا يمنعه). واجهة «المقارنة» في MapHub توازن مؤشّرَين في تاريخ واحد لا تاريخَين
   مخزَّنَين (مقارنة زمنيّة حقيقيّة ممكنة كعمل قادم).
+
+## 2026-07-25 — قفل نسخة-واحدة للمُجدوِل + قاعدة الثلاثة المصنوعة (PR #630، main `5cd063a`)
+- **الفجوة:** المُجدوِل (`api/scheduler.py`) يعمل داخل العمليّة (asyncio) في كلّ نسخة بلا تنسيق ⇒ مع تعدّد
+  نسخ المنصّة تُطلَق كلّ مهمّة دوريّة N مرّة (fetch_weather · scan_new_imagery · check_decision_freshness ·
+  alerts_evaluation) — ضرب مزوّد مكرّر وعمل زائد. (فجوة صادقة سُجِّلت مع كادينس 24 ساعة، PR #629.)
+- **الحلّ (أفضل ممارسة، بلا تبعيّة):** `scheduler.cluster_singleton(fn, task_name, pool_getter)` — قفل
+  استشاريّ Postgres **غير حاجب على مستوى الجلسة** (`pg_try_advisory_lock(hashtext(...))`): النسخة المالكة
+  تُشغّل، البقيّة تتخطّى التكّة. **جلسة لا معاملة** (كنس STAC قد يطول). تحرير في `finally` + تحرير Postgres
+  التلقائيّ عند موت الجلسة. بلا مسبح ⇒ تشغيل محلّيّ (no-op في نسخة واحدة). يتّبع مصطلح
+  `pg_advisory_xact_lock` القائم (`irrigation_closed_loop_runtime.py:122`). لُفَّت المهامّ الأربع في
+  `main.py` عبر `_JOBS_POOL or _DB_POOL`. 4 اختبارات وحدة (بلا قاعدة، مسبح وهميّ).
+- **درس مُكتمِل (قاعدة الثلاثة المصنوعة):** تعديل `services/sahool-platform/api/main.py` يُحرّك **ثلاثة**
+  مصنوعات مولَّدة يجب إعادة توليدها **معاً في نفس الدفعة**: (١) `service_inventory`
+  (`generate_service_inventory.py --write-registry`) · (٢) `platform_main_subinventory`
+  (`platform_main_subinventory_guard.py --write`) · (٣) حزمة الإصدار (`build_release_bundle.py`). فوّتُّ
+  الثاني فتعثّرت جولة CI (`guard` + `Repository Structural Lint` = `platform main subinventory JSON drift`).
+- **الدمج:** PR #630 مدموج تحت Ratchet (64 فحصاً success/skipped على head `6019575`) — main `5cd063a`.
+- **متابعة صادقة قائمة:** دَيْن هجرة react-router v6→v7 (PR #628 dependabot فُصِل — postcss يبقى، v7 مُؤجَّل
+  بأمرَي `@dependabot ignore … major version`؛ كاسر عبر 21 ملفّاً + فقد provenance attestation). ومقارنة
+  تاريخَين مخزَّنَين في زرّ «المقارنة» (تحسين).

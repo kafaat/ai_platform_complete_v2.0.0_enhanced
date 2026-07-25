@@ -3047,14 +3047,17 @@ async def field_input_traceability(
             harvest_yield = None
             try:
                 async with conn.transaction():
+                    # غلّة **أحدث** نتيجة مُسجَّلة لا MAX عبر الصفوف: مع عدّة نتائج
+                    # (حصاد جزئيّ/إعادة تسجيل) كان MAX يتحيّز صعوديّاً؛ الأحدث هو المُعبِّر.
                     oq = (
-                        "SELECT MAX(actual_yield_t_ha) AS y FROM recommendation_outcomes "
+                        "SELECT actual_yield_t_ha AS y FROM recommendation_outcomes "
                         "WHERE field_id = $1 AND actual_yield_t_ha IS NOT NULL"
                     )
                     oparams: list = [field_id]
                     if season_id is not None:
                         oq += " AND season_id = $2"
                         oparams.append(season_id)
+                    oq += " ORDER BY outcome_recorded_at DESC NULLS LAST LIMIT 1"
                     orow = await conn.fetchrow(oq, *oparams)
                     harvest_yield = _num(orow["y"]) if orow else None
             except (_asyncpg.UndefinedTableError, _asyncpg.UndefinedColumnError):

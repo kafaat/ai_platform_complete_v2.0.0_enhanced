@@ -28,7 +28,7 @@ export const ALL_PAGES = [
   'irrigation', 'irrigation-plan', 'water-twin', 'etc-dual', 'crop-state', 'scenario-compare', 'nl-gis', 'sql-workspace', 'gis-tools', 'gis-expert', 'portfolio', 'portfolio-command', 'calibration', 'calibration-workbench', 'lineage', 'evidence-map', 'replay-map', 'learning-dashboard', 'decision-studio', 'decision-confidence', 'decision-runtime', 'execution-feedback', 'agronomic-timeline', 'weather-advice', 'irrigation-ops', 'irrigation-network', 'irrigation-engineering', 'pest-escalation', 'field-intelligence',
   'spatial-indicators', 'lab-sampling', 'devices', 'device-twin', 'inventory', 'farm-book', 'equipment',
   'tasks', 'activities', 'field-ranking', 'problem-fields', 'economics', 'yield-analysis', 'phenology', 'scouting', 'prescriptions', 'advisory-report', 'analytics', 'alerts', 'reports', 'master-data', 'documents', 'governance', 'admin-runtime', 'approvals-console', 'manager-console', 'chatbot', 'settings',
-  'operations-wall', 'agro-zones', 'yemeni-calendars', 'climate-analogs', 'season-record-entry',
+  'operations-wall', 'agro-zones', 'yemeni-calendars', 'climate-analogs', 'season-record-entry', 'varieties',
 ] as const satisfies readonly PageId[];
 
 // حارس وقت-التصريف: كلّ معرّف في اتّحاد PageId يجب أن يظهر في ALL_PAGES،

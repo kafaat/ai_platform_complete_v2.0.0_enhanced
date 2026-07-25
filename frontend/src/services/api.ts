@@ -3701,6 +3701,47 @@ export const runHistoricalImageryBackfill = (fieldId: string, payload: Historica
 export const fetchHistoricalImageryBackfillStatus = (fieldId: string, runId: number) =>
   kongApi.get(`/api/v1/fields/${fieldId}/imagery/backfill/${runId}`).then(r => r.data as HistoricalImageryBackfillStatus);
 
+// ══════════════════════════════════════════════════════════════════
+// كتالوج الأصناف المرجعيّ — reference_only_not_operational (PR #627)
+// قراءة صرفة: بيانات أصناف الحبوب اليمنيّة الموثّقة المصدر. كلّ ردّ يحمل بوّابة الحوكمة
+// decision_engine_use_status=reference_only_not_operational — مرجعٌ للعرض/الخبير، محجوبٌ
+// عن التنفيذ الآليّ. لا كتابة، لا قرار. (يستهلك GET /api/v1/varieties/food-grains[/{id}])
+// ══════════════════════════════════════════════════════════════════
+
+export const VARIETY_REFERENCE_ONLY_STATUS = 'reference_only_not_operational';
+
+export interface FoodGrainVariety {
+  id: string;
+  name_ar?: string;
+  crop_code?: string;
+  decision_engine_use_status: string;
+  source_pages?: unknown;
+  source_verification?: unknown;
+  [key: string]: unknown;
+}
+
+export interface FoodGrainVarietyCatalog {
+  decision_engine_use_status: string;
+  metadata: Record<string, unknown>;
+  count: number;
+  varieties: FoodGrainVariety[];
+  quality_issues: Array<Record<string, unknown>>;
+}
+
+/** كتالوج أصناف الحبوب الموثّق (اختياريّاً مُرشَّح بمحصول: wheat/barley/…). مرجعيّ فقط. */
+export const fetchFoodGrainVarieties = (cropCode?: string): Promise<FoodGrainVarietyCatalog> =>
+  kongApi
+    .get('/api/v1/varieties/food-grains', { params: cropCode ? { crop_code: cropCode } : {} })
+    .then((r) => r.data as FoodGrainVarietyCatalog);
+
+/** صنفٌ واحد بمعرّفه — مرجعيّ فقط (404 إن لم يوجد في الكتالوج الموثّق). */
+export const fetchFoodGrainVariety = (
+  varietyId: string,
+): Promise<{ decision_engine_use_status: string; variety: FoodGrainVariety }> =>
+  kongApi
+    .get(`/api/v1/varieties/food-grains/${encodeURIComponent(varietyId)}`)
+    .then((r) => r.data);
+
 /** سلسلة زمنية NDVI — GET /v1/timeseries/{fieldId} */
 export const fetchVegetationTimeseries = (fieldId: string, days = 30) =>
   tryReal(

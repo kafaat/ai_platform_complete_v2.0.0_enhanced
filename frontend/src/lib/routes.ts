@@ -113,6 +113,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { id: 'portfolio',         path: '/irrigation/portfolio', label: 'توزيع ماء المزرعة', icon: Layers, maturity: 'beta' },
       { id: 'portfolio-command', path: '/irrigation/portfolio-command', label: 'مركز قيادة المحفظة', icon: Crosshair, maturity: 'beta' },
       { id: 'crop-state',        path: '/crop/state',          label: 'حالة المحصول الموحّدة', icon: Sprout, maturity: 'stable' },
+      { id: 'varieties',         path: '/crop/varieties',      label: 'كتالوج الأصناف', icon: Sprout, maturity: 'beta', badge: 'مرجعيّ' },
       { id: 'weather-advice',    path: '/crop/weather',        label: 'الطقس والريّ', icon: CloudRain, maturity: 'stable' },
       { id: 'agro-zones',        path: '/crop/agro-zones',     label: 'الأقاليم المناخيّة-الزراعيّة', icon: Sprout, maturity: 'beta' },
       { id: 'yemeni-calendars',  path: '/crop/calendars',      label: 'التقويم اليمنيّ التراثيّ', icon: CalendarRange, maturity: 'beta' },

@@ -840,46 +840,6 @@
       "importance": 0,
       "importance_tier": "none",
       "intended_consumer": "machine"
-    },
-    {
-      "endpoint": "/api/v1/varieties/food-grains",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/varieties.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "كتالوج أصناف الحبوب مرجعيّ موثّق المصدر (read-only، reference_only_not_operational): الخلفيّة+الحوكمة+الحارس اكتملت؛ واجهة «بطاقة الصنف» React مؤجَّلة لشريحة متابعة مُتتبَّعة.",
-      "intended_consumer": "human",
-      "temporary": true,
-      "expiry": "2026-10-31",
-      "owner": "sahool-frontend",
-      "tracking": "variety-card-ui",
-      "priority": "low",
-      "ui_effort": "page",
-      "ui_surface_hint": "variety-catalog-card",
-      "criticality": "informational",
-      "importance": 2,
-      "importance_tier": "P2-متوسّط"
-    },
-    {
-      "endpoint": "/api/v1/varieties/food-grains/{variety_id}",
-      "audience": "agronomist",
-      "methods": [
-        "get@services/sahool-platform/api/routers/varieties.py"
-      ],
-      "reason_category": "backlog-ui",
-      "reason": "كتالوج أصناف الحبوب مرجعيّ موثّق المصدر (read-only، reference_only_not_operational): الخلفيّة+الحوكمة+الحارس اكتملت؛ واجهة «بطاقة الصنف» React مؤجَّلة لشريحة متابعة مُتتبَّعة.",
-      "intended_consumer": "human",
-      "temporary": true,
-      "expiry": "2026-10-31",
-      "owner": "sahool-frontend",
-      "tracking": "variety-card-ui",
-      "priority": "low",
-      "ui_effort": "page",
-      "ui_surface_hint": "variety-catalog-card",
-      "criticality": "informational",
-      "importance": 2,
-      "importance_tier": "P2-متوسّط"
     }
   ]
 }
