@@ -24925,7 +24925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90a844794a7c517c9cc583120151f1c2a5589ed042b504794134c307b2d99385"
+          "content": "b8c41c9946f8c421fbe723ab8a7b07643e8344cc0658c6b7317b01fa05135c9d"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
