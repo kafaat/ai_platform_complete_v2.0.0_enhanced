@@ -3,9 +3,9 @@
 مُصرِّف كتالوج، لا خدمة: يركّب السجلّات القائمة ويكشف تناقضاتها. أعد التوليد بـ
 `python scripts/architecture/build_platform_catalog.py`؛ التحقّق بـ`--check`.
 
-- fingerprint: `c963f19f648d413b0a873da5150a7bffa37d7a28e93ed43dfd3c90c9e0f71915`
+- fingerprint: `23baea6caf0eb0b9afe538cae91a42305587892c2acea66129135d04e729cb38`
 - components: **34** (backend: 32)
-- route rows: **1097** → unique method/path: **985**
+- route rows: **1098** → unique method/path: **986**
 - capabilities (derived, uncurated): **847**
 - cross-service duplicate method/paths: **14**
 - ownership conflicts (incl. TBD/alias): **0**
