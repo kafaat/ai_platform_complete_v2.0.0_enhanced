@@ -675,12 +675,8 @@ async def list_available_asset_dates(
         SELECT DISTINCT ON (a.acquisition_date, a.index_name)
                a.acquisition_date::text AS date,
                a.index_name,
-               -- سحابة المشهد (scene-level، من كتالوج STAC) مقابل سحابة فوق الحقل
-               -- (AOI-clipped). عقد صريح: نُعيد القيمتَين منفصلتَين + نُبقي cloud_pct
-               -- توافقاً قديماً موثّقاً أنّه scene-level. aoi_cloud_pct=NULL ⇒ «لم يُحسب»
-               -- (ليس 0%) — فلا يُستبعَد تاريخ نظيف فوق الحقل بسحابة مشهد عالية.
-               a.cloud_pct,
-               a.aoi_cloud_pct,
+               a.cloud_pct,  -- scene-level (توافق قديم موثّق)
+               a.aoi_cloud_pct,  -- سحابة فوق الحقل؛ NULL=«لم يُحسب» لا 0%
                a.scene_id,
                -- وقت الالتقاط الحقيقيّ من كتالوج STAC (timestamptz) حين يتوفّر — لا نلفّق
                -- ساعة من DATE (acquisition_date تاريخ فقط بلا وقت). NULL ⇒ الواجهة تعرض
