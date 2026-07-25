@@ -109,7 +109,7 @@ def test_candidate_is_reviewable_and_leaves_queue():
             "reason": "ok",
             "expected_state": "pending_approval",
             "candidate_lineage_id": LINEAGE,
-            "idempotency_key": "wx106-approve",
+            "idempotency_key": "wx106-approve",  # gitleaks:allow — test idempotency token, not a secret
             "policy_version": "rev/1.0.0",
         },
         headers={"X-Tenant-Id": TENANT, "X-Reviewed-By": "u-rev"},

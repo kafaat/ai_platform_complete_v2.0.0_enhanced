@@ -11325,7 +11325,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "09b32393e18aa71c014055df9839cd6b50ad1331502a6aaf856f3d07357771e6"
+          "content": "6828ae942b9381e129270fe7f4b956e403ce65cad6e76807c8a28be0b5aad369"
         }
       ],
       "name": "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
