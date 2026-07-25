@@ -1284,12 +1284,19 @@ async def field_available_dates(
     wanted = [_normalize_index(index)] if index else []
     by_date: dict[str, dict] = {}
 
+    def _clip_cloud(value):
+        try:
+            return max(0.0, min(100.0, float(value)))
+        except (TypeError, ValueError):
+            return None
+
     def _add(
         date_value,
         *,
         idx=None,
         has_cog=True,
         cloud_pct=None,
+        aoi_cloud_pct=None,
         scene_id=None,
         acquisition_datetime=None,
     ):
@@ -1304,7 +1311,15 @@ async def field_available_dates(
                 "date": d,
                 "has_cog": False,
                 "indices": set(),
+                # عقد سحابة صريح مزدوج القيمة (AOI-CLOUD-CONTRACT):
+                #  • scene_cloud_pct — سحابة المشهد كاملاً من كتالوج STAC.
+                #  • aoi_cloud_pct — السحابة فوق مضلّع الحقل (AOI-clipped)؛ NULL=«لم يُحسب»
+                #    (ليس 0%) — فلا يُستبعَد تاريخ نظيف فوق الحقل بسحابة مشهد عالية.
+                #  • cloud_pct — يبقى توافقاً قديماً، مساوٍ لسحابة المشهد صراحةً.
+                # clear_pct/quality_label تُشتقّان من القيمة الأنسب للحقل (AOI إن توفّرت).
                 "cloud_pct": None,
+                "scene_cloud_pct": None,
+                "aoi_cloud_pct": None,
                 "clear_pct": None,
                 "quality_label": None,
                 "scene_id": None,
@@ -1316,20 +1331,25 @@ async def field_available_dates(
         rec["has_cog"] = bool(rec["has_cog"] or has_cog)
         if idx:
             rec["indices"].add(_display_index(idx))
-        if cloud_pct is not None and rec["cloud_pct"] is None:
-            try:
-                cloud = max(0.0, min(100.0, float(cloud_pct)))
-                rec["cloud_pct"] = cloud
-                rec["clear_pct"] = 100.0 - cloud
-                rec["quality_label"] = (
-                    "high"
-                    if rec["clear_pct"] >= NDVI_HIGH_QUALITY_CLEAR_PCT
-                    else "medium"
-                    if rec["clear_pct"] >= NDVI_PULL_MIN_CLEAR_PCT
-                    else "cloudy"
-                )
-            except (TypeError, ValueError):
-                pass
+        scene_cloud = _clip_cloud(cloud_pct)
+        aoi_cloud = _clip_cloud(aoi_cloud_pct)
+        if scene_cloud is not None and rec["scene_cloud_pct"] is None:
+            rec["scene_cloud_pct"] = scene_cloud
+            rec["cloud_pct"] = scene_cloud  # توافق قديم: scene-level صراحةً
+        if aoi_cloud is not None and rec["aoi_cloud_pct"] is None:
+            rec["aoi_cloud_pct"] = aoi_cloud
+        # الجودة تُشتقّ من سحابة الحقل إن حُسِبت، وإلّا من سحابة المشهد (لا نستبعد
+        # تاريخاً نظيفاً فوق الحقل بسحابة مشهد وحدها).
+        effective = rec["aoi_cloud_pct"] if rec["aoi_cloud_pct"] is not None else rec["cloud_pct"]
+        if effective is not None:
+            rec["clear_pct"] = 100.0 - effective
+            rec["quality_label"] = (
+                "high"
+                if rec["clear_pct"] >= NDVI_HIGH_QUALITY_CLEAR_PCT
+                else "medium"
+                if rec["clear_pct"] >= NDVI_PULL_MIN_CLEAR_PCT
+                else "cloudy"
+            )
         if scene_id and not rec["scene_id"]:
             rec["scene_id"] = str(scene_id)
         if acquisition_datetime and not rec["acquisition_datetime"]:
@@ -1367,6 +1387,7 @@ async def field_available_dates(
                 idx=row.get("index_name"),
                 has_cog=row.get("has_cog", True),
                 cloud_pct=row.get("cloud_pct"),
+                aoi_cloud_pct=row.get("aoi_cloud_pct"),
                 scene_id=row.get("scene_id"),
                 acquisition_datetime=row.get("acquisition_datetime"),
             )
