@@ -456,7 +456,7 @@
         "post@services/sahool-platform/api/routers/crop_twin.py"
       ],
       "reason_category": "operational",
-      "reason": "WX-10.6 حدّ crop→decision candidate: مسار حوكمة يبني/يرسل مرشّح قرار pending_approval يملكه decision-service (fail-closed، لا تنفيذ تلقائيّ). machine-consumed decision boundary pending reviewer UI.",
+      "reason": "WX-10.6 حدّ crop→decision candidate: نقطة **مُنتِجة يستهلكها آليّاً** (crop-intelligence → decision-service) تبني مرشّح قرار pending_approval بحوكمة fail-closed بلا تنفيذ تلقائيّ. لا واجهة بشريّة تصيب هذه النقطة **بالتصميم**؛ سطح المراجعة البشريّ هو ApprovalsConsole الذي يقرأ المرشّح النهائيّ في اتّجاه المصبّ لا هذه النقطة. قرار المالك (2026-07-25): إعفاء **دائم موثَّق** (machine-boundary، no-ui-required) لا مؤقّت — لا يُغلَق ببناء واجهة لأنّه ليس سطحاً بشريّاً.",
       "priority": "none",
       "ui_effort": "none",
       "ui_surface_hint": "no-ui-required",
@@ -465,9 +465,8 @@
       "importance_tier": "none",
       "intended_consumer": "machine",
       "owner": "crop-intelligence",
-      "tracking": "WX-10.7",
-      "expiry": "2026-10-11",
-      "temporary": true
+      "tracking": "WX-10.6-machine-boundary (permanent; WX-10.7 review surface consumes downstream)",
+      "temporary": false
     },
     {
       "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",

@@ -17619,7 +17619,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "8daaaf6c8cfd44ab89cdd2f2cdb12caf6b1580b231a8e6a2ff3fa5f67567789b",
+  "fingerprint": "ce77f0c5c53012e72a3e1ef77d3ccca384be6524414f5a582b7a9f00c2932256",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17873,9 +17873,9 @@
     },
     {
       "endpoint": "/api/v1/crop-twin/decision-candidate",
-      "expires_on": "2026-10-11",
+      "expires_on": "2026-12-31",
       "owner": "sahool-platform",
-      "tracking": "WX-10.7",
+      "tracking": "WX-10.6-machine-boundary (permanent; WX-10.7 review surface consumes downstream)",
       "waiver_id": "ui-waiver-029"
     },
     {
