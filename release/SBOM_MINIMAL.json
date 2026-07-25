@@ -4315,7 +4315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f3b5c5cf95fb116d00d68ddfe2df0e71f46a1281fcf399332d3762837889083"
+          "content": "e8e018608dd239197101b4d008eb8b8520f4415c94c28ecf0f554e3c51b1bed0"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -11319,6 +11319,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "09b32393e18aa71c014055df9839cd6b50ad1331502a6aaf856f3d07357771e6"
+        }
+      ],
+      "name": "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
       "type": "file"
     },
     {

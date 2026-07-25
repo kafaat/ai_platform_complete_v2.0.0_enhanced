@@ -18,4 +18,8 @@ paths = [
 # placeholders, never real credentials). Keep this list narrow and literal.
 regexes = [
   '''assertion-signing-key-at-least-32-chars''',
+  # CI-local ephemeral Postgres DSN for the decision-service test job (throwaway
+  # "test_password" on localhost:5434). Identical literal is repeated across the
+  # WX-10.x real-Postgres CI steps in .github/workflows/ci.yml — never a real secret.
+  '''postgresql://decision_test:test_password@localhost:5434/decision_test''',
 ]

@@ -146,11 +146,14 @@ def test_u4_all_duplicate_groups_carry_valid_decisions() -> None:
 
 
 def test_u4_ui_waivers_governed() -> None:
-    """U4: الإعفاءات الخمسون كلّها محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
-    + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى."""
+    """U4: كلّ الإعفاءات محكومة — مالك (مكوّن كتالوج فعليّ) + انتهاء صالح
+    + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى.
+
+    العدد 49 (كان 50): أُزيل إعفاء WX-10.6 لـ/api/v1/crop-twin/decision-candidate بعد نقله
+    إلى core_endpoints بتغطية downstream فعليّة (طابور مراجعة مركز القرار + E2E)."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 50
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 49
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 
