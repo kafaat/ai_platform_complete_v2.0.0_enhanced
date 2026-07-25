@@ -53,3 +53,21 @@ def test_available_dates_provider_path_uses_datetime_not_date():
     assert "end = _dt.date.today()" not in tail, (
         "raw date.today() reintroduces the datetime/date bug"
     )
+
+
+def test_timeline_window_bounds_processed_dates_by_months():
+    """حارس انحدار (MAPHUB-PERIOD): عند include_provider، الشريط الزمنيّ يُقصّ **كلّ**
+    التواريخ (المعالَجة + المزوّد) بنافذة months لا المزوّد وحده.
+
+    العيب: التواريخ المعالَجة من backfill سابق (24 شهراً) كانت تُعاد بلا قصّ رغم اختيار
+    3/6/12 ⇒ الشريط يعرض 24 شهراً دائماً. الإصلاح: عتبة cutoff = now - months*31 تُطبَّق
+    على حلقة بناء ``dates`` حين include_provider فقط (منتقي المشهد بلا provider يبقى كاملاً).
+    """
+    src = (HERE / "routers" / "fields.py").read_text(encoding="utf-8")
+    # عتبة زمنيّة مُشتقّة من months محكومة بـinclude_provider.
+    assert "if include_provider:" in src
+    assert "timedelta(days=months * 31)" in src, "timeline cutoff must derive from months"
+    # القصّ يُطبَّق على حلقة بناء dates (لا المزوّد وحده).
+    assert 'if cutoff is not None and rec["date"] < cutoff:' in src, (
+        "processed dates must be dropped below the months window"
+    )
