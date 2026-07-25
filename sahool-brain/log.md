@@ -3796,3 +3796,13 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
   `baseline_route_count` 629→630 + رفع مُوثَّق لسقف P2.6 625→626. **الدرس الجذر: شغّل حزمة المنصّة الكاملة
   (`PYTHONPATH=. pytest tests` من `services/sahool-platform`، 3896) محلّيّاً — حرّاس حوكمة المسارات خارج `tests_v9/-m unit`.**
 - **الدمج:** Ratchet — 64 فحصاً success/skipped على `c1bdfdf` + mergeable clean ⇒ squash `aee19cf`. `develop` مُزامَن.
+
+## 2026-07-25 — H5 PR3 مدموج (PR #641، main `24e8ed7`)
+- **ماذا:** إنفاذ `maximum_allowed_ec` fail-closed في مسار توصية MPC اليوميّ المخدوم عبر ربط ECw بـ`water_source_id`
+  خادميّاً. منطق الإنفاذ كان موجوداً (`canonical_well_capability.WATER_SALINITY_LIMIT_EXCEEDED`) لكن غير موصول.
+  استُخرِج في دالّة نقيّة واحدة `evaluate_water_salinity_gate` (dedup محافظ) ووُصِل: الخادم يحلّ ECw+الحدّ من SoR
+  (`irrigation_water_quality_samples` + `irrigation_water_sources.maximum_allowed_ec_ds_m`) لا من العميل، ويمنع
+  قبل الحساب على تجاوز/عيّنة مفقودة أو قديمة/مصدر غير قابل للحلّ + `requires_expert_review`.
+- **بلا هجرة** (v170 قائم) · **بلا مسار جديد** (حقل طلب إضافيّ) ⇒ لا catalog/PINNED؛ فقط جرد LOC + حزمة.
+- **الدمج:** Ratchet — 64 فحصاً success/skipped على `2a78426` + mergeable clean ⇒ squash `24e8ed7`. develop مُزامَن.
+- **متابعة مُعلَنة:** ربط تلقائيّ على مستوى الحقل (`fields.water_source_id` FK + منتقي واجهة) — لم يُنجَز بصدق.
