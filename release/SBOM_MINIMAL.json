@@ -12725,7 +12725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "72ec4e40b2fc1c492a8a1927c75b6142af022aad1d73eb33d1c740fc58cba37a"
+          "content": "7e5657264f747c350950fa301c16a2c6c95b0c52552ff18abb496290204568a5"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -12805,7 +12805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7845aa4db360050d02cfdc88d02b3fe66e3b7f5f299172bac63b882faeaa1b9b"
+          "content": "bdd88d501148c0bacb1f03a741c02bb314409e4d557d1a0e32e7e218c72b6833"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -12845,6 +12845,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "3815369e949ae39b901ad2cb88a9c14415203d1cc44a45932a9a4746e9f54b0f"
+        }
+      ],
+      "name": "services/raster-service/imagery_product_identity.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "3e541d339bb5fdf58633cc591bc10160041c5d3be446ed6c8afbfeaa43693a3f"
         }
       ],
@@ -12875,7 +12885,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f230831319539ff22ef2289be429d74fb1c1ad58a065528c94dc9d7445dbc6d3"
+          "content": "cb39a5135a55a2b924db1d57c93e81d7218edc6a273be7007ef1e10411fe2301"
         }
       ],
       "name": "services/raster-service/indicator_product_identity.py",
@@ -12985,7 +12995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "a02babcfd8f143f7ea20061dd3edd12952c2411a34e6cb4f53864feef908d779"
+          "content": "f8e65b69a3b35a1a86867c76e5e359ef261a5cdf67ec2c59a2e2d22c4f6aa850"
         }
       ],
       "name": "services/raster-service/raster_asset_persistence.py",
@@ -13539,6 +13549,16 @@
         }
       ],
       "name": "services/raster-service/terrain_render.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "71457354881b1c810fc2b96ad8818f79720acdf1b920c9e70a895f2be8a6de83"
+        }
+      ],
+      "name": "services/raster-service/terrain_source_registry.py",
       "type": "file"
     },
     {
