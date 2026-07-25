@@ -153,6 +153,7 @@ _RAW_CONNECT_ALLOWLIST = {
     "backfill.py",  # standalone backfill worker/CLI: runs outside the request path
     "activation_gate_core.py",  # pooled-FIRST; raw connect is a documented fallback for isolated tests/tools
     "platform_sor_revoke.py",  # standalone cutover REVOKE CLI: a privileged ADMIN connection (table owner/superuser), never the pooled app role
+    "decision_sor_role_certify.py",  # read-only PRE-CUTOVER certification CLI: inspects roles/grants via catalogs, never the pool
 }
 
 

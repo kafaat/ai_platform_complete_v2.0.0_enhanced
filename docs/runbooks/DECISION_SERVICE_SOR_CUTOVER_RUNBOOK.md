@@ -144,6 +144,36 @@ Production cutover is allowed only after:
 
 Only then may the platform be changed from authoritative writer to orchestrator/BFF.
 
+## Pre-cutover role certification (MANDATORY precursor to the REVOKE)
+
+The DB-level REVOKE below is meaningful only if the platform and decision-service connect as
+**different** Postgres roles. The repo does not fix this: the platform defaults to `sahool_app`, but
+`DECISION_SERVICE_DATABASE_URL` is empty by default and its role is operator-supplied at cutover.
+**Certify the live topology first** — this tool is read-only (it never runs GRANT/REVOKE), it only
+prints the live privilege matrix:
+
+```bash
+DECISION_SOR_PLATFORM_URL=postgres://sahool_app...      \
+DECISION_SOR_SERVICE_URL=postgres://decision_service... \
+python services/decision-service/decision_sor_role_certify.py
+```
+
+Read the output and confirm, before any REVOKE:
+
+- `role_separation_confirmed: true` — `current_user` differs between the two connections;
+- both roles are `rolsuper: false`, `rolbypassrls: false`;
+- neither app role **owns** the five SoR tables (owner keeps privileges even after REVOKE — the
+  robust target is `table owner = decision_schema_owner` NOLOGIN, `sahool_app` = SELECT-only,
+  `decision_service_app` = DML; this three-role model is a **recommendation**, to be turned into an
+  ADR only if certification shows it is needed, not before);
+- no sequence USAGE or SECURITY DEFINER function leaves the platform role an indirect write path;
+- the platform role cannot `SET ROLE` to a stronger role (empty `memberships_can_set_role_to`).
+
+**If `role_separation_confirmed` is false** (both connections resolve to the same role), do NOT run
+the REVOKE — it would strip writes from both services. Instead: create `decision_service_app`, move
+the decision-service connection to it, prove decision-service works on the new role, and only then
+proceed to the REVOKE below.
+
 ## DB-level revocation of platform writes (same-DB topology only)
 
 After the platform is demoted (`SAHOOL_DECISION_WRITE_MODE=decision_service_sor`,

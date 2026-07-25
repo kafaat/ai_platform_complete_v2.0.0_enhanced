@@ -11185,7 +11185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2f9196299411ed9a812484416a51194e11c5fdf3567b03d494759db1ce43ea6"
+          "content": "474b474f1a093c41a4aa53194e22e2030b7912b800adc0faab4aeaf81561b9e2"
         }
       ],
       "name": "services/decision-service/tests/test_loop_tables_and_ws_guard.py",
@@ -11219,16 +11219,6 @@
         }
       ],
       "name": "services/decision-service/tests/test_p4_decision_service_runtime.py",
-      "type": "file"
-    },
-    {
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "444e7dcc24c4d5b1ed712d546336e9406354b0b56ad1a7d5cc87838bd0f7a95f"
-        }
-      ],
-      "name": "services/decision-service/tests/test_platform_sor_revoke_pg.py",
       "type": "file"
     },
     {
