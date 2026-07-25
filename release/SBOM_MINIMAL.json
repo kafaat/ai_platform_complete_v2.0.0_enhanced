@@ -25525,6 +25525,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "d887446975640c34b498756fea5dc675f1501425fdf14580056da2064d98d8e7"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "e763237ef3a5b019b73f3a0bf41670b83019ed7ae3239bcfc48919a2fb7ce1d8"
         }
       ],
