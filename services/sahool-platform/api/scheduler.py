@@ -28,11 +28,48 @@ import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Any
 
 logger = logging.getLogger("sahool.scheduler")
 
 # نوع دالّة المهمّة: async بلا وسائط، تُرجع None
 TaskFn = Callable[[], Awaitable[None]]
+
+
+def cluster_singleton(fn: TaskFn, *, task_name: str, pool_getter: Callable[[], Any]) -> TaskFn:
+    """يلفّ مهمّة مجدولة لتعمل على **نسخة واحدة فقط** عبر نسخ المنصّة (أفضل ممارسة).
+
+    المُجدوِل يعمل داخل العمليّة (asyncio) في كلّ نسخة؛ بلا تنسيق، N نسخة تُطلق نفس
+    المهمّة الدوريّة N مرّة (ضرب مزوّد مكرّر، عمل زائد). هذا اللفّ يحصل على قفل استشاريّ
+    **غير حاجب على مستوى الجلسة** (``pg_try_advisory_lock``): النسخة التي تملك القفل
+    تُشغّل المهمّة، والبقيّة تتخطّى هذه التكّة بلا خطأ. جلسة لا معاملة مفتوحة (المهمّة قد
+    تطول — لا نُبقي transaction مفتوحاً)؛ القفل يُحرَّر في ``finally``، ويُحرِّره Postgres
+    تلقائيّاً إن ماتت الجلسة (انهيار النسخة لا يُجمِّد المهمّة أبداً).
+
+    بلا مسبح (تطوير/متدهور): تعمل المهمّة محليّاً — عمليّة واحدة أصلاً، لا تنازع.
+    """
+    lock_key = f"sahool-scheduler:{task_name}"
+
+    async def _wrapped() -> None:
+        pool = pool_getter()
+        if pool is None:
+            await fn()
+            return
+        async with pool.acquire() as conn:
+            locked = await conn.fetchval("SELECT pg_try_advisory_lock(hashtext($1))", lock_key)
+            if not locked:
+                logger.info(
+                    "مهمّة %s: تُخطّيت هذه التكّة — نسخة أخرى تحمل القفل الاستشاريّ",
+                    task_name,
+                )
+                return
+            try:
+                await fn()
+            finally:
+                # نفس الاتّصال ⇒ نفس الجلسة ⇒ تحرير صحيح (القفل جلسيّ لا معامليّ).
+                await conn.execute("SELECT pg_advisory_unlock(hashtext($1))", lock_key)
+
+    return _wrapped
 
 
 @dataclass
