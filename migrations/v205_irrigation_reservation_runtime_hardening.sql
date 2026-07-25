@@ -12,7 +12,11 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_capacity_evaluation_project_tenant
 
 ALTER TABLE irrigation_resource_reservations
   DROP CONSTRAINT IF EXISTS irrigation_resource_reservations_resource_node_id_tenant_id_fkey,
-  DROP CONSTRAINT IF EXISTS irrigation_resource_reservations_evaluation_id_tenant_id_fkey;
+  DROP CONSTRAINT IF EXISTS irrigation_resource_reservations_evaluation_id_tenant_id_fkey,
+  -- idempotency: drop the new named FKs too, so re-applying this migration (the
+  -- compose runner re-runs every migration each `up`) is a no-op, not a duplicate-error.
+  DROP CONSTRAINT IF EXISTS fk_reservation_node_project,
+  DROP CONSTRAINT IF EXISTS fk_reservation_evaluation_project;
 ALTER TABLE irrigation_resource_reservations
   ADD CONSTRAINT fk_reservation_node_project
     FOREIGN KEY (resource_node_id, project_id, tenant_id)
@@ -22,7 +26,8 @@ ALTER TABLE irrigation_resource_reservations
     REFERENCES hydraulic_capacity_evaluations(evaluation_id, project_id, tenant_id) ON DELETE RESTRICT;
 
 ALTER TABLE irrigation_target_bindings
-  DROP CONSTRAINT IF EXISTS irrigation_target_bindings_terminal_node_id_tenant_id_fkey;
+  DROP CONSTRAINT IF EXISTS irrigation_target_bindings_terminal_node_id_tenant_id_fkey,
+  DROP CONSTRAINT IF EXISTS fk_target_binding_node_project;
 ALTER TABLE irrigation_target_bindings
   ADD CONSTRAINT fk_target_binding_node_project
     FOREIGN KEY (terminal_node_id, project_id, tenant_id)
@@ -30,7 +35,9 @@ ALTER TABLE irrigation_target_bindings
 
 ALTER TABLE hydraulic_capacity_evaluations
   DROP CONSTRAINT IF EXISTS hydraulic_capacity_evaluations_canonical_hydraulic_capability_id_tenant_id_fkey,
-  DROP CONSTRAINT IF EXISTS hydraulic_capacity_evaluations_bottleneck_node_id_tenant_id_fkey;
+  DROP CONSTRAINT IF EXISTS hydraulic_capacity_evaluations_bottleneck_node_id_tenant_id_fkey,
+  DROP CONSTRAINT IF EXISTS fk_capacity_capability_project,
+  DROP CONSTRAINT IF EXISTS fk_capacity_bottleneck_project;
 ALTER TABLE hydraulic_capacity_evaluations
   ADD CONSTRAINT fk_capacity_capability_project
     FOREIGN KEY (canonical_hydraulic_capability_id, project_id, tenant_id)
