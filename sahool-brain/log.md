@@ -3620,3 +3620,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **المتبقّي (محجوب بنية/بيانات):** (1) جالب المجموعات السبع الخادميّ + كشف available_at في واجهة raster ⇒
   استهلاك `assemble_agronomic_context` فعليّاً ⇒ إغلاق submit. (2) بوّابة submit على `spectral_provenance.source`
   في decision-service (قرار سياسة). (3) وصل الجالبات async بالواجهات.
+
+## 2026-07-24 — PR #624 مدموج: نَسَب الطيف على مرشّح القرار — main `fb27cb1`
+- **دُمِج تحت Ratchet كامل:** 64 فحصاً success/skipped على الرأس `b40d463` (رأس PR=b40d463، mergeable=clean، تحقّق قبل الدمج).
+  تحقّق ما بعد الدمج (grep على main): `crop_decision_bridge.py` يحمل `evidence.spectral_provenance` (سطر 183).
+- **الأثر:** مرشّح القرار يُصرّح بأساس ثقته الطيفيّ (server-authoritative/client) — مُستهلَك عبر `record_decision`.
+  البنية الأساس لبوّابة submit قائمة على النَسَب (لم تُفتَح بعد — محجوبة بجالب المجموعات السبع + كشف available_at).
