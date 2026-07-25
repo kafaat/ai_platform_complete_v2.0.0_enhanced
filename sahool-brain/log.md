@@ -16,6 +16,8 @@
 
 **التحقّق:** `npm audit` 0 · `tsc` نظيف · `vite build` ناجح · **vitest 1291/1291** · حزمة الإصدار مُعاد توليدها. Ratchet: كلّ الفحوص success/skipped على `89135b2` (وظيفتا node-22 خضراوان) + `mergeable_state:clean` ⇒ squash `63a70a7`.
 
+**ما بعد الدمج:** `develop` مُزامَن مع main عبر fast-forward نظيف (كان 200 خلف/0 أمام؛ `84e14f0`→`63a70a7`). الحزمة المصدّرة مُحدَّثة: `sahool_main_63a70a7.zip` (`git archive` من رأس main؛ 5219 ملفّاً، ~12.5MB، SHA الكامل في تعليق الأرشيف؛ تحقّق: `react-router 8.3.0` · `postcss 8.5.23` · صفر `react-router-dom`).
+
 ## 2026-07-25 — بطاقة الأصناف + إغلاق ست فجوات كود + إصلاحات مسار الصور — مدموج PR #632 (`10a8fae`)
 
 **ما أُنجز (على `claude/code-review-34hO3`، دُمج squash في `main`=`10a8fae`):**
