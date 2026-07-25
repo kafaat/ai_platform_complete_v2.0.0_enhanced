@@ -3821,3 +3821,9 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **الدمج:** Ratchet — 65 فحصاً success/skipped على `4a569f6` + mergeable clean ⇒ squash `012605a`. develop مُزامَن.
 - **C5 (task 259):** يبقى CODE-PREPARED/CALIBRATION-BLOCKED — سياسة دليل NDVI (#567، `evidence_policy.py`) مبنيّة
   ومُختبَرة؛ تنتظر **معايرة عتبات NDVI ميدانيّة** (لا بناء سجلّ، لا كود جديد). لم أختلق بناءً.
+
+## 2026-07-25 — إصلاح الثغرتين الأمنيتين + مطابقة سجلّ الفجوات (task 264/265/266)
+- **DECISION-SOR-CUTOVER REVOKE** (`3ebd618`): `platform_sor_revoke.py` + غلاف مشغّل — REVOKE/GRANT عكسيّ (INSERT/UPDATE/DELETE، يُبقي SELECT) على الخمسة platform-owned (يستثني decision_outbox_events)؛ fail-closed خلف cutover/rollback؛ ليست migration؛ same-DB فقط؛ برهان PG حقيقيّ في Decision Service Tests + حارس ساكن unit. الأداة جاهزة؛ التطبيق الحيّ يبقى تشغيليّاً.
+- **WORKER-IDENTITY-BINDING** (`9330407`): `X-Worker-Assertion` مربوطة بالطلب على `/v1/learning/runtime-work` + `.../runtime-workers/{id}/tenants` (subject=worker_id)؛ adapter يوقّع بموقّع مُضمَّن (interop مثبَّت في tests_v9)؛ مرحليّ (fail-open بلا مفتاح، prod-required 503). PARTIALLY-CLOSED: مفتاح مشترك لا PKI لكلّ عامل.
+- **مطابقة السجلّ**: FIELD-SVC-TENANT-HEADER-TRUST → CODE-CLOSED (ADR-0033 الخيار A منفَّذ في main.py:90-152، تصحيح «بلا فرض» البائت)؛ حالتا DECISION-SOR/WORKER-IDENTITY حُدِّثتا.
+- **بوّابات**: `pytest -m unit` 3487 أخضر · حزمة 4885 checksums · wx12 gate PASS · Dockerfile-shared-copy PASS (اختبار interop نُقِل إلى tests_v9). درس: حارس نسخ shared يمسح ملفّات الاختبار — اختبار عبر-حدود يستورد shared يوضَع في tests_v9.
