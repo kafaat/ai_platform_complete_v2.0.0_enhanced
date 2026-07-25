@@ -46,29 +46,36 @@ def _plan() -> list[RollbackStep]:
         RollbackStep(2, "restore platform writer", "set SAHOOL_DECISION_WRITE_MODE=platform_sor"),
         RollbackStep(
             3,
+            "restore platform DB write grants (same-DB topology only)",
+            "DECISION_SERVICE_ROLLBACK_APPROVED=true DECISION_SOR_ALLOW_PLATFORM_REVOKE=true "
+            "scripts/deploy/decision_sor_platform_revoke.sh rollback  # exact inverse of the "
+            "cutover REVOKE; no-op / skip in split-DB topology",
+        ),
+        RollbackStep(
+            4,
             "disable strict service dependency",
             "unset DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED",
         ),
         RollbackStep(
-            4, "verify platform writes", "run platform decision_record integration smoke test"
+            5, "verify platform writes", "run platform decision_record integration smoke test"
         ),
         RollbackStep(
-            5,
+            6,
             "verify no destructive cleanup",
             "keep decision-service tables for forensic comparison",
         ),
         RollbackStep(
-            6,
+            7,
             "preserve WX-10.7 review audit",
             "retain the append-only decision_reviews table and decision_record review_state/"
             "candidate_lineage_id columns untouched (delete no review rows; reverse no completed "
             "transition); new reviews fail closed 503 in mirror mode",
         ),
         RollbackStep(
-            7, "compare reads", "python services/decision-service/read_side_compare.py --live"
+            8, "compare reads", "python services/decision-service/read_side_compare.py --live"
         ),
         RollbackStep(
-            8,
+            9,
             "resume mirror mode",
             "set SAHOOL_DECISION_WRITE_MODE=shadow only after platform write smoke passes",
         ),

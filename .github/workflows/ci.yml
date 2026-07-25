@@ -845,6 +845,15 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_activation_evidence_contract.py -q -p no:cacheprovider
+      # DECISION-SOR-CUTOVER: the DB-level REVOKE that backs the app-layer platform-write guard.
+      # Proves on real Postgres that revoke strips INSERT/UPDATE/DELETE from the platform role on the
+      # five platform-owned SoR tables while retaining SELECT, and that the grant (rollback) restores
+      # them exactly. decision_test is the table owner here, so it can grant/revoke.
+      - name: platform SoR write revoke/restore (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_platform_sor_revoke_pg.py -q -p no:cacheprovider
       # Gate-Trust-1: the trust root fails closed at READ — deploy_build_sha() and the probe secret
       # raise on absent/invalid config, the evidence window is capped, provenance is canonical. Pure
       # decisions, no DB.
