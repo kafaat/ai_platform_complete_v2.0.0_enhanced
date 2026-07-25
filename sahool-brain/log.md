@@ -1,6 +1,6 @@
 # 📜 سجلّ الجلسات (append-only)
 
-## 2026-07-25 — V8-05 PR1-b: توحيد هويّة منتج الصور (backfill + single_scene) — PR #639
+## 2026-07-25 — V8-05 PR1-b: توحيد هويّة منتج الصور (backfill + single_scene) — مدموج PR #639 (`f1f2f5d`)
 - **الهدف:** كائن قيمة قانونيّ واحد لهويّة المنتج يُغلق ما تبقّى من فجوة الهويّة/idempotency، دون إعادة فتح معماريّة #637.
 - **كائن القيمة** `services/raster-service/imagery_product_identity.py` (frozen dataclass، منطق نقيّ): 7 حقول (tenant/field/geometry_revision/provider/scene/product/processing_version) + `normalize_provider`/`normalize_product` (المُطبِّع الوحيد المشترك) + `canonical_processing_version()` (من `raster_quality.ALGORITHM_VERSION="sahool.band_math/1"`، لا من العميل) + `to_canonical_key()` (نصّ v2 حتميّ) + `content_hash()` (`ipk2_`+sha256) + `legacy_backfill_key()` (المفتاح القديم 6-حقول) + `legacy_matches_baseline()` (بوّابة dual-read: القديم يُعاد استعماله فقط عند تطابق الإصدار الأساس).
 - **مفتاح idempotency للـbackfill صار v2 (يشمل processing_version):** المُنشئان معاً يمرّان عبر الكائن — `backfill_scan_worker._idempotency_key`/`_identity` (الجماعيّ) + `db_persist.enqueue_single_scene_process` (single_scene؛ أُزيلت f-string اليدويّة). كلاهما يمرّر `canonical_processing_version()`.
