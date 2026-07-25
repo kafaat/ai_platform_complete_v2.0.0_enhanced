@@ -35,7 +35,7 @@ import activation_gate
 import satellite_cdse_activation_gate
 from agronomic_context.contracts import ContextComposeIn  # noqa: E402
 from cutover import readiness_from_env
-from fastapi import FastAPI, Header, HTTPException, Query
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from outcome_reconcile import reconcile_outcomes
 from persistence import (
     acquire_connection,
@@ -92,6 +92,10 @@ from persistence import (
 from pydantic import BaseModel, ConfigDict, Field
 
 from shared.contracts.soil import validate_soil_use
+from shared.security.service_tenant_assertion import (
+    TenantAssertionError,
+    verify_tenant_assertion,
+)
 
 
 def _is_production() -> bool:
@@ -159,6 +163,76 @@ async def _service_token_guard(request, call_next):
 
             return JSONResponse({"detail": "unauthorized: service token required"}, status_code=401)
     return await call_next(request)
+
+
+# --- WORKER-IDENTITY-BINDING -----------------------------------------------------------------
+# The worker-driven endpoints (work-feed + tenant discovery) previously trusted `worker_id` as a
+# free input: any holder of the broadly-shared service bearer could pull ANY worker's partition by
+# passing that worker's id. This binds those calls to a dedicated, request-scoped, replay-resistant
+# assertion (shared/security/service_tenant_assertion) whose subject == worker_id, held only by the
+# worker adapter(s) — narrowing the principal set from "everyone with the bearer" to "holders of the
+# worker-assertion key" and adding method/path/request-id binding + nonce replay defense. Staged:
+# fail-open when the key is unset (dev / existing installs unchanged); REQUIRED in production.
+# (Per-worker key isolation is a further hardening, not claimed here.)
+WORKER_ASSERTION_SERVICE = "model-registry-adapter"
+WORKER_ASSERTION_KEY_ENV = "DECISION_WORKER_ASSERTION_KEY"
+
+
+def _verify_worker_identity(
+    request: Request,
+    worker_id: str,
+    *,
+    x_worker_assertion: str | None,
+    x_request_id: str | None,
+) -> None:
+    """Fail-closed (403) unless the caller proves it IS ``worker_id``. No-op when unconfigured.
+
+    Mirrors field-management-service ``_require_tenant``: production requires the key (503 if
+    unset); development without a key retains header-only compatibility (fail-open)."""
+    production = _is_production()
+    key = os.getenv(WORKER_ASSERTION_KEY_ENV, "").strip()
+    if production and not key:
+        raise HTTPException(status_code=503, detail="worker assertion verification unavailable")
+    if not key:
+        return  # dev / existing single-tenant installs: header-only compatibility
+    current_kid = os.getenv("DECISION_WORKER_ASSERTION_KEY_ID", "current")
+    previous_key = os.getenv("DECISION_WORKER_ASSERTION_PREVIOUS_KEY", "").strip()
+    previous_kid = os.getenv("DECISION_WORKER_ASSERTION_PREVIOUS_KEY_ID", "previous")
+    keys = {current_kid: key, **({previous_kid: previous_key} if previous_key else {})}
+    try:
+        claims = verify_tenant_assertion(
+            x_worker_assertion or "",
+            keys,
+            WORKER_ASSERTION_SERVICE,
+            worker_id,  # the assertion subject (tenant_id slot) must equal the presented worker_id
+            expected_method=request.method,
+            expected_path=request.url.path,
+            expected_request_id=x_request_id or "",
+        )
+        _claim_worker_assertion_once(claims.replay_key, production)
+    except TenantAssertionError as exc:
+        raise HTTPException(status_code=403, detail=f"invalid worker assertion: {exc}") from None
+
+
+def _claim_worker_assertion_once(replay_key: str, production: bool) -> None:
+    """Consume one nonce atomically. Production never falls back to process memory."""
+    redis_url = os.getenv("DECISION_WORKER_ASSERTION_REDIS_URL", "").strip()
+    if not redis_url:
+        if production:
+            raise HTTPException(status_code=503, detail="worker assertion replay store unavailable")
+        return
+    try:
+        import redis
+
+        client = redis.Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
+        if not client.set(replay_key, "1", nx=True, ex=70):
+            raise HTTPException(status_code=403, detail="worker assertion replayed")
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503, detail="worker assertion replay store unavailable"
+        ) from exc
 
 
 LOOP_TABLES = [
@@ -2466,9 +2540,12 @@ async def retraining_request_boundary(
 
 @app.get("/v1/learning/runtime-work")
 async def runtime_work_feed(
+    request: Request,
     worker_id: str = Query(default=""),
     limit: int = Query(default=20),
     x_tenant_id: str | None = Header(default=None),
+    x_worker_assertion: str | None = Header(default=None, alias="X-Worker-Assertion"),
+    x_request_id: str | None = Header(default=None, alias="X-Request-Id"),
 ) -> dict[str, Any]:
     """Authoritative pending-work feed; side-effecting work rides durable leases (migration 016)."""
     tenant = _tenant(x_tenant_id)
@@ -2477,6 +2554,11 @@ async def runtime_work_feed(
         raise HTTPException(status_code=400, detail="worker_id is required")
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
+    # WORKER-IDENTITY-BINDING: the caller must prove it IS this worker before the worker_id is
+    # trusted (fail-open only when the assertion key is unconfigured / dev).
+    _verify_worker_identity(
+        request, wid, x_worker_assertion=x_worker_assertion, x_request_id=x_request_id
+    )
     # WX-12 multitenancy: once a worker is registered, it may only pull work for its
     # operator-authorized tenants — the header stops being a free pick (migration 024).
     if not await worker_tenant_authorized(worker_id=wid, tenant_id=tenant):
@@ -2518,12 +2600,22 @@ async def register_worker_tenant(
 
 
 @app.get("/v1/learning/runtime-workers/{worker_id}/tenants")
-async def worker_tenants(worker_id: str) -> dict[str, Any]:
+async def worker_tenants(
+    worker_id: str,
+    request: Request,
+    x_worker_assertion: str | None = Header(default=None, alias="X-Worker-Assertion"),
+    x_request_id: str | None = Header(default=None, alias="X-Request-Id"),
+) -> dict[str, Any]:
     """Server-side tenant discovery for a worker (the adapter enumerates its partition
     from here instead of free-picking tenants; empty when unregistered)."""
     if not sor_enabled():
         raise HTTPException(status_code=503, detail="decision-service is not the system-of-record")
-    return await list_worker_tenants(worker_id=worker_id.strip())
+    wid = worker_id.strip()
+    # WORKER-IDENTITY-BINDING: a worker may only discover ITS OWN tenant partition.
+    _verify_worker_identity(
+        request, wid, x_worker_assertion=x_worker_assertion, x_request_id=x_request_id
+    )
+    return await list_worker_tenants(worker_id=wid)
 
 
 class RolloutReceiptIn(BaseModel):

@@ -845,6 +845,17 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_activation_evidence_contract.py -q -p no:cacheprovider
+      # DECISION-SOR-CUTOVER: the SoR write boundary must be a DB PRIVILEGE boundary, not just a
+      # Python guard. This proves it with TWO distinct NOSUPERUSER/NOBYPASSRLS roles (platform_test
+      # + decision_service_test, self-created by the test via the superuser DATABASE_URL): after the
+      # revoke, a platform-role INSERT raises the DB's InsufficientPrivilegeError while SELECT + the
+      # service role's writes survive; catalog grants, table ownership, sequences, SECURITY DEFINER
+      # writers, role attributes and SET ROLE are all asserted; rollback restores platform writes.
+      - name: decision SoR DB privilege cutover boundary (real Postgres, two roles)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_decision_sor_db_privilege_cutover.py -q -p no:cacheprovider
       # Gate-Trust-1: the trust root fails closed at READ — deploy_build_sha() and the probe secret
       # raise on absent/invalid config, the evidence window is capped, provenance is canonical. Pure
       # decisions, no DB.
@@ -863,6 +874,11 @@ jobs:
       - name: loop-tables + websocket governance guards
         working-directory: services/decision-service
         run: pytest tests/test_loop_tables_and_ws_guard.py -q -p no:cacheprovider
+      # WORKER-IDENTITY-BINDING: the worker-driven endpoints must verify the caller IS the
+      # worker_id (request-scoped signed assertion) before trusting it. Pure decision, no DB.
+      - name: worker-identity binding fail-closed
+        working-directory: services/decision-service
+        run: pytest tests/test_worker_identity_binding.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->

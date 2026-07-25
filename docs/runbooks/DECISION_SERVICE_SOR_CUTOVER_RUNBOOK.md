@@ -144,6 +144,65 @@ Production cutover is allowed only after:
 
 Only then may the platform be changed from authoritative writer to orchestrator/BFF.
 
+## Pre-cutover role certification (MANDATORY precursor to the REVOKE)
+
+The DB-level REVOKE below is meaningful only if the platform and decision-service connect as
+**different** Postgres roles. The repo does not fix this: the platform defaults to `sahool_app`, but
+`DECISION_SERVICE_DATABASE_URL` is empty by default and its role is operator-supplied at cutover.
+**Certify the live topology first** — this tool is read-only (it never runs GRANT/REVOKE), it only
+prints the live privilege matrix:
+
+```bash
+DECISION_SOR_PLATFORM_URL=postgres://sahool_app...      \
+DECISION_SOR_SERVICE_URL=postgres://decision_service... \
+python services/decision-service/decision_sor_role_certify.py
+```
+
+Read the output and confirm, before any REVOKE:
+
+- `role_separation_confirmed: true` — `current_user` differs between the two connections;
+- both roles are `rolsuper: false`, `rolbypassrls: false`;
+- neither app role **owns** the five SoR tables (owner keeps privileges even after REVOKE — the
+  robust target is `table owner = decision_schema_owner` NOLOGIN, `sahool_app` = SELECT-only,
+  `decision_service_app` = DML; this three-role model is a **recommendation**, to be turned into an
+  ADR only if certification shows it is needed, not before);
+- no sequence USAGE or SECURITY DEFINER function leaves the platform role an indirect write path;
+- the platform role cannot `SET ROLE` to a stronger role (empty `memberships_can_set_role_to`).
+
+**If `role_separation_confirmed` is false** (both connections resolve to the same role), do NOT run
+the REVOKE — it would strip writes from both services. Instead: create `decision_service_app`, move
+the decision-service connection to it, prove decision-service works on the new role, and only then
+proceed to the REVOKE below.
+
+## DB-level revocation of platform writes (same-DB topology only)
+
+After the platform is demoted (`SAHOOL_DECISION_WRITE_MODE=decision_service_sor`,
+`DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED=true`), close the dual-write window **at the
+database** — not only in Python. This strips `INSERT/UPDATE/DELETE` from the platform role on the
+five platform-owned SoR tables (`decision_record`, `dispatch_decisions`, `outcome_record`,
+`recommendation_outcomes`, `online_learning_updates`) while **retaining `SELECT`** (the platform
+stays a read-side BFF). The decision-service-owned `decision_outbox_events` is deliberately not
+touched.
+
+```bash
+# Admin URL = a role that OWNS the SoR tables (or superuser) — NOT the platform app role.
+DECISION_SOR_ADMIN_DATABASE_URL=postgres://owner...  \
+DECISION_SOR_PLATFORM_ROLE=sahool_app                \
+DECISION_SERVICE_PRODUCTION_CUTOVER_APPROVED=true    \
+DECISION_SOR_ALLOW_PLATFORM_REVOKE=true              \
+scripts/deploy/decision_sor_platform_revoke.sh revoke
+```
+
+This is a one-shot cutover step, **not** a migration (it lives outside
+`services/decision-service/migrations/`, which run on every schema deploy — a REVOKE there would
+strip platform writes before demotion and break the pre-cutover contract). It is a **no-op in the
+split-DB topology** (the platform has no grant on the decision database) and simply need not be
+run there. The rollback (`decision_sor_platform_revoke.sh rollback`, gated by
+`DECISION_SERVICE_ROLLBACK_APPROVED=true`) is the exact inverse — it re-grants the writes.
+
+After the revoke, verify the pre/post `has_table_privilege` state printed by the tool: every write
+privilege on the five tables is `false` for the platform role, `SELECT` remains `true`.
+
 ## Hard stop
 
 do not demote sahool-platform until migration checks, backfill verification, staging write tests,

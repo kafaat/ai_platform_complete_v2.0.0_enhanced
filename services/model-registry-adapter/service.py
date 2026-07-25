@@ -70,7 +70,10 @@ def resolve_tenants(runtime: LifecycleRuntime) -> list[str]:
     if single:
         return [single]
     discovered = runtime.decision.get(
-        f"/v1/learning/runtime-workers/{runtime.adapter_id}/tenants", None, None
+        f"/v1/learning/runtime-workers/{runtime.adapter_id}/tenants",
+        None,
+        None,
+        as_worker=runtime.adapter_id,
     )
     tenants = [t for t in (discovered or {}).get("tenants", []) if t]
     if not tenants:
@@ -94,7 +97,10 @@ def run_once(runtime: LifecycleRuntime) -> int:
 
 def _run_once_for_tenant(runtime: LifecycleRuntime, tenant: str) -> int:
     batch = runtime.decision.get(
-        "/v1/learning/runtime-work", tenant, {"worker_id": runtime.adapter_id, "limit": 20}
+        "/v1/learning/runtime-work",
+        tenant,
+        {"worker_id": runtime.adapter_id, "limit": 20},
+        as_worker=runtime.adapter_id,
     )
     processed = 0
     for item in batch.get("items", []):

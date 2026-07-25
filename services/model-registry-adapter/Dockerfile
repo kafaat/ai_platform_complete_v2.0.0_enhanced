@@ -1,6 +1,6 @@
 FROM python:3.13-slim
 WORKDIR /app
-COPY adapter.py worker.py runtime.py service.py ./
+COPY adapter.py worker.py runtime.py service.py worker_assertion.py ./
 RUN useradd --system --uid 10001 runtime
 USER 10001
 ENV PYTHONUNBUFFERED=1 PORT=8099

@@ -325,8 +325,8 @@ def test_resolve_tenants_priority_and_server_discovery(monkeypatch):
             self._tenants = tenants
             self.calls = []
 
-        def get(self, path, tenant_id, params=None):
-            self.calls.append((path, tenant_id))
+        def get(self, path, tenant_id, params=None, *, as_worker=None):
+            self.calls.append((path, tenant_id, as_worker))
             return {"worker_id": "w1", "registered": bool(self._tenants), "tenants": self._tenants}
 
     class _Runtime:
@@ -351,7 +351,7 @@ def test_resolve_tenants_priority_and_server_discovery(monkeypatch):
     monkeypatch.delenv("RUNTIME_TENANT_ID", raising=False)
     rt = _Runtime(["t-1", "t-2"])
     assert svc.resolve_tenants(rt) == ["t-1", "t-2"]
-    assert rt.decision.calls == [("/v1/learning/runtime-workers/w1/tenants", None)]
+    assert rt.decision.calls == [("/v1/learning/runtime-workers/w1/tenants", None, "w1")]
 
     # 4) no assignment anywhere = misconfiguration, fail closed.
     import pytest as _pytest
