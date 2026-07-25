@@ -103,6 +103,18 @@ def persist_raster_asset(
             getattr(req, "geometry_revision", None),
         )
         _qa_mask_version = "cloud-mask/1" if bool(getattr(req, "apply_cloud_mask", False)) else None
+        # PR1-b: مزوّد المشهد جزءٌ من الهويّة. المصدر: req.provider الصريح، وإلّا يُشتقّ من
+        # source_format (لا يُدمَج منتجان من مزوّدَين مختلفَين تحت هويّة واحدة).
+        _source_provider_map = {
+            "sentinel2_l2a": "cdse",
+            "sentinel2_l1c": "cdse",
+            "landsat8": "landsat-element84",
+            "drone_orthomosaic": "drone",
+            "custom": "custom",
+        }
+        _provider = getattr(req, "provider", None) or _source_provider_map.get(
+            getattr(getattr(req, "source_format", None), "value", ""), "cdse"
+        )
         _product_identity = ProductIdentity(
             str(req.tenant_id or ""),
             _field_geometry_hash,
@@ -110,6 +122,7 @@ def persist_raster_asset(
             req.indicator.value,
             raster_quality.ALGORITHM_VERSION,
             _qa_mask_version,
+            provider=_provider,
         )
 
         async def _do():
@@ -138,6 +151,8 @@ def persist_raster_asset(
                 # v143 (FINDING-004): مراجعة الهندسة السارية وقت المعالجة (None إن لم تُمرَّر).
                 geometry_revision=getattr(req, "geometry_revision", None),
                 product_identity_key=_product_identity.key(),
+                # dual-read: البصمة القديمة (بلا provider) لترحيل صفٍّ واحد forward-repair.
+                legacy_product_identity_key=_product_identity.legacy_key(),
                 algorithm_version=raster_quality.ALGORITHM_VERSION,
                 qa_mask_version=_qa_mask_version,
                 field_geometry_hash=_field_geometry_hash,

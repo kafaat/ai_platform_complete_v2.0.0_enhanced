@@ -101,10 +101,34 @@ async def _set_tenant(conn: Any, tenant_id: Any) -> None:
         await conn.execute("SELECT set_config('app.current_tenant', $1, true)", str(tenant_id))
 
 
+def _identity(tenant, field, geom_rev, provider, scene, index, processing_version):
+    """المسار الوحيد لبناء هويّة منتج الصور (V8-05 PR1-b) — مُشترَك بين الجماعيّ وsingle_scene."""
+    from imagery_product_identity import ImageryProductIdentity
+
+    return ImageryProductIdentity.create(
+        tenant_id=tenant,
+        field_id=field,
+        geometry_revision=geom_rev,
+        provider=provider,
+        scene_id=scene,
+        product=index,
+        processing_version=processing_version,
+    )
+
+
 def _idempotency_key(
-    tenant: str, field: str, geom_rev, provider: str, scene: str, index: str
+    tenant: str,
+    field: str,
+    geom_rev,
+    provider: str,
+    scene: str,
+    index: str,
+    processing_version: str,
 ) -> str:
-    return f"{tenant}:{field}:{geom_rev if geom_rev is not None else 0}:{provider}:{scene}:{index}"
+    # v213/PR1-b: المفتاح القانونيّ v2 (يشمل processing_version) عبر كائن القيمة الوحيد.
+    return _identity(
+        tenant, field, geom_rev, provider, scene, index, processing_version
+    ).to_canonical_key()
 
 
 # مهلة الإيجار (lease): تشغيلة عالقة في حالة غير نهائيّة أطول من هذا تُعتبر «عاملها مات»
@@ -253,6 +277,10 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
     items_skipped = 0
     import uuid as _uuid
 
+    from imagery_product_identity import canonical_processing_version
+
+    proc_ver = canonical_processing_version()  # من مسار المعالجة القانونيّ لا من العميل
+
     for scene in selected:
         scene_id = scene.get("item_id")
         acq = (scene.get("datetime") or "")[:10] or None
@@ -262,13 +290,27 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
             provider_key = (
                 "landsat-element84" if is_landsat_thermal else (scene.get("provider") or "cdse")
             )
-            key = _idempotency_key(tenant, field, geom_rev, provider_key, scene_id, index)
+            identity = _identity(tenant, field, geom_rev, provider_key, scene_id, index, proc_ver)
+            key = identity.to_canonical_key()
             # v10-F6: set_config(...,true) عابرٌ للمعاملة؛ لذا نُغلّف الضبط + الاستعلامات
             # في معاملة واحدة كي يظلّ app.current_tenant سارياً (يهمّ حين يسقط العامل إلى
             # DATABASE_URL بدور مقيّد بلا BYPASSRLS — وإلّا رأت القراءات صفوفاً صفراً).
             async with pool.acquire() as conn:
                 async with conn.transaction():
                     await _set_tenant(conn, tenant)
+                    # PR1-b dual-read: رحّل عنصراً قديماً (بلا processing_version) مطابقاً إلى
+                    # المفتاح القانونيّ v2 مرّةً واحدةً (single-write) عند إمكان إثبات التطابق دون
+                    # غموض (الإصدار الحاليّ = إصدار الأساس). لا إعادة كتابة جماعيّة.
+                    if identity.legacy_matches_baseline():
+                        await conn.execute(
+                            "UPDATE backfill_run_items SET idempotency_key=$3 "
+                            "WHERE tenant_id=$1::uuid AND idempotency_key=$2 "
+                            "AND NOT EXISTS (SELECT 1 FROM backfill_run_items b2 "
+                            "WHERE b2.tenant_id=$1::uuid AND b2.idempotency_key=$3)",
+                            tenant,
+                            identity.legacy_backfill_key(),
+                            key,
+                        )
                     # v10-F1: preflight يجب أن يطابق «أصلاً جاهزاً بنفس مراجعة الهندسة».
                     # 'stale' (هندسة قديمة بعد تغيّر الحدود) لا يُعدّ «موجوداً» وإلّا مُنِعت
                     # إعادة التوليد وبقيت الصورة مقصوصةً على حدود قديمة للأبد.

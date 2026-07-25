@@ -107,6 +107,7 @@ async def insert_raster_asset(
     geometry_revision: int | None = None,
     asset_status: str = "ready",
     product_identity_key: str | None = None,
+    legacy_product_identity_key: str | None = None,
     algorithm_version: str | None = None,
     qa_mask_version: str | None = None,
     field_geometry_hash: str | None = None,
@@ -196,6 +197,21 @@ async def insert_raster_asset(
             "SELECT set_config('app.current_tenant', $1, false)",
             str(tenant_id) if tenant_id else "",
         )
+        # PR1-b dual-read/single-write: رحّل صفّاً قديماً بهويّة بلا provider إلى الهويّة v2
+        # (بـprovider) مرّةً واحدةً عند إمكان إثبات التطابق دون غموض — كي لا تُنتِج إعادة
+        # المعالجة صفّاً مكرّراً بعد تغيّر البصمة. forward-repair لصفّ واحد، لا إعادة كتابة جماعيّة.
+        if (
+            product_identity_key
+            and legacy_product_identity_key
+            and legacy_product_identity_key != product_identity_key
+        ):
+            await conn.execute(
+                "UPDATE raster_assets SET product_identity_key=$1 "
+                "WHERE product_identity_key=$2 "
+                "AND NOT EXISTS (SELECT 1 FROM raster_assets r2 WHERE r2.product_identity_key=$1)",
+                product_identity_key,
+                legacy_product_identity_key,
+            )
         await conn.execute(
             sql,
             field_id,
@@ -533,10 +549,41 @@ async def enqueue_single_scene_process(
     conn = await _connect()
     if conn is None:
         return None
-    key = f"{tenant_id}:{field_id}:{geometry_revision if geometry_revision is not None else 0}:{provider}:{scene_id}:{index_name}"
+    # PR1-b: المفتاح القانونيّ v2 عبر كائن القيمة الوحيد (يشمل processing_version من مسار
+    # المعالجة القانونيّ لا من العميل) — مطابق تماماً لبناء العامل الجماعيّ.
+    import sys
+    from pathlib import Path as _Path
+
+    _svc = str(_Path(__file__).resolve().parent)
+    if _svc not in sys.path:
+        sys.path.insert(0, _svc)
+    from imagery_product_identity import ImageryProductIdentity, canonical_processing_version
+
+    identity = ImageryProductIdentity.create(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        geometry_revision=geometry_revision,
+        provider=provider,
+        scene_id=scene_id,
+        product=index_name,
+        processing_version=canonical_processing_version(),
+    )
+    key = identity.to_canonical_key()
     try:
         await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
         async with conn.transaction():
+            # PR1-b dual-read: رحّل عنصراً قديماً مطابقاً (بلا processing_version) إلى المفتاح v2
+            # مرّةً واحدةً عند إمكان إثبات التطابق دون غموض (single-write، لا إعادة كتابة جماعيّة).
+            if identity.legacy_matches_baseline():
+                await conn.execute(
+                    "UPDATE backfill_run_items SET idempotency_key=$3 "
+                    "WHERE tenant_id=$1::uuid AND idempotency_key=$2 "
+                    "AND NOT EXISTS (SELECT 1 FROM backfill_run_items b2 "
+                    "WHERE b2.tenant_id=$1::uuid AND b2.idempotency_key=$3)",
+                    str(tenant_id),
+                    identity.legacy_backfill_key(),
+                    key,
+                )
             # ١. preflight: أصلٌ جاهز بنفس مراجعة الهندسة ⇒ لا معالجة جديدة (يطابق منطق العامل).
             ready = await conn.fetchval(
                 "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
