@@ -1986,7 +1986,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1584,
+    "line": 1601,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"
@@ -2338,7 +2338,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 63,
+    "line": 73,
     "method": "GET",
     "path": "/v1/elevation/hillshade/{z}/{x}/{y}.png",
     "function": "hillshade_tile"
@@ -2346,7 +2346,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 77,
+    "line": 87,
     "method": "GET",
     "path": "/v1/slope/{z}/{x}/{y}.png",
     "function": "slope_tile"
@@ -2354,7 +2354,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 91,
+    "line": 101,
     "method": "GET",
     "path": "/v1/terrain/tilejson",
     "function": "terrain_tilejson"
@@ -2362,7 +2362,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/terrain_tiles.py",
-    "line": 146,
+    "line": 156,
     "method": "GET",
     "path": "/v1/fields/{field_id}/contours.geojson",
     "function": "field_contours"

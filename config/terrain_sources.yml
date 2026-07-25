@@ -1,0 +1,73 @@
+# config/terrain_sources.yml
+# ─────────────────────────────────────────────────────────────────────────────
+# سجل مصادر التضاريس متعدّد الدقّة (TERRAIN — قرار المالك المعتمد).
+#
+# القرار: أساسٌ مجانيّ عالميّ بدقّة 30م (Copernicus GLO-30)، مع دعم خرائط 10م/5م
+# موثّقة عند تزويدها أو ترخيصها. الدقّة تُنتقى بالأولويّة:
+#     validated 5م → validated 10م → GLO-30 30م
+#
+# لا ملف DEM واحد صلب: الخدمة تقرأ هذا السجل ويختار resolver أعلى مصدر صالح يغطّي
+# الحقل. عند تزويد خريطة 5م حقيقيّة تُستبدل داخل نطاقها فقط — لا إعادة تصميم، ولا
+# ادّعاء أنّها عالميّة أو مجانيّة.
+#
+# صدق (منع دقّة وهميّة): native_resolution_m مستقلّ عن storage_pixel_size_m. GLO-30
+# المُعاد أخذ عيّناته إلى 5م يبقى effective_resolution_m=30 و is_upsampled=true. كلّ
+# نتيجة مشتقّة تحمل lineage (المصدر + الدقّة الأصلية + المرجع الرأسيّ + التحقّق).
+#
+# الحالة الآن: القدرة الكوديّة مكتملة؛ لا بيانات DEM مُزوَّدة في هذه البيئة ⇒ كلّ
+# المصادر provisioned=false ⇒ المسار fail-closed صادق (computed=false / OPERATOR_BLOCKED).
+# التفعيل مسؤوليّة المشغّل: اضبط provisioned=true + uri (+ coverage_bbox للمساحات المحدّدة).
+# التوافق للخلف: ضبط env ``FIELD_DEM_PATH`` إلى ملفّ موجود يُزوِّد الأساس تلقائيّاً.
+# ─────────────────────────────────────────────────────────────────────────────
+version: 1
+
+# ترتيب الأفضليّة (توثيقيّ — المحرّك يفرزه بـpriority تنازليّاً ثمّ يفحص التغطية والتحقّق).
+selection_policy:
+  - validated_5m
+  - validated_10m
+  - glo30_30m
+
+sources:
+  # الأساس العالميّ المجانيّ — Copernicus GLO-30 (30م، DSM). القرار المعتمد.
+  - id: copernicus-glo30
+    model_type: DSM
+    native_resolution_m: 30
+    coverage_type: global
+    source_kind: public_baseline
+    priority: 100
+    status: active            # القرار المعتمد كأساس عالميّ
+    provisioned: false        # لا بيانات في هذه البيئة — يُفعّلها المشغّل بتزويد uri
+    vertical_datum: EGM2008
+    horizontal_crs: EPSG:4326
+    source_version: glo30-2021
+    uri: null                 # ملفّ محلّيّ أو s3://sahool-terrain/copernicus-glo30/ عند التزويد
+
+  # مصدر 10م موثّق (اختياريّ) — مساحات محدّدة عند التزويد/الترخيص (مثلاً DTM محلّيّ).
+  - id: supplied-10m
+    model_type: DTM
+    native_resolution_m: 10
+    coverage_type: selected_areas
+    source_kind: supplied
+    priority: 200
+    status: supported_not_provisioned
+    provisioned: false
+    vertical_datum: null
+    horizontal_crs: null
+    source_version: null
+    coverage_bbox: null       # [minlon, minlat, maxlon, maxlat] (EPSG:4326) عند التزويد
+    uri: null
+
+  # مصدر 5م موثّق (اختياريّ) — أعلى أولويّة داخل نطاقه فقط (WorldDEM Neo / AW3D / رفع محلّيّ).
+  - id: supplied-5m
+    model_type: DTM
+    native_resolution_m: 5
+    coverage_type: selected_areas
+    source_kind: supplied
+    priority: 300
+    status: supported_not_provisioned
+    provisioned: false
+    vertical_datum: null
+    horizontal_crs: null
+    source_version: null
+    coverage_bbox: null
+    uri: null

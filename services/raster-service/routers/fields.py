@@ -1568,14 +1568,31 @@ async def field_terrain(
         except Exception as e:  # noqa: BLE001 — اشتقاق اختياريّ؛ فشله ⇒ computed=false صريح.
             logger.warning("terrain geometry derive skipped (%s): %s", field_id, e)
 
-    dem_path = os.getenv("FIELD_DEM_PATH") or None
-    result = ta.compute_field_terrain(dem_path, parsed_bbox, poly=poly)
+    # سجل مصادر متعدّد الدقّة (TERRAIN، قرار المالك): resolver يختار أعلى مصدر صالح يغطّي
+    # الحقل (5م→10م→30م). لا مصدر مُزوَّد ⇒ dem_path=None ⇒ يبقى المسار fail-closed صادق،
+    # لكن نُلحِق سياسة الدقّة + سبب الحجب كي يرى المستهلِك القدرة والحالة (OPERATOR_BLOCKED).
+    import terrain_source_registry as tsr
+
+    sources = tsr.load_terrain_sources()
+    resolved = tsr.resolve_terrain_source(
+        sources, field_bbox=parsed_bbox, tenant_id=_REQ_TENANT.get()
+    )
+    dem_path = resolved.get("dem_path")
+    pixel_size = float(resolved.get("native_resolution_m") or 30.0)
+    result = ta.compute_field_terrain(dem_path, parsed_bbox, pixel_size_m=pixel_size, poly=poly)
     if result.get("computed") and (result.get("slope_deg") or {}).get("mean") is not None:
         result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
         # ربط الانحدار بقرارات زراعيّة (خطر تعرية/سيولة/إجراءات) — إرشاديّ، بلا تلفيق.
         agronomy = ta.interpret_terrain_for_agronomy(result)
         if agronomy:
             result["agronomy"] = agronomy
+    # نَسَب المصدر (lineage) — لا يظنّ المستهلِك أنّ 30م هي 5م: الدقّة الأصلية/الفعّالة صريحة.
+    if resolved.get("lineage"):
+        result["terrain_source"] = resolved["lineage"]
+    else:
+        result["terrain_source"] = None
+        result.setdefault("reason", resolved.get("reason"))
+    result["resolution_policy"] = tsr.resolution_policy(sources)
     result["field_id"] = field_id
     return result
 
