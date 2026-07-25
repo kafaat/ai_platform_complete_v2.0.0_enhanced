@@ -4315,7 +4315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12147cb9e03cb2dd76a7a641e3987bdfe680dbff4275b557096169c26014a348"
+          "content": "b703d62847f00363f4f0aefdef0505b86655e643a2faeae3a372574686b4c3c5"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -13265,7 +13265,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "10724b592bef7a5d25c3727b20b48acc4ce9d24962e90783b660fc95f35198db"
+          "content": "946d8cbba1d41b277f4ff6c08a0ef47dca4820f452fe4e0a9cb4422cd7642aaa"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -13495,7 +13495,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15a61da56ab04721a6a01670313ecc9f03bf95c0f0d4f43519084cade0d39f30"
+          "content": "f064c5cf926d167a66be995e2276518f3c67f3392a5bdcd9c9f0e5463296953c"
         }
       ],
       "name": "services/raster-service/test_available_dates_provider_datetime.py",
@@ -15445,6 +15445,36 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "8683041b8d1e18aa2a92c3a7d4ea5dd91f68e75db3183a3a522641fccd717455"
+        }
+      ],
+      "name": "services/sahool-platform/api/food_grain_varieties.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ca3de220d9f81f8f70f9b0fb92aa3167abed6e806915a7045ee0f87be1b50637"
+        }
+      ],
+      "name": "services/sahool-platform/api/food_grain_varieties_verified_v1.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "64818944db1319fc19ce8ff11e6f9293a8807e4213111348a467e929ac1d25f7"
+        }
+      ],
+      "name": "services/sahool-platform/api/food_grain_varieties_verified_v1.schema.json",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "b05186d7bbbfcfd74499178ea72cfcc97b96bd5c0bef350486a60ad930650beb"
         }
       ],
@@ -15565,7 +15595,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a4b84c9ab872dc3c65503f53c81f14543cfc0f910e55102488176e0993689c0"
+          "content": "02fef4f2f46ca340b43d88e21ea3eab79d4eca701f95b7431c04fca9a0b45cb0"
         }
       ],
       "name": "services/sahool-platform/api/imagery_automation.py",
@@ -15955,7 +15985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "360d11ac1d9fa990cf11131863d377f3ea8890a21726a1bd2f1e939a933d67d1"
+          "content": "9acdf1aee74762304ee6370a706af0d0ce70b5385b36b39728ddf2386afd9e8d"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -17865,6 +17895,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "803af1aff5942b4e5c1f4f20b25245fac4c27904241059c819c04eff06a4f7ec"
+        }
+      ],
+      "name": "services/sahool-platform/api/routers/varieties.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "46bc6e09202ccd1e05bc5a7cd75bc655ed6c07c23598759368c1cd2a090e2be8"
         }
       ],
@@ -17985,7 +18025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e101acdad36f2ab4de47f5ac4d219e3423445a3792d0996ca6d4a89d6c4a9daf"
+          "content": "abfafeb64d369faa36624b8dcd25484da55ae85f8999446dbe42861162ce31b1"
         }
       ],
       "name": "services/sahool-platform/api/scheduler.py",
@@ -23955,6 +23995,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "57aa96037c15406bda9513c8d5ce53bffb961632471c9e28d6ab604bc06d09ed"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_food_grain_varieties_catalog.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "addb12643dcd207999fdb13f2b2be569b8c234c92a3c594e507e1163d2c062bf"
         }
       ],
@@ -24129,6 +24179,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_imagery_providers.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "be1ad31e857ad288ad36adf4cc428bb1f58d97c4c4cc7b48b5fcb69488731ac6"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_imagery_sync_24h_cadence.py",
       "type": "file"
     },
     {
@@ -24875,7 +24935,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "90a844794a7c517c9cc583120151f1c2a5589ed042b504794134c307b2d99385"
+          "content": "b8c41c9946f8c421fbe723ab8a7b07643e8344cc0658c6b7317b01fa05135c9d"
         }
       ],
       "name": "services/sahool-platform/tests/test_p2_6_platform_route_budget_reduction.py",
@@ -25459,6 +25519,16 @@
         }
       ],
       "name": "services/sahool-platform/tests/test_scenario_whatif.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d887446975640c34b498756fea5dc675f1501425fdf14580056da2064d98d8e7"
+        }
+      ],
+      "name": "services/sahool-platform/tests/test_scheduler_cluster_singleton.py",
       "type": "file"
     },
     {

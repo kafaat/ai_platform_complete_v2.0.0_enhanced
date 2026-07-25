@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 660,
+  "baseline_python_module_count": 662,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -115,6 +115,7 @@
     "api/field_workspace_completion_contract.py",
     "api/field_workspace_route_contract.py",
     "api/fleet_health.py",
+    "api/food_grain_varieties.py",
     "api/gdd_shadow.py",
     "api/gdd_tracker.py",
     "api/geo_import.py",
@@ -355,6 +356,7 @@
     "api/routers/temporal.py",
     "api/routers/tenant.py",
     "api/routers/trials.py",
+    "api/routers/varieties.py",
     "api/routers/water_balance.py",
     "api/routers/water_harvesting.py",
     "api/routers/water_ledger.py",

@@ -1970,7 +1970,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1429,
+    "line": 1444,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "function": "field_terrain"
@@ -1978,7 +1978,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1478,
+    "line": 1493,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"
@@ -7054,6 +7054,22 @@
     "method": "POST",
     "path": "/api/v1/trials/analyze",
     "function": "analyze_trial"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/varieties.py",
+    "line": 27,
+    "method": "GET",
+    "path": "/api/v1/varieties/food-grains",
+    "function": "food_grain_varieties_endpoint"
+  },
+  {
+    "service": "sahool-platform",
+    "file": "services/sahool-platform/api/routers/varieties.py",
+    "line": 47,
+    "method": "GET",
+    "path": "/api/v1/varieties/food-grains/{variety_id}",
+    "function": "food_grain_variety_detail_endpoint"
   },
   {
     "service": "sahool-platform",

@@ -12914,6 +12914,44 @@
     },
     {
       "approval_required": false,
+      "capability_id": "sahool-platform.varieties.food-grains",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/varieties/food-grains"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
+      "capability_id": "sahool-platform.varieties.food-grains.variety_id",
+      "consumers": [
+        "frontend"
+      ],
+      "curated": false,
+      "derived_from": "route",
+      "entrypoints": [
+        "GET /api/v1/varieties/food-grains/{variety_id}"
+      ],
+      "idempotency_required": false,
+      "kind": "query",
+      "owner": "sahool-platform",
+      "producer": "sahool-platform",
+      "required_context": [
+        "tenant"
+      ]
+    },
+    {
+      "approval_required": false,
       "capability_id": "sahool-platform.vegetation.all_fields",
       "consumers": [
         "frontend"
@@ -17292,20 +17330,20 @@
   ],
   "counts": {
     "backend_components": 32,
-    "capabilities": 845,
+    "capabilities": 847,
     "capabilities_approval_gated": 8,
     "capabilities_field_scoped": 91,
     "capabilities_idempotent": 45,
     "capabilities_season_scoped": 10,
-    "capabilities_tenant_scoped": 453,
+    "capabilities_tenant_scoped": 455,
     "components": 34,
     "cross_service_duplicate_method_paths": 14,
     "duplicate_groups_classified": 14,
     "indicator_products": 34,
     "ownership_conflicts": 0,
-    "route_rows": 1094,
-    "ui_waivers": 50,
-    "unique_method_path": 982
+    "route_rows": 1096,
+    "ui_waivers": 52,
+    "unique_method_path": 984
   },
   "cross_service_duplicate_method_paths": [
     {
@@ -17581,7 +17619,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "256c707e2e7a456b26244b541eb4bd856f1d5f23e64fe91d73ee4fd561a3ec68",
+  "fingerprint": "f03b532da2c33de73f4201b735607a89e581ff78f7b5dc038e107d906c294b93",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
@@ -17986,6 +18024,20 @@
       "owner": "auth",
       "tracking": "U4-WAIVER-REVIEW",
       "waiver_id": "ui-waiver-050"
+    },
+    {
+      "endpoint": "/api/v1/varieties/food-grains",
+      "expires_on": "2026-10-31",
+      "owner": "sahool-platform",
+      "tracking": "variety-card-ui",
+      "waiver_id": "ui-waiver-051"
+    },
+    {
+      "endpoint": "/api/v1/varieties/food-grains/{variety_id}",
+      "expires_on": "2026-10-31",
+      "owner": "sahool-platform",
+      "tracking": "variety-card-ui",
+      "waiver_id": "ui-waiver-052"
     }
   ]
 }

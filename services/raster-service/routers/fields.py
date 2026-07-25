@@ -1414,8 +1414,23 @@ async def field_available_dates(
             provider_error = str(e)[:200]
             logger.warning("provider dates merge skipped (%s): %s", field_id, e)
 
+    # نافذة الشريط الزمنيّ: عند دمج المزوّد (نداء الشريط)، الشريط محكومٌ بالفترة
+    # المختارة (months) — فلا تُعاد تواريخ **معالَجة** أقدم من النافذة، وإلّا ظهر 24
+    # شهراً من backfill سابق رغم اختيار 3/6/12. النداء بلا include_provider (منتقي
+    # المشهد) يبقى بلا قصّ كي يعرض كلّ المشاهد الجاهزة المخزّنة.
+    cutoff: str | None = None
+    if include_provider:
+        import datetime as _dt_win
+
+        cutoff = (
+            (_dt_win.datetime.now(_dt_win.UTC) - _dt_win.timedelta(days=months * 31))
+            .date()
+            .isoformat()
+        )
     dates = []
     for rec in by_date.values():
+        if cutoff is not None and rec["date"] < cutoff:
+            continue
         rec["indices"] = sorted(rec["indices"])
         dates.append(rec)
     dates.sort(key=lambda r: r["date"], reverse=True)
