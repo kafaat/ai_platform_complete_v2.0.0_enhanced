@@ -1202,6 +1202,31 @@
       "evidence": "/api/v1/failures/check"
     },
     {
+      "endpoint": "/api/v1/farm-book/balances",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/balances"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/entries",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/entries"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/export",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/export"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/monthly",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/monthly"
+    },
+    {
+      "endpoint": "/api/v1/farm-book/parties",
+      "audience": "farmer",
+      "evidence": "/api/v1/farm-book/parties"
+    },
+    {
       "endpoint": "/api/v1/farm-ledger/autowrite-preview",
       "audience": "manager",
       "evidence": "/api/v1/farm-ledger/autowrite-preview"
@@ -2557,6 +2582,16 @@
       "evidence": "/api/v1/trials/analyze"
     },
     {
+      "endpoint": "/api/v1/varieties/food-grains",
+      "audience": "agronomist",
+      "evidence": "/api/v1/varieties/food-grains"
+    },
+    {
+      "endpoint": "/api/v1/varieties/food-grains/{variety_id}",
+      "audience": "agronomist",
+      "evidence": "/api/v1/varieties/food-grains/"
+    },
+    {
       "endpoint": "/api/v1/water-balance",
       "audience": "agronomist",
       "evidence": "/api/v1/water-balance"
@@ -2820,31 +2855,6 @@
       "endpoint": "/auth/verify/status",
       "audience": "farmer",
       "evidence": "/auth/verify/status"
-    },
-    {
-      "endpoint": "/api/v1/farm-book/parties",
-      "audience": "farmer",
-      "evidence": "/api/v1/farm-book/parties"
-    },
-    {
-      "endpoint": "/api/v1/farm-book/entries",
-      "audience": "farmer",
-      "evidence": "/api/v1/farm-book/entries"
-    },
-    {
-      "endpoint": "/api/v1/farm-book/monthly",
-      "audience": "farmer",
-      "evidence": "/api/v1/farm-book/monthly"
-    },
-    {
-      "endpoint": "/api/v1/farm-book/balances",
-      "audience": "farmer",
-      "evidence": "/api/v1/farm-book/balances"
-    },
-    {
-      "endpoint": "/api/v1/farm-book/export",
-      "audience": "farmer",
-      "evidence": "/api/v1/farm-book/export"
     }
   ]
 }

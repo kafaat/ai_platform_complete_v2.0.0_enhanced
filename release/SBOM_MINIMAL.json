@@ -4315,7 +4315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b703d62847f00363f4f0aefdef0505b86655e643a2faeae3a372574686b4c3c5"
+          "content": "6376e44ef79db85ac0f762ce7502b0be85758a2d5836396616676c11fed0768c"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -5999,6 +5999,26 @@
         }
       ],
       "name": "frontend/src/sections/UnifiedCabin.tsx",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "76c8659c6a14ee3ca78dabe6b680d79c47e15176df0f84f5039532fac72592a1"
+        }
+      ],
+      "name": "frontend/src/sections/VarietyCatalog.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "60b9ae6bb37699ce8f58d87c0eb0ddd2a6a4113c5c54354c4a1a2d39a819ff86"
+        }
+      ],
+      "name": "frontend/src/sections/VarietyCatalogPage.tsx",
       "type": "file"
     },
     {
