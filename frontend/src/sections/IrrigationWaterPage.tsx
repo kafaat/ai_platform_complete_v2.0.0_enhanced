@@ -10,7 +10,7 @@ import FieldSelector from '../components/FieldSelector';
 import { useSelectedField } from '../hooks/useSelectedField';
 import type { WaterSampleInput } from '../services/api';
 import { ErrorState } from '../components/StateViews';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 const IONS: { key: keyof WaterSampleInput; label: string; hint: string }[] = [
   { key: 'na',     label: 'الصوديوم Na',        hint: 'meq/L' },

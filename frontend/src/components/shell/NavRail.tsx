@@ -7,7 +7,7 @@
 // «رؤوس المجموعات الفارغة»: قسم تُرشَّح كلّ عناصره يُخفى بالكامل.
 // ═══════════════════════════════════════════════════════════════
 import { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import {
   Leaf, LogOut, User, ChevronLeft, ChevronRight, Shield, ChevronDown,
 } from 'lucide-react';

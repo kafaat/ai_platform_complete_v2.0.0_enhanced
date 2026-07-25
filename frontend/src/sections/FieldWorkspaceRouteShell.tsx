@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate } from 'react-router';
 import { ArrowRight } from 'lucide-react';
 import FieldWorkspaceMapCard from './FieldWorkspaceMapCard';
 import FieldWorkspaceTabs from './FieldWorkspaceTabs';

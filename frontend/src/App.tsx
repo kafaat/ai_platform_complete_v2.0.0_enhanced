@@ -5,7 +5,7 @@
 // إعادة كتابة، ويُمكّن الروابط العميقة وزرّ الرجوع، مع حفظ كلّ البوّابات
 // (canAccess + isPageEnabled) كما هي تماماً.
 import { useState, useEffect, Suspense, lazy, useCallback } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router';
 import { Loader2, Shield } from 'lucide-react';
 import { useAuthStore } from './hooks/useAuth';
 import { useFarms } from './hooks/useApi';
