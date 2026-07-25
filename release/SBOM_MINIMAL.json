@@ -10615,6 +10615,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "633ad754983908c2250eb86dea4964f0d68da1475768114e22bb87e9fa83bea8"
+        }
+      ],
+      "name": "services/decision-service/decision_sor_role_certify.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "0079d3b2dfc707f71cdef0b984e10d4536f438055713e156a05a744f92eaa5ff"
         }
       ],
@@ -11139,6 +11149,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_decision_evidence_read.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f222d520fdecac9c963fc7ce353a1bfd33786d9b32f58190fce6863494720379"
+        }
+      ],
+      "name": "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
       "type": "file"
     },
     {

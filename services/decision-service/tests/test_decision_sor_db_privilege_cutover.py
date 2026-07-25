@@ -67,6 +67,10 @@ async def _connect_as(role: str):
 
 async def _drop_roles(admin) -> None:
     for role in (PLATFORM_ROLE, SERVICE_ROLE):
+        # REVOKE errors on a nonexistent role (unlike DROP ROLE IF EXISTS) — skip if absent so the
+        # idempotent pre-create cleanup works on the first run.
+        if not await admin.fetchval("SELECT 1 FROM pg_roles WHERE rolname=$1", role):
+            continue
         for table in psr.PLATFORM_SOR_TABLES:
             await admin.execute(f'REVOKE ALL ON "public"."{table}" FROM "{role}"')
         await admin.execute(f'DROP ROLE IF EXISTS "{role}"')
@@ -102,6 +106,21 @@ async def _insert_error(role: str, table: str):
             return exc
     finally:
         await conn.close()
+
+
+def _is_table_permission_denied(exc) -> bool:
+    """True iff ``exc`` is a table-level GRANT denial — the write boundary we are proving — and NOT
+    an RLS-policy violation or a column constraint.
+
+    Postgres checks table ACL BEFORE row-level security, so a role without the INSERT grant fails
+    with ``permission denied for table ...`` (SQLSTATE 42501), whereas a role that HAS the grant but
+    is blocked by RLS fails with ``new row violates row-level security policy`` (also 42501). Both
+    are ``InsufficientPrivilegeError``; the message distinguishes the grant boundary from RLS."""
+    import asyncpg
+
+    return isinstance(exc, asyncpg.exceptions.InsufficientPrivilegeError) and (
+        "permission denied for table" in str(exc)
+    )
 
 
 def test_privilege_cutover_boundary_is_enforced_by_the_database() -> None:
@@ -143,7 +162,7 @@ def test_privilege_cutover_boundary_is_enforced_by_the_database() -> None:
 
             # Baseline: platform can actually write (INSERT gets past the privilege check).
             base_err = await _insert_error(PLATFORM_ROLE, "decision_record")
-            assert not isinstance(base_err, asyncpg.exceptions.InsufficientPrivilegeError), base_err
+            assert not _is_table_permission_denied(base_err), base_err
 
             # ---- CUTOVER: revoke platform writes + grant service writes ----
             await psr.revoke_platform_writes(admin, PLATFORM_ROLE)
@@ -161,7 +180,7 @@ def test_privilege_cutover_boundary_is_enforced_by_the_database() -> None:
 
             # Behavior: platform write is denied AT THE DATABASE (not a Python guard).
             perr = await _insert_error(PLATFORM_ROLE, "decision_record")
-            assert isinstance(perr, asyncpg.exceptions.InsufficientPrivilegeError), perr
+            assert _is_table_permission_denied(perr), perr
             # Platform read still works.
             pconn = await _connect_as(PLATFORM_ROLE)
             try:
@@ -170,7 +189,7 @@ def test_privilege_cutover_boundary_is_enforced_by_the_database() -> None:
                 await pconn.close()
             # Service write gets PAST the privilege check (fails only on a constraint, if at all).
             serr = await _insert_error(SERVICE_ROLE, "decision_record")
-            assert not isinstance(serr, asyncpg.exceptions.InsufficientPrivilegeError), serr
+            assert not _is_table_permission_denied(serr), serr
 
             # No sequence tied to the SoR tables leaves platform a serial/identity bypass.
             seqs = await admin.fetch(
@@ -207,7 +226,7 @@ def test_privilege_cutover_boundary_is_enforced_by_the_database() -> None:
             # ---- ROLLBACK: restore platform writes ----
             await psr.grant_platform_writes(admin, PLATFORM_ROLE)
             rerr = await _insert_error(PLATFORM_ROLE, "decision_record")
-            assert not isinstance(rerr, asyncpg.exceptions.InsufficientPrivilegeError), rerr
+            assert not _is_table_permission_denied(rerr), rerr
         finally:
             await _drop_roles(admin)
             await admin.close()
