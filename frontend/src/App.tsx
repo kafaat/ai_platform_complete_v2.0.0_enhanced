@@ -74,6 +74,7 @@ const IrrigationPlanPage = lazy(() => import('./sections/IrrigationPlanPage'));
 const WaterTwinPage = lazy(() => import('./sections/WaterTwinPage'));
 const EtcDualPage = lazy(() => import('./sections/EtcDualPage'));
 const CropStatePage = lazy(() => import('./sections/CropStatePage'));
+const VarietyCatalogPage = lazy(() => import('./sections/VarietyCatalogPage'));
 const ScenarioComparePage = lazy(() => import('./sections/ScenarioComparePage'));
 const NlGisPage = lazy(() => import('./sections/NlGisPage'));
 const GisToolsPage = lazy(() => import('./sections/GisToolsPage'));
@@ -148,7 +149,7 @@ export type PageId =
   | 'activities' | 'master-data' | 'documents' | 'governance' | 'admin-runtime' | 'approvals-console' | 'manager-console'
   | 'weather-advice' | 'field-app' | 'command' | 'map-center' | 'tasks-cabin' | 'rec-flow' | 'hybrid-monitor' | 'analyze-cabin' | 'setup-cabin' | 'unified-cabin' | 'field-ranking' | 'problem-fields' | 'economics' | 'yield-analysis' | 'phenology' | 'scouting' | 'prescriptions' | 'advisory-report'
   | 'operations-wall' | 'sql-workspace' | 'gis-tools' | 'gis-expert' | 'season-record-entry'
-  | 'agro-zones' | 'yemeni-calendars' | 'climate-analogs';
+  | 'agro-zones' | 'yemeni-calendars' | 'climate-analogs' | 'varieties';
 
 // ملاحظة ترحيل: FEATURE_FLAGS و isPageEnabled انتقلا إلى `lib/featureFlags.ts`،
 // وبنية القائمة (المجموعات) انتقلت إلى سجلّ المسارات `lib/routes.ts` (بنية معلومات
@@ -351,6 +352,7 @@ export default function App() {
       case 'water-twin': return <WaterTwinPage />;
       case 'etc-dual': return <EtcDualPage />;
       case 'crop-state': return <CropStatePage />;
+      case 'varieties': return <VarietyCatalogPage />;
       case 'scenario-compare': return <ScenarioComparePage />;
       case 'nl-gis': return <NlGisPage />;
       case 'sql-workspace': return <SQLWorkspacePage />;
