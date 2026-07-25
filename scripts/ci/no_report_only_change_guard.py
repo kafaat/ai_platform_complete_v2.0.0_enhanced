@@ -33,6 +33,11 @@ SUBSTANTIVE_PREFIXES = (
     ".github/workflows/",
     "docs/runbooks/",
     "certification/evidence/",
+    # SQL migrations are schema/data code — a migration-only fix (e.g. making a
+    # DDL statement idempotent) is substantive, not a report. Without this, any
+    # PR that only touches migrations/ + regenerates the release bundle would be
+    # wrongly blocked as "report-only".
+    "migrations/",
 )
 SUBSTANTIVE_EXACT = {"requirements.services.direct.lock", "REPORT_INDEX.md"}
 
