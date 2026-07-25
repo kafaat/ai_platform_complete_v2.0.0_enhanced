@@ -4315,7 +4315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6376e44ef79db85ac0f762ce7502b0be85758a2d5836396616676c11fed0768c"
+          "content": "8b58b7e3e14f47d4168e0cf735696c644749cf37fa15ae9b7e66144e18b13f90"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -7839,6 +7839,16 @@
         }
       ],
       "name": "migrations/v212_farm_book_one_reversal_index.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3a7db18c4c79a16603d5cd73039a67ab42e5a46e72bbcdd410009dac3d3918c"
+        }
+      ],
+      "name": "migrations/v213_backfill_runs_single_scene.sql",
       "type": "file"
     },
     {
@@ -25715,7 +25725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3088b57f3cd38f0e19a5f13085d705dfca3a36900bff9e82ce1395251bd3ecf"
+          "content": "fe4fe64e5bd86b5a17a9ad7db6facb476cf39881de50a0402b75c630de528ea0"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",
