@@ -135,7 +135,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6cae588efb34015549c7761cbcc611314262e652c7c4f413ae829991a88a482b"
+          "content": "bd0dd1cefce86e452f312ca24020355241343daa4ef858c6d55243aa7fbab073"
         }
       ],
       "name": "docker-compose.v9.yml",
@@ -10615,7 +10615,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6cde054c8dd93ab9b96a9d84323948ed22619832af81facd925dc8795d2314e8"
+          "content": "0079d3b2dfc707f71cdef0b984e10d4536f438055713e156a05a744f92eaa5ff"
         }
       ],
       "name": "services/decision-service/main.py",
@@ -10955,6 +10955,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "4086bae76f5254507845e9a0b04aff282ad3b05aa643b9cf5dec9b68228b71f3"
+        }
+      ],
+      "name": "services/decision-service/platform_sor_revoke.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "03f1d3503470eab04715ede9d699a73b332712f5e489fe12963114fdaf52ff60"
         }
       ],
@@ -10985,7 +10995,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "15063b1390f64e83cab98ff08838c29b9e0156ac7a8320963da774ea1316ba0d"
+          "content": "9571b0049b463ce9153fbf3e5b0a18609fddf17bc3e54da02f17e47d3a60bf40"
         }
       ],
       "name": "services/decision-service/rollback.py",
@@ -11209,6 +11219,16 @@
         }
       ],
       "name": "services/decision-service/tests/test_p4_decision_service_runtime.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "444e7dcc24c4d5b1ed712d546336e9406354b0b56ad1a7d5cc87838bd0f7a95f"
+        }
+      ],
+      "name": "services/decision-service/tests/test_platform_sor_revoke_pg.py",
       "type": "file"
     },
     {
@@ -12415,7 +12435,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b27d63d2416e6a937bac60aa213c5c514a4542e5a32a2a667f04cd62646dd7c"
+          "content": "3bfd0a2bf1b201c2e76e42722336ef3611e076e07ffb4716eeb8ffa60fbe9ea3"
         }
       ],
       "name": "services/model-registry-adapter/Dockerfile",
@@ -12435,7 +12455,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e29def4a3459018f4fa40cb45cc8df2c26cb8e545323d75345d209a1ef323bf3"
+          "content": "18084992e99b3c4a28f31111a3413a03b3abd5f5a9e5d4b7934884ed3a71d5d0"
         }
       ],
       "name": "services/model-registry-adapter/runtime.py",
@@ -12445,7 +12465,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fe0feb22d2563dde46f7a69f99177b736f23d5b7feb35f7b0c8fb708bc662268"
+          "content": "2be7d3f9ab747541fcee945e05a66b1c59b67c5eaa494ae49321f81b2cf521e1"
         }
       ],
       "name": "services/model-registry-adapter/service.py",
@@ -12465,7 +12485,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "ba6390ac977f9026adcb597464a52bc5e52cba9a7dc18cdccd48a231ea63f4f4"
+          "content": "18279a470f4d8ca56d45ea6ca2072afb6807a68c7dd8059740da2b695b8a8589"
         }
       ],
       "name": "services/model-registry-adapter/tests/test_runtime_contract.py",
@@ -15095,7 +15115,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "83f80fe632d4868340472b7888bb6da7df717e38f58104bd2b2ab4fb06925a10"
+          "content": "c6c350ff02069a0fc6a8348037e7e6553fb3a497f5e2429ba09c607e6d752beb"
         }
       ],
       "name": "services/sahool-platform/api/decision_sor_mode.py",

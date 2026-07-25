@@ -43,12 +43,24 @@ checks = {
         # F-09: authoritative mode without a configured bearer token must not be "ready".
         "auth_token_missing_in_sor",
         "DECISION_REQUIRE_AUTH_TOKEN",
+        # WORKER-IDENTITY-BINDING: the worker-driven endpoints must verify the caller IS the
+        # worker_id (request-scoped signed assertion) before trusting it as a free input.
+        "_verify_worker_identity",
+        "DECISION_WORKER_ASSERTION_KEY",
+        "X-Worker-Assertion",
+    ],
+    # WORKER-IDENTITY-BINDING: the vendored signer (byte-compatible with the shared verifier,
+    # pinned by tests/test_worker_assertion_interop.py).
+    "services/model-registry-adapter/worker_assertion.py": [
+        "def create_worker_assertion",
     ],
     "services/model-registry-adapter/service.py": [
         "def resolve_tenants",
         "RUNTIME_TENANT_IDS",
         "/v1/learning/runtime-workers/",
         "no tenant assignment",
+        # The two worker-driven GETs sign as the worker.
+        "as_worker=runtime.adapter_id",
     ],
     # Deployment binding (operational-trace audit): the WX-12 adapter must stay wired
     # into compose as its own opt-in service — not just exist as unshipped code next to
@@ -65,6 +77,16 @@ checks = {
         "test_strict_mode_denies_unknown_workers",
         "test_command_ledger_is_append_only_with_constraint_checks",
         "test_feed_enforces_worker_partition_end_to_end",
+    ],
+    # WORKER-IDENTITY-BINDING behavior proofs: server rejects a caller that cannot prove it is
+    # the worker_id; the vendored signer round-trips through the shared verifier.
+    "services/decision-service/tests/test_worker_identity_binding.py": [
+        "test_other_worker_subject_is_rejected",
+        "test_production_without_key_is_503",
+    ],
+    "tests_v9/test_worker_assertion_interop.py": [
+        "test_signed_assertion_verifies_with_shared_module",
+        "test_tampered_subject_fails_shared_scope_check",
     ],
 }
 

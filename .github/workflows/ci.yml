@@ -872,6 +872,11 @@ jobs:
       - name: loop-tables + websocket governance guards
         working-directory: services/decision-service
         run: pytest tests/test_loop_tables_and_ws_guard.py -q -p no:cacheprovider
+      # WORKER-IDENTITY-BINDING: the worker-driven endpoints must verify the caller IS the
+      # worker_id (request-scoped signed assertion) before trusting it. Pure decision, no DB.
+      - name: worker-identity binding fail-closed
+        working-directory: services/decision-service
+        run: pytest tests/test_worker_identity_binding.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->

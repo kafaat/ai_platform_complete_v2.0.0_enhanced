@@ -63,19 +63,56 @@ def _json_request(
 
 
 class DecisionClient:
+    # WORKER-IDENTITY-BINDING: the worker's service identity, matching the decision-service
+    # WORKER_ASSERTION_SERVICE constant. The worker signs an X-Worker-Assertion binding its
+    # worker_id (subject) + method + path + request_id so it can only act as ITSELF.
+    WORKER_ASSERTION_SERVICE = "model-registry-adapter"
+
     def __init__(self) -> None:
         self.base = _env("DECISION_SERVICE_URL", "http://sahool-decision-service:8160").rstrip("/")
         self.token = _env("DECISION_SERVICE_TOKEN", required_prod=True)
         self.timeout = float(_env("DECISION_SERVICE_TIMEOUT_SECONDS", "15"))
+        # Fail-open when unset (dev / single-tenant installs). Required in production is enforced
+        # server-side (503 when the server has a key but the caller cannot sign a valid assertion).
+        self.worker_assertion_key = _env("DECISION_WORKER_ASSERTION_KEY")
+        self.worker_assertion_key_id = _env("DECISION_WORKER_ASSERTION_KEY_ID", "current")
+
+    def _worker_headers(self, method: str, path: str, worker_id: str) -> dict[str, str]:
+        """Sign the request as ``worker_id``. Empty (no assertion) when no key is configured."""
+        if not self.worker_assertion_key:
+            return {}
+        import uuid
+
+        from worker_assertion import create_worker_assertion
+
+        request_id = uuid.uuid4().hex
+        assertion = create_worker_assertion(
+            self.worker_assertion_key,
+            self.WORKER_ASSERTION_SERVICE,
+            worker_id,
+            key_id=self.worker_assertion_key_id,
+            method=method,
+            path=path,
+            request_id=request_id,
+        )
+        return {"X-Worker-Assertion": assertion, "X-Request-Id": request_id}
 
     def get(
-        self, path: str, tenant_id: str | None, params: dict[str, Any] | None = None
+        self,
+        path: str,
+        tenant_id: str | None,
+        params: dict[str, Any] | None = None,
+        *,
+        as_worker: str | None = None,
     ) -> dict[str, Any]:
         # drop None values: urlencode would serialize them as the literal string "None".
         clean = {k: v for k, v in (params or {}).items() if v is not None}
         query = "" if not clean else "?" + urllib.parse.urlencode(clean)
         # tenant-less GETs (e.g. worker tenant discovery) must not send a literal "None".
         headers = {"X-Tenant-Id": tenant_id} if tenant_id else {}
+        # WORKER-IDENTITY-BINDING: sign over the bare path (no query — matches request.url.path).
+        if as_worker:
+            headers.update(self._worker_headers("GET", path, as_worker))
         return _json_request(
             "GET",
             self.base + path + query,
