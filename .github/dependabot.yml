@@ -2,6 +2,9 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    # توجيه صريح إلى main (لا الفرع الافتراضيّ للمستودع): تحديثات التبعيّات تُفتَح
+    # على الخطّ الرئيس مباشرةً بدل فرع العمل، فتُدمَج تحت Ratchet كأيّ تغيير آخر.
+    target-branch: "main"
     schedule:
       interval: "weekly"
       day: "sunday"
