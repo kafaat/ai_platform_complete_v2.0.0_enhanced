@@ -30,6 +30,20 @@ def test_unique_decisions_unmasks_double_count():
     assert out["unique_decisions"] == 1
 
 
+def test_by_kind_dedups_shared_decision_id():
+    # B3: قرارٌ موصوفٌ في الجدولَين لا يُحسَب مرّتَين في by_kind/النسبة المنشورة —
+    # يُدمَج بمفتاح decision_id (أولويّة outcome_record). صفوف بلا مفتاح تُعدّ منفردةً.
+    orows = [{"decision_id": "d1", "success": True}]
+    rrows = [
+        {"decision_id": "d1", "outcome": "success"},
+        {"outcome": "failed"},
+    ]  # d1 مكرَّر + keyless
+    out = reconcile_outcomes(orows, rrows)
+    assert out["by_kind"] == {"success": 1, "failure": 1, "unknown": 0}  # d1 مرّة، keyless مرّة
+    assert out["evaluated_count"] == 2
+    assert out["success_rate"] == 0.5  # ليست 0.667 (لا عدّ مزدوج لـd1)
+
+
 def test_recommendation_success_from_text_and_yield():
     rrows = [
         {"decision_id": "d1", "outcome": "success"},  # نصّ

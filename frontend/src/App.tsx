@@ -55,7 +55,6 @@ const SignupPage          = lazy(() => import('./pages/SignupPage'));
 const AcceptInvitationPage = lazy(() => import('./pages/AcceptInvitationPage'));
 const DashboardPage       = lazy(() => import('./sections/DashboardPage'));
 const SatellitePage       = lazy(() => import('./sections/SatellitePage'));
-const FieldManagementPage = lazy(() => import('./sections/FieldManagementPage'));
 const MyFieldsPage        = lazy(() => import('./sections/MyFieldsPage'));
 const AnalyticsPage       = lazy(() => import('./sections/AnalyticsPage'));
 const AlertSystemPage     = lazy(() => import('./sections/AlertSystemPage'));
@@ -107,7 +106,6 @@ const GovernancePage      = lazy(() => import('./sections/GovernancePage'));
 const FarmCreatePage      = lazy(() => import('./sections/FarmCreatePage'));
 const FieldAppPreview     = lazy(() => import('./sections/FieldAppPreview'));
 const OperationCommand    = lazy(() => import('./sections/OperationCommand'));
-const FieldMapCenter      = lazy(() => import('./sections/FieldMapCenter'));
 // Map Hub الموحّد (المرحلة 1) — السطح الأساسيّ «الحقول والخريطة» طراز FieldView:
 // قائمة حقول باحثة + خريطة طبقات/مقارنة/رسم/دبابيس + درج تفاصيل + إنشاء داخل المركز،
 // مع وضع تضاريس 3D كسول. يَخلُف FieldManagementPage كافتراضيّ لصفحة fields.

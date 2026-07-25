@@ -525,7 +525,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb34c6e94d2917e1a987ec9c91b643396ad921fde62e45c56595c224ec0e0705"
+          "content": "e903da126afe38fed1f3570aab3a3b84ac03361bd1de05e426a9fc70ce00dfa8"
         }
       ],
       "name": "frontend/src/App.tsx",
@@ -1695,7 +1695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7e5a60bf9a635fca6bf7a288af96346239e81fd302bd8bbe421cf92434b47f8c"
+          "content": "fe2bd4010d44e0c2f03417e7722351ed0c1df39c5e63263d7f418da28355b284"
         }
       ],
       "name": "frontend/src/components/maphub/HubMap.tsx",
@@ -5535,7 +5535,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c8442e7c95bf639f5d4618d63ea0a8ddd4bfcdf2c365d2138d62a55df849cb4a"
+          "content": "94779510b46837148da2f21f723d9f4f3481b53f3afc536c139d459b6c462824"
         }
       ],
       "name": "frontend/src/sections/MapHub.tsx",
@@ -5559,6 +5559,16 @@
         }
       ],
       "name": "frontend/src/sections/MapHubSatelliteDefault.static.test.ts",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1ef8bafd9074a598186aad9546f117e59b8677d70fb9858e63ccfa82f4203596"
+        }
+      ],
+      "name": "frontend/src/sections/MapHubScoutingPinsPersistence.static.test.ts",
       "type": "file"
     },
     {
@@ -10915,7 +10925,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1c8b873f563e55ff9a5c0e62daaee03ae187769971f7cc0d643696c71fa1d06c"
+          "content": "392f968f875f2591a4f8f561751dde311265b4ea7df71dd16898c160a7df881e"
         }
       ],
       "name": "services/decision-service/outcome_reconcile.py",
@@ -11175,7 +11185,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "04c088e6d5b8bfae384b7319b83aeffbc3cff1524bbd3ec5ea174162381f410c"
+          "content": "12fd1183ed29cd289055cdc69b4e3fca538f6985c5880c215de5fe2bcc4bcabc"
         }
       ],
       "name": "services/decision-service/tests/test_outcome_reconcile.py",
@@ -17095,7 +17105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "eb148187a72189d6eff3ecd5c3e8a64e453a9b777589a69929f853a757c84bd2"
+          "content": "dd24c3b5df3c4fd573d99668959d688b5cf4431c6155e9da6a8ba29956dc0652"
         }
       ],
       "name": "services/sahool-platform/api/routers/fields.py",
@@ -27785,7 +27795,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7a0b46a04477c2bc338d6cb075925090f8dc42da75a28468eb4d927b07623adf"
+          "content": "7dbb0ecf2ef69852f53c664a5e471d68c7c402208beae9997751a7810b9ac659"
         }
       ],
       "name": "services/vegetation-analysis-service/routers/analysis.py",

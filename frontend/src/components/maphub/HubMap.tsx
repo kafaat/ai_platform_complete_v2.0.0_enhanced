@@ -10,7 +10,7 @@
 //
 // صدق البيانات: الحقول/الحدود من useFieldOptions الحيّة. بلاطات المؤشّر مقصوصة
 // على الحقل من الخلفيّة (errorTileUrl شفّاف يتفادى 404 صاخب). الدبابيس حالة
-// محلّيّة (لا نقطة قراءة scouting في الخلفيّة — موثّق في MapHub بـTODO).
+// دبابيس دائمة (v94): GET /api/v1/scouting/pins + POST /fields/{id}/pins — تُجلَب وتُحفَظ.
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {

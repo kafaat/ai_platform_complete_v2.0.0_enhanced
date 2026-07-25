@@ -10,7 +10,7 @@
 //   • مبدّلات الطبقات (NDVI/NDMI/الملوحة + المرتفعات/التربة كطبقات وصفيّة) عبر
 //     LayerSwitcher + ColormapLegend، وشريط شفّافيّة.
 //   • مقارنة جنباً لجنب (SideBySide) لطبقتين حقيقيّتين لنفس الحقل.
-//   • رسم/قياس (turf) + دبابيس استكشاف (حالة محلّيّة — لا نقطة قراءة scouting خلفيّة).
+//   • رسم/قياس (turf) + دبابيس استكشاف دائمة (v94 — تُجلَب/تُحفَظ على الخادم، RLS).
 //   • درج تفاصيل الحقل المنزلق (تحرير + ملخّص الموسم) — FieldDetailDrawer.
 //   • إنشاء/استيراد حقل داخل المركز (AddFieldWithMap).
 //   • مبدّل وضع 2D / تضاريس(3D) — العرض ثلاثيّ الأبعاد مقسوم بالكود (React.lazy).
@@ -83,7 +83,8 @@ import GisTemporalOpsCard from '../components/fieldview/GisTemporalOpsCard';
 import LearningEvidenceCard from '../components/fieldview/LearningEvidenceCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
-import { useCropScoutingIssues } from '../hooks/useScouting';
+import { useCropScoutingIssues, useScoutingPins, useCreateScoutingPin } from '../hooks/useScouting';
+import type { ScoutingPinRecord } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
@@ -415,7 +416,24 @@ function MapHubCore() {
   const [zoneRateUnit, setZoneRateUnit] = useState('kg/ha');
   const [zoneSyncBusy, setZoneSyncBusy] = useState(false);
   const [pivotSyncBusy, setPivotSyncBusy] = useState(false);
-  const [pins, setPins] = useState<ScoutPin[]>([]);
+  // دبابيس الاستكشاف الدائمة (v94): تُجلَب من الخادم وتُحفَظ (RLS، معزولة بالمستأجِر)
+  // فتبقى عبر الجلسات والأجهزة — لا حالة جلسة محلّيّة. نمط SatellitePage: مُخزَّنة من
+  // الخادم + تفاؤليّة محلّيّة تُدمَج بلا تكرار حتى تظهر من إعادة الجلب. صدق: القاعدة غير
+  // مفعّلة ⇒ pins:[] + note_ar (لا اختراع مشاهدات).
+  const scoutingPinsQ = useScoutingPins(fieldId);
+  const createScoutPin = useCreateScoutingPin(fieldId);
+  const [optimisticPins, setOptimisticPins] = useState<ScoutPin[]>([]);
+  useEffect(() => { setOptimisticPins([]); }, [fieldId]);
+  const serverPins = useMemo<ScoutPin[]>(
+    () => (scoutingPinsQ.data?.pins ?? []).map((r: ScoutingPinRecord) => ({
+      id: r.pin_id, lat: r.lat, lng: r.lng, note: r.note_ar ?? '', category: r.issue_category,
+    })),
+    [scoutingPinsQ.data],
+  );
+  const pins = useMemo<ScoutPin[]>(() => {
+    const ids = new Set(serverPins.map((p) => p.id));
+    return [...serverPins, ...optimisticPins.filter((p) => !ids.has(p.id))];
+  }, [serverPins, optimisticPins]);
   const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
   // ── v2: لقطة عرض الخريطة (مركز lat/lng + تكبير) — تُستعاد وتُلتقط من الخريطة ──
   const [mapView, setMapView] = useState<SahoolMapView | null>(savedWorkspace?.mapView ?? null);
@@ -1384,18 +1402,23 @@ function MapHubCore() {
     };
   }, [selected, selectedPoint, weatherQ.data]);
 
-  // ── دبابيس الاستكشاف (حالة محلّيّة) ──────────────────────────
-  // TODO(maphub-scouting): الخلفيّة تعرض إنشاء استكشاف (POST) فقط بلا نقطة قراءة
-  // (GET) تُرجع قائمة مُخزَّنة — موثّق في hooks/useScouting.ts. لذا الدبابيس حالة
-  // محلّيّة (جلسة) لا تُحفَظ بعد. اربطها بـPOST /scouting حين تتوفّر قراءة مقابلة.
+  // ── دبابيس الاستكشاف (دائمة، v94 — تُحفَظ على الخادم) ──────────────
+  // الإضافة: دبّوس تفاؤليّ محلّيّ فوريّ + POST /api/v1/fields/{id}/pins (idempotent عبر
+  // pin_id)؛ نجاح الطلب يُبطِل مخبّأ useScoutingPins ⇒ إعادة جلب فتظهر مُخزَّنة، والفشل
+  // ⇒ تراجُع فوريّ عن التفاؤليّ. لا حقل مختار ⇒ عرض تفاؤليّ فقط (لا وجهة حفظ).
   const handleAddPin = useCallback((lat: number, lng: number) => {
-    setPins((prev) => [
-      ...prev,
-      { id: `pin_${Date.now()}_${prev.length}`, lat, lng, note: '', category: pinCategory },
-    ]);
-  }, [pinCategory]);
+    const pinId = `pin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    setOptimisticPins((prev) => [...prev, { id: pinId, lat, lng, note: '', category: pinCategory }]);
+    if (!fieldId) return;
+    createScoutPin.mutate(
+      { pin_id: pinId, field_id: fieldId, lat, lng, issue_category: pinCategory, note_ar: null },
+      { onError: () => setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId)) },
+    );
+  }, [pinCategory, fieldId, createScoutPin]);
 
-  const handleClearPins = useCallback(() => setPins([]), []);
+  // «مسح» يُزيل الدبابيس التفاؤليّة غير المُثبَّتة بعد فقط — المُخزَّنة على الخادم دائمة
+  // (لا نقطة حذف جماعيّ). صدق: لا يُدَّعى أنّه يحذف المُخزَّنة.
+  const handleClearPins = useCallback(() => setOptimisticPins([]), []);
 
   // ── v37-v41: تحميل تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة + الطابور المحلي للحقل المختار ───────
   useEffect(() => {
@@ -2661,7 +2684,7 @@ function MapHubCore() {
                       </button>
                     )}
                     <span className="text-[11px]" style={{ color: T.faint }}>
-                      (محلّيّة — لا تُحفَظ بعد؛ بانتظار نقطة قراءة استكشاف خلفيّة)
+                      (تُحفَظ على الخادم وتبقى عبر الجلسات؛ «مسح» يزيل غير المحفوظ فقط)
                     </span>
                   </div>
                 )}

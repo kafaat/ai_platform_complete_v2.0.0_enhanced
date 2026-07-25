@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from datetime import date, timedelta
 
 import main
@@ -146,12 +147,24 @@ async def all_fields(token: str = Depends(main.security)):
     claims = main._verify_claims(token)
     tenant_id = main._tenant_from_claims(claims)
     catalog = await main.list_fields_from_platform(tenant_id)
+    # كلّ حقل يستدعي raster-service (HTTP، مهلة 15s)؛ الحلقة التسلسليّة تعني N جولات
+    # متتابعة (أسوأ حالة N×15s). نُجريها بتزامن محدود (Semaphore=8) — نفس النتائج، زمن
+    # جدار = أبطأ سلسلة لا مجموعها. الترتيب محفوظ عبر zip مع القائمة المُصفّاة.
+    valid = [
+        (fid, item)
+        for item in catalog
+        if (fid := str(item.get("id") or item.get("field_id") or "").strip())
+    ]
+    _sem = asyncio.Semaphore(8)
+
+    async def _observe(fid: str):
+        async with _sem:
+            observed, _reason = await main._current_ndvi_from_raster(fid, tenant_id=tenant_id)
+            return observed
+
+    observed_all = await asyncio.gather(*[_observe(fid) for fid, _ in valid])
     fields_out = []
-    for item in catalog:
-        fid = str(item.get("id") or item.get("field_id") or "").strip()
-        if not fid:
-            continue
-        observed, _reason = await main._current_ndvi_from_raster(fid, tenant_id=tenant_id)
+    for (fid, item), observed in zip(valid, observed_all, strict=True):
         value = observed.get("value") if observed else None
         health = main._health_classification(value, 0.5) if value is not None else None
         fields_out.append(
