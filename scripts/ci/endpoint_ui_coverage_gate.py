@@ -193,8 +193,24 @@ def run_reverse_gate() -> int:
     cfg = load_config()
     corpus = collect_frontend_corpus()
     routes = collect_backend_routes()
-    core = {e["endpoint"] for e in cfg["core_endpoints"]}
+    core_entries = {e["endpoint"]: e for e in cfg["core_endpoints"]}
+    core = set(core_entries)
     waived = load_waivers()
+
+    def _covered(path: str) -> bool:
+        """المسار مغطّى بالعقد إن كان core و: له دليل واجهة ذاتيّ، أو دليل واجهة downstream.
+
+        منتِج (مثل حدّ crop→decision candidate) واجهتُه الحقيقيّة هي السطح الـdownstream الذي
+        يستهلك مخرجَه (طابور مراجعة مركز القرار). عندئذٍ لا يظهر جذعُه في الواجهة، لكن سطحه
+        الـdownstream (`downstream_surface`) يظهر — فيُعدّ مغطّى بلا إعفاء. البوّابة الأماميّة
+        تتحقّق أصلاً من وجود `evidence` نصّيّاً؛ هنا نقبل الدليل الـdownstream الصريح كذلك.
+        """
+        if path not in core_entries:
+            return False
+        if has_frontend_evidence(path, corpus):
+            return True
+        ds = core_entries[path].get("downstream_surface")
+        return bool(ds) and ds in corpus
 
     escapes: list[str] = []
     stale_waivers: list[str] = []
@@ -203,8 +219,8 @@ def run_reverse_gate() -> int:
         audience = classify(path, cfg["classifications"])
         if audience not in USER_FACING_AUDIENCES:
             continue  # داخليّ/عامل — تحرسه بوّابة عقود الخدمات المنفصلة.
-        if path in core and has_frontend_evidence(path, corpus):
-            continue  # مغطّى بالعقد + دليل واجهة فعليّ.
+        if _covered(path):
+            continue  # مغطّى بالعقد (دليل ذاتيّ أو downstream فعليّ).
         if path in waived:
             continue  # مُعفى صراحةً بسبب مُوثَّق.
         methods = "+".join(sorted(routes[path]))
@@ -215,7 +231,7 @@ def run_reverse_gate() -> int:
     for ep in sorted(waived):
         if ep not in live:
             stale_waivers.append(f"  ⚠ إعفاء لمسار غير موجود: {ep}")
-        elif ep in core and has_frontend_evidence(ep, corpus):
+        elif _covered(ep):
             stale_waivers.append(f"  ⚠ إعفاء لمسار صار مغطّى (انقله من الإعفاءات): {ep}")
 
     if escapes:
