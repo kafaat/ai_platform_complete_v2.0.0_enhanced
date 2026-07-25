@@ -227,6 +227,60 @@ async def test_degraded_gdd_quality_preserved(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_candidate_declares_spectral_trust_basis(monkeypatch):
+    """DECISION-CENTER-UNIFY-01: the candidate evidence declares its spectral trust basis.
+
+    In the unit path the server-authoritative spectral read is off (default), so the
+    provenance is honestly ``client`` and NOT flagged unverified (no attempt was made) —
+    the reviewer/policy at decision-service can read this from the candidate evidence.
+    """
+    _patch_gdd(monkeypatch)
+    out = await crop_decision_candidate_endpoint(req=_req(submit=False), user=_USER)
+    prov = out["candidate"]["evidence"]["spectral_provenance"]
+    assert prov["source"] == "client"
+    assert prov["unverified"] is False
+    # not flagged as unverified ⇒ no spectral limitation injected (no fabricated warning).
+    assert "client_supplied_spectral_unverified" not in out["candidate"]["limitations"]
+
+
+def test_unverified_spectral_flag_flows_into_lineage():
+    """Pure builder: client-supplied-unverified spectral ⇒ a limitation that flows into
+    candidate lineage (an unverified candidate is distinct from a server-authoritative one)."""
+    import api.crop_decision_bridge as b
+
+    ci = {
+        "field_id": "f-1",
+        "season_id": "s-1",
+        "recommendation_context": {
+            "decision_boundary": {
+                "is_decision": False,
+                "consumer": "decision-service",
+                "approval_required": True,
+            }
+        },
+    }
+    gdd = {
+        "accumulated_gdd": 100.0,
+        "gdd_lineage_id": "gddseq/x",
+        "contributing_state_ids": ["s0"],
+    }
+    verified = b.build_crop_decision_candidate(
+        ci, gdd_product=gdd, spectral_provenance={"source": "raster-service", "unverified": False}
+    )
+    unverified = b.build_crop_decision_candidate(
+        ci, gdd_product=gdd, spectral_provenance={"source": "client", "unverified": True}
+    )
+    assert "client_supplied_spectral_unverified" in unverified["limitations"]
+    assert "client_supplied_spectral_unverified" not in verified["limitations"]
+    # provenance is lineage-affecting (via the limitation) — distinct trust bases, distinct id.
+    assert verified["candidate_lineage_id"] != unverified["candidate_lineage_id"]
+    assert unverified["evidence"]["spectral_provenance"] == {
+        "source": "client",
+        "unverified": True,
+    }
+
+
+@pytest.mark.asyncio
 async def test_submit_rejected_by_default_fail_closed(monkeypatch):
     """DECISION-CENTER-UNIFY-01: submit=True is refused (403) unless the escape flag is set."""
     from fastapi import HTTPException

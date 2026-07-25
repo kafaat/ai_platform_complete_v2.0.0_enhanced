@@ -900,3 +900,9 @@ SHAs من `git log --oneline origin/main`.
 - **القرار:** بناء نصف «الجمع» المفقود كوحدة نقيّة في المنصّة تُغذّي `compose_agronomic_context` القائم (لا جامع موازٍ في decision-service، لا استيراد داخليّات عبر الحدّ) — راية default-off، fail-closed، تركيب لا كتابة.
 - **السبب:** تدقيق الذكاء الزراعيّ حدّد P0-3 كأخطر فجوة (أهمّ من أيّ نموذج AI جديد). العقد AC-1 يحمل أصلاً حقول النَسَب المطلوبة (P0-2) ⇒ الناقص هو المُلئ الخادميّ فقط. برهان اجتياز بوّابة PIT الحقيقيّة يمنع بناء شكل غير متوافق.
 - **الدليل:** commit `3c9c3c2`؛ `agronomic_context_composer.py` + 6 اختبارات؛ توافق عبر-الخدمات مُثبَت (ContextComposeIn + validate_composition = 0 مخالفات).
+
+- **PR #623 (`853f353`) — DECISION-CENTER الشريحة 2:** أُزيلت راية `CROP_TWIN_DIRECT_DECISION_ENABLED`
+  من نقطتَي crop-twin السيناريوهيّتَين (`/crop-twin/decision` + `/decision/profit-aware`) ⇒ معاينة
+  دائمة (`persisted=false`, `preview_only=true`). السبب: إغلاق باب الكتابة الجانبيّ بعد تحقّق شرطه
+  (جامع الشريحة 1، `3c9c3c2`). النطاق محدود بصدق: بوّابة `/decision-candidate submit→403` بقيت خلف
+  الراية (إغلاقها يحتاج وصل الجامع، عمل منفصل). Ratchet: 64 فحصاً success/skipped على الرأس `1a529b7`.
