@@ -1,5 +1,31 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-25 — بطاقة الأصناف + إغلاق ست فجوات كود + إصلاحات مسار الصور — مدموج PR #632 (`10a8fae`)
+
+**ما أُنجز (على `claude/code-review-34hO3`، دُمج squash في `main`=`10a8fae`):**
+
+1. **إصلاح زرّ «3 أشهر» في MapHub** (PR #629، `9e0967d`): كان يجلب 24 شهراً — الجذر أنّ التواريخ المُعالَجة غير محدودة بـ`months` في `available-dates`؛ أُضيف قطع `months` لكلّ التواريخ عند `include_provider` (`services/raster-service/routers/fields.py`).
+
+2. **المزامنة التلقائيّة 6h→24h مثبَّتة على وقت الالتقاط السابق** (PR #629): `scan_all(lookback_days=10, min_hours_since_last_capture=24.0)` بحارس تخطٍّ لكلّ حقل + عدّاد `skipped` + `_parse_capture_time` (`imagery_automation.py`)؛ و`scan_new_imagery` 21600→86400 (`scheduler.py`).
+
+3. **قفل نسخة-واحدة للمُجدوِل** (PR #630، `5cd063a`): `cluster_singleton` عبر `pg_try_advisory_lock(hashtext($1))` يلفّ 4 مهامّ دوريّة — يُغلق فجوة «المُجدوِل بلا قفل موزَّع».
+
+4. **بطاقة الأصناف (VarietyCatalogPage)** (PR #632): أوّل مستهلك UI للكتالوج المحكوم `GET /api/v1/varieties/food-grains[/{id}]` — مرشّح محصول مشتقّ + موسّع نَسَب + وسم `reference_only_not_operational` + عرض `quality_issues`. **ترقية إعفاء→core:** نقطتا varieties من `endpoint_ui_coverage_waivers.json` (52→50) إلى `core_endpoints` (463→465) لأنّ الواجهة أعطتهما دليلاً حقيقيّاً (وإلّا فشل `test_no_waiver_has_real_ui_evidence`)؛ pin الكتالوج 52→50.
+
+5. **إغلاق ست فجوات كود** (PR #632، `71ddbc8`):
+   - **B1** `vegetation-analysis/all_fields`: حلقة تسلسليّة (N×15s) → `asyncio.gather` بتزامن محدود `Semaphore(8)` + `zip(strict=True)` — نفس النتائج، زمن الجدار = أبطأ سلسلة.
+   - **B2** `routers/fields.py` تتبّعيّة: غلّة الحصاد = **أحدث** نتيجة مُسجَّلة (`ORDER BY outcome_recorded_at DESC LIMIT 1`) لا `MAX` (كان يتحيّز صعوديّاً مع حصاد جزئيّ/إعادة تسجيل).
+   - **B3** `outcome_reconcile.py`: فكّ العدّ المزدوج في `by_kind`/`success_rate` بمفتاح `decision_id` (أولويّة outcome_record عبر setdefault؛ صفوف بلا مفتاح تُعدّ منفردةً) + اختبار يقفل عقد «لا عدّ مزدوج».
+   - **F1** دبابيس استكشاف MapHub **دائمة على الخادم** (نمط SatellitePage): `useScoutingPins`+`useCreateScoutingPin` بإدراج تفاؤليّ وتراجُع عند الفشل؛ «مسح» يزيل غير المحفوظ فقط. حارس ساكن جديد `MapHubScoutingPinsPersistence.static.test.ts`.
+   - **F2** تعليقات scouting بائدة صُحِّحت في `MapHub.tsx`+`HubMap.tsx`.
+   - **F3** حذف استيرادَي `lazy()` ميّتَين في `App.tsx`.
+
+6. **PR #628 (Dependabot) فُصِل:** postcss يبقى، react-router v7 **مُؤجَّل** (ignore major) — دَيْن هجرة كاسر عبر 21 ملفّاً.
+
+**درس مثبَّت (ضريبة التسجيل):** **أيّ** تعديل مصدر متتبَّع (Python أو واجهة) يغيّر LOC/أرقام أسطر ⇒ يجب إعادة توليد الجرد (`generate_service_inventory.py --write-registry`) **وحزمة الإصدار** (`build_release_bundle.py`) معاً — تعثّرتُ بفحص `drift`+`Repository Structural Lint` بعد تعديلات B1/B2/B3 (LOC انزاح: decision +11، vegetation +8، platform +1) وأُصلح بـ`000e809`. تعديل `main.py` وحده يضيف artifact ثالثاً: `platform_main_subinventory_guard.py --write`.
+
+**Ratchet:** 68 فحصاً success/skipped على `000e809` + `mergeable_state:clean` ⇒ دُمج squash `10a8fae`.
+
 ## 2026-07-18 — رنبوك التحقّق الحيّ: إصلاح WS + YAML + FII RLS + IRR-F01 + تدفّقات مكانيّة — مكتمل
 
 **ما أُنجز:**
@@ -3664,3 +3690,23 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **متابعة صادقة قائمة:** المُجدوِل داخل العمليّة بنسخة واحدة بلا قفل موزَّع (نسخ متعدّدة قد تُكرّر الكنس —
   الحارس الجديد يقلّل الأثر لا يمنعه). واجهة «المقارنة» في MapHub توازن مؤشّرَين في تاريخ واحد لا تاريخَين
   مخزَّنَين (مقارنة زمنيّة حقيقيّة ممكنة كعمل قادم).
+
+## 2026-07-25 — قفل نسخة-واحدة للمُجدوِل + قاعدة الثلاثة المصنوعة (PR #630، main `5cd063a`)
+- **الفجوة:** المُجدوِل (`api/scheduler.py`) يعمل داخل العمليّة (asyncio) في كلّ نسخة بلا تنسيق ⇒ مع تعدّد
+  نسخ المنصّة تُطلَق كلّ مهمّة دوريّة N مرّة (fetch_weather · scan_new_imagery · check_decision_freshness ·
+  alerts_evaluation) — ضرب مزوّد مكرّر وعمل زائد. (فجوة صادقة سُجِّلت مع كادينس 24 ساعة، PR #629.)
+- **الحلّ (أفضل ممارسة، بلا تبعيّة):** `scheduler.cluster_singleton(fn, task_name, pool_getter)` — قفل
+  استشاريّ Postgres **غير حاجب على مستوى الجلسة** (`pg_try_advisory_lock(hashtext(...))`): النسخة المالكة
+  تُشغّل، البقيّة تتخطّى التكّة. **جلسة لا معاملة** (كنس STAC قد يطول). تحرير في `finally` + تحرير Postgres
+  التلقائيّ عند موت الجلسة. بلا مسبح ⇒ تشغيل محلّيّ (no-op في نسخة واحدة). يتّبع مصطلح
+  `pg_advisory_xact_lock` القائم (`irrigation_closed_loop_runtime.py:122`). لُفَّت المهامّ الأربع في
+  `main.py` عبر `_JOBS_POOL or _DB_POOL`. 4 اختبارات وحدة (بلا قاعدة، مسبح وهميّ).
+- **درس مُكتمِل (قاعدة الثلاثة المصنوعة):** تعديل `services/sahool-platform/api/main.py` يُحرّك **ثلاثة**
+  مصنوعات مولَّدة يجب إعادة توليدها **معاً في نفس الدفعة**: (١) `service_inventory`
+  (`generate_service_inventory.py --write-registry`) · (٢) `platform_main_subinventory`
+  (`platform_main_subinventory_guard.py --write`) · (٣) حزمة الإصدار (`build_release_bundle.py`). فوّتُّ
+  الثاني فتعثّرت جولة CI (`guard` + `Repository Structural Lint` = `platform main subinventory JSON drift`).
+- **الدمج:** PR #630 مدموج تحت Ratchet (64 فحصاً success/skipped على head `6019575`) — main `5cd063a`.
+- **متابعة صادقة قائمة:** دَيْن هجرة react-router v6→v7 (PR #628 dependabot فُصِل — postcss يبقى، v7 مُؤجَّل
+  بأمرَي `@dependabot ignore … major version`؛ كاسر عبر 21 ملفّاً + فقد provenance attestation). ومقارنة
+  تاريخَين مخزَّنَين في زرّ «المقارنة» (تحسين).

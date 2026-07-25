@@ -8,7 +8,7 @@
 // تستهلك البوّابات نفسها التي يستهلكها الشريط الجانبيّ.
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Command } from 'cmdk';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Search } from 'lucide-react';

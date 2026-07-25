@@ -10,7 +10,7 @@
 //   • مبدّلات الطبقات (NDVI/NDMI/الملوحة + المرتفعات/التربة كطبقات وصفيّة) عبر
 //     LayerSwitcher + ColormapLegend، وشريط شفّافيّة.
 //   • مقارنة جنباً لجنب (SideBySide) لطبقتين حقيقيّتين لنفس الحقل.
-//   • رسم/قياس (turf) + دبابيس استكشاف (حالة محلّيّة — لا نقطة قراءة scouting خلفيّة).
+//   • رسم/قياس (turf) + دبابيس استكشاف دائمة (v94 — تُجلَب/تُحفَظ على الخادم، RLS).
 //   • درج تفاصيل الحقل المنزلق (تحرير + ملخّص الموسم) — FieldDetailDrawer.
 //   • إنشاء/استيراد حقل داخل المركز (AddFieldWithMap).
 //   • مبدّل وضع 2D / تضاريس(3D) — العرض ثلاثيّ الأبعاد مقسوم بالكود (React.lazy).
@@ -25,7 +25,7 @@ import {
   History, RotateCcw, Target,
   Satellite,
 } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { buildProject, downloadProject, parseProjectFile, type SahoolMapView } from '../lib/projectFile';
 import { loadWorkspace, saveWorkspace } from '../lib/workspaceStorage';
 import { MAP_ENGINE } from '../lib/featureFlags';
@@ -83,7 +83,8 @@ import GisTemporalOpsCard from '../components/fieldview/GisTemporalOpsCard';
 import LearningEvidenceCard from '../components/fieldview/LearningEvidenceCard';
 import ClimateRiskCard from '../components/fieldview/ClimateRiskCard';
 import type { EvidenceAvailability } from '../lib/fieldObjectiveEngine';
-import { useCropScoutingIssues } from '../hooks/useScouting';
+import { useCropScoutingIssues, useScoutingPins, useCreateScoutingPin } from '../hooks/useScouting';
+import type { ScoutingPinRecord } from '../hooks/useScouting';
 import { buildComparePresets } from '../lib/layerComparePresets';
 import { saveFieldMapView, markDefaultViewOnce } from '../lib/fieldMapView';
 import {
@@ -353,6 +354,10 @@ function MapHubCore() {
   const [compare, setCompare] = useState(savedWorkspace?.compare ?? false);
   const [leftLayer, setLeftLayer] = useState<string>(savedWorkspace?.leftLayer ?? (INDICATOR_LAYERS[0]?.id ?? 'ndvi'));
   const [rightLayer, setRightLayer] = useState<string>(savedWorkspace?.rightLayer ?? (INDICATOR_LAYERS[1]?.id ?? 'ndmi'));
+  // نمط المقارنة: «مؤشّران» (الافتراض، مؤشّرَان مختلفان في نفس التاريخ) أو «تاريخان»
+  // (نفس المؤشّر بين تاريخَين مخزَّنَين — مقارنة زمنيّة حقيقيّة). التاريخ الأيمن للنمط الثاني.
+  const [compareMode, setCompareMode] = useState<'indicators' | 'dates'>('indicators');
+  const [compareRightDate, setCompareRightDate] = useState<string>('latest');
   const [drawTools, setDrawTools] = useState(savedWorkspace?.drawTools ?? false);
   const [pinMode, setPinMode] = useState(savedWorkspace?.pinMode ?? false);
   // ── طبقات التراكب (مستقلّة؛ تُستعاد من المخزن) ──────────
@@ -411,7 +416,24 @@ function MapHubCore() {
   const [zoneRateUnit, setZoneRateUnit] = useState('kg/ha');
   const [zoneSyncBusy, setZoneSyncBusy] = useState(false);
   const [pivotSyncBusy, setPivotSyncBusy] = useState(false);
-  const [pins, setPins] = useState<ScoutPin[]>([]);
+  // دبابيس الاستكشاف الدائمة (v94): تُجلَب من الخادم وتُحفَظ (RLS، معزولة بالمستأجِر)
+  // فتبقى عبر الجلسات والأجهزة — لا حالة جلسة محلّيّة. نمط SatellitePage: مُخزَّنة من
+  // الخادم + تفاؤليّة محلّيّة تُدمَج بلا تكرار حتى تظهر من إعادة الجلب. صدق: القاعدة غير
+  // مفعّلة ⇒ pins:[] + note_ar (لا اختراع مشاهدات).
+  const scoutingPinsQ = useScoutingPins(fieldId);
+  const createScoutPin = useCreateScoutingPin(fieldId);
+  const [optimisticPins, setOptimisticPins] = useState<ScoutPin[]>([]);
+  useEffect(() => { setOptimisticPins([]); }, [fieldId]);
+  const serverPins = useMemo<ScoutPin[]>(
+    () => (scoutingPinsQ.data?.pins ?? []).map((r: ScoutingPinRecord) => ({
+      id: r.pin_id, lat: r.lat, lng: r.lng, note: r.note_ar ?? '', category: r.issue_category,
+    })),
+    [scoutingPinsQ.data],
+  );
+  const pins = useMemo<ScoutPin[]>(() => {
+    const ids = new Set(serverPins.map((p) => p.id));
+    return [...serverPins, ...optimisticPins.filter((p) => !ids.has(p.id))];
+  }, [serverPins, optimisticPins]);
   const [pinCategory, setPinCategory] = useState(savedWorkspace?.pinCategory || PIN_CATEGORIES[0]);
   // ── v2: لقطة عرض الخريطة (مركز lat/lng + تكبير) — تُستعاد وتُلتقط من الخريطة ──
   const [mapView, setMapView] = useState<SahoolMapView | null>(savedWorkspace?.mapView ?? null);
@@ -1380,18 +1402,23 @@ function MapHubCore() {
     };
   }, [selected, selectedPoint, weatherQ.data]);
 
-  // ── دبابيس الاستكشاف (حالة محلّيّة) ──────────────────────────
-  // TODO(maphub-scouting): الخلفيّة تعرض إنشاء استكشاف (POST) فقط بلا نقطة قراءة
-  // (GET) تُرجع قائمة مُخزَّنة — موثّق في hooks/useScouting.ts. لذا الدبابيس حالة
-  // محلّيّة (جلسة) لا تُحفَظ بعد. اربطها بـPOST /scouting حين تتوفّر قراءة مقابلة.
+  // ── دبابيس الاستكشاف (دائمة، v94 — تُحفَظ على الخادم) ──────────────
+  // الإضافة: دبّوس تفاؤليّ محلّيّ فوريّ + POST /api/v1/fields/{id}/pins (idempotent عبر
+  // pin_id)؛ نجاح الطلب يُبطِل مخبّأ useScoutingPins ⇒ إعادة جلب فتظهر مُخزَّنة، والفشل
+  // ⇒ تراجُع فوريّ عن التفاؤليّ. لا حقل مختار ⇒ عرض تفاؤليّ فقط (لا وجهة حفظ).
   const handleAddPin = useCallback((lat: number, lng: number) => {
-    setPins((prev) => [
-      ...prev,
-      { id: `pin_${Date.now()}_${prev.length}`, lat, lng, note: '', category: pinCategory },
-    ]);
-  }, [pinCategory]);
+    const pinId = `pin_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    setOptimisticPins((prev) => [...prev, { id: pinId, lat, lng, note: '', category: pinCategory }]);
+    if (!fieldId) return;
+    createScoutPin.mutate(
+      { pin_id: pinId, field_id: fieldId, lat, lng, issue_category: pinCategory, note_ar: null },
+      { onError: () => setOptimisticPins((prev) => prev.filter((p) => p.id !== pinId)) },
+    );
+  }, [pinCategory, fieldId, createScoutPin]);
 
-  const handleClearPins = useCallback(() => setPins([]), []);
+  // «مسح» يُزيل الدبابيس التفاؤليّة غير المُثبَّتة بعد فقط — المُخزَّنة على الخادم دائمة
+  // (لا نقطة حذف جماعيّ). صدق: لا يُدَّعى أنّه يحذف المُخزَّنة.
+  const handleClearPins = useCallback(() => setOptimisticPins([]), []);
 
   // ── v37-v41: تحميل تصاميم Pivot ومناطق الإدارة/الوصفات المحفوظة + الطابور المحلي للحقل المختار ───────
   useEffect(() => {
@@ -2031,22 +2058,46 @@ function MapHubCore() {
       {/* P3: مقارنات طبقات جاهزة ذات معنى زراعيّ — تظهر في وضع المقارنة وتُوجّه المحرّك القائم. */}
       {compare && (
         <div className="mb-3 flex flex-wrap items-center gap-1.5" data-testid="compare-presets">
-          <span className="text-[11px] font-bold" style={{ color: T.muted }}>مقارنات جاهزة:</span>
-          {buildComparePresets(INDICATOR_LAYERS.map((l) => l.id)).map((p) => {
-            const active = leftLayer === p.left && rightLayer === p.right;
-            return (
+          {/* مبدّل نمط المقارنة: مؤشّران في تاريخ واحد ↔ مؤشّر واحد بين تاريخَين (مقارنة زمنيّة). */}
+          <div className="flex items-center gap-1" data-testid="compare-mode-toggle">
+            {(['indicators', 'dates'] as const).map((m) => (
               <button
-                key={p.id}
+                key={m}
                 type="button"
-                title={p.why}
-                onClick={() => { setLeftLayer(p.left); setRightLayer(p.right); }}
+                onClick={() => setCompareMode(m)}
                 className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
-                style={{ borderColor: active ? '#22c55e88' : T.line, color: T.ink, background: active ? '#14532d' : T.card }}
+                style={{ borderColor: compareMode === m ? '#22c55e88' : T.line, color: T.ink, background: compareMode === m ? '#14532d' : T.card }}
               >
-                {p.label}
+                {m === 'indicators' ? 'مؤشّران' : 'تاريخان'}
               </button>
-            );
-          })}
+            ))}
+          </div>
+          {compareMode === 'indicators' ? (
+            <>
+              <span className="text-[11px] font-bold" style={{ color: T.muted }}>مقارنات جاهزة:</span>
+              {buildComparePresets(INDICATOR_LAYERS.map((l) => l.id)).map((p) => {
+                const active = leftLayer === p.left && rightLayer === p.right;
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    title={p.why}
+                    onClick={() => { setLeftLayer(p.left); setRightLayer(p.right); }}
+                    className="px-2 py-1 rounded-lg text-[11px] font-semibold border"
+                    style={{ borderColor: active ? '#22c55e88' : T.line, color: T.ink, background: active ? '#14532d' : T.card }}
+                  >
+                    {p.label}
+                  </button>
+                );
+              })}
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5" data-testid="compare-dates-indicator">
+              <span className="text-[11px] font-bold" style={{ color: T.muted }}>المؤشّر:</span>
+              <LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={leftLayer} onChange={setLeftLayer} />
+              <span className="text-[11px]" style={{ color: T.muted }}>— قارِنه بين تاريخَين مخزَّنَين.</span>
+            </div>
+          )}
         </div>
       )}
 
@@ -2633,7 +2684,7 @@ function MapHubCore() {
                       </button>
                     )}
                     <span className="text-[11px]" style={{ color: T.faint }}>
-                      (محلّيّة — لا تُحفَظ بعد؛ بانتظار نقطة قراءة استكشاف خلفيّة)
+                      (تُحفَظ على الخادم وتبقى عبر الجلسات؛ «مسح» يزيل غير المحفوظ فقط)
                     </span>
                   </div>
                 )}
@@ -2748,15 +2799,61 @@ function MapHubCore() {
             ) : compare ? (
               <Card pad={12}>
                 <SectionLabel>مقارنة الطبقات (جنباً لجنب)</SectionLabel>
-                <SideBySide
-                  leftLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={leftLayer} onChange={setLeftLayer} />}
-                  rightLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={rightLayer} onChange={setRightLayer} />}
-                  left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
-                  right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={rightLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
-                />
-                <div className="text-[11px] mt-2" style={{ color: T.muted }}>
-                  طبقتان حقيقيّتان لنفس الحقل والتاريخ المختار — للموازنة البصريّة.
-                </div>
+                {compareMode === 'dates' ? (
+                  <>
+                    {/* مقارنة زمنيّة: نفس المؤشّر (leftLayer) بين تاريخَين مخزَّنَين مختلفَين.
+                        كلّ لوحة تُمرَّر تاريخها الخاصّ إلى CompareMap (يسار=المختار، يمين=compareRightDate). */}
+                    <SideBySide
+                      leftLabel={
+                        <select
+                          value={selectedImageryDate}
+                          onChange={(e) => handleSelectImageryTimelineItem(e.target.value)}
+                          className="px-2 py-1 rounded-lg text-xs"
+                          style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                          aria-label="تاريخ اللوحة اليسرى"
+                          data-testid="compare-left-date"
+                        >
+                          <option value="latest">الأحدث</option>
+                          {dateSelectorDates.map((d) => (
+                            <option key={d.date} value={d.date}>{d.date}{d.has_cog ? ' · جاهز' : ''}</option>
+                          ))}
+                        </select>
+                      }
+                      rightLabel={
+                        <select
+                          value={compareRightDate}
+                          onChange={(e) => setCompareRightDate(e.target.value)}
+                          className="px-2 py-1 rounded-lg text-xs"
+                          style={{ background: T.card, border: `1px solid ${T.line}`, color: T.ink }}
+                          aria-label="تاريخ اللوحة اليمنى"
+                          data-testid="compare-right-date"
+                        >
+                          <option value="latest">الأحدث</option>
+                          {dateSelectorDates.map((d) => (
+                            <option key={d.date} value={d.date}>{d.date}{d.has_cog ? ' · جاهز' : ''}</option>
+                          ))}
+                        </select>
+                      }
+                      left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
+                      right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={compareRightDate === 'latest' ? null : compareRightDate} tenantId={tenantId} />}
+                    />
+                    <div className="text-[11px] mt-2" style={{ color: T.muted }}>
+                      نفس المؤشّر ({LAYER_LEGEND[leftLayer]?.short ?? leftLayer}) بين تاريخَين مخزَّنَين — مقارنة زمنيّة حقيقيّة (للعرض فقط).
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <SideBySide
+                      leftLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={leftLayer} onChange={setLeftLayer} />}
+                      rightLabel={<LayerSwitcher layers={INDICATOR_LAYERS.map((l) => ({ id: l.id, label: LAYER_LEGEND[l.id]?.short ?? l.label }))} active={rightLayer} onChange={setRightLayer} />}
+                      left={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={leftLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
+                      right={<CompareMap fields={fields} selectedId={fieldId} basemapId={basemapId} indicatorId={rightLayer} opacity={opacity} imageryTs={imageryTs} imageryDate={selectedImageryDate === 'latest' ? null : selectedImageryDate} tenantId={tenantId} />}
+                    />
+                    <div className="text-[11px] mt-2" style={{ color: T.muted }}>
+                      طبقتان حقيقيّتان لنفس الحقل والتاريخ المختار — للموازنة البصريّة.
+                    </div>
+                  </>
+                )}
               </Card>
             ) : (
               <div style={{ position: 'relative' }}>

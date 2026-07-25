@@ -33,7 +33,7 @@ import { geomToPolygon, areaSqMeters } from '../lib/geo';
 import { T, Card, Pill, Badge, SectionLabel, Button } from '../components/ds';
 import { Input, Select } from '../components/ds';
 import { ErrorState, LoadingState, EmptyState } from '../components/StateViews';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 // خرائط الأساس (نفس روابط FieldIndicatorMap / AddFieldWithMap).
 const BASEMAP_SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';

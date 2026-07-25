@@ -36,7 +36,7 @@ import {
 } from '../components/fieldhealth';
 import { useScoutingPins, useCreateScoutingPin, useCropScoutingIssues } from '../hooks/useScouting';
 import type { ScoutingPinRecord } from '../hooks/useScouting';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 // مبدّل الطبقات مدفوع بكتالوج المؤشّرات الخلفيّ (renderable=طبقة بلاطات مكانيّة)
 // لا بقائمة مُبرمَجة — مصدر حقيقة واحد للقابل للرسم (لا طبقة ميتة ولا مفقودة).

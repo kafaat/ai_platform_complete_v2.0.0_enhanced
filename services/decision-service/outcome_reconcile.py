@@ -71,27 +71,32 @@ def reconcile_outcomes(
     recommendation_rows: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """يوحّد صفوف الجدولَين في ملخّص مصالحة صادق (لا عدّ مزدوج، لا نسبة مُلفّقة)."""
+    # by_source: عدّ خامّ لكلّ جدول (تشخيصيّ — قد يتضمّن قراراً موصوفاً في الجدولَين مرّتَين).
     by_source = {
         "outcome_record": _bucket(outcome_rows, _outcome_record_success),
         "recommendation_outcomes": _bucket(recommendation_rows, _recommendation_success),
     }
-    success_count = (
-        by_source["outcome_record"]["success"] + by_source["recommendation_outcomes"]["success"]
-    )
-    failure_count = (
-        by_source["outcome_record"]["failure"] + by_source["recommendation_outcomes"]["failure"]
-    )
-    unknown_count = (
-        by_source["outcome_record"]["unknown"] + by_source["recommendation_outcomes"]["unknown"]
-    )
-    evaluated = success_count + failure_count
 
-    # قرارات مميَّزة عبر المصدرَين (يفكّ العدّ المزدوج — قد يُوصَف قرارٌ في الجدولَين).
-    decisions: set[str] = set()
-    for r in [*outcome_rows, *recommendation_rows]:
+    # النسبة المنشورة تُحسَب على القرارات **المميَّزة** لا بجمع عدّي الجدولَين: قرارٌ موصوفٌ
+    # في الجدولَين يُحسَب مرّة (وإلّا انتُهِك عقد «لا عدّ مزدوج»). أولويّة الحالة لـoutcome_record
+    # (جدول النتيجة الرسميّ) عبر setdefault. صفوف بلا decision_id تُعدّ مباشرةً (لا مفتاح لدمجها).
+    status_by_decision: dict[str, Any] = {}
+    keyless: list[Any] = []
+    for r in outcome_rows:
         did = r.get("decision_id")
-        if did:
-            decisions.add(str(did))
+        st = _outcome_record_success(r)
+        (status_by_decision.setdefault(str(did), st) if did else keyless.append(st))
+    for r in recommendation_rows:
+        did = r.get("decision_id")
+        st = _recommendation_success(r)
+        (status_by_decision.setdefault(str(did), st) if did else keyless.append(st))
+
+    _all = [*status_by_decision.values(), *keyless]
+    success_count = sum(1 for s in _all if s is True)
+    failure_count = sum(1 for s in _all if s is False)
+    unknown_count = sum(1 for s in _all if s is not True and s is not False)
+    evaluated = success_count + failure_count
+    decisions = set(status_by_decision)  # مميَّزة (مفاتيح decision_id)
 
     return {
         "enabled": True,

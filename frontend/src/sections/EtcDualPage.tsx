@@ -10,7 +10,7 @@ import { Droplets, Calculator, Info, AlertTriangle, Satellite } from 'lucide-rea
 import { useSelectedField } from '../hooks/useSelectedField';
 import { computeFieldEtcDual, asApiError } from '../services/api';
 import type { EtcDualInput, EtcDualResult } from '../services/api';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 
 export default function EtcDualPage() {
   const location = useLocation();

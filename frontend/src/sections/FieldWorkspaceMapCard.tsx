@@ -13,7 +13,7 @@
 // يُعرَض رقم/طبقة لم يُرجِعها API (قاعدة عدم الاختلاق).
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router';
 import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Map as MapIcon, Layers, Clock, FileText, Leaf } from 'lucide-react';

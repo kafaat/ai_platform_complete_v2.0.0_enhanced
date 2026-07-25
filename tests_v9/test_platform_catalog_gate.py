@@ -150,7 +150,7 @@ def test_u4_ui_waivers_governed() -> None:
     + تتبّع؛ ومالك إعفاءات break-glass مُشتقّ من مصدر مساره لا من الافتراض الأعمى."""
     cat = _catalog()
     waivers = cat["ui_waiver_governance"]
-    assert len(waivers) == cat["counts"]["ui_waivers"] == 52
+    assert len(waivers) == cat["counts"]["ui_waivers"] == 50
     component_ids = {c["component_id"] for c in cat["components"]}
     from datetime import date
 

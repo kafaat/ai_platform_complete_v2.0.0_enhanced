@@ -7,7 +7,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter } from 'react-router';
 import type { ReactNode } from 'react';
 
 // ── عميل axios وهميّ (يُلتقط داخل makeClient عبر axios.create) ──
@@ -111,7 +111,7 @@ function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   // البطاقة تستخدم useNavigate لأزرار الانتقال بسياق الحقل ⇒ تحتاج Router في الاختبار.
   return (
-    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter>
       <QueryClientProvider client={qc}>{children}</QueryClientProvider>
     </MemoryRouter>
   );

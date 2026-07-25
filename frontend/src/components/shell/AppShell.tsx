@@ -7,7 +7,7 @@
 // التنقّل كلّه عبر الراوتر؛ يُغلَق درج الموبايل عند تغيّر المسار.
 // ═══════════════════════════════════════════════════════════════
 import { useEffect, useState, type ReactNode } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import type { Theme } from '../../hooks/useTheme';
 import NavRail from './NavRail';
