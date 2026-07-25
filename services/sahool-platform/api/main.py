@@ -303,8 +303,13 @@ async def _start_scheduler():
     """
     from api.agronomic_consistency import check_decision_freshness, compute_data_ages
     from api.imagery_automation import imagery_automation
-    from api.scheduler import register_default_tasks, scheduler
+    from api.scheduler import cluster_singleton, register_default_tasks, scheduler
     from api.weather_automation import weather_automation
+
+    # أفضل ممارسة: مسبح تنسيق النسخ (BYPASSRLS إن توفّر، وإلّا مسبح التطبيق) —
+    # القفل الاستشاريّ للمُجدوِل تنسيقٌ عبر-مستأجِر لا بيانات مستأجِر. يُقرأ عند كلّ تكّة.
+    def _scheduler_pool():
+        return _JOBS_POOL or _DB_POOL
 
     # اربط pool القاعدة للاستمرار الدائم + حمّل ما سبق تسجيله (إن توفّر)
     if _DB_POOL is not None:
@@ -498,11 +503,23 @@ async def _start_scheduler():
         if total_created:
             logging.info("أتمتة التنبيهات: أُنشئ %s تنبيهاً عبر كلّ الحقول", total_created)
 
+    # كلّ مهمّة دوريّة تُلَفّ بقفل نسخة-واحدة: مع تعدّد نسخ المنصّة، تُشغّلها نسخة
+    # واحدة فقط لكلّ تكّة (لا ضرب مزوّد/عمل مكرّر). بلا مسبح ⇒ تشغيل محلّيّ (نسخة واحدة).
     register_default_tasks(
-        fetch_weather=_weather_sweep,
-        scan_new_imagery=_imagery_sweep,
-        check_decision_freshness=_freshness_sweep,
-        run_alerts_evaluation=_alerts_sweep,
+        fetch_weather=cluster_singleton(
+            _weather_sweep, task_name="fetch_weather", pool_getter=_scheduler_pool
+        ),
+        scan_new_imagery=cluster_singleton(
+            _imagery_sweep, task_name="scan_new_imagery", pool_getter=_scheduler_pool
+        ),
+        check_decision_freshness=cluster_singleton(
+            _freshness_sweep,
+            task_name="check_decision_freshness",
+            pool_getter=_scheduler_pool,
+        ),
+        run_alerts_evaluation=cluster_singleton(
+            _alerts_sweep, task_name="alerts_evaluation", pool_getter=_scheduler_pool
+        ),
         alerts_evaluation_interval_seconds=int(
             os.getenv("SAHOOL_ALERTS_EVAL_INTERVAL_SECONDS", "21600")
         ),

@@ -15985,7 +15985,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "360d11ac1d9fa990cf11131863d377f3ea8890a21726a1bd2f1e939a933d67d1"
+          "content": "9acdf1aee74762304ee6370a706af0d0ce70b5385b36b39728ddf2386afd9e8d"
         }
       ],
       "name": "services/sahool-platform/api/main.py",
@@ -18025,7 +18025,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f750a4588238a50f238b78b4d60f37536e43c3fec86ad412f6c8d83ae8000d3b"
+          "content": "abfafeb64d369faa36624b8dcd25484da55ae85f8999446dbe42861162ce31b1"
         }
       ],
       "name": "services/sahool-platform/api/scheduler.py",
