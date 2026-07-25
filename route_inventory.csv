@@ -247,7 +247,7 @@ raster-service,services/raster-service/routers/fields.py,1172,GET,/v1/fields/{fi
 raster-service,services/raster-service/routers/fields.py,1263,GET,/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png,field_tile
 raster-service,services/raster-service/routers/fields.py,1337,GET,/v1/fields/{field_id}/available-dates,field_available_dates
 raster-service,services/raster-service/routers/fields.py,1535,GET,/v1/fields/{field_id}/terrain,field_terrain
-raster-service,services/raster-service/routers/fields.py,1584,GET,/v1/fields/{field_id}/tilejson,field_tilejson
+raster-service,services/raster-service/routers/fields.py,1601,GET,/v1/fields/{field_id}/tilejson,field_tilejson
 raster-service,services/raster-service/routers/imagery.py,22,GET,/v1/imagery/backfill/policy,historical_backfill_policy
 raster-service,services/raster-service/routers/imagery.py,44,GET,/v1/imagery/quality/policy,imagery_quality_policy
 raster-service,services/raster-service/routers/imagery.py,78,POST,/v1/imagery/scenes/rank,rank_imagery_scenes
@@ -291,10 +291,10 @@ raster-service,services/raster-service/routers/storage.py,74,POST,/storage/clean
 raster-service,services/raster-service/routers/storage.py,87,GET,/offline/packs,list_offline_packs
 raster-service,services/raster-service/routers/storage.py,115,GET,/offline/packs/{pack_name},download_offline_pack
 raster-service,services/raster-service/routers/terrain_tiles.py,45,GET,/v1/terrain/status,terrain_status
-raster-service,services/raster-service/routers/terrain_tiles.py,63,GET,/v1/elevation/hillshade/{z}/{x}/{y}.png,hillshade_tile
-raster-service,services/raster-service/routers/terrain_tiles.py,77,GET,/v1/slope/{z}/{x}/{y}.png,slope_tile
-raster-service,services/raster-service/routers/terrain_tiles.py,91,GET,/v1/terrain/tilejson,terrain_tilejson
-raster-service,services/raster-service/routers/terrain_tiles.py,146,GET,/v1/fields/{field_id}/contours.geojson,field_contours
+raster-service,services/raster-service/routers/terrain_tiles.py,73,GET,/v1/elevation/hillshade/{z}/{x}/{y}.png,hillshade_tile
+raster-service,services/raster-service/routers/terrain_tiles.py,87,GET,/v1/slope/{z}/{x}/{y}.png,slope_tile
+raster-service,services/raster-service/routers/terrain_tiles.py,101,GET,/v1/terrain/tilejson,terrain_tilejson
+raster-service,services/raster-service/routers/terrain_tiles.py,156,GET,/v1/fields/{field_id}/contours.geojson,field_contours
 raster-service,services/raster-service/routers/tiles.py,23,GET,/tiles/{layer_id}/{z}/{x}/{y}.png,get_tile
 raster-service,services/raster-service/routers/tiles.py,37,GET,/layers/{layer_id}/tilejson,layer_tilejson
 raster-service,services/raster-service/routers/timeseries_routes.py,24,GET,/imagery/timeseries,imagery_timeseries

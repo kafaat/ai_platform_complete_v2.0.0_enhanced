@@ -43,19 +43,29 @@ def _tenant_ctx_ok() -> bool:
 
 @router.get("/v1/terrain/status")
 async def terrain_status():
-    """حالة تفعيل طبقات التضاريس (هل DEM مُهيّأ؟) — تستهلكها الواجهة لشارة صادقة مرّة واحدة.
+    """حالة تفعيل طبقات التضاريس + سياسة الدقّة متعدّدة المصادر — شارة صادقة للواجهة.
 
-    صدق: ``dem_configured:false`` + سبب حين لا ``FIELD_DEM_PATH`` — لا تلفيق تفعيل.
+    صدق: يعرض سجلّ المصادر (GLO-30 أساس + 10م/5م اختياريّ) وحالة تزويد كلٍّ منها. لا مصدر
+    مُزوَّد ⇒ ``dem_configured:false`` + سبب (OPERATOR_BLOCKED) — لا تلفيق تفعيل. يبقى الحقل
+    القديم ``dem_configured`` للتوافق، لكنّه الآن مشتقّ من وجود أيّ مصدر مُزوَّد لا من env وحده.
     """
-    dem = os.getenv("FIELD_DEM_PATH") or None
-    configured = bool(dem and os.path.isfile(dem))
+    import terrain_source_registry as tsr
+
+    sources = tsr.load_terrain_sources()
+    provisioned = [s for s in sources if s.get("provisioned")]
+    configured = bool(provisioned)
     return {
         "dem_configured": configured,
         "layers": ["hillshade", "slope", "contours"],
-        "reason": None if configured else "FIELD_DEM_PATH not configured",
+        "resolution_policy": tsr.resolution_policy(sources),
+        "provisioned_source_count": len(provisioned),
+        "reason": None if configured else "no_provisioned_terrain_source",
         "user_message": None
         if configured
-        else "طبقات التضاريس غير مفعّلة: لم يُضبَط FIELD_DEM_PATH (نموذج ارتفاع DEM).",
+        else (
+            "طبقات التضاريس غير مفعّلة: لا مصدر DEM مُزوَّد. الأساس المعتمد Copernicus GLO-30 (30م) "
+            "يُفعَّل بتزويد بياناته؛ ويُدعَم 10م/5م موثّق عند التزويد."
+        ),
     }
 
 
