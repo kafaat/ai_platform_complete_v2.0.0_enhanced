@@ -12725,7 +12725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "8891759338e732dac0c756683b61fb7cffef1813e1a6f3ae9d9e1e5ac8c2a0be"
+          "content": "7e5657264f747c350950fa301c16a2c6c95b0c52552ff18abb496290204568a5"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -12839,6 +12839,16 @@
         }
       ],
       "name": "services/raster-service/gis_boundaries_read.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3815369e949ae39b901ad2cb88a9c14415203d1cc44a45932a9a4746e9f54b0f"
+        }
+      ],
+      "name": "services/raster-service/imagery_product_identity.py",
       "type": "file"
     },
     {
