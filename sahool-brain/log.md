@@ -3806,3 +3806,18 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **بلا هجرة** (v170 قائم) · **بلا مسار جديد** (حقل طلب إضافيّ) ⇒ لا catalog/PINNED؛ فقط جرد LOC + حزمة.
 - **الدمج:** Ratchet — 64 فحصاً success/skipped على `2a78426` + mergeable clean ⇒ squash `24e8ed7`. develop مُزامَن.
 - **متابعة مُعلَنة:** ربط تلقائيّ على مستوى الحقل (`fields.water_source_id` FK + منتقي واجهة) — لم يُنجَز بصدق.
+
+## 2026-07-25 — WX-10.6 PR4 مدموج (PR #642، main `012605a`)
+- **ماذا:** استبدال إعفاء تغطية-الواجهة لـ`/api/v1/crop-twin/decision-candidate` بتغطية-مصبّ مُثبَتة. البوّابة العكسيّة
+  (`endpoint_ui_coverage_gate`) صارت تعرف `downstream_surface`؛ النقطة نُقلت إلى core (سطح ApprovalsConsole
+  `review-queue`) والإعفاء أُزيل (50→49). E2E مصبّ حقيقيّ (`test_wx10_6_crop_candidate_downstream_e2e.py`،
+  Postgres+SoR، skipif بلا DB): المرشّح المُسجَّل عبر `/v1/decisions/record` يظهر في طابور المراجعة، قابل للمراجعة،
+  معزول بالمستأجِر، لا يُوافَق تلقائيّاً. submit المنتِج يبقى خلف `CROP_TWIN_DIRECT_DECISION_ENABLED`.
+- **4 جولات إصلاح CI — درسان:** (أ) مدخل core في `endpoint_ui_coverage.json` يُحرّك إعادة توليد كتالوج المنصّة
+  (`scripts/architecture/build_platform_catalog.py`) + عدّاد ui_waivers مثبَّت (50→49)؛ وتعديل أيّ `.py` تحت `scripts/`
+  يزيح `service_inventory`. (ب) فحص gitleaks التاريخيّ يقرأ diff كلّ commit؛ `# gitleaks:allow` السطريّ لا يُصلح
+  سطراً في commit سابق ⇒ استعمل `.gitleaks.toml` allowlist. السرّ الوهميّ كان `idempotency_key` اختباريّ
+  (generic-api-key) لا DSN — صحّحتُ التشخيص علناً.
+- **الدمج:** Ratchet — 65 فحصاً success/skipped على `4a569f6` + mergeable clean ⇒ squash `012605a`. develop مُزامَن.
+- **C5 (task 259):** يبقى CODE-PREPARED/CALIBRATION-BLOCKED — سياسة دليل NDVI (#567، `evidence_policy.py`) مبنيّة
+  ومُختبَرة؛ تنتظر **معايرة عتبات NDVI ميدانيّة** (لا بناء سجلّ، لا كود جديد). لم أختلق بناءً.
