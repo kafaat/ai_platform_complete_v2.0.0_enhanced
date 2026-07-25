@@ -743,6 +743,17 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx10_7_decision_review.py -q -p no:cacheprovider
+      # WX-10.6 crop-decision-candidate DOWNSTREAM consumption (real Postgres, SoR on): the boundary
+      # output (a crop_decision_candidate recorded via /v1/decisions/record — the bridge's HTTP
+      # target) surfaces in the reviewer queue the Approvals Console consumes and is reviewable,
+      # tenant-isolated, never auto-approved. This is the real downstream coverage that replaced the
+      # temporary WX-10.6 "pending reviewer UI" endpoint-ui-coverage waiver.
+      - name: WX-10.6 crop-candidate downstream E2E (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_6_crop_candidate_downstream_e2e.py -q -p no:cacheprovider
       # WX-10.8 review-queue endpoint (monkeypatched: authoritative + tenant-scoped + fail-closed
       # 503 in mirror). No DB needed — runs here because this job has fastapi + pytest-asyncio.
       - name: WX-10.8 review-queue endpoint tests
