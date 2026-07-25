@@ -40,6 +40,7 @@ ProcessRequest = api_models.ProcessRequest
 ProcessFromStacRequest = api_models.ProcessFromStacRequest
 ProcessCdseRequest = api_models.ProcessCdseRequest
 HistoricalBackfillRequest = api_models.HistoricalBackfillRequest
+ProcessDateRequest = api_models.ProcessDateRequest
 GeoParquetExportRequest = api_models.GeoParquetExportRequest
 PrescriptionRequest = api_models.PrescriptionRequest
 FieldChangeRequest = api_models.FieldChangeRequest

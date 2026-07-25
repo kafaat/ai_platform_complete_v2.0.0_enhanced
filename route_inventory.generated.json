@@ -1850,7 +1850,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 77,
+    "line": 78,
     "method": "GET",
     "path": "/gis/admin-boundaries",
     "function": "gis_admin_boundaries"
@@ -1858,7 +1858,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 126,
+    "line": 127,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-from-stac",
     "function": "process_from_stac"
@@ -1866,7 +1866,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 211,
+    "line": 212,
     "method": "POST",
     "path": "/v1/fields/{field_id}/imagery/backfill",
     "function": "field_historical_backfill"
@@ -1874,7 +1874,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 593,
+    "line": 594,
     "method": "GET",
     "path": "/v1/fields/{field_id}/imagery/backfill/{run_id}",
     "function": "field_backfill_run_status"
@@ -1882,7 +1882,15 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 611,
+    "line": 612,
+    "method": "POST",
+    "path": "/v1/fields/{field_id}/imagery/process-date",
+    "function": "field_process_date"
+  },
+  {
+    "service": "raster-service",
+    "file": "services/raster-service/routers/fields.py",
+    "line": 681,
     "method": "POST",
     "path": "/v1/fields/{field_id}/geometry/versions",
     "function": "create_field_geometry_version"
@@ -1890,7 +1898,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 640,
+    "line": 710,
     "method": "POST",
     "path": "/v1/fields/analytics/geoparquet/export",
     "function": "export_field_analytics_geoparquet"
@@ -1898,7 +1906,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 692,
+    "line": 762,
     "method": "POST",
     "path": "/v1/fields/{field_id}/process-cdse",
     "function": "process_cdse"
@@ -1906,7 +1914,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 760,
+    "line": 830,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-grid",
     "function": "field_indicator_grid"
@@ -1914,7 +1922,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 798,
+    "line": 868,
     "method": "GET",
     "path": "/v1/fields/{field_id}/indicator-observation-bundle",
     "function": "field_indicator_observation_bundle"
@@ -1922,7 +1930,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 887,
+    "line": 957,
     "method": "GET",
     "path": "/v1/fields/{field_id}/pixel",
     "function": "field_pixel_value"
@@ -1930,7 +1938,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 966,
+    "line": 1036,
     "method": "POST",
     "path": "/v1/fields/{field_id}/prescription",
     "function": "field_prescription"
@@ -1938,7 +1946,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1045,
+    "line": 1115,
     "method": "POST",
     "path": "/v1/fields/{field_id}/change",
     "function": "field_change"
@@ -1946,7 +1954,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1102,
+    "line": 1172,
     "method": "GET",
     "path": "/v1/fields/{field_id}/timeseries",
     "function": "field_timeseries"
@@ -1954,7 +1962,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1193,
+    "line": 1263,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tiles/{z}/{x}/{y}.png",
     "function": "field_tile"
@@ -1962,7 +1970,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1267,
+    "line": 1337,
     "method": "GET",
     "path": "/v1/fields/{field_id}/available-dates",
     "function": "field_available_dates"
@@ -1970,7 +1978,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1465,
+    "line": 1535,
     "method": "GET",
     "path": "/v1/fields/{field_id}/terrain",
     "function": "field_terrain"
@@ -1978,7 +1986,7 @@
   {
     "service": "raster-service",
     "file": "services/raster-service/routers/fields.py",
-    "line": 1514,
+    "line": 1584,
     "method": "GET",
     "path": "/v1/fields/{field_id}/tilejson",
     "function": "field_tilejson"

@@ -1,5 +1,25 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-25 — V8-05 الشريحة 1: عقد سحابة الحقل مزدوج القيمة في available-dates — مدموج PR #636 (`cae7d47`)
+- **السياق:** بعد تحقّق عميق (3 خرائط كود) على رسالة بحث «V8-05»، تبيّن أنّ ~70% موجود أصلاً؛ الفجوة الأولى الحقيقيّة **عقد/مستهلِك لا تخزين**: `aoi_cloud_pct` (سحابة فوق مضلّع الحقل) مُخزَّن في `raster_assets` منذ v105 لكنّه **غير مُعاد** في `available-dates` ⇒ الواجهة تُقيّم الجودة من سحابة المشهد كاملاً فتستبعد تواريخ نظيفة فوق الحقل.
+- **الدلتا (إضافيّة صرفة، بلا مسار/هجرة جديدة):**
+  - `services/raster-service/db_persist.py::list_available_asset_dates` (~673): أُضيف `a.aoi_cloud_pct` إلى SELECT بتعليقين موجزين (`a.cloud_pct` scene-level توافق قديم · `a.aoi_cloud_pct` سحابة الحقل، NULL=«لم يُحسب» لا 0%).
+  - `services/raster-service/routers/fields.py::field_available_dates` (helper `_add` ~1287): كلّ صفّ يحمل الآن `cloud_pct` + `scene_cloud_pct` + `aoi_cloud_pct`؛ السحابة الفعّالة = `rec["aoi_cloud_pct"] if rec["aoi_cloud_pct"] is not None else rec["cloud_pct"]` تقود `clear_pct`/`quality_label`؛ صفّ DB يمرّر `aoi_cloud_pct=row.get("aoi_cloud_pct")`. أُضيف helper `_clip_cloud`.
+  - `tests_v9/test_imagery_aoi_cloud_contract.py` (جديد، حارس ساكن 2/2): يؤكّد اختيار aoi_cloud_pct في db_persist + إصدار الراوتر للقيم الثلاث + مُعامِل `aoi_cloud_pct=None` + تمرير `row.get("aoi_cloud_pct")` + الاشتقاق AOI-أوّلاً.
+- **الحارس أمسك سلكاً ناقصاً حقيقيّاً:** أضفتُ مُعامِل `aoi_cloud_pct` لكنّي لم أمرّره من صفّ DB ⇒ الاختبار فشل ⇒ أُصلح فورًا (لا تمرير أعمى).
+- **درس نافذة الحارس (Unit Tests أحمر):** `test_available_dates_distinct_and_quality_v29_7::_fn_body` يقتطع نافذة ثابتة span=2800 حول الدالّة؛ تعليقي AOI رباعيّ الأسطر أزاح سلسلة `ORDER BY` خارج النافذة ⇒ فشل الاختبار على منطق سليم ⇒ قُلّم التعليق لسطرين (`339a599`)، تحقّق 7/7 محلّيّاً. **القاعدة: التعليقات داخل دوالّ يفحصها حارس نافذة-ثابتة تُبقى موجزة.**
+- **Ratchet:** 67 فحصاً success/skipped على head `339a599` (Unit Tests + Security Scan آخِر مَن اخضرّ) + mergeable_state=clean ⇒ squash `cae7d47`. الفرع `claude/code-review-34hO3` أُعيد ضبطه على main الجديد.
+- **المتبقّي من البرنامج (مُعاد النطقة، قرار المالك):** PR1-a إعادة استعمال `backfill_runs` لمعالجة مشهد-مفرد (run_kind=single_scene + `POST /fields/{id}/imagery/process-date` + فرع عامل يتخطّى STAC discovery) · PR1-b مفتاح منتج قانونيّ (`build_imagery_product_key`+processing_version في مفتاح backfill + provider في product identity) · PR2 منتقي تاريخ بلا أثر جانبيّ + عرض AOI في الواجهة · PR3(H5) ربط ECw→water_source_id/well_id + إلزام maximum_allowed_ec fail-closed · PR4(WX-10.6) E2E مصبّ (راية اختبار فقط). C5 يبقى CODE-PREPARED/CALIBRATION-BLOCKED (لا بناء).
+
+## 2026-07-25 — إعفاء WX-10.6: PR #635 أُغلق بقرار المالك (لا دائم، لا واجهة منتِج)
+- المالك رفض تحويل `WAIVER-WX10.6-001` إلى دائم **ورفض** بناء واجهة منتِج جديدة. المسار المعتمَد: `CROP_TWIN_DIRECT_DECISION_ENABLED` يبقى **false في الإنتاج**؛ E2E يُفعّل الراية **في بيئة الاختبار فقط** لإثبات candidate→Decision-Service→ApprovalsConsole→approve/reject→تدقيق غير قابل للتعديل (نفس candidate_id/tenant/field/season · هويّة المراجع من التوكن · رفض عبر-المستأجرين · لا إرسال ماديّ · الراية الإنتاجيّة تبقى false)؛ ثمّ إزالة الإعفاء + تسجيل ApprovalsConsole كسطح مراجعة مصبّ + إصلاح ميتاداتا حارس التغطية إن تطلّب واجهة منتِج. الإعفاء أُعيد لحالة main (مؤقّت، انتهاء 2026-10-11) بانتظار PR4.
+
+## 2026-07-25 — v205 idempotency + migrations/ كتغيير جوهريّ — مدموج PR #634 (`fc80bc3`)
+- **العطل:** `docker compose up` ⇒ `service "sahool-migrate" didn't complete successfully: exit 3`. الجذر: `scripts_v9/apply_in_compose.sh` يعيد تطبيق **كلّ** الهجرات في كلّ `up` بلا تتبّع نسخة؛ psql تحت `ON_ERROR_STOP` يعيد exit 3 عند أوّل خطأ SQL. v205 كان يضيف 5 قيود FK جديدة (fk_reservation_node_project · fk_reservation_evaluation_project · fk_target_binding_node_project · fk_capacity_capability_project · fk_capacity_bottleneck_project) بلا `DROP IF EXISTS` ⇒ إعادة التطبيق تفشل عند «constraint already exists» (v205:22).
+- **الاستنساخ + الإصلاح:** على PG16+PostGIS محلّيّ (طازج=exit0، إعادة=exit3) ⇒ أُضيف `DROP CONSTRAINT IF EXISTS <name>` للقيود الخمسة قبل ADD ⇒ 3 تطبيقات متتالية exit 0.
+- **حمراء CI ثانية:** `no-report-only-change` رفض الـPR («report-only») لأنّ `migrations/` غاب عن `SUBSTANTIVE_PREFIXES` في `scripts/ci/no_report_only_change_guard.py` ⇒ أُضيف + self-test + اختبار regression `test_migration_change_is_substantive`. **درس:** إصلاح هجرة مرفقٌ فقط بحزمة الإصدار المولَّدة كان يُحجب خطأً — الهجرات كود مخطّط/بيانات جوهريّ.
+- **Ratchet:** كلّ الفحوص success/skipped ⇒ merge `fc80bc3`.
+
 ## 2026-07-25 — إغلاق ثغرات Dependabot الأربع (postcss + react-router v6→v8) — مدموج PR #633 (`63a70a7`)
 
 **الطلب:** «عالج ثغرات Dependabot الأربع». كلّها npm/واجهة (١ high + ٣ moderate). النتيجة: `npm audit` = **0 vulnerabilities**.

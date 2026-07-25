@@ -36,6 +36,7 @@ from raster_field_runtime import (
     JobStatus,
     PrescriptionRequest,
     ProcessCdseRequest,
+    ProcessDateRequest,
     ProcessFromStacRequest,
     ProcessRequest,
     SourceFormat,
@@ -605,6 +606,75 @@ async def field_backfill_run_status(field_id: str, run_id: int):
     if status.get("field_id") and status["field_id"] != field_id:
         raise HTTPException(404, "تشغيلة backfill لا تخصّ هذا الحقل")
     return status
+
+
+@router.post("/v1/fields/{field_id}/imagery/process-date")
+async def field_process_date(
+    field_id: str,
+    req: ProcessDateRequest,
+    x_agent_token: str = Header(None),
+):
+    """يعالج مشهداً مفرداً لتاريخٍ اختاره المستخدم — إجراء صريح منفصل عن اختيار التاريخ (V8-05 PR1-a).
+
+    **الثابت (invariant):** مجرّد اختيار/تصفّح تاريخ لا يستدعي هذه النقطة ولا يُنشئ أيّ
+    معالجة — التصيير يأتي من COG جاهز. هذه النقطة وحدها (زرّ «عالِج هذا التاريخ») تُجدوِل
+    عملاً، بإعادة استعمال نموذج backfill الدائم (run_kind='single_scene') بلا آلة حالة ثانية.
+
+    idempotent: أصلٌ جاهز موجود ⇒ ``reused_existing_job=true`` بلا تشغيلة؛ عنصر حيّ بنفس
+    المفتاح ⇒ يُعاد استعماله. غياب القاعدة/الجدول ⇒ 503 صريح (لا اختلاق نجاح).
+    """
+    _require_service_token(x_agent_token)
+    await _require_field_tenant(field_id)
+
+    clip = req.clip_polygon_geojson
+    if clip is None:
+        try:
+            import db_persist as _dbp_geo
+
+            clip = await _dbp_geo.fetch_field_geometry(field_id, _REQ_TENANT.get())
+        except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
+            raise HTTPException(503, "تعذّر جلب هندسة الحقل لقصّ المشهد") from e
+    if clip is None or _bbox_from_geojson(clip) is None:
+        raise HTTPException(400, "هندسة الحقل غير متاحة لاشتقاق bbox وقصّ المشهد")
+
+    import db_persist as _dbp
+
+    tenant = req.tenant_id or _REQ_TENANT.get()
+    result = await _dbp.enqueue_single_scene_process(
+        tenant_id=str(tenant) if tenant else None,
+        field_id=field_id,
+        acquisition_date=req.date,
+        index_name=req.index.value,
+        scene_id=req.scene_id,
+        geometry_revision=req.geometry_revision,
+        clip_polygon_geojson=clip,
+        max_cloud_pct=req.max_cloud_pct,
+        apply_cloud_mask=req.apply_cloud_mask,
+    )
+    if result is None:
+        raise HTTPException(
+            503,
+            "تعذّرت جدولة معالجة التاريخ (تحقّق من ترحيل v144/v213 أو القاعدة)؛ لم تُجدوَل معالجة.",
+        )
+    logger.info(
+        "process_date field_id=%s date=%s index=%s status=%s run_id=%s reused=%s",
+        field_id,
+        req.date,
+        req.index.value,
+        result.get("status"),
+        result.get("run_id"),
+        result.get("reused_existing_job"),
+    )
+    return {
+        "field_id": field_id,
+        "date": req.date[:10],
+        "index": req.index.value,
+        "scene_id": req.scene_id,
+        "run_id": result.get("run_id"),
+        "item_id": result.get("item_id"),
+        "status": result.get("status"),
+        "reused_existing_job": result.get("reused_existing_job", False),
+    }
 
 
 @router.post("/v1/fields/{field_id}/geometry/versions")

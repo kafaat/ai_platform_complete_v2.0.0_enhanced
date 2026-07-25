@@ -123,7 +123,8 @@ async def run_once(pool: asyncpg.Pool) -> int:
                 """
                 SELECT id, tenant_id, field_id, from_date, to_date, indices, max_cloud_pct,
                        geometry_revision, clip_polygon_geojson, apply_cloud_mask, limit_per_month,
-                       COALESCE(source, 'sentinel-2') AS source
+                       COALESCE(source, 'sentinel-2') AS source,
+                       COALESCE(run_kind, 'backfill') AS run_kind
                 FROM backfill_runs
                 WHERE status = 'planned'
                    OR (status IN ('searching', 'queued', 'processing')
@@ -176,6 +177,15 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
     bbox = raster_date_geo.bbox_from_geojson(clip) if clip else None
     if bbox is None:
         raise RuntimeError("clip_polygon_geojson مطلوب لاشتقاق bbox")
+
+    # v213 (V8-05 PR1-a): تشغيلة «مشهد مفرد» تتفرّع هنا — لا اكتشاف شهريّ. العنصر الوحيد
+    # مُنشأ مسبقاً (queued) من نقطة process-date؛ نحلّ المشهد المعروف لتاريخٍ واحد فقط ثمّ
+    # نعالجه. يتفادى مسح STAC الطويل ويبقي مفتاح idempotency ونموذج الحالة كما هما.
+    if str(run.get("run_kind") or "backfill") == "single_scene":
+        await _process_single_scene_run(
+            pool, run, bbox, clip, indices, is_landsat_thermal, max_cloud
+        )
+        return
 
     start = _as_dt(run["from_date"])
     end = _as_dt(run["to_date"])
@@ -382,6 +392,162 @@ async def _process_run(pool: asyncpg.Pool, run: dict) -> None:
         field,
         months_scanned,
         len(selected),
+        items_persisted,
+        items_failed,
+        items_skipped,
+    )
+
+
+async def _process_single_scene_run(
+    pool: asyncpg.Pool,
+    run: dict,
+    bbox: list,
+    clip: dict | None,
+    indices: list,
+    is_landsat_thermal: bool,
+    max_cloud: float,
+) -> None:
+    """يعالج تشغيلة single_scene (v213): يحلّ مشهداً معروفاً لتاريخٍ واحد ويعالج عنصرها المُنشأ مسبقاً.
+
+    بخلاف backfill لا اكتشاف شهريّ ولا اختيار سياسة: العنصر (queued) يحمل scene_id المستهدَف؛
+    نمسح **نافذة يوم واحد** فقط لجلب روابط النطاقات ثمّ نطابق بالـitem_id ونعالج. الحدّ السحابيّ
+    للحلّ مرفوع (المستخدم اختار المشهد صراحةً) — لا نستبعده بسحابة المشهد.
+    """
+    run_id = run["id"]
+    tenant = str(run["tenant_id"])
+    field = run["field_id"]
+    geom_rev = run["geometry_revision"]
+    apply_cloud_mask = run.get("apply_cloud_mask", True)
+    day = _as_dt(run["from_date"])
+    win_start = day.strftime("%Y-%m-%dT00:00:00Z")
+    win_end = day.strftime("%Y-%m-%dT23:59:59Z")
+
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE backfill_runs SET status='processing', updated_at=now() WHERE id=$1", run_id
+        )
+
+    # مسح نافذة اليوم الواحد (حدّ سحابيّ مرفوع — المشهد مُختار صراحةً؛ الحلّ لا الاكتشاف).
+    if is_landsat_thermal:
+        search = await stac_search_helpers.stac_search_landsat_unique(
+            bbox, win_start, win_end, 100, limit=24
+        )
+    else:
+        try:
+            search = await stac_search_helpers.stac_search(
+                bbox, win_start, win_end, 100, limit=24, geometry=clip
+            )
+        except TypeError as e:
+            if "unexpected keyword argument 'geometry'" not in str(e):
+                raise
+            search = await stac_search_helpers.stac_search(bbox, win_start, win_end, 100, limit=24)
+    scenes_by_id = {s.get("item_id"): s for s in search.get("items", []) if s.get("item_id")}
+
+    # العناصر المُنشأة مسبقاً لهذه التشغيلة (queued فقط — idempotency محفوظ في النقطة).
+    async with pool.acquire() as conn:
+        await _set_tenant(conn, tenant)
+        items = await conn.fetch(
+            "SELECT id, scene_id, index_name, acquisition_date::text AS acq "
+            "FROM backfill_run_items WHERE run_id=$1 AND status='queued'",
+            run_id,
+        )
+
+    items_persisted = 0
+    items_failed = 0
+    items_skipped = 0
+    import uuid as _uuid
+
+    for it in items:
+        item_id = it["id"]
+        scene_id = it["scene_id"]
+        index = it["index_name"]
+        acq = it["acq"]
+        # preflight: أصبح الأصل جاهزاً بين الجدولة والالتقاط ⇒ تخطٍّ صادق (لا معالجة مكرّرة).
+        async with pool.acquire() as conn:
+            async with conn.transaction():
+                await _set_tenant(conn, tenant)
+                exists = await conn.fetchval(
+                    "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
+                    "AND index_name=$3 AND scene_id=$4 "
+                    "AND ($5::text::date IS NULL OR acquisition_date=$5::text::date) "
+                    "AND asset_status='ready' "
+                    "AND ($6::int IS NULL OR geometry_revision=$6::int) LIMIT 1",
+                    tenant,
+                    field,
+                    index,
+                    scene_id,
+                    acq,
+                    geom_rev,
+                )
+        if exists:
+            async with pool.acquire() as conn:
+                async with conn.transaction():
+                    await _set_tenant(conn, tenant)
+                    await conn.execute(
+                        "UPDATE backfill_run_items SET status='skipped', processed_at=now() "
+                        "WHERE id=$1",
+                        item_id,
+                    )
+            items_skipped += 1
+            continue
+        scene = scenes_by_id.get(scene_id)
+        if scene is None:
+            # المشهد المستهدَف غير موجود في كتالوج اليوم (سُحب/تغيّر) ⇒ فشل صادق لا اختلاق.
+            async with pool.acquire() as conn:
+                async with conn.transaction():
+                    await _set_tenant(conn, tenant)
+                    await conn.execute(
+                        "UPDATE backfill_run_items SET status='failed', processed_at=now(), "
+                        "error=$2 WHERE id=$1",
+                        item_id,
+                        "scene_not_found_in_catalog_for_date",
+                    )
+            items_failed += 1
+            continue
+        jid = f"single_{_uuid.uuid4().hex[:12]}"
+        async with pool.acquire() as conn:
+            async with conn.transaction():
+                await _set_tenant(conn, tenant)
+                await conn.execute(
+                    "UPDATE backfill_run_items SET status='processing', job_id=$2 WHERE id=$1",
+                    item_id,
+                    jid,
+                )
+        ok = await asyncio.to_thread(
+            _process_scene_index, scene, index, field, tenant, geom_rev, clip, apply_cloud_mask, jid
+        )
+        if ok:
+            items_persisted += 1
+        else:
+            items_failed += 1
+        async with pool.acquire() as conn:
+            async with conn.transaction():
+                await _set_tenant(conn, tenant)
+                await conn.execute(
+                    "UPDATE backfill_run_items SET status=$2, processed_at=now() WHERE id=$1",
+                    item_id,
+                    "persisted" if ok else "failed",
+                )
+
+    final_status = "completed_with_errors" if items_failed > 0 else "completed"
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE backfill_runs SET status=$2, jobs_scheduled=$3, items_persisted=$4, "
+            "items_failed=$5, items_skipped=$6, scenes_selected=$7, months_scanned=1, "
+            "updated_at=now() WHERE id=$1",
+            run_id,
+            final_status,
+            items_persisted,
+            items_persisted,
+            items_failed,
+            items_skipped,
+            len(items),
+        )
+    logger.info(
+        "single_scene run %s %s field=%s persisted=%s failed=%s skipped=%s",
+        run_id,
+        final_status,
+        field,
         items_persisted,
         items_failed,
         items_skipped,

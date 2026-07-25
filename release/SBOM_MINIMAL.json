@@ -4315,7 +4315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "6376e44ef79db85ac0f762ce7502b0be85758a2d5836396616676c11fed0768c"
+          "content": "8b58b7e3e14f47d4168e0cf735696c644749cf37fa15ae9b7e66144e18b13f90"
         }
       ],
       "name": "frontend/src/lib/platformCatalog.generated.ts",
@@ -6565,7 +6565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "fd08b693beeb261475f81bfd77ef13eca61109ef9cd6efd64778b3f28ee1796b"
+          "content": "1e15076676be97e0d4ce1d8b00c9a342b496400bac94aeba2b01f3dfcff0b564"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -7839,6 +7839,16 @@
         }
       ],
       "name": "migrations/v212_farm_book_one_reversal_index.sql",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d3a7db18c4c79a16603d5cd73039a67ab42e5a46e72bbcdd410009dac3d3918c"
+        }
+      ],
+      "name": "migrations/v213_backfill_runs_single_scene.sql",
       "type": "file"
     },
     {
@@ -12715,7 +12725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "73a3ef751f09980e60350a66650023ba470344065b4cbb96163efdc7490699e5"
+          "content": "72ec4e40b2fc1c492a8a1927c75b6142af022aad1d73eb33d1c740fc58cba37a"
         }
       ],
       "name": "services/raster-service/backfill_scan_worker.py",
@@ -12795,7 +12805,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "12ac847145beacbbe1bc782c0892f60850502e176c06449496ee4f05e7350486"
+          "content": "7845aa4db360050d02cfdc88d02b3fe66e3b7f5f299172bac63b882faeaa1b9b"
         }
       ],
       "name": "services/raster-service/db_persist.py",
@@ -12945,7 +12955,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1b5f8b40fd65e06814fd435b140c42875b8a00ea5a9b871d066c2e5f9377b271"
+          "content": "bef72c73b1ef262ea004405e139da24b96d87e8a4b4f3ad0372362170e0708bd"
         }
       ],
       "name": "services/raster-service/raster_api_models.py",
@@ -13065,7 +13075,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "dfbc3e3b8dadcd33c7fd35a867ac9cb4bd903e5811fe3fd34485d8be567a8110"
+          "content": "53ba1e9921b89d94d287a51387ac32e6a79e4d8cac9aebd4da282011451a8d14"
         }
       ],
       "name": "services/raster-service/raster_field_runtime.py",
@@ -13305,7 +13315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f0aee1daf54383210c038c26dd8cfc2d5751b50d056d56d1d30b34e3e9fd5801"
+          "content": "e330f9813903cc0a2f578070f212e30c0dad7648fa516e6835b0113388df9ab0"
         }
       ],
       "name": "services/raster-service/routers/fields.py",
@@ -25715,7 +25725,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f3088b57f3cd38f0e19a5f13085d705dfca3a36900bff9e82ce1395251bd3ecf"
+          "content": "fe4fe64e5bd86b5a17a9ad7db6facb476cf39881de50a0402b75c630de528ea0"
         }
       ],
       "name": "services/sahool-platform/tests/test_simple_farm_book.py",
