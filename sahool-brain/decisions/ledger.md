@@ -781,3 +781,9 @@ SHAs من `git log --oneline origin/main`.
 - **السبب:** التصادم «نفس الرقم، ملفّان» قنبلة صامتة (rollback/مطابقة بيئات)؛ إصلاح صغير بلا أثر رجعيّ (الزومبيّان لا يطبّقهما أحد) يُغلق الفجوة فوراً بدل توثيقها ونسيانها.
 - **الحارس:** `tests_v9/test_migration_id_namespace_separation_guard.py` (unit، في مسار CI) + برهان سلبيّ. لا يُعاد المنهج مستقبلاً — الحارس يمنع الانحدار.
 - **SHA:** يُختم بعد الدفع.
+
+## 2026-07-24 — ERR-BRIDGE-001: DDL في وقت التشغيل → ملف هجرة + فصل مستويات الصحّة
+- **القرار:** DDL يُنفَّذ بواسطة `sahool-migrate` (sahool_user SUPERUSER)، لا في `_run_migrations()` أثناء تشغيل الخدمة. `sahool_app` يبقى NOBYPASSRLS/NOSUPERUSER. ثلاثة مستويات صحّة مستقلّة (`/healthz`·`/readyz`·`/readyz/capabilities`). fail-closed مزدوج في `/sync` (424·503).
+- **السبب:** `sahool_app` بلا `CREATE ON SCHEMA public` (REVOKE في `apply_in_compose.sh`) ⇒ `_run_migrations()` ترفع `InsufficientPrivilegeError` ⇒ lifespan ينهار ⇒ 33+ خدمة تابعة تنهار. القيد الصارم: لا منح `CREATE` لـ`sahool_app` (مبدأ أقلّ-الامتيازات).
+- **الإثبات:** `/healthz` → alive ✅ · `/readyz` → ready (db:true) ✅ · `/readyz/capabilities` → HTTP 200 (ERP كبيانات) ✅ · erp-bridge healthy على staging ✅.
+- **SHA:** f1109df3 (DDL) · dd8e4653 (health) · 651b995c (fail-closed) · 361c530d (guards).

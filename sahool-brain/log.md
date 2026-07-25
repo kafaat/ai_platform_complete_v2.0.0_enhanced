@@ -3337,3 +3337,23 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **برهان الزومبيّة (3 محاور):** لا في MANIFEST · لا مُشغّل يطبّقهما (`run_migrations.sql` يستعمل migrations/v121 فقط) · خارج سلسلة alembic (0001→0002، down_revision لا يشير إليهما). +صفر استعمال لجداولهما الثلاثة (`canonical_field_state_snapshots`/`field_digital_twin_views`/`recommendation_lifecycle_events`) و`shared/field_runtime_cohesion.py` منطق صرف بلا DB I/O.
 - **الإصلاح:** أُزيل الزومبيّان (git rm) — فصار الفضاءان منفصلَين: alembic=`NNNN_*.py` حصراً · migrations=`vNNN_*.sql` حصراً. **الحارس (جوهر الإصلاح):** `tests_v9/test_migration_id_namespace_separation_guard.py` (مُعلَّم unit، **في مسار CI** — لأنّ `tests/migrations/` خارج `testpaths=tests_v9`) — يرفض أيّ vNNN_*.sql في alembic/ + برهان سلبيّ (زومبيّ اصطناعيّ يقلبه أحمر). حارس توثيقيّ شقيق في `tests/migrations/test_phase19_*`.
 - **الحالة:** MIGRATE-ID-COLLISION → **CLOSED**. بوّابات: guard 3 passed · manifest validator 209 · ruff نظيف · bundle 4698.
+
+## 2026-07-24 — ERR-BRIDGE-001 مُغلَق + رنبوك Full-Stack Activation مُنفَّذ
+
+**ERR-BRIDGE-001 — سبب الجذر والإصلاح:**
+- السبب: `erp_runtime._run_migrations()` أصدرت `CREATE TABLE IF NOT EXISTS odoo_sync_state` بدور `sahool_app` (بلا `CREATE` على `public`) → `InsufficientPrivilegeError` → lifespan ينهار → uvicorn لا يبدأ → healthcheck log فارغ → حاوية unhealthy → 33+ خدمة تابعة تنهار.
+- الإصلاح: (أ) `migrations/v9_odoo_bridge.sql` يُنشئ الجداول بـsahool_user. (ب) `_run_migrations()` no-op. (ج) ثلاثة مستويات صحّة: `/healthz` خالص · `/readyz` DB فقط · `/readyz/capabilities` HTTP 200 دائماً. (د) fail-closed في `/sync`: 424 مزوّد غير مُهيّأ · 503 probe 5s. (هـ) 10 اختبارات وحدة حارسة.
+- التزامات main: f1109df3 · dd8e4653 · 651b995c · 361c530d.
+
+**نتيجة staging (2026-07-24):**
+- sahool-erp-bridge: **healthy** (healthcheck: curl -f http://localhost:8126/healthz) ✅
+- /healthz → {"status":"alive","service":"erp-bridge"} ✅
+- /readyz → {"status":"ready","version":"9.1.0","database":{"reachable":true,"schema_ready":true}} ✅
+- /readyz/capabilities → HTTP 200 {"status":"reported"} ✅
+
+**رنبوك Full-Stack Activation — النتائج:**
+- §0-§2: Stack مرفوع كاملاً. 3 خدمات غير صحيّة متوقَّعة: telegram-bot (بلا توكن)، water-ledger-worker (heartbeat_stale)، scout-ingest-projection (Restarting — مُعطَّل بتصميم، يخرج 0 فيُعاد تشغيله).
+- §3 (integration، TEST_DATABASE_URL=sahool_user): 131 passed، 21 failed (كلّها 401 لاختبارات HTTP تحتاج session حيّة، أو RLS bypass guard لاختبارات تُشغّل FastAPI بـsuperuser).
+- §4 (MCP): sentinel-hub-mcp 3 أدوات صالحة. read_indicator_observation على حقل بلا COG → raster-service يُعيد HTTP 424 ✅.
+- §5 (SEASON-EDGE-LIVE-PROOF): مُغلَقة 2026-07-20 (401/200/409 ✅).
+- §6: agriai-engine {"status":"alive"} ✅. rs-workspace-bff {"status":"ok"} port 8185 ✅. كلاهما محجوب بـnginx.
