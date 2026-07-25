@@ -1,5 +1,21 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-25 — إغلاق ثغرات Dependabot الأربع (postcss + react-router v6→v8) — مدموج PR #633 (`63a70a7`)
+
+**الطلب:** «عالج ثغرات Dependabot الأربع». كلّها npm/واجهة (١ high + ٣ moderate). النتيجة: `npm audit` = **0 vulnerabilities**.
+
+1. **postcss** (HIGH، GHSA-r28c-9q8g-f849 اجتياز مسار عبر تحميل خريطة المصدر): `8.5.15 → 8.5.23` (غير كاسر).
+2. **react-router** (٣ moderate: open-redirect + SSR deserializeErrors + react-router-dom التابع): `6.30.4 → 8.3.0`.
+   - **لماذا v8.3.0 لا v7.18؟** خطّ v7.18.x يُصلح الثلاث الأصليّة لكنّه يقع في نطاق ثغرة **RSC-CSRF** high جديدة (7.12.0–8.2.0)؛ **8.3.0** هي النسخة الوحيدة النظيفة من كلّ الاستشارات (وثّقتُ المفاضلة للمالك عبر AskUserQuestion فاختار الترقية الكاملة).
+   - **صدق:** ثغرتا RSC-CSRF وSSR-hydration تخصّان أنماط RSC/SSR فقط، وهذا **SPA عميل Vite** لا يستخدمها؛ الوحيدة ذات الصلة بـSPA هي open-redirect.
+
+**الهجرة (v6→v8، تراجع تأجيل PR #628 بطلب المالك الصريح):**
+- إعادة كتابة استيرادات **21 ملفّاً** `react-router-dom` → `react-router` (الحزمة أُزيلت في v8، كانت re-export) + قائمة `manualChunks` في `vite.config.ts`.
+- إزالة رايات `future` البائدة (`v7_startTransition`/`v7_relativeSplatPath` صارت افتراضيّة في v7، أُسقِط prop في v8) من ملفَّي اختبار MemoryRouter.
+- **node ≥ 22.22** مطلوب لـreact-router v8: رفع `frontend/Dockerfile` من `node:20-alpine`→`node:22-alpine` ووظيفتَي CI للواجهة (Frontend Typecheck + E2E) node 20→22 في `ci.yml`.
+
+**التحقّق:** `npm audit` 0 · `tsc` نظيف · `vite build` ناجح · **vitest 1291/1291** · حزمة الإصدار مُعاد توليدها. Ratchet: كلّ الفحوص success/skipped على `89135b2` (وظيفتا node-22 خضراوان) + `mergeable_state:clean` ⇒ squash `63a70a7`.
+
 ## 2026-07-25 — بطاقة الأصناف + إغلاق ست فجوات كود + إصلاحات مسار الصور — مدموج PR #632 (`10a8fae`)
 
 **ما أُنجز (على `claude/code-review-34hO3`، دُمج squash في `main`=`10a8fae`):**
