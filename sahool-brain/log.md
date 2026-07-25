@@ -1,5 +1,17 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-25 — TERRAIN مُغلَق: سجل مصادر متعدّد الدقّة + resolver + lineage صادق — PR #638
+- **قرار المالك:** أساس عالميّ مجانيّ **Copernicus GLO-30 (30م، DSM)** + دعم خرائط **10م/5م** موثّقة عند التزويد/الترخيص. الأولويّة `validated_5m → validated_10m → glo30_30m` بحسب **تغطية الحقل** (المصدر الأدقّ يجب أن يحتوي مربّع إحاطة الحقل كاملاً). لا طبقة 5م مجانيّة عالميّة اليوم (WorldDEM Neo / AW3D مرخّصة) ⇒ لا ادّعاء عالميّة/مجّانيّة للـ5م.
+- **الدلتا (إضافيّة، بلا مسار جديد):**
+  - `config/terrain_sources.yml` — سجل مصادر يستبدل الاعتماد على ملفّ `FIELD_DEM_PATH` واحد: GLO-30 أساس (`public_baseline`, priority 100) + `supplied-10m` (200) + `supplied-5m` (300)، كلّها `provisioned=false` حتى يزوّد المشغّل `uri` (+`coverage_bbox` للمساحات المحدّدة).
+  - `services/raster-service/terrain_source_registry.py` (منطق نقيّ بلا rasterio): `load_terrain_sources` (YAML + طيّ `FIELD_DEM_PATH` كأساس مُزوَّد للتوافق) · `resolve_terrain_source` (أعلى أولويّة مُزوَّد يغطّي الحقل؛ عالميّ دائماً أو `coverage_bbox` يحتوي؛ لا شيء ⇒ `resolved=false` بسبب صريح) · **منع الدقّة الوهميّة**: `effective_resolution_m=max(native,storage)` و`is_upsampled` — فGLO-30 المُعاد أخذ عيّناته 5م يبقى `effective=30`, `is_upsampled=true` · `terrain_lineage` (المصدر+الدقّتان+المرجع الرأسيّ+التحقّق) · مُرمِّز **Terrain-RGB** (مواصفة Mapbox: `h=-10000+(R·65536+G·256+B)·0.1`) `encode/decode` round-trip دقيق + `terrain_rgb_metadata` يحفظ الدقّة الأصلية (الترميز لا يرفع الدقّة) · `resolution_policy` للحالة/الواجهة.
+  - `routers/fields.py::field_terrain` — يحلّ المصدر ويمرّر `native_resolution_m` كـ`pixel_size_m` + يُلحِق `terrain_source` (nasab) + `resolution_policy`؛ لا مصدر ⇒ يبقى `computed=false` صادق مع السبب.
+  - `routers/terrain_tiles.py::terrain_status` — يعرض السجلّ + `resolution_policy` + عدد المُزوَّد بدل بوليان `FIELD_DEM_PATH` وحده (يبقى `dem_configured` للتوافق، مشتقّ من وجود مصدر مُزوَّد).
+  - اختبار `tests_v9/test_terrain_source_resolver.py` (8/8): وجود GLO-30+10م+5م · OPERATOR_BLOCKED الافتراضيّ · الأولويّة بالتغطية · تغطية جزئيّة لا تستعمل الأدقّ · منع الدقّة الوهميّة · round-trip الترميز + metadata يحفظ native · توافق `FIELD_DEM_PATH` · شكل `resolution_policy`.
+- **الحالة الصادقة (مطابقة اقتراح المالك):** `code_status=COMPLETE` · `product_decision=CLOSED` · **`runtime=OPERATOR_BLOCKED`** — لا بيانات DEM مُزوَّدة في البيئة ⇒ كلّ المصادر `provisioned=false` ⇒ المسار `computed=false`. **المتبقّي بيانات المشغّل لا كود:** `provision_baseline_dem` (GLO-30) · `deploy_terrain_rgb` بلاطات · `validate_runtime`. **لم أختلق/أُفعّل DEM.**
+- **درس (env_compose_drift ①):** متغيّر بيئة اختياريّ يُقرأ بلا افتراضيّ (`os.getenv("TERRAIN_SOURCES_CONFIG")`) يُصنَّف «إلزاميّ مفقود» في الحارس ④؛ الحلّ الصادق إعطاؤه افتراضاً داخليّاً (`os.getenv(x, "").strip()`) لأنّ له افتراضاً حقيقيّاً (السجلّ المُحزَّم).
+- **التحقّق:** `pytest -m unit` أخضر · `ruff` نظيف · حُرّاس الانجراف (inventory/route_mount/catalog) OK · حزمة الإصدار مُعاد بناؤها آخِراً (4872 بصمة).
+
 ## 2026-07-25 — V8-05 PR1-a: معالجة مشهد مفرد بإعادة استعمال backfill (run_kind) — مدموج PR #637 (`cf1f61e`)
 - **القرار (المالك):** «عالِج هذا التاريخ» يفصل اختيار التاريخ عن المعالجة، **بإعادة استعمال** `backfill_runs`/`backfill_run_items` — لا جدول `processing_jobs` جديد ولا آلة حالة ثانية.
 - **الدلتا:**
