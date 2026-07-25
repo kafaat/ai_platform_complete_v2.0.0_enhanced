@@ -31,6 +31,7 @@ import logging
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
+from api.canonical_well_capability import evaluate_water_salinity_gate
 from api.irrigation_mpc import ForecastDay
 from api.irrigation_runtime_orchestrator import orchestrate_irrigation_recommendation
 from api.lexicographic_irrigation_mpc import solve_lexicographic_irrigation
@@ -254,7 +255,45 @@ class RecommendationRequest(BaseModel):
     max_application_mm: float | None = Field(default=None, ge=0)
     season_budget_mm: float | None = Field(default=None, ge=0)
     water_price_per_m3: float | None = Field(default=None, ge=0)
+    # H5 (PR3): ربط ECw بمصدر ماء مبوَّب خادميّاً — تُقرأ الملوحة + الحدّ من SoR (لا من العميل)
+    # ويُنفَّذ `maximum_allowed_ec` fail-closed قبل أيّ توصية. اختياريّ: بلا ربط لا حدّ يُفرَض.
+    water_source_id: str | None = None
     submit: bool = False
+
+
+async def _source_water_salinity(tenant_id: str, water_source_id: str) -> dict | None:
+    """ملوحة ماء الريّ لمصدرٍ مبوَّب (ECw المُقاسة + الحدّ الأقصى) — نَسَب خادميّ.
+
+    يربط ECw بـ`water_source_id` من SoR: `irrigation_water_sources.maximum_allowed_ec_ds_m`
+    + أحدث عيّنة `irrigation_water_quality_samples` (المُقاسة، لا قيمة التصميم الساكنة). يُعيد
+    None إن تعذّر حلّ المصدر (⇒ يفشل المسار مُغلَقاً: لا نؤكّد حدّ الملوحة فلا نوصي).
+    """
+    try:
+        async with tenant_connection(tenant_id) as conn:
+            src = await conn.fetchrow(
+                "SELECT water_source_id, maximum_allowed_ec_ds_m "
+                "FROM irrigation_water_sources WHERE water_source_id=$1",
+                water_source_id,
+            )
+            if src is None:
+                return None
+            sample = await conn.fetchrow(
+                "SELECT ec_ds_m, sampled_at FROM irrigation_water_quality_samples "
+                "WHERE water_source_id=$1 ORDER BY sampled_at DESC LIMIT 1",
+                water_source_id,
+            )
+    except Exception:
+        logger.warning("water salinity read failed for source=%s", water_source_id, exc_info=True)
+        return None  # fail-closed: تعذّر التحقّق ⇒ لا توصية
+    return {
+        "water_source_id": str(src["water_source_id"]),
+        "maximum_allowed_ec_ds_m": src["maximum_allowed_ec_ds_m"],
+        "water_quality": (
+            None
+            if sample is None
+            else {"ec_ds_m": sample["ec_ds_m"], "sampled_at": str(sample["sampled_at"])}
+        ),
+    }
 
 
 @router.post("/api/v1/irrigation/mpc/simulate")
@@ -302,6 +341,48 @@ async def irrigation_mpc_recommendation(
     tenant_id = user.tenant_id
     if not await _field_belongs_to_tenant(tenant_id, field_id):
         return {"status": "blocked", "reason": "field_not_owned", "field_id": field_id}
+
+    # H5 (PR3): بوّابة ملوحة fail-closed مبكّرة — قبل أيّ حساب. عند ربط مصدر ماء
+    # (`water_source_id`) تُحلّ ECw + الحدّ من SoR ويُنفَّذ `maximum_allowed_ec`: ECw>الحدّ
+    # (أو لا عيّنة/عيّنة قديمة مع حدٍّ مضبوط أو مصدر غير قابل للحلّ) ⇒ blocked لا توصية.
+    salinity_provenance: dict | None = None
+    if req.water_source_id:
+        salinity = await _source_water_salinity(tenant_id, req.water_source_id)
+        if salinity is None:
+            return {
+                "status": "blocked",
+                "reason": "water_source_unresolved",
+                "field_id": field_id,
+                "water_source_id": req.water_source_id,
+                "requires_expert_review": True,
+                "detail": "تعذّر حلّ مصدر الماء المبوَّب للتحقّق من حدّ الملوحة — fail-closed.",
+            }
+        gate = evaluate_water_salinity_gate(
+            maximum_allowed_ec_ds_m=salinity["maximum_allowed_ec_ds_m"],
+            water_quality=salinity["water_quality"],
+        )
+        if gate["status"] == "blocked":
+            return {
+                "status": "blocked",
+                "reason": "water_salinity_gate_blocked",
+                "field_id": field_id,
+                "water_source_id": salinity["water_source_id"],
+                "blocking_reasons": gate["blocking_reasons"],
+                "water_ec_ds_m": gate["water_ec_ds_m"],
+                "maximum_allowed_ec_ds_m": gate["maximum_allowed_ec_ds_m"],
+                "requires_expert_review": True,
+                "detail": (
+                    "ملوحة ماء الريّ تتجاوز الحدّ المسموح (أو لا عيّنة/عيّنة قديمة مع حدٍّ "
+                    "مضبوط) — لا توصية حتى مراجعة خبير."
+                ),
+            }
+        salinity_provenance = {
+            "water_source_id": salinity["water_source_id"],
+            "status": "clear",
+            "water_ec_ds_m": gate["water_ec_ds_m"],
+            "maximum_allowed_ec_ds_m": gate["maximum_allowed_ec_ds_m"],
+            "sample_present": salinity["water_quality"] is not None,
+        }
 
     state = await _source_current_state(tenant_id, field_id)
     soil = await _source_soil_capacity(tenant_id, field_id)
@@ -368,6 +449,7 @@ async def irrigation_mpc_recommendation(
             "ledger_snapshot_hash": ledger_snapshot_hash,
             "weather_snapshot_hash": weather_snapshot_hash,
             "soil_snapshot_hash": soil_snapshot_hash,
+            "water_salinity": salinity_provenance,
         },
     }
     if req.submit:

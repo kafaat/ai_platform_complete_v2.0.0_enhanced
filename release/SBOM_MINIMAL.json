@@ -14695,7 +14695,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e5cd945f49ec481f1159241df89374ca7926279f59257ecfcaffdb489a93f7f0"
+          "content": "b39953381a09eafa29a264f7d6e14241f61cf351d724df8f2b6c45da01e6d87e"
         }
       ],
       "name": "services/sahool-platform/api/canonical_well_capability.py",
@@ -17315,7 +17315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3f9f8cb0f7f611bcf194a11f4d8f3e52bd4570d9bf165b6e2eb14384473361af"
+          "content": "0d6ed050a4ae705e72edb55c7381bfb7c57b2a419bdf72042459a7e5765d0ac2"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
