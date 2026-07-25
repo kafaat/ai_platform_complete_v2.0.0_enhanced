@@ -71,3 +71,66 @@ def test_route_and_model_present() -> None:
         assert key in src, f"process-date response must carry {key}"
     models = MODELS.read_text(encoding="utf-8")
     assert "class ProcessDateRequest(" in models, "ProcessDateRequest model must exist"
+
+
+# ─────────────── review hardening (P0-1 / P1-1 / P1-2 / P2-1) ───────────────
+
+
+def test_p0_tenant_is_authenticated_context_not_body() -> None:
+    """P0-1: the body's tenant_id must NEVER override the authenticated context tenant.
+
+    Field ownership is checked against the request-context tenant; the enqueue must use the
+    SAME tenant. A body tenant_id that differs fails closed (403), never creates a run/item
+    under a different tenant. Guards against the `req.tenant_id or _REQ_TENANT.get()` footgun.
+    """
+    src = ROUTE.read_text(encoding="utf-8")
+    # The dangerous "body-or-context" override must be gone from EVERY raster field route
+    # (process-date, historical-backfill async+sync fallback, geoparquet export) — not just
+    # process-date. A body tenant_id must never override the authenticated context tenant.
+    assert "req.tenant_id or _REQ_TENANT.get()" not in src, (
+        "no raster field route may let the body tenant_id override the authenticated context"
+    )
+    # A single fail-closed helper derives the tenant from context and rejects a mismatched body.
+    assert "def _authenticated_tenant(" in src, "the authenticated-tenant helper must exist"
+    assert "context_tenant = _REQ_TENANT.get()" in src, "helper derives tenant from request context"
+    assert "str(body_tenant) != str(context_tenant)" in src, "helper rejects body/context mismatch"
+    assert "403" in src, "a mismatched body tenant must be rejected with 403"
+    # The process-date handler routes its tenant through the helper.
+    assert "tenant = _authenticated_tenant(req.tenant_id)" in src
+
+
+def test_p1_ready_asset_preflight_matches_scene_id() -> None:
+    """P1-1: the enqueue ready-asset preflight must match scene_id (canonical-identity field).
+
+    Otherwise a ready asset for a DIFFERENT scene on the same day returns already_ready for the
+    scene the user actually picked. The worker's own preflight already matches scene_id — the
+    enqueue must be consistent.
+    """
+    src = DB_PERSIST.read_text(encoding="utf-8")
+    # Locate the enqueue preflight query and assert scene_id is part of the ready-asset match.
+    idx = src.index("async def enqueue_single_scene_process(")
+    body = src[idx : idx + 4000]
+    assert "asset_status='ready'" in body
+    assert "AND scene_id=$5" in body, "ready-asset preflight must match scene_id"
+
+
+def test_p1_race_deletes_orphan_single_scene_run() -> None:
+    """P1-2: on a concurrent ON CONFLICT loss, the just-created single_scene run must be deleted.
+
+    Without this, the losing request commits a `planned` run with zero items (orphan) — misleading
+    counters and a run the worker could claim with nothing to do.
+    """
+    src = DB_PERSIST.read_text(encoding="utf-8")
+    assert "DELETE FROM backfill_runs WHERE id=$1 AND run_kind='single_scene'" in src, (
+        "the race branch must delete the orphaned run before returning the winner's item"
+    )
+    assert "NOT EXISTS (SELECT 1 FROM backfill_run_items WHERE run_id=$1)" in src
+
+
+def test_p2_jobs_scheduled_counts_ran_jobs() -> None:
+    """P2-1: jobs_scheduled must count jobs that actually ran (persisted + failed), not only
+    persisted — otherwise a job that ran and failed reports jobs_scheduled=0."""
+    src = WORKER.read_text(encoding="utf-8")
+    assert "jobs_scheduled = items_persisted + items_failed" in src, (
+        "single-scene jobs_scheduled must include failed jobs that were actually scheduled"
+    )

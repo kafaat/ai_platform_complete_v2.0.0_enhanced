@@ -572,6 +572,10 @@ async def _process_single_scene_run(
                 )
 
     final_status = "completed_with_errors" if items_failed > 0 else "completed"
+    # مراجعة P2-1: jobs_scheduled يعدّ العناصر التي **جُدولت لها وظيفة فعلاً** (انتقلت إلى
+    # processing بمعرّف job) = المُثبَّتة + الفاشلة؛ المتخطّاة (أصبحت جاهزة قبل الالتقاط) لم
+    # تُجدوَل وظيفة. مساواته بـitems_persisted وحدها كانت تُخفي الوظائف التي شُغّلت وفشلت.
+    jobs_scheduled = items_persisted + items_failed
     async with pool.acquire() as conn:
         await conn.execute(
             "UPDATE backfill_runs SET status=$2, jobs_scheduled=$3, items_persisted=$4, "
@@ -579,7 +583,7 @@ async def _process_single_scene_run(
             "updated_at=now() WHERE id=$1",
             run_id,
             final_status,
-            items_persisted,
+            jobs_scheduled,
             items_persisted,
             items_failed,
             items_skipped,

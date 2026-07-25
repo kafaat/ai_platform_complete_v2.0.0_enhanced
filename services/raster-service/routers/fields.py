@@ -74,6 +74,20 @@ from raster_field_runtime import (
 router = APIRouter()
 
 
+def _authenticated_tenant(body_tenant: str | None) -> str | None:
+    """المستأجِر المُصادَق من سياق الطلب (رأس البوّابة الموثوق) — جسم الطلب لا يتجاوزه أبداً.
+
+    عزل صارم fail-closed (مراجعة P0-1): بنية «الهويّة الموثوقة بالبوّابة» (SEC-3) تجعل المستأجِر
+    يُشتقّ حصراً من السياق المُصادَق (نفس ما تحقّق منه _require_field_tenant). ``body_tenant``
+    مطابق ⇒ يُقبَل؛ مختلف ⇒ 403 — لا إنشاء run/item ولا تصدير تحليلات تحت مستأجِر يخالف
+    المُصادَق عليه (النمط القديم «body-or-context» كان يسمح للجسم بتجاوز السياق المُصادَق).
+    """
+    context_tenant = _REQ_TENANT.get()
+    if body_tenant is not None and str(body_tenant) != str(context_tenant):
+        raise HTTPException(403, "tenant_id في الجسم لا يطابق المستأجِر المُصادَق للطلب")
+    return context_tenant
+
+
 @router.get("/gis/admin-boundaries")
 async def gis_admin_boundaries(
     level: int = Query(1, ge=1, le=2),
@@ -302,7 +316,7 @@ async def field_historical_backfill(
     if _async_backfill_enabled() and not req.dry_run:
         import db_persist as _dbp
 
-        _async_tenant = req.tenant_id or _REQ_TENANT.get()
+        _async_tenant = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط
         run_id = await _dbp.insert_backfill_run(
             tenant_id=str(_async_tenant) if _async_tenant else None,
             field_id=field_id,
@@ -401,7 +415,7 @@ async def field_historical_backfill(
 
     job_ids: list[str] = []
     scheduled: list[dict] = []
-    tenant_id = req.tenant_id or _REQ_TENANT.get()
+    tenant_id = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط
     # FINDING-009: استمرار المشاهد المُختارة في stac_item_registry (خلفيّة، best-effort).
     if not req.dry_run and tenant_id and selected_scenes:
         background_tasks.add_task(
@@ -639,7 +653,7 @@ async def field_process_date(
 
     import db_persist as _dbp
 
-    tenant = req.tenant_id or _REQ_TENANT.get()
+    tenant = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط، لا تجاوز من الجسم
     result = await _dbp.enqueue_single_scene_process(
         tenant_id=str(tenant) if tenant else None,
         field_id=field_id,
@@ -717,7 +731,7 @@ async def export_field_analytics_geoparquet(
     artifact.
     """
     _require_service_token(x_agent_token)
-    tenant_id = req.tenant_id or _REQ_TENANT.get()
+    tenant_id = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط
     import json as _json
 
     import db_persist

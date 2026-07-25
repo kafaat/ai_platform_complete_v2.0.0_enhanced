@@ -584,15 +584,21 @@ async def enqueue_single_scene_process(
                     identity.legacy_backfill_key(),
                     key,
                 )
-            # ١. preflight: أصلٌ جاهز بنفس مراجعة الهندسة ⇒ لا معالجة جديدة (يطابق منطق العامل).
+            # ١. preflight: أصلٌ جاهز **للمشهد نفسه** بنفس مراجعة الهندسة ⇒ لا معالجة جديدة.
+            # مراجعة P1-1: يجب مطابقة scene_id (جزء من الهويّة القانونيّة) وإلّا أعاد أصلٌ لمشهدٍ
+            # آخر في اليوم نفسه «already_ready» زوراً للمشهد المختار. هذا يطابق preflight العامل
+            # (backfill_scan_worker يطابق scene_id أصلاً). provider ليس عموداً في raster_assets
+            # فالمطابقة على scene_id (المُميِّز الفعليّ «يوم نفسه، مشهد مختلف»).
             ready = await conn.fetchval(
                 "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
-                "AND index_name=$3 AND acquisition_date=$4::text::date AND asset_status='ready' "
-                "AND ($5::int IS NULL OR geometry_revision=$5::int) LIMIT 1",
+                "AND index_name=$3 AND acquisition_date=$4::text::date AND scene_id=$5 "
+                "AND asset_status='ready' "
+                "AND ($6::int IS NULL OR geometry_revision=$6::int) LIMIT 1",
                 str(tenant_id),
                 field_id,
                 index_name,
                 acq,
+                scene_id,
                 geometry_revision,
             )
             if ready:
@@ -676,7 +682,15 @@ async def enqueue_single_scene_process(
                     key,
                 )
                 if item_id is None:
-                    # سباق نادر: أُدرِج العنصر بين SELECT وINSERT. أعِد استعماله بدل تكراره.
+                    # سباق نادر: أُدرِج العنصر بين SELECT وINSERT (ON CONFLICT DO NOTHING).
+                    # مراجعة P1-2: التشغيلة التي أنشأناها للتوّ صارت **يتيمة** (بلا عناصر) لأنّ عنصر
+                    # الفائز مرتبط بتشغيلته. احذف تشغيلتنا اليتيمة قبل إعادة عنصر الفائز — لا صفوف
+                    # planned بلا عناصر، لا إحصاءات مُضلِّلة، لا التقاط العامل لتشغيلة فارغة.
+                    await conn.execute(
+                        "DELETE FROM backfill_runs WHERE id=$1 AND run_kind='single_scene' "
+                        "AND NOT EXISTS (SELECT 1 FROM backfill_run_items WHERE run_id=$1)",
+                        int(run_id),
+                    )
                     race = await conn.fetchrow(
                         "SELECT id, run_id FROM backfill_run_items "
                         "WHERE tenant_id=$1::uuid AND idempotency_key=$2",
