@@ -286,6 +286,10 @@
       "audience": "agronomist"
     },
     {
+      "prefix": "/api/v1/varieties",
+      "audience": "agronomist"
+    },
+    {
       "prefix": "/api/v1/seed",
       "audience": "agronomist"
     },

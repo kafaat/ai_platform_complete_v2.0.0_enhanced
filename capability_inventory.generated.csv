@@ -710,6 +710,8 @@ sahool-platform.tenant.config,query,sahool-platform,GET /api/v1/tenant/config,fr
 sahool-platform.tile-cache-plan,query,sahool-platform,GET /tile-cache-plan,frontend,route,False
 sahool-platform.trials.analyze,command,sahool-platform,POST /api/v1/trials/analyze,frontend,route,False
 sahool-platform.usage,command,sahool-platform,POST /usage,frontend,route,False
+sahool-platform.varieties.food-grains,query,sahool-platform,GET /api/v1/varieties/food-grains,frontend,route,False
+sahool-platform.varieties.food-grains.variety_id,query,sahool-platform,GET /api/v1/varieties/food-grains/{variety_id},frontend,route,False
 sahool-platform.vegetation.all_fields,query,sahool-platform,GET /api/vegetation/v1/all_fields,frontend,route,False
 sahool-platform.vegetation.analyze,query,sahool-platform,GET /api/vegetation/v1/analyze,frontend,route,False
 sahool-platform.vegetation.readyz,query,sahool-platform,GET /api/vegetation/readyz,frontend,route,False
