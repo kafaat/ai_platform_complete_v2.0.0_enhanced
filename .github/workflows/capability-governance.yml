@@ -31,6 +31,16 @@ jobs:
         run: python scripts/ci/route_conflict_guard.py --check
       - name: Validate event contract graph drift
         run: python scripts/ci/event_contract_graph.py --check
+      - name: Validate gateway reachability inventory
+        run: python scripts/ci/gateway_reachability_guard.py --check
+      - name: Validate database contract graph drift
+        run: python scripts/ci/database_contract_graph.py --check
+      - name: Validate RLS policy inventory
+        run: python scripts/ci/rls_policy_guard.py --check
+      - name: Validate migration graph
+        run: python scripts/ci/migration_graph_guard.py --check
+      - name: Validate runtime verification harness plan
+        run: python scripts/ci/runtime_verification_harness.py --check
       - name: Validate capability registry
         run: python scripts/ci/capability_registry_guard.py --check
       - name: Validate capability linkage runtime evidence
@@ -50,4 +60,7 @@ jobs:
             tests/architecture/test_router_reachability_guard.py \
             tests/architecture/test_route_conflict_guard.py \
             tests/architecture/test_event_contract_graph.py \
+            tests/architecture/test_gateway_reachability_guard.py \
+            tests/architecture/test_database_contract_graph.py \
+            tests/architecture/test_runtime_verification_harness.py \
             tests/architecture/test_static_governance_closure.py

@@ -1,0 +1,13 @@
+{
+  "evidence_files": 0,
+  "invalid_or_stale_evidence_files": [],
+  "planned_probes": 110,
+  "production_certified_services": 0,
+  "runtime_verified_services": 0,
+  "schema_version": "1.0",
+  "services": 32,
+  "services_with_probeable_endpoints": 27,
+  "services_without_probeable_endpoints": 5,
+  "static_plan_only": true,
+  "valid_live_evidence_files": 0
+}
