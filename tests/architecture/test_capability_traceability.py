@@ -66,7 +66,6 @@ def test_capability_dart_imports_resolve():
     )
 
 
-
 def test_high_confidence_requires_service_api_and_test():
     for cap in _caps():
         if cap["confidence"] == "high":
