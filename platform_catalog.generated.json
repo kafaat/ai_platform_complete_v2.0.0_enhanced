@@ -16669,6 +16669,7 @@
           "farm_ledger_parties",
           "feature_definitions_runtime",
           "feature_lineage_registry",
+          "field_irrigation_source_assignments",
           "gis_collaboration_events",
           "gis_collaboration_sessions",
           "global_gis_release_gate",
@@ -17621,7 +17622,7 @@
       "path": "/stac/collections"
     }
   ],
-  "fingerprint": "b5a785c6075a3785e331a14572fb2137957a3bc04ae4e3d6a887f7e8eea80f8b",
+  "fingerprint": "984e7083a0d27a534bedf08a7395b5935341ce0218292e162e5401f067ea6013",
   "gateway": {
     "proxied_components": [
       "agriai-engine",
