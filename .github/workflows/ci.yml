@@ -856,6 +856,14 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_decision_sor_db_privilege_cutover.py -q -p no:cacheprovider
+      # DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION: the certification tool's verdict must be
+      # trustworthy — prove role_separation_confirmed is true for two distinct roles and false for a
+      # shared role (the "do not REVOKE" signal), and that role attributes + table owners are surfaced.
+      - name: decision SoR pre-cutover role certification verdict (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_decision_sor_role_certify_pg.py -q -p no:cacheprovider
       # Gate-Trust-1: the trust root fails closed at READ — deploy_build_sha() and the probe secret
       # raise on absent/invalid config, the evidence window is capped, provenance is canonical. Pure
       # decisions, no DB.
