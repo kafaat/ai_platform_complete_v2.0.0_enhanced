@@ -347,8 +347,12 @@ async def export_prescription(
     ),
     vendor: str | None = Query(None, description="ISOXML (dev): مورّد المُتحكِّم"),
     controller: str | None = Query(None, description="ISOXML (dev): عائلة المُتحكِّم"),
-    task_controller_version: str | None = Query(None, description="ISOXML (dev): إصدار Task Controller"),
-    supported_units: str | None = Query(None, description="ISOXML (dev): وحدات المُتحكِّم (مفصولة بفواصل)"),
+    task_controller_version: str | None = Query(
+        None, description="ISOXML (dev): إصدار Task Controller"
+    ),
+    supported_units: str | None = Query(
+        None, description="ISOXML (dev): وحدات المُتحكِّم (مفصولة بفواصل)"
+    ),
     crop: str | None = Query(None, description="ISOXML: المحصول (وصفيّ)"),
     user: UserSchema = Depends(require_permission(Permission.FIELD_VIEW)),
 ):

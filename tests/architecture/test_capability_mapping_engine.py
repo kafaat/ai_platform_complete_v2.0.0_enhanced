@@ -109,8 +109,7 @@ def test_raw_scanner_mapped_is_subset_of_authoritative_management() -> None:
     mapping = json.loads((OUT / "capability_mapping.json").read_text())
     matrix = json.loads(
         (
-            ROOT
-            / "docs/capability-registry/generated/management/capability_management_matrix.json"
+            ROOT / "docs/capability-registry/generated/management/capability_management_matrix.json"
         ).read_text()
     )
     mgmt_mapped = {r["id"] for r in matrix["capabilities"] if r["mapped"]}
