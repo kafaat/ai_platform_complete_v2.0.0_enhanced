@@ -1,0 +1,94 @@
+name: PATH-3 Runtime Verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_id:
+        description: Stable identifier for the tested environment
+        required: true
+        default: staging-pg16
+      allow_partial:
+        description: Probe only compose-resolved services and retain unresolved contracts as blockers
+        required: true
+        type: boolean
+        default: false
+      keep_stack:
+        description: Keep compose stack running after verification
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: path3-runtime-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  runtime-verification:
+    runs-on: [self-hosted, linux, docker]
+    timeout-minutes: 45
+    env:
+      TESTED_SHA: ${{ github.sha }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      NATS_USER: ${{ secrets.NATS_USER }}
+      NATS_PASSWORD: ${{ secrets.NATS_PASSWORD }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
+      MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install static verification dependencies
+        run: python -m pip install --disable-pip-version-check PyYAML pytest
+
+      - name: Validate runnable Docker environment
+        run: python scripts/ci/runtime_environment_preflight.py --check --require-runnable
+
+      - name: Resolve internal compose targets
+        run: |
+          python scripts/ci/compose_runtime_target_resolver.py --generate
+          python scripts/ci/compose_runtime_target_resolver.py --check --require-complete
+          python scripts/ci/path3_runtime_readiness_closure.py --check
+
+      - name: Activate stack and collect evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --compose-file docker-compose.v9.yml
+            --environment-id "${{ inputs.environment_id }}"
+          )
+          if [[ "${{ inputs.allow_partial }}" == "true" ]]; then
+            args+=(--allow-partial)
+          fi
+          if [[ "${{ inputs.keep_stack }}" == "true" ]]; then
+            args+=(--keep-stack)
+          fi
+          python scripts/ci/path3_runtime_activation.py "${args[@]}"
+
+      - name: Validate imported evidence and certification claims
+        if: always()
+        run: |
+          python scripts/ci/runtime_evidence_ingestion.py --check
+          python scripts/ci/runtime_certification_gate.py --check
+
+      - name: Upload runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: path3-runtime-evidence-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 30
+          path: |
+            runtime-verification/evidence/*.json
+            runtime-verification/generated/runtime_evidence_ledger.json
+            runtime-verification/generated/runtime_certification_summary.json
+            runtime-verification/generated/compose_runtime_targets.json
+            runtime-verification/generated/COMPOSE_RUNTIME_TARGETS.md

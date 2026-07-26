@@ -1,0 +1,329 @@
+{
+  "fail_closed": true,
+  "ledger_sha256": "ee5320fe49bf65451b98ca41b0a45ec6180d45d0334b45461b213bd43d2c9b0c",
+  "plan_sha256": "a98fcdf2fe1791f4690c216f9e52edbc75e89d95cc64a1835f993cb432aed894",
+  "schema_version": "1.0",
+  "services": [
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 4,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "actuator-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 4,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "agriai-engine",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 6,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "ai_agronomist",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 4,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "auth",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 4,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "decision-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 2,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "edge-inference",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 4,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "erp-bridge",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "field-management-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "field-segmentation",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 0,
+      "probeable": false,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "gis-workflow-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 4,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "guardrails-engine",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "indicators-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "knowledge-graph",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "local-ai-rag",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "mcp_servers",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 1,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "model-registry-adapter",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 0,
+      "probeable": false,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "qdrant-seed",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "rag-retrieval",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "raster-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 0,
+      "probeable": false,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "raster-tiler-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 2,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "remote-sensing-workspace-bff",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 17,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "sahool-platform",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "sam2-inference",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 2,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "scout-ingest-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 5,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "soil-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 7,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "supervisor-agent",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 4,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "tts-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 7,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "vegetation-analysis-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "video-processor",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 0,
+      "probeable": false,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "weather-polygon-worker",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 3,
+      "probeable": true,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "weather-service",
+      "valid_evidence_count": 0
+    },
+    {
+      "evidence_files": [],
+      "latest_valid_evidence": null,
+      "planned_probe_count": 0,
+      "probeable": false,
+      "production_certified": false,
+      "runtime_verified": false,
+      "service": "weather-signal-engine",
+      "valid_evidence_count": 0
+    }
+  ],
+  "unknown_or_unbound_evidence_files": []
+}

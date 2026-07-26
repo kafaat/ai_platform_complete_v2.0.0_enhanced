@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "path-2-integration-and-runtime-evidence-governance",
+  "status": "CLOSED",
+  "integration_governance_verified": true,
+  "runtime_verification_framework_ready": true,
+  "runtime_verified": false,
+  "production_certified": false,
+  "checks": [
+    {
+      "name": "artifact:path1",
+      "passed": true,
+      "detail": "governance/generated/STATIC_GOVERNANCE_CLOSURE.json"
+    },
+    {
+      "name": "artifact:gateway",
+      "passed": true,
+      "detail": "gateway-audit/generated/gateway_reachability.json"
+    },
+    {
+      "name": "artifact:event",
+      "passed": true,
+      "detail": "event-audit/generated/event_contract_summary.json"
+    },
+    {
+      "name": "artifact:database",
+      "passed": true,
+      "detail": "database-audit/generated/database_contract_summary.json"
+    },
+    {
+      "name": "artifact:runtime_plan",
+      "passed": true,
+      "detail": "runtime-verification/generated/runtime_verification_summary.json"
+    },
+    {
+      "name": "artifact:runtime_evidence",
+      "passed": true,
+      "detail": "runtime-verification/generated/runtime_evidence_ledger.json"
+    },
+    {
+      "name": "artifact:certification",
+      "passed": true,
+      "detail": "runtime-verification/generated/runtime_certification_summary.json"
+    },
+    {
+      "name": "path1:closed",
+      "passed": true,
+      "detail": "status=CLOSED"
+    },
+    {
+      "name": "gateway:no_hard_configuration_errors",
+      "passed": true,
+      "detail": "hard_errors=0"
+    },
+    {
+      "name": "gateway:no_runtime_or_production_claim",
+      "passed": true,
+      "detail": "runtime=false, production=false"
+    },
+    {
+      "name": "events:no_cross_component_durable_collision",
+      "passed": true,
+      "detail": "collisions=0"
+    },
+    {
+      "name": "events:no_runtime_or_production_claim",
+      "passed": true,
+      "detail": "runtime=false, production=false"
+    },
+    {
+      "name": "database:manifest_complete",
+      "passed": true,
+      "detail": "missing=0, unlisted=0"
+    },
+    {
+      "name": "database:no_runtime_or_production_claim",
+      "passed": true,
+      "detail": "runtime=false, production=false"
+    },
+    {
+      "name": "runtime_plan:nonempty",
+      "passed": true,
+      "detail": "planned_probes=110"
+    },
+    {
+      "name": "runtime_plan:fail_closed_static_state",
+      "passed": true,
+      "detail": "static plan only; verified=0; certified=0"
+    },
+    {
+      "name": "runtime_evidence:fail_closed",
+      "passed": true,
+      "detail": "fail_closed=True"
+    },
+    {
+      "name": "runtime_evidence:no_unknown_files",
+      "passed": true,
+      "detail": "unknown_or_unbound=0"
+    },
+    {
+      "name": "certification:gate_passed",
+      "passed": true,
+      "detail": "gate_passed=True"
+    },
+    {
+      "name": "certification:no_claim_violations",
+      "passed": true,
+      "detail": "service=0, capability=0"
+    },
+    {
+      "name": "certification:no_production_claim",
+      "passed": true,
+      "detail": "production_certified_services=[]"
+    }
+  ],
+  "tracked_non_blocking_remainders": [
+    "gateway security review candidates requiring live request verification",
+    "dynamic NATS subjects requiring runtime topology evidence",
+    "tenant/RLS review candidates requiring PostgreSQL catalog proof",
+    "live health, readiness, metrics, queue, database, and end-to-end evidence"
+  ],
+  "handoff_to_path3": "Execute the stack and ingest plan-bound evidence; only valid evidence may change runtime_verified state.",
+  "boundary": "PATH-2 closes repository-side integration and runtime-evidence governance. It does not certify a running stack or production environment.",
+  "content_sha256": "f34c23381c6bb740fe009c0bcc7cba9b2c02cb88f303e1c3d47f2cc3ea48e322"
+}

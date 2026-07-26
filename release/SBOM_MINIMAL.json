@@ -95,6 +95,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "ac0b701ca874579424987e52b4aec0ed1ac0df47e5a94e03c6e9d496c5b283af"
+        }
+      ],
+      "name": "docker-compose.runtime-verification.yml",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "dae5f2f4b36336b2f824f009e9e06695cdbed4104a0a5710f1feb61c34aa9285"
         }
       ],

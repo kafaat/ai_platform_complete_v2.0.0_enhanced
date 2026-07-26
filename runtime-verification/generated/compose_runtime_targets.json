@@ -1,0 +1,510 @@
+{
+  "compose_file": "docker-compose.v9.yml",
+  "fail_closed": true,
+  "production_certified": false,
+  "runtime_verified": false,
+  "schema_version": 1,
+  "source_plan_sha256": "a98fcdf2fe1791f4690c216f9e52edbc75e89d95cc64a1835f993cb432aed894",
+  "targets": [
+    {
+      "base_url": "http://sahool-actuator-service:8000",
+      "base_url_env": "ACTUATOR_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-actuator-service"
+      ],
+      "compose_service": "sahool-actuator-service",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "actuator-service",
+      "source_service": "actuator-service"
+    },
+    {
+      "base_url": "http://sahool-agriai-engine:8000",
+      "base_url_env": "AGRIAI_ENGINE_BASE_URL",
+      "candidate_matches": [
+        "sahool-agriai-engine"
+      ],
+      "compose_service": "sahool-agriai-engine",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "agriai-engine",
+      "source_service": "agriai-engine"
+    },
+    {
+      "base_url": "http://sahool-ai-agronomist:8000",
+      "base_url_env": "AI_AGRONOMIST_BASE_URL",
+      "candidate_matches": [
+        "sahool-ai-agronomist"
+      ],
+      "compose_service": "sahool-ai-agronomist",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "ai_agronomist",
+      "source_service": "ai_agronomist"
+    },
+    {
+      "base_url": "http://sahool-auth:8000",
+      "base_url_env": "AUTH_BASE_URL",
+      "candidate_matches": [
+        "sahool-auth"
+      ],
+      "compose_service": "sahool-auth",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "auth",
+      "source_service": "auth"
+    },
+    {
+      "base_url": "http://sahool-decision-service:8160",
+      "base_url_env": "DECISION_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-decision-service"
+      ],
+      "compose_service": "sahool-decision-service",
+      "members": [],
+      "port": 8160,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "decision-service",
+      "source_service": "decision-service"
+    },
+    {
+      "base_url": "http://sahool-edge:8100",
+      "base_url_env": "EDGE_INFERENCE_BASE_URL",
+      "candidate_matches": [
+        "sahool-edge"
+      ],
+      "compose_service": "sahool-edge",
+      "members": [],
+      "port": 8100,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "edge-inference",
+      "source_service": "edge-inference"
+    },
+    {
+      "base_url": "http://sahool-erp-bridge:8126",
+      "base_url_env": "ERP_BRIDGE_BASE_URL",
+      "candidate_matches": [
+        "sahool-erp-bridge"
+      ],
+      "compose_service": "sahool-erp-bridge",
+      "members": [],
+      "port": 8126,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "erp-bridge",
+      "source_service": "odoo-bridge"
+    },
+    {
+      "base_url": "http://sahool-field-management:8000",
+      "base_url_env": "FIELD_MANAGEMENT_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-field-management"
+      ],
+      "compose_service": "sahool-field-management",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "field-management-service",
+      "source_service": "field-management-service"
+    },
+    {
+      "base_url": "http://sahool-field-segmentation:8000",
+      "base_url_env": "FIELD_SEGMENTATION_BASE_URL",
+      "candidate_matches": [
+        "sahool-field-segmentation"
+      ],
+      "compose_service": "sahool-field-segmentation",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "field-segmentation",
+      "source_service": "field-segmentation"
+    },
+    {
+      "base_url": "http://sahool-guardrails-engine:8000",
+      "base_url_env": "GUARDRAILS_ENGINE_BASE_URL",
+      "candidate_matches": [
+        "sahool-guardrails-engine"
+      ],
+      "compose_service": "sahool-guardrails-engine",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "guardrails-engine",
+      "source_service": "guardrails-engine"
+    },
+    {
+      "base_url": "http://sahool-indicators-service:8000",
+      "base_url_env": "INDICATORS_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-indicators-service"
+      ],
+      "compose_service": "sahool-indicators-service",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "indicators-service",
+      "source_service": "indicators-service"
+    },
+    {
+      "base_url": "http://sahool-knowledge-graph:8000",
+      "base_url_env": "KNOWLEDGE_GRAPH_BASE_URL",
+      "candidate_matches": [
+        "sahool-knowledge-graph"
+      ],
+      "compose_service": "sahool-knowledge-graph",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "knowledge-graph",
+      "source_service": "knowledge-graph"
+    },
+    {
+      "base_url": "http://sahool-local-ai-rag:8000",
+      "base_url_env": "LOCAL_AI_RAG_BASE_URL",
+      "candidate_matches": [
+        "sahool-local-ai-rag"
+      ],
+      "compose_service": "sahool-local-ai-rag",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "local-ai-rag",
+      "source_service": "local-ai-rag"
+    },
+    {
+      "base_url": null,
+      "base_url_env": "MCP_SERVERS_BASE_URL",
+      "candidate_matches": [
+        "sahool-sentinel-hub-mcp",
+        "sahool-weather-mcp",
+        "sahool-wofost-mcp",
+        "sahool-market-mcp"
+      ],
+      "compose_service": null,
+      "members": [
+        {
+          "base_url": "http://sahool-sentinel-hub-mcp:8000",
+          "compose_service": "sahool-sentinel-hub-mcp",
+          "port": 8000,
+          "port_source": "healthcheck_url",
+          "profiles": [],
+          "resolved": true
+        },
+        {
+          "base_url": "http://sahool-weather-mcp:8000",
+          "compose_service": "sahool-weather-mcp",
+          "port": 8000,
+          "port_source": "healthcheck_url",
+          "profiles": [],
+          "resolved": true
+        },
+        {
+          "base_url": "http://sahool-wofost-mcp:8000",
+          "compose_service": "sahool-wofost-mcp",
+          "port": 8000,
+          "port_source": "healthcheck_url",
+          "profiles": [],
+          "resolved": true
+        },
+        {
+          "base_url": "http://sahool-market-mcp:8000",
+          "compose_service": "sahool-market-mcp",
+          "port": 8000,
+          "port_source": "healthcheck_url",
+          "profiles": [],
+          "resolved": true
+        }
+      ],
+      "port": null,
+      "port_source": null,
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "mcp_servers",
+      "source_service": "mcp_servers"
+    },
+    {
+      "base_url": "http://sahool-model-lifecycle-adapter:8099",
+      "base_url_env": "MODEL_REGISTRY_ADAPTER_BASE_URL",
+      "candidate_matches": [
+        "sahool-model-lifecycle-adapter"
+      ],
+      "compose_service": "sahool-model-lifecycle-adapter",
+      "members": [],
+      "port": 8099,
+      "port_source": "contract_override",
+      "production_certified": false,
+      "profiles": [
+        "model-lifecycle"
+      ],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "model-registry-adapter",
+      "source_service": "model-registry-adapter"
+    },
+    {
+      "base_url": "http://sahool-rag-retrieval:8000",
+      "base_url_env": "RAG_RETRIEVAL_BASE_URL",
+      "candidate_matches": [
+        "sahool-rag-retrieval"
+      ],
+      "compose_service": "sahool-rag-retrieval",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "rag-retrieval",
+      "source_service": "rag-retrieval"
+    },
+    {
+      "base_url": "http://sahool-raster-service:8001",
+      "base_url_env": "RASTER_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-raster-service"
+      ],
+      "compose_service": "sahool-raster-service",
+      "members": [],
+      "port": 8001,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "raster-service",
+      "source_service": "raster-service"
+    },
+    {
+      "base_url": "http://sahool-remote-sensing-workspace-bff:8185",
+      "base_url_env": "REMOTE_SENSING_WORKSPACE_BFF_BASE_URL",
+      "candidate_matches": [
+        "sahool-remote-sensing-workspace-bff"
+      ],
+      "compose_service": "sahool-remote-sensing-workspace-bff",
+      "members": [],
+      "port": 8185,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "remote-sensing-workspace-bff",
+      "source_service": "remote-sensing-workspace-bff"
+    },
+    {
+      "base_url": "http://sahool-platform:8000",
+      "base_url_env": "SAHOOL_PLATFORM_BASE_URL",
+      "candidate_matches": [
+        "sahool-platform"
+      ],
+      "compose_service": "sahool-platform",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "sahool-platform",
+      "source_service": "sahool-platform"
+    },
+    {
+      "base_url": "http://sahool-sam2-inference:8080",
+      "base_url_env": "SAM2_INFERENCE_BASE_URL",
+      "candidate_matches": [
+        "sahool-sam2-inference"
+      ],
+      "compose_service": "sahool-sam2-inference",
+      "members": [],
+      "port": 8080,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [
+        "gpu"
+      ],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "sam2-inference",
+      "source_service": "sam2-inference"
+    },
+    {
+      "base_url": "http://sahool-scout-ingest:8000",
+      "base_url_env": "SCOUT_INGEST_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-scout-ingest"
+      ],
+      "compose_service": "sahool-scout-ingest",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "scout-ingest-service",
+      "source_service": "scout-ingest-service"
+    },
+    {
+      "base_url": "http://sahool-soil-service:8000",
+      "base_url_env": "SOIL_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-soil-service"
+      ],
+      "compose_service": "sahool-soil-service",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "soil-service",
+      "source_service": "soil-service"
+    },
+    {
+      "base_url": "http://sahool-supervisor-agent:8000",
+      "base_url_env": "SUPERVISOR_AGENT_BASE_URL",
+      "candidate_matches": [
+        "sahool-supervisor-agent"
+      ],
+      "compose_service": "sahool-supervisor-agent",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "supervisor-agent",
+      "source_service": "supervisor-agent"
+    },
+    {
+      "base_url": "http://sahool-tts-service:8000",
+      "base_url_env": "TTS_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-tts-service"
+      ],
+      "compose_service": "sahool-tts-service",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "tts-service",
+      "source_service": "tts-service"
+    },
+    {
+      "base_url": "http://sahool-vegetation-analysis:8000",
+      "base_url_env": "VEGETATION_ANALYSIS_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-vegetation-analysis"
+      ],
+      "compose_service": "sahool-vegetation-analysis",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "vegetation-analysis-service",
+      "source_service": "vegetation-analysis-service"
+    },
+    {
+      "base_url": "http://sahool-video-processor:8000",
+      "base_url_env": "VIDEO_PROCESSOR_BASE_URL",
+      "candidate_matches": [
+        "sahool-video-processor"
+      ],
+      "compose_service": "sahool-video-processor",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "video-processor",
+      "source_service": "video-processor"
+    },
+    {
+      "base_url": "http://sahool-weather-service:8000",
+      "base_url_env": "WEATHER_SERVICE_BASE_URL",
+      "candidate_matches": [
+        "sahool-weather-service"
+      ],
+      "compose_service": "sahool-weather-service",
+      "members": [],
+      "port": 8000,
+      "port_source": "healthcheck_url",
+      "production_certified": false,
+      "profiles": [],
+      "resolved": true,
+      "runtime_verified": false,
+      "service": "weather-service",
+      "source_service": "weather-service"
+    }
+  ],
+  "targets_sha256": "12b8ecf9435b6d3397b214a30d44eb07ec4f8737c6883754481ca01a58e8a8b8"
+}
