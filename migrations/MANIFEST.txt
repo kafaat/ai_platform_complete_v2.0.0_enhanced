@@ -727,6 +727,11 @@ v213_backfill_runs_single_scene.sql
 #   خادميّاً (نافذة صلاحيّة + أولويّة + خلط + حالة) ليصير مصدر بوّابة الملوحة مُشتقّاً من
 #   الخادم لا من العميل. RLS صارم. يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
 v214_field_irrigation_source_assignments.sql
+# v215 (PA-003): استيعاب خرائط الغلّة الحقيقيّة — جدولا yield_map_ingestions (منشأ/مصدر
+#   idempotent) + yield_map_records (نقاط PostGIS 4326، append-only). FORCE-RLS +
+#   tenant_isolation، مغلّفان بمُشغّلات نطاق (الموسم/التغطية داخل هندسة الحقل) ومنع تحوير.
+#   يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
+v215_yield_map_ingestion.sql
 # v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
 # app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
 v206_rls_final_hardening.sql

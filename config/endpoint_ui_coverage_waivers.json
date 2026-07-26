@@ -226,6 +226,375 @@
       "intended_consumer": "machine"
     },
     {
+      "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
+      "audience": "agronomist",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.9 approved-decision to planned execution-plan boundary; machine-consumed and explicitly non-executing. Planner UI is deferred to WX-10.11.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.11",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
+      "method": "POST",
+      "reason_category": "operational",
+      "reason": "WX-10.11 execution-request creation is a machine-to-machine dispatch (the execution worker turns an authorized dispatch into a queued execution request); no end-user UI required — intended consumer is the execution adapter, not a human.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "expires": "2026-11-30",
+      "tracking": "WX-10.11"
+    },
+    {
+      "endpoint": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
+      "audience": "operations-manager",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.10 planned execution-plan to dispatch-authorization boundary; records authorization only and performs no dispatch/task/equipment side effect. Execution UI is deferred to WX-10.11.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.11",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
+      "audience": "operations-manager",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.12 machine/operator verification boundary writes one immutable canonical outcome_record with receipt and evidence lineage; dedicated outcome UI is deferred to WX-10.13.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-10.13",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "توصية ريّ MPC ساعيّة واعية بالطاقة (WX-I1) تُبنى من حقائق SoR خادميّاً — الشقيق الساعيّ لـ/recommendation اليوميّة؛ توصية-فقط (execution_allowed=False) تظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا شاشة مباشرة؛ شاشة MPC مخصّصة دَين مُتتبَّع.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-decision-console",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "توصية ريّ MPC عمليّة تُبنى من حقائق SoR خادميّاً (P1.1c-b) — توصية-فقط تظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا شاشة مباشرة؛ شاشة MPC مخصّصة دَين مُتتبَّع.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-decision-console",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/yield-map-records",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/yield_map_ingestion.py"
+      ],
+      "reason_category": "operational",
+      "reason": "PA-003: قراءة نقاط الغلّة الجيومكانيّة الخام (PostGIS) — مستوى بيانات يغذّي التحليل/التصيير، لا شاشة مستخدم نهائيّ مستقلّة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/yield-maps/ingestions",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/yield_map_ingestion.py",
+        "post@services/sahool-platform/api/routers/yield_map_ingestion.py"
+      ],
+      "reason_category": "operational",
+      "reason": "PA-003: استيعاب خرائط الغلّة الخام (رفع ملفّات الحاصدة CSV/GeoJSON) وسردها — مستوى بيانات خلفيّ/مكتبيّ (agronomist/تكامل آليّ)، لا شاشة مستخدم نهائيّ؛ السطح المواجِه للمزارع هو صفحة تحليل الغلّة القائمة (YieldAnalysisPage).",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/executions/reconcile",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "مسار راجع خادميّ (WX-I1): يوفّق الماء المقيس المُتحقَّق منه في دفتر الماء بشكل idempotent (v184) — مستهلِك آليّ/تشغيليّ (مُشغَّل من عامل التسوية بعد التنفيذ) لا شاشة مباشرة؛ الأثر يظهر عبر دفتر الماء/سلسلة القرار القائمة.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-water-ledger",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/capabilities",
+      "audience": "farmer",
+      "methods": [
+        "get@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "شفافيّة قدرات الحلّال (ما يُنمذَج/يُؤجَّل + توصية-فقط) — بيانات وصفيّة تشغيليّة. لها الآن مستهلك واجهة في وضع الخبير (MpcGovernanceCard في MapHub)، لكنّها تبقى تشخيصيّة لا شاشة مزارع نهائيّ.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "expert-transparency-card",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/plan",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "متحكّم الريّ الهرميّ المعجميّ (P1.1b) توصية-فقط: يحسب القرار خادميّاً ويُصدِر (خلف عَلَم) مرشّحاً محكوماً يظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا عبر شاشة مباشرة. النقطة نفسها تشغيليّة تُستدعى خادميّاً/بالأدوات.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "surfaces-via-decision-console",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "irrigation-mpc",
+      "expiry": "2026-12-31",
+      "tracking": "MPC-P2-UI"
+    },
+    {
+      "endpoint": "/api/v1/irrigation/mpc/simulate",
+      "audience": "farmer",
+      "methods": [
+        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
+      ],
+      "reason_category": "operational",
+      "reason": "محاكاة MPC صريحة بحقائق يدويّة (scenario) — أداة تشخيص/سيناريو لا تُصدِر مرشّحاً محكوماً ولا شاشة مزارع نهائيّ؛ تُستدعى خادميّاً/بالأدوات.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "diagnostic-scenario",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/lab/samples/{sample_id}/transition",
+      "audience": "agronomist",
+      "methods": [
+        "post@services/sahool-platform/api/routers/soil_sampling.py"
+      ],
+      "reason_category": "operational",
+      "reason": "نقطة تشغيليّة لنقل حالة عيّنة المختبر (requested→…→published) — تُستدعى من نظام المختبر/الأدوات، لا شاشة مستخدم نهائيّ (سير عمل المختبر يظهر عبر Soil Workspace مستقبلاً).",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
+      "method": "POST",
+      "reason": "WX-11.6 registry-adapter claim is a machine-to-machine command (the registry worker claims a queued activation command); no end-user UI required — intended consumer is the registry adapter, not a human.",
+      "owner": "decision-service",
+      "expires": "2026-11-30",
+      "tracking": "WX-11.6",
+      "intended_consumer": "machine",
+      "reason_category": "operational",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
+      "method": "POST",
+      "reason": "WX-11.6 registry-adapter receipt is a machine-to-machine terminal acknowledgement recorded by the registry worker; no end-user UI required — intended consumer is the registry adapter.",
+      "owner": "decision-service",
+      "expires": "2026-11-30",
+      "tracking": "WX-11.6",
+      "intended_consumer": "machine",
+      "reason_category": "operational",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
+      "method": "POST",
+      "reason": "WX-11.6 rollback-command creation is a machine-to-machine governance action queuing an immutable rollback for the registry adapter; no end-user UI required — intended consumer is the registry adapter.",
+      "owner": "decision-service",
+      "expires": "2026-11-30",
+      "tracking": "WX-11.6",
+      "intended_consumer": "machine",
+      "reason_category": "operational",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-requests",
+      "method": "POST",
+      "reason": "WX-11.4 creates a pending model activation request for machine-learning governance; approval and registry activation UI are deferred to WX-11.5.",
+      "owner": "decision-service",
+      "expires": "2026-09-30",
+      "tracking": "WX-11.5",
+      "intended_consumer": "machine",
+      "reason_category": "operational",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none"
+    },
+    {
+      "endpoint": "/api/v1/learning/activation-requests/{activation_request_id}/review",
+      "method": "POST",
+      "reason": "WX-11.5 records governed activation approval/rejection and queues an immutable registry command with rollback pointer; operator/registry execution UI lands in WX-11.6.",
+      "owner": "decision-service",
+      "expires": "2026-10-31",
+      "tracking": "WX-11.6",
+      "intended_consumer": "machine",
+      "reason_category": "operational",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none"
+    },
+    {
+      "endpoint": "/api/v1/learning/calibration-dataset",
+      "audience": "machine-learning-operator",
+      "methods": [
+        "get@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-11.1 exposes a read-only authoritative calibration dataset; training evaluation and governed model-promotion UI are deferred to later WX-11 increments.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-11.2",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/learning/evaluation-runs",
+      "audience": "machine-learning-operator",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-11.2 registers immutable evaluation evidence and candidate artifact metadata; governed promotion UI is deferred to WX-11.3.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-11.3",
+      "expiry": "2026-10-11",
+      "temporary": true
+    },
+    {
+      "endpoint": "/api/v1/learning/promotion-decisions",
+      "method": "POST",
+      "reason": "WX-11.3 governed promotion decision is API-only until model governance UI lands",
+      "owner": "decision-service",
+      "expires": "2026-08-31",
+      "tracking": "WX-11.4",
+      "intended_consumer": "machine",
+      "reason_category": "operational",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none"
+    },
+    {
       "endpoint": "/api/v1/notifications/delivery",
       "audience": "farmer",
       "methods": [
@@ -256,6 +625,26 @@
       "importance": 0,
       "importance_tier": "none",
       "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/api/v1/outcomes/{outcome_id}/learning-attribution",
+      "audience": "machine-learning-operator",
+      "methods": [
+        "post@services/sahool-platform/api/routers/decision_review.py"
+      ],
+      "reason_category": "operational",
+      "reason": "WX-10.13 creates immutable verified-outcome attribution lineage only; learning dashboard and optimization controls are deferred to WX-11.",
+      "priority": "none",
+      "ui_effort": "none",
+      "ui_surface_hint": "no-ui-required",
+      "criticality": "none",
+      "importance": 0,
+      "importance_tier": "none",
+      "intended_consumer": "machine",
+      "owner": "decision-service",
+      "tracking": "WX-11",
+      "expiry": "2026-10-11",
+      "temporary": true
     },
     {
       "endpoint": "/api/v1/weather/alerts/notify",
@@ -434,378 +823,6 @@
       "intended_consumer": "machine"
     },
     {
-      "endpoint": "/auth/me",
-      "audience": "farmer",
-      "methods": [
-        "get@services/auth/routers/session.py"
-      ],
-      "reason_category": "operational",
-      "reason": "قدرة «المستخدم الحاليّ» نفسها؛ المنصّة تستعمل /api/v1/me المُرقّى — متغيّر بوّابة auth لا شاشة ثانية.",
-      "priority": "none",
-      "ui_effort": "button",
-      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
-      "criticality": "informational",
-      "importance": 40,
-      "importance_tier": "P2-متوسّط",
-      "intended_consumer": "machine"
-    },
-    {
-      "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_review.py"
-      ],
-      "reason_category": "operational",
-      "reason": "WX-10.9 approved-decision to planned execution-plan boundary; machine-consumed and explicitly non-executing. Planner UI is deferred to WX-10.11.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "decision-service",
-      "tracking": "WX-10.11",
-      "expiry": "2026-10-11",
-      "temporary": true
-    },
-    {
-      "endpoint": "/api/v1/execution-plans/{execution_plan_id}/authorize-dispatch",
-      "audience": "operations-manager",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_review.py"
-      ],
-      "reason_category": "operational",
-      "reason": "WX-10.10 planned execution-plan to dispatch-authorization boundary; records authorization only and performs no dispatch/task/equipment side effect. Execution UI is deferred to WX-10.11.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "decision-service",
-      "tracking": "WX-10.11",
-      "expiry": "2026-10-11",
-      "temporary": true
-    },
-    {
-      "endpoint": "/api/v1/execution-requests/{execution_request_id}/verify-outcome",
-      "audience": "operations-manager",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_review.py"
-      ],
-      "reason_category": "operational",
-      "reason": "WX-10.12 machine/operator verification boundary writes one immutable canonical outcome_record with receipt and evidence lineage; dedicated outcome UI is deferred to WX-10.13.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "decision-service",
-      "tracking": "WX-10.13",
-      "expiry": "2026-10-11",
-      "temporary": true
-    },
-    {
-      "endpoint": "/api/v1/outcomes/{outcome_id}/learning-attribution",
-      "audience": "machine-learning-operator",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_review.py"
-      ],
-      "reason_category": "operational",
-      "reason": "WX-10.13 creates immutable verified-outcome attribution lineage only; learning dashboard and optimization controls are deferred to WX-11.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "decision-service",
-      "tracking": "WX-11",
-      "expiry": "2026-10-11",
-      "temporary": true
-    },
-    {
-      "endpoint": "/api/v1/learning/calibration-dataset",
-      "audience": "machine-learning-operator",
-      "methods": [
-        "get@services/sahool-platform/api/routers/decision_review.py"
-      ],
-      "reason_category": "operational",
-      "reason": "WX-11.1 exposes a read-only authoritative calibration dataset; training evaluation and governed model-promotion UI are deferred to later WX-11 increments.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "decision-service",
-      "tracking": "WX-11.2",
-      "expiry": "2026-10-11",
-      "temporary": true
-    },
-    {
-      "endpoint": "/api/v1/learning/evaluation-runs",
-      "audience": "machine-learning-operator",
-      "methods": [
-        "post@services/sahool-platform/api/routers/decision_review.py"
-      ],
-      "reason_category": "operational",
-      "reason": "WX-11.2 registers immutable evaluation evidence and candidate artifact metadata; governed promotion UI is deferred to WX-11.3.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "decision-service",
-      "tracking": "WX-11.3",
-      "expiry": "2026-10-11",
-      "temporary": true
-    },
-    {
-      "endpoint": "/api/v1/learning/promotion-decisions",
-      "method": "POST",
-      "reason": "WX-11.3 governed promotion decision is API-only until model governance UI lands",
-      "owner": "decision-service",
-      "expires": "2026-08-31",
-      "tracking": "WX-11.4",
-      "intended_consumer": "machine",
-      "reason_category": "operational",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none"
-    },
-    {
-      "endpoint": "/api/v1/learning/activation-requests",
-      "method": "POST",
-      "reason": "WX-11.4 creates a pending model activation request for machine-learning governance; approval and registry activation UI are deferred to WX-11.5.",
-      "owner": "decision-service",
-      "expires": "2026-09-30",
-      "tracking": "WX-11.5",
-      "intended_consumer": "machine",
-      "reason_category": "operational",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none"
-    },
-    {
-      "endpoint": "/api/v1/learning/activation-requests/{activation_request_id}/review",
-      "method": "POST",
-      "reason": "WX-11.5 records governed activation approval/rejection and queues an immutable registry command with rollback pointer; operator/registry execution UI lands in WX-11.6.",
-      "owner": "decision-service",
-      "expires": "2026-10-31",
-      "tracking": "WX-11.6",
-      "intended_consumer": "machine",
-      "reason_category": "operational",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none"
-    },
-    {
-      "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/claim",
-      "method": "POST",
-      "reason": "WX-11.6 registry-adapter claim is a machine-to-machine command (the registry worker claims a queued activation command); no end-user UI required — intended consumer is the registry adapter, not a human.",
-      "owner": "decision-service",
-      "expires": "2026-11-30",
-      "tracking": "WX-11.6",
-      "intended_consumer": "machine",
-      "reason_category": "operational",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none"
-    },
-    {
-      "endpoint": "/api/v1/learning/activation-commands/{activation_command_id}/receipt",
-      "method": "POST",
-      "reason": "WX-11.6 registry-adapter receipt is a machine-to-machine terminal acknowledgement recorded by the registry worker; no end-user UI required — intended consumer is the registry adapter.",
-      "owner": "decision-service",
-      "expires": "2026-11-30",
-      "tracking": "WX-11.6",
-      "intended_consumer": "machine",
-      "reason_category": "operational",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none"
-    },
-    {
-      "endpoint": "/api/v1/learning/activation-receipts/{activation_receipt_id}/rollback-command",
-      "method": "POST",
-      "reason": "WX-11.6 rollback-command creation is a machine-to-machine governance action queuing an immutable rollback for the registry adapter; no end-user UI required — intended consumer is the registry adapter.",
-      "owner": "decision-service",
-      "expires": "2026-11-30",
-      "tracking": "WX-11.6",
-      "intended_consumer": "machine",
-      "reason_category": "operational",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none"
-    },
-    {
-      "endpoint": "/api/v1/dispatch-authorizations/{dispatch_authorization_id}/execute",
-      "method": "POST",
-      "reason_category": "operational",
-      "reason": "WX-10.11 execution-request creation is a machine-to-machine dispatch (the execution worker turns an authorized dispatch into a queued execution request); no end-user UI required — intended consumer is the execution adapter, not a human.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "decision-service",
-      "expires": "2026-11-30",
-      "tracking": "WX-10.11"
-    },
-    {
-      "endpoint": "/api/v1/lab/samples/{sample_id}/transition",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/soil_sampling.py"
-      ],
-      "reason_category": "operational",
-      "reason": "نقطة تشغيليّة لنقل حالة عيّنة المختبر (requested→…→published) — تُستدعى من نظام المختبر/الأدوات، لا شاشة مستخدم نهائيّ (سير عمل المختبر يظهر عبر Soil Workspace مستقبلاً).",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/mpc/plan",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
-      ],
-      "reason_category": "operational",
-      "reason": "متحكّم الريّ الهرميّ المعجميّ (P1.1b) توصية-فقط: يحسب القرار خادميّاً ويُصدِر (خلف عَلَم) مرشّحاً محكوماً يظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا عبر شاشة مباشرة. النقطة نفسها تشغيليّة تُستدعى خادميّاً/بالأدوات.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "surfaces-via-decision-console",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "irrigation-mpc",
-      "expiry": "2026-12-31",
-      "tracking": "MPC-P2-UI"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/mpc/capabilities",
-      "audience": "farmer",
-      "methods": [
-        "get@services/sahool-platform/api/routers/irrigation_mpc.py"
-      ],
-      "reason_category": "operational",
-      "reason": "شفافيّة قدرات الحلّال (ما يُنمذَج/يُؤجَّل + توصية-فقط) — بيانات وصفيّة تشغيليّة. لها الآن مستهلك واجهة في وضع الخبير (MpcGovernanceCard في MapHub)، لكنّها تبقى تشخيصيّة لا شاشة مزارع نهائيّ.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "expert-transparency-card",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/mpc/simulate",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
-      ],
-      "reason_category": "operational",
-      "reason": "محاكاة MPC صريحة بحقائق يدويّة (scenario) — أداة تشخيص/سيناريو لا تُصدِر مرشّحاً محكوماً ولا شاشة مزارع نهائيّ؛ تُستدعى خادميّاً/بالأدوات.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "diagnostic-scenario",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/recommendation",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
-      ],
-      "reason_category": "operational",
-      "reason": "توصية ريّ MPC عمليّة تُبنى من حقائق SoR خادميّاً (P1.1c-b) — توصية-فقط تظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا شاشة مباشرة؛ شاشة MPC مخصّصة دَين مُتتبَّع.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "surfaces-via-decision-console",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "irrigation-mpc",
-      "expiry": "2026-12-31",
-      "tracking": "MPC-P2-UI"
-    },
-    {
-      "endpoint": "/api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
-      ],
-      "reason_category": "operational",
-      "reason": "توصية ريّ MPC ساعيّة واعية بالطاقة (WX-I1) تُبنى من حقائق SoR خادميّاً — الشقيق الساعيّ لـ/recommendation اليوميّة؛ توصية-فقط (execution_allowed=False) تظهر للمزارع عبر سلسلة القرار القائمة (Decision/Approvals Console المُغطّاة أصلاً) لا شاشة مباشرة؛ شاشة MPC مخصّصة دَين مُتتبَّع.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "surfaces-via-decision-console",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "irrigation-mpc",
-      "expiry": "2026-12-31",
-      "tracking": "MPC-P2-UI"
-    },
-    {
-      "endpoint": "/api/v1/irrigation/executions/reconcile",
-      "audience": "farmer",
-      "methods": [
-        "post@services/sahool-platform/api/routers/irrigation_mpc.py"
-      ],
-      "reason_category": "operational",
-      "reason": "مسار راجع خادميّ (WX-I1): يوفّق الماء المقيس المُتحقَّق منه في دفتر الماء بشكل idempotent (v184) — مستهلِك آليّ/تشغيليّ (مُشغَّل من عامل التسوية بعد التنفيذ) لا شاشة مباشرة؛ الأثر يظهر عبر دفتر الماء/سلسلة القرار القائمة.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "surfaces-via-water-ledger",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "irrigation-mpc",
-      "expiry": "2026-12-31",
-      "tracking": "MPC-P2-UI"
-    },
-    {
       "endpoint": "/auth/edge-sign",
       "audience": "farmer",
       "methods": [
@@ -819,6 +836,22 @@
       "criticality": "none",
       "importance": 0,
       "importance_tier": "none",
+      "intended_consumer": "machine"
+    },
+    {
+      "endpoint": "/auth/me",
+      "audience": "farmer",
+      "methods": [
+        "get@services/auth/routers/session.py"
+      ],
+      "reason_category": "operational",
+      "reason": "قدرة «المستخدم الحاليّ» نفسها؛ المنصّة تستعمل /api/v1/me المُرقّى — متغيّر بوّابة auth لا شاشة ثانية.",
+      "priority": "none",
+      "ui_effort": "button",
+      "ui_surface_hint": "host:frontend/src/components/FieldIndicatorMap.tsx",
+      "criticality": "informational",
+      "importance": 40,
+      "importance_tier": "P2-متوسّط",
       "intended_consumer": "machine"
     }
   ]

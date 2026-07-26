@@ -160,6 +160,7 @@ def test_critical_set_membership(main_mod):
         "LINEAGE_LINKED",
         "IRRIGATION_VALVE_STATE_CHANGED",
         "CALIBRATION_OVERRIDE_SET",
+        "YIELD_MAP_INGESTED",
     ):
         assert name in crit, f"{name} يجب أن يكون حرجاً"
     # تيليمتري/إشارات لينة تبقى غير حرجة (best-effort) كي لا تصبح انقطاعاً.

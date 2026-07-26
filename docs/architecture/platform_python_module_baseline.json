@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 663,
+  "baseline_python_module_count": 665,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -368,6 +368,7 @@
     "api/routers/wofost.py",
     "api/routers/yield_analysis.py",
     "api/routers/yield_interval.py",
+    "api/routers/yield_map_ingestion.py",
     "api/salinity_management.py",
     "api/scenario_whatif.py",
     "api/scheduler.py",
@@ -422,6 +423,7 @@
     "api/yemeni_calendars.py",
     "api/yield_analysis.py",
     "api/yield_heuristics.py",
+    "api/yield_map_ingestion.py",
     "api/zone_sampling.py",
     "api/zones_kmeans.py",
     "core/__init__.py",
@@ -691,5 +693,6 @@
   "historical_season_context_note": "core/historical_season_context.py: HISTORICAL-SEASON-BRIDGE-01 platform-owned read/link bridge between the historical ledger records (v201 season_records) and the operational season (v32 seasons), backed by the v207 append-only tables season_record_links + season_simulation_runs. Pure linkage/context assembly over platform-owned DB truth (no new engine/service, no source-data copy); consumed by season_simulation/agronomic_replay/seasons router behind HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED (default-off). 653->654.",
   "programmatic_closure_s3_s11_farmbook_note": "658: +4 platform modules for the programmatic-closure increment — S3 historical-weather SoR and S11 ERP-reconciliation ledger (core/operational_truth.py + api/routers/operational_truth.py) and the simple farmer book BFF over the existing Farm Ledger (core/simple_farm_book.py + api/routers/simple_farm_book.py). Tenant-bound, append-only, fail-closed; no new service.",
   "decision_center_slice1_confidence_note": "660: +2 platform modules from the agri-intelligence audit closures — api/agronomic_context_composer.py (DECISION-CENTER Slice 1: pure server-side atomic Agronomic Context assembler that feeds decision-service's existing compose_agronomic_context PIT gate; no fabrication, flag-gated AGRONOMIC_CONTEXT_COMPOSE_ENABLED) and core/crop_intelligence/confidence.py (audit P0-4: composed confidence contract with an honest ceiling, additive to the existing confidence string). Both pure/boundary-respecting; no new route, no new service. 658->660.",
-  "h51_binding_note": "api/irrigation_source_binding.py (H5.1): pure server-authoritative field↔water-source binding resolver + decision-grade sample policy; owns the resolver SQL so the route and the real-PG cert test share one implementation (v214)."
+  "h51_binding_note": "api/irrigation_source_binding.py (H5.1): pure server-authoritative field↔water-source binding resolver + decision-grade sample policy; owns the resolver SQL so the route and the real-PG cert test share one implementation (v214).",
+  "pa003_yield_map_ingestion_note": "api/yield_map_ingestion.py + api/routers/yield_map_ingestion.py (PA-003): field-scoped yield-map ingestion — idempotent append-only provenance (yield_map_ingestions) + PostGIS point records (yield_map_records) under FORCE-RLS; service owns the ingestion SQL so the router and the static contract test share one implementation; emits the critical YIELD_MAP_INGESTED domain event via the platform fail-closed outbox (v215). Baseline raised 663->665."
 }

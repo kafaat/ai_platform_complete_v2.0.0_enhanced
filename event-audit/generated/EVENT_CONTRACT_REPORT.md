@@ -8,7 +8,7 @@ Conservative static inventory of literal NATS/JetStream subjects. Dynamic subjec
 
 | Metric | Value |
 |---|---:|
-| Python files scanned | 1147 |
+| Python files scanned | 1149 |
 | Resolved literal contracts | 2 |
 | Dynamic contracts | 15 |
 | Unique literal subjects | 2 |

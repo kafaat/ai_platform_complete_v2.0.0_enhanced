@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0.0",
+  "capabilities_total": 81,
+  "mapped": 80,
+  "adjudicated": 0,
+  "unmapped": 1,
+  "accounted_for": 80,
+  "unmapped_capabilities": [
+    "INT-004"
+  ],
+  "mapping_coverage_pct": 98.77,
+  "runtime_verified": 0,
+  "production_certified": 0,
+  "maturity_distribution": {
+    "0": 2,
+    "1": 2,
+    "2": 3,
+    "3": 74
+  },
+  "parity_distribution": {
+    "Behind": 9,
+    "Leader": 3,
+    "Missing": 1,
+    "Parity": 2,
+    "Unassessed": 66
+  },
+  "investment_distribution": {
+    "unassessed": 81
+  },
+  "domains": [
+    {
+      "domain": "decision",
+      "capabilities": 10,
+      "mapped": 10,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "farm_management",
+      "capabilities": 10,
+      "mapped": 10,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "gis",
+      "capabilities": 4,
+      "mapped": 4,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "irrigation",
+      "capabilities": 11,
+      "mapped": 11,
+      "average_maturity": 2.55,
+      "average_evidence": 2.55,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "operations",
+      "capabilities": 8,
+      "mapped": 8,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "precision",
+      "capabilities": 6,
+      "mapped": 5,
+      "average_maturity": 1.67,
+      "average_evidence": 1.67,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "satellite",
+      "capabilities": 9,
+      "mapped": 9,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "security",
+      "capabilities": 8,
+      "mapped": 8,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "soil",
+      "capabilities": 5,
+      "mapped": 5,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    },
+    {
+      "domain": "weather",
+      "capabilities": 10,
+      "mapped": 10,
+      "average_maturity": 3.0,
+      "average_evidence": 3.0,
+      "runtime_verified": 0,
+      "production_certified": 0,
+      "unassessed_parity": 0
+    }
+  ]
+}

@@ -9,7 +9,7 @@
       "kind": "lineage_stage",
       "stage": "evidence",
       "order": 1,
-      "evidence_count": 494,
+      "evidence_count": 495,
       "owners": [
         "agriai-engine",
         "ai_agronomist",
@@ -70,6 +70,7 @@
         "migrations/v201_season_records.sql",
         "migrations/v209_historical_weather_sor.sql",
         "migrations/v210_erp_reconciliation_ledger.sql",
+        "migrations/v215_yield_map_ingestion.sql",
         "migrations/v78_decision_record.sql",
         "migrations/v79_outcome_record.sql",
         "migrations/v86_calibration_evidence_trigger.sql",
@@ -1502,7 +1503,7 @@
       "kind": "lineage_stage",
       "stage": "authorization",
       "order": 6,
-      "evidence_count": 114,
+      "evidence_count": 115,
       "owners": [
         "actuator-service",
         "ai_agronomist",
@@ -1621,6 +1622,7 @@
         "services/sahool-platform/tests/test_recommendation_bridge.py",
         "services/sahool-platform/tests/test_tenant_audit.py",
         "services/sahool-platform/tests/test_water_decision_bridge.py",
+        "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "services/supervisor-agent/mcp_client.py",
         "services/supervisor-agent/skills/advisory_skill.py",
         "services/supervisor-agent/test_graceful_degradation.py",
@@ -1805,7 +1807,7 @@
       "kind": "lineage_stage",
       "stage": "learning",
       "order": 10,
-      "evidence_count": 258,
+      "evidence_count": 261,
       "owners": [
         "actuator-service",
         "agriai-engine",
@@ -1937,10 +1939,12 @@
         "services/sahool-platform/api/routers/seasons.py",
         "services/sahool-platform/api/routers/simple_farm_book.py",
         "services/sahool-platform/api/routers/sync.py",
+        "services/sahool-platform/api/routers/yield_map_ingestion.py",
         "services/sahool-platform/api/season_models.py",
         "services/sahool-platform/api/sensor_confidence.py",
         "services/sahool-platform/api/sync_delta.py",
         "services/sahool-platform/api/trueup.py",
+        "services/sahool-platform/api/yield_map_ingestion.py",
         "services/sahool-platform/api/zone_sampling.py",
         "services/sahool-platform/core/activity_log.py",
         "services/sahool-platform/core/agronomic_state_engine.py",
@@ -2052,6 +2056,7 @@
         "services/sahool-platform/tests/test_sync_delta.py",
         "services/sahool-platform/tests/test_ui2_advanced_degraded_state_guard.py",
         "services/sahool-platform/tests/test_workflow_engine.py",
+        "services/sahool-platform/tests/test_yield_map_ingestion.py",
         "services/scout-ingest-service/field_forms_api.py",
         "services/scout-ingest-service/season_api.py",
         "services/scout-ingest-service/tests/test_ingest_live.py",
@@ -2196,7 +2201,7 @@
         "services/sahool-platform/core/field_event_sourcing.py",
         "services/sahool-platform/core/field_intelligence_card.py"
       ],
-      "source_evidence_count": 494,
+      "source_evidence_count": 495,
       "target_evidence_count": 453,
       "static_supported": true,
       "runtime_verified": false
@@ -2429,7 +2434,7 @@
         "shared/iot_execution_runtime.py"
       ],
       "source_evidence_count": 32,
-      "target_evidence_count": 114,
+      "target_evidence_count": 115,
       "static_supported": true,
       "runtime_verified": false
     },
@@ -2457,7 +2462,7 @@
         "services/vegetation-analysis-service/routers/outcomes.py",
         "services/vegetation-analysis-service/test_post_execution_bridge.py"
       ],
-      "source_evidence_count": 114,
+      "source_evidence_count": 115,
       "target_evidence_count": 27,
       "static_supported": true,
       "runtime_verified": false
@@ -2537,7 +2542,7 @@
         "services/vegetation-analysis-service/post_execution_bridge.py"
       ],
       "source_evidence_count": 42,
-      "target_evidence_count": 258,
+      "target_evidence_count": 261,
       "static_supported": true,
       "runtime_verified": false
     }
@@ -2547,5 +2552,5 @@
     "unsupported_relations": []
   },
   "complete_static_chain": true,
-  "content_sha256": "f70d16bf587dd238bcb08c846e69a153ae0f4c174d5af4eee23e4e5b84f94d78"
+  "content_sha256": "8f920d0d0cfe6e86e581d0bbc9a537f71edb2ed34503350872114647ccfbfed4"
 }

@@ -1,0 +1,1470 @@
+{
+  "schema_version": "1.0.0",
+  "nodes": [
+    {
+      "id": "DEC-001",
+      "title": "Decision evidence",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-002",
+      "title": "Decision candidate",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-003",
+      "title": "Human approval",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-004",
+      "title": "Execution request",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-005",
+      "title": "Dispatch authorization",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-006",
+      "title": "Execution receipt",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-007",
+      "title": "Outcome recording",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-008",
+      "title": "Learning attribution",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-009",
+      "title": "Model calibration",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "DEC-010",
+      "title": "Model lifecycle and activation",
+      "domain": "decision",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-001",
+      "title": "Tenant and organization management",
+      "domain": "farm_management",
+      "owner": "auth+field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-002",
+      "title": "Farm registry",
+      "domain": "farm_management",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-003",
+      "title": "Field registry and boundaries",
+      "domain": "farm_management",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-004",
+      "title": "Season lifecycle",
+      "domain": "farm_management",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-005",
+      "title": "Crop and cultivar catalog",
+      "domain": "farm_management",
+      "owner": "UNASSIGNED",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-006",
+      "title": "Farm economics",
+      "domain": "farm_management",
+      "owner": "UNASSIGNED",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-007",
+      "title": "Inventory and procurement",
+      "domain": "farm_management",
+      "owner": "UNASSIGNED",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "FM-008",
+      "title": "ERP integration",
+      "domain": "farm_management",
+      "owner": "erp-bridge",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "GIS-001",
+      "title": "Field geometry validation",
+      "domain": "gis",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "GIS-002",
+      "title": "Map layers",
+      "domain": "gis",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "GIS-003",
+      "title": "Terrain and DEM",
+      "domain": "gis",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "GIS-004",
+      "title": "Spatial analytics",
+      "domain": "gis",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "INT-001",
+      "title": "Public API and SDK",
+      "domain": "farm_management",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "INT-002",
+      "title": "Event bus integration",
+      "domain": "farm_management",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "INT-003",
+      "title": "IoT and sensors",
+      "domain": "irrigation",
+      "owner": "actuator-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "INT-004",
+      "title": "External machinery integrations",
+      "domain": "precision",
+      "owner": "UNASSIGNED",
+      "maturity": 1,
+      "evidence_level": 1,
+      "mapped": false,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-001",
+      "title": "Water source registry",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-002",
+      "title": "Water quality samples",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-003",
+      "title": "Field water-source binding",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 0,
+      "evidence_level": 0,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-004",
+      "title": "Water balance",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-005",
+      "title": "Irrigation recommendation",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Leader",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-006",
+      "title": "Irrigation scheduling",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-007",
+      "title": "Pump and valve control",
+      "domain": "irrigation",
+      "owner": "actuator-service+sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-008",
+      "title": "Execution verification",
+      "domain": "irrigation",
+      "owner": "decision-service+sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-009",
+      "title": "Water suitability multi-hazard",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 2,
+      "evidence_level": 2,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "IRR-010",
+      "title": "Leaching and drainage safety",
+      "domain": "irrigation",
+      "owner": "sahool-platform",
+      "maturity": 2,
+      "evidence_level": 2,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-001",
+      "title": "Task management",
+      "domain": "operations",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-002",
+      "title": "Work orders",
+      "domain": "operations",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-003",
+      "title": "Scouting",
+      "domain": "operations",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-004",
+      "title": "Field forms",
+      "domain": "operations",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-005",
+      "title": "Offline mobile",
+      "domain": "operations",
+      "owner": "UNASSIGNED",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-006",
+      "title": "Equipment registry",
+      "domain": "operations",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-007",
+      "title": "Maintenance",
+      "domain": "operations",
+      "owner": "sahool-platform",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "OPS-008",
+      "title": "Workforce and worker identity",
+      "domain": "operations",
+      "owner": "auth",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "PA-001",
+      "title": "Management zones",
+      "domain": "precision",
+      "owner": "vegetation-analysis-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Parity",
+      "investment": "unassessed"
+    },
+    {
+      "id": "PA-002",
+      "title": "Variable rate prescription",
+      "domain": "precision",
+      "owner": "vegetation-analysis-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Parity",
+      "investment": "unassessed"
+    },
+    {
+      "id": "PA-003",
+      "title": "Yield map ingestion",
+      "domain": "precision",
+      "owner": "UNASSIGNED",
+      "maturity": 0,
+      "evidence_level": 0,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Missing",
+      "investment": "unassessed"
+    },
+    {
+      "id": "PA-004",
+      "title": "As-applied data",
+      "domain": "precision",
+      "owner": "UNASSIGNED",
+      "maturity": 2,
+      "evidence_level": 2,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "PA-005",
+      "title": "Machine telemetry",
+      "domain": "precision",
+      "owner": "UNASSIGNED",
+      "maturity": 1,
+      "evidence_level": 1,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-001",
+      "title": "Satellite scene search",
+      "domain": "satellite",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-002",
+      "title": "True color imagery",
+      "domain": "satellite",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-003",
+      "title": "NDVI",
+      "domain": "satellite",
+      "owner": "raster-service+vegetation-analysis-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Leader",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-004",
+      "title": "NDMI",
+      "domain": "satellite",
+      "owner": "raster-service+vegetation-analysis-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-005",
+      "title": "Cloud screening",
+      "domain": "satellite",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-006",
+      "title": "Historical imagery timeline",
+      "domain": "satellite",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-007",
+      "title": "Change detection",
+      "domain": "satellite",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-008",
+      "title": "Stress zones",
+      "domain": "satellite",
+      "owner": "vegetation-analysis-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SAT-009",
+      "title": "COG persistence and tiling",
+      "domain": "satellite",
+      "owner": "raster-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-001",
+      "title": "Tenant RLS",
+      "domain": "security",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-002",
+      "title": "Signed tenant assertion",
+      "domain": "security",
+      "owner": "field-management-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-003",
+      "title": "Worker identity binding",
+      "domain": "security",
+      "owner": "auth",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-004",
+      "title": "MFA",
+      "domain": "security",
+      "owner": "auth",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-005",
+      "title": "Audit logging",
+      "domain": "security",
+      "owner": "auth",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-006",
+      "title": "Service token guard",
+      "domain": "security",
+      "owner": "auth",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-007",
+      "title": "Decision SoR DB ownership",
+      "domain": "security",
+      "owner": "decision-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SEC-008",
+      "title": "Secrets and production fail-closed",
+      "domain": "security",
+      "owner": "auth",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SOIL-001",
+      "title": "Soil profile",
+      "domain": "soil",
+      "owner": "soil-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SOIL-002",
+      "title": "Soil sampling",
+      "domain": "soil",
+      "owner": "soil-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Leader",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SOIL-003",
+      "title": "Laboratory results",
+      "domain": "soil",
+      "owner": "soil-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SOIL-004",
+      "title": "pH EC SOM nutrients",
+      "domain": "soil",
+      "owner": "soil-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "SOIL-005",
+      "title": "Soil water properties",
+      "domain": "soil",
+      "owner": "soil-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-001",
+      "title": "Current weather",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-002",
+      "title": "Weather forecast",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-003",
+      "title": "Weather history",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-004",
+      "title": "ET0",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-005",
+      "title": "VPD",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-006",
+      "title": "GDD",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-007",
+      "title": "Frost and heat risk",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-008",
+      "title": "Operation windows",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-009",
+      "title": "Disease weather models",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Behind",
+      "investment": "unassessed"
+    },
+    {
+      "id": "WX-010",
+      "title": "Weather provenance and quality",
+      "domain": "weather",
+      "owner": "weather-service",
+      "maturity": 3,
+      "evidence_level": 3,
+      "mapped": true,
+      "runtime_verified": false,
+      "production_certified": false,
+      "parity": "Unassessed",
+      "investment": "unassessed"
+    }
+  ],
+  "edges": [
+    {
+      "from": "DEC-001",
+      "to": "DEC-002",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-002",
+      "to": "DEC-003",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-003",
+      "to": "DEC-004",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-004",
+      "to": "DEC-005",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-005",
+      "to": "DEC-006",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-005",
+      "to": "IRR-007",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-006",
+      "to": "DEC-007",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-006",
+      "to": "IRR-008",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-007",
+      "to": "DEC-008",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-008",
+      "to": "DEC-009",
+      "type": "enables"
+    },
+    {
+      "from": "DEC-009",
+      "to": "DEC-010",
+      "type": "enables"
+    },
+    {
+      "from": "FM-002",
+      "to": "FM-003",
+      "type": "enables"
+    },
+    {
+      "from": "FM-002",
+      "to": "FM-006",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "FM-004",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "GIS-001",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "GIS-002",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "IRR-003",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "OPS-003",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "OPS-004",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "PA-003",
+      "type": "enables"
+    },
+    {
+      "from": "FM-003",
+      "to": "SOIL-002",
+      "type": "enables"
+    },
+    {
+      "from": "FM-004",
+      "to": "FM-006",
+      "type": "enables"
+    },
+    {
+      "from": "FM-005",
+      "to": "FM-004",
+      "type": "enables"
+    },
+    {
+      "from": "FM-006",
+      "to": "FM-008",
+      "type": "enables"
+    },
+    {
+      "from": "GIS-001",
+      "to": "GIS-004",
+      "type": "enables"
+    },
+    {
+      "from": "GIS-002",
+      "to": "GIS-003",
+      "type": "enables"
+    },
+    {
+      "from": "GIS-002",
+      "to": "GIS-004",
+      "type": "enables"
+    },
+    {
+      "from": "GIS-004",
+      "to": "PA-001",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-001",
+      "to": "IRR-002",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-001",
+      "to": "IRR-003",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-002",
+      "to": "IRR-009",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-003",
+      "to": "IRR-004",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-004",
+      "to": "IRR-005",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-005",
+      "to": "IRR-006",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-006",
+      "to": "IRR-007",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-007",
+      "to": "IRR-008",
+      "type": "enables"
+    },
+    {
+      "from": "IRR-009",
+      "to": "IRR-010",
+      "type": "enables"
+    },
+    {
+      "from": "OPS-001",
+      "to": "OPS-002",
+      "type": "enables"
+    },
+    {
+      "from": "OPS-003",
+      "to": "OPS-005",
+      "type": "enables"
+    },
+    {
+      "from": "OPS-004",
+      "to": "OPS-005",
+      "type": "enables"
+    },
+    {
+      "from": "OPS-006",
+      "to": "OPS-007",
+      "type": "enables"
+    },
+    {
+      "from": "OPS-006",
+      "to": "PA-005",
+      "type": "enables"
+    },
+    {
+      "from": "PA-001",
+      "to": "PA-002",
+      "type": "enables"
+    },
+    {
+      "from": "PA-002",
+      "to": "PA-004",
+      "type": "enables"
+    },
+    {
+      "from": "PA-005",
+      "to": "INT-004",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-002",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-003",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-004",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-005",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-006",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-001",
+      "to": "SAT-009",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-003",
+      "to": "PA-001",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-003",
+      "to": "SAT-007",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-003",
+      "to": "SAT-008",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-004",
+      "to": "PA-001",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-004",
+      "to": "SAT-008",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-005",
+      "to": "SAT-003",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-005",
+      "to": "SAT-004",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-006",
+      "to": "SAT-007",
+      "type": "enables"
+    },
+    {
+      "from": "SAT-009",
+      "to": "SAT-006",
+      "type": "enables"
+    },
+    {
+      "from": "SEC-001",
+      "to": "SEC-002",
+      "type": "enables"
+    },
+    {
+      "from": "SEC-001",
+      "to": "SEC-007",
+      "type": "enables"
+    },
+    {
+      "from": "SEC-006",
+      "to": "SEC-003",
+      "type": "enables"
+    },
+    {
+      "from": "SOIL-001",
+      "to": "SOIL-005",
+      "type": "enables"
+    },
+    {
+      "from": "SOIL-002",
+      "to": "SOIL-003",
+      "type": "enables"
+    },
+    {
+      "from": "SOIL-003",
+      "to": "SOIL-004",
+      "type": "enables"
+    },
+    {
+      "from": "SOIL-004",
+      "to": "IRR-009",
+      "type": "enables"
+    },
+    {
+      "from": "SOIL-004",
+      "to": "SOIL-005",
+      "type": "enables"
+    },
+    {
+      "from": "SOIL-005",
+      "to": "IRR-004",
+      "type": "enables"
+    },
+    {
+      "from": "SOIL-005",
+      "to": "IRR-010",
+      "type": "enables"
+    },
+    {
+      "from": "WX-001",
+      "to": "WX-004",
+      "type": "enables"
+    },
+    {
+      "from": "WX-001",
+      "to": "WX-005",
+      "type": "enables"
+    },
+    {
+      "from": "WX-001",
+      "to": "WX-006",
+      "type": "enables"
+    },
+    {
+      "from": "WX-002",
+      "to": "WX-007",
+      "type": "enables"
+    },
+    {
+      "from": "WX-002",
+      "to": "WX-008",
+      "type": "enables"
+    },
+    {
+      "from": "WX-002",
+      "to": "WX-009",
+      "type": "enables"
+    },
+    {
+      "from": "WX-004",
+      "to": "IRR-004",
+      "type": "enables"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-002",
+      "type": "enables"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-003",
+      "type": "enables"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-004",
+      "type": "enables"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-005",
+      "type": "enables"
+    },
+    {
+      "from": "WX-010",
+      "to": "WX-006",
+      "type": "enables"
+    }
+  ]
+}
