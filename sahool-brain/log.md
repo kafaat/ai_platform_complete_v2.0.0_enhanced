@@ -3924,3 +3924,15 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **حتميّة:** `capability_mapping_engine` أُضيف له تخطّي `tests/architecture/**` (اختبارات-تحقّق تذكر معرّفات القدرات) + `docs/capability-registry/**` (سياسات/أسس تُعدِّد كلّ معرّف) — إصابات رمزيّة مرجعيّة-ذاتيّة لا دليل تنفيذ. `import yaml` صار كسولاً.
 - **قيد أثر:** تعديل الحوكمة-النواة (mapper + workflow) ⇒ `governance_wide=True` ⇒ وصف الـPR `Capability-Impact: ALL`. bundle 5118، static-closure PATH-1 20/20، runtime/production=0 في كلّ مكان.
 - **درس عمليّاتيّ:** استصلاح قرص الحاوية أثناء الجلسة أعاد الفرع المحلّيّ إلى `9d08568` (خسر التزامات PA-003 محلّيّاً، آمنة على origin) ⇒ استُرجِع بـ`git rebase origin/<branch>` (لا force-push، حفظ الـ6 التزامات البعيدة). ودرس متكرّر: أيّ تغيير لملفّ مبصوم بالـrelease bundle يستلزم إعادة بناء bundle في نفس الالتزام (checksum mismatch كسر release-package/pytest-contracts/Lint&Format عدّة مرّات).
+
+## 2026-07-26 — فحص وظيفيّ حيّ: v215 على PG16+PostGIS — **PG_PROVEN**
+- **البيئة:** PostgreSQL 16.13 (عنقود `main`) + PostGIS 3.4.2 (مُثبَّت حيّاً). طُبِّقت `migrations/v215_yield_map_ingestion.sql` نظيفةً على مخطّط مُتطلّبات (`fields(tenant_id,field_id,geom Polygon/4326)` + `seasons`) ⇒ جدولان FORCE-RLS، ٤ مُشغّلات، فهرس GIST على geom.
+- **الدور:** كلّ البراهين شُغّلت تحت `SET ROLE sahool_app` (NOSUPERUSER **NOBYPASSRLS**) — فتُطبَّق FORCE RLS فعليّاً (لا تجاوز superuser).
+- **١٦/١٦ برهاناً أخضر:**
+  - **RLS (USING+WITH CHECK):** المستأجِر A يرى صفوفه فقط (1 استيعاب+1 سجلّ)؛ B يرى **صفراً**؛ GUC غير مضبوط ⇒ صفر (`NULLIF(...,'')`→NULL fail-closed)؛ A **لا** يُدرِج صفّاً موسوماً بـtenant B (`violates row-level security policy`).
+  - **append-only:** UPDATE/DELETE على الاستيعابات + UPDATE على السجلّات مرفوضة («yield-map evidence is append-only»).
+  - **مُشغّل النطاق:** موسم لحقل خاطئ مرفوض («season must belong to the same tenant and field»).
+  - **مُشغّل الدفعة (PostGIS، statement-level):** نقطة داخل F1 + موسم مطابق **مقبولة** (`ST_Covers=true`)؛ نقطة خارج F1 مرفوضة («remain inside the field»)؛ موسم ≠ موسم الأب مرفوض («match the parent season»).
+  - **قيود:** `yield_kg_ha≤0`، `source_format∉{csv,geojson}`، `source_crs≠EPSG:4326`، تكرار `(tenant_id,idempotency_key)` — كلّها مرفوضة (CHECK/UNIQUE).
+  - **الحالة النهائيّة:** 1 استيعاب + 1 سجلّ مخزَّنان فقط (دليل A الصحيح، geom مُغطّى بـF1)؛ كلّ محاولة سلبيّة تراجعت؛ صفر تسرّب عبر المستأجرين.
+- **الترقية:** نموذج v215 (RLS/append-only/scope) كان مشحوناً بحرّاس **ساكنين** في #661؛ الآن **PG_PROVEN** حيّاً على PG16.13+PostGIS3.4.2. الحدّ: هذا برهان مخطّط/سلوك DB — ليس ادّعاء تشغيل end-to-end للخدمة (runtime_verified يبقى false).
