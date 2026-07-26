@@ -3868,3 +3868,8 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **`path3_live_acceptance_gate.py`:** بوّابة قبول fail-closed تتطلّب المفتاح + `--require-all` + سياسة النضارة + الثابت `production_certification_must_remain_false`.
 - **الوصل الإضافيّ:** سطران فقط على `path3-runtime-verification.yml` (سرّ `PATH3_ATTESTATION_KEY` + رفع `runtime-verification/attestations/*.json`) — **أبقيتُ تثبيت الـactions بـSHA كاملة، رفضتُ @v4/@v5 غير المثبَّتة في مرفق الـdiff**. 3 اختبارات ساكنة/property (بيئيّاً مستقلّة) أُضيفت إلى قائمة pytest في `capability-governance.yml`. الأدوات نفسها تتطلّب ملفّ تصديق ⇒ خارج فحوص PR (مثل بقيّة أدوات PATH-3 التشغيليّة).
 - **البوّابات:** 9 اختبارات (3 ملفّات) تمرّ على Python 3.11 و3.12؛ سلسلة 19 فحص `--check` بلا انجراف؛ 67 اختبار حوكمة أخضر؛ build_release_bundle + validate (5020 checksums)؛ `pytest -m unit` 3490 نجح/7 تخطّى. Ratchet: 62 check-run نظيفة، mergeable_state=clean، دُمِج squash.
+
+## 2026-07-26 — رَنبوك معالجة الخطّ الزمنيّ التاريخيّ (Historical Truecolor) — تشغيليّ
+- **المصدر:** تقرير تشخيصيّ للحقل `fld_d5015f12578c` (خطّ زمنيّ truecolor فارغ). الإصلاحان الكوديّان (Finding 2 date-bind + Finding 4 crash-loop) مدموجان في #657 (`75b3ad5`).
+- **الإضافة:** `sahool-brain/runbooks/historical-truecolor-remediation.md` — يوثّق البنود التشغيليّة/البيئيّة المتبقّية التي لا يملكها المستودع: Finding 1 (تسجيل الحقل عبر مسار المنصّة لا إدراج يدويّ)، Finding 5 (منح `SELECT` المُوجَّه لـ`sahool_user` على `spatial_ref_sys`/الجداول، أو إعادة الهجرات كـsahool_user — تفاوت تهيئة لا عيب كوديّ)، Finding 6 (حقن تهيئة S3/MinIO). + تحقّق سلوكيّ بعد إعادة التشغيل.
+- **صدق:** Finding 1 (الواجهة) و5 و6 لا تتطلّب تغييراً كوديّاً — تُحقَّق بالكود القائم/تهيئة البيئة. لا منح أوسع من اللازم.
