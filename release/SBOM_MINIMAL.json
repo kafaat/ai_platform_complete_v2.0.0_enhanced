@@ -11165,6 +11165,16 @@
       "hashes": [
         {
           "alg": "SHA-256",
+          "content": "a8af2476e870dbc5ec8a5022b2ef3b6443195d4918d65a0f8894b261217f37b1"
+        }
+      ],
+      "name": "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+      "type": "file"
+    },
+    {
+      "hashes": [
+        {
+          "alg": "SHA-256",
           "content": "585bfe6dcf09829832bc612bc0fe48f46e3bcfcc6e5e01e54db6e1f6d18fde76"
         }
       ],
@@ -11305,7 +11315,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "f13d31871e297c1d4519c0c1e39da1f611f42678a9ebabcc1087cfff2beb07bc"
+          "content": "6cb72253f00aa5eb03ff2a1ff7222b2e9f22440ebc4d9e02f0ce7bbe5b096e98"
         }
       ],
       "name": "services/decision-service/tests/test_worker_identity_binding.py",

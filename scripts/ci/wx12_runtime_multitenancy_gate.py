@@ -83,6 +83,14 @@ checks = {
     "services/decision-service/tests/test_worker_identity_binding.py": [
         "test_other_worker_subject_is_rejected",
         "test_production_without_key_is_503",
+        # WORKER-IDENTITY-HARDENING negative matrix.
+        "test_audience_service_mismatch_is_rejected",
+        "test_expired_assertion_is_rejected",
+        "test_not_yet_valid_future_assertion_is_rejected",
+        "test_unknown_kid_is_rejected",
+        "test_wrong_key_signature_is_rejected",
+        "test_previous_key_after_rotation_is_accepted",
+        "test_production_replay_store_unavailable_fails_closed",
     ],
     "tests_v9/test_worker_assertion_interop.py": [
         "test_signed_assertion_verifies_with_shared_module",
