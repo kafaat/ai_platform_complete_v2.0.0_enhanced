@@ -77,6 +77,9 @@ checks = {
         "test_strict_mode_denies_unknown_workers",
         "test_command_ledger_is_append_only_with_constraint_checks",
         "test_feed_enforces_worker_partition_end_to_end",
+        # WORKER-IDENTITY-BINDING enforced at the REAL endpoints (assertion ON): impersonation
+        # blocked, absent/forged 403, and identity + tenant-partition controls compose.
+        "test_worker_assertion_identity_binding_enforced_at_endpoint",
     ],
     # WORKER-IDENTITY-BINDING behavior proofs: server rejects a caller that cannot prove it is
     # the worker_id; the vendored signer round-trips through the shared verifier.
