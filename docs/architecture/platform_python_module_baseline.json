@@ -1,5 +1,5 @@
 {
-  "baseline_python_module_count": 662,
+  "baseline_python_module_count": 663,
   "modules": [
     "api/__init__.py",
     "api/adaptive_calibration.py",
@@ -160,6 +160,7 @@
     "api/irrigation_reservation_lifecycle.py",
     "api/irrigation_reservation_lifecycle_worker.py",
     "api/irrigation_runtime_orchestrator.py",
+    "api/irrigation_source_binding.py",
     "api/irrigation_state_guard.py",
     "api/lab_store.py",
     "api/learning_feedback.py",
@@ -689,5 +690,6 @@
   "irr_f01_reservation_lifecycle_worker_note": "api/irrigation_reservation_lifecycle_worker.py: IRR-F01 recovery worker that expires elapsed 'reserved' reservations through the governed v205 transition (api/irrigation_reservation_lifecycle.expire_due). Cross-tenant discovery via the dedicated JOBS role, per-tenant short transactions, concurrent-safe via FOR UPDATE SKIP LOCKED. Platform-owned IRR-F01 domain alongside the existing irrigation_* modules; opt-in default-off compose service under the 'irrigation-runtime' profile. No new route, no new execution SoR. 652->653.",
   "historical_season_context_note": "core/historical_season_context.py: HISTORICAL-SEASON-BRIDGE-01 platform-owned read/link bridge between the historical ledger records (v201 season_records) and the operational season (v32 seasons), backed by the v207 append-only tables season_record_links + season_simulation_runs. Pure linkage/context assembly over platform-owned DB truth (no new engine/service, no source-data copy); consumed by season_simulation/agronomic_replay/seasons router behind HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED (default-off). 653->654.",
   "programmatic_closure_s3_s11_farmbook_note": "658: +4 platform modules for the programmatic-closure increment — S3 historical-weather SoR and S11 ERP-reconciliation ledger (core/operational_truth.py + api/routers/operational_truth.py) and the simple farmer book BFF over the existing Farm Ledger (core/simple_farm_book.py + api/routers/simple_farm_book.py). Tenant-bound, append-only, fail-closed; no new service.",
-  "decision_center_slice1_confidence_note": "660: +2 platform modules from the agri-intelligence audit closures — api/agronomic_context_composer.py (DECISION-CENTER Slice 1: pure server-side atomic Agronomic Context assembler that feeds decision-service's existing compose_agronomic_context PIT gate; no fabrication, flag-gated AGRONOMIC_CONTEXT_COMPOSE_ENABLED) and core/crop_intelligence/confidence.py (audit P0-4: composed confidence contract with an honest ceiling, additive to the existing confidence string). Both pure/boundary-respecting; no new route, no new service. 658->660."
+  "decision_center_slice1_confidence_note": "660: +2 platform modules from the agri-intelligence audit closures — api/agronomic_context_composer.py (DECISION-CENTER Slice 1: pure server-side atomic Agronomic Context assembler that feeds decision-service's existing compose_agronomic_context PIT gate; no fabrication, flag-gated AGRONOMIC_CONTEXT_COMPOSE_ENABLED) and core/crop_intelligence/confidence.py (audit P0-4: composed confidence contract with an honest ceiling, additive to the existing confidence string). Both pure/boundary-respecting; no new route, no new service. 658->660.",
+  "h51_binding_note": "api/irrigation_source_binding.py (H5.1): pure server-authoritative field↔water-source binding resolver + decision-grade sample policy; owns the resolver SQL so the route and the real-PG cert test share one implementation (v214)."
 }

@@ -947,6 +947,13 @@
       "evidence": "/api/v1/crop-twin/decision/profit-aware"
     },
     {
+      "endpoint": "/api/v1/crop-twin/decision-candidate",
+      "audience": "agronomist",
+      "evidence": "/api/v1/decisions/review-queue",
+      "downstream_surface": "/api/v1/decisions/review-queue",
+      "note": "WX-10.6 producer boundary: emits a pending_approval crop_decision_candidate owned by decision-service. Its UI is the downstream WX-10.8 Approvals Console reviewer surface (review-queue + review), not a self-referential screen — a real downstream-review E2E (test_wx10_6_crop_candidate_downstream_e2e.py) proves the candidate is consumed there. Replaced the temporary 'pending reviewer UI' waiver."
+    },
+    {
       "endpoint": "/api/v1/crops/compare-drought-resilience",
       "audience": "agronomist",
       "evidence": "/api/v1/crops/compare-drought-resilience"
@@ -1498,6 +1505,11 @@
     },
     {
       "endpoint": "/api/v1/fields/{field_id}/imagery/refresh",
+      "audience": "farmer",
+      "evidence": "/api/v1/fields"
+    },
+    {
+      "endpoint": "/api/v1/fields/{field_id}/imagery/process-date",
       "audience": "farmer",
       "evidence": "/api/v1/fields"
     },

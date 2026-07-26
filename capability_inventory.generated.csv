@@ -150,7 +150,7 @@ raster-service.fields.field_id.cdse-tiles,query,raster-service,GET /v1/fields/{f
 raster-service.fields.field_id.change,command,raster-service,POST /v1/fields/{field_id}/change,frontend,route,False
 raster-service.fields.field_id.contours.geojson,query,raster-service,GET /v1/fields/{field_id}/contours.geojson,frontend,route,False
 raster-service.fields.field_id.geometry,command,raster-service,POST /v1/fields/{field_id}/geometry/versions,frontend,route,False
-raster-service.fields.field_id.imagery,mixed,raster-service,GET /v1/fields/{field_id}/imagery/backfill/{run_id}|POST /v1/fields/{field_id}/imagery/backfill,frontend,route,False
+raster-service.fields.field_id.imagery,mixed,raster-service,GET /v1/fields/{field_id}/imagery/backfill/{run_id}|POST /v1/fields/{field_id}/imagery/backfill|POST /v1/fields/{field_id}/imagery/process-date,frontend,route,False
 raster-service.fields.field_id.indicator-grid,query,raster-service,GET /v1/fields/{field_id}/indicator-grid,frontend,route,False
 raster-service.fields.field_id.indicator-observation-bundle,query,raster-service,GET /v1/fields/{field_id}/indicator-observation-bundle,frontend,route,False
 raster-service.fields.field_id.pixel,query,raster-service,GET /v1/fields/{field_id}/pixel,frontend,route,False
@@ -436,7 +436,7 @@ sahool-platform.fields.field_id.evidence-graph,query,sahool-platform,GET /api/v1
 sahool-platform.fields.field_id.geometry,mixed,sahool-platform,GET /api/v1/fields/{field_id}/geometry/history|POST /api/v1/fields/{field_id}/geometry/revert/{revision},frontend,route,False
 sahool-platform.fields.field_id.growth-narrative,command,sahool-platform,POST /api/v1/fields/{field_id}/growth-narrative,frontend,route,False
 sahool-platform.fields.field_id.history,query,sahool-platform,GET /api/v1/fields/{field_id}/history,frontend,route,False
-sahool-platform.fields.field_id.imagery,mixed,sahool-platform,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id}|GET /api/v1/fields/{field_id}/imagery/timeline|POST /api/v1/fields/{field_id}/imagery/backfill|POST /api/v1/fields/{field_id}/imagery/refresh,frontend,route,False
+sahool-platform.fields.field_id.imagery,mixed,sahool-platform,GET /api/v1/fields/{field_id}/imagery/backfill/{run_id}|GET /api/v1/fields/{field_id}/imagery/timeline|POST /api/v1/fields/{field_id}/imagery/backfill|POST /api/v1/fields/{field_id}/imagery/process-date|POST /api/v1/fields/{field_id}/imagery/refresh,frontend,route,False
 sahool-platform.fields.field_id.input-traceability,query,sahool-platform,GET /api/v1/fields/{field_id}/input-traceability,frontend,route,False
 sahool-platform.fields.field_id.irrigation,command,sahool-platform,POST /api/v1/fields/{field_id}/irrigation/mpc/hourly-recommendation|POST /api/v1/fields/{field_id}/irrigation/mpc/recommendation,frontend,route,False
 sahool-platform.fields.field_id.irrigation-recommendation,command,sahool-platform,POST /api/v1/fields/{field_id}/irrigation-recommendation,frontend,route,False

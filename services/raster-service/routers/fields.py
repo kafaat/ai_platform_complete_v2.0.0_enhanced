@@ -36,6 +36,7 @@ from raster_field_runtime import (
     JobStatus,
     PrescriptionRequest,
     ProcessCdseRequest,
+    ProcessDateRequest,
     ProcessFromStacRequest,
     ProcessRequest,
     SourceFormat,
@@ -71,6 +72,20 @@ from raster_field_runtime import (
 )
 
 router = APIRouter()
+
+
+def _authenticated_tenant(body_tenant: str | None) -> str | None:
+    """المستأجِر المُصادَق من سياق الطلب (رأس البوّابة الموثوق) — جسم الطلب لا يتجاوزه أبداً.
+
+    عزل صارم fail-closed (مراجعة P0-1): بنية «الهويّة الموثوقة بالبوّابة» (SEC-3) تجعل المستأجِر
+    يُشتقّ حصراً من السياق المُصادَق (نفس ما تحقّق منه _require_field_tenant). ``body_tenant``
+    مطابق ⇒ يُقبَل؛ مختلف ⇒ 403 — لا إنشاء run/item ولا تصدير تحليلات تحت مستأجِر يخالف
+    المُصادَق عليه (النمط القديم «body-or-context» كان يسمح للجسم بتجاوز السياق المُصادَق).
+    """
+    context_tenant = _REQ_TENANT.get()
+    if body_tenant is not None and str(body_tenant) != str(context_tenant):
+        raise HTTPException(403, "tenant_id في الجسم لا يطابق المستأجِر المُصادَق للطلب")
+    return context_tenant
 
 
 @router.get("/gis/admin-boundaries")
@@ -301,7 +316,7 @@ async def field_historical_backfill(
     if _async_backfill_enabled() and not req.dry_run:
         import db_persist as _dbp
 
-        _async_tenant = req.tenant_id or _REQ_TENANT.get()
+        _async_tenant = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط
         run_id = await _dbp.insert_backfill_run(
             tenant_id=str(_async_tenant) if _async_tenant else None,
             field_id=field_id,
@@ -400,7 +415,7 @@ async def field_historical_backfill(
 
     job_ids: list[str] = []
     scheduled: list[dict] = []
-    tenant_id = req.tenant_id or _REQ_TENANT.get()
+    tenant_id = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط
     # FINDING-009: استمرار المشاهد المُختارة في stac_item_registry (خلفيّة، best-effort).
     if not req.dry_run and tenant_id and selected_scenes:
         background_tasks.add_task(
@@ -607,6 +622,75 @@ async def field_backfill_run_status(field_id: str, run_id: int):
     return status
 
 
+@router.post("/v1/fields/{field_id}/imagery/process-date")
+async def field_process_date(
+    field_id: str,
+    req: ProcessDateRequest,
+    x_agent_token: str = Header(None),
+):
+    """يعالج مشهداً مفرداً لتاريخٍ اختاره المستخدم — إجراء صريح منفصل عن اختيار التاريخ (V8-05 PR1-a).
+
+    **الثابت (invariant):** مجرّد اختيار/تصفّح تاريخ لا يستدعي هذه النقطة ولا يُنشئ أيّ
+    معالجة — التصيير يأتي من COG جاهز. هذه النقطة وحدها (زرّ «عالِج هذا التاريخ») تُجدوِل
+    عملاً، بإعادة استعمال نموذج backfill الدائم (run_kind='single_scene') بلا آلة حالة ثانية.
+
+    idempotent: أصلٌ جاهز موجود ⇒ ``reused_existing_job=true`` بلا تشغيلة؛ عنصر حيّ بنفس
+    المفتاح ⇒ يُعاد استعماله. غياب القاعدة/الجدول ⇒ 503 صريح (لا اختلاق نجاح).
+    """
+    _require_service_token(x_agent_token)
+    await _require_field_tenant(field_id)
+
+    clip = req.clip_polygon_geojson
+    if clip is None:
+        try:
+            import db_persist as _dbp_geo
+
+            clip = await _dbp_geo.fetch_field_geometry(field_id, _REQ_TENANT.get())
+        except Exception as e:  # noqa: BLE001 — تعذّر جلب الهندسة ⇒ 503 صادق
+            raise HTTPException(503, "تعذّر جلب هندسة الحقل لقصّ المشهد") from e
+    if clip is None or _bbox_from_geojson(clip) is None:
+        raise HTTPException(400, "هندسة الحقل غير متاحة لاشتقاق bbox وقصّ المشهد")
+
+    import db_persist as _dbp
+
+    tenant = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط، لا تجاوز من الجسم
+    result = await _dbp.enqueue_single_scene_process(
+        tenant_id=str(tenant) if tenant else None,
+        field_id=field_id,
+        acquisition_date=req.date,
+        index_name=req.index.value,
+        scene_id=req.scene_id,
+        geometry_revision=req.geometry_revision,
+        clip_polygon_geojson=clip,
+        max_cloud_pct=req.max_cloud_pct,
+        apply_cloud_mask=req.apply_cloud_mask,
+    )
+    if result is None:
+        raise HTTPException(
+            503,
+            "تعذّرت جدولة معالجة التاريخ (تحقّق من ترحيل v144/v213 أو القاعدة)؛ لم تُجدوَل معالجة.",
+        )
+    logger.info(
+        "process_date field_id=%s date=%s index=%s status=%s run_id=%s reused=%s",
+        field_id,
+        req.date,
+        req.index.value,
+        result.get("status"),
+        result.get("run_id"),
+        result.get("reused_existing_job"),
+    )
+    return {
+        "field_id": field_id,
+        "date": req.date[:10],
+        "index": req.index.value,
+        "scene_id": req.scene_id,
+        "run_id": result.get("run_id"),
+        "item_id": result.get("item_id"),
+        "status": result.get("status"),
+        "reused_existing_job": result.get("reused_existing_job", False),
+    }
+
+
 @router.post("/v1/fields/{field_id}/geometry/versions")
 async def create_field_geometry_version(
     field_id: str,
@@ -647,7 +731,7 @@ async def export_field_analytics_geoparquet(
     artifact.
     """
     _require_service_token(x_agent_token)
-    tenant_id = req.tenant_id or _REQ_TENANT.get()
+    tenant_id = _authenticated_tenant(req.tenant_id)  # P0-1: سياق مُصادَق فقط
     import json as _json
 
     import db_persist
@@ -1284,12 +1368,19 @@ async def field_available_dates(
     wanted = [_normalize_index(index)] if index else []
     by_date: dict[str, dict] = {}
 
+    def _clip_cloud(value):
+        try:
+            return max(0.0, min(100.0, float(value)))
+        except (TypeError, ValueError):
+            return None
+
     def _add(
         date_value,
         *,
         idx=None,
         has_cog=True,
         cloud_pct=None,
+        aoi_cloud_pct=None,
         scene_id=None,
         acquisition_datetime=None,
     ):
@@ -1304,7 +1395,15 @@ async def field_available_dates(
                 "date": d,
                 "has_cog": False,
                 "indices": set(),
+                # عقد سحابة صريح مزدوج القيمة (AOI-CLOUD-CONTRACT):
+                #  • scene_cloud_pct — سحابة المشهد كاملاً من كتالوج STAC.
+                #  • aoi_cloud_pct — السحابة فوق مضلّع الحقل (AOI-clipped)؛ NULL=«لم يُحسب»
+                #    (ليس 0%) — فلا يُستبعَد تاريخ نظيف فوق الحقل بسحابة مشهد عالية.
+                #  • cloud_pct — يبقى توافقاً قديماً، مساوٍ لسحابة المشهد صراحةً.
+                # clear_pct/quality_label تُشتقّان من القيمة الأنسب للحقل (AOI إن توفّرت).
                 "cloud_pct": None,
+                "scene_cloud_pct": None,
+                "aoi_cloud_pct": None,
                 "clear_pct": None,
                 "quality_label": None,
                 "scene_id": None,
@@ -1316,20 +1415,25 @@ async def field_available_dates(
         rec["has_cog"] = bool(rec["has_cog"] or has_cog)
         if idx:
             rec["indices"].add(_display_index(idx))
-        if cloud_pct is not None and rec["cloud_pct"] is None:
-            try:
-                cloud = max(0.0, min(100.0, float(cloud_pct)))
-                rec["cloud_pct"] = cloud
-                rec["clear_pct"] = 100.0 - cloud
-                rec["quality_label"] = (
-                    "high"
-                    if rec["clear_pct"] >= NDVI_HIGH_QUALITY_CLEAR_PCT
-                    else "medium"
-                    if rec["clear_pct"] >= NDVI_PULL_MIN_CLEAR_PCT
-                    else "cloudy"
-                )
-            except (TypeError, ValueError):
-                pass
+        scene_cloud = _clip_cloud(cloud_pct)
+        aoi_cloud = _clip_cloud(aoi_cloud_pct)
+        if scene_cloud is not None and rec["scene_cloud_pct"] is None:
+            rec["scene_cloud_pct"] = scene_cloud
+            rec["cloud_pct"] = scene_cloud  # توافق قديم: scene-level صراحةً
+        if aoi_cloud is not None and rec["aoi_cloud_pct"] is None:
+            rec["aoi_cloud_pct"] = aoi_cloud
+        # الجودة تُشتقّ من سحابة الحقل إن حُسِبت، وإلّا من سحابة المشهد (لا نستبعد
+        # تاريخاً نظيفاً فوق الحقل بسحابة مشهد وحدها).
+        effective = rec["aoi_cloud_pct"] if rec["aoi_cloud_pct"] is not None else rec["cloud_pct"]
+        if effective is not None:
+            rec["clear_pct"] = 100.0 - effective
+            rec["quality_label"] = (
+                "high"
+                if rec["clear_pct"] >= NDVI_HIGH_QUALITY_CLEAR_PCT
+                else "medium"
+                if rec["clear_pct"] >= NDVI_PULL_MIN_CLEAR_PCT
+                else "cloudy"
+            )
         if scene_id and not rec["scene_id"]:
             rec["scene_id"] = str(scene_id)
         if acquisition_datetime and not rec["acquisition_datetime"]:
@@ -1367,6 +1471,7 @@ async def field_available_dates(
                 idx=row.get("index_name"),
                 has_cog=row.get("has_cog", True),
                 cloud_pct=row.get("cloud_pct"),
+                aoi_cloud_pct=row.get("aoi_cloud_pct"),
                 scene_id=row.get("scene_id"),
                 acquisition_datetime=row.get("acquisition_datetime"),
             )
@@ -1477,14 +1582,31 @@ async def field_terrain(
         except Exception as e:  # noqa: BLE001 — اشتقاق اختياريّ؛ فشله ⇒ computed=false صريح.
             logger.warning("terrain geometry derive skipped (%s): %s", field_id, e)
 
-    dem_path = os.getenv("FIELD_DEM_PATH") or None
-    result = ta.compute_field_terrain(dem_path, parsed_bbox, poly=poly)
+    # سجل مصادر متعدّد الدقّة (TERRAIN، قرار المالك): resolver يختار أعلى مصدر صالح يغطّي
+    # الحقل (5م→10م→30م). لا مصدر مُزوَّد ⇒ dem_path=None ⇒ يبقى المسار fail-closed صادق،
+    # لكن نُلحِق سياسة الدقّة + سبب الحجب كي يرى المستهلِك القدرة والحالة (OPERATOR_BLOCKED).
+    import terrain_source_registry as tsr
+
+    sources = tsr.load_terrain_sources()
+    resolved = tsr.resolve_terrain_source(
+        sources, field_bbox=parsed_bbox, tenant_id=_REQ_TENANT.get()
+    )
+    dem_path = resolved.get("dem_path")
+    pixel_size = float(resolved.get("native_resolution_m") or 30.0)
+    result = ta.compute_field_terrain(dem_path, parsed_bbox, pixel_size_m=pixel_size, poly=poly)
     if result.get("computed") and (result.get("slope_deg") or {}).get("mean") is not None:
         result["water_harvesting"] = ta.classify_water_harvesting(result["slope_deg"]["mean"])
         # ربط الانحدار بقرارات زراعيّة (خطر تعرية/سيولة/إجراءات) — إرشاديّ، بلا تلفيق.
         agronomy = ta.interpret_terrain_for_agronomy(result)
         if agronomy:
             result["agronomy"] = agronomy
+    # نَسَب المصدر (lineage) — لا يظنّ المستهلِك أنّ 30م هي 5م: الدقّة الأصلية/الفعّالة صريحة.
+    if resolved.get("lineage"):
+        result["terrain_source"] = resolved["lineage"]
+    else:
+        result["terrain_source"] = None
+        result.setdefault("reason", resolved.get("reason"))
+    result["resolution_policy"] = tsr.resolution_policy(sources)
     result["field_id"] = field_id
     return result
 

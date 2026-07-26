@@ -200,6 +200,23 @@ class HistoricalBackfillRequest(BaseModel):
     dry_run: bool = False
 
 
+class ProcessDateRequest(BaseModel):
+    """طلب معالجة مشهد مفرد لتاريخٍ اختاره المستخدم (V8-05 PR1-a).
+
+    يفصل «اختيار التاريخ» عن «المعالجة»: المستخدم يختار تاريخاً من الشريط الزمنيّ (يحمل
+    scene_id من الكتالوج)، فتُنشأ تشغيلة single_scene واحدة يعالجها العامل لاتزامنيّاً.
+    مجرّد اختيار التاريخ لا يستدعي هذه النقطة — التصيير من COG جاهز بلا معالجة."""
+
+    tenant_id: str | None = None
+    date: str = Field(..., description="تاريخ الالتقاط المستهدَف YYYY-MM-DD")
+    index: IndicatorKind
+    scene_id: str = Field(..., description="مُعرّف المشهد من كتالوج STAC (من خيار التاريخ)")
+    geometry_revision: int | None = None
+    max_cloud_pct: float = Field(default=60, ge=0, le=100)
+    apply_cloud_mask: bool = True
+    clip_polygon_geojson: dict | None = None
+
+
 class AutoBackfillPolicy(BaseModel):
     enabled: bool = True
     default_preset: HistoricalBackfillPreset = HistoricalBackfillPreset.last_2_years

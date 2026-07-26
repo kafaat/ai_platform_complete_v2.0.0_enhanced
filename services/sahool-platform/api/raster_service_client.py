@@ -310,6 +310,24 @@ async def get_imagery_backfill_status(
     )
 
 
+async def process_field_imagery_date(
+    field_id: str,
+    *,
+    tenant_id: str,
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """V8-05 PR2: يجدوِل معالجة مشهد مفرد لتاريخٍ اختاره المستخدم (زرّ «عالِج هذا التاريخ»).
+
+    مسار خادميّ صريح — لا يُطلقه اختيار التاريخ. يعيد ``reused_existing_job`` عند وجود
+    أصل/عنصر جاهز (لا معالجة مكرّرة)."""
+    return await raster_post_json(
+        f"/v1/fields/{field_id}/imagery/process-date",
+        tenant_id=tenant_id,
+        payload=payload,
+        timeout_s=60.0,
+    )
+
+
 async def get_indicator_grid(
     field_id: str,
     *,

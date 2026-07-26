@@ -681,6 +681,19 @@ jobs:
           TEST_DATABASE_URL="$IRR_F01_UPGRADE_DATABASE_URL" \
           TEST_DATABASE_ADMIN_URL="$IRR_F01_UPGRADE_ADMIN_URL" \
             pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
+      # ── H5.1 field↔water-source binding certification ──────────────────────────────
+      # The shared integration run connects as the superuser, where the binding resolver's RLS
+      # isolation SKIPS (superuser bypasses RLS). This dedicated step runs it as the restricted
+      # sahool_app_test role with H51_CERTIFICATION_REQUIRED=1 so any skip becomes a HARD failure —
+      # certifying on REAL v214/v168/v170 that the source is server-derived (never client-supplied),
+      # the decision-grade sample filter is enforced in SQL, and tenants cannot see each other's
+      # bindings. The superuser admin DSN seeds cross-tenant dependency rows only.
+      - name: H5.1 field↔source binding certification (real-PG, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          H51_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_h51_field_source_binding_pg.py
 
   decision-service-tests:
     name: Decision Service Tests
@@ -743,6 +756,17 @@ jobs:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
           DECISION_SERVICE_SOR_ENABLED: "true"
         run: pytest tests/test_wx10_7_decision_review.py -q -p no:cacheprovider
+      # WX-10.6 crop-decision-candidate DOWNSTREAM consumption (real Postgres, SoR on): the boundary
+      # output (a crop_decision_candidate recorded via /v1/decisions/record — the bridge's HTTP
+      # target) surfaces in the reviewer queue the Approvals Console consumes and is reviewable,
+      # tenant-isolated, never auto-approved. This is the real downstream coverage that replaced the
+      # temporary WX-10.6 "pending reviewer UI" endpoint-ui-coverage waiver.
+      - name: WX-10.6 crop-candidate downstream E2E (real Postgres, SoR on)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+          DECISION_SERVICE_SOR_ENABLED: "true"
+        run: pytest tests/test_wx10_6_crop_candidate_downstream_e2e.py -q -p no:cacheprovider
       # WX-10.8 review-queue endpoint (monkeypatched: authoritative + tenant-scoped + fail-closed
       # 503 in mirror). No DB needed — runs here because this job has fastapi + pytest-asyncio.
       - name: WX-10.8 review-queue endpoint tests
@@ -834,6 +858,25 @@ jobs:
         env:
           DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
         run: pytest tests/test_activation_evidence_contract.py -q -p no:cacheprovider
+      # DECISION-SOR-CUTOVER: the SoR write boundary must be a DB PRIVILEGE boundary, not just a
+      # Python guard. This proves it with TWO distinct NOSUPERUSER/NOBYPASSRLS roles (platform_test
+      # + decision_service_test, self-created by the test via the superuser DATABASE_URL): after the
+      # revoke, a platform-role INSERT raises the DB's InsufficientPrivilegeError while SELECT + the
+      # service role's writes survive; catalog grants, table ownership, sequences, SECURITY DEFINER
+      # writers, role attributes and SET ROLE are all asserted; rollback restores platform writes.
+      - name: decision SoR DB privilege cutover boundary (real Postgres, two roles)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_decision_sor_db_privilege_cutover.py -q -p no:cacheprovider
+      # DECISION-SOR-PRE-CUTOVER-ROLE-CERTIFICATION: the certification tool's verdict must be
+      # trustworthy — prove role_separation_confirmed is true for two distinct roles and false for a
+      # shared role (the "do not REVOKE" signal), and that role attributes + table owners are surfaced.
+      - name: decision SoR pre-cutover role certification verdict (real Postgres)
+        working-directory: services/decision-service
+        env:
+          DATABASE_URL: postgresql://decision_test:test_password@localhost:5434/decision_test
+        run: pytest tests/test_decision_sor_role_certify_pg.py -q -p no:cacheprovider
       # Gate-Trust-1: the trust root fails closed at READ — deploy_build_sha() and the probe secret
       # raise on absent/invalid config, the evidence window is capped, provenance is canonical. Pure
       # decisions, no DB.
@@ -852,6 +895,11 @@ jobs:
       - name: loop-tables + websocket governance guards
         working-directory: services/decision-service
         run: pytest tests/test_loop_tables_and_ws_guard.py -q -p no:cacheprovider
+      # WORKER-IDENTITY-BINDING: the worker-driven endpoints must verify the caller IS the
+      # worker_id (request-scoped signed assertion) before trusting it. Pure decision, no DB.
+      - name: worker-identity binding fail-closed
+        working-directory: services/decision-service
+        run: pytest tests/test_worker_identity_binding.py -q -p no:cacheprovider
       # WX-10.13..11.6 model/MLOps governance chain (real Postgres, SoR on): each stage is an
       # authoritative append-only transition (learning-attribution -> calibration-dataset ->
       # model-evaluation -> promotion-decision -> activation-request -> activation-approval ->

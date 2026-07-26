@@ -337,7 +337,11 @@ def test_route_recommendation_blocks_on_missing_sor_facts(monkeypatch):
     async def _no_forecast(t, f, h):
         return None  # تنبّؤ غير مُصدَّر
 
+    async def _no_bindings(t, f):
+        return []  # H5.1: unbound field ⇒ no salinity limit, proceed to ground-truth checks
+
     monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
     monkeypatch.setattr(route, "_source_current_state", _state)
     monkeypatch.setattr(route, "_source_soil_capacity", _no_soil)
     monkeypatch.setattr(route, "_source_forecast_horizon", _no_forecast)
@@ -381,7 +385,11 @@ def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
     async def _forecast(t, f, h):
         return [{"et0_mm": 10.0, "kc": 1.0, "rain_mm": 0.0} for _ in range(h)]
 
+    async def _no_bindings(t, f):
+        return []  # H5.1: unbound field ⇒ no salinity limit to enforce
+
     monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _no_bindings)
     monkeypatch.setattr(route, "_source_current_state", _state)
     monkeypatch.setattr(route, "_source_soil_capacity", _soil)
     monkeypatch.setattr(route, "_source_forecast_horizon", _forecast)
@@ -404,6 +412,9 @@ def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
     assert prov["depletion_source"] == "water_ledger"
     assert prov["taw_source"] == "soil_profile"
     assert prov["forecast_source"] == "weather_service"
+    # H5.1: unbound field is recorded honestly (governance not applicable, not enforced).
+    assert prov["water_salinity"]["mode"] == "unbound_no_active_source_assignment"
+    assert prov["water_salinity"]["enforced"] is False
     # بصمات لقطات كاملة (64-hex) — نَسَب لا يُزوَّر.
     assert len(prov["ledger_snapshot_hash"]) == 64
     assert len(prov["weather_snapshot_hash"]) == 64
@@ -411,6 +422,72 @@ def test_route_recommendation_operational_with_full_sor_facts(monkeypatch):
     # الإصدار العمليّ يمرّ للجسر (تنفيذ ممنوع بنيويّاً).
     assert out["emit"]["status"] == "candidate_created"
     assert out["emit"]["execution_allowed"] is False
+
+
+@_requires_fastapi
+def test_route_recommendation_blocks_on_server_bound_salinity(monkeypatch):
+    """H5.1: a server-bound source whose gate blocks (e.g. only estimated sample) ⇒ blocked
+    BEFORE any ground-truth read, with per-source verdicts and expert review — the source is
+    derived from the binding, never from the client."""
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _bound_estimated(t, f):
+        # One active bound source with a configured limit but no decision-grade sample.
+        return [
+            {
+                "water_source_id": "src-1",
+                "priority": 1,
+                "mixing_ratio": None,
+                "maximum_allowed_ec_ds_m": 3.0,
+                "water_quality": None,
+                "non_decision_grade_sample_present": True,
+            }
+        ]
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _bound_estimated)
+
+    req = route.RecommendationRequest(horizon_days=7)
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+    assert out["status"] == "blocked"
+    assert out["reason"] == "water_salinity_gate_blocked"
+    assert out["requires_expert_review"] is True
+    verdict = out["source_verdicts"][0]
+    assert verdict["water_source_id"] == "src-1"
+    assert "WATER_QUALITY_NOT_DECISION_GRADE" in verdict["blocking_reasons"]
+
+
+@_requires_fastapi
+def test_route_recommendation_rejects_client_source_steering(monkeypatch):
+    """H5.1: a client-supplied water_source_id that is NOT the field's active binding is rejected
+    (anti-steering) — the client cannot point the gate at a cleaner source."""
+    import api.routers.irrigation_mpc as route
+
+    async def _owned(t, f):
+        return True
+
+    async def _bound_other(t, f):
+        return [
+            {
+                "water_source_id": "real-src",
+                "priority": 1,
+                "mixing_ratio": None,
+                "maximum_allowed_ec_ds_m": None,
+                "water_quality": None,
+                "non_decision_grade_sample_present": False,
+            }
+        ]
+
+    monkeypatch.setattr(route, "_field_belongs_to_tenant", _owned)
+    monkeypatch.setattr(route, "_active_field_source_bindings", _bound_other)
+
+    req = route.RecommendationRequest(horizon_days=7, water_source_id="attacker-picked-src")
+    out = asyncio.run(route.irrigation_mpc_recommendation("fld_a", req, user=_User()))
+    assert out["status"] == "blocked"
+    assert out["reason"] == "water_source_binding_mismatch"
 
 
 @_requires_fastapi

@@ -1353,6 +1353,17 @@ services:
       DECISION_SERVICE_AUTH_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       DECISION_REQUIRE_AUTH_TOKEN: ${DECISION_REQUIRE_AUTH_TOKEN:-false}
       DECISION_STRICT_WORKER_TENANTS: ${DECISION_STRICT_WORKER_TENANTS:-false}
+      # WORKER-IDENTITY-BINDING (staged): when set, the worker-driven endpoints (work-feed +
+      # tenant discovery) require a request-scoped X-Worker-Assertion proving the caller IS the
+      # worker_id. Unset = header-only compatibility (dev / existing installs); REQUIRED in
+      # production (503 when set here but the caller cannot sign). Must MATCH the adapter's key.
+      DECISION_WORKER_ASSERTION_KEY: ${DECISION_WORKER_ASSERTION_KEY:-}
+      DECISION_WORKER_ASSERTION_KEY_ID: ${DECISION_WORKER_ASSERTION_KEY_ID:-current}
+      DECISION_WORKER_ASSERTION_PREVIOUS_KEY: ${DECISION_WORKER_ASSERTION_PREVIOUS_KEY:-}
+      DECISION_WORKER_ASSERTION_PREVIOUS_KEY_ID: ${DECISION_WORKER_ASSERTION_PREVIOUS_KEY_ID:-previous}
+      # Nonce replay store (Redis). Production never falls back to process memory: a set key with
+      # no replay store fails closed (503).
+      DECISION_WORKER_ASSERTION_REDIS_URL: ${DECISION_WORKER_ASSERTION_REDIS_URL:-}
       # Gate-Trust-1 Slice 2: activation gate production profile. DEFAULT OFF (transitional — the
       # mirror deployment must not be forced fail-closed). When the operator cuts the activation gate
       # over to enforced production, set ACTIVATION_REQUIRE_PRODUCTION_HARDENING=true — startup then
@@ -1411,6 +1422,11 @@ services:
       # Same shared bearer the decision-service token guard validates (single source).
       DECISION_SERVICE_TOKEN: ${DECISION_SERVICE_AUTH_TOKEN:-}
       REGISTRY_ADAPTER_ID: ${REGISTRY_ADAPTER_ID:-}
+      # WORKER-IDENTITY-BINDING: when set, the adapter signs an X-Worker-Assertion binding its
+      # REGISTRY_ADAPTER_ID (subject) to each worker-driven GET. Must MATCH the decision-service
+      # DECISION_WORKER_ASSERTION_KEY. Unset = no signing (dev / single-tenant installs).
+      DECISION_WORKER_ASSERTION_KEY: ${DECISION_WORKER_ASSERTION_KEY:-}
+      DECISION_WORKER_ASSERTION_KEY_ID: ${DECISION_WORKER_ASSERTION_KEY_ID:-current}
       # Tenant partition: leave empty for server discovery (the authorized SaaS path);
       # env pins remain for single-tenant installs only.
       RUNTIME_TENANT_IDS: ${RUNTIME_TENANT_IDS:-}

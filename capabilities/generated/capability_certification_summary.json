@@ -1,0 +1,68 @@
+{
+  "capabilities_total": 81,
+  "eligible_for_certification": 0,
+  "certified": 0,
+  "incorrect_certifications": [],
+  "top_ready": [
+    {
+      "id": "DEC-001",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "DEC-003",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "DEC-004",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "DEC-005",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "DEC-006",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "DEC-007",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "DEC-008",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "DEC-010",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "FM-001",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "FM-004",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "GIS-001",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "IRR-005",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "IRR-007",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "SEC-004",
+      "readiness_percent": 44.4
+    },
+    {
+      "id": "SEC-005",
+      "readiness_percent": 44.4
+    }
+  ]
+}

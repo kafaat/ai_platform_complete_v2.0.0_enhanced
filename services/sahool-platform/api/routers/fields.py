@@ -111,6 +111,7 @@ from api.prescriptions import ZoneCharacteristics, ZoneClass, prescription_to_di
 from api.raster_service_client import (
     get_available_dates,
     get_imagery_backfill_status,
+    process_field_imagery_date,
     start_imagery_backfill,
 )
 from api.raster_service_client import (
@@ -684,6 +685,71 @@ class FieldImageryRefreshRequest(BaseModel):
     # هندسة؛ نقبل geometry صريحة من خيار الحقل المختار ونمرّرها إلى raster-service
     # بدل إسقاط التحليل بـ404. إذا لم تصل هندسة، يبقى 404 صادقاً.
     geometry: dict | None = None
+
+
+class FieldImageryProcessDateRequest(BaseModel):
+    """V8-05 PR2: طلب معالجة مشهد مفرد لتاريخٍ اختاره المستخدم (زرّ صريح، لا اختيار التاريخ)."""
+
+    date: str
+    index: str
+    scene_id: str
+    geometry: dict | None = None
+
+
+@router.post("/api/v1/fields/{field_id}/imagery/process-date")
+async def field_imagery_process_date_proxy(
+    field_id: str,
+    req: FieldImageryProcessDateRequest,
+    user: UserSchema = Depends(require_permission(Permission.OBSERVATION_RECORD)),
+):
+    """Tenant-scoped proxy: process a single user-selected imagery date (V8-05 PR2).
+
+    Mutating and explicit — invoked ONLY by the "process this date" button, never by mere
+    date selection. The platform owns JWT/RBAC + field ownership + tenant/service-token
+    injection; the browser never calls raster-service directly. Honest reuse: raster-service
+    returns reused_existing_job when a ready asset/live item already exists.
+    """
+    try:
+        async with tenant_connection(user) as conn:
+            row = await conn.fetchrow(
+                "SELECT field_id, geometry FROM fields WHERE field_id = $1 AND tenant_id = $2::uuid",
+                field_id,
+                str(user.tenant_id),
+            )
+            geometry_revision = None
+            if row is None:
+                if not req.geometry:
+                    raise HTTPException(status_code=404, detail="الحقل غير موجود ضمن هذا المستأجِر")
+                geometry = req.geometry
+            else:
+                geometry = row["geometry"]
+                if isinstance(geometry, str):
+                    import json as _json
+
+                    geometry = _json.loads(geometry)
+                geometry_revision = await conn.fetchval(
+                    "SELECT MAX(revision) FROM field_geometry_history "
+                    "WHERE tenant_id = $1::uuid AND field_id = $2",
+                    str(user.tenant_id),
+                    field_id,
+                )
+            guarded = guard_field_geometry(geometry)
+            payload = {
+                "tenant_id": str(user.tenant_id),
+                "date": req.date[:10],
+                "index": req.index,
+                "scene_id": req.scene_id,
+                "clip_polygon_geojson": guarded.geometry,
+            }
+            if geometry_revision is not None:
+                payload["geometry_revision"] = int(geometry_revision)
+        return await process_field_imagery_date(
+            field_id, tenant_id=str(user.tenant_id), payload=payload
+        )
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise _db_unavailable("جدولة معالجة تاريخ الصورة", e) from e
 
 
 @router.post("/api/v1/fields/{field_id}/imagery/refresh")

@@ -32,7 +32,7 @@ import { MAP_ENGINE } from '../lib/featureFlags';
 import { useSelectedField } from '../hooks/useSelectedField';
 import { useFieldDetail, useAlerts, useDevices, useWeatherForecast, useEquipment, useTasks, useCurrentNDVI, useFieldSoilMoisture, useSoilNRecommendation, useFieldPrescriptions, useFieldPhenology, useFieldStageActions, useFieldWaterEfficiency, useSeasons, useFarmLedgerSummary, useSeasonProfitability, useSeasonVariance, useSeasonEconomicState } from '../hooks/useApi';
 import { fieldRepresentativePoint, geomToPolygon } from '../lib/geo';
-import { kongApi, rasterApi, asApiError, apiErrorMessage, refreshFieldImagery, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fetchHistoricalImageryBackfillStatus, isTerminalBackfillStatus, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, fetchSoilSamplingPlan, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
+import { kongApi, rasterApi, asApiError, apiErrorMessage, processFieldImageryDate, fetchFieldImageryAvailableDates, runHistoricalImageryBackfill, fetchHistoricalImageryBackfillStatus, isTerminalBackfillStatus, fieldCdseThumbnailUrl, cdseClipParams, fetchTerrainTileJson, fetchFieldContours, hillshadeTileUrl, slopeTileUrl, fetchSoilTileJson, soilTileUrl, fetchSoilSamplingPlan, type FieldImageryDateOption, type TerrainTileJson, type FieldContours, type SoilProperty, type SoilTileJson } from '../services/api';
 import { toastStore } from '../services/websocket';
 import { useAuthStore, UNAUTH_TENANT_KEY } from '../hooks/useAuth';
 import { canMutate } from '../lib/permissions';
@@ -334,6 +334,7 @@ function MapHubCore() {
   );
   const [imageryTs, setImageryTs] = useState(0); // cache-bust للبلاطات بعد معالجة Sentinel/COG
   const [selectedImageryDate, setSelectedImageryDate] = useState<string>('latest');
+  const [processingDate, setProcessingDate] = useState<string | null>(null); // PR2: تاريخ قيد المعالجة الصريحة
   const [availableImageryDates, setAvailableImageryDates] = useState<FieldImageryDateOption[]>([]);
   const [timelineImageryDates, setTimelineImageryDates] = useState<FieldImageryDateOption[]>([]);
   // نافذة شريط الصور التاريخيّ (بالأشهر). تُقاد بزرّ الفترة المختار (3/6/12/24) — فبدل
@@ -544,43 +545,26 @@ function MapHubCore() {
     return () => { cancelled = true; };
   }, [fieldId, mode, activeIndicator, timelineMonths]);
 
-  // عند اختيار مؤشّر وحقل، نطلب معالجة/تحديث صور Sentinel ثم نكسر كاش البلاطات.
-  // هذا لا يصنع قيماً وهمية: إذا لم تنتج الخلفية COG حقيقي، ستظل البلاطات شفافة.
+  // V8-05 PR2 — الثابت (invariant): اختيار المؤشّر/التاريخ **بلا أثر جانبيّ**. لا معالجة
+  // تُطلَق من الاختيار إطلاقاً (لا «latest» ولا تاريخ محدَّد). التصيير يأتي من COG جاهز
+  // موجود؛ نكسر كاش البلاطات فقط (setImageryTs) لعرض أحدث طبقة جاهزة. التجهيز صريح دائماً:
+  // زرّ «عالِج هذا التاريخ» (process-date) أو أزرار backfill التاريخيّ.
   useEffect(() => {
     if (!fieldId || !activeIndicator || mode !== '2d') return;
     const key = `${tenantId ?? UNAUTH_TENANT_KEY}:${fieldId}:${activeIndicator}:${selectedImageryDate}`;
     if (imageryRefreshKeyRef.current === key) return;
-    // FINDING-007 + v8-F5: مجرّد اختيار تاريخ لا يُطلق معالجة صامتة (توليد COG جديد
-    // كأثر جانبيّ للاختيار). القاعدة:
-    //   • «latest» فقط ⇒ نطلب تحديثاً (نضمن أحدث مشهد) — فعلٌ ضمنيّ مقبول.
-    //   • تاريخ محدَّد جاهز (has_cog) ⇒ نبدّل الطبقة فقط (bump imageryTs، لا معالجة).
-    //   • تاريخ محدَّد غير جاهز ⇒ **لا** نُطلق معالجة تلقائيّاً؛ نعيد القراءة (تظهر
-    //     «غير متاح» بصدق) ونُبلّغ المستخدم أنّ التجهيز صريح (زرّ backfill التاريخيّ).
     imageryRefreshKeyRef.current = key;
+    setImageryTs(Date.now()); // كسر الكاش/تبديل الطبقة فقط — لا شبكة، لا معالجة.
     if (selectedImageryDate !== 'latest') {
       const readyOption = availableImageryDates.find((d) => d.date === selectedImageryDate);
-      setImageryTs(Date.now());
       if (!readyOption?.has_cog) {
         toastStore.add(
           'info',
           'التاريخ غير مُجهَّز',
-          'هذا التاريخ لا يملك صورة جاهزة بعد. استخدم خيارات تجهيز 3/6/12/24 شهر لتشغيل معالجة صريحة.',
+          'هذا التاريخ لا يملك صورة جاهزة بعد. اضغط «عالِج هذا التاريخ» لتشغيل معالجة صريحة لهذا المشهد.',
         );
       }
-      return;
     }
-    let cancelled = false;
-    refreshFieldImagery(fieldId, selectedImageryDate)
-      .then(() => {
-        window.setTimeout(() => {
-          if (!cancelled) setImageryTs(Date.now());
-        }, 20000);
-      })
-      .catch(() => {
-        // فشل المزود أو غياب الاعتمادات لا يكسر الخريطة؛ نعيد الجلب لكشف أي طبقة مخزنة سابقاً.
-        if (!cancelled) setImageryTs(Date.now());
-      });
-    return () => { cancelled = true; };
   }, [fieldId, activeIndicator, mode, tenantId, selectedImageryDate, availableImageryDates]);
 
   useEffect(() => {
@@ -2462,7 +2446,12 @@ function MapHubCore() {
                       </div>
                       <div className="flex gap-2 overflow-x-auto pb-1" data-testid="imagery-timeline-items">
                         {twoYearTimeline.items.map((d) => {
-                          const cloud = typeof d.cloud_pct === 'number' ? d.cloud_pct : (typeof d.cloud_cover === 'number' ? d.cloud_cover : null);
+                          // AOI-CLOUD-CONTRACT (#636): سحابة الحقل (AOI) مفضّلة حين تُحسَب،
+                          // وإلّا سحابة المشهد. aoi_cloud_pct=null يعني «لم تُحسب» لا 0%.
+                          const sceneCloud = typeof d.scene_cloud_pct === 'number' ? d.scene_cloud_pct
+                            : (typeof d.cloud_pct === 'number' ? d.cloud_pct : (typeof d.cloud_cover === 'number' ? d.cloud_cover : null));
+                          const fieldCloud = typeof d.aoi_cloud_pct === 'number' ? d.aoi_cloud_pct : null;
+                          const cloud = fieldCloud != null ? fieldCloud : sceneCloud;
                           const active = selectedImageryDate === d.date;
                           return (
                             <button
@@ -2502,13 +2491,64 @@ function MapHubCore() {
                                 <span className="h-2.5 w-2.5 rounded-full" style={{ background: cloudBandColor(cloud) }} />
                               </div>
                               <div className="mt-1 flex items-center justify-between text-[10px]" style={{ color: T.faint }}>
-                                <span>{cloud != null ? `غيوم ${Math.round(cloud)}%` : 'غيوم —'}</span>
+                                <span title={sceneCloud != null ? `سحابة المشهد ${Math.round(sceneCloud)}%` : undefined}>
+                                  {cloud != null
+                                    ? `${fieldCloud != null ? 'غيوم الحقل' : 'غيوم'} ${Math.round(cloud)}%`
+                                    : 'غيوم —'}
+                                </span>
                                 <span>{d.has_cog ? 'جاهز' : 'ينتظر COG'}</span>
                               </div>
                             </button>
                           );
                         })}
                       </div>
+                      {/* V8-05 PR2: زرّ «عالِج هذا التاريخ» الصريح — الفعل الوحيد الذي يُجدوِل
+                          معالجة (اختيار التاريخ لا يُجدوِل شيئاً). يظهر لتاريخٍ محدَّد غير جاهز
+                          له مُعرّف مشهد. reused_existing_job ⇒ لا معالجة مكرّرة. */}
+                      {(() => {
+                        if (selectedImageryDate === 'latest' || !selected?.id) return null;
+                        const opt = availableImageryDates.find((d) => d.date === selectedImageryDate);
+                        if (!opt || opt.has_cog || !opt.scene_id) return null;
+                        const busy = processingDate === selectedImageryDate;
+                        return (
+                          <button
+                            type="button"
+                            data-testid="btn-process-date"
+                            disabled={busy}
+                            onClick={async () => {
+                              const sceneId = opt.scene_id;
+                              if (!selected?.id || !sceneId) return;
+                              setProcessingDate(selectedImageryDate);
+                              try {
+                                const res = await processFieldImageryDate(selected.id, {
+                                  date: selectedImageryDate,
+                                  index: activeIndicator ?? 'ndvi',
+                                  scene_id: sceneId,
+                                  geometry: selected.geometry ?? undefined,
+                                });
+                                if (res.reused_existing_job) {
+                                  toastStore.add('success', 'جاهز',
+                                    res.status === 'already_ready'
+                                      ? 'الصورة جاهزة أصلاً لهذا التاريخ.'
+                                      : 'المعالجة قيد التنفيذ أصلاً لهذا التاريخ.');
+                                  setImageryTs(Date.now());
+                                } else {
+                                  toastStore.add('info', 'بدأت المعالجة',
+                                    'تُعالَج صورة هذا التاريخ لاتزامنيّاً؛ ستظهر عند الجهوزيّة.');
+                                }
+                              } catch (e) {
+                                toastStore.add('error', 'تعذّرت المعالجة', asApiError(e).message || 'تعذّرت جدولة معالجة هذا التاريخ.');
+                              } finally {
+                                setProcessingDate(null);
+                              }
+                            }}
+                            className="mt-2 w-full rounded-lg px-3 py-2 text-xs font-bold"
+                            style={{ background: '#123524', border: '1px solid #22c55e99', color: '#e5e7eb', opacity: busy ? 0.6 : 1 }}
+                          >
+                            {busy ? 'جارٍ الجدولة…' : `عالِج هذا التاريخ (${selectedImageryDate})`}
+                          </button>
+                        );
+                      })()}
                       {selectedScene && <SceneProvenanceCard scene={selectedScene} />}
                     </div>
                   </FieldTimelineShell>

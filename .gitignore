@@ -42,3 +42,6 @@ services/sahool-platform/storage/*.db
 /sahool_main_*.zip
 artifacts/
 .claude/scheduled_tasks.lock
+
+# Hypothesis example database (test cache; never commit — trips security audit on BYPASSRLS constants)
+.hypothesis/

@@ -1,0 +1,47 @@
+name: Capability Governance
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+jobs:
+  capability-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Install test runner
+        run: pip install pytest==9.1.1
+      - name: Validate architecture graph drift
+        run: python scripts/ci/architecture_graph.py --check
+      - name: Validate runtime contract drift
+        run: python scripts/ci/runtime_contract_generator.py --check
+      - name: Validate decision lineage drift
+        run: python scripts/ci/decision_lineage_graph.py --check
+      - name: Validate execution dependency audit drift
+        run: python scripts/ci/execution_dependency_audit.py --check
+      - name: Reject duplicate definitions in the same lexical scope
+        run: python scripts/ci/duplicate_definition_guard.py --check
+      - name: Validate router reachability inventory
+        run: python scripts/ci/router_reachability_guard.py --check
+      - name: Validate event contract graph drift
+        run: python scripts/ci/event_contract_graph.py --check
+      - name: Validate capability registry
+        run: python scripts/ci/capability_registry_guard.py --check
+      - name: Validate capability linkage runtime evidence
+        run: python scripts/ci/capability_runtime_evidence.py --check
+      - name: Run capability governance + architecture-graph tests
+        run: |
+          python -m pytest -q \
+            tests/architecture/test_capability_registry_guard.py \
+            tests/architecture/test_capability_traceability.py \
+            tests/architecture/test_architecture_graph.py \
+            tests/architecture/test_runtime_contract_generator.py \
+            tests/architecture/test_decision_lineage_graph.py \
+            tests/architecture/test_execution_dependency_audit.py \
+            tests/architecture/test_duplicate_definition_guard.py \
+            tests/architecture/test_router_reachability_guard.py \
+            tests/architecture/test_event_contract_graph.py

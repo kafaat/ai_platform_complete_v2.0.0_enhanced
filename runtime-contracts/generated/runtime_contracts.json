@@ -1,0 +1,3378 @@
+{
+  "generated_from": "service_inventory.csv + repository static scan",
+  "schema_version": "1.0",
+  "services": [
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": true
+        },
+        "passed": 7,
+        "score_pct": 100.0,
+        "total": 7
+      },
+      "configuration": [
+        "ACTUATOR_DEDUP_WINDOW_SEC",
+        "ACTUATOR_DEVICE_STALE_SECONDS",
+        "ACTUATOR_DISPATCH_ADAPTER_ID",
+        "ACTUATOR_DISPATCH_POLL_SECONDS",
+        "ACTUATOR_DISPATCH_RISK_ALLOWLIST",
+        "ACTUATOR_DISPATCH_TENANT_IDS",
+        "ACTUATOR_IDEMPOTENCY_MODE",
+        "ACTUATOR_MODE",
+        "DATABASE_URL",
+        "DECISION_SERVICE_URL",
+        "FEATURE_AUTOMATION_RULES_ACTUATION",
+        "FEATURE_DISPATCH_ACTUATOR",
+        "FEATURE_MANUAL_ACTUATOR_COMMANDS",
+        "JWT_PUBLIC_KEY",
+        "MQTT_BROKER_URL",
+        "MQTT_USERNAME",
+        "REDIS_URL",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV"
+      ],
+      "container": {
+        "dockerfile": "services/actuator-service/Dockerfile",
+        "requirements": "services/actuator-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "IoT Actuation",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [
+          "/idempotency/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/actuator-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/actuator-service/actuator_runtime.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/actuator-service/actuator_runtime.py",
+          "services/actuator-service/routers/commands.py",
+          "services/actuator-service/routers/health.py",
+          "services/actuator-service/routers/metrics.py",
+          "services/actuator-service/test_actuator_safety.py"
+        ],
+        "tracing": [
+          "services/actuator-service/actuator_runtime.py"
+        ]
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": true
+      },
+      "secrets": [
+        "ACTUATOR_DELIVERY_TOKEN_KEY",
+        "CMD_HMAC_SECRET",
+        "DECISION_SERVICE_TOKEN",
+        "JWT_SECRET",
+        "MQTT_PASSWORD"
+      ],
+      "service": "actuator-service",
+      "source_service": "actuator-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "AGRIAI_PRODUCTION_MODE",
+        "AGRIAI_STRICT_CONTEXT",
+        "AQUACROP_ECE_THRESHOLD",
+        "AQUACROP_ENABLED",
+        "SAHOOL_ENV",
+        "SIM_PCSE_ENABLED",
+        "SIM_PCSE_INTEGRATION_VERIFIED"
+      ],
+      "container": {
+        "dockerfile": "services/agriai-engine/Dockerfile",
+        "requirements": "services/agriai-engine/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "AI Advisor",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/agriai-engine/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/agriai-engine/agronomic_context.py",
+          "services/agriai-engine/aquacrop_adapter.py",
+          "services/agriai-engine/main.py",
+          "services/agriai-engine/wofost_adapter.py"
+        ],
+        "metrics": [
+          "services/agriai-engine/main.py"
+        ],
+        "routes": [
+          "services/agriai-engine/agronomic_adapters.py",
+          "services/agriai-engine/agronomic_context.py",
+          "services/agriai-engine/aquacrop_adapter.py",
+          "services/agriai-engine/evidence_bundle.py",
+          "services/agriai-engine/field_history.py",
+          "services/agriai-engine/main.py",
+          "services/agriai-engine/profit_planner.py",
+          "services/agriai-engine/simulation_io.py",
+          "services/agriai-engine/wofost_adapter.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "agriai-engine",
+      "source_service": "agriai-engine",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "AI_GENERATION_ENABLED",
+        "AI_MODEL",
+        "AI_MODELS",
+        "AI_PROVIDER",
+        "ANTHROPIC_BASE_URL",
+        "ANTHROPIC_MODEL",
+        "ENV",
+        "GUARDRAILS_URL",
+        "KNOWLEDGE_GRAPH_URL",
+        "LOCAL_LLM_MODEL",
+        "OLLAMA_BASE_URL",
+        "OPENROUTER_APP_TITLE",
+        "OPENROUTER_BASE_URL",
+        "PLATFORM_URL",
+        "RAG_BASE_URL",
+        "REDIS_URL",
+        "SAHOOL_AGENT_REDIS_URL",
+        "SAHOOL_AGENT_STORE_BACKEND",
+        "SAHOOL_BOUNDARY_CONTOUR_TRACING",
+        "SAHOOL_ENV",
+        "SAHOOL_FIELD_BOUNDARY_BACKEND",
+        "SAHOOL_FTW_WEIGHTS",
+        "TENANT_AI_POLICY_FILE"
+      ],
+      "container": {
+        "dockerfile": "services/ai_agronomist/Dockerfile",
+        "requirements": "services/ai_agronomist/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "AI Advisor",
+      "endpoints": {
+        "health": [
+          "/healthz",
+          "/healthz/ai-provider"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz",
+          "ready",
+          "ready_dates"
+        ]
+      },
+      "entrypoint": "services/ai_agronomist/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/ai_agronomist/agent_stores.py",
+          "services/ai_agronomist/ai_evidence_runtime.py",
+          "services/ai_agronomist/ai_generation.py",
+          "services/ai_agronomist/field_boundary_backends.py",
+          "services/ai_agronomist/main.py",
+          "services/ai_agronomist/tenant_policies.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/ai_agronomist/ab_testing.py",
+          "services/ai_agronomist/advisory_contract.py",
+          "services/ai_agronomist/agent_stores.py",
+          "services/ai_agronomist/ai_evidence_runtime.py",
+          "services/ai_agronomist/ai_generation.py",
+          "services/ai_agronomist/approval.py",
+          "services/ai_agronomist/compliance_validator.py",
+          "services/ai_agronomist/decision_contracts.py",
+          "services/ai_agronomist/evidence_contract.py",
+          "services/ai_agronomist/field_boundary_ai.py",
+          "services/ai_agronomist/field_boundary_backends.py",
+          "services/ai_agronomist/harness_transparency.py",
+          "services/ai_agronomist/main.py",
+          "services/ai_agronomist/multi_tenant_runtime_validator.py",
+          "services/ai_agronomist/observation_context.py",
+          "services/ai_agronomist/policy_engine.py",
+          "services/ai_agronomist/policy_envelope.py",
+          "services/ai_agronomist/prescription_export_adapters.py",
+          "services/ai_agronomist/productivity_zones.py",
+          "services/ai_agronomist/productivity_zones_clustering.py",
+          "services/ai_agronomist/provider_tooling.py",
+          "services/ai_agronomist/recommendation_runtime_pipeline.py",
+          "services/ai_agronomist/runtime_evidence.py",
+          "services/ai_agronomist/runtime_guardrail_adapter.py",
+          "services/ai_agronomist/soil_sampling_planner.py",
+          "services/ai_agronomist/tenant_policies.py",
+          "services/ai_agronomist/tool_governance.py",
+          "services/ai_agronomist/tool_loop.py",
+          "services/ai_agronomist/vra_prescription_engine.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "ANTHROPIC_API_KEY",
+        "OLLAMA_API_KEY",
+        "OPENROUTER_API_KEY",
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "ai_agronomist",
+      "source_service": "ai_agronomist",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "AUTH_COOKIE_SAMESITE",
+        "AUTH_COOKIE_SECURE",
+        "AUTH_TILE_COOKIE_NAME",
+        "CORS_ORIGINS",
+        "DATABASE_URL",
+        "ENFORCE_ADMIN_STEPUP_MFA",
+        "ENFORCE_SENSITIVE_MFA",
+        "FRONTEND_URL",
+        "JWT_EXPIRE_MINUTES",
+        "JWT_PUBLIC_KEY",
+        "MFA_ALLOW_DERIVED_KEY",
+        "MFA_AUDIT_HASH_KEY",
+        "OTP_MAX_REQUESTS",
+        "OTP_TTL_SECONDS",
+        "REDIS_URL",
+        "REFRESH_EXPIRE_DAYS",
+        "REQUIRE_MFA_ROLES",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV",
+        "SEASON_EDGE_HMAC_KEY",
+        "SMS_FROM",
+        "SMS_PROVIDER_URL",
+        "SMTP_FROM",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER"
+      ],
+      "container": {
+        "dockerfile": "services/auth/Dockerfile",
+        "requirements": "services/auth/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Identity & Access",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/auth/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/auth/main.py",
+          "services/auth/mfa_crypto.py",
+          "services/auth/mfa_runtime.py",
+          "services/auth/otp.py",
+          "services/auth/routers/season_edge_sign.py",
+          "services/auth/routers/tenants.py"
+        ],
+        "metrics": [
+          "services/auth/main.py",
+          "services/auth/routers/ops.py"
+        ],
+        "routes": [
+          "services/auth/main.py",
+          "services/auth/routers/email_verify.py",
+          "services/auth/routers/invitations.py",
+          "services/auth/routers/mfa.py",
+          "services/auth/routers/ops.py",
+          "services/auth/routers/password_reset.py",
+          "services/auth/routers/registration.py",
+          "services/auth/routers/season_edge_sign.py",
+          "services/auth/routers/session.py",
+          "services/auth/routers/tenants.py",
+          "services/auth/routers/users.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "ADMIN_PASSWORD",
+        "JWT_PRIVATE_KEY",
+        "JWT_SECRET",
+        "SMS_API_KEY",
+        "SMTP_PASSWORD"
+      ],
+      "service": "auth",
+      "source_service": "auth",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "ACTIVATION_CACHE_TTL_SECONDS",
+        "ACTIVATION_ENVIRONMENT_ID",
+        "ACTIVATION_EVIDENCE_SIGNING_KEY",
+        "ACTIVATION_PROBE_SIGNING_KEY",
+        "DATABASE_URL",
+        "DECISION_DATABASE_URL",
+        "DECISION_DB_POOL_MAX",
+        "DECISION_REQUIRE_AGRONOMIC_CONTEXT",
+        "DECISION_REQUIRE_SOIL_EVIDENCE_GATE",
+        "DECISION_REQUIRE_SOIL_PROFILE",
+        "DECISION_SERVICE_ALLOW_SCHEMA_CHANGE",
+        "DECISION_SERVICE_SOR_ENABLED",
+        "DECISION_SERVICE_URL",
+        "DECISION_SOR_ADMIN_DATABASE_URL",
+        "DECISION_SOR_PLATFORM_ROLE",
+        "DECISION_SOR_PLATFORM_URL",
+        "DECISION_SOR_SERVICE_URL",
+        "DECISION_SOR_TABLE_SCHEMA",
+        "DECISION_STRICT_WORKER_TENANTS",
+        "DECISION_WORKER_ASSERTION_KEY_ID",
+        "DECISION_WORKER_ASSERTION_PREVIOUS_KEY",
+        "DECISION_WORKER_ASSERTION_PREVIOUS_KEY_ID",
+        "DECISION_WORKER_ASSERTION_REDIS_URL",
+        "DEPLOY_BUILD_SHA",
+        "ENVIRONMENT",
+        "IRR_F01_RESERVATION_ENFORCE_ACTIVATION",
+        "PLATFORM_DATABASE_URL",
+        "RUNTIME_WORK_LEASE_SECONDS",
+        "SAHOOL_ENV",
+        "SAHOOL_PLATFORM_URL",
+        "STAGING_FIELD_ID",
+        "STAGING_PROBE_IDEMPOTENCY_KEY",
+        "STAGING_TENANT_ID"
+      ],
+      "container": {
+        "dockerfile": "services/decision-service/Dockerfile",
+        "requirements": "services/decision-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Decision SoR",
+      "endpoints": {
+        "health": [
+          "/healthz",
+          "/livez"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz",
+          "/readyz/"
+        ]
+      },
+      "entrypoint": "services/decision-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/decision-service/activation_gate_core.py",
+          "services/decision-service/agronomic_context/point_in_time.py",
+          "services/decision-service/backfill.py",
+          "services/decision-service/cutover.py",
+          "services/decision-service/decision_sor_role_certify.py",
+          "services/decision-service/main.py",
+          "services/decision-service/migration_runner.py",
+          "services/decision-service/persistence.py",
+          "services/decision-service/platform_sor_revoke.py",
+          "services/decision-service/production_promotion.py",
+          "services/decision-service/read_side_compare.py",
+          "services/decision-service/staging_probe.py",
+          "services/decision-service/tests/test_ac1_agronomic_context.py",
+          "services/decision-service/tests/test_activation_evidence_contract.py",
+          "services/decision-service/tests/test_agronomic_lineage_integrity.py",
+          "services/decision-service/tests/test_decision_evidence_read.py",
+          "services/decision-service/tests/test_decision_sor_db_privilege_cutover.py",
+          "services/decision-service/tests/test_decision_sor_role_certify_pg.py",
+          "services/decision-service/tests/test_execution_request_feed.py",
+          "services/decision-service/tests/test_gate_b_reservation_dispatch_inbox.py",
+          "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
+          "services/decision-service/tests/test_irr_f01_reservation_activation_gate.py",
+          "services/decision-service/tests/test_no_leakage_certification.py",
+          "services/decision-service/tests/test_runtime_worker_tenants.py",
+          "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
+          "services/decision-service/tests/test_satellite_cdse_activation_gate.py",
+          "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
+          "services/decision-service/tests/test_wx10_10_dispatch_authorization.py",
+          "services/decision-service/tests/test_wx10_11_execution_request.py",
+          "services/decision-service/tests/test_wx10_11b_execution_delivery_receipt.py",
+          "services/decision-service/tests/test_wx10_12_execution_outcome.py",
+          "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
+          "services/decision-service/tests/test_wx10_7_decision_review.py",
+          "services/decision-service/tests/test_wx10_9_execution_plan.py",
+          "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
+          "services/decision-service/tests/test_wx12_3_runtime_schedules.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/decision-service/activation_gate.py",
+          "services/decision-service/activation_gate_core.py",
+          "services/decision-service/agronomic_context/point_in_time.py",
+          "services/decision-service/backfill.py",
+          "services/decision-service/main.py",
+          "services/decision-service/migration_runner.py",
+          "services/decision-service/outcome_reconcile.py",
+          "services/decision-service/persistence.py",
+          "services/decision-service/production_promotion.py",
+          "services/decision-service/read_side_compare.py",
+          "services/decision-service/satellite_cdse_activation_gate.py",
+          "services/decision-service/staging_probe.py",
+          "services/decision-service/tests/test_ac1_agronomic_context.py",
+          "services/decision-service/tests/test_activation_evidence_contract.py",
+          "services/decision-service/tests/test_agronomic_evidence_contract.py",
+          "services/decision-service/tests/test_agronomic_learning_lineage.py",
+          "services/decision-service/tests/test_agronomic_lineage_integrity.py",
+          "services/decision-service/tests/test_decision_evidence_read.py",
+          "services/decision-service/tests/test_execution_request_feed.py",
+          "services/decision-service/tests/test_irr_f01_activation_endpoints.py",
+          "services/decision-service/tests/test_p4_decision_service_runtime.py",
+          "services/decision-service/tests/test_runtime_worker_tenants.py",
+          "services/decision-service/tests/test_satellite_cdse_activation_endpoints.py",
+          "services/decision-service/tests/test_satellite_cdse_live_consumer_e2e.py",
+          "services/decision-service/tests/test_service_token_guard.py",
+          "services/decision-service/tests/test_wx10_13_learning_attribution.py",
+          "services/decision-service/tests/test_wx10_6_crop_candidate_downstream_e2e.py",
+          "services/decision-service/tests/test_wx10_7_decision_review.py",
+          "services/decision-service/tests/test_wx11_1_calibration_dataset.py",
+          "services/decision-service/tests/test_wx11_2_model_evaluation.py",
+          "services/decision-service/tests/test_wx11_3_model_promotion_decision.py",
+          "services/decision-service/tests/test_wx11_4_model_activation_request.py",
+          "services/decision-service/tests/test_wx11_5_model_activation_approval.py",
+          "services/decision-service/tests/test_wx12_1_runtime_receipts.py",
+          "services/decision-service/tests/test_wx12_3_runtime_schedules.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "DECISION_REQUIRE_AUTH_TOKEN",
+        "DECISION_SERVICE_AUTH_TOKEN"
+      ],
+      "service": "decision-service",
+      "source_service": "decision-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "EDGE_DEVICE",
+        "EDGE_DEVICE_ID",
+        "EDGE_PRODUCTION_REQUIRED",
+        "EDGE_READINESS_MODE",
+        "EDGE_SYNC_DIR",
+        "MODELS_BASE_URL",
+        "MODELS_DIR",
+        "MODEL_CACHE",
+        "OFFLINE_MODE",
+        "SAHOOL_CLOUD_URL",
+        "SYNC_INTERVAL"
+      ],
+      "container": {
+        "dockerfile": "services/edge-inference/Dockerfile.arm64",
+        "requirements": "services/edge-inference/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Edge Inference",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/edge-inference/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/edge-inference/download_models.py",
+          "services/edge-inference/main.py",
+          "services/edge-inference/sync_service.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/edge-inference/download_models.py",
+          "services/edge-inference/main.py",
+          "services/edge-inference/sync_service.py",
+          "services/edge-inference/tests/test_edge_capabilities_and_fail_closed.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "EDGE_SYNC_TOKEN",
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "edge-inference",
+      "source_service": "edge-inference",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "DATABASE_URL",
+        "ERPNEXT_COMPANY",
+        "ERPNEXT_COST_CENTER",
+        "ERPNEXT_CREDIT_ACCOUNT",
+        "ERPNEXT_EXPENSE_ACCOUNT",
+        "ERPNEXT_URL",
+        "ERP_PROVIDER",
+        "JWT_PUBLIC_KEY",
+        "ODOO_DB",
+        "ODOO_SYNC_TENANT_ID",
+        "ODOO_URL",
+        "ODOO_USER",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_API_URL",
+        "SAHOOL_ENV",
+        "SYNC_INTERVAL_SEC"
+      ],
+      "container": {
+        "dockerfile": "services/odoo-bridge/Dockerfile",
+        "requirements": "services/odoo-bridge/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "ERP Integration",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz",
+          "/readyz/capabilities"
+        ]
+      },
+      "entrypoint": "services/odoo-bridge/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/odoo-bridge/erp_provider.py",
+          "services/odoo-bridge/erp_runtime.py",
+          "services/odoo-bridge/main.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/odoo-bridge/erp_provider.py",
+          "services/odoo-bridge/erp_runtime.py",
+          "services/odoo-bridge/main.py",
+          "services/odoo-bridge/routers/catalog.py",
+          "services/odoo-bridge/routers/health.py",
+          "services/odoo-bridge/routers/sync.py",
+          "services/odoo-bridge/routers/webhooks.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "ERPNEXT_API_KEY",
+        "ERPNEXT_API_SECRET",
+        "JWT_SECRET",
+        "ODOO_API_KEY",
+        "ODOO_PASSWORD",
+        "SAHOOL_AGENT_TOKEN",
+        "WEBHOOK_SECRET"
+      ],
+      "service": "erp-bridge",
+      "source_service": "odoo-bridge",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "DATABASE_URL",
+        "FIELD_SERVICE_ALLOWED_CALLERS",
+        "FIELD_SERVICE_ASSERTION_REDIS_URL",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
+        "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY",
+        "FIELD_SERVICE_TENANT_ASSERTION_PREVIOUS_KEY_ID",
+        "SAHOOL_ENV",
+        "SERVICE_VERSION"
+      ],
+      "container": {
+        "dockerfile": "services/field-management-service/Dockerfile",
+        "requirements": "services/field-management-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/field-management-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/field-management-service/main.py",
+          "services/field-management-service/tests/test_field_management_pg_isolation_integration.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/field-management-service/main.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "field-management-service",
+      "source_service": "field-management-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "EXG_MAX_IMAGE_PIXELS",
+        "EXG_MAX_SIDE",
+        "SEGMENTATION_BACKEND",
+        "SEGMENTATION_INFERENCE_URL",
+        "SEGMENTATION_MODEL_PATH",
+        "SEGMENTATION_TIMEOUT"
+      ],
+      "container": {
+        "dockerfile": "services/field-segmentation/Dockerfile",
+        "requirements": "services/field-segmentation/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Field Boundary AI",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/field-segmentation/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/field-segmentation/exg_preprocess.py",
+          "services/field-segmentation/main.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/field-segmentation/main.py",
+          "services/field-segmentation/test_segmentation.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "field-segmentation",
+      "source_service": "field-segmentation",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": false,
+          "dockerfile": false,
+          "entrypoint": false,
+          "health": false,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": false,
+          "tracing_instrumentation": false
+        },
+        "passed": 0,
+        "score_pct": 0.0,
+        "total": 7
+      },
+      "configuration": [],
+      "container": {
+        "dockerfile": null,
+        "requirements": "services/gis-workflow-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [],
+        "metrics": [],
+        "readiness": []
+      },
+      "entrypoint": "-",
+      "evidence_paths": {
+        "configuration": [],
+        "metrics": [],
+        "routes": [
+          "services/gis-workflow-service/bulletin_bundle.py",
+          "services/gis-workflow-service/bulletin_figure.py",
+          "services/gis-workflow-service/bulletin_render.py",
+          "services/gis-workflow-service/load_admin_boundaries.py",
+          "services/gis-workflow-service/map_layout.py",
+          "services/gis-workflow-service/publication_map.py",
+          "services/gis-workflow-service/run_bundle.py",
+          "services/gis-workflow-service/self_checks.py",
+          "services/gis-workflow-service/svg_print_map.py",
+          "services/gis-workflow-service/workflow_spec.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [],
+      "service": "gis-workflow-service",
+      "source_service": "gis-workflow-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "CORS_ORIGINS",
+        "DATABASE_URL",
+        "JWT_PUBLIC_KEY",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV"
+      ],
+      "container": {
+        "dockerfile": "services/guardrails-engine/Dockerfile",
+        "requirements": "services/guardrails-engine/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "AI Safety & Governance",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/guardrails-engine/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/guardrails-engine/human_in_loop.py",
+          "services/guardrails-engine/main.py",
+          "services/guardrails-engine/routers/health.py"
+        ],
+        "metrics": [
+          "services/guardrails-engine/routers/health.py"
+        ],
+        "routes": [
+          "services/guardrails-engine/diff_generator.py",
+          "services/guardrails-engine/human_in_loop.py",
+          "services/guardrails-engine/main.py",
+          "services/guardrails-engine/routers/health.py",
+          "services/guardrails-engine/routers/validation.py",
+          "services/guardrails-engine/tiers/chemical_tier.py",
+          "services/guardrails-engine/tiers/economic_tier.py",
+          "services/guardrails-engine/tiers/environmental_tier.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "JWT_SECRET",
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "guardrails-engine",
+      "source_service": "guardrails-engine",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "RASTER_SERVICE_URL",
+        "RS_OBSERVATION_POLICY_ID",
+        "RS_TIMELINE_POLICY_ID",
+        "SERVICE_VERSION"
+      ],
+      "container": {
+        "dockerfile": "services/indicators-service/Dockerfile",
+        "requirements": "services/indicators-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Vegetation Analytics",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/indicators-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/indicators-service/main.py",
+          "services/indicators-service/observation_runtime.py",
+          "services/indicators-service/observation_timeline.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/indicators-service/main.py",
+          "services/indicators-service/observation_runtime.py",
+          "services/indicators-service/observation_timeline.py",
+          "services/indicators-service/tests/test_indicators_service_honest_boundary.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "RASTER_SERVICE_TOKEN",
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "indicators-service",
+      "source_service": "indicators-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "KG_GRAPHQL_MAX_DEPTH",
+        "KG_GRAPHQL_MAX_QUERY_BYTES",
+        "KG_SQLITE_PATH"
+      ],
+      "container": {
+        "dockerfile": "services/knowledge-graph/Dockerfile",
+        "requirements": "services/knowledge-graph/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Edge Inference",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/knowledge-graph/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/knowledge-graph/main.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/knowledge-graph/main.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "KG_GRAPHQL_MAX_TOKENS"
+      ],
+      "service": "knowledge-graph",
+      "source_service": "knowledge-graph",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": true
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "CHUNK_OVERLAP",
+        "CHUNK_SIZE",
+        "COLLECTION_NAME",
+        "EMBED_MODEL",
+        "JWT_PUBLIC_KEY",
+        "LLM_MODEL",
+        "MAX_UPLOAD_MB",
+        "NUM_CTX",
+        "OLLAMA_BASE_URL",
+        "QDRANT_URL",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV"
+      ],
+      "container": {
+        "dockerfile": "services/local-ai-rag/Dockerfile",
+        "requirements": "services/local-ai-rag/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Knowledge Retrieval",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/local-ai-rag/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/local-ai-rag/main.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/local-ai-rag/main.py"
+        ],
+        "tracing": [
+          "services/local-ai-rag/main.py"
+        ]
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": true
+      },
+      "secrets": [
+        "JWT_SECRET",
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "local-ai-rag",
+      "source_service": "local-ai-rag",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": false,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": true
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "DATABASE_URL",
+        "ERP_BRIDGE_URL",
+        "MCP_SERVICE",
+        "ODOO_BRIDGE_URL",
+        "RASTER_SERVICE_URL",
+        "SAHOOL_API_URL",
+        "SH_CLIENT_ID",
+        "SH_INSTANCE_ID",
+        "WEATHER_SERVICE_URL"
+      ],
+      "container": {
+        "dockerfile": "services/mcp_servers/Dockerfile",
+        "requirements": "services/mcp_servers/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Agent Tools",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "-",
+      "evidence_paths": {
+        "configuration": [
+          "services/mcp_servers/generic_context_server.py",
+          "services/mcp_servers/market_db_authz.py",
+          "services/mcp_servers/market_server.py",
+          "services/mcp_servers/sentinel_hub_server.py",
+          "services/mcp_servers/shared/oauth_middleware.py",
+          "services/mcp_servers/weather_server.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/mcp_servers/generic_context_server.py",
+          "services/mcp_servers/market_server.py",
+          "services/mcp_servers/sentinel_hub_server.py",
+          "services/mcp_servers/shared/oauth_middleware.py",
+          "services/mcp_servers/shared/streamable_http.py",
+          "services/mcp_servers/weather_server.py",
+          "services/mcp_servers/wofost_server.py"
+        ],
+        "tracing": [
+          "services/mcp_servers/market_server.py",
+          "services/mcp_servers/sentinel_hub_server.py",
+          "services/mcp_servers/weather_server.py",
+          "services/mcp_servers/wofost_server.py"
+        ]
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": true
+      },
+      "secrets": [
+        "JWT_SECRET",
+        "SAHOOL_AGENT_TOKEN",
+        "SH_CLIENT_SECRET"
+      ],
+      "service": "mcp_servers",
+      "source_service": "mcp_servers",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": false,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": false,
+          "tracing_instrumentation": false
+        },
+        "passed": 3,
+        "score_pct": 42.9,
+        "total": 7
+      },
+      "configuration": [
+        "DECISION_SERVICE_URL",
+        "LOG_LEVEL",
+        "MODEL_REGISTRY_BACKEND",
+        "MODEL_REGISTRY_DRY_RUN",
+        "MODEL_REGISTRY_TIMEOUT_SECONDS",
+        "MODEL_REGISTRY_URL",
+        "PORT",
+        "REGISTRY_ADAPTER_ID",
+        "RUNTIME_POLL_INTERVAL_SECONDS",
+        "RUNTIME_TENANT_ID",
+        "RUNTIME_TENANT_IDS",
+        "SAHOOL_ENV"
+      ],
+      "container": {
+        "dockerfile": "services/model-registry-adapter/Dockerfile",
+        "requirements": null
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": []
+      },
+      "entrypoint": "-",
+      "evidence_paths": {
+        "configuration": [
+          "services/model-registry-adapter/adapter.py",
+          "services/model-registry-adapter/runtime.py",
+          "services/model-registry-adapter/service.py",
+          "services/model-registry-adapter/worker.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/model-registry-adapter/adapter.py",
+          "services/model-registry-adapter/runtime.py",
+          "services/model-registry-adapter/service.py",
+          "services/model-registry-adapter/tests/test_runtime_contract.py",
+          "services/model-registry-adapter/worker.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "DECISION_SERVICE_TOKEN",
+        "MODEL_REGISTRY_TOKEN"
+      ],
+      "service": "model-registry-adapter",
+      "source_service": "model-registry-adapter",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": false,
+          "health": false,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": false,
+          "tracing_instrumentation": false
+        },
+        "passed": 2,
+        "score_pct": 28.6,
+        "total": 7
+      },
+      "configuration": [
+        "COLLECTION_NAME",
+        "EMBED_MODEL",
+        "OLLAMA_BASE_URL",
+        "QDRANT_URL"
+      ],
+      "container": {
+        "dockerfile": "services/qdrant-seed/Dockerfile",
+        "requirements": "services/qdrant-seed/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [],
+        "metrics": [],
+        "readiness": []
+      },
+      "entrypoint": "-",
+      "evidence_paths": {
+        "configuration": [
+          "services/qdrant-seed/seed.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/qdrant-seed/aljawf_knowledge.py",
+          "services/qdrant-seed/seed.py",
+          "services/qdrant-seed/test_aljawf_knowledge.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [],
+      "service": "qdrant-seed",
+      "source_service": "qdrant-seed",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "EMBEDDING_DIM",
+        "QDRANT_COLLECTION",
+        "QDRANT_URL"
+      ],
+      "container": {
+        "dockerfile": "services/rag-retrieval/Dockerfile",
+        "requirements": "services/rag-retrieval/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Knowledge Retrieval",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/rag-retrieval/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/rag-retrieval/main.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/rag-retrieval/main.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "QDRANT_API_KEY"
+      ],
+      "service": "rag-retrieval",
+      "source_service": "rag-retrieval",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "ACTIVATION_ENVIRONMENT_ID",
+        "ACTIVATION_GATE_TIMEOUT_SECONDS",
+        "AWS_DEFAULT_REGION",
+        "AWS_HTTPS",
+        "AWS_S3_ENDPOINT",
+        "AWS_VIRTUAL_HOSTING",
+        "BACKFILL_LEASE_TIMEOUT_SECONDS",
+        "CDSE_CLIENT_ID",
+        "CDSE_ENABLED",
+        "CDSE_LATEST_WINDOW_DAYS",
+        "CLOUD_PCT_WARN_THRESHOLD",
+        "CORS_ORIGINS",
+        "CPL_VSIL_CURL_ALLOWED_EXTENSIONS",
+        "DATABASE_URL",
+        "DEAFRICA_ENABLED",
+        "DEAFRICA_STAC_URL",
+        "DECISION_SERVICE_URL",
+        "EARTH_SEARCH_URL",
+        "FIELD_DEM_NATIVE_RES_M",
+        "FIELD_DEM_PATH",
+        "GDAL_DISABLE_READDIR_ON_OPEN",
+        "HISTORICAL_SEARCH_PROVIDER",
+        "HTTP_TIMEOUT",
+        "JOBS_DATABASE_URL",
+        "LOG_LEVEL",
+        "OLMOEARTH_CHECKPOINT",
+        "PLANETARY_COMPUTER_URL",
+        "RASTER_ACTIVATION_GATE_ENFORCE",
+        "RASTER_ASYNC_BACKFILL_ENABLED",
+        "RASTER_BATCH_CLAIM_TTL_SECONDS",
+        "RASTER_BATCH_HEARTBEAT_SECONDS",
+        "RASTER_BATCH_LEASE_SECONDS",
+        "RASTER_CACHE_INVALIDATION_ENABLED",
+        "RASTER_DERIVED_RETENTION_DAYS",
+        "RASTER_JOB_TTL_SECONDS",
+        "RASTER_LAYER_EVICT_CHANNEL",
+        "RASTER_LAYER_EVICT_ENABLED",
+        "RASTER_MAX_READ_DIM",
+        "RASTER_PERSISTENCE_MODE",
+        "RASTER_PUBLIC_PREFIX",
+        "RASTER_TEMP_RETENTION_DAYS",
+        "RASTER_TEST_DATABASE_URL",
+        "RASTER_THUMB_RETENTION_DAYS",
+        "RASTER_UPLOAD_DIR",
+        "RASTER_WORKER_ID",
+        "REDIS_URL",
+        "S3_ALLOW_FILE_FALLBACK",
+        "S3_BUCKET",
+        "S3_ENDPOINT",
+        "S3_REGION",
+        "S3_USE_SSL",
+        "SAHOOL_ENV",
+        "SH_BASE_URL",
+        "SH_CLIENT_ID",
+        "SOILGRIDS_COG_DIR",
+        "SOILGRIDS_DIR",
+        "SOIL_COG_DIR",
+        "SOIL_LAYER_PATH_TEMPLATE",
+        "STAC_CACHE_TTL",
+        "STAC_FALLBACK_ENABLED",
+        "STAC_MAX_RETRIES",
+        "TERRAIN_SOURCES_CONFIG",
+        "TILE_CACHE_ENABLED",
+        "TILE_CACHE_MAX_BYTES",
+        "TILE_CACHE_PRUNE_EVERY_CYCLES",
+        "TILE_CACHE_TTL_SECONDS",
+        "TITILER_URL",
+        "WORKER_DB_POOL_MAX",
+        "WORKER_HEARTBEAT_DIR",
+        "WORKER_POLL_SECONDS"
+      ],
+      "container": {
+        "dockerfile": "services/raster-service/Dockerfile",
+        "requirements": "services/raster-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Imagery & Raster",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/raster-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/raster-service/backfill_scan_worker.py",
+          "services/raster-service/cache_invalidation_worker.py",
+          "services/raster-service/cdse_client.py",
+          "services/raster-service/db_persist.py",
+          "services/raster-service/imagery_source_gate.py",
+          "services/raster-service/indicator_batch_claim.py",
+          "services/raster-service/job_store.py",
+          "services/raster-service/layer_cache_events.py",
+          "services/raster-service/object_store.py",
+          "services/raster-service/raster_batch_job_store.py",
+          "services/raster-service/raster_cdse_tile_runtime.py",
+          "services/raster-service/raster_field_runtime.py",
+          "services/raster-service/raster_job_orchestration.py",
+          "services/raster-service/raster_lifecycle.py",
+          "services/raster-service/raster_main_runtime.py",
+          "services/raster-service/raster_persistence_policy.py",
+          "services/raster-service/raster_pixel_processing.py",
+          "services/raster-service/raster_runtime_state.py",
+          "services/raster-service/raster_scene_model.py",
+          "services/raster-service/raster_settings.py",
+          "services/raster-service/raster_stac_runtime.py",
+          "services/raster-service/routers/cdse_tiles.py",
+          "services/raster-service/routers/fields.py",
+          "services/raster-service/routers/imagery.py",
+          "services/raster-service/routers/observability.py",
+          "services/raster-service/routers/soil_tiles.py",
+          "services/raster-service/routers/terrain_tiles.py",
+          "services/raster-service/soil_render.py",
+          "services/raster-service/terrain_source_registry.py",
+          "services/raster-service/test_raster_batch_postgres_integration.py",
+          "services/raster-service/test_single_scene_concurrent_pg.py",
+          "services/raster-service/test_soil_render.py",
+          "services/raster-service/test_soil_zones.py",
+          "services/raster-service/test_stac_vrt.py",
+          "services/raster-service/tile_cache_maint.py",
+          "services/raster-service/tile_render.py",
+          "services/raster-service/worker_heartbeat.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/raster-service/backfill_scan_worker.py",
+          "services/raster-service/cache_invalidation_worker.py",
+          "services/raster-service/cdse_client.py",
+          "services/raster-service/cog_writer.py",
+          "services/raster-service/imagery_source_gate.py",
+          "services/raster-service/layer_cache_events.py",
+          "services/raster-service/layer_lookup.py",
+          "services/raster-service/management_zones.py",
+          "services/raster-service/raster_asset_persistence.py",
+          "services/raster-service/raster_backfill_scene_processing.py",
+          "services/raster-service/raster_batch_job_store.py",
+          "services/raster-service/raster_cdse_processing.py",
+          "services/raster-service/raster_date_geo.py",
+          "services/raster-service/raster_field_runtime.py",
+          "services/raster-service/raster_indicator_product.py",
+          "services/raster-service/raster_job_orchestration.py",
+          "services/raster-service/raster_pixel_processing.py",
+          "services/raster-service/raster_provenance.py",
+          "services/raster-service/raster_quality.py",
+          "services/raster-service/raster_scene_model.py",
+          "services/raster-service/raster_security_context.py",
+          "services/raster-service/raster_topographic_qa.py",
+          "services/raster-service/raster_validated_product.py",
+          "services/raster-service/routers/analysis.py",
+          "services/raster-service/routers/cdse_tiles.py",
+          "services/raster-service/routers/fields.py",
+          "services/raster-service/routers/imagery.py",
+          "services/raster-service/routers/imagery_search.py",
+          "services/raster-service/routers/jobs.py",
+          "services/raster-service/routers/observability.py",
+          "services/raster-service/routers/processing.py",
+          "services/raster-service/routers/soil_tiles.py",
+          "services/raster-service/routers/stac.py",
+          "services/raster-service/routers/storage.py",
+          "services/raster-service/routers/terrain_tiles.py",
+          "services/raster-service/routers/tiles.py",
+          "services/raster-service/routers/timeseries_routes.py",
+          "services/raster-service/salinity_calibration.py",
+          "services/raster-service/scene_policy.py",
+          "services/raster-service/soil_render.py",
+          "services/raster-service/soil_zones.py",
+          "services/raster-service/stac_client.py",
+          "services/raster-service/stac_search.py",
+          "services/raster-service/terrain_analysis.py",
+          "services/raster-service/terrain_source_registry.py",
+          "services/raster-service/test_clip_grid.py",
+          "services/raster-service/test_cog_writer_internal_mask.py",
+          "services/raster-service/test_db_rehydrate.py",
+          "services/raster-service/test_enterprise_imagery_best_practices.py",
+          "services/raster-service/test_field_terrain.py",
+          "services/raster-service/test_historical_backfill.py",
+          "services/raster-service/test_indicator_grid_provenance_static.py",
+          "services/raster-service/test_p2_tile_observability_static.py",
+          "services/raster-service/test_raster_crs_window.py",
+          "services/raster-service/test_reproject_nodata_mask_conflict.py",
+          "services/raster-service/test_router_query_direct_call.py",
+          "services/raster-service/test_single_scene_concurrent_pg.py",
+          "services/raster-service/test_stac_vrt.py",
+          "services/raster-service/test_tenant_propagation.py",
+          "services/raster-service/test_tile_tenant_query.py",
+          "services/raster-service/test_tiles.py",
+          "services/raster-service/time_series.py",
+          "services/raster-service/wapor_worldcereal.py",
+          "services/raster-service/worker_heartbeat.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "CDSE_CLIENT_SECRET",
+        "DECISION_SERVICE_TOKEN",
+        "S3_ACCESS_KEY",
+        "S3_SECRET_KEY",
+        "SAHOOL_AGENT_TOKEN",
+        "SH_CLIENT_SECRET",
+        "SH_TOKEN_URL"
+      ],
+      "service": "raster-service",
+      "source_service": "raster-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": false,
+          "dockerfile": true,
+          "entrypoint": false,
+          "health": false,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": false,
+          "tracing_instrumentation": false
+        },
+        "passed": 1,
+        "score_pct": 14.3,
+        "total": 7
+      },
+      "configuration": [],
+      "container": {
+        "dockerfile": "services/raster-tiler-service/Dockerfile",
+        "requirements": null
+      },
+      "contract_version": "1.0",
+      "domain": "Imagery & Raster",
+      "endpoints": {
+        "health": [],
+        "metrics": [],
+        "readiness": []
+      },
+      "entrypoint": "-",
+      "evidence_paths": {
+        "configuration": [],
+        "metrics": [],
+        "routes": [],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [],
+      "service": "raster-tiler-service",
+      "source_service": "raster-tiler-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "DECISION_SERVICE_URL",
+        "INDICATORS_SERVICE_URL",
+        "TASK_SERVICE_URL",
+        "VEGETATION_SERVICE_URL",
+        "WORKSPACE_BFF_TIMEOUT_S"
+      ],
+      "container": {
+        "dockerfile": "services/remote-sensing-workspace-bff/Dockerfile",
+        "requirements": "services/remote-sensing-workspace-bff/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/remote-sensing-workspace-bff/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/remote-sensing-workspace-bff/main.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/remote-sensing-workspace-bff/main.py",
+          "services/remote-sensing-workspace-bff/tests/test_workspace_bff.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [],
+      "service": "remote-sensing-workspace-bff",
+      "source_service": "remote-sensing-workspace-bff",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "ACTIVATION_ENVIRONMENT_ID",
+        "ACTIVATION_GATE_TIMEOUT_SECONDS",
+        "ADAPTER_TIMEOUT",
+        "AGRONOMIC_CONTEXT_COMPOSE_ENABLED",
+        "AI_MODEL",
+        "AI_MODELS",
+        "AI_PROVIDER",
+        "ALERT_WEBHOOK_URL",
+        "ANTHROPIC_BASE_URL",
+        "ANTHROPIC_MODEL",
+        "APP_ENV",
+        "AQUACROP_ENABLED",
+        "CDSE_CLIENT_ID",
+        "COMPOSE_SERVER_AUTHORITATIVE_SPECTRAL_ENABLED",
+        "CORS_ORIGINS",
+        "DATABASE_URL",
+        "DB_POOL_MAX",
+        "DB_POOL_MIN",
+        "DECISION_SERVICE_URL",
+        "EDGE_INFERENCE_URL",
+        "ENABLE_LIVE_GUARDRAILS",
+        "ENVIRONMENT",
+        "FCM_SERVER_KEY",
+        "FEATURE_DECISION_CONFIDENCE",
+        "FEATURE_DECISION_STUDIO",
+        "FEATURE_DELTA_SYNC",
+        "FEATURE_DEVICE_TWIN",
+        "FEATURE_EVIDENCE_MAP",
+        "FEATURE_EXECUTION_FEEDBACK",
+        "FEATURE_FARM_OPERATIONS_LEDGER",
+        "FEATURE_GIS_KERNEL",
+        "FEATURE_IRRIGATION_NETWORK",
+        "FEATURE_IRRIGATION_WORKFLOW_REAL",
+        "FEATURE_LEARNING_DASHBOARD",
+        "FEATURE_NATURAL_LANGUAGE_GIS",
+        "FEATURE_OPERATIONS_WALL",
+        "FEATURE_PORTFOLIO_COMMAND",
+        "FEATURE_REPLAY_MAP",
+        "FEATURE_UNIFIED_LINEAGE",
+        "FEATURE_X",
+        "FIELD_INTELLIGENCE_DIRECT_EXECUTABLE_ENABLED",
+        "FII_PRESCRIPTION_SEASON_MODE",
+        "GEOEXPORT_DIR",
+        "GUARDRAILS_URL",
+        "HISTORICAL_SEASON_DECISION_CONTEXT_ENABLED",
+        "IRRIGATION_RESERVATION_LIFECYCLE_POLL_SECONDS",
+        "IRR_F01_RESERVATION_ENFORCE_ACTIVATION",
+        "JOBS_DATABASE_URL",
+        "JWT_PUBLIC_KEY",
+        "LOCAL_LLM_MODEL",
+        "LOG_LEVEL",
+        "METNO_USER_AGENT",
+        "METNO_WIND_FALLBACK_ENABLED",
+        "MODEL_SERVING_BACKEND_URL",
+        "NATS_URL",
+        "NL_SQL_MODEL",
+        "OFFLINE_PENDING_MAX_ATTEMPTS",
+        "OLLAMA_BASE_URL",
+        "OPENROUTER_APP_TITLE",
+        "OPENROUTER_BASE_URL",
+        "OPENROUTER_SITE_URL",
+        "OUTBOX_MAX_ATTEMPTS",
+        "PHASE_RUNTIME_PERSISTENCE_REQUIRED",
+        "PLATFORM_SERVICE_URL",
+        "PLUGIN_EXECUTOR_URL",
+        "RASTER_SERVICE_URL",
+        "REDIS_URL",
+        "RESERVATION_DISPATCH_RELAY_SUBJECTS",
+        "SAHOOL_ALERTS_EVAL_INTERVAL_SECONDS",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ALLOW_RLS_BYPASS_ROLE",
+        "SAHOOL_AUTO_PERSIST_DECISIONS",
+        "SAHOOL_CORS_ORIGINS",
+        "SAHOOL_DECISION_DISPATCH",
+        "SAHOOL_DECISION_WRITE_MODE",
+        "SAHOOL_DEV_AUTH",
+        "SAHOOL_ENFORCE_RLS_ROLE",
+        "SAHOOL_ENV",
+        "SAHOOL_FIELD_BOUNDARY_BACKEND",
+        "SAHOOL_FTW_WEIGHTS",
+        "SAHOOL_IRRIGATION_SALINITY_POLICY",
+        "SAHOOL_NATS_URL",
+        "SAHOOL_RATE_LIMIT_PER_MIN",
+        "SAHOOL_TENANT_DATA_ROOT",
+        "SAHOOL_WEATHER_CACHE_BACKEND",
+        "SAHOOL_WEATHER_RATE_LIMIT_BACKEND",
+        "SAHOOL_WEATHER_RATE_LIMIT_REDIS_FALLBACK_MEMORY",
+        "SAHOOL_WEATHER_RATE_LIMIT_REDIS_URL",
+        "SAHOOL_WEATHER_REDIS_FALLBACK_MEMORY",
+        "SAHOOL_WEATHER_REDIS_URL",
+        "SCOUT_INGEST_URL",
+        "SEGMENTATION_URL",
+        "SH_BASE_URL",
+        "SMS_FROM",
+        "SMS_PROVIDER_URL",
+        "SMTP_FROM",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "SOIL_SERVICE_URL",
+        "VEGETATION_SERVICE_URL",
+        "WATER_DEFICIT_DECISION_THRESHOLD_MM",
+        "WATER_DEFICIT_EXECUTION_TARGET_ID",
+        "WATER_DEFICIT_EXECUTION_TARGET_TYPE",
+        "WATER_DEFICIT_POLICY_ACTOR",
+        "WATER_DEFICIT_POLICY_VERSION",
+        "WATER_LEDGER_REQUIRE_IDENTITY",
+        "WEATHER_CACHE_BACKEND",
+        "WEATHER_LIVE_DISABLED",
+        "WEATHER_RATE_LIMIT_BACKEND",
+        "WEATHER_REDIS_URL",
+        "WEATHER_SERVICE_URL",
+        "WHATSAPP_WEBHOOK_URL",
+        "WORKER_DB_POOL_MAX",
+        "WORKER_HEARTBEAT_DIR",
+        "WORKER_POLL_SECONDS",
+        "WORKFLOW_LEASE_SECONDS",
+        "WORKFLOW_WORKER_ID"
+      ],
+      "container": {
+        "dockerfile": "services/sahool-platform/Dockerfile",
+        "requirements": null
+      },
+      "contract_version": "1.0",
+      "domain": "Core Field Platform",
+      "endpoints": {
+        "health": [
+          "/api/agent/health",
+          "/api/v1/devices/fleet-health",
+          "/api/v1/weather/health",
+          "/healthz",
+          "state_of_health_percent"
+        ],
+        "metrics": [
+          "/api/v1/weather/metrics.prom",
+          "/metrics",
+          "metric_delta",
+          "metric_deltas",
+          "metrics"
+        ],
+        "readiness": [
+          "/api/indicators/readyz",
+          "/api/v1/weather/readyz",
+          "/api/vegetation/readyz",
+          "/api/weather/readyz",
+          "/readyz",
+          "cog_ready",
+          "dispatch_ready"
+        ]
+      },
+      "entrypoint": "services/sahool-platform/api/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/sahool-platform/api/agronomic_context_composer.py",
+          "services/sahool-platform/api/ai_provider_config.py",
+          "services/sahool-platform/api/alert_senders.py",
+          "services/sahool-platform/api/chat_proxy_reference.py",
+          "services/sahool-platform/api/connectors/metno_wind.py",
+          "services/sahool-platform/api/decision_service_client.py",
+          "services/sahool-platform/api/decision_sor_mode.py",
+          "services/sahool-platform/api/feature_registry.py",
+          "services/sahool-platform/api/irrigation_activation_gate.py",
+          "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+          "services/sahool-platform/api/irrigation_recommendation_policy.py",
+          "services/sahool-platform/api/irrigation_reservation_lifecycle_worker.py",
+          "services/sahool-platform/api/main.py",
+          "services/sahool-platform/api/offline_pending_db.py",
+          "services/sahool-platform/api/phase_runtime_store.py",
+          "services/sahool-platform/api/phase_runtime_workers.py",
+          "services/sahool-platform/api/raster_service_client.py",
+          "services/sahool-platform/api/routers/agronomic_replay.py",
+          "services/sahool-platform/api/routers/compat_gateway.py",
+          "services/sahool-platform/api/routers/crop_twin.py",
+          "services/sahool-platform/api/routers/decision_confidence.py",
+          "services/sahool-platform/api/routers/decision_dispatch.py",
+          "services/sahool-platform/api/routers/decision_explain.py",
+          "services/sahool-platform/api/routers/decision_impact.py",
+          "services/sahool-platform/api/routers/decision_policies.py",
+          "services/sahool-platform/api/routers/decision_record.py",
+          "services/sahool-platform/api/routers/device_twin.py",
+          "services/sahool-platform/api/routers/evidence_map.py",
+          "services/sahool-platform/api/routers/execution_feedback.py",
+          "services/sahool-platform/api/routers/execution_lineage.py",
+          "services/sahool-platform/api/routers/farm_operations_ledger.py",
+          "services/sahool-platform/api/routers/field_twin.py",
+          "services/sahool-platform/api/routers/gis_cloud_native.py",
+          "services/sahool-platform/api/routers/gis_kernel.py",
+          "services/sahool-platform/api/routers/irrigation_network.py",
+          "services/sahool-platform/api/routers/learning_summary.py",
+          "services/sahool-platform/api/routers/nl_gis.py",
+          "services/sahool-platform/api/routers/nl_sql.py",
+          "services/sahool-platform/api/routers/operations.py",
+          "services/sahool-platform/api/routers/portfolio_command.py",
+          "services/sahool-platform/api/routers/prescriptions.py",
+          "services/sahool-platform/api/routers/recommendations.py",
+          "services/sahool-platform/api/routers/seasons.py",
+          "services/sahool-platform/api/routers/service_proxy.py",
+          "services/sahool-platform/api/routers/sync.py",
+          "services/sahool-platform/api/routers/weather.py",
+          "services/sahool-platform/api/service_token_auth.py",
+          "services/sahool-platform/api/soil_evidence_bridge.py",
+          "services/sahool-platform/api/soil_hydraulic_client.py",
+          "services/sahool-platform/api/water_decision_bridge.py",
+          "services/sahool-platform/api/weather_service_client.py",
+          "services/sahool-platform/api/worker_heartbeat.py",
+          "services/sahool-platform/api/workflow_definitions.py",
+          "services/sahool-platform/core/alert_delivery.py",
+          "services/sahool-platform/core/capabilities.py",
+          "services/sahool-platform/core/connectors/copernicus.py",
+          "services/sahool-platform/core/field_intelligence_adapters.py",
+          "services/sahool-platform/core/field_intelligence_coordinator.py",
+          "services/sahool-platform/core/workflow_engine.py",
+          "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+          "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
+          "services/sahool-platform/tests/test_phase11_runtime_api.py",
+          "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
+          "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py"
+        ],
+        "metrics": [
+          "services/sahool-platform/api/routers/weather.py",
+          "services/sahool-platform/tests/test_farm_closed_loop.py"
+        ],
+        "routes": [
+          "services/sahool-platform/api/adaptive_calibration.py",
+          "services/sahool-platform/api/agricultural_proverbs.py",
+          "services/sahool-platform/api/agro_climate_zones.py",
+          "services/sahool-platform/api/agronomic_context_composer.py",
+          "services/sahool-platform/api/agronomic_replay.py",
+          "services/sahool-platform/api/alert_rules.py",
+          "services/sahool-platform/api/analytics_shapers.py",
+          "services/sahool-platform/api/boundary_confidence.py",
+          "services/sahool-platform/api/calibration.py",
+          "services/sahool-platform/api/canonical_boundary.py",
+          "services/sahool-platform/api/canonical_energy_microgrid_capability.py",
+          "services/sahool-platform/api/canonical_hydraulic_capability.py",
+          "services/sahool-platform/api/canonical_irrigation_capability_graph.py",
+          "services/sahool-platform/api/canonical_irrigation_machine_capability.py",
+          "services/sahool-platform/api/canonical_root_zone_profile.py",
+          "services/sahool-platform/api/canonical_sprinkler_runoff_capability.py",
+          "services/sahool-platform/api/canonical_vri_prescription.py",
+          "services/sahool-platform/api/canonical_water.py",
+          "services/sahool-platform/api/canonical_water_state.py",
+          "services/sahool-platform/api/canonical_water_stress.py",
+          "services/sahool-platform/api/canonical_well_capability.py",
+          "services/sahool-platform/api/chat_proxy_reference.py",
+          "services/sahool-platform/api/climate_analogs.py",
+          "services/sahool-platform/api/confidence_aggregation.py",
+          "services/sahool-platform/api/connectors/metno_wind.py",
+          "services/sahool-platform/api/connectors/nasa_power.py",
+          "services/sahool-platform/api/connectors/openmeteo.py",
+          "services/sahool-platform/api/controller_edge_adapter.py",
+          "services/sahool-platform/api/crop_cycle.py",
+          "services/sahool-platform/api/crop_decision_bridge.py",
+          "services/sahool-platform/api/crop_rotation.py",
+          "services/sahool-platform/api/crop_stress_ingestion.py",
+          "services/sahool-platform/api/crop_stress_memory_service.py",
+          "services/sahool-platform/api/crop_stress_store.py",
+          "services/sahool-platform/api/crop_twin.py",
+          "services/sahool-platform/api/crop_water_sensitivity.py",
+          "services/sahool-platform/api/decision_confidence.py",
+          "services/sahool-platform/api/decision_engine.py",
+          "services/sahool-platform/api/decision_explain.py",
+          "services/sahool-platform/api/decision_explainer.py",
+          "services/sahool-platform/api/event_bus.py",
+          "services/sahool-platform/api/event_replay.py",
+          "services/sahool-platform/api/evidence_map.py",
+          "services/sahool-platform/api/evidence_registry.py",
+          "services/sahool-platform/api/execution_feedback.py",
+          "services/sahool-platform/api/failure_modes.py",
+          "services/sahool-platform/api/field_aggregate.py",
+          "services/sahool-platform/api/field_boundary_pipeline.py",
+          "services/sahool-platform/api/field_context.py",
+          "services/sahool-platform/api/field_geometry_save_guard.py",
+          "services/sahool-platform/api/field_readiness.py",
+          "services/sahool-platform/api/field_season_projection.py",
+          "services/sahool-platform/api/field_state_projection.py",
+          "services/sahool-platform/api/field_sustainability.py",
+          "services/sahool-platform/api/field_timeline.py",
+          "services/sahool-platform/api/food_grain_varieties.py",
+          "services/sahool-platform/api/gdd_shadow.py",
+          "services/sahool-platform/api/geo_import.py",
+          "services/sahool-platform/api/geo_zone_locator.py",
+          "services/sahool-platform/api/geospatial_integrity.py",
+          "services/sahool-platform/api/gis_geometry_guard.py",
+          "services/sahool-platform/api/gis_kernel.py",
+          "services/sahool-platform/api/gis_phase7_enterprise.py",
+          "services/sahool-platform/api/gis_phase8_global_scale.py",
+          "services/sahool-platform/api/hourly_energy_aware_irrigation_mpc.py",
+          "services/sahool-platform/api/imagery_automation.py",
+          "services/sahool-platform/api/irrigation_activation_gate.py",
+          "services/sahool-platform/api/irrigation_closed_loop_learning.py",
+          "services/sahool-platform/api/irrigation_closed_loop_runtime.py",
+          "services/sahool-platform/api/irrigation_commissioning_certification.py",
+          "services/sahool-platform/api/irrigation_dispatch_relay.py",
+          "services/sahool-platform/api/irrigation_dispatch_relay_worker.py",
+          "services/sahool-platform/api/irrigation_engineering_workspace.py",
+          "services/sahool-platform/api/irrigation_manual_ledger_bridge.py",
+          "services/sahool-platform/api/irrigation_recommendation_policy.py",
+          "services/sahool-platform/api/irrigation_runtime_orchestrator.py",
+          "services/sahool-platform/api/lab_store.py",
+          "services/sahool-platform/api/learning_feedback.py",
+          "services/sahool-platform/api/learning_summary.py",
+          "services/sahool-platform/api/lexicographic_mpc_bridge.py",
+          "services/sahool-platform/api/main.py",
+          "services/sahool-platform/api/offline_sync_contracts.py",
+          "services/sahool-platform/api/offline_sync_db.py",
+          "services/sahool-platform/api/operations_summary.py",
+          "services/sahool-platform/api/outcome_measurement.py",
+          "services/sahool-platform/api/phase10_continuous_learning.py",
+          "services/sahool-platform/api/phase11_federated_agents.py",
+          "services/sahool-platform/api/phase12_marketplace_ecosystem.py",
+          "services/sahool-platform/api/phase9_autonomous_farm_os.py",
+          "services/sahool-platform/api/phase_runtime_store.py",
+          "services/sahool-platform/api/phase_runtime_workers.py",
+          "services/sahool-platform/api/pivot_geometry.py",
+          "services/sahool-platform/api/prescription_shapefile.py",
+          "services/sahool-platform/api/raster_service_client.py",
+          "services/sahool-platform/api/report_builder.py",
+          "services/sahool-platform/api/routers/admin.py",
+          "services/sahool-platform/api/routers/agricultural_proverbs.py",
+          "services/sahool-platform/api/routers/agro_intelligence.py",
+          "services/sahool-platform/api/routers/agro_zones.py",
+          "services/sahool-platform/api/routers/agronomic_replay.py",
+          "services/sahool-platform/api/routers/ai_models.py",
+          "services/sahool-platform/api/routers/alerts.py",
+          "services/sahool-platform/api/routers/analytics.py",
+          "services/sahool-platform/api/routers/aromatic_crops.py",
+          "services/sahool-platform/api/routers/astronomical_timing.py",
+          "services/sahool-platform/api/routers/auth.py",
+          "services/sahool-platform/api/routers/automation.py",
+          "services/sahool-platform/api/routers/boundaries.py",
+          "services/sahool-platform/api/routers/break_glass.py",
+          "services/sahool-platform/api/routers/calendars.py",
+          "services/sahool-platform/api/routers/calibration.py",
+          "services/sahool-platform/api/routers/cameras.py",
+          "services/sahool-platform/api/routers/capabilities.py",
+          "services/sahool-platform/api/routers/chemical_safety.py",
+          "services/sahool-platform/api/routers/climate_analogs.py",
+          "services/sahool-platform/api/routers/coffee.py",
+          "services/sahool-platform/api/routers/commands.py",
+          "services/sahool-platform/api/routers/compat_gateway.py",
+          "services/sahool-platform/api/routers/confidence.py",
+          "services/sahool-platform/api/routers/confidence_gate.py",
+          "services/sahool-platform/api/routers/consistency.py",
+          "services/sahool-platform/api/routers/crop_cards.py",
+          "services/sahool-platform/api/routers/crop_operations.py",
+          "services/sahool-platform/api/routers/crop_suitability.py",
+          "services/sahool-platform/api/routers/crop_twin.py",
+          "services/sahool-platform/api/routers/crops.py",
+          "services/sahool-platform/api/routers/cultural_calendar.py",
+          "services/sahool-platform/api/routers/data_readiness.py",
+          "services/sahool-platform/api/routers/decision.py",
+          "services/sahool-platform/api/routers/decision_confidence.py",
+          "services/sahool-platform/api/routers/decision_dispatch.py",
+          "services/sahool-platform/api/routers/decision_explain.py",
+          "services/sahool-platform/api/routers/decision_impact.py",
+          "services/sahool-platform/api/routers/decision_policies.py",
+          "services/sahool-platform/api/routers/decision_record.py",
+          "services/sahool-platform/api/routers/decision_review.py",
+          "services/sahool-platform/api/routers/device_twin.py",
+          "services/sahool-platform/api/routers/devices.py",
+          "services/sahool-platform/api/routers/diagnose.py",
+          "services/sahool-platform/api/routers/districts.py",
+          "services/sahool-platform/api/routers/documents.py",
+          "services/sahool-platform/api/routers/drawing_features.py",
+          "services/sahool-platform/api/routers/economics.py",
+          "services/sahool-platform/api/routers/edge.py",
+          "services/sahool-platform/api/routers/equipment.py",
+          "services/sahool-platform/api/routers/escalation.py",
+          "services/sahool-platform/api/routers/etc_dual.py",
+          "services/sahool-platform/api/routers/events.py",
+          "services/sahool-platform/api/routers/evidence.py",
+          "services/sahool-platform/api/routers/evidence_map.py",
+          "services/sahool-platform/api/routers/execution_feedback.py",
+          "services/sahool-platform/api/routers/execution_lineage.py",
+          "services/sahool-platform/api/routers/failures.py",
+          "services/sahool-platform/api/routers/farm_operations_ledger.py",
+          "services/sahool-platform/api/routers/farms.py",
+          "services/sahool-platform/api/routers/features.py",
+          "services/sahool-platform/api/routers/field_ai_context.py",
+          "services/sahool-platform/api/routers/field_completeness.py",
+          "services/sahool-platform/api/routers/field_intelligence.py",
+          "services/sahool-platform/api/routers/field_portfolio.py",
+          "services/sahool-platform/api/routers/field_priority_queue.py",
+          "services/sahool-platform/api/routers/field_readiness.py",
+          "services/sahool-platform/api/routers/field_single.py",
+          "services/sahool-platform/api/routers/field_twin.py",
+          "services/sahool-platform/api/routers/field_workspace_imagery.py",
+          "services/sahool-platform/api/routers/field_workspace_timeline.py",
+          "services/sahool-platform/api/routers/field_workspace_weather.py",
+          "services/sahool-platform/api/routers/fields.py",
+          "services/sahool-platform/api/routers/fodder_alternatives.py",
+          "services/sahool-platform/api/routers/gdd.py",
+          "services/sahool-platform/api/routers/geo.py",
+          "services/sahool-platform/api/routers/geo_locate.py",
+          "services/sahool-platform/api/routers/gis_cloud_native.py",
+          "services/sahool-platform/api/routers/gis_kernel.py",
+          "services/sahool-platform/api/routers/harvest_traceability.py",
+          "services/sahool-platform/api/routers/high_value_crops.py",
+          "services/sahool-platform/api/routers/indicators.py",
+          "services/sahool-platform/api/routers/indices.py",
+          "services/sahool-platform/api/routers/internal_service.py",
+          "services/sahool-platform/api/routers/introduction.py",
+          "services/sahool-platform/api/routers/inventory.py",
+          "services/sahool-platform/api/routers/ipm.py",
+          "services/sahool-platform/api/routers/irrigation.py",
+          "services/sahool-platform/api/routers/irrigation_engineering.py",
+          "services/sahool-platform/api/routers/irrigation_method.py",
+          "services/sahool-platform/api/routers/irrigation_mpc.py",
+          "services/sahool-platform/api/routers/irrigation_network.py",
+          "services/sahool-platform/api/routers/irrigation_plan.py",
+          "services/sahool-platform/api/routers/irrigation_recommendation.py",
+          "services/sahool-platform/api/routers/kc_timeseries.py",
+          "services/sahool-platform/api/routers/learning.py",
+          "services/sahool-platform/api/routers/learning_summary.py",
+          "services/sahool-platform/api/routers/lifecycle.py",
+          "services/sahool-platform/api/routers/lineage.py",
+          "services/sahool-platform/api/routers/market.py",
+          "services/sahool-platform/api/routers/master_data.py",
+          "services/sahool-platform/api/routers/me.py",
+          "services/sahool-platform/api/routers/ndvi_analysis.py",
+          "services/sahool-platform/api/routers/niche_crops.py",
+          "services/sahool-platform/api/routers/nl_gis.py",
+          "services/sahool-platform/api/routers/nl_sql.py",
+          "services/sahool-platform/api/routers/notifications.py",
+          "services/sahool-platform/api/routers/nutrients.py",
+          "services/sahool-platform/api/routers/observations.py",
+          "services/sahool-platform/api/routers/onboarding.py",
+          "services/sahool-platform/api/routers/operational_truth.py",
+          "services/sahool-platform/api/routers/operations.py",
+          "services/sahool-platform/api/routers/orchard.py",
+          "services/sahool-platform/api/routers/outcome.py",
+          "services/sahool-platform/api/routers/pest_escalation.py",
+          "services/sahool-platform/api/routers/phenology.py",
+          "services/sahool-platform/api/routers/planting.py",
+          "services/sahool-platform/api/routers/platform_health.py",
+          "services/sahool-platform/api/routers/policy_learning.py",
+          "services/sahool-platform/api/routers/portfolio_command.py",
+          "services/sahool-platform/api/routers/postharvest.py",
+          "services/sahool-platform/api/routers/practices.py",
+          "services/sahool-platform/api/routers/prescriptions.py",
+          "services/sahool-platform/api/routers/productivity.py",
+          "services/sahool-platform/api/routers/propagation.py",
+          "services/sahool-platform/api/routers/queue.py",
+          "services/sahool-platform/api/routers/rbac.py",
+          "services/sahool-platform/api/routers/readiness.py",
+          "services/sahool-platform/api/routers/recommendations.py",
+          "services/sahool-platform/api/routers/regional_bulletin.py",
+          "services/sahool-platform/api/routers/regional_calendar.py",
+          "services/sahool-platform/api/routers/registry.py",
+          "services/sahool-platform/api/routers/replay.py",
+          "services/sahool-platform/api/routers/reports.py",
+          "services/sahool-platform/api/routers/rotation.py",
+          "services/sahool-platform/api/routers/salinity.py",
+          "services/sahool-platform/api/routers/sampling.py",
+          "services/sahool-platform/api/routers/scenario.py",
+          "services/sahool-platform/api/routers/scouting.py",
+          "services/sahool-platform/api/routers/season_workspace.py",
+          "services/sahool-platform/api/routers/seasonal_risk.py",
+          "services/sahool-platform/api/routers/seasons.py",
+          "services/sahool-platform/api/routers/security_audit.py",
+          "services/sahool-platform/api/routers/seed.py",
+          "services/sahool-platform/api/routers/service_proxy.py",
+          "services/sahool-platform/api/routers/settings.py",
+          "services/sahool-platform/api/routers/sharing.py",
+          "services/sahool-platform/api/routers/simple_farm_book.py",
+          "services/sahool-platform/api/routers/simulate.py",
+          "services/sahool-platform/api/routers/soil_sampling.py",
+          "services/sahool-platform/api/routers/sync.py",
+          "services/sahool-platform/api/routers/tasks.py",
+          "services/sahool-platform/api/routers/temporal.py",
+          "services/sahool-platform/api/routers/tenant.py",
+          "services/sahool-platform/api/routers/trials.py",
+          "services/sahool-platform/api/routers/varieties.py",
+          "services/sahool-platform/api/routers/water_balance.py",
+          "services/sahool-platform/api/routers/water_harvesting.py",
+          "services/sahool-platform/api/routers/water_ledger.py",
+          "services/sahool-platform/api/routers/water_sensitivity.py",
+          "services/sahool-platform/api/routers/water_twin.py",
+          "services/sahool-platform/api/routers/weather.py",
+          "services/sahool-platform/api/routers/weather_analytics.py",
+          "services/sahool-platform/api/routers/wofost.py",
+          "services/sahool-platform/api/routers/yield_analysis.py",
+          "services/sahool-platform/api/routers/yield_interval.py",
+          "services/sahool-platform/api/scouting_pins.py",
+          "services/sahool-platform/api/season_simulation.py",
+          "services/sahool-platform/api/seasonal_risk.py",
+          "services/sahool-platform/api/sensor_confidence.py",
+          "services/sahool-platform/api/soil_evidence_bridge.py",
+          "services/sahool-platform/api/soil_hydraulic_client.py",
+          "services/sahool-platform/api/soil_moisture_advisor.py",
+          "services/sahool-platform/api/soil_telemetry.py",
+          "services/sahool-platform/api/sync_delta.py",
+          "services/sahool-platform/api/unified_decision.py",
+          "services/sahool-platform/api/walk_plan_pdf.py",
+          "services/sahool-platform/api/water_balance.py",
+          "services/sahool-platform/api/water_decision_bridge.py",
+          "services/sahool-platform/api/water_efficiency.py",
+          "services/sahool-platform/api/water_ledger_compute.py",
+          "services/sahool-platform/api/water_twin_seed.py",
+          "services/sahool-platform/api/weather_advice.py",
+          "services/sahool-platform/api/weather_alerts.py",
+          "services/sahool-platform/api/weather_analytics.py",
+          "services/sahool-platform/api/weather_automation.py",
+          "services/sahool-platform/api/worker_heartbeat.py",
+          "services/sahool-platform/api/workflow_definitions.py",
+          "services/sahool-platform/api/yield_analysis.py",
+          "services/sahool-platform/api/yield_heuristics.py",
+          "services/sahool-platform/core/agri_tools/tools/index_explorer.py",
+          "services/sahool-platform/core/agronomic_decision.py",
+          "services/sahool-platform/core/agronomic_state_engine.py",
+          "services/sahool-platform/core/ai_artifacts.py",
+          "services/sahool-platform/core/ai_policy_envelope.py",
+          "services/sahool-platform/core/alert_delivery.py",
+          "services/sahool-platform/core/alert_engine.py",
+          "services/sahool-platform/core/api_adapter.py",
+          "services/sahool-platform/core/connectors/copernicus.py",
+          "services/sahool-platform/core/connectors/farmonaut.py",
+          "services/sahool-platform/core/correlation.py",
+          "services/sahool-platform/core/crop_cards/loader.py",
+          "services/sahool-platform/core/crop_inference.py",
+          "services/sahool-platform/core/crop_intelligence/engine.py",
+          "services/sahool-platform/core/crop_intelligence/recommendation_context.py",
+          "services/sahool-platform/core/crop_intelligence/spectral.py",
+          "services/sahool-platform/core/crop_intelligence/stress_memory.py",
+          "services/sahool-platform/core/crop_operations.py",
+          "services/sahool-platform/core/crop_portfolio.py",
+          "services/sahool-platform/core/cross_reference_finder.py",
+          "services/sahool-platform/core/daily_agronomist_full.py",
+          "services/sahool-platform/core/daily_ai_brief.py",
+          "services/sahool-platform/core/data_inventory.py",
+          "services/sahool-platform/core/data_quality_guard.py",
+          "services/sahool-platform/core/day_zero_advisory.py",
+          "services/sahool-platform/core/decision_dispatch.py",
+          "services/sahool-platform/core/decision_firewall.py",
+          "services/sahool-platform/core/decision_learning.py",
+          "services/sahool-platform/core/decision_playbook.py",
+          "services/sahool-platform/core/dispatch_notification.py",
+          "services/sahool-platform/core/districts/loader.py",
+          "services/sahool-platform/core/drift_geometry.py",
+          "services/sahool-platform/core/economic_adaptation.py",
+          "services/sahool-platform/core/economic_intelligence.py",
+          "services/sahool-platform/core/engines/dem_enrichment.py",
+          "services/sahool-platform/core/engines/drought_resilience.py",
+          "services/sahool-platform/core/engines/external_prior_blend.py",
+          "services/sahool-platform/core/engines/field_workspace.py",
+          "services/sahool-platform/core/engines/harvest_traceability.py",
+          "services/sahool-platform/core/engines/human_escalation.py",
+          "services/sahool-platform/core/evidence_graph.py",
+          "services/sahool-platform/core/evidence_graph_analytics.py",
+          "services/sahool-platform/core/evidence_graph_normalize.py",
+          "services/sahool-platform/core/evidence_snapshot.py",
+          "services/sahool-platform/core/execution_ledger_entry.py",
+          "services/sahool-platform/core/farm_closed_loop.py",
+          "services/sahool-platform/core/farm_memory.py",
+          "services/sahool-platform/core/field_context_coordinator.py",
+          "services/sahool-platform/core/field_digital_twin.py",
+          "services/sahool-platform/core/field_intelligence_adapters.py",
+          "services/sahool-platform/core/field_intelligence_card.py",
+          "services/sahool-platform/core/field_intelligence_coordinator.py",
+          "services/sahool-platform/core/field_state_replay_bridge.py",
+          "services/sahool-platform/core/field_twin.py",
+          "services/sahool-platform/core/gdd_phenology.py",
+          "services/sahool-platform/core/guardrails.py",
+          "services/sahool-platform/core/historical_loader.py",
+          "services/sahool-platform/core/historical_season_context.py",
+          "services/sahool-platform/core/hybrid_rag_retrieval.py",
+          "services/sahool-platform/core/internal_orchestrator.py",
+          "services/sahool-platform/core/irrigation_water_analysis.py",
+          "services/sahool-platform/core/isoxml_vrt.py",
+          "services/sahool-platform/core/kc_persistence.py",
+          "services/sahool-platform/core/lab_sampling.py",
+          "services/sahool-platform/core/learning/calibration_loop.py",
+          "services/sahool-platform/core/learning/prediction_calibration.py",
+          "services/sahool-platform/core/learning/recommendation_log.py",
+          "services/sahool-platform/core/learning_source_lineage.py",
+          "services/sahool-platform/core/loop_referential_integrity.py",
+          "services/sahool-platform/core/mcp/independent_servers.py",
+          "services/sahool-platform/core/mcp_tool_registry.py",
+          "services/sahool-platform/core/multi_season_analytics.py",
+          "services/sahool-platform/core/ndvi_analysis.py",
+          "services/sahool-platform/core/offline_first.py",
+          "services/sahool-platform/core/outcome_reconciler.py",
+          "services/sahool-platform/core/pest_escalation_flow.py",
+          "services/sahool-platform/core/policy_learning.py",
+          "services/sahool-platform/core/policy_registry.py",
+          "services/sahool-platform/core/prod_readiness.py",
+          "services/sahool-platform/core/productivity_zones.py",
+          "services/sahool-platform/core/rag/production_qdrant.py",
+          "services/sahool-platform/core/recommendation_bridge.py",
+          "services/sahool-platform/core/recommendation_engine.py",
+          "services/sahool-platform/core/recommendation_ponytail.py",
+          "services/sahool-platform/core/recommendation_replay.py",
+          "services/sahool-platform/core/regional_bulletin.py",
+          "services/sahool-platform/core/season_comparison.py",
+          "services/sahool-platform/core/season_phenology.py",
+          "services/sahool-platform/core/season_stage_risk.py",
+          "services/sahool-platform/core/sensor_intake.py",
+          "services/sahool-platform/core/simple_farm_book.py",
+          "services/sahool-platform/core/soil_climate_sources.py",
+          "services/sahool-platform/core/spatial/field_bundle.py",
+          "services/sahool-platform/core/spatial/map_layer.py",
+          "services/sahool-platform/core/spatial/pipeline.py",
+          "services/sahool-platform/core/spray_readiness.py",
+          "services/sahool-platform/core/variety_suitability.py",
+          "services/sahool-platform/core/weather_overlay_pipeline.py",
+          "services/sahool-platform/core/weather_signals.py",
+          "services/sahool-platform/core/weather_sources.py",
+          "services/sahool-platform/core/work_order_from_recommendation.py",
+          "services/sahool-platform/core/workflow_engine.py",
+          "services/sahool-platform/learn_from_harvest.py",
+          "services/sahool-platform/smoke_e2e_test.py",
+          "services/sahool-platform/storage/lite_store.py",
+          "services/sahool-platform/tests/test_agronomic_state_engine.py",
+          "services/sahool-platform/tests/test_alert_rules.py",
+          "services/sahool-platform/tests/test_bivariate_raster.py",
+          "services/sahool-platform/tests/test_break_glass.py",
+          "services/sahool-platform/tests/test_confidence_aggregation.py",
+          "services/sahool-platform/tests/test_correlation_middleware.py",
+          "services/sahool-platform/tests/test_crop_decision_bridge.py",
+          "services/sahool-platform/tests/test_crop_decision_candidate_endpoint.py",
+          "services/sahool-platform/tests/test_crop_stress_facades_guard.py",
+          "services/sahool-platform/tests/test_districts.py",
+          "services/sahool-platform/tests/test_drawing_features_v38_static.py",
+          "services/sahool-platform/tests/test_drawing_features_v39_postgis_static.py",
+          "services/sahool-platform/tests/test_event_upcasting.py",
+          "services/sahool-platform/tests/test_evidence_graph_analytics_endpoints_static.py",
+          "services/sahool-platform/tests/test_farm_memory.py",
+          "services/sahool-platform/tests/test_feature_flag_navigation_alignment_guard.py",
+          "services/sahool-platform/tests/test_field_aggregate.py",
+          "services/sahool-platform/tests/test_field_boundary_contracts.py",
+          "services/sahool-platform/tests/test_field_boundary_pipeline.py",
+          "services/sahool-platform/tests/test_field_intelligence_async_job_guard.py",
+          "services/sahool-platform/tests/test_field_irrigation_recommendation_endpoint.py",
+          "services/sahool-platform/tests/test_final_production_hardening.py",
+          "services/sahool-platform/tests/test_food_grain_varieties_catalog.py",
+          "services/sahool-platform/tests/test_index_registry.py",
+          "services/sahool-platform/tests/test_indicators_dashboard.py",
+          "services/sahool-platform/tests/test_lab_sampling_router.py",
+          "services/sahool-platform/tests/test_learn_from_harvest.py",
+          "services/sahool-platform/tests/test_orchestrator_and_api.py",
+          "services/sahool-platform/tests/test_p0_2_decision_sor_cutover_readiness_guard.py",
+          "services/sahool-platform/tests/test_p0_3_decision_sor_shadow_promotion_guard.py",
+          "services/sahool-platform/tests/test_p0_db_ownership_guard.py",
+          "services/sahool-platform/tests/test_p0_decision_sor_migration_guard.py",
+          "services/sahool-platform/tests/test_p0_platform_route_ownership_guard.py",
+          "services/sahool-platform/tests/test_p0_raster_weather_decision_evidence_guard.py",
+          "services/sahool-platform/tests/test_p0_weather_service_real_contract_guard.py",
+          "services/sahool-platform/tests/test_p1_decision_outcome_learning_bridge_guard.py",
+          "services/sahool-platform/tests/test_p1_raster_boundary_guard.py",
+          "services/sahool-platform/tests/test_p1_weather_boundary_guard.py",
+          "services/sahool-platform/tests/test_p2_4_compat_gateway_raster_facade_guard.py",
+          "services/sahool-platform/tests/test_p2_5_raster_direct_wiring_final_sweep.py",
+          "services/sahool-platform/tests/test_p3_5_weather_direct_wiring_final_sweep.py",
+          "services/sahool-platform/tests/test_p3_weather_service_realization_guard.py",
+          "services/sahool-platform/tests/test_p4_5_legacy_decision_write_routers_facade_guard.py",
+          "services/sahool-platform/tests/test_p4_6_decision_read_side_facade_guard.py",
+          "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+          "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
+          "services/sahool-platform/tests/test_phase11_runtime_api.py",
+          "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
+          "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+          "services/sahool-platform/tests/test_productivity_router.py",
+          "services/sahool-platform/tests/test_recommendation_log.py",
+          "services/sahool-platform/tests/test_review_fixes.py",
+          "services/sahool-platform/tests/test_runtime_ponytail_integration.py",
+          "services/sahool-platform/tests/test_season_comparison.py",
+          "services/sahool-platform/tests/test_skills_registry.py",
+          "services/sahool-platform/tests/test_thermal_stress_facade_guard.py",
+          "services/sahool-platform/tests/test_ui27_backend_facades_guard.py",
+          "services/sahool-platform/tests/test_ui28_ui30_workspace_route_cleanup_guard.py",
+          "services/sahool-platform/tests/test_ui31_ui35_workspace_completion_guard.py",
+          "services/sahool-platform/tests/test_ui4_field_operating_contract_guard.py",
+          "services/sahool-platform/tests/test_water_decision_bridge.py",
+          "services/sahool-platform/tests/test_weather_engine_v21_rate_limit_actions.py",
+          "services/sahool-platform/tests/test_wind_geometry.py",
+          "services/sahool-platform/tests/test_workflow_engine.py",
+          "services/sahool-platform/tests/test_yemeni_calendars.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [
+          "wheat-2026"
+        ],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "ANTHROPIC_API_KEY",
+        "CDSE_CLIENT_SECRET",
+        "DECISION_SERVICE_TOKEN",
+        "FIELD_FORMS_SERVICE_TOKEN",
+        "INTERNAL_SERVICE_TOKEN",
+        "JWT_SECRET",
+        "OLLAMA_API_KEY",
+        "OPENROUTER_API_KEY",
+        "SAHOOL_AGENT_TOKEN",
+        "SAHOOL_JWT_SECRET",
+        "SH_TOKEN_URL",
+        "SMS_API_KEY",
+        "SMTP_PASSWORD",
+        "SOIL_SERVICE_TOKEN",
+        "TELEGRAM_BOT_TOKEN",
+        "WHATSAPP_API_KEY",
+        "WHATSAPP_TOKEN"
+      ],
+      "service": "sahool-platform",
+      "source_service": "sahool-platform",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "EARTH_SEARCH_URL",
+        "HTTP_TIMEOUT",
+        "MAX_IMAGE_DIM",
+        "SAM2_CHECKPOINT",
+        "SAM2_MODEL_CFG",
+        "SAM2_POLYGON_DEDUP_TOLERANCE_M",
+        "SAM2_POLYGON_SIMPLIFY_TOLERANCE_M",
+        "SENTINEL_COLLECTION",
+        "STAC_LOOKBACK_DAYS",
+        "STAC_MAX_CLOUD"
+      ],
+      "container": {
+        "dockerfile": "services/sam2-inference/Dockerfile",
+        "requirements": "services/sam2-inference/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Field Boundary AI",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/sam2-inference/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/sam2-inference/sam2_runtime.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/sam2-inference/main.py",
+          "services/sam2-inference/sam2_runtime.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "sam2-inference",
+      "source_service": "sam2-inference",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "CI_INTEGRATION_REQUIRED",
+        "DATABASE_URL",
+        "FIELD_FORMS_DEVICE_ROTATION_GRACE_SECONDS",
+        "FIELD_FORMS_ENABLED",
+        "FIELD_FORMS_MAX_OFFLINE_SECONDS",
+        "FIELD_FORMS_SERVER_ID",
+        "FIELD_FORMS_SYNC_HMAC_KEY",
+        "FIELD_FORMS_SYNC_HMAC_KEY_ID",
+        "FIELD_FORMS_SYNC_HMAC_KEY_PREVIOUS",
+        "FIELD_FORMS_SYNC_HMAC_PREVIOUS_KEY_ID",
+        "FIELD_FORMS_SYNC_PREVIOUS_UNTIL_EPOCH",
+        "LOGBOOK_LOCAL_DIR",
+        "SCOUT_INGEST_ENABLED",
+        "SCOUT_INGEST_PROJECTION_BATCH",
+        "SCOUT_INGEST_PROJECTION_ENABLED",
+        "SCOUT_INGEST_PROJECTION_LEASE_SECONDS",
+        "SCOUT_INGEST_PROJECTION_MAX_ATTEMPTS",
+        "SCOUT_INGEST_PROJECTION_POLL_SECONDS",
+        "SEASON_EDGE_HMAC_KEY",
+        "SEASON_ENTRY_ENABLED",
+        "SERVICE_VERSION",
+        "TEST_ADMIN_URL"
+      ],
+      "container": {
+        "dockerfile": "services/scout-ingest-service/Dockerfile",
+        "requirements": "services/scout-ingest-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Unclassified / Support",
+      "endpoints": {
+        "health": [
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/scout-ingest-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/scout-ingest-service/field_forms_api.py",
+          "services/scout-ingest-service/main.py",
+          "services/scout-ingest-service/projection_worker.py",
+          "services/scout-ingest-service/season_api.py",
+          "services/scout-ingest-service/tests/test_ingest_live.py",
+          "services/scout-ingest-service/tests/test_projection_live.py",
+          "services/scout-ingest-service/tests/test_season_live.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/scout-ingest-service/field_forms_api.py",
+          "services/scout-ingest-service/main.py",
+          "services/scout-ingest-service/season_api.py",
+          "services/scout-ingest-service/tests/test_ingest_live.py",
+          "services/scout-ingest-service/tests/test_season_live.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "FIELD_FORMS_SERVICE_TOKEN",
+        "SCOUT_INGEST_READ_TOKEN",
+        "SEASON_ENTRY_SERVICE_TOKEN"
+      ],
+      "service": "scout-ingest-service",
+      "source_service": "scout-ingest-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "DATABASE_URL",
+        "NATS_URL",
+        "SOILGRIDS_TIMEOUT",
+        "SOILGRIDS_URL",
+        "SOIL_PROJECTION_LEASE_SECONDS",
+        "SOIL_PROJECTION_MAX_ATTEMPTS",
+        "SOIL_PROJECTION_POLL_SECONDS",
+        "SOIL_PROJECTION_READY_MAX_DEAD_LETTER",
+        "SOIL_PROJECTION_READY_MAX_EXPIRED_LEASES",
+        "SOIL_PROJECTION_READY_MAX_LAG_SECONDS",
+        "SOIL_PROJECTION_WORKER_ENABLED"
+      ],
+      "container": {
+        "dockerfile": "services/soil-service/Dockerfile",
+        "requirements": "services/soil-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Soil Intelligence",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz",
+          "oldest_ready_age_seconds"
+        ]
+      },
+      "entrypoint": "services/soil-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/soil-service/db_persist.py",
+          "services/soil-service/main.py",
+          "services/soil-service/projection_jobs.py",
+          "services/soil-service/projection_observability.py",
+          "services/soil-service/soilgrids_client.py"
+        ],
+        "metrics": [
+          "services/soil-service/projection_observability.py",
+          "services/soil-service/routers/health.py"
+        ],
+        "routes": [
+          "services/soil-service/main.py",
+          "services/soil-service/modbus_decoder.py",
+          "services/soil-service/p2_products.py",
+          "services/soil-service/p4_governance.py",
+          "services/soil-service/p5_certification.py",
+          "services/soil-service/profile_composer.py",
+          "services/soil-service/projection_observability.py",
+          "services/soil-service/routers/canonical.py",
+          "services/soil-service/routers/health.py",
+          "services/soil-service/routers/modbus.py",
+          "services/soil-service/routers/p1_products.py",
+          "services/soil-service/routers/p2_products.py",
+          "services/soil-service/routers/p3_products.py",
+          "services/soil-service/routers/p4_workflow.py",
+          "services/soil-service/routers/p5_certification.py",
+          "services/soil-service/routers/p6_certification.py",
+          "services/soil-service/routers/readings.py",
+          "services/soil-service/routers/soil_profile.py",
+          "services/soil-service/soil_store.py",
+          "services/soil-service/soilgrids_client.py",
+          "services/soil-service/test_soil_supersession_current_pointer.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [
+          "soil_projection_job_duration_seconds",
+          "soil_projection_jobs_claimed_total",
+          "soil_projection_jobs_completed_total",
+          "soil_projection_jobs_failed_total",
+          "soil_projection_queue_dead_letter",
+          "soil_projection_queue_expired_leases",
+          "soil_projection_queue_oldest_ready_age_seconds",
+          "soil_projection_queue_pending",
+          "soil_projection_queue_retry",
+          "soil_projection_queue_running",
+          "soil_projection_worker_up"
+        ],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "soil-service",
+      "source_service": "soil-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "BRAIN_DIRECT_SATELLITE_FETCH_ENABLED",
+        "GUARDRAILS_URL",
+        "JWT_PUBLIC_KEY",
+        "LOCAL_AI_RAG_TIMEOUT_S",
+        "LOCAL_AI_RAG_URL",
+        "MCP_MARKET_URL",
+        "MCP_SENTINEL_HUB_URL",
+        "MCP_WEATHER_URL",
+        "MCP_WOFOST_URL",
+        "PLATFORM_SERVICE_URL",
+        "PLATFORM_URL",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV"
+      ],
+      "container": {
+        "dockerfile": "services/supervisor-agent/Dockerfile",
+        "requirements": "services/supervisor-agent/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Agent Orchestration",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz",
+          "/healthz/deps",
+          "health_distribution",
+          "health_status"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/supervisor-agent/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/supervisor-agent/main.py",
+          "services/supervisor-agent/remote_sensing_skill.py",
+          "services/supervisor-agent/skills/advisory_skill.py",
+          "services/supervisor-agent/skills/remote_sensing_skill.py"
+        ],
+        "metrics": [
+          "services/supervisor-agent/circuit_breaker.py",
+          "services/supervisor-agent/routers/health.py",
+          "services/supervisor-agent/test_circuit_observability.py"
+        ],
+        "routes": [
+          "services/supervisor-agent/crop_model_skill.py",
+          "services/supervisor-agent/main.py",
+          "services/supervisor-agent/market_skill.py",
+          "services/supervisor-agent/mcp_client.py",
+          "services/supervisor-agent/remote_sensing_skill.py",
+          "services/supervisor-agent/routers/agent.py",
+          "services/supervisor-agent/routers/health.py",
+          "services/supervisor-agent/skills/advisory_skill.py",
+          "services/supervisor-agent/skills/crop_model_skill.py",
+          "services/supervisor-agent/skills/market_skill.py",
+          "services/supervisor-agent/skills/remote_sensing_skill.py",
+          "services/supervisor-agent/test_ai_orchestration_forensic.py",
+          "services/supervisor-agent/test_chaos_resilience.py",
+          "services/supervisor-agent/test_circuit_breaker.py",
+          "services/supervisor-agent/test_graceful_degradation.py",
+          "services/supervisor-agent/tool_contracts.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [
+          "sahool_circuit_rejections_total",
+          "sahool_circuit_state",
+          "sahool_circuit_transitions_total"
+        ],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "JWT_SECRET",
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "supervisor-agent",
+      "source_service": "supervisor-agent",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 6,
+        "score_pct": 85.7,
+        "total": 7
+      },
+      "configuration": [
+        "JWT_PUBLIC_KEY",
+        "PIPER_VOICE_PATH",
+        "REDIS_URL",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV",
+        "TTS_CACHE_TTL",
+        "TTS_GPU_PROVIDER",
+        "TTS_MAX_TEXT_LEN",
+        "XTTS_ENABLE",
+        "XTTS_MODEL"
+      ],
+      "container": {
+        "dockerfile": "services/tts-service/Dockerfile",
+        "requirements": "services/tts-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Voice & Notifications",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/tts-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/tts-service/main.py",
+          "services/tts-service/providers.py"
+        ],
+        "metrics": [
+          "services/tts-service/main.py",
+          "services/tts-service/routers/health.py"
+        ],
+        "routes": [
+          "services/tts-service/main.py",
+          "services/tts-service/routers/health.py",
+          "services/tts-service/routers/tts.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "JWT_SECRET",
+        "SAHOOL_AGENT_TOKEN"
+      ],
+      "service": "tts-service",
+      "source_service": "tts-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": true,
+          "readiness": true,
+          "tracing_instrumentation": true
+        },
+        "passed": 7,
+        "score_pct": 100.0,
+        "total": 7
+      },
+      "configuration": [
+        "ALLOW_LEGACY_FIELD_REGISTRY",
+        "CORS_ORIGINS",
+        "DATABASE_URL",
+        "DECISION_SERVICE_URL",
+        "FEATURE_SENTINEL_DB_FIELDS",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY",
+        "FIELD_SERVICE_TENANT_ASSERTION_KEY_ID",
+        "FIELD_SERVICE_URL",
+        "INDICATORS_SERVICE_URL",
+        "JWT_PUBLIC_KEY",
+        "NATS_URL",
+        "PLATFORM_API_URL",
+        "RASTER_SERVICE_URL",
+        "RS10_BRIDGE_TIMEOUT_S",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV",
+        "TASK_SERVICE_URL",
+        "VEGETATION_ANOMALY_DB_PATH",
+        "VEGETATION_ANOMALY_STORE",
+        "VEGETATION_CANONICAL_PARITY_TOLERANCE",
+        "VEGETATION_CANONICAL_SHADOW",
+        "VEGETATION_EVIDENCE_PUSH_ENABLED",
+        "VEGETATION_MIN_QUALITY",
+        "VEGETATION_PREFER_CANONICAL_OBSERVATIONS",
+        "VEGETATION_PREFER_RASTER",
+        "VEGETATION_REAL_ONLY"
+      ],
+      "container": {
+        "dockerfile": "services/vegetation-analysis-service/Dockerfile",
+        "requirements": "services/vegetation-analysis-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Vegetation Analytics",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz",
+          "health"
+        ],
+        "metrics": [
+          "/metrics"
+        ],
+        "readiness": [
+          "/readyz",
+          "ready",
+          "{main.RASTER_SERVICE_URL}/readyz"
+        ]
+      },
+      "entrypoint": "services/vegetation-analysis-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/vegetation-analysis-service/anomaly_runtime.py",
+          "services/vegetation-analysis-service/anomaly_store.py",
+          "services/vegetation-analysis-service/anomaly_store_pg.py",
+          "services/vegetation-analysis-service/decision_bridge.py",
+          "services/vegetation-analysis-service/ground_verification_bridge.py",
+          "services/vegetation-analysis-service/post_execution_bridge.py",
+          "services/vegetation-analysis-service/routers/anomalies.py",
+          "services/vegetation-analysis-service/routers/baselines.py",
+          "services/vegetation-analysis-service/test_evidence_producer_contract.py",
+          "services/vegetation-analysis-service/vegetation_runtime.py"
+        ],
+        "metrics": [
+          "services/vegetation-analysis-service/main.py",
+          "services/vegetation-analysis-service/vegetation_runtime.py"
+        ],
+        "routes": [
+          "services/vegetation-analysis-service/anomaly_engine.py",
+          "services/vegetation-analysis-service/baseline_engine.py",
+          "services/vegetation-analysis-service/decision_bridge.py",
+          "services/vegetation-analysis-service/diagnosis_engine.py",
+          "services/vegetation-analysis-service/ground_verification_bridge.py",
+          "services/vegetation-analysis-service/indicator_registry.py",
+          "services/vegetation-analysis-service/post_execution_bridge.py",
+          "services/vegetation-analysis-service/routers/analysis.py",
+          "services/vegetation-analysis-service/routers/anomalies.py",
+          "services/vegetation-analysis-service/routers/baselines.py",
+          "services/vegetation-analysis-service/routers/diagnoses.py",
+          "services/vegetation-analysis-service/routers/health.py",
+          "services/vegetation-analysis-service/routers/outcomes.py",
+          "services/vegetation-analysis-service/test_production_truth_closure.py",
+          "services/vegetation-analysis-service/vegetation_contracts.py",
+          "services/vegetation-analysis-service/vegetation_runtime.py"
+        ],
+        "tracing": [
+          "services/vegetation-analysis-service/main.py"
+        ]
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": true,
+        "trace_spans": [],
+        "tracing_instrumented": true
+      },
+      "secrets": [
+        "JWT_SECRET",
+        "SAHOOL_AGENT_TOKEN",
+        "TASK_SERVICE_CALLBACK_TOKEN"
+      ],
+      "service": "vegetation-analysis-service",
+      "source_service": "vegetation-analysis-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "EDGE_INFERENCE_URL",
+        "FRAME_INTERVAL_SEC",
+        "JWT_PUBLIC_KEY",
+        "MAX_CONCURRENT_STREAMS",
+        "MQTT_BROKER_URL",
+        "MQTT_USERNAME",
+        "NATS_URL",
+        "REDIS_URL",
+        "SAHOOL_ALLOW_HS256_IN_PROD",
+        "SAHOOL_ENV",
+        "VIDEO_STRICT_READY",
+        "ZLMEDIAKIT_URL",
+        "ZLMEDIA_API_URL"
+      ],
+      "container": {
+        "dockerfile": "services/video-processor/Dockerfile",
+        "requirements": "services/video-processor/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Video Processing",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/video-processor/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/video-processor/main.py",
+          "services/video-processor/stream_events.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/video-processor/main.py",
+          "services/video-processor/routers/health.py",
+          "services/video-processor/routers/streams.py",
+          "services/video-processor/stream_events.py",
+          "services/video-processor/zlmedia_client.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [
+        "JWT_SECRET",
+        "MQTT_PASSWORD",
+        "SAHOOL_AGENT_TOKEN",
+        "ZLMEDIAKIT_API_SECRET",
+        "ZLMEDIA_API_SECRET"
+      ],
+      "service": "video-processor",
+      "source_service": "video-processor",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": false,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": false,
+          "tracing_instrumentation": false
+        },
+        "passed": 3,
+        "score_pct": 42.9,
+        "total": 7
+      },
+      "configuration": [
+        "DATABASE_URL",
+        "JOBS_DATABASE_URL",
+        "NATS_URL",
+        "WEATHER_GRID_PIPELINE_ENABLED",
+        "WEATHER_HORIZON_HOURS",
+        "WORKER_HEALTH_MAX_AGE_SEC",
+        "WORKER_HEARTBEAT_FILE",
+        "WORKER_READY_FILE"
+      ],
+      "container": {
+        "dockerfile": "services/weather-polygon-worker/Dockerfile",
+        "requirements": "services/weather-polygon-worker/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Weather Intelligence",
+      "endpoints": {
+        "health": [],
+        "metrics": [],
+        "readiness": []
+      },
+      "entrypoint": "services/weather-polygon-worker/src/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/weather-polygon-worker/src/main.py",
+          "services/weather-polygon-worker/worker_health_probe.py"
+        ],
+        "metrics": [],
+        "routes": [],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [],
+      "service": "weather-polygon-worker",
+      "source_service": "weather-polygon-worker",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": true,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": true,
+          "tracing_instrumentation": false
+        },
+        "passed": 5,
+        "score_pct": 71.4,
+        "total": 7
+      },
+      "configuration": [
+        "OPEN_METEO_ARCHIVE_URL",
+        "OPEN_METEO_FORECAST_URL",
+        "REDIS_URL",
+        "WEATHER_CACHE_STALE_TTL_S",
+        "WEATHER_CACHE_TTL_S",
+        "WEATHER_OPEN_METEO_BREAKER_FAILURES",
+        "WEATHER_OPEN_METEO_BREAKER_RESET_S",
+        "WEATHER_OPEN_METEO_TIMEOUT_S",
+        "WEATHER_REDIS_INTEGRATION_URL",
+        "WEATHER_REDIS_URL"
+      ],
+      "container": {
+        "dockerfile": "services/weather-service/Dockerfile",
+        "requirements": "services/weather-service/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Weather Intelligence",
+      "endpoints": {
+        "health": [
+          "/health",
+          "/healthz"
+        ],
+        "metrics": [],
+        "readiness": [
+          "/readyz"
+        ]
+      },
+      "entrypoint": "services/weather-service/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/weather-service/cache.py",
+          "services/weather-service/open_meteo.py",
+          "services/weather-service/tests/test_weather_redis_live_optional.py"
+        ],
+        "metrics": [],
+        "routes": [
+          "services/weather-service/cache.py",
+          "services/weather-service/canonical_daily_weather_series.py",
+          "services/weather-service/canonical_weather_state.py",
+          "services/weather-service/et0.py",
+          "services/weather-service/hourly_etc.py",
+          "services/weather-service/lodging_risk.py",
+          "services/weather-service/main.py",
+          "services/weather-service/open_meteo.py",
+          "services/weather-service/operations.py",
+          "services/weather-service/raw_weather_processing.py",
+          "services/weather-service/tests/test_canonical_weather_state.py",
+          "services/weather-service/tests/test_et0_agro_product.py",
+          "services/weather-service/tests/test_et0_series.py",
+          "services/weather-service/tests/test_gdd.py",
+          "services/weather-service/tests/test_gdd_agro_product.py",
+          "services/weather-service/tests/test_p3_4_weather_service_runtime_coverage.py",
+          "services/weather-service/tests/test_p3_tile_neutral_resilience.py",
+          "services/weather-service/tests/test_p3_weather_service_runtime.py",
+          "services/weather-service/tests/test_raw_weather_processing.py",
+          "services/weather-service/tests/test_thermal_stress.py",
+          "services/weather-service/tests/test_vpd_agro_product.py",
+          "services/weather-service/tests/test_weather_readyz_and_cache_backend.py",
+          "services/weather-service/thermal_stress.py",
+          "services/weather-service/tiles.py",
+          "services/weather-service/weather_runtime.py"
+        ],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [],
+      "service": "weather-service",
+      "source_service": "weather-service",
+      "static_repository_evidence_only": true
+    },
+    {
+      "completeness": {
+        "gates": {
+          "configuration_declared": true,
+          "dockerfile": true,
+          "entrypoint": true,
+          "health": false,
+          "metrics_endpoint_or_instrumentation": false,
+          "readiness": false,
+          "tracing_instrumentation": false
+        },
+        "passed": 3,
+        "score_pct": 42.9,
+        "total": 7
+      },
+      "configuration": [
+        "DATABASE_URL",
+        "JOBS_DATABASE_URL",
+        "WEATHER_SIGNAL_INTERVAL_SEC",
+        "WEATHER_SIGNAL_TTL_HOURS",
+        "WORKER_HEALTH_MAX_AGE_SEC",
+        "WORKER_HEARTBEAT_FILE",
+        "WORKER_READY_FILE"
+      ],
+      "container": {
+        "dockerfile": "services/weather-signal-engine/Dockerfile",
+        "requirements": "services/weather-signal-engine/requirements.txt"
+      },
+      "contract_version": "1.0",
+      "domain": "Weather Intelligence",
+      "endpoints": {
+        "health": [],
+        "metrics": [],
+        "readiness": []
+      },
+      "entrypoint": "services/weather-signal-engine/src/main.py",
+      "evidence_paths": {
+        "configuration": [
+          "services/weather-signal-engine/src/main.py",
+          "services/weather-signal-engine/worker_health_probe.py"
+        ],
+        "metrics": [],
+        "routes": [],
+        "tracing": []
+      },
+      "observability": {
+        "metric_names": [],
+        "metrics_instrumented": false,
+        "trace_spans": [],
+        "tracing_instrumented": false
+      },
+      "secrets": [],
+      "service": "weather-signal-engine",
+      "source_service": "weather-signal-engine",
+      "static_repository_evidence_only": true
+    }
+  ],
+  "static_repository_evidence_only": true
+}

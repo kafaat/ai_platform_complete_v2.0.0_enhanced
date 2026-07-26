@@ -1,0 +1,5028 @@
+{
+  "analysis_kind": "static_repository_evidence",
+  "application_root_count": 30,
+  "application_roots": [
+    "services.actuator-service.actuator_runtime:app",
+    "services.agriai-engine.main:app",
+    "services.ai_agronomist.main:app",
+    "services.auth.main:app",
+    "services.decision-service.main:app",
+    "services.edge-inference.main:app",
+    "services.field-management-service.main:app",
+    "services.field-segmentation.main:app",
+    "services.guardrails-engine.main:app",
+    "services.indicators-service.main:app",
+    "services.knowledge-graph.main:app",
+    "services.local-ai-rag.main:app",
+    "services.mcp_servers.generic_context_server:app",
+    "services.mcp_servers.market_server:app",
+    "services.mcp_servers.sentinel_hub_server:app",
+    "services.mcp_servers.weather_server:app",
+    "services.mcp_servers.wofost_server:app",
+    "services.odoo-bridge.main:app",
+    "services.rag-retrieval.main:app",
+    "services.remote-sensing-workspace-bff.main:app",
+    "services.sahool-platform.api.main:app",
+    "services.sahool-platform.tests.test_phase11_runtime_api:app",
+    "services.sam2-inference.main:app",
+    "services.scout-ingest-service.main:app",
+    "services.soil-service.main:app",
+    "services.supervisor-agent.main:app",
+    "services.tts-service.main:app",
+    "services.vegetation-analysis-service.main:app",
+    "services.video-processor.main:app",
+    "services.weather-service.main:app"
+  ],
+  "definition_count": 257,
+  "definitions": [
+    {
+      "kind": "app",
+      "line": 1074,
+      "module": "services.actuator-service.actuator_runtime",
+      "node_id": "services.actuator-service.actuator_runtime:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.actuator-service.routers.commands",
+      "node_id": "services.actuator-service.routers.commands:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 15,
+      "module": "services.actuator-service.routers.health",
+      "node_id": "services.actuator-service.routers.health:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 14,
+      "module": "services.actuator-service.routers.metrics",
+      "node_id": "services.actuator-service.routers.metrics:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 51,
+      "module": "services.agriai-engine.main",
+      "node_id": "services.agriai-engine.main:app",
+      "route_count": 8,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 38,
+      "module": "services.ai_agronomist.main",
+      "node_id": "services.ai_agronomist.main:app",
+      "route_count": 13,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 395,
+      "module": "services.auth.main",
+      "node_id": "services.auth.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.auth.routers.email_verify",
+      "node_id": "services.auth.routers.email_verify:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.auth.routers.invitations",
+      "node_id": "services.auth.routers.invitations:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 15,
+      "module": "services.auth.routers.mfa",
+      "node_id": "services.auth.routers.mfa:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.auth.routers.ops",
+      "node_id": "services.auth.routers.ops:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.auth.routers.password_reset",
+      "node_id": "services.auth.routers.password_reset:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 15,
+      "module": "services.auth.routers.registration",
+      "node_id": "services.auth.routers.registration:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.auth.routers.season_edge_sign",
+      "node_id": "services.auth.routers.season_edge_sign:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.auth.routers.session",
+      "node_id": "services.auth.routers.session:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 36,
+      "module": "services.auth.routers.tenants",
+      "node_id": "services.auth.routers.tenants:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.auth.routers.users",
+      "node_id": "services.auth.routers.users:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 121,
+      "module": "services.decision-service.main",
+      "node_id": "services.decision-service.main:app",
+      "route_count": 69,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 34,
+      "module": "services.edge-inference.main",
+      "node_id": "services.edge-inference.main:app",
+      "route_count": 6,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 39,
+      "module": "services.field-management-service.main",
+      "node_id": "services.field-management-service.main:app",
+      "route_count": 7,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 53,
+      "module": "services.field-segmentation.main",
+      "node_id": "services.field-segmentation.main:app",
+      "route_count": 4,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 340,
+      "module": "services.guardrails-engine.main",
+      "node_id": "services.guardrails-engine.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.guardrails-engine.routers.health",
+      "node_id": "services.guardrails-engine.routers.health:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.guardrails-engine.routers.validation",
+      "node_id": "services.guardrails-engine.routers.validation:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 47,
+      "module": "services.indicators-service.main",
+      "node_id": "services.indicators-service.main:app",
+      "route_count": 11,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 18,
+      "module": "services.knowledge-graph.main",
+      "node_id": "services.knowledge-graph.main:app",
+      "route_count": 7,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 382,
+      "module": "services.local-ai-rag.main",
+      "node_id": "services.local-ai-rag.main:app",
+      "route_count": 5,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 12,
+      "module": "services.mcp_servers.generic_context_server",
+      "node_id": "services.mcp_servers.generic_context_server:app",
+      "route_count": 4,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 82,
+      "module": "services.mcp_servers.market_server",
+      "node_id": "services.mcp_servers.market_server:app",
+      "route_count": 13,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 22,
+      "module": "services.mcp_servers.sentinel_hub_server",
+      "node_id": "services.mcp_servers.sentinel_hub_server:app",
+      "route_count": 5,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 21,
+      "module": "services.mcp_servers.weather_server",
+      "node_id": "services.mcp_servers.weather_server:app",
+      "route_count": 5,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 17,
+      "module": "services.mcp_servers.wofost_server",
+      "node_id": "services.mcp_servers.wofost_server:app",
+      "route_count": 5,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 160,
+      "module": "services.odoo-bridge.main",
+      "node_id": "services.odoo-bridge.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 13,
+      "module": "services.odoo-bridge.routers.catalog",
+      "node_id": "services.odoo-bridge.routers.catalog:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.odoo-bridge.routers.health",
+      "node_id": "services.odoo-bridge.routers.health:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.odoo-bridge.routers.sync",
+      "node_id": "services.odoo-bridge.routers.sync:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.odoo-bridge.routers.webhooks",
+      "node_id": "services.odoo-bridge.routers.webhooks:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 19,
+      "module": "services.rag-retrieval.main",
+      "node_id": "services.rag-retrieval.main:app",
+      "route_count": 5,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.raster-service.routers.analysis",
+      "node_id": "services.raster-service.routers.analysis:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.raster-service.routers.cdse_tiles",
+      "node_id": "services.raster-service.routers.cdse_tiles:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 74,
+      "module": "services.raster-service.routers.fields",
+      "node_id": "services.raster-service.routers.fields:router",
+      "route_count": 18,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.raster-service.routers.imagery",
+      "node_id": "services.raster-service.routers.imagery:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.raster-service.routers.imagery_search",
+      "node_id": "services.raster-service.routers.imagery_search:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 15,
+      "module": "services.raster-service.routers.jobs",
+      "node_id": "services.raster-service.routers.jobs:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.raster-service.routers.observability",
+      "node_id": "services.raster-service.routers.observability:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.raster-service.routers.processing",
+      "node_id": "services.raster-service.routers.processing:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.raster-service.routers.soil_tiles",
+      "node_id": "services.raster-service.routers.soil_tiles:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 13,
+      "module": "services.raster-service.routers.stac",
+      "node_id": "services.raster-service.routers.stac:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.raster-service.routers.storage",
+      "node_id": "services.raster-service.routers.storage:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 29,
+      "module": "services.raster-service.routers.terrain_tiles",
+      "node_id": "services.raster-service.routers.terrain_tiles:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.raster-service.routers.tiles",
+      "node_id": "services.raster-service.routers.tiles:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.raster-service.routers.timeseries_routes",
+      "node_id": "services.raster-service.routers.timeseries_routes:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 18,
+      "module": "services.remote-sensing-workspace-bff.main",
+      "node_id": "services.remote-sensing-workspace-bff.main:app",
+      "route_count": 3,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 190,
+      "module": "services.sahool-platform.api.main",
+      "node_id": "services.sahool-platform.api.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.phase10_continuous_learning",
+      "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
+      "route_count": 18,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.phase11_federated_agents",
+      "node_id": "services.sahool-platform.api.phase11_federated_agents:router",
+      "route_count": 11,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 42,
+      "module": "services.sahool-platform.api.phase9_autonomous_farm_os",
+      "node_id": "services.sahool-platform.api.phase9_autonomous_farm_os:router",
+      "route_count": 11,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.admin",
+      "node_id": "services.sahool-platform.api.routers.admin:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.agricultural_proverbs",
+      "node_id": "services.sahool-platform.api.routers.agricultural_proverbs:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.agro_intelligence",
+      "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
+      "route_count": 7,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.agro_zones",
+      "node_id": "services.sahool-platform.api.routers.agro_zones:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.agronomic_replay",
+      "node_id": "services.sahool-platform.api.routers.agronomic_replay:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.ai_models",
+      "node_id": "services.sahool-platform.api.routers.ai_models:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 47,
+      "module": "services.sahool-platform.api.routers.alerts",
+      "node_id": "services.sahool-platform.api.routers.alerts:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.analytics",
+      "node_id": "services.sahool-platform.api.routers.analytics:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.aromatic_crops",
+      "node_id": "services.sahool-platform.api.routers.aromatic_crops:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.astronomical_timing",
+      "node_id": "services.sahool-platform.api.routers.astronomical_timing:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 43,
+      "module": "services.sahool-platform.api.routers.auth",
+      "node_id": "services.sahool-platform.api.routers.auth:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.automation",
+      "node_id": "services.sahool-platform.api.routers.automation:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.boundaries",
+      "node_id": "services.sahool-platform.api.routers.boundaries:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.break_glass",
+      "node_id": "services.sahool-platform.api.routers.break_glass:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.calendars",
+      "node_id": "services.sahool-platform.api.routers.calendars:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.calibration",
+      "node_id": "services.sahool-platform.api.routers.calibration:router",
+      "route_count": 14,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.cameras",
+      "node_id": "services.sahool-platform.api.routers.cameras:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.capabilities",
+      "node_id": "services.sahool-platform.api.routers.capabilities:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.chemical_safety",
+      "node_id": "services.sahool-platform.api.routers.chemical_safety:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.climate_analogs",
+      "node_id": "services.sahool-platform.api.routers.climate_analogs:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.coffee",
+      "node_id": "services.sahool-platform.api.routers.coffee:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.commands",
+      "node_id": "services.sahool-platform.api.routers.commands:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.compat_gateway",
+      "node_id": "services.sahool-platform.api.routers.compat_gateway:router",
+      "route_count": 7,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.confidence",
+      "node_id": "services.sahool-platform.api.routers.confidence:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.confidence_gate",
+      "node_id": "services.sahool-platform.api.routers.confidence_gate:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.consistency",
+      "node_id": "services.sahool-platform.api.routers.consistency:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.crop_cards",
+      "node_id": "services.sahool-platform.api.routers.crop_cards:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.crop_operations",
+      "node_id": "services.sahool-platform.api.routers.crop_operations:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.crop_suitability",
+      "node_id": "services.sahool-platform.api.routers.crop_suitability:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 41,
+      "module": "services.sahool-platform.api.routers.crop_twin",
+      "node_id": "services.sahool-platform.api.routers.crop_twin:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.crops",
+      "node_id": "services.sahool-platform.api.routers.crops:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.cultural_calendar",
+      "node_id": "services.sahool-platform.api.routers.cultural_calendar:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.data_readiness",
+      "node_id": "services.sahool-platform.api.routers.data_readiness:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.decision",
+      "node_id": "services.sahool-platform.api.routers.decision:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 36,
+      "module": "services.sahool-platform.api.routers.decision_confidence",
+      "node_id": "services.sahool-platform.api.routers.decision_confidence:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 58,
+      "module": "services.sahool-platform.api.routers.decision_dispatch",
+      "node_id": "services.sahool-platform.api.routers.decision_dispatch:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 40,
+      "module": "services.sahool-platform.api.routers.decision_explain",
+      "node_id": "services.sahool-platform.api.routers.decision_explain:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.decision_impact",
+      "node_id": "services.sahool-platform.api.routers.decision_impact:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.decision_policies",
+      "node_id": "services.sahool-platform.api.routers.decision_policies:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.decision_record",
+      "node_id": "services.sahool-platform.api.routers.decision_record:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.decision_review",
+      "node_id": "services.sahool-platform.api.routers.decision_review:router",
+      "route_count": 16,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.device_twin",
+      "node_id": "services.sahool-platform.api.routers.device_twin:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 38,
+      "module": "services.sahool-platform.api.routers.devices",
+      "node_id": "services.sahool-platform.api.routers.devices:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.diagnose",
+      "node_id": "services.sahool-platform.api.routers.diagnose:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.districts",
+      "node_id": "services.sahool-platform.api.routers.districts:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.documents",
+      "node_id": "services.sahool-platform.api.routers.documents:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.drawing_features",
+      "node_id": "services.sahool-platform.api.routers.drawing_features:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.economics",
+      "node_id": "services.sahool-platform.api.routers.economics:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.edge",
+      "node_id": "services.sahool-platform.api.routers.edge:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.equipment",
+      "node_id": "services.sahool-platform.api.routers.equipment:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.sahool-platform.api.routers.escalation",
+      "node_id": "services.sahool-platform.api.routers.escalation:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 49,
+      "module": "services.sahool-platform.api.routers.etc_dual",
+      "node_id": "services.sahool-platform.api.routers.etc_dual:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.events",
+      "node_id": "services.sahool-platform.api.routers.events:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.evidence",
+      "node_id": "services.sahool-platform.api.routers.evidence:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.evidence_map",
+      "node_id": "services.sahool-platform.api.routers.evidence_map:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.execution_feedback",
+      "node_id": "services.sahool-platform.api.routers.execution_feedback:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.execution_lineage",
+      "node_id": "services.sahool-platform.api.routers.execution_lineage:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.failures",
+      "node_id": "services.sahool-platform.api.routers.failures:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 45,
+      "module": "services.sahool-platform.api.routers.farm_operations_ledger",
+      "node_id": "services.sahool-platform.api.routers.farm_operations_ledger:router",
+      "route_count": 12,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.farms",
+      "node_id": "services.sahool-platform.api.routers.farms:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.features",
+      "node_id": "services.sahool-platform.api.routers.features:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.field_ai_context",
+      "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.field_completeness",
+      "node_id": "services.sahool-platform.api.routers.field_completeness:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.field_intelligence",
+      "node_id": "services.sahool-platform.api.routers.field_intelligence:router",
+      "route_count": 7,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.sahool-platform.api.routers.field_portfolio",
+      "node_id": "services.sahool-platform.api.routers.field_portfolio:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.field_priority_queue",
+      "node_id": "services.sahool-platform.api.routers.field_priority_queue:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.field_readiness",
+      "node_id": "services.sahool-platform.api.routers.field_readiness:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.sahool-platform.api.routers.field_single",
+      "node_id": "services.sahool-platform.api.routers.field_single:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.field_twin",
+      "node_id": "services.sahool-platform.api.routers.field_twin:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.field_workspace_imagery",
+      "node_id": "services.sahool-platform.api.routers.field_workspace_imagery:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.field_workspace_timeline",
+      "node_id": "services.sahool-platform.api.routers.field_workspace_timeline:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.field_workspace_weather",
+      "node_id": "services.sahool-platform.api.routers.field_workspace_weather:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 139,
+      "module": "services.sahool-platform.api.routers.fields",
+      "node_id": "services.sahool-platform.api.routers.fields:router",
+      "route_count": 48,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.fodder_alternatives",
+      "node_id": "services.sahool-platform.api.routers.fodder_alternatives:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.gdd",
+      "node_id": "services.sahool-platform.api.routers.gdd:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.geo",
+      "node_id": "services.sahool-platform.api.routers.geo:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.geo_locate",
+      "node_id": "services.sahool-platform.api.routers.geo_locate:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 54,
+      "module": "services.sahool-platform.api.routers.gis_cloud_native",
+      "node_id": "services.sahool-platform.api.routers.gis_cloud_native:router",
+      "route_count": 30,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.gis_kernel",
+      "node_id": "services.sahool-platform.api.routers.gis_kernel:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.harvest_traceability",
+      "node_id": "services.sahool-platform.api.routers.harvest_traceability:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.high_value_crops",
+      "node_id": "services.sahool-platform.api.routers.high_value_crops:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.indicators",
+      "node_id": "services.sahool-platform.api.routers.indicators:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.indices",
+      "node_id": "services.sahool-platform.api.routers.indices:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 14,
+      "module": "services.sahool-platform.api.routers.internal_service",
+      "node_id": "services.sahool-platform.api.routers.internal_service:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.introduction",
+      "node_id": "services.sahool-platform.api.routers.introduction:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 36,
+      "module": "services.sahool-platform.api.routers.inventory",
+      "node_id": "services.sahool-platform.api.routers.inventory:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.ipm",
+      "node_id": "services.sahool-platform.api.routers.ipm:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 50,
+      "module": "services.sahool-platform.api.routers.irrigation",
+      "node_id": "services.sahool-platform.api.routers.irrigation:router",
+      "route_count": 9,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 52,
+      "module": "services.sahool-platform.api.routers.irrigation_engineering",
+      "node_id": "services.sahool-platform.api.routers.irrigation_engineering:router",
+      "route_count": 12,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.irrigation_method",
+      "node_id": "services.sahool-platform.api.routers.irrigation_method:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 43,
+      "module": "services.sahool-platform.api.routers.irrigation_mpc",
+      "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.irrigation_network",
+      "node_id": "services.sahool-platform.api.routers.irrigation_network:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.irrigation_plan",
+      "node_id": "services.sahool-platform.api.routers.irrigation_plan:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.irrigation_recommendation",
+      "node_id": "services.sahool-platform.api.routers.irrigation_recommendation:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.kc_timeseries",
+      "node_id": "services.sahool-platform.api.routers.kc_timeseries:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.learning",
+      "node_id": "services.sahool-platform.api.routers.learning:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 35,
+      "module": "services.sahool-platform.api.routers.learning_summary",
+      "node_id": "services.sahool-platform.api.routers.learning_summary:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.lifecycle",
+      "node_id": "services.sahool-platform.api.routers.lifecycle:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.lineage",
+      "node_id": "services.sahool-platform.api.routers.lineage:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.market",
+      "node_id": "services.sahool-platform.api.routers.market:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.master_data",
+      "node_id": "services.sahool-platform.api.routers.master_data:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.me",
+      "node_id": "services.sahool-platform.api.routers.me:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.ndvi_analysis",
+      "node_id": "services.sahool-platform.api.routers.ndvi_analysis:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.niche_crops",
+      "node_id": "services.sahool-platform.api.routers.niche_crops:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 39,
+      "module": "services.sahool-platform.api.routers.nl_gis",
+      "node_id": "services.sahool-platform.api.routers.nl_gis:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.nl_sql",
+      "node_id": "services.sahool-platform.api.routers.nl_sql:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 47,
+      "module": "services.sahool-platform.api.routers.notifications",
+      "node_id": "services.sahool-platform.api.routers.notifications:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.nutrients",
+      "node_id": "services.sahool-platform.api.routers.nutrients:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.observations",
+      "node_id": "services.sahool-platform.api.routers.observations:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.onboarding",
+      "node_id": "services.sahool-platform.api.routers.onboarding:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.operational_truth",
+      "node_id": "services.sahool-platform.api.routers.operational_truth:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.operations",
+      "node_id": "services.sahool-platform.api.routers.operations:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.orchard",
+      "node_id": "services.sahool-platform.api.routers.orchard:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.outcome",
+      "node_id": "services.sahool-platform.api.routers.outcome:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.pest_escalation",
+      "node_id": "services.sahool-platform.api.routers.pest_escalation:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.phenology",
+      "node_id": "services.sahool-platform.api.routers.phenology:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.planting",
+      "node_id": "services.sahool-platform.api.routers.planting:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.platform_health",
+      "node_id": "services.sahool-platform.api.routers.platform_health:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.policy_learning",
+      "node_id": "services.sahool-platform.api.routers.policy_learning:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.portfolio_command",
+      "node_id": "services.sahool-platform.api.routers.portfolio_command:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.postharvest",
+      "node_id": "services.sahool-platform.api.routers.postharvest:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.practices",
+      "node_id": "services.sahool-platform.api.routers.practices:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 49,
+      "module": "services.sahool-platform.api.routers.prescriptions",
+      "node_id": "services.sahool-platform.api.routers.prescriptions:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.productivity",
+      "node_id": "services.sahool-platform.api.routers.productivity:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.propagation",
+      "node_id": "services.sahool-platform.api.routers.propagation:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.queue",
+      "node_id": "services.sahool-platform.api.routers.queue:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.rbac",
+      "node_id": "services.sahool-platform.api.routers.rbac:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.readiness",
+      "node_id": "services.sahool-platform.api.routers.readiness:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 48,
+      "module": "services.sahool-platform.api.routers.recommendations",
+      "node_id": "services.sahool-platform.api.routers.recommendations:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.regional_bulletin",
+      "node_id": "services.sahool-platform.api.routers.regional_bulletin:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 16,
+      "module": "services.sahool-platform.api.routers.regional_calendar",
+      "node_id": "services.sahool-platform.api.routers.regional_calendar:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.registry",
+      "node_id": "services.sahool-platform.api.routers.registry:router",
+      "route_count": 7,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.replay",
+      "node_id": "services.sahool-platform.api.routers.replay:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.reports",
+      "node_id": "services.sahool-platform.api.routers.reports:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.rotation",
+      "node_id": "services.sahool-platform.api.routers.rotation:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.salinity",
+      "node_id": "services.sahool-platform.api.routers.salinity:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.sampling",
+      "node_id": "services.sahool-platform.api.routers.sampling:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.scenario",
+      "node_id": "services.sahool-platform.api.routers.scenario:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 40,
+      "module": "services.sahool-platform.api.routers.scouting",
+      "node_id": "services.sahool-platform.api.routers.scouting:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.season_workspace",
+      "node_id": "services.sahool-platform.api.routers.season_workspace:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.seasonal_risk",
+      "node_id": "services.sahool-platform.api.routers.seasonal_risk:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.seasons",
+      "node_id": "services.sahool-platform.api.routers.seasons:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 15,
+      "module": "services.sahool-platform.api.routers.security_audit",
+      "node_id": "services.sahool-platform.api.routers.security_audit:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.seed",
+      "node_id": "services.sahool-platform.api.routers.seed:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.service_proxy",
+      "node_id": "services.sahool-platform.api.routers.service_proxy:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.settings",
+      "node_id": "services.sahool-platform.api.routers.settings:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 42,
+      "module": "services.sahool-platform.api.routers.sharing",
+      "node_id": "services.sahool-platform.api.routers.sharing:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.simple_farm_book",
+      "node_id": "services.sahool-platform.api.routers.simple_farm_book:router",
+      "route_count": 7,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.simulate",
+      "node_id": "services.sahool-platform.api.routers.simulate:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 43,
+      "module": "services.sahool-platform.api.routers.soil_sampling",
+      "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
+      "route_count": 9,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 45,
+      "module": "services.sahool-platform.api.routers.sync",
+      "node_id": "services.sahool-platform.api.routers.sync:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.tasks",
+      "node_id": "services.sahool-platform.api.routers.tasks:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.temporal",
+      "node_id": "services.sahool-platform.api.routers.temporal:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.tenant",
+      "node_id": "services.sahool-platform.api.routers.tenant:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.trials",
+      "node_id": "services.sahool-platform.api.routers.trials:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.varieties",
+      "node_id": "services.sahool-platform.api.routers.varieties:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.water_balance",
+      "node_id": "services.sahool-platform.api.routers.water_balance:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.water_harvesting",
+      "node_id": "services.sahool-platform.api.routers.water_harvesting:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 51,
+      "module": "services.sahool-platform.api.routers.water_ledger",
+      "node_id": "services.sahool-platform.api.routers.water_ledger:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.water_sensitivity",
+      "node_id": "services.sahool-platform.api.routers.water_sensitivity:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 48,
+      "module": "services.sahool-platform.api.routers.water_twin",
+      "node_id": "services.sahool-platform.api.routers.water_twin:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 40,
+      "module": "services.sahool-platform.api.routers.weather",
+      "node_id": "services.sahool-platform.api.routers.weather:router",
+      "route_count": 29,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.weather_analytics",
+      "node_id": "services.sahool-platform.api.routers.weather_analytics:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.wofost",
+      "node_id": "services.sahool-platform.api.routers.wofost:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.yield_analysis",
+      "node_id": "services.sahool-platform.api.routers.yield_analysis:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.yield_interval",
+      "node_id": "services.sahool-platform.api.routers.yield_interval:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 10,
+      "module": "services.sahool-platform.tests.test_phase11_runtime_api",
+      "node_id": "services.sahool-platform.tests.test_phase11_runtime_api:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "app",
+      "line": 15,
+      "module": "services.sam2-inference.main",
+      "node_id": "services.sam2-inference.main:app",
+      "route_count": 4,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 72,
+      "module": "services.scout-ingest-service.field_forms_api",
+      "node_id": "services.scout-ingest-service.field_forms_api:router",
+      "route_count": 7,
+      "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 46,
+      "module": "services.scout-ingest-service.main",
+      "node_id": "services.scout-ingest-service.main:app",
+      "route_count": 5,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 63,
+      "module": "services.scout-ingest-service.season_api",
+      "node_id": "services.scout-ingest-service.season_api:router",
+      "route_count": 10,
+      "statically_reachable": true,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 87,
+      "module": "services.soil-service.main",
+      "node_id": "services.soil-service.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 11,
+      "module": "services.soil-service.routers.canonical",
+      "node_id": "services.soil-service.routers.canonical:router",
+      "route_count": 7,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.soil-service.routers.health",
+      "node_id": "services.soil-service.routers.health:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.soil-service.routers.modbus",
+      "node_id": "services.soil-service.routers.modbus:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.soil-service.routers.p1_products",
+      "node_id": "services.soil-service.routers.p1_products:router",
+      "route_count": 9,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 22,
+      "module": "services.soil-service.routers.p2_products",
+      "node_id": "services.soil-service.routers.p2_products:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 27,
+      "module": "services.soil-service.routers.p3_products",
+      "node_id": "services.soil-service.routers.p3_products:router",
+      "route_count": 10,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 12,
+      "module": "services.soil-service.routers.p4_workflow",
+      "node_id": "services.soil-service.routers.p4_workflow:router",
+      "route_count": 7,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 14,
+      "module": "services.soil-service.routers.p5_certification",
+      "node_id": "services.soil-service.routers.p5_certification:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 10,
+      "module": "services.soil-service.routers.p6_certification",
+      "node_id": "services.soil-service.routers.p6_certification:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 19,
+      "module": "services.soil-service.routers.readings",
+      "node_id": "services.soil-service.routers.readings:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 22,
+      "module": "services.soil-service.routers.soil_profile",
+      "node_id": "services.soil-service.routers.soil_profile:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 50,
+      "module": "services.supervisor-agent.main",
+      "node_id": "services.supervisor-agent.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 20,
+      "module": "services.supervisor-agent.routers.agent",
+      "node_id": "services.supervisor-agent.routers.agent:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 16,
+      "module": "services.supervisor-agent.routers.health",
+      "node_id": "services.supervisor-agent.routers.health:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 138,
+      "module": "services.tts-service.main",
+      "node_id": "services.tts-service.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.tts-service.routers.health",
+      "node_id": "services.tts-service.routers.health:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 17,
+      "module": "services.tts-service.routers.tts",
+      "node_id": "services.tts-service.routers.tts:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 130,
+      "module": "services.vegetation-analysis-service.main",
+      "node_id": "services.vegetation-analysis-service.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 18,
+      "module": "services.vegetation-analysis-service.routers.analysis",
+      "node_id": "services.vegetation-analysis-service.routers.analysis:router",
+      "route_count": 6,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 25,
+      "module": "services.vegetation-analysis-service.routers.anomalies",
+      "node_id": "services.vegetation-analysis-service.routers.anomalies:router",
+      "route_count": 5,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 14,
+      "module": "services.vegetation-analysis-service.routers.baselines",
+      "node_id": "services.vegetation-analysis-service.routers.baselines:router",
+      "route_count": 1,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 13,
+      "module": "services.vegetation-analysis-service.routers.diagnoses",
+      "node_id": "services.vegetation-analysis-service.routers.diagnoses:router",
+      "route_count": 2,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 16,
+      "module": "services.vegetation-analysis-service.routers.health",
+      "node_id": "services.vegetation-analysis-service.routers.health:router",
+      "route_count": 4,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 8,
+      "module": "services.vegetation-analysis-service.routers.outcomes",
+      "node_id": "services.vegetation-analysis-service.routers.outcomes:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 462,
+      "module": "services.video-processor.main",
+      "node_id": "services.video-processor.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    },
+    {
+      "kind": "router",
+      "line": 15,
+      "module": "services.video-processor.routers.health",
+      "node_id": "services.video-processor.routers.health:router",
+      "route_count": 3,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "router",
+      "line": 21,
+      "module": "services.video-processor.routers.streams",
+      "node_id": "services.video-processor.routers.streams:router",
+      "route_count": 8,
+      "statically_reachable": false,
+      "symbol": "router"
+    },
+    {
+      "kind": "app",
+      "line": 13,
+      "module": "services.weather-service.main",
+      "node_id": "services.weather-service.main:app",
+      "route_count": 0,
+      "statically_reachable": true,
+      "symbol": "app"
+    }
+  ],
+  "include_edge_count": 25,
+  "include_edges": [
+    {
+      "expression": "_tmp",
+      "line": 66,
+      "module": "services/actuator-service/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.actuator-service.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/auth/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.auth.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/guardrails-engine/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.guardrails-engine.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/odoo-bridge/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.odoo-bridge.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/raster-service/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.raster-service.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "phase9_autonomous_router",
+      "line": 32,
+      "module": "services/sahool-platform/api/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.api.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "phase10_learning_router",
+      "line": 33,
+      "module": "services/sahool-platform/api/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.api.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "phase11_federation_router",
+      "line": 34,
+      "module": "services/sahool-platform/api/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.api.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "phase12_ecosystem_router",
+      "line": 35,
+      "module": "services/sahool-platform/api/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.api.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router_obj",
+      "line": 47,
+      "module": "services/sahool-platform/api/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.api.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "service_proxy_router",
+      "line": 53,
+      "module": "services/sahool-platform/api/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.api.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 107,
+      "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_lab_sampling_router:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "mod.router",
+      "line": 193,
+      "module": "services/sahool-platform/tests/test_lab_sampling_router.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_lab_sampling_router:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 13,
+      "module": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase10_continuous_learning_api:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 13,
+      "module": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase11_federated_agents_api:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 11,
+      "module": "services/sahool-platform/tests/test_phase11_runtime_api.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase11_runtime_api:app",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 13,
+      "module": "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase12_marketplace_ecosystem_api:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "router",
+      "line": 13,
+      "module": "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.sahool-platform.tests.test_phase9_autonomous_farm_os_api:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "season_router",
+      "line": 51,
+      "module": "services/scout-ingest-service/main.py",
+      "prefix": null,
+      "resolved": true,
+      "source": "services.scout-ingest-service.main:app",
+      "target": "services.scout-ingest-service.season_api:router"
+    },
+    {
+      "expression": "field_forms_router",
+      "line": 355,
+      "module": "services/scout-ingest-service/main.py",
+      "prefix": null,
+      "resolved": true,
+      "source": "services.scout-ingest-service.main:app",
+      "target": "services.scout-ingest-service.field_forms_api:router"
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/soil-service/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.soil-service.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/supervisor-agent/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.supervisor-agent.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/tts-service/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.tts-service.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/vegetation-analysis-service/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.vegetation-analysis-service.router_registry:<dynamic-source>",
+      "target": null
+    },
+    {
+      "expression": "_tmp",
+      "line": 70,
+      "module": "services/video-processor/router_registry.py",
+      "prefix": null,
+      "resolved": false,
+      "source": "services.video-processor.router_registry:<dynamic-source>",
+      "target": null
+    }
+  ],
+  "inventory_sha256": "f3d4620eb1f8495c1e40ab3eb4080c3fc6052ba64f2079b16a86b2b24129473f",
+  "orphan_candidate_count": 225,
+  "orphan_candidates": [
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.actuator-service.routers.commands",
+      "node_id": "services.actuator-service.routers.commands:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 15,
+      "module": "services.actuator-service.routers.health",
+      "node_id": "services.actuator-service.routers.health:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 14,
+      "module": "services.actuator-service.routers.metrics",
+      "node_id": "services.actuator-service.routers.metrics:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.auth.routers.email_verify",
+      "node_id": "services.auth.routers.email_verify:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.auth.routers.invitations",
+      "node_id": "services.auth.routers.invitations:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 15,
+      "module": "services.auth.routers.mfa",
+      "node_id": "services.auth.routers.mfa:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.auth.routers.ops",
+      "node_id": "services.auth.routers.ops:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.auth.routers.password_reset",
+      "node_id": "services.auth.routers.password_reset:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 15,
+      "module": "services.auth.routers.registration",
+      "node_id": "services.auth.routers.registration:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 37,
+      "module": "services.auth.routers.season_edge_sign",
+      "node_id": "services.auth.routers.season_edge_sign:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.auth.routers.session",
+      "node_id": "services.auth.routers.session:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 36,
+      "module": "services.auth.routers.tenants",
+      "node_id": "services.auth.routers.tenants:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.auth.routers.users",
+      "node_id": "services.auth.routers.users:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.guardrails-engine.routers.health",
+      "node_id": "services.guardrails-engine.routers.health:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.guardrails-engine.routers.validation",
+      "node_id": "services.guardrails-engine.routers.validation:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 13,
+      "module": "services.odoo-bridge.routers.catalog",
+      "node_id": "services.odoo-bridge.routers.catalog:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.odoo-bridge.routers.health",
+      "node_id": "services.odoo-bridge.routers.health:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.odoo-bridge.routers.sync",
+      "node_id": "services.odoo-bridge.routers.sync:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.odoo-bridge.routers.webhooks",
+      "node_id": "services.odoo-bridge.routers.webhooks:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.raster-service.routers.analysis",
+      "node_id": "services.raster-service.routers.analysis:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.raster-service.routers.cdse_tiles",
+      "node_id": "services.raster-service.routers.cdse_tiles:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 74,
+      "module": "services.raster-service.routers.fields",
+      "node_id": "services.raster-service.routers.fields:router",
+      "route_count": 18,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.raster-service.routers.imagery",
+      "node_id": "services.raster-service.routers.imagery:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.raster-service.routers.imagery_search",
+      "node_id": "services.raster-service.routers.imagery_search:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 15,
+      "module": "services.raster-service.routers.jobs",
+      "node_id": "services.raster-service.routers.jobs:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.raster-service.routers.observability",
+      "node_id": "services.raster-service.routers.observability:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.raster-service.routers.processing",
+      "node_id": "services.raster-service.routers.processing:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.raster-service.routers.soil_tiles",
+      "node_id": "services.raster-service.routers.soil_tiles:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 13,
+      "module": "services.raster-service.routers.stac",
+      "node_id": "services.raster-service.routers.stac:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.raster-service.routers.storage",
+      "node_id": "services.raster-service.routers.storage:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 29,
+      "module": "services.raster-service.routers.terrain_tiles",
+      "node_id": "services.raster-service.routers.terrain_tiles:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.raster-service.routers.tiles",
+      "node_id": "services.raster-service.routers.tiles:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.raster-service.routers.timeseries_routes",
+      "node_id": "services.raster-service.routers.timeseries_routes:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.phase10_continuous_learning",
+      "node_id": "services.sahool-platform.api.phase10_continuous_learning:router",
+      "route_count": 18,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.phase11_federated_agents",
+      "node_id": "services.sahool-platform.api.phase11_federated_agents:router",
+      "route_count": 11,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 42,
+      "module": "services.sahool-platform.api.phase9_autonomous_farm_os",
+      "node_id": "services.sahool-platform.api.phase9_autonomous_farm_os:router",
+      "route_count": 11,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.admin",
+      "node_id": "services.sahool-platform.api.routers.admin:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.agricultural_proverbs",
+      "node_id": "services.sahool-platform.api.routers.agricultural_proverbs:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.agro_intelligence",
+      "node_id": "services.sahool-platform.api.routers.agro_intelligence:router",
+      "route_count": 7,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.agro_zones",
+      "node_id": "services.sahool-platform.api.routers.agro_zones:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.agronomic_replay",
+      "node_id": "services.sahool-platform.api.routers.agronomic_replay:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.ai_models",
+      "node_id": "services.sahool-platform.api.routers.ai_models:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 47,
+      "module": "services.sahool-platform.api.routers.alerts",
+      "node_id": "services.sahool-platform.api.routers.alerts:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.analytics",
+      "node_id": "services.sahool-platform.api.routers.analytics:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.aromatic_crops",
+      "node_id": "services.sahool-platform.api.routers.aromatic_crops:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.astronomical_timing",
+      "node_id": "services.sahool-platform.api.routers.astronomical_timing:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 43,
+      "module": "services.sahool-platform.api.routers.auth",
+      "node_id": "services.sahool-platform.api.routers.auth:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.automation",
+      "node_id": "services.sahool-platform.api.routers.automation:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.boundaries",
+      "node_id": "services.sahool-platform.api.routers.boundaries:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.break_glass",
+      "node_id": "services.sahool-platform.api.routers.break_glass:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.calendars",
+      "node_id": "services.sahool-platform.api.routers.calendars:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.calibration",
+      "node_id": "services.sahool-platform.api.routers.calibration:router",
+      "route_count": 14,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.cameras",
+      "node_id": "services.sahool-platform.api.routers.cameras:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.capabilities",
+      "node_id": "services.sahool-platform.api.routers.capabilities:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.chemical_safety",
+      "node_id": "services.sahool-platform.api.routers.chemical_safety:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.climate_analogs",
+      "node_id": "services.sahool-platform.api.routers.climate_analogs:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.coffee",
+      "node_id": "services.sahool-platform.api.routers.coffee:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.commands",
+      "node_id": "services.sahool-platform.api.routers.commands:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.compat_gateway",
+      "node_id": "services.sahool-platform.api.routers.compat_gateway:router",
+      "route_count": 7,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.confidence",
+      "node_id": "services.sahool-platform.api.routers.confidence:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.confidence_gate",
+      "node_id": "services.sahool-platform.api.routers.confidence_gate:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.consistency",
+      "node_id": "services.sahool-platform.api.routers.consistency:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.crop_cards",
+      "node_id": "services.sahool-platform.api.routers.crop_cards:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.crop_operations",
+      "node_id": "services.sahool-platform.api.routers.crop_operations:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.crop_suitability",
+      "node_id": "services.sahool-platform.api.routers.crop_suitability:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 41,
+      "module": "services.sahool-platform.api.routers.crop_twin",
+      "node_id": "services.sahool-platform.api.routers.crop_twin:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.crops",
+      "node_id": "services.sahool-platform.api.routers.crops:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.cultural_calendar",
+      "node_id": "services.sahool-platform.api.routers.cultural_calendar:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.data_readiness",
+      "node_id": "services.sahool-platform.api.routers.data_readiness:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.decision",
+      "node_id": "services.sahool-platform.api.routers.decision:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 36,
+      "module": "services.sahool-platform.api.routers.decision_confidence",
+      "node_id": "services.sahool-platform.api.routers.decision_confidence:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 58,
+      "module": "services.sahool-platform.api.routers.decision_dispatch",
+      "node_id": "services.sahool-platform.api.routers.decision_dispatch:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 40,
+      "module": "services.sahool-platform.api.routers.decision_explain",
+      "node_id": "services.sahool-platform.api.routers.decision_explain:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.decision_impact",
+      "node_id": "services.sahool-platform.api.routers.decision_impact:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.decision_policies",
+      "node_id": "services.sahool-platform.api.routers.decision_policies:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.decision_record",
+      "node_id": "services.sahool-platform.api.routers.decision_record:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.decision_review",
+      "node_id": "services.sahool-platform.api.routers.decision_review:router",
+      "route_count": 16,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.device_twin",
+      "node_id": "services.sahool-platform.api.routers.device_twin:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 38,
+      "module": "services.sahool-platform.api.routers.devices",
+      "node_id": "services.sahool-platform.api.routers.devices:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.diagnose",
+      "node_id": "services.sahool-platform.api.routers.diagnose:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.districts",
+      "node_id": "services.sahool-platform.api.routers.districts:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.documents",
+      "node_id": "services.sahool-platform.api.routers.documents:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.drawing_features",
+      "node_id": "services.sahool-platform.api.routers.drawing_features:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.economics",
+      "node_id": "services.sahool-platform.api.routers.economics:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.edge",
+      "node_id": "services.sahool-platform.api.routers.edge:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.equipment",
+      "node_id": "services.sahool-platform.api.routers.equipment:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.sahool-platform.api.routers.escalation",
+      "node_id": "services.sahool-platform.api.routers.escalation:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 49,
+      "module": "services.sahool-platform.api.routers.etc_dual",
+      "node_id": "services.sahool-platform.api.routers.etc_dual:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.events",
+      "node_id": "services.sahool-platform.api.routers.events:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.evidence",
+      "node_id": "services.sahool-platform.api.routers.evidence:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.evidence_map",
+      "node_id": "services.sahool-platform.api.routers.evidence_map:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.execution_feedback",
+      "node_id": "services.sahool-platform.api.routers.execution_feedback:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.execution_lineage",
+      "node_id": "services.sahool-platform.api.routers.execution_lineage:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.failures",
+      "node_id": "services.sahool-platform.api.routers.failures:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 45,
+      "module": "services.sahool-platform.api.routers.farm_operations_ledger",
+      "node_id": "services.sahool-platform.api.routers.farm_operations_ledger:router",
+      "route_count": 12,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 32,
+      "module": "services.sahool-platform.api.routers.farms",
+      "node_id": "services.sahool-platform.api.routers.farms:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.features",
+      "node_id": "services.sahool-platform.api.routers.features:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.field_ai_context",
+      "node_id": "services.sahool-platform.api.routers.field_ai_context:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.field_completeness",
+      "node_id": "services.sahool-platform.api.routers.field_completeness:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.field_intelligence",
+      "node_id": "services.sahool-platform.api.routers.field_intelligence:router",
+      "route_count": 7,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.sahool-platform.api.routers.field_portfolio",
+      "node_id": "services.sahool-platform.api.routers.field_portfolio:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.field_priority_queue",
+      "node_id": "services.sahool-platform.api.routers.field_priority_queue:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.field_readiness",
+      "node_id": "services.sahool-platform.api.routers.field_readiness:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.sahool-platform.api.routers.field_single",
+      "node_id": "services.sahool-platform.api.routers.field_single:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.field_twin",
+      "node_id": "services.sahool-platform.api.routers.field_twin:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.field_workspace_imagery",
+      "node_id": "services.sahool-platform.api.routers.field_workspace_imagery:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.field_workspace_timeline",
+      "node_id": "services.sahool-platform.api.routers.field_workspace_timeline:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.field_workspace_weather",
+      "node_id": "services.sahool-platform.api.routers.field_workspace_weather:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 139,
+      "module": "services.sahool-platform.api.routers.fields",
+      "node_id": "services.sahool-platform.api.routers.fields:router",
+      "route_count": 48,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.fodder_alternatives",
+      "node_id": "services.sahool-platform.api.routers.fodder_alternatives:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.gdd",
+      "node_id": "services.sahool-platform.api.routers.gdd:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.geo",
+      "node_id": "services.sahool-platform.api.routers.geo:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.geo_locate",
+      "node_id": "services.sahool-platform.api.routers.geo_locate:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 54,
+      "module": "services.sahool-platform.api.routers.gis_cloud_native",
+      "node_id": "services.sahool-platform.api.routers.gis_cloud_native:router",
+      "route_count": 30,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.gis_kernel",
+      "node_id": "services.sahool-platform.api.routers.gis_kernel:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.harvest_traceability",
+      "node_id": "services.sahool-platform.api.routers.harvest_traceability:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.high_value_crops",
+      "node_id": "services.sahool-platform.api.routers.high_value_crops:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.indicators",
+      "node_id": "services.sahool-platform.api.routers.indicators:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.indices",
+      "node_id": "services.sahool-platform.api.routers.indices:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 14,
+      "module": "services.sahool-platform.api.routers.internal_service",
+      "node_id": "services.sahool-platform.api.routers.internal_service:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.introduction",
+      "node_id": "services.sahool-platform.api.routers.introduction:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 36,
+      "module": "services.sahool-platform.api.routers.inventory",
+      "node_id": "services.sahool-platform.api.routers.inventory:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.ipm",
+      "node_id": "services.sahool-platform.api.routers.ipm:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 50,
+      "module": "services.sahool-platform.api.routers.irrigation",
+      "node_id": "services.sahool-platform.api.routers.irrigation:router",
+      "route_count": 9,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 52,
+      "module": "services.sahool-platform.api.routers.irrigation_engineering",
+      "node_id": "services.sahool-platform.api.routers.irrigation_engineering:router",
+      "route_count": 12,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.irrigation_method",
+      "node_id": "services.sahool-platform.api.routers.irrigation_method:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 43,
+      "module": "services.sahool-platform.api.routers.irrigation_mpc",
+      "node_id": "services.sahool-platform.api.routers.irrigation_mpc:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.irrigation_network",
+      "node_id": "services.sahool-platform.api.routers.irrigation_network:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.irrigation_plan",
+      "node_id": "services.sahool-platform.api.routers.irrigation_plan:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.irrigation_recommendation",
+      "node_id": "services.sahool-platform.api.routers.irrigation_recommendation:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.kc_timeseries",
+      "node_id": "services.sahool-platform.api.routers.kc_timeseries:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.learning",
+      "node_id": "services.sahool-platform.api.routers.learning:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 35,
+      "module": "services.sahool-platform.api.routers.learning_summary",
+      "node_id": "services.sahool-platform.api.routers.learning_summary:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.lifecycle",
+      "node_id": "services.sahool-platform.api.routers.lifecycle:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.lineage",
+      "node_id": "services.sahool-platform.api.routers.lineage:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.market",
+      "node_id": "services.sahool-platform.api.routers.market:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.master_data",
+      "node_id": "services.sahool-platform.api.routers.master_data:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 22,
+      "module": "services.sahool-platform.api.routers.me",
+      "node_id": "services.sahool-platform.api.routers.me:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.ndvi_analysis",
+      "node_id": "services.sahool-platform.api.routers.ndvi_analysis:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.niche_crops",
+      "node_id": "services.sahool-platform.api.routers.niche_crops:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 39,
+      "module": "services.sahool-platform.api.routers.nl_gis",
+      "node_id": "services.sahool-platform.api.routers.nl_gis:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.nl_sql",
+      "node_id": "services.sahool-platform.api.routers.nl_sql:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 47,
+      "module": "services.sahool-platform.api.routers.notifications",
+      "node_id": "services.sahool-platform.api.routers.notifications:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.nutrients",
+      "node_id": "services.sahool-platform.api.routers.nutrients:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.observations",
+      "node_id": "services.sahool-platform.api.routers.observations:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.onboarding",
+      "node_id": "services.sahool-platform.api.routers.onboarding:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.operational_truth",
+      "node_id": "services.sahool-platform.api.routers.operational_truth:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.operations",
+      "node_id": "services.sahool-platform.api.routers.operations:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.sahool-platform.api.routers.orchard",
+      "node_id": "services.sahool-platform.api.routers.orchard:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.outcome",
+      "node_id": "services.sahool-platform.api.routers.outcome:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 29,
+      "module": "services.sahool-platform.api.routers.pest_escalation",
+      "node_id": "services.sahool-platform.api.routers.pest_escalation:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.phenology",
+      "node_id": "services.sahool-platform.api.routers.phenology:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.planting",
+      "node_id": "services.sahool-platform.api.routers.planting:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.platform_health",
+      "node_id": "services.sahool-platform.api.routers.platform_health:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.policy_learning",
+      "node_id": "services.sahool-platform.api.routers.policy_learning:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 31,
+      "module": "services.sahool-platform.api.routers.portfolio_command",
+      "node_id": "services.sahool-platform.api.routers.portfolio_command:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.postharvest",
+      "node_id": "services.sahool-platform.api.routers.postharvest:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.practices",
+      "node_id": "services.sahool-platform.api.routers.practices:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 49,
+      "module": "services.sahool-platform.api.routers.prescriptions",
+      "node_id": "services.sahool-platform.api.routers.prescriptions:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.productivity",
+      "node_id": "services.sahool-platform.api.routers.productivity:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.propagation",
+      "node_id": "services.sahool-platform.api.routers.propagation:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.queue",
+      "node_id": "services.sahool-platform.api.routers.queue:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.rbac",
+      "node_id": "services.sahool-platform.api.routers.rbac:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.sahool-platform.api.routers.readiness",
+      "node_id": "services.sahool-platform.api.routers.readiness:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 48,
+      "module": "services.sahool-platform.api.routers.recommendations",
+      "node_id": "services.sahool-platform.api.routers.recommendations:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.regional_bulletin",
+      "node_id": "services.sahool-platform.api.routers.regional_bulletin:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 16,
+      "module": "services.sahool-platform.api.routers.regional_calendar",
+      "node_id": "services.sahool-platform.api.routers.regional_calendar:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.registry",
+      "node_id": "services.sahool-platform.api.routers.registry:router",
+      "route_count": 7,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 28,
+      "module": "services.sahool-platform.api.routers.replay",
+      "node_id": "services.sahool-platform.api.routers.replay:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 37,
+      "module": "services.sahool-platform.api.routers.reports",
+      "node_id": "services.sahool-platform.api.routers.reports:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.rotation",
+      "node_id": "services.sahool-platform.api.routers.rotation:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.salinity",
+      "node_id": "services.sahool-platform.api.routers.salinity:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.sampling",
+      "node_id": "services.sahool-platform.api.routers.sampling:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 46,
+      "module": "services.sahool-platform.api.routers.scenario",
+      "node_id": "services.sahool-platform.api.routers.scenario:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 40,
+      "module": "services.sahool-platform.api.routers.scouting",
+      "node_id": "services.sahool-platform.api.routers.scouting:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.season_workspace",
+      "node_id": "services.sahool-platform.api.routers.season_workspace:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.seasonal_risk",
+      "node_id": "services.sahool-platform.api.routers.seasonal_risk:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.seasons",
+      "node_id": "services.sahool-platform.api.routers.seasons:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 15,
+      "module": "services.sahool-platform.api.routers.security_audit",
+      "node_id": "services.sahool-platform.api.routers.security_audit:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.seed",
+      "node_id": "services.sahool-platform.api.routers.seed:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.sahool-platform.api.routers.service_proxy",
+      "node_id": "services.sahool-platform.api.routers.service_proxy:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.settings",
+      "node_id": "services.sahool-platform.api.routers.settings:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 42,
+      "module": "services.sahool-platform.api.routers.sharing",
+      "node_id": "services.sahool-platform.api.routers.sharing:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.simple_farm_book",
+      "node_id": "services.sahool-platform.api.routers.simple_farm_book:router",
+      "route_count": 7,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.simulate",
+      "node_id": "services.sahool-platform.api.routers.simulate:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 43,
+      "module": "services.sahool-platform.api.routers.soil_sampling",
+      "node_id": "services.sahool-platform.api.routers.soil_sampling:router",
+      "route_count": 9,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 45,
+      "module": "services.sahool-platform.api.routers.sync",
+      "node_id": "services.sahool-platform.api.routers.sync:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 33,
+      "module": "services.sahool-platform.api.routers.tasks",
+      "node_id": "services.sahool-platform.api.routers.tasks:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 30,
+      "module": "services.sahool-platform.api.routers.temporal",
+      "node_id": "services.sahool-platform.api.routers.temporal:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.sahool-platform.api.routers.tenant",
+      "node_id": "services.sahool-platform.api.routers.tenant:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 26,
+      "module": "services.sahool-platform.api.routers.trials",
+      "node_id": "services.sahool-platform.api.routers.trials:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.varieties",
+      "node_id": "services.sahool-platform.api.routers.varieties:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.water_balance",
+      "node_id": "services.sahool-platform.api.routers.water_balance:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 24,
+      "module": "services.sahool-platform.api.routers.water_harvesting",
+      "node_id": "services.sahool-platform.api.routers.water_harvesting:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 51,
+      "module": "services.sahool-platform.api.routers.water_ledger",
+      "node_id": "services.sahool-platform.api.routers.water_ledger:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 34,
+      "module": "services.sahool-platform.api.routers.water_sensitivity",
+      "node_id": "services.sahool-platform.api.routers.water_sensitivity:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 48,
+      "module": "services.sahool-platform.api.routers.water_twin",
+      "node_id": "services.sahool-platform.api.routers.water_twin:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 40,
+      "module": "services.sahool-platform.api.routers.weather",
+      "node_id": "services.sahool-platform.api.routers.weather:router",
+      "route_count": 29,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.weather_analytics",
+      "node_id": "services.sahool-platform.api.routers.weather_analytics:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 23,
+      "module": "services.sahool-platform.api.routers.wofost",
+      "node_id": "services.sahool-platform.api.routers.wofost:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.sahool-platform.api.routers.yield_analysis",
+      "node_id": "services.sahool-platform.api.routers.yield_analysis:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.sahool-platform.api.routers.yield_interval",
+      "node_id": "services.sahool-platform.api.routers.yield_interval:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 11,
+      "module": "services.soil-service.routers.canonical",
+      "node_id": "services.soil-service.routers.canonical:router",
+      "route_count": 7,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.soil-service.routers.health",
+      "node_id": "services.soil-service.routers.health:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.soil-service.routers.modbus",
+      "node_id": "services.soil-service.routers.modbus:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.soil-service.routers.p1_products",
+      "node_id": "services.soil-service.routers.p1_products:router",
+      "route_count": 9,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 22,
+      "module": "services.soil-service.routers.p2_products",
+      "node_id": "services.soil-service.routers.p2_products:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 27,
+      "module": "services.soil-service.routers.p3_products",
+      "node_id": "services.soil-service.routers.p3_products:router",
+      "route_count": 10,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 12,
+      "module": "services.soil-service.routers.p4_workflow",
+      "node_id": "services.soil-service.routers.p4_workflow:router",
+      "route_count": 7,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 14,
+      "module": "services.soil-service.routers.p5_certification",
+      "node_id": "services.soil-service.routers.p5_certification:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 10,
+      "module": "services.soil-service.routers.p6_certification",
+      "node_id": "services.soil-service.routers.p6_certification:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 19,
+      "module": "services.soil-service.routers.readings",
+      "node_id": "services.soil-service.routers.readings:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 22,
+      "module": "services.soil-service.routers.soil_profile",
+      "node_id": "services.soil-service.routers.soil_profile:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 20,
+      "module": "services.supervisor-agent.routers.agent",
+      "node_id": "services.supervisor-agent.routers.agent:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 16,
+      "module": "services.supervisor-agent.routers.health",
+      "node_id": "services.supervisor-agent.routers.health:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.tts-service.routers.health",
+      "node_id": "services.tts-service.routers.health:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 17,
+      "module": "services.tts-service.routers.tts",
+      "node_id": "services.tts-service.routers.tts:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 18,
+      "module": "services.vegetation-analysis-service.routers.analysis",
+      "node_id": "services.vegetation-analysis-service.routers.analysis:router",
+      "route_count": 6,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 25,
+      "module": "services.vegetation-analysis-service.routers.anomalies",
+      "node_id": "services.vegetation-analysis-service.routers.anomalies:router",
+      "route_count": 5,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 14,
+      "module": "services.vegetation-analysis-service.routers.baselines",
+      "node_id": "services.vegetation-analysis-service.routers.baselines:router",
+      "route_count": 1,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 13,
+      "module": "services.vegetation-analysis-service.routers.diagnoses",
+      "node_id": "services.vegetation-analysis-service.routers.diagnoses:router",
+      "route_count": 2,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 16,
+      "module": "services.vegetation-analysis-service.routers.health",
+      "node_id": "services.vegetation-analysis-service.routers.health:router",
+      "route_count": 4,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 8,
+      "module": "services.vegetation-analysis-service.routers.outcomes",
+      "node_id": "services.vegetation-analysis-service.routers.outcomes:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 15,
+      "module": "services.video-processor.routers.health",
+      "node_id": "services.video-processor.routers.health:router",
+      "route_count": 3,
+      "safe_to_delete": false,
+      "symbol": "router"
+    },
+    {
+      "classification": "review_only_not_statically_reachable",
+      "kind": "router",
+      "line": 21,
+      "module": "services.video-processor.routers.streams",
+      "node_id": "services.video-processor.routers.streams:router",
+      "route_count": 8,
+      "safe_to_delete": false,
+      "symbol": "router"
+    }
+  ],
+  "production_certified": false,
+  "reachable_node_count": 32,
+  "resolved_include_edge_count": 2,
+  "router_with_routes_count": 227,
+  "runtime_verified": false,
+  "safe_automatic_deletions": 0,
+  "schema_version": 1,
+  "unresolved_include_count": 23,
+  "unresolved_includes": [
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/actuator-service/router_registry.py",
+      "line": 66,
+      "module": "services.actuator-service.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/auth/router_registry.py",
+      "line": 70,
+      "module": "services.auth.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/guardrails-engine/router_registry.py",
+      "line": 70,
+      "module": "services.guardrails-engine.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/odoo-bridge/router_registry.py",
+      "line": 70,
+      "module": "services.odoo-bridge.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/raster-service/router_registry.py",
+      "line": 70,
+      "module": "services.raster-service.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/api/router_registry.py",
+      "line": 32,
+      "module": "services.sahool-platform.api.router_registry",
+      "source": null,
+      "target_expression": "phase9_autonomous_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/api/router_registry.py",
+      "line": 33,
+      "module": "services.sahool-platform.api.router_registry",
+      "source": null,
+      "target_expression": "phase10_learning_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/api/router_registry.py",
+      "line": 34,
+      "module": "services.sahool-platform.api.router_registry",
+      "source": null,
+      "target_expression": "phase11_federation_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/api/router_registry.py",
+      "line": 35,
+      "module": "services.sahool-platform.api.router_registry",
+      "source": null,
+      "target_expression": "phase12_ecosystem_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/api/router_registry.py",
+      "line": 47,
+      "module": "services.sahool-platform.api.router_registry",
+      "source": null,
+      "target_expression": "router_obj"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/api/router_registry.py",
+      "line": 53,
+      "module": "services.sahool-platform.api.router_registry",
+      "source": null,
+      "target_expression": "service_proxy_router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
+      "line": 107,
+      "module": "services.sahool-platform.tests.test_lab_sampling_router",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_lab_sampling_router.py",
+      "line": 193,
+      "module": "services.sahool-platform.tests.test_lab_sampling_router",
+      "source": null,
+      "target_expression": "mod.router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase10_continuous_learning_api.py",
+      "line": 13,
+      "module": "services.sahool-platform.tests.test_phase10_continuous_learning_api",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase11_federated_agents_api.py",
+      "line": 13,
+      "module": "services.sahool-platform.tests.test_phase11_federated_agents_api",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase11_runtime_api.py",
+      "line": 11,
+      "module": "services.sahool-platform.tests.test_phase11_runtime_api",
+      "source": "services.sahool-platform.tests.test_phase11_runtime_api:app",
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase12_marketplace_ecosystem_api.py",
+      "line": 13,
+      "module": "services.sahool-platform.tests.test_phase12_marketplace_ecosystem_api",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/sahool-platform/tests/test_phase9_autonomous_farm_os_api.py",
+      "line": 13,
+      "module": "services.sahool-platform.tests.test_phase9_autonomous_farm_os_api",
+      "source": null,
+      "target_expression": "router"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/soil-service/router_registry.py",
+      "line": 70,
+      "module": "services.soil-service.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/supervisor-agent/router_registry.py",
+      "line": 70,
+      "module": "services.supervisor-agent.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/tts-service/router_registry.py",
+      "line": 70,
+      "module": "services.tts-service.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/vegetation-analysis-service/router_registry.py",
+      "line": 70,
+      "module": "services.vegetation-analysis-service.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    },
+    {
+      "classification": "review_only_dynamic_or_unresolved_include",
+      "file": "services/video-processor/router_registry.py",
+      "line": 70,
+      "module": "services.video-processor.router_registry",
+      "source": null,
+      "target_expression": "_tmp"
+    }
+  ]
+}

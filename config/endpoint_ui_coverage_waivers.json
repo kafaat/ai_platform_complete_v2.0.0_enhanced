@@ -450,26 +450,6 @@
       "intended_consumer": "machine"
     },
     {
-      "endpoint": "/api/v1/crop-twin/decision-candidate",
-      "audience": "agronomist",
-      "methods": [
-        "post@services/sahool-platform/api/routers/crop_twin.py"
-      ],
-      "reason_category": "operational",
-      "reason": "WX-10.6 حدّ crop→decision candidate: مسار حوكمة يبني/يرسل مرشّح قرار pending_approval يملكه decision-service (fail-closed، لا تنفيذ تلقائيّ). machine-consumed decision boundary pending reviewer UI.",
-      "priority": "none",
-      "ui_effort": "none",
-      "ui_surface_hint": "no-ui-required",
-      "criticality": "none",
-      "importance": 0,
-      "importance_tier": "none",
-      "intended_consumer": "machine",
-      "owner": "crop-intelligence",
-      "tracking": "WX-10.7",
-      "expiry": "2026-10-11",
-      "temporary": true
-    },
-    {
       "endpoint": "/api/v1/decisions/{decision_id}/execution-plan",
       "audience": "agronomist",
       "methods": [

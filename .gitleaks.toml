@@ -18,4 +18,9 @@ paths = [
 # placeholders, never real credentials). Keep this list narrow and literal.
 regexes = [
   '''assertion-signing-key-at-least-32-chars''',
+  # WX-10.6 downstream E2E idempotency token (test literal). The generic-api-key rule
+  # flags it via the "key" keyword; it is a fixed reviewer-action idempotency token in
+  # a decision-service test, never a credential. Global allowlist (not an inline marker)
+  # because the token lives in branch history and the history scan re-reads each commit.
+  '''wx106-approve''',
 ]

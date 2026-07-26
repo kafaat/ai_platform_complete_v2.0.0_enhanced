@@ -24,3 +24,15 @@ def test_report_with_guard_change_is_allowed():
 def test_runbook_only_is_substantive_for_certification_path():
     result = _run("docs/runbooks/PRODUCTION_EVIDENCE_PACK.md")
     assert result.returncode == 0, result.stderr
+
+
+def test_migration_change_is_substantive():
+    # A migration fix (e.g. making DDL idempotent) accompanied only by the
+    # regenerated release bundle must NOT be blocked as report-only — migrations
+    # are schema/data code. Regression guard for the v205 idempotency fix PR.
+    result = _run(
+        "migrations/v205_irrigation_reservation_runtime_hardening.sql",
+        "release/FILE_CHECKSUMS.sha256",
+        "sahool-brain/gaps/registry.md",
+    )
+    assert result.returncode == 0, result.stderr

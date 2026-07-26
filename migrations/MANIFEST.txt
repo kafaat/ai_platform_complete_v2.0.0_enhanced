@@ -720,6 +720,13 @@ v210_erp_reconciliation_ledger.sql
 v211_simple_farm_book.sql
 # v212: فهرس فريد جزئيّ — تصحيح واحد لكلّ قيد دفتر (فرض DB لثابت v211).
 v212_farm_book_one_reversal_index.sql
+# v213 (V8-05 PR1-a): عمود run_kind على backfill_runs لتمييز 'single_scene' عن 'backfill'
+#   (ALTER فقط، idempotent). يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
+v213_backfill_runs_single_scene.sql
+# v214 (H5.1): جدول وصل field_irrigation_source_assignments — ربط الحقل بمصدر ماء الريّ
+#   خادميّاً (نافذة صلاحيّة + أولويّة + خلط + حالة) ليصير مصدر بوّابة الملوحة مُشتقّاً من
+#   الخادم لا من العميل. RLS صارم. يُدرَج قبل v206 كي يبقى v206 آخِر مدخل.
+v214_field_irrigation_source_assignments.sql
 # v206 (حزمة 72 ساعة، DB-P0-06/07): تشديد tenant_isolation — كتابة fail-closed بلا
 # app.current_tenant + تأكيد catalog دائم (ENABLE+FORCE+WITH CHECK). يجب أن يبقى آخر مدخل.
 v206_rls_final_hardening.sql

@@ -53,8 +53,12 @@ def assert_platform_may_write_decision_sor(table: str) -> None:
     Consults :func:`get_platform_decision_sor_mode`. No-op while the platform is the
     authoritative writer (``platform_writes_required`` True — the default and shadow
     modes); raises :class:`PlatformDecisionWriteForbidden` once the platform has been
-    demoted, closing the dual-write window at the application layer. (DB-level write
-    revocation from the platform role is the complementary follow-up.)
+    demoted, closing the dual-write window at the application layer. The complementary
+    DB-level enforcement — revoking INSERT/UPDATE/DELETE from the platform role on the
+    SoR tables at cutover (SELECT retained) — is applied out-of-band by
+    ``services/decision-service/platform_sor_revoke.py`` (operator wrapper
+    ``scripts/deploy/decision_sor_platform_revoke.sh``), so a platform write is denied at
+    the database even if this Python guard is bypassed.
     """
     mode = get_platform_decision_sor_mode()
     if not mode.platform_writes_required:

@@ -107,6 +107,7 @@ async def insert_raster_asset(
     geometry_revision: int | None = None,
     asset_status: str = "ready",
     product_identity_key: str | None = None,
+    legacy_product_identity_key: str | None = None,
     algorithm_version: str | None = None,
     qa_mask_version: str | None = None,
     field_geometry_hash: str | None = None,
@@ -196,6 +197,21 @@ async def insert_raster_asset(
             "SELECT set_config('app.current_tenant', $1, false)",
             str(tenant_id) if tenant_id else "",
         )
+        # PR1-b dual-read/single-write: رحّل صفّاً قديماً بهويّة بلا provider إلى الهويّة v2
+        # (بـprovider) مرّةً واحدةً عند إمكان إثبات التطابق دون غموض — كي لا تُنتِج إعادة
+        # المعالجة صفّاً مكرّراً بعد تغيّر البصمة. forward-repair لصفّ واحد، لا إعادة كتابة جماعيّة.
+        if (
+            product_identity_key
+            and legacy_product_identity_key
+            and legacy_product_identity_key != product_identity_key
+        ):
+            await conn.execute(
+                "UPDATE raster_assets SET product_identity_key=$1 "
+                "WHERE product_identity_key=$2 "
+                "AND NOT EXISTS (SELECT 1 FROM raster_assets r2 WHERE r2.product_identity_key=$1)",
+                product_identity_key,
+                legacy_product_identity_key,
+            )
         await conn.execute(
             sql,
             field_id,
@@ -399,11 +415,17 @@ async def insert_backfill_run(
     apply_cloud_mask: bool = True,
     limit_per_month: int = 2,
     source: str = "sentinel-2",
+    run_kind: str = "backfill",
 ) -> int | None:
     """يُنشئ تشغيلة backfill (status='planned') ويُرجِع id — يمكّن الردّ الفوريّ بلا
-    مسح STAC في مسار الطلب (v5-F1/F2). العامل يلتقطها لاحقاً. RLS: يضبط app.current_tenant."""
+    مسح STAC في مسار الطلب (v5-F1/F2). العامل يلتقطها لاحقاً. RLS: يضبط app.current_tenant.
+
+    ``run_kind`` (v213): 'backfill' (الافتراض، مسح تاريخيّ) أو 'single_scene' (معالجة
+    تاريخٍ واحد معروف — العامل يتخطّى الاكتشاف الشهريّ)."""
     if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
         return None
+    if run_kind not in ("backfill", "single_scene"):
+        run_kind = "backfill"
     conn = await _connect()
     if conn is None:
         return None
@@ -411,10 +433,10 @@ async def insert_backfill_run(
         INSERT INTO backfill_runs (
             tenant_id, field_id, preset, from_date, to_date, months, indices,
             max_cloud_pct, geometry_revision, clip_polygon_geojson, apply_cloud_mask,
-            limit_per_month, source, status
+            limit_per_month, source, run_kind, status
         ) VALUES (
             $1::uuid, $2, $3, $4::text::date, $5::text::date, $6, COALESCE($7::jsonb, '[]'::jsonb),
-            $8, $9, $10::jsonb, $11, $12, $13, 'planned'
+            $8, $9, $10::jsonb, $11, $12, $13, $14, 'planned'
         )
         RETURNING id
     """
@@ -435,6 +457,7 @@ async def insert_backfill_run(
             apply_cloud_mask,
             int(limit_per_month),
             source,
+            run_kind,
         )
         return int(run_id) if run_id is not None else None
     except Exception as e:  # noqa: BLE001 — غياب الجدول لا يُفشل الطلب (يسقط للمسار المتزامن)
@@ -484,6 +507,212 @@ async def get_backfill_run_status(run_id: int, tenant_id: str | None = None) -> 
         return out
     except Exception as e:  # noqa: BLE001 — غياب الجدول لا يُفشل القراءة
         logger.warning("backfill_runs status fetch skipped (%s): %s", run_id, e)
+        return None
+    finally:
+        await conn.close()
+
+
+async def enqueue_single_scene_process(
+    *,
+    tenant_id: str | None,
+    field_id: str | None,
+    acquisition_date: str,
+    index_name: str,
+    scene_id: str,
+    geometry_revision: int | None = None,
+    clip_polygon_geojson: dict | None = None,
+    max_cloud_pct: float = 60.0,
+    apply_cloud_mask: bool = True,
+    provider: str = "cdse",
+) -> dict | None:
+    """يُجدوِل معالجة مشهد مفرد لتاريخ اختاره المستخدم بإعادة استعمال نموذج backfill (v213، V8-05 PR1-a).
+
+    يفصل «اختيار التاريخ» عن «المعالجة»: النقطة تُنشئ تشغيلة ``run_kind='single_scene'``
+    وعنصراً واحداً مُنشأً مسبقاً (queued)، ويعالجهما العامل لاتزامنيّاً. **لا جدول/آلة حالة
+    جديدة** — نفس backfill_runs/backfill_run_items + مفتاح idempotency.
+
+    الإرجاع (dict) أو None عند إدخال غير صالح/قاعدة متعذّرة:
+      • status: 'already_ready' (أصلٌ جاهز موجود — لا تشغيلة) · 'in_progress' (عنصر قائم قيد
+        المعالجة — يُعاد استعماله) · 'planned' (أُنشئت تشغيلة/عنصر جديد أو أُعيد ربط عنصر فاشل).
+      • run_id / item_id: مُعرّفا التشغيلة/العنصر (None حين already_ready).
+      • reused_existing_job: True حين لم تُجدوَل معالجة جديدة (جاهز مسبقاً أو عنصر حيّ قائم).
+
+    fail-closed: لا اختلاق نجاح — العنصر يبقى 'queued' حتى يعالجه العامل فعليّاً.
+    """
+    if not _valid_field_id_text(field_id) or not (tenant_id and _valid_uuid_text(tenant_id)):
+        return None
+    scene_id = str(scene_id or "").strip()
+    index_name = str(index_name or "").strip()
+    acq = str(acquisition_date or "")[:10]
+    if not scene_id or not index_name or len(acq) != 10:
+        return None
+    conn = await _connect()
+    if conn is None:
+        return None
+    # PR1-b: المفتاح القانونيّ v2 عبر كائن القيمة الوحيد (يشمل processing_version من مسار
+    # المعالجة القانونيّ لا من العميل) — مطابق تماماً لبناء العامل الجماعيّ.
+    import sys
+    from pathlib import Path as _Path
+
+    _svc = str(_Path(__file__).resolve().parent)
+    if _svc not in sys.path:
+        sys.path.insert(0, _svc)
+    from imagery_product_identity import ImageryProductIdentity, canonical_processing_version
+
+    identity = ImageryProductIdentity.create(
+        tenant_id=tenant_id,
+        field_id=field_id,
+        geometry_revision=geometry_revision,
+        provider=provider,
+        scene_id=scene_id,
+        product=index_name,
+        processing_version=canonical_processing_version(),
+    )
+    key = identity.to_canonical_key()
+    try:
+        await conn.execute("SELECT set_config('app.current_tenant', $1, false)", str(tenant_id))
+        async with conn.transaction():
+            # PR1-b dual-read: رحّل عنصراً قديماً مطابقاً (بلا processing_version) إلى المفتاح v2
+            # مرّةً واحدةً عند إمكان إثبات التطابق دون غموض (single-write، لا إعادة كتابة جماعيّة).
+            if identity.legacy_matches_baseline():
+                await conn.execute(
+                    "UPDATE backfill_run_items SET idempotency_key=$3 "
+                    "WHERE tenant_id=$1::uuid AND idempotency_key=$2 "
+                    "AND NOT EXISTS (SELECT 1 FROM backfill_run_items b2 "
+                    "WHERE b2.tenant_id=$1::uuid AND b2.idempotency_key=$3)",
+                    str(tenant_id),
+                    identity.legacy_backfill_key(),
+                    key,
+                )
+            # ١. preflight: أصلٌ جاهز **للمشهد نفسه** بنفس مراجعة الهندسة ⇒ لا معالجة جديدة.
+            # مراجعة P1-1: يجب مطابقة scene_id (جزء من الهويّة القانونيّة) وإلّا أعاد أصلٌ لمشهدٍ
+            # آخر في اليوم نفسه «already_ready» زوراً للمشهد المختار. هذا يطابق preflight العامل
+            # (backfill_scan_worker يطابق scene_id أصلاً). provider ليس عموداً في raster_assets
+            # فالمطابقة على scene_id (المُميِّز الفعليّ «يوم نفسه، مشهد مختلف»).
+            ready = await conn.fetchval(
+                "SELECT 1 FROM raster_assets WHERE tenant_id=$1::uuid AND field_id=$2 "
+                "AND index_name=$3 AND acquisition_date=$4::text::date AND scene_id=$5 "
+                "AND asset_status='ready' "
+                "AND ($6::int IS NULL OR geometry_revision=$6::int) LIMIT 1",
+                str(tenant_id),
+                field_id,
+                index_name,
+                acq,
+                scene_id,
+                geometry_revision,
+            )
+            if ready:
+                return {
+                    "status": "already_ready",
+                    "run_id": None,
+                    "item_id": None,
+                    "reused_existing_job": True,
+                }
+            # ٢. عنصر قائم بنفس المفتاح؟ إعادة استعمال حيّ (queued/processing) أو جاهز (persisted).
+            existing = await conn.fetchrow(
+                "SELECT id, run_id, status FROM backfill_run_items "
+                "WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                str(tenant_id),
+                key,
+            )
+            if existing is not None and str(existing["status"]) in (
+                "queued",
+                "processing",
+                "persisted",
+            ):
+                st = str(existing["status"])
+                return {
+                    "status": "already_ready" if st == "persisted" else "in_progress",
+                    "run_id": int(existing["run_id"]) if existing["run_id"] is not None else None,
+                    "item_id": int(existing["id"]),
+                    "reused_existing_job": True,
+                }
+            # ٣. أنشئ تشغيلة single_scene (نافذة يوم واحد؛ العامل يحلّ المشهد المعروف بلا اكتشاف).
+            run_id = await conn.fetchval(
+                """
+                INSERT INTO backfill_runs (
+                    tenant_id, field_id, preset, from_date, to_date, months, indices,
+                    max_cloud_pct, geometry_revision, clip_polygon_geojson, apply_cloud_mask,
+                    limit_per_month, source, run_kind, status
+                ) VALUES (
+                    $1::uuid, $2, 'single_scene', $3::text::date, $3::text::date, 1,
+                    COALESCE($4::jsonb, '[]'::jsonb), $5, $6, $7::jsonb, $8, 1, 'sentinel-2',
+                    'single_scene', 'planned'
+                )
+                RETURNING id
+                """,
+                str(tenant_id),
+                field_id,
+                acq,
+                json.dumps([index_name]),
+                max_cloud_pct,
+                geometry_revision,
+                json.dumps(clip_polygon_geojson) if clip_polygon_geojson else None,
+                apply_cloud_mask,
+            )
+            if run_id is None:
+                return None
+            # ٤. أعِد ربط عنصر فاشل/متخطّى سابقاً بالتشغيلة الجديدة، أو أنشئ عنصراً جديداً.
+            if existing is not None:  # status ∈ (skipped, failed) — إعادة محاولة صادقة
+                item_id = await conn.fetchval(
+                    "UPDATE backfill_run_items SET run_id=$1, status='queued', job_id=NULL, "
+                    "error=NULL, processed_at=NULL WHERE tenant_id=$2::uuid AND idempotency_key=$3 "
+                    "RETURNING id",
+                    int(run_id),
+                    str(tenant_id),
+                    key,
+                )
+            else:
+                item_id = await conn.fetchval(
+                    """
+                    INSERT INTO backfill_run_items (
+                        run_id, tenant_id, field_id, scene_id, index_name, acquisition_date,
+                        provider, idempotency_key, status
+                    ) VALUES ($1, $2::uuid, $3, $4, $5, $6::text::date, $7, $8, 'queued')
+                    ON CONFLICT (tenant_id, idempotency_key) DO NOTHING
+                    RETURNING id
+                    """,
+                    int(run_id),
+                    str(tenant_id),
+                    field_id,
+                    scene_id,
+                    index_name,
+                    acq,
+                    provider,
+                    key,
+                )
+                if item_id is None:
+                    # سباق نادر: أُدرِج العنصر بين SELECT وINSERT (ON CONFLICT DO NOTHING).
+                    # مراجعة P1-2: التشغيلة التي أنشأناها للتوّ صارت **يتيمة** (بلا عناصر) لأنّ عنصر
+                    # الفائز مرتبط بتشغيلته. احذف تشغيلتنا اليتيمة قبل إعادة عنصر الفائز — لا صفوف
+                    # planned بلا عناصر، لا إحصاءات مُضلِّلة، لا التقاط العامل لتشغيلة فارغة.
+                    await conn.execute(
+                        "DELETE FROM backfill_runs WHERE id=$1 AND run_kind='single_scene' "
+                        "AND NOT EXISTS (SELECT 1 FROM backfill_run_items WHERE run_id=$1)",
+                        int(run_id),
+                    )
+                    race = await conn.fetchrow(
+                        "SELECT id, run_id FROM backfill_run_items "
+                        "WHERE tenant_id=$1::uuid AND idempotency_key=$2",
+                        str(tenant_id),
+                        key,
+                    )
+                    if race is not None:
+                        return {
+                            "status": "in_progress",
+                            "run_id": int(race["run_id"]) if race["run_id"] is not None else None,
+                            "item_id": int(race["id"]),
+                            "reused_existing_job": True,
+                        }
+                    return None
+            return {
+                "status": "planned",
+                "run_id": int(run_id),
+                "item_id": int(item_id) if item_id is not None else None,
+                "reused_existing_job": False,
+            }
+    except Exception as e:  # noqa: BLE001 — غياب الجدول/القاعدة ⇒ None (النقطة تُرجِع 503)
+        logger.warning("single_scene enqueue skipped (field=%s): %s", field_id, e)
         return None
     finally:
         await conn.close()
@@ -675,7 +904,8 @@ async def list_available_asset_dates(
         SELECT DISTINCT ON (a.acquisition_date, a.index_name)
                a.acquisition_date::text AS date,
                a.index_name,
-               a.cloud_pct,
+               a.cloud_pct,  -- scene-level (توافق قديم موثّق)
+               a.aoi_cloud_pct,  -- سحابة فوق الحقل؛ NULL=«لم يُحسب» لا 0%
                a.scene_id,
                -- وقت الالتقاط الحقيقيّ من كتالوج STAC (timestamptz) حين يتوفّر — لا نلفّق
                -- ساعة من DATE (acquisition_date تاريخ فقط بلا وقت). NULL ⇒ الواجهة تعرض

@@ -1,5 +1,80 @@
 # 📜 سجلّ الجلسات (append-only)
 
+## 2026-07-25 — V8-05 PR1-b: توحيد هويّة منتج الصور (backfill + single_scene) — مدموج PR #639 (`f1f2f5d`)
+- **الهدف:** كائن قيمة قانونيّ واحد لهويّة المنتج يُغلق ما تبقّى من فجوة الهويّة/idempotency، دون إعادة فتح معماريّة #637.
+- **كائن القيمة** `services/raster-service/imagery_product_identity.py` (frozen dataclass، منطق نقيّ): 7 حقول (tenant/field/geometry_revision/provider/scene/product/processing_version) + `normalize_provider`/`normalize_product` (المُطبِّع الوحيد المشترك) + `canonical_processing_version()` (من `raster_quality.ALGORITHM_VERSION="sahool.band_math/1"`، لا من العميل) + `to_canonical_key()` (نصّ v2 حتميّ) + `content_hash()` (`ipk2_`+sha256) + `legacy_backfill_key()` (المفتاح القديم 6-حقول) + `legacy_matches_baseline()` (بوّابة dual-read: القديم يُعاد استعماله فقط عند تطابق الإصدار الأساس).
+- **مفتاح idempotency للـbackfill صار v2 (يشمل processing_version):** المُنشئان معاً يمرّان عبر الكائن — `backfill_scan_worker._idempotency_key`/`_identity` (الجماعيّ) + `db_persist.enqueue_single_scene_process` (single_scene؛ أُزيلت f-string اليدويّة). كلاهما يمرّر `canonical_processing_version()`.
+- **provider أُضيف لهويّة المنتج:** `indicator_product_identity.ProductIdentity` اكتسب حقل `provider` (بعد qa_mask، افتراض `None`) عبر المُطبِّع المشترك؛ **`provider=None` يُعيد بصمة `rip_` القديمة حرفيّاً** (توافق للخلف مُثبَت باختبار). `raster_asset_persistence` يشتقّ provider من `req.provider` أو من `source_format` ويمرّره + `legacy_key()`.
+- **dual-read/single-write + forward-repair لصفٍّ واحد:** (١) عناصر backfill: قبل INSERT، `UPDATE … SET idempotency_key=v2 WHERE idempotency_key=legacy AND NOT EXISTS(v2)` مبوَّبة بـ`legacy_matches_baseline()` — في العامل والـenqueue. (٢) `raster_assets`: `insert_raster_asset` اكتسب مُعامِل `legacy_product_identity_key`؛ قبل ON CONFLICT، `UPDATE … SET product_identity_key=v2 WHERE =legacy AND NOT EXISTS(v2)` (ترحيل صفّ واحد كسول، لا إعادة كتابة جماعيّة، لا إسقاط قيد). **لا هجرة جديدة** — الهويّة على مستوى التطبيق؛ آلة حالة v144/v213 دون مساس.
+- **صدق:** processing_version من الخادم لا العميل · لا `hash()` مدمج (غير مستقرّ) — SHA-256 حتميّ · لا دمج منتجَين من مزوّدَين مختلفَين · لا إعادة استعمال عبر اختلاف أيّ من الحقول السبعة.
+- **الاختبارات:** `tests_v9/test_imagery_product_identity_canonical.py` 10/10 (المصفوفة الإلزاميّة كاملة) + اختبارات الهويّة/المنتج القائمة خضراء (توافق `None==old` مُثبَت). `pytest -m unit` = **3474**. `production_validation_gate` أخضر · `ruff` نظيف · جرد/route_mount/كتالوج/حزمة مُعاد توليدها (الحزمة آخِراً — لا انجراف).
+- **خارج النطاق (صراحةً):** منتقي التاريخ/الواجهة · aoi_cloud_pct (أُغلق #636) · جدول معالجة/آلة حالة ثانية · H5 · WX-10.6 · إعادة كتابة تاريخيّة شاملة للمفاتيح.
+
+## 2026-07-25 — TERRAIN مُغلَق: سجل مصادر متعدّد الدقّة + resolver + lineage صادق — مدموج PR #638 (`2ea352c`)
+- **قرار المالك:** أساس عالميّ مجانيّ **Copernicus GLO-30 (30م، DSM)** + دعم خرائط **10م/5م** موثّقة عند التزويد/الترخيص. الأولويّة `validated_5m → validated_10m → glo30_30m` بحسب **تغطية الحقل** (المصدر الأدقّ يجب أن يحتوي مربّع إحاطة الحقل كاملاً). لا طبقة 5م مجانيّة عالميّة اليوم (WorldDEM Neo / AW3D مرخّصة) ⇒ لا ادّعاء عالميّة/مجّانيّة للـ5م.
+- **الدلتا (إضافيّة، بلا مسار جديد):**
+  - `config/terrain_sources.yml` — سجل مصادر يستبدل الاعتماد على ملفّ `FIELD_DEM_PATH` واحد: GLO-30 أساس (`public_baseline`, priority 100) + `supplied-10m` (200) + `supplied-5m` (300)، كلّها `provisioned=false` حتى يزوّد المشغّل `uri` (+`coverage_bbox` للمساحات المحدّدة).
+  - `services/raster-service/terrain_source_registry.py` (منطق نقيّ بلا rasterio): `load_terrain_sources` (YAML + طيّ `FIELD_DEM_PATH` كأساس مُزوَّد للتوافق) · `resolve_terrain_source` (أعلى أولويّة مُزوَّد يغطّي الحقل؛ عالميّ دائماً أو `coverage_bbox` يحتوي؛ لا شيء ⇒ `resolved=false` بسبب صريح) · **منع الدقّة الوهميّة**: `effective_resolution_m=max(native,storage)` و`is_upsampled` — فGLO-30 المُعاد أخذ عيّناته 5م يبقى `effective=30`, `is_upsampled=true` · `terrain_lineage` (المصدر+الدقّتان+المرجع الرأسيّ+التحقّق) · مُرمِّز **Terrain-RGB** (مواصفة Mapbox: `h=-10000+(R·65536+G·256+B)·0.1`) `encode/decode` round-trip دقيق + `terrain_rgb_metadata` يحفظ الدقّة الأصلية (الترميز لا يرفع الدقّة) · `resolution_policy` للحالة/الواجهة.
+  - `routers/fields.py::field_terrain` — يحلّ المصدر ويمرّر `native_resolution_m` كـ`pixel_size_m` + يُلحِق `terrain_source` (nasab) + `resolution_policy`؛ لا مصدر ⇒ يبقى `computed=false` صادق مع السبب.
+  - `routers/terrain_tiles.py::terrain_status` — يعرض السجلّ + `resolution_policy` + عدد المُزوَّد بدل بوليان `FIELD_DEM_PATH` وحده (يبقى `dem_configured` للتوافق، مشتقّ من وجود مصدر مُزوَّد).
+  - اختبار `tests_v9/test_terrain_source_resolver.py` (8/8): وجود GLO-30+10م+5م · OPERATOR_BLOCKED الافتراضيّ · الأولويّة بالتغطية · تغطية جزئيّة لا تستعمل الأدقّ · منع الدقّة الوهميّة · round-trip الترميز + metadata يحفظ native · توافق `FIELD_DEM_PATH` · شكل `resolution_policy`.
+- **الحالة الصادقة (مطابقة اقتراح المالك):** `code_status=COMPLETE` · `product_decision=CLOSED` · **`runtime=OPERATOR_BLOCKED`** — لا بيانات DEM مُزوَّدة في البيئة ⇒ كلّ المصادر `provisioned=false` ⇒ المسار `computed=false`. **المتبقّي بيانات المشغّل لا كود:** `provision_baseline_dem` (GLO-30) · `deploy_terrain_rgb` بلاطات · `validate_runtime`. **لم أختلق/أُفعّل DEM.**
+- **درس (env_compose_drift ①):** متغيّر بيئة اختياريّ يُقرأ بلا افتراضيّ (`os.getenv("TERRAIN_SOURCES_CONFIG")`) يُصنَّف «إلزاميّ مفقود» في الحارس ④؛ الحلّ الصادق إعطاؤه افتراضاً داخليّاً (`os.getenv(x, "").strip()`) لأنّ له افتراضاً حقيقيّاً (السجلّ المُحزَّم).
+- **التحقّق:** `pytest -m unit` أخضر · `ruff` نظيف · حُرّاس الانجراف (inventory/route_mount/catalog) OK · حزمة الإصدار مُعاد بناؤها آخِراً (4872 بصمة).
+
+## 2026-07-25 — V8-05 PR1-a: معالجة مشهد مفرد بإعادة استعمال backfill (run_kind) — مدموج PR #637 (`cf1f61e`)
+- **القرار (المالك):** «عالِج هذا التاريخ» يفصل اختيار التاريخ عن المعالجة، **بإعادة استعمال** `backfill_runs`/`backfill_run_items` — لا جدول `processing_jobs` جديد ولا آلة حالة ثانية.
+- **الدلتا:**
+  - `migrations/v213_backfill_runs_single_scene.sql` — `ADD COLUMN IF NOT EXISTS run_kind TEXT NOT NULL DEFAULT 'backfill'` + قيد CHECK idempotent (`DROP CONSTRAINT IF EXISTS chk_backfill_runs_run_kind` ثمّ ADD، نمط v205). ALTER فقط على جدول v144، لا سياسة RLS جديدة. مُدرَج قبل v206 في MANIFEST + `run_migrations.sql` (خطوة 218، v206 صار 219 ويبقى آخِراً). **لا عمود scene_id على التشغيلة** (المشهد المستهدَف يُخزَّن على `backfill_run_items.scene_id` — لا سقالة غير مستهلَكة).
+  - `db_persist.enqueue_single_scene_process` (مُنسّق معامليّ واحد، RLS-safe): preflight أصل جاهز (`asset_status='ready'` + نفس geom_rev) ⇒ `already_ready`/`reused_existing_job` بلا تشغيلة · عنصر حيّ بنفس مفتاح idempotency (`{tenant}:{field}:{geom}:{provider}:{scene}:{index}`) ⇒ إعادة استعمال · عنصر فاشل/متخطّى ⇒ إعادة ربط بتشغيلة جديدة queued · وإلّا إنشاء تشغيلة `single_scene` + عنصر واحد `queued`. `insert_backfill_run` صار يمرّر `run_kind`.
+  - `backfill_scan_worker`: SELECT المطالبة يضمّ `COALESCE(run_kind,'backfill')`؛ `_process_run` يتفرّع ⇒ `_process_single_scene_run` (نافذة يوم واحد، حدّ سحابيّ مرفوع لأنّ المشهد مُختار صراحةً، يطابق item_id، preflight ready، يعالج عبر `_process_scene_index` القائم، ثمّ counters + final status). لا اكتشاف شهريّ.
+  - `POST /v1/fields/{field_id}/imagery/process-date` (توكن خدمة + تحقّق مستأجِر + هندسة من DB/الطلب) ⇒ `{field_id,date,index,scene_id,run_id,item_id,status,reused_existing_job}`؛ fail-closed 503 عند تعذّر القاعدة. نموذج `ProcessDateRequest` جديد.
+  - حارس ساكن `tests_v9/test_imagery_single_scene_process.py` (4/4).
+- **تحقّق حيّ للهجرة:** حاولتُ 3× تطبيق v213 على PG16 محلّيّ لإثبات idempotency؛ initdb بطيء تجاوز المهلة، لكنّ النمط (ADD IF NOT EXISTS + DROP/ADD CHECK) مطابق لـv205 المُثبَت حيّاً سابقاً، ووظيفة CI integration تطبّق الهجرات على PG حيّ. `production_validation_gate` محلّيّاً أخضر.
+- **ضريبة تسجيل (درسان مُقوّيان):**
+  - (١) مسار جديد في راوتر **خدمة** (لا منصّة) يُحرّك مصنوعات أكثر من المتوقَّع: `service_inventory` (`python_loc`) · **`route_mount_inventory`** (يُكتب بـ`route_mount_contract_guard.py` — منفصل تماماً عن `generate_service_inventory`) · `platform_catalog` (+ `capability_inventory.generated.csv` + `runtime_capability_manifest.generated.json` + `platformCatalog.generated.ts` + `PLATFORM_CATALOG.generated.md`) · حزمة الإصدار · تثبيت `PINNED_UNIQUE_METHOD_PATH` +1 (`test_platform_catalog_gate`) · وذيل MANIFEST المُثبَّت في `test_simple_farm_book` (v213 قبل v206؛ الثوابت الأخرى تفحص v206 آخِراً فقط ⇒ تمرّ).
+  - (٢) **رتّب البناء:** توليد `platform_catalog` **بعد** بناء الحزمة يُبطِل بصمة `capability_inventory.generated.csv` ⇒ حزمة الإصدار تفشل (`checksum mismatch`). القاعدة: أعِد بناء الحزمة **آخِر خطوة** بعد كلّ توليد مولَّد.
+- **قيادة CI للأخضر (3 جولات + flake):** جولة1 حمراء بـ5 بوّابات انجراف مولَّد (release-package/Lint/pytest-contracts/Repository-Structural-Lint من بصمة catalog + Platform-Unit-Tests من ذيل MANIFEST) ⇒ أُصلحت. جولة2 كشفت `route_mount` + `service_inventory` (loc+1) لم يُعادا ⇒ regen. جولة3 flake Docker Hub على Decision-Service (`postgres:15 context deadline exceeded` بعد 6 محاولات) ⇒ amend+force-push (`5e5f056`) ⇒ كلّ الفحوص success/skipped ⇒ squash `cf1f61e`.
+- **المتبقّي:** PR1-b (مفتاح منتج قانونيّ `build_imagery_product_key` + processing_version في مفتاح backfill idempotency + provider في product identity) · PR2 · PR3(H5) · PR4(WX-10.6). C5 = CODE-PREPARED/CALIBRATION-BLOCKED.
+
+## 2026-07-25 — V8-05 الشريحة 1: عقد سحابة الحقل مزدوج القيمة في available-dates — مدموج PR #636 (`cae7d47`)
+- **السياق:** بعد تحقّق عميق (3 خرائط كود) على رسالة بحث «V8-05»، تبيّن أنّ ~70% موجود أصلاً؛ الفجوة الأولى الحقيقيّة **عقد/مستهلِك لا تخزين**: `aoi_cloud_pct` (سحابة فوق مضلّع الحقل) مُخزَّن في `raster_assets` منذ v105 لكنّه **غير مُعاد** في `available-dates` ⇒ الواجهة تُقيّم الجودة من سحابة المشهد كاملاً فتستبعد تواريخ نظيفة فوق الحقل.
+- **الدلتا (إضافيّة صرفة، بلا مسار/هجرة جديدة):**
+  - `services/raster-service/db_persist.py::list_available_asset_dates` (~673): أُضيف `a.aoi_cloud_pct` إلى SELECT بتعليقين موجزين (`a.cloud_pct` scene-level توافق قديم · `a.aoi_cloud_pct` سحابة الحقل، NULL=«لم يُحسب» لا 0%).
+  - `services/raster-service/routers/fields.py::field_available_dates` (helper `_add` ~1287): كلّ صفّ يحمل الآن `cloud_pct` + `scene_cloud_pct` + `aoi_cloud_pct`؛ السحابة الفعّالة = `rec["aoi_cloud_pct"] if rec["aoi_cloud_pct"] is not None else rec["cloud_pct"]` تقود `clear_pct`/`quality_label`؛ صفّ DB يمرّر `aoi_cloud_pct=row.get("aoi_cloud_pct")`. أُضيف helper `_clip_cloud`.
+  - `tests_v9/test_imagery_aoi_cloud_contract.py` (جديد، حارس ساكن 2/2): يؤكّد اختيار aoi_cloud_pct في db_persist + إصدار الراوتر للقيم الثلاث + مُعامِل `aoi_cloud_pct=None` + تمرير `row.get("aoi_cloud_pct")` + الاشتقاق AOI-أوّلاً.
+- **الحارس أمسك سلكاً ناقصاً حقيقيّاً:** أضفتُ مُعامِل `aoi_cloud_pct` لكنّي لم أمرّره من صفّ DB ⇒ الاختبار فشل ⇒ أُصلح فورًا (لا تمرير أعمى).
+- **درس نافذة الحارس (Unit Tests أحمر):** `test_available_dates_distinct_and_quality_v29_7::_fn_body` يقتطع نافذة ثابتة span=2800 حول الدالّة؛ تعليقي AOI رباعيّ الأسطر أزاح سلسلة `ORDER BY` خارج النافذة ⇒ فشل الاختبار على منطق سليم ⇒ قُلّم التعليق لسطرين (`339a599`)، تحقّق 7/7 محلّيّاً. **القاعدة: التعليقات داخل دوالّ يفحصها حارس نافذة-ثابتة تُبقى موجزة.**
+- **Ratchet:** 67 فحصاً success/skipped على head `339a599` (Unit Tests + Security Scan آخِر مَن اخضرّ) + mergeable_state=clean ⇒ squash `cae7d47`. الفرع `claude/code-review-34hO3` أُعيد ضبطه على main الجديد.
+- **المتبقّي من البرنامج (مُعاد النطقة، قرار المالك):** PR1-a إعادة استعمال `backfill_runs` لمعالجة مشهد-مفرد (run_kind=single_scene + `POST /fields/{id}/imagery/process-date` + فرع عامل يتخطّى STAC discovery) · PR1-b مفتاح منتج قانونيّ (`build_imagery_product_key`+processing_version في مفتاح backfill + provider في product identity) · PR2 منتقي تاريخ بلا أثر جانبيّ + عرض AOI في الواجهة · PR3(H5) ربط ECw→water_source_id/well_id + إلزام maximum_allowed_ec fail-closed · PR4(WX-10.6) E2E مصبّ (راية اختبار فقط). C5 يبقى CODE-PREPARED/CALIBRATION-BLOCKED (لا بناء).
+
+## 2026-07-25 — إعفاء WX-10.6: PR #635 أُغلق بقرار المالك (لا دائم، لا واجهة منتِج)
+- المالك رفض تحويل `WAIVER-WX10.6-001` إلى دائم **ورفض** بناء واجهة منتِج جديدة. المسار المعتمَد: `CROP_TWIN_DIRECT_DECISION_ENABLED` يبقى **false في الإنتاج**؛ E2E يُفعّل الراية **في بيئة الاختبار فقط** لإثبات candidate→Decision-Service→ApprovalsConsole→approve/reject→تدقيق غير قابل للتعديل (نفس candidate_id/tenant/field/season · هويّة المراجع من التوكن · رفض عبر-المستأجرين · لا إرسال ماديّ · الراية الإنتاجيّة تبقى false)؛ ثمّ إزالة الإعفاء + تسجيل ApprovalsConsole كسطح مراجعة مصبّ + إصلاح ميتاداتا حارس التغطية إن تطلّب واجهة منتِج. الإعفاء أُعيد لحالة main (مؤقّت، انتهاء 2026-10-11) بانتظار PR4.
+
+## 2026-07-25 — v205 idempotency + migrations/ كتغيير جوهريّ — مدموج PR #634 (`fc80bc3`)
+- **العطل:** `docker compose up` ⇒ `service "sahool-migrate" didn't complete successfully: exit 3`. الجذر: `scripts_v9/apply_in_compose.sh` يعيد تطبيق **كلّ** الهجرات في كلّ `up` بلا تتبّع نسخة؛ psql تحت `ON_ERROR_STOP` يعيد exit 3 عند أوّل خطأ SQL. v205 كان يضيف 5 قيود FK جديدة (fk_reservation_node_project · fk_reservation_evaluation_project · fk_target_binding_node_project · fk_capacity_capability_project · fk_capacity_bottleneck_project) بلا `DROP IF EXISTS` ⇒ إعادة التطبيق تفشل عند «constraint already exists» (v205:22).
+- **الاستنساخ + الإصلاح:** على PG16+PostGIS محلّيّ (طازج=exit0، إعادة=exit3) ⇒ أُضيف `DROP CONSTRAINT IF EXISTS <name>` للقيود الخمسة قبل ADD ⇒ 3 تطبيقات متتالية exit 0.
+- **حمراء CI ثانية:** `no-report-only-change` رفض الـPR («report-only») لأنّ `migrations/` غاب عن `SUBSTANTIVE_PREFIXES` في `scripts/ci/no_report_only_change_guard.py` ⇒ أُضيف + self-test + اختبار regression `test_migration_change_is_substantive`. **درس:** إصلاح هجرة مرفقٌ فقط بحزمة الإصدار المولَّدة كان يُحجب خطأً — الهجرات كود مخطّط/بيانات جوهريّ.
+- **Ratchet:** كلّ الفحوص success/skipped ⇒ merge `fc80bc3`.
+
+## 2026-07-25 — إغلاق ثغرات Dependabot الأربع (postcss + react-router v6→v8) — مدموج PR #633 (`63a70a7`)
+
+**الطلب:** «عالج ثغرات Dependabot الأربع». كلّها npm/واجهة (١ high + ٣ moderate). النتيجة: `npm audit` = **0 vulnerabilities**.
+
+1. **postcss** (HIGH، GHSA-r28c-9q8g-f849 اجتياز مسار عبر تحميل خريطة المصدر): `8.5.15 → 8.5.23` (غير كاسر).
+2. **react-router** (٣ moderate: open-redirect + SSR deserializeErrors + react-router-dom التابع): `6.30.4 → 8.3.0`.
+   - **لماذا v8.3.0 لا v7.18؟** خطّ v7.18.x يُصلح الثلاث الأصليّة لكنّه يقع في نطاق ثغرة **RSC-CSRF** high جديدة (7.12.0–8.2.0)؛ **8.3.0** هي النسخة الوحيدة النظيفة من كلّ الاستشارات (وثّقتُ المفاضلة للمالك عبر AskUserQuestion فاختار الترقية الكاملة).
+   - **صدق:** ثغرتا RSC-CSRF وSSR-hydration تخصّان أنماط RSC/SSR فقط، وهذا **SPA عميل Vite** لا يستخدمها؛ الوحيدة ذات الصلة بـSPA هي open-redirect.
+
+**الهجرة (v6→v8، تراجع تأجيل PR #628 بطلب المالك الصريح):**
+- إعادة كتابة استيرادات **21 ملفّاً** `react-router-dom` → `react-router` (الحزمة أُزيلت في v8، كانت re-export) + قائمة `manualChunks` في `vite.config.ts`.
+- إزالة رايات `future` البائدة (`v7_startTransition`/`v7_relativeSplatPath` صارت افتراضيّة في v7، أُسقِط prop في v8) من ملفَّي اختبار MemoryRouter.
+- **node ≥ 22.22** مطلوب لـreact-router v8: رفع `frontend/Dockerfile` من `node:20-alpine`→`node:22-alpine` ووظيفتَي CI للواجهة (Frontend Typecheck + E2E) node 20→22 في `ci.yml`.
+
+**التحقّق:** `npm audit` 0 · `tsc` نظيف · `vite build` ناجح · **vitest 1291/1291** · حزمة الإصدار مُعاد توليدها. Ratchet: كلّ الفحوص success/skipped على `89135b2` (وظيفتا node-22 خضراوان) + `mergeable_state:clean` ⇒ squash `63a70a7`.
+
+**ما بعد الدمج:** `develop` مُزامَن مع main عبر fast-forward نظيف (كان 200 خلف/0 أمام؛ `84e14f0`→`63a70a7`). الحزمة المصدّرة مُحدَّثة: `sahool_main_63a70a7.zip` (`git archive` من رأس main؛ 5219 ملفّاً، ~12.5MB، SHA الكامل في تعليق الأرشيف؛ تحقّق: `react-router 8.3.0` · `postcss 8.5.23` · صفر `react-router-dom`).
+
 ## 2026-07-25 — بطاقة الأصناف + إغلاق ست فجوات كود + إصلاحات مسار الصور — مدموج PR #632 (`10a8fae`)
 
 **ما أُنجز (على `claude/code-review-34hO3`، دُمج squash في `main`=`10a8fae`):**
@@ -3710,3 +3785,78 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **متابعة صادقة قائمة:** دَيْن هجرة react-router v6→v7 (PR #628 dependabot فُصِل — postcss يبقى، v7 مُؤجَّل
   بأمرَي `@dependabot ignore … major version`؛ كاسر عبر 21 ملفّاً + فقد provenance attestation). ومقارنة
   تاريخَين مخزَّنَين في زرّ «المقارنة» (تحسين).
+
+## 2026-07-25 — V8-05 PR2 مدموج (PR #640، main `aee19cf`)
+- **ماذا:** اختيار التاريخ/المؤشّر في MapHub بلا أثر جانبيّ (إزالة `refreshFieldImagery` من الاختيار حتّى لـ`latest`) +
+  زرّ «عالِج هذا التاريخ» صريح (`btn-process-date`) ⇒ بروكسي منصّة `POST /api/v1/fields/{id}/imagery/process-date`
+  (شقيق single-scene لـbackfill_proxy، `reused_existing_job` idempotent) + عرض عقد سحابة #636 ثنائيّ القيمة
+  (سحابة الحقل AOI مفضّلة + سحابة المشهد صراحةً).
+- **ضريبة تسجيل / درس:** المسار بروكسي **منصّة** ⇒ فشلت «Platform Unit Tests» على حرّاس حوكمة المسارات P0/P1/P2.6.
+  الإصلاح `c1bdfdf`: تسجيل في `platform_extraction_map.json` (target_owner=raster-service كـbackfill_proxy) +
+  `baseline_route_count` 629→630 + رفع مُوثَّق لسقف P2.6 625→626. **الدرس الجذر: شغّل حزمة المنصّة الكاملة
+  (`PYTHONPATH=. pytest tests` من `services/sahool-platform`، 3896) محلّيّاً — حرّاس حوكمة المسارات خارج `tests_v9/-m unit`.**
+- **الدمج:** Ratchet — 64 فحصاً success/skipped على `c1bdfdf` + mergeable clean ⇒ squash `aee19cf`. `develop` مُزامَن.
+
+## 2026-07-25 — H5 PR3 مدموج (PR #641، main `24e8ed7`)
+- **ماذا:** إنفاذ `maximum_allowed_ec` fail-closed في مسار توصية MPC اليوميّ المخدوم عبر ربط ECw بـ`water_source_id`
+  خادميّاً. منطق الإنفاذ كان موجوداً (`canonical_well_capability.WATER_SALINITY_LIMIT_EXCEEDED`) لكن غير موصول.
+  استُخرِج في دالّة نقيّة واحدة `evaluate_water_salinity_gate` (dedup محافظ) ووُصِل: الخادم يحلّ ECw+الحدّ من SoR
+  (`irrigation_water_quality_samples` + `irrigation_water_sources.maximum_allowed_ec_ds_m`) لا من العميل، ويمنع
+  قبل الحساب على تجاوز/عيّنة مفقودة أو قديمة/مصدر غير قابل للحلّ + `requires_expert_review`.
+- **بلا هجرة** (v170 قائم) · **بلا مسار جديد** (حقل طلب إضافيّ) ⇒ لا catalog/PINNED؛ فقط جرد LOC + حزمة.
+- **الدمج:** Ratchet — 64 فحصاً success/skipped على `2a78426` + mergeable clean ⇒ squash `24e8ed7`. develop مُزامَن.
+- **متابعة مُعلَنة:** ربط تلقائيّ على مستوى الحقل (`fields.water_source_id` FK + منتقي واجهة) — لم يُنجَز بصدق.
+
+## 2026-07-25 — WX-10.6 PR4 مدموج (PR #642، main `012605a`)
+- **ماذا:** استبدال إعفاء تغطية-الواجهة لـ`/api/v1/crop-twin/decision-candidate` بتغطية-مصبّ مُثبَتة. البوّابة العكسيّة
+  (`endpoint_ui_coverage_gate`) صارت تعرف `downstream_surface`؛ النقطة نُقلت إلى core (سطح ApprovalsConsole
+  `review-queue`) والإعفاء أُزيل (50→49). E2E مصبّ حقيقيّ (`test_wx10_6_crop_candidate_downstream_e2e.py`،
+  Postgres+SoR، skipif بلا DB): المرشّح المُسجَّل عبر `/v1/decisions/record` يظهر في طابور المراجعة، قابل للمراجعة،
+  معزول بالمستأجِر، لا يُوافَق تلقائيّاً. submit المنتِج يبقى خلف `CROP_TWIN_DIRECT_DECISION_ENABLED`.
+- **4 جولات إصلاح CI — درسان:** (أ) مدخل core في `endpoint_ui_coverage.json` يُحرّك إعادة توليد كتالوج المنصّة
+  (`scripts/architecture/build_platform_catalog.py`) + عدّاد ui_waivers مثبَّت (50→49)؛ وتعديل أيّ `.py` تحت `scripts/`
+  يزيح `service_inventory`. (ب) فحص gitleaks التاريخيّ يقرأ diff كلّ commit؛ `# gitleaks:allow` السطريّ لا يُصلح
+  سطراً في commit سابق ⇒ استعمل `.gitleaks.toml` allowlist. السرّ الوهميّ كان `idempotency_key` اختباريّ
+  (generic-api-key) لا DSN — صحّحتُ التشخيص علناً.
+- **الدمج:** Ratchet — 65 فحصاً success/skipped على `4a569f6` + mergeable clean ⇒ squash `012605a`. develop مُزامَن.
+- **C5 (task 259):** يبقى CODE-PREPARED/CALIBRATION-BLOCKED — سياسة دليل NDVI (#567، `evidence_policy.py`) مبنيّة
+  ومُختبَرة؛ تنتظر **معايرة عتبات NDVI ميدانيّة** (لا بناء سجلّ، لا كود جديد). لم أختلق بناءً.
+
+## 2026-07-25 — إصلاح الثغرتين الأمنيتين + مطابقة سجلّ الفجوات (task 264/265/266)
+- **DECISION-SOR-CUTOVER REVOKE** (`3ebd618`): `platform_sor_revoke.py` + غلاف مشغّل — REVOKE/GRANT عكسيّ (INSERT/UPDATE/DELETE، يُبقي SELECT) على الخمسة platform-owned (يستثني decision_outbox_events)؛ fail-closed خلف cutover/rollback؛ ليست migration؛ same-DB فقط؛ برهان PG حقيقيّ في Decision Service Tests + حارس ساكن unit. الأداة جاهزة؛ التطبيق الحيّ يبقى تشغيليّاً.
+- **WORKER-IDENTITY-BINDING** (`9330407`): `X-Worker-Assertion` مربوطة بالطلب على `/v1/learning/runtime-work` + `.../runtime-workers/{id}/tenants` (subject=worker_id)؛ adapter يوقّع بموقّع مُضمَّن (interop مثبَّت في tests_v9)؛ مرحليّ (fail-open بلا مفتاح، prod-required 503). PARTIALLY-CLOSED: مفتاح مشترك لا PKI لكلّ عامل.
+- **مطابقة السجلّ**: FIELD-SVC-TENANT-HEADER-TRUST → CODE-CLOSED (ADR-0033 الخيار A منفَّذ في main.py:90-152، تصحيح «بلا فرض» البائت)؛ حالتا DECISION-SOR/WORKER-IDENTITY حُدِّثتا.
+- **بوّابات**: `pytest -m unit` 3487 أخضر · حزمة 4885 checksums · wx12 gate PASS · Dockerfile-shared-copy PASS (اختبار interop نُقِل إلى tests_v9). درس: حارس نسخ shared يمسح ملفّات الاختبار — اختبار عبر-حدود يستورد shared يوضَع في tests_v9.
+
+## 2026-07-25 — تقوية DECISION-SOR (مراجعة المالك) + مطابقة صدق الحالات
+- **precursor role-certification (قراءة-فقط):** `decision_sor_role_certify.py` يُنتج المصفوفة الحيّة (current_user/session_user · مالك الجدول · grants الجداول+sequences+functions · role memberships · rolsuper/rolbypassrls · SET ROLE) — لا GRANT/REVOKE (حارس ساكن يؤكّد لا `.execute(`). تحقّق topology: المنصّة=`sahool_app`، دور decision-service **يورَّده المشغّل** (`DECISION_SERVICE_DATABASE_URL` فارغ) ⇒ فصل الاتّصال مؤكَّد، فصل الدور غير مُثبَت.
+- **اختبار امتياز بدورَين مستقلَّين:** `test_decision_sor_db_privilege_cutover.py` (استبدل الاختبار أحادي الدور الضعيف) — platform_test + decision_service_test (NOSUPERUSER/NOBYPASSRLS/NOCREATEROLE)؛ بعد الـrevoke: المنصّة تقرأ ولا تكتب (`InsufficientPrivilegeError` من القاعدة لا Python guard)، الخدمة تكتب؛ فحص catalog + ownership + sequences + SECURITY DEFINER + SET ROLE + rollback.
+- **صدق الحالات (قرار المالك):** FIELD-SVC=CLOSED_IN_CODE/LIVE_CONFIG_AND_REPLAY_E2E_PENDING · DECISION-SOR=OPEN_P0/BLOCKED_ON_DB_ROLE_TOPOLOGY_VERIFICATION (+ precursor certification) · WORKER-IDENTITY-BINDING=CLOSED_FOR_SHARED_BEARER_IMPERSONATION_IN_PROD + فجوة جديدة WORKER-IDENTITY-HARDENING=OPEN_HIGH · H5 مقسَّم: H5-EC-GATE-WIRING=CLOSED_IN_CODE + IRRIGATION-WATER-SUITABILITY=BLOCKED_DESIGN_DATA_AUTHORITY. نموذج الأدوار الثلاثة (decision_schema_owner/decision_service_app/sahool_app) **توصية** في الرنبوك لا ADR (لئلّا يُجمَّد افتراض قبل الشهادة الحيّة).
+
+## 2026-07-26 — H5.1 نزاهة الريّ: ربط الحقل بمصدر الماء خادميّاً + درجات ثقة العيّنة (`3033765`)
+- **جدول الوصل (v214):** `field_irrigation_source_assignments` (tenant/field/water_source + valid_from/valid_to + priority + mixing_ratio + status) بـRLS صارم FORCE+WITH CHECK؛ field_id نصّ بلا FK (نمط جداول الريّ)؛ مُدرَج قبل v206 في MANIFEST + run_migrations. المصدر صار **مُشتَقّ من الخادم لا من العميل**.
+- **مُحلِّل نقيّ:** `services/sahool-platform/api/irrigation_source_binding.py` (SQL الحلّ + انتقاء عيّنة قرار-درجة) يستورده الراوتر **والاختبار الحقيقيّ** ⇒ يُختبَر SQL الفعليّ لا نسخة. أصلح الثغرة الكامنة: الاستعلام القديم `WHERE water_source_id=$1` على جدول مفتاحه `id` كان يرمي دائماً (البوّابة لم تعمل).
+- **سياسة درجات العيّنة (مصدر واحد):** `canonical_well_capability.evaluate_water_salinity_gate(require_decision_grade=True)` — estimated/measured مرفوضة (`WATER_QUALITY_NOT_DECISION_GRADE`)، تمييز «لا عيّنة» عن «غير مُصادَقة». خريطة DB↔canonical موثّقة كافتراض صريح (`measured`→غير قرار-درجة، `certified`→laboratory_verified).
+- **منع التجاوز:** فشل القراءة ⇒ fail-closed؛ `water_source_id` عميل ≠ الربط النشِط ⇒ `water_source_binding_mismatch`؛ الحقل غير المربوط `enforced=false` (يُدار خادميّاً، غير قابل للتزوير).
+- **براهين:** درجات نقيّة + حارس ساكن معاد كتابته (Platform Unit Tests) + شهادة PG حقيقيّة `tests_v9/test_h51_field_source_binding_pg.py` (دور مقيَّد NOBYPASSRLS، `H51_CERTIFICATION_REQUIRED`) تُثبت الحلّ+فلتر الدرجة في SQL+النافذة/الحالة+عزل RLS — شُغّلت خضراء على PG16 محلّيّ + خطوة CI مخصّصة. `pytest -m unit` 3490، حزمة 4890، production_validation_gate أخضر.
+- **درس:** المُحلِّل يُستدعى دائماً الآن ⇒ اختبارا الجسر بلا DB انكسرا (يصيبان DB الغائب) ⇒ mock `_active_field_source_bindings→[]`. و`.hypothesis/` أُضيف لـgitignore (يُشغِّل تحذير BYPASSRLS في security_audit).
+
+## 2026-07-26 — WORKER-IDENTITY-BINDING: برهان endpoint-level على PG حقيقيّ (`ff3a11d`)
+- **الفجوة:** `test_feed_enforces_worker_partition_end_to_end` القائم يثبت قسمة worker→tenant عبر HTTP+PG لكن **بلا تفعيل الـassertion** (لا مفتاح) ⇒ لا يمسّ ربط هويّة X-Worker-Assertion (#646) على النقطة الفعليّة.
+- **البرهان الجديد:** `test_worker_assertion_identity_binding_enforced_at_endpoint` (assertion مُفعَّلة، PG+HTTP): (1) A بـassertion صالحة يسحب قسمته 200؛ (2) تقديم worker_id=B بـassertion A ⇒ 403 (انتحال محجوب — A لا يسحب feed B)؛ (3) غياب/تزوير (مفتاح خاطئ) ⇒ 403؛ (4) تركيب الضابطين: هويّة A صالحة لا تعبر لمستأجر غير مُفوَّض ⇒ 403 worker_tenant_unauthorized؛ (5) الاكتشاف مربوط بالهويّة (A لا يُعدّد قسمة B). ذاتيّ الاحتواء (monkeypatch لـSOR+المفتاح؛ dev فلا Redis/503). مُثبَّت في wx12_gate. شُغِّل أخضر على PG16 محلّيّ (decision migrations 001-030).
+- **صدق:** يبقى فقط PKI/SPIFFE لكلّ عامل (بنية تحتيّة). لا يُدَّعى «هويّة عامل مكتملة».
+
+## 2026-07-26 — دمج نظامَي Capability-Governance + Architecture-Graph (`3b02b07`)
+- **المصدر:** مرفق المالك `sahool_main_12c10fa_architecture_graph` (لقطة 12c10fa) — أدوات instrumentation إضافيّة فقط، لا تغيير لأيّ كود قائم. أُعيد توليد كلّ المصنوعات على main الحاليّ (20c19bd) لا نسخ 7046ee0 القديمة (أرقام الأسطر/النضج محدَّثة).
+- **capability-governance:** 7 أدوات CI حتميّة (`capability_linker`/`registry_guard`/`runtime_evidence`/`certification_gate`/`traceability_report`/`impact`/`release_report`) + سجلّ 81 قدرة قانونيّ + سكيمة JSON + وثيقة حوكمة (سلّم أدلّة E0–E5) + workflow مستقلّ `capability-governance.yml` (يحجب: architecture-graph drift + registry + runtime-evidence + اختبارات architecture؛ لا يُدمَج في ci.yml).
+- **architecture-graph:** `architecture_graph.py` (--check/--generate) يبني رسماً محافظاً (152 عقدة/929 حافّة/0 دورات) من أدلّة المستودع فقط + اختباره.
+- **صدق:** الأساس المحافظ ثابت — **صفر قدرة مُعتمَدة إنتاجيّاً** (instrumentation لا برهان إنتاج). جعلتُ الأدوات المنقولة ruff-clean (كامل الشجرة). **قيد معروف:** `capability_linker --check` غير idempotent بعد --apply (قيد أداة المؤلّفين) ⇒ **غير محجوب** عمداً في الـworkflow. registration chain مُعاد + production_validation_gate أخضر (source-of-truth/legacy-path=0 على المجلّدات الجديدة) + `pytest -m unit` 3490.
+
+## 2026-07-26 — دمج نظامَي Runtime-Contracts + Execution-Dependency-Audit (`fe97da5`)
+- **المصدر:** مرفقا المالك `SAHOOL_12C10FA_RUNTIME_CONTRACTS` و`SAHOOL_12C10FA_EXECUTION_AUDIT` (لقطة 12c10fa) — أدوات instrumentation إضافيّة فقط، لا تلمس أيّ كود تشغيل. أُعيد توليد كلّ المصنوعات على main الحاليّ (5ff255b) لا نسخ اللقطة القديمة.
+- **runtime_contract_generator.py:** سطوح عقد التشغيل لكلّ خدمة من `service_inventory.csv` (entrypoint/dockerfile/health/readiness/metrics/otel spans/config/أسماء أسرار بلا قيم). 32 خدمة، مُصنَّف بصدق «static repository evidence only» — `live_runtime_verified: 0`.
+- **execution_dependency_audit.py:** تدقيق تبعيّات تنفيذ + كود ميّت ساكن محافظ (route handlers، حواف نداء، مرشّحات رموز غير مُشار إليها، مجموعات تكرار AST). لا حذف تلقائيّ؛ كلّ مرشّح `review_before_delete`؛ لا ادّعاء وصوليّة تشغيل.
+- **الوصل:** أضفتُ فحصَي `--check` + اختبارَيهما إلى `capability-governance.yml` **إضافيّاً** فوق الفحوص القائمة (architecture-graph + registry + runtime-evidence محفوظة). **أسقطتُ** إشارة الـworkflow المرفقة إلى `decision_lineage_graph.py` — لا وجود لها في المستودع ولا في أيّ مرفق، فالحجب عليها يكسر CI.
+- **مراجعة الأثر الوحيد الملموس (EXECUTION_AUDIT):** تكرار `strong_password` في `services/auth/main.py` — **حميد مُتحقَّق**: ثلاث `@field_validator` classmethods على نماذج Pydantic منفصلة (RegisterRequest/PasswordResetConfirm/InvitationAcceptRequest)، لا تظليل داخل صفّ واحد.
+- **البوّابات:** ruff نظيف؛ `--check` idempotent للأداتين؛ architecture governance 17 اختباراً؛ `pytest -m unit` 3490 نجح/7 تخطّى؛ build_release_bundle + validate (4925 checksums) أخضر.
+- **سياق أمنيّ محسوم هذه الجلسة:** فحص trivy للصور **ليس بوّابة مستودع** (صفر إشارة trivy في الشجرة)؛ ثغراته على مستوى الصورة الأساس/npm-bundled (لا يُصلَح عبر ملفّات التبعيّات). `pip-audit` المسار الحرج أخضر — الإصابة الوحيدة (`ecdsa`/CVE-2024-23342، WONTFIX side-channel، مسار غير مُستخدَم) مُوثَّقة ومُستثناة أصلاً في `ci.yml:1074`.
