@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.1.0",
+  "scope": "path-1-static-architecture-governance",
+  "status": "CLOSED",
+  "static_governance_verified": true,
+  "runtime_verified": false,
+  "production_certified": false,
+  "checks": [
+    {
+      "name": "artifact:capability",
+      "passed": true,
+      "detail": "capabilities/generated/capability_summary.json"
+    },
+    {
+      "name": "artifact:traceability",
+      "passed": true,
+      "detail": "capabilities/generated/capability_traceability_summary.json"
+    },
+    {
+      "name": "artifact:certification",
+      "passed": true,
+      "detail": "capabilities/generated/capability_certification_summary.json"
+    },
+    {
+      "name": "artifact:runtime_evidence",
+      "passed": true,
+      "detail": "capabilities/generated/capability_runtime_evidence_summary.json"
+    },
+    {
+      "name": "artifact:architecture",
+      "passed": true,
+      "detail": "architecture/generated/architecture_graph.json"
+    },
+    {
+      "name": "artifact:runtime_contracts",
+      "passed": true,
+      "detail": "runtime-contracts/generated/runtime_contracts_summary.json"
+    },
+    {
+      "name": "artifact:lineage",
+      "passed": true,
+      "detail": "decision-lineage/generated/decision_lineage_summary.json"
+    },
+    {
+      "name": "artifact:execution",
+      "passed": true,
+      "detail": "execution-audit/generated/execution_audit_summary.json"
+    },
+    {
+      "name": "artifact:duplicates",
+      "passed": true,
+      "detail": "execution-audit/generated/duplicate_definitions.json"
+    },
+    {
+      "name": "artifact:routes",
+      "passed": true,
+      "detail": "execution-audit/generated/route_conflicts.json"
+    },
+    {
+      "name": "artifact:reachability",
+      "passed": true,
+      "detail": "execution-audit/generated/router_reachability.json"
+    },
+    {
+      "name": "architecture:no_cycles",
+      "passed": true,
+      "detail": "cycles=0"
+    },
+    {
+      "name": "lineage:complete_static_chain",
+      "passed": true,
+      "detail": "complete=True"
+    },
+    {
+      "name": "lineage:no_runtime_claim",
+      "passed": true,
+      "detail": "runtime=false, production=false"
+    },
+    {
+      "name": "runtime_contracts:no_live_claim",
+      "passed": true,
+      "detail": "live=0"
+    },
+    {
+      "name": "execution:no_automatic_deletion",
+      "passed": true,
+      "detail": "automatic_deletions=0"
+    },
+    {
+      "name": "definitions:no_duplicates",
+      "passed": true,
+      "detail": "findings=0"
+    },
+    {
+      "name": "routes:no_hard_conflicts",
+      "passed": true,
+      "detail": "hard_conflicts=0"
+    },
+    {
+      "name": "reachability:no_automatic_deletion",
+      "passed": true,
+      "detail": "review-only candidates"
+    },
+    {
+      "name": "certification:no_production_claim",
+      "passed": true,
+      "detail": "production certification remains zero"
+    }
+  ],
+  "tracked_non_blocking_remainders": [
+    "static orphan-service candidates",
+    "cross-scope route review candidates",
+    "routers not provably reachable through static resolution",
+    "capabilities without full UI/mobile/runtime traceability"
+  ],
+  "boundary": "Repository-static evidence only; live stack, telemetry, database, queue, and production execution belong to a separate path.",
+  "content_sha256": "7f6428ee559d664663ea72a1006b513dce3f9ae40e741adadd63b007b83673cc"
+}
