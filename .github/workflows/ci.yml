@@ -681,6 +681,19 @@ jobs:
           TEST_DATABASE_URL="$IRR_F01_UPGRADE_DATABASE_URL" \
           TEST_DATABASE_ADMIN_URL="$IRR_F01_UPGRADE_ADMIN_URL" \
             pytest -v -m integration -rs tests_v9/test_irr_f01_reservation_live_pg.py
+      # ── H5.1 field↔water-source binding certification ──────────────────────────────
+      # The shared integration run connects as the superuser, where the binding resolver's RLS
+      # isolation SKIPS (superuser bypasses RLS). This dedicated step runs it as the restricted
+      # sahool_app_test role with H51_CERTIFICATION_REQUIRED=1 so any skip becomes a HARD failure —
+      # certifying on REAL v214/v168/v170 that the source is server-derived (never client-supplied),
+      # the decision-grade sample filter is enforced in SQL, and tenants cannot see each other's
+      # bindings. The superuser admin DSN seeds cross-tenant dependency rows only.
+      - name: H5.1 field↔source binding certification (real-PG, restricted role)
+        env:
+          TEST_DATABASE_ADMIN_URL: postgresql://sahool_test:test_password@localhost:5433/sahool_test
+          TEST_DATABASE_URL: postgresql://sahool_app_test:app_test_password@localhost:5433/sahool_test
+          H51_CERTIFICATION_REQUIRED: "1"
+        run: pytest -v -m integration -rs tests_v9/test_h51_field_source_binding_pg.py
 
   decision-service-tests:
     name: Decision Service Tests

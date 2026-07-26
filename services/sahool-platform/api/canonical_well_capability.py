@@ -25,6 +25,25 @@ MAX_WATER_QUALITY_AGE_DAYS = 365.0
 WATER_SALINITY_LIMIT_EXCEEDED = "WATER_SALINITY_LIMIT_EXCEEDED"
 WATER_QUALITY_REQUIRED = "WATER_QUALITY_REQUIRED"
 WATER_QUALITY_STALE = "WATER_QUALITY_STALE"
+WATER_QUALITY_NOT_DECISION_GRADE = "WATER_QUALITY_NOT_DECISION_GRADE"
+
+# H5.1 decision-grade sample-quality tiers for SENSITIVE gates. The canonical trust model has
+# three tiers — estimated / field_validated / laboratory_verified — where a sensitive decision
+# gate REJECTS `estimated` and ACCEPTS `field_validated` + `laboratory_verified`. The persisted
+# irrigation_water_quality_samples.quality CHECK uses estimated/measured/field_validated/certified.
+# The honest, conservative mapping (an explicit, correctable policy decision — NOT a silent guess):
+#   estimated       → estimated tier          → REJECTED (not decision-grade)
+#   measured        → bare instrument reading  → REJECTED (unvalidated; below field_validated)
+#   field_validated → field_validated tier     → ACCEPTED
+#   certified       → laboratory_verified tier → ACCEPTED
+# Both the DB `certified` label and the canonical `laboratory_verified` label are treated as
+# decision-grade, so the set is forward- and backward-compatible if the enum is later renamed.
+DECISION_GRADE_SAMPLE_QUALITIES = frozenset({"field_validated", "certified", "laboratory_verified"})
+
+
+def is_decision_grade_sample_quality(quality: Any) -> bool:
+    """True iff a sample-quality label is decision-grade for a sensitive salinity gate."""
+    return isinstance(quality, str) and quality in DECISION_GRADE_SAMPLE_QUALITIES
 
 
 def _digest(payload: Any) -> str:
@@ -99,6 +118,8 @@ def evaluate_water_salinity_gate(
     water_quality: dict[str, Any] | None,
     now: datetime | None = None,
     max_sample_age_days: float = MAX_WATER_QUALITY_AGE_DAYS,
+    require_decision_grade: bool = False,
+    non_decision_grade_sample_present: bool = False,
 ) -> dict[str, Any]:
     """Fail-closed water-salinity verdict bound to a water source.
 
@@ -109,27 +130,49 @@ def evaluate_water_salinity_gate(
     sample fails closed (WATER_QUALITY_REQUIRED); a measured ECw above the limit
     fails closed (WATER_SALINITY_LIMIT_EXCEEDED); a stale sample warns
     (WATER_QUALITY_STALE). No configured maximum ⇒ no limit to enforce ⇒ clear.
+
+    H5.1 — sensitive gates set ``require_decision_grade=True``: only a
+    decision-grade sample (field_validated / laboratory_verified — see
+    DECISION_GRADE_SAMPLE_QUALITIES) may satisfy a configured limit. A sample
+    carrying a non-decision-grade tier (estimated / measured) fails closed
+    (WATER_QUALITY_NOT_DECISION_GRADE) rather than silently being trusted. When
+    the caller has already filtered the sample query to decision-grade rows, it
+    passes ``non_decision_grade_sample_present=True`` if a (rejected)
+    lower-grade sample exists, so the verdict distinguishes "no sample at all"
+    (WATER_QUALITY_REQUIRED) from "only unvalidated samples"
+    (WATER_QUALITY_NOT_DECISION_GRADE). Defaults keep the legacy behaviour for
+    the well-capability path unchanged.
     """
     now = now or datetime.now(UTC)
     maximum_ec = _number(maximum_allowed_ec_ds_m)
     water_ec: float | None = None
     quality_age_days: float | None = None
+    quality_tier: str | None = None
     blockers: list[str] = []
     limitations: list[str] = []
     if water_quality:
         water_ec = _number(water_quality.get("ec_ds_m"))
+        quality_tier = water_quality.get("quality")
         quality_age_h = _age_hours(water_quality.get("sampled_at"), now)
         quality_age_days = None if quality_age_h is None else quality_age_h / 24.0
         if quality_age_days is None:
             limitations.append("water quality timestamp invalid")
         elif quality_age_days > max_sample_age_days:
             blockers.append(WATER_QUALITY_STALE)
+        # H5.1 defense-in-depth: a sample presented to a sensitive gate must be
+        # decision-grade (the resolver already filters, but the rule lives here).
+        if require_decision_grade and not is_decision_grade_sample_quality(quality_tier):
+            blockers.append(WATER_QUALITY_NOT_DECISION_GRADE)
         if maximum_ec is not None and water_ec is not None and water_ec > maximum_ec:
             blockers.append(WATER_SALINITY_LIMIT_EXCEEDED)
     else:
         limitations.append("water quality sample missing")
         if maximum_ec is not None:
-            blockers.append(WATER_QUALITY_REQUIRED)
+            if require_decision_grade and non_decision_grade_sample_present:
+                # Samples exist but none is decision-grade — an honest, distinct signal.
+                blockers.append(WATER_QUALITY_NOT_DECISION_GRADE)
+            else:
+                blockers.append(WATER_QUALITY_REQUIRED)
     return {
         "status": "blocked" if blockers else "clear",
         "blocking_reasons": sorted(set(blockers)),
@@ -137,6 +180,7 @@ def evaluate_water_salinity_gate(
         "water_ec_ds_m": water_ec,
         "maximum_allowed_ec_ds_m": maximum_ec,
         "water_quality_age_days": quality_age_days,
+        "water_quality_tier": quality_tier,
     }
 
 

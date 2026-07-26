@@ -6565,7 +6565,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1e15076676be97e0d4ce1d8b00c9a342b496400bac94aeba2b01f3dfcff0b564"
+          "content": "fa3f8f90816bedf8c4a6f134579dade070a695b3db7a9e1bb1388c396b74221c"
         }
       ],
       "name": "migrations/MANIFEST.txt",
@@ -14785,7 +14785,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b39953381a09eafa29a264f7d6e14241f61cf351d724df8f2b6c45da01e6d87e"
+          "content": "b922a7f8c64f2e76e8c6bc18429ede85f85d91c38ede33cda17a631d8959fca4"
         }
       ],
       "name": "services/sahool-platform/api/canonical_well_capability.py",
@@ -17405,7 +17405,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d6ed050a4ae705e72edb55c7381bfb7c57b2a419bdf72042459a7e5765d0ac2"
+          "content": "3a4e4245192c615b08fb5208afe6c1392caf150e05dfc7341bdd9b83ec1a5b8a"
         }
       ],
       "name": "services/sahool-platform/api/routers/irrigation_mpc.py",
@@ -24285,7 +24285,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4adcfa7268125f1b2e64daefc8ed016993aaf127b31ed0e1760d6f0fa5bc6bae"
+          "content": "704ebee64a81c0f77e954bc1a6d01a8a46434fdc9c99b15e6507b484da267d39"
         }
       ],
       "name": "services/sahool-platform/tests/test_h5_salinity_ecw_binding.py",

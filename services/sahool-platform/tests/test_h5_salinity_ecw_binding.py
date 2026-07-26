@@ -13,6 +13,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from api.canonical_well_capability import (
+    WATER_QUALITY_NOT_DECISION_GRADE,
     WATER_QUALITY_REQUIRED,
     WATER_QUALITY_STALE,
     WATER_SALINITY_LIMIT_EXCEEDED,
@@ -21,9 +22,9 @@ from api.canonical_well_capability import (
 )
 
 NOW = datetime(2026, 7, 25, 12, 0, tzinfo=UTC)
-ROUTE_SRC = (
-    Path(__file__).resolve().parents[1] / "api" / "routers" / "irrigation_mpc.py"
-).read_text(encoding="utf-8")
+_API = Path(__file__).resolve().parents[1] / "api"
+ROUTE_SRC = (_API / "routers" / "irrigation_mpc.py").read_text(encoding="utf-8")
+BIND_SRC = (_API / "irrigation_source_binding.py").read_text(encoding="utf-8")
 
 
 # ─────────────────────────── pure gate: fail-closed rule ───────────────────────────
@@ -131,24 +132,130 @@ def test_build_capability_verified_when_salinity_clear():
     assert WATER_SALINITY_LIMIT_EXCEEDED not in data["blocking_reasons"]
 
 
+# ───────────── H5.1 sensitive-gate tier policy (pure): estimated rejected ─────────────
+
+
+def _dg(quality: str, ec: float = 2.0, age_days: int = 10) -> dict:
+    return {
+        "ec_ds_m": ec,
+        "sampled_at": (NOW - timedelta(days=age_days)).isoformat(),
+        "quality": quality,
+    }
+
+
+def test_gate_rejects_estimated_sample_when_decision_grade_required():
+    v = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality=_dg("estimated"),
+        now=NOW,
+        require_decision_grade=True,
+    )
+    assert v["status"] == "blocked"
+    assert WATER_QUALITY_NOT_DECISION_GRADE in v["blocking_reasons"]
+
+
+def test_gate_rejects_measured_sample_when_decision_grade_required():
+    # `measured` (bare instrument reading) is NOT decision-grade for a sensitive gate.
+    v = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality=_dg("measured"),
+        now=NOW,
+        require_decision_grade=True,
+    )
+    assert v["status"] == "blocked"
+    assert WATER_QUALITY_NOT_DECISION_GRADE in v["blocking_reasons"]
+
+
+def test_gate_accepts_field_validated_sample():
+    v = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality=_dg("field_validated"),
+        now=NOW,
+        require_decision_grade=True,
+    )
+    assert v["status"] == "clear", v
+
+
+def test_gate_accepts_certified_sample_as_laboratory_verified():
+    # DB `certified` maps to the canonical laboratory_verified tier — decision-grade.
+    v = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality=_dg("certified"),
+        now=NOW,
+        require_decision_grade=True,
+    )
+    assert v["status"] == "clear", v
+
+
+def test_gate_only_lower_grade_present_is_not_decision_grade():
+    # Resolver filtered to decision-grade rows (none), but a lower-grade sample exists → distinct.
+    v = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality=None,
+        now=NOW,
+        require_decision_grade=True,
+        non_decision_grade_sample_present=True,
+    )
+    assert v["status"] == "blocked"
+    assert WATER_QUALITY_NOT_DECISION_GRADE in v["blocking_reasons"]
+    assert WATER_QUALITY_REQUIRED not in v["blocking_reasons"]
+
+
+def test_gate_no_sample_at_all_is_required_not_grade():
+    v = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality=None,
+        now=NOW,
+        require_decision_grade=True,
+        non_decision_grade_sample_present=False,
+    )
+    assert v["status"] == "blocked"
+    assert WATER_QUALITY_REQUIRED in v["blocking_reasons"]
+    assert WATER_QUALITY_NOT_DECISION_GRADE not in v["blocking_reasons"]
+
+
+def test_gate_legacy_path_does_not_require_decision_grade():
+    # Backward compat: the well-capability path (require_decision_grade default False) accepts an
+    # untagged sample below the limit — unchanged behaviour.
+    v = evaluate_water_salinity_gate(
+        maximum_allowed_ec_ds_m=3.0,
+        water_quality={"ec_ds_m": 2.0, "sampled_at": (NOW - timedelta(days=10)).isoformat()},
+        now=NOW,
+    )
+    assert v["status"] == "clear"
+
+
 # ─────────────────── static wiring guard: served MPC recommendation ───────────────────
 
 
-def test_recommendation_route_binds_ecw_to_source_and_enforces_fail_closed():
-    # Request carries a water_source_id binding (server-authoritative EC resolution).
+def test_binding_module_owns_server_authoritative_sql():
+    # The source is resolved from the server-side binding table, joined to the source limit, with
+    # the decision-grade sample filter — the SQL lives in the pure module (exercised by real-PG test).
+    assert "field_irrigation_source_assignments" in BIND_SRC
+    assert "irrigation_water_sources" in BIND_SRC
+    assert "maximum_allowed_ec_ds_m" in BIND_SRC
+    assert "irrigation_water_quality_samples" in BIND_SRC
+    assert "DECISION_GRADE_SAMPLE_QUALITY_LIST" in BIND_SRC
+
+
+def test_recommendation_route_derives_source_server_side_and_fails_closed():
+    # water_source_id stays on the request but is advisory only (anti-steering), NOT the source.
     assert "water_source_id: str | None" in ROUTE_SRC
-    # Server resolves ECw + the limit from SoR (not from the client).
-    assert "irrigation_water_sources" in ROUTE_SRC
-    assert "maximum_allowed_ec_ds_m" in ROUTE_SRC
-    assert "irrigation_water_quality_samples" in ROUTE_SRC
-    # The served route runs the canonical fail-closed gate and blocks with expert review.
+    # Server resolves the active binding(s) from SoR — never trusts the client for the source.
+    assert "resolve_active_bindings(" in ROUTE_SRC
+    assert "_active_field_source_bindings(" in ROUTE_SRC
+    # Sensitive gate: decision-grade tier enforced; canonical fail-closed verdict + expert review.
+    assert "require_decision_grade=True" in ROUTE_SRC
     assert "evaluate_water_salinity_gate(" in ROUTE_SRC
     assert "water_salinity_gate_blocked" in ROUTE_SRC
-    assert "water_source_unresolved" in ROUTE_SRC
     assert "requires_expert_review" in ROUTE_SRC
+    # Client bypass closed: a read failure fails closed; a mismatched client source is rejected.
+    assert "water_source_binding_unresolved" in ROUTE_SRC
+    assert "water_source_binding_mismatch" in ROUTE_SRC
 
 
 def test_recommendation_route_does_not_trust_client_ecw():
-    # No client-supplied ECw field on the operational recommendation request — the binding
-    # is server-authoritative via water_source_id, resolved from SoR.
+    # No client-supplied ECw on the operational recommendation request — the binding is
+    # server-authoritative, resolved from SoR (the old buggy client-source query is gone).
     assert "water_ec: float" not in ROUTE_SRC
+    assert "WHERE water_source_id=$1" not in ROUTE_SRC  # the removed latent bug must not return
