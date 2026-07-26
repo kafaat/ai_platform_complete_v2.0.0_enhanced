@@ -1,0 +1,110 @@
+schema_version: 1.0.0
+source_policy: curated_only
+items:
+  - id: WX-10
+    title: CanonicalWeatherState
+    status: in_progress
+    source: sahool-brain/decisions/architecture_roadmap_wx10_ci11.md
+    source_anchor: "### WX-10 — CanonicalWeatherState"
+    capability_links:
+      - {id: WX-001, relation: contained_view, rationale: "Current weather becomes a view over the canonical state."}
+      - {id: WX-002, relation: contained_view, rationale: "Forecast becomes a view over the canonical state."}
+      - {id: WX-003, relation: contained_view, rationale: "History becomes a view over the canonical state."}
+      - {id: WX-004, relation: derived_product, rationale: "ET0 is explicitly defined as a derived product."}
+      - {id: WX-005, relation: derived_product, rationale: "VPD is explicitly defined as a derived product."}
+      - {id: WX-006, relation: derived_product, rationale: "GDD is explicitly defined as a derived product."}
+      - {id: WX-007, relation: derived_product, rationale: "Frost and heat risk are contained state products."}
+      - {id: WX-008, relation: derived_product, rationale: "Operation windows are contained state products."}
+      - {id: WX-009, relation: downstream_model, rationale: "Disease models consume canonical weather state."}
+      - {id: WX-010, relation: governing_contract, rationale: "Provenance and quality are mandatory state-product fields."}
+
+  - id: WX-11
+    title: Agricultural Capability Registry
+    status: implemented_static
+    source: sahool-brain/decisions/architecture_roadmap_wx10_ci11.md
+    source_anchor: "### WX-11 — Agricultural Capability Registry"
+    capability_links: []
+    impact_scope: all_capabilities
+    governance_scope:
+      - docs/capability-registry/capability_index.yaml
+      - docs/capability-registry/domains
+      - docs/capability-registry/schema
+      - scripts/ci/capability_registry_v1.py
+      - scripts/ci/capability_mapping_engine.py
+      - scripts/ci/capability_evidence_maturity_engine.py
+      - scripts/ci/capability_parity_investment_engine.py
+      - scripts/ci/capability_roadmap_linker.py
+      - scripts/ci/pr_capability_impact_gate.py
+
+  - id: CI-7
+    title: Canonical Inputs
+    status: planned
+    source: sahool-brain/decisions/architecture_roadmap_wx10_ci11.md
+    source_anchor: "### CI-7 — Canonical Inputs"
+    capability_links:
+      - {id: WX-010, relation: canonical_input, rationale: "Represents the canonical weather state contract and provenance."}
+      - {id: IRR-004, relation: canonical_input, rationale: "Water balance is the current canonical water-state substrate."}
+      - {id: SAT-003, relation: canonical_input, rationale: "NDVI is a principal canonical spectral product."}
+      - {id: SAT-004, relation: canonical_input, rationale: "NDMI is a principal canonical spectral product."}
+      - {id: SAT-005, relation: quality_gate, rationale: "Cloud screening governs spectral-state quality."}
+      - {id: SAT-009, relation: persistence_substrate, rationale: "COG persistence and tiling provide the spectral-state storage substrate."}
+      - {id: SOIL-001, relation: canonical_input, rationale: "Soil profile is a core canonical soil-state input."}
+      - {id: SOIL-005, relation: canonical_input, rationale: "Soil water properties are a core canonical soil-state input."}
+
+  - id: CI-8
+    title: CropRecommendationContext
+    status: partial
+    source: sahool-brain/decisions/architecture_roadmap_wx10_ci11.md
+    source_anchor: "### CI-8 — CropRecommendationContext"
+    capability_links:
+      - {id: DEC-001, relation: context_evidence, rationale: "The context must carry evidence and provenance."}
+      - {id: DEC-002, relation: consuming_capability, rationale: "Decision candidate generation is the direct consumer."}
+      - {id: FM-004, relation: context_input, rationale: "Season lifecycle is the current crop-state substrate."}
+      - {id: IRR-004, relation: context_input, rationale: "Water balance supplies water state."}
+      - {id: IRR-005, relation: recommendation_input, rationale: "Irrigation recommendation is an existing recommendation product."}
+      - {id: SAT-008, relation: context_input, rationale: "Stress zones supply stress state."}
+      - {id: WX-010, relation: context_input, rationale: "Weather provenance and quality represent weather state."}
+
+  - id: CI-9
+    title: Policy Engine
+    status: planned
+    source: sahool-brain/decisions/architecture_roadmap_wx10_ci11.md
+    source_anchor: "### CI-9 — Policy Engine"
+    capability_links:
+      - {id: DEC-002, relation: policy_consumer, rationale: "Decision candidates consume evaluated policies."}
+      - {id: DEC-003, relation: policy_control, rationale: "Human approval remains a policy-controlled boundary."}
+      - {id: DEC-010, relation: policy_lifecycle, rationale: "Policy promotion and rollback require lifecycle controls."}
+      - {id: FM-005, relation: crop_policy_input, rationale: "Crop and cultivar policy depends on the canonical catalog."}
+      - {id: IRR-005, relation: water_policy_consumer, rationale: "Irrigation recommendations consume water policies."}
+      - {id: WX-008, relation: weather_policy_consumer, rationale: "Operation windows are weather-policy products."}
+      - {id: WX-009, relation: weather_policy_consumer, rationale: "Disease models consume weather and regional policies."}
+
+  - id: CI-10
+    title: Agricultural Knowledge Layer
+    status: planned
+    source: sahool-brain/decisions/architecture_roadmap_wx10_ci11.md
+    source_anchor: "### CI-10 — Agricultural Knowledge Layer"
+    capability_links:
+      - {id: FM-004, relation: phenology_knowledge, rationale: "Season lifecycle provides the current phenology substrate."}
+      - {id: FM-005, relation: crop_knowledge, rationale: "Crop and cultivar catalog anchors crop knowledge."}
+      - {id: IRR-005, relation: irrigation_knowledge, rationale: "Irrigation recommendation consumes irrigation knowledge."}
+      - {id: IRR-009, relation: irrigation_knowledge, rationale: "Water suitability is a multi-hazard knowledge product."}
+      - {id: OPS-001, relation: operations_knowledge, rationale: "Task management consumes operations knowledge."}
+      - {id: SOIL-004, relation: nutrient_knowledge, rationale: "Soil chemistry and nutrients anchor nutrient knowledge."}
+      - {id: WX-009, relation: disease_knowledge, rationale: "Disease weather models consume disease knowledge."}
+
+  - id: CI-11
+    title: Crop Learning Engine
+    status: planned
+    source: sahool-brain/decisions/architecture_roadmap_wx10_ci11.md
+    source_anchor: "### CI-11 — Crop Learning Engine"
+    capability_links:
+      - {id: DEC-002, relation: loop_stage, rationale: "Recommendation enters the loop as a decision candidate."}
+      - {id: DEC-003, relation: loop_stage, rationale: "Decision approval is an explicit loop stage."}
+      - {id: DEC-004, relation: loop_stage, rationale: "Execution request begins controlled execution."}
+      - {id: DEC-005, relation: loop_stage, rationale: "Dispatch authorization gates execution."}
+      - {id: DEC-006, relation: loop_stage, rationale: "Execution receipt records the performed action."}
+      - {id: DEC-007, relation: loop_stage, rationale: "Outcome recording closes the operational loop."}
+      - {id: DEC-008, relation: loop_stage, rationale: "Learning attribution links outcomes to recommendations."}
+      - {id: DEC-009, relation: learning_output, rationale: "Calibration is a principal learning output."}
+      - {id: DEC-010, relation: learning_output, rationale: "Model and policy activation apply learned changes safely."}

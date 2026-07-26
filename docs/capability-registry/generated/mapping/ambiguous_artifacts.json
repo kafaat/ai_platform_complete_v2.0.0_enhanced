@@ -1677,6 +1677,50 @@
     ]
   },
   {
+    "path": "docs/capability-registry/roadmap/roadmap_items.yaml",
+    "kind": "other",
+    "candidates": [
+      {
+        "capability_id": "FM-004",
+        "score": 32,
+        "signals": [
+          "content:Season lifecycle",
+          "content:season",
+          "content:season lifecycle",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "WX-010",
+        "score": 30,
+        "signals": [
+          "content:Weather provenance and quality",
+          "content:canonical weather",
+          "content:weather provenance",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-005",
+        "score": 30,
+        "signals": [
+          "content:Irrigation recommendation",
+          "content:irrigation recommendation",
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "DEC-002",
+        "score": 30,
+        "signals": [
+          "content:Decision candidate",
+          "content:decision candidate",
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
     "path": "docs/history/COMPETITIVE_ANALYSIS.md",
     "kind": "other",
     "candidates": [
@@ -3981,259 +4025,6 @@
         "signals": [
           "content:farm",
           "content:farms"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/architecture/service-map.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "SAT-001",
-        "score": 12,
-        "signals": [
-          "content:cdse",
-          "content:sentinel",
-          "content:stac"
-        ]
-      },
-      {
-        "capability_id": "INT-002",
-        "score": 9,
-        "signals": [
-          "content:jetstream",
-          "content:nats"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/decisions/architecture_roadmap_wx10_ci11.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "WX-006",
-        "score": 12,
-        "signals": [
-          "content:GDD",
-          "content:gdd"
-        ]
-      },
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "WX-005",
-        "score": 10,
-        "signals": [
-          "content:VPD",
-          "content:vpd"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/decisions/engine-ownership.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "WX-006",
-        "score": 12,
-        "signals": [
-          "content:GDD",
-          "content:gdd"
-        ]
-      },
-      {
-        "capability_id": "WX-005",
-        "score": 12,
-        "signals": [
-          "content:VPD",
-          "content:vpd"
-        ]
-      },
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/decisions/ledger.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "SAT-001",
-        "score": 17,
-        "signals": [
-          "content:cdse",
-          "content:sentinel",
-          "content:stac"
-        ]
-      },
-      {
-        "capability_id": "SEC-001",
-        "score": 16,
-        "signals": [
-          "content:Tenant RLS",
-          "content:rls",
-          "content:row level security",
-          "content:tenant isolation"
-        ]
-      },
-      {
-        "capability_id": "SEC-004",
-        "score": 15,
-        "signals": [
-          "content:MFA",
-          "content:mfa",
-          "content:recovery code"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/decisions/water-intelligence-direction.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "WX-004",
-        "score": 12,
-        "signals": [
-          "content:ET0",
-          "content:et0"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "IRR-004",
-        "score": 12,
-        "signals": [
-          "content:Water balance",
-          "content:water balance"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/gaps/registry.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "SEC-004",
-        "score": 15,
-        "signals": [
-          "content:MFA",
-          "content:mfa",
-          "content:recovery code"
-        ]
-      },
-      {
-        "capability_id": "SEC-001",
-        "score": 13,
-        "signals": [
-          "content:rls",
-          "content:row level security",
-          "content:tenant isolation"
-        ]
-      },
-      {
-        "capability_id": "SAT-001",
-        "score": 13,
-        "signals": [
-          "content:cdse",
-          "content:sentinel",
-          "content:stac"
-        ]
-      },
-      {
-        "capability_id": "SEC-003",
-        "score": 12,
-        "signals": [
-          "content:Worker identity binding",
-          "content:worker identity"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/log.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "SEC-004",
-        "score": 22,
-        "signals": [
-          "content:MFA",
-          "content:mfa",
-          "content:recovery code",
-          "content:totp"
-        ]
-      },
-      {
-        "capability_id": "SAT-005",
-        "score": 21,
-        "signals": [
-          "content:aoi cloud",
-          "content:cloud mask",
-          "content:scene cloud",
-          "content:scl"
-        ]
-      }
-    ]
-  },
-  {
-    "path": "sahool-brain/reports/PLATFORM_INVENTORY.md",
-    "kind": "other",
-    "candidates": [
-      {
-        "capability_id": "FM-007",
-        "score": 13,
-        "signals": [
-          "path:inventory",
-          "content:inventory"
-        ]
-      },
-      {
-        "capability_id": "SAT-003",
-        "score": 12,
-        "signals": [
-          "content:NDVI",
-          "content:ndvi"
-        ]
-      },
-      {
-        "capability_id": "OPS-003",
-        "score": 12,
-        "signals": [
-          "content:Scouting",
-          "content:scouting"
-        ]
-      },
-      {
-        "capability_id": "SAT-009",
-        "score": 11,
-        "signals": [
-          "content:cog",
-          "content:raster tile",
-          "content:tilejson"
         ]
       }
     ]
@@ -9317,6 +9108,33 @@
       },
       {
         "capability_id": "DEC-009",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "tests/architecture/test_pr_capability_impact_gate.py",
+    "kind": "tests",
+    "candidates": [
+      {
+        "capability_id": "WX-002",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "WX-001",
+        "score": 20,
+        "signals": [
+          "explicit_id"
+        ]
+      },
+      {
+        "capability_id": "IRR-004",
         "score": 20,
         "signals": [
           "explicit_id"

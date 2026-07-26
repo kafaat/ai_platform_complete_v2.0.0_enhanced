@@ -47,6 +47,11 @@ SKIP_PARTS = {
     "__pycache__",
     ".pytest_cache",
     ".next",
+    # Agent knowledge base: prose memory, not implementation evidence. It is not in
+    # the release bundle and is rewritten every session, so scanning it both injects
+    # spurious keyword hits (e.g. "IF" in narrative text) and makes the map churn —
+    # line-number shifts flip which equal-score hit wins, drifting CI vs local.
+    "sahool-brain",
 }
 
 # High-signal synonyms. Generic words are deliberately absent.

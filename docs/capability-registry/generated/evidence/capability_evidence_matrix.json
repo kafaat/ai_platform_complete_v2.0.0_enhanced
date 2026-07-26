@@ -1329,6 +1329,7 @@
       "unit_test_paths": [
         "services/sahool-platform/tests/test_scenario_whatif.py",
         "services/sahool-platform/tests/test_water_balance.py",
+        "tests/architecture/test_pr_capability_impact_gate.py",
         "tests_v9/test_h5_api_salinity.py",
         "tests_v9/test_h5_water_balance_auto.py",
         "tests_v9/test_predictive_irrigation.py"
@@ -2429,7 +2430,7 @@
       "evidence": {
         "api": true,
         "backend": true,
-        "database": true,
+        "database": false,
         "documentation": true,
         "events": true,
         "integration_tests": true,
@@ -2440,7 +2441,7 @@
         "unit_tests": true,
         "web": false
       },
-      "evidence_score": 7,
+      "evidence_score": 6,
       "integration_test_paths": [
         "tests_v9/test_deferred_satellite_integration_v30_4.py",
         "tests_v9/test_imagery_aoi_cloud_contract.py"
@@ -3252,9 +3253,10 @@
       ]
     },
     {
-      "assessed_maturity": 1,
+      "assessed_maturity": 2,
       "assessment_reasons": [
         "repository_implementation_present",
+        "exposed_surface_and_test_evidence",
         "runtime_not_verified_caps_maturity_at_3",
         "production_not_certified_caps_maturity_below_5"
       ],
@@ -3274,18 +3276,21 @@
         "production": false,
         "runtime": false,
         "runtime_instrumentation": false,
-        "unit_tests": false,
+        "unit_tests": true,
         "web": false
       },
-      "evidence_score": 2,
+      "evidence_score": 3,
       "integration_test_paths": [],
       "learning_linked": false,
       "maturity_alignment": "declared_above_evidence",
-      "maturity_delta": -2,
+      "maturity_delta": -1,
       "production_certified": false,
       "runtime_verified": false,
       "title": "Current weather",
-      "unit_test_paths": []
+      "unit_test_paths": [
+        "tests/architecture/test_capability_roadmap_linker.py",
+        "tests/architecture/test_pr_capability_impact_gate.py"
+      ]
     },
     {
       "assessed_maturity": 3,
@@ -3338,6 +3343,7 @@
         "services/sahool-platform/tests/test_planting_window.py",
         "services/weather-service/tests/test_p3_weather_service_runtime.py",
         "services/weather-service/tests/test_raw_weather_processing.py",
+        "tests/architecture/test_pr_capability_impact_gate.py",
         "tests_v9/test_canonical_water_state_mpc.py",
         "tests_v9/test_capabilities.py",
         "tests_v9/test_endpoint_auth_coverage.py",
@@ -3773,7 +3779,7 @@
   "source_registry": "docs/capability-registry/generated/capability_registry.json",
   "summary": {
     "aligned": 26,
-    "average_assessed_maturity": 2.0,
+    "average_assessed_maturity": 2.01,
     "capability_count": 81,
     "declared_above_evidence": 52,
     "evidence_above_declared": 3,
