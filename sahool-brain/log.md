@@ -3945,3 +3945,11 @@ SQLEditor — حُلّت بإبقاء CSV+JSON معاً)، دُمجت عبر che
 - **قياسات المخطّط المبنيّ:** 322 جدول · **311 مُفعَّل RLS = 311 FORCE-RLS** (كلّ جدول RLS مُجبَر — عزل مستأجرين صارم شامل) · 316 سياسة (210 منها `tenant_isolation`) · 93 مُشغّل · 1088 دالّة. v206 (تصليب RLS النهائيّ) شغّل آخراً ⇒ يفسّر 311/311 FORCE.
 - **بوّابة المستودع:** `bash scripts/production_validation_gate.sh` أخضر (تزامن MANIFEST↔runner + python compile 2803 ملفّ). 
 - **الصدق:** برهان تطبيق مخطّط/DDL كامل حيّ (ترتيب + FKs + FORCE-RLS + امتدادات) — ليس ادّعاء تشغيل خدمة end-to-end؛ `runtime_verified` يبقى false. طُبِّق على DB مؤقّتة (`chaintest`) أُسقِطت بعد الفحص.
+
+## 2026-07-26 — براهين RLS حيّة على السلسلة الكاملة (PG16) — **CHAIN_RLS_LIVE_PROVEN**
+- **البيئة:** مخطّط السلسلة الكاملة (322 جدول) على PG16.13+PostGIS3.4.2؛ كلّ البراهين تحت `SET ROLE sahool_app` (NOBYPASSRLS).
+- **(أ) تدقيق آليّة العزل عبر كلّ الـ210 سياسة `tenant_isolation`:** 210/210 **FORCE-RLS**. آليّتان مكافئتان: **114** inline `current_setting('app.current_tenant')` (USING+WITH CHECK) · **96** عبر `sahool_effective_tenant_id()` (`NULLIF(COALESCE(app.current_tenant, app.tenant_id),'')` — fail-closed لـNULL). **صفر ثغرة:** كلّ سياسة تعزل على USING **و** WITH CHECK. (تنبيه صدق: تدقيق أوّليّ بمطابقة نصّيّة حرفيّة صنّف 96 «غير مطابقة» خطأً؛ التحقّق أظهر أنّها تستدعي الدالّة المساعِدة التي تقرأ نفس الـGUC. الـ22 منها `tenant_id IS NULL OR …` تسمح بصفوف نظام بلا مستأجِر عمداً.)
+- **الدالّة المساعِدة (برهان مباشر):** `SET app.current_tenant=A ⇒ sahool_effective_tenant_id()=A`؛ GUC غير مضبوط ⇒ NULL (fail-closed).
+- **(ب) 12/12 برهاناً سلوكيّاً حيّاً — جدول لكلّ آليّة:** `actuator_command_dedup` (inline) + `agent_queries` (helper). لكلّ منهما: A يُدرِج صفّه (WITH CHECK يسمح للذات) · B يُدرِج صفّه · USING يعزل (A يرى 1 own، B يرى 1 own) · **A لا يرى صفّ B** (تقاطع=0) · GUC غير مضبوط ⇒ 0 صفوف (fail-closed) · **A لا يُدرِج صفّاً موسوماً tenant B** (`violates row-level security policy`). الآليّتان متطابقتان سلوكيّاً.
+- **مجموع البراهين هذه الجلسة على PG16:** v215 معزول (16) + السلسلة الكاملة تُطبَّق (221 خطوة، 0 خطأ) + عزل حيّ على السلسلة (تدقيق 210 + 12 سلوكيّ). صفر تسرّب عبر المستأجرين في أيّ مسار.
+- **الصدق:** برهان سلوك RLS على مستوى DB — ليس ادّعاء تشغيل خدمة end-to-end؛ `runtime_verified` يبقى false. DB مؤقّتة أُسقِطت.
