@@ -46,14 +46,34 @@ def rel(p: Path) -> str:
     return str(p.relative_to(ROOT))
 
 
+def _tracked_files() -> set[str]:
+    """git-tracked repo-relative paths. rglob counts transient/untracked ``*.py``
+    that exist on a dev machine but not on a clean CI checkout, so ``python_files_parsed``
+    (and this audit's drift digest) diverges local-vs-CI. Tracked files ARE the repo."""
+    import subprocess
+
+    out = subprocess.run(
+        ["git", "ls-files", "-z"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return {r for r in out.split("\0") if r}
+
+
 def files():
     # sorted(): rglob order is filesystem-dependent; sort for deterministic output.
+    tracked = _tracked_files()
     for base in SCAN:
         if not base.exists():
             continue
         for p in sorted(base.rglob("*.py")):
-            if not any(part in SKIP for part in p.parts):
-                yield p
+            if any(part in SKIP for part in p.parts):
+                continue
+            if p.relative_to(ROOT).as_posix() not in tracked:
+                continue
+            yield p
 
 
 def parse(p):
